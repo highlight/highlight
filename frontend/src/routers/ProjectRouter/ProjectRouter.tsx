@@ -12,7 +12,10 @@ import {
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
 import { ErrorObject, Maybe, Project, Workspace } from '@graph/schemas'
 import { Ariakit } from '@highlight-run/ui/components'
-import { useNumericProjectId } from '@hooks/useProjectId'
+import {
+	useLocalStorageProjectId,
+	useNumericProjectId,
+} from '@hooks/useProjectId'
 import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
 import {
 	PlayerUIContextProvider,
@@ -48,6 +51,8 @@ export const ProjectRouter = () => {
 
 	const { projectId } = useNumericProjectId()
 	const { setLoadingState } = useAppLoadingContext()
+	const { setProjectId: setLocalStorageProjectId } =
+		useLocalStorageProjectId()
 
 	const { data, error } = useGetProjectDropdownOptionsQuery({
 		variables: { project_id: projectId! },
@@ -68,7 +73,11 @@ export const ProjectRouter = () => {
 		if (projectId === '5403') {
 			setIndexedDBEnabled(false)
 		}
-	}, [projectId])
+
+		if (projectId) {
+			setLocalStorageProjectId(projectId)
+		}
+	}, [projectId, setLocalStorageProjectId])
 
 	useEffect(() => {
 		let intervalId: NodeJS.Timeout

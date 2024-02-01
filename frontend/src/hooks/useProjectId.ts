@@ -2,6 +2,7 @@ import {
 	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import { matchRoutes, useMatch } from 'react-router-dom'
 
@@ -29,4 +30,14 @@ export function useNumericProjectId(location?: Location) {
 			: project_id
 
 	return { projectId }
+}
+
+export function useLocalStorageProjectId() {
+	const { projectId } = useProjectId()
+	const [localStorageProjectId, setProjectId] = useLocalStorage(
+		'highlight-project-id',
+		projectId,
+	)
+
+	return { projectId: localStorageProjectId, setProjectId }
 }

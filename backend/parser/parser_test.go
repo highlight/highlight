@@ -30,7 +30,7 @@ func TestCoimplexSqlForSearch(t *testing.T) {
 
 	assert.Equal(
 		t,
-		"SELECT * FROM t WHERE SpanName = 'Chris Schmitz' AND Duration > '1000' AND Level = 'info' AND (Source = 'backend' OR Source = 'frontend') AND ServiceName <> 'private-graph' AND SpanName = 'gorm.Query' AND (SpanName <> 'testing' OR SpanName <> 'testing2') AND (hasTokenCaseInsensitive(SpanName, 'body') OR (hasTokenCaseInsensitive(SpanName, 'query') AND hasTokenCaseInsensitive(SpanName, 'asdf')))",
+		"SELECT * FROM t WHERE SpanName = 'Chris Schmitz' AND Duration > '1000' AND Level = 'info' AND (Source = 'backend' OR Source = 'frontend') AND ServiceName <> 'private-graph' AND SpanName = 'gorm.Query' AND ((SpanName <> 'testing' OR SpanName <> 'testing2') OR (SpanName ILIKE '%body query%' AND hasTokenCaseInsensitive(SpanName, 'asdf')))",
 		sql,
 	)
 }
@@ -47,7 +47,7 @@ func TestAttributesSearch(t *testing.T) {
 
 func TestWildcardSearch(t *testing.T) {
 	sql, _ := buildSqlForQuery("*asdf* service_name=*-graph")
-	assert.Equal(t, "SELECT * FROM t WHERE SpanName ILIKE '%asdf%' AND ServiceName LIKE '%-graph'", sql)
+	assert.Equal(t, "SELECT * FROM t WHERE SpanName ILIKE '%asdf%' AND ServiceName ILIKE '%-graph%'", sql)
 }
 
 func buildSqlForQuery(query string) (string, error) {

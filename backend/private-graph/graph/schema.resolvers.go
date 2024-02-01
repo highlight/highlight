@@ -26,6 +26,7 @@ import (
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
+	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -81,6 +82,11 @@ func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.Er
 // DiscordChannelsToNotify is the resolver for the DiscordChannelsToNotify field.
 func (r *errorAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*model.DiscordChannel, error) {
 	return obj.DiscordChannelsToNotify, nil
+}
+
+// MicrosoftTeamsChannelsToNotify is the resolver for the MicrosoftTeamsChannelsToNotify field.
+func (r *errorAlertResolver) MicrosoftTeamsChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*model.MicrosoftTeamsChannel, error) {
+	return obj.MicrosoftTeamsChannelsToNotify, nil
 }
 
 // WebhookDestinations is the resolver for the WebhookDestinations field.
@@ -248,6 +254,11 @@ func (r *logAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.LogA
 // DiscordChannelsToNotify is the resolver for the DiscordChannelsToNotify field.
 func (r *logAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.LogAlert) ([]*model.DiscordChannel, error) {
 	return obj.DiscordChannelsToNotify, nil
+}
+
+// MicrosoftTeamsChannelsToNotify is the resolver for the MicrosoftTeamsChannelsToNotify field.
+func (r *logAlertResolver) MicrosoftTeamsChannelsToNotify(ctx context.Context, obj *model.LogAlert) ([]*model.MicrosoftTeamsChannel, error) {
+	return obj.MicrosoftTeamsChannelsToNotify, nil
 }
 
 // WebhookDestinations is the resolver for the WebhookDestinations field.
@@ -2481,6 +2492,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddDiscordToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
+		if err := r.AddMicrosoftTeamsToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -2530,6 +2545,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeGitHub {
 		if err := r.RemoveDiscordFromWorkspace(workspace); err != nil {
+			return false, err
+		}
+	} else if *integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
+		if err := r.RemoveMicrosoftTeamsFromWorkspace(workspace, projectID); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeGitLab {
@@ -2809,7 +2828,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateErrorAlert is the resolver for the createErrorAlert field.
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int, defaultArg *bool) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, microsoftTeamsChannels []*modelInputs.MicrosoftTeamsChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int, defaultArg *bool) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2859,8 +2878,9 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 		},
 		RegexGroups: &regexGroupsString,
 		AlertIntegrations: model.AlertIntegrations{
-			DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
-			WebhookDestinations:     webhook.GQLInputToGo(webhookDestinations),
+			DiscordChannelsToNotify:        discord.GQLInputToGo(discordChannels),
+			MicrosoftTeamsChannelsToNotify: microsoft_teams.GQLInputToGo(microsoftTeamsChannels),
+			WebhookDestinations:            webhook.GQLInputToGo(webhookDestinations),
 		},
 	}
 
@@ -2884,7 +2904,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 }
 
 // UpdateErrorAlert is the resolver for the updateErrorAlert field.
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, microsoftTeamsChannels []*modelInputs.MicrosoftTeamsChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2951,8 +2971,9 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 	}
 
 	projectAlert.AlertIntegrations = model.AlertIntegrations{
-		DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
-		WebhookDestinations:     webhook.GQLInputToGo(webhookDestinations),
+		DiscordChannelsToNotify:        discord.GQLInputToGo(discordChannels),
+		MicrosoftTeamsChannelsToNotify: microsoft_teams.GQLInputToGo(microsoftTeamsChannels),
+		WebhookDestinations:            webhook.GQLInputToGo(webhookDestinations),
 	}
 
 	if err := r.DB.WithContext(ctx).Model(&model.ErrorAlert{
@@ -3255,6 +3276,17 @@ func (r *mutationResolver) UpdateLogAlert(ctx context.Context, id int, input mod
 		log.WithContext(ctx).Error(err)
 	}
 
+	config := microsoft_teams.WelcomeMessageData{
+		Workspace:     workspace,
+		Admin:         admin,
+		Project:       project,
+		OperationName: "updated",
+	}
+
+	if err := microsoft_teams.SendLogAlertsWelcomeMessage(ctx, alert, &config); err != nil {
+		log.WithContext(ctx).Error(err)
+	}
+
 	return alert, nil
 }
 
@@ -3286,6 +3318,17 @@ func (r *mutationResolver) CreateLogAlert(ctx context.Context, input modelInputs
 		IncludeEditLink:      true,
 		URLSlug:              "alerts/logs",
 	}); err != nil {
+		log.WithContext(ctx).Error(err)
+	}
+
+	teamsMessageInput := microsoft_teams.WelcomeMessageData{
+		Workspace:     workspace,
+		Admin:         admin,
+		Project:       project,
+		OperationName: "created",
+	}
+
+	if err := microsoft_teams.SendLogAlertsWelcomeMessage(ctx, alert, &teamsMessageInput); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
@@ -5672,7 +5715,7 @@ func (r *queryResolver) SessionsReport(ctx context.Context, projectID int, query
 
 	q := fmt.Sprintf(`
 select coalesce(email.Value, nullif(IP, ''), device.Value, Identifier) as key,
-       count(*)                                                        as num_sessions,
+       count(distinct ID)                                              as num_sessions,
        count(distinct date_trunc('day', CreatedAt))                    as num_days_visited,
        count(distinct date_trunc('month', CreatedAt))                  as num_months_visited,
        avg(ActiveLength) / 1000 / 60                                   as avg_active_length_mins,
@@ -6295,6 +6338,35 @@ func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, projectID in
 	return ret, nil
 }
 
+// MicrosoftTeamsChannelSuggestions is the resolver for the microsoft_teams_channel_suggestions field.
+func (r *queryResolver) MicrosoftTeamsChannelSuggestions(ctx context.Context, projectID int) ([]*model.MicrosoftTeamsChannel, error) {
+	ret := []*model.MicrosoftTeamsChannel{}
+
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return ret, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return ret, err
+	}
+
+	tenantId := workspace.MicrosoftTeamsTenantId
+
+	if tenantId == nil {
+		return ret, nil
+	}
+
+	channels, err := microsoft_teams.GetChannelSuggestions(workspace)
+
+	if err != nil {
+		return ret, nil
+	}
+
+	return channels, nil
+}
+
 // DiscordChannelSuggestions is the resolver for the discord_channel_suggestions field.
 func (r *queryResolver) DiscordChannelSuggestions(ctx context.Context, projectID int) ([]*model.DiscordChannel, error) {
 	ret := []*model.DiscordChannel{}
@@ -6375,6 +6447,8 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return workspace.SlackAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeZapier {
 		return project.ZapierAccessToken != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
+		return workspace.MicrosoftTeamsTenantId != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeFront {
 		if project.FrontAccessToken == nil || project.FrontRefreshToken == nil || project.FrontTokenExpiresAt == nil {
 			return false, nil
@@ -6414,6 +6488,8 @@ func (r *queryResolver) IsWorkspaceIntegratedWith(ctx context.Context, integrati
 
 	if integrationType == modelInputs.IntegrationTypeClickUp {
 		return workspace.ClickupAccessToken != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
+		return workspace.MicrosoftTeamsTenantId != nil, nil
 	} else {
 		workspaceMapping := &model.IntegrationWorkspaceMapping{}
 		if err := r.DB.WithContext(ctx).Where(&model.IntegrationWorkspaceMapping{
@@ -7377,7 +7453,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 			StartDate: time.Now().Add(time.Duration(-params.LookbackDays) * 24 * time.Hour),
 			EndDate:   time.Now(),
 		},
-	}, string(modelInputs.MetricColumnDuration), []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, []string{string(semconv.HTTPURLKey)}, 48, string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
+	}, string(modelInputs.MetricColumnDuration), []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, []string{string(semconv.HTTPURLKey)}, pointy.Int(48), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7389,8 +7465,11 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		return item.Group[0]
 	}) {
 		count := 0
+
 		for _, g := range groups {
-			count += int(g.MetricValue)
+			if g.MetricValue != nil {
+				count += int(*g.MetricValue)
+			}
 		}
 		result.Buckets = append(result.Buckets, &modelInputs.CategoryHistogramBucket{
 			Category: url,
@@ -7617,13 +7696,13 @@ func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params
 }
 
 // LogsMetrics is the resolver for the logs_metrics field.
-func (r *queryResolver) LogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (r *queryResolver) LogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadLogsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48, bucketBy, limit, limitAggregator, limitColumn)
+	return r.ClickhouseClient.ReadLogsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, limit, limitAggregator, limitColumn)
 }
 
 // LogsKeys is the resolver for the logs_keys field.
@@ -7884,7 +7963,7 @@ func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelI
 }
 
 // TracesMetrics is the resolver for the traces_metrics field.
-func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy *string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy *string, bucketCount *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7895,7 +7974,7 @@ func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params
 		bucketByDeref = *bucketBy
 	}
 
-	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48, bucketByDeref, limit, limitAggregator, limitColumn)
+	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketByDeref, limit, limitAggregator, limitColumn)
 }
 
 // TracesKeys is the resolver for the traces_keys field.
@@ -7935,13 +8014,13 @@ func (r *queryResolver) ErrorsKeys(ctx context.Context, projectID int, dateRange
 }
 
 // ErrorsMetrics is the resolver for the errors_metrics field.
-func (r *queryResolver) ErrorsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (r *queryResolver) ErrorsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadErrorsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48, bucketBy, limit, limitAggregator, limitColumn)
+	return r.ClickhouseClient.ReadErrorsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, limit, limitAggregator, limitColumn)
 }
 
 // SessionsKeys is the resolver for the sessions_keys field.
@@ -7955,13 +8034,13 @@ func (r *queryResolver) SessionsKeys(ctx context.Context, projectID int, dateRan
 }
 
 // SessionsMetrics is the resolver for the sessions_metrics field.
-func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadSessionsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48, bucketBy, limit, limitAggregator, limitColumn)
+	return r.ClickhouseClient.ReadSessionsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, limit, limitAggregator, limitColumn)
 }
 
 // Params is the resolver for the params field.
@@ -8100,6 +8179,11 @@ func (r *sessionAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj 
 	ret := obj.DiscordChannelsToNotify
 
 	return ret, nil
+}
+
+// MicrosoftTeamsChannelsToNotify is the resolver for the MicrosoftTeamsChannelsToNotify field.
+func (r *sessionAlertResolver) MicrosoftTeamsChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*model.MicrosoftTeamsChannel, error) {
+	return obj.MicrosoftTeamsChannelsToNotify, nil
 }
 
 // WebhookDestinations is the resolver for the WebhookDestinations field.

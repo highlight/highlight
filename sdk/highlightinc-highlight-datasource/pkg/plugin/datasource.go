@@ -213,6 +213,7 @@ type queryInput struct {
 	Metric          string
 	QueryText       string
 	BucketBy        string
+	BucketCount     int
 	Limit           int
 	LimitAggregator string
 	LimitColumn     string
@@ -235,10 +236,12 @@ const (
 
 type MetricBucket struct {
 	BucketID    uint64           `json:"bucket_id" graphql:"bucket_id"`
+	BucketMin   float64          `json:"bucket_min" graphql:"bucket_min"`
+	BucketMax   float64          `json:"bucket_max" graphql:"bucket_max"`
 	Group       []string         `json:"group" graphql:"group"`
 	Column      string           `json:"column" graphql:"column"`
 	MetricType  MetricAggregator `json:"metric_type" graphql:"metric_type"`
-	MetricValue float64          `json:"metric_value" graphql:"metric_value"`
+	MetricValue *float64         `json:"metric_value" graphql:"metric_value"`
 }
 
 type MetricsBuckets struct {
@@ -300,19 +303,19 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	}
 
 	type TracesResult struct {
-		TracesMetrics MetricsBuckets `graphql:"traces_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by, limit: $limit, limit_aggregator: $limit_aggregator, limit_column: $limit_column)"`
+		TracesMetrics MetricsBuckets `graphql:"traces_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by, bucket_count: $bucket_count, limit: $limit, limit_aggregator: $limit_aggregator, limit_column: $limit_column)"`
 	}
 
 	type LogsResult struct {
-		LogsMetrics MetricsBuckets `graphql:"logs_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by, limit: $limit, limit_aggregator: $limit_aggregator, limit_column: $limit_column)"`
+		LogsMetrics MetricsBuckets `graphql:"logs_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by, bucket_count: $bucket_count, limit: $limit, limit_aggregator: $limit_aggregator, limit_column: $limit_column)"`
 	}
 
 	type ErrorsResult struct {
-		ErrorsMetrics MetricsBuckets `graphql:"errors_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by, limit: $limit, limit_aggregator: $limit_aggregator, limit_column: $limit_column)"`
+		ErrorsMetrics MetricsBuckets `graphql:"errors_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by, bucket_count: $bucket_count, limit: $limit, limit_aggregator: $limit_aggregator, limit_column: $limit_column)"`
 	}
 
 	type SessionsResult struct {
-		SessionsMetrics MetricsBuckets `graphql:"sessions_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by, limit: $limit, limit_aggregator: $limit_aggregator, limit_column: $limit_column)"`
+		SessionsMetrics MetricsBuckets `graphql:"sessions_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by, bucket_count: $bucket_count, limit: $limit, limit_aggregator: $limit_aggregator, limit_column: $limit_column)"`
 	}
 
 	var q any
@@ -346,6 +349,7 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 		},
 		"column":           input.Column,
 		"bucket_by":        input.BucketBy,
+		"bucket_count":     input.BucketCount,
 		"limit":            &input.Limit,
 		"limit_aggregator": agg,
 		"limit_column":     &input.LimitColumn,
@@ -371,15 +375,25 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 		bucketIds = append(bucketIds, i)
 	}
 
+	bucketMins := make([]*float64, result.BucketCount)
+	bucketMaxs := make([]*float64, result.BucketCount)
+	for _, bucket := range result.Buckets {
+		bucketMins[bucket.BucketID] = pointy.Float64(bucket.BucketMin)
+		bucketMaxs[bucket.BucketID] = pointy.Float64(bucket.BucketMax)
+	}
+
 	frame := data.NewFrame("response")
 
-	timeValues := lo.Map(bucketIds, func(i uint64, _ int) time.Time {
-		return from.Add(
-			time.Duration(float64(i) / float64(result.BucketCount) * float64(to.Sub(from))))
-	})
+	if input.BucketBy == "Timestamp" {
+		timeValues := lo.Map(bucketIds, func(i uint64, _ int) time.Time {
+			return from.Add(
+				time.Duration(float64(i) / float64(result.BucketCount) * float64(to.Sub(from))))
+		})
 
-	if input.BucketBy != "None" {
 		frame.Fields = append(frame.Fields, data.NewField("time", nil, timeValues))
+	} else if input.BucketBy != "None" {
+		frame.Fields = append(frame.Fields, data.NewField("xMin", nil, bucketMins))
+		frame.Fields = append(frame.Fields, data.NewField("xMax", nil, bucketMaxs))
 	}
 
 	metricTypes := lo.Uniq(lo.Map(result.Buckets, func(bucket *MetricBucket, _ int) MetricAggregator {
@@ -398,7 +412,7 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 					continue
 				}
 
-				values[bucket.BucketID] = pointy.Float64(bucket.MetricValue)
+				values[bucket.BucketID] = bucket.MetricValue
 			}
 
 			frame.Fields = append(frame.Fields, data.NewField(string(metricType)+"."+metricGroup, nil, values))

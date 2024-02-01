@@ -1,16 +1,6 @@
-type ColumnType = 'string' | 'datetime' | 'session' | 'duration'
+import { TraceCustomColumn } from '@/components/CustomColumnPopover'
 
-export type CustomColumn = {
-	id: string
-	label: string
-	type: ColumnType
-	size: string
-	// accessKey is the key used to access the column in the data object
-	// not a perfect snake case to camel case conversion (i.e. id => ID)
-	accessKey: string
-}
-
-const SPAN_NAME_COLUMN: CustomColumn = {
+const SPAN_NAME_COLUMN: TraceCustomColumn = {
 	id: 'span_name',
 	label: 'Span',
 	type: 'string',
@@ -18,7 +8,7 @@ const SPAN_NAME_COLUMN: CustomColumn = {
 	accessKey: 'spanName',
 }
 
-const SERVICE_NAME_COLUMN: CustomColumn = {
+const SERVICE_NAME_COLUMN: TraceCustomColumn = {
 	id: 'service_name',
 	label: 'Service',
 	type: 'string',
@@ -26,7 +16,7 @@ const SERVICE_NAME_COLUMN: CustomColumn = {
 	accessKey: 'serviceName',
 }
 
-const SERVICE_VERSION_COLUMN: CustomColumn = {
+const SERVICE_VERSION_COLUMN: TraceCustomColumn = {
 	id: 'service_version',
 	label: 'Version',
 	type: 'string',
@@ -34,7 +24,7 @@ const SERVICE_VERSION_COLUMN: CustomColumn = {
 	accessKey: 'serviceVersion',
 }
 
-const TRACE_ID_COLUMN: CustomColumn = {
+const TRACE_ID_COLUMN: TraceCustomColumn = {
 	id: 'trace_id',
 	label: 'Trace ID',
 	type: 'string',
@@ -42,7 +32,7 @@ const TRACE_ID_COLUMN: CustomColumn = {
 	accessKey: 'traceID',
 }
 
-const PARENT_SPAN_ID_COLUMN: CustomColumn = {
+const PARENT_SPAN_ID_COLUMN: TraceCustomColumn = {
 	id: 'parent_span_id',
 	label: 'Parent Span ID',
 	type: 'string',
@@ -50,7 +40,7 @@ const PARENT_SPAN_ID_COLUMN: CustomColumn = {
 	accessKey: 'parentSpanID',
 }
 
-const SECURE_SESSION_ID_COLUMN: CustomColumn = {
+const SECURE_SESSION_ID_COLUMN: TraceCustomColumn = {
 	id: 'secure_session_id',
 	label: 'Secure Session ID',
 	type: 'session',
@@ -58,7 +48,7 @@ const SECURE_SESSION_ID_COLUMN: CustomColumn = {
 	accessKey: 'secureSessionID',
 }
 
-const TIMESTAMP_COLUMN: CustomColumn = {
+const TIMESTAMP_COLUMN: TraceCustomColumn = {
 	id: 'timestamp',
 	label: 'Timestamp',
 	type: 'datetime',
@@ -66,7 +56,7 @@ const TIMESTAMP_COLUMN: CustomColumn = {
 	accessKey: 'timestamp',
 }
 
-const START_TIME_COLUMN: CustomColumn = {
+const START_TIME_COLUMN: TraceCustomColumn = {
 	id: 'start_time',
 	label: 'Start Time',
 	type: 'datetime',
@@ -74,7 +64,7 @@ const START_TIME_COLUMN: CustomColumn = {
 	accessKey: 'startTime',
 }
 
-const DURATION_COLUMN: CustomColumn = {
+const DURATION_COLUMN: TraceCustomColumn = {
 	id: 'duration',
 	label: 'Duration',
 	type: 'duration',
@@ -82,7 +72,7 @@ const DURATION_COLUMN: CustomColumn = {
 	accessKey: 'duration',
 }
 
-const ENVIRONMENT_COLUMN: CustomColumn = {
+const ENVIRONMENT_COLUMN: TraceCustomColumn = {
 	id: 'environment',
 	label: 'Environment',
 	type: 'string',
@@ -90,7 +80,7 @@ const ENVIRONMENT_COLUMN: CustomColumn = {
 	accessKey: 'environment',
 }
 
-const SPAN_KIND_COLUMN: CustomColumn = {
+const SPAN_KIND_COLUMN: TraceCustomColumn = {
 	id: 'span_kind',
 	label: 'Span Kind',
 	type: 'string',
@@ -98,7 +88,7 @@ const SPAN_KIND_COLUMN: CustomColumn = {
 	accessKey: 'spanKind',
 }
 
-const STATUS_CODE_COLUMN: CustomColumn = {
+const STATUS_CODE_COLUMN: TraceCustomColumn = {
 	id: 'status_code',
 	label: 'Status Code',
 	type: 'string',
@@ -106,7 +96,7 @@ const STATUS_CODE_COLUMN: CustomColumn = {
 	accessKey: 'statusCode',
 }
 
-const STATUS_MESSAGE_COLUMN: CustomColumn = {
+const STATUS_MESSAGE_COLUMN: TraceCustomColumn = {
 	id: 'status_message',
 	label: 'Status Message',
 	type: 'string',
@@ -114,7 +104,7 @@ const STATUS_MESSAGE_COLUMN: CustomColumn = {
 	accessKey: 'statusMessage',
 }
 
-const TRACE_STATE_COLUMN: CustomColumn = {
+const TRACE_STATE_COLUMN: TraceCustomColumn = {
 	id: 'trace_state',
 	label: 'Trace State',
 	type: 'string',
@@ -131,7 +121,7 @@ export const DEFAULT_TRACE_COLUMNS = [
 	TIMESTAMP_COLUMN,
 ]
 
-export const HIGHLIGHT_STANDARD_COLUMNS: Record<string, CustomColumn> = {
+export const HIGHLIGHT_STANDARD_COLUMNS: Record<string, TraceCustomColumn> = {
 	span_name: SPAN_NAME_COLUMN,
 	service_name: SERVICE_NAME_COLUMN,
 	service_version: SERVICE_VERSION_COLUMN,

@@ -119,17 +119,22 @@ export const TracesPage: React.FC = () => {
 	)
 
 	const histogramBuckets = metricsData?.traces_metrics.buckets
-		.filter((b) => b.metric_type === MetricAggregator.Count)
+		.filter(
+			(b) =>
+				b.metric_type === MetricAggregator.Count &&
+				b.metric_value !== undefined &&
+				b.metric_value !== null,
+		)
 		.map((b) => ({
 			bucketId: b.bucket_id,
-			counts: [{ level: 'traces', count: b.metric_value }],
+			counts: [{ level: 'traces', count: b.metric_value! }],
 		}))
 
 	const totalCount = _.sumBy(
 		metricsData?.traces_metrics.buckets.filter(
 			(b) => b.metric_type === MetricAggregator.Count,
 		),
-		(b) => b.metric_value,
+		(b) => b.metric_value ?? 0,
 	)
 
 	const metricsBuckets: {
@@ -142,6 +147,9 @@ export const TracesPage: React.FC = () => {
 	}
 
 	metricsData?.traces_metrics.buckets.forEach((b) => {
+		if (b.metric_value === undefined || b.metric_value === null) {
+			return
+		}
 		switch (b.metric_type) {
 			case MetricAggregator.Avg:
 				metricsBuckets[b.bucket_id].avg = b.metric_value / 1_000_000

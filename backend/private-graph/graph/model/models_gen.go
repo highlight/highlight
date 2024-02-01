@@ -474,6 +474,7 @@ type LinearTeam struct {
 }
 
 type Log struct {
+	ProjectID       int                    `json:"projectID"`
 	Timestamp       time.Time              `json:"timestamp"`
 	Level           LogLevel               `json:"level"`
 	Message         string                 `json:"message"`
@@ -488,19 +489,20 @@ type Log struct {
 }
 
 type LogAlertInput struct {
-	ProjectID           int                           `json:"project_id"`
-	Name                string                        `json:"name"`
-	CountThreshold      int                           `json:"count_threshold"`
-	BelowThreshold      bool                          `json:"below_threshold"`
-	ThresholdWindow     int                           `json:"threshold_window"`
-	SlackChannels       []*SanitizedSlackChannelInput `json:"slack_channels"`
-	DiscordChannels     []*DiscordChannelInput        `json:"discord_channels"`
-	WebhookDestinations []*WebhookDestinationInput    `json:"webhook_destinations"`
-	Emails              []string                      `json:"emails"`
-	Environments        []string                      `json:"environments"`
-	Disabled            bool                          `json:"disabled"`
-	Default             *bool                         `json:"default"`
-	Query               string                        `json:"query"`
+	ProjectID              int                           `json:"project_id"`
+	Name                   string                        `json:"name"`
+	CountThreshold         int                           `json:"count_threshold"`
+	BelowThreshold         bool                          `json:"below_threshold"`
+	ThresholdWindow        int                           `json:"threshold_window"`
+	SlackChannels          []*SanitizedSlackChannelInput `json:"slack_channels"`
+	DiscordChannels        []*DiscordChannelInput        `json:"discord_channels"`
+	MicrosoftTeamsChannels []*MicrosoftTeamsChannelInput `json:"microsoft_teams_channels"`
+	WebhookDestinations    []*WebhookDestinationInput    `json:"webhook_destinations"`
+	Emails                 []string                      `json:"emails"`
+	Environments           []string                      `json:"environments"`
+	Disabled               bool                          `json:"disabled"`
+	Default                *bool                         `json:"default"`
+	Query                  string                        `json:"query"`
 }
 
 type LogConnection struct {
@@ -545,10 +547,12 @@ type MatchedErrorTag struct {
 
 type MetricBucket struct {
 	BucketID    uint64           `json:"bucket_id"`
+	BucketMin   float64          `json:"bucket_min"`
+	BucketMax   float64          `json:"bucket_max"`
 	Group       []string         `json:"group"`
 	Column      MetricColumn     `json:"column"`
 	MetricType  MetricAggregator `json:"metric_type"`
-	MetricValue float64          `json:"metric_value"`
+	MetricValue *float64         `json:"metric_value"`
 }
 
 type MetricPreview struct {
@@ -572,6 +576,11 @@ type MetricsBuckets struct {
 	Buckets      []*MetricBucket `json:"buckets"`
 	BucketCount  uint64          `json:"bucket_count"`
 	SampleFactor float64         `json:"sample_factor"`
+}
+
+type MicrosoftTeamsChannelInput struct {
+	Name string `json:"name"`
+	ID   string `json:"id"`
 }
 
 type NamedCount struct {
@@ -724,21 +733,22 @@ type ServiceNode struct {
 }
 
 type SessionAlertInput struct {
-	ProjectID           int                           `json:"project_id"`
-	Name                string                        `json:"name"`
-	CountThreshold      int                           `json:"count_threshold"`
-	ThresholdWindow     int                           `json:"threshold_window"`
-	SlackChannels       []*SanitizedSlackChannelInput `json:"slack_channels"`
-	DiscordChannels     []*DiscordChannelInput        `json:"discord_channels"`
-	WebhookDestinations []*WebhookDestinationInput    `json:"webhook_destinations"`
-	Emails              []string                      `json:"emails"`
-	Environments        []string                      `json:"environments"`
-	Disabled            bool                          `json:"disabled"`
-	Default             *bool                         `json:"default"`
-	Type                SessionAlertType              `json:"type"`
-	UserProperties      []*UserPropertyInput          `json:"user_properties"`
-	ExcludeRules        []string                      `json:"exclude_rules"`
-	TrackProperties     []*TrackPropertyInput         `json:"track_properties"`
+	ProjectID              int                           `json:"project_id"`
+	Name                   string                        `json:"name"`
+	CountThreshold         int                           `json:"count_threshold"`
+	ThresholdWindow        int                           `json:"threshold_window"`
+	SlackChannels          []*SanitizedSlackChannelInput `json:"slack_channels"`
+	DiscordChannels        []*DiscordChannelInput        `json:"discord_channels"`
+	MicrosoftTeamsChannels []*MicrosoftTeamsChannelInput `json:"microsoft_teams_channels"`
+	WebhookDestinations    []*WebhookDestinationInput    `json:"webhook_destinations"`
+	Emails                 []string                      `json:"emails"`
+	Environments           []string                      `json:"environments"`
+	Disabled               bool                          `json:"disabled"`
+	Default                *bool                         `json:"default"`
+	Type                   SessionAlertType              `json:"type"`
+	UserProperties         []*UserPropertyInput          `json:"user_properties"`
+	ExcludeRules           []string                      `json:"exclude_rules"`
+	TrackProperties        []*TrackPropertyInput         `json:"track_properties"`
 }
 
 type SessionCommentTagInput struct {
@@ -1176,17 +1186,18 @@ func (e IngestReason) MarshalGQL(w io.Writer) {
 type IntegrationType string
 
 const (
-	IntegrationTypeSlack   IntegrationType = "Slack"
-	IntegrationTypeLinear  IntegrationType = "Linear"
-	IntegrationTypeZapier  IntegrationType = "Zapier"
-	IntegrationTypeFront   IntegrationType = "Front"
-	IntegrationTypeVercel  IntegrationType = "Vercel"
-	IntegrationTypeDiscord IntegrationType = "Discord"
-	IntegrationTypeClickUp IntegrationType = "ClickUp"
-	IntegrationTypeHeight  IntegrationType = "Height"
-	IntegrationTypeGitHub  IntegrationType = "GitHub"
-	IntegrationTypeJira    IntegrationType = "Jira"
-	IntegrationTypeGitLab  IntegrationType = "GitLab"
+	IntegrationTypeSlack          IntegrationType = "Slack"
+	IntegrationTypeLinear         IntegrationType = "Linear"
+	IntegrationTypeZapier         IntegrationType = "Zapier"
+	IntegrationTypeFront          IntegrationType = "Front"
+	IntegrationTypeVercel         IntegrationType = "Vercel"
+	IntegrationTypeDiscord        IntegrationType = "Discord"
+	IntegrationTypeClickUp        IntegrationType = "ClickUp"
+	IntegrationTypeHeight         IntegrationType = "Height"
+	IntegrationTypeGitHub         IntegrationType = "GitHub"
+	IntegrationTypeJira           IntegrationType = "Jira"
+	IntegrationTypeMicrosoftTeams IntegrationType = "MicrosoftTeams"
+	IntegrationTypeGitLab         IntegrationType = "GitLab"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -1200,12 +1211,13 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeHeight,
 	IntegrationTypeGitHub,
 	IntegrationTypeJira,
+	IntegrationTypeMicrosoftTeams,
 	IntegrationTypeGitLab,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeGitLab:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeMicrosoftTeams, IntegrationTypeGitLab:
 		return true
 	}
 	return false
@@ -1425,16 +1437,18 @@ type MetricBucketBy string
 const (
 	MetricBucketByNone      MetricBucketBy = "None"
 	MetricBucketByTimestamp MetricBucketBy = "Timestamp"
+	MetricBucketByHistogram MetricBucketBy = "Histogram"
 )
 
 var AllMetricBucketBy = []MetricBucketBy{
 	MetricBucketByNone,
 	MetricBucketByTimestamp,
+	MetricBucketByHistogram,
 }
 
 func (e MetricBucketBy) IsValid() bool {
 	switch e {
-	case MetricBucketByNone, MetricBucketByTimestamp:
+	case MetricBucketByNone, MetricBucketByTimestamp, MetricBucketByHistogram:
 		return true
 	}
 	return false

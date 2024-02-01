@@ -424,6 +424,7 @@ enum IntegrationType {
 	Height
 	GitHub
 	Jira
+	MicrosoftTeams
 	GitLab
 }
 
@@ -784,6 +785,7 @@ interface Connection {
 }
 
 type Log {
+	projectID: Int!
 	timestamp: Timestamp!
 	level: LogLevel!
 	message: String!
@@ -1044,14 +1046,17 @@ enum MetricColumn {
 enum MetricBucketBy {
 	None
 	Timestamp
+	Histogram
 }
 
 type MetricBucket {
 	bucket_id: UInt64!
+	bucket_min: Float!
+	bucket_max: Float!
 	group: [String!]!
 	column: MetricColumn!
 	metric_type: MetricAggregator!
-	metric_value: Float!
+	metric_value: Float
 }
 
 type MetricsBuckets {
@@ -1197,6 +1202,7 @@ input SessionAlertInput {
 	threshold_window: Int!
 	slack_channels: [SanitizedSlackChannelInput!]!
 	discord_channels: [DiscordChannelInput!]!
+	microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	webhook_destinations: [WebhookDestinationInput!]!
 	emails: [String!]!
 	environments: [String!]!
@@ -1216,6 +1222,7 @@ input LogAlertInput {
 	threshold_window: Int!
 	slack_channels: [SanitizedSlackChannelInput!]!
 	discord_channels: [DiscordChannelInput!]!
+	microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	webhook_destinations: [WebhookDestinationInput!]!
 	emails: [String!]!
 	environments: [String!]!
@@ -1468,6 +1475,16 @@ input DiscordChannelInput {
 	id: String!
 }
 
+type MicrosoftTeamsChannel {
+	id: String!
+	name: String!
+}
+
+input MicrosoftTeamsChannelInput {
+	name: String!
+	id: String!
+}
+
 type WebhookDestination {
 	url: String!
 	authorization: String
@@ -1484,6 +1501,7 @@ type ErrorAlert {
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
 	DiscordChannelsToNotify: [DiscordChannel!]!
+	MicrosoftTeamsChannelsToNotify: [MicrosoftTeamsChannel!]!
 	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
@@ -1516,6 +1534,7 @@ type SessionAlert {
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
 	DiscordChannelsToNotify: [DiscordChannel!]!
+	MicrosoftTeamsChannelsToNotify: [MicrosoftTeamsChannel!]!
 	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
@@ -1537,6 +1556,7 @@ type LogAlert {
 	Name: String!
 	ChannelsToNotify: [SanitizedSlackChannel!]!
 	DiscordChannelsToNotify: [DiscordChannel!]!
+	MicrosoftTeamsChannelsToNotify: [MicrosoftTeamsChannel!]!
 	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String!]!
 	ExcludedEnvironments: [String!]!
@@ -1935,6 +1955,9 @@ type Query {
 	app_version_suggestion(project_id: ID!): [String]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
 	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel!]!
+	microsoft_teams_channel_suggestions(
+		project_id: ID!
+	): [MicrosoftTeamsChannel!]!
 	discord_channel_suggestions(project_id: ID!): [DiscordChannel!]!
 	generate_zapier_access_token(project_id: ID!): String!
 	is_integrated_with(
@@ -2033,6 +2056,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String!
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2080,6 +2104,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2108,6 +2133,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String!
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2125,6 +2151,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String!
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2396,6 +2423,7 @@ type Mutation {
 		threshold_window: Int!
 		slack_channels: [SanitizedSlackChannelInput]!
 		discord_channels: [DiscordChannelInput!]!
+		microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]!
 		environments: [String]!
@@ -2411,6 +2439,7 @@ type Mutation {
 		threshold_window: Int
 		slack_channels: [SanitizedSlackChannelInput]
 		discord_channels: [DiscordChannelInput!]!
+		microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]
 		environments: [String]

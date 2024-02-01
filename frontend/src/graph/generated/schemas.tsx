@@ -421,6 +421,7 @@ export type ErrorAlert = {
 	ExcludedEnvironments: Array<Maybe<Scalars['String']>>
 	Frequency: Scalars['Int']
 	LastAdminToEditID?: Maybe<Scalars['ID']>
+	MicrosoftTeamsChannelsToNotify: Array<MicrosoftTeamsChannel>
 	Name?: Maybe<Scalars['String']>
 	RegexGroups: Array<Maybe<Scalars['String']>>
 	ThresholdWindow?: Maybe<Scalars['Int']>
@@ -743,6 +744,7 @@ export enum IntegrationType {
 	Height = 'Height',
 	Jira = 'Jira',
 	Linear = 'Linear',
+	MicrosoftTeams = 'MicrosoftTeams',
 	Slack = 'Slack',
 	Vercel = 'Vercel',
 	Zapier = 'Zapier',
@@ -826,6 +828,7 @@ export type Log = {
 	level: LogLevel
 	logAttributes: Scalars['Map']
 	message: Scalars['String']
+	projectID: Scalars['Int']
 	secureSessionID?: Maybe<Scalars['String']>
 	serviceName?: Maybe<Scalars['String']>
 	serviceVersion?: Maybe<Scalars['String']>
@@ -845,6 +848,7 @@ export type LogAlert = {
 	EmailsToNotify: Array<Scalars['String']>
 	ExcludedEnvironments: Array<Scalars['String']>
 	LastAdminToEditID?: Maybe<Scalars['ID']>
+	MicrosoftTeamsChannelsToNotify: Array<MicrosoftTeamsChannel>
 	Name: Scalars['String']
 	ThresholdWindow: Scalars['Int']
 	Type: Scalars['String']
@@ -864,6 +868,7 @@ export type LogAlertInput = {
 	discord_channels: Array<DiscordChannelInput>
 	emails: Array<Scalars['String']>
 	environments: Array<Scalars['String']>
+	microsoft_teams_channels: Array<MicrosoftTeamsChannelInput>
 	name: Scalars['String']
 	project_id: Scalars['ID']
 	query: Scalars['String']
@@ -957,13 +962,16 @@ export enum MetricAggregator {
 export type MetricBucket = {
 	__typename?: 'MetricBucket'
 	bucket_id: Scalars['UInt64']
+	bucket_max: Scalars['Float']
+	bucket_min: Scalars['Float']
 	column: MetricColumn
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator
-	metric_value: Scalars['Float']
+	metric_value?: Maybe<Scalars['Float']>
 }
 
 export enum MetricBucketBy {
+	Histogram = 'Histogram',
 	None = 'None',
 	Timestamp = 'Timestamp',
 }
@@ -1031,6 +1039,17 @@ export type MetricsBuckets = {
 	bucket_count: Scalars['UInt64']
 	buckets: Array<MetricBucket>
 	sample_factor: Scalars['Float']
+}
+
+export type MicrosoftTeamsChannel = {
+	__typename?: 'MicrosoftTeamsChannel'
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
+export type MicrosoftTeamsChannelInput = {
+	id: Scalars['String']
+	name: Scalars['String']
 }
 
 export type Mutation = {
@@ -1153,6 +1172,7 @@ export type MutationCreateErrorAlertArgs = {
 	emails: Array<InputMaybe<Scalars['String']>>
 	environments: Array<InputMaybe<Scalars['String']>>
 	frequency: Scalars['Int']
+	microsoft_teams_channels: Array<MicrosoftTeamsChannelInput>
 	name: Scalars['String']
 	project_id: Scalars['ID']
 	regex_groups: Array<InputMaybe<Scalars['String']>>
@@ -1583,6 +1603,7 @@ export type MutationUpdateErrorAlertArgs = {
 	environments?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
 	error_alert_id: Scalars['ID']
 	frequency?: InputMaybe<Scalars['Int']>
+	microsoft_teams_channels: Array<MicrosoftTeamsChannelInput>
 	name?: InputMaybe<Scalars['String']>
 	project_id: Scalars['ID']
 	regex_groups?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
@@ -1881,6 +1902,7 @@ export type Query = {
 	metric_tag_values: Array<Scalars['String']>
 	metric_tags: Array<Scalars['String']>
 	metrics_timeline: Array<Maybe<DashboardPayload>>
+	microsoft_teams_channel_suggestions: Array<MicrosoftTeamsChannel>
 	network_histogram?: Maybe<CategoryHistogramPayload>
 	newUsersCount?: Maybe<NewUsersCount>
 	new_session_alerts: Array<Maybe<SessionAlert>>
@@ -2152,6 +2174,7 @@ export type QueryErrors_KeysArgs = {
 
 export type QueryErrors_MetricsArgs = {
 	bucket_by: Scalars['String']
+	bucket_count?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2325,6 +2348,7 @@ export type QueryLogs_KeysArgs = {
 
 export type QueryLogs_MetricsArgs = {
 	bucket_by: Scalars['String']
+	bucket_count?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2364,6 +2388,10 @@ export type QueryMetric_TagsArgs = {
 export type QueryMetrics_TimelineArgs = {
 	metric_name: Scalars['String']
 	params: DashboardParamsInput
+	project_id: Scalars['ID']
+}
+
+export type QueryMicrosoft_Teams_Channel_SuggestionsArgs = {
 	project_id: Scalars['ID']
 }
 
@@ -2515,6 +2543,7 @@ export type QuerySessions_KeysArgs = {
 
 export type QuerySessions_MetricsArgs = {
 	bucket_by: Scalars['String']
+	bucket_count?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2594,6 +2623,7 @@ export type QueryTraces_KeysArgs = {
 
 export type QueryTraces_MetricsArgs = {
 	bucket_by?: InputMaybe<Scalars['String']>
+	bucket_count?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2970,6 +3000,7 @@ export type SessionAlert = {
 	ExcludeRules: Array<Maybe<Scalars['String']>>
 	ExcludedEnvironments: Array<Maybe<Scalars['String']>>
 	LastAdminToEditID?: Maybe<Scalars['ID']>
+	MicrosoftTeamsChannelsToNotify: Array<MicrosoftTeamsChannel>
 	Name?: Maybe<Scalars['String']>
 	ThresholdWindow?: Maybe<Scalars['Int']>
 	TrackProperties: Array<Maybe<TrackProperty>>
@@ -2990,6 +3021,7 @@ export type SessionAlertInput = {
 	emails: Array<Scalars['String']>
 	environments: Array<Scalars['String']>
 	exclude_rules: Array<Scalars['String']>
+	microsoft_teams_channels: Array<MicrosoftTeamsChannelInput>
 	name: Scalars['String']
 	project_id: Scalars['ID']
 	slack_channels: Array<SanitizedSlackChannelInput>

@@ -44,6 +44,7 @@ export class DataSource extends DataSourceWithBackend<HighlightQuery, HighlightD
       table: tableOptions[0].value,
       column: columnOptions[0].value,
       bucketBy: bucketByOptions[0].value,
+      bucketCount: 50,
       metric: metricOptions[0].value,
       groupBy: [],
       limit: 10,

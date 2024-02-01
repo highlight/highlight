@@ -303,23 +303,24 @@ type ComplexityRoot struct {
 	}
 
 	ErrorAlert struct {
-		ChannelsToNotify        func(childComplexity int) int
-		CountThreshold          func(childComplexity int) int
-		DailyFrequency          func(childComplexity int) int
-		Default                 func(childComplexity int) int
-		Disabled                func(childComplexity int) int
-		DiscordChannelsToNotify func(childComplexity int) int
-		EmailsToNotify          func(childComplexity int) int
-		ExcludedEnvironments    func(childComplexity int) int
-		Frequency               func(childComplexity int) int
-		ID                      func(childComplexity int) int
-		LastAdminToEditID       func(childComplexity int) int
-		Name                    func(childComplexity int) int
-		RegexGroups             func(childComplexity int) int
-		ThresholdWindow         func(childComplexity int) int
-		Type                    func(childComplexity int) int
-		UpdatedAt               func(childComplexity int) int
-		WebhookDestinations     func(childComplexity int) int
+		ChannelsToNotify               func(childComplexity int) int
+		CountThreshold                 func(childComplexity int) int
+		DailyFrequency                 func(childComplexity int) int
+		Default                        func(childComplexity int) int
+		Disabled                       func(childComplexity int) int
+		DiscordChannelsToNotify        func(childComplexity int) int
+		EmailsToNotify                 func(childComplexity int) int
+		ExcludedEnvironments           func(childComplexity int) int
+		Frequency                      func(childComplexity int) int
+		ID                             func(childComplexity int) int
+		LastAdminToEditID              func(childComplexity int) int
+		MicrosoftTeamsChannelsToNotify func(childComplexity int) int
+		Name                           func(childComplexity int) int
+		RegexGroups                    func(childComplexity int) int
+		ThresholdWindow                func(childComplexity int) int
+		Type                           func(childComplexity int) int
+		UpdatedAt                      func(childComplexity int) int
+		WebhookDestinations            func(childComplexity int) int
 	}
 
 	ErrorComment struct {
@@ -632,6 +633,7 @@ type ComplexityRoot struct {
 		Level           func(childComplexity int) int
 		LogAttributes   func(childComplexity int) int
 		Message         func(childComplexity int) int
+		ProjectID       func(childComplexity int) int
 		SecureSessionID func(childComplexity int) int
 		ServiceName     func(childComplexity int) int
 		ServiceVersion  func(childComplexity int) int
@@ -642,23 +644,24 @@ type ComplexityRoot struct {
 	}
 
 	LogAlert struct {
-		BelowThreshold          func(childComplexity int) int
-		ChannelsToNotify        func(childComplexity int) int
-		CountThreshold          func(childComplexity int) int
-		DailyFrequency          func(childComplexity int) int
-		Default                 func(childComplexity int) int
-		Disabled                func(childComplexity int) int
-		DiscordChannelsToNotify func(childComplexity int) int
-		EmailsToNotify          func(childComplexity int) int
-		ExcludedEnvironments    func(childComplexity int) int
-		ID                      func(childComplexity int) int
-		LastAdminToEditID       func(childComplexity int) int
-		Name                    func(childComplexity int) int
-		Query                   func(childComplexity int) int
-		ThresholdWindow         func(childComplexity int) int
-		Type                    func(childComplexity int) int
-		UpdatedAt               func(childComplexity int) int
-		WebhookDestinations     func(childComplexity int) int
+		BelowThreshold                 func(childComplexity int) int
+		ChannelsToNotify               func(childComplexity int) int
+		CountThreshold                 func(childComplexity int) int
+		DailyFrequency                 func(childComplexity int) int
+		Default                        func(childComplexity int) int
+		Disabled                       func(childComplexity int) int
+		DiscordChannelsToNotify        func(childComplexity int) int
+		EmailsToNotify                 func(childComplexity int) int
+		ExcludedEnvironments           func(childComplexity int) int
+		ID                             func(childComplexity int) int
+		LastAdminToEditID              func(childComplexity int) int
+		MicrosoftTeamsChannelsToNotify func(childComplexity int) int
+		Name                           func(childComplexity int) int
+		Query                          func(childComplexity int) int
+		ThresholdWindow                func(childComplexity int) int
+		Type                           func(childComplexity int) int
+		UpdatedAt                      func(childComplexity int) int
+		WebhookDestinations            func(childComplexity int) int
 	}
 
 	LogConnection struct {
@@ -710,6 +713,8 @@ type ComplexityRoot struct {
 
 	MetricBucket struct {
 		BucketID    func(childComplexity int) int
+		BucketMax   func(childComplexity int) int
+		BucketMin   func(childComplexity int) int
 		Column      func(childComplexity int) int
 		Group       func(childComplexity int) int
 		MetricType  func(childComplexity int) int
@@ -751,13 +756,18 @@ type ComplexityRoot struct {
 		SampleFactor func(childComplexity int) int
 	}
 
+	MicrosoftTeamsChannel struct {
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
+	}
+
 	Mutation struct {
 		AddAdminToWorkspace              func(childComplexity int, workspaceID int, inviteID string) int
 		AddIntegrationToProject          func(childComplexity int, integrationType *model.IntegrationType, projectID int, code string) int
 		AddIntegrationToWorkspace        func(childComplexity int, integrationType *model.IntegrationType, workspaceID int, code string) int
 		ChangeAdminRole                  func(childComplexity int, workspaceID int, adminID int, newRole string) int
 		CreateAdmin                      func(childComplexity int) int
-		CreateErrorAlert                 func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int, defaultArg *bool) int
+		CreateErrorAlert                 func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int, defaultArg *bool) int
 		CreateErrorComment               func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
 		CreateErrorSegment               func(childComplexity int, projectID int, name string, query string) int
 		CreateErrorTag                   func(childComplexity int, title string, description string) int
@@ -821,7 +831,7 @@ type ComplexityRoot struct {
 		UpdateBillingDetails             func(childComplexity int, workspaceID int) int
 		UpdateClickUpProjectMappings     func(childComplexity int, workspaceID int, projectMappings []*model.ClickUpProjectMappingInput) int
 		UpdateEmailOptOut                func(childComplexity int, token *string, adminID *int, category model.EmailOptOutCategory, isOptOut bool, projectID *int) int
-		UpdateErrorAlert                 func(childComplexity int, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) int
+		UpdateErrorAlert                 func(childComplexity int, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) int
 		UpdateErrorAlertIsDisabled       func(childComplexity int, id int, projectID int, disabled bool) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
 		UpdateErrorGroupState            func(childComplexity int, secureID string, state model.ErrorState, snoozedUntil *time.Time) int
@@ -894,161 +904,162 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		APIKeyToOrgID                func(childComplexity int, apiKey string) int
-		AccountDetails               func(childComplexity int, workspaceID int) int
-		Accounts                     func(childComplexity int) int
-		Admin                        func(childComplexity int) int
-		AdminHasCreatedComment       func(childComplexity int, adminID int) int
-		AdminRole                    func(childComplexity int, workspaceID int) int
-		AdminRoleByProject           func(childComplexity int, projectID int) int
-		AppVersionSuggestion         func(childComplexity int, projectID int) int
-		AverageSessionLength         func(childComplexity int, projectID int, lookbackDays float64) int
-		BillingDetails               func(childComplexity int, workspaceID int) int
-		BillingDetailsForProject     func(childComplexity int, projectID int) int
-		ClickupFolderlessLists       func(childComplexity int, projectID int) int
-		ClickupFolders               func(childComplexity int, projectID int) int
-		ClickupProjectMappings       func(childComplexity int, workspaceID int) int
-		ClickupTeams                 func(childComplexity int, workspaceID int) int
-		ClientIntegration            func(childComplexity int, projectID int) int
-		CustomerPortalURL            func(childComplexity int, workspaceID int) int
-		DailyErrorFrequency          func(childComplexity int, projectID int, errorGroupSecureID string, dateOffset int) int
-		DailyErrorsCount             func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
-		DailySessionsCount           func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
-		DashboardDefinitions         func(childComplexity int, projectID int) int
-		DiscordChannelSuggestions    func(childComplexity int, projectID int) int
-		EmailOptOuts                 func(childComplexity int, token *string, adminID *int) int
-		EnhancedUserDetails          func(childComplexity int, sessionSecureID string) int
-		EnvironmentSuggestion        func(childComplexity int, projectID int) int
-		ErrorAlerts                  func(childComplexity int, projectID int) int
-		ErrorComments                func(childComplexity int, errorGroupSecureID string) int
-		ErrorCommentsForAdmin        func(childComplexity int) int
-		ErrorCommentsForProject      func(childComplexity int, projectID int) int
-		ErrorFieldSuggestion         func(childComplexity int, projectID int, name string, query string) int
-		ErrorFieldsClickhouse        func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) int
-		ErrorGroup                   func(childComplexity int, secureID string, useClickhouse *bool) int
-		ErrorGroupFrequencies        func(childComplexity int, projectID int, errorGroupSecureIds []string, params model.ErrorGroupFrequenciesParamsInput, metric *string, useClickhouse *bool) int
-		ErrorGroupTags               func(childComplexity int, errorGroupSecureID string, useClickhouse *bool) int
-		ErrorGroupsClickhouse        func(childComplexity int, projectID int, count int, query model.ClickhouseQuery, page *int) int
-		ErrorInstance                func(childComplexity int, errorGroupSecureID string, errorObjectID *int) int
-		ErrorIssue                   func(childComplexity int, errorGroupSecureID string) int
-		ErrorObject                  func(childComplexity int, id int) int
-		ErrorObjectForLog            func(childComplexity int, logCursor string) int
-		ErrorObjects                 func(childComplexity int, errorGroupSecureID string, after *string, before *string, query string) int
-		ErrorResolutionSuggestion    func(childComplexity int, errorObjectID int) int
-		ErrorSegments                func(childComplexity int, projectID int) int
-		ErrorTags                    func(childComplexity int) int
-		Errors                       func(childComplexity int, sessionSecureID string) int
-		ErrorsHistogramClickhouse    func(childComplexity int, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) int
-		ErrorsKeys                   func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
-		ErrorsMetrics                func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
-		EventChunkURL                func(childComplexity int, secureID string, index int) int
-		EventChunks                  func(childComplexity int, secureID string) int
-		Events                       func(childComplexity int, sessionSecureID string) int
-		FieldSuggestion              func(childComplexity int, projectID int, name string, query string) int
-		FieldTypesClickhouse         func(childComplexity int, projectID int, startDate time.Time, endDate time.Time) int
-		FieldsClickhouse             func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) int
-		FindSimilarErrors            func(childComplexity int, query string) int
-		GenerateZapierAccessToken    func(childComplexity int, projectID int) int
-		GetSourceMapUploadUrls       func(childComplexity int, apiKey string, paths []string) int
-		GithubIssueLabels            func(childComplexity int, workspaceID int, repository string) int
-		GithubRepos                  func(childComplexity int, workspaceID int) int
-		GitlabProjects               func(childComplexity int, workspaceID int) int
-		HeightLists                  func(childComplexity int, projectID int) int
-		HeightWorkspaces             func(childComplexity int, workspaceID int) int
-		IdentifierSuggestion         func(childComplexity int, projectID int, query string) int
-		IntegrationProjectMappings   func(childComplexity int, workspaceID int, integrationType *model.IntegrationType) int
-		IsBackendIntegrated          func(childComplexity int, projectID int) int
-		IsIntegrated                 func(childComplexity int, projectID int) int
-		IsIntegratedWith             func(childComplexity int, integrationType model.IntegrationType, projectID int) int
-		IsProjectIntegratedWith      func(childComplexity int, integrationType model.IntegrationType, projectID int) int
-		IsSessionPending             func(childComplexity int, sessionSecureID string) int
-		IsWorkspaceIntegratedWith    func(childComplexity int, integrationType model.IntegrationType, workspaceID int) int
-		JiraProjects                 func(childComplexity int, workspaceID int) int
-		JoinableWorkspaces           func(childComplexity int) int
-		LinearTeams                  func(childComplexity int, projectID int) int
-		LiveUsersCount               func(childComplexity int, projectID int) int
-		LogAlert                     func(childComplexity int, id int) int
-		LogAlerts                    func(childComplexity int, projectID int) int
-		Logs                         func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) int
-		LogsErrorObjects             func(childComplexity int, logCursors []string) int
-		LogsHistogram                func(childComplexity int, projectID int, params model.QueryInput) int
-		LogsIntegration              func(childComplexity int, projectID int) int
-		LogsKeyValues                func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
-		LogsKeys                     func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
-		LogsMetrics                  func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
-		LogsTotalCount               func(childComplexity int, projectID int, params model.QueryInput) int
-		MatchErrorTag                func(childComplexity int, query string) int
-		MetricMonitors               func(childComplexity int, projectID int, metricName *string) int
-		MetricTagValues              func(childComplexity int, projectID int, metricName string, tagName string) int
-		MetricTags                   func(childComplexity int, projectID int, metricName string, query *string) int
-		MetricsTimeline              func(childComplexity int, projectID int, metricName string, params model.DashboardParamsInput) int
-		NetworkHistogram             func(childComplexity int, projectID int, params model.NetworkHistogramParamsInput) int
-		NewSessionAlerts             func(childComplexity int, projectID int) int
-		NewUserAlerts                func(childComplexity int, projectID int) int
-		NewUsersCount                func(childComplexity int, projectID int, lookbackDays float64) int
-		OauthClientMetadata          func(childComplexity int, clientID string) int
-		Project                      func(childComplexity int, id int) int
-		ProjectHasViewedASession     func(childComplexity int, projectID int) int
-		ProjectSettings              func(childComplexity int, projectID int) int
-		ProjectSuggestion            func(childComplexity int, query string) int
-		Projects                     func(childComplexity int) int
-		PropertySuggestion           func(childComplexity int, projectID int, query string, typeArg string) int
-		RageClickAlerts              func(childComplexity int, projectID int) int
-		RageClicks                   func(childComplexity int, sessionSecureID string) int
-		RageClicksForProject         func(childComplexity int, projectID int, lookbackDays float64) int
-		Referrers                    func(childComplexity int, projectID int, lookbackDays float64) int
-		Resources                    func(childComplexity int, sessionSecureID string) int
-		SavedSegments                func(childComplexity int, projectID int, entityType model.SavedSegmentEntityType) int
-		Segments                     func(childComplexity int, projectID int) int
-		ServerIntegration            func(childComplexity int, projectID int) int
-		ServiceByName                func(childComplexity int, projectID int, name string) int
-		Services                     func(childComplexity int, projectID int, after *string, before *string, query *string) int
-		Session                      func(childComplexity int, secureID string) int
-		SessionCommentTagsForProject func(childComplexity int, projectID int) int
-		SessionComments              func(childComplexity int, sessionSecureID string) int
-		SessionCommentsForAdmin      func(childComplexity int) int
-		SessionCommentsForProject    func(childComplexity int, projectID int) int
-		SessionExports               func(childComplexity int, projectID int) int
-		SessionInsight               func(childComplexity int, secureID string) int
-		SessionIntervals             func(childComplexity int, sessionSecureID string) int
-		SessionLogs                  func(childComplexity int, projectID int, params model.QueryInput) int
-		SessionsClickhouse           func(childComplexity int, projectID int, count int, query model.ClickhouseQuery, sortField *string, sortDesc bool, page *int) int
-		SessionsHistogramClickhouse  func(childComplexity int, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) int
-		SessionsKeys                 func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
-		SessionsMetrics              func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
-		SessionsReport               func(childComplexity int, projectID int, query model.ClickhouseQuery) int
-		SlackChannelSuggestion       func(childComplexity int, projectID int) int
-		SourcemapFiles               func(childComplexity int, projectID int, version *string) int
-		SourcemapVersions            func(childComplexity int, projectID int) int
-		SubscriptionDetails          func(childComplexity int, workspaceID int) int
-		SuggestedMetrics             func(childComplexity int, projectID int, prefix string) int
-		SystemConfiguration          func(childComplexity int) int
-		TimelineIndicatorEvents      func(childComplexity int, sessionSecureID string) int
-		TopUsers                     func(childComplexity int, projectID int, lookbackDays float64) int
-		Trace                        func(childComplexity int, projectID int, traceID string) int
-		Traces                       func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) int
-		TracesIntegration            func(childComplexity int, projectID int) int
-		TracesKeyValues              func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
-		TracesKeys                   func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
-		TracesMetrics                func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
-		TrackPropertiesAlerts        func(childComplexity int, projectID int) int
-		UnprocessedSessionsCount     func(childComplexity int, projectID int) int
-		UserFingerprintCount         func(childComplexity int, projectID int, lookbackDays float64) int
-		UserPropertiesAlerts         func(childComplexity int, projectID int) int
-		VercelProjectMappings        func(childComplexity int, projectID int) int
-		VercelProjects               func(childComplexity int, projectID int) int
-		WebVitals                    func(childComplexity int, sessionSecureID string) int
-		WebsocketEvents              func(childComplexity int, sessionSecureID string) int
-		Workspace                    func(childComplexity int, id int) int
-		WorkspaceAdmins              func(childComplexity int, workspaceID int) int
-		WorkspaceAdminsByProjectID   func(childComplexity int, projectID int) int
-		WorkspaceForInviteLink       func(childComplexity int, secret string) int
-		WorkspaceForProject          func(childComplexity int, projectID int) int
-		WorkspaceInviteLinks         func(childComplexity int, workspaceID int) int
-		WorkspacePendingInvites      func(childComplexity int, workspaceID int) int
-		WorkspaceSettings            func(childComplexity int, workspaceID int) int
-		Workspaces                   func(childComplexity int) int
-		WorkspacesCount              func(childComplexity int) int
+		APIKeyToOrgID                    func(childComplexity int, apiKey string) int
+		AccountDetails                   func(childComplexity int, workspaceID int) int
+		Accounts                         func(childComplexity int) int
+		Admin                            func(childComplexity int) int
+		AdminHasCreatedComment           func(childComplexity int, adminID int) int
+		AdminRole                        func(childComplexity int, workspaceID int) int
+		AdminRoleByProject               func(childComplexity int, projectID int) int
+		AppVersionSuggestion             func(childComplexity int, projectID int) int
+		AverageSessionLength             func(childComplexity int, projectID int, lookbackDays float64) int
+		BillingDetails                   func(childComplexity int, workspaceID int) int
+		BillingDetailsForProject         func(childComplexity int, projectID int) int
+		ClickupFolderlessLists           func(childComplexity int, projectID int) int
+		ClickupFolders                   func(childComplexity int, projectID int) int
+		ClickupProjectMappings           func(childComplexity int, workspaceID int) int
+		ClickupTeams                     func(childComplexity int, workspaceID int) int
+		ClientIntegration                func(childComplexity int, projectID int) int
+		CustomerPortalURL                func(childComplexity int, workspaceID int) int
+		DailyErrorFrequency              func(childComplexity int, projectID int, errorGroupSecureID string, dateOffset int) int
+		DailyErrorsCount                 func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
+		DailySessionsCount               func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
+		DashboardDefinitions             func(childComplexity int, projectID int) int
+		DiscordChannelSuggestions        func(childComplexity int, projectID int) int
+		EmailOptOuts                     func(childComplexity int, token *string, adminID *int) int
+		EnhancedUserDetails              func(childComplexity int, sessionSecureID string) int
+		EnvironmentSuggestion            func(childComplexity int, projectID int) int
+		ErrorAlerts                      func(childComplexity int, projectID int) int
+		ErrorComments                    func(childComplexity int, errorGroupSecureID string) int
+		ErrorCommentsForAdmin            func(childComplexity int) int
+		ErrorCommentsForProject          func(childComplexity int, projectID int) int
+		ErrorFieldSuggestion             func(childComplexity int, projectID int, name string, query string) int
+		ErrorFieldsClickhouse            func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) int
+		ErrorGroup                       func(childComplexity int, secureID string, useClickhouse *bool) int
+		ErrorGroupFrequencies            func(childComplexity int, projectID int, errorGroupSecureIds []string, params model.ErrorGroupFrequenciesParamsInput, metric *string, useClickhouse *bool) int
+		ErrorGroupTags                   func(childComplexity int, errorGroupSecureID string, useClickhouse *bool) int
+		ErrorGroupsClickhouse            func(childComplexity int, projectID int, count int, query model.ClickhouseQuery, page *int) int
+		ErrorInstance                    func(childComplexity int, errorGroupSecureID string, errorObjectID *int) int
+		ErrorIssue                       func(childComplexity int, errorGroupSecureID string) int
+		ErrorObject                      func(childComplexity int, id int) int
+		ErrorObjectForLog                func(childComplexity int, logCursor string) int
+		ErrorObjects                     func(childComplexity int, errorGroupSecureID string, after *string, before *string, query string) int
+		ErrorResolutionSuggestion        func(childComplexity int, errorObjectID int) int
+		ErrorSegments                    func(childComplexity int, projectID int) int
+		ErrorTags                        func(childComplexity int) int
+		Errors                           func(childComplexity int, sessionSecureID string) int
+		ErrorsHistogramClickhouse        func(childComplexity int, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) int
+		ErrorsKeys                       func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
+		ErrorsMetrics                    func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
+		EventChunkURL                    func(childComplexity int, secureID string, index int) int
+		EventChunks                      func(childComplexity int, secureID string) int
+		Events                           func(childComplexity int, sessionSecureID string) int
+		FieldSuggestion                  func(childComplexity int, projectID int, name string, query string) int
+		FieldTypesClickhouse             func(childComplexity int, projectID int, startDate time.Time, endDate time.Time) int
+		FieldsClickhouse                 func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) int
+		FindSimilarErrors                func(childComplexity int, query string) int
+		GenerateZapierAccessToken        func(childComplexity int, projectID int) int
+		GetSourceMapUploadUrls           func(childComplexity int, apiKey string, paths []string) int
+		GithubIssueLabels                func(childComplexity int, workspaceID int, repository string) int
+		GithubRepos                      func(childComplexity int, workspaceID int) int
+		GitlabProjects                   func(childComplexity int, workspaceID int) int
+		HeightLists                      func(childComplexity int, projectID int) int
+		HeightWorkspaces                 func(childComplexity int, workspaceID int) int
+		IdentifierSuggestion             func(childComplexity int, projectID int, query string) int
+		IntegrationProjectMappings       func(childComplexity int, workspaceID int, integrationType *model.IntegrationType) int
+		IsBackendIntegrated              func(childComplexity int, projectID int) int
+		IsIntegrated                     func(childComplexity int, projectID int) int
+		IsIntegratedWith                 func(childComplexity int, integrationType model.IntegrationType, projectID int) int
+		IsProjectIntegratedWith          func(childComplexity int, integrationType model.IntegrationType, projectID int) int
+		IsSessionPending                 func(childComplexity int, sessionSecureID string) int
+		IsWorkspaceIntegratedWith        func(childComplexity int, integrationType model.IntegrationType, workspaceID int) int
+		JiraProjects                     func(childComplexity int, workspaceID int) int
+		JoinableWorkspaces               func(childComplexity int) int
+		LinearTeams                      func(childComplexity int, projectID int) int
+		LiveUsersCount                   func(childComplexity int, projectID int) int
+		LogAlert                         func(childComplexity int, id int) int
+		LogAlerts                        func(childComplexity int, projectID int) int
+		Logs                             func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) int
+		LogsErrorObjects                 func(childComplexity int, logCursors []string) int
+		LogsHistogram                    func(childComplexity int, projectID int, params model.QueryInput) int
+		LogsIntegration                  func(childComplexity int, projectID int) int
+		LogsKeyValues                    func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
+		LogsKeys                         func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
+		LogsMetrics                      func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
+		LogsTotalCount                   func(childComplexity int, projectID int, params model.QueryInput) int
+		MatchErrorTag                    func(childComplexity int, query string) int
+		MetricMonitors                   func(childComplexity int, projectID int, metricName *string) int
+		MetricTagValues                  func(childComplexity int, projectID int, metricName string, tagName string) int
+		MetricTags                       func(childComplexity int, projectID int, metricName string, query *string) int
+		MetricsTimeline                  func(childComplexity int, projectID int, metricName string, params model.DashboardParamsInput) int
+		MicrosoftTeamsChannelSuggestions func(childComplexity int, projectID int) int
+		NetworkHistogram                 func(childComplexity int, projectID int, params model.NetworkHistogramParamsInput) int
+		NewSessionAlerts                 func(childComplexity int, projectID int) int
+		NewUserAlerts                    func(childComplexity int, projectID int) int
+		NewUsersCount                    func(childComplexity int, projectID int, lookbackDays float64) int
+		OauthClientMetadata              func(childComplexity int, clientID string) int
+		Project                          func(childComplexity int, id int) int
+		ProjectHasViewedASession         func(childComplexity int, projectID int) int
+		ProjectSettings                  func(childComplexity int, projectID int) int
+		ProjectSuggestion                func(childComplexity int, query string) int
+		Projects                         func(childComplexity int) int
+		PropertySuggestion               func(childComplexity int, projectID int, query string, typeArg string) int
+		RageClickAlerts                  func(childComplexity int, projectID int) int
+		RageClicks                       func(childComplexity int, sessionSecureID string) int
+		RageClicksForProject             func(childComplexity int, projectID int, lookbackDays float64) int
+		Referrers                        func(childComplexity int, projectID int, lookbackDays float64) int
+		Resources                        func(childComplexity int, sessionSecureID string) int
+		SavedSegments                    func(childComplexity int, projectID int, entityType model.SavedSegmentEntityType) int
+		Segments                         func(childComplexity int, projectID int) int
+		ServerIntegration                func(childComplexity int, projectID int) int
+		ServiceByName                    func(childComplexity int, projectID int, name string) int
+		Services                         func(childComplexity int, projectID int, after *string, before *string, query *string) int
+		Session                          func(childComplexity int, secureID string) int
+		SessionCommentTagsForProject     func(childComplexity int, projectID int) int
+		SessionComments                  func(childComplexity int, sessionSecureID string) int
+		SessionCommentsForAdmin          func(childComplexity int) int
+		SessionCommentsForProject        func(childComplexity int, projectID int) int
+		SessionExports                   func(childComplexity int, projectID int) int
+		SessionInsight                   func(childComplexity int, secureID string) int
+		SessionIntervals                 func(childComplexity int, sessionSecureID string) int
+		SessionLogs                      func(childComplexity int, projectID int, params model.QueryInput) int
+		SessionsClickhouse               func(childComplexity int, projectID int, count int, query model.ClickhouseQuery, sortField *string, sortDesc bool, page *int) int
+		SessionsHistogramClickhouse      func(childComplexity int, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) int
+		SessionsKeys                     func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
+		SessionsMetrics                  func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
+		SessionsReport                   func(childComplexity int, projectID int, query model.ClickhouseQuery) int
+		SlackChannelSuggestion           func(childComplexity int, projectID int) int
+		SourcemapFiles                   func(childComplexity int, projectID int, version *string) int
+		SourcemapVersions                func(childComplexity int, projectID int) int
+		SubscriptionDetails              func(childComplexity int, workspaceID int) int
+		SuggestedMetrics                 func(childComplexity int, projectID int, prefix string) int
+		SystemConfiguration              func(childComplexity int) int
+		TimelineIndicatorEvents          func(childComplexity int, sessionSecureID string) int
+		TopUsers                         func(childComplexity int, projectID int, lookbackDays float64) int
+		Trace                            func(childComplexity int, projectID int, traceID string) int
+		Traces                           func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) int
+		TracesIntegration                func(childComplexity int, projectID int) int
+		TracesKeyValues                  func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
+		TracesKeys                       func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
+		TracesMetrics                    func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
+		TrackPropertiesAlerts            func(childComplexity int, projectID int) int
+		UnprocessedSessionsCount         func(childComplexity int, projectID int) int
+		UserFingerprintCount             func(childComplexity int, projectID int, lookbackDays float64) int
+		UserPropertiesAlerts             func(childComplexity int, projectID int) int
+		VercelProjectMappings            func(childComplexity int, projectID int) int
+		VercelProjects                   func(childComplexity int, projectID int) int
+		WebVitals                        func(childComplexity int, sessionSecureID string) int
+		WebsocketEvents                  func(childComplexity int, sessionSecureID string) int
+		Workspace                        func(childComplexity int, id int) int
+		WorkspaceAdmins                  func(childComplexity int, workspaceID int) int
+		WorkspaceAdminsByProjectID       func(childComplexity int, projectID int) int
+		WorkspaceForInviteLink           func(childComplexity int, secret string) int
+		WorkspaceForProject              func(childComplexity int, projectID int) int
+		WorkspaceInviteLinks             func(childComplexity int, workspaceID int) int
+		WorkspacePendingInvites          func(childComplexity int, workspaceID int) int
+		WorkspaceSettings                func(childComplexity int, workspaceID int) int
+		Workspaces                       func(childComplexity int) int
+		WorkspacesCount                  func(childComplexity int) int
 	}
 
 	QueryKey struct {
@@ -1217,24 +1228,25 @@ type ComplexityRoot struct {
 	}
 
 	SessionAlert struct {
-		ChannelsToNotify        func(childComplexity int) int
-		CountThreshold          func(childComplexity int) int
-		DailyFrequency          func(childComplexity int) int
-		Default                 func(childComplexity int) int
-		Disabled                func(childComplexity int) int
-		DiscordChannelsToNotify func(childComplexity int) int
-		EmailsToNotify          func(childComplexity int) int
-		ExcludeRules            func(childComplexity int) int
-		ExcludedEnvironments    func(childComplexity int) int
-		ID                      func(childComplexity int) int
-		LastAdminToEditID       func(childComplexity int) int
-		Name                    func(childComplexity int) int
-		ThresholdWindow         func(childComplexity int) int
-		TrackProperties         func(childComplexity int) int
-		Type                    func(childComplexity int) int
-		UpdatedAt               func(childComplexity int) int
-		UserProperties          func(childComplexity int) int
-		WebhookDestinations     func(childComplexity int) int
+		ChannelsToNotify               func(childComplexity int) int
+		CountThreshold                 func(childComplexity int) int
+		DailyFrequency                 func(childComplexity int) int
+		Default                        func(childComplexity int) int
+		Disabled                       func(childComplexity int) int
+		DiscordChannelsToNotify        func(childComplexity int) int
+		EmailsToNotify                 func(childComplexity int) int
+		ExcludeRules                   func(childComplexity int) int
+		ExcludedEnvironments           func(childComplexity int) int
+		ID                             func(childComplexity int) int
+		LastAdminToEditID              func(childComplexity int) int
+		MicrosoftTeamsChannelsToNotify func(childComplexity int) int
+		Name                           func(childComplexity int) int
+		ThresholdWindow                func(childComplexity int) int
+		TrackProperties                func(childComplexity int) int
+		Type                           func(childComplexity int) int
+		UpdatedAt                      func(childComplexity int) int
+		UserProperties                 func(childComplexity int) int
+		WebhookDestinations            func(childComplexity int) int
 	}
 
 	SessionComment struct {
@@ -1558,6 +1570,7 @@ type CommentReplyResolver interface {
 type ErrorAlertResolver interface {
 	ChannelsToNotify(ctx context.Context, obj *model1.ErrorAlert) ([]*model.SanitizedSlackChannel, error)
 	DiscordChannelsToNotify(ctx context.Context, obj *model1.ErrorAlert) ([]*model1.DiscordChannel, error)
+	MicrosoftTeamsChannelsToNotify(ctx context.Context, obj *model1.ErrorAlert) ([]*model1.MicrosoftTeamsChannel, error)
 	WebhookDestinations(ctx context.Context, obj *model1.ErrorAlert) ([]*model1.WebhookDestination, error)
 	EmailsToNotify(ctx context.Context, obj *model1.ErrorAlert) ([]*string, error)
 	ExcludedEnvironments(ctx context.Context, obj *model1.ErrorAlert) ([]*string, error)
@@ -1588,6 +1601,7 @@ type ErrorSegmentResolver interface {
 type LogAlertResolver interface {
 	ChannelsToNotify(ctx context.Context, obj *model1.LogAlert) ([]*model.SanitizedSlackChannel, error)
 	DiscordChannelsToNotify(ctx context.Context, obj *model1.LogAlert) ([]*model1.DiscordChannel, error)
+	MicrosoftTeamsChannelsToNotify(ctx context.Context, obj *model1.LogAlert) ([]*model1.MicrosoftTeamsChannel, error)
 	WebhookDestinations(ctx context.Context, obj *model1.LogAlert) ([]*model1.WebhookDestination, error)
 	EmailsToNotify(ctx context.Context, obj *model1.LogAlert) ([]string, error)
 	ExcludedEnvironments(ctx context.Context, obj *model1.LogAlert) ([]string, error)
@@ -1659,8 +1673,8 @@ type MutationResolver interface {
 	SyncSlackIntegration(ctx context.Context, projectID int) (*model.SlackSyncResponse, error)
 	CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, filters []*model.MetricTagFilterInput) (*model1.MetricMonitor, error)
 	UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *model.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, disabled *bool, filters []*model.MetricTagFilterInput) (*model1.MetricMonitor, error)
-	CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int, defaultArg *bool) (*model1.ErrorAlert, error)
-	UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model1.ErrorAlert, error)
+	CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int, defaultArg *bool) (*model1.ErrorAlert, error)
+	UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model1.ErrorAlert, error)
 	DeleteErrorAlert(ctx context.Context, projectID int, errorAlertID int) (*model1.ErrorAlert, error)
 	DeleteMetricMonitor(ctx context.Context, projectID int, metricMonitorID int) (*model1.MetricMonitor, error)
 	UpdateSessionAlertIsDisabled(ctx context.Context, id int, projectID int, disabled bool) (*model1.SessionAlert, error)
@@ -1773,6 +1787,7 @@ type QueryResolver interface {
 	AppVersionSuggestion(ctx context.Context, projectID int) ([]*string, error)
 	IdentifierSuggestion(ctx context.Context, projectID int, query string) ([]string, error)
 	SlackChannelSuggestion(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
+	MicrosoftTeamsChannelSuggestions(ctx context.Context, projectID int) ([]*model1.MicrosoftTeamsChannel, error)
 	DiscordChannelSuggestions(ctx context.Context, projectID int) ([]*model1.DiscordChannel, error)
 	GenerateZapierAccessToken(ctx context.Context, projectID int) (string, error)
 	IsIntegratedWith(ctx context.Context, integrationType model.IntegrationType, projectID int) (bool, error)
@@ -1827,7 +1842,7 @@ type QueryResolver interface {
 	SessionLogs(ctx context.Context, projectID int, params model.QueryInput) ([]*model.LogEdge, error)
 	LogsTotalCount(ctx context.Context, projectID int, params model.QueryInput) (uint64, error)
 	LogsHistogram(ctx context.Context, projectID int, params model.QueryInput) (*model.LogsHistogram, error)
-	LogsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
+	LogsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	LogsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model1.ErrorObject, error)
@@ -1842,13 +1857,13 @@ type QueryResolver interface {
 	FindSimilarErrors(ctx context.Context, query string) ([]*model1.MatchedErrorObject, error)
 	Trace(ctx context.Context, projectID int, traceID string) (*model.TracePayload, error)
 	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.TraceConnection, error)
-	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
+	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	ErrorsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
-	ErrorsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
+	ErrorsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	SessionsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
-	SessionsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
+	SessionsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 }
 type SavedSegmentResolver interface {
 	Params(ctx context.Context, obj *model1.SavedSegment) (*model1.SearchParams, error)
@@ -1873,6 +1888,7 @@ type SessionResolver interface {
 type SessionAlertResolver interface {
 	ChannelsToNotify(ctx context.Context, obj *model1.SessionAlert) ([]*model.SanitizedSlackChannel, error)
 	DiscordChannelsToNotify(ctx context.Context, obj *model1.SessionAlert) ([]*model1.DiscordChannel, error)
+	MicrosoftTeamsChannelsToNotify(ctx context.Context, obj *model1.SessionAlert) ([]*model1.MicrosoftTeamsChannel, error)
 	WebhookDestinations(ctx context.Context, obj *model1.SessionAlert) ([]*model1.WebhookDestination, error)
 	EmailsToNotify(ctx context.Context, obj *model1.SessionAlert) ([]*string, error)
 	ExcludedEnvironments(ctx context.Context, obj *model1.SessionAlert) ([]*string, error)
@@ -3080,6 +3096,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorAlert.LastAdminToEditID(childComplexity), true
+
+	case "ErrorAlert.MicrosoftTeamsChannelsToNotify":
+		if e.complexity.ErrorAlert.MicrosoftTeamsChannelsToNotify == nil {
+			break
+		}
+
+		return e.complexity.ErrorAlert.MicrosoftTeamsChannelsToNotify(childComplexity), true
 
 	case "ErrorAlert.Name":
 		if e.complexity.ErrorAlert.Name == nil {
@@ -4509,6 +4532,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Log.Message(childComplexity), true
 
+	case "Log.projectID":
+		if e.complexity.Log.ProjectID == nil {
+			break
+		}
+
+		return e.complexity.Log.ProjectID(childComplexity), true
+
 	case "Log.secureSessionID":
 		if e.complexity.Log.SecureSessionID == nil {
 			break
@@ -4634,6 +4664,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LogAlert.LastAdminToEditID(childComplexity), true
+
+	case "LogAlert.MicrosoftTeamsChannelsToNotify":
+		if e.complexity.LogAlert.MicrosoftTeamsChannelsToNotify == nil {
+			break
+		}
+
+		return e.complexity.LogAlert.MicrosoftTeamsChannelsToNotify(childComplexity), true
 
 	case "LogAlert.Name":
 		if e.complexity.LogAlert.Name == nil {
@@ -4845,6 +4882,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MetricBucket.BucketID(childComplexity), true
 
+	case "MetricBucket.bucket_max":
+		if e.complexity.MetricBucket.BucketMax == nil {
+			break
+		}
+
+		return e.complexity.MetricBucket.BucketMax(childComplexity), true
+
+	case "MetricBucket.bucket_min":
+		if e.complexity.MetricBucket.BucketMin == nil {
+			break
+		}
+
+		return e.complexity.MetricBucket.BucketMin(childComplexity), true
+
 	case "MetricBucket.column":
 		if e.complexity.MetricBucket.Column == nil {
 			break
@@ -5034,6 +5085,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MetricsBuckets.SampleFactor(childComplexity), true
 
+	case "MicrosoftTeamsChannel.id":
+		if e.complexity.MicrosoftTeamsChannel.ID == nil {
+			break
+		}
+
+		return e.complexity.MicrosoftTeamsChannel.ID(childComplexity), true
+
+	case "MicrosoftTeamsChannel.name":
+		if e.complexity.MicrosoftTeamsChannel.Name == nil {
+			break
+		}
+
+		return e.complexity.MicrosoftTeamsChannel.Name(childComplexity), true
+
 	case "Mutation.addAdminToWorkspace":
 		if e.complexity.Mutation.AddAdminToWorkspace == nil {
 			break
@@ -5099,7 +5164,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateErrorAlert(childComplexity, args["project_id"].(int), args["name"].(string), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["discord_channels"].([]*model.DiscordChannelInput), args["webhook_destinations"].([]*model.WebhookDestinationInput), args["emails"].([]*string), args["environments"].([]*string), args["regex_groups"].([]*string), args["frequency"].(int), args["default"].(*bool)), true
+		return e.complexity.Mutation.CreateErrorAlert(childComplexity, args["project_id"].(int), args["name"].(string), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["discord_channels"].([]*model.DiscordChannelInput), args["microsoft_teams_channels"].([]*model.MicrosoftTeamsChannelInput), args["webhook_destinations"].([]*model.WebhookDestinationInput), args["emails"].([]*string), args["environments"].([]*string), args["regex_groups"].([]*string), args["frequency"].(int), args["default"].(*bool)), true
 
 	case "Mutation.createErrorComment":
 		if e.complexity.Mutation.CreateErrorComment == nil {
@@ -5867,7 +5932,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateErrorAlert(childComplexity, args["project_id"].(int), args["name"].(*string), args["error_alert_id"].(int), args["count_threshold"].(*int), args["threshold_window"].(*int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["discord_channels"].([]*model.DiscordChannelInput), args["webhook_destinations"].([]*model.WebhookDestinationInput), args["emails"].([]*string), args["environments"].([]*string), args["regex_groups"].([]*string), args["frequency"].(*int), args["disabled"].(*bool)), true
+		return e.complexity.Mutation.UpdateErrorAlert(childComplexity, args["project_id"].(int), args["name"].(*string), args["error_alert_id"].(int), args["count_threshold"].(*int), args["threshold_window"].(*int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["discord_channels"].([]*model.DiscordChannelInput), args["microsoft_teams_channels"].([]*model.MicrosoftTeamsChannelInput), args["webhook_destinations"].([]*model.WebhookDestinationInput), args["emails"].([]*string), args["environments"].([]*string), args["regex_groups"].([]*string), args["frequency"].(*int), args["disabled"].(*bool)), true
 
 	case "Mutation.updateErrorAlertIsDisabled":
 		if e.complexity.Mutation.UpdateErrorAlertIsDisabled == nil {
@@ -6843,7 +6908,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorsMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(string), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string)), true
+		return e.complexity.Query.ErrorsMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(string), args["bucket_count"].(*int), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string)), true
 
 	case "Query.event_chunk_url":
 		if e.complexity.Query.EventChunkURL == nil {
@@ -7258,7 +7323,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.LogsMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(string), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string)), true
+		return e.complexity.Query.LogsMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(string), args["bucket_count"].(*int), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string)), true
 
 	case "Query.logs_total_count":
 		if e.complexity.Query.LogsTotalCount == nil {
@@ -7331,6 +7396,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.MetricsTimeline(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["params"].(model.DashboardParamsInput)), true
+
+	case "Query.microsoft_teams_channel_suggestions":
+		if e.complexity.Query.MicrosoftTeamsChannelSuggestions == nil {
+			break
+		}
+
+		args, err := ec.field_Query_microsoft_teams_channel_suggestions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MicrosoftTeamsChannelSuggestions(childComplexity, args["project_id"].(int)), true
 
 	case "Query.network_histogram":
 		if e.complexity.Query.NetworkHistogram == nil {
@@ -7728,7 +7805,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SessionsMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(string), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string)), true
+		return e.complexity.Query.SessionsMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(string), args["bucket_count"].(*int), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string)), true
 
 	case "Query.sessions_report":
 		if e.complexity.Query.SessionsReport == nil {
@@ -7903,7 +7980,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.TracesMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(*string), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string)), true
+		return e.complexity.Query.TracesMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(*string), args["bucket_count"].(*int), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string)), true
 
 	case "Query.track_properties_alerts":
 		if e.complexity.Query.TrackPropertiesAlerts == nil {
@@ -9006,6 +9083,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SessionAlert.LastAdminToEditID(childComplexity), true
+
+	case "SessionAlert.MicrosoftTeamsChannelsToNotify":
+		if e.complexity.SessionAlert.MicrosoftTeamsChannelsToNotify == nil {
+			break
+		}
+
+		return e.complexity.SessionAlert.MicrosoftTeamsChannelsToNotify(childComplexity), true
 
 	case "SessionAlert.Name":
 		if e.complexity.SessionAlert.Name == nil {
@@ -10464,6 +10548,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputLengthRangeInput,
 		ec.unmarshalInputLogAlertInput,
 		ec.unmarshalInputMetricTagFilterInput,
+		ec.unmarshalInputMicrosoftTeamsChannelInput,
 		ec.unmarshalInputNetworkHistogramParamsInput,
 		ec.unmarshalInputQueryInput,
 		ec.unmarshalInputSamplingInput,
@@ -10978,6 +11063,7 @@ enum IntegrationType {
 	Height
 	GitHub
 	Jira
+	MicrosoftTeams
 	GitLab
 }
 
@@ -11338,6 +11424,7 @@ interface Connection {
 }
 
 type Log {
+	projectID: Int!
 	timestamp: Timestamp!
 	level: LogLevel!
 	message: String!
@@ -11598,14 +11685,17 @@ enum MetricColumn {
 enum MetricBucketBy {
 	None
 	Timestamp
+	Histogram
 }
 
 type MetricBucket {
 	bucket_id: UInt64!
+	bucket_min: Float!
+	bucket_max: Float!
 	group: [String!]!
 	column: MetricColumn!
 	metric_type: MetricAggregator!
-	metric_value: Float!
+	metric_value: Float
 }
 
 type MetricsBuckets {
@@ -11751,6 +11841,7 @@ input SessionAlertInput {
 	threshold_window: Int!
 	slack_channels: [SanitizedSlackChannelInput!]!
 	discord_channels: [DiscordChannelInput!]!
+	microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	webhook_destinations: [WebhookDestinationInput!]!
 	emails: [String!]!
 	environments: [String!]!
@@ -11770,6 +11861,7 @@ input LogAlertInput {
 	threshold_window: Int!
 	slack_channels: [SanitizedSlackChannelInput!]!
 	discord_channels: [DiscordChannelInput!]!
+	microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	webhook_destinations: [WebhookDestinationInput!]!
 	emails: [String!]!
 	environments: [String!]!
@@ -12022,6 +12114,16 @@ input DiscordChannelInput {
 	id: String!
 }
 
+type MicrosoftTeamsChannel {
+	id: String!
+	name: String!
+}
+
+input MicrosoftTeamsChannelInput {
+	name: String!
+	id: String!
+}
+
 type WebhookDestination {
 	url: String!
 	authorization: String
@@ -12038,6 +12140,7 @@ type ErrorAlert {
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
 	DiscordChannelsToNotify: [DiscordChannel!]!
+	MicrosoftTeamsChannelsToNotify: [MicrosoftTeamsChannel!]!
 	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
@@ -12070,6 +12173,7 @@ type SessionAlert {
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
 	DiscordChannelsToNotify: [DiscordChannel!]!
+	MicrosoftTeamsChannelsToNotify: [MicrosoftTeamsChannel!]!
 	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
@@ -12091,6 +12195,7 @@ type LogAlert {
 	Name: String!
 	ChannelsToNotify: [SanitizedSlackChannel!]!
 	DiscordChannelsToNotify: [DiscordChannel!]!
+	MicrosoftTeamsChannelsToNotify: [MicrosoftTeamsChannel!]!
 	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String!]!
 	ExcludedEnvironments: [String!]!
@@ -12489,6 +12594,9 @@ type Query {
 	app_version_suggestion(project_id: ID!): [String]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
 	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel!]!
+	microsoft_teams_channel_suggestions(
+		project_id: ID!
+	): [MicrosoftTeamsChannel!]!
 	discord_channel_suggestions(project_id: ID!): [DiscordChannel!]!
 	generate_zapier_access_token(project_id: ID!): String!
 	is_integrated_with(
@@ -12587,6 +12695,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String!
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -12634,6 +12743,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -12662,6 +12772,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String!
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -12679,6 +12790,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String!
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -12950,6 +13062,7 @@ type Mutation {
 		threshold_window: Int!
 		slack_channels: [SanitizedSlackChannelInput]!
 		discord_channels: [DiscordChannelInput!]!
+		microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]!
 		environments: [String]!
@@ -12965,6 +13078,7 @@ type Mutation {
 		threshold_window: Int
 		slack_channels: [SanitizedSlackChannelInput]
 		discord_channels: [DiscordChannelInput!]!
+		microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]
 		environments: [String]
@@ -13272,60 +13386,69 @@ func (ec *executionContext) field_Mutation_createErrorAlert_args(ctx context.Con
 		}
 	}
 	args["discord_channels"] = arg5
-	var arg6 []*model.WebhookDestinationInput
+	var arg6 []*model.MicrosoftTeamsChannelInput
+	if tmp, ok := rawArgs["microsoft_teams_channels"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("microsoft_teams_channels"))
+		arg6, err = ec.unmarshalNMicrosoftTeamsChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMicrosoftTeamsChannelInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["microsoft_teams_channels"] = arg6
+	var arg7 []*model.WebhookDestinationInput
 	if tmp, ok := rawArgs["webhook_destinations"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webhook_destinations"))
-		arg6, err = ec.unmarshalNWebhookDestinationInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebhookDestinationInputᚄ(ctx, tmp)
+		arg7, err = ec.unmarshalNWebhookDestinationInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebhookDestinationInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["webhook_destinations"] = arg6
-	var arg7 []*string
+	args["webhook_destinations"] = arg7
+	var arg8 []*string
 	if tmp, ok := rawArgs["emails"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emails"))
-		arg7, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["emails"] = arg7
-	var arg8 []*string
-	if tmp, ok := rawArgs["environments"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environments"))
 		arg8, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["environments"] = arg8
+	args["emails"] = arg8
 	var arg9 []*string
-	if tmp, ok := rawArgs["regex_groups"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("regex_groups"))
+	if tmp, ok := rawArgs["environments"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environments"))
 		arg9, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["regex_groups"] = arg9
-	var arg10 int
+	args["environments"] = arg9
+	var arg10 []*string
+	if tmp, ok := rawArgs["regex_groups"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("regex_groups"))
+		arg10, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["regex_groups"] = arg10
+	var arg11 int
 	if tmp, ok := rawArgs["frequency"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("frequency"))
-		arg10, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg11, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["frequency"] = arg10
-	var arg11 *bool
+	args["frequency"] = arg11
+	var arg12 *bool
 	if tmp, ok := rawArgs["default"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("default"))
-		arg11, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg12, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["default"] = arg11
+	args["default"] = arg12
 	return args, nil
 }
 
@@ -15831,60 +15954,69 @@ func (ec *executionContext) field_Mutation_updateErrorAlert_args(ctx context.Con
 		}
 	}
 	args["discord_channels"] = arg6
-	var arg7 []*model.WebhookDestinationInput
+	var arg7 []*model.MicrosoftTeamsChannelInput
+	if tmp, ok := rawArgs["microsoft_teams_channels"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("microsoft_teams_channels"))
+		arg7, err = ec.unmarshalNMicrosoftTeamsChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMicrosoftTeamsChannelInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["microsoft_teams_channels"] = arg7
+	var arg8 []*model.WebhookDestinationInput
 	if tmp, ok := rawArgs["webhook_destinations"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webhook_destinations"))
-		arg7, err = ec.unmarshalNWebhookDestinationInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebhookDestinationInputᚄ(ctx, tmp)
+		arg8, err = ec.unmarshalNWebhookDestinationInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebhookDestinationInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["webhook_destinations"] = arg7
-	var arg8 []*string
+	args["webhook_destinations"] = arg8
+	var arg9 []*string
 	if tmp, ok := rawArgs["emails"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emails"))
-		arg8, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["emails"] = arg8
-	var arg9 []*string
-	if tmp, ok := rawArgs["environments"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environments"))
 		arg9, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["environments"] = arg9
+	args["emails"] = arg9
 	var arg10 []*string
-	if tmp, ok := rawArgs["regex_groups"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("regex_groups"))
+	if tmp, ok := rawArgs["environments"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environments"))
 		arg10, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["regex_groups"] = arg10
-	var arg11 *int
+	args["environments"] = arg10
+	var arg11 []*string
+	if tmp, ok := rawArgs["regex_groups"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("regex_groups"))
+		arg11, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["regex_groups"] = arg11
+	var arg12 *int
 	if tmp, ok := rawArgs["frequency"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("frequency"))
-		arg11, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg12, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["frequency"] = arg11
-	var arg12 *bool
+	args["frequency"] = arg12
+	var arg13 *bool
 	if tmp, ok := rawArgs["disabled"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disabled"))
-		arg12, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg13, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["disabled"] = arg12
+	args["disabled"] = arg13
 	return args, nil
 }
 
@@ -17404,32 +17536,41 @@ func (ec *executionContext) field_Query_errors_metrics_args(ctx context.Context,
 	}
 	args["bucket_by"] = arg5
 	var arg6 *int
-	if tmp, ok := rawArgs["limit"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+	if tmp, ok := rawArgs["bucket_count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket_count"))
 		arg6, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg6
-	var arg7 *model.MetricAggregator
+	args["bucket_count"] = arg6
+	var arg7 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg7, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg7
+	var arg8 *model.MetricAggregator
 	if tmp, ok := rawArgs["limit_aggregator"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_aggregator"))
-		arg7, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, tmp)
+		arg8, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit_aggregator"] = arg7
-	var arg8 *string
+	args["limit_aggregator"] = arg8
+	var arg9 *string
 	if tmp, ok := rawArgs["limit_column"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_column"))
-		arg8, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg9, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit_column"] = arg8
+	args["limit_column"] = arg9
 	return args, nil
 }
 
@@ -18247,32 +18388,41 @@ func (ec *executionContext) field_Query_logs_metrics_args(ctx context.Context, r
 	}
 	args["bucket_by"] = arg5
 	var arg6 *int
-	if tmp, ok := rawArgs["limit"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+	if tmp, ok := rawArgs["bucket_count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket_count"))
 		arg6, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg6
-	var arg7 *model.MetricAggregator
+	args["bucket_count"] = arg6
+	var arg7 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg7, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg7
+	var arg8 *model.MetricAggregator
 	if tmp, ok := rawArgs["limit_aggregator"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_aggregator"))
-		arg7, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, tmp)
+		arg8, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit_aggregator"] = arg7
-	var arg8 *string
+	args["limit_aggregator"] = arg8
+	var arg9 *string
 	if tmp, ok := rawArgs["limit_column"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_column"))
-		arg8, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg9, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit_column"] = arg8
+	args["limit_column"] = arg9
 	return args, nil
 }
 
@@ -18435,6 +18585,21 @@ func (ec *executionContext) field_Query_metrics_timeline_args(ctx context.Contex
 		}
 	}
 	args["params"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_microsoft_teams_channel_suggestions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -19159,32 +19324,41 @@ func (ec *executionContext) field_Query_sessions_metrics_args(ctx context.Contex
 	}
 	args["bucket_by"] = arg5
 	var arg6 *int
-	if tmp, ok := rawArgs["limit"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+	if tmp, ok := rawArgs["bucket_count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket_count"))
 		arg6, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg6
-	var arg7 *model.MetricAggregator
+	args["bucket_count"] = arg6
+	var arg7 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg7, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg7
+	var arg8 *model.MetricAggregator
 	if tmp, ok := rawArgs["limit_aggregator"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_aggregator"))
-		arg7, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, tmp)
+		arg8, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit_aggregator"] = arg7
-	var arg8 *string
+	args["limit_aggregator"] = arg8
+	var arg9 *string
 	if tmp, ok := rawArgs["limit_column"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_column"))
-		arg8, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg9, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit_column"] = arg8
+	args["limit_column"] = arg9
 	return args, nil
 }
 
@@ -19576,32 +19750,41 @@ func (ec *executionContext) field_Query_traces_metrics_args(ctx context.Context,
 	}
 	args["bucket_by"] = arg5
 	var arg6 *int
-	if tmp, ok := rawArgs["limit"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+	if tmp, ok := rawArgs["bucket_count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket_count"))
 		arg6, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg6
-	var arg7 *model.MetricAggregator
+	args["bucket_count"] = arg6
+	var arg7 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg7, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg7
+	var arg8 *model.MetricAggregator
 	if tmp, ok := rawArgs["limit_aggregator"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_aggregator"))
-		arg7, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, tmp)
+		arg8, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit_aggregator"] = arg7
-	var arg8 *string
+	args["limit_aggregator"] = arg8
+	var arg9 *string
 	if tmp, ok := rawArgs["limit_column"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_column"))
-		arg8, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg9, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit_column"] = arg8
+	args["limit_column"] = arg9
 	return args, nil
 }
 
@@ -26989,6 +27172,56 @@ func (ec *executionContext) fieldContext_ErrorAlert_DiscordChannelsToNotify(ctx 
 				return ec.fieldContext_DiscordChannel_name(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DiscordChannel", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorAlert_MicrosoftTeamsChannelsToNotify(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ErrorAlert().MicrosoftTeamsChannelsToNotify(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.MicrosoftTeamsChannel)
+	fc.Result = res
+	return ec.marshalNMicrosoftTeamsChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMicrosoftTeamsChannelᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorAlert_MicrosoftTeamsChannelsToNotify(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorAlert",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MicrosoftTeamsChannel_id(ctx, field)
+			case "name":
+				return ec.fieldContext_MicrosoftTeamsChannel_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MicrosoftTeamsChannel", field.Name)
 		},
 	}
 	return fc, nil
@@ -36314,6 +36547,50 @@ func (ec *executionContext) fieldContext_LinearTeam_key(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Log_projectID(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Log_projectID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProjectID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Log_projectID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Log",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Log_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Log_timestamp(ctx, field)
 	if err != nil {
@@ -37004,6 +37281,56 @@ func (ec *executionContext) fieldContext_LogAlert_DiscordChannelsToNotify(ctx co
 				return ec.fieldContext_DiscordChannel_name(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DiscordChannel", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LogAlert_MicrosoftTeamsChannelsToNotify(ctx context.Context, field graphql.CollectedField, obj *model1.LogAlert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.LogAlert().MicrosoftTeamsChannelsToNotify(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.MicrosoftTeamsChannel)
+	fc.Result = res
+	return ec.marshalNMicrosoftTeamsChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMicrosoftTeamsChannelᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogAlert_MicrosoftTeamsChannelsToNotify(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogAlert",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MicrosoftTeamsChannel_id(ctx, field)
+			case "name":
+				return ec.fieldContext_MicrosoftTeamsChannel_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MicrosoftTeamsChannel", field.Name)
 		},
 	}
 	return fc, nil
@@ -37727,6 +38054,8 @@ func (ec *executionContext) fieldContext_LogEdge_node(ctx context.Context, field
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "projectID":
+				return ec.fieldContext_Log_projectID(ctx, field)
 			case "timestamp":
 				return ec.fieldContext_Log_timestamp(ctx, field)
 			case "level":
@@ -38648,6 +38977,94 @@ func (ec *executionContext) fieldContext_MetricBucket_bucket_id(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _MetricBucket_bucket_min(ctx context.Context, field graphql.CollectedField, obj *model.MetricBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricBucket_bucket_min(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BucketMin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricBucket_bucket_min(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricBucket_bucket_max(ctx context.Context, field graphql.CollectedField, obj *model.MetricBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricBucket_bucket_max(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BucketMax, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricBucket_bucket_max(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _MetricBucket_group(ctx context.Context, field graphql.CollectedField, obj *model.MetricBucket) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_MetricBucket_group(ctx, field)
 	if err != nil {
@@ -38801,14 +39218,11 @@ func (ec *executionContext) _MetricBucket_metric_value(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MetricBucket_metric_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -39762,6 +40176,10 @@ func (ec *executionContext) fieldContext_MetricsBuckets_buckets(ctx context.Cont
 			switch field.Name {
 			case "bucket_id":
 				return ec.fieldContext_MetricBucket_bucket_id(ctx, field)
+			case "bucket_min":
+				return ec.fieldContext_MetricBucket_bucket_min(ctx, field)
+			case "bucket_max":
+				return ec.fieldContext_MetricBucket_bucket_max(ctx, field)
 			case "group":
 				return ec.fieldContext_MetricBucket_group(ctx, field)
 			case "column":
@@ -39860,6 +40278,94 @@ func (ec *executionContext) fieldContext_MetricsBuckets_sample_factor(ctx contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MicrosoftTeamsChannel_id(ctx context.Context, field graphql.CollectedField, obj *model1.MicrosoftTeamsChannel) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MicrosoftTeamsChannel_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MicrosoftTeamsChannel_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MicrosoftTeamsChannel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MicrosoftTeamsChannel_name(ctx context.Context, field graphql.CollectedField, obj *model1.MicrosoftTeamsChannel) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MicrosoftTeamsChannel_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MicrosoftTeamsChannel_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MicrosoftTeamsChannel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -43304,7 +43810,7 @@ func (ec *executionContext) _Mutation_createErrorAlert(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateErrorAlert(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["count_threshold"].(int), fc.Args["threshold_window"].(int), fc.Args["slack_channels"].([]*model.SanitizedSlackChannelInput), fc.Args["discord_channels"].([]*model.DiscordChannelInput), fc.Args["webhook_destinations"].([]*model.WebhookDestinationInput), fc.Args["emails"].([]*string), fc.Args["environments"].([]*string), fc.Args["regex_groups"].([]*string), fc.Args["frequency"].(int), fc.Args["default"].(*bool))
+		return ec.resolvers.Mutation().CreateErrorAlert(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["count_threshold"].(int), fc.Args["threshold_window"].(int), fc.Args["slack_channels"].([]*model.SanitizedSlackChannelInput), fc.Args["discord_channels"].([]*model.DiscordChannelInput), fc.Args["microsoft_teams_channels"].([]*model.MicrosoftTeamsChannelInput), fc.Args["webhook_destinations"].([]*model.WebhookDestinationInput), fc.Args["emails"].([]*string), fc.Args["environments"].([]*string), fc.Args["regex_groups"].([]*string), fc.Args["frequency"].(int), fc.Args["default"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -43335,6 +43841,8 @@ func (ec *executionContext) fieldContext_Mutation_createErrorAlert(ctx context.C
 				return ec.fieldContext_ErrorAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_ErrorAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_ErrorAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_ErrorAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -43391,7 +43899,7 @@ func (ec *executionContext) _Mutation_updateErrorAlert(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateErrorAlert(rctx, fc.Args["project_id"].(int), fc.Args["name"].(*string), fc.Args["error_alert_id"].(int), fc.Args["count_threshold"].(*int), fc.Args["threshold_window"].(*int), fc.Args["slack_channels"].([]*model.SanitizedSlackChannelInput), fc.Args["discord_channels"].([]*model.DiscordChannelInput), fc.Args["webhook_destinations"].([]*model.WebhookDestinationInput), fc.Args["emails"].([]*string), fc.Args["environments"].([]*string), fc.Args["regex_groups"].([]*string), fc.Args["frequency"].(*int), fc.Args["disabled"].(*bool))
+		return ec.resolvers.Mutation().UpdateErrorAlert(rctx, fc.Args["project_id"].(int), fc.Args["name"].(*string), fc.Args["error_alert_id"].(int), fc.Args["count_threshold"].(*int), fc.Args["threshold_window"].(*int), fc.Args["slack_channels"].([]*model.SanitizedSlackChannelInput), fc.Args["discord_channels"].([]*model.DiscordChannelInput), fc.Args["microsoft_teams_channels"].([]*model.MicrosoftTeamsChannelInput), fc.Args["webhook_destinations"].([]*model.WebhookDestinationInput), fc.Args["emails"].([]*string), fc.Args["environments"].([]*string), fc.Args["regex_groups"].([]*string), fc.Args["frequency"].(*int), fc.Args["disabled"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -43422,6 +43930,8 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorAlert(ctx context.C
 				return ec.fieldContext_ErrorAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_ErrorAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_ErrorAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_ErrorAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -43509,6 +44019,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteErrorAlert(ctx context.C
 				return ec.fieldContext_ErrorAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_ErrorAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_ErrorAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_ErrorAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -43679,6 +44191,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSessionAlertIsDisabled(c
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_SessionAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_SessionAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -43768,6 +44282,8 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorAlertIsDisabled(ctx
 				return ec.fieldContext_ErrorAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_ErrorAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_ErrorAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_ErrorAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -43938,6 +44454,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSessionAlert(ctx context
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_SessionAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_SessionAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -44027,6 +44545,8 @@ func (ec *executionContext) fieldContext_Mutation_createSessionAlert(ctx context
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_SessionAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_SessionAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -44116,6 +44636,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteSessionAlert(ctx context
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_SessionAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_SessionAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -44205,6 +44727,8 @@ func (ec *executionContext) fieldContext_Mutation_updateLogAlert(ctx context.Con
 				return ec.fieldContext_LogAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_LogAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_LogAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_LogAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -44292,6 +44816,8 @@ func (ec *executionContext) fieldContext_Mutation_createLogAlert(ctx context.Con
 				return ec.fieldContext_LogAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_LogAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_LogAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_LogAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -44379,6 +44905,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteLogAlert(ctx context.Con
 				return ec.fieldContext_LogAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_LogAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_LogAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_LogAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -44466,6 +44994,8 @@ func (ec *executionContext) fieldContext_Mutation_updateLogAlertIsDisabled(ctx c
 				return ec.fieldContext_LogAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_LogAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_LogAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_LogAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -51880,6 +52410,8 @@ func (ec *executionContext) fieldContext_Query_error_alerts(ctx context.Context,
 				return ec.fieldContext_ErrorAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_ErrorAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_ErrorAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_ErrorAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -51967,6 +52499,8 @@ func (ec *executionContext) fieldContext_Query_new_user_alerts(ctx context.Conte
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_SessionAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_SessionAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -52059,6 +52593,8 @@ func (ec *executionContext) fieldContext_Query_track_properties_alerts(ctx conte
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_SessionAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_SessionAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -52151,6 +52687,8 @@ func (ec *executionContext) fieldContext_Query_user_properties_alerts(ctx contex
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_SessionAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_SessionAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -52243,6 +52781,8 @@ func (ec *executionContext) fieldContext_Query_new_session_alerts(ctx context.Co
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_SessionAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_SessionAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -52335,6 +52875,8 @@ func (ec *executionContext) fieldContext_Query_rage_click_alerts(ctx context.Con
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_SessionAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_SessionAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -52427,6 +52969,8 @@ func (ec *executionContext) fieldContext_Query_log_alerts(ctx context.Context, f
 				return ec.fieldContext_LogAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_LogAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_LogAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_LogAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -52517,6 +53061,8 @@ func (ec *executionContext) fieldContext_Query_log_alert(ctx context.Context, fi
 				return ec.fieldContext_LogAlert_ChannelsToNotify(ctx, field)
 			case "DiscordChannelsToNotify":
 				return ec.fieldContext_LogAlert_DiscordChannelsToNotify(ctx, field)
+			case "MicrosoftTeamsChannelsToNotify":
+				return ec.fieldContext_LogAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
 			case "WebhookDestinations":
 				return ec.fieldContext_LogAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
@@ -52864,6 +53410,66 @@ func (ec *executionContext) fieldContext_Query_slack_channel_suggestion(ctx cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_slack_channel_suggestion_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_microsoft_teams_channel_suggestions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_microsoft_teams_channel_suggestions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MicrosoftTeamsChannelSuggestions(rctx, fc.Args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.MicrosoftTeamsChannel)
+	fc.Result = res
+	return ec.marshalNMicrosoftTeamsChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMicrosoftTeamsChannelᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_microsoft_teams_channel_suggestions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MicrosoftTeamsChannel_id(ctx, field)
+			case "name":
+				return ec.fieldContext_MicrosoftTeamsChannel_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MicrosoftTeamsChannel", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_microsoft_teams_channel_suggestions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -56249,7 +56855,7 @@ func (ec *executionContext) _Query_logs_metrics(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().LogsMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(string), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string))
+		return ec.resolvers.Query().LogsMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(string), fc.Args["bucket_count"].(*int), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -57182,7 +57788,7 @@ func (ec *executionContext) _Query_traces_metrics(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().TracesMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(*string), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string))
+		return ec.resolvers.Query().TracesMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(*string), fc.Args["bucket_count"].(*int), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -57418,7 +58024,7 @@ func (ec *executionContext) _Query_errors_metrics(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorsMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(string), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string))
+		return ec.resolvers.Query().ErrorsMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(string), fc.Args["bucket_count"].(*int), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -57540,7 +58146,7 @@ func (ec *executionContext) _Query_sessions_metrics(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionsMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(string), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string))
+		return ec.resolvers.Query().SessionsMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(string), fc.Args["bucket_count"].(*int), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -63008,6 +63614,56 @@ func (ec *executionContext) fieldContext_SessionAlert_DiscordChannelsToNotify(ct
 				return ec.fieldContext_DiscordChannel_name(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DiscordChannel", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SessionAlert_MicrosoftTeamsChannelsToNotify(ctx context.Context, field graphql.CollectedField, obj *model1.SessionAlert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionAlert_MicrosoftTeamsChannelsToNotify(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.SessionAlert().MicrosoftTeamsChannelsToNotify(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.MicrosoftTeamsChannel)
+	fc.Result = res
+	return ec.marshalNMicrosoftTeamsChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMicrosoftTeamsChannelᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SessionAlert_MicrosoftTeamsChannelsToNotify(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SessionAlert",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MicrosoftTeamsChannel_id(ctx, field)
+			case "name":
+				return ec.fieldContext_MicrosoftTeamsChannel_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MicrosoftTeamsChannel", field.Name)
 		},
 	}
 	return fc, nil
@@ -75200,7 +75856,7 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"project_id", "name", "count_threshold", "below_threshold", "threshold_window", "slack_channels", "discord_channels", "webhook_destinations", "emails", "environments", "disabled", "default", "query"}
+	fieldsInOrder := [...]string{"project_id", "name", "count_threshold", "below_threshold", "threshold_window", "slack_channels", "discord_channels", "microsoft_teams_channels", "webhook_destinations", "emails", "environments", "disabled", "default", "query"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -75260,6 +75916,14 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discord_channels"))
 			it.DiscordChannels, err = ec.unmarshalNDiscordChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDiscordChannelInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "microsoft_teams_channels":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("microsoft_teams_channels"))
+			it.MicrosoftTeamsChannels, err = ec.unmarshalNMicrosoftTeamsChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMicrosoftTeamsChannelInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -75352,6 +76016,42 @@ func (ec *executionContext) unmarshalInputMetricTagFilterInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
 			it.Value, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputMicrosoftTeamsChannelInput(ctx context.Context, obj interface{}) (model.MicrosoftTeamsChannelInput, error) {
+	var it model.MicrosoftTeamsChannelInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -75636,7 +76336,7 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"project_id", "name", "count_threshold", "threshold_window", "slack_channels", "discord_channels", "webhook_destinations", "emails", "environments", "disabled", "default", "type", "user_properties", "exclude_rules", "track_properties"}
+	fieldsInOrder := [...]string{"project_id", "name", "count_threshold", "threshold_window", "slack_channels", "discord_channels", "microsoft_teams_channels", "webhook_destinations", "emails", "environments", "disabled", "default", "type", "user_properties", "exclude_rules", "track_properties"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -75688,6 +76388,14 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discord_channels"))
 			it.DiscordChannels, err = ec.unmarshalNDiscordChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDiscordChannelInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "microsoft_teams_channels":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("microsoft_teams_channels"))
+			it.MicrosoftTeamsChannels, err = ec.unmarshalNMicrosoftTeamsChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMicrosoftTeamsChannelInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -77620,6 +78328,26 @@ func (ec *executionContext) _ErrorAlert(ctx context.Context, sel ast.SelectionSe
 					}
 				}()
 				res = ec._ErrorAlert_DiscordChannelsToNotify(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "MicrosoftTeamsChannelsToNotify":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorAlert_MicrosoftTeamsChannelsToNotify(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -79836,6 +80564,13 @@ func (ec *executionContext) _Log(ctx context.Context, sel ast.SelectionSet, obj 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Log")
+		case "projectID":
+
+			out.Values[i] = ec._Log_projectID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "timestamp":
 
 			out.Values[i] = ec._Log_timestamp(ctx, field, obj)
@@ -79964,6 +80699,26 @@ func (ec *executionContext) _LogAlert(ctx context.Context, sel ast.SelectionSet,
 					}
 				}()
 				res = ec._LogAlert_DiscordChannelsToNotify(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "MicrosoftTeamsChannelsToNotify":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._LogAlert_MicrosoftTeamsChannelsToNotify(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -80477,6 +81232,20 @@ func (ec *executionContext) _MetricBucket(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "bucket_min":
+
+			out.Values[i] = ec._MetricBucket_bucket_min(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "bucket_max":
+
+			out.Values[i] = ec._MetricBucket_bucket_max(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "group":
 
 			out.Values[i] = ec._MetricBucket_group(ctx, field, obj)
@@ -80502,9 +81271,6 @@ func (ec *executionContext) _MetricBucket(ctx context.Context, sel ast.Selection
 
 			out.Values[i] = ec._MetricBucket_metric_value(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -80802,6 +81568,41 @@ func (ec *executionContext) _MetricsBuckets(ctx context.Context, sel ast.Selecti
 		case "sample_factor":
 
 			out.Values[i] = ec._MetricsBuckets_sample_factor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var microsoftTeamsChannelImplementors = []string{"MicrosoftTeamsChannel"}
+
+func (ec *executionContext) _MicrosoftTeamsChannel(ctx context.Context, sel ast.SelectionSet, obj *model1.MicrosoftTeamsChannel) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, microsoftTeamsChannelImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MicrosoftTeamsChannel")
+		case "id":
+
+			out.Values[i] = ec._MicrosoftTeamsChannel_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._MicrosoftTeamsChannel_name(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -83288,6 +84089,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_slack_channel_suggestion(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "microsoft_teams_channel_suggestions":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_microsoft_teams_channel_suggestions(ctx, field)
 				return res
 			}
 
@@ -86016,6 +86837,26 @@ func (ec *executionContext) _SessionAlert(ctx context.Context, sel ast.Selection
 					}
 				}()
 				res = ec._SessionAlert_DiscordChannelsToNotify(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "MicrosoftTeamsChannelsToNotify":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._SessionAlert_MicrosoftTeamsChannelsToNotify(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -91415,6 +92256,82 @@ func (ec *executionContext) marshalNMetricsBuckets2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return ec._MetricsBuckets(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNMicrosoftTeamsChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMicrosoftTeamsChannelᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.MicrosoftTeamsChannel) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMicrosoftTeamsChannel2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMicrosoftTeamsChannel(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNMicrosoftTeamsChannel2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMicrosoftTeamsChannel(ctx context.Context, sel ast.SelectionSet, v *model1.MicrosoftTeamsChannel) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MicrosoftTeamsChannel(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNMicrosoftTeamsChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMicrosoftTeamsChannelInputᚄ(ctx context.Context, v interface{}) ([]*model.MicrosoftTeamsChannelInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.MicrosoftTeamsChannelInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNMicrosoftTeamsChannelInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMicrosoftTeamsChannelInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNMicrosoftTeamsChannelInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMicrosoftTeamsChannelInput(ctx context.Context, v interface{}) (*model.MicrosoftTeamsChannelInput, error) {
+	res, err := ec.unmarshalInputMicrosoftTeamsChannelInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNNetworkHistogramParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNetworkHistogramParamsInput(ctx context.Context, v interface{}) (model.NetworkHistogramParamsInput, error) {

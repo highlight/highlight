@@ -86,11 +86,23 @@ See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/comp
 <img width="600" alt="error-monitoring" src="https://user-images.githubusercontent.com/20292680/214500108-c8e0e289-276a-4863-816a-7c854c97df4e.png">
 </p>
 
-### Logs and Traces: Dig deeper into what's happening on your server.
+### Logs: Dig deeper into what's happening on your server.
 
 -   **Powerful Search**: Search across all your logs, with automatic property collection -> [docs](https://www.highlight.io/docs/general/product-features/general-features/search)
 -   **Log Alerts**: Set thresholds for your log alerts, and view them in the alerts dashboard -> [docs](https://www.highlight.io/docs/general/product-features/general-features/alerts)
--   **Embedded Session Replay and Errors**: See all of the sessions & errors associated a log or a trace.
+-   **Embedded Session Replay and Errors**: See all of the sessions & errors associated to a log.
+-   **SDK Support**: Support for a long (and growing!) list of [SDKs](#sdks).
+-   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations/overview)
+
+<p align="center">
+<img width="600" alt="logging" src="https://user-images.githubusercontent.com/20292680/233539519-f8f58251-5b88-4703-8bea-2cd8d9549faf.png">
+</p>
+
+### Traces: Track the performance of operations on your server.
+
+-   **Powerful Search**: Search across all your traces, with automatic property collection -> [docs](https://www.highlight.io/docs/general/product-features/general-features/search)
+-   **Log Alerts**: Set thresholds for your log alerts, and view them in the alerts dashboard -> [docs](https://www.highlight.io/docs/general/product-features/general-features/alerts)
+-   **Embedded Session Replay, Errors and Logs**: See all of the sessions, errors, and logs associated to a trace.
 -   **SDK Support**: Support for a long (and growing!) list of [SDKs](#sdks).
 -   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations/overview)
 

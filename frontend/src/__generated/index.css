@@ -6539,6 +6539,20 @@ body {
   border: 0 !important;
   border-radius: 0;
 }
+._9rz0ta0 {
+  border: none;
+}
+._9rz0ta1 {
+  width: 300px;
+}
+._9rz0ta2 {
+  line-height: 25px;
+  overflow: hidden;
+  width: 250px;
+}
+._9rz0ta3 {
+  overflow-wrap: break-word;
+}
 .g2tqod0 {
   background-color: var(--_1pyqka96);
   border-radius: 4px;
@@ -7506,20 +7520,6 @@ body {
 }
 ._1yp8bvx1 {
   filter: grayscale(0.5);
-}
-._1rw9tha0 {
-  border: none;
-}
-._1rw9tha1 {
-  width: 300px;
-}
-._1rw9tha2 {
-  line-height: 25px;
-  overflow: hidden;
-  width: 250px;
-}
-._1rw9tha3 {
-  overflow-wrap: break-word;
 }
 ._14l2j9r1 {
   font-size: 12px;
