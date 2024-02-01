@@ -8,6 +8,7 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui/components'
+import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Trace } from '@/graph/generated/schemas'
@@ -58,7 +59,7 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 						size="medium"
 						iconStart={<IconSolidMenuAlt_2 size="12" />}
 					/>
-					{children}
+					<span>{children}</span>
 				</Stack>
 				<Table.Discoverable>
 					<Badge variant="outlineGray" label="Open" size="medium" />
@@ -67,6 +68,10 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 		</Table.Cell>
 	)
 }
+
+const EmptyState: React.FC = () => (
+	<Text color="secondaryContentOnDisabled">empty</Text>
+)
 
 type ColumnRendererProps = {
 	row: any
@@ -89,7 +94,7 @@ const StringColumnRenderer: React.FC<ColumnRendererProps> = ({
 					{value}
 				</Text>
 			) : (
-				<Text color="secondaryContentOnDisabled">empty</Text>
+				<EmptyState />
 			)}
 		</ColumnWrapper>
 	)
@@ -117,10 +122,10 @@ const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 					shape="basic"
 					iconLeft={<IconSolidPlayCircle />}
 				>
-					{secureSessionID}
+					<Text lines="1">{secureSessionID}</Text>
 				</Tag>
 			) : (
-				<Text color="secondaryContentOnDisabled">empty</Text>
+				<EmptyState />
 			)}
 		</ColumnWrapper>
 	)
@@ -135,16 +140,20 @@ const DateTimeColumnRenderer: React.FC<ColumnRendererProps> = ({
 
 	return (
 		<ColumnWrapper first={first} row={row}>
-			<Text lines="1">
-				{new Date(date).toLocaleDateString('en-US', {
-					month: 'short',
-					day: 'numeric',
-					year: 'numeric',
-					hour: 'numeric',
-					minute: 'numeric',
-					second: 'numeric',
-				})}
-			</Text>
+			{date ? (
+				<Text lines="1">
+					{new Date(date).toLocaleDateString('en-US', {
+						month: 'short',
+						day: 'numeric',
+						year: 'numeric',
+						hour: 'numeric',
+						minute: 'numeric',
+						second: 'numeric',
+					})}
+				</Text>
+			) : (
+				<EmptyState />
+			)}
 		</ColumnWrapper>
 	)
 }
@@ -157,9 +166,13 @@ const DurationRenderer: React.FC<ColumnRendererProps> = ({
 	const duration = getTraceDurationString(getValue())
 	return (
 		<ColumnWrapper first={first} row={row}>
-			<Text lines="1" title={duration}>
-				{duration}
-			</Text>
+			{duration ? (
+				<Text lines="1" title={duration}>
+					{duration}
+				</Text>
+			) : (
+				<EmptyState />
+			)}
 		</ColumnWrapper>
 	)
 }

@@ -5394,6 +5394,24 @@ body {
 ._65ghl31 {
   background: var(--_1pyqka92);
 }
+._1xsdgmb0 {
+  align-items: center;
+  border-right: 1px solid transparent;
+  color: var(--_1pyqka9d);
+  display: grid;
+  line-height: 16px;
+  padding: 10px 8px;
+  position: relative;
+}
+._1xsdgmb0:hover {
+  color: var(--_1pyqka9w);
+}
+._65ghl30:hover ._1xsdgmb0:not(:last-of-type) {
+  border-right: 1px solid var(--_1pyqka9k);
+}
+._1xsdgmb1 {
+  padding: 0;
+}
 ._1qp9y5j0 {
   display: flex;
   visibility: hidden;
@@ -5404,22 +5422,8 @@ body {
 .om6zxf0:hover ._1qp9y5j2 {
   visibility: visible;
 }
-._1xsdgmb0 {
-  align-items: center;
-  border-right: 1px solid transparent;
-  color: var(--_1pyqka9d);
-  display: grid;
-  line-height: 16px;
-  padding: 10px 8px;
-}
-._1xsdgmb0:hover {
-  color: var(--_1pyqka9w);
-}
-._65ghl30:hover ._1xsdgmb0:not(:last-of-type) {
-  border-right: 1px solid var(--_1pyqka9k);
-}
-._1xsdgmb1 {
-  padding: 0;
+._1xsdgmb0:hover ._1qp9y5j3 {
+  visibility: visible;
 }
 ._13s6meo1 {
   background: transparent;
