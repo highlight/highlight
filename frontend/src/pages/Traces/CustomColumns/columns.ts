@@ -64,14 +64,6 @@ const TIMESTAMP_COLUMN: TraceCustomColumn = {
 	accessKey: 'timestamp',
 }
 
-const START_TIME_COLUMN: TraceCustomColumn = {
-	id: 'start_time',
-	label: 'Start Time',
-	type: 'datetime',
-	size: '1.2fr',
-	accessKey: 'startTime',
-}
-
 const DURATION_COLUMN: TraceCustomColumn = {
 	id: 'duration',
 	label: 'Duration',
@@ -140,7 +132,6 @@ export const HIGHLIGHT_STANDARD_COLUMNS: Record<string, TraceCustomColumn> = {
 	duration: DURATION_COLUMN,
 	environment: ENVIRONMENT_COLUMN,
 	timestamp: TIMESTAMP_COLUMN,
-	start_time: START_TIME_COLUMN,
 	span_kind: SPAN_KIND_COLUMN,
 	status_code: STATUS_CODE_COLUMN,
 	status_message: STATUS_MESSAGE_COLUMN,
