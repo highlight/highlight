@@ -67,8 +67,9 @@ func (h *handlers) HandleAWSMarketplaceSQS(ctx context.Context, events events.SQ
 		workspace := model.Workspace{}
 		if err := h.db.
 			Model(&workspace).
+			Preload("AWSMarketplaceCustomer").
 			Joins("AWSMarketplaceCustomer").
-			Where(&model.AWSMarketplaceCustomer{CustomerIdentifier: pointy.String(msg.CustomerIdentifier)}).
+			Where("customer_identifier = ?", pointy.String(msg.CustomerIdentifier)).
 			Find(&workspace).
 			Error; err != nil {
 			return err
