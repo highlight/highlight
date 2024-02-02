@@ -344,6 +344,22 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 	return values, rows.Err()
 }
 
+func getChildValue(value reflect.Value, key string) (string, bool) {
+	for _, part := range strings.Split(key, ".") {
+		if !value.IsValid() {
+			return "", false
+		}
+		value = value.FieldByName(part)
+		if value.Kind() == reflect.Pointer {
+			value = value.Elem()
+		}
+	}
+	if value.IsValid() {
+		return repr(value), true
+	}
+	return "", false
+}
+
 // clickhouse token - https://clickhouse.com/docs/en/sql-reference/functions/splitting-merging-functions#tokens
 var nonAlphaNumericChars = regexp.MustCompile(`[^\w:*]`)
 
@@ -377,31 +393,15 @@ func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model
 
 	var rowValue string
 	if chKey, ok := config.KeysToColumns[TReservedKey(filter.Key)]; ok {
-		if strings.Contains(chKey, ".") {
-			var value = v
-			for _, part := range strings.Split(chKey, ".") {
-				value = value.FieldByName(part)
-				if value.Kind() == reflect.Pointer {
-					value = value.Elem()
-				}
-			}
-			rowValue = repr(value)
+		if val, ok := getChildValue(v, chKey); ok {
+			rowValue = val
 		} else {
 			rowValue = repr(v.FieldByName(chKey))
 		}
 	} else if field := v.FieldByName(filter.Key); field.IsValid() {
 		rowValue = repr(field)
-	} else if strings.Contains(filter.Key, ".") {
-		var value = v
-		for _, part := range strings.Split(filter.Key, ".") {
-			value = value.FieldByName(part)
-			if value.Kind() == reflect.Pointer {
-				value = value.Elem()
-			}
-		}
-		if value.IsValid() {
-			rowValue = repr(value)
-		}
+	} else if val, ok := getChildValue(v, filter.Key); ok {
+		rowValue = val
 	} else if config.AttributesColumn != "" {
 		value := v.FieldByName(config.AttributesColumn)
 		if value.Kind() == reflect.Map {
