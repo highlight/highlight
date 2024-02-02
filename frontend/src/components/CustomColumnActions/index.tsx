@@ -92,7 +92,7 @@ export const CustomColumnActions: React.FC<Props> = ({
 		const newColumns = [...selectedColumns]
 
 		const newSize =
-			standardColumns[selectedColumns[columnIndex].label]?.size || '1fr'
+			standardColumns[selectedColumns[columnIndex].id]?.size || '1fr'
 
 		newColumns[columnIndex] = {
 			...selectedColumns[columnIndex],
