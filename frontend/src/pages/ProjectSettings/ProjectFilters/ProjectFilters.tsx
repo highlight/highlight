@@ -721,12 +721,7 @@ const IngestTimeline: React.FC<{
 	)
 
 	const histogramBuckets = data?.traces_metrics.buckets
-		.filter(
-			(b) =>
-				b.metric_type === MetricAggregator.Count &&
-				b.metric_value !== undefined &&
-				b.metric_value !== null,
-		)
+		.filter((b) => b.metric_value !== null)
 		.map((b) => ({
 			bucketId: b.bucket_id,
 			group: b.group,
