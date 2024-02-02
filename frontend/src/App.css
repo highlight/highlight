@@ -2,10 +2,6 @@
 	text-align: center;
 }
 
-.Collapsible__contentInner {
-	margin: 1px;
-}
-
 .ant-picker-input input::placeholder {
 	color: var(--color-gray-500);
 	font-size: 14px;
