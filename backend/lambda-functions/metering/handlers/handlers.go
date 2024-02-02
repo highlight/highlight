@@ -68,8 +68,9 @@ func (h *handlers) HandleAWSMarketplaceSQS(ctx context.Context, events events.SQ
 		if err := h.db.
 			Model(&workspace).
 			Where(&model.AWSMarketplaceCustomer{CustomerIdentifier: pointy.String(msg.CustomerIdentifier)}).
-			Association("AWSMarketplaceCustomer").
-			Find(&workspace); err != nil {
+			Preload("AWSMarketplaceCustomer").
+			Find(&workspace).
+			Error; err != nil {
 			return err
 		}
 		if pointy.StringValue(workspace.AWSMarketplaceCustomer.CustomerIdentifier, "invalid") != msg.CustomerIdentifier {
