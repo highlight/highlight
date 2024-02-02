@@ -2146,15 +2146,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		return
 	}
 
-	// Filter out ignored errors
-	var filteredErrors []*publicModel.BackendErrorObjectInput
-	for _, errorObject := range errorObjects {
-		if r.IsErrorIngested(ctx, project.ID, errorObject) {
-			filteredErrors = append(filteredErrors, errorObject)
-		}
-	}
-	errorObjects = filteredErrors
-
 	if len(errorObjects) == 0 {
 		return
 	}

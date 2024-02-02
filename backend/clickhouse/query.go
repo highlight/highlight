@@ -391,6 +391,17 @@ func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model
 		}
 	} else if field := v.FieldByName(filter.Key); field.IsValid() {
 		rowValue = repr(field)
+	} else if strings.Contains(filter.Key, ".") {
+		var value = v
+		for _, part := range strings.Split(filter.Key, ".") {
+			value = value.FieldByName(part)
+			if value.Kind() == reflect.Pointer {
+				value = value.Elem()
+			}
+		}
+		if value.IsValid() {
+			rowValue = repr(value)
+		}
 	} else if config.AttributesColumn != "" {
 		value := v.FieldByName(config.AttributesColumn)
 		if value.Kind() == reflect.Map {
