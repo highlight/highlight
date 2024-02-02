@@ -6,11 +6,11 @@ import Footer from '../../components/common/Footer/Footer'
 import { Meta } from '../../components/common/Head/Meta'
 import Navbar from '../../components/common/Navbar/Navbar'
 import { Typography } from '../../components/common/Typography/Typography'
+import DayFive from '../../components/Launch/Week4/DayFive'
 import DayFour from '../../components/Launch/Week4/DayFour'
 import DayOne from '../../components/Launch/Week4/DayOne'
 import DayThree from '../../components/Launch/Week4/DayThree'
 import DayTwo from '../../components/Launch/Week4/DayTwo'
-import HiddenDay from '../../components/Launch/Week4/HiddenDay'
 import preview from '../../public/images/launch/week-4/meta.png'
 
 const LaunchPage = () => {
@@ -121,7 +121,7 @@ const LaunchPage = () => {
 					<DayTwo />
 					<DayThree />
 					<DayFour />
-					<HiddenDay title="Day 5: February 2" />
+					<DayFive />
 				</div>
 			</main>
 			{/* <FooterCallToAction /> */}
