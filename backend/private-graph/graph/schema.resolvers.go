@@ -25,6 +25,19 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
+	"github.com/lib/pq"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	"github.com/samber/lo"
+	"github.com/sashabaranov/go-openai"
+	log "github.com/sirupsen/logrus"
+	"github.com/stripe/stripe-go/v76"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
@@ -49,20 +62,8 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
-	highlight "github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
-	"github.com/lib/pq"
-	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
-	"github.com/samber/lo"
-	"github.com/sashabaranov/go-openai"
-	log "github.com/sirupsen/logrus"
-	stripe "github.com/stripe/stripe-go/v76"
-	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"golang.org/x/sync/errgroup"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // Author is the resolver for the author field.
@@ -1409,12 +1410,23 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 	}
 
 	// create customer record with the current frontend workspace context
-	if err := r.DB.WithContext(ctx).Model(&model.AWSMarketplaceCustomer{}).Create(&model.AWSMarketplaceCustomer{
-		WorkspaceID:          workspaceID,
-		CustomerIdentifier:   customer.CustomerIdentifier,
-		CustomerAWSAccountID: customer.CustomerAWSAccountId,
-		ProductCode:          customer.ProductCode,
-	}).Error; err != nil {
+	if err := r.DB.WithContext(ctx).
+		Where(&model.AWSMarketplaceCustomer{WorkspaceID: workspaceID}).
+		Clauses(clause.OnConflict{
+			Columns: []clause.Column{{Name: "workspace_id"}},
+			DoUpdates: clause.AssignmentColumns([]string{
+				"customer_identifier",
+				"customer_aws_account_id",
+				"product_code",
+			}),
+		}).
+		Model(&model.AWSMarketplaceCustomer{}).
+		Create(&model.AWSMarketplaceCustomer{
+			WorkspaceID:          workspaceID,
+			CustomerIdentifier:   customer.CustomerIdentifier,
+			CustomerAWSAccountID: customer.CustomerAWSAccountId,
+			ProductCode:          customer.ProductCode,
+		}).Error; err != nil {
 		return nil, err
 	}
 
