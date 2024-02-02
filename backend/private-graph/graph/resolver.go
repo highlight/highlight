@@ -1297,12 +1297,26 @@ func (r *Resolver) updateAWSMPBillingDetails(ctx context.Context, workspace *mod
 	log.WithContext(ctx).WithField("workspace_id", workspace.ID).WithField("customer", *customer).Info("billing update for aws mp")
 	now := time.Now()
 	end := time.Now().AddDate(0, 1, 0)
-	return r.updateBillingDetails(ctx, workspace, &planDetails{
+	if err := r.updateBillingDetails(ctx, workspace, &planDetails{
 		tier:               pricing.AWSMPProducts[*customer.ProductCode],
 		unlimitedMembers:   true,
 		billingPeriodStart: &now,
 		billingPeriodEnd:   &end,
+	}); err != nil {
+		return e.Wrap(err, "BILLING_ERROR error updateBillingDetails for aws mp plan")
+	}
+
+	// Plan has been updated, report the latest usage data to Stripe
+	worker := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.StripeClient, r.AWSMPClient, r.MailClient)
+	overages, err := worker.CalculateOverages(ctx, workspace.ID)
+	if err != nil {
+		return e.Wrap(err, "BILLING_ERROR aws mp update failed to calculate overages")
+	}
+
+	worker.ReportAWSMPUsages(ctx, pricing.AWSCustomerUsages{
+		workspace.ID: pricing.AWSCustomerUsage{Customer: workspace.AWSMarketplaceCustomer, Usage: overages},
 	})
+	return nil
 }
 
 func (r *Resolver) updateStripeBillingDetails(ctx context.Context, stripeCustomerID string) error {
@@ -1347,7 +1361,16 @@ func (r *Resolver) updateStripeBillingDetails(ctx context.Context, stripeCustome
 		Find(&workspace).Error; err != nil {
 		return e.Wrapf(err, "BILLING_ERROR error retrieving workspace for customer %s", stripeCustomerID)
 	}
-	return r.updateBillingDetails(ctx, &workspace, &details)
+
+	if err := r.updateBillingDetails(ctx, &workspace, &details); err != nil {
+		return e.Wrap(err, "BILLING_ERROR error updating billing details for stripe usage")
+	}
+
+	// Plan has been updated, report the latest usage data to Stripe
+	if err := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.StripeClient, r.AWSMPClient, r.MailClient).ReportStripeUsageForWorkspace(ctx, workspace.ID); err != nil {
+		return e.Wrap(err, "BILLING_ERROR error reporting usage after updating details")
+	}
+	return nil
 }
 
 type planDetails struct {
@@ -1372,11 +1395,6 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, workspace *model.Wo
 		Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
 		Updates(updates).Error; err != nil {
 		return e.Wrapf(err, "BILLING_ERROR error updating workspace fields for workspace %d", workspace.ID)
-	}
-
-	// Plan has been updated, report the latest usage data to Stripe
-	if _, err := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.StripeClient, r.AWSMPClient, r.MailClient).ReportUsageForWorkspace(ctx, workspace.ID); err != nil {
-		return e.Wrap(err, "BILLING_ERROR error reporting usage after updating details")
 	}
 
 	// Make previous billing history email records inactive (so new active records can be added)
