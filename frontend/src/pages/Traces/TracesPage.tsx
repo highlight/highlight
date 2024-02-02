@@ -231,7 +231,7 @@ export const TracesPage: React.FC = () => {
 								flexDirection="row"
 								px="10"
 								gap="10"
-								style={{ height: 28 }}
+								style={{ height: 32 }}
 							>
 								{metricsLoading ? (
 									<HistogramLoading />
