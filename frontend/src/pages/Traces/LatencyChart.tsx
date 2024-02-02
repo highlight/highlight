@@ -46,7 +46,8 @@ const CustomLegend = ({
 			gap="4"
 			position="relative"
 			style={{
-				top: '-5px',
+				top: '-6px',
+				right: '-5px',
 			}}
 		>
 			{payload?.map((entry, index) => (
@@ -112,7 +113,10 @@ export const LatencyChart = ({ loading, metricsBuckets }: Props) => {
 
 	return (
 		<ResponsiveContainer width="100%" height="100%">
-			<LineChart data={metricsBuckets}>
+			<LineChart
+				data={metricsBuckets}
+				margin={{ left: 0, top: 5, bottom: 2, right: 0 }}
+			>
 				<Tooltip
 					position={{ y: 0 }}
 					content={

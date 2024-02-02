@@ -1,9 +1,11 @@
 import {
 	Box,
 	DEFAULT_TIME_PRESETS,
+	IconSolidLoading,
 	presetStartDate,
 	Text,
 } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import moment from 'moment'
@@ -12,7 +14,7 @@ import { Helmet } from 'react-helmet'
 import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
-import LoadingBox from '@/components/LoadingBox'
+import { loadingIcon } from '@/components/Button/style.css'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -215,36 +217,54 @@ export const TracesPage: React.FC = () => {
 					<Box
 						display="flex"
 						borderBottom="dividerWeak"
-						style={{ height: 92 }}
+						justifyContent="space-between"
+						style={{ height: 85 }}
 					>
 						<Box
 							width="full"
-							padding="8"
-							paddingBottom="4"
 							borderRight="dividerWeak"
 							position="relative"
 						>
 							<Box
+								alignItems="center"
 								display="flex"
 								flexDirection="row"
-								gap="4"
-								paddingBottom="4"
+								px="10"
+								mb="4"
+								gap="10"
+								style={{ height: 28 }}
 							>
 								{metricsLoading ? (
-									<LoadingBox
-										height="auto"
-										width="auto"
-										position="absolute"
-										size="xSmall"
-										style={{ top: 0, left: 0, zIndex: 1 }}
-									/>
+									<HistogramLoading />
 								) : (
 									<>
-										<Text size="xSmall" color="strong">
-											Traces
-										</Text>
 										<Text size="xSmall" color="weak">
-											{formatNumber(totalCount)} total
+											{formatNumber(totalCount)} Trace
+											{totalCount !== 1 ? 's' : ''}
+										</Text>
+										<Box
+											borderRight="dividerWeak"
+											style={{ width: 0, height: 20 }}
+										/>
+										<Text size="xSmall" color="weak">
+											{selectedPreset ? (
+												<>
+													{moment(startDate).format(
+														'M/D/YY H:MM:SS A',
+													)}{' '}
+													to Now
+												</>
+											) : (
+												<>
+													{moment(startDate).format(
+														'M/D/YY H:MM:SS',
+													)}{' '}
+													to{' '}
+													{moment(endDate).format(
+														'H:MM:SS A',
+													)}
+												</>
+											)}
 										</Text>
 									</>
 								)}
@@ -259,26 +279,28 @@ export const TracesPage: React.FC = () => {
 								}
 								loading={metricsLoading}
 								barColor="#6F6E77"
-								noPadding
 							/>
 						</Box>
 						<Box
 							width="full"
-							padding="8"
-							paddingBottom="4"
+							px="10"
+							py="4"
 							cssClass={styles.chart}
 							position="relative"
 						>
 							{metricsLoading ? (
-								<LoadingBox
-									height="auto"
-									width="auto"
-									position="absolute"
-									size="xSmall"
-									style={{ top: 0, left: 0, zIndex: 1 }}
+								<HistogramLoading
+									cssClass={styles.chartText}
+									style={{
+										top: 6,
+									}}
 								/>
 							) : (
-								<Text cssClass={styles.chartText} size="xSmall">
+								<Text
+									cssClass={styles.chartText}
+									size="xSmall"
+									color="weak"
+								>
 									Latency
 								</Text>
 							)}
@@ -303,5 +325,29 @@ export const TracesPage: React.FC = () => {
 
 			<Outlet context={outletContext} />
 		</>
+	)
+}
+
+export const HistogramLoading: React.FC<{
+	cssClass?: string
+	style?: React.CSSProperties
+}> = ({ cssClass, style }) => {
+	return (
+		<Box
+			alignItems="center"
+			display="flex"
+			flexDirection="row"
+			gap="4"
+			cssClass={cssClass}
+			style={style}
+		>
+			<IconSolidLoading
+				className={loadingIcon}
+				color={vars.theme.static.content.weak}
+			/>
+			<Text size="xSmall" color="weak">
+				Loading
+			</Text>
+		</Box>
 	)
 }

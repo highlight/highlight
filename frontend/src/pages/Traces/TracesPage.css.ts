@@ -7,5 +7,7 @@ export const chart = style({
 })
 
 export const chartText = style({
-	position: 'fixed',
+	position: 'absolute',
+	top: 8,
+	zIndex: 1,
 })

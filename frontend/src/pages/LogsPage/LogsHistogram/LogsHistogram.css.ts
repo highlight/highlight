@@ -9,7 +9,7 @@ export const OUTLINE_PADDING = 2
 export const LEGEND_HISTOGRAM_HEIGHT = 98
 
 export const regularHeight = style({
-	height: '4.16rem', // computed as 52px in Chrome,
+	height: 52,
 })
 
 export const outlineHeight = style({

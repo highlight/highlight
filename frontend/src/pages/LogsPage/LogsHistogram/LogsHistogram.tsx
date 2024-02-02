@@ -230,16 +230,18 @@ const LogsHistogram = ({
 		loadingState = undefined
 	}
 
+	const heightClass = clsx({
+		[styles.regularHeight]: !legend && !outline,
+		[styles.outlineHeight]: !legend && outline,
+		[styles.legendHeight]: legend,
+	})
+
 	return (
 		<Box
 			display="flex"
 			alignItems="center"
 			gap="4"
-			cssClass={clsx({
-				[styles.regularHeight]: !legend && !outline,
-				[styles.outlineHeight]: !legend && outline,
-				[styles.legendHeight]: legend,
-			})}
+			cssClass={heightClass}
 			{...props}
 		>
 			<Box
@@ -248,7 +250,7 @@ const LogsHistogram = ({
 				position="relative"
 				borderRadius="4"
 				width="full"
-				height="full"
+				cssClass={heightClass}
 			>
 				{showLoadingState || !!maxBucketCount ? (
 					<>
@@ -391,7 +393,7 @@ const LogsHistogramChart = ({
 				height="full"
 				width="full"
 				position="relative"
-				px={noPadding ? '0' : '12'}
+				px={noPadding ? '0' : '8'}
 				py={noPadding ? '0' : '4'}
 				ref={containerRef}
 				onMouseDown={(e: any) => {
