@@ -115,7 +115,7 @@ export const LatencyChart = ({ loading, metricsBuckets }: Props) => {
 		<ResponsiveContainer width="100%" height="100%">
 			<LineChart
 				data={metricsBuckets}
-				margin={{ left: 0, top: 5, bottom: 0, right: 0 }}
+				margin={{ left: 0, top: 5, bottom: 2, right: 0 }}
 			>
 				<Tooltip
 					position={{ y: 0 }}

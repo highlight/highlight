@@ -393,7 +393,7 @@ const LogsHistogramChart = ({
 				height="full"
 				width="full"
 				position="relative"
-				px={noPadding ? '0' : '10'}
+				px={noPadding ? '0' : '8'}
 				py={noPadding ? '0' : '4'}
 				ref={containerRef}
 				onMouseDown={(e: any) => {
