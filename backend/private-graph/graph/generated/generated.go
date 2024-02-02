@@ -1036,7 +1036,7 @@ type ComplexityRoot struct {
 		SystemConfiguration              func(childComplexity int) int
 		TimelineIndicatorEvents          func(childComplexity int, sessionSecureID string) int
 		TopUsers                         func(childComplexity int, projectID int, lookbackDays float64) int
-		Trace                            func(childComplexity int, projectID int, traceID string) int
+		Trace                            func(childComplexity int, projectID int, traceID string, sessionSecureID *string) int
 		Traces                           func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) int
 		TracesIntegration                func(childComplexity int, projectID int) int
 		TracesKeyValues                  func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
@@ -1855,7 +1855,7 @@ type QueryResolver interface {
 	ErrorTags(ctx context.Context) ([]*model1.ErrorTag, error)
 	MatchErrorTag(ctx context.Context, query string) ([]*model.MatchedErrorTag, error)
 	FindSimilarErrors(ctx context.Context, query string) ([]*model1.MatchedErrorObject, error)
-	Trace(ctx context.Context, projectID int, traceID string) (*model.TracePayload, error)
+	Trace(ctx context.Context, projectID int, traceID string, sessionSecureID *string) (*model.TracePayload, error)
 	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.TraceConnection, error)
 	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
@@ -7920,7 +7920,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Trace(childComplexity, args["project_id"].(int), args["trace_id"].(string)), true
+		return e.complexity.Query.Trace(childComplexity, args["project_id"].(int), args["trace_id"].(string), args["session_secure_id"].(*string)), true
 
 	case "Query.traces":
 		if e.complexity.Query.Traces == nil {
@@ -12727,7 +12727,11 @@ type Query {
 	error_tags: [ErrorTag]
 	match_error_tag(query: String!): [MatchedErrorTag]
 	find_similar_errors(query: String!): [MatchedErrorObject]
-	trace(project_id: ID!, trace_id: String!): TracePayload
+	trace(
+		project_id: ID!
+		trace_id: String!
+		session_secure_id: String
+	): TracePayload
 	traces(
 		project_id: ID!
 		params: QueryInput!
@@ -19539,6 +19543,15 @@ func (ec *executionContext) field_Query_trace_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["trace_id"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["session_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_secure_id"] = arg2
 	return args, nil
 }
 
@@ -57671,7 +57684,7 @@ func (ec *executionContext) _Query_trace(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Trace(rctx, fc.Args["project_id"].(int), fc.Args["trace_id"].(string))
+		return ec.resolvers.Query().Trace(rctx, fc.Args["project_id"].(int), fc.Args["trace_id"].(string), fc.Args["session_secure_id"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

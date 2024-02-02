@@ -33,6 +33,7 @@ export const TraceContext = createContext<TraceContext>({} as TraceContext)
 type Props = {
 	projectId: string
 	traceId?: string
+	session_secure_id?: string
 	spanId?: string
 }
 
@@ -40,6 +41,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 	children,
 	projectId,
 	traceId,
+	session_secure_id,
 	spanId,
 }) => {
 	const [hoveredSpan, setHoveredSpan] = useState<FlameGraphSpan>()
@@ -50,6 +52,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 		variables: {
 			project_id: projectId!,
 			trace_id: traceId!,
+			session_secure_id,
 		},
 		onCompleted: (data) => {
 			if (spanId) {

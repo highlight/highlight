@@ -2088,7 +2088,11 @@ type Query {
 	error_tags: [ErrorTag]
 	match_error_tag(query: String!): [MatchedErrorTag]
 	find_similar_errors(query: String!): [MatchedErrorObject]
-	trace(project_id: ID!, trace_id: String!): TracePayload
+	trace(
+		project_id: ID!
+		trace_id: String!
+		session_secure_id: String
+	): TracePayload
 	traces(
 		project_id: ID!
 		params: QueryInput!

@@ -2375,8 +2375,16 @@ query FindSimilarErrors($query: String!) {
 	}
 }
 
-query GetTrace($project_id: ID!, $trace_id: String!) {
-	trace(project_id: $project_id, trace_id: $trace_id) {
+query GetTrace(
+	$project_id: ID!
+	$trace_id: String!
+	$session_secure_id: String
+) {
+	trace(
+		project_id: $project_id
+		trace_id: $trace_id
+		session_secure_id: $session_secure_id
+	) {
 		trace {
 			timestamp
 			traceID
