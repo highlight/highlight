@@ -65,9 +65,11 @@ func (h *handlers) HandleAWSMarketplaceSQS(ctx context.Context, events events.SQ
 		log.WithContext(ctx).WithField("body", record.Body).WithField("msg", msg).Infof("received aws marketplace message")
 
 		workspace := model.Workspace{}
-		if err := h.db.Order("name asc").
+		if err := h.db.
+			Model(&workspace).
 			Where(&model.AWSMarketplaceCustomer{CustomerIdentifier: pointy.String(msg.CustomerIdentifier)}).
-			Model(&workspace).Association("AWSMarketplaceCustomer").Find(&workspace); err != nil {
+			Association("AWSMarketplaceCustomer").
+			Find(&workspace); err != nil {
 			return err
 		}
 		if pointy.StringValue(workspace.AWSMarketplaceCustomer.CustomerIdentifier, "invalid") != msg.CustomerIdentifier {
