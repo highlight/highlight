@@ -49,6 +49,7 @@ const WorkspaceIntegrations = new Set<string>([
 	'height',
 	'jira',
 	'gitlab',
+	'aws-mp',
 ])
 
 const logError = (e: any) => {
@@ -575,7 +576,7 @@ const IntegrationAuthCallbackPage = () => {
 			case 'aws-mp':
 				cb = (
 					<AWSMPIntegrationCallback
-						workspaceId={currentWorkspace?.id}
+						workspaceId={workspaceId}
 						code={code}
 					/>
 				)
