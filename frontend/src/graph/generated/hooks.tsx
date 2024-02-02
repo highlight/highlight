@@ -401,6 +401,54 @@ export type CreateOrUpdateStripeSubscriptionMutationOptions =
 		Types.CreateOrUpdateStripeSubscriptionMutation,
 		Types.CreateOrUpdateStripeSubscriptionMutationVariables
 	>
+export const HandleAwsMarketplaceDocument = gql`
+	mutation HandleAWSMarketplace($workspace_id: ID!, $code: String!) {
+		handleAWSMarketplace(workspace_id: $workspace_id, code: $code)
+	}
+`
+export type HandleAwsMarketplaceMutationFn = Apollo.MutationFunction<
+	Types.HandleAwsMarketplaceMutation,
+	Types.HandleAwsMarketplaceMutationVariables
+>
+
+/**
+ * __useHandleAwsMarketplaceMutation__
+ *
+ * To run a mutation, you first call `useHandleAwsMarketplaceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useHandleAwsMarketplaceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [handleAwsMarketplaceMutation, { data, loading, error }] = useHandleAwsMarketplaceMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      code: // value for 'code'
+ *   },
+ * });
+ */
+export function useHandleAwsMarketplaceMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.HandleAwsMarketplaceMutation,
+		Types.HandleAwsMarketplaceMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.HandleAwsMarketplaceMutation,
+		Types.HandleAwsMarketplaceMutationVariables
+	>(HandleAwsMarketplaceDocument, baseOptions)
+}
+export type HandleAwsMarketplaceMutationHookResult = ReturnType<
+	typeof useHandleAwsMarketplaceMutation
+>
+export type HandleAwsMarketplaceMutationResult =
+	Apollo.MutationResult<Types.HandleAwsMarketplaceMutation>
+export type HandleAwsMarketplaceMutationOptions = Apollo.BaseMutationOptions<
+	Types.HandleAwsMarketplaceMutation,
+	Types.HandleAwsMarketplaceMutationVariables
+>
 export const SaveBillingPlanDocument = gql`
 	mutation SaveBillingPlan(
 		$workspace_id: ID!

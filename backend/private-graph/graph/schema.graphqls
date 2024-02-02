@@ -2276,6 +2276,7 @@ type Mutation {
 	# If this endpoint returns a checkout_id, we initiate a stripe checkout.
 	# Otherwise, we simply update the subscription.
 	createOrUpdateStripeSubscription(workspace_id: ID!): String
+	handleAWSMarketplace(workspace_id: ID!, code: String!): Boolean
 	updateBillingDetails(workspace_id: ID!): Boolean
 	saveBillingPlan(
 		workspace_id: ID!
