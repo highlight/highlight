@@ -576,7 +576,7 @@ const IntegrationAuthCallbackPage = () => {
 			case 'aws-mp':
 				cb = (
 					<AWSMPIntegrationCallback
-						workspaceId={workspaceId}
+						workspaceId={currentWorkspace?.id}
 						code={code}
 					/>
 				)
