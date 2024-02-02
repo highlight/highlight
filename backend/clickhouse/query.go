@@ -12,14 +12,15 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"github.com/huandu/go-sqlbuilder"
+	"github.com/nqd/flat"
+
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/parser"
 	"github.com/highlight-run/highlight/backend/parser/listener"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
-	"github.com/huandu/go-sqlbuilder"
-	"github.com/nqd/flat"
 )
 
 const SamplingRows = 20_000_000
@@ -449,7 +450,10 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config mode
 				return false
 			}
 		default:
-			if !matchFilter(row, config, filter) {
+			matches := matchFilter(row, config, filter)
+			if filter.Operator == listener.OperatorNot && matches {
+				return false
+			} else if !matches {
 				return false
 			}
 		}

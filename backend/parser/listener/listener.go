@@ -16,6 +16,7 @@ type Operator string
 
 var OperatorEqual Operator = "="
 var OperatorNotEqual Operator = "!="
+var OperatorNot Operator = "NOT"
 var OperatorLike Operator = "LIKE"
 var OperatorNotLike Operator = "NOT LIKE"
 var OperatorILike Operator = "ILIKE"
@@ -88,6 +89,13 @@ func (s *searchListener[T]) ExitNegated_col_expr(ctx *parser.Negated_col_exprCon
 	rule := s.rules[len(s.rules)-1]
 	s.rules = s.rules[:len(s.rules)-1]
 	s.rules = append(s.rules, fmt.Sprintf("NOT (%s)", rule))
+
+	op := s.ops[len(s.ops)-1]
+	s.ops = s.ops[:len(s.ops)-1]
+	s.ops = append(s.ops, &FilterOperation{
+		Operator: OperatorNot,
+		Filters:  Filters{op},
+	})
 }
 
 func (s *searchListener[T]) EnterAnd_col_expr(ctx *parser.And_col_exprContext) {}
@@ -126,6 +134,13 @@ func (s *searchListener[T]) ExitNegated_search_expr(ctx *parser.Negated_search_e
 	rule := s.rules[len(s.rules)-1]
 	s.rules = s.rules[:len(s.rules)-1]
 	s.rules = append(s.rules, fmt.Sprintf("NOT (%s)", rule))
+
+	op := s.ops[len(s.ops)-1]
+	s.ops = s.ops[:len(s.ops)-1]
+	s.ops = append(s.ops, &FilterOperation{
+		Operator: OperatorNot,
+		Filters:  Filters{op},
+	})
 }
 
 func (s *searchListener[T]) EnterBody_search_expr(ctx *parser.Body_search_exprContext) {
