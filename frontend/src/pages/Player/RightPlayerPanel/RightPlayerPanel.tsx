@@ -88,7 +88,7 @@ const RightPlayerPanel = () => {
 			flexShrink={0}
 			bt="dividerWeak"
 			bl="dividerWeak"
-			cssClass={clsx(style.playerRightColumn, {
+			cssClass={clsx({
 				[style.playerRightPanelContainerHidden]: !showRightPanel,
 			})}
 			overflowY="scroll"

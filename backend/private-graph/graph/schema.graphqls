@@ -2090,7 +2090,11 @@ type Query {
 	error_tags: [ErrorTag]
 	match_error_tag(query: String!): [MatchedErrorTag]
 	find_similar_errors(query: String!): [MatchedErrorObject]
-	trace(project_id: ID!, trace_id: String!): TracePayload
+	trace(
+		project_id: ID!
+		trace_id: String!
+		session_secure_id: String
+	): TracePayload
 	traces(
 		project_id: ID!
 		params: QueryInput!
@@ -2274,6 +2278,7 @@ type Mutation {
 	# If this endpoint returns a checkout_id, we initiate a stripe checkout.
 	# Otherwise, we simply update the subscription.
 	createOrUpdateStripeSubscription(workspace_id: ID!): String
+	handleAWSMarketplace(workspace_id: ID!, code: String!): Boolean
 	updateBillingDetails(workspace_id: ID!): Boolean
 	saveBillingPlan(
 		workspace_id: ID!

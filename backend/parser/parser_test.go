@@ -53,7 +53,7 @@ func TestWildcardSearch(t *testing.T) {
 func buildSqlForQuery(query string) (string, error) {
 	sqlBuilder := sqlbuilder.NewSelectBuilder()
 	sb := sqlBuilder.Select("*").From("t")
-	AssignSearchFilters(sb, query, tableConfig)
+	_ = AssignSearchFilters(sb, query, tableConfig)
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 	return sqlbuilder.ClickHouse.Interpolate(sql, args)
 }

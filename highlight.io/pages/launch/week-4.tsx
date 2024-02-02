@@ -6,14 +6,15 @@ import Footer from '../../components/common/Footer/Footer'
 import { Meta } from '../../components/common/Head/Meta'
 import Navbar from '../../components/common/Navbar/Navbar'
 import { Typography } from '../../components/common/Typography/Typography'
+import DayFive from '../../components/Launch/Week4/DayFive'
+import DayFour from '../../components/Launch/Week4/DayFour'
 import DayOne from '../../components/Launch/Week4/DayOne'
 import DayThree from '../../components/Launch/Week4/DayThree'
 import DayTwo from '../../components/Launch/Week4/DayTwo'
-import HiddenDay from '../../components/Launch/Week4/HiddenDay'
 import preview from '../../public/images/launch/week-4/meta.png'
 
 const LaunchPage = () => {
-	const day = 2
+	const day = 4
 
 	function scrollToDay(day: number) {
 		if (document && document.getElementById('day-' + day.toString())) {
@@ -86,7 +87,7 @@ const LaunchPage = () => {
 
 					<Link
 						href="https://twitter.com/highlightio?lang=en"
-						className="z-50 flex justify-between items-center text-[#1A1523] text-opacity-70 p-4 w-full border-x-[1px] md:border-l-transparent border-y-[1px] border-[#C8C7CB] flex-shrink-0 hover:text-opacity-100 transition-all"
+						className="z-50 flex justify-between items-center text-[#1A1523] text-opacity-70 p-4 w-full border-x-[1px] md:border-l-transparent border-b-[1px] md:border-y-[1px] border-[#C8C7CB] flex-shrink-0 hover:text-opacity-100 transition-all"
 					>
 						<div className="flex gap-3 items-center">
 							<BsTwitter className="w-6 h-6" />
@@ -99,7 +100,7 @@ const LaunchPage = () => {
 
 					{/* <Link */}
 					{/* 	href="https://news.ycombinator.com/item?id=37675894" */}
-					{/* 	className="z-50 flex justify-between items-center text-[#1A1523] text-opacity-70 p-4 w-full border-[1px] border-[#EEEDEF] flex-shrink-0 hover:text-opacity-100 transition-all" */}
+					{/* 	className="z-50 flex justify-between items-center text-[#1A1523] text-opacity-70 p-4 w-full border-[1px] border-[#C8C7CB] flex-shrink-0 hover:text-opacity-100 transition-all" */}
 					{/* > */}
 					{/* 	<div className="flex gap-3 items-center"> */}
 					{/* 		<Image */}
@@ -119,8 +120,8 @@ const LaunchPage = () => {
 					<DayOne />
 					<DayTwo />
 					<DayThree />
-					<HiddenDay title="Day 4: February 1" />
-					<HiddenDay title="Day 5: February 2" />
+					<DayFour />
+					<DayFive />
 				</div>
 			</main>
 			{/* <FooterCallToAction /> */}

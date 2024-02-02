@@ -198,7 +198,7 @@ export const AnimateMobileCarouselImage = ({
 	)
 }
 
-export const AnimateCustomerThumbnail = ({
+export const AnimateFadeIn = ({
 	loaded,
 	children,
 }: React.PropsWithChildren<{ loaded: boolean }>) => {

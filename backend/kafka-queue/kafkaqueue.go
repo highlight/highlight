@@ -304,6 +304,10 @@ func (p *Queue) Stop(ctx context.Context) {
 }
 
 func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Message) error {
+	if len(messages) == 0 {
+		return nil
+	}
+
 	start := time.Now()
 	if partitionKey == "" {
 		partitionKey = util.GenerateRandomString(32)

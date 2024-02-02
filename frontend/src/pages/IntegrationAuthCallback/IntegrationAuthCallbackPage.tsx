@@ -3,7 +3,10 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
+import {
+	useGetProjectsAndWorkspacesQuery,
+	useHandleAwsMarketplaceMutation,
+} from '@graph/hooks'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
@@ -14,7 +17,10 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { VercelIntegrationSettings } from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
 import { Landing } from '@pages/Landing/Landing'
-import { ApplicationContextProvider } from '@routers/AppRouter/context/ApplicationContext'
+import {
+	ApplicationContextProvider,
+	useApplicationContext,
+} from '@routers/AppRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
@@ -415,6 +421,30 @@ const GitHubIntegrationCallback = ({
 	)
 }
 
+const AWSMPIntegrationCallback = ({
+	workspaceId,
+	code,
+}: {
+	workspaceId: string | undefined
+	code: string
+}) => {
+	const navigate = useNavigate()
+	const [handle] = useHandleAwsMarketplaceMutation()
+	useEffect(() => {
+		if (workspaceId && code) {
+			handle({
+				variables: {
+					workspace_id: workspaceId,
+					code,
+				},
+			}).then(() => {
+				navigate(`/w/${workspaceId}/current-plan/success`)
+			})
+		}
+	}, [code, handle, navigate, workspaceId])
+	return null
+}
+
 const JiraIntegrationCallback = ({ code, projectId }: Props) => {
 	const { addIntegration } = useJiraIntegration()
 	return (
@@ -446,6 +476,7 @@ const IntegrationAuthCallbackPage = () => {
 		integrationName: string
 	}>()
 	const { isAuthLoading } = useAuthContext()
+	const { currentWorkspace } = useApplicationContext()
 	const { setLoadingState } = useAppLoadingContext()
 
 	useEffect(() => {
@@ -538,6 +569,14 @@ const IntegrationAuthCallbackPage = () => {
 						installationId={installationId}
 						setupAction={setupAction}
 						next={next}
+					/>
+				)
+				break
+			case 'aws-mp':
+				cb = (
+					<AWSMPIntegrationCallback
+						workspaceId={currentWorkspace?.id}
+						code={code}
 					/>
 				)
 				break

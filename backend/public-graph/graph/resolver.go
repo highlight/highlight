@@ -2038,6 +2038,9 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 	// TODO(vkorolik) write to an actual metrics table
 	var messages []*kafka_queue.Message
 	for _, traceRow := range traceRows {
+		if !r.IsTraceIngested(ctx, traceRow) {
+			continue
+		}
 		messages = append(messages, &kafka_queue.Message{
 			Type: kafka_queue.PushTraces,
 			PushTraces: &kafka_queue.PushTracesArgs{
@@ -2142,15 +2145,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 		return
 	}
-
-	// Filter out ignored errors
-	var filteredErrors []*publicModel.BackendErrorObjectInput
-	for _, errorObject := range errorObjects {
-		if r.IsErrorIngested(ctx, project.ID, errorObject) {
-			filteredErrors = append(filteredErrors, errorObject)
-		}
-	}
-	errorObjects = filteredErrors
 
 	if len(errorObjects) == 0 {
 		return

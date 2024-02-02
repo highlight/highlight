@@ -33,6 +33,12 @@ export const INTEGRATIONS: {
 			link: '/docs/general/integrations/segment-integration',
 			image: '/images/companies/icons/segment.png',
 		},
+		{
+			name: 'Grafana',
+			description: 'Instrument highlight.io to send Grafana events.',
+			link: '/docs/general/integrations/grafana-integration/overview#how-it-works',
+			image: 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Grafana_icon.svg',
+		},
 	],
 	Messaging: [
 		{

@@ -1,8 +1,10 @@
 import {
+	HiCube,
 	HiSearchCircle,
 	HiSparkles,
 	HiTemplate,
 	HiTerminal,
+	HiViewGridAdd,
 } from 'react-icons/hi'
 import { Typography } from '../../common/Typography/Typography'
 
@@ -11,6 +13,8 @@ const icons = {
 	2: <HiSearchCircle className="text-[#6F6E77]" />,
 	3: <HiTemplate className="text-[#6F6E77]" />,
 	4: <HiSparkles className="text-[#6F6E77]" />,
+	5: <HiCube className="text-[#6F6E77]" />,
+	6: <HiViewGridAdd className="text-[#6F6E77]" />,
 }
 
 type IconKeys = keyof typeof icons
@@ -34,7 +38,9 @@ const CardOverlay = ({
 }) => {
 	return (
 		<div
-			className={`absolute px-3 top-4 left-2 h-full flex flex-col gap-2`}
+			className={`absolute px-3 top-4 left-2 h-full flex flex-col gap-2 ${
+				halfWidth ? 'w-1/2' : ''
+			}`}
 		>
 			<div className="flex items-center gap-2 opacity-80">
 				{icons[slot]}

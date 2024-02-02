@@ -6,10 +6,38 @@ import (
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
+	"github.com/huandu/go-sqlbuilder"
+
 	"github.com/highlight-run/highlight/backend/model"
 	parser "github.com/highlight-run/highlight/backend/parser/antlr"
-	"github.com/huandu/go-sqlbuilder"
 )
+
+type Operator string
+
+var OperatorEqual Operator = "="
+var OperatorNotEqual Operator = "!="
+var OperatorNot Operator = "NOT"
+var OperatorLike Operator = "LIKE"
+var OperatorNotLike Operator = "NOT LIKE"
+var OperatorILike Operator = "ILIKE"
+var OperatorNotILike Operator = "NOT ILIKE"
+var OperatorContains Operator = "hasTokenCaseInsensitive"
+var OperatorGreaterThan Operator = ">"
+var OperatorGreaterThanOrEqualTo Operator = ">="
+var OperatorLessThan Operator = "<"
+var OperatorLessThanOrEqualTo Operator = "<="
+var OperatorAnd Operator = "AND"
+var OperatorOr Operator = "OR"
+
+type FilterOperation struct {
+	Column   string
+	Key      string
+	Operator Operator
+	Filters  Filters
+	Values   []string
+}
+
+type Filters []*FilterOperation
 
 type searchListener[T ~string] struct {
 	parser.SearchGrammarListener
@@ -17,9 +45,14 @@ type searchListener[T ~string] struct {
 	currentKey       string
 	currentOp        string
 	rules            []string
+	ops              Filters
 	sb               *sqlbuilder.SelectBuilder
 	attributesColumn string
 	tableConfig      model.TableConfig[T]
+}
+
+func (s *searchListener[T]) GetFilters() Filters {
+	return s.ops
 }
 
 func NewSearchListener[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, tableConfig model.TableConfig[T]) *searchListener[T] {
@@ -27,6 +60,7 @@ func NewSearchListener[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, tableCon
 		currentKey:       tableConfig.TableName,
 		currentOp:        "=",
 		rules:            []string{},
+		ops:              []*FilterOperation{},
 		sb:               sqlBuilder,
 		attributesColumn: tableConfig.AttributesColumn,
 		tableConfig:      tableConfig,
@@ -55,6 +89,13 @@ func (s *searchListener[T]) ExitNegated_col_expr(ctx *parser.Negated_col_exprCon
 	rule := s.rules[len(s.rules)-1]
 	s.rules = s.rules[:len(s.rules)-1]
 	s.rules = append(s.rules, fmt.Sprintf("NOT (%s)", rule))
+
+	op := s.ops[len(s.ops)-1]
+	s.ops = s.ops[:len(s.ops)-1]
+	s.ops = append(s.ops, &FilterOperation{
+		Operator: OperatorNot,
+		Filters:  Filters{op},
+	})
 }
 
 func (s *searchListener[T]) EnterAnd_col_expr(ctx *parser.And_col_exprContext) {}
@@ -62,6 +103,13 @@ func (s *searchListener[T]) ExitAnd_col_expr(ctx *parser.And_col_exprContext) {
 	rules := s.rules[len(s.rules)-2:]
 	s.rules = s.rules[:len(s.rules)-2]
 	s.rules = append(s.rules, s.sb.And(rules...))
+
+	ops := s.ops[len(s.ops)-2:]
+	s.ops = s.ops[:len(s.ops)-2]
+	s.ops = append(s.ops, &FilterOperation{
+		Operator: OperatorAnd,
+		Filters:  Filters{ops[0], ops[1]},
+	})
 }
 
 func (s *searchListener[T]) EnterOr_col_expr(ctx *parser.Or_col_exprContext) {}
@@ -69,6 +117,13 @@ func (s *searchListener[T]) ExitOr_col_expr(ctx *parser.Or_col_exprContext) {
 	rules := s.rules[len(s.rules)-2:]
 	s.rules = s.rules[:len(s.rules)-2]
 	s.rules = append(s.rules, s.sb.Or(rules...))
+
+	ops := s.ops[len(s.ops)-2:]
+	s.ops = s.ops[:len(s.ops)-2]
+	s.ops = append(s.ops, &FilterOperation{
+		Operator: OperatorOr,
+		Filters:  Filters{ops[0], ops[1]},
+	})
 }
 
 func (s *searchListener[T]) EnterCol_search_value(ctx *parser.Col_search_valueContext) {}
@@ -79,6 +134,13 @@ func (s *searchListener[T]) ExitNegated_search_expr(ctx *parser.Negated_search_e
 	rule := s.rules[len(s.rules)-1]
 	s.rules = s.rules[:len(s.rules)-1]
 	s.rules = append(s.rules, fmt.Sprintf("NOT (%s)", rule))
+
+	op := s.ops[len(s.ops)-1]
+	s.ops = s.ops[:len(s.ops)-1]
+	s.ops = append(s.ops, &FilterOperation{
+		Operator: OperatorNot,
+		Filters:  Filters{op},
+	})
 }
 
 func (s *searchListener[T]) EnterBody_search_expr(ctx *parser.Body_search_exprContext) {
@@ -95,6 +157,13 @@ func (s *searchListener[T]) ExitAnd_search_expr(ctx *parser.And_search_exprConte
 	rules := s.rules[len(s.rules)-2:]
 	s.rules = s.rules[:len(s.rules)-2]
 	s.rules = append(s.rules, s.sb.And(rules...))
+
+	ops := s.ops[len(s.ops)-2:]
+	s.ops = s.ops[:len(s.ops)-2]
+	s.ops = append(s.ops, &FilterOperation{
+		Operator: OperatorAnd,
+		Filters:  Filters{ops[0], ops[1]},
+	})
 }
 
 func (s *searchListener[T]) EnterImplicit_and_search_expr(ctx *parser.Implicit_and_search_exprContext) {
@@ -107,6 +176,13 @@ func (s *searchListener[T]) ExitOr_search_expr(ctx *parser.Or_search_exprContext
 	rules := s.rules[len(s.rules)-2:]
 	s.rules = s.rules[:len(s.rules)-2]
 	s.rules = append(s.rules, s.sb.Or(rules...))
+
+	ops := s.ops[len(s.ops)-2:]
+	s.ops = s.ops[:len(s.ops)-2]
+	s.ops = append(s.ops, &FilterOperation{
+		Operator: OperatorOr,
+		Filters:  Filters{ops[0], ops[1]},
+	})
 }
 
 func (s *searchListener[T]) EnterKey_val_search_expr(ctx *parser.Key_val_search_exprContext) {}
@@ -171,8 +247,18 @@ func (s *searchListener[T]) appendRules(value string) {
 		if containsSpecialChars {
 			value = wildcardValue(value)
 			s.rules = append(s.rules, s.tableConfig.BodyColumn+" ILIKE "+s.sb.Var(value))
+			s.ops = append(s.ops, &FilterOperation{
+				Key:      s.tableConfig.BodyColumn,
+				Operator: OperatorILike,
+				Values:   []string{value},
+			})
 		} else {
 			s.rules = append(s.rules, "hasTokenCaseInsensitive("+s.tableConfig.BodyColumn+", "+s.sb.Var(value)+")")
+			s.ops = append(s.ops, &FilterOperation{
+				Key:      s.tableConfig.BodyColumn,
+				Operator: OperatorContains,
+				Values:   []string{value},
+			})
 		}
 
 		return
@@ -195,14 +281,36 @@ func (s *searchListener[T]) appendRules(value string) {
 
 			if traceAttributeKey {
 				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] ILIKE %s", s.currentKey, value)))
+				s.ops = append(s.ops, &FilterOperation{
+					Key:      s.currentKey,
+					Column:   s.attributesColumn,
+					Operator: OperatorLike,
+					Values:   []string{value},
+				})
 			} else {
 				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(filterKey+" ILIKE %s", value)))
+				s.ops = append(s.ops, &FilterOperation{
+					Key:      filterKey,
+					Operator: OperatorILike,
+					Values:   []string{value},
+				})
 			}
 		} else {
 			if traceAttributeKey {
 				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] = %s", s.currentKey, value)))
+				s.ops = append(s.ops, &FilterOperation{
+					Key:      s.currentKey,
+					Column:   s.attributesColumn,
+					Operator: OperatorEqual,
+					Values:   []string{value},
+				})
 			} else {
 				s.rules = append(s.rules, s.sb.Equal(filterKey, value))
+				s.ops = append(s.ops, &FilterOperation{
+					Key:      filterKey,
+					Operator: OperatorEqual,
+					Values:   []string{value},
+				})
 			}
 		}
 	} else if s.currentOp == "!=" {
@@ -211,39 +319,105 @@ func (s *searchListener[T]) appendRules(value string) {
 
 			if traceAttributeKey {
 				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] NOT ILIKE %s", s.currentKey, value)))
+				s.ops = append(s.ops, &FilterOperation{
+					Key:      s.currentKey,
+					Column:   s.attributesColumn,
+					Operator: OperatorNotLike,
+					Values:   []string{value},
+				})
 			} else {
 				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(filterKey+" NOT ILIKE %s", value)))
+				s.ops = append(s.ops, &FilterOperation{
+					Key:      filterKey,
+					Operator: OperatorNotILike,
+					Values:   []string{value},
+				})
 			}
 		} else {
 			if traceAttributeKey {
 				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] <> %s", s.currentKey, value)))
+				s.ops = append(s.ops, &FilterOperation{
+					Key:      s.currentKey,
+					Column:   s.attributesColumn,
+					Operator: OperatorNotEqual,
+					Values:   []string{value},
+				})
 			} else {
 				s.rules = append(s.rules, s.sb.NotEqual(filterKey, value))
+				s.ops = append(s.ops, &FilterOperation{
+					Key:      filterKey,
+					Operator: OperatorNotEqual,
+					Values:   []string{value},
+				})
 			}
 		}
 	} else if s.currentOp == ">" {
 		if traceAttributeKey {
 			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) > %s", s.currentKey, value)))
+			s.ops = append(s.ops, &FilterOperation{
+				Key:      s.currentKey,
+				Column:   s.attributesColumn,
+				Operator: OperatorGreaterThan,
+				Values:   []string{value},
+			})
 		} else {
 			s.rules = append(s.rules, s.sb.GreaterThan(filterKey, value))
+			s.ops = append(s.ops, &FilterOperation{
+				Key:      filterKey,
+				Operator: OperatorGreaterThan,
+				Values:   []string{value},
+			})
 		}
 	} else if s.currentOp == ">=" {
 		if traceAttributeKey {
 			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) >= %s", s.currentKey, value)))
+			s.ops = append(s.ops, &FilterOperation{
+				Key:      s.currentKey,
+				Column:   s.attributesColumn,
+				Operator: OperatorGreaterThanOrEqualTo,
+				Values:   []string{value},
+			})
 		} else {
 			s.rules = append(s.rules, s.sb.GreaterEqualThan(filterKey, value))
+			s.ops = append(s.ops, &FilterOperation{
+				Key:      filterKey,
+				Operator: OperatorGreaterThanOrEqualTo,
+				Values:   []string{value},
+			})
 		}
 	} else if s.currentOp == "<" {
 		if traceAttributeKey {
 			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) < %s", s.currentKey, value)))
+			s.ops = append(s.ops, &FilterOperation{
+				Key:      s.currentKey,
+				Column:   s.attributesColumn,
+				Operator: OperatorLessThan,
+				Values:   []string{value},
+			})
 		} else {
 			s.rules = append(s.rules, s.sb.LessThan(filterKey, value))
+			s.ops = append(s.ops, &FilterOperation{
+				Key:      filterKey,
+				Operator: OperatorLessThan,
+				Values:   []string{value},
+			})
 		}
 	} else if s.currentOp == "<=" {
 		if traceAttributeKey {
 			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) <= %s", s.currentKey, value)))
+			s.ops = append(s.ops, &FilterOperation{
+				Key:      s.currentKey,
+				Column:   s.attributesColumn,
+				Operator: OperatorLessThanOrEqualTo,
+				Values:   []string{value},
+			})
 		} else {
 			s.rules = append(s.rules, s.sb.LessEqualThan(filterKey, value))
+			s.ops = append(s.ops, &FilterOperation{
+				Key:      filterKey,
+				Operator: OperatorLessThanOrEqualTo,
+				Values:   []string{value},
+			})
 		}
 	} else {
 		fmt.Printf("Unknown search operator: %s\n", s.currentOp)
