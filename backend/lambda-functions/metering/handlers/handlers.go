@@ -70,7 +70,7 @@ func (h *handlers) HandleAWSMarketplaceSQS(ctx context.Context, events events.SQ
 			Preload("AWSMarketplaceCustomer").
 			Joins("AWSMarketplaceCustomer").
 			Where("customer_identifier = ?", pointy.String(msg.CustomerIdentifier)).
-			Find(&workspace).
+			Take(&workspace).
 			Error; err != nil {
 			return err
 		}
