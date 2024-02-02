@@ -65,7 +65,7 @@ func (h *handlers) HandleAWSMarketplaceSQS(ctx context.Context, events events.SQ
 		log.WithContext(ctx).WithField("body", record.Body).WithField("msg", msg).Infof("received aws marketplace message")
 
 		workspace := model.Workspace{}
-		if err := h.db.
+		if err := h.db.WithContext(ctx).
 			Model(&workspace).
 			Preload("AWSMarketplaceCustomer").
 			Joins("AWSMarketplaceCustomer").
@@ -87,8 +87,9 @@ func (h *handlers) HandleAWSMarketplaceSQS(ctx context.Context, events events.SQ
 		}
 		log.WithContext(ctx).WithField("workspaceID", workspace.ID).WithField("updates", updates).Info("updating workspace from aws marketplace subscription message")
 
-		if err := h.db.WithContext(ctx).Model(&model.Workspace{}).
-			Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
+		if err := h.db.WithContext(ctx).
+			Model(&model.Workspace{}).
+			Where("id = ?", workspace.ID).
 			Updates(updates).Error; err != nil {
 			return err
 		}
