@@ -426,6 +426,7 @@ const GitHubIntegrationCallback = ({
 }
 
 const AWSMPIntegrationCallback = ({ code }: { code: string }) => {
+	const { isLoggedIn } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
 	const { data: workspacesData, loading: workspacesLoading } =
 		useGetWorkspacesQuery({
@@ -465,6 +466,14 @@ const AWSMPIntegrationCallback = ({ code }: { code: string }) => {
 			setLoadingState(AppLoadingState.LOADED)
 		}
 	}, [setLoadingState, workspacesLoading])
+
+	// Require log in
+	if (!isLoggedIn) {
+		const callbackPath = `/callback/aws-mp?code=${code}`
+		authRedirect.set(callbackPath)
+		return <Navigate to={SIGN_IN_ROUTE} replace />
+	}
+
 	return (
 		<Landing>
 			<Form className={authRouterStyles.container} store={formStore}>
