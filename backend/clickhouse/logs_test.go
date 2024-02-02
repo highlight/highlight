@@ -3,22 +3,18 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/parser"
 	"os"
 	"reflect"
 	"sort"
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
-	"github.com/samber/lo"
-
-	"github.com/highlight-run/highlight/backend/queryparser"
-
 	"github.com/aws/smithy-go/ptr"
-	"github.com/stretchr/testify/assert"
-
+	"github.com/google/uuid"
+	"github.com/highlight-run/highlight/backend/parser"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/samber/lo"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMain(m *testing.M) {
