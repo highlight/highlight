@@ -7,14 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/queryparser"
-
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	e "github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/google/uuid"
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/parser/listener"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/huandu/go-sqlbuilder"
@@ -45,7 +44,7 @@ var defaultLogKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedLogKeyMessage), Type: modelInputs.KeyTypeString},
 }
 
-var logsTableConfig = model.TableConfig[modelInputs.ReservedLogKey]{
+var LogsTableConfig = model.TableConfig[modelInputs.ReservedLogKey]{
 	TableName:        LogsTable,
 	KeysToColumns:    logKeysToColumns,
 	ReservedKeys:     modelInputs.AllReservedLogKey,
@@ -77,7 +76,7 @@ var logsSamplingTableConfig = model.TableConfig[modelInputs.ReservedLogKey]{
 }
 
 var logsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedLogKey]{
-	tableConfig:         logsTableConfig,
+	tableConfig:         LogsTableConfig,
 	samplingTableConfig: logsSamplingTableConfig,
 	useSampling: func(d time.Duration) bool {
 		return d >= 24*time.Hour
@@ -168,7 +167,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 		}, nil
 	}
 
-	conn, err := readObjects(ctx, client, logsTableConfig, projectID, params, pagination, scanLog)
+	conn, err := readObjects(ctx, client, LogsTableConfig, projectID, params, pagination, scanLog)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +191,7 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 	selectCols := []string{"Timestamp", "UUID", "SeverityText", "Body"}
 
 	sb, err := makeSelectBuilder(
-		logsTableConfig,
+		LogsTableConfig,
 		selectCols,
 		projectID,
 		params,
@@ -250,7 +249,7 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 
 func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, params modelInputs.QueryInput) (uint64, error) {
 	sb, err := makeSelectBuilder(
-		logsTableConfig,
+		LogsTableConfig,
 		[]string{"COUNT(*)"},
 		projectID,
 		params,
@@ -348,7 +347,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		)
 	} else {
 		fromSb, err = makeSelectBuilder(
-			logsTableConfig,
+			LogsTableConfig,
 			[]string{bucketIdxExpr, "count()", "1.0"},
 			projectID,
 			params,
@@ -467,6 +466,6 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 	return KeyValuesAggregated(ctx, client, LogKeyValuesTable, projectID, keyName, startDate, endDate)
 }
 
-func LogMatchesQuery(logRow *LogRow, filters *queryparser.Filters) bool {
-	return matchesQuery(logRow, logsTableConfig, filters)
+func LogMatchesQuery(logRow *LogRow, filters listener.Filters) bool {
+	return matchesQuery(logRow, LogsTableConfig, filters)
 }

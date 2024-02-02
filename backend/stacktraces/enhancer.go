@@ -346,6 +346,7 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 	if len(stackTraceFilePath) > 0 && stackTraceFilePath[0:1] == "/" {
 		stackTraceFilePath = stackTraceFilePath[1:]
 	}
+	// TODO(vkorolik) keep the querystring so that add to the .map requests
 	// ensure reflame query string is preserved, as it is necessary to load the file
 	isReflame := strings.Contains(stackTraceFileURL, "~r_rid=")
 	if !isReflame {

@@ -16,6 +16,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
+	"github.com/go-redis/cache/v9"
+
 	"github.com/bwmarrin/discordgo"
 	github2 "github.com/google/go-github/v50/github"
 	"github.com/sashabaranov/go-openai"
@@ -134,6 +138,7 @@ type Resolver struct {
 	DB                     *gorm.DB
 	MailClient             *sendgrid.Client
 	StripeClient           *client.API
+	AWSMPClient            *marketplacemetering.Client
 	StorageClient          storage.Client
 	LambdaClient           *lambda.Client
 	ClearbitClient         *clearbit.Client
@@ -1288,39 +1293,49 @@ func (r *Resolver) GenerateRandomStringURLSafe(n int) (string, error) {
 	return base64.URLEncoding.EncodeToString(b), err
 }
 
-func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID string) error {
+func (r *Resolver) updateAWSMPBillingDetails(ctx context.Context, workspace *model.Workspace, customer *marketplacemetering.ResolveCustomerOutput) error {
+	log.WithContext(ctx).WithField("workspace_id", workspace.ID).WithField("customer", *customer).Info("billing update for aws mp")
+	now := time.Now()
+	end := time.Now().AddDate(0, 1, 0)
+	return r.updateBillingDetails(ctx, workspace, &planDetails{
+		tier:               pricing.AWSMPProducts[*customer.ProductCode],
+		unlimitedMembers:   true,
+		billingPeriodStart: &now,
+		billingPeriodEnd:   &end,
+	})
+}
+
+func (r *Resolver) updateStripeBillingDetails(ctx context.Context, stripeCustomerID string) error {
 	customerParams := &stripe.CustomerParams{}
 	customerParams.AddExpand("subscriptions")
 	c, err := r.StripeClient.Customers.Get(stripeCustomerID, customerParams)
 	if err != nil {
-		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error retrieving Stripe customer data for customer %s", stripeCustomerID)
+		return e.Wrapf(err, "BILLING_ERROR error retrieving Stripe customer data for customer %s", stripeCustomerID)
 	}
 
 	subscriptions := c.Subscriptions.Data
 	pricing.FillProducts(r.StripeClient, subscriptions)
 
 	// Default to free tier
-	tier := modelInputs.PlanTypeFree
-	unlimitedMembers := false
-	var billingPeriodStart *time.Time
-	var billingPeriodEnd *time.Time
-	var nextInvoiceDate *time.Time
+	details := planDetails{
+		tier: modelInputs.PlanTypeFree,
+	}
 
 	// Loop over each subscription item in each of the customer's subscriptions
 	// and set the workspace's tier if the Stripe product has one
 	for _, subscription := range subscriptions {
 		for _, subscriptionItem := range subscription.Items.Data {
 			if _, productTier, productUnlimitedMembers, _, _ := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
-				tier = *productTier
-				unlimitedMembers = productUnlimitedMembers
+				details.tier = *productTier
+				details.unlimitedMembers = productUnlimitedMembers
 				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
 				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)
 				nextInvoiceTimestamp := time.Unix(subscription.NextPendingInvoiceItemInvoice, 0)
 
-				billingPeriodStart = &startTimestamp
-				billingPeriodEnd = &endTimestamp
+				details.billingPeriodStart = &startTimestamp
+				details.billingPeriodEnd = &endTimestamp
 				if subscription.NextPendingInvoiceItemInvoice != 0 {
-					nextInvoiceDate = &nextInvoiceTimestamp
+					details.nextInvoiceDate = &nextInvoiceTimestamp
 				}
 			}
 		}
@@ -1330,27 +1345,38 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 	if err := r.DB.WithContext(ctx).Model(&model.Workspace{}).
 		Where(model.Workspace{StripeCustomerID: &stripeCustomerID}).
 		Find(&workspace).Error; err != nil {
-		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error retrieving workspace for customer %s", stripeCustomerID)
+		return e.Wrapf(err, "BILLING_ERROR error retrieving workspace for customer %s", stripeCustomerID)
 	}
+	return r.updateBillingDetails(ctx, &workspace, &details)
+}
 
+type planDetails struct {
+	tier               modelInputs.PlanType
+	unlimitedMembers   bool
+	billingPeriodStart *time.Time
+	billingPeriodEnd   *time.Time
+	nextInvoiceDate    *time.Time
+}
+
+func (r *Resolver) updateBillingDetails(ctx context.Context, workspace *model.Workspace, details *planDetails) error {
 	updates := map[string]interface{}{
-		"PlanTier":           string(tier),
-		"UnlimitedMembers":   unlimitedMembers,
-		"BillingPeriodStart": billingPeriodStart,
-		"BillingPeriodEnd":   billingPeriodEnd,
-		"NextInvoiceDate":    nextInvoiceDate,
+		"PlanTier":           string(details.tier),
+		"UnlimitedMembers":   details.unlimitedMembers,
+		"BillingPeriodStart": details.billingPeriodStart,
+		"BillingPeriodEnd":   details.billingPeriodEnd,
+		"NextInvoiceDate":    details.nextInvoiceDate,
 		"TrialEndDate":       nil,
 	}
 
 	if err := r.DB.WithContext(ctx).Model(&model.Workspace{}).
 		Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
 		Updates(updates).Error; err != nil {
-		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
+		return e.Wrapf(err, "BILLING_ERROR error updating workspace fields for workspace %d", workspace.ID)
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.StripeClient, r.MailClient).ReportUsageForWorkspace(ctx, workspace.ID); err != nil {
-		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
+	if _, err := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.StripeClient, r.AWSMPClient, r.MailClient).ReportUsageForWorkspace(ctx, workspace.ID); err != nil {
+		return e.Wrap(err, "BILLING_ERROR error reporting usage after updating details")
 	}
 
 	// Make previous billing history email records inactive (so new active records can be added)
@@ -1361,7 +1387,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 			"WorkspaceID": workspace.ID,
 			"DeletedAt":   time.Now(),
 		}).Error; err != nil {
-		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating BillingEmailHistory objects for workspace %d", workspace.ID)
+		return e.Wrapf(err, "BILLING_ERROR error updating BillingEmailHistory objects for workspace %d", workspace.ID)
 	}
 
 	return nil
@@ -1717,7 +1743,7 @@ func (r *Resolver) StripeWebhook(ctx context.Context, endpointSecret string) fun
 				return
 			}
 
-			if err := r.updateBillingDetails(ctx, subscription.Customer.ID); err != nil {
+			if err := r.updateStripeBillingDetails(ctx, subscription.Customer.ID); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to update billing details"))
 				w.WriteHeader(http.StatusInternalServerError)
 				_, _ = w.Write([]byte(err.Error()))
@@ -1726,6 +1752,48 @@ func (r *Resolver) StripeWebhook(ctx context.Context, endpointSecret string) fun
 		}
 
 		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func (r *Resolver) ResolveAWSMarketplaceToken(ctx context.Context, token string) (*marketplacemetering.ResolveCustomerOutput, error) {
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(model.AWS_REGION_US_EAST_2))
+	if err != nil {
+		return nil, err
+	}
+
+	mpm := marketplacemetering.NewFromConfig(cfg)
+	return mpm.ResolveCustomer(ctx, &marketplacemetering.ResolveCustomerInput{
+		RegistrationToken: &token,
+	})
+}
+
+func (r *Resolver) AWSMPCallback(ctx context.Context) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		token := req.Header.Get("x-amzn-marketplace-token")
+		if token == "" {
+			log.WithContext(ctx).Error("invalid aws marketplace request: no token")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		customer, err := r.ResolveAWSMarketplaceToken(ctx, token)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("invalid aws marketplace request: error resolving token")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		secret, _ := r.GenerateRandomStringURLSafe(64)
+		if err := r.Redis.Cache.Set(&cache.Item{
+			Ctx:   ctx,
+			Key:   secret,
+			Value: customer,
+			TTL:   7 * 24 * time.Hour,
+		}); err != nil {
+			log.WithContext(ctx).WithError(err).Error("invalid aws marketplace request: failed to write redis customer token")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		http.Redirect(w, req, fmt.Sprintf("%s/callback/aws-mp?code=%s", os.Getenv("FRONTEND_URI"), secret), http.StatusFound)
 	}
 }
 

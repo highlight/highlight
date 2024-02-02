@@ -21,7 +21,6 @@ import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSea
 import { ErrorFeedCard } from '@pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import ErrorFeedHistogram from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
 import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
-import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { gqlSanitize } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
@@ -30,13 +29,14 @@ import clsx from 'clsx'
 import moment from 'moment/moment'
 import React, { useCallback, useEffect, useState } from 'react'
 
+import { useErrorPageNavigation } from '@/pages/ErrorsV2/ErrorsV2'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import * as style from './SearchPanel.css'
 
 const SearchPanel = () => {
-	const { showLeftPanel } = useErrorPageConfiguration()
+	const { showLeftPanel } = useErrorPageNavigation()
 	const { showBanner } = useGlobalContext()
 	const {
 		searchQuery,

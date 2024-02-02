@@ -3,14 +3,13 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/parser"
 	"testing"
 	"time"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
-
-	"github.com/highlight-run/highlight/backend/queryparser"
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/stretchr/testify/assert"
@@ -104,8 +103,8 @@ func TestWriteSession(t *testing.T) {
 
 func Test_SessionMatchesQuery(t *testing.T) {
 	session := model.Session{}
-	filters := queryparser.Parse("environment:prod* user_email:*@highlight.io custom_email:bar@highlight.io session_visited-url:example.com user_age:123 service_name:all custom_created_at:when")
-	matches := SessionMatchesQuery(&session, &filters)
+	filters := parser.Parse("environment:prod* user_email:*@highlight.io custom_email:bar@highlight.io session_visited-url:example.com user_age:123 service_name:all custom_created_at:when", SessionsTableConfig)
+	matches := SessionMatchesQuery(&session, filters)
 	assert.False(t, matches)
 
 	session = model.Session{
@@ -139,19 +138,19 @@ func Test_SessionMatchesQuery(t *testing.T) {
 			},
 		},
 	}
-	matches = SessionMatchesQuery(&session, &filters)
+	matches = SessionMatchesQuery(&session, filters)
 	assert.True(t, matches)
 
-	filters = queryparser.Parse("environment:development email:*@highlight.io age:123 service_name:all")
-	matches = SessionMatchesQuery(&session, &filters)
+	filters = parser.Parse("environment:development email:*@highlight.io age:123 service_name:all", SessionsTableConfig)
+	matches = SessionMatchesQuery(&session, filters)
 	assert.False(t, matches)
 
-	filters = queryparser.Parse("environment:*prod* user_email:vadim@highlight.io")
-	matches = SessionMatchesQuery(&session, &filters)
+	filters = parser.Parse("environment:*prod* user_email:vadim@highlight.io", SessionsTableConfig)
+	matches = SessionMatchesQuery(&session, filters)
 	assert.True(t, matches)
 
-	filters = queryparser.Parse("environment:*prod* user_email:bar@highlight.io")
-	matches = SessionMatchesQuery(&session, &filters)
+	filters = parser.Parse("environment:*prod* user_email:bar@highlight.io", SessionsTableConfig)
+	matches = SessionMatchesQuery(&session, filters)
 	assert.False(t, matches)
 }
 

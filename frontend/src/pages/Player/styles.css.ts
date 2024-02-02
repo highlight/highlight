@@ -34,7 +34,7 @@ export const playerContainer = style({
 
 export const rrwebPlayerSection = style({
 	background: colors.n1,
-	border: `1px solid ${colors.n6}`,
+	border: vars.border.dividerWeak,
 	borderRadius: 6,
 	boxShadow: vars.shadows.small,
 	overflow: 'clip',

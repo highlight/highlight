@@ -18,7 +18,6 @@ import {
 	Box,
 	ButtonIcon,
 	Callout,
-	Container,
 	IconSolidExitRight,
 	Text,
 	Tooltip,
@@ -33,7 +32,6 @@ import { IntegrationCta } from '@pages/ErrorsV2/IntegrationCta'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
-import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
 import {
 	PlayerSearchParameters,
 	useLinkLogCursor,
@@ -54,6 +52,7 @@ import { GetErrorGroupQuery } from '@/graph/generated/operations'
 import ErrorIssueButton from '@/pages/ErrorsV2/ErrorIssueButton/ErrorIssueButton'
 import ErrorShareButton from '@/pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
 import { ErrorStateSelect } from '@/pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
+import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import * as styles from './styles.css'
@@ -76,7 +75,7 @@ export default function ErrorsV2() {
 	const location = useLocation()
 	const { logCursor } = useLinkLogCursor()
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
-	const navigation = useNavigation()
+	const navigation = useErrorPageNavigation()
 
 	useAllHotKeys(navigation)
 
@@ -140,50 +139,47 @@ export default function ErrorsV2() {
 				<title>Errors</title>
 			</Helmet>
 
-			<Box cssClass={styles.container}>
-				{!isBlocked && (
-					<Box cssClass={styles.searchPanelContainer}>
-						<SearchPanel />
-					</Box>
-				)}
+			{!isBlocked && (
+				<Box cssClass={styles.searchPanelContainer}>
+					<SearchPanel />
+				</Box>
+			)}
 
-				<div
-					className={clsx(styles.detailsContainer, {
-						[styles.moveDetailsRight]:
-							!isBlocked && navigation.showLeftPanel,
-					})}
+			<div
+				className={clsx(styles.detailsContainer, {
+					[styles.moveDetailsRight]:
+						!isBlocked && navigation.showLeftPanel,
+				})}
+			>
+				<Box
+					background="white"
+					border="dividerWeak"
+					borderRadius="6"
+					display="flex"
+					flexDirection="column"
+					height="full"
+					shadow="small"
+					overflow="hidden"
 				>
-					<Box
-						background="white"
-						border="secondary"
-						borderRadius="6"
-						display="flex"
-						flexDirection="column"
-						height="full"
-						shadow="medium"
-					>
-						<TopBar
-							errorGroup={data?.error_group}
-							isLoggedIn={isLoggedIn}
-							isBlocked={isBlocked}
-							projectId={project_id}
-							navigation={navigation}
-						/>
+					<TopBar
+						errorGroup={data?.error_group}
+						isLoggedIn={isLoggedIn}
+						isBlocked={isBlocked}
+						projectId={project_id}
+						navigation={navigation}
+					/>
 
-						<ErrorDisplay
-							errorGroup={data?.error_group}
-							integrated={integrated}
-							isBlocked={isBlocked}
-							isBlockedLoading={isBlockedLoading}
-							isErrorGroupError={!!errorQueryingErrorGroup}
-							isErrorState={
-								!!errorQueryingErrorGroup || isBlocked
-							}
-							loading={loading}
-						/>
-					</Box>
-				</div>
-			</Box>
+					<ErrorDisplay
+						errorGroup={data?.error_group}
+						integrated={integrated}
+						isBlocked={isBlocked}
+						isBlockedLoading={isBlockedLoading}
+						isErrorGroupError={!!errorQueryingErrorGroup}
+						isErrorState={!!errorQueryingErrorGroup || isBlocked}
+						loading={loading}
+					/>
+				</Box>
+			</div>
 		</>
 	)
 }
@@ -192,7 +188,7 @@ type TopBarProps = {
 	errorGroup: GetErrorGroupQuery['error_group']
 	isLoggedIn: boolean
 	isBlocked: boolean
-	navigation: ReturnType<typeof useNavigation>
+	navigation: ReturnType<typeof useErrorPageNavigation>
 	projectId?: string
 }
 function TopBar({
@@ -212,7 +208,6 @@ function TopBar({
 
 	const {
 		showLeftPanel,
-		setShowLeftPanel,
 		canMoveBackward,
 		canMoveForward,
 		nextSecureId,
@@ -239,7 +234,9 @@ function TopBar({
 								shape="square"
 								emphasis="medium"
 								icon={<IconSolidExitRight size={14} />}
-								onClick={() => setShowLeftPanel(true)}
+								onClick={() =>
+									navigation.setShowLeftPanel(true)
+								}
 							/>
 						}
 					>
@@ -284,7 +281,7 @@ function useAllHotKeys({
 	nextSecureId,
 	previousSecureId,
 	goToErrorGroup,
-}: ReturnType<typeof useNavigation>) {
+}: ReturnType<typeof useErrorPageNavigation>) {
 	useHotkeys(
 		'j',
 		() => {
@@ -350,26 +347,27 @@ function ErrorDisplay({
 						</title>
 					</Helmet>
 
-					<div className={styles.errorDetails}>
-						<Container>
-							{loading ? (
-								<LoadingBox />
-							) : (
-								<>
-									<IntegrationCta />
-									<Box pt="24" pb="32">
-										<ErrorTitle errorGroup={errorGroup} />
+					<Box overflowY="scroll" width="full">
+						{loading ? (
+							<LoadingBox />
+						) : (
+							<>
+								<IntegrationCta />
+								<Box
+									py="24"
+									px="20"
+									mx="auto"
+									style={{ maxWidth: 940 }}
+								>
+									<ErrorTitle errorGroup={errorGroup} />
 
-										<ErrorBody errorGroup={errorGroup} />
+									<ErrorBody errorGroup={errorGroup} />
 
-										<ErrorTabContent
-											errorGroup={errorGroup}
-										/>
-									</Box>
-								</>
-							)}
-						</Container>
-					</div>
+									<ErrorTabContent errorGroup={errorGroup} />
+								</Box>
+							</>
+						)}
+					</Box>
 				</>
 			)
 
@@ -447,11 +445,11 @@ function useErrorGroup() {
 	return { data, loading, errorQueryingErrorGroup }
 }
 
-function useNavigation() {
+export function useErrorPageNavigation() {
 	const navigate = useNavigate()
 	const { project_id, error_secure_id } = useParams<Params>()
 	const { searchResultSecureIds } = useErrorSearchContext()
-	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
+	const { showLeftPanel, setShowLeftPanel } = usePlayerConfiguration()
 	const goToErrorGroup = useCallback(
 		(secureId: string) => {
 			navigate(`/${project_id}/errors/${secureId}${location.search}`, {

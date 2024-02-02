@@ -20,6 +20,10 @@ mutation CreateOrUpdateStripeSubscription($workspace_id: ID!) {
 	createOrUpdateStripeSubscription(workspace_id: $workspace_id)
 }
 
+mutation HandleAWSMarketplace($workspace_id: ID!, $code: String!) {
+	handleAWSMarketplace(workspace_id: $workspace_id, code: $code)
+}
+
 mutation SaveBillingPlan(
 	$workspace_id: ID!
 	$sessionsLimitCents: Int
