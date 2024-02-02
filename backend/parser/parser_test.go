@@ -22,15 +22,15 @@ var tableConfig = model.TableConfig[string]{
 
 func TestBasicSqlForSearch(t *testing.T) {
 	sql, _ := buildSqlForQuery("span_name:gorm.Query")
-	assert.Equal(t, "SELECT * FROM t WHERE SpanName = 'gorm.Query'", sql)
+	assert.Equal(t, "SELECT * FROM t WHERE toString(SpanName) = 'gorm.Query'", sql)
 }
 
-func TestCoimplexSqlForSearch(t *testing.T) {
+func TestComplexSqlForSearch(t *testing.T) {
 	sql, _ := buildSqlForQuery("span_name=\"Chris Schmitz\" duration>1000 level:info source=(backend OR frontend) OR (service_name!=private-graph span_name=gorm.Query span_name!=(testing OR testing2)) AND (\"body query\" asdf)")
 
 	assert.Equal(
 		t,
-		"SELECT * FROM t WHERE SpanName = 'Chris Schmitz' AND Duration > '1000' AND Level = 'info' AND (Source = 'backend' OR Source = 'frontend') AND ServiceName <> 'private-graph' AND SpanName = 'gorm.Query' AND ((SpanName <> 'testing' OR SpanName <> 'testing2') OR (SpanName ILIKE '%body query%' AND hasTokenCaseInsensitive(SpanName, 'asdf')))",
+		"SELECT * FROM t WHERE toString(SpanName) = 'Chris Schmitz' AND Duration > '1000' AND toString(Level) = 'info' AND (toString(Source) = 'backend' OR toString(Source) = 'frontend') AND ServiceName <> 'private-graph' AND toString(SpanName) = 'gorm.Query' AND ((SpanName <> 'testing' OR SpanName <> 'testing2') OR (SpanName ILIKE '%body query%' AND hasTokenCaseInsensitive(SpanName, 'asdf')))",
 		sql,
 	)
 }
