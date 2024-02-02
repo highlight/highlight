@@ -720,21 +720,30 @@ const IngestTimeline: React.FC<{
 		(i) => i.bucket_id,
 	)
 
-	const histogramBuckets = data?.traces_metrics.buckets.map((b) => ({
-		bucketId: b.bucket_id,
-		group: b.group,
-		counts: [
-			{
-				level: 'Ingested',
-				count:
-					(100 *
-						(groupedByBucket[b.bucket_id][0]?.metric_value ?? 0)) /
-					((groupedByBucket[b.bucket_id][0]?.metric_value ?? 0) +
-						(groupedByBucket[b.bucket_id][1]?.metric_value ?? 0)),
-				unit: '%',
-			},
-		],
-	}))
+	const histogramBuckets = data?.traces_metrics.buckets
+		.filter(
+			(b) =>
+				b.metric_type === MetricAggregator.Count &&
+				b.metric_value !== undefined &&
+				b.metric_value !== null,
+		)
+		.map((b) => ({
+			bucketId: b.bucket_id,
+			group: b.group,
+			counts: [
+				{
+					level: 'Ingested',
+					count:
+						(100 *
+							(groupedByBucket[b.bucket_id][0]?.metric_value ??
+								0)) /
+						((groupedByBucket[b.bucket_id][0]?.metric_value ?? 0) +
+							(groupedByBucket[b.bucket_id][1]?.metric_value ??
+								0)),
+					unit: '%',
+				},
+			],
+		}))
 
 	if (!loading && !data?.traces_metrics.buckets?.length) {
 		return (
