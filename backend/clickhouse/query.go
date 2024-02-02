@@ -12,14 +12,15 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
-	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/parser"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/queryparser"
-	"github.com/highlight-run/highlight/backend/util"
-	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/nqd/flat"
+
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/parser"
+	"github.com/highlight-run/highlight/backend/parser/listener"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight/highlight/sdk/highlight-go"
 )
 
 const SamplingRows = 20_000_000
@@ -343,23 +344,40 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 	return values, rows.Err()
 }
 
+func getChildValue(value reflect.Value, key string) (string, bool) {
+	for _, part := range strings.Split(key, ".") {
+		if !value.IsValid() {
+			return "", false
+		}
+		value = value.FieldByName(part)
+		if value.Kind() == reflect.Pointer {
+			value = value.Elem()
+		}
+	}
+	if value.IsValid() {
+		return repr(value), true
+	}
+	return "", false
+}
+
 // clickhouse token - https://clickhouse.com/docs/en/sql-reference/functions/splitting-merging-functions#tokens
 var nonAlphaNumericChars = regexp.MustCompile(`[^\w:*]`)
 
-func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config model.TableConfig[TReservedKey], filters *queryparser.Filters) bool {
+func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model.TableConfig[TReservedKey], filter *listener.FilterOperation) bool {
+	bodyFilter := config.BodyColumn != "" && filter.Column == "" && filter.Key == config.BodyColumn
 	v := reflect.ValueOf(*row)
 
 	rowBodyTerms := map[string]bool{}
-	if config.BodyColumn != "" && len(filters.Body) > 0 {
+	if bodyFilter {
 		body := v.FieldByName(config.BodyColumn).String()
 		for _, field := range nonAlphaNumericChars.Split(body, -1) {
 			if field != "" {
 				rowBodyTerms[field] = true
 			}
 		}
-		for _, body := range filters.Body {
-			if strings.Contains(body, "%") {
-				pat, err := regexp.Compile(strings.ReplaceAll(regexp.QuoteMeta(body), "%", ".*"))
+		for _, bodyFilter := range filter.Values {
+			if strings.Contains(bodyFilter, "%") {
+				pat, err := regexp.Compile(strings.ReplaceAll(regexp.QuoteMeta(bodyFilter), "%", ".*"))
 				// this may over match if the expression cannot be compiled,
 				// but we'd prefer to over match as this fn is used to determine sampling
 				if err == nil {
@@ -367,58 +385,88 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config mode
 						return false
 					}
 				}
-			} else if !rowBodyTerms[body] {
+			} else if !rowBodyTerms[bodyFilter] {
 				return false
 			}
 		}
 	}
-	for key, values := range filters.Attributes {
-		var rowValue string
-		if chKey, ok := config.KeysToColumns[TReservedKey(key)]; ok {
-			if strings.Contains(chKey, ".") {
-				var value = v
-				for _, part := range strings.Split(chKey, ".") {
-					value = value.FieldByName(part)
-					if value.Kind() == reflect.Pointer {
-						value = value.Elem()
-					}
-				}
-				rowValue = repr(value)
-			} else {
-				rowValue = repr(v.FieldByName(chKey))
-			}
-		} else if config.AttributesColumn != "" {
-			value := v.FieldByName(config.AttributesColumn)
-			if value.Kind() == reflect.Map {
-				rowValue = repr(value.MapIndex(reflect.ValueOf(key)))
-			} else if value.Kind() == reflect.Slice {
-				// assume that the key is a 'field' in `type_name` format
-				fieldParts := strings.SplitN(key, "_", 2)
-				for i := 0; i < value.Len(); i++ {
-					fieldType := value.Index(i).Elem().FieldByName("Type").String()
-					name := value.Index(i).Elem().FieldByName("Name").String()
-					if fieldType == fieldParts[0] && name == fieldParts[1] {
-						rowValue = repr(value.Index(i).Elem().FieldByName("Value"))
-						break
-					}
-				}
-			}
+
+	var rowValue string
+	if chKey, ok := config.KeysToColumns[TReservedKey(filter.Key)]; ok {
+		if val, ok := getChildValue(v, chKey); ok {
+			rowValue = val
 		} else {
-			continue
+			rowValue = repr(v.FieldByName(chKey))
 		}
-		for _, v := range values {
+	} else if field := v.FieldByName(filter.Key); field.IsValid() {
+		rowValue = repr(field)
+	} else if val, ok := getChildValue(v, filter.Key); ok {
+		rowValue = val
+	} else if config.AttributesColumn != "" {
+		value := v.FieldByName(config.AttributesColumn)
+		if value.Kind() == reflect.Map {
+			rowValue = repr(value.MapIndex(reflect.ValueOf(filter.Key)))
+		} else if value.Kind() == reflect.Slice {
+			// assume that the key is a 'field' in `type_name` format
+			fieldParts := strings.SplitN(filter.Key, "_", 2)
+			for i := 0; i < value.Len(); i++ {
+				fieldType := value.Index(i).Elem().FieldByName("Type").String()
+				name := value.Index(i).Elem().FieldByName("Name").String()
+				if fieldType == fieldParts[0] && name == fieldParts[1] {
+					rowValue = repr(value.Index(i).Elem().FieldByName("Value"))
+					break
+				}
+			}
+		}
+	} else {
+		return true
+	}
+	if !bodyFilter {
+		for _, v := range filter.Values {
 			if strings.Contains(v, "%") {
 				if matched, _ := regexp.Match(strings.ReplaceAll(v, "%", ".*"), []byte(rowValue)); !matched {
 					return false
 				}
-			} else if strings.HasPrefix(v, "-") {
+			} else if filter.Operator == listener.OperatorNotEqual {
 				if rowValue == strings.Replace(v, "-", "", 1) {
 					return false
 				}
 			} else if v != rowValue {
 				return false
 			}
+		}
+	}
+	return true
+}
 
+func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config model.TableConfig[TReservedKey], filters listener.Filters) bool {
+	// if multiple filters are passed in, assume an AND operation between them
+	for _, filter := range filters {
+		switch filter.Operator {
+		case listener.OperatorAnd:
+			for _, childFilter := range filter.Filters {
+				if !matchesQuery(row, config, listener.Filters{childFilter}) {
+					return false
+				}
+			}
+		case listener.OperatorOr:
+			var anyMatch bool
+			for _, childFilter := range filter.Filters {
+				if matchesQuery(row, config, listener.Filters{childFilter}) {
+					anyMatch = true
+					break
+				}
+			}
+			if !anyMatch {
+				return false
+			}
+		default:
+			matches := matchFilter(row, config, filter)
+			if filter.Operator == listener.OperatorNot && matches {
+				return false
+			} else if !matches {
+				return false
+			}
 		}
 	}
 	return true

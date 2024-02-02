@@ -4,14 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/parser/listener"
 	"time"
-
-	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/queryparser"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/openlyinc/pointy"
 	"github.com/samber/lo"
@@ -538,7 +537,7 @@ func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, qu
 	return bucketTimes, totals, nil
 }
 
-var errorObjectsTableConfig = model.TableConfig[modelInputs.ReservedErrorObjectKey]{
+var ErrorObjectsTableConfig = model.TableConfig[modelInputs.ReservedErrorObjectKey]{
 	TableName: ErrorObjectsTable,
 	KeysToColumns: map[modelInputs.ReservedErrorObjectKey]string{
 		modelInputs.ReservedErrorObjectKeySessionSecureID: "SessionSecureID",
@@ -588,8 +587,8 @@ var errorsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedErro
 	},
 }
 
-func ErrorMatchesQuery(errorObject *model2.BackendErrorObjectInput, filters *queryparser.Filters) bool {
-	return matchesQuery(errorObject, errorObjectsTableConfig, filters)
+func ErrorMatchesQuery(errorObject *model2.BackendErrorObjectInput, filters listener.Filters) bool {
+	return matchesQuery(errorObject, ErrorObjectsTableConfig, filters)
 }
 
 func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {

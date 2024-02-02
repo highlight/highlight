@@ -4,12 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/parser/listener"
 	"strconv"
 	"time"
 
 	"github.com/samber/lo"
-
-	"github.com/highlight-run/highlight/backend/queryparser"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
@@ -438,7 +437,7 @@ func (client *Client) DeleteSessions(ctx context.Context, projectId int, session
 	return client.conn.Exec(ctx, sql, args...)
 }
 
-var sessionsTableConfig = model.TableConfig[string]{
+var SessionsTableConfig = model.TableConfig[string]{
 	TableName:        SessionsTable,
 	KeysToColumns:    fieldMap,
 	AttributesColumn: "Fields",
@@ -447,8 +446,8 @@ var sessionsTableConfig = model.TableConfig[string]{
 	}),
 }
 
-func SessionMatchesQuery(session *model.Session, filters *queryparser.Filters) bool {
-	return matchesQuery(session, sessionsTableConfig, filters)
+func SessionMatchesQuery(session *model.Session, filters listener.Filters) bool {
+	return matchesQuery(session, SessionsTableConfig, filters)
 }
 
 var sessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey]{

@@ -3,13 +3,13 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/parser/listener"
 	"strings"
 	"time"
 
 	"github.com/highlight/highlight/sdk/highlight-go"
 
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/queryparser"
 	"golang.org/x/exp/slices"
 
 	"github.com/huandu/go-sqlbuilder"
@@ -73,13 +73,22 @@ var defaultTraceKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedTraceKeySecureSessionID), Type: modelInputs.KeyTypeString},
 }
 
-var TracesTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
+var TracesTableNoDefaultConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
 	TableName:        TracesTable,
 	KeysToColumns:    traceKeysToColumns,
 	ReservedKeys:     modelInputs.AllReservedTraceKey,
 	BodyColumn:       "SpanName",
 	AttributesColumn: "TraceAttributes",
 	SelectColumns:    traceColumns,
+}
+
+var TracesTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
+	TableName:        TracesTableNoDefaultConfig.TableName,
+	KeysToColumns:    TracesTableNoDefaultConfig.KeysToColumns,
+	ReservedKeys:     TracesTableNoDefaultConfig.ReservedKeys,
+	BodyColumn:       TracesTableNoDefaultConfig.BodyColumn,
+	AttributesColumn: TracesTableNoDefaultConfig.AttributesColumn,
+	SelectColumns:    TracesTableNoDefaultConfig.SelectColumns,
 	DefaultFilter:    fmt.Sprintf("%s!=%s", highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
 }
 
@@ -363,6 +372,6 @@ func (client *Client) TracesMetrics(ctx context.Context, projectID int, startDat
 	return KeysAggregated(ctx, client, TraceMetricsTable, projectID, startDate, endDate, query, nil)
 }
 
-func TraceMatchesQuery(trace *TraceRow, filters *queryparser.Filters) bool {
+func TraceMatchesQuery(trace *TraceRow, filters listener.Filters) bool {
 	return matchesQuery(trace, TracesTableConfig, filters)
 }

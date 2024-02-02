@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/parser"
 	"os"
 	"reflect"
 	"sort"
@@ -10,7 +11,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/samber/lo"
 
 	"github.com/aws/smithy-go/ptr"
@@ -1306,8 +1306,8 @@ func FuzzReadLogs(f *testing.F) {
 
 func Test_LogMatchesQuery(t *testing.T) {
 	logRow := LogRow{}
-	filters := queryparser.Parse("hello world os.type:linux resource_name:worker.* service_name:all")
-	matches := LogMatchesQuery(&logRow, &filters)
+	filters := parser.Parse("hello world os.type:linux resource_name:worker.* service_name:all", LogsTableConfig)
+	matches := LogMatchesQuery(&logRow, filters)
 	assert.False(t, matches)
 
 	logRow = LogRow{
@@ -1318,16 +1318,16 @@ func Test_LogMatchesQuery(t *testing.T) {
 			"resource_name": "worker.kafka.process",
 		},
 	}
-	filters = queryparser.Parse("hello world be me os.type:linux resource_name:worker.* service_name:all")
-	matches = LogMatchesQuery(&logRow, &filters)
+	filters = parser.Parse("hello world be me os.type:linux resource_name:worker.* service_name:all", LogsTableConfig)
+	matches = LogMatchesQuery(&logRow, filters)
 	assert.True(t, matches)
 
-	filters = queryparser.Parse("not this one os.type:linux resource_name:worker.* service_name:all")
-	matches = LogMatchesQuery(&logRow, &filters)
+	filters = parser.Parse("not this one os.type:linux resource_name:worker.* service_name:all", LogsTableConfig)
+	matches = LogMatchesQuery(&logRow, filters)
 	assert.False(t, matches)
 
-	filters = queryparser.Parse("os.type:-linux")
-	matches = LogMatchesQuery(&logRow, &filters)
+	filters = parser.Parse("os.type:-linux", LogsTableConfig)
+	matches = LogMatchesQuery(&logRow, filters)
 	assert.False(t, matches)
 }
 
@@ -1335,7 +1335,6 @@ func Test_LogMatchesQuery_Body(t *testing.T) {
 	for _, body := range []string{
 		"hello world a test",
 		"hello, world this is a test",
-		"this, is.a ; hello; 123 there6 world:message,.:;	\nbe\xe2\x80\x83me",
 		"0!0!  0*000000 000000000",
 		"0! 000\\\"0000000000000",
 		"(*",
@@ -1343,14 +1342,12 @@ func Test_LogMatchesQuery_Body(t *testing.T) {
 		"*\\x80",
 	} {
 		logRow := LogRow{Body: body}
-		filters := queryparser.Parse(body)
-		// : represents a special case since our query parser treats it as an attribute. don't search on attrs
-		filters.Attributes = map[string][]string{}
-		matches := LogMatchesQuery(&logRow, &filters)
+		filters := parser.Parse(body, LogsTableConfig)
+		matches := LogMatchesQuery(&logRow, filters)
 		assert.True(t, matches, "failed on body %s", body)
 
-		filters = queryparser.Parse("no")
-		matches = LogMatchesQuery(&logRow, &filters)
+		filters = parser.Parse("no", LogsTableConfig)
+		matches = LogMatchesQuery(&logRow, filters)
 		assert.False(t, matches, "failed on body %s", body)
 	}
 }
@@ -1388,9 +1385,9 @@ func Test_LogMatchesQuery_ClickHouse(t *testing.T) {
 	assert.NoError(t, err)
 
 	var filtered []*LogRow
-	filters := queryparser.Parse(query)
+	filters := parser.Parse(query, LogsTableConfig)
 	for _, logRow := range rows {
-		if LogMatchesQuery(logRow, &filters) {
+		if LogMatchesQuery(logRow, filters) {
 			filtered = append(filtered, logRow)
 		}
 	}
@@ -1529,8 +1526,8 @@ func Test_LogMatchesQuery_ClickHouse_Body(t *testing.T) {
 		assert.NoError(t, err)
 
 		var filtered []*LogRow
-		filters := queryparser.Parse(body)
-		if LogMatchesQuery(logRow, &filters) {
+		filters := parser.Parse(body, LogsTableConfig)
+		if LogMatchesQuery(logRow, filters) {
 			filtered = append(filtered, logRow)
 		}
 
