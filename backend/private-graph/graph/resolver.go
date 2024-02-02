@@ -1769,7 +1769,12 @@ func (r *Resolver) ResolveAWSMarketplaceToken(ctx context.Context, token string)
 
 func (r *Resolver) AWSMPCallback(ctx context.Context) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		token := req.Header.Get("x-amzn-marketplace-token")
+		if err := req.ParseForm(); err != nil {
+			log.WithContext(ctx).Error("invalid aws marketplace request: no token")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		token := req.PostFormValue("x-amzn-marketplace-token")
 		if token == "" {
 			log.WithContext(ctx).Error("invalid aws marketplace request: no token")
 			w.WriteHeader(http.StatusBadRequest)
