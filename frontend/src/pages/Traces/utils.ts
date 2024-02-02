@@ -3,7 +3,14 @@ import moment from 'moment'
 import { Trace } from '@/graph/generated/schemas'
 
 export const getFirstSpan = (trace: Trace[]) => {
-	return trace.find((span) => !span.parentSpanID)
+	const rootSpans = trace.filter((span) => !span.parentSpanID)
+	const spans = rootSpans.length > 0 ? rootSpans : trace
+	const sortedTrace = spans.sort(
+		(a, b) =>
+			new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+	)
+
+	return sortedTrace[0]
 }
 
 // Returns the trace duration in nanoseconds
@@ -101,6 +108,10 @@ export const organizeSpansForFlameGraph = (
 ) => {
 	const rootSpans = trace.filter((span) => !span.parentSpanID)
 	const spans = [[]]
+
+	if (rootSpans.length === 0) {
+		rootSpans.push(getFirstSpan(trace as Trace[]))
+	}
 
 	rootSpans.forEach((rootSpan) =>
 		organizeSpanInLevel(rootSpan!, trace, spans, 0),
