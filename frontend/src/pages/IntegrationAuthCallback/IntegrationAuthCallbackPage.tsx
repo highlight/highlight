@@ -1,3 +1,4 @@
+import { Button } from '@components/Button'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import {
 	AppLoadingState,
@@ -5,8 +6,13 @@ import {
 } from '@context/AppLoadingContext'
 import {
 	useGetProjectsAndWorkspacesQuery,
+	useGetWorkspacesQuery,
 	useHandleAwsMarketplaceMutation,
 } from '@graph/hooks'
+import { Form, Stack, Text, useFormStore } from '@highlight-run/ui/components'
+import * as styles from '@pages/Auth/AdminForm.css'
+import * as authRouterStyles from '@pages/Auth/AuthRouter.css'
+import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
@@ -17,10 +23,7 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { VercelIntegrationSettings } from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
 import { Landing } from '@pages/Landing/Landing'
-import {
-	ApplicationContextProvider,
-	useApplicationContext,
-} from '@routers/AppRouter/context/ApplicationContext'
+import { ApplicationContextProvider } from '@routers/AppRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
@@ -49,6 +52,7 @@ const WorkspaceIntegrations = new Set<string>([
 	'height',
 	'jira',
 	'gitlab',
+	'aws-mp',
 ])
 
 const logError = (e: any) => {
@@ -421,28 +425,108 @@ const GitHubIntegrationCallback = ({
 	)
 }
 
-const AWSMPIntegrationCallback = ({
-	workspaceId,
-	code,
-}: {
-	workspaceId: string | undefined
-	code: string
-}) => {
+const AWSMPIntegrationCallback = ({ code }: { code: string }) => {
+	const { isLoggedIn } = useAuthContext()
+	const { setLoadingState } = useAppLoadingContext()
+	const { data: workspacesData, loading: workspacesLoading } =
+		useGetWorkspacesQuery({
+			fetchPolicy: 'network-only',
+		})
 	const navigate = useNavigate()
-	const [handle] = useHandleAwsMarketplaceMutation()
-	useEffect(() => {
+	const [handle, { loading: handleLoading }] =
+		useHandleAwsMarketplaceMutation()
+	const formStore = useFormStore({
+		defaultValues: {
+			workspaceId: '',
+		},
+	})
+	const workspaceId = formStore.useValue('workspaceId')
+	formStore.useSubmit(async (formState) => {
+		const workspaceId = formState.values.workspaceId
 		if (workspaceId && code) {
 			handle({
 				variables: {
 					workspace_id: workspaceId,
 					code,
 				},
-			}).then(() => {
-				navigate(`/w/${workspaceId}/current-plan/success`)
 			})
+				.then(() => {
+					navigate(`/w/${workspaceId}/current-plan/success`)
+				})
+				.catch((e) => {
+					message.error(
+						`Error connecting AWS Marketplace Subscription: ${e.message}`,
+						5,
+					)
+				})
 		}
-	}, [code, handle, navigate, workspaceId])
-	return null
+	})
+	useEffect(() => {
+		if (workspacesLoading) {
+			setLoadingState(AppLoadingState.LOADED)
+		}
+	}, [setLoadingState, workspacesLoading])
+
+	// Require log in
+	if (!isLoggedIn) {
+		const callbackPath = `/callback/aws-mp?code=${code}`
+		authRedirect.set(callbackPath)
+		return <Navigate to={SIGN_IN_ROUTE} replace />
+	}
+
+	return (
+		<Landing>
+			<Form className={authRouterStyles.container} store={formStore}>
+				<AuthHeader>
+					<Text color="moderate">
+						Connect AWS Marketplace Subscription
+					</Text>
+				</AuthHeader>
+				<AuthBody>
+					<Stack gap="16" direction="column">
+						<select
+							className={styles.select}
+							onChange={(e) => {
+								const selectedWorkspace =
+									workspacesData?.workspaces?.find(
+										(workspace) =>
+											workspace?.id === e.target.value,
+									)
+
+								formStore.setValue(
+									formStore.names.workspaceId,
+									selectedWorkspace?.id,
+								)
+							}}
+						>
+							<option value="">Select a workspace</option>
+
+							{workspacesData?.workspaces?.map((workspace) => (
+								<option
+									key={workspace?.id}
+									value={workspace?.id}
+								>
+									{workspace?.name}
+								</option>
+							))}
+						</select>
+					</Stack>
+				</AuthBody>
+				<AuthFooter>
+					<Button
+						type="submit"
+						kind="primary"
+						disabled={!workspaceId}
+						onClick={() => null}
+						trackingId="aws marketplace workspace connect"
+						loading={handleLoading}
+					>
+						Connect
+					</Button>
+				</AuthFooter>
+			</Form>
+		</Landing>
+	)
 }
 
 const JiraIntegrationCallback = ({ code, projectId }: Props) => {
@@ -476,7 +560,6 @@ const IntegrationAuthCallbackPage = () => {
 		integrationName: string
 	}>()
 	const { isAuthLoading } = useAuthContext()
-	const { currentWorkspace } = useApplicationContext()
 	const { setLoadingState } = useAppLoadingContext()
 
 	useEffect(() => {
@@ -573,12 +656,7 @@ const IntegrationAuthCallbackPage = () => {
 				)
 				break
 			case 'aws-mp':
-				cb = (
-					<AWSMPIntegrationCallback
-						workspaceId={currentWorkspace?.id}
-						code={code}
-					/>
-				)
+				cb = <AWSMPIntegrationCallback code={code} />
 				break
 		}
 		return (
