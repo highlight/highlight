@@ -1394,7 +1394,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 // HandleAWSMarketplace is the resolver for the handleAWSMarketplace field.
 func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID int, code string) (*bool, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -1429,7 +1429,7 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 		return nil, err
 	}
 
-	err = r.updateAWSMPBillingDetails(ctx, workspace, &customer)
+	err = r.updateAWSMPBillingDetails(ctx, workspaceID, &customer)
 	if err != nil {
 		return nil, err
 	}
@@ -1444,7 +1444,7 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 
 // UpdateBillingDetails is the resolver for the updateBillingDetails field.
 func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
@@ -1453,8 +1453,15 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 		return nil, e.Wrap(err, "must have ADMIN role to update billing details")
 	}
 
-	if err := r.updateStripeBillingDetails(ctx, *workspace.StripeCustomerID); err != nil {
-		return nil, e.Wrap(err, "error updating billing details")
+	workspace, err := r.GetAWSMarketPlaceWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to get workspace")
+	}
+
+	if workspace.AWSMarketplaceCustomer == nil {
+		if err := r.updateStripeBillingDetails(ctx, *workspace.StripeCustomerID); err != nil {
+			return nil, e.Wrap(err, "error updating billing details")
+		}
 	}
 
 	return &model.T, nil

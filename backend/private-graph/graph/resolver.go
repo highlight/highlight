@@ -373,6 +373,20 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
+func (r *Resolver) GetAWSMarketPlaceWorkspace(ctx context.Context, workspaceID int) (*model.Workspace, error) {
+	var workspace model.Workspace
+	if err := r.DB.WithContext(ctx).
+		Model(&workspace).
+		Preload("AWSMarketplaceCustomer").
+		Joins("AWSMarketplaceCustomer").
+		Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).
+		Take(&workspace).
+		Error; err != nil {
+		return nil, err
+	}
+	return &workspace, nil
+}
+
 func (r *Resolver) GetAdminRole(ctx context.Context, adminID int, workspaceID int) (string, error) {
 	var workspaceAdmin model.WorkspaceAdmin
 	if err := r.DB.WithContext(ctx).Where(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).Take(&workspaceAdmin).Error; err != nil {
@@ -1293,7 +1307,12 @@ func (r *Resolver) GenerateRandomStringURLSafe(n int) (string, error) {
 	return base64.URLEncoding.EncodeToString(b), err
 }
 
-func (r *Resolver) updateAWSMPBillingDetails(ctx context.Context, workspace *model.Workspace, customer *marketplacemetering.ResolveCustomerOutput) error {
+func (r *Resolver) updateAWSMPBillingDetails(ctx context.Context, workspaceID int, customer *marketplacemetering.ResolveCustomerOutput) error {
+	workspace, err := r.GetAWSMarketPlaceWorkspace(ctx, workspaceID)
+	if err != nil {
+		return e.Wrap(err, "BILLING_ERROR updateAWSMPBillingDetails failed to get workspace")
+	}
+
 	log.WithContext(ctx).WithField("workspace_id", workspace.ID).WithField("customer", *customer).Info("billing update for aws mp")
 	now := time.Now()
 	end := time.Now().AddDate(0, 1, 0)

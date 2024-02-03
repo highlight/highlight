@@ -826,12 +826,6 @@ func (w *Worker) ReportAWSMPUsages(ctx context.Context, usages AWSCustomerUsages
 				Timestamp:          &now,
 				Dimension:          pointy.String(strings.ToLower(string(product))),
 				Quantity:           pointy.Int32(int32(overage)),
-				UsageAllocations: []types.UsageAllocation{
-					{
-						AllocatedUsageQuantity: nil,
-						Tags:                   nil,
-					},
-				},
 			})
 		}
 	}
