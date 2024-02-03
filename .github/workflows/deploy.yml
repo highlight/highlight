@@ -3,7 +3,6 @@ on:
     push:
         branches:
             - 'main'
-            - 'vadim/fixes-for-aws-mp-billing'
         paths:
             - 'go.work'
             - 'go.work.sum'
