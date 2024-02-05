@@ -1,8 +1,8 @@
+import { IconSolidCheveronDown } from '@highlight-run/ui/components'
 import { Dropdown } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
-import { ReactComponent as DownIcon } from '../../../static/chevron-down-icon.svg'
 import styles from './StandardDropdown.module.css'
 
 type Option = {
@@ -96,7 +96,7 @@ export const StandardDropdown = ({
 						) : null}
 					</div>
 				)}
-				<DownIcon
+				<IconSolidCheveronDown
 					className={styles.icon}
 					style={{
 						transform: visible ? 'rotate(180deg)' : 'rotate(0deg)',

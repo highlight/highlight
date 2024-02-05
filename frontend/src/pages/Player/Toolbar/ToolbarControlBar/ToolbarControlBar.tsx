@@ -17,17 +17,24 @@ import {
 	Badge,
 	Box,
 	ButtonIcon,
+	IconSolidAnnotation,
 	IconSolidArrowsExpand,
 	IconSolidChartBar,
+	IconSolidCheveronLeft,
+	IconSolidCheveronRight,
 	IconSolidClock,
 	IconSolidCog,
+	IconSolidCursorClick,
 	IconSolidDownload,
+	IconSolidFastForward,
 	IconSolidPause,
 	IconSolidPlay,
+	IconSolidPlayCircle,
 	IconSolidRefresh,
 	IconSolidSkip,
 	IconSolidSkipLeft,
 	IconSolidTerminal,
+	IconSolidX,
 	Stack,
 	SwitchButton,
 	Tag,
@@ -35,13 +42,6 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
-import { ReactComponent as AnnotationIcon } from '@icons/Solid/annotation.svg'
-import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
-import { ReactComponent as ChevronRightIcon } from '@icons/Solid/cheveron-right.svg'
-import { ReactComponent as CrossIcon } from '@icons/Solid/cross.svg'
-import { ReactComponent as CursorClickIcon } from '@icons/Solid/cursor-click.svg'
-import { ReactComponent as FastForwardIcon } from '@icons/Solid/fast-forward.svg'
-import { ReactComponent as PlayCircleIcon } from '@icons/Solid/play-circle.svg'
 import {
 	getFullScreenPopoverGetPopupContainer,
 	usePlayerUIContext,
@@ -548,7 +548,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				className={style.settingsButton}
 				onClick={() => setShowPlayerMouseTail(!showPlayerMouseTail)}
 			>
-				<CursorClickIcon />
+				<IconSolidCursorClick />
 				<Text color="secondaryContentText">Mouse trail</Text>
 				<Switch
 					trackingId="MouseTrailMenuToggle"
@@ -564,7 +564,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				className={style.settingsButton}
 				onClick={() => setSkipInactive(!skipInactive)}
 			>
-				<FastForwardIcon />
+				<IconSolidFastForward />
 				<Text color="secondaryContentText">Skip inactive</Text>
 				<Switch
 					trackingId="SkipInactiveMenuToggle"
@@ -581,7 +581,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				className={style.settingsButton}
 				onClick={() => setAutoPlayVideo(!autoPlayVideo)}
 			>
-				<PlayCircleIcon />
+				<IconSolidPlayCircle />
 				<Text color="secondaryContentText">Autoplay</Text>
 				<Switch
 					trackingId="AutoplayVideoMenuToggle"
@@ -615,9 +615,9 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				className={style.settingsButton}
 				onClick={() => setShowSessionSettings(false)}
 			>
-				<AnnotationIcon />
+				<IconSolidAnnotation />
 				<Text color="secondaryContentText">Annotations</Text>
-				<ChevronRightIcon className={style.moveRight} />
+				<IconSolidCheveronRight className={style.moveRight} />
 			</button>
 
 			<button
@@ -740,12 +740,12 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				<button className={style.settingsButton}>
 					{showSessionSettings ? (
 						<>
-							<CrossIcon />
+							<IconSolidX />
 							<span>Close</span>{' '}
 						</>
 					) : (
 						<>
-							<ChevronLeftIcon />
+							<IconSolidCheveronLeft />
 							<span>Back to session settings</span>
 						</>
 					)}
