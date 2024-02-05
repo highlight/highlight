@@ -20,8 +20,8 @@ import {
 	IconSolidAnnotation,
 	IconSolidArrowsExpand,
 	IconSolidChartBar,
-	IconSolidChevronDoubleLeft,
-	IconSolidChevronDoubleRight,
+	IconSolidCheveronLeft,
+	IconSolidCheveronRight,
 	IconSolidClock,
 	IconSolidCog,
 	IconSolidCursorClick,
@@ -617,7 +617,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			>
 				<IconSolidAnnotation />
 				<Text color="secondaryContentText">Annotations</Text>
-				<IconSolidChevronDoubleRight className={style.moveRight} />
+				<IconSolidCheveronRight className={style.moveRight} />
 			</button>
 
 			<button
@@ -745,7 +745,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 						</>
 					) : (
 						<>
-							<IconSolidChevronDoubleLeft />
+							<IconSolidCheveronLeft />
 							<span>Back to session settings</span>
 						</>
 					)}
