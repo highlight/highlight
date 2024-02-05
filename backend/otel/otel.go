@@ -194,6 +194,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				traceID := cast(fields.requestID, span.TraceID().String())
 				spanID := span.SpanID().String()
 
+				spanHasErrors := false
 				shouldWriteTrace := true
 				for l := 0; l < events.Len(); l++ {
 					if skipped {
@@ -241,6 +242,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						if backendError == nil {
 							lg(ctx, fields).Error("otel span error got no session and no project")
 						} else {
+							spanHasErrors = true
+
 							if _, ok := projectSessionErrors[fields.projectID]; !ok {
 								projectSessionErrors[fields.projectID] = make(map[string][]*model.BackendErrorObjectInput)
 							}
@@ -301,6 +304,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						WithServiceName(fields.serviceName).
 						WithServiceVersion(fields.serviceVersion).
 						WithEnvironment(fields.environment).
+						WithHasErrors(spanHasErrors).
 						WithStatusCode(span.Status().Code().String()).
 						WithStatusMessage(span.Status().Message()).
 						WithTraceAttributes(fields.attrs).

@@ -100,6 +100,24 @@ const StringColumnRenderer: React.FC<ColumnRendererProps> = ({
 	)
 }
 
+const BooleanColumnRenderer: React.FC<ColumnRendererProps> = ({
+	row,
+	getValue,
+	first,
+}) => {
+	const value = getValue()
+
+	return (
+		<ColumnWrapper first={first} row={row}>
+			{value != null ? (
+				<Text lines="1">{value.toString()}</Text>
+			) : (
+				<Text color="secondaryContentOnDisabled">empty</Text>
+			)}
+		</ColumnWrapper>
+	)
+}
+
 const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 	row,
 	getValue,
@@ -178,6 +196,7 @@ const DurationRenderer: React.FC<ColumnRendererProps> = ({
 }
 
 export const ColumnRenderers = {
+	boolean: BooleanColumnRenderer,
 	datetime: DateTimeColumnRenderer,
 	duration: DurationRenderer,
 	session: SessionColumnRenderer,

@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS trace_has_errors_mv;

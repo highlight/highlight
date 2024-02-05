@@ -824,6 +824,7 @@ type Trace {
 	serviceName: String!
 	serviceVersion: String!
 	environment: String!
+	hasErrors: Boolean!
 	traceAttributes: Map!
 	statusCode: String!
 	statusMessage: String!
@@ -954,6 +955,7 @@ enum ReservedLogKey {
 
 enum ReservedTraceKey {
 	environment
+	has_errors
 	level
 	message
 	metric

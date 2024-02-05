@@ -42,6 +42,7 @@ var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeyServiceVersion:  "ServiceVersion",
 	modelInputs.ReservedTraceKeyMetric:          "Events.Attributes[1]['metric.name']",
 	modelInputs.ReservedTraceKeyEnvironment:     "Environment",
+	modelInputs.ReservedTraceKeyHasErrors:       "HasErrors",
 }
 
 var traceColumns = []string{
@@ -62,6 +63,7 @@ var traceColumns = []string{
 	"StatusCode",
 	"StatusMessage",
 	"Environment",
+	"HasErrors",
 }
 
 // These keys show up as recommendations, but with no recommended values due to high cardinality
@@ -128,6 +130,7 @@ type ClickhouseTraceRow struct {
 	StatusCode       string
 	StatusMessage    string
 	Environment      string
+	HasErrors        bool
 	EventsTimestamp  clickhouse.ArraySet `ch:"Events.Timestamp"`
 	EventsName       clickhouse.ArraySet `ch:"Events.Name"`
 	EventsAttributes clickhouse.ArraySet `ch:"Events.Attributes"`
@@ -166,6 +169,7 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 			StatusCode:       traceRow.StatusCode,
 			StatusMessage:    traceRow.StatusMessage,
 			Environment:      traceRow.Environment,
+			HasErrors:        traceRow.HasErrors,
 			EventsTimestamp:  traceTimes,
 			EventsName:       traceNames,
 			EventsAttributes: traceAttrs,
@@ -250,6 +254,7 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 				ServiceName:     result.ServiceName,
 				ServiceVersion:  result.ServiceVersion,
 				Environment:     result.Environment,
+				HasErrors:       result.HasErrors,
 				TraceAttributes: expandJSON(result.TraceAttributes),
 				StatusCode:      result.StatusCode,
 				StatusMessage:   result.StatusMessage,
@@ -282,7 +287,7 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 	var args []interface{}
 
 	sb.From(TracesByIdTable).
-		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, Environment, TraceAttributes, StatusCode, StatusMessage").
+		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, Environment, HasErrors, TraceAttributes, StatusCode, StatusMessage").
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(sb.Equal("TraceId", traceID))
 
@@ -324,6 +329,7 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 			ServiceName:     result.ServiceName,
 			ServiceVersion:  result.ServiceVersion,
 			Environment:     result.Environment,
+			HasErrors:       result.HasErrors,
 			TraceAttributes: expandJSON(result.TraceAttributes),
 			StatusCode:      result.StatusCode,
 			StatusMessage:   result.StatusMessage,

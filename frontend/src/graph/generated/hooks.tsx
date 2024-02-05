@@ -14584,6 +14584,7 @@ export const GetTraceDocument = gql`
 				serviceName
 				serviceVersion
 				environment
+				hasErrors
 				traceAttributes
 				startTime
 				statusCode
@@ -14685,6 +14686,7 @@ export const GetTracesDocument = gql`
 					serviceName
 					serviceVersion
 					environment
+					hasErrors
 					traceAttributes
 					statusCode
 					statusMessage

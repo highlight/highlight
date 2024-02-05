@@ -27,6 +27,7 @@ type TraceRow struct {
 	ProjectId       uint32
 	SecureSessionId string
 	Environment     string
+	HasErrors       bool
 }
 
 type Event struct {
@@ -104,6 +105,11 @@ func (t *TraceRow) WithServiceVersion(serviceVersion string) *TraceRow {
 
 func (t *TraceRow) WithEnvironment(environment string) *TraceRow {
 	t.Environment = environment
+	return t
+}
+
+func (t *TraceRow) WithHasErrors(hasErrors bool) *TraceRow {
+	t.HasErrors = hasErrors
 	return t
 }
 

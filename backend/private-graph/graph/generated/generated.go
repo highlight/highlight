@@ -1407,6 +1407,7 @@ type ComplexityRoot struct {
 		Duration        func(childComplexity int) int
 		Environment     func(childComplexity int) int
 		Events          func(childComplexity int) int
+		HasErrors       func(childComplexity int) int
 		Links           func(childComplexity int) int
 		ParentSpanID    func(childComplexity int) int
 		ProjectID       func(childComplexity int) int
@@ -9852,6 +9853,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Trace.Events(childComplexity), true
 
+	case "Trace.hasErrors":
+		if e.complexity.Trace.HasErrors == nil {
+			break
+		}
+
+		return e.complexity.Trace.HasErrors(childComplexity), true
+
 	case "Trace.links":
 		if e.complexity.Trace.Links == nil {
 			break
@@ -11477,6 +11485,7 @@ type Trace {
 	serviceName: String!
 	serviceVersion: String!
 	environment: String!
+	hasErrors: Boolean!
 	traceAttributes: Map!
 	statusCode: String!
 	statusMessage: String!
@@ -11607,6 +11616,7 @@ enum ReservedLogKey {
 
 enum ReservedTraceKey {
 	environment
+	has_errors
 	level
 	message
 	metric
@@ -69425,6 +69435,50 @@ func (ec *executionContext) fieldContext_Trace_environment(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Trace_hasErrors(ctx context.Context, field graphql.CollectedField, obj *model.Trace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Trace_hasErrors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasErrors, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Trace_hasErrors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Trace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Trace_traceAttributes(ctx context.Context, field graphql.CollectedField, obj *model.Trace) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Trace_traceAttributes(ctx, field)
 	if err != nil {
@@ -69872,6 +69926,8 @@ func (ec *executionContext) fieldContext_TraceEdge_node(ctx context.Context, fie
 				return ec.fieldContext_Trace_serviceVersion(ctx, field)
 			case "environment":
 				return ec.fieldContext_Trace_environment(ctx, field)
+			case "hasErrors":
+				return ec.fieldContext_Trace_hasErrors(ctx, field)
 			case "traceAttributes":
 				return ec.fieldContext_Trace_traceAttributes(ctx, field)
 			case "statusCode":
@@ -70651,6 +70707,8 @@ func (ec *executionContext) fieldContext_TracePayload_trace(ctx context.Context,
 				return ec.fieldContext_Trace_serviceVersion(ctx, field)
 			case "environment":
 				return ec.fieldContext_Trace_environment(ctx, field)
+			case "hasErrors":
+				return ec.fieldContext_Trace_hasErrors(ctx, field)
 			case "traceAttributes":
 				return ec.fieldContext_Trace_traceAttributes(ctx, field)
 			case "statusCode":
@@ -88317,6 +88375,13 @@ func (ec *executionContext) _Trace(ctx context.Context, sel ast.SelectionSet, ob
 		case "environment":
 
 			out.Values[i] = ec._Trace_environment(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "hasErrors":
+
+			out.Values[i] = ec._Trace_hasErrors(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

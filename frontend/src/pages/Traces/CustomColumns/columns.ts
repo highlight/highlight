@@ -48,6 +48,14 @@ const SECURE_SESSION_ID_COLUMN: TraceCustomColumn = {
 	accessKey: 'secureSessionID',
 }
 
+const HAS_ERRORS_COLUMN: TraceCustomColumn = {
+	id: 'has_errors',
+	label: 'Has Errors',
+	type: 'boolean',
+	size: '1fr',
+	accessKey: 'hasErrors',
+}
+
 const TIMESTAMP_COLUMN: TraceCustomColumn = {
 	id: 'timestamp',
 	label: 'Timestamp',
@@ -96,6 +104,7 @@ export const HIGHLIGHT_STANDARD_COLUMNS: Record<string, TraceCustomColumn> = {
 	trace_id: TRACE_ID_COLUMN,
 	parent_span_id: PARENT_SPAN_ID_COLUMN,
 	secure_session_id: SECURE_SESSION_ID_COLUMN,
+	has_errors: HAS_ERRORS_COLUMN,
 	duration: DURATION_COLUMN,
 	environment: ENVIRONMENT_COLUMN,
 	timestamp: TIMESTAMP_COLUMN,
