@@ -224,7 +224,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 	}
 
 	const trigger = (
-		<Box p="12" backgroundColor="n2">
+		<Box py="4" backgroundColor="n2">
 			{!!lineContent ? (
 				<ErrorSourcePreview
 					fileName={fileName}
