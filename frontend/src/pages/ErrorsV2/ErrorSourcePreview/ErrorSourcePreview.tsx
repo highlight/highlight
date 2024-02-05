@@ -92,7 +92,7 @@ const ErrorSourcePreview: React.FC<
 				fontSize: 13,
 				fontWeight: 500,
 				lineHeight: 20,
-				margin: '0 0',
+				margin: '0 0 0 0',
 			}}
 			lineProps={(ln) => {
 				return ln === lineNumber
