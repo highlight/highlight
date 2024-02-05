@@ -2644,6 +2644,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				}).Error; err != nil {
 					return e.Wrap(err, "error updating LastUserInteractionTime")
 				}
+				updatedSession := *sessionObj
+				updatedSession.LastUserInteractionTime = lastUserInteractionTimestamp
+				r.SessionCache.Add(sessionSecureID, &updatedSession)
 			}
 		}
 		return nil
@@ -2907,6 +2910,18 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			log.WithContext(ctx).Error(e.Wrap(err, "error updating session"))
 			return err
 		}
+		updatedSession := *sessionObj
+		updatedSession.PayloadUpdatedAt = &now
+		updatedSession.BeaconTime = beaconTime
+		updatedSession.HasUnloaded = hasSessionUnloaded
+		updatedSession.Processed = &model.F
+		updatedSession.ObjectStorageEnabled = &model.F
+		updatedSession.DirectDownloadEnabled = false
+		updatedSession.Chunked = &model.F
+		updatedSession.Excluded = false
+		updatedSession.ExcludedReason = nil
+		updatedSession.HasErrors = &sessionHasErrors
+		r.SessionCache.Add(sessionSecureID, &updatedSession)
 	} else if excluded {
 		// Only update the excluded flag and reason if either have changed
 		var reasonDeref, newReasonDeref privateModel.SessionExcludedReason
@@ -2928,6 +2943,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				return err
 			}
 		}
+		updatedSession := *sessionObj
+		updatedSession.Excluded = excluded
+		updatedSession.ExcludedReason = reason
+		r.SessionCache.Add(sessionSecureID, &updatedSession)
 	}
 
 	opensearchSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("opensearch.update"))
