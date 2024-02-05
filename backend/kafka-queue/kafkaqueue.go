@@ -95,6 +95,7 @@ type ConfigOverride struct {
 	MinBytes         *int
 	MaxWait          *time.Duration
 	MessageSizeBytes *int64
+	OnAssignGroups   func()
 }
 
 func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
@@ -212,6 +213,14 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 	}
 	if (mode>>1)&1 == 1 {
 		rack := findRack()
+		var onAssignGroups func()
+		if configOverride != nil {
+			onAssignGroups = (*configOverride).OnAssignGroups
+		}
+		balancer := BalancerWrapper{
+			balancer:       kafka.RackAffinityGroupBalancer{Rack: rack},
+			onAssignGroups: onAssignGroups,
+		}
 		config := kafka.ReaderConfig{
 			Brokers:           brokers,
 			Dialer:            dialer,
@@ -243,7 +252,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 				"topic":       topic,
 			}).Errorf),
 			GroupBalancers: []kafka.GroupBalancer{
-				kafka.RackAffinityGroupBalancer{Rack: rack},
+				&balancer,
 			},
 		}
 

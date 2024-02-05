@@ -28,6 +28,7 @@ import (
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
+	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/highlight-run/go-resthooks"
 	"github.com/mssola/user_agent"
 	"github.com/openlyinc/pointy"
@@ -80,6 +81,7 @@ type Resolver struct {
 	RH               *resthooks.Resthook
 	Store            *store.Store
 	LambdaClient     *lambda.Client
+	SessionCache     *lru.Cache[string, *model.Session]
 }
 
 type Location struct {
@@ -2486,12 +2488,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	if sessionSecureID == "" {
 		return e.New("ProcessPayload called without secureID")
 	}
-	sessionObj := &model.Session{}
-	if err := r.DB.WithContext(ctx).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Take(&sessionObj).Error; err != nil {
-		retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
-		log.WithContext(ctx).Error(retErr)
-		querySessionSpan.Finish(retErr)
-		return retErr
+
+	sessionObj, found := r.SessionCache.Get(sessionSecureID)
+	if !found {
+		if err := r.DB.WithContext(ctx).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Take(&sessionObj).Error; err != nil {
+			retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
+			log.WithContext(ctx).Error(retErr)
+			querySessionSpan.Finish(retErr)
+			return retErr
+		}
 	}
 	querySessionSpan.SetAttribute("secure_id", sessionObj.SecureID)
 	querySessionSpan.SetAttribute("project_id", sessionObj.ProjectID)
