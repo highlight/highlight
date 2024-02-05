@@ -49,7 +49,11 @@ import LoadingBox from '@/components/LoadingBox'
 import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
 import { namedOperations } from '@/graph/generated/operations'
 import { SessionAlertInput, SessionAlertType } from '@/graph/generated/schemas'
-import { ALERT_CONFIGURATIONS, AlertConfiguration } from '@/pages/Alerts/Alerts'
+import {
+	ALERT_CONFIGURATIONS,
+	ALERT_NAMES,
+	AlertConfiguration,
+} from '@/pages/Alerts/Alerts'
 import { useAlertsContext } from '@/pages/Alerts/AlertsContext/AlertsContext'
 import AlertNotifyForm from '@/pages/Alerts/components/AlertNotifyForm/AlertNotifyForm'
 import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
@@ -168,7 +172,7 @@ export const SessionAlertPage = () => {
 			}))
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [alert, alertType])
+	}, [alert])
 
 	const [updateSessionAlertMutation] = useUpdateSessionAlertMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
@@ -241,6 +245,15 @@ export const SessionAlertPage = () => {
 					emphasis="high"
 					trackingId="saveErrorMonitoringAlert"
 					onClick={() => {
+						const tracksSessionProperties =
+							configuration.name ===
+							ALERT_NAMES.TRACK_PROPERTIES_ALERT
+						const tracksUserProperties =
+							configuration.name ===
+							ALERT_NAMES.USER_PROPERTIES_ALERT
+
+						const excludeRules = configuration.supportsExcludeRules
+
 						const input: SessionAlertInput = {
 							count_threshold: formStore.getValue(
 								formStore.names.threshold,
@@ -273,39 +286,41 @@ export const SessionAlertPage = () => {
 							threshold_window: formStore.getValue(
 								formStore.names.threshold_window,
 							),
-							exclude_rules:
-								formStore.getValue(
-									formStore.names.excludeRules,
-								) || [],
-							user_properties: (
-								formStore.getValue(
-									formStore.names.userProperties,
-								) || []
-							).map((userProperty: any) => {
-								const [id, name, value] = userProperty.split(
-									SEPARATOR,
-									3,
-								)
-								return {
-									id,
-									value,
-									name,
-								}
-							}),
-							track_properties:
-								(
-									formStore.getValue(
-										formStore.names.trackProperties,
-									) || []
-								).map((trackProperty: any) => {
-									const [id, name, value] =
-										trackProperty.split(SEPARATOR, 3)
-									return {
-										id,
-										value,
-										name,
-									}
-								}) || [],
+							exclude_rules: excludeRules
+								? formStore.getValue(
+										formStore.names.excludeRules,
+								  ) || []
+								: [],
+							user_properties: tracksUserProperties
+								? (
+										formStore.getValue(
+											formStore.names.userProperties,
+										) || []
+								  ).map((userProperty: any) => {
+										const [id, name, value] =
+											userProperty.split(SEPARATOR, 3)
+										return {
+											id,
+											value,
+											name,
+										}
+								  })
+								: [],
+							track_properties: tracksSessionProperties
+								? (
+										formStore.getValue(
+											formStore.names.trackProperties,
+										) || []
+								  ).map((trackProperty: any) => {
+										const [id, name, value] =
+											trackProperty.split(SEPARATOR, 3)
+										return {
+											id,
+											value,
+											name,
+										}
+								  }) || []
+								: [],
 							type: alertType,
 						}
 
