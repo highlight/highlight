@@ -4,7 +4,7 @@ import { Trace } from '@/graph/generated/schemas'
 
 export const getFirstSpan = (trace: Trace[]) => {
 	const rootSpans = trace.filter((span) => !span.parentSpanID)
-	const spans = rootSpans.length > 0 ? rootSpans : trace
+	const spans = rootSpans.length > 0 ? rootSpans : [...trace]
 	const sortedTrace = spans.sort(
 		(a, b) =>
 			new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),

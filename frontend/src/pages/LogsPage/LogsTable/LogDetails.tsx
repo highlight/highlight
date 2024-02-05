@@ -1,6 +1,12 @@
 import { Button } from '@components/Button'
 import { LinkButton } from '@components/LinkButton'
-import { LogEdge, LogLevel, Maybe, ReservedLogKey } from '@graph/schemas'
+import {
+	LogEdge,
+	LogLevel,
+	Maybe,
+	ReservedLogKey,
+	ReservedTraceKey,
+} from '@graph/schemas'
 import {
 	Box,
 	IconSolidChevronDoubleDown,
@@ -11,6 +17,7 @@ import {
 	IconSolidLightningBolt,
 	IconSolidLink,
 	IconSolidPlayCircle,
+	IconSolidSparkles,
 	Stack,
 	Text,
 	Tooltip,
@@ -24,6 +31,7 @@ import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
+import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { createSearchParams, generatePath } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
@@ -68,6 +76,16 @@ const getErrorLink = (projectId: string, log: LogEdgeWithError): string => {
 		[PlayerSearchParameters.log]: log.cursor,
 	})
 	return `/errors/${log.error_object?.error_group_secure_id}/instances/${log.error_object?.id}?${params}`
+}
+
+const getTraceLink = (projectId: string, log: LogEdgeWithError): string => {
+	const params = createSearchParams({
+		query: `${ReservedTraceKey.TraceId}${DEFAULT_OPERATOR}${log.node.traceID}`,
+		start_date: moment(log.node.timestamp).add(-5, 'minutes').toISOString(),
+		end_date: moment(log.node.timestamp).add(5, 'minutes').toISOString(),
+	})
+
+	return `/${projectId}/traces?${params}`
 }
 
 export const LogDetails: React.FC<Props> = ({
@@ -299,6 +317,25 @@ export const LogDetails: React.FC<Props> = ({
 							</Box>
 						</LinkButton>
 					)}
+					{row.original.node.traceID &&
+						row.original.node.source === 'backend' && (
+							<LinkButton
+								kind="secondary"
+								emphasis="low"
+								to={getTraceLink(projectId, row.original)}
+								trackingId="logs-related_trace_link"
+							>
+								<Box
+									display="flex"
+									alignItems="center"
+									flexDirection="row"
+									gap="4"
+								>
+									<IconSolidSparkles />
+									Related Trace
+								</Box>
+							</LinkButton>
+						)}
 				</Box>
 			</Box>
 		</Stack>
