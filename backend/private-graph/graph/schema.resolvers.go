@@ -7988,7 +7988,7 @@ func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string
 		return nil, err
 	}
 
-	traceStartTime := trace[0].Timestamp
+	traceStartTime := time.Now()
 	for _, span := range trace {
 		if span.Timestamp.Before(traceStartTime) {
 			traceStartTime = span.Timestamp
