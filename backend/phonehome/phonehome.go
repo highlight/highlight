@@ -2,18 +2,19 @@ package phonehome
 
 import (
 	"context"
+	"runtime"
+	"time"
+
 	"github.com/aws/smithy-go/ptr"
-	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/projectpath"
-	"github.com/highlight-run/highlight/backend/util"
-	"github.com/highlight/highlight/sdk/highlight-go"
-	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"github.com/shirou/gopsutil/mem"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"runtime"
-	"time"
+
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/projectpath"
+	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight/highlight/sdk/highlight-go"
 )
 
 type UsageType = string
@@ -37,6 +38,7 @@ const AboutYouSpanReferral = "highlight-about-you-referral"
 const AboutYouSpanRole = "highlight-about-you-role"
 const AboutYouSpanTeamSize = "highlight-about-you-team-size"
 const AboutYouSpanHeardAbout = "highlight-about-you-heard-about"
+const UsageMetricsSpanName = "highlight-usage-metrics"
 const HeartbeatInterval = 5 * time.Second
 const HeartbeatSpanName = "highlight-heartbeat"
 const HighlightProjectID = "1"
@@ -46,7 +48,6 @@ const MetricNumCPU = "highlight-num-cpu"
 const SpanDeployment = "highlight-phone-home-deployment-id"
 const SpanDopplerConfig = "highlight-doppler-config"
 const SpanHighlightVersion = "highlight-version"
-const SpanOnPrem = "highlight-is-onprem"
 
 func IsOptedOut(_ context.Context) bool {
 	return false
@@ -65,11 +66,11 @@ func GetDefaultAttributes() ([]attribute.KeyValue, error) {
 	}
 
 	return []attribute.KeyValue{
+		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypePhoneHome)),
 		attribute.String(highlight.ProjectIDAttribute, HighlightProjectID),
 		attribute.String(SpanDeployment, cfg.PhoneHomeDeploymentID),
 		attribute.String(SpanDopplerConfig, util.DopplerConfig),
 		attribute.String(SpanHighlightVersion, util.Version),
-		attribute.String(SpanOnPrem, util.OnPrem),
 	}, nil
 }
 
@@ -92,8 +93,7 @@ func Start(ctx context.Context) error {
 				attribute.Int64(MetricMemTotal, int64(vmStat.Total)),
 			)
 
-			s, _ := highlight.StartTrace(ctx, HeartbeatSpanName, tags...)
-			s.AddEvent(highlight.LogEvent, trace.WithAttributes(hlog.LogSeverityKey.String(log.TraceLevel.String()), hlog.LogMessageKey.String(HeartbeatSpanName)))
+			s, _ := highlight.StartTraceWithTimestamp(ctx, HeartbeatSpanName, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindServer)}, tags...)
 			highlight.EndTrace(s)
 		}
 	}()
@@ -117,8 +117,7 @@ func ReportAdminAboutYouDetails(ctx context.Context, admin *model.Admin) {
 		tags = append(tags, attribute.String(AboutYouSpanAdminEmail, ptr.ToString(admin.Email)))
 	}
 
-	s, _ := highlight.StartTrace(ctx, AboutYouSpanName, tags...)
-	s.AddEvent(highlight.LogEvent, trace.WithAttributes(hlog.LogSeverityKey.String(log.TraceLevel.String()), hlog.LogMessageKey.String(AboutYouSpanName)))
+	s, _ := highlight.StartTraceWithTimestamp(ctx, AboutYouSpanName, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindServer)}, tags...)
 	highlight.EndTrace(s)
 }
 
@@ -129,8 +128,8 @@ func ReportUsageMetrics(ctx context.Context, usageType UsageType, id int, metric
 
 	tags, _ := GetDefaultAttributes()
 	tags = append(tags, attribute.Int("id", id))
+	tags = append(tags, attribute.String("usageType", usageType))
 	tags = append(tags, metrics...)
-	s, _ := highlight.StartTrace(ctx, usageType, tags...)
-	s.AddEvent(highlight.LogEvent, trace.WithAttributes(hlog.LogSeverityKey.String(log.TraceLevel.String()), hlog.LogMessageKey.String(usageType)))
+	s, _ := highlight.StartTraceWithTimestamp(ctx, UsageMetricsSpanName, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindServer)}, tags...)
 	highlight.EndTrace(s)
 }
