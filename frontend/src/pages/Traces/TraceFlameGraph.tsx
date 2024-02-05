@@ -466,7 +466,7 @@ export const TraceFlameGraph: React.FC = () => {
 			<Box p="2" borderTop="dividerWeak">
 				<Stack gap="2" direction="row" align="center">
 					<ButtonIcon
-						onClick={() => handleZoom(-1000)}
+						onClick={() => handleZoom(0.5)}
 						kind="secondary"
 						emphasis="low"
 						size="xSmall"
@@ -509,7 +509,7 @@ export const TraceFlameGraph: React.FC = () => {
 						/>
 					</Box>
 					<ButtonIcon
-						onClick={() => handleZoom(1000)}
+						onClick={() => handleZoom(-0.5)}
 						kind="secondary"
 						emphasis="low"
 						size="xSmall"
