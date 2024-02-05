@@ -109,13 +109,6 @@ export enum LogLevelValue {
 	Warn = 'warn',
 }
 
-export enum LogSourceValue {
-	All = 'All',
-	// keep up to date with LogSource schema
-	Backend = 'backend',
-	Frontend = 'frontend',
-}
-
 export enum RequestType {
 	/* [displayName]: requestName */
 	All = 'All',
