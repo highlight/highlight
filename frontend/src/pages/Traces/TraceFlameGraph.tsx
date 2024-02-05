@@ -124,10 +124,10 @@ export const TraceFlameGraph: React.FC = () => {
 					(svgContainerRef.current?.scrollLeft ?? 0) *
 						(newZoom / prevZoom)
 
-				setTimeout(() => {
+				requestAnimationFrame(() => {
 					svgContainerRef.current?.scrollTo(newScrollPosition, 0)
 					setX(newScrollPosition)
-				}, 0)
+				})
 
 				return newZoom
 			})
@@ -136,11 +136,23 @@ export const TraceFlameGraph: React.FC = () => {
 	)
 
 	const handleZoom = useCallback(
-		(dz: number) => {
+		(dz: number, mouseX?: number) => {
 			const factor = dz < 0 ? 1 - dz : 1 / (1 + dz)
 			const newZoom = Math.min(Math.max(zoom * factor, 1), MAX_ZOOM)
 
-			updateZoom(newZoom)
+			if (mouseX !== undefined) {
+				const scrollX = svgContainerRef.current?.scrollLeft ?? 0
+				const mouseOffset =
+					mouseX -
+					svgContainerRef.current!.getBoundingClientRect().left
+				const contentX = mouseOffset + scrollX
+				const newContentX = contentX * (newZoom / zoom)
+				const newScrollPosition = newContentX - mouseOffset
+
+				updateZoom(newZoom, newScrollPosition)
+			} else {
+				updateZoom(newZoom)
+			}
 		},
 		[updateZoom, zoom],
 	)
@@ -187,7 +199,7 @@ export const TraceFlameGraph: React.FC = () => {
 				event.preventDefault()
 				event.stopPropagation()
 
-				throttledHandleZoom(deltaY / ZOOM_SCALING_FACTOR)
+				throttledHandleZoom(deltaY / ZOOM_SCALING_FACTOR, event.clientX)
 			}
 		},
 		{ passive: false },
