@@ -88,7 +88,7 @@ const getTraceLink = (projectId: string, log: LogEdgeWithResources): string => {
 		end_date: moment(log.node.timestamp).add(5, 'minutes').toISOString(),
 	})
 
-	return `/${projectId}/traces?${params}`
+	return `/${projectId}/traces/${log.node.traceID}?${params}`
 }
 
 export const LogDetails: React.FC<Props> = ({
