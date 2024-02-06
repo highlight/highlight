@@ -21,6 +21,8 @@ type UsageType = string
 
 const AdminUsage UsageType = "highlight-admin-usage"
 const WorkspaceUsage UsageType = "highlight-workspace-usage"
+const AboutYouSpanName = "highlight-about-you"
+const HeartbeatSpanName = "highlight-heartbeat"
 
 const BackendSetup = "highlight-backend-setup"
 const SessionCount = "highlight-session-count"
@@ -30,7 +32,6 @@ const SessionViewCount = "highlight-session-view-count"
 const ErrorViewCount = "highlight-error-view-count"
 const LogViewCount = "highlight-log-view-count"
 
-const AboutYouSpanName = "highlight-about-you"
 const AboutYouSpanAdminFirstName = "highlight-about-you-admin-first-name"
 const AboutYouSpanAdminLastName = "highlight-about-you-admin-last-name"
 const AboutYouSpanAdminEmail = "highlight-about-you-admin-email"
@@ -38,9 +39,7 @@ const AboutYouSpanReferral = "highlight-about-you-referral"
 const AboutYouSpanRole = "highlight-about-you-role"
 const AboutYouSpanTeamSize = "highlight-about-you-team-size"
 const AboutYouSpanHeardAbout = "highlight-about-you-heard-about"
-const UsageMetricsSpanName = "highlight-usage-metrics"
 const HeartbeatInterval = 5 * time.Second
-const HeartbeatSpanName = "highlight-heartbeat"
 const HighlightProjectID = "1"
 const MetricMemTotal = "highlight-mem-total"
 const MetricMemUsedPercent = "highlight-mem-used-percent"
@@ -130,6 +129,6 @@ func ReportUsageMetrics(ctx context.Context, usageType UsageType, id int, metric
 	tags = append(tags, attribute.Int("id", id))
 	tags = append(tags, attribute.String("usageType", usageType))
 	tags = append(tags, metrics...)
-	s, _ := highlight.StartTraceWithTimestamp(ctx, UsageMetricsSpanName, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindServer)}, tags...)
+	s, _ := highlight.StartTraceWithTimestamp(ctx, usageType, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindServer)}, tags...)
 	highlight.EndTrace(s)
 }
