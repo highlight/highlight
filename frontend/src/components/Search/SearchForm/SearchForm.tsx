@@ -558,6 +558,7 @@ export const Search: React.FC<{
 						}
 
 						if (
+							!isPending &&
 							e.key === 'Enter' &&
 							// Using isPending to prevent blurring when the user is selecting
 							// an item vs submitting the form.
