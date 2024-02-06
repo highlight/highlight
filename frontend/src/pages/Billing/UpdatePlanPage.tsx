@@ -1387,15 +1387,17 @@ export const PlanComparisonPage: React.FC<{
 						maxWidth: 960,
 					}}
 				>
-					{Object.values(PLANS).map((plan) => (
-						<PlanCard
-							currentPlanType={data?.billingDetails.plan.type}
-							plan={plan}
-							setSelectedPlanType={setSelectedPlanType}
-							setStep={setStep}
-							key={plan.name}
-						/>
-					))}
+					{Object.entries(PLANS)
+						.filter(([name]) => !isOnPrem || name !== 'Free')
+						.map(([, plan]) => (
+							<PlanCard
+								currentPlanType={data?.billingDetails.plan.type}
+								plan={plan}
+								setSelectedPlanType={setSelectedPlanType}
+								setStep={setStep}
+								key={plan.name}
+							/>
+						))}
 				</Box>
 				<Box
 					display="flex"
