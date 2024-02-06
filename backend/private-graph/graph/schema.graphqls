@@ -2075,6 +2075,7 @@ type Query {
 		date_range: DateRangeRequiredInput!
 	): [String!]!
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
+	existing_logs_traces(project_id: ID!, trace_ids: [String!]!): [String!]!
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
 	session_exports(project_id: ID!): [SessionExportWithSession!]!

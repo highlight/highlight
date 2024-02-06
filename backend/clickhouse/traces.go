@@ -3,9 +3,10 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/parser/listener"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/parser/listener"
 
 	"github.com/highlight/highlight/sdk/highlight-go"
 
@@ -70,6 +71,7 @@ var traceColumns = []string{
 var defaultTraceKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedTraceKeyTraceID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedTraceKeySpanName), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedTraceKeySpanID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedTraceKeyDuration), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedTraceKeyParentSpanID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedTraceKeySecureSessionID), Type: modelInputs.KeyTypeString},
@@ -279,6 +281,41 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 		Edges:    mappedEdges,
 		PageInfo: conn.PageInfo,
 	}, nil
+}
+
+func (client *Client) ExistingTraceIds(ctx context.Context, projectID int, traceIDs []string) ([]string, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	var err error
+	var args []interface{}
+
+	sb.From(TracesByIdTable).
+		Select("DISTINCT TraceId").
+		Where(sb.Equal("ProjectId", projectID)).
+		Where(sb.In("TraceId", traceIDs))
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	span, _ := util.StartSpanFromContext(ctx, "traces", util.ResourceName("ReadTracesByIDs"))
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		span.Finish(err)
+		return nil, err
+	}
+
+	existingTraceIds := []string{}
+	for rows.Next() {
+		var result struct{ TraceId string }
+		if err := rows.ScanStruct(&result); err != nil {
+			return nil, err
+		}
+
+		existingTraceIds = append(existingTraceIds, result.TraceId)
+	}
+
+	span.Finish(rows.Err())
+
+	return existingTraceIds, rows.Err()
 }
 
 func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID string) ([]*modelInputs.Trace, error) {
