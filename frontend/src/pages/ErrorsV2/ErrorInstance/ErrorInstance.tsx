@@ -154,9 +154,9 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				</Stack>
 			</Stack>
 
-			<Box py="16" px="16" mb="40" border="secondary" borderRadius="8">
+			<Box py="12" px="16" mb="40" border="secondary" borderRadius="8">
 				<Box
-					mb="20"
+					mb="8"
 					display="flex"
 					gap="6"
 					alignItems="center"

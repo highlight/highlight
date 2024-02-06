@@ -36,7 +36,6 @@ const LANGUAGE_MAP: { [K in string]: string } = {
 
 const baseLineStyles = {
 	display: 'block',
-	padding: '0 12px',
 }
 
 const ErrorSourcePreview: React.FC<
@@ -93,7 +92,7 @@ const ErrorSourcePreview: React.FC<
 				fontSize: 13,
 				fontWeight: 500,
 				lineHeight: 20,
-				margin: 0,
+				margin: '0 0 0 0',
 			}}
 			lineProps={(ln) => {
 				return ln === lineNumber
