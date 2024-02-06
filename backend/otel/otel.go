@@ -263,7 +263,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						logRow := clickhouse.NewLogRow(
 							fields.timestamp, uint32(fields.projectIDInt),
 							clickhouse.WithTraceID(traceID),
-							clickhouse.WithSpanID(spanID),
 							clickhouse.WithSecureSessionID(fields.sessionID),
 							clickhouse.WithBody(ctx, fields.logMessage),
 							clickhouse.WithLogAttributes(fields.attrs),
@@ -437,7 +436,6 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				logRow := clickhouse.NewLogRow(
 					fields.timestamp, uint32(fields.projectIDInt),
 					clickhouse.WithTraceID(logRecord.TraceID().String()),
-					clickhouse.WithSpanID(logRecord.SpanID().String()),
 					clickhouse.WithSecureSessionID(fields.sessionID),
 					clickhouse.WithBody(ctx, fields.logBody),
 					clickhouse.WithLogAttributes(fields.attrs),
