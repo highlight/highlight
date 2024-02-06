@@ -27,7 +27,7 @@ import {
 	IconCollapsed,
 	IconExpanded,
 } from '@pages/LogsPage/LogsTable/LogsTable'
-import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
+import { LogEdgeWithResources } from '@pages/LogsPage/useGetLogs'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
@@ -50,7 +50,7 @@ import * as styles from './LogDetails.css'
 import * as logsTableStyles from './LogsTable.css'
 
 type Props = {
-	row: Row<LogEdgeWithError>
+	row: Row<LogEdgeWithResources>
 	queryParts: SearchExpression[]
 	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
 }
@@ -64,21 +64,24 @@ export const getLogURL = (projectId: string, row: Row<LogEdge>) => {
 	return currentUrl.origin + path
 }
 
-const getSessionLink = (projectId: string, log: LogEdgeWithError): string => {
+const getSessionLink = (
+	projectId: string,
+	log: LogEdgeWithResources,
+): string => {
 	const params = createSearchParams({
 		[PlayerSearchParameters.log]: log.cursor,
 	})
 	return `/${projectId}/sessions/${log.node.secureSessionID}?${params}`
 }
 
-const getErrorLink = (projectId: string, log: LogEdgeWithError): string => {
+const getErrorLink = (projectId: string, log: LogEdgeWithResources): string => {
 	const params = createSearchParams({
 		[PlayerSearchParameters.log]: log.cursor,
 	})
 	return `/errors/${log.error_object?.error_group_secure_id}/instances/${log.error_object?.id}?${params}`
 }
 
-const getTraceLink = (projectId: string, log: LogEdgeWithError): string => {
+const getTraceLink = (projectId: string, log: LogEdgeWithResources): string => {
 	const params = createSearchParams({
 		query: `${ReservedTraceKey.TraceId}${DEFAULT_OPERATOR}${log.node.traceID}`,
 		start_date: moment(log.node.timestamp).add(-5, 'minutes').toISOString(),
@@ -317,25 +320,24 @@ export const LogDetails: React.FC<Props> = ({
 							</Box>
 						</LinkButton>
 					)}
-					{row.original.node.traceID &&
-						row.original.node.source === 'backend' && (
-							<LinkButton
-								kind="secondary"
-								emphasis="low"
-								to={getTraceLink(projectId, row.original)}
-								trackingId="logs-related_trace_link"
+					{row.original.traceExist && (
+						<LinkButton
+							kind="secondary"
+							emphasis="low"
+							to={getTraceLink(projectId, row.original)}
+							trackingId="logs-related_trace_link"
+						>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
 							>
-								<Box
-									display="flex"
-									alignItems="center"
-									flexDirection="row"
-									gap="4"
-								>
-									<IconSolidSparkles />
-									Related Trace
-								</Box>
-							</LinkButton>
-						)}
+								<IconSolidSparkles />
+								Related Trace
+							</Box>
+						</LinkButton>
+					)}
 				</Box>
 			</Box>
 		</Stack>
