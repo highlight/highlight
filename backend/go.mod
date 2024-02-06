@@ -87,7 +87,7 @@ require (
 	google.golang.org/api v0.149.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.49.1
 	gorm.io/driver/postgres v1.0.8
-	gorm.io/gorm v1.21.9
+	gorm.io/gorm v1.25.7
 )
 
 require (
