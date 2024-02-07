@@ -435,20 +435,20 @@ var excludedMediaURLQueryParams = map[string]bool{
 	"x-amz-security-token": true,
 }
 
-type AssetValue struct {
-	AssetKey string
-	URL      string
+type assetValue struct {
+	assetKey string
+	url      string
 }
 
 // If a url was already created for this resource in the past day, return that
 // Else, fetch the resource, generate a new url for it, and save to S3
 func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB, redis *redis.Client, retentionPeriod modelInputs.RetentionPeriod) (map[string]string, error) {
 	// maps a long url to the minimal version of the url. ie https://foo.com/example?key=value&signature=bar -> https://foo.com/example?key=value
-	urlMap := make(map[string]AssetValue)
+	urlMap := make(map[string]assetValue)
 	for _, u := range lo.Uniq(originalUrls) {
 		parsedUrl, err := url.Parse(u)
 		if err != nil {
-			urlMap[u] = AssetValue{u, u}
+			urlMap[u] = assetValue{u, u}
 			continue
 		}
 
@@ -471,16 +471,16 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 			parsedUrl.Host = "app.priceworx.co.uk"
 			assetURL = parsedUrl.String()
 		}
-		urlMap[u] = AssetValue{assetKey, assetURL}
+		urlMap[u] = assetValue{assetKey, assetURL}
 	}
 
 	dateTrunc := time.Now().UTC().Format("2006-01-02")
 	var results []model.SavedAsset
 
-	keys := lo.Map(lo.Values(urlMap), func(url AssetValue, idx int) []any {
+	keys := lo.Map(lo.Values(urlMap), func(url assetValue, idx int) []any {
 		return []any{
 			projectId,
-			url.AssetKey,
+			url.assetKey,
 			dateTrunc,
 		}
 	})
@@ -497,9 +497,9 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 		OriginalURL string
 		NewURL      string
 	}, len(urlMap))
-	lo.ForEach(lo.Entries(urlMap), func(u lo.Entry[string, AssetValue], i int) {
+	lo.ForEach(lo.Entries(urlMap), func(u lo.Entry[string, assetValue], i int) {
 		eg.Go(func() error {
-			if mutex, err := redis.AcquireLock(ctx, u.Value.AssetKey, 3*time.Minute); err == nil {
+			if mutex, err := redis.AcquireLock(ctx, u.Value.assetKey, 3*time.Minute); err == nil {
 				defer func() {
 					if _, err := mutex.Unlock(); err != nil {
 						log.WithContext(ctx).WithError(err).WithField("url", u.Value).Error("failed to release asset lock")
@@ -507,11 +507,11 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 				}()
 			}
 			var hashVal string
-			result, ok := resultMap[u.Value.AssetKey]
+			result, ok := resultMap[u.Value.assetKey]
 			if ok {
 				hashVal = result.HashVal
 			} else {
-				response, err := http.Get(u.Value.URL)
+				response, err := http.Get(u.Value.url)
 				if err != nil {
 					log.WithContext(ctx).WithField("url", u.Key).WithError(err).Warn("asset replacement: failed to fetch")
 					hashVal = ErrFailedToFetch
@@ -567,7 +567,7 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 					}
 					result = model.SavedAsset{
 						ProjectID:   projectId,
-						OriginalUrl: u.Value.AssetKey,
+						OriginalUrl: u.Value.assetKey,
 						Date:        dateTrunc,
 						HashVal:     hashVal,
 					}
