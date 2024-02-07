@@ -50,6 +50,7 @@ import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/Er
 import { PreviousNextInstance } from '@/pages/ErrorsV2/ErrorInstance/PreviousNextInstance'
 import { RelatedLogs } from '@/pages/ErrorsV2/ErrorInstance/RelatedLogs'
 import { RelatedSession } from '@/pages/ErrorsV2/ErrorInstance/RelatedSession'
+import { RelatedTrace } from '@/pages/ErrorsV2/ErrorInstance/RelatedTrace'
 import { SeeAllInstances } from '@/pages/ErrorsV2/ErrorInstance/SeeAllInstances'
 import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
 import { useSearchContext } from '@/pages/Sessions/SearchContext/SearchContext'
@@ -151,6 +152,7 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				<Stack direction="row" gap="4">
 					<RelatedSession data={data} />
 					<RelatedLogs data={data} />
+					<RelatedTrace data={data} />
 				</Stack>
 			</Stack>
 
