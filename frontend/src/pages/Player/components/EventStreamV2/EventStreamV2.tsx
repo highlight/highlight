@@ -146,7 +146,7 @@ const EventStreamV2 = function () {
 								align="center"
 								as="label"
 								gap="6"
-								color="weak"
+								color="secondaryContentText"
 							>
 								<IconSolidSearch size={16} />
 								<Form.Input
