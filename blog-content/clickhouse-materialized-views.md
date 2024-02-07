@@ -23,6 +23,7 @@ You could be one of those engineers; check us out on [GitHub](https://github.com
 
 PostgreSQL (Postgres) is a versatile SQL database, known for its reliability and used for various applications. It's an Online Transaction Processing (OLTP) database, providing real-time, exact results. ClickHouse, on the other hand, specializes in Online Analytical Processing (OLAP), making it better for fast, complex data analysis. In short, ClickHouse performs better at collecting aggregate results from a large dataset, while PostgreSQL exceeds at finding single records based on a known query pattern.
 
+Our team recently adopted ClickHouse to store and query high-volume observability data. The implementation was straightforward for the intended aggregate querying, but solving other access patterns was more complex. For example, we needed to aggregate traces over a large time range to get average duration values, but at the same time find and load a single trace by ID. Lucky for us, ClickHouse had just the tool for the job...
 
 ## What is a Materialized View?
 
