@@ -19,21 +19,20 @@ Highlight.io is an open source observability solution. We record sessions, trace
 You could be one of those engineers; check us out on [GitHub](github.com/highlight/highlight).
 ```
 
-# At a High-level: ClickHouse vs Postgres
+## At a High-level: ClickHouse vs Postgres
 
-SQL is a language for querying databases. It is a flexible way to write or read data while processing it into any desired form. PostgreSQL (Postgres) is a versatile SQL database, known for its reliability and used for various applications. It's an Online Transaction Processing (OLTP) database, providing real-time, exact results. ClickHouse, on the other hand, specializes in Online Analytical Processing (OLAP), making it better for fast, complex data analysis. While both use SQL, PostgreSQL is more general-purpose while ClickHouse excels in high-volume analytics. In other words, ClickHouse performs better at collecting aggregate results from a large dataset, while PostgreSQL exceeds at finding single records based on a known query pattern.
+PostgreSQL (Postgres) is a versatile SQL database, known for its reliability and used for various applications. It's an Online Transaction Processing (OLTP) database, providing real-time, exact results. ClickHouse, on the other hand, specializes in Online Analytical Processing (OLAP), making it better for fast, complex data analysis. In short, ClickHouse performs better at collecting aggregate results from a large dataset, while PostgreSQL exceeds at finding single records based on a known query pattern.
 
-Both databases provide Materialized Views as a way to transform data into a different structure that can be queried in a performant way. Think of it as a Pivot in Excel or other table-viewing tools. Rather than having to process the data into a different format every time a query is made, a Materialized View remembers the transformation and applies it periodically so that the query can be made quickly against the processed form. There are notable differences between PostgreSQL and ClickHouse Materialized Views (MVs), but the use case for MVs in both is similar. Read more for a deep dive into our use case for setting up a series of ClickHouse Materialized Views, as well as a step by step example of setting one up.
 
 ## What is a Materialized View?
 
 Both databases provide Materialized Views as a way to transform data into a different structure that can be queried in a performant way. Think of it as a Pivot in Excel or other table-viewing tools. Rather than having to process the data into a different format every time a query is made, a Materialized View remembers the transformation and applies it periodically so that the query can be made quickly against the processed form. There are notable differences between PostgreSQL and ClickHouse Materialized Views (MVs), but the use case for MVs in both is similar.
 
-Read more for a deep dive into our use case for setting up a series of ClickHouse Materialized Views, as well as a step by step example of setting one up.
+Read more for a deep dive into an actual use case for setting up a series of ClickHouse Materialized Views.
 
 ## Deep-dive: Ingesting Traces from an Example LLM App
 
-At Highlight, we recently launched a new tracing product that records code execution from your application to help debug issues or troubleshoot performance problems. The query engine in our app allows reporting and searching across structured attributes sent with traces. For example, a trace might be sent for `service_name:llm-inference` and `service_version:14`. Each trace has a given duration in seconds but can also carry arbitrary numeric properties. Let’s say our trace measures the performance of AI inference for a large language model, and we report the input size in tokens as the `tokens:123` numeric property.
+At Highlight, we recently launched a new tracing product that records code execution from your application to help debug issues or troubleshoot performance problems. The query engine in our app allows reporting and searching across structured attributes sent with traces.  Each trace has a given duration in seconds but can also carry arbitrary numeric properties. Let’s say our trace measures the performance of AI inference for a large language model, and we report the input size in tokens as the `tokens:123` numeric property.
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -77,7 +76,7 @@ input_text = "The future of AI is"
 print(generate_text(input_text))
 ```
 
-The sample code runs inference using a popular HuggingFace model. The critical code path is wrapped with a contextmanager that starts and stops a span to time the duration of execution while reporting useful attributes that can help us debug the root cause of potential problems. Here, we’re reporting the `input` text, the `output` text, and the `num_tokens` sent to the model during inference.
+The sample code below runs inference using a popular HuggingFace model. The critical code path is wrapped with a contextmanager that starts and stops a span to time the duration of execution while reporting useful attributes that can help us debug the root cause of potential problems. Here, we’re reporting the `input` text, the `output` text, and the `num_tokens` sent to the model during inference.
 
 ## Building a ClickHouse query for Trace Search
 
