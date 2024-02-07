@@ -6,4 +6,4 @@
 	url = https://github.com/highlight/opentelemetry-sdk-workers.git
 [submodule "sdk/highlight-php"]
 	path = sdk/highlight-php
-	url = git@github.com:highlight/highlight-php.git
+	url = https://github.com/highlight/highlight-php.git
