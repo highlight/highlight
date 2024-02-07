@@ -42,12 +42,14 @@ import {
 	IconSolidLink,
 	IconSolidLogout,
 	IconSolidPencil,
+	IconSolidPlayCircle,
 	IconSolidPlusCircle,
 	IconSolidPlusSm,
 	IconSolidQuestionMarkCircle,
 	IconSolidRefresh,
 	IconSolidSave,
 	IconSolidSegment,
+	IconSolidSparkles,
 	IconSolidTag,
 	IconSolidTerminal,
 	IconSolidTrash,
@@ -868,6 +870,8 @@ const LABEL_MAP: { [key: string]: string } = {
 	service_name: 'Service',
 	service_version: 'Service Version',
 	sample: 'Sample',
+	trace_id: 'Trace ID',
+	secure_session_id: 'Secure Session ID',
 }
 
 const getOperator = (
@@ -1065,6 +1069,10 @@ const getIcon = (value: string): JSX.Element | undefined => {
 			return <IconSolidCubeTransparent />
 		case 'error-field_has_session':
 			return <IconSolidDesktopComputer />
+		case 'error-field_secure_session_id':
+			return <IconSolidPlayCircle />
+		case 'error-field_trace_id':
+			return <IconSolidSparkles />
 	}
 	const type = getType(value)
 	const mapped = type === CUSTOM_TYPE ? 'session' : type
