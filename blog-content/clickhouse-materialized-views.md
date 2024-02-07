@@ -16,7 +16,7 @@ tags: Launch Week 4
 ```hint
 Highlight.io is an open source observability solution. We record sessions, traces, errors and logs to help engineers debug and maintain their web applications. 
 
-You could be one of those engineers; check us out on [GitHub](github.com/highlight/highlight).
+You could be one of those engineers; check us out on [GitHub](https://github.com/highlight/highlight).
 ```
 
 ## At a High-level: ClickHouse vs Postgres
