@@ -23,7 +23,7 @@ import {
 import { ColumnRenderers } from '@pages/LogsPage/LogsTable/CustomColumns/renderers'
 import { FullScreenContainer } from '@pages/LogsPage/LogsTable/FullScreenContainer'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
-import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
+import { LogEdgeWithResources } from '@pages/LogsPage/useGetLogs'
 import {
 	ColumnDef,
 	createColumnHelper,
@@ -116,7 +116,7 @@ export const LogsTable = (props: Props) => {
 
 type LogsTableInnerProps = {
 	loadingAfter: boolean
-	logEdges: LogEdgeWithError[]
+	logEdges: LogEdgeWithResources[]
 	query: string
 	selectedCursor: string | undefined
 	fetchMoreWhenScrolled: (target: HTMLDivElement) => void

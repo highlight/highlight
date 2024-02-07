@@ -1870,6 +1870,7 @@ export type Query = {
 	event_chunk_url: Scalars['String']
 	event_chunks: Array<EventChunk>
 	events?: Maybe<Array<Maybe<Scalars['Any']>>>
+	existing_logs_traces: Array<Scalars['String']>
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
 	field_types_clickhouse: Array<Field>
 	fields_clickhouse: Array<Scalars['String']>
@@ -2202,6 +2203,11 @@ export type QueryEvent_ChunksArgs = {
 
 export type QueryEventsArgs = {
 	session_secure_id: Scalars['String']
+}
+
+export type QueryExisting_Logs_TracesArgs = {
+	project_id: Scalars['ID']
+	trace_ids: Array<Scalars['String']>
 }
 
 export type QueryField_SuggestionArgs = {
