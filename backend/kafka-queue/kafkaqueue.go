@@ -316,7 +316,6 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...Ret
 	var kMessages []kafka.Message
 	for _, msg := range messages {
 		msg.SetMaxRetries(TaskRetries)
-		// msg.MaxRetries = TaskRetries
 		msgBytes, err := p.serializeMessage(msg)
 		if err != nil {
 			log.WithContext(ctx).Error(errors.Wrap(err, "failed to serialize message"))

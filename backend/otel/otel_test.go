@@ -157,10 +157,9 @@ func TestHandler_HandleTrace(t *testing.T) {
 		messageCountsByType := map[kafkaqueue.PayloadType]int{}
 		for _, message := range producer.messages {
 			messageCountsByType[message.GetType()]++
-			if message.GetType() == kafkaqueue.PushLogs {
-				pushPayloadMessage := message.(*kafka_queue.Message)
-				lg := pushPayloadMessage.PushLogs.LogRow
-				logCountsBySource[lg.Source]++
+			if message.GetType() == kafkaqueue.PushLogsFlattened {
+				logRowMessage := message.(*kafka_queue.LogRowMessage)
+				logCountsBySource[logRowMessage.Source]++
 			} else if message.GetType() == kafkaqueue.PushBackendPayload {
 				pushPayloadMessage := message.(*kafka_queue.Message)
 				appDirError = pushPayloadMessage.PushBackendPayload.Errors[0]
