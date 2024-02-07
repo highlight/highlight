@@ -92,10 +92,6 @@ export const getFilteredEvents = (
 					} catch (e) {
 						return false
 					}
-				case 'Viewport':
-					return 'viewport'.includes(normalizedSearchQuery)
-				case 'WebVital':
-					return 'web vitals'.includes(normalizedSearchQuery)
 				case 'Segment':
 					try {
 						const userObject = JSON.parse(
