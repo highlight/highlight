@@ -5,6 +5,7 @@ import pytest
 from loguru import logger
 
 import highlight_io
+from opentelemetry._logs import SeverityNumber
 
 H = highlight_io.H("1", instrument_logging=False)
 
@@ -20,7 +21,20 @@ def test_loguru(mocker):
     )
 
     logger.info("welcome to this test test_loguru", {"hello": "world", "vadim": 12.34})
+    logger.warning("this is a warning", {"hello": "world", "vadim": 23.45})
+    logger.error("and now for an error", {"hello": "world", "vadim": 34.56})
     mock.emit.assert_called()
+    for call, (level, number) in zip(
+        mock.emit.call_args_list,
+        (
+            ("INFO", SeverityNumber.INFO),
+            ("WARNING", SeverityNumber.WARN),
+            ("ERROR", SeverityNumber.ERROR),
+        ),
+    ):
+        record = call[0][0]
+        assert record.severity_text == level
+        assert record.severity_number == number
 
 
 def test_loguru_session_request(mocker):
