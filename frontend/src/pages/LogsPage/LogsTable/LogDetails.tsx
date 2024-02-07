@@ -1,6 +1,12 @@
 import { Button } from '@components/Button'
 import { LinkButton } from '@components/LinkButton'
-import { LogEdge, LogLevel, Maybe, ReservedLogKey } from '@graph/schemas'
+import {
+	LogEdge,
+	LogLevel,
+	Maybe,
+	ReservedLogKey,
+	ReservedTraceKey,
+} from '@graph/schemas'
 import {
 	Box,
 	IconSolidChevronDoubleDown,
@@ -11,6 +17,7 @@ import {
 	IconSolidLightningBolt,
 	IconSolidLink,
 	IconSolidPlayCircle,
+	IconSolidSparkles,
 	Stack,
 	Text,
 	Tooltip,
@@ -20,10 +27,11 @@ import {
 	IconCollapsed,
 	IconExpanded,
 } from '@pages/LogsPage/LogsTable/LogsTable'
-import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
+import { LogEdgeWithResources } from '@pages/LogsPage/useGetLogs'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
+import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { createSearchParams, generatePath } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
@@ -42,7 +50,7 @@ import * as styles from './LogDetails.css'
 import * as logsTableStyles from './LogsTable.css'
 
 type Props = {
-	row: Row<LogEdgeWithError>
+	row: Row<LogEdgeWithResources>
 	queryParts: SearchExpression[]
 	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
 }
@@ -56,18 +64,31 @@ export const getLogURL = (projectId: string, row: Row<LogEdge>) => {
 	return currentUrl.origin + path
 }
 
-const getSessionLink = (projectId: string, log: LogEdgeWithError): string => {
+const getSessionLink = (
+	projectId: string,
+	log: LogEdgeWithResources,
+): string => {
 	const params = createSearchParams({
 		[PlayerSearchParameters.log]: log.cursor,
 	})
 	return `/${projectId}/sessions/${log.node.secureSessionID}?${params}`
 }
 
-const getErrorLink = (projectId: string, log: LogEdgeWithError): string => {
+const getErrorLink = (projectId: string, log: LogEdgeWithResources): string => {
 	const params = createSearchParams({
 		[PlayerSearchParameters.log]: log.cursor,
 	})
 	return `/errors/${log.error_object?.error_group_secure_id}/instances/${log.error_object?.id}?${params}`
+}
+
+const getTraceLink = (projectId: string, log: LogEdgeWithResources): string => {
+	const params = createSearchParams({
+		query: `${ReservedTraceKey.TraceId}${DEFAULT_OPERATOR}${log.node.traceID}`,
+		start_date: moment(log.node.timestamp).add(-5, 'minutes').toISOString(),
+		end_date: moment(log.node.timestamp).add(5, 'minutes').toISOString(),
+	})
+
+	return `/${projectId}/traces/${log.node.traceID}?${params}`
 }
 
 export const LogDetails: React.FC<Props> = ({
@@ -296,6 +317,24 @@ export const LogDetails: React.FC<Props> = ({
 							>
 								<IconSolidPlayCircle />
 								Related Session
+							</Box>
+						</LinkButton>
+					)}
+					{row.original.traceExist && (
+						<LinkButton
+							kind="secondary"
+							emphasis="low"
+							to={getTraceLink(projectId, row.original)}
+							trackingId="logs-related_trace_link"
+						>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidSparkles />
+								Related Trace
 							</Box>
 						</LinkButton>
 					)}

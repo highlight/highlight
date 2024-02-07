@@ -1940,7 +1940,7 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*publicMo
 	}
 
 	for secureID, metrics := range sessionMetrics {
-		var messages []*kafka_queue.Message
+		var messages []kafka_queue.RetryableMessage
 		for _, metric := range metrics {
 			messages = append(messages, &kafka_queue.Message{
 				Type: kafka_queue.PushMetrics,
@@ -2039,7 +2039,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 	}
 
 	// TODO(vkorolik) write to an actual metrics table
-	var messages []*kafka_queue.Message
+	var messages []kafka_queue.RetryableMessage
 	for _, traceRow := range traceRows {
 		if !r.IsTraceIngested(ctx, traceRow) {
 			continue

@@ -1,7 +1,10 @@
-import { Box, Text } from '@highlight-run/ui/components'
-import { ReactComponent as CircleRightArrow } from '@icons/Solid/arrow-circle-right.svg'
-import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
-import { ReactComponent as ChevronRightIcon } from '@icons/Solid/cheveron-right.svg'
+import {
+	Box,
+	IconSolidArrowCircleRight,
+	IconSolidCheveronLeft,
+	IconSolidCheveronRight,
+	Text,
+} from '@highlight-run/ui/components'
 import {
 	RightPanelView,
 	usePlayerUIContext,
@@ -150,7 +153,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 						<span className={style.rightCounter}>
 							{formatTimeAsHMS(bucket.startTime)}
 						</span>
-						<CircleRightArrow
+						<IconSolidArrowCircleRight
 							className={clsx(
 								style.transitionIcon,
 								style.rightActionIcon,
@@ -159,7 +162,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 					</button>
 				) : (
 					<button className={style.actionButton}>
-						<ChevronLeftIcon
+						<IconSolidCheveronLeft
 							className={clsx(
 								style.transitionIcon,
 								style.leftActionIcon,
@@ -218,7 +221,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 									</span>
 									<div className={style.rightCounter}>
 										<span>{count}</span>
-										<ChevronRightIcon
+										<IconSolidCheveronRight
 											className={clsx(
 												style.transitionIcon,
 												style.rightActionIcon,
@@ -277,7 +280,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 											<span>
 												{formatTimeAsHMS(timestamp)}
 											</span>
-											<CircleRightArrow
+											<IconSolidArrowCircleRight
 												className={clsx(
 													style.transitionIcon,
 													style.rightActionIcon,

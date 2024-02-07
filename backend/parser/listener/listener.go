@@ -305,7 +305,7 @@ func (s *searchListener[T]) appendRules(value string) {
 					Values:   []string{value},
 				})
 			} else {
-				s.rules = append(s.rules, s.sb.Equal(filterKey, value))
+				s.rules = append(s.rules, s.sb.Equal(fmt.Sprintf("toString(%s)", filterKey), value))
 				s.ops = append(s.ops, &FilterOperation{
 					Key:      filterKey,
 					Operator: OperatorEqual,

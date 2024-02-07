@@ -108,13 +108,16 @@ export const buildSessionParams = ({
 		query += `${ReservedLogKey.SecureSessionId}${DEFAULT_OPERATOR}${session.secure_id}`
 	}
 
-	levels.forEach((level) => {
-		query += ` ${ReservedLogKey.Level}${DEFAULT_OPERATOR}${level}`
-	})
-
-	sources.forEach((source) => {
-		query += ` ${ReservedLogKey.Source}${DEFAULT_OPERATOR}${source}`
-	})
+	if (levels.length) {
+		query += ` ${ReservedLogKey.Level}${DEFAULT_OPERATOR}(${levels.join(
+			' OR ',
+		)})`
+	}
+	if (sources.length) {
+		query += ` ${ReservedLogKey.Source}${DEFAULT_OPERATOR}(${sources.join(
+			' OR ',
+		)})`
+	}
 
 	return {
 		query: query.trim(),

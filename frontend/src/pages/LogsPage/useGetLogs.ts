@@ -1,7 +1,7 @@
 import {
-	useGetLogsErrorObjectsQuery,
 	useGetLogsLazyQuery,
 	useGetLogsQuery,
+	useGetLogsRelatedResourcesQuery,
 } from '@graph/hooks'
 import { GetLogsQuery, GetLogsQueryVariables } from '@graph/operations'
 import { LogEdge, PageInfo } from '@graph/schemas'
@@ -12,11 +12,12 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
-export type LogEdgeWithError = LogEdge & {
+export type LogEdgeWithResources = LogEdge & {
 	error_object?: Pick<
 		Types.ErrorObject,
 		'log_cursor' | 'error_group_secure_id' | 'id'
 	>
+	traceExist?: boolean
 }
 
 const initialWindowInfo: PageInfo = {
@@ -105,8 +106,20 @@ export const useGetLogs = ({
 		}, []),
 	})
 
-	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({
-		variables: { log_cursors: data?.logs.edges.map((e) => e.cursor) || [] },
+	const logTraceIds =
+		data?.logs.edges.reduce((acc, e) => {
+			if (e.node.traceID) {
+				acc.push(e.node.traceID)
+			}
+			return acc
+		}, [] as string[]) || []
+
+	const { data: logRelatedResources } = useGetLogsRelatedResourcesQuery({
+		variables: {
+			project_id: project_id!,
+			log_cursors: data?.logs.edges.map((e) => e.cursor) || [],
+			trace_ids: logTraceIds,
+		},
 		skip: !data?.logs.edges.length,
 	})
 
@@ -179,17 +192,20 @@ export const useGetLogs = ({
 		})
 	}, [data, fetchMore, loadingBefore, windowInfo])
 
-	const logEdgesWithError: LogEdgeWithError[] = (data?.logs.edges || []).map(
-		(e) => ({
-			...e,
-			error_object: (logErrorObjects?.logs_error_objects || []).find(
-				(leo) => leo.log_cursor === e.cursor,
-			),
-		}),
-	)
+	const existingTraceSet = new Set(logRelatedResources?.existing_logs_traces)
+
+	const logEdgesWithResources: LogEdgeWithResources[] = (
+		data?.logs.edges || []
+	).map((e) => ({
+		...e,
+		error_object: (logRelatedResources?.logs_error_objects || []).find(
+			(leo) => leo.log_cursor === e.cursor,
+		),
+		traceExist: !!e.node.traceID && existingTraceSet.has(e.node.traceID),
+	}))
 
 	return {
-		logEdges: logEdgesWithError,
+		logEdges: logEdgesWithResources,
 		moreLogs: numMore,
 		clearMoreLogs: reset,
 		loading,

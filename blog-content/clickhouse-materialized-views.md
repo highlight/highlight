@@ -1,5 +1,5 @@
 ---
-title: 'ClickHouse Materialized Views for Fast Aggregation and Queries'
+title: 'Using Materialized Views in ClickHouse (vs. Postgres)'
 createdAt: 2024-01-23T00:00:00.000Z
 readingTime: 9
 authorFirstName: Vadim
@@ -13,17 +13,29 @@ authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Flh3.googleuse
 tags: Launch Week 4
 ---
 
-# Materialized Views in ClickHouse
+```hint
+Highlight.io is an open source observability solution. We record sessions, traces, errors and logs to help engineers debug and maintain their web applications. 
 
-## SQL OLTP vs OLAP
+You could be one of those engineers; check us out on [GitHub](https://github.com/highlight/highlight).
+```
 
-SQL is a language for querying databases. It is a flexible way to write or read data while processing it into any desired form. PostgreSQL (Postgres) is a versatile SQL database, known for its reliability and used for various applications. It's an Online Transaction Processing (OLTP) database, providing real-time, exact results. ClickHouse, on the other hand, specializes in Online Analytical Processing (OLAP), making it better for fast, complex data analysis. While both use SQL, PostgreSQL is more general-purpose while ClickHouse excels in high-volume analytics. In other words, ClickHouse performs better at collecting aggregate results from a large dataset, while PostgreSQL exceeds at finding single records based on a known query pattern.
+## Introduction: The Use Case
 
-Both databases provide Materialized Views as a way to transform data into a different structure that can be queried in a performant way. Think of it as a Pivot in Excel or other table-viewing tools. Rather than having to process the data into a different format every time a query is made, a Materialized View remembers the transformation and applies it periodically so that the query can be made quickly against the processed form. There are notable differences between PostgreSQL and ClickHouse Materialized Views (MVs), but the use case for MVs in both is similar. Read more for a deep dive into our use case for setting up a series of ClickHouse Materialized Views, as well as a step by step example of setting one up.
+Our team recently adopted ClickHouse to store and query high-volume observability data. The implementation was straightforward for the intended aggregate querying, but solving other access patterns was more complex. For example, we needed to aggregate traces over a large time range to get average duration values, but at the same time find and load a single trace by ID. In ClickHouse, a table only has one primary index that could optimally query data. Thankfully, there's just the tool for the job...
 
-## Ingesting Traces from an Example LLM App
+## At a High-level: ClickHouse vs Postgres
 
-At Highlight, we recently launched a new tracing product that records code execution from your application to help debug issues or troubleshoot performance problems. The query engine in our app allows reporting and searching across structured attributes sent with traces. For example, a trace might be sent for `service_name:llm-inference` and `service_version:14`. Each trace has a given duration in seconds but can also carry arbitrary numeric properties. Let’s say our trace measures the performance of AI inference for a large language model, and we report the input size in tokens as the `tokens:123` numeric property.
+PostgreSQL (Postgres) is a versatile SQL database, known for its reliability and used for various applications. It's an Online Transaction Processing (OLTP) database, providing real-time, exact results. ClickHouse, on the other hand, specializes in Online Analytical Processing (OLAP), making it better for fast, complex data analysis. In short, ClickHouse performs better at collecting aggregate results from a large dataset, while PostgreSQL exceeds at finding single records based on a known query pattern.
+
+## What is a Materialized View?
+
+Both databases provide Materialized Views as a way to transform data into a different structure that can be queried in a performant way. Think of it as a Pivot in Excel or other table-viewing tools. Rather than having to process the data into a different format every time a query is made, a Materialized View remembers the transformation and applies it periodically so that the query can be made quickly against the processed form. There are notable differences between PostgreSQL and ClickHouse Materialized Views (MVs), but the use case for MVs in both is similar.
+
+Read more for a deep dive into an actual use case for setting up a series of ClickHouse Materialized Views.
+
+## Deep-dive: Ingesting Traces from an Example LLM App
+
+At Highlight, we recently launched a new tracing product that records code execution from your application to help debug issues or troubleshoot performance problems. The query engine in our app allows reporting and searching across structured attributes sent with traces.  Each trace has a given duration in seconds but can also carry arbitrary numeric properties. Let’s say our trace measures the performance of AI inference for a large language model, and we report the input size in tokens as the `tokens:123` numeric property.
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -67,15 +79,13 @@ input_text = "The future of AI is"
 print(generate_text(input_text))
 ```
 
-The sample code runs inference using a popular HuggingFace model. The critical code path is wrapped with a contextmanager that starts and stops a span to time the duration of execution while reporting useful attributes that can help us debug the root cause of potential problems. Here, we’re reporting the `input` text, the `output` text, and the `num_tokens` sent to the model during inference.
+The sample code below runs inference using a popular HuggingFace model. The critical code path is wrapped with a contextmanager that starts and stops a span to time the duration of execution while reporting useful attributes that can help us debug the root cause of potential problems. Here, we’re reporting the `input` text, the `output` text, and the `num_tokens` sent to the model during inference.
 
-How do ClickHouse Materialized Views relate to this? Well, in Highlight, we store each of these trace spans as a row in a table and provide a powerful search that allows finding interesting spans. We also allow visualizing that data via time-series aggregates to identify trends or learn useful correlations. Materialized Views allow us to continue to store this data in an efficient format while powering these features of search and aggregation.
+## Building a ClickHouse query for Trace Search
 
-## ClickHouse Powers Trace Search
+Now that we’ve started recording traces, we need a way to find interesting ones. In Highlight, we store each of these trace spans as a row in a ClickHouse table and provide the ability to visualize that data via time-series aggregations to identify trends or learn useful correlations.
 
-Let’s search for cases where the inference was slow so that we can figure out if the size of our input (and the number of input tokens) has an effect on the inference duration.
-
-To write the ClickHouse SQL query, we first need to understand the traces schema, or how they are stored in the database. The table DDL looks something like this (see it [here](https://github.com/highlight/highlight/blob/77d7ad357d921d9826e52ca2cfcf87ea7e684303/backend/clickhouse/migrations/000013_create_traces_table.up.sql) in our repo).
+For example, lets say we wanted to search for cases where the inference was slow to see if the size of our input (and the number of input tokens) had an effect on the inference duration. To write a ClickHouse query for that, we first would need to understand the traces schema (or how they are stored in the database). The table DDL looks something like this (see it [here](https://github.com/highlight/highlight/blob/77d7ad357d921d9826e52ca2cfcf87ea7e684303/backend/clickhouse/migrations/000013_create_traces_table.up.sql) in our repo).
 
 ```sql
 CREATE TABLE traces
@@ -130,7 +140,7 @@ We define a new table `trace_keys_mv` which is based on the contents of `traces`
 
 The only downside is that each materialized view created consumes additional CPU, memory, and disk on the ClickHouse cluster, since inserted data must be processed and written into the new form.
 
-## Materialized Views for Fast Row Lookup
+## A Materialized View for Fast Row Lookup
 
 In PostgreSQL, searching for a single row can be optimized with an index. If you have more than one query pattern, you can create multiple indexes on combinations of columns used. In ClickHouse on the other hand, you only have one primary key for the table that has significant query performance. Thankfully, we can use materialized views to create other versions of the table with a different partitioning scheme, allowing us to efficiently query in other ways. For example, the following materialized view creates a copy of our `traces` table `ORDER BY (ProjectId, TraceId)` rather than `ORDER BY (ProjectId, Timestamp, UUID)`.
 

@@ -14,6 +14,7 @@ import React, { useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
+import { useLocalStorageProjectId } from '@/hooks/useProjectId'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
 
 import commonStyles from '../../Common.module.css'
@@ -22,6 +23,10 @@ export const WorkspaceRouter = () => {
 	const { isLoggedIn } = useAuthContext()
 	const [showKeyboardShortcutsGuide, toggleShowKeyboardShortcutsGuide] =
 		useToggle(false)
+	const {
+		projectId: localStorageProjectId,
+		setProjectId: setLocalStorageProjectId,
+	} = useLocalStorageProjectId()
 	const [showBanner, toggleShowBanner] = useToggle(false)
 
 	const { workspace_id } = useParams<{
@@ -39,6 +44,21 @@ export const WorkspaceRouter = () => {
 			setLoadingState(AppLoadingState.LOADED)
 		}
 	}, [isLoggedIn, setLoadingState])
+
+	useEffect(() => {
+		const projectsLoaded = data?.workspace?.projects.length
+		const projectInWorkspace = data?.workspace?.projects?.find(
+			(p) => String(p?.id) === String(localStorageProjectId),
+		)
+
+		if (projectsLoaded && !projectInWorkspace) {
+			setLocalStorageProjectId('')
+		}
+	}, [
+		data?.workspace?.projects,
+		localStorageProjectId,
+		setLocalStorageProjectId,
+	])
 
 	const commandBarDialog = Ariakit.useDialogStore()
 

@@ -32,7 +32,12 @@ type CustomColumn<T> = {
 type LogColumnType = 'string' | 'datetime' | 'session' | 'level' | 'body'
 export type LogCustomColumn = CustomColumn<LogColumnType>
 
-type TraceColumnType = 'string' | 'datetime' | 'session' | 'duration'
+type TraceColumnType =
+	| 'string'
+	| 'datetime'
+	| 'session'
+	| 'duration'
+	| 'boolean'
 export type TraceCustomColumn = CustomColumn<TraceColumnType>
 
 export type ValidCustomColumn = CustomColumn<any>

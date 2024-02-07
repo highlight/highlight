@@ -4578,18 +4578,23 @@ export type GetLogsKeyValuesQuery = { __typename?: 'Query' } & {
 	key_values: Types.Query['logs_key_values']
 }
 
-export type GetLogsErrorObjectsQueryVariables = Types.Exact<{
+export type GetLogsRelatedResourcesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
 	log_cursors: Array<Types.Scalars['String']> | Types.Scalars['String']
+	trace_ids: Array<Types.Scalars['String']> | Types.Scalars['String']
 }>
 
-export type GetLogsErrorObjectsQuery = { __typename?: 'Query' } & {
-	logs_error_objects: Array<
-		{ __typename?: 'ErrorObject' } & Pick<
-			Types.ErrorObject,
-			'log_cursor' | 'error_group_secure_id' | 'id'
+export type GetLogsRelatedResourcesQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'existing_logs_traces'
+> & {
+		logs_error_objects: Array<
+			{ __typename?: 'ErrorObject' } & Pick<
+				Types.ErrorObject,
+				'log_cursor' | 'error_group_secure_id' | 'id'
+			>
 		>
-	>
-}
+	}
 
 export type GetProjectSettingsQueryVariables = Types.Exact<{
 	projectId: Types.Scalars['ID']
@@ -4863,6 +4868,7 @@ export type GetTraceQuery = { __typename?: 'Query' } & {
 					| 'serviceName'
 					| 'serviceVersion'
 					| 'environment'
+					| 'hasErrors'
 					| 'traceAttributes'
 					| 'startTime'
 					| 'statusCode'
@@ -4915,6 +4921,7 @@ export type GetTracesQuery = { __typename?: 'Query' } & {
 						| 'serviceName'
 						| 'serviceVersion'
 						| 'environment'
+						| 'hasErrors'
 						| 'traceAttributes'
 						| 'statusCode'
 						| 'statusMessage'
@@ -5111,7 +5118,7 @@ export const namedOperations = {
 		GetLogsHistogram: 'GetLogsHistogram' as const,
 		GetLogsKeys: 'GetLogsKeys' as const,
 		GetLogsKeyValues: 'GetLogsKeyValues' as const,
-		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
+		GetLogsRelatedResources: 'GetLogsRelatedResources' as const,
 		GetProjectSettings: 'GetProjectSettings' as const,
 		GetWorkspacePendingInvites: 'GetWorkspacePendingInvites' as const,
 		GetErrorResolutionSuggestion: 'GetErrorResolutionSuggestion' as const,

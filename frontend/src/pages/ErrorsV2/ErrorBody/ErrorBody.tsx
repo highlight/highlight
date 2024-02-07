@@ -161,7 +161,7 @@ const Stat: React.FC<
 		<Box
 			display="flex"
 			flexDirection="column"
-			gap="12"
+			gap="6"
 			justifyContent="space-between"
 			style={{ height: '100%' }}
 		>
