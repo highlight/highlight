@@ -126,7 +126,9 @@ export const ComboboxSelect = <T extends string | string[]>({
 				<div
 					className={clsx(styles.comboboxWrapper, {
 						[styles.comboboxHasResults]:
-							allOptions.length > 0 || isLoading,
+							allOptions.length > 0 ||
+							isLoading ||
+							emptyStateRender,
 					})}
 				>
 					<IconSolidSearch />
