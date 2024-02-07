@@ -128,7 +128,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 						[styles.comboboxHasResults]:
 							allOptions.length > 0 ||
 							isLoading ||
-							emptyStateRender,
+							!!emptyStateRender,
 					})}
 				>
 					<IconSolidSearch />
