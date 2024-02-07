@@ -3,18 +3,17 @@ import {
 	useGetTracesKeysLazyQuery,
 } from '@graph/hooks'
 import {
-	Box,
 	ComboboxSelect,
 	DEFAULT_TIME_PRESETS,
 	IconSolidDotsHorizontal,
 	Text,
-	Tooltip,
 } from '@highlight-run/ui/components'
 import { useDebouncedValue } from '@hooks/useDebouncedValue'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 
+import LoadingBox from '@/components/LoadingBox'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { FixedRangePreset } from '@/components/Search/SearchForm/SearchForm'
 import { useSearchTime } from '@/hooks/useSearchTime'
@@ -142,19 +141,13 @@ export const CustomColumnPopover: React.FC<Props> = ({
 	}
 
 	const options = loading
-		? []
+		? undefined
 		: columnOptions.map((o) => ({
 				key: o.id,
 				render: (
-					<Tooltip
-						trigger={
-							<Text lines="1" cssClass={styles.selectOption}>
-								{o.id}
-							</Text>
-						}
-					>
-						<Box cssClass={styles.selectOptionTooltip}>{o.id}</Box>
-					</Tooltip>
+					<Text lines="1" cssClass={styles.selectOption} title={o.id}>
+						{o.id}
+					</Text>
 				),
 		  }))
 
@@ -164,6 +157,8 @@ export const CustomColumnPopover: React.FC<Props> = ({
 			queryPlaceholder="Search attributes..."
 			onChange={handleColumnValueChange}
 			icon={<IconSolidDotsHorizontal />}
+			loadingRender={<LoadingBox />}
+			emptyStateRender="No keys found"
 			value={value}
 			options={options}
 			cssClass={styles.selectButton}

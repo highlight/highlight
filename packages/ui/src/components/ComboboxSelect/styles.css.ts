@@ -84,7 +84,7 @@ export const selectItem = style({
 	},
 })
 
-export const loadingPlaceholder = style({
+export const statePlaceholder = style({
 	fontWeight: 500,
 	color: vars.theme.static.content.moderate,
 	justifyContent: 'center',
