@@ -454,6 +454,7 @@ func main() {
 				Cache: lru.New(10000),
 			})
 			privateServer.Use(private.NewGraphqlOAuthValidator(privateResolver.Store))
+			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.Use(htrace.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
 			privateServer.SetErrorPresenter(htrace.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			privateServer.SetRecoverFunc(htrace.GraphQLRecoverFunc())
