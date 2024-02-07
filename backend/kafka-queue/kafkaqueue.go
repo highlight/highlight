@@ -60,8 +60,8 @@ type Queue struct {
 
 type MessageQueue interface {
 	Stop(context.Context)
-	Receive(context.Context) *Message
-	Submit(context.Context, string, ...*Message) error
+	Receive(context.Context) RetryableMessage
+	Submit(context.Context, string, ...RetryableMessage) error
 	LogStats()
 }
 
@@ -303,7 +303,7 @@ func (p *Queue) Stop(ctx context.Context) {
 	}
 }
 
-func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Message) error {
+func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...RetryableMessage) error {
 	if len(messages) == 0 {
 		return nil
 	}
@@ -315,7 +315,7 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Me
 
 	var kMessages []kafka.Message
 	for _, msg := range messages {
-		msg.MaxRetries = TaskRetries
+		msg.SetMaxRetries(TaskRetries)
 		msgBytes, err := p.serializeMessage(msg)
 		if err != nil {
 			log.WithContext(ctx).Error(errors.Wrap(err, "failed to serialize message"))
@@ -342,7 +342,7 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Me
 	return nil
 }
 
-func (p *Queue) Receive(ctx context.Context) (msg *Message) {
+func (p *Queue) Receive(ctx context.Context) (msg RetryableMessage) {
 	start := time.Now()
 	ctx, cancel := context.WithTimeout(ctx, KafkaOperationTimeout)
 	defer cancel()
@@ -358,7 +358,7 @@ func (p *Queue) Receive(ctx context.Context) (msg *Message) {
 		log.WithContext(ctx).WithField("topic", p.Topic).WithField("partition", m.Partition).WithField("msgBytes", len(m.Value)).Error(errors.Wrap(err, "failed to deserialize message"))
 		return nil
 	}
-	msg.KafkaMessage = &m
+	msg.SetKafkaMessage(&m)
 	hmetric.Incr(ctx, p.metricPrefix()+"consumeMessageCount", nil, 1)
 	hmetric.Histogram(ctx, p.metricPrefix()+"receiveSec", time.Since(start).Seconds(), nil, 1)
 	return
@@ -452,7 +452,7 @@ func (p *Queue) LogStats() {
 	}
 }
 
-func (p *Queue) serializeMessage(msg *Message) (compressed []byte, err error) {
+func (p *Queue) serializeMessage(msg RetryableMessage) (compressed []byte, err error) {
 	compressed, err = json.Marshal(&msg)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshall json")
@@ -460,14 +460,29 @@ func (p *Queue) serializeMessage(msg *Message) (compressed []byte, err error) {
 	return
 }
 
-func (p *Queue) deserializeMessage(compressed []byte) (msg *Message, error error) {
+func (p *Queue) deserializeMessage(compressed []byte) (RetryableMessage, error) {
 	if int64(len(compressed)) >= p.MessageSizeBytes {
 		return nil, errors.New("message too large")
 	}
-	if err := json.Unmarshal(compressed, &msg); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshall msg")
+	var msgType struct {
+		Type PayloadType
 	}
-	return
+	if err := json.Unmarshal(compressed, &msgType); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshall message type")
+	}
+
+	var msg RetryableMessage
+	if msgType.Type == PushLogsFlattened {
+		msg = &LogRowMessage{}
+	} else {
+		msg = &Message{}
+	}
+
+	if err := json.Unmarshal(compressed, &msg); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshall message")
+	}
+
+	return msg, nil
 }
 
 func (p *Queue) resetConsumerOffset(ctx context.Context, partitionOffsets map[int]int64) (error error) {

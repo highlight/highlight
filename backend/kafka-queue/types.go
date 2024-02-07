@@ -23,7 +23,7 @@ const (
 	PushMetrics                            PayloadType = iota
 	MarkBackendSetup                       PayloadType = iota // Deprecated: setup events are written from other payload processing
 	AddSessionFeedback                     PayloadType = iota
-	PushLogs                               PayloadType = iota
+	PushLogs                               PayloadType = iota // Deprecated: use a LogRowMessage with payload type PushLogsFlattened
 	PushTraces                             PayloadType = iota
 	HubSpotCreateContactForAdmin           PayloadType = iota // Deprecated: noop
 	HubSpotCreateCompanyForWorkspace       PayloadType = iota // Deprecated: noop
@@ -34,6 +34,7 @@ const (
 	ErrorGroupDataSync                     PayloadType = iota
 	ErrorObjectDataSync                    PayloadType = iota
 	PushCompressedPayload                  PayloadType = iota
+	PushLogsFlattened                      PayloadType = iota
 	HealthCheck                            PayloadType = math.MaxInt
 )
 
@@ -132,6 +133,16 @@ type ErrorObjectDataSyncArgs struct {
 	ErrorObjectID int
 }
 
+type RetryableMessage interface {
+	GetType() PayloadType
+	GetFailures() int
+	SetFailures(value int)
+	GetMaxRetries() int
+	SetMaxRetries(value int)
+	GetKafkaMessage() *kafka.Message
+	SetKafkaMessage(value *kafka.Message)
+}
+
 type Message struct {
 	Type                  PayloadType
 	Failures              int
@@ -153,9 +164,67 @@ type Message struct {
 	PushCompressedPayload *PushCompressedPayloadArgs `json:",omitempty"`
 }
 
-type PartitionMessage struct {
-	Message   *Message
-	Partition int32
+func (m *Message) GetType() PayloadType {
+	return m.Type
+}
+
+func (m *Message) GetFailures() int {
+	return m.Failures
+}
+
+func (m *Message) SetFailures(value int) {
+	m.Failures = value
+}
+
+func (m *Message) GetMaxRetries() int {
+	return m.MaxRetries
+}
+
+func (m *Message) SetMaxRetries(value int) {
+	m.MaxRetries = value
+}
+
+func (m *Message) GetKafkaMessage() *kafka.Message {
+	return m.KafkaMessage
+}
+
+func (m *Message) SetKafkaMessage(value *kafka.Message) {
+	m.KafkaMessage = value
+}
+
+type LogRowMessage struct {
+	Type         PayloadType
+	Failures     int
+	MaxRetries   int
+	KafkaMessage *kafka.Message `json:",omitempty"`
+	*clickhouse.LogRow
+}
+
+func (m *LogRowMessage) GetType() PayloadType {
+	return PushLogsFlattened
+}
+
+func (m *LogRowMessage) GetFailures() int {
+	return m.Failures
+}
+
+func (m *LogRowMessage) SetFailures(value int) {
+	m.Failures = value
+}
+
+func (m *LogRowMessage) GetMaxRetries() int {
+	return m.MaxRetries
+}
+
+func (m *LogRowMessage) SetMaxRetries(value int) {
+	m.MaxRetries = value
+}
+
+func (m *LogRowMessage) GetKafkaMessage() *kafka.Message {
+	return m.KafkaMessage
+}
+func (m *LogRowMessage) SetKafkaMessage(value *kafka.Message) {
+	m.KafkaMessage = value
 }
 
 type MockMessageQueue struct{}
@@ -164,11 +233,11 @@ func (k *MockMessageQueue) Stop(context.Context) {
 
 }
 
-func (k *MockMessageQueue) Receive(context.Context) *Message {
+func (k *MockMessageQueue) Receive(context.Context) RetryableMessage {
 	return nil
 }
 
-func (k *MockMessageQueue) Submit(context.Context, string, ...*Message) error {
+func (k *MockMessageQueue) Submit(context.Context, string, ...RetryableMessage) error {
 	return nil
 }
 
