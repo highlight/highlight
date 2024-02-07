@@ -32,22 +32,7 @@ func (t Tracer) Validate(graphql.ExecutableSchema) error {
 }
 
 func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (interface{}, error) {
-	fc := graphql.GetFieldContext(ctx)
-	start := time.Now()
-	res, err := next(ctx)
-
-	fields := log.Fields{
-		"duration":                     time.Since(start).Seconds(),
-		"graph":                        t.serverType,
-		"graphql.operation.field.name": fc.Field.Name,
-	}
-	if err != nil {
-		fields["error"] = err
-	}
-	log.WithContext(ctx).
-		WithFields(fields).
-		Debugf("private-graph graphql field")
-	return res, err
+	return next(ctx)
 }
 
 func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
@@ -73,6 +58,6 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	}
 	log.WithContext(ctx).
 		WithFields(fields).
-		Infof("private-graph graphql request")
+		Infof("%s graphql request", t.serverType)
 	return resp
 }
