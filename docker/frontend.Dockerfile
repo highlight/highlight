@@ -35,7 +35,7 @@ ARG REACT_APP_PRIVATE_GRAPH_URI
 ARG REACT_APP_PUBLIC_GRAPH_URI
 ARG TURBO_TOKEN
 ARG TURBO_TEAM
-RUN yarn build:frontend
+RUN yarn build:frontend --force
 
 # reduce the image size by keeping just the built code
 FROM nginx:stable-alpine as frontend-prod

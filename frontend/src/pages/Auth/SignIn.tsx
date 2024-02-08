@@ -17,6 +17,7 @@ import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import useLocalStorage from '@rehooks/local-storage'
 import { auth } from '@util/auth'
+import { isOnPrem } from '@util/onPrem/onPremUtils'
 import firebase from 'firebase/compat/app'
 import React, { useCallback, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -168,6 +169,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					{error && <AuthError>{error}</AuthError>}
 				</Stack>
 			</AuthBody>
+
 			<AuthFooter>
 				<Stack gap="12">
 					<Button
@@ -178,45 +180,53 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					>
 						Sign in
 					</Button>
-					<Stack direction="row" align="center">
-						<Box
-							borderTop="divider"
-							style={{ height: 0, flexGrow: 1 }}
-						/>
-						<Text color="weak" size="xSmall" align="center">
-							or
-						</Text>
-						<Box
-							borderTop="divider"
-							style={{ height: 0, flexGrow: 1 }}
-						/>
-					</Stack>
-					<Button
-						kind="secondary"
-						type="button"
-						trackingId="sign-in-with-google"
-						onClick={() => {
-							handleExternalAuthClick(auth.googleProvider!)
-						}}
-					>
-						<Box display="flex" alignItems="center" gap="6">
-							<IconSolidGoogle />
-							Sign in with Google
-						</Box>
-					</Button>
-					<Button
-						kind="secondary"
-						type="button"
-						trackingId="sign-in-with-github"
-						onClick={() => {
-							handleExternalAuthClick(auth.githubProvider!)
-						}}
-					>
-						<Box display="flex" alignItems="center" gap="6">
-							<IconSolidGithub />
-							Sign in with Github
-						</Box>
-					</Button>
+					{isOnPrem ? null : (
+						<>
+							<Stack direction="row" align="center">
+								<Box
+									borderTop="divider"
+									style={{ height: 0, flexGrow: 1 }}
+								/>
+								<Text color="weak" size="xSmall" align="center">
+									or
+								</Text>
+								<Box
+									borderTop="divider"
+									style={{ height: 0, flexGrow: 1 }}
+								/>
+							</Stack>
+							<Button
+								kind="secondary"
+								type="button"
+								trackingId="sign-in-with-google"
+								onClick={() => {
+									handleExternalAuthClick(
+										auth.googleProvider!,
+									)
+								}}
+							>
+								<Box display="flex" alignItems="center" gap="6">
+									<IconSolidGoogle />
+									Sign in with Google
+								</Box>
+							</Button>
+							<Button
+								kind="secondary"
+								type="button"
+								trackingId="sign-in-with-github"
+								onClick={() => {
+									handleExternalAuthClick(
+										auth.githubProvider!,
+									)
+								}}
+							>
+								<Box display="flex" alignItems="center" gap="6">
+									<IconSolidGithub />
+									Sign in with Github
+								</Box>
+							</Button>
+						</>
+					)}
 				</Stack>
 			</AuthFooter>
 		</Form>

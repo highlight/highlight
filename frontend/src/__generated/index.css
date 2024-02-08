@@ -5960,6 +5960,7 @@ body {
   position: absolute;
   top: 13px;
   left: 14px;
+  color: var(--_1pyqka9y);
 }
 ._10xh0c22 {
   font-family:
@@ -6671,6 +6672,9 @@ body {
 .v8kz6z2 {
   background-color: var(--_1pyqka91y);
   box-shadow: inset 0px -1px 0px rgba(0, 0, 0, 0.1);
+}
+.v8kz6z3 {
+  color: var(--_1pyqka9y);
 }
 ._9ttgrc0 {
   height: 100%;

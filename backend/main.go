@@ -29,6 +29,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/httplog"
 	"github.com/gorilla/websocket"
+	golang_lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/workerpool"
 	e "github.com/pkg/errors"
@@ -464,6 +465,10 @@ func main() {
 		})
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
+		sessionCache, err := golang_lru.New[string, *model.Session](10000)
+		if err != nil {
+			log.Fatalf("error initializing lru cache: %v", err)
+		}
 		publicResolver := &public.Resolver{
 			DB:               db,
 			ProducerQueue:    kafkaProducer,
@@ -477,6 +482,7 @@ func main() {
 			RH:               &rh,
 			Store:            store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
 			LambdaClient:     lambda,
+			SessionCache:     sessionCache,
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -553,6 +559,10 @@ func main() {
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running....")
 	if runtimeParsed == util.Worker || runtimeParsed == util.All {
+		sessionCache, err := golang_lru.New[string, *model.Session](10000)
+		if err != nil {
+			log.Fatalf("error initializing lru cache: %v", err)
+		}
 		publicResolver := &public.Resolver{
 			DB:               db,
 			ProducerQueue:    kafkaProducer,
@@ -567,6 +577,7 @@ func main() {
 			RH:               &rh,
 			Store:            store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
 			LambdaClient:     lambda,
+			SessionCache:     sessionCache,
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {

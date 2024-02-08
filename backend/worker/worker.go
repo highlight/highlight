@@ -498,7 +498,14 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 				go func(config WorkerConfig, workerId int) {
 					ctx := context.Background()
 					k := KafkaWorker{
-						KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{MessageSizeBytes: config.MessageSizeBytes}),
+						KafkaQueue: kafkaqueue.New(ctx,
+							kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}),
+							kafkaqueue.Consumer,
+							&kafkaqueue.ConfigOverride{
+								MessageSizeBytes: config.MessageSizeBytes,
+								OnAssignGroups: func() {
+									w.PublicResolver.SessionCache.Purge()
+								}}),
 						Worker:       w,
 						WorkerThread: workerId,
 					}

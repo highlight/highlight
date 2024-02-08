@@ -484,7 +484,11 @@ export const LogValue: React.FC<{
 											stringifySearchQuery(queryParts)
 
 										if (index === -1) {
-											newQuery += ` ${queryKey}${DEFAULT_OPERATOR}"${value}"`
+											newQuery += ` ${queryKey}${DEFAULT_OPERATOR}${quoteQueryValue(
+												value,
+											)}`
+
+											newQuery = newQuery.trim()
 										}
 
 										setQuery(newQuery)
