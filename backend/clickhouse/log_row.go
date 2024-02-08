@@ -2,14 +2,16 @@ package clickhouse
 
 import (
 	"context"
-	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"strings"
 	"time"
 
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
+
 	"github.com/google/uuid"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
+
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 type LogRow struct {
@@ -140,6 +142,8 @@ func makeLogLevel(severityText string) modelInputs.LogLevel {
 	case "debug":
 		return modelInputs.LogLevelDebug
 	case "warn":
+		return modelInputs.LogLevelWarn
+	case "warning":
 		return modelInputs.LogLevelWarn
 	case "error":
 		return modelInputs.LogLevelError

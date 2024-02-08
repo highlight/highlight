@@ -168,7 +168,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		chunks[idx] = entry
 	}
 
-	var msgs []*kafkaqueue.Message
+	var msgs []kafkaqueue.RetryableMessage
 	for _, chunk := range chunks {
 		logRowsB, err := json.Marshal(PushPayloadMessages{
 			Messages: chunk.logRows,
@@ -232,7 +232,7 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, projectID *st
 	for _, backendError := range errors {
 		errorsBySecureID[backendError.SessionSecureID] = append(errorsBySecureID[backendError.SessionSecureID], backendError)
 	}
-	var messages []*kafkaqueue.Message
+	var messages []kafkaqueue.RetryableMessage
 	for secureID, backendErrors := range errorsBySecureID {
 		var partitionKey string
 		if secureID != nil {

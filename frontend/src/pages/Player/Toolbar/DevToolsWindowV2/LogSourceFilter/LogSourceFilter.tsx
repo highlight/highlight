@@ -1,62 +1,43 @@
+import { LogSource } from '@graph/schemas'
 import {
 	Box,
 	IconSolidFilter,
 	MultiSelectButton,
 } from '@highlight-run/ui/components'
-import {
-	LogSourceValue,
-	titilize,
-} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import { titilize } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import React from 'react'
 
 type Props = {
-	logSources: LogSourceValue[]
-	setLogSources: (values: LogSourceValue[]) => void
+	logSources: LogSource[]
+	setLogSources: (values: LogSource[]) => void
 }
 
 const FILTER_LABEL = 'Source'
 
 const LogSourceFilter = ({ logSources, setLogSources }: Props) => {
 	const handleRequestTypeChange = (valueNames: string[]) => {
-		const allPreviouslySelected = logSources.includes(LogSourceValue.All)
-		const allCurrentlySelected = valueNames.includes(LogSourceValue.All)
-		const clearOtherTypes = !allPreviouslySelected && allCurrentlySelected
-		const deselectAllType = allPreviouslySelected && valueNames.length > 1
-
-		if (!valueNames.length || clearOtherTypes) {
-			return setLogSources([LogSourceValue.All])
+		if (!valueNames.length) {
+			return setLogSources(logSources)
 		}
 
-		//-- Set type to be the logLevel value --//
-		const updatedLogSources = valueNames.filter(
-			(name) => !deselectAllType || name !== LogSourceValue.All,
-		) as LogSourceValue[]
-
-		setLogSources(updatedLogSources)
+		setLogSources(valueNames as LogSource[])
 	}
 
-	const options = Object.entries(LogSourceValue).map(
-		([logKey, logValue]) => ({
-			key: logValue,
-			clearsOnClick: logKey === LogSourceValue.All,
-			render: (
-				<Box
-					display="flex"
-					justifyContent="space-between"
-					width="full"
-					gap="8"
-				>
-					<span>{logKey}</span>
-				</Box>
-			),
-		}),
-	)
+	const options = Object.entries(LogSource).map(([logKey, logValue]) => ({
+		key: logValue,
+		render: (
+			<Box
+				display="flex"
+				justifyContent="space-between"
+				width="full"
+				gap="8"
+			>
+				<span>{logKey}</span>
+			</Box>
+		),
+	}))
 
 	const valueRender = () => {
-		if (logSources.includes(LogSourceValue.All)) {
-			return FILTER_LABEL
-		}
-
 		if (logSources.length === 1) {
 			return `${FILTER_LABEL}: ${titilize(logSources[0])}`
 		}

@@ -158,46 +158,53 @@ export const NetworkResourceInfo = ({
 			try {
 				const parsedRequestBody = JSON.parse(request.body)
 
-				Object.keys(parsedRequestBody).forEach((key) => {
-					// `query` is a special for GraphQL requests.
-					// Check to see if the value for `query` is valid GraphQL, if so render it using a GraphQL formatter
-					if (key === 'query') {
-						const queryString = parsedRequestBody[key]
+				if (Array.isArray(parsedRequestBody)) {
+					requestPayloadData.push({
+						keyDisplayValue: 'json',
+						valueDisplayValue: parsedRequestBody,
+					})
+				} else {
+					Object.keys(parsedRequestBody).forEach((key) => {
+						// `query` is a special for GraphQL requests.
+						// Check to see if the value for `query` is valid GraphQL, if so render it using a GraphQL formatter
+						if (key === 'query') {
+							const queryString = parsedRequestBody[key]
 
-						requestPayloadData.push({
-							keyDisplayValue: key,
-							valueDisplayValue: (
-								<CodeBlock
-									language="graphql"
-									text={queryString}
-									wrapLines
-									wrapLongLines
-									hideCopy
-									customStyle={{
-										fontSize: '10px',
-									}}
-								/>
-							),
-							data: queryString,
-						})
-					} else {
-						const renderType =
-							typeof parsedRequestBody[key] === 'object'
-								? 'json'
-								: 'string'
-						requestPayloadData.push({
-							keyDisplayValue: key,
-							valueDisplayValue:
-								renderType === 'string'
-									? parsedRequestBody[key]?.toString()
-									: JSON.parse(
-											JSON.stringify(
-												parsedRequestBody[key],
-											),
-									  ),
-						})
-					}
-				})
+							requestPayloadData.push({
+								keyDisplayValue: key,
+								valueDisplayValue: (
+									<CodeBlock
+										language="graphql"
+										text={queryString}
+										wrapLines
+										wrapLongLines
+										hideCopy
+										customStyle={{
+											fontSize: '10px',
+										}}
+									/>
+								),
+								data: queryString,
+							})
+						} else {
+							const renderType =
+								typeof parsedRequestBody[key] === 'object'
+									? 'json'
+									: 'string'
+							requestPayloadData.push({
+								keyDisplayValue: key,
+								valueDisplayValue:
+									renderType === 'string'
+										? parsedRequestBody[key]?.toString()
+										: JSON.parse(
+												JSON.stringify(
+													parsedRequestBody[key],
+												),
+										  ),
+							})
+						}
+					})
+				}
 			} catch {
 				requestPayloadData.push({
 					keyDisplayValue: 'body',
@@ -232,20 +239,27 @@ export const NetworkResourceInfo = ({
 				} else {
 					parsedResponseBody = JSON.parse(response.body)
 				}
-				Object.keys(parsedResponseBody).forEach((key) => {
-					const renderType =
-						typeof parsedResponseBody[key] === 'object'
-							? 'json'
-							: 'string'
-
+				if (Array.isArray(parsedResponseBody)) {
 					responsePayloadData.push({
-						keyDisplayValue: key,
-						valueDisplayValue:
-							renderType === 'string'
-								? parsedResponseBody[key]?.toString()
-								: parsedResponseBody[key],
+						keyDisplayValue: 'json',
+						valueDisplayValue: parsedResponseBody,
 					})
-				})
+				} else {
+					Object.keys(parsedResponseBody).forEach((key) => {
+						const renderType =
+							typeof parsedResponseBody[key] === 'object'
+								? 'json'
+								: 'string'
+
+						responsePayloadData.push({
+							keyDisplayValue: key,
+							valueDisplayValue:
+								renderType === 'string'
+									? parsedResponseBody[key]?.toString()
+									: parsedResponseBody[key],
+						})
+					})
+				}
 			} catch (e) {
 				responsePayloadData.push({
 					keyDisplayValue: '-',

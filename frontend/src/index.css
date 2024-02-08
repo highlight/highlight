@@ -445,3 +445,8 @@ strong {
 .ant-modal-mask {
 	z-index: 99999999 !important;
 }
+
+/* override antd4 global anchor transition */
+a {
+	 transition: none !important;
+ }

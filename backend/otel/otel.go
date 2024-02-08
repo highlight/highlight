@@ -263,7 +263,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						logRow := clickhouse.NewLogRow(
 							fields.timestamp, uint32(fields.projectIDInt),
 							clickhouse.WithTraceID(traceID),
-							clickhouse.WithSpanID(spanID),
 							clickhouse.WithSecureSessionID(fields.sessionID),
 							clickhouse.WithBody(ctx, fields.logMessage),
 							clickhouse.WithLogAttributes(fields.attrs),
@@ -316,7 +315,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	keyedErrorMessages := make(map[string][]*kafkaqueue.Message)
+	keyedErrorMessages := make(map[string][]kafkaqueue.RetryableMessage)
 	for projectID, sessionErrors := range projectSessionErrors {
 		for sessionID, errors := range sessionErrors {
 			for _, errorObject := range errors {
@@ -348,7 +347,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 	for projectID, traceMetrics := range projectTraceMetrics {
 		for sessionID, metrics := range traceMetrics {
-			var messages []*kafkaqueue.Message
+			var messages []kafkaqueue.RetryableMessage
 			for _, metric := range metrics {
 				messages = append(messages, &kafkaqueue.Message{
 					Type: kafkaqueue.PushMetrics,
@@ -437,7 +436,6 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				logRow := clickhouse.NewLogRow(
 					fields.timestamp, uint32(fields.projectIDInt),
 					clickhouse.WithTraceID(logRecord.TraceID().String()),
-					clickhouse.WithSpanID(logRecord.SpanID().String()),
 					clickhouse.WithSecureSessionID(fields.sessionID),
 					clickhouse.WithBody(ctx, fields.logBody),
 					clickhouse.WithLogAttributes(fields.attrs),
@@ -472,16 +470,15 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow) error {
 	for _, logRows := range projectLogs {
-		var messages []*kafkaqueue.Message
+		var messages []kafkaqueue.RetryableMessage
 		for _, logRow := range logRows {
 			if !o.resolver.IsLogIngested(ctx, logRow) {
 				continue
 			}
-			messages = append(messages, &kafkaqueue.Message{
-				Type: kafkaqueue.PushLogs,
-				PushLogs: &kafkaqueue.PushLogsArgs{
-					LogRow: logRow,
-				}})
+			messages = append(messages, &kafkaqueue.LogRowMessage{
+				Type:   kafkaqueue.PushLogsFlattened,
+				LogRow: logRow,
+			})
 		}
 		err := o.resolver.BatchedQueue.Submit(ctx, "", messages...)
 		if err != nil {
@@ -493,7 +490,7 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 
 func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*clickhouse.TraceRow) error {
 	for traceID, traceRows := range traceRows {
-		var messages []*kafkaqueue.Message
+		var messages []kafkaqueue.RetryableMessage
 		for _, traceRow := range traceRows {
 			if !o.resolver.IsTraceIngested(ctx, traceRow) {
 				continue

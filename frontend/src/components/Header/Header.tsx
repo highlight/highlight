@@ -123,8 +123,11 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId: localStorageProjectId } = useLocalStorageProjectId()
 	const { isLoggedIn, signOut } = useAuthContext()
 	const showAnalytics = useFeatureFlag(Feature.Analytics)
-	const { currentProject, currentWorkspace } = useApplicationContext()
+	const { allProjects, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
+	const localStorageProject = allProjects?.find(
+		(p) => String(p?.id) === String(localStorageProjectId),
+	)
 
 	const goBackPath =
 		location.state?.previousPath ?? `/${localStorageProjectId}/sessions`
@@ -221,7 +224,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 					py="8"
 					justifyContent="space-between"
 				>
-					{isSetup || isSettings ? (
+					{isSetup || (isSettings && localStorageProjectId) ? (
 						<LinkButton
 							to={goBackPath}
 							kind="secondary"
@@ -236,7 +239,8 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							>
 								<IconSolidArrowSmLeft />{' '}
 								<Text>
-									Back to {currentProject?.name ?? 'Project'}
+									Back to{' '}
+									{localStorageProject?.name ?? 'Project'}
 								</Text>
 							</Box>
 						</LinkButton>

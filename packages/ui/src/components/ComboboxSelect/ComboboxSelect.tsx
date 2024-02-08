@@ -39,6 +39,7 @@ type Props<T extends string | string[]> = {
 	defaultOpen?: boolean
 	disabled?: boolean
 	loadingRender?: React.ReactNode
+	emptyStateRender?: React.ReactNode
 }
 
 export const ComboboxSelect = <T extends string | string[]>({
@@ -56,6 +57,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 	defaultOpen,
 	disabled,
 	loadingRender,
+	emptyStateRender,
 }: Props<T>) => {
 	const isMultiselect = typeof value === 'object'
 
@@ -124,7 +126,9 @@ export const ComboboxSelect = <T extends string | string[]>({
 				<div
 					className={clsx(styles.comboboxWrapper, {
 						[styles.comboboxHasResults]:
-							allOptions.length > 0 || isLoading,
+							allOptions.length > 0 ||
+							isLoading ||
+							!!emptyStateRender,
 					})}
 				>
 					<IconSolidSearch />
@@ -145,12 +149,24 @@ export const ComboboxSelect = <T extends string | string[]>({
 						<div
 							className={clsx([
 								styles.selectItem,
-								styles.loadingPlaceholder,
+								styles.statePlaceholder,
 							])}
 						>
 							{loadingRender}
 						</div>
 					)}
+					{emptyStateRender &&
+						!isLoading &&
+						allOptions.length === 0 && (
+							<div
+								className={clsx([
+									styles.selectItem,
+									styles.statePlaceholder,
+								])}
+							>
+								{emptyStateRender}
+							</div>
+						)}
 					{select.useState('open') &&
 						allOptions.map((option: Option) => (
 							<ComboboxItem

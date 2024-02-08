@@ -30,6 +30,7 @@ import { Typography } from '../../components/common/Typography/Typography'
 import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
 import homeStyles from '../../components/Home/Home.module.scss'
 import { getBlogPaths } from '../../shared/blog'
+import { Callout } from '../../components/Docs/Callout/Callout'
 
 const NUM_SUGGESTED_POSTS = 3
 
@@ -93,6 +94,9 @@ const components: Record<
 		)
 	},
 	code: (props: any) => {
+		if (props.className === 'language-hint') {
+			return <Callout content={props.children} />
+		}
 		if (
 			typeof props.children === 'string' &&
 			(props.children.match(/\n/g) || []).length

@@ -543,8 +543,9 @@ export const Search: React.FC<{
 
 						// Need to set this bit of React state to force a re-render of the
 						// component. For some reason the combobox value isn't updated until
-						// after a delay or blurring the input.
-						setQuery(e.target.value)
+						// after a delay or blurring the input. We also trim any leading
+						// space characters since this produces some UI jank.
+						setQuery(e.target.value.replace(/^\s+/, ''))
 					}}
 					onBlur={() => {
 						submitQuery(query)
@@ -557,6 +558,7 @@ export const Search: React.FC<{
 						}
 
 						if (
+							!isPending &&
 							e.key === 'Enter' &&
 							// Using isPending to prevent blurring when the user is selecting
 							// an item vs submitting the form.

@@ -23,7 +23,7 @@ export const collapsibleContent = recipe({
 
 export const lineNumber = style({
 	display: 'inline-block',
-	textAlign: 'center',
+	textAlign: 'right',
 	width: 46,
 })
 

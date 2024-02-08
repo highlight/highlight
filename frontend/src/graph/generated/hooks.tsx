@@ -13771,63 +13771,70 @@ export type GetLogsKeyValuesQueryResult = Apollo.QueryResult<
 	Types.GetLogsKeyValuesQuery,
 	Types.GetLogsKeyValuesQueryVariables
 >
-export const GetLogsErrorObjectsDocument = gql`
-	query GetLogsErrorObjects($log_cursors: [String!]!) {
+export const GetLogsRelatedResourcesDocument = gql`
+	query GetLogsRelatedResources(
+		$project_id: ID!
+		$log_cursors: [String!]!
+		$trace_ids: [String!]!
+	) {
 		logs_error_objects(log_cursors: $log_cursors) {
 			log_cursor
 			error_group_secure_id
 			id
 		}
+		existing_logs_traces(project_id: $project_id, trace_ids: $trace_ids)
 	}
 `
 
 /**
- * __useGetLogsErrorObjectsQuery__
+ * __useGetLogsRelatedResourcesQuery__
  *
- * To run a query within a React component, call `useGetLogsErrorObjectsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetLogsErrorObjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetLogsRelatedResourcesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogsRelatedResourcesQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetLogsErrorObjectsQuery({
+ * const { data, loading, error } = useGetLogsRelatedResourcesQuery({
  *   variables: {
+ *      project_id: // value for 'project_id'
  *      log_cursors: // value for 'log_cursors'
+ *      trace_ids: // value for 'trace_ids'
  *   },
  * });
  */
-export function useGetLogsErrorObjectsQuery(
+export function useGetLogsRelatedResourcesQuery(
 	baseOptions: Apollo.QueryHookOptions<
-		Types.GetLogsErrorObjectsQuery,
-		Types.GetLogsErrorObjectsQueryVariables
+		Types.GetLogsRelatedResourcesQuery,
+		Types.GetLogsRelatedResourcesQueryVariables
 	>,
 ) {
 	return Apollo.useQuery<
-		Types.GetLogsErrorObjectsQuery,
-		Types.GetLogsErrorObjectsQueryVariables
-	>(GetLogsErrorObjectsDocument, baseOptions)
+		Types.GetLogsRelatedResourcesQuery,
+		Types.GetLogsRelatedResourcesQueryVariables
+	>(GetLogsRelatedResourcesDocument, baseOptions)
 }
-export function useGetLogsErrorObjectsLazyQuery(
+export function useGetLogsRelatedResourcesLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetLogsErrorObjectsQuery,
-		Types.GetLogsErrorObjectsQueryVariables
+		Types.GetLogsRelatedResourcesQuery,
+		Types.GetLogsRelatedResourcesQueryVariables
 	>,
 ) {
 	return Apollo.useLazyQuery<
-		Types.GetLogsErrorObjectsQuery,
-		Types.GetLogsErrorObjectsQueryVariables
-	>(GetLogsErrorObjectsDocument, baseOptions)
+		Types.GetLogsRelatedResourcesQuery,
+		Types.GetLogsRelatedResourcesQueryVariables
+	>(GetLogsRelatedResourcesDocument, baseOptions)
 }
-export type GetLogsErrorObjectsQueryHookResult = ReturnType<
-	typeof useGetLogsErrorObjectsQuery
+export type GetLogsRelatedResourcesQueryHookResult = ReturnType<
+	typeof useGetLogsRelatedResourcesQuery
 >
-export type GetLogsErrorObjectsLazyQueryHookResult = ReturnType<
-	typeof useGetLogsErrorObjectsLazyQuery
+export type GetLogsRelatedResourcesLazyQueryHookResult = ReturnType<
+	typeof useGetLogsRelatedResourcesLazyQuery
 >
-export type GetLogsErrorObjectsQueryResult = Apollo.QueryResult<
-	Types.GetLogsErrorObjectsQuery,
-	Types.GetLogsErrorObjectsQueryVariables
+export type GetLogsRelatedResourcesQueryResult = Apollo.QueryResult<
+	Types.GetLogsRelatedResourcesQuery,
+	Types.GetLogsRelatedResourcesQueryVariables
 >
 export const GetProjectSettingsDocument = gql`
 	query GetProjectSettings($projectId: ID!) {

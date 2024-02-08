@@ -40,6 +40,14 @@ const PARENT_SPAN_ID_COLUMN: TraceCustomColumn = {
 	accessKey: 'parentSpanID',
 }
 
+const SPAN_ID_COLUMN: TraceCustomColumn = {
+	id: 'span_id',
+	label: 'Span ID',
+	type: 'string',
+	size: '1fr',
+	accessKey: 'spanID',
+}
+
 const SECURE_SESSION_ID_COLUMN: TraceCustomColumn = {
 	id: 'secure_session_id',
 	label: 'Secure Session ID',
@@ -103,6 +111,7 @@ export const HIGHLIGHT_STANDARD_COLUMNS: Record<string, TraceCustomColumn> = {
 	service_version: SERVICE_VERSION_COLUMN,
 	trace_id: TRACE_ID_COLUMN,
 	parent_span_id: PARENT_SPAN_ID_COLUMN,
+	span_id: SPAN_ID_COLUMN,
 	secure_session_id: SECURE_SESSION_ID_COLUMN,
 	has_errors: HAS_ERRORS_COLUMN,
 	duration: DURATION_COLUMN,
