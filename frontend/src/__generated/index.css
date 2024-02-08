@@ -7483,6 +7483,12 @@ body {
   padding-top: 5.5px;
   padding-bottom: 5.5px;
 }
+._1fmffum0:first-of-type {
+  border-right: none;
+}
+._1fmffum0:last-of-type {
+  border-left: none;
+}
 ._1r8lbz42 {
   background-color: var(--_1pyqka91k);
   border: 1px solid transparent;
