@@ -1,23 +1,13 @@
 import {
-	Box,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
-	Tag,
 } from '@highlight-run/ui/components'
 import moment from 'moment'
 import { createSearchParams } from 'react-router-dom'
 
-import { Link } from '@/components/Link'
+import { TagGroup } from '@/components/TagGroup'
 import { useProjectId } from '@/hooks/useProjectId'
-
-import * as styles from './style.css'
-
-const TAG_PROPS = {
-	size: 'medium',
-	kind: 'secondary',
-	emphasis: 'medium',
-} as const
 
 type Props = {
 	traceId?: string
@@ -27,12 +17,22 @@ type Props = {
 	endDate: Date
 }
 
-const getErrorsLink = (
-	projectId: string,
-	traceId: string,
-	startDate: Date,
-	endDate: Date,
-) => {
+type LinkProps = {
+	projectId: string
+	startDate: Date
+	endDate: Date
+	traceId?: string
+	secureSessionId?: string
+}
+
+const getErrorsLink = ({
+	projectId,
+	traceId,
+	startDate,
+	endDate,
+}: LinkProps) => {
+	if (!traceId) return ''
+
 	const params = createSearchParams({
 		query: `and||error-field_trace_id,is,${traceId}`,
 		start_date: moment(startDate).subtract(5, 'minutes').toISOString(),
@@ -42,11 +42,13 @@ const getErrorsLink = (
 	return `/${projectId}/errors?${params}`
 }
 
-const getSessionLink = (
-	projectId: string,
-	secureSessionId: string,
-	startDate: Date,
-) => {
+const getSessionLink = ({
+	projectId,
+	secureSessionId,
+	startDate,
+}: LinkProps) => {
+	if (!secureSessionId) return ''
+
 	const params = createSearchParams({
 		tsAbs: startDate.toISOString(),
 	})
@@ -54,12 +56,7 @@ const getSessionLink = (
 	return `/${projectId}/sessions/${secureSessionId}?${params}`
 }
 
-const getLogsLink = (
-	projectId: string,
-	traceId: string,
-	startDate: Date,
-	endDate: Date,
-) => {
+const getLogsLink = ({ projectId, traceId, startDate, endDate }: LinkProps) => {
 	const params = createSearchParams({
 		query: `trace_id=${traceId}`,
 		start_date: moment(startDate).subtract(5, 'minutes').toISOString(),
@@ -81,49 +78,40 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 	const sessionLinkDisabled = !traceId || !secureSessionId
 	const logsLinkDisabled = !traceId
 
-	const errorLink = errorLinkDisabled
-		? ''
-		: getErrorsLink(projectId, traceId, startDate, endDate)
-	const sessionLink = sessionLinkDisabled
-		? ''
-		: getSessionLink(projectId, secureSessionId, startDate)
-
-	const logsLink = logsLinkDisabled
-		? ''
-		: getLogsLink(projectId, traceId, startDate, endDate)
+	const errorLink = getErrorsLink({ projectId, traceId, startDate, endDate })
+	const sessionLink = getSessionLink({
+		projectId,
+		secureSessionId,
+		startDate,
+		endDate,
+	})
+	const logsLink = getLogsLink({ projectId, traceId, startDate, endDate })
 
 	return (
-		<Box>
-			<Link to={errorLink} className={styles.tagLink} reloadDocument>
-				<Tag
-					{...TAG_PROPS}
-					shape="leftBasic"
-					iconLeft={<IconSolidLightningBolt />}
-					disabled={errorLinkDisabled}
-				>
-					View errors
-				</Tag>
-			</Link>
-			<Link to={sessionLink} className={styles.tagLink}>
-				<Tag
-					{...TAG_PROPS}
-					shape="square"
-					iconLeft={<IconSolidPlayCircle />}
-					disabled={sessionLinkDisabled}
-				>
-					View session
-				</Tag>
-			</Link>
-			<Link to={logsLink} className={styles.tagLink}>
-				<Tag
-					{...TAG_PROPS}
-					shape="rightBasic"
-					iconLeft={<IconSolidLogs />}
-					disabled={logsLinkDisabled}
-				>
-					View logs
-				</Tag>
-			</Link>
-		</Box>
+		<TagGroup
+			tagLinks={[
+				{
+					key: 'errors',
+					href: errorLink,
+					disabled: errorLinkDisabled,
+					icon: <IconSolidLightningBolt />,
+					label: 'View errors',
+				},
+				{
+					key: 'session',
+					href: sessionLink,
+					disabled: sessionLinkDisabled,
+					icon: <IconSolidPlayCircle />,
+					label: 'View session',
+				},
+				{
+					key: 'logs',
+					href: logsLink,
+					disabled: logsLinkDisabled,
+					icon: <IconSolidLogs />,
+					label: 'View logs',
+				},
+			]}
+		/>
 	)
 }
