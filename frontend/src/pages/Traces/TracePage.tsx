@@ -34,6 +34,7 @@ export const TracePage: React.FC = () => {
 		highlightedSpan,
 		loading,
 		startTime,
+		endTime,
 		traces,
 		traceName,
 		traceId,
@@ -75,6 +76,8 @@ export const TracePage: React.FC = () => {
 						traceId={traceId}
 						secureSessionId={secureSessionId}
 						disableErrors={!errors?.length}
+						startDate={new Date(startTime)}
+						endDate={new Date(endTime)}
 					/>
 				</Stack>
 			</Stack>
