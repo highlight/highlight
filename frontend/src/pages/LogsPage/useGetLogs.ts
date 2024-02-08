@@ -199,7 +199,12 @@ export const useGetLogs = ({
 	).map((e) => ({
 		...e,
 		error_object: (logRelatedResources?.logs_error_objects || []).find(
-			(leo) => leo.log_cursor === e.cursor,
+			(
+				leo: Pick<
+					Types.ErrorObject,
+					'log_cursor' | 'error_group_secure_id' | 'id'
+				>,
+			) => leo.log_cursor === e.cursor,
 		),
 		traceExist: !!e.node.traceID && existingTraceSet.has(e.node.traceID),
 	}))
