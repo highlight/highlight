@@ -17,55 +17,6 @@ type Props = {
 	endDate: Date
 }
 
-type LinkProps = {
-	projectId: string
-	startDate: Date
-	endDate: Date
-	traceId?: string
-	secureSessionId?: string
-}
-
-const getErrorsLink = ({
-	projectId,
-	traceId,
-	startDate,
-	endDate,
-}: LinkProps) => {
-	if (!traceId) return ''
-
-	const params = createSearchParams({
-		query: `and||error-field_trace_id,is,${traceId}`,
-		start_date: moment(startDate).subtract(5, 'minutes').toISOString(),
-		end_date: moment(endDate).add(5, 'minutes').toISOString(),
-	})
-
-	return `/${projectId}/errors?${params}`
-}
-
-const getSessionLink = ({
-	projectId,
-	secureSessionId,
-	startDate,
-}: LinkProps) => {
-	if (!secureSessionId) return ''
-
-	const params = createSearchParams({
-		tsAbs: startDate.toISOString(),
-	})
-
-	return `/${projectId}/sessions/${secureSessionId}?${params}`
-}
-
-const getLogsLink = ({ projectId, traceId, startDate, endDate }: LinkProps) => {
-	const params = createSearchParams({
-		query: `trace_id=${traceId}`,
-		start_date: moment(startDate).subtract(5, 'minutes').toISOString(),
-		end_date: moment(endDate).add(5, 'minutes').toISOString(),
-	})
-
-	return `/${projectId}/logs?${params}`
-}
-
 export const RelatedResourceButtons: React.FC<Props> = ({
 	traceId,
 	secureSessionId,
@@ -114,4 +65,53 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 			]}
 		/>
 	)
+}
+
+type LinkProps = {
+	projectId: string
+	startDate: Date
+	endDate: Date
+	traceId?: string
+	secureSessionId?: string
+}
+
+const getErrorsLink = ({
+	projectId,
+	traceId,
+	startDate,
+	endDate,
+}: LinkProps) => {
+	if (!traceId) return ''
+
+	const params = createSearchParams({
+		query: `and||error-field_trace_id,is,${traceId}`,
+		start_date: moment(startDate).subtract(5, 'minutes').toISOString(),
+		end_date: moment(endDate).add(5, 'minutes').toISOString(),
+	})
+
+	return `/${projectId}/errors?${params}`
+}
+
+const getSessionLink = ({
+	projectId,
+	secureSessionId,
+	startDate,
+}: LinkProps) => {
+	if (!secureSessionId) return ''
+
+	const params = createSearchParams({
+		tsAbs: startDate.toISOString(),
+	})
+
+	return `/${projectId}/sessions/${secureSessionId}?${params}`
+}
+
+const getLogsLink = ({ projectId, traceId, startDate, endDate }: LinkProps) => {
+	const params = createSearchParams({
+		query: `trace_id=${traceId}`,
+		start_date: moment(startDate).subtract(5, 'minutes').toISOString(),
+		end_date: moment(endDate).add(5, 'minutes').toISOString(),
+	})
+
+	return `/${projectId}/logs?${params}`
 }
