@@ -40,7 +40,12 @@ export const TagGroup: React.FC<Props> = ({ tagLinks }) => {
 				const href = tag.disabled ? '' : tag.href
 
 				return (
-					<Link to={href} className={styles.tagLink} key={tag.key}>
+					<Link
+						to={href}
+						className={styles.tagLink}
+						key={tag.key}
+						reloadDocument={tag.reloadDocument}
+					>
 						<Tag
 							{...TAG_PROPS}
 							shape={shape}
