@@ -54,7 +54,7 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 					{...TAG_PROPS}
 					shape="square"
 					iconLeft={<IconSolidPlayCircle />}
-					disabled={!traceId || !secureSessionId}
+					disabled={sessionLinkDisabled}
 				>
 					View session
 				</Tag>
@@ -67,7 +67,7 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 					{...TAG_PROPS}
 					shape="rightBasic"
 					iconLeft={<IconSolidLogs />}
-					disabled={!traceId}
+					disabled={logsLinkDisabled}
 				>
 					View logs
 				</Tag>
