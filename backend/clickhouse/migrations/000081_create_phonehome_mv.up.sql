@@ -6,14 +6,13 @@ CREATE TABLE phonehome (
     ServiceVersion String,
     TraceAttributes Map(LowCardinality(String), String)
 )
-ENGINE = MergeTree
+ENGINE = ReplacingMergeTree
 ORDER BY (SpanName, Timestamp, UUID);
 
 CREATE MATERIALIZED VIEW phonehome_mv TO phonehome AS
 select Timestamp, UUID, SpanName, ServiceName, ServiceVersion, TraceAttributes
 from traces
 where ProjectId = 1
-  and Timestamp > now() - interval 1 hour
   and TraceAttributes['highlight.type'] = 'highlight.phonehome'
   and TraceAttributes['highlight-doppler-config'] like 'docker%';
 
