@@ -47,6 +47,7 @@ const MetricNumCPU = "highlight-num-cpu"
 const SpanDeployment = "highlight-phone-home-deployment-id"
 const SpanDopplerConfig = "highlight-doppler-config"
 const SpanHighlightVersion = "highlight-version"
+const SpanOnPrem = "highlight-is-onprem"
 
 func IsOptedOut(_ context.Context) bool {
 	return false
@@ -70,6 +71,7 @@ func GetDefaultAttributes() ([]attribute.KeyValue, error) {
 		attribute.String(SpanDeployment, cfg.PhoneHomeDeploymentID),
 		attribute.String(SpanDopplerConfig, util.DopplerConfig),
 		attribute.String(SpanHighlightVersion, util.Version),
+		attribute.String(SpanOnPrem, util.OnPrem),
 	}, nil
 }
 

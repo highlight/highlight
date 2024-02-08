@@ -43,5 +43,6 @@ When you start highlight for development or a hobby deploy, our scripts will sha
 | Name                     | Description                                        | Type   |
 |--------------------------|----------------------------------------------------|--------|
 | version                  | Highlight version sha                              | string |
+| is-onprem                | Value of env var ON_PREM                           | string |
 | doppler-config           | When doppler is used, the name of the environment. | string |
 | phone-home-deployment-id | A randomly-generated deployment identifier.        | string |
