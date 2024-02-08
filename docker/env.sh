@@ -10,10 +10,10 @@ export OBJECT_STORAGE_FS=/tmp/highlight-data
 export REACT_APP_AUTH_MODE=password
 
 if [[ "$*" == *"--go-docker"* ]]; then
+    export OTLP_ENDPOINT=https://otel.highlight.io:4318
     export IN_DOCKER_GO=true
     echo "Using docker-internal infra."
 else
-    export OTLP_ENDPOINT=http://localhost:4318
     export CLICKHOUSE_ADDRESS=localhost:9000
     export KAFKA_SERVERS=localhost:9092
     export PSQL_HOST=localhost
