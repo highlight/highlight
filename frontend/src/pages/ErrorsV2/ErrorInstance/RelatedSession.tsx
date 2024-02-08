@@ -5,6 +5,7 @@ import { useAuthContext } from '@/authentication/AuthContext'
 import { Link } from '@/components/Link'
 import { GetErrorInstanceQuery } from '@/graph/generated/operations'
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
+import analytics from '@/util/analytics'
 
 const getSessionLink = (data: GetErrorInstanceQuery | undefined): string => {
 	const errorObject = data?.error_instance?.error_object
@@ -44,7 +45,14 @@ export const RelatedSession = ({ data }: Props) => {
 	const sessionLink = getSessionLink(data)
 
 	const tag = (
-		<Link to={sessionLink}>
+		<Link
+			to={sessionLink}
+			onClick={() =>
+				analytics.track('View related session on error', {
+					path: sessionLink,
+				})
+			}
+		>
 			<Tag
 				kind="secondary"
 				emphasis="high"

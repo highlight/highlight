@@ -39,7 +39,7 @@ export const TracePage: React.FC = () => {
 	} = useTrace()
 
 	useEffect(() => {
-		analytics.page()
+		analytics.page('Trace')
 	}, [traceId])
 
 	if (!traces?.length) {
@@ -77,7 +77,13 @@ export const TracePage: React.FC = () => {
 			<Box pt="20">
 				<Tabs<TraceTabs>
 					tab={activeTab}
-					setTab={(tab) => setActiveTab(tab)}
+					setTab={(tab) => {
+						analytics.track(`View trace tab`, {
+							tab,
+						})
+
+						setActiveTab(tab)
+					}}
 					containerClass={styles.tabs}
 					tabsContainerClass={styles.tabsContainer}
 					pageContainerClass={styles.tabsPageContainer}

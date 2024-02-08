@@ -248,11 +248,12 @@ function NetworkResourceDetails({
 	}, [resource.id])
 
 	useEffect(() => {
-		analytics.page(
-			`/sessions/${sessionSecureId}/network-resource/${
+		analytics.page('Network Resource Details', {
+			path: `/sessions/${sessionSecureId}/network-resource/${
 				resource.id
 			}/${camelCase(activeTab)}`,
-		)
+			tab: camelCase(activeTab),
+		})
 	}, [activeTab, resource.id, sessionSecureId])
 
 	return (

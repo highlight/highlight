@@ -173,7 +173,7 @@ export const TracesPage: React.FC = () => {
 		return traceEdges.map((edge) => edge.node)
 	}, [traceEdges])
 
-	useEffect(() => analytics.page(), [])
+	useEffect(() => analytics.page('Traces'), [])
 
 	return (
 		<>
