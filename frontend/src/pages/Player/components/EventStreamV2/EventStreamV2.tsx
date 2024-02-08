@@ -6,7 +6,6 @@ import {
 	IconSolidSearch,
 	useFormStore,
 } from '@highlight-run/ui/components'
-import { useEventTypeFilters } from '@pages/Player/components/EventStream/hooks/useEventTypeFilters'
 import { StreamEventV2 } from '@pages/Player/components/EventStreamV2/StreamEventV2/StreamEventV2'
 import {
 	getFilteredEvents,
@@ -17,6 +16,7 @@ import {
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	ReplayerState,
 	useReplayerContext,
@@ -59,7 +59,7 @@ const EventStreamV2 = function () {
 		},
 	})
 	const searchQuery = formStore.useValue('search')
-	const eventTypeFilters = useEventTypeFilters()
+	const { selectedTimelineAnnotationTypes } = usePlayerConfiguration()
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const { data } = useGetWebVitalsQuery({
 		variables: {
@@ -92,8 +92,13 @@ const EventStreamV2 = function () {
 
 	const usefulEvents = useMemo(() => events.filter(usefulEvent), [events])
 	const filteredEvents = useMemo(
-		() => getFilteredEvents(searchQuery!, usefulEvents, eventTypeFilters),
-		[eventTypeFilters, searchQuery, usefulEvents],
+		() =>
+			getFilteredEvents(
+				searchQuery!,
+				usefulEvents,
+				new Set(selectedTimelineAnnotationTypes),
+			),
+		[selectedTimelineAnnotationTypes, searchQuery, usefulEvents],
 	)
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -146,7 +151,7 @@ const EventStreamV2 = function () {
 								align="center"
 								as="label"
 								gap="6"
-								color="weak"
+								color="secondaryContentText"
 							>
 								<IconSolidSearch size={16} />
 								<Form.Input
