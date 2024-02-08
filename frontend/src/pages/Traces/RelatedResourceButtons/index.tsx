@@ -6,6 +6,8 @@ import {
 	Tag,
 } from '@highlight-run/ui/components'
 
+import { Link } from '@/components/Link'
+
 import * as styles from './style.css'
 
 const TAG_PROPS = {
@@ -14,33 +16,62 @@ const TAG_PROPS = {
 	emphasis: 'medium',
 } as const
 
-export const RelatedResourceButtons: React.FC = () => {
+type Props = {
+	traceId?: string
+	secureSessionId?: string
+	disableErrors: boolean
+}
+
+export const RelatedResourceButtons: React.FC<Props> = ({
+	traceId,
+	secureSessionId,
+	disableErrors,
+}) => {
+	const errorLinkDisabled = !traceId || disableErrors
+	const sessionLinkDisabled = !traceId || !secureSessionId
+	const logsLinkDisabled = !traceId
+
 	return (
 		<Box>
-			<Tag
-				{...TAG_PROPS}
-				shape="leftBasic"
-				iconLeft={<IconSolidLightningBolt />}
-				className={styles.tagButton}
+			<Link
+				to={errorLinkDisabled ? '' : '/errors'}
+				className={styles.tagLink}
 			>
-				View errors
-			</Tag>
-			<Tag
-				{...TAG_PROPS}
-				shape="square"
-				iconLeft={<IconSolidPlayCircle />}
-				className={styles.tagButton}
+				<Tag
+					{...TAG_PROPS}
+					shape="leftBasic"
+					iconLeft={<IconSolidLightningBolt />}
+					disabled={errorLinkDisabled}
+				>
+					View errors
+				</Tag>
+			</Link>
+			<Link
+				to={sessionLinkDisabled ? '' : `/sessions/${secureSessionId}`}
+				className={styles.tagLink}
 			>
-				View session
-			</Tag>
-			<Tag
-				{...TAG_PROPS}
-				shape="rightBasic"
-				iconLeft={<IconSolidLogs />}
-				className={styles.tagButton}
+				<Tag
+					{...TAG_PROPS}
+					shape="square"
+					iconLeft={<IconSolidPlayCircle />}
+					disabled={!traceId || !secureSessionId}
+				>
+					View session
+				</Tag>
+			</Link>
+			<Link
+				to={logsLinkDisabled ? '' : '/logs'}
+				className={styles.tagLink}
 			>
-				View logs
-			</Tag>
+				<Tag
+					{...TAG_PROPS}
+					shape="rightBasic"
+					iconLeft={<IconSolidLogs />}
+					disabled={!traceId}
+				>
+					View logs
+				</Tag>
+			</Link>
 		</Box>
 	)
 }

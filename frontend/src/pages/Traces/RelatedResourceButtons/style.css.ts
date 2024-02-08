@@ -1,12 +1,11 @@
-import { style } from '@vanilla-extract/css'
+import { globalStyle, style } from '@vanilla-extract/css'
 
-export const tagButton = style({
-	selectors: {
-		[`&:first-of-type`]: {
-			borderRight: 'none',
-		},
-		[`&:last-of-type`]: {
-			borderLeft: 'none',
-		},
-	},
+export const tagLink = style({})
+
+globalStyle(`${tagLink}:first-of-type > button`, {
+	borderRight: 'none',
+})
+
+globalStyle(`${tagLink}:last-of-type > button`, {
+	borderLeft: 'none',
 })

@@ -37,6 +37,7 @@ export const TracePage: React.FC = () => {
 		traces,
 		traceName,
 		traceId,
+		secureSessionId,
 	} = useTrace()
 
 	useEffect(() => {
@@ -70,7 +71,11 @@ export const TracePage: React.FC = () => {
 							label={durationString}
 						/>
 					</Stack>
-					<RelatedResourceButtons />
+					<RelatedResourceButtons
+						traceId={traceId}
+						secureSessionId={secureSessionId}
+						disableErrors={!errors?.length}
+					/>
 				</Stack>
 			</Stack>
 

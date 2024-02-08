@@ -7483,10 +7483,10 @@ body {
   padding-top: 5.5px;
   padding-bottom: 5.5px;
 }
-._1fmffum0:first-of-type {
+._1fmffum0:first-of-type > button {
   border-right: none;
 }
-._1fmffum0:last-of-type {
+._1fmffum0:last-of-type > button {
   border-left: none;
 }
 ._1r8lbz42 {

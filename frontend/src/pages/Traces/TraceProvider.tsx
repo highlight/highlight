@@ -24,6 +24,7 @@ type TraceContext = {
 	traces: FlameGraphSpan[][]
 	error?: ApolloError
 	traceId?: string
+	secureSessionId?: string
 	setHoveredSpan: (span?: FlameGraphSpan) => void
 	setSelectedSpan: (span?: FlameGraphSpan) => void
 }
@@ -129,6 +130,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 				traceId,
 				traces,
 				error,
+				secureSessionId: session_secure_id,
 				setHoveredSpan,
 				setSelectedSpan,
 			}}
