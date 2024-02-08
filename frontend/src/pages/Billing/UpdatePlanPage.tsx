@@ -1259,7 +1259,7 @@ const FAQ = [
 	},
 	{
 		question: 'Should I use your Cloud product or self-host highlight?',
-		answer: 'It is easier to get started with Highlight Cloud, and we have a generous monthly free tier. If you have complex data sovereignty requirements, you will likely need to self-hosted plan.',
+		answer: 'It is easier to get started with Highlight Cloud, and we have a generous monthly free tier. If you have complex data sovereignty requirements, you will likely need a self-hosted plan.',
 	},
 	{
 		question: 'Can I migrate between Cloud and self-hosted Highlight?',
