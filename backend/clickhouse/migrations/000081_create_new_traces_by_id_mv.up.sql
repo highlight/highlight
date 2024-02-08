@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS new_traces_by_id (
+CREATE TABLE IF NOT EXISTS traces_by_id_new (
     `Timestamp` DateTime64(9),
     `UUID` UUID,
     `TraceId` String,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS new_traces_by_id (
         PARTITION BY substring(toString(UUID), 1, 1) 
         ORDER BY (ProjectId, TraceId)
         TTL toDateTime(Timestamp) + toIntervalDay(30);
-CREATE MATERIALIZED VIEW IF NOT EXISTS new_traces_by_id_mv TO new_traces_by_id (
+CREATE MATERIALIZED VIEW IF NOT EXISTS traces_by_id_new_mv TO traces_by_id_new (
     `Timestamp` DateTime64(9),
     `UUID` UUID,
     `TraceId` String,
