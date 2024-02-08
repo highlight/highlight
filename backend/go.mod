@@ -50,6 +50,7 @@ require (
 	github.com/google/uuid v1.4.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/hashicorp/go-retryablehttp v0.7.5
+	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/highlight/go-oauth2-redis/v4 v4.1.4
 	github.com/highlight/highlight/sdk/highlight-go v0.9.13
