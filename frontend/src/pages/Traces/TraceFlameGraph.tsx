@@ -137,12 +137,16 @@ export const TraceFlameGraph: React.FC = () => {
 
 	const handleZoomFactorChange = useCallback(
 		(dz: number, mouseX?: number) => {
-			setZoom((currentZoom) => {
+			setZoom((prevZoom) => {
 				const factor = dz < 0 ? 1 - dz : 1 / (1 + dz)
 				const newZoom = Math.min(
-					Math.max(currentZoom * factor, 1),
+					Math.max(prevZoom * factor, 1),
 					MAX_ZOOM,
 				)
+
+				let newScrollPosition =
+					(svgContainerRef.current?.scrollLeft ?? 0) *
+					(newZoom / prevZoom)
 
 				if (mouseX !== undefined) {
 					const scrollX = svgContainerRef.current?.scrollLeft ?? 0
@@ -150,14 +154,14 @@ export const TraceFlameGraph: React.FC = () => {
 						mouseX -
 						svgContainerRef.current!.getBoundingClientRect().left
 					const contentX = mouseOffset + scrollX
-					const newContentX = contentX * (newZoom / currentZoom)
-					const newScrollPosition = newContentX - mouseOffset
-
-					requestAnimationFrame(() => {
-						svgContainerRef.current?.scrollTo(newScrollPosition, 0)
-						setX(newScrollPosition)
-					})
+					const newContentX = contentX * (newZoom / prevZoom)
+					newScrollPosition = newContentX - mouseOffset
 				}
+
+				requestAnimationFrame(() => {
+					svgContainerRef.current?.scrollTo(newScrollPosition, 0)
+					setX(newScrollPosition)
+				})
 
 				return newZoom
 			})
