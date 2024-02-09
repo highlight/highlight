@@ -11,7 +11,7 @@ receivers:
         listen_address: '0.0.0.0:34302'
 exporters:
     otlphttp:
-        endpoint: 'http://pub.highlight.io/otel'
+        endpoint: 'http://pub.highlight.io:8082/otel'
         compression: gzip
         timeout: 30s
         read_buffer_size: 8192
