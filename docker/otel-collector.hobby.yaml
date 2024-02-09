@@ -34,6 +34,8 @@ processors:
         timeout: 1s
 service:
     telemetry:
+        logs:
+            level: 'info'
         metrics:
             address: '0.0.0.0:8888'
             level: detailed

@@ -11,9 +11,12 @@ receivers:
         listen_address: '0.0.0.0:34302'
 exporters:
     otlphttp:
-        endpoint: 'https://pub.highlight.run/otel'
+        endpoint: 'http://pub.highlight.io/otel'
         compression: gzip
         timeout: 30s
+        read_buffer_size: 8192
+        write_buffer_size: 8192
+        max_conns_per_host: 1024
         sending_queue:
             num_consumers: 64
             queue_size: 16384
@@ -32,6 +35,8 @@ processors:
         timeout: 1s
 service:
     telemetry:
+        logs:
+            level: 'info'
         metrics:
             address: '0.0.0.0:8888'
             level: detailed
