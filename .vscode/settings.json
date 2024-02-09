@@ -88,14 +88,17 @@
 		"**/yarn-error.log": true
 	},
 	"cSpell.words": [
+		"alexdanilo",
 		"Algora",
 		"autoinject",
 		"Autoinjected",
 		"Blocklist",
 		"Clickhouse",
+		"Danilowicz",
 		"Esplin",
 		"incentivizing",
 		"interactable",
+		"magicpatterns",
 		"munge",
 		"opentelemetry",
 		"otel",
@@ -104,6 +107,7 @@
 		"runtimes",
 		"snapshotting",
 		"statfs",
+		"teddarific",
 		"unlisten",
 		"unobfuscated",
 		"Vadim"
