@@ -210,7 +210,7 @@ export const TraceFlameGraph: React.FC = () => {
 
 			// Some browers report ctrlKey as true when using a pinch gesture on a
 			// trackpad. This is where the pinch to zoom functionality comes from.
-			if (ctrlKey || metaKey) {
+			if ((ctrlKey || metaKey) && deltaY !== 0) {
 				event.preventDefault()
 				event.stopPropagation()
 
