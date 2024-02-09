@@ -145,8 +145,10 @@ export const TraceFlameGraph: React.FC = () => {
 				)
 
 				let newScrollPosition =
-					(svgContainerRef.current?.scrollLeft ?? 0) *
-					(newZoom / prevZoom)
+					((svgContainerRef.current?.scrollLeft ?? 0) +
+						(svgContainerRef.current?.clientWidth ?? 0) / 2) *
+						(newZoom / prevZoom) -
+					(svgContainerRef.current?.clientWidth ?? 0) / 2
 
 				if (mouseX !== undefined) {
 					const scrollX = svgContainerRef.current?.scrollLeft ?? 0
