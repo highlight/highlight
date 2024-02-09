@@ -272,6 +272,9 @@
         "./components": "./components/index.ts",
         "./styles.css": "./noop.ts",
       },
+      "storybookCompatibility": {
+        "testStories": true,
+      },
       "npmPackages": {
         "ariakit": {
           "entryPoints": [
