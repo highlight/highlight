@@ -11,7 +11,7 @@ receivers:
         listen_address: '0.0.0.0:34302'
 exporters:
     otlphttp:
-        endpoint: 'http://pub.highlight.io:8082/otel'
+        endpoint: 'http://pub.highlight.prod.vpc:8082/otel'
         compression: gzip
         timeout: 30s
         read_buffer_size: 8192
@@ -27,8 +27,8 @@ exporters:
 processors:
     memory_limiter:
         check_interval: 0.1s
-        limit_mib: 11470
-        spike_limit_mib: 1024
+        limit_mib: 3072
+        spike_limit_mib: 256
     batch:
         send_batch_size: 256
         send_batch_max_size: 256
@@ -59,4 +59,4 @@ extensions:
         endpoint: '0.0.0.0:4319'
         path: '/health/status'
     memory_ballast:
-        size_mib: 3276
+        size_mib: 820
