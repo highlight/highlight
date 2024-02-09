@@ -27,8 +27,8 @@ exporters:
 processors:
     memory_limiter:
         check_interval: 0.1s
-        limit_mib: 3072
-        spike_limit_mib: 256
+        limit_mib: 11470
+        spike_limit_mib: 1024
     batch:
         send_batch_size: 256
         send_batch_max_size: 256
@@ -59,4 +59,4 @@ extensions:
         endpoint: '0.0.0.0:4319'
         path: '/health/status'
     memory_ballast:
-        size_mib: 820
+        size_mib: 3276
