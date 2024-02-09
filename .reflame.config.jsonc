@@ -3,9 +3,9 @@
   // It's basically JSON, with the addition of comments, and looser syntax
   // (trailing commas!).
   // Reflame uses this to identify your app.
-  "appId": "01GVH35S71FJP26W72V3K7CB2N", // prod
+  // "appId": "01GVH35S71FJP26W72V3K7CB2N", // prod
   // "appId": "01GSXZYQT1W0TZDJAG94P9S4BZ", // prod fork
-  // "appId": "01GR550WASJY2G2NSYZ4P54JJV", // dev
+  "appId": "01GR550WASJY2G2NSYZ4P54JJV", // dev
   // This is what shows up in the browser's tab bar.
   "title": "highlight.io",
   // This is the description that shows up in Google search.
