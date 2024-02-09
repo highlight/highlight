@@ -135,30 +135,39 @@ export const TraceFlameGraph: React.FC = () => {
 		[],
 	)
 
-	const handleZoom = useCallback(
+	const handleZoomFactorChange = useCallback(
 		(dz: number, mouseX?: number) => {
-			const factor = dz < 0 ? 1 - dz : 1 / (1 + dz)
-			const newZoom = Math.min(Math.max(zoom * factor, 1), MAX_ZOOM)
+			setZoom((currentZoom) => {
+				const factor = dz < 0 ? 1 - dz : 1 / (1 + dz)
+				const newZoom = Math.min(
+					Math.max(currentZoom * factor, 1),
+					MAX_ZOOM,
+				)
 
-			if (mouseX !== undefined) {
-				const scrollX = svgContainerRef.current?.scrollLeft ?? 0
-				const mouseOffset =
-					mouseX -
-					svgContainerRef.current!.getBoundingClientRect().left
-				const contentX = mouseOffset + scrollX
-				const newContentX = contentX * (newZoom / zoom)
-				const newScrollPosition = newContentX - mouseOffset
+				if (mouseX !== undefined) {
+					const scrollX = svgContainerRef.current?.scrollLeft ?? 0
+					const mouseOffset =
+						mouseX -
+						svgContainerRef.current!.getBoundingClientRect().left
+					const contentX = mouseOffset + scrollX
+					const newContentX = contentX * (newZoom / currentZoom)
+					const newScrollPosition = newContentX - mouseOffset
 
-				updateZoom(newZoom, newScrollPosition)
-			} else {
-				updateZoom(newZoom)
-			}
+					requestAnimationFrame(() => {
+						svgContainerRef.current?.scrollTo(newScrollPosition, 0)
+						setX(newScrollPosition)
+					})
+				}
+
+				return newZoom
+			})
 		},
-		[updateZoom, zoom],
+		[],
 	)
-	const throttledHandleZoom = useMemo(
-		() => throttle(handleZoom, 50),
-		[handleZoom],
+
+	const throttledHandleZoomFactorChange = useMemo(
+		() => throttle(handleZoomFactorChange, 50),
+		[handleZoomFactorChange],
 	)
 
 	const handleScroll = useCallback(
@@ -199,7 +208,10 @@ export const TraceFlameGraph: React.FC = () => {
 				event.preventDefault()
 				event.stopPropagation()
 
-				throttledHandleZoom(deltaY / ZOOM_SCALING_FACTOR, event.clientX)
+				throttledHandleZoomFactorChange(
+					deltaY / ZOOM_SCALING_FACTOR,
+					event.clientX,
+				)
 			}
 		},
 		{ passive: false },
@@ -466,7 +478,7 @@ export const TraceFlameGraph: React.FC = () => {
 			<Box p="2" borderTop="dividerWeak">
 				<Stack gap="2" direction="row" align="center">
 					<ButtonIcon
-						onClick={() => handleZoom(0.5)}
+						onClick={() => handleZoomFactorChange(0.5)}
 						kind="secondary"
 						emphasis="low"
 						size="xSmall"
@@ -509,7 +521,7 @@ export const TraceFlameGraph: React.FC = () => {
 						/>
 					</Box>
 					<ButtonIcon
-						onClick={() => handleZoom(-0.5)}
+						onClick={() => handleZoomFactorChange(-0.5)}
 						kind="secondary"
 						emphasis="low"
 						size="xSmall"
