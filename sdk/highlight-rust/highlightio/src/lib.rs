@@ -1,12 +1,11 @@
-#[cfg(not(any(
-    feature = "sync",
-    feature = "tokio",
-    feature = "async-std"
-)))]
+#[cfg(not(any(feature = "sync", feature = "tokio", feature = "async-std")))]
 compile_error!("No runtime enabled for highlightio, please specify one of the following features: sync (default), tokio, async-std");
 
 use std::{
-    borrow::Cow, error::Error, sync::Arc, time::{Duration, SystemTime}
+    borrow::Cow,
+    error::Error,
+    sync::Arc,
+    time::{Duration, SystemTime},
 };
 
 use log::{Level, Log};
@@ -49,7 +48,7 @@ pub struct HighlightConfig {
     pub service_version: Option<String>,
 
     /// The current logger (implements log::Log).
-    /// 
+    ///
     /// By default, Highlight will initialize an env_logger for you, but if you want to provide a custom logger, you can specify it here.
     /// If you provide a custom logger, do not make it global, as Highlight will do it for you.
     pub logger: Box<dyn Log>,
@@ -76,11 +75,7 @@ struct HighlightInner {
 pub struct Highlight(Arc<HighlightInner>);
 
 impl Highlight {
-    #[cfg(not(any(
-        feature = "sync",
-        feature = "tokio",
-        feature = "async-std"
-    )))]
+    #[cfg(not(any(feature = "sync", feature = "tokio", feature = "async-std")))]
     fn install_pipelines(
         logging: OtlpLogPipeline<LogExporterBuilder>,
         tracing: OtlpTracePipeline<SpanExporterBuilder>,
@@ -96,10 +91,7 @@ impl Highlight {
         Ok((logging.install_simple()?, tracing.install_simple()?))
     }
 
-    #[cfg(all(
-        feature = "tokio",
-        not(any(feature = "sync"))
-    ))]
+    #[cfg(all(feature = "tokio", not(any(feature = "sync"))))]
     fn install_pipelines(
         logging: OtlpLogPipeline<LogExporterBuilder>,
         tracing: OtlpTracePipeline<SpanExporterBuilder>,
@@ -110,10 +102,7 @@ impl Highlight {
         ))
     }
 
-    #[cfg(all(
-        feature = "async-std",
-        not(any(feature = "sync", feature = "tokio"))
-    ))]
+    #[cfg(all(feature = "async-std", not(any(feature = "sync", feature = "tokio"))))]
     fn install_pipelines(
         logging: OtlpLogPipeline<LogExporterBuilder>,
         tracing: OtlpTracePipeline<SpanExporterBuilder>,
@@ -126,7 +115,10 @@ impl Highlight {
 
     fn get_default_resource(config: &HighlightConfig) -> Resource {
         let mut attrs = Vec::with_capacity(2);
-        attrs.push(KeyValue::new("highlight.project_id", config.project_id.clone()));
+        attrs.push(KeyValue::new(
+            "highlight.project_id",
+            config.project_id.clone(),
+        ));
 
         if let Some(service_name) = &config.service_name {
             attrs.push(KeyValue::new(SERVICE_NAME, service_name.to_owned()));
@@ -139,12 +131,13 @@ impl Highlight {
         Resource::new(attrs)
     }
 
-    fn make_install_pipelines(config: &HighlightConfig) -> Result<(Logger, Tracer), HighlightError> {
+    fn make_install_pipelines(
+        config: &HighlightConfig,
+    ) -> Result<(Logger, Tracer), HighlightError> {
         let logging = opentelemetry_otlp::new_pipeline()
             .logging()
             .with_log_config(
-                logs::Config::default()
-                    .with_resource(Self::get_default_resource(config)),
+                logs::Config::default().with_resource(Self::get_default_resource(config)),
             )
             .with_exporter(
                 opentelemetry_otlp::new_exporter()
@@ -177,7 +170,9 @@ impl Highlight {
     /// Initialize Highlight.
     pub fn init(config: HighlightConfig) -> Result<Highlight, HighlightError> {
         if config.project_id == String::default() {
-            return Err(HighlightError::Config("You must specify a project_id in your HighlightConfig".to_string()));
+            return Err(HighlightError::Config(
+                "You must specify a project_id in your HighlightConfig".to_string(),
+            ));
         }
 
         global::set_text_map_propagator(TraceContextPropagator::new());

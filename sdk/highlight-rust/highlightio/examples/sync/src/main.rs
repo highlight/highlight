@@ -9,7 +9,8 @@ fn main() {
     let h = Highlight::init(HighlightConfig {
         project_id,
         ..Default::default()
-    }).expect("Failed to initialize Highlight.io");
+    })
+    .expect("Failed to initialize Highlight.io");
 
     trace!("This is a trace! log. {:?}", "hi!");
     debug!("This is a debug! log. {}", 3 * 3);

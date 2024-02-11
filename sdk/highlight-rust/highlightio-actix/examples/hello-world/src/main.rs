@@ -1,5 +1,8 @@
 use actix_web::{get, App, Error, HttpServer, Responder};
-use highlightio_actix::{highlight::{Highlight, HighlightConfig}, HighlightActix};
+use highlightio_actix::{
+    highlight::{Highlight, HighlightConfig},
+    HighlightActix,
+};
 use log::info;
 
 #[get("/")]
@@ -25,7 +28,8 @@ async fn main() -> Result<(), Error> {
     let h = Highlight::init(HighlightConfig {
         project_id,
         ..Default::default()
-    }).expect("Failed to initialize Highlight.io");
+    })
+    .expect("Failed to initialize Highlight.io");
 
     HttpServer::new(move || {
         App::new()
