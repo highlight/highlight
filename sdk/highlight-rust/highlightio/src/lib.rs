@@ -237,6 +237,14 @@ impl Highlight {
     pub fn project_id(&self) -> String {
         self.0.config.project_id.clone()
     }
+
+    /// Shuts down the Highlight logger and tracer.
+    /// This allows for the logs and traces to flush while the runtime is still around.
+    /// If this method is not called, logs and traces that happened right before your app exits will not be transmitted to Highlight.
+    pub fn shutdown(self) {
+        global::shutdown_logger_provider();
+        global::shutdown_tracer_provider();
+    }
 }
 
 impl log::Log for Highlight {
@@ -267,12 +275,5 @@ impl log::Log for Highlight {
         if let Some(provider) = self.0.logger.provider() {
             provider.force_flush();
         }
-    }
-}
-
-impl Drop for HighlightInner {
-    fn drop(&mut self) {
-        global::shutdown_logger_provider();
-        global::shutdown_tracer_provider();
     }
 }

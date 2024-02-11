@@ -22,4 +22,6 @@ fn main() {
         std::io::ErrorKind::Other,
         "This is a dummy error.",
     ));
+
+    h.shutdown();
 }

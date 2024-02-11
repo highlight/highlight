@@ -31,15 +31,18 @@ async fn main() -> Result<(), Error> {
     })
     .expect("Failed to initialize Highlight.io");
 
+    let _h = h.clone();
     HttpServer::new(move || {
         App::new()
-            .wrap(HighlightActix::new(&h))
+            .wrap(HighlightActix::new(&_h))
             .service(index)
             .service(error)
     })
     .bind("127.0.0.1:8080")?
     .run()
     .await?;
+
+    h.shutdown();
 
     Ok(())
 }

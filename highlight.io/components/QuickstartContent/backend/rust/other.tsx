@@ -39,6 +39,8 @@ fn main() {
     }).expect("Failed to initialize Highlight.io");
 
     // ...
+
+	h.shutdown();
 }`,
 					language: 'rust',
 				},

@@ -148,3 +148,15 @@ slug: rust
     </code>
   </div>
 </section>
+
+<section className="section">
+  <div className="left">
+    <h3>Highlight::shutdown</h3>
+    <p>Highlight::shutdown gracefully shuts down the Highlight loggers and tracers, making sure that all your logs and traces get delivered to the server before your app exists. You should always call Highlight::shutdown before your app is exited.</p>
+  </div>
+  <div className="right">
+    <code>
+        h.shutdown();
+    </code>
+  </div>
+</section>
