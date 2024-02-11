@@ -1,4 +1,4 @@
-#[cfg(not(any(feature = "sync", feature = "tokio", feature = "async-std")))]
+#[cfg(not(any(feature = "sync", feature = "tokio", feature = "tokio-current-thread", feature = "async-std")))]
 compile_error!("No runtime enabled for highlightio, please specify one of the following features: sync (default), tokio, async-std");
 
 use std::{
@@ -75,7 +75,7 @@ struct HighlightInner {
 pub struct Highlight(Arc<HighlightInner>);
 
 impl Highlight {
-    #[cfg(not(any(feature = "sync", feature = "tokio", feature = "async-std")))]
+    #[cfg(not(any(feature = "sync", feature = "tokio", feature = "tokio-current-thread", feature = "async-std")))]
     fn install_pipelines(
         logging: OtlpLogPipeline<LogExporterBuilder>,
         tracing: OtlpTracePipeline<SpanExporterBuilder>,
@@ -91,7 +91,18 @@ impl Highlight {
         Ok((logging.install_simple()?, tracing.install_simple()?))
     }
 
-    #[cfg(all(feature = "tokio", not(any(feature = "sync"))))]
+    #[cfg(all(feature = "tokio-current-thread", not(any(feature = "sync"))))]
+    fn install_pipelines(
+        logging: OtlpLogPipeline<LogExporterBuilder>,
+        tracing: OtlpTracePipeline<SpanExporterBuilder>,
+    ) -> Result<(Logger, Tracer), HighlightError> {
+        Ok((
+            logging.install_batch(opentelemetry_sdk::runtime::TokioCurrentThread)?,
+            tracing.install_batch(opentelemetry_sdk::runtime::TokioCurrentThread)?,
+        ))
+    }
+
+    #[cfg(all(feature = "tokio", not(any(feature = "sync", feature = "tokio-current-thread"))))]
     fn install_pipelines(
         logging: OtlpLogPipeline<LogExporterBuilder>,
         tracing: OtlpTracePipeline<SpanExporterBuilder>,
@@ -102,7 +113,7 @@ impl Highlight {
         ))
     }
 
-    #[cfg(all(feature = "async-std", not(any(feature = "sync", feature = "tokio"))))]
+    #[cfg(all(feature = "async-std", not(any(feature = "sync", feature = "tokio", feature = "tokio-current-thread"))))]
     fn install_pipelines(
         logging: OtlpLogPipeline<LogExporterBuilder>,
         tracing: OtlpTracePipeline<SpanExporterBuilder>,
