@@ -13,7 +13,6 @@ edition = "2021"
 default = ["sync"]
 sync = ["opentelemetry-otlp/reqwest-blocking-client"]
 tokio = ["opentelemetry_sdk/rt-tokio", "opentelemetry-otlp/tokio", "opentelemetry-otlp/reqwest-client"]
-tokio-current-thread = ["opentelemetry_sdk/rt-tokio-current-thread", "opentelemetry-otlp/reqwest-client"]
 async-std = ["opentelemetry_sdk/rt-async-std", "opentelemetry-otlp/surf-client"]
 
 [dependencies]

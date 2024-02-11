@@ -3,7 +3,6 @@ members = [
     "highlightio",
     "highlightio/examples/sync",
     "highlightio/examples/tokio",
-    "highlightio/examples/tokio-current-thread",
     "highlightio-actix",
     "highlightio-actix/examples/hello-world",
 ]

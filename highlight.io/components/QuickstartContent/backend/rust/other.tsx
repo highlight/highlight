@@ -10,7 +10,7 @@ export const RustOtherContent: QuickStartContent = {
 		{
 			title: 'Install the Highlight Rust SDK.',
 			content:
-				"Add Highlight to your Config.toml. You'll need to pick your features based on what kind of runtime your project uses. If everything is synchronous, you can use the default features. If you're using `tokio` with `rt-multi-thread` (default), turn off default features and use the feature `tokio`. If you're using `tokio` with `rt`, turn off default features and use the feature `tokio-current-thread`. If you're using `async-std`, turn off default features and use the feature `async-std`.",
+				"Add Highlight to your Config.toml. You'll need to pick your features based on what kind of runtime your project uses. If everything is synchronous, you can use the default features. If you're using `tokio`, turn off default features and use the feature `tokio`. If you're using `async-std`, turn off default features and use the feature `async-std`.",
 			code: [
 				{
 					text: `[dependencies.highlightio]

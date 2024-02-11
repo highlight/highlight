@@ -11,7 +11,7 @@ edition = "2021"
 
 [dependencies]
 actix-web = { workspace = true }
-highlightio = { path = "../highlightio", default-features = false, features = ["tokio-current-thread"] }
+highlightio = { path = "../highlightio", default-features = false, features = ["tokio"] }
 futures-util = { workspace = true }
 opentelemetry = { workspace = true, features = ["trace"] }
 opentelemetry-semantic-conventions = { workspace = true }
