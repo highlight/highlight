@@ -188,9 +188,7 @@ where
         &self,
         ctx: &mut core::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
-        println!("1");
         let res = self.service.poll_ready(ctx);
-        println!("2");
         res
     }
 
