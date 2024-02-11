@@ -221,11 +221,9 @@ where
                     );
                     if ok_res.status().is_server_error() {
                         if let Some(e) = ok_res.response().error() {
-                            println!("Recorded error.");
                             span.record_error(&e);
                         }
 
-                        println!("Set status.");
 
                         span.set_status(Status::error(
                             ok_res
