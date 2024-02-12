@@ -71,6 +71,7 @@ const components: Record<
 								<ol
 									start={props.start}
 									style={{
+										paddingTop: 8,
 										paddingLeft: 16,
 									}}
 								>

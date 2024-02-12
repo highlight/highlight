@@ -23,7 +23,7 @@ In .NET, application tracing provides a window into the running state of applica
 ## Utilizing Built-in .NET Tracing Capabilities
 .NET Framework and .NET Core offer built-in tracing capabilities that are robust and easy to implement. Let’s explore a basic example of how to implement tracing in a .NET application:
 
-```csharp
+```java
 using System.Diagnostics;
 
 Trace.Listeners.Add(new TextWriterTraceListener("logfile.log"));
@@ -36,10 +36,10 @@ Trace.WriteLine("Ending application tracing");
 ```
 This code snippet demonstrates how to set up a simple trace listener that writes trace output to a file. This is fundamental for any .NET application requiring basic logging and tracing capabilities.
 
-Advanced Tracing with DiagnosticSource in .NET Core
+## Advanced Tracing with DiagnosticSource in .NET Core
 For more advanced scenarios, especially in .NET Core, System.Diagnostics.DiagnosticSource provides a powerful way to collect rich telemetry data. Here's an example:
 
-```csharp
+```java
 using System.Diagnostics;
 
 var source = new DiagnosticListener("MyApplicationSource");
@@ -58,11 +58,11 @@ source.Write("EndRequest", new { RequestId = Guid.NewGuid(), Timestamp = DateTim
 ```
 This code creates a DiagnosticListener that emits custom events, making it a versatile tool for complex tracing requirements.
 
-Leveraging Third-Party Tools: Application Insights and NLog
-Application Insights for Comprehensive Telemetry
+## Leveraging Third-Party Tools: Application Insights and NLog
+### Application Insights for Comprehensive Telemetry
 Application Insights, a feature of Azure Monitor, is an extensible Application Performance Management (APM) service for developers. It can be easily integrated into .NET applications:
 
-```csharp
+```java
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 
@@ -74,10 +74,16 @@ telemetryClient.TrackTrace("Application trace message");
 ```
 This snippet shows how to send trace messages to Application Insights, which provides analytics and actionable insights on application performance and usage.
 
-NLog for Flexible and Structured Logging
+### Highlight.io for Open Source Telemetry
+
+Get started today with our [OpenTelemetry instrumentation](https://opentelemetry.io/docs/languages/net/) for .NET that gives you flexibility with your data destination.
+
+<BlogCallToAction/>
+
+### NLog for Flexible and Structured Logging
 NLog is a versatile logging tool for .NET, allowing for structured logging, which is crucial in modern application tracing. Here's a basic setup:
 
-```csharp
+```java
 var config = new NLog.Config.LoggingConfiguration();
 var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "file.txt" };
 var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
@@ -91,7 +97,5 @@ This configuration sets up NLog to log messages to both a file and the console, 
 
 ## Conclusion
 Effective tracing in .NET applications is key to understanding and improving application behavior and performance. This guide has introduced various tools and techniques, from basic built-in .NET tracing to advanced tools like Application Insights and NLog. By choosing the right combination of these tools, developers can gain valuable insights and maintain robust, high-performance applications.
-
-<BlogCallToAction/>
 
 Explore these tracing techniques in your .NET projects. Share your experiences and insights in the comments below. For more in-depth information, check out our additional resources.
