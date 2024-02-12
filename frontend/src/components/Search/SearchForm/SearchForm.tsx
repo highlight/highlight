@@ -543,8 +543,9 @@ export const Search: React.FC<{
 
 						// Need to set this bit of React state to force a re-render of the
 						// component. For some reason the combobox value isn't updated until
-						// after a delay or blurring the input.
-						setQuery(e.target.value)
+						// after a delay or blurring the input. We also trim any leading
+						// space characters since this produces some UI jank.
+						setQuery(e.target.value.replace(/^\s+/, ''))
 					}}
 					onBlur={() => {
 						submitQuery(query)
@@ -557,6 +558,7 @@ export const Search: React.FC<{
 						}
 
 						if (
+							!isPending &&
 							e.key === 'Enter' &&
 							// Using isPending to prevent blurring when the user is selecting
 							// an item vs submitting the form.
@@ -600,37 +602,40 @@ export const Search: React.FC<{
 					sameWidth
 				>
 					<Box cssClass={styles.comboboxResults}>
-						{activePart.key === BODY_KEY &&
-							activePart.value.length > 0 && (
-								<Combobox.Group
-									className={styles.comboboxGroup}
+						{activePart.value.length > 0 && (
+							<Combobox.Group
+								className={styles.comboboxGroup}
+								store={comboboxStore}
+							>
+								<Combobox.Item
+									className={styles.comboboxItem}
+									onClick={submitAndBlur}
 									store={comboboxStore}
 								>
-									<Combobox.Item
-										className={styles.comboboxItem}
-										onClick={submitAndBlur}
-										store={comboboxStore}
-									>
-										<Stack direction="row" gap="4">
-											<Text
-												lines="1"
-												color="weak"
-												size="small"
-											>
-												Show all results for
-											</Text>{' '}
-											<Text
-												color="secondaryContentText"
-												size="small"
-											>
+									<Stack direction="row" gap="4">
+										<Text
+											lines="1"
+											color="weak"
+											size="small"
+										>
+											Show all results for
+										</Text>{' '}
+										<Text
+											color="secondaryContentText"
+											size="small"
+										>
+											<>
 												&lsquo;
-												{activePart.value}
+												{activePart.key === BODY_KEY
+													? activePart.value
+													: activePart.text}
 												&rsquo;
-											</Text>
-										</Stack>
-									</Combobox.Item>
-								</Combobox.Group>
-							)}
+											</>
+										</Text>
+									</Stack>
+								</Combobox.Item>
+							</Combobox.Group>
+						)}
 						{loading && visibleItems.length === 0 && (
 							<Combobox.Group
 								className={styles.comboboxGroup}

@@ -158,7 +158,6 @@ export const CustomColumnPopover: React.FC<Props> = ({
 			onChange={handleColumnValueChange}
 			icon={<IconSolidDotsHorizontal />}
 			loadingRender={<LoadingBox />}
-			emptyStateRender="No keys found"
 			value={value}
 			options={options}
 			cssClass={styles.selectButton}

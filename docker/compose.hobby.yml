@@ -1,15 +1,5 @@
-x-depends-infra: &depends-infra
-    depends_on:
-        kafka:
-            condition: service_started
-        redis:
-            condition: service_started
-        postgres:
-            condition: service_healthy
-        clickhouse:
-            condition: service_started
-        collector:
-            condition: service_started
+x-logging: &local-logging
+    driver: local
 
 x-backend-env: &backend-env
     environment:
@@ -49,18 +39,44 @@ x-backend-env: &backend-env
         - ADMIN_PASSWORD
 
 services:
+    zookeeper:
+        extends:
+            file: compose.yml
+            service: zookeeper
+        logging: *local-logging
+
     kafka:
         extends:
             file: compose.yml
             service: kafka
+        logging: *local-logging
         environment:
             # needs to share docker-internal address
             KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
+    redis:
+        extends:
+            file: compose.yml
+            service: redis
+        logging: *local-logging
+
+    postgres:
+        extends:
+            file: compose.yml
+            service: postgres
+        logging: *local-logging
+
+    clickhouse:
+        extends:
+            file: compose.yml
+            service: clickhouse
+        logging: *local-logging
 
     collector:
         extends:
             file: compose.yml
             service: collector
+        logging: *local-logging
         volumes:
             - ./otel-collector.hobby.yaml:/etc/otel-collector-config.yaml
 
@@ -73,6 +89,17 @@ services:
             interval: 5s
             timeout: 5s
             retries: 5
+        depends_on:
+            kafka:
+                condition: service_started
+            redis:
+                condition: service_started
+            postgres:
+                condition: service_healthy
+            clickhouse:
+                condition: service_started
+            collector:
+                condition: service_started
         ports:
             - 8082:8082
         volumes:

@@ -23,9 +23,9 @@ const LogsCount = ({
 		if (presetSelected) {
 			return `${formatDate(startDate)} to Now`
 		}
-		return `${moment(startDate).format('M/D/YY H:MM:SS')} to ${moment(
+		return `${moment(startDate).format('M/D/YY h:mm:ss')} to ${formatDate(
 			endDate,
-		).format('H:MM:SS A')}`
+		)}`
 	}, [endDate, startDate, presetSelected])
 
 	if (loading) {
