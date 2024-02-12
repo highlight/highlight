@@ -13,17 +13,15 @@ authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Flh3.googleuse
 tags: 'Ruby, Logging, Development, Programming'
 ---
 
-# The Ultimate Guide to Ruby Logging: Best Libraries and Practices
-
 ## Introduction
 
 In any Ruby application, logging is more than just a means to record errors or track operations. It is a powerful tool that provides insight into the performance, behavior, and health of your application. This comprehensive guide will delve into the nuances of Ruby logging, highlighting the top libraries and practices that will elevate your logging strategy.
 
-## Section 1: The Importance of Logging in Ruby
+## The Importance of Logging in Ruby
 
 Ruby developers often find themselves sifting through logs to diagnose issues or optimize performance. Understanding the significance of logging is key to harnessing its full potential. Logs are not just for error reporting; they are invaluable for monitoring application health, understanding user interactions, and making data-driven decisions.
 
-## Section 2: Leveraging Ruby’s Built-in Logger
+## Leveraging Ruby’s Built-in Logger
 
 The Ruby standard library comes with a built-in Logger class, which provides a basic yet effective logging mechanism. Let's dive into a comprehensive example:
 
@@ -47,8 +45,10 @@ logger.error("Error processing user data")
 
 This snippet demonstrates the creation of a logger, setting a severity level, and customizing the log format. Each log message is now more informative and easier to read, aiding in quicker debugging and analysis.
 
-Section 3: Exploring Advanced Ruby Logging Libraries
+## Exploring Advanced Ruby Logging Libraries
+
 1. Lograge for Rails Applications
+
 Lograge is an excellent choice for Rails developers who prefer a cleaner and more condensed logging format. Here's an in-depth look at setting up Lograge:
 
 ```ruby
@@ -61,7 +61,8 @@ config.lograge.formatter = Lograge::Formatters::Json.new
 This configuration streamlines Rails logs into a single line per request, with JSON formatting for easier parsing and analysis.
 
 2. The Logging Gem: A Flexible Alternative
-The Logging gem offers a robust and customizable logging solution. Here's an elaborate setup:
+
+The Logging gem offers a robust and customizable logging solution. Here's a highly-customized setup that emits `INFO` level logs to a file named `development.log` and `WARN` level logs to a file named `warn.log`:
 
 ```ruby
 require 'logging'
@@ -74,7 +75,7 @@ Logging.logger.root.level = :info
 my_logger = Logging.logger['MyClass']
 my_logger.level = :warn
 my_logger.add_appenders(
-  Logging.appenders.file('myclass.log')
+  Logging.appenders.file('warn.log')
 )
 
 # Utilizing the logger in a Ruby class
@@ -90,7 +91,12 @@ end
 ```
 This example illustrates how to set up different loggers for specific parts of your application, providing granular control over logging outputs.
 
+[Highlight.io](https://app.highlight.io/sign_up?ref=blog-ruby) supports all of these logging libraries and other ways to ingest your logs.
+
+<BlogCallToAction/>
+
 3. Log4r: Multi-Output Logging
+
 Log4r extends the flexibility of logging by allowing multiple outputs. Here's how you can set it up:
 
 ```ruby
@@ -116,6 +122,7 @@ logger.info('Application is up and running')
 This setup allows you to direct your logs to both the console and a file, offering more flexibility in log management.
 
 4. Semantic Logger: Structured and Asynchronous Logging
+
 Semantic Logger is ideal for creating structured, JSON-formatted logs, particularly useful in asynchronous environments. Here's a practical example:
 
 ```ruby
@@ -130,8 +137,7 @@ SemanticLogger['MyApp'].info('Application started', { environment: 'production',
 This example demonstrates the utility of Semantic Logger in producing logs that are easily parseable by modern log analysis tools.
 
 ## Conclusion
+
 Mastering logging in Ruby is an art that involves selecting the right tools and practices for your specific needs. Through this guide, we have explored various libraries and methods that can enhance the logging capabilities of your Ruby applications. Effective logging is key to gaining insights into your applications and ensuring their optimal performance.
 
-<BlogCallToAction/>
-
-We invite you to integrate these logging strategies into your Ruby projects. Share your experiences and insights in the comments below. For more in-depth information, check out our additional resources.
+We invite you to [integrate these logging strategies](https://app.highlight.io/sign_up?ref=blog-ruby) into your Ruby projects. Share your experiences and insights in the comments below.
