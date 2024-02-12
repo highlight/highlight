@@ -1822,9 +1822,9 @@ const (
 	ReservedErrorObjectKeyOs              ReservedErrorObjectKey = "os"
 	ReservedErrorObjectKeyPayload         ReservedErrorObjectKey = "payload"
 	ReservedErrorObjectKeyRequestID       ReservedErrorObjectKey = "request_id"
+	ReservedErrorObjectKeySecureSessionID ReservedErrorObjectKey = "secure_session_id"
 	ReservedErrorObjectKeyServiceName     ReservedErrorObjectKey = "service_name"
 	ReservedErrorObjectKeyServiceVersion  ReservedErrorObjectKey = "service_version"
-	ReservedErrorObjectKeySessionSecureID ReservedErrorObjectKey = "session_secure_id"
 	ReservedErrorObjectKeySource          ReservedErrorObjectKey = "source"
 	ReservedErrorObjectKeySpanID          ReservedErrorObjectKey = "span_id"
 	ReservedErrorObjectKeyStackTrace      ReservedErrorObjectKey = "stackTrace"
@@ -1845,9 +1845,9 @@ var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
 	ReservedErrorObjectKeyOs,
 	ReservedErrorObjectKeyPayload,
 	ReservedErrorObjectKeyRequestID,
+	ReservedErrorObjectKeySecureSessionID,
 	ReservedErrorObjectKeyServiceName,
 	ReservedErrorObjectKeyServiceVersion,
-	ReservedErrorObjectKeySessionSecureID,
 	ReservedErrorObjectKeySource,
 	ReservedErrorObjectKeySpanID,
 	ReservedErrorObjectKeyStackTrace,
@@ -1861,7 +1861,7 @@ var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
 
 func (e ReservedErrorObjectKey) IsValid() bool {
 	switch e {
-	case ReservedErrorObjectKeyBrowser, ReservedErrorObjectKeyEnvironment, ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyHasSessions, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyOs, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySessionSecureID, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyStatus, ReservedErrorObjectKeyTag, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
+	case ReservedErrorObjectKeyBrowser, ReservedErrorObjectKeyEnvironment, ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyHasSessions, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyOs, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeySecureSessionID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyStatus, ReservedErrorObjectKeyTag, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
 		return true
 	}
 	return false
