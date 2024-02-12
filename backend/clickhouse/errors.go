@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/parser/listener"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/parser/listener"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/highlight-run/highlight/backend/model"
@@ -30,18 +31,20 @@ type ClickhouseErrorGroup struct {
 }
 
 type ClickhouseErrorObject struct {
-	ProjectID      int32
-	Timestamp      int64
-	ErrorGroupID   int64
-	HasSession     bool
-	ID             int64
-	Browser        string
-	Environment    string
-	OSName         string
-	ServiceName    string
-	ServiceVersion string
-	ClientID       string
-	VisitedURL     string
+	ProjectID       int32
+	Timestamp       int64
+	ErrorGroupID    int64
+	HasSession      bool
+	ID              int64
+	Browser         string
+	Environment     string
+	OSName          string
+	ServiceName     string
+	ServiceVersion  string
+	ClientID        string
+	VisitedURL      string
+	TraceID         string
+	SecureSessionID string
 }
 
 const ErrorGroupsTable = "error_groups"
@@ -105,27 +108,36 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 
 		hasSession := false
 		clientId := ""
+		secureSessionId := ""
 		if object.SessionID != nil {
 			relatedSession := sessionsById[*object.SessionID]
 			if relatedSession != nil {
 				clientId = relatedSession.ClientID
 				hasSession = !relatedSession.Excluded
+				secureSessionId = relatedSession.SecureID
 			}
 		}
 
+		traceId := ""
+		if object.TraceID != nil {
+			traceId = *object.TraceID
+		}
+
 		chEg := ClickhouseErrorObject{
-			ProjectID:      int32(object.ProjectID),
-			Timestamp:      object.Timestamp.UTC().UnixMicro(),
-			ErrorGroupID:   int64(object.ErrorGroupID),
-			HasSession:     hasSession,
-			ID:             int64(object.ID),
-			Browser:        object.Browser,
-			Environment:    object.Environment,
-			OSName:         object.OS,
-			ServiceName:    object.ServiceName,
-			ServiceVersion: object.ServiceVersion,
-			ClientID:       clientId,
-			VisitedURL:     object.URL,
+			ProjectID:       int32(object.ProjectID),
+			Timestamp:       object.Timestamp.UTC().UnixMicro(),
+			ErrorGroupID:    int64(object.ErrorGroupID),
+			HasSession:      hasSession,
+			ID:              int64(object.ID),
+			Browser:         object.Browser,
+			Environment:     object.Environment,
+			OSName:          object.OS,
+			ServiceName:     object.ServiceName,
+			ServiceVersion:  object.ServiceVersion,
+			ClientID:        clientId,
+			VisitedURL:      object.URL,
+			TraceID:         traceId,
+			SecureSessionID: secureSessionId,
 		}
 
 		chObjects = append(chObjects, &chEg)
@@ -141,7 +153,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 			NewStruct(new(ClickhouseErrorObject)).
 			InsertInto(ErrorObjectsTable, chObjects...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
-		sql, args = replaceTimestampInserts(sql, args, 12, map[int]bool{1: true}, MicroSeconds)
+		sql, args = replaceTimestampInserts(sql, args, 14, map[int]bool{1: true}, MicroSeconds)
 		return client.conn.Exec(chCtx, sql, args...)
 	}
 
@@ -540,7 +552,7 @@ func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, qu
 var ErrorObjectsTableConfig = model.TableConfig[modelInputs.ReservedErrorObjectKey]{
 	TableName: ErrorObjectsTable,
 	KeysToColumns: map[modelInputs.ReservedErrorObjectKey]string{
-		modelInputs.ReservedErrorObjectKeySessionSecureID: "SessionSecureID",
+		modelInputs.ReservedErrorObjectKeySecureSessionID: "SecureSessionID",
 		modelInputs.ReservedErrorObjectKeyRequestID:       "RequestID",
 		modelInputs.ReservedErrorObjectKeyTraceID:         "TraceID",
 		modelInputs.ReservedErrorObjectKeySpanID:          "SpanID",

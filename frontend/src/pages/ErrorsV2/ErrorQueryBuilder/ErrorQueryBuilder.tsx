@@ -96,6 +96,20 @@ export const CUSTOM_FIELDS: CustomField[] = [
 			type: 'boolean',
 		},
 	},
+	{
+		type: ERROR_FIELD_TYPE,
+		name: 'secure_session_id',
+		options: {
+			type: 'text',
+		},
+	},
+	{
+		type: ERROR_FIELD_TYPE,
+		name: 'trace_id',
+		options: {
+			type: 'text',
+		},
+	},
 ]
 
 const ErrorQueryBuilder = (props: Partial<QueryBuilderProps>) => {
