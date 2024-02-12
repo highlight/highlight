@@ -48,7 +48,12 @@
 				}
 			],
 			"essential": true,
-			"environment": [],
+			"environment": [
+				{
+					"name": "GOMEMLIMIT",
+					"value": "3584"
+				}
+			],
 			"mountPoints": [],
 			"volumesFrom": [],
 			"logConfiguration": {
