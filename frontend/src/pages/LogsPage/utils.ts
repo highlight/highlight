@@ -28,6 +28,8 @@ export const isSignificantDateRange = (startDate: Date, endDate: Date) => {
 
 const bodyKey = ReservedLogKey['Message']
 
+const EXISTS_VALUE = 'EXISTS'
+
 export const findMatchingLogAttributes = (
 	queryParts: Array<SearchExpression | AndOrExpression>,
 	logAttributes: object | string,
@@ -75,9 +77,8 @@ export const findMatchingLogAttributes = (
 				const queryKey = term.key.toLowerCase()
 				const queryValue = term.value?.toLowerCase()
 
-				// TODO: skips when using the exists operator, but we may want to support showing all values
-				if (queryValue && queryKey === fullKey) {
-					matchingAttribute = queryValue
+				if (queryKey === fullKey) {
+					matchingAttribute = !!term.value ? queryValue : EXISTS_VALUE
 				}
 			})
 		}
