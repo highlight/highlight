@@ -16,9 +16,9 @@ exporters:
         timeout: 30s
         read_buffer_size: 16384
         write_buffer_size: 16384
-        max_conns_per_host: 2048
+        max_conns_per_host: 1024
         sending_queue:
-            num_consumers: 16
+            num_consumers: 8
             queue_size: 32768
         retry_on_failure:
             enabled: true
@@ -27,13 +27,13 @@ exporters:
             max_elapsed_time: 600s
 processors:
     memory_limiter:
-        limit_mib: 12288
-        spike_limit_mib: 1024
+        limit_mib: 3072
+        spike_limit_mib: 128
         check_interval: 0.1s
     batch:
         timeout: 5s
-        send_batch_size: 8192
-        send_batch_max_size: 32768
+        send_batch_size: 1024
+        send_batch_max_size: 16384
 service:
     telemetry:
         logs:
@@ -60,4 +60,4 @@ extensions:
         endpoint: '0.0.0.0:4319'
         path: '/health/status'
     memory_ballast:
-        size_mib: 3276
+        size_mib: 512
