@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS traces_by_id_new (
     `Links.Attributes` Array(Map(LowCardinality(String), String))
 )
     ENGINE = MergeTree
-        PARTITION BY substring(toString(UUID), 1, 1) 
+        PARTITION BY farmHash64(TraceId) % 100
         ORDER BY (ProjectId, TraceId)
         TTL toDateTime(Timestamp) + toIntervalDay(30);
 CREATE MATERIALIZED VIEW IF NOT EXISTS traces_by_id_new_mv TO traces_by_id_new (
