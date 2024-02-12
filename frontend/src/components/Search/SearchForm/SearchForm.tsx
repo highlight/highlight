@@ -602,37 +602,40 @@ export const Search: React.FC<{
 					sameWidth
 				>
 					<Box cssClass={styles.comboboxResults}>
-						{activePart.key === BODY_KEY &&
-							activePart.value.length > 0 && (
-								<Combobox.Group
-									className={styles.comboboxGroup}
+						{activePart.value.length > 0 && (
+							<Combobox.Group
+								className={styles.comboboxGroup}
+								store={comboboxStore}
+							>
+								<Combobox.Item
+									className={styles.comboboxItem}
+									onClick={submitAndBlur}
 									store={comboboxStore}
 								>
-									<Combobox.Item
-										className={styles.comboboxItem}
-										onClick={submitAndBlur}
-										store={comboboxStore}
-									>
-										<Stack direction="row" gap="4">
-											<Text
-												lines="1"
-												color="weak"
-												size="small"
-											>
-												Show all results for
-											</Text>{' '}
-											<Text
-												color="secondaryContentText"
-												size="small"
-											>
+									<Stack direction="row" gap="4">
+										<Text
+											lines="1"
+											color="weak"
+											size="small"
+										>
+											Show all results for
+										</Text>{' '}
+										<Text
+											color="secondaryContentText"
+											size="small"
+										>
+											<>
 												&lsquo;
-												{activePart.value}
+												{activePart.key === BODY_KEY
+													? activePart.value
+													: activePart.text}
 												&rsquo;
-											</Text>
-										</Stack>
-									</Combobox.Item>
-								</Combobox.Group>
-							)}
+											</>
+										</Text>
+									</Stack>
+								</Combobox.Item>
+							</Combobox.Group>
+						)}
 						{loading && visibleItems.length === 0 && (
 							<Combobox.Group
 								className={styles.comboboxGroup}

@@ -205,7 +205,7 @@ func main() {
 
 	// change OTLP endpoint when set in env
 	if otlpEndpoint != "" {
-		log.WithContext(ctx).Info("overwriting highlight-go graphql / otlp client address...")
+		log.WithContext(ctx).WithField("otlpEndpoint", otlpEndpoint).Info("overwriting highlight-go graphql / otlp client address...")
 		highlight.SetOTLPEndpoint(otlpEndpoint)
 	}
 
