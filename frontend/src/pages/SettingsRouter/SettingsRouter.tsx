@@ -149,7 +149,10 @@ export const SettingsRouter = () => {
 	)
 
 	useEffect(() => {
-		analytics.page()
+		analytics.page('Settings', {
+			page: pageId,
+		})
+
 		if (!pageId) {
 			navigate(`/w/${workspaceId}/team`, { replace: true })
 		}

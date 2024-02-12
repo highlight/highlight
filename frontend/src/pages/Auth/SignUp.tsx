@@ -113,7 +113,7 @@ export const SignUp: React.FC = () => {
 			})
 	}
 
-	useEffect(() => analytics.page(), [])
+	useEffect(() => analytics.page('Sign Up'), [])
 
 	return (
 		<Form store={formStore} resetOnSubmit={false}>

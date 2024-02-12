@@ -80,7 +80,7 @@ export const SetupRouter = () => {
 
 	toggleShowBanner(false)
 
-	useEffect(() => analytics.page(), [])
+	useEffect(() => analytics.page('Setup'), [])
 
 	if (!projectVerboseId) {
 		return <LoadingBox />

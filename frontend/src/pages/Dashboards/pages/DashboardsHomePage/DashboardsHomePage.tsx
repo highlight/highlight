@@ -23,7 +23,7 @@ const DashboardsHomePage = () => {
 	const navigate = useNavigate()
 	const { dashboards, allAdmins } = useDashboardsContext()
 
-	useEffect(() => analytics.page(), [])
+	useEffect(() => analytics.page('Dashboards'), [])
 
 	return (
 		<LeadAlignLayout fullWidth>

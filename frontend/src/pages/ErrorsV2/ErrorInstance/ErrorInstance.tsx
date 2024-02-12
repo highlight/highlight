@@ -116,7 +116,13 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		},
 	})
 
-	useEffect(() => analytics.page(), [])
+	useEffect(
+		() =>
+			analytics.track('Viewed Error Instance', {
+				error_instance_id: error_object_id,
+			}),
+		[error_object_id],
+	)
 
 	if (loading) {
 		return (

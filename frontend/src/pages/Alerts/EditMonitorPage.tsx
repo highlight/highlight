@@ -27,6 +27,8 @@ import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 
+import analytics from '@/util/analytics'
+
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 
 interface Props {
@@ -148,6 +150,10 @@ const EditMonitorPage = ({
 			navigate(`/${project_id}/alerts`)
 		}
 	}, [alertsPayload, existingMonitor, loading, navigate, project_id])
+
+	useEffect(() => {
+		analytics.page('Edit Monitor')
+	}, [])
 
 	if (!metricToMonitorName) {
 		return null

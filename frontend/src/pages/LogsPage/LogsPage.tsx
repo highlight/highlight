@@ -144,7 +144,9 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		otherElementsHeight += LOAD_MORE_HEIGHT
 	}
 
-	useEffect(() => analytics.page('Logs'), [])
+	useEffect(() => {
+		analytics.page('Logs')
+	}, [])
 
 	return (
 		<>

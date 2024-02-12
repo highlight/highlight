@@ -119,7 +119,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		auth.signInWithPopup(provider).then(handleAuth).catch(handleAuthError)
 	}
 
-	useEffect(() => analytics.page(), [])
+	useEffect(() => analytics.page('Sign In'), [])
 	useEffect(() => {
 		if (!loadingWorkspaceForInvite) {
 			setLoadingState(AppLoadingState.LOADED)
