@@ -42,7 +42,7 @@ const CONCURRENT_ERROR_PRELOADS = 10
 const PREVIOUS_ERROR_OBJECTS_TO_FETCH = 3
 // Max brotlied resource file allowed. Note that a brotli file with some binary data
 // has a compression ratio of >5x, so unbrotlied this file will take up much more memory.
-const RESOURCE_FILE_SIZE_LIMIT_BYTES = 16 * 1024 * 1024
+const RESOURCE_FILE_SIZE_LIMIT_BYTES = 64 * 1024 * 1024
 
 export const usePreloadSessions = function ({
 	query,
