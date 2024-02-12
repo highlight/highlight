@@ -14,25 +14,25 @@ exporters:
         endpoint: 'http://pub.prod.vpc.highlight.io:8082/otel'
         compression: gzip
         timeout: 30s
-        read_buffer_size: 8192
-        write_buffer_size: 8192
-        max_conns_per_host: 1024
+        read_buffer_size: 16384
+        write_buffer_size: 16384
+        max_conns_per_host: 2048
         sending_queue:
-            num_consumers: 64
-            queue_size: 16384
+            num_consumers: 128
+            queue_size: 32768
         retry_on_failure:
             initial_interval: 0.1s
             max_interval: 1s
-            max_elapsed_time: 300s
+            max_elapsed_time: 600s
 processors:
     memory_limiter:
-        check_interval: 0.1s
-        limit_mib: 11470
+        limit_mib: 12288
         spike_limit_mib: 1024
+        check_interval: 0.1s
     batch:
-        send_batch_size: 256
-        send_batch_max_size: 8192
-        timeout: 1s
+        timeout: 5s
+        send_batch_size: 1024
+        send_batch_max_size: 32768
 service:
     telemetry:
         logs:
