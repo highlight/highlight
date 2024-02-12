@@ -18,11 +18,12 @@ exporters:
         write_buffer_size: 16384
         max_conns_per_host: 2048
         sending_queue:
-            num_consumers: 128
+            num_consumers: 16
             queue_size: 32768
         retry_on_failure:
-            initial_interval: 0.1s
-            max_interval: 1s
+            enabled: true
+            initial_interval: 1s
+            max_interval: 5s
             max_elapsed_time: 600s
 processors:
     memory_limiter:
@@ -31,7 +32,7 @@ processors:
         check_interval: 0.1s
     batch:
         timeout: 5s
-        send_batch_size: 1024
+        send_batch_size: 8192
         send_batch_max_size: 32768
 service:
     telemetry:
