@@ -2325,6 +2325,27 @@ type Mutation {
 		tags: [SessionCommentTagInput]!
 		additional_context: String
 	): SessionComment
+	createSessionCommentWithExistingIssue(
+		project_id: ID!
+		session_secure_id: String!
+		session_timestamp: Int!
+		text: String!
+		text_for_email: String!
+		x_coordinate: Float!
+		y_coordinate: Float!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+		session_url: String!
+		time: Float!
+		author_name: String!
+		session_image: String
+		tags: [SessionCommentTagInput]!
+		integrations: [IntegrationType]!
+		issue_title: String
+		issue_url: String!
+		issue_id: String!
+		additional_context: String
+	): SessionComment
 	createIssueForSessionComment(
 		project_id: ID!
 		session_url: String!
@@ -2336,6 +2357,18 @@ type Mutation {
 		issue_description: String
 		issue_team_id: String
 		issue_type_id: String
+		integrations: [IntegrationType]!
+	): SessionComment
+	linkIssueForSessionComment(
+		project_id: ID!
+		session_url: String!
+		session_comment_id: Int!
+		author_name: String!
+		text_for_attachment: String!
+		time: Float!
+		issue_title: String
+		issue_url: String!
+		issue_id: String!
 		integrations: [IntegrationType]!
 	): SessionComment
 	deleteSessionComment(id: ID!): Boolean
@@ -2389,6 +2422,18 @@ type Mutation {
 		issue_description: String
 		issue_team_id: String
 		issue_type_id: String
+		integrations: [IntegrationType]!
+	): ErrorComment
+	linkIssueForErrorComment(
+		project_id: ID!
+		error_url: String!
+		error_comment_id: Int!
+		author_name: String!
+		text_for_attachment: String!
+		issue_title: String
+		issue_description: String
+		issue_url: String!
+		issue_id: String!
 		integrations: [IntegrationType]!
 	): ErrorComment
 	deleteErrorComment(id: ID!): Boolean

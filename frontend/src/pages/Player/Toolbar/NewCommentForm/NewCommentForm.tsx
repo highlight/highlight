@@ -11,6 +11,7 @@ import {
 	useCreateErrorCommentForExistingIssueMutation,
 	useCreateErrorCommentMutation,
 	useCreateSessionCommentMutation,
+	useCreateSessionCommentWithExistingIssueMutation,
 	useGetCommentMentionSuggestionsQuery,
 	useGetWorkspaceAdminsByProjectIdQuery,
 	useSearchIssuesLazyQuery,
@@ -103,8 +104,15 @@ export const NewCommentForm = ({
 			namedOperations.Query.GetSessionsClickhouse,
 		],
 	})
+	const [createCommentWithExistingIssue] =
+		useCreateSessionCommentWithExistingIssueMutation({
+			refetchQueries: [
+				namedOperations.Query.GetSessionComments,
+				namedOperations.Query.GetSessionsClickhouse,
+			],
+		})
 	const [createErrorComment] = useCreateErrorCommentMutation()
-	const [linkIssueForErrorComment] =
+	const [createErrorCommentForExistingIssue] =
 		useCreateErrorCommentForExistingIssueMutation({
 			refetchQueries: [namedOperations.Query.GetErrorIssues],
 		})
@@ -251,7 +259,7 @@ export const NewCommentForm = ({
 					refetchQueries: [namedOperations.Query.GetErrorComments],
 				})
 			} else {
-				await linkIssueForErrorComment({
+				await createErrorCommentForExistingIssue({
 					variables: {
 						project_id: project_id!,
 						error_group_secure_id: error_secure_id || '',
@@ -295,36 +303,66 @@ export const NewCommentForm = ({
 		const { issueTitle, issueDescription } = formValues
 
 		try {
-			await createComment({
-				variables: {
-					project_id: project_id!,
-					session_secure_id: session_secure_id || '',
-					session_timestamp: Math.floor(commentTime),
-					text: commentText.trim(),
-					text_for_email: commentTextForEmail.trim(),
-					x_coordinate: commentPosition?.x || 0,
-					y_coordinate: commentPosition?.y || 0,
-					session_url: `${window.location.origin}${window.location.pathname}`,
-					tagged_admins: mentionedAdmins,
-					tagged_slack_users: mentionedSlackUsers,
-					tags: [],
-					time: commentTime / 1000,
-					author_name: admin?.name || admin?.email || 'Someone',
-					issue_team_id: containerId || undefined,
-					integrations: selectedIssueService
-						? [selectedIssueService]
-						: [],
-					issue_title: selectedIssueService ? issueTitle : null,
-					issue_description: selectedIssueService
-						? issueDescription
-						: null,
-					additional_context: currentUrl
-						? `*User\'s URL* <${currentUrl}|${currentUrl}>`
-						: null,
-					issue_type_id: issueTypeId || undefined,
-				},
-				refetchQueries: [namedOperations.Query.GetSessionComments],
-			})
+			if (mode === 'Create Issue') {
+				await createComment({
+					variables: {
+						project_id: project_id!,
+						session_secure_id: session_secure_id || '',
+						session_timestamp: Math.floor(commentTime),
+						text: commentText.trim(),
+						text_for_email: commentTextForEmail.trim(),
+						x_coordinate: commentPosition?.x || 0,
+						y_coordinate: commentPosition?.y || 0,
+						session_url: `${window.location.origin}${window.location.pathname}`,
+						tagged_admins: mentionedAdmins,
+						tagged_slack_users: mentionedSlackUsers,
+						tags: [],
+						time: commentTime / 1000,
+						author_name: admin?.name || admin?.email || 'Someone',
+						issue_team_id: containerId || undefined,
+						integrations: selectedIssueService
+							? [selectedIssueService]
+							: [],
+						issue_title: selectedIssueService ? issueTitle : null,
+						issue_description: selectedIssueService
+							? issueDescription
+							: null,
+						additional_context: currentUrl
+							? `*User\'s URL* <${currentUrl}|${currentUrl}>`
+							: null,
+						issue_type_id: issueTypeId || undefined,
+					},
+					refetchQueries: [namedOperations.Query.GetSessionComments],
+				})
+			} else {
+				createCommentWithExistingIssue({
+					variables: {
+						project_id: project_id!,
+						session_secure_id: session_secure_id || '',
+						session_timestamp: Math.floor(commentTime),
+						text: commentText.trim(),
+						text_for_email: commentTextForEmail.trim(),
+						x_coordinate: commentPosition?.x || 0,
+						y_coordinate: commentPosition?.y || 0,
+						session_url: `${window.location.origin}${window.location.pathname}`,
+						tagged_admins: mentionedAdmins,
+						tagged_slack_users: mentionedSlackUsers,
+						tags: [],
+						time: commentTime / 1000,
+						author_name: admin?.name || admin?.email || 'Someone',
+						integrations: selectedIssueService
+							? [selectedIssueService]
+							: [],
+						issue_title: selectedIssueService ? issueTitle : null,
+						additional_context: currentUrl
+							? `*User\'s URL* <${currentUrl}|${currentUrl}>`
+							: null,
+						issue_url: linkedIssue.url,
+						issue_id: linkedIssue.id,
+					},
+					refetchQueries: [namedOperations.Query.GetSessionComments],
+				})
+			}
 			onCloseHandler()
 			formStore.reset()
 			if (!selectedTimelineAnnotationTypes.includes('Comments')) {

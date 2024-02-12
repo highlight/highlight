@@ -9,6 +9,8 @@ import {
 	useCreateErrorCommentMutation,
 	useCreateIssueForErrorCommentMutation,
 	useCreateIssueForSessionCommentMutation,
+	useLinkIssueForErrorCommentMutation,
+	useLinkIssueForSessionCommentMutation,
 	useSearchIssuesLazyQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
@@ -85,13 +87,18 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 		refetchQueries: [namedOperations.Query.GetErrorIssues],
 	})
 
-	const [linkIssueForErrorComment] =
+	const [createErrorCommentForExistingIssue] =
 		useCreateErrorCommentForExistingIssueMutation({
 			refetchQueries: [namedOperations.Query.GetErrorIssues],
 		})
+	const [linkIssueForErrorComment] = useLinkIssueForErrorCommentMutation({
+		refetchQueries: [namedOperations.Query.GetErrorIssues],
+	})
 
 	const [createIssueForSessionComment] =
 		useCreateIssueForSessionCommentMutation()
+
+	const [linkIssueForSessionComment] = useLinkIssueForSessionCommentMutation()
 
 	const currentUrl = `${
 		window.location.port === '' ? GetBaseURL() : window.location.origin
@@ -166,21 +173,38 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			const author = admin?.name || admin?.email || 'Someone'
 			const integrations = [selectedIntegration.name] as IntegrationType[]
 			if (commentType === 'SessionComment' && commentId) {
-				await createIssueForSessionComment({
-					variables: {
-						project_id: project_id!,
-						session_url: currentUrl,
-						session_comment_id: commentId,
-						text_for_attachment: text,
-						issue_title: issueTitle,
-						issue_team_id: issueTeamId,
-						issue_description: issueDescription,
-						issue_type_id: issueTypeId || undefined,
-						integrations,
-						author_name: author,
-						time: timestamp || 0,
-					},
-				})
+				if (mode === 'Create Issue') {
+					await createIssueForSessionComment({
+						variables: {
+							project_id: project_id!,
+							session_url: currentUrl,
+							session_comment_id: commentId,
+							text_for_attachment: text,
+							issue_title: issueTitle,
+							issue_team_id: issueTeamId,
+							issue_description: issueDescription,
+							issue_type_id: issueTypeId || undefined,
+							integrations,
+							author_name: author,
+							time: timestamp || 0,
+						},
+					})
+				} else {
+					linkIssueForSessionComment({
+						variables: {
+							project_id: project_id!,
+							session_url: currentUrl,
+							session_comment_id: commentId,
+							author_name: author,
+							text_for_attachment: text,
+							time: timestamp || 0,
+							issue_title: issueTitle,
+							issue_id: linkedIssue.id,
+							issue_url: linkedIssue.url,
+							integrations,
+						},
+					})
+				}
 			} else if (commentType === 'ErrorComment') {
 				if (commentId) {
 					if (mode === 'Create Issue') {
@@ -199,7 +223,19 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							},
 						})
 					} else {
-						console.warn('NOT IMPLEMENTED YET')
+						await linkIssueForErrorComment({
+							variables: {
+								project_id: project_id!,
+								error_url: currentUrl,
+								error_comment_id: commentId,
+								text_for_attachment: text,
+								issue_title: issueTitle,
+								integrations,
+								author_name: author,
+								issue_url: linkedIssue.url,
+								issue_id: linkedIssue.id,
+							},
+						})
 					}
 				} else if (errorSecureId) {
 					if (mode === 'Create Issue') {
@@ -225,7 +261,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							awaitRefetchQueries: true,
 						})
 					} else {
-						await linkIssueForErrorComment({
+						await createErrorCommentForExistingIssue({
 							variables: {
 								project_id: project_id!,
 								error_group_secure_id: errorSecureId,

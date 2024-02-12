@@ -2560,7 +2560,7 @@ type LinearCreateAttachmentResponse struct {
 		AttachmentCreate struct {
 			Attachment struct {
 				ID string `json:"id"`
-			} `json:"Attachment"`
+			} `json:"attachment"`
 			Success bool `json:"success"`
 		} `json:"attachmentCreate"`
 	} `json:"data"`
@@ -2590,6 +2590,14 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 		Query     string      `json:"query"`
 		Variables GraphQLVars `json:"variables"`
 	}
+
+	fmt.Println("LINVARIABLES", GraphQLVars{
+		IssueID:  issueID,
+		Title:    title,
+		Subtitle: subtitle,
+		Url:      url,
+		IconUrl:  fmt.Sprintf("%s/logo_with_gradient_bg.png", os.Getenv("FRONTEND_URI")),
+	})
 
 	req := GraphQLReq{
 		Query: requestQuery,

@@ -1081,6 +1081,7 @@ export type Mutation = {
 	createSegment?: Maybe<Segment>
 	createSessionAlert?: Maybe<SessionAlert>
 	createSessionComment?: Maybe<SessionComment>
+	createSessionCommentWithExistingIssue?: Maybe<SessionComment>
 	createWorkspace?: Maybe<Workspace>
 	deleteAdminFromProject?: Maybe<Scalars['ID']>
 	deleteAdminFromWorkspace?: Maybe<Scalars['ID']>
@@ -1109,6 +1110,8 @@ export type Mutation = {
 	exportSession: Scalars['Boolean']
 	handleAWSMarketplace?: Maybe<Scalars['Boolean']>
 	joinWorkspace?: Maybe<Scalars['ID']>
+	linkIssueForErrorComment?: Maybe<ErrorComment>
+	linkIssueForSessionComment?: Maybe<SessionComment>
 	markErrorGroupAsViewed?: Maybe<ErrorGroup>
 	markSessionAsViewed?: Maybe<Session>
 	modifyClearbitIntegration?: Maybe<Scalars['Boolean']>
@@ -1327,6 +1330,28 @@ export type MutationCreateSessionCommentArgs = {
 	y_coordinate: Scalars['Float']
 }
 
+export type MutationCreateSessionCommentWithExistingIssueArgs = {
+	additional_context?: InputMaybe<Scalars['String']>
+	author_name: Scalars['String']
+	integrations: Array<InputMaybe<IntegrationType>>
+	issue_id: Scalars['String']
+	issue_title?: InputMaybe<Scalars['String']>
+	issue_url: Scalars['String']
+	project_id: Scalars['ID']
+	session_image?: InputMaybe<Scalars['String']>
+	session_secure_id: Scalars['String']
+	session_timestamp: Scalars['Int']
+	session_url: Scalars['String']
+	tagged_admins: Array<InputMaybe<SanitizedAdminInput>>
+	tagged_slack_users: Array<InputMaybe<SanitizedSlackChannelInput>>
+	tags: Array<InputMaybe<SessionCommentTagInput>>
+	text: Scalars['String']
+	text_for_email: Scalars['String']
+	time: Scalars['Float']
+	x_coordinate: Scalars['Float']
+	y_coordinate: Scalars['Float']
+}
+
 export type MutationCreateWorkspaceArgs = {
 	name: Scalars['String']
 	promo_code?: InputMaybe<Scalars['String']>
@@ -1486,6 +1511,32 @@ export type MutationHandleAwsMarketplaceArgs = {
 
 export type MutationJoinWorkspaceArgs = {
 	workspace_id: Scalars['ID']
+}
+
+export type MutationLinkIssueForErrorCommentArgs = {
+	author_name: Scalars['String']
+	error_comment_id: Scalars['Int']
+	error_url: Scalars['String']
+	integrations: Array<InputMaybe<IntegrationType>>
+	issue_description?: InputMaybe<Scalars['String']>
+	issue_id: Scalars['String']
+	issue_title?: InputMaybe<Scalars['String']>
+	issue_url: Scalars['String']
+	project_id: Scalars['ID']
+	text_for_attachment: Scalars['String']
+}
+
+export type MutationLinkIssueForSessionCommentArgs = {
+	author_name: Scalars['String']
+	integrations: Array<InputMaybe<IntegrationType>>
+	issue_id: Scalars['String']
+	issue_title?: InputMaybe<Scalars['String']>
+	issue_url: Scalars['String']
+	project_id: Scalars['ID']
+	session_comment_id: Scalars['Int']
+	session_url: Scalars['String']
+	text_for_attachment: Scalars['String']
+	time: Scalars['Float']
 }
 
 export type MutationMarkErrorGroupAsViewedArgs = {
