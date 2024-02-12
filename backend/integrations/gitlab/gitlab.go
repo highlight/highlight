@@ -287,6 +287,22 @@ func GetGitlabProjects(workspace *model.Workspace, accessToken string) ([]*model
 	}), nil
 }
 
+func SearchGitlabIssues(accessToken string, query string) ([]*modelInputs.IssuesSearchResult, error) {
+	url := fmt.Sprintf("%s/issues?search=%s", GitlabApiBaseUrl, url.QueryEscape(query))
+	res, err := doGitlabGetRequest[[]GitlabIssue](accessToken, url)
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Map(res, func(res GitlabIssue, _ int) *modelInputs.IssuesSearchResult {
+		return &modelInputs.IssuesSearchResult{
+			ID:       fmt.Sprint(res.ID),
+			Title:    res.Title,
+			IssueURL: res.WebURL,
+		}
+	}), nil
+}
+
 type NewGitlabIssuePayload struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
@@ -296,6 +312,17 @@ func CreateGitlabTask(accessToken string, projectId string, payload NewGitlabIss
 	url := fmt.Sprintf("%s/projects/%s/issues", GitlabApiBaseUrl, projectId)
 
 	res, err := doGitlabPostRequest[*GitlabIssue](accessToken, url, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func GetGitlabTask(accessToken string, taskId string) (*GitlabIssue, error) {
+	url := fmt.Sprintf("%s/issues/%s", GitlabApiBaseUrl, taskId)
+
+	res, err := doGitlabGetRequest[*GitlabIssue](accessToken, url)
 	if err != nil {
 		return nil, err
 	}

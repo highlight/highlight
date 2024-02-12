@@ -2,10 +2,14 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
+import { RadioGroup } from '@components/RadioGroup/RadioGroup'
+import Select, { OptionType } from '@components/Select/Select'
 import {
+	useCreateErrorCommentForExistingIssueMutation,
 	useCreateErrorCommentMutation,
 	useCreateIssueForErrorCommentMutation,
 	useCreateIssueForSessionCommentMutation,
+	useSearchIssuesLazyQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
@@ -33,8 +37,11 @@ import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerInt
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
+import { DefaultOptionType } from 'antd/lib/select'
 import { H } from 'highlight.run'
 import React, { useMemo, useState } from 'react'
+
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 
 interface NewIssueModalProps {
 	visible: boolean
@@ -63,18 +70,6 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 		},
 	})
 
-	React.useEffect(() => {
-		if (!defaultIssueTitle && !commentText) return
-
-		form.setValues((prev) => ({
-			...prev,
-			issueTitle: defaultIssueTitle,
-			issueDescription: commentText,
-		}))
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [defaultIssueTitle, commentText])
-
 	const [containerId, setContainerId] = useState('')
 	const [issueTypeId, setIssueTypeId] = useState('')
 
@@ -89,6 +84,11 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	const [createIssueForErrorComment] = useCreateIssueForErrorCommentMutation({
 		refetchQueries: [namedOperations.Query.GetErrorIssues],
 	})
+
+	const [linkIssueForErrorComment] =
+		useCreateErrorCommentForExistingIssueMutation({
+			refetchQueries: [namedOperations.Query.GetErrorIssues],
+		})
 
 	const [createIssueForSessionComment] =
 		useCreateIssueForSessionCommentMutation()
@@ -106,6 +106,53 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			namedOperations.Query.GetErrorIssues,
 		],
 	})
+
+	const [mode, setMode] = React.useState('Create Issue')
+	const [matchedIssues, setMatchedIssues] = useState<OptionType[]>([])
+	const [query, setQuery] = useState<string>('')
+	const [linkedIssue, setLinkedIssue] = useState({
+		id: '',
+		url: '',
+	})
+	const debouncedQuery = useDebouncedValue(query) || ''
+	const [searchIssues, { data }] = useSearchIssuesLazyQuery()
+
+	const getValueOptions = (input: string) => {
+		setQuery(input)
+	}
+
+	React.useEffect(() => {
+		searchIssues({
+			variables: {
+				project_id: project_id!,
+				query: debouncedQuery,
+				integration_type: selectedIntegration.name as IntegrationType,
+			},
+			fetchPolicy: 'cache-first',
+		})
+	}, [searchIssues, project_id, debouncedQuery, selectedIntegration])
+
+	React.useEffect(() => {
+		const values =
+			data?.search_issues.map((s) => ({
+				displayValue: s.title,
+				id: s.id,
+				value: s.issue_url,
+			})) || []
+		setMatchedIssues(values)
+	}, [data?.search_issues])
+
+	React.useEffect(() => {
+		if (!defaultIssueTitle && !commentText) return
+
+		form.setValues((prev) => ({
+			...prev,
+			issueTitle: defaultIssueTitle,
+			issueDescription: commentText,
+		}))
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [defaultIssueTitle, commentText])
 
 	const onFinish = async () => {
 		setLoading(true)
@@ -136,40 +183,69 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 				})
 			} else if (commentType === 'ErrorComment') {
 				if (commentId) {
-					await createIssueForErrorComment({
-						variables: {
-							project_id: project_id!,
-							error_url: currentUrl,
-							error_comment_id: commentId,
-							text_for_attachment: text,
-							issue_title: issueTitle,
-							issue_team_id: issueTeamId,
-							issue_type_id: issueTypeId || undefined,
-							issue_description: issueDescription,
-							integrations,
-							author_name: author,
-						},
-					})
+					if (mode === 'Create Issue') {
+						await createIssueForErrorComment({
+							variables: {
+								project_id: project_id!,
+								error_url: currentUrl,
+								error_comment_id: commentId,
+								text_for_attachment: text,
+								issue_title: issueTitle,
+								issue_team_id: issueTeamId,
+								issue_type_id: issueTypeId || undefined,
+								issue_description: issueDescription,
+								integrations,
+								author_name: author,
+							},
+						})
+					} else {
+						console.warn('NOT IMPLEMENTED YET')
+					}
 				} else if (errorSecureId) {
-					await createErrorComment({
-						variables: {
-							project_id: project_id!,
-							error_group_secure_id: errorSecureId,
-							text,
-							text_for_email: issueTitle,
-							error_url: currentUrl,
-							tagged_admins: [],
-							tagged_slack_users: [],
-							author_name: author,
-							integrations,
-							issue_title: issueTitle,
-							issue_team_id: issueTeamId,
-							issue_type_id: issueTypeId || undefined,
-							issue_description: issueDescription,
-						},
-						refetchQueries: [namedOperations.Query.GetErrorIssues],
-						awaitRefetchQueries: true,
-					})
+					if (mode === 'Create Issue') {
+						await createErrorComment({
+							variables: {
+								project_id: project_id!,
+								error_group_secure_id: errorSecureId,
+								text,
+								text_for_email: issueTitle,
+								error_url: currentUrl,
+								tagged_admins: [],
+								tagged_slack_users: [],
+								author_name: author,
+								integrations,
+								issue_title: issueTitle,
+								issue_team_id: issueTeamId,
+								issue_type_id: issueTypeId || undefined,
+								issue_description: issueDescription,
+							},
+							refetchQueries: [
+								namedOperations.Query.GetErrorIssues,
+							],
+							awaitRefetchQueries: true,
+						})
+					} else {
+						await linkIssueForErrorComment({
+							variables: {
+								project_id: project_id!,
+								error_group_secure_id: errorSecureId,
+								text,
+								text_for_email: issueTitle,
+								error_url: currentUrl,
+								tagged_admins: [],
+								tagged_slack_users: [],
+								author_name: author,
+								integrations,
+								issue_title: issueTitle,
+								issue_url: linkedIssue.url,
+								issue_id: linkedIssue.id,
+							},
+							refetchQueries: [
+								namedOperations.Query.GetErrorIssues,
+							],
+							awaitRefetchQueries: true,
+						})
+					}
 				}
 			} else {
 				throw new Error('Invalid Comment Type: ' + commentType)
@@ -245,6 +321,19 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			width="324px"
 		>
 			<ModalBody>
+				<Box px="12" py="8" gap="12" display="flex" align="center">
+					<RadioGroup
+						labels={['Create Issue', 'Link Issue']}
+						selectedLabel={mode}
+						onSelect={(label: any) => setMode(label)}
+						style={{
+							width: '100%',
+							display: 'flex',
+							justifyContent: 'center',
+							alignItems: 'center',
+						}}
+					/>
+				</Box>
 				<Form aria-labelledBy="newComment" store={form}>
 					<Box
 						px="12"
@@ -253,31 +342,69 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 						display="flex"
 						flexDirection="column"
 					>
-						{selectedIntegration.containerSelection({
-							setSelectionId: setContainerId,
-							setIssueTypeId: setIssueTypeId,
-							disabled: loading,
-						})}
-						<Form.Input
-							name={form.names.issueTitle}
-							label="Issue Title"
-							placeholder="Add a concise summary of the issue"
-							outline
-							truncate
-							required
-							disabled={loading}
-						/>
-						<Form.Input
-							name={form.names.issueDescription}
-							label="Issue Description"
-							placeholder="Hey, check this out!"
-							// @ts-expect-error
-							as="textarea"
-							outline
-							aria-multiline
-							rows={5}
-							disabled={loading}
-						/>
+						{mode === 'Create Issue' &&
+							selectedIntegration.containerSelection({
+								setSelectionId: setContainerId,
+								setIssueTypeId: setIssueTypeId,
+								disabled: loading,
+							})}
+						{mode === 'Link Issue' && (
+							<Form.NamedSection
+								label="Link an issue"
+								name="issue_id"
+							>
+								<Select
+									placeholder="Search Issue"
+									options={matchedIssues}
+									onChange={(
+										value: any,
+										option:
+											| DefaultOptionType
+											| DefaultOptionType[],
+									) => {
+										if (!Array.isArray(option)) {
+											setLinkedIssue({
+												id: value.toString(),
+												url: option.value
+													? option.value.toString()
+													: '',
+											})
+										}
+									}}
+									allowClear={true}
+									value={linkedIssue.id}
+									notFoundContent={
+										<p>No search results found</p>
+									}
+									showSearch={true}
+									onSearch={getValueOptions}
+								/>
+							</Form.NamedSection>
+						)}
+						{mode === 'Create Issue' && (
+							<Form.Input
+								name={form.names.issueTitle}
+								label="Issue Title"
+								placeholder="Add a concise summary of the issue"
+								outline
+								truncate
+								required
+								disabled={loading}
+							/>
+						)}
+						{mode === 'Create Issue' && (
+							<Form.Input
+								name={form.names.issueDescription}
+								label="Issue Description"
+								placeholder="Hey, check this out!"
+								// @ts-expect-error
+								as="textarea"
+								outline
+								aria-multiline
+								rows={5}
+								disabled={loading}
+							/>
+						)}
 					</Box>
 					<Box
 						px="6"

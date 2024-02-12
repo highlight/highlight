@@ -1482,6 +1482,12 @@ type MicrosoftTeamsChannel {
 	name: String!
 }
 
+type IssuesSearchResult {
+	id: String!
+	title: String!
+	issue_url: String!
+}
+
 input MicrosoftTeamsChannelInput {
 	name: String!
 	id: String!
@@ -1962,6 +1968,11 @@ type Query {
 	): [MicrosoftTeamsChannel!]!
 	discord_channel_suggestions(project_id: ID!): [DiscordChannel!]!
 	generate_zapier_access_token(project_id: ID!): String!
+	search_issues(
+		integration_type: IntegrationType!
+		project_id: ID!
+		query: String!
+	): [IssuesSearchResult!]!
 	is_integrated_with(
 		integration_type: IntegrationType!
 		project_id: ID!
@@ -2350,6 +2361,20 @@ type Mutation {
 		issue_description: String
 		issue_team_id: String
 		issue_type_id: String
+		integrations: [IntegrationType]!
+	): ErrorComment
+	createErrorCommentForExistingIssue(
+		project_id: ID!
+		error_group_secure_id: String!
+		text: String!
+		text_for_email: String!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+		error_url: String!
+		author_name: String!
+		issue_url: String!
+		issue_title: String!
+		issue_id: String!
 		integrations: [IntegrationType]!
 	): ErrorComment
 	removeErrorIssue(error_issue_id: ID!): Boolean

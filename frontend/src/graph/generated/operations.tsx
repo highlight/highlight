@@ -575,6 +575,43 @@ export type CreateErrorCommentMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type CreateErrorCommentForExistingIssueMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	error_group_secure_id: Types.Scalars['String']
+	text: Types.Scalars['String']
+	text_for_email: Types.Scalars['String']
+	tagged_admins:
+		| Array<Types.Maybe<Types.SanitizedAdminInput>>
+		| Types.Maybe<Types.SanitizedAdminInput>
+	tagged_slack_users:
+		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+		| Types.Maybe<Types.SanitizedSlackChannelInput>
+	error_url: Types.Scalars['String']
+	author_name: Types.Scalars['String']
+	integrations:
+		| Array<Types.Maybe<Types.IntegrationType>>
+		| Types.Maybe<Types.IntegrationType>
+	issue_title: Types.Scalars['String']
+	issue_url: Types.Scalars['String']
+	issue_id: Types.Scalars['String']
+}>
+
+export type CreateErrorCommentForExistingIssueMutation = {
+	__typename?: 'Mutation'
+} & {
+	createErrorCommentForExistingIssue?: Types.Maybe<
+		{ __typename: 'ErrorComment' } & Pick<
+			Types.ErrorComment,
+			'id' | 'created_at' | 'updated_at' | 'text'
+		> & {
+				author: { __typename: 'SanitizedAdmin' } & Pick<
+					Types.SanitizedAdmin,
+					'id' | 'name' | 'email'
+				>
+			}
+	>
+}
+
 export type CreateIssueForErrorCommentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	error_comment_id: Types.Scalars['Int']
@@ -4415,6 +4452,21 @@ export type GetOAuthClientMetadataQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type SearchIssuesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	query: Types.Scalars['String']
+	integration_type: Types.IntegrationType
+}>
+
+export type SearchIssuesQuery = { __typename?: 'Query' } & {
+	search_issues: Array<
+		{ __typename?: 'IssuesSearchResult' } & Pick<
+			Types.IssuesSearchResult,
+			'id' | 'title' | 'issue_url'
+		>
+	>
+}
+
 export type GetErrorGroupFrequenciesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	error_group_secure_ids:
@@ -5109,6 +5161,7 @@ export const namedOperations = {
 		GetSourcemapFiles: 'GetSourcemapFiles' as const,
 		GetSourcemapVersions: 'GetSourcemapVersions' as const,
 		GetOAuthClientMetadata: 'GetOAuthClientMetadata' as const,
+		SearchIssues: 'SearchIssues' as const,
 		GetErrorGroupFrequencies: 'GetErrorGroupFrequencies' as const,
 		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
@@ -5175,6 +5228,8 @@ export const namedOperations = {
 		DeleteSessionComment: 'DeleteSessionComment' as const,
 		ReplyToSessionComment: 'ReplyToSessionComment' as const,
 		CreateErrorComment: 'CreateErrorComment' as const,
+		CreateErrorCommentForExistingIssue:
+			'CreateErrorCommentForExistingIssue' as const,
 		CreateIssueForErrorComment: 'CreateIssueForErrorComment' as const,
 		DeleteErrorComment: 'DeleteErrorComment' as const,
 		MuteErrorCommentThread: 'MuteErrorCommentThread' as const,

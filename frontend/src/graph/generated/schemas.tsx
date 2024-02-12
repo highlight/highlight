@@ -760,6 +760,13 @@ export type Invoice = {
 	url?: Maybe<Scalars['String']>
 }
 
+export type IssuesSearchResult = {
+	__typename?: 'IssuesSearchResult'
+	id: Scalars['String']
+	issue_url: Scalars['String']
+	title: Scalars['String']
+}
+
 export type JiraIssueType = {
 	__typename?: 'JiraIssueType'
 	description: Scalars['String']
@@ -1061,6 +1068,7 @@ export type Mutation = {
 	createAdmin: Admin
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
+	createErrorCommentForExistingIssue?: Maybe<ErrorComment>
 	createErrorSegment?: Maybe<ErrorSegment>
 	createErrorTag: ErrorTag
 	createIssueForErrorComment?: Maybe<ErrorComment>
@@ -1191,6 +1199,21 @@ export type MutationCreateErrorCommentArgs = {
 	issue_team_id?: InputMaybe<Scalars['String']>
 	issue_title?: InputMaybe<Scalars['String']>
 	issue_type_id?: InputMaybe<Scalars['String']>
+	project_id: Scalars['ID']
+	tagged_admins: Array<InputMaybe<SanitizedAdminInput>>
+	tagged_slack_users: Array<InputMaybe<SanitizedSlackChannelInput>>
+	text: Scalars['String']
+	text_for_email: Scalars['String']
+}
+
+export type MutationCreateErrorCommentForExistingIssueArgs = {
+	author_name: Scalars['String']
+	error_group_secure_id: Scalars['String']
+	error_url: Scalars['String']
+	integrations: Array<InputMaybe<IntegrationType>>
+	issue_id: Scalars['String']
+	issue_title: Scalars['String']
+	issue_url: Scalars['String']
 	project_id: Scalars['ID']
 	tagged_admins: Array<InputMaybe<SanitizedAdminInput>>
 	tagged_slack_users: Array<InputMaybe<SanitizedSlackChannelInput>>
@@ -1927,6 +1950,7 @@ export type Query = {
 	referrers: Array<Maybe<ReferrerTablePayload>>
 	resources?: Maybe<Array<Maybe<Scalars['Any']>>>
 	saved_segments?: Maybe<Array<Maybe<SavedSegment>>>
+	search_issues: Array<IssuesSearchResult>
 	segments?: Maybe<Array<Maybe<Segment>>>
 	serverIntegration: IntegrationStatus
 	serviceByName?: Maybe<Service>
@@ -2476,6 +2500,12 @@ export type QueryResourcesArgs = {
 export type QuerySaved_SegmentsArgs = {
 	entity_type: SavedSegmentEntityType
 	project_id: Scalars['ID']
+}
+
+export type QuerySearch_IssuesArgs = {
+	integration_type: IntegrationType
+	project_id: Scalars['ID']
+	query: Scalars['String']
 }
 
 export type QuerySegmentsArgs = {

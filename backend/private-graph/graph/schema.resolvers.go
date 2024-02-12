@@ -2211,6 +2211,151 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	return errorComment, nil
 }
 
+// CreateErrorCommentForExistingIssue is the resolver for the createErrorCommentForExistingIssue field.
+func (r *mutationResolver) CreateErrorCommentForExistingIssue(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueURL string, issueTitle string, issueID string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
+	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
+
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
+	if err != nil {
+		return nil, err
+	}
+
+	var project model.Project
+	if err := r.DB.WithContext(ctx).Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	admins := []model.Admin{}
+	for _, a := range taggedAdmins {
+		admins = append(admins,
+			model.Admin{
+				Model: model.Model{ID: a.ID},
+			},
+		)
+	}
+
+	errorComment := &model.ErrorComment{
+		Admins:        admins,
+		ProjectID:     projectID,
+		AdminId:       admin.Model.ID,
+		ErrorId:       errorGroup.ID,
+		ErrorSecureId: errorGroup.SecureID,
+		Text:          text,
+	}
+
+	createErrorCommentSpan, _ := util.StartSpanFromContext(ctx, "db.createErrorComment",
+		util.ResourceName("resolver.createErrorComment"), util.Tag("project_id", projectID))
+
+	if err := r.DB.WithContext(ctx).Create(errorComment).Error; err != nil {
+		return nil, e.Wrap(err, "error creating error comment")
+	}
+
+	createErrorCommentSpan.Finish()
+
+	viewLink := fmt.Sprintf("%v?commentId=%v", errorURL, errorComment.ID)
+	muteLink := fmt.Sprintf("%v?commentId=%v&muted=1", errorURL, errorComment.ID)
+
+	if len(taggedAdmins) > 0 && !isGuest {
+		r.sendCommentPrimaryNotification(
+			ctx,
+			admin,
+			authorName,
+			taggedAdmins,
+			workspace,
+			projectID,
+			nil,
+			&errorComment.ID,
+			textForEmail,
+			viewLink,
+			muteLink,
+			nil,
+			"tagged",
+			"error",
+			nil,
+			&Email.ErrorCommentMentionsAsmId,
+		)
+	}
+	if len(taggedSlackUsers) > 0 && !isGuest {
+		r.sendCommentMentionNotification(
+			ctx,
+			admin,
+			taggedSlackUsers,
+			workspace,
+			projectID,
+			nil,
+			&errorComment.ID,
+			textForEmail,
+			viewLink,
+			nil,
+			"tagged",
+			"error",
+			nil,
+		)
+	}
+
+	for _, s := range integrations {
+		attachment := &model.ExternalAttachment{
+			IntegrationType: *s,
+			ErrorCommentID:  errorComment.ID,
+		}
+
+		if *s == modelInputs.IntegrationTypeJira {
+			if err := r.CreateJiraIssueAttachment(ctx, workspace, attachment, issueTitle, issueURL); err != nil {
+				return nil, e.Wrap(err, "error creating Jira issue attachment")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		}
+
+		if *s == modelInputs.IntegrationTypeGitLab {
+			if err := r.CreateGitlabTaskAttachment(ctx, workspace, attachment, issueTitle, issueURL); err != nil {
+				return nil, e.Wrap(err, "error creating GitLab issue attachment")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		}
+
+		if *s == modelInputs.IntegrationTypeGitLab {
+			if err := r.CreateLinearAttachmentForExistingIssue(
+				ctx,
+				workspace,
+				attachment,
+				errorComment.Text,
+				authorName,
+				viewLink,
+				issueID,  // supposed to be the issue ID itself - not some url - seems we need a rethink here?
+				issueURL, //supposed to be the issue identifier - looks like a readable id
+			); err != nil {
+				return nil, e.Wrap(err, "error creating linear issue attachment")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		}
+	}
+
+	taggedUsers := append(taggedAdmins, &modelInputs.SanitizedAdminInput{
+		ID:    admin.ID,
+		Name:  admin.Name,
+		Email: *admin.Email,
+	})
+	newFollowers := r.findNewFollowers(taggedUsers, taggedSlackUsers, nil, nil)
+	for _, f := range newFollowers {
+		f.ErrorCommentID = errorComment.ID
+	}
+	if len(newFollowers) > 0 {
+		if err := r.DB.WithContext(ctx).Create(&newFollowers).Error; err != nil {
+			log.WithContext(ctx).Error("Failed to create new session comment followers", err)
+		}
+	}
+
+	return errorComment, nil
+}
+
 // RemoveErrorIssue is the resolver for the removeErrorIssue field.
 func (r *mutationResolver) RemoveErrorIssue(ctx context.Context, errorIssueID int) (*bool, error) {
 	var errorCommentID int
@@ -6484,6 +6629,52 @@ func (r *queryResolver) GenerateZapierAccessToken(ctx context.Context, projectID
 	}
 
 	return token, nil
+}
+
+// SearchIssues is the resolver for the search_issues field.
+func (r *queryResolver) SearchIssues(ctx context.Context, integrationType modelInputs.IntegrationType, projectID int, query string) ([]*modelInputs.IssuesSearchResult, error) {
+	ret := []*modelInputs.IssuesSearchResult{}
+
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+
+	if err != nil {
+		return ret, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return ret, err
+	}
+
+	workspace, err = r.isAdminInWorkspace(ctx, project.WorkspaceID)
+	if err != nil {
+		return ret, e.Wrap(err, "error querying workspace")
+	}
+
+	if integrationType == modelInputs.IntegrationTypeJira {
+		results, err := r.SearchJiraIssues(ctx, workspace, query)
+		if err != nil {
+			return ret, err
+		}
+		return results, nil
+	}
+
+	if integrationType == modelInputs.IntegrationTypeGitLab {
+		results, err := r.SearchGitlabIssues(ctx, workspace, query)
+		if err != nil {
+			return ret, err
+		}
+		return results, nil
+	}
+
+	if integrationType == modelInputs.IntegrationTypeLinear {
+		results, err := r.SearchLinearIssues(*workspace.LinearAccessToken, query)
+		if err != nil {
+			return ret, err
+		}
+		return results, nil
+	}
+	return ret, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 }
 
 // IsIntegratedWith is the resolver for the is_integrated_with field.

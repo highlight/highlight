@@ -2401,6 +2401,104 @@ export type CreateErrorCommentMutationOptions = Apollo.BaseMutationOptions<
 	Types.CreateErrorCommentMutation,
 	Types.CreateErrorCommentMutationVariables
 >
+export const CreateErrorCommentForExistingIssueDocument = gql`
+	mutation CreateErrorCommentForExistingIssue(
+		$project_id: ID!
+		$error_group_secure_id: String!
+		$text: String!
+		$text_for_email: String!
+		$tagged_admins: [SanitizedAdminInput]!
+		$tagged_slack_users: [SanitizedSlackChannelInput]!
+		$error_url: String!
+		$author_name: String!
+		$integrations: [IntegrationType]!
+		$issue_title: String!
+		$issue_url: String!
+		$issue_id: String!
+	) {
+		createErrorCommentForExistingIssue(
+			project_id: $project_id
+			error_group_secure_id: $error_group_secure_id
+			text: $text
+			text_for_email: $text_for_email
+			tagged_admins: $tagged_admins
+			tagged_slack_users: $tagged_slack_users
+			error_url: $error_url
+			author_name: $author_name
+			integrations: $integrations
+			issue_title: $issue_title
+			issue_url: $issue_url
+			issue_id: $issue_id
+		) {
+			id
+			created_at
+			updated_at
+			author {
+				id
+				name
+				email
+				__typename
+			}
+			text
+			__typename
+		}
+	}
+`
+export type CreateErrorCommentForExistingIssueMutationFn =
+	Apollo.MutationFunction<
+		Types.CreateErrorCommentForExistingIssueMutation,
+		Types.CreateErrorCommentForExistingIssueMutationVariables
+	>
+
+/**
+ * __useCreateErrorCommentForExistingIssueMutation__
+ *
+ * To run a mutation, you first call `useCreateErrorCommentForExistingIssueMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateErrorCommentForExistingIssueMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createErrorCommentForExistingIssueMutation, { data, loading, error }] = useCreateErrorCommentForExistingIssueMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      error_group_secure_id: // value for 'error_group_secure_id'
+ *      text: // value for 'text'
+ *      text_for_email: // value for 'text_for_email'
+ *      tagged_admins: // value for 'tagged_admins'
+ *      tagged_slack_users: // value for 'tagged_slack_users'
+ *      error_url: // value for 'error_url'
+ *      author_name: // value for 'author_name'
+ *      integrations: // value for 'integrations'
+ *      issue_title: // value for 'issue_title'
+ *      issue_url: // value for 'issue_url'
+ *      issue_id: // value for 'issue_id'
+ *   },
+ * });
+ */
+export function useCreateErrorCommentForExistingIssueMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.CreateErrorCommentForExistingIssueMutation,
+		Types.CreateErrorCommentForExistingIssueMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.CreateErrorCommentForExistingIssueMutation,
+		Types.CreateErrorCommentForExistingIssueMutationVariables
+	>(CreateErrorCommentForExistingIssueDocument, baseOptions)
+}
+export type CreateErrorCommentForExistingIssueMutationHookResult = ReturnType<
+	typeof useCreateErrorCommentForExistingIssueMutation
+>
+export type CreateErrorCommentForExistingIssueMutationResult =
+	Apollo.MutationResult<Types.CreateErrorCommentForExistingIssueMutation>
+export type CreateErrorCommentForExistingIssueMutationOptions =
+	Apollo.BaseMutationOptions<
+		Types.CreateErrorCommentForExistingIssueMutation,
+		Types.CreateErrorCommentForExistingIssueMutationVariables
+	>
 export const CreateIssueForErrorCommentDocument = gql`
 	mutation CreateIssueForErrorComment(
 		$project_id: ID!
@@ -13167,6 +13265,74 @@ export type GetOAuthClientMetadataLazyQueryHookResult = ReturnType<
 export type GetOAuthClientMetadataQueryResult = Apollo.QueryResult<
 	Types.GetOAuthClientMetadataQuery,
 	Types.GetOAuthClientMetadataQueryVariables
+>
+export const SearchIssuesDocument = gql`
+	query SearchIssues(
+		$project_id: ID!
+		$query: String!
+		$integration_type: IntegrationType!
+	) {
+		search_issues(
+			integration_type: $integration_type
+			query: $query
+			project_id: $project_id
+		) {
+			id
+			title
+			issue_url
+		}
+	}
+`
+
+/**
+ * __useSearchIssuesQuery__
+ *
+ * To run a query within a React component, call `useSearchIssuesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchIssuesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchIssuesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      query: // value for 'query'
+ *      integration_type: // value for 'integration_type'
+ *   },
+ * });
+ */
+export function useSearchIssuesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.SearchIssuesQuery,
+		Types.SearchIssuesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.SearchIssuesQuery,
+		Types.SearchIssuesQueryVariables
+	>(SearchIssuesDocument, baseOptions)
+}
+export function useSearchIssuesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.SearchIssuesQuery,
+		Types.SearchIssuesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.SearchIssuesQuery,
+		Types.SearchIssuesQueryVariables
+	>(SearchIssuesDocument, baseOptions)
+}
+export type SearchIssuesQueryHookResult = ReturnType<
+	typeof useSearchIssuesQuery
+>
+export type SearchIssuesLazyQueryHookResult = ReturnType<
+	typeof useSearchIssuesLazyQuery
+>
+export type SearchIssuesQueryResult = Apollo.QueryResult<
+	Types.SearchIssuesQuery,
+	Types.SearchIssuesQueryVariables
 >
 export const GetErrorGroupFrequenciesDocument = gql`
 	query GetErrorGroupFrequencies(

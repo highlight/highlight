@@ -525,6 +525,49 @@ mutation CreateErrorComment(
 		text
 	}
 }
+
+mutation CreateErrorCommentForExistingIssue(
+	$project_id: ID!
+	$error_group_secure_id: String!
+	$text: String!
+	$text_for_email: String!
+	$tagged_admins: [SanitizedAdminInput]!
+	$tagged_slack_users: [SanitizedSlackChannelInput]!
+	$error_url: String!
+	$author_name: String!
+	$integrations: [IntegrationType]!
+	$issue_title: String!
+	$issue_url: String!
+	$issue_id: String!
+) {
+	createErrorCommentForExistingIssue(
+		project_id: $project_id
+		error_group_secure_id: $error_group_secure_id
+		text: $text
+		text_for_email: $text_for_email
+		tagged_admins: $tagged_admins
+		tagged_slack_users: $tagged_slack_users
+		error_url: $error_url
+		author_name: $author_name
+		integrations: $integrations
+		issue_title: $issue_title
+		issue_url: $issue_url
+		issue_id: $issue_id
+	) {
+		id
+		created_at
+		updated_at
+		author {
+			id
+			name
+			email
+			__typename
+		}
+		text
+		__typename
+	}
+}
+
 mutation CreateIssueForErrorComment(
 	$project_id: ID!
 	$error_comment_id: Int!

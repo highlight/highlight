@@ -583,6 +583,12 @@ type ComplexityRoot struct {
 		URL          func(childComplexity int) int
 	}
 
+	IssuesSearchResult struct {
+		ID       func(childComplexity int) int
+		IssueURL func(childComplexity int) int
+		Title    func(childComplexity int) int
+	}
+
 	JiraIssueType struct {
 		Description      func(childComplexity int) int
 		ID               func(childComplexity int) int
@@ -762,93 +768,94 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAdminToWorkspace              func(childComplexity int, workspaceID int, inviteID string) int
-		AddIntegrationToProject          func(childComplexity int, integrationType *model.IntegrationType, projectID int, code string) int
-		AddIntegrationToWorkspace        func(childComplexity int, integrationType *model.IntegrationType, workspaceID int, code string) int
-		ChangeAdminRole                  func(childComplexity int, workspaceID int, adminID int, newRole string) int
-		CreateAdmin                      func(childComplexity int) int
-		CreateErrorAlert                 func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int, defaultArg *bool) int
-		CreateErrorComment               func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
-		CreateErrorSegment               func(childComplexity int, projectID int, name string, query string) int
-		CreateErrorTag                   func(childComplexity int, title string, description string) int
-		CreateIssueForErrorComment       func(childComplexity int, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
-		CreateIssueForSessionComment     func(childComplexity int, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
-		CreateLogAlert                   func(childComplexity int, input model.LogAlertInput) int
-		CreateMetricMonitor              func(childComplexity int, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, filters []*model.MetricTagFilterInput) int
-		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int) int
-		CreateProject                    func(childComplexity int, name string, workspaceID int) int
-		CreateSavedSegment               func(childComplexity int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) int
-		CreateSegment                    func(childComplexity int, projectID int, name string, query string) int
-		CreateSessionAlert               func(childComplexity int, input model.SessionAlertInput) int
-		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) int
-		CreateWorkspace                  func(childComplexity int, name string, promoCode *string) int
-		DeleteAdminFromProject           func(childComplexity int, projectID int, adminID int) int
-		DeleteAdminFromWorkspace         func(childComplexity int, workspaceID int, adminID int) int
-		DeleteDashboard                  func(childComplexity int, id int) int
-		DeleteErrorAlert                 func(childComplexity int, projectID int, errorAlertID int) int
-		DeleteErrorComment               func(childComplexity int, id int) int
-		DeleteErrorSegment               func(childComplexity int, segmentID int) int
-		DeleteInviteLinkFromWorkspace    func(childComplexity int, workspaceID int, workspaceInviteLinkID int) int
-		DeleteLogAlert                   func(childComplexity int, projectID int, id int) int
-		DeleteMetricMonitor              func(childComplexity int, projectID int, metricMonitorID int) int
-		DeleteProject                    func(childComplexity int, id int) int
-		DeleteSavedSegment               func(childComplexity int, segmentID int) int
-		DeleteSegment                    func(childComplexity int, segmentID int) int
-		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
-		DeleteSessionComment             func(childComplexity int, id int) int
-		DeleteSessions                   func(childComplexity int, projectID int, query model.ClickhouseQuery, sessionCount int) int
-		EditErrorSegment                 func(childComplexity int, id int, projectID int, query string, name string) int
-		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) int
-		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) int
-		EditSavedSegment                 func(childComplexity int, id int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) int
-		EditSegment                      func(childComplexity int, id int, projectID int, query string, name string) int
-		EditServiceGithubSettings        func(childComplexity int, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) int
-		EditWorkspace                    func(childComplexity int, id int, name *string) int
-		EditWorkspaceSettings            func(childComplexity int, workspaceID int, aiApplication *bool, aiInsights *bool) int
-		EmailSignup                      func(childComplexity int, email string) int
-		ExportSession                    func(childComplexity int, sessionSecureID string) int
-		HandleAWSMarketplace             func(childComplexity int, workspaceID int, code string) int
-		JoinWorkspace                    func(childComplexity int, workspaceID int) int
-		MarkErrorGroupAsViewed           func(childComplexity int, errorSecureID string, viewed *bool) int
-		MarkSessionAsViewed              func(childComplexity int, secureID string, viewed *bool) int
-		ModifyClearbitIntegration        func(childComplexity int, workspaceID int, enabled bool) int
-		MuteErrorCommentThread           func(childComplexity int, id int, hasMuted *bool) int
-		MuteSessionCommentThread         func(childComplexity int, id int, hasMuted *bool) int
-		RemoveErrorIssue                 func(childComplexity int, errorIssueID int) int
-		RemoveIntegrationFromProject     func(childComplexity int, integrationType *model.IntegrationType, projectID int) int
-		RemoveIntegrationFromWorkspace   func(childComplexity int, integrationType model.IntegrationType, workspaceID int) int
-		ReplyToErrorComment              func(childComplexity int, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
-		ReplyToSessionComment            func(childComplexity int, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
-		RequestAccess                    func(childComplexity int, projectID int) int
-		SaveBillingPlan                  func(childComplexity int, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod) int
-		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
-		SubmitRegistrationForm           func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
-		SyncSlackIntegration             func(childComplexity int, projectID int) int
-		TestErrorEnhancement             func(childComplexity int, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) int
-		UpdateAdminAboutYouDetails       func(childComplexity int, adminDetails model.AdminAboutYouDetails) int
-		UpdateAdminAndCreateWorkspace    func(childComplexity int, adminAndWorkspaceDetails model.AdminAndWorkspaceDetails) int
-		UpdateAllowMeterOverage          func(childComplexity int, workspaceID int, allowMeterOverage bool) int
-		UpdateAllowedEmailOrigins        func(childComplexity int, workspaceID int, allowedAutoJoinEmailOrigins string) int
-		UpdateBillingDetails             func(childComplexity int, workspaceID int) int
-		UpdateClickUpProjectMappings     func(childComplexity int, workspaceID int, projectMappings []*model.ClickUpProjectMappingInput) int
-		UpdateEmailOptOut                func(childComplexity int, token *string, adminID *int, category model.EmailOptOutCategory, isOptOut bool, projectID *int) int
-		UpdateErrorAlert                 func(childComplexity int, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) int
-		UpdateErrorAlertIsDisabled       func(childComplexity int, id int, projectID int, disabled bool) int
-		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
-		UpdateErrorGroupState            func(childComplexity int, secureID string, state model.ErrorState, snoozedUntil *time.Time) int
-		UpdateErrorTags                  func(childComplexity int) int
-		UpdateIntegrationProjectMappings func(childComplexity int, workspaceID int, integrationType model.IntegrationType, projectMappings []*model.IntegrationProjectMappingInput) int
-		UpdateLogAlert                   func(childComplexity int, id int, input model.LogAlertInput) int
-		UpdateLogAlertIsDisabled         func(childComplexity int, id int, projectID int, disabled bool) int
-		UpdateMetricMonitor              func(childComplexity int, metricMonitorID int, projectID int, name *string, aggregator *model.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, disabled *bool, filters []*model.MetricTagFilterInput) int
-		UpdateMetricMonitorIsDisabled    func(childComplexity int, id int, projectID int, disabled bool) int
-		UpdateSessionAlert               func(childComplexity int, id int, input model.SessionAlertInput) int
-		UpdateSessionAlertIsDisabled     func(childComplexity int, id int, projectID int, disabled bool) int
-		UpdateSessionIsPublic            func(childComplexity int, sessionSecureID string, isPublic bool) int
-		UpdateVercelProjectMappings      func(childComplexity int, projectID int, projectMappings []*model.VercelProjectMappingInput) int
-		UpsertDashboard                  func(childComplexity int, id *int, projectID int, name string, metrics []*model.DashboardMetricConfigInput, layout *string, isDefault *bool) int
-		UpsertDiscordChannel             func(childComplexity int, projectID int, name string) int
-		UpsertSlackChannel               func(childComplexity int, projectID int, name string) int
+		AddAdminToWorkspace                func(childComplexity int, workspaceID int, inviteID string) int
+		AddIntegrationToProject            func(childComplexity int, integrationType *model.IntegrationType, projectID int, code string) int
+		AddIntegrationToWorkspace          func(childComplexity int, integrationType *model.IntegrationType, workspaceID int, code string) int
+		ChangeAdminRole                    func(childComplexity int, workspaceID int, adminID int, newRole string) int
+		CreateAdmin                        func(childComplexity int) int
+		CreateErrorAlert                   func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int, defaultArg *bool) int
+		CreateErrorComment                 func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
+		CreateErrorCommentForExistingIssue func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueURL string, issueTitle string, issueID string, integrations []*model.IntegrationType) int
+		CreateErrorSegment                 func(childComplexity int, projectID int, name string, query string) int
+		CreateErrorTag                     func(childComplexity int, title string, description string) int
+		CreateIssueForErrorComment         func(childComplexity int, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
+		CreateIssueForSessionComment       func(childComplexity int, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
+		CreateLogAlert                     func(childComplexity int, input model.LogAlertInput) int
+		CreateMetricMonitor                func(childComplexity int, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, filters []*model.MetricTagFilterInput) int
+		CreateOrUpdateStripeSubscription   func(childComplexity int, workspaceID int) int
+		CreateProject                      func(childComplexity int, name string, workspaceID int) int
+		CreateSavedSegment                 func(childComplexity int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) int
+		CreateSegment                      func(childComplexity int, projectID int, name string, query string) int
+		CreateSessionAlert                 func(childComplexity int, input model.SessionAlertInput) int
+		CreateSessionComment               func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) int
+		CreateWorkspace                    func(childComplexity int, name string, promoCode *string) int
+		DeleteAdminFromProject             func(childComplexity int, projectID int, adminID int) int
+		DeleteAdminFromWorkspace           func(childComplexity int, workspaceID int, adminID int) int
+		DeleteDashboard                    func(childComplexity int, id int) int
+		DeleteErrorAlert                   func(childComplexity int, projectID int, errorAlertID int) int
+		DeleteErrorComment                 func(childComplexity int, id int) int
+		DeleteErrorSegment                 func(childComplexity int, segmentID int) int
+		DeleteInviteLinkFromWorkspace      func(childComplexity int, workspaceID int, workspaceInviteLinkID int) int
+		DeleteLogAlert                     func(childComplexity int, projectID int, id int) int
+		DeleteMetricMonitor                func(childComplexity int, projectID int, metricMonitorID int) int
+		DeleteProject                      func(childComplexity int, id int) int
+		DeleteSavedSegment                 func(childComplexity int, segmentID int) int
+		DeleteSegment                      func(childComplexity int, segmentID int) int
+		DeleteSessionAlert                 func(childComplexity int, projectID int, sessionAlertID int) int
+		DeleteSessionComment               func(childComplexity int, id int) int
+		DeleteSessions                     func(childComplexity int, projectID int, query model.ClickhouseQuery, sessionCount int) int
+		EditErrorSegment                   func(childComplexity int, id int, projectID int, query string, name string) int
+		EditProject                        func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) int
+		EditProjectSettings                func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) int
+		EditSavedSegment                   func(childComplexity int, id int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) int
+		EditSegment                        func(childComplexity int, id int, projectID int, query string, name string) int
+		EditServiceGithubSettings          func(childComplexity int, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) int
+		EditWorkspace                      func(childComplexity int, id int, name *string) int
+		EditWorkspaceSettings              func(childComplexity int, workspaceID int, aiApplication *bool, aiInsights *bool) int
+		EmailSignup                        func(childComplexity int, email string) int
+		ExportSession                      func(childComplexity int, sessionSecureID string) int
+		HandleAWSMarketplace               func(childComplexity int, workspaceID int, code string) int
+		JoinWorkspace                      func(childComplexity int, workspaceID int) int
+		MarkErrorGroupAsViewed             func(childComplexity int, errorSecureID string, viewed *bool) int
+		MarkSessionAsViewed                func(childComplexity int, secureID string, viewed *bool) int
+		ModifyClearbitIntegration          func(childComplexity int, workspaceID int, enabled bool) int
+		MuteErrorCommentThread             func(childComplexity int, id int, hasMuted *bool) int
+		MuteSessionCommentThread           func(childComplexity int, id int, hasMuted *bool) int
+		RemoveErrorIssue                   func(childComplexity int, errorIssueID int) int
+		RemoveIntegrationFromProject       func(childComplexity int, integrationType *model.IntegrationType, projectID int) int
+		RemoveIntegrationFromWorkspace     func(childComplexity int, integrationType model.IntegrationType, workspaceID int) int
+		ReplyToErrorComment                func(childComplexity int, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
+		ReplyToSessionComment              func(childComplexity int, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
+		RequestAccess                      func(childComplexity int, projectID int) int
+		SaveBillingPlan                    func(childComplexity int, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod) int
+		SendAdminWorkspaceInvite           func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
+		SubmitRegistrationForm             func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
+		SyncSlackIntegration               func(childComplexity int, projectID int) int
+		TestErrorEnhancement               func(childComplexity int, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) int
+		UpdateAdminAboutYouDetails         func(childComplexity int, adminDetails model.AdminAboutYouDetails) int
+		UpdateAdminAndCreateWorkspace      func(childComplexity int, adminAndWorkspaceDetails model.AdminAndWorkspaceDetails) int
+		UpdateAllowMeterOverage            func(childComplexity int, workspaceID int, allowMeterOverage bool) int
+		UpdateAllowedEmailOrigins          func(childComplexity int, workspaceID int, allowedAutoJoinEmailOrigins string) int
+		UpdateBillingDetails               func(childComplexity int, workspaceID int) int
+		UpdateClickUpProjectMappings       func(childComplexity int, workspaceID int, projectMappings []*model.ClickUpProjectMappingInput) int
+		UpdateEmailOptOut                  func(childComplexity int, token *string, adminID *int, category model.EmailOptOutCategory, isOptOut bool, projectID *int) int
+		UpdateErrorAlert                   func(childComplexity int, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) int
+		UpdateErrorAlertIsDisabled         func(childComplexity int, id int, projectID int, disabled bool) int
+		UpdateErrorGroupIsPublic           func(childComplexity int, errorGroupSecureID string, isPublic bool) int
+		UpdateErrorGroupState              func(childComplexity int, secureID string, state model.ErrorState, snoozedUntil *time.Time) int
+		UpdateErrorTags                    func(childComplexity int) int
+		UpdateIntegrationProjectMappings   func(childComplexity int, workspaceID int, integrationType model.IntegrationType, projectMappings []*model.IntegrationProjectMappingInput) int
+		UpdateLogAlert                     func(childComplexity int, id int, input model.LogAlertInput) int
+		UpdateLogAlertIsDisabled           func(childComplexity int, id int, projectID int, disabled bool) int
+		UpdateMetricMonitor                func(childComplexity int, metricMonitorID int, projectID int, name *string, aggregator *model.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, disabled *bool, filters []*model.MetricTagFilterInput) int
+		UpdateMetricMonitorIsDisabled      func(childComplexity int, id int, projectID int, disabled bool) int
+		UpdateSessionAlert                 func(childComplexity int, id int, input model.SessionAlertInput) int
+		UpdateSessionAlertIsDisabled       func(childComplexity int, id int, projectID int, disabled bool) int
+		UpdateSessionIsPublic              func(childComplexity int, sessionSecureID string, isPublic bool) int
+		UpdateVercelProjectMappings        func(childComplexity int, projectID int, projectMappings []*model.VercelProjectMappingInput) int
+		UpsertDashboard                    func(childComplexity int, id *int, projectID int, name string, metrics []*model.DashboardMetricConfigInput, layout *string, isDefault *bool) int
+		UpsertDiscordChannel               func(childComplexity int, projectID int, name string) int
+		UpsertSlackChannel                 func(childComplexity int, projectID int, name string) int
 	}
 
 	NamedCount struct {
@@ -1012,6 +1019,7 @@ type ComplexityRoot struct {
 		Referrers                        func(childComplexity int, projectID int, lookbackDays float64) int
 		Resources                        func(childComplexity int, sessionSecureID string) int
 		SavedSegments                    func(childComplexity int, projectID int, entityType model.SavedSegmentEntityType) int
+		SearchIssues                     func(childComplexity int, integrationType model.IntegrationType, projectID int, query string) int
 		Segments                         func(childComplexity int, projectID int) int
 		ServerIntegration                func(childComplexity int, projectID int) int
 		ServiceByName                    func(childComplexity int, projectID int, name string) int
@@ -1665,6 +1673,7 @@ type MutationResolver interface {
 	MuteSessionCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error)
 	ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
 	CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
+	CreateErrorCommentForExistingIssue(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueURL string, issueTitle string, issueID string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
 	RemoveErrorIssue(ctx context.Context, errorIssueID int) (*bool, error)
 	MuteErrorCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error)
 	CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
@@ -1794,6 +1803,7 @@ type QueryResolver interface {
 	MicrosoftTeamsChannelSuggestions(ctx context.Context, projectID int) ([]*model1.MicrosoftTeamsChannel, error)
 	DiscordChannelSuggestions(ctx context.Context, projectID int) ([]*model1.DiscordChannel, error)
 	GenerateZapierAccessToken(ctx context.Context, projectID int) (string, error)
+	SearchIssues(ctx context.Context, integrationType model.IntegrationType, projectID int, query string) ([]*model.IssuesSearchResult, error)
 	IsIntegratedWith(ctx context.Context, integrationType model.IntegrationType, projectID int) (bool, error)
 	IsWorkspaceIntegratedWith(ctx context.Context, integrationType model.IntegrationType, workspaceID int) (bool, error)
 	IsProjectIntegratedWith(ctx context.Context, integrationType model.IntegrationType, projectID int) (bool, error)
@@ -4341,6 +4351,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Invoice.URL(childComplexity), true
 
+	case "IssuesSearchResult.id":
+		if e.complexity.IssuesSearchResult.ID == nil {
+			break
+		}
+
+		return e.complexity.IssuesSearchResult.ID(childComplexity), true
+
+	case "IssuesSearchResult.issue_url":
+		if e.complexity.IssuesSearchResult.IssueURL == nil {
+			break
+		}
+
+		return e.complexity.IssuesSearchResult.IssueURL(childComplexity), true
+
+	case "IssuesSearchResult.title":
+		if e.complexity.IssuesSearchResult.Title == nil {
+			break
+		}
+
+		return e.complexity.IssuesSearchResult.Title(childComplexity), true
+
 	case "JiraIssueType.description":
 		if e.complexity.JiraIssueType.Description == nil {
 			break
@@ -5182,6 +5213,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateErrorComment(childComplexity, args["project_id"].(int), args["error_group_secure_id"].(string), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["error_url"].(string), args["author_name"].(string), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["issue_type_id"].(*string), args["integrations"].([]*model.IntegrationType)), true
+
+	case "Mutation.createErrorCommentForExistingIssue":
+		if e.complexity.Mutation.CreateErrorCommentForExistingIssue == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createErrorCommentForExistingIssue_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateErrorCommentForExistingIssue(childComplexity, args["project_id"].(int), args["error_group_secure_id"].(string), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["error_url"].(string), args["author_name"].(string), args["issue_url"].(string), args["issue_title"].(string), args["issue_id"].(string), args["integrations"].([]*model.IntegrationType)), true
 
 	case "Mutation.createErrorSegment":
 		if e.complexity.Mutation.CreateErrorSegment == nil {
@@ -7636,6 +7679,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SavedSegments(childComplexity, args["project_id"].(int), args["entity_type"].(model.SavedSegmentEntityType)), true
+
+	case "Query.search_issues":
+		if e.complexity.Query.SearchIssues == nil {
+			break
+		}
+
+		args, err := ec.field_Query_search_issues_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SearchIssues(childComplexity, args["integration_type"].(model.IntegrationType), args["project_id"].(int), args["query"].(string)), true
 
 	case "Query.segments":
 		if e.complexity.Query.Segments == nil {
@@ -12157,6 +12212,12 @@ type MicrosoftTeamsChannel {
 	name: String!
 }
 
+type IssuesSearchResult {
+	id: String!
+	title: String!
+	issue_url: String!
+}
+
 input MicrosoftTeamsChannelInput {
 	name: String!
 	id: String!
@@ -12637,6 +12698,11 @@ type Query {
 	): [MicrosoftTeamsChannel!]!
 	discord_channel_suggestions(project_id: ID!): [DiscordChannel!]!
 	generate_zapier_access_token(project_id: ID!): String!
+	search_issues(
+		integration_type: IntegrationType!
+		project_id: ID!
+		query: String!
+	): [IssuesSearchResult!]!
 	is_integrated_with(
 		integration_type: IntegrationType!
 		project_id: ID!
@@ -13025,6 +13091,20 @@ type Mutation {
 		issue_description: String
 		issue_team_id: String
 		issue_type_id: String
+		integrations: [IntegrationType]!
+	): ErrorComment
+	createErrorCommentForExistingIssue(
+		project_id: ID!
+		error_group_secure_id: String!
+		text: String!
+		text_for_email: String!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+		error_url: String!
+		author_name: String!
+		issue_url: String!
+		issue_title: String!
+		issue_id: String!
 		integrations: [IntegrationType]!
 	): ErrorComment
 	removeErrorIssue(error_issue_id: ID!): Boolean
@@ -13493,6 +13573,120 @@ func (ec *executionContext) field_Mutation_createErrorAlert_args(ctx context.Con
 		}
 	}
 	args["default"] = arg12
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createErrorCommentForExistingIssue_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["error_group_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_secure_id"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_group_secure_id"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["text"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["text"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["text_for_email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_for_email"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["text_for_email"] = arg3
+	var arg4 []*model.SanitizedAdminInput
+	if tmp, ok := rawArgs["tagged_admins"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_admins"))
+		arg4, err = ec.unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tagged_admins"] = arg4
+	var arg5 []*model.SanitizedSlackChannelInput
+	if tmp, ok := rawArgs["tagged_slack_users"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_slack_users"))
+		arg5, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tagged_slack_users"] = arg5
+	var arg6 string
+	if tmp, ok := rawArgs["error_url"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_url"))
+		arg6, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_url"] = arg6
+	var arg7 string
+	if tmp, ok := rawArgs["author_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("author_name"))
+		arg7, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["author_name"] = arg7
+	var arg8 string
+	if tmp, ok := rawArgs["issue_url"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("issue_url"))
+		arg8, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["issue_url"] = arg8
+	var arg9 string
+	if tmp, ok := rawArgs["issue_title"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("issue_title"))
+		arg9, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["issue_title"] = arg9
+	var arg10 string
+	if tmp, ok := rawArgs["issue_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("issue_id"))
+		arg10, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["issue_id"] = arg10
+	var arg11 []*model.IntegrationType
+	if tmp, ok := rawArgs["integrations"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integrations"))
+		arg11, err = ec.unmarshalNIntegrationType2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["integrations"] = arg11
 	return args, nil
 }
 
@@ -18995,6 +19189,39 @@ func (ec *executionContext) field_Query_saved_segments_args(ctx context.Context,
 		}
 	}
 	args["entity_type"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_search_issues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.IntegrationType
+	if tmp, ok := rawArgs["integration_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integration_type"))
+		arg0, err = ec.unmarshalNIntegrationType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["integration_type"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg2
 	return args, nil
 }
 
@@ -35579,6 +35806,138 @@ func (ec *executionContext) fieldContext_Invoice_status(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _IssuesSearchResult_id(ctx context.Context, field graphql.CollectedField, obj *model.IssuesSearchResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IssuesSearchResult_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IssuesSearchResult_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IssuesSearchResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IssuesSearchResult_title(ctx context.Context, field graphql.CollectedField, obj *model.IssuesSearchResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IssuesSearchResult_title(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Title, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IssuesSearchResult_title(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IssuesSearchResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IssuesSearchResult_issue_url(ctx context.Context, field graphql.CollectedField, obj *model.IssuesSearchResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IssuesSearchResult_issue_url(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IssueURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IssuesSearchResult_issue_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IssuesSearchResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _JiraIssueType_self(ctx context.Context, field graphql.CollectedField, obj *model.JiraIssueType) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_JiraIssueType_self(ctx, field)
 	if err != nil {
@@ -43211,6 +43570,79 @@ func (ec *executionContext) fieldContext_Mutation_createErrorComment(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createErrorComment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createErrorCommentForExistingIssue(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createErrorCommentForExistingIssue(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateErrorCommentForExistingIssue(rctx, fc.Args["project_id"].(int), fc.Args["error_group_secure_id"].(string), fc.Args["text"].(string), fc.Args["text_for_email"].(string), fc.Args["tagged_admins"].([]*model.SanitizedAdminInput), fc.Args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), fc.Args["error_url"].(string), fc.Args["author_name"].(string), fc.Args["issue_url"].(string), fc.Args["issue_title"].(string), fc.Args["issue_id"].(string), fc.Args["integrations"].([]*model.IntegrationType))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.ErrorComment)
+	fc.Result = res
+	return ec.marshalOErrorComment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorComment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createErrorCommentForExistingIssue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ErrorComment_id(ctx, field)
+			case "project_id":
+				return ec.fieldContext_ErrorComment_project_id(ctx, field)
+			case "created_at":
+				return ec.fieldContext_ErrorComment_created_at(ctx, field)
+			case "error_id":
+				return ec.fieldContext_ErrorComment_error_id(ctx, field)
+			case "error_secure_id":
+				return ec.fieldContext_ErrorComment_error_secure_id(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_ErrorComment_updated_at(ctx, field)
+			case "author":
+				return ec.fieldContext_ErrorComment_author(ctx, field)
+			case "text":
+				return ec.fieldContext_ErrorComment_text(ctx, field)
+			case "attachments":
+				return ec.fieldContext_ErrorComment_attachments(ctx, field)
+			case "replies":
+				return ec.fieldContext_ErrorComment_replies(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ErrorComment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createErrorCommentForExistingIssue_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -53736,6 +54168,68 @@ func (ec *executionContext) fieldContext_Query_generate_zapier_access_token(ctx 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_generate_zapier_access_token_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_search_issues(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_search_issues(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SearchIssues(rctx, fc.Args["integration_type"].(model.IntegrationType), fc.Args["project_id"].(int), fc.Args["query"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.IssuesSearchResult)
+	fc.Result = res
+	return ec.marshalNIssuesSearchResult2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIssuesSearchResultᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_search_issues(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_IssuesSearchResult_id(ctx, field)
+			case "title":
+				return ec.fieldContext_IssuesSearchResult_title(ctx, field)
+			case "issue_url":
+				return ec.fieldContext_IssuesSearchResult_issue_url(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type IssuesSearchResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_search_issues_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -80508,6 +81002,48 @@ func (ec *executionContext) _Invoice(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
+var issuesSearchResultImplementors = []string{"IssuesSearchResult"}
+
+func (ec *executionContext) _IssuesSearchResult(ctx context.Context, sel ast.SelectionSet, obj *model.IssuesSearchResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, issuesSearchResultImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IssuesSearchResult")
+		case "id":
+
+			out.Values[i] = ec._IssuesSearchResult_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "title":
+
+			out.Values[i] = ec._IssuesSearchResult_title(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "issue_url":
+
+			out.Values[i] = ec._IssuesSearchResult_issue_url(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var jiraIssueTypeImplementors = []string{"JiraIssueType"}
 
 func (ec *executionContext) _JiraIssueType(ctx context.Context, sel ast.SelectionSet, obj *model.JiraIssueType) graphql.Marshaler {
@@ -82140,6 +82676,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createErrorComment(ctx, field)
+			})
+
+		case "createErrorCommentForExistingIssue":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createErrorCommentForExistingIssue(ctx, field)
 			})
 
 		case "removeErrorIssue":
@@ -84409,6 +84951,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_generate_zapier_access_token(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "search_issues":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_search_issues(ctx, field)
 				return res
 			}
 
@@ -91959,6 +92521,60 @@ func (ec *executionContext) marshalNIntegrationType2ᚕᚖgithubᚗcomᚋhighlig
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) marshalNIssuesSearchResult2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIssuesSearchResultᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.IssuesSearchResult) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNIssuesSearchResult2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIssuesSearchResult(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNIssuesSearchResult2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIssuesSearchResult(ctx context.Context, sel ast.SelectionSet, v *model.IssuesSearchResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._IssuesSearchResult(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNJiraProject2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐJiraProject(ctx context.Context, sel ast.SelectionSet, v *model.JiraProject) graphql.Marshaler {

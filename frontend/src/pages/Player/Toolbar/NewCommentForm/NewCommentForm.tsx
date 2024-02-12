@@ -5,11 +5,15 @@ import {
 	filterMentionedSlackUsers,
 	parseAdminSuggestions,
 } from '@components/Comment/utils/utils'
+import { RadioGroup } from '@components/RadioGroup/RadioGroup'
+import Select, { OptionType } from '@components/Select/Select'
 import {
+	useCreateErrorCommentForExistingIssueMutation,
 	useCreateErrorCommentMutation,
 	useCreateSessionCommentMutation,
 	useGetCommentMentionSuggestionsQuery,
 	useGetWorkspaceAdminsByProjectIdQuery,
+	useSearchIssuesLazyQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
@@ -49,12 +53,14 @@ import analytics from '@util/analytics'
 import { getCommentMentionSuggestions } from '@util/comment/util'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
+import { DefaultOptionType } from 'antd/lib/select'
 import React, { useEffect, useMemo, useState } from 'react'
 import { OnChangeHandlerFunc } from 'react-mentions'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
 import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 
@@ -98,6 +104,10 @@ export const NewCommentForm = ({
 		],
 	})
 	const [createErrorComment] = useCreateErrorCommentMutation()
+	const [linkIssueForErrorComment] =
+		useCreateErrorCommentForExistingIssueMutation({
+			refetchQueries: [namedOperations.Query.GetErrorIssues],
+		})
 	const { admin, isLoggedIn } = useAuthContext()
 	const { project_id } = useParams<{ project_id: string }>()
 	const [commentText, setCommentText] = useState('')
@@ -124,6 +134,42 @@ export const NewCommentForm = ({
 		},
 	})
 	const formValues = formStore.useState('values')
+
+	// issue linking support
+	const [mode, setMode] = React.useState('Create Issue')
+	const [matchedIssues, setMatchedIssues] = useState<OptionType[]>([])
+	const [query, setQuery] = useState<string>('')
+	const [linkedIssue, setLinkedIssue] = useState({
+		id: '',
+		url: '',
+	})
+	const debouncedQuery = useDebouncedValue(query) || ''
+	const [searchIssues, { data }] = useSearchIssuesLazyQuery()
+
+	const getValueOptions = (input: string) => {
+		setQuery(input)
+	}
+
+	React.useEffect(() => {
+		searchIssues({
+			variables: {
+				project_id: project_id!,
+				query: debouncedQuery,
+				integration_type: selectedIssueService as IntegrationType,
+			},
+			fetchPolicy: 'cache-first',
+		})
+	}, [searchIssues, project_id, debouncedQuery, selectedIssueService])
+
+	React.useEffect(() => {
+		const values =
+			data?.search_issues.map((s) => ({
+				displayValue: s.title,
+				id: s.id,
+				value: s.issue_url,
+			})) || []
+		setMatchedIssues(values)
+	}, [data?.search_issues])
 
 	const integrationMap = useMemo(() => {
 		const ret: { [key: string]: IssueTrackerIntegration } = {}
@@ -181,28 +227,51 @@ export const NewCommentForm = ({
 		const { issueTitle, issueDescription } = formValues
 
 		try {
-			await createErrorComment({
-				variables: {
-					project_id: project_id!,
-					error_group_secure_id: error_secure_id || '',
-					text: commentText.trim(),
-					text_for_email: commentTextForEmail.trim(),
-					error_url: `${window.location.origin}${window.location.pathname}`,
-					tagged_admins: mentionedAdmins,
-					tagged_slack_users: mentionedSlackUsers,
-					author_name: admin?.name || admin?.email || 'Someone',
-					integrations: selectedIssueService
-						? [selectedIssueService]
-						: [],
-					issue_title: selectedIssueService ? issueTitle : null,
-					issue_team_id: containerId || undefined,
-					issue_description: selectedIssueService
-						? issueDescription
-						: null,
-					issue_type_id: issueTypeId || undefined,
-				},
-				refetchQueries: [namedOperations.Query.GetErrorComments],
-			})
+			if (mode === 'Create Issue') {
+				await createErrorComment({
+					variables: {
+						project_id: project_id!,
+						error_group_secure_id: error_secure_id || '',
+						text: commentText.trim(),
+						text_for_email: commentTextForEmail.trim(),
+						error_url: `${window.location.origin}${window.location.pathname}`,
+						tagged_admins: mentionedAdmins,
+						tagged_slack_users: mentionedSlackUsers,
+						author_name: admin?.name || admin?.email || 'Someone',
+						integrations: selectedIssueService
+							? [selectedIssueService]
+							: [],
+						issue_title: selectedIssueService ? issueTitle : null,
+						issue_team_id: containerId || undefined,
+						issue_description: selectedIssueService
+							? issueDescription
+							: null,
+						issue_type_id: issueTypeId || undefined,
+					},
+					refetchQueries: [namedOperations.Query.GetErrorComments],
+				})
+			} else {
+				await linkIssueForErrorComment({
+					variables: {
+						project_id: project_id!,
+						error_group_secure_id: error_secure_id || '',
+						text: commentText.trim(),
+						text_for_email: commentTextForEmail.trim(),
+						error_url: `${window.location.origin}${window.location.pathname}`,
+						tagged_admins: mentionedAdmins,
+						tagged_slack_users: mentionedSlackUsers,
+						author_name: admin?.name || admin?.email || 'Someone',
+						integrations: selectedIssueService
+							? [selectedIssueService]
+							: [],
+						issue_title: selectedIssueService ? issueTitle : '',
+						issue_url: linkedIssue.url,
+						issue_id: linkedIssue.id,
+					},
+					refetchQueries: [namedOperations.Query.GetErrorIssues],
+					awaitRefetchQueries: true,
+				})
+			}
 			formStore.reset()
 			setCommentText('')
 			onCloseHandler()
@@ -500,24 +569,81 @@ export const NewCommentForm = ({
 							</Stack>
 						</Box>
 						<Stack direction="column" gap="12" p="12">
-							{issueServiceDetail?.containerSelection({
-								disabled: isCreatingComment,
-								setSelectionId: setContainerId,
-								setIssueTypeId,
-							})}
-							<Form.Input
-								name="issueTitle"
-								label="Title"
-								placeholder="Title"
-								disabled={isCreatingComment}
-							/>
-							<Form.Input
-								name="issueDescription"
-								label="Description"
-								// @ts-expect-error
-								as="textarea"
-								disabled={isCreatingComment}
-							/>
+							<Box
+								px="12"
+								py="8"
+								gap="12"
+								display="flex"
+								align="center"
+							>
+								<RadioGroup
+									labels={['Create Issue', 'Link Issue']}
+									selectedLabel={mode}
+									onSelect={(label: any) => setMode(label)}
+									style={{
+										width: '100%',
+										display: 'flex',
+										justifyContent: 'center',
+										alignItems: 'center',
+									}}
+								/>
+							</Box>
+							{mode === 'Create Issue' &&
+								issueServiceDetail?.containerSelection({
+									disabled: isCreatingComment,
+									setSelectionId: setContainerId,
+									setIssueTypeId,
+								})}
+							{mode === 'Link Issue' && (
+								<Form.NamedSection
+									label="Link an issue"
+									name="issue_id"
+								>
+									<Select
+										placeholder="Search Issue"
+										options={matchedIssues}
+										onChange={(
+											value: any,
+											option:
+												| DefaultOptionType
+												| DefaultOptionType[],
+										) => {
+											if (!Array.isArray(option)) {
+												setLinkedIssue({
+													id: value.toString(),
+													url: option.value
+														? option.value.toString()
+														: '',
+												})
+											}
+										}}
+										allowClear={true}
+										value={linkedIssue.id}
+										notFoundContent={
+											<p>No search results found</p>
+										}
+										showSearch={true}
+										onSearch={getValueOptions}
+									/>
+								</Form.NamedSection>
+							)}
+							{mode === 'Create Issue' && (
+								<Form.Input
+									name="issueTitle"
+									label="Title"
+									placeholder="Title"
+									disabled={isCreatingComment}
+								/>
+							)}
+							{mode === 'Create Issue' && (
+								<Form.Input
+									name="issueDescription"
+									label="Description"
+									// @ts-expect-error
+									as="textarea"
+									disabled={isCreatingComment}
+								/>
+							)}
 						</Stack>
 						<Stack
 							align="center"

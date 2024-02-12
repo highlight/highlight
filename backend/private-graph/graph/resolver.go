@@ -2444,6 +2444,21 @@ type LinearCreateIssueResponse struct {
 	} `json:"data"`
 }
 
+type LinearIssue struct {
+	Id         string `json:"id"`
+	Url        string `json:"url"`
+	Identifier string `json:"identifier"`
+	Title      string `json:"title"`
+}
+
+type SearchIssuesResponse struct {
+	Data struct {
+		SearchIssues struct {
+			Nodes []LinearIssue `json:"nodes"`
+		} `json:"searchIssues"`
+	} `json:"data"`
+}
+
 func (r *Resolver) CreateLinearIssue(accessToken string, teamID string, title string, description string) (*LinearCreateIssueResponse, error) {
 	requestQuery := `
 	mutation createIssue($teamId: String!, $title: String!, $desc: String!) {
@@ -2487,6 +2502,57 @@ func (r *Resolver) CreateLinearIssue(accessToken string, teamID string, title st
 	}
 
 	return createIssueRes, nil
+}
+
+func (r *Resolver) SearchLinearIssues(accessToken string, searchTerm string) ([]*modelInputs.IssuesSearchResult, error) {
+	requestQuery := `
+	  query SearchIssues($term: String!) {
+		searchIssues(term: $term) {
+		  nodes {
+			id
+			identifier
+			title
+			url
+		  }
+		}
+	  }
+	`
+
+	type GraphQLVars struct {
+		Term string `json:"term"`
+	}
+
+	type GraphQLReq struct {
+		Query     string      `json:"query"`
+		Variables GraphQLVars `json:"variables"`
+	}
+
+	req := GraphQLReq{Query: requestQuery, Variables: GraphQLVars{searchTerm}}
+
+	requestBytes, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := r.MakeLinearGraphQLRequest(accessToken, string(requestBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	searchIssuesResponse := &SearchIssuesResponse{}
+
+	err = json.Unmarshal(b, searchIssuesResponse)
+	if err != nil {
+		return nil, e.Wrap(err, "error unmarshaling linear oauth token response")
+	}
+
+	return lo.Map(searchIssuesResponse.Data.SearchIssues.Nodes, func(res LinearIssue, _ int) *modelInputs.IssuesSearchResult {
+		return &modelInputs.IssuesSearchResult{
+			ID:       res.Id,
+			Title:    res.Title,
+			IssueURL: res.Identifier,
+		}
+	}), nil
 }
 
 type LinearCreateAttachmentResponse struct {
@@ -2603,6 +2669,30 @@ func (r *Resolver) CreateLinearIssueAndAttachment(
 	return nil
 }
 
+func (r *Resolver) CreateLinearAttachmentForExistingIssue(
+	ctx context.Context,
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	commentText string,
+	authorName string,
+	viewLink string,
+	issueId string,
+	issueIdentifier string,
+) error {
+	attachmentRes, err := r.CreateLinearAttachment(*workspace.LinearAccessToken, issueId, commentText, authorName, viewLink)
+	if err != nil {
+		return err
+	}
+
+	attachment.ExternalID = attachmentRes.Data.AttachmentCreate.Attachment.ID
+	attachment.Title = issueIdentifier
+
+	if err := r.DB.WithContext(ctx).Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
 func (r *Resolver) CreateClickUpTaskAndAttachment(
 	ctx context.Context,
 	workspace *model.Workspace,
@@ -2659,6 +2749,42 @@ func (r *Resolver) CreateHeightTaskAndAttachment(
 	return nil
 }
 
+func (r *Resolver) SearchJiraIssues(
+	ctx context.Context,
+	workspace *model.Workspace,
+	query string,
+) ([]*modelInputs.IssuesSearchResult, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, errors.New("No Jira integration access token found.")
+	}
+
+	return jira.SearchJiraIssues(*accessToken, workspace, query)
+}
+
+func (r *Resolver) SearchGitlabIssues(
+	ctx context.Context,
+	workspace *model.Workspace,
+	query string,
+) ([]*modelInputs.IssuesSearchResult, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitLab)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, errors.New("No Jira integration access token found.")
+	}
+
+	return gitlab.SearchGitlabIssues(*accessToken, query)
+}
+
 func (r *Resolver) CreateJiraTaskAndAttachment(
 	ctx context.Context,
 	workspace *model.Workspace,
@@ -2695,7 +2821,37 @@ func (r *Resolver) CreateJiraTaskAndAttachment(
 		return err
 	}
 
-	attachment.ExternalID = jira.MakeExternalIdForJiraTask(workspace, task)
+	attachment.ExternalID = jira.MakeExternalIdForJiraTask(workspace, task.Key)
+	attachment.Title = issueTitle
+	if err := r.DB.WithContext(ctx).Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
+func (r *Resolver) CreateJiraIssueAttachment(
+	ctx context.Context,
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueURL string,
+) error {
+	attachment.ExternalID = issueURL
+	attachment.Title = issueTitle
+	if err := r.DB.WithContext(ctx).Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
+func (r *Resolver) CreateGitlabTaskAttachment(
+	ctx context.Context,
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueURL string,
+) error {
+	attachment.ExternalID = issueURL
 	attachment.Title = issueTitle
 	if err := r.DB.WithContext(ctx).Create(attachment).Error; err != nil {
 		return e.Wrap(err, "error creating external attachment")
@@ -2844,10 +3000,10 @@ func (r *Resolver) GetGitHubIssueLabels(
 }
 
 type LinearAccessTokenResponse struct {
-	AccessToken string   `json:"access_token"`
-	TokenType   string   `json:"token_type"`
-	ExpiresIn   int64    `json:"expires_in"`
-	Scope       []string `json:"scope"`
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+	ExpiresIn   int64  `json:"expires_in"`
+	Scope       string `json:"scope"`
 }
 
 func (r *Resolver) GetLinearAccessToken(code string, redirectURL string, clientID string, clientSecret string) (LinearAccessTokenResponse, error) {
