@@ -3,6 +3,7 @@ package otel
 import (
 	"context"
 	"testing"
+	"time"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -358,4 +359,24 @@ func TestMergeMaps(t *testing.T) {
 		"foo": "bar",
 		"baz": "buzz",
 	}, merged)
+}
+
+func TestExtractFields_HandleValidTimestamp(t *testing.T) {
+	curTime := time.Now().Truncate(time.Second).UTC()
+	resource := newResource(t, map[string]any{})
+	event := newEvent(map[string]string{})
+	event.SetTimestamp(pcommon.Timestamp(curTime.UnixNano()))
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource, event: &event, curTime: curTime})
+	assert.NoError(t, err)
+	assert.Equal(t, curTime, fields.timestamp)
+}
+
+func TestExtractFields_HandleInvalidTimestamp(t *testing.T) {
+	curTime := time.Now().Truncate(time.Second).UTC()
+	resource := newResource(t, map[string]any{})
+	event := newEvent(map[string]string{})
+	event.SetTimestamp(pcommon.Timestamp(curTime.Add(3 * time.Hour).UnixNano()))
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource, event: &event, curTime: curTime})
+	assert.NoError(t, err)
+	assert.Equal(t, curTime, fields.timestamp)
 }

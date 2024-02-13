@@ -164,6 +164,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	var traceSpans = make(map[string][]*clickhouse.TraceRow)
 	var projectTraceMetrics = make(map[string]map[string][]*model.MetricInput)
 
+	curTime := time.Now()
+
 	spans := req.Traces().ResourceSpans()
 	for i := 0; i < spans.Len(); i++ {
 		resource := spans.At(i).Resource()
@@ -186,6 +188,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				fields, err := extractFields(ctx, extractFieldsParams{
 					resource: &resource,
 					span:     &span,
+					curTime:  curTime,
 				})
 				if err != nil {
 					lg(ctx, fields).WithError(err).Info("failed to extract fields from span")
@@ -291,7 +294,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				}
 
 				if shouldWriteTrace {
-					traceRow := clickhouse.NewTraceRow(span.StartTimestamp().AsTime(), fields.projectIDInt).
+					timestamp := clampTime(span.StartTimestamp().AsTime(), curTime)
+					traceRow := clickhouse.NewTraceRow(timestamp, fields.projectIDInt).
 						WithSecureSessionId(fields.sessionID).
 						WithTraceId(traceID).
 						WithSpanId(spanID).
@@ -414,11 +418,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 	var projectLogs = make(map[string][]*clickhouse.LogRow)
 
-	// Allow timestamps +/- 1 hour from the current time.
-	// If the timestamp is outside of this window, set it to the current time.
 	var curTime = time.Now()
-	var minTime = curTime.Add(-1 * time.Hour)
-	var maxTime = curTime.Add(time.Hour)
 
 	resourceLogs := req.Logs().ResourceLogs()
 	for i := 0; i < resourceLogs.Len(); i++ {
@@ -433,19 +433,15 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				fields, err := extractFields(ctx, extractFieldsParams{
 					resource:  &resource,
 					logRecord: &logRecord,
+					curTime:   curTime,
 				})
 				if err != nil {
 					lg(ctx, fields).WithError(err).Info("failed to extract fields from log")
 					continue
 				}
 
-				timestamp := fields.timestamp
-				if timestamp.Before(minTime) || timestamp.After(maxTime) {
-					timestamp = curTime
-				}
-
 				logRow := clickhouse.NewLogRow(
-					timestamp, uint32(fields.projectIDInt),
+					fields.timestamp, uint32(fields.projectIDInt),
 					clickhouse.WithTraceID(logRecord.TraceID().String()),
 					clickhouse.WithSecureSessionID(fields.sessionID),
 					clickhouse.WithBody(ctx, fields.logBody),
