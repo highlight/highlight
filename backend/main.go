@@ -479,6 +479,7 @@ func main() {
 			EmbeddingsClient: embeddings.New(),
 			StorageClient:    storageClient,
 			Redis:            redisClient,
+			Clickhouse:       clickhouseClient,
 			RH:               &rh,
 			Store:            store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
 			LambdaClient:     lambda,
