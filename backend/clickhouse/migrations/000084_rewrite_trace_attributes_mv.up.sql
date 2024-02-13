@@ -14,7 +14,6 @@ SELECT ProjectId,
 FROM traces
 WHERE (
         Key NOT IN (
-            'level',
             'trace_state',
             'span_name',
             'span_kind',
