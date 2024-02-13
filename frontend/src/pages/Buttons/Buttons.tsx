@@ -130,20 +130,47 @@ export const Buttons = () => {
 					This is ignored.{' '}
 					<img src={Logo} height={16} alt="ignored" />
 				</div>
-				<button onClick={() => setEmail('test@test.com')}>
+				<button
+					onClick={() => {
+						for (const id of ['1', '2', '3']) {
+							const elem = document.getElementById(`email-${id}`)!
+							elem.innerText = `${(Math.random() + 1)
+								.toString(36)
+								.substring(7)} test@test.com ${(
+								Math.random() + 1
+							)
+								.toString(36)
+								.substring(7)}`
+						}
+						setEmail(
+							`${(Math.random() + 1)
+								.toString(36)
+								.substring(7)} test@test.com ${(
+								Math.random() + 1
+							)
+								.toString(36)
+								.substring(7)}`,
+						)
+					}}
+				>
 					set email
 				</button>
 				<div>
 					<b>hello, this is a b tag</b>
-					<b>{email}</b>
+					<b key="email-1">{email}</b>
+					<b id="email-1"></b>
 				</div>
 				<div>
 					<b>hello, this is a b tag</b>
-					<b data-hl-record>{email}</b>
+					<b key="email-2" data-hl-record>
+						{email}
+					</b>
+					<b data-hl-record id="email-2"></b>
 				</div>
 				<div data-hl-record>
 					<b>hello, this is a b tag</b>
-					<b>{email}</b>
+					<b key="email-3">{email}</b>
+					<b id="email-3"></b>
 				</div>
 			</div>
 			<section id="shadowDOM" className="foo" title="yo">
