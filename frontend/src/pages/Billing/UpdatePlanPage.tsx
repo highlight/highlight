@@ -35,6 +35,7 @@ import { useApplicationContext } from '@routers/AppRouter/context/ApplicationCon
 import { loadStripe } from '@stripe/stripe-js'
 import { getPlanChangeEmail } from '@util/billing/billing'
 import { formatNumber, formatNumberWithDelimiters } from '@util/numbers'
+import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
@@ -1211,7 +1212,7 @@ const PLANS = {
 	},
 	[PlanType.Graduated]: {
 		type: PlanType.Graduated,
-		name: 'Pay as you go',
+		name: 'Pay as you go (Cloud)',
 		descriptions: [
 			'Monitoring for your production application',
 			'Flexible billing that scales as you grow',
@@ -1255,6 +1256,14 @@ const FAQ = [
 	{
 		question: 'Can I subscribe to a plan with a custom retention period?',
 		answer: 'Yes, we support custom longer retention periods. The minimum options are shown when configuring your plan.',
+	},
+	{
+		question: 'Should I use your Cloud product or self-host highlight?',
+		answer: 'It is easier to get started with Highlight Cloud, and we have a generous monthly free tier. If you have complex data sovereignty requirements, you will likely need a self-hosted plan.',
+	},
+	{
+		question: 'Can I migrate between Cloud and self-hosted Highlight?',
+		answer: 'Yes, though it will require a conversation with us about the specifics. Reach out to us.',
 	},
 ] as const
 
@@ -1310,6 +1319,10 @@ const PlanCard = ({
 								workspaceID: workspace_id,
 								planType: plan.type,
 							}),
+						)
+					} else if (isOnPrem) {
+						window.open(
+							'https://app.highlight.io/sign_up?ref=hobby',
 						)
 					} else {
 						setSelectedPlanType(plan.type)
@@ -1374,15 +1387,17 @@ export const PlanComparisonPage: React.FC<{
 						maxWidth: 960,
 					}}
 				>
-					{Object.values(PLANS).map((plan) => (
-						<PlanCard
-							currentPlanType={data?.billingDetails.plan.type}
-							plan={plan}
-							setSelectedPlanType={setSelectedPlanType}
-							setStep={setStep}
-							key={plan.name}
-						/>
-					))}
+					{Object.entries(PLANS)
+						.filter(([name]) => !isOnPrem || name !== 'Free')
+						.map(([, plan]) => (
+							<PlanCard
+								currentPlanType={data?.billingDetails.plan.type}
+								plan={plan}
+								setSelectedPlanType={setSelectedPlanType}
+								setStep={setStep}
+								key={plan.name}
+							/>
+						))}
 				</Box>
 				<Box
 					display="flex"

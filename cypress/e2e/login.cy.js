@@ -14,7 +14,7 @@ describe('login spec', () => {
 			}
 		})
 		cy.get('[name="email"]').type('demo@user.com')
-		cy.get('[name="password"]').type('I_AM_GROOT')
+		cy.get('[name="password"]').type('password')
 		cy.get('button[type="submit"]').click().wait(5000)
 
 		// Ensure client requests are made

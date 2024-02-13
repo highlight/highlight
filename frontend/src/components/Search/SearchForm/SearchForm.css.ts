@@ -10,6 +10,7 @@ export const searchIcon = style({
 	position: 'absolute',
 	top: 13,
 	left: 14,
+	color: vars.theme.interactive.fill.secondary.content.text,
 })
 
 const WORD_SPACING = 4

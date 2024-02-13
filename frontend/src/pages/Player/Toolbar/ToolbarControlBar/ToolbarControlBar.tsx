@@ -72,7 +72,7 @@ import { useNavigate } from 'react-router-dom'
 import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/TimelinePopover.module.css'
 import style from './ToolbarControlBar.module.css'
 
-const EventTypeToExclude: readonly string[] = ['Web Vitals']
+const EventTypeToExclude: readonly string[] = []
 
 export const ToolbarControlBar = () => {
 	const {

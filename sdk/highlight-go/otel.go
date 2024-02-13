@@ -5,11 +5,12 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"fmt"
-	"github.com/samber/lo"
 	"net/url"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/samber/lo"
 
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
@@ -49,6 +50,7 @@ type TraceType string
 
 const TraceTypeNetworkRequest TraceType = "http.request"
 const TraceTypeHighlightInternal TraceType = "highlight.internal"
+const TraceTypePhoneHome TraceType = "highlight.phonehome"
 
 type OTLP struct {
 	tracerProvider *sdktrace.TracerProvider

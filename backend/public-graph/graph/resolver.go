@@ -28,6 +28,7 @@ import (
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
+	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/highlight-run/go-resthooks"
 	"github.com/mssola/user_agent"
 	"github.com/openlyinc/pointy"
@@ -80,6 +81,7 @@ type Resolver struct {
 	RH               *resthooks.Resthook
 	Store            *store.Store
 	LambdaClient     *lambda.Client
+	SessionCache     *lru.Cache[string, *model.Session]
 }
 
 type Location struct {
@@ -1515,6 +1517,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	if err := r.DB.Save(&session).Error; err != nil {
 		return e.Wrap(err, "[IdentifySession] failed to update session")
 	}
+	r.SessionCache.Add(sessionSecureID, session)
 
 	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionID}}); err != nil {
 		return err
@@ -2486,12 +2489,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	if sessionSecureID == "" {
 		return e.New("ProcessPayload called without secureID")
 	}
-	sessionObj := &model.Session{}
-	if err := r.DB.WithContext(ctx).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Take(&sessionObj).Error; err != nil {
-		retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
-		log.WithContext(ctx).Error(retErr)
-		querySessionSpan.Finish(retErr)
-		return retErr
+
+	sessionObj, found := r.SessionCache.Get(sessionSecureID)
+	if !found {
+		if err := r.DB.WithContext(ctx).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Take(&sessionObj).Error; err != nil {
+			retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
+			log.WithContext(ctx).Error(retErr)
+			querySessionSpan.Finish(retErr)
+			return retErr
+		}
 	}
 	querySessionSpan.SetAttribute("secure_id", sessionObj.SecureID)
 	querySessionSpan.SetAttribute("project_id", sessionObj.ProjectID)
@@ -2639,6 +2645,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				}).Error; err != nil {
 					return e.Wrap(err, "error updating LastUserInteractionTime")
 				}
+				updatedSession := *sessionObj
+				updatedSession.LastUserInteractionTime = lastUserInteractionTimestamp
+				r.SessionCache.Add(sessionSecureID, &updatedSession)
 			}
 		}
 		return nil
@@ -2902,6 +2911,18 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			log.WithContext(ctx).Error(e.Wrap(err, "error updating session"))
 			return err
 		}
+		updatedSession := *sessionObj
+		updatedSession.PayloadUpdatedAt = &now
+		updatedSession.BeaconTime = beaconTime
+		updatedSession.HasUnloaded = hasSessionUnloaded
+		updatedSession.Processed = &model.F
+		updatedSession.ObjectStorageEnabled = &model.F
+		updatedSession.DirectDownloadEnabled = false
+		updatedSession.Chunked = &model.F
+		updatedSession.Excluded = false
+		updatedSession.ExcludedReason = nil
+		updatedSession.HasErrors = &sessionHasErrors
+		r.SessionCache.Add(sessionSecureID, &updatedSession)
 	} else if excluded {
 		// Only update the excluded flag and reason if either have changed
 		var reasonDeref, newReasonDeref privateModel.SessionExcludedReason
@@ -2923,6 +2944,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				return err
 			}
 		}
+		updatedSession := *sessionObj
+		updatedSession.Excluded = excluded
+		updatedSession.ExcludedReason = reason
+		r.SessionCache.Add(sessionSecureID, &updatedSession)
 	}
 
 	opensearchSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("opensearch.update"))
