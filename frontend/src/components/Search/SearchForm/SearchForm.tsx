@@ -70,14 +70,21 @@ type FetchValues =
 	| typeof useGetTracesKeyValuesLazyQuery
 
 type Keys = GetLogsKeysQuery['keys'] | GetTracesKeysQuery['keys']
-type SearchResult = Keys[0] | { name: string; type: 'Operator' | 'Value' }
+type SearchResult = Keys[0] | OperatorResult | ValueResult
+type OperatorResult = { name: SearchOperator; type: 'Operator' }
+type ValueResult = { name: string; type: 'Value' }
 
 const MAX_ITEMS = 25
 
-const EXISTS_OPERATORS = ['EXISTS', 'NOT EXISTS']
-const NUMERIC_OPERATORS = ['>', '>=', '<', '<='].concat(EXISTS_OPERATORS)
-const BOOLEAN_OPERATORS = ['=', '!='].concat(EXISTS_OPERATORS)
-export const SEARCH_OPERATORS = [...BOOLEAN_OPERATORS, ...NUMERIC_OPERATORS]
+const EXISTS_OPERATORS = ['EXISTS', 'NOT EXISTS'] as const
+const NUMERIC_OPERATORS = ['>', '>=', '<', '<='] as const
+const BOOLEAN_OPERATORS = ['=', '!='] as const
+export const SEARCH_OPERATORS = [
+	...BOOLEAN_OPERATORS,
+	...NUMERIC_OPERATORS,
+	...EXISTS_OPERATORS,
+] as const
+export type SearchOperator = typeof SEARCH_OPERATORS[number]
 
 export type SearchFormProps = {
 	onFormSubmit: (query: string) => void
@@ -292,8 +299,10 @@ export const Search: React.FC<{
 	const showOperators = !!keyMatch
 
 	if (showOperators) {
-		const operators =
+		let operators =
 			keyMatch.type === 'Numeric' ? NUMERIC_OPERATORS : BOOLEAN_OPERATORS
+
+		operators = operators.concat(EXISTS_OPERATORS)
 
 		visibleItems = operators.map((operator) => ({
 			name: operator,
@@ -399,18 +408,18 @@ export const Search: React.FC<{
 
 	const handleItemSelect = (item: SearchResult) => {
 		const isValueSelect = item.type === 'Value'
-		let value = item.name
+		const value = item.name
 		const isLastPart =
 			activePart.stop >= (queryParts[queryParts.length - 1]?.stop ?? 0)
 
 		if (item.type === 'Operator') {
-			if (EXISTS_OPERATORS.includes(item.name)) {
-				value = ' ' + value
-			}
-			activePart.operator = value
+			const isExists = item.name.indexOf('EXIST') === 0
+			activePart.operator = item.name
 			activePart.text =
 				activePart.key === BODY_KEY
-					? `${activePart.text}${activePart.operator}`
+					? `${activePart.text}${isExists ? ' ' : ''}${
+							activePart.operator
+					  }`
 					: `${activePart.key}${activePart.operator}`
 			activePart.stop = activePart.start + activePart.text.length
 		} else if (isValueSelect) {
