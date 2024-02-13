@@ -55,7 +55,6 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 					disabled: errorLinkDisabled,
 					icon: <IconSolidLightningBolt />,
 					label: 'View errors',
-					reloadDocument: true,
 				},
 				{
 					key: 'logs',

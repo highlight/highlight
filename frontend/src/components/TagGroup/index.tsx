@@ -16,7 +16,6 @@ type TagLink = {
 	disabled: boolean
 	icon: React.ReactElement<IconProps>
 	label: string
-	reloadDocument?: boolean
 }
 
 type Props = {
@@ -44,7 +43,8 @@ export const TagGroup: React.FC<Props> = ({ tagLinks }) => {
 						to={href}
 						className={styles.tagLink}
 						key={tag.key}
-						reloadDocument={tag.reloadDocument}
+						// reload document to avoid removing time parameters from the URL
+						reloadDocument
 					>
 						<Tag
 							{...TAG_PROPS}
