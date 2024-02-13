@@ -80,10 +80,15 @@ func BenchmarkQueue_Submit(b *testing.B) {
 						b.Errorf("expected to get a message")
 					}
 					continue
-				} else if msg.Type != PushPayload {
+				} else if msg.GetType() != PushPayload {
 					b.Errorf("expected to consume dummy payload of PushPayload")
-				} else if msg.PushPayload.SessionSecureID != "" {
-					b.Errorf("expected to consume dummy session")
+				} else {
+					publicWorkerMessage, ok := msg.(*Message)
+					if !ok {
+						b.Errorf("failed type assertion")
+					} else if publicWorkerMessage.PushPayload.SessionSecureID != "" {
+						b.Errorf("expected to consume dummy session")
+					}
 				}
 			}
 			recWg.Done()

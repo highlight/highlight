@@ -17,18 +17,18 @@ export const usefulEvent = (e: eventWithTime): boolean => {
 export const getFilteredEvents = (
 	searchQuery: string,
 	events: HighlightEvent[],
-	eventTypeFilters: any,
+	eventTypeFilters: Set<string>,
 ) => {
 	const normalizedSearchQuery = searchQuery.toLocaleLowerCase()
 	const searchTokens = normalizedSearchQuery.split(' ')
 
 	return events.filter((event) => {
-		if (event.type === EventType.Custom) {
+		if (
+			event.type === EventType.Custom &&
+			eventTypeFilters.has(event.data.tag)
+		) {
 			switch (event.data.tag) {
 				case 'Identify':
-					if (!eventTypeFilters.showIdentify) {
-						return false
-					}
 					try {
 						const userObject = JSON.parse(
 							event.data.payload as string,
@@ -61,9 +61,6 @@ export const getFilteredEvents = (
 						return false
 					}
 				case 'Track':
-					if (!eventTypeFilters.showTrack) {
-						return false
-					}
 					try {
 						const trackProperties = JSON.parse(
 							event.data.payload as string,
@@ -95,20 +92,7 @@ export const getFilteredEvents = (
 					} catch (e) {
 						return false
 					}
-				case 'Viewport':
-					if (!eventTypeFilters.showViewport) {
-						return false
-					}
-					return 'viewport'.includes(normalizedSearchQuery)
-				case 'WebVital':
-					if (!eventTypeFilters.showWebVitals) {
-						return false
-					}
-					return 'web vitals'.includes(normalizedSearchQuery)
 				case 'Segment':
-					if (!eventTypeFilters.showSegment) {
-						return false
-					}
 					try {
 						const userObject = JSON.parse(
 							event.data.payload as string,
@@ -129,58 +113,39 @@ export const getFilteredEvents = (
 						return false
 					}
 				case 'Focus':
-					if (!eventTypeFilters.showFocus) {
-						return false
-					}
 					return searchTokens.some((searchToken) => {
 						return (event.data.payload as string)
 							.toLowerCase()
 							.includes(searchToken)
 					})
 				case 'Navigate':
-					if (!eventTypeFilters.showNavigate) {
-						return false
-					}
 					return searchTokens.some((searchToken) => {
 						return (event.data.payload as string)
 							.toLowerCase()
 							.includes(searchToken)
 					})
 				case 'Referrer':
-					if (!eventTypeFilters.showReferrer) {
-						return false
-					}
 					return searchTokens.some((searchToken) => {
 						return (event.data.payload as string)
 							.toLowerCase()
 							.includes(searchToken)
 					})
 				case 'Click':
-					if (!eventTypeFilters.showClick) {
-						return false
-					}
 					return searchTokens.some((searchToken) => {
 						return (event.data.payload as string)
 							.toLowerCase()
 							.includes(searchToken)
 					})
 				case 'Reload':
-					if (!eventTypeFilters.showReload) {
-						return false
-					}
 					return searchTokens.some((searchToken) => {
 						return (event.data.payload as string)
 							.toLowerCase()
 							.includes(searchToken)
 					})
-				case 'Web Vitals':
-					return eventTypeFilters.showWebVitals
 				case 'Performance':
 					return false
 				default:
-					return event.data.tag
-						.toLocaleLowerCase()
-						.includes(normalizedSearchQuery)
+					return true
 			}
 		}
 	})

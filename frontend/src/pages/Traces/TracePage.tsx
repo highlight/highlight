@@ -53,7 +53,7 @@ export const TracePage: React.FC = () => {
 	}
 
 	return (
-		<Box cssClass={styles.container}>
+		<Box cssClass={styles.container} overflowY="scroll">
 			<Stack direction="column" gap="12" pt="16" pb="12" px="20">
 				<Heading level="h4">{traceName}</Heading>
 				<Stack gap="4" direction="row">

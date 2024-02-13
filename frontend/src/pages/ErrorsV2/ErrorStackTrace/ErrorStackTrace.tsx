@@ -224,7 +224,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 	}
 
 	const trigger = (
-		<Box p="12" backgroundColor="n2">
+		<Box py="4" backgroundColor="n2">
 			{!!lineContent ? (
 				<ErrorSourcePreview
 					fileName={fileName}
@@ -284,6 +284,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 			display="flex"
 			justifyContent="space-between"
 			alignItems="center"
+			style={{ height: '36px' }}
 		>
 			<Box display="flex" gap="4" alignItems="center">
 				{fileName && (
@@ -323,7 +324,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 						to={externalLink}
 						target="_blank"
 						trackingId="stacktrace-external-link-click"
-						size="small"
+						size="xSmall"
 					>
 						<IconSolidExternalLink size={16} />
 					</LinkButton>

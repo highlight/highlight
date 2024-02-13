@@ -5,6 +5,7 @@ import WorkspaceSettings from '@pages/WorkspaceSettings/WorkspaceSettings'
 import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
+import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import React, { Suspense, useEffect, useMemo } from 'react'
@@ -31,6 +32,9 @@ import { auth } from '@/util/auth'
 import * as styles from './SettingsRouter.css'
 
 const BillingPageV2 = React.lazy(() => import('../Billing/BillingPageV2'))
+const PlanComparisonPage = React.lazy(
+	() => import('../Billing/PlanComparisonPage'),
+)
 
 const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 	switch (tab) {
@@ -85,7 +89,14 @@ export const SettingsRouter = () => {
 
 	const billingContent = (
 		<Suspense fallback={null}>
-			<BillingPageV2 />
+			{isOnPrem ? (
+				<PlanComparisonPage
+					setSelectedPlanType={() => {}}
+					setStep={() => {}}
+				/>
+			) : (
+				<BillingPageV2 />
+			)}
 		</Suspense>
 	)
 

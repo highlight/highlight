@@ -25,7 +25,6 @@ import {
 } from '@pages/Player/Toolbar/DevToolsWindowV2/ResizePanel'
 import {
 	LogLevelValue,
-	LogSourceValue,
 	RequestStatus,
 	RequestType,
 	Tab,
@@ -74,17 +73,14 @@ const DevToolsWindowV2: React.FC<
 	const [levels, setLevels] = React.useState<LogLevelValue[]>([
 		LogLevelValue.All,
 	])
-	const [sources, setSources] = React.useState<LogSourceValue[]>(
-		logCursor ? [] : [LogSourceValue.Frontend],
+	const [sources, setSources] = React.useState<LogSource[]>(
+		logCursor ? [] : [LogSource.Frontend],
 	)
 
 	// filter out All values to send to via request
 	const relevantLevelsForRequest = levels.filter(
 		(level) => level !== LogLevelValue.All,
 	) as unknown as LogLevel[]
-	const relevantSourcesForRequest = sources.filter(
-		(level) => level !== LogSourceValue.All,
-	) as unknown as LogSource[]
 
 	const formStore = useFormStore({
 		defaultValues: {
@@ -197,7 +193,7 @@ const DevToolsWindowV2: React.FC<
 											autoScroll={autoScroll}
 											logCursor={logCursor}
 											levels={relevantLevelsForRequest}
-											sources={relevantSourcesForRequest}
+											sources={sources}
 											filter={filter}
 										/>
 									),
@@ -328,8 +324,7 @@ const DevToolsWindowV2: React.FC<
 													projectId,
 													session,
 													levels: relevantLevelsForRequest,
-													sources:
-														relevantSourcesForRequest,
+													sources,
 												})}
 												target="_blank"
 												style={{ display: 'flex' }}

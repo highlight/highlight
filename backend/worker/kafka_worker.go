@@ -14,6 +14,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -23,23 +24,23 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (k *KafkaWorker) processWorkerError(ctx context.Context, task *kafkaqueue.Message, err error, start time.Time) {
+func (k *KafkaWorker) processWorkerError(ctx context.Context, task kafkaqueue.RetryableMessage, err error, start time.Time) {
 	log.WithContext(ctx).
 		WithError(err).
-		WithField("type", task.Type).
+		WithField("type", task.GetType()).
 		WithField("duration", time.Since(start).Seconds()).
-		Errorf("task %+v failed: %s", *task, err)
-	if task.Failures >= task.MaxRetries {
+		Errorf("task %+v failed: %s", task, err)
+	if task.GetFailures() >= task.GetMaxRetries() {
 		log.WithContext(ctx).
 			WithError(err).
-			WithField("type", task.Type).
-			WithField("failures", task.Failures).
+			WithField("type", task.GetType()).
+			WithField("failures", task.GetFailures()).
 			WithField("duration", time.Since(start).Seconds()).
-			Errorf("task %+v failed after %d retries", *task, task.Failures)
+			Errorf("task %+v failed after %d retries", task, task.GetFailures())
 	} else {
-		hmetric.Histogram(ctx, "worker.kafka.processed.taskFailures", float64(task.Failures), nil, 1)
+		hmetric.Histogram(ctx, "worker.kafka.processed.taskFailures", float64(task.GetFailures()), nil, 1)
 	}
-	task.Failures += 1
+	task.SetFailures(task.GetFailures() + 1)
 }
 
 func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
@@ -57,27 +58,32 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 
 			if task == nil {
 				return
-			} else if task.Type == kafkaqueue.HealthCheck {
+			} else if task.GetType() == kafkaqueue.HealthCheck {
 				return
 			}
-			s.SetAttribute("taskType", task.Type)
-			s.SetAttribute("partition", task.KafkaMessage.Partition)
-			s.SetAttribute("partitionKey", string(task.KafkaMessage.Key))
+			s.SetAttribute("taskType", task.GetType())
+			s.SetAttribute("partition", task.GetKafkaMessage().Partition)
+			s.SetAttribute("partitionKey", string(task.GetKafkaMessage().Key))
 
 			s2, _ := util.StartSpanFromContext(sCtx, "worker.kafka.processMessage")
-			for i := 0; i <= task.MaxRetries; i++ {
+			for i := 0; i <= task.GetMaxRetries(); i++ {
 				start := time.Now()
-				if err = k.Worker.processPublicWorkerMessage(sCtx, task); err != nil {
+				publicWorkerMessage, ok := task.(*kafka_queue.Message)
+				if !ok {
+					k.processWorkerError(ctx, task, e.New("failed to cast as publicWorkerMessage"), start)
+					break
+				}
+				if err = k.Worker.processPublicWorkerMessage(sCtx, publicWorkerMessage); err != nil {
 					k.processWorkerError(ctx, task, err, start)
 				} else {
 					break
 				}
 			}
-			s.SetAttribute("taskFailures", task.Failures)
+			s.SetAttribute("taskFailures", task.GetFailures())
 			s2.Finish(err)
 
 			s3, _ := util.StartSpanFromContext(sCtx, "worker.kafka.commitMessage")
-			k.KafkaQueue.Commit(ctx, task.KafkaMessage)
+			k.KafkaQueue.Commit(ctx, task.GetKafkaMessage())
 			s3.Finish()
 
 			hmetric.Incr(ctx, "worker.kafka.processed.total", nil, 1)
@@ -110,35 +116,51 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 	var logRows []*clickhouse.LogRow
 	var traceRows []*clickhouse.TraceRow
 
-	var lastMsg *kafkaqueue.Message
+	var lastMsg kafkaqueue.RetryableMessage
 	var oldestMsg = time.Now()
 	readSpan, _ := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.readMessages", k.Name)))
 	for _, lastMsg = range k.messages {
-		if lastMsg.KafkaMessage.Time.Before(oldestMsg) {
-			oldestMsg = lastMsg.KafkaMessage.Time
+		if lastMsg.GetKafkaMessage().Time.Before(oldestMsg) {
+			oldestMsg = lastMsg.GetKafkaMessage().Time
 		}
-		switch lastMsg.Type {
+
+		publicWorkerMessage, ok := lastMsg.(*kafka_queue.Message)
+		if !ok && lastMsg.GetType() != kafkaqueue.PushLogsFlattened {
+			log.WithContext(ctx).Errorf("type assertion failed for *kafka_queue.Message")
+			continue
+		}
+
+		switch lastMsg.GetType() {
 		case kafkaqueue.SessionDataSync:
-			syncSessionIds = append(syncSessionIds, lastMsg.SessionDataSync.SessionID)
+			syncSessionIds = append(syncSessionIds, publicWorkerMessage.SessionDataSync.SessionID)
 		case kafkaqueue.ErrorGroupDataSync:
-			syncErrorGroupIds = append(syncErrorGroupIds, lastMsg.ErrorGroupDataSync.ErrorGroupID)
+			syncErrorGroupIds = append(syncErrorGroupIds, publicWorkerMessage.ErrorGroupDataSync.ErrorGroupID)
 		case kafkaqueue.ErrorObjectDataSync:
-			syncErrorObjectIds = append(syncErrorObjectIds, lastMsg.ErrorObjectDataSync.ErrorObjectID)
+			syncErrorObjectIds = append(syncErrorObjectIds, publicWorkerMessage.ErrorObjectDataSync.ErrorObjectID)
+		case kafkaqueue.PushLogsFlattened:
+			logRow, ok := lastMsg.(*kafka_queue.LogRowMessage)
+			if !ok {
+				log.WithContext(ctx).Errorf("type assertion failed for *kafka_queue.LogRowMessage")
+				continue
+			}
+			if logRow != nil {
+				logRows = append(logRows, logRow.LogRow)
+			}
 		case kafkaqueue.PushLogs:
-			logRow := lastMsg.PushLogs.LogRow
+			logRow := publicWorkerMessage.PushLogs.LogRow
 			if logRow != nil {
 				logRows = append(logRows, logRow)
 			}
 		case kafkaqueue.PushTraces:
-			traceRow := lastMsg.PushTraces.TraceRow
+			traceRow := publicWorkerMessage.PushTraces.TraceRow
 			if traceRow != nil {
 				traceRows = append(traceRows, traceRow)
 			}
 		default:
-			log.WithContext(ctx).Errorf("unknown message type received by batch worker %+v", lastMsg.Type)
+			log.WithContext(ctx).Errorf("unknown message type received by batch worker %+v", lastMsg.GetType())
 		}
 	}
-	k.messages = []*kafkaqueue.Message{}
+	k.messages = []kafka_queue.RetryableMessage{}
 
 	readSpan.SetAttribute("MaxIngestDelay", time.Since(oldestMsg).Seconds())
 	readSpan.Finish()
@@ -166,7 +188,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 
 	commitSpan, cCtx := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.commit", k.Name)))
 	if lastMsg != nil {
-		k.KafkaQueue.Commit(cCtx, lastMsg.KafkaMessage)
+		k.KafkaQueue.Commit(cCtx, lastMsg.GetKafkaMessage())
 	}
 	commitSpan.Finish()
 
@@ -551,7 +573,7 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 			defer receiveCancel()
 			task := k.KafkaQueue.Receive(receiveCtx)
 			s1.Finish()
-			if task != nil && task.Type != kafkaqueue.HealthCheck {
+			if task != nil && task.GetType() != kafkaqueue.HealthCheck {
 				k.messages = append(k.messages, task)
 			}
 
@@ -581,5 +603,5 @@ type KafkaBatchWorker struct {
 	TracingDisabled     bool
 
 	lastFlush time.Time
-	messages  []*kafkaqueue.Message
+	messages  []kafkaqueue.RetryableMessage
 }

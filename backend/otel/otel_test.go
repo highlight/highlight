@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/highlight-run/highlight/backend/integrations"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
@@ -28,14 +29,14 @@ import (
 )
 
 type MockKafkaProducer struct {
-	messages []*kafkaqueue.Message
+	messages []kafkaqueue.RetryableMessage
 }
 
 func (m *MockKafkaProducer) Stop(_ context.Context) {}
 
-func (m *MockKafkaProducer) Receive(_ context.Context) *kafkaqueue.Message { return nil }
+func (m *MockKafkaProducer) Receive(_ context.Context) kafkaqueue.RetryableMessage { return nil }
 
-func (m *MockKafkaProducer) Submit(_ context.Context, _ string, messages ...*kafkaqueue.Message) error {
+func (m *MockKafkaProducer) Submit(_ context.Context, _ string, messages ...kafkaqueue.RetryableMessage) error {
 	m.messages = append(m.messages, messages...)
 	return nil
 }
@@ -81,7 +82,7 @@ func TestHandler_HandleTrace(t *testing.T) {
 		"./samples/traces.json": {
 			expectedMessageCounts: map[kafkaqueue.PayloadType]int{
 				kafkaqueue.PushBackendPayload: 4,   // 4 exceptions, pushed as individual messages
-				kafkaqueue.PushLogs:           15,  // 4 exceptions, 11 logs
+				kafkaqueue.PushLogsFlattened:  15,  // 4 exceptions, 11 logs
 				kafkaqueue.PushTraces:         501, // 512 spans - 11 logs
 			},
 			expectedLogCounts: map[model.LogSource]int{
@@ -92,8 +93,8 @@ func TestHandler_HandleTrace(t *testing.T) {
 		"./samples/external.json": {
 			expectedMessageCounts: map[kafkaqueue.PayloadType]int{
 				// no errors expected
-				kafkaqueue.PushLogs:   11,  // 11 logs
-				kafkaqueue.PushTraces: 501, // 512 spans - 11 logs
+				kafkaqueue.PushLogsFlattened: 11,  // 11 logs
+				kafkaqueue.PushTraces:        501, // 512 spans - 11 logs
 			},
 			external: true,
 		},
@@ -155,13 +156,14 @@ func TestHandler_HandleTrace(t *testing.T) {
 		logCountsBySource := map[model.LogSource]int{}
 		messageCountsByType := map[kafkaqueue.PayloadType]int{}
 		for _, message := range producer.messages {
-			messageCountsByType[message.Type]++
-			if message.Type == kafkaqueue.PushLogs {
-				lg := message.PushLogs.LogRow
-				logCountsBySource[lg.Source]++
-			} else if message.Type == kafkaqueue.PushBackendPayload {
-				appDirError = message.PushBackendPayload.Errors[0]
-				numErrors += len(message.PushBackendPayload.Errors)
+			messageCountsByType[message.GetType()]++
+			if message.GetType() == kafkaqueue.PushLogsFlattened {
+				logRowMessage := message.(*kafka_queue.LogRowMessage)
+				logCountsBySource[logRowMessage.Source]++
+			} else if message.GetType() == kafkaqueue.PushBackendPayload {
+				pushPayloadMessage := message.(*kafka_queue.Message)
+				appDirError = pushPayloadMessage.PushBackendPayload.Errors[0]
+				numErrors += len(pushPayloadMessage.PushBackendPayload.Errors)
 			}
 		}
 

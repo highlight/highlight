@@ -219,46 +219,95 @@ func TestEscapeJavascript(t *testing.T) {
 }
 
 func TestSnapshot_ReplaceAssets(t *testing.T) {
-	ctx := context.TODO()
-	inputBytes, err := os.ReadFile("./sample-events/input.json")
-	if err != nil {
-		t.Fatalf("error reading: %v", err)
-	}
+	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+		ctx := context.TODO()
+		inputBytes, err := os.ReadFile("./sample-events/input.json")
+		if err != nil {
+			t.Fatalf("error reading: %v", err)
+		}
 
-	snapshot, err := NewSnapshot(inputBytes, nil)
-	if err != nil {
-		t.Fatalf("error parsing: %v", err)
-	}
+		snapshot, err := NewSnapshot(inputBytes, nil)
+		if err != nil {
+			t.Fatalf("error parsing: %v", err)
+		}
 
-	var storageClient storage.Client
-	if storageClient, err = storage.NewFSClient(ctx, "https://test.highlight.io", "/tmp/test"); err != nil {
-		log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
-	}
-	if err := snapshot.ReplaceAssets(ctx, 1, storageClient, DB, redis.NewClient(), modelInputs.RetentionPeriodThreeMonths); err != nil {
-		t.Fatalf("failed to replace assets %+v", err)
-	}
+		var storageClient storage.Client
+		if storageClient, err = storage.NewFSClient(ctx, "https://test.highlight.io", "/tmp/test"); err != nil {
+			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
+		}
+		if err := snapshot.ReplaceAssets(ctx, 1, storageClient, DB, redis.NewClient(), modelInputs.RetentionPeriodThreeMonths); err != nil {
+			t.Fatalf("failed to replace assets %+v", err)
+		}
 
-	var assets []*model.SavedAsset
-	if err := DB.Model(&model.SavedAsset{}).Find(&assets).Error; err != nil {
-		t.Fatalf("failed to fetch assets %+v", err)
-	}
+		var assets []*model.SavedAsset
+		if err := DB.Model(&model.SavedAsset{}).Find(&assets).Error; err != nil {
+			t.Fatalf("failed to fetch assets %+v", err)
+		}
 
-	// broken asset "https://static.highlight.io/dev/test.mp4?AWSAccessKeyId=asdffdsa1234"
-	// should not be stored
-	assert.Equal(t, 2, len(assets))
-	for _, exp := range []string{
-		"https://static.highlight.io/dev/BigBuckBunny.mp4?AWSAccessKeyId=asdffdsa1234",
-		"https://static.highlight.io/v6.2.0/index.js",
-	} {
-		matched := false
-		for _, asset := range assets {
-			if asset.OriginalUrl == exp {
-				matched = true
-				break
+		// broken asset "https://static.highlight.io/dev/test.mp4?AWSAccessKeyId=asdffdsa1234"
+		// should not be stored
+		assert.Equal(t, 3, len(assets))
+		for _, exp := range []string{
+			// check that we store <link> tags with an href
+			"https://unpkg.com/@highlight-run/rrweb@0.9.27/dist/index.css",
+			"https://static.highlight.io/dev/BigBuckBunny.mp4?AWSAccessKeyId=asdffdsa1234",
+			"https://static.highlight.io/v6.2.0/index.js",
+		} {
+			matched := false
+			for _, asset := range assets {
+				if asset.OriginalUrl == exp {
+					matched = true
+					break
+				}
+			}
+			assert.True(t, matched, "no asset matched %s", exp)
+		}
+	})
+}
+func TestSnapshot_ReplaceAssets_Capacitor(t *testing.T) {
+	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+		ctx := context.TODO()
+		inputBytes, err := os.ReadFile("./sample-events/capacitor.json")
+		if err != nil {
+			t.Fatalf("error reading: %v", err)
+		}
+
+		snapshot, err := NewSnapshot(inputBytes, nil)
+		if err != nil {
+			t.Fatalf("error parsing: %v", err)
+		}
+
+		var storageClient storage.Client
+		if storageClient, err = storage.NewFSClient(ctx, "https://test.highlight.io", "/tmp/test"); err != nil {
+			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
+		}
+		if err := snapshot.ReplaceAssets(ctx, 33914, storageClient, DB, redis.NewClient(), modelInputs.RetentionPeriodThreeMonths); err != nil {
+			t.Fatalf("failed to replace assets %+v", err)
+		}
+
+		var assets []*model.SavedAsset
+		if err := DB.Model(&model.SavedAsset{}).Find(&assets).Error; err != nil {
+			t.Fatalf("failed to fetch assets %+v", err)
+		}
+
+		assert.Equal(t, 21, len(assets))
+		for _, exp := range []string{
+			"capacitor://localhost/fonts/KFOmCnqEu92Fr1Mu4mxM.f1e2a767.woff",
+			"capacitor://localhost/icons/favicon-128x128.png",
+		} {
+			var savedAsset *model.SavedAsset
+			for _, asset := range assets {
+				if asset.OriginalUrl == exp {
+					savedAsset = asset
+					break
+				}
+			}
+			assert.NotNilf(t, savedAsset, "no asset matched %s", exp)
+			if savedAsset != nil {
+				assert.Falsef(t, strings.HasPrefix(savedAsset.HashVal, "Err"), "asset fetch errored %s", exp)
 			}
 		}
-		assert.True(t, matched, "no asset matched %s", exp)
-	}
+	})
 }
 
 func TestGetHostUrlFromEvents(t *testing.T) {
