@@ -28,12 +28,12 @@ exporters:
 processors:
     memory_limiter:
         limit_mib: 3968
-        spike_limit_mib: 496
+        spike_limit_mib: 744
         check_interval: 1s
     batch:
         timeout: 5s
         send_batch_size: 1024
-        send_batch_max_size: 16384
+        send_batch_max_size: 8192
 service:
     telemetry:
         logs:
