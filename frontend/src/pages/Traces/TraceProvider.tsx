@@ -15,6 +15,7 @@ type TraceContext = {
 	traceName: string
 	durationString: string
 	startTime: number
+	endTime: number
 	totalDuration: number
 	errors: TraceError[]
 	hoveredSpan: FlameGraphSpan | undefined
@@ -24,6 +25,7 @@ type TraceContext = {
 	traces: FlameGraphSpan[][]
 	error?: ApolloError
 	traceId?: string
+	secureSessionId?: string
 	setHoveredSpan: (span?: FlameGraphSpan) => void
 	setSelectedSpan: (span?: FlameGraphSpan) => void
 }
@@ -69,9 +71,13 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 		fetchPolicy: 'cache-and-network',
 	})
 
-	const { startTime, duration: totalDuration } = useMemo(() => {
+	const {
+		startTime,
+		endTime,
+		duration: totalDuration,
+	} = useMemo(() => {
 		if (!data?.trace) {
-			return { startTime: 0, duration: 0 }
+			return { startTime: 0, duration: 0, endTime: 0 }
 		}
 
 		return getTraceTimes(data.trace.trace)
@@ -120,6 +126,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 				traceName,
 				durationString,
 				startTime,
+				endTime,
 				totalDuration,
 				errors,
 				hoveredSpan,
@@ -129,6 +136,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 				traceId,
 				traces,
 				error,
+				secureSessionId: firstSpan?.secureSessionID,
 				setHoveredSpan,
 				setSelectedSpan,
 			}}
