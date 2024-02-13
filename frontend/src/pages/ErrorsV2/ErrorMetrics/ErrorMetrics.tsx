@@ -14,6 +14,8 @@ import { ErrorDistributions } from '@pages/ErrorsV2/ErrorMetrics/ErrorDistributi
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 
+import analytics from '@/util/analytics'
+
 import styles from './ErrorMetrics.module.css'
 
 type Props = {
@@ -155,14 +157,18 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 	useEffect(() => {
 		buildTimelineTicks()
 		buildFormatedData()
+
+		analytics.track('error_metrics_view', {
+			errorGroupSecureId: errorGroup?.secure_id,
+		})
+
 		// Only invoke on new data.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [frequencies?.errorGroupFrequencies])
 
 	useEffect(() => {
 		resetTimeRange()
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	}, [resetTimeRange])
 
 	return (
 		<Box>
