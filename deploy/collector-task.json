@@ -51,7 +51,7 @@
 			"environment": [
 				{
 					"name": "GOMEMLIMIT",
-					"value": "3584"
+					"value": "14336"
 				}
 			],
 			"mountPoints": [],
@@ -98,8 +98,8 @@
 	"placementConstraints": [],
 	"compatibilities": ["EC2", "FARGATE"],
 	"requiresCompatibilities": ["FARGATE"],
-	"cpu": "2048",
-	"memory": "4096",
+	"cpu": "4096",
+	"memory": "16384",
 	"runtimePlatform": {
 		"cpuArchitecture": "ARM64"
 	},

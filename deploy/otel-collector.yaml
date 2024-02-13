@@ -17,14 +17,18 @@ exporters:
         write_buffer_size: 32768
         max_conns_per_host: 1024
         sending_queue:
-            num_consumers: 10
-            queue_size: 32768
+            num_consumers: 32
+            queue_size: 8192
         retry_on_failure:
             enabled: true
             initial_interval: 1s
             max_interval: 30s
-            max_elapsed_time: 600s
+            max_elapsed_time: 300s
 processors:
+    memory_limiter:
+        limit_mib: 14336
+        spike_limit_mib: 1024
+        check_interval: 0.1s
     batch:
         timeout: 5s
         send_batch_size: 1024
@@ -40,15 +44,15 @@ service:
     pipelines:
         traces:
             receivers: [otlp]
-            processors: [batch]
+            processors: [memory_limiter, batch]
             exporters: [otlphttp]
         metrics:
             receivers: [otlp]
-            processors: [batch]
+            processors: [memory_limiter, batch]
             exporters: [otlphttp]
         logs:
             receivers: [otlp, fluentforward, tcplog]
-            processors: [batch]
+            processors: [memory_limiter, batch]
             exporters: [otlphttp]
 extensions:
     health_check:
