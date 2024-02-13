@@ -47,11 +47,7 @@ export const RelatedSession = ({ data }: Props) => {
 	const tag = (
 		<Link
 			to={sessionLink}
-			onClick={() =>
-				analytics.track('View related session on error', {
-					path: sessionLink,
-				})
-			}
+			onClick={() => analytics.track('error_related-session-link_click')}
 		>
 			<Tag
 				kind="secondary"

@@ -53,11 +53,7 @@ export const RelatedLogs = ({ data }: Props) => {
 	return (
 		<Link
 			to={logsLink}
-			onClick={() => {
-				analytics.track('View related logs on error', {
-					path: logsLink,
-				})
-			}}
+			onClick={() => analytics.track('error_related-logs_click')}
 		>
 			<Tag
 				kind="secondary"
