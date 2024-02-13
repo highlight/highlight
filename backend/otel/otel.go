@@ -564,11 +564,7 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 				continue
 			}
 
-			// Temporarily filter NextJS logs
-			// TODO - remove this condition when https://github.com/highlight/highlight/issues/6181 is fixed
-			if !strings.HasPrefix(logRow.Body, "ENOENT: no such file or directory") && !strings.HasPrefix(logRow.Body, "connect ECONNREFUSED") {
-				filteredRows = append(filteredRows, logRow)
-			}
+			filteredRows = append(filteredRows, logRow)
 		}
 	}
 
