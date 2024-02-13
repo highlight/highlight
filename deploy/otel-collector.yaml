@@ -12,7 +12,6 @@ receivers:
 exporters:
     otlphttp:
         endpoint: 'http://pub.prod.vpc.highlight.io:8082/otel'
-        compression: gzip
         timeout: 30s
         read_buffer_size: 32768
         write_buffer_size: 32768
@@ -26,10 +25,6 @@ exporters:
             max_interval: 30s
             max_elapsed_time: 600s
 processors:
-    memory_limiter:
-        limit_mib: 3968
-        spike_limit_mib: 744
-        check_interval: 1s
     batch:
         timeout: 5s
         send_batch_size: 1024
@@ -45,15 +40,15 @@ service:
     pipelines:
         traces:
             receivers: [otlp]
-            processors: [memory_limiter, batch]
+            processors: [batch]
             exporters: [otlphttp]
         metrics:
             receivers: [otlp]
-            processors: [memory_limiter, batch]
+            processors: [batch]
             exporters: [otlphttp]
         logs:
             receivers: [otlp, fluentforward, tcplog]
-            processors: [memory_limiter, batch]
+            processors: [batch]
             exporters: [otlphttp]
 extensions:
     health_check:
