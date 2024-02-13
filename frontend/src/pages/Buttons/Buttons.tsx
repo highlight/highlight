@@ -26,6 +26,7 @@ import {
 export const Buttons = () => {
 	const [hasError, setHasError] = useState(false)
 	const [showWebSocket, setShowWebSocket] = useState(false)
+	const [email, setEmail] = useState('')
 	const [sendEmail, { loading }] = useSendEmailSignupMutation()
 	if (hasError) {
 		throw new Error('this is a buttons error', {
@@ -128,6 +129,21 @@ export const Buttons = () => {
 				<div className="highlight-ignore">
 					This is ignored.{' '}
 					<img src={Logo} height={16} alt="ignored" />
+				</div>
+				<button onClick={() => setEmail('test@test.com')}>
+					set email
+				</button>
+				<div>
+					<b>hello, this is a b tag</b>
+					<b>{email}</b>
+				</div>
+				<div>
+					<b>hello, this is a b tag</b>
+					<b data-hl-record>{email}</b>
+				</div>
+				<div data-hl-record>
+					<b>hello, this is a b tag</b>
+					<b>{email}</b>
 				</div>
 			</div>
 			<section id="shadowDOM" className="foo" title="yo">
