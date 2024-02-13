@@ -106,10 +106,8 @@ func getLogger(mode, topic string, level log.Level) kafka.LoggerFunc {
 	})
 	if level == log.ErrorLevel {
 		return lg.Errorf
-	} else if util.IsDevEnv() {
-		return lg.Debugf
 	}
-	return lg.Infof
+	return lg.Debugf
 }
 
 func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
@@ -191,7 +189,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Async:        true,
 			BatchSize:    1_000,
 			BatchBytes:   MaxMessageSizeBytes,
-			BatchTimeout: time.Second,
+			BatchTimeout: 5 * time.Second,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
 			Logger:       getLogger("producer", topic, log.InfoLevel),
