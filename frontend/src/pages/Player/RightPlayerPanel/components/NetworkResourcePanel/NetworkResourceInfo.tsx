@@ -1,5 +1,6 @@
 import { Box, Text } from '@highlight-run/ui/components'
 import { getResponseStatusCode } from '@pages/Player/helpers'
+import { useEffect } from 'react'
 
 import { TableList, TableListItem } from '@/components/TableList/TableList'
 import { ErrorObject } from '@/graph/generated/schemas'
@@ -12,6 +13,7 @@ import {
 } from '@/pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { REQUEST_INITIATOR_TYPES } from '@/pages/Player/utils/utils'
 import { CodeBlock } from '@/pages/Setup/CodeBlock/CodeBlock'
+import analytics from '@/util/analytics'
 import { formatTime } from '@/util/time'
 
 enum NetworkResourceMeta {
@@ -35,6 +37,12 @@ export const NetworkResourceInfo = ({
 	const responsePayloadData: TableListItem[] = []
 
 	const statusCode = getResponseStatusCode(selectedNetworkResource)
+
+	useEffect(() => {
+		analytics.track('session_network-resource-info_view', {
+			type: selectedNetworkResource?.initiatorType,
+		})
+	}, [selectedNetworkResource?.initiatorType])
 
 	const generalData: TableListItem[] = [
 		{

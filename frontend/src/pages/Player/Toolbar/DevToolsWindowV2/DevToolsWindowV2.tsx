@@ -35,12 +35,10 @@ import clsx from 'clsx'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-import { useAuthContext } from '@/authentication/AuthContext'
 import { getLogsURLForSession } from '@/pages/LogsPage/utils'
 import { useLinkLogCursor } from '@/pages/Player/PlayerHook/utils'
 import { LogSourceFilter } from '@/pages/Player/Toolbar/DevToolsWindowV2/LogSourceFilter/LogSourceFilter'
 import { styledVerticalScrollbar } from '@/style/common.css'
-import analytics from '@/util/analytics'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
 import ErrorsPage from './ErrorsPage/ErrorsPage'
@@ -58,7 +56,6 @@ const DevToolsWindowV2: React.FC<
 	const { logCursor } = useLinkLogCursor()
 	const { isPlayerFullscreen } = usePlayerUIContext()
 	const { isLiveMode, setIsLiveMode, time, session } = useReplayerContext()
-	const { isLoggedIn } = useAuthContext()
 	const {
 		selectedDevToolsTab,
 		setSelectedDevToolsTab,
@@ -192,9 +189,6 @@ const DevToolsWindowV2: React.FC<
 							setTab={(t: Tab) => {
 								setSelectedDevToolsTab(t)
 								formStore.reset()
-								analytics.track(`Viewed session tab: ${t}`, {
-									is_guest: !isLoggedIn,
-								})
 							}}
 							pages={{
 								[Tab.Console]: {
@@ -343,7 +337,7 @@ const DevToolsWindowV2: React.FC<
 												<Button
 													size="xSmall"
 													kind="secondary"
-													trackingId="showInLogViewer"
+													trackingId="session_show-in-log-viewer_click"
 													cssClass={styles.autoScroll}
 													iconLeft={
 														<IconSolidLogs

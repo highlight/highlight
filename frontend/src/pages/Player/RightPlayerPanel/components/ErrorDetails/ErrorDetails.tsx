@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
 import LoadingBox from '@components/LoadingBox'
@@ -53,7 +52,6 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 		sessionMetadata: { startTime },
 	} = useReplayerContext()
 	const { setActiveError } = usePlayerUIContext()
-	const { isLoggedIn } = useAuthContext()
 
 	const eventIdx = errors.findIndex((e) => e.id === error.id)
 	const [prev, next] = [eventIdx - 1, eventIdx + 1]
@@ -70,7 +68,8 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 		variables: { secure_id: secureId, use_clickhouse: true },
 		skip: !secureId,
 		onCompleted: () => {
-			analytics.track('Viewed error', { is_guest: !isLoggedIn })
+			analytics.track('session_view-error')
+
 			if (canMoveBackward) {
 				client.query({
 					query: GetErrorGroupDocument,
@@ -315,7 +314,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 			<Box mt="auto" py="8" display="flex" flexDirection="column">
 				<Button
 					kind="primary"
-					trackingId="ViewErrorGroup"
+					trackingId="session_view-error-group"
 					size="small"
 					emphasis="high"
 					iconRight={<IconSolidExternalLink />}
