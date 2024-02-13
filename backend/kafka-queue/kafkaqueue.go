@@ -98,6 +98,18 @@ type ConfigOverride struct {
 	OnAssignGroups   func()
 }
 
+func getLogger(mode, topic string, level log.Level) kafka.LoggerFunc {
+	lg := log.WithFields(log.Fields{
+		"code.module": "kafkaqueue",
+		"mode":        mode,
+		"topic":       topic,
+	})
+	if level == log.ErrorLevel {
+		return lg.Errorf
+	}
+	return lg.Debugf
+}
+
 func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
 	servers := os.Getenv("KAFKA_SERVERS")
 	brokers := strings.Split(servers, ",")
@@ -174,23 +186,14 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Balancer:     &kafka.Hash{},
 			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
-			// synchronous mode so that we can ensure messages are sent before we return
-			Async:        false,
-			BatchSize:    1,
+			Async:        true,
+			BatchSize:    1_000,
 			BatchBytes:   MaxMessageSizeBytes,
-			BatchTimeout: time.Second,
+			BatchTimeout: 5 * time.Second,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
-			Logger: kafka.LoggerFunc(log.WithFields(log.Fields{
-				"code.module": "kafkaqueue",
-				"mode":        "producer",
-				"topic":       topic,
-			}).Debugf),
-			ErrorLogger: kafka.LoggerFunc(log.WithFields(log.Fields{
-				"code.module": "kafkaqueue",
-				"mode":        "producer",
-				"topic":       topic,
-			}).Errorf),
+			Logger:       getLogger("producer", topic, log.InfoLevel),
+			ErrorLogger:  getLogger("producer", topic, log.ErrorLevel),
 		}
 
 		if configOverride != nil {
@@ -241,16 +244,8 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval:        time.Second,
 			WatchPartitionChanges: true,
-			Logger: kafka.LoggerFunc(log.WithFields(log.Fields{
-				"code.module": "kafkaqueue",
-				"mode":        "consumer",
-				"topic":       topic,
-			}).Debugf),
-			ErrorLogger: kafka.LoggerFunc(log.WithFields(log.Fields{
-				"code.module": "kafkaqueue",
-				"mode":        "consumer",
-				"topic":       topic,
-			}).Errorf),
+			Logger:                getLogger("consumer", topic, log.InfoLevel),
+			ErrorLogger:           getLogger("consumer", topic, log.ErrorLevel),
 			GroupBalancers: []kafka.GroupBalancer{
 				&balancer,
 			},

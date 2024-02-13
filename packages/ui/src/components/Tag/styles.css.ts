@@ -85,6 +85,9 @@ export const variants = recipe({
 		shape: {
 			rounded: {},
 			basic: {},
+			leftBasic: {},
+			rightBasic: {},
+			square: {},
 		},
 		size: {
 			small: { minHeight: 16 },
@@ -313,6 +316,117 @@ export const variants = recipe({
 			},
 			style: [
 				sprinkles({ gap: '2', px: '6', py: '2', borderRadius: '6' }),
+			],
+		},
+		{
+			variants: {
+				size: 'small',
+				shape: 'leftBasic',
+			},
+			style: [
+				sprinkles({
+					gap: '2',
+					px: '4',
+					py: '0',
+					borderTopLeftRadius: '3',
+					borderBottomLeftRadius: '3',
+				}),
+			],
+		},
+		{
+			variants: {
+				size: 'medium',
+				shape: 'leftBasic',
+			},
+			style: [
+				sprinkles({
+					gap: '2',
+					px: '4',
+					py: '2',
+					borderTopLeftRadius: '5',
+					borderBottomLeftRadius: '5',
+				}),
+			],
+		},
+		{
+			variants: {
+				size: 'large',
+				shape: 'leftBasic',
+			},
+			style: [
+				sprinkles({
+					gap: '2',
+					px: '6',
+					py: '2',
+					borderTopLeftRadius: '6',
+					borderBottomLeftRadius: '6',
+				}),
+			],
+		},
+		{
+			variants: {
+				size: 'small',
+				shape: 'square',
+			},
+			style: [sprinkles({ gap: '2', px: '4', py: '0' })],
+		},
+		{
+			variants: {
+				size: 'medium',
+				shape: 'square',
+			},
+			style: [sprinkles({ gap: '2', px: '4', py: '2' })],
+		},
+		{
+			variants: {
+				size: 'large',
+				shape: 'square',
+			},
+			style: [sprinkles({ gap: '2', px: '6', py: '2' })],
+		},
+		{
+			variants: {
+				size: 'small',
+				shape: 'rightBasic',
+			},
+			style: [
+				sprinkles({
+					gap: '2',
+					px: '4',
+					py: '0',
+					borderTopRightRadius: '3',
+					borderBottomRightRadius: '3',
+				}),
+			],
+		},
+		{
+			variants: {
+				size: 'medium',
+				shape: 'rightBasic',
+			},
+			style: [
+				sprinkles({
+					gap: '2',
+					px: '4',
+					py: '2',
+					borderTopRightRadius: '5',
+					borderBottomRightRadius: '5',
+				}),
+			],
+		},
+		{
+			variants: {
+				size: 'large',
+				shape: 'rightBasic',
+			},
+			style: [
+				sprinkles({
+					gap: '2',
+					px: '6',
+					py: '2',
+					borderTopRightRadius: '6',
+					borderBottomRightRadius: '6',
+				}),
 			],
 		},
 	],

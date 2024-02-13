@@ -602,7 +602,7 @@ export const Search: React.FC<{
 					sameWidth
 				>
 					<Box cssClass={styles.comboboxResults}>
-						{activePart.value.length > 0 && (
+						{activePart.value?.length > 0 && (
 							<Combobox.Group
 								className={styles.comboboxGroup}
 								store={comboboxStore}
