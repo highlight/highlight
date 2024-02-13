@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/parser/listener"
 	"strconv"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/parser/listener"
 
 	"github.com/samber/lo"
 
@@ -22,40 +23,42 @@ import (
 const timeFormat = "2006-01-02T15:04:05.000Z"
 
 var fieldMap map[string]string = map[string]string{
-	"fingerprint":     "Fingerprint",
-	"pages_visited":   "PagesVisited",
-	"viewed_by_me":    "ViewedByAdmins",
-	"created_at":      "CreatedAt",
-	"updated_at":      "UpdatedAt",
-	"identified":      "Identified",
-	"identifier":      "Identifier",
-	"city":            "City",
-	"country":         "Country",
-	"os_name":         "OSName",
-	"os_version":      "OSVersion",
-	"browser_name":    "BrowserName",
-	"browser_version": "BrowserVersion",
-	"processed":       "Processed",
-	"has_rage_clicks": "HasRageClicks",
-	"has_errors":      "HasErrors",
-	"has_session":     "HasSession",
-	"length":          "Length",
-	"active_length":   "ActiveLength",
-	"environment":     "Environment",
-	"app_version":     "AppVersion",
-	"first_time":      "FirstTime",
-	"viewed":          "Viewed",
-	"Type":            "Type",
-	"Event":           "Event",
-	"event":           "Event",
-	"state":           "Status",
-	"browser":         "Browser",
-	"visited_url":     "VisitedURL",
-	"timestamp":       "Timestamp",
-	"secure_id":       "ErrorGroupSecureID",
-	"service_name":    "ServiceName",
-	"service_version": "ServiceVersion",
-	"Tag":             "ErrorTagTitle",
+	"fingerprint":       "Fingerprint",
+	"pages_visited":     "PagesVisited",
+	"viewed_by_me":      "ViewedByAdmins",
+	"created_at":        "CreatedAt",
+	"updated_at":        "UpdatedAt",
+	"identified":        "Identified",
+	"identifier":        "Identifier",
+	"city":              "City",
+	"country":           "Country",
+	"os_name":           "OSName",
+	"os_version":        "OSVersion",
+	"browser_name":      "BrowserName",
+	"browser_version":   "BrowserVersion",
+	"processed":         "Processed",
+	"has_rage_clicks":   "HasRageClicks",
+	"has_errors":        "HasErrors",
+	"has_session":       "HasSession",
+	"length":            "Length",
+	"active_length":     "ActiveLength",
+	"environment":       "Environment",
+	"app_version":       "AppVersion",
+	"first_time":        "FirstTime",
+	"viewed":            "Viewed",
+	"Type":              "Type",
+	"Event":             "Event",
+	"event":             "Event",
+	"state":             "Status",
+	"browser":           "Browser",
+	"visited_url":       "VisitedURL",
+	"timestamp":         "Timestamp",
+	"secure_id":         "ErrorGroupSecureID",
+	"service_name":      "ServiceName",
+	"service_version":   "ServiceVersion",
+	"Tag":               "ErrorTagTitle",
+	"secure_session_id": "SecureSessionID",
+	"trace_id":          "TraceID",
 }
 
 type ClickhouseSession struct {

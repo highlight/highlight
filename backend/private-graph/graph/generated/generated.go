@@ -11655,9 +11655,9 @@ enum ReservedErrorObjectKey {
 	os
 	payload
 	request_id
+	secure_session_id
 	service_name
 	service_version
-	session_secure_id
 	source
 	span_id
 	stackTrace
