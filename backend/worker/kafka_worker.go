@@ -279,10 +279,23 @@ func (k *KafkaBatchWorker) getQuotaExceededByProject(ctx context.Context, projec
 }
 
 func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.LogRow) error {
+	timestampByProject := map[uint32]time.Time{}
 	projectIds := map[uint32]struct{}{}
 	for _, row := range logRows {
-		projectIds[row.ProjectId] = struct{}{}
+		if row.Timestamp.After(timestampByProject[row.ProjectId]) {
+			timestampByProject[row.ProjectId] = row.Timestamp
+			projectIds[row.ProjectId] = struct{}{}
+		}
 	}
+
+	spanTs, ctxTs := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.setTimestamps", k.Name)))
+	for projectId, timestamp := range timestampByProject {
+		err := k.Worker.Resolver.Redis.SetLastLogTimestamp(ctxTs, int(projectId), timestamp)
+		if err != nil {
+			log.WithContext(ctxTs).WithError(err).Errorf("failed to set last log timestamp for project %d", projectId)
+		}
+	}
+	spanTs.Finish()
 
 	quotaExceededByProject, err := k.getQuotaExceededByProject(ctx, projectIds, model.PricingProductTypeLogs)
 	if err != nil {
