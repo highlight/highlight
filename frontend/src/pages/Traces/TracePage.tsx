@@ -77,13 +77,7 @@ export const TracePage: React.FC = () => {
 			<Box pt="20">
 				<Tabs<TraceTabs>
 					tab={activeTab}
-					setTab={(tab) => {
-						analytics.track(`View trace tab`, {
-							tab,
-						})
-
-						setActiveTab(tab)
-					}}
+					setTab={(tab) => setActiveTab(tab)}
 					containerClass={styles.tabs}
 					tabsContainerClass={styles.tabsContainer}
 					pageContainerClass={styles.tabsPageContainer}

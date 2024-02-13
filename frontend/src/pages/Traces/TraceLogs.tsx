@@ -23,6 +23,7 @@ import { useProjectId } from '@/hooks/useProjectId'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
 import { useTrace } from '@/pages/Traces/TraceProvider'
+import analytics from '@/util/analytics'
 
 const startDate = moment().subtract(30, 'days').toDate()
 const endDate = moment().toDate()
@@ -61,6 +62,7 @@ export const TraceLogs: React.FC = () => {
 
 	useEffect(() => {
 		setQuery(traceId ? `trace_id${DEFAULT_OPERATOR}${traceId}` : '')
+		analytics.track('trace_logs_view')
 	}, [traceId])
 
 	return (

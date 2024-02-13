@@ -43,6 +43,8 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 		navigate(
 			`/${trace.projectID}/traces/${trace.traceID}/${trace.spanID}${location.search}`,
 		)
+
+		analytics.track('traces_trace-row_click')
 	}
 
 	return (

@@ -64,7 +64,7 @@ export const TracePanel: React.FC = () => {
 		'j',
 		() => {
 			if (nextTrace) {
-				analytics.track('NextTraceKeyboardShortcut')
+				analytics.track('traces_next-trace_shortcut')
 				goToTrace(nextTrace)
 			}
 		},
@@ -75,7 +75,7 @@ export const TracePanel: React.FC = () => {
 		'k',
 		() => {
 			if (previousTrace) {
-				analytics.track('PreviousTraceKeyboardShortcut')
+				analytics.track('traces_previous-trace_shortcut')
 				goToTrace(previousTrace)
 			}
 		},
