@@ -2030,7 +2030,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 			WithSpanId(spanID).
 			WithParentSpanId(parentSpanID).
 			WithTraceId(traceID).
-			WithSpanName("highlight-metric").
+			WithSpanName(highlight.MetricSpanName).
 			WithServiceName(serviceName).
 			WithServiceVersion(serviceVersion).
 			WithEnvironment(session.Environment).
