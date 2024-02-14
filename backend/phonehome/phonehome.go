@@ -48,6 +48,7 @@ const SpanDeployment = "highlight-phone-home-deployment-id"
 const SpanDopplerConfig = "highlight-doppler-config"
 const SpanHighlightVersion = "highlight-version"
 const SpanOnPrem = "highlight-is-onprem"
+const SpanLicenseKey = "highlight-license-key"
 
 func IsOptedOut(_ context.Context) bool {
 	return false
@@ -72,6 +73,7 @@ func GetDefaultAttributes() ([]attribute.KeyValue, error) {
 		attribute.String(SpanDopplerConfig, util.DopplerConfig),
 		attribute.String(SpanHighlightVersion, util.Version),
 		attribute.String(SpanOnPrem, util.OnPrem),
+		attribute.String(SpanLicenseKey, util.LicenseKey),
 	}, nil
 }
 

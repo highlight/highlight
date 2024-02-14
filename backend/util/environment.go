@@ -14,6 +14,7 @@ var (
 	InDocker      = os.Getenv("IN_DOCKER")
 	InDockerGo    = os.Getenv("IN_DOCKER_GO")
 	Version       = os.Getenv("REACT_APP_COMMIT_SHA")
+	LicenseKey    = os.Getenv("LICENSE_KEY")
 )
 
 func IsDevEnv() bool {
