@@ -36,6 +36,12 @@ REACT_APP_FRONTEND_URI=https://your-ip-address
 				},
 			],
 		},
+		{
+			title: '(Optional) Configure SSL.',
+			content:
+				'If you want to use a custom SSL certificate for your domain (by default, our self-signed certificate is configured for localhost), ' +
+				'you can modify the contents of `backend/localhostssl` to include your certificate and key.',
+		},
 
 		//
 		{
