@@ -52,8 +52,9 @@ jobs:
                   ANNOTATIONS="$ANNOTATIONS,annotation-index.org.opencontainers.image.source=https://github.com/highlight/highlight"
                   ANNOTATIONS="$ANNOTATIONS,annotation-index.org.opencontainers.image.licenses=Apache 2.0"
 
+                  push="--push -t ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG"
                   if [[ ${{ github.event_name }} == 'release' ]]; then
-                    push="--push -t ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG -t ghcr.io/highlight/$IMAGE_NAME:latest"
+                    push="${push} -t ghcr.io/highlight/$IMAGE_NAME:latest"
                   fi
 
                   # build docker image with common environment
