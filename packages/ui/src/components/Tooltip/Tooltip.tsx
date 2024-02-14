@@ -12,6 +12,7 @@ export type TooltipProps = Partial<Ariakit.TooltipStoreProps> &
 		delayed?: boolean
 		tooltipRef?: React.RefObject<HTMLElement>
 		renderInLine?: boolean // used when trying to display a tooltip in a modal
+		maxWidth?: number
 	}>
 
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -21,6 +22,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
 	style,
 	delayed,
 	renderInLine,
+	maxWidth,
 	...props
 }: TooltipProps) => {
 	const tooltipStore = Ariakit.useTooltipStore({
@@ -41,7 +43,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
 				<Ariakit.Tooltip
 					store={tooltipStore}
 					gutter={4}
-					style={{ zIndex: 100 }}
+					style={{ zIndex: 20001 }} // needed to display over header
 					portal={!renderInLine}
 				>
 					{/*
@@ -51,16 +53,18 @@ export const Tooltip: React.FC<TooltipProps> = ({
 					popover coming from the floating-ui library.
 					*/}
 					<Ariakit.TooltipArrow size={0} />
-					<TooltipContent>{children}</TooltipContent>
+					<TooltipContent maxWidth={maxWidth}>
+						{children}
+					</TooltipContent>
 				</Ariakit.Tooltip>
 			)}
 		</>
 	)
 }
 
-export const TooltipContent: React.FC<React.PropsWithChildren> = ({
-	children,
-}) => {
+export const TooltipContent: React.FC<
+	React.PropsWithChildren<{ maxWidth?: number }>
+> = ({ children, maxWidth = 350 }) => {
 	return (
 		<Box
 			backgroundColor="white"
@@ -68,9 +72,7 @@ export const TooltipContent: React.FC<React.PropsWithChildren> = ({
 			p="4"
 			borderRadius="6"
 			shadow="medium"
-			style={{
-				maxWidth: 350,
-			}}
+			style={{ maxWidth }}
 		>
 			{children}
 		</Box>

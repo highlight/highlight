@@ -47,89 +47,95 @@ export type TokenGroup = {
 	stop: number
 	type: 'expression' | 'separator'
 	expression?: SearchExpression
+	error?: string
 }
 
-export const buildTokenGroups = (
-	tokens: SearchToken[],
-	queryParts: SearchExpression[],
-	queryString: string,
-) => {
+export const buildTokenGroups = (tokens: SearchToken[]) => {
 	const tokenGroups: TokenGroup[] = []
-	let currentTokenIndex = 0
-	let currentToken = tokens[currentTokenIndex]
-	let currentGroupIndex = 0
-	let lastTokenStopIndex = -1
-	let stopIndex = -1
+	let currentGroup: TokenGroup | null = null
+	let insideQuotes = false
+	let insideParens = false
 
-	while (currentToken) {
-		const currentPartIndex = queryParts.findIndex(
-			(part) =>
-				currentToken.start >= part.start &&
-				currentToken.stop <= part.stop,
-		)
-		const currentPart = queryParts[currentPartIndex]
-		const whitespace = queryString.substring(
-			lastTokenStopIndex + 1,
-			currentToken.start,
-		)
-		const whitespaceToken =
-			whitespace.length > 0
-				? {
-						type: SearchGrammarLexer.WS,
-						text: whitespace,
-						start: lastTokenStopIndex + 1,
-						stop: currentToken.start,
-				  }
-				: undefined
-
-		if (stopIndex === -1) {
-			stopIndex = currentPart?.stop ?? 0
+	const startNewGroup = (type: 'expression' | 'separator', index: number) => {
+		if (currentGroup) {
+			currentGroup.stop = index
+			tokenGroups.push(currentGroup)
 		}
 
-		if (tokenGroups.length === 0 || currentToken.stop > stopIndex) {
-			if (whitespaceToken) {
-				if (currentTokenIndex > 0) {
-					currentGroupIndex++
-				}
+		insideParens = false
+		insideQuotes = false
 
-				tokenGroups[currentGroupIndex] = {
-					tokens: [whitespaceToken],
-					start: whitespaceToken.start,
-					stop: whitespaceToken.stop,
+		currentGroup = {
+			tokens: [],
+			start: index,
+			stop: index,
+			type,
+		}
+	}
+
+	for (const token of tokens) {
+		if (token.type === SearchGrammarLexer.EOF) {
+			continue
+		}
+
+		// Check if we're inside quotes or parentheses
+		if (token.text === '"') {
+			insideQuotes = !insideQuotes
+		} else if (token.text === '(') {
+			insideParens = true
+		} else if (token.text === ')') {
+			insideParens = false
+		}
+
+		const tokenIsSeparator =
+			SEPARATOR_TOKENS.includes(token.type) || token.text.trim() === ''
+
+		// Start a new group if we encounter a space outside of quotes and parentheses
+		if (tokenIsSeparator && !insideQuotes && !insideParens) {
+			if (!currentGroup) {
+				currentGroup = {
+					tokens: [],
+					start: token.start,
+					stop: token.stop,
 					type: 'separator',
 				}
 			}
 
-			currentGroupIndex++
-			tokenGroups[currentGroupIndex] = {
-				tokens: [],
-				start: currentToken.start,
-				stop: currentToken.stop,
-				type: 'separator',
+			if (currentGroup.type === 'expression') {
+				startNewGroup('separator', token.start)
 			}
+
+			currentGroup.tokens.push(token)
+			currentGroup.stop = token.stop
 		} else {
-			if (whitespaceToken) {
-				tokenGroups[currentGroupIndex].tokens.push(whitespaceToken)
+			if (!currentGroup) {
+				currentGroup = {
+					tokens: [],
+					start: token.start,
+					stop: token.stop,
+					type: 'expression',
+				}
+			}
+
+			if (currentGroup.type === 'separator') {
+				startNewGroup('expression', token.start)
+			}
+
+			// Add the token to the current group
+			currentGroup.tokens.push(token)
+			currentGroup.stop = token.stop
+
+			// If the token has an error message, assign an error property to the group
+			if (token.errorMessage) {
+				currentGroup.error = token.errorMessage
 			}
 		}
-
-		tokenGroups[currentGroupIndex].tokens.push(currentToken)
-		tokenGroups[currentGroupIndex].stop = currentToken.stop
-
-		const isExpression = !SEPARATOR_TOKENS.includes(currentToken.type)
-		if (isExpression) {
-			tokenGroups[currentGroupIndex].type = 'expression'
-			tokenGroups[currentGroupIndex].expression = currentPart
-		}
-
-		lastTokenStopIndex = currentToken.stop
-		stopIndex = currentPart
-			? currentPart.stop
-			: queryParts[currentPartIndex + 1]?.stop ?? lastTokenStopIndex
-		currentTokenIndex++
-		currentToken = tokens[currentTokenIndex]
 	}
 
-	// Remove any empty token groups
-	return tokenGroups.filter((group) => group.tokens.length > 0)
+	// Add the last group if it exists
+	if (currentGroup) {
+		tokenGroups.push(currentGroup)
+	}
+
+	return tokenGroups
 }

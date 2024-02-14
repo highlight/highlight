@@ -104,8 +104,8 @@ describe('buildTokenGroups', () => {
 	it('builds token groups correctly', () => {
 		const queryString =
 			' service_name=(private-graph  OR public-graph) AND span_name!=gorm.Query asdf fdsa '
-		const { tokens, queryParts } = parseSearch(queryString)
-		const tokenGroups = buildTokenGroups(tokens, queryParts, queryString)
+		const { tokens } = parseSearch(queryString)
+		const tokenGroups = buildTokenGroups(tokens)
 		const tokenGroupStrings = tokenGroups.map((group) =>
 			group.tokens.map((token) => token.text).join(''),
 		)
@@ -113,34 +113,29 @@ describe('buildTokenGroups', () => {
 		expect(tokenGroupStrings).toEqual([
 			' ',
 			'service_name=(private-graph  OR public-graph)',
-			' ',
-			'AND',
-			' ',
+			' AND ',
 			'span_name!=gorm.Query',
 			' ',
 			'asdf',
 			' ',
 			'fdsa',
 			' ',
-			'<EOF>',
 		])
 	})
 
 	it('handles AND and OR correctly', () => {
 		const queryString =
 			'service_name=private-graph AND span_name!=gorm.Query'
-		const { tokens, queryParts } = parseSearch(queryString)
-		const tokenGroups = buildTokenGroups(tokens, queryParts, queryString)
+		const { tokens } = parseSearch(queryString)
+		const tokenGroups = buildTokenGroups(tokens)
 		const tokenGroupStrings = tokenGroups.map((group) =>
 			group.tokens.map((token) => token.text).join(''),
 		)
 
 		expect(tokenGroupStrings).toEqual([
 			'service_name=private-graph',
-			' ',
-			'AND',
-			' ',
-			'span_name!=gorm.Query<EOF>',
+			' AND ',
+			'span_name!=gorm.Query',
 		])
 	})
 })

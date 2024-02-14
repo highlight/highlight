@@ -40,10 +40,9 @@ export const QueryPart: React.FC<{
 		return (
 			<>
 				{tokenGroup.tokens.map((token, index) => {
-					const { text } = token
-					const key = `${text}-${index}`
-
-					return <Token key={key} text={text} />
+					return (
+						<Token key={`${token.text}-${index}`} token={token} />
+					)
 				})}
 			</>
 		)
@@ -52,15 +51,16 @@ export const QueryPart: React.FC<{
 	return (
 		<>
 			<Tooltip
-				placement="bottom"
+				placement="top"
 				open={active && !!error}
+				maxWidth={600}
 				trigger={
 					<Box
 						cssClass={clsx(styles.comboboxTag, {
 							[styles.comboboxTagActive]: active,
 							[styles.comboboxTagError]: !!error,
 						})}
-						py="6"
+						py="7"
 						position="relative"
 						whiteSpace="nowrap"
 					>
@@ -68,24 +68,28 @@ export const QueryPart: React.FC<{
 							className={styles.comboboxTagClose}
 							size={13}
 							onClick={() => onRemoveItem(index)}
+							style={{ cursor: 'pointer' }}
 						/>
 
 						{error && (
 							<IconSolidExclamationCircle
 								className={styles.comboboxTagErrorIndicator}
 								size={13}
+								style={{ cursor: 'pointer' }}
 							/>
 						)}
 
 						{tokenGroup.tokens.map((token, index) => {
-							const { text, type } = token
-							const key = `${text}-${index}`
-
-							if (type === SearchGrammarParser.EOF) {
+							if (token.type === SearchGrammarParser.EOF) {
 								return null
 							}
 
-							return <Token key={key} text={text} />
+							return (
+								<Token
+									key={`${token.text}-${index}`}
+									token={token}
+								/>
+							)
 						})}
 
 						<Box cssClass={styles.comboboxTagBackground} />
@@ -102,14 +106,28 @@ export const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
 	name?.replaceAll("'", ''),
 )
 
-export const Token = ({ text }: { text: string }): JSX.Element => {
-	const cssClass = text.trim() === '' ? styles.whitspaceTag : ''
+export const Token = ({ token }: { token: SearchToken }): JSX.Element => {
+	const { errorMessage, text } = token
 
 	if (SEPARATORS.includes(text.toUpperCase())) {
-		return <Box style={{ color: '#E93D82', zIndex: 1 }}>{text}</Box>
+		return (
+			<Box
+				cssClass={clsx(styles.token, {
+					[styles.errorToken]: !!errorMessage,
+				})}
+				style={{ color: '#E93D82', zIndex: 1 }}
+			>
+				{text}
+			</Box>
+		)
 	} else {
 		return (
-			<Box style={{ zIndex: 1 }} cssClass={cssClass}>
+			<Box
+				style={{ zIndex: 1 }}
+				cssClass={clsx(styles.token, {
+					[styles.whitspaceToken]: text.trim() === '',
+				})}
+			>
 				{text}
 			</Box>
 		)
@@ -125,7 +143,7 @@ const ErrorRenderer: React.FC<{ error: string }> = ({ error }) => {
 }
 
 const errorMessageForToken = (
-	token: SearchToken & { errorMessage?: string },
+	token: SearchToken,
 	showValues: boolean,
 ): string | undefined => {
 	if (!token || token.type === SearchGrammarParser.EOF) {
@@ -137,13 +155,30 @@ const errorMessageForToken = (
 		return undefined
 	}
 
-	if (error.endsWith("expecting ')'") || error.startsWith("missing ')'")) {
-		error = 'Missing closing parenthesis'
+	if (
+		// Catch if they are using an operator charcater without quotes
+		error.startsWith("extraneous input '!'") ||
+		error.startsWith("mismatched input '!'") ||
+		error.startsWith("extraneous input '<'") ||
+		error.startsWith("mismatched input '<'") ||
+		error.startsWith("extraneous input '>'") ||
+		error.startsWith("mismatched input '>'") ||
+		error.startsWith("extraneous input '='") ||
+		error.startsWith("mismatched input '='") ||
+		error.startsWith("extraneous input ':'") ||
+		error.startsWith("mismatched input ':'")
+	) {
+		error = 'Operators must be wrapped in quotes.'
+	} else if (
+		error.endsWith("expecting ')'") ||
+		error.startsWith("missing ')'")
+	) {
+		error = 'Missing closing parenthesis.'
 	} else if (
 		error.startsWith("mismatched input '\"'") ||
 		error.startsWith("extraneous input '\"' expecting")
 	) {
-		error = 'Missing closing quote'
+		error = 'Missing closing quote.'
 	} else if (
 		(error.startsWith('mismatched input') ||
 			error.startsWith('extraneous input')) &&

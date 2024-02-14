@@ -49,10 +49,6 @@ export const comboboxNotEmpty = style({
 	WebkitTextFillColor: 'transparent',
 })
 
-export const whitspaceTag = style({
-	letterSpacing: WORD_SPACING,
-})
-
 export const comboboxTagsContainer = style([
 	typographyStyles.family.body,
 	typographyStyles.size.small,
@@ -77,6 +73,20 @@ export const comboboxTag = style({
 	textOverflow: 'ellipsis',
 	whiteSpace: 'pre',
 	wordSpacing: WORD_SPACING,
+})
+
+export const token = style({
+	height: 20,
+})
+
+export const whitspaceToken = style({
+	letterSpacing: WORD_SPACING,
+})
+
+export const errorToken = style({
+	backgroundColor: '#FFE9F0',
+	borderTop: `1px solid ${vars.theme.static.content.sentiment.bad}`,
+	borderBottom: `1px solid ${vars.theme.static.content.sentiment.bad}`,
 })
 
 export const comboboxTagBackground = style({
@@ -167,7 +177,8 @@ export const comboboxItem = style({
 	alignItems: 'center',
 	justifyContent: 'space-between',
 	flexDirection: 'row',
-	padding: 10,
+	padding: '0 10px',
+	minHeight: 30,
 	selectors: {
 		'&:hover': {
 			backgroundColor: vars.theme.interactive.fill.secondary.hover,

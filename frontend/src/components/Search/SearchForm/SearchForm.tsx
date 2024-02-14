@@ -267,7 +267,7 @@ export const Search: React.FC<{
 	const [isPending, startTransition] = React.useTransition()
 
 	const { queryParts, tokens } = parseSearch(query)
-	const tokenGroups = buildTokenGroups(tokens, queryParts, query)
+	const tokenGroups = buildTokenGroups(tokens)
 	const activePart = getActivePart(cursorIndex, queryParts)
 	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
 		activePart.value,
