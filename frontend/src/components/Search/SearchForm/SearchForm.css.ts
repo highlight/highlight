@@ -76,7 +76,10 @@ export const comboboxTag = style({
 })
 
 export const token = style({
-	height: 20,
+	// Ensures that the token fits inside the container and doesn't render on top
+	// of the border when there is an error.
+	height: 18,
+	marginTop: 1,
 })
 
 export const whitspaceToken = style({
@@ -84,9 +87,7 @@ export const whitspaceToken = style({
 })
 
 export const errorToken = style({
-	backgroundColor: '#FFE9F0',
-	borderTop: `1px solid ${vars.theme.static.content.sentiment.bad}`,
-	borderBottom: `1px solid ${vars.theme.static.content.sentiment.bad}`,
+	backgroundColor: 'rgba(255, 9, 87, 0.1)',
 })
 
 export const comboboxTagBackground = style({

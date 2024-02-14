@@ -6054,15 +6054,14 @@ body {
   word-spacing: 4px;
 }
 ._10xh0c26 {
-  height: 20px;
+  height: 18px;
+  margin-top: 1px;
 }
 ._10xh0c27 {
   letter-spacing: 4px;
 }
 ._10xh0c28 {
-  background-color: #FFE9F0;
-  border-top: 1px solid var(--_1pyqka9g);
-  border-bottom: 1px solid var(--_1pyqka9g);
+  background-color: rgba(255, 9, 87, 0.1);
 }
 ._10xh0c29 {
   border: var(--_1pyqka91o) solid 1px;
