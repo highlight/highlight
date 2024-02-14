@@ -635,14 +635,14 @@ func main() {
 					w.RefreshMaterializedViews(ctx)
 				}
 			}()
-			if util.IsDevEnv() {
+			if util.IsDevEnv() && util.UseSSL() {
 				log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 			} else {
 				log.Fatal(http.ListenAndServe(":"+port, r))
 			}
 		}
 	} else {
-		if util.IsDevEnv() {
+		if util.IsDevEnv() && util.UseSSL() {
 			log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 		} else {
 			log.Fatal(http.ListenAndServe(":"+port, r))
