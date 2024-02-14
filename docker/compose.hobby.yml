@@ -12,7 +12,6 @@ x-backend-env: &backend-env
         - ENABLE_OBJECT_STORAGE=true
         - ENVIRONMENT
         - FIREBASE_SECRET
-        - FRONTEND_URI
         - IN_DOCKER=true
         - IN_DOCKER_GO=true
         - KAFKA_SERVERS
@@ -30,8 +29,6 @@ x-backend-env: &backend-env
         - REACT_APP_COMMIT_SHA
         - REACT_APP_FRONTEND_URI
         - REACT_APP_PRIVATE_GRAPH_URI
-        - PRIVATE_GRAPH_URI
-        - PUBLIC_GRAPH_URI
         - REDIS_ADDRESS
         - REDIS_EVENTS_STAGING_ENDPOINT
         - SESSION_FILE_PATH_PREFIX

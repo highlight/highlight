@@ -15,9 +15,7 @@ export const SelfHostContent: QuickStartContent = {
 				'Update the following values to your backend IP address.',
 			code: [
 				{
-					text: `PRIVATE_GRAPH_URI=https://your-ip-address:8082/private
-PUBLIC_GRAPH_URI=https://your-ip-address:8082/public
-REACT_APP_PRIVATE_GRAPH_URI=https://your-ip-address:8082/private
+					text: `REACT_APP_PRIVATE_GRAPH_URI=https://your-ip-address:8082/private
 REACT_APP_PUBLIC_GRAPH_URI=https://your-ip-address:8082/public
 REACT_APP_FRONTEND_URI=https://your-ip-address:3000
 `,
