@@ -3,6 +3,7 @@ import re
 import subprocess
 
 CONSTANTS_FILE = '/build/frontend/build/assets/constants.js'
+NGINX_CONFIG_FILE = '/etc/nginx/conf.d/default.conf'
 
 
 def main():
@@ -21,6 +22,19 @@ def main():
             data = re.sub('https://localhost:3000', frontend, data)
 
     with open(CONSTANTS_FILE, 'w') as f:
+        f.write(data)
+
+    with open(NGINX_CONFIG_FILE, 'r') as f:
+        data = f.read()
+        if frontend:
+            port = frontend.split(':')[-1]
+            try:
+                port = int(port)
+            except ValueError as e:
+                port = 443
+            data = re.sub('3000', str(port), data)
+
+    with open(NGINX_CONFIG_FILE, 'w') as f:
         f.write(data)
 
     print("wrote back constants file", data, flush=True)
