@@ -14,11 +14,11 @@ def main():
     with open(CONSTANTS_FILE, 'r') as f:
         data = f.read()
         if private:
-            data = re.sub('https://localhost:8082/private', private, data)
+            data = re.sub('http://localhost:8082/private', private, data)
         if public:
-            data = re.sub('https://localhost:8082/public', public, data)
+            data = re.sub('http://localhost:8082/public', public, data)
         if frontend:
-            data = re.sub('https://localhost:3000', frontend, data)
+            data = re.sub('http://localhost:3000', frontend, data)
 
     with open(CONSTANTS_FILE, 'w') as f:
         f.write(data)
