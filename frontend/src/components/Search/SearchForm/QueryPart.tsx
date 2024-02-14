@@ -142,6 +142,8 @@ const ErrorRenderer: React.FC<{ error: string }> = ({ error }) => {
 	)
 }
 
+const OPERATOR_CHARACTERS = ['!', '<', '>', '=', ':']
+
 const errorMessageForToken = (
 	token: SearchToken,
 	showValues: boolean,
@@ -156,17 +158,11 @@ const errorMessageForToken = (
 	}
 
 	if (
-		// Catch if they are using an operator charcater without quotes
-		error.startsWith("extraneous input '!'") ||
-		error.startsWith("mismatched input '!'") ||
-		error.startsWith("extraneous input '<'") ||
-		error.startsWith("mismatched input '<'") ||
-		error.startsWith("extraneous input '>'") ||
-		error.startsWith("mismatched input '>'") ||
-		error.startsWith("extraneous input '='") ||
-		error.startsWith("mismatched input '='") ||
-		error.startsWith("extraneous input ':'") ||
-		error.startsWith("mismatched input ':'")
+		OPERATOR_CHARACTERS.some(
+			(char) =>
+				error!.startsWith(`extraneous input '${char}'`) ||
+				error!.startsWith(`mismatched input '${char}'`),
+		)
 	) {
 		error = 'Operators must be wrapped in quotes.'
 	} else if (
