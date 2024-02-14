@@ -25,6 +25,8 @@ def main():
     with open(CONSTANTS_FILE, 'w') as f:
         f.write(data)
 
+    print("wrote back constants file", data, flush=True)
+
     with open(NGINX_CONFIG_FILE, 'r') as f:
         data = f.read()
         if not use_ssl:
@@ -33,7 +35,7 @@ def main():
     with open(NGINX_CONFIG_FILE, 'w') as f:
         f.write(data)
 
-    print("wrote back constants file", data, flush=True)
+    print("wrote back nginx file", data, flush=True)
     return subprocess.check_call(["nginx", "-g", "daemon off;"])
 
 
