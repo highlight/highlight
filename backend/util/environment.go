@@ -15,6 +15,7 @@ var (
 	InDockerGo    = os.Getenv("IN_DOCKER_GO")
 	Version       = os.Getenv("REACT_APP_COMMIT_SHA")
 	LicenseKey    = os.Getenv("LICENSE_KEY")
+	SSL           = os.Getenv("SSL")
 )
 
 func IsDevEnv() bool {
@@ -47,6 +48,10 @@ func IsBackendInDocker() bool {
 
 func IsProduction() bool {
 	return strings.HasPrefix(DopplerConfig, "prod")
+}
+
+func UseSSL() bool {
+	return SSL != "false"
 }
 
 func EnvironmentName() string {

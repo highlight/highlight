@@ -16,9 +16,9 @@ export const SelfHostContent: QuickStartContent = {
 				'Update the following values to your backend IP address.',
 			code: [
 				{
-					text: `REACT_APP_PRIVATE_GRAPH_URI=https://your-ip-address:8082/private
-REACT_APP_PUBLIC_GRAPH_URI=https://your-ip-address:8082/public
-REACT_APP_FRONTEND_URI=https://your-ip-address
+					text: `REACT_APP_PRIVATE_GRAPH_URI=http://your-ip-address:8082/private
+REACT_APP_PUBLIC_GRAPH_URI=http://your-ip-address:8082/public
+REACT_APP_FRONTEND_URI=http://your-ip-address
 `,
 					language: 'bash',
 				},
@@ -35,12 +35,6 @@ REACT_APP_FRONTEND_URI=https://your-ip-address
 					language: 'bash',
 				},
 			],
-		},
-		{
-			title: '(Optional) Configure SSL.',
-			content:
-				'If you want to use a custom SSL certificate for your domain (by default, our self-signed certificate is configured for localhost), ' +
-				'you can modify the contents of `backend/localhostssl` to include your certificate and key.',
 		},
 
 		//
@@ -66,7 +60,7 @@ REACT_APP_FRONTEND_URI=https://your-ip-address
 					text: `import { H } from 'highlight.run';
 
 H.init('<YOUR_PROJECT_ID>', {
-    backendUrl: 'https://localhost:8082/public',
+    backendUrl: 'http://localhost:8082/public',
     ...
 });`,
 					language: 'javascript',

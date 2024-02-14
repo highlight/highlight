@@ -604,7 +604,7 @@ func main() {
 				go func() {
 					w.Start(ctx)
 				}()
-				if util.IsDevEnv() {
+				if util.IsDevEnv() && util.UseSSL() {
 					log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 				} else {
 					log.Fatal(http.ListenAndServe(":"+port, r))
