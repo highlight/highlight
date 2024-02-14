@@ -8,6 +8,7 @@ export ENABLE_OBJECT_STORAGE=true
 export IN_DOCKER=true
 export OBJECT_STORAGE_FS=/tmp/highlight-data
 export REACT_APP_AUTH_MODE=password
+export BACKEND_HEALTH_URI=$(echo "$REACT_APP_PUBLIC_GRAPH_URI" | sed -e 's/\/public/\/health/')
 
 if [[ "$*" == *"--go-docker"* ]]; then
     export OTLP_ENDPOINT=https://otel.highlight.io:4318
