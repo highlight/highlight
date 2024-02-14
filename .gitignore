@@ -31,6 +31,7 @@ backend/__debug_bin
 backend/dump.rdb
 backend/.config
 docker/.telemetry
+docker/run-hobby-remote.sh
 
 # Editor Artifacts
 **/.idea
