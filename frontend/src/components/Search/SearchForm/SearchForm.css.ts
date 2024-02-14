@@ -167,8 +167,7 @@ export const comboboxItem = style({
 	alignItems: 'center',
 	justifyContent: 'space-between',
 	flexDirection: 'row',
-	height: 30,
-	padding: '0 10px',
+	padding: 10,
 	selectors: {
 		'&:hover': {
 			backgroundColor: vars.theme.interactive.fill.secondary.hover,

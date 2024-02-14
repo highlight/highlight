@@ -683,8 +683,12 @@ export const Search: React.FC<{
 											value={key.name}
 											hideOnClick={false}
 											setValueOnClick={false}
+											title={key.name}
 										>
-											<Text color="secondaryContentText">
+											<Text
+												color="secondaryContentText"
+												lines="1"
+											>
 												{key.name}
 											</Text>
 											{badgeText && (

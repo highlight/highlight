@@ -6127,8 +6127,7 @@ body {
   align-items: center;
   justify-content: space-between;
   flex-direction: row;
-  height: 30px;
-  padding: 0 10px;
+  padding: 10px;
 }
 ._10xh0c2e:hover {
   background-color: var(--_1pyqka9t);
