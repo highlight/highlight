@@ -31,7 +31,6 @@ backend/__debug_bin
 backend/dump.rdb
 backend/.config
 docker/.telemetry
-docker/curl.sh
 
 # Editor Artifacts
 **/.idea
