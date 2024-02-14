@@ -5,12 +5,12 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
-	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
+
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 
 	model2 "github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -534,12 +534,11 @@ func (o *Handler) getQuotaExceededByProject(ctx context.Context, projectIds map[
 
 func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow) error {
 	projectIds := map[uint32]struct{}{}
-	for projectId := range projectLogs {
-		id, err := strconv.Atoi(projectId)
-		if err != nil || id < 0 {
-			continue
+	for _, logRows := range projectLogs {
+		for _, logRow := range logRows {
+			projectIds[logRow.ProjectId] = struct{}{}
+			break
 		}
-		projectIds[uint32(id)] = struct{}{}
 	}
 
 	quotaExceededByProject, err := o.getQuotaExceededByProject(ctx, projectIds, model2.PricingProductTypeLogs)
