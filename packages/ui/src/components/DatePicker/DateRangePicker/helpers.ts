@@ -1,6 +1,11 @@
 import moment from 'moment'
 
-import { DateRangePreset, DateRangeValue, presetLabel, presetValue } from '.'
+import {
+	DateRangePreset,
+	DateRangeValue,
+	presetLabel,
+	presetValue,
+} from './index'
 import { TIME_DISPLAY_FORMAT, TIME_INPUT_FORMAT } from './constants'
 
 export const formatDisplayedDate = (date?: Date) => {
