@@ -9,15 +9,15 @@ if [ \"\${OS}\" = \"Linux\" ] || [ \"\${OS}\" = \"FreeBSD\" ] || [ \"\${OS}\" = 
 then" > ./curl.sh
 
 cat ./telemetry.sh | grep -v '#!' >> ./curl.sh
-cat ./.env | grep -vE '^#' | sed -e 's/^/export /' >> ./curl.sh
+cat ./.env | grep -vE '^#' | grep -E '\S+' | sed -e 's/^/export /' >> ./curl.sh
 cat ./env.sh | grep -v '#!' >> ./curl.sh
 
 echo "if [ -f \$ADMIN_PASSWORD ]; then
   echo 'Exiting because no ADMIN_PASSWORD_FOUND'
-  exit 0
+  exit 1
 fi" >> ./curl.sh
 
-cat ./start-infra.sh | grep -v '#!' >> ./curl.sh
+cat ./start-infra.sh | grep -v '#!' | grep -v 'source' >> ./curl.sh
 
 echo "docker compose -f compose.yml -f compose.hobby.yml pull
 docker compose -f compose.yml -f compose.hobby.yml up --detach --remove-orphans
@@ -30,4 +30,6 @@ wait" >> ./curl.sh
 echo "fi" >> ./curl.sh
 
 # replace $* (args) with --go-docker --hobby to force those args for all invocations
-sed -i -e 's/\$\*/--go-docker --hobby/g' curl.sh
+sed 's/\$\*/--go-docker --hobby/g' ./curl.sh > ./curl-e.sh
+mv ./curl-e.sh ./curl.sh
+chmod +x ./curl.sh

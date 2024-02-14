@@ -3,7 +3,7 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # setup env
-$(cat .env | grep -vE '^#' | sed -e 's/^/export /')
+$(cat .env | grep -vE '^#' | grep -E '\S+' | sed -e 's/^/export /')
 export ENABLE_OBJECT_STORAGE=true
 export IN_DOCKER=true
 export OBJECT_STORAGE_FS=/tmp/highlight-data
