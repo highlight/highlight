@@ -73,9 +73,9 @@ export const buildTokenGroups = (tokens: SearchToken[]) => {
 		}
 	}
 
-	for (const token of tokens) {
+	tokens.forEach((token, index) => {
 		if (token.type === SearchGrammarLexer.EOF) {
-			continue
+			return
 		}
 
 		// Check if we're inside quotes or parentheses
@@ -98,6 +98,21 @@ export const buildTokenGroups = (tokens: SearchToken[]) => {
 					start: token.start,
 					stop: token.stop,
 					type: 'separator',
+				}
+			} else {
+				// Special handling of (NOT) EXISTS operators since we don't want to
+				// break on a space character in that case.
+				const nextThreeTokens = tokens.slice(index + 1, index + 4)
+				const nextTokenIsExists =
+					nextThreeTokens[0]?.type === SearchGrammarLexer.EXISTS
+				const nextTokensIsNotExists =
+					nextThreeTokens[0]?.type === SearchGrammarLexer.NOT &&
+					nextThreeTokens[2]?.type === SearchGrammarLexer.EXISTS
+
+				if (nextTokenIsExists || nextTokensIsNotExists) {
+					currentGroup.tokens.push(token)
+					currentGroup.stop = token.stop
+					return
 				}
 			}
 
@@ -130,7 +145,7 @@ export const buildTokenGroups = (tokens: SearchToken[]) => {
 				currentGroup.error = token.errorMessage
 			}
 		}
-	}
+	})
 
 	// Add the last group if it exists
 	if (currentGroup) {
