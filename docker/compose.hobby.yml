@@ -100,6 +100,7 @@ services:
         ports:
             - 8082:8082
         volumes:
+            - ../backend/localhostssl:/build/localhostssl
             - highlight-data:/highlight-data
         <<: *backend-env
 
@@ -112,6 +113,9 @@ services:
             interval: 5s
             timeout: 5s
             retries: 5
+        volumes:
+            - ../backend/localhostssl/server.pem:/etc/ssl/certs/ssl-cert.pem
+            - ../backend/localhostssl/server.key:/etc/ssl/private/ssl-cert.key
         ports:
             - 443:3000
             - 6006:6006
