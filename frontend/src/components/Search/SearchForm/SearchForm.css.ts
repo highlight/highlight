@@ -84,6 +84,7 @@ export const token = style({
 
 export const whitspaceToken = style({
 	letterSpacing: WORD_SPACING,
+	wordSpacing: 0,
 })
 
 export const errorToken = style({
