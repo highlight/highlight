@@ -3,6 +3,7 @@ import { AsyncMultiSelect, AsyncSelect, InlineField, InlineFieldRow, Input, Sele
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { DataSource, bucketByOptions, columnOptions, metricOptions, tableOptions } from '../datasource';
 import { HighlightDataSourceOptions, HighlightQuery, Table } from '../types';
+import { H } from 'highlight.run';
 
 type Props = QueryEditorProps<DataSource, HighlightQuery, HighlightDataSourceOptions>;
 
@@ -69,6 +70,23 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
     let options = await loadColumnOptions(table, query);
     return bucketByOptions.concat(options);
   };
+
+  H.init('1', {
+    debug: { clientInteractions: true, domRecording: true },
+    networkRecording: {
+      enabled: true,
+      recordHeadersAndBody: true,
+    },
+    tracingOrigins: true,
+    enableCanvasRecording: true,
+    samplingStrategy: {
+      canvas: 1,
+      canvasMaxSnapshotDimension: 480,
+      canvasFactor: 0.5,
+    },
+    inlineStylesheet: true,
+    inlineImages: true,
+  });
 
   return (
     <div>

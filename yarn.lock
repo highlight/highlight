@@ -13937,6 +13937,7 @@ __metadata:
     eslint-webpack-plugin: "npm:^4.0.1"
     fork-ts-checker-webpack-plugin: "npm:^8.0.0"
     glob: "npm:^10.2.7"
+    highlight.run: "workspace:*"
     identity-obj-proxy: "npm:3.0.0"
     jest: "npm:^29.5.0"
     jest-environment-jsdom: "npm:^29.5.0"
