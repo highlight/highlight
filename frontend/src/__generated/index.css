@@ -7396,6 +7396,16 @@ body {
 .u1xyjd5:hover {
   background: var(--_1pyqka91x);
 }
+._11qnwtv1 {
+  width: 80%;
+  min-width: 400px;
+  max-width: 1200px;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 30000;
+  position: fixed;
+}
 ._1kp6do40 {
   width: 100%;
 }

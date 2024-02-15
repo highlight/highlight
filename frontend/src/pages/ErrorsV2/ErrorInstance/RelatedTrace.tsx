@@ -9,6 +9,7 @@ import { GetErrorInstanceQuery } from '@/graph/generated/operations'
 import { ReservedTraceKey } from '@/graph/generated/schemas'
 import analytics from '@/util/analytics'
 
+// TODO: Add call to useRelatedResources and push() on the trace
 const getTraceLink = (data: GetErrorInstanceQuery | undefined): string => {
 	const errorObject = data?.error_instance?.error_object
 
