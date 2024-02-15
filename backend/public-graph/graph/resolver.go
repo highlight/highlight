@@ -2044,11 +2044,9 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 		if !r.IsTraceIngested(ctx, traceRow) {
 			continue
 		}
-		messages = append(messages, &kafka_queue.Message{
-			Type: kafka_queue.PushTraces,
-			PushTraces: &kafka_queue.PushTracesArgs{
-				TraceRow: traceRow,
-			},
+		messages = append(messages, &kafka_queue.TraceRowMessage{
+			Type:     kafka_queue.PushTracesFlattened,
+			TraceRow: traceRow,
 		})
 	}
 	return r.TracesQueue.Submit(ctx, "", messages...)
