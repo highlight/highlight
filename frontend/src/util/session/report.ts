@@ -108,6 +108,8 @@ const exportFile = async (name: string, encodedUri: string) => {
 	link.click() // This will download the data file named "my_data.csv".
 }
 
+type SessionWithUpdatedAt = Session & { payload_updated_at: string }
+
 export const useGenerateSessionsReportCSV = () => {
 	const PAGE_SIZE = 1_000
 	const { searchQuery, startDate, endDate } = useSearchContext()
@@ -166,19 +168,20 @@ export const useGenerateSessionsReportCSV = () => {
 			const { sessions: s, totalCount } = await getSessions(1)
 
 			const sessions = [...s]
-			const promises: Promise<Session[]>[] = []
+			const promises: Promise<{
+				totalCount: number
+				sessions: SessionWithUpdatedAt[]
+			}>[] = []
 			for (
 				let page = 2;
 				page <= Math.ceil(totalCount / PAGE_SIZE);
 				page++
 			) {
-				promises.push(
-					(async (p: number) => (await getSessions(p)).sessions)(
-						page,
-					),
-				)
+				promises.push(getSessions(page))
 			}
-			sessions.push(...(await Promise.all(promises)).flat())
+			const results = await Promise.all(promises)
+			sessions.push(...results.map((r) => r.sessions).flat())
+			console.log('vadim', { promises, results, sessions })
 
 			const rows: any[][] = [
 				...getQueryRows(startDate, endDate, query, sessions),
