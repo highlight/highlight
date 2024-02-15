@@ -69,6 +69,7 @@ import { PythonFlaskTracesContent } from './traces/python/flask'
 import { PythonGCPTracesContent } from './traces/python/gcp'
 import { PythonManualTracesContent } from './traces/python/manual'
 import { PythonLibrariesTracesContent } from './traces/python/python-libraries'
+import { HostingHerokuLogContent } from './logging/hosting/heroku'
 
 export type QuickStartOptions = {
 	title: string
@@ -154,6 +155,7 @@ export enum QuickStartType {
 	HostingVercel = 'vercel',
 	HostingFlyIO = 'fly-io',
 	HostingRender = 'render',
+	HostingHeroku = 'heroku',
 	OTLP = 'otlp',
 }
 
@@ -306,6 +308,7 @@ export const quickStartContent = {
 			[QuickStartType.HostingVercel]: HostingVercelLogContent,
 			[QuickStartType.HostingFlyIO]: HostingFlyIOLogContent,
 			[QuickStartType.HostingRender]: HostingRenderLogContent,
+			[QuickStartType.HostingHeroku]: HostingHerokuLogContent,
 		},
 		otlp: {
 			title: 'OpenTelemetry',
