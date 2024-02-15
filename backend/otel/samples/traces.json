@@ -1538,7 +1538,7 @@
 										{
 											"key": "log.message",
 											"value": {
-												"stringValue": "[1681426468569] Sending: 120 events, 2 messages, 0 network resources, 0 errors \nTo: https://localhost:8082/public\nOrg: 1\nSessionSecureID: tUVyYXgmLPMuJBM5FdhaEcDIOfah"
+												"stringValue": "[1681426468569] Sending: 120 events, 2 messages, 0 network resources, 0 errors \nTo: http://localhost:8082/public\nOrg: 1\nSessionSecureID: tUVyYXgmLPMuJBM5FdhaEcDIOfah"
 											}
 										},
 										{
@@ -1562,7 +1562,7 @@
 										{
 											"key": "exception.stacktrace",
 											"value": {
-												"stringValue": "[1681426468569] Sending: 120 events, 2 messages, 0 network resources, 0 errors \nTo: https://localhost:8082/public\nOrg: 1\nSessionSecureID: tUVyYXgmLPMuJBM5FdhaEcDIOfah\n    at console.log (chrome-extension://dpajfcckdohlcidmbjledcaenfkjaddo/assets/js/logger.js:5:164)\n    at Logger.log (http://localhost:8080/dist/index.js:15552:23)\n    at Highlight.\u003canonymous\u003e (http://localhost:8080/dist/index.js:16454:23)\n    at http://localhost:8080/dist/index.js:15714:65\n    at __async (http://localhost:8080/dist/index.js:15698:14)\n    at Highlight._sendPayload (http://localhost:8080/dist/index.js:16437:16)\n    at Highlight.\u003canonymous\u003e (http://localhost:8080/dist/index.js:16400:24)\n    at http://localhost:8080/dist/index.js:15714:65\n    at __async (http://localhost:8080/dist/index.js:15698:14)\n    at Highlight._save (http://localhost:8080/dist/index.js:16395:16)\n    at http://localhost:8080/dist/index.js:16415:20\n    at r (chrome-extension://dpajfcckdohlcidmbjledcaenfkjaddo/assets/js/logger.js:14:1397)"
+												"stringValue": "[1681426468569] Sending: 120 events, 2 messages, 0 network resources, 0 errors \nTo: http://localhost:8082/public\nOrg: 1\nSessionSecureID: tUVyYXgmLPMuJBM5FdhaEcDIOfah\n    at console.log (chrome-extension://dpajfcckdohlcidmbjledcaenfkjaddo/assets/js/logger.js:5:164)\n    at Logger.log (http://localhost:8080/dist/index.js:15552:23)\n    at Highlight.\u003canonymous\u003e (http://localhost:8080/dist/index.js:16454:23)\n    at http://localhost:8080/dist/index.js:15714:65\n    at __async (http://localhost:8080/dist/index.js:15698:14)\n    at Highlight._sendPayload (http://localhost:8080/dist/index.js:16437:16)\n    at Highlight.\u003canonymous\u003e (http://localhost:8080/dist/index.js:16400:24)\n    at http://localhost:8080/dist/index.js:15714:65\n    at __async (http://localhost:8080/dist/index.js:15698:14)\n    at Highlight._save (http://localhost:8080/dist/index.js:16395:16)\n    at http://localhost:8080/dist/index.js:16415:20\n    at r (chrome-extension://dpajfcckdohlcidmbjledcaenfkjaddo/assets/js/logger.js:14:1397)"
 											}
 										}
 									]

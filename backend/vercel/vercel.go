@@ -45,7 +45,7 @@ type VercelAccessTokenResponse struct {
 func GetAccessToken(code string) (VercelAccessTokenResponse, error) {
 	client := &http.Client{}
 
-	redirectUri := os.Getenv("FRONTEND_URI") + "/callback/vercel"
+	redirectUri := os.Getenv("REACT_APP_FRONTEND_URI") + "/callback/vercel"
 
 	data := url.Values{}
 	data.Set("code", code)

@@ -94,7 +94,7 @@ var AuthorizationError = errors.New("403 - AuthorizationError")
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
-	FrontendURI     = os.Getenv("FRONTEND_URI")
+	FrontendURI     = os.Getenv("REACT_APP_FRONTEND_URI")
 )
 
 var BytesConversion = map[string]int64{
@@ -1835,7 +1835,7 @@ func (r *Resolver) AWSMPCallback(ctx context.Context) func(http.ResponseWriter, 
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		http.Redirect(w, req, fmt.Sprintf("%s/callback/aws-mp?code=%s", os.Getenv("FRONTEND_URI"), secret), http.StatusFound)
+		http.Redirect(w, req, fmt.Sprintf("%s/callback/aws-mp?code=%s", os.Getenv("REACT_APP_FRONTEND_URI"), secret), http.StatusFound)
 	}
 }
 
@@ -2532,7 +2532,7 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 			Title:    title,
 			Subtitle: subtitle,
 			Url:      url,
-			IconUrl:  fmt.Sprintf("%s/logo_with_gradient_bg.png", os.Getenv("FRONTEND_URI")),
+			IconUrl:  fmt.Sprintf("%s/logo_with_gradient_bg.png", os.Getenv("REACT_APP_FRONTEND_URI")),
 		},
 	}
 

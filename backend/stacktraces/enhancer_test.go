@@ -223,7 +223,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 		t.Fatalf("error creating storage client: %v", err)
 	}
 
-	fsClient, err := storage.NewFSClient(ctx, "https://localhost:8082/public", "")
+	fsClient, err := storage.NewFSClient(ctx, "http://localhost:8082/public", "")
 	if err != nil {
 		t.Fatalf("error creating storage client: %v", err)
 	}
@@ -257,7 +257,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 
 func TestGetURLSourcemap(t *testing.T) {
 	ctx := context.Background()
-	fsClient, err := storage.NewFSClient(ctx, "https://localhost:8082/public", "")
+	fsClient, err := storage.NewFSClient(ctx, "http://localhost:8082/public", "")
 	if err != nil {
 		t.Fatalf("error creating storage client: %v", err)
 	}

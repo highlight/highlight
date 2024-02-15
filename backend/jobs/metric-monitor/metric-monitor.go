@@ -156,7 +156,7 @@ func processMetricMonitors(ctx context.Context, DB *gorm.DB, ccClient *clickhous
 				log.WithContext(ctx).Error(err)
 			}
 
-			frontendURL := os.Getenv("FRONTEND_URI")
+			frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
 			monitorURL := fmt.Sprintf("%s/%d/alerts/monitor/%d", frontendURL, metricMonitor.ProjectID, metricMonitor.ID)
 
 			for _, email := range emailsToNotify {

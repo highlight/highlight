@@ -44,5 +44,9 @@ When you start highlight for development or a hobby deploy, our scripts will sha
 |--------------------------|----------------------------------------------------|--------|
 | version                  | Highlight version sha                              | string |
 | is-onprem                | Value of env var ON_PREM                           | string |
+| ssl                      | Whether SSL is active                              | bool   |
+| public-graph-uri         | The URI of the public graph.                       | string |
+| private-graph-uri        | The URI of the private graph.                      | string |
+| frontend-uri             | The URI of the frontend.                           | string |
 | doppler-config           | When doppler is used, the name of the environment. | string |
 | phone-home-deployment-id | A randomly-generated deployment identifier.        | string |

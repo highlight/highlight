@@ -73,7 +73,7 @@ import (
 )
 
 var (
-	frontendURL         = os.Getenv("FRONTEND_URI")
+	frontendURL         = os.Getenv("REACT_APP_FRONTEND_URI")
 	staticFrontendPath  = os.Getenv("ONPREM_STATIC_FRONTEND_PATH")
 	landingStagingURL   = os.Getenv("LANDING_PAGE_STAGING_URI")
 	sendgridKey         = os.Getenv("SENDGRID_API_KEY")
@@ -604,7 +604,7 @@ func main() {
 				go func() {
 					w.Start(ctx)
 				}()
-				if util.IsDevEnv() {
+				if util.IsDevEnv() && util.UseSSL() {
 					log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 				} else {
 					log.Fatal(http.ListenAndServe(":"+port, r))
@@ -635,14 +635,14 @@ func main() {
 					w.RefreshMaterializedViews(ctx)
 				}
 			}()
-			if util.IsDevEnv() {
+			if util.IsDevEnv() && util.UseSSL() {
 				log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 			} else {
 				log.Fatal(http.ListenAndServe(":"+port, r))
 			}
 		}
 	} else {
-		if util.IsDevEnv() {
+		if util.IsDevEnv() && util.UseSSL() {
 			log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 		} else {
 			log.Fatal(http.ListenAndServe(":"+port, r))
