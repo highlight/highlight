@@ -114,7 +114,6 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 			setSelectedSpan(firstSpan as FlameGraphSpan)
 		}
 
-		// TODO(spenny): can we pass in selected span?
 		return organizeSpansForFlameGraph(data.trace.trace)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.trace?.trace])
