@@ -396,9 +396,19 @@ export const DropdownMenu = function ({
 							className={styles.menuItem}
 							onClick={async () => {
 								message.info(
-									'CSV report download will begin shortly...',
+									'Preparing CSV report, this may take a bit...',
 								)
-								await generateSessionsReportCSV()
+								try {
+									await generateSessionsReportCSV()
+									message.success(
+										'CSV report prepared, downloading...',
+									)
+								} catch (e) {
+									message.error(
+										`Failed to generate the CSV report: ${e}`,
+									)
+									H.consumeError(e)
+								}
 							}}
 						>
 							<SectionRow>
