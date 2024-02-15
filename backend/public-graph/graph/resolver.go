@@ -2342,7 +2342,7 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 				if len(formattedVal) > 0 {
 					fields[k] = formattedVal
 				}
-				// the value below is used for testing using https://localhost:3000/buttons
+				// the value below is used for testing using /buttons
 				testTrackingMessage := "therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues"
 				if fields[k] == testTrackingMessage {
 					return e.New(testTrackingMessage)

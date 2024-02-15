@@ -11,10 +11,7 @@ receivers:
         listen_address: '0.0.0.0:34302'
 exporters:
     otlphttp:
-        endpoint: 'https://backend:8082/otel'
-        compression: gzip
-        tls:
-            insecure_skip_verify: true
+        endpoint: 'http://backend:8082/otel'
         timeout: 30s
         sending_queue:
             num_consumers: 64

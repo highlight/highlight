@@ -3,11 +3,12 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # setup env
-$(cat .env | grep -vE '^#' | sed -e 's/^/export /')
+$(cat .env | grep -vE '^#' | grep -E '\S+' | sed -e 's/^/export /')
 export ENABLE_OBJECT_STORAGE=true
 export IN_DOCKER=true
 export OBJECT_STORAGE_FS=/tmp/highlight-data
 export REACT_APP_AUTH_MODE=password
+export BACKEND_HEALTH_URI=$(echo "$REACT_APP_PUBLIC_GRAPH_URI" | sed -e 's/\/public/\/health/')
 
 if [[ "$*" == *"--go-docker"* ]]; then
     export OTLP_ENDPOINT=https://otel.highlight.io:4318
@@ -29,6 +30,7 @@ export BUILD_ARGS="--build-arg GOARCH=${GOARCH}
 --build-arg REACT_APP_PUBLIC_GRAPH_URI=${REACT_APP_PUBLIC_GRAPH_URI}
 --build-arg TURBO_TOKEN=${TURBO_TOKEN}
 --build-arg TURBO_TEAM=${TURBO_TEAM}
+--build-arg LICENSE_KEY=${LICENSE_KEY}
 --build-arg ADMIN_PASSWORD=${ADMIN_PASSWORD}"
 
 mkdir -p ${OBJECT_STORAGE_FS}

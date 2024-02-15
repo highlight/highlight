@@ -49,7 +49,7 @@ func OAuth(ctx context.Context, code string, currentOAuth *OAuthToken) (*OAuthTo
 		form.Add("refresh_token", currentOAuth.RefreshToken)
 		form.Add("grant_type", "refresh_token")
 	} else {
-		redirect := os.Getenv("FRONTEND_URI") + "/callback/front"
+		redirect := os.Getenv("REACT_APP_FRONTEND_URI") + "/callback/front"
 		form.Add("code", code)
 		form.Add("redirect_uri", redirect)
 		form.Add("grant_type", "authorization_code")

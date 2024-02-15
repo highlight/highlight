@@ -43,21 +43,33 @@ Rename ${key} to something such that "${key}".startsWith("${allowListEnvVar}") r
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '')
 	validateSafeAllowList(env)
-
+	let port = 80
+	try {
+		port = Number(new URL(env.REACT_APP_FRONTEND_URI).port || '80')
+	} catch (e) {}
 	return {
 		plugins: [react(), vanillaExtractPlugin(), tsconfigPaths(), svgr()],
 		envPrefix: ['VITE_', ...ENVVAR_ALLOWLIST],
 		server: {
 			host: '0.0.0.0',
-			port: 3000,
-			https: {
-				key: join(__dirname, '../backend/localhostssl/server.key'),
-				cert: join(__dirname, '../backend/localhostssl/server.crt'),
-			},
+			port,
+			https:
+				env.SSL === 'false'
+					? false
+					: {
+							key: join(
+								__dirname,
+								'../backend/localhostssl/server.key',
+							),
+							cert: join(
+								__dirname,
+								'../backend/localhostssl/server.crt',
+							),
+					  },
 			// ensure hmr works when proxying frontend
 			strictPort: true,
 			hmr: {
-				clientPort: 3000,
+				clientPort: port,
 			},
 			watch: {
 				ignored: ['**/node_modules/**', '**/src/__generated/**'],

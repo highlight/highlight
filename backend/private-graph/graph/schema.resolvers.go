@@ -1368,8 +1368,8 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 	// If there's no existing subscription, we create a checkout.
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/success"),
-		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/update-plan"),
+		SuccessURL: stripe.String(os.Getenv("REACT_APP_FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/success"),
+		CancelURL:  stripe.String(os.Getenv("REACT_APP_FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/update-plan"),
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
@@ -3620,7 +3620,7 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 			queryParams := url.Values{
 				"autoinvite_email": {*admin.Email},
 			}
-			inviteLink := fmt.Sprintf("%s/w/%d/team?%s", os.Getenv("FRONTEND_URI"), workspace.ID, queryParams.Encode())
+			inviteLink := fmt.Sprintf("%s/w/%d/team?%s", os.Getenv("REACT_APP_FRONTEND_URI"), workspace.ID, queryParams.Encode())
 			if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
 				*a.Name, *a.Email, inviteLink); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send request access email"))
@@ -7288,7 +7288,7 @@ func (r *queryResolver) GetSourceMapUploadUrls(ctx context.Context, apiKey strin
 
 // CustomerPortalURL is the resolver for the customer_portal_url field.
 func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) (string, error) {
-	frontendUri := os.Getenv("FRONTEND_URI")
+	frontendUri := os.Getenv("REACT_APP_FRONTEND_URI")
 
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
