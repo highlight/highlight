@@ -600,23 +600,49 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 }
 
 func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*clickhouse.TraceRow) error {
+	markBackendSetupProjectIds := map[uint32]struct{}{}
+	projectIds := map[uint32]struct{}{}
+	for _, traceRows := range traceRows {
+		for _, traceRow := range traceRows {
+			// Don't mark backend setup for frontend or internal traces
+			if value := traceRow.TraceAttributes["highlight.type"]; value != "http.request" && value != "highlight.internal" {
+				markBackendSetupProjectIds[traceRow.ProjectId] = struct{}{}
+			}
+			projectIds[traceRow.ProjectId] = struct{}{}
+		}
+	}
+
+	quotaExceededByProject, err := o.getQuotaExceededByProject(ctx, projectIds, model2.PricingProductTypeTraces)
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+		quotaExceededByProject = map[uint32]bool{}
+	}
+
 	for traceID, traceRows := range traceRows {
 		var messages []kafkaqueue.RetryableMessage
 		for _, traceRow := range traceRows {
+			if quotaExceededByProject[traceRow.ProjectId] {
+				continue
+			}
 			if !o.resolver.IsTraceIngested(ctx, traceRow) {
 				continue
 			}
-			messages = append(messages, &kafkaqueue.Message{
-				Type: kafkaqueue.PushTraces,
-				PushTraces: &kafkaqueue.PushTracesArgs{
-					TraceRow: traceRow,
-				},
+			messages = append(messages, &kafkaqueue.TraceRowMessage{
+				Type:     kafkaqueue.PushTracesFlattened,
+				TraceRow: traceRow,
 			})
 		}
 
 		err := o.resolver.TracesQueue.Submit(ctx, traceID, messages...)
 		if err != nil {
 			return e.Wrap(err, "failed to submit otel project traces to public worker queue")
+		}
+	}
+
+	for projectId := range markBackendSetupProjectIds {
+		err := o.resolver.MarkBackendSetupImpl(ctx, int(projectId), model2.MarkBackendSetupTypeTraces)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to mark backend traces setup")
 		}
 	}
 
