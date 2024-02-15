@@ -188,7 +188,6 @@ const PAYLOAD_STAGING_COUNT_MAX = 100
 
 var NumberRegex = regexp.MustCompile(`^\d+$`)
 
-var ErrNoisyError = e.New("Filtering out noisy error")
 var ErrQuotaExceeded = e.New(string(publicModel.PublicGraphErrorBillingQuotaExceeded))
 var ErrUserFilteredError = e.New("User filtered error")
 
@@ -662,55 +661,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	project, err := r.Store.GetProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
-	}
-
-	if project.ID == 1 {
-		if errorObj.Event == `input: initializeSession BillingQuotaExceeded` ||
-			errorObj.Event == `BillingQuotaExceeded` ||
-			errorObj.Event == `panic {error: missing operation context}` ||
-			errorObj.Event == `input: could not get json request body: unable to get Request Body unexpected EOF` ||
-			errorObj.Event == `no metrics provided` ||
-			errorObj.Event == `input: pushMetrics no metrics provided` ||
-			errorObj.Event == `Error updating error group: Filtering out noisy error` ||
-			errorObj.Event == `Error updating error group: Filtering out noisy Highlight error` ||
-			errorObj.Event == `error processing main session: error scanning session payload: error fetching events from Redis: error processing event chunk: The payload has an IncrementalSnapshot before the first FullSnapshot` ||
-			errorObj.Event == `session has reached the max retry count and will be excluded: error scanning session payload: error fetching events from Redis: error processing event chunk: The payload has an IncrementalSnapshot before the first FullSnapshot` ||
-			errorObj.Event == `invalid metrics payload []` ||
-			errorObj.Event == `public-graph graphql request failed` {
-			return nil, ErrNoisyError
-		}
-	}
-	if project.ID == 356 {
-		if errorObj.Event == `["\"ReferenceError: Can't find variable: widgetContainerAttribute\""]` ||
-			errorObj.Event == `"ReferenceError: Can't find variable: widgetContainerAttribute"` ||
-			errorObj.Event == `"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'."` ||
-			errorObj.Event == `["\"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'.\""]` {
-			return nil, ErrNoisyError
-		}
-	}
-	if project.ID == 765 {
-		if errorObj.Event == `"Uncaught Error: PollingBlockTracker - encountered an error while attempting to update latest block:\nundefined"` ||
-			errorObj.Event == `["\"Uncaught Error: PollingBlockTracker - encountered an error while attempting to update latest block:\\nundefined\""]` {
-			return nil, ErrNoisyError
-		}
-	}
-	if project.ID == 898 {
-		if errorObj.Event == `["\"LaunchDarklyFlagFetchError: Error fetching flag settings: 414\""]` ||
-			errorObj.Event == `["\"[LaunchDarkly] Error fetching flag settings: 414\""]` {
-			return nil, ErrNoisyError
-		}
-	}
-	if project.ID == 1703 {
-		if errorObj.Event == `["\"Uncaught TypeError: Cannot read properties of null (reading 'play')\""]` ||
-			errorObj.Event == `"Uncaught TypeError: Cannot read properties of null (reading 'play')"` {
-			return nil, ErrNoisyError
-		}
-	}
-	if project.ID == 3322 {
-		if errorObj.Event == `["\"Failed to fetch feature flags from PostHog.\""]` ||
-			errorObj.Event == `["\"Bad HTTP status: 0 \""]` {
-			return nil, ErrNoisyError
-		}
 	}
 
 	if errorgroups.IsErrorTraceFiltered(*project, structuredStackTrace) {
@@ -2236,14 +2186,10 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID, workspace)
 		if err != nil {
-			if e.Is(err, ErrNoisyError) {
-				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
-			} else if e.Is(err, ErrQuotaExceeded) {
-				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
-			} else if e.Is(err, ErrUserFilteredError) {
-				log.WithContext(ctx).Info(e.Wrap(err, "Error updating error group"))
+			if e.Is(err, ErrQuotaExceeded) || e.Is(err, ErrUserFilteredError) {
+				log.WithContext(ctx).WithError(err).Info("Will not update error group")
 			} else {
-				log.WithContext(ctx).WithError(err).Error(e.Wrap(err, "Error updating error group"))
+				log.WithContext(ctx).WithError(err).Error("Error updating error group")
 			}
 			continue
 		}
@@ -2779,10 +2725,27 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				StackTrace:     &traceString,
 				Timestamp:      v.Timestamp,
 				Payload:        v.Payload,
-				RequestID:      nil,
 				IsBeacon:       isBeacon,
 				ServiceVersion: serviceVersion,
 				ServiceName:    sessionObj.ServiceName,
+			}
+
+			if !r.IsErrorIngested(ctx, projectID, &publicModel.BackendErrorObjectInput{
+				SessionSecureID: &sessionSecureID,
+				Event:           errorToInsert.Event,
+				Type:            errorToInsert.Type,
+				URL:             errorToInsert.URL,
+				Source:          errorToInsert.Source,
+				StackTrace:      traceString,
+				Timestamp:       errorToInsert.Timestamp,
+				Payload:         errorToInsert.Payload,
+				Service: &publicModel.ServiceInput{
+					Name:    errorToInsert.ServiceName,
+					Version: errorToInsert.ServiceVersion,
+				},
+				Environment: errorToInsert.Environment,
+			}) {
+				continue
 			}
 
 			var structuredStackTrace []*privateModel.ErrorTrace
@@ -2809,14 +2772,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 
 			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(sessionObj, errorToInsert), projectID, workspace)
-
 			if err != nil {
-				if e.Is(err, ErrNoisyError) {
-					log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
-				} else if e.Is(err, ErrQuotaExceeded) {
-					log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
+				if e.Is(err, ErrQuotaExceeded) || e.Is(err, ErrUserFilteredError) {
+					log.WithContext(ctx).WithError(err).Info("Will not update error group")
 				} else {
-					log.WithContext(ctx).Error(e.Wrap(err, "Error updating error group"))
+					log.WithContext(ctx).WithError(err).Error("Error updating error group")
 				}
 				continue
 			}
