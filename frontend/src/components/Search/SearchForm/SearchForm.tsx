@@ -70,14 +70,21 @@ type FetchValues =
 	| typeof useGetTracesKeyValuesLazyQuery
 
 type Keys = GetLogsKeysQuery['keys'] | GetTracesKeysQuery['keys']
-type SearchResult = Keys[0] | { name: string; type: 'Operator' | 'Value' }
+type SearchResult = Keys[0] | OperatorResult | ValueResult
+type OperatorResult = { name: SearchOperator; type: 'Operator' }
+type ValueResult = { name: string; type: 'Value' }
 
 const MAX_ITEMS = 25
 
-const EXISTS_OPERATORS = ['EXISTS', 'NOT EXISTS']
-const NUMERIC_OPERATORS = ['>', '>=', '<', '<='].concat(EXISTS_OPERATORS)
-const BOOLEAN_OPERATORS = ['=', '!='].concat(EXISTS_OPERATORS)
-export const SEARCH_OPERATORS = [...BOOLEAN_OPERATORS, ...NUMERIC_OPERATORS]
+const EXISTS_OPERATORS = ['EXISTS', 'NOT EXISTS'] as const
+const NUMERIC_OPERATORS = ['>', '>=', '<', '<='] as const
+const BOOLEAN_OPERATORS = ['=', '!='] as const
+export const SEARCH_OPERATORS = [
+	...BOOLEAN_OPERATORS,
+	...NUMERIC_OPERATORS,
+	...EXISTS_OPERATORS,
+] as const
+export type SearchOperator = typeof SEARCH_OPERATORS[number]
 
 export type SearchFormProps = {
 	onFormSubmit: (query: string) => void
@@ -288,6 +295,7 @@ export const Search: React.FC<{
 	let visibleItems: SearchResult[] = showValues
 		? getVisibleValues(activePart, values)
 		: getVisibleKeys(query, queryParts, activePart, keys)
+	const comboboxItems = comboboxStore.useState('items')
 
 	// Show operators when we have an exact match for a key
 	const keyMatch = visibleItems.find((item) => item.name === activePart.text)
@@ -295,7 +303,9 @@ export const Search: React.FC<{
 
 	if (showOperators) {
 		const operators =
-			keyMatch.type === 'Numeric' ? NUMERIC_OPERATORS : BOOLEAN_OPERATORS
+			keyMatch.type === 'Numeric'
+				? [...NUMERIC_OPERATORS, ...EXISTS_OPERATORS]
+				: [...BOOLEAN_OPERATORS, ...EXISTS_OPERATORS]
 
 		visibleItems = operators.map((operator) => ({
 			name: operator,
@@ -383,72 +393,68 @@ export const Search: React.FC<{
 	}, [initialQuery])
 
 	useEffect(() => {
+		// Ensure the cursor is placed in the correct position after update the
+		// query from selecting a dropdown item.
+		inputRef.current?.setSelectionRange(cursorIndex, cursorIndex)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [query])
+
+	useEffect(() => {
+		// Logic for selecting a default item from the results. We don't want to
+		// select a value by default, but if there is a query, an item isn't
+		// currently selected, and there are items, select the first item.
+		const { activeId, items } = comboboxStore.getState()
+		// Give preference to the "Show all results for..." item if it exists.
+		const firstItem = items.find((i) => i.value === undefined) ?? items[0]
+		const noActiveId = !activeId || !items.find((i) => i.id === activeId)
+
+		if (activePart.text.trim() !== '' && noActiveId && firstItem) {
+			comboboxStore.setActiveId(firstItem.id)
+			comboboxStore.setState('moves', 0)
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [comboboxItems, query])
+
+	useEffect(() => {
 		if (!showValues) {
 			setValues(undefined)
 		}
 	}, [showValues])
 
-	useEffect(() => {
-		if (query === '') {
-			setTimeout(() => {
-				comboboxStore.setActiveId(null)
-				comboboxStore.setState('moves', 0)
-			}, 0)
-		}
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [query])
-
 	const handleItemSelect = (item: SearchResult) => {
 		const isValueSelect = item.type === 'Value'
-		let value = item.name
-		const isLastPart =
-			activePart.stop >= (queryParts[queryParts.length - 1]?.stop ?? 0)
 
 		if (item.type === 'Operator') {
-			if (EXISTS_OPERATORS.includes(item.name)) {
-				value = ' ' + value
-			}
-			activePart.operator = value
-			activePart.text =
-				activePart.key === BODY_KEY
-					? `${activePart.text}${activePart.operator}`
-					: `${activePart.key}${activePart.operator}`
+			const isExists = !!EXISTS_OPERATORS.find((eo) => eo === item.name)
+			const space = isExists ? ' ' : ''
+			const key =
+				activePart.key === BODY_KEY ? activePart.text : activePart.key
+
+			activePart.operator = item.name
+			activePart.text = `${key}${space}${activePart.operator}`
 			activePart.stop = activePart.start + activePart.text.length
 		} else if (isValueSelect) {
-			activePart.value = quoteQueryValue(value)
+			activePart.value = quoteQueryValue(item.name)
 			activePart.text = `${activePart.key}${activePart.operator}${activePart.value}`
 			activePart.stop = activePart.start + activePart.text.length
 		} else {
-			activePart.key = value
-			activePart.text = value
+			activePart.key = item.name
+			activePart.text = item.name
 			activePart.value = ''
 			activePart.stop = activePart.start + activePart.key.length
 		}
 
-		let newCursorPosition = activePart.stop
-		let newQuery = stringifySearchQuery(queryParts)
-
-		// Add space if it's the last part and a value is selected so people can
-		// start entering the next part.
-		isLastPart && isValueSelect && !newQuery.endsWith(' ')
-			? (newQuery += ' ') && (newCursorPosition += 1)
-			: null
+		const newQuery = stringifySearchQuery(queryParts)
+		const newCursorPosition = activePart.stop
 
 		startTransition(() => {
 			setQuery(newQuery)
+			setCursorIndex(newCursorPosition)
 
 			if (isValueSelect) {
 				submitQuery(newQuery)
+				comboboxStore.setOpen(false)
 			}
-		})
-
-		setTimeout(() => {
-			inputRef.current?.setSelectionRange(
-				newCursorPosition,
-				newCursorPosition,
-			)
-			setCursorIndex(newCursorPosition)
 		})
 
 		comboboxStore.setActiveId(null)
@@ -456,8 +462,12 @@ export const Search: React.FC<{
 	}
 
 	const handleRemoveItem = (index: number) => {
-		const newTokenGroups = [...tokenGroups]
+		let newTokenGroups = [...tokenGroups]
 		newTokenGroups.splice(index, 1)
+		newTokenGroups = newTokenGroups.filter((group) => {
+			// filter out groups where the only tokens are whitespace
+			return group.tokens.some((token) => token.text.trim() !== '')
+		})
 		const newQuery = newTokenGroups
 			.map((tokenGroup) =>
 				tokenGroup.tokens
@@ -468,7 +478,7 @@ export const Search: React.FC<{
 					)
 					.join(''),
 			)
-			.join('')
+			.join(' ')
 			.trim()
 
 		setQuery(newQuery)
@@ -530,7 +540,6 @@ export const Search: React.FC<{
 				<Combobox
 					ref={inputRef}
 					disabled={disableSearch}
-					autoSelect
 					store={comboboxStore}
 					name="search"
 					placeholder={placeholder ?? 'Search...'}
