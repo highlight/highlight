@@ -2186,7 +2186,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID, workspace)
 		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("Error updating error group")
+			if e.Is(err, ErrQuotaExceeded) || e.Is(err, ErrUserFilteredError) {
+				log.WithContext(ctx).WithError(err).Info("Will not update error group")
+			} else {
+				log.WithContext(ctx).WithError(err).Error("Error updating error group")
+			}
 			continue
 		}
 
@@ -2768,9 +2772,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 
 			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(sessionObj, errorToInsert), projectID, workspace)
-
 			if err != nil {
-				log.WithContext(ctx).WithError(err).Error("Error updating error group")
+				if e.Is(err, ErrQuotaExceeded) || e.Is(err, ErrUserFilteredError) {
+					log.WithContext(ctx).WithError(err).Info("Will not update error group")
+				} else {
+					log.WithContext(ctx).WithError(err).Error("Error updating error group")
+				}
 				continue
 			}
 
