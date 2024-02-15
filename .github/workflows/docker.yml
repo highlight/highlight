@@ -16,7 +16,6 @@ jobs:
         timeout-minutes: 30
         env:
             IMAGE_NAME: highlight-${{ matrix.container }}
-            IMAGE_TAG: ${{ github.ref_name }}
             TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
             TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
@@ -51,9 +50,11 @@ jobs:
                   ANNOTATIONS="annotation-index.org.opencontainers.image.description=highlight.io production ${{ matrix.container }} image"
                   ANNOTATIONS="$ANNOTATIONS,annotation-index.org.opencontainers.image.source=https://github.com/highlight/highlight"
                   ANNOTATIONS="$ANNOTATIONS,annotation-index.org.opencontainers.image.licenses=Apache 2.0"
+                  IMAGE_TAG=$(echo ${{ github.ref_name }} | sed 's/\//-/g')
 
+                  push="--push -t ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG"
                   if [[ ${{ github.event_name }} == 'release' ]]; then
-                    push="--push -t ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG -t ghcr.io/highlight/$IMAGE_NAME:latest"
+                    push="${push} -t ghcr.io/highlight/$IMAGE_NAME:latest"
                   fi
 
                   # build docker image with common environment

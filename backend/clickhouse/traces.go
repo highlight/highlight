@@ -10,17 +10,19 @@ import (
 
 	"github.com/highlight/highlight/sdk/highlight-go"
 
-	"github.com/highlight-run/highlight/backend/model"
 	"golang.org/x/exp/slices"
+
+	"github.com/highlight-run/highlight/backend/model"
 
 	"github.com/huandu/go-sqlbuilder"
 	e "github.com/pkg/errors"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"github.com/samber/lo"
+
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/samber/lo"
 )
 
 const TracesTable = "traces"
@@ -93,7 +95,7 @@ var TracesTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
 	BodyColumn:       TracesTableNoDefaultConfig.BodyColumn,
 	AttributesColumn: TracesTableNoDefaultConfig.AttributesColumn,
 	SelectColumns:    TracesTableNoDefaultConfig.SelectColumns,
-	DefaultFilter:    fmt.Sprintf("%s!=%s", highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
+	DefaultFilter:    fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
 }
 
 var tracesSamplingTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
@@ -103,7 +105,7 @@ var tracesSamplingTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
 	ReservedKeys:     modelInputs.AllReservedTraceKey,
 	AttributesColumn: "TraceAttributes",
 	SelectColumns:    traceColumns,
-	DefaultFilter:    fmt.Sprintf("%s!=%s", highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
+	DefaultFilter:    fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
 }
 
 var tracesSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedTraceKey]{

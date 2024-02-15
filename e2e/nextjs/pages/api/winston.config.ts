@@ -6,7 +6,7 @@ const projectID = '1jdkoe52'
 export const withHighlight = Highlight({
 	projectID,
 	debug: true,
-	backendUrl: 'https://localhost:8082/public',
+	backendUrl: 'http://localhost:8082/public',
 	otlpEndpoint: 'http://localhost:4318',
 	serviceName: 'my-nextjs-backend',
 	environment: 'e2e-test',

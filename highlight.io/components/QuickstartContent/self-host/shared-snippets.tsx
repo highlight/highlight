@@ -69,8 +69,7 @@ export const start: QuickStartStep = {
 
 export const dashboard: QuickStartStep = {
 	title: 'Visit the dashboard.',
-	content:
-		'Visit https://localhost:3000 to view the dashboard and go through the login flow; use the password set in docker/.env variable `ADMIN_PASSWORD` with any valid email address.',
+	content: `Visit your REACT_APP_FRONTEND_URI to view the dashboard and go through the login flow; use the password set in docker/.env variable \`ADMIN_PASSWORD\` with any valid email address.`,
 }
 
 export const troubleshoot: QuickStartStep = {

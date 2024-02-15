@@ -47,7 +47,7 @@ cd highlight/docker;
 		{
 			title: 'View your first session.',
 			content:
-				'After clicking around on the dashboard for a bit, you should see a session appear at https://localhost:3000/1/sessions. Click on the session to view the session details page.',
+				'After clicking around on the dashboard for a bit, you should see a session appear at http://localhost:3000/1/sessions. Click on the session to view the session details page.',
 		},
 		troubleshoot,
 	],

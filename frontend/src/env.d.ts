@@ -23,6 +23,8 @@ interface ImportMetaEnv {
 	readonly MICROSOFT_TEAMS_BOT_ID: string
 	readonly GITLAB_CLIENT_ID: string
 	readonly SLACK_CLIENT_ID: string
+
+	readonly SSL: string
 }
 
 interface ImportMeta {

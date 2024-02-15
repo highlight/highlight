@@ -48,6 +48,11 @@ const SpanDeployment = "highlight-phone-home-deployment-id"
 const SpanDopplerConfig = "highlight-doppler-config"
 const SpanHighlightVersion = "highlight-version"
 const SpanOnPrem = "highlight-is-onprem"
+const SpanLicenseKey = "highlight-license-key"
+const SpanSSL = "highlight-ssl"
+const SpanPublicGraphUri = "highlight-public-graph-uri"
+const SpanPrivateGraphUri = "highlight-private-graph-uri"
+const SpanFrontendUri = "highlight-frontend-uri"
 
 func IsOptedOut(_ context.Context) bool {
 	return false
@@ -72,6 +77,11 @@ func GetDefaultAttributes() ([]attribute.KeyValue, error) {
 		attribute.String(SpanDopplerConfig, util.DopplerConfig),
 		attribute.String(SpanHighlightVersion, util.Version),
 		attribute.String(SpanOnPrem, util.OnPrem),
+		attribute.String(SpanLicenseKey, util.LicenseKey),
+		attribute.Bool(SpanSSL, util.UseSSL()),
+		attribute.String(SpanPublicGraphUri, util.PublicGraphUri),
+		attribute.String(SpanPrivateGraphUri, util.PrivateGraphUri),
+		attribute.String(SpanFrontendUri, util.FrontendUri),
 	}, nil
 }
 

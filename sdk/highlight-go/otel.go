@@ -43,6 +43,7 @@ const LogSeverityAttribute = "log.severity"
 const LogMessageAttribute = "log.message"
 
 const MetricEvent = "metric"
+const MetricSpanName = "highlight-metric"
 const MetricEventName = "metric.name"
 const MetricEventValue = "metric.value"
 
@@ -216,7 +217,7 @@ func EndTrace(span trace.Span) {
 // as a metric that you would like to graph and monitor. You'll be able to view the metric
 // in the context of the session and network request and recorded it.
 func RecordMetric(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) {
-	span, _ := StartTraceWithTimestamp(ctx, "highlight-metric", time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, tags...)
+	span, _ := StartTraceWithTimestamp(ctx, MetricSpanName, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, tags...)
 	defer EndTrace(span)
 	span.AddEvent(MetricEvent, trace.WithAttributes(attribute.String(MetricEventName, name), attribute.Float64(MetricEventValue, value)))
 }

@@ -12,14 +12,13 @@ export const SelfHostContent: QuickStartContent = {
 			title: 'Configure networking.',
 			content:
 				'If this hobby deploy is running on a remote server, make changes to the `docker/.env` file for your deployment. ' +
+				'Hosting the frontend on a different port is possible by modifying `docker/compose.hobby.yml` port forwarding. ' +
 				'Update the following values to your backend IP address.',
 			code: [
 				{
-					text: `PRIVATE_GRAPH_URI=https://your-ip-address:8082/private
-PUBLIC_GRAPH_URI=https://your-ip-address:8082/public
-REACT_APP_PRIVATE_GRAPH_URI=https://your-ip-address:8082/private
-REACT_APP_PUBLIC_GRAPH_URI=https://your-ip-address:8082/public
-REACT_APP_FRONTEND_URI=https://your-ip-address:3000
+					text: `REACT_APP_PRIVATE_GRAPH_URI=http://your-ip-address:8082/private
+REACT_APP_PUBLIC_GRAPH_URI=http://your-ip-address:8082/public
+REACT_APP_FRONTEND_URI=http://your-ip-address
 `,
 					language: 'bash',
 				},
@@ -61,7 +60,7 @@ REACT_APP_FRONTEND_URI=https://your-ip-address:3000
 					text: `import { H } from 'highlight.run';
 
 H.init('<YOUR_PROJECT_ID>', {
-    backendUrl: 'https://localhost:8082/public',
+    backendUrl: 'http://localhost:8082/public',
     ...
 });`,
 					language: 'javascript',
