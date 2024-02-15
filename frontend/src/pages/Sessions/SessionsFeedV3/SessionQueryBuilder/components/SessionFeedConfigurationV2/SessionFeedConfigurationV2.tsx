@@ -32,6 +32,7 @@ import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { useGenerateSessionsReportCSV } from '@util/session/report'
 import { message } from 'antd'
+import { H } from 'highlight.run'
 import React, { useRef, useState } from 'react'
 
 import { ClickhouseQuery } from '@/graph/generated/schemas'
@@ -407,7 +408,7 @@ export const DropdownMenu = function ({
 									message.error(
 										`Failed to generate the CSV report: ${e}`,
 									)
-									H.consumeError(e)
+									H.consumeError(e as Error)
 								}
 							}}
 						>
