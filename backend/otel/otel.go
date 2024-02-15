@@ -604,8 +604,8 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 	projectIds := map[uint32]struct{}{}
 	for _, traceRows := range traceRows {
 		for _, traceRow := range traceRows {
-			// Skip traces with a `http.method` attribute as likely autoinstrumented frontend traces
-			if _, found := traceRow.TraceAttributes["http.method"]; !found {
+			// Don't mark backend setup for frontend or internal traces
+			if value := traceRow.TraceAttributes["highlight.type"]; value != "http.request" && value != "highlight.internal" {
 				markBackendSetupProjectIds[traceRow.ProjectId] = struct{}{}
 			}
 			projectIds[traceRow.ProjectId] = struct{}{}
