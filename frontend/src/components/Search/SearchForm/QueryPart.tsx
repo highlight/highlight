@@ -1,4 +1,5 @@
 import {
+	Ariakit,
 	Box,
 	IconSolidExclamationCircle,
 	IconSolidXCircle,
@@ -14,14 +15,25 @@ import { SearchToken } from '@/components/Search/utils'
 import * as styles from './SearchForm.css'
 
 export const QueryPart: React.FC<{
+	comboboxStore: Ariakit.ComboboxStore
 	cursorIndex: number
 	index: number
 	tokenGroup: TokenGroup
 	showValues: boolean
 	onRemoveItem: (index: number) => void
-}> = ({ cursorIndex, index, tokenGroup, showValues, onRemoveItem }) => {
+}> = ({
+	comboboxStore,
+	cursorIndex,
+	index,
+	tokenGroup,
+	showValues,
+	onRemoveItem,
+}) => {
+	const typeaheadOpen = comboboxStore.useState('open')
 	const active =
-		cursorIndex >= tokenGroup.start && cursorIndex <= tokenGroup.stop + 1
+		typeaheadOpen &&
+		cursorIndex >= tokenGroup.start &&
+		cursorIndex <= tokenGroup.stop + 1
 	const errorToken = tokenGroup.tokens.find(
 		(token) => (token as any).errorMessage !== undefined,
 	)
@@ -51,9 +63,10 @@ export const QueryPart: React.FC<{
 	return (
 		<>
 			<Tooltip
-				placement="top"
+				placement="top-start"
 				open={active && !!error}
 				maxWidth={600}
+				shift={-3}
 				trigger={
 					<Box
 						cssClass={clsx(styles.comboboxTag, {
