@@ -39,6 +39,14 @@ export const SetupDocs: React.FC<Props> = ({ projectVerboseId }) => {
 		framework!
 	] as QuickStartContent
 
+	React.useEffect(() => {
+		analytics.page('Setup Docs', {
+			area,
+			language,
+			framework,
+		})
+	}, [area, framework, language])
+
 	return (
 		<Box>
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">

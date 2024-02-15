@@ -14,7 +14,7 @@ import WaitingAnimation from '../../lottie/waiting.json'
 import styles from './HomePage.module.css'
 
 const HomePageV2 = () => {
-	useEffect(() => analytics.page(), [])
+	useEffect(() => analytics.page('Analytics'), [])
 
 	const { projectId } = useProjectId()
 	const { integrated, loading: integratedLoading } = useIntegrated()

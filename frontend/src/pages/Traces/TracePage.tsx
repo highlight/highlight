@@ -42,7 +42,7 @@ export const TracePage: React.FC = () => {
 	} = useTrace()
 
 	useEffect(() => {
-		analytics.page()
+		analytics.page('Trace')
 	}, [traceId])
 
 	if (!traces?.length) {

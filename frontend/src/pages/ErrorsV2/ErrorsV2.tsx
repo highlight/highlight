@@ -129,7 +129,7 @@ export default function ErrorsV2() {
 			return
 		}
 
-		analytics.page({ is_guest: !isLoggedIn })
+		analytics.page('Errors', { is_guest: !isLoggedIn })
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [error_secure_id])
 

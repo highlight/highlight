@@ -25,6 +25,7 @@ import { FullScreenContainer } from '@/pages/LogsPage/LogsTable/FullScreenContai
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
 import { NetworkResource } from '@/pages/Player/Toolbar/DevToolsWindowV2/utils'
+import analytics from '@/util/analytics'
 import { useParams } from '@/util/react-router/useParams'
 
 // The amount of time before and after the request started/ended we want to show
@@ -83,6 +84,7 @@ export const NetworkResourceLogs: React.FC<{
 
 	useEffect(() => {
 		setQuery(requestId ? `trace_id${DEFAULT_OPERATOR}${requestId}` : '')
+		analytics.track('session_network-resource-logs_view')
 	}, [requestId])
 
 	return (

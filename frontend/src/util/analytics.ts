@@ -47,11 +47,15 @@ const identify = (email: string, traits?: rudderanalytics.apiObject) => {
 	rudderanalytics.identify(email, traits)
 }
 
+const page = (name: string, properties?: rudderanalytics.apiObject) => {
+	rudderanalytics.page(name, properties)
+}
+
 const analytics = {
 	initialize,
 	track,
 	identify,
-	page: rudderanalytics.page,
+	page,
 }
 
 export default analytics

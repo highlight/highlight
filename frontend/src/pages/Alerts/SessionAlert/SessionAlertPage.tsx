@@ -57,6 +57,7 @@ import {
 import { useAlertsContext } from '@/pages/Alerts/AlertsContext/AlertsContext'
 import AlertNotifyForm from '@/pages/Alerts/components/AlertNotifyForm/AlertNotifyForm'
 import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
+import analytics from '@/util/analytics'
 
 import * as styles from './styles.css'
 
@@ -173,6 +174,10 @@ export const SessionAlertPage = () => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [alert])
+
+	useEffect(() => {
+		analytics.page('Session Alert', { isCreate })
+	}, [isCreate])
 
 	const [updateSessionAlertMutation] = useUpdateSessionAlertMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],

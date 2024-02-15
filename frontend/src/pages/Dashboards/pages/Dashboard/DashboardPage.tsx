@@ -91,7 +91,7 @@ const DashboardPage = ({
 		setNewDashboardCardIdx(undefined)
 	}, [dashboard])
 
-	useEffect(() => analytics.page(), [])
+	useEffect(() => analytics.page('Dashboard'), [])
 
 	const [, setNewMetrics] = useState<DashboardMetricConfig[]>([])
 

@@ -13,6 +13,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Trace } from '@/graph/generated/schemas'
 import { getTraceDurationString } from '@/pages/Traces/utils'
+import analytics from '@/util/analytics'
 
 type ColumnWrapperProps = {
 	children: React.ReactNode
@@ -42,6 +43,8 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 		navigate(
 			`/${trace.projectID}/traces/${trace.traceID}/${trace.spanID}${location.search}`,
 		)
+
+		analytics.track('traces_trace-row_click')
 	}
 
 	return (
@@ -128,6 +131,7 @@ const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 	const trace = row.original.node
 	const onClick = secureSessionID
 		? () => {
+				analytics.track('View session from trace list')
 				navigate(`/${trace.projectID}/sessions/${secureSessionID}`)
 		  }
 		: undefined

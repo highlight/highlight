@@ -1,5 +1,6 @@
 import { Box, Callout, Text } from '@highlight-run/ui/components'
 import moment from 'moment'
+import { useEffect } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
 import { useGetErrorGroupsClickhouseQuery } from '@/graph/generated/hooks'
@@ -16,6 +17,7 @@ import {
 	getHighlightRequestId,
 	NetworkResource,
 } from '@/pages/Player/Toolbar/DevToolsWindowV2/utils'
+import analytics from '@/util/analytics'
 
 export const NetworkResourceErrors: React.FC<{
 	resource: NetworkResource
@@ -44,6 +46,10 @@ export const NetworkResourceErrors: React.FC<{
 
 	const { setActiveError, setRightPanelView } = usePlayerUIContext()
 	const { setShowRightPanel } = usePlayerConfiguration()
+
+	useEffect(() => {
+		analytics.track('session_network-resource-errors_view')
+	}, [requestId])
 
 	return (
 		<>

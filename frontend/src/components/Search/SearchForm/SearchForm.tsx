@@ -177,7 +177,9 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					{!hideCreateAlert && (
 						<Button
 							kind="secondary"
-							trackingId="create-alert"
+							trackingId={`${
+								savedSegmentType?.toLowerCase() ?? 'logs'
+							}_create-alert_click`}
 							onClick={() => {
 								const encodedQuery = encodeQueryParams(
 									{

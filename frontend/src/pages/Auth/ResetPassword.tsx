@@ -30,7 +30,7 @@ export const ResetPassword: React.FC = () => {
 	})
 	const email = formStore.useValue('email')
 
-	useEffect(() => analytics.page(), [])
+	useEffect(() => analytics.page('Reset Password'), [])
 
 	return (
 		<Form
