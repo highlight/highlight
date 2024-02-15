@@ -147,7 +147,11 @@ export const useGenerateSessionsReportCSV = () => {
 					},
 				})
 				if (!data?.sessions_clickhouse) {
-					throw new Error(`No sessions data: ${error?.message}`)
+					console.error(`No sessions data: ${error?.message}`)
+					return {
+						totalCount: 0,
+						sessions: [],
+					}
 				}
 				return {
 					totalCount: data.sessions_clickhouse.totalCount ?? 0,
@@ -162,13 +166,19 @@ export const useGenerateSessionsReportCSV = () => {
 			const { sessions: s, totalCount } = await getSessions(1)
 
 			const sessions = [...s]
+			const promises: Promise<Session[]>[] = []
 			for (
 				let page = 2;
 				page <= Math.ceil(totalCount / PAGE_SIZE);
 				page++
 			) {
-				sessions.push(...(await getSessions(page)).sessions)
+				promises.push(
+					(async (p: number) => (await getSessions(p)).sessions)(
+						page,
+					),
+				)
 			}
+			sessions.push(...(await Promise.all(promises)).flat())
 
 			const rows: any[][] = [
 				...getQueryRows(startDate, endDate, query, sessions),
