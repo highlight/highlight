@@ -115,7 +115,7 @@ export const useGenerateSessionsReportCSV = () => {
 	const { searchQuery, startDate, endDate } = useSearchContext()
 	const { projectId } = useProjectId()
 	const [getReport, { loading }] = useGetSessionsReportLazyQuery()
-	const [getSessionsClickhouse, { loading: sessionsLoading }] =
+	const [, { loading: sessionsLoading, fetchMore }] =
 		useGetSessionsClickhouseLazyQuery()
 
 	return {
@@ -139,7 +139,7 @@ export const useGenerateSessionsReportCSV = () => {
 			}
 
 			const getSessions = async (page: number) => {
-				const { data, error } = await getSessionsClickhouse({
+				const { data, error } = await fetchMore({
 					variables: {
 						query,
 						count: PAGE_SIZE,
@@ -181,7 +181,6 @@ export const useGenerateSessionsReportCSV = () => {
 			}
 			const results = await Promise.all(promises)
 			sessions.push(...results.map((r) => r.sessions).flat())
-			console.log('vadim', { promises, results, sessions })
 
 			const rows: any[][] = [
 				...getQueryRows(startDate, endDate, query, sessions),
