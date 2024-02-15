@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.4.1
+
+### Patch Changes
+
+-   52b260556: fix innerText attribute change obfuscation
+
 ## 8.4.0
 
 ### Minor Changes
