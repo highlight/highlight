@@ -2,10 +2,53 @@ import moment from 'moment'
 
 import { Trace } from '@/graph/generated/schemas'
 
-export const getFirstSpan = (trace: Trace[]) => {
-	const rootSpans = trace.filter((span) => !span.parentSpanID)
-	const spans = rootSpans.length > 0 ? rootSpans : [...trace]
-	const sortedTrace = spans.sort(
+const getRootSpanId = (
+	spanMap: Record<string, string>,
+	spanId: string,
+): string | null => {
+	if (!spanMap[spanId]) {
+		return null
+	}
+
+	// spanId is the root level once the recursive call returns null
+	return getRootSpanId(spanMap, spanMap[spanId]) || spanId
+}
+
+const getSpanToRootSpanMapping = (trace: Trace[]) => {
+	const spanMap = trace.reduce(
+		(acc, span) => ({
+			...acc,
+			[span.spanID]: span.parentSpanID,
+		}),
+		{} as Record<string, string>,
+	)
+
+	const spanToRootSpanMap = Object.keys(spanMap).reduce((acc, spanKey) => {
+		acc[spanKey] = getRootSpanId(spanMap, spanKey) || spanKey
+		return acc
+	}, {} as Record<string, string>)
+
+	return spanToRootSpanMap
+}
+
+export const getFirstSpan = (trace: Trace[], spanId?: string) => {
+	const spanToRootMapping = getSpanToRootSpanMapping(trace)
+
+	// if span id exists find the top level span with no valid parent
+	if (spanId) {
+		const rootSpan = trace.find(
+			(span) => span.spanID === spanToRootMapping[spanId],
+		)
+
+		if (rootSpan) {
+			return rootSpan
+		}
+	}
+
+	// find the earliest top level span with no valid parent
+	const rootSpanIds = new Set(Object.values(spanToRootMapping))
+	const rootSpans = trace.filter((span) => rootSpanIds.has(span.spanID))
+	const sortedTrace = rootSpans.sort(
 		(a, b) =>
 			new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
 	)
@@ -107,12 +150,12 @@ export const organizeSpansWithChildren = (spans: Partial<FlameGraphSpan>[]) => {
 export const organizeSpansForFlameGraph = (
 	trace: Partial<FlameGraphSpan>[],
 ) => {
-	const rootSpans = trace.filter((span) => !span.parentSpanID)
+	const spanToRootMapping = getSpanToRootSpanMapping(trace as Trace[])
+	const rootSpanIds = new Set(Object.values(spanToRootMapping))
+	const rootSpans = trace.filter(
+		(span) => span.spanID && rootSpanIds.has(span.spanID),
+	)
 	const spans = [[]]
-
-	if (rootSpans.length === 0) {
-		rootSpans.push(getFirstSpan(trace as Trace[]))
-	}
 
 	rootSpans.forEach((rootSpan) =>
 		organizeSpanInLevel(rootSpan!, trace, spans, 0),

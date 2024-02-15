@@ -88,8 +88,8 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 			return undefined
 		}
 
-		return getFirstSpan(data.trace.trace)
-	}, [data?.trace])
+		return getFirstSpan(data.trace.trace, spanId)
+	}, [data?.trace, spanId])
 
 	const traceName = useMemo(
 		() => (firstSpan ? firstSpan.spanName : ''),
@@ -108,15 +108,14 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 
 	const traces = useMemo(() => {
 		if (!data?.trace?.trace) return []
-		const sortableTraces = [...data.trace.trace]
-		const firstSpan = getFirstSpan(sortableTraces)
 		const isNewTrace = selectedSpan?.traceID !== firstSpan?.traceID
 
 		if (isNewTrace) {
 			setSelectedSpan(firstSpan as FlameGraphSpan)
 		}
 
-		return organizeSpansForFlameGraph(sortableTraces)
+		// TODO(spenny): can we pass in selected span?
+		return organizeSpansForFlameGraph(data.trace.trace)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.trace?.trace])
 
