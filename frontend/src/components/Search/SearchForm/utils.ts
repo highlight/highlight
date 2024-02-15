@@ -58,7 +58,6 @@ export const buildTokenGroups = (tokens: SearchToken[]) => {
 
 	const startNewGroup = (type: 'expression' | 'separator', index: number) => {
 		if (currentGroup) {
-			currentGroup.stop = index
 			tokenGroups.push(currentGroup)
 		}
 

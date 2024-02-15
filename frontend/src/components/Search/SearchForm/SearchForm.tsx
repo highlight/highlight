@@ -313,7 +313,7 @@ export const Search: React.FC<{
 
 	const handleSetCursorIndex = () => {
 		if (!isPending) {
-			setCursorIndex(inputRef.current?.selectionStart || query.length)
+			setCursorIndex(inputRef.current?.selectionStart ?? query.length)
 		}
 	}
 
@@ -515,6 +515,7 @@ export const Search: React.FC<{
 						return (
 							<Fragment key={index}>
 								<QueryPart
+									comboboxStore={comboboxStore}
 									cursorIndex={cursorIndex}
 									index={index}
 									tokenGroup={tokenGroup}
@@ -789,13 +790,18 @@ const getActivePart = (
 	})
 
 	if (activePartIndex === undefined) {
+		const lastPartStop = Math.max(
+			queryParts[queryParts.length - 1]?.stop + 1,
+			cursorIndex,
+		)
+
 		const activePart = {
 			key: BODY_KEY,
 			operator: DEFAULT_OPERATOR,
 			value: '',
 			text: '',
-			start: 1,
-			stop: 1,
+			start: lastPartStop,
+			stop: lastPartStop,
 		}
 		queryParts.push(activePart)
 		return activePart
