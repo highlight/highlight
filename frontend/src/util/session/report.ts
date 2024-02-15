@@ -9,9 +9,7 @@ import {
 	Session,
 	SessionsReportRow,
 } from '@graph/schemas'
-import { DEFAULT_TIME_PRESETS } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
-import { useSearchTime } from '@hooks/useSearchTime'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import moment from 'moment/moment'
 
@@ -112,11 +110,7 @@ const exportFile = async (name: string, encodedUri: string) => {
 
 export const useGenerateSessionsReportCSV = () => {
 	const PAGE_SIZE = 1_000
-	const { startDate, endDate } = useSearchTime({
-		initialPreset: DEFAULT_TIME_PRESETS[5],
-		presets: DEFAULT_TIME_PRESETS,
-	})
-	const { searchQuery } = useSearchContext()
+	const { searchQuery, startDate, endDate } = useSearchContext()
 	const { projectId } = useProjectId()
 	const [getReport, { loading }] = useGetSessionsReportLazyQuery()
 	const [getSessionsClickhouse, { loading: sessionsLoading }] =
@@ -168,17 +162,13 @@ export const useGenerateSessionsReportCSV = () => {
 			const { sessions: s, totalCount } = await getSessions(1)
 
 			const sessions = [...s]
-			const promises: Promise<Session[]>[] = []
 			for (
 				let page = 2;
 				page <= Math.ceil(totalCount / PAGE_SIZE);
 				page++
 			) {
-				promises.push(
-					(async (p) => (await getSessions(p)).sessions)(page),
-				)
+				sessions.push(...(await getSessions(page)).sessions)
 			}
-			sessions.push(...(await Promise.all(promises)).flat())
 
 			const rows: any[][] = [
 				...getQueryRows(startDate, endDate, query, sessions),
