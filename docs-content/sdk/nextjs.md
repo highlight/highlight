@@ -93,6 +93,10 @@ quickstart: true
       <h5>sourceMapsBasePath <code>string</code> <code>optional</code></h5>
       <p>Base path to append to your source map URLs when uploaded to Highlight.</p>
     </aside>
+    <aside className="parameter">
+      <h5>sourceMapsBackendUrl <code>string</code> <code>optional</code></h5>
+      <p>Backend url for private graph to use for uploading (for self-hosted highlight deployments).</p>
+    </aside>
   </div>
   <div className="right">
     <code>
