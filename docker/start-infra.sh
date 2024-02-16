@@ -4,10 +4,20 @@ source env.sh
 
 # startup the infra
 
+SERVICES="clickhouse kafka postgres redis zookeeper collector"
 if [[ "$*" == *"--hobby"* ]]; then
-    CUSTOM_COMPOSE="-f compose.yml -f compose.hobby.yml"
+  CUSTOM_COMPOSE="-f compose.yml -f compose.hobby.yml"
 fi
-SERVICES="clickhouse collector kafka postgres redis zookeeper"
+
+COLLECTOR_CONFIG="./collector.yml"
+if [[ "$IN_DOCKER_GO" == "true" ]]; then
+  sed -i "s/https:\/\/host\.docker\.internal:8082/http:\/\/backend:8082/g" $COLLECTOR_CONFIG
+  sed -i "18d;19d" $COLLECTOR_CONFIG
+elif [[ "$SSL" != "true" ]]; then
+  sed -i "s/https:\/\/host\.docker/http:\/\/host\.docker/g" $COLLECTOR_CONFIG
+  sed -i "18d;19d" $COLLECTOR_CONFIG
+fi
+
 docker compose $CUSTOM_COMPOSE pull $SERVICES
 docker compose $CUSTOM_COMPOSE up --detach --wait --remove-orphans $SERVICES
 

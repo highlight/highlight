@@ -6,6 +6,7 @@ x-logging: &highlight-logging
         fluentd-sub-second-precision: 'true'
         tag: 'highlight.project_id=1'
 
+# Highlight.io services for the development deployment.
 services:
     zookeeper:
         logging: *highlight-logging
@@ -24,6 +25,8 @@ services:
         container_name: kafka
         volumes:
             - kafka-data:/var/lib/kafka/data
+        ports:
+            - '9092:9092'
         depends_on:
             - zookeeper
         environment:
@@ -45,6 +48,8 @@ services:
         image: redis
         volumes:
             - redis-data:/data
+        ports:
+            - '6379:6379'
         command:
             - redis-server
             - --save 60 1
@@ -56,7 +61,7 @@ services:
         # a postgres image with pgvector installed
         image: ankane/pgvector
         ports:
-            - 5432
+            - '5432:5432'
         environment:
             POSTGRES_HOST_AUTH_METHOD: trust
         volumes:
@@ -72,6 +77,9 @@ services:
         logging: *highlight-logging
         container_name: clickhouse
         image: clickhouse/clickhouse-server
+        ports:
+            - '8123:8123'
+            - '9000:9000'
         volumes:
             - ./backup_disk.xml:/etc/clickhouse-server/config.d/backup_disk.xml
             - clickhouse-data:/var/lib/clickhouse
@@ -82,18 +90,18 @@ services:
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
-            - 4317:4317
-            - 4318:4318
-            - 4319:4319
-            - 8888:8888
-            - 24224:24224
-            - 34302:34302
+            - '4317:4317'
+            - '4318:4318'
+            - '4319:4319'
+            - '8888:8888'
+            - '24224:24224'
+            - '34302:34302'
         container_name: collector
         image: otel/opentelemetry-collector-contrib
         command:
-            - '--config=/etc/otel-collector-config.yaml'
+            - '--config=/etc/collector.yml'
         volumes:
-            - ./otel-collector.yaml:/etc/otel-collector-config.yaml
+            - ./collector.yml:/etc/collector.yml
 
 volumes:
     postgres-data:

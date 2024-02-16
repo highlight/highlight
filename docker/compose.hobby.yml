@@ -36,6 +36,7 @@ x-backend-env: &backend-env
         - TZ
         - ADMIN_PASSWORD
 
+# Highlight.io services for the hobby deployment.
 services:
     zookeeper:
         extends:
@@ -71,20 +72,11 @@ services:
         logging: *local-logging
 
     collector:
+        extends:
+            file: compose.yml
+            service: collector
+        extra_hosts: []
         logging: *local-logging
-        ports:
-            - 4317:4317
-            - 4318:4318
-            - 4319:4319
-            - 8888:8888
-            - 24224:24224
-            - 34302:34302
-        container_name: collector
-        image: otel/opentelemetry-collector-contrib
-        command:
-            - '--config=/etc/otel-collector-config.yaml'
-        volumes:
-            - ./otel-collector.hobby.yaml:/etc/otel-collector-config.yaml
 
     backend:
         container_name: backend
