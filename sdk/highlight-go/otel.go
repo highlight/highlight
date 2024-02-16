@@ -47,9 +47,12 @@ const MetricSpanName = "highlight-metric"
 const MetricEventName = "metric.name"
 const MetricEventValue = "metric.value"
 
+const UtilitySpanName = "highlight-ctx"
+
 type TraceType string
 
 const TraceTypeNetworkRequest TraceType = "http.request"
+const TraceTypeFrontendConsole TraceType = "frontend.console"
 const TraceTypeHighlightInternal TraceType = "highlight.internal"
 const TraceTypePhoneHome TraceType = "highlight.phonehome"
 
@@ -226,7 +229,7 @@ func RecordMetric(ctx context.Context, name string, value float64, tags ...attri
 // Highlight session and trace are inferred from the context.
 // If no sessionID is set, then the error is associated with the project without a session context.
 func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) context.Context {
-	span, ctx := StartTraceWithTimestamp(ctx, "highlight-ctx", time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, tags...)
+	span, ctx := StartTraceWithTimestamp(ctx, UtilitySpanName, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, tags...)
 	defer EndTrace(span)
 	RecordSpanError(span, err)
 	return ctx

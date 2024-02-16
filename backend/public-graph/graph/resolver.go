@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
 
@@ -2622,7 +2623,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			util.ResourceName("go.unmarshal.messages"), util.Tag("project_id", projectID))
 		defer unmarshalMessagesSpan.Finish()
 
-		if err := hlog.SubmitFrontendConsoleMessages(ctx, projectID, sessionSecureID, messages); err != nil {
+		if err := r.submitFrontendConsoleMessages(ctx, sessionObj, messages); err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to parse console messages")
 		}
 
@@ -3107,6 +3108,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
 			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
 			attribute.String(highlight.TraceKeyAttribute, re.Name),
+			semconv.DeploymentEnvironmentKey.String(sessionObj.Environment),
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
 			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
 			semconv.HTTPURLKey.String(re.Name),
@@ -3131,6 +3133,92 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		span, _ := highlight.StartTraceWithTimestamp(ctx, strings.Join([]string{method, re.Name}, " "), start, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
 		span.End(trace.WithTimestamp(end))
 	}
+	return nil
+}
+
+func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj *model.Session, messages string) error {
+	logRows, err := hlog.ParseConsoleMessages(messages)
+	if err != nil {
+		return err
+	}
+
+	if len(logRows) == 0 {
+		return nil
+	}
+
+	for _, row := range logRows {
+		attributes := []attribute.KeyValue{
+			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeFrontendConsole)),
+			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
+			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
+			attribute.String(highlight.SourceAttribute, string(privateModel.LogSourceFrontend)),
+			semconv.DeploymentEnvironmentKey.String(sessionObj.Environment),
+			semconv.ServiceNameKey.String(sessionObj.ServiceName),
+			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
+		}
+		span, _ := highlight.StartTraceWithoutResourceAttributes(ctx, highlight.UtilitySpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
+		message := strings.Join(row.Value, " ")
+		attrs := []attribute.KeyValue{
+			hlog.LogSeverityKey.String(row.Type),
+			hlog.LogMessageKey.String(message),
+		}
+		for k, v := range row.Attributes {
+			for key, value := range hlog.FormatLogAttributes(ctx, k, v) {
+				if v != "" {
+					attrs = append(attrs, attribute.String(key, value))
+				}
+			}
+		}
+		if len(row.Trace) > 0 {
+			traceEnd := &row.Trace[len(row.Trace)-1]
+			attrs = append(
+				attrs,
+				semconv.CodeFunctionKey.String(traceEnd.FunctionName),
+				semconv.CodeNamespaceKey.String(traceEnd.Source),
+				semconv.CodeFilepathKey.String(traceEnd.FileName),
+			)
+
+			var ln int
+			if x, ok := traceEnd.LineNumber.(int); ok {
+				ln = x
+			} else if x, ok := traceEnd.LineNumber.(string); ok {
+				if i, err := strconv.ParseInt(x, 10, 32); err == nil {
+					ln = int(i)
+				}
+			}
+			if ln != 0 {
+				attrs = append(attrs, semconv.CodeLineNumberKey.Int(ln))
+			}
+
+			var cn int
+			if x, ok := traceEnd.ColumnNumber.(int); ok {
+				cn = x
+			} else if x, ok := traceEnd.ColumnNumber.(string); ok {
+				if i, err := strconv.ParseInt(x, 10, 32); err == nil {
+					cn = int(i)
+				}
+			}
+			if cn != 0 {
+				attrs = append(attrs, semconv.CodeColumnKey.Int(cn))
+			}
+			stackTrace := message
+			for _, t := range row.Trace {
+				if t.Source != "" {
+					stackTrace += "\n" + t.Source
+				} else {
+					stackTrace += fmt.Sprintf("\n\tat %s (%s:%+v:%+v)", t.FunctionName, t.FileName, t.LineNumber, t.ColumnNumber)
+				}
+			}
+			attrs = append(attrs, semconv.ExceptionStacktraceKey.String(stackTrace))
+		}
+
+		span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(row.Time)))
+		if row.Type == "error" {
+			span.SetStatus(codes.Error, message)
+		}
+		highlight.EndTrace(span)
+	}
+
 	return nil
 }
 
