@@ -6634,6 +6634,12 @@ body {
 ._1ubqgtn3 {
   padding: 6px;
 }
+.gmz6t00:first-of-type > button {
+  border-right: none;
+}
+.gmz6t00:last-of-type > button {
+  border-left: none;
+}
 ._1ecj17q0 {
   height: 28px;
   width: 28px;
@@ -7486,12 +7492,6 @@ body {
   max-width: 340px;
   padding-top: 5.5px;
   padding-bottom: 5.5px;
-}
-._1fmffum0:first-of-type > button {
-  border-right: none;
-}
-._1fmffum0:last-of-type > button {
-  border-left: none;
 }
 ._1r8lbz42 {
   background-color: var(--_1pyqka91k);

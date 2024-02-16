@@ -1,7 +1,7 @@
 import {
 	IconSolidLightningBolt,
 	IconSolidLogs,
-	IconSolidPlayCircle,
+	IconSolidSparkles,
 } from '@highlight-run/ui/components'
 import moment from 'moment'
 import { createSearchParams } from 'react-router-dom'
@@ -10,33 +10,41 @@ import { TagGroup } from '@/components/TagGroup'
 import { useProjectId } from '@/hooks/useProjectId'
 
 type Props = {
-	traceId?: string
 	secureSessionId?: string
-	disableErrors: boolean
 	startDate: Date
 	endDate: Date
+	disableErrors: boolean
 }
 
 export const RelatedResourceButtons: React.FC<Props> = ({
-	traceId,
 	secureSessionId,
-	disableErrors,
 	startDate,
 	endDate,
+	disableErrors,
 }) => {
 	const { projectId } = useProjectId()
-	const errorLinkDisabled = !traceId || disableErrors
-	const sessionLinkDisabled = !traceId || !secureSessionId
-	const logsLinkDisabled = !traceId
+	const errorLinkDisabled = !secureSessionId || disableErrors
+	const logsLinkDisabled = !secureSessionId
+	const tracesLinkDisabled = !secureSessionId
 
-	const errorLink = getErrorsLink({ projectId, traceId, startDate, endDate })
-	const sessionLink = getSessionLink({
+	const errorLink = getErrorsLink({
 		projectId,
 		secureSessionId,
 		startDate,
 		endDate,
 	})
-	const logsLink = getLogsLink({ projectId, traceId, startDate, endDate })
+	const logsLink = getLogsLink({
+		projectId,
+		secureSessionId,
+		startDate,
+		endDate,
+	})
+	const tracesLink = getTracesLink({
+		projectId,
+		secureSessionId,
+		startDate,
+		endDate,
+	})
 
 	return (
 		<TagGroup
@@ -49,18 +57,18 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 					label: 'View errors',
 				},
 				{
-					key: 'session',
-					href: sessionLink,
-					disabled: sessionLinkDisabled,
-					icon: <IconSolidPlayCircle />,
-					label: 'View session',
-				},
-				{
 					key: 'logs',
 					href: logsLink,
 					disabled: logsLinkDisabled,
 					icon: <IconSolidLogs />,
 					label: 'View logs',
+				},
+				{
+					key: 'traces',
+					href: tracesLink,
+					disabled: tracesLinkDisabled,
+					icon: <IconSolidSparkles />,
+					label: 'View traces',
 				},
 			]}
 		/>
@@ -71,20 +79,19 @@ type LinkProps = {
 	projectId: string
 	startDate: Date
 	endDate: Date
-	traceId?: string
 	secureSessionId?: string
 }
 
 const getErrorsLink = ({
 	projectId,
-	traceId,
+	secureSessionId,
 	startDate,
 	endDate,
 }: LinkProps) => {
-	if (!traceId) return ''
+	if (!secureSessionId) return ''
 
 	const params = createSearchParams({
-		query: `and||error-field_trace_id,is,${traceId}`,
+		query: `and||error-field_secure_session_id,is,${secureSessionId}`,
 		start_date: moment(startDate).subtract(5, 'minutes').toISOString(),
 		end_date: moment(endDate).add(5, 'minutes').toISOString(),
 	})
@@ -92,23 +99,33 @@ const getErrorsLink = ({
 	return `/${projectId}/errors?${params}`
 }
 
-const getSessionLink = ({
+const getTracesLink = ({
 	projectId,
 	secureSessionId,
 	startDate,
+	endDate,
 }: LinkProps) => {
 	if (!secureSessionId) return ''
 
 	const params = createSearchParams({
-		tsAbs: startDate.toISOString(),
+		query: `secure_session_id=${secureSessionId}`,
+		start_date: moment(startDate).subtract(5, 'minutes').toISOString(),
+		end_date: moment(endDate).add(5, 'minutes').toISOString(),
 	})
 
-	return `/${projectId}/sessions/${secureSessionId}?${params}`
+	return `/${projectId}/traces?${params}`
 }
 
-const getLogsLink = ({ projectId, traceId, startDate, endDate }: LinkProps) => {
+const getLogsLink = ({
+	projectId,
+	secureSessionId,
+	startDate,
+	endDate,
+}: LinkProps) => {
+	if (!secureSessionId) return ''
+
 	const params = createSearchParams({
-		query: `trace_id=${traceId}`,
+		query: `secure_session_id=${secureSessionId}`,
 		start_date: moment(startDate).subtract(5, 'minutes').toISOString(),
 		end_date: moment(endDate).add(5, 'minutes').toISOString(),
 	})
