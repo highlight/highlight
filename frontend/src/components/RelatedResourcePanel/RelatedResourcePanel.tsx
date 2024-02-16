@@ -56,11 +56,11 @@ export const RelatedResourcePanel: React.FC<Props> = ({}) => {
 	)
 }
 
-const TracePanel: React.FC<ResourcePanelProps> = ({ resource }) => {
+const TracePanel: React.FC<ResourcePanelProps> = ({ depth, resource }) => {
 	const { projectId } = useNumericProjectId()
 
 	return (
-		<Panel open={true}>
+		<Panel depth={depth} open={true}>
 			<TraceProvider projectId={projectId!} traceId={resource.id}>
 				<TracePage />
 			</TraceProvider>
@@ -68,7 +68,7 @@ const TracePanel: React.FC<ResourcePanelProps> = ({ resource }) => {
 	)
 }
 
-const ErrorPanel: React.FC<ResourcePanelProps> = ({ resource }) => {
+const ErrorPanel: React.FC<ResourcePanelProps> = ({ depth, resource }) => {
 	const { projectId } = useNumericProjectId()
 	const [{ integrated }] = useIntegratedLocalStorage(projectId!, 'server')
 	const { data, loading, error } = useGetErrorGroupQuery({
@@ -81,7 +81,7 @@ const ErrorPanel: React.FC<ResourcePanelProps> = ({ resource }) => {
 	console.log('::: data', data, error)
 
 	return (
-		<Panel open={true}>
+		<Panel depth={depth} open={true}>
 			<ErrorDisplay
 				errorGroup={data?.error_group}
 				integrated={integrated}
@@ -95,9 +95,9 @@ const ErrorPanel: React.FC<ResourcePanelProps> = ({ resource }) => {
 	)
 }
 
-const SessionPanel: React.FC<ResourcePanelProps> = ({ resource }) => {
+const SessionPanel: React.FC<ResourcePanelProps> = ({ depth, resource }) => {
 	return (
-		<Panel open={true}>
+		<Panel depth={depth} open={true}>
 			This is the session panel!
 			<Box p="8" border="dividerWeak" my="8" borderRadius="4">
 				<pre>{JSON.stringify(resource)}</pre>
@@ -119,13 +119,16 @@ const Panel: React.FC<
 		},
 	})
 
+	const width = 75 * (1 - depth * 0.02) + '%'
+
 	return (
 		<Dialog
 			store={dialogStore}
 			modal={false}
 			autoFocusOnShow={false}
+			backdrop={<Box style={{ background: 'rgba(0, 0, 0, 0.05)' }} />}
 			className={styles.panel}
-			backdrop={<Box style={{ background: 'rgba(0, 0, 0, 0.1)' }} />}
+			style={{ width }}
 		>
 			{children}
 		</Dialog>
