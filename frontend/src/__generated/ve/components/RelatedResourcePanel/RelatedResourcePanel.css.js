@@ -1,5 +1,5 @@
 // src/components/RelatedResourcePanel/RelatedResourcePanel.css.ts
-var container = "k6vtwi0";
+var panel = "k6vtwi1 mt0ih29o mt0ih220 mt0ih2t0 mt0ih2fq mt0ih2n8";
 export {
-  container
+  panel
 };

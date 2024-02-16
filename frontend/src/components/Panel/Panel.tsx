@@ -5,11 +5,17 @@ import * as styles from './Panel.css'
 
 type Props = React.PropsWithChildren & {
 	open: boolean
+	onClose?: () => void
 }
 
-export const Panel: React.FC<Props> = ({ children, open }) => {
+export const Panel: React.FC<Props> = ({ children, open, onClose }) => {
 	const dialogStore = Dialog.useStore({
 		open,
+		setOpen: (open) => {
+			if (!open) {
+				onclose()
+			}
+		},
 	})
 
 	useHotkeys('esc', () => {

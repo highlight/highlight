@@ -1,37 +1,36 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
-type ResourceType = 'session' | 'error' | 'trace'
+type RelatedResourceType = 'session' | 'error' | 'trace'
+export type RelatedResource = { type: RelatedResourceType; id: string }
 
 const RELATED_RESOURCE_PARAM = 'related_resources'
 
 export const useRelatedResources = () => {
 	const [searchParams, setSearchParams] = useSearchParams()
-	const [resources, setResources] = useState<
-		Array<{ type: ResourceType; id: string }>
-	>([])
+	const [resources, setResources] = useState<RelatedResource[]>([])
 
 	// Parse the URL parameters on component mount
 	useEffect(() => {
 		const resourcesParam = searchParams.get(RELATED_RESOURCE_PARAM)
+		let resources: RelatedResource[] = []
 
 		if (resourcesParam) {
-			const resources = resourcesParam.split(',').map((resource) => {
+			resources = resourcesParam.split(',').map((resource) => {
 				const [type, id] = resource.split(':')
 
 				return {
-					type: type as ResourceType,
+					type: type as RelatedResourceType,
 					id,
 				}
 			})
-
-			setResources(resources)
 		}
+
+		setResources(resources)
 	}, [searchParams])
 
-	const push = (type: ResourceType, id: string) => {
+	const push = (type: RelatedResourceType, id: string) => {
 		const newResources = [...resources, { type, id }]
-		setResources(newResources)
 		setSearchParams({
 			[RELATED_RESOURCE_PARAM]: newResources
 				.map(({ type, id }) => `${type}:${id}`)
@@ -39,11 +38,8 @@ export const useRelatedResources = () => {
 		})
 	}
 
-	const pop = (type: ResourceType) => {
-		const newResources = resources.filter(
-			(resource) => resource.type !== type,
-		)
-		setResources(newResources)
+	const pop = () => {
+		const newResources = resources.slice(0, -1)
 		setSearchParams({
 			[RELATED_RESOURCE_PARAM]: newResources
 				.map(({ type, id }) => `${type}:${id}`)

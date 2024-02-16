@@ -3,7 +3,7 @@ import moment from 'moment'
 import { createSearchParams } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
-import { Link } from '@/components/Link'
+import { useRelatedResources } from '@/components/RelatedResourcePanel/hooks'
 import { DEFAULT_OPERATOR } from '@/components/Search/SearchForm/utils'
 import { GetErrorInstanceQuery } from '@/graph/generated/operations'
 import { ReservedTraceKey } from '@/graph/generated/schemas'
@@ -33,25 +33,24 @@ type Props = {
 }
 
 export const RelatedTrace = ({ data }: Props) => {
+	const { push } = useRelatedResources()
 	const { isLoggedIn } = useAuthContext()
-
-	const traceLink = getTraceLink(data)
+	const traceId = data?.error_instance?.error_object?.trace_id
 
 	return (
-		<Link
-			to={traceLink}
-			onClick={() => analytics.track('error_related-trace-link_click')}
+		<Tag
+			kind="secondary"
+			emphasis="high"
+			size="medium"
+			shape="basic"
+			disabled={!isLoggedIn || !traceId}
+			iconLeft={<IconSolidSparkles size={11} />}
+			onClick={() => {
+				analytics.track('error_related-trace-link_click')
+				push('trace', traceId || '')
+			}}
 		>
-			<Tag
-				kind="secondary"
-				emphasis="high"
-				size="medium"
-				shape="basic"
-				disabled={!isLoggedIn || traceLink === ''}
-				iconLeft={<IconSolidSparkles size={11} />}
-			>
-				Related trace
-			</Tag>
-		</Link>
+			Related trace
+		</Tag>
 	)
 }
