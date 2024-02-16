@@ -24,8 +24,6 @@ services:
         container_name: kafka
         volumes:
             - kafka-data:/var/lib/kafka/data
-        ports:
-            - 9092:9092
         depends_on:
             - zookeeper
         environment:
@@ -45,8 +43,6 @@ services:
         logging: *highlight-logging
         container_name: redis
         image: redis
-        ports:
-            - 6379:6379
         volumes:
             - redis-data:/data
         command:
@@ -60,7 +56,7 @@ services:
         # a postgres image with pgvector installed
         image: ankane/pgvector
         ports:
-            - 5432:5432
+            - 5432
         environment:
             POSTGRES_HOST_AUTH_METHOD: trust
         volumes:
@@ -76,9 +72,6 @@ services:
         logging: *highlight-logging
         container_name: clickhouse
         image: clickhouse/clickhouse-server
-        ports:
-            - 8123:8123
-            - 9000:9000
         volumes:
             - ./backup_disk.xml:/etc/clickhouse-server/config.d/backup_disk.xml
             - clickhouse-data:/var/lib/clickhouse

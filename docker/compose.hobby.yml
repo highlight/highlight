@@ -71,10 +71,18 @@ services:
         logging: *local-logging
 
     collector:
-        extends:
-            file: compose.yml
-            service: collector
         logging: *local-logging
+        ports:
+            - 4317:4317
+            - 4318:4318
+            - 4319:4319
+            - 8888:8888
+            - 24224:24224
+            - 34302:34302
+        container_name: collector
+        image: otel/opentelemetry-collector-contrib
+        command:
+            - '--config=/etc/otel-collector-config.yaml'
         volumes:
             - ./otel-collector.hobby.yaml:/etc/otel-collector-config.yaml
 
@@ -114,7 +122,6 @@ services:
             timeout: 5s
             retries: 5
         ports:
-            - 80:3000
             - 3000:3000
             - 6006:6006
             - 8080:8080
