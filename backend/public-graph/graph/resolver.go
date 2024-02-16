@@ -1943,6 +1943,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 		}
 	}
 
+	curTime := time.Now()
 	var traceRows []*clickhouse.TraceRow
 	for _, m := range metrics {
 		var spanID, parentSpanID, traceID = ptr.ToString(m.SpanID), ptr.ToString(m.ParentSpanID), ptr.ToString(m.TraceID)
@@ -1970,12 +1971,13 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 			attributes["group"] = *m.Group
 		}
 
+		timestamp := ClampTime(m.Timestamp, curTime)
 		event := map[string]any{
 			"Name":       "metric",
-			"Timestamp":  m.Timestamp,
+			"Timestamp":  timestamp,
 			"Attributes": map[string]any{"metric.name": m.Name, "metric.value": m.Value},
 		}
-		traceRows = append(traceRows, clickhouse.NewTraceRow(m.Timestamp, projectID).
+		traceRows = append(traceRows, clickhouse.NewTraceRow(timestamp, projectID).
 			WithSecureSessionId(session.SecureID).
 			WithSpanId(spanID).
 			WithParentSpanId(parentSpanID).
@@ -2000,6 +2002,22 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 		})
 	}
 	return r.TracesQueue.Submit(ctx, "", messages...)
+}
+
+// If curTime is provided and the input is different by more than 2 hours,
+// use curTime instead of the input.
+func ClampTime(input time.Time, curTime time.Time) time.Time {
+	if curTime.IsZero() {
+		return input
+	}
+
+	minTime := curTime.Add(-2 * time.Hour)
+	maxTime := curTime.Add(2 * time.Hour)
+	if input.Before(minTime) || input.After(maxTime) {
+		return curTime
+	}
+
+	return input
 }
 
 func extractErrorFields(sessionObj *model.Session, errorToProcess *model.ErrorObject) []*model.ErrorField {

@@ -10,6 +10,7 @@ import (
 
 	model "github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
@@ -297,25 +298,9 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 		}
 	}
 
-	fields.timestamp = clampTime(fields.timestamp, params.curTime)
+	fields.timestamp = graph.ClampTime(fields.timestamp, params.curTime)
 
 	return fields, err
-}
-
-// If curTime is provided and the input is different by more than 2 hours,
-// use curTime instead of the input.
-func clampTime(input time.Time, curTime time.Time) time.Time {
-	if curTime.IsZero() {
-		return input
-	}
-
-	minTime := curTime.Add(-2 * time.Hour)
-	maxTime := curTime.Add(2 * time.Hour)
-	if input.Before(minTime) || input.After(maxTime) {
-		return curTime
-	}
-
-	return input
 }
 
 func mergeMaps(maps ...map[string]any) map[string]any {
