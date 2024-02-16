@@ -294,7 +294,7 @@ export const Search: React.FC<{
 
 	let visibleItems: SearchResult[] = showValues
 		? getVisibleValues(activePart, values)
-		: getVisibleKeys(query, queryParts, activePart, keys)
+		: getVisibleKeys(query, activePart, keys)
 	const comboboxItems = comboboxStore.useState('items')
 
 	// Show operators when we have an exact match for a key
@@ -813,13 +813,10 @@ const getActivePart = (
 
 const getVisibleKeys = (
 	queryText: string,
-	queryParts: SearchExpression[],
 	activeQueryPart?: SearchExpression,
 	keys?: Keys,
 ) => {
 	const startingNewPart = queryText.endsWith(' ')
-	const activePartKeys = queryParts.map((part) => part.key)
-	keys = keys?.filter((key) => activePartKeys.indexOf(key.name) === -1)
 
 	return (
 		keys?.filter(
