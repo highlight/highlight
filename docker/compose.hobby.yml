@@ -72,11 +72,20 @@ services:
         logging: *local-logging
 
     collector:
-        extends:
-            file: compose.yml
-            service: collector
-        extra_hosts: []
         logging: *local-logging
+        ports:
+            - '0.0.0.0:4317:4317'
+            - '0.0.0.0:4318:4318'
+            - '0.0.0.0:4319:4319'
+            - '0.0.0.0:8888:8888'
+            - '0.0.0.0:24224:24224'
+            - '0.0.0.0:34302:34302'
+        container_name: collector
+        image: otel/opentelemetry-collector-contrib
+        command:
+            - '--config=/etc/collector.yml'
+        volumes:
+            - ./collector.yml:/etc/collector.yml
 
     backend:
         container_name: backend
@@ -99,7 +108,7 @@ services:
             collector:
                 condition: service_started
         ports:
-            - 8082:8082
+            - '0.0.0.0:8082:8082'
         volumes:
             - highlight-data:/highlight-data
         <<: *backend-env
@@ -114,9 +123,9 @@ services:
             timeout: 5s
             retries: 5
         ports:
-            - 3000:3000
-            - 6006:6006
-            - 8080:8080
+            - '0.0.0.0:3000:3000'
+            - '0.0.0.0:6006:6006'
+            - '0.0.0.0:8080:8080'
         environment:
             - REACT_APP_PRIVATE_GRAPH_URI
             - REACT_APP_PUBLIC_GRAPH_URI
