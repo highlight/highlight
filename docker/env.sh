@@ -11,6 +11,7 @@ export REACT_APP_AUTH_MODE=password
 export BACKEND_HEALTH_URI=$(echo "$REACT_APP_PUBLIC_GRAPH_URI" | sed -e 's/\/public/\/health/')
 
 if [[ "$*" == *"--go-docker"* ]]; then
+    export KAFKA_ADVERTISED_LISTENERS="PLAINTEXT://kafka:9092"
     export OTLP_ENDPOINT=https://otel.highlight.io:4318
     export IN_DOCKER_GO=true
     echo "Using docker-internal infra."
