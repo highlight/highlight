@@ -1,6 +1,3 @@
-x-logging: &local-logging
-    driver: local
-
 x-backend-env: &backend-env
     environment:
         - CLICKHOUSE_ADDRESS
@@ -38,55 +35,6 @@ x-backend-env: &backend-env
 
 # Highlight.io services for the hobby deployment.
 services:
-    zookeeper:
-        extends:
-            file: compose.yml
-            service: zookeeper
-        logging: *local-logging
-
-    kafka:
-        extends:
-            file: compose.yml
-            service: kafka
-        logging: *local-logging
-        environment:
-            # needs to share docker-internal address
-            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-
-    redis:
-        extends:
-            file: compose.yml
-            service: redis
-        logging: *local-logging
-
-    postgres:
-        extends:
-            file: compose.yml
-            service: postgres
-        logging: *local-logging
-
-    clickhouse:
-        extends:
-            file: compose.yml
-            service: clickhouse
-        logging: *local-logging
-
-    collector:
-        logging: *local-logging
-        ports:
-            - '0.0.0.0:4317:4317'
-            - '0.0.0.0:4318:4318'
-            - '0.0.0.0:4319:4319'
-            - '0.0.0.0:8888:8888'
-            - '0.0.0.0:24224:24224'
-            - '0.0.0.0:34302:34302'
-        container_name: collector
-        image: otel/opentelemetry-collector-contrib
-        command:
-            - '--config=/etc/collector.yml'
-        volumes:
-            - ./collector.yml:/etc/collector.yml
-
     backend:
         container_name: backend
         image: ghcr.io/highlight/highlight-backend:latest
@@ -96,17 +44,6 @@ services:
             interval: 5s
             timeout: 5s
             retries: 5
-        depends_on:
-            kafka:
-                condition: service_started
-            redis:
-                condition: service_started
-            postgres:
-                condition: service_healthy
-            clickhouse:
-                condition: service_started
-            collector:
-                condition: service_started
         ports:
             - '0.0.0.0:8082:8082'
         volumes:

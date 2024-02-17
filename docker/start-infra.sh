@@ -26,7 +26,6 @@ elif [[ "$SSL" != "true" ]]; then
   fi
 fi
 
-docker compose $CUSTOM_COMPOSE pull $SERVICES
 docker compose $CUSTOM_COMPOSE up --detach --wait --remove-orphans $SERVICES
 
 if [[ "$*" != *"--go-docker"* ]]; then
