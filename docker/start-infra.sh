@@ -5,9 +5,6 @@ source env.sh
 # startup the infra
 
 SERVICES="clickhouse kafka postgres redis zookeeper collector"
-if [[ "$*" == *"--hobby"* ]]; then
-  CUSTOM_COMPOSE="-f compose.yml -f compose.hobby.yml"
-fi
 
 COLLECTOR_CONFIG="./collector.yml"
 if [[ "$IN_DOCKER_GO" == "true" ]]; then
@@ -26,7 +23,8 @@ elif [[ "$SSL" != "true" ]]; then
   fi
 fi
 
-docker compose $CUSTOM_COMPOSE up --detach --wait --remove-orphans $SERVICES
+docker compose pull $SERVICES
+docker compose up --detach --wait --remove-orphans $SERVICES
 
 if [[ "$*" != *"--go-docker"* ]]; then
   pushd ../backend
