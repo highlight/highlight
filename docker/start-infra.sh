@@ -11,11 +11,19 @@ fi
 
 COLLECTOR_CONFIG="./collector.yml"
 if [[ "$IN_DOCKER_GO" == "true" ]]; then
-  sed -i "s/https:\/\/host\.docker\.internal:8082/http:\/\/backend:8082/g" $COLLECTOR_CONFIG
-  sed -i "18d;19d" $COLLECTOR_CONFIG
+  if grep -q 'https://host.docker.internal' "$COLLECTOR_CONFIG"; then
+    sed -i "s/https:\/\/host\.docker\.internal:8082/http:\/\/backend:8082/g" $COLLECTOR_CONFIG
+  fi
+  if grep -q 'insecure_skip_verify' "$COLLECTOR_CONFIG"; then
+    sed -i "18d;19d" $COLLECTOR_CONFIG
+  fi
 elif [[ "$SSL" != "true" ]]; then
-  sed -i "s/https:\/\/host\.docker/http:\/\/host\.docker/g" $COLLECTOR_CONFIG
-  sed -i "18d;19d" $COLLECTOR_CONFIG
+  if grep -q 'https://host.docker.internal' "$COLLECTOR_CONFIG"; then
+    sed -i "s/https:\/\/host\.docker/http:\/\/host\.docker/g" $COLLECTOR_CONFIG
+  fi
+  if grep -q 'insecure_skip_verify' "$COLLECTOR_CONFIG"; then
+    sed -i "18d;19d" $COLLECTOR_CONFIG
+  fi
 fi
 
 docker compose $CUSTOM_COMPOSE pull $SERVICES
