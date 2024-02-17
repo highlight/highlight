@@ -1639,9 +1639,6 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 	if workspace.TrialEndDate != nil && workspace.TrialEndDate.After(now) {
 		return true, 0
 	}
-	if util.IsOnPrem() {
-		return true, 0
-	}
 
 	stripePlan := privateModel.PlanType(workspace.PlanTier)
 
