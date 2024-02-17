@@ -165,7 +165,7 @@ func (c *PasswordAuthClient) updateContextWithAuthenticatedUser(ctx context.Cont
 }
 
 func (c *SimpleAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
-	ctx = context.WithValue(ctx, model.ContextKeys.UID, "Hobby Highlighter")
+	ctx = context.WithValue(ctx, model.ContextKeys.UID, "demo@example.com")
 	ctx = context.WithValue(ctx, model.ContextKeys.Email, "demo@example.com")
 	return ctx, nil
 }

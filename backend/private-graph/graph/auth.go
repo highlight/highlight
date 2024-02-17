@@ -125,7 +125,7 @@ func (r *Resolver) ValidateAuthToken(w http.ResponseWriter, req *http.Request) {
 
 func GetPasswordAuthUser(email string) *auth.UserInfo {
 	return &auth.UserInfo{
-		DisplayName: "Hobby Highlighter",
+		DisplayName: email,
 		UID:         email,
 		Email:       email,
 		PhoneNumber: "+14081234567",
