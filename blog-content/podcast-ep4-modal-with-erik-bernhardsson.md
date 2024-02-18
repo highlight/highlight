@@ -18,7 +18,7 @@ metaTitle: "Highlight Pod Episode #4: Modal.com with Erik Bernhardsson"
 
 ## Serverless for your GPU workloads
 
-Erik Bernhardsson is the founder of Modal Labs, a serverless compute platform specializing in high-performance workloads running on both CPUs and GPUs.
+Erik Bernhardsson is the founder of [Modal Labs](https://modal.com/), a serverless compute platform specializing in high-performance workloads running on both CPUs and GPUs.
 
 Modal.com focuses on nearly instant code deploys, enabling developers to write locally and run their code on Modal.com's cloud GPUs. Sub-second code deploys enable super fast feedback looks, keeping developers productive throughout their day.
 
