@@ -1,6 +1,6 @@
 import { ChevronDownIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import { NextPage } from 'next'
-import Image from 'next/image'
+import Link from 'next/link'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import Footer from '../../components/common/Footer/Footer'
@@ -8,46 +8,35 @@ import Navbar from '../../components/common/Navbar/Navbar'
 import { Typography } from '../../components/common/Typography/Typography'
 import homeStyles from '../../components/Home/Home.module.scss'
 import WideCard from '../../components/Integrations/WideCard'
-import pricingStyles from '../../components/Pricing/Pricing.module.scss'
-
-import CreditCard from '../../public/images/credit-card.svg'
-import Delete from '../../public/images/delete.svg'
-import Globe from '../../public/images/globe.svg'
-import PcPlayMedia from '../../public/images/pc-play-media.svg'
-import ReceiptList from '../../public/images/receipt-list.svg'
-import Security from '../../public/images/security.svg'
-import Stopwatch from '../../public/images/stopwatch.svg'
-import TagLoyalty from '../../public/images/tag-loyalty.svg'
-import Wallet from '../../public/images/wallet.svg'
 
 import { Popover, RadioGroup } from '@headlessui/react'
 import * as Slider from '@radix-ui/react-slider'
 import classNames from 'classnames'
 import { useState } from 'react'
 import { InlineWidget } from 'react-calendly'
-import Collapsible from 'react-collapsible'
-import { Section } from '../../components/common/Section/Section'
 import { HeadlessTooltip } from '../../components/Competitors/ComparisonTable'
 import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel'
 
-const OverageLink = ({
-	children,
-	className,
-}: React.PropsWithChildren<{ className?: string }>) => {
+import { Switch } from '@headlessui/react'
+import { HiReceiptTax } from 'react-icons/hi'
+
+const MyToggle = () => {
+	const [enabled, setEnabled] = useState(false)
+
 	return (
-		<a
-			href="#overage"
-			onClick={(e) => {
-				e.preventDefault()
-				document.querySelector('#overage')?.scrollIntoView({
-					behavior: 'smooth',
-				})
-				window.history.pushState({}, '', `#overage`)
-			}}
-			className={className}
+		<Switch
+			checked={enabled}
+			onChange={setEnabled}
+			className={`relative border border-divider-on-dark inline-flex h-10 w-[280px] items-center rounded-md`}
 		>
-			{children}
-		</a>
+			<p className="absolute left-4 z-10">Billed Annually</p>
+			<p className="absolute right-4 z-10">Billed Monthly</p>
+			<span
+				className={`${
+					enabled ? 'right-0' : 'right-auto'
+				} absolute inline-block h-[30px] w-[125px] transform rounded-full bg-purple-primary transition-all`}
+			/>
+		</Switch>
 	)
 }
 
@@ -57,20 +46,9 @@ const PricingPage: NextPage = () => {
 			<Navbar />
 			<div className="flex flex-col w-full px-10 mx-auto mt-24">
 				<div className="flex flex-col items-center text-center gap-9">
-					{/* Title, tagline and CTA */}
-					<h1 className="max-w-3xl">
-						Get the{' '}
-						<span className="text-highlight-yellow">
-							visibility
-						</span>{' '}
-						you need today.
-					</h1>
-					<Typography type="copy1" onDark>
-						Fair and transparent pricing that scales with any
-						organization. <br />
-						If usage goes beyond the included monthly quota, your{' '}
-						<OverageLink>usage rate</OverageLink> kicks in.
-					</Typography>
+					<MyToggle />
+
+					<h1 className="max-w-3xl">Pricing</h1>
 				</div>
 				<PlanTable />
 				<div
@@ -103,137 +81,12 @@ const PricingPage: NextPage = () => {
 						<h2>{`Frequently asked questions`}</h2>
 					</div>
 				</div>
-				<Section>
-					<div>
-						{Faqs.map((faq, index) => (
-							<Question
-								key={index}
-								question={faq.question}
-								answer={faq.answer}
-								icon={faq.icon}
-							/>
-						))}
-					</div>
-				</Section>
 			</div>
 			<FooterCallToAction />
 			<Footer />
 		</div>
 	)
 }
-
-const Question = ({
-	question,
-	answer,
-	icon,
-}: {
-	question: string
-	answer: string
-	icon: string
-}) => {
-	const [expanded, setExpanded] = useState(false)
-	return (
-		<div className={pricingStyles.faqRowClickable}>
-			<Collapsible
-				onOpening={() => setExpanded(true)}
-				onClosing={() => setExpanded(false)}
-				transitionTime={200}
-				trigger={
-					<div className={pricingStyles.faqRow}>
-						<div className={pricingStyles.faqLeftContent}>
-							<Image src={icon} alt="pc icon"></Image>
-							<Typography
-								className={pricingStyles.question}
-								type="copy2"
-								emphasis
-							>
-								{question}
-							</Typography>
-						</div>
-						<button
-							className={classNames(pricingStyles.circleButton, {
-								[pricingStyles.expanded]: expanded,
-							})}
-						>
-							<ChevronDownIcon
-								className={classNames(
-									'w-5 h-5',
-									expanded
-										? 'text-dark-background'
-										: 'text-blue-cta',
-								)}
-							/>
-						</button>
-					</div>
-				}
-			>
-				<div className={pricingStyles.collapseInner}>
-					<Typography
-						className={pricingStyles.questionDescription}
-						type="copy3"
-						onDark
-					>
-						<div dangerouslySetInnerHTML={{ __html: answer }}></div>
-					</Typography>
-				</div>
-			</Collapsible>
-			<hr className={pricingStyles.faqDivider} />
-		</div>
-	)
-}
-
-const docsUrl = '/docs'
-
-const Faqs: { question: string; answer: string; icon: string }[] = [
-	{
-		question: 'Do you offer a discount for non-profits?',
-		answer: `We love supporting non-profits and offer a 75% discount for the lifetime of the account. To activate the discount, create a workplace on either the Standard or Pro plan. Then reach out to support and mention the discount.`,
-		icon: TagLoyalty,
-	},
-	{
-		question: 'How long does it take to setup Highlight?',
-		answer: `It generally takes an engineer less than ten minutes to understand the concepts of Highlight and integrate the app into their workflow. For more information on setup, take a look at our <a href="${docsUrl}">docs</a>.`,
-		icon: Stopwatch,
-	},
-	{
-		question: 'Can I deploy Highlight on-premise?',
-		answer: `Yes! To get a glimpse at how our hobby deployment process looks, take a look <a href="${docsUrl}/general/company/open-source/hosting/self-host-hobby">here</a>. To get a license key for a production deployment, contacts at <a href="mailto:sales@highlight.io">sales@highlight.io</a>.`,
-		icon: Globe,
-	},
-	{
-		question: "Is Highlight secure? Where's my data stored?",
-		answer: `Highlight uses end-to-end encryption to keep your data safe while it’s in transit, and we also offer an on-prem solution if you want to keep customer data on your own servers. For more information, see our <a href="/#privacy">security section</a> and <a href="${docsUrl}" target="_blank">docs</a>. If we don't answer your question there, <a href="mailto:jay@highlight.io">let us know</a>.`,
-		icon: Security,
-	},
-	{
-		question: 'Do I need a credit card to sign up?',
-		answer: `Absolutely not! We never ask for your credit card on sign up. If you start on a paid plan then 30 days after signing up you will be politely prompted to enter in your payment information. At anytime you can switch back to a free plan as long as your workplace has less than 6 seats.`,
-		icon: CreditCard,
-	},
-	{
-		question: 'How will you charge me?',
-		answer: `We ask for a credit card. Your credit card information will never touch our servers as we use <a href="https://stripe.com/" target="_blank">Stripe</a> as our payments processor. For Enterprise customers we can do ACH and custom invoices if requested.`,
-		icon: Wallet,
-	},
-	{
-		question: 'How does billing work?',
-		answer: `We charge by usage; or number of sessions collected per month. Our billing system uses prorated billing, meaning you only pay for what you use below each of our thresholds (see above). For example if you move to the Startup plan from the Basic plan in the middle of the month, then you will only be charged for the time you are on the paid plan.`,
-		icon: ReceiptList,
-	},
-	{
-		question: 'What counts as a session?',
-		answer: `A session is contiguous instance of a user's presence on your app for less than 4 hours. That is, if a user is browsing your application for 3 minutes, then closes the tab, this counts as a single session.`,
-		icon: PcPlayMedia,
-	},
-	{
-		question: 'Can I cancel at anytime?',
-		answer: `Definitely! You can cancel or downgrade your subscription at anytime. You can also delete your workplace in the settings page at anytime.`,
-		icon: Delete,
-	},
-]
-
-const billingPeriodOptions = ['Monthly', 'Annual'] as const
-type BillingPeriod = typeof billingPeriodOptions[number]
 
 const retentionOptions = [
 	'30 days',
@@ -242,7 +95,7 @@ const retentionOptions = [
 	'1 year',
 	'2 years',
 ] as const
-type Retention = typeof retentionOptions[number]
+type Retention = (typeof retentionOptions)[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'30 days': 1,
 	'3 months': 1,
@@ -366,11 +219,20 @@ const prices = {
 	},
 } as const
 
-const tierOptions = ['Free', 'UsageBased', 'Enterprise'] as const
-type TierName = typeof tierOptions[number]
+const tierOptions = [
+	'Free',
+	'Professional',
+	'UsageBased',
+	'Enterprise',
+] as const
+type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
 	label: string
+	subText?: string
+	monthlyPrice: string
+	annualPrice: string
+	icon: JSX.Element
 	features: {
 		feature: string
 		tooltip?: string
@@ -383,7 +245,13 @@ type PricingTier = {
 
 const priceTiers: Record<TierName, PricingTier> = {
 	Free: {
-		label: 'Free forever',
+		label: 'Free',
+		monthlyPrice: '$0',
+		annualPrice: '$0',
+		subText: 'Free forever',
+		icon: (
+			<HiReceiptTax className="text-darker-copy-on-dark w-8 h-8 -translate-x-1" />
+		),
 		features: [
 			{
 				feature: `${prices.Sessions.free.toLocaleString()} monthly sessions`,
@@ -404,8 +272,41 @@ const priceTiers: Record<TierName, PricingTier> = {
 		buttonLabel: 'Start free trial',
 		buttonLink: 'https://app.highlight.io/sign_up',
 	},
+	Professional: {
+		label: 'Professional',
+		monthlyPrice: '$0',
+		annualPrice: '$0',
+		subText: 'per project/month, billed annually',
+		icon: (
+			<HiReceiptTax className="text-darker-copy-on-dark w-8 h-8 -translate-x-1" />
+		),
+		features: [
+			{
+				feature: `Base tier of $50`,
+			},
+			{
+				feature: `Cheaper with higher volume`,
+			},
+			{
+				feature: `Filters for data ingest`,
+			},
+			{
+				feature: 'Unlimited seats',
+			},
+		],
+		badgeText: 'Most popular',
+		calculateUsage: true,
+		buttonLabel: 'Start free trial',
+		buttonLink: 'https://app.highlight.io/sign_up',
+	},
 	UsageBased: {
-		label: 'Pay as you go',
+		label: 'Self-Host',
+		monthlyPrice: '$0',
+		annualPrice: '$0',
+		subText: 'per project/month, billed annually',
+		icon: (
+			<HiReceiptTax className="text-darker-copy-on-dark w-8 h-8 -translate-x-1" />
+		),
 		features: [
 			{
 				feature: `Base tier of $50`,
@@ -427,6 +328,12 @@ const priceTiers: Record<TierName, PricingTier> = {
 	},
 	Enterprise: {
 		label: 'Enterprise',
+		subText: 'per project/month, billed annually',
+		monthlyPrice: '$0',
+		annualPrice: '$0',
+		icon: (
+			<HiReceiptTax className="text-darker-copy-on-dark w-8 h-8 -translate-x-1" />
+		),
 		features: [
 			{
 				feature: 'Custom pricing',
@@ -459,8 +366,9 @@ const priceTiers: Record<TierName, PricingTier> = {
 					'Exposure to a Grafana instance for visualization of traces/metrics/logs',
 			},
 		],
-		buttonLabel: 'Contact Us',
+		buttonLabel: 'Talk to sales',
 		buttonLink: '',
+		calculateUsage: true,
 	},
 }
 
@@ -468,7 +376,7 @@ const PlanTable = () => {
 	return (
 		<div className="flex flex-col items-center w-full gap-6 mx-auto mt-16">
 			{/* Pricing */}
-			<div className="flex flex-col items-stretch w-full sm:flex-row gap-7 justify-center">
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 justify-center">
 				{Object.entries(priceTiers).map(([name, tier]) => (
 					<PlanTier name={name} tier={tier} key={name} />
 				))}
@@ -487,41 +395,51 @@ const PlanTable = () => {
 }
 
 const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
-	const { features, badgeText, calculateUsage } = tier
+	const { features, calculateUsage } = tier
 	const [calendlyOpen, setCalendlyOpen] = useState(false)
 
 	return (
 		<div
-			className={classNames(
-				'flex flex-col flex-grow border rounded-md min-[1190px]:min-w-[255px] sm:max-w-[284px] basis-64 border-divider-on-dark h-fit',
-				badgeText ? 'shadow-[-8px_8px_0_0] shadow-purple-primary' : '',
-			)}
+			className={
+				'flex flex-col flex-grow border rounded-md min-[1190px]:min-w-[255px] basis-64 border-divider-on-dark'
+			}
 		>
-			<div className="p-5 border-b border-divider-on-dark">
-				{badgeText && (
-					<div className="bg-highlight-yellow w-fit py-0.5 px-3 mb-1 rounded-full">
-						<Typography
-							type="copy4"
-							emphasis
-							className="text-dark-background"
-						>
-							{badgeText}
-						</Typography>
-					</div>
-				)}
-				<div>
-					<Typography type="copy1" emphasis>
+			<div className="p-4 border-divider-on-dark">
+				<div className="flex flex-col">
+					{tier.icon}
+					<Typography className="mt-2" type="copy1" emphasis>
 						{tier.label}
+					</Typography>
+					<h4 className="mt-0">{tier.monthlyPrice}</h4>
+					<Typography
+						className="text-darker-copy-on-dark"
+						type="copy4"
+					>
+						{tier.subText ?? ''}
 					</Typography>
 				</div>
 			</div>
-			<div className="p-5 flex flex-col gap-2.5 flex-grow">
+			<Link
+				href={tier.buttonLink}
+				className="bg-white rounded-md text-center mt-2 mx-4 py-1 hover:bg-copy-on-dark transition-colors"
+			>
+				<Typography
+					className="text-dark-background"
+					type="copy3"
+					emphasis
+				>
+					{tier.buttonLabel}
+				</Typography>
+			</Link>
+			<div className="p-4 flex flex-col gap-2.5 flex-grow">
 				{features.map((feature, index) => (
 					<div
 						key={index}
 						className="flex justify-between gap-1 items-start"
 					>
-						<Typography type="copy3">{feature.feature}</Typography>
+						<Typography className="text-copy-on-dark" type="copy3">
+							{feature.feature}
+						</Typography>
 						{feature.tooltip && (
 							<HeadlessTooltip tooltip={feature.tooltip} />
 						)}
@@ -552,22 +470,7 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 					</Popover.Panel>
 				)}
 			</Popover>
-			<div className="px-5 pb-5 flex flex-col gap-2.5">
-				{tier.buttonLink === '' ? (
-					<PrimaryButton
-						className={homeStyles.hollowButton}
-						onClick={() => setCalendlyOpen(true)}
-					>
-						{tier.buttonLabel}
-					</PrimaryButton>
-				) : (
-					<PrimaryButton
-						href={tier.buttonLink}
-						className={homeStyles.hollowButton}
-					>
-						{tier.buttonLabel}
-					</PrimaryButton>
-				)}
+			<div className="p-4">
 				{calculateUsage && (
 					<div
 						onClick={(e) => {
@@ -580,9 +483,15 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 					>
 						<PrimaryButton
 							href="#overage"
-							className="flex justify-center border border-copy-on-light text-copy-on-dark bg-transparent text-center"
+							className="flex justify-center border border-copy-on-dark text-copy-on-dark bg-transparent text-center py-1 rounded-md"
 						>
-							Calculate Usage
+							<Typography
+								className="text-copy-on-dark"
+								type="copy3"
+								emphasis
+							>
+								Estimate your bill
+							</Typography>
 						</PrimaryButton>
 					</div>
 				)}
