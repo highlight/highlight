@@ -290,7 +290,7 @@ func (client *Client) ExistingTraceIds(ctx context.Context, projectID int, trace
 	var err error
 	var args []interface{}
 
-	sb.From(TracesByIdTable).
+	sb.From(TracesTable).
 		Select("DISTINCT TraceId").
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(sb.In("TraceId", traceIDs)).
