@@ -17,6 +17,7 @@ import { Route, Routes } from 'react-router-dom'
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
+import { GraphingEditor } from '@/pages/Graphing/GraphingEditor'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
 import { TracePanel } from '@/pages/Traces/TracePanel'
 import { TracesPage } from '@/pages/Traces/TracesPage'
@@ -88,6 +89,14 @@ const ApplicationRouter: React.FC = () => {
 						element={
 							<Suspense fallback={null}>
 								<HitTargets />
+							</Suspense>
+						}
+					/>
+					<Route
+						path="metrics/*"
+						element={
+							<Suspense fallback={null}>
+								<GraphingEditor />
 							</Suspense>
 						}
 					/>

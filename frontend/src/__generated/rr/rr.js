@@ -2574,7 +2574,7 @@ var MutationBuffer = class {
           const enableStrictPrivacy = this.privacySetting === "strict";
           const obfuscateDefaultPrivacy = this.privacySetting === "default" && shouldObfuscateTextByDefault(value);
           const highlightOverwriteRecord = (_b2 = (_a2 = text.node) === null || _a2 === void 0 ? void 0 : _a2.parentElement) === null || _b2 === void 0 ? void 0 : _b2.getAttribute("data-hl-record");
-          if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && highlightOverwriteRecord && value) {
+          if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && !highlightOverwriteRecord && value) {
             value = obfuscateText(value);
           }
           return {

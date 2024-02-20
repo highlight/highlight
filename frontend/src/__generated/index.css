@@ -3752,21 +3752,25 @@ body {
   color: var(--_1pyqka9h);
 }
 .dxo6qti {
-  border-radius: 3px;
+  background: var(--_1pyqka91k);
+  color: var(--_1pyqka91k);
 }
 .dxo6qtj {
-  border-radius: 5px;
+  border-radius: 3px;
 }
 .dxo6qtk {
-  border-radius: 6px;
+  border-radius: 5px;
 }
 .dxo6qtl {
-  border-radius: 23px;
+  border-radius: 6px;
 }
 .dxo6qtm {
-  border-radius: 10px;
+  border-radius: 23px;
 }
 .dxo6qtn {
+  border-radius: 10px;
+}
+.dxo6qto {
   border-radius: 16px;
 }
 ._1oerpj90 {
@@ -7395,6 +7399,14 @@ body {
 }
 .u1xyjd5:hover {
   background: var(--_1pyqka91x);
+}
+.gw96js0 {
+  height: 40px;
+}
+.gw96js1 {
+  width: 720px;
+  height: 361px;
+  margin: auto;
 }
 ._1kp6do40 {
   width: 100%;

@@ -54,6 +54,10 @@ export const variants = recipe({
 				background: vars.theme.static.surface.sentiment.informative,
 				color: vars.theme.static.content.sentiment.informative,
 			},
+			outlinePurple: {
+				background: vars.theme.interactive.outline.primary.enabled,
+				color: vars.theme.interactive.outline.primary.enabled,
+			},
 		},
 	},
 
