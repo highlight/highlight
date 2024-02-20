@@ -14,7 +14,12 @@
 				"/bin/backend",
 				"-runtime=worker"
 			],
-			"environment": [],
+			"environment": [
+				{
+					"name": "GOMEMLIMIT",
+					"value": "12GiB"
+				}
+			],
 			"mountPoints": [
 				{
 					"sourceVolume": "worker-volume",

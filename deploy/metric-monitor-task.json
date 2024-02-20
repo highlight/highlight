@@ -31,7 +31,12 @@
 			],
 			"linuxParameters": null,
 			"cpu": 0,
-			"environment": [],
+			"environment": [
+				{
+					"name": "GOMEMLIMIT",
+					"value": "3GiB"
+				}
+			],
 			"resourceRequirements": null,
 			"ulimits": null,
 			"dnsServers": null,
