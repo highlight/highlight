@@ -106,24 +106,40 @@ export const useGetLogs = ({
 		}, []),
 	})
 
-	const logTraceIds =
-		data?.logs.edges.reduce((acc, e) => {
-			if (e.node.traceID) {
-				acc.push(e.node.traceID)
+	const logTraceIdSet = new Set()
+	let latestLogTime, earliestLogTime
+
+	if (data?.logs.edges.length) {
+		for (const edge of data.logs.edges) {
+			if (edge.node.traceID) {
+				logTraceIdSet.add(edge.node.traceID)
 			}
-			return acc
-		}, [] as string[]) || []
+
+			if (!latestLogTime || latestLogTime < edge.node.timestamp) {
+				latestLogTime = edge.node.timestamp
+			}
+
+			if (!earliestLogTime || earliestLogTime > edge.node.timestamp) {
+				earliestLogTime = edge.node.timestamp
+			}
+		}
+	}
+
+	latestLogTime = latestLogTime || endDate
+	earliestLogTime = earliestLogTime || startDate
 
 	const { data: logRelatedResources } = useGetLogsRelatedResourcesQuery({
 		variables: {
 			project_id: project_id!,
 			log_cursors: data?.logs.edges.map((e) => e.cursor) || [],
-			trace_ids: logTraceIds,
+			trace_ids: Array.from(logTraceIdSet) as string[],
 			date_range: {
-				start_date: moment(startDate)
+				start_date: moment(latestLogTime)
 					.subtract(5, 'minutes')
 					.format(TIME_FORMAT),
-				end_date: moment(endDate).add(5, 'minutes').format(TIME_FORMAT),
+				end_date: moment(earliestLogTime)
+					.add(5, 'minutes')
+					.format(TIME_FORMAT),
 			},
 		},
 		skip: !data?.logs.edges.length,
