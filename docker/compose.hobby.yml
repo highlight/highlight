@@ -34,6 +34,7 @@ x-backend-env: &backend-env
         - JIRA_CLIENT_SECRET
         - KAFKA_SERVERS
         - KAFKA_TOPIC
+        - LICENSE_KEY
         - LINEAR_CLIENT_ID
         - LINEAR_CLIENT_SECRET
         - MICROSOFT_TEAMS_BOT_ID
