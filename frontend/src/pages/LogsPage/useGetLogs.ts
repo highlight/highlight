@@ -129,7 +129,6 @@ export const useGetLogs = ({
 			}
 		}
 
-		latestLogTime = earliestLogTime = earliestLogTime || startDate
 		return {
 			logCursors: logCursors,
 			traceIds: Array.from(logTraceIdSet) as string[],
