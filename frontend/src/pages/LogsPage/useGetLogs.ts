@@ -119,6 +119,12 @@ export const useGetLogs = ({
 			project_id: project_id!,
 			log_cursors: data?.logs.edges.map((e) => e.cursor) || [],
 			trace_ids: logTraceIds,
+			date_range: {
+				start_date: moment(startDate)
+					.subtract(5, 'minutes')
+					.format(TIME_FORMAT),
+				end_date: moment(endDate).add(5, 'minutes').format(TIME_FORMAT),
+			},
 		},
 		skip: !data?.logs.edges.length,
 	})
