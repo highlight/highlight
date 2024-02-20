@@ -955,7 +955,7 @@ type ComplexityRoot struct {
 		EventChunkURL                    func(childComplexity int, secureID string, index int) int
 		EventChunks                      func(childComplexity int, secureID string) int
 		Events                           func(childComplexity int, sessionSecureID string) int
-		ExistingLogsTraces               func(childComplexity int, projectID int, traceIds []string) int
+		ExistingLogsTraces               func(childComplexity int, projectID int, traceIds []string, dateRange model.DateRangeRequiredInput) int
 		FieldSuggestion                  func(childComplexity int, projectID int, name string, query string) int
 		FieldTypesClickhouse             func(childComplexity int, projectID int, startDate time.Time, endDate time.Time) int
 		FieldsClickhouse                 func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) int
@@ -1850,7 +1850,7 @@ type QueryResolver interface {
 	LogsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model1.ErrorObject, error)
-	ExistingLogsTraces(ctx context.Context, projectID int, traceIds []string) ([]string, error)
+	ExistingLogsTraces(ctx context.Context, projectID int, traceIds []string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	ErrorResolutionSuggestion(ctx context.Context, errorObjectID int) (string, error)
 	SessionInsight(ctx context.Context, secureID string) (*model1.SessionInsight, error)
 	SessionExports(ctx context.Context, projectID int) ([]*model.SessionExportWithSession, error)
@@ -6973,7 +6973,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ExistingLogsTraces(childComplexity, args["project_id"].(int), args["trace_ids"].([]string)), true
+		return e.complexity.Query.ExistingLogsTraces(childComplexity, args["project_id"].(int), args["trace_ids"].([]string), args["date_range"].(model.DateRangeRequiredInput)), true
 
 	case "Query.field_suggestion":
 		if e.complexity.Query.FieldSuggestion == nil {
@@ -12750,7 +12750,11 @@ type Query {
 		date_range: DateRangeRequiredInput!
 	): [String!]!
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
-	existing_logs_traces(project_id: ID!, trace_ids: [String!]!): [String!]!
+	existing_logs_traces(
+		project_id: ID!
+		trace_ids: [String!]!
+		date_range: DateRangeRequiredInput!
+	): [String!]!
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
 	session_exports(project_id: ID!): [SessionExportWithSession!]!
@@ -17717,6 +17721,15 @@ func (ec *executionContext) field_Query_existing_logs_traces_args(ctx context.Co
 		}
 	}
 	args["trace_ids"] = arg1
+	var arg2 model.DateRangeRequiredInput
+	if tmp, ok := rawArgs["date_range"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
+		arg2, err = ec.unmarshalNDateRangeRequiredInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["date_range"] = arg2
 	return args, nil
 }
 
@@ -57291,7 +57304,7 @@ func (ec *executionContext) _Query_existing_logs_traces(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ExistingLogsTraces(rctx, fc.Args["project_id"].(int), fc.Args["trace_ids"].([]string))
+		return ec.resolvers.Query().ExistingLogsTraces(rctx, fc.Args["project_id"].(int), fc.Args["trace_ids"].([]string), fc.Args["date_range"].(model.DateRangeRequiredInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
