@@ -44,30 +44,9 @@ const PricingPage: NextPage = () => {
 			<Navbar />
 			<div className="flex flex-col w-full px-10 mx-auto my-24">
 				<div className="flex flex-col items-center text-center gap-9">
-					<MyToggle />
-
-					<h1 className="max-w-3xl">Pricing</h1>
+					<h1 className="max-w-3xl my-0">Pricing plans</h1>
 				</div>
 				<PlanTable />
-				<div
-					className="flex flex-col items-center mt-32 text-center gap-9"
-					id="overage"
-				>
-					{/* Pay as you go */}
-					<h2>
-						Pay{' '}
-						<span className="text-highlight-yellow">
-							as you go.
-						</span>
-					</h2>
-					<Typography type="copy1" onDark className="max-w-4xl">
-						After reaching the free tier limits, we charge an
-						additional usage-based fee for each product. The $50
-						base fee unlocks discounted volume pricing
-						automatically. For custom plans,{' '}
-						<a href="mailto:sales@highlight.io">reach out to us</a>.
-					</Typography>
-				</div>
 			</div>
 			<FooterCallToAction />
 			<Footer />
@@ -494,7 +473,7 @@ const formatPrice = (
 	})
 
 const PriceCalculatorModal = () => {
-	let [isOpen, setIsOpen] = useState(true)
+	let [isOpen, setIsOpen] = useState(false)
 
 	function closeModal() {
 		setIsOpen(false)
