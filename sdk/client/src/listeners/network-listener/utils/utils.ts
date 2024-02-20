@@ -48,13 +48,33 @@ const sanitizeRequestResponsePair = (
 		requestResponseSanitizer,
 	}: SanitizeOptions,
 ): RequestResponsePair | null => {
+	// body keys are already be redacted at this point (see getBodyThatShouldBeRecorded)
 	let sanitizedPair: RequestResponsePair | null = pair
 
 	// step 1: pass through user defined sanitizer
 	if (requestResponseSanitizer) {
 		try {
+			try {
+				sanitizedPair.request.body = JSON.parse(
+					sanitizedPair.request.body,
+				)
+				sanitizedPair.response.body = JSON.parse(
+					sanitizedPair.response.body,
+				)
+			} catch (err) {}
+
 			sanitizedPair = requestResponseSanitizer(sanitizedPair)
-		} catch (err) {}
+		} catch (err) {
+		} finally {
+			if (sanitizedPair) {
+				sanitizedPair.request.body = JSON.stringify(
+					sanitizedPair.request.body,
+				)
+				sanitizedPair.response.body = JSON.stringify(
+					sanitizedPair.response.body,
+				)
+			}
+		}
 
 		if (!sanitizedPair) {
 			return null
