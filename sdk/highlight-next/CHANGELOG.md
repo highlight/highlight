@@ -1,5 +1,13 @@
 # @highlight-run/next
 
+## 7.3.7
+
+### Patch Changes
+
+-   9c0e08bf3: support backend url for sourcemap uploader for self-hosted deployments
+-   Updated dependencies [9c0e08bf3]
+    -   @highlight-run/sourcemap-uploader@0.6.1
+
 ## 7.3.6
 
 ### Patch Changes
