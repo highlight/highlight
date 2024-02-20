@@ -6,16 +6,14 @@ import { FooterCallToAction } from '../../components/common/CallToAction/FooterC
 import Footer from '../../components/common/Footer/Footer'
 import Navbar from '../../components/common/Navbar/Navbar'
 import { Typography } from '../../components/common/Typography/Typography'
-import homeStyles from '../../components/Home/Home.module.scss'
 import WideCard from '../../components/Integrations/WideCard'
 
-import { Popover, RadioGroup } from '@headlessui/react'
+import { Dialog, Popover, RadioGroup, Transition } from '@headlessui/react'
 import * as Slider from '@radix-ui/react-slider'
 import classNames from 'classnames'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { InlineWidget } from 'react-calendly'
 import { HeadlessTooltip } from '../../components/Competitors/ComparisonTable'
-import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel'
 
 import { Switch } from '@headlessui/react'
 import { HiReceiptTax } from 'react-icons/hi'
@@ -44,7 +42,7 @@ const PricingPage: NextPage = () => {
 	return (
 		<div>
 			<Navbar />
-			<div className="flex flex-col w-full px-10 mx-auto mt-24">
+			<div className="flex flex-col w-full px-10 mx-auto my-24">
 				<div className="flex flex-col items-center text-center gap-9">
 					<MyToggle />
 
@@ -69,17 +67,6 @@ const PricingPage: NextPage = () => {
 						automatically. For custom plans,{' '}
 						<a href="mailto:sales@highlight.io">reach out to us</a>.
 					</Typography>
-				</div>
-				<PriceCalculator />
-			</div>
-
-			<div className="px-10 mt-32 mb-20">
-				<CompaniesReel />
-
-				<div className={classNames(homeStyles.anchorFeature, 'mt-20')}>
-					<div className={homeStyles.anchorHead}>
-						<h2>{`Frequently asked questions`}</h2>
-					</div>
 				</div>
 			</div>
 			<FooterCallToAction />
@@ -471,30 +458,7 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 				)}
 			</Popover>
 			<div className="p-4">
-				{calculateUsage && (
-					<div
-						onClick={(e) => {
-							e.preventDefault()
-							document.querySelector('#overage')?.scrollIntoView({
-								behavior: 'smooth',
-							})
-							window.history.pushState({}, '', `#overage`)
-						}}
-					>
-						<PrimaryButton
-							href="#overage"
-							className="flex justify-center border border-copy-on-dark text-copy-on-dark bg-transparent text-center py-1 rounded-md"
-						>
-							<Typography
-								className="text-copy-on-dark"
-								type="copy3"
-								emphasis
-							>
-								Estimate your bill
-							</Typography>
-						</PrimaryButton>
-					</div>
-				)}
+				{calculateUsage && <PriceCalculatorModal />}
 			</div>
 		</div>
 	)
@@ -528,6 +492,65 @@ const formatPrice = (
 		currency: 'USD',
 		signDisplay: signDisplay ?? 'always',
 	})
+
+const PriceCalculatorModal = () => {
+	let [isOpen, setIsOpen] = useState(true)
+
+	function closeModal() {
+		setIsOpen(false)
+	}
+
+	function openModal() {
+		setIsOpen(true)
+	}
+
+	return (
+		<>
+			<PrimaryButton
+				onClick={openModal}
+				className="flex justify-center border border-copy-on-dark text-copy-on-dark bg-transparent text-center py-1 rounded-md"
+			>
+				<Typography className="text-copy-on-dark" type="copy3" emphasis>
+					Estimate your bill
+				</Typography>
+			</PrimaryButton>
+
+			<Transition appear show={isOpen} as={Fragment}>
+				<Dialog as="div" className="relative" onClose={closeModal}>
+					<Transition.Child
+						as={Fragment}
+						enter="ease-out duration-300"
+						enterFrom="opacity-0"
+						enterTo="opacity-100"
+						leave="ease-in duration-200"
+						leaveFrom="opacity-100"
+						leaveTo="opacity-0"
+					>
+						<div className="fixed inset-0 bg-dark-background bg-opacity-80 z-10" />
+					</Transition.Child>
+
+					<div className="fixed inset-0 overflow-y-auto z-50">
+						<div className="flex min-h-full items-center justify-center p-4 text-center">
+							<Transition.Child
+								as={Fragment}
+								enter="ease-out duration-300"
+								enterFrom="opacity-0 scale-95"
+								enterTo="opacity-100 scale-100"
+								leave="ease-in duration-200"
+								leaveFrom="opacity-100 scale-100"
+								leaveTo="opacity-0 scale-95"
+							>
+								<Dialog.Panel className="transform overflow-hidden bg-dark-background translate-y-36 text-left align-middle shadow-xl transition-all">
+									<PriceCalculator />
+								</Dialog.Panel>
+							</Transition.Child>
+						</div>
+					</div>
+				</Dialog>
+			</Transition>
+		</>
+	)
+}
 
 const PriceCalculator = () => {
 	const defaultErrors = prices.Errors.free
@@ -594,7 +617,7 @@ const PriceCalculator = () => {
 	)
 
 	return (
-		<div className="flex flex-col items-center w-full gap-10 mx-auto mt-12">
+		<div className="flex flex-col items-center w-full gap-10 mx-auto rounded-2xl">
 			{/* Price calculator */}
 			<div className="flex flex-col items-end w-full max-w-[1100px]">
 				<div className="flex flex-col overflow-hidden border divide-y rounded-lg md:rounded-br-none divide-divider-on-dark border-divider-on-dark">
