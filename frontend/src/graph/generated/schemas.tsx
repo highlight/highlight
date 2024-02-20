@@ -2206,6 +2206,7 @@ export type QueryEventsArgs = {
 }
 
 export type QueryExisting_Logs_TracesArgs = {
+	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
 	trace_ids: Array<Scalars['String']>
 }

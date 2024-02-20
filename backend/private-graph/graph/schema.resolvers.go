@@ -7799,13 +7799,13 @@ func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []strin
 }
 
 // ExistingLogsTraces is the resolver for the existing_logs_traces field.
-func (r *queryResolver) ExistingLogsTraces(ctx context.Context, projectID int, traceIds []string) ([]string, error) {
+func (r *queryResolver) ExistingLogsTraces(ctx context.Context, projectID int, traceIds []string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ExistingTraceIds(ctx, project.ID, traceIds)
+	return r.ClickhouseClient.ExistingTraceIds(ctx, project.ID, traceIds, dateRange.StartDate, dateRange.EndDate)
 }
 
 // ErrorResolutionSuggestion is the resolver for the error_resolution_suggestion field.
