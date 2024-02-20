@@ -8,7 +8,7 @@ import { LogEdge, PageInfo } from '@graph/schemas'
 import * as Types from '@graph/schemas'
 import { usePollQuery } from '@util/search'
 import moment from 'moment'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
@@ -106,38 +106,49 @@ export const useGetLogs = ({
 		}, []),
 	})
 
-	const logTraceIdSet = new Set()
-	let latestLogTime, earliestLogTime
+	const logResultMetadata = useMemo(() => {
+		const logTraceIdSet = new Set()
+		const logCursors = []
+		let latestLogTime, earliestLogTime
 
-	if (data?.logs.edges.length) {
-		for (const edge of data.logs.edges) {
-			if (edge.node.traceID) {
-				logTraceIdSet.add(edge.node.traceID)
-			}
+		if (data?.logs.edges.length) {
+			logCursors.push(data.logs.edges[0].cursor)
 
-			if (!latestLogTime || latestLogTime < edge.node.timestamp) {
-				latestLogTime = edge.node.timestamp
-			}
+			for (const edge of data.logs.edges) {
+				if (edge.node.traceID) {
+					logTraceIdSet.add(edge.node.traceID)
+				}
 
-			if (!earliestLogTime || earliestLogTime > edge.node.timestamp) {
-				earliestLogTime = edge.node.timestamp
+				if (!latestLogTime || latestLogTime < edge.node.timestamp) {
+					latestLogTime = edge.node.timestamp
+				}
+
+				if (!earliestLogTime || earliestLogTime > edge.node.timestamp) {
+					earliestLogTime = edge.node.timestamp
+				}
 			}
 		}
-	}
 
-	latestLogTime = latestLogTime || endDate
-	earliestLogTime = earliestLogTime || startDate
+		latestLogTime = earliestLogTime = earliestLogTime || startDate
+		return {
+			logCursors: logCursors,
+			traceIds: Array.from(logTraceIdSet) as string[],
+			endDate: latestLogTime || endDate,
+			startDate: earliestLogTime || startDate,
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [data?.logs.edges])
 
 	const { data: logRelatedResources } = useGetLogsRelatedResourcesQuery({
 		variables: {
 			project_id: project_id!,
-			log_cursors: data?.logs.edges.map((e) => e.cursor) || [],
-			trace_ids: Array.from(logTraceIdSet) as string[],
+			log_cursors: logResultMetadata.logCursors,
+			trace_ids: logResultMetadata.traceIds,
 			date_range: {
-				start_date: moment(latestLogTime)
+				start_date: moment(logResultMetadata.startDate)
 					.subtract(5, 'minutes')
 					.format(TIME_FORMAT),
-				end_date: moment(earliestLogTime)
+				end_date: moment(logResultMetadata.endDate)
 					.add(5, 'minutes')
 					.format(TIME_FORMAT),
 			},
