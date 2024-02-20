@@ -1,4 +1,7 @@
-x-logging: &highlight-logging
+x-local-logging: &local-logging
+    driver: local
+
+x-highlight-logging: &highlight-logging
     driver: fluentd
     options:
         fluentd-address: '127.0.0.1:24224'
