@@ -1,27 +1,50 @@
-x-logging: &local-logging
-    driver: local
-
 x-backend-env: &backend-env
     environment:
+        - ADMIN_PASSWORD
+        - CLEARBIT_API_KEY
         - CLICKHOUSE_ADDRESS
         - CLICKHOUSE_DATABASE
         - CLICKHOUSE_PASSWORD
         - CLICKHOUSE_USERNAME
+        - CLICKUP_CLIENT_ID
+        - CLICKUP_CLIENT_SECRET
         - DEMO_PROJECT_ID
+        - DISCORD_BOT_SECRET
+        - DISCORD_CLIENT_ID
+        - DISCORD_CLIENT_SECRET
         - DOPPLER_CONFIG
         - ENABLE_OBJECT_STORAGE=true
         - ENVIRONMENT
         - FIREBASE_SECRET
+        - FRONT_CLIENT_ID
+        - FRONT_CLIENT_SECRET
+        - GITHUB_APP_ID
+        - GITHUB_CLIENT_ID
+        - GITHUB_CLIENT_SECRET
+        - GITHUB_PRIVATE_KEY
+        - GITLAB_CLIENT_ID
+        - GITLAB_CLIENT_SECRET
+        - HEIGHT_CLIENT_ID
+        - HEIGHT_CLIENT_SECRET
         - IN_DOCKER=true
         - IN_DOCKER_GO=true
+        - JIRA_CLIENT_ID
+        - JIRA_CLIENT_ID
+        - JIRA_CLIENT_SECRET
+        - JIRA_CLIENT_SECRET
         - KAFKA_SERVERS
         - KAFKA_TOPIC
+        - LICENSE_KEY
+        - LINEAR_CLIENT_ID
+        - LINEAR_CLIENT_SECRET
+        - MICROSOFT_TEAMS_BOT_ID
+        - MICROSOFT_TEAMS_BOT_PASSWORD
         - OBJECT_STORAGE_FS=/highlight-data
         - ON_PREM=true
         - OTLP_ENDPOINT
         - PSQL_DB
-        - PSQL_HOST
         - PSQL_DOCKER_HOST
+        - PSQL_HOST
         - PSQL_PASSWORD
         - PSQL_PORT
         - PSQL_USER
@@ -32,52 +55,16 @@ x-backend-env: &backend-env
         - REDIS_ADDRESS
         - REDIS_EVENTS_STAGING_ENDPOINT
         - SESSION_FILE_PATH_PREFIX
+        - SLACK_CLIENT_ID
+        - SLACK_CLIENT_SECRET
+        - SLACK_SIGNING_SECRET
         - SSL
         - TZ
-        - ADMIN_PASSWORD
+        - VERCEL_CLIENT_ID
+        - VERCEL_CLIENT_SECRET
 
+# Highlight.io services for the hobby deployment.
 services:
-    zookeeper:
-        extends:
-            file: compose.yml
-            service: zookeeper
-        logging: *local-logging
-
-    kafka:
-        extends:
-            file: compose.yml
-            service: kafka
-        logging: *local-logging
-        environment:
-            # needs to share docker-internal address
-            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-
-    redis:
-        extends:
-            file: compose.yml
-            service: redis
-        logging: *local-logging
-
-    postgres:
-        extends:
-            file: compose.yml
-            service: postgres
-        logging: *local-logging
-
-    clickhouse:
-        extends:
-            file: compose.yml
-            service: clickhouse
-        logging: *local-logging
-
-    collector:
-        extends:
-            file: compose.yml
-            service: collector
-        logging: *local-logging
-        volumes:
-            - ./otel-collector.hobby.yaml:/etc/otel-collector-config.yaml
-
     backend:
         container_name: backend
         image: ghcr.io/highlight/highlight-backend:latest
@@ -87,19 +74,8 @@ services:
             interval: 5s
             timeout: 5s
             retries: 5
-        depends_on:
-            kafka:
-                condition: service_started
-            redis:
-                condition: service_started
-            postgres:
-                condition: service_healthy
-            clickhouse:
-                condition: service_started
-            collector:
-                condition: service_started
         ports:
-            - 8082:8082
+            - '0.0.0.0:8082:8082'
         volumes:
             - highlight-data:/highlight-data
         <<: *backend-env
@@ -114,10 +90,9 @@ services:
             timeout: 5s
             retries: 5
         ports:
-            - 80:3000
-            - 3000:3000
-            - 6006:6006
-            - 8080:8080
+            - '0.0.0.0:3000:3000'
+            - '0.0.0.0:6006:6006'
+            - '0.0.0.0:8080:8080'
         environment:
             - REACT_APP_PRIVATE_GRAPH_URI
             - REACT_APP_PUBLIC_GRAPH_URI

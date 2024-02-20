@@ -63,7 +63,7 @@ func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
 	atClaims["authorized"] = true
 	atClaims["exp"] = time.Now().Add(AdminPasswordTokenDuration).Unix()
 	atClaims["email"] = user.Email
-	atClaims["uid"] = user.UID
+	atClaims["uid"] = user.Email
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 
 	token, err := at.SignedString([]byte(JwtAccessSecret))
@@ -125,11 +125,11 @@ func (r *Resolver) ValidateAuthToken(w http.ResponseWriter, req *http.Request) {
 
 func GetPasswordAuthUser(email string) *auth.UserInfo {
 	return &auth.UserInfo{
-		DisplayName: "Hobby Highlighter",
+		DisplayName: email,
+		UID:         email,
 		Email:       email,
 		PhoneNumber: "+14081234567",
 		PhotoURL:    "https://picsum.photos/200",
 		ProviderID:  "",
-		UID:         "12345abcdef09876a1b2c3d4e5f",
 	}
 }

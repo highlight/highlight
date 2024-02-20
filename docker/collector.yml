@@ -10,8 +10,13 @@ receivers:
     tcplog:
         listen_address: '0.0.0.0:34302'
 exporters:
+    logging:
+        sampling_initial: 10
+        sampling_thereafter: 1000
     otlphttp:
-        endpoint: 'http://backend:8082/otel'
+        endpoint: 'https://host.docker.internal:8082/otel'
+        tls:
+            insecure_skip_verify: true
         timeout: 30s
         sending_queue:
             num_consumers: 64
@@ -26,13 +31,13 @@ processors:
         limit_percentage: 75
         spike_limit_percentage: 15
     batch:
-        send_batch_size: 512
-        send_batch_max_size: 512
+        send_batch_size: 128
+        send_batch_max_size: 128
         timeout: 1s
 service:
     telemetry:
         logs:
-            level: 'info'
+            level: 'debug'
         metrics:
             address: '0.0.0.0:8888'
             level: detailed
@@ -41,15 +46,15 @@ service:
         traces:
             receivers: [otlp]
             processors: [memory_limiter, batch]
-            exporters: [otlphttp]
+            exporters: [otlphttp, logging]
         metrics:
             receivers: [otlp]
             processors: [memory_limiter, batch]
-            exporters: [otlphttp]
+            exporters: [otlphttp, logging]
         logs:
             receivers: [otlp, fluentforward, tcplog]
             processors: [memory_limiter, batch]
-            exporters: [otlphttp]
+            exporters: [otlphttp, logging]
 extensions:
     health_check:
         endpoint: '0.0.0.0:4319'

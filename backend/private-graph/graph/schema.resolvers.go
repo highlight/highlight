@@ -6184,12 +6184,14 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 	if err != nil {
 		return nil, err
 	}
+
+	var joinableWorkspaces []*model.Workspace
 	domain, err := r.getCustomVerifiedAdminEmailDomain(admin)
 	if err != nil {
-		return nil, e.Wrap(err, "error getting custom verified admin email domain")
+		// cannot join workspaces with a public email
+		return joinableWorkspaces, nil
 	}
 
-	joinableWorkspaces := []*model.Workspace{}
 	if err := r.DB.WithContext(ctx).Model(&model.Workspace{}).
 		Where(`id NOT IN (
 			SELECT workspace_id
