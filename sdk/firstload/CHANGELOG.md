@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.5.0
+
+### Minor Changes
+
+-   102710b30: Make improvements to `requestResponseSanitizer` method to pass function in a body converted to json instead of a string.
+
 ## 8.4.1
 
 ### Patch Changes
