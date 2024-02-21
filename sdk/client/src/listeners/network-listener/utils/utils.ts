@@ -53,25 +53,39 @@ const sanitizeRequestResponsePair = (
 
 	// step 1: pass through user defined sanitizer
 	if (requestResponseSanitizer) {
+		let stringifyRequestBody = true
 		try {
-			try {
-				sanitizedPair.request.body = JSON.parse(
-					sanitizedPair.request.body,
-				)
-				sanitizedPair.response.body = JSON.parse(
-					sanitizedPair.response.body,
-				)
-			} catch (err) {}
+			sanitizedPair.request.body = JSON.parse(sanitizedPair.request.body)
+		} catch (err) {
+			stringifyRequestBody = false
+		}
 
+		let stringifyResponseBody = true
+		try {
+			sanitizedPair.response.body = JSON.parse(
+				sanitizedPair.response.body,
+			)
+		} catch (err) {
+			stringifyResponseBody = false
+		}
+
+		try {
 			sanitizedPair = requestResponseSanitizer(sanitizedPair)
 		} catch (err) {
 		} finally {
-			if (sanitizedPair) {
-				sanitizedPair.request.body = JSON.stringify(
-					sanitizedPair.request.body,
+			stringifyRequestBody =
+				stringifyRequestBody && !!sanitizedPair?.request?.body
+			stringifyResponseBody =
+				stringifyResponseBody && !!sanitizedPair?.response?.body
+
+			if (stringifyRequestBody) {
+				sanitizedPair!.request.body = JSON.stringify(
+					sanitizedPair!.request.body,
 				)
-				sanitizedPair.response.body = JSON.stringify(
-					sanitizedPair.response.body,
+			}
+			if (stringifyResponseBody) {
+				sanitizedPair!.response.body = JSON.stringify(
+					sanitizedPair!.response.body,
 				)
 			}
 		}
