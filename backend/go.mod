@@ -27,13 +27,13 @@ require (
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/andybalholm/brotli v1.0.6
 	github.com/antlr4-go/antlr/v4 v4.13.0
-	github.com/aws/aws-sdk-go-v2 v1.25.1
+	github.com/aws/aws-sdk-go-v2 v1.16.15
 	github.com/aws/aws-sdk-go-v2/config v1.8.3
 	github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign v1.3.5
-	github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice v1.19.3
+	github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice v1.11.16
 	github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.13.18
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.16.1
-	github.com/aws/smithy-go v1.20.1
+	github.com/aws/smithy-go v1.13.5
 	github.com/bradleyfalzon/ghinstallation/v2 v2.3.0
 	github.com/clearbit/clearbit-go v1.0.1
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
@@ -106,8 +106,8 @@ require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/PaesslerAG/gval v1.2.0 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.1 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.1 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.22 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.16 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
