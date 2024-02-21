@@ -1,5 +1,5 @@
 ---
-title: 'The 4 Best Frameworks for Robust Application Insights in Java'
+title: 'The 4 Best Frameworks for Robust Logging in Java'
 createdAt: 2024-02-08T00:00:00.000Z
 readingTime: 6
 authorFirstName: Vadim
@@ -60,6 +60,24 @@ private static final Logger logger = LoggerFactory.getLogger(MyApp.class);
         logger.info("Hello, SLF4J!");
     }
 }
+```
+
+The project `pom.xml` would define the logger that SLF4J is using to process the data. With no code changes, you can set the logger binding to
+any library that will act as the backend for the log data.
+
+```XML
+<!-- SLF4J API -->
+<dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>1.7.30</version>
+</dependency>
+<!-- logback binding -->
+<dependency>
+    <groupId>ch.qos.logback</groupId>
+    <artifactId>logback-classic</artifactId>
+    <version>1.2.3</version>
+</dependency>
 ```
 
 <BlogCallToAction/>
