@@ -1295,7 +1295,13 @@ func (w *Worker) AddOrUpdateOverageItem(newPrice *stripe.Price, invoiceLine *str
 func (w *Worker) ReportAllUsage(ctx context.Context) {
 	// Get all workspace IDs
 	var workspaces []*model.Workspace
-	if err := w.db.WithContext(ctx).Model(&model.Workspace{}).Preload("AWSMarketplaceCustomer").Where("billing_period_start is not null").Where("billing_period_end is not null").Scan(&workspaces).Error; err != nil {
+	if err := w.db.WithContext(ctx).
+		Model(&model.Workspace{}).
+		Preload("AWSMarketplaceCustomer").
+		Joins("AWSMarketplaceCustomer").
+		Where("billing_period_start is not null").
+		Where("billing_period_end is not null").
+		Scan(&workspaces).Error; err != nil {
 		log.WithContext(ctx).Error("failed to query workspaces")
 		return
 	}
