@@ -377,7 +377,6 @@ func (r *Resolver) GetAWSMarketPlaceWorkspace(ctx context.Context, workspaceID i
 	var workspace model.Workspace
 	if err := r.DB.WithContext(ctx).
 		Model(&workspace).
-		Preload("AWSMarketplaceCustomer").
 		Joins("AWSMarketplaceCustomer").
 		Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).
 		Take(&workspace).

@@ -1003,6 +1003,7 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 
 	// For annual subscriptions, set PendingInvoiceItemInterval to 'month' if not set
 	if interval == model.PricingSubscriptionIntervalAnnual &&
+		subscription.PendingInvoiceItemInterval != nil &&
 		subscription.PendingInvoiceItemInterval.Interval != stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth {
 		updated, err := w.stripeClient.Subscriptions.Update(subscription.ID, &stripe.SubscriptionParams{
 			PendingInvoiceItemInterval: &stripe.SubscriptionPendingInvoiceItemIntervalParams{
@@ -1297,11 +1298,10 @@ func (w *Worker) ReportAllUsage(ctx context.Context) {
 	var workspaces []*model.Workspace
 	if err := w.db.WithContext(ctx).
 		Model(&model.Workspace{}).
-		Preload("AWSMarketplaceCustomer").
 		Joins("AWSMarketplaceCustomer").
 		Where("billing_period_start is not null").
 		Where("billing_period_end is not null").
-		Scan(&workspaces).Error; err != nil {
+		Find(&workspaces).Error; err != nil {
 		log.WithContext(ctx).Error("failed to query workspaces")
 		return
 	}
