@@ -13,6 +13,7 @@ type Props = {
 	traceId?: string
 	secureSessionId?: string
 	disableErrors: boolean
+	displayErrorTooltip?: boolean
 	startDate: Date
 	endDate: Date
 }
@@ -21,6 +22,7 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 	traceId,
 	secureSessionId,
 	disableErrors,
+	displayErrorTooltip,
 	startDate,
 	endDate,
 }) => {
@@ -47,6 +49,9 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 					disabled: errorLinkDisabled,
 					icon: <IconSolidLightningBolt />,
 					label: 'View errors',
+					tooltip: displayErrorTooltip
+						? 'Some errors may be filtered out due to your ingestion filter settings or exceeding your billing quota. Please reach out with any questions.'
+						: '',
 				},
 				{
 					key: 'session',
