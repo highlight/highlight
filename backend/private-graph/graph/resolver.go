@@ -1819,7 +1819,7 @@ func (r *Resolver) ResolveAWSMarketplaceToken(ctx context.Context, token string)
 			WithField("token", token).
 			WithField("customer", pointy.StringValue(customer.CustomerIdentifier, "")).
 			WithField("entitlement_dimension", pointy.StringValue(ent.Dimension, "")).
-			WithField("entitlement_value", pointy.Float64Value(ent.Value.DoubleValue, 0.)).
+			WithField("entitlement_value", ent.Value).
 			Info("found entitlement for customer")
 	}
 
