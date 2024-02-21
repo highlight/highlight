@@ -78,6 +78,8 @@ services:
             - '0.0.0.0:8082:8082'
         volumes:
             - highlight-data:/highlight-data
+            - ../backend/localhostssl/server.key:/build/localhostssl/server.key
+            - ../backend/localhostssl/server.crt:/build/localhostssl/server.crt
         <<: *backend-env
 
     frontend:
@@ -89,6 +91,9 @@ services:
             interval: 5s
             timeout: 5s
             retries: 5
+        volumes:
+            - ../backend/localhostssl/server.key:/etc/ssl/private/ssl-cert.key
+            - ../backend/localhostssl/server.pem:/etc/ssl/certs/ssl-cert.pem
         ports:
             - '0.0.0.0:3000:3000'
             - '0.0.0.0:6006:6006'
