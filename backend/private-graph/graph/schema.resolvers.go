@@ -1441,11 +1441,20 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 		"logs":     nil,
 		"traces":   nil,
 	}
+	multipliers := map[string]int{
+		"sessions": 1_000,
+		"errors":   1_000,
+		"logs":     1_000_000,
+		"traces":   1_000_000,
+	}
+
 	for key := range products {
 		if v, ok := lo.Find(entitlements, func(item mpeTypes.Entitlement) bool {
 			return pointy.StringValue(item.Dimension, "") == key
 		}); ok {
-			products[key] = pointy.Int(int(pointy.Int32Value(v.Value.IntegerValue, 0)))
+			if v.Value.IntegerValue != nil {
+				products[key] = pointy.Int(multipliers[key] * int(*v.Value.IntegerValue))
+			}
 		}
 	}
 	if err := r.DB.WithContext(ctx).
