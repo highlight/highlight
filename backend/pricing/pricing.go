@@ -1299,15 +1299,15 @@ func (w *Worker) ReportAllUsage(ctx context.Context) {
 
 	awsWorkspaceUsages := AWSCustomerUsages{}
 	for _, workspace := range workspaces {
-		if err := w.reportStripeUsage(ctx, workspace.ID); err != nil {
-			log.WithContext(ctx).Error(e.Wrapf(err, "error reporting stripe usage for workspace %d", workspace.ID))
-		} else if workspace.AWSMarketplaceCustomer != nil {
+		if workspace.AWSMarketplaceCustomer != nil {
 			usage, err := w.CalculateOverages(ctx, workspace.ID)
 			if err != nil {
 				log.WithContext(ctx).Error(e.Wrapf(err, "error calculating aws overages for workspace %d", workspace.ID))
 			} else {
 				awsWorkspaceUsages[workspace.ID] = AWSCustomerUsage{workspace.AWSMarketplaceCustomer, usage}
 			}
+		} else if err := w.reportStripeUsage(ctx, workspace.ID); err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "error reporting stripe usage for workspace %d", workspace.ID))
 		}
 	}
 	w.ReportAWSMPUsages(ctx, awsWorkspaceUsages)
