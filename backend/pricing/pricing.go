@@ -4,10 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice"
+	mpeTypes "github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice/types"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering/types"
 	"github.com/aws/smithy-go/ptr"
@@ -1311,4 +1314,31 @@ func (w *Worker) ReportAllUsage(ctx context.Context) {
 		}
 	}
 	w.ReportAWSMPUsages(ctx, awsWorkspaceUsages)
+}
+
+func GetEntitlements(ctx context.Context, customer *marketplacemetering.ResolveCustomerOutput) ([]mpeTypes.Entitlement, error) {
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(model.AWS_REGION_US_EAST_2))
+	if err != nil {
+		return nil, err
+	}
+
+	var entitlements []mpeTypes.Entitlement
+	var page *string
+	mpe := marketplaceentitlementservice.NewFromConfig(cfg)
+	for {
+		ent, err := mpe.GetEntitlements(ctx, &marketplaceentitlementservice.GetEntitlementsInput{
+			ProductCode: customer.ProductCode,
+			Filter: map[string][]string{
+				"CUSTOMER_IDENTIFIER": {pointy.StringValue(customer.CustomerIdentifier, "")},
+			},
+			MaxResults: pointy.Int32(100),
+			NextToken:  page,
+		})
+		if err != nil || len(ent.Entitlements) == 0 || ent.NextToken == nil {
+			break
+		}
+		entitlements = append(entitlements, ent.Entitlements...)
+		page = ent.NextToken
+	}
+	return entitlements, nil
 }

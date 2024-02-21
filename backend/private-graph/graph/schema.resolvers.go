@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	mpeTypes "github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice/types"
 	"math"
 	"math/rand"
 	"net/url"
@@ -1425,6 +1426,45 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 			CustomerIdentifier:   customer.CustomerIdentifier,
 			CustomerAWSAccountID: customer.CustomerAWSAccountId,
 			ProductCode:          customer.ProductCode,
+		}).Error; err != nil {
+		return nil, err
+	}
+
+	entitlements, err := pricing.GetEntitlements(ctx, &customer)
+	if err != nil {
+		return nil, err
+	}
+
+	products := map[string]*int{
+		"sessions": nil,
+		"errors":   nil,
+		"logs":     nil,
+		"traces":   nil,
+	}
+	for key := range products {
+		if v, ok := lo.Find(entitlements, func(item mpeTypes.Entitlement) bool {
+			return pointy.StringValue(item.Dimension, "") == key
+		}); ok {
+			products[key] = pointy.Int(int(pointy.Int32Value(v.Value.IntegerValue, 0)))
+		}
+	}
+	if err := r.DB.WithContext(ctx).
+		Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).
+		Clauses(clause.OnConflict{
+			Columns: []clause.Column{{Name: "id"}},
+			DoUpdates: clause.AssignmentColumns([]string{
+				"monthly_session_limit",
+				"monthly_errors_limit",
+				"monthly_logs_limit",
+				"monthly_traces_limit",
+			}),
+		}).
+		Model(&model.Workspace{}).
+		Updates(&model.Workspace{
+			MonthlySessionLimit: products["sessions"],
+			MonthlyErrorsLimit:  products["errors"],
+			MonthlyLogsLimit:    products["logs"],
+			MonthlyTracesLimit:  products["traces"],
 		}).Error; err != nil {
 		return nil, err
 	}

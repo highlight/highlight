@@ -17,8 +17,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice"
-	"github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice/types"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"github.com/go-redis/cache/v9"
 
@@ -1811,30 +1809,16 @@ func (r *Resolver) ResolveAWSMarketplaceToken(ctx context.Context, token string)
 	if err != nil {
 		return nil, err
 	}
-	customerID := pointy.StringValue(customer.CustomerIdentifier, "")
 
-	var entitlements []types.Entitlement
-	var page *string
-	mpe := marketplaceentitlementservice.NewFromConfig(cfg)
-	for {
-		ent, err := mpe.GetEntitlements(ctx, &marketplaceentitlementservice.GetEntitlementsInput{
-			ProductCode: customer.ProductCode,
-			Filter: map[string][]string{
-				"CUSTOMER_IDENTIFIER": {customerID},
-			},
-			MaxResults: pointy.Int32(100),
-			NextToken:  page,
-		})
-		if err != nil || len(ent.Entitlements) == 0 || ent.NextToken == nil {
-			break
-		}
-		entitlements = append(entitlements, ent.Entitlements...)
-		page = ent.NextToken
+	entitlements, err := pricing.GetEntitlements(ctx, customer)
+	if err != nil {
+		return nil, err
 	}
+
 	for _, ent := range entitlements {
 		log.WithContext(ctx).
 			WithField("token", token).
-			WithField("customer", customerID).
+			WithField("customer", pointy.StringValue(customer.CustomerIdentifier, "")).
 			WithField("entitlement_dimension", pointy.StringValue(ent.Dimension, "")).
 			WithField("entitlement_value", pointy.Float64Value(ent.Value.DoubleValue, 0.)).
 			Info("found entitlement for customer")
