@@ -243,6 +243,41 @@ export default async function SsrPage({ searchParams }: Props) {
 }
 ```
 
+### Validate server actions
+
+1. Copy the following code into `app/server-actions/page.tsx`.
+2. Visit http://localhost:3000/server-actions and submit the form.
+3. Navigate to `app.highlight.io` to validate that the error was captured.
+
+```jsx
+export default function Page() {
+	async function createInvoice(formData: FormData) {
+		'use server'
+
+		if (formData.get('isError')) {
+			throw new Error(
+				'🌋 Server action error: src/app/server-actions/page.tsx',
+			)
+		}
+
+		console.info(
+			'🎉 Server action success: src/app/server-actions/page.tsx',
+		)
+	}
+
+	return (
+		<form action={createInvoice} style={{ padding: '1rem' }}>
+			<div style={{ display: 'flex', gap: '1rem' }}>
+				<label>Throw error</label>
+				<input type="checkbox" name="isError" defaultChecked />
+
+				<button>Submit form</button>
+			</div>
+		</form>
+	)
+}
+```
+
 ### Skip localhost tracking
 
 ```hint
