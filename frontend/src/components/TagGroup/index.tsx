@@ -1,6 +1,5 @@
-import { Box, IconProps, Tag } from '@highlight-run/ui/components'
-
-import { Link } from '@/components/Link'
+import { Link } from '@components/Link'
+import { Box, IconProps, Tag, Tooltip } from '@highlight-run/ui/components'
 
 import * as styles from './style.css'
 
@@ -16,6 +15,7 @@ type TagLink = {
 	disabled: boolean
 	icon: React.ReactElement<IconProps>
 	label: string
+	tooltip?: string
 }
 
 type Props = {
@@ -36,15 +36,12 @@ export const TagGroup: React.FC<Props> = ({ tagLinks }) => {
 					shape = 'rightBasic'
 				}
 
-				const href = tag.disabled ? '' : tag.href
-
 				return (
-					<Link
-						to={href}
-						className={styles.tagLink}
+					<TagContainer
 						key={tag.key}
-						// reload document to avoid removing time parameters from the URL
-						reloadDocument
+						disabled={tag.disabled}
+						tooltip={tag.tooltip}
+						href={tag.href}
 					>
 						<Tag
 							{...TAG_PROPS}
@@ -54,9 +51,32 @@ export const TagGroup: React.FC<Props> = ({ tagLinks }) => {
 						>
 							{tag.label}
 						</Tag>
-					</Link>
+					</TagContainer>
 				)
 			})}
 		</Box>
+	)
+}
+
+const TagContainer: React.FC<any> = ({ children, tooltip, disabled, href }) => {
+	const tagWithTooltip = tooltip ? (
+		<Tooltip trigger={children}>{tooltip}</Tooltip>
+	) : (
+		children
+	)
+
+	if (disabled) {
+		return <span className={styles.tagLink}>{tagWithTooltip}</span>
+	}
+
+	return (
+		<Link
+			to={href}
+			className={styles.tagLink}
+			// reload document to avoid removing time parameters from the URL
+			reloadDocument
+		>
+			{tagWithTooltip}
+		</Link>
 	)
 }
