@@ -24,7 +24,7 @@ In this article, we'll explore the four best logging libraries for Ruby:
 - [Logback](https://logback.qos.ch/)
 - [Java Util Logging (JUL)](https://docs.oracle.com/javase/8/docs/api/java/util/logging/package-summary.html)
 
-1. Log4j2 - The Performance Powerhouse
+## 1. Log4j2 - The Performance Powerhouse
 
 Log4j2 is a well-known successor to the original Log4j framework, offering significant improvements in both performance and flexibility. It's highly adaptable, supporting various output formats and configurable through XML, JSON, and YAML. What sets Log4j2 apart is its asynchronous logging capabilities, which reduce the impact on your application's performance. This feature is especially crucial for high-throughput applications where logging should not become a bottleneck.
 
@@ -43,7 +43,7 @@ private static final Logger logger = LogManager.getLogger(MyApp.class);
 }
 ```
 
-2. SLF4J - The Facade Favorite
+## 2. SLF4J - The Facade Favorite
 
 Simple Logging Facade for java (SLF4J) serves as a facade or abstraction for various logging frameworks. It allows you to plug in different logging frameworks at deployment time without changing your source code. This flexibility is invaluable when you need to switch between logging frameworks based on different project requirements or when working on multiple projects that use different logging systems.
 
@@ -82,7 +82,7 @@ any library that will act as the backend for the log data.
 
 <BlogCallToAction/>
 
-3. Logback - The Rising Star
+## 3. Logback - The Rising Star
 
 Logback is considered the successor to Log4j and offers several advantages, including faster performance, more concise configuration, and out-of-the-box support for JSON, XML, and HTML formats. It integrates seamlessly with SLF4J, providing a robust logging solution. Logback is an excellent choice for developers looking for a modern, efficient, and flexible logging framework.
 
@@ -101,7 +101,7 @@ private static final Logger logger = (Logger) LoggerFactory.getLogger(MyApp.clas
 }
 ```
 
-4. JUL (java Util Logging) - The Built-in Solution
+## 4. JUL (java Util Logging) - The Built-in Solution
 
 java Util Logging (JUL), included in the JDK, is a straightforward and accessible logging option for applications that don't require the complexity of external frameworks. While it may lack some advanced features of dedicated logging frameworks, JUL is a solid choice for simple applications or where minimizing external dependencies is a priority.
 
