@@ -42,6 +42,7 @@ x-backend-env: &backend-env
         - OBJECT_STORAGE_FS=/highlight-data
         - ON_PREM=true
         - OTLP_ENDPOINT
+        - OTLP_DOGFOOD_ENDPOINT
         - PSQL_DB
         - PSQL_DOCKER_HOST
         - PSQL_HOST

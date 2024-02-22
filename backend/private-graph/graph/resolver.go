@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"github.com/go-redis/cache/v9"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/bwmarrin/discordgo"
 	github2 "github.com/google/go-github/v50/github"
@@ -136,6 +137,7 @@ func isAuthError(err error) bool {
 
 type Resolver struct {
 	DB                     *gorm.DB
+	Tracer                 trace.Tracer
 	MailClient             *sendgrid.Client
 	StripeClient           *client.API
 	AWSMPClient            *marketplacemetering.Client

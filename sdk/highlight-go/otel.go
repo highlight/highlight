@@ -103,14 +103,6 @@ func getSampler() highlightSampler {
 	}
 }
 
-var (
-	tracer = otel.GetTracerProvider().Tracer(
-		"github.com/highlight/highlight/sdk/highlight-go",
-		trace.WithInstrumentationVersion("v0.1.0"),
-		trace.WithSchemaURL(semconv.SchemaURL),
-	)
-)
-
 func CreateTracerProvider(endpoint string) (*sdktrace.TracerProvider, error) {
 	var options []otlptracehttp.Option
 	if strings.HasPrefix(endpoint, "http://") {
@@ -148,6 +140,8 @@ func CreateTracerProvider(endpoint string) (*sdktrace.TracerProvider, error) {
 	), nil
 }
 
+var defaultTracer trace.Tracer
+
 func StartOTLP() (*OTLP, error) {
 	tracerProvider, err := CreateTracerProvider(conf.otlpEndpoint)
 	if err != nil {
@@ -155,6 +149,11 @@ func StartOTLP() (*OTLP, error) {
 	}
 
 	h := &OTLP{tracerProvider: tracerProvider}
+	defaultTracer = tracerProvider.Tracer(
+		"github.com/highlight/highlight/sdk/highlight-go",
+		trace.WithInstrumentationVersion("v0.1.0"),
+		trace.WithSchemaURL(semconv.SchemaURL),
+	)
 	otel.SetTracerProvider(h.tracerProvider)
 	return h, nil
 }
@@ -192,33 +191,34 @@ func StartTraceWithTracer(ctx context.Context, tracer trace.Tracer, name string,
 }
 
 func StartTraceWithTimestamp(ctx context.Context, name string, t time.Time, opts []trace.SpanStartOption, tags ...attribute.KeyValue) (trace.Span, context.Context) {
-	return StartTraceWithTracer(ctx, tracer, name, t, opts, tags...)
+	return StartTraceWithTracer(ctx, defaultTracer, name, t, opts, tags...)
 }
 
 func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
 	return StartTraceWithTimestamp(ctx, name, time.Now(), nil, tags...)
 }
 
-func StartTraceWithoutResourceAttributes(ctx context.Context, name string, opts []trace.SpanStartOption, tags ...attribute.KeyValue) (trace.Span, context.Context) {
-	resourceAttributes := []attribute.KeyValue{
-		semconv.ServiceNameKey.String(""),
-		semconv.ServiceVersionKey.String(""),
-		semconv.ContainerIDKey.String(""),
-		semconv.HostNameKey.String(""),
-		semconv.OSDescriptionKey.String(""),
-		semconv.OSTypeKey.String(""),
-		semconv.ProcessExecutableNameKey.String(""),
-		semconv.ProcessExecutablePathKey.String(""),
-		semconv.ProcessOwnerKey.String(""),
-		semconv.ProcessPIDKey.String(""),
-		semconv.ProcessRuntimeDescriptionKey.String(""),
-		semconv.ProcessRuntimeNameKey.String(""),
-		semconv.ProcessRuntimeVersionKey.String(""),
-	}
+var EmptyResourceAttributes = []attribute.KeyValue{
+	semconv.ServiceNameKey.String(""),
+	semconv.ServiceVersionKey.String(""),
+	semconv.ContainerIDKey.String(""),
+	semconv.HostNameKey.String(""),
+	semconv.OSDescriptionKey.String(""),
+	semconv.OSTypeKey.String(""),
+	semconv.ProcessExecutableNameKey.String(""),
+	semconv.ProcessExecutablePathKey.String(""),
+	semconv.ProcessOwnerKey.String(""),
+	semconv.ProcessPIDKey.String(""),
+	semconv.ProcessRuntimeDescriptionKey.String(""),
+	semconv.ProcessRuntimeNameKey.String(""),
+	semconv.ProcessRuntimeVersionKey.String(""),
+}
 
-	attrs := append(resourceAttributes, tags...)
+func StartTraceWithoutResourceAttributes(ctx context.Context, tracer trace.Tracer, name string, opts []trace.SpanStartOption, tags ...attribute.KeyValue) (trace.Span, context.Context) {
+	resourceAttributes := []attribute.KeyValue{}
+	attrs := append(append(resourceAttributes, EmptyResourceAttributes...), tags...)
 
-	return StartTraceWithTimestamp(ctx, name, time.Now(), opts, attrs...)
+	return StartTraceWithTracer(ctx, tracer, name, time.Now(), opts, attrs...)
 }
 
 func EndTrace(span trace.Span) {
