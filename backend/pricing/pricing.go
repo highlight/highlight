@@ -839,6 +839,7 @@ func (w *Worker) ReportAWSMPUsages(ctx context.Context, usages AWSCustomerUsages
 		}); err != nil {
 			log.WithContext(ctx).WithError(err).Error("BILLING_ERROR failed to report aws mp usages")
 		}
+		log.WithContext(ctx).WithField("chunk", chunk).Infof("reported aws mp usage for %d records", len(chunk))
 	}
 }
 
@@ -1314,6 +1315,10 @@ func (w *Worker) ReportAllUsage(ctx context.Context) {
 				log.WithContext(ctx).Error(e.Wrapf(err, "error calculating aws overages for workspace %d", workspace.ID))
 			} else {
 				awsWorkspaceUsages[workspace.ID] = AWSCustomerUsage{workspace.AWSMarketplaceCustomer, usage}
+				log.WithContext(ctx).
+					WithField("workspaceID", workspace.ID).
+					WithField("usage", awsWorkspaceUsages[workspace.ID].Usage).
+					Info("reporting aws mp overages")
 			}
 		} else if err := w.reportStripeUsage(ctx, workspace.ID); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "error reporting stripe usage for workspace %d", workspace.ID))
