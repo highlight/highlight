@@ -9,3 +9,7 @@ export const graphWrapper = style({
 	height: 361,
 	margin: 'auto',
 })
+
+export const graphEditSidebar = style({
+	width: 320,
+})

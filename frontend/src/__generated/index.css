@@ -3752,7 +3752,7 @@ body {
   color: var(--_1pyqka9h);
 }
 .dxo6qti {
-  background: var(--_1pyqka91k);
+  border: var(--_1pyqka91k) solid 1px;
   color: var(--_1pyqka91k);
 }
 .dxo6qtj {
@@ -7407,6 +7407,9 @@ body {
   width: 720px;
   height: 361px;
   margin: auto;
+}
+.gw96js2 {
+  width: 320px;
 }
 ._1kp6do40 {
   width: 100%;
