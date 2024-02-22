@@ -101,6 +101,7 @@
       "targets": [
         {
           "bucketBy": "Timestamp",
+          "bucketCount": 50,
           "column": "duration",
           "datasource": {
             "type": "highlightinc-highlight-datasource",
@@ -198,6 +199,7 @@
       "targets": [
         {
           "bucketBy": "Timestamp",
+          "bucketCount": 50,
           "column": "duration",
           "datasource": {
             "type": "highlightinc-highlight-datasource",
@@ -208,7 +210,7 @@
           "limitAggregator": "Avg",
           "limitColumn": "duration",
           "metric": "Avg",
-          "queryText": "service_name:-\"\"",
+          "queryText": "service_name EXISTS",
           "refId": "A",
           "table": "traces"
         }
@@ -265,6 +267,7 @@
       "targets": [
         {
           "bucketBy": "Timestamp",
+          "bucketCount": 50,
           "column": "numPages",
           "datasource": {
             "type": "highlightinc-highlight-datasource",
@@ -332,6 +335,7 @@
       "targets": [
         {
           "bucketBy": "None",
+          "bucketCount": 1,
           "column": "clickTextContent",
           "datasource": {
             "type": "highlightinc-highlight-datasource",
@@ -342,7 +346,7 @@
           "limitAggregator": "Count",
           "limitColumn": "duration",
           "metric": "Count",
-          "queryText": "country:\"United States\" country:\"Canada\"",
+          "queryText": "country:\"United States\" OR country:\"Canada\"",
           "refId": "A",
           "table": "sessions"
         }
