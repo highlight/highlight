@@ -1300,7 +1300,7 @@ func FuzzReadLogs(f *testing.F) {
 			DateRange: makeDateWithinRange(now),
 			Query:     userInput,
 		}, Pagination{})
-		assert.NoError(t, err)
+		assert.NoErrorf(t, err, "userInput: %s", userInput)
 	})
 }
 

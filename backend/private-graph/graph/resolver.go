@@ -377,7 +377,6 @@ func (r *Resolver) GetAWSMarketPlaceWorkspace(ctx context.Context, workspaceID i
 	var workspace model.Workspace
 	if err := r.DB.WithContext(ctx).
 		Model(&workspace).
-		Preload("AWSMarketplaceCustomer").
 		Joins("AWSMarketplaceCustomer").
 		Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).
 		Take(&workspace).
@@ -1793,15 +1792,24 @@ func (r *Resolver) StripeWebhook(ctx context.Context, endpointSecret string) fun
 }
 
 func (r *Resolver) ResolveAWSMarketplaceToken(ctx context.Context, token string) (*marketplacemetering.ResolveCustomerOutput, error) {
+	log.WithContext(ctx).
+		WithField("token", token).
+		Info("BILLING handling aws marketplace token request")
+
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(model.AWS_REGION_US_EAST_2))
 	if err != nil {
 		return nil, err
 	}
 
 	mpm := marketplacemetering.NewFromConfig(cfg)
-	return mpm.ResolveCustomer(ctx, &marketplacemetering.ResolveCustomerInput{
+	customer, err := mpm.ResolveCustomer(ctx, &marketplacemetering.ResolveCustomerInput{
 		RegistrationToken: &token,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	return customer, err
 }
 
 func (r *Resolver) AWSMPCallback(ctx context.Context) func(http.ResponseWriter, *http.Request) {
