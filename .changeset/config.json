@@ -30,6 +30,7 @@
 		"nestjs",
 		"nextjs",
 		"react-router",
+		"react-three-vite",
 		"remix",
 		"render",
 		"rrvideo"
