@@ -57,7 +57,7 @@ if (source.IsEnabled("EndRequest"))
 ```
 This code creates a DiagnosticListener that emits custom events, making it a versatile tool for complex tracing requirements.
 
-## Leveraging Third-Party Tools: Application Insights and NLog
+## Leveraging Third-Party Tools for Tracing
 ### Application Insights for Comprehensive Telemetry
 Application Insights, a feature of Azure Monitor, is an extensible Application Performance Management (APM) service for developers. It can be easily integrated into .NET applications:
 
@@ -73,7 +73,7 @@ telemetryClient.TrackTrace("Application trace message");
 ```
 This snippet shows how to send trace messages to Application Insights, which provides analytics and actionable insights on application performance and usage.
 
-## Highlight.io for Open Source Telemetry via OpenTelemetry
+### Highlight.io for Open Source Telemetry via OpenTelemetry
 
 Setting up OpenTelemetry tracing for a .NET application involves a few key steps. OpenTelemetry is a set of APIs, libraries, agents, and instrumentation that allow you to create and manage telemetry data (metrics, logs, and traces) for your applications. Here's how you can set up tracing in a .NET application:
 
