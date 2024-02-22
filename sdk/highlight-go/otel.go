@@ -140,7 +140,8 @@ func CreateTracerProvider(endpoint string) (*sdktrace.TracerProvider, error) {
 	), nil
 }
 
-var defaultTracer trace.Tracer
+// deafult tracer is a noop tracer
+var defaultTracerProvider trace.TracerProvider = otel.GetTracerProvider()
 
 func StartOTLP() (*OTLP, error) {
 	tracerProvider, err := CreateTracerProvider(conf.otlpEndpoint)
@@ -149,11 +150,7 @@ func StartOTLP() (*OTLP, error) {
 	}
 
 	h := &OTLP{tracerProvider: tracerProvider}
-	defaultTracer = tracerProvider.Tracer(
-		"github.com/highlight/highlight/sdk/highlight-go",
-		trace.WithInstrumentationVersion("v0.1.0"),
-		trace.WithSchemaURL(semconv.SchemaURL),
-	)
+	defaultTracerProvider = tracerProvider
 	otel.SetTracerProvider(h.tracerProvider)
 	return h, nil
 }
@@ -191,7 +188,11 @@ func StartTraceWithTracer(ctx context.Context, tracer trace.Tracer, name string,
 }
 
 func StartTraceWithTimestamp(ctx context.Context, name string, t time.Time, opts []trace.SpanStartOption, tags ...attribute.KeyValue) (trace.Span, context.Context) {
-	return StartTraceWithTracer(ctx, defaultTracer, name, t, opts, tags...)
+	return StartTraceWithTracer(ctx, defaultTracerProvider.Tracer(
+		"github.com/highlight/highlight/sdk/highlight-go",
+		trace.WithInstrumentationVersion("v0.1.0"),
+		trace.WithSchemaURL(semconv.SchemaURL),
+	), name, t, opts, tags...)
 }
 
 func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
