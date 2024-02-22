@@ -33,7 +33,7 @@ export const BlogCallToAction = () => {
 					)}
 				>
 					<PrimaryButton
-						href="https://app.highlight.io/sign_up"
+						href="https://app.highlight.io/sign_up?ref=blog"
 						style={{ color: 'black' }}
 					>
 						<Typography type="copy2" emphasis={true}>
