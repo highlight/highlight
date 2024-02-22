@@ -1809,20 +1809,6 @@ func (r *Resolver) ResolveAWSMarketplaceToken(ctx context.Context, token string)
 		return nil, err
 	}
 
-	entitlements, err := pricing.GetEntitlements(ctx, customer)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, ent := range entitlements {
-		log.WithContext(ctx).
-			WithField("token", token).
-			WithField("customer", pointy.StringValue(customer.CustomerIdentifier, "")).
-			WithField("entitlement_dimension", pointy.StringValue(ent.Dimension, "")).
-			WithField("entitlement_value", ent.Value).
-			Info("found entitlement for customer")
-	}
-
 	return customer, err
 }
 

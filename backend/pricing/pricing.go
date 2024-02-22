@@ -1348,6 +1348,10 @@ func GetEntitlements(ctx context.Context, customer *marketplacemetering.ResolveC
 		if err != nil {
 			return nil, err
 		}
+		log.WithContext(ctx).
+			WithField("customer", pointy.StringValue(customer.CustomerIdentifier, "")).
+			WithField("entitlements", ent.Entitlements).
+			Info("made entitlement request for customer")
 
 		if len(ent.Entitlements) == 0 || ent.NextToken == nil {
 			break
@@ -1355,5 +1359,14 @@ func GetEntitlements(ctx context.Context, customer *marketplacemetering.ResolveC
 		entitlements = append(entitlements, ent.Entitlements...)
 		page = ent.NextToken
 	}
+
+	for _, ent := range entitlements {
+		log.WithContext(ctx).
+			WithField("customer", pointy.StringValue(customer.CustomerIdentifier, "")).
+			WithField("entitlement_dimension", pointy.StringValue(ent.Dimension, "")).
+			WithField("entitlement_value", ent.Value).
+			Info("found entitlement for customer")
+	}
+
 	return entitlements, nil
 }
