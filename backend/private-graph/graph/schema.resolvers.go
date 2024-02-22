@@ -1414,9 +1414,11 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 		return nil, err
 	}
 
-	if len(entitlements) == 0 {
-		return nil, e.New("no entitlements found for aws marketplace customer")
-	}
+	log.WithContext(ctx).
+		WithField("workspaceID", workspaceID).
+		WithField("code", code).
+		WithField("entitlements", entitlements).
+		Info("aws mp request entitlements")
 
 	// create customer record with the current frontend workspace context
 	if err := r.DB.WithContext(ctx).

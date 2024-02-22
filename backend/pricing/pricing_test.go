@@ -2,11 +2,12 @@ package pricing
 
 import (
 	"fmt"
+	"math"
+	"testing"
+
 	"github.com/highlight-run/highlight/backend/model"
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/stretchr/testify/assert"
-	"math"
-	"testing"
 )
 
 func TestGetLimitAmount(t *testing.T) {

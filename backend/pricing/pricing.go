@@ -1328,7 +1328,7 @@ func (w *Worker) ReportAllUsage(ctx context.Context) {
 }
 
 func GetEntitlements(ctx context.Context, customer *marketplacemetering.ResolveCustomerOutput) ([]mpeTypes.Entitlement, error) {
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(model.AWS_REGION_US_EAST_2))
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion("us-east-1"))
 	if err != nil {
 		return nil, err
 	}
@@ -1342,7 +1342,7 @@ func GetEntitlements(ctx context.Context, customer *marketplacemetering.ResolveC
 			Filter: map[string][]string{
 				"CUSTOMER_IDENTIFIER": {pointy.StringValue(customer.CustomerIdentifier, "")},
 			},
-			MaxResults: pointy.Int32(100),
+			MaxResults: pointy.Int32(25),
 			NextToken:  page,
 		})
 		if err != nil {
