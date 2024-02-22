@@ -1409,6 +1409,15 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 		return nil, e.Wrap(err, "unable to find customer via provided code")
 	}
 
+	entitlements, err := pricing.GetEntitlements(ctx, &customer)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(entitlements) == 0 {
+		return nil, e.New("no entitlements found for aws marketplace customer")
+	}
+
 	// create customer record with the current frontend workspace context
 	if err := r.DB.WithContext(ctx).
 		Where(&model.AWSMarketplaceCustomer{WorkspaceID: workspaceID}).
@@ -1427,11 +1436,6 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 			CustomerAWSAccountID: customer.CustomerAWSAccountId,
 			ProductCode:          customer.ProductCode,
 		}).Error; err != nil {
-		return nil, err
-	}
-
-	entitlements, err := pricing.GetEntitlements(ctx, &customer)
-	if err != nil {
 		return nil, err
 	}
 

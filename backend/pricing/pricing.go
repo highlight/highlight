@@ -1345,7 +1345,11 @@ func GetEntitlements(ctx context.Context, customer *marketplacemetering.ResolveC
 			MaxResults: pointy.Int32(100),
 			NextToken:  page,
 		})
-		if err != nil || len(ent.Entitlements) == 0 || ent.NextToken == nil {
+		if err != nil {
+			return nil, err
+		}
+
+		if len(ent.Entitlements) == 0 || ent.NextToken == nil {
 			break
 		}
 		entitlements = append(entitlements, ent.Entitlements...)
