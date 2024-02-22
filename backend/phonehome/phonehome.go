@@ -2,6 +2,7 @@ package phonehome
 
 import (
 	"context"
+	"go.opentelemetry.io/otel/trace/noop"
 	"runtime"
 	"time"
 
@@ -88,7 +89,7 @@ func GetDefaultAttributes() ([]attribute.KeyValue, error) {
 	}, nil
 }
 
-var tracer trace.Tracer
+var tracer = noop.NewTracerProvider().Tracer("")
 
 func Start(ctx context.Context) error {
 	tracerProvider, err := highlight.CreateTracerProvider(DataEndpoint)
