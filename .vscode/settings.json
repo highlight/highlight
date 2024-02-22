@@ -162,5 +162,8 @@
 	"sort-imports.on-save": false,
 	"[javascript]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[dotenv]": {
+		"editor.defaultFormatter": "foxundermoon.shell-format"
 	}
 }
