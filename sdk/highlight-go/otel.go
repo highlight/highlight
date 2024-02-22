@@ -111,14 +111,14 @@ var (
 	)
 )
 
-func StartOTLP() (*OTLP, error) {
+func CreateTracerProvider(endpoint string) (*sdktrace.TracerProvider, error) {
 	var options []otlptracehttp.Option
-	if strings.HasPrefix(conf.otlpEndpoint, "http://") {
-		options = append(options, otlptracehttp.WithEndpoint(conf.otlpEndpoint[7:]), otlptracehttp.WithInsecure())
-	} else if strings.HasPrefix(conf.otlpEndpoint, "https://") {
-		options = append(options, otlptracehttp.WithEndpoint(conf.otlpEndpoint[8:]))
+	if strings.HasPrefix(endpoint, "http://") {
+		options = append(options, otlptracehttp.WithEndpoint(endpoint[7:]), otlptracehttp.WithInsecure())
+	} else if strings.HasPrefix(endpoint, "https://") {
+		options = append(options, otlptracehttp.WithEndpoint(endpoint[8:]))
 	} else {
-		logger.Errorf("an invalid otlp endpoint was configured %s", conf.otlpEndpoint)
+		logger.Errorf("an invalid otlp endpoint was configured %s", endpoint)
 	}
 	options = append(options, otlptracehttp.WithCompression(otlptracehttp.GzipCompression))
 	client := otlptracehttp.NewClient(options...)
@@ -137,17 +137,24 @@ func StartOTLP() (*OTLP, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating OTLP resource context: %w", err)
 	}
-	h := &OTLP{
-		tracerProvider: sdktrace.NewTracerProvider(
-			sdktrace.WithSampler(getSampler()),
-			sdktrace.WithBatcher(
-				exporter,
-				sdktrace.WithBatchTimeout(1000*time.Millisecond),
-				sdktrace.WithMaxExportBatchSize(128),
-				sdktrace.WithMaxQueueSize(1024)),
-			sdktrace.WithResource(resources),
-		),
+	return sdktrace.NewTracerProvider(
+		sdktrace.WithSampler(getSampler()),
+		sdktrace.WithBatcher(
+			exporter,
+			sdktrace.WithBatchTimeout(1000*time.Millisecond),
+			sdktrace.WithMaxExportBatchSize(128),
+			sdktrace.WithMaxQueueSize(1024)),
+		sdktrace.WithResource(resources),
+	), nil
+}
+
+func StartOTLP() (*OTLP, error) {
+	tracerProvider, err := CreateTracerProvider(conf.otlpEndpoint)
+	if err != nil {
+		return nil, err
 	}
+
+	h := &OTLP{tracerProvider: tracerProvider}
 	otel.SetTracerProvider(h.tracerProvider)
 	return h, nil
 }
@@ -163,7 +170,7 @@ func (o *OTLP) shutdown() {
 	}
 }
 
-func StartTraceWithTimestamp(ctx context.Context, name string, t time.Time, opts []trace.SpanStartOption, tags ...attribute.KeyValue) (trace.Span, context.Context) {
+func StartTraceWithTracer(ctx context.Context, tracer trace.Tracer, name string, t time.Time, opts []trace.SpanStartOption, tags ...attribute.KeyValue) (trace.Span, context.Context) {
 	sessionID, requestID, _ := validateRequest(ctx)
 	spanCtx := trace.SpanContextFromContext(ctx)
 	if requestID != "" {
@@ -182,6 +189,10 @@ func StartTraceWithTimestamp(ctx context.Context, name string, t time.Time, opts
 	// prioritize values passed in tags for project, session, request ids
 	span.SetAttributes(tags...)
 	return span, ctx
+}
+
+func StartTraceWithTimestamp(ctx context.Context, name string, t time.Time, opts []trace.SpanStartOption, tags ...attribute.KeyValue) (trace.Span, context.Context) {
+	return StartTraceWithTracer(ctx, tracer, name, t, opts, tags...)
 }
 
 func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {

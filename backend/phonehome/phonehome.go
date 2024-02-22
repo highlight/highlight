@@ -9,6 +9,7 @@ import (
 	"github.com/shirou/gopsutil/mem"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -16,6 +17,8 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
 )
+
+const DataEndpoint = "https://otel.highlight.io:4318"
 
 type UsageType = string
 
@@ -85,7 +88,20 @@ func GetDefaultAttributes() ([]attribute.KeyValue, error) {
 	}, nil
 }
 
+var tracer trace.Tracer
+
 func Start(ctx context.Context) error {
+	tracerProvider, err := highlight.CreateTracerProvider(DataEndpoint)
+	if err != nil {
+		return err
+	}
+
+	tracer = tracerProvider.Tracer(
+		"github.com/highlight/highlight/phonehome",
+		trace.WithInstrumentationVersion("v0.1.0"),
+		trace.WithSchemaURL(semconv.SchemaURL),
+	)
+
 	if IsOptedOut(ctx) {
 		return nil
 	}
@@ -104,7 +120,7 @@ func Start(ctx context.Context) error {
 				attribute.Int64(MetricMemTotal, int64(vmStat.Total)),
 			)
 
-			s, _ := highlight.StartTraceWithTimestamp(ctx, HeartbeatSpanName, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindServer)}, tags...)
+			s, _ := highlight.StartTraceWithTracer(ctx, tracer, HeartbeatSpanName, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindServer)}, tags...)
 			highlight.EndTrace(s)
 		}
 	}()
@@ -128,7 +144,7 @@ func ReportAdminAboutYouDetails(ctx context.Context, admin *model.Admin) {
 		tags = append(tags, attribute.String(AboutYouSpanAdminEmail, ptr.ToString(admin.Email)))
 	}
 
-	s, _ := highlight.StartTraceWithTimestamp(ctx, AboutYouSpanName, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindServer)}, tags...)
+	s, _ := highlight.StartTraceWithTracer(ctx, tracer, AboutYouSpanName, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindServer)}, tags...)
 	highlight.EndTrace(s)
 }
 
@@ -141,6 +157,6 @@ func ReportUsageMetrics(ctx context.Context, usageType UsageType, id int, metric
 	tags = append(tags, attribute.Int("id", id))
 	tags = append(tags, attribute.String("usageType", usageType))
 	tags = append(tags, metrics...)
-	s, _ := highlight.StartTraceWithTimestamp(ctx, usageType, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindServer)}, tags...)
+	s, _ := highlight.StartTraceWithTracer(ctx, tracer, usageType, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindServer)}, tags...)
 	highlight.EndTrace(s)
 }
