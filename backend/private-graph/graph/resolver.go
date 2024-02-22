@@ -2591,14 +2591,6 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 		Variables GraphQLVars `json:"variables"`
 	}
 
-	fmt.Println("LINVARIABLES", GraphQLVars{
-		IssueID:  issueID,
-		Title:    title,
-		Subtitle: subtitle,
-		Url:      url,
-		IconUrl:  fmt.Sprintf("%s/logo_with_gradient_bg.png", os.Getenv("FRONTEND_URI")),
-	})
-
 	req := GraphQLReq{
 		Query: requestQuery,
 		Variables: GraphQLVars{
@@ -2852,6 +2844,21 @@ func (r *Resolver) CreateJiraIssueAttachment(
 	return nil
 }
 
+func (r *Resolver) CreateGitHubIssueAttachment(
+	ctx context.Context,
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueURL string,
+) error {
+	attachment.ExternalID = issueURL
+	attachment.Title = issueTitle
+	if err := r.DB.WithContext(ctx).Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
 func (r *Resolver) CreateGitlabTaskAttachment(
 	ctx context.Context,
 	workspace *model.Workspace,
@@ -3004,6 +3011,38 @@ func (r *Resolver) GetGitHubIssueLabels(
 
 	return lo.Map(labels, func(l *github2.Label, i int) string {
 		return l.GetName()
+	}), nil
+}
+
+func (r *Resolver) SearchGitHubIssues(
+	ctx context.Context,
+	workspace *model.Workspace,
+	query string,
+) ([]*modelInputs.IssuesSearchResult, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitHub)
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, nil
+	}
+	var repos []*github2.Issue
+	if c, err := github.NewClient(ctx, *accessToken, r.Redis); err == nil {
+		repos, err = c.SearchIssues(ctx, query)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, e.Wrap(err, "failed to create github client")
+	}
+
+	return lo.Map(repos, func(t *github2.Issue, i int) *modelInputs.IssuesSearchResult {
+		return &modelInputs.IssuesSearchResult{
+			ID:       strconv.FormatInt(t.GetID(), 10),
+			Title:    t.GetTitle(),
+			IssueURL: t.GetHTMLURL(),
+		}
 	}), nil
 }
 

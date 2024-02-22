@@ -1991,6 +1991,19 @@ func (r *mutationResolver) CreateSessionCommentWithExistingIssue(ctx context.Con
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+
+			if err := r.CreateGitHubIssueAttachment(
+				ctx,
+				workspace,
+				attachment,
+				title,
+				issueURL,
+			); err != nil {
+				return nil, e.Wrap(err, "error creating GitHub issue attachment")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		}
 	}
 
@@ -7010,6 +7023,14 @@ func (r *queryResolver) SearchIssues(ctx context.Context, integrationType modelI
 
 	if integrationType == modelInputs.IntegrationTypeLinear {
 		results, err := r.SearchLinearIssues(*workspace.LinearAccessToken, query)
+		if err != nil {
+			return ret, err
+		}
+		return results, nil
+	}
+
+	if integrationType == modelInputs.IntegrationTypeGitHub {
+		results, err := r.SearchGitHubIssues(ctx, workspace, query)
 		if err != nil {
 			return ret, err
 		}
