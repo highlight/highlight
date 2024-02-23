@@ -141,7 +141,7 @@ def test_express_log(express_app, oauth_api):
             )
         )
 
-        exp = 'some work happening'
+        exp = "some work happening"
         if express_app_type == "express_js":
             exp = 'some work happening {"result":'
 
