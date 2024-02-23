@@ -1,6 +1,6 @@
 // inspired by https://github.com/getsentry/sentry-javascript/issues/5639
 
-import { NodeOptions, SerializationMode } from './types'
+import { NodeOptions } from './types'
 
 // https://stackoverflow.com/a/2805230
 const MAX_RECURSION = 128
