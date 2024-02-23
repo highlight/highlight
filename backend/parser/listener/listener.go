@@ -21,6 +21,8 @@ var OperatorLike Operator = "LIKE"
 var OperatorNotLike Operator = "NOT LIKE"
 var OperatorILike Operator = "ILIKE"
 var OperatorNotILike Operator = "NOT ILIKE"
+var OperatorRegExp Operator = "REGEXP"
+var OperatorNotRegExp Operator = "NOT REGEXP"
 var OperatorContains Operator = "hasTokenCaseInsensitive"
 var OperatorGreaterThan Operator = ">"
 var OperatorGreaterThanOrEqualTo Operator = ">="
@@ -276,7 +278,25 @@ func (s *searchListener[T]) appendRules(value string) {
 	}
 
 	if s.currentOp == ":" || s.currentOp == "=" {
-		if strings.Contains(value, "*") {
+		if strings.HasPrefix(value, "/") && strings.HasSuffix(value, "/") {
+			value = strings.Trim(value, "/")
+			if traceAttributeKey {
+				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] REGEXP %s", s.currentKey, value)))
+				s.ops = append(s.ops, &FilterOperation{
+					Key:      s.currentKey,
+					Column:   s.attributesColumn,
+					Operator: OperatorRegExp,
+					Values:   []string{value},
+				})
+			} else {
+				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(filterKey+" REGEXP %s", value)))
+				s.ops = append(s.ops, &FilterOperation{
+					Key:      filterKey,
+					Operator: OperatorRegExp,
+					Values:   []string{value},
+				})
+			}
+		} else if strings.Contains(value, "*") {
 			value = wildcardValue(value)
 
 			if traceAttributeKey {
@@ -314,7 +334,25 @@ func (s *searchListener[T]) appendRules(value string) {
 			}
 		}
 	} else if s.currentOp == "!=" {
-		if strings.Contains(value, "*") {
+		if strings.HasPrefix(value, "/") && strings.HasSuffix(value, "/") {
+			value = strings.Trim(value, "/")
+			if traceAttributeKey {
+				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("NOT "+s.attributesColumn+"[%s] REGEXP %s", s.currentKey, value)))
+				s.ops = append(s.ops, &FilterOperation{
+					Key:      s.currentKey,
+					Column:   s.attributesColumn,
+					Operator: OperatorNotRegExp,
+					Values:   []string{value},
+				})
+			} else {
+				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("NOT "+filterKey+" REGEXP %s", value)))
+				s.ops = append(s.ops, &FilterOperation{
+					Key:      filterKey,
+					Operator: OperatorNotRegExp,
+					Values:   []string{value},
+				})
+			}
+		} else if strings.Contains(value, "*") {
 			value = wildcardValue(value)
 
 			if traceAttributeKey {
