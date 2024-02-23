@@ -15,7 +15,12 @@
 				}
 			],
 			"essential": true,
-			"environment": [],
+			"environment": [
+				{
+					"name": "GOMEMLIMIT",
+					"value": "6GiB"
+				}
+			],
 			"mountPoints": [],
 			"volumesFrom": [],
 			"secrets": [

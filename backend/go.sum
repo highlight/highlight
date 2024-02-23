@@ -230,6 +230,8 @@ github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.3.2/go.mod h1:72H
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.5.2/go.mod h1:QuL2Ym8BkrLmN4lUofXYq6000/i5jPjosCNK//t6gak=
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.7.2 h1:RnZjLgtCGLsF2xYYksy0yrx6xPvKG9BYv29VfK4p/J8=
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.7.2/go.mod h1:np7TMuJNT83O0oDOSF8i4dF3dvGqA6hPYYo6YYkzgRA=
+github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice v1.11.16 h1:30PoLIFHisLFctI/F/LRyZJPMJ6A+hxvVFZwAr5H4iw=
+github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice v1.11.16/go.mod h1:QU76BQAAxnKu9XcTPPO2kwZ5kOibR8bF04a4Hl0ImSQ=
 github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.13.18 h1:VoxHI3YKYQ1ewtBnfSUsZ8he0tdot/mZuE/vP4qJgBw=
 github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.13.18/go.mod h1:zan7AawF2v5WynzqKdF0aeYWZboYiOZ7vMWlhSGLCwQ=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.12.0/go.mod h1:6J++A5xpo7QDsIeSqPK4UHqMSyPOCopa+zKtqAMhqVQ=

@@ -7,8 +7,8 @@ updatedAt: 2023-05-10T00:00:00.000Z
 ---
 
 <EmbeddedVideo 
-  src="https://www.youtube.com/embed/Dyoba16wE-o"
-  title="Youtube Video Player"
+  src="https://www.youtube.com/embed/hHj4_X7Etdw"
+  title="Next.js Introduction"
   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 />
 

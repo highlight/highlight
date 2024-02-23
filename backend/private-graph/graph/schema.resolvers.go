@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/PaesslerAG/jsonpath"
+	mpeTypes "github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice/types"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
@@ -1408,6 +1409,17 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 		return nil, e.Wrap(err, "unable to find customer via provided code")
 	}
 
+	entitlements, err := pricing.GetEntitlements(ctx, &customer)
+	if err != nil {
+		return nil, err
+	}
+
+	log.WithContext(ctx).
+		WithField("workspaceID", workspaceID).
+		WithField("code", code).
+		WithField("entitlements", entitlements).
+		Info("aws mp request entitlements")
+
 	// create customer record with the current frontend workspace context
 	if err := r.DB.WithContext(ctx).
 		Where(&model.AWSMarketplaceCustomer{WorkspaceID: workspaceID}).
@@ -1425,6 +1437,49 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 			CustomerIdentifier:   customer.CustomerIdentifier,
 			CustomerAWSAccountID: customer.CustomerAWSAccountId,
 			ProductCode:          customer.ProductCode,
+		}).Error; err != nil {
+		return nil, err
+	}
+
+	products := map[string]*int{
+		"sessions": nil,
+		"errors":   nil,
+		"logs":     nil,
+		"traces":   nil,
+	}
+	multipliers := map[string]int{
+		"sessions": 1_000,
+		"errors":   1_000,
+		"logs":     1_000_000,
+		"traces":   1_000_000,
+	}
+
+	for key := range products {
+		if v, ok := lo.Find(entitlements, func(item mpeTypes.Entitlement) bool {
+			return pointy.StringValue(item.Dimension, "") == key
+		}); ok {
+			if intVal, ok := v.Value.(*mpeTypes.EntitlementValueMemberIntegerValue); ok {
+				products[key] = pointy.Int(multipliers[key] * int(intVal.Value))
+			}
+		}
+	}
+	if err := r.DB.WithContext(ctx).
+		Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).
+		Clauses(clause.OnConflict{
+			Columns: []clause.Column{{Name: "id"}},
+			DoUpdates: clause.AssignmentColumns([]string{
+				"monthly_session_limit",
+				"monthly_errors_limit",
+				"monthly_logs_limit",
+				"monthly_traces_limit",
+			}),
+		}).
+		Model(&model.Workspace{}).
+		Updates(&model.Workspace{
+			MonthlySessionLimit: products["sessions"],
+			MonthlyErrorsLimit:  products["errors"],
+			MonthlyLogsLimit:    products["logs"],
+			MonthlyTracesLimit:  products["traces"],
 		}).Error; err != nil {
 		return nil, err
 	}
@@ -6184,12 +6239,14 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 	if err != nil {
 		return nil, err
 	}
+
+	var joinableWorkspaces []*model.Workspace
 	domain, err := r.getCustomVerifiedAdminEmailDomain(admin)
 	if err != nil {
-		return nil, e.Wrap(err, "error getting custom verified admin email domain")
+		// cannot join workspaces with a public email
+		return joinableWorkspaces, nil
 	}
 
-	joinableWorkspaces := []*model.Workspace{}
 	if err := r.DB.WithContext(ctx).Model(&model.Workspace{}).
 		Where(`id NOT IN (
 			SELECT workspace_id
@@ -7797,13 +7854,13 @@ func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []strin
 }
 
 // ExistingLogsTraces is the resolver for the existing_logs_traces field.
-func (r *queryResolver) ExistingLogsTraces(ctx context.Context, projectID int, traceIds []string) ([]string, error) {
+func (r *queryResolver) ExistingLogsTraces(ctx context.Context, projectID int, traceIds []string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ExistingTraceIds(ctx, project.ID, traceIds)
+	return r.ClickhouseClient.ExistingTraceIds(ctx, project.ID, traceIds, dateRange.StartDate, dateRange.EndDate)
 }
 
 // ErrorResolutionSuggestion is the resolver for the error_resolution_suggestion field.

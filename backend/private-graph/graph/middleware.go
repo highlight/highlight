@@ -38,7 +38,7 @@ var (
 	workspaceTokenHandler APITokenHandler
 )
 
-var HighlightAdminEmailDomains = []string{"@highlight.run", "@highlight.io", "@runhighlight.com"}
+var HighlightAdminEmailDomains = []string{"@highlight.run", "@highlight.io"}
 
 type AuthMode = string
 
@@ -109,16 +109,9 @@ func SetupAuthClient(ctx context.Context, authMode AuthMode, oauthServer *oauth.
 	}
 }
 
-func (c *SimpleAuthClient) GetUser(_ context.Context, _ string) (*auth.UserRecord, error) {
+func (c *SimpleAuthClient) GetUser(_ context.Context, uid string) (*auth.UserRecord, error) {
 	return &auth.UserRecord{
-		UserInfo: &auth.UserInfo{
-			DisplayName: "Hobby Highlighter",
-			Email:       "demo@example.com",
-			PhoneNumber: "+14081234567",
-			PhotoURL:    "https://picsum.photos/200",
-			ProviderID:  "",
-			UID:         "12345abcdef09876a1b2c3d4e5f",
-		},
+		UserInfo:      GetPasswordAuthUser(uid),
 		EmailVerified: true,
 	}, nil
 }
@@ -145,9 +138,9 @@ func authenticateToken(tokenString string) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
-func (c *PasswordAuthClient) GetUser(_ context.Context, _ string) (*auth.UserRecord, error) {
+func (c *PasswordAuthClient) GetUser(_ context.Context, uid string) (*auth.UserRecord, error) {
 	return &auth.UserRecord{
-		UserInfo:      GetPasswordAuthUser("demo@example.com"),
+		UserInfo:      GetPasswordAuthUser(uid),
 		EmailVerified: true,
 	}, nil
 }
@@ -158,7 +151,6 @@ func (c *PasswordAuthClient) updateContextWithAuthenticatedUser(ctx context.Cont
 
 	if token != "" {
 		claims, err := authenticateToken(token)
-
 		if err != nil {
 			return ctx, err
 		}
@@ -173,7 +165,7 @@ func (c *PasswordAuthClient) updateContextWithAuthenticatedUser(ctx context.Cont
 }
 
 func (c *SimpleAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
-	ctx = context.WithValue(ctx, model.ContextKeys.UID, "Hobby Highlighter")
+	ctx = context.WithValue(ctx, model.ContextKeys.UID, "demo@example.com")
 	ctx = context.WithValue(ctx, model.ContextKeys.Email, "demo@example.com")
 	return ctx, nil
 }

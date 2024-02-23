@@ -23,9 +23,11 @@ def main():
             data = re.sub('http://localhost:3000', frontend, data)
 
     with open(CONSTANTS_FILE, 'w') as f:
-        f.write(data)
-
-    print("wrote back constants file", data, flush=True)
+        try:
+            f.write(data)
+            print("wrote back constants file", data, flush=True)
+        except Exception as e:
+            print("failed to write back nginx file ", e, data, flush=True)
 
     with open(NGINX_CONFIG_FILE, 'r') as f:
         data = f.read()
@@ -33,9 +35,12 @@ def main():
             data = re.sub('ssl http2 ', '', data)
 
     with open(NGINX_CONFIG_FILE, 'w') as f:
-        f.write(data)
+        try:
+            f.write(data)
+            print("wrote back nginx file", data, flush=True)
+        except Exception as e:
+            print("failed to write back nginx file ", e, data, flush=True)
 
-    print("wrote back nginx file", data, flush=True)
     return subprocess.check_call(["nginx", "-g", "daemon off;"])
 
 

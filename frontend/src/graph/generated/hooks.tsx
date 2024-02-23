@@ -13776,13 +13776,18 @@ export const GetLogsRelatedResourcesDocument = gql`
 		$project_id: ID!
 		$log_cursors: [String!]!
 		$trace_ids: [String!]!
+		$date_range: DateRangeRequiredInput!
 	) {
 		logs_error_objects(log_cursors: $log_cursors) {
 			log_cursor
 			error_group_secure_id
 			id
 		}
-		existing_logs_traces(project_id: $project_id, trace_ids: $trace_ids)
+		existing_logs_traces(
+			project_id: $project_id
+			trace_ids: $trace_ids
+			date_range: $date_range
+		)
 	}
 `
 
@@ -13801,6 +13806,7 @@ export const GetLogsRelatedResourcesDocument = gql`
  *      project_id: // value for 'project_id'
  *      log_cursors: // value for 'log_cursors'
  *      trace_ids: // value for 'trace_ids'
+ *      date_range: // value for 'date_range'
  *   },
  * });
  */

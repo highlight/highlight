@@ -8,6 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice"
+	mpeTypes "github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice/types"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering/types"
 	"github.com/aws/smithy-go/ptr"
@@ -836,6 +839,7 @@ func (w *Worker) ReportAWSMPUsages(ctx context.Context, usages AWSCustomerUsages
 		}); err != nil {
 			log.WithContext(ctx).WithError(err).Error("BILLING_ERROR failed to report aws mp usages")
 		}
+		log.WithContext(ctx).WithField("chunk", chunk).Infof("reported aws mp usage for %d records", len(chunk))
 	}
 }
 
@@ -1000,6 +1004,7 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 
 	// For annual subscriptions, set PendingInvoiceItemInterval to 'month' if not set
 	if interval == model.PricingSubscriptionIntervalAnnual &&
+		subscription.PendingInvoiceItemInterval != nil &&
 		subscription.PendingInvoiceItemInterval.Interval != stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth {
 		updated, err := w.stripeClient.Subscriptions.Update(subscription.ID, &stripe.SubscriptionParams{
 			PendingInvoiceItemInterval: &stripe.SubscriptionPendingInvoiceItemIntervalParams{
@@ -1292,23 +1297,76 @@ func (w *Worker) AddOrUpdateOverageItem(newPrice *stripe.Price, invoiceLine *str
 func (w *Worker) ReportAllUsage(ctx context.Context) {
 	// Get all workspace IDs
 	var workspaces []*model.Workspace
-	if err := w.db.WithContext(ctx).Model(&model.Workspace{}).Preload("AWSMarketplaceCustomer").Where("billing_period_start is not null").Where("billing_period_end is not null").Scan(&workspaces).Error; err != nil {
+	if err := w.db.WithContext(ctx).
+		Model(&model.Workspace{}).
+		Joins("AWSMarketplaceCustomer").
+		Where("billing_period_start is not null").
+		Where("billing_period_end is not null").
+		Find(&workspaces).Error; err != nil {
 		log.WithContext(ctx).Error("failed to query workspaces")
 		return
 	}
 
 	awsWorkspaceUsages := AWSCustomerUsages{}
 	for _, workspace := range workspaces {
-		if err := w.reportStripeUsage(ctx, workspace.ID); err != nil {
-			log.WithContext(ctx).Error(e.Wrapf(err, "error reporting stripe usage for workspace %d", workspace.ID))
-		} else if workspace.AWSMarketplaceCustomer != nil {
+		if workspace.AWSMarketplaceCustomer != nil {
 			usage, err := w.CalculateOverages(ctx, workspace.ID)
 			if err != nil {
 				log.WithContext(ctx).Error(e.Wrapf(err, "error calculating aws overages for workspace %d", workspace.ID))
 			} else {
 				awsWorkspaceUsages[workspace.ID] = AWSCustomerUsage{workspace.AWSMarketplaceCustomer, usage}
+				log.WithContext(ctx).
+					WithField("workspaceID", workspace.ID).
+					WithField("usage", awsWorkspaceUsages[workspace.ID].Usage).
+					Info("reporting aws mp overages")
 			}
+		} else if err := w.reportStripeUsage(ctx, workspace.ID); err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "error reporting stripe usage for workspace %d", workspace.ID))
 		}
 	}
 	w.ReportAWSMPUsages(ctx, awsWorkspaceUsages)
+}
+
+func GetEntitlements(ctx context.Context, customer *marketplacemetering.ResolveCustomerOutput) ([]mpeTypes.Entitlement, error) {
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion("us-east-1"))
+	if err != nil {
+		return nil, err
+	}
+
+	var entitlements []mpeTypes.Entitlement
+	var page *string
+	mpe := marketplaceentitlementservice.NewFromConfig(cfg)
+	for {
+		ent, err := mpe.GetEntitlements(ctx, &marketplaceentitlementservice.GetEntitlementsInput{
+			ProductCode: customer.ProductCode,
+			Filter: map[string][]string{
+				"CUSTOMER_IDENTIFIER": {pointy.StringValue(customer.CustomerIdentifier, "")},
+			},
+			MaxResults: pointy.Int32(25),
+			NextToken:  page,
+		})
+		if err != nil {
+			return nil, err
+		}
+		log.WithContext(ctx).
+			WithField("customer", pointy.StringValue(customer.CustomerIdentifier, "")).
+			WithField("entitlements", ent.Entitlements).
+			Info("made entitlement request for customer")
+
+		if len(ent.Entitlements) == 0 || ent.NextToken == nil {
+			break
+		}
+		entitlements = append(entitlements, ent.Entitlements...)
+		page = ent.NextToken
+	}
+
+	for _, ent := range entitlements {
+		log.WithContext(ctx).
+			WithField("customer", pointy.StringValue(customer.CustomerIdentifier, "")).
+			WithField("entitlement_dimension", pointy.StringValue(ent.Dimension, "")).
+			WithField("entitlement_value", ent.Value).
+			Info("found entitlement for customer")
+	}
+
+	return entitlements, nil
 }

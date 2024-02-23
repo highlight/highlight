@@ -619,6 +619,9 @@ func main() {
 			go w.GetPublicWorker(kafkaqueue.TopicTypeBatched)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeTraces)(ctx)
+			// for the 'All' worker, run alert / metric watchers
+			go w.StartLogAlertWatcher(ctx)
+			go w.StartMetricMonitorWatcher(ctx)
 			// in `all` mode, report stripe usage every hour
 			go func() {
 				w.ReportStripeUsage(ctx)
@@ -628,8 +631,6 @@ func main() {
 			}()
 			// in `all` mode, refresh materialized views every hour
 			go func() {
-				w.StartLogAlertWatcher(ctx)
-				w.StartMetricMonitorWatcher(ctx)
 				w.RefreshMaterializedViews(ctx)
 				for range time.Tick(time.Hour) {
 					w.RefreshMaterializedViews(ctx)

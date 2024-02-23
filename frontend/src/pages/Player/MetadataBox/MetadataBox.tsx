@@ -34,6 +34,7 @@ import {
 	FaTwitterSquare,
 } from 'react-icons/fa'
 
+import { RelatedResourceButtons } from '@/pages/Player/MetadataBox/RelatedResourceButtons'
 import { buildQueryStateString } from '@/util/url/params'
 
 import { useReplayerContext } from '../ReplayerContext'
@@ -42,7 +43,7 @@ import { getAbsoluteUrl, getMajorVersion } from './utils/utils'
 
 export const MetadataBox = React.memo(() => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
-	const { session } = useReplayerContext()
+	const { session, sessionMetadata } = useReplayerContext()
 	const { setSearchQuery } = useSearchContext()
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
@@ -282,6 +283,14 @@ export const MetadataBox = React.memo(() => {
 					size="small"
 					icon={<IconSolidExternalLink />}
 					onClick={searchIdentifier}
+				/>
+			</Box>
+			<Box display="flex" justifyContent="center" pb="8">
+				<RelatedResourceButtons
+					secureSessionId={session_secure_id}
+					disableErrors={!session?.has_errors}
+					startDate={new Date(sessionMetadata.startTime)}
+					endDate={new Date(sessionMetadata.endTime)}
 				/>
 			</Box>
 			<Box

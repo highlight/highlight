@@ -4582,6 +4582,7 @@ export type GetLogsRelatedResourcesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	log_cursors: Array<Types.Scalars['String']> | Types.Scalars['String']
 	trace_ids: Array<Types.Scalars['String']> | Types.Scalars['String']
+	date_range: Types.DateRangeRequiredInput
 }>
 
 export type GetLogsRelatedResourcesQuery = { __typename?: 'Query' } & Pick<
