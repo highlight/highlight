@@ -472,12 +472,20 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config mode
 	return true
 }
 
-func getFnStr(aggregator modelInputs.MetricAggregator, column string) string {
+func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSampling bool) string {
 	switch aggregator {
 	case modelInputs.MetricAggregatorCount:
-		return "round(count() * any(_sample_factor))"
+		if useSampling {
+			return "round(count() * any(_sample_factor))"
+		} else {
+			return "round(count() * 1.0)"
+		}
 	case modelInputs.MetricAggregatorCountDistinctKey:
-		return fmt.Sprintf("round(count(distinct %s) * any(_sample_factor))", column)
+		if useSampling {
+			return fmt.Sprintf("round(count(distinct %s) * any(_sample_factor))", column)
+		} else {
+			return fmt.Sprintf("round(count(distinct %s) * 1.0)", column)
+		}
 	case modelInputs.MetricAggregatorMin:
 		return fmt.Sprintf("toFloat64(min(%s))", column)
 	case modelInputs.MetricAggregatorAvg:
@@ -493,7 +501,11 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string) string {
 	case modelInputs.MetricAggregatorMax:
 		return fmt.Sprintf("toFloat64(max(%s))", column)
 	case modelInputs.MetricAggregatorSum:
-		return fmt.Sprintf("sum(%s) * any(_sample_factor)", column)
+		if useSampling {
+			return fmt.Sprintf("sum(%s) * any(_sample_factor)", column)
+		} else {
+			return fmt.Sprintf("sum(%s) * 1.0", column)
+		}
 	}
 	return ""
 }
@@ -665,7 +677,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		} else {
 			col = fmt.Sprintf("toFloat64OrNull(%s[%s])", attributesColumn, innerSb.Var(col))
 		}
-		limitFn = getFnStr(*limitAggregator, col)
+		limitFn = getFnStr(*limitAggregator, col, false)
 
 		innerSb.GroupBy(groupByIndexes...).
 			OrderBy(limitFn).
@@ -690,7 +702,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	fromSb = sqlbuilder.NewSelectBuilder()
 	outerSelect := []string{"bucket_index", "any(_sample_factor), any(min), any(max)"}
 	for _, metricType := range metricTypes {
-		outerSelect = append(outerSelect, getFnStr(metricType, "metric_value"))
+		outerSelect = append(outerSelect, getFnStr(metricType, "metric_value", true))
 	}
 	for idx := range groupBy {
 		outerSelect = append(outerSelect, fmt.Sprintf("g%d", idx))
