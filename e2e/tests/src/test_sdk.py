@@ -140,7 +140,7 @@ def test_express_log(express_app, oauth_api):
                 data["logs"]["edges"],
             )
         )
-        exp = "some work happening {\"result\":"
+        exp = 'some work happening {"result":'
         for msg in msgs:
             if exp in msg:
                 break
