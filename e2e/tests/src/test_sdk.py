@@ -140,8 +140,13 @@ def test_express_log(express_app, oauth_api):
                 data["logs"]["edges"],
             )
         )
-        exp = "some work happening"
-        assert exp in msgs
+        exp = "some work happening {\"result\":"
+        for msg in msgs:
+            if exp in msg:
+                break
+        else:
+            assert False, f"expected message not found: {msgs}"
+
         for item in filter(
             lambda eg: eg["node"]["message"] == exp, data["logs"]["edges"]
         ):
