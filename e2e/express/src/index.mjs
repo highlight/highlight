@@ -9,8 +9,11 @@ const config = {
 	serviceVersion: 'git-sha',
 	otlpEndpoint: 'http://localhost:4318',
 	environment: 'e2e-test',
+	serializeConsoleAttributes: true,
 }
+console.log(`before init`, { hello: `hello` })
 H.init(config)
+console.log(`after init`, { hello: `hello` })
 
 const app = express()
 const port = 3003
@@ -18,6 +21,7 @@ const port = 3003
 // This should be before any controllers (route definitions)
 app.use(Handlers.middleware(config))
 app.get('/', (req, res) => {
+	console.info('info from /')
 	const err = new Error('this is a test error')
 	const { secureSessionId, requestId } = H.parseHeaders(req.headers)
 	if (secureSessionId && requestId) {
@@ -40,8 +44,10 @@ app.get('/good', (req, res) => {
 
 // This should be before any other error middleware and after all controllers (route definitions)
 app.use(Handlers.errorHandler(config))
+console.log(`listen`, { hello: `hello` })
+console.log({ message: 'world', hello: `hello`, number: '123' })
 app.listen(port, () => {
-	console.log(`Example app listening on port ${port}`)
+	console.log(`startServer`, { at: `0.0.0.0:${port}` })
 })
 
 process.on('SIGINT', function () {
