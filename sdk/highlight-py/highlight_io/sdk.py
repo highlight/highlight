@@ -161,20 +161,22 @@ class H(object):
             def emit(self, log_data: LogData):
                 span: Span = get_current_span()
                 session_id, request_id = H._instance.get_highlight_context(
-                    hex(span.context.trace_id)[2:]
+                    span.context.trace_id
                 )
-
-                log_data.log_record.attributes = {
-                    "highlight.project_id": H._instance._project_id,
-                    "highlight.trace_id": request_id,
-                    "highlight.session_id": session_id,
-                } | {k: v for k, v in log_data.log_record.attributes.items()}
-
-                attach(
-                    set_baggage(
-                        H._instance.REQUEST_HEADER, f"{session_id}/{request_id}"
+                log_data.log_record.attributes |= {
+                    "highlight.project_id": log_data.log_record.attributes.get(
+                        "highlight.project_id"
                     )
-                )
+                    or H._instance._project_id,
+                    "highlight.trace_id": log_data.log_record.attributes.get(
+                        "highlight.trace_id"
+                    )
+                    or request_id,
+                    "highlight.session_id": log_data.log_record.attributes.get(
+                        "highlight.session_id"
+                    )
+                    or session_id,
+                }
 
                 return super().emit(log_data)
 
