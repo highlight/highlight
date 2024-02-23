@@ -36,6 +36,24 @@ REACT_APP_FRONTEND_URI=http://your-ip-address
 				},
 			],
 		},
+		{
+			title: 'Configure SSL (optional).',
+			content:
+				'By default, the stack deploys the frontend and backend over HTTP without SSL. If you need SSL, update the certificates in ' +
+				'`backend/localhostssl` and set the `SSL` environment variable to `true` in `docker/.env`.',
+			code: [
+				{
+					text: `# if you do not have a server.pem file, run the following command to convert the crt file to a pem.
+openssl x509 -in server.crt -out server.pem -outform PEM`,
+					language: 'bash',
+				},
+				{
+					text: `# set the following environment variable in docker/.env
+SSL=true`,
+					language: 'bash',
+				},
+			],
+		},
 
 		//
 		{

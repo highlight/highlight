@@ -73,9 +73,9 @@ type VercelLog struct {
 	Proxy       VercelProxy `json:"proxy"`
 }
 
-func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
+func submitVercelLog(ctx context.Context, tracer trace.Tracer, projectID int, log VercelLog) {
 	span, _ := highlight.StartTraceWithoutResourceAttributes(
-		ctx, highlight.UtilitySpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
+		ctx, tracer, highlight.UtilitySpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 	)
 	defer highlight.EndTrace(span)
@@ -109,19 +109,19 @@ func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
 	}
 }
 
-func SubmitVercelLogs(ctx context.Context, projectID int, logs []VercelLog) {
+func SubmitVercelLogs(ctx context.Context, tracer trace.Tracer, projectID int, logs []VercelLog) {
 	if len(logs) == 0 {
 		return
 	}
 
 	for _, log := range logs {
-		submitVercelLog(ctx, projectID, log)
+		submitVercelLog(ctx, tracer, projectID, log)
 	}
 }
 
-func SubmitHTTPLog(ctx context.Context, projectID int, lg Log) error {
+func SubmitHTTPLog(ctx context.Context, tracer trace.Tracer, projectID int, lg Log) error {
 	span, _ := highlight.StartTraceWithoutResourceAttributes(
-		ctx, highlight.UtilitySpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
+		ctx, tracer, highlight.UtilitySpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 	)
 	defer highlight.EndTrace(span)
