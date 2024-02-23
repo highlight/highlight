@@ -10,39 +10,58 @@ import {
 	Text,
 	useFormStore,
 } from '@highlight-run/ui/components'
-import { vars } from '@highlight-run/ui/vars'
 import { Divider } from 'antd'
-import { useState } from 'react'
+import moment from 'moment'
+import { PropsWithChildren, useState } from 'react'
 import { Helmet } from 'react-helmet'
 
 import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import Switch from '@/components/Switch/Switch'
+import { useGetKeysQuery, useGetMetricsQuery } from '@/graph/generated/hooks'
+import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import { useProjectId } from '@/hooks/useProjectId'
 import Graph from '@/pages/Graphing/components/Graph'
 
 import * as style from './GraphingEditor.css'
 
-const PRODUCTS = ['Traces', 'Logs', 'Sessions', 'Errors']
-const VIEW_TYPES = ['Line chart', 'Bar chart', 'Pie chart', 'Table', 'List']
-const FUNCTION_TYPES = [
-	'Count',
-	'Min',
-	'Avg',
-	'P50',
-	'P90',
-	'P95',
-	'P99',
-	'Max',
-	'Sum',
+const PRODUCTS: ProductType[] = [
+	ProductType.Traces,
+	ProductType.Logs,
+	ProductType.Sessions,
+	ProductType.Errors,
 ]
 
-const OptionDropdown = ({
+type View = 'Line chart' | 'Bar chart' | 'Pie chart' | 'Table' | 'List'
+const VIEWS: View[] = ['Line chart', 'Bar chart', 'Pie chart', 'Table', 'List']
+
+const FUNCTION_TYPES: MetricAggregator[] = [
+	MetricAggregator.Count,
+	MetricAggregator.Min,
+	MetricAggregator.Avg,
+	MetricAggregator.P50,
+	MetricAggregator.P90,
+	MetricAggregator.P95,
+	MetricAggregator.P99,
+	MetricAggregator.Max,
+	MetricAggregator.Sum,
+]
+
+const SidebarSection = (props: PropsWithChildren) => {
+	return (
+		<Box p="12" width="full" display="flex" flexDirection="column" gap="4">
+			{props.children}
+		</Box>
+	)
+}
+
+const OptionDropdown = <T extends string>({
 	options,
 	selection,
 	setSelection,
 }: {
 	options: string[]
 	selection: string
-	setSelection: (option: string) => void
+	setSelection: (option: T) => void
 }) => {
 	return (
 		<Menu>
@@ -50,20 +69,16 @@ const OptionDropdown = ({
 				kind="secondary"
 				size="small"
 				emphasis="medium"
-				style={{
-					border: vars.border.divider,
-					width: '100%',
-				}}
+				cssClass={style.menuButton}
 			>
 				<Box
+					width="full"
 					display="flex"
 					alignItems="center"
 					gap="4"
 					justifyContent="space-between"
 				>
-					<Box display="flex" flexGrow={1}>
-						{selection}
-					</Box>
+					<Box>{selection}</Box>
 					<IconSolidCheveronDown />
 				</Box>
 			</Menu.Button>
@@ -72,7 +87,7 @@ const OptionDropdown = ({
 					<Menu.Item
 						key={p}
 						onClick={() => {
-							setSelection(p)
+							setSelection(p as T)
 						}}
 					>
 						{p}
@@ -83,16 +98,99 @@ const OptionDropdown = ({
 	)
 }
 
+const EditorBackground = () => {
+	return (
+		<svg width="100%" height="100%">
+			<defs>
+				<pattern
+					id="polka-dots"
+					x="0"
+					y="0"
+					width="14"
+					height="14"
+					patternUnits="userSpaceOnUse"
+				>
+					<circle fill="#c8c7cb" cx="7" cy="7" r="1" />
+				</pattern>
+			</defs>
+
+			<rect
+				x="0"
+				y="0"
+				width="100%"
+				height="100%"
+				fill="url(#polka-dots)"
+			/>
+		</svg>
+	)
+}
+
 export const GraphingEditor = () => {
-	const [product, setProduct] = useState(PRODUCTS[0])
-	const [viewType, setViewType] = useState(VIEW_TYPES[0])
+	const { projectId } = useProjectId()
+	const [endDate] = useState(moment().toISOString())
+	const [startDate] = useState(moment().subtract(4, 'hours').toISOString())
+	const [productType, setProductType] = useState(PRODUCTS[0])
+	const [viewType, setViewType] = useState(VIEWS[0])
 	const [functionType, setFunctionType] = useState(FUNCTION_TYPES[0])
+	const [query, setQuery] = useState('')
 	const [metric, setMetric] = useState('')
+	const [metricViewTitle, setMetricViewTitle] = useState('')
 	const [groupByEnabled, setGroupByEnabled] = useState(false)
+	const [groupByKeys, setGroupByKeys] = useState<string[]>([])
+
+	const [limitFunctionType, setLimitFunctionType] = useState(
+		FUNCTION_TYPES[0],
+	)
+	const [limit, setLimit] = useState(10)
+	const [limitMetric, setLimitMetric] = useState('')
+
 	const [bucketByEnabled, setBucketByEnabled] = useState(true)
+	const [bucketByKey, setBucketByKey] = useState('Timestamp')
+	const [bucketCount, setBucketCount] = useState(50)
 
 	const formStore = useFormStore({
 		defaultValues: {},
+	})
+
+	const { data: keys, loading: keysLoading } = useGetKeysQuery({
+		variables: {
+			product_type: productType,
+			project_id: projectId,
+			date_range: {
+				start_date: startDate,
+				end_date: endDate,
+			},
+			query: '',
+		},
+	})
+
+	const { data: metrics, loading: metricsLoading } = useGetMetricsQuery({
+		variables: {
+			product_type: productType,
+			project_id: projectId,
+			params: {
+				date_range: {
+					start_date: startDate,
+					end_date: endDate,
+				},
+				query: query,
+			},
+			column: metric,
+			metric_types: [functionType],
+			group_by: groupByKeys,
+			bucket_by: bucketByKey,
+			limit: limit,
+			limit_aggregator: limitFunctionType,
+			limit_column: limitMetric,
+		},
+	})
+
+	const data = metrics?.metrics.buckets.map((b) => {
+		const seriesKey = [functionType as string].concat(b.group).join(' ')
+		return {
+			xAxis: b.bucket_min,
+			[seriesKey]: b.metric_value,
+		}
 	})
 
 	return (
@@ -151,33 +249,42 @@ export const GraphingEditor = () => {
 						justifyContent="space-between"
 						height="full"
 					>
-						<Box display="flex" cssClass={style.graphWrapper}>
-							<Graph
-								data={[1, 2, 10, 3, 2, 1, 1, 3, 5, 2, 3, 4].map(
-									(val, idx) => ({
-										xAxis: idx,
-										series1: val,
-										series2: val + (idx * idx) / 8,
-									}),
+						<Box
+							display="flex"
+							position="relative"
+							width="full"
+							height="full"
+						>
+							<Box position="absolute" width="full" height="full">
+								<EditorBackground />
+							</Box>
+							<Box
+								display="flex"
+								cssClass={style.graphWrapper}
+								shadow="small"
+							>
+								{data && (
+									<Graph
+										data={data}
+										chartLabel={metricViewTitle}
+										xAxisKey="xAxis"
+										strokeColor="#000000"
+										fillColor="#555555"
+									/>
 								)}
-								chartLabel="Graph title"
-								yAxisLabel="yAxisLabel"
-								xAxisKey="xAxis"
-								strokeColor="#000000"
-								fillColor="#555555"
-							/>
+							</Box>
 						</Box>
 						<Box
 							display="flex"
 							borderLeft="dividerWeak"
 							height="full"
-							cssClass={style.graphEditSidebar}
+							cssClass={style.editGraphSidebar}
 						>
 							<Form
 								store={formStore}
-								className={style.graphEditSidebar}
+								className={style.editGraphSidebar}
 							>
-								<Box p="12" width="full">
+								<SidebarSection>
 									<Label
 										label="Metric view title"
 										name="title"
@@ -186,48 +293,67 @@ export const GraphingEditor = () => {
 										type="text"
 										name="title"
 										placeholder="Enter name displayed as the title"
+										value={metricViewTitle}
+										onChange={(e) => {
+											setMetricViewTitle(e.target.value)
+										}}
 									/>
-								</Box>
+								</SidebarSection>
 								<Divider className="m-0" />
-								<Box p="12" width="full">
+								<SidebarSection>
 									<Label label="Source" name="source" />
-									<OptionDropdown
+									<OptionDropdown<ProductType>
 										options={PRODUCTS}
-										selection={product}
-										setSelection={setProduct}
+										selection={productType}
+										setSelection={setProductType}
 									/>
-								</Box>
+								</SidebarSection>
 								<Divider className="m-0" />
-								<Box p="12" width="full">
+								<SidebarSection>
 									<Label label="View type" name="viewType" />
-									<OptionDropdown
-										options={VIEW_TYPES}
+									<OptionDropdown<View>
+										options={VIEWS}
 										selection={viewType}
 										setSelection={setViewType}
 									/>
-								</Box>
+								</SidebarSection>
 								<Divider className="m-0" />
-								<Box p="12" width="full">
+								<SidebarSection>
 									<Label label="Function" name="function" />
-									<OptionDropdown
-										options={FUNCTION_TYPES}
-										selection={functionType}
-										setSelection={setFunctionType}
-									/>
-									<OptionDropdown
-										options={FUNCTION_TYPES}
-										selection={functionType}
-										setSelection={setFunctionType}
-									/>
-									<Label label="Filters" name="filters" />
+									<Box
+										display="flex"
+										flexDirection="row"
+										gap="4"
+										marginBottom="8"
+									>
+										<OptionDropdown<MetricAggregator>
+											options={FUNCTION_TYPES}
+											selection={functionType}
+											setSelection={setFunctionType}
+										/>
+										<Input
+											type="text"
+											name="column"
+											placeholder="Enter metric"
+											value={metric}
+											onChange={(e) => {
+												setMetric(e.target.value)
+											}}
+										/>
+									</Box>
+									<Label label="Filters" name="query" />
 									<Input
 										type="text"
-										name="filters"
+										name="query"
 										placeholder="Enter search filters"
+										value={query}
+										onChange={(e) => {
+											setQuery(e.target.value)
+										}}
 									/>
-								</Box>
+								</SidebarSection>
 								<Divider className="m-0" />
-								<Box p="12" width="full">
+								<SidebarSection>
 									<Box
 										display="flex"
 										flexDirection="row"
@@ -246,32 +372,99 @@ export const GraphingEditor = () => {
 											}}
 										/>
 									</Box>
-									<Input
-										type="text"
-										name="filters"
-										placeholder="Enter search filters"
-									/>
-									<Label label="Limit" name="limit" />
-									<Input
-										type="number"
-										name="limit"
-										placeholder="Enter limit"
-									/>
-									<Label label="By" name="limitBy" />
-									<OptionDropdown
-										options={FUNCTION_TYPES}
-										selection={functionType}
-										setSelection={setFunctionType}
-									/>
-									<OptionDropdown
-										options={FUNCTION_TYPES}
-										selection={functionType}
-										setSelection={setFunctionType}
-									/>
-									<Label label="Filters" name="filters" />
-								</Box>
+									{groupByEnabled && (
+										<>
+											<Box marginBottom="8">
+												<Input
+													type="text"
+													name="groupBy"
+													placeholder="Enter grouping keys"
+													value={groupByKeys.join(
+														' ',
+													)}
+													onChange={(e) => {
+														setGroupByKeys(
+															e.target.value.split(
+																' ',
+															),
+														)
+													}}
+												/>
+											</Box>
+											<Box
+												display="flex"
+												flexDirection="row"
+												gap="4"
+											>
+												<Box
+													display="flex"
+													flexDirection="column"
+													gap="4"
+												>
+													<Label
+														label="Limit"
+														name="limit"
+													/>
+													<Input
+														type="number"
+														name="limit"
+														placeholder="Enter limit"
+														value={limit}
+														onChange={(e) => {
+															setLimit(
+																Number(
+																	e.target
+																		.value,
+																),
+															)
+														}}
+													/>
+												</Box>
+												<Box
+													display="flex"
+													flexDirection="column"
+													gap="4"
+												>
+													<Label
+														label="By"
+														name="limitBy"
+													/>
+													<Box
+														display="flex"
+														flexDirection="row"
+														gap="4"
+													>
+														<OptionDropdown<MetricAggregator>
+															options={
+																FUNCTION_TYPES
+															}
+															selection={
+																limitFunctionType
+															}
+															setSelection={
+																setLimitFunctionType
+															}
+														/>
+														<Input
+															type="text"
+															name="limitMetric"
+															placeholder="Enter limit metric"
+															value={limitMetric}
+															onChange={(e) => {
+																setLimitMetric(
+																	e.target
+																		.value,
+																)
+															}}
+														/>
+													</Box>
+												</Box>
+											</Box>
+										</>
+									)}
+								</SidebarSection>
 								<Divider className="m-0" />
-								<Box p="12" width="full">
+								<SidebarSection>
 									<Box
 										display="flex"
 										flexDirection="row"
@@ -290,18 +483,39 @@ export const GraphingEditor = () => {
 											}}
 										/>
 									</Box>
-									<Input
-										type="text"
-										name="filters"
-										placeholder="Enter search filters"
-									/>
-									<Label label="Buckets" name="bucketCount" />
-									<Input
-										type="number"
-										name="bucketCount"
-										placeholder="Enter bucket count"
-									/>
-								</Box>
+									{bucketByEnabled && (
+										<>
+											<Box marginBottom="8">
+												<Input
+													type="text"
+													name="bucketBy"
+													placeholder="Enter bucketing key"
+													value={bucketByKey}
+													onChange={(e) => {
+														setBucketByKey(
+															e.target.value,
+														)
+													}}
+												/>
+											</Box>
+											<Label
+												label="Buckets"
+												name="bucketCount"
+											/>
+											<Input
+												type="number"
+												name="bucketCount"
+												placeholder="Enter bucket count"
+												value={bucketCount}
+												onChange={(e) => {
+													setBucketCount(
+														Number(e.target.value),
+													)
+												}}
+											/>
+										</>
+									)}
+								</SidebarSection>
 							</Form>
 						</Box>
 					</Box>

@@ -1,10 +1,10 @@
 import { Box, Button, Text } from '@highlight-run/ui/components'
+import _ from 'lodash'
 import React, { useState } from 'react'
 import {
 	Area,
 	AreaChart,
 	CartesianGrid,
-	ReferenceLine,
 	ResponsiveContainer,
 	XAxis,
 	YAxis,
@@ -20,12 +20,6 @@ interface Props {
 	xAxisTickFormatter?: (value: any, index: number) => string
 	yAxisTickFormatter?: (value: any, index: number) => string
 	onClickHandler?: (event: any) => void
-	referenceLineProps?: {
-		x?: number
-		y?: number
-		stroke?: string
-	}
-	yAxisLabel: string
 	noTooltipLabel?: boolean
 	tooltipIcon?: React.ReactNode
 	chartLabel?: string
@@ -71,11 +65,12 @@ const Graph = ({
 	data,
 	xAxisKey,
 	onClickHandler,
-	referenceLineProps,
 	chartLabel,
 	syncId,
 }: Props) => {
-	const series = Object.keys(data[0]).filter((key) => key !== xAxisKey)
+	const series = _.uniq(data.flatMap((d) => Object.keys(d))).filter(
+		(key) => key !== xAxisKey,
+	)
 	const [visibility, setVisibility] = useState<boolean[]>(
 		series.map(() => true),
 	)
@@ -91,6 +86,7 @@ const Graph = ({
 			display="flex"
 			flexDirection="column"
 			justifyContent="space-between"
+			position="static"
 		>
 			<Box>
 				<Box>
@@ -162,12 +158,6 @@ const Graph = ({
 							stroke="var(--color-gray-200)"
 						/>
 
-						{referenceLineProps && (
-							<ReferenceLine
-								{...referenceLineProps}
-								isFront={true}
-							/>
-						)}
 						{series.length > 0 &&
 							series.map((key, idx) => {
 								if (!visibility[idx]) {

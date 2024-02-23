@@ -4983,6 +4983,51 @@ export type GetTracesKeyValuesQuery = { __typename?: 'Query' } & {
 	key_values: Types.Query['traces_key_values']
 }
 
+export type GetKeysQueryVariables = Types.Exact<{
+	product_type: Types.ProductType
+	project_id: Types.Scalars['ID']
+	date_range: Types.DateRangeRequiredInput
+	query?: Types.Maybe<Types.Scalars['String']>
+}>
+
+export type GetKeysQuery = { __typename?: 'Query' } & {
+	keys: Array<
+		{ __typename?: 'QueryKey' } & Pick<Types.QueryKey, 'name' | 'type'>
+	>
+}
+
+export type GetMetricsQueryVariables = Types.Exact<{
+	product_type: Types.ProductType
+	project_id: Types.Scalars['ID']
+	params: Types.QueryInput
+	column: Types.Scalars['String']
+	metric_types: Array<Types.MetricAggregator> | Types.MetricAggregator
+	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
+	bucket_by: Types.Scalars['String']
+	limit?: Types.Maybe<Types.Scalars['Int']>
+	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
+	limit_column?: Types.Maybe<Types.Scalars['String']>
+}>
+
+export type GetMetricsQuery = { __typename?: 'Query' } & {
+	metrics: { __typename?: 'MetricsBuckets' } & Pick<
+		Types.MetricsBuckets,
+		'bucket_count' | 'sample_factor'
+	> & {
+			buckets: Array<
+				{ __typename?: 'MetricBucket' } & Pick<
+					Types.MetricBucket,
+					| 'bucket_id'
+					| 'bucket_min'
+					| 'bucket_max'
+					| 'group'
+					| 'metric_type'
+					| 'metric_value'
+				>
+			>
+		}
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -5135,6 +5180,8 @@ export const namedOperations = {
 		GetTracesMetrics: 'GetTracesMetrics' as const,
 		GetTracesKeys: 'GetTracesKeys' as const,
 		GetTracesKeyValues: 'GetTracesKeyValues' as const,
+		GetKeys: 'GetKeys' as const,
+		GetMetrics: 'GetMetrics' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,

@@ -1,9 +1,13 @@
 // src/pages/Graphing/GraphingEditor.css.ts
 var editGraphHeader = "gw96js0";
-var graphEditSidebar = "gw96js2";
+var editGraphSidebar = "gw96js2";
+var editorLabel = "gw96js3";
 var graphWrapper = "gw96js1";
+var menuButton = "gw96js4";
 export {
   editGraphHeader,
-  graphEditSidebar,
-  graphWrapper
+  editGraphSidebar,
+  editorLabel,
+  graphWrapper,
+  menuButton
 };

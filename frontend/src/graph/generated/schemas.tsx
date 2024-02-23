@@ -1892,6 +1892,7 @@ export type Query = {
 	is_workspace_integrated_with: Scalars['Boolean']
 	jira_projects?: Maybe<Array<JiraProject>>
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
+	keys: Array<QueryKey>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	log_alert: LogAlert
@@ -1908,6 +1909,7 @@ export type Query = {
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
 	metric_tags: Array<Scalars['String']>
+	metrics: MetricsBuckets
 	metrics_timeline: Array<Maybe<DashboardPayload>>
 	microsoft_teams_channel_suggestions: Array<MicrosoftTeamsChannel>
 	network_histogram?: Maybe<CategoryHistogramPayload>
@@ -2307,6 +2309,14 @@ export type QueryJira_ProjectsArgs = {
 	workspace_id: Scalars['ID']
 }
 
+export type QueryKeysArgs = {
+	date_range: DateRangeRequiredInput
+	product_type: ProductType
+	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
+	type?: InputMaybe<KeyType>
+}
+
 export type QueryLinear_TeamsArgs = {
 	project_id: Scalars['ID']
 }
@@ -2395,6 +2405,20 @@ export type QueryMetric_TagsArgs = {
 	metric_name: Scalars['String']
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
+}
+
+export type QueryMetricsArgs = {
+	bucket_by: Scalars['String']
+	bucket_count?: InputMaybe<Scalars['Int']>
+	column: Scalars['String']
+	group_by: Array<Scalars['String']>
+	limit?: InputMaybe<Scalars['Int']>
+	limit_aggregator?: InputMaybe<MetricAggregator>
+	limit_column?: InputMaybe<Scalars['String']>
+	metric_types: Array<MetricAggregator>
+	params: QueryInput
+	product_type: ProductType
+	project_id: Scalars['ID']
 }
 
 export type QueryMetrics_TimelineArgs = {

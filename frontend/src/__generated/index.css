@@ -7405,11 +7405,23 @@ body {
 }
 .gw96js1 {
   width: 720px;
-  height: 361px;
+  height: 360px;
   margin: auto;
+  z-index: 1;
+  background-color: #fff;
 }
 .gw96js2 {
   width: 320px;
+}
+.gw96js3 {
+  margin-bottom: 4px;
+}
+.gw96js4 {
+  border: var(--_1pyqka9j) solid 1px;
+  width: 100%;
+}
+.gw96js4 > div {
+  width: 100%;
 }
 ._1kp6do40 {
   width: 100%;
