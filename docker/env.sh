@@ -15,6 +15,7 @@ if [[ "$*" == *"--go-docker"* ]]; then
     export OTLP_ENDPOINT=http://collector:4318
     export OTLP_DOGFOOD_ENDPOINT=https://otel.highlight.io:4318
     export IN_DOCKER_GO=true
+    export ON_PREM=true
     echo "Using docker-internal infra."
 else
     export CLICKHOUSE_ADDRESS=localhost:9000
