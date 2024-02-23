@@ -30,44 +30,50 @@ interface Props {
 
 const strokeColors = ['#0090FF', '#D6409F']
 
-const CustomYAxisTick = ({ y, payload }: any) => (
-	<g transform={`translate(${0},${y})`}>
-		<text
-			x={0}
-			y={0}
-			fontSize={10}
-			fill="#C8C7CB"
-			textAnchor="start"
-			orientation="left"
-		>
-			{payload.value.toFixed(1)}
-		</text>
-	</g>
-)
-
-const CustomXAxisTick = ({ x, y, payload }: any) => (
-	<g transform={`translate(${x},${y})`}>
-		<text
-			x={0}
-			y={0}
-			dy={4}
-			fontSize={10}
-			fill="#C8C7CB"
-			textAnchor="middle"
-			orientation="bottom"
-		>
-			{payload.value}
-		</text>
-	</g>
-)
-
 const Graph = ({
 	data,
 	xAxisKey,
 	onClickHandler,
 	chartLabel,
 	syncId,
+	xAxisTickFormatter,
+	yAxisTickFormatter,
 }: Props) => {
+	const CustomYAxisTick = ({ y, payload }: any) => (
+		<g transform={`translate(${0},${y})`}>
+			<text
+				x={0}
+				y={0}
+				fontSize={10}
+				fill="#C8C7CB"
+				textAnchor="start"
+				orientation="left"
+			>
+				{yAxisTickFormatter
+					? yAxisTickFormatter(payload.value, payload.index)
+					: payload.value}
+			</text>
+		</g>
+	)
+
+	const CustomXAxisTick = ({ x, y, payload }: any) => (
+		<g transform={`translate(${x},${y})`}>
+			<text
+				x={0}
+				y={0}
+				dy={4}
+				fontSize={10}
+				fill="#C8C7CB"
+				textAnchor="middle"
+				orientation="bottom"
+			>
+				{xAxisTickFormatter
+					? xAxisTickFormatter(payload.value, payload.index)
+					: payload.value}
+			</text>
+		</g>
+	)
+
 	const series = _.uniq(data.flatMap((d) => Object.keys(d))).filter(
 		(key) => key !== xAxisKey,
 	)
@@ -110,7 +116,9 @@ const Graph = ({
 										width: 8,
 										height: 8,
 										backgroundColor: visibility[idx]
-											? strokeColors[idx]
+											? strokeColors[
+													idx % strokeColors.length
+											  ]
 											: undefined,
 										borderRadius: '50%',
 										margin: 'auto',
@@ -138,9 +146,12 @@ const Graph = ({
 							dataKey={xAxisKey}
 							fontSize={10}
 							tick={<CustomXAxisTick />}
+							tickFormatter={xAxisTickFormatter}
 							tickLine={{ visibility: 'hidden' }}
 							axisLine={{ visibility: 'hidden' }}
 							height={12}
+							type="number"
+							domain={['auto', 'auto']}
 						/>
 
 						<YAxis
@@ -148,8 +159,10 @@ const Graph = ({
 							tickLine={{ visibility: 'hidden' }}
 							axisLine={{ visibility: 'hidden' }}
 							tick={<CustomYAxisTick />}
+							tickFormatter={yAxisTickFormatter}
 							tickCount={7}
 							width={32}
+							type="number"
 						/>
 
 						<CartesianGrid
@@ -174,6 +187,7 @@ const Graph = ({
 										stroke={strokeColors[idx]}
 										fill={strokeColors[idx]}
 										fillOpacity={0.1}
+										connectNulls
 									/>
 								)
 							})}

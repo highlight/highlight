@@ -5005,6 +5005,7 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	metric_types: Array<Types.MetricAggregator> | Types.MetricAggregator
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
 	bucket_by: Types.Scalars['String']
+	bucket_count?: Types.Maybe<Types.Scalars['Int']>
 	limit?: Types.Maybe<Types.Scalars['Int']>
 	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
 	limit_column?: Types.Maybe<Types.Scalars['String']>
