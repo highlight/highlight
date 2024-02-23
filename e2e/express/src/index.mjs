@@ -3,7 +3,7 @@ import { H, Handlers } from '@highlight-run/node'
 
 /** @type {import('@highlight-run/node').NodeOptions} */
 const config = {
-	projectID: '2',
+	projectID: '1',
 	debug: true,
 	serviceName: 'e2e-express',
 	serviceVersion: 'git-sha',
