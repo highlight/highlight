@@ -2786,9 +2786,28 @@ export enum ReservedLogKey {
 }
 
 export enum ReservedSessionKey {
+	ActiveLength = 'active_length',
 	AppVersion = 'app_version',
+	BrowserName = 'browser_name',
+	BrowserVersion = 'browser_version',
+	City = 'city',
+	Country = 'country',
 	Environment = 'environment',
+	Fingerprint = 'fingerprint',
+	FirstTime = 'first_time',
+	HasErrors = 'has_errors',
+	HasRageClicks = 'has_rage_clicks',
+	Identified = 'identified',
+	Identifier = 'identifier',
+	Length = 'length',
+	Normalness = 'normalness',
+	OsName = 'os_name',
+	OsVersion = 'os_version',
+	PagesVisited = 'pages_visited',
+	Processed = 'processed',
+	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
+	Viewed = 'viewed',
 }
 
 export enum ReservedTraceKey {

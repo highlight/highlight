@@ -11673,6 +11673,25 @@ enum ReservedSessionKey {
 	environment
 	service_name
 	app_version
+	secure_session_id
+	identified
+	fingerprint
+	identifier
+	city
+	country
+	os_name
+	os_version
+	browser_name
+	browser_version
+	processed
+	has_rage_clicks
+	has_errors
+	length
+	active_length
+	first_time
+	viewed
+	pages_visited
+	normalness
 }
 
 enum LogSource {

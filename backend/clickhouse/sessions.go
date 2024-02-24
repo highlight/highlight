@@ -456,7 +456,29 @@ func SessionMatchesQuery(session *model.Session, filters listener.Filters) bool 
 var sessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey]{
 	TableName:        "sessions_joined_vw",
 	AttributesColumn: "SessionAttributes",
-	ReservedKeys:     modelInputs.AllReservedSessionKey,
+	KeysToColumns: map[modelInputs.ReservedSessionKey]string{
+		modelInputs.ReservedSessionKeyEnvironment:     "Environment",
+		modelInputs.ReservedSessionKeyAppVersion:      "AppVersion",
+		modelInputs.ReservedSessionKeySecureSessionID: "SecureID",
+		modelInputs.ReservedSessionKeyFingerprint:     "Fingerprint",
+		modelInputs.ReservedSessionKeyIdentifier:      "Identifier",
+		modelInputs.ReservedSessionKeyCity:            "City",
+		modelInputs.ReservedSessionKeyCountry:         "Country",
+		modelInputs.ReservedSessionKeyOsName:          "OSName",
+		modelInputs.ReservedSessionKeyOsVersion:       "OSVersion",
+		modelInputs.ReservedSessionKeyBrowserName:     "BrowserName",
+		modelInputs.ReservedSessionKeyBrowserVersion:  "BrowserVersion",
+		modelInputs.ReservedSessionKeyProcessed:       "Processed",
+		modelInputs.ReservedSessionKeyHasRageClicks:   "HasRageClicks",
+		modelInputs.ReservedSessionKeyHasErrors:       "HasErrors",
+		modelInputs.ReservedSessionKeyLength:          "Length",
+		modelInputs.ReservedSessionKeyActiveLength:    "ActiveLength",
+		modelInputs.ReservedSessionKeyFirstTime:       "FirstTime",
+		modelInputs.ReservedSessionKeyViewed:          "Viewed",
+		modelInputs.ReservedSessionKeyPagesVisited:    "PagesVisited",
+		modelInputs.ReservedSessionKeyNormalness:      "Normalness",
+	},
+	ReservedKeys: modelInputs.AllReservedSessionKey,
 }
 
 var sessionsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedSessionKey]{
