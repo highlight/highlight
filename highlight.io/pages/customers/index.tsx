@@ -25,6 +25,7 @@ interface Customer {
 		body: string
 		author: Author
 	}
+	hidden: boolean
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
@@ -36,7 +37,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
 	const QUERY = gql`
       query GetCustomers() {
-          customers() {
+          customers(where: { hidden: false }) {
               slug
               image {
                   url
@@ -55,6 +56,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
                       }
                   }
               }
+              hidden
           }
       }
   `
