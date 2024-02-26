@@ -280,7 +280,6 @@ export const Search: React.FC<{
 	const { queryParts, tokens } = parseSearch(query)
 	const tokenGroups = buildTokenGroups(tokens, queryParts, query)
 	const activePart = getActivePart(cursorIndex, queryParts)
-	console.log('aaaaa', 'activePart', activePart, cursorIndex)
 	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
 		activePart.value,
 	)
@@ -332,12 +331,6 @@ export const Search: React.FC<{
 
 	const handleSetCursorIndex = () => {
 		if (!isPending) {
-			console.log(
-				'aaaaa',
-				'handleSetCursorIndex',
-				inputRef.current?.selectionStart,
-				query.length,
-			)
 			setCursorIndex(inputRef.current?.selectionStart || query.length)
 		}
 	}
@@ -422,7 +415,6 @@ export const Search: React.FC<{
 		const noActiveId = !activeId || !items.find((i) => i.id === activeId)
 
 		if (activePart.text.trim() !== '' && noActiveId && firstItem) {
-			console.log('aaaaa', 'setting activeId', firstItem)
 			comboboxStore.setActiveId(firstItem.id)
 			comboboxStore.setState('moves', 0)
 		}
@@ -453,36 +445,15 @@ export const Search: React.FC<{
 
 			activePart.operator = item.name
 			activePart.text = `${key}${space}${activePart.operator}`
-			console.log(
-				'aaaaa',
-				'creatingOperator',
-				activePart,
-				activePart.start,
-				activePart.text.length,
-			)
 			activePart.stop = activePart.start + activePart.text.length
 		} else if (isValueSelect) {
 			activePart.value = quoteQueryValue(item.name)
 			activePart.text = `${activePart.key}${activePart.operator}${activePart.value}`
-			console.log(
-				'aaaaa',
-				'creatingValue',
-				activePart,
-				activePart.start,
-				activePart.text.length,
-			)
 			activePart.stop = activePart.start + activePart.text.length
 		} else {
 			activePart.key = item.name
 			activePart.text = item.name
 			activePart.value = ''
-			console.log(
-				'aaaaa',
-				'creatingKey',
-				activePart,
-				activePart.start,
-				activePart.text.length,
-			)
 			activePart.stop = activePart.start + activePart.key.length
 		}
 
@@ -491,12 +462,6 @@ export const Search: React.FC<{
 
 		startTransition(() => {
 			setQuery(newQuery)
-			console.log(
-				'aaaaa',
-				'startTransition',
-				activePart,
-				newCursorPosition,
-			)
 			setCursorIndex(newCursorPosition)
 
 			if (isValueSelect) {
@@ -835,7 +800,6 @@ const getActivePart = (
 	let activePartIndex
 
 	queryParts.find((param, index) => {
-		console.log('aaaaa', 'param', param, cursorIndex)
 		if (param.stop < cursorIndex - 1) {
 			return false
 		}
@@ -844,7 +808,6 @@ const getActivePart = (
 		return true
 	})
 
-	console.log('aaaaa', 'activePartIndex', activePartIndex, queryParts)
 	if (activePartIndex === undefined) {
 		const activePart = {
 			key: BODY_KEY,
