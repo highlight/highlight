@@ -814,8 +814,8 @@ const getActivePart = (
 			operator: DEFAULT_OPERATOR,
 			value: '',
 			text: '',
-			start: 1,
-			stop: 1,
+			start: cursorIndex,
+			stop: cursorIndex,
 		}
 		queryParts.push(activePart)
 		return activePart

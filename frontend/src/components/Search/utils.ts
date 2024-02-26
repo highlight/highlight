@@ -37,13 +37,15 @@ export const parseSearch = (input: string) => {
 	ParseTreeWalker.DEFAULT.walk(listener, tree)
 
 	if (input.trim() === '') {
+		const bodyPosition = Math.max(0, input.length - 1)
+
 		queryParts.push({
 			key: BODY_KEY,
 			operator: DEFAULT_OPERATOR,
 			value: '',
 			text: '',
-			start: input.length - 1,
-			stop: input.length - 1,
+			start: bodyPosition,
+			stop: bodyPosition,
 		})
 	}
 
