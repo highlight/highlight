@@ -1966,53 +1966,9 @@ func (r *mutationResolver) CreateSessionCommentWithExistingIssue(ctx context.Con
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
-		} else if *s == modelInputs.IntegrationTypeJira {
-
-			if err := r.CreateJiraIssueAttachment(
-				ctx,
-				workspace,
-				attachment,
-				title,
-				issueURL,
-			); err != nil {
-				return nil, e.Wrap(err, "error creating Jira task")
-			}
-
-			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
-		} else if *s == modelInputs.IntegrationTypeGitLab {
-			if err := r.CreateGitlabTaskAttachment(
-				ctx,
-				workspace,
-				attachment,
-				title,
-				issueURL,
-			); err != nil {
-				return nil, e.Wrap(err, "error creating GitLab task")
-			}
-
-			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
-		} else if *s == modelInputs.IntegrationTypeJira {
-
-			if err := r.CreateGitHubIssueAttachment(
-				ctx,
-				workspace,
-				attachment,
-				title,
-				issueURL,
-			); err != nil {
-				return nil, e.Wrap(err, "error creating GitHub issue attachment")
-			}
-
-			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
-		} else if *s == modelInputs.IntegrationTypeHeight {
-
-			if err := r.CreateHeightIssueAttachment(
-				ctx,
-				attachment,
-				title,
-				issueURL,
-			); err != nil {
-				return nil, e.Wrap(err, "error creating GitHub issue attachment")
+		} else {
+			if err := r.CreateIssueAttachment(ctx, attachment, title, issueURL); err != nil {
+				return nil, e.Wrap(err, fmt.Sprintf("error creating %s task attachment", *s))
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
@@ -2145,16 +2101,9 @@ func (r *mutationResolver) LinkIssueForSessionComment(ctx context.Context, proje
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
-		} else if *s == modelInputs.IntegrationTypeJira {
-
-			if err := r.CreateJiraIssueAttachment(ctx, workspace, attachment, title, issueURL); err != nil {
-				return nil, e.Wrap(err, "error creating Jira task")
-			}
-
-			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
-		} else if *s == modelInputs.IntegrationTypeGitLab {
-			if err := r.CreateGitlabTaskAttachment(ctx, workspace, attachment, title, issueURL); err != nil {
-				return nil, e.Wrap(err, "error creating GitLab task")
+		} else {
+			if err := r.CreateIssueAttachment(ctx, attachment, title, issueURL); err != nil {
+				return nil, e.Wrap(err, fmt.Sprintf("error creating %s issue attachment", *s))
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
@@ -2605,22 +2554,6 @@ func (r *mutationResolver) CreateErrorCommentForExistingIssue(ctx context.Contex
 			ErrorCommentID:  errorComment.ID,
 		}
 
-		if *s == modelInputs.IntegrationTypeJira {
-			if err := r.CreateJiraIssueAttachment(ctx, workspace, attachment, issueTitle, issueURL); err != nil {
-				return nil, e.Wrap(err, "error creating Jira issue attachment")
-			}
-
-			errorComment.Attachments = append(errorComment.Attachments, attachment)
-		}
-
-		if *s == modelInputs.IntegrationTypeGitLab {
-			if err := r.CreateGitlabTaskAttachment(ctx, workspace, attachment, issueTitle, issueURL); err != nil {
-				return nil, e.Wrap(err, "error creating GitLab issue attachment")
-			}
-
-			errorComment.Attachments = append(errorComment.Attachments, attachment)
-		}
-
 		if *s == modelInputs.IntegrationTypeLinear {
 			if err := r.CreateLinearAttachmentForExistingIssue(
 				ctx,
@@ -2635,6 +2568,11 @@ func (r *mutationResolver) CreateErrorCommentForExistingIssue(ctx context.Contex
 				return nil, e.Wrap(err, "error creating linear issue attachment")
 			}
 
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else {
+			if err := r.CreateIssueAttachment(ctx, attachment, issueTitle, issueURL); err != nil {
+				return nil, e.Wrap(err, fmt.Sprintf("error creating %s issue attachment", *s))
+			}
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		}
 	}
@@ -2877,16 +2815,9 @@ func (r *mutationResolver) LinkIssueForErrorComment(ctx context.Context, project
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
-		} else if *s == modelInputs.IntegrationTypeJira {
-
-			if err := r.CreateJiraIssueAttachment(ctx, workspace, attachment, title, issueURL); err != nil {
-				return nil, e.Wrap(err, "error creating Jira task attachment")
-			}
-
-			errorComment.Attachments = append(errorComment.Attachments, attachment)
-		} else if *s == modelInputs.IntegrationTypeGitLab {
-			if err := r.CreateGitlabTaskAttachment(ctx, workspace, attachment, title, issueURL); err != nil {
-				return nil, e.Wrap(err, "error creating GitLab task attachment")
+		} else {
+			if err := r.CreateIssueAttachment(ctx, attachment, title, issueURL); err != nil {
+				return nil, e.Wrap(err, fmt.Sprintf("error creating %s task attachment", *s))
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)

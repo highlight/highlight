@@ -2847,53 +2847,8 @@ func (r *Resolver) CreateJiraTaskAndAttachment(
 	return nil
 }
 
-func (r *Resolver) CreateJiraIssueAttachment(
+func (r *Resolver) CreateIssueAttachment(
 	ctx context.Context,
-	workspace *model.Workspace,
-	attachment *model.ExternalAttachment,
-	issueTitle string,
-	issueURL string,
-) error {
-	attachment.ExternalID = issueURL
-	attachment.Title = issueTitle
-	if err := r.DB.WithContext(ctx).Create(attachment).Error; err != nil {
-		return e.Wrap(err, "error creating external attachment")
-	}
-	return nil
-}
-
-func (r *Resolver) CreateHeightIssueAttachment(
-	ctx context.Context,
-	attachment *model.ExternalAttachment,
-	issueTitle string,
-	issueURL string,
-) error {
-	attachment.ExternalID = issueURL
-	attachment.Title = issueTitle
-	if err := r.DB.WithContext(ctx).Create(attachment).Error; err != nil {
-		return e.Wrap(err, "error creating external attachment")
-	}
-	return nil
-}
-
-func (r *Resolver) CreateGitHubIssueAttachment(
-	ctx context.Context,
-	workspace *model.Workspace,
-	attachment *model.ExternalAttachment,
-	issueTitle string,
-	issueURL string,
-) error {
-	attachment.ExternalID = issueURL
-	attachment.Title = issueTitle
-	if err := r.DB.WithContext(ctx).Create(attachment).Error; err != nil {
-		return e.Wrap(err, "error creating external attachment")
-	}
-	return nil
-}
-
-func (r *Resolver) CreateGitlabTaskAttachment(
-	ctx context.Context,
-	workspace *model.Workspace,
 	attachment *model.ExternalAttachment,
 	issueTitle string,
 	issueURL string,
