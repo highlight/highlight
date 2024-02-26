@@ -6,7 +6,7 @@ import {
 	parseAdminSuggestions,
 } from '@components/Comment/utils/utils'
 import { RadioGroup } from '@components/RadioGroup/RadioGroup'
-import Select, { OptionType } from '@components/Select/Select'
+import { SearchSelect } from '@components/Select/SearchSelect/SearchSelect'
 import {
 	useCreateErrorCommentForExistingIssueMutation,
 	useCreateErrorCommentMutation,
@@ -54,7 +54,6 @@ import analytics from '@util/analytics'
 import { getCommentMentionSuggestions } from '@util/comment/util'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import { DefaultOptionType } from 'antd/lib/select'
 import React, { useEffect, useMemo, useState } from 'react'
 import { OnChangeHandlerFunc } from 'react-mentions'
 import { useNavigate } from 'react-router-dom'
@@ -145,18 +144,15 @@ export const NewCommentForm = ({
 
 	// issue linking support
 	const [mode, setMode] = React.useState('Create Issue')
-	const [matchedIssues, setMatchedIssues] = useState<OptionType[]>([])
 	const [query, setQuery] = useState<string>('')
 	const [linkedIssue, setLinkedIssue] = useState({
 		id: '',
 		url: '',
+		title: '',
 	})
 	const debouncedQuery = useDebouncedValue(query) || ''
-	const [searchIssues, { data }] = useSearchIssuesLazyQuery()
-
-	const getValueOptions = (input: string) => {
-		setQuery(input)
-	}
+	const [searchIssues, { data, loading: loadingIssues }] =
+		useSearchIssuesLazyQuery()
 
 	React.useEffect(() => {
 		searchIssues({
@@ -169,15 +165,17 @@ export const NewCommentForm = ({
 		})
 	}, [searchIssues, project_id, debouncedQuery, selectedIssueService])
 
-	React.useEffect(() => {
-		const values =
+	const matchedIssues = React.useMemo(() => {
+		return (
 			data?.search_issues.map((s) => ({
 				displayValue: s.title,
 				id: s.id,
+				key: s.id,
 				value: s.issue_url,
+				label: s.title,
 			})) || []
-		setMatchedIssues(values)
-	}, [data?.search_issues])
+		)
+	}, [data])
 
 	const integrationMap = useMemo(() => {
 		const ret: { [key: string]: IssueTrackerIntegration } = {}
@@ -637,31 +635,28 @@ export const NewCommentForm = ({
 									label="Link an issue"
 									name="issue_id"
 								>
-									<Select
-										placeholder="Search Issue"
+									<SearchSelect
+										loading={loadingIssues}
+										placeholder="Search Issues ..."
 										options={matchedIssues}
-										onChange={(
-											value: any,
-											option:
-												| DefaultOptionType
-												| DefaultOptionType[],
-										) => {
-											if (!Array.isArray(option)) {
+										onSelect={(value: string) => {
+											const matchedValue =
+												matchedIssues.find(
+													(v: { value: string }) =>
+														v.value == value,
+												)
+											if (value) {
 												setLinkedIssue({
-													id: value.toString(),
-													url: option.value
-														? option.value.toString()
+													id: value,
+													url: value || '',
+													title: matchedValue
+														? matchedValue.label
 														: '',
 												})
 											}
 										}}
-										allowClear={true}
 										value={linkedIssue.id}
-										notFoundContent={
-											<p>No search results found</p>
-										}
-										showSearch={true}
-										onSearch={getValueOptions}
+										loadOptions={setQuery}
 									/>
 								</Form.NamedSection>
 							)}
