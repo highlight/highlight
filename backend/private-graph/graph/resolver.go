@@ -2797,7 +2797,7 @@ func (r *Resolver) SearchGitlabIssues(
 	}
 
 	if accessToken == nil {
-		return nil, errors.New("No Jira integration access token found.")
+		return nil, errors.New("No GitLab integration access token found.")
 	}
 
 	return gitlab.SearchGitlabIssues(*accessToken, query)
@@ -3014,9 +3014,9 @@ func (r *Resolver) SearchGitHubIssues(
 	if accessToken == nil {
 		return nil, nil
 	}
-	var repos []*github2.Issue
+	var issues []*github2.Issue
 	if c, err := github.NewClient(ctx, *accessToken, r.Redis); err == nil {
-		repos, err = c.SearchIssues(ctx, query)
+		issues, err = c.SearchIssues(ctx, query)
 		if err != nil {
 			return nil, err
 		}
@@ -3024,7 +3024,7 @@ func (r *Resolver) SearchGitHubIssues(
 		return nil, e.Wrap(err, "failed to create github client")
 	}
 
-	return lo.Map(repos, func(t *github2.Issue, i int) *modelInputs.IssuesSearchResult {
+	return lo.Map(issues, func(t *github2.Issue, i int) *modelInputs.IssuesSearchResult {
 		return &modelInputs.IssuesSearchResult{
 			ID:       strconv.FormatInt(t.GetID(), 10),
 			Title:    t.GetTitle(),

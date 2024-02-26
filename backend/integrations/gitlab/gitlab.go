@@ -319,17 +319,6 @@ func CreateGitlabTask(accessToken string, projectId string, payload NewGitlabIss
 	return res, nil
 }
 
-func GetGitlabTask(accessToken string, taskId string) (*GitlabIssue, error) {
-	url := fmt.Sprintf("%s/issues/%s", GitlabApiBaseUrl, taskId)
-
-	res, err := doGitlabGetRequest[*GitlabIssue](accessToken, url)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
 func GetRefreshToken(ctx context.Context, oldToken *oauth2.Token) (*oauth2.Token, error) {
 	conf, _, err := GetOAuthConfig()
 	if err != nil {
