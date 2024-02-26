@@ -605,25 +605,30 @@ export const NewCommentForm = ({
 							</Stack>
 						</Box>
 						<Stack direction="column" gap="12" p="12">
-							<Box
-								px="12"
-								py="8"
-								gap="12"
-								display="flex"
-								align="center"
-							>
-								<RadioGroup
-									labels={['Create Issue', 'Link Issue']}
-									selectedLabel={mode}
-									onSelect={(label: any) => setMode(label)}
-									style={{
-										width: '100%',
-										display: 'flex',
-										justifyContent: 'center',
-										alignItems: 'center',
-									}}
-								/>
-							</Box>
+							{/* ClickUp doesn't support linking issues, so we don't need to show this section. */}
+							{integrationName !== 'ClickUp' && (
+								<Box
+									px="12"
+									py="8"
+									gap="12"
+									display="flex"
+									align="center"
+								>
+									<RadioGroup
+										labels={['Create Issue', 'Link Issue']}
+										selectedLabel={mode}
+										onSelect={(label: any) =>
+											setMode(label)
+										}
+										style={{
+											width: '100%',
+											display: 'flex',
+											justifyContent: 'center',
+											alignItems: 'center',
+										}}
+									/>
+								</Box>
+							)}
 							{mode === 'Create Issue' &&
 								issueServiceDetail?.containerSelection({
 									disabled: isCreatingComment,
