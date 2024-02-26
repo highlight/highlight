@@ -376,7 +376,17 @@ func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model
 			}
 		}
 		for _, bodyFilter := range filter.Values {
-			if strings.Contains(bodyFilter, "%") {
+			if filter.Operator == listener.OperatorRegExp || filter.Operator == listener.OperatorNotRegExp {
+				pat, err := regexp.Compile(bodyFilter)
+				if err == nil {
+					matches := pat.MatchString(body)
+					shouldMatch := filter.Operator == listener.OperatorRegExp
+
+					if (shouldMatch && !matches) || (!shouldMatch && matches) {
+						return false
+					}
+				}
+			} else if strings.Contains(bodyFilter, "%") {
 				pat, err := regexp.Compile(strings.ReplaceAll(regexp.QuoteMeta(bodyFilter), "%", ".*"))
 				// this may over match if the expression cannot be compiled,
 				// but we'd prefer to over match as this fn is used to determine sampling
@@ -423,7 +433,17 @@ func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model
 	}
 	if !bodyFilter {
 		for _, v := range filter.Values {
-			if strings.Contains(v, "%") {
+			if filter.Operator == listener.OperatorRegExp || filter.Operator == listener.OperatorNotRegExp {
+				pat, err := regexp.Compile(v)
+				if err == nil {
+					matches := pat.MatchString(rowValue)
+					shouldMatch := filter.Operator == listener.OperatorRegExp
+
+					if (shouldMatch && !matches) || (!shouldMatch && matches) {
+						return false
+					}
+				}
+			} else if strings.Contains(v, "%") {
 				if matched, _ := regexp.Match(strings.ReplaceAll(v, "%", ".*"), []byte(rowValue)); !matched {
 					return false
 				}
