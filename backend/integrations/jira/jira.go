@@ -209,7 +209,7 @@ func GetJiraSite(accessToken string) (*modelInputs.AccessibleJiraResources, erro
 }
 
 func SearchJiraIssues(accessToken string, workspace *model.Workspace, query string) ([]*modelInputs.IssuesSearchResult, error) {
-	url := fmt.Sprintf("/ex/jira/%s/rest/api/2/issue/picker?currentJQL=text~timeout", *workspace.JiraCloudID)
+	url := fmt.Sprintf("/ex/jira/%s/rest/api/2/issue/picker?currentJQL=text~%s", *workspace.JiraCloudID, query)
 	res, err := doJiraGetRequest[JiraAutoCompleteSearchResponse](accessToken, url)
 	if err != nil {
 		return nil, err

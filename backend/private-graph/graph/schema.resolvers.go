@@ -2004,6 +2004,18 @@ func (r *mutationResolver) CreateSessionCommentWithExistingIssue(ctx context.Con
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeHeight {
+
+			if err := r.CreateHeightIssueAttachment(
+				ctx,
+				attachment,
+				title,
+				issueURL,
+			); err != nil {
+				return nil, e.Wrap(err, "error creating GitHub issue attachment")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		}
 	}
 
@@ -7007,6 +7019,14 @@ func (r *queryResolver) SearchIssues(ctx context.Context, integrationType modelI
 
 	if integrationType == modelInputs.IntegrationTypeJira {
 		results, err := r.SearchJiraIssues(ctx, workspace, query)
+		if err != nil {
+			return ret, err
+		}
+		return results, nil
+	}
+
+	if integrationType == modelInputs.IntegrationTypeHeight {
+		results, err := r.SearchHeightIssues(ctx, workspace, query)
 		if err != nil {
 			return ret, err
 		}

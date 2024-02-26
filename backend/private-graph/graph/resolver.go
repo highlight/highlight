@@ -2767,6 +2767,24 @@ func (r *Resolver) SearchJiraIssues(
 	return jira.SearchJiraIssues(*accessToken, workspace, query)
 }
 
+func (r *Resolver) SearchHeightIssues(
+	ctx context.Context,
+	workspace *model.Workspace,
+	query string,
+) ([]*modelInputs.IssuesSearchResult, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeHeight)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, errors.New("No Height integration access token found.")
+	}
+
+	return height.SearchTask(*accessToken, query)
+}
+
 func (r *Resolver) SearchGitlabIssues(
 	ctx context.Context,
 	workspace *model.Workspace,
@@ -2832,6 +2850,20 @@ func (r *Resolver) CreateJiraTaskAndAttachment(
 func (r *Resolver) CreateJiraIssueAttachment(
 	ctx context.Context,
 	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueURL string,
+) error {
+	attachment.ExternalID = issueURL
+	attachment.Title = issueTitle
+	if err := r.DB.WithContext(ctx).Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
+func (r *Resolver) CreateHeightIssueAttachment(
+	ctx context.Context,
 	attachment *model.ExternalAttachment,
 	issueTitle string,
 	issueURL string,
