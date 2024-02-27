@@ -1,5 +1,5 @@
 import Select from '@components/Select/Select'
-import { Form, Text } from '@highlight-run/ui/components'
+import { Form } from '@highlight-run/ui/components'
 import {
 	GitHubRepoSelectionKey,
 	useGitHubIntegration,
@@ -20,11 +20,7 @@ const GitHubRepoSelector: React.FC<ContainerSelectionProps> = ({
 			data?.github_repos?.map((repo) => ({
 				value: repo.name,
 				id: repo.name,
-				displayValue: (
-					<Text size="small" weight="medium">
-						{repo.name}
-					</Text>
-				),
+				displayValue: repo.name,
 			})) || []
 		)
 	}, [data])

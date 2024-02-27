@@ -1,5 +1,5 @@
 import Select from '@components/Select/Select'
-import { Form, Text } from '@highlight-run/ui/components'
+import { Form } from '@highlight-run/ui/components'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import * as style from '@pages/IntegrationsPage/components/style.css'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
@@ -17,11 +17,7 @@ const LinearTeamSelector: React.FC<ContainerSelectionProps> = ({
 			teams?.map((team) => ({
 				value: team.team_id,
 				id: team.team_id,
-				displayValue: (
-					<Text size="small" weight="medium">
-						{team.name} ({team.key})
-					</Text>
-				),
+				displayValue: `${team.name} (${team.key})`,
 			})) || []
 		)
 	}, [teams])

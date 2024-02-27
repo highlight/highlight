@@ -18,11 +18,7 @@ const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 			(data?.jira_projects || []).map((team: any) => ({
 				value: team.id,
 				id: team.id,
-				displayValue: (
-					<Text size="small" weight="medium">
-						{team.name} ({team.key})
-					</Text>
-				),
+				displayValue: `${team.name} (${team.key})`,
 			})) || []
 		)
 	}, [data?.jira_projects])
