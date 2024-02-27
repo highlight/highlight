@@ -9,7 +9,6 @@ import {
 	useMarkSessionAsViewedMutation,
 } from '@graph/hooks'
 import { GetSessionQuery } from '@graph/operations'
-import { usefulEvent } from '@pages/Player/components/EventStreamV2/utils'
 import {
 	CHUNKING_DISABLED_PROJECTS,
 	FRAME_MS,
@@ -25,7 +24,6 @@ import {
 	truncate,
 } from '@pages/Player/PlayerHook/PlayerState'
 import { useTimelineIndicators } from '@pages/Player/TimelineIndicatorsContext/TimelineIndicatorsContext'
-import { customEvent } from '@rrweb/types'
 import analytics from '@util/analytics'
 import { indexedDBFetch, indexedDBString } from '@util/db'
 import log from '@util/log'
@@ -36,7 +34,6 @@ import { H } from 'highlight.run'
 import _ from 'lodash'
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { EventType } from 'rrweb'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
 import { HighlightEvent } from '../HighlightEvent'
@@ -643,24 +640,21 @@ export const usePlayer = (): ReplayerContextInterface => {
 		[],
 	)
 
-	const onEvent = useCallback(
-		(event: HighlightEvent) => {
-			if (
-				(event.type === EventType.Custom &&
-					(event.data.tag === 'Navigate' ||
-						event.data.tag === 'Reload')) ||
-				(event as customEvent)?.data?.tag === 'Stop'
-			) {
-				dispatch({
-					type: PlayerActionType.onEvent,
-					event: event,
-				})
-			} else if (usefulEvent(event)) {
-				onFrameOrEvent(event)
-			}
-		},
-		[onFrameOrEvent],
-	)
+	const onEvent = useCallback((_: HighlightEvent) => {
+		// if (
+		// 	(event.type === EventType.Custom &&
+		// 		(event.data.tag === 'Navigate' ||
+		// 			event.data.tag === 'Reload')) ||
+		// 	(event as customEvent)?.data?.tag === 'Stop'
+		// ) {
+		// 	dispatch({
+		// 		type: PlayerActionType.onEvent,
+		// 		event: event,
+		// 	})
+		// } else if (usefulEvent(event)) {
+		// 	onFrameOrEvent(event)
+		// }
+	}, [])
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const onPlayStartStop = useCallback(
