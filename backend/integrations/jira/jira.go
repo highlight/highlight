@@ -234,11 +234,10 @@ func SearchJiraIssues(accessToken string, workspace *model.Workspace, query stri
 	}
 
 	return lo.Map(results, func(res JiraIssuesAutoCompleteResponse, _ int) *modelInputs.IssuesSearchResult {
-		issueUrl := MakeExternalIdForJiraTask(workspace, res.Key)
 		return &modelInputs.IssuesSearchResult{
 			ID:       fmt.Sprint(res.ID),
 			Title:    res.SummaryText,
-			IssueURL: issueUrl,
+			IssueURL: MakeExternalIdForJiraTask(workspace, res.Key),
 		}
 	}), nil
 }
