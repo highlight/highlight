@@ -25,7 +25,7 @@ import {
 	truncate,
 } from '@pages/Player/PlayerHook/PlayerState'
 import { useTimelineIndicators } from '@pages/Player/TimelineIndicatorsContext/TimelineIndicatorsContext'
-import { customEvent, viewportResizeDimension } from '@rrweb/types'
+import { customEvent } from '@rrweb/types'
 import analytics from '@util/analytics'
 import { indexedDBFetch, indexedDBString } from '@util/db'
 import log from '@util/log'
@@ -679,10 +679,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const onViewportChange = useCallback(
 		_.throttle((_e) => {
-			dispatch({
-				type: PlayerActionType.updateViewport,
-				viewport: _e as viewportResizeDimension,
-			})
+			// dispatch({
+			// 	type: PlayerActionType.updateViewport,
+			// 	viewport: _e as viewportResizeDimension,
+			// })
 		}, FRAME_MS * 60),
 		[],
 	)
