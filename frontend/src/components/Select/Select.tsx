@@ -70,7 +70,7 @@ const Select = ({
 							disabled={disabled}
 							label={displayValue}
 						>
-							<Box>{display}</Box>
+							<Box py="4">{display}</Box>
 						</Option>
 					)
 				},
