@@ -432,7 +432,7 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 				>
 					{(rowExpanded || hasAttributes) && (
 						<>
-							<Table.Cell />
+							<Table.Cell py="4" />
 							<Table.Cell py="4" borderTop="dividerWeak">
 								{!rowExpanded && (
 									<Box display="flex" flexWrap="wrap">
