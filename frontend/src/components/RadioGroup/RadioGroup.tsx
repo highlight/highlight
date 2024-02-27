@@ -21,6 +21,7 @@ export const RadioGroup = <T extends string | number>({
 					borderColor: 'var(--color-purple)',
 					backgroundColor: 'var(--color-purple)',
 					color: 'var(--text-primary-inverted)',
+					...style,
 				}}
 				className={styles.platformOption}
 				onClick={() => onSelect(label)}
@@ -34,6 +35,7 @@ export const RadioGroup = <T extends string | number>({
 				style={{
 					borderColor: 'var(--color-gray-300)',
 					color: 'var(--text-primary)',
+					...style,
 				}}
 				className={styles.platformOption}
 				onClick={() => onSelect(label)}

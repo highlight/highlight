@@ -357,16 +357,9 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			width="324px"
 		>
 			<ModalBody>
-				{/* ClickUp doesn't support linking issues, so we don't need to show this section. */}
+				{/* ClickUp doesn't support searching issues, so we don't need to show this section. */}
 				{selectedIntegration.name !== 'ClickUp' && (
-					<Box
-						px="12"
-						py="8"
-						gap="12"
-						display="flex"
-						align="center"
-						background="contentBad"
-					>
+					<Box px="12" py="8" gap="12" display="flex" align="center">
 						<RadioGroup
 							labels={['Create Issue', 'Link Issue']}
 							selectedLabel={mode}
