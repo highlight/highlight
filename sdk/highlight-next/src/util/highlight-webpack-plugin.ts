@@ -5,17 +5,20 @@ export default class HighlightWebpackPlugin {
 	appVersion: string
 	path: string
 	basePath: string
+	backendUrl?: string
 
 	constructor(
 		apiKey: string,
 		appVersion: string,
 		path: string,
 		basePath: string,
+		backendUrl?: string,
 	) {
 		this.apiKey = apiKey
 		this.appVersion = appVersion
 		this.path = path
 		this.basePath = basePath
+		this.backendUrl = backendUrl
 	}
 
 	apply(compiler: any) {
@@ -26,6 +29,7 @@ export default class HighlightWebpackPlugin {
 					appVersion: this.appVersion,
 					path: this.path,
 					basePath: this.basePath,
+					backendUrl: this.backendUrl,
 					allowNoop: true,
 				})
 			} catch (e) {

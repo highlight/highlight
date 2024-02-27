@@ -36,9 +36,12 @@ The query editor is configurable with these fields:
 |`Group by`|One or more categories to group the results by. Categorical fields from the linked project's data are shown as search suggestions.|
 |`Limit N`|If one or more "group by" categories are selected, the result groups are limited to the top N.|
 |`Limit by function`|If one or more "group by" categories are selected, this method is used to rank categories before returning the top N.|
-|`Bucket by`|The dimension used for bucketing data. Supports bucketing by timestamp or no bucketing.|
+|`Bucket by`|The dimension used for bucketing numeric data. Supports bucketing by timestamp, no bucketing, or a custom bucketing key for histogram visualizations.|
+|`Buckets`|The number of buckets returned.|
 
 ## Documentation
+The docs page for the highlight.io Grafana plugin is available [here](https://www.highlight.io/docs/general/integrations/grafana-integration/overview).
+
 If you have any further questions about highlight.io, you can visit our [docs](https://www.highlight.io/docs) or reach out to us at [support@highlight.io](mailto:support@highlight.io).
 
 ## Contributing

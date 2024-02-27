@@ -332,7 +332,7 @@ const DevToolsWindowV2: React.FC<
 												<Button
 													size="xSmall"
 													kind="secondary"
-													trackingId="showInLogViewer"
+													trackingId="session_show-in-log-viewer_click"
 													cssClass={styles.autoScroll}
 													iconLeft={
 														<IconSolidLogs

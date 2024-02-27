@@ -45,6 +45,7 @@ import {
 } from '@/components/Search/SearchForm/utils'
 import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
 import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
+import analytics from '@/util/analytics'
 
 import * as styles from './LogDetails.css'
 import * as logsTableStyles from './LogsTable.css'
@@ -197,7 +198,7 @@ export const LogDetails: React.FC<Props> = ({
 								e.stopPropagation()
 								setAllExpanded(!allExpanded)
 							}}
-							trackingId="logs-row_toggle-expand-all"
+							trackingId="logs_toggle-expand-all_click"
 						>
 							<Box
 								alignItems="center"
@@ -238,7 +239,7 @@ export const LogDetails: React.FC<Props> = ({
 							navigator.clipboard.writeText(JSON.stringify(json))
 							antdMessage.success('Copied logs!')
 						}}
-						trackingId="logs-row_copy-json"
+						trackingId="logs_copy-json_click"
 					>
 						<Box
 							display="flex"
@@ -260,7 +261,7 @@ export const LogDetails: React.FC<Props> = ({
 							navigator.clipboard.writeText(url)
 							antdMessage.success('Copied link!')
 						}}
-						trackingId="logs-row_copy-link"
+						trackingId="logs_copy-link_click"
 					>
 						<Box
 							display="flex"
@@ -288,7 +289,7 @@ export const LogDetails: React.FC<Props> = ({
 							kind="secondary"
 							emphasis="low"
 							to={getErrorLink(projectId, row.original)}
-							trackingId="logs-related_error_link"
+							trackingId="logs_related-error_click"
 						>
 							<Box
 								display="flex"
@@ -307,7 +308,7 @@ export const LogDetails: React.FC<Props> = ({
 							kind="secondary"
 							emphasis="low"
 							to={getSessionLink(projectId, row.original)}
-							trackingId="logs-related_session_link"
+							trackingId="logs_related-session_click"
 						>
 							<Box
 								display="flex"
@@ -325,7 +326,7 @@ export const LogDetails: React.FC<Props> = ({
 							kind="secondary"
 							emphasis="low"
 							to={getTraceLink(projectId, row.original)}
-							trackingId="logs-related_trace_link"
+							trackingId="logs_related-trace_click"
 						>
 							<Box
 								display="flex"
@@ -492,6 +493,9 @@ export const LogValue: React.FC<{
 										}
 
 										setQuery(newQuery)
+										analytics.track(
+											'logs_apply-filter_click',
+										)
 									}}
 								/>
 							}
@@ -516,6 +520,9 @@ export const LogValue: React.FC<{
 										)
 										antdMessage.success(
 											'Value copied to your clipboard',
+										)
+										analytics.track(
+											'logs_copy-to-clipboard_click',
 										)
 									}}
 								/>

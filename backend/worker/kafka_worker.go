@@ -125,7 +125,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 		}
 
 		publicWorkerMessage, ok := lastMsg.(*kafka_queue.Message)
-		if !ok && lastMsg.GetType() != kafkaqueue.PushLogsFlattened {
+		if !ok && lastMsg.GetType() != kafkaqueue.PushLogsFlattened && lastMsg.GetType() != kafkaqueue.PushTracesFlattened {
 			log.WithContext(ctx).Errorf("type assertion failed for *kafka_queue.Message")
 			continue
 		}
@@ -145,6 +145,15 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 			}
 			if logRow != nil {
 				logRows = append(logRows, logRow.LogRow)
+			}
+		case kafkaqueue.PushTracesFlattened:
+			traceRow, ok := lastMsg.(*kafka_queue.TraceRowMessage)
+			if !ok {
+				log.WithContext(ctx).Errorf("type assertion failed for *kafka_queue.TraceRowMessage")
+				continue
+			}
+			if traceRow != nil {
+				traceRows = append(traceRows, traceRow.TraceRow)
 			}
 		case kafkaqueue.PushLogs:
 			logRow := publicWorkerMessage.PushLogs.LogRow

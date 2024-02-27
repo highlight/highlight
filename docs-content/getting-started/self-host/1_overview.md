@@ -23,3 +23,13 @@ Looking to contribute to highlight.io? Checkout out guide on deploying highlight
         {"Running a docker version of highlight.io for development."}
     </DocsCard>
 </DocsCardGroup>
+
+## Setting up self-hosted integrations
+
+If you're looking to set up one of the highlight.io integrations for your self-hosted or development deployment, check out the following guides:
+
+<DocsCardGroup>
+    <DocsCard title="Microsoft Teams app setup" href="./integrations/teams.md">
+        {"Set up a custom Microsoft Teams app for your self-hosted deployment"}
+    </DocsCard>
+</DocsCardGroup>

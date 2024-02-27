@@ -21,12 +21,14 @@ export const uploadSourcemaps = async ({
   appVersion,
   path,
   basePath,
+  backendUrl,
   allowNoop,
 }: {
   apiKey: string;
   appVersion: string;
   path: string;
-  basePath: string;
+  basePath?: string;
+  backendUrl?: string;
   allowNoop?: boolean;
 }) => {
   if (!apiKey || apiKey === "") {
@@ -37,11 +39,12 @@ export const uploadSourcemaps = async ({
     }
   }
 
+  const backend = backendUrl || "https://pri.highlight.io";
   const variables = {
     api_key: apiKey,
   };
 
-  const res = await fetch("https://pri.highlight.io", {
+  const res = await fetch(backend, {
     method: "post",
     headers: {
       "Content-Type": "application/json",
@@ -84,10 +87,10 @@ export const uploadSourcemaps = async ({
   }
 
   const s3Keys = fileList.map(({ name }) =>
-    getS3Key(organizationId, appVersion, basePath, name)
+    getS3Key(organizationId, appVersion, basePath || "", name)
   );
 
-  const urlRes = await fetch("https://pri.highlight.io", {
+  const urlRes = await fetch(backend, {
     method: "post",
     headers: {
       "Content-Type": "application/json",

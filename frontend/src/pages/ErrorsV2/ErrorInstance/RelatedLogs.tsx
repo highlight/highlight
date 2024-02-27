@@ -7,6 +7,7 @@ import { Link } from '@/components/Link'
 import { DEFAULT_OPERATOR } from '@/components/Search/SearchForm/utils'
 import { GetErrorInstanceQuery } from '@/graph/generated/operations'
 import { ReservedLogKey } from '@/graph/generated/schemas'
+import analytics from '@/util/analytics'
 
 const getLogsLink = (data: GetErrorInstanceQuery | undefined): string => {
 	const errorObject = data?.error_instance?.error_object
@@ -50,7 +51,10 @@ export const RelatedLogs = ({ data }: Props) => {
 	const logsLink = getLogsLink(data)
 
 	return (
-		<Link to={logsLink}>
+		<Link
+			to={logsLink}
+			onClick={() => analytics.track('error_related-logs_click')}
+		>
 			<Tag
 				kind="secondary"
 				emphasis="high"

@@ -12,6 +12,7 @@ import {
 	Search_keyContext,
 	Search_valueContext,
 } from '@/components/Search/Parser/antlr/SearchGrammarParser'
+import { SearchOperator } from '@/components/Search/SearchForm/SearchForm'
 import { BODY_KEY } from '@/components/Search/SearchForm/utils'
 
 export type SearchExpression = {
@@ -19,7 +20,7 @@ export type SearchExpression = {
 	stop: number
 	text: string
 	key: string
-	operator: string
+	operator: SearchOperator
 	value: string
 	error?: {
 		message: string
@@ -96,11 +97,11 @@ export class SearchListener extends SearchGrammarListener {
 	}
 
 	enterExists_op = (ctx: Exists_opContext) => {
-		this.currentExpression.operator = ctx.getText()
+		this.currentExpression.operator = ctx.getText() as SearchOperator
 	}
 
 	enterBin_op = (ctx: Bin_opContext) => {
-		this.currentExpression.operator = ctx.getText()
+		this.currentExpression.operator = ctx.getText() as SearchOperator
 	}
 
 	enterSearch_value = (ctx: Search_valueContext) => {

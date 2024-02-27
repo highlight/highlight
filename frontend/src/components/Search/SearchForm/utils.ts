@@ -2,8 +2,8 @@ import SearchGrammarLexer from '@/components/Search/Parser/antlr/SearchGrammarLe
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { SearchToken } from '@/components/Search/utils'
 
-export const DEFAULT_OPERATOR = '='
-export const BODY_KEY = 'message'
+export const DEFAULT_OPERATOR = '=' as const
+export const BODY_KEY = 'message' as const
 
 export const stringifySearchQuery = (params: SearchExpression[]) => {
 	const querySegments: string[] = []

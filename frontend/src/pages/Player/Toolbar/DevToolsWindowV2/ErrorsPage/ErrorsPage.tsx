@@ -22,11 +22,18 @@ import {
 import { getErrorBody } from '@util/errors/errorUtils'
 import { parseOptionalJSON } from '@util/string'
 import _ from 'lodash'
-import React, { useCallback, useLayoutEffect, useMemo, useRef } from 'react'
+import React, {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+} from 'react'
 import { useLocation } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import { styledVerticalScrollbar } from '@/style/common.css'
+import analytics from '@/util/analytics'
 
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'
@@ -118,6 +125,10 @@ const ErrorsPage = ({
 
 		return errors.find((error) => error.id === activeError.id)
 	}, [activeError, errors])
+
+	useEffect(() => {
+		analytics.track('session_view-errors')
+	}, [])
 
 	return (
 		<Box cssClass={styles.errorsContainer}>

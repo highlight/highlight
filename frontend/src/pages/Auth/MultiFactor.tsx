@@ -73,7 +73,7 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
-	useEffect(() => analytics.page(), [])
+	useEffect(() => analytics.page('Multi Factor Auth'), [])
 
 	const handleSubmit = useCallback(
 		async (e?: React.FormEvent<HTMLFormElement>) => {

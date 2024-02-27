@@ -19,7 +19,6 @@ import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
-import { camelCase } from 'lodash'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
@@ -158,7 +157,6 @@ function NetworkResourceDetails({
 		setTime,
 		session,
 	} = useReplayerContext()
-	const sessionSecureId = session?.secure_id
 	const { activeNetworkResourceId, setActiveNetworkResourceId } =
 		useActiveNetworkResourceId()
 	const isNetworkRequest =
@@ -225,7 +223,7 @@ function NetworkResourceDetails({
 		'h',
 		() => {
 			if (canMoveBackward) {
-				analytics.track('PrevNetworkResourceKeyboardShortcut')
+				analytics.track('session_prev-network-resource_hotkey')
 				setActiveNetworkResourceId(networkResources[prev].id)
 			}
 		},
@@ -236,7 +234,7 @@ function NetworkResourceDetails({
 		'l',
 		() => {
 			if (canMoveForward) {
-				analytics.track('NextNetworkResourceKeyboardShortcut')
+				analytics.track('session_next-network-resource_hotkey')
 				setActiveNetworkResourceId(networkResources[next].id)
 			}
 		},
@@ -248,12 +246,8 @@ function NetworkResourceDetails({
 	}, [resource.id])
 
 	useEffect(() => {
-		analytics.page(
-			`/sessions/${sessionSecureId}/network-resource/${
-				resource.id
-			}/${camelCase(activeTab)}`,
-		)
-	}, [activeTab, resource.id, sessionSecureId])
+		analytics.track('session_network-resource_view')
+	}, [resource.id])
 
 	return (
 		<>
@@ -330,6 +324,9 @@ function NetworkResourceDetails({
 						onClick={() => {
 							setTime(timestamp)
 							hide()
+							analytics.track(
+								'session_go-to-network-resource_click',
+							)
 						}}
 					>
 						Go to
@@ -419,7 +416,7 @@ function WebSocketDetails({
 		'h',
 		() => {
 			if (canMoveBackward) {
-				analytics.track('PrevNetworkResourceKeyboardShortcut')
+				analytics.track('session_prev-websocket-resource_hotkey')
 				setActiveNetworkResourceId(networkResources[prev].id)
 			}
 		},
@@ -430,12 +427,16 @@ function WebSocketDetails({
 		'l',
 		() => {
 			if (canMoveForward) {
-				analytics.track('NextNetworkResourceKeyboardShortcut')
+				analytics.track('session_next-websocket-resource_hotkey')
 				setActiveNetworkResourceId(networkResources[next].id)
 			}
 		},
 		[canMoveForward, next],
 	)
+
+	useEffect(() => {
+		analytics.track('session_websocket-resource_view')
+	}, [])
 
 	return (
 		<>

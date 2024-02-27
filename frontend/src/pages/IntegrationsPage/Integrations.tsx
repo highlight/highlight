@@ -86,7 +86,6 @@ export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
 	icon: MicrosoftTeamsLogo,
 	configurationPage: (opts) => <MicrosoftTeamsIntegrationConfig {...opts} />,
 	hasSettings: false,
-	onlyShowForHighlightAdmin: true,
 }
 
 export const LINEAR_INTEGRATION: IssueTrackerIntegration = {

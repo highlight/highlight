@@ -15,7 +15,12 @@
 				"-runtime=worker",
 				"-worker-handler=public-worker-batched"
 			],
-			"environment": [],
+			"environment": [
+				{
+					"name": "GOMEMLIMIT",
+					"value": "3GiB"
+				}
+			],
 			"mountPoints": [],
 			"volumesFrom": [],
 			"secrets": [

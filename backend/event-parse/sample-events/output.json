@@ -96,7 +96,7 @@
 							},
 							{
 								"attributes": {
-									"_cssText": "/*highlight-inject*/\n.highlight {\n    color: black;\n}"
+									"_cssText": "/*highlight-inject*/\n@font-face {\n\tfont-display: swap;\n\tfont-family: 'Inter';\n\tfont-style: normal;\n\tfont-weight: bold;\n\tsrc: local('Inter Bold'), local('InterBold'),\n\t\turl('https://replay-cors-proxy.highlightrun.workers.dev?url=https://app.highlight.run/font/Inter-Bold.woff2') format('woff2'), url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAE0lEQVQImWP4////f4bdu3f/BwAlfgctduB85QAAAABJRU5ErkJggg==\"), url(\"https://testing.psx-staging.energid.net/assets/fonts/roboto_medium_latin-ext.woff2\");\n}"
 								},
 								"childNodes": [],
 								"id": 16,
@@ -110,7 +110,7 @@
 							},
 							{
 								"attributes": {
-									"_cssText": "/*highlight-inject*/\n.highlight {\n    color: black;\n}"
+									"_cssText": "/*highlight-inject*/\n@font-face {\n\tfont-display: swap;\n\tfont-family: 'Inter';\n\tfont-style: normal;\n\tfont-weight: bold;\n\tsrc: local('Inter Bold'), local('InterBold'),\n\t\turl('https://replay-cors-proxy.highlightrun.workers.dev?url=https://unpkg.com/font/Inter-Bold.woff2') format('woff2'), url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAE0lEQVQImWP4////f4bdu3f/BwAlfgctduB85QAAAABJRU5ErkJggg==\"), url(\"https://testing.psx-staging.energid.net/assets/fonts/roboto_medium_latin-ext.woff2\");\n}"
 								},
 								"childNodes": [],
 								"id": 18,

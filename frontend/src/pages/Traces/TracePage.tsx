@@ -39,10 +39,11 @@ export const TracePage: React.FC = () => {
 		traceName,
 		traceId,
 		secureSessionId,
+		selectedSpan,
 	} = useTrace()
 
 	useEffect(() => {
-		analytics.page()
+		analytics.page('Trace')
 	}, [traceId])
 
 	if (!traces?.length) {
@@ -76,6 +77,9 @@ export const TracePage: React.FC = () => {
 						traceId={traceId}
 						secureSessionId={secureSessionId}
 						disableErrors={!errors?.length}
+						displayErrorTooltip={
+							selectedSpan?.hasErrors && !errors?.length
+						}
 						startDate={new Date(startTime)}
 						endDate={new Date(endTime)}
 					/>

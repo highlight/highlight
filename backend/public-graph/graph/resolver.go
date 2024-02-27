@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
 
@@ -69,6 +70,7 @@ import (
 
 type Resolver struct {
 	DB               *gorm.DB
+	Tracer           trace.Tracer
 	ProducerQueue    kafka_queue.MessageQueue
 	BatchedQueue     kafka_queue.MessageQueue
 	DataSyncQueue    kafka_queue.MessageQueue
@@ -188,7 +190,6 @@ const PAYLOAD_STAGING_COUNT_MAX = 100
 
 var NumberRegex = regexp.MustCompile(`^\d+$`)
 
-var ErrNoisyError = e.New("Filtering out noisy error")
 var ErrQuotaExceeded = e.New(string(publicModel.PublicGraphErrorBillingQuotaExceeded))
 var ErrUserFilteredError = e.New("User filtered error")
 
@@ -662,55 +663,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	project, err := r.Store.GetProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
-	}
-
-	if project.ID == 1 {
-		if errorObj.Event == `input: initializeSession BillingQuotaExceeded` ||
-			errorObj.Event == `BillingQuotaExceeded` ||
-			errorObj.Event == `panic {error: missing operation context}` ||
-			errorObj.Event == `input: could not get json request body: unable to get Request Body unexpected EOF` ||
-			errorObj.Event == `no metrics provided` ||
-			errorObj.Event == `input: pushMetrics no metrics provided` ||
-			errorObj.Event == `Error updating error group: Filtering out noisy error` ||
-			errorObj.Event == `Error updating error group: Filtering out noisy Highlight error` ||
-			errorObj.Event == `error processing main session: error scanning session payload: error fetching events from Redis: error processing event chunk: The payload has an IncrementalSnapshot before the first FullSnapshot` ||
-			errorObj.Event == `session has reached the max retry count and will be excluded: error scanning session payload: error fetching events from Redis: error processing event chunk: The payload has an IncrementalSnapshot before the first FullSnapshot` ||
-			errorObj.Event == `invalid metrics payload []` ||
-			errorObj.Event == `public-graph graphql request failed` {
-			return nil, ErrNoisyError
-		}
-	}
-	if project.ID == 356 {
-		if errorObj.Event == `["\"ReferenceError: Can't find variable: widgetContainerAttribute\""]` ||
-			errorObj.Event == `"ReferenceError: Can't find variable: widgetContainerAttribute"` ||
-			errorObj.Event == `"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'."` ||
-			errorObj.Event == `["\"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'.\""]` {
-			return nil, ErrNoisyError
-		}
-	}
-	if project.ID == 765 {
-		if errorObj.Event == `"Uncaught Error: PollingBlockTracker - encountered an error while attempting to update latest block:\nundefined"` ||
-			errorObj.Event == `["\"Uncaught Error: PollingBlockTracker - encountered an error while attempting to update latest block:\\nundefined\""]` {
-			return nil, ErrNoisyError
-		}
-	}
-	if project.ID == 898 {
-		if errorObj.Event == `["\"LaunchDarklyFlagFetchError: Error fetching flag settings: 414\""]` ||
-			errorObj.Event == `["\"[LaunchDarkly] Error fetching flag settings: 414\""]` {
-			return nil, ErrNoisyError
-		}
-	}
-	if project.ID == 1703 {
-		if errorObj.Event == `["\"Uncaught TypeError: Cannot read properties of null (reading 'play')\""]` ||
-			errorObj.Event == `"Uncaught TypeError: Cannot read properties of null (reading 'play')"` {
-			return nil, ErrNoisyError
-		}
-	}
-	if project.ID == 3322 {
-		if errorObj.Event == `["\"Failed to fetch feature flags from PostHog.\""]` ||
-			errorObj.Event == `["\"Bad HTTP status: 0 \""]` {
-			return nil, ErrNoisyError
-		}
 	}
 
 	if errorgroups.IsErrorTraceFiltered(*project, structuredStackTrace) {
@@ -1688,9 +1640,6 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 	if workspace.TrialEndDate != nil && workspace.TrialEndDate.After(now) {
 		return true, 0
 	}
-	if util.IsOnPrem() {
-		return true, 0
-	}
 
 	stripePlan := privateModel.PlanType(workspace.PlanTier)
 
@@ -1993,6 +1942,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 		}
 	}
 
+	curTime := time.Now()
 	var traceRows []*clickhouse.TraceRow
 	for _, m := range metrics {
 		var spanID, parentSpanID, traceID = ptr.ToString(m.SpanID), ptr.ToString(m.ParentSpanID), ptr.ToString(m.TraceID)
@@ -2020,12 +1970,13 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 			attributes["group"] = *m.Group
 		}
 
+		timestamp := ClampTime(m.Timestamp, curTime)
 		event := map[string]any{
 			"Name":       "metric",
-			"Timestamp":  m.Timestamp,
+			"Timestamp":  timestamp,
 			"Attributes": map[string]any{"metric.name": m.Name, "metric.value": m.Value},
 		}
-		traceRows = append(traceRows, clickhouse.NewTraceRow(m.Timestamp, projectID).
+		traceRows = append(traceRows, clickhouse.NewTraceRow(timestamp, projectID).
 			WithSecureSessionId(session.SecureID).
 			WithSpanId(spanID).
 			WithParentSpanId(parentSpanID).
@@ -2044,14 +1995,28 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 		if !r.IsTraceIngested(ctx, traceRow) {
 			continue
 		}
-		messages = append(messages, &kafka_queue.Message{
-			Type: kafka_queue.PushTraces,
-			PushTraces: &kafka_queue.PushTracesArgs{
-				TraceRow: traceRow,
-			},
+		messages = append(messages, &kafka_queue.TraceRowMessage{
+			Type:     kafka_queue.PushTracesFlattened,
+			TraceRow: traceRow,
 		})
 	}
 	return r.TracesQueue.Submit(ctx, "", messages...)
+}
+
+// If curTime is provided and the input is different by more than 2 hours,
+// use curTime instead of the input.
+func ClampTime(input time.Time, curTime time.Time) time.Time {
+	if curTime.IsZero() {
+		return input
+	}
+
+	minTime := curTime.Add(-2 * time.Hour)
+	maxTime := curTime.Add(2 * time.Hour)
+	if input.Before(minTime) || input.After(maxTime) {
+		return curTime
+	}
+
+	return input
 }
 
 func extractErrorFields(sessionObj *model.Session, errorToProcess *model.ErrorObject) []*model.ErrorField {
@@ -2238,14 +2203,10 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID, workspace)
 		if err != nil {
-			if e.Is(err, ErrNoisyError) {
-				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
-			} else if e.Is(err, ErrQuotaExceeded) {
-				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
-			} else if e.Is(err, ErrUserFilteredError) {
-				log.WithContext(ctx).Info(e.Wrap(err, "Error updating error group"))
+			if e.Is(err, ErrQuotaExceeded) || e.Is(err, ErrUserFilteredError) {
+				log.WithContext(ctx).WithError(err).Info("Will not update error group")
 			} else {
-				log.WithContext(ctx).WithError(err).Error(e.Wrap(err, "Error updating error group"))
+				log.WithContext(ctx).WithError(err).Error("Error updating error group")
 			}
 			continue
 		}
@@ -2660,7 +2621,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			util.ResourceName("go.unmarshal.messages"), util.Tag("project_id", projectID))
 		defer unmarshalMessagesSpan.Finish()
 
-		if err := hlog.SubmitFrontendConsoleMessages(ctx, projectID, sessionSecureID, messages); err != nil {
+		if err := r.submitFrontendConsoleMessages(ctx, sessionObj, messages); err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to parse console messages")
 		}
 
@@ -2781,10 +2742,27 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				StackTrace:     &traceString,
 				Timestamp:      v.Timestamp,
 				Payload:        v.Payload,
-				RequestID:      nil,
 				IsBeacon:       isBeacon,
 				ServiceVersion: serviceVersion,
 				ServiceName:    sessionObj.ServiceName,
+			}
+
+			if !r.IsErrorIngested(ctx, projectID, &publicModel.BackendErrorObjectInput{
+				SessionSecureID: &sessionSecureID,
+				Event:           errorToInsert.Event,
+				Type:            errorToInsert.Type,
+				URL:             errorToInsert.URL,
+				Source:          errorToInsert.Source,
+				StackTrace:      traceString,
+				Timestamp:       errorToInsert.Timestamp,
+				Payload:         errorToInsert.Payload,
+				Service: &publicModel.ServiceInput{
+					Name:    errorToInsert.ServiceName,
+					Version: errorToInsert.ServiceVersion,
+				},
+				Environment: errorToInsert.Environment,
+			}) {
+				continue
 			}
 
 			var structuredStackTrace []*privateModel.ErrorTrace
@@ -2811,14 +2789,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 
 			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(sessionObj, errorToInsert), projectID, workspace)
-
 			if err != nil {
-				if e.Is(err, ErrNoisyError) {
-					log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
-				} else if e.Is(err, ErrQuotaExceeded) {
-					log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
+				if e.Is(err, ErrQuotaExceeded) || e.Is(err, ErrUserFilteredError) {
+					log.WithContext(ctx).WithError(err).Info("Will not update error group")
 				} else {
-					log.WithContext(ctx).Error(e.Wrap(err, "Error updating error group"))
+					log.WithContext(ctx).WithError(err).Error("Error updating error group")
 				}
 				continue
 			}
@@ -3125,12 +3100,14 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		}
 		start := re.Start(sessionObj.CreatedAt)
 		end := re.End(sessionObj.CreatedAt)
-		attributes := []attribute.KeyValue{
-			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
+		attributes := []attribute.KeyValue{}
+		attributes = append(attributes, highlight.EmptyResourceAttributes...)
+		attributes = append(attributes, attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
 			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
 			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
 			attribute.String(highlight.TraceKeyAttribute, re.Name),
+			semconv.DeploymentEnvironmentKey.String(sessionObj.Environment),
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
 			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
 			semconv.HTTPURLKey.String(re.Name),
@@ -3140,7 +3117,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 			semconv.HTTPMethodKey.String(method),
 			attribute.String(privateModel.NetworkRequestAttributeInitiatorType.String(), re.InitiatorType),
 			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64(end.Sub(start).Nanoseconds())),
-		}
+		)
 		requestBody := make(map[string]interface{})
 		// if the request body is json and contains the graphql key operationName, treat it as an operation
 		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
@@ -3152,9 +3129,95 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionObj.SecureID)
 		ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, re.RequestResponsePairs.Request.ID)
-		span, _ := highlight.StartTraceWithTimestamp(ctx, strings.Join([]string{method, re.Name}, " "), start, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
+		span, _ := highlight.StartTraceWithTracer(ctx, r.Tracer, strings.Join([]string{method, re.Name}, " "), start, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
 		span.End(trace.WithTimestamp(end))
 	}
+	return nil
+}
+
+func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj *model.Session, messages string) error {
+	logRows, err := hlog.ParseConsoleMessages(messages)
+	if err != nil {
+		return err
+	}
+
+	if len(logRows) == 0 {
+		return nil
+	}
+
+	for _, row := range logRows {
+		attributes := []attribute.KeyValue{
+			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeFrontendConsole)),
+			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
+			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
+			attribute.String(highlight.SourceAttribute, string(privateModel.LogSourceFrontend)),
+			semconv.DeploymentEnvironmentKey.String(sessionObj.Environment),
+			semconv.ServiceNameKey.String(sessionObj.ServiceName),
+			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
+		}
+		span, _ := highlight.StartTraceWithoutResourceAttributes(ctx, r.Tracer, highlight.UtilitySpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
+		message := strings.Join(row.Value, " ")
+		attrs := []attribute.KeyValue{
+			hlog.LogSeverityKey.String(row.Type),
+			hlog.LogMessageKey.String(message),
+		}
+		for k, v := range row.Attributes {
+			for key, value := range hlog.FormatLogAttributes(ctx, k, v) {
+				if v != "" {
+					attrs = append(attrs, attribute.String(key, value))
+				}
+			}
+		}
+		if len(row.Trace) > 0 {
+			traceEnd := &row.Trace[len(row.Trace)-1]
+			attrs = append(
+				attrs,
+				semconv.CodeFunctionKey.String(traceEnd.FunctionName),
+				semconv.CodeNamespaceKey.String(traceEnd.Source),
+				semconv.CodeFilepathKey.String(traceEnd.FileName),
+			)
+
+			var ln int
+			if x, ok := traceEnd.LineNumber.(int); ok {
+				ln = x
+			} else if x, ok := traceEnd.LineNumber.(string); ok {
+				if i, err := strconv.ParseInt(x, 10, 32); err == nil {
+					ln = int(i)
+				}
+			}
+			if ln != 0 {
+				attrs = append(attrs, semconv.CodeLineNumberKey.Int(ln))
+			}
+
+			var cn int
+			if x, ok := traceEnd.ColumnNumber.(int); ok {
+				cn = x
+			} else if x, ok := traceEnd.ColumnNumber.(string); ok {
+				if i, err := strconv.ParseInt(x, 10, 32); err == nil {
+					cn = int(i)
+				}
+			}
+			if cn != 0 {
+				attrs = append(attrs, semconv.CodeColumnKey.Int(cn))
+			}
+			stackTrace := message
+			for _, t := range row.Trace {
+				if t.Source != "" {
+					stackTrace += "\n" + t.Source
+				} else {
+					stackTrace += fmt.Sprintf("\n\tat %s (%s:%+v:%+v)", t.FunctionName, t.FileName, t.LineNumber, t.ColumnNumber)
+				}
+			}
+			attrs = append(attrs, semconv.ExceptionStacktraceKey.String(stackTrace))
+		}
+
+		span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(row.Time)))
+		if row.Type == "error" {
+			span.SetStatus(codes.Error, message)
+		}
+		highlight.EndTrace(span)
+	}
+
 	return nil
 }
 

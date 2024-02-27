@@ -248,7 +248,7 @@ const PlayerPage = () => {
 		playerBoundingClientRectHeight,
 	])
 
-	useEffect(() => analytics.page(), [session_secure_id])
+	useEffect(() => analytics.page('Session'), [session_secure_id])
 
 	const showLeftPanel =
 		showLeftPanelPreference &&

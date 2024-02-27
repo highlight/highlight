@@ -57,6 +57,13 @@ func (m *MockResponseWriter) Write(bytes []byte) (int, error) {
 
 func (m *MockResponseWriter) WriteHeader(statusCode int) {}
 
+func TestMain(m *testing.M) {
+	//tracer = otel.GetTracerProvider().Tracer("test")
+
+	code := m.Run()
+	os.Exit(code)
+}
+
 func TestHandler_HandleLog(t *testing.T) {
 	w := &MockResponseWriter{}
 	r, _ := http.NewRequest("POST", "", strings.NewReader(""))
@@ -97,9 +104,9 @@ func TestHandler_HandleTrace(t *testing.T) {
 	}{
 		"./samples/traces.json": {
 			expectedMessageCounts: map[kafkaqueue.PayloadType]int{
-				kafkaqueue.PushBackendPayload: 4,   // 4 exceptions, pushed as individual messages
-				kafkaqueue.PushLogsFlattened:  15,  // 4 exceptions, 11 logs
-				kafkaqueue.PushTraces:         501, // 512 spans - 11 logs
+				kafkaqueue.PushBackendPayload:  4,   // 4 exceptions, pushed as individual messages
+				kafkaqueue.PushLogsFlattened:   15,  // 4 exceptions, 11 logs
+				kafkaqueue.PushTracesFlattened: 501, // 512 spans - 11 logs
 			},
 			expectedLogCounts: map[privateModel.LogSource]int{
 				privateModel.LogSourceFrontend: 1,
@@ -109,8 +116,8 @@ func TestHandler_HandleTrace(t *testing.T) {
 		"./samples/external.json": {
 			expectedMessageCounts: map[kafkaqueue.PayloadType]int{
 				// no errors expected
-				kafkaqueue.PushLogsFlattened: 11,  // 11 logs
-				kafkaqueue.PushTraces:        501, // 512 spans - 11 logs
+				kafkaqueue.PushLogsFlattened:   11,  // 11 logs
+				kafkaqueue.PushTracesFlattened: 501, // 512 spans - 11 logs
 			},
 			external: true,
 		},

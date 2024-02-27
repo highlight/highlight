@@ -141,7 +141,11 @@ func TestEventsFromString(t *testing.T) {
 type fetcherMock struct{}
 
 func (u fetcherMock) fetchStylesheetData(href string, s *Snapshot) ([]byte, error) {
-	return []byte("/*highlight-inject*/\n.highlight {\n    color: black;\n}"), nil
+	body := []byte("@font-face {\n\tfont-display: swap;\n\tfont-family: 'Inter';\n\tfont-style: normal;\n\tfont-weight: bold;\n\tsrc: local('Inter Bold'), local('InterBold'),\n\t\turl('font/Inter-Bold.woff2') format('woff2'), url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAE0lEQVQImWP4////f4bdu3f/BwAlfgctduB85QAAAABJRU5ErkJggg==\"), url(\"https://testing.psx-staging.energid.net/assets/fonts/roboto_medium_latin-ext.woff2\");\n}")
+	body = replaceRelativePaths(body, href)
+	body = append([]byte("/*highlight-inject*/\n"), body...)
+
+	return body, nil
 }
 
 func TestInjectStyleSheets(t *testing.T) {

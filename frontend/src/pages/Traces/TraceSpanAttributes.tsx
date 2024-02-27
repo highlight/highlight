@@ -1,9 +1,12 @@
+import { useEffect } from 'react'
+
 import JsonViewer from '@/components/JsonViewer/JsonViewer'
 import {
 	FlameGraphSpan,
 	formatDateWithNanoseconds,
 	humanizeDuration,
 } from '@/pages/Traces/utils'
+import analytics from '@/util/analytics'
 
 type Props = {
 	span: FlameGraphSpan
@@ -57,6 +60,10 @@ export const TraceSpanAttributes: React.FC<Props> = ({ span }) => {
 	}
 
 	attributes = cleanAttributes(attributes)
+
+	useEffect(() => {
+		analytics.track('trace_span-attributes_view')
+	}, [spanID])
 
 	return <JsonViewer src={attributes} collapsed={false} />
 }

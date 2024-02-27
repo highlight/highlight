@@ -478,6 +478,8 @@ func (p *Queue) deserializeMessage(compressed []byte) (RetryableMessage, error) 
 	var msg RetryableMessage
 	if msgType.Type == PushLogsFlattened {
 		msg = &LogRowMessage{}
+	} else if msgType.Type == PushTracesFlattened {
+		msg = &TraceRowMessage{}
 	} else {
 		msg = &Message{}
 	}

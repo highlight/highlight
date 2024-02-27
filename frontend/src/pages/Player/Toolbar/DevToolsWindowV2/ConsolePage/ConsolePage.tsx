@@ -21,6 +21,7 @@ import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useGetSessionLogsQuery } from '@/graph/generated/hooks'
 import { buildSessionParams } from '@/pages/LogsPage/utils'
 import { styledVerticalScrollbar } from '@/style/common.css'
+import analytics from '@/util/analytics'
 
 import { useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'
@@ -106,6 +107,10 @@ export const ConsolePage = ({
 		}
 	}, [time, messagesToRender, autoScroll])
 
+	useEffect(() => {
+		analytics.track('session_view-console-logs')
+	}, [])
+
 	const virtuoso = useRef<VirtuosoHandle>(null)
 
 	const foundIndex = useMemo(() => {
@@ -164,6 +169,7 @@ export const ConsolePage = ({
 										messagesToRender[_index].node.timestamp,
 									).getTime() - sessionMetadata.startTime
 								setTime(timestamp)
+								analytics.track('session_go-to-log_click')
 							}}
 						/>
 					)}
