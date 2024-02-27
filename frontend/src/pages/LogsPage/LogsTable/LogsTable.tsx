@@ -429,35 +429,18 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 					{(rowExpanded || hasAttributes) && (
 						<Table.Cell py="4" pl="32">
 							{!rowExpanded && (
-								<Box display="flex" flexWrap="wrap">
+								<Box>
 									{Object.entries(matchedAttributes).map(
-										([key, { match, value }], index) => {
+										([key, { match, value }]) => {
 											return (
-												<>
-													{index > 0 && (
-														<Box
-															display="flex"
-															alignItems="center"
-															pr="8"
-														>
-															<Text
-																weight="bold"
-																color="weak"
-															>
-																;
-															</Text>
-														</Box>
-													)}
-													<LogValue
-														key={key}
-														label={key}
-														value={value}
-														queryKey={key}
-														queryMatch={match}
-														queryParts={queryParts}
-														hideActions
-													/>
-												</>
+												<LogValue
+													key={key}
+													label={key}
+													value={value}
+													queryKey={key}
+													queryMatch={match}
+													queryParts={queryParts}
+												/>
 											)
 										},
 									)}

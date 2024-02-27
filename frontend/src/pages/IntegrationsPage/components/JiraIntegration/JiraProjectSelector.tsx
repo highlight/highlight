@@ -1,5 +1,5 @@
 import Select, { OptionType } from '@components/Select/Select'
-import { Form, Text } from '@highlight-run/ui/components'
+import { Form } from '@highlight-run/ui/components'
 import { useJiraIntegration } from '@pages/IntegrationsPage/components/JiraIntegration/utils'
 import * as style from '@pages/IntegrationsPage/components/style.css'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
@@ -43,11 +43,7 @@ const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 	).map((issueType: any) => ({
 		value: issueType.id,
 		id: issueType.id,
-		displayValue: (
-			<Text size="small" weight="medium">
-				{issueType.name} - ({issueType.description})
-			</Text>
-		),
+		displayValue: `${issueType.name} - (${issueType.description})`,
 	}))
 
 	useEffect(() => {
