@@ -1,5 +1,5 @@
 import { colors } from '@highlight-run/ui/colors'
-import { IconSolidCheveronDown } from '@highlight-run/ui/components'
+import { Box, IconSolidCheveronDown } from '@highlight-run/ui/components'
 import {
 	// eslint-disable-next-line no-restricted-imports
 	Select as AntDesignSelect,
@@ -70,7 +70,7 @@ const Select = ({
 							disabled={disabled}
 							label={displayValue}
 						>
-							{display}
+							<Box>{display}</Box>
 						</Option>
 					)
 				},
