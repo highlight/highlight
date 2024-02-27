@@ -288,7 +288,10 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			}
 			onClose()
 			form.reset()
-			message.success('New Issue Created!')
+
+			const toastMessage =
+				mode === 'Create Issue' ? 'New Issue Created!' : 'Issue Linked'
+			message.success(toastMessage)
 		} catch (e: any) {
 			H.consumeError(e)
 			console.error(e)
