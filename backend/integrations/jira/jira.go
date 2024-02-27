@@ -167,9 +167,9 @@ func doJiraRequest[T any](method string, accessToken string, url string, body st
 }
 
 type JiraIssuesAutoCompleteResponse struct {
-	Id          string `json:"id"`
-	KeyHtml     string `json:"keyHtml"`
+	ID          int    `json:"id"`
 	Key         string `json:"key"`
+	KeyHtml     string `json:"keyHtml"`
 	Img         string `json:"img"`
 	Summary     string `json:"summary"`
 	SummaryText string `json:"summaryText"`
@@ -178,12 +178,12 @@ type JiraIssuesAutoCompleteResponse struct {
 type JiraAutoCompleteSearchSections struct {
 	Label  string                           `json:"label"`
 	Sub    string                           `json:"sub"`
-	Id     string                           `json:"id"`
+	ID     string                           `json:"id"`
 	Issues []JiraIssuesAutoCompleteResponse `json:"issues"`
 }
 
 type JiraAutoCompleteSearchResponse struct {
-	Sections []JiraAutoCompleteSearchSections `json:"description"`
+	Sections []JiraAutoCompleteSearchSections `json:"sections"`
 }
 
 func getJiraSiteFromAccessibleResources(responses []*modelInputs.AccessibleJiraResources) (*modelInputs.AccessibleJiraResources, error) {
@@ -209,22 +209,34 @@ func GetJiraSite(accessToken string) (*modelInputs.AccessibleJiraResources, erro
 }
 
 func SearchJiraIssues(accessToken string, workspace *model.Workspace, query string) ([]*modelInputs.IssuesSearchResult, error) {
-	url := fmt.Sprintf("/ex/jira/%s/rest/api/2/issue/picker?currentJQL=text~%s", *workspace.JiraCloudID, query)
+	queryParams := nUrl.Values{}
+	queryParams.Set("currentJQL", fmt.Sprintf("text~%s", query))
+	queryParams.Set("query", query)
+
+	url := fmt.Sprintf("/ex/jira/%s/rest/api/2/issue/picker?%s", *workspace.JiraCloudID, queryParams.Encode())
 	res, err := doJiraGetRequest[JiraAutoCompleteSearchResponse](accessToken, url)
 	if err != nil {
 		return nil, err
 	}
 
-	results := make([]JiraIssuesAutoCompleteResponse, len(res.Sections))
+	results := make([]JiraIssuesAutoCompleteResponse, 0)
+	added := make(map[string]bool)
 
 	for _, section := range res.Sections {
-		results = append(results, section.Issues...)
+		for _, issue := range section.Issues {
+			_, ok := added[issue.Key]
+			if ok {
+				continue
+			}
+			added[issue.Key] = true
+			results = append(results, issue)
+		}
 	}
 
 	return lo.Map(results, func(res JiraIssuesAutoCompleteResponse, _ int) *modelInputs.IssuesSearchResult {
-		issueUrl := MakeExternalIdForJiraTask(workspace, res.Id)
+		issueUrl := MakeExternalIdForJiraTask(workspace, res.Key)
 		return &modelInputs.IssuesSearchResult{
-			ID:       res.Id,
+			ID:       fmt.Sprint(res.ID),
 			Title:    res.SummaryText,
 			IssueURL: issueUrl,
 		}
