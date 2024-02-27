@@ -54,15 +54,15 @@ export const QueryPart: React.FC<{
 			<Tooltip
 				placement="bottom"
 				open={active && !!error}
+				style={{ display: 'inline' }}
 				trigger={
 					<Box
+						as="span"
 						cssClass={clsx(styles.comboboxTag, {
 							[styles.comboboxTagActive]: active,
 							[styles.comboboxTagError]: !!error,
 						})}
-						py="6"
 						position="relative"
-						whiteSpace="nowrap"
 					>
 						<IconSolidXCircle
 							className={styles.comboboxTagClose}
@@ -87,8 +87,6 @@ export const QueryPart: React.FC<{
 
 							return <Token key={key} text={text} />
 						})}
-
-						<Box cssClass={styles.comboboxTagBackground} />
 					</Box>
 				}
 			>
@@ -103,13 +101,17 @@ export const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
 )
 
 export const Token = ({ text }: { text: string }): JSX.Element => {
-	const cssClass = text.trim() === '' ? styles.whitspaceTag : ''
+	const cssClass = text.trim() === '' ? styles.whitespaceTag : ''
 
 	if (SEPARATORS.includes(text.toUpperCase())) {
-		return <Box style={{ color: '#E93D82', zIndex: 1 }}>{text}</Box>
+		return (
+			<Box as="span" style={{ color: '#E93D82', zIndex: 1 }}>
+				{text}
+			</Box>
+		)
 	} else {
 		return (
-			<Box style={{ zIndex: 1 }} cssClass={cssClass}>
+			<Box as="span" style={{ zIndex: 1 }} cssClass={cssClass}>
 				{text}
 			</Box>
 		)

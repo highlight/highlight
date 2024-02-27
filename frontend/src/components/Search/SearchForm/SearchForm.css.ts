@@ -49,7 +49,7 @@ export const comboboxNotEmpty = style({
 	WebkitTextFillColor: 'transparent',
 })
 
-export const whitspaceTag = style({
+export const whitespaceTag = style({
 	letterSpacing: WORD_SPACING,
 })
 
@@ -58,38 +58,29 @@ export const comboboxTagsContainer = style([
 	typographyStyles.size.small,
 	{
 		alignItems: 'center',
-		display: 'flex',
-		flexWrap: 'nowrap',
+		display: 'block',
 		fontWeight: '500 !important',
 		maxWidth: 'calc(100% - 26px)',
 		overflow: 'hidden',
 		paddingRight: 8,
+		paddingTop: 4,
+		paddingBottom: 4,
 		pointerEvents: 'none',
 		position: 'absolute',
-		whiteSpace: 'pre',
+		whiteSpace: 'pre-wrap',
 	},
 ])
 
 export const comboboxTag = style({
-	display: 'inline-flex',
+	display: 'inline',
 	fontFeatureSettings: '"tnum" off', // disable tabular numbers
 	position: 'relative',
 	textOverflow: 'ellipsis',
-	whiteSpace: 'pre',
+	whiteSpace: 'pre-wrap',
 	wordSpacing: WORD_SPACING,
-})
-
-export const comboboxTagBackground = style({
-	border: vars.border.secondary,
 	borderRadius: vars.borderRadius[4],
+	boxShadow: `0 0 0 1px ${vars.theme.static.divider.weak} inset`,
 	height: 20,
-	letterSpacing: 'normal',
-	position: 'absolute',
-	top: 7,
-	left: -2,
-	bottom: 0,
-	right: -2,
-	width: 'calc(100% + 4px)',
 })
 
 export const comboboxTagActive = style({})
@@ -121,15 +112,12 @@ export const comboboxTagErrorIndicator = style({
 	zIndex: 1,
 })
 
-globalStyle(
-	`${comboboxTagActive} ${comboboxTagBackground}, ${comboboxTag}:hover ${comboboxTagBackground}`,
-	{
-		backgroundColor: `color-mix(in srgb, ${vars.theme.static.surface.elevated} 50%, transparent)`,
-	},
-)
+globalStyle(`${comboboxTagActive}${comboboxTag}`, {
+	backgroundColor: `color-mix(in srgb, ${vars.theme.static.surface.elevated} 50%, transparent)`,
+})
 
-globalStyle(`${comboboxTagError} ${comboboxTagBackground}`, {
-	border: `1px solid ${vars.theme.static.content.sentiment.bad}`,
+globalStyle(`${comboboxTagError}${comboboxTag}`, {
+	boxShadow: `0 0 0 1px  ${vars.theme.static.content.sentiment.bad} inset`,
 })
 
 globalStyle(`${comboboxTag}:hover ${comboboxTagClose}`, {

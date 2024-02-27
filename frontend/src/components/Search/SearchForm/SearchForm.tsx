@@ -24,6 +24,7 @@ import moment from 'moment'
 import { stringify } from 'query-string'
 import React, { Fragment, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import TextareaAutosize from 'react-textarea-autosize'
 import {
 	DateTimeParam,
 	encodeQueryParams,
@@ -565,6 +566,7 @@ export const Search: React.FC<{
 					className={clsx(styles.combobox, {
 						[styles.comboboxNotEmpty]: query.length > 0,
 					})}
+					render={<TextareaAutosize />}
 					value={query}
 					onChange={(e) => {
 						// Need to update cursor position before updating the query for all
@@ -602,6 +604,7 @@ export const Search: React.FC<{
 					onMouseUp={handleSetCursorIndex}
 					style={{
 						paddingLeft: hideIcon ? undefined : 40,
+						top: 6,
 					}}
 					data-hl-record
 				/>
