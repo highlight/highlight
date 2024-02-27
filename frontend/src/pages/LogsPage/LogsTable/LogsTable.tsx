@@ -425,50 +425,62 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 			const hasAttributes = Object.entries(matchedAttributes).length > 0
 
 			return (
-				<Table.Row selected={expanded} className={styles.attributesRow}>
+				<Table.Row
+					selected={expanded}
+					className={styles.attributesRow}
+					gridColumns={['32px', '1fr']}
+				>
 					{(rowExpanded || hasAttributes) && (
-						<Table.Cell py="4" pl="32">
-							{!rowExpanded && (
-								<Box display="flex" flexWrap="wrap">
-									{Object.entries(matchedAttributes).map(
-										([key, { match, value }], index) => {
-											return (
-												<>
-													{index > 0 && (
-														<Box
-															display="flex"
-															alignItems="center"
-															pr="8"
-														>
-															<Text
-																weight="bold"
-																color="weak"
+						<>
+							<Table.Cell />
+							<Table.Cell py="4" borderTop="dividerWeak">
+								{!rowExpanded && (
+									<Box display="flex" flexWrap="wrap">
+										{Object.entries(matchedAttributes).map(
+											(
+												[key, { match, value }],
+												index,
+											) => {
+												return (
+													<>
+														{index > 0 && (
+															<Box
+																display="flex"
+																alignItems="center"
+																pr="8"
 															>
-																;
-															</Text>
-														</Box>
-													)}
-													<LogValue
-														key={key}
-														label={key}
-														value={value}
-														queryKey={key}
-														queryMatch={match}
-														queryParts={queryParts}
-														hideActions
-													/>
-												</>
-											)
-										},
-									)}
-								</Box>
-							)}
-							<LogDetails
-								matchedAttributes={matchedAttributes}
-								row={row}
-								queryParts={queryParts}
-							/>
-						</Table.Cell>
+																<Text
+																	weight="bold"
+																	color="weak"
+																>
+																	;
+																</Text>
+															</Box>
+														)}
+														<LogValue
+															key={key}
+															label={key}
+															value={value}
+															queryKey={key}
+															queryMatch={match}
+															queryParts={
+																queryParts
+															}
+															hideActions
+														/>
+													</>
+												)
+											},
+										)}
+									</Box>
+								)}
+								<LogDetails
+									matchedAttributes={matchedAttributes}
+									row={row}
+									queryParts={queryParts}
+								/>
+							</Table.Cell>
+						</>
 					)}
 				</Table.Row>
 			)

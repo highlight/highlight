@@ -17,4 +17,5 @@ export const dataRow = style({
 
 export const attributesRow = style({
 	borderBottom: `1px solid ${vars.theme.static.divider.weak} !important`,
+	backgroundColor: vars.theme.static.surface.raised,
 })

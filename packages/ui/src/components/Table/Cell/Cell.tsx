@@ -5,7 +5,7 @@ import * as styles from './styles.css'
 
 export interface Props
 	extends Omit<BoxProps, 'display' | 'flexDirection' | 'gap' | 'cssClass'> {
-	children: React.ReactNode
+	children?: React.ReactNode
 	icon?: React.ReactNode
 }
 
