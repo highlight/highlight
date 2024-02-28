@@ -1,6 +1,7 @@
 import {
 	Badge,
 	Box,
+	BoxProps,
 	IconSolidMenuAlt_2,
 	IconSolidPlayCircle,
 	Stack,
@@ -15,16 +16,23 @@ import { Trace } from '@/graph/generated/schemas'
 import { getTraceDurationString } from '@/pages/Traces/utils'
 import analytics from '@/util/analytics'
 
+type PaddingProps = {
+	pt: BoxProps['p']
+	pb: BoxProps['p']
+}
+
 type ColumnWrapperProps = {
 	children: React.ReactNode
 	first: boolean
 	row: any
+	paddingProps?: PaddingProps
 	onClick?: () => void
 }
 
 const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 	children,
 	first,
+	paddingProps,
 	row,
 	onClick,
 }) => {
@@ -33,7 +41,7 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 
 	if (!first) {
 		return (
-			<Table.Cell onClick={onClick}>
+			<Table.Cell onClick={onClick} {...paddingProps}>
 				<span>{children}</span>
 			</Table.Cell>
 		)
@@ -48,7 +56,10 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 	}
 
 	return (
-		<Table.Cell onClick={() => viewTrace(row.original.node)}>
+		<Table.Cell
+			onClick={() => viewTrace(row.original.node)}
+			{...paddingProps}
+		>
 			<Box
 				display="flex"
 				alignItems="center"
@@ -135,9 +146,17 @@ const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 				navigate(`/${trace.projectID}/sessions/${secureSessionID}`)
 		  }
 		: undefined
+	const paddingProps = secureSessionID
+		? { pt: '4' as const, pb: '0' as const }
+		: undefined
 
 	return (
-		<ColumnWrapper first={first} row={row} onClick={onClick}>
+		<ColumnWrapper
+			first={first}
+			row={row}
+			onClick={onClick}
+			paddingProps={paddingProps}
+		>
 			{secureSessionID ? (
 				<Tag
 					kind="secondary"

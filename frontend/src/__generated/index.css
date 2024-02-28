@@ -5354,10 +5354,6 @@ body {
   border: var(--_1pyqka91r) solid 1px;
   color: var(--_1pyqka9x);
 }
-.om6zxf0 {
-  padding: 8px;
-  border-radius: 6px;
-}
 .om6zxf0:hover {
   background: var(--_1pyqka91x);
 }
@@ -6575,6 +6571,7 @@ body {
 }
 .g2tqod2 {
   border-bottom: 1px solid var(--_1pyqka9k) !important;
+  background-color: var(--_1pyqka92);
 }
 .szxd8q0 .szxd8q0 {
   padding-left: 22px;
