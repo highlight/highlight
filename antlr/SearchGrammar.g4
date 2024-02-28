@@ -47,7 +47,7 @@ implicit_and_op
 or_op
   : OR
   ;
-  
+
 exists_op
   : EXISTS
   | NOT EXISTS
@@ -92,7 +92,7 @@ COLON : ':' ;
 ID : [A-Z_0-9.\-*]+ ;
 STRING : '"' .*? '"' ;
 VALUE: ~[ \t\n\r\f=><:!)(]+ ;
-WS : [ \t\n\r\f]+ -> skip ;
+WS : [ \t\n\r\f]+ -> channel(HIDDEN) ;
 
 // Handle characters which failed to match any other token. This ensures all
 // characters are tokenized.

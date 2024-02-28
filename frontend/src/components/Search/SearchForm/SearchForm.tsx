@@ -280,7 +280,7 @@ export const Search: React.FC<{
 	const [isPending, startTransition] = React.useTransition()
 
 	const { queryParts, tokens } = parseSearch(query)
-	const tokenGroups = buildTokenGroups(tokens, queryParts, query)
+	const tokenGroups = buildTokenGroups(tokens)
 	const activePart = getActivePart(cursorIndex, queryParts)
 	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
 		activePart.value,
@@ -334,7 +334,7 @@ export const Search: React.FC<{
 
 	const handleSetCursorIndex = () => {
 		if (!isPending) {
-			setCursorIndex(inputRef.current?.selectionStart || query.length)
+			setCursorIndex(inputRef.current?.selectionStart ?? query.length)
 		}
 	}
 
@@ -546,6 +546,7 @@ export const Search: React.FC<{
 						return (
 							<Fragment key={index}>
 								<QueryPart
+									comboboxStore={comboboxStore}
 									cursorIndex={cursorIndex}
 									index={index}
 									tokenGroup={tokenGroup}
@@ -713,8 +714,12 @@ export const Search: React.FC<{
 											value={key.name}
 											hideOnClick={false}
 											setValueOnClick={false}
+											title={key.name}
 										>
-											<Text color="secondaryContentText">
+											<Text
+												color="secondaryContentText"
+												lines="1"
+											>
 												{key.name}
 											</Text>
 											{badgeText && (
@@ -815,13 +820,18 @@ const getActivePart = (
 	})
 
 	if (activePartIndex === undefined) {
+		const lastPartStop = Math.max(
+			queryParts[queryParts.length - 1]?.stop + 1,
+			cursorIndex,
+		)
+
 		const activePart = {
 			key: BODY_KEY,
 			operator: DEFAULT_OPERATOR,
 			value: '',
 			text: '',
-			start: cursorIndex,
-			stop: cursorIndex,
+			start: lastPartStop,
+			stop: lastPartStop,
 		}
 		queryParts.push(activePart)
 		return activePart
