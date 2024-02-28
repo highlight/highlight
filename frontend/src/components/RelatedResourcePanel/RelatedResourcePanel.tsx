@@ -6,12 +6,9 @@ import {
 	RelatedResource,
 	useRelatedResource,
 } from '@/components/RelatedResourcePanel/hooks'
-import { useGetErrorGroupQuery } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
-import { ErrorDisplay } from '@/pages/ErrorsV2/ErrorsV2'
 import { TracePage } from '@/pages/Traces/TracePage'
 import { TraceProvider } from '@/pages/Traces/TraceProvider'
-import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import * as styles from './RelatedResourcePanel.css'
 
@@ -65,26 +62,12 @@ const TracePanel: React.FC<ResourcePanelProps> = ({ resource }) => {
 }
 
 const ErrorPanel: React.FC<ResourcePanelProps> = ({ resource }) => {
-	const { projectId } = useNumericProjectId()
-	const [{ integrated }] = useIntegratedLocalStorage(projectId!, 'server')
-	const { data, loading, error } = useGetErrorGroupQuery({
-		variables: {
-			secure_id: resource.id!,
-			use_clickhouse: true,
-		},
-	})
-
 	return (
 		<Panel open={true}>
-			<ErrorDisplay
-				errorGroup={data?.error_group}
-				integrated={integrated}
-				isBlocked={false}
-				isBlockedLoading={false}
-				isErrorGroupError={!!error}
-				isErrorState={!!error}
-				loading={loading}
-			/>
+			This is the error panel!
+			<Box p="8" border="dividerWeak" my="8" borderRadius="4">
+				<pre>{JSON.stringify(resource)}</pre>
+			</Box>
 		</Panel>
 	)
 }
