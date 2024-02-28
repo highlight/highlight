@@ -20,7 +20,7 @@ export const stringifySearchQuery = (params: SearchExpression[]) => {
 		querySegments.push(text)
 	})
 
-	return querySegments.join('')
+	return querySegments.join('').trim()
 }
 
 export const quoteQueryValue = (value: string | number) => {
@@ -45,7 +45,7 @@ export type TokenGroup = {
 	tokens: SearchToken[]
 	start: number
 	stop: number
-	type: 'expression' | 'separator'
+	type: 'expression' | 'separator' | 'andOr'
 	expression?: SearchExpression
 	error?: string
 }
@@ -56,7 +56,7 @@ export const buildTokenGroups = (tokens: SearchToken[]) => {
 	let insideQuotes = false
 	let insideParens = false
 
-	const startNewGroup = (type: 'expression' | 'separator', index: number) => {
+	const startNewGroup = (type: TokenGroup['type'], index: number) => {
 		if (currentGroup) {
 			tokenGroups.push(currentGroup)
 		}
@@ -115,8 +115,14 @@ export const buildTokenGroups = (tokens: SearchToken[]) => {
 				}
 			}
 
-			if (currentGroup.type === 'expression') {
+			// If we are not in a separator group, start a new one
+			if (currentGroup.type !== 'separator') {
 				startNewGroup('separator', token.start)
+			}
+
+			// Make AND and OR their own groups
+			if (SEPARATOR_TOKENS.includes(token.type)) {
+				startNewGroup('andOr', token.start)
 			}
 
 			currentGroup.tokens.push(token)

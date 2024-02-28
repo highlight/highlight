@@ -40,6 +40,7 @@ export const QueryPart: React.FC<{
 	const error = errorToken
 		? errorMessageForToken(errorToken, showValues)
 		: undefined
+	const isExpression = tokenGroup.type === 'expression'
 
 	if (
 		tokenGroup.tokens.length === 1 &&
@@ -48,7 +49,7 @@ export const QueryPart: React.FC<{
 		return null
 	}
 
-	if (tokenGroup.type !== 'expression') {
+	if (tokenGroup.type === 'separator') {
 		return (
 			<>
 				{tokenGroup.tokens.map((token, index) => {
@@ -69,13 +70,15 @@ export const QueryPart: React.FC<{
 				shift={-3}
 				trigger={
 					<Box
-						cssClass={clsx(styles.comboboxTag, {
-							[styles.comboboxTagActive]: active,
+						cssClass={clsx({
+							[styles.comboboxTag]: isExpression,
+							[styles.comboboxTagActive]: active && isExpression,
 							[styles.comboboxTagError]: !!error,
 						})}
 						py="7"
 						position="relative"
-						whiteSpace="nowrap"
+						whiteSpace="pre-wrap"
+						display="inline-flex"
 					>
 						<IconSolidXCircle
 							className={styles.comboboxTagClose}
@@ -105,7 +108,9 @@ export const QueryPart: React.FC<{
 							)
 						})}
 
-						<Box cssClass={styles.comboboxTagBackground} />
+						{isExpression && (
+							<Box cssClass={styles.comboboxTagBackground} />
+						)}
 					</Box>
 				}
 			>
@@ -156,6 +161,7 @@ const ErrorRenderer: React.FC<{ error: string }> = ({ error }) => {
 }
 
 const OPERATOR_CHARACTERS = ['!', '<', '>', '=', ':']
+const AND_OR_CHARACTERS = ['AND', 'OR']
 
 const errorMessageForToken = (
 	token: SearchToken,
@@ -178,6 +184,14 @@ const errorMessageForToken = (
 		)
 	) {
 		error = 'Operators must be wrapped in quotes.'
+	} else if (
+		AND_OR_CHARACTERS.some(
+			(char) =>
+				error!.startsWith(`extraneous input '${char}'`) ||
+				error!.startsWith(`mismatched input '${char}'`),
+		)
+	) {
+		error = `AND and OR must be used between expressions.`
 	} else if (
 		error.endsWith("expecting ')'") ||
 		error.startsWith("missing ')'")

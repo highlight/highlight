@@ -113,7 +113,9 @@ describe('buildTokenGroups', () => {
 		expect(tokenGroupStrings).toEqual([
 			' ',
 			'service_name=(private-graph  OR public-graph)',
-			' AND ',
+			' ',
+			'AND',
+			' ',
 			'span_name!=gorm.Query',
 			' ',
 			'asdf',
@@ -132,9 +134,19 @@ describe('buildTokenGroups', () => {
 			group.tokens.map((token) => token.text).join(''),
 		)
 
+		expect(tokenGroups.map((group) => group.type)).toEqual([
+			'expression',
+			'separator',
+			'andOr',
+			'separator',
+			'expression',
+		])
+
 		expect(tokenGroupStrings).toEqual([
 			'service_name=private-graph',
-			' AND ',
+			' ',
+			'AND',
+			' ',
 			'span_name!=gorm.Query',
 		])
 	})
