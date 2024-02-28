@@ -5197,13 +5197,13 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool,
 		return nil, nil
 	}
 
-	firstSession := model.Session{}
-	err := r.DB.WithContext(ctx).Model(&model.Session{}).Where("project_id = ?", projectID).Take(&firstSession).Error
+	firstSetupEvent := model.SetupEvent{}
+	err := r.DB.WithContext(ctx).Model(&model.SetupEvent{}).Where("project_id = ?", projectID).Take(&firstSetupEvent).Error
 	if e.Is(err, gorm.ErrRecordNotFound) {
 		return &model.F, nil
 	}
 	if err != nil {
-		return nil, e.Wrap(err, "error querying session for project")
+		return nil, e.Wrap(err, "error querying setup event for project")
 	}
 
 	return &model.T, nil
