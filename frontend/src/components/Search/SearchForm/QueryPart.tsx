@@ -110,7 +110,15 @@ export const Token = ({ text }: { text: string }): JSX.Element => {
 	} else {
 		return (
 			<Box style={{ zIndex: 1 }} cssClass={cssClass}>
-				{text}
+				{text.split('').map((char, index) =>
+					char === '*' ? (
+						<span key={index} style={{ color: '#E93D82' }}>
+							{char}
+						</span>
+					) : (
+						char
+					),
+				)}
 			</Box>
 		)
 	}
