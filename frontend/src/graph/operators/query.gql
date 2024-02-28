@@ -1388,10 +1388,6 @@ query IsIntegrated($project_id: ID!) {
 	isIntegrated(project_id: $project_id)
 }
 
-query IsBackendIntegrated($project_id: ID!) {
-	isBackendIntegrated(project_id: $project_id)
-}
-
 query GetClientIntegration($project_id: ID!) {
 	clientIntegration(project_id: $project_id) {
 		integrated

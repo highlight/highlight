@@ -5209,22 +5209,6 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool,
 	return &model.T, nil
 }
 
-// IsBackendIntegrated is the resolver for the isBackendIntegrated field.
-func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) (*bool, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, nil
-	}
-	var count int64
-	err := r.DB.WithContext(ctx).Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&count).Error
-	if err != nil {
-		return nil, e.Wrap(err, "error getting projects with backend flag")
-	}
-	if count > 0 {
-		return &model.T, nil
-	}
-	return &model.F, nil
-}
-
 // ClientIntegration is the resolver for the clientIntegration field.
 func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
 	integration := &modelInputs.IntegrationStatus{

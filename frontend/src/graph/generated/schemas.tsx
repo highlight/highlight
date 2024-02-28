@@ -1884,7 +1884,6 @@ export type Query = {
 	height_workspaces: Array<HeightWorkspace>
 	identifier_suggestion: Array<Scalars['String']>
 	integration_project_mappings: Array<IntegrationProjectMapping>
-	isBackendIntegrated?: Maybe<Scalars['Boolean']>
 	isIntegrated?: Maybe<Scalars['Boolean']>
 	isSessionPending?: Maybe<Scalars['Boolean']>
 	is_integrated_with: Scalars['Boolean']
@@ -2275,10 +2274,6 @@ export type QueryIdentifier_SuggestionArgs = {
 export type QueryIntegration_Project_MappingsArgs = {
 	integration_type?: InputMaybe<IntegrationType>
 	workspace_id: Scalars['ID']
-}
-
-export type QueryIsBackendIntegratedArgs = {
-	project_id: Scalars['ID']
 }
 
 export type QueryIsIntegratedArgs = {
