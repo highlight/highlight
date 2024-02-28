@@ -154,7 +154,7 @@ export class Highlight {
 		}
 
 		if (!options.disableConsoleRecording) {
-			hookConsole(options.consoleMethodsToRecord, (c) => {
+			hookConsole(options, (c) => {
 				this.log(
 					c.date,
 					c.message,

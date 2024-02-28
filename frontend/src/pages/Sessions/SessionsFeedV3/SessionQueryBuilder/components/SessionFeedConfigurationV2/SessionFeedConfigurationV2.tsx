@@ -32,6 +32,7 @@ import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { useGenerateSessionsReportCSV } from '@util/session/report'
 import { message } from 'antd'
+import { H } from 'highlight.run'
 import React, { useRef, useState } from 'react'
 
 import { ClickhouseQuery } from '@/graph/generated/schemas'
@@ -396,9 +397,19 @@ export const DropdownMenu = function ({
 							className={styles.menuItem}
 							onClick={async () => {
 								message.info(
-									'CSV report download will begin shortly...',
+									'Preparing CSV report, this may take a bit...',
 								)
-								await generateSessionsReportCSV()
+								try {
+									await generateSessionsReportCSV()
+									message.success(
+										'CSV report prepared, downloading...',
+									)
+								} catch (e) {
+									message.error(
+										`Failed to generate the CSV report: ${e}`,
+									)
+									H.consumeError(e as Error)
+								}
 							}}
 						>
 							<SectionRow>

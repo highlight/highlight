@@ -17,8 +17,11 @@ program
   )
   .option(
     "-bp, --basePath [string]",
-    "An optional base path for the uploaded sourcemaps",
-    ""
+    "An optional base path for the uploaded sourcemaps"
+  )
+  .option(
+    "-bu, --backendUrl [string]",
+    "An optional backend url for self-hosted deployments"
   )
   .action(uploadSourcemaps);
 

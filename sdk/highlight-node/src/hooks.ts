@@ -1,5 +1,7 @@
 // inspired by https://github.com/getsentry/sentry-javascript/issues/5639
 
+import { NodeOptions } from './types'
+
 // https://stackoverflow.com/a/2805230
 const MAX_RECURSION = 128
 
@@ -77,13 +79,16 @@ export function safeStringify(obj: any): string {
 }
 
 export function hookConsole(
-	methodsToRecord: string[] | undefined,
+	options: NodeOptions,
 	cb: (cb: ConsolePayload) => void,
 ) {
 	if (consoleHooked) return
 	consoleHooked = true
 	for (const [level, highlightLevel] of Object.entries(ConsoleLevels)) {
-		if (methodsToRecord?.length && methodsToRecord.indexOf(level) === -1) {
+		if (
+			options.consoleMethodsToRecord?.length &&
+			(options.consoleMethodsToRecord as string[]).indexOf(level) === -1
+		) {
 			continue
 		}
 		const origWrite = console[level as keyof Console] as ConsoleFn
@@ -96,13 +101,17 @@ export function hookConsole(
 			} finally {
 				const o: { stack: any } = { stack: {} }
 				Error.captureStackTrace(o)
+				const message = options.serializeConsoleAttributes
+					? data.map((o) =>
+							typeof o === 'object' ? safeStringify(o) : o,
+					  )
+					: data
+							.filter((d) => typeof d !== 'object')
+							.map((o) => `${o}`)
 				cb({
 					date,
 					level: highlightLevel,
-					message: data
-						.filter((d) => typeof d !== 'object')
-						.map((o) => `${o}`)
-						.join(' '),
+					message: message.join(' '),
 					attributes: data
 						.filter((d) => typeof d === 'object')
 						.reduce((a, b) => ({ ...a, ...b }), {}),

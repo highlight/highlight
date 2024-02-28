@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
 
 	model2 "github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -169,7 +170,7 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 				Timestamp: time.UnixMilli(lg.Timestamp).UTC().Format(hlog.TimestampFormat),
 				Level:     "info",
 			}
-			if err := hlog.SubmitHTTPLog(r.Context(), projectID, hl); err != nil {
+			if err := hlog.SubmitHTTPLog(r.Context(), tracer, projectID, hl); err != nil {
 				log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
@@ -188,7 +189,7 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 						"log_stream":                   cloudwatchPayload.LogStream,
 					},
 				}
-				if err := hlog.SubmitHTTPLog(r.Context(), projectID, hl); err != nil {
+				if err := hlog.SubmitHTTPLog(r.Context(), tracer, projectID, hl); err != nil {
 					log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
 					http.Error(w, err.Error(), http.StatusBadRequest)
 					return
@@ -256,7 +257,7 @@ func HandlePinoLogs(w http.ResponseWriter, r *http.Request, lgJson []byte, logs 
 			}
 		}
 
-		if err := hlog.SubmitHTTPLog(r.Context(), projectID, lg); err != nil {
+		if err := hlog.SubmitHTTPLog(r.Context(), tracer, projectID, lg); err != nil {
 			log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -314,7 +315,7 @@ func HandleJSONLog(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		lg.Attributes[string(semconv.ServiceNameKey)] = attributes[LogDrainServiceHeader]
-		if err := hlog.SubmitHTTPLog(r.Context(), projectID, lg); err != nil {
+		if err := hlog.SubmitHTTPLog(r.Context(), tracer, projectID, lg); err != nil {
 			log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -355,7 +356,7 @@ func HandleRawLog(w http.ResponseWriter, r *http.Request) {
 	if serviceName != "" {
 		lg.Attributes[string(semconv.ServiceNameKey)] = serviceName
 	}
-	if err := hlog.SubmitHTTPLog(r.Context(), projectID, lg); err != nil {
+	if err := hlog.SubmitHTTPLog(r.Context(), tracer, projectID, lg); err != nil {
 		log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -364,7 +365,10 @@ func HandleRawLog(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func Listen(r *chi.Mux) {
+var tracer trace.Tracer
+
+func Listen(r *chi.Mux, t trace.Tracer) {
+	tracer = t
 	r.Route("/v1", func(r chi.Router) {
 		r.Use(highlightChi.Middleware)
 		r.HandleFunc("/logs/raw", HandleRawLog)

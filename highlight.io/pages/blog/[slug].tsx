@@ -59,6 +59,42 @@ const components: Record<
 	h3: (props: any) => <h6 className={styles.blogText}>{props.children}</h6>,
 	h4: (props: any) => <h6 className={styles.blogText}>{props.children}</h6>,
 	h5: (props: any) => <h6 className={styles.blogText}>{props.children}</h6>,
+	ol: (props: any) => {
+		// check if the type of props.children is an array.
+		return (
+			<>
+				{Array.isArray(props.children) &&
+					props?.children?.map((c: any, i: number) => {
+						return (
+							c.props &&
+							c.props.children && (
+								<ol
+									start={props.start}
+									style={{
+										paddingTop: 8,
+										paddingLeft: 16,
+									}}
+								>
+									<li
+										style={{
+											listStyleType: 'counter',
+											listStylePosition: 'outside',
+										}}
+										key={i}
+									>
+										{c.props.children.map
+											? c?.props?.children?.map(
+													(e: any) => e,
+											  )
+											: c?.props?.children}
+									</li>
+								</ol>
+							)
+						)
+					})}
+			</>
+		)
+	},
 	ul: (props: any) => {
 		// check if the type of props.children is an array.
 		return (

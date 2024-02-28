@@ -297,7 +297,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				}
 
 				if shouldWriteTrace {
-					timestamp := clampTime(span.StartTimestamp().AsTime(), curTime)
+					timestamp := graph.ClampTime(span.StartTimestamp().AsTime(), curTime)
 					traceRow := clickhouse.NewTraceRow(timestamp, fields.projectIDInt).
 						WithSecureSessionId(fields.sessionID).
 						WithTraceId(traceID).

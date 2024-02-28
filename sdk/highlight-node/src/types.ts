@@ -40,6 +40,11 @@ export interface NodeOptions extends HighlightOptions {
 	 * Attributes to be added to the OpenTelemetry Resource.
 	 */
 	attributes?: Attributes
+
+	/**
+	 * Set to try to serialize console object arguments into the message body.
+	 */
+	serializeConsoleAttributes?: boolean
 }
 
 export interface HighlightContext {

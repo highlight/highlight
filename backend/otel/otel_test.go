@@ -57,6 +57,13 @@ func (m *MockResponseWriter) Write(bytes []byte) (int, error) {
 
 func (m *MockResponseWriter) WriteHeader(statusCode int) {}
 
+func TestMain(m *testing.M) {
+	//tracer = otel.GetTracerProvider().Tracer("test")
+
+	code := m.Run()
+	os.Exit(code)
+}
+
 func TestHandler_HandleLog(t *testing.T) {
 	w := &MockResponseWriter{}
 	r, _ := http.NewRequest("POST", "", strings.NewReader(""))

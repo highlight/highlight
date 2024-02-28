@@ -15,18 +15,21 @@ interface User {
 	getIdToken(): Promise<string>
 }
 
-const fakeFirebaseUser: User = {
+const getFakeFirebaseUser: (email?: string, password?: string) => User = (
+	email,
+	password,
+) => ({
 	async getIdToken(): Promise<string> {
 		if (AUTH_MODE === 'password') {
 			return sessionStorage.getItem('passwordToken') || ''
 		}
 		return Promise.resolve('a1b2c3')
 	},
-	email: 'demo@example.com',
+	email: email || 'demo@example.com',
 	async sendEmailVerification(): Promise<void> {
 		console.warn('simple auth does not support email verification')
 	},
-}
+})
 
 const makePasswordAuthUser = (email: string): User => ({
 	async getIdToken(): Promise<string> {
@@ -38,20 +41,22 @@ const makePasswordAuthUser = (email: string): User => ({
 	},
 })
 
-const getFakeFirebaseCredentials: () => Promise<Firebase.auth.UserCredential> =
-	async () => {
-		return {
-			credential: {
-				providerId: '',
-				signInMethod: '',
-				toJSON: () => Object(),
-			},
-			user: fakeFirebaseUser as Firebase.User,
-		}
+const getFakeFirebaseCredentials: (
+	email?: string,
+	password?: string,
+) => Promise<Firebase.auth.UserCredential> = async (email, password) => {
+	return {
+		credential: {
+			providerId: '',
+			signInMethod: '',
+			toJSON: () => Object(),
+		},
+		user: getFakeFirebaseUser(email, password) as Firebase.User,
 	}
+}
 
 class SimpleAuth {
-	currentUser: User | null = fakeFirebaseUser
+	currentUser: User | null = getFakeFirebaseUser()
 	googleProvider?: Firebase.auth.GoogleAuthProvider
 	githubProvider?: Firebase.auth.GithubAuthProvider
 
@@ -59,7 +64,7 @@ class SimpleAuth {
 		email: string,
 		password: string,
 	): Promise<Firebase.auth.UserCredential> {
-		return await getFakeFirebaseCredentials()
+		return await getFakeFirebaseCredentials(email, password)
 	}
 
 	onAuthStateChanged(
@@ -78,7 +83,7 @@ class SimpleAuth {
 		email: string,
 		password: string,
 	): Promise<Firebase.auth.UserCredential> {
-		return await getFakeFirebaseCredentials()
+		return await getFakeFirebaseCredentials(email, password)
 	}
 
 	async signInWithPopup(
@@ -135,7 +140,7 @@ class PasswordAuth {
 		email: string,
 		password: string,
 	): Promise<Firebase.auth.UserCredential> {
-		return await getFakeFirebaseCredentials()
+		return await getFakeFirebaseCredentials(email, password)
 	}
 
 	onAuthStateChanged(

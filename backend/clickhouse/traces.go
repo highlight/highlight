@@ -285,15 +285,17 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 	}, nil
 }
 
-func (client *Client) ExistingTraceIds(ctx context.Context, projectID int, traceIDs []string) ([]string, error) {
+func (client *Client) ExistingTraceIds(ctx context.Context, projectID int, traceIDs []string, startDate time.Time, endDate time.Time) ([]string, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
 
-	sb.From(TracesByIdTable).
+	sb.From(TracesTable).
 		Select("DISTINCT TraceId").
 		Where(sb.Equal("ProjectId", projectID)).
-		Where(sb.In("TraceId", traceIDs))
+		Where(sb.In("TraceId", traceIDs)).
+		Where(sb.GreaterThan("Timestamp", startDate)).
+		Where(sb.LessThan("Timestamp", endDate))
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 

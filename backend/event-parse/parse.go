@@ -152,14 +152,25 @@ func parseHostUrl(urlString string) *string {
 	return &hostUrl
 }
 
+var pathPattern = regexp.MustCompile(`url\(['"]?(.+?)['"]?\)`)
+var pathIgnorePattern = regexp.MustCompile(`url\(['"]?(data:|http)`)
+
 func replaceRelativePaths(body []byte, href string) []byte {
 	base := parseHostUrl(href)
-
-	if base != nil {
-		return regexp.MustCompile(`url\(['"]\./`).ReplaceAll(body, []byte(fmt.Sprintf("url('%s?url=%s/", ProxyURL, *base)))
-	} else {
+	if base == nil {
 		return body
 	}
+
+	return pathPattern.ReplaceAllFunc(body, func(match []byte) []byte {
+		if pathIgnorePattern.Match(match) {
+			return match
+		}
+		groups := pathPattern.FindSubmatch(match)
+		u, _ := url.Parse(fmt.Sprintf("%s/%s", *base, groups[1]))
+		u.Path = strings.Trim(u.Path, "/")
+		result := []byte(fmt.Sprintf("url('%s?url=%s')", ProxyURL, u.String()))
+		return result
+	})
 }
 
 var fetch fetcher

@@ -1,4 +1,7 @@
-x-logging: &highlight-logging
+x-local-logging: &local-logging
+    driver: local
+
+x-highlight-logging: &highlight-logging
     driver: fluentd
     options:
         fluentd-address: '127.0.0.1:24224'
@@ -6,6 +9,7 @@ x-logging: &highlight-logging
         fluentd-sub-second-precision: 'true'
         tag: 'highlight.project_id=1'
 
+# Highlight.io services for the development deployment.
 services:
     zookeeper:
         logging: *highlight-logging
@@ -25,30 +29,30 @@ services:
         volumes:
             - kafka-data:/var/lib/kafka/data
         ports:
-            - 9092:9092
+            - '0.0.0.0:9092:9092'
         depends_on:
             - zookeeper
         environment:
+            KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
             KAFKA_BROKER_ID: 1
-            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-            KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-            KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
             KAFKA_CONSUMER_MAX_PARTITION_FETCH_BYTES: 536870912
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
             KAFKA_MESSAGE_MAX_BYTES: 536870912
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
             KAFKA_PRODUCER_MAX_REQUEST_SIZE: 536870912
             KAFKA_REPLICA_FETCH_MAX_BYTES: 536870912
+            KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+            KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
 
     redis:
         logging: *highlight-logging
         container_name: redis
         image: redis
-        ports:
-            - 6379:6379
         volumes:
             - redis-data:/data
+        ports:
+            - '0.0.0.0:6379:6379'
         command:
             - redis-server
             - --save 60 1
@@ -60,7 +64,7 @@ services:
         # a postgres image with pgvector installed
         image: ankane/pgvector
         ports:
-            - 5432:5432
+            - '0.0.0.0:5432:5432'
         environment:
             POSTGRES_HOST_AUTH_METHOD: trust
         volumes:
@@ -77,8 +81,8 @@ services:
         container_name: clickhouse
         image: clickhouse/clickhouse-server
         ports:
-            - 8123:8123
-            - 9000:9000
+            - '0.0.0.0:8123:8123'
+            - '0.0.0.0:9000:9000'
         volumes:
             - ./backup_disk.xml:/etc/clickhouse-server/config.d/backup_disk.xml
             - clickhouse-data:/var/lib/clickhouse
@@ -89,18 +93,18 @@ services:
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
-            - 4317:4317
-            - 4318:4318
-            - 4319:4319
-            - 8888:8888
-            - 24224:24224
-            - 34302:34302
+            - '0.0.0.0:4317:4317'
+            - '0.0.0.0:4318:4318'
+            - '0.0.0.0:4319:4319'
+            - '0.0.0.0:8888:8888'
+            - '0.0.0.0:24224:24224'
+            - '0.0.0.0:34302:34302'
         container_name: collector
         image: otel/opentelemetry-collector-contrib
         command:
-            - '--config=/etc/otel-collector-config.yaml'
+            - '--config=/etc/collector.yml'
         volumes:
-            - ./otel-collector.yaml:/etc/otel-collector-config.yaml
+            - ./collector.yml:/etc/collector.yml
 
 volumes:
     postgres-data:
