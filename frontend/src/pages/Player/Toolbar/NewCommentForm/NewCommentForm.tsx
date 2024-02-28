@@ -61,6 +61,10 @@ import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
 import { SearchIssues } from '@/components/SearchIssues/SearchIssues'
 import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
+import {
+	NewIntegrationIssueMode,
+	NewIntegrationIssueType,
+} from '@/pages/IntegrationsPage/Integrations'
 
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas'
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration'
@@ -141,7 +145,9 @@ export const NewCommentForm = ({
 	const formValues = formStore.useState('values')
 
 	// issue linking support
-	const [mode, setMode] = React.useState('Create Issue')
+	const [mode, setMode] = React.useState<NewIntegrationIssueMode>(
+		NewIntegrationIssueType.CreateIssue,
+	)
 	const [linkedIssue, setLinkedIssue] = useState({
 		id: '',
 		url: '',
@@ -204,7 +210,7 @@ export const NewCommentForm = ({
 		const { issueTitle, issueDescription } = formValues
 
 		try {
-			if (mode === 'Create Issue') {
+			if (mode === NewIntegrationIssueType.CreateIssue) {
 				await createErrorComment({
 					variables: {
 						project_id: project_id!,
@@ -272,7 +278,7 @@ export const NewCommentForm = ({
 		const { issueTitle, issueDescription } = formValues
 
 		try {
-			if (mode === 'Create Issue') {
+			if (mode === NewIntegrationIssueType.CreateIssue) {
 				await createComment({
 					variables: {
 						project_id: project_id!,
@@ -587,26 +593,25 @@ export const NewCommentForm = ({
 								>
 									<RadioGroup
 										labels={['Create Issue', 'Link Issue']}
-										selectedLabel={mode}
-										onSelect={(label: any) =>
-											setMode(label)
+										selectedLabel={
+											mode ===
+											NewIntegrationIssueType.CreateIssue
+												? 'Create Issue'
+												: 'Link Issue'
 										}
-										style={{
-											width: '100%',
-											display: 'flex',
-											justifyContent: 'center',
-											alignItems: 'center',
-										}}
+										onSelect={(label: string) =>
+											setMode(
+												label === 'Create Issue'
+													? NewIntegrationIssueType.CreateIssue
+													: NewIntegrationIssueType.LinkIssue,
+											)
+										}
+										labelStyle={{ width: '100%' }}
+										wrapperStyle={{ width: '100%' }}
 									/>
 								</Box>
 							)}
-							{mode === 'Create Issue' &&
-								issueServiceDetail?.containerSelection({
-									disabled: isCreatingComment,
-									setSelectionId: setContainerId,
-									setIssueTypeId,
-								})}
-							{mode === 'Link Issue' && (
+							{mode === NewIntegrationIssueType.LinkIssue && (
 								<SearchIssues
 									onSelect={(value: any) => {
 										if (value) {
@@ -617,22 +622,29 @@ export const NewCommentForm = ({
 									project_id={project_id!}
 								/>
 							)}
-							{mode === 'Create Issue' && (
-								<Form.Input
-									name="issueTitle"
-									label="Title"
-									placeholder="Title"
-									disabled={isCreatingComment}
-								/>
-							)}
-							{mode === 'Create Issue' && (
-								<Form.Input
-									name="issueDescription"
-									label="Description"
-									// @ts-expect-error
-									as="textarea"
-									disabled={isCreatingComment}
-								/>
+							{mode === NewIntegrationIssueType.CreateIssue && (
+								<>
+									{issueServiceDetail?.containerSelection({
+										disabled: isCreatingComment,
+										setSelectionId: setContainerId,
+										setIssueTypeId,
+									})}
+
+									<Form.Input
+										name="issueTitle"
+										label="Title"
+										placeholder="Title"
+										disabled={isCreatingComment}
+									/>
+
+									<Form.Input
+										name="issueDescription"
+										label="Description"
+										// @ts-expect-error
+										as="textarea"
+										disabled={isCreatingComment}
+									/>
+								</>
 							)}
 						</Stack>
 						<Stack

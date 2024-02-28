@@ -32,6 +32,7 @@ import {
 	GITLAB_INTEGRATION,
 	JIRA_INTEGRATION,
 	LINEAR_INTEGRATION,
+	NewIntegrationIssueType,
 } from '@pages/IntegrationsPage/Integrations'
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import { useParams } from '@util/react-router/useParams'
@@ -111,7 +112,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 		],
 	})
 
-	const [mode, setMode] = React.useState('Create Issue')
+	const [mode, setMode] = React.useState(NewIntegrationIssueType.CreateIssue)
 	const [linkedIssue, setLinkedIssue] = useState({
 		id: '',
 		url: '',
@@ -142,7 +143,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			const author = admin?.name || admin?.email || 'Someone'
 			const integrations = [selectedIntegration.name] as IntegrationType[]
 			if (commentType === 'SessionComment' && commentId) {
-				if (mode === 'Create Issue') {
+				if (mode === NewIntegrationIssueType.CreateIssue) {
 					await createIssueForSessionComment({
 						variables: {
 							project_id: project_id!,
@@ -176,7 +177,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 				}
 			} else if (commentType === 'ErrorComment') {
 				if (commentId) {
-					if (mode === 'Create Issue') {
+					if (mode === NewIntegrationIssueType.CreateIssue) {
 						await createIssueForErrorComment({
 							variables: {
 								project_id: project_id!,
@@ -207,7 +208,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 						})
 					}
 				} else if (errorSecureId) {
-					if (mode === 'Create Issue') {
+					if (mode === NewIntegrationIssueType.CreateIssue) {
 						await createErrorComment({
 							variables: {
 								project_id: project_id!,
@@ -259,7 +260,9 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			form.reset()
 
 			const toastMessage =
-				mode === 'Create Issue' ? 'New Issue Created!' : 'Issue Linked'
+				mode === NewIntegrationIssueType.CreateIssue
+					? 'New Issue Created!'
+					: 'Issue Linked!'
 			message.success(toastMessage)
 		} catch (e: any) {
 			H.consumeError(e)
@@ -334,14 +337,20 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 					<Box px="12" py="8" gap="12" display="flex" align="center">
 						<RadioGroup
 							labels={['Create Issue', 'Link Issue']}
-							selectedLabel={mode}
-							onSelect={(label: any) => setMode(label)}
-							style={{
-								width: '100%',
-								display: 'flex',
-								justifyContent: 'center',
-								alignItems: 'center',
-							}}
+							selectedLabel={
+								mode === NewIntegrationIssueType.CreateIssue
+									? 'Create Issue'
+									: 'Link Issue'
+							}
+							onSelect={(label: string) =>
+								setMode(
+									label === 'Create Issue'
+										? NewIntegrationIssueType.CreateIssue
+										: NewIntegrationIssueType.LinkIssue,
+								)
+							}
+							labelStyle={{ width: '100%' }}
+							wrapperStyle={{ width: '100%' }}
 						/>
 					</Box>
 				)}
@@ -353,13 +362,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 						display="flex"
 						flexDirection="column"
 					>
-						{mode === 'Create Issue' &&
-							selectedIntegration.containerSelection({
-								setSelectionId: setContainerId,
-								setIssueTypeId: setIssueTypeId,
-								disabled: loading,
-							})}
-						{mode === 'Link Issue' && (
+						{mode === NewIntegrationIssueType.LinkIssue && (
 							<SearchIssues
 								onSelect={(value: any) => {
 									if (value) {
@@ -370,29 +373,36 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 								project_id={project_id!}
 							/>
 						)}
-						{mode === 'Create Issue' && (
-							<Form.Input
-								name={form.names.issueTitle}
-								label="Issue Title"
-								placeholder="Add a concise summary of the issue"
-								outline
-								truncate
-								required
-								disabled={loading}
-							/>
-						)}
-						{mode === 'Create Issue' && (
-							<Form.Input
-								name={form.names.issueDescription}
-								label="Issue Description"
-								placeholder="Hey, check this out!"
-								// @ts-expect-error
-								as="textarea"
-								outline
-								aria-multiline
-								rows={5}
-								disabled={loading}
-							/>
+						{mode === NewIntegrationIssueType.CreateIssue && (
+							<>
+								{selectedIntegration.containerSelection({
+									setSelectionId: setContainerId,
+									setIssueTypeId: setIssueTypeId,
+									disabled: loading,
+								})}
+
+								<Form.Input
+									name={form.names.issueTitle}
+									label="Issue Title"
+									placeholder="Add a concise summary of the issue"
+									outline
+									truncate
+									required
+									disabled={loading}
+								/>
+
+								<Form.Input
+									name={form.names.issueDescription}
+									label="Issue Description"
+									placeholder="Hey, check this out!"
+									// @ts-expect-error
+									as="textarea"
+									outline
+									aria-multiline
+									rows={5}
+									disabled={loading}
+								/>
+							</>
 						)}
 					</Box>
 					<Box
