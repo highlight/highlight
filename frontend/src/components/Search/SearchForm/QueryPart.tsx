@@ -77,7 +77,7 @@ export const QueryPart: React.FC<{
 						})}
 						py="7"
 						position="relative"
-						whiteSpace="pre-wrap"
+						whiteSpace="nowrap"
 						display="inline-flex"
 					>
 						<IconSolidXCircle
