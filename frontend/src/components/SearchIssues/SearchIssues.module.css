@@ -1,0 +1,33 @@
+.select {
+	border-radius: var(--border-radius) !important;
+	height: 40px;
+	width: 100%;
+
+	:global(.ant-select-selection-search) {
+		align-items: center !important;
+		display: flex !important;
+	}
+
+	:global(.ant-select-selector) {
+		background-color: var(--color-primary-background) !important;
+		border: 1px solid var(--color-gray-300) !important;
+		border-radius: var(--border-radius) !important;
+		font-family: var(--body-font-family) !important;
+		font-size: 16px !important;
+	}
+
+	:global(.ant-select-selection-placeholder) {
+		color: var(--color-gray-500) !important;
+		left: var(--size-small);
+	}
+
+	:global(.ant-select-selector:hover),
+	:global(.ant-select-open) {
+		background: var(--color-gray-300) !important;
+
+		& .ant-select-selector {
+			background-color: var(--color-gray-300) !important;
+			border-radius: var(--border-radius) !important;
+		}
+	}
+}

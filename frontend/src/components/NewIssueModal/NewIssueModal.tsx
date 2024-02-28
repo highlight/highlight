@@ -3,7 +3,6 @@ import { Button } from '@components/Button'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import { RadioGroup } from '@components/RadioGroup/RadioGroup'
-import { SearchSelect } from '@components/Select/SearchSelect/SearchSelect'
 import {
 	useCreateErrorCommentForExistingIssueMutation,
 	useCreateErrorCommentMutation,
@@ -11,7 +10,6 @@ import {
 	useCreateIssueForSessionCommentMutation,
 	useLinkIssueForErrorCommentMutation,
 	useLinkIssueForSessionCommentMutation,
-	useSearchIssuesLazyQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
@@ -42,7 +40,7 @@ import { message } from 'antd'
 import { H } from 'highlight.run'
 import React, { useMemo, useState } from 'react'
 
-import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { SearchIssues } from '@/components/SearchIssues/SearchIssues'
 
 interface NewIssueModalProps {
 	visible: boolean
@@ -114,40 +112,11 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	})
 
 	const [mode, setMode] = React.useState('Create Issue')
-	const [query, setQuery] = useState<string>('')
 	const [linkedIssue, setLinkedIssue] = useState({
 		id: '',
 		url: '',
 		title: '',
 	})
-	const debouncedQuery = useDebouncedValue(query) || ''
-	const [searchIssues, { data, loading: loadingIssues }] =
-		useSearchIssuesLazyQuery()
-
-	React.useEffect(() => {
-		debouncedQuery &&
-			searchIssues({
-				variables: {
-					project_id: project_id!,
-					query: debouncedQuery,
-					integration_type:
-						selectedIntegration.name as IntegrationType,
-				},
-				fetchPolicy: 'no-cache',
-			})
-	}, [searchIssues, project_id, debouncedQuery, selectedIntegration])
-
-	const matchedIssues = React.useMemo(() => {
-		return (
-			data?.search_issues.map((s) => ({
-				displayValue: s.title,
-				id: s.id,
-				key: s.id,
-				value: s.issue_url,
-				label: s.title,
-			})) || []
-		)
-	}, [data])
 
 	React.useEffect(() => {
 		if (!defaultIssueTitle && !commentText) return
@@ -391,33 +360,15 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 								disabled: loading,
 							})}
 						{mode === 'Link Issue' && (
-							<Form.NamedSection
-								label="Link an issue"
-								name="issue_id"
-							>
-								<SearchSelect
-									loading={loadingIssues}
-									placeholder="Search Issues ..."
-									options={matchedIssues}
-									onSelect={(value: string) => {
-										const matchedValue = matchedIssues.find(
-											(v: { value: string }) =>
-												v.value == value,
-										)
-										if (value) {
-											setLinkedIssue({
-												id: value,
-												url: value || '',
-												title: matchedValue
-													? matchedValue.label
-													: '',
-											})
-										}
-									}}
-									value={linkedIssue.id}
-									loadOptions={setQuery}
-								/>
-							</Form.NamedSection>
+							<SearchIssues
+								onSelect={(value: any) => {
+									if (value) {
+										setLinkedIssue(value)
+									}
+								}}
+								integration={selectedIntegration}
+								project_id={project_id!}
+							/>
 						)}
 						{mode === 'Create Issue' && (
 							<Form.Input
