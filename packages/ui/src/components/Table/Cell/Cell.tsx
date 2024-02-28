@@ -18,8 +18,8 @@ export const Cell: React.FC<Props> = ({ children, icon, ...boxProps }) => {
 			cursor={boxProps.onClick ? 'pointer' : undefined}
 			gap="6"
 			cssClass={styles.cell}
-			padding="8"
 			borderRadius="6"
+			p="8"
 			{...boxProps}
 		>
 			{icon && (
