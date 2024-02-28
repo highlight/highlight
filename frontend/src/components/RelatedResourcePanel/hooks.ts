@@ -1,55 +1,72 @@
+import { makeVar, useReactiveVar } from '@apollo/client'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useLocalStorage } from 'react-use'
 
 type RelatedResourceType = 'session' | 'error' | 'trace'
 export type RelatedResource = { type: RelatedResourceType; id: string }
 
-const RELATED_RESOURCE_PARAM = 'related_resources'
+const LOCAL_STORAGE_WIDTH = 'related-resource-panel-width'
+const RELATED_RESOURCE_PARAM = 'related_resource'
 
-export const useRelatedResources = () => {
+const localStorageWidth = localStorage.getItem(LOCAL_STORAGE_WIDTH)
+const panelWidthVar = makeVar<number>(
+	localStorageWidth ? parseInt(localStorageWidth) : 75,
+)
+
+export const useRelatedResource = () => {
 	const [searchParams, setSearchParams] = useSearchParams()
-	const [resources, setResources] = useState<RelatedResource[]>([])
+	const [resource, setResource] = useState<RelatedResource | null>(null)
+	const panelWidth = useReactiveVar(panelWidthVar)
+	const [_, setLocalStorageWidth] = useLocalStorage(
+		LOCAL_STORAGE_WIDTH,
+		panelWidth,
+	)
 
 	// Parse the URL parameters on component mount
 	useEffect(() => {
-		const resourcesParam = searchParams.get(RELATED_RESOURCE_PARAM)
-		let resources: RelatedResource[] = []
+		const resourceParam = searchParams.get(RELATED_RESOURCE_PARAM)
+		let resource: RelatedResource | null = null
 
-		if (resourcesParam) {
-			resources = resourcesParam.split(',').map((resource) => {
-				const [type, id] = resource.split(':')
+		if (resourceParam) {
+			const [type, id] = resourceParam.split(':')
 
-				return {
-					type: type as RelatedResourceType,
-					id,
-				}
-			})
+			resource = {
+				type: type as RelatedResourceType,
+				id,
+			}
 		}
 
-		setResources(resources)
+		setResource(resource)
 	}, [searchParams])
 
-	const push = (type: RelatedResourceType, id: string) => {
-		const newResources = [...resources, { type, id }]
+	const set = (type: RelatedResourceType, id: string) => {
+		const newResource = { type, id }
 		setSearchParams({
-			[RELATED_RESOURCE_PARAM]: newResources
-				.map(({ type, id }) => `${type}:${id}`)
-				.join(','),
+			...searchParams,
+			[RELATED_RESOURCE_PARAM]: `${type}:${id}`,
 		})
+		setResource(newResource)
 	}
 
-	const pop = () => {
-		const newResources = resources.slice(0, -1)
+	const remove = () => {
 		setSearchParams({
-			[RELATED_RESOURCE_PARAM]: newResources
-				.map(({ type, id }) => `${type}:${id}`)
-				.join(','),
+			...searchParams,
+			[RELATED_RESOURCE_PARAM]: undefined,
 		})
+		setResource(null)
+	}
+
+	const setPanelWidth = (width: number) => {
+		panelWidthVar(width)
+		setLocalStorageWidth(width)
 	}
 
 	return {
-		resources,
-		push,
-		pop,
+		resource,
+		set,
+		remove,
+		panelWidth,
+		setPanelWidth,
 	}
 }

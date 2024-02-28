@@ -1,10 +1,10 @@
 import { Box, Dialog } from '@highlight-run/ui/components'
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import {
 	RelatedResource,
-	useRelatedResources,
+	useRelatedResource,
 } from '@/components/RelatedResourcePanel/hooks'
 import { useGetErrorGroupQuery } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
@@ -19,39 +19,37 @@ type Props = React.PropsWithChildren & {}
 type ResourcePanelProps = { resource: RelatedResource }
 
 export const RelatedResourcePanel: React.FC<Props> = ({}) => {
-	const { resources, pop } = useRelatedResources()
+	const { resource, remove } = useRelatedResource()
 
-	useHotkeys('esc', pop, [])
+	useHotkeys('esc', remove, [])
 
-	return (
-		<>
-			{resources.map((resource) => {
-				switch (resource.type) {
-					case 'session':
-						return (
-							<SessionPanel
-								key={`${resource.type}-${resource.id}`}
-								resource={resource}
-							/>
-						)
-					case 'error':
-						return (
-							<ErrorPanel
-								key={`${resource.type}-${resource.id}`}
-								resource={resource}
-							/>
-						)
-					case 'trace':
-						return (
-							<TracePanel
-								key={`${resource.type}-${resource.id}`}
-								resource={resource}
-							/>
-						)
-				}
-			})}
-		</>
-	)
+	if (!resource) {
+		return null
+	}
+
+	switch (resource.type) {
+		case 'session':
+			return (
+				<SessionPanel
+					key={`${resource.type}-${resource.id}`}
+					resource={resource}
+				/>
+			)
+		case 'error':
+			return (
+				<ErrorPanel
+					key={`${resource.type}-${resource.id}`}
+					resource={resource}
+				/>
+			)
+		case 'trace':
+			return (
+				<TracePanel
+					key={`${resource.type}-${resource.id}`}
+					resource={resource}
+				/>
+			)
+	}
 }
 
 const TracePanel: React.FC<ResourcePanelProps> = ({ resource }) => {
@@ -75,8 +73,6 @@ const ErrorPanel: React.FC<ResourcePanelProps> = ({ resource }) => {
 			use_clickhouse: true,
 		},
 	})
-
-	console.log('::: data', data, error)
 
 	return (
 		<Panel open={true}>
@@ -104,22 +100,56 @@ const SessionPanel: React.FC<ResourcePanelProps> = ({ resource }) => {
 	)
 }
 
+const MIN_PANEL_WIDTH = 40
+
 const Panel: React.FC<React.PropsWithChildren<{ open: boolean }>> = ({
 	children,
 	open,
 }) => {
 	const dragHandleRef = useRef<HTMLDivElement>(null)
 	const [dragging, setDragging] = useState(false)
-	const [width, setWidth] = useState(75)
-	const { pop } = useRelatedResources()
+	const { remove, panelWidth, setPanelWidth } = useRelatedResource()
 	const dialogStore = Dialog.useStore({
 		open,
 		setOpen: (open) => {
 			if (!open) {
-				pop()
+				remove()
 			}
 		},
 	})
+
+	const handleMouseMove = useCallback(
+		(e: MouseEvent) => {
+			if (dragging) {
+				const newWidth =
+					((window.innerWidth - e.clientX) / window.innerWidth) * 100
+
+				setPanelWidth(
+					newWidth > MIN_PANEL_WIDTH ? newWidth : MIN_PANEL_WIDTH,
+				)
+			}
+		},
+		[dragging, setPanelWidth],
+	)
+
+	const handleMouseUp = useCallback(() => {
+		setDragging(false)
+	}, [])
+
+	useEffect(() => {
+		if (dragging) {
+			window.addEventListener('mousemove', handleMouseMove)
+			window.addEventListener('mouseup', handleMouseUp)
+		} else {
+			window.removeEventListener('mousemove', handleMouseMove)
+			window.removeEventListener('mouseup', handleMouseUp)
+		}
+
+		return () => {
+			window.removeEventListener('mousemove', handleMouseMove)
+			window.removeEventListener('mouseup', handleMouseUp)
+		}
+	}, [dragging, handleMouseMove, handleMouseUp])
 
 	return (
 		<Dialog
@@ -128,19 +158,12 @@ const Panel: React.FC<React.PropsWithChildren<{ open: boolean }>> = ({
 			autoFocusOnShow={false}
 			backdrop={<Box style={{ background: 'rgba(0, 0, 0, 0.05)' }} />}
 			className={styles.panel}
-			style={{ width: `${width}%` }}
+			style={{ width: `${panelWidth}%` }}
 		>
 			<Box
 				ref={dragHandleRef}
 				cssClass={styles.panelDragHandle}
 				onMouseDown={() => setDragging(true)}
-				onMouseUp={() => setDragging(false)}
-				onMouseLeave={() => setDragging(false)}
-				onMouseMove={(e) => {
-					if (dragging) {
-						setWidth((e.clientX / window.innerWidth) * 100)
-					}
-				}}
 			/>
 
 			{children}

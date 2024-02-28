@@ -3,12 +3,12 @@ import moment from 'moment'
 import React, { useEffect } from 'react'
 
 import { Button } from '@/components/Button'
-import { useRelatedResources } from '@/components/RelatedResourcePanel/hooks'
+import { useRelatedResource } from '@/components/RelatedResourcePanel/hooks'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import analytics from '@/util/analytics'
 
 export const TraceErrors: React.FC = () => {
-	const { push } = useRelatedResources()
+	const { set } = useRelatedResource()
 	const { errors, traceId } = useTrace()
 
 	useEffect(() => {
@@ -50,7 +50,7 @@ export const TraceErrors: React.FC = () => {
 							size="small"
 							trackingId="trace-error_see-more"
 							onClick={() => {
-								push('error', error.error_group_secure_id)
+								set('error', error.error_group_secure_id)
 							}}
 						>
 							See more

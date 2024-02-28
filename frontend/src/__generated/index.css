@@ -7439,11 +7439,12 @@ body {
   position: fixed;
 }
 .k6vtwi2 {
-  cursor: grab;
+  cursor: ew-resize;
   position: absolute;
-  left: 0;
+  left: -2px;
   top: 0;
   bottom: 0;
+  width: 4px;
 }
 ._1kp6do40 {
   width: 100%;

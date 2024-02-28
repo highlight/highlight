@@ -1,7 +1,7 @@
 import { IconSolidSparkles, Tag } from '@highlight-run/ui/components'
 
 import { useAuthContext } from '@/authentication/AuthContext'
-import { useRelatedResources } from '@/components/RelatedResourcePanel/hooks'
+import { useRelatedResource } from '@/components/RelatedResourcePanel/hooks'
 import { GetErrorInstanceQuery } from '@/graph/generated/operations'
 import analytics from '@/util/analytics'
 
@@ -10,7 +10,7 @@ type Props = {
 }
 
 export const RelatedTrace = ({ data }: Props) => {
-	const { push } = useRelatedResources()
+	const { set } = useRelatedResource()
 	const { isLoggedIn } = useAuthContext()
 	const traceId = data?.error_instance?.error_object?.trace_id
 
@@ -24,7 +24,7 @@ export const RelatedTrace = ({ data }: Props) => {
 			iconLeft={<IconSolidSparkles size={11} />}
 			onClick={() => {
 				analytics.track('error_related-trace-link_click')
-				push('trace', traceId || '')
+				set('trace', traceId || '')
 			}}
 		>
 			Related trace

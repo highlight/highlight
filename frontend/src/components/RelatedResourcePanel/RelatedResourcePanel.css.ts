@@ -6,7 +6,7 @@ export const panel = style([
 		backgroundColor: 'white',
 		display: 'flex',
 		flexDirection: 'column',
-		border: 'dividerWeak',
+		borderLeft: 'dividerWeak',
 		boxShadow: 'small',
 	}),
 	{
@@ -21,9 +21,10 @@ export const panel = style([
 ])
 
 export const panelDragHandle = style({
-	cursor: 'grab',
+	cursor: 'ew-resize',
 	position: 'absolute',
-	left: 0,
+	left: -2,
 	top: 0,
 	bottom: 0,
+	width: 4,
 })
