@@ -1,4 +1,5 @@
 import { Box, Dialog } from '@highlight-run/ui/components'
+import { useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import {
@@ -15,7 +16,7 @@ import { useIntegratedLocalStorage } from '@/util/integrated'
 import * as styles from './RelatedResourcePanel.css'
 
 type Props = React.PropsWithChildren & {}
-type ResourcePanelProps = { depth: number; resource: RelatedResource }
+type ResourcePanelProps = { resource: RelatedResource }
 
 export const RelatedResourcePanel: React.FC<Props> = ({}) => {
 	const { resources, pop } = useRelatedResources()
@@ -24,13 +25,12 @@ export const RelatedResourcePanel: React.FC<Props> = ({}) => {
 
 	return (
 		<>
-			{resources.map((resource, index) => {
+			{resources.map((resource) => {
 				switch (resource.type) {
 					case 'session':
 						return (
 							<SessionPanel
 								key={`${resource.type}-${resource.id}`}
-								depth={index}
 								resource={resource}
 							/>
 						)
@@ -38,7 +38,6 @@ export const RelatedResourcePanel: React.FC<Props> = ({}) => {
 						return (
 							<ErrorPanel
 								key={`${resource.type}-${resource.id}`}
-								depth={index}
 								resource={resource}
 							/>
 						)
@@ -46,7 +45,6 @@ export const RelatedResourcePanel: React.FC<Props> = ({}) => {
 						return (
 							<TracePanel
 								key={`${resource.type}-${resource.id}`}
-								depth={index}
 								resource={resource}
 							/>
 						)
@@ -56,11 +54,11 @@ export const RelatedResourcePanel: React.FC<Props> = ({}) => {
 	)
 }
 
-const TracePanel: React.FC<ResourcePanelProps> = ({ depth, resource }) => {
+const TracePanel: React.FC<ResourcePanelProps> = ({ resource }) => {
 	const { projectId } = useNumericProjectId()
 
 	return (
-		<Panel depth={depth} open={true}>
+		<Panel open={true}>
 			<TraceProvider projectId={projectId!} traceId={resource.id}>
 				<TracePage />
 			</TraceProvider>
@@ -68,7 +66,7 @@ const TracePanel: React.FC<ResourcePanelProps> = ({ depth, resource }) => {
 	)
 }
 
-const ErrorPanel: React.FC<ResourcePanelProps> = ({ depth, resource }) => {
+const ErrorPanel: React.FC<ResourcePanelProps> = ({ resource }) => {
 	const { projectId } = useNumericProjectId()
 	const [{ integrated }] = useIntegratedLocalStorage(projectId!, 'server')
 	const { data, loading, error } = useGetErrorGroupQuery({
@@ -81,7 +79,7 @@ const ErrorPanel: React.FC<ResourcePanelProps> = ({ depth, resource }) => {
 	console.log('::: data', data, error)
 
 	return (
-		<Panel depth={depth} open={true}>
+		<Panel open={true}>
 			<ErrorDisplay
 				errorGroup={data?.error_group}
 				integrated={integrated}
@@ -95,9 +93,9 @@ const ErrorPanel: React.FC<ResourcePanelProps> = ({ depth, resource }) => {
 	)
 }
 
-const SessionPanel: React.FC<ResourcePanelProps> = ({ depth, resource }) => {
+const SessionPanel: React.FC<ResourcePanelProps> = ({ resource }) => {
 	return (
-		<Panel depth={depth} open={true}>
+		<Panel open={true}>
 			This is the session panel!
 			<Box p="8" border="dividerWeak" my="8" borderRadius="4">
 				<pre>{JSON.stringify(resource)}</pre>
@@ -106,9 +104,13 @@ const SessionPanel: React.FC<ResourcePanelProps> = ({ depth, resource }) => {
 	)
 }
 
-const Panel: React.FC<
-	React.PropsWithChildren<{ depth: number; open: boolean }>
-> = ({ children, depth, open }) => {
+const Panel: React.FC<React.PropsWithChildren<{ open: boolean }>> = ({
+	children,
+	open,
+}) => {
+	const dragHandleRef = useRef<HTMLDivElement>(null)
+	const [dragging, setDragging] = useState(false)
+	const [width, setWidth] = useState(75)
 	const { pop } = useRelatedResources()
 	const dialogStore = Dialog.useStore({
 		open,
@@ -119,8 +121,6 @@ const Panel: React.FC<
 		},
 	})
 
-	const width = 75 * (1 - depth * 0.02) + '%'
-
 	return (
 		<Dialog
 			store={dialogStore}
@@ -128,8 +128,21 @@ const Panel: React.FC<
 			autoFocusOnShow={false}
 			backdrop={<Box style={{ background: 'rgba(0, 0, 0, 0.05)' }} />}
 			className={styles.panel}
-			style={{ width }}
+			style={{ width: `${width}%` }}
 		>
+			<Box
+				ref={dragHandleRef}
+				cssClass={styles.panelDragHandle}
+				onMouseDown={() => setDragging(true)}
+				onMouseUp={() => setDragging(false)}
+				onMouseLeave={() => setDragging(false)}
+				onMouseMove={(e) => {
+					if (dragging) {
+						setWidth((e.clientX / window.innerWidth) * 100)
+					}
+				}}
+			/>
+
 			{children}
 		</Dialog>
 	)

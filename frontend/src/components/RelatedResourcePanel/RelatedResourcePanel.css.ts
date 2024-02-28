@@ -19,3 +19,11 @@ export const panel = style([
 		position: 'fixed',
 	},
 ])
+
+export const panelDragHandle = style({
+	cursor: 'grab',
+	position: 'absolute',
+	left: 0,
+	top: 0,
+	bottom: 0,
+})

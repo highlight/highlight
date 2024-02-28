@@ -7435,6 +7435,13 @@ body {
   z-index: 30000;
   position: fixed;
 }
+.k6vtwi2 {
+  cursor: grab;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+}
 ._1kp6do40 {
   width: 100%;
 }

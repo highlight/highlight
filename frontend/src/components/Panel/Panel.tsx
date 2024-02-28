@@ -12,8 +12,8 @@ export const Panel: React.FC<Props> = ({ children, open, onClose }) => {
 	const dialogStore = Dialog.useStore({
 		open,
 		setOpen: (open) => {
-			if (!open) {
-				onclose()
+			if (!open && onClose) {
+				onClose()
 			}
 		},
 	})
