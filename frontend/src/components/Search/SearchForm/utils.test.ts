@@ -8,7 +8,7 @@ import {
 	stringifySearchQuery,
 } from './utils'
 
-const complexQueryString = `  name:"Eric Thomas" workspace:'Chilly McWilly'  project_id:9 freetext query`
+const complexQueryString = `name:"Eric Thomas" workspace:'Chilly McWilly'  project_id:9 freetext query`
 const complexQueryParams: SearchExpression[] = [
 	{
 		key: 'name',
