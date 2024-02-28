@@ -322,7 +322,7 @@ type ErrorDisplayProps = {
 	isErrorState: boolean
 	loading: boolean
 }
-export function ErrorDisplay({
+function ErrorDisplay({
 	errorGroup,
 	integrated,
 	isBlocked,
@@ -331,8 +331,7 @@ export function ErrorDisplay({
 	isErrorState,
 	loading,
 }: ErrorDisplayProps) {
-	let { error_secure_id } = useParams<Params>()
-	error_secure_id = errorGroup?.secure_id
+	const { error_secure_id } = useParams<Params>()
 
 	switch (true) {
 		case loading || isBlockedLoading:
@@ -481,7 +480,7 @@ export function useErrorPageNavigation() {
 	}
 }
 
-export function useIsBlocked({
+function useIsBlocked({
 	isPublic,
 	projectId,
 }: {
