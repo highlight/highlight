@@ -6,10 +6,10 @@ import { useLocalStorage } from 'react-use'
 type RelatedResourceType = 'session' | 'error' | 'trace'
 export type RelatedResource = { type: RelatedResourceType; id: string }
 
-const LOCAL_STORAGE_WIDTH = 'related-resource-panel-width'
+const LOCAL_STORAGE_WIDTH_KEY = 'related-resource-panel-width'
 const RELATED_RESOURCE_PARAM = 'related_resource'
 
-const localStorageWidth = localStorage.getItem(LOCAL_STORAGE_WIDTH)
+const localStorageWidth = localStorage.getItem(LOCAL_STORAGE_WIDTH_KEY)
 const panelWidthVar = makeVar<number>(
 	localStorageWidth ? parseInt(localStorageWidth) : 75,
 )
@@ -19,7 +19,7 @@ export const useRelatedResource = () => {
 	const [resource, setResource] = useState<RelatedResource | null>(null)
 	const panelWidth = useReactiveVar(panelWidthVar)
 	const [_, setLocalStorageWidth] = useLocalStorage(
-		LOCAL_STORAGE_WIDTH,
+		LOCAL_STORAGE_WIDTH_KEY,
 		panelWidth,
 	)
 
