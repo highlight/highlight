@@ -36,7 +36,7 @@ import { Box } from '@highlight-run/ui/components'
 import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/SessionFeedCard'
 import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
-import { useIntegrated } from '@util/integrated'
+import { useClientIntegration } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { usePollQuery } from '@util/search'
 import { roundFeedDate } from '@util/time'
@@ -159,7 +159,7 @@ export const SessionFeedV3 = React.memo(() => {
 		setSearchResultsCount,
 		rebaseTime,
 	} = useSearchContext()
-	const { integrated } = useIntegrated()
+	const { integrated } = useClientIntegration()
 	const { showLeftPanel } = usePlayerConfiguration()
 	const { showBanner } = useGlobalContext()
 	const searchParamsChanged = useRef<Date>()

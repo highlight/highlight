@@ -6765,77 +6765,6 @@ export type GetEnhancedUserDetailsQueryResult = Apollo.QueryResult<
 	Types.GetEnhancedUserDetailsQuery,
 	Types.GetEnhancedUserDetailsQueryVariables
 >
-export const GetOnboardingStepsDocument = gql`
-	query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
-		workspace: workspace_for_project(project_id: $project_id) {
-			id
-			slack_channels
-		}
-		admins: workspace_admins_by_project_id(project_id: $project_id) {
-			admin {
-				id
-			}
-		}
-		isIntegrated(project_id: $project_id)
-		adminHasCreatedComment(admin_id: $admin_id)
-		projectHasViewedASession(project_id: $project_id) {
-			secure_id
-		}
-		admin {
-			slack_im_channel_id
-		}
-	}
-`
-
-/**
- * __useGetOnboardingStepsQuery__
- *
- * To run a query within a React component, call `useGetOnboardingStepsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetOnboardingStepsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetOnboardingStepsQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      admin_id: // value for 'admin_id'
- *   },
- * });
- */
-export function useGetOnboardingStepsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetOnboardingStepsQuery,
-		Types.GetOnboardingStepsQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetOnboardingStepsQuery,
-		Types.GetOnboardingStepsQueryVariables
-	>(GetOnboardingStepsDocument, baseOptions)
-}
-export function useGetOnboardingStepsLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetOnboardingStepsQuery,
-		Types.GetOnboardingStepsQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetOnboardingStepsQuery,
-		Types.GetOnboardingStepsQueryVariables
-	>(GetOnboardingStepsDocument, baseOptions)
-}
-export type GetOnboardingStepsQueryHookResult = ReturnType<
-	typeof useGetOnboardingStepsQuery
->
-export type GetOnboardingStepsLazyQueryHookResult = ReturnType<
-	typeof useGetOnboardingStepsLazyQuery
->
-export type GetOnboardingStepsQueryResult = Apollo.QueryResult<
-	Types.GetOnboardingStepsQuery,
-	Types.GetOnboardingStepsQueryVariables
->
 export const SendAdminWorkspaceInviteDocument = gql`
 	mutation SendAdminWorkspaceInvite(
 		$workspace_id: ID!
@@ -9984,60 +9913,6 @@ export type GetSavedSegmentsLazyQueryHookResult = ReturnType<
 export type GetSavedSegmentsQueryResult = Apollo.QueryResult<
 	Types.GetSavedSegmentsQuery,
 	Types.GetSavedSegmentsQueryVariables
->
-export const IsIntegratedDocument = gql`
-	query IsIntegrated($project_id: ID!) {
-		isIntegrated(project_id: $project_id)
-	}
-`
-
-/**
- * __useIsIntegratedQuery__
- *
- * To run a query within a React component, call `useIsIntegratedQuery` and pass it any options that fit your needs.
- * When your component renders, `useIsIntegratedQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useIsIntegratedQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *   },
- * });
- */
-export function useIsIntegratedQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.IsIntegratedQuery,
-		Types.IsIntegratedQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.IsIntegratedQuery,
-		Types.IsIntegratedQueryVariables
-	>(IsIntegratedDocument, baseOptions)
-}
-export function useIsIntegratedLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.IsIntegratedQuery,
-		Types.IsIntegratedQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.IsIntegratedQuery,
-		Types.IsIntegratedQueryVariables
-	>(IsIntegratedDocument, baseOptions)
-}
-export type IsIntegratedQueryHookResult = ReturnType<
-	typeof useIsIntegratedQuery
->
-export type IsIntegratedLazyQueryHookResult = ReturnType<
-	typeof useIsIntegratedLazyQuery
->
-export type IsIntegratedQueryResult = Apollo.QueryResult<
-	Types.IsIntegratedQuery,
-	Types.IsIntegratedQueryVariables
 >
 export const GetClientIntegrationDocument = gql`
 	query GetClientIntegration($project_id: ID!) {

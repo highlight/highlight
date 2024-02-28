@@ -2169,34 +2169,6 @@ export type GetEnhancedUserDetailsQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetOnboardingStepsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	admin_id: Types.Scalars['ID']
-}>
-
-export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'isIntegrated' | 'adminHasCreatedComment'
-> & {
-		workspace?: Types.Maybe<
-			{ __typename?: 'Workspace' } & Pick<
-				Types.Workspace,
-				'id' | 'slack_channels'
-			>
-		>
-		admins: Array<
-			{ __typename?: 'WorkspaceAdminRole' } & {
-				admin: { __typename?: 'Admin' } & Pick<Types.Admin, 'id'>
-			}
-		>
-		projectHasViewedASession?: Types.Maybe<
-			{ __typename?: 'Session' } & Pick<Types.Session, 'secure_id'>
-		>
-		admin?: Types.Maybe<
-			{ __typename?: 'Admin' } & Pick<Types.Admin, 'slack_im_channel_id'>
-		>
-	}
-
 export type SendAdminWorkspaceInviteMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	email: Types.Scalars['String']
@@ -3444,15 +3416,6 @@ export type GetSavedSegmentsQuery = { __typename?: 'Query' } & {
 		>
 	>
 }
-
-export type IsIntegratedQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type IsIntegratedQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'isIntegrated'
->
 
 export type GetClientIntegrationQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
@@ -4996,7 +4959,6 @@ export const namedOperations = {
 		GetErrorComments: 'GetErrorComments' as const,
 		GetErrorIssues: 'GetErrorIssues' as const,
 		GetEnhancedUserDetails: 'GetEnhancedUserDetails' as const,
-		GetOnboardingSteps: 'GetOnboardingSteps' as const,
 		GetSessionIntervals: 'GetSessionIntervals' as const,
 		GetTimelineIndicatorEvents: 'GetTimelineIndicatorEvents' as const,
 		GetWebSocketEvents: 'GetWebSocketEvents' as const,
@@ -5043,7 +5005,6 @@ export const namedOperations = {
 		GetSegments: 'GetSegments' as const,
 		GetErrorSegments: 'GetErrorSegments' as const,
 		GetSavedSegments: 'GetSavedSegments' as const,
-		IsIntegrated: 'IsIntegrated' as const,
 		GetClientIntegration: 'GetClientIntegration' as const,
 		GetServerIntegration: 'GetServerIntegration' as const,
 		GetLogsIntegration: 'GetLogsIntegration' as const,
