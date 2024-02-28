@@ -2549,7 +2549,7 @@ func (r *Resolver) SearchLinearIssues(accessToken string, searchTerm string) ([]
 	return lo.Map(searchIssuesResponse.Data.SearchIssues.Nodes, func(res LinearIssue, _ int) *modelInputs.IssuesSearchResult {
 		return &modelInputs.IssuesSearchResult{
 			ID:       res.Id,
-			Title:    res.Title,
+			Title:    fmt.Sprintf("%s - %s", res.Identifier, res.Title),
 			IssueURL: res.Identifier,
 		}
 	}), nil
@@ -3027,7 +3027,7 @@ func (r *Resolver) SearchGitHubIssues(
 	return lo.Map(issues, func(t *github2.Issue, i int) *modelInputs.IssuesSearchResult {
 		return &modelInputs.IssuesSearchResult{
 			ID:       strconv.FormatInt(t.GetID(), 10),
-			Title:    t.GetTitle(),
+			Title:    fmt.Sprintf("#%d %s", t.GetNumber(), t.GetTitle()),
 			IssueURL: t.GetHTMLURL(),
 		}
 	}), nil

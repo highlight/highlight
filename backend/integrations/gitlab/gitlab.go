@@ -297,7 +297,7 @@ func SearchGitlabIssues(accessToken string, query string) ([]*modelInputs.Issues
 	return lo.Map(res, func(res GitlabIssue, _ int) *modelInputs.IssuesSearchResult {
 		return &modelInputs.IssuesSearchResult{
 			ID:       fmt.Sprint(res.ID),
-			Title:    res.Title,
+			Title:    fmt.Sprintf("#%d - %s", res.IID, res.Title),
 			IssueURL: res.WebURL,
 		}
 	}), nil

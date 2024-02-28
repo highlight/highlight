@@ -284,9 +284,10 @@ func makeQueryParams(query string) string {
 
 func SearchTask(accessToken string, query string) ([]*model.IssuesSearchResult, error) {
 	type HeightTask struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-		ID   string `json:"id"`
+		Name  string `json:"name"`
+		URL   string `json:"url"`
+		ID    string `json:"id"`
+		Index int    `json:"index"`
 	}
 
 	type HeightTaskSearchResponse struct {
@@ -294,7 +295,6 @@ func SearchTask(accessToken string, query string) ([]*model.IssuesSearchResult, 
 	}
 
 	url := fmt.Sprintf("/tasks?%s", makeQueryParams(query))
-	fmt.Println("URL", url)
 	results, err := doGetRequest[HeightTaskSearchResponse](accessToken, url)
 
 	if err != nil {
@@ -304,7 +304,7 @@ func SearchTask(accessToken string, query string) ([]*model.IssuesSearchResult, 
 	return lo.Map(results.List, func(res HeightTask, _ int) *model.IssuesSearchResult {
 		return &model.IssuesSearchResult{
 			ID:       res.ID,
-			Title:    res.Name,
+			Title:    fmt.Sprintf("#%d - %s", res.Index, res.Name),
 			IssueURL: res.URL,
 		}
 	}), nil
