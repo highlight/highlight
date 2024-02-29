@@ -85,6 +85,11 @@ func (bot *MicrosoftTeamsBot) SendMessageWithAdaptiveCard(channelId string, rawT
 }
 
 func SendLogAlertsWelcomeMessage(ctx context.Context, alert *model.LogAlert, input *WelcomeMessageData) error {
+	// Return if workspace is not integrated with Teams
+	if input.Workspace.MicrosoftTeamsTenantId == nil {
+		return nil
+	}
+
 	bot, err := NewMicrosoftTeamsBot(*input.Workspace.MicrosoftTeamsTenantId)
 	if err != nil {
 		return errors.New("microsoft teams bot installation not complete")
