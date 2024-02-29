@@ -255,8 +255,8 @@ export const TracesList: React.FC<Props> = ({
 					// Subtract height of search filters + table header + charts
 					height:
 						numMoreTraces && numMoreTraces > 0
-							? `calc(100% - 191px)`
-							: `calc(100% - 163px)`,
+							? `calc(100% - 202px)`
+							: `calc(100% - 174px)`,
 				}}
 			>
 				{paddingTop > 0 && <Box style={{ height: paddingTop }} />}

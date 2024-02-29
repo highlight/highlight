@@ -9,7 +9,7 @@ export const RechartTooltip = ({
 	render,
 	hideZeroValues,
 }: {
-	render?: (payload: any[]) => React.ReactNode
+	render?: (payload: any[], label?: string) => React.ReactNode
 	active?: boolean
 	payload?: any[]
 	label?: string
@@ -22,7 +22,7 @@ export const RechartTooltip = ({
 		return (
 			<div className={styles.tooltip}>
 				{render ? (
-					render(payload)
+					render(payload, label)
 				) : (
 					<>
 						<h4>{label}</h4>

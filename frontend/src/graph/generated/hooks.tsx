@@ -15093,6 +15093,8 @@ export const GetTracesMetricsDocument = gql`
 		) {
 			buckets {
 				bucket_id
+				bucket_max
+				bucket_min
 				group
 				metric_type
 				metric_value

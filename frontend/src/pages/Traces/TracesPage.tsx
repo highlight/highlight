@@ -37,7 +37,7 @@ import {
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
-import { LatencyChart } from '@/pages/Traces/LatencyChart'
+import { LatencyChart, MetricBucket } from '@/pages/Traces/LatencyChart'
 import { TracesList } from '@/pages/Traces/TracesList'
 import { useGetTraces } from '@/pages/Traces/useGetTraces'
 import analytics from '@/util/analytics'
@@ -65,6 +65,14 @@ export const TracesPage: React.FC = () => {
 	})
 	const minDate = presetStartDate(DEFAULT_TIME_PRESETS[5])
 	const timeMode: TIME_MODE = 'fixed-range' // TODO: Support permalink mode
+
+	const timeFormat = useMemo(() => {
+		if (startDate.getDate() === endDate.getDate()) {
+			return 'h:mm a'
+		}
+
+		return 'MMM D h:mm a'
+	}, [startDate, endDate])
 
 	const {
 		traceEdges,
@@ -139,16 +147,23 @@ export const TracesPage: React.FC = () => {
 		(b) => b.metric_value ?? 0,
 	)
 
-	const metricsBuckets: {
-		avg: number | undefined
-		p50: number | undefined
-		p90: number | undefined
-	}[] = []
+	const metricsBuckets: MetricBucket[] = []
 	for (let i = 0; i < metricsData?.traces_metrics.bucket_count; i++) {
-		metricsBuckets.push({ avg: undefined, p50: undefined, p90: undefined })
+		metricsBuckets.push({
+			label: undefined,
+			avg: undefined,
+			p50: undefined,
+			p90: undefined,
+		})
 	}
 
 	metricsData?.traces_metrics.buckets.forEach((b) => {
+		const labelNumber = Math.round(
+			((b.bucket_max + b.bucket_min) * 1000) / 2,
+		)
+		metricsBuckets[b.bucket_id].label =
+			moment(labelNumber).format(timeFormat)
+
 		if (b.metric_value === undefined || b.metric_value === null) {
 			return
 		}
@@ -218,10 +233,10 @@ export const TracesPage: React.FC = () => {
 						display="flex"
 						borderBottom="dividerWeak"
 						justifyContent="space-between"
-						style={{ height: 85 }}
+						style={{ height: 105 }}
 					>
 						<Box
-							width="full"
+							style={{ width: '50%' }}
 							borderRight="dividerWeak"
 							position="relative"
 						>
@@ -282,7 +297,7 @@ export const TracesPage: React.FC = () => {
 							/>
 						</Box>
 						<Box
-							width="full"
+							style={{ width: '50%' }}
 							px="10"
 							py="4"
 							cssClass={styles.chart}

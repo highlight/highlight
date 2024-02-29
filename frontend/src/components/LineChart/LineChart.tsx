@@ -1,6 +1,7 @@
 import Button from '@components/Button/Button/Button'
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip'
 import { Slider } from '@components/Slider/Slider'
+import { Box, Text } from '@highlight-run/ui/components'
 import SvgCheckCircleIcon from '@icons/CheckCircleIcon'
 import SvgShieldWarningIcon from '@icons/ShieldWarningIcon'
 import SvgSkullIcon from '@icons/SkullIcon'
@@ -270,6 +271,7 @@ const LineChart = ({
 }
 
 export const CustomTooltip = ({
+	label,
 	yAxisLabel,
 	referenceLines,
 	precision,
@@ -277,6 +279,7 @@ export const CustomTooltip = ({
 	payload,
 	hideZeroValues,
 }: {
+	label?: string
 	yAxisLabel: string
 	referenceLines?: Reference[]
 	precision: number
@@ -299,6 +302,11 @@ export const CustomTooltip = ({
 					styles.text,
 				)}
 			>
+				{label && (
+					<Box display="flex" pt="2" pb="4" alignSelf="flex-start">
+						<Text weight="bold">{label}</Text>
+					</Box>
+				)}
 				{filteredPayloads[0].payload.date && (
 					<div className="mb-4 flex w-full flex-row items-center justify-around gap-x-4">
 						{moment(filteredPayloads[0].payload.date).format(

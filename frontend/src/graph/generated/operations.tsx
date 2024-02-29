@@ -5106,7 +5106,12 @@ export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
 			buckets: Array<
 				{ __typename?: 'MetricBucket' } & Pick<
 					Types.MetricBucket,
-					'bucket_id' | 'group' | 'metric_type' | 'metric_value'
+					| 'bucket_id'
+					| 'bucket_max'
+					| 'bucket_min'
+					| 'group'
+					| 'metric_type'
+					| 'metric_value'
 				>
 			>
 		}
