@@ -534,44 +534,6 @@ func (r *Client) SetCustomerBillingWarning(ctx context.Context, stripeCustomerID
 	return set(ctx, r, fmt.Sprintf("billing-warning-%s", stripeCustomerID), value.Format(time.RFC3339Nano), 30*24*time.Hour)
 }
 
-func (r *Client) GetLastLogTimestamp(ctx context.Context, projectId int) (time.Time, error) {
-	str, err := r.getString(ctx, LastLogTimestampKey(projectId))
-	if err != nil {
-		return time.Time{}, err
-	}
-	// If no key set, return default values
-	if str == "" {
-		return time.Time{}, nil
-	}
-	return time.Parse(time.RFC3339, str)
-}
-
-func (r *Client) SetLastLogTimestamp(ctx context.Context, projectId int, timestamp time.Time) error {
-	str := timestamp.Format(time.RFC3339)
-
-	var setIfGreater = redis.NewScript(`
-		local key = KEYS[1]
-		local newTs = ARGV[1]
-
-		local prevTs = redis.call("GET", key) or ""
-
-		if newTs > prevTs then
-			redis.call("SET", key, newTs)
-		end
-
-		return
-	`)
-
-	keys := []string{LastLogTimestampKey(projectId)}
-	values := []interface{}{str}
-	cmd := setIfGreater.Run(ctx, r.Client, keys, values...)
-
-	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
-		return errors.Wrap(err, "error setting last log timestamp")
-	}
-	return nil
-}
-
 func (r *Client) SetHubspotCompanies(ctx context.Context, companies interface{}) error {
 	span, _ := util.StartSpanFromContext(ctx, "redis.cache.SetHubspotCompanies")
 	defer span.Finish()

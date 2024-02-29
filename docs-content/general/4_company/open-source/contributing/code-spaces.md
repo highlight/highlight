@@ -17,5 +17,5 @@ updatedAt: 2023-01-24T02:07:22.000Z
 # from highlight/
 cd docker
 ./run.sh
-# View `https://localhost:3000`
+# View `http://localhost:3000`
 ```

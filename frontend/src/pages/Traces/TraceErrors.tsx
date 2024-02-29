@@ -1,12 +1,17 @@
 import { Box, Callout, Text } from '@highlight-run/ui/components'
 import moment from 'moment'
-import React from 'react'
+import React, { useEffect } from 'react'
 
 import { LinkButton } from '@/components/LinkButton'
 import { useTrace } from '@/pages/Traces/TraceProvider'
+import analytics from '@/util/analytics'
 
 export const TraceErrors: React.FC = () => {
-	const { errors } = useTrace()
+	const { errors, traceId } = useTrace()
+
+	useEffect(() => {
+		analytics.track('trace_errors_view')
+	}, [traceId])
 
 	if (!errors.length) {
 		return (

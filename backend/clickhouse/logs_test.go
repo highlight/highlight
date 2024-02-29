@@ -11,10 +11,11 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
-	"github.com/highlight-run/highlight/backend/parser"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/highlight-run/highlight/backend/parser"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 func TestMain(m *testing.M) {
@@ -1299,7 +1300,7 @@ func FuzzReadLogs(f *testing.F) {
 			DateRange: makeDateWithinRange(now),
 			Query:     userInput,
 		}, Pagination{})
-		assert.NoError(t, err)
+		assert.NoErrorf(t, err, "userInput: %s", userInput)
 	})
 }
 
@@ -1415,7 +1416,7 @@ func Test_ReadLogsWithMultipleAttributeFilters_Clickhouse(t *testing.T) {
 		row := NewLogRow(oneSecondAgo, 1,
 			WithBody(ctx, "this is a test"),
 			WithSeverityText(modelInputs.LogLevelInfo.String()),
-			WithServiceName("frontend"),
+			WithServiceName(string(modelInputs.LogSourceFrontend)),
 			WithTraceID(uuid.New().String()),
 			WithLogAttributes(map[string]string{
 				"os": "linux",
@@ -1469,7 +1470,7 @@ func Test_LogMatchesNotQuery_ClickHouse(t *testing.T) {
 		row := NewLogRow(oneSecondAgo, 1,
 			WithBody(ctx, "this is a hello world message"),
 			WithSeverityText(modelInputs.LogLevelInfo.String()),
-			WithServiceName("frontend"),
+			WithServiceName(string(modelInputs.LogSourceFrontend)),
 			WithTraceID(uuid.New().String()),
 			WithLogAttributes(map[string]string{
 				"os.type": "linux",

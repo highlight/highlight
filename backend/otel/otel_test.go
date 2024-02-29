@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -22,7 +23,8 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
-	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/model"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
@@ -55,6 +57,13 @@ func (m *MockResponseWriter) Write(bytes []byte) (int, error) {
 
 func (m *MockResponseWriter) WriteHeader(statusCode int) {}
 
+func TestMain(m *testing.M) {
+	//tracer = otel.GetTracerProvider().Tracer("test")
+
+	code := m.Run()
+	os.Exit(code)
+}
+
 func TestHandler_HandleLog(t *testing.T) {
 	w := &MockResponseWriter{}
 	r, _ := http.NewRequest("POST", "", strings.NewReader(""))
@@ -70,31 +79,45 @@ func TestHandler_HandleTrace(t *testing.T) {
 	if err != nil {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
+	w := model.Workspace{Model: model.Model{ID: 1}}
+	if err := db.Create(&w).Error; err != nil {
+		t.Fatal(e.Wrap(err, "error inserting workspace"))
+	}
+
+	p := model.Project{Model: model.Model{ID: 1}, WorkspaceID: w.ID}
+	if err := db.Create(&p).Error; err != nil {
+		t.Fatal(e.Wrap(err, "error inserting project"))
+	}
+
+	chClient, err := clickhouse.NewClient(clickhouse.TestDatabase)
+	if err != nil {
+		testLogger.Error(e.Wrap(err, "error creating clickhouse client"))
+	}
 
 	red := redis.NewClient()
 	for file, tc := range map[string]struct {
 		expectedMessageCounts map[kafkaqueue.PayloadType]int
-		expectedLogCounts     map[model.LogSource]int
+		expectedLogCounts     map[privateModel.LogSource]int
 		expectedErrors        *int
 		expectedErrorEvent    *string
 		external              bool
 	}{
 		"./samples/traces.json": {
 			expectedMessageCounts: map[kafkaqueue.PayloadType]int{
-				kafkaqueue.PushBackendPayload: 4,   // 4 exceptions, pushed as individual messages
-				kafkaqueue.PushLogsFlattened:  15,  // 4 exceptions, 11 logs
-				kafkaqueue.PushTraces:         501, // 512 spans - 11 logs
+				kafkaqueue.PushBackendPayload:  4,   // 4 exceptions, pushed as individual messages
+				kafkaqueue.PushLogsFlattened:   15,  // 4 exceptions, 11 logs
+				kafkaqueue.PushTracesFlattened: 501, // 512 spans - 11 logs
 			},
-			expectedLogCounts: map[model.LogSource]int{
-				model.LogSourceFrontend: 1,
-				model.LogSourceBackend:  14,
+			expectedLogCounts: map[privateModel.LogSource]int{
+				privateModel.LogSourceFrontend: 1,
+				privateModel.LogSourceBackend:  14,
 			},
 		},
 		"./samples/external.json": {
 			expectedMessageCounts: map[kafkaqueue.PayloadType]int{
 				// no errors expected
-				kafkaqueue.PushLogsFlattened: 11,  // 11 logs
-				kafkaqueue.PushTraces:        501, // 512 spans - 11 logs
+				kafkaqueue.PushLogsFlattened:   11,  // 11 logs
+				kafkaqueue.PushTracesFlattened: 501, // 512 spans - 11 logs
 			},
 			external: true,
 		},
@@ -145,6 +168,8 @@ func TestHandler_HandleTrace(t *testing.T) {
 			ProducerQueue: &producer,
 			BatchedQueue:  &producer,
 			TracesQueue:   &producer,
+			DB:            db,
+			Clickhouse:    chClient,
 		}
 		h := Handler{
 			resolver: resolver,
@@ -153,7 +178,7 @@ func TestHandler_HandleTrace(t *testing.T) {
 
 		var appDirError *model2.BackendErrorObjectInput
 		numErrors := 0
-		logCountsBySource := map[model.LogSource]int{}
+		logCountsBySource := map[privateModel.LogSource]int{}
 		messageCountsByType := map[kafkaqueue.PayloadType]int{}
 		for _, message := range producer.messages {
 			messageCountsByType[message.GetType()]++

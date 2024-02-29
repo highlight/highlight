@@ -100,7 +100,7 @@ func SendErrorAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Clie
 		log.WithContext(ctx).Error(err)
 	}
 
-	frontendURL := os.Getenv("FRONTEND_URI")
+	frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
 	errorURL := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
 	errorURL = routing.AttachReferrer(ctx, errorURL, routing.Email)
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
@@ -158,7 +158,7 @@ func SendSessionAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Cl
 		log.WithContext(ctx).Error(err)
 	}
 
-	frontendURL := os.Getenv("FRONTEND_URI")
+	frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
 	alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, obj.ProjectID, obj.ID)
 
@@ -322,7 +322,7 @@ func sendSlackAlert(ctx context.Context, db *gorm.DB, obj *model.Alert, input *S
 		return nil
 	}
 
-	frontendURL := os.Getenv("FRONTEND_URI")
+	frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
 	suffix := ""
 	if input.QueryParams == nil {
 		input.QueryParams = make(map[string]string)
@@ -644,7 +644,7 @@ func GetLogAlertURL(projectId int, query string, startDate time.Time, endDate ti
 	queryStr := url.QueryEscape(query)
 	startDateStr := url.QueryEscape(startDate.Format("2006-01-02T15:04:05.000Z"))
 	endDateStr := url.QueryEscape(endDate.Format("2006-01-02T15:04:05.000Z"))
-	frontendURL := os.Getenv("FRONTEND_URI")
+	frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
 	return fmt.Sprintf("%s/%d/logs?query=%s&start_date=%s&end_date=%s", frontendURL,
 		projectId, queryStr, startDateStr, endDateStr)
 }
@@ -780,7 +780,7 @@ func SendSlackMetricMonitorAlert(ctx context.Context, obj *model.MetricMonitor, 
 		slackClient = slack.New(*input.Workspace.SlackAccessToken)
 	}
 
-	frontendURL := os.Getenv("FRONTEND_URI")
+	frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
 	alertUrl := fmt.Sprintf("%s/%d/alerts/monitor/%d", frontendURL, obj.ProjectID, obj.ID)
 
 	log.WithContext(ctx).Info("Sending Slack Alert for Metric Monitor")

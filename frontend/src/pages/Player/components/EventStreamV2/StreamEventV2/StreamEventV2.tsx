@@ -120,7 +120,7 @@ export const StreamEventV2 = function ({
 							gap="2"
 							justifyContent="space-between"
 						>
-							<Text size="xxSmall">
+							<Text size="xxSmall" color="secondaryContentText">
 								{showPlayerAbsoluteTime
 									? playerTimeToSessionAbsoluteTime({
 											sessionStartTime: start,
@@ -129,6 +129,7 @@ export const StreamEventV2 = function ({
 									: MillisToMinutesAndSeconds(timeSinceStart)}
 							</Text>
 							<IconSolidArrowCircleRight
+								className={styles.secondaryContent}
 								onClick={(e) => {
 									e.stopPropagation()
 									pause(timeSinceStart)

@@ -95,6 +95,19 @@ type ConfigOverride struct {
 	MinBytes         *int
 	MaxWait          *time.Duration
 	MessageSizeBytes *int64
+	OnAssignGroups   func()
+}
+
+func getLogger(mode, topic string, level log.Level) kafka.LoggerFunc {
+	lg := log.WithFields(log.Fields{
+		"code.module": "kafkaqueue",
+		"mode":        mode,
+		"topic":       topic,
+	})
+	if level == log.ErrorLevel {
+		return lg.Errorf
+	}
+	return lg.Debugf
 }
 
 func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
@@ -173,23 +186,14 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Balancer:     &kafka.Hash{},
 			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
-			// synchronous mode so that we can ensure messages are sent before we return
-			Async:        false,
-			BatchSize:    1,
+			Async:        true,
+			BatchSize:    1_000,
 			BatchBytes:   MaxMessageSizeBytes,
-			BatchTimeout: time.Second,
+			BatchTimeout: 5 * time.Second,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
-			Logger: kafka.LoggerFunc(log.WithFields(log.Fields{
-				"code.module": "kafkaqueue",
-				"mode":        "producer",
-				"topic":       topic,
-			}).Debugf),
-			ErrorLogger: kafka.LoggerFunc(log.WithFields(log.Fields{
-				"code.module": "kafkaqueue",
-				"mode":        "producer",
-				"topic":       topic,
-			}).Errorf),
+			Logger:       getLogger("producer", topic, log.InfoLevel),
+			ErrorLogger:  getLogger("producer", topic, log.ErrorLevel),
 		}
 
 		if configOverride != nil {
@@ -212,6 +216,14 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 	}
 	if (mode>>1)&1 == 1 {
 		rack := findRack()
+		var onAssignGroups func()
+		if configOverride != nil {
+			onAssignGroups = (*configOverride).OnAssignGroups
+		}
+		balancer := BalancerWrapper{
+			balancer:       kafka.RackAffinityGroupBalancer{Rack: rack},
+			onAssignGroups: onAssignGroups,
+		}
 		config := kafka.ReaderConfig{
 			Brokers:           brokers,
 			Dialer:            dialer,
@@ -232,18 +244,10 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval:        time.Second,
 			WatchPartitionChanges: true,
-			Logger: kafka.LoggerFunc(log.WithFields(log.Fields{
-				"code.module": "kafkaqueue",
-				"mode":        "consumer",
-				"topic":       topic,
-			}).Debugf),
-			ErrorLogger: kafka.LoggerFunc(log.WithFields(log.Fields{
-				"code.module": "kafkaqueue",
-				"mode":        "consumer",
-				"topic":       topic,
-			}).Errorf),
+			Logger:                getLogger("consumer", topic, log.InfoLevel),
+			ErrorLogger:           getLogger("consumer", topic, log.ErrorLevel),
 			GroupBalancers: []kafka.GroupBalancer{
-				kafka.RackAffinityGroupBalancer{Rack: rack},
+				&balancer,
 			},
 		}
 
@@ -474,6 +478,8 @@ func (p *Queue) deserializeMessage(compressed []byte) (RetryableMessage, error) 
 	var msg RetryableMessage
 	if msgType.Type == PushLogsFlattened {
 		msg = &LogRowMessage{}
+	} else if msgType.Type == PushTracesFlattened {
+		msg = &TraceRowMessage{}
 	} else {
 		msg = &Message{}
 	}

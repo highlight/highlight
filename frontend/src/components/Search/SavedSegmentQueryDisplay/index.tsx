@@ -13,8 +13,8 @@ type Props = {
 }
 
 export const SavedSegmentQueryDisplay: React.FC<Props> = ({ query }) => {
-	const { queryParts, tokens } = parseSearch(query)
-	const tokenGroups = buildTokenGroups(tokens, queryParts, query)
+	const { tokens } = parseSearch(query)
+	const tokenGroups = buildTokenGroups(tokens)
 
 	return (
 		<Box
@@ -42,14 +42,15 @@ export const SavedSegmentQueryDisplay: React.FC<Props> = ({ query }) => {
 						whiteSpace="nowrap"
 					>
 						{group.tokens.map((token, index) => {
-							const { text } = token
-
 							if (token.type === SearchGrammarParser.EOF) {
 								return null
 							}
 
 							return (
-								<Token key={`${text}-${index}`} text={text} />
+								<Token
+									key={`${token.text}-${index}`}
+									token={token}
+								/>
 							)
 						})}
 

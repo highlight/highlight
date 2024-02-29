@@ -7,6 +7,12 @@ updatedAt: 2023-10-03T00:00:00.000Z
 ---
 
 
+<EmbeddedVideo 
+  src="https://www.youtube.com/embed/g6mhBMMVdU0"
+  title="App Router for Next.js"
+  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+/>
+
 ## Installation
 
 ```shell
@@ -170,6 +176,8 @@ export async function register() {
 
 App Router uses [app/error.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/error) to send server-side render errors to the client. We can catch and consume those errors with a custom error page.
 
+This will captures any server-rendered error, including those generated from React Server Components, as sometimes identified with the `'use server'` directive.
+
 All SSR error will display as client errors on your Highlight dashboard.
 
 We don't call `H.init` in this example because we injected `<HighlightInit />` into the layout using `app/layout.tsx`.
@@ -212,25 +220,27 @@ export default appRouterSsrErrorHandler(
 
 ```jsx
 // app/app-router-ssr/page.tsx
+'use server'
+
 type Props = {
 	searchParams: { error?: string }
 }
 
-export default function SsrPage({ searchParams }: Props) {
-	if (typeof searchParams.error === 'string') {
-		throw new Error('SSR Error: app/app-router-ssr/page.tsx')
+export default async function SsrPage({ searchParams }: Props) {
+	if (searchParams.error) {
+		throw new Error(
+			'🎉 SSR Error with use-server: src/app-router/ssr/page.tsx',
+		)
 	}
 
 	return (
 		<div>
-			<h1>App Directory SSR: Success</h1>
+			<h1>App Router SSR with use-server: Success</h1>
 			<p>The random number is {Math.random()}</p>
 			<p>The date is {new Date().toLocaleTimeString()}</p>
 		</div>
 	)
 }
-
-export const revalidate = 30 // seconds
 ```
 
 ### Skip localhost tracking
@@ -279,6 +289,12 @@ export function CustomHighlightStart() {
 ```
 
 ## API route instrumentation
+
+<EmbeddedVideo 
+  src="https://www.youtube.com/embed/4xDCu5jSBxo"
+  title="Next.js API Endpoints"
+  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+/>
 
 Node.js 
 

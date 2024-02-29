@@ -46,6 +46,12 @@ import ZapierLogo from '@/static/integrations/zapier.png'
 import GitHubIntegrationConfig from './components/GitHubIntegration/GitHubIntegrationConfig'
 import GitHubRepoSelector from './components/GitHubIntegration/GitHubRepoSelector'
 
+export type NewIntegrationIssueMode = 'create_issue' | 'link_issue'
+export enum NewIntegrationIssueType {
+	CreateIssue = 'create_issue',
+	LinkIssue = 'link_issue',
+}
+
 export interface Integration {
 	key: string
 	name: string
@@ -86,7 +92,6 @@ export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
 	icon: MicrosoftTeamsLogo,
 	configurationPage: (opts) => <MicrosoftTeamsIntegrationConfig {...opts} />,
 	hasSettings: false,
-	onlyShowForHighlightAdmin: true,
 }
 
 export const LINEAR_INTEGRATION: IssueTrackerIntegration = {

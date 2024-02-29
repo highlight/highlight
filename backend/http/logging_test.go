@@ -5,7 +5,9 @@ import (
 	"compress/gzip"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 )
@@ -34,6 +36,13 @@ func (m *MockResponseWriter) Write(bytes []byte) (int, error) {
 
 func (m *MockResponseWriter) WriteHeader(statusCode int) {
 	m.statusCode = statusCode
+}
+
+func TestMain(m *testing.M) {
+	tracer = otel.GetTracerProvider().Tracer("test")
+
+	code := m.Run()
+	os.Exit(code)
 }
 
 func TestHandleRawLog(t *testing.T) {

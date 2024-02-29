@@ -10,7 +10,10 @@ import (
 	"strings"
 	"time"
 
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+
 	model2 "github.com/highlight-run/highlight/backend/model"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 
 	"github.com/samber/lo"
 
@@ -164,6 +167,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	var traceSpans = make(map[string][]*clickhouse.TraceRow)
 	var projectTraceMetrics = make(map[string]map[string][]*model.MetricInput)
 
+	curTime := time.Now()
+
 	spans := req.Traces().ResourceSpans()
 	for i := 0; i < spans.Len(); i++ {
 		resource := spans.At(i).Resource()
@@ -186,6 +191,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				fields, err := extractFields(ctx, extractFieldsParams{
 					resource: &resource,
 					span:     &span,
+					curTime:  curTime,
 				})
 				if err != nil {
 					lg(ctx, fields).WithError(err).Info("failed to extract fields from span")
@@ -291,7 +297,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				}
 
 				if shouldWriteTrace {
-					traceRow := clickhouse.NewTraceRow(span.StartTimestamp().AsTime(), fields.projectIDInt).
+					timestamp := graph.ClampTime(span.StartTimestamp().AsTime(), curTime)
+					traceRow := clickhouse.NewTraceRow(timestamp, fields.projectIDInt).
 						WithSecureSessionId(fields.sessionID).
 						WithTraceId(traceID).
 						WithSpanId(spanID).
@@ -414,6 +421,8 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 	var projectLogs = make(map[string][]*clickhouse.LogRow)
 
+	var curTime = time.Now()
+
 	resourceLogs := req.Logs().ResourceLogs()
 	for i := 0; i < resourceLogs.Len(); i++ {
 		resource := resourceLogs.At(i).Resource()
@@ -427,6 +436,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				fields, err := extractFields(ctx, extractFieldsParams{
 					resource:  &resource,
 					logRecord: &logRecord,
+					curTime:   curTime,
 				})
 				if err != nil {
 					lg(ctx, fields).WithError(err).Info("failed to extract fields from log")
@@ -468,38 +478,158 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (o *Handler) getQuotaExceededByProject(ctx context.Context, projectIds map[uint32]struct{}, productType model2.PricingProductType) (map[uint32]bool, error) {
+	// If it's saved in Redis that a project has exceeded / not exceeded
+	// its quota, use that value. Else, add the projectId to a list of
+	// projects to query.
+	quotaExceededByProject := map[uint32]bool{}
+	projectsToQuery := []uint32{}
+	for projectId := range projectIds {
+		exceeded, err := o.resolver.Redis.IsBillingQuotaExceeded(ctx, int(projectId), productType)
+		if err != nil {
+			log.WithContext(ctx).Error(err)
+			continue
+		}
+		if exceeded != nil {
+			quotaExceededByProject[projectId] = *exceeded
+		} else {
+			projectsToQuery = append(projectsToQuery, projectId)
+		}
+	}
+
+	// For any projects to query, get the associated workspace,
+	// check if that workspace is within the quota,
+	// and write the result to redis.
+	for _, projectId := range projectsToQuery {
+		project, err := o.resolver.Store.GetProject(ctx, int(projectId))
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
+			continue
+		}
+
+		var workspace model2.Workspace
+		if err := o.resolver.DB.WithContext(ctx).Model(&workspace).
+			Where("id = ?", project.WorkspaceID).Find(&workspace).Error; err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
+			continue
+		}
+
+		projects := []model2.Project{}
+		if err := o.resolver.DB.WithContext(ctx).Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error querying associated projects"))
+			continue
+		}
+		workspace.Projects = projects
+
+		withinBillingQuota, _ := o.resolver.IsWithinQuota(ctx, productType, &workspace, time.Now())
+		quotaExceededByProject[projectId] = !withinBillingQuota
+		if err := o.resolver.Redis.SetBillingQuotaExceeded(ctx, int(projectId), productType, !withinBillingQuota); err != nil {
+			log.WithContext(ctx).Error(err)
+			return nil, err
+		}
+	}
+
+	return quotaExceededByProject, nil
+}
+
 func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow) error {
+	projectIds := map[uint32]struct{}{}
 	for _, logRows := range projectLogs {
-		var messages []kafkaqueue.RetryableMessage
 		for _, logRow := range logRows {
-			if !o.resolver.IsLogIngested(ctx, logRow) {
+			projectIds[logRow.ProjectId] = struct{}{}
+			break
+		}
+	}
+
+	quotaExceededByProject, err := o.getQuotaExceededByProject(ctx, projectIds, model2.PricingProductTypeLogs)
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+		quotaExceededByProject = map[uint32]bool{}
+	}
+
+	var markBackendSetupProjectIds []uint32
+	var filteredRows []*clickhouse.LogRow
+	for _, logRows := range projectLogs {
+		for _, logRow := range logRows {
+			// create service record for any services found in ingested logs
+			if logRow.ServiceName != "" {
+				project, err := o.resolver.Store.GetProject(ctx, int(logRow.ProjectId))
+				if err == nil && project != nil {
+					_, err := o.resolver.Store.UpsertService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
+					if err != nil {
+						log.WithContext(ctx).Error(e.Wrap(err, "failed to create service"))
+					}
+				}
+			}
+
+			if logRow.Source == privateModel.LogSourceBackend {
+				markBackendSetupProjectIds = append(markBackendSetupProjectIds, logRow.ProjectId)
+			}
+
+			// Filter out any log rows for projects where the log quota has been exceeded
+			if quotaExceededByProject[logRow.ProjectId] {
 				continue
 			}
-			messages = append(messages, &kafkaqueue.LogRowMessage{
-				Type:   kafkaqueue.PushLogsFlattened,
-				LogRow: logRow,
-			})
+
+			filteredRows = append(filteredRows, logRow)
 		}
-		err := o.resolver.BatchedQueue.Submit(ctx, "", messages...)
+	}
+
+	for _, projectId := range markBackendSetupProjectIds {
+		err := o.resolver.MarkBackendSetupImpl(ctx, int(projectId), model2.MarkBackendSetupTypeLogs)
 		if err != nil {
-			return e.Wrap(err, "failed to submit otel project logs to public worker queue")
+			log.WithContext(ctx).WithError(err).Error("failed to mark backend logs setup")
 		}
+	}
+
+	var messages []kafkaqueue.RetryableMessage
+	for _, logRow := range filteredRows {
+		if !o.resolver.IsLogIngested(ctx, logRow) {
+			continue
+		}
+		messages = append(messages, &kafkaqueue.LogRowMessage{
+			Type:   kafkaqueue.PushLogsFlattened,
+			LogRow: logRow,
+		})
+	}
+	err = o.resolver.BatchedQueue.Submit(ctx, "", messages...)
+	if err != nil {
+		return e.Wrap(err, "failed to submit otel project logs to public worker queue")
 	}
 	return nil
 }
 
 func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*clickhouse.TraceRow) error {
+	markBackendSetupProjectIds := map[uint32]struct{}{}
+	projectIds := map[uint32]struct{}{}
+	for _, traceRows := range traceRows {
+		for _, traceRow := range traceRows {
+			// Don't mark backend setup for frontend or internal traces
+			if value := traceRow.TraceAttributes["highlight.type"]; value != "http.request" && value != "highlight.internal" {
+				markBackendSetupProjectIds[traceRow.ProjectId] = struct{}{}
+			}
+			projectIds[traceRow.ProjectId] = struct{}{}
+		}
+	}
+
+	quotaExceededByProject, err := o.getQuotaExceededByProject(ctx, projectIds, model2.PricingProductTypeTraces)
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+		quotaExceededByProject = map[uint32]bool{}
+	}
+
 	for traceID, traceRows := range traceRows {
 		var messages []kafkaqueue.RetryableMessage
 		for _, traceRow := range traceRows {
+			if quotaExceededByProject[traceRow.ProjectId] {
+				continue
+			}
 			if !o.resolver.IsTraceIngested(ctx, traceRow) {
 				continue
 			}
-			messages = append(messages, &kafkaqueue.Message{
-				Type: kafkaqueue.PushTraces,
-				PushTraces: &kafkaqueue.PushTracesArgs{
-					TraceRow: traceRow,
-				},
+			messages = append(messages, &kafkaqueue.TraceRowMessage{
+				Type:     kafkaqueue.PushTracesFlattened,
+				TraceRow: traceRow,
 			})
 		}
 
@@ -509,11 +639,19 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 		}
 	}
 
+	for projectId := range markBackendSetupProjectIds {
+		err := o.resolver.MarkBackendSetupImpl(ctx, int(projectId), model2.MarkBackendSetupTypeTraces)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to mark backend traces setup")
+		}
+	}
+
 	return nil
 }
 
 func (o *Handler) Listen(r *chi.Mux) {
 	r.Route("/otel/v1", func(r chi.Router) {
+		r.Use(highlightChi.Middleware)
 		r.HandleFunc("/traces", o.HandleTrace)
 		r.HandleFunc("/logs", o.HandleLog)
 	})

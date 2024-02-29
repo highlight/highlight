@@ -10,6 +10,7 @@ export const searchIcon = style({
 	position: 'absolute',
 	top: 13,
 	left: 14,
+	color: vars.theme.interactive.fill.secondary.content.text,
 })
 
 const WORD_SPACING = 4
@@ -48,10 +49,6 @@ export const comboboxNotEmpty = style({
 	WebkitTextFillColor: 'transparent',
 })
 
-export const whitspaceTag = style({
-	letterSpacing: WORD_SPACING,
-})
-
 export const comboboxTagsContainer = style([
 	typographyStyles.family.body,
 	typographyStyles.size.small,
@@ -76,6 +73,22 @@ export const comboboxTag = style({
 	textOverflow: 'ellipsis',
 	whiteSpace: 'pre',
 	wordSpacing: WORD_SPACING,
+})
+
+export const token = style({
+	// Ensures that the token fits inside the container and doesn't render on top
+	// of the border when there is an error.
+	height: 18,
+	marginTop: 1,
+})
+
+export const whitspaceToken = style({
+	letterSpacing: WORD_SPACING,
+	wordSpacing: 0,
+})
+
+export const errorToken = style({
+	backgroundColor: 'rgba(255, 9, 87, 0.1)',
 })
 
 export const comboboxTagBackground = style({
@@ -166,8 +179,8 @@ export const comboboxItem = style({
 	alignItems: 'center',
 	justifyContent: 'space-between',
 	flexDirection: 'row',
-	height: 30,
 	padding: '0 10px',
+	minHeight: 30,
 	selectors: {
 		'&:hover': {
 			backgroundColor: vars.theme.interactive.fill.secondary.hover,

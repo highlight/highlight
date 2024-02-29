@@ -1,5 +1,6 @@
 import { buttonStyles } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
+import { style } from '@vanilla-extract/css'
 import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
 
 export const variants = recipe({
@@ -34,6 +35,10 @@ export const variants = recipe({
 	defaultVariants: {
 		current: false,
 	},
+})
+
+export const secondaryContent = style({
+	color: vars.theme.interactive.fill.secondary.content.text,
 })
 
 export type Variants = RecipeVariants<typeof variants>

@@ -3,8 +3,8 @@ import { QuickStartStep } from '../QuickstartContent'
 export const dependencies: QuickStartStep = {
 	title: 'Prerequisites',
 	content:
-		'Before we get started, you should install [Go](https://go.dev/) (1.20), [Node.js](https://nodejs.org/en) (18), and [yarn](https://yarnpkg.com/getting-started/install) (v3+). ' +
-		'You should have the latest version of [Docker](https://docs.docker.com/engine/install/) (19.03.0+) ' +
+		'Before we get started, you should install [Go](https://go.dev/) (1.21), [Node.js](https://nodejs.org/en) (18+), and [yarn](https://yarnpkg.com/getting-started/install) (1+). ' +
+		'You should have the latest version of [Docker](https://docs.docker.com/engine/install/) (25.0+) with the [docker compose plugin](https://docs.docker.com/compose/install/linux/) (2.24+) ' +
 		'and [Git](https://git-scm.com/downloads) (2.13+) installed. ' +
 		'We suggest [configuring docker](https://docs.docker.com/desktop/settings/mac/#resources) ' +
 		'to use at least 8GB of RAM, 4 CPUs, and 64 GB of disk space.',
@@ -13,7 +13,7 @@ export const dependencies: QuickStartStep = {
 			language: 'bash',
 			copy: 'go version',
 			text: `$ go version
-go version go1.20.3 darwin/arm64`,
+go version go1.21.6 linux/arm64`,
 		},
 		{
 			language: 'bash',
@@ -25,19 +25,19 @@ v18.15.0`,
 			language: 'bash',
 			copy: 'yarn --version',
 			text: `$ yarn --version
-v3.5.0`,
+4.0.2`,
 		},
 		{
 			language: 'bash',
 			copy: 'docker --version',
 			text: `$ docker --version
-Docker version 20.10.23, build 7155243`,
+Docker version 25.0.3, build 4debf41`,
 		},
 		{
 			language: 'bash',
 			copy: 'docker compose version',
 			text: `$ docker compose version
-Docker Compose version v2.15.1`,
+Docker Compose version v2.24.5`,
 		},
 	],
 }
@@ -69,8 +69,7 @@ export const start: QuickStartStep = {
 
 export const dashboard: QuickStartStep = {
 	title: 'Visit the dashboard.',
-	content:
-		'Visit https://localhost:3000 to view the dashboard and go through the login flow; use the password set in docker/.env variable `ADMIN_PASSWORD` with any valid email address.',
+	content: `Visit your REACT_APP_FRONTEND_URI to view the dashboard and go through the login flow; use the password set in docker/.env variable \`ADMIN_PASSWORD\` with any valid email address.`,
 }
 
 export const troubleshoot: QuickStartStep = {

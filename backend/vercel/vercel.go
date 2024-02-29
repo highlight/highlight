@@ -15,6 +15,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/trace"
 
 	model2 "github.com/highlight-run/highlight/backend/model"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
@@ -45,7 +46,7 @@ type VercelAccessTokenResponse struct {
 func GetAccessToken(code string) (VercelAccessTokenResponse, error) {
 	client := &http.Client{}
 
-	redirectUri := os.Getenv("FRONTEND_URI") + "/callback/vercel"
+	redirectUri := os.Getenv("REACT_APP_FRONTEND_URI") + "/callback/vercel"
 
 	data := url.Values{}
 	data.Set("code", code)
@@ -386,12 +387,15 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	hlog.SubmitVercelLogs(r.Context(), projectID, logs)
+	hlog.SubmitVercelLogs(r.Context(), tracer, projectID, logs)
 
 	w.WriteHeader(http.StatusOK)
 }
 
-func Listen(r *chi.Mux) {
+var tracer trace.Tracer
+
+func Listen(r *chi.Mux, t trace.Tracer) {
+	tracer = t
 	r.Route("/vercel/v1", func(r chi.Router) {
 		r.Use(highlightChi.Middleware)
 		r.HandleFunc("/logs", HandleLog)

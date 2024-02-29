@@ -8,12 +8,17 @@ import (
 )
 
 var (
-	environment   = os.Getenv("ENVIRONMENT")
-	OnPrem        = os.Getenv("ON_PREM")
-	DopplerConfig = os.Getenv("DOPPLER_CONFIG")
-	InDocker      = os.Getenv("IN_DOCKER")
-	InDockerGo    = os.Getenv("IN_DOCKER_GO")
-	Version       = os.Getenv("REACT_APP_COMMIT_SHA")
+	environment     = os.Getenv("ENVIRONMENT")
+	OnPrem          = os.Getenv("ON_PREM")
+	DopplerConfig   = os.Getenv("DOPPLER_CONFIG")
+	InDocker        = os.Getenv("IN_DOCKER")
+	InDockerGo      = os.Getenv("IN_DOCKER_GO")
+	Version         = os.Getenv("REACT_APP_COMMIT_SHA")
+	FrontendUri     = os.Getenv("REACT_APP_FRONTEND_URI")
+	PrivateGraphUri = os.Getenv("REACT_APP_PRIVATE_GRAPH_URI")
+	PublicGraphUri  = os.Getenv("REACT_APP_PUBLIC_GRAPH_URI")
+	LicenseKey      = os.Getenv("LICENSE_KEY")
+	SSL             = os.Getenv("SSL")
 )
 
 func IsDevEnv() bool {
@@ -46,6 +51,10 @@ func IsBackendInDocker() bool {
 
 func IsProduction() bool {
 	return strings.HasPrefix(DopplerConfig, "prod")
+}
+
+func UseSSL() bool {
+	return SSL != "false"
 }
 
 func EnvironmentName() string {

@@ -59,6 +59,7 @@ import { Search } from '@/components/Search/SearchForm/SearchForm'
 import { namedOperations } from '@/graph/generated/operations'
 import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
+import analytics from '@/util/analytics'
 
 import * as styles from './styles.css'
 
@@ -177,6 +178,10 @@ export const LogAlertPage = () => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data, loading])
+
+	useEffect(() => {
+		analytics.page('Log Alert', { isCreate })
+	}, [isCreate])
 
 	const [createLogAlertMutation] = useCreateLogAlertMutation({
 		refetchQueries: [

@@ -117,7 +117,13 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		},
 	})
 
-	useEffect(() => analytics.page(), [])
+	useEffect(
+		() =>
+			analytics.track('error_instance_view', {
+				error_instance_id: error_object_id,
+			}),
+		[error_object_id],
+	)
 
 	if (loading) {
 		return (
@@ -472,7 +478,7 @@ const User: React.FC<{
 									search: buildQueryURLString(searchParams),
 								})
 							}}
-							trackingId="errorInstanceAllSessionsForuser"
+							trackingId="error_all-sessions-for-user_click"
 						>
 							All sessions for this user
 						</Button>

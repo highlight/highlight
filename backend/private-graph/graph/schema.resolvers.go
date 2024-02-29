@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/PaesslerAG/jsonpath"
+	mpeTypes "github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice/types"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
@@ -1368,8 +1369,8 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 	// If there's no existing subscription, we create a checkout.
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/success"),
-		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/update-plan"),
+		SuccessURL: stripe.String(os.Getenv("REACT_APP_FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/success"),
+		CancelURL:  stripe.String(os.Getenv("REACT_APP_FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/update-plan"),
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
@@ -1408,6 +1409,17 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 		return nil, e.Wrap(err, "unable to find customer via provided code")
 	}
 
+	entitlements, err := pricing.GetEntitlements(ctx, &customer)
+	if err != nil {
+		return nil, err
+	}
+
+	log.WithContext(ctx).
+		WithField("workspaceID", workspaceID).
+		WithField("code", code).
+		WithField("entitlements", entitlements).
+		Info("aws mp request entitlements")
+
 	// create customer record with the current frontend workspace context
 	if err := r.DB.WithContext(ctx).
 		Where(&model.AWSMarketplaceCustomer{WorkspaceID: workspaceID}).
@@ -1425,6 +1437,49 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 			CustomerIdentifier:   customer.CustomerIdentifier,
 			CustomerAWSAccountID: customer.CustomerAWSAccountId,
 			ProductCode:          customer.ProductCode,
+		}).Error; err != nil {
+		return nil, err
+	}
+
+	products := map[string]*int{
+		"sessions": nil,
+		"errors":   nil,
+		"logs":     nil,
+		"traces":   nil,
+	}
+	multipliers := map[string]int{
+		"sessions": 1_000,
+		"errors":   1_000,
+		"logs":     1_000_000,
+		"traces":   1_000_000,
+	}
+
+	for key := range products {
+		if v, ok := lo.Find(entitlements, func(item mpeTypes.Entitlement) bool {
+			return pointy.StringValue(item.Dimension, "") == key
+		}); ok {
+			if intVal, ok := v.Value.(*mpeTypes.EntitlementValueMemberIntegerValue); ok {
+				products[key] = pointy.Int(multipliers[key] * int(intVal.Value))
+			}
+		}
+	}
+	if err := r.DB.WithContext(ctx).
+		Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).
+		Clauses(clause.OnConflict{
+			Columns: []clause.Column{{Name: "id"}},
+			DoUpdates: clause.AssignmentColumns([]string{
+				"monthly_session_limit",
+				"monthly_errors_limit",
+				"monthly_logs_limit",
+				"monthly_traces_limit",
+			}),
+		}).
+		Model(&model.Workspace{}).
+		Updates(&model.Workspace{
+			MonthlySessionLimit: products["sessions"],
+			MonthlyErrorsLimit:  products["errors"],
+			MonthlyLogsLimit:    products["logs"],
+			MonthlyTracesLimit:  products["traces"],
 		}).Error; err != nil {
 		return nil, err
 	}
@@ -1788,6 +1843,211 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	return sessionComment, nil
 }
 
+// CreateSessionCommentWithExistingIssue is the resolver for the createSessionCommentWithExistingIssue field.
+func (r *mutationResolver) CreateSessionCommentWithExistingIssue(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, tags []*modelInputs.SessionCommentTagInput, integrations []*modelInputs.IntegrationType, issueTitle *string, issueURL string, issueID string, additionalContext *string) (*model.SessionComment, error) {
+	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
+
+	// All viewers can leave a comment, including guests
+	session, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return nil, err
+	}
+
+	var project model.Project
+	if err := r.DB.WithContext(ctx).Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	admins := r.getTaggedAdmins(taggedAdmins, isGuest)
+
+	sessionImageStr := ""
+	if sessionImage != nil {
+		sessionImageStr = *sessionImage
+	}
+
+	if sessionTimestamp >= math.MaxInt32 {
+		log.WithContext(ctx).Warnf("attempted to create session with invalid timestamp %d", sessionTimestamp)
+		sessionTimestamp = 0
+	}
+	sessionComment := &model.SessionComment{
+		Admins:          admins,
+		ProjectID:       projectID,
+		AdminId:         admin.Model.ID,
+		SessionId:       session.ID,
+		SessionSecureId: session.SecureID,
+		SessionImage:    sessionImageStr,
+		Timestamp:       sessionTimestamp,
+		Text:            text,
+		XCoordinate:     xCoordinate,
+		YCoordinate:     yCoordinate,
+	}
+	createSessionCommentSpan, _ := util.StartSpanFromContext(ctx, "db.createSessionComment",
+		util.ResourceName("resolver.createSessionComment"), util.Tag("project_id", projectID))
+	if err := r.DB.WithContext(ctx).Create(sessionComment).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session comment")
+	}
+	createSessionCommentSpan.Finish()
+
+	// Create associations between tags and comments.
+	if len(tags) > 0 {
+		// Create the tag if it's a new tag
+		newTags := []*model.SessionCommentTag{}
+		existingTags := []*model.SessionCommentTag{}
+		sessionComments := []model.SessionComment{*sessionComment}
+
+		for _, tag := range tags {
+			if tag.ID == nil {
+				newSessionCommentTag := model.SessionCommentTag{
+					ProjectID:       projectID,
+					Name:            tag.Name,
+					SessionComments: sessionComments,
+				}
+				newTags = append(newTags, &newSessionCommentTag)
+			} else {
+				newSessionCommentTag := model.SessionCommentTag{
+					ProjectID: projectID,
+					Name:      tag.Name,
+					Model: model.Model{
+						ID: *tag.ID,
+					},
+					SessionComments: sessionComments,
+				}
+				existingTags = append(existingTags, &newSessionCommentTag)
+			}
+		}
+
+		if len(newTags) > 0 {
+			if err := r.DB.WithContext(ctx).Create(&newTags).Error; err != nil {
+				log.WithContext(ctx).Error("Failed to create new session tags", err)
+			}
+		}
+
+		if len(existingTags) > 0 {
+			if err := r.DB.Save(&existingTags).Error; err != nil {
+				log.WithContext(ctx).Error("Failed to update existing session tags", err)
+			}
+		}
+	}
+
+	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
+	muteLink := fmt.Sprintf("%v?commentId=%v&ts=%v&muted=1", sessionURL, sessionComment.ID, time)
+
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
+		chunkIdx, chunkTs := r.GetSessionChunk(ctx, session.ID, sessionTimestamp)
+		log.WithContext(ctx).Infof("got chunk %d ts %d for session %d ts %d", chunkIdx, chunkTs, session.ID, sessionTimestamp)
+		format := model.SessionExportFormatPng
+		resp, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, session.ID, pointy.Int(chunkTs), pointy.Int(chunkIdx), &format)
+		if err != nil {
+			log.WithContext(ctx).Errorf("failed to render screenshot for %d %d %d %s", projectID, session.ID, sessionTimestamp, err)
+		} else {
+			sessionImageStr = base64.StdEncoding.EncodeToString(resp.Image)
+			sessionImage = &sessionImageStr
+			if err := r.DB.WithContext(ctx).Model(&model.SessionComment{}).Where(
+				&model.SessionComment{Model: model.Model{ID: sessionComment.ID}},
+			).Updates(
+				model.SessionComment{
+					SessionImage: sessionImageStr,
+				},
+			).Error; err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, fmt.Sprintf("failed to update image for comment %d", sessionComment.ID)))
+			}
+		}
+		if len(taggedAdmins) > 0 && !isGuest {
+			r.sendCommentPrimaryNotification(
+				ctx,
+				admin,
+				*admin.Name,
+				taggedAdmins,
+				workspace,
+				project.ID,
+				&sessionComment.ID,
+				nil,
+				textForEmail,
+				viewLink,
+				muteLink,
+				sessionImage,
+				"tagged",
+				"session",
+				additionalContext,
+				&Email.SessionCommentMentionsAsmId,
+			)
+		}
+		if len(taggedSlackUsers) > 0 && !isGuest {
+			r.sendCommentMentionNotification(
+				ctx,
+				admin,
+				taggedSlackUsers,
+				workspace,
+				project.ID,
+				&sessionComment.ID,
+				nil,
+				textForEmail,
+				viewLink,
+				sessionImage,
+				"tagged",
+				"session",
+				additionalContext,
+			)
+		}
+	})
+
+	for _, s := range integrations {
+		attachment := &model.ExternalAttachment{
+			IntegrationType:  *s,
+			SessionCommentID: sessionComment.ID,
+		}
+		title, _ := r.Store.BuildIssueTitleAndDescription(*issueTitle, ptr.String(""))
+
+		if *s == modelInputs.IntegrationTypeLinear &&
+			workspace.LinearAccessToken != nil &&
+			*workspace.LinearAccessToken != "" {
+			if err := r.CreateLinearAttachmentForExistingIssue(
+				ctx,
+				workspace,
+				attachment,
+				title,
+				authorName,
+				viewLink,
+				issueID,
+				issueURL,
+			); err != nil {
+				return nil, e.Wrap(err, "error creating linear issue attachment")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else {
+			if err := r.CreateIssueAttachment(ctx, attachment, title, issueURL); err != nil {
+				return nil, e.Wrap(err, fmt.Sprintf("error creating %s task attachment", *s))
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		}
+	}
+
+	taggedUsers := append(taggedAdmins, &modelInputs.SanitizedAdminInput{
+		ID:    admin.ID,
+		Name:  admin.Name,
+		Email: *admin.Email,
+	})
+	newFollowers := r.findNewFollowers(taggedUsers, taggedSlackUsers, nil, nil)
+	for _, f := range newFollowers {
+		f.SessionCommentID = sessionComment.ID
+	}
+	if len(newFollowers) > 0 {
+		if err := r.DB.WithContext(ctx).Create(&newFollowers).Error; err != nil {
+			log.WithContext(ctx).Error("Failed to create new session comment followers", err)
+		}
+	}
+
+	return sessionComment, nil
+}
+
 // CreateIssueForSessionComment is the resolver for the createIssueForSessionComment field.
 func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
 	var project model.Project
@@ -1854,6 +2114,51 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 		} else if *s == modelInputs.IntegrationTypeGitLab {
 			if err := r.CreateGitlabTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating GitLab task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		}
+	}
+
+	return sessionComment, nil
+}
+
+// LinkIssueForSessionComment is the resolver for the linkIssueForSessionComment field.
+func (r *mutationResolver) LinkIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueURL string, issueID string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
+	var project model.Project
+	if err := r.DB.WithContext(ctx).Where("id = ?", projectID).Take(&project).Error; err != nil {
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionComment := &model.SessionComment{}
+	if err := r.DB.WithContext(ctx).Preload("Attachments").Where(&model.SessionComment{Model: model.Model{ID: sessionCommentID}}).Find(sessionComment).Error; err != nil {
+		return nil, err
+	}
+
+	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
+
+	for _, s := range integrations {
+		attachment := &model.ExternalAttachment{
+			IntegrationType:  *s,
+			SessionCommentID: sessionComment.ID,
+		}
+
+		title, _ := r.Store.BuildIssueTitleAndDescription(*issueTitle, ptr.String(""))
+
+		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
+			if err := r.CreateLinearAttachmentForExistingIssue(ctx, workspace, attachment, sessionComment.Text, authorName, viewLink, issueID, issueURL); err != nil {
+				return nil, e.Wrap(err, "error creating linear issue attachment")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else {
+			if err := r.CreateIssueAttachment(ctx, attachment, title, issueURL); err != nil {
+				return nil, e.Wrap(err, fmt.Sprintf("error creating %s issue attachment", *s))
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
@@ -2211,6 +2516,140 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	return errorComment, nil
 }
 
+// CreateErrorCommentForExistingIssue is the resolver for the createErrorCommentForExistingIssue field.
+func (r *mutationResolver) CreateErrorCommentForExistingIssue(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueURL string, issueTitle string, issueID string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
+	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
+
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
+	if err != nil {
+		return nil, err
+	}
+
+	var project model.Project
+	if err := r.DB.WithContext(ctx).Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	admins := []model.Admin{}
+	for _, a := range taggedAdmins {
+		admins = append(admins,
+			model.Admin{
+				Model: model.Model{ID: a.ID},
+			},
+		)
+	}
+
+	errorComment := &model.ErrorComment{
+		Admins:        admins,
+		ProjectID:     projectID,
+		AdminId:       admin.Model.ID,
+		ErrorId:       errorGroup.ID,
+		ErrorSecureId: errorGroup.SecureID,
+		Text:          text,
+	}
+
+	createErrorCommentSpan, _ := util.StartSpanFromContext(ctx, "db.createErrorComment",
+		util.ResourceName("resolver.createErrorComment"), util.Tag("project_id", projectID))
+
+	if err := r.DB.WithContext(ctx).Create(errorComment).Error; err != nil {
+		return nil, e.Wrap(err, "error creating error comment")
+	}
+
+	createErrorCommentSpan.Finish()
+
+	viewLink := fmt.Sprintf("%v?commentId=%v", errorURL, errorComment.ID)
+	muteLink := fmt.Sprintf("%v?commentId=%v&muted=1", errorURL, errorComment.ID)
+
+	if len(taggedAdmins) > 0 && !isGuest {
+		r.sendCommentPrimaryNotification(
+			ctx,
+			admin,
+			authorName,
+			taggedAdmins,
+			workspace,
+			projectID,
+			nil,
+			&errorComment.ID,
+			textForEmail,
+			viewLink,
+			muteLink,
+			nil,
+			"tagged",
+			"error",
+			nil,
+			&Email.ErrorCommentMentionsAsmId,
+		)
+	}
+	if len(taggedSlackUsers) > 0 && !isGuest {
+		r.sendCommentMentionNotification(
+			ctx,
+			admin,
+			taggedSlackUsers,
+			workspace,
+			projectID,
+			nil,
+			&errorComment.ID,
+			textForEmail,
+			viewLink,
+			nil,
+			"tagged",
+			"error",
+			nil,
+		)
+	}
+
+	for _, s := range integrations {
+		attachment := &model.ExternalAttachment{
+			IntegrationType: *s,
+			ErrorCommentID:  errorComment.ID,
+		}
+
+		if *s == modelInputs.IntegrationTypeLinear {
+			if err := r.CreateLinearAttachmentForExistingIssue(
+				ctx,
+				workspace,
+				attachment,
+				errorComment.Text,
+				authorName,
+				viewLink,
+				issueID,  // supposed to be the issue ID itself - not some url - seems we need a rethink here?
+				issueURL, //supposed to be the issue identifier - looks like a readable id
+			); err != nil {
+				return nil, e.Wrap(err, "error creating linear issue attachment")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else {
+			if err := r.CreateIssueAttachment(ctx, attachment, issueTitle, issueURL); err != nil {
+				return nil, e.Wrap(err, fmt.Sprintf("error creating %s issue attachment", *s))
+			}
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		}
+	}
+
+	taggedUsers := append(taggedAdmins, &modelInputs.SanitizedAdminInput{
+		ID:    admin.ID,
+		Name:  admin.Name,
+		Email: *admin.Email,
+	})
+	newFollowers := r.findNewFollowers(taggedUsers, taggedSlackUsers, nil, nil)
+	for _, f := range newFollowers {
+		f.ErrorCommentID = errorComment.ID
+	}
+	if len(newFollowers) > 0 {
+		if err := r.DB.WithContext(ctx).Create(&newFollowers).Error; err != nil {
+			log.WithContext(ctx).Error("Failed to create new session comment followers", err)
+		}
+	}
+
+	return errorComment, nil
+}
+
 // RemoveErrorIssue is the resolver for the removeErrorIssue field.
 func (r *mutationResolver) RemoveErrorIssue(ctx context.Context, errorIssueID int) (*bool, error) {
 	var errorCommentID int
@@ -2376,6 +2815,64 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 		} else if *s == modelInputs.IntegrationTypeGitLab {
 			if err := r.CreateGitlabTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating GitLab task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		}
+	}
+
+	return errorComment, nil
+}
+
+// LinkIssueForErrorComment is the resolver for the linkIssueForErrorComment field.
+func (r *mutationResolver) LinkIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueURL string, issueID string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
+	var project model.Project
+	if err := r.DB.WithContext(ctx).Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	errorComment := &model.ErrorComment{}
+	if err := r.DB.WithContext(ctx).Preload("Attachments").Where(&model.ErrorComment{Model: model.Model{ID: errorCommentID}}).Find(errorComment).Error; err != nil {
+		return nil, err
+	}
+
+	viewLink := fmt.Sprintf("%v", errorURL)
+
+	if issueDescription == nil {
+		return nil, e.New("issue description cannot be nil")
+	}
+
+	title, _ := r.Store.BuildIssueTitleAndDescription(*issueTitle, ptr.String(""))
+
+	for _, s := range integrations {
+		attachment := &model.ExternalAttachment{
+			IntegrationType: *s,
+			ErrorCommentID:  errorComment.ID,
+		}
+
+		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
+			if err := r.CreateLinearAttachmentForExistingIssue(
+				ctx,
+				workspace,
+				attachment,
+				errorComment.Text,
+				authorName,
+				viewLink,
+				issueID,
+				issueURL,
+			); err != nil {
+				return nil, e.Wrap(err, "error creating linear issue attachment")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else {
+			if err := r.CreateIssueAttachment(ctx, attachment, title, issueURL); err != nil {
+				return nil, e.Wrap(err, fmt.Sprintf("error creating %s task attachment", *s))
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
@@ -3620,7 +4117,7 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 			queryParams := url.Values{
 				"autoinvite_email": {*admin.Email},
 			}
-			inviteLink := fmt.Sprintf("%s/w/%d/team?%s", os.Getenv("FRONTEND_URI"), workspace.ID, queryParams.Encode())
+			inviteLink := fmt.Sprintf("%s/w/%d/team?%s", os.Getenv("REACT_APP_FRONTEND_URI"), workspace.ID, queryParams.Encode())
 			if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
 				*a.Name, *a.Email, inviteLink); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send request access email"))
@@ -5136,40 +5633,6 @@ func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectI
 	return r.WorkspaceAdmins(ctx, workspace.ID)
 }
 
-// IsIntegrated is the resolver for the isIntegrated field.
-func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, nil
-	}
-
-	firstSession := model.Session{}
-	err := r.DB.WithContext(ctx).Model(&model.Session{}).Where("project_id = ?", projectID).Take(&firstSession).Error
-	if e.Is(err, gorm.ErrRecordNotFound) {
-		return &model.F, nil
-	}
-	if err != nil {
-		return nil, e.Wrap(err, "error querying session for project")
-	}
-
-	return &model.T, nil
-}
-
-// IsBackendIntegrated is the resolver for the isBackendIntegrated field.
-func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) (*bool, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, nil
-	}
-	var count int64
-	err := r.DB.WithContext(ctx).Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&count).Error
-	if err != nil {
-		return nil, e.Wrap(err, "error getting projects with backend flag")
-	}
-	if count > 0 {
-		return &model.T, nil
-	}
-	return &model.F, nil
-}
-
 // ClientIntegration is the resolver for the clientIntegration field.
 func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
 	integration := &modelInputs.IntegrationStatus{
@@ -6184,12 +6647,14 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 	if err != nil {
 		return nil, err
 	}
+
+	var joinableWorkspaces []*model.Workspace
 	domain, err := r.getCustomVerifiedAdminEmailDomain(admin)
 	if err != nil {
-		return nil, e.Wrap(err, "error getting custom verified admin email domain")
+		// cannot join workspaces with a public email
+		return joinableWorkspaces, nil
 	}
 
-	joinableWorkspaces := []*model.Workspace{}
 	if err := r.DB.WithContext(ctx).Model(&model.Workspace{}).
 		Where(`id NOT IN (
 			SELECT workspace_id
@@ -6484,6 +6949,68 @@ func (r *queryResolver) GenerateZapierAccessToken(ctx context.Context, projectID
 	}
 
 	return token, nil
+}
+
+// SearchIssues is the resolver for the search_issues field.
+func (r *queryResolver) SearchIssues(ctx context.Context, integrationType modelInputs.IntegrationType, projectID int, query string) ([]*modelInputs.IssuesSearchResult, error) {
+	ret := []*modelInputs.IssuesSearchResult{}
+
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+
+	if err != nil {
+		return ret, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return ret, err
+	}
+
+	workspace, err = r.isAdminInWorkspace(ctx, project.WorkspaceID)
+	if err != nil {
+		return ret, e.Wrap(err, "error querying workspace")
+	}
+
+	if integrationType == modelInputs.IntegrationTypeJira {
+		results, err := r.SearchJiraIssues(ctx, workspace, query)
+		if err != nil {
+			return ret, err
+		}
+		return results, nil
+	}
+
+	if integrationType == modelInputs.IntegrationTypeHeight {
+		results, err := r.SearchHeightIssues(ctx, workspace, query)
+		if err != nil {
+			return ret, err
+		}
+		return results, nil
+	}
+
+	if integrationType == modelInputs.IntegrationTypeGitLab {
+		results, err := r.SearchGitlabIssues(ctx, workspace, query)
+		if err != nil {
+			return ret, err
+		}
+		return results, nil
+	}
+
+	if integrationType == modelInputs.IntegrationTypeLinear {
+		results, err := r.SearchLinearIssues(*workspace.LinearAccessToken, query)
+		if err != nil {
+			return ret, err
+		}
+		return results, nil
+	}
+
+	if integrationType == modelInputs.IntegrationTypeGitHub {
+		results, err := r.SearchGitHubIssues(ctx, workspace, query)
+		if err != nil {
+			return ret, err
+		}
+		return results, nil
+	}
+	return ret, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 }
 
 // IsIntegratedWith is the resolver for the is_integrated_with field.
@@ -7288,7 +7815,7 @@ func (r *queryResolver) GetSourceMapUploadUrls(ctx context.Context, apiKey strin
 
 // CustomerPortalURL is the resolver for the customer_portal_url field.
 func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) (string, error) {
-	frontendUri := os.Getenv("FRONTEND_URI")
+	frontendUri := os.Getenv("REACT_APP_FRONTEND_URI")
 
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
@@ -7797,13 +8324,13 @@ func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []strin
 }
 
 // ExistingLogsTraces is the resolver for the existing_logs_traces field.
-func (r *queryResolver) ExistingLogsTraces(ctx context.Context, projectID int, traceIds []string) ([]string, error) {
+func (r *queryResolver) ExistingLogsTraces(ctx context.Context, projectID int, traceIds []string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ExistingTraceIds(ctx, project.ID, traceIds)
+	return r.ClickhouseClient.ExistingTraceIds(ctx, project.ID, traceIds, dateRange.StartDate, dateRange.EndDate)
 }
 
 // ErrorResolutionSuggestion is the resolver for the error_resolution_suggestion field.
@@ -8111,6 +8638,38 @@ func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, para
 	}
 
 	return r.ClickhouseClient.ReadSessionsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, limit, limitAggregator, limitColumn)
+}
+
+// Metrics is the resolver for the metrics field.
+func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		return r.TracesMetrics(ctx, projectID, params, column, metricTypes, groupBy, &bucketBy, bucketCount, limit, limitAggregator, limitColumn)
+	case modelInputs.ProductTypeLogs:
+		return r.LogsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, limit, limitAggregator, limitColumn)
+	case modelInputs.ProductTypeSessions:
+		return r.SessionsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, limit, limitAggregator, limitColumn)
+	case modelInputs.ProductTypeErrors:
+		return r.ErrorsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, limit, limitAggregator, limitColumn)
+	default:
+		return nil, e.Errorf("invalid product type %s", productType)
+	}
+}
+
+// Keys is the resolver for the keys field.
+func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		return r.TracesKeys(ctx, projectID, dateRange, query, typeArg)
+	case modelInputs.ProductTypeLogs:
+		return r.LogsKeys(ctx, projectID, dateRange, query, typeArg)
+	case modelInputs.ProductTypeSessions:
+		return r.SessionsKeys(ctx, projectID, dateRange, query, typeArg)
+	case modelInputs.ProductTypeErrors:
+		return r.ErrorsKeys(ctx, projectID, dateRange, query, typeArg)
+	default:
+		return nil, e.Errorf("invalid product type %s", productType)
+	}
 }
 
 // Params is the resolver for the params field.

@@ -171,7 +171,7 @@ const IntegrationsPage = () => {
 		isGitlabIntegratedWithProject,
 	])
 
-	useEffect(() => analytics.page(), [])
+	useEffect(() => analytics.page('Integrations'), [])
 
 	return (
 		<>

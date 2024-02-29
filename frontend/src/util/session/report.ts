@@ -9,9 +9,7 @@ import {
 	Session,
 	SessionsReportRow,
 } from '@graph/schemas'
-import { DEFAULT_TIME_PRESETS } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
-import { useSearchTime } from '@hooks/useSearchTime'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import moment from 'moment/moment'
 
@@ -110,16 +108,14 @@ const exportFile = async (name: string, encodedUri: string) => {
 	link.click() // This will download the data file named "my_data.csv".
 }
 
+type SessionWithUpdatedAt = Session & { payload_updated_at: string }
+
 export const useGenerateSessionsReportCSV = () => {
 	const PAGE_SIZE = 1_000
-	const { startDate, endDate } = useSearchTime({
-		initialPreset: DEFAULT_TIME_PRESETS[5],
-		presets: DEFAULT_TIME_PRESETS,
-	})
-	const { searchQuery } = useSearchContext()
+	const { searchQuery, startDate, endDate } = useSearchContext()
 	const { projectId } = useProjectId()
 	const [getReport, { loading }] = useGetSessionsReportLazyQuery()
-	const [getSessionsClickhouse, { loading: sessionsLoading }] =
+	const [, { loading: sessionsLoading, fetchMore }] =
 		useGetSessionsClickhouseLazyQuery()
 
 	return {
@@ -143,7 +139,7 @@ export const useGenerateSessionsReportCSV = () => {
 			}
 
 			const getSessions = async (page: number) => {
-				const { data, error } = await getSessionsClickhouse({
+				const { data, error } = await fetchMore({
 					variables: {
 						query,
 						count: PAGE_SIZE,
@@ -153,7 +149,11 @@ export const useGenerateSessionsReportCSV = () => {
 					},
 				})
 				if (!data?.sessions_clickhouse) {
-					throw new Error(`No sessions data: ${error?.message}`)
+					console.error(`No sessions data: ${error?.message}`)
+					return {
+						totalCount: 0,
+						sessions: [],
+					}
 				}
 				return {
 					totalCount: data.sessions_clickhouse.totalCount ?? 0,
@@ -168,17 +168,19 @@ export const useGenerateSessionsReportCSV = () => {
 			const { sessions: s, totalCount } = await getSessions(1)
 
 			const sessions = [...s]
-			const promises: Promise<Session[]>[] = []
+			const promises: Promise<{
+				totalCount: number
+				sessions: SessionWithUpdatedAt[]
+			}>[] = []
 			for (
 				let page = 2;
 				page <= Math.ceil(totalCount / PAGE_SIZE);
 				page++
 			) {
-				promises.push(
-					(async (p) => (await getSessions(p)).sessions)(page),
-				)
+				promises.push(getSessions(page))
 			}
-			sessions.push(...(await Promise.all(promises)).flat())
+			const results = await Promise.all(promises)
+			sessions.push(...results.map((r) => r.sessions).flat())
 
 			const rows: any[][] = [
 				...getQueryRows(startDate, endDate, query, sessions),

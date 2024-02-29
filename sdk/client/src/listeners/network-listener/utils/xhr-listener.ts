@@ -276,11 +276,27 @@ export const getBodyThatShouldBeRecorded = (
 			try {
 				const json = JSON.parse(bodyData)
 
-				Object.keys(json).forEach((key) => {
-					if (bodyKeysToRedact.includes(key.toLocaleLowerCase())) {
-						json[key] = '[REDACTED]'
-					}
-				})
+				if (Array.isArray(json)) {
+					json.forEach((element) => {
+						Object.keys(element).forEach((key) => {
+							if (
+								bodyKeysToRedact.includes(
+									key.toLocaleLowerCase(),
+								)
+							) {
+								element[key] = '[REDACTED]'
+							}
+						})
+					})
+				} else {
+					Object.keys(json).forEach((key) => {
+						if (
+							bodyKeysToRedact.includes(key.toLocaleLowerCase())
+						) {
+							json[key] = '[REDACTED]'
+						}
+					})
+				}
 
 				bodyData = JSON.stringify(json)
 			} catch {}

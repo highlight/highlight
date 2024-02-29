@@ -10,11 +10,14 @@ import {
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import { Header } from '@pages/Setup/Header'
 import analytics from '@util/analytics'
+import { isOnPrem } from '@util/onPrem/onPremUtils'
 import clsx from 'clsx'
 import { QuickStartContent, quickStartContent } from 'highlight.io'
 import * as React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { useMatch } from 'react-router-dom'
+
+import { PUBLIC_GRAPH_URI } from '@/constants'
 
 import * as styles from './SetupDocs.css'
 
@@ -37,22 +40,38 @@ export const SetupDocs: React.FC<Props> = ({ projectVerboseId }) => {
 		framework!
 	] as QuickStartContent
 
+	React.useEffect(() => {
+		analytics.page('Setup Docs', {
+			area,
+			language,
+			framework,
+		})
+	}, [area, framework, language])
+
 	return (
 		<Box>
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
 				<Header title={guide.title} subtitle={guide.subtitle} />
 
 				<Stack gap="8" py="10">
-					{guide.entries.map((entry, index) => {
-						return (
-							<Section
-								title={entry.title}
-								key={index}
-								defaultOpen
-							>
-								<ReactMarkdown>{entry.content}</ReactMarkdown>
-								<Stack gap="4">
-									{entry.code?.map((codeBlock) => (
+					{guide.entries.map((entry, index) => (
+						<Section title={entry.title} key={index} defaultOpen>
+							<ReactMarkdown>{entry.content}</ReactMarkdown>
+							<Stack gap="4">
+								{entry.code?.map((codeBlock) => {
+									let text = codeBlock.text.replaceAll(
+										'<YOUR_PROJECT_ID>',
+										projectVerboseId,
+									)
+									if (isOnPrem) {
+										text = text.replace(
+											/(\s*)networkRecording/,
+											(a, b) =>
+												`${b}backendUrl: "${PUBLIC_GRAPH_URI}",` +
+												`${b}networkRecording`,
+										)
+									}
+									return (
 										<CodeBlock
 											key={codeBlock.key}
 											language={codeBlock.language}
@@ -66,18 +85,15 @@ export const SetupDocs: React.FC<Props> = ({ projectVerboseId }) => {
 													},
 												)
 											}}
-											text={codeBlock.text.replaceAll(
-												'<YOUR_PROJECT_ID>',
-												projectVerboseId,
-											)}
+											text={text}
 											className={clsx(styles.codeBlock)}
 											customStyle={{}} // removes unwanted bottom padding
 										/>
-									))}
-								</Stack>
-							</Section>
-						)
-					})}
+									)
+								})}
+							</Stack>
+						</Section>
+					))}
 				</Stack>
 			</Box>
 		</Box>

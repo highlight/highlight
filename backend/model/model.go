@@ -1904,7 +1904,7 @@ func (e *ErrorGroup) GetSlackAttachment(attachment *slack.Attachment) error {
 	errorType := e.Type
 	errorState := e.State
 
-	frontendURL := os.Getenv("FRONTEND_URI")
+	frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
 	errorURL := fmt.Sprintf("%s/%d/errors/%s", frontendURL, e.ProjectID, e.SecureID)
 
 	fields := []*slack.TextBlockObject{
@@ -1942,7 +1942,7 @@ func (s *Session) GetSlackAttachment(attachment *slack.Attachment) error {
 	sessionTotalDuration := formatDuration(time.Duration(s.Length * 10e5).Round(time.Second))
 	sessionDateStr := fmt.Sprintf("<!date^%d^{date} {time}|%s>", s.CreatedAt.Unix(), s.CreatedAt.Format(time.RFC1123))
 
-	frontendURL := os.Getenv("FRONTEND_URI")
+	frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, s.ProjectID, s.SecureID)
 	sessionImg := ""
 	userProps, err := s.GetUserProperties()
@@ -2391,7 +2391,7 @@ func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcome
 		slackClient = slack.New(*input.Workspace.SlackAccessToken)
 	}
 
-	frontendURL := os.Getenv("FRONTEND_URI")
+	frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
 	alertUrl := fmt.Sprintf("%s/%d/%s/%d", frontendURL, input.Project.Model.ID, input.URLSlug, input.ID)
 	if !input.IncludeEditLink {
 		alertUrl = ""

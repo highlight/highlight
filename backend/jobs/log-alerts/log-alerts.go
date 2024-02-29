@@ -185,7 +185,7 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Clie
 		}
 
 		logsUrl := tempalerts.GetLogAlertURL(alert.ProjectID, alert.Query, start, end)
-		frontendURL := os.Getenv("FRONTEND_URI")
+		frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
 		alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, alert.ProjectID, alert.ID)
 
 		templateData := map[string]interface{}{

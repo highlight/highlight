@@ -411,3 +411,7 @@ func (c *MockGithubClient) ListRepos(ctx context.Context) ([]*github2.Repository
 func (c *MockGithubClient) DeleteInstallation(ctx context.Context, installation string) error {
 	return nil
 }
+
+func (c *MockGithubClient) SearchIssues(ctx context.Context, rawQuery string) ([]*github2.Issue, error) {
+	return nil, nil
+}

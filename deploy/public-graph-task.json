@@ -31,7 +31,12 @@
 			],
 			"linuxParameters": null,
 			"cpu": 0,
-			"environment": [],
+			"environment": [
+				{
+					"name": "GOMEMLIMIT",
+					"value": "12GiB"
+				}
+			],
 			"resourceRequirements": null,
 			"ulimits": [
 				{ "name": "nofile", "softLimit": 65535, "hardLimit": 65535 }

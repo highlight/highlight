@@ -49,6 +49,7 @@ import { namedOperations } from '@/graph/generated/operations'
 import { useAlertsContext } from '@/pages/Alerts/AlertsContext/AlertsContext'
 import AlertNotifyForm from '@/pages/Alerts/components/AlertNotifyForm/AlertNotifyForm'
 import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
+import analytics from '@/util/analytics'
 
 import * as styles from './styles.css'
 
@@ -142,6 +143,10 @@ export const ErrorAlertPage = () => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [alert])
+
+	useEffect(() => {
+		analytics.page('Error Alert', { isCreate })
+	}, [isCreate])
 
 	const [updateErrorAlertMutation] = useUpdateErrorAlertMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],

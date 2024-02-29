@@ -12,6 +12,7 @@ interface HighlightConfigOptionsDefault {
 	serviceName: string
 	sourceMapsPath: string
 	sourceMapsBasePath: string
+	sourceMapsBackendUrl?: string
 }
 
 export interface HighlightConfigOptions {
@@ -56,6 +57,10 @@ export interface HighlightConfigOptions {
 	 * @default '_next/'
 	 */
 	sourceMapsBasePath?: string
+	/**
+	 * Optional, backend url for private graph to use for uploading (for self-hosted highlight deployments).
+	 */
+	sourceMapsBackendUrl?: string
 }
 
 const getDefaultOpts = async (
@@ -88,6 +93,7 @@ const getDefaultOpts = async (
 		serviceName: highlightOpts?.serviceName ?? '',
 		sourceMapsPath: highlightOpts?.sourceMapsPath ?? '.next/',
 		sourceMapsBasePath: highlightOpts?.sourceMapsBasePath ?? '_next/',
+		sourceMapsBackendUrl: highlightOpts?.sourceMapsBackendUrl,
 	}
 }
 
@@ -169,6 +175,7 @@ const getHighlightConfig = async (
 					defaultOpts.appVersion,
 					defaultOpts.sourceMapsPath,
 					defaultOpts.sourceMapsBasePath,
+					defaultOpts.sourceMapsBackendUrl,
 				),
 			)
 

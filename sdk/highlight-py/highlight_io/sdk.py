@@ -13,14 +13,19 @@ from opentelemetry.exporter.otlp.proto.http import Compression
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
-from opentelemetry.sdk._logs import LoggerProvider, LogRecord
+from opentelemetry.sdk._logs import (
+    LoggerProvider,
+    LogRecord,
+    LogRecordProcessor,
+    LogData,
+)
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider, Span, SpanProcessor
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.semconv.resource import ResourceAttributes
 from opentelemetry.semconv.trace import SpanAttributes
-from opentelemetry.trace import INVALID_SPAN
+from opentelemetry.trace import INVALID_SPAN, get_current_span
 
 from highlight_io.integrations import Integration
 from highlight_io.integrations.boto import BotoIntegration
@@ -146,6 +151,35 @@ class H(object):
 
                 return super().on_start(span, parent_context)
 
+        class HighlightLogRecordProcessor(LogRecordProcessor):
+            def force_flush(self, timeout_millis: int = 30000):
+                pass
+
+            def shutdown(self):
+                pass
+
+            def emit(self, log_data: LogData):
+                span: Span = get_current_span()
+                session_id, request_id = H._instance.get_highlight_context(
+                    span.context.trace_id
+                )
+                log_data.log_record.attributes |= {
+                    "highlight.project_id": log_data.log_record.attributes.get(
+                        "highlight.project_id"
+                    )
+                    or H._instance._project_id,
+                    "highlight.trace_id": log_data.log_record.attributes.get(
+                        "highlight.trace_id"
+                    )
+                    or request_id,
+                    "highlight.session_id": log_data.log_record.attributes.get(
+                        "highlight.session_id"
+                    )
+                    or session_id,
+                }
+
+                return super().emit(log_data)
+
         resource = _build_resource(
             service_name=service_name,
             service_version=service_version,
@@ -169,6 +203,7 @@ class H(object):
         self._log_provider = LoggerProvider(
             resource=resource,
         )
+        self._log_provider.add_log_record_processor(HighlightLogRecordProcessor())
         self._log_provider.add_log_record_processor(
             BatchLogRecordProcessor(
                 OTLPLogExporter(

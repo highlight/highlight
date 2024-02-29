@@ -12,7 +12,7 @@ import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 import { useLocalStorage } from 'react-use'
 import { useQueryParam } from 'use-query-params'
@@ -36,6 +36,7 @@ import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { DEFAULT_LOG_COLUMNS } from '@/pages/LogsPage/LogsTable/CustomColumns/columns'
 import { OverageCard } from '@/pages/LogsPage/OverageCard/OverageCard'
+import analytics from '@/util/analytics'
 
 const LogsPage = () => {
 	const { log_cursor } = useParams<{
@@ -142,6 +143,10 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	if (moreLogs) {
 		otherElementsHeight += LOAD_MORE_HEIGHT
 	}
+
+	useEffect(() => {
+		analytics.page('Logs')
+	}, [])
 
 	return (
 		<>

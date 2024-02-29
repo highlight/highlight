@@ -7,6 +7,7 @@ import { Link } from '@/components/Link'
 import { DEFAULT_OPERATOR } from '@/components/Search/SearchForm/utils'
 import { GetErrorInstanceQuery } from '@/graph/generated/operations'
 import { ReservedTraceKey } from '@/graph/generated/schemas'
+import analytics from '@/util/analytics'
 
 const getTraceLink = (data: GetErrorInstanceQuery | undefined): string => {
 	const errorObject = data?.error_instance?.error_object
@@ -36,7 +37,10 @@ export const RelatedTrace = ({ data }: Props) => {
 	const traceLink = getTraceLink(data)
 
 	return (
-		<Link to={traceLink}>
+		<Link
+			to={traceLink}
+			onClick={() => analytics.track('error_related-trace-link_click')}
+		>
 			<Tag
 				kind="secondary"
 				emphasis="high"

@@ -125,7 +125,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 		}
 
 		publicWorkerMessage, ok := lastMsg.(*kafka_queue.Message)
-		if !ok && lastMsg.GetType() != kafkaqueue.PushLogsFlattened {
+		if !ok && lastMsg.GetType() != kafkaqueue.PushLogsFlattened && lastMsg.GetType() != kafkaqueue.PushTracesFlattened {
 			log.WithContext(ctx).Errorf("type assertion failed for *kafka_queue.Message")
 			continue
 		}
@@ -145,6 +145,15 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 			}
 			if logRow != nil {
 				logRows = append(logRows, logRow.LogRow)
+			}
+		case kafkaqueue.PushTracesFlattened:
+			traceRow, ok := lastMsg.(*kafka_queue.TraceRowMessage)
+			if !ok {
+				log.WithContext(ctx).Errorf("type assertion failed for *kafka_queue.TraceRowMessage")
+				continue
+			}
+			if traceRow != nil {
+				traceRows = append(traceRows, traceRow.TraceRow)
 			}
 		case kafkaqueue.PushLogs:
 			logRow := publicWorkerMessage.PushLogs.LogRow
@@ -279,23 +288,10 @@ func (k *KafkaBatchWorker) getQuotaExceededByProject(ctx context.Context, projec
 }
 
 func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.LogRow) error {
-	timestampByProject := map[uint32]time.Time{}
 	projectIds := map[uint32]struct{}{}
 	for _, row := range logRows {
-		if row.Timestamp.After(timestampByProject[row.ProjectId]) {
-			timestampByProject[row.ProjectId] = row.Timestamp
-			projectIds[row.ProjectId] = struct{}{}
-		}
+		projectIds[row.ProjectId] = struct{}{}
 	}
-
-	spanTs, ctxTs := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.setTimestamps", k.Name)))
-	for projectId, timestamp := range timestampByProject {
-		err := k.Worker.Resolver.Redis.SetLastLogTimestamp(ctxTs, int(projectId), timestamp)
-		if err != nil {
-			log.WithContext(ctxTs).WithError(err).Errorf("failed to set last log timestamp for project %d", projectId)
-		}
-	}
-	spanTs.Finish()
 
 	quotaExceededByProject, err := k.getQuotaExceededByProject(ctx, projectIds, model.PricingProductTypeLogs)
 	if err != nil {

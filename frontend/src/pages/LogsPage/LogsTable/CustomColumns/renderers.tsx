@@ -52,11 +52,14 @@ const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 				navigate(`/${log.projectID}/sessions/${secureSessionID}`)
 		  }
 		: undefined
+	const paddingProps = secureSessionID
+		? { pt: '4' as const, pb: '0' as const }
+		: null
 
 	return (
-		<Table.Cell alignItems="flex-start" onClick={onClick} py="4">
-			<span>
-				{secureSessionID ? (
+		<Table.Cell alignItems="flex-start" onClick={onClick} {...paddingProps}>
+			{secureSessionID ? (
+				<span>
 					<Tag
 						kind="secondary"
 						shape="basic"
@@ -64,10 +67,10 @@ const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 					>
 						<Text lines="1">{secureSessionID}</Text>
 					</Tag>
-				) : (
-					<EmptyState />
-				)}
-			</span>
+				</span>
+			) : (
+				<EmptyState />
+			)}
 		</Table.Cell>
 	)
 }

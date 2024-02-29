@@ -10,6 +10,7 @@ import (
 
 	model "github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
@@ -74,6 +75,7 @@ type extractFieldsParams struct {
 	event     *ptrace.SpanEvent
 	scopeLogs *plog.ScopeLogs
 	logRecord *plog.LogRecord
+	curTime   time.Time
 }
 
 func extractFields(ctx context.Context, params extractFieldsParams) (*extractedFields, error) {
@@ -295,6 +297,8 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 			fields.attrs["service.external"] = "true"
 		}
 	}
+
+	fields.timestamp = graph.ClampTime(fields.timestamp, params.curTime)
 
 	return fields, err
 }

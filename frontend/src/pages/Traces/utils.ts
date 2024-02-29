@@ -27,6 +27,7 @@ export const getTraceTimes = (trace: Trace[]) => {
 
 	return {
 		startTime: startTime / 1000000, // milliseconds
+		endTime: endTime / 1000000, // milliseconds
 		duration: endTime - startTime, // nanoseconds
 	}
 }

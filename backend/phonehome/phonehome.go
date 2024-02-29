@@ -2,24 +2,31 @@ package phonehome
 
 import (
 	"context"
+	"go.opentelemetry.io/otel/trace/noop"
+	"runtime"
+	"time"
+
 	"github.com/aws/smithy-go/ptr"
+	"github.com/shirou/gopsutil/mem"
+	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/projectpath"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
-	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
-	"github.com/shirou/gopsutil/mem"
-	log "github.com/sirupsen/logrus"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
-	"runtime"
-	"time"
 )
+
+const DataEndpoint = "https://otel.highlight.io:4318"
 
 type UsageType = string
 
 const AdminUsage UsageType = "highlight-admin-usage"
 const WorkspaceUsage UsageType = "highlight-workspace-usage"
+const AboutYouSpanName = "highlight-about-you"
+const HeartbeatSpanName = "highlight-heartbeat"
 
 const BackendSetup = "highlight-backend-setup"
 const SessionCount = "highlight-session-count"
@@ -29,7 +36,6 @@ const SessionViewCount = "highlight-session-view-count"
 const ErrorViewCount = "highlight-error-view-count"
 const LogViewCount = "highlight-log-view-count"
 
-const AboutYouSpanName = "highlight-about-you"
 const AboutYouSpanAdminFirstName = "highlight-about-you-admin-first-name"
 const AboutYouSpanAdminLastName = "highlight-about-you-admin-last-name"
 const AboutYouSpanAdminEmail = "highlight-about-you-admin-email"
@@ -38,7 +44,6 @@ const AboutYouSpanRole = "highlight-about-you-role"
 const AboutYouSpanTeamSize = "highlight-about-you-team-size"
 const AboutYouSpanHeardAbout = "highlight-about-you-heard-about"
 const HeartbeatInterval = 5 * time.Second
-const HeartbeatSpanName = "highlight-heartbeat"
 const HighlightProjectID = "1"
 const MetricMemTotal = "highlight-mem-total"
 const MetricMemUsedPercent = "highlight-mem-used-percent"
@@ -47,6 +52,11 @@ const SpanDeployment = "highlight-phone-home-deployment-id"
 const SpanDopplerConfig = "highlight-doppler-config"
 const SpanHighlightVersion = "highlight-version"
 const SpanOnPrem = "highlight-is-onprem"
+const SpanLicenseKey = "highlight-license-key"
+const SpanSSL = "highlight-ssl"
+const SpanPublicGraphUri = "highlight-public-graph-uri"
+const SpanPrivateGraphUri = "highlight-private-graph-uri"
+const SpanFrontendUri = "highlight-frontend-uri"
 
 func IsOptedOut(_ context.Context) bool {
 	return false
@@ -65,15 +75,34 @@ func GetDefaultAttributes() ([]attribute.KeyValue, error) {
 	}
 
 	return []attribute.KeyValue{
+		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypePhoneHome)),
 		attribute.String(highlight.ProjectIDAttribute, HighlightProjectID),
 		attribute.String(SpanDeployment, cfg.PhoneHomeDeploymentID),
 		attribute.String(SpanDopplerConfig, util.DopplerConfig),
 		attribute.String(SpanHighlightVersion, util.Version),
 		attribute.String(SpanOnPrem, util.OnPrem),
+		attribute.String(SpanLicenseKey, util.LicenseKey),
+		attribute.Bool(SpanSSL, util.UseSSL()),
+		attribute.String(SpanPublicGraphUri, util.PublicGraphUri),
+		attribute.String(SpanPrivateGraphUri, util.PrivateGraphUri),
+		attribute.String(SpanFrontendUri, util.FrontendUri),
 	}, nil
 }
 
+var tracer = noop.NewTracerProvider().Tracer("")
+
 func Start(ctx context.Context) error {
+	tracerProvider, err := highlight.CreateTracerProvider(DataEndpoint)
+	if err != nil {
+		return err
+	}
+
+	tracer = tracerProvider.Tracer(
+		"github.com/highlight/highlight/phonehome",
+		trace.WithInstrumentationVersion("v0.1.0"),
+		trace.WithSchemaURL(semconv.SchemaURL),
+	)
+
 	if IsOptedOut(ctx) {
 		return nil
 	}
@@ -92,8 +121,7 @@ func Start(ctx context.Context) error {
 				attribute.Int64(MetricMemTotal, int64(vmStat.Total)),
 			)
 
-			s, _ := highlight.StartTrace(ctx, HeartbeatSpanName, tags...)
-			s.AddEvent(highlight.LogEvent, trace.WithAttributes(hlog.LogSeverityKey.String(log.TraceLevel.String()), hlog.LogMessageKey.String(HeartbeatSpanName)))
+			s, _ := highlight.StartTraceWithTracer(ctx, tracer, HeartbeatSpanName, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindServer)}, tags...)
 			highlight.EndTrace(s)
 		}
 	}()
@@ -117,8 +145,7 @@ func ReportAdminAboutYouDetails(ctx context.Context, admin *model.Admin) {
 		tags = append(tags, attribute.String(AboutYouSpanAdminEmail, ptr.ToString(admin.Email)))
 	}
 
-	s, _ := highlight.StartTrace(ctx, AboutYouSpanName, tags...)
-	s.AddEvent(highlight.LogEvent, trace.WithAttributes(hlog.LogSeverityKey.String(log.TraceLevel.String()), hlog.LogMessageKey.String(AboutYouSpanName)))
+	s, _ := highlight.StartTraceWithTracer(ctx, tracer, AboutYouSpanName, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindServer)}, tags...)
 	highlight.EndTrace(s)
 }
 
@@ -129,8 +156,8 @@ func ReportUsageMetrics(ctx context.Context, usageType UsageType, id int, metric
 
 	tags, _ := GetDefaultAttributes()
 	tags = append(tags, attribute.Int("id", id))
+	tags = append(tags, attribute.String("usageType", usageType))
 	tags = append(tags, metrics...)
-	s, _ := highlight.StartTrace(ctx, usageType, tags...)
-	s.AddEvent(highlight.LogEvent, trace.WithAttributes(hlog.LogSeverityKey.String(log.TraceLevel.String()), hlog.LogMessageKey.String(usageType)))
+	s, _ := highlight.StartTraceWithTracer(ctx, tracer, usageType, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindServer)}, tags...)
 	highlight.EndTrace(s)
 }

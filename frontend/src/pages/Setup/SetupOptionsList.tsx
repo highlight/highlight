@@ -9,6 +9,8 @@ import {
 import * as React from 'react'
 import { Navigate, useLocation, useMatch } from 'react-router-dom'
 
+import analytics from '@/util/analytics'
+
 export type OptionListItem = {
 	name: string
 	imageUrl: string
@@ -25,6 +27,13 @@ export const SetupOptionsList: React.FC = () => {
 		? ((quickStartContent as any)[area][language] as QuickStartOptions)
 		: ((quickStartContent as any)[area] as QuickStartOptions)
 	const optionKeys = getOptionKeys(docsSection)
+
+	React.useEffect(() => {
+		analytics.page('Setup Language', {
+			area,
+			language,
+		})
+	}, [area, language])
 
 	// Redirect if there is only one option.
 	if (optionKeys.length === 1) {

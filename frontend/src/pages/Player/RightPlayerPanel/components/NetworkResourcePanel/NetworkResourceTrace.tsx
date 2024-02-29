@@ -5,16 +5,22 @@ import {
 	Text,
 	TextLink,
 } from '@highlight-run/ui/components'
+import { useEffect } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
 import { useProjectId } from '@/hooks/useProjectId'
 import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
+import analytics from '@/util/analytics'
 
 export const NetworkResourceTrace: React.FC = () => {
 	const { projectId } = useProjectId()
 	const { loading, selectedSpan, traceName } = useTrace()
+
+	useEffect(() => {
+		analytics.track('session_network-resource-trace_view')
+	}, [])
 
 	if (loading) {
 		return <LoadingBox />

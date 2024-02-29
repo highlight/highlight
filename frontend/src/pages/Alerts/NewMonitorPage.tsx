@@ -24,6 +24,8 @@ import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+import analytics from '@/util/analytics'
+
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 
 interface Props {
@@ -103,6 +105,10 @@ const NewMonitorPage = ({
 		// Clear state potentially passed to initialize the metric config.
 		navigate(location.pathname, { state: {} })
 	}, [location.pathname, navigate])
+
+	useEffect(() => {
+		analytics.page('Create Monitor')
+	}, [])
 
 	return (
 		<Box width="full" background="raised" p="8">

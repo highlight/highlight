@@ -455,6 +455,69 @@ export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type CreateSessionCommentWithExistingIssueMutationVariables =
+	Types.Exact<{
+		project_id: Types.Scalars['ID']
+		session_secure_id: Types.Scalars['String']
+		session_timestamp: Types.Scalars['Int']
+		text: Types.Scalars['String']
+		text_for_email: Types.Scalars['String']
+		x_coordinate: Types.Scalars['Float']
+		y_coordinate: Types.Scalars['Float']
+		tagged_admins:
+			| Array<Types.Maybe<Types.SanitizedAdminInput>>
+			| Types.Maybe<Types.SanitizedAdminInput>
+		tagged_slack_users:
+			| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+			| Types.Maybe<Types.SanitizedSlackChannelInput>
+		session_url: Types.Scalars['String']
+		time: Types.Scalars['Float']
+		author_name: Types.Scalars['String']
+		session_image?: Types.Maybe<Types.Scalars['String']>
+		tags:
+			| Array<Types.Maybe<Types.SessionCommentTagInput>>
+			| Types.Maybe<Types.SessionCommentTagInput>
+		integrations:
+			| Array<Types.Maybe<Types.IntegrationType>>
+			| Types.Maybe<Types.IntegrationType>
+		issue_title?: Types.Maybe<Types.Scalars['String']>
+		issue_url: Types.Scalars['String']
+		issue_id: Types.Scalars['String']
+		additional_context?: Types.Maybe<Types.Scalars['String']>
+	}>
+
+export type CreateSessionCommentWithExistingIssueMutation = {
+	__typename?: 'Mutation'
+} & {
+	createSessionCommentWithExistingIssue?: Types.Maybe<
+		{ __typename?: 'SessionComment' } & Pick<
+			Types.SessionComment,
+			| 'id'
+			| 'timestamp'
+			| 'created_at'
+			| 'updated_at'
+			| 'text'
+			| 'x_coordinate'
+			| 'y_coordinate'
+		> & {
+				author?: Types.Maybe<
+					{ __typename?: 'SanitizedAdmin' } & Pick<
+						Types.SanitizedAdmin,
+						'id' | 'name' | 'email'
+					>
+				>
+				attachments: Array<
+					Types.Maybe<
+						{ __typename?: 'ExternalAttachment' } & Pick<
+							Types.ExternalAttachment,
+							'id' | 'integration_type' | 'external_id' | 'title'
+						>
+					>
+				>
+			}
+	>
+}
+
 export type CreateIssueForSessionCommentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	session_comment_id: Types.Scalars['Int']
@@ -475,6 +538,51 @@ export type CreateIssueForSessionCommentMutation = {
 	__typename?: 'Mutation'
 } & {
 	createIssueForSessionComment?: Types.Maybe<
+		{ __typename?: 'SessionComment' } & Pick<
+			Types.SessionComment,
+			| 'id'
+			| 'timestamp'
+			| 'created_at'
+			| 'updated_at'
+			| 'text'
+			| 'x_coordinate'
+			| 'y_coordinate'
+		> & {
+				author?: Types.Maybe<
+					{ __typename?: 'SanitizedAdmin' } & Pick<
+						Types.SanitizedAdmin,
+						'id' | 'name' | 'email'
+					>
+				>
+				attachments: Array<
+					Types.Maybe<
+						{ __typename?: 'ExternalAttachment' } & Pick<
+							Types.ExternalAttachment,
+							'id' | 'integration_type' | 'external_id' | 'title'
+						>
+					>
+				>
+			}
+	>
+}
+
+export type LinkIssueForSessionCommentMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	session_comment_id: Types.Scalars['Int']
+	text_for_attachment: Types.Scalars['String']
+	session_url: Types.Scalars['String']
+	time: Types.Scalars['Float']
+	author_name: Types.Scalars['String']
+	integrations:
+		| Array<Types.Maybe<Types.IntegrationType>>
+		| Types.Maybe<Types.IntegrationType>
+	issue_title?: Types.Maybe<Types.Scalars['String']>
+	issue_id: Types.Scalars['String']
+	issue_url: Types.Scalars['String']
+}>
+
+export type LinkIssueForSessionCommentMutation = { __typename?: 'Mutation' } & {
+	linkIssueForSessionComment?: Types.Maybe<
 		{ __typename?: 'SessionComment' } & Pick<
 			Types.SessionComment,
 			| 'id'
@@ -575,6 +683,43 @@ export type CreateErrorCommentMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type CreateErrorCommentForExistingIssueMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	error_group_secure_id: Types.Scalars['String']
+	text: Types.Scalars['String']
+	text_for_email: Types.Scalars['String']
+	tagged_admins:
+		| Array<Types.Maybe<Types.SanitizedAdminInput>>
+		| Types.Maybe<Types.SanitizedAdminInput>
+	tagged_slack_users:
+		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+		| Types.Maybe<Types.SanitizedSlackChannelInput>
+	error_url: Types.Scalars['String']
+	author_name: Types.Scalars['String']
+	integrations:
+		| Array<Types.Maybe<Types.IntegrationType>>
+		| Types.Maybe<Types.IntegrationType>
+	issue_title: Types.Scalars['String']
+	issue_url: Types.Scalars['String']
+	issue_id: Types.Scalars['String']
+}>
+
+export type CreateErrorCommentForExistingIssueMutation = {
+	__typename?: 'Mutation'
+} & {
+	createErrorCommentForExistingIssue?: Types.Maybe<
+		{ __typename: 'ErrorComment' } & Pick<
+			Types.ErrorComment,
+			'id' | 'created_at' | 'updated_at' | 'text'
+		> & {
+				author: { __typename: 'SanitizedAdmin' } & Pick<
+					Types.SanitizedAdmin,
+					'id' | 'name' | 'email'
+				>
+			}
+	>
+}
+
 export type CreateIssueForErrorCommentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	error_comment_id: Types.Scalars['Int']
@@ -592,6 +737,42 @@ export type CreateIssueForErrorCommentMutationVariables = Types.Exact<{
 
 export type CreateIssueForErrorCommentMutation = { __typename?: 'Mutation' } & {
 	createIssueForErrorComment?: Types.Maybe<
+		{ __typename?: 'ErrorComment' } & Pick<
+			Types.ErrorComment,
+			'id' | 'created_at' | 'updated_at' | 'text'
+		> & {
+				author: { __typename?: 'SanitizedAdmin' } & Pick<
+					Types.SanitizedAdmin,
+					'id' | 'name' | 'email'
+				>
+				attachments: Array<
+					Types.Maybe<
+						{ __typename?: 'ExternalAttachment' } & Pick<
+							Types.ExternalAttachment,
+							'id' | 'integration_type' | 'external_id' | 'title'
+						>
+					>
+				>
+			}
+	>
+}
+
+export type LinkIssueForErrorCommentMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	error_comment_id: Types.Scalars['Int']
+	text_for_attachment: Types.Scalars['String']
+	error_url: Types.Scalars['String']
+	author_name: Types.Scalars['String']
+	integrations:
+		| Array<Types.Maybe<Types.IntegrationType>>
+		| Types.Maybe<Types.IntegrationType>
+	issue_title?: Types.Maybe<Types.Scalars['String']>
+	issue_id: Types.Scalars['String']
+	issue_url: Types.Scalars['String']
+}>
+
+export type LinkIssueForErrorCommentMutation = { __typename?: 'Mutation' } & {
+	linkIssueForErrorComment?: Types.Maybe<
 		{ __typename?: 'ErrorComment' } & Pick<
 			Types.ErrorComment,
 			'id' | 'created_at' | 'updated_at' | 'text'
@@ -2169,34 +2350,6 @@ export type GetEnhancedUserDetailsQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetOnboardingStepsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	admin_id: Types.Scalars['ID']
-}>
-
-export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'isIntegrated' | 'adminHasCreatedComment'
-> & {
-		workspace?: Types.Maybe<
-			{ __typename?: 'Workspace' } & Pick<
-				Types.Workspace,
-				'id' | 'slack_channels'
-			>
-		>
-		admins: Array<
-			{ __typename?: 'WorkspaceAdminRole' } & {
-				admin: { __typename?: 'Admin' } & Pick<Types.Admin, 'id'>
-			}
-		>
-		projectHasViewedASession?: Types.Maybe<
-			{ __typename?: 'Session' } & Pick<Types.Session, 'secure_id'>
-		>
-		admin?: Types.Maybe<
-			{ __typename?: 'Admin' } & Pick<Types.Admin, 'slack_im_channel_id'>
-		>
-	}
-
 export type SendAdminWorkspaceInviteMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	email: Types.Scalars['String']
@@ -3445,24 +3598,6 @@ export type GetSavedSegmentsQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type IsIntegratedQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type IsIntegratedQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'isIntegrated'
->
-
-export type IsBackendIntegratedQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type IsBackendIntegratedQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'isBackendIntegrated'
->
-
 export type GetClientIntegrationQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -4415,6 +4550,21 @@ export type GetOAuthClientMetadataQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type SearchIssuesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	query: Types.Scalars['String']
+	integration_type: Types.IntegrationType
+}>
+
+export type SearchIssuesQuery = { __typename?: 'Query' } & {
+	search_issues: Array<
+		{ __typename?: 'IssuesSearchResult' } & Pick<
+			Types.IssuesSearchResult,
+			'id' | 'title' | 'issue_url'
+		>
+	>
+}
+
 export type GetErrorGroupFrequenciesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	error_group_secure_ids:
@@ -4582,6 +4732,7 @@ export type GetLogsRelatedResourcesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	log_cursors: Array<Types.Scalars['String']> | Types.Scalars['String']
 	trace_ids: Array<Types.Scalars['String']> | Types.Scalars['String']
+	date_range: Types.DateRangeRequiredInput
 }>
 
 export type GetLogsRelatedResourcesQuery = { __typename?: 'Query' } & Pick<
@@ -4983,6 +5134,52 @@ export type GetTracesKeyValuesQuery = { __typename?: 'Query' } & {
 	key_values: Types.Query['traces_key_values']
 }
 
+export type GetKeysQueryVariables = Types.Exact<{
+	product_type: Types.ProductType
+	project_id: Types.Scalars['ID']
+	date_range: Types.DateRangeRequiredInput
+	query?: Types.Maybe<Types.Scalars['String']>
+}>
+
+export type GetKeysQuery = { __typename?: 'Query' } & {
+	keys: Array<
+		{ __typename?: 'QueryKey' } & Pick<Types.QueryKey, 'name' | 'type'>
+	>
+}
+
+export type GetMetricsQueryVariables = Types.Exact<{
+	product_type: Types.ProductType
+	project_id: Types.Scalars['ID']
+	params: Types.QueryInput
+	column: Types.Scalars['String']
+	metric_types: Array<Types.MetricAggregator> | Types.MetricAggregator
+	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
+	bucket_by: Types.Scalars['String']
+	bucket_count?: Types.Maybe<Types.Scalars['Int']>
+	limit?: Types.Maybe<Types.Scalars['Int']>
+	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
+	limit_column?: Types.Maybe<Types.Scalars['String']>
+}>
+
+export type GetMetricsQuery = { __typename?: 'Query' } & {
+	metrics: { __typename?: 'MetricsBuckets' } & Pick<
+		Types.MetricsBuckets,
+		'bucket_count' | 'sample_factor'
+	> & {
+			buckets: Array<
+				{ __typename?: 'MetricBucket' } & Pick<
+					Types.MetricBucket,
+					| 'bucket_id'
+					| 'bucket_min'
+					| 'bucket_max'
+					| 'group'
+					| 'metric_type'
+					| 'metric_value'
+				>
+			>
+		}
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -5004,7 +5201,6 @@ export const namedOperations = {
 		GetErrorComments: 'GetErrorComments' as const,
 		GetErrorIssues: 'GetErrorIssues' as const,
 		GetEnhancedUserDetails: 'GetEnhancedUserDetails' as const,
-		GetOnboardingSteps: 'GetOnboardingSteps' as const,
 		GetSessionIntervals: 'GetSessionIntervals' as const,
 		GetTimelineIndicatorEvents: 'GetTimelineIndicatorEvents' as const,
 		GetWebSocketEvents: 'GetWebSocketEvents' as const,
@@ -5051,8 +5247,6 @@ export const namedOperations = {
 		GetSegments: 'GetSegments' as const,
 		GetErrorSegments: 'GetErrorSegments' as const,
 		GetSavedSegments: 'GetSavedSegments' as const,
-		IsIntegrated: 'IsIntegrated' as const,
-		IsBackendIntegrated: 'IsBackendIntegrated' as const,
 		GetClientIntegration: 'GetClientIntegration' as const,
 		GetServerIntegration: 'GetServerIntegration' as const,
 		GetLogsIntegration: 'GetLogsIntegration' as const,
@@ -5109,6 +5303,7 @@ export const namedOperations = {
 		GetSourcemapFiles: 'GetSourcemapFiles' as const,
 		GetSourcemapVersions: 'GetSourcemapVersions' as const,
 		GetOAuthClientMetadata: 'GetOAuthClientMetadata' as const,
+		SearchIssues: 'SearchIssues' as const,
 		GetErrorGroupFrequencies: 'GetErrorGroupFrequencies' as const,
 		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
@@ -5135,6 +5330,8 @@ export const namedOperations = {
 		GetTracesMetrics: 'GetTracesMetrics' as const,
 		GetTracesKeys: 'GetTracesKeys' as const,
 		GetTracesKeyValues: 'GetTracesKeyValues' as const,
+		GetKeys: 'GetKeys' as const,
+		GetMetrics: 'GetMetrics' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -5171,11 +5368,17 @@ export const namedOperations = {
 		EditSegment: 'EditSegment' as const,
 		CreateSegment: 'CreateSegment' as const,
 		CreateSessionComment: 'CreateSessionComment' as const,
+		CreateSessionCommentWithExistingIssue:
+			'CreateSessionCommentWithExistingIssue' as const,
 		CreateIssueForSessionComment: 'CreateIssueForSessionComment' as const,
+		LinkIssueForSessionComment: 'LinkIssueForSessionComment' as const,
 		DeleteSessionComment: 'DeleteSessionComment' as const,
 		ReplyToSessionComment: 'ReplyToSessionComment' as const,
 		CreateErrorComment: 'CreateErrorComment' as const,
+		CreateErrorCommentForExistingIssue:
+			'CreateErrorCommentForExistingIssue' as const,
 		CreateIssueForErrorComment: 'CreateIssueForErrorComment' as const,
+		LinkIssueForErrorComment: 'LinkIssueForErrorComment' as const,
 		DeleteErrorComment: 'DeleteErrorComment' as const,
 		MuteErrorCommentThread: 'MuteErrorCommentThread' as const,
 		RemoveErrorIssue: 'RemoveErrorIssue' as const,

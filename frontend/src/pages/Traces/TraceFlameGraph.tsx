@@ -20,6 +20,7 @@ import {
 } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
+import { useRelatedResource } from '@/components/RelatedResourcePanel/hooks'
 import { useHTMLElementEvent } from '@/hooks/useHTMLElementEvent'
 import { ZOOM_SCALING_FACTOR } from '@/pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import {
@@ -67,6 +68,7 @@ export const TraceFlameGraph: React.FC = () => {
 		x: 0,
 		y: 0,
 	})
+	const { panelWidth } = useRelatedResource()
 
 	const height = useMemo(() => {
 		if (!traces.length) return 260
@@ -124,10 +126,10 @@ export const TraceFlameGraph: React.FC = () => {
 					(svgContainerRef.current?.scrollLeft ?? 0) *
 						(newZoom / prevZoom)
 
-				setTimeout(() => {
+				requestAnimationFrame(() => {
 					svgContainerRef.current?.scrollTo(newScrollPosition, 0)
 					setX(newScrollPosition)
-				}, 0)
+				})
 
 				return newZoom
 			})
@@ -135,18 +137,45 @@ export const TraceFlameGraph: React.FC = () => {
 		[],
 	)
 
-	const handleZoom = useCallback(
-		(dz: number) => {
-			const factor = dz < 0 ? 1 - dz : 1 / (1 + dz)
-			const newZoom = Math.min(Math.max(zoom * factor, 1), MAX_ZOOM)
+	const handleZoomFactorChange = useCallback(
+		(dz: number, mouseX?: number) => {
+			setZoom((prevZoom) => {
+				const factor = dz < 0 ? 1 - dz : 1 / (1 + dz)
+				const newZoom = Math.min(
+					Math.max(prevZoom * factor, 1),
+					MAX_ZOOM,
+				)
 
-			updateZoom(newZoom)
+				let newScrollPosition =
+					((svgContainerRef.current?.scrollLeft ?? 0) +
+						(svgContainerRef.current?.clientWidth ?? 0) / 2) *
+						(newZoom / prevZoom) -
+					(svgContainerRef.current?.clientWidth ?? 0) / 2
+
+				if (mouseX !== undefined) {
+					const scrollX = svgContainerRef.current?.scrollLeft ?? 0
+					const mouseOffset =
+						mouseX -
+						svgContainerRef.current!.getBoundingClientRect().left
+					const contentX = mouseOffset + scrollX
+					const newContentX = contentX * (newZoom / prevZoom)
+					newScrollPosition = newContentX - mouseOffset
+				}
+
+				requestAnimationFrame(() => {
+					svgContainerRef.current?.scrollTo(newScrollPosition, 0)
+					setX(newScrollPosition)
+				})
+
+				return newZoom
+			})
 		},
-		[updateZoom, zoom],
+		[],
 	)
-	const throttledHandleZoom = useMemo(
-		() => throttle(handleZoom, 50),
-		[handleZoom],
+
+	const throttledHandleZoomFactorChange = useMemo(
+		() => throttle(handleZoomFactorChange, 50),
+		[handleZoomFactorChange],
 	)
 
 	const handleScroll = useCallback(
@@ -183,11 +212,14 @@ export const TraceFlameGraph: React.FC = () => {
 
 			// Some browers report ctrlKey as true when using a pinch gesture on a
 			// trackpad. This is where the pinch to zoom functionality comes from.
-			if (ctrlKey || metaKey) {
+			if ((ctrlKey || metaKey) && deltaY !== 0) {
 				event.preventDefault()
 				event.stopPropagation()
 
-				throttledHandleZoom(deltaY / ZOOM_SCALING_FACTOR)
+				throttledHandleZoomFactorChange(
+					deltaY / ZOOM_SCALING_FACTOR,
+					event.clientX,
+				)
 			}
 		},
 		{ passive: false },
@@ -195,12 +227,14 @@ export const TraceFlameGraph: React.FC = () => {
 
 	useEffect(() => {
 		setZoom(1)
+	}, [loading])
 
+	useEffect(() => {
 		if (svgContainerRef.current) {
 			setWidth(svgContainerRef.current?.clientWidth)
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [loading])
+	}, [loading, panelWidth])
 
 	const [dragging, setDragging] = useState(false)
 	const [initialDragX, setInitialDragX] = useState(0)
@@ -454,7 +488,7 @@ export const TraceFlameGraph: React.FC = () => {
 			<Box p="2" borderTop="dividerWeak">
 				<Stack gap="2" direction="row" align="center">
 					<ButtonIcon
-						onClick={() => handleZoom(-1000)}
+						onClick={() => handleZoomFactorChange(0.5)}
 						kind="secondary"
 						emphasis="low"
 						size="xSmall"
@@ -497,7 +531,7 @@ export const TraceFlameGraph: React.FC = () => {
 						/>
 					</Box>
 					<ButtonIcon
-						onClick={() => handleZoom(1000)}
+						onClick={() => handleZoomFactorChange(-0.5)}
 						kind="secondary"
 						emphasis="low"
 						size="xSmall"

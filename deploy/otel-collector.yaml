@@ -11,31 +11,36 @@ receivers:
         listen_address: '0.0.0.0:34302'
 exporters:
     otlphttp:
-        endpoint: 'https://pub.highlight.run/otel'
-        compression: gzip
+        endpoint: 'http://pub.prod.vpc.highlight.io:8082/otel'
         timeout: 30s
+        read_buffer_size: 32768
+        write_buffer_size: 32768
+        max_conns_per_host: 1000
         sending_queue:
-            num_consumers: 64
-            queue_size: 16384
+            num_consumers: 100
+            queue_size: 10000
         retry_on_failure:
-            initial_interval: 0.1s
-            max_interval: 1s
+            enabled: true
+            initial_interval: 1s
+            max_interval: 30s
             max_elapsed_time: 300s
 processors:
     memory_limiter:
-        check_interval: 0.1s
-        limit_mib: 11470
+        limit_mib: 14336
         spike_limit_mib: 1024
+        check_interval: 0.1s
     batch:
-        send_batch_size: 256
-        send_batch_max_size: 256
         timeout: 1s
+        send_batch_size: 1000
+        send_batch_max_size: 10000
 service:
     telemetry:
+        logs:
+            level: 'info'
         metrics:
             address: '0.0.0.0:8888'
             level: detailed
-    extensions: [health_check, memory_ballast]
+    extensions: [health_check]
     pipelines:
         traces:
             receivers: [otlp]
@@ -53,5 +58,3 @@ extensions:
     health_check:
         endpoint: '0.0.0.0:4319'
         path: '/health/status'
-    memory_ballast:
-        size_mib: 3276

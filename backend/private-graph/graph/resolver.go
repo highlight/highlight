@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"github.com/go-redis/cache/v9"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/bwmarrin/discordgo"
 	github2 "github.com/google/go-github/v50/github"
@@ -94,7 +95,7 @@ var AuthorizationError = errors.New("403 - AuthorizationError")
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
-	FrontendURI     = os.Getenv("FRONTEND_URI")
+	FrontendURI     = os.Getenv("REACT_APP_FRONTEND_URI")
 )
 
 var BytesConversion = map[string]int64{
@@ -136,6 +137,7 @@ func isAuthError(err error) bool {
 
 type Resolver struct {
 	DB                     *gorm.DB
+	Tracer                 trace.Tracer
 	MailClient             *sendgrid.Client
 	StripeClient           *client.API
 	AWSMPClient            *marketplacemetering.Client
@@ -284,7 +286,7 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	email := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.Email))
 	// Allow access to engineering@highlight.run or any verified @highlight.run / @runhighlight.com email.
 	_, isAdmin := lo.Find(HighlightAdminEmailDomains, func(domain string) bool { return strings.Contains(email, domain) })
-	isDockerDefaultAccount := util.IsInDocker() && email == "demo@example.com"
+	isDockerDefaultAccount := util.IsInDocker() && !util.IsProduction()
 	return isAdmin || uid == WhitelistedUID || isDockerDefaultAccount
 }
 
@@ -377,7 +379,6 @@ func (r *Resolver) GetAWSMarketPlaceWorkspace(ctx context.Context, workspaceID i
 	var workspace model.Workspace
 	if err := r.DB.WithContext(ctx).
 		Model(&workspace).
-		Preload("AWSMarketplaceCustomer").
 		Joins("AWSMarketplaceCustomer").
 		Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).
 		Take(&workspace).
@@ -1793,15 +1794,24 @@ func (r *Resolver) StripeWebhook(ctx context.Context, endpointSecret string) fun
 }
 
 func (r *Resolver) ResolveAWSMarketplaceToken(ctx context.Context, token string) (*marketplacemetering.ResolveCustomerOutput, error) {
+	log.WithContext(ctx).
+		WithField("token", token).
+		Info("BILLING handling aws marketplace token request")
+
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(model.AWS_REGION_US_EAST_2))
 	if err != nil {
 		return nil, err
 	}
 
 	mpm := marketplacemetering.NewFromConfig(cfg)
-	return mpm.ResolveCustomer(ctx, &marketplacemetering.ResolveCustomerInput{
+	customer, err := mpm.ResolveCustomer(ctx, &marketplacemetering.ResolveCustomerInput{
 		RegistrationToken: &token,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	return customer, err
 }
 
 func (r *Resolver) AWSMPCallback(ctx context.Context) func(http.ResponseWriter, *http.Request) {
@@ -1835,7 +1845,7 @@ func (r *Resolver) AWSMPCallback(ctx context.Context) func(http.ResponseWriter, 
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		http.Redirect(w, req, fmt.Sprintf("%s/callback/aws-mp?code=%s", os.Getenv("FRONTEND_URI"), secret), http.StatusFound)
+		http.Redirect(w, req, fmt.Sprintf("%s/callback/aws-mp?code=%s", os.Getenv("REACT_APP_FRONTEND_URI"), secret), http.StatusFound)
 	}
 }
 
@@ -2444,6 +2454,21 @@ type LinearCreateIssueResponse struct {
 	} `json:"data"`
 }
 
+type LinearIssue struct {
+	Id         string `json:"id"`
+	Url        string `json:"url"`
+	Identifier string `json:"identifier"`
+	Title      string `json:"title"`
+}
+
+type SearchIssuesResponse struct {
+	Data struct {
+		SearchIssues struct {
+			Nodes []LinearIssue `json:"nodes"`
+		} `json:"searchIssues"`
+	} `json:"data"`
+}
+
 func (r *Resolver) CreateLinearIssue(accessToken string, teamID string, title string, description string) (*LinearCreateIssueResponse, error) {
 	requestQuery := `
 	mutation createIssue($teamId: String!, $title: String!, $desc: String!) {
@@ -2489,12 +2514,63 @@ func (r *Resolver) CreateLinearIssue(accessToken string, teamID string, title st
 	return createIssueRes, nil
 }
 
+func (r *Resolver) SearchLinearIssues(accessToken string, searchTerm string) ([]*modelInputs.IssuesSearchResult, error) {
+	requestQuery := `
+	  query SearchIssues($term: String!) {
+		searchIssues(term: $term) {
+		  nodes {
+			id
+			identifier
+			title
+			url
+		  }
+		}
+	  }
+	`
+
+	type GraphQLVars struct {
+		Term string `json:"term"`
+	}
+
+	type GraphQLReq struct {
+		Query     string      `json:"query"`
+		Variables GraphQLVars `json:"variables"`
+	}
+
+	req := GraphQLReq{Query: requestQuery, Variables: GraphQLVars{searchTerm}}
+
+	requestBytes, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := r.MakeLinearGraphQLRequest(accessToken, string(requestBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	searchIssuesResponse := &SearchIssuesResponse{}
+
+	err = json.Unmarshal(b, searchIssuesResponse)
+	if err != nil {
+		return nil, e.Wrap(err, "error unmarshaling linear oauth token response")
+	}
+
+	return lo.Map(searchIssuesResponse.Data.SearchIssues.Nodes, func(res LinearIssue, _ int) *modelInputs.IssuesSearchResult {
+		return &modelInputs.IssuesSearchResult{
+			ID:       res.Id,
+			Title:    fmt.Sprintf("%s - %s", res.Identifier, res.Title),
+			IssueURL: res.Identifier,
+		}
+	}), nil
+}
+
 type LinearCreateAttachmentResponse struct {
 	Data struct {
 		AttachmentCreate struct {
 			Attachment struct {
 				ID string `json:"id"`
-			} `json:"Attachment"`
+			} `json:"attachment"`
 			Success bool `json:"success"`
 		} `json:"attachmentCreate"`
 	} `json:"data"`
@@ -2532,7 +2608,7 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 			Title:    title,
 			Subtitle: subtitle,
 			Url:      url,
-			IconUrl:  fmt.Sprintf("%s/logo_with_gradient_bg.png", os.Getenv("FRONTEND_URI")),
+			IconUrl:  fmt.Sprintf("%s/logo_with_gradient_bg.png", os.Getenv("REACT_APP_FRONTEND_URI")),
 		},
 	}
 
@@ -2603,6 +2679,30 @@ func (r *Resolver) CreateLinearIssueAndAttachment(
 	return nil
 }
 
+func (r *Resolver) CreateLinearAttachmentForExistingIssue(
+	ctx context.Context,
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	commentText string,
+	authorName string,
+	viewLink string,
+	issueId string,
+	issueIdentifier string,
+) error {
+	attachmentRes, err := r.CreateLinearAttachment(*workspace.LinearAccessToken, issueId, commentText, authorName, viewLink)
+	if err != nil {
+		return err
+	}
+
+	attachment.ExternalID = attachmentRes.Data.AttachmentCreate.Attachment.ID
+	attachment.Title = issueIdentifier
+
+	if err := r.DB.WithContext(ctx).Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
 func (r *Resolver) CreateClickUpTaskAndAttachment(
 	ctx context.Context,
 	workspace *model.Workspace,
@@ -2659,6 +2759,60 @@ func (r *Resolver) CreateHeightTaskAndAttachment(
 	return nil
 }
 
+func (r *Resolver) SearchJiraIssues(
+	ctx context.Context,
+	workspace *model.Workspace,
+	query string,
+) ([]*modelInputs.IssuesSearchResult, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, errors.New("No Jira integration access token found.")
+	}
+
+	return jira.SearchJiraIssues(*accessToken, workspace, query)
+}
+
+func (r *Resolver) SearchHeightIssues(
+	ctx context.Context,
+	workspace *model.Workspace,
+	query string,
+) ([]*modelInputs.IssuesSearchResult, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeHeight)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, errors.New("No Height integration access token found.")
+	}
+
+	return height.SearchTask(*accessToken, query)
+}
+
+func (r *Resolver) SearchGitlabIssues(
+	ctx context.Context,
+	workspace *model.Workspace,
+	query string,
+) ([]*modelInputs.IssuesSearchResult, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitLab)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, errors.New("No GitLab integration access token found.")
+	}
+
+	return gitlab.SearchGitlabIssues(*accessToken, query)
+}
+
 func (r *Resolver) CreateJiraTaskAndAttachment(
 	ctx context.Context,
 	workspace *model.Workspace,
@@ -2695,7 +2849,21 @@ func (r *Resolver) CreateJiraTaskAndAttachment(
 		return err
 	}
 
-	attachment.ExternalID = jira.MakeExternalIdForJiraTask(workspace, task)
+	attachment.ExternalID = jira.MakeExternalIdForJiraTask(workspace, task.Key)
+	attachment.Title = issueTitle
+	if err := r.DB.WithContext(ctx).Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
+func (r *Resolver) CreateIssueAttachment(
+	ctx context.Context,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueURL string,
+) error {
+	attachment.ExternalID = issueURL
 	attachment.Title = issueTitle
 	if err := r.DB.WithContext(ctx).Create(attachment).Error; err != nil {
 		return e.Wrap(err, "error creating external attachment")
@@ -2843,11 +3011,43 @@ func (r *Resolver) GetGitHubIssueLabels(
 	}), nil
 }
 
+func (r *Resolver) SearchGitHubIssues(
+	ctx context.Context,
+	workspace *model.Workspace,
+	query string,
+) ([]*modelInputs.IssuesSearchResult, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitHub)
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, nil
+	}
+	var issues []*github2.Issue
+	if c, err := github.NewClient(ctx, *accessToken, r.Redis); err == nil {
+		issues, err = c.SearchIssues(ctx, query)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, e.Wrap(err, "failed to create github client")
+	}
+
+	return lo.Map(issues, func(t *github2.Issue, i int) *modelInputs.IssuesSearchResult {
+		return &modelInputs.IssuesSearchResult{
+			ID:       strconv.FormatInt(t.GetID(), 10),
+			Title:    fmt.Sprintf("#%d %s", t.GetNumber(), t.GetTitle()),
+			IssueURL: t.GetHTMLURL(),
+		}
+	}), nil
+}
+
 type LinearAccessTokenResponse struct {
-	AccessToken string   `json:"access_token"`
-	TokenType   string   `json:"token_type"`
-	ExpiresIn   int64    `json:"expires_in"`
-	Scope       []string `json:"scope"`
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+	ExpiresIn   int64  `json:"expires_in"`
+	Scope       string `json:"scope"`
 }
 
 func (r *Resolver) GetLinearAccessToken(code string, redirectURL string, clientID string, clientSecret string) (LinearAccessTokenResponse, error) {

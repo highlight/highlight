@@ -27,7 +27,7 @@ var (
 	SendGridOutboundEmail                = "notifications@notify.highlight.io"
 	SessionCommentMentionsAsmId          = 20950
 	ErrorCommentMentionsAsmId            = 20994
-	frontendUri                          = os.Getenv("FRONTEND_URI")
+	frontendUri                          = os.Getenv("REACT_APP_FRONTEND_URI")
 )
 
 type EmailType string
@@ -110,7 +110,7 @@ func GetOptOutToken(adminID int, previous bool) string {
 
 func GetSubscriptionUrl(adminId int, previous bool) string {
 	token := GetOptOutToken(adminId, previous)
-	return fmt.Sprintf("%s/subscriptions?admin_id=%d&token=%s", os.Getenv("FRONTEND_URI"), adminId, token)
+	return fmt.Sprintf("%s/subscriptions?admin_id=%d&token=%s", os.Getenv("REACT_APP_FRONTEND_URI"), adminId, token)
 }
 
 func getApproachingLimitMessage(productType string, workspaceId int) string {

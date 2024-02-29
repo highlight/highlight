@@ -173,7 +173,7 @@ export const TracesPage: React.FC = () => {
 		return traceEdges.map((edge) => edge.node)
 	}, [traceEdges])
 
-	useEffect(() => analytics.page(), [])
+	useEffect(() => analytics.page('Traces'), [])
 
 	return (
 		<>
@@ -250,18 +250,18 @@ export const TracesPage: React.FC = () => {
 											{selectedPreset ? (
 												<>
 													{moment(startDate).format(
-														'M/D/YY H:MM:SS A',
+														'M/D/YY h:mm:ss A',
 													)}{' '}
 													to Now
 												</>
 											) : (
 												<>
 													{moment(startDate).format(
-														'M/D/YY H:MM:SS',
+														'M/D/YY h:mm:ss',
 													)}{' '}
 													to{' '}
 													{moment(endDate).format(
-														'H:MM:SS A',
+														'h:mm:ss A',
 													)}
 												</>
 											)}

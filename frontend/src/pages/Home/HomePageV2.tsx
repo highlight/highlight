@@ -3,7 +3,7 @@ import LoadingBox from '@components/LoadingBox'
 import { useProjectId } from '@hooks/useProjectId'
 import DashboardPage from '@pages/Dashboards/pages/Dashboard/DashboardPage'
 import analytics from '@util/analytics'
-import { useIntegrated } from '@util/integrated'
+import { useClientIntegration } from '@util/integrated'
 import Lottie from 'lottie-react'
 import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
@@ -14,10 +14,10 @@ import WaitingAnimation from '../../lottie/waiting.json'
 import styles from './HomePage.module.css'
 
 const HomePageV2 = () => {
-	useEffect(() => analytics.page(), [])
+	useEffect(() => analytics.page('Analytics'), [])
 
 	const { projectId } = useProjectId()
-	const { integrated, loading: integratedLoading } = useIntegrated()
+	const { integrated, loading: integratedLoading } = useClientIntegration()
 
 	if (integratedLoading) {
 		return <LoadingBox />

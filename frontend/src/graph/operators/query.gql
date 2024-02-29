@@ -480,26 +480,6 @@ query GetEnhancedUserDetails($session_secure_id: String!) {
 	}
 }
 
-query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
-	workspace: workspace_for_project(project_id: $project_id) {
-		id
-		slack_channels
-	}
-	admins: workspace_admins_by_project_id(project_id: $project_id) {
-		admin {
-			id
-		}
-	}
-	isIntegrated(project_id: $project_id)
-	adminHasCreatedComment(admin_id: $admin_id)
-	projectHasViewedASession(project_id: $project_id) {
-		secure_id
-	}
-	admin {
-		slack_im_channel_id
-	}
-}
-
 mutation SendAdminWorkspaceInvite(
 	$workspace_id: ID!
 	$email: String!
@@ -1384,14 +1364,6 @@ query GetSavedSegments(
 	}
 }
 
-query IsIntegrated($project_id: ID!) {
-	isIntegrated(project_id: $project_id)
-}
-
-query IsBackendIntegrated($project_id: ID!) {
-	isBackendIntegrated(project_id: $project_id)
-}
-
 query GetClientIntegration($project_id: ID!) {
 	clientIntegration(project_id: $project_id) {
 		integrated
@@ -2043,6 +2015,22 @@ query GetOAuthClientMetadata($client_id: String!) {
 	}
 }
 
+query SearchIssues(
+	$project_id: ID!
+	$query: String!
+	$integration_type: IntegrationType!
+) {
+	search_issues(
+		integration_type: $integration_type
+		query: $query
+		project_id: $project_id
+	) {
+		id
+		title
+		issue_url
+	}
+}
+
 query GetErrorGroupFrequencies(
 	$project_id: ID!
 	$error_group_secure_ids: [String!]!
@@ -2188,13 +2176,18 @@ query GetLogsRelatedResources(
 	$project_id: ID!
 	$log_cursors: [String!]!
 	$trace_ids: [String!]!
+	$date_range: DateRangeRequiredInput!
 ) {
 	logs_error_objects(log_cursors: $log_cursors) {
 		log_cursor
 		error_group_secure_id
 		id
 	}
-	existing_logs_traces(project_id: $project_id, trace_ids: $trace_ids)
+	existing_logs_traces(
+		project_id: $project_id
+		trace_ids: $trace_ids
+		date_range: $date_range
+	)
 }
 
 query GetProjectSettings($projectId: ID!) {
@@ -2529,4 +2522,60 @@ query GetTracesKeyValues(
 		key_name: $key_name
 		date_range: $date_range
 	)
+}
+
+query GetKeys(
+	$product_type: ProductType!
+	$project_id: ID!
+	$date_range: DateRangeRequiredInput!
+	$query: String
+) {
+	keys(
+		product_type: $product_type
+		project_id: $project_id
+		date_range: $date_range
+		query: $query
+	) {
+		name
+		type
+	}
+}
+
+query GetMetrics(
+	$product_type: ProductType!
+	$project_id: ID!
+	$params: QueryInput!
+	$column: String!
+	$metric_types: [MetricAggregator!]!
+	$group_by: [String!]!
+	$bucket_by: String!
+	$bucket_count: Int
+	$limit: Int
+	$limit_aggregator: MetricAggregator
+	$limit_column: String
+) {
+	metrics(
+		product_type: $product_type
+		project_id: $project_id
+		params: $params
+		column: $column
+		metric_types: $metric_types
+		group_by: $group_by
+		bucket_by: $bucket_by
+		bucket_count: $bucket_count
+		limit: $limit
+		limit_aggregator: $limit_aggregator
+		limit_column: $limit_column
+	) {
+		buckets {
+			bucket_id
+			bucket_min
+			bucket_max
+			group
+			metric_type
+			metric_value
+		}
+		bucket_count
+		sample_factor
+	}
 }

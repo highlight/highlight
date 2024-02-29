@@ -5,7 +5,6 @@ import AlertsPage from '@pages/Alerts/Alerts'
 import { AlertsContextProvider } from '@pages/Alerts/AlertsContext/AlertsContext'
 import EditMonitorPage from '@pages/Alerts/EditMonitorPage'
 import NewMonitorPage from '@pages/Alerts/NewMonitorPage'
-import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -31,8 +30,6 @@ const AlertsRouter = () => {
 			setAlertsPayload(data)
 		}
 	}, [data, loading])
-
-	useEffect(() => analytics.page(), [])
 
 	return (
 		<AlertsContextProvider

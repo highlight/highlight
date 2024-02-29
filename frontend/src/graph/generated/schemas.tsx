@@ -760,6 +760,13 @@ export type Invoice = {
 	url?: Maybe<Scalars['String']>
 }
 
+export type IssuesSearchResult = {
+	__typename?: 'IssuesSearchResult'
+	id: Scalars['String']
+	issue_url: Scalars['String']
+	title: Scalars['String']
+}
+
 export type JiraIssueType = {
 	__typename?: 'JiraIssueType'
 	description: Scalars['String']
@@ -1061,6 +1068,7 @@ export type Mutation = {
 	createAdmin: Admin
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
+	createErrorCommentForExistingIssue?: Maybe<ErrorComment>
 	createErrorSegment?: Maybe<ErrorSegment>
 	createErrorTag: ErrorTag
 	createIssueForErrorComment?: Maybe<ErrorComment>
@@ -1073,6 +1081,7 @@ export type Mutation = {
 	createSegment?: Maybe<Segment>
 	createSessionAlert?: Maybe<SessionAlert>
 	createSessionComment?: Maybe<SessionComment>
+	createSessionCommentWithExistingIssue?: Maybe<SessionComment>
 	createWorkspace?: Maybe<Workspace>
 	deleteAdminFromProject?: Maybe<Scalars['ID']>
 	deleteAdminFromWorkspace?: Maybe<Scalars['ID']>
@@ -1101,6 +1110,8 @@ export type Mutation = {
 	exportSession: Scalars['Boolean']
 	handleAWSMarketplace?: Maybe<Scalars['Boolean']>
 	joinWorkspace?: Maybe<Scalars['ID']>
+	linkIssueForErrorComment?: Maybe<ErrorComment>
+	linkIssueForSessionComment?: Maybe<SessionComment>
 	markErrorGroupAsViewed?: Maybe<ErrorGroup>
 	markSessionAsViewed?: Maybe<Session>
 	modifyClearbitIntegration?: Maybe<Scalars['Boolean']>
@@ -1191,6 +1202,21 @@ export type MutationCreateErrorCommentArgs = {
 	issue_team_id?: InputMaybe<Scalars['String']>
 	issue_title?: InputMaybe<Scalars['String']>
 	issue_type_id?: InputMaybe<Scalars['String']>
+	project_id: Scalars['ID']
+	tagged_admins: Array<InputMaybe<SanitizedAdminInput>>
+	tagged_slack_users: Array<InputMaybe<SanitizedSlackChannelInput>>
+	text: Scalars['String']
+	text_for_email: Scalars['String']
+}
+
+export type MutationCreateErrorCommentForExistingIssueArgs = {
+	author_name: Scalars['String']
+	error_group_secure_id: Scalars['String']
+	error_url: Scalars['String']
+	integrations: Array<InputMaybe<IntegrationType>>
+	issue_id: Scalars['String']
+	issue_title: Scalars['String']
+	issue_url: Scalars['String']
 	project_id: Scalars['ID']
 	tagged_admins: Array<InputMaybe<SanitizedAdminInput>>
 	tagged_slack_users: Array<InputMaybe<SanitizedSlackChannelInput>>
@@ -1289,6 +1315,28 @@ export type MutationCreateSessionCommentArgs = {
 	issue_team_id?: InputMaybe<Scalars['String']>
 	issue_title?: InputMaybe<Scalars['String']>
 	issue_type_id?: InputMaybe<Scalars['String']>
+	project_id: Scalars['ID']
+	session_image?: InputMaybe<Scalars['String']>
+	session_secure_id: Scalars['String']
+	session_timestamp: Scalars['Int']
+	session_url: Scalars['String']
+	tagged_admins: Array<InputMaybe<SanitizedAdminInput>>
+	tagged_slack_users: Array<InputMaybe<SanitizedSlackChannelInput>>
+	tags: Array<InputMaybe<SessionCommentTagInput>>
+	text: Scalars['String']
+	text_for_email: Scalars['String']
+	time: Scalars['Float']
+	x_coordinate: Scalars['Float']
+	y_coordinate: Scalars['Float']
+}
+
+export type MutationCreateSessionCommentWithExistingIssueArgs = {
+	additional_context?: InputMaybe<Scalars['String']>
+	author_name: Scalars['String']
+	integrations: Array<InputMaybe<IntegrationType>>
+	issue_id: Scalars['String']
+	issue_title?: InputMaybe<Scalars['String']>
+	issue_url: Scalars['String']
 	project_id: Scalars['ID']
 	session_image?: InputMaybe<Scalars['String']>
 	session_secure_id: Scalars['String']
@@ -1463,6 +1511,32 @@ export type MutationHandleAwsMarketplaceArgs = {
 
 export type MutationJoinWorkspaceArgs = {
 	workspace_id: Scalars['ID']
+}
+
+export type MutationLinkIssueForErrorCommentArgs = {
+	author_name: Scalars['String']
+	error_comment_id: Scalars['Int']
+	error_url: Scalars['String']
+	integrations: Array<InputMaybe<IntegrationType>>
+	issue_description?: InputMaybe<Scalars['String']>
+	issue_id: Scalars['String']
+	issue_title?: InputMaybe<Scalars['String']>
+	issue_url: Scalars['String']
+	project_id: Scalars['ID']
+	text_for_attachment: Scalars['String']
+}
+
+export type MutationLinkIssueForSessionCommentArgs = {
+	author_name: Scalars['String']
+	integrations: Array<InputMaybe<IntegrationType>>
+	issue_id: Scalars['String']
+	issue_title?: InputMaybe<Scalars['String']>
+	issue_url: Scalars['String']
+	project_id: Scalars['ID']
+	session_comment_id: Scalars['Int']
+	session_url: Scalars['String']
+	text_for_attachment: Scalars['String']
+	time: Scalars['Float']
 }
 
 export type MutationMarkErrorGroupAsViewedArgs = {
@@ -1884,14 +1958,13 @@ export type Query = {
 	height_workspaces: Array<HeightWorkspace>
 	identifier_suggestion: Array<Scalars['String']>
 	integration_project_mappings: Array<IntegrationProjectMapping>
-	isBackendIntegrated?: Maybe<Scalars['Boolean']>
-	isIntegrated?: Maybe<Scalars['Boolean']>
 	isSessionPending?: Maybe<Scalars['Boolean']>
 	is_integrated_with: Scalars['Boolean']
 	is_project_integrated_with: Scalars['Boolean']
 	is_workspace_integrated_with: Scalars['Boolean']
 	jira_projects?: Maybe<Array<JiraProject>>
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
+	keys: Array<QueryKey>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	log_alert: LogAlert
@@ -1908,6 +1981,7 @@ export type Query = {
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
 	metric_tags: Array<Scalars['String']>
+	metrics: MetricsBuckets
 	metrics_timeline: Array<Maybe<DashboardPayload>>
 	microsoft_teams_channel_suggestions: Array<MicrosoftTeamsChannel>
 	network_histogram?: Maybe<CategoryHistogramPayload>
@@ -1927,6 +2001,7 @@ export type Query = {
 	referrers: Array<Maybe<ReferrerTablePayload>>
 	resources?: Maybe<Array<Maybe<Scalars['Any']>>>
 	saved_segments?: Maybe<Array<Maybe<SavedSegment>>>
+	search_issues: Array<IssuesSearchResult>
 	segments?: Maybe<Array<Maybe<Segment>>>
 	serverIntegration: IntegrationStatus
 	serviceByName?: Maybe<Service>
@@ -2206,6 +2281,7 @@ export type QueryEventsArgs = {
 }
 
 export type QueryExisting_Logs_TracesArgs = {
+	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
 	trace_ids: Array<Scalars['String']>
 }
@@ -2276,14 +2352,6 @@ export type QueryIntegration_Project_MappingsArgs = {
 	workspace_id: Scalars['ID']
 }
 
-export type QueryIsBackendIntegratedArgs = {
-	project_id: Scalars['ID']
-}
-
-export type QueryIsIntegratedArgs = {
-	project_id: Scalars['ID']
-}
-
 export type QueryIsSessionPendingArgs = {
 	session_secure_id: Scalars['String']
 }
@@ -2305,6 +2373,14 @@ export type QueryIs_Workspace_Integrated_WithArgs = {
 
 export type QueryJira_ProjectsArgs = {
 	workspace_id: Scalars['ID']
+}
+
+export type QueryKeysArgs = {
+	date_range: DateRangeRequiredInput
+	product_type: ProductType
+	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
+	type?: InputMaybe<KeyType>
 }
 
 export type QueryLinear_TeamsArgs = {
@@ -2397,6 +2473,20 @@ export type QueryMetric_TagsArgs = {
 	query?: InputMaybe<Scalars['String']>
 }
 
+export type QueryMetricsArgs = {
+	bucket_by: Scalars['String']
+	bucket_count?: InputMaybe<Scalars['Int']>
+	column: Scalars['String']
+	group_by: Array<Scalars['String']>
+	limit?: InputMaybe<Scalars['Int']>
+	limit_aggregator?: InputMaybe<MetricAggregator>
+	limit_column?: InputMaybe<Scalars['String']>
+	metric_types: Array<MetricAggregator>
+	params: QueryInput
+	product_type: ProductType
+	project_id: Scalars['ID']
+}
+
 export type QueryMetrics_TimelineArgs = {
 	metric_name: Scalars['String']
 	params: DashboardParamsInput
@@ -2476,6 +2566,12 @@ export type QueryResourcesArgs = {
 export type QuerySaved_SegmentsArgs = {
 	entity_type: SavedSegmentEntityType
 	project_id: Scalars['ID']
+}
+
+export type QuerySearch_IssuesArgs = {
+	integration_type: IntegrationType
+	project_id: Scalars['ID']
+	query: Scalars['String']
 }
 
 export type QuerySegmentsArgs = {
@@ -2757,9 +2853,9 @@ export enum ReservedErrorObjectKey {
 	Os = 'os',
 	Payload = 'payload',
 	RequestId = 'request_id',
+	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
 	ServiceVersion = 'service_version',
-	SessionSecureId = 'session_secure_id',
 	Source = 'source',
 	SpanId = 'span_id',
 	StackTrace = 'stackTrace',
@@ -2785,9 +2881,28 @@ export enum ReservedLogKey {
 }
 
 export enum ReservedSessionKey {
+	ActiveLength = 'active_length',
 	AppVersion = 'app_version',
+	BrowserName = 'browser_name',
+	BrowserVersion = 'browser_version',
+	City = 'city',
+	Country = 'country',
 	Environment = 'environment',
+	Fingerprint = 'fingerprint',
+	FirstTime = 'first_time',
+	HasErrors = 'has_errors',
+	HasRageClicks = 'has_rage_clicks',
+	Identified = 'identified',
+	Identifier = 'identifier',
+	Length = 'length',
+	Normalness = 'normalness',
+	OsName = 'os_name',
+	OsVersion = 'os_version',
+	PagesVisited = 'pages_visited',
+	Processed = 'processed',
+	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
+	Viewed = 'viewed',
 }
 
 export enum ReservedTraceKey {
