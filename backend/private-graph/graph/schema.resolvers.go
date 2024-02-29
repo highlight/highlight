@@ -5633,40 +5633,6 @@ func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectI
 	return r.WorkspaceAdmins(ctx, workspace.ID)
 }
 
-// IsIntegrated is the resolver for the isIntegrated field.
-func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, nil
-	}
-
-	firstSession := model.Session{}
-	err := r.DB.WithContext(ctx).Model(&model.Session{}).Where("project_id = ?", projectID).Take(&firstSession).Error
-	if e.Is(err, gorm.ErrRecordNotFound) {
-		return &model.F, nil
-	}
-	if err != nil {
-		return nil, e.Wrap(err, "error querying session for project")
-	}
-
-	return &model.T, nil
-}
-
-// IsBackendIntegrated is the resolver for the isBackendIntegrated field.
-func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) (*bool, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, nil
-	}
-	var count int64
-	err := r.DB.WithContext(ctx).Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&count).Error
-	if err != nil {
-		return nil, e.Wrap(err, "error getting projects with backend flag")
-	}
-	if count > 0 {
-		return &model.T, nil
-	}
-	return &model.F, nil
-}
-
 // ClientIntegration is the resolver for the clientIntegration field.
 func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
 	integration := &modelInputs.IntegrationStatus{

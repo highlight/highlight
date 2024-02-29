@@ -7,12 +7,11 @@ import {
 	useGetServerIntegrationQuery,
 	useGetTracesIntegrationQuery,
 	useGetWorkspaceAdminsQuery,
-	useIsIntegratedLazyQuery,
 } from '@graph/hooks'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 import { IntegrationStatus } from '@/graph/generated/schemas'
 
@@ -31,73 +30,6 @@ export const useIntegratedLocalStorage = (
 			resourceType: '',
 		},
 	)
-}
-
-export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
-	const { isLoggedIn, isAuthLoading } = useAuthContext()
-	const { projectId } = useNumericProjectId()
-	const [query, { data, loading }] = useIsIntegratedLazyQuery({
-		variables: { project_id: projectId! },
-		fetchPolicy: 'cache-and-network',
-	})
-	const [localStorageIntegrated, setLocalStorageIntegrated] = useLocalStorage(
-		`highlight-${projectId}-integrated`,
-		false,
-	)
-	const [integrated, setIntegrated] = useState<boolean | undefined>(undefined)
-	const [loadingState, setLoadingState] = useState(true)
-	const integratedRaw = data?.isIntegrated
-
-	useEffect(() => {
-		if (!isLoggedIn) return
-		if (!localStorageIntegrated) {
-			query()
-			const timer = setInterval(() => {
-				if (!integrated) {
-					query()
-				} else {
-					clearInterval(timer)
-				}
-			}, POLL_INTERVAL_MS)
-			return () => {
-				clearInterval(timer)
-			}
-		} else {
-			setLoadingState(false)
-			setIntegrated(localStorageIntegrated)
-		}
-	}, [integrated, localStorageIntegrated, query, isLoggedIn])
-
-	useEffect(() => {
-		if (integratedRaw !== undefined) {
-			setIntegrated(integratedRaw?.valueOf())
-			setLocalStorageIntegrated(integratedRaw?.valueOf() || false)
-			if (
-				localStorageIntegrated === false &&
-				integratedRaw?.valueOf() === true
-			) {
-				analytics.track('IntegratedProject', { id: projectId })
-			}
-		}
-	}, [
-		integratedRaw,
-		localStorageIntegrated,
-		projectId,
-		setLocalStorageIntegrated,
-	])
-
-	useEffect(() => {
-		if (loading === false) {
-			setLoadingState(false)
-		}
-	}, [loading])
-
-	// Assume that app is integrated if viewing session as guest and not loading
-	if (!isLoggedIn) {
-		return { integrated: !isAuthLoading, loading: isAuthLoading }
-	}
-
-	return { integrated: integrated || false, loading: loadingState }
 }
 
 export type LocalStorageIntegrationData = {

@@ -480,26 +480,6 @@ query GetEnhancedUserDetails($session_secure_id: String!) {
 	}
 }
 
-query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
-	workspace: workspace_for_project(project_id: $project_id) {
-		id
-		slack_channels
-	}
-	admins: workspace_admins_by_project_id(project_id: $project_id) {
-		admin {
-			id
-		}
-	}
-	isIntegrated(project_id: $project_id)
-	adminHasCreatedComment(admin_id: $admin_id)
-	projectHasViewedASession(project_id: $project_id) {
-		secure_id
-	}
-	admin {
-		slack_im_channel_id
-	}
-}
-
 mutation SendAdminWorkspaceInvite(
 	$workspace_id: ID!
 	$email: String!
@@ -1382,14 +1362,6 @@ query GetSavedSegments(
 			query
 		}
 	}
-}
-
-query IsIntegrated($project_id: ID!) {
-	isIntegrated(project_id: $project_id)
-}
-
-query IsBackendIntegrated($project_id: ID!) {
-	isBackendIntegrated(project_id: $project_id)
 }
 
 query GetClientIntegration($project_id: ID!) {
