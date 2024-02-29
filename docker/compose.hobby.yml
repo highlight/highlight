@@ -29,8 +29,6 @@ x-backend-env: &backend-env
         - IN_DOCKER
         - IN_DOCKER_GO
         - JIRA_CLIENT_ID
-        - JIRA_CLIENT_ID
-        - JIRA_CLIENT_SECRET
         - JIRA_CLIENT_SECRET
         - KAFKA_SERVERS
         - KAFKA_TOPIC
