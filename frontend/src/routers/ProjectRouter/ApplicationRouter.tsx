@@ -15,6 +15,7 @@ import React, { Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { RelatedResourcePanel } from '@/components/RelatedResourcePanel/RelatedResourcePanel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
@@ -37,67 +38,76 @@ const ApplicationRouter: React.FC = () => {
 	const { isLoggedIn } = useAuthContext()
 
 	return (
-		<Routes>
-			<Route
-				path="sessions/:session_secure_id?"
-				element={<PlayerPage />}
-			/>
+		<>
+			<Routes>
+				<Route
+					path="sessions/:session_secure_id?"
+					element={<PlayerPage />}
+				/>
 
-			<Route
-				path="errors/:error_secure_id?/:error_tab_key?/:error_object_id?"
-				element={<ErrorsV2 />}
-			/>
+				<Route
+					path="errors/:error_secure_id?/:error_tab_key?/:error_object_id?"
+					element={<ErrorsV2 />}
+				/>
 
-			{isLoggedIn || projectId === DEMO_PROJECT_ID ? (
-				<>
-					<Route path="traces" element={<TracesPage />}>
+				{isLoggedIn || projectId === DEMO_PROJECT_ID ? (
+					<>
+						<Route path="traces" element={<TracesPage />}>
+							<Route
+								path=":trace_id/:span_id?"
+								element={<TracePanel />}
+							/>
+						</Route>
 						<Route
-							path=":trace_id/:span_id?"
-							element={<TracePanel />}
+							path="logs/:log_cursor?"
+							element={<LogsPage />}
 						/>
-					</Route>
-					<Route path="logs/:log_cursor?" element={<LogsPage />} />
-					<Route path="settings/*" element={<SettingsRouter />} />
-					<Route path="alerts/*" element={<AlertsRouter />} />
-					<Route path="alerts/logs/*" element={<LogAlertsRouter />} />
+						<Route path="settings/*" element={<SettingsRouter />} />
+						<Route path="alerts/*" element={<AlertsRouter />} />
+						<Route
+							path="alerts/logs/*"
+							element={<LogAlertsRouter />}
+						/>
 
-					<Route path="setup/*" element={<SetupRouter />} />
+						<Route path="setup/*" element={<SetupRouter />} />
 
-					<Route
-						path="integrations/*"
-						element={<IntegrationsPage />}
-					/>
-					<Route
-						path="buttons/*"
-						element={
-							<Suspense fallback={null}>
-								<Buttons />
-							</Suspense>
-						}
-					/>
-					<Route
-						path="canvas/*"
-						element={
-							<Suspense fallback={null}>
-								<CanvasPage />
-							</Suspense>
-						}
-					/>
-					<Route
-						path="hit-targets/*"
-						element={
-							<Suspense fallback={null}>
-								<HitTargets />
-							</Suspense>
-						}
-					/>
+						<Route
+							path="integrations/*"
+							element={<IntegrationsPage />}
+						/>
+						<Route
+							path="buttons/*"
+							element={
+								<Suspense fallback={null}>
+									<Buttons />
+								</Suspense>
+							}
+						/>
+						<Route
+							path="canvas/*"
+							element={
+								<Suspense fallback={null}>
+									<CanvasPage />
+								</Suspense>
+							}
+						/>
+						<Route
+							path="hit-targets/*"
+							element={
+								<Suspense fallback={null}>
+									<HitTargets />
+								</Suspense>
+							}
+						/>
 
-					<Route path="*" element={<DashboardsRouter />} />
-				</>
-			) : (
-				<Route path="*" element={<SignInRedirect />} />
-			)}
-		</Routes>
+						<Route path="*" element={<DashboardsRouter />} />
+					</>
+				) : (
+					<Route path="*" element={<SignInRedirect />} />
+				)}
+			</Routes>
+			<RelatedResourcePanel />
+		</>
 	)
 }
 

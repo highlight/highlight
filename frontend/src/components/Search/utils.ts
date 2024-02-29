@@ -60,6 +60,7 @@ export type SearchToken = {
 	text: string
 	start: number
 	stop: number
+	errorMessage?: string
 }
 
 export const groupTokens = (
