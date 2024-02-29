@@ -7409,15 +7409,45 @@ body {
 .u1xyjd5:hover {
   background: var(--_1pyqka91x);
 }
-.gw96js0 {
-  height: 40px;
+.dg2vg60 {
+  z-index: 2;
 }
-.gw96js1 {
+.dg2vg61 {
   width: 720px;
   height: 360px;
   margin: auto;
   z-index: 1;
   background-color: #fff;
+}
+.dg2vg63 {
+  left: -6px;
+  max-height: 72px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  overflow-y: auto;
+}
+.dg2vg64 {
+  border-radius: 50%;
+  margin: auto;
+  margin-right: 4px;
+  width: 8px;
+  height: 8px;
+}
+.dg2vg65 {
+  max-width: 145px;
+  text-align: left;
+}
+.dg2vg66 {
+  height: 16px;
+}
+.dg2vg67 {
+  line-height: 24px;
+}
+.gw96js0 {
+  height: 40px;
+}
+.gw96js1 {
+  z-index: 0;
 }
 .gw96js2 {
   width: 320px;
@@ -7428,6 +7458,9 @@ body {
 .gw96js4 {
   border: var(--_1pyqka9j) solid 1px;
   width: 100%;
+}
+.gw96js5 {
+  height: 28px;
 }
 .gw96js4 > div {
   width: 100%;

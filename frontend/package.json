@@ -65,7 +65,7 @@
 		"react-use": "^17.2.4",
 		"react-virtualized-auto-sizer": "^1.0.6",
 		"react-virtuoso": "^2.13.1",
-		"recharts": "^2.1.13",
+		"recharts": "^2.12.1",
 		"rudder-sdk-js": "2.20.0",
 		"subscriptions-transport-ws": "^0.11.0",
 		"use-query-params": "^2.2.0",

@@ -14,26 +14,33 @@ import { Divider } from 'antd'
 import moment from 'moment'
 import { PropsWithChildren, useState } from 'react'
 import { Helmet } from 'react-helmet'
+import { useDebounce, usePrevious } from 'react-use'
 
 import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import Switch from '@/components/Switch/Switch'
 import { useGetKeysQuery, useGetMetricsQuery } from '@/graph/generated/hooks'
 import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
-import Graph from '@/pages/Graphing/components/Graph'
-import { formatNumber } from '@/util/numbers'
+import Graph, {
+	LINE_DISPLAY,
+	LineDisplay,
+	NULL_HANDLING,
+	NullHandling,
+	View,
+	VIEWS,
+} from '@/pages/Graphing/components/Graph'
 
 import * as style from './GraphingEditor.css'
 
+const TIMESTAMP_KEY = 'Timestamp'
+const DEFAULT_BUCKET_COUNT = 50
+
 const PRODUCTS: ProductType[] = [
-	ProductType.Traces,
 	ProductType.Logs,
+	ProductType.Traces,
 	ProductType.Sessions,
 	ProductType.Errors,
 ]
-
-type View = 'Line chart' | 'Bar chart' | 'Pie chart' | 'Table' | 'List'
-const VIEWS: View[] = ['Line chart', 'Bar chart', 'Pie chart', 'Table', 'List']
 
 const FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.Count,
@@ -49,8 +56,44 @@ const FUNCTION_TYPES: MetricAggregator[] = [
 
 const SidebarSection = (props: PropsWithChildren) => {
 	return (
-		<Box p="12" width="full" display="flex" flexDirection="column" gap="4">
+		<Box p="12" width="full" display="flex" flexDirection="column" gap="12">
 			{props.children}
+		</Box>
+	)
+}
+
+const LabeledRow = ({
+	label,
+	name,
+	enabled,
+	setEnabled,
+	children,
+}: PropsWithChildren<{
+	label: string
+	name: string
+	enabled?: boolean
+	setEnabled?: (value: boolean) => void
+}>) => {
+	return (
+		<Box width="full" display="flex" flexDirection="column" gap="4">
+			<Box display="flex" flexDirection="row" gap="6">
+				<Label label={label} name={name} />
+				{setEnabled !== undefined && (
+					<Switch
+						trackingId={`${label}-switch`}
+						size="small"
+						checked={enabled}
+						onChange={(enabled) => {
+							setEnabled(enabled)
+						}}
+					/>
+				)}
+			</Box>
+			{enabled !== false ? (
+				<Box display="flex" flexDirection="row" gap="4">
+					{children}
+				</Box>
+			) : null}
 		</Box>
 	)
 }
@@ -126,52 +169,60 @@ const EditorBackground = () => {
 	)
 }
 
-const durationUnitMap: [number, string][] = [
-	[1, 'ns'],
-	[1000, 'µs'],
-	[1000, 'ms'],
-	[1000, 's'],
-	[60, 'm'],
-	[60, 'h'],
-	[24, 'd'],
-]
-
-const getFormatter = (metric: string) => {
-	if (metric === 'Timestamp') {
-		return (value: number) => moment(value * 1000).format('HH:mm')
-	} else if (metric === 'duration') {
-		return (value: number) => {
-			let lastUnit = 'ns'
-			for (const entry of durationUnitMap) {
-				if (value / entry[0] < 1) {
-					break
-				}
-				value /= entry[0]
-				lastUnit = entry[1]
-			}
-			return `${value.toFixed(0)}${lastUnit}`
-		}
-	} else {
-		return (value: number) => formatNumber(value)
-	}
-}
+const LineChartSettings = ({
+	nullHandling,
+	setNullHandling,
+	lineDisplay,
+	setLineDisplay,
+}: {
+	nullHandling: NullHandling
+	setNullHandling: (option: NullHandling) => void
+	lineDisplay: LineDisplay
+	setLineDisplay: (option: LineDisplay) => void
+}) => (
+	<>
+		<LabeledRow label="Line display" name="lineDisplay">
+			<OptionDropdown
+				options={LINE_DISPLAY}
+				selection={lineDisplay}
+				setSelection={setLineDisplay}
+			/>
+		</LabeledRow>
+		<LabeledRow label="Nulls" name="nullHandling">
+			<OptionDropdown
+				options={NULL_HANDLING}
+				selection={nullHandling}
+				setSelection={setNullHandling}
+			/>
+		</LabeledRow>
+	</>
+)
 
 export const GraphingEditor = () => {
 	const { projectId } = useProjectId()
-	// const [endDate] = useState(moment().toISOString())
-	// const [startDate] = useState(moment().subtract(4, 'hours').toISOString())
-
-	const endDate = '2024-02-14T03:17:31.153Z'
-	const startDate = '2024-02-13T18:28:20.296Z'
+	const [endDate] = useState(moment().toISOString())
+	const [startDate] = useState(moment().subtract(4, 'hours').toISOString())
+	// const endDate = '2024-02-14T03:17:31.153Z'
+	// const startDate = '2024-02-13T18:28:20.296Z'
 
 	const [productType, setProductType] = useState(PRODUCTS[0])
 	const [viewType, setViewType] = useState(VIEWS[0])
 	const [functionType, setFunctionType] = useState(FUNCTION_TYPES[0])
+	const [nullHandling, setNullHandling] = useState(NULL_HANDLING[0])
+	const [lineDisplay, setLineDisplay] = useState(LINE_DISPLAY[0])
 	const [query, setQuery] = useState('')
+	const [debouncedQuery, setDebouncedQuery] = useState('')
+	useDebounce(
+		() => {
+			setDebouncedQuery(query)
+		},
+		500,
+		[query],
+	)
+
 	const [metric, setMetric] = useState('')
 	const [metricViewTitle, setMetricViewTitle] = useState('')
 	const [groupByEnabled, setGroupByEnabled] = useState(false)
-	// const [groupByKeys, setGroupByKeys] = useState<string[]>([])
 	const [groupByKey, setGroupByKey] = useState('')
 
 	const [limitFunctionType, setLimitFunctionType] = useState(
@@ -180,9 +231,9 @@ export const GraphingEditor = () => {
 	const [limit, setLimit] = useState(10)
 	const [limitMetric, setLimitMetric] = useState('')
 
-	const [bucketByEnabled, setBucketByEnabled] = useState(true)
-	const [bucketByKey, setBucketByKey] = useState('Timestamp')
-	const [bucketCount, setBucketCount] = useState(50)
+	const [bucketByEnabled, setBucketByEnabled] = useState(false)
+	const [bucketByKey, setBucketByKey] = useState(TIMESTAMP_KEY)
+	const [bucketCount, setBucketCount] = useState(DEFAULT_BUCKET_COUNT)
 
 	const formStore = useFormStore({
 		defaultValues: {},
@@ -200,11 +251,10 @@ export const GraphingEditor = () => {
 		},
 	})
 
+	const allKeys = keys?.keys.map((k) => k.name) ?? []
 	const numericKeys =
 		keys?.keys.filter((k) => k.type === 'Numeric').map((k) => k.name) ?? []
-	const stringKeys =
-		keys?.keys.filter((k) => k.type === 'String').map((k) => k.name) ?? []
-	const bucketByKeys = ['Timestamp'].concat(numericKeys)
+	const bucketByKeys = [TIMESTAMP_KEY].concat(numericKeys)
 
 	const { data: metrics, loading: metricsLoading } = useGetMetricsQuery({
 		variables: {
@@ -215,28 +265,48 @@ export const GraphingEditor = () => {
 					start_date: startDate,
 					end_date: endDate,
 				},
-				query: query,
+				query: debouncedQuery,
 			},
 			column: metric,
 			metric_types: [functionType],
 			group_by: groupByEnabled ? [groupByKey] : [],
-			bucket_by: bucketByEnabled ? bucketByKey : 'Timestamp',
-			bucket_count: bucketCount,
+			bucket_by: bucketByEnabled ? bucketByKey : TIMESTAMP_KEY,
+			bucket_count: bucketByEnabled ? bucketCount : DEFAULT_BUCKET_COUNT,
 			limit: limit,
 			limit_aggregator: limitFunctionType,
 			limit_column: limitMetric,
 		},
 	})
 
-	const data = metrics?.metrics.buckets.map((b) => {
-		const seriesKey = [functionType as string].concat(b.group).join(' ')
-		return {
-			xAxis: (b.bucket_min + b.bucket_max) / 2,
-			[seriesKey]: b.metric_value,
-		}
-	})
+	// Retain previous data - in case of loading, keep returning old data
+	let metricsToUse = usePrevious(metrics)
+	if (metrics !== undefined) {
+		metricsToUse = metrics
+	}
 
-	console.log('data', data)
+	let data: any[] | undefined
+	if (metricsToUse?.metrics.buckets) {
+		data = []
+		for (let i = 0; i < bucketCount; i++) {
+			data.push({})
+		}
+
+		const seriesKeys = new Set<string>()
+		for (const b of metricsToUse.metrics.buckets) {
+			const seriesKey = b.group.join(' ')
+			seriesKeys.add(seriesKey)
+			data[b.bucket_id][bucketByKey] = (b.bucket_min + b.bucket_max) / 2
+			data[b.bucket_id][seriesKey] = b.metric_value
+		}
+
+		if (nullHandling === 'Zero') {
+			for (let i = 0; i < bucketCount; i++) {
+				for (const key of seriesKeys) {
+					data[i][key] = data[i][key] ?? 0
+				}
+			}
+		}
+	}
 
 	return (
 		<>
@@ -300,30 +370,27 @@ export const GraphingEditor = () => {
 							width="full"
 							height="full"
 						>
-							<Box position="absolute" width="full" height="full">
+							<Box
+								position="absolute"
+								width="full"
+								height="full"
+								cssClass={style.graphBackground}
+							>
 								<EditorBackground />
 							</Box>
-							<Box
-								display="flex"
-								cssClass={style.graphWrapper}
-								shadow="small"
-							>
-								{data && (
-									<Graph
-										data={data}
-										chartLabel={metricViewTitle}
-										xAxisKey="xAxis"
-										strokeColor="#000000"
-										fillColor="#555555"
-										xAxisTickFormatter={getFormatter(
-											bucketByKey,
-										)}
-										yAxisTickFormatter={getFormatter(
-											metric,
-										)}
-									/>
-								)}
-							</Box>
+
+							<Graph
+								data={data}
+								loading={metricsLoading}
+								title={metricViewTitle}
+								xAxisMetric={bucketByKey}
+								yAxisMetric={metric}
+								viewConfig={{
+									type: 'Line chart',
+									display: lineDisplay,
+									nullHandling: nullHandling,
+								}}
+							/>
 						</Box>
 						<Box
 							display="flex"
@@ -336,46 +403,60 @@ export const GraphingEditor = () => {
 								className={style.editGraphSidebar}
 							>
 								<SidebarSection>
-									<Label
+									<LabeledRow
 										label="Metric view title"
 										name="title"
-									/>
-									<Input
-										type="text"
-										name="title"
-										placeholder="Enter name displayed as the title"
-										value={metricViewTitle}
-										onChange={(e) => {
-											setMetricViewTitle(e.target.value)
-										}}
-									/>
+									>
+										<Input
+											type="text"
+											name="title"
+											placeholder="Enter name displayed as the title"
+											value={metricViewTitle}
+											onChange={(e) => {
+												setMetricViewTitle(
+													e.target.value,
+												)
+											}}
+											cssClass={style.input}
+										/>
+									</LabeledRow>
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
-									<Label label="Source" name="source" />
-									<OptionDropdown<ProductType>
-										options={PRODUCTS}
-										selection={productType}
-										setSelection={setProductType}
-									/>
+									<LabeledRow label="Source" name="source">
+										<OptionDropdown<ProductType>
+											options={PRODUCTS}
+											selection={productType}
+											setSelection={setProductType}
+										/>
+									</LabeledRow>
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
-									<Label label="View type" name="viewType" />
-									<OptionDropdown<View>
-										options={VIEWS}
-										selection={viewType}
-										setSelection={setViewType}
-									/>
+									<LabeledRow
+										label="View type"
+										name="viewType"
+									>
+										<OptionDropdown<View>
+											options={VIEWS}
+											selection={viewType}
+											setSelection={setViewType}
+										/>
+									</LabeledRow>
+									{viewType === 'Line chart' && (
+										<LineChartSettings
+											nullHandling={nullHandling}
+											setNullHandling={setNullHandling}
+											lineDisplay={lineDisplay}
+											setLineDisplay={setLineDisplay}
+										/>
+									)}
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
-									<Label label="Function" name="function" />
-									<Box
-										display="flex"
-										flexDirection="row"
-										gap="4"
-										marginBottom="8"
+									<LabeledRow
+										label="Function"
+										name="function"
 									>
 										<OptionDropdown<MetricAggregator>
 											options={FUNCTION_TYPES}
@@ -390,156 +471,105 @@ export const GraphingEditor = () => {
 												setSelection={setMetric}
 											/>
 										)}
-									</Box>
-									<Label label="Filters" name="query" />
-									<Input
-										type="text"
-										name="query"
-										placeholder="Enter search filters"
-										value={query}
-										onChange={(e) => {
-											setQuery(e.target.value)
-										}}
-									/>
+									</LabeledRow>
+									<LabeledRow label="Filters" name="query">
+										<Input
+											type="text"
+											name="query"
+											placeholder="Enter search filters"
+											value={query}
+											onChange={(e) => {
+												setQuery(e.target.value)
+											}}
+											cssClass={style.input}
+										/>
+									</LabeledRow>
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
-									<Box
-										display="flex"
-										flexDirection="row"
-										gap="6"
+									<LabeledRow
+										label="Group by"
+										name="groupBy"
+										enabled={groupByEnabled}
+										setEnabled={setGroupByEnabled}
 									>
-										<Label
-											label="Group by"
-											name="groupBy"
+										<OptionDropdown<string>
+											options={allKeys}
+											selection={groupByKey}
+											setSelection={setGroupByKey}
 										/>
-										<Switch
-											trackingId="groupByEnabled"
-											size="small"
-											checked={groupByEnabled}
-											onChange={(enabled) => {
-												setGroupByEnabled(enabled)
-											}}
-										/>
-									</Box>
+									</LabeledRow>
 									{groupByEnabled && (
-										<>
-											<Box marginBottom="8">
-												<OptionDropdown<string>
-													options={stringKeys}
-													selection={groupByKey}
-													setSelection={setGroupByKey}
-												/>
-											</Box>
-											<Box
-												display="flex"
-												flexDirection="row"
-												gap="4"
+										<Box
+											display="flex"
+											flexDirection="row"
+											gap="4"
+										>
+											<LabeledRow
+												label="Limit"
+												name="limit"
 											>
-												<Box
-													display="flex"
-													flexDirection="column"
-													gap="4"
-												>
-													<Label
-														label="Limit"
-														name="limit"
+												<Input
+													type="number"
+													name="limit"
+													placeholder="Enter limit"
+													value={limit}
+													onChange={(e) => {
+														setLimit(
+															Number(
+																e.target.value,
+															),
+														)
+													}}
+													cssClass={style.input}
+												/>
+											</LabeledRow>
+											<LabeledRow
+												label="By"
+												name="limitBy"
+											>
+												<OptionDropdown<MetricAggregator>
+													options={FUNCTION_TYPES}
+													selection={
+														limitFunctionType
+													}
+													setSelection={
+														setLimitFunctionType
+													}
+												/>
+												{limitFunctionType !==
+													MetricAggregator.Count && (
+													<OptionDropdown<string>
+														options={numericKeys}
+														selection={limitMetric}
+														setSelection={
+															setLimitMetric
+														}
 													/>
-													<Input
-														type="number"
-														name="limit"
-														placeholder="Enter limit"
-														value={limit}
-														onChange={(e) => {
-															setLimit(
-																Number(
-																	e.target
-																		.value,
-																),
-															)
-														}}
-													/>
-												</Box>
-												<Box
-													display="flex"
-													flexDirection="column"
-													gap="4"
-												>
-													<Label
-														label="By"
-														name="limitBy"
-													/>
-													<Box
-														display="flex"
-														flexDirection="row"
-														gap="4"
-													>
-														<OptionDropdown<MetricAggregator>
-															options={
-																FUNCTION_TYPES
-															}
-															selection={
-																limitFunctionType
-															}
-															setSelection={
-																setLimitFunctionType
-															}
-														/>
-														{limitFunctionType !==
-															MetricAggregator.Count && (
-															<OptionDropdown<string>
-																options={
-																	numericKeys
-																}
-																selection={
-																	limitMetric
-																}
-																setSelection={
-																	setLimitMetric
-																}
-															/>
-														)}
-													</Box>
-												</Box>
-											</Box>
-										</>
+												)}
+											</LabeledRow>
+										</Box>
 									)}
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
-									<Box
-										display="flex"
-										flexDirection="row"
-										gap="6"
+									<LabeledRow
+										label="Bucket by"
+										name="bucketBy"
+										enabled={bucketByEnabled}
+										setEnabled={setBucketByEnabled}
 									>
-										<Label
-											label="Bucket by"
-											name="bucketBy"
+										<OptionDropdown<string>
+											options={bucketByKeys}
+											selection={bucketByKey}
+											setSelection={setBucketByKey}
 										/>
-										<Switch
-											trackingId="bucketByEnabled"
-											size="small"
-											checked={bucketByEnabled}
-											onChange={(enabled) => {
-												setBucketByEnabled(enabled)
-											}}
-										/>
-									</Box>
+									</LabeledRow>
 									{bucketByEnabled && (
-										<>
-											<Box marginBottom="8">
-												<OptionDropdown<string>
-													options={bucketByKeys}
-													selection={bucketByKey}
-													setSelection={
-														setBucketByKey
-													}
-												/>
-											</Box>
-											<Label
-												label="Buckets"
-												name="bucketCount"
-											/>
+										<LabeledRow
+											label="Buckets"
+											name="bucketCount"
+										>
 											<Input
 												type="number"
 												name="bucketCount"
@@ -550,8 +580,9 @@ export const GraphingEditor = () => {
 														Number(e.target.value),
 													)
 												}}
+												cssClass={style.input}
 											/>
-										</>
+										</LabeledRow>
 									)}
 								</SidebarSection>
 							</Form>

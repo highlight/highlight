@@ -5,12 +5,8 @@ export const editGraphHeader = style({
 	height: 40,
 })
 
-export const graphWrapper = style({
-	width: 720,
-	height: 360,
-	margin: 'auto',
-	zIndex: 1,
-	backgroundColor: '#fff',
+export const graphBackground = style({
+	zIndex: 0,
 })
 
 export const editGraphSidebar = style({
@@ -24,6 +20,10 @@ export const editorLabel = style({
 export const menuButton = style({
 	border: vars.border.divider,
 	width: '100%',
+})
+
+export const input = style({
+	height: 28,
 })
 
 globalStyle(`${menuButton} > div`, {
