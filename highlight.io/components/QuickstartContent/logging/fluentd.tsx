@@ -52,6 +52,24 @@ export const FluentForwardContent: QuickStartContent = {
 			],
 		},
 		{
+			title: '(Optional) Configure Fluent Forward over TLS.',
+			content:
+				'If you want to transfer data over a secure TLS connection, change the `[OUTPUT]` to the following (using port 24284)',
+			code: [
+				{
+					text: `[OUTPUT]
+    Name                forward
+    Match               *
+    Host                otel.highlight.io
+    Port                24284
+    tls                 on
+    tls.verify          on
+`,
+					language: 'yaml',
+				},
+			],
+		},
+		{
 			title: 'Setting up for AWS ECS?',
 			content:
 				'If you are setting up for AWS Elastic Container Services, check out our dedicated [docs for AWS ECS.](/docs/getting-started/backend-logging/hosting/aws#aws-ecs-containers) .',
