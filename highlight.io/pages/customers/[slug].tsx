@@ -235,7 +235,8 @@ const CustomerPage = ({
 												author={`${author.firstName} ${author.lastName}`}
 												role={author.title}
 												authorAvatar={
-													author.profilePhoto.url
+													author.profilePhoto?.url ||
+													''
 												}
 											/>
 										)

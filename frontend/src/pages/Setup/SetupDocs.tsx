@@ -11,12 +11,13 @@ import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import { Header } from '@pages/Setup/Header'
 import analytics from '@util/analytics'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { GetBaseURL } from '@util/window'
 import clsx from 'clsx'
 import { QuickStartContent, quickStartContent } from 'highlight.io'
 import * as React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { useMatch } from 'react-router-dom'
+
+import { PUBLIC_GRAPH_URI } from '@/constants'
 
 import * as styles from './SetupDocs.css'
 
@@ -66,7 +67,7 @@ export const SetupDocs: React.FC<Props> = ({ projectVerboseId }) => {
 										text = text.replace(
 											/(\s*)networkRecording/,
 											(a, b) =>
-												`${b}backendUrl: "${GetBaseURL()}/public",` +
+												`${b}backendUrl: "${PUBLIC_GRAPH_URI}",` +
 												`${b}networkRecording`,
 										)
 									}

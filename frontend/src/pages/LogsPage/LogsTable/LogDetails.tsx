@@ -424,7 +424,8 @@ export const LogValue: React.FC<{
 	queryParts: SearchExpression[]
 	queryKey: string
 	queryMatch?: string
-}> = ({ label, queryKey, queryParts, value, queryMatch }) => {
+	hideActions?: boolean
+}> = ({ label, queryKey, queryParts, value, queryMatch, hideActions }) => {
 	const [_, setQuery] = useQueryParam('query', QueryParam)
 
 	// replace wildcards for highlighting.
@@ -461,82 +462,84 @@ export const LogValue: React.FC<{
 						)}
 					</Text>
 				</Box>
-				<Box cssClass={styles.attributeActions}>
-					<Box>
-						<Tooltip
-							trigger={
-								<IconSolidFilter
-									className={styles.attributeAction}
-									size="12"
-									onClick={() => {
-										if (!queryParts) {
-											return
-										}
+				{!hideActions && (
+					<Box cssClass={styles.attributeActions}>
+						<Box>
+							<Tooltip
+								trigger={
+									<IconSolidFilter
+										className={styles.attributeAction}
+										size="12"
+										onClick={() => {
+											if (!queryParts) {
+												return
+											}
 
-										const index = queryParts.findIndex(
-											(term) => term.key === queryKey,
-										)
+											const index = queryParts.findIndex(
+												(term) => term.key === queryKey,
+											)
 
-										if (index !== -1) {
-											queryParts[index].value = value
-										}
+											if (index !== -1) {
+												queryParts[index].value = value
+											}
 
-										let newQuery =
-											stringifySearchQuery(queryParts)
+											let newQuery =
+												stringifySearchQuery(queryParts)
 
-										if (index === -1) {
-											newQuery += ` ${queryKey}${DEFAULT_OPERATOR}${quoteQueryValue(
-												value,
-											)}`
+											if (index === -1) {
+												newQuery += ` ${queryKey}${DEFAULT_OPERATOR}${quoteQueryValue(
+													value,
+												)}`
 
-											newQuery = newQuery.trim()
-										}
+												newQuery = newQuery.trim()
+											}
 
-										setQuery(newQuery)
-										analytics.track(
-											'logs_apply-filter_click',
-										)
-									}}
-								/>
-							}
-							delayed
-						>
-							<Box p="4">
-								<Text userSelect="none" color="n11">
-									Apply as filter
-								</Text>
-							</Box>
-						</Tooltip>
+											setQuery(newQuery)
+											analytics.track(
+												'logs_apply-filter_click',
+											)
+										}}
+									/>
+								}
+								delayed
+							>
+								<Box p="4">
+									<Text userSelect="none" color="n11">
+										Apply as filter
+									</Text>
+								</Box>
+							</Tooltip>
+						</Box>
+						<Box>
+							<Tooltip
+								trigger={
+									<IconSolidClipboardCopy
+										className={styles.attributeAction}
+										size="12"
+										onClick={() => {
+											navigator.clipboard.writeText(
+												quoteQueryValue(value),
+											)
+											antdMessage.success(
+												'Value copied to your clipboard',
+											)
+											analytics.track(
+												'logs_copy-to-clipboard_click',
+											)
+										}}
+									/>
+								}
+								delayed
+							>
+								<Box p="4">
+									<Text userSelect="none" color="n11">
+										Copy to your clipboard
+									</Text>
+								</Box>
+							</Tooltip>
+						</Box>
 					</Box>
-					<Box>
-						<Tooltip
-							trigger={
-								<IconSolidClipboardCopy
-									className={styles.attributeAction}
-									size="12"
-									onClick={() => {
-										navigator.clipboard.writeText(
-											quoteQueryValue(value),
-										)
-										antdMessage.success(
-											'Value copied to your clipboard',
-										)
-										analytics.track(
-											'logs_copy-to-clipboard_click',
-										)
-									}}
-								/>
-							}
-							delayed
-						>
-							<Box p="4">
-								<Text userSelect="none" color="n11">
-									Copy to your clipboard
-								</Text>
-							</Box>
-						</Tooltip>
-					</Box>
-				</Box>
+				)}
 			</Box>
 		</LogAttributeLine>
 	)

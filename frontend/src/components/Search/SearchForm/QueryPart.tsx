@@ -1,4 +1,5 @@
 import {
+	Ariakit,
 	Box,
 	IconSolidExclamationCircle,
 	IconSolidXCircle,
@@ -14,20 +15,32 @@ import { SearchToken } from '@/components/Search/utils'
 import * as styles from './SearchForm.css'
 
 export const QueryPart: React.FC<{
+	comboboxStore: Ariakit.ComboboxStore
 	cursorIndex: number
 	index: number
 	tokenGroup: TokenGroup
 	showValues: boolean
 	onRemoveItem: (index: number) => void
-}> = ({ cursorIndex, index, tokenGroup, showValues, onRemoveItem }) => {
+}> = ({
+	comboboxStore,
+	cursorIndex,
+	index,
+	tokenGroup,
+	showValues,
+	onRemoveItem,
+}) => {
+	const typeaheadOpen = comboboxStore.useState('open')
 	const active =
-		cursorIndex >= tokenGroup.start && cursorIndex <= tokenGroup.stop + 1
+		typeaheadOpen &&
+		cursorIndex >= tokenGroup.start &&
+		cursorIndex <= tokenGroup.stop + 1
 	const errorToken = tokenGroup.tokens.find(
 		(token) => (token as any).errorMessage !== undefined,
 	)
 	const error = errorToken
 		? errorMessageForToken(errorToken, showValues)
 		: undefined
+	const isExpression = tokenGroup.type === 'expression'
 
 	if (
 		tokenGroup.tokens.length === 1 &&
@@ -36,14 +49,13 @@ export const QueryPart: React.FC<{
 		return null
 	}
 
-	if (tokenGroup.type !== 'expression') {
+	if (tokenGroup.type === 'separator') {
 		return (
 			<>
 				{tokenGroup.tokens.map((token, index) => {
-					const { text } = token
-					const key = `${text}-${index}`
-
-					return <Token key={key} text={text} />
+					return (
+						<Token key={`${token.text}-${index}`} token={token} />
+					)
 				})}
 			</>
 		)
@@ -52,43 +64,53 @@ export const QueryPart: React.FC<{
 	return (
 		<>
 			<Tooltip
-				placement="bottom"
+				placement="top-start"
 				open={active && !!error}
+				maxWidth={600}
+				shift={-3}
 				trigger={
 					<Box
-						cssClass={clsx(styles.comboboxTag, {
-							[styles.comboboxTagActive]: active,
+						cssClass={clsx({
+							[styles.comboboxTag]: isExpression,
+							[styles.comboboxTagActive]: active && isExpression,
 							[styles.comboboxTagError]: !!error,
 						})}
-						py="6"
+						py="7"
 						position="relative"
 						whiteSpace="nowrap"
+						display="inline-flex"
 					>
 						<IconSolidXCircle
 							className={styles.comboboxTagClose}
 							size={13}
 							onClick={() => onRemoveItem(index)}
+							style={{ cursor: 'pointer' }}
 						/>
 
 						{error && (
 							<IconSolidExclamationCircle
 								className={styles.comboboxTagErrorIndicator}
 								size={13}
+								style={{ cursor: 'pointer' }}
 							/>
 						)}
 
 						{tokenGroup.tokens.map((token, index) => {
-							const { text, type } = token
-							const key = `${text}-${index}`
-
-							if (type === SearchGrammarParser.EOF) {
+							if (token.type === SearchGrammarParser.EOF) {
 								return null
 							}
 
-							return <Token key={key} text={text} />
+							return (
+								<Token
+									key={`${token.text}-${index}`}
+									token={token}
+								/>
+							)
 						})}
 
-						<Box cssClass={styles.comboboxTagBackground} />
+						{isExpression && (
+							<Box cssClass={styles.comboboxTagBackground} />
+						)}
 					</Box>
 				}
 			>
@@ -102,14 +124,28 @@ export const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
 	name?.replaceAll("'", ''),
 )
 
-export const Token = ({ text }: { text: string }): JSX.Element => {
-	const cssClass = text.trim() === '' ? styles.whitspaceTag : ''
+export const Token = ({ token }: { token: SearchToken }): JSX.Element => {
+	const { errorMessage, text } = token
 
 	if (SEPARATORS.includes(text.toUpperCase())) {
-		return <Box style={{ color: '#E93D82', zIndex: 1 }}>{text}</Box>
+		return (
+			<Box
+				cssClass={clsx(styles.token, {
+					[styles.errorToken]: !!errorMessage,
+				})}
+				style={{ color: '#E93D82', zIndex: 1 }}
+			>
+				{text}
+			</Box>
+		)
 	} else {
 		return (
-			<Box style={{ zIndex: 1 }} cssClass={cssClass}>
+			<Box
+				style={{ zIndex: 1 }}
+				cssClass={clsx(styles.token, {
+					[styles.whitspaceToken]: text.trim() === '',
+				})}
+			>
 				{text}
 			</Box>
 		)
@@ -124,8 +160,11 @@ const ErrorRenderer: React.FC<{ error: string }> = ({ error }) => {
 	)
 }
 
+const OPERATOR_CHARACTERS = ['!', '<', '>', '=', ':']
+const AND_OR_CHARACTERS = ['AND', 'OR']
+
 const errorMessageForToken = (
-	token: SearchToken & { errorMessage?: string },
+	token: SearchToken,
 	showValues: boolean,
 ): string | undefined => {
 	if (!token || token.type === SearchGrammarParser.EOF) {
@@ -137,13 +176,32 @@ const errorMessageForToken = (
 		return undefined
 	}
 
-	if (error.endsWith("expecting ')'") || error.startsWith("missing ')'")) {
-		error = 'Missing closing parenthesis'
+	if (
+		OPERATOR_CHARACTERS.some(
+			(char) =>
+				error!.startsWith(`extraneous input '${char}'`) ||
+				error!.startsWith(`mismatched input '${char}'`),
+		)
+	) {
+		error = 'Operators must be wrapped in quotes.'
+	} else if (
+		AND_OR_CHARACTERS.some(
+			(char) =>
+				error!.startsWith(`extraneous input '${char}'`) ||
+				error!.startsWith(`mismatched input '${char}'`),
+		)
+	) {
+		error = `AND and OR must be used between expressions.`
+	} else if (
+		error.endsWith("expecting ')'") ||
+		error.startsWith("missing ')'")
+	) {
+		error = 'Missing closing parenthesis.'
 	} else if (
 		error.startsWith("mismatched input '\"'") ||
 		error.startsWith("extraneous input '\"' expecting")
 	) {
-		error = 'Missing closing quote'
+		error = 'Missing closing quote.'
 	} else if (
 		(error.startsWith('mismatched input') ||
 			error.startsWith('extraneous input')) &&

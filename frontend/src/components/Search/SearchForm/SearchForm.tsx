@@ -79,10 +79,14 @@ const MAX_ITEMS = 25
 const EXISTS_OPERATORS = ['EXISTS', 'NOT EXISTS'] as const
 const NUMERIC_OPERATORS = ['>', '>=', '<', '<='] as const
 const BOOLEAN_OPERATORS = ['=', '!='] as const
+const CONTAINS_OPERATOR = ['=**', '!=**'] as const
+const MATCHES_OPERATOR = ['=//', '!=//'] as const
 export const SEARCH_OPERATORS = [
 	...BOOLEAN_OPERATORS,
 	...NUMERIC_OPERATORS,
 	...EXISTS_OPERATORS,
+	...CONTAINS_OPERATOR,
+	...MATCHES_OPERATOR,
 ] as const
 export type SearchOperator = typeof SEARCH_OPERATORS[number]
 
@@ -276,7 +280,7 @@ export const Search: React.FC<{
 	const [isPending, startTransition] = React.useTransition()
 
 	const { queryParts, tokens } = parseSearch(query)
-	const tokenGroups = buildTokenGroups(tokens, queryParts, query)
+	const tokenGroups = buildTokenGroups(tokens)
 	const activePart = getActivePart(cursorIndex, queryParts)
 	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
 		activePart.value,
@@ -305,7 +309,12 @@ export const Search: React.FC<{
 		const operators =
 			keyMatch.type === 'Numeric'
 				? [...NUMERIC_OPERATORS, ...EXISTS_OPERATORS]
-				: [...BOOLEAN_OPERATORS, ...EXISTS_OPERATORS]
+				: [
+						...BOOLEAN_OPERATORS,
+						...EXISTS_OPERATORS,
+						...CONTAINS_OPERATOR,
+						...MATCHES_OPERATOR,
+				  ]
 
 		visibleItems = operators.map((operator) => ({
 			name: operator,
@@ -325,7 +334,7 @@ export const Search: React.FC<{
 
 	const handleSetCursorIndex = () => {
 		if (!isPending) {
-			setCursorIndex(inputRef.current?.selectionStart || query.length)
+			setCursorIndex(inputRef.current?.selectionStart ?? query.length)
 		}
 	}
 
@@ -423,10 +432,20 @@ export const Search: React.FC<{
 
 	const handleItemSelect = (item: SearchResult) => {
 		const isValueSelect = item.type === 'Value'
+		let cursorShift = 0
 
 		if (item.type === 'Operator') {
 			const isExists = !!EXISTS_OPERATORS.find((eo) => eo === item.name)
 			const space = isExists ? ' ' : ''
+
+			const isContainsOrMatches = !![
+				...CONTAINS_OPERATOR,
+				...MATCHES_OPERATOR,
+			].find((o) => o === item.name)
+			if (isContainsOrMatches) {
+				cursorShift = -1
+			}
+
 			const key =
 				activePart.key === BODY_KEY ? activePart.text : activePart.key
 
@@ -445,7 +464,7 @@ export const Search: React.FC<{
 		}
 
 		const newQuery = stringifySearchQuery(queryParts)
-		const newCursorPosition = activePart.stop
+		const newCursorPosition = activePart.stop + cursorShift
 
 		startTransition(() => {
 			setQuery(newQuery)
@@ -527,6 +546,7 @@ export const Search: React.FC<{
 						return (
 							<Fragment key={index}>
 								<QueryPart
+									comboboxStore={comboboxStore}
 									cursorIndex={cursorIndex}
 									index={index}
 									tokenGroup={tokenGroup}
@@ -694,8 +714,12 @@ export const Search: React.FC<{
 											value={key.name}
 											hideOnClick={false}
 											setValueOnClick={false}
+											title={key.name}
 										>
-											<Text color="secondaryContentText">
+											<Text
+												color="secondaryContentText"
+												lines="1"
+											>
 												{key.name}
 											</Text>
 											{badgeText && (
@@ -796,13 +820,18 @@ const getActivePart = (
 	})
 
 	if (activePartIndex === undefined) {
+		const lastPartStop = Math.max(
+			queryParts[queryParts.length - 1]?.stop + 1,
+			cursorIndex,
+		)
+
 		const activePart = {
 			key: BODY_KEY,
 			operator: DEFAULT_OPERATOR,
 			value: '',
 			text: '',
-			start: 1,
-			stop: 1,
+			start: lastPartStop,
+			stop: lastPartStop,
 		}
 		queryParts.push(activePart)
 		return activePart
@@ -875,6 +904,14 @@ const getSearchResultBadgeText = (key: SearchResult) => {
 				return 'exists'
 			case 'NOT EXISTS':
 				return 'does not exist'
+			case '=**':
+				return 'contains'
+			case '!=**':
+				return 'does not contain'
+			case '=//':
+				return 'matches'
+			case '!=//':
+				return 'does not match'
 		}
 	} else if (key.type === 'Value') {
 		return undefined

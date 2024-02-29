@@ -8,7 +8,7 @@ import {
 	stringifySearchQuery,
 } from './utils'
 
-const complexQueryString = `  name:"Eric Thomas" workspace:'Chilly McWilly'  project_id:9 freetext query`
+const complexQueryString = `name:"Eric Thomas" workspace:'Chilly McWilly'  project_id:9 freetext query`
 const complexQueryParams: SearchExpression[] = [
 	{
 		key: 'name',
@@ -104,8 +104,8 @@ describe('buildTokenGroups', () => {
 	it('builds token groups correctly', () => {
 		const queryString =
 			' service_name=(private-graph  OR public-graph) AND span_name!=gorm.Query asdf fdsa '
-		const { tokens, queryParts } = parseSearch(queryString)
-		const tokenGroups = buildTokenGroups(tokens, queryParts, queryString)
+		const { tokens } = parseSearch(queryString)
+		const tokenGroups = buildTokenGroups(tokens)
 		const tokenGroupStrings = tokenGroups.map((group) =>
 			group.tokens.map((token) => token.text).join(''),
 		)
@@ -122,25 +122,32 @@ describe('buildTokenGroups', () => {
 			' ',
 			'fdsa',
 			' ',
-			'<EOF>',
 		])
 	})
 
 	it('handles AND and OR correctly', () => {
 		const queryString =
 			'service_name=private-graph AND span_name!=gorm.Query'
-		const { tokens, queryParts } = parseSearch(queryString)
-		const tokenGroups = buildTokenGroups(tokens, queryParts, queryString)
+		const { tokens } = parseSearch(queryString)
+		const tokenGroups = buildTokenGroups(tokens)
 		const tokenGroupStrings = tokenGroups.map((group) =>
 			group.tokens.map((token) => token.text).join(''),
 		)
+
+		expect(tokenGroups.map((group) => group.type)).toEqual([
+			'expression',
+			'separator',
+			'andOr',
+			'separator',
+			'expression',
+		])
 
 		expect(tokenGroupStrings).toEqual([
 			'service_name=private-graph',
 			' ',
 			'AND',
 			' ',
-			'span_name!=gorm.Query<EOF>',
+			'span_name!=gorm.Query',
 		])
 	})
 })

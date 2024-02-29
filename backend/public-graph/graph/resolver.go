@@ -70,6 +70,7 @@ import (
 
 type Resolver struct {
 	DB               *gorm.DB
+	Tracer           trace.Tracer
 	ProducerQueue    kafka_queue.MessageQueue
 	BatchedQueue     kafka_queue.MessageQueue
 	DataSyncQueue    kafka_queue.MessageQueue
@@ -3099,8 +3100,9 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		}
 		start := re.Start(sessionObj.CreatedAt)
 		end := re.End(sessionObj.CreatedAt)
-		attributes := []attribute.KeyValue{
-			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
+		attributes := []attribute.KeyValue{}
+		attributes = append(attributes, highlight.EmptyResourceAttributes...)
+		attributes = append(attributes, attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
 			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
 			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
@@ -3115,7 +3117,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 			semconv.HTTPMethodKey.String(method),
 			attribute.String(privateModel.NetworkRequestAttributeInitiatorType.String(), re.InitiatorType),
 			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64(end.Sub(start).Nanoseconds())),
-		}
+		)
 		requestBody := make(map[string]interface{})
 		// if the request body is json and contains the graphql key operationName, treat it as an operation
 		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
@@ -3127,7 +3129,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionObj.SecureID)
 		ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, re.RequestResponsePairs.Request.ID)
-		span, _ := highlight.StartTraceWithTimestamp(ctx, strings.Join([]string{method, re.Name}, " "), start, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
+		span, _ := highlight.StartTraceWithTracer(ctx, r.Tracer, strings.Join([]string{method, re.Name}, " "), start, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
 		span.End(trace.WithTimestamp(end))
 	}
 	return nil
@@ -3153,7 +3155,7 @@ func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
 			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
 		}
-		span, _ := highlight.StartTraceWithoutResourceAttributes(ctx, highlight.UtilitySpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
+		span, _ := highlight.StartTraceWithoutResourceAttributes(ctx, r.Tracer, highlight.UtilitySpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
 		message := strings.Join(row.Value, " ")
 		attrs := []attribute.KeyValue{
 			hlog.LogSeverityKey.String(row.Type),

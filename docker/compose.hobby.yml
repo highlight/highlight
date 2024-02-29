@@ -13,7 +13,7 @@ x-backend-env: &backend-env
         - DISCORD_CLIENT_ID
         - DISCORD_CLIENT_SECRET
         - DOPPLER_CONFIG
-        - ENABLE_OBJECT_STORAGE=true
+        - ENABLE_OBJECT_STORAGE
         - ENVIRONMENT
         - FIREBASE_SECRET
         - FRONT_CLIENT_ID
@@ -26,8 +26,8 @@ x-backend-env: &backend-env
         - GITLAB_CLIENT_SECRET
         - HEIGHT_CLIENT_ID
         - HEIGHT_CLIENT_SECRET
-        - IN_DOCKER=true
-        - IN_DOCKER_GO=true
+        - IN_DOCKER
+        - IN_DOCKER_GO
         - JIRA_CLIENT_ID
         - JIRA_CLIENT_ID
         - JIRA_CLIENT_SECRET
@@ -39,17 +39,17 @@ x-backend-env: &backend-env
         - LINEAR_CLIENT_SECRET
         - MICROSOFT_TEAMS_BOT_ID
         - MICROSOFT_TEAMS_BOT_PASSWORD
-        - OBJECT_STORAGE_FS=/highlight-data
-        - ON_PREM=true
+        - OBJECT_STORAGE_FS
+        - ON_PREM
         - OTLP_ENDPOINT
+        - OTLP_DOGFOOD_ENDPOINT
         - PSQL_DB
         - PSQL_DOCKER_HOST
         - PSQL_HOST
         - PSQL_PASSWORD
         - PSQL_PORT
         - PSQL_USER
-        - REACT_APP_AUTH_MODE=simple
-        - REACT_APP_COMMIT_SHA
+        - REACT_APP_AUTH_MODE
         - REACT_APP_FRONTEND_URI
         - REACT_APP_PRIVATE_GRAPH_URI
         - REDIS_ADDRESS
@@ -78,6 +78,8 @@ services:
             - '0.0.0.0:8082:8082'
         volumes:
             - highlight-data:/highlight-data
+            - ../backend/localhostssl/server.key:/build/localhostssl/server.key
+            - ../backend/localhostssl/server.crt:/build/localhostssl/server.crt
         <<: *backend-env
 
     frontend:
@@ -89,6 +91,9 @@ services:
             interval: 5s
             timeout: 5s
             retries: 5
+        volumes:
+            - ../backend/localhostssl/server.key:/etc/ssl/private/ssl-cert.key
+            - ../backend/localhostssl/server.pem:/etc/ssl/certs/ssl-cert.pem
         ports:
             - '0.0.0.0:3000:3000'
             - '0.0.0.0:6006:6006'

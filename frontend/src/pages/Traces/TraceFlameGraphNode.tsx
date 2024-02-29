@@ -193,7 +193,10 @@ export const TraceFlameGraphNode = memo<Props>(
 		)
 	},
 	(prevProps, nextProps) => {
-		return prevProps.zoom === nextProps.zoom
+		return (
+			prevProps.zoom === nextProps.zoom &&
+			prevProps.width === nextProps.width
+		)
 	},
 )
 

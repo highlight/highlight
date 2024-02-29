@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
@@ -81,6 +82,7 @@ var (
 	stripeWebhookSecret = os.Getenv("STRIPE_WEBHOOK_SECRET")
 	slackSigningSecret  = os.Getenv("SLACK_SIGNING_SECRET")
 	otlpEndpoint        = os.Getenv("OTLP_ENDPOINT")
+	otlpDogfoodEndpoint = os.Getenv("OTLP_DOGFOOD_ENDPOINT")
 	runtimeFlag         = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 	handlerFlag         = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
 )
@@ -203,10 +205,9 @@ func main() {
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 	ctx := context.TODO()
 
-	// change OTLP endpoint when set in env
-	if otlpEndpoint != "" {
-		log.WithContext(ctx).WithField("otlpEndpoint", otlpEndpoint).Info("overwriting highlight-go graphql / otlp client address...")
-		highlight.SetOTLPEndpoint(otlpEndpoint)
+	if otlpDogfoodEndpoint != "" {
+		log.WithContext(ctx).WithField("otlpEndpoint", otlpDogfoodEndpoint).Info("overwriting otlp client address for highlight backend logging")
+		highlight.SetOTLPEndpoint(otlpDogfoodEndpoint)
 	}
 
 	serviceName := string(runtimeParsed)
@@ -331,6 +332,16 @@ func main() {
 		log.WithContext(ctx).Fatalf("error creating oauth client: %v", err)
 	}
 
+	tp, err := highlight.CreateTracerProvider(otlpEndpoint)
+	if err != nil {
+		log.WithContext(ctx).Fatalf("error creating collector tracer provider: %v", err)
+	}
+	tracer := tp.Tracer(
+		"github.com/highlight/highlight",
+		trace.WithInstrumentationVersion("v0.1.0"),
+		trace.WithSchemaURL(semconv.SchemaURL),
+	)
+
 	integrationsClient := integrations.NewIntegrationsClient(db)
 
 	privateWorkerpool := workerpool.New(10000)
@@ -340,6 +351,7 @@ func main() {
 	privateResolver := &private.Resolver{
 		ClearbitClient:         clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
 		DB:                     db,
+		Tracer:                 tracer,
 		MailClient:             sendgrid.NewSendClient(sendgridKey),
 		StripeClient:           stripeClient,
 		AWSMPClient:            mpm,
@@ -471,6 +483,7 @@ func main() {
 		}
 		publicResolver := &public.Resolver{
 			DB:               db,
+			Tracer:           tracer,
 			ProducerQueue:    kafkaProducer,
 			BatchedQueue:     kafkaBatchedProducer,
 			DataSyncQueue:    kafkaDataSyncProducer,
@@ -506,8 +519,8 @@ func main() {
 		})
 		otelHandler := otel.New(publicResolver)
 		otelHandler.Listen(r)
-		vercel.Listen(r)
-		highlightHttp.Listen(r)
+		vercel.Listen(r, tracer)
+		highlightHttp.Listen(r, tracer)
 	}
 
 	/*
@@ -566,6 +579,7 @@ func main() {
 		}
 		publicResolver := &public.Resolver{
 			DB:               db,
+			Tracer:           tracer,
 			ProducerQueue:    kafkaProducer,
 			BatchedQueue:     kafkaBatchedProducer,
 			DataSyncQueue:    kafkaDataSyncProducer,

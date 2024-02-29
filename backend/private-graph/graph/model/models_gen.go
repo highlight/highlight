@@ -1947,20 +1947,58 @@ func (e ReservedLogKey) MarshalGQL(w io.Writer) {
 type ReservedSessionKey string
 
 const (
-	ReservedSessionKeyEnvironment ReservedSessionKey = "environment"
-	ReservedSessionKeyServiceName ReservedSessionKey = "service_name"
-	ReservedSessionKeyAppVersion  ReservedSessionKey = "app_version"
+	ReservedSessionKeyEnvironment     ReservedSessionKey = "environment"
+	ReservedSessionKeyServiceName     ReservedSessionKey = "service_name"
+	ReservedSessionKeyAppVersion      ReservedSessionKey = "app_version"
+	ReservedSessionKeySecureSessionID ReservedSessionKey = "secure_session_id"
+	ReservedSessionKeyIdentified      ReservedSessionKey = "identified"
+	ReservedSessionKeyFingerprint     ReservedSessionKey = "fingerprint"
+	ReservedSessionKeyIdentifier      ReservedSessionKey = "identifier"
+	ReservedSessionKeyCity            ReservedSessionKey = "city"
+	ReservedSessionKeyCountry         ReservedSessionKey = "country"
+	ReservedSessionKeyOsName          ReservedSessionKey = "os_name"
+	ReservedSessionKeyOsVersion       ReservedSessionKey = "os_version"
+	ReservedSessionKeyBrowserName     ReservedSessionKey = "browser_name"
+	ReservedSessionKeyBrowserVersion  ReservedSessionKey = "browser_version"
+	ReservedSessionKeyProcessed       ReservedSessionKey = "processed"
+	ReservedSessionKeyHasRageClicks   ReservedSessionKey = "has_rage_clicks"
+	ReservedSessionKeyHasErrors       ReservedSessionKey = "has_errors"
+	ReservedSessionKeyLength          ReservedSessionKey = "length"
+	ReservedSessionKeyActiveLength    ReservedSessionKey = "active_length"
+	ReservedSessionKeyFirstTime       ReservedSessionKey = "first_time"
+	ReservedSessionKeyViewed          ReservedSessionKey = "viewed"
+	ReservedSessionKeyPagesVisited    ReservedSessionKey = "pages_visited"
+	ReservedSessionKeyNormalness      ReservedSessionKey = "normalness"
 )
 
 var AllReservedSessionKey = []ReservedSessionKey{
 	ReservedSessionKeyEnvironment,
 	ReservedSessionKeyServiceName,
 	ReservedSessionKeyAppVersion,
+	ReservedSessionKeySecureSessionID,
+	ReservedSessionKeyIdentified,
+	ReservedSessionKeyFingerprint,
+	ReservedSessionKeyIdentifier,
+	ReservedSessionKeyCity,
+	ReservedSessionKeyCountry,
+	ReservedSessionKeyOsName,
+	ReservedSessionKeyOsVersion,
+	ReservedSessionKeyBrowserName,
+	ReservedSessionKeyBrowserVersion,
+	ReservedSessionKeyProcessed,
+	ReservedSessionKeyHasRageClicks,
+	ReservedSessionKeyHasErrors,
+	ReservedSessionKeyLength,
+	ReservedSessionKeyActiveLength,
+	ReservedSessionKeyFirstTime,
+	ReservedSessionKeyViewed,
+	ReservedSessionKeyPagesVisited,
+	ReservedSessionKeyNormalness,
 }
 
 func (e ReservedSessionKey) IsValid() bool {
 	switch e {
-	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyAppVersion:
+	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyAppVersion, ReservedSessionKeySecureSessionID, ReservedSessionKeyIdentified, ReservedSessionKeyFingerprint, ReservedSessionKeyIdentifier, ReservedSessionKeyCity, ReservedSessionKeyCountry, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyProcessed, ReservedSessionKeyHasRageClicks, ReservedSessionKeyHasErrors, ReservedSessionKeyLength, ReservedSessionKeyActiveLength, ReservedSessionKeyFirstTime, ReservedSessionKeyViewed, ReservedSessionKeyPagesVisited, ReservedSessionKeyNormalness:
 		return true
 	}
 	return false
