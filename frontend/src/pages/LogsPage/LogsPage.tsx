@@ -1,4 +1,4 @@
-import { LogLevel, ProductType } from '@graph/schemas'
+import { LogLevel } from '@graph/schemas'
 import {
 	Box,
 	DateRangePreset,
@@ -34,8 +34,8 @@ import {
 } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
+import { LogsOverageCard } from '@/pages/LogsPage/LogsOverageCard/LogsOverageCard'
 import { DEFAULT_LOG_COLUMNS } from '@/pages/LogsPage/LogsTable/CustomColumns/columns'
-import { OverageCard } from '@/pages/LogsPage/OverageCard/OverageCard'
 import analytics from '@/util/analytics'
 
 const LogsPage = () => {
@@ -200,9 +200,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						bucketCount={histogramData?.logs_histogram.totalCount}
 					/>
 					<Box borderTop="dividerWeak" height="full">
-						<Box my="4" px="12">
-							<OverageCard productType={ProductType.Logs} />
-						</Box>
+						<LogsOverageCard />
 						<IntegrationCta />
 						<LogsTable
 							logEdges={logEdges}
