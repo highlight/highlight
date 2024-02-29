@@ -50,6 +50,7 @@ import { AUTH_MODE, PUBLIC_GRAPH_URI } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
+import { passwordAuthTokenManager } from '@/util/passowordAuthCookies'
 
 document.body.className = 'highlight-light-theme'
 
@@ -287,7 +288,7 @@ const AuthenticationRoleRouter = () => {
 	const isLoggedIn = authRole === AuthRole.AUTHENTICATED
 
 	useEffect(() => {
-		const hasPasswordAuthorization = sessionStorage.getItem('passwordToken')
+		const hasPasswordAuthorization = passwordAuthTokenManager.get()
 		if (AUTH_MODE === 'password' && !hasPasswordAuthorization) {
 			auth.signOut()
 			navigate('/sign_in')

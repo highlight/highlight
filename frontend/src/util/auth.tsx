@@ -6,6 +6,7 @@ import 'firebase/compat/auth'
 import Firebase from 'firebase/compat/app'
 
 import { AUTH_MODE, PRIVATE_GRAPH_URI } from '@/constants'
+import { passwordAuthTokenManager } from '@/util/passowordAuthCookies'
 
 interface User {
 	email: string | null
@@ -21,7 +22,7 @@ const getFakeFirebaseUser: (email?: string, password?: string) => User = (
 ) => ({
 	async getIdToken(): Promise<string> {
 		if (AUTH_MODE === 'password') {
-			return sessionStorage.getItem('passwordToken') || ''
+			return passwordAuthTokenManager.get() || ''
 		}
 		return Promise.resolve('a1b2c3')
 	},
@@ -33,7 +34,7 @@ const getFakeFirebaseUser: (email?: string, password?: string) => User = (
 
 const makePasswordAuthUser = (email: string): User => ({
 	async getIdToken(): Promise<string> {
-		return sessionStorage.getItem('passwordToken') || ''
+		return passwordAuthTokenManager.get() || ''
 	},
 	email,
 	async sendEmailVerification(): Promise<void> {
@@ -107,8 +108,8 @@ class PasswordAuth {
 	}
 
 	initialize() {
-		const user = sessionStorage.getItem('currentUser')
-		const token = sessionStorage.getItem('passwordToken')
+		const user = localStorage.getItem('currentUser')
+		const token = passwordAuthTokenManager.get()
 		if (user && token) {
 			try {
 				const userObject = JSON.parse(user)
@@ -131,7 +132,7 @@ class PasswordAuth {
 		})
 
 		if (response.status !== 200) {
-			localStorage.removeItem('passwordToken')
+			passwordAuthTokenManager.clear()
 			localStorage.removeItem('currentUser')
 		}
 	}
@@ -173,12 +174,12 @@ class PasswordAuth {
 
 		if (response.status === 200) {
 			const jsonResponse = await response.json()
-			sessionStorage.setItem('passwordToken', jsonResponse.token)
+			passwordAuthTokenManager.set(jsonResponse.token)
 
 			const user = makePasswordAuthUser(jsonResponse.user.email)
 			this.currentUser = user
 
-			sessionStorage.setItem('currentUser', JSON.stringify(user))
+			localStorage.setItem('currentUser', JSON.stringify(user))
 
 			return {
 				credential: {
@@ -199,8 +200,8 @@ class PasswordAuth {
 	}
 
 	signOut(): Promise<void> {
-		sessionStorage.removeItem('passwordToken')
-		sessionStorage.removeItem('currentUser')
+		passwordAuthTokenManager.clear()
+		localStorage.removeItem('currentUser')
 		return Promise.resolve(undefined)
 	}
 }
