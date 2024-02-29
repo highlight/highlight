@@ -202,6 +202,7 @@ class PasswordAuth {
 	signOut(): Promise<void> {
 		passwordAuthTokenManager.clear()
 		localStorage.removeItem('currentUser')
+		this.currentUser = null
 		return Promise.resolve(undefined)
 	}
 }

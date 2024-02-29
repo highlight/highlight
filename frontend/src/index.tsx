@@ -291,6 +291,7 @@ const AuthenticationRoleRouter = () => {
 		const hasPasswordAuthorization = passwordAuthTokenManager.get()
 		if (AUTH_MODE === 'password' && !hasPasswordAuthorization) {
 			auth.signOut()
+			setAuthRole(AuthRole.UNAUTHENTICATED)
 			navigate('/sign_in')
 		}
 	}, [navigate])
