@@ -255,7 +255,7 @@ const Graph = ({
 
 	const [spotlight, setSpotlight] = useState<number | undefined>()
 
-	// Reset visibility map when `series` is updated
+	// Reset spotlight when `series` is updated
 	useEffect(() => {
 		setSpotlight(undefined)
 	}, [series])
@@ -305,7 +305,7 @@ const Graph = ({
 							justifyContent="center"
 							cssClass={style.loadingOverlay}
 						>
-							<HistogramLoading />
+							<HistogramLoading cssClass={style.loadingText} />
 						</Box>
 					)}
 					<Box display="flex" flexDirection="column" gap="4">
@@ -392,7 +392,6 @@ const Graph = ({
 						height="full"
 						maxHeight="screen"
 						key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
-						cssClass={style.chartWrapper}
 					>
 						{innerChart}
 					</Box>

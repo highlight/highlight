@@ -1,7 +1,16 @@
+import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
 export const loadingOverlay = style({
 	zIndex: 2,
+	backdropFilter: 'grayscale(50%)',
+})
+
+export const loadingText = style({
+	border: vars.border.divider,
+	padding: 4,
+	borderRadius: 4,
+	backgroundColor: vars.color.white,
 })
 
 export const graphWrapper = style({
@@ -9,10 +18,8 @@ export const graphWrapper = style({
 	height: 360,
 	margin: 'auto',
 	zIndex: 1,
-	backgroundColor: '#fff',
+	backgroundColor: vars.color.white,
 })
-
-export const chartWrapper = style({})
 
 export const legendWrapper = style({
 	left: -6,

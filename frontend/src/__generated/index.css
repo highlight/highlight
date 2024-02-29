@@ -7411,13 +7411,20 @@ body {
 }
 .dg2vg60 {
   z-index: 2;
+  backdrop-filter: grayscale(50%);
 }
 .dg2vg61 {
+  border: var(--_1pyqka9j) solid 1px;
+  padding: 4px;
+  border-radius: 4px;
+  background-color: #ffffff;
+}
+.dg2vg62 {
   width: 720px;
   height: 360px;
   margin: auto;
   z-index: 1;
-  background-color: #fff;
+  background-color: #ffffff;
 }
 .dg2vg63 {
   left: -6px;

@@ -12,7 +12,7 @@ import {
 } from '@highlight-run/ui/components'
 import { Divider } from 'antd'
 import moment from 'moment'
-import { PropsWithChildren, useState } from 'react'
+import { PropsWithChildren, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useDebounce, usePrevious } from 'react-use'
 
@@ -202,8 +202,6 @@ export const GraphingEditor = () => {
 	const { projectId } = useProjectId()
 	const [endDate] = useState(moment().toISOString())
 	const [startDate] = useState(moment().subtract(4, 'hours').toISOString())
-	// const endDate = '2024-02-14T03:17:31.153Z'
-	// const startDate = '2024-02-13T18:28:20.296Z'
 
 	const [productType, setProductType] = useState(PRODUCTS[0])
 	const [viewType, setViewType] = useState(VIEWS[0])
@@ -232,14 +230,14 @@ export const GraphingEditor = () => {
 	const [limitMetric, setLimitMetric] = useState('')
 
 	const [bucketByEnabled, setBucketByEnabled] = useState(false)
-	const [bucketByKey, setBucketByKey] = useState(TIMESTAMP_KEY)
+	const [bucketByKey, setBucketByKey] = useState('')
 	const [bucketCount, setBucketCount] = useState(DEFAULT_BUCKET_COUNT)
 
 	const formStore = useFormStore({
 		defaultValues: {},
 	})
 
-	const { data: keys, loading: keysLoading } = useGetKeysQuery({
+	const { data: keys } = useGetKeysQuery({
 		variables: {
 			product_type: productType,
 			project_id: projectId,
@@ -251,10 +249,29 @@ export const GraphingEditor = () => {
 		},
 	})
 
-	const allKeys = keys?.keys.map((k) => k.name) ?? []
-	const numericKeys =
-		keys?.keys.filter((k) => k.type === 'Numeric').map((k) => k.name) ?? []
-	const bucketByKeys = [TIMESTAMP_KEY].concat(numericKeys)
+	const allKeys = useMemo(
+		() => keys?.keys.map((k) => k.name).slice(0, 10) ?? [],
+		[keys],
+	)
+	const numericKeys = useMemo(
+		() =>
+			keys?.keys
+				.filter((k) => k.type === 'Numeric')
+				.map((k) => k.name)
+				.slice(0, 10) ?? [],
+		[keys],
+	)
+	const bucketByKeys = useMemo(
+		() => [TIMESTAMP_KEY].concat(numericKeys).slice(0, 10),
+		[numericKeys],
+	)
+
+	useEffect(() => {
+		setGroupByKey(allKeys[0] ?? '')
+		setMetric(numericKeys[0] ?? '')
+		setLimitMetric(numericKeys[0] ?? '')
+		setBucketByKey(bucketByKeys[0] ?? '')
+	}, [allKeys, bucketByKeys, numericKeys])
 
 	const { data: metrics, loading: metricsLoading } = useGetMetricsQuery({
 		variables: {
