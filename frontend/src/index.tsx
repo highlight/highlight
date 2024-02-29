@@ -140,7 +140,8 @@ if (dev) {
 	}
 } else if (
 	window.location.href.includes('onrender') ||
-	window.location.href.includes('preview')
+	window.location.href.includes('preview') ||
+	shouldDebugLog
 ) {
 	if (favicon) {
 		favicon.href = `/favicon-pr.ico`

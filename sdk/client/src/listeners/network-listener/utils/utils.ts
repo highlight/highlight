@@ -236,9 +236,9 @@ const isHighlightNetworkResourceFilter = (name: string, backendUrl: string) =>
 	name
 		.toLocaleLowerCase()
 		.includes(
-			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ?? 'highlight.run',
+			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ?? 'highlight.io',
 		) ||
-	name.toLocaleLowerCase().includes('highlight.run') ||
+	name.toLocaleLowerCase().includes('highlight.io') ||
 	name.toLocaleLowerCase().includes(backendUrl)
 
 export const shouldNetworkRequestBeRecorded = (
