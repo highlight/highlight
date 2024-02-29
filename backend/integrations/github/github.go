@@ -61,6 +61,7 @@ type ClientInterface interface {
 	GetRepoContent(ctx context.Context, githubPath string, path string, version string) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error)
 	GetRepoBlob(ctx context.Context, githubPath string, blobSHA string) (*github.Blob, *github.Response, error)
 	GetLatestCommitHash(ctx context.Context, githubPath string) (string, *github.Response, error)
+	SearchIssues(ctx context.Context, rawQuery string) ([]*github.Issue, error)
 }
 
 type Client struct {
@@ -206,4 +207,16 @@ func (c *Client) GetRepoBlob(ctx context.Context, githubPath string, blobSHA str
 func (c *Client) GetLatestCommitHash(ctx context.Context, githubPath string) (string, *github.Response, error) {
 	repoPath := strings.Split(githubPath, "/")
 	return c.client.Repositories.GetCommitSHA1(ctx, repoPath[0], repoPath[1], "HEAD", "")
+}
+
+func (c *Client) SearchIssues(ctx context.Context, rawQuery string) ([]*github.Issue, error) {
+	owner, err := c.GetInstallationOwner(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	query := fmt.Sprintf("owner:%s %s", *owner, rawQuery)
+
+	rearch_result, _, err := c.client.Search.Issues(ctx, query, &github.SearchOptions{})
+	return rearch_result.Issues, err
 }

@@ -15,6 +15,7 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
 
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -165,6 +166,26 @@ func doJiraRequest[T any](method string, accessToken string, url string, body st
 	return unmarshalled, nil
 }
 
+type JiraIssuesAutoCompleteResponse struct {
+	ID          int    `json:"id"`
+	Key         string `json:"key"`
+	KeyHtml     string `json:"keyHtml"`
+	Img         string `json:"img"`
+	Summary     string `json:"summary"`
+	SummaryText string `json:"summaryText"`
+}
+
+type JiraAutoCompleteSearchSections struct {
+	Label  string                           `json:"label"`
+	Sub    string                           `json:"sub"`
+	ID     string                           `json:"id"`
+	Issues []JiraIssuesAutoCompleteResponse `json:"issues"`
+}
+
+type JiraAutoCompleteSearchResponse struct {
+	Sections []JiraAutoCompleteSearchSections `json:"sections"`
+}
+
 func getJiraSiteFromAccessibleResources(responses []*modelInputs.AccessibleJiraResources) (*modelInputs.AccessibleJiraResources, error) {
 	var JiraSite *modelInputs.AccessibleJiraResources
 	jiraIdentifier := "write:jira-work"
@@ -187,6 +208,40 @@ func GetJiraSite(accessToken string) (*modelInputs.AccessibleJiraResources, erro
 	return getJiraSiteFromAccessibleResources(res)
 }
 
+func SearchJiraIssues(accessToken string, workspace *model.Workspace, query string) ([]*modelInputs.IssuesSearchResult, error) {
+	queryParams := nUrl.Values{}
+	queryParams.Set("currentJQL", fmt.Sprintf("text~%s", query))
+	queryParams.Set("query", query)
+
+	url := fmt.Sprintf("/ex/jira/%s/rest/api/2/issue/picker?%s", *workspace.JiraCloudID, queryParams.Encode())
+	res, err := doJiraGetRequest[JiraAutoCompleteSearchResponse](accessToken, url)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]JiraIssuesAutoCompleteResponse, 0)
+	added := make(map[string]bool)
+
+	for _, section := range res.Sections {
+		for _, issue := range section.Issues {
+			_, ok := added[issue.Key]
+			if ok {
+				continue
+			}
+			added[issue.Key] = true
+			results = append(results, issue)
+		}
+	}
+
+	return lo.Map(results, func(res JiraIssuesAutoCompleteResponse, _ int) *modelInputs.IssuesSearchResult {
+		return &modelInputs.IssuesSearchResult{
+			ID:       fmt.Sprint(res.ID),
+			Title:    fmt.Sprintf("[%s] %s", res.Key, res.SummaryText),
+			IssueURL: MakeExternalIdForJiraTask(workspace, res.Key),
+		}
+	}), nil
+}
+
 func GetJiraIssueCreateMeta(accessToken string, cloudID string) ([]*modelInputs.JiraProject, error) {
 	type listsResponse struct {
 		Projects []*modelInputs.JiraProject `json:"projects"`
@@ -204,8 +259,8 @@ func GetJiraProjects(workspace *model.Workspace, accessToken string) ([]*modelIn
 	return GetJiraIssueCreateMeta(accessToken, *workspace.JiraCloudID)
 }
 
-func MakeExternalIdForJiraTask(workspace *model.Workspace, issue *JiraIssue) string {
-	url := fmt.Sprintf("%s/browse/%s", *workspace.JiraDomain, issue.Key)
+func MakeExternalIdForJiraTask(workspace *model.Workspace, issueKey string) string {
+	url := fmt.Sprintf("%s/browse/%s", *workspace.JiraDomain, issueKey)
 	return url
 }
 

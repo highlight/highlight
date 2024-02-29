@@ -428,6 +428,12 @@ type Invoice struct {
 	Status       *string    `json:"status"`
 }
 
+type IssuesSearchResult struct {
+	ID       string `json:"id"`
+	Title    string `json:"title"`
+	IssueURL string `json:"issue_url"`
+}
+
 type JiraIssueType struct {
 	Self             string              `json:"self"`
 	ID               string              `json:"id"`

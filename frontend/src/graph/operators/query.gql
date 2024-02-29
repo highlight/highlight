@@ -2043,6 +2043,22 @@ query GetOAuthClientMetadata($client_id: String!) {
 	}
 }
 
+query SearchIssues(
+	$project_id: ID!
+	$query: String!
+	$integration_type: IntegrationType!
+) {
+	search_issues(
+		integration_type: $integration_type
+		query: $query
+		project_id: $project_id
+	) {
+		id
+		title
+		issue_url
+	}
+}
+
 query GetErrorGroupFrequencies(
 	$project_id: ID!
 	$error_group_secure_ids: [String!]!

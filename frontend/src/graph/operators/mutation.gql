@@ -404,6 +404,69 @@ mutation CreateSessionComment(
 	}
 }
 
+mutation CreateSessionCommentWithExistingIssue(
+	$project_id: ID!
+	$session_secure_id: String!
+	$session_timestamp: Int!
+	$text: String!
+	$text_for_email: String!
+	$x_coordinate: Float!
+	$y_coordinate: Float!
+	$tagged_admins: [SanitizedAdminInput]!
+	$tagged_slack_users: [SanitizedSlackChannelInput]!
+	$session_url: String!
+	$time: Float!
+	$author_name: String!
+	$session_image: String
+	$tags: [SessionCommentTagInput]!
+	$integrations: [IntegrationType]!
+	$issue_title: String
+	$issue_url: String!
+	$issue_id: String!
+	$additional_context: String
+) {
+	createSessionCommentWithExistingIssue(
+		project_id: $project_id
+		session_secure_id: $session_secure_id
+		session_timestamp: $session_timestamp
+		text: $text
+		text_for_email: $text_for_email
+		x_coordinate: $x_coordinate
+		y_coordinate: $y_coordinate
+		tagged_admins: $tagged_admins
+		tagged_slack_users: $tagged_slack_users
+		session_url: $session_url
+		time: $time
+		author_name: $author_name
+		session_image: $session_image
+		tags: $tags
+		integrations: $integrations
+		issue_title: $issue_title
+		issue_url: $issue_url
+		issue_id: $issue_id
+		additional_context: $additional_context
+	) {
+		id
+		timestamp
+		created_at
+		updated_at
+		author {
+			id
+			name
+			email
+		}
+		text
+		x_coordinate
+		y_coordinate
+		attachments {
+			id
+			integration_type
+			external_id
+			title
+		}
+	}
+}
+
 mutation CreateIssueForSessionComment(
 	$project_id: ID!
 	$session_comment_id: Int!
@@ -429,6 +492,51 @@ mutation CreateIssueForSessionComment(
 		issue_team_id: $issue_team_id
 		integrations: $integrations
 		issue_type_id: $issue_type_id
+	) {
+		id
+		timestamp
+		created_at
+		updated_at
+		author {
+			id
+			name
+			email
+		}
+		text
+		x_coordinate
+		y_coordinate
+		attachments {
+			id
+			integration_type
+			external_id
+			title
+		}
+	}
+}
+
+mutation LinkIssueForSessionComment(
+	$project_id: ID!
+	$session_comment_id: Int!
+	$text_for_attachment: String!
+	$session_url: String!
+	$time: Float!
+	$author_name: String!
+	$integrations: [IntegrationType]!
+	$issue_title: String
+	$issue_id: String!
+	$issue_url: String!
+) {
+	linkIssueForSessionComment(
+		project_id: $project_id
+		session_url: $session_url
+		session_comment_id: $session_comment_id
+		author_name: $author_name
+		text_for_attachment: $text_for_attachment
+		time: $time
+		issue_title: $issue_title
+		issue_id: $issue_id
+		integrations: $integrations
+		issue_url: $issue_url
 	) {
 		id
 		timestamp
@@ -525,6 +633,49 @@ mutation CreateErrorComment(
 		text
 	}
 }
+
+mutation CreateErrorCommentForExistingIssue(
+	$project_id: ID!
+	$error_group_secure_id: String!
+	$text: String!
+	$text_for_email: String!
+	$tagged_admins: [SanitizedAdminInput]!
+	$tagged_slack_users: [SanitizedSlackChannelInput]!
+	$error_url: String!
+	$author_name: String!
+	$integrations: [IntegrationType]!
+	$issue_title: String!
+	$issue_url: String!
+	$issue_id: String!
+) {
+	createErrorCommentForExistingIssue(
+		project_id: $project_id
+		error_group_secure_id: $error_group_secure_id
+		text: $text
+		text_for_email: $text_for_email
+		tagged_admins: $tagged_admins
+		tagged_slack_users: $tagged_slack_users
+		error_url: $error_url
+		author_name: $author_name
+		integrations: $integrations
+		issue_title: $issue_title
+		issue_url: $issue_url
+		issue_id: $issue_id
+	) {
+		id
+		created_at
+		updated_at
+		author {
+			id
+			name
+			email
+			__typename
+		}
+		text
+		__typename
+	}
+}
+
 mutation CreateIssueForErrorComment(
 	$project_id: ID!
 	$error_comment_id: Int!
@@ -548,6 +699,46 @@ mutation CreateIssueForErrorComment(
 		issue_description: $issue_description
 		integrations: $integrations
 		issue_type_id: $issue_type_id
+	) {
+		id
+		created_at
+		updated_at
+		author {
+			id
+			name
+			email
+		}
+		text
+		attachments {
+			id
+			integration_type
+			external_id
+			title
+		}
+	}
+}
+
+mutation LinkIssueForErrorComment(
+	$project_id: ID!
+	$error_comment_id: Int!
+	$text_for_attachment: String!
+	$error_url: String!
+	$author_name: String!
+	$integrations: [IntegrationType]!
+	$issue_title: String
+	$issue_id: String!
+	$issue_url: String!
+) {
+	linkIssueForErrorComment(
+		project_id: $project_id
+		error_url: $error_url
+		error_comment_id: $error_comment_id
+		author_name: $author_name
+		text_for_attachment: $text_for_attachment
+		issue_title: $issue_title
+		integrations: $integrations
+		issue_id: $issue_id
+		issue_url: $issue_url
 	) {
 		id
 		created_at
