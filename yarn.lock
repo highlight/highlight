@@ -46565,27 +46565,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"json5@npm:2.x, json5@npm:^2.2.1":
-  version: 2.2.1
-  resolution: "json5@npm:2.2.1"
+"json5@npm:2.x, json5@npm:^2.1.2, json5@npm:^2.2.1, json5@npm:^2.2.2, json5@npm:^2.2.3":
+  version: 2.2.3
+  resolution: "json5@npm:2.2.3"
   bin:
     json5: lib/cli.js
-  checksum: ee31060b929fbfdc3c80288286e4403ed95f47d9fe2d29f46c833b8cd4ec98b2cdb3537e2c0f15846db90950ae70bc01d2aaae3c303d70523e8039cf0e810cf5
+  checksum: 1db67b853ff0de3534085d630691d3247de53a2ed1390ba0ddff681ea43e9b3e30ecbdb65c5e9aab49435e44059c23dbd6fee8ee619419ba37465bb0dd7135da
   languageName: node
   linkType: hard
 
-"json5@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "json5@npm:1.0.1"
-  dependencies:
-    minimist: "npm:^1.2.0"
-  bin:
-    json5: lib/cli.js
-  checksum: ecb5ab4e233322169b0c4b29e698c116277c45654d3b70a707d00802042b536be54345ce664523bba83e5afedfeaf643539a7667144f99d6da1dcaaa02336d80
-  languageName: node
-  linkType: hard
-
-"json5@npm:^1.0.2":
+"json5@npm:^1.0.1, json5@npm:^1.0.2":
   version: 1.0.2
   resolution: "json5@npm:1.0.2"
   dependencies:
@@ -46593,26 +46582,6 @@ __metadata:
   bin:
     json5: lib/cli.js
   checksum: a78d812dbbd5642c4f637dd130954acfd231b074965871c3e28a5bbd571f099d623ecf9161f1960c4ddf68e0cc98dee8bebfdb94a71ad4551f85a1afc94b63f6
-  languageName: node
-  linkType: hard
-
-"json5@npm:^2.1.2":
-  version: 2.1.3
-  resolution: "json5@npm:2.1.3"
-  dependencies:
-    minimist: "npm:^1.2.5"
-  bin:
-    json5: lib/cli.js
-  checksum: ba3f0d81567a2d51728a11a4d2a7e7a894981b2279b39d1bceed9976dbc9d2d25bd54dbafc44f4eddc73f63fa28bd904a325252c25683d309d832f5f5edc7196
-  languageName: node
-  linkType: hard
-
-"json5@npm:^2.2.2, json5@npm:^2.2.3":
-  version: 2.2.3
-  resolution: "json5@npm:2.2.3"
-  bin:
-    json5: lib/cli.js
-  checksum: 1db67b853ff0de3534085d630691d3247de53a2ed1390ba0ddff681ea43e9b3e30ecbdb65c5e9aab49435e44059c23dbd6fee8ee619419ba37465bb0dd7135da
   languageName: node
   linkType: hard
 
