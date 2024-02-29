@@ -35,7 +35,7 @@ const ApplicationRouter: React.FC = () => {
 		page: errorPage || 1,
 		query: JSON.parse(errorSearchQuery),
 	})
-	const { isLoggedIn } = useAuthContext()
+	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 
 	return (
 		<Routes>
@@ -92,14 +92,16 @@ const ApplicationRouter: React.FC = () => {
 							</Suspense>
 						}
 					/>
-					<Route
-						path="metrics/*"
-						element={
-							<Suspense fallback={null}>
-								<GraphingEditor />
-							</Suspense>
-						}
-					/>
+					{isHighlightAdmin && (
+						<Route
+							path="metrics/*"
+							element={
+								<Suspense fallback={null}>
+									<GraphingEditor />
+								</Suspense>
+							}
+						/>
+					)}
 
 					<Route path="*" element={<DashboardsRouter />} />
 				</>
