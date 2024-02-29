@@ -8640,6 +8640,38 @@ func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, para
 	return r.ClickhouseClient.ReadSessionsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, limit, limitAggregator, limitColumn)
 }
 
+// Metrics is the resolver for the metrics field.
+func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		return r.TracesMetrics(ctx, projectID, params, column, metricTypes, groupBy, &bucketBy, bucketCount, limit, limitAggregator, limitColumn)
+	case modelInputs.ProductTypeLogs:
+		return r.LogsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, limit, limitAggregator, limitColumn)
+	case modelInputs.ProductTypeSessions:
+		return r.SessionsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, limit, limitAggregator, limitColumn)
+	case modelInputs.ProductTypeErrors:
+		return r.ErrorsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, limit, limitAggregator, limitColumn)
+	default:
+		return nil, e.Errorf("invalid product type %s", productType)
+	}
+}
+
+// Keys is the resolver for the keys field.
+func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		return r.TracesKeys(ctx, projectID, dateRange, query, typeArg)
+	case modelInputs.ProductTypeLogs:
+		return r.LogsKeys(ctx, projectID, dateRange, query, typeArg)
+	case modelInputs.ProductTypeSessions:
+		return r.SessionsKeys(ctx, projectID, dateRange, query, typeArg)
+	case modelInputs.ProductTypeErrors:
+		return r.ErrorsKeys(ctx, projectID, dateRange, query, typeArg)
+	default:
+		return nil, e.Errorf("invalid product type %s", productType)
+	}
+}
+
 // Params is the resolver for the params field.
 func (r *savedSegmentResolver) Params(ctx context.Context, obj *model.SavedSegment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}

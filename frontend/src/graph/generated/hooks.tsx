@@ -15290,3 +15290,166 @@ export type GetTracesKeyValuesQueryResult = Apollo.QueryResult<
 	Types.GetTracesKeyValuesQuery,
 	Types.GetTracesKeyValuesQueryVariables
 >
+export const GetKeysDocument = gql`
+	query GetKeys(
+		$product_type: ProductType!
+		$project_id: ID!
+		$date_range: DateRangeRequiredInput!
+		$query: String
+	) {
+		keys(
+			product_type: $product_type
+			project_id: $project_id
+			date_range: $date_range
+			query: $query
+		) {
+			name
+			type
+		}
+	}
+`
+
+/**
+ * __useGetKeysQuery__
+ *
+ * To run a query within a React component, call `useGetKeysQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetKeysQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetKeysQuery({
+ *   variables: {
+ *      product_type: // value for 'product_type'
+ *      project_id: // value for 'project_id'
+ *      date_range: // value for 'date_range'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetKeysQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetKeysQuery,
+		Types.GetKeysQueryVariables
+	>,
+) {
+	return Apollo.useQuery<Types.GetKeysQuery, Types.GetKeysQueryVariables>(
+		GetKeysDocument,
+		baseOptions,
+	)
+}
+export function useGetKeysLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetKeysQuery,
+		Types.GetKeysQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<Types.GetKeysQuery, Types.GetKeysQueryVariables>(
+		GetKeysDocument,
+		baseOptions,
+	)
+}
+export type GetKeysQueryHookResult = ReturnType<typeof useGetKeysQuery>
+export type GetKeysLazyQueryHookResult = ReturnType<typeof useGetKeysLazyQuery>
+export type GetKeysQueryResult = Apollo.QueryResult<
+	Types.GetKeysQuery,
+	Types.GetKeysQueryVariables
+>
+export const GetMetricsDocument = gql`
+	query GetMetrics(
+		$product_type: ProductType!
+		$project_id: ID!
+		$params: QueryInput!
+		$column: String!
+		$metric_types: [MetricAggregator!]!
+		$group_by: [String!]!
+		$bucket_by: String!
+		$bucket_count: Int
+		$limit: Int
+		$limit_aggregator: MetricAggregator
+		$limit_column: String
+	) {
+		metrics(
+			product_type: $product_type
+			project_id: $project_id
+			params: $params
+			column: $column
+			metric_types: $metric_types
+			group_by: $group_by
+			bucket_by: $bucket_by
+			bucket_count: $bucket_count
+			limit: $limit
+			limit_aggregator: $limit_aggregator
+			limit_column: $limit_column
+		) {
+			buckets {
+				bucket_id
+				bucket_min
+				bucket_max
+				group
+				metric_type
+				metric_value
+			}
+			bucket_count
+			sample_factor
+		}
+	}
+`
+
+/**
+ * __useGetMetricsQuery__
+ *
+ * To run a query within a React component, call `useGetMetricsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMetricsQuery({
+ *   variables: {
+ *      product_type: // value for 'product_type'
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *      column: // value for 'column'
+ *      metric_types: // value for 'metric_types'
+ *      group_by: // value for 'group_by'
+ *      bucket_by: // value for 'bucket_by'
+ *      bucket_count: // value for 'bucket_count'
+ *      limit: // value for 'limit'
+ *      limit_aggregator: // value for 'limit_aggregator'
+ *      limit_column: // value for 'limit_column'
+ *   },
+ * });
+ */
+export function useGetMetricsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetMetricsQuery,
+		Types.GetMetricsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetMetricsQuery,
+		Types.GetMetricsQueryVariables
+	>(GetMetricsDocument, baseOptions)
+}
+export function useGetMetricsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetMetricsQuery,
+		Types.GetMetricsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetMetricsQuery,
+		Types.GetMetricsQueryVariables
+	>(GetMetricsDocument, baseOptions)
+}
+export type GetMetricsQueryHookResult = ReturnType<typeof useGetMetricsQuery>
+export type GetMetricsLazyQueryHookResult = ReturnType<
+	typeof useGetMetricsLazyQuery
+>
+export type GetMetricsQueryResult = Apollo.QueryResult<
+	Types.GetMetricsQuery,
+	Types.GetMetricsQueryVariables
+>

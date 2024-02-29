@@ -985,6 +985,7 @@ type ComplexityRoot struct {
 		IsWorkspaceIntegratedWith        func(childComplexity int, integrationType model.IntegrationType, workspaceID int) int
 		JiraProjects                     func(childComplexity int, workspaceID int) int
 		JoinableWorkspaces               func(childComplexity int) int
+		Keys                             func(childComplexity int, productType model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
 		LinearTeams                      func(childComplexity int, projectID int) int
 		LiveUsersCount                   func(childComplexity int, projectID int) int
 		LogAlert                         func(childComplexity int, id int) int
@@ -1001,6 +1002,7 @@ type ComplexityRoot struct {
 		MetricMonitors                   func(childComplexity int, projectID int, metricName *string) int
 		MetricTagValues                  func(childComplexity int, projectID int, metricName string, tagName string) int
 		MetricTags                       func(childComplexity int, projectID int, metricName string, query *string) int
+		Metrics                          func(childComplexity int, productType model.ProductType, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
 		MetricsTimeline                  func(childComplexity int, projectID int, metricName string, params model.DashboardParamsInput) int
 		MicrosoftTeamsChannelSuggestions func(childComplexity int, projectID int) int
 		NetworkHistogram                 func(childComplexity int, projectID int, params model.NetworkHistogramParamsInput) int
@@ -1881,6 +1883,8 @@ type QueryResolver interface {
 	ErrorsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	SessionsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	SessionsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
+	Metrics(ctx context.Context, productType model.ProductType, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
+	Keys(ctx context.Context, productType model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 }
 type SavedSegmentResolver interface {
 	Params(ctx context.Context, obj *model1.SavedSegment) (*model1.SearchParams, error)
@@ -7279,6 +7283,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.JoinableWorkspaces(childComplexity), true
 
+	case "Query.keys":
+		if e.complexity.Query.Keys == nil {
+			break
+		}
+
+		args, err := ec.field_Query_keys_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Keys(childComplexity, args["product_type"].(model.ProductType), args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string), args["type"].(*model.KeyType)), true
+
 	case "Query.linear_teams":
 		if e.complexity.Query.LinearTeams == nil {
 			break
@@ -7470,6 +7486,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.MetricTags(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["query"].(*string)), true
+
+	case "Query.metrics":
+		if e.complexity.Query.Metrics == nil {
+			break
+		}
+
+		args, err := ec.field_Query_metrics_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Metrics(childComplexity, args["product_type"].(model.ProductType), args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(string), args["bucket_count"].(*int), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string)), true
 
 	case "Query.metrics_timeline":
 		if e.complexity.Query.MetricsTimeline == nil {
@@ -12939,6 +12967,26 @@ type Query {
 		limit_aggregator: MetricAggregator
 		limit_column: String
 	): MetricsBuckets!
+	metrics(
+		product_type: ProductType!
+		project_id: ID!
+		params: QueryInput!
+		column: String!
+		metric_types: [MetricAggregator!]!
+		group_by: [String!]!
+		bucket_by: String!
+		bucket_count: Int
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
+	): MetricsBuckets!
+	keys(
+		product_type: ProductType!
+		project_id: ID!
+		date_range: DateRangeRequiredInput!
+		query: String
+		type: KeyType
+	): [QueryKey!]!
 }
 
 type Mutation {
@@ -18795,6 +18843,57 @@ func (ec *executionContext) field_Query_jira_projects_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_keys_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.ProductType
+	if tmp, ok := rawArgs["product_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("product_type"))
+		arg0, err = ec.unmarshalNProductType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["product_type"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg1
+	var arg2 model.DateRangeRequiredInput
+	if tmp, ok := rawArgs["date_range"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
+		arg2, err = ec.unmarshalNDateRangeRequiredInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["date_range"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg3
+	var arg4 *model.KeyType
+	if tmp, ok := rawArgs["type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+		arg4, err = ec.unmarshalOKeyType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐKeyType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["type"] = arg4
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_linear_teams_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -19266,6 +19365,111 @@ func (ec *executionContext) field_Query_metric_tags_args(ctx context.Context, ra
 		}
 	}
 	args["query"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_metrics_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.ProductType
+	if tmp, ok := rawArgs["product_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("product_type"))
+		arg0, err = ec.unmarshalNProductType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["product_type"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg1
+	var arg2 model.QueryInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg2, err = ec.unmarshalNQueryInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["column"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("column"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["column"] = arg3
+	var arg4 []model.MetricAggregator
+	if tmp, ok := rawArgs["metric_types"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_types"))
+		arg4, err = ec.unmarshalNMetricAggregator2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregatorᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metric_types"] = arg4
+	var arg5 []string
+	if tmp, ok := rawArgs["group_by"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group_by"))
+		arg5, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["group_by"] = arg5
+	var arg6 string
+	if tmp, ok := rawArgs["bucket_by"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket_by"))
+		arg6, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["bucket_by"] = arg6
+	var arg7 *int
+	if tmp, ok := rawArgs["bucket_count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket_count"))
+		arg7, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["bucket_count"] = arg7
+	var arg8 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg8, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg8
+	var arg9 *model.MetricAggregator
+	if tmp, ok := rawArgs["limit_aggregator"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_aggregator"))
+		arg9, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit_aggregator"] = arg9
+	var arg10 *string
+	if tmp, ok := rawArgs["limit_column"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_column"))
+		arg10, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit_column"] = arg10
 	return args, nil
 }
 
@@ -59463,6 +59667,128 @@ func (ec *executionContext) fieldContext_Query_sessions_metrics(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_metrics(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_metrics(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Metrics(rctx, fc.Args["product_type"].(model.ProductType), fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(string), fc.Args["bucket_count"].(*int), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.MetricsBuckets)
+	fc.Result = res
+	return ec.marshalNMetricsBuckets2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricsBuckets(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_metrics(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "buckets":
+				return ec.fieldContext_MetricsBuckets_buckets(ctx, field)
+			case "bucket_count":
+				return ec.fieldContext_MetricsBuckets_bucket_count(ctx, field)
+			case "sample_factor":
+				return ec.fieldContext_MetricsBuckets_sample_factor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MetricsBuckets", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_metrics_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_keys(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_keys(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Keys(rctx, fc.Args["product_type"].(model.ProductType), fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["query"].(*string), fc.Args["type"].(*model.KeyType))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.QueryKey)
+	fc.Result = res
+	return ec.marshalNQueryKey2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryKeyᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_keys(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_QueryKey_name(ctx, field)
+			case "type":
+				return ec.fieldContext_QueryKey_type(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type QueryKey", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_keys_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -87028,6 +87354,46 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "metrics":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_metrics(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "keys":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_keys(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -93826,6 +94192,16 @@ func (ec *executionContext) unmarshalNPlanType2githubᚗcomᚋhighlightᚑrunᚋ
 }
 
 func (ec *executionContext) marshalNPlanType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPlanType(ctx context.Context, sel ast.SelectionSet, v model.PlanType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNProductType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx context.Context, v interface{}) (model.ProductType, error) {
+	var res model.ProductType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNProductType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx context.Context, sel ast.SelectionSet, v model.ProductType) graphql.Marshaler {
 	return v
 }
 

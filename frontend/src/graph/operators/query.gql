@@ -2523,3 +2523,59 @@ query GetTracesKeyValues(
 		date_range: $date_range
 	)
 }
+
+query GetKeys(
+	$product_type: ProductType!
+	$project_id: ID!
+	$date_range: DateRangeRequiredInput!
+	$query: String
+) {
+	keys(
+		product_type: $product_type
+		project_id: $project_id
+		date_range: $date_range
+		query: $query
+	) {
+		name
+		type
+	}
+}
+
+query GetMetrics(
+	$product_type: ProductType!
+	$project_id: ID!
+	$params: QueryInput!
+	$column: String!
+	$metric_types: [MetricAggregator!]!
+	$group_by: [String!]!
+	$bucket_by: String!
+	$bucket_count: Int
+	$limit: Int
+	$limit_aggregator: MetricAggregator
+	$limit_column: String
+) {
+	metrics(
+		product_type: $product_type
+		project_id: $project_id
+		params: $params
+		column: $column
+		metric_types: $metric_types
+		group_by: $group_by
+		bucket_by: $bucket_by
+		bucket_count: $bucket_count
+		limit: $limit
+		limit_aggregator: $limit_aggregator
+		limit_column: $limit_column
+	) {
+		buckets {
+			bucket_id
+			bucket_min
+			bucket_max
+			group
+			metric_type
+			metric_value
+		}
+		bucket_count
+		sample_factor
+	}
+}

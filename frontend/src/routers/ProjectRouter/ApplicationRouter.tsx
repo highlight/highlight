@@ -18,6 +18,7 @@ import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceB
 import { RelatedResourcePanel } from '@/components/RelatedResourcePanel/RelatedResourcePanel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
+import { GraphingEditor } from '@/pages/Graphing/GraphingEditor'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
 import { TracePanel } from '@/pages/Traces/TracePanel'
 import { TracesPage } from '@/pages/Traces/TracesPage'
@@ -35,7 +36,7 @@ const ApplicationRouter: React.FC = () => {
 		page: errorPage || 1,
 		query: JSON.parse(errorSearchQuery),
 	})
-	const { isLoggedIn } = useAuthContext()
+	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 
 	return (
 		<>
@@ -70,7 +71,6 @@ const ApplicationRouter: React.FC = () => {
 						/>
 
 						<Route path="setup/*" element={<SetupRouter />} />
-
 						<Route
 							path="integrations/*"
 							element={<IntegrationsPage />}
@@ -99,6 +99,16 @@ const ApplicationRouter: React.FC = () => {
 								</Suspense>
 							}
 						/>
+						{isHighlightAdmin && (
+							<Route
+								path="metrics/*"
+								element={
+									<Suspense fallback={null}>
+										<GraphingEditor />
+									</Suspense>
+								}
+							/>
+						)}
 
 						<Route path="*" element={<DashboardsRouter />} />
 					</>
