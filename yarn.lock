@@ -13853,7 +13853,7 @@ __metadata:
     lottie-react: "npm:^2.1.0"
     moment: "npm:2.29.4"
     npm-run-all: "npm:^4.1.5"
-    postcss: "npm:^8.4.31"
+    postcss: "npm:^8.4.35"
     postcss-custom-properties: "npm:^12.1.7"
     postcss-nesting: "npm:^11.2.2"
     postinstall-postinstall: "npm:^2.1.0"
@@ -41526,7 +41526,7 @@ __metadata:
     pino: "npm:^8.15.0"
     pino-http-send: "npm:^0.4.2"
     pino-pretty: "npm:^10.3.1"
-    postcss: "npm:^8.4.31"
+    postcss: "npm:^8.4.35"
     prettier: "npm:^2.8.4"
     prettier-plugin-organize-imports: "npm:^3.2.2"
     pretty-quick: "npm:^3.1.3"
@@ -53889,6 +53889,17 @@ __metadata:
     picocolors: "npm:^1.0.0"
     source-map-js: "npm:^1.0.2"
   checksum: 57143e3c5ddaba9813ebd81de3e38e3ac198b0a1634e57752d29cd4936f1301eba38e43bda1302859679af047a6efc4366952d294c64358f8b90fbf49ba7d121
+  languageName: node
+  linkType: hard
+
+"postcss@npm:^8.4.35":
+  version: 8.4.35
+  resolution: "postcss@npm:8.4.35"
+  dependencies:
+    nanoid: "npm:^3.3.7"
+    picocolors: "npm:^1.0.0"
+    source-map-js: "npm:^1.0.2"
+  checksum: 93a7ce50cd6188f5f486a9ca98950ad27c19dfed996c45c414fa242944497e4d084a8760d3537f078630226f2bd3c6ab84b813b488740f4432e7c7039cd73a20
   languageName: node
   linkType: hard
 
