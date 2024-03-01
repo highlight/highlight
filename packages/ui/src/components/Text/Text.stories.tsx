@@ -1,10 +1,9 @@
-import React from 'react'
 import { Meta } from '@storybook/react'
 
-import { Text } from './Text'
-import { typographyStyles } from './styles.css'
 import { Box } from '../Box/Box'
 import { Heading } from '../Heading/Heading'
+import { typographyStyles } from './styles.css'
+import { Text } from './Text'
 
 export default {
 	title: 'Components/Text',

@@ -1,4 +1,5 @@
 import { createContainer, style } from '@vanilla-extract/css'
+
 import { breakpoints } from '../../css/breakpoints'
 
 export const CONTAINER_MAX_WIDTH = 940

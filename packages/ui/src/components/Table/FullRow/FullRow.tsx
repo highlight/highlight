@@ -1,7 +1,7 @@
 import React from 'react'
 
-import { Row } from '../Row/Row'
 import { Cell } from '../Cell/Cell'
+import { Row } from '../Row/Row'
 
 export type Props = {
 	children: React.ReactNode

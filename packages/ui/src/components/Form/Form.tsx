@@ -1,14 +1,13 @@
+import * as Ariakit from '@ariakit/react'
+import clsx, { ClassValue } from 'clsx'
 import React, { forwardRef, ReactNode, useRef } from 'react'
 
-import * as Ariakit from '@ariakit/react'
-
-import * as styles from './styles.css'
-import { Box } from '../Box/Box'
-import { Text } from '../Text/Text'
-import { Stack } from '../Stack/Stack'
-import clsx, { ClassValue } from 'clsx'
-import { Variants } from './styles.css'
 import { Badge } from '../Badge/Badge'
+import { Box } from '../Box/Box'
+import { Stack } from '../Stack/Stack'
+import { Text } from '../Text/Text'
+import * as styles from './styles.css'
+import { Variants } from './styles.css'
 
 type FormComponent = React.FC<Props> & {
 	Input: typeof Input

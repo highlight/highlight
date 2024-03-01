@@ -1,8 +1,9 @@
-import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { createStyleObject } from '@capsizecss/core'
-import fontMetrics from '@capsizecss/metrics/inter'
 import plexoFontMetrics from '@capsizecss/metrics/iBMPlexMono'
+import fontMetrics from '@capsizecss/metrics/inter'
 import { globalStyle } from '@vanilla-extract/css'
+import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
+
 import { themeVars } from '../../css/theme.css'
 
 // Body

@@ -1,11 +1,8 @@
 import * as Ariakit from '@ariakit/react'
 import clsx, { ClassValue } from 'clsx'
 import React from 'react'
-import {
-	Button as OriginalButton,
-	ButtonProps as ButtonProps,
-} from '../Button/Button'
 
+import { Button as OriginalButton, ButtonProps } from '../Button/Button'
 import { ButtonIcon, Props as ButtonIconProps } from '../ButtonIcon/ButtonIcon'
 import * as styles from './styles.css'
 

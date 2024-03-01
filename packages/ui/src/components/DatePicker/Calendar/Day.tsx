@@ -1,11 +1,11 @@
-import React, { CSSProperties, Fragment } from 'react'
-import { Box, BoxProps } from '../../Box/Box'
 import { CalendarDay, useContextDaysPropGetters } from '@rehookify/datepicker'
-import { ReactNode } from 'react'
 import {
 	PropGettersDisabled,
 	PropGettersEnabled,
 } from '@rehookify/datepicker/dist/utils/create-prop-getter'
+import { CSSProperties, Fragment, ReactNode } from 'react'
+
+import { Box, BoxProps } from '../../Box/Box'
 
 const getColor = (day: CalendarDay) => {
 	const { selected, disabled, range } = day

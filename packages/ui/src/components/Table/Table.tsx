@@ -1,5 +1,7 @@
+import clsx from 'clsx'
 import React from 'react'
 
+import { Box, BoxProps } from '../Box/Box'
 import { Body } from './Body/Body'
 import { Cell } from './Cell/Cell'
 import { Discoverable } from './Discoverable/Discoverable'
@@ -8,10 +10,6 @@ import { Head } from './Head/Head'
 import { Header } from './Header/Header'
 import { Row } from './Row/Row'
 import { Search } from './Search/Search'
-
-import { Box, BoxProps } from '../Box/Box'
-import clsx from 'clsx'
-
 import * as styles from './styles.css'
 
 type Props = {

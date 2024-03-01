@@ -1,11 +1,10 @@
-import React from 'react'
 import * as Ariakit from '@ariakit/react'
+import React from 'react'
 
-import { IconSolidCheckCircle, IconSolidMinus } from '../icons'
-
-import * as styles from './styles.css'
-import { Text } from '../Text/Text'
 import { Box } from '../Box/Box'
+import { IconSolidCheckCircle, IconSolidMinus } from '../icons'
+import { Text } from '../Text/Text'
+import * as styles from './styles.css'
 
 type Option = {
 	key: string

@@ -1,4 +1,3 @@
-import React from 'react'
 import { IconProps } from './types'
 
 export const IconOutlineKey = ({ size = '1em', ...props }: IconProps) => {

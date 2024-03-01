@@ -1,8 +1,8 @@
 import { Meta } from '@storybook/react'
 
-import { Button } from './Button'
 import { Box } from '../Box/Box'
 import { IconSolidCheveronDown, IconSolidSave } from '../icons'
+import { Button } from './Button'
 
 export default {
 	title: 'Components/Button',

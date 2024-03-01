@@ -1,8 +1,9 @@
 import * as Ariakit from '@ariakit/react'
 import React from 'react'
-import { Button, ButtonProps as ButtonProps } from '../Button/Button'
-import { Tag, Props as TagProps } from '../Tag/Tag'
+
 import { Box, BoxProps } from '../Box/Box'
+import { Button, ButtonProps } from '../Button/Button'
+import { Props as TagProps, Tag } from '../Tag/Tag'
 
 const PopoverContext = React.createContext<Ariakit.PopoverStore>(
 	{} as Ariakit.PopoverStore,

@@ -1,7 +1,7 @@
-import { Sprinkles, sprinkles } from '../../css/sprinkles.css'
 import clsx, { ClassValue } from 'clsx'
-
 import React from 'react'
+
+import { Sprinkles, sprinkles } from '../../css/sprinkles.css'
 import { hiddenScroll } from './Box.css'
 
 export type BoxProps = Sprinkles &

@@ -1,5 +1,6 @@
-import { Badge } from './Badge'
 import type { Meta } from '@storybook/react'
+
+import { Badge } from './Badge'
 
 export default {
 	title: 'Components/Badge',
