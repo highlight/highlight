@@ -38,7 +38,7 @@ export const OverageCard = ({ productType }: Props) => {
 		)
 	}
 
-	const meters = getMeterAmounts(data)
+	const meters = getMeterAmounts(data.billingDetails)
 	const meter = meters[productType][0]
 	const quota = meters[productType][1]
 	if (quota === undefined || meter < quota) {
