@@ -20,3 +20,6 @@ scripts/venv
 __generated
 .reflame.config.jsonc
 opentelemetry-sdk-workers
+sdk/highlightinc-highlight-datasource/grafana/data
+sdk/highlight-php
+
