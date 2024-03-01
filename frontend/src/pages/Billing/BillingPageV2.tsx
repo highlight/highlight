@@ -289,6 +289,8 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const discountAmount = data?.subscription_details.discount?.amount ?? 0
 
 	const isPaying = data?.billingDetails.plan.type !== PlanType.Free
+	const isAWSMP =
+		!!data?.billingDetails.plan.aws_mp_subscription?.customer_identifier
 
 	const nextInvoiceDate = tryCastDate(data?.workspace?.next_invoice_date)
 	const billingPeriodEnd = tryCastDate(data?.workspace?.billing_period_end)
@@ -473,8 +475,10 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					>
 						<Text size="small" color="strong">
 							{isPaying
-								? data?.billingDetails.plan.type ===
-								  PlanType.Graduated
+								? isAWSMP
+									? 'AWS Marketplace'
+									: data?.billingDetails.plan.type ===
+									  PlanType.Graduated
 									? 'Pay as you go'
 									: data?.billingDetails.plan.type ===
 									  PlanType.UsageBased
@@ -482,28 +486,32 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 									: data?.billingDetails.plan.type
 								: 'Free'}
 						</Text>
-						<Box display="flex" gap="6">
-							{isPaying ? (
+						{isAWSMP ? null : (
+							<Box display="flex" gap="6">
+								{isPaying ? (
+									<Button
+										trackingId="BillingPage EditCurrentPlan"
+										size="small"
+										emphasis="low"
+										kind="secondary"
+										onClick={() =>
+											setStep('Configure plan')
+										}
+									>
+										Edit current plan
+									</Button>
+								) : null}
 								<Button
-									trackingId="BillingPage EditCurrentPlan"
+									trackingId="BillingPage UpgradePlan"
 									size="small"
-									emphasis="low"
-									kind="secondary"
-									onClick={() => setStep('Configure plan')}
+									emphasis="high"
+									kind="primary"
+									onClick={() => setStep('Select plan')}
 								>
-									Edit current plan
+									Select a plan
 								</Button>
-							) : null}
-							<Button
-								trackingId="BillingPage UpgradePlan"
-								size="small"
-								emphasis="high"
-								kind="primary"
-								onClick={() => setStep('Select plan')}
-							>
-								Select a plan
-							</Button>
-						</Box>
+							</Box>
+						)}
 					</Box>
 				</Stack>
 				<Box

@@ -21,6 +21,12 @@ type Edge interface {
 	GetCursor() string
 }
 
+type AWSMarketplaceSubscription struct {
+	CustomerIdentifier   string `json:"customer_identifier"`
+	CustomerAwsAccountID string `json:"customer_aws_account_id"`
+	ProductCode          string `json:"product_code"`
+}
+
 type AccessibleJiraResources struct {
 	ID        string   `json:"id"`
 	URL       string   `json:"url"`
@@ -617,18 +623,19 @@ type PageInfo struct {
 }
 
 type Plan struct {
-	Type                PlanType             `json:"type"`
-	Interval            SubscriptionInterval `json:"interval"`
-	MembersLimit        *int64               `json:"membersLimit"`
-	EnableBillingLimits bool                 `json:"enableBillingLimits"`
-	SessionsLimit       int64                `json:"sessionsLimit"`
-	ErrorsLimit         int64                `json:"errorsLimit"`
-	LogsLimit           int64                `json:"logsLimit"`
-	TracesLimit         int64                `json:"tracesLimit"`
-	SessionsRate        float64              `json:"sessionsRate"`
-	ErrorsRate          float64              `json:"errorsRate"`
-	LogsRate            float64              `json:"logsRate"`
-	TracesRate          float64              `json:"tracesRate"`
+	Type                PlanType                    `json:"type"`
+	Interval            SubscriptionInterval        `json:"interval"`
+	MembersLimit        *int64                      `json:"membersLimit"`
+	EnableBillingLimits bool                        `json:"enableBillingLimits"`
+	AwsMpSubscription   *AWSMarketplaceSubscription `json:"aws_mp_subscription"`
+	SessionsLimit       int64                       `json:"sessionsLimit"`
+	ErrorsLimit         int64                       `json:"errorsLimit"`
+	LogsLimit           int64                       `json:"logsLimit"`
+	TracesLimit         int64                       `json:"tracesLimit"`
+	SessionsRate        float64                     `json:"sessionsRate"`
+	ErrorsRate          float64                     `json:"errorsRate"`
+	LogsRate            float64                     `json:"logsRate"`
+	TracesRate          float64                     `json:"tracesRate"`
 }
 
 type QueryInput struct {
