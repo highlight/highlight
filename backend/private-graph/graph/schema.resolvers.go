@@ -8683,6 +8683,24 @@ func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.Produc
 	}
 }
 
+// KeyValues is the resolver for the key_values field.
+func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.ProductType, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		return r.TracesKeyValues(ctx, projectID, keyName, dateRange)
+	case modelInputs.ProductTypeLogs:
+		return r.LogsKeyValues(ctx, projectID, keyName, dateRange)
+	case modelInputs.ProductTypeSessions:
+		// TODO(spenny): dynamic field type
+		return r.FieldsClickhouse(ctx, projectID, 25, "user", keyName, "", dateRange.StartDate, dateRange.EndDate)
+	case modelInputs.ProductTypeErrors:
+		// TODO(spenny): dynamic field type
+		return r.ErrorFieldsClickhouse(ctx, projectID, 25, "error-field", keyName, "", dateRange.StartDate, dateRange.EndDate)
+	default:
+		return nil, e.Errorf("invalid product type %s", productType)
+	}
+}
+
 // Params is the resolver for the params field.
 func (r *savedSegmentResolver) Params(ctx context.Context, obj *model.SavedSegment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}

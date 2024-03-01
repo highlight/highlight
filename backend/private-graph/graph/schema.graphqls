@@ -2223,6 +2223,12 @@ type Query {
 		query: String
 		type: KeyType
 	): [QueryKey!]!
+	key_values(
+		product_type: ProductType!
+		project_id: ID!
+		key_name: String!
+		date_range: DateRangeRequiredInput!
+	): [String!]!
 }
 
 type Mutation {
