@@ -8,7 +8,11 @@ import {
 	GetErrorInstanceDocument,
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
-import { ErrorObjectFragment, GetErrorGroupQuery } from '@graph/operations'
+import {
+	ErrorObjectFragment,
+	GetErrorGroupQuery,
+	GetErrorInstanceQuery,
+} from '@graph/operations'
 import {
 	Badge,
 	Box,
@@ -162,19 +166,7 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				</Stack>
 			</Stack>
 
-			<Box py="12" px="16" mb="40" border="secondary" borderRadius="8">
-				<Box
-					mb="8"
-					display="flex"
-					gap="6"
-					alignItems="center"
-					color="weak"
-				>
-					<IconSolidCode />
-					<Text color="moderate">Instance Error Body</Text>
-				</Box>
-				<ErrorBodyText errorBody={errorInstance.error_object.event} />
-			</Box>
+			<ErrorInstanceBody errorInstance={errorInstance} />
 
 			{workspaceSettingsData?.workspaceSettings?.ai_application && (
 				<Box display="flex" flexDirection="column" mb="40">
@@ -190,6 +182,48 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				</Box>
 			)}
 
+			<ErrorInstanceInfo
+				errorGroup={errorGroup}
+				errorInstance={errorInstance}
+			/>
+
+			<ErrorInstanceStackTrace
+				displayGitHubSettings={displayGitHubSettings}
+				errorInstance={errorInstance}
+				setDisplayGitHubSettings={setDisplayGitHubSettings}
+			/>
+		</Box>
+	)
+}
+
+export const ErrorInstanceBody: React.FC<{
+	errorInstance: GetErrorInstanceQuery['error_instance']
+}> = ({ errorInstance }) => {
+	if (!errorInstance) {
+		return null
+	}
+
+	return (
+		<Box py="12" px="16" mb="40" border="secondary" borderRadius="8">
+			<Box mb="8" display="flex" gap="6" alignItems="center" color="weak">
+				<IconSolidCode />
+				<Text color="moderate">Instance Error Body</Text>
+			</Box>
+			<ErrorBodyText errorBody={errorInstance.error_object.event} />
+		</Box>
+	)
+}
+
+export const ErrorInstanceInfo: React.FC<{
+	errorGroup: Props['errorGroup']
+	errorInstance: GetErrorInstanceQuery['error_instance']
+}> = ({ errorGroup, errorInstance }) => {
+	if (!errorGroup || !errorInstance) {
+		return null
+	}
+
+	return (
+		<>
 			<Box
 				display="flex"
 				flexDirection={{ mobile: 'column', desktop: 'row' }}
@@ -217,48 +251,7 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						</Box>
 					</>
 				)}
-
-			{(errorInstance.error_object.stack_trace !== '' &&
-				errorInstance.error_object.stack_trace !== 'null') ||
-			errorInstance.error_object.structured_stack_trace?.length ? (
-				displayGitHubSettings ? (
-					<GitHubEnhancementSettings
-						onClose={() => setDisplayGitHubSettings(false)}
-						errorObject={errorInstance.error_object}
-					/>
-				) : (
-					<>
-						<Stack
-							direction="row"
-							justifyContent="space-between"
-							alignItems="center"
-						>
-							<Text size="large" weight="bold" color="strong">
-								Stacktrace
-							</Text>
-							{errorInstance.error_object?.type === 'Backend' && (
-								<Button
-									kind="secondary"
-									emphasis="medium"
-									trackingId="errorInstanceGithubEnhancementSetup"
-									iconLeft={<IconSolidCog size={12} />}
-									onClick={() =>
-										setDisplayGitHubSettings(true)
-									}
-								>
-									Setup GitHub-enhanced stacktraces
-								</Button>
-							)}
-						</Stack>
-						<Box mt="12">
-							<ErrorStackTrace
-								errorObject={errorInstance.error_object}
-							/>
-						</Box>
-					</>
-				)
-			) : null}
-		</Box>
+		</>
 	)
 }
 
@@ -583,5 +576,60 @@ const User: React.FC<{
 				{errorObject && <ErrorBoundaryFeedback data={errorObject} />}
 			</Box>
 		</Box>
+	)
+}
+
+export const ErrorInstanceStackTrace: React.FC<{
+	displayGitHubSettings: boolean
+	errorInstance: GetErrorInstanceQuery['error_instance']
+	setDisplayGitHubSettings: (value: boolean) => void
+}> = ({ displayGitHubSettings, errorInstance, setDisplayGitHubSettings }) => {
+	if (!errorInstance) {
+		return null
+	}
+
+	return (
+		<>
+			{(errorInstance.error_object.stack_trace !== '' &&
+				errorInstance.error_object.stack_trace !== 'null') ||
+			errorInstance.error_object.structured_stack_trace?.length ? (
+				displayGitHubSettings ? (
+					<GitHubEnhancementSettings
+						onClose={() => setDisplayGitHubSettings(false)}
+						errorObject={errorInstance.error_object}
+					/>
+				) : (
+					<>
+						<Stack
+							direction="row"
+							justifyContent="space-between"
+							alignItems="center"
+						>
+							<Text size="large" weight="bold" color="strong">
+								Stacktrace
+							</Text>
+							{errorInstance.error_object?.type === 'Backend' && (
+								<Button
+									kind="secondary"
+									emphasis="medium"
+									trackingId="errorInstanceGithubEnhancementSetup"
+									iconLeft={<IconSolidCog size={12} />}
+									onClick={() =>
+										setDisplayGitHubSettings(true)
+									}
+								>
+									Setup GitHub-enhanced stacktraces
+								</Button>
+							)}
+						</Stack>
+						<Box mt="12">
+							<ErrorStackTrace
+								errorObject={errorInstance.error_object}
+							/>
+						</Box>
+					</>
+				)
+			) : null}
+		</>
 	)
 }

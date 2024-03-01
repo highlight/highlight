@@ -2,15 +2,23 @@ import { Box, Dialog } from '@highlight-run/ui/components'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
+import { PanelLoading } from '@/components/RelatedResources/Loading'
+import { PanelHeader } from '@/components/RelatedResources/PanelHeader'
 
 import * as styles from './Panel.css'
 
 const MIN_PANEL_WIDTH = 40
 
-export const Panel: React.FC<React.PropsWithChildren<{ open: boolean }>> = ({
-	children,
-	open,
-}) => {
+type Props = React.PropsWithChildren<{
+	open: boolean
+}>
+
+type PanelComponent = React.FC<Props> & {
+	Header: typeof PanelHeader
+	Loading: typeof PanelLoading
+}
+
+export const Panel: PanelComponent = ({ children, open }) => {
 	const dragHandleRef = useRef<HTMLDivElement>(null)
 	const [dragging, setDragging] = useState(false)
 	const { remove, panelWidth, setPanelWidth } = useRelatedResource()
@@ -75,3 +83,6 @@ export const Panel: React.FC<React.PropsWithChildren<{ open: boolean }>> = ({
 		</Dialog>
 	)
 }
+
+Panel.Header = PanelHeader
+Panel.Loading = PanelLoading

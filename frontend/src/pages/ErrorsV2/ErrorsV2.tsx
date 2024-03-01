@@ -64,7 +64,8 @@ export default function ErrorsV2() {
 	const { isLoggedIn } = useAuthContext()
 	const [{ integrated }] = useIntegratedLocalStorage(project_id!, 'server')
 
-	const { data, loading, errorQueryingErrorGroup } = useErrorGroup()
+	const { data, loading, errorQueryingErrorGroup } =
+		useErrorGroup(error_secure_id)
 
 	const { isBlocked, loading: isBlockedLoading } = useIsBlocked({
 		isPublic: data?.error_group?.is_public ?? false,
@@ -405,8 +406,7 @@ function ErrorDisplay({
 	}
 }
 
-function useErrorGroup() {
-	const { error_secure_id } = useParams<Params>()
+export function useErrorGroup(errorSecureId?: string) {
 	const [{ referrer }] = useQueryParams({
 		referrer: StringParam,
 	})
@@ -418,15 +418,15 @@ function useErrorGroup() {
 		error: errorQueryingErrorGroup,
 	} = useGetErrorGroupQuery({
 		variables: {
-			secure_id: error_secure_id!,
+			secure_id: errorSecureId!,
 			use_clickhouse: true,
 		},
-		skip: !error_secure_id,
+		skip: !errorSecureId,
 		onCompleted: () => {
-			if (error_secure_id) {
+			if (errorSecureId) {
 				markErrorGroupAsViewed({
 					variables: {
-						error_secure_id,
+						error_secure_id: errorSecureId,
 						viewed: true,
 					},
 				}).catch(console.error)

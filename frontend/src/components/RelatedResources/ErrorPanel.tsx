@@ -1,14 +1,76 @@
 import { Box } from '@highlight-run/ui/components'
+import { useState } from 'react'
 
+import { Divider } from '@/components/CreateAlertButton/CreateAlertButton'
+import { RelatedError } from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
-import { ResourcePanelProps } from '@/components/RelatedResources/RelatedResourcePanel'
+import { useGetErrorInstanceQuery } from '@/graph/generated/hooks'
+import ErrorBody from '@/pages/ErrorsV2/ErrorBody/ErrorBody'
+import {
+	ErrorInstanceBody,
+	ErrorInstanceInfo,
+	ErrorInstanceStackTrace,
+} from '@/pages/ErrorsV2/ErrorInstance/ErrorInstance'
+import ErrorIssueButton from '@/pages/ErrorsV2/ErrorIssueButton/ErrorIssueButton'
+import ErrorShareButton from '@/pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
+import { ErrorStateSelect } from '@/pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
+import { useErrorGroup } from '@/pages/ErrorsV2/ErrorsV2'
+import ErrorTitle from '@/pages/ErrorsV2/ErrorTitle/ErrorTitle'
 
-export const ErrorPanel: React.FC<ResourcePanelProps> = ({ resource }) => {
+export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
+	resource,
+}) => {
+	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(false)
+	const path = `/errors/${resource.id}`
+	const { data, loading } = useErrorGroup(resource.id)
+	const errorGroup = data?.error_group
+	const { data: errorInstanceData, loading: errorInstanceLoading } =
+		useGetErrorInstanceQuery({
+			variables: {
+				error_group_secure_id: String(errorGroup?.secure_id),
+				error_object_id: String(resource.instanceId),
+			},
+			skip: !resource.instanceId,
+		})
+	const errorInstance = errorInstanceData?.error_instance
+
+	if (loading || errorInstanceLoading || !errorGroup || !errorInstance) {
+		return <Panel.Loading />
+	}
+
 	return (
 		<Panel open={true}>
-			This is the error panel!
-			<Box p="8" border="dividerWeak" my="8" borderRadius="4">
-				<pre>{JSON.stringify(resource)}</pre>
+			<Panel.Header path={path}>
+				<ErrorShareButton errorGroup={errorGroup} />
+				<ErrorStateSelect
+					state={errorGroup.state}
+					snoozedUntil={errorGroup.snoozed_until}
+				/>
+				<Divider />
+				<ErrorIssueButton errorGroup={errorGroup} />
+			</Panel.Header>
+
+			<Box overflowY="scroll" width="full">
+				<>
+					<Box py="24" px="20" mx="auto" style={{ maxWidth: 940 }}>
+						<ErrorTitle errorGroup={errorGroup} />
+						<ErrorBody errorGroup={errorGroup} />
+
+						<Box mt="32">
+							<ErrorInstanceBody errorInstance={errorInstance} />
+						</Box>
+
+						<ErrorInstanceInfo
+							errorGroup={errorGroup}
+							errorInstance={errorInstance}
+						/>
+						<ErrorInstanceStackTrace
+							displayGitHubSettings={displayGitHubSettings}
+							errorInstance={errorInstance}
+							setDisplayGitHubSettings={setDisplayGitHubSettings}
+						/>
+					</Box>
+				</>
 			</Box>
 		</Panel>
 	)

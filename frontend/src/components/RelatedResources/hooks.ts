@@ -3,8 +3,20 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useLocalStorage } from 'react-use'
 
-type RelatedResourceType = 'session' | 'error' | 'trace'
-export type RelatedResource = { type: RelatedResourceType; id: string }
+export type RelatedError = {
+	type: 'error'
+	id: string
+	instanceId: string
+}
+export type RelatedSession = {
+	type: 'session'
+	id: string
+}
+export type RelatedTrace = {
+	type: 'trace'
+	id: string
+}
+export type RelatedResource = RelatedError | RelatedSession | RelatedTrace
 
 const LOCAL_STORAGE_WIDTH_KEY = 'related-resource-panel-width'
 const RELATED_RESOURCE_PARAM = 'related_resource'
@@ -29,21 +41,23 @@ export const useRelatedResource = () => {
 		let resource: RelatedResource | null = null
 
 		if (resourceParam) {
-			const [type, id] = resourceParam.split(':')
-
-			resource = {
-				type: type as RelatedResourceType,
-				id,
-			}
+			resource = JSON.parse(
+				decodeURIComponent(resourceParam),
+			) as RelatedResource
 		}
 
 		setResource(resource)
 	}, [searchParams])
 
-	const set = (type: RelatedResourceType, id: string) => {
-		searchParams.set(RELATED_RESOURCE_PARAM, `${type}:${id}`)
+	const set = (resource: RelatedResource) => {
+		searchParams.set(
+			RELATED_RESOURCE_PARAM,
+			encodeURIComponent(JSON.stringify(resource)),
+		)
+		debugger
+
 		setSearchParams(Object.fromEntries(searchParams.entries()))
-		setResource({ type, id })
+		setResource(resource)
 	}
 
 	const remove = () => {

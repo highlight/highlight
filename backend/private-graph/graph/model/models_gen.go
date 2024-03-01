@@ -875,6 +875,7 @@ func (this TraceEdge) GetCursor() string { return this.Cursor }
 
 type TraceError struct {
 	CreatedAt          time.Time `json:"created_at"`
+	ID                 int       `json:"id"`
 	TraceID            *string   `json:"trace_id"`
 	SpanID             *string   `json:"span_id"`
 	LogCursor          *string   `json:"log_cursor"`
