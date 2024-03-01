@@ -296,7 +296,11 @@ export const Search: React.FC<{
 	if (showOperators) {
 		const operators =
 			keyMatch.type === 'Numeric'
-				? [...NUMERIC_OPERATORS, ...EXISTS_OPERATORS]
+				? [
+						...BOOLEAN_OPERATORS,
+						...NUMERIC_OPERATORS,
+						...EXISTS_OPERATORS,
+				  ]
 				: [
 						...BOOLEAN_OPERATORS,
 						...EXISTS_OPERATORS,
