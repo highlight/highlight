@@ -2,12 +2,15 @@ import { Box, Callout, Text } from '@highlight-run/ui/components'
 import moment from 'moment'
 import React, { useEffect } from 'react'
 
+import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
+import { useRelatedResource } from '@/components/RelatedResourcePanel/hooks'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import analytics from '@/util/analytics'
 
 export const TraceErrors: React.FC = () => {
 	const { errors, traceId } = useTrace()
+	const { set } = useRelatedResource()
 
 	useEffect(() => {
 		analytics.track('trace_errors_view')
@@ -44,13 +47,15 @@ export const TraceErrors: React.FC = () => {
 								{moment(error.timestamp).format()}
 							</Text>
 						</Box>
-						<LinkButton
-							to={`/errors/${error.error_group_secure_id}`}
+						<Button
+							onClick={() =>
+								set('error', error.error_group_secure_id)
+							}
 							size="small"
 							trackingId="trace-error_see-more"
 						>
 							See more
-						</LinkButton>
+						</Button>
 					</Box>
 				))}
 			</Box>

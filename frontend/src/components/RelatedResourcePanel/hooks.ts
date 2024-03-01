@@ -41,19 +41,14 @@ export const useRelatedResource = () => {
 	}, [searchParams])
 
 	const set = (type: RelatedResourceType, id: string) => {
-		const newResource = { type, id }
-		setSearchParams({
-			...searchParams,
-			[RELATED_RESOURCE_PARAM]: `${type}:${id}`,
-		})
-		setResource(newResource)
+		searchParams.set(RELATED_RESOURCE_PARAM, `${type}:${id}`)
+		setSearchParams(Object.fromEntries(searchParams.entries()))
+		setResource({ type, id })
 	}
 
 	const remove = () => {
-		setSearchParams({
-			...searchParams,
-			[RELATED_RESOURCE_PARAM]: undefined,
-		})
+		searchParams.delete(RELATED_RESOURCE_PARAM)
+		setSearchParams(Object.fromEntries(searchParams.entries()))
 		setResource(null)
 	}
 
