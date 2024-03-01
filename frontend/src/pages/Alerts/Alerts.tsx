@@ -96,6 +96,7 @@ export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
 				<a
 					href="https://docs.highlight.run/rage-clicks"
 					target="_blank"
+					rel="noreferrer"
 				>
 					rage clicks.
 				</a>

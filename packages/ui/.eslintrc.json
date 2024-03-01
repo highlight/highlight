@@ -20,7 +20,8 @@
 		"react",
 		"simple-import-sort",
 		"unused-imports",
-		"import"
+		"import",
+		"prettier"
 	],
 	"ignorePatterns": ["src/__generated/*"],
 	"rules": {
