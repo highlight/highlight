@@ -187,6 +187,8 @@ type Plan {
 	membersLimit: Int64
 	enableBillingLimits: Boolean!
 
+	aws_mp_subscription: AWSMarketplaceSubscription
+
 	sessionsLimit: Int64!
 	errorsLimit: Int64!
 	logsLimit: Int64!
@@ -196,6 +198,12 @@ type Plan {
 	errorsRate: Float!
 	logsRate: Float!
 	tracesRate: Float!
+}
+
+type AWSMarketplaceSubscription {
+	customer_identifier: String!
+	customer_aws_account_id: String!
+	product_code: String!
 }
 
 enum PlanType {

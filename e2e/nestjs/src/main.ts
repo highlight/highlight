@@ -14,6 +14,8 @@ async function bootstrap() {
 	}
 	app.useLogger(new HighlightLogger(highlightOpts))
 	app.useGlobalInterceptors(new HighlightInterceptor(highlightOpts))
+	app.enableShutdownHooks()
+
 	await app.listen(3002)
 }
 bootstrap()
