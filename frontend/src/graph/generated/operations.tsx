@@ -3011,7 +3011,18 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 					| 'errorsRate'
 					| 'logsRate'
 					| 'tracesRate'
-				>
+				> & {
+						aws_mp_subscription?: Types.Maybe<
+							{
+								__typename?: 'AWSMarketplaceSubscription'
+							} & Pick<
+								Types.AwsMarketplaceSubscription,
+								| 'customer_identifier'
+								| 'customer_aws_account_id'
+								| 'product_code'
+							>
+						>
+					}
 			}
 	>
 	workspace_for_project?: Types.Maybe<
@@ -3062,7 +3073,16 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 				| 'logsRate'
 				| 'tracesRate'
 				| 'enableBillingLimits'
-			>
+			> & {
+					aws_mp_subscription?: Types.Maybe<
+						{ __typename?: 'AWSMarketplaceSubscription' } & Pick<
+							Types.AwsMarketplaceSubscription,
+							| 'customer_identifier'
+							| 'customer_aws_account_id'
+							| 'product_code'
+						>
+					>
+				}
 		}
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
 		Types.SubscriptionDetails,

@@ -65,6 +65,12 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	AWSMarketplaceSubscription struct {
+		CustomerAwsAccountID func(childComplexity int) int
+		CustomerIdentifier   func(childComplexity int) int
+		ProductCode          func(childComplexity int) int
+	}
+
 	AccessibleJiraResources struct {
 		AvatarURL func(childComplexity int) int
 		ID        func(childComplexity int) int
@@ -884,6 +890,7 @@ type ComplexityRoot struct {
 	}
 
 	Plan struct {
+		AwsMpSubscription   func(childComplexity int) int
 		EnableBillingLimits func(childComplexity int) int
 		ErrorsLimit         func(childComplexity int) int
 		ErrorsRate          func(childComplexity int) int
@@ -1948,6 +1955,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "AWSMarketplaceSubscription.customer_aws_account_id":
+		if e.complexity.AWSMarketplaceSubscription.CustomerAwsAccountID == nil {
+			break
+		}
+
+		return e.complexity.AWSMarketplaceSubscription.CustomerAwsAccountID(childComplexity), true
+
+	case "AWSMarketplaceSubscription.customer_identifier":
+		if e.complexity.AWSMarketplaceSubscription.CustomerIdentifier == nil {
+			break
+		}
+
+		return e.complexity.AWSMarketplaceSubscription.CustomerIdentifier(childComplexity), true
+
+	case "AWSMarketplaceSubscription.product_code":
+		if e.complexity.AWSMarketplaceSubscription.ProductCode == nil {
+			break
+		}
+
+		return e.complexity.AWSMarketplaceSubscription.ProductCode(childComplexity), true
 
 	case "AccessibleJiraResources.avatarUrl":
 		if e.complexity.AccessibleJiraResources.AvatarURL == nil {
@@ -6292,6 +6320,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PageInfo.StartCursor(childComplexity), true
+
+	case "Plan.aws_mp_subscription":
+		if e.complexity.Plan.AwsMpSubscription == nil {
+			break
+		}
+
+		return e.complexity.Plan.AwsMpSubscription(childComplexity), true
 
 	case "Plan.enableBillingLimits":
 		if e.complexity.Plan.EnableBillingLimits == nil {
@@ -10959,6 +10994,8 @@ type Plan {
 	membersLimit: Int64
 	enableBillingLimits: Boolean!
 
+	aws_mp_subscription: AWSMarketplaceSubscription
+
 	sessionsLimit: Int64!
 	errorsLimit: Int64!
 	logsLimit: Int64!
@@ -10968,6 +11005,12 @@ type Plan {
 	errorsRate: Float!
 	logsRate: Float!
 	tracesRate: Float!
+}
+
+type AWSMarketplaceSubscription {
+	customer_identifier: String!
+	customer_aws_account_id: String!
+	product_code: String!
 }
 
 enum PlanType {
@@ -21059,6 +21102,138 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _AWSMarketplaceSubscription_customer_identifier(ctx context.Context, field graphql.CollectedField, obj *model.AWSMarketplaceSubscription) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AWSMarketplaceSubscription_customer_identifier(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CustomerIdentifier, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AWSMarketplaceSubscription_customer_identifier(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AWSMarketplaceSubscription",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AWSMarketplaceSubscription_customer_aws_account_id(ctx context.Context, field graphql.CollectedField, obj *model.AWSMarketplaceSubscription) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AWSMarketplaceSubscription_customer_aws_account_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CustomerAwsAccountID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AWSMarketplaceSubscription_customer_aws_account_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AWSMarketplaceSubscription",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AWSMarketplaceSubscription_product_code(ctx context.Context, field graphql.CollectedField, obj *model.AWSMarketplaceSubscription) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AWSMarketplaceSubscription_product_code(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProductCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AWSMarketplaceSubscription_product_code(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AWSMarketplaceSubscription",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _AccessibleJiraResources_id(ctx context.Context, field graphql.CollectedField, obj *model.AccessibleJiraResources) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_AccessibleJiraResources_id(ctx, field)
 	if err != nil {
@@ -24203,6 +24378,8 @@ func (ec *executionContext) fieldContext_BillingDetails_plan(ctx context.Context
 				return ec.fieldContext_Plan_membersLimit(ctx, field)
 			case "enableBillingLimits":
 				return ec.fieldContext_Plan_enableBillingLimits(ctx, field)
+			case "aws_mp_subscription":
+				return ec.fieldContext_Plan_aws_mp_subscription(ctx, field)
 			case "sessionsLimit":
 				return ec.fieldContext_Plan_sessionsLimit(ctx, field)
 			case "errorsLimit":
@@ -48392,6 +48569,55 @@ func (ec *executionContext) fieldContext_Plan_enableBillingLimits(ctx context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Plan_aws_mp_subscription(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Plan_aws_mp_subscription(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AwsMpSubscription, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.AWSMarketplaceSubscription)
+	fc.Result = res
+	return ec.marshalOAWSMarketplaceSubscription2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAWSMarketplaceSubscription(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Plan_aws_mp_subscription(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "customer_identifier":
+				return ec.fieldContext_AWSMarketplaceSubscription_customer_identifier(ctx, field)
+			case "customer_aws_account_id":
+				return ec.fieldContext_AWSMarketplaceSubscription_customer_aws_account_id(ctx, field)
+			case "product_code":
+				return ec.fieldContext_AWSMarketplaceSubscription_product_code(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AWSMarketplaceSubscription", field.Name)
 		},
 	}
 	return fc, nil
@@ -78406,6 +78632,48 @@ func (ec *executionContext) _Edge(ctx context.Context, sel ast.SelectionSet, obj
 
 // region    **************************** object.gotpl ****************************
 
+var aWSMarketplaceSubscriptionImplementors = []string{"AWSMarketplaceSubscription"}
+
+func (ec *executionContext) _AWSMarketplaceSubscription(ctx context.Context, sel ast.SelectionSet, obj *model.AWSMarketplaceSubscription) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, aWSMarketplaceSubscriptionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AWSMarketplaceSubscription")
+		case "customer_identifier":
+
+			out.Values[i] = ec._AWSMarketplaceSubscription_customer_identifier(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "customer_aws_account_id":
+
+			out.Values[i] = ec._AWSMarketplaceSubscription_customer_aws_account_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "product_code":
+
+			out.Values[i] = ec._AWSMarketplaceSubscription_product_code(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var accessibleJiraResourcesImplementors = []string{"AccessibleJiraResources"}
 
 func (ec *executionContext) _AccessibleJiraResources(ctx context.Context, sel ast.SelectionSet, obj *model.AccessibleJiraResources) graphql.Marshaler {
@@ -84064,6 +84332,10 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "aws_mp_subscription":
+
+			out.Values[i] = ec._Plan_aws_mp_subscription(ctx, field, obj)
+
 		case "sessionsLimit":
 
 			out.Values[i] = ec._Plan_sessionsLimit(ctx, field, obj)
@@ -96614,6 +96886,13 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalOAWSMarketplaceSubscription2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAWSMarketplaceSubscription(ctx context.Context, sel ast.SelectionSet, v *model.AWSMarketplaceSubscription) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._AWSMarketplaceSubscription(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOAccount2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAccount(ctx context.Context, sel ast.SelectionSet, v []*model.Account) graphql.Marshaler {
