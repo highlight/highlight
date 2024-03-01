@@ -17,8 +17,30 @@ export const panel = style([
 		bottom: 0,
 		zIndex: 30000,
 		position: 'fixed',
+
+		// Slide in from the right
+		transition: 'transform 1s ease-in-out',
+		transform: 'translateX(0)',
+		selectors: {
+			// These will only work after upgrading to v0.4
+			'&[data-active]': {
+				transform: 'translateX(100%)',
+			},
+		},
 	},
 ])
+
+export const backdrop = style({
+	backgroundColor: 'rgba(0, 0, 0, 0.05)',
+	opacity: 0,
+	transition: 'opacity 0.5s',
+	selectors: {
+		// These will only work after upgrading to v0.4
+		'&[data-active]': {
+			opacity: 1,
+		},
+	},
+})
 
 export const panelDragHandle = style({
 	cursor: 'ew-resize',

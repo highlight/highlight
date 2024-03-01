@@ -54,8 +54,6 @@ export const useRelatedResource = () => {
 			RELATED_RESOURCE_PARAM,
 			encodeURIComponent(JSON.stringify(resource)),
 		)
-		debugger
-
 		setSearchParams(Object.fromEntries(searchParams.entries()))
 		setResource(resource)
 	}

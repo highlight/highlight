@@ -7418,8 +7418,21 @@ body {
   bottom: 0;
   z-index: 30000;
   position: fixed;
+  transition: transform 1s ease-in-out;
+  transform: translateX(0);
+}
+._10o9hoe1[data-active] {
+  transform: translateX(100%);
 }
 ._10o9hoe2 {
+  background-color: rgba(0, 0, 0, 0.05);
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+._10o9hoe2[data-active] {
+  opacity: 1;
+}
+._10o9hoe3 {
   cursor: ew-resize;
   position: absolute;
   left: -2px;

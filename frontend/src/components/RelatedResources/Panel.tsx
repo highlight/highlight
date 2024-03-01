@@ -69,7 +69,7 @@ export const Panel: PanelComponent = ({ children, open }) => {
 			store={dialogStore}
 			modal={false}
 			autoFocusOnShow={false}
-			backdrop={<Box style={{ background: 'rgba(0, 0, 0, 0.05)' }} />}
+			backdrop={<Box cssClass={styles.backdrop} />}
 			className={styles.panel}
 			style={{ width: `${panelWidth}%` }}
 		>
