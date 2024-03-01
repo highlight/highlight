@@ -1,9 +1,9 @@
 import { Box, Dialog } from '@highlight-run/ui/components'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useRelatedResource } from '@/components/RelatedResourcePanel/hooks'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 
-import * as styles from './RelatedResourcePanel.css'
+import * as styles from './Panel.css'
 
 const MIN_PANEL_WIDTH = 40
 

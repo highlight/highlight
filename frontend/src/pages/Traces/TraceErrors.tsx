@@ -3,8 +3,7 @@ import moment from 'moment'
 import React, { useEffect } from 'react'
 
 import { Button } from '@/components/Button'
-import { LinkButton } from '@/components/LinkButton'
-import { useRelatedResource } from '@/components/RelatedResourcePanel/hooks'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import analytics from '@/util/analytics'
 

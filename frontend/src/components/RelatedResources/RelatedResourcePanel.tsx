@@ -1,12 +1,12 @@
 import { useHotkeys } from 'react-hotkeys-hook'
 
-import { ErrorPanel } from '@/components/RelatedResourcePanel/ErrorPanel'
+import { ErrorPanel } from '@/components/RelatedResources/ErrorPanel'
 import {
 	RelatedResource,
 	useRelatedResource,
-} from '@/components/RelatedResourcePanel/hooks'
-import { SessionPanel } from '@/components/RelatedResourcePanel/SessionPanel'
-import { TracePanel } from '@/components/RelatedResourcePanel/TracePanel'
+} from '@/components/RelatedResources/hooks'
+import { SessionPanel } from '@/components/RelatedResources/SessionPanel'
+import { TracePanel } from '@/components/RelatedResources/TracePanel'
 
 type Props = React.PropsWithChildren & {}
 export type ResourcePanelProps = { resource: RelatedResource }

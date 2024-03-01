@@ -1,7 +1,7 @@
 import { Box } from '@highlight-run/ui/components'
 
-import { Panel } from '@/components/RelatedResourcePanel/Panel'
-import { ResourcePanelProps } from '@/components/RelatedResourcePanel/RelatedResourcePanel'
+import { Panel } from '@/components/RelatedResources/Panel'
+import { ResourcePanelProps } from '@/components/RelatedResources/RelatedResourcePanel'
 
 export const ErrorPanel: React.FC<ResourcePanelProps> = ({ resource }) => {
 	return (

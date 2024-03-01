@@ -1,5 +1,5 @@
-import { Panel } from '@/components/RelatedResourcePanel/Panel'
-import { ResourcePanelProps } from '@/components/RelatedResourcePanel/RelatedResourcePanel'
+import { Panel } from '@/components/RelatedResources/Panel'
+import { ResourcePanelProps } from '@/components/RelatedResources/RelatedResourcePanel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { TracePage } from '@/pages/Traces/TracePage'
 import { TraceProvider } from '@/pages/Traces/TraceProvider'
