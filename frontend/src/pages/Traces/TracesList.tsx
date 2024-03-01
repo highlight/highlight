@@ -258,6 +258,7 @@ export const TracesList: React.FC<Props> = ({
 							? `calc(100% - 202px)`
 							: `calc(100% - 174px)`,
 				}}
+				hiddenScroll
 			>
 				{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
 				{virtualRows.map((virtualRow) => {
