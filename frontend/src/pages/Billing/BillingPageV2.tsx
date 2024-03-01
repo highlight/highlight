@@ -11,6 +11,7 @@ import {
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
+	IconSolidPencil,
 	IconSolidPlayCircle,
 	IconSolidTraces,
 	Stack,
@@ -473,20 +474,39 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						py="8"
 						px="12"
 					>
-						<Text size="small" color="strong">
-							{isPaying
-								? isAWSMP
-									? 'AWS Marketplace'
-									: data?.billingDetails.plan.type ===
-									  PlanType.Graduated
-									? 'Pay as you go'
-									: data?.billingDetails.plan.type ===
-									  PlanType.UsageBased
-									? 'Usage based'
-									: data?.billingDetails.plan.type
-								: 'Free'}
-						</Text>
-						{isAWSMP ? null : (
+						<Box m="8">
+							<Text size="small" color="strong">
+								{isPaying
+									? isAWSMP
+										? 'AWS Marketplace'
+										: data?.billingDetails.plan.type ===
+										  PlanType.Graduated
+										? 'Pay as you go'
+										: data?.billingDetails.plan.type ===
+										  PlanType.UsageBased
+										? 'Usage based'
+										: data?.billingDetails.plan.type
+									: 'Free'}
+							</Text>
+						</Box>
+						{isAWSMP ? (
+							<Box display="flex" gap="6">
+								<Button
+									trackingId="BillingPage AWSMP Edit"
+									size="small"
+									emphasis="high"
+									kind="primary"
+									onClick={() =>
+										window.open(
+											`https://aws.amazon.com/marketplace/pp/prodview-frmk25gznwywm`,
+											'_blank',
+										)
+									}
+								>
+									Edit in AWS Marketplace
+								</Button>
+							</Box>
+						) : (
 							<Box display="flex" gap="6">
 								{isPaying ? (
 									<Button
@@ -498,6 +518,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 											setStep('Configure plan')
 										}
 									>
+										<IconSolidPencil />
 										Edit current plan
 									</Button>
 								) : null}
