@@ -62,7 +62,7 @@ type Props = {
 	presetDefault: DateRangePreset
 }
 
-const HEADERS_AND_CHARTS_HEIGHT = 228
+const HEADERS_AND_CHARTS_HEIGHT = 221
 const LOAD_MORE_HEIGHT = 28
 
 const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
