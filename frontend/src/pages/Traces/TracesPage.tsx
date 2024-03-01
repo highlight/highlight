@@ -36,7 +36,7 @@ import {
 } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
-import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
+import { LogsHistogram } from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LatencyChart, MetricBucket } from '@/pages/Traces/LatencyChart'
 import { TracesList } from '@/pages/Traces/TracesList'
 import { useGetTraces } from '@/pages/Traces/useGetTraces'

@@ -48,7 +48,7 @@ import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/Err
 import ErrorQueryBuilder, {
 	CUSTOM_FIELDS as ERROR_CUSTOM_FIELDS,
 } from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
-import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
+import { LogsHistogram } from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { SearchContextProvider } from '@pages/Sessions/SearchContext/SearchContext'
 import SessionQueryBuilder, {
 	CUSTOM_FIELDS,

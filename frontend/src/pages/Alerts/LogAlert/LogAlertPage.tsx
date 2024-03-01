@@ -43,7 +43,7 @@ import {
 	dedupeEnvironments,
 	EnvironmentSuggestion,
 } from '@pages/Alerts/utils/AlertsUtils'
-import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
+import { LogsHistogram } from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { capitalize } from 'lodash'
