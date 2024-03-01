@@ -47,7 +47,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 
 	return (
 		<AriakitButton
-			as="button"
+			render={<button />}
 			className={clsx([
 				className,
 				styles.variants({

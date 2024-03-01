@@ -14,7 +14,7 @@ export const ButtonLink: React.FC<Props> = ({
 }) => {
 	return (
 		<AriakitButton
-			as="button"
+			render={<button />}
 			className={clsx(styles.button, styles.variants({ kind }))}
 			{...buttonProps}
 		>

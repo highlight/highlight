@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 
 import { DatePicker } from '../Calendar/DatePicker'
 import { DatePickerStateProvider } from '@rehookify/datepicker'
-import { Menu, MenuButtonProps, useMenu } from '../../Menu/Menu'
+import { Menu, MenuButtonProps } from '../../Menu/Menu'
 import { Text } from '../../Text/Text'
 import {
 	IconSolidCheck,
@@ -141,7 +141,8 @@ const DateRangePickerImpl = ({
 		useAbsoluteTime ? [selectedValue.startDate, selectedValue.endDate] : [],
 	)
 
-	const menu = useMenu()
+	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	const menu = Menu.useContext()!
 	const open = menu.getState().open
 	const formStore = Ariakit.useFormStore({})
 

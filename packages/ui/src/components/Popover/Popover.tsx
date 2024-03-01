@@ -9,35 +9,24 @@ const PopoverContext = React.createContext<Ariakit.PopoverStore>(
 )
 export const usePopover = () => React.useContext(PopoverContext)
 
-export type PopoverProps = React.PropsWithChildren<
-	Partial<Ariakit.PopoverStoreProps> & {
-		store?: Ariakit.PopoverStore
-	}
->
+export type PopoverProps = React.PropsWithChildren<Ariakit.PopoverProviderProps>
 
 type PopoverComponent = React.FC<PopoverProps> & {
 	ButtonTrigger: typeof ButtonTrigger
 	TagTrigger: typeof TagTrigger
 	BoxTrigger: typeof BoxTrigger
 	Content: typeof Content
-	usePopoverStore: typeof Ariakit.usePopoverStore
+	usePopoverContext: typeof Ariakit.usePopoverContext
 }
 
 export const Popover: PopoverComponent = ({
 	children,
 	...props
 }: PopoverProps) => {
-	const popoverStore =
-		props.store ??
-		Ariakit.usePopoverStore({
-			placement: 'bottom',
-			...props,
-		})
-
 	return (
-		<PopoverContext.Provider value={popoverStore}>
+		<Ariakit.PopoverProvider placement="bottom" {...props}>
 			{children}
-		</PopoverContext.Provider>
+		</Ariakit.PopoverProvider>
 	)
 }
 
@@ -51,7 +40,11 @@ const ButtonTrigger: React.FC<React.PropsWithChildren<ButtonProps>> = ({
 	const popover = usePopover()
 
 	return (
-		<Ariakit.PopoverDisclosure store={popover} as={Button} {...props}>
+		<Ariakit.PopoverDisclosure
+			store={popover}
+			render={<Button />}
+			{...props}
+		>
 			{children}
 		</Ariakit.PopoverDisclosure>
 	)
@@ -64,20 +57,19 @@ const TagTrigger: React.FC<React.PropsWithChildren<TagProps>> = ({
 	const popover = usePopover()
 
 	return (
-		<Ariakit.PopoverDisclosure store={popover} as={Tag} {...props}>
+		<Ariakit.PopoverDisclosure store={popover} render={<Tag />} {...props}>
 			{children}
 		</Ariakit.PopoverDisclosure>
 	)
 }
 
-const BoxTrigger: React.FC<React.PropsWithChildren<BoxProps>> = ({
-	children,
-	...props
-}) => {
+const BoxTrigger: React.FC<
+	React.PropsWithChildren<Omit<BoxProps, 'color' | 'type'>>
+> = ({ children, ...props }) => {
 	const popover = usePopover()
 
 	return (
-		<Ariakit.PopoverDisclosure store={popover} as={Box} {...props}>
+		<Ariakit.PopoverDisclosure store={popover} render={<Box />} {...props}>
 			{children}
 		</Ariakit.PopoverDisclosure>
 	)
@@ -113,4 +105,4 @@ Popover.ButtonTrigger = ButtonTrigger
 Popover.TagTrigger = TagTrigger
 Popover.BoxTrigger = BoxTrigger
 Popover.Content = Content
-Popover.usePopoverStore = Ariakit.usePopoverStore
+Popover.usePopoverContext = Ariakit.usePopoverContext
