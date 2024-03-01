@@ -28,7 +28,6 @@ import {
 	Text,
 	TextLink,
 	Tooltip,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
@@ -563,7 +562,7 @@ const UpdatePlanPage = ({
 		workspace_id: string
 	}>()
 
-	const formStore = useFormStore<UpdatePlanForm>({
+	const formStore = Form.useStore<UpdatePlanForm>({
 		defaultValues: {
 			sessionsRetention: RetentionPeriod.ThreeMonths,
 			sessionsLimitCents: undefined,

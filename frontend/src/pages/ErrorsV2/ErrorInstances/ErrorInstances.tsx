@@ -8,7 +8,6 @@ import {
 	Stack,
 	SwitchButton,
 	Text,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
 import React, { useState } from 'react'
@@ -197,7 +196,7 @@ const ErrorInstancesContainer: React.FC<
 	children,
 	verticallyAlign = false,
 }) => {
-	const form = useFormStore<{ email: string }>({
+	const form = Form.useStore<{ email: string }>({
 		defaultValues: {
 			email: '',
 		},

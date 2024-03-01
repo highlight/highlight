@@ -27,9 +27,6 @@ import {
 	Stack,
 	Tag,
 	Text,
-	useForm,
-	useFormStore,
-	useMenu,
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { useSlackSync } from '@hooks/useSlackSync'
@@ -106,7 +103,7 @@ export const LogAlertPage = () => {
 		skip: !alert_id,
 	})
 
-	const formStore = useFormStore<LogMonitorForm>({
+	const formStore = Form.useStore<LogMonitorForm>({
 		defaultValues: {
 			query: initialQuery,
 			name: '',
@@ -543,7 +540,7 @@ export const LogAlertPage = () => {
 
 const LogAlertForm = () => {
 	const { projectId } = useProjectId()
-	const formStore = useForm() as Ariakit.FormStore<LogMonitorForm>
+	const formStore = Form.useContext() as Ariakit.FormStore<LogMonitorForm>
 	const errors = formStore.useState('errors')
 
 	const { alertsPayload } = useLogAlertsContext()
@@ -868,8 +865,8 @@ const LogAlertForm = () => {
 }
 
 const ThresholdTypeConfiguration = () => {
-	const form = useForm()
-	const menu = useMenu()
+	const form = Form.useContext()!
+	const menu = Menu.useContext()!
 	const menuState = menu.getState()
 	const belowThreshold = form.useValue('belowThreshold')
 
