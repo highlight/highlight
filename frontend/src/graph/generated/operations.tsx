@@ -4726,28 +4726,6 @@ export type GetLogsHistogramQuery = { __typename?: 'Query' } & {
 		}
 }
 
-export type GetLogsKeysQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	date_range: Types.DateRangeRequiredInput
-	query?: Types.Maybe<Types.Scalars['String']>
-}>
-
-export type GetLogsKeysQuery = { __typename?: 'Query' } & {
-	keys: Array<
-		{ __typename?: 'QueryKey' } & Pick<Types.QueryKey, 'name' | 'type'>
-	>
-}
-
-export type GetLogsKeyValuesQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	key_name: Types.Scalars['String']
-	date_range: Types.DateRangeRequiredInput
-}>
-
-export type GetLogsKeyValuesQuery = { __typename?: 'Query' } & {
-	key_values: Types.Query['logs_key_values']
-}
-
 export type GetLogsRelatedResourcesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	log_cursors: Array<Types.Scalars['String']> | Types.Scalars['String']
@@ -5132,28 +5110,6 @@ export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
 		}
 }
 
-export type GetTracesKeysQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	date_range: Types.DateRangeRequiredInput
-	query?: Types.Maybe<Types.Scalars['String']>
-}>
-
-export type GetTracesKeysQuery = { __typename?: 'Query' } & {
-	keys: Array<
-		{ __typename?: 'QueryKey' } & Pick<Types.QueryKey, 'name' | 'type'>
-	>
-}
-
-export type GetTracesKeyValuesQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	key_name: Types.Scalars['String']
-	date_range: Types.DateRangeRequiredInput
-}>
-
-export type GetTracesKeyValuesQuery = { __typename?: 'Query' } & {
-	key_values: Types.Query['traces_key_values']
-}
-
 export type GetKeysQueryVariables = Types.Exact<{
 	product_type: Types.ProductType
 	project_id: Types.Scalars['ID']
@@ -5166,6 +5122,18 @@ export type GetKeysQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'QueryKey' } & Pick<Types.QueryKey, 'name' | 'type'>
 	>
 }
+
+export type GetKeyValuesQueryVariables = Types.Exact<{
+	product_type: Types.ProductType
+	project_id: Types.Scalars['ID']
+	key_name: Types.Scalars['String']
+	date_range: Types.DateRangeRequiredInput
+}>
+
+export type GetKeyValuesQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'key_values'
+>
 
 export type GetMetricsQueryVariables = Types.Exact<{
 	product_type: Types.ProductType
@@ -5331,8 +5299,6 @@ export const namedOperations = {
 		GetSessionLogs: 'GetSessionLogs' as const,
 		GetLogsTotalCount: 'GetLogsTotalCount' as const,
 		GetLogsHistogram: 'GetLogsHistogram' as const,
-		GetLogsKeys: 'GetLogsKeys' as const,
-		GetLogsKeyValues: 'GetLogsKeyValues' as const,
 		GetLogsRelatedResources: 'GetLogsRelatedResources' as const,
 		GetProjectSettings: 'GetProjectSettings' as const,
 		GetWorkspacePendingInvites: 'GetWorkspacePendingInvites' as const,
@@ -5348,9 +5314,8 @@ export const namedOperations = {
 		GetTrace: 'GetTrace' as const,
 		GetTraces: 'GetTraces' as const,
 		GetTracesMetrics: 'GetTracesMetrics' as const,
-		GetTracesKeys: 'GetTracesKeys' as const,
-		GetTracesKeyValues: 'GetTracesKeyValues' as const,
 		GetKeys: 'GetKeys' as const,
+		GetKeyValues: 'GetKeyValues' as const,
 		GetMetrics: 'GetMetrics' as const,
 	},
 	Mutation: {

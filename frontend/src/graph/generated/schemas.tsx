@@ -1972,6 +1972,7 @@ export type Query = {
 	is_workspace_integrated_with: Scalars['Boolean']
 	jira_projects?: Maybe<Array<JiraProject>>
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
+	key_values: Array<Scalars['String']>
 	keys: Array<QueryKey>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
@@ -2381,6 +2382,13 @@ export type QueryIs_Workspace_Integrated_WithArgs = {
 
 export type QueryJira_ProjectsArgs = {
 	workspace_id: Scalars['ID']
+}
+
+export type QueryKey_ValuesArgs = {
+	date_range: DateRangeRequiredInput
+	key_name: Scalars['String']
+	product_type: ProductType
+	project_id: Scalars['ID']
 }
 
 export type QueryKeysArgs = {

@@ -5,8 +5,6 @@ import {
 	useDeleteLogAlertMutation,
 	useGetLogAlertQuery,
 	useGetLogsHistogramQuery,
-	useGetLogsKeysLazyQuery,
-	useGetLogsKeyValuesLazyQuery,
 	useUpdateLogAlertMutation,
 } from '@graph/hooks'
 import {
@@ -57,6 +55,7 @@ import LoadingBox from '@/components/LoadingBox'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import { namedOperations } from '@/graph/generated/operations'
+import { ProductType } from '@/graph/generated/schemas'
 import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
 import analytics from '@/util/analytics'
@@ -494,12 +493,7 @@ export const LogAlertPage = () => {
 												onFormSubmit={
 													handleUpdateInputQuery
 												}
-												fetchValuesLazyQuery={
-													useGetLogsKeyValuesLazyQuery
-												}
-												fetchKeysLazyQuery={
-													useGetLogsKeysLazyQuery
-												}
+												productType={ProductType.Logs}
 											/>
 										</Box>
 										<LogsHistogram

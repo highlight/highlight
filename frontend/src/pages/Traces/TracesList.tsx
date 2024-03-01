@@ -26,8 +26,7 @@ import { CustomColumnPopover } from '@/components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
-import { useGetTracesKeysLazyQuery } from '@/graph/generated/hooks'
-import { TraceEdge } from '@/graph/generated/schemas'
+import { ProductType, TraceEdge } from '@/graph/generated/schemas'
 import { useParams } from '@/util/react-router/useParams'
 
 import {
@@ -114,11 +113,11 @@ export const TracesList: React.FC<Props> = ({
 			noPadding: true,
 			component: (
 				<CustomColumnPopover
+					productType={ProductType.Traces}
 					selectedColumns={selectedColumns}
 					setSelectedColumns={setSelectedColumns}
 					standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
 					attributePrefix="traceAttributes"
-					getKeysLazyQuery={useGetTracesKeysLazyQuery}
 				/>
 			),
 		})
