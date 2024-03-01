@@ -6328,7 +6328,12 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		return nil, nil
 	}
 
-	workspace, err := r.GetAWSMarketPlaceWorkspace(ctx, workspaceID)
+	workspace, err := r.Query().Workspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	awsMPWorkspace, err := r.GetAWSMarketPlaceWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -6481,11 +6486,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
-			AwsMpSubscription: &modelInputs.AWSMarketplaceSubscription{
-				CustomerIdentifier:   pointy.StringValue(workspace.AWSMarketplaceCustomer.CustomerIdentifier, ""),
-				CustomerAwsAccountID: pointy.StringValue(workspace.AWSMarketplaceCustomer.CustomerAWSAccountID, ""),
-				ProductCode:          pointy.StringValue(workspace.AWSMarketplaceCustomer.ProductCode, ""),
-			},
+			AwsMpSubscription:   &modelInputs.AWSMarketplaceSubscription{},
 			Type:                modelInputs.PlanType(planType.String()),
 			Interval:            interval,
 			MembersLimit:        membersLimit,
@@ -6512,6 +6513,11 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		ErrorsBillingLimit:   errorsLimit,
 		LogsBillingLimit:     logsLimit,
 		TracesBillingLimit:   tracesLimit,
+	}
+	if awsMPWorkspace != nil && awsMPWorkspace.AWSMarketplaceCustomer != nil {
+		details.Plan.AwsMpSubscription.CustomerIdentifier = pointy.StringValue(awsMPWorkspace.AWSMarketplaceCustomer.CustomerIdentifier, "")
+		details.Plan.AwsMpSubscription.CustomerAwsAccountID = pointy.StringValue(awsMPWorkspace.AWSMarketplaceCustomer.CustomerAWSAccountID, "")
+		details.Plan.AwsMpSubscription.ProductCode = pointy.StringValue(awsMPWorkspace.AWSMarketplaceCustomer.ProductCode, "")
 	}
 
 	return details, nil
