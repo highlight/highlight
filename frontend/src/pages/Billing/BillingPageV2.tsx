@@ -514,11 +514,11 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 										size="small"
 										emphasis="low"
 										kind="secondary"
+										iconLeft={<IconSolidPencil />}
 										onClick={() =>
 											setStep('Configure plan')
 										}
 									>
-										<IconSolidPencil />
 										Edit current plan
 									</Button>
 								) : null}
