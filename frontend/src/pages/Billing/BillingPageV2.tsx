@@ -35,6 +35,7 @@ import {
 	useUpdateBillingDetailsMutation,
 } from '@/graph/generated/hooks'
 import {
+	AwsMarketplaceSubscription,
 	PlanType,
 	ProductType,
 	RetentionPeriod,
@@ -68,6 +69,7 @@ type UsageCardProps = {
 	enableBillingLimits: boolean | undefined
 	billingIssues: boolean
 	setStep: (step: PlanSelectStep) => void
+	awsMpSubscription?: AwsMarketplaceSubscription | null | undefined
 }
 
 const UsageCard = ({
@@ -82,6 +84,7 @@ const UsageCard = ({
 	enableBillingLimits,
 	billingIssues,
 	setStep,
+	awsMpSubscription,
 }: UsageCardProps) => {
 	const costCents = isPaying
 		? getCostCents(
@@ -134,7 +137,9 @@ const UsageCard = ({
 						{productIcon}
 						<Text color="n12">{productType}</Text>
 					</Box>
-					<Text color="n12">{costFormatted}</Text>
+					{awsMpSubscription?.product_code ? null : (
+						<Text color="n12">{costFormatted}</Text>
+					)}
 				</Box>
 				<Box display="flex" gap="4">
 					{!enableBillingLimits ? (
@@ -291,7 +296,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 
 	const isPaying = data?.billingDetails.plan.type !== PlanType.Free
 	const isAWSMP =
-		!!data?.billingDetails.plan.aws_mp_subscription?.customer_identifier
+		!!data?.billingDetails.plan.aws_mp_subscription?.product_code
 
 	const nextInvoiceDate = tryCastDate(data?.workspace?.next_invoice_date)
 	const billingPeriodEnd = tryCastDate(data?.workspace?.billing_period_end)
@@ -503,7 +508,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 										)
 									}
 								>
-									Edit in AWS Marketplace
+									View in AWS Marketplace
 								</Button>
 							</Box>
 						) : (
@@ -551,6 +556,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						retentionPeriod={sessionsRetention}
 						billingLimitCents={sessionsLimit}
 						usageAmount={sessionsUsage}
+						awsMpSubscription={
+							data?.billingDetails?.plan.aws_mp_subscription
+						}
 						includedQuantity={includedSessions}
 						isPaying={isPaying}
 						planType={planType}
@@ -568,6 +576,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						retentionPeriod={errorsRetention}
 						billingLimitCents={errorsLimit}
 						usageAmount={errorsUsage}
+						awsMpSubscription={
+							data?.billingDetails?.plan.aws_mp_subscription
+						}
 						includedQuantity={includedErrors}
 						isPaying={isPaying}
 						planType={planType}
@@ -585,6 +596,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						retentionPeriod={logsRetention}
 						billingLimitCents={logsLimit}
 						usageAmount={logsUsage}
+						awsMpSubscription={
+							data?.billingDetails?.plan.aws_mp_subscription
+						}
 						includedQuantity={includedLogs}
 						isPaying={isPaying}
 						planType={planType}
@@ -602,6 +616,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						retentionPeriod={tracesRetention}
 						billingLimitCents={tracesLimit}
 						usageAmount={tracesUsage}
+						awsMpSubscription={
+							data?.billingDetails?.plan.aws_mp_subscription
+						}
 						includedQuantity={includedTraces}
 						isPaying={isPaying}
 						planType={planType}
