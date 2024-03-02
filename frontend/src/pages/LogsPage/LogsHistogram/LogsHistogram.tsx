@@ -1,12 +1,12 @@
 import { LogLevel as Level } from '@graph/schemas'
-import { Box, BoxProps, Popover, Text } from '@highlight-run/ui/components'
+import { Box, BoxProps, Text, Tooltip } from '@highlight-run/ui/components'
 import { COLOR_MAPPING } from '@pages/LogsPage/constants'
 import { formatDate, isSignificantDateRange } from '@pages/LogsPage/utils'
 import { clamp, formatNumber } from '@util/numbers'
 import clsx from 'clsx'
+import moment from 'moment'
 import { memo, useMemo, useRef, useState } from 'react'
 import * as React from 'react'
-import { useHotkeys } from 'react-hotkeys-hook'
 
 import LoadingBox from '@/components/LoadingBox'
 
@@ -18,8 +18,7 @@ type LogCount = {
 	unit?: string
 }
 interface HistogramBucket {
-	startDate: Date
-	endDate: Date
+	date: Date
 	counts?: LogCount[]
 }
 
@@ -51,7 +50,6 @@ interface LogsHistogramChartProps {
 	endDate: Date
 	buckets: HistogramBucket[]
 	loadingState: LoadingState | undefined
-	totalCount: number
 	maxBucketCount: number
 	onDatesChange?: (startDate: Date, endDate: Date) => void
 	onLevelChange?: (level: Level) => void
@@ -60,7 +58,7 @@ interface LogsHistogramChartProps {
 	legend?: boolean
 }
 
-const LogsHistogram = ({
+export const LogsHistogram = ({
 	outline,
 	legend,
 	startDate,
@@ -123,18 +121,24 @@ const LogsHistogram = ({
 
 		return [...Array(bucketCount)].map((_, bucketId) => {
 			const counts = bucketData.get(bucketId)
+			const bucketStart = new Date(
+				startDate.getTime() + bucketId * bucketStep,
+			)
+			const bucketEnd = new Date(
+				startDate.getTime() + (bucketId + 1) * bucketStep,
+			)
+			const avgDate = new Date(
+				(bucketStart.getTime() + bucketEnd.getTime()) / 2,
+			)
+
 			return {
-				startDate: new Date(
-					startDate.getTime() + bucketId * bucketStep,
-				),
-				endDate: new Date(
-					startDate.getTime() + (bucketId + 1) * bucketStep,
-				),
-				width: 100 / bucketCount,
+				date: avgDate,
 				counts,
 			} as HistogramBucket
 		})
 	}, [histogramBuckets, endDate, startDate, bucketCount, maxBucketCount])
+
+	console.log('buckets', buckets)
 
 	const tickValues = useMemo(() => {
 		// return the axis with up to 5 ticks based on maxBucketCount
@@ -277,7 +281,6 @@ const LogsHistogram = ({
 							loadingState={loadingState}
 							onDatesChange={onDatesChange}
 							onLevelChange={onLevelChange}
-							totalCount={buckets.length}
 							maxBucketCount={maxBucketCount}
 							barColor={barColor}
 							noPadding={noPadding}
@@ -309,7 +312,6 @@ const LogsHistogramChart = ({
 	onDatesChange,
 	onLevelChange,
 	loadingState,
-	totalCount,
 	maxBucketCount,
 	barColor,
 	noPadding,
@@ -330,7 +332,6 @@ const LogsHistogramChart = ({
 				<LogBucketBar
 					key={idx}
 					bucket={bucket}
-					width={`${100 / totalCount}%`}
 					maxBucketCount={maxBucketCount}
 					onDatesChange={onDatesChange}
 					onLevelChange={onLevelChange}
@@ -349,7 +350,6 @@ const LogsHistogramChart = ({
 		maxBucketCount,
 		onDatesChange,
 		onLevelChange,
-		totalCount,
 	])
 
 	const legendContent = useMemo(() => {
@@ -470,7 +470,6 @@ const LogsHistogramChart = ({
 const LogBucketBar = ({
 	bucket,
 	maxBucketCount,
-	width,
 	onDatesChange,
 	onLevelChange,
 	isDragging,
@@ -479,35 +478,25 @@ const LogBucketBar = ({
 }: {
 	bucket?: HistogramBucket
 	maxBucketCount: number
-	width: string | number
 	onDatesChange?: (startDate: Date, endDate: Date) => void
 	onLevelChange?: (level: Level) => void
 	isDragging?: boolean
 	loading?: boolean
 	barColor?: string
 }) => {
-	const [open, setOpen] = useState(false)
-	useHotkeys('esc', () => {
-		setOpen(false)
-	})
-
 	const trigger = useMemo(() => {
 		return (
-			<Popover.BoxTrigger
+			<Box
 				display="flex"
 				flexDirection="column"
 				justifyContent="flex-end"
-				height="full"
-				width="full"
 				p="2"
 				gap="2"
+				width="full"
+				height="full"
 				cssClass={{
 					[styles.hover]: !loading && !isDragging,
 					[styles.barsLoading]: loading,
-				}}
-				style={{
-					width: width,
-					height: '100%',
 				}}
 			>
 				{bucket?.counts?.map((bar) => {
@@ -530,9 +519,9 @@ const LogBucketBar = ({
 						/>
 					)
 				})}
-			</Popover.BoxTrigger>
+			</Box>
 		)
-	}, [loading, isDragging, width, bucket?.counts, barColor, maxBucketCount])
+	}, [loading, isDragging, bucket?.counts, barColor, maxBucketCount])
 
 	const content = useMemo(() => {
 		if (loading) {
@@ -546,91 +535,89 @@ const LogBucketBar = ({
 
 		if (!bucketCount) return null
 
+		const label = moment(bucket!.date).format('h:mm a')
+
 		return (
-			<Popover.Content
-				wrapperProps={{
-					// otherwise the popover content will leave shadows on
-					className: open ? styles.popoverContent : undefined,
-				}}
-			>
-				<Box display="flex" flexDirection="column" py="4">
-					{bucket?.counts?.map((bar, index) => {
-						if (!bar.count) return null
-						return (
+			<Box display="flex" flexDirection="column" py="4">
+				<Box display="flex" px="8" py="4" alignSelf="flex-start">
+					<Text weight="bold">{label}</Text>
+				</Box>
+				{bucket?.counts?.map((bar, index) => {
+					if (!bar.count) return null
+					return (
+						<Box
+							key={index}
+							display="flex"
+							alignItems="center"
+							gap="8"
+							px="8"
+							py="4"
+							cssClass={[styles.popoverContentRow, styles.hover]}
+							onClick={() => {
+								// onLevelChange?.(bar.level as Level)
+								// if (
+								// 	isSignificantDateRange(
+								// 		bucket.startDate,
+								// 		bucket.endDate,
+								// 	)
+								// ) {
+								// 	onDatesChange?.(
+								// 		bucket.startDate,
+								// 		bucket.endDate,
+								// 	)
+								// }
+							}}
+						>
 							<Box
-								key={index}
-								display="flex"
-								alignItems="center"
-								gap="8"
-								px="8"
-								py="4"
-								cssClass={[
-									styles.popoverContentRow,
-									styles.hover,
-								]}
-								onClick={() => {
-									onLevelChange?.(bar.level as Level)
-									if (
-										isSignificantDateRange(
-											bucket.startDate,
-											bucket.endDate,
-										)
-									) {
-										onDatesChange?.(
-											bucket.startDate,
-											bucket.endDate,
-										)
-									}
+								borderRadius="round"
+								style={{
+									backgroundColor:
+										barColor ??
+										COLOR_MAPPING[bar.level as Level],
+									height: 8,
+									width: 8,
 								}}
+							/>
+							<Text
+								color="secondaryContentText"
+								transform="capitalize"
 							>
-								<Box
-									borderRadius="round"
-									style={{
-										backgroundColor:
-											barColor ??
-											COLOR_MAPPING[bar.level as Level],
-										height: 8,
-										width: 8,
-									}}
-								/>
+								{bar.level}
+							</Text>
+							<Box ml="auto">
 								<Text
 									color="secondaryContentText"
-									transform="capitalize"
+									size="small"
+									weight="medium"
 								>
-									{bar.level}
+									{Number(bar.count).toFixed(1)}
+									{bar.unit?.length ? bar.unit : null}
 								</Text>
-								<Box ml="auto">
-									<Text
-										color="secondaryContentText"
-										size="small"
-										weight="medium"
-									>
-										{Number(bar.count).toFixed(1)}
-										{bar.unit?.length ? bar.unit : null}
-									</Text>
-								</Box>
 							</Box>
-						)
-					})}
-				</Box>
-			</Popover.Content>
+						</Box>
+					)
+				})}
+			</Box>
 		)
 	}, [
 		bucket?.counts,
-		bucket?.endDate,
-		bucket?.startDate,
+		bucket?.date,
 		barColor,
 		loading,
 		onDatesChange,
 		onLevelChange,
-		open,
 	])
 
 	return (
-		<Popover placement="bottom-start" open={open} setOpen={setOpen}>
-			{trigger}
+		<Tooltip
+			trigger={trigger}
+			style={{
+				height: '100%',
+				width: '100%',
+			}}
+		>
 			{content}
-		</Popover>
+		</Tooltip>
 	)
 }
 
@@ -648,8 +635,7 @@ const LoadingState = memo(() => {
 		endDate.setMinutes(now.getMinutes() - (i + 1))
 
 		loadingData.push({
-			startDate,
-			endDate,
+			date: startDate,
 			counts: [
 				{
 					level: 'info',
@@ -680,12 +666,9 @@ const LoadingState = memo(() => {
 						bucket={bucket}
 						loading
 						maxBucketCount={maxBucketCount}
-						width={`${100 / 50}%`}
 					/>
 				)
 			})}
 		</>
 	)
 })
-
-export default LogsHistogram

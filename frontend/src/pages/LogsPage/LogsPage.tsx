@@ -7,7 +7,7 @@ import {
 } from '@highlight-run/ui/components'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
 import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
-import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
+import { LogsHistogram } from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
@@ -62,7 +62,7 @@ type Props = {
 	presetDefault: DateRangePreset
 }
 
-const HEADERS_AND_CHARTS_HEIGHT = 228
+const HEADERS_AND_CHARTS_HEIGHT = 241
 const LOAD_MORE_HEIGHT = 28
 
 const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {

@@ -1,7 +1,14 @@
 import { Box, Stack, Text } from '@highlight-run/ui/components'
 import clsx from 'clsx'
 import { useMemo, useState } from 'react'
-import { Legend, Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts'
+import {
+	Legend,
+	Line,
+	LineChart,
+	ResponsiveContainer,
+	Tooltip,
+	XAxis,
+} from 'recharts'
 
 import Button from '@/components/Button/Button/Button'
 import { CustomTooltip } from '@/components/LineChart/LineChart'
@@ -20,11 +27,15 @@ const LOADING_LINE_COLORS: Map<string, string> = new Map([
 	['p90', '#efefef'],
 ])
 
+export type MetricBucket = {
+	label: string | undefined
+	avg: number | undefined
+	p50: number | undefined
+	p90: number | undefined
+}
+
 interface Props {
-	metricsBuckets: {
-		p50: number | undefined
-		p90: number | undefined
-	}[]
+	metricsBuckets: MetricBucket[]
 	loading?: boolean
 }
 
@@ -115,14 +126,15 @@ export const LatencyChart = ({ loading, metricsBuckets }: Props) => {
 		<ResponsiveContainer width="100%" height="100%">
 			<LineChart
 				data={metricsBuckets}
-				margin={{ left: 0, top: 5, bottom: 2, right: 0 }}
+				margin={{ left: 0, top: 5, bottom: 0, right: 0 }}
 			>
 				<Tooltip
 					position={{ y: 0 }}
 					content={
 						<RechartTooltip
-							render={(payload: any[]) => (
+							render={(payload: any[], label?: string) => (
 								<CustomTooltip
+									label={label}
 									payload={payload}
 									yAxisLabel="ms"
 									precision={1}
@@ -146,7 +158,9 @@ export const LatencyChart = ({ loading, metricsBuckets }: Props) => {
 					}}
 				/>
 				{(metricsBuckets.length > 0
-					? Object.keys(metricsBuckets[0])
+					? Object.keys(metricsBuckets[0]).filter(
+							(key) => key !== 'label',
+					  )
 					: []
 				).map((key) => (
 					<Line
@@ -161,6 +175,7 @@ export const LatencyChart = ({ loading, metricsBuckets }: Props) => {
 						connectNulls
 					/>
 				))}
+				<XAxis dataKey="label" />
 			</LineChart>
 		</ResponsiveContainer>
 	)
@@ -198,6 +213,7 @@ const LoadingLatencyGraph = () => {
 						connectNulls
 					/>
 				))}
+				<XAxis tickLine={false} dataKey="label" />
 			</LineChart>
 		</ResponsiveContainer>
 	)

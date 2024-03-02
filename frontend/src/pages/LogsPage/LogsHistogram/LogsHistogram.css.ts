@@ -1,4 +1,3 @@
-import { borders } from '@highlight-run/ui/borders'
 import { colors } from '@highlight-run/ui/colors'
 import { pulseKeyframes } from '@highlight-run/ui/keyframes'
 import { vars } from '@highlight-run/ui/vars'
@@ -9,7 +8,7 @@ export const OUTLINE_PADDING = 2
 export const LEGEND_HISTOGRAM_HEIGHT = 98
 
 export const regularHeight = style({
-	height: 52,
+	height: 72,
 })
 
 export const outlineHeight = style({
@@ -27,15 +26,6 @@ export const hover = style({
 			backgroundColor: vars.theme.interactive.overlay.secondary.hover,
 		},
 	},
-})
-
-export const popoverContent = style({
-	backgroundColor: vars.theme.static.surface.default,
-	zIndex: '10 !important',
-	border: borders.divider,
-	boxShadow: vars.shadows.medium,
-	borderRadius: 6,
-	width: 224,
 })
 
 export const popoverContentRow = style({
