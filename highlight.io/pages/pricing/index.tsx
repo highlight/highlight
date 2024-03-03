@@ -1,4 +1,4 @@
-import { ChevronDownIcon, XMarkIcon } from '@heroicons/react/20/solid'
+import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { NextPage } from 'next'
 import Link from 'next/link'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
@@ -8,15 +8,19 @@ import Navbar from '../../components/common/Navbar/Navbar'
 import { Typography } from '../../components/common/Typography/Typography'
 import WideCard from '../../components/Integrations/WideCard'
 
-import { Dialog, Popover, RadioGroup, Transition } from '@headlessui/react'
+import { Dialog, RadioGroup, Transition } from '@headlessui/react'
 import * as Slider from '@radix-ui/react-slider'
 import classNames from 'classnames'
 import { Fragment, useState } from 'react'
-import { InlineWidget } from 'react-calendly'
 import { HeadlessTooltip } from '../../components/Competitors/ComparisonTable'
 
 import { Switch } from '@headlessui/react'
-import { HiReceiptTax } from 'react-icons/hi'
+import {
+	HiOfficeBuilding,
+	HiPuzzle,
+	HiReceiptTax,
+	HiServer,
+} from 'react-icons/hi'
 
 const MyToggle = () => {
 	const [enabled, setEnabled] = useState(false)
@@ -243,9 +247,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 		monthlyPrice: '$0',
 		annualPrice: '$0',
 		subText: 'per project/month, billed annually',
-		icon: (
-			<HiReceiptTax className="text-darker-copy-on-dark w-8 h-8 -translate-x-1" />
-		),
+		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
 		features: [
 			{
 				feature: `Base tier of $50`,
@@ -270,9 +272,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 		monthlyPrice: '$0',
 		annualPrice: '$0',
 		subText: 'per project/month, billed annually',
-		icon: (
-			<HiReceiptTax className="text-darker-copy-on-dark w-8 h-8 -translate-x-1" />
-		),
+		icon: <HiServer className="text-[#E93D82] w-8 h-8 -translate-x-1" />,
 		features: [
 			{
 				feature: `Base tier of $50`,
@@ -298,7 +298,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 		monthlyPrice: '$0',
 		annualPrice: '$0',
 		icon: (
-			<HiReceiptTax className="text-darker-copy-on-dark w-8 h-8 -translate-x-1" />
+			<HiOfficeBuilding className="text-white w-8 h-8 -translate-x-1" />
 		),
 		features: [
 			{
@@ -412,30 +412,6 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 					</div>
 				))}
 			</div>
-			<Popover className="relative inline-flex flex-col items-center">
-				{({ open, close }) => (
-					<Popover.Panel
-						static
-						className={classNames(
-							'fixed inset-0 z-50 grid place-items-center w-screen h-screen pointer-events-none',
-							!calendlyOpen && 'hidden',
-						)}
-					>
-						<div className="min-w-[320px] w-screen max-w-5xl min-[1000px]:h-[700px] h-[900px] transition-opacity max-[652px]:pt-14 pointer-events-auto">
-							<InlineWidget
-								url="https://calendly.com/d/2gt-rw5-qg5/highlight-demo-call"
-								styles={{ width: '100%', height: '100%' }}
-							/>
-						</div>
-						<button
-							className="absolute grid w-10 h-10 rounded-full place-content-center bg-divider-on-dark max-[652px]:right-2 max-[652px]:top-2 right-10 top-10 hover:brightness-150 transition-all pointer-events-auto"
-							onClick={() => setCalendlyOpen(false)}
-						>
-							<XMarkIcon className="w-5 h-5" />
-						</button>
-					</Popover.Panel>
-				)}
-			</Popover>
 			<div className="p-4">
 				{calculateUsage && <PriceCalculatorModal />}
 			</div>
@@ -505,13 +481,12 @@ const PriceCalculatorModal = () => {
 						leaveFrom="opacity-100"
 						leaveTo="opacity-0"
 					>
-						<div className="fixed inset-0 bg-dark-background bg-opacity-80 z-10" />
+						<div className="fixed inset-0 bg-dark-background bg-opacity-80 z-[125]" />
 					</Transition.Child>
 
-					<div className="fixed inset-0 overflow-y-auto z-50">
+					<div className="fixed inset-0 overflow-y-auto z-[150]">
 						<div className="flex min-h-full items-center justify-center p-4 text-center">
 							<Transition.Child
-								as={Fragment}
 								enter="ease-out duration-300"
 								enterFrom="opacity-0 scale-95"
 								enterTo="opacity-100 scale-100"
@@ -519,7 +494,7 @@ const PriceCalculatorModal = () => {
 								leaveFrom="opacity-100 scale-100"
 								leaveTo="opacity-0 scale-95"
 							>
-								<Dialog.Panel className="transform overflow-hidden bg-dark-background translate-y-36 text-left align-middle shadow-xl transition-all">
+								<Dialog.Panel className="flex transform bg-dark-background translate-y-36 text-left align-middle shadow-xl transition-all rounded-lg">
 									<PriceCalculator />
 								</Dialog.Panel>
 							</Transition.Child>
