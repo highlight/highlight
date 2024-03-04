@@ -25,11 +25,11 @@ import {
 import { useErrorSearchContext } from '@/pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { useSearchContext } from '@/pages/Sessions/SearchContext/SearchContext'
 
-export const isErrorAttribute = (attribute: (typeof ATTRIBUTES)[number]) => {
+export const isErrorAttribute = (attribute: typeof ATTRIBUTES[number]) => {
 	return [ERROR_TYPE, ERROR_FIELD_TYPE].includes(attribute.type)
 }
 
-export const isSessionAttribute = (attribute: (typeof ATTRIBUTES)[number]) => {
+export const isSessionAttribute = (attribute: typeof ATTRIBUTES[number]) => {
 	return ['user', SESSION_TYPE].includes(attribute.type)
 }
 
