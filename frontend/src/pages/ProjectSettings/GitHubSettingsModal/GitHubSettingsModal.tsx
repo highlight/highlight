@@ -16,7 +16,7 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { Select } from 'antd'
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
 
@@ -130,7 +130,7 @@ const GithubSettingsForm = ({
 		[githubRepos],
 	)
 
-	const formStore = Form.useFormStore<GithubSettingsFormValues>({
+	const formStore = Form.useStore<GithubSettingsFormValues>({
 		defaultValues: {
 			githubRepo: service.githubRepoPath || null,
 			buildPrefix: service.buildPrefix || null,

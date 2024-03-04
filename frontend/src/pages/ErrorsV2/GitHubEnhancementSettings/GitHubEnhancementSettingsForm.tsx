@@ -52,7 +52,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 	const [testErrorEnhancement] = useTestErrorEnhancementMutation()
 	const [editServiceGithubSettings] = useEditServiceGithubSettingsMutation()
 
-	const formStore = Form.useFormStore<GithubSettingsFormValues>({
+	const formStore = Form.useStore<GithubSettingsFormValues>({
 		defaultValues: {
 			githubRepo: null,
 			buildPrefix: '',

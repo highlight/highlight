@@ -1,4 +1,3 @@
-import * as Ariakit from '@ariakit/react'
 import { DatePickerStateProvider } from '@rehookify/datepicker'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
@@ -143,7 +142,6 @@ const DateRangePickerImpl = ({
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 	const menu = Menu.useContext()!
 	const open = menu.getState().open
-	const formStore = Ariakit.useFormStore({})
 
 	useEffect(() => {
 		if (!open) {
@@ -428,7 +426,7 @@ const DateRangePickerImpl = ({
 						)}
 					</>
 				) : (
-					<Form store={formStore}>
+					<Form>
 						<Box
 							borderBottom={'divider'}
 							pb={'4'}

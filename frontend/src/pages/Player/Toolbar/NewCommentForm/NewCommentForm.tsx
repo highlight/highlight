@@ -39,7 +39,6 @@ import {
 	Menu,
 	Stack,
 	Text,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
@@ -135,7 +134,7 @@ export const NewCommentForm = ({
 		useState<IntegrationType>()
 	const [containerId, setContainerId] = useState('')
 	const [issueTypeId, setIssueTypeId] = useState('')
-	const formStore = useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			commentText: '',
 			issueTitle: '',

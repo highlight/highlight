@@ -416,9 +416,7 @@ export const ErrorAlertPage = () => {
 }
 
 const ErrorAlertForm = () => {
-	const formStore = Form.useContext()!
-	const names = formStore.names
-	console.log('::: names', names)
+	const formStore = Form.useContext() as FormState<ErrorAlertFormItem>
 	const errors = formStore.useState('errors')
 
 	const { alertsPayload } = useAlertsContext()
@@ -449,21 +447,21 @@ const ErrorAlertForm = () => {
 					<Box borderTop="dividerWeak" width="full" />
 					<Form.NamedSection
 						label="Regex Patterns to Ignore"
-						name={formStore.names.regex_groups}
+						name={formStore.names.regex_groups as any}
 					>
 						<Select
 							aria-label="Regex Patterns to Ignore list"
 							placeholder={`Input any valid regex, like: \\d{5}(-\\d{4})?, Hello\\nworld, [b-chm-pP]at|ot`}
 							onChange={(values: any): any =>
 								formStore.setValue(
-									formStore.names.regex_groups,
+									formStore.names.regex_groups as any,
 									values,
 								)
 							}
 							className={styles.selectContainer}
 							mode="tags"
 							value={formStore.getValue(
-								formStore.names.regex_groups,
+								formStore.names.regex_groups as any,
 							)}
 						/>
 					</Form.NamedSection>
@@ -492,7 +490,7 @@ const ErrorAlertForm = () => {
 						<Column>
 							<Form.Select
 								label="Alert threshold window"
-								name={formStore.names.threshold_window.toString()}
+								name={formStore.names.threshold_window}
 								onChange={(e) =>
 									formStore.setValue(
 										formStore.names.threshold_window,
@@ -516,7 +514,7 @@ const ErrorAlertForm = () => {
 					</Column.Container>
 					<Form.Select
 						label="Alert frequency"
-						name={formStore.names.frequency.toString()}
+						name={formStore.names.frequency}
 						onChange={(e) =>
 							formStore.setValue(
 								formStore.names.frequency,

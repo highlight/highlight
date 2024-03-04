@@ -5,11 +5,6 @@ import { Box, BoxProps } from '../Box/Box'
 import { Button, ButtonProps } from '../Button/Button'
 import { Props as TagProps, Tag } from '../Tag/Tag'
 
-const PopoverContext = React.createContext<Ariakit.PopoverStore>(
-	{} as Ariakit.PopoverStore,
-)
-export const usePopover = () => React.useContext(PopoverContext)
-
 export type PopoverProps = React.PropsWithChildren<Ariakit.PopoverProviderProps>
 
 type PopoverComponent = React.FC<PopoverProps> & {
@@ -17,7 +12,8 @@ type PopoverComponent = React.FC<PopoverProps> & {
 	TagTrigger: typeof TagTrigger
 	BoxTrigger: typeof BoxTrigger
 	Content: typeof Content
-	usePopoverContext: typeof Ariakit.usePopoverContext
+	useContext: typeof Ariakit.usePopoverContext
+	useStore: typeof Ariakit.usePopoverStore
 }
 
 export const Popover: PopoverComponent = ({
@@ -38,7 +34,7 @@ const ButtonTrigger: React.FC<React.PropsWithChildren<ButtonProps>> = ({
 	children,
 	...props
 }) => {
-	const popover = usePopover()
+	const popover = Ariakit.usePopoverContext()
 
 	return (
 		<Ariakit.PopoverDisclosure
@@ -55,7 +51,7 @@ const TagTrigger: React.FC<React.PropsWithChildren<TagProps>> = ({
 	children,
 	...props
 }) => {
-	const popover = usePopover()
+	const popover = Ariakit.usePopoverContext()
 
 	return (
 		<Ariakit.PopoverDisclosure store={popover} render={<Tag />} {...props}>
@@ -67,7 +63,7 @@ const TagTrigger: React.FC<React.PropsWithChildren<TagProps>> = ({
 const BoxTrigger: React.FC<
 	React.PropsWithChildren<Omit<BoxProps, 'color' | 'type'>>
 > = ({ children, ...props }) => {
-	const popover = usePopover()
+	const popover = Ariakit.usePopoverContext()
 
 	return (
 		<Ariakit.PopoverDisclosure store={popover} render={<Box />} {...props}>
@@ -81,7 +77,7 @@ const Content: React.FC<
 		className?: string
 	}
 > = ({ children, className, ...props }) => {
-	const popover = usePopover()
+	const popover = Ariakit.usePopoverContext()
 
 	return (
 		<Ariakit.Popover
@@ -106,4 +102,5 @@ Popover.ButtonTrigger = ButtonTrigger
 Popover.TagTrigger = TagTrigger
 Popover.BoxTrigger = BoxTrigger
 Popover.Content = Content
-Popover.usePopoverContext = Ariakit.usePopoverContext
+Popover.useContext = Ariakit.usePopoverContext
+Popover.useStore = Ariakit.usePopoverStore

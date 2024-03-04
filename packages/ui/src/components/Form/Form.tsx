@@ -1,3 +1,4 @@
+import { Button, ButtonProps } from '@/components/Button/Button'
 import * as Ariakit from '@ariakit/react'
 import clsx, { ClassValue } from 'clsx'
 import React, { forwardRef, ReactNode, useRef } from 'react'
@@ -23,7 +24,7 @@ type FormComponent = React.FC<Props> & {
 
 interface LabelProps {
 	label: string
-	name: Ariakit.FormInputProps['name']
+	name: InputProps['name']
 	tag?: ReactNode
 	optional?: boolean
 }
@@ -107,8 +108,10 @@ export const Error = ({ ...props }: Ariakit.FormErrorProps) => {
 	return <Ariakit.FormError {...props} render={<Box color="bad" />} />
 }
 
-export const Submit: React.FC<Ariakit.FormSubmitProps> = (props) => {
-	return <Ariakit.FormSubmit {...props} />
+export const Submit: React.FC<Ariakit.FormSubmitProps & ButtonProps> = (
+	props,
+) => {
+	return <Ariakit.FormSubmit render={<Button />} {...props} />
 }
 
 export type InputProps = Omit<Ariakit.FormInputProps, 'size'> &

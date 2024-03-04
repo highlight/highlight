@@ -8,7 +8,6 @@ import {
 	Label,
 	Menu,
 	Text,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import { Divider } from 'antd'
 import moment from 'moment'
@@ -22,10 +21,10 @@ import { useGetKeysQuery, useGetMetricsQuery } from '@/graph/generated/hooks'
 import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import Graph, {
-	LINE_DISPLAY,
 	LineDisplay,
-	NULL_HANDLING,
+	LINE_DISPLAY,
 	NullHandling,
+	NULL_HANDLING,
 	View,
 	VIEWS,
 } from '@/pages/Graphing/components/Graph'
@@ -233,10 +232,6 @@ export const GraphingEditor = () => {
 	const [bucketByKey, setBucketByKey] = useState('')
 	const [bucketCount, setBucketCount] = useState(DEFAULT_BUCKET_COUNT)
 
-	const formStore = useFormStore({
-		defaultValues: {},
-	})
-
 	const { data: keys } = useGetKeysQuery({
 		variables: {
 			product_type: productType,
@@ -415,10 +410,7 @@ export const GraphingEditor = () => {
 							height="full"
 							cssClass={style.editGraphSidebar}
 						>
-							<Form
-								store={formStore}
-								className={style.editGraphSidebar}
-							>
+							<Form className={style.editGraphSidebar}>
 								<SidebarSection>
 									<LabeledRow
 										label="Metric view title"

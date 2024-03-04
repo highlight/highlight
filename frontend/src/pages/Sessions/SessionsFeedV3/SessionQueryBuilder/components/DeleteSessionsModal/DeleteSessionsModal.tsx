@@ -6,7 +6,7 @@ import { useDeleteSessionsMutation } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
-import React, { useState } from 'react'
+import { useState } from 'react'
 
 import { ClickhouseQuery } from '@/graph/generated/schemas'
 

@@ -9,7 +9,7 @@ import {
 	useGetWorkspacesQuery,
 	useHandleAwsMarketplaceMutation,
 } from '@graph/hooks'
-import { Form, Stack, Text, useFormStore } from '@highlight-run/ui/components'
+import { Form, Stack, Text } from '@highlight-run/ui/components'
 import * as styles from '@pages/Auth/AdminForm.css'
 import * as authRouterStyles from '@pages/Auth/AuthRouter.css'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
@@ -435,7 +435,7 @@ const AWSMPIntegrationCallback = ({ code }: { code: string }) => {
 	const navigate = useNavigate()
 	const [handle, { loading: handleLoading }] =
 		useHandleAwsMarketplaceMutation()
-	const formStore = useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			workspaceId: '',
 		},
