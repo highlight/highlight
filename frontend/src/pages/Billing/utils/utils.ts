@@ -110,21 +110,30 @@ export const getMeterAmounts = (
 			[ProductType.Traces]: [0, undefined],
 		}
 	}
+	const canChargeOverage = details.plan.type !== 'Free'
 	const sessionsMeter = details?.meter ?? 0
 	const sessionsQuota = details?.sessionsBillingLimit
-		? details?.sessionsBillingLimit
+		? details.sessionsBillingLimit
+		: canChargeOverage
+		? undefined
 		: details?.plan.sessionsLimit
 	const errorsMeter = details?.errorsMeter ?? 0
 	const errorsQuota = details?.errorsBillingLimit
-		? details?.errorsBillingLimit
+		? details.errorsBillingLimit
+		: canChargeOverage
+		? undefined
 		: details?.plan.errorsLimit
 	const logsMeter = details?.logsMeter ?? 0
 	const logsQuota = details?.logsBillingLimit
-		? details?.logsBillingLimit
+		? details.logsBillingLimit
+		: canChargeOverage
+		? undefined
 		: details?.plan.logsLimit
 	const tracesMeter = details?.tracesMeter ?? 0
 	const tracesQuota = details?.tracesBillingLimit
-		? details?.tracesBillingLimit
+		? details.tracesBillingLimit
+		: canChargeOverage
+		? undefined
 		: details?.plan.tracesLimit
 	return {
 		[ProductType.Sessions]: [sessionsMeter, sessionsQuota],
