@@ -447,21 +447,21 @@ const ErrorAlertForm = () => {
 					<Box borderTop="dividerWeak" width="full" />
 					<Form.NamedSection
 						label="Regex Patterns to Ignore"
-						name={formStore.names.regex_groups as any}
+						name={formStore.names.regex_groups}
 					>
 						<Select
 							aria-label="Regex Patterns to Ignore list"
 							placeholder={`Input any valid regex, like: \\d{5}(-\\d{4})?, Hello\\nworld, [b-chm-pP]at|ot`}
 							onChange={(values: any): any =>
 								formStore.setValue(
-									formStore.names.regex_groups as any,
+									formStore.names.regex_groups,
 									values,
 								)
 							}
 							className={styles.selectContainer}
 							mode="tags"
 							value={formStore.getValue(
-								formStore.names.regex_groups as any,
+								formStore.names.regex_groups,
 							)}
 						/>
 					</Form.NamedSection>
