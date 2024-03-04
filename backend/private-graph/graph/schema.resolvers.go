@@ -8628,7 +8628,7 @@ func (r *queryResolver) ErrorsKeyValues(ctx context.Context, projectID int, keyN
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ErrorsKeyValues(ctx, projectID, keyName, dateRange.StartDate, dateRange.EndDate)
+	return r.ClickhouseClient.ErrorsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
 // ErrorsMetrics is the resolver for the errors_metrics field.
@@ -8658,7 +8658,7 @@ func (r *queryResolver) SessionsKeyValues(ctx context.Context, projectID int, ke
 		return nil, err
 	}
 
-	return r.ClickhouseClient.SessionsKeyValues(ctx, projectID, keyName, dateRange.StartDate, dateRange.EndDate)
+	return r.ClickhouseClient.SessionsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
 // SessionsMetrics is the resolver for the sessions_metrics field.
