@@ -1,7 +1,7 @@
-import React, { ChangeEvent } from 'react';
-import { AsyncMultiSelect, AsyncSelect, InlineField, InlineFieldRow, Input, Select } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
-import { DataSource, bucketByOptions, columnOptions, metricOptions, tableOptions } from '../datasource';
+import { AsyncMultiSelect, AsyncSelect, InlineField, InlineFieldRow, Input, Select } from '@grafana/ui';
+import React, { ChangeEvent } from 'react';
+import { bucketByOptions, columnOptions, DataSource, metricOptions, tableOptions } from '../datasource';
 import { HighlightDataSourceOptions, HighlightQuery, Table } from '../types';
 
 type Props = QueryEditorProps<DataSource, HighlightQuery, HighlightDataSourceOptions>;

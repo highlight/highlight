@@ -11,7 +11,7 @@ import { titleCaseString } from '@util/string'
 import { message } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import commonStyles from '../../../Common.module.css'

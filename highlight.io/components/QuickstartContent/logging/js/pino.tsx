@@ -1,6 +1,6 @@
+import { jsGetSnippet } from '../../backend/js/shared-snippets'
 import { QuickStartContent } from '../../QuickstartContent'
 import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
-import { jsGetSnippet } from '../../backend/js/shared-snippets'
 
 export const JSPinoHTTPJSONLogContent: QuickStartContent = {
 	title: 'Logging with Pino.JS',

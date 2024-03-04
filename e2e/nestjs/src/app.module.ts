@@ -1,7 +1,7 @@
 import { Module, OnModuleDestroy } from '@nestjs/common'
+import { HttpAdapterHost } from '@nestjs/core'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { HttpAdapterHost } from '@nestjs/core'
 
 @Module({
 	controllers: [AppController],

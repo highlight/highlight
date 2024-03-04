@@ -1,15 +1,15 @@
 import {
-	HIGHLIGHT_REQUEST_HEADER,
+	Request as HighlightRequest,
+	RequestResponsePair,
+	Response as HighlightResponse,
+} from './models'
+import {
 	createNetworkRequestId,
 	getHighlightRequestHeader,
+	HIGHLIGHT_REQUEST_HEADER,
 	shouldNetworkRequestBeRecorded,
 	shouldNetworkRequestBeTraced,
 } from './utils'
-import {
-	Request as HighlightRequest,
-	Response as HighlightResponse,
-	RequestResponsePair,
-} from './models'
 
 import { NetworkListenerCallback } from '../network-listener'
 import { getBodyThatShouldBeRecorded } from './xhr-listener'

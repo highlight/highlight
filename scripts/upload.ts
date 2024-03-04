@@ -8,9 +8,9 @@ import * as fs from 'fs'
 import { statSync } from 'fs'
 import * as path from 'path'
 import { dirname, join } from 'path'
+import { gt, gte } from 'semver'
 import { fileURLToPath } from 'url'
 import yargs from 'yargs'
-import { gt, gte } from 'semver'
 
 const S3_BUCKET = `highlight-client-bundle`
 const FIRSTLOAD_PACKAGE_JSON = './sdk/firstload/package.json'

@@ -1,5 +1,5 @@
-import * as functions from 'firebase-functions'
 import { Handlers } from '@highlight-run/node'
+import * as functions from 'firebase-functions'
 
 export const helloWorld = functions.https.onRequest(
 	Handlers.firebaseHttpFunctionHandler(

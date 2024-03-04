@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import React, { HTMLProps } from 'react'
+import { HTMLProps } from 'react'
 
 import SvgSparklesIcon from '../../static/SparklesIcon'
 import styles from './Changelog.module.css'

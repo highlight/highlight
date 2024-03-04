@@ -1,6 +1,5 @@
-import express from 'express'
 import { H, Handlers } from '@highlight-run/node'
-import { CONSTANTS } from './constants'
+import express from 'express'
 import { config } from './instrumentation'
 
 H.init(config)

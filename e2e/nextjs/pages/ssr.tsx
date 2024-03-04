@@ -1,6 +1,6 @@
 import logger from '@/highlight.logger'
+import { GetStaticProps } from 'next'
 import { useRouter } from 'next/router'
-import { GetServerSideProps, GetStaticProps } from 'next'
 
 type Props = {
 	date: string

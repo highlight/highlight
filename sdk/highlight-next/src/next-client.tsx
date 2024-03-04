@@ -1,8 +1,8 @@
+import { H as localH, HighlightOptions } from 'highlight.run'
 import { useEffect } from 'react'
-import { HighlightOptions, H as localH } from 'highlight.run'
 
-export { localH as H }
 export { ErrorBoundary } from '@highlight-run/react'
+export { localH as H }
 
 export interface Props extends HighlightOptions {
 	excludedHostnames?: string[]

@@ -10,7 +10,7 @@ import { useGetWorkspaceDropdownOptionsQuery } from '@graph/hooks'
 import { Ariakit } from '@highlight-run/ui/components'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { useParams } from '@util/react-router/useParams'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 

@@ -4,7 +4,19 @@ import {
 	record,
 } from '@highlight-run/rrweb'
 import { eventWithTime, listenerHandler } from '@highlight-run/rrweb-types'
+import ErrorStackParser from 'error-stack-parser'
+import { print } from 'graphql'
+import { GraphQLClient } from 'graphql-request'
+import stringify from 'json-stringify-safe'
+import StackTrace from 'stacktrace-js'
+import {
+	getSdk,
+	PushPayloadDocument,
+	PushPayloadMutationVariables,
+	Sdk,
+} from './graph/generated/operations'
 import { FirstLoadListeners } from './listeners/first-load-listeners'
+import { PathListener } from './listeners/path-listener'
 import {
 	AmplitudeIntegrationOptions,
 	ConsoleMethods,
@@ -21,65 +33,53 @@ import {
 	Integration,
 	Metadata,
 	Metric,
+	PrivacySettingOption,
 	SamplingStrategy,
 	SessionDetails,
 	StartOptions,
-	PrivacySettingOption,
 } from './types/types'
-import { PathListener } from './listeners/path-listener'
-import { GraphQLClient } from 'graphql-request'
-import ErrorStackParser from 'error-stack-parser'
-import {
-	getSdk,
-	PushPayloadDocument,
-	PushPayloadMutationVariables,
-	Sdk,
-} from './graph/generated/operations'
-import StackTrace from 'stacktrace-js'
-import stringify from 'json-stringify-safe'
-import { print } from 'graphql'
 import { determineMaskInputOptions } from './utils/privacy'
 
-import { ViewportResizeListener } from './listeners/viewport-resize-listener'
-import { SegmentIntegrationListener } from './listeners/segment-integration-listener'
+import { ReplayEventsInput } from './graph/generated/schemas'
 import { ClickListener } from './listeners/click-listener/click-listener'
 import { FocusListener } from './listeners/focus-listener/focus-listener'
-import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys'
-import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener'
-import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener'
-import { getPerformanceMethods } from './utils/performance/performance'
-import {
-	PerformanceListener,
-	PerformancePayload,
-} from './listeners/performance-listener/performance-listener'
-import { PageVisibilityListener } from './listeners/page-visibility-listener'
-import { clearHighlightLogs, getHighlightLogs } from './utils/highlight-logging'
-import { GenerateSecureID } from './utils/secure-id'
-import { getSimpleSelector } from './utils/dom'
-import {
-	getPreviousSessionData,
-	SessionData,
-} from './utils/sessionStorage/highlightSession'
-import type { HighlightClientRequestWorker } from './workers/highlight-client-worker'
-import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
-import { getGraphQLRequestWrapper } from './utils/graph'
-import { ReplayEventsInput } from './graph/generated/schemas'
-import { MessageType, PropertyType, Source } from './workers/types'
-import { Logger } from './logger'
-import { HighlightFetchWindow } from './listeners/network-listener/utils/fetch-listener'
-import { ConsoleMessage } from './types/shared-types'
-import { RequestResponsePair } from './listeners/network-listener/utils/models'
 import {
 	JankListener,
 	JankPayload,
 } from './listeners/jank-listener/jank-listener'
+import { HighlightFetchWindow } from './listeners/network-listener/utils/fetch-listener'
+import { RequestResponsePair } from './listeners/network-listener/utils/models'
+import { PageVisibilityListener } from './listeners/page-visibility-listener'
+import {
+	PerformanceListener,
+	PerformancePayload,
+} from './listeners/performance-listener/performance-listener'
+import { SegmentIntegrationListener } from './listeners/segment-integration-listener'
+import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener'
+import { ViewportResizeListener } from './listeners/viewport-resize-listener'
+import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener'
+import { Logger } from './logger'
 import {
 	HighlightIframeMessage,
 	HighlightIframeReponse,
 	IFRAME_PARENT_READY,
 	IFRAME_PARENT_RESPONSE,
 } from './types/iframe'
+import { ConsoleMessage } from './types/shared-types'
+import { getSimpleSelector } from './utils/dom'
+import { getGraphQLRequestWrapper } from './utils/graph'
+import { clearHighlightLogs, getHighlightLogs } from './utils/highlight-logging'
+import { getPerformanceMethods } from './utils/performance/performance'
+import { GenerateSecureID } from './utils/secure-id'
+import {
+	getPreviousSessionData,
+	SessionData,
+} from './utils/sessionStorage/highlightSession'
+import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys'
 import { getItem, removeItem, setItem, setStorageMode } from './utils/storage'
+import type { HighlightClientRequestWorker } from './workers/highlight-client-worker'
+import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
+import { MessageType, PropertyType, Source } from './workers/types'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })

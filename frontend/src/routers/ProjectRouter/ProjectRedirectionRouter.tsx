@@ -4,7 +4,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 
 import { authRedirect } from '@/pages/Auth/utils'

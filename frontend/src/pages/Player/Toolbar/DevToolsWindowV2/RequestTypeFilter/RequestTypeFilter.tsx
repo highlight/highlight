@@ -6,10 +6,10 @@ import {
 } from '@highlight-run/ui/components'
 import {
 	getNetworkResourcesDisplayName,
+	ICountPerRequestType,
 	RequestType,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import { ICountPerRequestType } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 
 type Props = {
 	requestTypes: RequestType[]

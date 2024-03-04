@@ -1,11 +1,11 @@
+import type { NodeOptions } from '@highlight-run/node'
+import { H } from '@highlight-run/node'
 import type {
 	ApolloServerPlugin,
 	BaseContext,
 	GraphQLRequestContextDidEncounterErrors,
 	GraphQLRequestListener,
 } from 'apollo-server-plugin-base'
-import type { NodeOptions } from '@highlight-run/node'
-import { H } from '@highlight-run/node'
 import { IncomingHttpHeaders } from 'http'
 
 export const ApolloServerV3HighlightPlugin = function <T extends BaseContext>(

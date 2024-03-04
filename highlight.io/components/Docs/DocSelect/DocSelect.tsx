@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
-import styles from '../Docs.module.scss'
 import { Listbox } from '@headlessui/react'
-import { Typography } from '../../common/Typography/Typography'
-import classNames from 'classnames'
-import SvgChevronDownIcon from '../../../public/images/ChevronDownIcon'
 import { DocumentIcon, DocumentTextIcon } from '@heroicons/react/20/solid'
+import classNames from 'classnames'
 import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
+import SvgChevronDownIcon from '../../../public/images/ChevronDownIcon'
+import { Typography } from '../../common/Typography/Typography'
+import styles from '../Docs.module.scss'
 
 const DOCS_TYPES: Array<{
 	id: number

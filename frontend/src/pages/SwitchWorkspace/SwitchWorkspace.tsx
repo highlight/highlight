@@ -9,7 +9,7 @@ import {
 } from '@context/AppLoadingContext'
 import { useGetWorkspacesQuery, useJoinWorkspaceMutation } from '@graph/hooks'
 import { message } from 'antd'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Navigate, useLocation } from 'react-router-dom'
 import { StringParam, useQueryParam } from 'use-query-params'

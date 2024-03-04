@@ -1,5 +1,5 @@
-import type { LoggerOptions } from 'pino'
 import type { NodeOptions } from '@highlight-run/node'
+import type { LoggerOptions } from 'pino'
 
 const highlightConfig = {
 	projectID: '4d7k1xeo',

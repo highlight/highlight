@@ -1,9 +1,9 @@
 import type { APIGatewayEvent } from 'aws-lambda'
-import { serialRender } from './serial'
 import { readFileSync } from 'fs'
 import { encodeGIF } from './ffmpeg'
-import { getRenderExport, uploadRenderExport } from './s3'
 import { getSessionSecureID } from './pg'
+import { getRenderExport, uploadRenderExport } from './s3'
+import { serialRender } from './serial'
 
 interface Args {
 	project?: string

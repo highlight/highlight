@@ -1,7 +1,7 @@
 'use client'
 
-import { trpc } from '@/app/_utils/trpc'
 import { Button } from '@/app/components/button'
+import { trpc } from '@/app/_utils/trpc'
 
 export const TrpcQueries = trpc.withTRPC(function TrpcQueries() {
 	const helloWorld = trpc.helloWorld.useQuery({ message: 'Hello Chris' })

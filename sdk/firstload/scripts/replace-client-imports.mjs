@@ -1,6 +1,6 @@
-import readdirp from 'readdirp'
-import * as path from 'node:path'
 import * as fs from 'node:fs'
+import * as path from 'node:path'
+import readdirp from 'readdirp'
 
 const workingDirectory = path.join(process.cwd(), './dist/firstload')
 const clientDirectory = path.join(process.cwd(), './dist/client')

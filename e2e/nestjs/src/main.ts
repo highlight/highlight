@@ -1,7 +1,7 @@
+import { HighlightInterceptor, HighlightLogger } from '@highlight-run/nest'
+import { NodeOptions } from '@highlight-run/node'
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
-import { HighlightLogger, HighlightInterceptor } from '@highlight-run/nest'
-import { NodeOptions } from '@highlight-run/node'
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule)

@@ -1,7 +1,7 @@
+import type { Attributes } from '@opentelemetry/api'
 import * as http from 'http'
 import { NodeOptions } from '.'
 import { H } from './sdk.js'
-import type { Attributes } from '@opentelemetry/api'
 
 /** JSDoc */
 interface MiddlewareError extends Error {

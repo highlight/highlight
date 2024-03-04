@@ -1,7 +1,7 @@
+import type { APIGatewayEvent } from 'aws-lambda'
 import { Configuration, OpenAIApi } from 'openai'
 import { getEvents } from './s3'
 import { getInsightsForEvents } from './utils'
-import type { APIGatewayEvent } from 'aws-lambda'
 
 const configuration = new Configuration({
 	organization: 'org-q9w5AyJeJV2vbW0t1g74sCB0',

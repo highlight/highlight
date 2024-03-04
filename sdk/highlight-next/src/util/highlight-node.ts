@@ -1,5 +1,5 @@
-import { H as NodeH } from '@highlight-run/node'
 import type { HighlightContext, NodeOptions } from '@highlight-run/node'
+import { H as NodeH } from '@highlight-run/node'
 import { HighlightInterface } from './types'
 
 export type HighlightEnv = NodeOptions

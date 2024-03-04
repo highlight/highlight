@@ -1,8 +1,3 @@
-import {
-	AmplitudeAPI,
-	setupAmplitudeIntegration,
-} from './integrations/amplitude.js'
-import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys.js'
 import type {
 	Highlight,
 	HighlightClassOptions,
@@ -15,6 +10,11 @@ import {
 	OnHighlightReadyOptions,
 	SessionDetails,
 } from '@highlight-run/client/src/types/types.js'
+import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys.js'
+import {
+	AmplitudeAPI,
+	setupAmplitudeIntegration,
+} from './integrations/amplitude.js'
 import {
 	MixpanelAPI,
 	setupMixpanelIntegration,
@@ -22,17 +22,17 @@ import {
 
 import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners.js'
 import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id.js'
-import { HighlightSegmentMiddleware } from './integrations/segment.js'
-import configureElectronHighlight from './environments/electron.js'
-import firstloadVersion from './__generated/version.js'
 import {
 	getPreviousSessionData,
 	SessionData,
 } from '@highlight-run/client/src/utils/sessionStorage/highlightSession.js'
+import { setItem } from '@highlight-run/client/src/utils/storage.js'
+import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
+import configureElectronHighlight from './environments/electron.js'
+import { HighlightSegmentMiddleware } from './integrations/segment.js'
 import { initializeFetchListener } from './listeners/fetch/index.js'
 import { initializeWebSocketListener } from './listeners/web-socket/index.js'
-import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
-import { setItem } from '@highlight-run/client/src/utils/storage.js'
+import firstloadVersion from './__generated/version.js'
 
 enum MetricCategory {
 	Device = 'Device',

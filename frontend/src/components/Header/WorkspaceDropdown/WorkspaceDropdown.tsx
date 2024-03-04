@@ -1,5 +1,4 @@
 import clsx from 'clsx'
-import React from 'react'
 
 import { generateRandomColor } from '../../../util/color'
 import styles from './WorkspaceDropdown.module.css'

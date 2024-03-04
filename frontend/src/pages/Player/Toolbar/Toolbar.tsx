@@ -1,6 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 
 import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils'
 import usePlayerConfiguration, {
@@ -29,7 +29,7 @@ export const TimelineAnnotationColors: {
 }
 
 export function getAnnotationColor(
-	eventTypeKey: typeof EventsForTimeline[number],
+	eventTypeKey: (typeof EventsForTimeline)[number],
 ) {
 	return TimelineAnnotationColors[eventTypeKey]
 }

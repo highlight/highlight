@@ -1,3 +1,4 @@
+import { ReportDialog } from '@highlight-run/react'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import {
@@ -7,7 +8,6 @@ import {
 	RouterProvider,
 	useRouteError,
 } from 'react-router-dom'
-import { ReportDialog } from '@highlight-run/react'
 import Root from './routes/root'
 
 function rootAction() {

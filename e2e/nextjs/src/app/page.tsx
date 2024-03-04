@@ -1,15 +1,15 @@
 /* eslint-disable @next/next/no-img-element */
+import { Canvas } from '@/app/components/canvas'
 import { ErrorButtons } from '@/app/components/error-buttons'
-import { LogButtons } from '@/app/components/log-buttons'
 import { FetchTests } from '@/app/components/fetch-tests'
 import { HighlightIdentify } from '@/app/components/highlight-identify'
-import { HighlightButtons } from './components/highlight-buttons'
-import Image from 'next/image'
-import Link from 'next/link'
+import { LogButtons } from '@/app/components/log-buttons'
 import { PathButtons } from '@/app/components/path-buttons'
 import { TrpcQueries } from '@/app/components/trpc-queries'
-import { Canvas } from '@/app/components/canvas'
 import logger from '@/highlight.logger'
+import Image from 'next/image'
+import Link from 'next/link'
+import { HighlightButtons } from './components/highlight-buttons'
 
 export default function Home() {
 	logger.info({}, `Home page component`)

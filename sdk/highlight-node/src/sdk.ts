@@ -1,14 +1,13 @@
-import { IncomingHttpHeaders } from 'http'
-import { Highlight } from './client'
-import log from './log'
-import { ResourceAttributes } from '@opentelemetry/resources'
-import type { NodeOptions, HighlightContext } from './types.js'
 import type {
 	Attributes,
-	Tracer,
 	Span as OtelSpan,
 	SpanOptions,
 } from '@opentelemetry/api'
+import { ResourceAttributes } from '@opentelemetry/resources'
+import { IncomingHttpHeaders } from 'http'
+import { Highlight } from './client'
+import log from './log'
+import type { HighlightContext, NodeOptions } from './types.js'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 

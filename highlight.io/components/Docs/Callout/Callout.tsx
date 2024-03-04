@@ -1,6 +1,6 @@
-import styles from '../Docs.module.scss'
 import { FaInfoCircle } from 'react-icons/fa'
 import ReactMarkdown from 'react-markdown'
+import styles from '../Docs.module.scss'
 
 export const Callout = (props: { content: string }) => {
 	return (

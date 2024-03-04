@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { LinkButton } from '@/components/LinkButton'
 
 import { useAuthContext } from '../../../../authentication/AuthContext'

@@ -1,6 +1,6 @@
-import { H } from './highlight-edge'
 import type { NodeOptions } from '@highlight-run/node'
 import type { NextFetchEvent, NextRequest } from 'next/server'
+import { H } from './highlight-edge'
 import { ExtendedExecutionContext } from './types'
 
 export type HighlightEnv = NodeOptions

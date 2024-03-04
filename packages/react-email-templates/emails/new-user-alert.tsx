@@ -1,6 +1,5 @@
 import * as React from 'react'
 
-import { EmailHtml, HighlightLogo } from '../components/common'
 import {
 	AlertContainer,
 	Break,
@@ -10,6 +9,7 @@ import {
 	Subtitle,
 	Title,
 } from '../components/alerts'
+import { EmailHtml, HighlightLogo } from '../components/common'
 
 export interface NewUserAlertEmailProps {
 	alertLink?: string

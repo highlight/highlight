@@ -1,10 +1,10 @@
 // pages/_error.tsx
-import NextError from 'next/error'
+import { CONSTANTS } from '@/constants'
 import {
 	pageRouterCustomErrorHandler,
 	PageRouterErrorProps,
 } from '@highlight-run/next/ssr'
-import { CONSTANTS } from '@/constants'
+import NextError from 'next/error'
 
 export default pageRouterCustomErrorHandler(
 	{

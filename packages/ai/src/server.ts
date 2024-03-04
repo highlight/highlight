@@ -1,6 +1,6 @@
+import cors from 'cors'
 import express from 'express'
 import { Configuration, OpenAIApi } from 'openai'
-import cors from 'cors'
 import { getEvents } from './s3'
 import { getInsightsForEvents } from './utils'
 

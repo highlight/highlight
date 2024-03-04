@@ -1,24 +1,20 @@
 import { Popover, Transition } from '@headlessui/react'
-import { Typography } from '../Typography/Typography'
+import Image from 'next/image'
 import { useState } from 'react'
 import { FaChevronDown } from 'react-icons/fa'
-import { PRODUCTS } from '../../Products/products'
-import Image from 'next/image'
+import { Typography } from '../Typography/Typography'
 
-import {
-	frontendProductLinks,
-	backendProductLinks,
-	fullStackProductLinks,
-} from '../../Products/products'
+import classNames from 'classnames'
+import Link from 'next/link'
 import LogoJS from '../../../public/images/jslogo.svg'
 import LogoJSActive from '../../../public/images/jslogoactive.svg'
 import LogoUbuntu from '../../../public/images/ubuntulogo.svg'
 import LogoUbuntuActive from '../../../public/images/ubuntulogoactive.svg'
-import LogoGraph from '../../../public/images/graphqllogo.svg'
-import LogoGraphActive from '../../../public/images/graphqllogoactive.svg'
+import {
+	backendProductLinks,
+	frontendProductLinks,
+} from '../../Products/products'
 import styles from './ProductDropdown.module.scss'
-import classNames from 'classnames'
-import Link from 'next/link'
 
 const ProductDropdown = ({ isOpen }: { isOpen?: boolean }) => {
 	const [isShowing, setIsShowing] = useState(false)

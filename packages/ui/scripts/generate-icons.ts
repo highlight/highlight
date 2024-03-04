@@ -1,10 +1,10 @@
-import path from 'path'
+import { Config, transform } from '@svgr/core'
+import { pascalCase } from 'change-case'
+import cheerio from 'cheerio'
 import fs from 'fs-extra'
 import { globby } from 'globby'
-import cheerio from 'cheerio'
-import { pascalCase } from 'change-case'
+import path from 'path'
 import { optimize } from 'svgo'
-import { transform, Config } from '@svgr/core'
 
 const componentTemplate: Config['template'] = (variables, { tpl }) => {
 	return tpl`

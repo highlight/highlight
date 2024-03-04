@@ -1,15 +1,15 @@
 import Image from 'next/legacy/image'
-import BlueGradient from '../../public/images/bg_blue_gradient.svg'
-import PurpleGradient from '../../public/images/bg_purple_gradient.svg'
-import homeStyles from '../../components/Home/Home.module.scss'
+import Link from 'next/link'
 import styles from '../../components/Blog/Blog.module.scss'
+import { OPEN_ROLES } from '../../components/Careers/careers'
+import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
+import Footer from '../../components/common/Footer/Footer'
+import { Meta } from '../../components/common/Head/Meta'
 import Navbar from '../../components/common/Navbar/Navbar'
 import { Section } from '../../components/common/Section/Section'
-import Footer from '../../components/common/Footer/Footer'
-import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
-import { OPEN_ROLES } from '../../components/Careers/careers'
-import Link from 'next/link'
-import { Meta } from '../../components/common/Head/Meta'
+import homeStyles from '../../components/Home/Home.module.scss'
+import BlueGradient from '../../public/images/bg_blue_gradient.svg'
+import PurpleGradient from '../../public/images/bg_purple_gradient.svg'
 
 const Careers = () => {
 	return (

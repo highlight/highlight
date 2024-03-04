@@ -1,5 +1,5 @@
-import { SESSION_STORAGE_KEYS } from './sessionStorageKeys'
 import { getItem } from '../storage'
+import { SESSION_STORAGE_KEYS } from './sessionStorageKeys'
 
 /**
  * The amount of time allowed after the last push before creating a new session.
