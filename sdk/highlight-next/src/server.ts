@@ -3,7 +3,7 @@ import * as withHighlightNodeJsAppRouter from './util/with-highlight-nodejs-app-
 
 import type { ExtendedExecutionContext, HighlightEnv } from './util/types'
 import type { EdgeHandler } from './util/with-highlight-edge'
-import type { NextFetchEvent, NextRequest, NextResponse } from 'next/server'
+import type { NextFetchEvent, NextRequest } from 'next/server'
 
 export { registerHighlight } from './util/register-highlight'
 export type { HighlightEnv } from './util/types'
@@ -45,6 +45,14 @@ export function EdgeHighlight(
 	event: NextFetchEvent & ExtendedExecutionContext,
 ) => Promise<Response> {
 	throw new Error(`unsupported NEXT_RUNTIME: ${process.env.NEXT_RUNTIME}`)
+}
+
+export function highlightMiddleware(request: NextRequest) {
+	const sessionSecureID = request.cookies.get('sessionSecureID')?.value
+	const xHighlightRequest = request.headers.get('x-highlight-request')
+	if (!xHighlightRequest && sessionSecureID) {
+		request.headers.set('x-highlight-request', sessionSecureID)
+	}
 }
 
 function isNodeJs() {

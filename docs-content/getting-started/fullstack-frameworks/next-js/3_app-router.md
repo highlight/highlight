@@ -382,6 +382,21 @@ export const GET = withAppRouterHighlight(async function GET(request: NextReques
 })
 ```
 
+4. Add `highlightMiddleware` to enable cookie-based session tracking
+
+```typescript
+// middleware.ts
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+import { highlightMiddleware } from '@highlight-run/next/server'
+
+export function middleware(request: NextRequest) {
+	highlightMiddleware(request)
+
+	return NextResponse.next()
+}
+```
+
 ## Validation
 
 1. Run your app in dev mode with `npm run dev`.
