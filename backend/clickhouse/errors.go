@@ -613,5 +613,5 @@ func (client *Client) ErrorsKeyValues(ctx context.Context, projectID int, keyNam
 		return nil, fmt.Errorf("unknown error key %s", keyName)
 	}
 
-	return client.QueryErrorFieldValues(ctx, projectID, 25, tableName, keyName, "", startDate, endDate)
+	return client.QueryErrorFieldValues(ctx, projectID, 10, tableName, keyName, "", startDate, endDate)
 }

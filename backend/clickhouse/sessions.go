@@ -536,7 +536,7 @@ func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyN
 			sb.Between("SessionCreatedAt", startDate, endDate))).
 		GroupBy("1").
 		OrderBy("count() DESC").
-		Limit(25).
+		Limit(10).
 		BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
