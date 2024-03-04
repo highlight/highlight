@@ -8,6 +8,7 @@ import type { NextFetchEvent, NextRequest } from 'next/server'
 export { registerHighlight } from './util/register-highlight'
 export type { HighlightEnv } from './util/types'
 export { H } from '@highlight-run/node' // Imports from server.edge.ts for the edge runtime
+export { highlightMiddleware } from './util/highlight-middleware'
 
 type PageRouterHighlightHandler = ReturnType<
 	typeof withHighlightNodeJsPageRouter.Highlight
@@ -45,14 +46,6 @@ export function EdgeHighlight(
 	event: NextFetchEvent & ExtendedExecutionContext,
 ) => Promise<Response> {
 	throw new Error(`unsupported NEXT_RUNTIME: ${process.env.NEXT_RUNTIME}`)
-}
-
-export function highlightMiddleware(request: NextRequest) {
-	const sessionSecureID = request.cookies.get('sessionSecureID')?.value
-	const xHighlightRequest = request.headers.get('x-highlight-request')
-	if (!xHighlightRequest && sessionSecureID) {
-		request.headers.set('x-highlight-request', sessionSecureID)
-	}
 }
 
 function isNodeJs() {
