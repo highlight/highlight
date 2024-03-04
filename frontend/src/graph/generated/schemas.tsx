@@ -1947,6 +1947,7 @@ export type Query = {
 	error_tags?: Maybe<Array<Maybe<ErrorTag>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram_clickhouse: ErrorsHistogram
+	errors_key_values: Array<Scalars['String']>
 	errors_keys: Array<QueryKey>
 	errors_metrics: MetricsBuckets
 	event_chunk_url: Scalars['String']
@@ -2026,6 +2027,7 @@ export type Query = {
 	session_intervals: Array<SessionInterval>
 	sessions_clickhouse: SessionResults
 	sessions_histogram_clickhouse: SessionsHistogram
+	sessions_key_values: Array<Scalars['String']>
 	sessions_keys: Array<QueryKey>
 	sessions_metrics: MetricsBuckets
 	sessions_report: Array<SessionsReportRow>
@@ -2254,6 +2256,12 @@ export type QueryErrors_Histogram_ClickhouseArgs = {
 	histogram_options: DateHistogramOptions
 	project_id: Scalars['ID']
 	query: ClickhouseQuery
+}
+
+export type QueryErrors_Key_ValuesArgs = {
+	date_range: DateRangeRequiredInput
+	key_name: Scalars['String']
+	project_id: Scalars['ID']
 }
 
 export type QueryErrors_KeysArgs = {
@@ -2658,6 +2666,12 @@ export type QuerySessions_Histogram_ClickhouseArgs = {
 	query: ClickhouseQuery
 }
 
+export type QuerySessions_Key_ValuesArgs = {
+	date_range: DateRangeRequiredInput
+	key_name: Scalars['String']
+	project_id: Scalars['ID']
+}
+
 export type QuerySessions_KeysArgs = {
 	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
@@ -2860,27 +2874,45 @@ export type ReferrerTablePayload = {
 	percent: Scalars['Float']
 }
 
+export enum ReservedErrorGroupKey {
+	Event = 'event',
+	Status = 'status',
+	Tag = 'tag',
+	Type = 'type',
+}
+
 export enum ReservedErrorObjectKey {
 	Browser = 'browser',
+	ClientId = 'client_id',
 	Environment = 'environment',
-	Event = 'event',
-	HasSessions = 'has_sessions',
-	LogCursor = 'log_cursor',
-	Os = 'os',
-	Payload = 'payload',
-	RequestId = 'request_id',
+	HasSession = 'has_session',
+	OsName = 'os_name',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
 	ServiceVersion = 'service_version',
-	Source = 'source',
-	SpanId = 'span_id',
-	StackTrace = 'stackTrace',
+	Timestamp = 'timestamp',
+	TraceId = 'trace_id',
+	VisitedUrl = 'visited_url',
+}
+
+export enum ReservedErrorsJoinedKey {
+	/** ReservedErrorObjectKey */
+	Browser = 'browser',
+	ClientId = 'client_id',
+	Environment = 'environment',
+	/** ReservedErrorGroupKey */
+	Event = 'event',
+	HasSession = 'has_session',
+	OsName = 'os_name',
+	SecureSessionId = 'secure_session_id',
+	ServiceName = 'service_name',
+	ServiceVersion = 'service_version',
 	Status = 'status',
 	Tag = 'tag',
 	Timestamp = 'timestamp',
 	TraceId = 'trace_id',
 	Type = 'type',
-	Url = 'url',
+	VisitedUrl = 'visited_url',
 }
 
 export enum ReservedLogKey {

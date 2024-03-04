@@ -967,6 +967,7 @@ type ComplexityRoot struct {
 		ErrorTags                        func(childComplexity int) int
 		Errors                           func(childComplexity int, sessionSecureID string) int
 		ErrorsHistogramClickhouse        func(childComplexity int, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) int
+		ErrorsKeyValues                  func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
 		ErrorsKeys                       func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
 		ErrorsMetrics                    func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
 		EventChunkURL                    func(childComplexity int, secureID string, index int) int
@@ -1046,6 +1047,7 @@ type ComplexityRoot struct {
 		SessionLogs                      func(childComplexity int, projectID int, params model.QueryInput) int
 		SessionsClickhouse               func(childComplexity int, projectID int, count int, query model.ClickhouseQuery, sortField *string, sortDesc bool, page *int) int
 		SessionsHistogramClickhouse      func(childComplexity int, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) int
+		SessionsKeyValues                func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
 		SessionsKeys                     func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
 		SessionsMetrics                  func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
 		SessionsReport                   func(childComplexity int, projectID int, query model.ClickhouseQuery) int
@@ -1888,8 +1890,10 @@ type QueryResolver interface {
 	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	ErrorsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
+	ErrorsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	ErrorsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	SessionsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
+	SessionsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	SessionsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	Metrics(ctx context.Context, productType model.ProductType, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	Keys(ctx context.Context, productType model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
@@ -7025,6 +7029,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ErrorsHistogramClickhouse(childComplexity, args["project_id"].(int), args["query"].(model.ClickhouseQuery), args["histogram_options"].(model.DateHistogramOptions)), true
 
+	case "Query.errors_key_values":
+		if e.complexity.Query.ErrorsKeyValues == nil {
+			break
+		}
+
+		args, err := ec.field_Query_errors_key_values_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ErrorsKeyValues(childComplexity, args["project_id"].(int), args["key_name"].(string), args["date_range"].(model.DateRangeRequiredInput)), true
+
 	case "Query.errors_keys":
 		if e.complexity.Query.ErrorsKeys == nil {
 			break
@@ -7957,6 +7973,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SessionsHistogramClickhouse(childComplexity, args["project_id"].(int), args["query"].(model.ClickhouseQuery), args["histogram_options"].(model.DateHistogramOptions)), true
+
+	case "Query.sessions_key_values":
+		if e.complexity.Query.SessionsKeyValues == nil {
+			break
+		}
+
+		args, err := ec.field_Query_sessions_key_values_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SessionsKeyValues(childComplexity, args["project_id"].(int), args["key_name"].(string), args["date_range"].(model.DateRangeRequiredInput)), true
 
 	case "Query.sessions_keys":
 		if e.complexity.Query.SessionsKeys == nil {
@@ -11802,25 +11830,47 @@ enum ReservedTraceKey {
 
 enum ReservedErrorObjectKey {
 	browser
+	client_id
 	environment
-	event
-	has_sessions
-	log_cursor
-	os
-	payload
-	request_id
+	has_session
+	os_name
 	secure_session_id
 	service_name
 	service_version
-	source
-	span_id
-	stackTrace
-	status
-	tag
 	timestamp
 	trace_id
+	visited_url
+}
+
+enum ReservedErrorGroupKey {
+	event
+	status
+	tag
 	type
-	url
+}
+
+enum ReservedErrorsJoinedKey {
+	"""
+	ReservedErrorObjectKey
+	"""
+	browser
+	client_id
+	environment
+	has_session
+	os_name
+	secure_session_id
+	service_name
+	service_version
+	timestamp
+	trace_id
+	visited_url
+	"""
+	ReservedErrorGroupKey
+	"""
+	event
+	status
+	tag
+	type
 }
 
 enum ReservedSessionKey {
@@ -12994,6 +13044,11 @@ type Query {
 		query: String
 		type: KeyType
 	): [QueryKey!]!
+	errors_key_values(
+		project_id: ID!
+		key_name: String!
+		date_range: DateRangeRequiredInput!
+	): [String!]!
 	errors_metrics(
 		project_id: ID!
 		params: QueryInput!
@@ -13012,6 +13067,11 @@ type Query {
 		query: String
 		type: KeyType
 	): [QueryKey!]!
+	sessions_key_values(
+		project_id: ID!
+		key_name: String!
+		date_range: DateRangeRequiredInput!
+	): [String!]!
 	sessions_metrics(
 		project_id: ID!
 		params: QueryInput!
@@ -18258,6 +18318,39 @@ func (ec *executionContext) field_Query_errors_histogram_clickhouse_args(ctx con
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_errors_key_values_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["key_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key_name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["key_name"] = arg1
+	var arg2 model.DateRangeRequiredInput
+	if tmp, ok := rawArgs["date_range"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
+		arg2, err = ec.unmarshalNDateRangeRequiredInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["date_range"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_errors_keys_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -20277,6 +20370,39 @@ func (ec *executionContext) field_Query_sessions_histogram_clickhouse_args(ctx c
 		}
 	}
 	args["histogram_options"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_sessions_key_values_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["key_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key_name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["key_name"] = arg1
+	var arg2 model.DateRangeRequiredInput
+	if tmp, ok := rawArgs["date_range"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
+		arg2, err = ec.unmarshalNDateRangeRequiredInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["date_range"] = arg2
 	return args, nil
 }
 
@@ -59771,6 +59897,60 @@ func (ec *executionContext) fieldContext_Query_errors_keys(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_errors_key_values(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_errors_key_values(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ErrorsKeyValues(rctx, fc.Args["project_id"].(int), fc.Args["key_name"].(string), fc.Args["date_range"].(model.DateRangeRequiredInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_errors_key_values(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_errors_key_values_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_errors_metrics(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_errors_metrics(ctx, field)
 	if err != nil {
@@ -59887,6 +60067,60 @@ func (ec *executionContext) fieldContext_Query_sessions_keys(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_sessions_keys_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_sessions_key_values(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_sessions_key_values(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SessionsKeyValues(rctx, fc.Args["project_id"].(int), fc.Args["key_name"].(string), fc.Args["date_range"].(model.DateRangeRequiredInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_sessions_key_values(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_sessions_key_values_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -87682,6 +87916,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "errors_key_values":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_errors_key_values(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "errors_metrics":
 			field := field
 
@@ -87712,6 +87966,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_sessions_keys(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "sessions_key_values":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_sessions_key_values(ctx, field)
 				return res
 			}
 
