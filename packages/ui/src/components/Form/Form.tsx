@@ -1,10 +1,10 @@
-import { Button, ButtonProps } from '@/components/Button/Button'
 import * as Ariakit from '@ariakit/react'
 import clsx, { ClassValue } from 'clsx'
 import React, { forwardRef, ReactNode, useRef } from 'react'
 
 import { Badge } from '../Badge/Badge'
 import { Box } from '../Box/Box'
+import { Button, ButtonProps } from '../Button/Button'
 import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
