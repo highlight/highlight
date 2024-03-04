@@ -6,7 +6,6 @@ import { FooterCallToAction } from '../../components/common/CallToAction/FooterC
 import Footer from '../../components/common/Footer/Footer'
 import Navbar from '../../components/common/Navbar/Navbar'
 import { Typography } from '../../components/common/Typography/Typography'
-import WideCard from '../../components/Integrations/WideCard'
 
 import { Dialog, RadioGroup, Transition } from '@headlessui/react'
 import * as Slider from '@radix-ui/react-slider'
@@ -189,12 +188,7 @@ const prices = {
 	},
 } as const
 
-const tierOptions = [
-	'Free',
-	'Professional',
-	'UsageBased',
-	'Enterprise',
-] as const
+const tierOptions = ['Free', 'Professional', 'Enterprise', 'SelfHost'] as const
 type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
@@ -207,7 +201,6 @@ type PricingTier = {
 		feature: string
 		tooltip?: string
 	}[]
-	badgeText?: string
 	calculateUsage?: boolean
 	buttonLabel: string
 	buttonLink: string
@@ -227,13 +220,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 				feature: `${prices.Sessions.free.toLocaleString()} monthly sessions`,
 			},
 			{
-				feature: `${prices.Errors.free.toLocaleString()} monthly errors`,
-			},
-			{
-				feature: `${prices.Logs.free.toLocaleString()} monthly logs`,
-			},
-			{
-				feature: `${prices.Traces.free.toLocaleString()} monthly traces`,
+				feature: 'AI error grouping',
 			},
 			{
 				feature: 'Unlimited seats',
@@ -244,65 +231,40 @@ const priceTiers: Record<TierName, PricingTier> = {
 	},
 	Professional: {
 		label: 'Professional',
-		monthlyPrice: '$0',
-		annualPrice: '$0',
-		subText: 'per project/month, billed annually',
+		monthlyPrice: '$50',
+		annualPrice: '$50',
+		subText: 'base per project/month, billed annually',
 		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
 		features: [
 			{
-				feature: `Base tier of $50`,
-			},
-			{
-				feature: `Cheaper with higher volume`,
-			},
-			{
 				feature: `Filters for data ingest`,
 			},
 			{
-				feature: 'Unlimited seats',
+				feature: 'Dozens of integrations',
+			},
+			{
+				feature: 'Cheaper with higher volume',
+			},
+			{
+				feature: 'Alerts and notifications',
 			},
 		],
-		badgeText: 'Most popular',
 		calculateUsage: true,
 		buttonLabel: 'Start free trial',
 		buttonLink: 'https://app.highlight.io/sign_up',
 	},
-	UsageBased: {
-		label: 'Self-Host',
-		monthlyPrice: '$0',
-		annualPrice: '$0',
-		subText: 'per project/month, billed annually',
-		icon: <HiServer className="text-[#E93D82] w-8 h-8 -translate-x-1" />,
-		features: [
-			{
-				feature: `Base tier of $50`,
-			},
-			{
-				feature: `Cheaper with higher volume`,
-			},
-			{
-				feature: `Filters for data ingest`,
-			},
-			{
-				feature: 'Unlimited seats',
-			},
-		],
-		badgeText: 'Most popular',
-		calculateUsage: true,
-		buttonLabel: 'Start free trial',
-		buttonLink: 'https://app.highlight.io/sign_up',
-	},
+
 	Enterprise: {
 		label: 'Enterprise',
-		subText: 'per project/month, billed annually',
-		monthlyPrice: '$0',
-		annualPrice: '$0',
+		subText: 'base per project/month, billed annually',
+		monthlyPrice: '$3000',
+		annualPrice: '$3000',
 		icon: (
 			<HiOfficeBuilding className="text-white w-8 h-8 -translate-x-1" />
 		),
 		features: [
 			{
-				feature: 'Custom pricing',
+				feature: 'Volume discounts',
 				tooltip:
 					'At higher volumes, we can heavily discount usage; reach out to learn more.',
 			},
@@ -331,10 +293,25 @@ const priceTiers: Record<TierName, PricingTier> = {
 				tooltip:
 					'Exposure to a Grafana instance for visualization of traces/metrics/logs',
 			},
+			{
+				feature: 'Aggregate user reporting',
+			},
 		],
-		buttonLabel: 'Talk to sales',
+		buttonLabel: 'Contact Us',
 		buttonLink: '',
 		calculateUsage: true,
+	},
+	SelfHost: {
+		label: 'Self-Host',
+		monthlyPrice: '$0',
+		annualPrice: '$0',
+		subText: 'per project/month, billed annually',
+		icon: <HiServer className="text-[#E93D82] w-8 h-8 -translate-x-1" />,
+		features: [],
+		calculateUsage: true,
+		buttonLabel: 'Learn More',
+		buttonLink:
+			'/docs/general/company/open-source/hosting/self-host-enterprise',
 	},
 }
 
@@ -346,14 +323,6 @@ const PlanTable = () => {
 				{Object.entries(priceTiers).map(([name, tier]) => (
 					<PlanTier name={name} tier={tier} key={name} />
 				))}
-			</div>
-			<div className="max-w-[908px] w-full mt-4">
-				<WideCard
-					title="Enterprise self-hosted deployment?"
-					desc="Get in touch to host Highlight on your own infrastructure with SLAs and support."
-					primaryLink="/docs/general/company/open-source/hosting/self-host-enterprise"
-					primaryLinkText="Learn More"
-				/>
 			</div>
 			<div className="flex-shrink w-48" />
 		</div>
