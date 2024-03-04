@@ -113,25 +113,25 @@ export const getMeterAmounts = (
 	const canChargeOverage = details.plan.type !== 'Free'
 	const sessionsMeter = details?.meter ?? 0
 	const sessionsQuota = details?.sessionsBillingLimit
-		? details.sessionsBillingLimit / details.plan.sessionsRate
+		? details.sessionsBillingLimit
 		: canChargeOverage
 		? undefined
 		: details?.plan.sessionsLimit
 	const errorsMeter = details?.errorsMeter ?? 0
 	const errorsQuota = details?.errorsBillingLimit
-		? details.errorsBillingLimit / details.plan.errorsRate
+		? details.errorsBillingLimit
 		: canChargeOverage
 		? undefined
 		: details?.plan.errorsLimit
 	const logsMeter = details?.logsMeter ?? 0
 	const logsQuota = details?.logsBillingLimit
-		? details.logsBillingLimit / details.plan.logsRate
+		? details.logsBillingLimit
 		: canChargeOverage
 		? undefined
 		: details?.plan.logsLimit
 	const tracesMeter = details?.tracesMeter ?? 0
 	const tracesQuota = details?.tracesBillingLimit
-		? details.tracesBillingLimit / details.plan.tracesRate
+		? details.tracesBillingLimit
 		: canChargeOverage
 		? undefined
 		: details?.plan.tracesLimit
