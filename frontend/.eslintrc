@@ -3,7 +3,7 @@
 	"extends": [
 		"plugin:react/recommended",
 		"plugin:@typescript-eslint/recommended",
-		"prettier",
+		"prettier/@typescript-eslint",
 		"plugin:react-hooks/recommended",
 		"plugin:tailwindcss/recommended"
 	],
