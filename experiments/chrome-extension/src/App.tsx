@@ -1,10 +1,10 @@
-import 'antd/dist/antd.css' // or 'antd/dist/antd.less'
 import React, { useEffect, useState } from 'react'
-import { FaCopy } from 'react-icons/fa'
 import './App.css'
+import 'antd/dist/antd.css' // or 'antd/dist/antd.less'
+import { FaCopy } from 'react-icons/fa'
 
-import { Checkbox, InputNumber, message } from 'antd'
 import { useChromeStorageLocal } from 'use-chrome-storage'
+import { InputNumber, Checkbox, message } from 'antd'
 import { useClipboard } from 'use-clipboard-copy'
 
 const Core = () => {

@@ -1,8 +1,8 @@
 import { ImageResponse } from '@vercel/og'
-import 'fs'
 import { NextRequest, URLPattern } from 'next/server'
-import { withEdgeRouterHighlight } from '../../../../highlight.edge.config'
 import { bug1, bug2, font, fontLight, logoOnDark } from '../util'
+import 'fs'
+import { withEdgeRouterHighlight } from '../../../../highlight.edge.config'
 
 export const config = {
 	runtime: 'edge',

@@ -1,27 +1,27 @@
-import type {
-	Attributes,
-	Span as OtelSpan,
-	SpanOptions,
-	Tracer,
-} from '@opentelemetry/api'
-import { trace } from '@opentelemetry/api'
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
-import { registerInstrumentations } from '@opentelemetry/instrumentation'
-import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
-import { processDetectorSync, Resource } from '@opentelemetry/resources'
-import { NodeSDK } from '@opentelemetry/sdk-node'
 import { BufferConfig, ReadableSpan, Span } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
+import type {
+	Attributes,
+	Tracer,
+	Span as OtelSpan,
+	SpanOptions,
+} from '@opentelemetry/api'
+import { trace } from '@opentelemetry/api'
+import { NodeSDK } from '@opentelemetry/sdk-node'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
+import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
+import { processDetectorSync, Resource } from '@opentelemetry/resources'
+import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import type { IncomingHttpHeaders } from 'http'
 
 import { clearInterval } from 'timers'
 
+import type { HighlightContext, NodeOptions } from './types.js'
 import { hookConsole } from './hooks.js'
 import log from './log.js'
 import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
-import type { HighlightContext, NodeOptions } from './types.js'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 const FIVE_MINUTES = 1000 * 60 * 5

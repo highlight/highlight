@@ -1,5 +1,5 @@
-import type { NodeOptions } from '@highlight-run/node'
 import build from 'pino-abstract-transport'
+import type { NodeOptions } from '@highlight-run/node'
 
 export type { NodeOptions }
 export default async function (options: NodeOptions) {

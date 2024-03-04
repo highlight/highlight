@@ -1,9 +1,9 @@
-import { Button } from 'antd'
-import React from 'react'
+import Navbar from '../components/common/Navbar/Navbar'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
 import Footer from '../components/common/Footer/Footer'
-import Navbar from '../components/common/Navbar/Navbar'
+import React from 'react'
 import { Typography } from '../components/common/Typography/Typography'
+import { Button } from 'antd'
 
 export default function HighlightDemo() {
 	const [query, setQuery] = React.useState<string>()

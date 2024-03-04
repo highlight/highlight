@@ -1,3 +1,4 @@
+import React from 'react'
 import { IconProps } from './types'
 
 export const IconOutlineArrowSmUp = ({ size = '1em', ...props }: IconProps) => {

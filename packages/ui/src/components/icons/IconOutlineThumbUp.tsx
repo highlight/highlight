@@ -1,3 +1,4 @@
+import React from 'react'
 import { IconProps } from './types'
 
 export const IconOutlineThumbUp = ({ size = '1em', ...props }: IconProps) => {

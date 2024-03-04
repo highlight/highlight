@@ -1,9 +1,9 @@
 import * as trpcNext from '@trpc/server/adapters/next'
 
-import { CONSTANTS } from '@/constants'
-import { H, Handlers } from '@highlight-run/node'
 import { initTRPC } from '@trpc/server'
 import { z } from 'zod'
+import { H, Handlers } from '@highlight-run/node'
+import { CONSTANTS } from '@/constants'
 
 const t = initTRPC.create()
 

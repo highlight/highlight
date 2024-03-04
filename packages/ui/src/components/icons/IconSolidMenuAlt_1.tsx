@@ -1,3 +1,4 @@
+import React from 'react'
 import { IconProps } from './types'
 
 export const IconSolidMenuAlt_1 = ({ size = '1em', ...props }: IconProps) => {

@@ -1,3 +1,4 @@
+import React from 'react'
 import { IconProps } from './types'
 
 export const IconSolidTable = ({ size = '1em', ...props }: IconProps) => {

@@ -1,6 +1,6 @@
 import { exec as execAsync } from 'child_process'
-import * as fs from 'fs'
 import { promisify } from 'util'
+import * as fs from 'fs'
 
 const exec = promisify(execAsync)
 

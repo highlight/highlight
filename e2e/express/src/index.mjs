@@ -1,5 +1,5 @@
-import { H, Handlers } from '@highlight-run/node'
 import express from 'express'
+import { H, Handlers } from '@highlight-run/node'
 
 /** @type {import('@highlight-run/node').NodeOptions} */
 const config = {

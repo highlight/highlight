@@ -2,11 +2,11 @@ import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import {
 	customError,
-	initializeSdk,
 	installSdk,
-	sessionUsage,
+	initializeSdk,
 	setUpLogging,
 	verifyErrors,
+	sessionUsage,
 } from './shared-snippets'
 
 export const JavaOtherContent: QuickStartContent = {

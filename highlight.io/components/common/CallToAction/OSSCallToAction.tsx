@@ -1,9 +1,10 @@
-import classNames from 'classnames'
-import { AiFillGithub } from 'react-icons/ai'
-import { FaDiscord } from 'react-icons/fa'
+import React from 'react'
 import styles from '../../Home/Home.module.scss'
 import { PrimaryButton } from '../Buttons/PrimaryButton'
+import { AiFillGithub } from 'react-icons/ai'
+import { FaDiscord } from 'react-icons/fa'
 import { Typography } from '../Typography/Typography'
+import classNames from 'classnames'
 
 export const OSSCallToAction = () => {
 	return (

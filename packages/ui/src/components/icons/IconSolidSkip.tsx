@@ -1,3 +1,4 @@
+import React from 'react'
 import { IconProps } from './types'
 
 export const IconSolidSkip = ({ size = '1em', ...props }: IconProps) => {

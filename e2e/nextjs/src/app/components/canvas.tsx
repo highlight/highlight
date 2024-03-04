@@ -1,6 +1,5 @@
 'use client'
 
-import type { EngineOptions, SceneOptions } from 'babylonjs'
 import {
 	ArcRotateCamera,
 	Color3,
@@ -12,7 +11,8 @@ import {
 	ScenePerformancePriority,
 	Vector3,
 } from 'babylonjs'
-import { useEffect, useRef, useState } from 'react'
+import type { EngineOptions, SceneOptions } from 'babylonjs'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { H } from '@highlight-run/next/client'
 

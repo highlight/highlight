@@ -1,3 +1,4 @@
+import React from 'react'
 import { IconProps } from './types'
 
 export const IconOutlineDownload = ({ size = '1em', ...props }: IconProps) => {

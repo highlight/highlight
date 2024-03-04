@@ -1,11 +1,11 @@
 // vite.config.ts
-import commonjs from '@rollup/plugin-commonjs'
-import json from '@rollup/plugin-json'
-import resolve from '@rollup/plugin-node-resolve'
-import terser from '@rollup/plugin-terser'
-import typescript from '@rollup/plugin-typescript'
 import { resolve as resolvePath } from 'path'
 import { defineConfig } from 'vite'
+import typescript from '@rollup/plugin-typescript'
+import resolve from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
+import json from '@rollup/plugin-json'
+import terser from '@rollup/plugin-terser'
 
 export default defineConfig({
 	envPrefix: ['REACT_APP_'],

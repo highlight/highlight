@@ -1,5 +1,5 @@
-import Image, { StaticImageData } from 'next/legacy/image'
 import styles from '../Customers.module.scss'
+import Image, { StaticImageData } from 'next/legacy/image'
 
 export interface CustomerReview {
 	author: string

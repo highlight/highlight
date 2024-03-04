@@ -1,3 +1,4 @@
+import React from 'react'
 import { IconProps } from './types'
 
 export const IconSolidAtSymbol = ({ size = '1em', ...props }: IconProps) => {

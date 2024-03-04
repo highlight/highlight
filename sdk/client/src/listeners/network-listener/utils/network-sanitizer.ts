@@ -1,4 +1,4 @@
-import { Headers, Request, Response } from './models'
+import { Request, Response, Headers } from './models'
 
 export const sanitizeResource = <T extends Request | Response>(
 	resource: T,

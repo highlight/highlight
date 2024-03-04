@@ -1,9 +1,9 @@
-export { H } from './util/highlight-edge'
 export type { HighlightEnv } from './util/types'
 
 import * as withHighlightEdge from './util/with-highlight-edge'
 
 import type { HighlightEnv } from './util/types'
+export { H } from './util/highlight-edge'
 
 export function registerHighlight() {}
 

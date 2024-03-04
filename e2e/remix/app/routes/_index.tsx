@@ -1,5 +1,5 @@
-import type { V2_MetaFunction } from '@remix-run/node'
 import { HighlightButtons } from '~/components/highlight-buttons'
+import type { V2_MetaFunction } from '@remix-run/node'
 
 export { ErrorBoundary } from '~/components/error-boundary'
 

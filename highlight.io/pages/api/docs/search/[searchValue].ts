@@ -4,8 +4,8 @@ import path from 'path'
 import removeMd from 'remove-markdown'
 import { withPageRouterHighlight } from '../../../../highlight.config'
 import logger from '../../../../highlight.logger'
-import { readMarkdown } from '../../../../shared/doc'
 import { getDocsPaths } from '../../../docs/[[...doc]]'
+import { readMarkdown } from '../../../../shared/doc'
 
 export const SEARCH_RESULT_BLURB_LENGTH = 100
 

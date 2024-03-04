@@ -1,3 +1,4 @@
+import React from 'react'
 import { IconProps } from './types'
 
 export const IconOutlineLockOpen = ({ size = '1em', ...props }: IconProps) => {

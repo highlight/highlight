@@ -1,3 +1,4 @@
+import React from 'react'
 import { IconProps } from './types'
 
 export const IconOutlineChartPie = ({ size = '1em', ...props }: IconProps) => {
