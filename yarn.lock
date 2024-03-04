@@ -8849,7 +8849,7 @@ __metadata:
     compare-versions: "npm:^4.1.3"
     cssom: "npm:^0.5.0"
     cssstyle: "npm:^2.3.0"
-    eslint: "npm:^8.57.0"
+    eslint: "npm:^8.15.0"
     jest: "npm:27.1.1"
     nwsapi: "npm:^2.2.0"
     puppeteer: "npm:^9.1.1"
@@ -8873,7 +8873,7 @@ __metadata:
     "@types/puppeteer": "npm:^5.4.4"
     "@typescript-eslint/eslint-plugin": "npm:^5.23.0"
     "@typescript-eslint/parser": "npm:^5.23.0"
-    eslint: "npm:^8.57.0"
+    eslint: "npm:^8.15.0"
     jest: "npm:27.1.1"
     puppeteer: "npm:^17.1.3"
     rollup: "npm:^2.56.3"
@@ -8895,7 +8895,7 @@ __metadata:
     "@rollup/plugin-node-resolve": "npm:^13.2.1"
     "@tsconfig/svelte": "npm:^1.0.1"
     "@types/offscreencanvas": "npm:^2019.6.4"
-    eslint: "npm:^8.57.0"
+    eslint: "npm:^8.23.1"
     eslint-config-google: "npm:^0.14.0"
     eslint-plugin-svelte3: "npm:^4.0.0"
     postcss-easy-import: "npm:^3.0.0"
@@ -8925,7 +8925,7 @@ __metadata:
     "@types/node": "npm:^18.11.15"
     "@types/puppeteer": "npm:^1.12.4"
     cross-env: "npm:^5.2.0"
-    eslint: "npm:^8.57.0"
+    eslint: "npm:^8.23.1"
     jest: "npm:27.1.1"
     jest-snapshot: "npm:^23.6.0"
     jsdom: "npm:^16.4.0"
@@ -9004,7 +9004,7 @@ __metadata:
     construct-style-sheets-polyfill: "npm:^3.1.0"
     cross-env: "npm:^5.2.0"
     esbuild: "npm:^0.14.38"
-    eslint: "npm:^8.57.0"
+    eslint: "npm:^8.23.1"
     fast-mhtml: "npm:^1.1.9"
     fflate: "npm:^0.4.4"
     identity-obj-proxy: "npm:^3.0.0"
@@ -28829,7 +28829,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^8.57.0":
+"eslint@npm:^8.15.0, eslint@npm:^8.23.1, eslint@npm:^8.57.0":
   version: 8.57.0
   resolution: "eslint@npm:8.57.0"
   dependencies:
