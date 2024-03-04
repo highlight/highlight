@@ -41463,7 +41463,7 @@ __metadata:
     react-code-blocks: "npm:^0.0.9-0"
     react-collapse: "npm:^5.1.1"
     react-collapsible: "npm:^2.10.0"
-    react-compare-image: "npm:^3.3.0"
+    react-compare-image: "npm:^3.4.0"
     react-copy-to-clipboard: "npm:^5.1.0"
     react-device-detect: "npm:^2.2.3"
     react-dom: "npm:^18.2.0"
@@ -44638,7 +44638,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-environment-jsdom@npm:^29.5.0":
+"jest-environment-jsdom@npm:^29.3.1, jest-environment-jsdom@npm:^29.5.0":
   version: 29.7.0
   resolution: "jest-environment-jsdom@npm:29.7.0"
   dependencies:
@@ -56305,13 +56305,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-compare-image@npm:^3.3.0":
-  version: 3.3.0
-  resolution: "react-compare-image@npm:3.3.0"
+"react-compare-image@npm:^3.4.0":
+  version: 3.4.0
+  resolution: "react-compare-image@npm:3.4.0"
+  dependencies:
+    jest-environment-jsdom: "npm:^29.3.1"
   peerDependencies:
     react: ^16.8 || ^17 || ^18
     react-dom: ^16.8 || ^17 || ^18
-  checksum: 10/9a2d68cbaaebdf475e1bb4b57344ec9c138d0993966567d4e47677c22b800a83c7eb8d51212555d7686c7a884076994af13a1e2ab6388632db1c15bc5c0424e9
+  checksum: 10/faabb87c12a2d37307ed7fb5fe3053f074497f3a9763498d817761b86559291bd7944e08ad247662c95b6abc8e5e92c1b294a7bae643c7e12898e17c1f3bdbaf
   languageName: node
   linkType: hard
 
