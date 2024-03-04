@@ -596,7 +596,7 @@ var errorsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedErro
 }
 
 func ErrorMatchesQuery(errorObject *model2.BackendErrorObjectInput, filters listener.Filters) bool {
-	return matchesQuery(errorObject, ErrorObjectsTableConfig, filters)
+	return matchesQuery(errorObject, errorsJoinedTableConfig, filters)
 }
 
 func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
