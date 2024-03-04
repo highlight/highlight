@@ -9,7 +9,6 @@ export function GetBaseURL(): string {
 
 export const showSupportBubble = () => {
 	analytics.track('showSupportBubble')
-	window.open('https://highlight.io/community', '_blank')
 }
 
 export const showSupportMessage = async (msg = '') => {

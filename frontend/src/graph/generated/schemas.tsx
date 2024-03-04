@@ -25,6 +25,13 @@ export type Scalars = {
 	Upload: any
 }
 
+export type AwsMarketplaceSubscription = {
+	__typename?: 'AWSMarketplaceSubscription'
+	customer_aws_account_id: Scalars['String']
+	customer_identifier: Scalars['String']
+	product_code: Scalars['String']
+}
+
 export type AccessibleJiraResources = {
 	__typename?: 'AccessibleJiraResources'
 	avatarUrl: Scalars['String']
@@ -1844,6 +1851,7 @@ export type PageInfo = {
 
 export type Plan = {
 	__typename?: 'Plan'
+	aws_mp_subscription?: Maybe<AwsMarketplaceSubscription>
 	enableBillingLimits: Scalars['Boolean']
 	errorsLimit: Scalars['Int64']
 	errorsRate: Scalars['Float']

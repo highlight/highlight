@@ -104,13 +104,15 @@
 		"otel",
 		"otlp",
 		"pino",
+		"Replo",
 		"runtimes",
 		"snapshotting",
 		"statfs",
 		"teddarific",
 		"unlisten",
 		"unobfuscated",
-		"Vadim"
+		"Vadim",
+		"Yuxin"
 	],
 	"[yaml]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
