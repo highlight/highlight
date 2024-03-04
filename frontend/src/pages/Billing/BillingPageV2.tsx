@@ -11,6 +11,7 @@ import {
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
+	IconSolidPencil,
 	IconSolidPlayCircle,
 	IconSolidTraces,
 	Stack,
@@ -34,6 +35,7 @@ import {
 	useUpdateBillingDetailsMutation,
 } from '@/graph/generated/hooks'
 import {
+	AwsMarketplaceSubscription,
 	PlanType,
 	ProductType,
 	RetentionPeriod,
@@ -67,6 +69,7 @@ type UsageCardProps = {
 	enableBillingLimits: boolean | undefined
 	billingIssues: boolean
 	setStep: (step: PlanSelectStep) => void
+	awsMpSubscription?: AwsMarketplaceSubscription | null | undefined
 }
 
 const UsageCard = ({
@@ -81,6 +84,7 @@ const UsageCard = ({
 	enableBillingLimits,
 	billingIssues,
 	setStep,
+	awsMpSubscription,
 }: UsageCardProps) => {
 	const costCents = isPaying
 		? getCostCents(
@@ -133,7 +137,9 @@ const UsageCard = ({
 						{productIcon}
 						<Text color="n12">{productType}</Text>
 					</Box>
-					<Text color="n12">{costFormatted}</Text>
+					{awsMpSubscription?.product_code ? null : (
+						<Text color="n12">{costFormatted}</Text>
+					)}
 				</Box>
 				<Box display="flex" gap="4">
 					{!enableBillingLimits ? (
@@ -289,6 +295,8 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const discountAmount = data?.subscription_details.discount?.amount ?? 0
 
 	const isPaying = data?.billingDetails.plan.type !== PlanType.Free
+	const isAWSMP =
+		!!data?.billingDetails.plan.aws_mp_subscription?.product_code
 
 	const nextInvoiceDate = tryCastDate(data?.workspace?.next_invoice_date)
 	const billingPeriodEnd = tryCastDate(data?.workspace?.billing_period_end)
@@ -471,39 +479,65 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						py="8"
 						px="12"
 					>
-						<Text size="small" color="strong">
-							{isPaying
-								? data?.billingDetails.plan.type ===
-								  PlanType.Graduated
-									? 'Pay as you go'
-									: data?.billingDetails.plan.type ===
-									  PlanType.UsageBased
-									? 'Usage based'
-									: data?.billingDetails.plan.type
-								: 'Free'}
-						</Text>
-						<Box display="flex" gap="6">
-							{isPaying ? (
-								<Button
-									trackingId="BillingPage EditCurrentPlan"
-									size="small"
-									emphasis="low"
-									kind="secondary"
-									onClick={() => setStep('Configure plan')}
-								>
-									Edit current plan
-								</Button>
-							) : null}
-							<Button
-								trackingId="BillingPage UpgradePlan"
-								size="small"
-								emphasis="high"
-								kind="primary"
-								onClick={() => setStep('Select plan')}
-							>
-								Select a plan
-							</Button>
+						<Box m="8">
+							<Text size="small" color="strong">
+								{isPaying
+									? isAWSMP
+										? 'AWS Marketplace'
+										: data?.billingDetails.plan.type ===
+										  PlanType.Graduated
+										? 'Pay as you go'
+										: data?.billingDetails.plan.type ===
+										  PlanType.UsageBased
+										? 'Usage based'
+										: data?.billingDetails.plan.type
+									: 'Free'}
+							</Text>
 						</Box>
+						{isAWSMP ? (
+							<Box display="flex" gap="6">
+								<Button
+									trackingId="BillingPage AWSMP Edit"
+									size="small"
+									emphasis="high"
+									kind="primary"
+									onClick={() =>
+										window.open(
+											`https://aws.amazon.com/marketplace/pp/prodview-frmk25gznwywm`,
+											'_blank',
+										)
+									}
+								>
+									View in AWS Marketplace
+								</Button>
+							</Box>
+						) : (
+							<Box display="flex" gap="6">
+								{isPaying ? (
+									<Button
+										trackingId="BillingPage EditCurrentPlan"
+										size="small"
+										emphasis="low"
+										kind="secondary"
+										iconLeft={<IconSolidPencil />}
+										onClick={() =>
+											setStep('Configure plan')
+										}
+									>
+										Edit current plan
+									</Button>
+								) : null}
+								<Button
+									trackingId="BillingPage UpgradePlan"
+									size="small"
+									emphasis="high"
+									kind="primary"
+									onClick={() => setStep('Select plan')}
+								>
+									Select a plan
+								</Button>
+							</Box>
+						)}
 					</Box>
 				</Stack>
 				<Box
@@ -522,6 +556,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						retentionPeriod={sessionsRetention}
 						billingLimitCents={sessionsLimit}
 						usageAmount={sessionsUsage}
+						awsMpSubscription={
+							data?.billingDetails?.plan.aws_mp_subscription
+						}
 						includedQuantity={includedSessions}
 						isPaying={isPaying}
 						planType={planType}
@@ -539,6 +576,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						retentionPeriod={errorsRetention}
 						billingLimitCents={errorsLimit}
 						usageAmount={errorsUsage}
+						awsMpSubscription={
+							data?.billingDetails?.plan.aws_mp_subscription
+						}
 						includedQuantity={includedErrors}
 						isPaying={isPaying}
 						planType={planType}
@@ -556,6 +596,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						retentionPeriod={logsRetention}
 						billingLimitCents={logsLimit}
 						usageAmount={logsUsage}
+						awsMpSubscription={
+							data?.billingDetails?.plan.aws_mp_subscription
+						}
 						includedQuantity={includedLogs}
 						isPaying={isPaying}
 						planType={planType}
@@ -573,6 +616,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						retentionPeriod={tracesRetention}
 						billingLimitCents={tracesLimit}
 						usageAmount={tracesUsage}
+						awsMpSubscription={
+							data?.billingDetails?.plan.aws_mp_subscription
+						}
 						includedQuantity={includedTraces}
 						isPaying={isPaying}
 						planType={planType}
@@ -583,120 +629,127 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						setStep={setStep}
 					/>
 				</Box>
-				<Stack
-					border="secondary"
-					borderRadius="8"
-					alignItems="center"
-					py="16"
-					px="12"
-					gap="12"
-					mt="16"
-				>
-					<Box
-						display="flex"
-						flexDirection="row"
-						justifyContent="space-between"
-						width="full"
-						cssClass={style.totalBox}
+				{isAWSMP ? null : (
+					<Stack
+						border="secondary"
+						borderRadius="8"
 						alignItems="center"
+						py="16"
+						px="12"
+						gap="12"
+						mt="16"
 					>
-						<Stack gap="12" width="full">
-							{data?.subscription_details.discount ? (
-								<>
-									<Box
-										display="flex"
-										alignItems="center"
-										justifyContent="space-between"
-									>
-										<Box display="flex" gap="6">
-											<Text>
-												Discount (
-												{
-													data.subscription_details
-														.discount.name
-												}
-												)
-											</Text>
-											<Text color="weak">
-												{discountPercent
-													? `${discountPercent}% off `
-													: `${discountAmountFormatted} off `}
-												{discountUntilFormatted}
-											</Text>
-										</Box>
+						<Box
+							display="flex"
+							flexDirection="row"
+							justifyContent="space-between"
+							width="full"
+							cssClass={style.totalBox}
+							alignItems="center"
+						>
+							<Stack gap="12" width="full">
+								{data?.subscription_details.discount ? (
+									<>
 										<Box
 											display="flex"
 											alignItems="center"
-											gap="4"
+											justifyContent="space-between"
 										>
-											<Text color="strong" weight="bold">
-												-{discountAmountFormatted}
-											</Text>
+											<Box display="flex" gap="6">
+												<Text>
+													Discount (
+													{
+														data
+															.subscription_details
+															.discount.name
+													}
+													)
+												</Text>
+												<Text color="weak">
+													{discountPercent
+														? `${discountPercent}% off `
+														: `${discountAmountFormatted} off `}
+													{discountUntilFormatted}
+												</Text>
+											</Box>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<Text
+													color="strong"
+													weight="bold"
+												>
+													-{discountAmountFormatted}
+												</Text>
+											</Box>
 										</Box>
-									</Box>
-									<Box borderBottom="divider" />
-								</>
-							) : null}
-							<Box
-								display="flex"
-								alignItems="center"
-								justifyContent="space-between"
-							>
-								<Box display="flex" gap="6">
-									<Text color="strong">
-										Total per{' '}
-										{data?.billingDetails.plan.interval ===
-										'Annual'
-											? 'year'
-											: 'month'}
-									</Text>
-									{isPaying && (
-										<Text color="weak">
-											Due{' '}
-											{moment(nextBillingDate).format(
-												'MM/DD/YY',
-											)}
-										</Text>
-									)}
-								</Box>
+										<Box borderBottom="divider" />
+									</>
+								) : null}
 								<Box
 									display="flex"
 									alignItems="center"
-									color="p11"
-									gap="4"
+									justifyContent="space-between"
 								>
-									{hasExtras && (
-										<Tooltip
-											delayed
-											trigger={
-												<IconSolidInformationCircle
-													size={12}
-												/>
-											}
-										>
-											Includes a{' '}
+									<Box display="flex" gap="6">
+										<Text color="strong">
+											Total per{' '}
 											{data?.billingDetails.plan
 												.interval === 'Annual'
-												? 'yearly'
-												: 'monthly'}{' '}
-											base charge of {baseAmountFormatted}
-											{discountPercent
-												? ` with a ${discountPercent}% discount`
-												: ''}
-											{discountAmount
-												? ` with a ${discountAmountFormatted} discount`
-												: ''}
-											.
-										</Tooltip>
-									)}
-									<Text color="p11" weight="bold">
-										{totalFormatted}
-									</Text>
+												? 'year'
+												: 'month'}
+										</Text>
+										{isPaying && (
+											<Text color="weak">
+												Due{' '}
+												{moment(nextBillingDate).format(
+													'MM/DD/YY',
+												)}
+											</Text>
+										)}
+									</Box>
+									<Box
+										display="flex"
+										alignItems="center"
+										color="p11"
+										gap="4"
+									>
+										{hasExtras && (
+											<Tooltip
+												delayed
+												trigger={
+													<IconSolidInformationCircle
+														size={12}
+													/>
+												}
+											>
+												Includes a{' '}
+												{data?.billingDetails.plan
+													.interval === 'Annual'
+													? 'yearly'
+													: 'monthly'}{' '}
+												base charge of{' '}
+												{baseAmountFormatted}
+												{discountPercent
+													? ` with a ${discountPercent}% discount`
+													: ''}
+												{discountAmount
+													? ` with a ${discountAmountFormatted} discount`
+													: ''}
+												.
+											</Tooltip>
+										)}
+										<Text color="p11" weight="bold">
+											{totalFormatted}
+										</Text>
+									</Box>
 								</Box>
-							</Box>
-						</Stack>
-					</Box>
-				</Stack>
+							</Stack>
+						</Box>
+					</Stack>
+				)}
 			</Stack>
 		</Box>
 	)

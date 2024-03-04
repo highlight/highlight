@@ -78,41 +78,13 @@ export const useGetLogs = ({
 		fetchPolicy: 'network-only',
 	})
 
-	const { numMore, reset } = usePollQuery<
-		GetLogsQuery,
-		GetLogsQueryVariables
-	>({
-		skip: disablePolling,
-		variableFn: useCallback(
-			() => ({
-				project_id: project_id!,
-				at: logCursor,
-				direction: Types.SortDirection.Desc,
-				params: {
-					query,
-					date_range: {
-						start_date: moment(endDate).format(TIME_FORMAT),
-						end_date: moment().format(TIME_FORMAT),
-					},
-				},
-			}),
-			[endDate, logCursor, project_id, query],
-		),
-		moreDataQuery,
-		getResultCount: useCallback((result) => {
-			if (result?.data?.logs.edges.length !== undefined) {
-				return result?.data?.logs.edges.length
-			}
-		}, []),
-	})
-
 	const logResultMetadata = useMemo(() => {
 		const logTraceIdSet = new Set()
-		const logCursors = []
+		const cursors = []
 		let latestLogTime, earliestLogTime
 
 		if (data?.logs.edges.length) {
-			logCursors.push(data.logs.edges[0].cursor)
+			cursors.push(data.logs.edges[0].cursor)
 
 			for (const edge of data.logs.edges) {
 				if (edge.node.traceID) {
@@ -130,7 +102,7 @@ export const useGetLogs = ({
 		}
 
 		return {
-			logCursors: logCursors,
+			cursors,
 			traceIds: Array.from(logTraceIdSet) as string[],
 			endDate: latestLogTime || endDate,
 			startDate: earliestLogTime || startDate,
@@ -138,10 +110,40 @@ export const useGetLogs = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.logs.edges])
 
+	const { numMore, reset } = usePollQuery<
+		GetLogsQuery,
+		GetLogsQueryVariables
+	>({
+		skip: disablePolling,
+		variableFn: useCallback(
+			() => ({
+				project_id: project_id!,
+				at: logCursor,
+				direction: Types.SortDirection.Desc,
+				params: {
+					query,
+					date_range: {
+						start_date: moment(logResultMetadata.endDate).format(
+							TIME_FORMAT,
+						),
+						end_date: moment().format(TIME_FORMAT),
+					},
+				},
+			}),
+			[logCursor, logResultMetadata.endDate, project_id, query],
+		),
+		moreDataQuery,
+		getResultCount: useCallback((result) => {
+			if (result?.data?.logs.edges.length !== undefined) {
+				return result?.data?.logs.edges.length
+			}
+		}, []),
+	})
+
 	const { data: logRelatedResources } = useGetLogsRelatedResourcesQuery({
 		variables: {
 			project_id: project_id!,
-			log_cursors: logResultMetadata.logCursors,
+			log_cursors: logResultMetadata.cursors,
 			trace_ids: logResultMetadata.traceIds,
 			date_range: {
 				start_date: moment(logResultMetadata.startDate)

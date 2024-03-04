@@ -8957,6 +8957,11 @@ export const GetBillingDetailsForProjectDocument = gql`
 	query GetBillingDetailsForProject($project_id: ID!) {
 		billingDetailsForProject(project_id: $project_id) {
 			plan {
+				aws_mp_subscription {
+					customer_identifier
+					customer_aws_account_id
+					product_code
+				}
 				type
 				interval
 				membersLimit
@@ -9043,6 +9048,11 @@ export const GetBillingDetailsDocument = gql`
 	query GetBillingDetails($workspace_id: ID!) {
 		billingDetails(workspace_id: $workspace_id) {
 			plan {
+				aws_mp_subscription {
+					customer_identifier
+					customer_aws_account_id
+					product_code
+				}
 				type
 				interval
 				membersLimit

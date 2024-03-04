@@ -347,6 +347,7 @@ const LogsTableInner = ({
 				overflowY="auto"
 				style={{ height: bodyHeight }}
 				onScroll={handleFetchMoreWhenScrolled}
+				hiddenScroll
 			>
 				{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
 				{virtualRows.map((virtualRow) => {
