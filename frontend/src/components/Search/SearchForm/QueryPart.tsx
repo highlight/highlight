@@ -66,18 +66,18 @@ export const QueryPart: React.FC<{
 			<Tooltip
 				placement="top-start"
 				open={active && !!error}
+				style={{ display: 'inline' }}
 				maxWidth={600}
 				shift={-3}
 				trigger={
 					<Box
+						as="span"
 						cssClass={clsx({
 							[styles.comboboxTag]: isExpression,
 							[styles.comboboxTagActive]: active && isExpression,
 							[styles.comboboxTagError]: !!error,
 						})}
-						py="7"
 						position="relative"
-						whiteSpace="nowrap"
 						display="inline-flex"
 					>
 						<IconSolidXCircle
@@ -107,10 +107,6 @@ export const QueryPart: React.FC<{
 								/>
 							)
 						})}
-
-						{isExpression && (
-							<Box cssClass={styles.comboboxTagBackground} />
-						)}
 					</Box>
 				}
 			>
@@ -130,6 +126,7 @@ export const Token = ({ token }: { token: SearchToken }): JSX.Element => {
 	if (SEPARATORS.includes(text.toUpperCase())) {
 		return (
 			<Box
+				as="span"
 				cssClass={clsx(styles.token, {
 					[styles.errorToken]: !!errorMessage,
 				})}
@@ -141,9 +138,10 @@ export const Token = ({ token }: { token: SearchToken }): JSX.Element => {
 	} else {
 		return (
 			<Box
+				as="span"
 				style={{ zIndex: 1 }}
 				cssClass={clsx(styles.token, {
-					[styles.whitspaceToken]: text.trim() === '',
+					[styles.whitespaceToken]: text.trim() === '',
 				})}
 			>
 				{text.split('').map((char, index) =>

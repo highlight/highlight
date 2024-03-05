@@ -22,7 +22,8 @@ import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import moment from 'moment'
 import { stringify } from 'query-string'
-import React, { Fragment, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import TextareaAutosize from 'react-autosize-textarea'
 import { useNavigate } from 'react-router-dom'
 import {
 	DateTimeParam,
@@ -544,16 +545,15 @@ export const Search: React.FC<{
 						}
 
 						return (
-							<Fragment key={index}>
-								<QueryPart
-									comboboxStore={comboboxStore}
-									cursorIndex={cursorIndex}
-									index={index}
-									tokenGroup={tokenGroup}
-									showValues={showValues}
-									onRemoveItem={handleRemoveItem}
-								/>
-							</Fragment>
+							<QueryPart
+								key={index}
+								comboboxStore={comboboxStore}
+								cursorIndex={cursorIndex}
+								index={index}
+								tokenGroup={tokenGroup}
+								showValues={showValues}
+								onRemoveItem={handleRemoveItem}
+							/>
 						)
 					})}
 				</Box>
@@ -566,6 +566,11 @@ export const Search: React.FC<{
 					className={clsx(styles.combobox, {
 						[styles.comboboxNotEmpty]: query.length > 0,
 					})}
+					render={
+						<TextareaAutosize
+							style={{ resize: 'none', overflowY: 'hidden' }}
+						/>
+					}
 					value={query}
 					onChange={(e) => {
 						// Need to update cursor position before updating the query for all
@@ -603,6 +608,7 @@ export const Search: React.FC<{
 					onMouseUp={handleSetCursorIndex}
 					style={{
 						paddingLeft: hideIcon ? undefined : 40,
+						top: 6,
 					}}
 					data-hl-record
 				/>
