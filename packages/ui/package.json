@@ -93,7 +93,7 @@
 		"@typescript-eslint/parser": "^5.40.0",
 		"@vanilla-extract/vite-plugin": "^3.9.0",
 		"babel-loader": "^8.2.5",
-		"eslint": "^8.57.0",
+		"eslint": "^8.39.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-import": "^2.29.1",
 		"eslint-plugin-jsx-a11y": "^6.8.0",
