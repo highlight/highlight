@@ -14275,6 +14275,7 @@ __metadata:
     "@opentelemetry/api": "npm:^1.8.0"
     "@opentelemetry/auto-instrumentations-node": "npm:^0.41.1"
     "@opentelemetry/core": "npm:^1.22.0"
+    "@opentelemetry/exporter-jaeger": "npm:^1.22.0"
     "@opentelemetry/exporter-trace-otlp-proto": "npm:^0.49.1"
     "@opentelemetry/instrumentation": "npm:^0.49.1"
     "@opentelemetry/resources": "npm:^1.22.0"
@@ -17207,6 +17208,20 @@ __metadata:
   peerDependencies:
     "@opentelemetry/api": ">=1.0.0 <1.9.0"
   checksum: 10/f19d9dabd52428b427b332f2d7e7bedf68af5463dcff0395680499d5513beb22ad4e23a90223711e32ee4328c02c9b994024f988e48537a0696e8e0164cd168a
+  languageName: node
+  linkType: hard
+
+"@opentelemetry/exporter-jaeger@npm:1.22.0":
+  version: 1.22.0
+  resolution: "@opentelemetry/exporter-jaeger@npm:1.22.0"
+  dependencies:
+    "@opentelemetry/core": "npm:1.22.0"
+    "@opentelemetry/sdk-trace-base": "npm:1.22.0"
+    "@opentelemetry/semantic-conventions": "npm:1.22.0"
+    jaeger-client: "npm:^3.15.0"
+  peerDependencies:
+    "@opentelemetry/api": ^1.0.0
+  checksum: 10/5b213ee41eb9585188f6efdf3c5d4f29ac3719a424e2a077d8c46d0a3d6ad216ca5b2fe3e13fd561da8c8c538997954aeb05ce4b2cc6ce1c6d14c93f2ed42f97
   languageName: node
   linkType: hard
 
@@ -29655,6 +29670,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ansi-color@npm:0.2.1":
+  version: 0.2.1
+  resolution: "ansi-color@npm:0.2.1"
+  checksum: 10/5e08767ae19f6e5b5717b800e3cba259600b913f04678076718abe5dccad25f66639aa3c6872a08365b18675b18c1f6d781638137d03da3f9da6a5394869c71c
+  languageName: node
+  linkType: hard
+
+"ansi-color@patch:ansi-color@npm%3A0.2.1#./.yarn/patches/ansi-color-npm-0.2.1-f7243d10a4.patch::locator=highlight%40workspace%3A.":
+  version: 0.2.1
+  resolution: "ansi-color@patch:ansi-color@npm%3A0.2.1#./.yarn/patches/ansi-color-npm-0.2.1-f7243d10a4.patch::version=0.2.1&hash=b45cea&locator=highlight%40workspace%3A."
+  checksum: 10/89efd6c95a858a95ae4f023269a8dd75b12a5fec88de52b0953361975ba71f56ec904ed17971a73bad5a3ac1832931fc49b57ade078a5d9865fe98388d4e4a38
+  languageName: node
+  linkType: hard
+
 "ansi-colors@npm:4.1.1":
   version: 4.1.1
   resolution: "ansi-colors@npm:4.1.1"
@@ -32119,6 +32148,18 @@ __metadata:
     node-gyp: "npm:latest"
     node-gyp-build: "npm:^4.3.0"
   checksum: 10/01e2144e88a6cb1cd8e4e0bb1ec622c6e400646fb451a672d20e7d40cdc7d4a82a64dbcda6f5f92b36eeca0d1e5290baf7af707994f7b7c87e911d51a265bf07
+  languageName: node
+  linkType: hard
+
+"bufrw@npm:^1.3.0":
+  version: 1.4.0
+  resolution: "bufrw@npm:1.4.0"
+  dependencies:
+    ansi-color: "npm:^0.2.1"
+    error: "npm:^7.0.0"
+    hexer: "npm:^1.5.0"
+    xtend: "npm:^4.0.0"
+  checksum: 10/3cda688f8957a5eb3ca05d882af81c3ac2a29a04bbe6f251afe3a68209b8596eb1513df5c4e940cc3625c22f89a6ed5f1b5a2e7c53c1cb7e5b79ab60a95d7a6a
   languageName: node
   linkType: hard
 
@@ -37250,6 +37291,16 @@ __metadata:
   dependencies:
     stackframe: "npm:^1.1.1"
   checksum: 10/c83a0f425b73ed8bae4b05535f76477fdd4421e2cca398a2051719ac7eb5f918622d6313ef24f6ab6f64cbd38ebd1119bcb15cd792befbf2dd472d02062ff6d8
+  languageName: node
+  linkType: hard
+
+"error@npm:7.0.2":
+  version: 7.0.2
+  resolution: "error@npm:7.0.2"
+  dependencies:
+    string-template: "npm:~0.2.1"
+    xtend: "npm:~4.0.0"
+  checksum: 10/407ff5faa73f5da3424a81d0160a1d3c6b5144e87cb1266334e7a4c2c7a69ae653e1b544032d7dbd8b210006858eea909ea0f46694b0484cd7555ba3086be0a8
   languageName: node
   linkType: hard
 
@@ -42701,6 +42752,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hexer@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "hexer@npm:1.5.0"
+  dependencies:
+    ansi-color: "npm:^0.2.1"
+    minimist: "npm:^1.1.0"
+    process: "npm:^0.10.0"
+    xtend: "npm:^4.0.0"
+  bin:
+    hexer: ./cli.js
+  checksum: 10/0c91e98ba53c469932f0abeb6ef9ebe40241c6f4024fccc8724357adfff682f0ed19d3b60e1240b7ac4368169241feaa527b4cbbaec226d5b75f690775604735
+  languageName: node
+  linkType: hard
+
 "hey-listen@npm:^1.0.8":
   version: 1.0.8
   resolution: "hey-listen@npm:1.0.8"
@@ -45384,6 +45449,19 @@ __metadata:
     "@pkgjs/parseargs":
       optional: true
   checksum: 10/6e6490d676af8c94a7b5b29b8fd5629f21346911ebe2e32931c2a54210134408171c24cee1a109df2ec19894ad04a429402a8438cbf5cc2794585d35428ace76
+  languageName: node
+  linkType: hard
+
+"jaeger-client@npm:^3.15.0":
+  version: 3.19.0
+  resolution: "jaeger-client@npm:3.19.0"
+  dependencies:
+    node-int64: "npm:^0.4.0"
+    opentracing: "npm:^0.14.4"
+    thriftrw: "npm:^3.5.0"
+    uuid: "npm:^8.3.2"
+    xorshift: "npm:^1.1.1"
+  checksum: 10/411d5657ec2d3f4ba9175260f0586c125edbd76c283ceabe0baa78efe2a04698f029be8d79ad199105f10c0428c7cd9f8cfed5f5c8393eeb2cb3ceb974c43279
   languageName: node
   linkType: hard
 
@@ -49279,6 +49357,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"long@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "long@npm:2.4.0"
+  checksum: 10/64184debca70b0ddcc1742c4254e58926468d1a04329428115afee8ef4491b22a68127bb4349106141dd2d697d5c785bce648712f00340721ace2e78908412d5
+  languageName: node
+  linkType: hard
+
 "long@npm:^4.0.0":
   version: 4.0.0
   resolution: "long@npm:4.0.0"
@@ -52862,6 +52947,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"opentracing@npm:^0.14.4":
+  version: 0.14.7
+  resolution: "opentracing@npm:0.14.7"
+  checksum: 10/0159a5a2a40bef0722cd6e0607808355e0e22909fe54f3441fbce3c78183fed0a12f834ca43eff0c93abddb8b1ab89548162b05cd9b340678dfa3b5cb9eb04b8
+  languageName: node
+  linkType: hard
+
 "openurl@npm:1.1.1":
   version: 1.1.1
   resolution: "openurl@npm:1.1.1"
@@ -55722,6 +55814,13 @@ __metadata:
   version: 3.0.0
   resolution: "process-warning@npm:3.0.0"
   checksum: 10/2d82fa641e50a5789eaf0f2b33453760996e373d4591aac576a22d696186ab7e240a0592db86c264d4f28a46c2abbe9b94689752017db7dadc90f169f12b0924
+  languageName: node
+  linkType: hard
+
+"process@npm:^0.10.0":
+  version: 0.10.1
+  resolution: "process@npm:0.10.1"
+  checksum: 10/bdaaa28a8edf96d5daa0f5c1faf4adfedce512ebca829a82e846d991492780c34eb934decf4fa5b311c698881d07a8d4592b4d7ea53ec03d51580a2f364d3e30
   languageName: node
   linkType: hard
 
@@ -65005,6 +65104,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"thriftrw@npm:^3.5.0":
+  version: 3.12.0
+  resolution: "thriftrw@npm:3.12.0"
+  dependencies:
+    bufrw: "npm:^1.3.0"
+    error: "npm:7.0.2"
+    long: "npm:^2.4.0"
+  bin:
+    thrift2json: ./thrift2json.js
+  checksum: 10/f22f865f1d580a20f27452628482d3da82eb10cd37d5bbb40fe8f5e111114a4620058ca6589d90363bbcf225b5f4018718e4b59d53209e9fe20b3924228359ae
+  languageName: node
+  linkType: hard
+
 "throat@npm:^6.0.1":
   version: 6.0.1
   resolution: "throat@npm:6.0.1"
@@ -69781,6 +69893,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"xorshift@npm:^1.1.1":
+  version: 1.2.0
+  resolution: "xorshift@npm:1.2.0"
+  checksum: 10/8d7f6bf1d343cbd9d1a6f20aca290b084ee589f39e31b051c6c918d1fead800b9614364baddc51869468316328d9d3654cb88a2b4949c46c9fb0c606a52636bf
+  languageName: node
+  linkType: hard
+
 "xregexp@npm:2.0.0":
   version: 2.0.0
   resolution: "xregexp@npm:2.0.0"
@@ -69800,7 +69919,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"xtend@npm:^4.0.0, xtend@npm:^4.0.2, xtend@npm:~4.0.1":
+"xtend@npm:^4.0.0, xtend@npm:^4.0.2, xtend@npm:~4.0.0, xtend@npm:~4.0.1":
   version: 4.0.2
   resolution: "xtend@npm:4.0.2"
   checksum: 10/ac5dfa738b21f6e7f0dd6e65e1b3155036d68104e67e5d5d1bde74892e327d7e5636a076f625599dc394330a731861e87343ff184b0047fef1360a7ec0a5a36a

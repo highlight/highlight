@@ -28,6 +28,7 @@
 		"@opentelemetry/api": "^1.8.0",
 		"@opentelemetry/auto-instrumentations-node": "^0.41.1",
 		"@opentelemetry/core": "^1.22.0",
+		"@opentelemetry/exporter-jaeger": "^1.22.0",
 		"@opentelemetry/exporter-trace-otlp-proto": "^0.49.1",
 		"@opentelemetry/instrumentation": "^0.49.1",
 		"@opentelemetry/resources": "^1.22.0",
