@@ -23,8 +23,8 @@ import clsx from 'clsx'
 import moment from 'moment'
 import { stringify } from 'query-string'
 import React, { useEffect, useRef, useState } from 'react'
+import TextareaAutosize from 'react-autosize-textarea'
 import { useNavigate } from 'react-router-dom'
-import TextareaAutosize from 'react-textarea-autosize'
 import {
 	DateTimeParam,
 	encodeQueryParams,
