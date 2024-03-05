@@ -29538,7 +29538,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ast-types@npm:^0.13.2, ast-types@npm:^0.13.4":
+"ast-types@npm:^0.13.4":
   version: 0.13.4
   resolution: "ast-types@npm:0.13.4"
   dependencies:
@@ -34986,19 +34986,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"degenerator@npm:^3.0.2":
-  version: 3.0.4
-  resolution: "degenerator@npm:3.0.4"
-  dependencies:
-    ast-types: "npm:^0.13.2"
-    escodegen: "npm:^1.8.1"
-    esprima: "npm:^4.0.0"
-    vm2: "npm:^3.9.17"
-  checksum: 10/8227bfe7a28f17e55f365e5f40d0f61b6399f8cffc383a3c8be3dde45819dcde3fe322e9aa4356400e4c30641bbb64cc774a3f3542d5abeb0102d1a930f3fef3
-  languageName: node
-  linkType: hard
-
-"degenerator@npm:^5.0.0":
+"degenerator@npm:5.0.1":
   version: 5.0.1
   resolution: "degenerator@npm:5.0.1"
   dependencies:
@@ -36646,7 +36634,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"escodegen@npm:^1.13.0, escodegen@npm:^1.8.1":
+"escodegen@npm:^1.13.0":
   version: 1.14.3
   resolution: "escodegen@npm:1.14.3"
   dependencies:
@@ -42704,10 +42692,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ip@npm:^1.1.5, ip@npm:^1.1.8":
+"ip@npm:^1.1.5":
   version: 1.1.9
   resolution: "ip@npm:1.1.9"
   checksum: 10/29261559b806f64929ada21e6d7e3bf4e67f2b43a4cb67500fdb72cead2e655ce97451a2e325eca3f404081c634ff5c3a68472814744b7f2148ddffc0fdfe66c
+  languageName: node
+  linkType: hard
+
+"ip@npm:^1.1.8":
+  version: 1.1.8
+  resolution: "ip@npm:1.1.8"
+  checksum: 10/52975ebf84a090162d561fc6948fbc4c53775a8054c05371f09cfcb40e30a53aa225b4efb624f630cff5af2dd8124c82dd68e4df065dc1d1ca91d04e850e9cde
   languageName: node
   linkType: hard
 
@@ -46457,12 +46452,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"json5@npm:2.x, json5@npm:^2.1.2, json5@npm:^2.2.1, json5@npm:^2.2.2, json5@npm:^2.2.3":
-  version: 2.2.3
-  resolution: "json5@npm:2.2.3"
+"json5@npm:2.x, json5@npm:^2.2.1":
+  version: 2.2.1
+  resolution: "json5@npm:2.2.1"
   bin:
     json5: lib/cli.js
-  checksum: 10/1db67b853ff0de3534085d630691d3247de53a2ed1390ba0ddff681ea43e9b3e30ecbdb65c5e9aab49435e44059c23dbd6fee8ee619419ba37465bb0dd7135da
+  checksum: 10/ee31060b929fbfdc3c80288286e4403ed95f47d9fe2d29f46c833b8cd4ec98b2cdb3537e2c0f15846db90950ae70bc01d2aaae3c303d70523e8039cf0e810cf5
   languageName: node
   linkType: hard
 
@@ -46474,6 +46469,26 @@ __metadata:
   bin:
     json5: lib/cli.js
   checksum: 10/a78d812dbbd5642c4f637dd130954acfd231b074965871c3e28a5bbd571f099d623ecf9161f1960c4ddf68e0cc98dee8bebfdb94a71ad4551f85a1afc94b63f6
+  languageName: node
+  linkType: hard
+
+"json5@npm:^2.1.2":
+  version: 2.1.3
+  resolution: "json5@npm:2.1.3"
+  dependencies:
+    minimist: "npm:^1.2.5"
+  bin:
+    json5: lib/cli.js
+  checksum: 10/ba3f0d81567a2d51728a11a4d2a7e7a894981b2279b39d1bceed9976dbc9d2d25bd54dbafc44f4eddc73f63fa28bd904a325252c25683d309d832f5f5edc7196
+  languageName: node
+  linkType: hard
+
+"json5@npm:^2.2.2, json5@npm:^2.2.3":
+  version: 2.2.3
+  resolution: "json5@npm:2.2.3"
+  bin:
+    json5: lib/cli.js
+  checksum: 10/1db67b853ff0de3534085d630691d3247de53a2ed1390ba0ddff681ea43e9b3e30ecbdb65c5e9aab49435e44059c23dbd6fee8ee619419ba37465bb0dd7135da
   languageName: node
   linkType: hard
 
@@ -54348,9 +54363,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"protobufjs@npm:7.2.2":
-  version: 7.2.2
-  resolution: "protobufjs@npm:7.2.2"
+"protobufjs@npm:7.2.4":
+  version: 7.2.4
+  resolution: "protobufjs@npm:7.2.4"
   dependencies:
     "@protobufjs/aspromise": "npm:^1.1.2"
     "@protobufjs/base64": "npm:^1.1.2"
@@ -54364,13 +54379,13 @@ __metadata:
     "@protobufjs/utf8": "npm:^1.1.0"
     "@types/node": "npm:>=13.7.0"
     long: "npm:^5.0.0"
-  checksum: 10/1f826b8498dd98ec73b8404e8b8148e26c9a7ec42f2e859ab956b9b7815f7ef8eb8a1a50f47269c6c082e5eae69745ebb9369a0da4a0ada7f73fb9b9cf6ecf0e
+  checksum: 10/6972bd0a372abdbd43e20e14e9692695b92adcd0b746e73e8deb8880ce78abe4a30303a05160f5d0a5fc3dd0b7b6157cc8a06418da364fc7091f965724ca0443
   languageName: node
   linkType: hard
 
-"protobufjs@patch:protobufjs@npm%3A7.2.2#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch::locator=highlight%40workspace%3A.":
-  version: 7.2.2
-  resolution: "protobufjs@patch:protobufjs@npm%3A7.2.2#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch::version=7.2.2&hash=5db4b2&locator=highlight%40workspace%3A."
+"protobufjs@patch:protobufjs@npm%3A7.2.4#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch::locator=highlight%40workspace%3A.":
+  version: 7.2.4
+  resolution: "protobufjs@patch:protobufjs@npm%3A7.2.4#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch::version=7.2.4&hash=5db4b2&locator=highlight%40workspace%3A."
   dependencies:
     "@protobufjs/aspromise": "npm:^1.1.2"
     "@protobufjs/base64": "npm:^1.1.2"
@@ -54384,7 +54399,7 @@ __metadata:
     "@protobufjs/utf8": "npm:^1.1.0"
     "@types/node": "npm:>=13.7.0"
     long: "npm:^5.0.0"
-  checksum: 10/ec4f7b3e954a29ffbefcbe6370c9055cd11b8c2275bbc83b3f327d50d4225e022b95a0ed8d9b150e620a3497c65d3f78e49584faab771659f081ec69d23b78ff
+  checksum: 10/57ae105873552b4cedded6b720b4adfee5ca6fbb18fd6ce657d7cb6c0a237396a83c9c45f1efb2d8cf940e5d483ea0c02e37f7702e235f6e178833c1d2b0a0e8
   languageName: node
   linkType: hard
 
@@ -64593,14 +64608,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"underscore@npm:1.7.0":
-  version: 1.7.0
-  resolution: "underscore@npm:1.7.0"
-  checksum: 10/4b0bb1a30631a4edd64ab1349d3e676ce54cb6dfae50d865a80696418d4e77b689b58dbf5f67e2d336030c4f191e014a1cc8c98d069aee8330358898ce19ab7e
-  languageName: node
-  linkType: hard
-
-"underscore@npm:~1.13.2":
+"underscore@npm:1.13.6":
   version: 1.13.6
   resolution: "underscore@npm:1.13.6"
   checksum: 10/58cf5dc42cb0ac99c146ae4064792c0a2cc84f3a3c4ad88f5082e79057dfdff3371d896d1ec20379e9ece2450d94fa78f2ef5bfefc199ba320653e32c009bd66
@@ -66194,18 +66202,6 @@ __metadata:
   bin:
     vitest: vitest.mjs
   checksum: 10/41ef8b6c00f9f096e9bebb780c8b1595576cd1c7ab4d5413435173be84301decdc6c6cefbf78852b2569d98b6fa5aff3e6f53743e31aff3e59786275846c2e31
-  languageName: node
-  linkType: hard
-
-"vm2@npm:^3.9.17":
-  version: 3.9.19
-  resolution: "vm2@npm:3.9.19"
-  dependencies:
-    acorn: "npm:^8.7.0"
-    acorn-walk: "npm:^8.2.0"
-  bin:
-    vm2: bin/vm2
-  checksum: 10/8526737abbfb0ce61bae3d0ffe9ecc96eb093c859c933ed4d9cf663c7663da8f73a733771b9b21251c4d82a28a0600a0fcfd0044b685686eeef7a75e632294e6
   languageName: node
   linkType: hard
 

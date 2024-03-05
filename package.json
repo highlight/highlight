@@ -153,13 +153,15 @@
 		"lodash-es@^4.17.21": "patch:lodash-es@npm%3A4.17.21#./.yarn/patches/lodash-es-npm-4.17.21-b45832dfce.patch",
 		"@opentelemetry/sdk-node@0.49.1": "patch:@opentelemetry/sdk-node@npm%3A0.49.1#./.yarn/patches/@opentelemetry-sdk-node-npm-0.44.0-88c2c5ddfd.patch",
 		"ansi-color@^0.2.1": "patch:ansi-color@npm%3A0.2.1#./.yarn/patches/ansi-color-npm-0.2.1-f7243d10a4.patch",
-		"protobufjs@^7.2.1": "patch:protobufjs@npm%3A7.2.2#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch",
-		"protobufjs@^7.0.0": "patch:protobufjs@npm%3A7.2.2#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch",
-		"protobufjs@7.2.2": "patch:protobufjs@npm%3A7.2.2#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch",
-		"protobufjs@^7.2.3": "patch:protobufjs@npm%3A7.2.2#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch",
-		"protobufjs@^6.11.3": "patch:protobufjs@npm%3A7.2.2#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch",
+		"protobufjs@^7.2.1": "patch:protobufjs@npm%3A7.2.4#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch",
+		"protobufjs@^7.0.0": "patch:protobufjs@npm%3A7.2.4#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch",
+		"protobufjs@7.2.2": "patch:protobufjs@npm%3A7.2.4#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch",
+		"protobufjs@^7.2.3": "patch:protobufjs@npm%3A7.2.4#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch",
+		"protobufjs@^6.11.3": "patch:protobufjs@npm%3A7.2.4#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch",
 		"@opentelemetry/instrumentation@0.49.1": "patch:@opentelemetry/instrumentation@npm%3A0.49.1#./.yarn/patches/@opentelemetry-instrumentation-npm-0.44.0-525d6b163a.patch",
 		"@opentelemetry/instrumentation@^0.41.2": "patch:@opentelemetry/instrumentation@npm%3A0.49.1#./.yarn/patches/@opentelemetry-instrumentation-npm-0.44.0-525d6b163a.patch",
-		"@opentelemetry/instrumentation@0.41.2": "patch:@opentelemetry/instrumentation@npm%3A0.49.1#./.yarn/patches/@opentelemetry-instrumentation-npm-0.44.0-525d6b163a.patch"
+		"@opentelemetry/instrumentation@0.41.2": "patch:@opentelemetry/instrumentation@npm%3A0.49.1#./.yarn/patches/@opentelemetry-instrumentation-npm-0.44.0-525d6b163a.patch",
+		"degenerator": "5.0.1",
+		"underscore": "1.13.6"
 	}
 }
