@@ -60,11 +60,11 @@ export const comboboxTagsContainer = style([
 		alignItems: 'center',
 		display: 'block',
 		fontWeight: '500 !important',
-		maxWidth: 'calc(100% - 26px)',
+		maxWidth: 'calc(100% - 23px)',
 		overflow: 'hidden',
-		paddingRight: 8,
-		paddingTop: 4,
-		paddingBottom: 4,
+		paddingRight: 6,
+		paddingTop: 12,
+		paddingBottom: 12,
 		pointerEvents: 'none',
 		position: 'absolute',
 		whiteSpace: 'pre-wrap',
@@ -75,11 +75,10 @@ export const comboboxTag = style({
 	display: 'inline',
 	fontFeatureSettings: '"tnum" off', // disable tabular numbers
 	position: 'relative',
-	textOverflow: 'ellipsis',
 	whiteSpace: 'pre-wrap',
 	wordSpacing: WORD_SPACING,
 	borderRadius: vars.borderRadius[4],
-	boxShadow: `0 0 0 1px ${vars.theme.static.divider.weak} inset`,
+	boxShadow: `0 0 0 1px ${vars.theme.static.divider.weak}`,
 	height: 20,
 })
 
@@ -95,7 +94,7 @@ export const comboboxTagClose = style({
 	pointerEvents: 'auto',
 	opacity: 0,
 	right: -8,
-	top: 1,
+	top: -8,
 	zIndex: 1,
 })
 
@@ -108,7 +107,7 @@ export const comboboxTagErrorIndicator = style({
 	position: 'absolute',
 	pointerEvents: 'auto',
 	right: -8,
-	top: 1,
+	top: -8,
 	zIndex: 1,
 })
 

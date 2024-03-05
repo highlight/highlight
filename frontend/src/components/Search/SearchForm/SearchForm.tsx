@@ -545,15 +545,14 @@ export const Search: React.FC<{
 						}
 
 						return (
-							<Fragment key={index}>
-								<QueryPart
-									cursorIndex={cursorIndex}
-									index={index}
-									tokenGroup={tokenGroup}
-									showValues={showValues}
-									onRemoveItem={handleRemoveItem}
-								/>
-							</Fragment>
+							<QueryPart
+								key={index}
+								cursorIndex={cursorIndex}
+								index={index}
+								tokenGroup={tokenGroup}
+								showValues={showValues}
+								onRemoveItem={handleRemoveItem}
+							/>
 						)
 					})}
 				</Box>
@@ -566,7 +565,7 @@ export const Search: React.FC<{
 					className={clsx(styles.combobox, {
 						[styles.comboboxNotEmpty]: query.length > 0,
 					})}
-					render={<TextareaAutosize />}
+					render={<TextareaAutosize style={{ resize: 'none' }} />}
 					value={query}
 					onChange={(e) => {
 						// Need to update cursor position before updating the query for all

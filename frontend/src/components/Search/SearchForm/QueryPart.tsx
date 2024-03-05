@@ -85,7 +85,7 @@ export const QueryPart: React.FC<{
 								return null
 							}
 
-							return <Token key={key} text={text} />
+							return <Token key={key} text={text} expression />
 						})}
 					</Box>
 				}
@@ -100,8 +100,15 @@ export const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
 	name?.replaceAll("'", ''),
 )
 
-export const Token = ({ text }: { text: string }): JSX.Element => {
-	const cssClass = text.trim() === '' ? styles.whitespaceTag : ''
+export const Token = ({
+	text,
+	expression,
+}: {
+	text: string
+	expression?: boolean
+}): JSX.Element => {
+	const cssClass =
+		text.trim() === '' && !expression ? styles.whitespaceTag : ''
 
 	if (SEPARATORS.includes(text.toUpperCase())) {
 		return (

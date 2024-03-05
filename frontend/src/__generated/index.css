@@ -6030,11 +6030,11 @@ body {
   align-items: center;
   display: block;
   font-weight: 500 !important;
-  max-width: calc(100% - 26px);
+  max-width: calc(100% - 23px);
   overflow: hidden;
-  padding-right: 8px;
-  padding-top: 4px;
-  padding-bottom: 4px;
+  padding-right: 6px;
+  padding-top: 12px;
+  padding-bottom: 12px;
   pointer-events: none;
   position: absolute;
   white-space: pre-wrap;
@@ -6053,11 +6053,10 @@ body {
   display: inline;
   font-feature-settings: "tnum" off;
   position: relative;
-  text-overflow: ellipsis;
   white-space: pre-wrap;
   word-spacing: 4px;
   border-radius: 4px;
-  box-shadow: 0 0 0 1px var(--_1pyqka9k) inset;
+  box-shadow: 0 0 0 1px var(--_1pyqka9k);
   height: 20px;
 }
 ._10xh0c29 {
@@ -6069,7 +6068,7 @@ body {
   pointer-events: auto;
   opacity: 0;
   right: -8px;
-  top: 1px;
+  top: -8px;
   z-index: 1;
 }
 ._10xh0c2a {
@@ -6081,7 +6080,7 @@ body {
   position: absolute;
   pointer-events: auto;
   right: -8px;
-  top: 1px;
+  top: -8px;
   z-index: 1;
 }
 ._10xh0c27._10xh0c26 {
