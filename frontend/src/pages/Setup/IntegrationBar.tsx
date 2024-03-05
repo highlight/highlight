@@ -18,7 +18,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 
 import {
@@ -66,6 +66,9 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const integrated = integrationData?.integrated
 	const ctaText = CTA_TITLE_MAP[area!]
 
+	const start = useMemo(() => moment().subtract(30, 'days').toISOString(), [])
+	const end = useMemo(() => moment().toISOString(), [])
+
 	const { data: sessionData } = useGetSessionsClickhouseQuery({
 		variables: {
 			project_id: projectId,
@@ -73,8 +76,8 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 				isAnd: true,
 				rules: [],
 				dateRange: {
-					start_date: moment().subtract(30, 'days').toISOString(),
-					end_date: moment().toISOString(),
+					start_date: start,
+					end_date: end,
 				},
 			},
 			count: 1,
@@ -92,8 +95,8 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 				isAnd: true,
 				rules: [],
 				dateRange: {
-					start_date: moment().subtract(30, 'days').toISOString(),
-					end_date: moment().toISOString(),
+					start_date: start,
+					end_date: end,
 				},
 			},
 			count: 1,
