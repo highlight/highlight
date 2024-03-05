@@ -22,7 +22,7 @@ import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import moment from 'moment'
 import { stringify } from 'query-string'
-import React, { Fragment, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TextareaAutosize from 'react-textarea-autosize'
 import {
@@ -565,7 +565,11 @@ export const Search: React.FC<{
 					className={clsx(styles.combobox, {
 						[styles.comboboxNotEmpty]: query.length > 0,
 					})}
-					render={<TextareaAutosize style={{ resize: 'none' }} />}
+					render={
+						<TextareaAutosize
+							style={{ resize: 'none', overflowY: 'hidden' }}
+						/>
+					}
 					value={query}
 					onChange={(e) => {
 						// Need to update cursor position before updating the query for all
