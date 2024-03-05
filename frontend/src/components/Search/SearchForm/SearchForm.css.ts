@@ -46,7 +46,7 @@ export const combobox = style([
 ])
 
 export const comboboxNotEmpty = style({
-	WebkitTextFillColor: 'green',
+	WebkitTextFillColor: 'transparent',
 })
 
 export const comboboxTagsContainer = style([
@@ -72,6 +72,7 @@ export const comboboxTag = style({
 	fontFeatureSettings: '"tnum" off', // disable tabular numbers
 	position: 'relative',
 	whiteSpace: 'pre-wrap',
+	height: 20,
 })
 
 export const token = style({

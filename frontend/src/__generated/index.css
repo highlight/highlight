@@ -6007,7 +6007,7 @@ body {
   background-color: var(--_1pyqka9u);
 }
 ._10xh0c23 {
-  -webkit-text-fill-color: green;
+  -webkit-text-fill-color: transparent;
 }
 ._10xh0c24 {
   font-family:
@@ -6051,6 +6051,7 @@ body {
   font-feature-settings: "tnum" off;
   position: relative;
   white-space: pre-wrap;
+  height: 20px;
 }
 ._10xh0c26 {
   height: 20px;
