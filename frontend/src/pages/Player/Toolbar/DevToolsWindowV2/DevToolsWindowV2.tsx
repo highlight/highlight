@@ -18,6 +18,7 @@ import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConf
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
 import { NetworkPage } from '@pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
+import PerformancePage from '@pages/Player/Toolbar/DevToolsWindowV2/PerformancePage/PerformancePage'
 import {
 	DEV_TOOLS_MIN_HEIGHT,
 	ResizePanel,
@@ -216,6 +217,9 @@ const DevToolsWindowV2: React.FC<
 											time={time}
 										/>
 									),
+								},
+								[Tab.Performance]: {
+									page: <PerformancePage time={time} />,
 								},
 							}}
 							right={
