@@ -4396,175 +4396,37 @@ function initCanvasWebGLMutationObserver(cb, win, blockClass, blockSelector, mir
   };
 }
 
-// ../rrweb/packages/rrweb/es/rrweb/_virtual/_rollup-plugin-web-worker-loader__helper__funcToSource.js
-function funcToSource(fn, sourcemapArg) {
-  var sourcemap = sourcemapArg === void 0 ? null : sourcemapArg;
-  var source = fn.toString();
-  var lines = source.split("\n");
-  lines.pop();
-  lines.shift();
-  var blankPrefixLength = lines[0].search(/\S/);
-  var regex = /(['"])__worker_loader_strict__(['"])/g;
-  for (var i2 = 0, n2 = lines.length; i2 < n2; ++i2) {
-    lines[i2] = lines[i2].substring(blankPrefixLength).replace(regex, "$1use strict$2") + "\n";
+// ../rrweb/packages/rrweb/es/rrweb/_virtual/_rollup-plugin-web-worker-loader__helper__browser__createBase64WorkerFactory.js
+function decodeBase64(base64, enableUnicode) {
+  var binaryString = atob(base64);
+  if (enableUnicode) {
+    var binaryView = new Uint8Array(binaryString.length);
+    for (var i2 = 0, n2 = binaryString.length; i2 < n2; ++i2) {
+      binaryView[i2] = binaryString.charCodeAt(i2);
+    }
+    return String.fromCharCode.apply(null, new Uint16Array(binaryView.buffer));
   }
-  if (sourcemap) {
-    lines.push("//# sourceMappingURL=" + sourcemap + "\n");
-  }
-  return lines;
+  return binaryString;
 }
-
-// ../rrweb/packages/rrweb/es/rrweb/_virtual/_rollup-plugin-web-worker-loader__helper__browser__createInlineWorkerFactory.js
-function createURL(fn, sourcemapArg) {
-  var lines = funcToSource(fn, sourcemapArg);
-  var blob = new Blob(lines, { type: "application/javascript" });
+function createURL(base64, sourcemapArg, enableUnicodeArg) {
+  var sourcemap = sourcemapArg === void 0 ? null : sourcemapArg;
+  var enableUnicode = enableUnicodeArg === void 0 ? false : enableUnicodeArg;
+  var source = decodeBase64(base64, enableUnicode);
+  var start = source.indexOf("\n", 10) + 1;
+  var body = source.substring(start) + (sourcemap ? "//# sourceMappingURL=" + sourcemap : "");
+  var blob = new Blob([body], { type: "application/javascript" });
   return URL.createObjectURL(blob);
 }
-function createInlineWorkerFactory(fn, sourcemapArg) {
+function createBase64WorkerFactory(base64, sourcemapArg, enableUnicodeArg) {
   var url;
   return function WorkerFactory2(options) {
-    url = url || createURL(fn, sourcemapArg);
+    url = url || createURL(base64, sourcemapArg, enableUnicodeArg);
     return new Worker(url, options);
   };
 }
 
 // ../rrweb/packages/rrweb/es/rrweb/_virtual/image-bitmap-data-url-worker.js
-var WorkerFactory = createInlineWorkerFactory(
-  /* rollup-plugin-web-worker-loader */
-  function() {
-    (function() {
-      "__worker_loader_strict__";
-      function __awaiter2(thisArg, _arguments, P, generator) {
-        function adopt(value) {
-          return value instanceof P ? value : new P(function(resolve) {
-            resolve(value);
-          });
-        }
-        return new (P || (P = Promise))(function(resolve, reject) {
-          function fulfilled(value) {
-            try {
-              step(generator.next(value));
-            } catch (e2) {
-              reject(e2);
-            }
-          }
-          function rejected(value) {
-            try {
-              step(generator["throw"](value));
-            } catch (e2) {
-              reject(e2);
-            }
-          }
-          function step(result) {
-            result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-          }
-          step((generator = generator.apply(thisArg, _arguments || [])).next());
-        });
-      }
-      var chars2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-      var lookup2 = typeof Uint8Array === "undefined" ? [] : new Uint8Array(256);
-      for (var i2 = 0; i2 < chars2.length; i2++) {
-        lookup2[chars2.charCodeAt(i2)] = i2;
-      }
-      var encode2 = function(arraybuffer) {
-        var bytes = new Uint8Array(arraybuffer), i3, len = bytes.length, base64 = "";
-        for (i3 = 0; i3 < len; i3 += 3) {
-          base64 += chars2[bytes[i3] >> 2];
-          base64 += chars2[(bytes[i3] & 3) << 4 | bytes[i3 + 1] >> 4];
-          base64 += chars2[(bytes[i3 + 1] & 15) << 2 | bytes[i3 + 2] >> 6];
-          base64 += chars2[bytes[i3 + 2] & 63];
-        }
-        if (len % 3 === 2) {
-          base64 = base64.substring(0, base64.length - 1) + "=";
-        } else if (len % 3 === 1) {
-          base64 = base64.substring(0, base64.length - 2) + "==";
-        }
-        return base64;
-      };
-      const lastBlobMap = /* @__PURE__ */ new Map();
-      const transparentBlobMap = /* @__PURE__ */ new Map();
-      function getTransparentBlobFor(width, height, dataURLOptions) {
-        return __awaiter2(this, void 0, void 0, function* () {
-          const id = `${width}-${height}`;
-          if ("OffscreenCanvas" in globalThis) {
-            if (transparentBlobMap.has(id))
-              return transparentBlobMap.get(id);
-            const offscreen = new OffscreenCanvas(width, height);
-            offscreen.getContext("2d");
-            const blob = yield offscreen.convertToBlob(dataURLOptions);
-            const arrayBuffer = yield blob.arrayBuffer();
-            const base64 = encode2(arrayBuffer);
-            transparentBlobMap.set(id, base64);
-            return base64;
-          } else {
-            return "";
-          }
-        });
-      }
-      const worker = self;
-      let logDebug = false;
-      const debug = (...args) => {
-        if (logDebug) {
-          console.debug(...args);
-        }
-      };
-      worker.onmessage = function(e2) {
-        return __awaiter2(this, void 0, void 0, function* () {
-          logDebug = !!e2.data.logDebug;
-          if ("OffscreenCanvas" in globalThis) {
-            const { id, bitmap, width, height, dx, dy, dw, dh, dataURLOptions } = e2.data;
-            const transparentBase64 = getTransparentBlobFor(width, height, dataURLOptions);
-            const offscreen = new OffscreenCanvas(width, height);
-            const ctx = offscreen.getContext("2d");
-            ctx.drawImage(bitmap, 0, 0, width, height);
-            bitmap.close();
-            const blob = yield offscreen.convertToBlob(dataURLOptions);
-            const type = blob.type;
-            const arrayBuffer = yield blob.arrayBuffer();
-            const base64 = encode2(arrayBuffer);
-            if (!lastBlobMap.has(id) && (yield transparentBase64) === base64) {
-              debug("[highlight-worker] canvas bitmap is transparent", {
-                id,
-                base64
-              });
-              lastBlobMap.set(id, base64);
-              return worker.postMessage({ id, status: "transparent" });
-            }
-            if (lastBlobMap.get(id) === base64) {
-              debug("[highlight-worker] canvas bitmap is unchanged", {
-                id,
-                base64
-              });
-              return worker.postMessage({ id, status: "unchanged" });
-            }
-            debug("[highlight-worker] canvas bitmap processed", {
-              id,
-              base64
-            });
-            worker.postMessage({
-              id,
-              type,
-              base64,
-              width,
-              height,
-              dx,
-              dy,
-              dw,
-              dh
-            });
-            lastBlobMap.set(id, base64);
-          } else {
-            debug("[highlight-worker] no offscreencanvas support", {
-              id: e2.data.id
-            });
-            return worker.postMessage({ id: e2.data.id, status: "unsupported" });
-          }
-        });
-      };
-    })();
-  },
-  null
-);
+var WorkerFactory = createBase64WorkerFactory("Lyogcm9sbHVwLXBsdWdpbi13ZWItd29ya2VyLWxvYWRlciAqLwooZnVuY3Rpb24gKCkgewogICAgJ3VzZSBzdHJpY3QnOwoKICAgIC8qKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioNCiAgICBDb3B5cmlnaHQgKGMpIE1pY3Jvc29mdCBDb3Jwb3JhdGlvbi4NCg0KICAgIFBlcm1pc3Npb24gdG8gdXNlLCBjb3B5LCBtb2RpZnksIGFuZC9vciBkaXN0cmlidXRlIHRoaXMgc29mdHdhcmUgZm9yIGFueQ0KICAgIHB1cnBvc2Ugd2l0aCBvciB3aXRob3V0IGZlZSBpcyBoZXJlYnkgZ3JhbnRlZC4NCg0KICAgIFRIRSBTT0ZUV0FSRSBJUyBQUk9WSURFRCAiQVMgSVMiIEFORCBUSEUgQVVUSE9SIERJU0NMQUlNUyBBTEwgV0FSUkFOVElFUyBXSVRIDQogICAgUkVHQVJEIFRPIFRISVMgU09GVFdBUkUgSU5DTFVESU5HIEFMTCBJTVBMSUVEIFdBUlJBTlRJRVMgT0YgTUVSQ0hBTlRBQklMSVRZDQogICAgQU5EIEZJVE5FU1MuIElOIE5PIEVWRU5UIFNIQUxMIFRIRSBBVVRIT1IgQkUgTElBQkxFIEZPUiBBTlkgU1BFQ0lBTCwgRElSRUNULA0KICAgIElORElSRUNULCBPUiBDT05TRVFVRU5USUFMIERBTUFHRVMgT1IgQU5ZIERBTUFHRVMgV0hBVFNPRVZFUiBSRVNVTFRJTkcgRlJPTQ0KICAgIExPU1MgT0YgVVNFLCBEQVRBIE9SIFBST0ZJVFMsIFdIRVRIRVIgSU4gQU4gQUNUSU9OIE9GIENPTlRSQUNULCBORUdMSUdFTkNFIE9SDQogICAgT1RIRVIgVE9SVElPVVMgQUNUSU9OLCBBUklTSU5HIE9VVCBPRiBPUiBJTiBDT05ORUNUSU9OIFdJVEggVEhFIFVTRSBPUg0KICAgIFBFUkZPUk1BTkNFIE9GIFRISVMgU09GVFdBUkUuDQogICAgKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKiogKi8NCg0KICAgIGZ1bmN0aW9uIF9fYXdhaXRlcih0aGlzQXJnLCBfYXJndW1lbnRzLCBQLCBnZW5lcmF0b3IpIHsNCiAgICAgICAgZnVuY3Rpb24gYWRvcHQodmFsdWUpIHsgcmV0dXJuIHZhbHVlIGluc3RhbmNlb2YgUCA/IHZhbHVlIDogbmV3IFAoZnVuY3Rpb24gKHJlc29sdmUpIHsgcmVzb2x2ZSh2YWx1ZSk7IH0pOyB9DQogICAgICAgIHJldHVybiBuZXcgKFAgfHwgKFAgPSBQcm9taXNlKSkoZnVuY3Rpb24gKHJlc29sdmUsIHJlamVjdCkgew0KICAgICAgICAgICAgZnVuY3Rpb24gZnVsZmlsbGVkKHZhbHVlKSB7IHRyeSB7IHN0ZXAoZ2VuZXJhdG9yLm5leHQodmFsdWUpKTsgfSBjYXRjaCAoZSkgeyByZWplY3QoZSk7IH0gfQ0KICAgICAgICAgICAgZnVuY3Rpb24gcmVqZWN0ZWQodmFsdWUpIHsgdHJ5IHsgc3RlcChnZW5lcmF0b3JbInRocm93Il0odmFsdWUpKTsgfSBjYXRjaCAoZSkgeyByZWplY3QoZSk7IH0gfQ0KICAgICAgICAgICAgZnVuY3Rpb24gc3RlcChyZXN1bHQpIHsgcmVzdWx0LmRvbmUgPyByZXNvbHZlKHJlc3VsdC52YWx1ZSkgOiBhZG9wdChyZXN1bHQudmFsdWUpLnRoZW4oZnVsZmlsbGVkLCByZWplY3RlZCk7IH0NCiAgICAgICAgICAgIHN0ZXAoKGdlbmVyYXRvciA9IGdlbmVyYXRvci5hcHBseSh0aGlzQXJnLCBfYXJndW1lbnRzIHx8IFtdKSkubmV4dCgpKTsNCiAgICAgICAgfSk7DQogICAgfQoKICAgIC8qCiAgICAgKiBiYXNlNjQtYXJyYXlidWZmZXIgMS4wLjEgPGh0dHBzOi8vZ2l0aHViLmNvbS9uaWtsYXN2aC9iYXNlNjQtYXJyYXlidWZmZXI+CiAgICAgKiBDb3B5cmlnaHQgKGMpIDIwMjEgTmlrbGFzIHZvbiBIZXJ0emVuIDxodHRwczovL2hlcnR6ZW4uY29tPgogICAgICogUmVsZWFzZWQgdW5kZXIgTUlUIExpY2Vuc2UKICAgICAqLwogICAgdmFyIGNoYXJzID0gJ0FCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXowMTIzNDU2Nzg5Ky8nOwogICAgLy8gVXNlIGEgbG9va3VwIHRhYmxlIHRvIGZpbmQgdGhlIGluZGV4LgogICAgdmFyIGxvb2t1cCA9IHR5cGVvZiBVaW50OEFycmF5ID09PSAndW5kZWZpbmVkJyA/IFtdIDogbmV3IFVpbnQ4QXJyYXkoMjU2KTsKICAgIGZvciAodmFyIGkgPSAwOyBpIDwgY2hhcnMubGVuZ3RoOyBpKyspIHsKICAgICAgICBsb29rdXBbY2hhcnMuY2hhckNvZGVBdChpKV0gPSBpOwogICAgfQogICAgdmFyIGVuY29kZSA9IGZ1bmN0aW9uIChhcnJheWJ1ZmZlcikgewogICAgICAgIHZhciBieXRlcyA9IG5ldyBVaW50OEFycmF5KGFycmF5YnVmZmVyKSwgaSwgbGVuID0gYnl0ZXMubGVuZ3RoLCBiYXNlNjQgPSAnJzsKICAgICAgICBmb3IgKGkgPSAwOyBpIDwgbGVuOyBpICs9IDMpIHsKICAgICAgICAgICAgYmFzZTY0ICs9IGNoYXJzW2J5dGVzW2ldID4+IDJdOwogICAgICAgICAgICBiYXNlNjQgKz0gY2hhcnNbKChieXRlc1tpXSAmIDMpIDw8IDQpIHwgKGJ5dGVzW2kgKyAxXSA+PiA0KV07CiAgICAgICAgICAgIGJhc2U2NCArPSBjaGFyc1soKGJ5dGVzW2kgKyAxXSAmIDE1KSA8PCAyKSB8IChieXRlc1tpICsgMl0gPj4gNildOwogICAgICAgICAgICBiYXNlNjQgKz0gY2hhcnNbYnl0ZXNbaSArIDJdICYgNjNdOwogICAgICAgIH0KICAgICAgICBpZiAobGVuICUgMyA9PT0gMikgewogICAgICAgICAgICBiYXNlNjQgPSBiYXNlNjQuc3Vic3RyaW5nKDAsIGJhc2U2NC5sZW5ndGggLSAxKSArICc9JzsKICAgICAgICB9CiAgICAgICAgZWxzZSBpZiAobGVuICUgMyA9PT0gMSkgewogICAgICAgICAgICBiYXNlNjQgPSBiYXNlNjQuc3Vic3RyaW5nKDAsIGJhc2U2NC5sZW5ndGggLSAyKSArICc9PSc7CiAgICAgICAgfQogICAgICAgIHJldHVybiBiYXNlNjQ7CiAgICB9OwoKICAgIGNvbnN0IGxhc3RCbG9iTWFwID0gbmV3IE1hcCgpOw0KICAgIGNvbnN0IHRyYW5zcGFyZW50QmxvYk1hcCA9IG5ldyBNYXAoKTsNCiAgICBmdW5jdGlvbiBnZXRUcmFuc3BhcmVudEJsb2JGb3Iod2lkdGgsIGhlaWdodCwgZGF0YVVSTE9wdGlvbnMpIHsNCiAgICAgICAgcmV0dXJuIF9fYXdhaXRlcih0aGlzLCB2b2lkIDAsIHZvaWQgMCwgZnVuY3Rpb24qICgpIHsNCiAgICAgICAgICAgIGNvbnN0IGlkID0gYCR7d2lkdGh9LSR7aGVpZ2h0fWA7DQogICAgICAgICAgICBpZiAoJ09mZnNjcmVlbkNhbnZhcycgaW4gZ2xvYmFsVGhpcykgew0KICAgICAgICAgICAgICAgIGlmICh0cmFuc3BhcmVudEJsb2JNYXAuaGFzKGlkKSkNCiAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHRyYW5zcGFyZW50QmxvYk1hcC5nZXQoaWQpOw0KICAgICAgICAgICAgICAgIGNvbnN0IG9mZnNjcmVlbiA9IG5ldyBPZmZzY3JlZW5DYW52YXMod2lkdGgsIGhlaWdodCk7DQogICAgICAgICAgICAgICAgb2Zmc2NyZWVuLmdldENvbnRleHQoJzJkJyk7DQogICAgICAgICAgICAgICAgY29uc3QgYmxvYiA9IHlpZWxkIG9mZnNjcmVlbi5jb252ZXJ0VG9CbG9iKGRhdGFVUkxPcHRpb25zKTsNCiAgICAgICAgICAgICAgICBjb25zdCBhcnJheUJ1ZmZlciA9IHlpZWxkIGJsb2IuYXJyYXlCdWZmZXIoKTsNCiAgICAgICAgICAgICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOw0KICAgICAgICAgICAgICAgIHRyYW5zcGFyZW50QmxvYk1hcC5zZXQoaWQsIGJhc2U2NCk7DQogICAgICAgICAgICAgICAgcmV0dXJuIGJhc2U2NDsNCiAgICAgICAgICAgIH0NCiAgICAgICAgICAgIGVsc2Ugew0KICAgICAgICAgICAgICAgIHJldHVybiAnJzsNCiAgICAgICAgICAgIH0NCiAgICAgICAgfSk7DQogICAgfQ0KICAgIGNvbnN0IHdvcmtlciA9IHNlbGY7DQogICAgbGV0IGxvZ0RlYnVnID0gZmFsc2U7DQogICAgY29uc3QgZGVidWcgPSAoLi4uYXJncykgPT4gew0KICAgICAgICBpZiAobG9nRGVidWcpIHsNCiAgICAgICAgICAgIGNvbnNvbGUuZGVidWcoLi4uYXJncyk7DQogICAgICAgIH0NCiAgICB9Ow0KICAgIHdvcmtlci5vbm1lc3NhZ2UgPSBmdW5jdGlvbiAoZSkgew0KICAgICAgICByZXR1cm4gX19hd2FpdGVyKHRoaXMsIHZvaWQgMCwgdm9pZCAwLCBmdW5jdGlvbiogKCkgew0KICAgICAgICAgICAgbG9nRGVidWcgPSAhIWUuZGF0YS5sb2dEZWJ1ZzsNCiAgICAgICAgICAgIGlmICgnT2Zmc2NyZWVuQ2FudmFzJyBpbiBnbG9iYWxUaGlzKSB7DQogICAgICAgICAgICAgICAgY29uc3QgeyBpZCwgYml0bWFwLCB3aWR0aCwgaGVpZ2h0LCBkeCwgZHksIGR3LCBkaCwgZGF0YVVSTE9wdGlvbnMgfSA9IGUuZGF0YTsNCiAgICAgICAgICAgICAgICBjb25zdCB0cmFuc3BhcmVudEJhc2U2NCA9IGdldFRyYW5zcGFyZW50QmxvYkZvcih3aWR0aCwgaGVpZ2h0LCBkYXRhVVJMT3B0aW9ucyk7DQogICAgICAgICAgICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsNCiAgICAgICAgICAgICAgICBjb25zdCBjdHggPSBvZmZzY3JlZW4uZ2V0Q29udGV4dCgnMmQnKTsNCiAgICAgICAgICAgICAgICBjdHguZHJhd0ltYWdlKGJpdG1hcCwgMCwgMCwgd2lkdGgsIGhlaWdodCk7DQogICAgICAgICAgICAgICAgYml0bWFwLmNsb3NlKCk7DQogICAgICAgICAgICAgICAgY29uc3QgYmxvYiA9IHlpZWxkIG9mZnNjcmVlbi5jb252ZXJ0VG9CbG9iKGRhdGFVUkxPcHRpb25zKTsNCiAgICAgICAgICAgICAgICBjb25zdCB0eXBlID0gYmxvYi50eXBlOw0KICAgICAgICAgICAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0geWllbGQgYmxvYi5hcnJheUJ1ZmZlcigpOw0KICAgICAgICAgICAgICAgIGNvbnN0IGJhc2U2NCA9IGVuY29kZShhcnJheUJ1ZmZlcik7DQogICAgICAgICAgICAgICAgaWYgKCFsYXN0QmxvYk1hcC5oYXMoaWQpICYmICh5aWVsZCB0cmFuc3BhcmVudEJhc2U2NCkgPT09IGJhc2U2NCkgew0KICAgICAgICAgICAgICAgICAgICBkZWJ1ZygnW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgaXMgdHJhbnNwYXJlbnQnLCB7DQogICAgICAgICAgICAgICAgICAgICAgICBpZCwNCiAgICAgICAgICAgICAgICAgICAgICAgIGJhc2U2NCwNCiAgICAgICAgICAgICAgICAgICAgfSk7DQogICAgICAgICAgICAgICAgICAgIGxhc3RCbG9iTWFwLnNldChpZCwgYmFzZTY0KTsNCiAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkLCBzdGF0dXM6ICd0cmFuc3BhcmVudCcgfSk7DQogICAgICAgICAgICAgICAgfQ0KICAgICAgICAgICAgICAgIGlmIChsYXN0QmxvYk1hcC5nZXQoaWQpID09PSBiYXNlNjQpIHsNCiAgICAgICAgICAgICAgICAgICAgZGVidWcoJ1toaWdobGlnaHQtd29ya2VyXSBjYW52YXMgYml0bWFwIGlzIHVuY2hhbmdlZCcsIHsNCiAgICAgICAgICAgICAgICAgICAgICAgIGlkLA0KICAgICAgICAgICAgICAgICAgICAgICAgYmFzZTY0LA0KICAgICAgICAgICAgICAgICAgICB9KTsNCiAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkLCBzdGF0dXM6ICd1bmNoYW5nZWQnIH0pOw0KICAgICAgICAgICAgICAgIH0NCiAgICAgICAgICAgICAgICBkZWJ1ZygnW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgcHJvY2Vzc2VkJywgew0KICAgICAgICAgICAgICAgICAgICBpZCwNCiAgICAgICAgICAgICAgICAgICAgYmFzZTY0LA0KICAgICAgICAgICAgICAgIH0pOw0KICAgICAgICAgICAgICAgIHdvcmtlci5wb3N0TWVzc2FnZSh7DQogICAgICAgICAgICAgICAgICAgIGlkLA0KICAgICAgICAgICAgICAgICAgICB0eXBlLA0KICAgICAgICAgICAgICAgICAgICBiYXNlNjQsDQogICAgICAgICAgICAgICAgICAgIHdpZHRoLA0KICAgICAgICAgICAgICAgICAgICBoZWlnaHQsDQogICAgICAgICAgICAgICAgICAgIGR4LA0KICAgICAgICAgICAgICAgICAgICBkeSwNCiAgICAgICAgICAgICAgICAgICAgZHcsDQogICAgICAgICAgICAgICAgICAgIGRoLA0KICAgICAgICAgICAgICAgIH0pOw0KICAgICAgICAgICAgICAgIGxhc3RCbG9iTWFwLnNldChpZCwgYmFzZTY0KTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgICAgIGVsc2Ugew0KICAgICAgICAgICAgICAgIGRlYnVnKCdbaGlnaGxpZ2h0LXdvcmtlcl0gbm8gb2Zmc2NyZWVuY2FudmFzIHN1cHBvcnQnLCB7DQogICAgICAgICAgICAgICAgICAgIGlkOiBlLmRhdGEuaWQsDQogICAgICAgICAgICAgICAgfSk7DQogICAgICAgICAgICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkOiBlLmRhdGEuaWQsIHN0YXR1czogJ3Vuc3VwcG9ydGVkJyB9KTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgfSk7DQogICAgfTsKCn0pKCk7Cgo=", null, false);
 
 // ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/observers/canvas/canvas-manager.js
 var CanvasManager = class {

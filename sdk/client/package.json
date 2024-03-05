@@ -43,8 +43,8 @@
 		"prettier": "^3.1.0",
 		"size-limit": "^8.1.0",
 		"typescript": "^5.0.4",
-		"vite": "^4.3.9",
-		"vitest": "^0.32.0"
+		"vite": "^5.1.5",
+		"vitest": "^1.3.1"
 	},
 	"dependencies": {
 		"error-stack-parser": "2.0.6",
