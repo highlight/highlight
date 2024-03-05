@@ -760,7 +760,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 									.canvasMaxSnapshotDimension,
 						},
 					},
-					keepIframeSrcFn: (_src) => {
+					keepIframeSrcFn: (_src: string) => {
 						return !this.options.recordCrossOriginIframe
 					},
 					inlineImages: this.inlineImages,
@@ -1046,7 +1046,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 										  }
 										: undefined,
 								)
-								.filter((m) => m),
+								.filter((m) => m) as {
+								name: string
+								value: any
+								category: MetricCategory
+								group: string
+							}[],
 						)
 					}, this._recordingStartTime),
 				)
