@@ -3,7 +3,9 @@ import moment from 'moment'
 import { GetBillingDetailsForProjectQuery } from '@/graph/generated/operations'
 
 import {
+	BillingDetails,
 	Maybe,
+	Plan,
 	PlanType,
 	ProductType,
 	RetentionPeriod,
@@ -67,7 +69,38 @@ export const RETENTION_PERIOD_LABELS: { [K in RetentionPeriod]: string } = {
 }
 
 export const getMeterAmounts = (
-	data: GetBillingDetailsForProjectQuery,
+	details:
+		| Maybe<
+				{ __typename?: 'BillingDetails' } & Pick<
+					BillingDetails,
+					| 'meter'
+					| 'membersMeter'
+					| 'errorsMeter'
+					| 'logsMeter'
+					| 'tracesMeter'
+					| 'sessionsBillingLimit'
+					| 'errorsBillingLimit'
+					| 'logsBillingLimit'
+					| 'tracesBillingLimit'
+				> & {
+						plan: { __typename?: 'Plan' } & Pick<
+							Plan,
+							| 'type'
+							| 'interval'
+							| 'membersLimit'
+							| 'sessionsLimit'
+							| 'errorsLimit'
+							| 'logsLimit'
+							| 'tracesLimit'
+							| 'sessionsRate'
+							| 'errorsRate'
+							| 'logsRate'
+							| 'tracesRate'
+						>
+					}
+		  >
+		| undefined
+		| null,
 ): { [K in ProductType]: [number, number | undefined] } => {
 	if (!details) {
 		return {
@@ -113,7 +146,7 @@ export const getMeterAmounts = (
 export const getQuotaPercents = (
 	data: GetBillingDetailsForProjectQuery,
 ): [ProductType, number][] => {
-	const amts = getMeterAmounts(data)
+	const amts = getMeterAmounts(data.billingDetailsForProject)
 	const sessionAmts = amts[ProductType.Sessions]
 	const errorAmts = amts[ProductType.Errors]
 	const logAmts = amts[ProductType.Logs]
