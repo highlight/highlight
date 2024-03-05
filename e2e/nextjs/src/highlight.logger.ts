@@ -5,15 +5,15 @@ const pinoConfig = {
 	level: 'debug',
 	transport: {
 		targets: [
-			{
-				target: 'pino-pretty',
-				level: 'debug',
-			},
-			{
-				target: '@highlight-run/pino',
-				options: highlightConfig,
-				level: 'debug',
-			},
+			// {
+			// 	target: 'pino-pretty',
+			// 	level: 'debug',
+			// },
+			// {
+			// 	target: '@highlight-run/pino',
+			// 	options: highlightConfig,
+			// 	level: 'debug',
+			// },
 		],
 	},
 } as LoggerOptions

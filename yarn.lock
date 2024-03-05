@@ -13996,10 +13996,12 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^11.1.5"
     "@trpc/server": "npm:^9.27.4"
     "@types/jest": "npm:27.4.1"
+    "@types/js-cookie": "npm:^3"
     chokidar-cli: "npm:^3.0.0"
     eslint: "npm:8.39.0"
     highlight.run: "workspace:*"
     jest: "npm:^29.2.0"
+    js-cookie: "npm:^3.0.5"
     rollup: "npm:^4.4.1"
     tree-kill: "npm:^1.2.2"
     ts-jest: "npm:^29.0.3"
@@ -25063,6 +25065,13 @@ __metadata:
   version: 2.2.7
   resolution: "@types/js-cookie@npm:2.2.7"
   checksum: 10/851f47e94ca1fc43661d8f51614d67a613e7810c91b876d0a3b311ce72f7df800107fd02a08cb6948184e12c120b4f058edca2f50424d8798bdcffd6627281e3
+  languageName: node
+  linkType: hard
+
+"@types/js-cookie@npm:^3":
+  version: 3.0.6
+  resolution: "@types/js-cookie@npm:3.0.6"
+  checksum: 10/272d551687547445cb210213c73e72e0e5d58ad73e2e444a65d688b8ff9425529779ee0cd6492aaa1f070161916d4254ef2b1a76d64179100437f60749d094ef
   languageName: node
   linkType: hard
 
