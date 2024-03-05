@@ -1033,6 +1033,21 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this.listeners.push(
 					PerformanceListener((payload: PerformancePayload) => {
 						this.addCustomEvent('Performance', stringify(payload))
+						this.recordMetric(
+							Object.entries(payload)
+								.map(([name, value]) =>
+									value
+										? {
+												name,
+												value,
+												category:
+													MetricCategory.Performance,
+												group: window.location.href,
+										  }
+										: undefined,
+								)
+								.filter((m) => m),
+						)
 					}, this._recordingStartTime),
 				)
 				this.listeners.push(
