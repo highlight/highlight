@@ -58,7 +58,7 @@ jobs:
 
             - name: Configure AWS credentials
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
-              uses: aws-actions/configure-aws-credentials@v2
+              uses: aws-actions/configure-aws-credentials@v4
               with:
                   aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -164,13 +164,13 @@ jobs:
                   submodules: recursive
 
             - name: Setup Node.js environment
-              uses: buildjet/setup-node@v3
+              uses: buildjet/setup-node@v4
               with:
                   node-version: lts/*
                   cache: 'yarn'
 
             - name: Setup Golang environment
-              uses: buildjet/setup-go@v4
+              uses: buildjet/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: '**/go.sum'
@@ -280,13 +280,13 @@ jobs:
                   submodules: recursive
 
             - name: Setup Node.js environment
-              uses: buildjet/setup-node@v3
+              uses: buildjet/setup-node@v4
               with:
                   node-version: lts/*
                   cache: 'yarn'
 
             - name: Setup Golang environment
-              uses: buildjet/setup-go@v4
+              uses: buildjet/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: '**/go.sum'

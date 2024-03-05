@@ -162,7 +162,7 @@
 		"less": "^4.1.3",
 		"lightningcss": "^1.22.1",
 		"npm-run-all": "^4.1.5",
-		"postcss": "^8.4.16",
+		"postcss": "^8.4.35",
 		"postcss-custom-properties": "^12.1.7",
 		"postcss-nesting": "^11.2.2",
 		"postinstall-postinstall": "^2.1.0",

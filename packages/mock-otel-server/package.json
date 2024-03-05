@@ -11,7 +11,7 @@
 		"start": "tsx src/index.ts --start"
 	},
 	"devDependencies": {
-		"@opentelemetry/otlp-proto-exporter-base": "^0.45.1",
+		"@opentelemetry/otlp-proto-exporter-base": "^0.49.1",
 		"tsx": "^4.6.2"
 	}
 }
