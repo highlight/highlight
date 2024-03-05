@@ -1,10 +1,10 @@
 import { GetErrorGroupQuery } from '@graph/operations'
 
-import { getErrorGroupFields } from './ErrorPageUtils'
 import {
 	GetErrorGroupQueryMock1,
 	GetErrorGroupQueryMock2,
 } from './__mocks__/GetErrorGroupQuery'
+import { getErrorGroupFields } from './ErrorPageUtils'
 
 describe('ErrorPageUtils', () => {
 	describe('getErrorGroupMetadata', () => {

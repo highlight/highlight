@@ -21,10 +21,10 @@ import { useGetKeysQuery, useGetMetricsQuery } from '@/graph/generated/hooks'
 import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import Graph, {
-	LineDisplay,
 	LINE_DISPLAY,
-	NullHandling,
+	LineDisplay,
 	NULL_HANDLING,
+	NullHandling,
 	View,
 	VIEWS,
 } from '@/pages/Graphing/components/Graph'

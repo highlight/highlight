@@ -47,9 +47,9 @@ import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
 import { namedOperations } from '@/graph/generated/operations'
 import { SessionAlertInput, SessionAlertType } from '@/graph/generated/schemas'
 import {
-	AlertConfiguration,
 	ALERT_CONFIGURATIONS,
 	ALERT_NAMES,
+	AlertConfiguration,
 } from '@/pages/Alerts/Alerts'
 import { useAlertsContext } from '@/pages/Alerts/AlertsContext/AlertsContext'
 import AlertNotifyForm from '@/pages/Alerts/components/AlertNotifyForm/AlertNotifyForm'

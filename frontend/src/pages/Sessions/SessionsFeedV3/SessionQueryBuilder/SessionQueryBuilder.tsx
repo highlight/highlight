@@ -10,8 +10,8 @@ import React, { useCallback } from 'react'
 
 import QueryBuilder, {
 	BOOLEAN_OPERATORS,
-	CustomField,
 	CUSTOM_TYPE,
+	CustomField,
 	FetchFieldVariables,
 	QueryBuilderProps,
 	RANGE_OPERATORS,
