@@ -55,7 +55,7 @@ export const comboboxTagsContainer = style([
 	{
 		display: 'block',
 		fontWeight: '500 !important',
-		maxWidth: 'calc(100% - 23px)',
+		maxWidth: 'calc(100% - 24px)',
 		paddingBottom: 12,
 		paddingRight: 6,
 		paddingTop: 12,
