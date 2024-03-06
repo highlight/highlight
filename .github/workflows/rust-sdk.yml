@@ -40,12 +40,14 @@ jobs:
             - name: Build highlightio
               uses: katyo/publish-crates@v2
               with:
+                  path: ./sdk/highlight-rust/
                   dry-run: true
                   args: -p highlightio
 
             - name: Build highlightio-actix
               uses: katyo/publish-crates@v2
               with:
+                  path: ./sdk/highlight-rust/
                   dry-run: true
                   args: -p highlightio-actix
     publish:
@@ -70,11 +72,13 @@ jobs:
             - name: Publish highlightio
               uses: katyo/publish-crates@v2
               with:
+                  path: ./sdk/highlight-rust/
                   args: -p highlightio
                   registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
             - name: Publish highlightio-actix
               uses: katyo/publish-crates@v2
               with:
+                  path: ./sdk/highlight-rust/
                   args: -p highlightio-actix
                   registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
