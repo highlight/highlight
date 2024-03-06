@@ -22,11 +22,11 @@ import {
 	TIME_MODE,
 } from '@/components/Search/SearchForm/constants'
 import {
+	DEFAULT_INPUT_HEIGHT,
 	FixedRangePreset,
 	PermalinkPreset,
 	QueryParam,
 	SearchForm,
-	DEFAULT_INPUT_HEIGHT,
 } from '@/components/Search/SearchForm/SearchForm'
 import { useGetLogsHistogramQuery } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
@@ -150,7 +150,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		}
 
 		return height
-	}, [moreLogs, textAreaRef.current?.clientHeight])
+	}, [moreLogs, textAreaRef])
 
 	useEffect(() => {
 		analytics.page('Logs')

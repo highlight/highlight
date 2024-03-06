@@ -264,7 +264,8 @@ export const Search: React.FC<{
 }) => {
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
-	const inputRef = textAreaRef || useRef<HTMLTextAreaElement | null>(null)
+	const defaultInputRef = useRef<HTMLTextAreaElement | null>(null)
+	const inputRef = textAreaRef || defaultInputRef
 	const [keys, setKeys] = useState<Keys | undefined>()
 	const [values, setValues] = useState<string[] | undefined>()
 	const comboboxStore = useComboboxStore({

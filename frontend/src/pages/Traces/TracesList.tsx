@@ -26,9 +26,9 @@ import { CustomColumnPopover } from '@/components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
+import { DEFAULT_INPUT_HEIGHT } from '@/components/Search/SearchForm/SearchForm'
 import { ProductType, TraceEdge } from '@/graph/generated/schemas'
 import { useParams } from '@/util/react-router/useParams'
-import { DEFAULT_INPUT_HEIGHT } from '@/components/Search/SearchForm/SearchForm'
 
 import {
 	DEFAULT_TRACE_COLUMNS,
@@ -174,7 +174,7 @@ export const TracesList: React.FC<Props> = ({
 		}
 
 		return height
-	}, [!!numMoreTraces, textAreaRef.current?.clientHeight])
+	}, [numMoreTraces, textAreaRef])
 
 	const handleFetchMoreWhenScrolled = (
 		e: React.UIEvent<HTMLDivElement, UIEvent>,
