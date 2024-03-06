@@ -80,6 +80,18 @@ export const QueryPart: React.FC<{
 						position="relative"
 						display="inline-flex"
 					>
+						{tokenGroup.tokens.map((token, index) => {
+							if (token.type === SearchGrammarParser.EOF) {
+								return null
+							}
+
+							return (
+								<Token
+									key={`${token.text}-${index}`}
+									token={token}
+								/>
+							)
+						})}
 						<IconSolidXCircle
 							className={styles.comboboxTagClose}
 							size={13}
@@ -94,19 +106,6 @@ export const QueryPart: React.FC<{
 								style={{ cursor: 'pointer' }}
 							/>
 						)}
-
-						{tokenGroup.tokens.map((token, index) => {
-							if (token.type === SearchGrammarParser.EOF) {
-								return null
-							}
-
-							return (
-								<Token
-									key={`${token.text}-${index}`}
-									token={token}
-								/>
-							)
-						})}
 					</Box>
 				}
 			>

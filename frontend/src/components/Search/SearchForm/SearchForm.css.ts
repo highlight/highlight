@@ -77,6 +77,8 @@ export const comboboxTag = style({
 
 export const token = style({
 	height: 20,
+	letterSpacing: 0,
+	wordSpacing: WORD_SPACING,
 })
 
 export const whitespaceToken = style({
