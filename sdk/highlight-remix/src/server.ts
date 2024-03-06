@@ -20,5 +20,7 @@ export function HandleError(nodeOptions: NodeOptions) {
 }
 
 function parseCookies(cookies: string) {
-	return Object.fromEntries(cookies.split('; ').map((c) => c.split('=')))
+	return Object.fromEntries(
+		cookies.split(';').map((c) => c.trim().split('=')),
+	)
 }

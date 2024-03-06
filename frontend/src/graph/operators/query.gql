@@ -2155,33 +2155,6 @@ query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
 	}
 }
 
-query GetLogsKeys(
-	$project_id: ID!
-	$date_range: DateRangeRequiredInput!
-	$query: String
-) {
-	keys: logs_keys(
-		project_id: $project_id
-		date_range: $date_range
-		query: $query
-	) {
-		name
-		type
-	}
-}
-
-query GetLogsKeyValues(
-	$project_id: ID!
-	$key_name: String!
-	$date_range: DateRangeRequiredInput!
-) {
-	key_values: logs_key_values(
-		project_id: $project_id
-		key_name: $key_name
-		date_range: $date_range
-	)
-}
-
 query GetLogsRelatedResources(
 	$project_id: ID!
 	$log_cursors: [String!]!
@@ -2507,33 +2480,6 @@ query GetTracesMetrics(
 	}
 }
 
-query GetTracesKeys(
-	$project_id: ID!
-	$date_range: DateRangeRequiredInput!
-	$query: String
-) {
-	keys: traces_keys(
-		project_id: $project_id
-		date_range: $date_range
-		query: $query
-	) {
-		name
-		type
-	}
-}
-
-query GetTracesKeyValues(
-	$project_id: ID!
-	$key_name: String!
-	$date_range: DateRangeRequiredInput!
-) {
-	key_values: traces_key_values(
-		project_id: $project_id
-		key_name: $key_name
-		date_range: $date_range
-	)
-}
-
 query GetKeys(
 	$product_type: ProductType!
 	$project_id: ID!
@@ -2549,6 +2495,20 @@ query GetKeys(
 		name
 		type
 	}
+}
+
+query GetKeyValues(
+	$product_type: ProductType!
+	$project_id: ID!
+	$key_name: String!
+	$date_range: DateRangeRequiredInput!
+) {
+	key_values(
+		product_type: $product_type
+		project_id: $project_id
+		key_name: $key_name
+		date_range: $date_range
+	)
 }
 
 query GetMetrics(

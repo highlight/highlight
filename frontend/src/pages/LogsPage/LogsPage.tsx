@@ -28,11 +28,7 @@ import {
 	SearchForm,
 	DEFAULT_INPUT_HEIGHT,
 } from '@/components/Search/SearchForm/SearchForm'
-import {
-	useGetLogsHistogramQuery,
-	useGetLogsKeysLazyQuery,
-	useGetLogsKeyValuesLazyQuery,
-} from '@/graph/generated/hooks'
+import { useGetLogsHistogramQuery } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { DEFAULT_LOG_COLUMNS } from '@/pages/LogsPage/LogsTable/CustomColumns/columns'
@@ -190,9 +186,8 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						presets={DEFAULT_TIME_PRESETS}
 						minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
 						selectedPreset={selectedPreset}
+						productType={ProductType.Logs}
 						timeMode={timeMode}
-						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
-						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 						savedSegmentType="Log"
 						textAreaRef={textAreaRef}
 					/>

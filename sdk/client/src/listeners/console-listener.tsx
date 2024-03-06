@@ -21,6 +21,10 @@ export type StringifyOptions = {
 export type LogRecordOptions = {
 	level: ConsoleMethods[]
 	stringifyOptions: StringifyOptions
+	/**
+	 * Set to try to serialize console object arguments into the message body.
+	 */
+	serializeConsoleAttributes?: boolean
 	logger: Logger | 'console'
 }
 
@@ -106,23 +110,31 @@ export function ConsoleListener(
 		}
 		// replace the logger.{level}. return a restore function
 		return patch(_logger, level, (original) => {
-			return (...args: Array<any>) => {
+			return (...data: Array<any>) => {
 				// @ts-expect-error
-				original.apply(this, args)
+				original.apply(this, data)
 				try {
 					const trace = ErrorStackParser.parse(new Error())
-					const payload = args.map((s) =>
-						stringify(s, logOptions.stringifyOptions),
-					)
-
+					const message = logOptions.serializeConsoleAttributes
+						? data.map((o) =>
+								typeof o === 'object'
+									? stringify(o, logOptions.stringifyOptions)
+									: o,
+						  )
+						: data
+								.filter((d) => typeof d !== 'object')
+								.map((o) => `${o}`)
 					callback({
 						type: level,
 						trace: trace.slice(1),
-						value: payload,
+						value: message,
+						attributes: data
+							.filter((d) => typeof d === 'object')
+							.reduce((a, b) => ({ ...a, ...b }), {}),
 						time: Date.now(),
 					})
 				} catch (error) {
-					original('highlight logger error:', error, ...args)
+					original('highlight logger error:', error, ...data)
 				}
 			}
 		})

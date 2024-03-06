@@ -419,21 +419,28 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 			<Stack height="full" px="8" cssClass={style.pageWrapper} gap="0">
 				<Stack>
 					<Heading level="h4">Billing plans</Heading>
-					<Box display="inline-flex">
-						<Text size="small" color="weak">
-							Prices are flexible around your needs. Custom quote?{' '}
-							<a
-								href={getPlanChangeEmail({
-									workspaceID: workspace_id,
-									planType: PlanType.Enterprise,
-								})}
-							>
-								<Box display="inline-flex" alignItems="center">
-									Reach out to sales <IconSolidArrowSmRight />
-								</Box>
-							</a>
-						</Text>
-					</Box>
+					{isAWSMP ? null : (
+						<Box display="inline-flex">
+							<Text size="small" color="weak">
+								Prices are flexible around your needs. Custom
+								quote?{' '}
+								<a
+									href={getPlanChangeEmail({
+										workspaceID: workspace_id,
+										planType: PlanType.Enterprise,
+									})}
+								>
+									<Box
+										display="inline-flex"
+										alignItems="center"
+									>
+										Reach out to sales{' '}
+										<IconSolidArrowSmRight />
+									</Box>
+								</a>
+							</Text>
+						</Box>
+					)}
 					{billingIssue ? (
 						<Callout title="Update payment details" icon={false}>
 							<Box

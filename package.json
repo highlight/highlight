@@ -98,7 +98,7 @@
 		"readdirp": "^3.6.0",
 		"turbo": "latest"
 	},
-	"packageManager": "yarn@4.1.0",
+	"packageManager": "yarn@4.1.1",
 	"resolutions": {
 		"@opentelemetry/api": "1.8.0",
 		"@opentelemetry/auto-instrumentations-node": "0.41.1",

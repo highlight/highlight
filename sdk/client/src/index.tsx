@@ -760,7 +760,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 									.canvasMaxSnapshotDimension,
 						},
 					},
-					keepIframeSrcFn: (_src) => {
+					keepIframeSrcFn: (_src: string) => {
 						return !this.options.recordCrossOriginIframe
 					},
 					inlineImages: this.inlineImages,
@@ -1033,6 +1033,26 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this.listeners.push(
 					PerformanceListener((payload: PerformancePayload) => {
 						this.addCustomEvent('Performance', stringify(payload))
+						this.recordMetric(
+							Object.entries(payload)
+								.map(([name, value]) =>
+									value
+										? {
+												name,
+												value,
+												category:
+													MetricCategory.Performance,
+												group: window.location.href,
+										  }
+										: undefined,
+								)
+								.filter((m) => m) as {
+								name: string
+								value: any
+								category: MetricCategory
+								group: string
+							}[],
+						)
 					}, this._recordingStartTime),
 				)
 				this.listeners.push(
