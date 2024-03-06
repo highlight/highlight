@@ -12,7 +12,7 @@ import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { Helmet } from 'react-helmet'
 import { useLocalStorage } from 'react-use'
 import { useQueryParam } from 'use-query-params'
@@ -26,6 +26,7 @@ import {
 	PermalinkPreset,
 	QueryParam,
 	SearchForm,
+	DEFAULT_INPUT_HEIGHT,
 } from '@/components/Search/SearchForm/SearchForm'
 import {
 	useGetLogsHistogramQuery,
@@ -62,7 +63,7 @@ type Props = {
 	presetDefault: DateRangePreset
 }
 
-const HEADERS_AND_CHARTS_HEIGHT = 221
+const HEADERS_AND_CHARTS_HEIGHT = 189
 const LOAD_MORE_HEIGHT = 28
 
 const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
@@ -70,6 +71,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		project_id: string
 	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
+	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 
 	const [selectedColumns, setSelectedColumns] = useLocalStorage(
 		`highlight-logs-table-columns`,
@@ -139,10 +141,20 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 			skip: !projectId,
 		})
 
-	let otherElementsHeight = HEADERS_AND_CHARTS_HEIGHT
-	if (moreLogs) {
-		otherElementsHeight += LOAD_MORE_HEIGHT
-	}
+	const otherElementsHeight = useMemo(() => {
+		let height = HEADERS_AND_CHARTS_HEIGHT
+		if (textAreaRef.current) {
+			height += textAreaRef.current.clientHeight
+		} else {
+			height += DEFAULT_INPUT_HEIGHT
+		}
+
+		if (moreLogs) {
+			height += LOAD_MORE_HEIGHT
+		}
+
+		return height
+	}, [moreLogs, textAreaRef.current?.clientHeight])
 
 	useEffect(() => {
 		analytics.page('Logs')
@@ -182,6 +194,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 						savedSegmentType="Log"
+						textAreaRef={textAreaRef}
 					/>
 					<LogsCount
 						startDate={startDate}

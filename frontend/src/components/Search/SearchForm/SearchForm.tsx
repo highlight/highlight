@@ -116,6 +116,7 @@ export type SearchFormProps = {
 	hideDatePicker?: boolean
 	hideCreateAlert?: boolean
 	savedSegmentType?: 'Trace' | 'Log'
+	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({
@@ -135,6 +136,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	hideDatePicker,
 	hideCreateAlert,
 	savedSegmentType,
+	textAreaRef,
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
@@ -172,6 +174,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					endDate={endDate}
 					disableSearch={disableSearch}
 					query={query}
+					textAreaRef={textAreaRef}
 					fetchValuesLazyQuery={fetchValuesLazyQuery}
 					fetchKeysLazyQuery={fetchKeysLazyQuery}
 					setQuery={setQuery}
@@ -243,6 +246,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
 
 export { SearchForm }
 
+export const DEFAULT_INPUT_HEIGHT = 31
+
 export const Search: React.FC<{
 	initialQuery: string
 	startDate: Date
@@ -255,6 +260,7 @@ export const Search: React.FC<{
 	fetchValuesLazyQuery: FetchValues
 	setQuery: (value: string) => void
 	onFormSubmit: (query: string) => void
+	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 }> = ({
 	initialQuery,
 	startDate,
@@ -263,6 +269,7 @@ export const Search: React.FC<{
 	disableSearch,
 	placeholder,
 	query,
+	textAreaRef,
 	fetchKeysLazyQuery,
 	fetchValuesLazyQuery,
 	setQuery,
@@ -270,7 +277,7 @@ export const Search: React.FC<{
 }) => {
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
-	const inputRef = useRef<HTMLInputElement | null>(null)
+	const inputRef = textAreaRef || useRef<HTMLTextAreaElement | null>(null)
 	const [keys, setKeys] = useState<Keys | undefined>()
 	const [values, setValues] = useState<string[] | undefined>()
 	const comboboxStore = useComboboxStore({
@@ -560,7 +567,6 @@ export const Search: React.FC<{
 					})}
 				</Box>
 				<Combobox
-					ref={inputRef}
 					disabled={disableSearch}
 					store={comboboxStore}
 					name="search"
@@ -570,6 +576,7 @@ export const Search: React.FC<{
 					})}
 					render={
 						<TextareaAutosize
+							ref={inputRef}
 							style={{ resize: 'none', overflowY: 'hidden' }}
 						/>
 					}
