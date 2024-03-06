@@ -16489,10 +16489,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/env@npm:^14.1.0":
-  version: 14.1.0
-  resolution: "@next/env@npm:14.1.0"
-  checksum: 10/8651faab7827026fe9df32f32f3dc743ca93707fabe6ec8e75ee60bd94781afee8093514e2108d2b2f03198d0a74fc6152d9e73ea01125e89402f068a8516915
+"@next/env@npm:^14.1.3":
+  version: 14.1.3
+  resolution: "@next/env@npm:14.1.3"
+  checksum: 10/b95c55530f5fb8cfb2a48a23485fd4cb584bff8620637785d7dd068c0d72d4dc0869023ed509f52fead558839f2efae4f7370a2c2fd87540201629fc39a421a5
   languageName: node
   linkType: hard
 
@@ -50368,7 +50368,7 @@ __metadata:
   dependencies:
     "@highlight-run/next": "workspace:*"
     "@highlight-run/pino": "workspace:*"
-    "@next/env": "npm:^14.1.0"
+    "@next/env": "npm:^14.1.3"
     "@tanstack/react-query": "npm:^4.36.1"
     "@trpc/client": "npm:^10.38.5"
     "@trpc/next": "npm:^10.44.1"
