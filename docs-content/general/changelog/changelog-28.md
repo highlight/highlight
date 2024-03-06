@@ -19,7 +19,7 @@ And of course, we have similar buttons on our Session Replay page, as well as li
 
 ## Search query evolution
 
-Search is large problem set, and we're continuing to chip away at it.
+Search is a large problem set, and we're continuing to chip away at it.
 
 - Instead of skipping whitespace in our grammar, we push it to a hidden channel allowing us to still get tokens for whitespace from the lexer.
 - We updated the logic for creating the visual tags around filters. This enables us to handle the grouping better visually even though the parser can't break things into expressions for us.
