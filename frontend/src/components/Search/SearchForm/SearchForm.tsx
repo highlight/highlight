@@ -183,7 +183,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
 						<Box
 							as="span"
 							borderRight="dividerWeak"
-							style={{ height: 18, margin: 'auto' }}
+							mt="4"
+							style={{ height: 18 }}
 						/>
 					)}
 					{!hideCreateAlert && (
@@ -526,7 +527,7 @@ export const Search: React.FC<{
 
 			<Box
 				display="flex"
-				alignItems="center"
+				alignItems="flex-start"
 				gap="6"
 				width="full"
 				color="weak"
@@ -614,17 +615,19 @@ export const Search: React.FC<{
 				/>
 
 				{isDirty && !disableSearch && (
-					<IconSolidXCircle
-						size={16}
-						onClick={(e) => {
-							e.preventDefault()
-							e.stopPropagation()
+					<Box pt="12">
+						<IconSolidXCircle
+							size={16}
+							onClick={(e) => {
+								e.preventDefault()
+								e.stopPropagation()
 
-							setQuery('')
-							submitQuery('')
-						}}
-						style={{ cursor: 'pointer' }}
-					/>
+								setQuery('')
+								submitQuery('')
+							}}
+							style={{ cursor: 'pointer' }}
+						/>
+					</Box>
 				)}
 			</Box>
 
