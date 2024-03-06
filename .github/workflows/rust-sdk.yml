@@ -4,10 +4,10 @@ on:
     push:
         branches: ['main']
     pull_request:
-      types: [opened, reopened, synchronize, assigned, review_requested]
-      paths:
-          - 'sdk/highlight-rust/**'
-          - '.github/workflows/rust-sdk.yml'
+        types: [opened, reopened, synchronize, assigned, review_requested]
+        paths:
+            - 'sdk/highlight-rust/**'
+            - '.github/workflows/rust-sdk.yml'
 
 permissions:
     checks: write
