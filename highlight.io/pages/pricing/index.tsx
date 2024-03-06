@@ -21,6 +21,12 @@ import {
 	HiServer,
 } from 'react-icons/hi'
 
+import {
+	enterprisePrices,
+	Prices,
+	professionalPrices,
+} from '../../components/Pricing/estimator_details'
+
 const MyToggle = () => {
 	const [enabled, setEnabled] = useState(false)
 
@@ -57,6 +63,57 @@ const PricingPage: NextPage = () => {
 	)
 }
 
+const docsUrl = '/docs'
+
+// const Faqs: { question: string; answer: string; icon: string }[] = [
+// 	{
+// 		question: 'Do you offer a discount for non-profits?',
+// 		answer: `We love supporting non-profits and offer a 75% discount for the lifetime of the account. To activate the discount, create a workplace on either the Standard or Pro plan. Then reach out to support and mention the discount.`,
+// 		icon: TagLoyalty,
+// 	},
+// 	{
+// 		question: 'How long does it take to setup Highlight?',
+// 		answer: `It generally takes an engineer less than ten minutes to understand the concepts of Highlight and integrate the app into their workflow. For more information on setup, take a look at our <a href="${docsUrl}">docs</a>.`,
+// 		icon: Stopwatch,
+// 	},
+// 	{
+// 		question: 'Can I deploy Highlight on-premise?',
+// 		answer: `Yes! To get a glimpse at how our hobby deployment process looks, take a look <a href="${docsUrl}/general/company/open-source/hosting/self-host-hobby">here</a>. To get a license key for a production deployment, contacts at <a href="mailto:sales@highlight.io">sales@highlight.io</a>.`,
+// 		icon: Globe,
+// 	},
+// 	{
+// 		question: "Is Highlight secure? Where's my data stored?",
+// 		answer: `Highlight uses end-to-end encryption to keep your data safe while it’s in transit, and we also offer an on-prem solution if you want to keep customer data on your own servers. For more information, see our <a href="/#privacy">security section</a> and <a href="${docsUrl}" target="_blank">docs</a>. If we don't answer your question there, <a href="mailto:jay@highlight.io">let us know</a>.`,
+// 		icon: Security,
+// 	},
+// 	{
+// 		question: 'Do I need a credit card to sign up?',
+// 		answer: `Absolutely not! We never ask for your credit card on sign up. If you start on a paid plan then 30 days after signing up you will be politely prompted to enter in your payment information. At anytime you can switch back to a free plan as long as your workplace has less than 6 seats.`,
+// 		icon: CreditCard,
+// 	},
+// 	{
+// 		question: 'How will you charge me?',
+// 		answer: `We ask for a credit card. Your credit card information will never touch our servers as we use <a href="https://stripe.com/" target="_blank">Stripe</a> as our payments processor. For Enterprise customers we can do ACH and custom invoices if requested.`,
+// 		icon: Wallet,
+// 	},
+// 	{
+// 		question: 'How does billing work?',
+// 		answer: `We charge by usage; or number of sessions collected per month. Our billing system uses prorated billing, meaning you only pay for what you use below each of our thresholds (see above). For example if you move to the Startup plan from the Basic plan in the middle of the month, then you will only be charged for the time you are on the paid plan.`,
+// 		icon: ReceiptList,
+// 	},
+// 	{
+// 		question: 'What counts as a session?',
+// 		answer: `A session is contiguous instance of a user's presence on your app for less than 4 hours. That is, if a user is browsing your application for 3 minutes, then closes the tab, this counts as a single session.`,
+// 		icon: PcPlayMedia,
+// 	},
+// 	{
+// 		question: 'Can I cancel at anytime?',
+// 		answer: `Definitely! You can cancel or downgrade your subscription at anytime. You can also delete your workplace in the settings page at anytime.`,
+// 		icon: Delete,
+// 	},
+// ]
+//
+
 const retentionOptions = [
 	'30 days',
 	'3 months',
@@ -73,129 +130,13 @@ const retentionMultipliers: Record<Retention, number> = {
 	'2 years': 2.5,
 } as const
 
-interface GraduatedPriceItem {
-	rate: number
-	usage?: number
-}
-const prices = {
-	Sessions: {
-		free: 500,
-		unit: 1_000,
-		items: [
-			{
-				usage: 15_000,
-				rate: 20 / 1_000,
-			},
-			{
-				usage: 50_000,
-				rate: 15 / 1_000,
-			},
-			{
-				usage: 150_000,
-				rate: 12 / 1_000,
-			},
-			{
-				usage: 500_000,
-				rate: 6.5 / 1_000,
-			},
-			{
-				usage: 1_000_000,
-				rate: 3.5 / 1_000,
-			},
-			{
-				rate: 2.5 / 1_000,
-			},
-		] as GraduatedPriceItem[],
-	},
-	Errors: {
-		free: 1_000,
-		unit: 1_000,
-		items: [
-			{
-				usage: 50_000,
-				rate: 2 / 1_000,
-			},
-			{
-				usage: 100_000,
-				rate: 0.5 / 1_000,
-			},
-			{
-				usage: 200_000,
-				rate: 0.25 / 1_000,
-			},
-			{
-				usage: 500_000,
-				rate: 0.2 / 1_000,
-			},
-			{
-				usage: 5_000_000,
-				rate: 0.1 / 1_000,
-			},
-			{
-				rate: 0.05 / 1_000,
-			},
-		] as GraduatedPriceItem[],
-	},
-	Logs: {
-		free: 1_000_000,
-		unit: 1_000_000,
-		items: [
-			{
-				usage: 1_000_000,
-				rate: 2.5 / 1_000_000,
-			},
-			{
-				usage: 10_000_000,
-				rate: 2 / 1_000_000,
-			},
-			{
-				usage: 100_000_000,
-				rate: 1.5 / 1_000_000,
-			},
-			{
-				usage: 1_000_000_000,
-				rate: 1 / 1_000_000,
-			},
-			{
-				rate: 0.5 / 1_000_000,
-			},
-		] as GraduatedPriceItem[],
-	},
-	Traces: {
-		free: 25_000_000,
-		unit: 1_000_000,
-		items: [
-			{
-				usage: 1_000_000,
-				rate: 2.5 / 1_000_000,
-			},
-			{
-				usage: 10_000_000,
-				rate: 2 / 1_000_000,
-			},
-			{
-				usage: 100_000_000,
-				rate: 1.5 / 1_000_000,
-			},
-			{
-				usage: 1_000_000_000,
-				rate: 1 / 1_000_000,
-			},
-			{
-				rate: 0.5 / 1_000_000,
-			},
-		] as GraduatedPriceItem[],
-	},
-} as const
-
 const tierOptions = ['Free', 'Professional', 'Enterprise', 'SelfHost'] as const
 type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
 	label: string
 	subText?: string
-	monthlyPrice: string
-	annualPrice: string
+	prices: Prices
 	icon: JSX.Element
 	features: {
 		feature: string
@@ -209,15 +150,14 @@ type PricingTier = {
 const priceTiers: Record<TierName, PricingTier> = {
 	Free: {
 		label: 'Free',
-		monthlyPrice: '$0',
-		annualPrice: '$0',
+		prices: professionalPrices,
 		subText: 'Free forever',
 		icon: (
 			<HiReceiptTax className="text-darker-copy-on-dark w-8 h-8 -translate-x-1" />
 		),
 		features: [
 			{
-				feature: `${prices.Sessions.free.toLocaleString()} monthly sessions`,
+				feature: `500 monthly sessions`,
 			},
 			{
 				feature: 'AI error grouping',
@@ -231,9 +171,8 @@ const priceTiers: Record<TierName, PricingTier> = {
 	},
 	Professional: {
 		label: 'Professional',
-		monthlyPrice: '$50',
-		annualPrice: '$50',
 		subText: 'base per project/month, billed annually',
+		prices: professionalPrices,
 		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
 		features: [
 			{
@@ -257,8 +196,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 	Enterprise: {
 		label: 'Enterprise',
 		subText: 'base per project/month, billed annually',
-		monthlyPrice: '$3000',
-		annualPrice: '$3000',
+		prices: enterprisePrices,
 		icon: (
 			<HiOfficeBuilding className="text-white w-8 h-8 -translate-x-1" />
 		),
@@ -303,9 +241,8 @@ const priceTiers: Record<TierName, PricingTier> = {
 	},
 	SelfHost: {
 		label: 'Self-Host',
-		monthlyPrice: '$0',
-		annualPrice: '$0',
 		subText: 'per project/month, billed annually',
+		prices: professionalPrices,
 		icon: <HiServer className="text-[#E93D82] w-8 h-8 -translate-x-1" />,
 		features: [],
 		calculateUsage: true,
@@ -331,7 +268,6 @@ const PlanTable = () => {
 
 const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 	const { features, calculateUsage } = tier
-	const [calendlyOpen, setCalendlyOpen] = useState(false)
 
 	return (
 		<div
@@ -345,7 +281,7 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 					<Typography className="mt-2" type="copy1" emphasis>
 						{tier.label}
 					</Typography>
-					<h4 className="mt-0">{tier.monthlyPrice}</h4>
+					<h4 className="mt-0">{tier.prices.monthlyPrice}</h4>
 					<Typography
 						className="text-darker-copy-on-dark"
 						type="copy4"
@@ -382,7 +318,9 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 				))}
 			</div>
 			<div className="p-4">
-				{calculateUsage && <PriceCalculatorModal />}
+				{calculateUsage && (
+					<PriceCalculatorModal prices={tier.prices} />
+				)}
 			</div>
 		</div>
 	)
@@ -417,7 +355,7 @@ const formatPrice = (
 		signDisplay: signDisplay ?? 'always',
 	})
 
-const PriceCalculatorModal = () => {
+const PriceCalculatorModal = ({ prices }: { prices: Prices }) => {
 	let [isOpen, setIsOpen] = useState(false)
 
 	function closeModal() {
@@ -464,7 +402,7 @@ const PriceCalculatorModal = () => {
 								leaveTo="opacity-0 scale-95"
 							>
 								<Dialog.Panel className="flex transform bg-dark-background translate-y-36 text-left align-middle shadow-xl transition-all rounded-lg">
-									<PriceCalculator />
+									<PriceCalculator prices={prices} />
 								</Dialog.Panel>
 							</Transition.Child>
 						</div>
@@ -475,7 +413,7 @@ const PriceCalculatorModal = () => {
 	)
 }
 
-const PriceCalculator = () => {
+const PriceCalculator = ({ prices }: { prices: Prices }) => {
 	const defaultErrors = prices.Errors.free
 	const defaultLogs = prices.Logs.free
 	const defaultTraces = prices.Traces.free
@@ -560,6 +498,7 @@ const PriceCalculator = () => {
 						title="Error Monitoring"
 						description="Error monitoring usage is defined by the number of errors collected by Highlight per month. Our frontend/server SDKs send errors, but you can also send custom errors."
 						product={'Errors'}
+						prices={prices}
 						value={errorUsage}
 						cost={errorsCost}
 						rate={errorsRate}
@@ -573,6 +512,7 @@ const PriceCalculator = () => {
 						title="Session Replay"
 						description="Session replay usage is defined by the number of sessions collected per month. A session is defined by an instance of a user’s tab on your application. "
 						product={'Sessions'}
+						prices={prices}
 						value={sessionUsage}
 						cost={sessionsCost}
 						rate={sessionsRate}
@@ -585,6 +525,7 @@ const PriceCalculator = () => {
 						title="Logging"
 						description="Log usage is defined by the number of logs collected by highlight.io per month. A log is defined by a text field with attributes."
 						product={'Logs'}
+						prices={prices}
 						value={loggingUsage}
 						cost={loggingCost}
 						rate={loggingRate}
@@ -597,6 +538,7 @@ const PriceCalculator = () => {
 						title="Traces"
 						description="Tracing usage is defined by the number of spans collected per month. Traces consist of multiple spans, each instrumenting a single section of code with customizable attributes."
 						product={'Traces'}
+						prices={prices}
 						value={tracesUsage}
 						cost={tracesCost}
 						rate={tracesRate}
@@ -639,6 +581,7 @@ const CalculatorRowDesktop = ({
 	title,
 	description,
 	product,
+	prices,
 	value,
 	cost,
 	rate,
@@ -651,6 +594,7 @@ const CalculatorRowDesktop = ({
 	title: string
 	description: string
 	product: 'Sessions' | 'Errors' | 'Logs' | 'Traces'
+	prices: Prices
 	value: number
 	includedRange: number
 	cost: number
