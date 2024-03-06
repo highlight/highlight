@@ -26,6 +26,8 @@ Search is a large problem set, and we're continuing to chip away at it.
 - We moved the display of the errors above the search input.
 - The token causing an error now receives a red background.
 
+![Query shortcuts](/images/changelog/28/query-shortcuts.png)
+
 ## Relate logs back to traces
 
 Each new span that the Highlight system instantiates in your code path will include a `traceId`.
