@@ -71,7 +71,6 @@ export const comboboxTag = style({
 	display: 'inline',
 	fontFeatureSettings: '"tnum" off', // disable tabular numbers
 	position: 'relative',
-	paddingTop: 2,
 	whiteSpace: 'pre-wrap',
 	height: 20,
 })
