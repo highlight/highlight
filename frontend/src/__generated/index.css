@@ -6050,6 +6050,7 @@ body {
   display: inline;
   font-feature-settings: "tnum" off;
   position: relative;
+  padding-top: 2px;
   white-space: pre-wrap;
   height: 20px;
 }

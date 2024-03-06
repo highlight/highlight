@@ -529,6 +529,7 @@ export const Search: React.FC<{
 				display="flex"
 				alignItems="flex-start"
 				gap="6"
+				pt="6"
 				width="full"
 				color="weak"
 				position="relative"
@@ -615,7 +616,7 @@ export const Search: React.FC<{
 				/>
 
 				{isDirty && !disableSearch && (
-					<Box pt="12">
+					<Box pt="6">
 						<IconSolidXCircle
 							size={16}
 							onClick={(e) => {
