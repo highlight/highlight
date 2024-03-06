@@ -66,7 +66,7 @@ export const QueryPart: React.FC<{
 			<Tooltip
 				placement="top-start"
 				open={active && !!error}
-				style={{ display: 'inline', wordBreak: 'break-all' }}
+				style={{ display: 'inline', wordBreak: 'break-word' }}
 				maxWidth={600}
 				shift={-3}
 				trigger={
