@@ -1,7 +1,4 @@
-import {
-	useGetLogsKeysLazyQuery,
-	useGetTracesKeysLazyQuery,
-} from '@graph/hooks'
+import { useGetKeysLazyQuery } from '@graph/hooks'
 import {
 	ComboboxSelect,
 	DEFAULT_TIME_PRESETS,
@@ -16,6 +13,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import LoadingBox from '@/components/LoadingBox'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { FixedRangePreset } from '@/components/Search/SearchForm/SearchForm'
+import { ProductType } from '@/graph/generated/schemas'
 import { useSearchTime } from '@/hooks/useSearchTime'
 
 import * as styles from './styles.css'
@@ -43,20 +41,18 @@ export type ValidCustomColumn = CustomColumn<any>
 
 type Props = {
 	attributePrefix: string
+	productType: ProductType
 	selectedColumns: ValidCustomColumn[]
 	standardColumns: Record<string, ValidCustomColumn>
 	setSelectedColumns: (columns: ValidCustomColumn[]) => void
-	getKeysLazyQuery:
-		| typeof useGetTracesKeysLazyQuery
-		| typeof useGetLogsKeysLazyQuery
 }
 
 export const CustomColumnPopover: React.FC<Props> = ({
 	attributePrefix,
+	productType,
 	selectedColumns,
 	standardColumns,
 	setSelectedColumns,
-	getKeysLazyQuery,
 }) => {
 	const { project_id } = useParams()
 	const [query, setQuery] = useState<string>('')
@@ -68,12 +64,13 @@ export const CustomColumnPopover: React.FC<Props> = ({
 		initialPreset: FixedRangePreset,
 	})
 
-	const [getKeys, { data, loading }] = getKeysLazyQuery()
+	const [getKeys, { data, loading }] = useGetKeysLazyQuery()
 
 	useEffect(() => {
 		if (debouncedQuery) {
 			getKeys({
 				variables: {
+					product_type: productType,
 					project_id: project_id!,
 					date_range: {
 						start_date: moment(startDate).format(TIME_FORMAT),
@@ -83,7 +80,7 @@ export const CustomColumnPopover: React.FC<Props> = ({
 				},
 			})
 		}
-	}, [debouncedQuery, startDate, endDate, project_id, getKeys])
+	}, [debouncedQuery, startDate, endDate, productType, project_id, getKeys])
 
 	const defaultColumnOptions = useMemo(() => {
 		const seletedColumnHash = selectedColumns.reduce((acc, column) => {

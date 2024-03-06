@@ -9,11 +9,7 @@ import { useGetBaseSearchContext } from '@context/SearchState'
 import {
 	useEditProjectSettingsMutation,
 	useGetBillingDetailsForProjectQuery,
-	useGetLogsKeysLazyQuery,
-	useGetLogsKeyValuesLazyQuery,
 	useGetProjectSettingsQuery,
-	useGetTracesKeysLazyQuery,
-	useGetTracesKeyValuesLazyQuery,
 	useGetTracesMetricsQuery,
 	useGetWorkspaceSettingsQuery,
 } from '@graph/hooks'
@@ -480,16 +476,7 @@ export const ProjectProductFilters: React.FC<{
 										.subtract(30, 'days')
 										.toDate()}
 									timeMode="fixed-range"
-									fetchKeysLazyQuery={
-										product === ProductType.Logs
-											? useGetLogsKeysLazyQuery
-											: useGetTracesKeysLazyQuery
-									}
-									fetchValuesLazyQuery={
-										product === ProductType.Logs
-											? useGetLogsKeyValuesLazyQuery
-											: useGetTracesKeyValuesLazyQuery
-									}
+									productType={product}
 								/>
 							) : product === ProductType.Sessions ? (
 								<SearchContextProvider
