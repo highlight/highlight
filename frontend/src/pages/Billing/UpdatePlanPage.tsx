@@ -1557,10 +1557,10 @@ const UpdatePlanFooter: React.FC<{
 export const UpdatePlanModal: React.FC<{
 	step: PlanSelectStep
 	setStep: (step: PlanSelectStep) => void
-}> = ({ step, setStep }) => {
-	const [selectedPlanType, setSelectedPlanType] = React.useState<PlanType>(
-		PlanType.Graduated,
-	)
+	currentPlanType: Exclude<PlanType, PlanType.Free>
+}> = ({ step, setStep, currentPlanType }) => {
+	const [selectedPlanType, setSelectedPlanType] =
+		React.useState<PlanType>(currentPlanType)
 	const [hasChanges, setHasChanges] = React.useState<boolean>(false)
 	const [showConfirmCloseModal, setShowConfirmCloseModal] =
 		React.useState<boolean>(false)
