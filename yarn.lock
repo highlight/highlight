@@ -13813,7 +13813,7 @@ __metadata:
     "@types/react-select": "npm:^3.0.28"
     "@types/react-slider": "npm:^1.3.1"
     "@types/react-syntax-highlighter": "npm:^15.5.6"
-    "@types/react-virtualized-auto-sizer": "npm:^1.0.1"
+    "@types/react-virtualized-auto-sizer": "npm:^1.0.4"
     "@types/sanitize-html": "npm:^2.6.2"
     "@types/validator": "npm:^13.1.3"
     "@typescript-eslint/eslint-plugin": "npm:^5.46.1"
@@ -13887,7 +13887,7 @@ __metadata:
     react-syntax-highlighter: "npm:^15.5.0"
     react-text-transition: "npm:^1.3.0"
     react-use: "npm:^17.2.4"
-    react-virtualized-auto-sizer: "npm:^1.0.6"
+    react-virtualized-auto-sizer: "npm:^1.0.24"
     react-virtuoso: "npm:^2.13.1"
     recharts: "npm:^2.12.1"
     rudder-sdk-js: "npm:2.20.0"
@@ -26002,12 +26002,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-virtualized-auto-sizer@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@types/react-virtualized-auto-sizer@npm:1.0.1"
+"@types/react-virtualized-auto-sizer@npm:^1.0.4":
+  version: 1.0.4
+  resolution: "@types/react-virtualized-auto-sizer@npm:1.0.4"
   dependencies:
     "@types/react": "npm:*"
-  checksum: 10/67eff0670a1991c2b16992274ada5f0b3f9d5c2d6209ef38e8f8ae2c0218211a3292882f5b7dd6f09519000dc20847629f049c9acc267e000626b7141e5927a6
+  checksum: 10/e0d41ac6cf0f48dfef45c0cd70146578f42ad83dad90911aa0dfe72b0e1ea62ca9ff56d4f43f322ec6dae2e7cb4d025aefe0e85241f7782c249aeface1050512
   languageName: node
   linkType: hard
 
@@ -57497,13 +57497,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-virtualized-auto-sizer@npm:^1.0.6":
-  version: 1.0.6
-  resolution: "react-virtualized-auto-sizer@npm:1.0.6"
+"react-virtualized-auto-sizer@npm:^1.0.24":
+  version: 1.0.24
+  resolution: "react-virtualized-auto-sizer@npm:1.0.24"
   peerDependencies:
-    react: ^15.3.0 || ^16.0.0-alpha || ^17.0.0
-    react-dom: ^15.3.0 || ^16.0.0-alpha || ^17.0.0
-  checksum: 10/6124d779e22b78054318033b5f13fd02015d08f2ebce9343f272976d4ae713463465dcdd758281e560e8b3d9cd57d7caf9d12bfd82ced615b9d4dccaef7eb2d8
+    react: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0
+    react-dom: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0
+  checksum: 10/02101a340bdbe3e40c49dbc52e524eb7ca18832690e91f045a25675600d7adc0a63e800a4ace6a014132adcdcce0e12a8137971de408427a5a3112d7c87c9f3e
   languageName: node
   linkType: hard
 
