@@ -775,7 +775,8 @@ const UpdatePlanPage = ({
 	}
 	predictedTracesCost = Math.max(predictedTracesCost, actualTracesCost)
 
-	const baseAmount = PLAN_BASE_FEES[selectedPlanType] * 100
+	const baseAmount =
+		PLAN_BASE_FEES[selectedPlanType as keyof typeof PLAN_BASE_FEES] * 100
 	const discountPercent = data?.subscription_details.discount?.percent ?? 0
 	const discountAmount = data?.subscription_details.discount?.amount ?? 0
 
@@ -1204,7 +1205,7 @@ const PLAN_BASE_FEES = {
 	[PlanType.Basic]: 150,
 	[PlanType.Startup]: 400,
 	[PlanType.Graduated]: 50,
-}
+} as const
 
 const PLANS = {
 	[PlanType.Free]: {
