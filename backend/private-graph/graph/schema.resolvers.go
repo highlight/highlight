@@ -647,7 +647,7 @@ func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceI
 		"AIInsights":    *aiInsights,
 	}
 
-	if err := r.DB.WithContext(ctx).Where(&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).Take(&workspaceSettings).Updates(&workspaceSettingsUpdates).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).Model(&workspaceSettings).Clauses(clause.Returning{}).Updates(&workspaceSettingsUpdates).Error; err != nil {
 		return nil, err
 	}
 	return workspaceSettings, nil
@@ -757,7 +757,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 	updatedFields := &model.ErrorGroup{
 		Viewed: viewed,
 	}
-	if err := r.DB.WithContext(ctx).Where(&model.ErrorGroup{Model: model.Model{ID: eg.ID}}).Take(&newErrorGroup).Updates(updatedFields).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&model.ErrorGroup{Model: model.Model{ID: eg.ID}}).Model(&newErrorGroup).Clauses(clause.Returning{}).Updates(updatedFields).Error; err != nil {
 		return nil, e.Wrap(err, "error writing error as viewed")
 	}
 
@@ -823,7 +823,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 	updatedFields := &model.Session{
 		Viewed: viewed,
 	}
-	if err := r.DB.WithContext(ctx).Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&newSession).Updates(updatedFields).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&model.Session{Model: model.Model{ID: s.ID}}).Model(&newSession).Clauses(clause.Returning{}).Updates(updatedFields).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
 
@@ -2222,8 +2222,7 @@ func (r *mutationResolver) MuteSessionCommentThread(ctx context.Context, id int,
 		return nil, err
 	}
 
-	var commentFollower model.CommentFollower
-	if err := r.DB.WithContext(ctx).Where(&model.CommentFollower{SessionCommentID: id, AdminId: admin.ID}).Take(&commentFollower).Updates(
+	if err := r.DB.WithContext(ctx).Where(&model.CommentFollower{SessionCommentID: id, AdminId: admin.ID}).Updates(
 		&model.CommentFollower{
 			HasMuted: hasMuted,
 		}).Error; err != nil {
@@ -4570,7 +4569,7 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 	}
 
 	service := &model.Service{}
-	updateErr := r.DB.WithContext(ctx).Where(&model.Service{Model: model.Model{ID: id}, ProjectID: project.ID}).Take(&service).Updates(&serviceUpdates).Error
+	updateErr := r.DB.WithContext(ctx).Where(&model.Service{Model: model.Model{ID: id}, ProjectID: project.ID}).Model(&service).Clauses(clause.Returning{}).Updates(&serviceUpdates).Error
 	if updateErr != nil {
 		return nil, updateErr
 	}

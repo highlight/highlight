@@ -12,6 +12,7 @@ import (
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/samber/lo"
+	"gorm.io/gorm/clause"
 )
 
 type ListErrorObjectsParams struct {
@@ -211,7 +212,7 @@ func (store *Store) updateErrorGroupState(ctx context.Context,
 		Model: model.Model{
 			ID: params.ID,
 		},
-	}).Take(&errorGroup).Updates(map[string]interface{}{
+	}).Model(&errorGroup).Clauses(clause.Returning{}).Updates(map[string]interface{}{
 		"State":        params.State,
 		"SnoozedUntil": params.SnoozedUntil,
 	}).Error; err != nil {

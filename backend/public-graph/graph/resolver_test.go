@@ -492,7 +492,7 @@ func TestUpdatingErrorState(t *testing.T) {
 
 		errorGroup, err = resolver.HandleErrorAndGroup(ctx, &errorObject3, structuredStackTrace, nil, project.ID, nil)
 		assert.NoError(t, err)
-		assert.Equal(t, errorGroup.State, privateModel.ErrorStateIgnored) // Should stay ignored
+		assert.Equal(t, privateModel.ErrorStateIgnored, errorGroup.State) // Should stay ignored
 
 	})
 }
