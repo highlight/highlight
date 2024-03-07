@@ -40855,20 +40855,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-request@npm:^5.1.0":
-  version: 5.2.0
-  resolution: "graphql-request@npm:5.2.0"
-  dependencies:
-    "@graphql-typed-document-node/core": "npm:^3.1.1"
-    cross-fetch: "npm:^3.1.5"
-    extract-files: "npm:^9.0.0"
-    form-data: "npm:^3.0.0"
-  peerDependencies:
-    graphql: 14 - 16
-  checksum: 10/345e85c9b12f2202a9335a96613c38c694eccf11821da06660edb49ea7f757fb175ca6e7ead483146a28d0eae295d644e34cca687ab70d2085817873aa4c479f
-  languageName: node
-  linkType: hard
-
 "graphql-request@npm:^6.0.0, graphql-request@npm:^6.1.0":
   version: 6.1.0
   resolution: "graphql-request@npm:6.1.0"
@@ -41437,7 +41423,7 @@ __metadata:
     framer-motion: "npm:^8.5.2"
     fuse.js: "npm:^6.6.2"
     graphql: "npm:^16.6.0"
-    graphql-request: "npm:^5.1.0"
+    graphql-request: "npm:^6.1.0"
     gray-matter: "npm:^4.0.3"
     husky: "npm:^8.0.3"
     js-cookie: "npm:^3.0.1"
