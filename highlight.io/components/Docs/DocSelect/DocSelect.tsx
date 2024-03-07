@@ -72,6 +72,13 @@ const DOCS_TYPES: Array<{
 	},
 	{
 		id: 8,
+		name: 'Rust SDK',
+		icon: <DocumentTextIcon />,
+		url: '/docs/sdk/rust',
+		baseUrl: '/docs/sdk/rust',
+	},
+	{
+		id: 9,
 		name: 'Client SDK',
 		icon: <DocumentTextIcon />,
 		url: '/docs/sdk/client',
