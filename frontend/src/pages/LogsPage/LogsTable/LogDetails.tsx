@@ -36,6 +36,7 @@ import React, { useEffect, useState } from 'react'
 import { createSearchParams, generatePath } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { QueryParam } from '@/components/Search/SearchForm/SearchForm'
 import {
@@ -75,13 +76,6 @@ const getSessionLink = (
 	return `/${projectId}/sessions/${log.node.secureSessionID}?${params}`
 }
 
-const getErrorLink = (projectId: string, log: LogEdgeWithResources): string => {
-	const params = createSearchParams({
-		[PlayerSearchParameters.log]: log.cursor,
-	})
-	return `/errors/${log.error_object?.error_group_secure_id}/instances/${log.error_object?.id}?${params}`
-}
-
 const getTraceLink = (projectId: string, log: LogEdgeWithResources): string => {
 	const params = createSearchParams({
 		query: `${ReservedTraceKey.TraceId}${DEFAULT_OPERATOR}${log.node.traceID}`,
@@ -97,6 +91,7 @@ export const LogDetails: React.FC<Props> = ({
 	row,
 	queryParts,
 }) => {
+	const { set } = useRelatedResource()
 	const { projectId } = useProjectId()
 	const [allExpanded, setAllExpanded] = useState(false)
 	const {
@@ -285,10 +280,20 @@ export const LogDetails: React.FC<Props> = ({
 					pl="4"
 				>
 					{row.original.error_object && (
-						<LinkButton
+						<Button
 							kind="secondary"
 							emphasis="low"
-							to={getErrorLink(projectId, row.original)}
+							onClick={() => {
+								const { error_object } = row.original
+
+								if (error_object) {
+									set({
+										type: 'error',
+										id: error_object.error_group_secure_id,
+										instanceId: error_object.id,
+									})
+								}
+							}}
 							trackingId="logs_related-error_click"
 						>
 							<Box
@@ -300,7 +305,7 @@ export const LogDetails: React.FC<Props> = ({
 								<IconSolidLightningBolt />
 								Related Error
 							</Box>
-						</LinkButton>
+						</Button>
 					)}
 
 					{secureSessionID && (

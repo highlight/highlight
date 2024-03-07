@@ -2,6 +2,7 @@ import { Box } from '@highlight-run/ui/components'
 import { useState } from 'react'
 
 import { Divider } from '@/components/CreateAlertButton/CreateAlertButton'
+import LoadingBox from '@/components/LoadingBox'
 import { RelatedError } from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
 import { useGetErrorInstanceQuery } from '@/graph/generated/hooks'
@@ -16,7 +17,6 @@ import ErrorShareButton from '@/pages/ErrorsV2/ErrorShareButton/ErrorShareButton
 import { ErrorStateSelect } from '@/pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
 import { useErrorGroup } from '@/pages/ErrorsV2/ErrorsV2'
 import ErrorTitle from '@/pages/ErrorsV2/ErrorTitle/ErrorTitle'
-import LoadingBox from '@/components/LoadingBox'
 
 export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 	resource,
