@@ -7,6 +7,8 @@ import {
 } from '@highlight-run/ui/components'
 import { useNavigate } from 'react-router-dom'
 
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
+
 type Props = {
 	path: string
 }
@@ -16,6 +18,7 @@ export const PanelHeader: React.FC<React.PropsWithChildren<Props>> = ({
 	path,
 }) => {
 	const navigate = useNavigate()
+	const { remove } = useRelatedResource()
 
 	return (
 		<Box
@@ -41,9 +44,7 @@ export const PanelHeader: React.FC<React.PropsWithChildren<Props>> = ({
 					icon={<IconSolidX />}
 					emphasis="low"
 					kind="secondary"
-					onClick={() => {
-						// TODO: Trigger close. Might need to set up provider.
-					}}
+					onClick={remove}
 				/>
 			</Stack>
 		</Box>
