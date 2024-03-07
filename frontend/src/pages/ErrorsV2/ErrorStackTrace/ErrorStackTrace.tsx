@@ -429,7 +429,7 @@ const SourcemapError: React.FC<{
 	errorObjectId: string
 	metadata?: Maybe<SourceMappingError>
 }> = ({ errorObjectId, metadata }) => {
-	const popoverStore = Popover.usePopoverStore({ placement: 'bottom-start' })
+	const popoverStore = Popover.useStore({ placement: 'bottom-start' })
 
 	// Ensures the popover is closed when the error instance changes.
 	React.useEffect(() => {

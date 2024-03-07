@@ -1,7 +1,8 @@
 import { style } from '@vanilla-extract/css'
+
 import { vars } from '../../../css/vars'
-import * as headStyles from '../Head/styles.css'
 import * as bodyStyles from '../Body/styles.css'
+import * as headStyles from '../Head/styles.css'
 import * as tableStyles from '../styles.css'
 
 export const BORDER = `1px solid ${vars.theme.static.divider.weak}`

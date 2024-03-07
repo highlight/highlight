@@ -1,12 +1,5 @@
 import Select from '@components/Select/Select'
-import {
-	Box,
-	Form,
-	FormState,
-	Stack,
-	Text,
-	useForm,
-} from '@highlight-run/ui/components'
+import { Box, Form, FormState, Stack, Text } from '@highlight-run/ui/components'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -21,7 +14,7 @@ const AlertNotifyForm = () => {
 	const { alertsPayload, slackUrl } = useAlertsContext()
 	const { slackLoading, syncSlack } = useSlackSync()
 	const [slackSearchQuery, setSlackSearchQuery] = useState('')
-	const formStore = useForm() as FormState<AlertForm>
+	const formStore = Form.useContext() as FormState<AlertForm>
 
 	const slackChannels = (alertsPayload?.slack_channel_suggestion ?? []).map(
 		({ webhook_channel, webhook_channel_id }) => ({

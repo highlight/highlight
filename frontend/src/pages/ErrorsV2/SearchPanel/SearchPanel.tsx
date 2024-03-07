@@ -27,7 +27,7 @@ import { useParams } from '@util/react-router/useParams'
 import { usePollQuery } from '@util/search'
 import clsx from 'clsx'
 import moment from 'moment/moment'
-import React, { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { useErrorPageNavigation } from '@/pages/ErrorsV2/ErrorsV2'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'

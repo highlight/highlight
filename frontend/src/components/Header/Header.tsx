@@ -733,7 +733,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 																		)
 																	},
 															  )}
-														<Divider className="mt-1 mb-0" />
+														<Divider className="mb-0 mt-1" />
 														<Link
 															to="/new"
 															state={{

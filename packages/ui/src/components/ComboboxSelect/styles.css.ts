@@ -1,5 +1,6 @@
-import { vars } from '@/vars'
 import { style } from '@vanilla-extract/css'
+
+import { vars } from '@/vars'
 
 import { colors } from '../../css/colors'
 

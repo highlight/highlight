@@ -146,7 +146,15 @@ export const Token = ({ token }: { token: SearchToken }): JSX.Element => {
 					[styles.whitspaceToken]: text.trim() === '',
 				})}
 			>
-				{text}
+				{text.split('').map((char, index) =>
+					char === '*' ? (
+						<span key={index} style={{ color: '#E93D82' }}>
+							{char}
+						</span>
+					) : (
+						char
+					),
+				)}
 			</Box>
 		)
 	}

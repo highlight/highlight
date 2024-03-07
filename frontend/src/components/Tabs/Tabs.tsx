@@ -1,10 +1,10 @@
 // eslint-disable-next-line no-restricted-imports
 import useLocalStorage from '@rehooks/local-storage'
+import { isRenderable } from '@util/react'
 import { Tabs as AntDesignTabs, TabsProps } from 'antd'
+import clsx from 'clsx'
 import React, { useEffect } from 'react'
 const { TabPane } = AntDesignTabs
-import { isRenderable } from '@util/react'
-import clsx from 'clsx'
 
 import styles from './Tabs.module.css'
 

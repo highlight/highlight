@@ -1,6 +1,4 @@
 import {
-	// Disabling here because we are using this file as a proxy.
-	// eslint-disable-next-line no-restricted-imports
 	Tooltip as AntDesignTooltip,
 	TooltipProps as AntDesignTooltipProps,
 } from 'antd'

@@ -22,8 +22,7 @@ import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubI
 import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
 import { IntegrationModal } from '@pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
 import { GITHUB_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
-import { capitalize } from 'lodash'
-import { debounce } from 'lodash'
+import { capitalize, debounce } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import { Service, ServiceStatus } from '@/graph/generated/schemas'

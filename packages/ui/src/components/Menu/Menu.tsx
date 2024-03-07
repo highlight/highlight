@@ -1,20 +1,12 @@
 import * as Ariakit from '@ariakit/react'
 import clsx, { ClassValue } from 'clsx'
 import React from 'react'
-import {
-	Button as OriginalButton,
-	ButtonProps as ButtonProps,
-} from '../Button/Button'
 
+import { Button as OriginalButton, ButtonProps } from '../Button/Button'
 import { ButtonIcon, Props as ButtonIconProps } from '../ButtonIcon/ButtonIcon'
 import * as styles from './styles.css'
 
-const MenuContext = React.createContext<Ariakit.MenuStore>(
-	{} as Ariakit.MenuStore,
-)
-export const useMenu = () => React.useContext(MenuContext)
-
-type Props = React.PropsWithChildren<Partial<Ariakit.MenuStoreProps>>
+type Props = React.PropsWithChildren<Partial<Ariakit.MenuProviderProps>>
 
 type MenuComponent = React.FC<Props> & {
 	Button: typeof Button
@@ -22,12 +14,12 @@ type MenuComponent = React.FC<Props> & {
 	Item: typeof Item
 	Divider: typeof Divider
 	Heading: typeof Heading
+	useStore: typeof Ariakit.useMenuStore
+	useContext: typeof Ariakit.useMenuContext
 }
 
 export const Menu: MenuComponent = ({ children, ...props }: Props) => {
-	const menu = Ariakit.useMenuStore(props)
-
-	return <MenuContext.Provider value={menu}>{children}</MenuContext.Provider>
+	return <Ariakit.MenuProvider {...props}>{children}</Ariakit.MenuProvider>
 }
 
 export type MenuButtonProps = React.PropsWithChildren<{
@@ -45,11 +37,16 @@ const Button: React.FC<Omit<MenuButtonProps, 'store'>> = ({
 	children,
 	...props
 }) => {
-	const menu = useMenu()
-	const Component = props.icon && !children ? ButtonIcon : OriginalButton
+	const menu = Ariakit.useMenuContext()
+	const Component =
+		props.icon && !children ? (
+			<ButtonIcon icon={props.icon} />
+		) : (
+			<OriginalButton />
+		)
 
 	return (
-		<Ariakit.MenuButton as={Component} store={menu} {...props}>
+		<Ariakit.MenuButton render={Component} store={menu} {...props}>
 			{children}
 		</Ariakit.MenuButton>
 	)
@@ -61,7 +58,7 @@ type ListProps = React.PropsWithChildren<{
 	Partial<Ariakit.MenuProps>
 
 const List: React.FC<ListProps> = ({ children, cssClass, ...props }) => {
-	const menu = useMenu()
+	const menu = Ariakit.useMenuContext()
 
 	return (
 		<Ariakit.Menu
@@ -121,3 +118,5 @@ Menu.List = List
 Menu.Item = Item
 Menu.Divider = Divider
 Menu.Heading = Heading
+Menu.useStore = Ariakit.useMenuStore
+Menu.useContext = Ariakit.useMenuContext

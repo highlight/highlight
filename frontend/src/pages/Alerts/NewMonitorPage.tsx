@@ -20,7 +20,7 @@ import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration'
 import { useParams } from '@util/react-router/useParams'
 import message from 'antd/es/message'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useLocation, useNavigate } from 'react-router-dom'
 

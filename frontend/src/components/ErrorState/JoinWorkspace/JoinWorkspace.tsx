@@ -3,7 +3,6 @@ import { useJoinWorkspaceMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Maybe } from '@graph/schemas'
 import { message } from 'antd'
-import React from 'react'
 
 import { showSupportMessage } from '@/util/window'
 

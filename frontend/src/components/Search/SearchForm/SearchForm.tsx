@@ -1,5 +1,5 @@
 import { useSavedSegments } from '@components/Search/useSavedSegments'
-import { GetLogsKeysQuery, GetTracesKeysQuery } from '@graph/operations'
+import { GetKeysQuery } from '@graph/operations'
 import {
 	Badge,
 	Box,
@@ -49,11 +49,10 @@ import {
 } from '@/components/Search/SearchForm/utils'
 import { parseSearch } from '@/components/Search/utils'
 import {
-	useGetLogsKeysLazyQuery,
-	useGetLogsKeyValuesLazyQuery,
-	useGetTracesKeysLazyQuery,
-	useGetTracesKeyValuesLazyQuery,
+	useGetKeysLazyQuery,
+	useGetKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
+import { ProductType } from '@/graph/generated/schemas'
 import { useDebounce } from '@/hooks/useDebounce'
 
 import * as styles from './SearchForm.css'
@@ -62,14 +61,7 @@ export const QueryParam = withDefault(StringParam, '')
 export const FixedRangePreset = DEFAULT_TIME_PRESETS[0]
 export const PermalinkPreset = DEFAULT_TIME_PRESETS[5]
 
-type FetchKeys =
-	| typeof useGetLogsKeysLazyQuery
-	| typeof useGetTracesKeysLazyQuery
-type FetchValues =
-	| typeof useGetLogsKeyValuesLazyQuery
-	| typeof useGetTracesKeyValuesLazyQuery
-
-type Keys = GetLogsKeysQuery['keys'] | GetTracesKeysQuery['keys']
+type Keys = GetKeysQuery['keys']
 type SearchResult = Keys[0] | OperatorResult | ValueResult
 type OperatorResult = { name: SearchOperator; type: 'Operator' }
 type ValueResult = { name: string; type: 'Value' }
@@ -104,8 +96,7 @@ export type SearchFormProps = {
 	presets: DateRangePreset[]
 	minDate: Date
 	timeMode: TIME_MODE
-	fetchKeysLazyQuery: FetchKeys
-	fetchValuesLazyQuery: FetchValues
+	productType: ProductType
 	disableSearch?: boolean
 	actions?: React.FC<{
 		query: string
@@ -122,8 +113,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	startDate,
 	endDate,
 	selectedPreset,
-	fetchKeysLazyQuery,
-	fetchValuesLazyQuery,
+	productType,
 	onDatesChange,
 	onFormSubmit,
 	presets,
@@ -171,8 +161,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					endDate={endDate}
 					disableSearch={disableSearch}
 					query={query}
-					fetchValuesLazyQuery={fetchValuesLazyQuery}
-					fetchKeysLazyQuery={fetchKeysLazyQuery}
+					productType={productType}
 					setQuery={setQuery}
 					onFormSubmit={onFormSubmit}
 				/>
@@ -249,8 +238,7 @@ export const Search: React.FC<{
 	disableSearch?: boolean
 	placeholder?: string
 	query: string
-	fetchKeysLazyQuery: FetchKeys
-	fetchValuesLazyQuery: FetchValues
+	productType: ProductType
 	setQuery: (value: string) => void
 	onFormSubmit: (query: string) => void
 }> = ({
@@ -261,8 +249,7 @@ export const Search: React.FC<{
 	disableSearch,
 	placeholder,
 	query,
-	fetchKeysLazyQuery,
-	fetchValuesLazyQuery,
+	productType,
 	setQuery,
 	onFormSubmit,
 }) => {
@@ -274,8 +261,9 @@ export const Search: React.FC<{
 	const comboboxStore = useComboboxStore({
 		defaultValue: query ?? '',
 	})
-	const [getKeys, { loading: keysLoading }] = fetchKeysLazyQuery()
-	const [getKeyValues, { loading: valuesLoading }] = fetchValuesLazyQuery()
+	const [getKeys, { loading: keysLoading }] = useGetKeysLazyQuery()
+	const [getKeyValues, { loading: valuesLoading }] =
+		useGetKeyValuesLazyQuery()
 	const [cursorIndex, setCursorIndex] = useState(0)
 	const [isPending, startTransition] = React.useTransition()
 
@@ -308,7 +296,11 @@ export const Search: React.FC<{
 	if (showOperators) {
 		const operators =
 			keyMatch.type === 'Numeric'
-				? [...NUMERIC_OPERATORS, ...EXISTS_OPERATORS]
+				? [
+						...BOOLEAN_OPERATORS,
+						...NUMERIC_OPERATORS,
+						...EXISTS_OPERATORS,
+				  ]
 				: [
 						...BOOLEAN_OPERATORS,
 						...EXISTS_OPERATORS,
@@ -345,6 +337,7 @@ export const Search: React.FC<{
 
 		getKeys({
 			variables: {
+				product_type: productType,
 				project_id: project_id!,
 				date_range: {
 					start_date: moment(startDate).format(TIME_FORMAT),
@@ -357,7 +350,15 @@ export const Search: React.FC<{
 				setKeys(data.keys)
 			},
 		})
-	}, [debouncedValue, showValues, startDate, endDate, project_id, getKeys])
+	}, [
+		debouncedValue,
+		showValues,
+		startDate,
+		endDate,
+		project_id,
+		getKeys,
+		productType,
+	])
 
 	useEffect(() => {
 		// When we transition to a new key we don't want to wait for the debounce
@@ -374,6 +375,7 @@ export const Search: React.FC<{
 
 		getKeyValues({
 			variables: {
+				product_type: productType,
 				project_id: project_id!,
 				key_name: activePart.key,
 				date_range: {
@@ -390,6 +392,7 @@ export const Search: React.FC<{
 		activePart.key,
 		endDate,
 		getKeyValues,
+		productType,
 		project_id,
 		showValues,
 		startDate,

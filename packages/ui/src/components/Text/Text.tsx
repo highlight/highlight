@@ -1,8 +1,8 @@
 import clsx from 'clsx'
 import React from 'react'
-import { Box, BoxProps } from '../Box/Box'
-import { Truncate, Props as TruncateProps } from '../private/Truncate/Truncate'
 
+import { Box, BoxProps } from '../Box/Box'
+import { Props as TruncateProps, Truncate } from '../private/Truncate/Truncate'
 import * as styles from './styles.css'
 
 export type Props = React.PropsWithChildren &

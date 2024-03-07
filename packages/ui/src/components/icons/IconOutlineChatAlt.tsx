@@ -1,4 +1,5 @@
 import React from 'react'
+
 import { IconProps } from './types'
 
 export const IconOutlineChatAlt = ({ size = '1em', ...props }: IconProps) => {

@@ -357,6 +357,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "mogery",
+      "name": "Gergő Móricz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/66118807?v=4",
+      "profile": "http://mogery.me",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

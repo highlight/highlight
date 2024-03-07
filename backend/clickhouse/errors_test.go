@@ -1,11 +1,12 @@
 package clickhouse
 
 import (
+	"testing"
+	"time"
+
 	"github.com/highlight-run/highlight/backend/parser"
 	modelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func Test_ErrorMatchesQuery(t *testing.T) {

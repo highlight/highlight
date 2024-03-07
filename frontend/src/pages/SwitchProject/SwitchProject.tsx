@@ -7,7 +7,7 @@ import {
 } from '@context/AppLoadingContext'
 import { useGetWorkspaceQuery } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Navigate } from 'react-router-dom'
 

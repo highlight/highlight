@@ -17,4 +17,4 @@ More details on calling these methods [here](../../getting-started/fullstack-fra
 
 If you use Vercel to deploy your server-side applications, the Vercel integration will also send your logs to Highlight. Vercel will forward build logs, lambda and edge function (server-side) logs, and static access logs. You can view these logs in the Highlight UI by clicking on the "Logs" tab in your dashboard. To configure whether to collect logs in highlight.io, you can do this by limiting logs in your billing settings.
 
-More details on turning on this integration [here](../../getting-started/5_backend-logging/06_hosting/vercel.md).
+More details on turning on this integration [here](../../getting-started/5_backend-logging/07_hosting/vercel.md).

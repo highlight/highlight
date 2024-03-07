@@ -287,6 +287,22 @@ func GetGitlabProjects(workspace *model.Workspace, accessToken string) ([]*model
 	}), nil
 }
 
+func SearchGitlabIssues(accessToken string, query string) ([]*modelInputs.IssuesSearchResult, error) {
+	url := fmt.Sprintf("%s/issues?search=%s", GitlabApiBaseUrl, url.QueryEscape(query))
+	res, err := doGitlabGetRequest[[]GitlabIssue](accessToken, url)
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Map(res, func(res GitlabIssue, _ int) *modelInputs.IssuesSearchResult {
+		return &modelInputs.IssuesSearchResult{
+			ID:       fmt.Sprint(res.ID),
+			Title:    fmt.Sprintf("#%d - %s", res.IID, res.Title),
+			IssueURL: res.WebURL,
+		}
+	}), nil
+}
+
 type NewGitlabIssuePayload struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`

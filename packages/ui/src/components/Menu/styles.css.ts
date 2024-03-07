@@ -1,9 +1,10 @@
 import { style } from '@vanilla-extract/css'
 import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
+
+import { sprinkles } from '../../css/sprinkles.css'
 import { vars } from '../../css/vars'
 import * as buttonStyles from '../Button/styles.css'
 import { typographyStyles } from '../Text/styles.css'
-import { sprinkles } from '../../css/sprinkles.css'
 
 export const menuList = style({
 	backgroundColor: 'white',

@@ -14,11 +14,19 @@ export const SearchSelect = ({
 	options,
 	loadOptions,
 	value,
+	valueLable,
+	labelInValue = true,
+	loading = false,
+	placeholder = 'graphql.operation.users',
 }: {
 	onSelect: (name: string) => void
 	options: SearchOption[]
 	loadOptions: (input: string) => void
 	value?: string
+	placeholder?: string
+	valueLable?: string
+	labelInValue?: boolean
+	loading?: boolean
 }) => {
 	return (
 		<Select
@@ -26,16 +34,19 @@ export const SearchSelect = ({
 			// this mode allows using the select component as a single searchable input
 			// @ts-ignore
 			mode="SECRET_COMBOBOX_MODE_DO_NOT_USE"
-			placeholder="graphql.operation.users"
+			placeholder={placeholder}
 			autoFocus
 			onSelect={(newValue: SearchOption) => {
 				onSelect(newValue?.value || '')
 			}}
-			defaultValue={{ label: value, value: value } as SearchOption}
+			defaultValue={
+				{ label: valueLable || value, value: value } as SearchOption
+			}
 			options={options}
 			notFoundContent={<span>`No results found`</span>}
-			labelInValue
+			labelInValue={labelInValue}
 			filterOption={false}
+			loading={loading}
 			onSearch={loadOptions}
 		/>
 	)

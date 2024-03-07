@@ -10,7 +10,6 @@ import {
 } from '@highlight-run/ui/components'
 import { showChangeThresholdPercent } from '@pages/ErrorsV2/ErrorBody/ErrorBody'
 import { getErrorGroupStats } from '@pages/ErrorsV2/utils'
-import React from 'react'
 
 interface Props {
 	errorGroup?: Maybe<Omit<ErrorGroup, 'metadata_log'>>

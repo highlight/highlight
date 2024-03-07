@@ -1,6 +1,7 @@
-import { vars } from '@/vars'
-import { sprinkles } from '@/sprinkles'
 import { style } from '@vanilla-extract/css'
+
+import { sprinkles } from '@/sprinkles'
+import { vars } from '@/vars'
 
 import * as rowStyles from '../Row/styles.css'
 import * as tableStyles from '../styles.css'

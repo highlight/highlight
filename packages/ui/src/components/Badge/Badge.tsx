@@ -1,7 +1,7 @@
 import React from 'react'
-import { Box, BoxProps } from '../Box/Box'
-import { Text, Props as TextProps } from '../Text/Text'
 
+import { Box, BoxProps } from '../Box/Box'
+import { Props as TextProps, Text } from '../Text/Text'
 import * as styles from './styles.css'
 
 export type Props = styles.Variants & {
@@ -50,6 +50,9 @@ export const Badge: React.FC<Props> = ({
 			break
 		case 'outlineGray':
 			textColor = 'default'
+			break
+		case 'outlinePurple':
+			textColor = 'p6'
 			break
 		case 'white':
 			textColor = 'moderate'

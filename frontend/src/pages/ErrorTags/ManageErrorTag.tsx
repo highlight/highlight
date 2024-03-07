@@ -1,12 +1,5 @@
 import { Button } from '@components/Button'
-import {
-	Box,
-	Form,
-	Heading,
-	Stack,
-	Table,
-	useFormStore,
-} from '@highlight-run/ui/components'
+import { Box, Form, Heading, Stack, Table } from '@highlight-run/ui/components'
 
 import {
 	useCreateErrorTagMutation,
@@ -20,7 +13,7 @@ export function ManageErrorTags() {
 	const [updateErrorTags, { loading: updateErrorTagsLoading }] =
 		useUpdateErrorTagsMutation()
 
-	const store = useFormStore({
+	const store = Form.useStore({
 		defaultValues: {
 			title: '',
 			description: '',

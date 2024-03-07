@@ -1,6 +1,5 @@
 import { Text } from '@highlight-run/ui/components'
 import moment from 'moment'
-import React from 'react'
 
 const toYearMonthDay = (timestamp: string) => {
 	const date = new Date(timestamp)

@@ -525,6 +525,37 @@ func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId i
 	return metrics, nil
 }
 
+func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	sql, args := sb.
+		Select("Value").
+		From("fields").
+		Where(sb.And(
+			sb.Equal("ProjectID", projectID),
+			sb.Equal("Name", keyName),
+			sb.Between("SessionCreatedAt", startDate, endDate))).
+		GroupBy("1").
+		OrderBy("count() DESC").
+		Limit(10).
+		BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	values := []string{}
+	for rows.Next() {
+		var value string
+		if err := rows.Scan(&value); err != nil {
+			return nil, err
+		}
+		values = append(values, value)
+	}
+
+	return values, nil
+}
+
 func (client *Client) GetConn() driver.Conn {
 	return client.conn
 }

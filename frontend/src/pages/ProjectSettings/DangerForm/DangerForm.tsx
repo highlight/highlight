@@ -6,7 +6,7 @@ import { namedOperations } from '@graph/operations'
 import { FieldsForm } from '@pages/WorkspaceSettings/FieldsForm/FieldsForm'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 
 import commonStyles from '../../../Common.module.css'

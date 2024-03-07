@@ -1,7 +1,6 @@
 import Button from '@components/Button/Button/Button'
 import Tooltip from '@components/Tooltip/Tooltip'
 import SvgDownloadIcon from '@icons/DownloadIcon'
-import React from 'react'
 // @ts-expect-error
 import { specific } from 'react-files-hooks'
 import ReactJson, { ReactJsonViewProps } from 'react-json-view'

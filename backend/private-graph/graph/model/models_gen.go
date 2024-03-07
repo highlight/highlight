@@ -21,6 +21,12 @@ type Edge interface {
 	GetCursor() string
 }
 
+type AWSMarketplaceSubscription struct {
+	CustomerIdentifier   string `json:"customer_identifier"`
+	CustomerAwsAccountID string `json:"customer_aws_account_id"`
+	ProductCode          string `json:"product_code"`
+}
+
 type AccessibleJiraResources struct {
 	ID        string   `json:"id"`
 	URL       string   `json:"url"`
@@ -428,6 +434,12 @@ type Invoice struct {
 	Status       *string    `json:"status"`
 }
 
+type IssuesSearchResult struct {
+	ID       string `json:"id"`
+	Title    string `json:"title"`
+	IssueURL string `json:"issue_url"`
+}
+
 type JiraIssueType struct {
 	Self             string              `json:"self"`
 	ID               string              `json:"id"`
@@ -611,18 +623,19 @@ type PageInfo struct {
 }
 
 type Plan struct {
-	Type                PlanType             `json:"type"`
-	Interval            SubscriptionInterval `json:"interval"`
-	MembersLimit        *int64               `json:"membersLimit"`
-	EnableBillingLimits bool                 `json:"enableBillingLimits"`
-	SessionsLimit       int64                `json:"sessionsLimit"`
-	ErrorsLimit         int64                `json:"errorsLimit"`
-	LogsLimit           int64                `json:"logsLimit"`
-	TracesLimit         int64                `json:"tracesLimit"`
-	SessionsRate        float64              `json:"sessionsRate"`
-	ErrorsRate          float64              `json:"errorsRate"`
-	LogsRate            float64              `json:"logsRate"`
-	TracesRate          float64              `json:"tracesRate"`
+	Type                PlanType                    `json:"type"`
+	Interval            SubscriptionInterval        `json:"interval"`
+	MembersLimit        *int64                      `json:"membersLimit"`
+	EnableBillingLimits bool                        `json:"enableBillingLimits"`
+	AwsMpSubscription   *AWSMarketplaceSubscription `json:"aws_mp_subscription"`
+	SessionsLimit       int64                       `json:"sessionsLimit"`
+	ErrorsLimit         int64                       `json:"errorsLimit"`
+	LogsLimit           int64                       `json:"logsLimit"`
+	TracesLimit         int64                       `json:"tracesLimit"`
+	SessionsRate        float64                     `json:"sessionsRate"`
+	ErrorsRate          float64                     `json:"errorsRate"`
+	LogsRate            float64                     `json:"logsRate"`
+	TracesRate          float64                     `json:"tracesRate"`
 }
 
 type QueryInput struct {
@@ -1812,57 +1825,84 @@ func (e ProductType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type ReservedErrorGroupKey string
+
+const (
+	ReservedErrorGroupKeyEvent  ReservedErrorGroupKey = "event"
+	ReservedErrorGroupKeyStatus ReservedErrorGroupKey = "status"
+	ReservedErrorGroupKeyTag    ReservedErrorGroupKey = "tag"
+	ReservedErrorGroupKeyType   ReservedErrorGroupKey = "type"
+)
+
+var AllReservedErrorGroupKey = []ReservedErrorGroupKey{
+	ReservedErrorGroupKeyEvent,
+	ReservedErrorGroupKeyStatus,
+	ReservedErrorGroupKeyTag,
+	ReservedErrorGroupKeyType,
+}
+
+func (e ReservedErrorGroupKey) IsValid() bool {
+	switch e {
+	case ReservedErrorGroupKeyEvent, ReservedErrorGroupKeyStatus, ReservedErrorGroupKeyTag, ReservedErrorGroupKeyType:
+		return true
+	}
+	return false
+}
+
+func (e ReservedErrorGroupKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedErrorGroupKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedErrorGroupKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedErrorGroupKey", str)
+	}
+	return nil
+}
+
+func (e ReservedErrorGroupKey) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type ReservedErrorObjectKey string
 
 const (
 	ReservedErrorObjectKeyBrowser         ReservedErrorObjectKey = "browser"
+	ReservedErrorObjectKeyClientID        ReservedErrorObjectKey = "client_id"
 	ReservedErrorObjectKeyEnvironment     ReservedErrorObjectKey = "environment"
-	ReservedErrorObjectKeyEvent           ReservedErrorObjectKey = "event"
-	ReservedErrorObjectKeyHasSessions     ReservedErrorObjectKey = "has_sessions"
-	ReservedErrorObjectKeyLogCursor       ReservedErrorObjectKey = "log_cursor"
-	ReservedErrorObjectKeyOs              ReservedErrorObjectKey = "os"
-	ReservedErrorObjectKeyPayload         ReservedErrorObjectKey = "payload"
-	ReservedErrorObjectKeyRequestID       ReservedErrorObjectKey = "request_id"
+	ReservedErrorObjectKeyHasSession      ReservedErrorObjectKey = "has_session"
+	ReservedErrorObjectKeyOsName          ReservedErrorObjectKey = "os_name"
 	ReservedErrorObjectKeySecureSessionID ReservedErrorObjectKey = "secure_session_id"
 	ReservedErrorObjectKeyServiceName     ReservedErrorObjectKey = "service_name"
 	ReservedErrorObjectKeyServiceVersion  ReservedErrorObjectKey = "service_version"
-	ReservedErrorObjectKeySource          ReservedErrorObjectKey = "source"
-	ReservedErrorObjectKeySpanID          ReservedErrorObjectKey = "span_id"
-	ReservedErrorObjectKeyStackTrace      ReservedErrorObjectKey = "stackTrace"
-	ReservedErrorObjectKeyStatus          ReservedErrorObjectKey = "status"
-	ReservedErrorObjectKeyTag             ReservedErrorObjectKey = "tag"
 	ReservedErrorObjectKeyTimestamp       ReservedErrorObjectKey = "timestamp"
 	ReservedErrorObjectKeyTraceID         ReservedErrorObjectKey = "trace_id"
-	ReservedErrorObjectKeyType            ReservedErrorObjectKey = "type"
-	ReservedErrorObjectKeyURL             ReservedErrorObjectKey = "url"
+	ReservedErrorObjectKeyVisitedURL      ReservedErrorObjectKey = "visited_url"
 )
 
 var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
 	ReservedErrorObjectKeyBrowser,
+	ReservedErrorObjectKeyClientID,
 	ReservedErrorObjectKeyEnvironment,
-	ReservedErrorObjectKeyEvent,
-	ReservedErrorObjectKeyHasSessions,
-	ReservedErrorObjectKeyLogCursor,
-	ReservedErrorObjectKeyOs,
-	ReservedErrorObjectKeyPayload,
-	ReservedErrorObjectKeyRequestID,
+	ReservedErrorObjectKeyHasSession,
+	ReservedErrorObjectKeyOsName,
 	ReservedErrorObjectKeySecureSessionID,
 	ReservedErrorObjectKeyServiceName,
 	ReservedErrorObjectKeyServiceVersion,
-	ReservedErrorObjectKeySource,
-	ReservedErrorObjectKeySpanID,
-	ReservedErrorObjectKeyStackTrace,
-	ReservedErrorObjectKeyStatus,
-	ReservedErrorObjectKeyTag,
 	ReservedErrorObjectKeyTimestamp,
 	ReservedErrorObjectKeyTraceID,
-	ReservedErrorObjectKeyType,
-	ReservedErrorObjectKeyURL,
+	ReservedErrorObjectKeyVisitedURL,
 }
 
 func (e ReservedErrorObjectKey) IsValid() bool {
 	switch e {
-	case ReservedErrorObjectKeyBrowser, ReservedErrorObjectKeyEnvironment, ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyHasSessions, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyOs, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeySecureSessionID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyStatus, ReservedErrorObjectKeyTag, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
+	case ReservedErrorObjectKeyBrowser, ReservedErrorObjectKeyClientID, ReservedErrorObjectKeyEnvironment, ReservedErrorObjectKeyHasSession, ReservedErrorObjectKeyOsName, ReservedErrorObjectKeySecureSessionID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyVisitedURL:
 		return true
 	}
 	return false
@@ -1886,6 +1926,75 @@ func (e *ReservedErrorObjectKey) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ReservedErrorObjectKey) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ReservedErrorsJoinedKey string
+
+const (
+	// ReservedErrorObjectKey
+	ReservedErrorsJoinedKeyBrowser         ReservedErrorsJoinedKey = "browser"
+	ReservedErrorsJoinedKeyClientID        ReservedErrorsJoinedKey = "client_id"
+	ReservedErrorsJoinedKeyEnvironment     ReservedErrorsJoinedKey = "environment"
+	ReservedErrorsJoinedKeyHasSession      ReservedErrorsJoinedKey = "has_session"
+	ReservedErrorsJoinedKeyOsName          ReservedErrorsJoinedKey = "os_name"
+	ReservedErrorsJoinedKeySecureSessionID ReservedErrorsJoinedKey = "secure_session_id"
+	ReservedErrorsJoinedKeyServiceName     ReservedErrorsJoinedKey = "service_name"
+	ReservedErrorsJoinedKeyServiceVersion  ReservedErrorsJoinedKey = "service_version"
+	ReservedErrorsJoinedKeyTimestamp       ReservedErrorsJoinedKey = "timestamp"
+	ReservedErrorsJoinedKeyTraceID         ReservedErrorsJoinedKey = "trace_id"
+	ReservedErrorsJoinedKeyVisitedURL      ReservedErrorsJoinedKey = "visited_url"
+	// ReservedErrorGroupKey
+	ReservedErrorsJoinedKeyEvent  ReservedErrorsJoinedKey = "event"
+	ReservedErrorsJoinedKeyStatus ReservedErrorsJoinedKey = "status"
+	ReservedErrorsJoinedKeyTag    ReservedErrorsJoinedKey = "tag"
+	ReservedErrorsJoinedKeyType   ReservedErrorsJoinedKey = "type"
+)
+
+var AllReservedErrorsJoinedKey = []ReservedErrorsJoinedKey{
+	ReservedErrorsJoinedKeyBrowser,
+	ReservedErrorsJoinedKeyClientID,
+	ReservedErrorsJoinedKeyEnvironment,
+	ReservedErrorsJoinedKeyHasSession,
+	ReservedErrorsJoinedKeyOsName,
+	ReservedErrorsJoinedKeySecureSessionID,
+	ReservedErrorsJoinedKeyServiceName,
+	ReservedErrorsJoinedKeyServiceVersion,
+	ReservedErrorsJoinedKeyTimestamp,
+	ReservedErrorsJoinedKeyTraceID,
+	ReservedErrorsJoinedKeyVisitedURL,
+	ReservedErrorsJoinedKeyEvent,
+	ReservedErrorsJoinedKeyStatus,
+	ReservedErrorsJoinedKeyTag,
+	ReservedErrorsJoinedKeyType,
+}
+
+func (e ReservedErrorsJoinedKey) IsValid() bool {
+	switch e {
+	case ReservedErrorsJoinedKeyBrowser, ReservedErrorsJoinedKeyClientID, ReservedErrorsJoinedKeyEnvironment, ReservedErrorsJoinedKeyHasSession, ReservedErrorsJoinedKeyOsName, ReservedErrorsJoinedKeySecureSessionID, ReservedErrorsJoinedKeyServiceName, ReservedErrorsJoinedKeyServiceVersion, ReservedErrorsJoinedKeyTimestamp, ReservedErrorsJoinedKeyTraceID, ReservedErrorsJoinedKeyVisitedURL, ReservedErrorsJoinedKeyEvent, ReservedErrorsJoinedKeyStatus, ReservedErrorsJoinedKeyTag, ReservedErrorsJoinedKeyType:
+		return true
+	}
+	return false
+}
+
+func (e ReservedErrorsJoinedKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedErrorsJoinedKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedErrorsJoinedKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedErrorsJoinedKey", str)
+	}
+	return nil
+}
+
+func (e ReservedErrorsJoinedKey) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

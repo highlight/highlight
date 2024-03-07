@@ -6,7 +6,6 @@ import {
 	IconSolidCheveronLeft,
 	Stack,
 	Text,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
@@ -23,7 +22,7 @@ export const ResetPassword: React.FC = () => {
 	const location = useLocation()
 	const initialEmail: string = location.state?.email ?? ''
 	const [loading, setLoading] = useState(false)
-	const formStore = useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			email: initialEmail ?? '',
 		},

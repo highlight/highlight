@@ -15,10 +15,7 @@ import {
 	SearchFormProps,
 } from '@/components/Search/SearchForm/SearchForm'
 import { DEFAULT_OPERATOR } from '@/components/Search/SearchForm/utils'
-import {
-	useGetLogsKeysLazyQuery,
-	useGetLogsKeyValuesLazyQuery,
-} from '@/graph/generated/hooks'
+import { ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
@@ -94,8 +91,7 @@ export const TraceLogs: React.FC = () => {
 						actions={SearchFormActions}
 						hideDatePicker
 						hideCreateAlert
-						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
-						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
+						productType={ProductType.Logs}
 					/>
 					<Box height="full" pt="4" px="12" pb="12">
 						{(!loading && logEdges.length === 0) || !traceId ? (

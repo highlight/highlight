@@ -23,7 +23,7 @@ const DEFAULT_QUERIES = [
 ]
 
 export function ErrorTags() {
-	const formStore = Form.useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			query: '',
 		},

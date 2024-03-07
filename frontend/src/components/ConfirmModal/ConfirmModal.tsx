@@ -2,7 +2,7 @@ import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import analytics from '@util/analytics'
 import { H } from 'highlight.run'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useAsyncFn } from 'react-use'
 
 import Button, { GenericHighlightButtonProps } from '../Button/Button/Button'

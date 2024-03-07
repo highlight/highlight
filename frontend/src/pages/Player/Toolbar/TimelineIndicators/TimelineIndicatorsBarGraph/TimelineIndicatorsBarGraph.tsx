@@ -31,7 +31,7 @@ import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTimeAsAlphanum, formatTimeAsHMS } from '@util/time'
 import clsx from 'clsx'
-import React, {
+import {
 	useCallback,
 	useEffect,
 	useLayoutEffect,

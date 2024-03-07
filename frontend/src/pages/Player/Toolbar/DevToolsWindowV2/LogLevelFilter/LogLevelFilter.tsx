@@ -7,7 +7,6 @@ import {
 	LogLevelValue,
 	titilize,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import React from 'react'
 
 type Props = {
 	logLevels: LogLevelValue[]
