@@ -8,7 +8,6 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { themeVars } from '@highlight-run/ui/theme'
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { THROTTLED_UPDATE_MS } from '@pages/Player/PlayerHook/PlayerState'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import {
@@ -48,9 +47,11 @@ const ErrorsPage = ({
 	const location = useLocation()
 	const { errors, state, session, sessionMetadata, isPlayerReady, setTime } =
 		useReplayerContext()
-
-	const { activeError, setActiveError } = usePlayerUIContext()
-	const { set } = useRelatedResource()
+	const { resource, set } = useRelatedResource()
+	const activeError = useMemo(
+		() => errors.find((error) => error.id === resource?.id),
+		[errors, resource?.id],
+	)
 
 	const loading = state === ReplayerState.Loading
 
@@ -116,12 +117,6 @@ const ErrorsPage = ({
 		})
 	}, [errors, filter])
 
-	const selectedError = useMemo(() => {
-		if (!activeError) return
-
-		return errors.find((error) => error.id === activeError.id)
-	}, [activeError, errors])
-
 	useEffect(() => {
 		analytics.track('session_view-errors')
 	}, [])
@@ -143,17 +138,28 @@ const ErrorsPage = ({
 							key={error.error_group_secure_id}
 							error={error}
 							onClickHandler={() => {
-								set({
-									type: 'error',
-									id: error.error_group_secure_id,
-									instanceId: error.id,
-								})
+								set(
+									{
+										type: 'error',
+										id: error.error_group_secure_id,
+										instanceId: error.id,
+									},
+									{
+										currentIndex: index,
+										resources: errorsToRender.map(
+											(error) => ({
+												type: 'error',
+												id: error.error_group_secure_id,
+												instanceId: error.id,
+											}),
+										),
+									},
+								)
 							}}
-							setActiveError={setActiveError}
 							setTime={setTime}
 							startTime={sessionMetadata.startTime}
 							searchQuery={filter}
-							selectedError={selectedError?.id === error.id}
+							selectedError={activeError?.id === error.id}
 							current={index === lastActiveErrorIndex}
 							past={index <= lastActiveErrorIndex}
 						/>
@@ -173,9 +179,6 @@ interface Props {
 	error: ErrorObject
 	onClickHandler: () => void
 	selectedError: boolean
-	setActiveError: React.Dispatch<
-		React.SetStateAction<ErrorObject | undefined>
-	>
 	setTime: (time: number) => void
 	startTime: number
 	searchQuery: string
@@ -188,7 +191,6 @@ const ErrorRow = React.memo(
 		error,
 		onClickHandler,
 		selectedError,
-		setActiveError,
 		setTime,
 		startTime,
 		searchQuery,
@@ -277,7 +279,6 @@ const ErrorRow = React.memo(
 							onClick={(event) => {
 								setTime(timestamp)
 								event.stopPropagation() /* Prevents opening of right panel by parent row's onClick handler */
-								setActiveError(error)
 							}}
 						>
 							<IconSolidArrowCircleRight />

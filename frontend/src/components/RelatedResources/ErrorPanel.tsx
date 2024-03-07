@@ -39,11 +39,9 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 
 	return (
 		<Panel open={true}>
-			{showLoading ? (
-				<LoadingBox />
-			) : (
-				<>
-					<Panel.Header path={path}>
+			<Panel.Header path={path}>
+				{!showLoading && (
+					<>
 						<ErrorShareButton errorGroup={errorGroup} />
 						<ErrorStateSelect
 							state={errorGroup.state}
@@ -51,42 +49,33 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 						/>
 						<Divider />
 						<ErrorIssueButton errorGroup={errorGroup} />
-					</Panel.Header>
+					</>
+				)}
+			</Panel.Header>
 
-					<Box overflowY="scroll" width="full">
-						<>
-							<Box
-								py="24"
-								px="20"
-								mx="auto"
-								style={{ maxWidth: 940 }}
-							>
-								<ErrorTitle errorGroup={errorGroup} />
-								<ErrorBody errorGroup={errorGroup} />
+			{showLoading ? (
+				<LoadingBox />
+			) : (
+				<Box overflowY="scroll" width="full">
+					<Box py="24" px="20" mx="auto" style={{ maxWidth: 940 }}>
+						<ErrorTitle errorGroup={errorGroup} />
+						<ErrorBody errorGroup={errorGroup} />
 
-								<Box mt="32">
-									<ErrorInstanceBody
-										errorInstance={errorInstance}
-									/>
-								</Box>
+						<Box mt="32">
+							<ErrorInstanceBody errorInstance={errorInstance} />
+						</Box>
 
-								<ErrorInstanceInfo
-									errorGroup={errorGroup}
-									errorInstance={errorInstance}
-								/>
-								<ErrorInstanceStackTrace
-									displayGitHubSettings={
-										displayGitHubSettings
-									}
-									errorInstance={errorInstance}
-									setDisplayGitHubSettings={
-										setDisplayGitHubSettings
-									}
-								/>
-							</Box>
-						</>
+						<ErrorInstanceInfo
+							errorGroup={errorGroup}
+							errorInstance={errorInstance}
+						/>
+						<ErrorInstanceStackTrace
+							displayGitHubSettings={displayGitHubSettings}
+							errorInstance={errorInstance}
+							setDisplayGitHubSettings={setDisplayGitHubSettings}
+						/>
 					</Box>
-				</>
+				</Box>
 			)}
 		</Panel>
 	)

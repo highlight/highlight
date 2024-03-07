@@ -53,6 +53,7 @@ import useResizeAware from 'react-resize-aware'
 import { useNavigate } from 'react-router-dom'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { NetworkResourcePanel } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourcePanel'
 import DevToolsWindowV2 from '@/pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
 import { useIntegratedLocalStorage } from '@/util/integrated'
@@ -119,14 +120,13 @@ const PlayerPage = () => {
 
 	const {
 		setShowLeftPanel,
-		setShowRightPanel,
 		setSelectedDevToolsTab,
 		setShowDevTools,
 		showLeftPanel: showLeftPanelPreference,
 		showRightPanel: showRightPanelPreference,
 	} = usePlayerConfiguration()
-	const { rightPanelView, setRightPanelView, setActiveError } =
-		usePlayerUIContext()
+	const { rightPanelView } = usePlayerUIContext()
+	const { set } = useRelatedResource()
 	const showRightPanel =
 		showRightPanelPreference || rightPanelView === RightPanelView.Comments
 
@@ -134,21 +134,22 @@ const PlayerPage = () => {
 	useEffect(() => {
 		if (errorObject) {
 			setShowLeftPanel(false)
-			setShowRightPanel(true)
 			setShowDevTools(true)
 			setSelectedDevToolsTab(Tab.Errors)
-			setActiveError({ ...errorObject, session })
-			setRightPanelView(RightPanelView.Error)
+			// TODO: Click test
+			set({
+				type: 'error',
+				id: errorObject.error_group_secure_id,
+				instanceId: errorObject.id,
+			})
 		}
 	}, [
 		errorObject,
 		session,
-		setActiveError,
-		setRightPanelView,
+		set,
 		setSelectedDevToolsTab,
 		setShowDevTools,
 		setShowLeftPanel,
-		setShowRightPanel,
 	])
 
 	const { logCursor } = useLinkLogCursor()

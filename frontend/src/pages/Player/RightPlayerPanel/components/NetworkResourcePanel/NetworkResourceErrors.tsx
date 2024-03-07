@@ -3,15 +3,11 @@ import moment from 'moment'
 import { useEffect } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { useGetErrorGroupsClickhouseQuery } from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
 import { ErrorFeedCard } from '@/pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import { FullScreenContainer } from '@/pages/LogsPage/LogsTable/FullScreenContainer'
-import {
-	RightPanelView,
-	usePlayerUIContext,
-} from '@/pages/Player/context/PlayerUIContext'
-import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@/pages/Player/ReplayerContext'
 import {
 	getHighlightRequestId,
@@ -21,8 +17,7 @@ import analytics from '@/util/analytics'
 
 export const NetworkResourceErrors: React.FC<{
 	resource: NetworkResource
-	hide: () => void
-}> = ({ resource, hide }) => {
+}> = ({ resource }) => {
 	const { projectId } = useProjectId()
 	const { errors: sessionErrors } = useReplayerContext()
 	const requestId = getHighlightRequestId(resource)
@@ -44,8 +39,7 @@ export const NetworkResourceErrors: React.FC<{
 		skip: errors.length === 0,
 	})
 
-	const { setActiveError, setRightPanelView } = usePlayerUIContext()
-	const { setShowRightPanel } = usePlayerConfiguration()
+	const { set } = useRelatedResource()
 
 	useEffect(() => {
 		analytics.track('session_network-resource-errors_view')
@@ -72,10 +66,14 @@ export const NetworkResourceErrors: React.FC<{
 											e.error_group_secure_id ===
 											errorGroup.secure_id,
 									)
-									setActiveError(error)
-									setShowRightPanel(true)
-									setRightPanelView(RightPanelView.Error)
-									hide()
+
+									if (error) {
+										set({
+											type: 'error',
+											id: errorGroup.secure_id,
+											instanceId: error.id,
+										})
+									}
 								}}
 							/>
 						</Box>
