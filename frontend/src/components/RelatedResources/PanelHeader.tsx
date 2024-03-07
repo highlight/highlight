@@ -1,13 +1,12 @@
 import {
 	Box,
 	ButtonIcon,
+	Dialog,
 	IconSolidArrowsExpand,
 	IconSolidX,
 	Stack,
 } from '@highlight-run/ui/components'
 import { useNavigate } from 'react-router-dom'
-
-import { useRelatedResource } from '@/components/RelatedResources/hooks'
 
 type Props = {
 	path: string
@@ -18,7 +17,7 @@ export const PanelHeader: React.FC<React.PropsWithChildren<Props>> = ({
 	path,
 }) => {
 	const navigate = useNavigate()
-	const { remove } = useRelatedResource()
+	const dialogStore = Dialog.useContext()!
 
 	return (
 		<Box
@@ -40,11 +39,14 @@ export const PanelHeader: React.FC<React.PropsWithChildren<Props>> = ({
 
 			<Stack gap="4" direction="row" alignItems="center">
 				{children}
+
 				<ButtonIcon
 					icon={<IconSolidX />}
 					emphasis="low"
 					kind="secondary"
-					onClick={remove}
+					onClick={() => {
+						dialogStore.hide()
+					}}
 				/>
 			</Stack>
 		</Box>

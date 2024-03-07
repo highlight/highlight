@@ -16,6 +16,7 @@ import ErrorShareButton from '@/pages/ErrorsV2/ErrorShareButton/ErrorShareButton
 import { ErrorStateSelect } from '@/pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
 import { useErrorGroup } from '@/pages/ErrorsV2/ErrorsV2'
 import ErrorTitle from '@/pages/ErrorsV2/ErrorTitle/ErrorTitle'
+import LoadingBox from '@/components/LoadingBox'
 
 export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 	resource,
@@ -33,45 +34,60 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 			skip: !resource.instanceId,
 		})
 	const errorInstance = errorInstanceData?.error_instance
-
-	if (loading || errorInstanceLoading || !errorGroup || !errorInstance) {
-		return <Panel.Loading />
-	}
+	const showLoading =
+		loading || errorInstanceLoading || !errorGroup || !errorInstance
 
 	return (
 		<Panel open={true}>
-			<Panel.Header path={path}>
-				<ErrorShareButton errorGroup={errorGroup} />
-				<ErrorStateSelect
-					state={errorGroup.state}
-					snoozedUntil={errorGroup.snoozed_until}
-				/>
-				<Divider />
-				<ErrorIssueButton errorGroup={errorGroup} />
-			</Panel.Header>
-
-			<Box overflowY="scroll" width="full">
+			{showLoading ? (
+				<LoadingBox />
+			) : (
 				<>
-					<Box py="24" px="20" mx="auto" style={{ maxWidth: 940 }}>
-						<ErrorTitle errorGroup={errorGroup} />
-						<ErrorBody errorGroup={errorGroup} />
-
-						<Box mt="32">
-							<ErrorInstanceBody errorInstance={errorInstance} />
-						</Box>
-
-						<ErrorInstanceInfo
-							errorGroup={errorGroup}
-							errorInstance={errorInstance}
+					<Panel.Header path={path}>
+						<ErrorShareButton errorGroup={errorGroup} />
+						<ErrorStateSelect
+							state={errorGroup.state}
+							snoozedUntil={errorGroup.snoozed_until}
 						/>
-						<ErrorInstanceStackTrace
-							displayGitHubSettings={displayGitHubSettings}
-							errorInstance={errorInstance}
-							setDisplayGitHubSettings={setDisplayGitHubSettings}
-						/>
+						<Divider />
+						<ErrorIssueButton errorGroup={errorGroup} />
+					</Panel.Header>
+
+					<Box overflowY="scroll" width="full">
+						<>
+							<Box
+								py="24"
+								px="20"
+								mx="auto"
+								style={{ maxWidth: 940 }}
+							>
+								<ErrorTitle errorGroup={errorGroup} />
+								<ErrorBody errorGroup={errorGroup} />
+
+								<Box mt="32">
+									<ErrorInstanceBody
+										errorInstance={errorInstance}
+									/>
+								</Box>
+
+								<ErrorInstanceInfo
+									errorGroup={errorGroup}
+									errorInstance={errorInstance}
+								/>
+								<ErrorInstanceStackTrace
+									displayGitHubSettings={
+										displayGitHubSettings
+									}
+									errorInstance={errorInstance}
+									setDisplayGitHubSettings={
+										setDisplayGitHubSettings
+									}
+								/>
+							</Box>
+						</>
 					</Box>
 				</>
-			</Box>
+			)}
 		</Panel>
 	)
 }

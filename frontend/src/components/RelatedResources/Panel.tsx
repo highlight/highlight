@@ -2,7 +2,6 @@ import { Box, Dialog } from '@highlight-run/ui/components'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
-import { PanelLoading } from '@/components/RelatedResources/Loading'
 import { PanelHeader } from '@/components/RelatedResources/PanelHeader'
 
 import * as styles from './Panel.css'
@@ -15,7 +14,6 @@ type Props = React.PropsWithChildren<{
 
 type PanelComponent = React.FC<Props> & {
 	Header: typeof PanelHeader
-	Loading: typeof PanelLoading
 }
 
 export const Panel: PanelComponent = ({ children, open }) => {
@@ -85,4 +83,3 @@ export const Panel: PanelComponent = ({ children, open }) => {
 }
 
 Panel.Header = PanelHeader
-Panel.Loading = PanelLoading

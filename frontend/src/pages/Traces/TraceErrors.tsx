@@ -48,7 +48,6 @@ export const TraceErrors: React.FC = () => {
 						</Box>
 						<Button
 							onClick={() => {
-								debugger
 								set({
 									type: 'error',
 									id: error.error_group_secure_id,
