@@ -1195,6 +1195,7 @@ input DateHistogramOptions {
 	bounds: DateRangeInput!
 }
 
+# Deprecated: switch to using QueryInput format for searches
 input ClickhouseQuery {
 	isAnd: Boolean!
 	rules: [[String!]!]!
