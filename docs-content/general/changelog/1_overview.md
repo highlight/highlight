@@ -7,6 +7,9 @@ slug: getting-started
 Stay up to date with what we work on week over week:
 
 <DocsCardGroup>
+    <DocsCard title="Changelog 28" href="./changelog-28.md">
+    {"Related resources, Search query evolution, Relate logs back to traces"}
+    </DocsCard>
     <DocsCard title="Changelog 27" href="./changelog-27.md">
     {"Grafana support, Graduated pricing, Tracing flame graphs, Server-side environment data"}
     </DocsCard>

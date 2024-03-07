@@ -38,7 +38,10 @@ func ParseConsoleMessages(messages string) ([]*Message, error) {
 			Type:       message.Type,
 			Trace:      message.Trace,
 			Time:       message.Time,
-			Attributes: map[string]any{},
+			Attributes: message.Attributes,
+		}
+		if msg.Attributes == nil {
+			msg.Attributes = map[string]any{}
 		}
 		var messageValue []string
 		for _, v := range message.Value {

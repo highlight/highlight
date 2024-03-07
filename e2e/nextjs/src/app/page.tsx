@@ -43,6 +43,12 @@ export default function Home() {
 			<h3>Fetch</h3>
 			<FetchTests />
 
+			<div style={{ paddingBottom: '1rem', paddingTop: '1rem' }}>
+				<a href="/server-actions" style={{ color: 'white' }}>
+					Server Actions
+				</a>
+			</div>
+
 			<Link href="/another-page">Navigation Test</Link>
 			<Image
 				alt="cross origin test"
