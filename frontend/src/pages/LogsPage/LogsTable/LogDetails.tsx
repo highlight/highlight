@@ -281,7 +281,6 @@ export const LogDetails: React.FC<Props> = ({
 						onClick={(e) => {
 							e.stopPropagation()
 							const url = getLogURL(projectId, row)
-							console.log('url', { url })
 							navigate(url.path)
 						}}
 						trackingId="logs_view-in-context_click"
