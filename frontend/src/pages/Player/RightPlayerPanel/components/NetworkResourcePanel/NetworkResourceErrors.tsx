@@ -1,6 +1,6 @@
 import { Box, Callout, Text } from '@highlight-run/ui/components'
 import moment from 'moment'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
@@ -23,14 +23,17 @@ export const NetworkResourceErrors: React.FC<{
 	const requestId = getHighlightRequestId(resource)
 	const errors = sessionErrors.filter((e) => e.request_id === requestId)
 	const errorGroupSecureIds = errors.map((e) => e.error_group_secure_id)
+	const start = useMemo(() => moment().subtract(30, 'days').toISOString(), [])
+	const end = useMemo(() => moment().toISOString(), [])
+	// TODO: Look into errors with fetching error groups.
 	const { data, loading } = useGetErrorGroupsClickhouseQuery({
 		variables: {
 			query: {
 				isAnd: true,
 				rules: [['secure_id', 'is', ...errorGroupSecureIds]],
 				dateRange: {
-					start_date: moment().subtract(30, 'days').toISOString(),
-					end_date: moment().toISOString(),
+					start_date: start,
+					end_date: end,
 				},
 			},
 			project_id: projectId,
