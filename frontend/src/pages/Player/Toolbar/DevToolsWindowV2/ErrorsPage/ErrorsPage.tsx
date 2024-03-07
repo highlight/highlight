@@ -8,12 +8,8 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { themeVars } from '@highlight-run/ui/theme'
-import {
-	RightPanelView,
-	usePlayerUIContext,
-} from '@pages/Player/context/PlayerUIContext'
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { THROTTLED_UPDATE_MS } from '@pages/Player/PlayerHook/PlayerState'
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import {
 	findLastActiveEventIndex,
@@ -53,9 +49,7 @@ const ErrorsPage = ({
 	const { errors, state, session, sessionMetadata, isPlayerReady, setTime } =
 		useReplayerContext()
 
-	const { activeError, setActiveError, setRightPanelView } =
-		usePlayerUIContext()
-	const { setShowRightPanel } = usePlayerConfiguration()
+	const { activeError, setActiveError } = usePlayerUIContext()
 	const { set } = useRelatedResource()
 
 	const loading = state === ReplayerState.Loading
