@@ -13734,7 +13734,7 @@ __metadata:
     size-limit: "npm:^8.1.0"
     stacktrace-js: "npm:2.0.2"
     typescript: "npm:^5.0.4"
-    vite: "npm:^4.3.9"
+    vite: "npm:^5.0.12"
     vitest: "npm:^0.32.0"
     web-vitals: "npm:^3.5.0"
   languageName: unknown
@@ -13896,10 +13896,10 @@ __metadata:
     subscriptions-transport-ws: "npm:^0.11.0"
     tailwindcss: "npm:^3.1.8"
     typed-scss-modules: "npm:^3.4.0"
-    typescript: "npm:5.1.0-dev.20230502"
+    typescript: "npm:^5.3.3"
     use-query-params: "npm:^2.2.0"
     validator: "npm:13.7.0"
-    vite: "npm:^5.0.10"
+    vite: "npm:^5.0.12"
     vite-plugin-imp: "npm:^2.4.0"
     vite-plugin-svgr: "npm:^3.2.0"
     vite-tsconfig-paths: "npm:^4.2.0"
@@ -14383,7 +14383,7 @@ __metadata:
     storybook: "npm:^7.0.18"
     svgo: "npm:^3.0.2"
     typescript: "npm:^4.8.4"
-    vite: "npm:^4.3.9"
+    vite: "npm:^5.0.12"
     vite-plugin-dts: "npm:^2.3.0"
     vitest: "npm:^0.32.0"
   languageName: unknown
@@ -41513,7 +41513,7 @@ __metadata:
     size-limit: "npm:^8.1.0"
     tslib: "npm:^2.4.0"
     typescript: "npm:^5.0.4"
-    vite: "npm:^4.3.9"
+    vite: "npm:^5.0.12"
     vitest: "npm:^0.32.0"
   languageName: unknown
   linkType: soft
@@ -53745,7 +53745,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.18, postcss@npm:^8.4.32":
+"postcss@npm:^8.4.18":
   version: 8.4.32
   resolution: "postcss@npm:8.4.32"
   dependencies:
@@ -53756,7 +53756,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.19, postcss@npm:^8.4.25":
+"postcss@npm:^8.4.19":
   version: 8.4.25
   resolution: "postcss@npm:8.4.25"
   dependencies:
@@ -53764,17 +53764,6 @@ __metadata:
     picocolors: "npm:^1.0.0"
     source-map-js: "npm:^1.0.2"
   checksum: 10/08916d50035c36e56024b7d56ed5c2a6d59420fce39e1fda77fcbda308cea6d7c39246adb46ee0649d28020e47a73ff2630a3439991ee82c539a495e6f6997d9
-  languageName: node
-  linkType: hard
-
-"postcss@npm:^8.4.26":
-  version: 8.4.27
-  resolution: "postcss@npm:8.4.27"
-  dependencies:
-    nanoid: "npm:^3.3.6"
-    picocolors: "npm:^1.0.0"
-    source-map-js: "npm:^1.0.2"
-  checksum: 10/57143e3c5ddaba9813ebd81de3e38e3ac198b0a1634e57752d29cd4936f1301eba38e43bda1302859679af047a6efc4366952d294c64358f8b90fbf49ba7d121
   languageName: node
   linkType: hard
 
@@ -57169,7 +57158,7 @@ __metadata:
     react-router-dom: "npm:^6.16.0"
     sort-by: "npm:^1.2.0"
     typescript: "npm:^5.0.2"
-    vite: "npm:^4.4.0"
+    vite: "npm:^5.0.12"
   languageName: unknown
   linkType: soft
 
@@ -59161,20 +59150,6 @@ __metadata:
   bin:
     rollup: dist/bin/rollup
   checksum: 10/ce2dfda3355125a9022ce519cd7bf2d6f93fe22cdd28802e6c5e5019bc5f39a3b5f606ef5f16a56abd4d8bdb9e12dad0f2efddad0a2280be25c23f6b8ea3f697
-  languageName: node
-  linkType: hard
-
-"rollup@npm:^3.25.2":
-  version: 3.26.2
-  resolution: "rollup@npm:3.26.2"
-  dependencies:
-    fsevents: "npm:~2.3.2"
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  bin:
-    rollup: dist/bin/rollup
-  checksum: 10/845eb251924d8bbeb88bc6e6b30207a1a9c6f1a28a66793f8d55b6674178542273325d7961148e5ffe37018f15a5defa4a62a0166aa700f75425eb4e600b9232
   languageName: node
   linkType: hard
 
@@ -66034,93 +66009,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^4.3.9":
-  version: 4.4.6
-  resolution: "vite@npm:4.4.6"
-  dependencies:
-    esbuild: "npm:^0.18.10"
-    fsevents: "npm:~2.3.2"
-    postcss: "npm:^8.4.26"
-    rollup: "npm:^3.25.2"
-  peerDependencies:
-    "@types/node": ">= 14"
-    less: "*"
-    lightningcss: ^1.21.0
-    sass: "*"
-    stylus: "*"
-    sugarss: "*"
-    terser: ^5.4.0
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-    less:
-      optional: true
-    lightningcss:
-      optional: true
-    sass:
-      optional: true
-    stylus:
-      optional: true
-    sugarss:
-      optional: true
-    terser:
-      optional: true
-  bin:
-    vite: bin/vite.js
-  checksum: 10/b9378583f7dd98bcc70893585fe86857eb76298e6583c0e8c4572b830547a81f59ddb73b7da143d83f29e7f4475570c1b850c49ae37e209de96ea587277e50ff
-  languageName: node
-  linkType: hard
-
-"vite@npm:^4.4.0":
-  version: 4.4.3
-  resolution: "vite@npm:4.4.3"
-  dependencies:
-    esbuild: "npm:^0.18.10"
-    fsevents: "npm:~2.3.2"
-    postcss: "npm:^8.4.25"
-    rollup: "npm:^3.25.2"
-  peerDependencies:
-    "@types/node": ">= 14"
-    less: "*"
-    lightningcss: ^1.21.0
-    sass: "*"
-    stylus: "*"
-    sugarss: "*"
-    terser: ^5.4.0
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-    less:
-      optional: true
-    lightningcss:
-      optional: true
-    sass:
-      optional: true
-    stylus:
-      optional: true
-    sugarss:
-      optional: true
-    terser:
-      optional: true
-  bin:
-    vite: bin/vite.js
-  checksum: 10/56b87e077acfc76c835f40666994177d1520cb480ab27634f646689e22ec06ff0574ba2b7f86731430f9abea01e5eb0d9c071bc62dc595a30d4ef749b914a038
-  languageName: node
-  linkType: hard
-
-"vite@npm:^5.0.10":
-  version: 5.0.10
-  resolution: "vite@npm:5.0.10"
+"vite@npm:^5.0.12":
+  version: 5.1.5
+  resolution: "vite@npm:5.1.5"
   dependencies:
     esbuild: "npm:^0.19.3"
     fsevents: "npm:~2.3.3"
-    postcss: "npm:^8.4.32"
+    postcss: "npm:^8.4.35"
     rollup: "npm:^4.2.0"
   peerDependencies:
     "@types/node": ^18.0.0 || >=20.0.0
@@ -66150,7 +66045,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10/5421e9c7f8cf3152eace9a8b528269141635f367e5dc63c5f1fe2712a766d9757f8197733cf3f28be590afdd520130d38de90c955e6dba6edfa6f9056c1e5ea7
+  checksum: 10/ada0a9138ca541723008ee261d80a97f6b70173508ded0f87834e2142660f45dff9801d143551aa3a8979ed446f0aec71ae114ab3ae978b3fbd5cf1f8c4bc331
   languageName: node
   linkType: hard
 
