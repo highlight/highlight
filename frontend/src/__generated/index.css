@@ -6404,6 +6404,16 @@ body {
   padding: 0 0 0 1.5rem !important;
   margin: 0 0 1rem 0 !important;
 }
+._1bcldh0 {
+  border-radius: 4px;
+  color: var(--_1pyqka9y);
+}
+._1bcldh0:hover {
+  background-color: var(--_1pyqka91x);
+}
+._1bcldh0:active {
+  background-color: var(--_1pyqka91y);
+}
 ._6soxly0 {
   position: absolute;
   top: 7px;

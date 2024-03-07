@@ -32,6 +32,7 @@ import React, {
 import { useLocation } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { styledVerticalScrollbar } from '@/style/common.css'
 import analytics from '@/util/analytics'
 
@@ -55,6 +56,7 @@ const ErrorsPage = ({
 	const { activeError, setActiveError, setRightPanelView } =
 		usePlayerUIContext()
 	const { setShowRightPanel } = usePlayerConfiguration()
+	const { set } = useRelatedResource()
 
 	const loading = state === ReplayerState.Loading
 
@@ -147,9 +149,11 @@ const ErrorsPage = ({
 							key={error.error_group_secure_id}
 							error={error}
 							onClickHandler={() => {
-								setActiveError(error)
-								setShowRightPanel(true)
-								setRightPanelView(RightPanelView.Error)
+								set({
+									type: 'error',
+									id: error.error_group_secure_id,
+									instanceId: error.id,
+								})
 							}}
 							setActiveError={setActiveError}
 							setTime={setTime}

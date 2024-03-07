@@ -17,10 +17,13 @@ import { createSearchParams } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { Link } from '@/components/Link'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
 import { ErrorObjectEdge } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
+
+import * as styles from './ErrorInstancesTable.css'
 
 const toYearMonthDay = (timestamp: string) => {
 	const date = new Date(timestamp)
@@ -45,6 +48,7 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
 	const columnHelper = createColumnHelper<ErrorObjectEdge>()
+	const { set } = useRelatedResource()
 
 	const columns = [
 		columnHelper.accessor('node.event', {
@@ -147,32 +151,34 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 		<Box>
 			{table.getRowModel().rows.map((row) => {
 				return (
-					<Link
-						to={`/${projectId}/errors/${row.original.node.errorGroupSecureID}/instances/${row.original.cursor}`}
+					<Stack
 						key={row.id}
+						direction="row"
+						gap="4"
+						px="12"
+						py="6"
+						alignItems="center"
+						cursor="pointer"
+						onClick={() => {
+							set({
+								type: 'error',
+								id: row.original.node.errorGroupSecureID,
+								instanceId: row.original.cursor,
+							})
+						}}
+						cssClass={styles.rowLink}
 					>
-						<Stack
-							key={row.id}
-							direction="row"
-							gap="4"
-							mb="8"
-							px="8"
-							py="2"
-							alignItems="center"
-							cursor="pointer"
-						>
-							{row.getVisibleCells().map((cell) => {
-								return (
-									<React.Fragment key={cell.id}>
-										{flexRender(
-											cell.column.columnDef.cell,
-											cell.getContext(),
-										)}
-									</React.Fragment>
-								)
-							})}
-						</Stack>
-					</Link>
+						{row.getVisibleCells().map((cell) => {
+							return (
+								<React.Fragment key={cell.id}>
+									{flexRender(
+										cell.column.columnDef.cell,
+										cell.getContext(),
+									)}
+								</React.Fragment>
+							)
+						})}
+					</Stack>
 				)
 			})}
 		</Box>
