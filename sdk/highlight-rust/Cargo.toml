@@ -1,10 +1,7 @@
 [workspace]
 members = [
     "highlightio",
-    "highlightio/examples/sync",
-    "highlightio/examples/tokio",
     "highlightio-actix",
-    "highlightio-actix/examples/hello-world",
 ]
 resolver = "2"
 
