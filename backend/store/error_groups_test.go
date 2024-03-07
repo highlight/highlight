@@ -365,7 +365,7 @@ func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, params.State, updatedErrorGroup.State)
-	assert.Equal(t, params.SnoozedUntil.Format(time.RFC3339Nano), updatedErrorGroup.SnoozedUntil.Format(time.RFC3339Nano))
+	assert.Equal(t, params.SnoozedUntil.Format(time.RFC3339), updatedErrorGroup.SnoozedUntil.Format(time.RFC3339))
 
 	activityLogs, err := store.GetErrorGroupActivityLogs(errorGroup.ID)
 	assert.NoError(t, err)
@@ -401,7 +401,7 @@ func TestUpdateErrorGroupStateBySystem(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, params.State, updatedErrorGroup.State)
-	assert.Equal(t, params.SnoozedUntil.Format(time.RFC3339Nano), updatedErrorGroup.SnoozedUntil.Format(time.RFC3339Nano))
+	assert.Equal(t, params.SnoozedUntil.Format(time.RFC3339), updatedErrorGroup.SnoozedUntil.Format(time.RFC3339))
 
 	activityLogs, err := store.GetErrorGroupActivityLogs(errorGroup.ID)
 	assert.NoError(t, err)
