@@ -16,6 +16,15 @@ type QuerySessionsInput struct {
 	DryRun       bool                        `json:"dryRun"`
 }
 
+type QuerySessionsInputV2 struct {
+	ProjectId    int                    `json:"projectId"`
+	Params       modelInputs.QueryInput `json:"clickhouseParams"`
+	Email        string                 `json:"email"`
+	FirstName    string                 `json:"firstName"`
+	SessionCount int                    `json:"sessionCount"`
+	DryRun       bool                   `json:"dryRun"`
+}
+
 type BatchIdResponse struct {
 	ProjectId int    `json:"projectId"`
 	TaskId    string `json:"taskId"`

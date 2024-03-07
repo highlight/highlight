@@ -4351,12 +4351,11 @@ func (r *mutationResolver) DeleteSessionsV2(ctx context.Context, projectID int, 
 		return false, e.New("Must be admin role to delete sessions")
 	}
 
-	// TODO(spenny): use new query logic
-	_, err = r.StepFunctions.DeleteSessionsByQuery(ctx, utils.QuerySessionsInput{
+	_, err = r.StepFunctions.DeleteSessionsByQueryV2(ctx, utils.QuerySessionsInputV2{
 		ProjectId:    projectID,
 		Email:        email,
 		FirstName:    firstName,
-		Query:        query,
+		Params:       params,
 		SessionCount: sessionCount,
 		DryRun:       util.IsDevOrTestEnv(),
 	})
@@ -5146,7 +5145,7 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 
 	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
 
-	ids, total, err := r.ClickhouseClient.QueryErrorGroupIds(ctx, projectID, count, query, page, retentionDate)
+	ids, total, err := r.ClickhouseClient.QueryErrorGroupIdsDeprecated(ctx, projectID, count, query, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}
@@ -5187,11 +5186,10 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 
 	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
 
-	// TODO(spenny): use new query logic
-	// ids, total, err := r.ClickhouseClient.QueryErrorGroupIds(ctx, projectID, count, query, page, retentionDate)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	ids, total, err := r.ClickhouseClient.QueryErrorGroupIds(ctx, projectID, count, params, page, retentionDate)
+	if err != nil {
+		return nil, err
+	}
 
 	var results []*model.ErrorGroup
 	if err := r.DB.WithContext(ctx).Model(&model.ErrorGroup{}).
@@ -5228,7 +5226,7 @@ func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID
 	}
 	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
 
-	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogram(ctx, projectID, query, retentionDate, histogramOptions)
+	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogramDeprecated(ctx, projectID, query, retentionDate, histogramOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -5256,11 +5254,10 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, para
 	}
 	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
 
-	// TODO(spenny): use new query logic
-	// bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogram(ctx, projectID, query, retentionDate, histogramOptions)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogram(ctx, projectID, params, retentionDate, histogramOptions)
+	if err != nil {
+		return nil, err
+	}
 
 	if len(bucketTimes) > 0 {
 		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
@@ -6271,7 +6268,7 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 		return nil, err
 	}
 
-	ids, total, ordered, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, chSortStr, page, retentionDate)
+	ids, total, ordered, err := r.ClickhouseClient.QuerySessionIdsDeprecated(ctx, admin, projectID, count, query, chSortStr, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}
@@ -6332,11 +6329,10 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		return nil, err
 	}
 
-	// TODO(spenny): use new query logic
-	// ids, total, ordered, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, chSortStr, page, retentionDate)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	ids, total, ordered, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, params, chSortStr, page, retentionDate)
+	if err != nil {
+		return nil, err
+	}
 
 	q := r.DB.WithContext(ctx).Model(&model.Session{}).
 		Where("id in ?", ids).
@@ -6388,7 +6384,7 @@ func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, project
 		return nil, err
 	}
 
-	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogram(ctx, admin, projectID, query, retentionDate, histogramOptions)
+	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogramDeprecated(ctx, admin, projectID, query, retentionDate, histogramOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -6427,11 +6423,10 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, pa
 		return nil, err
 	}
 
-	// TODO(spenny): use new query logic
-	// bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogram(ctx, admin, projectID, query, retentionDate, histogramOptions)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogram(ctx, admin, projectID, params, retentionDate, histogramOptions)
+	if err != nil {
+		return nil, err
+	}
 
 	if len(bucketTimes) > 0 {
 		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
@@ -6468,7 +6463,7 @@ func (r *queryResolver) SessionsReport(ctx context.Context, projectID int, query
 		return nil, err
 	}
 
-	sql, args, _, err := clickhouse.GetSessionsQueryImpl(admin, query, projectID, retentionDate, "ID", nil, nil, nil, nil)
+	sql, args, _, err := clickhouse.GetSessionsQueryImplDeprecated(admin, query, projectID, retentionDate, "ID", nil, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -6544,11 +6539,10 @@ func (r *queryResolver) SessionUsersReport(ctx context.Context, projectID int, p
 		return nil, err
 	}
 
-	// TODO(spenny): use new query logic
-	// sql, args, _, err := clickhouse.GetSessionsQueryImpl(admin, query, projectID, retentionDate, "ID", nil, nil, nil, nil)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	sql, args, _, err := clickhouse.GetSessionsQueryImpl(admin, params, projectID, retentionDate, "ID", nil, nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	q := fmt.Sprintf(`
 select coalesce(email.Value, nullif(IP, ''), device.Value, Identifier) as key,
