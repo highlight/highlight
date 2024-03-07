@@ -1,23 +1,22 @@
-import React, { useState } from 'react'
 import {
-	useComboboxStore,
-	useSelectStore,
-	ComboboxList,
-	ComboboxItem,
 	Combobox,
+	ComboboxItem,
+	ComboboxList,
+	PopoverArrow,
 	Select,
 	SelectItem,
 	SelectLabel,
 	SelectPopover,
-	PopoverArrow,
+	useComboboxStore,
+	useSelectStore,
 } from '@ariakit/react'
-
-import { IconSolidCheckCircle, IconSolidSearch } from '../icons'
-
-import * as styles from './styles.css'
-import { Text } from '../Text/Text'
 import clsx, { ClassValue } from 'clsx'
+import React, { useState } from 'react'
+
 import { vars } from '../../css/vars'
+import { IconSolidCheckCircle, IconSolidSearch } from '../icons'
+import { Text } from '../Text/Text'
+import * as styles from './styles.css'
 
 type Option = {
 	key: string

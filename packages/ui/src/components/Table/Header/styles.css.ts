@@ -1,6 +1,7 @@
 import { style } from '@vanilla-extract/css'
-import { vars } from '../../../css/vars'
+
 import { row } from '../../../components/Table/Row/styles.css'
+import { vars } from '../../../css/vars'
 
 export const header = style({
 	alignItems: 'center',

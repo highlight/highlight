@@ -37,7 +37,6 @@ import {
 	Tag,
 	Text,
 	Tooltip,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
@@ -187,7 +186,7 @@ export const ProjectProductFilters: React.FC<{
 		setSearchQuery: setErrorSearchQuery,
 	} = errorSearchContext
 
-	const formStore = useFormStore<{
+	const formStore = Form.useStore<{
 		samplingPercent: number
 		minuteRateLimit: number | null
 		exclusionQuery: string | null

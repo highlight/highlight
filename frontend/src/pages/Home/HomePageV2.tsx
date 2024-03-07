@@ -5,7 +5,7 @@ import DashboardPage from '@pages/Dashboards/pages/Dashboard/DashboardPage'
 import analytics from '@util/analytics'
 import { useClientIntegration } from '@util/integrated'
 import Lottie from 'lottie-react'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link } from 'react-router-dom'
 

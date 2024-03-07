@@ -1,7 +1,7 @@
 import { useGetTracesLazyQuery, useGetTracesQuery } from '@graph/hooks'
 import { GetTracesQuery, GetTracesQueryVariables } from '@graph/operations'
-import { PageInfo, TraceEdge } from '@graph/schemas'
 import * as Types from '@graph/schemas'
+import { PageInfo, TraceEdge } from '@graph/schemas'
 import { usePollQuery } from '@util/search'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useState } from 'react'

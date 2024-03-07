@@ -1,10 +1,11 @@
-import React from 'react'
 import * as Ariakit from '@ariakit/react'
+import React from 'react'
 
 type Props = React.PropsWithChildren & Ariakit.DialogProps
 
 type DialogComponent = React.FC<Props> & {
 	useStore: typeof Ariakit.useDialogStore
+	Provider: typeof Ariakit.DialogProvider
 }
 
 export const Dialog: DialogComponent = ({ children, ...props }: Props) => {
@@ -12,3 +13,4 @@ export const Dialog: DialogComponent = ({ children, ...props }: Props) => {
 }
 
 Dialog.useStore = Ariakit.useDialogStore
+Dialog.Provider = Ariakit.DialogProvider

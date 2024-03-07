@@ -1,12 +1,12 @@
-import React from 'react'
-import { Box } from '../../Box/Box'
-import { IconSolidCheveronLeft } from '../../icons/IconSolidCheveronLeft'
-import { IconSolidCheveronRight } from '../../icons/IconSolidCheveronRight'
-import { Calendar } from './Calendar'
 import {
 	useContextCalendars,
 	useContextMonthsPropGetters,
 } from '@rehookify/datepicker'
+
+import { Box } from '../../Box/Box'
+import { IconSolidCheveronLeft } from '../../icons/IconSolidCheveronLeft'
+import { IconSolidCheveronRight } from '../../icons/IconSolidCheveronRight'
+import { Calendar } from './Calendar'
 
 const DatePicker = ({ hasSelectedRange }: { hasSelectedRange?: boolean }) => {
 	const { calendars } = useContextCalendars()

@@ -1,7 +1,7 @@
 import { Meta } from '@storybook/react'
 
 import { Box } from '../Box/Box'
-import { Form, useFormStore } from '../Form/Form'
+import { Form } from '../Form/Form'
 
 const meta = {
 	title: 'Components/Form',
@@ -11,15 +11,14 @@ const meta = {
 export default meta
 
 export const Basic = () => {
-	const formStore = useFormStore({
-		defaultValues: {
-			issueTitle: 'Test Issue',
-			issueDescription: 'This is a test issue',
-		},
-	})
 	return (
 		<Box style={{ width: 300 }}>
-			<Form store={formStore}>
+			<Form
+				defaultValues={{
+					issueTitle: 'Test Issue',
+					issueDescription: 'This is a test issue',
+				}}
+			>
 				<Box
 					px="12"
 					py="8"

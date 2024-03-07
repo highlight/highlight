@@ -12,7 +12,6 @@ import {
 	IconSolidGoogle,
 	Stack,
 	Text,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
@@ -35,7 +34,7 @@ export const SignUp: React.FC = () => {
 	const initialEmail: string = location.state?.email ?? ''
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [error, setError] = React.useState('')
-	const formStore = useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			email: initialEmail,
 			password: '',

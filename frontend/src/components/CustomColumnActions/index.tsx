@@ -12,7 +12,6 @@ import {
 	Menu,
 	Stack,
 	Table,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import { copyToClipboard } from '@util/string'
 import * as React from 'react'
@@ -187,7 +186,7 @@ const LabelModal: React.FC<LabelModalProps> = ({
 	column,
 	handleSubmit,
 }) => {
-	const formStore = useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			id: column.id,
 			label: column.label || '',

@@ -1,8 +1,7 @@
-import React from 'react'
 import { Meta } from '@storybook/react'
 
-import { Menu } from './Menu'
 import { TextLink } from '../TextLink/TextLink'
+import { Menu } from './Menu'
 
 export default {
 	title: 'Components/Menu',

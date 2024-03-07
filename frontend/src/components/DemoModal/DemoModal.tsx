@@ -5,7 +5,6 @@ import {
 	Form,
 	IconSolidExclamation,
 	Text,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
@@ -21,7 +20,7 @@ export const DemoModal = () => {
 		'highlight-demo-email-modal-visible',
 		true,
 	)
-	const formStore = useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			email: '',
 		},

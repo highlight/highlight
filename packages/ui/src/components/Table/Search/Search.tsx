@@ -1,11 +1,10 @@
-import React from 'react'
 import { useComboboxStore } from '@ariakit/react'
+import React from 'react'
 
-import { Combobox } from '../../Combobox/Combobox'
-import { Box } from '../../Box/Box'
-import { IconSolidSearch } from '../../icons'
 import { vars } from '../../../css/vars'
-
+import { Box } from '../../Box/Box'
+import { Combobox } from '../../Combobox/Combobox'
+import { IconSolidSearch } from '../../icons'
 import * as styles from './styles.css'
 
 export type Props = {

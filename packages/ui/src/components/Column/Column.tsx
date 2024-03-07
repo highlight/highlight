@@ -1,11 +1,11 @@
 import clsx from 'clsx'
 import React from 'react'
-import { Box } from '../Box/Box'
-import { sprinkles } from '../../css/sprinkles.css'
-import { negativeMargin } from './utils'
 
-import * as styles from './styles.css'
 import { spaces } from '../../css/spaces'
+import { sprinkles } from '../../css/sprinkles.css'
+import { Box } from '../Box/Box'
+import * as styles from './styles.css'
+import { negativeMargin } from './utils'
 
 type Gap = keyof typeof spaces
 

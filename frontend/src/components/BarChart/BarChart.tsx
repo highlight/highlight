@@ -1,6 +1,5 @@
 import { Tooltip } from '@highlight-run/ui/components'
 import clsx from 'clsx'
-import React from 'react'
 
 import * as style from './BarChart.css'
 

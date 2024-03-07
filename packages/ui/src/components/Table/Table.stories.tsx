@@ -1,9 +1,7 @@
-import React from 'react'
 import type { Meta } from '@storybook/react'
 
-import { Table } from './Table'
-
 import { IconSolidCubeTransparent } from '../icons'
+import { Table } from './Table'
 
 export default {
 	title: 'Components/Table',

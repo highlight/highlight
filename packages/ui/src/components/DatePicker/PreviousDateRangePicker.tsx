@@ -1,23 +1,22 @@
+import { DatePickerStateProvider } from '@rehookify/datepicker'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 
-import { DatePicker } from './Calendar/DatePicker'
-import { DatePickerStateProvider } from '@rehookify/datepicker'
-import { Menu, MenuButtonProps, useMenu } from '../Menu/Menu'
-import { Text } from '../Text/Text'
+import { colors } from '../../css/colors'
+import { Box } from '../Box/Box'
+import { Form } from '../Form/Form'
 import {
 	IconSolidCheck,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidClock,
 } from '../icons'
+import { Menu, MenuButtonProps } from '../Menu/Menu'
 import { Stack } from '../Stack/Stack'
-import { Box } from '../Box/Box'
-import { colors } from '../../css/colors'
-import { TimeInput } from './TimeInput'
+import { Text } from '../Text/Text'
+import { DatePicker } from './Calendar/DatePicker'
 import { DateInput } from './DateInput'
-import { Form } from '../Form/Form'
-import * as Ariakit from '@ariakit/react'
+import { TimeInput } from './TimeInput'
 
 export { defaultPresets, getNow, resetRelativeDates } from './utils'
 
@@ -227,9 +226,9 @@ const PreviousDateRangePickerImpl = ({
 	const [startTimeIsValid, setStartTimeIsValid] = useState<boolean>(true)
 	const [endTimeIsValid, setEndTimeIsValid] = useState<boolean>(true)
 
-	const menu = useMenu()
+	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	const menu = Menu.useContext()!
 	const open = menu.getState().open
-	const formStore = Ariakit.useFormStore({})
 
 	useEffect(() => {
 		if (!open) {
@@ -509,7 +508,7 @@ const PreviousDateRangePickerImpl = ({
 						)}
 					</>
 				) : (
-					<Form store={formStore}>
+					<Form>
 						<Box
 							borderBottom={'divider'}
 							pb={'4'}

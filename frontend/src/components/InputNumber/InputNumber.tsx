@@ -1,6 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
 import { InputNumber as AntDesignInputNumber, InputNumberProps } from 'antd'
-import React from 'react'
 
 import styles from './InputNumber.module.css'
 

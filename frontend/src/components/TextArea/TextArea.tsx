@@ -1,7 +1,6 @@
 import { Input as AntDesignInput } from 'antd'
 import { TextAreaProps } from 'antd/es/input'
 import clsx from 'clsx'
-import React from 'react'
 
 import styles from '../Input/Input.module.css'
 

@@ -1,8 +1,8 @@
-import React from 'react'
 import { Meta } from '@storybook/react'
+import React from 'react'
 
-import { Stack } from './Stack'
 import { Box } from '../Box/Box'
+import { Stack } from './Stack'
 
 export default {
 	title: 'Components/Stack',

@@ -1,8 +1,6 @@
 import { LogLevel as LogLevelType } from '@graph/schemas'
-import { Text } from '@highlight-run/ui/components'
-import { Box } from '@highlight-run/ui/components'
+import { Box, Text } from '@highlight-run/ui/components'
 import { COLOR_MAPPING } from '@pages/LogsPage/constants'
-import React from 'react'
 
 type Props = {
 	level: LogLevelType

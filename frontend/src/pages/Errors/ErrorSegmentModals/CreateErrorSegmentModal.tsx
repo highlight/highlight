@@ -9,7 +9,6 @@ import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSea
 import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import React from 'react'
 
 interface Props {
 	showModal: boolean

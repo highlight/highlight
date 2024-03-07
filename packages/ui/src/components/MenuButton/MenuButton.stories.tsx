@@ -1,4 +1,3 @@
-import React from 'react'
 import { Meta } from '@storybook/react'
 
 import { MenuButton } from '../MenuButton/MenuButton'

@@ -15,7 +15,7 @@ import { Landing } from '@pages/Landing/Landing'
 import useLocalStorage from '@rehooks/local-storage'
 import { message } from 'antd'
 import { H } from 'highlight.run'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { Navigate, useMatch, useNavigate } from 'react-router-dom'
 
 import { showSupportMessage } from '@/util/window'

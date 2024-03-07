@@ -1,6 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
 import { Progress as AntDesignProgress, ProgressProps } from 'antd'
-import React from 'react'
 
 type Props = Pick<ProgressProps, 'showInfo'> & {
 	numerator: number

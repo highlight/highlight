@@ -1,10 +1,10 @@
-import React from 'react'
-import { IconProps } from '../icons'
 import { Checkbox, CheckboxProps, useCheckboxStore } from '@ariakit/react'
+import React from 'react'
 
-import * as styles from './styles.css'
 import { Box } from '../Box/Box'
+import { IconProps } from '../icons'
 import { Text } from '../Text/Text'
+import * as styles from './styles.css'
 
 type Props = Omit<CheckboxProps, 'size'> &
 	styles.Variants & {

@@ -11,7 +11,6 @@ import {
 	Menu,
 	Stack,
 	Text,
-	useMenu,
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { DatePicker, message } from 'antd'
@@ -47,7 +46,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 	snoozedUntil,
 }) => {
 	const menuRef = React.useRef<HTMLDivElement | null>(null)
-	const menu = useMenu()
+	const menu = Menu.useContext()!
 	const mState = menu.getState()
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,

@@ -1,6 +1,7 @@
 import { createStyleObject } from '@capsizecss/core'
 import fontMetrics from '@capsizecss/metrics/inter'
-import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
+import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
+
 import { sprinkles } from '../../css/sprinkles.css'
 import { typographyStyles } from '../Text/styles.css'
 

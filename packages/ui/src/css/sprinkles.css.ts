@@ -1,8 +1,9 @@
-import { defineProperties, createSprinkles } from '@vanilla-extract/sprinkles'
+import { createSprinkles, defineProperties } from '@vanilla-extract/sprinkles'
+
 import { borders } from './borders'
+import { mediaQueries } from './breakpoints'
 import { colors } from './colors'
 import { vars } from './vars'
-import { mediaQueries } from './breakpoints'
 
 export const textColors = {
 	...colors,

@@ -8,7 +8,7 @@ import { auth } from '@util/auth'
 import { GenerateSecureRandomString } from '@util/random'
 import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParams } from 'use-query-params'
 
@@ -110,7 +110,7 @@ const OAuthApprovalPage = () => {
 		return null
 	} else if (called && !data?.oauth_client_metadata?.id) {
 		return (
-			<div className="absolute top-0 left-0 flex h-full w-full">
+			<div className="absolute left-0 top-0 flex h-full w-full">
 				<ErrorState message="We don't recognize this OAuth client." />
 			</div>
 		)

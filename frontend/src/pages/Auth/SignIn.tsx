@@ -11,7 +11,6 @@ import {
 	IconSolidGoogle,
 	Stack,
 	Text,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
@@ -46,7 +45,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const location = useLocation()
 
 	const initialEmail: string = location.state?.email ?? ''
-	const formStore = useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			email: initialEmail,
 			password: '',

@@ -1,4 +1,5 @@
-import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
+import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
+
 import { colors } from '../../css/colors'
 import { vars } from '../../css/vars'
 import { shadows } from '../Button/styles.css'

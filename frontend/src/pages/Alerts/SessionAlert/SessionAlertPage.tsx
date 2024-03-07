@@ -24,9 +24,6 @@ import {
 	SwitchButton,
 	Tag,
 	Text,
-	useForm,
-	useFormStore,
-	useMenu,
 } from '@highlight-run/ui/components'
 import {
 	DEFAULT_FREQUENCY,
@@ -108,7 +105,7 @@ export const SessionAlertPage = () => {
 		return ALERT_CONFIGURATIONS[alertType]
 	}, [alertType])
 
-	const formStore = useFormStore<SessionAlertFormItem>({
+	const formStore = Form.useStore<SessionAlertFormItem>({
 		defaultValues: {
 			...SessionAlertDefaultValues,
 			type: alertType,
@@ -533,7 +530,7 @@ const SessionAlertForm = ({
 	type: SessionAlertType
 	configuration: AlertConfiguration
 }) => {
-	const formStore = useForm() as FormState<SessionAlertFormItem>
+	const formStore = Form.useContext() as FormState<SessionAlertFormItem>
 	const errors = formStore.useState('errors')
 	const { project_id } = useParams<{
 		project_id: string
@@ -801,9 +798,9 @@ const SessionAlertForm = ({
 }
 
 const ThresholdTypeConfiguration = () => {
-	const formStore = useForm()
+	const formStore = Form.useContext()!
 	const belowThreshold = formStore.useValue('belowThreshold')
-	const menuStore = useMenu()
+	const menuStore = Menu.useContext()!
 	const menuState = menuStore.getState()
 	return (
 		<>

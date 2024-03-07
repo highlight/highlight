@@ -1,14 +1,14 @@
-import React from 'react'
 import {
 	Button as AriakitButton,
 	ButtonProps as AriakitButtonProps,
 } from '@ariakit/react'
-import { Props as TextProps, Text } from '../Text/Text'
+import clsx, { ClassValue } from 'clsx'
+import React from 'react'
 
-import * as styles from './styles.css'
 import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
-import clsx, { ClassValue } from 'clsx'
+import { Props as TextProps, Text } from '../Text/Text'
+import * as styles from './styles.css'
 
 export type ButtonProps = React.PropsWithChildren &
 	AriakitButtonProps &

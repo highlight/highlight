@@ -1,6 +1,7 @@
-import { recipe } from '@vanilla-extract/recipes'
-import { colors } from '../../css/colors'
 import { style } from '@vanilla-extract/css'
+import { recipe } from '@vanilla-extract/recipes'
+
+import { colors } from '../../css/colors'
 import { themeVars } from '../../css/theme.css'
 
 export const GRAB_HANDLE_HEIGHT = 20

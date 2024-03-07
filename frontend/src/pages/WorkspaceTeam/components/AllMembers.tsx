@@ -15,7 +15,6 @@ import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { getDisplayNameFromEmail, titleCaseString } from '@util/string'
 import { message } from 'antd'
 import clsx from 'clsx'
-import React from 'react'
 
 import Button from '../../../components/Button/Button/Button'
 import PopConfirm from '../../../components/PopConfirm/PopConfirm'

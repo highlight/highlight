@@ -1,11 +1,11 @@
-import React from 'react'
 import { Button as AriakitButton, ButtonProps } from '@ariakit/react'
-import { Text, Props as TextProps } from '../Text/Text'
+import clsx, { ClassValue } from 'clsx'
+import React from 'react'
 
-import * as styles from './styles.css'
 import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
-import clsx, { ClassValue } from 'clsx'
+import { Props as TextProps, Text } from '../Text/Text'
+import * as styles from './styles.css'
 
 export type Props = ButtonProps &
 	styles.Variants & {
@@ -47,7 +47,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 
 	return (
 		<AriakitButton
-			as="button"
+			render={<button />}
 			className={clsx([
 				className,
 				styles.variants({

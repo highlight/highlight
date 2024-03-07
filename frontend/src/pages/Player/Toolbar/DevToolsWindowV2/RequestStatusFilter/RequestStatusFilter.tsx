@@ -5,11 +5,11 @@ import {
 	MultiSelectButton,
 } from '@highlight-run/ui/components'
 import {
+	ICountPerRequestStatus,
 	RequestStatus,
 	RequestType,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import { ICountPerRequestStatus } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 
 type Props = {
 	requestStatuses: RequestStatus[]

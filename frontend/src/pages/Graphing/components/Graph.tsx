@@ -1,7 +1,7 @@
 import { Box, Button, Text, Tooltip } from '@highlight-run/ui/components'
 import _ from 'lodash'
 import moment from 'moment'
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
 	Area,
 	AreaChart,
