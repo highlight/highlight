@@ -19,7 +19,7 @@ import {
 } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 import { Navigate, Route, Routes } from 'react-router-dom'
 

@@ -187,6 +187,8 @@ type Plan {
 	membersLimit: Int64
 	enableBillingLimits: Boolean!
 
+	aws_mp_subscription: AWSMarketplaceSubscription
+
 	sessionsLimit: Int64!
 	errorsLimit: Int64!
 	logsLimit: Int64!
@@ -196,6 +198,12 @@ type Plan {
 	errorsRate: Float!
 	logsRate: Float!
 	tracesRate: Float!
+}
+
+type AWSMarketplaceSubscription {
+	customer_identifier: String!
+	customer_aws_account_id: String!
+	product_code: String!
 }
 
 enum PlanType {
@@ -973,25 +981,47 @@ enum ReservedTraceKey {
 
 enum ReservedErrorObjectKey {
 	browser
+	client_id
 	environment
-	event
-	has_sessions
-	log_cursor
-	os
-	payload
-	request_id
+	has_session
+	os_name
 	secure_session_id
 	service_name
 	service_version
-	source
-	span_id
-	stackTrace
-	status
-	tag
 	timestamp
 	trace_id
+	visited_url
+}
+
+enum ReservedErrorGroupKey {
+	event
+	status
+	tag
 	type
-	url
+}
+
+enum ReservedErrorsJoinedKey {
+	"""
+	ReservedErrorObjectKey
+	"""
+	browser
+	client_id
+	environment
+	has_session
+	os_name
+	secure_session_id
+	service_name
+	service_version
+	timestamp
+	trace_id
+	visited_url
+	"""
+	ReservedErrorGroupKey
+	"""
+	event
+	status
+	tag
+	type
 }
 
 enum ReservedSessionKey {
@@ -1501,6 +1531,12 @@ type MicrosoftTeamsChannel {
 	name: String!
 }
 
+type IssuesSearchResult {
+	id: String!
+	title: String!
+	issue_url: String!
+}
+
 input MicrosoftTeamsChannelInput {
 	name: String!
 	id: String!
@@ -1863,8 +1899,6 @@ type Query {
 	error_comments_for_project(project_id: ID!): [ErrorComment]!
 	workspace_admins(workspace_id: ID!): [WorkspaceAdminRole!]!
 	workspace_admins_by_project_id(project_id: ID!): [WorkspaceAdminRole!]!
-	isIntegrated(project_id: ID!): Boolean
-	isBackendIntegrated(project_id: ID!): Boolean
 	clientIntegration(project_id: ID!): IntegrationStatus!
 	serverIntegration(project_id: ID!): IntegrationStatus!
 	logsIntegration(project_id: ID!): IntegrationStatus!
@@ -1981,6 +2015,11 @@ type Query {
 	): [MicrosoftTeamsChannel!]!
 	discord_channel_suggestions(project_id: ID!): [DiscordChannel!]!
 	generate_zapier_access_token(project_id: ID!): String!
+	search_issues(
+		integration_type: IntegrationType!
+		project_id: ID!
+		query: String!
+	): [IssuesSearchResult!]!
 	is_integrated_with(
 		integration_type: IntegrationType!
 		project_id: ID!
@@ -2156,6 +2195,11 @@ type Query {
 		query: String
 		type: KeyType
 	): [QueryKey!]!
+	errors_key_values(
+		project_id: ID!
+		key_name: String!
+		date_range: DateRangeRequiredInput!
+	): [String!]!
 	errors_metrics(
 		project_id: ID!
 		params: QueryInput!
@@ -2174,6 +2218,11 @@ type Query {
 		query: String
 		type: KeyType
 	): [QueryKey!]!
+	sessions_key_values(
+		project_id: ID!
+		key_name: String!
+		date_range: DateRangeRequiredInput!
+	): [String!]!
 	sessions_metrics(
 		project_id: ID!
 		params: QueryInput!
@@ -2186,6 +2235,32 @@ type Query {
 		limit_aggregator: MetricAggregator
 		limit_column: String
 	): MetricsBuckets!
+	metrics(
+		product_type: ProductType!
+		project_id: ID!
+		params: QueryInput!
+		column: String!
+		metric_types: [MetricAggregator!]!
+		group_by: [String!]!
+		bucket_by: String!
+		bucket_count: Int
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
+	): MetricsBuckets!
+	keys(
+		product_type: ProductType!
+		project_id: ID!
+		date_range: DateRangeRequiredInput!
+		query: String
+		type: KeyType
+	): [QueryKey!]!
+	key_values(
+		product_type: ProductType!
+		project_id: ID!
+		key_name: String!
+		date_range: DateRangeRequiredInput!
+	): [String!]!
 }
 
 type Mutation {
@@ -2337,6 +2412,27 @@ type Mutation {
 		tags: [SessionCommentTagInput]!
 		additional_context: String
 	): SessionComment
+	createSessionCommentWithExistingIssue(
+		project_id: ID!
+		session_secure_id: String!
+		session_timestamp: Int!
+		text: String!
+		text_for_email: String!
+		x_coordinate: Float!
+		y_coordinate: Float!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+		session_url: String!
+		time: Float!
+		author_name: String!
+		session_image: String
+		tags: [SessionCommentTagInput]!
+		integrations: [IntegrationType]!
+		issue_title: String
+		issue_url: String!
+		issue_id: String!
+		additional_context: String
+	): SessionComment
 	createIssueForSessionComment(
 		project_id: ID!
 		session_url: String!
@@ -2348,6 +2444,18 @@ type Mutation {
 		issue_description: String
 		issue_team_id: String
 		issue_type_id: String
+		integrations: [IntegrationType]!
+	): SessionComment
+	linkIssueForSessionComment(
+		project_id: ID!
+		session_url: String!
+		session_comment_id: Int!
+		author_name: String!
+		text_for_attachment: String!
+		time: Float!
+		issue_title: String
+		issue_url: String!
+		issue_id: String!
 		integrations: [IntegrationType]!
 	): SessionComment
 	deleteSessionComment(id: ID!): Boolean
@@ -2375,6 +2483,20 @@ type Mutation {
 		issue_type_id: String
 		integrations: [IntegrationType]!
 	): ErrorComment
+	createErrorCommentForExistingIssue(
+		project_id: ID!
+		error_group_secure_id: String!
+		text: String!
+		text_for_email: String!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+		error_url: String!
+		author_name: String!
+		issue_url: String!
+		issue_title: String!
+		issue_id: String!
+		integrations: [IntegrationType]!
+	): ErrorComment
 	removeErrorIssue(error_issue_id: ID!): Boolean
 	muteErrorCommentThread(id: ID!, has_muted: Boolean): Boolean
 	createIssueForErrorComment(
@@ -2387,6 +2509,18 @@ type Mutation {
 		issue_description: String
 		issue_team_id: String
 		issue_type_id: String
+		integrations: [IntegrationType]!
+	): ErrorComment
+	linkIssueForErrorComment(
+		project_id: ID!
+		error_url: String!
+		error_comment_id: Int!
+		author_name: String!
+		text_for_attachment: String!
+		issue_title: String
+		issue_description: String
+		issue_url: String!
+		issue_id: String!
 		integrations: [IntegrationType]!
 	): ErrorComment
 	deleteErrorComment(id: ID!): Boolean

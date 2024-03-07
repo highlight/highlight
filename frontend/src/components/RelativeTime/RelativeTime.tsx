@@ -1,5 +1,4 @@
 import moment from 'moment'
-import React from 'react'
 
 import Tooltip from '../Tooltip/Tooltip'
 

@@ -26,7 +26,7 @@ export const DockerContent: QuickStartContent = {
   &highlight-logging
     driver: fluentd
     options:
-        fluentd-address: "otel.highlight.io:24224"
+        fluentd-address: "tls://otel.highlight.io:24284"
         fluentd-async: "true"
         fluentd-sub-second-precision: "true"
         tag: "highlight.project_id=<YOUR_PROJECT_ID>"

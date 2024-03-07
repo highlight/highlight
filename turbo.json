@@ -102,7 +102,7 @@
 			]
 		},
 		"dev": {
-			"dependsOn": ["typegen", "^build"],
+			"dependsOn": ["typegen", "^build", "build"],
 			"cache": false,
 			"persistent": true
 		},

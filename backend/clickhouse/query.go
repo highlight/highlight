@@ -759,16 +759,16 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 
 	groupByColResults := make([]string, len(groupBy))
 	metricResults := make([]*float64, len(metricTypes))
-	scanResults := make([]interface{}, 4+len(groupByColResults)+len(metricResults))
-	scanResults[0] = &groupKey
-	scanResults[1] = &sampleFactor
-	scanResults[2] = &min
-	scanResults[3] = &max
+	scanResults := []interface{}{}
+	scanResults = append(scanResults, &groupKey)
+	scanResults = append(scanResults, &sampleFactor)
+	scanResults = append(scanResults, &min)
+	scanResults = append(scanResults, &max)
 	for idx := range metricTypes {
-		scanResults[4+idx] = &metricResults[idx]
+		scanResults = append(scanResults, &metricResults[idx])
 	}
 	for idx := range groupByColResults {
-		scanResults[4+len(metricTypes)+idx] = &groupByColResults[idx]
+		scanResults = append(scanResults, &groupByColResults[idx])
 	}
 
 	lastBucketId := -1

@@ -1,0 +1,31 @@
+[package]
+name = "highlightio"
+version = "1.0.2"
+license = "Apache-2.0"
+description = """
+hightlight.io SDK for Rust
+"""
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["sync"]
+sync = ["opentelemetry-otlp/reqwest-blocking-client"]
+tokio = ["opentelemetry_sdk/rt-tokio", "opentelemetry-otlp/tokio", "opentelemetry-otlp/reqwest-client"]
+tokio-current-thread = ["opentelemetry_sdk/rt-tokio-current-thread", "opentelemetry-otlp/tokio", "opentelemetry-otlp/reqwest-client"]
+async-std = ["opentelemetry_sdk/rt-async-std", "opentelemetry-otlp/surf-client"]
+
+[dependencies]
+opentelemetry = { workspace = true, features = ["logs"] }
+opentelemetry_sdk = { workspace = true, features = ["logs"] }
+opentelemetry-otlp = { workspace = true, features = ["logs", "http-proto", "reqwest-rustls"] }
+opentelemetry-semantic-conventions = { workspace = true }
+opentelemetry-appender-tracing = { workspace = true }
+
+tracing-subscriber = { workspace = true, default-features = false, features = ["registry", "std", "fmt", "env-filter"] }
+log = { workspace = true }
+
+hyper-native-tls = "0.3"
+thiserror = "1"
+env_logger = "0.11"

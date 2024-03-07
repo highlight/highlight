@@ -10,7 +10,7 @@ import { DEFAULT_METRICS_LAYOUT } from '@pages/Dashboards/Metrics'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { Form } from 'antd'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import styles from './CreateDashboardModal.module.css'

@@ -4,7 +4,7 @@ import {
 } from '@context/AppLoadingContext'
 import HighlightSessions from '@pages/FrontPlugin/components/HighlightSessions'
 import { FrontContextProvider } from '@pages/FrontPlugin/Front/FrontContext'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 
 const FrontPlugin = () => {

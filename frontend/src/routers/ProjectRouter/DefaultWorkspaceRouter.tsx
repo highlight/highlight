@@ -4,7 +4,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetWorkspacesQuery } from '@graph/hooks'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { Navigate, useMatch } from 'react-router-dom'
 
 export const DefaultWorkspaceRouter = () => {

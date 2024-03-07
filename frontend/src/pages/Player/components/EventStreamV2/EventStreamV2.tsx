@@ -1,11 +1,6 @@
 import LoadingBox from '@components/LoadingBox'
 import { useGetWebVitalsQuery } from '@graph/hooks'
-import {
-	Box,
-	Form,
-	IconSolidSearch,
-	useFormStore,
-} from '@highlight-run/ui/components'
+import { Box, Form, IconSolidSearch } from '@highlight-run/ui/components'
 import { StreamEventV2 } from '@pages/Player/components/EventStreamV2/StreamEventV2/StreamEventV2'
 import {
 	getFilteredEvents,
@@ -25,7 +20,7 @@ import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/Emp
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -53,7 +48,7 @@ const EventStreamV2 = function () {
 	const [isInteractingWithStreamEvents, setIsInteractingWithStreamEvents] =
 		useState(false)
 	const [events, setEvents] = useState<HighlightEvent[]>([])
-	const formStore = useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			search: searchItem,
 		},

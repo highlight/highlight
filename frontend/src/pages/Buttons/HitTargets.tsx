@@ -1,4 +1,3 @@
-import React from 'react'
 import { useToggle } from 'react-use'
 
 import styles from './Buttons.module.css'

@@ -4,7 +4,6 @@ import { AdminRole } from '@graph/schemas'
 import { Box } from '@highlight-run/ui/components'
 import { AutoJoinForm } from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import { Authorization } from '@util/authorization/authorization'
-import React from 'react'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import { FieldsForm } from './FieldsForm/FieldsForm'

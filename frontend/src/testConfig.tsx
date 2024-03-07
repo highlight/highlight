@@ -1,8 +1,8 @@
-import '/__generated/antd.css'
-import '@highlight-run/rrweb/dist/rrweb.min.css'
 import '@fontsource/poppins'
+import '@highlight-run/rrweb/dist/rrweb.min.css'
 import './index.css'
 import './style/tailwind.css'
+import '/__generated/antd.css'
 import '/__generated/index.css'
 
 import * as React from 'react'

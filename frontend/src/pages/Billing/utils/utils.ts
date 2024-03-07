@@ -3,7 +3,9 @@ import moment from 'moment'
 import { GetBillingDetailsForProjectQuery } from '@/graph/generated/operations'
 
 import {
+	BillingDetails,
 	Maybe,
+	Plan,
 	PlanType,
 	ProductType,
 	RetentionPeriod,
@@ -67,28 +69,72 @@ export const RETENTION_PERIOD_LABELS: { [K in RetentionPeriod]: string } = {
 }
 
 export const getMeterAmounts = (
-	data: GetBillingDetailsForProjectQuery,
+	details:
+		| Maybe<
+				{ __typename?: 'BillingDetails' } & Pick<
+					BillingDetails,
+					| 'meter'
+					| 'membersMeter'
+					| 'errorsMeter'
+					| 'logsMeter'
+					| 'tracesMeter'
+					| 'sessionsBillingLimit'
+					| 'errorsBillingLimit'
+					| 'logsBillingLimit'
+					| 'tracesBillingLimit'
+				> & {
+						plan: { __typename?: 'Plan' } & Pick<
+							Plan,
+							| 'type'
+							| 'interval'
+							| 'membersLimit'
+							| 'sessionsLimit'
+							| 'errorsLimit'
+							| 'logsLimit'
+							| 'tracesLimit'
+							| 'sessionsRate'
+							| 'errorsRate'
+							| 'logsRate'
+							| 'tracesRate'
+						>
+					}
+		  >
+		| undefined
+		| null,
 ): { [K in ProductType]: [number, number | undefined] } => {
-	const sessionsMeter = data.billingDetailsForProject?.meter ?? 0
-	const sessionsQuota = data.billingDetailsForProject?.sessionsBillingLimit
-		? data.billingDetailsForProject.plan.sessionsLimit +
-		  (data.billingDetailsForProject.sessionsBillingLimit ?? 0)
-		: undefined
-	const errorsMeter = data.billingDetailsForProject?.errorsMeter ?? 0
-	const errorsQuota = data.billingDetailsForProject?.errorsBillingLimit
-		? data.billingDetailsForProject.plan.errorsLimit +
-		  (data.billingDetailsForProject.errorsBillingLimit ?? 0)
-		: undefined
-	const logsMeter = data.billingDetailsForProject?.logsMeter ?? 0
-	const logsQuota = data.billingDetailsForProject?.logsBillingLimit
-		? data.billingDetailsForProject.plan.logsLimit +
-		  (data.billingDetailsForProject.logsBillingLimit ?? 0)
-		: undefined
-	const tracesMeter = data.billingDetailsForProject?.tracesMeter ?? 0
-	const tracesQuota = data.billingDetailsForProject?.tracesBillingLimit
-		? data.billingDetailsForProject.plan.tracesLimit +
-		  (data.billingDetailsForProject.tracesBillingLimit ?? 0)
-		: undefined
+	if (!details) {
+		return {
+			[ProductType.Sessions]: [0, undefined],
+			[ProductType.Errors]: [0, undefined],
+			[ProductType.Logs]: [0, undefined],
+			[ProductType.Traces]: [0, undefined],
+		}
+	}
+	const canChargeOverage = details.plan.type !== 'Free'
+	const sessionsMeter = details?.meter ?? 0
+	const sessionsQuota = details?.sessionsBillingLimit
+		? details.sessionsBillingLimit
+		: canChargeOverage
+		? undefined
+		: details?.plan.sessionsLimit
+	const errorsMeter = details?.errorsMeter ?? 0
+	const errorsQuota = details?.errorsBillingLimit
+		? details.errorsBillingLimit
+		: canChargeOverage
+		? undefined
+		: details?.plan.errorsLimit
+	const logsMeter = details?.logsMeter ?? 0
+	const logsQuota = details?.logsBillingLimit
+		? details.logsBillingLimit
+		: canChargeOverage
+		? undefined
+		: details?.plan.logsLimit
+	const tracesMeter = details?.tracesMeter ?? 0
+	const tracesQuota = details?.tracesBillingLimit
+		? details.tracesBillingLimit
+		: canChargeOverage
+		? undefined
+		: details?.plan.tracesLimit
 	return {
 		[ProductType.Sessions]: [sessionsMeter, sessionsQuota],
 		[ProductType.Errors]: [errorsMeter, errorsQuota],
@@ -100,7 +146,7 @@ export const getMeterAmounts = (
 export const getQuotaPercents = (
 	data: GetBillingDetailsForProjectQuery,
 ): [ProductType, number][] => {
-	const amts = getMeterAmounts(data)
+	const amts = getMeterAmounts(data.billingDetailsForProject)
 	const sessionAmts = amts[ProductType.Sessions]
 	const errorAmts = amts[ProductType.Errors]
 	const logAmts = amts[ProductType.Logs]

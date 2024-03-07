@@ -41,6 +41,9 @@ export const getAttachmentUrl = (a: Maybe<ExternalAttachment>) => {
 		case IntegrationType.ClickUp:
 			return `https://app.clickup.com/t/${a.external_id}`
 		case IntegrationType.Height:
+			if (a.external_id.startsWith('https:')) {
+				return a.external_id
+			}
 			return `https://height.app/${a.external_id}`
 		case IntegrationType.GitHub:
 			return a.external_id

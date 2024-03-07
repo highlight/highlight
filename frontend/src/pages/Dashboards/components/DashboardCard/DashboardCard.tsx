@@ -558,7 +558,7 @@ const ChartContainer = React.memo(
 
 		return (
 			<div
-				className={clsx('h-full w-full pt-6 pb-20 pl-3 pr-5', {
+				className={clsx('h-full w-full pb-20 pl-3 pr-5 pt-6', {
 					[styles.blurChart]: timelineLoading || chartInitialLoading,
 				})}
 			>

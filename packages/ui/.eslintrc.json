@@ -15,11 +15,21 @@
 	"parserOptions": {
 		"project": ["./tsconfig.json"]
 	},
-	"plugins": ["@typescript-eslint", "react"],
+	"plugins": [
+		"@typescript-eslint",
+		"react",
+		"simple-import-sort",
+		"unused-imports",
+		"import",
+		"prettier"
+	],
 	"ignorePatterns": ["src/__generated/*"],
 	"rules": {
 		"react/display-name": "off",
-		"react/react-in-jsx-scope": "off"
+		"react/react-in-jsx-scope": "off",
+		"simple-import-sort/imports": "error",
+		"simple-import-sort/exports": "error",
+		"unused-imports/no-unused-imports-ts": "error"
 	},
 	"settings": {
 		"react": {

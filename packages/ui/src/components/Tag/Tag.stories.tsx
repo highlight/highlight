@@ -1,7 +1,8 @@
-import { Tag } from './Tag'
 import type { Meta } from '@storybook/react'
+
 import { Box } from '../Box/Box'
 import { IconSolidCheveronDown, IconSolidSave } from '../icons'
+import { Tag } from './Tag'
 
 export default {
 	title: 'Components/Tag',

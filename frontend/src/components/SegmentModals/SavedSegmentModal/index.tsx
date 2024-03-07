@@ -6,7 +6,6 @@ import {
 	IconSolidInformationCircle,
 	Stack,
 	Text,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import { Maybe } from 'graphql/jsutils/Maybe'
 import React from 'react'
@@ -34,7 +33,7 @@ export const SavedSegmentModal = ({
 	queryBuilder,
 	shouldUpdate,
 }: Props) => {
-	const formStore = useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			name: currentSegment?.name || '',
 			filters: '',

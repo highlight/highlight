@@ -5,9 +5,12 @@ import {
 	filterMentionedSlackUsers,
 	parseAdminSuggestions,
 } from '@components/Comment/utils/utils'
+import { RadioGroup } from '@components/RadioGroup/RadioGroup'
 import {
+	useCreateErrorCommentForExistingIssueMutation,
 	useCreateErrorCommentMutation,
 	useCreateSessionCommentMutation,
+	useCreateSessionCommentWithExistingIssueMutation,
 	useGetCommentMentionSuggestionsQuery,
 	useGetWorkspaceAdminsByProjectIdQuery,
 } from '@graph/hooks'
@@ -36,7 +39,6 @@ import {
 	Menu,
 	Stack,
 	Text,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
@@ -55,8 +57,13 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
 import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
+import { SearchIssues } from '@/components/SearchIssues/SearchIssues'
 import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
+import {
+	NewIntegrationIssueMode,
+	NewIntegrationIssueType,
+} from '@/pages/IntegrationsPage/Integrations'
 
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas'
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration'
@@ -97,7 +104,18 @@ export const NewCommentForm = ({
 			namedOperations.Query.GetSessionsClickhouse,
 		],
 	})
+	const [createCommentWithExistingIssue] =
+		useCreateSessionCommentWithExistingIssueMutation({
+			refetchQueries: [
+				namedOperations.Query.GetSessionComments,
+				namedOperations.Query.GetSessionsClickhouse,
+			],
+		})
 	const [createErrorComment] = useCreateErrorCommentMutation()
+	const [createErrorCommentForExistingIssue] =
+		useCreateErrorCommentForExistingIssueMutation({
+			refetchQueries: [namedOperations.Query.GetErrorIssues],
+		})
 	const { admin, isLoggedIn } = useAuthContext()
 	const { project_id } = useParams<{ project_id: string }>()
 	const [commentText, setCommentText] = useState('')
@@ -116,7 +134,7 @@ export const NewCommentForm = ({
 		useState<IntegrationType>()
 	const [containerId, setContainerId] = useState('')
 	const [issueTypeId, setIssueTypeId] = useState('')
-	const formStore = useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			commentText: '',
 			issueTitle: '',
@@ -124,6 +142,16 @@ export const NewCommentForm = ({
 		},
 	})
 	const formValues = formStore.useState('values')
+
+	// issue linking support
+	const [mode, setMode] = React.useState<NewIntegrationIssueMode>(
+		NewIntegrationIssueType.CreateIssue,
+	)
+	const [linkedIssue, setLinkedIssue] = useState({
+		id: '',
+		url: '',
+		title: '',
+	})
 
 	const integrationMap = useMemo(() => {
 		const ret: { [key: string]: IssueTrackerIntegration } = {}
@@ -181,28 +209,51 @@ export const NewCommentForm = ({
 		const { issueTitle, issueDescription } = formValues
 
 		try {
-			await createErrorComment({
-				variables: {
-					project_id: project_id!,
-					error_group_secure_id: error_secure_id || '',
-					text: commentText.trim(),
-					text_for_email: commentTextForEmail.trim(),
-					error_url: `${window.location.origin}${window.location.pathname}`,
-					tagged_admins: mentionedAdmins,
-					tagged_slack_users: mentionedSlackUsers,
-					author_name: admin?.name || admin?.email || 'Someone',
-					integrations: selectedIssueService
-						? [selectedIssueService]
-						: [],
-					issue_title: selectedIssueService ? issueTitle : null,
-					issue_team_id: containerId || undefined,
-					issue_description: selectedIssueService
-						? issueDescription
-						: null,
-					issue_type_id: issueTypeId || undefined,
-				},
-				refetchQueries: [namedOperations.Query.GetErrorComments],
-			})
+			if (mode === NewIntegrationIssueType.CreateIssue) {
+				await createErrorComment({
+					variables: {
+						project_id: project_id!,
+						error_group_secure_id: error_secure_id || '',
+						text: commentText.trim(),
+						text_for_email: commentTextForEmail.trim(),
+						error_url: `${window.location.origin}${window.location.pathname}`,
+						tagged_admins: mentionedAdmins,
+						tagged_slack_users: mentionedSlackUsers,
+						author_name: admin?.name || admin?.email || 'Someone',
+						integrations: selectedIssueService
+							? [selectedIssueService]
+							: [],
+						issue_title: selectedIssueService ? issueTitle : null,
+						issue_team_id: containerId || undefined,
+						issue_description: selectedIssueService
+							? issueDescription
+							: null,
+						issue_type_id: issueTypeId || undefined,
+					},
+					refetchQueries: [namedOperations.Query.GetErrorComments],
+				})
+			} else {
+				await createErrorCommentForExistingIssue({
+					variables: {
+						project_id: project_id!,
+						error_group_secure_id: error_secure_id || '',
+						text: commentText.trim(),
+						text_for_email: commentTextForEmail.trim(),
+						error_url: `${window.location.origin}${window.location.pathname}`,
+						tagged_admins: mentionedAdmins,
+						tagged_slack_users: mentionedSlackUsers,
+						author_name: admin?.name || admin?.email || 'Someone',
+						integrations: selectedIssueService
+							? [selectedIssueService]
+							: [],
+						issue_title: selectedIssueService ? issueTitle : '',
+						issue_url: linkedIssue.url,
+						issue_id: linkedIssue.id,
+					},
+					refetchQueries: [namedOperations.Query.GetErrorIssues],
+					awaitRefetchQueries: true,
+				})
+			}
 			formStore.reset()
 			setCommentText('')
 			onCloseHandler()
@@ -226,36 +277,66 @@ export const NewCommentForm = ({
 		const { issueTitle, issueDescription } = formValues
 
 		try {
-			await createComment({
-				variables: {
-					project_id: project_id!,
-					session_secure_id: session_secure_id || '',
-					session_timestamp: Math.floor(commentTime),
-					text: commentText.trim(),
-					text_for_email: commentTextForEmail.trim(),
-					x_coordinate: commentPosition?.x || 0,
-					y_coordinate: commentPosition?.y || 0,
-					session_url: `${window.location.origin}${window.location.pathname}`,
-					tagged_admins: mentionedAdmins,
-					tagged_slack_users: mentionedSlackUsers,
-					tags: [],
-					time: commentTime / 1000,
-					author_name: admin?.name || admin?.email || 'Someone',
-					issue_team_id: containerId || undefined,
-					integrations: selectedIssueService
-						? [selectedIssueService]
-						: [],
-					issue_title: selectedIssueService ? issueTitle : null,
-					issue_description: selectedIssueService
-						? issueDescription
-						: null,
-					additional_context: currentUrl
-						? `*User\'s URL* <${currentUrl}|${currentUrl}>`
-						: null,
-					issue_type_id: issueTypeId || undefined,
-				},
-				refetchQueries: [namedOperations.Query.GetSessionComments],
-			})
+			if (mode === NewIntegrationIssueType.CreateIssue) {
+				await createComment({
+					variables: {
+						project_id: project_id!,
+						session_secure_id: session_secure_id || '',
+						session_timestamp: Math.floor(commentTime),
+						text: commentText.trim(),
+						text_for_email: commentTextForEmail.trim(),
+						x_coordinate: commentPosition?.x || 0,
+						y_coordinate: commentPosition?.y || 0,
+						session_url: `${window.location.origin}${window.location.pathname}`,
+						tagged_admins: mentionedAdmins,
+						tagged_slack_users: mentionedSlackUsers,
+						tags: [],
+						time: commentTime / 1000,
+						author_name: admin?.name || admin?.email || 'Someone',
+						issue_team_id: containerId || undefined,
+						integrations: selectedIssueService
+							? [selectedIssueService]
+							: [],
+						issue_title: selectedIssueService ? issueTitle : null,
+						issue_description: selectedIssueService
+							? issueDescription
+							: null,
+						additional_context: currentUrl
+							? `*User\'s URL* <${currentUrl}|${currentUrl}>`
+							: null,
+						issue_type_id: issueTypeId || undefined,
+					},
+					refetchQueries: [namedOperations.Query.GetSessionComments],
+				})
+			} else {
+				createCommentWithExistingIssue({
+					variables: {
+						project_id: project_id!,
+						session_secure_id: session_secure_id || '',
+						session_timestamp: Math.floor(commentTime),
+						text: commentText.trim(),
+						text_for_email: commentTextForEmail.trim(),
+						x_coordinate: commentPosition?.x || 0,
+						y_coordinate: commentPosition?.y || 0,
+						session_url: `${window.location.origin}${window.location.pathname}`,
+						tagged_admins: mentionedAdmins,
+						tagged_slack_users: mentionedSlackUsers,
+						tags: [],
+						time: commentTime / 1000,
+						author_name: admin?.name || admin?.email || 'Someone',
+						integrations: selectedIssueService
+							? [selectedIssueService]
+							: [],
+						issue_title: selectedIssueService ? issueTitle : null,
+						additional_context: currentUrl
+							? `*User\'s URL* <${currentUrl}|${currentUrl}>`
+							: null,
+						issue_url: linkedIssue.url,
+						issue_id: linkedIssue.id,
+					},
+					refetchQueries: [namedOperations.Query.GetSessionComments],
+				})
+			}
 			onCloseHandler()
 			formStore.reset()
 			if (!selectedTimelineAnnotationTypes.includes('Comments')) {
@@ -500,24 +581,70 @@ export const NewCommentForm = ({
 							</Stack>
 						</Box>
 						<Stack direction="column" gap="12" p="12">
-							{issueServiceDetail?.containerSelection({
-								disabled: isCreatingComment,
-								setSelectionId: setContainerId,
-								setIssueTypeId,
-							})}
-							<Form.Input
-								name="issueTitle"
-								label="Title"
-								placeholder="Title"
-								disabled={isCreatingComment}
-							/>
-							<Form.Input
-								name="issueDescription"
-								label="Description"
-								// @ts-expect-error
-								as="textarea"
-								disabled={isCreatingComment}
-							/>
+							{/* ClickUp doesn't support searching issues, so we don't need to show this section. */}
+							{integrationName !== 'ClickUp' && (
+								<Box
+									px="12"
+									py="8"
+									gap="12"
+									display="flex"
+									align="center"
+								>
+									<RadioGroup
+										labels={['Create Issue', 'Link Issue']}
+										selectedLabel={
+											mode ===
+											NewIntegrationIssueType.CreateIssue
+												? 'Create Issue'
+												: 'Link Issue'
+										}
+										onSelect={(label: string) =>
+											setMode(
+												label === 'Create Issue'
+													? NewIntegrationIssueType.CreateIssue
+													: NewIntegrationIssueType.LinkIssue,
+											)
+										}
+										labelStyle={{ width: '100%' }}
+										wrapperStyle={{ width: '100%' }}
+									/>
+								</Box>
+							)}
+							{mode === NewIntegrationIssueType.LinkIssue && (
+								<SearchIssues
+									onSelect={(value: any) => {
+										if (value) {
+											setLinkedIssue(value)
+										}
+									}}
+									integration={issueServiceDetail!}
+									project_id={project_id!}
+								/>
+							)}
+							{mode === NewIntegrationIssueType.CreateIssue && (
+								<>
+									{issueServiceDetail?.containerSelection({
+										disabled: isCreatingComment,
+										setSelectionId: setContainerId,
+										setIssueTypeId,
+									})}
+
+									<Form.Input
+										name="issueTitle"
+										label="Title"
+										placeholder="Title"
+										disabled={isCreatingComment}
+									/>
+
+									<Form.Input
+										name="issueDescription"
+										label="Description"
+										// @ts-expect-error
+										as="textarea"
+										disabled={isCreatingComment}
+									/>
+								</>
+							)}
 						</Stack>
 						<Stack
 							align="center"

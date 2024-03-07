@@ -1,4 +1,5 @@
 """ Run with `poetry run uvicorn main:app` """
+
 import logging
 import random
 

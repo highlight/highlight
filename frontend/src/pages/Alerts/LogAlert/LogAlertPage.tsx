@@ -5,8 +5,6 @@ import {
 	useDeleteLogAlertMutation,
 	useGetLogAlertQuery,
 	useGetLogsHistogramQuery,
-	useGetLogsKeysLazyQuery,
-	useGetLogsKeyValuesLazyQuery,
 	useUpdateLogAlertMutation,
 } from '@graph/hooks'
 import {
@@ -27,9 +25,6 @@ import {
 	Stack,
 	Tag,
 	Text,
-	useForm,
-	useFormStore,
-	useMenu,
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { useSlackSync } from '@hooks/useSlackSync'
@@ -57,6 +52,7 @@ import LoadingBox from '@/components/LoadingBox'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import { namedOperations } from '@/graph/generated/operations'
+import { ProductType } from '@/graph/generated/schemas'
 import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
 import analytics from '@/util/analytics'
@@ -106,7 +102,7 @@ export const LogAlertPage = () => {
 		skip: !alert_id,
 	})
 
-	const formStore = useFormStore<LogMonitorForm>({
+	const formStore = Form.useStore<LogMonitorForm>({
 		defaultValues: {
 			query: initialQuery,
 			name: '',
@@ -494,12 +490,7 @@ export const LogAlertPage = () => {
 												onFormSubmit={
 													handleUpdateInputQuery
 												}
-												fetchValuesLazyQuery={
-													useGetLogsKeyValuesLazyQuery
-												}
-												fetchKeysLazyQuery={
-													useGetLogsKeysLazyQuery
-												}
+												productType={ProductType.Logs}
 											/>
 										</Box>
 										<LogsHistogram
@@ -543,7 +534,7 @@ export const LogAlertPage = () => {
 
 const LogAlertForm = () => {
 	const { projectId } = useProjectId()
-	const formStore = useForm() as Ariakit.FormStore<LogMonitorForm>
+	const formStore = Form.useContext() as Ariakit.FormStore<LogMonitorForm>
 	const errors = formStore.useState('errors')
 
 	const { alertsPayload } = useLogAlertsContext()
@@ -868,8 +859,8 @@ const LogAlertForm = () => {
 }
 
 const ThresholdTypeConfiguration = () => {
-	const form = useForm()
-	const menu = useMenu()
+	const form = Form.useContext()!
+	const menu = Menu.useContext()!
 	const menuState = menu.getState()
 	const belowThreshold = form.useValue('belowThreshold')
 

@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/mail"
+	url2 "net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -3100,6 +3101,9 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		}
 		start := re.Start(sessionObj.CreatedAt)
 		end := re.End(sessionObj.CreatedAt)
+		if url, err := url2.Parse(re.Name); err == nil && url.Host == "pub.highlight.io" {
+			continue
+		}
 		attributes := []attribute.KeyValue{}
 		attributes = append(attributes, highlight.EmptyResourceAttributes...)
 		attributes = append(attributes, attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),

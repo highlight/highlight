@@ -15,7 +15,6 @@ export const ExcludedUsersForm = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const formStore = Form.useFormStore({})
 	const [identifierQuery, setIdentifierQuery] = useState('')
 	const [invalidExcludedUsers, setInvalidExcludedUsers] = useState<string[]>(
 		[],
@@ -64,7 +63,7 @@ export const ExcludedUsersForm = () => {
 
 	return (
 		<BorderBox>
-			<Form store={formStore}>
+			<Form>
 				<Stack gap="8">
 					<BoxLabel
 						label="Excluded users"

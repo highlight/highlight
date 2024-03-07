@@ -7,7 +7,7 @@ toolchain go1.21.3
 require (
 	github.com/99designs/gqlgen v0.17.24
 	github.com/gin-gonic/gin v1.9.1
-	github.com/gofiber/fiber/v2 v2.51.0
+	github.com/gofiber/fiber/v2 v2.52.1
 	github.com/labstack/echo/v4 v4.11.3
 	github.com/pkg/errors v0.9.1
 	github.com/samber/lo v1.39.0
@@ -38,7 +38,7 @@ require (
 	github.com/go-playground/validator/v10 v10.16.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/google/uuid v1.4.0 // indirect
+	github.com/google/uuid v1.5.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect

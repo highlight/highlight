@@ -1,6 +1,5 @@
 import { Menu as AntDesignMenu, MenuItemProps } from 'antd'
 import clsx from 'clsx'
-import React from 'react'
 
 import styles from './MenuItem.module.css'
 

@@ -1,5 +1,4 @@
 import {
-	// eslint-disable-next-line no-restricted-imports
 	Button as UIButton,
 	ButtonProps as UIButtonProps,
 	IconSolidLoading,

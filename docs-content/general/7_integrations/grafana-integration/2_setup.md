@@ -10,15 +10,7 @@ There are no requirements or dependencies to test the highlight.io data source i
 To use this data source for your cloud-managed project, you must be an enterprise customer. If you're interested in getting this set up, please reach out to us at [support@highlight.io](mailto:support@highlight.io).
 
 ## Installation
-We're working to add the highlight.io plugin to the Grafana plugin catalog - in the meantime, it can be installed manually as an unsigned plugin. 
-
-You can download the plugin [here](https://highlight-client-bundle.s3.us-east-2.amazonaws.com/assets/grafana/highlightinc-highlight-datasource.zip) and unzip it to a folder named `highlightinc-highlight-datasource` in the plugins directory on your Grafana instance (usually `data/plugins/`).
-
-Grafana won't run unsigned plugins by default. To allow Grafana to run our unsigned plugin, you can add the following setting to your `grafana.ini`:
-
-```javascript
-allow_loading_unsigned_plugins = highlightinc-highlight-datasource
-```
+The highlight.io data source plugin is available in the Grafana plugin catalog. You can install the plugin following the instructions [here](https://grafana.com/grafana/plugins/highlightinc-highlight-datasource/?tab=installation).
 
 ## Configuration
 Once you have installed the highlight.io plugin, you can add a new data source and configure it with these fields:

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import { useRef } from 'react'
 
 const DO_NOT_USE_Canvas = () => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null)

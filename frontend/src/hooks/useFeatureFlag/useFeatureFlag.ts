@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useGetProjectQuery } from '@graph/hooks'
 import analytics from '@util/analytics'
+import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { useEffect, useState } from 'react'
 
@@ -117,7 +118,7 @@ const useFeatureFlag = (feature: Feature, override?: boolean) => {
 		skip: !project_id,
 	})
 
-	const [isOn, setIsOn] = useState<boolean>(!!override)
+	const [isOn, setIsOn] = useState<boolean>(!isOnPrem && !!override)
 
 	useEffect(() => {
 		isFeatureOn(

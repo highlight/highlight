@@ -1,10 +1,10 @@
 import { useGetTracesLazyQuery, useGetTracesQuery } from '@graph/hooks'
 import { GetTracesQuery, GetTracesQueryVariables } from '@graph/operations'
-import { PageInfo, TraceEdge } from '@graph/schemas'
 import * as Types from '@graph/schemas'
+import { PageInfo, TraceEdge } from '@graph/schemas'
 import { usePollQuery } from '@util/search'
 import moment from 'moment'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
@@ -66,6 +66,38 @@ export const useGetTraces = ({
 		fetchPolicy: 'network-only',
 	})
 
+	const traceResultMetadata = useMemo(() => {
+		const traceIdSet = new Set()
+		const cursors = []
+		let latestLogTime, earliestLogTime
+
+		if (data?.traces.edges.length) {
+			cursors.push(data.traces.edges[0].cursor)
+
+			for (const edge of data.traces.edges) {
+				if (edge.node.traceID) {
+					traceIdSet.add(edge.node.traceID)
+				}
+
+				if (!latestLogTime || latestLogTime < edge.node.timestamp) {
+					latestLogTime = edge.node.timestamp
+				}
+
+				if (!earliestLogTime || earliestLogTime > edge.node.timestamp) {
+					earliestLogTime = edge.node.timestamp
+				}
+			}
+		}
+
+		return {
+			cursors,
+			traceIds: Array.from(traceIdSet) as string[],
+			endDate: latestLogTime || endDate,
+			startDate: earliestLogTime || startDate,
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [data?.traces.edges])
+
 	const { numMore, reset } = usePollQuery<
 		GetTracesQuery,
 		GetTracesQueryVariables
@@ -79,12 +111,14 @@ export const useGetTraces = ({
 				params: {
 					query,
 					date_range: {
-						start_date: moment(endDate).format(TIME_FORMAT),
+						start_date: moment(traceResultMetadata.endDate).format(
+							TIME_FORMAT,
+						),
 						end_date: moment().format(TIME_FORMAT),
 					},
 				},
 			}),
-			[endDate, traceCursor, projectId, query],
+			[projectId, traceCursor, query, traceResultMetadata.endDate],
 		),
 		moreDataQuery,
 		getResultCount: useCallback((result) => {

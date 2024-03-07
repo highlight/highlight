@@ -1,8 +1,8 @@
 import clsx, { ClassValue } from 'clsx'
 import React, { forwardRef } from 'react'
+
 import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
-
 import * as styles from './styles.css'
 
 export type Props = React.ButtonHTMLAttributes<HTMLButtonElement> &

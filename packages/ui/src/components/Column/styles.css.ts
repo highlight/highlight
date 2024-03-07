@@ -1,5 +1,6 @@
 import { style, styleVariants } from '@vanilla-extract/css'
 import { createSprinkles, defineProperties } from '@vanilla-extract/sprinkles'
+
 import { mediaQueries } from '../../css/breakpoints'
 import { Space } from '../../css/spaces'
 

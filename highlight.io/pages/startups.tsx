@@ -23,7 +23,7 @@ const StartupsPage = () => {
 		<div>
 			<Meta
 				title="Highlight for Startups"
-				description="If your startup has raised less than 2M in funding, you may qualify for up to 1 year of free Highlight usage."
+				description="If your startup has raised less than $2M in funding, you may qualify for up to 6 months of free Highlight usage!"
 				absoluteImageUrl={`https://${process.env.NEXT_PUBLIC_VERCEL_URL}${meta.src}`}
 				canonical={`/startups`}
 			/>

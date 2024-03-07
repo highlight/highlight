@@ -14,7 +14,7 @@ import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuil
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import moment from 'moment/moment'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 
 function HighlightSessions() {
 	const { setLoadingState } = useAppLoadingContext()

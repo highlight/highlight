@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import React from 'react'
+
 import { Box } from '../Box/Box'
 
 const STANDARD_DELAY = 500

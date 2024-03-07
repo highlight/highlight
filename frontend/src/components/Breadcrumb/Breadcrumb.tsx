@@ -1,9 +1,7 @@
 import SvgChevronRightIcon from '@icons/ChevronRightIcon'
 import { Breadcrumb as AntDesignBreadcrumb } from 'antd'
 import clsx from 'clsx'
-import React from 'react'
-import { useLocation } from 'react-router-dom'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 import styles from './Breadcrumb.module.css'
 

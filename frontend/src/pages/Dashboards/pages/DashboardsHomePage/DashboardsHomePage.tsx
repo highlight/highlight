@@ -10,7 +10,7 @@ import CreateDashboardModal from '@pages/Dashboards/components/CreateDashboardMo
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import alertStyles from '../../../Alerts/Alerts.module.css'

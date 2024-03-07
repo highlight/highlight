@@ -1,9 +1,9 @@
-import React from 'react'
 import { Meta } from '@storybook/react'
+import React from 'react'
 
-import { Column } from './Column'
 import { Box } from '../Box/Box'
 import { Text } from '../Text/Text'
+import { Column } from './Column'
 
 export default {
 	title: 'Components/Column',

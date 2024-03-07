@@ -1,7 +1,6 @@
 import Select from '@components/Select/Select'
 import { DiscordChannel } from '@graph/schemas'
 import { Form } from 'antd'
-import React from 'react'
 
 import styles from './AlertConfigurationCard.module.css'
 

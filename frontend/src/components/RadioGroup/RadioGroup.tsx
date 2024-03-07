@@ -6,12 +6,14 @@ export const RadioGroup = <T extends string | number>({
 	onSelect,
 	labels,
 	selectedLabel,
-	style,
+	labelStyle,
+	wrapperStyle,
 }: {
 	onSelect: (p: T) => void
 	labels: T[]
 	selectedLabel: T
-	style?: React.CSSProperties
+	labelStyle?: React.CSSProperties
+	wrapperStyle?: React.CSSProperties
 }) => {
 	const labelDivs = labels.map((label, i) => {
 		return label === selectedLabel ? (
@@ -21,6 +23,7 @@ export const RadioGroup = <T extends string | number>({
 					borderColor: 'var(--color-purple)',
 					backgroundColor: 'var(--color-purple)',
 					color: 'var(--text-primary-inverted)',
+					...labelStyle,
 				}}
 				className={styles.platformOption}
 				onClick={() => onSelect(label)}
@@ -34,6 +37,7 @@ export const RadioGroup = <T extends string | number>({
 				style={{
 					borderColor: 'var(--color-gray-300)',
 					color: 'var(--text-primary)',
+					...labelStyle,
 				}}
 				className={styles.platformOption}
 				onClick={() => onSelect(label)}
@@ -44,7 +48,7 @@ export const RadioGroup = <T extends string | number>({
 		)
 	})
 	return (
-		<div style={style} className={styles.radioGroupWrapper}>
+		<div style={wrapperStyle} className={styles.radioGroupWrapper}>
 			{labelDivs}
 		</div>
 	)

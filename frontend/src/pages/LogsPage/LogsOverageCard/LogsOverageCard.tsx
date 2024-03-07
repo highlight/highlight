@@ -33,7 +33,7 @@ export const LogsOverageCard = () => {
 		)
 	}
 
-	const meters = getMeterAmounts(data)
+	const meters = getMeterAmounts(data.billingDetails)
 	const meter = meters.Logs[0]
 	const quota = meters.Logs[1]
 	if (quota === undefined || meter < quota) {

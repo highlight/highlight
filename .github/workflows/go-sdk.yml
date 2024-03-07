@@ -18,7 +18,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
             - name: Setup Go
-              uses: actions/setup-go@v4
+              uses: actions/setup-go@v5
               with:
                   go-version-file: './sdk/highlight-go/go.mod'
                   cache-dependency-path: './sdk/highlight-go/go.sum'
@@ -35,7 +35,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
             - name: Setup Go
-              uses: actions/setup-go@v4
+              uses: actions/setup-go@v5
               with:
                   go-version-file: './sdk/highlight-go/go.mod'
                   cache-dependency-path: './sdk/highlight-go/go.sum'
@@ -53,7 +53,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
             - name: Setup Go
-              uses: actions/setup-go@v4
+              uses: actions/setup-go@v5
               with:
                   go-version-file: './sdk/highlight-go/go.mod'
                   cache-dependency-path: './sdk/highlight-go/go.sum'
@@ -68,7 +68,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
             - name: Setup Go
-              uses: actions/setup-go@v4
+              uses: actions/setup-go@v5
               with:
                   go-version-file: './sdk/highlight-go/go.mod'
                   cache-dependency-path: './sdk/highlight-go/go.sum'

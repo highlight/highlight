@@ -8,7 +8,7 @@ import { namedOperations } from '@graph/operations'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import clsx from 'clsx'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import commonStyles from '../../../Common.module.css'
 import Button from '../../../components/Button/Button/Button'

@@ -1,5 +1,6 @@
+import { useState } from 'react'
+
 import { Form, InputProps } from '../Form/Form'
-import React, { useState } from 'react'
 
 export interface TimeInputProps extends InputProps {
 	onTimeChange?: (value: string) => void

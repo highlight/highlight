@@ -18,7 +18,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment'
-import React from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 
 import {
@@ -66,37 +66,60 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const integrated = integrationData?.integrated
 	const ctaText = CTA_TITLE_MAP[area!]
 
-	const { data: sessionData } = useGetSessionsClickhouseQuery({
+	const POLLING_INTERVAL = 15000
+	const start = useMemo(() => moment().subtract(30, 'days').toISOString(), [])
+	// Adding a day so that polling returns fresh data.
+	const end = useMemo(() => moment().add(1, 'day').toISOString(), [])
+
+	const {
+		data: sessionData,
+		startPolling: startSessionPolling,
+		stopPolling: stopSessionPolling,
+	} = useGetSessionsClickhouseQuery({
 		variables: {
 			project_id: projectId,
 			query: {
 				isAnd: true,
 				rules: [],
 				dateRange: {
-					start_date: moment().subtract(30, 'days').toISOString(),
-					end_date: moment().toISOString(),
+					start_date: start,
+					end_date: end,
 				},
 			},
 			count: 1,
 			page: 1,
 			sort_desc: true,
 		},
+		onCompleted: (data) => {
+			if (data.sessions_clickhouse.sessions.length) {
+				stopSessionPolling()
+			}
+		},
 		skip: area !== 'client' || !integrated,
 		fetchPolicy: 'no-cache',
 	})
 
-	const { data: errorGroupData } = useGetErrorGroupsClickhouseQuery({
+	const {
+		data: errorGroupData,
+		startPolling: startErrorPolling,
+		stopPolling: stopErrorPolling,
+	} = useGetErrorGroupsClickhouseQuery({
 		variables: {
 			project_id: projectId,
 			query: {
 				isAnd: true,
 				rules: [],
 				dateRange: {
-					start_date: moment().subtract(30, 'days').toISOString(),
-					end_date: moment().toISOString(),
+					start_date: start,
+					end_date: end,
 				},
 			},
 			count: 1,
+		},
+		onCompleted: (data) => {
+			if (data.error_groups_clickhouse.error_groups.length) {
+				stopErrorPolling()
+			}
 		},
 		skip: area !== 'backend' || !integrated,
 		fetchPolicy: 'no-cache',
@@ -123,6 +146,34 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 			: undefined
 	const path = buildResourcePath(area!, projectId, resource, alert)
 	const complete = path && integrated
+
+	useEffect(() => {
+		if (integrated) {
+			if (
+				area === 'client' &&
+				!sessionData?.sessions_clickhouse.sessions.length
+			) {
+				startSessionPolling(POLLING_INTERVAL)
+			} else if (
+				area === 'backend' &&
+				!errorGroupData?.error_groups_clickhouse.error_groups.length
+			) {
+				startErrorPolling(POLLING_INTERVAL)
+			}
+		} else {
+			stopSessionPolling()
+			stopErrorPolling()
+		}
+	}, [
+		area,
+		errorGroupData?.error_groups_clickhouse.error_groups.length,
+		integrated,
+		sessionData?.sessions_clickhouse.sessions.length,
+		startErrorPolling,
+		startSessionPolling,
+		stopErrorPolling,
+		stopSessionPolling,
+	])
 
 	return (
 		<Box

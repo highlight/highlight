@@ -1,9 +1,9 @@
 import React from 'react'
-import { Box } from '../Box/Box'
 
-import * as styles from './styles.css'
 import { Button } from '../../components/Button/Button'
 import { Text } from '../../components/Text/Text'
+import { Box } from '../Box/Box'
+import * as styles from './styles.css'
 
 export interface Page {
 	page: React.ReactNode

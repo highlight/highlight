@@ -1,7 +1,7 @@
-import React from 'react'
-import { Box } from '../../Box/Box'
 import clsx from 'clsx'
+import React from 'react'
 
+import { Box } from '../../Box/Box'
 import * as styles from './styles.css'
 
 export type Props = {
