@@ -1,4 +1,4 @@
-import { LogLevel } from '@graph/schemas'
+import { LogLevel, ProductType } from '@graph/schemas'
 import {
 	Box,
 	DateRangePreset,
