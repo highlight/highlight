@@ -647,7 +647,7 @@ func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceI
 		"AIInsights":    *aiInsights,
 	}
 
-	if err := r.DB.WithContext(ctx).Where(&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).Model(&workspaceSettings).Clauses(clause.Returning{}).Updates(&workspaceSettingsUpdates).Error; err != nil {
+	if err := store.AssertRecordFound(r.DB.WithContext(ctx).Where(&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).Model(&workspaceSettings).Clauses(clause.Returning{}).Updates(&workspaceSettingsUpdates)); err != nil {
 		return nil, err
 	}
 	return workspaceSettings, nil
@@ -757,8 +757,8 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 	updatedFields := &model.ErrorGroup{
 		Viewed: viewed,
 	}
-	if err := r.DB.WithContext(ctx).Where(&model.ErrorGroup{Model: model.Model{ID: eg.ID}}).Model(&newErrorGroup).Clauses(clause.Returning{}).Updates(updatedFields).Error; err != nil {
-		return nil, e.Wrap(err, "error writing error as viewed")
+	if err := store.AssertRecordFound(r.DB.WithContext(ctx).Where(&model.ErrorGroup{Model: model.Model{ID: eg.ID}}).Model(&newErrorGroup).Clauses(clause.Returning{}).Updates(updatedFields)); err != nil {
+		return nil, err
 	}
 
 	if err := r.DB.WithContext(ctx).Model(&eg).Association("ViewedByAdmins").Append(admin); err != nil {
@@ -823,7 +823,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 	updatedFields := &model.Session{
 		Viewed: viewed,
 	}
-	if err := r.DB.WithContext(ctx).Where(&model.Session{Model: model.Model{ID: s.ID}}).Model(&newSession).Clauses(clause.Returning{}).Updates(updatedFields).Error; err != nil {
+	if err := store.AssertRecordFound(r.DB.WithContext(ctx).Where(&model.Session{Model: model.Model{ID: s.ID}}).Model(&newSession).Clauses(clause.Returning{}).Updates(updatedFields)); err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
 
@@ -4569,7 +4569,7 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 	}
 
 	service := &model.Service{}
-	updateErr := r.DB.WithContext(ctx).Where(&model.Service{Model: model.Model{ID: id}, ProjectID: project.ID}).Model(&service).Clauses(clause.Returning{}).Updates(&serviceUpdates).Error
+	updateErr := store.AssertRecordFound(r.DB.WithContext(ctx).Where(&model.Service{Model: model.Model{ID: id}, ProjectID: project.ID}).Model(&service).Clauses(clause.Returning{}).Updates(&serviceUpdates))
 	if updateErr != nil {
 		return nil, updateErr
 	}

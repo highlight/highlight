@@ -208,14 +208,14 @@ func (store *Store) updateErrorGroupState(ctx context.Context,
 
 	var errorGroup model.ErrorGroup
 
-	if err := store.db.WithContext(ctx).Where(&model.ErrorGroup{
+	if err := AssertRecordFound(store.db.WithContext(ctx).Where(&model.ErrorGroup{
 		Model: model.Model{
 			ID: params.ID,
 		},
 	}).Model(&errorGroup).Clauses(clause.Returning{}).Updates(map[string]interface{}{
 		"State":        params.State,
 		"SnoozedUntil": params.SnoozedUntil,
-	}).Error; err != nil {
+	})); err != nil {
 		return errorGroup, err
 	}
 
