@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { HighlightOptions, H as localH } from 'highlight.run'
+import Cookies from 'js-cookie'
 
 export { localH as H }
 export { ErrorBoundary } from '@highlight-run/react'
@@ -21,7 +22,16 @@ export function HighlightInit({
 				(hostname) => !window.location.hostname.includes(hostname),
 			)
 
-		shouldRender && localH.init(projectId, highlightOptions)
+		if (shouldRender) {
+			const { sessionSecureID } = localH.init(
+				projectId,
+				highlightOptions,
+			) || { sessionSecureID: '' }
+
+			if (sessionSecureID) {
+				Cookies.set('sessionSecureID', sessionSecureID)
+			}
+		}
 	}, []) // eslint-disable-line react-hooks/exhaustive-deps
 
 	return null

@@ -1,5 +1,21 @@
 # @highlight-run/next
 
+## 7.4.0
+
+### Minor Changes
+
+-   5fdb420c4: Adding highlightMiddleware and cookie tracking to Next.js. Minor cleanup for Remix and Node.
+
+### Patch Changes
+
+-   Updated dependencies [c4eb0a17f]
+-   Updated dependencies [ed3ff4752]
+-   Updated dependencies [58ad9560f]
+-   Updated dependencies [5fdb420c4]
+-   Updated dependencies [9796ef086]
+    -   @highlight-run/node@3.8.0
+    -   highlight.run@8.6.0
+
 ## 7.3.8
 
 ### Patch Changes

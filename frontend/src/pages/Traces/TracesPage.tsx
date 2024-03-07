@@ -24,14 +24,11 @@ import {
 	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
-import {
-	useGetTracesKeysLazyQuery,
-	useGetTracesKeyValuesLazyQuery,
-	useGetTracesMetricsQuery,
-} from '@/graph/generated/hooks'
+import { useGetTracesMetricsQuery } from '@/graph/generated/hooks'
 import {
 	MetricAggregator,
 	MetricColumn,
+	ProductType,
 	Trace,
 } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -210,8 +207,7 @@ export const TracesPage: React.FC = () => {
 						hideCreateAlert
 						onFormSubmit={setQuery}
 						onDatesChange={updateSearchTime}
-						fetchKeysLazyQuery={useGetTracesKeysLazyQuery}
-						fetchValuesLazyQuery={useGetTracesKeyValuesLazyQuery}
+						productType={ProductType.Traces}
 						savedSegmentType="Trace"
 					/>
 					<Box

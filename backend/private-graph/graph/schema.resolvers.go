@@ -8612,13 +8612,23 @@ func (r *queryResolver) ErrorsKeys(ctx context.Context, projectID int, dateRange
 		return nil, err
 	}
 
-	if typeArg == nil || *typeArg == modelInputs.KeyTypeNumeric {
+	if typeArg != nil && *typeArg == modelInputs.KeyTypeNumeric {
 		return []*modelInputs.QueryKey{}, nil
 	} else {
-		return lo.Map(modelInputs.AllReservedErrorObjectKey, func(k modelInputs.ReservedErrorObjectKey, _ int) *modelInputs.QueryKey {
-			return &modelInputs.QueryKey{Name: string(k)}
+		return lo.Map(modelInputs.AllReservedErrorsJoinedKey, func(k modelInputs.ReservedErrorsJoinedKey, _ int) *modelInputs.QueryKey {
+			return &modelInputs.QueryKey{Name: string(k), Type: modelInputs.KeyTypeString}
 		}), nil
 	}
+}
+
+// ErrorsKeyValues is the resolver for the errors_key_values field.
+func (r *queryResolver) ErrorsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ErrorsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
 // ErrorsMetrics is the resolver for the errors_metrics field.
@@ -8639,6 +8649,16 @@ func (r *queryResolver) SessionsKeys(ctx context.Context, projectID int, dateRan
 	}
 
 	return r.ClickhouseClient.SessionsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
+}
+
+// SessionsKeyValues is the resolver for the sessions_key_values field.
+func (r *queryResolver) SessionsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.SessionsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
 // SessionsMetrics is the resolver for the sessions_metrics field.
@@ -8678,6 +8698,22 @@ func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.Produc
 		return r.SessionsKeys(ctx, projectID, dateRange, query, typeArg)
 	case modelInputs.ProductTypeErrors:
 		return r.ErrorsKeys(ctx, projectID, dateRange, query, typeArg)
+	default:
+		return nil, e.Errorf("invalid product type %s", productType)
+	}
+}
+
+// KeyValues is the resolver for the key_values field.
+func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.ProductType, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		return r.TracesKeyValues(ctx, projectID, keyName, dateRange)
+	case modelInputs.ProductTypeLogs:
+		return r.LogsKeyValues(ctx, projectID, keyName, dateRange)
+	case modelInputs.ProductTypeSessions:
+		return r.SessionsKeyValues(ctx, projectID, keyName, dateRange)
+	case modelInputs.ProductTypeErrors:
+		return r.ErrorsKeyValues(ctx, projectID, keyName, dateRange)
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}

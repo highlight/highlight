@@ -981,25 +981,47 @@ enum ReservedTraceKey {
 
 enum ReservedErrorObjectKey {
 	browser
+	client_id
 	environment
-	event
-	has_sessions
-	log_cursor
-	os
-	payload
-	request_id
+	has_session
+	os_name
 	secure_session_id
 	service_name
 	service_version
-	source
-	span_id
-	stackTrace
-	status
-	tag
 	timestamp
 	trace_id
+	visited_url
+}
+
+enum ReservedErrorGroupKey {
+	event
+	status
+	tag
 	type
-	url
+}
+
+enum ReservedErrorsJoinedKey {
+	"""
+	ReservedErrorObjectKey
+	"""
+	browser
+	client_id
+	environment
+	has_session
+	os_name
+	secure_session_id
+	service_name
+	service_version
+	timestamp
+	trace_id
+	visited_url
+	"""
+	ReservedErrorGroupKey
+	"""
+	event
+	status
+	tag
+	type
 }
 
 enum ReservedSessionKey {
@@ -2173,6 +2195,11 @@ type Query {
 		query: String
 		type: KeyType
 	): [QueryKey!]!
+	errors_key_values(
+		project_id: ID!
+		key_name: String!
+		date_range: DateRangeRequiredInput!
+	): [String!]!
 	errors_metrics(
 		project_id: ID!
 		params: QueryInput!
@@ -2191,6 +2218,11 @@ type Query {
 		query: String
 		type: KeyType
 	): [QueryKey!]!
+	sessions_key_values(
+		project_id: ID!
+		key_name: String!
+		date_range: DateRangeRequiredInput!
+	): [String!]!
 	sessions_metrics(
 		project_id: ID!
 		params: QueryInput!
@@ -2223,6 +2255,12 @@ type Query {
 		query: String
 		type: KeyType
 	): [QueryKey!]!
+	key_values(
+		product_type: ProductType!
+		project_id: ID!
+		key_name: String!
+		date_range: DateRangeRequiredInput!
+	): [String!]!
 }
 
 type Mutation {

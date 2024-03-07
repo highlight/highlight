@@ -1,5 +1,15 @@
 # @highlight-run/node
 
+## 3.8.0
+
+### Minor Changes
+
+-   c4eb0a17f: allow customizing log attribute serialization
+
+### Patch Changes
+
+-   5fdb420c4: Adding highlightMiddleware and cookie tracking to Next.js. Minor cleanup for Remix and Node.
+
 ## 3.7.3
 
 ### Patch Changes

@@ -1,0 +1,17 @@
+[package]
+name = "highlightio-actix"
+version = "1.0.2"
+license = "Apache-2.0"
+description = """
+hightlight.io crate for actix-web 4.
+"""
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = { workspace = true }
+highlightio = { path = "../highlightio", version = "1.0.0", default-features = false, features = ["tokio-current-thread"] }
+futures-util = { workspace = true }
+opentelemetry = { workspace = true, features = ["trace"] }
+opentelemetry-semantic-conventions = { workspace = true }

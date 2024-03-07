@@ -60,6 +60,9 @@ Highlight.io also supports reporting errors from your backend and mapping these 
     <DocsCard title="Java" href="./4_backend-sdk/java/1_overview.md">
         {"Get started with error monitoring in Java"}
     </DocsCard>
+    <DocsCard title="Rust" href="./4_backend-sdk/rust/1_overview.md">
+        {"Get started with error monitoring in Rust"}
+    </DocsCard>
     <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/2_error-monitoring.md">
         {"Get started with OpenTelemetry"}
     </DocsCard>
@@ -87,6 +90,9 @@ Highlight.io also supports logging from your backend and mapping these to corres
     <DocsCard title="Java" href="./backend-logging/05_java/1_overview.md">
         {"Get started with logging in Java"}
     </DocsCard>
+    <DocsCard title="Rust" href="./backend-logging/06_rust/1_overview.md">
+        {"Get started with logging in Rust"}
+    </DocsCard>
     <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/3_logging.md">
         {"Get started with OpenTelemetry"}
     </DocsCard>
@@ -95,19 +101,19 @@ Highlight.io also supports logging from your backend and mapping these to corres
 ### Hosting Platform Logging
 
 <DocsCardGroup>
-    <DocsCard title="Cloud" href="./backend-logging/06_hosting/1_overview.md">
+    <DocsCard title="Cloud" href="./backend-logging/07_hosting/1_overview.md">
         {"Log from your Cloud Hosting Environment"}
     </DocsCard>
-    <DocsCard title="curl" href="./backend-logging/07_http.md">
+    <DocsCard title="curl" href="./backend-logging/08_http.md">
         {"Send logs over HTTPS"}
     </DocsCard>
-    <DocsCard title="Docker" href="./backend-logging/08_docker.md">
+    <DocsCard title="Docker" href="./backend-logging/09_docker.md">
         {"Stream Docker logs"}
     </DocsCard>
-    <DocsCard title="Fluent Forward" href="./backend-logging/10_fluentforward.md">
+    <DocsCard title="Fluent Forward" href="./backend-logging/11_fluentforward.md">
         {"Send Fluent Forward (Fluentd / Fluent Bit) logs"}
     </DocsCard>
-    <DocsCard title="File" href="./backend-logging/09_file.md">
+    <DocsCard title="File" href="./backend-logging/10_file.md">
         {"Stream any log file"}
     </DocsCard>
 </DocsCardGroup>
@@ -127,6 +133,9 @@ Highlight.io also supports tracing from your backend and mapping these to corres
     </DocsCard>
     <DocsCard title="Python" href="./backend-tracing/3_python/1_overview.md">
         {"Get started with tracing in Python"}
+    </DocsCard>
+    <DocsCard title="Rust" href="./backend-tracing/4_rust/1_overview.md">
+        {"Get started with tracing in Rust"}
     </DocsCard>
     <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/4_tracing.md">
         {"Get started with tracing in OpenTelemetry"}

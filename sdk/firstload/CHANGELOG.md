@@ -1,5 +1,16 @@
 # highlight.run
 
+## 8.6.0
+
+### Minor Changes
+
+-   58ad9560f: support custom serialization for log attributes to display cleaner message bodies
+
+### Patch Changes
+
+-   ed3ff4752: filter network request recording for highlight.io traffic
+-   9796ef086: report browser performance events as metrics
+
 ## 8.5.0
 
 ### Minor Changes
