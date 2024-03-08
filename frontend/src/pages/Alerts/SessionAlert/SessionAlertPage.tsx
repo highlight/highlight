@@ -330,7 +330,7 @@ export const SessionAlertPage = () => {
 						const thresholdErr =
 							configuration.canControlThreshold &&
 							(!input.count_threshold ||
-								input.count_threshold < 1)
+								input.count_threshold < 0)
 						if (nameErr || thresholdErr) {
 							const errs = []
 							if (nameErr) {
@@ -344,7 +344,7 @@ export const SessionAlertPage = () => {
 							if (thresholdErr) {
 								formStore.setError(
 									formStore.names.threshold,
-									'Threshold cannot be less than 1',
+									'Threshold cannot be less than 0',
 								)
 								errs.push('threshold')
 							}
