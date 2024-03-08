@@ -84,6 +84,7 @@ const PlayerPage = () => {
 		isPlayerReady,
 		session,
 		currentUrl,
+		errors,
 	} = playerContext
 
 	const navigate = useNavigate()
@@ -136,16 +137,28 @@ const PlayerPage = () => {
 			setShowLeftPanel(false)
 			setShowDevTools(true)
 			setSelectedDevToolsTab(Tab.Errors)
-			// TODO: Click test
-			set({
-				type: 'error',
-				id: errorObject.error_group_secure_id,
-				instanceId: errorObject.id,
-			})
+
+			set(
+				{
+					type: 'error',
+					id: errorObject.error_group_secure_id,
+					instanceId: errorObject.id,
+				},
+				{
+					currentIndex: errors.findIndex(
+						(error) => error.id === errorObject.id,
+					),
+					resources: errors.map((error) => ({
+						type: 'error',
+						id: error.error_group_secure_id,
+						instanceId: error.id,
+					})),
+				},
+			)
 		}
 	}, [
 		errorObject,
-		session,
+		errors,
 		set,
 		setSelectedDevToolsTab,
 		setShowDevTools,
