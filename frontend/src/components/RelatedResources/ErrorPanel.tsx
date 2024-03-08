@@ -22,7 +22,7 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 	resource,
 }) => {
 	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(false)
-	const path = `/errors/${resource.id}`
+	const path = `/errors/${resource.id}/instances/${resource.instanceId}`
 	const { data, loading } = useErrorGroup(resource.id)
 	const errorGroup = data?.error_group
 	const { data: errorInstanceData, loading: errorInstanceLoading } =

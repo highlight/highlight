@@ -137,33 +137,14 @@ const PlayerPage = () => {
 			setShowLeftPanel(false)
 			setShowDevTools(true)
 			setSelectedDevToolsTab(Tab.Errors)
-
-			set(
-				{
-					type: 'error',
-					id: errorObject.error_group_secure_id,
-					instanceId: errorObject.id,
-				},
-				{
-					currentIndex: errors.findIndex(
-						(error) => error.id === errorObject.id,
-					),
-					resources: errors.map((error) => ({
-						type: 'error',
-						id: error.error_group_secure_id,
-						instanceId: error.id,
-					})),
-				},
-			)
+			set({
+				type: 'error',
+				id: errorObject.error_group_secure_id,
+				instanceId: errorObject.id,
+			})
 		}
-	}, [
-		errorObject,
-		errors,
-		set,
-		setSelectedDevToolsTab,
-		setShowDevTools,
-		setShowLeftPanel,
-	])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [errorObject])
 
 	const { logCursor } = useLinkLogCursor()
 	useEffect(() => {
