@@ -31,7 +31,7 @@ type AccessibleJiraResources struct {
 	ID        string   `json:"id"`
 	URL       string   `json:"url"`
 	Name      string   `json:"name"`
-	Scopes    []string `json:"scopes,omitempty"`
+	Scopes    []string `json:"scopes"`
 	AvatarURL string   `json:"avatarUrl"`
 }
 
@@ -47,19 +47,19 @@ type Account struct {
 	PaidPrev             int        `json:"paid_prev"`
 	PaidPrevPrev         int        `json:"paid_prev_prev"`
 	Email                string     `json:"email"`
-	SubscriptionStart    *time.Time `json:"subscription_start,omitempty"`
+	SubscriptionStart    *time.Time `json:"subscription_start"`
 	PlanTier             string     `json:"plan_tier"`
 	UnlimitedMembers     bool       `json:"unlimited_members"`
 	StripeCustomerID     string     `json:"stripe_customer_id"`
 	MemberCount          int        `json:"member_count"`
-	MemberLimit          *int       `json:"member_limit,omitempty"`
+	MemberLimit          *int       `json:"member_limit"`
 }
 
 type AccountDetails struct {
 	ID                   int                     `json:"id"`
 	Name                 string                  `json:"name"`
-	SessionCountPerMonth []*NamedCount           `json:"session_count_per_month,omitempty"`
-	SessionCountPerDay   []*NamedCount           `json:"session_count_per_day,omitempty"`
+	SessionCountPerMonth []*NamedCount           `json:"session_count_per_month"`
+	SessionCountPerDay   []*NamedCount           `json:"session_count_per_day"`
 	StripeCustomerID     string                  `json:"stripe_customer_id"`
 	Members              []*AccountDetailsMember `json:"members"`
 }
@@ -68,7 +68,7 @@ type AccountDetailsMember struct {
 	ID         int        `json:"id"`
 	Name       string     `json:"name"`
 	Email      string     `json:"email"`
-	LastActive *time.Time `json:"last_active,omitempty"`
+	LastActive *time.Time `json:"last_active"`
 }
 
 type AdminAboutYouDetails struct {
@@ -80,7 +80,7 @@ type AdminAboutYouDetails struct {
 	HeardAbout              string  `json:"heard_about"`
 	PhoneHomeContactAllowed bool    `json:"phone_home_contact_allowed"`
 	Referral                string  `json:"referral"`
-	Phone                   *string `json:"phone,omitempty"`
+	Phone                   *string `json:"phone"`
 }
 
 type AdminAndWorkspaceDetails struct {
@@ -92,24 +92,24 @@ type AdminAndWorkspaceDetails struct {
 	PhoneHomeContactAllowed     bool    `json:"phone_home_contact_allowed"`
 	Referral                    string  `json:"referral"`
 	WorkspaceName               string  `json:"workspace_name"`
-	AllowedAutoJoinEmailOrigins *string `json:"allowed_auto_join_email_origins,omitempty"`
-	PromoCode                   *string `json:"promo_code,omitempty"`
+	AllowedAutoJoinEmailOrigins *string `json:"allowed_auto_join_email_origins"`
+	PromoCode                   *string `json:"promo_code"`
 }
 
 type AllProjectSettings struct {
 	ID                                int            `json:"id"`
 	VerboseID                         string         `json:"verbose_id"`
 	Name                              string         `json:"name"`
-	BillingEmail                      *string        `json:"billing_email,omitempty"`
-	Secret                            *string        `json:"secret,omitempty"`
+	BillingEmail                      *string        `json:"billing_email"`
+	Secret                            *string        `json:"secret"`
 	WorkspaceID                       int            `json:"workspace_id"`
-	ExcludedUsers                     pq.StringArray `json:"excluded_users,omitempty"`
-	ErrorFilters                      pq.StringArray `json:"error_filters,omitempty"`
-	ErrorJSONPaths                    pq.StringArray `json:"error_json_paths,omitempty"`
-	RageClickWindowSeconds            *int           `json:"rage_click_window_seconds,omitempty"`
-	RageClickRadiusPixels             *int           `json:"rage_click_radius_pixels,omitempty"`
-	RageClickCount                    *int           `json:"rage_click_count,omitempty"`
-	FilterChromeExtension             *bool          `json:"filter_chrome_extension,omitempty"`
+	ExcludedUsers                     pq.StringArray `json:"excluded_users"`
+	ErrorFilters                      pq.StringArray `json:"error_filters"`
+	ErrorJSONPaths                    pq.StringArray `json:"error_json_paths"`
+	RageClickWindowSeconds            *int           `json:"rage_click_window_seconds"`
+	RageClickRadiusPixels             *int           `json:"rage_click_radius_pixels"`
+	RageClickCount                    *int           `json:"rage_click_count"`
+	FilterChromeExtension             *bool          `json:"filter_chrome_extension"`
 	FilterSessionsWithoutError        bool           `json:"filterSessionsWithoutError"`
 	AutoResolveStaleErrorsDayInterval int            `json:"autoResolveStaleErrorsDayInterval"`
 	Sampling                          *Sampling      `json:"sampling"`
@@ -130,10 +130,10 @@ type BillingDetails struct {
 	ErrorsDailyAverage   float64 `json:"errorsDailyAverage"`
 	LogsDailyAverage     float64 `json:"logsDailyAverage"`
 	TracesDailyAverage   float64 `json:"tracesDailyAverage"`
-	SessionsBillingLimit *int64  `json:"sessionsBillingLimit,omitempty"`
-	ErrorsBillingLimit   *int64  `json:"errorsBillingLimit,omitempty"`
-	LogsBillingLimit     *int64  `json:"logsBillingLimit,omitempty"`
-	TracesBillingLimit   *int64  `json:"tracesBillingLimit,omitempty"`
+	SessionsBillingLimit *int64  `json:"sessionsBillingLimit"`
+	ErrorsBillingLimit   *int64  `json:"errorsBillingLimit"`
+	LogsBillingLimit     *int64  `json:"logsBillingLimit"`
+	TracesBillingLimit   *int64  `json:"tracesBillingLimit"`
 }
 
 type CategoryHistogramBucket struct {
@@ -194,64 +194,64 @@ type DashboardDefinition struct {
 	ProjectID         int                      `json:"project_id"`
 	Name              string                   `json:"name"`
 	Metrics           []*DashboardMetricConfig `json:"metrics"`
-	LastAdminToEditID *int                     `json:"last_admin_to_edit_id,omitempty"`
-	Layout            *string                  `json:"layout,omitempty"`
-	IsDefault         *bool                    `json:"is_default,omitempty"`
+	LastAdminToEditID *int                     `json:"last_admin_to_edit_id"`
+	Layout            *string                  `json:"layout"`
+	IsDefault         *bool                    `json:"is_default"`
 }
 
 type DashboardMetricConfig struct {
 	Name                     string                   `json:"name"`
 	Description              string                   `json:"description"`
-	ComponentType            *MetricViewComponentType `json:"component_type,omitempty"`
-	MaxGoodValue             *float64                 `json:"max_good_value,omitempty"`
-	MaxNeedsImprovementValue *float64                 `json:"max_needs_improvement_value,omitempty"`
-	PoorValue                *float64                 `json:"poor_value,omitempty"`
-	Units                    *string                  `json:"units,omitempty"`
-	HelpArticle              *string                  `json:"help_article,omitempty"`
-	ChartType                *DashboardChartType      `json:"chart_type,omitempty"`
-	Aggregator               *MetricAggregator        `json:"aggregator,omitempty"`
-	MinValue                 *float64                 `json:"min_value,omitempty"`
-	MinPercentile            *float64                 `json:"min_percentile,omitempty"`
-	MaxValue                 *float64                 `json:"max_value,omitempty"`
-	MaxPercentile            *float64                 `json:"max_percentile,omitempty"`
-	Filters                  []*MetricTagFilter       `json:"filters,omitempty"`
-	Groups                   []string                 `json:"groups,omitempty"`
+	ComponentType            *MetricViewComponentType `json:"component_type"`
+	MaxGoodValue             *float64                 `json:"max_good_value"`
+	MaxNeedsImprovementValue *float64                 `json:"max_needs_improvement_value"`
+	PoorValue                *float64                 `json:"poor_value"`
+	Units                    *string                  `json:"units"`
+	HelpArticle              *string                  `json:"help_article"`
+	ChartType                *DashboardChartType      `json:"chart_type"`
+	Aggregator               *MetricAggregator        `json:"aggregator"`
+	MinValue                 *float64                 `json:"min_value"`
+	MinPercentile            *float64                 `json:"min_percentile"`
+	MaxValue                 *float64                 `json:"max_value"`
+	MaxPercentile            *float64                 `json:"max_percentile"`
+	Filters                  []*MetricTagFilter       `json:"filters"`
+	Groups                   []string                 `json:"groups"`
 }
 
 type DashboardMetricConfigInput struct {
 	Name                     string                   `json:"name"`
 	Description              string                   `json:"description"`
-	ComponentType            *MetricViewComponentType `json:"component_type,omitempty"`
-	MaxGoodValue             *float64                 `json:"max_good_value,omitempty"`
-	MaxNeedsImprovementValue *float64                 `json:"max_needs_improvement_value,omitempty"`
-	PoorValue                *float64                 `json:"poor_value,omitempty"`
-	Units                    *string                  `json:"units,omitempty"`
-	HelpArticle              *string                  `json:"help_article,omitempty"`
-	ChartType                *DashboardChartType      `json:"chart_type,omitempty"`
-	Aggregator               *MetricAggregator        `json:"aggregator,omitempty"`
-	MinValue                 *float64                 `json:"min_value,omitempty"`
-	MinPercentile            *float64                 `json:"min_percentile,omitempty"`
-	MaxValue                 *float64                 `json:"max_value,omitempty"`
-	MaxPercentile            *float64                 `json:"max_percentile,omitempty"`
-	Filters                  []*MetricTagFilterInput  `json:"filters,omitempty"`
-	Groups                   []string                 `json:"groups,omitempty"`
+	ComponentType            *MetricViewComponentType `json:"component_type"`
+	MaxGoodValue             *float64                 `json:"max_good_value"`
+	MaxNeedsImprovementValue *float64                 `json:"max_needs_improvement_value"`
+	PoorValue                *float64                 `json:"poor_value"`
+	Units                    *string                  `json:"units"`
+	HelpArticle              *string                  `json:"help_article"`
+	ChartType                *DashboardChartType      `json:"chart_type"`
+	Aggregator               *MetricAggregator        `json:"aggregator"`
+	MinValue                 *float64                 `json:"min_value"`
+	MinPercentile            *float64                 `json:"min_percentile"`
+	MaxValue                 *float64                 `json:"max_value"`
+	MaxPercentile            *float64                 `json:"max_percentile"`
+	Filters                  []*MetricTagFilterInput  `json:"filters"`
+	Groups                   []string                 `json:"groups"`
 }
 
 type DashboardParamsInput struct {
 	DateRange         *DateRangeRequiredInput `json:"date_range"`
-	ResolutionMinutes *int                    `json:"resolution_minutes,omitempty"`
-	Timezone          *string                 `json:"timezone,omitempty"`
-	Units             *string                 `json:"units,omitempty"`
+	ResolutionMinutes *int                    `json:"resolution_minutes"`
+	Timezone          *string                 `json:"timezone"`
+	Units             *string                 `json:"units"`
 	Aggregator        MetricAggregator        `json:"aggregator"`
-	Filters           []*MetricTagFilterInput `json:"filters,omitempty"`
-	Groups            []string                `json:"groups,omitempty"`
+	Filters           []*MetricTagFilterInput `json:"filters"`
+	Groups            []string                `json:"groups"`
 }
 
 type DashboardPayload struct {
 	Date       string           `json:"date"`
 	Value      float64          `json:"value"`
 	Aggregator MetricAggregator `json:"aggregator"`
-	Group      *string          `json:"group,omitempty"`
+	Group      *string          `json:"group"`
 }
 
 type DateHistogramBucketSize struct {
@@ -266,8 +266,8 @@ type DateHistogramOptions struct {
 }
 
 type DateRangeInput struct {
-	StartDate *time.Time `json:"start_date,omitempty"`
-	EndDate   *time.Time `json:"end_date,omitempty"`
+	StartDate *time.Time `json:"start_date"`
+	EndDate   *time.Time `json:"end_date"`
 }
 
 type DateRangeRequiredInput struct {
@@ -281,12 +281,12 @@ type DiscordChannelInput struct {
 }
 
 type EnhancedUserDetailsResult struct {
-	ID      *int          `json:"id,omitempty"`
-	Name    *string       `json:"name,omitempty"`
-	Avatar  *string       `json:"avatar,omitempty"`
-	Bio     *string       `json:"bio,omitempty"`
-	Socials []*SocialLink `json:"socials,omitempty"`
-	Email   *string       `json:"email,omitempty"`
+	ID      *int          `json:"id"`
+	Name    *string       `json:"name"`
+	Avatar  *string       `json:"avatar"`
+	Bio     *string       `json:"bio"`
+	Socials []*SocialLink `json:"socials"`
+	Email   *string       `json:"email"`
 }
 
 type ErrorDistributionItem struct {
@@ -316,16 +316,16 @@ type ErrorMetadata struct {
 	ErrorID         int        `json:"error_id"`
 	SessionID       int        `json:"session_id"`
 	SessionSecureID string     `json:"session_secure_id"`
-	Environment     *string    `json:"environment,omitempty"`
-	Timestamp       *time.Time `json:"timestamp,omitempty"`
-	Os              *string    `json:"os,omitempty"`
-	Browser         *string    `json:"browser,omitempty"`
-	VisitedURL      *string    `json:"visited_url,omitempty"`
+	Environment     *string    `json:"environment"`
+	Timestamp       *time.Time `json:"timestamp"`
+	Os              *string    `json:"os"`
+	Browser         *string    `json:"browser"`
+	VisitedURL      *string    `json:"visited_url"`
 	Fingerprint     string     `json:"fingerprint"`
-	Identifier      *string    `json:"identifier,omitempty"`
-	UserProperties  *string    `json:"user_properties,omitempty"`
-	RequestID       *string    `json:"request_id,omitempty"`
-	Payload         *string    `json:"payload,omitempty"`
+	Identifier      *string    `json:"identifier"`
+	UserProperties  *string    `json:"user_properties"`
+	RequestID       *string    `json:"request_id"`
+	Payload         *string    `json:"payload"`
 }
 
 type ErrorObjectConnection struct {
@@ -349,7 +349,7 @@ type ErrorObjectNode struct {
 	CreatedAt          time.Time               `json:"createdAt"`
 	Event              string                  `json:"event"`
 	Timestamp          time.Time               `json:"timestamp"`
-	Session            *ErrorObjectNodeSession `json:"session,omitempty"`
+	Session            *ErrorObjectNodeSession `json:"session"`
 	ErrorGroupSecureID string                  `json:"errorGroupSecureID"`
 	ServiceVersion     string                  `json:"serviceVersion"`
 	ServiceName        string                  `json:"serviceName"`
@@ -357,24 +357,24 @@ type ErrorObjectNode struct {
 
 type ErrorObjectNodeSession struct {
 	SecureID    string  `json:"secureID"`
-	Email       *string `json:"email,omitempty"`
-	Fingerprint *int    `json:"fingerprint,omitempty"`
+	Email       *string `json:"email"`
+	Fingerprint *int    `json:"fingerprint"`
 	Excluded    bool    `json:"excluded"`
 }
 
 type ErrorTrace struct {
-	FileName                   *string             `json:"fileName,omitempty"`
-	LineNumber                 *int                `json:"lineNumber,omitempty"`
-	FunctionName               *string             `json:"functionName,omitempty"`
-	ColumnNumber               *int                `json:"columnNumber,omitempty"`
-	Error                      *string             `json:"error,omitempty"`
-	SourceMappingErrorMetadata *SourceMappingError `json:"sourceMappingErrorMetadata,omitempty"`
-	LineContent                *string             `json:"lineContent,omitempty"`
-	LinesBefore                *string             `json:"linesBefore,omitempty"`
-	LinesAfter                 *string             `json:"linesAfter,omitempty"`
-	ExternalLink               *string             `json:"externalLink,omitempty"`
-	EnhancementSource          *EnhancementSource  `json:"enhancementSource,omitempty"`
-	EnhancementVersion         *string             `json:"enhancementVersion,omitempty"`
+	FileName                   *string             `json:"fileName"`
+	LineNumber                 *int                `json:"lineNumber"`
+	FunctionName               *string             `json:"functionName"`
+	ColumnNumber               *int                `json:"columnNumber"`
+	Error                      *string             `json:"error"`
+	SourceMappingErrorMetadata *SourceMappingError `json:"sourceMappingErrorMetadata"`
+	LineContent                *string             `json:"lineContent"`
+	LinesBefore                *string             `json:"linesBefore"`
+	LinesAfter                 *string             `json:"linesAfter"`
+	ExternalLink               *string             `json:"externalLink"`
+	EnhancementSource          *EnhancementSource  `json:"enhancementSource"`
+	EnhancementVersion         *string             `json:"enhancementVersion"`
 }
 
 type GitHubRepo struct {
@@ -422,16 +422,16 @@ type IntegrationProjectMappingInput struct {
 type IntegrationStatus struct {
 	Integrated   bool       `json:"integrated"`
 	ResourceType string     `json:"resourceType"`
-	CreatedAt    *time.Time `json:"createdAt,omitempty"`
+	CreatedAt    *time.Time `json:"createdAt"`
 }
 
 type Invoice struct {
-	AmountDue    *int64     `json:"amountDue,omitempty"`
-	AmountPaid   *int64     `json:"amountPaid,omitempty"`
-	AttemptCount *int64     `json:"attemptCount,omitempty"`
-	Date         *time.Time `json:"date,omitempty"`
-	URL          *string    `json:"url,omitempty"`
-	Status       *string    `json:"status,omitempty"`
+	AmountDue    *int64     `json:"amountDue"`
+	AmountPaid   *int64     `json:"amountPaid"`
+	AttemptCount *int64     `json:"attemptCount"`
+	Date         *time.Time `json:"date"`
+	URL          *string    `json:"url"`
+	Status       *string    `json:"status"`
 }
 
 type IssuesSearchResult struct {
@@ -448,12 +448,12 @@ type JiraIssueType struct {
 	Name             string              `json:"name"`
 	UntranslatedName string              `json:"untranslatedName"`
 	Subtask          bool                `json:"subtask"`
-	Scope            *JiraIssueTypeScope `json:"scope,omitempty"`
+	Scope            *JiraIssueTypeScope `json:"scope"`
 }
 
 type JiraIssueTypeScope struct {
 	Type    string                 `json:"type"`
-	Project *JiraProjectIdentifier `json:"project,omitempty"`
+	Project *JiraProjectIdentifier `json:"project"`
 }
 
 type JiraProject struct {
@@ -461,7 +461,7 @@ type JiraProject struct {
 	Key        string           `json:"key"`
 	ID         string           `json:"id"`
 	Self       string           `json:"self"`
-	IssueTypes []*JiraIssueType `json:"issueTypes,omitempty"`
+	IssueTypes []*JiraIssueType `json:"issueTypes"`
 }
 
 type JiraProjectIdentifier struct {
@@ -475,8 +475,8 @@ type JiraTeam struct {
 }
 
 type LengthRangeInput struct {
-	Min *float64 `json:"min,omitempty"`
-	Max *float64 `json:"max,omitempty"`
+	Min *float64 `json:"min"`
+	Max *float64 `json:"max"`
 }
 
 type LinearTeam struct {
@@ -491,13 +491,13 @@ type Log struct {
 	Level           LogLevel               `json:"level"`
 	Message         string                 `json:"message"`
 	LogAttributes   map[string]interface{} `json:"logAttributes"`
-	TraceID         *string                `json:"traceID,omitempty"`
-	SpanID          *string                `json:"spanID,omitempty"`
-	SecureSessionID *string                `json:"secureSessionID,omitempty"`
-	Source          *string                `json:"source,omitempty"`
-	ServiceName     *string                `json:"serviceName,omitempty"`
-	ServiceVersion  *string                `json:"serviceVersion,omitempty"`
-	Environment     *string                `json:"environment,omitempty"`
+	TraceID         *string                `json:"traceID"`
+	SpanID          *string                `json:"spanID"`
+	SecureSessionID *string                `json:"secureSessionID"`
+	Source          *string                `json:"source"`
+	ServiceName     *string                `json:"serviceName"`
+	ServiceVersion  *string                `json:"serviceVersion"`
+	Environment     *string                `json:"environment"`
 }
 
 type LogAlertInput struct {
@@ -513,7 +513,7 @@ type LogAlertInput struct {
 	Emails                 []string                      `json:"emails"`
 	Environments           []string                      `json:"environments"`
 	Disabled               bool                          `json:"disabled"`
-	Default                *bool                         `json:"default,omitempty"`
+	Default                *bool                         `json:"default"`
 	Query                  string                        `json:"query"`
 }
 
@@ -564,7 +564,7 @@ type MetricBucket struct {
 	Group       []string         `json:"group"`
 	Column      MetricColumn     `json:"column"`
 	MetricType  MetricAggregator `json:"metric_type"`
-	MetricValue *float64         `json:"metric_value,omitempty"`
+	MetricValue *float64         `json:"metric_value"`
 }
 
 type MetricPreview struct {
@@ -602,7 +602,7 @@ type NamedCount struct {
 
 type NetworkHistogramParamsInput struct {
 	LookbackDays float64                  `json:"lookback_days"`
-	Attribute    *NetworkRequestAttribute `json:"attribute,omitempty"`
+	Attribute    *NetworkRequestAttribute `json:"attribute"`
 }
 
 type NewUsersCount struct {
@@ -625,9 +625,9 @@ type PageInfo struct {
 type Plan struct {
 	Type                PlanType                    `json:"type"`
 	Interval            SubscriptionInterval        `json:"interval"`
-	MembersLimit        *int64                      `json:"membersLimit,omitempty"`
+	MembersLimit        *int64                      `json:"membersLimit"`
 	EnableBillingLimits bool                        `json:"enableBillingLimits"`
-	AwsMpSubscription   *AWSMarketplaceSubscription `json:"aws_mp_subscription,omitempty"`
+	AwsMpSubscription   *AWSMarketplaceSubscription `json:"aws_mp_subscription"`
 	SessionsLimit       int64                       `json:"sessionsLimit"`
 	ErrorsLimit         int64                       `json:"errorsLimit"`
 	LogsLimit           int64                       `json:"logsLimit"`
@@ -662,7 +662,7 @@ type ReferrerTablePayload struct {
 }
 
 type S3File struct {
-	Key *string `json:"key,omitempty"`
+	Key *string `json:"key"`
 }
 
 type Sampling struct {
@@ -670,52 +670,52 @@ type Sampling struct {
 	ErrorSamplingRate      float64 `json:"error_sampling_rate"`
 	LogSamplingRate        float64 `json:"log_sampling_rate"`
 	TraceSamplingRate      float64 `json:"trace_sampling_rate"`
-	SessionMinuteRateLimit *int64  `json:"session_minute_rate_limit,omitempty"`
-	ErrorMinuteRateLimit   *int64  `json:"error_minute_rate_limit,omitempty"`
-	LogMinuteRateLimit     *int64  `json:"log_minute_rate_limit,omitempty"`
-	TraceMinuteRateLimit   *int64  `json:"trace_minute_rate_limit,omitempty"`
-	SessionExclusionQuery  *string `json:"session_exclusion_query,omitempty"`
-	ErrorExclusionQuery    *string `json:"error_exclusion_query,omitempty"`
-	LogExclusionQuery      *string `json:"log_exclusion_query,omitempty"`
-	TraceExclusionQuery    *string `json:"trace_exclusion_query,omitempty"`
+	SessionMinuteRateLimit *int64  `json:"session_minute_rate_limit"`
+	ErrorMinuteRateLimit   *int64  `json:"error_minute_rate_limit"`
+	LogMinuteRateLimit     *int64  `json:"log_minute_rate_limit"`
+	TraceMinuteRateLimit   *int64  `json:"trace_minute_rate_limit"`
+	SessionExclusionQuery  *string `json:"session_exclusion_query"`
+	ErrorExclusionQuery    *string `json:"error_exclusion_query"`
+	LogExclusionQuery      *string `json:"log_exclusion_query"`
+	TraceExclusionQuery    *string `json:"trace_exclusion_query"`
 }
 
 type SamplingInput struct {
-	SessionSamplingRate    *float64 `json:"session_sampling_rate,omitempty"`
-	ErrorSamplingRate      *float64 `json:"error_sampling_rate,omitempty"`
-	LogSamplingRate        *float64 `json:"log_sampling_rate,omitempty"`
-	TraceSamplingRate      *float64 `json:"trace_sampling_rate,omitempty"`
-	SessionMinuteRateLimit *int64   `json:"session_minute_rate_limit,omitempty"`
-	ErrorMinuteRateLimit   *int64   `json:"error_minute_rate_limit,omitempty"`
-	LogMinuteRateLimit     *int64   `json:"log_minute_rate_limit,omitempty"`
-	TraceMinuteRateLimit   *int64   `json:"trace_minute_rate_limit,omitempty"`
-	SessionExclusionQuery  *string  `json:"session_exclusion_query,omitempty"`
-	ErrorExclusionQuery    *string  `json:"error_exclusion_query,omitempty"`
-	LogExclusionQuery      *string  `json:"log_exclusion_query,omitempty"`
-	TraceExclusionQuery    *string  `json:"trace_exclusion_query,omitempty"`
+	SessionSamplingRate    *float64 `json:"session_sampling_rate"`
+	ErrorSamplingRate      *float64 `json:"error_sampling_rate"`
+	LogSamplingRate        *float64 `json:"log_sampling_rate"`
+	TraceSamplingRate      *float64 `json:"trace_sampling_rate"`
+	SessionMinuteRateLimit *int64   `json:"session_minute_rate_limit"`
+	ErrorMinuteRateLimit   *int64   `json:"error_minute_rate_limit"`
+	LogMinuteRateLimit     *int64   `json:"log_minute_rate_limit"`
+	TraceMinuteRateLimit   *int64   `json:"trace_minute_rate_limit"`
+	SessionExclusionQuery  *string  `json:"session_exclusion_query"`
+	ErrorExclusionQuery    *string  `json:"error_exclusion_query"`
+	LogExclusionQuery      *string  `json:"log_exclusion_query"`
+	TraceExclusionQuery    *string  `json:"trace_exclusion_query"`
 }
 
 type SanitizedAdmin struct {
 	ID       int     `json:"id"`
-	Name     *string `json:"name,omitempty"`
+	Name     *string `json:"name"`
 	Email    string  `json:"email"`
-	PhotoURL *string `json:"photo_url,omitempty"`
+	PhotoURL *string `json:"photo_url"`
 }
 
 type SanitizedAdminInput struct {
 	ID    int     `json:"id"`
-	Name  *string `json:"name,omitempty"`
+	Name  *string `json:"name"`
 	Email string  `json:"email"`
 }
 
 type SanitizedSlackChannel struct {
-	WebhookChannel   *string `json:"webhook_channel,omitempty"`
-	WebhookChannelID *string `json:"webhook_channel_id,omitempty"`
+	WebhookChannel   *string `json:"webhook_channel"`
+	WebhookChannelID *string `json:"webhook_channel_id"`
 }
 
 type SanitizedSlackChannelInput struct {
-	WebhookChannelName *string `json:"webhook_channel_name,omitempty"`
-	WebhookChannelID   *string `json:"webhook_channel_id,omitempty"`
+	WebhookChannelName *string `json:"webhook_channel_name"`
+	WebhookChannelID   *string `json:"webhook_channel_id"`
 }
 
 type ServiceConnection struct {
@@ -739,10 +739,10 @@ type ServiceNode struct {
 	ProjectID      int           `json:"projectID"`
 	Name           string        `json:"name"`
 	Status         ServiceStatus `json:"status"`
-	GithubRepoPath *string       `json:"githubRepoPath,omitempty"`
-	BuildPrefix    *string       `json:"buildPrefix,omitempty"`
-	GithubPrefix   *string       `json:"githubPrefix,omitempty"`
-	ErrorDetails   []string      `json:"errorDetails,omitempty"`
+	GithubRepoPath *string       `json:"githubRepoPath"`
+	BuildPrefix    *string       `json:"buildPrefix"`
+	GithubPrefix   *string       `json:"githubPrefix"`
+	ErrorDetails   []string      `json:"errorDetails"`
 }
 
 type SessionAlertInput struct {
@@ -757,7 +757,7 @@ type SessionAlertInput struct {
 	Emails                 []string                      `json:"emails"`
 	Environments           []string                      `json:"environments"`
 	Disabled               bool                          `json:"disabled"`
-	Default                *bool                         `json:"default,omitempty"`
+	Default                *bool                         `json:"default"`
 	Type                   SessionAlertType              `json:"type"`
 	UserProperties         []*UserPropertyInput          `json:"user_properties"`
 	ExcludeRules           []string                      `json:"exclude_rules"`
@@ -765,7 +765,7 @@ type SessionAlertInput struct {
 }
 
 type SessionCommentTagInput struct {
-	ID   *int   `json:"id,omitempty"`
+	ID   *int   `json:"id"`
 	Name string `json:"name"`
 }
 
@@ -776,7 +776,7 @@ type SessionExportWithSession struct {
 	Error        string    `json:"error"`
 	SecureID     string    `json:"secure_id"`
 	Identifier   string    `json:"identifier"`
-	ActiveLength *int      `json:"active_length,omitempty"`
+	ActiveLength *int      `json:"active_length"`
 }
 
 type SessionQuery struct {
@@ -805,29 +805,29 @@ type SlackSyncResponse struct {
 
 type SocialLink struct {
 	Type SocialType `json:"type"`
-	Link *string    `json:"link,omitempty"`
+	Link *string    `json:"link"`
 }
 
 type SourceMappingError struct {
-	ErrorCode                  *SourceMappingErrorCode `json:"errorCode,omitempty"`
-	StackTraceFileURL          *string                 `json:"stackTraceFileURL,omitempty"`
-	SourcemapFetchStrategy     *string                 `json:"sourcemapFetchStrategy,omitempty"`
-	SourceMapURL               *string                 `json:"sourceMapURL,omitempty"`
-	MinifiedFetchStrategy      *string                 `json:"minifiedFetchStrategy,omitempty"`
-	ActualMinifiedFetchedPath  *string                 `json:"actualMinifiedFetchedPath,omitempty"`
-	MinifiedLineNumber         *int                    `json:"minifiedLineNumber,omitempty"`
-	MinifiedColumnNumber       *int                    `json:"minifiedColumnNumber,omitempty"`
-	ActualSourcemapFetchedPath *string                 `json:"actualSourcemapFetchedPath,omitempty"`
-	SourcemapFileSize          *int                    `json:"sourcemapFileSize,omitempty"`
-	MinifiedFileSize           *int                    `json:"minifiedFileSize,omitempty"`
-	MappedLineNumber           *int                    `json:"mappedLineNumber,omitempty"`
-	MappedColumnNumber         *int                    `json:"mappedColumnNumber,omitempty"`
+	ErrorCode                  *SourceMappingErrorCode `json:"errorCode"`
+	StackTraceFileURL          *string                 `json:"stackTraceFileURL"`
+	SourcemapFetchStrategy     *string                 `json:"sourcemapFetchStrategy"`
+	SourceMapURL               *string                 `json:"sourceMapURL"`
+	MinifiedFetchStrategy      *string                 `json:"minifiedFetchStrategy"`
+	ActualMinifiedFetchedPath  *string                 `json:"actualMinifiedFetchedPath"`
+	MinifiedLineNumber         *int                    `json:"minifiedLineNumber"`
+	MinifiedColumnNumber       *int                    `json:"minifiedColumnNumber"`
+	ActualSourcemapFetchedPath *string                 `json:"actualSourcemapFetchedPath"`
+	SourcemapFileSize          *int                    `json:"sourcemapFileSize"`
+	MinifiedFileSize           *int                    `json:"minifiedFileSize"`
+	MappedLineNumber           *int                    `json:"mappedLineNumber"`
+	MappedColumnNumber         *int                    `json:"mappedColumnNumber"`
 }
 
 type SubscriptionDetails struct {
 	BaseAmount           int64                 `json:"baseAmount"`
-	Discount             *SubscriptionDiscount `json:"discount,omitempty"`
-	LastInvoice          *Invoice              `json:"lastInvoice,omitempty"`
+	Discount             *SubscriptionDiscount `json:"discount"`
+	LastInvoice          *Invoice              `json:"lastInvoice"`
 	BillingIssue         bool                  `json:"billingIssue"`
 	BillingIngestBlocked bool                  `json:"billingIngestBlocked"`
 }
@@ -836,7 +836,7 @@ type SubscriptionDiscount struct {
 	Name    string     `json:"name"`
 	Percent float64    `json:"percent"`
 	Amount  int64      `json:"amount"`
-	Until   *time.Time `json:"until,omitempty"`
+	Until   *time.Time `json:"until"`
 }
 
 type TopUsersPayload struct {
@@ -866,8 +866,8 @@ type Trace struct {
 	TraceAttributes map[string]interface{} `json:"traceAttributes"`
 	StatusCode      string                 `json:"statusCode"`
 	StatusMessage   string                 `json:"statusMessage"`
-	Events          []*TraceEvent          `json:"events,omitempty"`
-	Links           []*TraceLink           `json:"links,omitempty"`
+	Events          []*TraceEvent          `json:"events"`
+	Links           []*TraceLink           `json:"links"`
 }
 
 type TraceConnection struct {
@@ -888,9 +888,9 @@ func (this TraceEdge) GetCursor() string { return this.Cursor }
 
 type TraceError struct {
 	CreatedAt          time.Time `json:"created_at"`
-	TraceID            *string   `json:"trace_id,omitempty"`
-	SpanID             *string   `json:"span_id,omitempty"`
-	LogCursor          *string   `json:"log_cursor,omitempty"`
+	TraceID            *string   `json:"trace_id"`
+	SpanID             *string   `json:"span_id"`
+	LogCursor          *string   `json:"log_cursor"`
 	Event              string    `json:"event"`
 	Type               string    `json:"type"`
 	Source             string    `json:"source"`
@@ -917,7 +917,7 @@ type TracePayload struct {
 }
 
 type TrackPropertyInput struct {
-	ID    *int   `json:"id,omitempty"`
+	ID    *int   `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }
@@ -955,8 +955,8 @@ type VercelProjectMapping struct {
 
 type VercelProjectMappingInput struct {
 	VercelProjectID string  `json:"vercel_project_id"`
-	NewProjectName  *string `json:"new_project_name,omitempty"`
-	ProjectID       *int    `json:"project_id,omitempty"`
+	NewProjectName  *string `json:"new_project_name"`
+	ProjectID       *int    `json:"project_id"`
 }
 
 type WebSocketEvent struct {
@@ -970,12 +970,12 @@ type WebSocketEvent struct {
 
 type WebhookDestinationInput struct {
 	URL           string  `json:"url"`
-	Authorization *string `json:"authorization,omitempty"`
+	Authorization *string `json:"authorization"`
 }
 
 type WorkspaceForInviteLink struct {
-	ExpirationDate  *time.Time `json:"expiration_date,omitempty"`
-	InviteeEmail    *string    `json:"invitee_email,omitempty"`
+	ExpirationDate  *time.Time `json:"expiration_date"`
+	InviteeEmail    *string    `json:"invitee_email"`
 	Secret          string     `json:"secret"`
 	WorkspaceID     int        `json:"workspace_id"`
 	WorkspaceName   string     `json:"workspace_name"`
