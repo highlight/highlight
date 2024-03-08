@@ -200,7 +200,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sfn v1.19.4
+	github.com/aws/aws-sdk-go-v2/service/sfn v1.26.2
 	github.com/aws/aws-sdk-go-v2/service/sso v1.20.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.4 // indirect
 	github.com/bwmarrin/discordgo v0.27.1
