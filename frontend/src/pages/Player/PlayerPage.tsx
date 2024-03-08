@@ -84,7 +84,6 @@ const PlayerPage = () => {
 		isPlayerReady,
 		session,
 		currentUrl,
-		errors,
 	} = playerContext
 
 	const navigate = useNavigate()
