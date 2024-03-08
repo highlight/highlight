@@ -1,5 +1,3 @@
-import { useHotkeys } from 'react-hotkeys-hook'
-
 import { ErrorPanel } from '@/components/RelatedResources/ErrorPanel'
 import {
 	RelatedResource,
@@ -12,9 +10,7 @@ type Props = React.PropsWithChildren & {}
 export type ResourcePanelProps = { resource: RelatedResource }
 
 export const RelatedResourcePanel: React.FC<Props> = ({}) => {
-	const { resource, remove } = useRelatedResource()
-
-	useHotkeys('esc', remove, [])
+	const { resource } = useRelatedResource()
 
 	if (!resource) {
 		return null

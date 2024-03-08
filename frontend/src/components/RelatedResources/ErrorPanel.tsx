@@ -1,5 +1,6 @@
 import { Box } from '@highlight-run/ui/components'
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 
 import { Divider } from '@/components/CreateAlertButton/CreateAlertButton'
 import LoadingBox from '@/components/LoadingBox'
@@ -25,6 +26,7 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 	resource,
 }) => {
 	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(false)
+	const location = useLocation()
 	const { projectId } = useNumericProjectId()
 	const path = useMemo(
 		() =>
@@ -46,10 +48,11 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 		loading || errorInstanceLoading || !errorGroup || !errorInstance
 
 	useEffect(() => {
-		analytics.track('Related Resource Panel', {
+		analytics.track('related-resource-panel_view', {
 			panelResourceType: 'error',
-			pageResourceType: window.location.pathname.split('/')[1],
+			pageResourceType: location.pathname.split('/')[2],
 		})
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [resource.id])
 
 	return (
