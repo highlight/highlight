@@ -376,7 +376,6 @@ func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model
 			}
 		}
 		for _, bodyFilter := range filter.Values {
-			// TODO(spenny): make sure this works for NOT
 			if filter.Operator == listener.OperatorRegExp {
 				pat, err := regexp.Compile(bodyFilter)
 				if err == nil {
@@ -434,7 +433,6 @@ func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model
 	}
 	if !bodyFilter {
 		for _, v := range filter.Values {
-			// TODO(spenny): make sure this works for NOT
 			if filter.Operator == listener.OperatorRegExp {
 				pat, err := regexp.Compile(v)
 				if err == nil {
