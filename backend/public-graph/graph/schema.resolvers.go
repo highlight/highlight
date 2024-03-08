@@ -288,11 +288,20 @@ func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error)
 	return nil, nil
 }
 
+// OrganizationID is the resolver for the organization_id field.
+func (r *sessionResolver) OrganizationID(ctx context.Context, obj *model.Session) (int, error) {
+	return obj.ProjectID, nil
+}
+
 // Mutation returns generated1.MutationResolver implementation.
 func (r *Resolver) Mutation() generated1.MutationResolver { return &mutationResolver{r} }
 
 // Query returns generated1.QueryResolver implementation.
 func (r *Resolver) Query() generated1.QueryResolver { return &queryResolver{r} }
 
+// Session returns generated1.SessionResolver implementation.
+func (r *Resolver) Session() generated1.SessionResolver { return &sessionResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type sessionResolver struct{ *Resolver }
