@@ -25,7 +25,6 @@ export const NetworkResourceErrors: React.FC<{
 	const errorGroupSecureIds = errors.map((e) => e.error_group_secure_id)
 	const start = useMemo(() => moment().subtract(30, 'days').toISOString(), [])
 	const end = useMemo(() => moment().toISOString(), [])
-	// TODO: Look into errors with fetching error groups.
 	const { data, loading } = useGetErrorGroupsClickhouseQuery({
 		variables: {
 			query: {

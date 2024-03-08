@@ -1,5 +1,6 @@
 import { Box, Dialog } from '@highlight-run/ui/components'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { PanelHeader } from '@/components/RelatedResources/PanelHeader'
@@ -19,7 +20,8 @@ type PanelComponent = React.FC<Props> & {
 export const Panel: PanelComponent = ({ children, open }) => {
 	const dragHandleRef = useRef<HTMLDivElement>(null)
 	const [dragging, setDragging] = useState(false)
-	const { remove, panelWidth, setPanelWidth } = useRelatedResource()
+	const { resource, remove, panelWidth, setPanelWidth } = useRelatedResource()
+	const location = useLocation()
 	const dialogStore = Dialog.useStore({
 		open,
 		setOpen: (open) => {
@@ -61,6 +63,13 @@ export const Panel: PanelComponent = ({ children, open }) => {
 			window.removeEventListener('mouseup', handleMouseUp)
 		}
 	}, [dragging, handleMouseMove, handleMouseUp])
+
+	useEffect(() => {
+		if (resource) {
+			remove()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [location.pathname])
 
 	return (
 		<Dialog

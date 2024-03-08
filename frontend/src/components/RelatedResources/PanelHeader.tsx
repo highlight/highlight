@@ -6,6 +6,8 @@ import {
 	IconSolidX,
 	Stack,
 } from '@highlight-run/ui/components'
+import { useCallback } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
 import { PreviousNextGroup } from '@/components/PreviousNextGroup/PreviousNextGroup'
@@ -63,47 +65,58 @@ export const PanelHeader: React.FC<React.PropsWithChildren<Props>> = ({
 const Pagination = () => {
 	const { set, panelPagination } = useRelatedResource()
 
-	if (!panelPagination?.resources.length) {
-		return null
-	}
-
 	const canMoveForward =
 		(panelPagination?.currentIndex ?? 0) <
 		(panelPagination?.resources.length ?? 0) - 1
 	const canMoveBackward = (panelPagination?.currentIndex ?? 0) > 0
 
+	const goToPrevious = useCallback(() => {
+		if (!canMoveBackward || !panelPagination?.resources.length) {
+			return
+		}
+
+		const nextIndex = panelPagination.currentIndex - 1
+
+		if (panelPagination?.onChange) {
+			panelPagination.onChange(panelPagination.resources[nextIndex])
+		}
+
+		set(panelPagination.resources[nextIndex], {
+			...panelPagination,
+			currentIndex: nextIndex,
+		})
+	}, [canMoveBackward, panelPagination, set])
+
+	const goToNext = useCallback(() => {
+		if (!canMoveForward || !panelPagination?.resources.length) {
+			return
+		}
+
+		const nextIndex = panelPagination.currentIndex + 1
+
+		if (panelPagination?.onChange) {
+			panelPagination.onChange(panelPagination.resources[nextIndex])
+		}
+
+		set(panelPagination.resources[nextIndex], {
+			...panelPagination,
+			currentIndex: nextIndex,
+		})
+	}, [canMoveForward, panelPagination, set])
+
+	useHotkeys('l', goToPrevious, [goToPrevious])
+	useHotkeys('h', goToNext, [goToNext])
+
+	if (!panelPagination?.resources.length) {
+		return null
+	}
+
 	return (
 		<PreviousNextGroup
-			onPrev={() => {
-				const nextIndex = panelPagination.currentIndex - 1
-
-				if (panelPagination?.onChange) {
-					panelPagination.onChange(
-						panelPagination.resources[nextIndex],
-					)
-				}
-
-				set(panelPagination.resources[nextIndex], {
-					...panelPagination,
-					currentIndex: nextIndex,
-				})
-			}}
-			prevShortcut="h"
-			onNext={() => {
-				const nextIndex = panelPagination.currentIndex + 1
-
-				if (panelPagination?.onChange) {
-					panelPagination.onChange(
-						panelPagination.resources[nextIndex],
-					)
-				}
-
-				set(panelPagination.resources[nextIndex], {
-					...panelPagination,
-					currentIndex: nextIndex,
-				})
-			}}
-			nextShortcut="l"
+			onPrev={goToPrevious}
+			onNext={goToNext}
+			prevShortcut="l"
+			nextShortcut="h"
 			canMoveBackward={canMoveBackward}
 			canMoveForward={canMoveForward}
 		/>

@@ -13,3 +13,8 @@ export const rowLink = style({
 		},
 	},
 })
+
+export const rowLinkSelected = style({
+	backgroundColor: vars.theme.interactive.overlay.secondary.selected.default,
+	borderRadius: vars.borderRadius[4],
+})

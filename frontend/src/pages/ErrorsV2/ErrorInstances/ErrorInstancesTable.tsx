@@ -11,13 +11,17 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
+import clsx from 'clsx'
 import moment from 'moment'
 import React from 'react'
 import { createSearchParams } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { Link } from '@/components/Link'
-import { useRelatedResource } from '@/components/RelatedResources/hooks'
+import {
+	RelatedError,
+	useRelatedResource,
+} from '@/components/RelatedResources/hooks'
 import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
 import { ErrorObjectEdge } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -48,7 +52,8 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
 	const columnHelper = createColumnHelper<ErrorObjectEdge>()
-	const { set } = useRelatedResource()
+	const { resource, set } = useRelatedResource()
+	const activeError = resource as RelatedError
 
 	const columns = [
 		columnHelper.accessor('node.event', {
@@ -147,9 +152,18 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 		getCoreRowModel: getCoreRowModel(),
 	})
 
+	const rows = table.getRowModel().rows
+	const resources: RelatedError[] = rows.map((row) => ({
+		type: 'error',
+		id: row.original.node.errorGroupSecureID,
+		instanceId: row.original.cursor,
+	}))
+
 	return (
 		<Box>
-			{table.getRowModel().rows.map((row) => {
+			{rows.map((row, index) => {
+				const selected = activeError?.instanceId === row.original.cursor
+
 				return (
 					<Stack
 						key={row.id}
@@ -160,13 +174,24 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 						alignItems="center"
 						cursor="pointer"
 						onClick={() => {
-							set({
-								type: 'error',
-								id: row.original.node.errorGroupSecureID,
-								instanceId: row.original.cursor,
-							})
+							set(
+								{
+									type: 'error',
+									id: row.original.node.errorGroupSecureID,
+									instanceId: row.original.cursor,
+								},
+								{
+									currentIndex: index,
+									resources,
+								},
+							)
 						}}
-						cssClass={styles.rowLink}
+						cssClass={
+							(clsx(styles.rowLink),
+							{
+								[styles.rowLinkSelected]: selected,
+							})
+						}
 					>
 						{row.getVisibleCells().map((cell) => {
 							return (
