@@ -80,7 +80,7 @@ const CategoricalBarChart = ({
 	if (!groupedData) return null
 	return (
 		<AutoSizer>
-			{({ height, width }) => (
+			{({ height, width }: { height: number; width: number }) => (
 				<RechartsBarChart
 					data={groupedData}
 					syncId={syncId}
