@@ -27,7 +27,10 @@ import React, {
 import { useLocation } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
-import { useRelatedResource } from '@/components/RelatedResources/hooks'
+import {
+	RelatedError,
+	useRelatedResource,
+} from '@/components/RelatedResources/hooks'
 import { styledVerticalScrollbar } from '@/style/common.css'
 import analytics from '@/util/analytics'
 
@@ -48,10 +51,7 @@ const ErrorsPage = ({
 	const { errors, state, session, sessionMetadata, isPlayerReady, setTime } =
 		useReplayerContext()
 	const { resource, set } = useRelatedResource()
-	const activeError = useMemo(
-		() => errors.find((error) => error.id === resource?.id),
-		[errors, resource?.id],
-	)
+	const activeError = resource as RelatedError
 
 	const loading = state === ReplayerState.Loading
 
@@ -153,13 +153,14 @@ const ErrorsPage = ({
 												instanceId: error.id,
 											}),
 										),
+										onChange: () => {},
 									},
 								)
 							}}
 							setTime={setTime}
 							startTime={sessionMetadata.startTime}
 							searchQuery={filter}
-							selectedError={activeError?.id === error.id}
+							selectedError={activeError?.instanceId === error.id}
 							current={index === lastActiveErrorIndex}
 							past={index <= lastActiveErrorIndex}
 						/>
