@@ -23,8 +23,10 @@ import {
 
 import {
 	enterprisePrices,
+	freePrices,
 	Prices,
 	professionalPrices,
+	selfHostPrices,
 } from '../../components/Pricing/estimator_details'
 
 const MyToggle = () => {
@@ -150,7 +152,7 @@ type PricingTier = {
 const priceTiers: Record<TierName, PricingTier> = {
 	Free: {
 		label: 'Free',
-		prices: professionalPrices,
+		prices: freePrices,
 		subText: 'Free forever',
 		icon: (
 			<HiReceiptTax className="text-darker-copy-on-dark w-8 h-8 -translate-x-1" />
@@ -242,7 +244,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 	SelfHost: {
 		label: 'Self-Host',
 		subText: 'per project/month, billed annually',
-		prices: professionalPrices,
+		prices: selfHostPrices,
 		icon: <HiServer className="text-[#E93D82] w-8 h-8 -translate-x-1" />,
 		features: [],
 		calculateUsage: true,
@@ -258,7 +260,7 @@ const PlanTable = () => {
 			{/* Pricing */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 justify-center">
 				{Object.entries(priceTiers).map(([name, tier]) => (
-					<PlanTier name={name} tier={tier} key={name} />
+					<PlanTier tier={tier} key={name} />
 				))}
 			</div>
 			<div className="flex-shrink w-48" />
@@ -266,7 +268,7 @@ const PlanTable = () => {
 	)
 }
 
-const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
+const PlanTier = ({ tier }: { tier: PricingTier }) => {
 	const { features, calculateUsage } = tier
 
 	return (
@@ -281,7 +283,7 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 					<Typography className="mt-2" type="copy1" emphasis>
 						{tier.label}
 					</Typography>
-					<h4 className="mt-0">{tier.prices.monthlyPrice}</h4>
+					<h4 className="mt-0">${tier.prices.monthlyPrice}</h4>
 					<Typography
 						className="text-darker-copy-on-dark"
 						type="copy4"
@@ -401,7 +403,7 @@ const PriceCalculatorModal = ({ prices }: { prices: Prices }) => {
 								leaveFrom="opacity-100 scale-100"
 								leaveTo="opacity-0 scale-95"
 							>
-								<Dialog.Panel className="flex transform bg-dark-background translate-y-36 text-left align-middle shadow-xl transition-all rounded-lg">
+								<Dialog.Panel className="flex transform bg-dark-background translate-y-8 text-left align-middle shadow-xl transition-all rounded-lg">
 									<PriceCalculator prices={prices} />
 								</Dialog.Panel>
 							</Transition.Child>
@@ -441,7 +443,11 @@ const PriceCalculator = ({ prices }: { prices: Prices }) => {
 			const item = cost.items[tier]
 			if (!item) break
 			const itemUsage = Math.min(remainder, item.usage ?? Infinity)
-			price += itemUsage * item.rate
+			if (item.constant) {
+				price = item.rate
+			} else {
+				price += itemUsage * item.rate
+			}
 			remainder -= itemUsage
 			tier += 1
 		}
@@ -454,7 +460,7 @@ const PriceCalculator = ({ prices }: { prices: Prices }) => {
 		]
 	}
 
-	const base = 50
+	const base = prices.monthlyPrice
 
 	const [errorsCost, errorsRate] = getUsagePrice(
 		errorUsage - defaultErrors,
