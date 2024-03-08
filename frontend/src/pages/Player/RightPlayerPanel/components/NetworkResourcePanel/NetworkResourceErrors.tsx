@@ -30,7 +30,9 @@ export const NetworkResourceErrors: React.FC<{
 		variables: {
 			query: {
 				isAnd: true,
-				rules: [['secure_id', 'is', ...errorGroupSecureIds]],
+				// TODO: Fix this query. Is broken after migrating to querying
+				// clickhouse because there's no secure_id on the error_groups table.
+				rules: [['error_secure_id', 'is', ...errorGroupSecureIds]],
 				dateRange: {
 					start_date: start,
 					end_date: end,
