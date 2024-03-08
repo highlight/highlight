@@ -1458,8 +1458,8 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 		if v, ok := lo.Find(entitlements, func(item mpeTypes.Entitlement) bool {
 			return pointy.StringValue(item.Dimension, "") == key
 		}); ok {
-			if intVal, ok := v.Value.(*mpeTypes.EntitlementValueMemberIntegerValue); ok {
-				products[key] = pointy.Int(multipliers[key] * int(intVal.Value))
+			if v.Value.IntegerValue != nil {
+				products[key] = pointy.Int(multipliers[key] * int(*v.Value.IntegerValue))
 			}
 		}
 	}
