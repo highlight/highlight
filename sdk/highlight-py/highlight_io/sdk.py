@@ -151,35 +151,6 @@ class H(object):
 
                 return super().on_start(span, parent_context)
 
-        class HighlightLogRecordProcessor(LogRecordProcessor):
-            def force_flush(self, timeout_millis: int = 30000):
-                pass
-
-            def shutdown(self):
-                pass
-
-            def emit(self, log_data: LogData):
-                span: Span = get_current_span()
-                session_id, request_id = H._instance.get_highlight_context(
-                    span.context.trace_id
-                )
-                log_data.log_record.attributes |= {
-                    "highlight.project_id": log_data.log_record.attributes.get(
-                        "highlight.project_id"
-                    )
-                    or H._instance._project_id,
-                    "highlight.trace_id": log_data.log_record.attributes.get(
-                        "highlight.trace_id"
-                    )
-                    or request_id,
-                    "highlight.session_id": log_data.log_record.attributes.get(
-                        "highlight.session_id"
-                    )
-                    or session_id,
-                }
-
-                return super().emit(log_data)
-
         resource = _build_resource(
             service_name=service_name,
             service_version=service_version,
@@ -203,7 +174,6 @@ class H(object):
         self._log_provider = LoggerProvider(
             resource=resource,
         )
-        self._log_provider.add_log_record_processor(HighlightLogRecordProcessor())
         self._log_provider.add_log_record_processor(
             BatchLogRecordProcessor(
                 OTLPLogExporter(
@@ -401,6 +371,9 @@ class H(object):
     def log_hook(self, span: Span, record: logging.LogRecord):
         if span and span.is_recording():
             ctx = span.get_span_context()
+            session_id, request_id = H._instance.get_highlight_context(
+                span.context.trace_id
+            )
             # record.created is sec but timestamp should be ns
             ts = int(record.created * 1000.0 * 1000.0 * 1000.0)
             attributes = span.attributes.copy()
@@ -408,6 +381,8 @@ class H(object):
             attributes[SpanAttributes.CODE_NAMESPACE] = record.module
             attributes[SpanAttributes.CODE_FILEPATH] = record.pathname
             attributes[SpanAttributes.CODE_LINENO] = record.lineno
+            attributes["highlight.trace_id"] = request_id
+            attributes["highlight.session_id"] = session_id
             attributes.update(record.args or {})
 
             message = record.getMessage()
