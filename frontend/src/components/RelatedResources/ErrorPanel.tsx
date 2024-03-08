@@ -17,12 +17,13 @@ import ErrorShareButton from '@/pages/ErrorsV2/ErrorShareButton/ErrorShareButton
 import { ErrorStateSelect } from '@/pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
 import { useErrorGroup } from '@/pages/ErrorsV2/ErrorsV2'
 import ErrorTitle from '@/pages/ErrorsV2/ErrorTitle/ErrorTitle'
+import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 
 export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 	resource,
 }) => {
 	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(false)
-	const path = `/errors/${resource.id}/instances/${resource.instanceId}`
+	const path = `/errors/${resource.id}/instances/${resource.instanceId}?${PlayerSearchParameters.search}=false`
 	const { data, loading } = useErrorGroup(resource.id)
 	const errorGroup = data?.error_group
 	const { data: errorInstanceData, loading: errorInstanceLoading } =

@@ -34,7 +34,7 @@ import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
 import {
 	PlayerSearchParameters,
-	useLinkLogCursor,
+	useShowSearchParam,
 } from '@pages/Player/PlayerHook/utils'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
@@ -74,17 +74,18 @@ export default function ErrorsV2() {
 
 	const navigate = useNavigate()
 	const location = useLocation()
-	const { logCursor } = useLinkLogCursor()
+	const { showSearch } = useShowSearchParam()
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
 	const navigation = useErrorPageNavigation()
 
 	useAllHotKeys(navigation)
 
 	useEffect(() => {
-		if (logCursor) {
+		if (!showSearch) {
 			navigation.setShowLeftPanel(false)
 		}
-	}, [logCursor, navigation])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	useEffect(() => {
 		if (
