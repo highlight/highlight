@@ -33,7 +33,6 @@ func BuildLogAlert(project *model.Project, workspace *model.Workspace, admin *mo
 	return &model.LogAlert{
 		Alert: model.Alert{
 			ProjectID:            input.ProjectID,
-			OrganizationID:       input.ProjectID,
 			ExcludedEnvironments: envString,
 			CountThreshold:       input.CountThreshold,
 			ThresholdWindow:      &input.ThresholdWindow,

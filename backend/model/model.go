@@ -136,8 +136,6 @@ var ContextKeys = struct {
 
 var Models = []interface{}{
 	&AWSMarketplaceCustomer{},
-	&MessagesObject{},
-	&EventsObject{},
 	&ErrorObject{},
 	&ErrorObjectEmbeddings{},
 	&ErrorGroup{},
@@ -150,12 +148,10 @@ var Models = []interface{}{
 	&Session{},
 	&SessionInterval{},
 	&SessionExport{},
-	&TimelineIndicatorEvent{},
 	&DailySessionCount{},
 	&DailyErrorCount{},
 	&Field{},
 	&EmailSignup{},
-	&ResourcesObject{},
 	&ExternalAttachment{},
 	&SessionComment{},
 	&SessionCommentTag{},
@@ -685,10 +681,9 @@ type Session struct {
 	Identified  bool `json:"identified" gorm:"default:false;not null"`
 	Fingerprint int  `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
-	Identifier     string  `json:"identifier"`
-	OrganizationID int     `json:"organization_id"`
-	ProjectID      int     `json:"project_id" gorm:"index:idx_project_id_email"`
-	Email          *string `json:"email" gorm:"index:idx_project_id_email"`
+	Identifier string  `json:"identifier"`
+	ProjectID  int     `json:"project_id" gorm:"index:idx_project_id_email"`
+	Email      *string `json:"email" gorm:"index:idx_project_id_email"`
 	// Location data based off user ip (see InitializeSession)
 	IP        string  `json:"ip"`
 	City      string  `json:"city"`
@@ -769,10 +764,9 @@ type Session struct {
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:session_admins_views;"`
 
-	Chunked              *bool
-	ProcessWithRedis     bool
-	AvoidPostgresStorage bool
-	Normalness           *float64
+	Chunked          *bool
+	ProcessWithRedis bool
+	Normalness       *float64
 }
 
 type SessionAdminsView struct {
@@ -857,18 +851,16 @@ type SearchParams struct {
 }
 type Segment struct {
 	Model
-	Name           *string
-	Params         *string `json:"params"`
-	OrganizationID int
-	ProjectID      int `json:"project_id"`
+	Name      *string
+	Params    *string `json:"params"`
+	ProjectID int     `json:"project_id"`
 }
 
 type DailySessionCount struct {
 	Model
-	Date           *time.Time `json:"date"`
-	Count          int64      `json:"count"`
-	OrganizationID int
-	ProjectID      int `json:"project_id"`
+	Date      *time.Time `json:"date"`
+	Count     int64      `json:"count"`
+	ProjectID int        `json:"project_id"`
 }
 
 const (
@@ -879,11 +871,10 @@ const (
 
 type DailyErrorCount struct {
 	Model
-	Date           *time.Time `json:"date"`
-	Count          int64      `json:"count"`
-	OrganizationID int
-	ProjectID      int    `json:"project_id"`
-	ErrorType      string `gorm:"default:FRONTEND"`
+	Date      *time.Time `json:"date"`
+	Count     int64      `json:"count"`
+	ProjectID int        `json:"project_id"`
+	ErrorType string     `gorm:"default:FRONTEND"`
 }
 
 func (s *SearchParams) GormDataType() string {
@@ -1014,10 +1005,9 @@ type ErrorSearchParams struct {
 }
 type ErrorSegment struct {
 	Model
-	Name           *string
-	Params         *string `json:"params"`
-	OrganizationID int
-	ProjectID      int `json:"project_id"`
+	Name      *string
+	Params    *string `json:"params"`
+	ProjectID int     `json:"project_id"`
 }
 type ErrorGroupingMethod string
 
@@ -1029,14 +1019,13 @@ const (
 
 type ErrorObject struct {
 	Model
-	ID                      int `gorm:"primary_key;type:serial;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
-	OrganizationID          int
-	ProjectID               int `json:"project_id"`
-	SessionID               *int
+	ID                      int  `gorm:"primary_key;type:serial;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
+	ProjectID               int  `json:"project_id"`
+	SessionID               *int `gorm:"type:integer"`
 	TraceID                 *string
 	SpanID                  *string
 	LogCursor               *string `gorm:"index:idx_error_object_log_cursor,option:CONCURRENTLY"`
-	ErrorGroupID            int     `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
+	ErrorGroupID            int     `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY;type:integer"`
 	ErrorGroupIDAlternative int     // the alternative algorithm for grouping the object
 	ErrorGroupingMethod     ErrorGroupingMethod
 	ErrorGroup              ErrorGroup
@@ -1044,8 +1033,8 @@ type ErrorObject struct {
 	Type                    string
 	URL                     string
 	Source                  string
-	LineNumber              int
-	ColumnNumber            int
+	LineNumber              int `gorm:"type:integer"`
+	ColumnNumber            int `gorm:"type:integer"`
 	OS                      string
 	Browser                 string
 	Trace                   *string `json:"trace"` //DEPRECATED, USE STACKTRACE INSTEAD
@@ -1072,8 +1061,7 @@ type ErrorGroup struct {
 	Model
 	// The ID used publicly for the URL on the client; used for sharing
 	SecureID         string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
-	OrganizationID   int
-	ProjectID        int `json:"project_id"`
+	ProjectID        int    `json:"project_id"`
 	Event            string
 	Type             string
 	Trace            string //DEPRECATED, USE STACKTRACE INSTEAD
@@ -1145,11 +1133,10 @@ type ErrorInstance struct {
 
 type ErrorField struct {
 	Model
-	OrganizationID int
-	ProjectID      int `json:"project_id"`
-	Name           string
-	Value          string
-	ErrorGroups    []ErrorGroup `gorm:"many2many:error_group_fields;"`
+	ProjectID   int `json:"project_id"`
+	Name        string
+	Value       string
+	ErrorGroups []ErrorGroup `gorm:"many2many:error_group_fields;"`
 }
 
 type LogAdminsView struct {
@@ -1202,13 +1189,12 @@ type SessionCommentTag struct {
 type SessionComment struct {
 	Model
 	Admins          []Admin `gorm:"many2many:session_comment_admins;"`
-	OrganizationID  int
-	ProjectID       int `json:"project_id"`
-	AdminId         int
-	SessionId       int
-	SessionSecureId string `gorm:"index;not null;default:''"`
+	ProjectID       int     `json:"project_id"`
+	AdminId         int     `gorm:"type:integer"`
+	SessionId       int     `gorm:"type:integer"`
+	SessionSecureId string  `gorm:"index;not null;default:''"`
 	SessionImage    string
-	Timestamp       int
+	Timestamp       int `gorm:"type:integer"`
 	Text            string
 	XCoordinate     float64
 	YCoordinate     float64
@@ -1223,17 +1209,16 @@ type SessionComment struct {
 
 type ErrorComment struct {
 	Model
-	Admins         []Admin `gorm:"many2many:error_comment_admins;"`
-	OrganizationID int
-	ProjectID      int `json:"project_id"`
-	AdminId        int
-	ErrorId        int
-	ErrorSecureId  string `gorm:"index;not null;default:''"`
-	Text           string
-	Attachments    []*ExternalAttachment `gorm:"foreignKey:ErrorCommentID"`
-	Replies        []*CommentReply       `gorm:"foreignKey:ErrorCommentID"`
-	Followers      []*CommentFollower    `gorm:"foreignKey:ErrorCommentID"`
-	Threads        []*CommentSlackThread `gorm:"foreignKey:ErrorCommentID"`
+	Admins        []Admin `gorm:"many2many:error_comment_admins;"`
+	ProjectID     int     `json:"project_id"`
+	AdminId       int
+	ErrorId       int
+	ErrorSecureId string `gorm:"index;not null;default:''"`
+	Text          string
+	Attachments   []*ExternalAttachment `gorm:"foreignKey:ErrorCommentID"`
+	Replies       []*CommentReply       `gorm:"foreignKey:ErrorCommentID"`
+	Followers     []*CommentFollower    `gorm:"foreignKey:ErrorCommentID"`
+	Threads       []*CommentSlackThread `gorm:"foreignKey:ErrorCommentID"`
 }
 
 type CommentReply struct {
@@ -1515,6 +1500,8 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	if err := DB.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`).Error; err != nil {
 		return false, e.Wrap(err, "failed to configure uuid extension")
 	}
+
+	time.Sleep(10 * time.Second)
 
 	if err := DB.AutoMigrate(
 		Models...,
@@ -1989,7 +1976,6 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 }
 
 type Alert struct {
-	OrganizationID       int
 	ProjectID            int
 	ExcludedEnvironments *string
 	CountThreshold       int
