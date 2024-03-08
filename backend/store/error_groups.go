@@ -12,7 +12,6 @@ import (
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/samber/lo"
-	"gorm.io/gorm/clause"
 )
 
 type ListErrorObjectsParams struct {
@@ -208,14 +207,14 @@ func (store *Store) updateErrorGroupState(ctx context.Context,
 
 	var errorGroup model.ErrorGroup
 
-	if err := AssertRecordFound(store.db.WithContext(ctx).Where(&model.ErrorGroup{
+	if err := store.db.WithContext(ctx).Where(&model.ErrorGroup{
 		Model: model.Model{
 			ID: params.ID,
 		},
-	}).Model(&errorGroup).Clauses(clause.Returning{}).Updates(map[string]interface{}{
+	}).Take(&errorGroup).Updates(map[string]interface{}{
 		"State":        params.State,
 		"SnoozedUntil": params.SnoozedUntil,
-	})); err != nil {
+	}).Error; err != nil {
 		return errorGroup, err
 	}
 
