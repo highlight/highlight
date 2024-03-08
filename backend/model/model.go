@@ -12,10 +12,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
+
 	Email "github.com/highlight-run/highlight/backend/email"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/jackc/pgerrcode"
-	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/ReneKroon/ttlcache"
 	"github.com/lib/pq"
@@ -225,14 +226,14 @@ func init() {
 }
 
 type Model struct {
-	ID        int        `gorm:"primary_key;type:integer;autoIncrement" json:"id" deep:"-"`
+	ID        int        `gorm:"primary_key;type:serial" json:"id" deep:"-"`
 	CreatedAt time.Time  `json:"created_at" deep:"-"`
 	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
 	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
 }
 
 type Int64Model struct {
-	ID        int64      `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
+	ID        int64      `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	CreatedAt time.Time  `json:"created_at" deep:"-"`
 	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
 	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
@@ -427,7 +428,7 @@ const (
 )
 
 type SetupEvent struct {
-	ID        int                  `gorm:"primary_key;type:integer;autoIncrement" json:"id" deep:"-"`
+	ID        int                  `gorm:"primary_key;type:serial" json:"id" deep:"-"`
 	CreatedAt time.Time            `json:"created_at" deep:"-"`
 	ProjectID int                  `gorm:"uniqueIndex:idx_project_id_type"`
 	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_project_id_type"`
@@ -950,7 +951,7 @@ type Metric struct {
 }
 
 type MetricGroup struct {
-	ID        int `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
+	ID        int `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	GroupName string
 	SessionID int
 	ProjectID int
@@ -1028,7 +1029,7 @@ const (
 
 type ErrorObject struct {
 	Model
-	ID                      int `gorm:"primary_key;type:integer;autoIncrement;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
+	ID                      int `gorm:"primary_key;type:serial;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
 	OrganizationID          int
 	ProjectID               int `json:"project_id"`
 	SessionID               *int
@@ -1152,7 +1153,7 @@ type ErrorField struct {
 }
 
 type LogAdminsView struct {
-	ID       int       `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
+	ID       int       `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	ViewedAt time.Time `gorm:"default:NOW()"`
 	AdminID  int       `gorm:"primaryKey"`
 }
@@ -2011,7 +2012,7 @@ type ErrorAlert struct {
 }
 
 type ErrorAlertEvent struct {
-	ID            int64 `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
+	ID            int64 `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	ErrorAlertID  int   `gorm:"index:idx_error_alert_event"`
 	ErrorObjectID int   `gorm:"index:idx_error_alert_event"`
 	SentAt        time.Time
@@ -2085,7 +2086,7 @@ type SessionAlert struct {
 }
 
 type SessionAlertEvent struct {
-	ID              int64  `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
+	ID              int64  `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	SessionAlertID  int    `gorm:"index:idx_session_alert_event"`
 	SessionSecureID string `gorm:"index:idx_session_alert_event"`
 	SentAt          time.Time
@@ -2114,7 +2115,7 @@ type LogAlert struct {
 }
 
 type LogAlertEvent struct {
-	ID         int64     `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
+	ID         int64     `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	LogAlertID int       `gorm:"index:idx_log_alert_event"`
 	Query      string    `gorm:"index:idx_log_alert_event"`
 	StartDate  time.Time `gorm:"index:idx_log_alert_event"`

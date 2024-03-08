@@ -108,7 +108,7 @@ func main() {
 					}
 				}
 
-				if resp.IsTruncated == nil || !*resp.IsTruncated {
+				if !resp.IsTruncated {
 					break
 				}
 				continuationToken = resp.NextContinuationToken

@@ -526,7 +526,7 @@ func (s *S3Client) pushFileToS3WithOptions(ctx context.Context, sessionId, proje
 		return nil, errors.New("error retrieving head object")
 	}
 
-	return result.ContentLength, nil
+	return &result.ContentLength, nil
 }
 
 // PushCompressedFile pushes a compressed file to S3, adding the relevant metadata
@@ -818,7 +818,7 @@ func (s *S3Client) PushSourceMapFileReaderToS3(ctx context.Context, projectId in
 	if err != nil {
 		return nil, errors.New("error retrieving head object")
 	}
-	return result.ContentLength, nil
+	return &result.ContentLength, nil
 }
 
 func (s *S3Client) PushSourceMapFile(ctx context.Context, projectId int, version *string, fileName string, fileBytes []byte) (*int64, error) {
@@ -980,7 +980,7 @@ func (s *S3Client) PushGitHubFileReaderToS3(ctx context.Context, repoPath string
 	if err != nil {
 		return nil, errors.New("error retrieving head object")
 	}
-	return result.ContentLength, nil
+	return &result.ContentLength, nil
 }
 
 func (s *S3Client) PushGitHubFile(ctx context.Context, repoPath string, fileName string, version string, fileBytes []byte) (*int64, error) {
