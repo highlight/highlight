@@ -90839,9 +90839,11 @@ func (ec *executionContext) _TraceError(ctx context.Context, sel ast.SelectionSe
 				invalids++
 			}
 		case "id":
+
 			out.Values[i] = ec._TraceError_id(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "trace_id":
 
