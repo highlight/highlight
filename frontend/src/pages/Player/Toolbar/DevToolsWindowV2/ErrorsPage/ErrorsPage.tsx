@@ -121,6 +121,24 @@ const ErrorsPage = ({
 		analytics.track('session_view-errors')
 	}, [])
 
+	useEffect(() => {
+		if (activeError?.instanceId) {
+			const currentIndex = errorsToRender.findIndex(
+				(error) => error.id === activeError.instanceId,
+			)
+
+			set(activeError, {
+				currentIndex,
+				resources: errors.map((error) => ({
+					type: 'error',
+					id: error.error_group_secure_id,
+					instanceId: error.id,
+				})),
+			})
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
 	return (
 		<Box cssClass={styles.errorsContainer}>
 			{loading || !isPlayerReady ? (

@@ -186,12 +186,9 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 								},
 							)
 						}}
-						cssClass={
-							(clsx(styles.rowLink),
-							{
-								[styles.rowLinkSelected]: selected,
-							})
-						}
+						cssClass={clsx(styles.rowLink, {
+							[styles.rowLinkSelected]: selected,
+						})}
 					>
 						{row.getVisibleCells().map((cell) => {
 							return (
