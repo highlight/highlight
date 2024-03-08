@@ -45,6 +45,7 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 					<>
 						<ErrorShareButton errorGroup={errorGroup} />
 						<ErrorStateSelect
+							errorSecureId={errorGroup.secure_id}
 							state={errorGroup.state}
 							snoozedUntil={errorGroup.snoozed_until}
 						/>
