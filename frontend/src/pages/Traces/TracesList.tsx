@@ -26,6 +26,7 @@ import { CustomColumnPopover } from '@/components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
+import { DEFAULT_INPUT_HEIGHT } from '@/components/Search/SearchForm/SearchForm'
 import { ProductType, TraceEdge } from '@/graph/generated/schemas'
 import { useParams } from '@/util/react-router/useParams'
 
@@ -43,9 +44,12 @@ type Props = {
 	resetMoreTraces?: () => void
 	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
 	loadingAfter: boolean
+	textAreaRef: React.RefObject<HTMLTextAreaElement>
 }
 
 const LOADING_AFTER_HEIGHT = 28
+const HEADERS_AND_CHARTS_HEIGHT = 120
+const LOAD_BEFORE_HEIGHT = 28
 
 export const TracesList: React.FC<Props> = ({
 	loading,
@@ -55,6 +59,7 @@ export const TracesList: React.FC<Props> = ({
 	resetMoreTraces,
 	fetchMoreWhenScrolled,
 	loadingAfter,
+	textAreaRef,
 }) => {
 	const { span_id } = useParams<{ span_id?: string }>()
 
@@ -156,6 +161,21 @@ export const TracesList: React.FC<Props> = ({
 		paddingBottom += LOADING_AFTER_HEIGHT
 	}
 
+	const otherElementsHeight = useMemo(() => {
+		let height = HEADERS_AND_CHARTS_HEIGHT
+		if (textAreaRef.current) {
+			height += textAreaRef.current.clientHeight
+		} else {
+			height += DEFAULT_INPUT_HEIGHT
+		}
+
+		if (numMoreTraces && numMoreTraces > 0) {
+			height += LOAD_BEFORE_HEIGHT
+		}
+
+		return height
+	}, [numMoreTraces, textAreaRef])
+
 	const handleFetchMoreWhenScrolled = (
 		e: React.UIEvent<HTMLDivElement, UIEvent>,
 	) => {
@@ -251,11 +271,7 @@ export const TracesList: React.FC<Props> = ({
 				overflowY="auto"
 				onScroll={handleFetchMoreWhenScrolled}
 				style={{
-					// Subtract height of search filters + table header + charts
-					height:
-						numMoreTraces && numMoreTraces > 0
-							? `calc(100% - 182px)`
-							: `calc(100% - 154px)`,
+					height: `calc(100% - ${otherElementsHeight}px)`,
 				}}
 				hiddenScroll
 			>

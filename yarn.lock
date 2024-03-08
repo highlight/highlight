@@ -13862,6 +13862,7 @@ __metadata:
     randomcolor: "npm:^0.6.2"
     rc-slider: "npm:^10.1.1"
     react: "npm:^18.2.0"
+    react-autosize-textarea: "npm:^7.1.0"
     react-awesome-query-builder: "npm:^4.8.0"
     react-collapsible: "npm:^2.8.1"
     react-command-palette: "npm:0.16.0"
@@ -29737,6 +29738,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"autosize@npm:^4.0.2":
+  version: 4.0.4
+  resolution: "autosize@npm:4.0.4"
+  checksum: 10/e98920af6b7cc83400d52505f873d4cd775d447f521fab08f38375ad83cd31bb74eb95ad99e227c1ca29e2d768efebf1805a4dff9d3fb40fbcbb2d6ea6f2d387
+  languageName: node
+  linkType: hard
+
 "available-typed-arrays@npm:^1.0.5":
   version: 1.0.5
   resolution: "available-typed-arrays@npm:1.0.5"
@@ -32773,6 +32781,13 @@ __metadata:
   version: 1.0.16
   resolution: "compute-scroll-into-view@npm:1.0.16"
   checksum: 10/75e0edf438df9b557d38af46674184b07a5b7ba3d103c340b08c0994ddad8bb0f21d918c47f4819f11b10ddbca1d7b3c7859fde5b8206379c8e5c2861d8af59a
+  languageName: node
+  linkType: hard
+
+"computed-style@npm:~0.1.3":
+  version: 0.1.4
+  resolution: "computed-style@npm:0.1.4"
+  checksum: 10/65f376479ef638768f5acb3fe79fa5e95d2f209400e0fc354eae775735ac5ad81b4cd2e951b3985a639f6029bf263e54edeb5630ee1555996df0f6a4c2951151
   languageName: node
   linkType: hard
 
@@ -47360,6 +47375,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"line-height@npm:^0.3.1":
+  version: 0.3.1
+  resolution: "line-height@npm:0.3.1"
+  dependencies:
+    computed-style: "npm:~0.1.3"
+  checksum: 10/e8b124a5f5fed314e3db4fe7b758952e0e64abecb04aaaea513a4cf7284ec7749176136f78fab07392fcf503008e201f991f94c2713113fe044ca2d3b694ca91
+  languageName: node
+  linkType: hard
+
 "linebreak@npm:^1.1.0":
   version: 1.1.0
   resolution: "linebreak@npm:1.1.0"
@@ -54280,7 +54304,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:15.8.1, prop-types@npm:15.x, prop-types@npm:^15.0.0, prop-types@npm:^15.5.10, prop-types@npm:^15.5.8, prop-types@npm:^15.6.0, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
+"prop-types@npm:15.8.1, prop-types@npm:15.x, prop-types@npm:^15.0.0, prop-types@npm:^15.5.10, prop-types@npm:^15.5.6, prop-types@npm:^15.5.8, prop-types@npm:^15.6.0, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
   version: 15.8.1
   resolution: "prop-types@npm:15.8.1"
   dependencies:
@@ -56146,6 +56170,20 @@ __metadata:
     react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0
     react-dom: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0
   checksum: 10/2ba5bfba9541764025ae479202688558eb7a04c1b0c5f03bec8e829dbe9c0a927de27c367f3e142cd624dafb2f2ea0ae50c080c3e186942e4c91fdb777bb5eea
+  languageName: node
+  linkType: hard
+
+"react-autosize-textarea@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "react-autosize-textarea@npm:7.1.0"
+  dependencies:
+    autosize: "npm:^4.0.2"
+    line-height: "npm:^0.3.1"
+    prop-types: "npm:^15.5.6"
+  peerDependencies:
+    react: ^0.14.0 || ^15.0.0 || ^16.0.0
+    react-dom: ^0.14.0 || ^15.0.0 || ^16.0.0
+  checksum: 10/74bb4a3faf5158893928f85ad3d77f6b2ced7a059dc0aad714d5bc90d0ff9bb32a346a30bf1cc6b8a6ccae5d5bca80d6a09b3506957674783cb26aefd83aeea6
   languageName: node
   linkType: hard
 
