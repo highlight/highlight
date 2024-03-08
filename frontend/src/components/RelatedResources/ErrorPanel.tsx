@@ -1,11 +1,12 @@
 import { Box } from '@highlight-run/ui/components'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Divider } from '@/components/CreateAlertButton/CreateAlertButton'
 import LoadingBox from '@/components/LoadingBox'
 import { RelatedError } from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
 import { useGetErrorInstanceQuery } from '@/graph/generated/hooks'
+import { useNumericProjectId } from '@/hooks/useProjectId'
 import ErrorBody from '@/pages/ErrorsV2/ErrorBody/ErrorBody'
 import {
 	ErrorInstanceBody,
@@ -18,12 +19,18 @@ import { ErrorStateSelect } from '@/pages/ErrorsV2/ErrorStateSelect/ErrorStateSe
 import { useErrorGroup } from '@/pages/ErrorsV2/ErrorsV2'
 import ErrorTitle from '@/pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
+import analytics from '@/util/analytics'
 
 export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 	resource,
 }) => {
 	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(false)
-	const path = `/errors/${resource.id}/instances/${resource.instanceId}?${PlayerSearchParameters.search}=false`
+	const { projectId } = useNumericProjectId()
+	const path = useMemo(
+		() =>
+			`/${projectId}/errors/${resource.id}/instances/${resource.instanceId}?${PlayerSearchParameters.search}=false`,
+		[projectId, resource.id, resource.instanceId],
+	)
 	const { data, loading } = useErrorGroup(resource.id)
 	const errorGroup = data?.error_group
 	const { data: errorInstanceData, loading: errorInstanceLoading } =
@@ -37,6 +44,13 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 	const errorInstance = errorInstanceData?.error_instance
 	const showLoading =
 		loading || errorInstanceLoading || !errorGroup || !errorInstance
+
+	useEffect(() => {
+		analytics.track('Related Resource Panel', {
+			panelResourceType: 'error',
+			pageResourceType: window.location.pathname.split('/')[1],
+		})
+	}, [resource.id])
 
 	return (
 		<Panel open={true}>

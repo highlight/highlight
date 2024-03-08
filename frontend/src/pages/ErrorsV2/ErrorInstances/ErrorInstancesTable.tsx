@@ -11,17 +11,12 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
-import clsx from 'clsx'
 import moment from 'moment'
 import React from 'react'
 import { createSearchParams } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { Link } from '@/components/Link'
-import {
-	RelatedError,
-	useRelatedResource,
-} from '@/components/RelatedResources/hooks'
 import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
 import { ErrorObjectEdge } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -52,8 +47,6 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
 	const columnHelper = createColumnHelper<ErrorObjectEdge>()
-	const { resource, set } = useRelatedResource()
-	const activeError = resource as RelatedError
 
 	const columns = [
 		columnHelper.accessor('node.event', {
@@ -152,55 +145,34 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 		getCoreRowModel: getCoreRowModel(),
 	})
 
-	const rows = table.getRowModel().rows
-	const resources: RelatedError[] = rows.map((row) => ({
-		type: 'error',
-		id: row.original.node.errorGroupSecureID,
-		instanceId: row.original.cursor,
-	}))
-
 	return (
 		<Box>
-			{rows.map((row, index) => {
-				const selected = activeError?.instanceId === row.original.cursor
-
+			{table.getRowModel().rows.map((row) => {
 				return (
-					<Stack
+					<Link
 						key={row.id}
-						direction="row"
-						gap="4"
-						px="12"
-						py="6"
-						alignItems="center"
-						cursor="pointer"
-						onClick={() => {
-							set(
-								{
-									type: 'error',
-									id: row.original.node.errorGroupSecureID,
-									instanceId: row.original.cursor,
-								},
-								{
-									currentIndex: index,
-									resources,
-								},
-							)
-						}}
-						cssClass={clsx(styles.rowLink, {
-							[styles.rowLinkSelected]: selected,
-						})}
+						to={`/${projectId}/errors/${row.original.node.errorGroupSecureID}/instances/${row.original.cursor}`}
+						className={styles.rowLink}
 					>
-						{row.getVisibleCells().map((cell) => {
-							return (
-								<React.Fragment key={cell.id}>
-									{flexRender(
-										cell.column.columnDef.cell,
-										cell.getContext(),
-									)}
-								</React.Fragment>
-							)
-						})}
-					</Stack>
+						<Stack
+							direction="row"
+							gap="4"
+							px="12"
+							py="6"
+							alignItems="center"
+						>
+							{row.getVisibleCells().map((cell) => {
+								return (
+									<React.Fragment key={cell.id}>
+										{flexRender(
+											cell.column.columnDef.cell,
+											cell.getContext(),
+										)}
+									</React.Fragment>
+								)
+							})}
+						</Stack>
+					</Link>
 				)
 			})}
 		</Box>
