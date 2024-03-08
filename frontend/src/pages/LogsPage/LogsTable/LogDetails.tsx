@@ -16,6 +16,7 @@ import {
 	IconSolidFilter,
 	IconSolidLightningBolt,
 	IconSolidLink,
+	IconSolidLocationMarker,
 	IconSolidPlayCircle,
 	IconSolidSparkles,
 	Stack,
@@ -33,7 +34,7 @@ import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
-import { createSearchParams, generatePath } from 'react-router-dom'
+import { createSearchParams, generatePath, useNavigate } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
@@ -63,7 +64,7 @@ export const getLogURL = (projectId: string, row: Row<LogEdge>) => {
 		project_id: projectId,
 		log_cursor: row.original.cursor,
 	})
-	return currentUrl.origin + path
+	return { origin: currentUrl.origin, path }
 }
 
 const getSessionLink = (
@@ -93,6 +94,7 @@ export const LogDetails: React.FC<Props> = ({
 }) => {
 	const { set } = useRelatedResource()
 	const { projectId } = useProjectId()
+	const navigate = useNavigate()
 	const [allExpanded, setAllExpanded] = useState(false)
 	const {
 		environment,
@@ -253,7 +255,7 @@ export const LogDetails: React.FC<Props> = ({
 						onClick={(e) => {
 							const url = getLogURL(projectId, row)
 							e.stopPropagation()
-							navigator.clipboard.writeText(url)
+							navigator.clipboard.writeText(url.origin + url.path)
 							antdMessage.success('Copied link!')
 						}}
 						trackingId="logs_copy-link_click"
@@ -266,6 +268,26 @@ export const LogDetails: React.FC<Props> = ({
 						>
 							<IconSolidLink />
 							Copy link
+						</Box>
+					</Button>
+					<Button
+						kind="secondary"
+						emphasis="low"
+						onClick={(e) => {
+							e.stopPropagation()
+							const url = getLogURL(projectId, row)
+							navigate(url.path)
+						}}
+						trackingId="logs_view-in-context_click"
+					>
+						<Box
+							display="flex"
+							alignItems="center"
+							flexDirection="row"
+							gap="4"
+						>
+							<IconSolidLocationMarker />
+							View in Context
 						</Box>
 					</Button>
 				</Box>

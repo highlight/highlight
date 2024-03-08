@@ -66,20 +66,32 @@ export const QueryPart: React.FC<{
 			<Tooltip
 				placement="top-start"
 				open={active && !!error}
+				style={{ display: 'inline', wordBreak: 'break-word' }}
 				maxWidth={600}
 				shift={-3}
 				trigger={
 					<Box
+						as="span"
 						cssClass={clsx({
 							[styles.comboboxTag]: isExpression,
 							[styles.comboboxTagActive]: active && isExpression,
 							[styles.comboboxTagError]: !!error,
 						})}
-						py="7"
 						position="relative"
-						whiteSpace="nowrap"
 						display="inline-flex"
 					>
+						{tokenGroup.tokens.map((token, index) => {
+							if (token.type === SearchGrammarParser.EOF) {
+								return null
+							}
+
+							return (
+								<Token
+									key={`${token.text}-${index}`}
+									token={token}
+								/>
+							)
+						})}
 						<IconSolidXCircle
 							className={styles.comboboxTagClose}
 							size={13}
@@ -93,23 +105,6 @@ export const QueryPart: React.FC<{
 								size={13}
 								style={{ cursor: 'pointer' }}
 							/>
-						)}
-
-						{tokenGroup.tokens.map((token, index) => {
-							if (token.type === SearchGrammarParser.EOF) {
-								return null
-							}
-
-							return (
-								<Token
-									key={`${token.text}-${index}`}
-									token={token}
-								/>
-							)
-						})}
-
-						{isExpression && (
-							<Box cssClass={styles.comboboxTagBackground} />
 						)}
 					</Box>
 				}
@@ -130,6 +125,7 @@ export const Token = ({ token }: { token: SearchToken }): JSX.Element => {
 	if (SEPARATORS.includes(text.toUpperCase())) {
 		return (
 			<Box
+				as="span"
 				cssClass={clsx(styles.token, {
 					[styles.errorToken]: !!errorMessage,
 				})}
@@ -141,9 +137,10 @@ export const Token = ({ token }: { token: SearchToken }): JSX.Element => {
 	} else {
 		return (
 			<Box
+				as="span"
 				style={{ zIndex: 1 }}
 				cssClass={clsx(styles.token, {
-					[styles.whitspaceToken]: text.trim() === '',
+					[styles.whitespaceToken]: text.trim() === '',
 				})}
 			>
 				{text.split('').map((char, index) =>
