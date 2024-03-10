@@ -4,9 +4,9 @@
 ```bash
 # prerequisites: rust (https://rustup.rs)
 git clone https://github.com/highlight/highlight
-cd highlight/sdk/highlight-rust/
+cd highlight/sdk/highlight-rust/highlightio/examples/sync/
 # create your .env file
-cargo run -p highlightio-example-sync
+cargo run
 ```
 
 ## Environment variables (.env)
