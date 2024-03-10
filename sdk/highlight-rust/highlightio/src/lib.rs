@@ -1,3 +1,9 @@
+/// Official [Highlight.io](https://highlight.io) SDK for Rust. Refer to our docs on how to get started with
+/// [error monitoring](https://www.highlight.io/docs/getting-started/backend-sdk/rust/other)
+/// [logging](https://www.highlight.io/docs/getting-started/backend-logging/rust/other), and
+/// [tracing](https://www.highlight.io/docs/getting-started/backend-tracing/rust/manual), or you can also check out the
+/// [detailed API reference](https://www.highlight.io/docs/sdk/rust).
+
 #[cfg(not(any(feature = "sync", feature = "tokio", feature = "tokio-current-thread", feature = "async-std")))]
 compile_error!("No runtime enabled for highlightio, please specify one of the following features: sync (default), tokio, async-std");
 
