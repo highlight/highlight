@@ -1,5 +1,11 @@
 # @highlight-run/cloudflare
 
+## 2.1.5
+
+### Patch Changes
+
+-   062001317: update dependencies
+
 ## 2.1.4
 
 ### Patch Changes

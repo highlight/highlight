@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -39,6 +40,7 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	Session() SessionResolver
 }
 
 type DirectiveRoot struct {
@@ -87,6 +89,9 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Ignore(ctx context.Context, id int) (interface{}, error)
+}
+type SessionResolver interface {
+	OrganizationID(ctx context.Context, obj *model1.Session) (int, error)
 }
 
 type executableSchema struct {
@@ -1890,7 +1895,7 @@ func (ec *executionContext) _Session_organization_id(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.OrganizationID, nil
+		return ec.resolvers.Session().OrganizationID(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1911,8 +1916,8 @@ func (ec *executionContext) fieldContext_Session_organization_id(ctx context.Con
 	fc = &graphql.FieldContext{
 		Object:     "Session",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
 		},
@@ -4497,21 +4502,34 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_secure_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "organization_id":
+			field := field
 
-			out.Values[i] = ec._Session_organization_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Session_organization_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "project_id":
 
 			out.Values[i] = ec._Session_project_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

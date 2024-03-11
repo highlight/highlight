@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.7.0
+
+### Minor Changes
+
+-   e2483b6c3: inline stylesheets by default
+
 ## 8.6.0
 
 ### Minor Changes

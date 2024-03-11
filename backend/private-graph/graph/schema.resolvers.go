@@ -3419,7 +3419,6 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	newAlert := &model.ErrorAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
-			OrganizationID:       projectID,
 			ExcludedEnvironments: envString,
 			CountThreshold:       countThreshold,
 			ThresholdWindow:      &thresholdWindow,
@@ -4981,15 +4980,9 @@ func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecu
 	}
 
 	var timelineIndicatorEvents []*model.TimelineIndicatorEvent
-	if session.AvoidPostgresStorage {
-		timelineIndicatorEvents, err = r.StorageClient.ReadTimelineIndicatorEvents(ctx, session.ID, session.ProjectID)
-		if err != nil {
-			return nil, e.Wrap(err, "failed to get timeline indicator events from S3")
-		}
-	} else {
-		if res := r.DB.Order("timestamp ASC").Where(&model.TimelineIndicatorEvent{SessionSecureID: sessionSecureID}).Find(&timelineIndicatorEvents); res.Error != nil {
-			return nil, e.Wrap(res.Error, "failed to get timeline indicator events from Postgres")
-		}
+	timelineIndicatorEvents, err = r.StorageClient.ReadTimelineIndicatorEvents(ctx, session.ID, session.ProjectID)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to get timeline indicator events from S3")
 	}
 
 	return timelineIndicatorEvents, nil
