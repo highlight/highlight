@@ -217,7 +217,7 @@ function NetworkResourceDetails({
 
 		return tabPages
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isNetworkRequest])
+	}, [isNetworkRequest, resource.id])
 
 	useHotkeys(
 		'h',
