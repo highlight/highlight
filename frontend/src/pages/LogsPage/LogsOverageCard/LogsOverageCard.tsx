@@ -4,13 +4,14 @@ import { useNavigate } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
 import { useGetBillingDetailsQuery } from '@/graph/generated/hooks'
+import { ProductType } from '@/graph/generated/schemas'
 import { getMeterAmounts } from '@/pages/Billing/utils/utils'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { formatNumberWithDelimiters } from '@/util/numbers'
 
 export const LogsOverageCard = () => {
 	const [hideOverageCard, setHideOverageCard] = useSessionStorage(
-		`highlightHideOverageCard-Logs`,
+		`highlightHideOverageCard-${ProductType.Logs}`,
 		false,
 	)
 
@@ -34,8 +35,8 @@ export const LogsOverageCard = () => {
 	}
 
 	const meters = getMeterAmounts(data.billingDetails)
-	const meter = meters.Logs[0]
-	const quota = meters.Logs[1]
+	const meter = meters[ProductType.Logs][0]
+	const quota = meters[ProductType.Logs][1]
 	if (quota === undefined || meter < quota) {
 		return null
 	}
