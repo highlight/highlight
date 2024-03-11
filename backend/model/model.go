@@ -619,6 +619,23 @@ func (u *Workspace) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
 
+func (s *Session) BeforeCreate(tx *gorm.DB) (err error) {
+	if s.LastUserInteractionTime.IsZero() {
+		s.LastUserInteractionTime = time.UnixMilli(0)
+	}
+	return
+}
+
+func (s *SystemConfiguration) BeforeCreate(tx *gorm.DB) (err error) {
+	if s.ErrorFilters == nil {
+		s.ErrorFilters = pq.StringArray{"ENOENT.*", "connect ECONNREFUSED.*"}
+	}
+	if s.IgnoredFiles == nil {
+		s.IgnoredFiles = pq.StringArray{".*/node_modules/.*", ".*/go/pkg/mod/.*", ".*/site-packages/.*"}
+	}
+	return
+}
+
 type Admin struct {
 	Model
 	Name                      *string
