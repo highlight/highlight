@@ -197,7 +197,7 @@ function NetworkResourceDetails({
 				),
 			},
 			[NetworkRequestTabs.Errors]: {
-				page: <NetworkResourceErrors resource={resource} hide={hide} />,
+				page: <NetworkResourceErrors resource={resource} />,
 			},
 			[NetworkRequestTabs.Logs]: {
 				page: (

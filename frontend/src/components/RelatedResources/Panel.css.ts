@@ -20,6 +20,11 @@ export const panel = style([
 	},
 ])
 
+export const backdrop = style({
+	backgroundColor: 'rgba(0, 0, 0, 0.05)',
+	transition: 'opacity 0.2s',
+})
+
 export const panelDragHandle = style({
 	cursor: 'ew-resize',
 	position: 'absolute',

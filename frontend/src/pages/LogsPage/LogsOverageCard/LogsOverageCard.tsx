@@ -9,13 +9,9 @@ import { getMeterAmounts } from '@/pages/Billing/utils/utils'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { formatNumberWithDelimiters } from '@/util/numbers'
 
-interface Props {
-	productType: ProductType
-}
-
-export const OverageCard = ({ productType }: Props) => {
+export const LogsOverageCard = () => {
 	const [hideOverageCard, setHideOverageCard] = useSessionStorage(
-		`highlightHideOverageCard-${productType}`,
+		`highlightHideOverageCard-${ProductType.Logs}`,
 		false,
 	)
 
@@ -39,16 +35,14 @@ export const OverageCard = ({ productType }: Props) => {
 	}
 
 	const meters = getMeterAmounts(data.billingDetails)
-	const meter = meters[productType][0]
-	const quota = meters[productType][1]
+	const meter = meters[ProductType.Logs][0]
+	const quota = meters[ProductType.Logs][1]
 	if (quota === undefined || meter < quota) {
 		return null
 	}
 
-	const productTypeLower = productType.toLowerCase()
-
 	return (
-		<Box backgroundColor="n2" mb="4">
+		<Box py="4" px="12">
 			<Callout icon={false}>
 				<Stack
 					direction="row"
@@ -63,15 +57,14 @@ export const OverageCard = ({ productType }: Props) => {
 									weight="bold"
 									size="medium"
 								>
-									{productType} overage!
+									Logs overage!
 								</Text>
 							</Box>
 						</Box>
 						<Text color="moderate">
 							You've reached your limit of{' '}
-							<b>{formatNumberWithDelimiters(quota)}</b>{' '}
-							{productTypeLower} this month. To record more{' '}
-							{productTypeLower}, update your limit!
+							<b>{formatNumberWithDelimiters(quota)}</b> logs this
+							month. To record more logs, update your limit!
 						</Text>
 					</Stack>
 

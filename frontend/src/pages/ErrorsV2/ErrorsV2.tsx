@@ -34,7 +34,7 @@ import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
 import {
 	PlayerSearchParameters,
-	useLinkLogCursor,
+	useShowSearchParam,
 } from '@pages/Player/PlayerHook/utils'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
@@ -64,7 +64,8 @@ export default function ErrorsV2() {
 	const { isLoggedIn } = useAuthContext()
 	const [{ integrated }] = useIntegratedLocalStorage(project_id!, 'server')
 
-	const { data, loading, errorQueryingErrorGroup } = useErrorGroup()
+	const { data, loading, errorQueryingErrorGroup } =
+		useErrorGroup(error_secure_id)
 
 	const { isBlocked, loading: isBlockedLoading } = useIsBlocked({
 		isPublic: data?.error_group?.is_public ?? false,
@@ -73,17 +74,18 @@ export default function ErrorsV2() {
 
 	const navigate = useNavigate()
 	const location = useLocation()
-	const { logCursor } = useLinkLogCursor()
+	const { showSearch } = useShowSearchParam()
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
 	const navigation = useErrorPageNavigation()
 
 	useAllHotKeys(navigation)
 
 	useEffect(() => {
-		if (logCursor) {
+		if (!showSearch) {
 			navigation.setShowLeftPanel(false)
 		}
-	}, [logCursor, navigation])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	useEffect(() => {
 		if (
@@ -262,6 +264,7 @@ function TopBar({
 						) : null}
 						<Divider />
 						<ErrorStateSelect
+							errorSecureId={errorGroup.secure_id}
 							state={errorGroup.state}
 							snoozedUntil={errorGroup.snoozed_until}
 						/>
@@ -405,8 +408,7 @@ function ErrorDisplay({
 	}
 }
 
-function useErrorGroup() {
-	const { error_secure_id } = useParams<Params>()
+export function useErrorGroup(errorSecureId?: string) {
 	const [{ referrer }] = useQueryParams({
 		referrer: StringParam,
 	})
@@ -418,15 +420,15 @@ function useErrorGroup() {
 		error: errorQueryingErrorGroup,
 	} = useGetErrorGroupQuery({
 		variables: {
-			secure_id: error_secure_id!,
+			secure_id: errorSecureId!,
 			use_clickhouse: true,
 		},
-		skip: !error_secure_id,
+		skip: !errorSecureId,
 		onCompleted: () => {
-			if (error_secure_id) {
+			if (errorSecureId) {
 				markErrorGroupAsViewed({
 					variables: {
-						error_secure_id,
+						error_secure_id: errorSecureId,
 						viewed: true,
 					},
 				}).catch(console.error)

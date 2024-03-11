@@ -5028,6 +5028,7 @@ export type GetTraceQuery = { __typename?: 'Query' } & {
 				{ __typename?: 'TraceError' } & Pick<
 					Types.TraceError,
 					| 'created_at'
+					| 'id'
 					| 'trace_id'
 					| 'span_id'
 					| 'log_cursor'

@@ -10,7 +10,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
-import { ErrorObject, Maybe, Project, Workspace } from '@graph/schemas'
+import { Maybe, Project, Workspace } from '@graph/schemas'
 import { Ariakit } from '@highlight-run/ui/components'
 import {
 	useLocalStorageProjectId,
@@ -124,10 +124,6 @@ export const ProjectRouter = () => {
 
 	const [searchItem, setSearchItem] = useState<string | undefined>('')
 
-	const [activeError, setActiveError] = useState<ErrorObject | undefined>(
-		undefined,
-	)
-
 	const [selectedRightPanelTab, setSelectedRightPanelTab] =
 		useLocalStorage<RightPlayerTab>(
 			'tabs-PlayerRightPanel-active-tab',
@@ -151,8 +147,6 @@ export const ProjectRouter = () => {
 		setActiveEventIndex,
 		searchItem,
 		setSearchItem,
-		activeError,
-		setActiveError,
 		rightPanelView,
 		setRightPanelView,
 	}

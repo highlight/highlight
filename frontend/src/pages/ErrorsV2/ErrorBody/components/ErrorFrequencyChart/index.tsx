@@ -11,7 +11,7 @@ const ErrorFrequencyChart = ({ errorGroup }: Props) => {
 	const { counts } = getErrorGroupStats(errorGroup)
 	return (
 		<AutoSizer disableHeight>
-			{({ width }) => (
+			{({ width }: { width: number }) => (
 				<BarChart
 					data={counts || []}
 					height={24}

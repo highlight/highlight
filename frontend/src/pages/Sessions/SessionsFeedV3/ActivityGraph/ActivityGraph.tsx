@@ -33,7 +33,7 @@ const ActivityGraph = React.memo(({ data, selected, height = 20 }: Props) => {
 	return (
 		<div style={{ height, cursor: 'pointer' }}>
 			<AutoSizer>
-				{({ width }) => (
+				{({ width }: { height: number; width: number }) => (
 					<ComposedChart
 						// @ts-ignore
 						cursor="pointer"

@@ -15,7 +15,7 @@ import React, { Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
-import { RelatedResourcePanel } from '@/components/RelatedResourcePanel/RelatedResourcePanel'
+import { RelatedResourcePanel } from '@/components/RelatedResources/RelatedResourcePanel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
 import { GraphingEditor } from '@/pages/Graphing/GraphingEditor'

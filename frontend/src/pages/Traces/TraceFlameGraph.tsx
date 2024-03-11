@@ -20,7 +20,7 @@ import {
 } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
-import { useRelatedResource } from '@/components/RelatedResourcePanel/hooks'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { useHTMLElementEvent } from '@/hooks/useHTMLElementEvent'
 import { ZOOM_SCALING_FACTOR } from '@/pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import {

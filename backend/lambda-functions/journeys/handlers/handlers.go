@@ -166,7 +166,7 @@ func (h *handlers) GetSessions(ctx context.Context, projectId int) ([]int, error
 			}
 		}
 
-		if !resp.IsTruncated {
+		if resp.IsTruncated == nil || !*resp.IsTruncated {
 			break
 		}
 		continuationToken = resp.NextContinuationToken

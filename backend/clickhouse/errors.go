@@ -455,8 +455,15 @@ func (client *Client) QueryErrorGroupTags(ctx context.Context, projectId int, er
 			aggs[key].Buckets = append(aggs[key].Buckets, &modelInputs.ErrorGroupTagAggregationBucket{
 				Key:      bucket,
 				DocCount: int64(count),
-				Percent:  float64(count) / float64(total),
 			})
+		}
+	}
+
+	// In some versions of ClickHouse, the total result will not always be returned first,
+	// so calculate each bucket's percentage after iterating through the results.
+	for _, value := range aggs {
+		for _, bucket := range value.Buckets {
+			bucket.Percent = float64(bucket.DocCount) / float64(total)
 		}
 	}
 

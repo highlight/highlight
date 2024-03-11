@@ -128,7 +128,13 @@ const Histogram = React.memo(
 			<div className={styles.container}>
 				<div>
 					<AutoSizer>
-						{({ height, width }) => (
+						{({
+							height,
+							width,
+						}: {
+							height: number
+							width: number
+						}) => (
 							<BarChart
 								data={chartData}
 								barGap={barGap}
