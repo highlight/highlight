@@ -167,7 +167,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					Event:       "error: 1234",
 					ProjectID:   projectID,
 					Environment: "dev",
-					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC)},
+					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					StackTrace:  &shortTraceStr,
 					Payload:     pointy.String(`{"service": "bar"}`),
 				},
@@ -175,7 +175,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					Event:       "error: 4321",
 					ProjectID:   projectID,
 					Environment: "dEv",
-					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC)},
+					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 					StackTrace:  &shortTraceStr,
 					Payload:     pointy.String(`{"service": "foo"}`),
 				},
@@ -197,14 +197,14 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					Event:       "error",
 					ProjectID:   projectID,
 					Environment: "dev",
-					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC)},
+					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					StackTrace:  &shortTraceStr,
 				},
 				{
 					Event:       "error",
 					ProjectID:   projectID,
 					Environment: "dEv",
-					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC)},
+					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 					StackTrace:  &shortTraceStr,
 				},
 			},
@@ -224,14 +224,14 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					Event:       "error",
 					ProjectID:   projectID,
 					Environment: "dev",
-					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC)},
+					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					StackTrace:  &shortTraceStr,
 				},
 				{
 					Event:       "error",
 					ProjectID:   projectID,
 					Environment: "prod",
-					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC)},
+					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 					StackTrace:  &shortTraceStr,
 				},
 			},
@@ -249,14 +249,14 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				{
 					ProjectID:   projectID,
 					Environment: "dev",
-					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC)},
+					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					Event:       "error",
 					StackTrace:  &shortTraceStr,
 				},
 				{
 					Event:      "error",
 					ProjectID:  projectID,
-					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC)},
+					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 					StackTrace: &shortTraceStr,
 				},
 			},
@@ -274,13 +274,13 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				{
 					Event:      "error",
 					ProjectID:  projectID,
-					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC)},
+					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					StackTrace: &longTraceStr,
 				},
 				{
 					Event:      "error",
 					ProjectID:  projectID,
-					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC)},
+					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 					StackTrace: &shortTraceStr,
 				},
 			},
@@ -299,13 +299,13 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				{
 					Event:      "error",
 					ProjectID:  projectID,
-					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC)},
+					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					StackTrace: &shortTraceStr,
 				},
 				{
 					Event:      "error",
 					ProjectID:  projectID,
-					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC)},
+					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 					StackTrace: &longTraceStr,
 				},
 			},
@@ -492,7 +492,7 @@ func TestUpdatingErrorState(t *testing.T) {
 
 		errorGroup, err = resolver.HandleErrorAndGroup(ctx, &errorObject3, structuredStackTrace, nil, project.ID, nil)
 		assert.NoError(t, err)
-		assert.Equal(t, privateModel.ErrorStateIgnored, errorGroup.State) // Should stay ignored
+		assert.Equal(t, errorGroup.State, privateModel.ErrorStateIgnored) // Should stay ignored
 
 	})
 }
