@@ -85,6 +85,7 @@ export const TracePanel: React.FC = () => {
 			store={traceDialogStore}
 			modal={false}
 			autoFocusOnShow={false}
+			hideOnInteractOutside={!resource}
 			className={styles.dialog}
 		>
 			<Box borderBottom="dividerWeak" py="6" pl="12" pr="8">
