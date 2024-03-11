@@ -55,6 +55,7 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 					disabled: errorLinkDisabled,
 					icon: <IconSolidLightningBolt />,
 					label: 'View errors',
+					trackingId: 'session_related-resource-errors_click',
 				},
 				{
 					key: 'logs',
@@ -62,6 +63,7 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 					disabled: logsLinkDisabled,
 					icon: <IconSolidLogs />,
 					label: 'View logs',
+					trackingId: 'session_related-resource-logs_click',
 				},
 				{
 					key: 'traces',
@@ -69,6 +71,7 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 					disabled: tracesLinkDisabled,
 					icon: <IconSolidSparkles />,
 					label: 'View traces',
+					trackingId: 'session_related-resource-traces_click',
 				},
 			]}
 		/>
