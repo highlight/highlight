@@ -59734,7 +59734,7 @@ __metadata:
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.198.0"
     "@types/yargs": "npm:^17.0.13"
-    semver: "npm:^7.3.8"
+    semver: "npm:^7.5.2"
     tsx: "npm:^4.7.0"
     yargs: "npm:^17.6.0"
   languageName: unknown
