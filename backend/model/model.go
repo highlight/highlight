@@ -12,10 +12,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
+
 	Email "github.com/highlight-run/highlight/backend/email"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/jackc/pgerrcode"
-	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/ReneKroon/ttlcache"
 	"github.com/lib/pq"
@@ -190,6 +191,7 @@ var Models = []interface{}{
 	&IntegrationWorkspaceMapping{},
 	&EmailOptOut{},
 	&BillingEmailHistory{},
+	&Retryable{},
 	&Service{},
 	&SetupEvent{},
 	&SessionAdminsView{},
@@ -220,14 +222,14 @@ func init() {
 }
 
 type Model struct {
-	ID        int        `gorm:"primary_key;type:integer;autoIncrement" json:"id" deep:"-"`
+	ID        int        `gorm:"primary_key;type:serial" json:"id" deep:"-"`
 	CreatedAt time.Time  `json:"created_at" deep:"-"`
 	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
 	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
 }
 
 type Int64Model struct {
-	ID        int64      `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
+	ID        int64      `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	CreatedAt time.Time  `json:"created_at" deep:"-"`
 	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
 	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
@@ -422,7 +424,7 @@ const (
 )
 
 type SetupEvent struct {
-	ID        int                  `gorm:"primary_key;type:integer;autoIncrement" json:"id" deep:"-"`
+	ID        int                  `gorm:"primary_key;type:serial" json:"id" deep:"-"`
 	CreatedAt time.Time            `json:"created_at" deep:"-"`
 	ProjectID int                  `gorm:"uniqueIndex:idx_project_id_type"`
 	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_project_id_type"`
@@ -712,7 +714,7 @@ type Session struct {
 	Environment    string   `json:"environment"`
 	AppVersion     *string  `json:"app_version"`
 	ServiceName    string
-	UserObject     JSONB  `json:"user_object" sql:"type:jsonb" gorm:"type:jsonb"`
+	UserObject     JSONB  `json:"user_object" sql:"type:jsonb"`
 	UserProperties string `json:"user_properties"`
 	// Whether this is the first session created by this user.
 	FirstTime               *bool      `json:"first_time" gorm:"default:false"`
@@ -732,7 +734,7 @@ type Session struct {
 	// The version of Highlight's Firstload.
 	FirstloadVersion string `json:"firstload_version"`
 	// The client configuration that the end-user sets up. This is used for debugging purposes.
-	ClientConfig *string `json:"client_config" sql:"type:jsonb" gorm:"type:jsonb"`
+	ClientConfig *string `json:"client_config" sql:"type:jsonb"`
 	// Determines whether this session should be viewable. This enforces billing.
 	WithinBillingQuota *bool `json:"within_billing_quota" gorm:"default:true"`
 	// Used for shareable links. No authentication is needed if IsPublic is true
@@ -940,7 +942,7 @@ type Metric struct {
 }
 
 type MetricGroup struct {
-	ID        int `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
+	ID        int `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	GroupName string
 	SessionID int
 	ProjectID int
@@ -1017,7 +1019,7 @@ const (
 
 type ErrorObject struct {
 	Model
-	ID                      int  `gorm:"primary_key;type:integer;autoIncrement;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
+	ID                      int  `gorm:"primary_key;type:serial;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
 	ProjectID               int  `json:"project_id"`
 	SessionID               *int `gorm:"type:integer"`
 	TraceID                 *string
@@ -1138,7 +1140,7 @@ type ErrorField struct {
 }
 
 type LogAdminsView struct {
-	ID       int       `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
+	ID       int       `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	ViewedAt time.Time `gorm:"default:NOW()"`
 	AdminID  int       `gorm:"primaryKey"`
 }
@@ -1265,7 +1267,7 @@ type TimelineIndicatorEvent struct {
 	Timestamp       float64
 	Type            int
 	SID             float64
-	Data            JSONB `json:"data" sql:"type:jsonb" gorm:"type:jsonb"`
+	Data            JSONB `json:"data" sql:"type:jsonb"`
 }
 
 type RageClickEvent struct {
@@ -1403,7 +1405,7 @@ type Retryable struct {
 	Type        RetryableType
 	PayloadType string
 	PayloadID   string
-	Payload     JSONB `sql:"type:jsonb" gorm:"type:jsonb"`
+	Payload     JSONB `sql:"type:jsonb"`
 	Error       string
 }
 
@@ -1996,7 +1998,7 @@ type ErrorAlert struct {
 }
 
 type ErrorAlertEvent struct {
-	ID            int64 `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
+	ID            int64 `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	ErrorAlertID  int   `gorm:"index:idx_error_alert_event"`
 	ErrorObjectID int   `gorm:"index:idx_error_alert_event"`
 	SentAt        time.Time
@@ -2070,7 +2072,7 @@ type SessionAlert struct {
 }
 
 type SessionAlertEvent struct {
-	ID              int64  `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
+	ID              int64  `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	SessionAlertID  int    `gorm:"index:idx_session_alert_event"`
 	SessionSecureID string `gorm:"index:idx_session_alert_event"`
 	SentAt          time.Time
@@ -2099,7 +2101,7 @@ type LogAlert struct {
 }
 
 type LogAlertEvent struct {
-	ID         int64     `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
+	ID         int64     `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	LogAlertID int       `gorm:"index:idx_log_alert_event"`
 	Query      string    `gorm:"index:idx_log_alert_event"`
 	StartDate  time.Time `gorm:"index:idx_log_alert_event"`
