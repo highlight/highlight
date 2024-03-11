@@ -56,6 +56,7 @@ export const TraceErrors: React.FC = () => {
 							}}
 							size="small"
 							trackingId="trace-error_see-more"
+							style={{ flexShrink: 0 }}
 						>
 							See more
 						</Button>
