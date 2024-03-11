@@ -481,6 +481,7 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 			parsedUrl.Scheme = "https"
 			parsedUrl.Host = "app.priceworx.co.uk"
 			assetURL = parsedUrl.String()
+			log.WithContext(ctx).WithField("u", u).WithField("assetURL", assetURL).WithField("assetKey", assetKey).Warn("fetching priceworx url")
 		}
 		urlMap[u] = assetValue{assetKey, assetURL}
 	}
