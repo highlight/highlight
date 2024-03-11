@@ -41445,7 +41445,7 @@ __metadata:
     pretty-quick: "npm:^3.1.3"
     react: "npm:^18.2.0"
     react-aria: "npm:^3.20.0"
-    react-calendly: "npm:^4.1.1"
+    react-calendly: "npm:^4.3.0"
     react-code-blocks: "npm:^0.0.9-0"
     react-collapse: "npm:^5.1.1"
     react-collapsible: "npm:^2.10.0"
@@ -56260,13 +56260,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-calendly@npm:^4.1.1":
-  version: 4.1.1
-  resolution: "react-calendly@npm:4.1.1"
+"react-calendly@npm:^4.3.0":
+  version: 4.3.0
+  resolution: "react-calendly@npm:4.3.0"
   peerDependencies:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 10/1a4b8a6a1505403e3d99104fca74750c7efc5ce3b85b90a12fafb976eb107acffcd3777a67fcfc3a89595f25ec9f20bbc3e85e3c3db857b12387644618953dc2
+  checksum: 10/bf20e4e7b7f39ca2dd6ac41a542953537558e6297b8d8b3daf413f618fcc5090fc43b503ae23a56b7f0681812e32b26f94ba266232bf60cea995d3587aed340b
   languageName: node
   linkType: hard
 
