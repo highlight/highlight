@@ -364,16 +364,16 @@ func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 	updatedErrorGroup, err := store.UpdateErrorGroupStateByAdmin(context.TODO(), admin, params)
 	assert.NoError(t, err)
 
-	assert.Equal(t, updatedErrorGroup.State, params.State)
-	assert.Equal(t, updatedErrorGroup.SnoozedUntil, params.SnoozedUntil)
+	assert.Equal(t, params.State, updatedErrorGroup.State)
+	assert.Equal(t, params.SnoozedUntil.Format(time.RFC3339), updatedErrorGroup.SnoozedUntil.Format(time.RFC3339))
 
 	activityLogs, err := store.GetErrorGroupActivityLogs(errorGroup.ID)
 	assert.NoError(t, err)
 
 	assert.Len(t, activityLogs, 1)
-	assert.Equal(t, activityLogs[0].AdminID, admin.ID)
-	assert.Equal(t, activityLogs[0].ErrorGroupID, errorGroup.ID)
-	assert.Equal(t, activityLogs[0].EventType, model.ErrorGroupIgnoredEvent)
+	assert.Equal(t, admin.ID, activityLogs[0].AdminID)
+	assert.Equal(t, errorGroup.ID, activityLogs[0].ErrorGroupID)
+	assert.Equal(t, model.ErrorGroupIgnoredEvent, activityLogs[0].EventType)
 	assert.NotNil(t, activityLogs[0].EventData)
 }
 
@@ -400,15 +400,15 @@ func TestUpdateErrorGroupStateBySystem(t *testing.T) {
 	updatedErrorGroup, err := store.UpdateErrorGroupStateBySystem(context.TODO(), params)
 	assert.NoError(t, err)
 
-	assert.Equal(t, updatedErrorGroup.State, params.State)
-	assert.Equal(t, updatedErrorGroup.SnoozedUntil, params.SnoozedUntil)
+	assert.Equal(t, params.State, updatedErrorGroup.State)
+	assert.Equal(t, params.SnoozedUntil.Format(time.RFC3339), updatedErrorGroup.SnoozedUntil.Format(time.RFC3339))
 
 	activityLogs, err := store.GetErrorGroupActivityLogs(errorGroup.ID)
 	assert.NoError(t, err)
 
 	assert.Len(t, activityLogs, 1)
-	assert.Equal(t, activityLogs[0].AdminID, 0) // 0 means the system generated this
-	assert.Equal(t, activityLogs[0].ErrorGroupID, errorGroup.ID)
-	assert.Equal(t, activityLogs[0].EventType, model.ErrorGroupIgnoredEvent)
+	assert.Equal(t, 0, activityLogs[0].AdminID) // 0 means the system generated this
+	assert.Equal(t, errorGroup.ID, activityLogs[0].ErrorGroupID)
+	assert.Equal(t, model.ErrorGroupIgnoredEvent, activityLogs[0].EventType)
 	assert.NotNil(t, activityLogs[0].EventData)
 }
