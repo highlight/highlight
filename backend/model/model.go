@@ -717,7 +717,7 @@ type Session struct {
 	// Whether this is the first session created by this user.
 	FirstTime               *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt        *time.Time `json:"payload_updated_at"`
-	LastUserInteractionTime time.Time  `json:"last_user_interaction_time" gorm:"default:TIMESTAMP 'epoch'"`
+	LastUserInteractionTime time.Time  `json:"last_user_interaction_time"`
 	// Set if the last payload was a beacon; cleared on the next non-beacon payload
 	BeaconTime *time.Time `json:"beacon_time"`
 	// Custom properties
@@ -1315,7 +1315,7 @@ type IntegrationProjectMapping struct {
 type OAuthClientStore struct {
 	ID        string         `gorm:"primary_key;default:uuid_generate_v4()"`
 	CreatedAt time.Time      `json:"created_at" deep:"-"`
-	Secret    string         `gorm:"uniqueIndex;not null;default:uuid_generate_v4()"`
+	Secret    string         `gorm:"uniqueIndex;not null"`
 	Domains   pq.StringArray `gorm:"not null;type:text[]"`
 	AppName   string
 
@@ -1375,8 +1375,8 @@ type SystemConfiguration struct {
 	Active            bool `gorm:"primary_key;default:true"`
 	MaintenanceStart  time.Time
 	MaintenanceEnd    time.Time
-	ErrorFilters      pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
-	IgnoredFiles      pq.StringArray `gorm:"type:text[];default:'{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\", \".*\\/site-packages\\/.*\"}'"`
+	ErrorFilters      pq.StringArray `gorm:"type:text[]"`
+	IgnoredFiles      pq.StringArray `gorm:"type:text[]"`
 	MainWorkers       int            `gorm:"default:64"`
 	LogsWorkers       int            `gorm:"default:1"`
 	LogsFlushSize     int            `gorm:"type:bigint;default:1000"`
@@ -1499,9 +1499,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "failed to configure uuid extension")
 	}
 
-	time.Sleep(10 * time.Second)
-
-	if err := DB.AutoMigrate(
+	if err := DB.Debug().AutoMigrate(
 		Models...,
 	); err != nil {
 		return false, e.Wrap(err, "Error migrating db")
@@ -1760,6 +1758,58 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	// in case gorm still sets a default / not null constraint
 	DB.Exec(`alter table error_groups alter column error_tag_id drop default`)
 	DB.Exec(`alter table error_groups alter column error_tag_id drop not null`)
+
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				IF EXISTS
+					(SELECT * FROM information_schema.columns WHERE table_name = 'system_configurations' AND column_default IS NULL AND column_name = 'error_filters')
+				THEN
+					ALTER TABLE system_configurations ALTER COLUMN error_filters SET DEFAULT '{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}';
+				END IF;
+		END $$;
+	`).Error; err != nil {
+		return false, err
+	}
+
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				IF EXISTS
+					(SELECT * FROM information_schema.columns WHERE table_name = 'system_configurations' AND column_default IS NULL AND column_name = 'ignored_files')
+				THEN
+					ALTER TABLE system_configurations ALTER COLUMN ignored_files SET DEFAULT '{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\", \".*\\/site-packages\\/.*\"}';
+				END IF;
+		END $$;
+	`).Error; err != nil {
+		return false, err
+	}
+
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				IF EXISTS
+					(SELECT * FROM information_schema.columns WHERE table_name = 'sessions' AND column_default IS NULL AND column_name = 'last_user_interaction_time')
+				THEN
+					ALTER TABLE sessions ALTER COLUMN last_user_interaction_time SET DEFAULT TIMESTAMP 'epoch';
+				END IF;
+		END $$;
+	`).Error; err != nil {
+		return false, err
+	}
+
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				IF EXISTS
+					(SELECT * FROM information_schema.columns WHERE table_name = 'o_auth_client_stores' AND column_default IS NULL AND column_name = 'secret')
+				THEN
+					ALTER TABLE o_auth_client_stores ALTER COLUMN secret SET DEFAULT uuid_generate_v4();
+				END IF;
+		END $$;
+	`).Error; err != nil {
+		return false, err
+	}
 
 	log.WithContext(ctx).Printf("Finished running DB migrations.\n")
 
