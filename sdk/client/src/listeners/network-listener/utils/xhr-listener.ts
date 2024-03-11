@@ -237,7 +237,7 @@ const getBodyData = (postData: any, url: string | undefined) => {
 		typeof postData === 'number' ||
 		typeof postData === 'boolean'
 	) {
-		return postData.toString()
+		return JSON.stringify(postData)
 	}
 
 	return null
