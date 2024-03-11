@@ -657,7 +657,6 @@ func TestInitializeSessionImpl(t *testing.T) {
 		session, err := resolver.InitializeSessionImpl(ctx, &kafka_queue.InitializeSessionArgs{
 			ProjectVerboseID: project.VerboseID(),
 			ServiceName:      "my-frontend-app",
-			ClientConfig:     "{}",
 		})
 		assert.NoError(t, err)
 		assert.NotNil(t, session.ID)
