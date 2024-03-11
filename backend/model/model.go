@@ -1499,7 +1499,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "failed to configure uuid extension")
 	}
 
-	if err := DB.Debug().AutoMigrate(
+	if err := DB.AutoMigrate(
 		Models...,
 	); err != nil {
 		return false, e.Wrap(err, "Error migrating db")
