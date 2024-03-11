@@ -6392,6 +6392,19 @@ body {
   padding: 0 0 0 1.5rem !important;
   margin: 0 0 1rem 0 !important;
 }
+._1bcldh0 {
+  border-radius: 4px;
+  color: var(--_1pyqka9y);
+  display: block;
+}
+._1bcldh0:hover {
+  background-color: var(--_1pyqka91x);
+  color: var(--_1pyqka9y);
+}
+._1bcldh0:active {
+  background-color: var(--_1pyqka91y);
+  color: var(--_1pyqka9y);
+}
 ._6soxly0 {
   position: absolute;
   top: 7px;
@@ -7402,6 +7415,27 @@ body {
 .u1xyjd5:hover {
   background: var(--_1pyqka91x);
 }
+._10o9hoe1 {
+  min-width: 400px;
+  max-width: 1200px;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 30000;
+  position: fixed;
+}
+._10o9hoe2 {
+  background-color: rgba(0, 0, 0, 0.05);
+  transition: opacity 0.2s;
+}
+._10o9hoe3 {
+  cursor: ew-resize;
+  position: absolute;
+  left: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
 ._1r8lbz42 {
   background-color: var(--_1pyqka91k);
   border: 1px solid transparent;
@@ -7425,23 +7459,6 @@ body {
 ._1r8lbz45 {
   height: 100%;
   overflow-y: hidden;
-}
-.k6vtwi1 {
-  min-width: 400px;
-  max-width: 1200px;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  z-index: 30000;
-  position: fixed;
-}
-.k6vtwi2 {
-  cursor: ew-resize;
-  position: absolute;
-  left: -2px;
-  top: 0;
-  bottom: 0;
-  width: 4px;
 }
 .dg2vg60 {
   z-index: 2;

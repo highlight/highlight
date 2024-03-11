@@ -1,17 +1,13 @@
 import { Box, Callout, Text } from '@highlight-run/ui/components'
 import moment from 'moment'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { useGetErrorGroupsClickhouseQuery } from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
 import { ErrorFeedCard } from '@/pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import { FullScreenContainer } from '@/pages/LogsPage/LogsTable/FullScreenContainer'
-import {
-	RightPanelView,
-	usePlayerUIContext,
-} from '@/pages/Player/context/PlayerUIContext'
-import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@/pages/Player/ReplayerContext'
 import {
 	getHighlightRequestId,
@@ -21,21 +17,24 @@ import analytics from '@/util/analytics'
 
 export const NetworkResourceErrors: React.FC<{
 	resource: NetworkResource
-	hide: () => void
-}> = ({ resource, hide }) => {
+}> = ({ resource }) => {
 	const { projectId } = useProjectId()
 	const { errors: sessionErrors } = useReplayerContext()
 	const requestId = getHighlightRequestId(resource)
 	const errors = sessionErrors.filter((e) => e.request_id === requestId)
 	const errorGroupSecureIds = errors.map((e) => e.error_group_secure_id)
+	const start = useMemo(() => moment().subtract(30, 'days').toISOString(), [])
+	const end = useMemo(() => moment().toISOString(), [])
 	const { data, loading } = useGetErrorGroupsClickhouseQuery({
 		variables: {
 			query: {
 				isAnd: true,
-				rules: [['secure_id', 'is', ...errorGroupSecureIds]],
+				// TODO: Fix this query. Is broken after migrating to querying
+				// clickhouse because there's no secure_id on the error_groups table.
+				rules: [['error_secure_id', 'is', ...errorGroupSecureIds]],
 				dateRange: {
-					start_date: moment().subtract(30, 'days').toISOString(),
-					end_date: moment().toISOString(),
+					start_date: start,
+					end_date: end,
 				},
 			},
 			project_id: projectId,
@@ -44,8 +43,7 @@ export const NetworkResourceErrors: React.FC<{
 		skip: errors.length === 0,
 	})
 
-	const { setActiveError, setRightPanelView } = usePlayerUIContext()
-	const { setShowRightPanel } = usePlayerConfiguration()
+	const { set } = useRelatedResource()
 
 	useEffect(() => {
 		analytics.track('session_network-resource-errors_view')
@@ -72,10 +70,14 @@ export const NetworkResourceErrors: React.FC<{
 											e.error_group_secure_id ===
 											errorGroup.secure_id,
 									)
-									setActiveError(error)
-									setShowRightPanel(true)
-									setRightPanelView(RightPanelView.Error)
-									hide()
+
+									if (error) {
+										set({
+											type: 'error',
+											id: errorGroup.secure_id,
+											instanceId: error.id,
+										})
+									}
 								}}
 							/>
 						</Box>

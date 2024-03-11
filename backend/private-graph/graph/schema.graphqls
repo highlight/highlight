@@ -847,6 +847,7 @@ type TracePayload {
 
 type TraceError {
 	created_at: Timestamp!
+	id: ID!
 	trace_id: String
 	span_id: String
 	log_cursor: String

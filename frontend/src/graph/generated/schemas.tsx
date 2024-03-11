@@ -3499,6 +3499,7 @@ export type TraceError = {
 	created_at: Scalars['Timestamp']
 	error_group_secure_id: Scalars['String']
 	event: Scalars['String']
+	id: Scalars['ID']
 	log_cursor?: Maybe<Scalars['String']>
 	source: Scalars['String']
 	span_id?: Maybe<Scalars['String']>
