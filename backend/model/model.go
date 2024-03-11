@@ -717,7 +717,7 @@ type Session struct {
 	// Whether this is the first session created by this user.
 	FirstTime               *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt        *time.Time `json:"payload_updated_at"`
-	LastUserInteractionTime time.Time  `json:"last_user_interaction_time"`
+	LastUserInteractionTime time.Time  `json:"last_user_interaction_time" gorm:"not null"`
 	// Set if the last payload was a beacon; cleared on the next non-beacon payload
 	BeaconTime *time.Time `json:"beacon_time"`
 	// Custom properties
@@ -1375,8 +1375,8 @@ type SystemConfiguration struct {
 	Active            bool `gorm:"primary_key;default:true"`
 	MaintenanceStart  time.Time
 	MaintenanceEnd    time.Time
-	ErrorFilters      pq.StringArray `gorm:"type:text[]"`
-	IgnoredFiles      pq.StringArray `gorm:"type:text[]"`
+	ErrorFilters      pq.StringArray `gorm:"type:text[];not null"`
+	IgnoredFiles      pq.StringArray `gorm:"type:text[];not null"`
 	MainWorkers       int            `gorm:"default:64"`
 	LogsWorkers       int            `gorm:"default:1"`
 	LogsFlushSize     int            `gorm:"type:bigint;default:1000"`
