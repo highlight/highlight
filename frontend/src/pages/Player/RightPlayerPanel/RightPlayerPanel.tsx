@@ -63,7 +63,6 @@ const RightPlayerPanel = () => {
 				if (activeEvent) {
 					return <EventDetails event={activeEvent} />
 				} else {
-					setRightPanelView(RightPanelView.Session)
 					return null
 				}
 
