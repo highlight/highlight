@@ -112,7 +112,7 @@ export const ProjectRouter = () => {
 		?.pop()
 
 	const [rightPanelView, setRightPanelView] = useLocalStorage<RightPanelView>(
-		'tabs-right-panel-view',
+		'active-right-panel-view',
 		RightPanelView.Session,
 	)
 
