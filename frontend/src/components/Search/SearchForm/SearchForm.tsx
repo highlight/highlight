@@ -22,7 +22,8 @@ import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import moment from 'moment'
 import { stringify } from 'query-string'
-import React, { Fragment, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import TextareaAutosize from 'react-autosize-textarea'
 import { useNavigate } from 'react-router-dom'
 import {
 	DateTimeParam,
@@ -106,6 +107,7 @@ export type SearchFormProps = {
 	hideDatePicker?: boolean
 	hideCreateAlert?: boolean
 	savedSegmentType?: 'Trace' | 'Log'
+	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({
@@ -124,6 +126,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	hideDatePicker,
 	hideCreateAlert,
 	savedSegmentType,
+	textAreaRef,
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
@@ -161,6 +164,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					endDate={endDate}
 					disableSearch={disableSearch}
 					query={query}
+					textAreaRef={textAreaRef}
 					productType={productType}
 					setQuery={setQuery}
 					onFormSubmit={onFormSubmit}
@@ -171,7 +175,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
 						<Box
 							as="span"
 							borderRight="dividerWeak"
-							style={{ height: 18, margin: 'auto' }}
+							mt="4"
+							style={{ height: 18 }}
 						/>
 					)}
 					{!hideCreateAlert && (
@@ -230,6 +235,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
 
 export { SearchForm }
 
+export const DEFAULT_INPUT_HEIGHT = 31
+
 export const Search: React.FC<{
 	initialQuery: string
 	startDate: Date
@@ -241,6 +248,7 @@ export const Search: React.FC<{
 	productType: ProductType
 	setQuery: (value: string) => void
 	onFormSubmit: (query: string) => void
+	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 }> = ({
 	initialQuery,
 	startDate,
@@ -249,13 +257,15 @@ export const Search: React.FC<{
 	disableSearch,
 	placeholder,
 	query,
+	textAreaRef,
 	productType,
 	setQuery,
 	onFormSubmit,
 }) => {
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
-	const inputRef = useRef<HTMLInputElement | null>(null)
+	const defaultInputRef = useRef<HTMLTextAreaElement | null>(null)
+	const inputRef = textAreaRef || defaultInputRef
 	const [keys, setKeys] = useState<Keys | undefined>()
 	const [values, setValues] = useState<string[] | undefined>()
 	const comboboxStore = useComboboxStore({
@@ -528,8 +538,9 @@ export const Search: React.FC<{
 
 			<Box
 				display="flex"
-				alignItems="center"
+				alignItems="flex-start"
 				gap="6"
+				pt="6"
 				width="full"
 				color="weak"
 				position="relative"
@@ -547,21 +558,19 @@ export const Search: React.FC<{
 						}
 
 						return (
-							<Fragment key={index}>
-								<QueryPart
-									comboboxStore={comboboxStore}
-									cursorIndex={cursorIndex}
-									index={index}
-									tokenGroup={tokenGroup}
-									showValues={showValues}
-									onRemoveItem={handleRemoveItem}
-								/>
-							</Fragment>
+							<QueryPart
+								key={index}
+								comboboxStore={comboboxStore}
+								cursorIndex={cursorIndex}
+								index={index}
+								tokenGroup={tokenGroup}
+								showValues={showValues}
+								onRemoveItem={handleRemoveItem}
+							/>
 						)
 					})}
 				</Box>
 				<Combobox
-					ref={inputRef}
 					disabled={disableSearch}
 					store={comboboxStore}
 					name="search"
@@ -569,6 +578,12 @@ export const Search: React.FC<{
 					className={clsx(styles.combobox, {
 						[styles.comboboxNotEmpty]: query.length > 0,
 					})}
+					render={
+						<TextareaAutosize
+							ref={inputRef}
+							style={{ resize: 'none', overflowY: 'hidden' }}
+						/>
+					}
 					value={query}
 					onChange={(e) => {
 						// Need to update cursor position before updating the query for all
@@ -606,22 +621,25 @@ export const Search: React.FC<{
 					onMouseUp={handleSetCursorIndex}
 					style={{
 						paddingLeft: hideIcon ? undefined : 40,
+						top: 6,
 					}}
 					data-hl-record
 				/>
 
 				{isDirty && !disableSearch && (
-					<IconSolidXCircle
-						size={16}
-						onClick={(e) => {
-							e.preventDefault()
-							e.stopPropagation()
+					<Box pt="6">
+						<IconSolidXCircle
+							size={16}
+							onClick={(e) => {
+								e.preventDefault()
+								e.stopPropagation()
 
-							setQuery('')
-							submitQuery('')
-						}}
-						style={{ cursor: 'pointer' }}
-					/>
+								setQuery('')
+								submitQuery('')
+							}}
+							style={{ cursor: 'pointer' }}
+						/>
+					</Box>
 				)}
 			</Box>
 

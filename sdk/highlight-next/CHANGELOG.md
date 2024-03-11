@@ -1,5 +1,16 @@
 # @highlight-run/next
 
+## 7.4.1
+
+### Patch Changes
+
+-   b70fb1a42: Moving js-cookie from devDependencies to dependencies
+-   Updated dependencies [e2483b6c3]
+-   Updated dependencies [062001317]
+    -   highlight.run@8.7.0
+    -   @highlight-run/cloudflare@2.1.5
+    -   @highlight-run/node@3.8.0
+
 ## 7.4.0
 
 ### Minor Changes

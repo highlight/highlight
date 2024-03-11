@@ -9,7 +9,7 @@ import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import moment from 'moment'
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { Helmet } from 'react-helmet'
 import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
@@ -49,6 +49,7 @@ export const TracesPage: React.FC = () => {
 	const { trace_cursor: traceCursor } = useParams<{
 		trace_cursor: string
 	}>()
+	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const {
 		startDate,
@@ -209,6 +210,7 @@ export const TracesPage: React.FC = () => {
 						onDatesChange={updateSearchTime}
 						productType={ProductType.Traces}
 						savedSegmentType="Trace"
+						textAreaRef={textAreaRef}
 					/>
 					<Box
 						display="flex"
@@ -315,6 +317,7 @@ export const TracesPage: React.FC = () => {
 						resetMoreTraces={clearMoreTraces}
 						fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 						loadingAfter={loadingAfter}
+						textAreaRef={textAreaRef}
 					/>
 				</Box>
 			</Box>

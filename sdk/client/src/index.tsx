@@ -362,7 +362,7 @@ export class Highlight {
 			options.enablePerformanceRecording ?? true
 		// default to inlining stylesheets/images locally to help with recording accuracy
 		this.inlineImages = options.inlineImages ?? this._isOnLocalHost
-		this.inlineStylesheet = options.inlineStylesheet ?? this._isOnLocalHost
+		this.inlineStylesheet = options.inlineStylesheet ?? true
 		this.samplingStrategy = {
 			canvasFactor: 0.5,
 			canvasMaxSnapshotDimension: 360,
@@ -397,10 +397,6 @@ export class Highlight {
 			this.organizationID = options.organizationID
 		} else {
 			this.organizationID = options.organizationID.toString()
-		}
-		// disable inline stylesheets for aerotime
-		if (this.organizationID === 'jgoqo9el') {
-			this.inlineStylesheet = false
 		}
 		this.isRunningOnHighlight =
 			this.organizationID === '1' || this.organizationID === '1jdkoe52'

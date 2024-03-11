@@ -3419,7 +3419,6 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	newAlert := &model.ErrorAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
-			OrganizationID:       projectID,
 			ExcludedEnvironments: envString,
 			CountThreshold:       countThreshold,
 			ThresholdWindow:      &thresholdWindow,
@@ -4981,15 +4980,9 @@ func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecu
 	}
 
 	var timelineIndicatorEvents []*model.TimelineIndicatorEvent
-	if session.AvoidPostgresStorage {
-		timelineIndicatorEvents, err = r.StorageClient.ReadTimelineIndicatorEvents(ctx, session.ID, session.ProjectID)
-		if err != nil {
-			return nil, e.Wrap(err, "failed to get timeline indicator events from S3")
-		}
-	} else {
-		if res := r.DB.Order("timestamp ASC").Where(&model.TimelineIndicatorEvent{SessionSecureID: sessionSecureID}).Find(&timelineIndicatorEvents); res.Error != nil {
-			return nil, e.Wrap(res.Error, "failed to get timeline indicator events from Postgres")
-		}
+	timelineIndicatorEvents, err = r.StorageClient.ReadTimelineIndicatorEvents(ctx, session.ID, session.ProjectID)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to get timeline indicator events from S3")
 	}
 
 	return timelineIndicatorEvents, nil
@@ -6239,12 +6232,12 @@ select coalesce(email.Value, nullif(IP, ''), device.Value, Identifier) as key,
        count(distinct ID)                                              as num_sessions,
        count(distinct date_trunc('day', CreatedAt))                    as num_days_visited,
        count(distinct date_trunc('month', CreatedAt))                  as num_months_visited,
-       avg(ActiveLength) / 1000 / 60                                   as avg_active_length_mins,
-       max(ActiveLength) / 1000 / 60                                   as max_active_length_mins,
-       sum(ActiveLength) / 1000 / 60                                   as total_active_length_mins,
-       avg(Length) / 1000 / 60                                         as avg_length_mins,
-       max(Length) / 1000 / 60                                         as max_length_mins,
-       sum(Length) / 1000 / 60                                         as total_length_mins,
+       avg(greatest(0, ActiveLength)) / 1000 / 60                      as avg_active_length_mins,
+       max(greatest(0, ActiveLength)) / 1000 / 60                      as max_active_length_mins,
+       sum(greatest(0, ActiveLength)) / 1000 / 60                      as total_active_length_mins,
+       avg(greatest(0, Length)) / 1000 / 60                            as avg_length_mins,
+       max(greatest(0, Length)) / 1000 / 60                            as max_length_mins,
+       sum(greatest(0, Length)) / 1000 / 60                            as total_length_mins,
        max(City)                                                       as location
 from sessions final
          left join (select *

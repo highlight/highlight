@@ -293,7 +293,7 @@ export const LogAlertPage = () => {
 
 						const nameErr = !input.name
 						const thresholdErr =
-							!input.count_threshold || input.count_threshold < 1
+							!input.count_threshold || input.count_threshold < 0
 						const queryErr = !input.query
 						if (nameErr || thresholdErr || queryErr) {
 							const errs = []
@@ -308,7 +308,7 @@ export const LogAlertPage = () => {
 							if (thresholdErr) {
 								formStore.setError(
 									formStore.names.threshold,
-									'Threshold cannot be less than 1',
+									'Threshold cannot be less than 0',
 								)
 								errs.push('threshold')
 							}

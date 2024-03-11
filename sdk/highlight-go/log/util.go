@@ -64,6 +64,7 @@ type VercelLog struct {
 	Host         string `json:"host"`
 
 	Type       string `json:"type"`
+	Level      string `json:"level"`
 	Entrypoint string `json:"entrypoint"`
 
 	RequestId   string      `json:"requestId"`
@@ -80,8 +81,19 @@ func submitVercelLog(ctx context.Context, tracer trace.Tracer, projectID int, lo
 	)
 	defer highlight.EndTrace(span)
 
+	var level string
+	if log.Type == "stdout" {
+		level = "INFO"
+	} else if log.Type == "stderr" {
+		level = "ERROR"
+	} else if log.Level == "warning" {
+		level = "WARN"
+	} else {
+		level = strings.ToUpper(log.Level)
+	}
+
 	attrs := []attribute.KeyValue{
-		LogSeverityKey.String(log.Type),
+		LogSeverityKey.String(level),
 		LogMessageKey.String(log.Message),
 		semconv.ServiceNameKey.String("vercel-log-drain-" + log.ProjectId),
 		semconv.ServiceVersionKey.String(log.DeploymentId),
