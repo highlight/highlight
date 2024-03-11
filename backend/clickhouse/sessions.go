@@ -53,7 +53,7 @@ var fieldMap map[string]string = map[string]string{
 	"browser":           "Browser",
 	"visited_url":       "VisitedURL",
 	"timestamp":         "Timestamp",
-	"secure_id":         "ErrorGroupSecureID",
+	"secure_id":         "SecureID",
 	"service_name":      "ServiceName",
 	"service_version":   "ServiceVersion",
 	"Tag":               "ErrorTagTitle",
