@@ -48,7 +48,7 @@
 	},
 	"dependencies": {
 		"@highlight-run/rrweb": "workspace:*",
-		"error-stack-parser": "2.0.6",
+		"error-stack-parser": "2.1.4",
 		"fflate": "^0.8.1",
 		"graphql": "^16.8.1",
 		"graphql-request": "^6.1.0",

@@ -13723,7 +13723,7 @@ __metadata:
     "@size-limit/file": "npm:^8.1.0"
     "@types/json-stringify-safe": "npm:^5.0.0"
     "@types/node": "npm:^16.3.1"
-    error-stack-parser: "npm:2.0.6"
+    error-stack-parser: "npm:2.1.4"
     fflate: "npm:^0.8.1"
     graphql: "npm:^16.8.1"
     graphql-request: "npm:^6.1.0"
@@ -36136,7 +36136,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"error-stack-parser@npm:2.0.6, error-stack-parser@npm:^2.0.6":
+"error-stack-parser@npm:2.1.4":
+  version: 2.1.4
+  resolution: "error-stack-parser@npm:2.1.4"
+  dependencies:
+    stackframe: "npm:^1.3.4"
+  checksum: 10/23db33135bfc6ba701e5eee45e1bb9bd2fe33c5d4f9927440d9a499c7ac538f91f455fcd878611361269893c56734419252c40d8105eb3b023cf8b0fc2ebb64e
+  languageName: node
+  linkType: hard
+
+"error-stack-parser@npm:^2.0.6":
   version: 2.0.6
   resolution: "error-stack-parser@npm:2.0.6"
   dependencies:
@@ -61290,6 +61299,13 @@ __metadata:
   version: 1.2.0
   resolution: "stackframe@npm:1.2.0"
   checksum: 10/159c520470aeba7c9b889adcd1615d708fbceae64f6afabba9d1ecdf4ff2ee248bd5d612f778ffd15502a50d237c8a6638690f834d596499462d0c29970cac5e
+  languageName: node
+  linkType: hard
+
+"stackframe@npm:^1.3.4":
+  version: 1.3.4
+  resolution: "stackframe@npm:1.3.4"
+  checksum: 10/29ca71c1fd17974c1c178df0236b1407bc65f6ea389cc43dec000def6e42ff548d4453de9a85b76469e2ae2b2abdd802c6b6f3db947c05794efbd740d1cf4121
   languageName: node
   linkType: hard
 
