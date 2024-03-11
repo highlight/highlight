@@ -146,6 +146,8 @@ export enum PlayerSearchParameters {
 	commentId = 'commentId',
 	/** Whether to mark the comment thread as muted.*/
 	muted = 'muted',
+	/** Whether to show the search side panel. Shown by default. */
+	search = 'search',
 }
 
 export const useLinkErrorInstance = () => {
@@ -171,6 +173,16 @@ export const useLinkLogCursor = () => {
 	const logCursor = searchParams.get(PlayerSearchParameters.log)
 	return {
 		logCursor,
+	}
+}
+
+export const useShowSearchParam = () => {
+	const location = useLocation()
+	const searchParams = new URLSearchParams(location.search)
+	const searchParam = searchParams.get(PlayerSearchParameters.search)
+
+	return {
+		showSearch: searchParam !== 'false',
 	}
 }
 

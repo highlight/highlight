@@ -1,7 +1,7 @@
 import * as Types from './operations'
 
-import * as Apollo from '@apollo/client'
 import { gql } from '@apollo/client'
+import * as Apollo from '@apollo/client'
 export const SessionPayloadFragmentFragmentDoc = gql`
 	fragment SessionPayloadFragment on SessionPayload {
 		events
@@ -14788,6 +14788,7 @@ export const GetTraceDocument = gql`
 			}
 			errors {
 				created_at
+				id
 				trace_id
 				span_id
 				log_cursor

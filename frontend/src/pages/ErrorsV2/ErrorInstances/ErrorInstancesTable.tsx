@@ -22,6 +22,8 @@ import { ErrorObjectEdge } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 
+import * as styles from './ErrorInstancesTable.css'
+
 const toYearMonthDay = (timestamp: string) => {
 	const date = new Date(timestamp)
 	return moment(date).format('YYYY-MM-DD HH:mm:ss')
@@ -148,18 +150,16 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 			{table.getRowModel().rows.map((row) => {
 				return (
 					<Link
-						to={`/${projectId}/errors/${row.original.node.errorGroupSecureID}/instances/${row.original.cursor}`}
 						key={row.id}
+						to={`/${projectId}/errors/${row.original.node.errorGroupSecureID}/instances/${row.original.cursor}`}
+						className={styles.rowLink}
 					>
 						<Stack
-							key={row.id}
 							direction="row"
 							gap="4"
-							mb="8"
-							px="8"
-							py="2"
+							px="12"
+							py="6"
 							alignItems="center"
-							cursor="pointer"
 						>
 							{row.getVisibleCells().map((cell) => {
 								return (
