@@ -7423,13 +7423,26 @@ body {
   bottom: 0;
   z-index: 30000;
   position: fixed;
+  transition: transform 0.2s;
+  transform: translateX(100%);
+  will-change: transform;
+}
+._10o9hoe1[data-enter] {
+  transform: translateX(0);
 }
 ._10o9hoe2 {
   background-color: rgba(0, 0, 0, 0.05);
+  opacity: 0;
   transition: opacity 0.2s;
 }
+._10o9hoe2[data-enter] {
+  opacity: 1;
+}
+._10o9hoe2[data-leave] {
+  opacity: 0;
+}
 ._10o9hoe3 {
-  cursor: ew-resize;
+  cursor: col-resize;
   position: absolute;
   left: -2px;
   top: 0;

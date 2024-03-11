@@ -11,6 +11,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom'
 
 import { PreviousNextGroup } from '@/components/PreviousNextGroup/PreviousNextGroup'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { Trace } from '@/graph/generated/schemas'
 import { TracePage } from '@/pages/Traces/TracePage'
 import { TraceProvider } from '@/pages/Traces/TraceProvider'
@@ -38,6 +39,7 @@ export const TracePanel: React.FC = () => {
 	)
 	const nextTrace = traces[currentTraceIndex + 1]
 	const previousTrace = traces[currentTraceIndex - 1]
+	const { resource } = useRelatedResource()
 
 	const traceDialogStore = Dialog.useStore({
 		open: true,
@@ -55,10 +57,6 @@ export const TracePanel: React.FC = () => {
 			`/${projectId}/traces/${trace.traceID}/${trace.spanID}${location.search}`,
 		)
 	}
-
-	useHotkeys('esc', () => {
-		traceDialogStore.hide()
-	})
 
 	useHotkeys(
 		'j',
