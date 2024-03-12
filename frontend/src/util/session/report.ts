@@ -197,6 +197,7 @@ export const useGenerateSessionsReportCSV = () => {
 				[],
 				...getSessionRows(sessions),
 			]
+			console.info(`collected sessions report with ${rows} rows.`)
 
 			let csvContent = 'data:text/csv;charset=utf-8,'
 			rows.forEach((rowArray) => {
