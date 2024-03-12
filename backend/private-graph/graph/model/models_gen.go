@@ -595,6 +595,9 @@ type MicrosoftTeamsChannelInput struct {
 	ID   string `json:"id"`
 }
 
+type Mutation struct {
+}
+
 type NamedCount struct {
 	Name  string `json:"name"`
 	Count int    `json:"count"`
@@ -822,6 +825,9 @@ type SourceMappingError struct {
 	MinifiedFileSize           *int                    `json:"minifiedFileSize,omitempty"`
 	MappedLineNumber           *int                    `json:"mappedLineNumber,omitempty"`
 	MappedColumnNumber         *int                    `json:"mappedColumnNumber,omitempty"`
+}
+
+type Subscription struct {
 }
 
 type SubscriptionDetails struct {

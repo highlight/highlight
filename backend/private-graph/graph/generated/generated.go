@@ -27,6 +27,7 @@ import (
 // NewExecutableSchema creates an ExecutableSchema from the ResolverRoot interface.
 func NewExecutableSchema(cfg Config) graphql.ExecutableSchema {
 	return &executableSchema{
+		schema:     cfg.Schema,
 		resolvers:  cfg.Resolvers,
 		directives: cfg.Directives,
 		complexity: cfg.Complexity,
@@ -34,6 +35,7 @@ func NewExecutableSchema(cfg Config) graphql.ExecutableSchema {
 }
 
 type Config struct {
+	Schema     *ast.Schema
 	Resolvers  ResolverRoot
 	Directives DirectiveRoot
 	Complexity ComplexityRoot
@@ -1949,12 +1951,16 @@ type TimelineIndicatorEventResolver interface {
 }
 
 type executableSchema struct {
+	schema     *ast.Schema
 	resolvers  ResolverRoot
 	directives DirectiveRoot
 	complexity ComplexityRoot
 }
 
 func (e *executableSchema) Schema() *ast.Schema {
+	if e.schema != nil {
+		return e.schema
+	}
 	return parsedSchema
 }
 
@@ -10881,14 +10887,14 @@ func (ec *executionContext) introspectSchema() (*introspection.Schema, error) {
 	if ec.DisableIntrospection {
 		return nil, errors.New("introspection disabled")
 	}
-	return introspection.WrapSchema(parsedSchema), nil
+	return introspection.WrapSchema(ec.Schema()), nil
 }
 
 func (ec *executionContext) introspectType(name string) (*introspection.Type, error) {
 	if ec.DisableIntrospection {
 		return nil, errors.New("introspection disabled")
 	}
-	return introspection.WrapTypeFromDef(parsedSchema, parsedSchema.Types[name]), nil
+	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
 var sources = []*ast.Source{
@@ -77638,8 +77644,6 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 		}
 		switch k {
 		case "first_name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first_name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77647,8 +77651,6 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 			}
 			it.FirstName = data
 		case "last_name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last_name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77656,8 +77658,6 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 			}
 			it.LastName = data
 		case "user_defined_role":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_defined_role"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77665,8 +77665,6 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 			}
 			it.UserDefinedRole = data
 		case "user_defined_persona":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_defined_persona"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77674,8 +77672,6 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 			}
 			it.UserDefinedPersona = data
 		case "user_defined_team_size":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_defined_team_size"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77683,8 +77679,6 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 			}
 			it.UserDefinedTeamSize = data
 		case "heard_about":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("heard_about"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77692,8 +77686,6 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 			}
 			it.HeardAbout = data
 		case "phone_home_contact_allowed":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone_home_contact_allowed"))
 			data, err := ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
@@ -77701,8 +77693,6 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 			}
 			it.PhoneHomeContactAllowed = data
 		case "referral":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("referral"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77710,8 +77700,6 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 			}
 			it.Referral = data
 		case "phone":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -77739,8 +77727,6 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 		}
 		switch k {
 		case "first_name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first_name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77748,8 +77734,6 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 			}
 			it.FirstName = data
 		case "last_name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last_name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77757,8 +77741,6 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 			}
 			it.LastName = data
 		case "user_defined_role":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_defined_role"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77766,8 +77748,6 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 			}
 			it.UserDefinedRole = data
 		case "user_defined_team_size":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_defined_team_size"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77775,8 +77755,6 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 			}
 			it.UserDefinedTeamSize = data
 		case "heard_about":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("heard_about"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77784,8 +77762,6 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 			}
 			it.HeardAbout = data
 		case "phone_home_contact_allowed":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone_home_contact_allowed"))
 			data, err := ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
@@ -77793,8 +77769,6 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 			}
 			it.PhoneHomeContactAllowed = data
 		case "referral":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("referral"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77802,8 +77776,6 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 			}
 			it.Referral = data
 		case "workspace_name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77811,8 +77783,6 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 			}
 			it.WorkspaceName = data
 		case "allowed_auto_join_email_origins":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allowed_auto_join_email_origins"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -77820,8 +77790,6 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 			}
 			it.AllowedAutoJoinEmailOrigins = data
 		case "promo_code":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("promo_code"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -77849,8 +77817,6 @@ func (ec *executionContext) unmarshalInputClickUpProjectMappingInput(ctx context
 		}
 		switch k {
 		case "project_id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
 			data, err := ec.unmarshalNID2int(ctx, v)
 			if err != nil {
@@ -77858,8 +77824,6 @@ func (ec *executionContext) unmarshalInputClickUpProjectMappingInput(ctx context
 			}
 			it.ProjectID = data
 		case "clickup_space_id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clickup_space_id"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77887,8 +77851,6 @@ func (ec *executionContext) unmarshalInputClickhouseQuery(ctx context.Context, o
 		}
 		switch k {
 		case "isAnd":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isAnd"))
 			data, err := ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
@@ -77896,8 +77858,6 @@ func (ec *executionContext) unmarshalInputClickhouseQuery(ctx context.Context, o
 			}
 			it.IsAnd = data
 		case "rules":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rules"))
 			data, err := ec.unmarshalNString2ᚕᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -77905,8 +77865,6 @@ func (ec *executionContext) unmarshalInputClickhouseQuery(ctx context.Context, o
 			}
 			it.Rules = data
 		case "dateRange":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateRange"))
 			data, err := ec.unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, v)
 			if err != nil {
@@ -77934,8 +77892,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 		}
 		switch k {
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77943,8 +77899,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			}
 			it.Name = data
 		case "description":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -77952,8 +77906,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			}
 			it.Description = data
 		case "component_type":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("component_type"))
 			data, err := ec.unmarshalOMetricViewComponentType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricViewComponentType(ctx, v)
 			if err != nil {
@@ -77961,8 +77913,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			}
 			it.ComponentType = data
 		case "max_good_value":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_good_value"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
@@ -77970,8 +77920,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			}
 			it.MaxGoodValue = data
 		case "max_needs_improvement_value":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_needs_improvement_value"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
@@ -77979,8 +77927,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			}
 			it.MaxNeedsImprovementValue = data
 		case "poor_value":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("poor_value"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
@@ -77988,8 +77934,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			}
 			it.PoorValue = data
 		case "units":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("units"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -77997,8 +77941,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			}
 			it.Units = data
 		case "help_article":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("help_article"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -78006,8 +77948,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			}
 			it.HelpArticle = data
 		case "chart_type":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("chart_type"))
 			data, err := ec.unmarshalODashboardChartType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardChartType(ctx, v)
 			if err != nil {
@@ -78015,8 +77955,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			}
 			it.ChartType = data
 		case "aggregator":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregator"))
 			data, err := ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, v)
 			if err != nil {
@@ -78024,8 +77962,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			}
 			it.Aggregator = data
 		case "min_value":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_value"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
@@ -78033,8 +77969,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			}
 			it.MinValue = data
 		case "min_percentile":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_percentile"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
@@ -78042,8 +77976,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			}
 			it.MinPercentile = data
 		case "max_value":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_value"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
@@ -78051,8 +77983,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			}
 			it.MaxValue = data
 		case "max_percentile":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_percentile"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
@@ -78060,8 +77990,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			}
 			it.MaxPercentile = data
 		case "filters":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
 			data, err := ec.unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx, v)
 			if err != nil {
@@ -78069,8 +77997,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			}
 			it.Filters = data
 		case "groups":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groups"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -78098,8 +78024,6 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 		}
 		switch k {
 		case "date_range":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
 			data, err := ec.unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, v)
 			if err != nil {
@@ -78107,8 +78031,6 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 			}
 			it.DateRange = data
 		case "resolution_minutes":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolution_minutes"))
 			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
@@ -78116,8 +78038,6 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 			}
 			it.ResolutionMinutes = data
 		case "timezone":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timezone"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -78125,8 +78045,6 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 			}
 			it.Timezone = data
 		case "units":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("units"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -78134,8 +78052,6 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 			}
 			it.Units = data
 		case "aggregator":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregator"))
 			data, err := ec.unmarshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, v)
 			if err != nil {
@@ -78143,8 +78059,6 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 			}
 			it.Aggregator = data
 		case "filters":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
 			data, err := ec.unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx, v)
 			if err != nil {
@@ -78152,8 +78066,6 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 			}
 			it.Filters = data
 		case "groups":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groups"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -78181,8 +78093,6 @@ func (ec *executionContext) unmarshalInputDateHistogramBucketSize(ctx context.Co
 		}
 		switch k {
 		case "calendar_interval":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("calendar_interval"))
 			data, err := ec.unmarshalNOpenSearchCalendarInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐOpenSearchCalendarInterval(ctx, v)
 			if err != nil {
@@ -78190,8 +78100,6 @@ func (ec *executionContext) unmarshalInputDateHistogramBucketSize(ctx context.Co
 			}
 			it.CalendarInterval = data
 		case "multiple":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("multiple"))
 			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
@@ -78219,8 +78127,6 @@ func (ec *executionContext) unmarshalInputDateHistogramOptions(ctx context.Conte
 		}
 		switch k {
 		case "bucket_size":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket_size"))
 			data, err := ec.unmarshalNDateHistogramBucketSize2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramBucketSize(ctx, v)
 			if err != nil {
@@ -78228,8 +78134,6 @@ func (ec *executionContext) unmarshalInputDateHistogramOptions(ctx context.Conte
 			}
 			it.BucketSize = data
 		case "time_zone":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time_zone"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -78237,8 +78141,6 @@ func (ec *executionContext) unmarshalInputDateHistogramOptions(ctx context.Conte
 			}
 			it.TimeZone = data
 		case "bounds":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bounds"))
 			data, err := ec.unmarshalNDateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
 			if err != nil {
@@ -78266,8 +78168,6 @@ func (ec *executionContext) unmarshalInputDateRangeInput(ctx context.Context, ob
 		}
 		switch k {
 		case "start_date":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
 			data, err := ec.unmarshalOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -78275,8 +78175,6 @@ func (ec *executionContext) unmarshalInputDateRangeInput(ctx context.Context, ob
 			}
 			it.StartDate = data
 		case "end_date":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
 			data, err := ec.unmarshalOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -78304,8 +78202,6 @@ func (ec *executionContext) unmarshalInputDateRangeRequiredInput(ctx context.Con
 		}
 		switch k {
 		case "start_date":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
 			data, err := ec.unmarshalNTimestamp2timeᚐTime(ctx, v)
 			if err != nil {
@@ -78313,8 +78209,6 @@ func (ec *executionContext) unmarshalInputDateRangeRequiredInput(ctx context.Con
 			}
 			it.StartDate = data
 		case "end_date":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
 			data, err := ec.unmarshalNTimestamp2timeᚐTime(ctx, v)
 			if err != nil {
@@ -78342,8 +78236,6 @@ func (ec *executionContext) unmarshalInputDiscordChannelInput(ctx context.Contex
 		}
 		switch k {
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -78351,8 +78243,6 @@ func (ec *executionContext) unmarshalInputDiscordChannelInput(ctx context.Contex
 			}
 			it.Name = data
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -78380,8 +78270,6 @@ func (ec *executionContext) unmarshalInputErrorGroupFrequenciesParamsInput(ctx c
 		}
 		switch k {
 		case "date_range":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
 			data, err := ec.unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, v)
 			if err != nil {
@@ -78389,8 +78277,6 @@ func (ec *executionContext) unmarshalInputErrorGroupFrequenciesParamsInput(ctx c
 			}
 			it.DateRange = data
 		case "resolution_minutes":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolution_minutes"))
 			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
@@ -78418,8 +78304,6 @@ func (ec *executionContext) unmarshalInputIntegrationProjectMappingInput(ctx con
 		}
 		switch k {
 		case "project_id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
 			data, err := ec.unmarshalNID2int(ctx, v)
 			if err != nil {
@@ -78427,8 +78311,6 @@ func (ec *executionContext) unmarshalInputIntegrationProjectMappingInput(ctx con
 			}
 			it.ProjectID = data
 		case "external_id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("external_id"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -78456,8 +78338,6 @@ func (ec *executionContext) unmarshalInputLengthRangeInput(ctx context.Context, 
 		}
 		switch k {
 		case "min":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
@@ -78465,8 +78345,6 @@ func (ec *executionContext) unmarshalInputLengthRangeInput(ctx context.Context, 
 			}
 			it.Min = data
 		case "max":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
@@ -78494,8 +78372,6 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 		}
 		switch k {
 		case "project_id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
 			data, err := ec.unmarshalNID2int(ctx, v)
 			if err != nil {
@@ -78503,8 +78379,6 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 			}
 			it.ProjectID = data
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -78512,8 +78386,6 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 			}
 			it.Name = data
 		case "count_threshold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count_threshold"))
 			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
@@ -78521,8 +78393,6 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 			}
 			it.CountThreshold = data
 		case "below_threshold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("below_threshold"))
 			data, err := ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
@@ -78530,8 +78400,6 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 			}
 			it.BelowThreshold = data
 		case "threshold_window":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold_window"))
 			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
@@ -78539,8 +78407,6 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 			}
 			it.ThresholdWindow = data
 		case "slack_channels":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slack_channels"))
 			data, err := ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInputᚄ(ctx, v)
 			if err != nil {
@@ -78548,8 +78414,6 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 			}
 			it.SlackChannels = data
 		case "discord_channels":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discord_channels"))
 			data, err := ec.unmarshalNDiscordChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDiscordChannelInputᚄ(ctx, v)
 			if err != nil {
@@ -78557,8 +78421,6 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 			}
 			it.DiscordChannels = data
 		case "microsoft_teams_channels":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("microsoft_teams_channels"))
 			data, err := ec.unmarshalNMicrosoftTeamsChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMicrosoftTeamsChannelInputᚄ(ctx, v)
 			if err != nil {
@@ -78566,8 +78428,6 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 			}
 			it.MicrosoftTeamsChannels = data
 		case "webhook_destinations":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webhook_destinations"))
 			data, err := ec.unmarshalNWebhookDestinationInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebhookDestinationInputᚄ(ctx, v)
 			if err != nil {
@@ -78575,8 +78435,6 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 			}
 			it.WebhookDestinations = data
 		case "emails":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emails"))
 			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -78584,8 +78442,6 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 			}
 			it.Emails = data
 		case "environments":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environments"))
 			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -78593,8 +78449,6 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 			}
 			it.Environments = data
 		case "disabled":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disabled"))
 			data, err := ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
@@ -78602,8 +78456,6 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 			}
 			it.Disabled = data
 		case "default":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("default"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -78611,8 +78463,6 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 			}
 			it.Default = data
 		case "query":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -78640,8 +78490,6 @@ func (ec *executionContext) unmarshalInputMetricTagFilterInput(ctx context.Conte
 		}
 		switch k {
 		case "tag":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tag"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -78649,8 +78497,6 @@ func (ec *executionContext) unmarshalInputMetricTagFilterInput(ctx context.Conte
 			}
 			it.Tag = data
 		case "op":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("op"))
 			data, err := ec.unmarshalNMetricTagFilterOp2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterOp(ctx, v)
 			if err != nil {
@@ -78658,8 +78504,6 @@ func (ec *executionContext) unmarshalInputMetricTagFilterInput(ctx context.Conte
 			}
 			it.Op = data
 		case "value":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -78687,8 +78531,6 @@ func (ec *executionContext) unmarshalInputMicrosoftTeamsChannelInput(ctx context
 		}
 		switch k {
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -78696,8 +78538,6 @@ func (ec *executionContext) unmarshalInputMicrosoftTeamsChannelInput(ctx context
 			}
 			it.Name = data
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -78725,8 +78565,6 @@ func (ec *executionContext) unmarshalInputNetworkHistogramParamsInput(ctx contex
 		}
 		switch k {
 		case "lookback_days":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookback_days"))
 			data, err := ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
@@ -78734,8 +78572,6 @@ func (ec *executionContext) unmarshalInputNetworkHistogramParamsInput(ctx contex
 			}
 			it.LookbackDays = data
 		case "attribute":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("attribute"))
 			data, err := ec.unmarshalONetworkRequestAttribute2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNetworkRequestAttribute(ctx, v)
 			if err != nil {
@@ -78763,8 +78599,6 @@ func (ec *executionContext) unmarshalInputQueryInput(ctx context.Context, obj in
 		}
 		switch k {
 		case "query":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -78772,8 +78606,6 @@ func (ec *executionContext) unmarshalInputQueryInput(ctx context.Context, obj in
 			}
 			it.Query = data
 		case "date_range":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
 			data, err := ec.unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, v)
 			if err != nil {
@@ -78801,8 +78633,6 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 		}
 		switch k {
 		case "session_sampling_rate":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_sampling_rate"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
@@ -78810,8 +78640,6 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 			}
 			it.SessionSamplingRate = data
 		case "error_sampling_rate":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_sampling_rate"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
@@ -78819,8 +78647,6 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 			}
 			it.ErrorSamplingRate = data
 		case "log_sampling_rate":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("log_sampling_rate"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
@@ -78828,8 +78654,6 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 			}
 			it.LogSamplingRate = data
 		case "trace_sampling_rate":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trace_sampling_rate"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
@@ -78837,8 +78661,6 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 			}
 			it.TraceSamplingRate = data
 		case "session_minute_rate_limit":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_minute_rate_limit"))
 			data, err := ec.unmarshalOInt642ᚖint64(ctx, v)
 			if err != nil {
@@ -78846,8 +78668,6 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 			}
 			it.SessionMinuteRateLimit = data
 		case "error_minute_rate_limit":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_minute_rate_limit"))
 			data, err := ec.unmarshalOInt642ᚖint64(ctx, v)
 			if err != nil {
@@ -78855,8 +78675,6 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 			}
 			it.ErrorMinuteRateLimit = data
 		case "log_minute_rate_limit":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("log_minute_rate_limit"))
 			data, err := ec.unmarshalOInt642ᚖint64(ctx, v)
 			if err != nil {
@@ -78864,8 +78682,6 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 			}
 			it.LogMinuteRateLimit = data
 		case "trace_minute_rate_limit":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trace_minute_rate_limit"))
 			data, err := ec.unmarshalOInt642ᚖint64(ctx, v)
 			if err != nil {
@@ -78873,8 +78689,6 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 			}
 			it.TraceMinuteRateLimit = data
 		case "session_exclusion_query":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_exclusion_query"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -78882,8 +78696,6 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 			}
 			it.SessionExclusionQuery = data
 		case "error_exclusion_query":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_exclusion_query"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -78891,8 +78703,6 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 			}
 			it.ErrorExclusionQuery = data
 		case "log_exclusion_query":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("log_exclusion_query"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -78900,8 +78710,6 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 			}
 			it.LogExclusionQuery = data
 		case "trace_exclusion_query":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trace_exclusion_query"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -78929,8 +78737,6 @@ func (ec *executionContext) unmarshalInputSanitizedAdminInput(ctx context.Contex
 		}
 		switch k {
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalNID2int(ctx, v)
 			if err != nil {
@@ -78938,8 +78744,6 @@ func (ec *executionContext) unmarshalInputSanitizedAdminInput(ctx context.Contex
 			}
 			it.ID = data
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -78947,8 +78751,6 @@ func (ec *executionContext) unmarshalInputSanitizedAdminInput(ctx context.Contex
 			}
 			it.Name = data
 		case "email":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -78976,8 +78778,6 @@ func (ec *executionContext) unmarshalInputSanitizedSlackChannelInput(ctx context
 		}
 		switch k {
 		case "webhook_channel_name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webhook_channel_name"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -78985,8 +78785,6 @@ func (ec *executionContext) unmarshalInputSanitizedSlackChannelInput(ctx context
 			}
 			it.WebhookChannelName = data
 		case "webhook_channel_id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webhook_channel_id"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -79014,8 +78812,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 		}
 		switch k {
 		case "project_id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
 			data, err := ec.unmarshalNID2int(ctx, v)
 			if err != nil {
@@ -79023,8 +78819,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 			}
 			it.ProjectID = data
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -79032,8 +78826,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 			}
 			it.Name = data
 		case "count_threshold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count_threshold"))
 			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
@@ -79041,8 +78833,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 			}
 			it.CountThreshold = data
 		case "threshold_window":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold_window"))
 			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
@@ -79050,8 +78840,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 			}
 			it.ThresholdWindow = data
 		case "slack_channels":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slack_channels"))
 			data, err := ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInputᚄ(ctx, v)
 			if err != nil {
@@ -79059,8 +78847,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 			}
 			it.SlackChannels = data
 		case "discord_channels":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discord_channels"))
 			data, err := ec.unmarshalNDiscordChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDiscordChannelInputᚄ(ctx, v)
 			if err != nil {
@@ -79068,8 +78854,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 			}
 			it.DiscordChannels = data
 		case "microsoft_teams_channels":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("microsoft_teams_channels"))
 			data, err := ec.unmarshalNMicrosoftTeamsChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMicrosoftTeamsChannelInputᚄ(ctx, v)
 			if err != nil {
@@ -79077,8 +78861,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 			}
 			it.MicrosoftTeamsChannels = data
 		case "webhook_destinations":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webhook_destinations"))
 			data, err := ec.unmarshalNWebhookDestinationInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebhookDestinationInputᚄ(ctx, v)
 			if err != nil {
@@ -79086,8 +78868,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 			}
 			it.WebhookDestinations = data
 		case "emails":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emails"))
 			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -79095,8 +78875,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 			}
 			it.Emails = data
 		case "environments":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environments"))
 			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -79104,8 +78882,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 			}
 			it.Environments = data
 		case "disabled":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disabled"))
 			data, err := ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
@@ -79113,8 +78889,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 			}
 			it.Disabled = data
 		case "default":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("default"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -79122,8 +78896,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 			}
 			it.Default = data
 		case "type":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
 			data, err := ec.unmarshalNSessionAlertType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionAlertType(ctx, v)
 			if err != nil {
@@ -79131,8 +78903,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 			}
 			it.Type = data
 		case "user_properties":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_properties"))
 			data, err := ec.unmarshalNUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInputᚄ(ctx, v)
 			if err != nil {
@@ -79140,8 +78910,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 			}
 			it.UserProperties = data
 		case "exclude_rules":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exclude_rules"))
 			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -79149,8 +78917,6 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 			}
 			it.ExcludeRules = data
 		case "track_properties":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("track_properties"))
 			data, err := ec.unmarshalNTrackPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTrackPropertyInputᚄ(ctx, v)
 			if err != nil {
@@ -79178,8 +78944,6 @@ func (ec *executionContext) unmarshalInputSessionCommentTagInput(ctx context.Con
 		}
 		switch k {
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
@@ -79187,8 +78951,6 @@ func (ec *executionContext) unmarshalInputSessionCommentTagInput(ctx context.Con
 			}
 			it.ID = data
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -79216,8 +78978,6 @@ func (ec *executionContext) unmarshalInputTrackPropertyInput(ctx context.Context
 		}
 		switch k {
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
@@ -79225,8 +78985,6 @@ func (ec *executionContext) unmarshalInputTrackPropertyInput(ctx context.Context
 			}
 			it.ID = data
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -79234,8 +78992,6 @@ func (ec *executionContext) unmarshalInputTrackPropertyInput(ctx context.Context
 			}
 			it.Name = data
 		case "value":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -79263,8 +79019,6 @@ func (ec *executionContext) unmarshalInputUserPropertyInput(ctx context.Context,
 		}
 		switch k {
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalNID2int(ctx, v)
 			if err != nil {
@@ -79272,8 +79026,6 @@ func (ec *executionContext) unmarshalInputUserPropertyInput(ctx context.Context,
 			}
 			it.ID = data
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -79281,8 +79033,6 @@ func (ec *executionContext) unmarshalInputUserPropertyInput(ctx context.Context,
 			}
 			it.Name = data
 		case "value":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -79310,8 +79060,6 @@ func (ec *executionContext) unmarshalInputVercelProjectMappingInput(ctx context.
 		}
 		switch k {
 		case "vercel_project_id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vercel_project_id"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -79319,8 +79067,6 @@ func (ec *executionContext) unmarshalInputVercelProjectMappingInput(ctx context.
 			}
 			it.VercelProjectID = data
 		case "new_project_name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("new_project_name"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -79328,8 +79074,6 @@ func (ec *executionContext) unmarshalInputVercelProjectMappingInput(ctx context.
 			}
 			it.NewProjectName = data
 		case "project_id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
 			data, err := ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
@@ -79357,8 +79101,6 @@ func (ec *executionContext) unmarshalInputWebhookDestinationInput(ctx context.Co
 		}
 		switch k {
 		case "url":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -79366,8 +79108,6 @@ func (ec *executionContext) unmarshalInputWebhookDestinationInput(ctx context.Co
 			}
 			it.URL = data
 		case "authorization":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authorization"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {

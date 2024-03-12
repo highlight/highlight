@@ -61,6 +61,9 @@ type MetricTag struct {
 	Value string `json:"value"`
 }
 
+type Mutation struct {
+}
+
 type ReplayEventInput struct {
 	Type      int         `json:"type"`
 	Timestamp float64     `json:"timestamp"`
