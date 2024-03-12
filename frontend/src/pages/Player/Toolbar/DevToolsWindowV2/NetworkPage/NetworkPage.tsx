@@ -140,7 +140,9 @@ export const NetworkPage = ({
 
 		// Need to have timestamp for findLastActiveEventIndex.
 		current.forEach((resource) => {
-			resource.timestamp = resource.startTime + startTime
+			resource.timestamp =
+				// TODO(spenny): check for websockets and old versions
+				resource.startTimeAbs ?? resource.startTime + startTime
 		})
 
 		if (filter !== '') {
