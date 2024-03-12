@@ -12,11 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgconn"
-	"github.com/jackc/pgerrcode"
-
 	Email "github.com/highlight-run/highlight/backend/email"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/ReneKroon/ttlcache"
 	"github.com/lib/pq"
@@ -191,7 +190,6 @@ var Models = []interface{}{
 	&IntegrationWorkspaceMapping{},
 	&EmailOptOut{},
 	&BillingEmailHistory{},
-	&Retryable{},
 	&Service{},
 	&SetupEvent{},
 	&SessionAdminsView{},
@@ -222,14 +220,14 @@ func init() {
 }
 
 type Model struct {
-	ID        int        `gorm:"primary_key;type:serial" json:"id" deep:"-"`
+	ID        int        `gorm:"primary_key;type:integer;autoIncrement" json:"id" deep:"-"`
 	CreatedAt time.Time  `json:"created_at" deep:"-"`
 	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
 	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
 }
 
 type Int64Model struct {
-	ID        int64      `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	ID        int64      `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
 	CreatedAt time.Time  `json:"created_at" deep:"-"`
 	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
 	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
@@ -424,7 +422,7 @@ const (
 )
 
 type SetupEvent struct {
-	ID        int                  `gorm:"primary_key;type:serial" json:"id" deep:"-"`
+	ID        int                  `gorm:"primary_key;type:integer;autoIncrement" json:"id" deep:"-"`
 	CreatedAt time.Time            `json:"created_at" deep:"-"`
 	ProjectID int                  `gorm:"uniqueIndex:idx_project_id_type"`
 	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_project_id_type"`
@@ -621,6 +619,23 @@ func (u *Workspace) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
 
+func (s *Session) BeforeCreate(tx *gorm.DB) (err error) {
+	if s.LastUserInteractionTime.IsZero() {
+		s.LastUserInteractionTime = time.UnixMilli(0)
+	}
+	return
+}
+
+func (s *SystemConfiguration) BeforeCreate(tx *gorm.DB) (err error) {
+	if s.ErrorFilters == nil {
+		s.ErrorFilters = pq.StringArray{"ENOENT.*", "connect ECONNREFUSED.*"}
+	}
+	if s.IgnoredFiles == nil {
+		s.IgnoredFiles = pq.StringArray{".*/node_modules/.*", ".*/go/pkg/mod/.*", ".*/site-packages/.*"}
+	}
+	return
+}
+
 type Admin struct {
 	Model
 	Name                      *string
@@ -714,12 +729,12 @@ type Session struct {
 	Environment    string   `json:"environment"`
 	AppVersion     *string  `json:"app_version"`
 	ServiceName    string
-	UserObject     JSONB  `json:"user_object" sql:"type:jsonb"`
+	UserObject     JSONB  `json:"user_object" gorm:"type:jsonb"`
 	UserProperties string `json:"user_properties"`
 	// Whether this is the first session created by this user.
 	FirstTime               *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt        *time.Time `json:"payload_updated_at"`
-	LastUserInteractionTime time.Time  `json:"last_user_interaction_time" gorm:"default:TIMESTAMP 'epoch'"`
+	LastUserInteractionTime time.Time  `json:"last_user_interaction_time"`
 	// Set if the last payload was a beacon; cleared on the next non-beacon payload
 	BeaconTime *time.Time `json:"beacon_time"`
 	// Custom properties
@@ -734,7 +749,7 @@ type Session struct {
 	// The version of Highlight's Firstload.
 	FirstloadVersion string `json:"firstload_version"`
 	// The client configuration that the end-user sets up. This is used for debugging purposes.
-	ClientConfig *string `json:"client_config" sql:"type:jsonb"`
+	ClientConfig *string `json:"client_config" gorm:"type:jsonb"`
 	// Determines whether this session should be viewable. This enforces billing.
 	WithinBillingQuota *bool `json:"within_billing_quota" gorm:"default:true"`
 	// Used for shareable links. No authentication is needed if IsPublic is true
@@ -942,7 +957,7 @@ type Metric struct {
 }
 
 type MetricGroup struct {
-	ID        int `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	ID        int `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
 	GroupName string
 	SessionID int
 	ProjectID int
@@ -1019,7 +1034,7 @@ const (
 
 type ErrorObject struct {
 	Model
-	ID                      int  `gorm:"primary_key;type:serial;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
+	ID                      int  `gorm:"primary_key;type:integer;autoIncrement;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
 	ProjectID               int  `json:"project_id"`
 	SessionID               *int `gorm:"type:integer"`
 	TraceID                 *string
@@ -1140,7 +1155,7 @@ type ErrorField struct {
 }
 
 type LogAdminsView struct {
-	ID       int       `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	ID       int       `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
 	ViewedAt time.Time `gorm:"default:NOW()"`
 	AdminID  int       `gorm:"primaryKey"`
 }
@@ -1267,7 +1282,7 @@ type TimelineIndicatorEvent struct {
 	Timestamp       float64
 	Type            int
 	SID             float64
-	Data            JSONB `json:"data" sql:"type:jsonb"`
+	Data            JSONB `json:"data" gorm:"type:jsonb"`
 }
 
 type RageClickEvent struct {
@@ -1317,7 +1332,7 @@ type IntegrationProjectMapping struct {
 type OAuthClientStore struct {
 	ID        string         `gorm:"primary_key;default:uuid_generate_v4()"`
 	CreatedAt time.Time      `json:"created_at" deep:"-"`
-	Secret    string         `gorm:"uniqueIndex;not null;default:uuid_generate_v4()"`
+	Secret    string         `gorm:"uniqueIndex;not null"`
 	Domains   pq.StringArray `gorm:"not null;type:text[]"`
 	AppName   string
 
@@ -1374,11 +1389,11 @@ type UserJourneyStep struct {
 }
 
 type SystemConfiguration struct {
-	Active            bool `gorm:"primary_key;default:true"`
+	Active            bool `gorm:"primary_key"`
 	MaintenanceStart  time.Time
 	MaintenanceEnd    time.Time
-	ErrorFilters      pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
-	IgnoredFiles      pq.StringArray `gorm:"type:text[];default:'{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\", \".*\\/site-packages\\/.*\"}'"`
+	ErrorFilters      pq.StringArray `gorm:"type:text[]"`
+	IgnoredFiles      pq.StringArray `gorm:"type:text[]"`
 	MainWorkers       int            `gorm:"default:64"`
 	LogsWorkers       int            `gorm:"default:1"`
 	LogsFlushSize     int            `gorm:"type:bigint;default:1000"`
@@ -1405,7 +1420,7 @@ type Retryable struct {
 	Type        RetryableType
 	PayloadType string
 	PayloadID   string
-	Payload     JSONB `sql:"type:jsonb"`
+	Payload     JSONB `gorm:"type:jsonb"`
 	Error       string
 }
 
@@ -1500,8 +1515,6 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	if err := DB.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`).Error; err != nil {
 		return false, e.Wrap(err, "failed to configure uuid extension")
 	}
-
-	time.Sleep(10 * time.Second)
 
 	if err := DB.AutoMigrate(
 		Models...,
@@ -1763,6 +1776,19 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	DB.Exec(`alter table error_groups alter column error_tag_id drop default`)
 	DB.Exec(`alter table error_groups alter column error_tag_id drop not null`)
 
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				IF EXISTS
+					(SELECT * FROM information_schema.columns WHERE table_name = 'o_auth_client_stores' AND column_default IS NULL AND column_name = 'secret')
+				THEN
+					ALTER TABLE o_auth_client_stores ALTER COLUMN secret SET DEFAULT uuid_generate_v4();
+				END IF;
+		END $$;
+	`).Error; err != nil {
+		return false, err
+	}
+
 	log.WithContext(ctx).Printf("Finished running DB migrations.\n")
 
 	return true, nil
@@ -1998,7 +2024,7 @@ type ErrorAlert struct {
 }
 
 type ErrorAlertEvent struct {
-	ID            int64 `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	ID            int64 `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
 	ErrorAlertID  int   `gorm:"index:idx_error_alert_event"`
 	ErrorObjectID int   `gorm:"index:idx_error_alert_event"`
 	SentAt        time.Time
@@ -2072,7 +2098,7 @@ type SessionAlert struct {
 }
 
 type SessionAlertEvent struct {
-	ID              int64  `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	ID              int64  `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
 	SessionAlertID  int    `gorm:"index:idx_session_alert_event"`
 	SessionSecureID string `gorm:"index:idx_session_alert_event"`
 	SentAt          time.Time
@@ -2101,7 +2127,7 @@ type LogAlert struct {
 }
 
 type LogAlertEvent struct {
-	ID         int64     `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	ID         int64     `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
 	LogAlertID int       `gorm:"index:idx_log_alert_event"`
 	Query      string    `gorm:"index:idx_log_alert_event"`
 	StartDate  time.Time `gorm:"index:idx_log_alert_event"`
