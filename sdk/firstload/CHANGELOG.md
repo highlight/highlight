@@ -1,5 +1,15 @@
 # highlight.run
 
+## 8.8.0
+
+### Minor Changes
+
+-   23a01e3d6: update rrweb to pr-1352
+
+### Patch Changes
+
+-   6a8151dc3: fix console log serialization
+
 ## 8.7.1
 
 ### Patch Changes
