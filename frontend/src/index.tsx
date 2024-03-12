@@ -1,9 +1,9 @@
 import '@fontsource/poppins'
-import '@highlight-run/rrweb/dist/rrweb.min.css'
 import '@highlight-run/ui/styles.css'
 import './index.css'
 import './style/tailwind.css'
 import './__generated/antd.css'
+import 'rrweb/dist/rrweb.min.css'
 
 import { ApolloError, ApolloProvider } from '@apollo/client'
 import { AuthContextProvider, AuthRole } from '@authentication/AuthContext'

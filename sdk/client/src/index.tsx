@@ -2,8 +2,8 @@ import {
 	addCustomEvent as rrwebAddCustomEvent,
 	getRecordSequentialIdPlugin,
 	record,
-} from '@highlight-run/rrweb'
-import { eventWithTime, listenerHandler } from '@highlight-run/rrweb-types'
+} from 'rrweb'
+import { eventWithTime, listenerHandler } from '@rrweb/types'
 import { FirstLoadListeners } from './listeners/first-load-listeners'
 import {
 	AmplitudeIntegrationOptions,

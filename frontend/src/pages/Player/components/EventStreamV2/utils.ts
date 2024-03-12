@@ -1,6 +1,6 @@
-import { EventType } from '@highlight-run/rrweb'
-import { eventWithTime } from '@highlight-run/rrweb-types'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
+import { eventWithTime } from '@rrweb/types'
+import { EventType } from 'rrweb'
 
 // used in filter() type methods to fetch events we want
 export const usefulEvent = (e: eventWithTime): boolean => {
