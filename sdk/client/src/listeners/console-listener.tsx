@@ -122,15 +122,18 @@ export function ConsoleListener(
 									: o,
 						  )
 						: data
-								.filter((d) => typeof d !== 'object')
+								.filter((o) => typeof o !== 'object')
 								.map((o) => `${o}`)
 					callback({
 						type: level,
 						trace: trace.slice(1),
 						value: message,
-						attributes: data
-							.filter((d) => typeof d === 'object')
-							.reduce((a, b) => ({ ...a, ...b }), {}),
+						attributes: stringify(
+							data
+								.filter((d) => typeof d === 'object')
+								.reduce((a, b) => ({ ...a, ...b }), {}),
+							logOptions.stringifyOptions,
+						),
 						time: Date.now(),
 					})
 				} catch (error) {
