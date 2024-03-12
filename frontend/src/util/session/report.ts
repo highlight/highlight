@@ -11,7 +11,6 @@ import {
 } from '@graph/schemas'
 import { useProjectId } from '@hooks/useProjectId'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import { H } from 'highlight.run'
 import moment from 'moment/moment'
 
 const processRows = <
@@ -33,10 +32,7 @@ const processRows = <
 	for (let input of inputs) {
 		try {
 			input = { ...input, ...JSON.parse(input.user_properties ?? '') }
-		} catch (e: any) {
-			console.error(`Failed to parse user input: ${e}`)
-			H.consumeError(e)
-		}
+		} catch (e) {}
 		Object.keys(input).forEach((key, idx) => {
 			if (!keys.hasOwnProperty(key)) {
 				keys[key as keyof T] = idx
@@ -51,10 +47,7 @@ const processRows = <
 		let data = session
 		try {
 			data = { ...data, ...JSON.parse(session.user_properties ?? '') }
-		} catch (e: any) {
-			console.error(`Failed to parse session user input: ${e}`)
-			H.consumeError(e)
-		}
+		} catch (e) {}
 		rows.push(
 			Object.entries(keys)
 				.filter(([k]) => !ignoreKeys.has(k as keyof T))
