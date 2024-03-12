@@ -1,6 +1,7 @@
 import { H as NodeH } from '@highlight-run/node'
 import type { HighlightContext, NodeOptions } from '@highlight-run/node'
 import { HighlightInterface } from './types'
+import { isNodeJsRuntime } from './is-node-js-runtime'
 
 export type HighlightEnv = NodeOptions
 
@@ -13,7 +14,7 @@ export declare interface Metric {
 export const H: HighlightInterface = {
 	...NodeH,
 	init: (options: NodeOptions) => {
-		if (isNodeJs()) {
+		if (isNodeJsRuntime()) {
 			return NodeH.init(options)
 		} else {
 			throw new Error(
@@ -48,11 +49,4 @@ export const H: HighlightInterface = {
 			'H.sendResponse is not implemented for the Node runtime.',
 		)
 	},
-}
-
-function isNodeJs() {
-	return (
-		typeof process.env.NEXT_RUNTIME === 'undefined' ||
-		process.env.NEXT_RUNTIME === 'nodejs'
-	)
 }
