@@ -14050,7 +14050,7 @@ __metadata:
     "@types/color-hash": "npm:^1.0.1"
     "@types/jest": "npm:^27.0.1"
     "@types/js-cookie": "npm:^3.0.2"
-    "@types/lodash": "npm:^4.14.202"
+    "@types/lodash": "npm:^4.17.0"
     "@types/node": "npm:^18.11.15"
     "@types/randomcolor": "npm:^0.5.5"
     "@types/react": "npm:^18.2.25"
@@ -14182,7 +14182,7 @@ __metadata:
     "@testing-library/jest-dom": "npm:^5.16.5"
     "@testing-library/react": "npm:^12.1.4"
     "@types/jest": "npm:^29.5.0"
-    "@types/lodash": "npm:^4.14.202"
+    "@types/lodash": "npm:^4.17.0"
     "@types/node": "npm:^20.8.7"
     copy-webpack-plugin: "npm:^11.0.0"
     css-loader: "npm:^6.7.3"
@@ -26061,10 +26061,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:^4.14.202":
-  version: 4.14.202
-  resolution: "@types/lodash@npm:4.14.202"
-  checksum: 10/1bb9760a5b1dda120132c4b987330d67979c95dbc22612678682cd61b00302e190f4207228f3728580059cdab5582362262e3819aea59960c1017bd2b9fb26f6
+"@types/lodash@npm:^4.17.0":
+  version: 4.17.0
+  resolution: "@types/lodash@npm:4.17.0"
+  checksum: 10/2053203292b5af99352d108656ceb15d39da5922fc3fb8186e1552d65c82d6e545372cc97f36c95873aa7186404d59d9305e9d49254d4ae55e77df1e27ab7b5d
   languageName: node
   linkType: hard
 
