@@ -61704,7 +61704,7 @@ __metadata:
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.198.0"
     "@types/yargs": "npm:^17.0.13"
-    semver: "npm:^7.5.2"
+    semver: "npm:^7.6.0"
     tsx: "npm:^4.7.0"
     yargs: "npm:^17.6.0"
   languageName: unknown
@@ -61908,6 +61908,17 @@ __metadata:
   bin:
     semver: bin/semver.js
   checksum: 10/64fb7172e328da80a46cf36c87ec0072feb218cb63b0d0ecebfaf1e35ee77580f6edc112a5f094fbaec8748d66b6e4cdc76809bdcbe4bac03cd31a690ef1a0f9
+  languageName: node
+  linkType: hard
+
+"semver@npm:^7.6.0":
+  version: 7.6.0
+  resolution: "semver@npm:7.6.0"
+  dependencies:
+    lru-cache: "npm:^6.0.0"
+  bin:
+    semver: bin/semver.js
+  checksum: 10/1b41018df2d8aca5a1db4729985e8e20428c650daea60fcd16e926e9383217d00f574fab92d79612771884a98d2ee2a1973f49d630829a8d54d6570defe62535
   languageName: node
   linkType: hard
 
