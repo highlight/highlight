@@ -1508,7 +1508,7 @@ func (r *Resolver) SlackEventsWebhook(ctx context.Context, signingSecret string)
 
 		log.WithContext(ctx).Infof("Slack event received with event type: %s", eventsAPIEvent.InnerEvent.Type)
 
-		if eventsAPIEvent.InnerEvent.Type == slackevents.LinkShared {
+		if eventsAPIEvent.InnerEvent.Type == string(slackevents.LinkShared) {
 			go (func() {
 				defer util.Recover()
 				ev := eventsAPIEvent.InnerEvent.Data.(*slackevents.LinkSharedEvent)
@@ -3500,7 +3500,10 @@ func (r *Resolver) CreateSlackChannel(workspaceId int, name string) (*model.Slac
 	}
 
 	slackClient := slack.New(*workspace.SlackAccessToken)
-	channel, err := slackClient.CreateConversation(name, false)
+	channel, err := slackClient.CreateConversation(slack.CreateConversationParams{
+		ChannelName: name,
+		IsPrivate:   false,
+	})
 	if err != nil {
 		return nil, err
 	}
