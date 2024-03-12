@@ -1780,45 +1780,6 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		DO $$
 			BEGIN
 				IF EXISTS
-					(SELECT * FROM information_schema.columns WHERE table_name = 'system_configurations' AND column_default IS NULL AND column_name = 'error_filters')
-				THEN
-					ALTER TABLE system_configurations ALTER COLUMN error_filters SET DEFAULT '{ENOENT.*,"connect ECONNREFUSED.*"}';
-				END IF;
-		END $$;
-	`).Error; err != nil {
-		return false, err
-	}
-
-	if err := DB.Exec(`
-		DO $$
-			BEGIN
-				IF EXISTS
-					(SELECT * FROM information_schema.columns WHERE table_name = 'system_configurations' AND column_default IS NULL AND column_name = 'ignored_files')
-				THEN
-					ALTER TABLE system_configurations ALTER COLUMN ignored_files SET DEFAULT '{.*/node_modules/.*,.*/go/pkg/mod/.*,.*/site-packages/.*}';
-				END IF;
-		END $$;
-	`).Error; err != nil {
-		return false, err
-	}
-
-	if err := DB.Exec(`
-		DO $$
-			BEGIN
-				IF EXISTS
-					(SELECT * FROM information_schema.columns WHERE table_name = 'sessions' AND column_default IS NULL AND column_name = 'last_user_interaction_time')
-				THEN
-					ALTER TABLE sessions ALTER COLUMN last_user_interaction_time SET DEFAULT TIMESTAMP 'epoch';
-				END IF;
-		END $$;
-	`).Error; err != nil {
-		return false, err
-	}
-
-	if err := DB.Exec(`
-		DO $$
-			BEGIN
-				IF EXISTS
 					(SELECT * FROM information_schema.columns WHERE table_name = 'o_auth_client_stores' AND column_default IS NULL AND column_name = 'secret')
 				THEN
 					ALTER TABLE o_auth_client_stores ALTER COLUMN secret SET DEFAULT uuid_generate_v4();
