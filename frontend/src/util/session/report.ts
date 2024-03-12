@@ -199,15 +199,17 @@ export const useGenerateSessionsReportCSV = () => {
 				...getSessionRows(sessions),
 			]
 
-			let csvContent = 'data:text/csv;charset=utf-8,'
-			rows.forEach((rowArray) => {
-				const row = rowArray
-					.map((col) =>
-						col ? col.toString().replaceAll(/[,;\t]/gi, '|') : '',
-					)
-					.join(',')
-				csvContent += row + '\r\n'
-			})
+			const csvContent = rows
+				.map((rowArray) =>
+					rowArray
+						.map((col) =>
+							col
+								? col.toString().replaceAll(/[,;\t]/gi, '|')
+								: '',
+						)
+						.join(','),
+				)
+				.join('\r\n')
 			console.info(
 				`collected sessions report with ${rows.length} rows, ${csvContent.length} long string.`,
 			)
