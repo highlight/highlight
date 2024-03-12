@@ -11,6 +11,7 @@ import (
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 
 	pointy "github.com/openlyinc/pointy"
@@ -548,5 +549,18 @@ func TestGetSlackChannelsFromSlack(t *testing.T) {
 		assert.NotNil(t, channels)
 		assert.Greater(t, count, 0)
 		assert.Greater(t, len(*channels), 0)
+	})
+}
+
+func TestCreateAllModels(t *testing.T) {
+	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+		for _, dbModel := range model.Models {
+			switch typ := dbModel.(type) {
+			// OAuthClientStore has a not-null constraint on Domains
+			case *model.OAuthClientStore:
+				typ.Domains = pq.StringArray{}
+			}
+			assert.NoError(t, DB.Create(dbModel).Error)
+		}
 	})
 }

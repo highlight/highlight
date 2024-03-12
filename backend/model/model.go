@@ -1389,7 +1389,7 @@ type UserJourneyStep struct {
 }
 
 type SystemConfiguration struct {
-	Active            bool `gorm:"primary_key;default:true"`
+	Active            bool `gorm:"primary_key"`
 	MaintenanceStart  time.Time
 	MaintenanceEnd    time.Time
 	ErrorFilters      pq.StringArray `gorm:"type:text[]"`
