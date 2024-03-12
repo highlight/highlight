@@ -1,5 +1,4 @@
 import LoadingBox from '@components/LoadingBox'
-import { customEvent, EventType } from '@highlight-run/rrweb-types'
 import { Box, Text } from '@highlight-run/ui/components'
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useWindowEvent } from '@hooks/useWindowEvent'
@@ -23,6 +22,7 @@ import {
 	useToolbarItemsContext,
 	ZoomAreaPercent,
 } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
+import { customEvent, EventType } from '@rrweb/types'
 import { isInsideElement } from '@util/dom'
 import { serializeErrorIdentifier } from '@util/error'
 import { getErrorBody } from '@util/errors/errorUtils'

@@ -422,7 +422,7 @@ func (s *Snapshot) InjectStylesheets(ctx context.Context) error {
 		delete(attrs, "rel")
 		delete(attrs, "href")
 
-		// The '_cssText' attribute tells @highlight-run/rrweb to create a custom <style/> tag to populate
+		// The '_cssText' attribute tells rrweb to create a custom <style/> tag to populate
 		// content w/.
 		attrs["_cssText"] = string(data)
 	}

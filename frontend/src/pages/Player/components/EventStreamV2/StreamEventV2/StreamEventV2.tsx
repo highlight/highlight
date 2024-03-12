@@ -1,4 +1,3 @@
-import { EventType } from '@highlight-run/rrweb'
 import { colors } from '@highlight-run/ui/colors'
 import {
 	Badge,
@@ -14,6 +13,7 @@ import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
+import { EventType } from 'rrweb'
 
 import * as styles from './StreamEventV2.css'
 

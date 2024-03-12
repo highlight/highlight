@@ -9,11 +9,6 @@ import {
 	useMarkSessionAsViewedMutation,
 } from '@graph/hooks'
 import { GetSessionQuery } from '@graph/operations'
-import { EventType } from '@highlight-run/rrweb'
-import {
-	customEvent,
-	viewportResizeDimension,
-} from '@highlight-run/rrweb-types'
 import { usefulEvent } from '@pages/Player/components/EventStreamV2/utils'
 import {
 	CHUNKING_DISABLED_PROJECTS,
@@ -30,6 +25,7 @@ import {
 	truncate,
 } from '@pages/Player/PlayerHook/PlayerState'
 import { useTimelineIndicators } from '@pages/Player/TimelineIndicatorsContext/TimelineIndicatorsContext'
+import { customEvent, viewportResizeDimension } from '@rrweb/types'
 import analytics from '@util/analytics'
 import { indexedDBFetch, indexedDBString } from '@util/db'
 import log from '@util/log'
@@ -40,6 +36,7 @@ import { H } from 'highlight.run'
 import _ from 'lodash'
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { EventType } from 'rrweb'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
 import { HighlightEvent } from '../HighlightEvent'

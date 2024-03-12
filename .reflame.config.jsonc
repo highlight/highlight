@@ -249,15 +249,15 @@
     },
     {
       "from": "/__generated/rr/rr.js",
-      "to": "@highlight-run/rrweb",
+      "to": "rrweb",
     },
     {
       "from": "/__generated/rr/rrTypes.js",
-      "to": "@highlight-run/rrweb-types",
+      "to": "@rrweb/types",
     },
     {
       "from": "/__generated/rr/rr.min.css",
-      "to": "@highlight-run/rrweb/dist/rrweb.min.css",
+      "to": "rrweb/dist/rrweb.min.css",
     },
     {
       "from": "^/__generated/ve/(.*).css.js$",
