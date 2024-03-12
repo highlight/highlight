@@ -270,6 +270,6 @@ func WebsocketInitializationFunction() transport.WebsocketInitFunc {
 		if err != nil {
 			log.WithContext(ctx).Errorf("Unable to authenticate/initialize websocket: %s", err.Error())
 		}
-		return ctx, nil, err
+		return ctx, &initPayload, err
 	})
 }
