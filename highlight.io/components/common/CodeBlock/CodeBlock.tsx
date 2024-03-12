@@ -67,12 +67,14 @@ export const CodeBlock = ({
 				<ReactCodeBlock
 					text={text}
 					language={language}
-					customStyle={{
-						padding: '2px 8px',
-						color: 'var(--color-white)',
-						backgroundColor:
-							'var(--color-primary-inverted-background)',
-					}}
+					customStyle={
+						{
+							padding: '2px 8px',
+							color: 'var(--color-white)',
+							backgroundColor:
+								'var(--color-primary-inverted-background)',
+						} as any
+					}
 					showLineNumbers={showLineNumbers}
 					{...props}
 				/>
