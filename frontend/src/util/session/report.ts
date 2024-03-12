@@ -179,8 +179,14 @@ export const useGenerateSessionsReportCSV = () => {
 			) {
 				promises.push(getSessions(page))
 			}
-			const results = await Promise.all(promises)
-			sessions.push(...results.map((r) => r.sessions).flat())
+			const results = await Promise.allSettled(promises)
+			sessions.push(
+				...results
+					.map((r) =>
+						r.status === 'fulfilled' ? r.value.sessions : [],
+					)
+					.flat(),
+			)
 
 			const rows: any[][] = [
 				...getQueryRows(startDate, endDate, query, sessions),
