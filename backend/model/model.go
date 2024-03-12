@@ -729,7 +729,7 @@ type Session struct {
 	Environment    string   `json:"environment"`
 	AppVersion     *string  `json:"app_version"`
 	ServiceName    string
-	UserObject     JSONB  `json:"user_object" sql:"type:jsonb" gorm:"type:jsonb"`
+	UserObject     JSONB  `json:"user_object" gorm:"type:jsonb"`
 	UserProperties string `json:"user_properties"`
 	// Whether this is the first session created by this user.
 	FirstTime               *bool      `json:"first_time" gorm:"default:false"`
@@ -749,7 +749,7 @@ type Session struct {
 	// The version of Highlight's Firstload.
 	FirstloadVersion string `json:"firstload_version"`
 	// The client configuration that the end-user sets up. This is used for debugging purposes.
-	ClientConfig *string `json:"client_config" sql:"type:jsonb" gorm:"type:jsonb"`
+	ClientConfig *string `json:"client_config" gorm:"type:jsonb"`
 	// Determines whether this session should be viewable. This enforces billing.
 	WithinBillingQuota *bool `json:"within_billing_quota" gorm:"default:true"`
 	// Used for shareable links. No authentication is needed if IsPublic is true
@@ -1282,7 +1282,7 @@ type TimelineIndicatorEvent struct {
 	Timestamp       float64
 	Type            int
 	SID             float64
-	Data            JSONB `json:"data" sql:"type:jsonb" gorm:"type:jsonb"`
+	Data            JSONB `json:"data" gorm:"type:jsonb"`
 }
 
 type RageClickEvent struct {
@@ -1420,7 +1420,7 @@ type Retryable struct {
 	Type        RetryableType
 	PayloadType string
 	PayloadID   string
-	Payload     JSONB `sql:"type:jsonb" gorm:"type:jsonb"`
+	Payload     JSONB `gorm:"type:jsonb"`
 	Error       string
 }
 
