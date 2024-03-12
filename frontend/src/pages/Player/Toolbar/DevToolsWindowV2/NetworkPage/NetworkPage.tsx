@@ -40,6 +40,7 @@ import TextHighlighter from '../../../../../components/TextHighlighter/TextHighl
 import Tooltip from '../../../../../components/Tooltip/Tooltip'
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'
+import moment from 'moment'
 
 export const NetworkPage = ({
 	time,
@@ -392,12 +393,16 @@ const ResourceRow = ({
 					weight={showingDetails ? 'bold' : 'medium'}
 					lines="1"
 				>
+					{/* TODO(spenny): use abolute times */}
 					{showPlayerAbsoluteTime
-						? playerTimeToSessionAbsoluteTime({
-								sessionStartTime: playerStartTime,
-								relativeTime: resource.startTime,
-						  })
-						: MillisToMinutesAndSeconds(resource.startTime)}
+						? moment(new Date(resource.startTimeAbs!)).format(
+								'h:mm:ss A',
+						  )
+						: moment(
+								new Date(
+									resource.startTimeAbs! - playerStartTime,
+								),
+						  ).format('h:mm:ss A')}
 				</Text>
 				<Text size="small" weight={showingDetails ? 'bold' : 'medium'}>
 					{resource.responseEnd && resource.startTime
