@@ -197,6 +197,8 @@ const LineChartSettings = ({
 	</>
 )
 
+const BarChartSettings = ({}: {}) => <></>
+
 export const GraphingEditor = () => {
 	const { projectId } = useProjectId()
 	const [endDate] = useState(moment().toISOString())
@@ -459,6 +461,9 @@ export const GraphingEditor = () => {
 											lineDisplay={lineDisplay}
 											setLineDisplay={setLineDisplay}
 										/>
+									)}
+									{viewType === 'Bar chart' && (
+										<BarChartSettings />
 									)}
 								</SidebarSection>
 								<Divider className="m-0" />
