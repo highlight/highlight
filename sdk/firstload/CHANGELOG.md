@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.7.1
+
+### Patch Changes
+
+-   31486ce41: Deep stringify network request and response bodies
+
 ## 8.7.0
 
 ### Minor Changes
