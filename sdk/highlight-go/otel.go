@@ -41,6 +41,7 @@ const TraceKeyAttribute = "highlight.key"
 const LogEvent = "log"
 const LogSeverityAttribute = "log.severity"
 const LogMessageAttribute = "log.message"
+const LogSeverityDefaultAttribute = "level"
 
 const MetricEvent = "metric"
 const MetricSpanName = "highlight-metric"
