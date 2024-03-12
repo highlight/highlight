@@ -99,9 +99,10 @@ const getSessionRows = (sessions: Session[]) => {
 	return processRows(sessions, new Set<keyof Session>(['id', 'event_counts']))
 }
 
-const exportFile = async (name: string, encodedUri: string) => {
+const exportFile = async (name: string, content: string) => {
+	const blob = new Blob([content], { type: 'text/csv' })
 	const link = document.createElement('a')
-	link.setAttribute('href', encodedUri)
+	link.setAttribute('href', window.URL.createObjectURL(blob))
 	link.setAttribute('download', name)
 	document.body.appendChild(link) // Required for FF
 
@@ -197,7 +198,6 @@ export const useGenerateSessionsReportCSV = () => {
 				[],
 				...getSessionRows(sessions),
 			]
-			console.info(`collected sessions report with ${rows} rows.`)
 
 			let csvContent = 'data:text/csv;charset=utf-8,'
 			rows.forEach((rowArray) => {
@@ -208,7 +208,10 @@ export const useGenerateSessionsReportCSV = () => {
 					.join(',')
 				csvContent += row + '\r\n'
 			})
-			await exportFile('sessions_results.csv', encodeURI(csvContent))
+			console.info(
+				`collected sessions report with ${rows.length} rows, ${csvContent.length} long string.`,
+			)
+			await exportFile('sessions_results.csv', csvContent)
 		},
 	}
 }
