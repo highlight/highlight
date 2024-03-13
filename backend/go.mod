@@ -4,20 +4,6 @@ go 1.21
 
 toolchain go1.21.3
 
-replace golang.org/x/crypto => golang.org/x/crypto v0.1.0
-
-replace gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.1
-
-replace github.com/tidwall/gjson => github.com/tidwall/gjson v1.14.3
-
-replace golang.org/x/net => golang.org/x/net v0.1.0
-
-replace github.com/tidwall/match => github.com/tidwall/match v1.1.1
-
-replace golang.org/x/text => golang.org/x/text v0.8.0
-
-replace nhooyr.io/websocket => nhooyr.io/websocket v1.8.7
-
 replace github.com/highlight/highlight/sdk/highlight-go => ../sdk/highlight-go
 
 require (
