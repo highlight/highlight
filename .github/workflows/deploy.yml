@@ -8,7 +8,6 @@ on:
             - 'go.work.sum'
             - 'backend/**'
             - 'deploy/**'
-            - 'docker/backend.Dockerfile'
             - '.github/workflows/deploy.yml'
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
@@ -398,7 +397,7 @@ jobs:
                   ECR_REPOSITORY: highlight-production-ecr-repo
                   IMAGE_TAG: ${{ github.sha }}
               run: |
-                  docker buildx build --build-arg REACT_APP_COMMIT_SHA=${{ github.sha }} --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f docker/backend.Dockerfile .
+                  docker buildx build --build-arg REACT_APP_COMMIT_SHA=${{ github.sha }} --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f deploy/Dockerfile.prod.arm64 .
                   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64
 
             # Edit and deploy private-graph

@@ -14,13 +14,6 @@
 					"appProtocol": "http"
 				}
 			],
-			"command": [
-				"doppler",
-				"run",
-				"--",
-				"/bin/backend",
-				"-runtime=private-graph"
-			],
 			"essential": true,
 			"environment": [
 				{
