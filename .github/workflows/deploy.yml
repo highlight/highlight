@@ -3,7 +3,6 @@ on:
     push:
         branches:
             - 'main'
-            - 'zane/dockerfile_v2'
         paths:
             - 'go.work'
             - 'go.work.sum'
