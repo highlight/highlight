@@ -32,7 +32,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign v1.7.1
 	github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice v1.20.2
 	github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.21.2
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.51.4
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.52.0
 	github.com/aws/smithy-go v1.20.1
 	github.com/bradleyfalzon/ghinstallation/v2 v2.9.0
 	github.com/clearbit/clearbit-go v1.1.0
