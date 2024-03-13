@@ -15,7 +15,6 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     deploy_backend:
-        needs: migrate-database
         runs-on: buildjet-2vcpu-ubuntu-2204-arm
         steps:
             - name: Check out the repo
