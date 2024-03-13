@@ -25,7 +25,6 @@ import {
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { useParams } from '@util/react-router/useParams'
-import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
 import _ from 'lodash'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
@@ -77,8 +76,9 @@ export const NetworkPage = ({
 
 	const networkRange = useMemo(() => {
 		if (parsedResources.length > 0) {
-			const start = parsedResources[0].startTime
-			const end = parsedResources[parsedResources.length - 1].responseEnd
+			const start = parsedResources[0].startTimeAbs
+			const end =
+				parsedResources[parsedResources.length - 1].responseEndAbs
 			return end - start
 		}
 		return 0
@@ -141,8 +141,16 @@ export const NetworkPage = ({
 
 		// Need to have timestamp for findLastActiveEventIndex.
 		current.forEach((resource) => {
-			resource.timestamp =
-				resource.startTimeAbs ?? resource.startTime + startTime
+			if (resource.startTimeAbs) {
+				resource.timestamp = resource.startTimeAbs
+				resource.relativeStartTime = Math.max(
+					resource.startTimeAbs - startTime,
+					0,
+				)
+			} else {
+				resource.timestamp = resource.startTime + startTime
+				resource.relativeStartTime = resource.startTime
+			}
 		})
 
 		if (filter !== '') {
@@ -317,13 +325,12 @@ const ResourceRow = ({
 	setActiveNetworkResourceId,
 	networkRequestAndResponseRecordingEnabled,
 	setTime,
-	playerStartTime,
 	errors,
 	showPlayerAbsoluteTime,
 }: ResourceRowProps) => {
-	const leftPaddingPercent = (resource.startTime / networkRange) * 100
+	const leftPaddingPercent = (resource.relativeStartTime / networkRange) * 100
 	const actualPercent = Math.max(
-		((resource.responseEnd - resource.startTime) / networkRange) * 100,
+		(resource.duration / networkRange) * 100,
 		0.1,
 	)
 	const rightPaddingPercent = 100 - actualPercent - leftPaddingPercent
@@ -396,13 +403,7 @@ const ResourceRow = ({
 						? moment(new Date(resource.timestamp)).format(
 								'h:mm:ss A',
 						  )
-						: MillisToMinutesAndSeconds(
-								Math.max(
-									new Date(resource.timestamp).getTime() -
-										playerStartTime,
-									0,
-								),
-						  )}
+						: MillisToMinutesAndSeconds(resource.relativeStartTime)}
 				</Text>
 				<Text size="small" weight={showingDetails ? 'bold' : 'medium'}>
 					{!!resource.duration
@@ -436,7 +437,7 @@ const ResourceRow = ({
 					size="medium"
 					onClick={(event) => {
 						event.stopPropagation() // prevent panel from closing when clicking a resource
-						setTime(resource.startTime)
+						setTime(resource.relativeStartTime)
 						setActiveNetworkResourceId(resource.id)
 					}}
 				>

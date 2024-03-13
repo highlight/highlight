@@ -25,7 +25,7 @@ interface ResourcesContext {
 
 interface NetworkResource extends PerformanceResourceTiming {
 	startTimeAbs: number
-	responseEndAbs?: number
+	responseEndAbs: number
 	// http specific
 	requestResponsePairs?: RequestResponsePair
 	displayName?: string
