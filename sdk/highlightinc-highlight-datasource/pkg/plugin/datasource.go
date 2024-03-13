@@ -13,8 +13,8 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 	"github.com/hasura/go-graphql-client"
-	"github.com/openlyinc/pointy"
 	"github.com/samber/lo"
+	"go.openly.dev/pointy"
 	"golang.org/x/oauth2/clientcredentials"
 )
 
