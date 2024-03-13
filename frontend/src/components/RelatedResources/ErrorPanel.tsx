@@ -56,7 +56,7 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 	}, [resource.id])
 
 	return (
-		<Panel open={true}>
+		<>
 			<Panel.Header path={path}>
 				{!showLoading && (
 					<>
@@ -96,6 +96,6 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 					</Box>
 				</Box>
 			)}
-		</Panel>
+		</>
 	)
 }
