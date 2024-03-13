@@ -20654,9 +20654,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-three/postprocessing@npm:2.15.11":
-  version: 2.15.11
-  resolution: "@react-three/postprocessing@npm:2.15.11"
+"@react-three/postprocessing@npm:2.16.2":
+  version: 2.16.2
+  resolution: "@react-three/postprocessing@npm:2.16.2"
   dependencies:
     buffer: "npm:^6.0.3"
     maath: "npm:^0.6.0"
@@ -20667,7 +20667,7 @@ __metadata:
     "@react-three/fiber": ">=8.0"
     react: ">=18.0"
     three: ">= 0.138.0"
-  checksum: 10/bcbf6c797d80065463d72c509eb004a7b06fd71260986835c898f93520e4a6e14f0104571ff9cb142d5e334f5589661c90d281952260f7d1f392bf03e395e70b
+  checksum: 10/44367f737cb091760d90393a4022bd96db0b3b5cc32b611752f0db60b75bfcfbc1668b75a16b29169458623adacfb7e53e4367c6dce6580a6ad077cf629d218c
   languageName: node
   linkType: hard
 
@@ -59449,7 +59449,7 @@ __metadata:
     "@pmndrs/branding": "npm:0.0.8"
     "@react-three/drei": "npm:9.102.3"
     "@react-three/fiber": "npm:8.15.12"
-    "@react-three/postprocessing": "npm:2.15.11"
+    "@react-three/postprocessing": "npm:2.16.2"
     "@types/react": "npm:^18.2.56"
     "@types/react-dom": "npm:^18.2.19"
     "@types/three": "npm:0.158.3"
