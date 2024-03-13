@@ -23,23 +23,25 @@ export const initializeWebSocketListener = () => {
 				const socketId = createNetworkRequestId()
 				const webSocket = new target(...args)
 
+				// TODO(spenny): check that timestamp is absolute or relative
 				const openHandler = (event: Event) => {
 					window._highlightWebSocketRequestCallback({
 						socketId,
 						initiatorType: 'websocket',
 						type: 'open',
 						name: webSocket.url,
-						startTime: event.timeStamp,
+						startTimeAbs: event.timeStamp,
 					})
 				}
 
+				// TODO(spenny): check that timestamp is absolute or relative
 				const closeHandler = (event: CloseEvent) => {
 					window._highlightWebSocketRequestCallback({
 						socketId,
 						initiatorType: 'websocket',
 						type: 'close',
 						name: webSocket.url,
-						requestEnd: event.timeStamp,
+						responseEndAbs: event.timeStamp,
 					})
 
 					webSocket.removeEventListener('open', openHandler)

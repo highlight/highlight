@@ -142,7 +142,6 @@ export const NetworkPage = ({
 		// Need to have timestamp for findLastActiveEventIndex.
 		current.forEach((resource) => {
 			resource.timestamp =
-				// TODO(spenny): check for websockets and old versions
 				resource.startTimeAbs ?? resource.startTime + startTime
 		})
 
@@ -393,20 +392,21 @@ const ResourceRow = ({
 					weight={showingDetails ? 'bold' : 'medium'}
 					lines="1"
 				>
-					{/* TODO(spenny): use abolute times */}
 					{showPlayerAbsoluteTime
-						? moment(new Date(resource.startTimeAbs!)).format(
+						? moment(new Date(resource.timestamp)).format(
 								'h:mm:ss A',
 						  )
-						: moment(
-								new Date(
-									resource.startTimeAbs! - playerStartTime,
+						: MillisToMinutesAndSeconds(
+								Math.max(
+									new Date(resource.timestamp).getTime() -
+										playerStartTime,
+									0,
 								),
-						  ).format('h:mm:ss A')}
+						  )}
 				</Text>
 				<Text size="small" weight={showingDetails ? 'bold' : 'medium'}>
-					{resource.responseEnd && resource.startTime
-						? formatTime(resource.responseEnd - resource.startTime)
+					{!!resource.duration
+						? formatTime(resource.duration)
 						: 'N/A'}
 				</Text>
 				<Box cssClass={styles.timingBarWrapper}>
