@@ -27,6 +27,7 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
 import _ from 'lodash'
+import moment from 'moment'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
@@ -39,7 +40,6 @@ import TextHighlighter from '../../../../../components/TextHighlighter/TextHighl
 import Tooltip from '../../../../../components/Tooltip/Tooltip'
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'
-import moment from 'moment'
 
 export const NetworkPage = ({
 	time,
@@ -400,9 +400,7 @@ const ResourceRow = ({
 					lines="1"
 				>
 					{showPlayerAbsoluteTime
-						? moment(new Date(resource.timestamp)).format(
-								'h:mm:ss A',
-						  )
+						? moment(resource.timestamp).format('h:mm:ss A')
 						: MillisToMinutesAndSeconds(resource.relativeStartTime)}
 				</Text>
 				<Text size="small" weight={showingDetails ? 'bold' : 'medium'}>

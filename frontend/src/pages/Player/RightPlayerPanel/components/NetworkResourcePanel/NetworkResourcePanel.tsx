@@ -17,8 +17,8 @@ import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
 import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import analytics from '@util/analytics'
-import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
+import moment from 'moment'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
@@ -302,14 +302,13 @@ function NetworkResourceDetails({
 
 				<Box display="flex" alignItems="center" gap="4">
 					<Badge
-						label={String(
+						label={
 							showPlayerAbsoluteTime
-								? playerTimeToSessionAbsoluteTime({
-										sessionStartTime: startTime,
-										relativeTime: timestamp,
-								  })
-								: MillisToMinutesAndSeconds(timestamp),
-						)}
+								? moment(resource.timestamp).format('h:mm:ss A')
+								: MillisToMinutesAndSeconds(
+										resource.relativeStartTime,
+								  )
+						}
 						size="medium"
 						shape="basic"
 						variant="gray"
@@ -358,11 +357,7 @@ function WebSocketDetails({
 	const [activeTab, setActiveTab] = useState<WebSocketTabs>(
 		WebSocketTabs.Headers,
 	)
-	const {
-		sessionMetadata: { startTime },
-		setTime,
-		session,
-	} = useReplayerContext()
+	const { setTime, session } = useReplayerContext()
 	const { activeNetworkResourceId, setActiveNetworkResourceId } =
 		useActiveNetworkResourceId()
 
@@ -489,14 +484,15 @@ function WebSocketDetails({
 
 				<Box display="flex" alignItems="center" gap="4">
 					<Badge
-						label={String(
+						label={
 							showPlayerAbsoluteTime
-								? playerTimeToSessionAbsoluteTime({
-										sessionStartTime: startTime,
-										relativeTime: timestamp,
-								  })
-								: MillisToMinutesAndSeconds(timestamp),
-						)}
+								? moment(new Date(resource.timestamp)).format(
+										'h:mm:ss A',
+								  )
+								: MillisToMinutesAndSeconds(
+										resource.relativeStartTime,
+								  )
+						}
 						size="medium"
 						shape="basic"
 						variant="gray"

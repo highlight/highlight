@@ -8,6 +8,7 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
+import moment from 'moment'
 import { useRef } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
@@ -15,7 +16,6 @@ import LoadingBox from '@/components/LoadingBox'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@/pages/Player/ReplayerContext'
 import { styledVerticalScrollbar } from '@/style/common.css'
-import { playerTimeToSessionAbsoluteTime } from '@/util/session/utils'
 import { MillisToMinutesAndSeconds } from '@/util/time'
 
 import * as styles from './WebSocketMessages.css'
@@ -102,11 +102,11 @@ const WebSocketRequestTypeIcon: { [k: string]: JSX.Element } = {
 	error: <IconSolidExclamation size={14} />,
 }
 
-const getWebSocketEventTime = (event: any) => {
+const getWebSocketEventTime = (event: any, sessionStart: number) => {
 	return event.type === 'open'
-		? event.startTime
+		? event.startTimeAbs ?? event.startTime + sessionStart
 		: event.type === 'close'
-		? event.requestEnd
+		? event.requestEndAbs ?? event.requestEnd + sessionStart
 		: event.timeStamp
 }
 
@@ -151,13 +151,17 @@ const WebSocketRow = ({
 				<Box color="secondaryContentText" px="8">
 					<Text size="small" weight="medium" lines="1">
 						{showPlayerAbsoluteTime
-							? playerTimeToSessionAbsoluteTime({
-									sessionStartTime: playerStartTime,
-									relativeTime:
-										getWebSocketEventTime(resource),
-							  })
+							? moment(
+									getWebSocketEventTime(
+										resource,
+										playerStartTime,
+									),
+							  ).format('h:mm:ss A')
 							: MillisToMinutesAndSeconds(
-									getWebSocketEventTime(resource),
+									getWebSocketEventTime(
+										resource,
+										playerStartTime,
+									) - playerStartTime,
 							  )}
 					</Text>
 				</Box>
