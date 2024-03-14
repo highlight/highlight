@@ -110,7 +110,7 @@ export const DemoModal = () => {
 								Enter your email to view the demo
 							</Text>
 						</Box>
-						<Divider style={{ margin: 0 }} />
+						<Divider className="!m-0" />
 						<Box
 							p="10"
 							gap="10"

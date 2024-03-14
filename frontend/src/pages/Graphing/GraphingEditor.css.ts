@@ -26,10 +26,6 @@ export const input = style({
 	height: 28,
 })
 
-export const divider = style({
-	margin: 0,
-})
-
 globalStyle(`${menuButton} > div`, {
 	width: '100%',
 })

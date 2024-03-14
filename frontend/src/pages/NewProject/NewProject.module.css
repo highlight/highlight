@@ -56,11 +56,9 @@
 
 .createDisabled {
 	border: 0px !important;
-
-	&>span {
+	& > span {
 		color: #20104D5C !important;
 	}
-
 	background-color: #744ED43D !important;
 }
 
@@ -85,8 +83,4 @@
 .noPaddingMargin {
 	margin: 0 !important;
 	padding-bottom: 0 !important;
-}
-
-.divider {
-	margin: 0;
 }
