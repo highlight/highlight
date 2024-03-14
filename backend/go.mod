@@ -18,6 +18,8 @@ replace golang.org/x/text => golang.org/x/text v0.14.0
 
 replace nhooyr.io/websocket => nhooyr.io/websocket v1.8.7
 
+replace github.com/lestrrat-go/jwx => github.com/lestrrat-go/jwx v1.2.29
+
 replace github.com/highlight/highlight/sdk/highlight-go => ../sdk/highlight-go
 
 require (
