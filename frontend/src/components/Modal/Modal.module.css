@@ -11,8 +11,13 @@
 	overflow: visible;
 }
 
+.titleMinimal {
+	margin: 0 !important;
+}
+
 .title {
 	margin-bottom: var(--size-medium) !important;
+	margin-right: var(--size-xLarge) !important;
 }
 
 .modalWrap {

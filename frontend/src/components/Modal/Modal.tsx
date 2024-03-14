@@ -58,13 +58,7 @@ const Modal: React.FC<React.PropsWithChildren<Props>> = ({
 		>
 			{/* adding margin right to make room for the close button */}
 			{title && (
-				<h3
-					style={
-						minimal
-							? { margin: 0 }
-							: { marginBottom: '16px', marginRight: '32px' }
-					}
-				>
+				<h3 className={minimal ? styles.titleMinimal : styles.title}>
 					{title}
 				</h3>
 			)}
