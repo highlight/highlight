@@ -12,9 +12,8 @@ func TestCreateLogDrain(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(HandleAsset))
 	defer server.Close()
 
-	// TODO(vkorolik) https://app.highlight.io/~r/app/~r_top/font/Inter-Black.woff2?~r_rid=cikTELn9HHD3ofQoFhlrfn8O5S4
-	resp, err := http.Get(fmt.Sprintf("%s/cors/foo", server.URL))
+	resp, err := http.Get(fmt.Sprintf("%s?src=test&url=https://app.highlight.io/~r_app.webmanifest?~r_rid=knQ44NI79K8s_IOq_MbHMZ0JjqY", server.URL))
 	assert.NoError(t, err)
 	assert.Equal(t, resp.StatusCode, 200)
-	assert.Greater(t, resp.ContentLength, 1000)
+	assert.Greater(t, resp.ContentLength, int64(256))
 }
