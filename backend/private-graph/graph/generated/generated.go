@@ -1576,6 +1576,7 @@ type ComplexityRoot struct {
 		ExistingAccount func(childComplexity int) int
 		ExpirationDate  func(childComplexity int) int
 		InviteeEmail    func(childComplexity int) int
+		ProjectID       func(childComplexity int) int
 		Secret          func(childComplexity int) int
 		WorkspaceID     func(childComplexity int) int
 		WorkspaceName   func(childComplexity int) int
@@ -10685,6 +10686,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.WorkspaceForInviteLink.InviteeEmail(childComplexity), true
 
+	case "WorkspaceForInviteLink.project_id":
+		if e.complexity.WorkspaceForInviteLink.ProjectID == nil {
+			break
+		}
+
+		return e.complexity.WorkspaceForInviteLink.ProjectID(childComplexity), true
+
 	case "WorkspaceForInviteLink.secret":
 		if e.complexity.WorkspaceForInviteLink.Secret == nil {
 			break
@@ -12545,6 +12553,7 @@ type WorkspaceForInviteLink {
 	workspace_id: ID!
 	workspace_name: String!
 	existing_account: Boolean!
+	project_id: ID!
 }
 
 type SessionPayload {
@@ -56987,6 +56996,8 @@ func (ec *executionContext) fieldContext_Query_workspace_for_invite_link(ctx con
 				return ec.fieldContext_WorkspaceForInviteLink_workspace_name(ctx, field)
 			case "existing_account":
 				return ec.fieldContext_WorkspaceForInviteLink_existing_account(ctx, field)
+			case "project_id":
+				return ec.fieldContext_WorkspaceForInviteLink_project_id(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkspaceForInviteLink", field.Name)
 		},
@@ -75595,6 +75606,50 @@ func (ec *executionContext) fieldContext_WorkspaceForInviteLink_existing_account
 	return fc, nil
 }
 
+func (ec *executionContext) _WorkspaceForInviteLink_project_id(ctx context.Context, field graphql.CollectedField, obj *model.WorkspaceForInviteLink) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WorkspaceForInviteLink_project_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProjectID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WorkspaceForInviteLink_project_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WorkspaceForInviteLink",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _WorkspaceInviteLink_id(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceInviteLink) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_WorkspaceInviteLink_id(ctx, field)
 	if err != nil {
@@ -93046,6 +93101,11 @@ func (ec *executionContext) _WorkspaceForInviteLink(ctx context.Context, sel ast
 			}
 		case "existing_account":
 			out.Values[i] = ec._WorkspaceForInviteLink_existing_account(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "project_id":
+			out.Values[i] = ec._WorkspaceForInviteLink_project_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

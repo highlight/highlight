@@ -8179,6 +8179,7 @@ export const GetWorkspaceForInviteLinkDocument = gql`
 			secret
 			workspace_id
 			workspace_name
+			project_id
 		}
 	}
 `

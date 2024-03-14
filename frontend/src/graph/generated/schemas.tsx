@@ -3649,6 +3649,7 @@ export type WorkspaceForInviteLink = {
 	existing_account: Scalars['Boolean']
 	expiration_date?: Maybe<Scalars['Timestamp']>
 	invitee_email?: Maybe<Scalars['String']>
+	project_id: Scalars['ID']
 	secret: Scalars['String']
 	workspace_id: Scalars['ID']
 	workspace_name: Scalars['String']
