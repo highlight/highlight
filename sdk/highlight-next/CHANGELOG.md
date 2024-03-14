@@ -1,5 +1,11 @@
 # @highlight-run/next
 
+## 7.4.4
+
+### Patch Changes
+
+-   c2b88ec32: Handling undefined NEXT_RUNTIME
+
 ## 7.4.3
 
 ### Patch Changes
