@@ -123,9 +123,9 @@ export const useGetLogs = ({
 				params: {
 					query,
 					date_range: {
-						start_date: moment(logResultMetadata.endDate).format(
-							TIME_FORMAT,
-						),
+						start_date: moment(logResultMetadata.endDate)
+							.add(1, 'second')
+							.format(TIME_FORMAT),
 						end_date: moment().format(TIME_FORMAT),
 					},
 				},
