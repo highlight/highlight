@@ -111,9 +111,9 @@ export const useGetTraces = ({
 				params: {
 					query,
 					date_range: {
-						start_date: moment(traceResultMetadata.endDate).format(
-							TIME_FORMAT,
-						),
+						start_date: moment(traceResultMetadata.endDate)
+							.add(1, 'second')
+							.format(TIME_FORMAT),
 						end_date: moment().format(TIME_FORMAT),
 					},
 				},
