@@ -204,7 +204,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 								}}
 							/>
 						</Box>
-						<Divider className="!m-0" />
+						<Divider className={styles.divider} />
 						<Box
 							py="8"
 							px="12"

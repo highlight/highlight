@@ -19,3 +19,9 @@
 		background-color: transparent !important;
 	}
 }
+
+.divider {
+	margin: 0;
+	border-style: none;
+	padding-top: 0.25rem;
+}
