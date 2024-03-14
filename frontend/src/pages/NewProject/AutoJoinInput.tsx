@@ -47,12 +47,12 @@ export const AutoJoinInput: React.FC<Props> = ({
 					/>
 					<Text>Allowed email domains</Text>
 				</Box>
-				<Divider className="!m-0 border-none pt-1" />
+				<Divider className="m-0 border-none pt-1" />
 				<Text color="n11">
 					Allow everyone with a <b>{getEmailDomain(admin?.email)}</b>{' '}
 					email to join your workspace.
 				</Text>
-				<Divider className="!m-0 border-none pt-1" />
+				<Divider className="m-0 border-none pt-1" />
 			</div>
 		</Tooltip>
 	)

@@ -430,7 +430,7 @@ export const GraphingEditor = () => {
 										/>
 									</LabeledRow>
 								</SidebarSection>
-								<Divider className="!m-0" />
+								<Divider className="m-0" />
 								<SidebarSection>
 									<LabeledRow label="Source" name="source">
 										<OptionDropdown<ProductType>
@@ -440,7 +440,7 @@ export const GraphingEditor = () => {
 										/>
 									</LabeledRow>
 								</SidebarSection>
-								<Divider className="!m-0" />
+								<Divider className="m-0" />
 								<SidebarSection>
 									<LabeledRow
 										label="View type"
@@ -461,7 +461,7 @@ export const GraphingEditor = () => {
 										/>
 									)}
 								</SidebarSection>
-								<Divider className="!m-0" />
+								<Divider className="m-0" />
 								<SidebarSection>
 									<LabeledRow
 										label="Function"
@@ -494,7 +494,7 @@ export const GraphingEditor = () => {
 										/>
 									</LabeledRow>
 								</SidebarSection>
-								<Divider className="!m-0" />
+								<Divider className="m-0" />
 								<SidebarSection>
 									<LabeledRow
 										label="Group by"
@@ -560,7 +560,7 @@ export const GraphingEditor = () => {
 										</Box>
 									)}
 								</SidebarSection>
-								<Divider className="!m-0" />
+								<Divider className="m-0" />
 								<SidebarSection>
 									<LabeledRow
 										label="Bucket by"

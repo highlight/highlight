@@ -65,7 +65,7 @@ const ConfirmModal = ({
 						<p className="text-gray-500">{description}</p>
 					)}
 					{confirmState.error && (
-						<p className="!m-0 text-red-600">
+						<p className="m-0 text-red-600">
 							{confirmState.error.message ||
 								'Something went wrong, try again.'}
 						</p>
