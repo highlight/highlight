@@ -1,5 +1,13 @@
 # @highlight-run/remix
 
+## 2.0.23
+
+### Patch Changes
+
+-   240143f9d: Resolve node sdk issues from an OTel package version bump
+-   Updated dependencies [240143f9d]
+    -   @highlight-run/node@3.8.1
+
 ## 2.0.22
 
 ### Patch Changes
