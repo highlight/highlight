@@ -149,6 +149,7 @@ func (u fetcherMock) fetchStylesheetData(href string, s *Snapshot) ([]byte, erro
 }
 
 func TestInjectStyleSheets(t *testing.T) {
+	ProxyURL = "https://localhost:8082/public/cors"
 	// Get sample input of events and serialize.
 	fetch = fetcherMock{}
 	inputBytes, err := os.ReadFile("./sample-events/input.json")
