@@ -1,0 +1,106 @@
+diff --git a/build/esm/platform/node/instrumentation.js b/build/esm/platform/node/instrumentation.js
+index 3a717caaa915172ddaba2f15c818e1aa3293137d..724f9fd80fd1503e072e5cd5048dcff533fd1732 100644
+--- a/build/esm/platform/node/instrumentation.js
++++ b/build/esm/platform/node/instrumentation.js
+@@ -39,15 +39,18 @@ var __values = (this && this.__values) || function(o) {
+     };
+     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+ };
++
++import * as ImportInTheMiddle from 'import-in-the-middle';
+ import * as path from 'path';
+-import { types as utilTypes } from 'util';
+-import { satisfies } from 'semver';
+-import { wrap, unwrap } from 'shimmer';
++
++import { unwrap, wrap } from 'shimmer';
++
++import { Hook } from 'require-in-the-middle';
+ import { InstrumentationAbstract } from '../../instrumentation';
+ import { RequireInTheMiddleSingleton, } from './RequireInTheMiddleSingleton';
+-import * as ImportInTheMiddle from 'import-in-the-middle';
+ import { diag } from '@opentelemetry/api';
+-import { Hook } from 'require-in-the-middle';
++import { satisfies } from 'semver';
++import { types as utilTypes } from 'util';
+ /**
+  * Base abstract class for instrumenting node plugins
+  */
+@@ -149,14 +152,16 @@ var InstrumentationBase = /** @class */ (function (_super) {
+     };
+     InstrumentationBase.prototype._extractPackageVersion = function (baseDir) {
+         try {
+-            // eslint-disable-next-line @typescript-eslint/no-var-requires
+-            var version = require(path.join(baseDir, 'package.json')).version;
++            const fs = require('fs');
++            const packagePath = path.join(baseDir, 'package.json');
++            const packageJson = fs.readFileSync(packagePath, 'utf8');
++            const version = JSON.parse(packageJson).version;
+             return typeof version === 'string' ? version : undefined;
+-        }
+-        catch (error) {
++          } catch (error) {
+             diag.warn('Failed extracting version', baseDir);
+-        }
+-        return undefined;
++          }
++      
++          return undefined;
+     };
+     InstrumentationBase.prototype._onRequire = function (module, exports, name, baseDir) {
+         var _this = this;
+diff --git a/build/esnext/platform/node/instrumentation.js b/build/esnext/platform/node/instrumentation.js
+index 758d4c508d3efe0c862d62e6f0a09cb1a158ecc8..d28185a06d65a8db2f3ed1419de9bae823d0b60e 100644
+--- a/build/esnext/platform/node/instrumentation.js
++++ b/build/esnext/platform/node/instrumentation.js
+@@ -119,14 +119,16 @@ export class InstrumentationBase extends InstrumentationAbstract {
+     }
+     _extractPackageVersion(baseDir) {
+         try {
+-            // eslint-disable-next-line @typescript-eslint/no-var-requires
+-            const version = require(path.join(baseDir, 'package.json')).version;
++            const fs = require('fs');
++            const packagePath = path.join(baseDir, 'package.json');
++            const packageJson = fs.readFileSync(packagePath, 'utf8');
++            const version = JSON.parse(packageJson).version;
+             return typeof version === 'string' ? version : undefined;
+-        }
+-        catch (error) {
++          } catch (error) {
+             diag.warn('Failed extracting version', baseDir);
+-        }
+-        return undefined;
++          }
++      
++          return undefined;
+     }
+     _onRequire(module, exports, name, baseDir) {
+         var _a;
+diff --git a/build/src/platform/node/instrumentation.js b/build/src/platform/node/instrumentation.js
+index bc65a562b4fe244f1f0a69d53d01ee5eebab30f2..321458abcfdaf8b8de3713b1dea29ecd46ec630d 100644
+--- a/build/src/platform/node/instrumentation.js
++++ b/build/src/platform/node/instrumentation.js
+@@ -122,14 +122,16 @@ class InstrumentationBase extends instrumentation_1.InstrumentationAbstract {
+     }
+     _extractPackageVersion(baseDir) {
+         try {
+-            // eslint-disable-next-line @typescript-eslint/no-var-requires
+-            const version = require(path.join(baseDir, 'package.json')).version;
++            const fs = require('fs');
++            const packagePath = path.join(baseDir, 'package.json');
++            const packageJson = fs.readFileSync(packagePath, 'utf8');
++            const version = JSON.parse(packageJson).version;
+             return typeof version === 'string' ? version : undefined;
+-        }
+-        catch (error) {
+-            api_1.diag.warn('Failed extracting version', baseDir);
+-        }
+-        return undefined;
++          } catch (error) {
++            diag.warn('Failed extracting version', baseDir);
++          }
++      
++          return undefined;
+     }
+     _onRequire(module, exports, name, baseDir) {
+         var _a;
