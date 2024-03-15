@@ -486,9 +486,7 @@ function WebSocketDetails({
 					<Badge
 						label={
 							showPlayerAbsoluteTime
-								? moment(new Date(resource.timestamp)).format(
-										'h:mm:ss A',
-								  )
+								? moment(resource.timestamp).format('h:mm:ss A')
 								: MillisToMinutesAndSeconds(
 										resource.relativeStartTime,
 								  )

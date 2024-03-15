@@ -23,25 +23,24 @@ export const initializeWebSocketListener = () => {
 				const socketId = createNetworkRequestId()
 				const webSocket = new target(...args)
 
-				// TODO(spenny): check that timestamp is absolute or relative
 				const openHandler = (event: Event) => {
 					window._highlightWebSocketRequestCallback({
 						socketId,
 						initiatorType: 'websocket',
 						type: 'open',
 						name: webSocket.url,
-						startTimeAbs: event.timeStamp,
+						startTimeAbs: performance.timeOrigin + event.timeStamp,
 					})
 				}
 
-				// TODO(spenny): check that timestamp is absolute or relative
 				const closeHandler = (event: CloseEvent) => {
 					window._highlightWebSocketRequestCallback({
 						socketId,
 						initiatorType: 'websocket',
 						type: 'close',
 						name: webSocket.url,
-						responseEndAbs: event.timeStamp,
+						responseEndAbs:
+							performance.timeOrigin + event.timeStamp,
 					})
 
 					webSocket.removeEventListener('open', openHandler)
@@ -68,7 +67,7 @@ export const initializeWebSocketListener = () => {
 						socketId,
 						type: 'received',
 						name: webSocket.url,
-						timeStamp: event.timeStamp,
+						timeStamp: performance.timeOrigin + event.timeStamp,
 						size,
 						message,
 					})
@@ -79,7 +78,7 @@ export const initializeWebSocketListener = () => {
 						socketId,
 						type: 'error',
 						name: webSocket.url,
-						timeStamp: event.timeStamp,
+						timeStamp: performance.timeOrigin + event.timeStamp,
 						size: 0,
 					})
 				}
@@ -112,7 +111,8 @@ export const initializeWebSocketListener = () => {
 							socketId,
 							type: 'sent',
 							name: webSocket.url,
-							timeStamp: performance.now(),
+							timeStamp:
+								performance.timeOrigin + performance.now(),
 							size,
 							message,
 						})
