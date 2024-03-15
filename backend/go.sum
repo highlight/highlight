@@ -105,8 +105,8 @@ github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice v1.20.2 h1:cl
 github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice v1.20.2/go.mod h1:KK2dMtPIwfSitxt1RyY6nHrW2lIU8a9LguRqY+FjoKU=
 github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.21.2 h1:SxqH8OxVZ804yweHp2bNERqys7om9cmjxowlI/XOnS8=
 github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.21.2/go.mod h1:Djusz31OLPJV5vma0ujfKxgsl8gBezwLZh5LA5044fk=
-github.com/aws/aws-sdk-go-v2/service/s3 v1.51.4 h1:lW5xUzOPGAMY7HPuNF4FdyBwRc3UJ/e8KsapbesVeNU=
-github.com/aws/aws-sdk-go-v2/service/s3 v1.51.4/go.mod h1:MGTaf3x/+z7ZGugCGvepnx2DS6+caCYYqKhzVoLNYPk=
+github.com/aws/aws-sdk-go-v2/service/s3 v1.52.1 h1:Y/TTvxMdYwNvhzolvneV1wEEN/ncQUSd1AnzFGTMPqM=
+github.com/aws/aws-sdk-go-v2/service/s3 v1.52.1/go.mod h1:MGTaf3x/+z7ZGugCGvepnx2DS6+caCYYqKhzVoLNYPk=
 github.com/aws/aws-sdk-go-v2/service/sfn v1.26.2 h1:cfwTYyjuoWCBk5OFo+BMBoklQOCgmhvooeQD+IBD9QA=
 github.com/aws/aws-sdk-go-v2/service/sfn v1.26.2/go.mod h1:f1L1u3X+8Wf6+sYRLJNiplkCE3uNxeRa9CSoHn32Pgc=
 github.com/aws/aws-sdk-go-v2/service/sso v1.20.2 h1:XOPfar83RIRPEzfihnp+U6udOveKZJvPQ76SKWrLRHc=
