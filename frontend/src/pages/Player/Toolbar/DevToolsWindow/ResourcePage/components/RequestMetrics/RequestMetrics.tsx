@@ -72,10 +72,9 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
 	const duration = useMemo(() => {
 		if (resource?.responseEndAbs && resource?.startTimeAbs) {
 			return resource.responseEndAbs - resource.startTimeAbs
-		} else if (resource?.responseEnd && resource?.startTime) {
-			// used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
-			return resource.responseEnd - resource.startTime
 		}
+		// used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
+		return resource.responseEnd - resource.startTime
 	}, [resource])
 
 	const metricConfig = {
