@@ -68,7 +68,7 @@ const buildResources = (resources: NetworkResource[]) => {
 			if (!!a.startTimeAbs && !!b.startTimeAbs) {
 				return a.startTimeAbs - b.startTimeAbs
 			} else {
-				// used in older versions of the SDK
+				// used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
 				return a.startTime - b.startTime
 			}
 		})
@@ -85,6 +85,7 @@ const buildResources = (resources: NetworkResource[]) => {
 				updatedResource.duration =
 					resource.responseEndAbs - resource.startTimeAbs
 			} else if (resource.responseEnd && resource.startTime) {
+				// used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
 				updatedResource.duration =
 					resource.responseEnd - resource.startTime
 			}

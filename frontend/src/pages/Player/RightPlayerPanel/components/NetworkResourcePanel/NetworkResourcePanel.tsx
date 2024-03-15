@@ -164,12 +164,19 @@ function NetworkResourceDetails({
 
 	const networkResources = useMemo(() => {
 		return (
-			(resources.map((event) => ({
-				...event,
-				timestamp: event.startTime,
-			})) as NetworkResource[]) ?? []
+			(resources.map((event) => {
+				// startTime used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
+				const resourceStartTime = event.startTimeAbs
+					? event.startTimeAbs - startTime
+					: event.startTime
+
+				return {
+					...event,
+					timestamp: resourceStartTime,
+				}
+			}) as NetworkResource[]) ?? []
 		)
-	}, [resources])
+	}, [resources, startTime])
 
 	const resourceIdx = resources.findIndex(
 		(r) => activeNetworkResourceId === r.id,
@@ -181,8 +188,11 @@ function NetworkResourceDetails({
 
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 	const timestamp = useMemo(() => {
-		return new Date(resource.startTime).getTime()
-	}, [resource.startTime])
+		// startTime used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
+		return resource.startTimeAbs
+			? resource.startTimeAbs - startTime
+			: new Date(resource.startTime).getTime()
+	}, [resource.startTime, resource.startTimeAbs, startTime])
 
 	const pages = useMemo(() => {
 		const tabPages: any = {
@@ -357,18 +367,29 @@ function WebSocketDetails({
 	const [activeTab, setActiveTab] = useState<WebSocketTabs>(
 		WebSocketTabs.Headers,
 	)
-	const { setTime, session } = useReplayerContext()
+	const {
+		sessionMetadata: { startTime },
+		setTime,
+		session,
+	} = useReplayerContext()
 	const { activeNetworkResourceId, setActiveNetworkResourceId } =
 		useActiveNetworkResourceId()
 
 	const networkResources = useMemo(() => {
 		return (
-			(resources.map((event) => ({
-				...event,
-				timestamp: event.startTime,
-			})) as NetworkResource[]) ?? []
+			(resources.map((event) => {
+				// startTime used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
+				const resourceStartTime = event.startTimeAbs
+					? event.startTimeAbs - startTime
+					: event.startTime
+
+				return {
+					...event,
+					timestamp: resourceStartTime,
+				}
+			}) as NetworkResource[]) ?? []
 		)
-	}, [resources])
+	}, [resources, startTime])
 
 	const resourceIdx = resources.findIndex(
 		(r) => activeNetworkResourceId === r.id,
@@ -380,8 +401,11 @@ function WebSocketDetails({
 
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 	const timestamp = useMemo(() => {
-		return new Date(resource.startTime).getTime()
-	}, [resource.startTime])
+		// startTime used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
+		return resource.startTimeAbs
+			? resource.startTimeAbs - startTime
+			: new Date(resource.startTime).getTime()
+	}, [resource.startTime, resource.startTimeAbs, startTime])
 
 	const { webSocketEvents, webSocketLoading } = useWebSocket(session)
 
