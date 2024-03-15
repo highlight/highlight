@@ -10,6 +10,12 @@ const nextConfig = {
 	images: {
 		remotePatterns: [{ protocol: 'https', hostname: 'i.travelapi.com' }],
 	},
+	webpack(config, options) {
+		if (options.isServer) {
+			config.ignoreWarnings = [{ module: /highlight-(run\/)?node/ }]
+		}
+		return config
+	},
 }
 
 export default withHighlightConfig(nextConfig)
