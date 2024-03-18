@@ -34985,6 +34985,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cosmiconfig@npm:9.0.0":
+  version: 9.0.0
+  resolution: "cosmiconfig@npm:9.0.0"
+  dependencies:
+    env-paths: "npm:^2.2.1"
+    import-fresh: "npm:^3.3.0"
+    js-yaml: "npm:^4.1.0"
+    parse-json: "npm:^5.2.0"
+  peerDependencies:
+    typescript: ">=4.9.5"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10/8bdf1dfbb6fdb3755195b6886dc0649a3c742ec75afa4cb8da7b070936aed22a4f4e5b7359faafe03180358f311dbc300d248fd6586c458203d376a40cc77826
+  languageName: node
+  linkType: hard
+
 "cosmiconfig@npm:^5.0.0":
   version: 5.2.1
   resolution: "cosmiconfig@npm:5.2.1"
@@ -37763,7 +37780,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"env-paths@npm:^2.2.0":
+"env-paths@npm:^2.2.0, env-paths@npm:^2.2.1":
   version: 2.2.1
   resolution: "env-paths@npm:2.2.1"
   checksum: 10/65b5df55a8bab92229ab2b40dad3b387fad24613263d103a97f91c9fe43ceb21965cd3392b1ccb5d77088021e525c4e0481adb309625d0cb94ade1d1fb8dc17e
@@ -56642,7 +56659,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"puppeteer-core@npm:^22.5.0":
+"puppeteer-core@npm:22.5.0, puppeteer-core@npm:^22.5.0":
   version: 22.5.0
   resolution: "puppeteer-core@npm:22.5.0"
   dependencies:
@@ -56697,6 +56714,19 @@ __metadata:
     cosmiconfig: "npm:8.2.0"
     puppeteer-core: "npm:20.9.0"
   checksum: 10/e77c44f44f21986d5118fb3dfaa1fe32ca6a586b4a5158b48726f53e6b4ac3cdce8d8da8e217a1660a17935498dcd7a52742f5cc1d802f3425e969fff80df17a
+  languageName: node
+  linkType: hard
+
+"puppeteer@npm:^22.5.0":
+  version: 22.5.0
+  resolution: "puppeteer@npm:22.5.0"
+  dependencies:
+    "@puppeteer/browsers": "npm:2.2.0"
+    cosmiconfig: "npm:9.0.0"
+    puppeteer-core: "npm:22.5.0"
+  bin:
+    puppeteer: lib/esm/puppeteer/node/cli.js
+  checksum: 10/41d2751ca8a59d5651d3549e8408caa11138826c5cd9f54a0ef872412446ea9dfd65359b83d14dd7cc9ab648e5988ab31e56fc9f4499429ee6f10f6885986f2d
   languageName: node
   linkType: hard
 
@@ -60461,6 +60491,7 @@ __metadata:
     "@types/node": "npm:^20.5.7"
     "@types/pg": "npm:^8.10.2"
     pg: "npm:^8.11.3"
+    puppeteer: "npm:^22.5.0"
     puppeteer-core: "npm:^22.5.0"
     puppeteer-screen-recorder: "npm:^2.1.2"
     rrweb: "workspace:*"

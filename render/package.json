@@ -23,6 +23,7 @@
 		"@aws-sdk/client-s3": "^3.535.0",
 		"@sparticuz/chromium": "^122.0.0",
 		"pg": "^8.11.3",
+		"puppeteer": "^22.5.0",
 		"puppeteer-core": "^22.5.0",
 		"puppeteer-screen-recorder": "^2.1.2",
 		"rrweb": "workspace:*"
