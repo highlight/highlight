@@ -19,6 +19,7 @@ import {
 	HiServer,
 } from 'react-icons/hi'
 
+import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
 import {
 	enterprisePrices,
 	freePrices,
@@ -39,7 +40,7 @@ const PricingPage: NextPage = () => {
 				<div className="flex justify-center">
 					<h1 className="max-w-3xl my-0">Pricing plans</h1>
 				</div>
-				<PlanTable />
+				<PlanTable setEstimatorCategory={setEstimatorCategory} />
 			</div>
 			<div className="flex justify-center my-16" id="overage">
 				<h2>Estimate your bill</h2>
@@ -77,7 +78,8 @@ type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
 	label: string
-	subText?: string
+	id?: string
+	subText?: string //PlanTier name, if not same as label
 	prices: Prices
 	icon: JSX.Element
 	features: {
@@ -183,6 +185,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 	},
 	SelfHost: {
 		label: 'Self-Host',
+		id: 'SelfHost',
 		subText: 'per project/month, billed annually',
 		prices: selfHostPrices,
 		icon: <HiServer className="text-[#E93D82] w-8 h-8 -translate-x-1" />,
@@ -194,13 +197,21 @@ const priceTiers: Record<TierName, PricingTier> = {
 	},
 }
 
-const PlanTable = () => {
+const PlanTable = ({
+	setEstimatorCategory,
+}: {
+	setEstimatorCategory: (value: any) => void
+}) => {
 	return (
 		<div className="flex flex-col items-center w-full gap-6 mx-auto mt-16">
 			{/* Pricing */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 justify-center">
 				{Object.entries(priceTiers).map(([name, tier]) => (
-					<PlanTier tier={tier} key={name} />
+					<PlanTier
+						tier={tier}
+						key={name}
+						setEstimatorCategory={setEstimatorCategory}
+					/>
 				))}
 			</div>
 			<div className="flex-shrink w-48" />
@@ -208,7 +219,13 @@ const PlanTable = () => {
 	)
 }
 
-const PlanTier = ({ tier }: { tier: PricingTier }) => {
+const PlanTier = ({
+	tier,
+	setEstimatorCategory,
+}: {
+	tier: PricingTier
+	setEstimatorCategory: (value: any) => void
+}) => {
 	const { features, calculateUsage } = tier
 
 	return (
@@ -259,7 +276,21 @@ const PlanTier = ({ tier }: { tier: PricingTier }) => {
 					</div>
 				))}
 			</div>
-			<div className="p-4"></div>
+			<div className="p-4">
+				{calculateUsage && (
+					<PrimaryButton
+						onClick={() =>
+							setEstimatorCategory(tier.id || tier.label)
+						}
+						href="#overage"
+						className="w-full bg-dark-background border border-copy-on-dark text-copy-on-dark rounded-md text-center py-1 hover:bg-white hover:text-dark-background transition-colors"
+					>
+						<Typography type="copy3" emphasis>
+							Estimate {tier.label.toLowerCase()} bill
+						</Typography>
+					</PrimaryButton>
+				)}
+			</div>
 		</div>
 	)
 }
