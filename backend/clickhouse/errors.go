@@ -201,7 +201,7 @@ func getErrorQueryImplDeprecated(tableName string, selectColumns string, query m
 }
 
 // TODO(spenny): update with correct param logic
-func getErrorQueryImpl(tableName string, selectColumns string, params modelInputs.QueryInput, projectId int, retentionDate time.Time, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
+func getErrorQueryImpl(tableName string, selectColumns string, params modelInputs.QueryInput, projectId int, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
 	rules, err := deserializeRules(params.Rules)
 	if err != nil {
 		return "", nil, err
@@ -239,7 +239,7 @@ func getErrorQueryImpl(tableName string, selectColumns string, params modelInput
 	return sql, args, nil
 }
 
-func (client *Client) QueryErrorGroupIdsDeprecated(ctx context.Context, projectId int, count int, query modelInputs.ClickhouseQuery, page *int, retentionDate time.Time) ([]int64, int64, error) {
+func (client *Client) QueryErrorGroupIdsDeprecated(ctx context.Context, projectId int, count int, query modelInputs.ClickhouseQuery, page *int) ([]int64, int64, error) {
 	pageInt := 1
 	if page != nil {
 		pageInt = *page
@@ -269,14 +269,14 @@ func (client *Client) QueryErrorGroupIdsDeprecated(ctx context.Context, projectI
 	return ids, int64(total), nil
 }
 
-func (client *Client) QueryErrorGroupIds(ctx context.Context, projectId int, count int, params modelInputs.QueryInput, page *int, retentionDate time.Time) ([]int64, int64, error) {
+func (client *Client) QueryErrorGroupIds(ctx context.Context, projectId int, count int, params modelInputs.QueryInput, page *int) ([]int64, int64, error) {
 	pageInt := 1
 	if page != nil {
 		pageInt = *page
 	}
 	offset := (pageInt - 1) * count
 
-	sql, args, err := getErrorQueryImpl(ErrorGroupsTable, "ID, count() OVER() AS total", params, projectId, retentionDate, nil, pointy.String("UpdatedAt DESC, ID DESC"), pointy.Int(count), pointy.Int(offset))
+	sql, args, err := getErrorQueryImpl(ErrorGroupsTable, "ID, count() OVER() AS total", params, projectId, nil, pointy.String("UpdatedAt DESC, ID DESC"), pointy.Int(count), pointy.Int(offset))
 	if err != nil {
 		return nil, 0, err
 	}
@@ -590,7 +590,7 @@ func (client *Client) QueryErrorFieldValues(ctx context.Context, projectId int, 
 	return values, nil
 }
 
-func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, params modelInputs.QueryInput, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, error) {
+func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, params modelInputs.QueryInput, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, error) {
 	aggFn, addFn, location, err := getClickhouseHistogramSettings(options)
 	if err != nil {
 		return nil, nil, err
@@ -600,7 +600,7 @@ func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, pa
 
 	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
 
-	sql, args, err := getErrorQueryImpl(ErrorObjectsTable, selectCols, params, projectId, retentionDate, pointy.String("1"), &orderBy, nil, nil)
+	sql, args, err := getErrorQueryImpl(ErrorObjectsTable, selectCols, params, projectId, pointy.String("1"), &orderBy, nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -627,7 +627,7 @@ func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, pa
 	return bucketTimes, totals, nil
 }
 
-func (client *Client) QueryErrorHistogramDeprecated(ctx context.Context, projectId int, query modelInputs.ClickhouseQuery, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, error) {
+func (client *Client) QueryErrorHistogramDeprecated(ctx context.Context, projectId int, query modelInputs.ClickhouseQuery, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, error) {
 	aggFn, addFn, location, err := getClickhouseHistogramSettings(options)
 	if err != nil {
 		return nil, nil, err
