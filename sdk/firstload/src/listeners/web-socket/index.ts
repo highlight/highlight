@@ -29,7 +29,7 @@ export const initializeWebSocketListener = () => {
 						initiatorType: 'websocket',
 						type: 'open',
 						name: webSocket.url,
-						startTime: event.timeStamp,
+						startTimeAbs: performance.timeOrigin + event.timeStamp,
 					})
 				}
 
@@ -39,7 +39,8 @@ export const initializeWebSocketListener = () => {
 						initiatorType: 'websocket',
 						type: 'close',
 						name: webSocket.url,
-						requestEnd: event.timeStamp,
+						responseEndAbs:
+							performance.timeOrigin + event.timeStamp,
 					})
 
 					webSocket.removeEventListener('open', openHandler)
@@ -66,7 +67,7 @@ export const initializeWebSocketListener = () => {
 						socketId,
 						type: 'received',
 						name: webSocket.url,
-						timeStamp: event.timeStamp,
+						timeStamp: performance.timeOrigin + event.timeStamp,
 						size,
 						message,
 					})
@@ -77,7 +78,7 @@ export const initializeWebSocketListener = () => {
 						socketId,
 						type: 'error',
 						name: webSocket.url,
-						timeStamp: event.timeStamp,
+						timeStamp: performance.timeOrigin + event.timeStamp,
 						size: 0,
 					})
 				}
@@ -110,7 +111,8 @@ export const initializeWebSocketListener = () => {
 							socketId,
 							type: 'sent',
 							name: webSocket.url,
-							timeStamp: performance.now(),
+							timeStamp:
+								performance.timeOrigin + performance.now(),
 							size,
 							message,
 						})

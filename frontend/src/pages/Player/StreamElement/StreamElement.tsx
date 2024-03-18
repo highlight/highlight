@@ -1,8 +1,8 @@
 /// <reference types="vite-plugin-svgr/client" />
 
-import { EventType } from '@highlight-run/rrweb'
 import WebVitalSimpleRenderer from '@pages/Player/StreamElement/Renderers/WebVitals/WebVitalRender'
 import React from 'react'
+import { EventType } from 'rrweb'
 
 import { HighlightEvent } from '../HighlightEvent'
 

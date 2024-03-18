@@ -82,7 +82,6 @@ export async function render(
 		path.join(
 			path.resolve(),
 			'node_modules',
-			'@highlight-run',
 			'rrweb',
 			'dist',
 			'rrweb.min.js',
@@ -90,14 +89,7 @@ export async function render(
 		'utf8',
 	)
 	const css = readFileSync(
-		path.join(
-			path.resolve(),
-			'node_modules',
-			'@highlight-run',
-			'rrweb',
-			'dist',
-			'rrweb.css',
-		),
+		path.join(path.resolve(), 'node_modules', 'rrweb', 'dist', 'rrweb.css'),
 		'utf8',
 	)
 	await page.setContent(getHtml(css, js))

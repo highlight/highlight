@@ -12,7 +12,6 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui/components'
-import { useParams } from '@util/react-router/useParams'
 import { DatePicker, message } from 'antd'
 import moment from 'moment'
 import React, { useCallback, useEffect } from 'react'
@@ -30,20 +29,22 @@ const DATE_FORMAT = 'ddd, h:mm A'
 const MESSAGE_KEY = 'update-message'
 
 type Props = {
-	state: ErrorState
+	errorSecureId: string
 	snoozedUntil?: Maybe<string>
+	state: ErrorState
 }
 
-export const ErrorStateSelect: React.FC<Props> = ({ state, snoozedUntil }) => (
+export const ErrorStateSelect: React.FC<Props> = (props) => (
 	<Menu placement="bottom-end">
 		{/* Rendering inside wrapper so we can work with menu state via useMenu. */}
-		<ErrorStateSelectImpl state={state} snoozedUntil={snoozedUntil} />
+		<ErrorStateSelectImpl {...props} />
 	</Menu>
 )
 
 const ErrorStateSelectImpl: React.FC<Props> = ({
-	state: initialErrorState,
+	errorSecureId,
 	snoozedUntil,
+	state: initialErrorState,
 }) => {
 	const menuRef = React.useRef<HTMLDivElement | null>(null)
 	const menu = Menu.useContext()!
@@ -52,7 +53,6 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 		MenuState.Default,
 	)
 
-	const { error_secure_id } = useParams<{ error_secure_id: string }>()
 	const [updateErrorGroupState] = useUpdateErrorGroupStateMutation({
 		refetchQueries: [
 			namedOperations.Query.GetErrorGroup,
@@ -71,7 +71,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				initialErrorState === newState &&
 				!snoozed &&
 				!newSnoozedUntil &&
-				!error_secure_id
+				!errorSecureId
 			) {
 				return
 			}
@@ -81,13 +81,13 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 
 			await updateErrorGroupState({
 				variables: {
-					secure_id: error_secure_id!,
+					secure_id: errorSecureId,
 					state: newState,
 					snoozed_until: newSnoozedUntil ?? null,
 				},
 				optimisticResponse: {
 					updateErrorGroupState: {
-						secure_id: error_secure_id!,
+						secure_id: errorSecureId,
 						state: newState,
 						snoozed_until: newSnoozedUntil ?? null,
 						__typename: 'ErrorGroup',
@@ -101,7 +101,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				},
 			})
 		},
-		[error_secure_id, initialErrorState, snoozed, updateErrorGroupState],
+		[errorSecureId, initialErrorState, snoozed, updateErrorGroupState],
 	)
 
 	const navigate = useNavigate()
@@ -154,7 +154,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 		}
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [error_secure_id])
+	}, [errorSecureId])
 
 	// Reset menu state on close.
 	useEffect(() => {
@@ -169,7 +169,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 			menu.setOpen(!mState.open)
 			mState.baseElement?.focus()
 		},
-		[mState.open, error_secure_id],
+		[mState.open, errorSecureId],
 	)
 
 	return (

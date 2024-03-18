@@ -14788,6 +14788,7 @@ export const GetTraceDocument = gql`
 			}
 			errors {
 				created_at
+				id
 				trace_id
 				span_id
 				log_cursor

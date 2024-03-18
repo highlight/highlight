@@ -428,15 +428,7 @@ const StackTraceSectionCollapsible: React.FC<
 const SourcemapError: React.FC<{
 	errorObjectId: string
 	metadata?: Maybe<SourceMappingError>
-}> = ({ errorObjectId, metadata }) => {
-	const popoverStore = Popover.useStore({ placement: 'bottom-start' })
-
-	// Ensures the popover is closed when the error instance changes.
-	React.useEffect(() => {
-		popoverStore.setOpen(false)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [errorObjectId])
-
+}> = ({ metadata }) => {
 	if (!metadata) {
 		return null
 	}
@@ -448,7 +440,7 @@ const SourcemapError: React.FC<{
 			onClick={(e) => e.stopPropagation()}
 			display="flex"
 		>
-			<Popover store={popoverStore}>
+			<Popover>
 				<Popover.TagTrigger
 					kind="secondary"
 					shape="basic"

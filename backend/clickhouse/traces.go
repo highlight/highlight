@@ -322,26 +322,7 @@ func (client *Client) ExistingTraceIds(ctx context.Context, projectID int, trace
 	return existingTraceIds, rows.Err()
 }
 
-func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID string) ([]*modelInputs.Trace, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-	var err error
-	var args []interface{}
-
-	sb.From(TracesByIdTable).
-		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, Environment, HasErrors, TraceAttributes, StatusCode, StatusMessage").
-		Where(sb.Equal("ProjectId", projectID)).
-		Where(sb.Equal("TraceId", traceID))
-
-	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	span, _ := util.StartSpanFromContext(ctx, "traces", util.ResourceName("ReadTrace"))
-
-	rows, err := client.conn.Query(ctx, sql, args...)
-	if err != nil {
-		span.Finish(err)
-		return nil, err
-	}
-
+func getTracesFromRows(rows driver.Rows) ([]*modelInputs.Trace, error) {
 	var seenUUIDs = map[string]struct{}{}
 	var traces []*modelInputs.Trace
 	for rows.Next() {
@@ -379,13 +360,74 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 
 	// Order by timestamp
 	// Doing this in code rather than Clickhouse so Clickhouse will use the `traceId` projection
-	slices.SortFunc(traces, func(a *modelInputs.Trace, b *modelInputs.Trace) bool {
-		return a.Timestamp.Before(b.Timestamp)
+	slices.SortFunc(traces, func(a *modelInputs.Trace, b *modelInputs.Trace) int {
+		return a.Timestamp.Compare(b.Timestamp)
 	})
 
-	span.Finish(rows.Err())
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
 
-	return traces, rows.Err()
+	return traces, nil
+}
+
+func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID string) ([]*modelInputs.Trace, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	var err error
+	var args []interface{}
+
+	sb.From(TracesByIdTable).
+		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, Environment, HasErrors, TraceAttributes, StatusCode, StatusMessage").
+		Where(sb.Equal("ProjectId", projectID)).
+		Where(sb.Equal("TraceId", traceID))
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	span, _ := util.StartSpanFromContext(ctx, "traces", util.ResourceName("ReadTrace"))
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		span.Finish(err)
+		return nil, err
+	}
+
+	traces, err := getTracesFromRows(rows)
+	if err != nil {
+		span.Finish(err)
+		return nil, err
+	}
+
+	span.Finish()
+
+	if len(traces) > 0 {
+		return traces, nil
+	}
+
+	span, _ = util.StartSpanFromContext(ctx, "traces", util.ResourceName("ReadTraceFallback"))
+
+	sb.From(TracesTable).
+		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, Environment, HasErrors, TraceAttributes, StatusCode, StatusMessage").
+		Where(sb.Equal("ProjectId", projectID)).
+		Where(sb.Equal("TraceId", traceID)).
+		Where(sb.GE("Timestamp", time.Now().Add(-5*time.Minute))).
+		Where(sb.LE("Timestamp", time.Now()))
+
+	sql, args = sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	rows, err = client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		span.Finish(err)
+		return nil, err
+	}
+
+	traces, err = getTracesFromRows(rows)
+	if err != nil {
+		span.Finish(err)
+		return nil, err
+	}
+
+	span.Finish()
+	return traces, nil
 }
 
 func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {

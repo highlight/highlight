@@ -15,27 +15,17 @@ interface User {
 	getIdToken(): Promise<string>
 }
 
-const getFakeFirebaseUser: (email?: string, password?: string) => User = (
+const getFakeFirebaseUser: (email?: string, token?: string) => User = (
 	email,
-	password,
+	token,
 ) => ({
 	async getIdToken(): Promise<string> {
 		if (AUTH_MODE === 'password') {
-			return sessionStorage.getItem('passwordToken') || ''
+			return token || ''
 		}
-		return Promise.resolve('a1b2c3')
+		return 'a1b2c3'
 	},
 	email: email || 'demo@example.com',
-	async sendEmailVerification(): Promise<void> {
-		console.warn('simple auth does not support email verification')
-	},
-})
-
-const makePasswordAuthUser = (email: string): User => ({
-	async getIdToken(): Promise<string> {
-		return sessionStorage.getItem('passwordToken') || ''
-	},
-	email,
 	async sendEmailVerification(): Promise<void> {
 		console.warn('simple auth does not support email verification')
 	},
@@ -98,6 +88,8 @@ class SimpleAuth {
 }
 
 class PasswordAuth {
+	static Key = 'XNnrgjSyZjjEANuxFBG4nXw4p8GvMtrK'
+
 	currentUser: User | null = null
 	googleProvider?: Firebase.auth.GoogleAuthProvider
 	githubProvider?: Firebase.auth.GithubAuthProvider
@@ -106,41 +98,73 @@ class PasswordAuth {
 		this.initialize()
 	}
 
-	initialize() {
-		const user = sessionStorage.getItem('currentUser')
-		const token = sessionStorage.getItem('passwordToken')
-		if (user && token) {
-			try {
-				const userObject = JSON.parse(user)
-				this.currentUser = makePasswordAuthUser(userObject.email)
-			} catch (error) {
-				console.log('error setting user from session storage')
-			}
-			this.validateTokenAndInitializeUser(token)
+	private set(data: { user: User | undefined; token: string | undefined }) {
+		localStorage.setItem(PasswordAuth.Key, JSON.stringify(data))
+	}
+
+	private retrieve(): {
+		user: User | undefined
+		token: string | undefined
+	} {
+		const data = localStorage.getItem(PasswordAuth.Key)
+		if (data) {
+			return JSON.parse(data)
+		}
+		return { user: undefined, token: undefined }
+	}
+
+	makePasswordAuthUser(email: string): User {
+		const { token } = this.retrieve()
+		return {
+			async getIdToken(): Promise<string> {
+				return token || ''
+			},
+			email,
+			async sendEmailVerification(): Promise<void> {
+				console.warn('simple auth does not support email verification')
+			},
 		}
 	}
 
-	async validateTokenAndInitializeUser(token: string): Promise<void> {
+	initialize() {
+		const { user, token } = this.retrieve()
+		if (user?.email && token) {
+			try {
+				this.currentUser = this.makePasswordAuthUser(user.email)
+			} catch (error) {
+				console.log('error setting user from storage', error)
+			}
+		}
+		this.validateUser()
+	}
+
+	async validateUser(): Promise<boolean> {
 		const response = await fetch(`${PRIVATE_GRAPH_URI}/validate-token`, {
 			method: 'GET',
 			headers: {
 				Accept: 'application/json',
 				'Content-Type': 'application/json',
-				token,
+				token: this.retrieve().token || '',
 			},
 		})
 
 		if (response.status !== 200) {
-			localStorage.removeItem('passwordToken')
-			localStorage.removeItem('currentUser')
+			await this.signOut()
+			// only redirect if we are already not on the sign_in route
+			if (!window.location.href.endsWith('/sign_in')) {
+				window.location.href = `${window.location.origin}/sign_in`
+			}
+			return false
 		}
+		return true
 	}
 
 	async createUserWithEmailAndPassword(
 		email: string,
 		password: string,
 	): Promise<Firebase.auth.UserCredential> {
-		return await getFakeFirebaseCredentials(email, password)
+		const { token } = this.retrieve()
+		return await getFakeFirebaseCredentials(email, token)
 	}
 
 	onAuthStateChanged(
@@ -173,12 +197,11 @@ class PasswordAuth {
 
 		if (response.status === 200) {
 			const jsonResponse = await response.json()
-			sessionStorage.setItem('passwordToken', jsonResponse.token)
 
-			const user = makePasswordAuthUser(jsonResponse.user.email)
+			const user = this.makePasswordAuthUser(jsonResponse.user.email)
 			this.currentUser = user
 
-			sessionStorage.setItem('currentUser', JSON.stringify(user))
+			this.set({ user, token: jsonResponse.token })
 
 			return {
 				credential: {
@@ -195,13 +218,12 @@ class PasswordAuth {
 	async signInWithPopup(
 		provider: Firebase.auth.AuthProvider,
 	): Promise<Firebase.auth.UserCredential> {
-		return await getFakeFirebaseCredentials()
+		const { token } = this.retrieve()
+		return await getFakeFirebaseCredentials(undefined, token)
 	}
 
-	signOut(): Promise<void> {
-		sessionStorage.removeItem('passwordToken')
-		sessionStorage.removeItem('currentUser')
-		return Promise.resolve(undefined)
+	async signOut() {
+		localStorage.removeItem(PasswordAuth.Key)
 	}
 }
 

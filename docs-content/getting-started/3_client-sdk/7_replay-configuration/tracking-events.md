@@ -29,6 +29,17 @@ const ShoppingCard = ({ items }) => (
 )
 ```
 
+### Searching for Sessions by Event
+
+Once you are recording sessions with the track event, you can search for ones where the event
+is recorded by applying the `Event` key in the sessions filter.
+
+![session filter for track event](/images/docs/track-events.png)
+
+Then, within a session, you can view the track events in the timeline and in the right events feed, with the ability to jump to the exact moment the event occurred.
+
+![session filter for track event](/images/docs/track-event-2.png)
+
 ## API
 
 See the [Recording Network Requests and Responses](../../../sdk/client.md#Htrack) API documentation for more information on how to use it.

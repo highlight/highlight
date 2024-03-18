@@ -1,5 +1,27 @@
 # highlight.run
 
+## 8.8.0
+
+### Minor Changes
+
+-   23a01e3d6: update rrweb to pr-1352
+
+### Patch Changes
+
+-   6a8151dc3: fix console log serialization
+
+## 8.7.1
+
+### Patch Changes
+
+-   31486ce41: Deep stringify network request and response bodies
+
+## 8.7.0
+
+### Minor Changes
+
+-   e2483b6c3: inline stylesheets by default
+
 ## 8.6.0
 
 ### Minor Changes

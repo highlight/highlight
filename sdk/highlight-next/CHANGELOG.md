@@ -1,5 +1,46 @@
 # @highlight-run/next
 
+## 7.4.5
+
+### Patch Changes
+
+-   Updated dependencies [240143f9d]
+    -   @highlight-run/node@3.8.1
+
+## 7.4.4
+
+### Patch Changes
+
+-   c2b88ec32: Handling undefined NEXT_RUNTIME
+
+## 7.4.3
+
+### Patch Changes
+
+-   Updated dependencies [23a01e3d6]
+-   Updated dependencies [6a8151dc3]
+    -   highlight.run@8.8.0
+    -   @highlight-run/node@3.8.0
+
+## 7.4.2
+
+### Patch Changes
+
+-   Updated dependencies [31486ce41]
+    -   highlight.run@8.7.1
+    -   @highlight-run/node@3.8.0
+
+## 7.4.1
+
+### Patch Changes
+
+-   b70fb1a42: Moving js-cookie from devDependencies to dependencies
+-   Updated dependencies [e2483b6c3]
+-   Updated dependencies [062001317]
+    -   highlight.run@8.7.0
+    -   @highlight-run/cloudflare@2.1.5
+    -   @highlight-run/node@3.8.0
+
 ## 7.4.0
 
 ### Minor Changes

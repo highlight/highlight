@@ -1,5 +1,11 @@
 # @highlight-run/node
 
+## 3.8.1
+
+### Patch Changes
+
+-   240143f9d: Resolve node sdk issues from an OTel package version bump
+
 ## 3.8.0
 
 ### Minor Changes

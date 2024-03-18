@@ -49,6 +49,7 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 					disabled: errorLinkDisabled,
 					icon: <IconSolidLightningBolt />,
 					label: 'View errors',
+					trackingId: 'trace_related-error-button_click',
 					tooltip: displayErrorTooltip
 						? 'Some errors may be filtered out due to your ingestion filter settings or exceeding your billing quota. Please reach out with any questions.'
 						: '',
@@ -59,6 +60,7 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 					disabled: sessionLinkDisabled,
 					icon: <IconSolidPlayCircle />,
 					label: 'View session',
+					trackingId: 'trace_related-session-button_click',
 				},
 				{
 					key: 'logs',
@@ -66,6 +68,7 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 					disabled: logsLinkDisabled,
 					icon: <IconSolidLogs />,
 					label: 'View logs',
+					trackingId: 'trace_related-logs-button_click',
 				},
 			]}
 		/>

@@ -10,7 +10,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
-import { ErrorObject, Maybe, Project, Workspace } from '@graph/schemas'
+import { Maybe, Project, Workspace } from '@graph/schemas'
 import { Ariakit } from '@highlight-run/ui/components'
 import {
 	useLocalStorageProjectId,
@@ -112,7 +112,7 @@ export const ProjectRouter = () => {
 		?.pop()
 
 	const [rightPanelView, setRightPanelView] = useLocalStorage<RightPanelView>(
-		'tabs-right-panel-view',
+		'active-right-panel-view',
 		RightPanelView.Session,
 	)
 
@@ -123,10 +123,6 @@ export const ProjectRouter = () => {
 	const [activeEventIndex, setActiveEventIndex] = useState<number>(0)
 
 	const [searchItem, setSearchItem] = useState<string | undefined>('')
-
-	const [activeError, setActiveError] = useState<ErrorObject | undefined>(
-		undefined,
-	)
 
 	const [selectedRightPanelTab, setSelectedRightPanelTab] =
 		useLocalStorage<RightPlayerTab>(
@@ -151,8 +147,6 @@ export const ProjectRouter = () => {
 		setActiveEventIndex,
 		searchItem,
 		setSearchItem,
-		activeError,
-		setActiveError,
 		rightPanelView,
 		setRightPanelView,
 	}

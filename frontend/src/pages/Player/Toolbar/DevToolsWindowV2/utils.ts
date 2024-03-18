@@ -67,6 +67,7 @@ export type NetworkResource = NetworkResourceWithID &
 		requestResponsePairs?: RequestResponsePair
 		errors?: ErrorObject[]
 		offsetStartTime?: number
+		relativeStartTime: number
 	}
 
 /**

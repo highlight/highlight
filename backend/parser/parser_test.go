@@ -30,7 +30,7 @@ func TestComplexSqlForSearch(t *testing.T) {
 
 	assert.Equal(
 		t,
-		"SELECT * FROM t WHERE toString(SpanName) = 'Chris Schmitz' AND Duration > '1000' AND toString(Level) = 'info' AND (toString(Source) = 'backend' OR toString(Source) = 'frontend') AND ServiceName <> 'private-graph' AND toString(SpanName) = 'gorm.Query' AND ((SpanName <> 'testing' OR SpanName <> 'testing2') OR (SpanName ILIKE '%body query%' AND hasTokenCaseInsensitive(SpanName, 'asdf')))",
+		"SELECT * FROM t WHERE toString(SpanName) = 'Chris Schmitz' AND Duration > '1000' AND toString(Level) = 'info' AND (toString(Source) = 'backend' OR toString(Source) = 'frontend') AND NOT (toString(ServiceName) = 'private-graph') AND toString(SpanName) = 'gorm.Query' AND (NOT ((toString(SpanName) = 'testing' OR toString(SpanName) = 'testing2')) OR (SpanName ILIKE '%body query%' AND hasTokenCaseInsensitive(SpanName, 'asdf')))",
 		sql,
 	)
 }

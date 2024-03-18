@@ -5,6 +5,7 @@ import * as withHighlightEdge from './util/with-highlight-edge'
 import type { HighlightEnv } from './util/types'
 export { H } from './util/highlight-edge'
 export { highlightMiddleware } from './util/highlight-middleware'
+export { isNodeJsRuntime } from './util/is-node-js-runtime'
 
 export function registerHighlight() {}
 

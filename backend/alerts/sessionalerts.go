@@ -93,7 +93,6 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 	return &model.SessionAlert{
 		Alert: model.Alert{
 			ProjectID:            input.ProjectID,
-			OrganizationID:       input.ProjectID,
 			ExcludedEnvironments: envString,
 			CountThreshold:       input.CountThreshold,
 			ThresholdWindow:      &input.ThresholdWindow,

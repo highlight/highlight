@@ -325,7 +325,6 @@ const DevToolsWindowV2: React.FC<
 													levels: relevantLevelsForRequest,
 													sources,
 												})}
-												target="_blank"
 												style={{ display: 'flex' }}
 											>
 												<Button

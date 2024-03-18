@@ -15,11 +15,12 @@ type MessageTrace struct {
 }
 
 type Message struct {
-	Type       string         `json:"type"`
-	Trace      []MessageTrace `json:"trace"`
-	Value      []string       `json:"value"`
-	Attributes map[string]any `json:"attributes"`
-	Time       int64          `json:"time"`
+	Type             string         `json:"type"`
+	Trace            []MessageTrace `json:"trace"`
+	Value            []string       `json:"value"`
+	AttributesString string         `json:"attributes"`
+	Time             int64          `json:"time"`
+	Attributes       map[string]any
 }
 
 type Messages struct {
@@ -35,13 +36,16 @@ func ParseConsoleMessages(messages string) ([]*Message, error) {
 	var rows []*Message
 	for _, message := range messagesParsed.Messages {
 		msg := &Message{
-			Type:       message.Type,
-			Trace:      message.Trace,
-			Time:       message.Time,
-			Attributes: message.Attributes,
+			Type:             message.Type,
+			Trace:            message.Trace,
+			Time:             message.Time,
+			AttributesString: message.AttributesString,
+			Attributes:       map[string]any{},
 		}
-		if msg.Attributes == nil {
-			msg.Attributes = map[string]any{}
+		if message.AttributesString != "" {
+			if err := json.Unmarshal([]byte(msg.AttributesString), &msg.Attributes); err != nil {
+				return nil, e.Wrap(err, "error decoding message attributes")
+			}
 		}
 		var messageValue []string
 		for _, v := range message.Value {

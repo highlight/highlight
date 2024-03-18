@@ -415,7 +415,15 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 
 	return (
 		<Box width="full" display="flex" justifyContent="center">
-			<UpdatePlanModal step={step} setStep={setStep} />
+			<UpdatePlanModal
+				currentPlanType={
+					data?.billingDetails.plan.type === PlanType.Free
+						? PlanType.Graduated
+						: data?.billingDetails.plan.type ?? PlanType.Graduated
+				}
+				step={step}
+				setStep={setStep}
+			/>
 			<Stack height="full" px="8" cssClass={style.pageWrapper} gap="0">
 				<Stack>
 					<Heading level="h4">Billing plans</Heading>

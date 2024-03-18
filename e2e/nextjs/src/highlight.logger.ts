@@ -1,5 +1,6 @@
 import { highlightConfig } from '@/instrumentation'
 import type { LoggerOptions } from 'pino'
+import { isNodeJsRuntime } from '@highlight-run/next/server'
 
 const pinoConfig = {
 	level: 'debug',
@@ -18,7 +19,7 @@ const pinoConfig = {
 	},
 } as LoggerOptions
 
-if (process.env.NEXT_RUNTIME === 'nodejs') {
+if (isNodeJsRuntime()) {
 	const { H } = require('@highlight-run/node')
 	H.init(highlightConfig)
 }
