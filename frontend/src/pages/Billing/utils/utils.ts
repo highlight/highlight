@@ -9,6 +9,7 @@ import {
 	PlanType,
 	ProductType,
 	RetentionPeriod,
+	Workspace,
 } from '../../../graph/generated/schemas'
 
 /**
@@ -68,7 +69,8 @@ export const RETENTION_PERIOD_LABELS: { [K in RetentionPeriod]: string } = {
 	[RetentionPeriod.ThreeYears]: '3 year retention',
 }
 
-export const getMeterAmounts = (
+type meterArgs = {
+	workspace: Workspace
 	details:
 		| Maybe<
 				{ __typename?: 'BillingDetails' } & Pick<
@@ -100,8 +102,13 @@ export const getMeterAmounts = (
 					}
 		  >
 		| undefined
-		| null,
-): { [K in ProductType]: [number, number | undefined] } => {
+		| null
+}
+
+export const getMeterAmounts = ({
+	details,
+	workspace,
+}: meterArgs): { [K in ProductType]: [number, number | undefined] } => {
 	if (!details) {
 		return {
 			[ProductType.Sessions]: [0, undefined],
@@ -110,7 +117,10 @@ export const getMeterAmounts = (
 			[ProductType.Traces]: [0, undefined],
 		}
 	}
-	const canChargeOverage = details.plan.type !== 'Free'
+	const trialEndDate = workspace.trial_end_date
+		? undefined
+		: moment(workspace.trial_end_date).isAfter(moment())
+	const canChargeOverage = trialEndDate || details.plan.type !== 'Free'
 	const sessionsMeter = details?.meter ?? 0
 	const sessionsQuota = details?.sessionsBillingLimit
 		? details.sessionsBillingLimit
@@ -146,7 +156,10 @@ export const getMeterAmounts = (
 export const getQuotaPercents = (
 	data: GetBillingDetailsForProjectQuery,
 ): [ProductType, number][] => {
-	const amts = getMeterAmounts(data.billingDetailsForProject)
+	const amts = getMeterAmounts({
+		workspace: data.workspace_for_project,
+		details: data.billingDetailsForProject,
+	})
 	const sessionAmts = amts[ProductType.Sessions]
 	const errorAmts = amts[ProductType.Errors]
 	const logAmts = amts[ProductType.Logs]
