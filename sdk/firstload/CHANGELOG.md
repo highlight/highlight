@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.9.0
+
+### Minor Changes
+
+-   f45323273: Update websocket events to use absolute timestamps. Remove relative timestamps from all requests.
+
 ## 8.8.0
 
 ### Minor Changes
