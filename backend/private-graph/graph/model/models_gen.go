@@ -987,6 +987,7 @@ type WorkspaceForInviteLink struct {
 	WorkspaceID     int        `json:"workspace_id"`
 	WorkspaceName   string     `json:"workspace_name"`
 	ExistingAccount bool       `json:"existing_account"`
+	ProjectID       int        `json:"project_id"`
 }
 
 type DashboardChartType string

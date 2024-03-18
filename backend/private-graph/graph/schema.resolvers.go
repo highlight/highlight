@@ -7511,6 +7511,11 @@ func (r *queryResolver) WorkspaceForInviteLink(ctx context.Context, secret strin
 		return nil, e.Wrap(err, "error querying workspace for invite link")
 	}
 
+	var projectId int
+	if err := r.DB.Model(&model.Project{}).Select("id").Where("workspace_id = ?", workspace.ID).Order("id ASC").First(&projectId).Error; err != nil {
+		return nil, e.Wrap(err, "error querying associated project")
+	}
+
 	var admin *model.Admin
 	if workspaceInviteLink.InviteeEmail != nil {
 		if err := r.DB.WithContext(ctx).Model(&model.Admin{Email: workspaceInviteLink.InviteeEmail}).Take(&admin).Error; err != nil {
@@ -7525,6 +7530,7 @@ func (r *queryResolver) WorkspaceForInviteLink(ctx context.Context, secret strin
 		WorkspaceID:     workspace.ID,
 		WorkspaceName:   *workspace.Name,
 		ExistingAccount: admin != nil,
+		ProjectID:       projectId,
 	}
 
 	return workspaceForInvite, nil
