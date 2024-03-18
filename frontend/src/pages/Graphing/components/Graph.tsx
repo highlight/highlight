@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
 	Area,
 	AreaChart,
+	BarChart as RechartsBarChart,
 	CartesianGrid,
 	ResponsiveContainer,
 	XAxis,
@@ -36,7 +37,28 @@ export type LineChartConfig = {
 	nullHandling?: NullHandling
 }
 
-export type ViewConfig = LineChartConfig
+export type BarChartConfig = {
+	type: 'Bar chart'
+}
+
+export type PieChartConfig = {
+	type: 'Pie chart'
+}
+
+export type TableConfig = {
+	type: 'Table'
+}
+
+export type ListConfig = {
+	type: 'List'
+}
+
+export type ViewConfig =
+	| LineChartConfig
+	| BarChartConfig
+	| PieChartConfig
+	| TableConfig
+	| ListConfig
 
 interface Props<TConfig> {
 	data: any[] | undefined
@@ -237,6 +259,96 @@ const LineChart = ({
 	)
 }
 
+const BarChart = ({
+	data,
+	xAxisMetric,
+	yAxisMetric,
+	series,
+	spotlight,
+	viewConfig,
+}: Props<BarChartConfig> & SeriesInfo) => {
+	const xAxisTickFormatter = getFormatter(xAxisMetric)
+	const yAxisTickFormatter = getFormatter(yAxisMetric)
+	return (
+		<ResponsiveContainer>
+			<RechartsBarChart data={data}>
+				<XAxis
+					dataKey={xAxisMetric}
+					fontSize={10}
+					tick={(props: any) => (
+						<CustomXAxisTick
+							x={props.x}
+							y={props.y}
+							payload={props.payload}
+							tickFormatter={xAxisTickFormatter}
+						/>
+					)}
+					tickFormatter={xAxisTickFormatter}
+					tickLine={{ visibility: 'hidden' }}
+					axisLine={{ visibility: 'hidden' }}
+					height={12}
+					type="number"
+					domain={['auto', 'auto']}
+				/>
+
+				<YAxis
+					fontSize={10}
+					tickLine={{ visibility: 'hidden' }}
+					axisLine={{ visibility: 'hidden' }}
+					tick={(props: any) => (
+						<CustomYAxisTick
+							y={props.y}
+							payload={props.payload}
+							tickFormatter={yAxisTickFormatter}
+						/>
+					)}
+					tickFormatter={yAxisTickFormatter}
+					tickCount={7}
+					width={32}
+					type="number"
+				/>
+
+				<CartesianGrid
+					strokeDasharray=""
+					vertical={false}
+					stroke="var(--color-gray-200)"
+				/>
+
+				{series.length > 0 &&
+					series.map((key, idx) => {
+						if (!isActive(spotlight, idx)) {
+							return null
+						}
+
+						return (
+							<Area
+								isAnimationActive={false}
+								key={key}
+								dataKey={key}
+								// stackId={
+								// 	viewConfig.display === 'Stacked area'
+								// 		? 1
+								// 		: idx
+								// }
+								strokeWidth="2px"
+								stroke={strokeColors[idx % strokeColors.length]}
+								fill={strokeColors[idx % strokeColors.length]}
+								// fillOpacity={
+								// 	viewConfig.display === 'Stacked area'
+								// 		? 0.1
+								// 		: 0
+								// }
+								// connectNulls={
+								// 	viewConfig.nullHandling === 'Connected'
+								// }
+							/>
+						)
+					})}
+			</RechartsBarChart>
+		</ResponsiveContainer>
+	)
+}
+
 const Graph = ({
 	data,
 	xAxisMetric,
@@ -265,6 +377,17 @@ const Graph = ({
 		case 'Line chart':
 			innerChart = (
 				<LineChart
+					data={data}
+					xAxisMetric={xAxisMetric}
+					yAxisMetric={yAxisMetric}
+					viewConfig={viewConfig}
+					series={series}
+					spotlight={spotlight}
+				/>
+			)
+		case 'Bar chart':
+			innerChart = (
+				<BarChart
 					data={data}
 					xAxisMetric={xAxisMetric}
 					yAxisMetric={yAxisMetric}

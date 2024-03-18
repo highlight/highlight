@@ -400,7 +400,7 @@ export const GraphingEditor = () => {
 								xAxisMetric={bucketByKey}
 								yAxisMetric={metric}
 								viewConfig={{
-									type: 'Line chart',
+									type: viewType,
 									display: lineDisplay,
 									nullHandling: nullHandling,
 								}}
