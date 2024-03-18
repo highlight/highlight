@@ -30,8 +30,10 @@ export interface WebSocketRequest {
 	initiatorType: 'websocket'
 	type: 'open' | 'close'
 	name: string
-	startTime?: number
-	requestEnd?: number
+	// provided in open event type
+	startTimeAbs?: number
+	// provided in close event type (may not exist)
+	responseEndAbs?: number
 }
 
 export interface WebSocketEvent {

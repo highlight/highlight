@@ -17,8 +17,8 @@ import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
 import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import analytics from '@util/analytics'
-import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
+import moment from 'moment'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
@@ -164,12 +164,19 @@ function NetworkResourceDetails({
 
 	const networkResources = useMemo(() => {
 		return (
-			(resources.map((event) => ({
-				...event,
-				timestamp: event.startTime,
-			})) as NetworkResource[]) ?? []
+			(resources.map((event) => {
+				// startTime used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
+				const resourceStartTime = event.startTimeAbs
+					? event.startTimeAbs - startTime
+					: event.startTime
+
+				return {
+					...event,
+					timestamp: resourceStartTime,
+				}
+			}) as NetworkResource[]) ?? []
 		)
-	}, [resources])
+	}, [resources, startTime])
 
 	const resourceIdx = resources.findIndex(
 		(r) => activeNetworkResourceId === r.id,
@@ -181,8 +188,11 @@ function NetworkResourceDetails({
 
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 	const timestamp = useMemo(() => {
-		return new Date(resource.startTime).getTime()
-	}, [resource.startTime])
+		// startTime used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
+		return resource.startTimeAbs
+			? resource.startTimeAbs - startTime
+			: new Date(resource.startTime).getTime()
+	}, [resource.startTime, resource.startTimeAbs, startTime])
 
 	const pages = useMemo(() => {
 		const tabPages: any = {
@@ -302,14 +312,13 @@ function NetworkResourceDetails({
 
 				<Box display="flex" alignItems="center" gap="4">
 					<Badge
-						label={String(
+						label={
 							showPlayerAbsoluteTime
-								? playerTimeToSessionAbsoluteTime({
-										sessionStartTime: startTime,
-										relativeTime: timestamp,
-								  })
-								: MillisToMinutesAndSeconds(timestamp),
-						)}
+								? moment(resource.timestamp).format('h:mm:ss A')
+								: MillisToMinutesAndSeconds(
+										resource.relativeStartTime,
+								  )
+						}
 						size="medium"
 						shape="basic"
 						variant="gray"
@@ -368,12 +377,19 @@ function WebSocketDetails({
 
 	const networkResources = useMemo(() => {
 		return (
-			(resources.map((event) => ({
-				...event,
-				timestamp: event.startTime,
-			})) as NetworkResource[]) ?? []
+			(resources.map((event) => {
+				// startTime used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
+				const resourceStartTime = event.startTimeAbs
+					? event.startTimeAbs - startTime
+					: event.startTime
+
+				return {
+					...event,
+					timestamp: resourceStartTime,
+				}
+			}) as NetworkResource[]) ?? []
 		)
-	}, [resources])
+	}, [resources, startTime])
 
 	const resourceIdx = resources.findIndex(
 		(r) => activeNetworkResourceId === r.id,
@@ -385,8 +401,11 @@ function WebSocketDetails({
 
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 	const timestamp = useMemo(() => {
-		return new Date(resource.startTime).getTime()
-	}, [resource.startTime])
+		// startTime used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
+		return resource.startTimeAbs
+			? resource.startTimeAbs - startTime
+			: new Date(resource.startTime).getTime()
+	}, [resource.startTime, resource.startTimeAbs, startTime])
 
 	const { webSocketEvents, webSocketLoading } = useWebSocket(session)
 
@@ -489,14 +508,13 @@ function WebSocketDetails({
 
 				<Box display="flex" alignItems="center" gap="4">
 					<Badge
-						label={String(
+						label={
 							showPlayerAbsoluteTime
-								? playerTimeToSessionAbsoluteTime({
-										sessionStartTime: startTime,
-										relativeTime: timestamp,
-								  })
-								: MillisToMinutesAndSeconds(timestamp),
-						)}
+								? moment(resource.timestamp).format('h:mm:ss A')
+								: MillisToMinutesAndSeconds(
+										resource.relativeStartTime,
+								  )
+						}
 						size="medium"
 						shape="basic"
 						variant="gray"
