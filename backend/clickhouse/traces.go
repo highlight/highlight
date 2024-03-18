@@ -360,8 +360,8 @@ func getTracesFromRows(rows driver.Rows) ([]*modelInputs.Trace, error) {
 
 	// Order by timestamp
 	// Doing this in code rather than Clickhouse so Clickhouse will use the `traceId` projection
-	slices.SortFunc(traces, func(a *modelInputs.Trace, b *modelInputs.Trace) bool {
-		return a.Timestamp.Before(b.Timestamp)
+	slices.SortFunc(traces, func(a *modelInputs.Trace, b *modelInputs.Trace) int {
+		return a.Timestamp.Compare(b.Timestamp)
 	})
 
 	if rows.Err() != nil {

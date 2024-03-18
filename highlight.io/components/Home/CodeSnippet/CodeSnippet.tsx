@@ -40,12 +40,14 @@ export const CodeSnippet = ({
 				)}
 				<CodeBlock
 					theme={highlightCodeTheme}
-					customStyle={{
-						backgroundColor: 'transparent',
-						padding: 0,
-						margin: 0,
-						overflow: 'scroll',
-					}}
+					customStyle={
+						{
+							backgroundColor: 'transparent',
+							padding: 0,
+							margin: 0,
+							overflow: 'scroll',
+						} as any
+					}
 					text={content}
 					showLineNumbers={false}
 					{...props}

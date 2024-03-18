@@ -1,5 +1,35 @@
 # @highlight-run/next
 
+## 7.4.6
+
+### Patch Changes
+
+-   Updated dependencies [f45323273]
+    -   highlight.run@8.9.0
+    -   @highlight-run/node@3.8.1
+
+## 7.4.5
+
+### Patch Changes
+
+-   Updated dependencies [240143f9d]
+    -   @highlight-run/node@3.8.1
+
+## 7.4.4
+
+### Patch Changes
+
+-   c2b88ec32: Handling undefined NEXT_RUNTIME
+
+## 7.4.3
+
+### Patch Changes
+
+-   Updated dependencies [23a01e3d6]
+-   Updated dependencies [6a8151dc3]
+    -   highlight.run@8.8.0
+    -   @highlight-run/node@3.8.0
+
 ## 7.4.2
 
 ### Patch Changes

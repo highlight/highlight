@@ -10,7 +10,7 @@
 	"devDependencies": {
 		"@aws-sdk/client-s3": "^3.198.0",
 		"@types/yargs": "^17.0.13",
-		"semver": "^7.3.8",
+		"semver": "^7.6.0",
 		"tsx": "^4.7.0",
 		"yargs": "^17.6.0"
 	}

@@ -26,7 +26,7 @@
 				"doppler",
 				"run",
 				"--",
-				"/bin/backend",
+				"/build/backend",
 				"-runtime=public-graph"
 			],
 			"linuxParameters": null,

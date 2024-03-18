@@ -56,10 +56,6 @@ export const TracePanel: React.FC = () => {
 		)
 	}
 
-	useHotkeys('esc', () => {
-		traceDialogStore.hide()
-	})
-
 	useHotkeys(
 		'j',
 		() => {

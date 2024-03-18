@@ -61,6 +61,8 @@ A canvas may fail to be recorded (recorded as a transparent image) because of We
 double buffering. The canvas is not accessible from the javascript thread because it may
 no longer be loaded in memory, despite being rendered by the GPU (see this [chrome bug report](https://bugs.chromium.org/p/chromium/issues/detail?id=838108) for additional context). 
 
+If you can avoid using `preserveDrawingBuffer`, automatic snapshotting should work correctly. In libraries, this is often configured via a `renderMode="always"` or similar setting.
+
 Manual snapshotting hooks into your WebGL render function to call `H.snapshot(canvas)` after
 you paint to the WebGL context. To set this up, pass the following options to highlight first:
 
@@ -84,7 +86,11 @@ engine.runRenderLoop(() => {
 })
 ```
 
-Libraries like Three.js export an [onAfterRender](https://threejs.org/docs/#api/en/core/Object3D.onAfterRender) method that you can use to call `H.snapshot`.
+### WebGL Render Libraries
+
+Three.js exports an [onAfterRender](https://threejs.org/docs/#api/en/core/Object3D.onAfterRender) method that you can use to call `H.snapshot`. You should use it at the highest-order rendered component to capture as much of the rendered canvas as possible. Otherwise, your recording may show the canvas mid-way through rendering.
+
+Setting up snapshotting for [react-three-fiber](https://docs.pmnd.rs/react-three-fiber) is similar via the `onAfterRender` method exposed on the base Three.js components. Snapshotting may be possible using the [useFrame](https://docs.pmnd.rs/react-three-fiber/api/hooks#taking-over-the-render-loop) hook with manual rendering, but you will have to control the render order to make sure `H.snapshot` is called last. See [our example app that uses react-three-fiber](https://github.com/highlight/highlight/tree/main/e2e/react-three-vite) for more details.
 
 ## Webcam Recording and Inlining Video Resources
 

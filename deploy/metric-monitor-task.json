@@ -25,7 +25,7 @@
 				"doppler",
 				"run",
 				"--",
-				"/bin/backend",
+				"/build/backend",
 				"-runtime=worker",
 				"-worker-handler=metric-monitors"
 			],

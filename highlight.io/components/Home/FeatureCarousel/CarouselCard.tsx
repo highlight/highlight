@@ -90,7 +90,7 @@ const CarouselFeatures = ({ feature }: { feature: Feature }) => {
 											language={'bash'}
 											text={line}
 											theme={codeTheme}
-											wrapLines
+											wrapLongLines
 										/>
 									</div>
 									{index != feature.code!.length - 1 && (

@@ -1645,6 +1645,7 @@ type WorkspaceForInviteLink {
 	workspace_id: ID!
 	workspace_name: String!
 	existing_account: Boolean!
+	project_id: ID!
 }
 
 type SessionPayload {

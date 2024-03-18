@@ -22,6 +22,7 @@ type ClickhouseErrorGroup struct {
 	CreatedAt           int64
 	UpdatedAt           int64
 	ID                  int64
+	SecureID            string
 	Event               string
 	Status              string
 	Type                string
@@ -64,6 +65,7 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 			CreatedAt: group.CreatedAt.UTC().UnixMicro(),
 			UpdatedAt: group.UpdatedAt.UTC().UnixMicro(),
 			ID:        int64(group.ID),
+			SecureID:  group.SecureID,
 			Event:     group.Event,
 			Status:    string(group.State),
 			Type:      group.Type,
@@ -160,7 +162,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 	return nil
 }
 
-func getErrorQueryImpl(tableName string, selectColumns string, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
+func getErrorQueryImpl(tableName string, selectColumns string, query modelInputs.ClickhouseQuery, projectId int, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
 	rules, err := deserializeRules(query.Rules)
 	if err != nil {
 		return "", nil, err
@@ -205,7 +207,7 @@ func (client *Client) QueryErrorGroupIds(ctx context.Context, projectId int, cou
 	}
 	offset := (pageInt - 1) * count
 
-	sql, args, err := getErrorQueryImpl(ErrorGroupsTable, "ID, count() OVER() AS total", query, projectId, retentionDate, nil, pointy.String("UpdatedAt DESC, ID DESC"), pointy.Int(count), pointy.Int(offset))
+	sql, args, err := getErrorQueryImpl(ErrorGroupsTable, "ID, count() OVER() AS total", query, projectId, nil, pointy.String("UpdatedAt DESC, ID DESC"), pointy.Int(count), pointy.Int(offset))
 	if err != nil {
 		return nil, 0, err
 	}
@@ -529,7 +531,7 @@ func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, qu
 
 	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
 
-	sql, args, err := getErrorQueryImpl(ErrorObjectsTable, selectCols, query, projectId, retentionDate, pointy.String("1"), &orderBy, nil, nil)
+	sql, args, err := getErrorQueryImpl(ErrorObjectsTable, selectCols, query, projectId, pointy.String("1"), &orderBy, nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}

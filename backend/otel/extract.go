@@ -209,6 +209,10 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 		delete(fields.attrs, highlight.RequestIDAttribute)
 	}
 
+	if val, ok := fields.attrs[highlight.LogSeverityDefaultAttribute]; ok {
+		fields.logSeverity = val
+		delete(fields.attrs, highlight.LogSeverityDefaultAttribute)
+	}
 	if val, ok := fields.attrs[highlight.LogSeverityAttribute]; ok {
 		fields.logSeverity = val
 		delete(fields.attrs, highlight.LogSeverityAttribute)

@@ -1,9 +1,9 @@
 import '@fontsource/poppins'
-import '@highlight-run/rrweb/dist/rrweb.min.css'
 import '@highlight-run/ui/styles.css'
 import './index.css'
 import './style/tailwind.css'
 import './__generated/antd.css'
+import 'rrweb/dist/rrweb.min.css'
 
 import { ApolloError, ApolloProvider } from '@apollo/client'
 import { AuthContextProvider, AuthRole } from '@authentication/AuthContext'
@@ -46,7 +46,7 @@ import {
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
-import { AUTH_MODE, PUBLIC_GRAPH_URI } from '@/constants'
+import { PUBLIC_GRAPH_URI } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
@@ -286,14 +286,6 @@ const AuthenticationRoleRouter = () => {
 	const firebaseInitialized = useRef(false)
 	const isAuthLoading = authRole === AuthRole.LOADING
 	const isLoggedIn = authRole === AuthRole.AUTHENTICATED
-
-	useEffect(() => {
-		const hasPasswordAuthorization = sessionStorage.getItem('passwordToken')
-		if (AUTH_MODE === 'password' && !hasPasswordAuthorization) {
-			auth.signOut()
-			navigate('/sign_in')
-		}
-	}, [navigate])
 
 	useEffect(() => {
 		if (adminData && user) {

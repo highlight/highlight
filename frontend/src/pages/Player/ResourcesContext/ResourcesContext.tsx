@@ -24,6 +24,8 @@ interface ResourcesContext {
 }
 
 interface NetworkResource extends PerformanceResourceTiming {
+	startTimeAbs: number
+	responseEndAbs: number
 	// http specific
 	requestResponsePairs?: RequestResponsePair
 	displayName?: string
@@ -62,18 +64,33 @@ const buildResources = (resources: NetworkResource[]) => {
 	})
 
 	return indexResources
-		.sort((a, b) => a.startTime - b.startTime)
+		.sort((a, b) => {
+			if (!!a.startTimeAbs && !!b.startTimeAbs) {
+				return a.startTimeAbs - b.startTimeAbs
+			} else {
+				// used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
+				return a.startTime - b.startTime
+			}
+		})
 		.map((resource: NetworkResourceWithID) => {
 			const resolverName = getGraphQLResolverName(resource)
 
+			const updatedResource = { ...resource }
+
 			if (resolverName) {
-				return {
-					...resource,
-					displayName: `${resolverName} (${resource.name})`,
-				}
+				updatedResource.displayName = `${resolverName} (${resource.name})`
 			}
 
-			return resource
+			if (resource.startTimeAbs && resource.responseEndAbs) {
+				updatedResource.duration =
+					resource.responseEndAbs - resource.startTimeAbs
+			} else if (resource.responseEnd && resource.startTime) {
+				// used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
+				updatedResource.duration =
+					resource.responseEnd - resource.startTime
+			}
+
+			return updatedResource
 		})
 }
 

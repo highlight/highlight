@@ -1,4 +1,4 @@
-// ../rrweb/packages/types/dist/rrweb-types.js
+// ../rrweb/packages/types/dist/types.js
 var EventType = /* @__PURE__ */ ((EventType2) => {
   EventType2[EventType2["DomContentLoaded"] = 0] = "DomContentLoaded";
   EventType2[EventType2["Load"] = 1] = "Load";
@@ -26,6 +26,7 @@ var IncrementalSource = /* @__PURE__ */ ((IncrementalSource2) => {
   IncrementalSource2[IncrementalSource2["StyleDeclaration"] = 13] = "StyleDeclaration";
   IncrementalSource2[IncrementalSource2["Selection"] = 14] = "Selection";
   IncrementalSource2[IncrementalSource2["AdoptedStyleSheet"] = 15] = "AdoptedStyleSheet";
+  IncrementalSource2[IncrementalSource2["CustomElement"] = 16] = "CustomElement";
   return IncrementalSource2;
 })(IncrementalSource || {});
 var MouseInteractions = /* @__PURE__ */ ((MouseInteractions2) => {
@@ -42,6 +43,12 @@ var MouseInteractions = /* @__PURE__ */ ((MouseInteractions2) => {
   MouseInteractions2[MouseInteractions2["TouchCancel"] = 10] = "TouchCancel";
   return MouseInteractions2;
 })(MouseInteractions || {});
+var PointerTypes = /* @__PURE__ */ ((PointerTypes2) => {
+  PointerTypes2[PointerTypes2["Mouse"] = 0] = "Mouse";
+  PointerTypes2[PointerTypes2["Pen"] = 1] = "Pen";
+  PointerTypes2[PointerTypes2["Touch"] = 2] = "Touch";
+  return PointerTypes2;
+})(PointerTypes || {});
 var CanvasContext = /* @__PURE__ */ ((CanvasContext2) => {
   CanvasContext2[CanvasContext2["2D"] = 0] = "2D";
   CanvasContext2[CanvasContext2["WebGL"] = 1] = "WebGL";
@@ -82,5 +89,6 @@ export {
   IncrementalSource,
   MediaInteractions,
   MouseInteractions,
+  PointerTypes,
   ReplayerEvents
 };

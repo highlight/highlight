@@ -10,18 +10,18 @@ import (
 )
 
 type BackendErrorObjectInput struct {
-	SessionSecureID *string       `json:"session_secure_id"`
-	RequestID       *string       `json:"request_id"`
-	TraceID         *string       `json:"trace_id"`
-	SpanID          *string       `json:"span_id"`
-	LogCursor       *string       `json:"log_cursor"`
+	SessionSecureID *string       `json:"session_secure_id,omitempty"`
+	RequestID       *string       `json:"request_id,omitempty"`
+	TraceID         *string       `json:"trace_id,omitempty"`
+	SpanID          *string       `json:"span_id,omitempty"`
+	LogCursor       *string       `json:"log_cursor,omitempty"`
 	Event           string        `json:"event"`
 	Type            string        `json:"type"`
 	URL             string        `json:"url"`
 	Source          string        `json:"source"`
 	StackTrace      string        `json:"stackTrace"`
 	Timestamp       time.Time     `json:"timestamp"`
-	Payload         *string       `json:"payload"`
+	Payload         *string       `json:"payload,omitempty"`
 	Service         *ServiceInput `json:"service"`
 	Environment     string        `json:"environment"`
 }
@@ -35,7 +35,7 @@ type ErrorObjectInput struct {
 	ColumnNumber int                `json:"columnNumber"`
 	StackTrace   []*StackFrameInput `json:"stackTrace"`
 	Timestamp    time.Time          `json:"timestamp"`
-	Payload      *string            `json:"payload"`
+	Payload      *string            `json:"payload,omitempty"`
 }
 
 type InitializeSessionResponse struct {
@@ -45,20 +45,23 @@ type InitializeSessionResponse struct {
 
 type MetricInput struct {
 	SessionSecureID string       `json:"session_secure_id"`
-	SpanID          *string      `json:"span_id"`
-	ParentSpanID    *string      `json:"parent_span_id"`
-	TraceID         *string      `json:"trace_id"`
-	Group           *string      `json:"group"`
+	SpanID          *string      `json:"span_id,omitempty"`
+	ParentSpanID    *string      `json:"parent_span_id,omitempty"`
+	TraceID         *string      `json:"trace_id,omitempty"`
+	Group           *string      `json:"group,omitempty"`
 	Name            string       `json:"name"`
 	Value           float64      `json:"value"`
-	Category        *string      `json:"category"`
+	Category        *string      `json:"category,omitempty"`
 	Timestamp       time.Time    `json:"timestamp"`
-	Tags            []*MetricTag `json:"tags"`
+	Tags            []*MetricTag `json:"tags,omitempty"`
 }
 
 type MetricTag struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
+}
+
+type Mutation struct {
 }
 
 type ReplayEventInput struct {
@@ -78,14 +81,14 @@ type ServiceInput struct {
 }
 
 type StackFrameInput struct {
-	FunctionName *string       `json:"functionName"`
-	Args         []interface{} `json:"args"`
-	FileName     *string       `json:"fileName"`
-	LineNumber   *int          `json:"lineNumber"`
-	ColumnNumber *int          `json:"columnNumber"`
-	IsEval       *bool         `json:"isEval"`
-	IsNative     *bool         `json:"isNative"`
-	Source       *string       `json:"source"`
+	FunctionName *string       `json:"functionName,omitempty"`
+	Args         []interface{} `json:"args,omitempty"`
+	FileName     *string       `json:"fileName,omitempty"`
+	LineNumber   *int          `json:"lineNumber,omitempty"`
+	ColumnNumber *int          `json:"columnNumber,omitempty"`
+	IsEval       *bool         `json:"isEval,omitempty"`
+	IsNative     *bool         `json:"isNative,omitempty"`
+	Source       *string       `json:"source,omitempty"`
 }
 
 type PublicGraphError string

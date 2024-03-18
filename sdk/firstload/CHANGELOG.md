@@ -1,5 +1,21 @@
 # highlight.run
 
+## 8.9.0
+
+### Minor Changes
+
+-   f45323273: Update websocket events to use absolute timestamps. Remove relative timestamps from all requests.
+
+## 8.8.0
+
+### Minor Changes
+
+-   23a01e3d6: update rrweb to pr-1352
+
+### Patch Changes
+
+-   6a8151dc3: fix console log serialization
+
 ## 8.7.1
 
 ### Patch Changes

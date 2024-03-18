@@ -7,7 +7,9 @@ import { PanelHeader } from '@/components/RelatedResources/PanelHeader'
 
 import * as styles from './Panel.css'
 
+// Numbers are percentages
 const MIN_PANEL_WIDTH = 40
+const MAX_PANEL_WIDTH = 85
 
 type Props = React.PropsWithChildren<{
 	open: boolean
@@ -38,7 +40,10 @@ export const Panel: PanelComponent = ({ children, open }) => {
 					((window.innerWidth - e.clientX) / window.innerWidth) * 100
 
 				setPanelWidth(
-					newWidth > MIN_PANEL_WIDTH ? newWidth : MIN_PANEL_WIDTH,
+					Math.min(
+						Math.max(newWidth, MIN_PANEL_WIDTH),
+						MAX_PANEL_WIDTH,
+					),
 				)
 			}
 		},
@@ -76,14 +81,21 @@ export const Panel: PanelComponent = ({ children, open }) => {
 			store={dialogStore}
 			modal={false}
 			autoFocusOnShow={false}
+			hideOnEscape={true}
 			backdrop={<Box cssClass={styles.backdrop} />}
 			className={styles.panel}
 			style={{ width: `${panelWidth}%` }}
+			// unmountOnHide is required for this to work as expected when it's being
+			// rendered on top of another dialog.
+			unmountOnHide
 		>
 			<Box
 				ref={dragHandleRef}
 				cssClass={styles.panelDragHandle}
-				onMouseDown={() => setDragging(true)}
+				onMouseDown={(e) => {
+					e.preventDefault()
+					setDragging(true)
+				}}
 			/>
 
 			{children}
