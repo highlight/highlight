@@ -28,39 +28,28 @@ import {
 } from '../../components/Pricing/estimator_details'
 
 const PricingPage: NextPage = () => {
-	const [estimatorCategory, setEstimatorCategory] = useState(
-		priceTiers.Professional,
-	)
+	const [estimatorCategory, setEstimatorCategory] = useState<
+		'Professional' | 'Enterprise' | 'SelfHost'
+	>('Professional')
 
 	return (
 		<div>
 			<Navbar />
-			<div className="flex flex-col w-full px-10 mx-auto my-24">
-				<div className="flex flex-col items-center text-center gap-9">
+			<div className="w-full px-10 mx-auto my-24">
+				<div className="flex justify-center">
 					<h1 className="max-w-3xl my-0">Pricing plans</h1>
 				</div>
 				<PlanTable />
 			</div>
-			<div
-				className="flex flex-col items-center my-32 text-center gap-9"
-				id="overage"
-			>
-				{/* Pay as you go */}
-				<h2>
-					Pay{' '}
-					<span className="text-highlight-yellow">as you go.</span>
-				</h2>
-				<Typography type="copy1" onDark className="max-w-4xl">
-					After reaching the free tier limits, we charge an additional
-					usage-based fee for each product. The $50 base fee unlocks
-					discounted volume pricing automatically. For custom plans,{' '}
-					<a href="mailto:sales@highlight.io">reach out to us</a>.
-				</Typography>
+			<div className="flex justify-center my-16" id="overage">
+				<h2>Estimate your bill</h2>
 			</div>
-			<PriceCalculator
-				prices={estimatorCategory.prices}
-				setEstimatorCategory={setEstimatorCategory}
-			/>
+			<div className="my-16">
+				<PriceCalculator
+					pricingTier={priceTiers[estimatorCategory]}
+					setEstimatorCategory={setEstimatorCategory}
+				/>
+			</div>
 			<FooterCallToAction />
 			<Footer />
 		</div>
@@ -189,7 +178,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 			},
 		],
 		buttonLabel: 'Contact Us',
-		buttonLink: '',
+		buttonLink: 'mailto:sales@highlight.io',
 		calculateUsage: true,
 	},
 	SelfHost: {
@@ -305,16 +294,16 @@ const formatPrice = (
 	})
 
 const PriceCalculator = ({
-	prices,
+	pricingTier,
 	setEstimatorCategory,
 }: {
-	prices: Prices
-	setEstimatorCategory: (value: PricingTier) => void
+	pricingTier: PricingTier
+	setEstimatorCategory: (value: any) => void
 }) => {
-	const defaultErrors = prices.Errors.free
-	const defaultLogs = prices.Logs.free
-	const defaultTraces = prices.Traces.free
-	const defaultSessions = prices.Sessions.free
+	const defaultErrors = pricingTier.prices.Errors.free
+	const defaultLogs = pricingTier.prices.Logs.free
+	const defaultTraces = pricingTier.prices.Traces.free
+	const defaultSessions = pricingTier.prices.Sessions.free
 
 	const [errorUsage, setErrorUsage] = useState<number>(defaultErrors)
 	const [sessionUsage, setSessionUsage] = useState<number>(defaultSessions)
@@ -330,7 +319,7 @@ const PriceCalculator = ({
 		product: 'Sessions' | 'Errors' | 'Logs' | 'Traces',
 		retention: Retention,
 	) => {
-		const cost = prices[product]
+		const cost = pricingTier.prices[product]
 		let remainder = usage - cost.free
 		let tier = 0
 		let price = 0
@@ -355,7 +344,7 @@ const PriceCalculator = ({
 		]
 	}
 
-	const base = prices.monthlyPrice
+	const base = pricingTier.prices.monthlyPrice
 
 	const [errorsCost, errorsRate] = getUsagePrice(
 		errorUsage - defaultErrors,
@@ -378,16 +367,142 @@ const PriceCalculator = ({
 		'30 days',
 	)
 
+	const getCosts = () => {
+		return {
+			'Plan base fee': base,
+			'Session usage': sessionsCost,
+		}
+	}
+
 	return (
 		<div className="flex justify-center w-full">
 			{/* Price calculator */}
 			<div className="flex items-center">
+				<div className="flex flex-col justify-between w-[320px] h-full border-y-[1px] border-l-[1px] border-divider-on-dark rounded-l-lg p-4">
+					<div className="w-full">
+						<ListboxOptions
+							options={
+								setEstimatorCategory !== undefined
+									? ['Professional', 'Enterprise', 'SelfHost']
+									: ['']
+							}
+							value={pricingTier.label}
+							onChange={setEstimatorCategory}
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<div className="flex flex-col gap-1">
+							<div className="flex justify-between">
+								<Typography
+									type="copy3"
+									className="text-darker-copy-on-dark"
+								>
+									Plan base fee
+								</Typography>
+								<Typography
+									type="copy3"
+									className="text-darker-copy-on-dark"
+									emphasis
+								>
+									${base}
+								</Typography>
+							</div>
+							<div className="flex justify-between">
+								<Typography
+									type="copy3"
+									className="text-darker-copy-on-dark"
+								>
+									Session usage fee
+								</Typography>
+								<Typography
+									type="copy3"
+									className="text-darker-copy-on-dark"
+									emphasis
+								>
+									${sessionsCost}
+								</Typography>
+							</div>
+
+							<div className="flex justify-between">
+								<Typography
+									type="copy3"
+									className="text-darker-copy-on-dark"
+								>
+									Error usage fee
+								</Typography>
+								<Typography
+									type="copy3"
+									className="text-darker-copy-on-dark"
+									emphasis
+								>
+									${errorsCost}
+								</Typography>
+							</div>
+
+							<div className="flex justify-between">
+								<Typography
+									type="copy3"
+									className="text-darker-copy-on-dark"
+								>
+									Logging usage fee
+								</Typography>
+								<Typography
+									type="copy3"
+									className="text-darker-copy-on-dark"
+									emphasis
+								>
+									${loggingCost}
+								</Typography>
+							</div>
+
+							<div className="flex justify-between">
+								<Typography
+									type="copy3"
+									className="text-darker-copy-on-dark"
+								>
+									Tracing usage fee
+								</Typography>
+								<Typography
+									type="copy3"
+									className="text-darker-copy-on-dark"
+									emphasis
+								>
+									${tracesCost}
+								</Typography>
+							</div>
+						</div>
+						<div className="w-full h-[1px] rounded-full bg-divider-on-dark" />
+						<div className="flex justify-between">
+							<Typography
+								type="copy3"
+								className="text-darker-copy-on-dark"
+							>
+								Total estimate
+							</Typography>
+							<Typography
+								type="copy3"
+								className="text-darker-copy-on-dark"
+								emphasis
+							>
+								{formatPrice(
+									base +
+										sessionsCost +
+										tracesCost +
+										loggingCost +
+										errorsCost,
+									'never',
+								)}
+							</Typography>
+						</div>
+					</div>
+				</div>
 				<div className="flex flex-col p-4 gap-4 overflow-hidden border rounded-r-lg md:rounded-br-none border-divider-on-dark">
 					<CalculatorRowDesktop
 						title="Error Monitoring"
 						description="Error monitoring usage is defined by the number of errors collected by Highlight per month. Our frontend/server SDKs send errors, but you can also send custom errors."
 						product={'Errors'}
-						prices={prices}
+						prices={pricingTier.prices}
 						value={errorUsage}
 						cost={errorsCost}
 						rate={errorsRate}
@@ -401,7 +516,7 @@ const PriceCalculator = ({
 						title="Session Replay"
 						description="Session replay usage is defined by the number of sessions collected per month. A session is defined by an instance of a user’s tab on your application. "
 						product={'Sessions'}
-						prices={prices}
+						prices={pricingTier.prices}
 						value={sessionUsage}
 						cost={sessionsCost}
 						rate={sessionsRate}
@@ -414,7 +529,7 @@ const PriceCalculator = ({
 						title="Logging"
 						description="Log usage is defined by the number of logs collected by highlight.io per month. A log is defined by a text field with attributes."
 						product={'Logs'}
-						prices={prices}
+						prices={pricingTier.prices}
 						value={loggingUsage}
 						cost={loggingCost}
 						rate={loggingRate}
@@ -427,7 +542,7 @@ const PriceCalculator = ({
 						title="Traces"
 						description="Tracing usage is defined by the number of spans collected per month. Traces consist of multiple spans, each instrumenting a single section of code with customizable attributes."
 						product={'Traces'}
-						prices={prices}
+						prices={pricingTier.prices}
 						value={tracesUsage}
 						cost={tracesCost}
 						rate={tracesRate}
@@ -486,8 +601,7 @@ const CalculatorRowDesktop = ({
 				</Typography>
 				<div className="flex justify-between items-center">
 					<div className="flex items-center gap-3">
-						<RadioOptions
-							title="Retention"
+						<ListboxOptions
 							options={
 								onChangeRetention !== undefined
 									? [
@@ -674,13 +788,11 @@ const CalculatorCostDisplay = ({
 	)
 }
 
-const RadioOptions = <T extends string>({
-	title,
+const ListboxOptions = <T extends string>({
 	options,
 	value,
 	onChange,
 }: {
-	title: string
 	options: readonly T[]
 	value?: T
 	onChange?: (value: T) => void
@@ -688,8 +800,16 @@ const RadioOptions = <T extends string>({
 	return (
 		<Listbox value={value} onChange={onChange}>
 			<div className="relative">
-				<Listbox.Button className="relative cursor-pointer rounded-lg bg-dark-background border-[1px] border-copy-on-light z-40 py-2 pl-3 pr-10 text-left focus:outline-none sm:text-sm">
-					<span className="block truncate">{value}</span>
+				<Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-dark-background border-[1px] border-copy-on-light z-40 py-2 pl-3 pr-10 text-left focus:outline-none sm:text-sm">
+					<span className="block truncate text-center">
+						<Typography
+							type="copy4"
+							className="text-copy-on-dark"
+							emphasis
+						>
+							{value}
+						</Typography>
+					</span>
 					<span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
 						<ChevronUpDownIcon
 							className="h-5 w-5 text-gray-400"
