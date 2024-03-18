@@ -1,6 +1,6 @@
-import { readFile, writeFileSync } from 'node:fs'
 import { exec } from 'child_process'
 import camelCase from 'lodash.camelcase'
+import { readFile, writeFileSync } from 'node:fs'
 
 const inputFile = new URL('../design-tokens.json', import.meta.url).pathname
 const outputColorsFile = new URL('../src/css/colors.ts', import.meta.url)

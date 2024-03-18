@@ -1,12 +1,12 @@
 import React from 'react'
 
-import * as styles from './styles.css'
-import { Menu } from '../Menu/Menu'
-import { Text } from '../Text/Text'
-import { Box } from '../Box/Box'
 import { Badge } from '../Badge/Badge'
 import { Variants } from '../Badge/styles.css'
+import { Box } from '../Box/Box'
 import { IconSolidCheveronDown } from '../icons'
+import { Menu } from '../Menu/Menu'
+import { Text } from '../Text/Text'
+import * as styles from './styles.css'
 
 type Props = styles.Variants & {
 	options: {

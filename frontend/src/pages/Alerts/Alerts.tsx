@@ -93,10 +93,10 @@ export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
 		description: (
 			<>
 				{'Get alerted whenever a user'}{' '}
-				{/* eslint-disable-next-line react/jsx-no-target-blank */}
 				<a
 					href="https://docs.highlight.run/rage-clicks"
 					target="_blank"
+					rel="noreferrer"
 				>
 					rage clicks.
 				</a>

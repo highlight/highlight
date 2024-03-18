@@ -149,6 +149,8 @@ function ThrowerOfErrors({
 We use `experimental.instrumentationHook` to capture [Next.js's automatic instrumentation](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry). This method captures detailed API route tracing as well as server-side errors.
 
 1. Enable `experimental.instrumentationHook` in `next.config.js`.
+2. Ignore warnings from `@highlight-run/node` due to a [known OpenTelemetry issue](https://github.com/open-telemetry/opentelemetry-js/issues/4173#issuecomment-1822938936)
+
 ```javascript
 // next.config.mjs
 import { withHighlightConfig } from '@highlight-run/next/config'
@@ -156,6 +158,12 @@ import { withHighlightConfig } from '@highlight-run/next/config'
 const nextConfig = {
 	experimental: {
 		instrumentationHook: true,
+	},
+	webpack(config, options) {
+		if (options.isServer) {
+			config.ignoreWarnings = [{ module: /highlight-(run\/)?node/ }]
+		}
+		return config
 	},
 	// ...additional config
 }
@@ -294,6 +302,21 @@ export default withPageRouterHighlight(function handler(req: NextApiRequest, res
 		res.send('Success: pages/api/nodejs-page-router-test.ts')
 	}
 })
+```
+
+3. Add `highlightMiddleware` to enable cookie-based session tracking
+
+```typescript
+// middleware.ts
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+import { highlightMiddleware } from '@highlight-run/next/server'
+
+export function middleware(request: NextRequest) {
+	highlightMiddleware(request)
+
+	return NextResponse.next()
+}
 ```
 
 ## Validation

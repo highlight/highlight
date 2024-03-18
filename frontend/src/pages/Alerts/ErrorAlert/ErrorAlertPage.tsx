@@ -22,9 +22,6 @@ import {
 	Stack,
 	Tag,
 	Text,
-	useForm,
-	useFormStore,
-	useMenu,
 } from '@highlight-run/ui/components'
 import {
 	DEFAULT_FREQUENCY,
@@ -83,7 +80,7 @@ export const ErrorAlertPage = () => {
 		? (findAlert(alert_id, 'error', alertsPayload) as any)
 		: undefined
 
-	const formStore = useFormStore<ErrorAlertFormItem>({
+	const formStore = Form.useStore<ErrorAlertFormItem>({
 		defaultValues: {
 			name: '',
 			belowThreshold: false,
@@ -264,7 +261,7 @@ export const ErrorAlertPage = () => {
 
 						const nameErr = !input.name
 						const thresholdErr =
-							!input.count_threshold || input.count_threshold < 1
+							!input.count_threshold || input.count_threshold < 0
 						if (nameErr || thresholdErr) {
 							const errs = []
 							if (nameErr) {
@@ -278,7 +275,7 @@ export const ErrorAlertPage = () => {
 							if (thresholdErr) {
 								formStore.setError(
 									formStore.names.threshold,
-									'Threshold cannot be less than 1',
+									'Threshold cannot be less than 0',
 								)
 								errs.push('threshold')
 							}
@@ -419,7 +416,7 @@ export const ErrorAlertPage = () => {
 }
 
 const ErrorAlertForm = () => {
-	const formStore = useForm() as FormState<ErrorAlertFormItem>
+	const formStore = Form.useContext() as FormState<ErrorAlertFormItem>
 	const errors = formStore.useState('errors')
 
 	const { alertsPayload } = useAlertsContext()
@@ -493,7 +490,7 @@ const ErrorAlertForm = () => {
 						<Column>
 							<Form.Select
 								label="Alert threshold window"
-								name={formStore.names.threshold_window.toString()}
+								name={formStore.names.threshold_window}
 								onChange={(e) =>
 									formStore.setValue(
 										formStore.names.threshold_window,
@@ -517,7 +514,7 @@ const ErrorAlertForm = () => {
 					</Column.Container>
 					<Form.Select
 						label="Alert frequency"
-						name={formStore.names.frequency.toString()}
+						name={formStore.names.frequency}
 						onChange={(e) =>
 							formStore.setValue(
 								formStore.names.frequency,
@@ -575,9 +572,9 @@ const ErrorAlertForm = () => {
 }
 
 const ThresholdTypeConfiguration = () => {
-	const formStore = useForm() as FormState<ErrorAlertFormItem>
+	const formStore = Form.useContext()! as FormState<ErrorAlertFormItem>
 	const belowThreshold = formStore.useValue('belowThreshold')
-	const menu = useMenu()
+	const menu = Menu.useContext()!
 	const menuState = menu.getState()
 	return (
 		<>

@@ -2,8 +2,8 @@ import {
 	addCustomEvent as rrwebAddCustomEvent,
 	getRecordSequentialIdPlugin,
 	record,
-} from '@highlight-run/rrweb'
-import { eventWithTime, listenerHandler } from '@highlight-run/rrweb-types'
+} from 'rrweb'
+import { eventWithTime, listenerHandler } from '@rrweb/types'
 import { FirstLoadListeners } from './listeners/first-load-listeners'
 import {
 	AmplitudeIntegrationOptions,
@@ -362,7 +362,7 @@ export class Highlight {
 			options.enablePerformanceRecording ?? true
 		// default to inlining stylesheets/images locally to help with recording accuracy
 		this.inlineImages = options.inlineImages ?? this._isOnLocalHost
-		this.inlineStylesheet = options.inlineStylesheet ?? this._isOnLocalHost
+		this.inlineStylesheet = options.inlineStylesheet ?? true
 		this.samplingStrategy = {
 			canvasFactor: 0.5,
 			canvasMaxSnapshotDimension: 360,
@@ -397,10 +397,6 @@ export class Highlight {
 			this.organizationID = options.organizationID
 		} else {
 			this.organizationID = options.organizationID.toString()
-		}
-		// disable inline stylesheets for aerotime
-		if (this.organizationID === 'jgoqo9el') {
-			this.inlineStylesheet = false
 		}
 		this.isRunningOnHighlight =
 			this.organizationID === '1' || this.organizationID === '1jdkoe52'
@@ -760,7 +756,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 									.canvasMaxSnapshotDimension,
 						},
 					},
-					keepIframeSrcFn: (_src) => {
+					keepIframeSrcFn: (_src: string) => {
 						return !this.options.recordCrossOriginIframe
 					},
 					inlineImages: this.inlineImages,
@@ -1033,6 +1029,26 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this.listeners.push(
 					PerformanceListener((payload: PerformancePayload) => {
 						this.addCustomEvent('Performance', stringify(payload))
+						this.recordMetric(
+							Object.entries(payload)
+								.map(([name, value]) =>
+									value
+										? {
+												name,
+												value,
+												category:
+													MetricCategory.Performance,
+												group: window.location.href,
+										  }
+										: undefined,
+								)
+								.filter((m) => m) as {
+								name: string
+								value: any
+								category: MetricCategory
+								group: string
+							}[],
+						)
 					}, this._recordingStartTime),
 				)
 				this.listeners.push(

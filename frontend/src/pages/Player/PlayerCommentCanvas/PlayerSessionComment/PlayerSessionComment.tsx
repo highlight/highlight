@@ -3,7 +3,7 @@ import { Box } from '@highlight-run/ui/components'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import clsx from 'clsx'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { CommentIndicator } from '@/components/Comment/CommentIndicator'
 import { getDeepLinkedCommentId } from '@/components/Comment/utils/utils'

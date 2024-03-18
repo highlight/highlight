@@ -227,8 +227,6 @@ export function ReportDialog({
 														styles.logoContainer
 													}
 												>
-													{/*  eslint-disable-next-line react/jsx-no-target-blank */}
-
 													<img
 														src="https://www.highlight.io/images/logo-on-dark.png"
 														alt="Highlight"

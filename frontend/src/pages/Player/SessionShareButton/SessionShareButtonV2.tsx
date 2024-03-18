@@ -23,7 +23,7 @@ import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard } from '@util/string'
 import { MillisToMinutesAndSeconds } from '@util/time'
-import React, { useState } from 'react'
+import { useState } from 'react'
 
 import Switch from '../../../components/Switch/Switch'
 import { useReplayerContext } from '../ReplayerContext'

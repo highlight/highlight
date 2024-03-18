@@ -1,16 +1,16 @@
-import React, { useState } from 'react'
 import { Meta } from '@storybook/react'
+import moment from 'moment'
+import { useState } from 'react'
 
-import { DatePicker } from './Calendar/DatePicker'
-import { Text } from '../Text/Text'
-import { Stack } from '../Stack/Stack'
 import { Box } from '../Box/Box'
+import { Stack } from '../Stack/Stack'
+import { Text } from '../Text/Text'
+import { DatePicker } from './Calendar/DatePicker'
 import {
-	PreviousDateRangePicker,
 	defaultPresets,
+	PreviousDateRangePicker,
 } from './PreviousDateRangePicker'
 import { subtractDays, subtractHours } from './utils'
-import moment from 'moment'
 
 export default {
 	title: 'Components/DatePicker/PreviousDateRangePicker',

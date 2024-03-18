@@ -1,6 +1,7 @@
-import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
-import { typographyStyles } from '../Text/styles.css'
+import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
+
 import { colors } from '../../css/colors'
+import { typographyStyles } from '../Text/styles.css'
 
 export const variants = recipe({
 	base: {

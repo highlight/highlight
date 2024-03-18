@@ -11,8 +11,10 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
 import { Skeleton } from '@/components/Skeleton'
-import { useFindSimilarErrorsQuery } from '@/graph/generated/hooks'
-import { useMatchErrorTagQuery } from '@/graph/generated/hooks'
+import {
+	useFindSimilarErrorsQuery,
+	useMatchErrorTagQuery,
+} from '@/graph/generated/hooks'
 
 import styles from './ErrorTags.module.css'
 

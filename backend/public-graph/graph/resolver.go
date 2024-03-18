@@ -1076,7 +1076,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		Excluded:                       true, // A session is excluded by default until it receives events
 		ExcludedReason:                 &excludedReason,
 		ProcessWithRedis:               true,
-		AvoidPostgresStorage:           true,
 	}
 
 	// mark recording-less sessions as processed so they are considered excluded

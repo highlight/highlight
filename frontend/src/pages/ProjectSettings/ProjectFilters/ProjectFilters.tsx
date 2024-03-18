@@ -9,11 +9,7 @@ import { useGetBaseSearchContext } from '@context/SearchState'
 import {
 	useEditProjectSettingsMutation,
 	useGetBillingDetailsForProjectQuery,
-	useGetLogsKeysLazyQuery,
-	useGetLogsKeyValuesLazyQuery,
 	useGetProjectSettingsQuery,
-	useGetTracesKeysLazyQuery,
-	useGetTracesKeyValuesLazyQuery,
 	useGetTracesMetricsQuery,
 	useGetWorkspaceSettingsQuery,
 } from '@graph/hooks'
@@ -41,7 +37,6 @@ import {
 	Tag,
 	Text,
 	Tooltip,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
@@ -191,7 +186,7 @@ export const ProjectProductFilters: React.FC<{
 		setSearchQuery: setErrorSearchQuery,
 	} = errorSearchContext
 
-	const formStore = useFormStore<{
+	const formStore = Form.useStore<{
 		samplingPercent: number
 		minuteRateLimit: number | null
 		exclusionQuery: string | null
@@ -480,16 +475,7 @@ export const ProjectProductFilters: React.FC<{
 										.subtract(30, 'days')
 										.toDate()}
 									timeMode="fixed-range"
-									fetchKeysLazyQuery={
-										product === ProductType.Logs
-											? useGetLogsKeysLazyQuery
-											: useGetTracesKeysLazyQuery
-									}
-									fetchValuesLazyQuery={
-										product === ProductType.Logs
-											? useGetLogsKeyValuesLazyQuery
-											: useGetTracesKeyValuesLazyQuery
-									}
+									productType={product}
 								/>
 							) : product === ProductType.Sessions ? (
 								<SearchContextProvider

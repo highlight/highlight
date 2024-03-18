@@ -1,17 +1,16 @@
-import * as styles from './styles.css'
+import React from 'react'
 
+import { vars } from '../../css/vars'
+import { Box } from '../Box/Box'
+import { ButtonIcon } from '../ButtonIcon/ButtonIcon'
 import {
 	IconSolidExclamation,
 	IconSolidInformationCircle,
 	IconSolidX,
 	IconSolidXCircle,
 } from '../icons'
-
-import { Box } from '../Box/Box'
-import { ButtonIcon } from '../ButtonIcon/ButtonIcon'
-import React from 'react'
 import { Text } from '../Text/Text'
-import { vars } from '../../css/vars'
+import * as styles from './styles.css'
 
 export type Props = React.PropsWithChildren &
 	styles.Variants & {

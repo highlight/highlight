@@ -143,6 +143,8 @@ function ThrowerOfErrors({
 We use `experimental.instrumentationHook` to capture [Next.js's automatic instrumentation](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry). This method captures detailed API route tracing as well as server-side errors.
 
 1. Enable `experimental.instrumentationHook` in `next.config.js`.
+2. Ignore warnings from `@highlight-run/node` due to a [known OpenTelemetry issue](https://github.com/open-telemetry/opentelemetry-js/issues/4173#issuecomment-1822938936)
+
 ```javascript
 // next.config.mjs
 import { withHighlightConfig } from '@highlight-run/next/config'
@@ -150,6 +152,13 @@ import { withHighlightConfig } from '@highlight-run/next/config'
 const nextConfig = {
 	experimental: {
 		instrumentationHook: true,
+	},
+	webpack(config, options) {
+		if (options.isServer) {
+			config.ignoreWarnings = [{ module: /highlight-(run\/)?node/ }]
+		}
+
+		return config
 	},
 	// ...additional config
 }
@@ -239,6 +248,41 @@ export default async function SsrPage({ searchParams }: Props) {
 			<p>The random number is {Math.random()}</p>
 			<p>The date is {new Date().toLocaleTimeString()}</p>
 		</div>
+	)
+}
+```
+
+### Validate server actions
+
+1. Copy the following code into `app/server-actions/page.tsx`.
+2. Visit http://localhost:3000/server-actions and submit the form.
+3. Navigate to `app.highlight.io` to validate that the error was captured.
+
+```jsx
+export default function Page() {
+	async function createInvoice(formData: FormData) {
+		'use server'
+
+		if (formData.get('isError')) {
+			throw new Error(
+				'🌋 Server action error: src/app/server-actions/page.tsx',
+			)
+		}
+
+		console.info(
+			'🎉 Server action success: src/app/server-actions/page.tsx',
+		)
+	}
+
+	return (
+		<form action={createInvoice} style={{ padding: '1rem' }}>
+			<div style={{ display: 'flex', gap: '1rem' }}>
+				<label>Throw error</label>
+				<input type="checkbox" name="isError" defaultChecked />
+
+				<button>Submit form</button>
+			</div>
+		</form>
 	)
 }
 ```
@@ -345,6 +389,21 @@ export const GET = withAppRouterHighlight(async function GET(request: NextReques
 		return new Response('Success: app/nodejs-app-router-test')
 	}
 })
+```
+
+4. Add `highlightMiddleware` to enable cookie-based session tracking
+
+```typescript
+// middleware.ts
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+import { highlightMiddleware } from '@highlight-run/next/server'
+
+export function middleware(request: NextRequest) {
+	highlightMiddleware(request)
+
+	return NextResponse.next()
+}
 ```
 
 ## Validation

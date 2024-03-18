@@ -1,4 +1,4 @@
-import { MaskInputOptions } from '@highlight-run/rrweb-snapshot'
+import { MaskInputOptions } from 'rrweb-snapshot'
 import { PrivacySettingOption } from '../types/types'
 
 // returns (1) whether all inputs should be masked and (2) which inputs should be masked

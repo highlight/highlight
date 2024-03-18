@@ -1,5 +1,4 @@
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
-import React from 'react'
 import validator from 'validator'
 
 import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip'

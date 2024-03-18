@@ -24,6 +24,7 @@ x-backend-env: &backend-env
         - GITHUB_PRIVATE_KEY
         - GITLAB_CLIENT_ID
         - GITLAB_CLIENT_SECRET
+        - GOMEMLIMIT
         - HEIGHT_CLIENT_ID
         - HEIGHT_CLIENT_SECRET
         - IN_DOCKER
@@ -72,6 +73,7 @@ services:
             interval: 5s
             timeout: 5s
             retries: 5
+        restart: on-failure
         ports:
             - '0.0.0.0:8082:8082'
         volumes:
@@ -89,6 +91,7 @@ services:
             interval: 5s
             timeout: 5s
             retries: 5
+        restart: on-failure
         volumes:
             - ../backend/localhostssl/server.key:/etc/ssl/private/ssl-cert.key
             - ../backend/localhostssl/server.pem:/etc/ssl/certs/ssl-cert.pem

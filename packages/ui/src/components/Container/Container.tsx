@@ -1,6 +1,6 @@
 import React from 'react'
-import { Box, BoxProps } from '../Box/Box'
 
+import { Box, BoxProps } from '../Box/Box'
 import * as styles from './styles.css'
 
 type Props = React.PropsWithChildren &

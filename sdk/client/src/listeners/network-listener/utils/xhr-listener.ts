@@ -1,3 +1,5 @@
+import stringify from 'json-stringify-safe'
+
 import { NetworkListenerCallback } from '../network-listener'
 import { Headers, Request, RequestResponsePair, Response } from './models'
 import {
@@ -237,7 +239,7 @@ const getBodyData = (postData: any, url: string | undefined) => {
 		typeof postData === 'number' ||
 		typeof postData === 'boolean'
 	) {
-		return postData.toString()
+		return stringify(postData)
 	}
 
 	return null

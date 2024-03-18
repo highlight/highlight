@@ -1,6 +1,6 @@
 import { Box, Text } from '@highlight-run/ui/components'
 import { getResponseStatusCode } from '@pages/Player/helpers'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 
 import { TableList, TableListItem } from '@/components/TableList/TableList'
 import { ErrorObject } from '@/graph/generated/schemas'
@@ -44,6 +44,27 @@ export const NetworkResourceInfo = ({
 		})
 	}, [selectedNetworkResource?.initiatorType])
 
+	const duration = useMemo(() => {
+		if (
+			selectedNetworkResource?.responseEndAbs &&
+			selectedNetworkResource?.startTimeAbs
+		) {
+			return (
+				selectedNetworkResource.responseEndAbs -
+				selectedNetworkResource.startTimeAbs
+			)
+		} else if (
+			selectedNetworkResource?.responseEnd &&
+			selectedNetworkResource?.startTime
+		) {
+			// used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
+			return (
+				selectedNetworkResource.responseEnd -
+				selectedNetworkResource.startTime
+			)
+		}
+	}, [selectedNetworkResource])
+
 	const generalData: TableListItem[] = [
 		{
 			keyDisplayValue: 'Request URL',
@@ -74,13 +95,7 @@ export const NetworkResourceInfo = ({
 		},
 		{
 			keyDisplayValue: 'Time',
-			valueDisplayValue:
-				selectedNetworkResource?.responseEnd &&
-				selectedNetworkResource?.startTime &&
-				formatTime(
-					selectedNetworkResource.responseEnd -
-						selectedNetworkResource.startTime,
-				),
+			valueDisplayValue: !!duration && formatTime(duration),
 		},
 		{
 			keyDisplayValue: 'Type',

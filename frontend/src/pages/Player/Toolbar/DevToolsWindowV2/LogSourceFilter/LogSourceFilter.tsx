@@ -5,7 +5,6 @@ import {
 	MultiSelectButton,
 } from '@highlight-run/ui/components'
 import { titilize } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import React from 'react'
 
 type Props = {
 	logSources: LogSource[]

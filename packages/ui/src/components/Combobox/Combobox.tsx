@@ -1,5 +1,5 @@
-import React from 'react'
 import * as Ariakit from '@ariakit/react'
+import React from 'react'
 
 export const useComboboxStore = Ariakit.useComboboxStore
 

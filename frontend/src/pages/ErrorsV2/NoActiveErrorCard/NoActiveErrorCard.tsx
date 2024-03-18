@@ -1,5 +1,5 @@
 import { Box, Callout, Text } from '@highlight-run/ui/components'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 
 import { useErrorPageNavigation } from '@/pages/ErrorsV2/ErrorsV2'
 

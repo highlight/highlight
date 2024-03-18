@@ -28,7 +28,6 @@ import {
 	Tag,
 	Text,
 	TextLink,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useProjectId } from '@hooks/useProjectId'
@@ -770,7 +769,7 @@ const EmailPicker = function ({
 	onSubmit: (email: string) => void
 	onCancel: () => void
 }) {
-	const formStore = useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			email: '',
 		},

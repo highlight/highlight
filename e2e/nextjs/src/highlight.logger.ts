@@ -1,24 +1,25 @@
 import { highlightConfig } from '@/instrumentation'
 import type { LoggerOptions } from 'pino'
+import { isNodeJsRuntime } from '@highlight-run/next/server'
 
 const pinoConfig = {
 	level: 'debug',
 	transport: {
 		targets: [
-			{
-				target: 'pino-pretty',
-				level: 'debug',
-			},
-			{
-				target: '@highlight-run/pino',
-				options: highlightConfig,
-				level: 'debug',
-			},
+			// {
+			// 	target: 'pino-pretty',
+			// 	level: 'debug',
+			// },
+			// {
+			// 	target: '@highlight-run/pino',
+			// 	options: highlightConfig,
+			// 	level: 'debug',
+			// },
 		],
 	},
 } as LoggerOptions
 
-if (process.env.NEXT_RUNTIME === 'nodejs') {
+if (isNodeJsRuntime()) {
 	const { H } = require('@highlight-run/node')
 	H.init(highlightConfig)
 }

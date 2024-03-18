@@ -1,15 +1,14 @@
+import * as Ariakit from '@ariakit/react'
+import clsx, { ClassValue } from 'clsx'
 import React, { forwardRef, ReactNode, useRef } from 'react'
 
-import * as Ariakit from '@ariakit/react'
-
-import * as styles from './styles.css'
-import { Box } from '../Box/Box'
-import { Text } from '../Text/Text'
-import { Stack } from '../Stack/Stack'
-import { Button, ButtonProps } from '../Button/Button'
-import clsx, { ClassValue } from 'clsx'
-import { Variants } from './styles.css'
 import { Badge } from '../Badge/Badge'
+import { Box } from '../Box/Box'
+import { Button, ButtonProps } from '../Button/Button'
+import { Stack } from '../Stack/Stack'
+import { Text } from '../Text/Text'
+import * as styles from './styles.css'
+import { Variants } from './styles.css'
 
 type FormComponent = React.FC<Props> & {
 	Input: typeof Input
@@ -19,12 +18,13 @@ type FormComponent = React.FC<Props> & {
 	Select: typeof Select
 	NamedSection: typeof NamedSection
 	Label: typeof Label
-	useFormStore: typeof Ariakit.useFormStore
+	useStore: typeof Ariakit.useFormStore
+	useContext: typeof Ariakit.useFormContext
 }
 
 interface LabelProps {
 	label: string
-	name: Ariakit.FormInputProps['name']
+	name: InputProps['name']
 	tag?: ReactNode
 	optional?: boolean
 }
@@ -88,17 +88,19 @@ export const NamedSection = ({
 	)
 }
 
-const FormContext = React.createContext<Ariakit.FormStore>(
-	{} as Ariakit.FormStore,
-)
-export const useForm = () => React.useContext(FormContext)
+type Props = Ariakit.FormProps &
+	Pick<Ariakit.FormProviderProps, 'defaultValues' | 'store'>
 
-type Props = Ariakit.FormProps
-export const Form: FormComponent = ({ children, ...props }: Props) => {
+export const Form: FormComponent = ({
+	children,
+	defaultValues,
+	store,
+	...props
+}: Props) => {
 	return (
-		<FormContext.Provider value={props.store}>
+		<Ariakit.FormProvider defaultValues={defaultValues} store={store}>
 			<Ariakit.Form {...props}>{children}</Ariakit.Form>
-		</FormContext.Provider>
+		</Ariakit.FormProvider>
 	)
 }
 
@@ -106,8 +108,10 @@ export const Error = ({ ...props }: Ariakit.FormErrorProps) => {
 	return <Ariakit.FormError {...props} render={<Box color="bad" />} />
 }
 
-export const Submit = ({ ...props }: ButtonProps) => {
-	return <Button type="submit" {...props} />
+export const Submit: React.FC<Ariakit.FormSubmitProps & ButtonProps> = (
+	props,
+) => {
+	return <Ariakit.FormSubmit render={<Button />} {...props} />
 }
 
 export type InputProps = Omit<Ariakit.FormInputProps, 'size'> &
@@ -221,7 +225,11 @@ export const Select = ({
 				tag={tag}
 				optional={optional}
 			/>
-			<Ariakit.FormInput as="select" className={styles.select} {...props}>
+			<Ariakit.FormInput
+				render={<select />}
+				className={styles.select}
+				{...props}
+			>
 				{children}
 			</Ariakit.FormInput>
 		</Stack>
@@ -235,9 +243,8 @@ Form.Field = Field
 Form.Label = Label
 Form.Select = Select
 Form.NamedSection = NamedSection
-
-export const useFormStore = Ariakit.useFormStore
-Form.useFormStore = useFormStore
+Form.useStore = Ariakit.useFormStore
+Form.useContext = Ariakit.useFormContext
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export declare type FormState<T extends Record<string, any>> =

@@ -172,6 +172,7 @@ export enum MetricName {
 export enum MetricCategory {
 	Device = 'Device',
 	WebVital = 'WebVital',
+	Performance = 'Performance',
 	Frontend = 'Frontend',
 	Backend = 'Backend',
 }

@@ -18,7 +18,6 @@ import {
 	Stack,
 	SwitchButton,
 	Text,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
@@ -88,7 +87,7 @@ export const AdminForm: React.FC = () => {
 	const workspace = workspacesData?.workspaces && workspacesData.workspaces[0]
 	const inWorkspace = !!workspace
 
-	const formStore = useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			firstName: '',
 			lastName: '',

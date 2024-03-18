@@ -422,7 +422,7 @@ func (s *Snapshot) InjectStylesheets(ctx context.Context) error {
 		delete(attrs, "rel")
 		delete(attrs, "href")
 
-		// The '_cssText' attribute tells @highlight-run/rrweb to create a custom <style/> tag to populate
+		// The '_cssText' attribute tells rrweb to create a custom <style/> tag to populate
 		// content w/.
 		attrs["_cssText"] = string(data)
 	}
@@ -481,6 +481,7 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 			parsedUrl.Scheme = "https"
 			parsedUrl.Host = "app.priceworx.co.uk"
 			assetURL = parsedUrl.String()
+			log.WithContext(ctx).WithField("u", u).WithField("assetURL", assetURL).WithField("assetKey", assetKey).Warn("fetching priceworx url")
 		}
 		urlMap[u] = assetValue{assetKey, assetURL}
 	}

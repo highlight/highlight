@@ -55,7 +55,7 @@ export default defineConfig(({ mode }) => {
 			port,
 			https:
 				env.SSL === 'false'
-					? false
+					? undefined
 					: {
 							key: join(
 								__dirname,

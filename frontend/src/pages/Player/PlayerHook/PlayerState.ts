@@ -11,14 +11,6 @@ import {
 	SessionResults,
 	TimelineIndicatorEvent,
 } from '@graph/schemas'
-import { EventType, Replayer } from '@highlight-run/rrweb'
-import {
-	customEvent,
-	metaEvent,
-	playerMetaData,
-	SessionInterval,
-	viewportResizeDimension,
-} from '@highlight-run/rrweb-types'
 import { usefulEvent } from '@pages/Player/components/EventStreamV2/utils'
 import {
 	HighlightEvent,
@@ -47,6 +39,13 @@ import {
 	getAllUrlEvents,
 	getBrowserExtensionScriptURLs,
 } from '@pages/Player/SessionLevelBar/utils/utils'
+import {
+	customEvent,
+	metaEvent,
+	playerMetaData,
+	SessionInterval,
+	viewportResizeDimension,
+} from '@rrweb/types'
 import analytics from '@util/analytics'
 import log from '@util/log'
 import { timedCall } from '@util/perf/instrument'
@@ -54,6 +53,7 @@ import { H } from 'highlight.run'
 import { throttle } from 'lodash'
 import moment from 'moment/moment'
 import { MutableRefObject, SetStateAction } from 'react'
+import { EventType, Replayer } from 'rrweb'
 
 const EMPTY_SESSION_METADATA = {
 	startTime: 0,

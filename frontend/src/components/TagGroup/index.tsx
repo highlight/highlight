@@ -1,6 +1,8 @@
 import { Link } from '@components/Link'
 import { Box, IconProps, Tag, Tooltip } from '@highlight-run/ui/components'
 
+import analytics from '@/util/analytics'
+
 import * as styles from './style.css'
 
 const TAG_PROPS = {
@@ -15,6 +17,7 @@ type TagLink = {
 	disabled: boolean
 	icon: React.ReactElement<IconProps>
 	label: string
+	trackingId: string
 	tooltip?: string
 }
 
@@ -42,6 +45,7 @@ export const TagGroup: React.FC<Props> = ({ tagLinks }) => {
 						disabled={tag.disabled}
 						tooltip={tag.tooltip}
 						href={tag.href}
+						trackingId={tag.trackingId}
 					>
 						<Tag
 							{...TAG_PROPS}
@@ -58,7 +62,13 @@ export const TagGroup: React.FC<Props> = ({ tagLinks }) => {
 	)
 }
 
-const TagContainer: React.FC<any> = ({ children, tooltip, disabled, href }) => {
+const TagContainer: React.FC<any> = ({
+	children,
+	tooltip,
+	disabled,
+	href,
+	trackingId,
+}) => {
 	const tagWithTooltip = tooltip ? (
 		<Tooltip trigger={children}>{tooltip}</Tooltip>
 	) : (
@@ -73,6 +83,11 @@ const TagContainer: React.FC<any> = ({ children, tooltip, disabled, href }) => {
 		<Link
 			to={href}
 			className={styles.tagLink}
+			onClick={() => {
+				if (trackingId) {
+					analytics.track(trackingId)
+				}
+			}}
 			// reload document to avoid removing time parameters from the URL
 			reloadDocument
 		>

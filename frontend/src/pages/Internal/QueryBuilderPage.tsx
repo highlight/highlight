@@ -1,8 +1,8 @@
 // import 'antd/dist/antd.css'; // or import "react-awesome-query-builder/css/antd.less";
 // For Material-UI widgets only:
 //import MaterialConfig from "react-awesome-query-builder/lib/config/material";
-import 'react-awesome-query-builder/lib/css/styles.css'
 import 'react-awesome-query-builder/lib/css/compact_styles.css' //optional, for more compact styles
+import 'react-awesome-query-builder/lib/css/styles.css'
 
 import JsonViewer from '@components/JsonViewer/JsonViewer'
 import React, { useState } from 'react'

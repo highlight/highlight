@@ -16,6 +16,7 @@ import {
 	IconSolidFilter,
 	IconSolidLightningBolt,
 	IconSolidLink,
+	IconSolidLocationMarker,
 	IconSolidPlayCircle,
 	IconSolidSparkles,
 	Stack,
@@ -33,9 +34,10 @@ import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
-import { createSearchParams, generatePath } from 'react-router-dom'
+import { createSearchParams, generatePath, useNavigate } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { QueryParam } from '@/components/Search/SearchForm/SearchForm'
 import {
@@ -62,7 +64,7 @@ export const getLogURL = (projectId: string, row: Row<LogEdge>) => {
 		project_id: projectId,
 		log_cursor: row.original.cursor,
 	})
-	return currentUrl.origin + path
+	return { origin: currentUrl.origin, path }
 }
 
 const getSessionLink = (
@@ -73,13 +75,6 @@ const getSessionLink = (
 		[PlayerSearchParameters.log]: log.cursor,
 	})
 	return `/${projectId}/sessions/${log.node.secureSessionID}?${params}`
-}
-
-const getErrorLink = (projectId: string, log: LogEdgeWithResources): string => {
-	const params = createSearchParams({
-		[PlayerSearchParameters.log]: log.cursor,
-	})
-	return `/errors/${log.error_object?.error_group_secure_id}/instances/${log.error_object?.id}?${params}`
 }
 
 const getTraceLink = (projectId: string, log: LogEdgeWithResources): string => {
@@ -97,7 +92,9 @@ export const LogDetails: React.FC<Props> = ({
 	row,
 	queryParts,
 }) => {
+	const { set } = useRelatedResource()
 	const { projectId } = useProjectId()
+	const navigate = useNavigate()
 	const [allExpanded, setAllExpanded] = useState(false)
 	const {
 		environment,
@@ -258,7 +255,7 @@ export const LogDetails: React.FC<Props> = ({
 						onClick={(e) => {
 							const url = getLogURL(projectId, row)
 							e.stopPropagation()
-							navigator.clipboard.writeText(url)
+							navigator.clipboard.writeText(url.origin + url.path)
 							antdMessage.success('Copied link!')
 						}}
 						trackingId="logs_copy-link_click"
@@ -273,6 +270,26 @@ export const LogDetails: React.FC<Props> = ({
 							Copy link
 						</Box>
 					</Button>
+					<Button
+						kind="secondary"
+						emphasis="low"
+						onClick={(e) => {
+							e.stopPropagation()
+							const url = getLogURL(projectId, row)
+							navigate(url.path)
+						}}
+						trackingId="logs_view-in-context_click"
+					>
+						<Box
+							display="flex"
+							alignItems="center"
+							flexDirection="row"
+							gap="4"
+						>
+							<IconSolidLocationMarker />
+							View in Context
+						</Box>
+					</Button>
 				</Box>
 
 				<Box
@@ -285,10 +302,20 @@ export const LogDetails: React.FC<Props> = ({
 					pl="4"
 				>
 					{row.original.error_object && (
-						<LinkButton
+						<Button
 							kind="secondary"
 							emphasis="low"
-							to={getErrorLink(projectId, row.original)}
+							onClick={() => {
+								const { error_object } = row.original
+
+								if (error_object) {
+									set({
+										type: 'error',
+										id: error_object.error_group_secure_id,
+										instanceId: error_object.id,
+									})
+								}
+							}}
 							trackingId="logs_related-error_click"
 						>
 							<Box
@@ -300,7 +327,7 @@ export const LogDetails: React.FC<Props> = ({
 								<IconSolidLightningBolt />
 								Related Error
 							</Box>
-						</LinkButton>
+						</Button>
 					)}
 
 					{secureSessionID && (

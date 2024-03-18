@@ -28,7 +28,6 @@ import {
 	Text,
 	TextLink,
 	Tooltip,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
@@ -563,7 +562,7 @@ const UpdatePlanPage = ({
 		workspace_id: string
 	}>()
 
-	const formStore = useFormStore<UpdatePlanForm>({
+	const formStore = Form.useStore<UpdatePlanForm>({
 		defaultValues: {
 			sessionsRetention: RetentionPeriod.ThreeMonths,
 			sessionsLimitCents: undefined,
@@ -775,7 +774,8 @@ const UpdatePlanPage = ({
 	}
 	predictedTracesCost = Math.max(predictedTracesCost, actualTracesCost)
 
-	const baseAmount = PLANS[selectedPlanType].price * 100
+	const baseAmount =
+		PLAN_BASE_FEES[selectedPlanType as keyof typeof PLAN_BASE_FEES] * 100
 	const discountPercent = data?.subscription_details.discount?.percent ?? 0
 	const discountAmount = data?.subscription_details.discount?.amount ?? 0
 
@@ -1197,6 +1197,15 @@ type Plan = {
 	price: number
 }
 
+const PLAN_BASE_FEES = {
+	[PlanType.Free]: 0,
+	[PlanType.UsageBased]: 0,
+	[PlanType.Lite]: 50,
+	[PlanType.Basic]: 150,
+	[PlanType.Startup]: 400,
+	[PlanType.Graduated]: 50,
+} as const
+
 const PLANS = {
 	[PlanType.Free]: {
 		type: PlanType.Free,
@@ -1557,10 +1566,10 @@ const UpdatePlanFooter: React.FC<{
 export const UpdatePlanModal: React.FC<{
 	step: PlanSelectStep
 	setStep: (step: PlanSelectStep) => void
-}> = ({ step, setStep }) => {
-	const [selectedPlanType, setSelectedPlanType] = React.useState<PlanType>(
-		PlanType.Graduated,
-	)
+	currentPlanType: Exclude<PlanType, PlanType.Free>
+}> = ({ step, setStep, currentPlanType }) => {
+	const [selectedPlanType, setSelectedPlanType] =
+		React.useState<PlanType>(currentPlanType)
 	const [hasChanges, setHasChanges] = React.useState<boolean>(false)
 	const [showConfirmCloseModal, setShowConfirmCloseModal] =
 		React.useState<boolean>(false)

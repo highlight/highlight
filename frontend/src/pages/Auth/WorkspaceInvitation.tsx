@@ -15,7 +15,7 @@ import { Landing } from '@pages/Landing/Landing'
 import useLocalStorage from '@rehooks/local-storage'
 import { message } from 'antd'
 import { H } from 'highlight.run'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { Navigate, useMatch, useNavigate } from 'react-router-dom'
 
 import { showSupportMessage } from '@/util/window'
@@ -45,9 +45,9 @@ export const WorkspaceInvitation = () => {
 		(w) => w?.id && w.id === workspaceId,
 	)
 
-	const clearInviteAndRedirect = () => {
+	const clearInviteAndRedirect = (projectId?: string | undefined) => {
 		setInviteCode('')
-		navigate('/')
+		navigate(`/${projectId ?? ''}`)
 	}
 
 	useEffect(() => {
@@ -68,7 +68,7 @@ export const WorkspaceInvitation = () => {
 		}
 
 		if (alreadyInWorkspace) {
-			clearInviteAndRedirect()
+			clearInviteAndRedirect(data?.workspace_for_invite_link.project_id)
 			message.success('You are already a member of this workspace.')
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -123,7 +123,10 @@ export const WorkspaceInvitation = () => {
 										`Successfully joined workspace "${workspaceName}"!`,
 									)
 
-									clearInviteAndRedirect()
+									clearInviteAndRedirect(
+										data?.workspace_for_invite_link
+											.project_id,
+									)
 								} catch (_e) {
 									message.error(
 										'Failed to join the workspace. Please try again.',

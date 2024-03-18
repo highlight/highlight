@@ -1,5 +1,5 @@
 import { message } from 'antd'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { FaCopy } from 'react-icons/fa'
 
 import Tooltip from '../../../../components/Tooltip/Tooltip'

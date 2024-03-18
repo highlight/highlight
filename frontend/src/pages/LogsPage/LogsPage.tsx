@@ -12,7 +12,7 @@ import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { Helmet } from 'react-helmet'
 import { useLocalStorage } from 'react-use'
 import { useQueryParam } from 'use-query-params'
@@ -22,20 +22,17 @@ import {
 	TIME_MODE,
 } from '@/components/Search/SearchForm/constants'
 import {
+	DEFAULT_INPUT_HEIGHT,
 	FixedRangePreset,
 	PermalinkPreset,
 	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
-import {
-	useGetLogsHistogramQuery,
-	useGetLogsKeysLazyQuery,
-	useGetLogsKeyValuesLazyQuery,
-} from '@/graph/generated/hooks'
+import { useGetLogsHistogramQuery } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
+import { LogsOverageCard } from '@/pages/LogsPage/LogsOverageCard/LogsOverageCard'
 import { DEFAULT_LOG_COLUMNS } from '@/pages/LogsPage/LogsTable/CustomColumns/columns'
-import { OverageCard } from '@/pages/LogsPage/OverageCard/OverageCard'
 import analytics from '@/util/analytics'
 
 const LogsPage = () => {
@@ -62,7 +59,7 @@ type Props = {
 	presetDefault: DateRangePreset
 }
 
-const HEADERS_AND_CHARTS_HEIGHT = 228
+const HEADERS_AND_CHARTS_HEIGHT = 189
 const LOAD_MORE_HEIGHT = 28
 
 const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
@@ -70,6 +67,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		project_id: string
 	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
+	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 
 	const [selectedColumns, setSelectedColumns] = useLocalStorage(
 		`highlight-logs-table-columns`,
@@ -139,10 +137,20 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 			skip: !projectId,
 		})
 
-	let otherElementsHeight = HEADERS_AND_CHARTS_HEIGHT
-	if (moreLogs) {
-		otherElementsHeight += LOAD_MORE_HEIGHT
-	}
+	const otherElementsHeight = useMemo(() => {
+		let height = HEADERS_AND_CHARTS_HEIGHT
+		if (textAreaRef.current) {
+			height += textAreaRef.current.clientHeight
+		} else {
+			height += DEFAULT_INPUT_HEIGHT
+		}
+
+		if (moreLogs) {
+			height += LOAD_MORE_HEIGHT
+		}
+
+		return height
+	}, [moreLogs, textAreaRef])
 
 	useEffect(() => {
 		analytics.page('Logs')
@@ -178,10 +186,10 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						presets={DEFAULT_TIME_PRESETS}
 						minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
 						selectedPreset={selectedPreset}
+						productType={ProductType.Logs}
 						timeMode={timeMode}
-						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
-						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 						savedSegmentType="Log"
+						textAreaRef={textAreaRef}
 					/>
 					<LogsCount
 						startDate={startDate}
@@ -200,9 +208,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						bucketCount={histogramData?.logs_histogram.totalCount}
 					/>
 					<Box borderTop="dividerWeak" height="full">
-						<Box my="4" px="12">
-							<OverageCard productType={ProductType.Logs} />
-						</Box>
+						<LogsOverageCard />
 						<IntegrationCta />
 						<LogsTable
 							logEdges={logEdges}

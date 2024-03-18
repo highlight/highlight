@@ -1,5 +1,70 @@
 # @highlight-run/next
 
+## 7.4.6
+
+### Patch Changes
+
+-   Updated dependencies [f45323273]
+    -   highlight.run@8.9.0
+    -   @highlight-run/node@3.8.1
+
+## 7.4.5
+
+### Patch Changes
+
+-   Updated dependencies [240143f9d]
+    -   @highlight-run/node@3.8.1
+
+## 7.4.4
+
+### Patch Changes
+
+-   c2b88ec32: Handling undefined NEXT_RUNTIME
+
+## 7.4.3
+
+### Patch Changes
+
+-   Updated dependencies [23a01e3d6]
+-   Updated dependencies [6a8151dc3]
+    -   highlight.run@8.8.0
+    -   @highlight-run/node@3.8.0
+
+## 7.4.2
+
+### Patch Changes
+
+-   Updated dependencies [31486ce41]
+    -   highlight.run@8.7.1
+    -   @highlight-run/node@3.8.0
+
+## 7.4.1
+
+### Patch Changes
+
+-   b70fb1a42: Moving js-cookie from devDependencies to dependencies
+-   Updated dependencies [e2483b6c3]
+-   Updated dependencies [062001317]
+    -   highlight.run@8.7.0
+    -   @highlight-run/cloudflare@2.1.5
+    -   @highlight-run/node@3.8.0
+
+## 7.4.0
+
+### Minor Changes
+
+-   5fdb420c4: Adding highlightMiddleware and cookie tracking to Next.js. Minor cleanup for Remix and Node.
+
+### Patch Changes
+
+-   Updated dependencies [c4eb0a17f]
+-   Updated dependencies [ed3ff4752]
+-   Updated dependencies [58ad9560f]
+-   Updated dependencies [5fdb420c4]
+-   Updated dependencies [9796ef086]
+    -   @highlight-run/node@3.8.0
+    -   highlight.run@8.6.0
+
 ## 7.3.8
 
 ### Patch Changes

@@ -1,7 +1,6 @@
 import SvgCalendarIcon from '@icons/CalendarIcon'
 import { DatePicker } from 'antd'
 import moment from 'moment'
-import React from 'react'
 
 import inputStyles from './InputStyles.module.css'
 

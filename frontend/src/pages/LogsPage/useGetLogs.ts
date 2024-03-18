@@ -4,8 +4,8 @@ import {
 	useGetLogsRelatedResourcesQuery,
 } from '@graph/hooks'
 import { GetLogsQuery, GetLogsQueryVariables } from '@graph/operations'
-import { LogEdge, PageInfo } from '@graph/schemas'
 import * as Types from '@graph/schemas'
+import { LogEdge, PageInfo } from '@graph/schemas'
 import { usePollQuery } from '@util/search'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -123,9 +123,9 @@ export const useGetLogs = ({
 				params: {
 					query,
 					date_range: {
-						start_date: moment(logResultMetadata.endDate).format(
-							TIME_FORMAT,
-						),
+						start_date: moment(logResultMetadata.endDate)
+							.add(1, 'second')
+							.format(TIME_FORMAT),
 						end_date: moment().format(TIME_FORMAT),
 					},
 				},

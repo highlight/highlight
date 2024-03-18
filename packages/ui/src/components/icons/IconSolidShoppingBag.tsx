@@ -1,4 +1,5 @@
 import React from 'react'
+
 import { IconProps } from './types'
 
 export const IconSolidShoppingBag = ({ size = '1em', ...props }: IconProps) => {

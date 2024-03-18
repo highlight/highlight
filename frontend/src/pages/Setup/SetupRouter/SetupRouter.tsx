@@ -25,7 +25,7 @@ import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
 import { message } from 'antd'
 import clsx from 'clsx'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import {
 	Link,
 	Navigate,

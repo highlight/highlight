@@ -3,8 +3,8 @@
 	"pipeline": {
 		"highlight.run#typegen": {
 			"dependsOn": [
-				"@highlight-run/rrweb#build",
-				"@highlight-run/rrweb-types#build",
+				"rrweb#build",
+				"@rrweb/types#build",
 				"@highlight-run/client#typegen"
 			],
 			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
@@ -102,7 +102,7 @@
 			]
 		},
 		"dev": {
-			"dependsOn": ["typegen", "^build"],
+			"dependsOn": ["typegen", "^build", "build"],
 			"cache": false,
 			"persistent": true
 		},

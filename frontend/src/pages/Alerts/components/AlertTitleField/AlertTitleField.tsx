@@ -1,11 +1,11 @@
-import { Form, FormState, useForm } from '@highlight-run/ui/components'
+import { Form, FormState } from '@highlight-run/ui/components'
 
 import { AlertForm } from '@/pages/Alerts/utils/AlertsUtils'
 
 import * as styles from './styles.css'
 
 const AlertTitleField = () => {
-	const formStore = useForm() as FormState<AlertForm>
+	const formStore = Form.useContext() as FormState<AlertForm>
 	const errors = formStore.useState('errors')
 
 	return (

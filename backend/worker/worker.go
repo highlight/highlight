@@ -537,31 +537,6 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 	wg.Wait()
 }
 
-// Delete data for any sessions created > 4 hours ago
-// if all session data has been written to s3
-func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
-	lookbackPeriod := 4*60 + 10 // 4h10m
-
-	baseQuery := `
-				DELETE
-				FROM %s o
-				USING sessions s
-				WHERE o.session_id = s.id
-				AND s.object_storage_enabled = True
-				AND s.payload_updated_at < s.lock
-				AND s.created_at < NOW() - (? * INTERVAL '1 MINUTE')
-				AND s.created_at > NOW() - INTERVAL '1 WEEK'`
-
-	for _, table := range []string{"resources_objects", "messages_objects"} {
-		deleteSpan, ctx := util.StartSpanFromContext(ctx, "worker.deleteObjects",
-			util.ResourceName("worker.deleteObjects"), util.Tag("table", table))
-		if err := w.Resolver.DB.WithContext(ctx).Exec(fmt.Sprintf(baseQuery, table), lookbackPeriod).Error; err != nil {
-			log.WithContext(ctx).Error(e.Wrapf(err, "error deleting expired objects from %s", table))
-		}
-		deleteSpan.Finish()
-	}
-}
-
 // Autoresolves error groups that have not had any recent instances
 func (w *Worker) AutoResolveStaleErrors(ctx context.Context) {
 	autoResolver := NewAutoResolver(w.PublicResolver.Store, w.PublicResolver.DB)
@@ -609,14 +584,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return errors.Wrap(err, "error creating payload manager")
 	}
 	defer payloadManager.Close()
-
-	if !s.AvoidPostgresStorage {
-		// Delete any timeline indicator events which were previously written for this session
-		if err := w.Resolver.DB.WithContext(ctx).Where("session_secure_id = ?", s.SecureID).
-			Delete(&model.TimelineIndicatorEvent{}).Error; err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error deleting outdated timeline indicator events"))
-		}
-	}
 
 	// Delete any event chunks which were previously written for this session
 	if err := w.Resolver.DB.WithContext(ctx).Where("session_id = ?", s.ID).
@@ -669,30 +636,25 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				Data:            parsedData,
 			})
 		}
-		if s.AvoidPostgresStorage {
-			eventBytes, err := json.Marshal(eventsForTimelineIndicator)
-			if err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error marshalling eventsForTimelineIndicator"))
-			}
-			if err := payloadManager.TimelineIndicatorEvents.WriteString(string(eventBytes)); err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error writing to TimelineIndicatorEvents"))
-			}
-			if err := payloadManager.TimelineIndicatorEvents.Close(); err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error closing TimelineIndicatorEvents writer"))
-			}
 
-			// Extract and save the user journey steps from the timeline indicator events
-			userJourneySteps, err := journey_handlers.GetUserJourneySteps(s.ProjectID, s.ID, eventBytes)
-			if err != nil {
-				return err
-			}
-			if err := w.Resolver.DB.WithContext(ctx).Model(&model.UserJourneyStep{}).Save(&userJourneySteps).Error; err != nil {
-				return err
-			}
-		} else {
-			if err := w.Resolver.DB.WithContext(ctx).Create(eventsForTimelineIndicator).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error creating events for timeline indicator"))
-			}
+		eventBytes, err := json.Marshal(eventsForTimelineIndicator)
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error marshalling eventsForTimelineIndicator"))
+		}
+		if err := payloadManager.TimelineIndicatorEvents.WriteString(string(eventBytes)); err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error writing to TimelineIndicatorEvents"))
+		}
+		if err := payloadManager.TimelineIndicatorEvents.Close(); err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error closing TimelineIndicatorEvents writer"))
+		}
+
+		// Extract and save the user journey steps from the timeline indicator events
+		userJourneySteps, err := journey_handlers.GetUserJourneySteps(s.ProjectID, s.ID, eventBytes)
+		if err != nil {
+			return err
+		}
+		if err := w.Resolver.DB.WithContext(ctx).Model(&model.UserJourneyStep{}).Save(&userJourneySteps).Error; err != nil {
+			return err
 		}
 	}
 
@@ -1379,8 +1341,6 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 		return w.BackfillStackFrames
 	case "refresh-materialized-views":
 		return w.RefreshMaterializedViews
-	case "delete-completed-sessions":
-		return w.DeleteCompletedSessions
 	case "public-worker-main":
 		return w.GetPublicWorker(kafkaqueue.TopicTypeDefault)
 	case "public-worker-batched":
@@ -1502,7 +1462,7 @@ func processEventChunk(ctx context.Context, a EventProcessingAccumulator, events
 			var diff time.Duration
 			if !a.LastEventTimestamp.IsZero() {
 				diff = event.Timestamp.Sub(a.LastEventTimestamp)
-				if diff.Seconds() <= MIN_INACTIVE_DURATION {
+				if diff > 0 && diff.Seconds() <= MIN_INACTIVE_DURATION {
 					a.ActiveDuration += diff
 				}
 			}

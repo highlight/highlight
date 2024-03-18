@@ -5,7 +5,6 @@ import { formatDate, isSignificantDateRange } from '@pages/LogsPage/utils'
 import { clamp, formatNumber } from '@util/numbers'
 import clsx from 'clsx'
 import { memo, useMemo, useRef, useState } from 'react'
-import * as React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import LoadingBox from '@/components/LoadingBox'

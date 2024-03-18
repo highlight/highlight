@@ -1,5 +1,5 @@
 import { style } from '@vanilla-extract/css'
-import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
+import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
 
 export const weekDays = style({
 	alignItems: 'center',

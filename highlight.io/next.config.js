@@ -14,13 +14,31 @@ const nextConfig = {
 	},
 	compress: true,
 	images: {
-		domains: [
-			'www.highlight.io',
-			'media.graphassets.com',
-			'lh3.googleusercontent.com',
-			'picsum.photos',
-			'firebasestorage.googleapis.com',
-			'tamuhack.org',
+		remotePatterns: [
+			{
+				protocol: 'https',
+				hostname: 'www.highlight.io',
+			},
+			{
+				protocol: 'https',
+				hostname: 'media.graphassets.com',
+			},
+			{
+				protocol: 'https',
+				hostname: 'lh3.googleusercontent.com',
+			},
+			{
+				protocol: 'https',
+				hostname: 'picsum.photos',
+			},
+			{
+				protocol: 'https',
+				hostname: 'firebasestorage.googleapis.com',
+			},
+			{
+				protocol: 'https',
+				hostname: 'tamuhack.org',
+			},
 		],
 	},
 	experimental: {

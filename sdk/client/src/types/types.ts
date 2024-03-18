@@ -183,8 +183,7 @@ export declare type HighlightOptions = {
 	 * This means that stylesheets that are local to the client (eg. client-generated blob: urls)
 	 * will be serialized into the recording and will be valid on replay.
 	 * Only enable this if you are running into issues with client-local stylesheets.
-	 * May significantly decrease recording performance.
-	 * @default false
+	 * @default true
 	 */
 	inlineStylesheet?: boolean
 	/**

@@ -1,10 +1,11 @@
 import { nextAttribute, useAttributeSearch } from '@components/CommandBar/utils'
 import {
 	DEFAULT_TIME_PRESETS,
+	Form,
+	FormState,
 	presetStartDate,
 	presetValue,
 } from '@highlight-run/ui/components'
-import { FormState, useFormStore } from '@highlight-run/ui/components'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { createContext } from '@util/context/context'
 import { validateEmail } from '@util/string'
@@ -102,7 +103,7 @@ export const CommandBarContextProvider: React.FC<React.PropsWithChildren> = ({
 	children,
 }) => {
 	const { commandBarDialog } = useGlobalContext()
-	const formStore = useFormStore<CommandBarSearch>({
+	const formStore = Form.useStore<CommandBarSearch>({
 		defaultValues: {
 			search: '',
 			selectedDates: [
@@ -114,15 +115,18 @@ export const CommandBarContextProvider: React.FC<React.PropsWithChildren> = ({
 	})
 
 	const query = formStore.useValue('search').trim()
+	const startDate = formStore.useValue('selectedDates')[0]
+	const endDate = formStore.useValue('selectedDates')[1]
+	const selectedPreset = formStore.useValue('selectedPreset')
 	const searchAttribute = useAttributeSearch(formStore)
 
 	formStore.useSubmit(() => {
 		if (query) {
 			searchAttribute(currentAttribute, {
 				timeRange: {
-					startDate: formStore.useValue('selectedDates')[0],
-					endDate: formStore.useValue('selectedDates')[1],
-					selectedPreset: formStore.useValue('selectedPreset'),
+					startDate,
+					endDate,
+					selectedPreset,
 				},
 			})
 		}

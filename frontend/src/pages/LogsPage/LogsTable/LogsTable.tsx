@@ -43,8 +43,7 @@ import {
 } from '@/components/CustomColumnHeader'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { parseSearch } from '@/components/Search/utils'
-import { useGetLogsKeysLazyQuery } from '@/graph/generated/hooks'
-import { LogEdge } from '@/graph/generated/schemas'
+import { LogEdge, ProductType } from '@/graph/generated/schemas'
 import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 import analytics from '@/util/analytics'
 
@@ -215,11 +214,11 @@ const LogsTableInner = ({
 				noPadding: true,
 				component: (
 					<CustomColumnPopover
+						productType={ProductType.Logs}
 						selectedColumns={selectedColumns}
 						setSelectedColumns={setSelectedColumns}
 						standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
 						attributePrefix="logAttributes"
-						getKeysLazyQuery={useGetLogsKeysLazyQuery}
 					/>
 				),
 			})
@@ -347,6 +346,7 @@ const LogsTableInner = ({
 				overflowY="auto"
 				style={{ height: bodyHeight }}
 				onScroll={handleFetchMoreWhenScrolled}
+				hiddenScroll
 			>
 				{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
 				{virtualRows.map((virtualRow) => {

@@ -10,7 +10,6 @@ import {
 	IconSolidCheveronLeft,
 	Stack,
 	Text,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
@@ -35,7 +34,7 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 	const navigate = useNavigate()
 	const recaptchaVerifier = useRef<firebase.auth.ApplicationVerifier>()
 	const phoneAuthProvider = new firebase.auth.PhoneAuthProvider()
-	const formStore = useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			code: '',
 		},

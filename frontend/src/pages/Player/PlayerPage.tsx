@@ -5,7 +5,6 @@ import ElevatedCard from '@components/ElevatedCard/ElevatedCard'
 import LoadingBox from '@components/LoadingBox'
 import { useIsSessionPendingQuery } from '@graph/hooks'
 import { Session } from '@graph/schemas'
-import { Replayer } from '@highlight-run/rrweb'
 import { Box, Callout, Text } from '@highlight-run/ui/components'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { CompleteSetup } from '@pages/Player/components/CompleteSetup/CompleteSetup'
@@ -51,8 +50,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import useResizeAware from 'react-resize-aware'
 import { useNavigate } from 'react-router-dom'
+import { Replayer } from 'rrweb'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { NetworkResourcePanel } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourcePanel'
 import DevToolsWindowV2 from '@/pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
 import { useIntegratedLocalStorage } from '@/util/integrated'
@@ -119,14 +120,13 @@ const PlayerPage = () => {
 
 	const {
 		setShowLeftPanel,
-		setShowRightPanel,
 		setSelectedDevToolsTab,
 		setShowDevTools,
 		showLeftPanel: showLeftPanelPreference,
 		showRightPanel: showRightPanelPreference,
 	} = usePlayerConfiguration()
-	const { rightPanelView, setRightPanelView, setActiveError } =
-		usePlayerUIContext()
+	const { rightPanelView } = usePlayerUIContext()
+	const { set } = useRelatedResource()
 	const showRightPanel =
 		showRightPanelPreference || rightPanelView === RightPanelView.Comments
 
@@ -134,22 +134,16 @@ const PlayerPage = () => {
 	useEffect(() => {
 		if (errorObject) {
 			setShowLeftPanel(false)
-			setShowRightPanel(true)
 			setShowDevTools(true)
 			setSelectedDevToolsTab(Tab.Errors)
-			setActiveError({ ...errorObject, session })
-			setRightPanelView(RightPanelView.Error)
+			set({
+				type: 'error',
+				id: errorObject.error_group_secure_id,
+				instanceId: errorObject.id,
+			})
 		}
-	}, [
-		errorObject,
-		session,
-		setActiveError,
-		setRightPanelView,
-		setSelectedDevToolsTab,
-		setShowDevTools,
-		setShowLeftPanel,
-		setShowRightPanel,
-	])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [errorObject])
 
 	const { logCursor } = useLinkLogCursor()
 	useEffect(() => {

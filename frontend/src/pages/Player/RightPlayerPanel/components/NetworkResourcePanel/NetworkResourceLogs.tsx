@@ -16,10 +16,7 @@ import {
 	SearchFormProps,
 } from '@/components/Search/SearchForm/SearchForm'
 import { DEFAULT_OPERATOR } from '@/components/Search/SearchForm/utils'
-import {
-	useGetLogsKeysLazyQuery,
-	useGetLogsKeyValuesLazyQuery,
-} from '@/graph/generated/hooks'
+import { ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { FullScreenContainer } from '@/pages/LogsPage/LogsTable/FullScreenContainer'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
@@ -43,14 +40,20 @@ export const NetworkResourceLogs: React.FC<{
 	}>()
 	const requestId = resource.requestResponsePairs?.request?.id
 	const [query, setQuery] = useState('')
-	const startDate = useMemo(
-		() => new Date(sessionStartTime + resource.startTime - TIME_BUFFER),
-		[sessionStartTime, resource.startTime],
-	)
-	const endDate = useMemo(
-		() => new Date(sessionStartTime + resource.responseEnd + TIME_BUFFER),
-		[resource.responseEnd, sessionStartTime],
-	)
+	const startDate = useMemo(() => {
+		// startTime used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
+		const resourceStart =
+			resource.startTimeAbs ?? sessionStartTime + resource.startTime
+
+		return new Date(resourceStart - TIME_BUFFER)
+	}, [sessionStartTime, resource.startTimeAbs, resource.startTime])
+	const endDate = useMemo(() => {
+		// responseEnd used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
+		const resourceEnd =
+			resource.responseEndAbs ?? sessionStartTime + resource.responseEnd
+
+		return new Date(resourceEnd - TIME_BUFFER)
+	}, [sessionStartTime, resource.responseEndAbs, resource.responseEnd])
 
 	const {
 		logEdges,
@@ -118,8 +121,7 @@ export const NetworkResourceLogs: React.FC<{
 						actions={SearchFormActions}
 						hideDatePicker
 						hideCreateAlert
-						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
-						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
+						productType={ProductType.Logs}
 					/>
 					<Box height="full" pt="4" px="12" pb="12">
 						{(!loading && logEdges.length === 0) || !requestId ? (

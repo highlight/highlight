@@ -35,6 +35,7 @@ import {
 	useUpdateBillingDetailsMutation,
 } from '@/graph/generated/hooks'
 import {
+	AwsMarketplaceSubscription,
 	PlanType,
 	ProductType,
 	RetentionPeriod,
@@ -68,6 +69,7 @@ type UsageCardProps = {
 	enableBillingLimits: boolean | undefined
 	billingIssues: boolean
 	setStep: (step: PlanSelectStep) => void
+	awsMpSubscription?: AwsMarketplaceSubscription | null | undefined
 }
 
 const UsageCard = ({
@@ -82,6 +84,7 @@ const UsageCard = ({
 	enableBillingLimits,
 	billingIssues,
 	setStep,
+	awsMpSubscription,
 }: UsageCardProps) => {
 	const costCents = isPaying
 		? getCostCents(
@@ -134,7 +137,9 @@ const UsageCard = ({
 						{productIcon}
 						<Text color="n12">{productType}</Text>
 					</Box>
-					<Text color="n12">{costFormatted}</Text>
+					{awsMpSubscription?.product_code ? null : (
+						<Text color="n12">{costFormatted}</Text>
+					)}
 				</Box>
 				<Box display="flex" gap="4">
 					{!enableBillingLimits ? (
@@ -291,7 +296,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 
 	const isPaying = data?.billingDetails.plan.type !== PlanType.Free
 	const isAWSMP =
-		!!data?.billingDetails.plan.aws_mp_subscription?.customer_identifier
+		!!data?.billingDetails.plan.aws_mp_subscription?.product_code
 
 	const nextInvoiceDate = tryCastDate(data?.workspace?.next_invoice_date)
 	const billingPeriodEnd = tryCastDate(data?.workspace?.billing_period_end)
@@ -410,25 +415,40 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 
 	return (
 		<Box width="full" display="flex" justifyContent="center">
-			<UpdatePlanModal step={step} setStep={setStep} />
+			<UpdatePlanModal
+				currentPlanType={
+					data?.billingDetails.plan.type === PlanType.Free
+						? PlanType.Graduated
+						: data?.billingDetails.plan.type ?? PlanType.Graduated
+				}
+				step={step}
+				setStep={setStep}
+			/>
 			<Stack height="full" px="8" cssClass={style.pageWrapper} gap="0">
 				<Stack>
 					<Heading level="h4">Billing plans</Heading>
-					<Box display="inline-flex">
-						<Text size="small" color="weak">
-							Prices are flexible around your needs. Custom quote?{' '}
-							<a
-								href={getPlanChangeEmail({
-									workspaceID: workspace_id,
-									planType: PlanType.Enterprise,
-								})}
-							>
-								<Box display="inline-flex" alignItems="center">
-									Reach out to sales <IconSolidArrowSmRight />
-								</Box>
-							</a>
-						</Text>
-					</Box>
+					{isAWSMP ? null : (
+						<Box display="inline-flex">
+							<Text size="small" color="weak">
+								Prices are flexible around your needs. Custom
+								quote?{' '}
+								<a
+									href={getPlanChangeEmail({
+										workspaceID: workspace_id,
+										planType: PlanType.Enterprise,
+									})}
+								>
+									<Box
+										display="inline-flex"
+										alignItems="center"
+									>
+										Reach out to sales{' '}
+										<IconSolidArrowSmRight />
+									</Box>
+								</a>
+							</Text>
+						</Box>
+					)}
 					{billingIssue ? (
 						<Callout title="Update payment details" icon={false}>
 							<Box
@@ -503,7 +523,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 										)
 									}
 								>
-									Edit in AWS Marketplace
+									View in AWS Marketplace
 								</Button>
 							</Box>
 						) : (
@@ -551,6 +571,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						retentionPeriod={sessionsRetention}
 						billingLimitCents={sessionsLimit}
 						usageAmount={sessionsUsage}
+						awsMpSubscription={
+							data?.billingDetails?.plan.aws_mp_subscription
+						}
 						includedQuantity={includedSessions}
 						isPaying={isPaying}
 						planType={planType}
@@ -568,6 +591,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						retentionPeriod={errorsRetention}
 						billingLimitCents={errorsLimit}
 						usageAmount={errorsUsage}
+						awsMpSubscription={
+							data?.billingDetails?.plan.aws_mp_subscription
+						}
 						includedQuantity={includedErrors}
 						isPaying={isPaying}
 						planType={planType}
@@ -585,6 +611,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						retentionPeriod={logsRetention}
 						billingLimitCents={logsLimit}
 						usageAmount={logsUsage}
+						awsMpSubscription={
+							data?.billingDetails?.plan.aws_mp_subscription
+						}
 						includedQuantity={includedLogs}
 						isPaying={isPaying}
 						planType={planType}
@@ -602,6 +631,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						retentionPeriod={tracesRetention}
 						billingLimitCents={tracesLimit}
 						usageAmount={tracesUsage}
+						awsMpSubscription={
+							data?.billingDetails?.plan.aws_mp_subscription
+						}
 						includedQuantity={includedTraces}
 						isPaying={isPaying}
 						planType={planType}
@@ -612,120 +644,127 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						setStep={setStep}
 					/>
 				</Box>
-				<Stack
-					border="secondary"
-					borderRadius="8"
-					alignItems="center"
-					py="16"
-					px="12"
-					gap="12"
-					mt="16"
-				>
-					<Box
-						display="flex"
-						flexDirection="row"
-						justifyContent="space-between"
-						width="full"
-						cssClass={style.totalBox}
+				{isAWSMP ? null : (
+					<Stack
+						border="secondary"
+						borderRadius="8"
 						alignItems="center"
+						py="16"
+						px="12"
+						gap="12"
+						mt="16"
 					>
-						<Stack gap="12" width="full">
-							{data?.subscription_details.discount ? (
-								<>
-									<Box
-										display="flex"
-										alignItems="center"
-										justifyContent="space-between"
-									>
-										<Box display="flex" gap="6">
-											<Text>
-												Discount (
-												{
-													data.subscription_details
-														.discount.name
-												}
-												)
-											</Text>
-											<Text color="weak">
-												{discountPercent
-													? `${discountPercent}% off `
-													: `${discountAmountFormatted} off `}
-												{discountUntilFormatted}
-											</Text>
-										</Box>
+						<Box
+							display="flex"
+							flexDirection="row"
+							justifyContent="space-between"
+							width="full"
+							cssClass={style.totalBox}
+							alignItems="center"
+						>
+							<Stack gap="12" width="full">
+								{data?.subscription_details.discount ? (
+									<>
 										<Box
 											display="flex"
 											alignItems="center"
-											gap="4"
+											justifyContent="space-between"
 										>
-											<Text color="strong" weight="bold">
-												-{discountAmountFormatted}
-											</Text>
+											<Box display="flex" gap="6">
+												<Text>
+													Discount (
+													{
+														data
+															.subscription_details
+															.discount.name
+													}
+													)
+												</Text>
+												<Text color="weak">
+													{discountPercent
+														? `${discountPercent}% off `
+														: `${discountAmountFormatted} off `}
+													{discountUntilFormatted}
+												</Text>
+											</Box>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<Text
+													color="strong"
+													weight="bold"
+												>
+													-{discountAmountFormatted}
+												</Text>
+											</Box>
 										</Box>
-									</Box>
-									<Box borderBottom="divider" />
-								</>
-							) : null}
-							<Box
-								display="flex"
-								alignItems="center"
-								justifyContent="space-between"
-							>
-								<Box display="flex" gap="6">
-									<Text color="strong">
-										Total per{' '}
-										{data?.billingDetails.plan.interval ===
-										'Annual'
-											? 'year'
-											: 'month'}
-									</Text>
-									{isPaying && (
-										<Text color="weak">
-											Due{' '}
-											{moment(nextBillingDate).format(
-												'MM/DD/YY',
-											)}
-										</Text>
-									)}
-								</Box>
+										<Box borderBottom="divider" />
+									</>
+								) : null}
 								<Box
 									display="flex"
 									alignItems="center"
-									color="p11"
-									gap="4"
+									justifyContent="space-between"
 								>
-									{hasExtras && (
-										<Tooltip
-											delayed
-											trigger={
-												<IconSolidInformationCircle
-													size={12}
-												/>
-											}
-										>
-											Includes a{' '}
+									<Box display="flex" gap="6">
+										<Text color="strong">
+											Total per{' '}
 											{data?.billingDetails.plan
 												.interval === 'Annual'
-												? 'yearly'
-												: 'monthly'}{' '}
-											base charge of {baseAmountFormatted}
-											{discountPercent
-												? ` with a ${discountPercent}% discount`
-												: ''}
-											{discountAmount
-												? ` with a ${discountAmountFormatted} discount`
-												: ''}
-											.
-										</Tooltip>
-									)}
-									<Text color="p11" weight="bold">
-										{totalFormatted}
-									</Text>
+												? 'year'
+												: 'month'}
+										</Text>
+										{isPaying && (
+											<Text color="weak">
+												Due{' '}
+												{moment(nextBillingDate).format(
+													'MM/DD/YY',
+												)}
+											</Text>
+										)}
+									</Box>
+									<Box
+										display="flex"
+										alignItems="center"
+										color="p11"
+										gap="4"
+									>
+										{hasExtras && (
+											<Tooltip
+												delayed
+												trigger={
+													<IconSolidInformationCircle
+														size={12}
+													/>
+												}
+											>
+												Includes a{' '}
+												{data?.billingDetails.plan
+													.interval === 'Annual'
+													? 'yearly'
+													: 'monthly'}{' '}
+												base charge of{' '}
+												{baseAmountFormatted}
+												{discountPercent
+													? ` with a ${discountPercent}% discount`
+													: ''}
+												{discountAmount
+													? ` with a ${discountAmountFormatted} discount`
+													: ''}
+												.
+											</Tooltip>
+										)}
+										<Text color="p11" weight="bold">
+											{totalFormatted}
+										</Text>
+									</Box>
 								</Box>
-							</Box>
-						</Stack>
-					</Box>
-				</Stack>
+							</Stack>
+						</Box>
+					</Stack>
+				)}
 			</Stack>
 		</Box>
 	)

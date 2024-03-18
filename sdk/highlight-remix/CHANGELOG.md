@@ -1,5 +1,60 @@
 # @highlight-run/remix
 
+## 2.0.24
+
+### Patch Changes
+
+-   Updated dependencies [f45323273]
+    -   highlight.run@8.9.0
+    -   @highlight-run/node@3.8.1
+
+## 2.0.23
+
+### Patch Changes
+
+-   240143f9d: Resolve node sdk issues from an OTel package version bump
+-   Updated dependencies [240143f9d]
+    -   @highlight-run/node@3.8.1
+
+## 2.0.22
+
+### Patch Changes
+
+-   Updated dependencies [23a01e3d6]
+-   Updated dependencies [6a8151dc3]
+    -   highlight.run@8.8.0
+    -   @highlight-run/node@3.8.0
+
+## 2.0.21
+
+### Patch Changes
+
+-   Updated dependencies [31486ce41]
+    -   highlight.run@8.7.1
+    -   @highlight-run/node@3.8.0
+
+## 2.0.20
+
+### Patch Changes
+
+-   062001317: update dependencies
+-   Updated dependencies [e2483b6c3]
+    -   highlight.run@8.7.0
+    -   @highlight-run/node@3.8.0
+
+## 2.0.19
+
+### Patch Changes
+
+-   5fdb420c4: Adding highlightMiddleware and cookie tracking to Next.js. Minor cleanup for Remix and Node.
+-   Updated dependencies [c4eb0a17f]
+-   Updated dependencies [ed3ff4752]
+-   Updated dependencies [58ad9560f]
+-   Updated dependencies [5fdb420c4]
+-   Updated dependencies [9796ef086]
+    -   @highlight-run/node@3.8.0
+    -   highlight.run@8.6.0
+
 ## 2.0.18
 
 ### Patch Changes

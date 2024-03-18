@@ -1,7 +1,6 @@
 import { Form } from '@highlight-run/ui/components'
 import { Select } from 'antd'
-import { useState } from 'react'
-import React from 'react'
+import React, { useState } from 'react'
 
 import { useSearchIssuesLazyQuery } from '@/graph/generated/hooks'
 import { IntegrationType } from '@/graph/generated/schemas'

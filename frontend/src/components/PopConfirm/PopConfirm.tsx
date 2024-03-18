@@ -1,5 +1,4 @@
 import { Popconfirm as AntDesignPopconfirm, PopconfirmProps } from 'antd'
-import React from 'react'
 
 import styles from './PopConfirm.module.css'
 

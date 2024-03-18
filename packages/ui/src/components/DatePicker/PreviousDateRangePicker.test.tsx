@@ -1,4 +1,4 @@
-import { Preset, getLabel } from './PreviousDateRangePicker'
+import { getLabel, Preset } from './PreviousDateRangePicker'
 import { subtractDays, subtractHours } from './utils'
 
 const now = new Date(1676410246855) // Feb 14 2023

@@ -1,4 +1,4 @@
-import { Form, Stack, Text, useFormStore } from '@highlight-run/ui/components'
+import { Form, Stack, Text } from '@highlight-run/ui/components'
 import { message } from 'antd'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -44,7 +44,7 @@ export const JoinWorkspace = () => {
 		false,
 	)
 
-	const formStore = useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			workspaceId: '',
 		},

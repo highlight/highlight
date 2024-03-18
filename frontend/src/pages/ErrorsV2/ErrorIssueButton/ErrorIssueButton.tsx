@@ -8,14 +8,16 @@ import {
 import { GetErrorGroupQuery, namedOperations } from '@graph/operations'
 import { ExternalAttachment, IntegrationType } from '@graph/schemas'
 import {
+	Box,
 	IconSolidCheveronRight,
 	IconSolidClipboardCopy,
 	IconSolidDocumentAdd,
 	IconSolidExternalLink,
 	IconSolidPlusSm,
 	IconSolidTrash,
+	Menu,
+	Text,
 } from '@highlight-run/ui/components'
-import { Box, Menu, Text } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useProjectId } from '@hooks/useProjectId'
 import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
@@ -32,7 +34,7 @@ import {
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { copyToClipboard } from '@util/string'
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'

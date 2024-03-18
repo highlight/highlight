@@ -1,10 +1,10 @@
-import React from 'react'
 import { Meta } from '@storybook/react'
+import React from 'react'
 
-import { Callout, Props as CalloutProps } from './Callout'
-import { Text } from '../Text/Text'
 import { Box } from '../Box/Box'
 import { Button } from '../Button/Button'
+import { Text } from '../Text/Text'
+import { Callout, Props as CalloutProps } from './Callout'
 
 export default {
 	title: 'Components/Callout',

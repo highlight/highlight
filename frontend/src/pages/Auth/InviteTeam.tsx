@@ -20,7 +20,6 @@ import {
 	Stack,
 	SwitchButton,
 	Text,
-	useFormStore,
 } from '@highlight-run/ui/components'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
@@ -81,7 +80,7 @@ export const InviteTeamForm: React.FC = () => {
 		})
 	const adminRole = adminRoleData?.admin_role?.role ?? AdminRole.Member
 
-	const formStore = useFormStore({
+	const formStore = Form.useStore({
 		defaultValues: {
 			autoJoinDomain: true,
 			inviteEmails: '',
