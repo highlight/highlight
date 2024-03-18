@@ -3,7 +3,6 @@ on:
     push:
         branches:
             - 'main'
-            - 'zane/action_ip'
         paths:
             - 'go.work'
             - 'go.work.sum'
