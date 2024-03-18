@@ -235,6 +235,9 @@ jobs:
                   # run cypress tests
                   yarn cy:run;
 
+                  # run session screenshot lambda locally
+                  yarn workspace render test:screenshots
+
                   # look for containers that crashed
                   num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)
                   if [ "$num_crashed" -gt 0 ]; then

@@ -86,12 +86,17 @@ export const handler = (event?: APIGatewayEvent) => {
 }
 
 if (process.env.DEV?.length) {
+	process.env.PSQL_HOST = 'localhost'
+	process.env.PSQL_PORT = '5432'
+	process.env.PSQL_DB = 'postgres'
+	process.env.PSQL_USER = 'postgres'
+	process.env.PSQL_PASSWORD = 'default'
 	await Promise.all([
 		handler({
 			queryStringParameters: {
 				format: 'video/mp4',
 				project: '1',
-				session: '339013668',
+				session: '300000001',
 			},
 		} as unknown as APIGatewayEvent),
 	])
