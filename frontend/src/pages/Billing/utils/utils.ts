@@ -70,7 +70,7 @@ export const RETENTION_PERIOD_LABELS: { [K in RetentionPeriod]: string } = {
 }
 
 type meterArgs = {
-	workspace: Workspace
+	workspace: Maybe<Pick<Workspace, 'trial_end_date'>> | undefined
 	details:
 		| Maybe<
 				{ __typename?: 'BillingDetails' } & Pick<
@@ -117,33 +117,33 @@ export const getMeterAmounts = ({
 			[ProductType.Traces]: [0, undefined],
 		}
 	}
-	const trialActive = workspace.trial_end_date
+	const trialActive = workspace?.trial_end_date
 		? undefined
-		: moment(workspace.trial_end_date).isAfter(moment())
-	const canChargeOverage = !trialActive && details.plan.type !== 'Free'
+		: moment(workspace?.trial_end_date).isAfter(moment())
+	const canChargeOverage = trialActive || details.plan.type !== 'Free'
 	const sessionsMeter = details?.meter ?? 0
-	const sessionsQuota = details?.sessionsBillingLimit
-		? details.sessionsBillingLimit
-		: canChargeOverage
-		? undefined
+	const sessionsQuota = canChargeOverage
+		? details?.sessionsBillingLimit
+			? details.sessionsBillingLimit
+			: undefined
 		: details?.plan.sessionsLimit
 	const errorsMeter = details?.errorsMeter ?? 0
-	const errorsQuota = details?.errorsBillingLimit
-		? details.errorsBillingLimit
-		: canChargeOverage
-		? undefined
+	const errorsQuota = canChargeOverage
+		? details?.errorsBillingLimit
+			? details.errorsBillingLimit
+			: undefined
 		: details?.plan.errorsLimit
 	const logsMeter = details?.logsMeter ?? 0
-	const logsQuota = details?.logsBillingLimit
-		? details.logsBillingLimit
-		: canChargeOverage
-		? undefined
+	const logsQuota = canChargeOverage
+		? details?.logsBillingLimit
+			? details.logsBillingLimit
+			: undefined
 		: details?.plan.logsLimit
 	const tracesMeter = details?.tracesMeter ?? 0
-	const tracesQuota = details?.tracesBillingLimit
-		? details.tracesBillingLimit
-		: canChargeOverage
-		? undefined
+	const tracesQuota = canChargeOverage
+		? details?.tracesBillingLimit
+			? details.tracesBillingLimit
+			: undefined
 		: details?.plan.tracesLimit
 	return {
 		[ProductType.Sessions]: [sessionsMeter, sessionsQuota],
