@@ -118,8 +118,8 @@ export const getMeterAmounts = ({
 		}
 	}
 	const trialActive = workspace?.trial_end_date
-		? undefined
-		: moment(workspace?.trial_end_date).isAfter(moment())
+		? moment(workspace?.trial_end_date).isAfter(moment())
+		: false
 	const canChargeOverage = trialActive || details.plan.type !== 'Free'
 	const sessionsMeter = details?.meter ?? 0
 	const sessionsQuota = canChargeOverage
