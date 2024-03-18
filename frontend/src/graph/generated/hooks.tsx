@@ -9075,6 +9075,7 @@ export const GetBillingDetailsDocument = gql`
 			sessionsBillingLimit
 			errorsBillingLimit
 			logsBillingLimit
+			tracesBillingLimit
 			sessionsDailyAverage
 			errorsDailyAverage
 			logsDailyAverage
