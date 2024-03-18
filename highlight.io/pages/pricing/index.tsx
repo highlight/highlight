@@ -1,19 +1,17 @@
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { NextPage } from 'next'
 import Link from 'next/link'
-import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import Footer from '../../components/common/Footer/Footer'
 import Navbar from '../../components/common/Navbar/Navbar'
 import { Typography } from '../../components/common/Typography/Typography'
 
-import { Dialog, RadioGroup, Transition } from '@headlessui/react'
+import { Listbox, Transition } from '@headlessui/react'
+import { ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import * as Slider from '@radix-ui/react-slider'
-import classNames from 'classnames'
 import { Fragment, useState } from 'react'
 import { HeadlessTooltip } from '../../components/Competitors/ComparisonTable'
 
-import { Switch } from '@headlessui/react'
 import {
 	HiOfficeBuilding,
 	HiPuzzle,
@@ -29,27 +27,11 @@ import {
 	selfHostPrices,
 } from '../../components/Pricing/estimator_details'
 
-const MyToggle = () => {
-	const [enabled, setEnabled] = useState(false)
-
-	return (
-		<Switch
-			checked={enabled}
-			onChange={setEnabled}
-			className={`relative border border-divider-on-dark inline-flex h-10 w-[280px] items-center rounded-md`}
-		>
-			<p className="absolute left-4 z-10">Billed Annually</p>
-			<p className="absolute right-4 z-10">Billed Monthly</p>
-			<span
-				className={`${
-					enabled ? 'right-0' : 'right-auto'
-				} absolute inline-block h-[30px] w-[125px] transform rounded-full bg-purple-primary transition-all`}
-			/>
-		</Switch>
-	)
-}
-
 const PricingPage: NextPage = () => {
+	const [estimatorCategory, setEstimatorCategory] = useState(
+		priceTiers.Professional,
+	)
+
 	return (
 		<div>
 			<Navbar />
@@ -59,62 +41,31 @@ const PricingPage: NextPage = () => {
 				</div>
 				<PlanTable />
 			</div>
+			<div
+				className="flex flex-col items-center my-32 text-center gap-9"
+				id="overage"
+			>
+				{/* Pay as you go */}
+				<h2>
+					Pay{' '}
+					<span className="text-highlight-yellow">as you go.</span>
+				</h2>
+				<Typography type="copy1" onDark className="max-w-4xl">
+					After reaching the free tier limits, we charge an additional
+					usage-based fee for each product. The $50 base fee unlocks
+					discounted volume pricing automatically. For custom plans,{' '}
+					<a href="mailto:sales@highlight.io">reach out to us</a>.
+				</Typography>
+			</div>
+			<PriceCalculator
+				prices={estimatorCategory.prices}
+				setEstimatorCategory={setEstimatorCategory}
+			/>
 			<FooterCallToAction />
 			<Footer />
 		</div>
 	)
 }
-
-const docsUrl = '/docs'
-
-// const Faqs: { question: string; answer: string; icon: string }[] = [
-// 	{
-// 		question: 'Do you offer a discount for non-profits?',
-// 		answer: `We love supporting non-profits and offer a 75% discount for the lifetime of the account. To activate the discount, create a workplace on either the Standard or Pro plan. Then reach out to support and mention the discount.`,
-// 		icon: TagLoyalty,
-// 	},
-// 	{
-// 		question: 'How long does it take to setup Highlight?',
-// 		answer: `It generally takes an engineer less than ten minutes to understand the concepts of Highlight and integrate the app into their workflow. For more information on setup, take a look at our <a href="${docsUrl}">docs</a>.`,
-// 		icon: Stopwatch,
-// 	},
-// 	{
-// 		question: 'Can I deploy Highlight on-premise?',
-// 		answer: `Yes! To get a glimpse at how our hobby deployment process looks, take a look <a href="${docsUrl}/general/company/open-source/hosting/self-host-hobby">here</a>. To get a license key for a production deployment, contacts at <a href="mailto:sales@highlight.io">sales@highlight.io</a>.`,
-// 		icon: Globe,
-// 	},
-// 	{
-// 		question: "Is Highlight secure? Where's my data stored?",
-// 		answer: `Highlight uses end-to-end encryption to keep your data safe while it’s in transit, and we also offer an on-prem solution if you want to keep customer data on your own servers. For more information, see our <a href="/#privacy">security section</a> and <a href="${docsUrl}" target="_blank">docs</a>. If we don't answer your question there, <a href="mailto:jay@highlight.io">let us know</a>.`,
-// 		icon: Security,
-// 	},
-// 	{
-// 		question: 'Do I need a credit card to sign up?',
-// 		answer: `Absolutely not! We never ask for your credit card on sign up. If you start on a paid plan then 30 days after signing up you will be politely prompted to enter in your payment information. At anytime you can switch back to a free plan as long as your workplace has less than 6 seats.`,
-// 		icon: CreditCard,
-// 	},
-// 	{
-// 		question: 'How will you charge me?',
-// 		answer: `We ask for a credit card. Your credit card information will never touch our servers as we use <a href="https://stripe.com/" target="_blank">Stripe</a> as our payments processor. For Enterprise customers we can do ACH and custom invoices if requested.`,
-// 		icon: Wallet,
-// 	},
-// 	{
-// 		question: 'How does billing work?',
-// 		answer: `We charge by usage; or number of sessions collected per month. Our billing system uses prorated billing, meaning you only pay for what you use below each of our thresholds (see above). For example if you move to the Startup plan from the Basic plan in the middle of the month, then you will only be charged for the time you are on the paid plan.`,
-// 		icon: ReceiptList,
-// 	},
-// 	{
-// 		question: 'What counts as a session?',
-// 		answer: `A session is contiguous instance of a user's presence on your app for less than 4 hours. That is, if a user is browsing your application for 3 minutes, then closes the tab, this counts as a single session.`,
-// 		icon: PcPlayMedia,
-// 	},
-// 	{
-// 		question: 'Can I cancel at anytime?',
-// 		answer: `Definitely! You can cancel or downgrade your subscription at anytime. You can also delete your workplace in the settings page at anytime.`,
-// 		icon: Delete,
-// 	},
-// ]
-//
 
 const retentionOptions = [
 	'30 days',
@@ -319,11 +270,7 @@ const PlanTier = ({ tier }: { tier: PricingTier }) => {
 					</div>
 				))}
 			</div>
-			<div className="p-4">
-				{calculateUsage && (
-					<PriceCalculatorModal prices={tier.prices} />
-				)}
-			</div>
+			<div className="p-4"></div>
 		</div>
 	)
 }
@@ -357,65 +304,13 @@ const formatPrice = (
 		signDisplay: signDisplay ?? 'always',
 	})
 
-const PriceCalculatorModal = ({ prices }: { prices: Prices }) => {
-	let [isOpen, setIsOpen] = useState(false)
-
-	function closeModal() {
-		setIsOpen(false)
-	}
-
-	function openModal() {
-		setIsOpen(true)
-	}
-
-	return (
-		<>
-			<PrimaryButton
-				onClick={openModal}
-				className="flex justify-center border border-copy-on-dark text-copy-on-dark bg-transparent text-center py-1 rounded-md"
-			>
-				<Typography className="text-copy-on-dark" type="copy3" emphasis>
-					Estimate your bill
-				</Typography>
-			</PrimaryButton>
-
-			<Transition appear show={isOpen} as={Fragment}>
-				<Dialog as="div" className="relative" onClose={closeModal}>
-					<Transition.Child
-						as={Fragment}
-						enter="ease-out duration-300"
-						enterFrom="opacity-0"
-						enterTo="opacity-100"
-						leave="ease-in duration-200"
-						leaveFrom="opacity-100"
-						leaveTo="opacity-0"
-					>
-						<div className="fixed inset-0 bg-dark-background bg-opacity-80 z-[125]" />
-					</Transition.Child>
-
-					<div className="fixed inset-0 overflow-y-auto z-[150]">
-						<div className="flex min-h-full items-center justify-center p-4 text-center">
-							<Transition.Child
-								enter="ease-out duration-300"
-								enterFrom="opacity-0 scale-95"
-								enterTo="opacity-100 scale-100"
-								leave="ease-in duration-200"
-								leaveFrom="opacity-100 scale-100"
-								leaveTo="opacity-0 scale-95"
-							>
-								<Dialog.Panel className="flex transform bg-dark-background translate-y-8 text-left align-middle shadow-xl transition-all rounded-lg">
-									<PriceCalculator prices={prices} />
-								</Dialog.Panel>
-							</Transition.Child>
-						</div>
-					</div>
-				</Dialog>
-			</Transition>
-		</>
-	)
-}
-
-const PriceCalculator = ({ prices }: { prices: Prices }) => {
+const PriceCalculator = ({
+	prices,
+	setEstimatorCategory,
+}: {
+	prices: Prices
+	setEstimatorCategory: (value: PricingTier) => void
+}) => {
 	const defaultErrors = prices.Errors.free
 	const defaultLogs = prices.Logs.free
 	const defaultTraces = prices.Traces.free
@@ -484,22 +379,10 @@ const PriceCalculator = ({ prices }: { prices: Prices }) => {
 	)
 
 	return (
-		<div className="flex flex-col items-center w-full gap-10 mx-auto rounded-2xl">
+		<div className="flex justify-center w-full">
 			{/* Price calculator */}
-			<div className="flex flex-col items-end w-full max-w-[1100px]">
-				<div className="flex flex-col overflow-hidden border divide-y rounded-lg md:rounded-br-none divide-divider-on-dark border-divider-on-dark">
-					<div className="hidden h-12 md:flex">
-						<div className="flex items-center flex-1 border-r border-divider-on-dark px-7">
-							<Typography type="copy2" emphasis>
-								Product
-							</Typography>
-						</div>
-						<div className="flex items-center justify-center w-[343px] px-7">
-							<Typography type="copy2" emphasis>
-								Monthy Cost Breakdown
-							</Typography>
-						</div>
-					</div>
+			<div className="flex items-center">
+				<div className="flex flex-col p-4 gap-4 overflow-hidden border rounded-r-lg md:rounded-br-none border-divider-on-dark">
 					<CalculatorRowDesktop
 						title="Error Monitoring"
 						description="Error monitoring usage is defined by the number of errors collected by Highlight per month. Our frontend/server SDKs send errors, but you can also send custom errors."
@@ -553,30 +436,6 @@ const PriceCalculator = ({ prices }: { prices: Prices }) => {
 						retention="30 days"
 						onChange={setTracesUsage}
 					/>
-					<div className="block px-3 py-5 rounded-b-lg md:hidden">
-						<Typography type="copy1" emphasis>
-							Total:{' '}
-							{formatPrice(
-								sessionsCost +
-									errorsCost +
-									loggingCost +
-									tracesCost,
-							)}
-						</Typography>
-					</div>
-				</div>
-				<div className="hidden border border-t-0 rounded-b-lg md:block h-52 border-divider-on-dark">
-					<CalculatorCostDisplay
-						heading="Monthly Total"
-						cost={
-							base +
-							sessionsCost +
-							errorsCost +
-							loggingCost +
-							tracesCost
-						}
-						subtitle={'Includes base fee and usage charges.'}
-					/>
 				</div>
 			</div>
 		</div>
@@ -616,66 +475,71 @@ const CalculatorRowDesktop = ({
 	].map((v) => v * rangeMultiplier)
 
 	return (
-		<div className="flex flex-row">
-			<div className="flex flex-col flex-1 gap-1 px-3 py-5 md:px-7">
+		<div className="flex border border-divider-on-dark rounded-lg">
+			<div className="flex flex-col flex-1 gap-1 p-3 w-[920px]">
 				<Typography
 					type="copy4"
 					emphasis
-					className="rounded-full bg-blue-cta py-0.5 px-3 text-dark-background self-start inline-block md:hidden"
+					className="rounded-full bg-blue-cta text-dark-background self-start inline-block md:hidden"
 				>
 					{formatPrice(cost)}
 				</Typography>
-				<Typography type="copy1" emphasis>
-					{title}
-				</Typography>
-				<Typography type="copy3" className="mt-2.5">
-					{description}
-				</Typography>
-				<div className="mt-2.5">
-					<RadioOptions
-						title="Retention"
-						options={
-							onChangeRetention !== undefined
-								? ['3 months', '6 months', '1 year', '2 years']
-								: ['30 days']
-						}
-						value={retention}
-						onChange={onChangeRetention}
-					/>
+				<div className="flex justify-between items-center">
+					<div className="flex items-center gap-3">
+						<RadioOptions
+							title="Retention"
+							options={
+								onChangeRetention !== undefined
+									? [
+											'3 months',
+											'6 months',
+											'1 year',
+											'2 years',
+									  ]
+									: ['30 days']
+							}
+							value={retention}
+							onChange={onChangeRetention}
+						/>
+						<Typography type="copy3" emphasis>
+							{title}
+						</Typography>
+					</div>
+					<Typography type="copy2" emphasis>
+						${cost}
+					</Typography>
 				</div>
-				<div className="mt-2.5">
-					<RangedInput
-						options={rangeOptions}
-						value={value}
-						includedRange={includedRange}
-						onChange={onChange}
-					/>
-				</div>
-			</div>
-			<div className="hidden border-l border-divider-on-dark md:inline-block">
-				<CalculatorCostDisplay
-					heading="Usage (Monthly)"
-					cost={cost}
-					rate={{
-						value: rate,
-						unit: prices[product].unit,
-						product,
-					}}
+				<RangedInput
+					options={rangeOptions}
+					value={value}
+					unit={product}
+					onChange={onChange}
 				/>
 			</div>
+			{/* <div className="hidden border-l border-divider-on-dark md:inline-block"> */}
+			{/* 	<CalculatorCostDisplay */}
+			{/* 		heading="Usage (Monthly)" */}
+			{/* 		cost={cost} */}
+			{/* 		rate={{ */}
+			{/* 			value: rate, */}
+			{/* 			unit: prices[product].unit, */}
+			{/* 			product, */}
+			{/* 		}} */}
+			{/* 	/> */}
+			{/* </div> */}
 		</div>
 	)
 }
 
-export const RangedInput = ({
+const RangedInput = ({
 	options,
 	value,
-	includedRange = 0,
+	unit,
 	onChange,
 }: {
 	options: number[]
 	value: number
-	includedRange?: number
+	unit: string
 	onChange: (value: number) => void
 }) => {
 	const sortedOptions = [...options].sort((a, b) => a - b)
@@ -697,12 +561,6 @@ export const RangedInput = ({
 		<>
 			<div className="block md:hidden">
 				<label className="flex flex-col gap-2">
-					<Typography
-						type="copy4"
-						className=" text-darker-copy-on-dark"
-					>
-						Usage
-					</Typography>
 					<div className="relative">
 						<select
 							className="flex items-center justify-center w-full h-12 gap-2 text-center text-transparent transition-all border rounded-lg appearance-none cursor-pointer border-copy-on-light hover:bg-white/10 bg-dark-background"
@@ -740,17 +598,11 @@ export const RangedInput = ({
 						Math.ceil(denormalize(Math.pow(normalize(value), 3))),
 					)
 				}
-				className="relative items-center hidden w-full h-12 mt-4 select-none md:flex touch-none group"
+				className="relative items-center hidden w-full h-12 select-none md:flex touch-none group"
 			>
-				<Typography
-					type="copy4"
-					className="text-darker-copy-on-dark absolute top-[-14px]"
-				>
-					Usage
-				</Typography>
 				<Slider.Track className="relative flex-1 h-3 overflow-hidden rounded-full bg-divider-on-dark">
 					<div
-						className="absolute inset-y-0 left-0 h-full bg-blue-cta/30"
+						className="absolute inset-y-0 left-0 h-full bg-white"
 						style={{
 							width: `${
 								Math.pow(normalize(value), 1 / 3) * 100
@@ -758,15 +610,22 @@ export const RangedInput = ({
 						}}
 					/>
 				</Slider.Track>
-				<Slider.Thumb className="relative w-6 h-6 border-2 focus:border-blue-cta hover:shadow-white/25 hover:shadow-[0_0_0_4px] outline-none bg-[#F5F5F5] border-copy-on-dark rounded-full flex flex-col items-center transition-all">
-					<div className="absolute top-[24px] w-2.5 h-2.5 rotate-45 rounded-sm -top-4 bg-blue-cta" />
-					<div className="absolute top-[28px] h-5 px-1 py-0.5 mb-2 text-divider-on-dark font-semibold text-[10px] rounded-sm bottom-full bg-blue-cta">
-						{value.toLocaleString(undefined, {
-							notation: 'compact',
-						})}
-					</div>
-				</Slider.Thumb>
+				<Slider.Thumb className="relative w-6 h-6 border-[4px] hover:shadow-white/25 hover:shadow-[0_0_0_4px] outline-none bg-[#F5F5F5] border-dark-background rounded-full flex flex-col items-center transition-all" />
 			</Slider.Root>
+			<div className="flex items-center gap-2">
+				<Typography
+					type="copy4"
+					emphasis
+					className="text-copy-on-dark border-[1px] border-copy-on-light rounded-full px-3 py-[2px]"
+				>
+					{value.toLocaleString(undefined, {
+						notation: 'compact',
+					})}
+				</Typography>
+				<Typography type="copy3" className="text-darker-copy-on-dark">
+					ingested {unit.toLowerCase()} per month
+				</Typography>
+			</div>
 		</>
 	)
 }
@@ -827,42 +686,55 @@ const RadioOptions = <T extends string>({
 	onChange?: (value: T) => void
 }) => {
 	return (
-		<RadioGroup
-			value={value}
-			onChange={onChange}
-			className="flex flex-col gap-2"
-		>
-			<RadioGroup.Label className="">
-				<Typography
-					type="copy4"
-					className="text-center text-darker-copy-on-dark"
+		<Listbox value={value} onChange={onChange}>
+			<div className="relative">
+				<Listbox.Button className="relative cursor-pointer rounded-lg bg-dark-background border-[1px] border-copy-on-light z-40 py-2 pl-3 pr-10 text-left focus:outline-none sm:text-sm">
+					<span className="block truncate">{value}</span>
+					<span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+						<ChevronUpDownIcon
+							className="h-5 w-5 text-gray-400"
+							aria-hidden="true"
+						/>
+					</span>
+				</Listbox.Button>
+				<Transition
+					as={Fragment}
+					leave="transition ease-in duration-100"
+					leaveFrom="opacity-100"
+					leaveTo="opacity-0"
 				>
-					{title}
-				</Typography>
-			</RadioGroup.Label>
-			<div className="flex p-px rounded-[10px] gap-1 border-divider-on-dark">
-				{options.map((option) => (
-					<RadioGroup.Option value={option} key={option}>
-						{({ checked }) => (
-							<div className="cursor-pointer">
-								<div
-									className={classNames(
-										'text-center px-2.5 py-1.5 select-none rounded-lg transition-colors',
-										checked
-											? 'text-dark-background bg-white'
-											: 'text-white hover:bg-white/10',
-									)}
-								>
-									<Typography type="copy3" emphasis>
-										{option}
-									</Typography>
-								</div>
-							</div>
-						)}
-					</RadioGroup.Option>
-				))}
+					<Listbox.Options className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-md bg-dark-background border border-copy-on-light py-1 sm:text-sm">
+						{options.map((option, optionIdx) => (
+							<Listbox.Option
+								key={optionIdx}
+								className={({ active }) =>
+									`relative cursor-pointer select-none py-2 px-4 ${
+										active
+											? 'text-white font-bold'
+											: 'text-copy-on-dark'
+									}`
+								}
+								value={option}
+							>
+								{({ selected }) => (
+									<>
+										<span
+											className={`block truncate ${
+												selected
+													? 'font-semibold'
+													: 'font-normal'
+											}`}
+										>
+											{option}
+										</span>
+									</>
+								)}
+							</Listbox.Option>
+						))}
+					</Listbox.Options>
+				</Transition>
 			</div>
-		</RadioGroup>
+		</Listbox>
 	)
 }
 
