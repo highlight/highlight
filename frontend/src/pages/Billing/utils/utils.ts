@@ -117,10 +117,10 @@ export const getMeterAmounts = ({
 			[ProductType.Traces]: [0, undefined],
 		}
 	}
-	const trialEndDate = workspace.trial_end_date
+	const trialActive = workspace.trial_end_date
 		? undefined
 		: moment(workspace.trial_end_date).isAfter(moment())
-	const canChargeOverage = trialEndDate || details.plan.type !== 'Free'
+	const canChargeOverage = !trialActive && details.plan.type !== 'Free'
 	const sessionsMeter = details?.meter ?? 0
 	const sessionsQuota = details?.sessionsBillingLimit
 		? details.sessionsBillingLimit
