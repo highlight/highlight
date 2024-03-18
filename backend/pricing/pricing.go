@@ -308,6 +308,23 @@ func GetWorkspaceMembersMeter(DB *gorm.DB, workspaceID int) int64 {
 	return DB.WithContext(context.TODO()).Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Association("Admins").Count()
 }
 
+func GetSessionsUsageHistory(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace, dateRange backend.DateRangeRequiredInput) (result []int64, err error) {
+	const NumBuckets int64 = 48
+	err = DB.WithContext(ctx).Raw(`
+			SELECT cast(cast(UNIX_TIMESTAMP(dateColumn)/(@bucket_ms) as signed)*@bucket_ms as signed) as time,
+			       COALESCE(sum(count), 0) as sessions
+			FROM daily_session_counts_view
+			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=@workspace_id)
+			AND date >= @start_date
+			AND date < @end_date`, map[string]interface{}{
+		"workspace_id": workspace.ID,
+		"bucket_ms":    dateRange.EndDate.Sub(dateRange.StartDate).Milliseconds() / NumBuckets,
+		"start_date":   dateRange.StartDate,
+		"end_date":     dateRange.EndDate,
+	}).Scan(&result).Error
+	return result, err
+}
+
 func GetSessions7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (float64, error) {
 	var avg float64
 	if err := DB.WithContext(ctx).Raw(`
