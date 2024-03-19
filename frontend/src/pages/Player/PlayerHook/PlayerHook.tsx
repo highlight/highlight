@@ -36,6 +36,7 @@ import { H } from 'highlight.run'
 import _ from 'lodash'
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLocalStorage } from 'react-use'
 import { EventType } from 'rrweb'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
@@ -67,6 +68,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 		setShowRightPanel,
 		skipInactive,
 	} = usePlayerConfiguration()
+	const [loopSession] = useLocalStorage<boolean>(
+		'highlight-player-loop-session',
+		false,
+	)
 
 	const [markSessionAsViewed] = useMarkSessionAsViewedMutation()
 	const { refetch: rawFetchEventChunkURL } = useGetEventChunkUrlQuery({
@@ -1034,6 +1039,16 @@ export const usePlayer = (): ReplayerContextInterface => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [autoPlayVideo, state.eventsLoaded])
+
+	useEffect(() => {
+		if (state.replayerState === ReplayerState.SessionEnded && loopSession) {
+			log('PlayerHook.tsx', 'Looping session')
+			dispatch({
+				type: PlayerActionType.play,
+				time: 0,
+			})
+		}
+	}, [loopSession, state.replayerState])
 
 	return {
 		...state,
