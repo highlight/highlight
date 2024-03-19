@@ -1,6 +1,7 @@
 import { ErrorMessage } from '../types/shared-types'
 import stringify from 'json-stringify-safe'
 import ErrorStackParser from 'error-stack-parser'
+import { HighlightOptions } from '../types/types'
 
 interface HighlightPromise<T> extends Promise<T> {
 	promiseCreationError: Error
@@ -42,7 +43,10 @@ function handleError(
 	})
 }
 
-export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
+export const ErrorListener = (
+	callback: (e: ErrorMessage) => void,
+	{ enablePromisePatch }: HighlightOptions,
+) => {
 	if (typeof window === 'undefined') return () => {}
 
 	const initialOnError = (window.onerror = (
@@ -74,33 +78,38 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 	})
 
 	const initialPromise = window.Promise
-	const highlightPromise = class Promise<T> extends initialPromise<T> {
-		private readonly promiseCreationError: Error
-		constructor(
-			executor: (
-				resolve: (value: T | PromiseLike<T>) => void,
-				reject: (reason?: Error) => void,
-			) => void,
-		) {
-			super(executor)
-			this.promiseCreationError = new Error()
-		}
-		getStack() {
-			return this.promiseCreationError
-		}
-		static shouldPatch() {
-			// @ts-ignore
-			return typeof window.Zone === 'undefined'
-		}
-	}
-	if (highlightPromise.shouldPatch()) {
-		window.Promise = highlightPromise
-	}
+	if (!enablePromisePatch) {
+		const highlightPromise = class Promise<T> extends initialPromise<T> {
+			private readonly promiseCreationError: Error
 
-	return () => {
-		window.Promise = initialPromise
-		window.onunhandledrejection = initialOnUnhandledRejection
-		window.onerror = initialOnError
+			constructor(
+				executor: (
+					resolve: (value: T | PromiseLike<T>) => void,
+					reject: (reason?: Error) => void,
+				) => void,
+			) {
+				super(executor)
+				this.promiseCreationError = new Error()
+			}
+
+			getStack() {
+				return this.promiseCreationError
+			}
+
+			static shouldPatch() {
+				// @ts-ignore
+				return typeof window.Zone === 'undefined'
+			}
+		}
+		if (highlightPromise.shouldPatch()) {
+			window.Promise = highlightPromise
+		}
+
+		return () => {
+			window.Promise = initialPromise
+			window.onunhandledrejection = initialOnUnhandledRejection
+			window.onerror = initialOnError
+		}
 	}
 }
 
@@ -115,7 +124,7 @@ const removeHighlightFrameIfExists = (
 	if (
 		firstFrame.fileName?.includes('highlight.run') ||
 		firstFrame.fileName?.includes('highlight.io') ||
-		firstFrame.functionName === 'new HighlightPromise'
+		firstFrame.functionName === 'new highlightPromise'
 	) {
 		return frames.slice(1)
 	}
