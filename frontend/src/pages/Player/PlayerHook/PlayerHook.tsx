@@ -984,7 +984,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// ensures that chunks are loaded in advance during playback
 	// ensures we skip over inactivity periods
 	useEffect(() => {
-		return
 		if (
 			state.sessionMetadata.startTime === 0 ||
 			state.replayerState !== ReplayerState.Playing ||
