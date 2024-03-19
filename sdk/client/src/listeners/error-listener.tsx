@@ -46,7 +46,7 @@ function handleError(
 
 export const ErrorListener = (
 	callback: (e: ErrorMessage) => void,
-	{ enablePromisePatch }: HighlightClassOptions,
+	{ enablePromisePatch }: { enablePromisePatch: boolean },
 ) => {
 	if (typeof window === 'undefined') return () => {}
 
