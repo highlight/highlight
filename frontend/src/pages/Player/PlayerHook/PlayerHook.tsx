@@ -415,6 +415,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 					promises.push(loadEventChunk(i))
 				}
 			}
+			log('PlayerHook.tsx:ensureChunksLoaded', {
+				action,
+				promises: promises.length,
+			})
 			if (promises.length) {
 				const toRemove = getChunksToRemove(
 					chunkEventsRef.current,
@@ -1039,9 +1043,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 	useEffect(() => {
 		if (state.replayerState === ReplayerState.SessionEnded && loopSession) {
 			log('PlayerHook.tsx', 'Looping session')
-			play(0).then(() => log('PlayerHook.tsx', 'Looped session'))
+			ensureChunksLoaded(0, undefined).then(() =>
+				log('PlayerHook.tsx', 'Looped session'),
+			)
 		}
-	}, [loopSession, play, state.replayerState])
+	}, [ensureChunksLoaded, loopSession, state.replayerState])
 
 	return {
 		...state,
