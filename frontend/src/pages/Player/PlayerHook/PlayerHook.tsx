@@ -1045,7 +1045,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 	useEffect(() => {
 		if (state.replayerState === ReplayerState.SessionEnded && loopSession) {
 			log('PlayerHook.tsx', 'Looping session')
-			play(0).then(() => log('PlayerHook.tsx', 'Looped session'))
+			setTimeout(() => {
+				play(0).then(() => log('PlayerHook.tsx', 'Looped session'))
+			}, FRAME_MS * 120)
 		}
 	}, [play, loopSession, state.replayerState])
 
