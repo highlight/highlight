@@ -131,9 +131,33 @@ export const H: HighlightInterface = {
 		headers: Headers | IncomingHttpHeaders,
 		cb: () => T,
 	) {
-		headers && setHeaders(headers)
+		return new Promise<T>(async (resolve, reject) => {
+			const { secureSessionId, requestId } = this.parseHeaders(headers)
 
-		return cb()
+			this.setAttributes({
+				'highlight.session_id': secureSessionId,
+				'highlight.trace_id': requestId,
+			})
+
+			const span = await this.startActiveSpan(
+				'highlight-run-with-headers',
+			)
+
+			try {
+				const result = await cb()
+
+				resolve(result)
+			} catch (error) {
+				if (error instanceof Error) {
+					this.consumeError(error)
+				}
+
+				reject(error)
+			} finally {
+				span.end()
+				await this.flush()
+			}
+		})
 	},
 }
 

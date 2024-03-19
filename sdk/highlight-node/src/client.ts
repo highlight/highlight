@@ -5,6 +5,7 @@ import type {
 	Tracer,
 	Span as OtelSpan,
 	SpanOptions,
+	Context,
 } from '@opentelemetry/api'
 import { trace } from '@opentelemetry/api'
 import { NodeSDK } from '@opentelemetry/sdk-node'
@@ -466,10 +467,14 @@ export class Highlight {
 		})
 	}
 
-	startActiveSpan(name: string, options?: SpanOptions) {
-		return new Promise<OtelSpan>((resolve) =>
-			this.tracer.startActiveSpan(name, options || {}, resolve),
-		)
+	startActiveSpan(name: string, options: SpanOptions = {}, ctx?: Context) {
+		return new Promise<OtelSpan>((resolve) => {
+			if (ctx) {
+				this.tracer.startActiveSpan(name, options, ctx, resolve)
+			} else {
+				this.tracer.startActiveSpan(name, options, resolve)
+			}
+		})
 	}
 }
 function parseHeaders(

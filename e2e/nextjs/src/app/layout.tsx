@@ -9,7 +9,7 @@ export const metadata = {
 	description: 'Check out how Highlight works with Next.js',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: {
 	children: React.ReactNode
@@ -48,3 +48,5 @@ export default function RootLayout({
 		</>
 	)
 }
+
+export const runtime = 'edge' // 'nodejs' (default) | 'edge'

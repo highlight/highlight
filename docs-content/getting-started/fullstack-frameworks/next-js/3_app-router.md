@@ -395,14 +395,23 @@ export const GET = withAppRouterHighlight(async function GET(request: NextReques
 
 ```typescript
 // middleware.ts
-import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import { highlightMiddleware } from '@highlight-run/next/server'
+import type { NextFetchEvent, NextRequest } from 'next/server'
+import { highlightMiddleware, HighlightEnv } from '@highlight-run/next/server'
 
-export function middleware(request: NextRequest) {
-	highlightMiddleware(request)
+import { CONSTANTS } from '@/constants'
 
-	return NextResponse.next()
+const highlightConfig = {
+	projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+	otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
+	serviceName: 'my-nextjs-backend',
+	environment: 'e2e-test',
+} as HighlightEnv
+
+export function middleware(request: NextRequest, event: NextFetchEvent) {
+	const { headers } = highlightMiddleware(request, highlightConfig, event)
+
+	return NextResponse.next({ headers })
 }
 ```
 
