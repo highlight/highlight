@@ -327,11 +327,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				log('PlayerHook.tsx', 'chunk data', {
 					chunkResponse,
 				})
-				log(
-					'PlayerHook.tsx:ensureChunksLoaded',
-					'set data for chunk',
-					_i,
-				)
+				log('PlayerHook.tsx:loadEventChunk', 'set data for chunk', _i)
 				return {
 					idx: _i,
 					events: toHighlightEvents(await chunkResponse.json()),
@@ -1043,12 +1039,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 	useEffect(() => {
 		if (state.replayerState === ReplayerState.SessionEnded && loopSession) {
 			log('PlayerHook.tsx', 'Looping session')
-			dispatch({
-				type: PlayerActionType.play,
-				time: 0,
-			})
+			play(0).then(() => log('PlayerHook.tsx', 'Looped session'))
 		}
-	}, [loopSession, state.replayerState])
+	}, [loopSession, play, state.replayerState])
 
 	return {
 		...state,
