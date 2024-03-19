@@ -381,7 +381,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			log(
 				'PlayerHook.tsx:ensureChunksLoaded',
 				'checking chunk loaded status range',
-				{ startIdx, endIdx, stack: new Error().stack },
+				{ action, startIdx, endIdx, stack: new Error() },
 			)
 			for (let i = startIdx; i <= endIdx; i++) {
 				log('PlayerHook.tsx:ensureChunksLoaded', 'has', i, {
@@ -414,10 +414,14 @@ export const usePlayer = (): ReplayerContextInterface => {
 					promises.push(loadEventChunk(i))
 				}
 			}
-			log('PlayerHook.tsx:ensureChunksLoaded', {
-				action,
-				promises: promises.length,
-			})
+			log(
+				'PlayerHook.tsx:ensureChunksLoaded',
+				'gathered chunk promises',
+				{
+					action,
+					promises: promises.length,
+				},
+			)
 			if (promises.length) {
 				const toRemove = getChunksToRemove(
 					chunkEventsRef.current,
