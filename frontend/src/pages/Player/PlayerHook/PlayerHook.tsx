@@ -381,7 +381,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			log(
 				'PlayerHook.tsx:ensureChunksLoaded',
 				'checking chunk loaded status range',
-				{ action, startIdx, endIdx, stack: new Error() },
+				{ action, startIdx, endIdx },
 			)
 			for (let i = startIdx; i <= endIdx; i++) {
 				log('PlayerHook.tsx:ensureChunksLoaded', 'has', i, {
