@@ -14,13 +14,8 @@ export type SessionChunk = {
 	timestamp: string
 }
 
-let client: pkg.Client | undefined = undefined
-
 async function getClient() {
-	if (client !== undefined) {
-		return client
-	}
-	const c = new Client({
+	const client = new Client({
 		host: process.env.PSQL_HOST,
 		port: Number(process.env.PSQL_PORT),
 		database: process.env.PSQL_DB,
@@ -28,8 +23,7 @@ async function getClient() {
 		password: process.env.PSQL_PASSWORD,
 		connectionTimeoutMillis: 5000,
 	})
-	await c.connect()
-	client = c
+	await client.connect()
 	return client
 }
 
