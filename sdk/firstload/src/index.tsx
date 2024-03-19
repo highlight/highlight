@@ -66,7 +66,6 @@ let onHighlightReadyQueue: {
 }[] = []
 let onHighlightReadyTimeout: number | undefined = undefined
 
-let script: HTMLScriptElement
 let highlight_obj: Highlight
 let first_load_listeners: FirstLoadListeners
 let init_called = false
@@ -115,13 +114,30 @@ const H: HighlightPublicInterface = {
 			}
 			init_called = true
 
-			script = document.createElement('script')
-			var scriptSrc = options?.scriptUrl
-				? options.scriptUrl
-				: `https://static.highlight.io/v${firstloadVersion}/index.js`
-			script.setAttribute('src', scriptSrc)
-			script.setAttribute('type', 'text/javascript')
-			document.getElementsByTagName('head')[0].appendChild(script)
+			import('@highlight-run/client').then(() => {
+				const startFunction = () => {
+					highlight_obj = new window.HighlightIO(
+						client_options,
+						first_load_listeners,
+					)
+					if (!options?.manualStart) {
+						highlight_obj.initialize()
+					}
+				}
+
+				if ('HighlightIO' in window) {
+					startFunction()
+				} else {
+					const start = () => {
+						if ('HighlightIO' in window) {
+							startFunction()
+						} else {
+							setTimeout(start, READY_WAIT_LOOP_MS)
+						}
+					}
+					start()
+				}
+			})
 
 			const client_options: HighlightClassOptions = {
 				organizationID: projectID,
@@ -159,30 +175,6 @@ const H: HighlightPublicInterface = {
 				// listeners over for client to manage
 				first_load_listeners.startListening()
 			}
-			script.addEventListener('load', () => {
-				const startFunction = () => {
-					highlight_obj = new window.HighlightIO(
-						client_options,
-						first_load_listeners,
-					)
-					if (!options?.manualStart) {
-						highlight_obj.initialize()
-					}
-				}
-
-				if ('HighlightIO' in window) {
-					startFunction()
-				} else {
-					const start = () => {
-						if ('HighlightIO' in window) {
-							startFunction()
-						} else {
-							setTimeout(start, READY_WAIT_LOOP_MS)
-						}
-					}
-					start()
-				}
-			})
 
 			if (
 				!options?.integrations?.mixpanel?.disabled &&

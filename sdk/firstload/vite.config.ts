@@ -5,7 +5,6 @@ import typescript from '@rollup/plugin-typescript'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import json from '@rollup/plugin-json'
-import terser from '@rollup/plugin-terser'
 
 export default defineConfig({
 	envPrefix: ['REACT_APP_'],
@@ -20,7 +19,7 @@ export default defineConfig({
 	build: {
 		target: 'es6',
 		lib: {
-			formats: ['es', 'cjs', 'umd'],
+			formats: ['es', 'umd'],
 			entry: resolvePath(__dirname, 'src/index.tsx'),
 			name: 'H',
 			fileName: 'index',
@@ -33,14 +32,15 @@ export default defineConfig({
 			treeshake: 'smallest',
 			plugins: [
 				json(),
-				commonjs(),
+				commonjs({
+					transformMixedEsModules: true,
+				}),
 				resolve({
 					browser: true,
 				}),
 				typescript({
 					outputToFilesystem: true,
 				}),
-				terser(),
 			],
 			output: {
 				exports: 'named',
