@@ -96,7 +96,7 @@ if (process.env.DEV?.length) {
 			queryStringParameters: {
 				format: 'video/mp4',
 				project: '1',
-				session: '300000001',
+				session: '30000001',
 			},
 		} as unknown as APIGatewayEvent),
 	])

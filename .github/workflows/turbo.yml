@@ -264,8 +264,10 @@ jobs:
                   mkdir backups
 
                   docker compose exec postgres bash -c "mkdir /backups";
-                  docker compose exec postgres bash -c "pg_dump -h localhost -U postgres postgres > /backups/postgres.sql";
+                  docker compose exec postgres bash -c "pg_dump -h localhost -U postgres -d postgres > /backups/postgres.sql";
+                  docker compose exec postgres bash -c "psql -h localhost -U postgres -d postgres -c 'select * from sessions;' > /backups/sessions.sql";
                   docker compose exec postgres bash -c "cat /backups/postgres.sql" > ./backups/postgres.sql 2>&1;
+                  docker compose exec postgres bash -c "cat /backups/sessions.sql" > ./backups/sessions.sql 2>&1;
 
                   docker compose exec clickhouse bash -c "mkdir /backups && chmod -R 777 /backups";
                   docker compose exec clickhouse clickhouse-client --host clickhouse --query "BACKUP DATABASE default TO File('/backups/clickhouse.zip')";
