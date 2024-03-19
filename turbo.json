@@ -77,7 +77,6 @@
 			],
 			"env": [
 				"CLICKUP_CLIENT_ID",
-				"CYPRESS_CLIENT_VERSION",
 				"DD_CLIENT_TOKEN",
 				"DEMO_PROJECT_ID",
 				"DISCORD_CLIENT_ID",
