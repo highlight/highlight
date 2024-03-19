@@ -64,7 +64,9 @@ export const useGetLogs = ({
 			at: logCursor,
 			direction: Types.SortDirection.Desc,
 			params: {
-				query,
+				// We need to unescape the query before sending it over the wire or it
+				// could be double-escaped and not match anything.
+				query: query.replace(/\\"/g, '"'),
 				date_range: {
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
