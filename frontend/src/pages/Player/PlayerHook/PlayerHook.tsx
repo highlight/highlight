@@ -381,8 +381,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			log(
 				'PlayerHook.tsx:ensureChunksLoaded',
 				'checking chunk loaded status range',
-				startIdx,
-				endIdx,
+				{ startIdx, endIdx, stack: new Error().stack },
 			)
 			for (let i = startIdx; i <= endIdx; i++) {
 				log('PlayerHook.tsx:ensureChunksLoaded', 'has', i, {
@@ -509,7 +508,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			}
 
 			timerStart('timelineChangeTime')
-			dispatch({ type: PlayerActionType.setTime, time: newTime })
 			return new Promise<void>((r) =>
 				ensureChunksLoaded(
 					newTime,
@@ -1043,11 +1041,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 	useEffect(() => {
 		if (state.replayerState === ReplayerState.SessionEnded && loopSession) {
 			log('PlayerHook.tsx', 'Looping session')
-			ensureChunksLoaded(0, undefined).then(() =>
-				log('PlayerHook.tsx', 'Looped session'),
-			)
+			play(0).then(() => log('PlayerHook.tsx', 'Looped session'))
 		}
-	}, [ensureChunksLoaded, loopSession, state.replayerState])
+	}, [play, loopSession, state.replayerState])
 
 	return {
 		...state,
