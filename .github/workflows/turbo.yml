@@ -236,6 +236,7 @@ jobs:
                   yarn cy:run;
 
                   # run session screenshot lambda locally
+                  yarn workspace render build
                   yarn workspace render test:screenshots
 
                   # look for containers that crashed
