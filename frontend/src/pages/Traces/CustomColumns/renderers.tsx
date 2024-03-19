@@ -12,6 +12,7 @@ import {
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { Trace } from '@/graph/generated/schemas'
 import { getTraceDurationString } from '@/pages/Traces/utils'
 import analytics from '@/util/analytics'
@@ -38,6 +39,7 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 }) => {
 	const navigate = useNavigate()
 	const location = useLocation()
+	const { set } = useRelatedResource()
 
 	if (!first) {
 		return (
@@ -48,9 +50,14 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 	}
 
 	const viewTrace = (trace: Partial<Trace>) => {
-		navigate(
-			`/${trace.projectID}/traces/${trace.traceID}/${trace.spanID}${location.search}`,
-		)
+		if (!trace.traceID) {
+			return
+		}
+
+		set({
+			type: 'trace',
+			id: trace.traceID,
+		})
 
 		analytics.track('traces_trace-row_click')
 	}

@@ -1,12 +1,6 @@
 import { Button } from '@components/Button'
 import { LinkButton } from '@components/LinkButton'
-import {
-	LogEdge,
-	LogLevel,
-	Maybe,
-	ReservedLogKey,
-	ReservedTraceKey,
-} from '@graph/schemas'
+import { LogEdge, LogLevel, Maybe, ReservedLogKey } from '@graph/schemas'
 import {
 	Box,
 	IconSolidChevronDoubleDown,
@@ -32,7 +26,6 @@ import { LogEdgeWithResources } from '@pages/LogsPage/useGetLogs'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
-import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { createSearchParams, generatePath, useNavigate } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
@@ -75,16 +68,6 @@ const getSessionLink = (
 		[PlayerSearchParameters.log]: log.cursor,
 	})
 	return `/${projectId}/sessions/${log.node.secureSessionID}?${params}`
-}
-
-const getTraceLink = (projectId: string, log: LogEdgeWithResources): string => {
-	const params = createSearchParams({
-		query: `${ReservedTraceKey.TraceId}${DEFAULT_OPERATOR}${log.node.traceID}`,
-		start_date: moment(log.node.timestamp).add(-5, 'minutes').toISOString(),
-		end_date: moment(log.node.timestamp).add(5, 'minutes').toISOString(),
-	})
-
-	return `/${projectId}/traces/${log.node.traceID}?${params}`
 }
 
 export const LogDetails: React.FC<Props> = ({
@@ -349,11 +332,17 @@ export const LogDetails: React.FC<Props> = ({
 						</LinkButton>
 					)}
 					{row.original.traceExist && (
-						<LinkButton
+						<Button
 							kind="secondary"
 							emphasis="low"
-							to={getTraceLink(projectId, row.original)}
 							trackingId="logs_related-trace_click"
+							onClick={() => {
+								if (!traceID) {
+									return
+								}
+
+								set({ type: 'trace', id: traceID })
+							}}
 						>
 							<Box
 								display="flex"
@@ -364,7 +353,7 @@ export const LogDetails: React.FC<Props> = ({
 								<IconSolidSparkles />
 								Related Trace
 							</Box>
-						</LinkButton>
+						</Button>
 					)}
 				</Box>
 			</Box>

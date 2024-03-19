@@ -1,18 +1,10 @@
-import {
-	Badge,
-	Box,
-	Callout,
-	Heading,
-	Stack,
-	Tabs,
-} from '@highlight-run/ui/components'
-import moment from 'moment'
+import { Badge, Box, Callout, Tabs } from '@highlight-run/ui/components'
 import React, { useEffect, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
-import { RelatedResourceButtons } from '@/pages/Traces/RelatedResourceButtons'
 import { TraceErrors } from '@/pages/Traces/TraceErrors'
 import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
+import { TraceHeader } from '@/pages/Traces/TraceHeader'
 import { TraceLogs } from '@/pages/Traces/TraceLogs'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
@@ -28,19 +20,7 @@ enum TraceTabs {
 
 export const TracePage: React.FC = () => {
 	const [activeTab, setActiveTab] = useState<TraceTabs>(TraceTabs.Info)
-	const {
-		durationString,
-		errors,
-		highlightedSpan,
-		loading,
-		startTime,
-		endTime,
-		traces,
-		traceName,
-		traceId,
-		secureSessionId,
-		selectedSpan,
-	} = useTrace()
+	const { errors, highlightedSpan, loading, traces, traceId } = useTrace()
 
 	useEffect(() => {
 		analytics.page('Trace')
@@ -58,33 +38,7 @@ export const TracePage: React.FC = () => {
 
 	return (
 		<Box cssClass={styles.container} overflowY="scroll">
-			<Stack direction="column" gap="12" pt="16" pb="12" px="20">
-				<Heading level="h4">{traceName}</Heading>
-				<Stack direction="row" justifyContent="space-between">
-					<Stack gap="4" direction="row">
-						<Badge
-							size="medium"
-							variant="gray"
-							label={moment(startTime).format('MMM D HH:mm:ss A')}
-						/>
-						<Badge
-							size="medium"
-							variant="gray"
-							label={durationString}
-						/>
-					</Stack>
-					<RelatedResourceButtons
-						traceId={traceId}
-						secureSessionId={secureSessionId}
-						disableErrors={!errors?.length}
-						displayErrorTooltip={
-							selectedSpan?.hasErrors && !errors?.length
-						}
-						startDate={new Date(startTime)}
-						endDate={new Date(endTime)}
-					/>
-				</Stack>
-			</Stack>
+			<TraceHeader />
 
 			<Box px="20">
 				<TraceFlameGraph />

@@ -1,17 +1,43 @@
+import { Box, Callout } from '@highlight-run/ui/components'
+
+import LoadingBox from '@/components/LoadingBox'
 import { Panel } from '@/components/RelatedResources/Panel'
 import { ResourcePanelProps } from '@/components/RelatedResources/RelatedResourcePanel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
-import { TracePage } from '@/pages/Traces/TracePage'
-import { TraceProvider } from '@/pages/Traces/TraceProvider'
+import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
+import { TraceHeader } from '@/pages/Traces/TraceHeader'
+import { useTrace } from '@/pages/Traces/TraceProvider'
+import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
 
 export const TracePanel: React.FC<ResourcePanelProps> = ({ resource }) => {
 	const { projectId } = useNumericProjectId()
+	const path = `/${projectId}/traces/${resource.id}`
+	const { highlightedSpan, loading, selectedSpan, traces } = useTrace()
+	const span = selectedSpan || highlightedSpan
 
 	return (
-		<Panel open={true}>
-			<TraceProvider projectId={projectId!} traceId={resource.id}>
-				<TracePage />
-			</TraceProvider>
-		</Panel>
+		<>
+			<Panel.Header path={path} />
+
+			{!traces?.length && loading ? (
+				<LoadingBox />
+			) : !traces?.length ? (
+				<Box p="8">
+					<Callout kind="error" title="Trace not found" />
+				</Box>
+			) : (
+				<>
+					<TraceHeader />
+
+					<Box px="20">
+						<TraceFlameGraph />
+					</Box>
+
+					<Box pt="8" px="20">
+						<TraceSpanAttributes span={span!} />
+					</Box>
+				</>
+			)}
+		</>
 	)
 }
