@@ -130,7 +130,7 @@ export class FirstLoadListeners {
 					return
 				}
 				highlightThis.errors.push(e)
-			}),
+			}, this.options),
 		)
 		FirstLoadListeners.setupNetworkListener(this, this.options)
 	}

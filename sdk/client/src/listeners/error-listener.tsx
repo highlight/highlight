@@ -2,6 +2,7 @@ import { ErrorMessage } from '../types/shared-types'
 import stringify from 'json-stringify-safe'
 import ErrorStackParser from 'error-stack-parser'
 import { HighlightOptions } from '../types/types'
+import { HighlightClassOptions } from '../index'
 
 interface HighlightPromise<T> extends Promise<T> {
 	promiseCreationError: Error
@@ -45,7 +46,7 @@ function handleError(
 
 export const ErrorListener = (
 	callback: (e: ErrorMessage) => void,
-	{ enablePromisePatch }: HighlightOptions,
+	{ enablePromisePatch }: HighlightClassOptions,
 ) => {
 	if (typeof window === 'undefined') return () => {}
 
@@ -78,38 +79,36 @@ export const ErrorListener = (
 	})
 
 	const initialPromise = window.Promise
-	if (!enablePromisePatch) {
-		const highlightPromise = class Promise<T> extends initialPromise<T> {
-			private readonly promiseCreationError: Error
+	const highlightPromise = class Promise<T> extends initialPromise<T> {
+		private readonly promiseCreationError: Error
 
-			constructor(
-				executor: (
-					resolve: (value: T | PromiseLike<T>) => void,
-					reject: (reason?: Error) => void,
-				) => void,
-			) {
-				super(executor)
-				this.promiseCreationError = new Error()
-			}
-
-			getStack() {
-				return this.promiseCreationError
-			}
-
-			static shouldPatch() {
-				// @ts-ignore
-				return typeof window.Zone === 'undefined'
-			}
-		}
-		if (highlightPromise.shouldPatch()) {
-			window.Promise = highlightPromise
+		constructor(
+			executor: (
+				resolve: (value: T | PromiseLike<T>) => void,
+				reject: (reason?: Error) => void,
+			) => void,
+		) {
+			super(executor)
+			this.promiseCreationError = new Error()
 		}
 
-		return () => {
-			window.Promise = initialPromise
-			window.onunhandledrejection = initialOnUnhandledRejection
-			window.onerror = initialOnError
+		getStack() {
+			return this.promiseCreationError
 		}
+
+		static shouldPatch() {
+			// @ts-ignore
+			const zoneUndefined = typeof window.Zone === 'undefined'
+			return enablePromisePatch && zoneUndefined
+		}
+	}
+	if (highlightPromise.shouldPatch()) {
+		window.Promise = highlightPromise
+	}
+	return () => {
+		window.Promise = initialPromise
+		window.onunhandledrejection = initialOnUnhandledRejection
+		window.onerror = initialOnError
 	}
 }
 
