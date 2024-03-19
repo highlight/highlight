@@ -692,7 +692,11 @@ const updatePlayerTime = (s: PlayerState): PlayerState => {
 	// Compute the string rather than number here, so that dependencies don't
 	// have to re-render on every tick
 	if (s.isLiveMode && s.lastActiveTimestamp != 0) {
-		s.lastActiveString = moment(s.lastActiveTimestamp).from(time)
+		if (s.lastActiveTimestamp > time - 1000 * 60) {
+			s.lastActiveString = 'less than 1 minute ago'
+		} else {
+			s.lastActiveString = moment(s.lastActiveTimestamp).from(time)
+		}
 	} else if (s.lastActiveString !== null) {
 		s.lastActiveString = null
 	}
