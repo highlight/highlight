@@ -1,4 +1,4 @@
-import { Box } from '@highlight-run/ui/components'
+import { Box, Stack } from '@highlight-run/ui/components'
 
 import {
 	LogDetailsObject,
@@ -20,7 +20,7 @@ export const JsonViewerV2: React.FC<JsonViewerProps> = ({
 	queryParts = [],
 }) => {
 	return (
-		<>
+		<Stack py="0" gap="1">
 			{Object.entries(attribute).map(([key, value], index) => {
 				const isObject = typeof value === 'object'
 
@@ -46,6 +46,6 @@ export const JsonViewerV2: React.FC<JsonViewerProps> = ({
 					</Box>
 				)
 			})}
-		</>
+		</Stack>
 	)
 }

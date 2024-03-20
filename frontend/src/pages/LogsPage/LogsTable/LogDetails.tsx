@@ -122,6 +122,32 @@ export const LogDetails: React.FC<Props> = ({
 
 	return (
 		<Stack py="0" gap="1">
+			{Object.entries(logAttributes).map(([key, value], index) => {
+				const isObject = typeof value === 'object'
+
+				return (
+					<Box key={index}>
+						{isObject ? (
+							<LogDetailsObject
+								allExpanded={allExpanded}
+								attribute={value as object}
+								label={key}
+								matchedAttributes={matchedAttributes}
+								queryParts={queryParts}
+								queryBaseKeys={[key]}
+							/>
+						) : (
+							<LogValue
+								label={key}
+								value={String(value)}
+								queryKey={key}
+								queryParts={queryParts}
+							/>
+						)}
+					</Box>
+				)
+			})}
+
 			{Object.entries(reservedLogAttributes).map(
 				([key, value], index) =>
 					value && (
