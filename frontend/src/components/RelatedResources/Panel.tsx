@@ -35,17 +35,17 @@ export const Panel: PanelComponent = ({ children, open }) => {
 
 	const handleMouseMove = useCallback(
 		(e: MouseEvent) => {
-			if (dragging) {
-				const newWidth =
-					((window.innerWidth - e.clientX) / window.innerWidth) * 100
+			if (!dragging) return
 
-				setPanelWidth(
-					Math.min(
-						Math.max(newWidth, MIN_PANEL_WIDTH),
-						MAX_PANEL_WIDTH,
-					),
-				)
-			}
+			e.stopPropagation()
+			e.preventDefault()
+
+			const newWidth =
+				((window.innerWidth - e.clientX) / window.innerWidth) * 100
+
+			setPanelWidth(
+				Math.min(Math.max(newWidth, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH),
+			)
 		},
 		[dragging, setPanelWidth],
 	)
