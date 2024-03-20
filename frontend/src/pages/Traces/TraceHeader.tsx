@@ -1,4 +1,4 @@
-import { Badge, Heading, Stack } from '@highlight-run/ui/components'
+import { Badge, Box, Heading, Stack } from '@highlight-run/ui/components'
 import moment from 'moment'
 
 import { RelatedResourceButtons } from '@/pages/Traces/RelatedResourceButtons'
@@ -19,19 +19,14 @@ export const TraceHeader = () => {
 	return (
 		<Stack direction="column" gap="12" pt="16" pb="12" px="20">
 			<Heading level="h4">{traceName}</Heading>
-			<Stack direction="row" justifyContent="space-between">
-				<Stack gap="4" direction="row">
-					<Badge
-						size="medium"
-						variant="gray"
-						label={moment(startTime).format('MMM D HH:mm:ss A')}
-					/>
-					<Badge
-						size="medium"
-						variant="gray"
-						label={durationString}
-					/>
-				</Stack>
+			<Stack gap="4" direction="row" alignItems="center">
+				<Badge
+					size="medium"
+					variant="gray"
+					label={moment(startTime).format('MMM D HH:mm:ss A')}
+				/>
+				<Badge size="medium" variant="gray" label={durationString} />
+				<Box borderRight="divider" style={{ height: 12 }} />
 				<RelatedResourceButtons
 					traceId={traceId}
 					secureSessionId={secureSessionId}

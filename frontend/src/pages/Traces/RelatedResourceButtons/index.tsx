@@ -2,12 +2,15 @@ import {
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
+	Tag,
+	Text,
+	Tooltip,
 } from '@highlight-run/ui/components'
 import moment from 'moment'
-import { createSearchParams } from 'react-router-dom'
+import { createSearchParams, useNavigate } from 'react-router-dom'
 
-import { TagGroup } from '@/components/TagGroup'
 import { useProjectId } from '@/hooks/useProjectId'
+import analytics from '@/util/analytics'
 
 type Props = {
 	traceId?: string
@@ -26,6 +29,7 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 	startDate,
 	endDate,
 }) => {
+	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const errorLinkDisabled = !traceId || disableErrors
 	const sessionLinkDisabled = !traceId || !secureSessionId
@@ -41,37 +45,60 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 	const logsLink = getLogsLink({ projectId, traceId, startDate, endDate })
 
 	return (
-		<TagGroup
-			tagLinks={[
-				{
-					key: 'errors',
-					href: errorLink,
-					disabled: errorLinkDisabled,
-					icon: <IconSolidLightningBolt />,
-					label: 'View errors',
-					trackingId: 'trace_related-error-button_click',
-					tooltip: displayErrorTooltip
-						? 'Some errors may be filtered out due to your ingestion filter settings or exceeding your billing quota. Please reach out with any questions.'
-						: '',
-				},
-				{
-					key: 'session',
-					href: sessionLink,
-					disabled: sessionLinkDisabled,
-					icon: <IconSolidPlayCircle />,
-					label: 'View session',
-					trackingId: 'trace_related-session-button_click',
-				},
-				{
-					key: 'logs',
-					href: logsLink,
-					disabled: logsLinkDisabled,
-					icon: <IconSolidLogs />,
-					label: 'View logs',
-					trackingId: 'trace_related-logs-button_click',
-				},
-			]}
-		/>
+		<>
+			<Tooltip
+				disabled={!displayErrorTooltip}
+				trigger={
+					<Tag
+						kind="secondary"
+						onClick={() => {
+							navigate(errorLink)
+							analytics.track('trace_related-error-button_click')
+						}}
+						emphasis="medium"
+						iconLeft={<IconSolidLightningBolt />}
+						disabled={errorLinkDisabled}
+						shape="basic"
+					>
+						View errors
+					</Tag>
+				}
+			>
+				<Text>
+					Some errors may be filtered out due to your ingestion filter
+					settings or exceeding your billing quota. Please reach out
+					with any questions.
+				</Text>
+			</Tooltip>
+			<Tag
+				onClick={() => {
+					navigate(sessionLink)
+					analytics.track('trace_related-session-button_click')
+				}}
+				size="medium"
+				kind="secondary"
+				emphasis="medium"
+				iconLeft={<IconSolidPlayCircle />}
+				disabled={sessionLinkDisabled}
+				shape="basic"
+			>
+				View session
+			</Tag>
+			<Tag
+				onClick={() => {
+					navigate(logsLink)
+					analytics.track('trace_related-logs-button_click')
+				}}
+				size="medium"
+				kind="secondary"
+				emphasis="medium"
+				iconLeft={<IconSolidLogs />}
+				disabled={logsLinkDisabled}
+				shape="basic"
+			>
+				View logs
+			</Tag>
+		</>
 	)
 }
 
