@@ -43,6 +43,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 					enabled: true,
 					recordHeadersAndBody: true
 				}}
+				debug
 			/>
 
 			<Component {...pageProps} />
