@@ -37,6 +37,7 @@ var fieldMap map[string]string = map[string]string{
 	"browser_name":      "BrowserName",
 	"browser_version":   "BrowserVersion",
 	"processed":         "Processed",
+	"has_comments":      "HasComments",
 	"has_rage_clicks":   "HasRageClicks",
 	"has_errors":        "HasErrors",
 	"has_session":       "HasSession",
@@ -82,6 +83,7 @@ type ClickhouseSession struct {
 	BrowserName        string
 	BrowserVersion     string
 	Processed          *bool
+	HasComments        bool
 	HasRageClicks      *bool
 	HasErrors          *bool
 	Length             int64
@@ -173,6 +175,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			BrowserName:        session.BrowserName,
 			BrowserVersion:     session.BrowserVersion,
 			Processed:          session.Processed,
+			HasComments:        session.HasComments,
 			HasRageClicks:      session.HasRageClicks,
 			HasErrors:          session.HasErrors,
 			Length:             session.Length,
