@@ -47,7 +47,7 @@ import { LogEdge, ProductType } from '@/graph/generated/schemas'
 import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 import analytics from '@/util/analytics'
 
-import { LogDetails, LogValue } from './LogDetails'
+import { LogDetails } from './LogDetails'
 import * as styles from './LogsTable.css'
 
 type Props = {
@@ -422,7 +422,6 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 				span_id: log.spanID,
 				trace_id: log.traceID,
 			})
-			const hasAttributes = Object.entries(matchedAttributes).length > 0
 
 			return (
 				<Table.Row
@@ -430,50 +429,10 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 					className={styles.attributesRow}
 					gridColumns={['32px', '1fr']}
 				>
-					{(rowExpanded || hasAttributes) && (
+					{rowExpanded && (
 						<>
 							<Table.Cell py="4" />
 							<Table.Cell py="4" borderTop="dividerWeak">
-								{!rowExpanded && (
-									<Box display="flex" flexWrap="wrap">
-										{Object.entries(matchedAttributes).map(
-											(
-												[key, { match, value }],
-												index,
-											) => {
-												return (
-													<>
-														{index > 0 && (
-															<Box
-																display="flex"
-																alignItems="center"
-																pr="8"
-															>
-																<Text
-																	weight="bold"
-																	color="weak"
-																>
-																	;
-																</Text>
-															</Box>
-														)}
-														<LogValue
-															key={key}
-															label={key}
-															value={value}
-															queryKey={key}
-															queryMatch={match}
-															queryParts={
-																queryParts
-															}
-															hideActions
-														/>
-													</>
-												)
-											},
-										)}
-									</Box>
-								)}
 								<LogDetails
 									matchedAttributes={matchedAttributes}
 									row={row}
