@@ -266,15 +266,18 @@ export const TraceFlameGraph: React.FC = () => {
 			e.stopPropagation()
 
 			const { clientX } = e
-			const { left } = svgContainerRef.current!.getBoundingClientRect()
+			const { left, width } =
+				svgContainerRef.current!.getBoundingClientRect()
+			const newX = clientX - left + x
+			const boundedX = Math.max(0, Math.min(newX, width * zoom))
 
-			setCurrentDragX(clientX - left + x)
+			setCurrentDragX(boundedX)
 		},
-		[dragging, x],
+		[dragging, x, zoom],
 	)
 
 	const handleMouseUp = useCallback(
-		(e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+		(e: MouseEvent) => {
 			e.preventDefault()
 			e.stopPropagation()
 
@@ -298,6 +301,20 @@ export const TraceFlameGraph: React.FC = () => {
 		},
 		[currentDragX, initialDragX, updateZoom, width, x, zoom],
 	)
+
+	useEffect(() => {
+		const onMouseUp = (e: MouseEvent) => {
+			handleMouseUp(e)
+		}
+
+		if (dragging) {
+			window.addEventListener('mouseup', onMouseUp)
+		}
+
+		return () => {
+			window.removeEventListener('mouseup', onMouseUp)
+		}
+	}, [dragging, handleMouseUp])
 
 	if (loading) {
 		return (
@@ -339,7 +356,6 @@ export const TraceFlameGraph: React.FC = () => {
 						style={{ display: 'block' }}
 						onMouseDown={handleMouseDown}
 						onMouseMove={handleMouseMove}
-						onMouseUp={handleMouseUp}
 					>
 						<line
 							stroke="#e4e2e4"
