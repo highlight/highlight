@@ -17,16 +17,21 @@ import {
 	strokeColors,
 } from '@/pages/Graphing/components/Graph'
 
-export type NullHandling = 'Hidden' | 'Connected' | 'Zero'
-export const NULL_HANDLING: NullHandling[] = ['Hidden', 'Connected', 'Zero']
+export type LineNullHandling = 'Hidden' | 'Connected' | 'Zero'
+export const LINE_NULL_HANDLING: LineNullHandling[] = [
+	'Hidden',
+	'Connected',
+	'Zero',
+]
 
 export type LineDisplay = 'Line' | 'Stacked area'
 export const LINE_DISPLAY: LineDisplay[] = ['Line', 'Stacked area']
 
 export type LineChartConfig = {
 	type: 'Line chart'
+	showLegend: true
 	display?: LineDisplay
-	nullHandling?: NullHandling
+	nullHandling?: LineNullHandling
 }
 
 export const LineChart = ({
@@ -39,6 +44,16 @@ export const LineChart = ({
 }: ChartProps<LineChartConfig> & SeriesInfo) => {
 	const xAxisTickFormatter = getFormatter(xAxisMetric, data?.length)
 	const yAxisTickFormatter = getFormatter(yAxisMetric)
+
+	// Fill nulls
+	if (viewConfig.nullHandling === 'Zero' && data !== undefined) {
+		for (const d of data) {
+			for (const s of series) {
+				d[s] = d[s] ?? 0
+			}
+		}
+	}
+
 	return (
 		<ResponsiveContainer>
 			<AreaChart data={data}>
@@ -102,6 +117,7 @@ export const LineChart = ({
 								}
 								strokeWidth="2px"
 								fill={strokeColors[idx % strokeColors.length]}
+								stroke={strokeColors[idx % strokeColors.length]}
 								fillOpacity={
 									viewConfig.display === 'Stacked area'
 										? 0.1
