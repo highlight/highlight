@@ -472,6 +472,7 @@ var sessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 		modelInputs.ReservedSessionKeyBrowserName:     "BrowserName",
 		modelInputs.ReservedSessionKeyBrowserVersion:  "BrowserVersion",
 		modelInputs.ReservedSessionKeyProcessed:       "Processed",
+		modelInputs.ReservedSessionKeyHasComments:     "HasComments",
 		modelInputs.ReservedSessionKeyHasRageClicks:   "HasRageClicks",
 		modelInputs.ReservedSessionKeyHasErrors:       "HasErrors",
 		modelInputs.ReservedSessionKeyLength:          "Length",
