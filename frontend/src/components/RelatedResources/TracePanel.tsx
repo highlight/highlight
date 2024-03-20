@@ -19,25 +19,27 @@ export const TracePanel: React.FC<ResourcePanelProps> = ({ resource }) => {
 		<>
 			<Panel.Header path={path} />
 
-			{!traces?.length && loading ? (
-				<LoadingBox />
-			) : !traces?.length ? (
-				<Box p="8">
-					<Callout kind="error" title="Trace not found" />
-				</Box>
-			) : (
-				<>
-					<TraceHeader />
-
-					<Box px="20">
-						<TraceFlameGraph />
+			<Box overflowY="scroll" pb="20">
+				{!traces?.length && loading ? (
+					<LoadingBox />
+				) : !traces?.length ? (
+					<Box p="8">
+						<Callout kind="error" title="Trace not found" />
 					</Box>
+				) : (
+					<>
+						<TraceHeader />
 
-					<Box pt="8" px="20">
-						<TraceSpanAttributes span={span!} />
-					</Box>
-				</>
-			)}
+						<Box px="20">
+							<TraceFlameGraph />
+						</Box>
+
+						<Box pt="8" px="20">
+							<TraceSpanAttributes span={span!} />
+						</Box>
+					</>
+				)}
+			</Box>
 		</>
 	)
 }
