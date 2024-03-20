@@ -43,7 +43,6 @@ export const tabs = style({
 
 export const tabsContainer = sprinkles({
 	borderBottom: 'secondary',
-	px: '20',
 })
 
 export const tabsPageContainer = sprinkles({

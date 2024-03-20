@@ -65,6 +65,7 @@ export const TraceSpanAttributes: React.FC<Props> = ({ span }) => {
 		analytics.track('trace_span-attributes_view')
 	}, [spanID])
 
+	// TODO: Update and try to use log row components to view attributes.
 	return <JsonViewer src={attributes} collapsed={false} />
 }
 
