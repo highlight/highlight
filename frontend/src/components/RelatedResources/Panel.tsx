@@ -35,7 +35,9 @@ export const Panel: PanelComponent = ({ children, open }) => {
 
 	const handleMouseMove = useCallback(
 		(e: MouseEvent) => {
-			if (!dragging) return
+			if (!dragging) {
+				return
+			}
 
 			e.stopPropagation()
 			e.preventDefault()

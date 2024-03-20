@@ -258,7 +258,9 @@ export const TraceFlameGraph: React.FC = () => {
 
 	const handleMouseMove = useCallback(
 		(e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
-			if (!dragging) return
+			if (!dragging) {
+				return
+			}
 
 			e.preventDefault()
 			e.stopPropagation()
