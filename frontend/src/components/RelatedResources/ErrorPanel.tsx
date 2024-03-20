@@ -65,7 +65,7 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 				<LoadingBox />
 			) : (
 				<Box overflowY="scroll" width="full">
-					<Box py="24" px="20" mx="auto" style={{ maxWidth: 940 }}>
+					<Box py="28" px="36" mx="auto" style={{ maxWidth: 940 }}>
 						<ErrorTitle errorGroup={errorGroup} />
 						<ErrorBody errorGroup={errorGroup} />
 
