@@ -17,7 +17,7 @@ export const TraceHeader = () => {
 	} = useTrace()
 
 	return (
-		<Stack direction="column" gap="12" pt="16" pb="12">
+		<Stack direction="column" gap="12" pb="12">
 			<Heading level="h4">{traceName}</Heading>
 			<Stack gap="4" direction="row" alignItems="center">
 				<Badge

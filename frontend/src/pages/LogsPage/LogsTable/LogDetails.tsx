@@ -122,36 +122,10 @@ export const LogDetails: React.FC<Props> = ({
 
 	return (
 		<Stack py="0" gap="1">
-			{Object.entries(logAttributes).map(([key, value], index) => {
-				const isObject = typeof value === 'object'
-
-				return (
-					<Box key={index}>
-						{isObject ? (
-							<LogDetailsObject
-								allExpanded={allExpanded}
-								attribute={value as object}
-								label={key}
-								matchedAttributes={matchedAttributes}
-								queryParts={queryParts}
-								queryBaseKeys={[key]}
-							/>
-						) : (
-							<LogValue
-								label={key}
-								value={String(value)}
-								queryKey={key}
-								queryParts={queryParts}
-							/>
-						)}
-					</Box>
-				)
-			})}
-
 			{Object.entries(reservedLogAttributes).map(
-				([key, value]) =>
+				([key, value], index) =>
 					value && (
-						<Box key={key}>
+						<Box key={index}>
 							<LogValue
 								label={key}
 								value={value}
@@ -361,14 +335,16 @@ export const LogDetails: React.FC<Props> = ({
 	)
 }
 
-const LogDetailsObject: React.FC<{
+export type LogDetailsProps = {
 	allExpanded: boolean
 	attribute: string | object | number
 	label: string
 	queryBaseKeys: string[]
 	queryParts: SearchExpression[]
 	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
-}> = ({
+}
+
+export const LogDetailsObject: React.FC<LogDetailsProps> = ({
 	allExpanded,
 	attribute,
 	label,
@@ -454,7 +430,9 @@ export const LogValue: React.FC<{
 				py="6"
 				onClick={(e: any) => e.stopPropagation()}
 			>
-				<Text family="monospace">"{label}":</Text>
+				<Text family="monospace" color="secondaryContentOnEnabled">
+					"{label}":
+				</Text>
 			</Box>
 			<Box
 				display="flex"
@@ -480,52 +458,56 @@ export const LogValue: React.FC<{
 				</Box>
 				{!hideActions && (
 					<Box cssClass={styles.attributeActions}>
-						<Box>
-							<Tooltip
-								trigger={
-									<IconSolidFilter
-										className={styles.attributeAction}
-										size="12"
-										onClick={() => {
-											if (!queryParts) {
-												return
-											}
+						{!!queryParts && (
+							<Box>
+								<Tooltip
+									trigger={
+										<IconSolidFilter
+											className={styles.attributeAction}
+											size="12"
+											onClick={() => {
+												const index =
+													queryParts.findIndex(
+														(term) =>
+															term.key ===
+															queryKey,
+													)
 
-											const index = queryParts.findIndex(
-												(term) => term.key === queryKey,
-											)
+												if (index !== -1) {
+													queryParts[index].value =
+														value
+												}
 
-											if (index !== -1) {
-												queryParts[index].value = value
-											}
+												let newQuery =
+													stringifySearchQuery(
+														queryParts,
+													)
 
-											let newQuery =
-												stringifySearchQuery(queryParts)
+												if (index === -1) {
+													newQuery += ` ${queryKey}${DEFAULT_OPERATOR}${quoteQueryValue(
+														value,
+													)}`
 
-											if (index === -1) {
-												newQuery += ` ${queryKey}${DEFAULT_OPERATOR}${quoteQueryValue(
-													value,
-												)}`
+													newQuery = newQuery.trim()
+												}
 
-												newQuery = newQuery.trim()
-											}
-
-											setQuery(newQuery)
-											analytics.track(
-												'logs_apply-filter_click',
-											)
-										}}
-									/>
-								}
-								delayed
-							>
-								<Box p="4">
-									<Text userSelect="none" color="n11">
-										Apply as filter
-									</Text>
-								</Box>
-							</Tooltip>
-						</Box>
+												setQuery(newQuery)
+												analytics.track(
+													'logs_apply-filter_click',
+												)
+											}}
+										/>
+									}
+									delayed
+								>
+									<Box p="4">
+										<Text userSelect="none" color="n11">
+											Apply as filter
+										</Text>
+									</Box>
+								</Tooltip>
+							</Box>
+						)}
 						<Box>
 							<Tooltip
 								trigger={

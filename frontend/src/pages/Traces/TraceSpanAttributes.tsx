@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import JsonViewer from '@/components/JsonViewer/JsonViewer'
+import { JsonViewerV2 } from '@/components/JsonViewer/JsonViewerV2'
 import {
 	FlameGraphSpan,
 	formatDateWithNanoseconds,
@@ -65,8 +65,7 @@ export const TraceSpanAttributes: React.FC<Props> = ({ span }) => {
 		analytics.track('trace_span-attributes_view')
 	}, [spanID])
 
-	// TODO: Update and try to use log row components to view attributes.
-	return <JsonViewer src={attributes} collapsed={false} />
+	return <JsonViewerV2 attribute={attributes} allExpanded />
 }
 
 const cleanAttributes = (attributes: any): any => {

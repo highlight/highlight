@@ -41,11 +41,12 @@ export const tabs = style({
 
 export const tabsContainer = sprinkles({
 	borderBottom: 'secondary',
-	px: '20',
+	px: '0',
 })
 
 export const tabsPageContainer = sprinkles({
 	height: 'full',
 	overflowY: 'auto',
 	position: 'relative',
+	pt: '8',
 })

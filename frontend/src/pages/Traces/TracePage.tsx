@@ -30,18 +30,16 @@ export const TracePage: React.FC = () => {
 		return loading ? (
 			<LoadingBox />
 		) : (
-			<Box p="8">
+			<Box p="36">
 				<Callout kind="error" title="Trace not found" />
 			</Box>
 		)
 	}
 
 	return (
-		<Box overflowY="scroll">
-			<Box px="20">
-				<TraceHeader />
-				<TraceFlameGraph />
-			</Box>
+		<Box overflowY="scroll" px="36" pt="28" pb="20">
+			<TraceHeader />
+			<TraceFlameGraph />
 
 			<Box pt="20">
 				<Tabs<TraceTabs>
@@ -53,7 +51,7 @@ export const TracePage: React.FC = () => {
 					pages={{
 						[TraceTabs.Info]: {
 							page: (
-								<Box p="8">
+								<Box px="6">
 									<TraceSpanAttributes
 										span={highlightedSpan!}
 									/>
@@ -68,18 +66,10 @@ export const TracePage: React.FC = () => {
 										label={String(errors.length)}
 									/>
 								) : undefined,
-							page: (
-								<Box p="8">
-									<TraceErrors />
-								</Box>
-							),
+							page: <TraceErrors />,
 						},
 						[TraceTabs.Logs]: {
-							page: (
-								<Box p="8">
-									<TraceLogs />
-								</Box>
-							),
+							page: <TraceLogs />,
 						},
 					}}
 					noHandle

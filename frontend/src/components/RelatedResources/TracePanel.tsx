@@ -1,4 +1,4 @@
-import { Box, Callout } from '@highlight-run/ui/components'
+import { Box, Callout, Text } from '@highlight-run/ui/components'
 
 import LoadingBox from '@/components/LoadingBox'
 import { Panel } from '@/components/RelatedResources/Panel'
@@ -19,7 +19,7 @@ export const TracePanel: React.FC<ResourcePanelProps> = ({ resource }) => {
 		<>
 			<Panel.Header path={path} />
 
-			<Box overflowY="scroll">
+			<Box overflowY="scroll" px="36" pt="28" pb="20">
 				{!traces?.length && loading ? (
 					<LoadingBox />
 				) : !traces?.length ? (
@@ -27,14 +27,16 @@ export const TracePanel: React.FC<ResourcePanelProps> = ({ resource }) => {
 						<Callout kind="error" title="Trace not found" />
 					</Box>
 				) : (
-					<Box px="20">
+					<Box>
 						<TraceHeader />
+						<TraceFlameGraph />
 
-						<Box>
-							<TraceFlameGraph />
-						</Box>
+						<Box mt="40">
+							<Text size="large" weight="bold">
+								Info
+							</Text>
+							<Box bb="dividerWeak" mt="12" mb="8" />
 
-						<Box py="20">
 							<TraceSpanAttributes span={span!} />
 						</Box>
 					</Box>
