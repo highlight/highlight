@@ -37,10 +37,9 @@ export const TracePage: React.FC = () => {
 	}
 
 	return (
-		<Box cssClass={styles.container} overflowY="scroll">
-			<TraceHeader />
-
-			<Box>
+		<Box overflowY="scroll">
+			<Box px="20">
+				<TraceHeader />
 				<TraceFlameGraph />
 			</Box>
 

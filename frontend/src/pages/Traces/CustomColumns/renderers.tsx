@@ -10,9 +10,8 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
-import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { Trace } from '@/graph/generated/schemas'
 import { getTraceDurationString } from '@/pages/Traces/utils'
 import analytics from '@/util/analytics'
@@ -37,7 +36,8 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 	row,
 	onClick,
 }) => {
-	const { set } = useRelatedResource()
+	const navigate = useNavigate()
+	const location = useLocation()
 
 	if (!first) {
 		return (
@@ -48,15 +48,9 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 	}
 
 	const viewTrace = (trace: Partial<Trace>) => {
-		if (!trace.traceID) {
-			return
-		}
-
-		set({
-			type: 'trace',
-			id: trace.traceID,
-			spanID: trace.spanID,
-		})
+		navigate(
+			`/${trace.projectID}/traces/${trace.traceID}/${trace.spanID}${location.search}`,
+		)
 
 		analytics.track('traces_trace-row_click')
 	}
