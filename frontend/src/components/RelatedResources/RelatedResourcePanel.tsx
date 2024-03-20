@@ -41,7 +41,11 @@ export const RelatedResourcePanel: React.FC<Props> = ({}) => {
 				<ErrorPanel resource={resource} />
 			)}
 			{resource && resource.type === 'trace' && (
-				<TraceProvider projectId={projectId!} traceId={resource.id}>
+				<TraceProvider
+					projectId={projectId!}
+					traceId={resource.id}
+					spanId={resource.spanID}
+				>
 					<TracePanel resource={resource} />
 				</TraceProvider>
 			)}

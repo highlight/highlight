@@ -10,7 +10,7 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import React from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { Trace } from '@/graph/generated/schemas'
@@ -37,8 +37,6 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 	row,
 	onClick,
 }) => {
-	const navigate = useNavigate()
-	const location = useLocation()
 	const { set } = useRelatedResource()
 
 	if (!first) {
@@ -57,6 +55,7 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 		set({
 			type: 'trace',
 			id: trace.traceID,
+			spanID: trace.spanID,
 		})
 
 		analytics.track('traces_trace-row_click')
