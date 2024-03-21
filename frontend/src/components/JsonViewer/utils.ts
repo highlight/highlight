@@ -6,8 +6,6 @@ import { ReservedLogKey } from '@/graph/generated/schemas'
 
 const bodyKey = ReservedLogKey['Message']
 
-const EXISTS_PLACEHOLDER_VALUE = 'EXISTS'
-
 export const findMatchingAttributes = (
 	queryParts: Array<SearchExpression | AndOrExpression>,
 	logAttributes: object | string,
@@ -53,17 +51,10 @@ export const findMatchingAttributes = (
 				}
 
 				const queryKey = term.key.toLowerCase()
-				const queryOpertor = term.operator
 				const queryValue = term.value?.toLowerCase()
 
 				if (queryKey === fullKey) {
-					// TODO: figure out why operator is 'NOTEXISTS' without spaces
-					// so we can use the constants
-					matchingAttribute = ['EXISTS', 'NOTEXISTS'].includes(
-						queryOpertor.toUpperCase(),
-					)
-						? EXISTS_PLACEHOLDER_VALUE
-						: queryValue
+					matchingAttribute = queryValue?.replace(/^\"|\"$/g, '')
 				}
 			})
 		}
