@@ -13,6 +13,7 @@ import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { QueryParam } from '@/components/Search/SearchForm/SearchForm'
 import {
+	BODY_KEY,
 	DEFAULT_OPERATOR,
 	quoteQueryValue,
 	stringifySearchQuery,
@@ -156,16 +157,26 @@ export const JsonViewerValue: React.FC<{
 											className={styles.attributeAction}
 											size="12"
 											onClick={() => {
+												if (!queryParts) {
+													return
+												}
+
 												const index =
 													queryParts.findIndex(
 														(term) =>
 															term.key ===
 															queryKey,
 													)
+												const queryValue =
+													quoteQueryValue(value)
 
 												if (index !== -1) {
 													queryParts[index].value =
 														value
+													queryParts[index].text =
+														queryKey === BODY_KEY
+															? queryValue
+															: `${queryKey}${DEFAULT_OPERATOR}${queryValue}`
 												}
 
 												let newQuery =
@@ -174,16 +185,17 @@ export const JsonViewerValue: React.FC<{
 													)
 
 												if (index === -1) {
-													newQuery += ` ${queryKey}${DEFAULT_OPERATOR}${quoteQueryValue(
-														value,
-													)}`
+													newQuery +=
+														queryKey === BODY_KEY
+															? ` ${queryValue}`
+															: ` ${queryKey}${DEFAULT_OPERATOR}${queryValue}`
 
 													newQuery = newQuery.trim()
 												}
 
 												setQuery(newQuery)
 												analytics.track(
-													'json-viewer_apply-filter_click',
+													'logs_apply-filter_click',
 												)
 											}}
 										/>
