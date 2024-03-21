@@ -759,6 +759,7 @@ query GetWorkspaceForInviteLink($secret: String!) {
 		secret
 		workspace_id
 		workspace_name
+		project_id
 	}
 }
 

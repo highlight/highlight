@@ -28,8 +28,6 @@ export const isSignificantDateRange = (startDate: Date, endDate: Date) => {
 
 const bodyKey = ReservedLogKey['Message']
 
-const EXISTS_PLACEHOLDER_VALUE = 'EXISTS'
-
 export const findMatchingLogAttributes = (
 	queryParts: Array<SearchExpression | AndOrExpression>,
 	logAttributes: object | string,
@@ -75,17 +73,10 @@ export const findMatchingLogAttributes = (
 				}
 
 				const queryKey = term.key.toLowerCase()
-				const queryOpertor = term.operator
 				const queryValue = term.value?.toLowerCase()
 
 				if (queryKey === fullKey) {
-					// TODO: figure out why operator is 'NOTEXISTS' without spaces
-					// so we can use the constants
-					matchingAttribute = ['EXISTS', 'NOTEXISTS'].includes(
-						queryOpertor.toUpperCase(),
-					)
-						? EXISTS_PLACEHOLDER_VALUE
-						: queryValue
+					matchingAttribute = queryValue?.replace(/^\"|\"$/g, '')
 				}
 			})
 		}

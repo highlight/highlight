@@ -2667,6 +2667,7 @@ export type GetWorkspaceForInviteLinkQuery = { __typename?: 'Query' } & {
 		| 'secret'
 		| 'workspace_id'
 		| 'workspace_name'
+		| 'project_id'
 	>
 }
 
