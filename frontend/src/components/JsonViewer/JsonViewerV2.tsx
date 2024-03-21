@@ -11,7 +11,6 @@ type Props = {
 	allExpanded?: boolean
 	matchedAttributes?: JsonViewerObjectProps['matchedAttributes']
 	queryParts?: JsonViewerObjectProps['queryParts']
-	queryBaseKeys?: string[]
 }
 
 export const JsonViewerV2: React.FC<Props> = ({
@@ -41,6 +40,7 @@ export const JsonViewerV2: React.FC<Props> = ({
 								label={key}
 								value={String(value)}
 								queryKey={key}
+								queryMatch={matchedAttributes[key]?.match}
 								queryParts={queryParts}
 							/>
 						)}
