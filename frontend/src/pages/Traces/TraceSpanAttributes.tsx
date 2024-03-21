@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useQueryParam } from 'use-query-params'
 
 import { JsonViewerV2 } from '@/components/JsonViewer/JsonViewerV2'
@@ -18,7 +18,7 @@ type Props = {
 
 export const TraceSpanAttributes: React.FC<Props> = ({ span }) => {
 	const [query] = useQueryParam('query', QueryParam)
-	const { queryParts } = parseSearch(query)
+	const queryParts = useMemo(() => parseSearch(query).queryParts, [query])
 	const attributes: { [key: string]: any } = { ...span }
 
 	const formattedSpan = cleanAttributes({
