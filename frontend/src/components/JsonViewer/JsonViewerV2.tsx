@@ -1,19 +1,20 @@
 import { Box, Stack } from '@highlight-run/ui/components'
 
 import {
-	LogDetailsObject,
-	LogDetailsProps,
-	LogValue,
-} from '@/pages/LogsPage/LogsTable/LogDetails'
+	JsonViewerObject,
+	JsonViewerValue,
+	Props as JsonViewerObjectProps,
+} from '@/components/JsonViewer/JsonViewerObject'
 
-type JsonViewerProps = {
-	attribute: LogDetailsProps['attribute']
+type Props = {
+	attribute: JsonViewerObjectProps['attribute']
 	allExpanded?: boolean
-	matchedAttributes?: LogDetailsProps['matchedAttributes']
-	queryParts?: LogDetailsProps['queryParts']
+	matchedAttributes?: JsonViewerObjectProps['matchedAttributes']
+	queryParts?: JsonViewerObjectProps['queryParts']
+	queryBaseKeys?: string[]
 }
 
-export const JsonViewerV2: React.FC<JsonViewerProps> = ({
+export const JsonViewerV2: React.FC<Props> = ({
 	attribute,
 	allExpanded = false,
 	matchedAttributes = {},
@@ -27,7 +28,7 @@ export const JsonViewerV2: React.FC<JsonViewerProps> = ({
 				return (
 					<Box key={index}>
 						{isObject ? (
-							<LogDetailsObject
+							<JsonViewerObject
 								allExpanded={allExpanded}
 								attribute={value as object}
 								label={key}
@@ -36,7 +37,7 @@ export const JsonViewerV2: React.FC<JsonViewerProps> = ({
 								queryBaseKeys={[key]}
 							/>
 						) : (
-							<LogValue
+							<JsonViewerValue
 								label={key}
 								value={String(value)}
 								queryKey={key}

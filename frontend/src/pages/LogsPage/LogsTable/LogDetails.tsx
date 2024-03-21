@@ -6,49 +6,33 @@ import {
 	IconSolidChevronDoubleDown,
 	IconSolidChevronDoubleUp,
 	IconSolidClipboard,
-	IconSolidClipboardCopy,
-	IconSolidFilter,
 	IconSolidLightningBolt,
 	IconSolidLink,
 	IconSolidLocationMarker,
 	IconSolidPlayCircle,
 	IconSolidSparkles,
 	Stack,
-	Text,
-	Tooltip,
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
-import {
-	IconCollapsed,
-	IconExpanded,
-} from '@pages/LogsPage/LogsTable/LogsTable'
 import { LogEdgeWithResources } from '@pages/LogsPage/useGetLogs'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { createSearchParams, generatePath, useNavigate } from 'react-router-dom'
-import { useQueryParam } from 'use-query-params'
 
+import {
+	JsonViewerObject,
+	JsonViewerValue,
+} from '@/components/JsonViewer/JsonViewerObject'
+import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { SearchExpression } from '@/components/Search/Parser/listener'
-import { QueryParam } from '@/components/Search/SearchForm/SearchForm'
-import {
-	DEFAULT_OPERATOR,
-	quoteQueryValue,
-	stringifySearchQuery,
-} from '@/components/Search/SearchForm/utils'
-import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
-import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
-import analytics from '@/util/analytics'
-
-import * as styles from './LogDetails.css'
-import * as logsTableStyles from './LogsTable.css'
 
 type Props = {
 	row: Row<LogEdgeWithResources>
 	queryParts: SearchExpression[]
-	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
+	matchedAttributes: ReturnType<typeof findMatchingAttributes>
 }
 
 export const getLogURL = (projectId: string, row: Row<LogEdge>) => {
@@ -128,7 +112,7 @@ export const LogDetails: React.FC<Props> = ({
 				return (
 					<Box key={index}>
 						{isObject ? (
-							<LogDetailsObject
+							<JsonViewerObject
 								allExpanded={allExpanded}
 								attribute={value as object}
 								label={key}
@@ -137,7 +121,7 @@ export const LogDetails: React.FC<Props> = ({
 								queryBaseKeys={[key]}
 							/>
 						) : (
-							<LogValue
+							<JsonViewerValue
 								label={key}
 								value={String(value)}
 								queryKey={key}
@@ -152,7 +136,7 @@ export const LogDetails: React.FC<Props> = ({
 				([key, value], index) =>
 					value && (
 						<Box key={index}>
-							<LogValue
+							<JsonViewerValue
 								label={key}
 								value={value}
 								queryKey={key}
@@ -358,228 +342,5 @@ export const LogDetails: React.FC<Props> = ({
 				</Box>
 			</Box>
 		</Stack>
-	)
-}
-
-export type LogDetailsProps = {
-	allExpanded: boolean
-	attribute: string | object | number
-	label: string
-	queryBaseKeys: string[]
-	queryParts: SearchExpression[]
-	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
-}
-
-export const LogDetailsObject: React.FC<LogDetailsProps> = ({
-	allExpanded,
-	attribute,
-	label,
-	matchedAttributes,
-	queryBaseKeys,
-	queryParts,
-}) => {
-	const [open, setOpen] = useState(false)
-
-	if (typeof attribute === 'string') {
-		try {
-			attribute = JSON.parse(attribute)
-		} catch {}
-	}
-
-	const queryKey = queryBaseKeys.join('.') || label
-	const queryMatch = matchedAttributes[queryKey]
-
-	useEffect(() => {
-		setOpen(allExpanded)
-	}, [allExpanded])
-
-	return typeof attribute === 'object' ? (
-		<Box
-			cssClass={styles.line}
-			onClick={(e) => {
-				e.stopPropagation()
-				setOpen(!open)
-			}}
-		>
-			<LogAttributeLine>
-				{open ? <IconExpanded /> : <IconCollapsed />}
-				<Box py="6">
-					<Text color="weak" family="monospace">
-						{label}
-					</Text>
-				</Box>
-			</LogAttributeLine>
-
-			{open &&
-				Object.entries(attribute).map(([key, value], index) => (
-					<LogDetailsObject
-						key={index}
-						allExpanded={allExpanded}
-						attribute={value}
-						label={key}
-						matchedAttributes={matchedAttributes}
-						queryParts={queryParts}
-						queryBaseKeys={[...queryBaseKeys, key]}
-					/>
-				))}
-		</Box>
-	) : (
-		<Box cssClass={styles.line}>
-			<LogValue
-				label={label}
-				value={String(attribute)}
-				queryKey={queryKey}
-				queryParts={queryParts}
-				queryMatch={queryMatch?.match}
-			/>
-		</Box>
-	)
-}
-
-export const LogValue: React.FC<{
-	label: string
-	value: string
-	queryParts: SearchExpression[]
-	queryKey: string
-	queryMatch?: string
-	hideActions?: boolean
-}> = ({ label, queryKey, queryParts, value, queryMatch, hideActions }) => {
-	const [_, setQuery] = useQueryParam('query', QueryParam)
-
-	// replace wildcards for highlighting.
-	const matchPattern = queryMatch?.replaceAll('*', '')
-
-	return (
-		<LogAttributeLine>
-			<Box
-				flexShrink={0}
-				py="6"
-				onClick={(e: any) => e.stopPropagation()}
-			>
-				<Text family="monospace" color="secondaryContentOnEnabled">
-					"{label}":
-				</Text>
-			</Box>
-			<Box
-				display="flex"
-				flexDirection="row"
-				alignItems="center"
-				gap="8"
-				onClick={(e: any) => e.stopPropagation()}
-			>
-				<Box borderRadius="4" p="6">
-					<Text family="monospace" color="caution" break="word">
-						{matchPattern ? (
-							<TextHighlighter
-								highlightClassName={
-									logsTableStyles.textHighlight
-								}
-								searchWords={[matchPattern]}
-								textToHighlight={value}
-							/>
-						) : (
-							<>{value ? value : '""'}</>
-						)}
-					</Text>
-				</Box>
-				{!hideActions && (
-					<Box cssClass={styles.attributeActions}>
-						{!!queryParts && (
-							<Box>
-								<Tooltip
-									trigger={
-										<IconSolidFilter
-											className={styles.attributeAction}
-											size="12"
-											onClick={() => {
-												const index =
-													queryParts.findIndex(
-														(term) =>
-															term.key ===
-															queryKey,
-													)
-
-												if (index !== -1) {
-													queryParts[index].value =
-														value
-												}
-
-												let newQuery =
-													stringifySearchQuery(
-														queryParts,
-													)
-
-												if (index === -1) {
-													newQuery += ` ${queryKey}${DEFAULT_OPERATOR}${quoteQueryValue(
-														value,
-													)}`
-
-													newQuery = newQuery.trim()
-												}
-
-												setQuery(newQuery)
-												analytics.track(
-													'logs_apply-filter_click',
-												)
-											}}
-										/>
-									}
-									delayed
-								>
-									<Box p="4">
-										<Text userSelect="none" color="n11">
-											Apply as filter
-										</Text>
-									</Box>
-								</Tooltip>
-							</Box>
-						)}
-						<Box>
-							<Tooltip
-								trigger={
-									<IconSolidClipboardCopy
-										className={styles.attributeAction}
-										size="12"
-										onClick={() => {
-											navigator.clipboard.writeText(
-												quoteQueryValue(value),
-											)
-											antdMessage.success(
-												'Value copied to your clipboard',
-											)
-											analytics.track(
-												'logs_copy-to-clipboard_click',
-											)
-										}}
-									/>
-								}
-								delayed
-							>
-								<Box p="4">
-									<Text userSelect="none" color="n11">
-										Copy to your clipboard
-									</Text>
-								</Box>
-							</Tooltip>
-						</Box>
-					</Box>
-				)}
-			</Box>
-		</LogAttributeLine>
-	)
-}
-
-const LogAttributeLine: React.FC<React.PropsWithChildren> = ({ children }) => {
-	return (
-		<Box
-			cssClass={styles.logAttributeLine}
-			display="flex"
-			alignItems="center"
-			flexDirection="row"
-			gap="4"
-			flexShrink={0}
-		>
-			{children}
-		</Box>
 	)
 }

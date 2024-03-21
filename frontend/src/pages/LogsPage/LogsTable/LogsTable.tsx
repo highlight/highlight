@@ -41,13 +41,14 @@ import {
 	ColumnHeader,
 	CustomColumnHeader,
 } from '@/components/CustomColumnHeader'
+import { JsonViewerValue } from '@/components/JsonViewer/JsonViewerObject'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { parseSearch } from '@/components/Search/utils'
 import { LogEdge, ProductType } from '@/graph/generated/schemas'
 import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 import analytics from '@/util/analytics'
 
-import { LogDetails, LogValue } from './LogDetails'
+import { LogDetails } from './LogDetails'
 import * as styles from './LogsTable.css'
 
 type Props = {
@@ -457,7 +458,7 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 																</Text>
 															</Box>
 														)}
-														<LogValue
+														<JsonViewerValue
 															key={key}
 															label={key}
 															value={value}

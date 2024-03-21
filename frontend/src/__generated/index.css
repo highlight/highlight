@@ -6644,10 +6644,10 @@ body {
   border-bottom: 1px solid var(--_1pyqka9k) !important;
   background-color: var(--_1pyqka92);
 }
-.szxd8q0 .szxd8q0 {
+._19or1k10 ._19or1k10 {
   padding-left: 22px;
 }
-.szxd8q2 {
+._19or1k12 {
   align-items: center;
   display: flex;
   visibility: hidden;
@@ -6655,29 +6655,29 @@ body {
   gap: 4px;
   opacity: 0.5;
 }
-.szxd8q2:hover {
+._19or1k12:hover {
   opacity: 1;
 }
-.szxd8q1:hover .szxd8q2 {
+._19or1k11:hover ._19or1k12 {
   visibility: visible;
 }
-.szxd8q3 {
+._19or1k13 {
   opacity: 0.6;
 }
-.szxd8q3:hover {
+._19or1k13:hover {
   opacity: 1;
 }
-.szxd8q4 {
+._19or1k14 {
   background: transparent;
   border: 0;
   cursor: pointer;
   padding: 0;
   color: var(--_1pyqka9y);
 }
-.szxd8q4:hover {
+._19or1k14:hover {
   color: var(--_1pyqka9w);
 }
-.szxd8q4:active {
+._19or1k14:active {
   color: var(--_1pyqka9w);
 }
 ._1hjkzyj0 {
