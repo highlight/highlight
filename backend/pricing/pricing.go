@@ -345,11 +345,7 @@ func GetWorkspaceSessionsMeter(ctx context.Context, DB *gorm.DB, ccClient *click
 		SELECT SUM(count) as currentPeriodSessionCount from (
 			SELECT COUNT(*) FROM sessions
 			WHERE project_id IN (SELECT id FROM projects WHERE workspace_id=@workspace_id)
-			AND (created_at < (SELECT MAX(date) FROM materialized_rows)) IS NOT TRUE
-            AND created_at >= (
-				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
-				FROM workspaces
-				WHERE id=@workspace_id)
+			AND created_at >= (SELECT MAX(date) FROM materialized_rows)
 			AND created_at < (
 			SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
 			FROM workspaces
@@ -404,11 +400,7 @@ func GetWorkspaceErrorsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickho
 		SELECT SUM(count) as currentPeriodErrorsCount from (
 			SELECT COUNT(*) FROM error_objects
 			WHERE project_id IN (SELECT id FROM projects WHERE workspace_id=@workspace_id)
-			AND (created_at < (SELECT MAX(date) FROM materialized_rows)) IS NOT TRUE
-            AND created_at >= (
-				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
-				FROM workspaces
-				WHERE id=@workspace_id)
+			AND created_at >= (SELECT MAX(date) FROM materialized_rows)
 			AND created_at < (
 				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
 				FROM workspaces
