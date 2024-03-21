@@ -22,17 +22,21 @@ import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
 import Graph, {
-	NAME_KEY,
+	GROUP_KEY,
 	View,
 	ViewConfig,
 	VIEWS,
 } from '@/pages/Graphing/components/Graph'
 import {
 	LINE_DISPLAY,
+	LINE_NULL_HANDLING,
 	LineDisplay,
-	NULL_HANDLING,
-	NullHandling,
+	LineNullHandling,
 } from '@/pages/Graphing/components/LineChart'
+import {
+	TABLE_NULL_HANDLING,
+	TableNullHandling,
+} from '@/pages/Graphing/components/Table'
 
 import * as style from './GraphingEditor.css'
 
@@ -107,7 +111,7 @@ const OptionDropdown = <T extends string>({
 	selection,
 	setSelection,
 }: {
-	options: string[]
+	options: T[]
 	selection: string
 	setSelection: (option: T) => void
 }) => {
@@ -179,8 +183,8 @@ const LineChartSettings = ({
 	lineDisplay,
 	setLineDisplay,
 }: {
-	nullHandling: NullHandling
-	setNullHandling: (option: NullHandling) => void
+	nullHandling: LineNullHandling
+	setNullHandling: (option: LineNullHandling) => void
 	lineDisplay: LineDisplay
 	setLineDisplay: (option: LineDisplay) => void
 }) => (
@@ -192,9 +196,9 @@ const LineChartSettings = ({
 				setSelection={setLineDisplay}
 			/>
 		</LabeledRow>
-		<LabeledRow label="Nulls" name="nullHandling">
+		<LabeledRow label="Nulls" name="lineNullHandling">
 			<OptionDropdown
-				options={NULL_HANDLING}
+				options={LINE_NULL_HANDLING}
 				selection={nullHandling}
 				setSelection={setNullHandling}
 			/>
@@ -220,6 +224,24 @@ const BarChartSettings = ({
 	</>
 )
 
+const TableSettings = ({
+	nullHandling,
+	setNullHandling,
+}: {
+	nullHandling: TableNullHandling
+	setNullHandling: (option: TableNullHandling) => void
+}) => (
+	<>
+		<LabeledRow label="Nulls" name="tableNullHandling">
+			<OptionDropdown
+				options={TABLE_NULL_HANDLING}
+				selection={nullHandling}
+				setSelection={setNullHandling}
+			/>
+		</LabeledRow>
+	</>
+)
+
 export const GraphingEditor = () => {
 	const { projectId } = useProjectId()
 	const [endDate] = useState(moment().toISOString())
@@ -228,7 +250,12 @@ export const GraphingEditor = () => {
 	const [productType, setProductType] = useState(PRODUCTS[0])
 	const [viewType, setViewType] = useState(VIEWS[0])
 	const [functionType, setFunctionType] = useState(FUNCTION_TYPES[0])
-	const [nullHandling, setNullHandling] = useState(NULL_HANDLING[0])
+	const [lineNullHandling, setLineNullHandling] = useState(
+		LINE_NULL_HANDLING[0],
+	)
+	const [tableNullHandling, setTableNullHandling] = useState(
+		TABLE_NULL_HANDLING[0],
+	)
 	const [lineDisplay, setLineDisplay] = useState(LINE_DISPLAY[0])
 	const [barDisplay, setBarDisplay] = useState(BAR_DISPLAY[0])
 
@@ -339,19 +366,11 @@ export const GraphingEditor = () => {
 					(b.bucket_min + b.bucket_max) / 2
 				data[b.bucket_id][seriesKey] = b.metric_value
 			}
-
-			if (nullHandling === 'Zero') {
-				for (let i = 0; i < metricsToUse.metrics.bucket_count; i++) {
-					for (const key of seriesKeys) {
-						data[i][key] = data[i][key] ?? 0
-					}
-				}
-			}
 		} else {
 			data = []
 			for (const b of metricsToUse.metrics.buckets) {
 				data.push({
-					[NAME_KEY]: b.group.join(' '),
+					[GROUP_KEY]: b.group.join(' '),
 					'': b.metric_value,
 				})
 			}
@@ -362,17 +381,26 @@ export const GraphingEditor = () => {
 	if (viewType === 'Line chart') {
 		viewConfig = {
 			type: viewType,
+			showLegend: true,
 			display: lineDisplay,
-			nullHandling: nullHandling,
+			nullHandling: lineNullHandling,
 		}
 	} else if (viewType === 'Bar chart') {
 		viewConfig = {
 			type: viewType,
+			showLegend: true,
 			display: barDisplay,
+		}
+	} else if (viewType === 'Table') {
+		viewConfig = {
+			type: viewType,
+			showLegend: false,
+			nullHandling: tableNullHandling,
 		}
 	} else {
 		viewConfig = {
 			type: 'Line chart',
+			showLegend: true,
 		}
 	}
 
@@ -452,9 +480,14 @@ export const GraphingEditor = () => {
 								loading={metricsLoading}
 								title={metricViewTitle}
 								xAxisMetric={
-									bucketByEnabled ? bucketByKey : NAME_KEY
+									bucketByEnabled ? bucketByKey : GROUP_KEY
 								}
-								yAxisMetric={metric}
+								yAxisMetric={
+									functionType === MetricAggregator.Count
+										? ''
+										: metric
+								}
+								yAxisFunction={functionType}
 								viewConfig={viewConfig}
 							/>
 						</Box>
@@ -508,8 +541,10 @@ export const GraphingEditor = () => {
 									</LabeledRow>
 									{viewType === 'Line chart' && (
 										<LineChartSettings
-											nullHandling={nullHandling}
-											setNullHandling={setNullHandling}
+											nullHandling={lineNullHandling}
+											setNullHandling={
+												setLineNullHandling
+											}
 											lineDisplay={lineDisplay}
 											setLineDisplay={setLineDisplay}
 										/>
@@ -518,6 +553,14 @@ export const GraphingEditor = () => {
 										<BarChartSettings
 											barDisplay={barDisplay}
 											setBarDisplay={setBarDisplay}
+										/>
+									)}
+									{viewType === 'Table' && (
+										<TableSettings
+											nullHandling={tableNullHandling}
+											setNullHandling={
+												setTableNullHandling
+											}
 										/>
 									)}
 								</SidebarSection>
