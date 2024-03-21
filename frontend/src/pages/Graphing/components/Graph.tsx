@@ -71,7 +71,7 @@ const durationUnitMap: [number, string][] = [
 
 const formatNumber = (n: number) => {
 	if (n < 10000) {
-		return parseFloat(n.toPrecision(4))
+		return parseFloat(n.toPrecision(4)).toString()
 	}
 	const k = 1000
 	const sizes = ['', 'K', 'M', 'B', 'T']
