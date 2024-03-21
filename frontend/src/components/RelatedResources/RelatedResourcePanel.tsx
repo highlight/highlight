@@ -3,6 +3,7 @@ import {
 	RelatedResource,
 	useRelatedResource,
 } from '@/components/RelatedResources/hooks'
+import { LogsPanel } from '@/components/RelatedResources/LogsPanel'
 import { Panel } from '@/components/RelatedResources/Panel'
 import { SessionPanel } from '@/components/RelatedResources/SessionPanel'
 import { TracePanel } from '@/components/RelatedResources/TracePanel'
@@ -20,6 +21,9 @@ export const RelatedResourcePanel: React.FC<Props> = ({}) => {
 			)}
 			{resource && resource.type === 'error' && (
 				<ErrorPanel resource={resource} />
+			)}
+			{resource && resource.type === 'logs' && (
+				<LogsPanel resource={resource} />
 			)}
 			{resource && resource.type === 'trace' && (
 				<TracePanel resource={resource} />
