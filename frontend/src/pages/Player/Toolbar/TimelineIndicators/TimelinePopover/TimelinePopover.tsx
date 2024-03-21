@@ -29,7 +29,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
-import { useRelatedResource } from '@/components/RelatedResources/hooks'
+import {
+	RelatedError,
+	useRelatedResource,
+} from '@/components/RelatedResources/hooks'
 
 import style from './TimelinePopover.module.css'
 
@@ -58,9 +61,10 @@ const TimelinePopover = ({ bucket }: Props) => {
 		setSelectedRightPlayerPanelTab,
 	} = usePlayerConfiguration()
 	const { resource, set } = useRelatedResource()
+	const relatedError = resource as RelatedError | undefined
 	const activeError = useMemo(
-		() => errors.find((error) => error.id === resource?.id),
-		[errors, resource?.id],
+		() => errors.find((error) => error.id === relatedError?.id),
+		[errors, relatedError?.id],
 	)
 
 	const [selectedType, setSelectedType] = useState<string | null>(null)
