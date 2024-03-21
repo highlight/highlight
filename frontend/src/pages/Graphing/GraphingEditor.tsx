@@ -20,14 +20,19 @@ import Switch from '@/components/Switch/Switch'
 import { useGetKeysQuery, useGetMetricsQuery } from '@/graph/generated/hooks'
 import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
+import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
 import Graph, {
+	NAME_KEY,
+	View,
+	ViewConfig,
+	VIEWS,
+} from '@/pages/Graphing/components/Graph'
+import {
 	LINE_DISPLAY,
 	LineDisplay,
 	NULL_HANDLING,
 	NullHandling,
-	View,
-	VIEWS,
-} from '@/pages/Graphing/components/Graph'
+} from '@/pages/Graphing/components/LineChart'
 
 import * as style from './GraphingEditor.css'
 
@@ -197,6 +202,24 @@ const LineChartSettings = ({
 	</>
 )
 
+const BarChartSettings = ({
+	barDisplay,
+	setBarDisplay,
+}: {
+	barDisplay: BarDisplay
+	setBarDisplay: (option: BarDisplay) => void
+}) => (
+	<>
+		<LabeledRow label="Bar display" name="barDisplay">
+			<OptionDropdown
+				options={BAR_DISPLAY}
+				selection={barDisplay}
+				setSelection={setBarDisplay}
+			/>
+		</LabeledRow>
+	</>
+)
+
 export const GraphingEditor = () => {
 	const { projectId } = useProjectId()
 	const [endDate] = useState(moment().toISOString())
@@ -207,6 +230,8 @@ export const GraphingEditor = () => {
 	const [functionType, setFunctionType] = useState(FUNCTION_TYPES[0])
 	const [nullHandling, setNullHandling] = useState(NULL_HANDLING[0])
 	const [lineDisplay, setLineDisplay] = useState(LINE_DISPLAY[0])
+	const [barDisplay, setBarDisplay] = useState(BAR_DISPLAY[0])
+
 	const [query, setQuery] = useState('')
 	const [debouncedQuery, setDebouncedQuery] = useState('')
 	useDebounce(
@@ -228,7 +253,7 @@ export const GraphingEditor = () => {
 	const [limit, setLimit] = useState(10)
 	const [limitMetric, setLimitMetric] = useState('')
 
-	const [bucketByEnabled, setBucketByEnabled] = useState(false)
+	const [bucketByEnabled, setBucketByEnabled] = useState(true)
 	const [bucketByKey, setBucketByKey] = useState('')
 	const [bucketCount, setBucketCount] = useState(DEFAULT_BUCKET_COUNT)
 
@@ -268,6 +293,8 @@ export const GraphingEditor = () => {
 		setBucketByKey(bucketByKeys[0] ?? '')
 	}, [allKeys, bucketByKeys, numericKeys])
 
+	const queriedBucketCount = bucketByEnabled ? bucketCount : 1
+
 	const { data: metrics, loading: metricsLoading } = useGetMetricsQuery({
 		variables: {
 			product_type: productType,
@@ -283,7 +310,7 @@ export const GraphingEditor = () => {
 			metric_types: [functionType],
 			group_by: groupByEnabled ? [groupByKey] : [],
 			bucket_by: bucketByEnabled ? bucketByKey : TIMESTAMP_KEY,
-			bucket_count: bucketByEnabled ? bucketCount : DEFAULT_BUCKET_COUNT,
+			bucket_count: queriedBucketCount,
 			limit: limit,
 			limit_aggregator: limitFunctionType,
 			limit_column: limitMetric,
@@ -298,25 +325,54 @@ export const GraphingEditor = () => {
 
 	let data: any[] | undefined
 	if (metricsToUse?.metrics.buckets) {
-		data = []
-		for (let i = 0; i < bucketCount; i++) {
-			data.push({})
-		}
+		if (bucketByEnabled) {
+			data = []
+			for (let i = 0; i < metricsToUse.metrics.bucket_count; i++) {
+				data.push({})
+			}
 
-		const seriesKeys = new Set<string>()
-		for (const b of metricsToUse.metrics.buckets) {
-			const seriesKey = b.group.join(' ')
-			seriesKeys.add(seriesKey)
-			data[b.bucket_id][bucketByKey] = (b.bucket_min + b.bucket_max) / 2
-			data[b.bucket_id][seriesKey] = b.metric_value
-		}
+			const seriesKeys = new Set<string>()
+			for (const b of metricsToUse.metrics.buckets) {
+				const seriesKey = b.group.join(' ')
+				seriesKeys.add(seriesKey)
+				data[b.bucket_id][bucketByKey] =
+					(b.bucket_min + b.bucket_max) / 2
+				data[b.bucket_id][seriesKey] = b.metric_value
+			}
 
-		if (nullHandling === 'Zero') {
-			for (let i = 0; i < bucketCount; i++) {
-				for (const key of seriesKeys) {
-					data[i][key] = data[i][key] ?? 0
+			if (nullHandling === 'Zero') {
+				for (let i = 0; i < metricsToUse.metrics.bucket_count; i++) {
+					for (const key of seriesKeys) {
+						data[i][key] = data[i][key] ?? 0
+					}
 				}
 			}
+		} else {
+			data = []
+			for (const b of metricsToUse.metrics.buckets) {
+				data.push({
+					[NAME_KEY]: b.group.join(' '),
+					'': b.metric_value,
+				})
+			}
+		}
+	}
+
+	let viewConfig: ViewConfig
+	if (viewType === 'Line chart') {
+		viewConfig = {
+			type: viewType,
+			display: lineDisplay,
+			nullHandling: nullHandling,
+		}
+	} else if (viewType === 'Bar chart') {
+		viewConfig = {
+			type: viewType,
+			display: barDisplay,
+		}
+	} else {
+		viewConfig = {
+			type: 'Line chart',
 		}
 	}
 
@@ -395,13 +451,11 @@ export const GraphingEditor = () => {
 								data={data}
 								loading={metricsLoading}
 								title={metricViewTitle}
-								xAxisMetric={bucketByKey}
+								xAxisMetric={
+									bucketByEnabled ? bucketByKey : NAME_KEY
+								}
 								yAxisMetric={metric}
-								viewConfig={{
-									type: 'Line chart',
-									display: lineDisplay,
-									nullHandling: nullHandling,
-								}}
+								viewConfig={viewConfig}
 							/>
 						</Box>
 						<Box
@@ -458,6 +512,12 @@ export const GraphingEditor = () => {
 											setNullHandling={setNullHandling}
 											lineDisplay={lineDisplay}
 											setLineDisplay={setLineDisplay}
+										/>
+									)}
+									{viewType === 'Bar chart' && (
+										<BarChartSettings
+											barDisplay={barDisplay}
+											setBarDisplay={setBarDisplay}
 										/>
 									)}
 								</SidebarSection>

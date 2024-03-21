@@ -41,11 +41,10 @@ import {
 	ColumnHeader,
 	CustomColumnHeader,
 } from '@/components/CustomColumnHeader'
-import { JsonViewerValue } from '@/components/JsonViewer/JsonViewerObject'
+import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { parseSearch } from '@/components/Search/utils'
 import { LogEdge, ProductType } from '@/graph/generated/schemas'
-import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 import analytics from '@/util/analytics'
 
 import { LogDetails } from './LogDetails'
@@ -411,7 +410,7 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 			const log = row.original.node
 			const rowExpanded = row.getIsExpanded()
 
-			const matchedAttributes = findMatchingLogAttributes(queryParts, {
+			const matchedAttributes = findMatchingAttributes(queryParts, {
 				...log.logAttributes,
 				environment: log.environment,
 				level: log.level,
@@ -423,7 +422,6 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 				span_id: log.spanID,
 				trace_id: log.traceID,
 			})
-			const hasAttributes = Object.entries(matchedAttributes).length > 0
 
 			return (
 				<Table.Row
@@ -431,50 +429,10 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 					className={styles.attributesRow}
 					gridColumns={['32px', '1fr']}
 				>
-					{(rowExpanded || hasAttributes) && (
+					{rowExpanded && (
 						<>
 							<Table.Cell py="4" />
 							<Table.Cell py="4" borderTop="dividerWeak">
-								{!rowExpanded && (
-									<Box display="flex" flexWrap="wrap">
-										{Object.entries(matchedAttributes).map(
-											(
-												[key, { match, value }],
-												index,
-											) => {
-												return (
-													<>
-														{index > 0 && (
-															<Box
-																display="flex"
-																alignItems="center"
-																pr="8"
-															>
-																<Text
-																	weight="bold"
-																	color="weak"
-																>
-																	;
-																</Text>
-															</Box>
-														)}
-														<JsonViewerValue
-															key={key}
-															label={key}
-															value={value}
-															queryKey={key}
-															queryMatch={match}
-															queryParts={
-																queryParts
-															}
-															hideActions
-														/>
-													</>
-												)
-											},
-										)}
-									</Box>
-								)}
 								<LogDetails
 									matchedAttributes={matchedAttributes}
 									row={row}
