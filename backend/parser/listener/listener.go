@@ -300,6 +300,10 @@ func (s *searchListener[T]) appendRules(value string) {
 		filterKey = fmt.Sprintf("toString(%s)", filterKey)
 	}
 
+	// Quotes are sometimes escaped on the client and need to be unescaped before
+	// being used in the query or they will be double escaped.
+	value = strings.ReplaceAll(value, `\"`, `"`)
+
 	if s.currentOp == ":" || s.currentOp == "=" || s.currentOp == "!=" {
 		if strings.HasPrefix(value, "/") && strings.HasSuffix(value, "/") {
 			value = strings.Trim(value, "/")

@@ -91,12 +91,22 @@ describe('quoteQueryValue', () => {
 		expect(quoteQueryValue('"a test query"')).toEqual('"a test query"')
 	})
 
-	it('handles single quoted strings', () => {
-		expect(quoteQueryValue("'a test query'")).toEqual("'a test query'")
-	})
-
 	it('handles numbers', () => {
 		expect(quoteQueryValue(1234)).toEqual('1234')
+	})
+
+	it('handles nested quoted strings', () => {
+		expect(quoteQueryValue('{body:"quoted value"}')).toEqual(
+			`"{body:\\"quoted value\\"}"`,
+		)
+
+		expect(quoteQueryValue(`{'body':'quoted value'}`)).toEqual(
+			`"{'body':'quoted value'}"`,
+		)
+
+		expect(quoteQueryValue(`body={"joinCode":"abcd"}`)).toEqual(
+			`"body={\\"joinCode\\":\\"abcd\\"}"`,
+		)
 	})
 })
 

@@ -90,7 +90,7 @@ LPAREN : '(' ;
 RPAREN : ')' ;
 COLON : ':' ;
 ID : [A-Z_0-9.\-*]+ ;
-STRING : '"' .*? '"' ;
+STRING : '"' ( '\\"' | ~["] )* '"' ;
 VALUE: ~[ \t\n\r\f=><:!)(]+ ;
 WS : [ \t\n\r\f]+ -> channel(HIDDEN) ;
 
