@@ -191,7 +191,8 @@ jobs:
             - name: Install ffmpeg
               run: |
                   curl -o ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz
-                  tar -C /usr/local -xf ffmpeg.tar.xz
+                  mkdir ~/bin
+                  tar -C ~/bin -xf ffmpeg.tar.xz
 
             - name: Login to Docker Hub
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
