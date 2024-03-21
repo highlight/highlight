@@ -28,12 +28,15 @@ export const quoteQueryValue = (value: string | number) => {
 		return String(value)
 	}
 
-	if (value.startsWith('"') || value.startsWith("'")) {
+	const isQuotedString = value.startsWith('"') && value.endsWith('"')
+	if (isQuotedString) {
 		return value
 	}
 
-	if (value.indexOf(' ') > -1) {
-		return `"${value}"`
+	const containsSpace = value.indexOf(' ') > -1
+	const containsQuote = value.indexOf('"') > -1
+	if (containsSpace || containsQuote) {
+		return `"${value.replace(/"/g, '\\"')}"`
 	}
 
 	return value
