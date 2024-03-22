@@ -9,6 +9,7 @@ import DO_NOT_USE_Canvas from '@pages/Buttons/Canvas'
 import { SourcemapErrorDetails } from '@pages/ErrorsV2/SourcemapErrorDetails/SourcemapErrorDetails'
 import { H } from 'highlight.run'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 import Logo from '@/static/logo.png'
 import analytics from '@/util/analytics'
@@ -256,6 +257,14 @@ export const Buttons = () => {
 						}}
 					>
 						Console Error
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={() => {
+							toast('Event has been created')
+						}}
+					>
+						Toast
 					</button>
 					<button
 						className={commonStyles.submitButton}
