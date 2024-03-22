@@ -1618,6 +1618,15 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	}
 	createSessionCommentSpan.Finish()
 
+	if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionComment.SessionId}}).
+		Updates(&model.Session{HasComments: true}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating session")
+	}
+
+	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionComment.SessionId), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionComment.SessionId}}); err != nil {
+		log.WithContext(ctx).Errorf("error submitting session to data sync queue: %v", err)
+	}
+
 	// Create associations between tags and comments.
 	if len(tags) > 0 {
 		// Create the tag if it's a new tag
@@ -1892,6 +1901,15 @@ func (r *mutationResolver) CreateSessionCommentWithExistingIssue(ctx context.Con
 		return nil, e.Wrap(err, "error creating session comment")
 	}
 	createSessionCommentSpan.Finish()
+
+	if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionComment.SessionId}}).
+		Updates(&model.Session{HasComments: true}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating session")
+	}
+
+	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionComment.SessionId), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionComment.SessionId}}); err != nil {
+		log.WithContext(ctx).Errorf("error submitting session to data sync queue: %v", err)
+	}
 
 	// Create associations between tags and comments.
 	if len(tags) > 0 {
@@ -2200,6 +2218,18 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	var commentCount int64
 	if err := r.DB.Table("session_comments").Where(&model.SessionComment{SessionSecureId: sessionComment.SessionSecureId}).Count(&commentCount).Error; err != nil {
 		return nil, e.Wrap(err, "error counting session comments")
+	}
+
+	if commentCount == 0 {
+		if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionComment.SessionId}}).
+			Select("HasComments").
+			Updates(&model.Session{HasComments: false}).Error; err != nil {
+			return nil, e.Wrap(err, "error updating session")
+		}
+
+		if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionComment.SessionId), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionComment.SessionId}}); err != nil {
+			log.WithContext(ctx).Errorf("error submitting session to data sync queue: %v", err)
+		}
 	}
 
 	return &model.T, nil

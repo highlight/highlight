@@ -167,6 +167,12 @@ export declare type HighlightOptions = {
 	 */
 	enablePerformanceRecording?: boolean
 	/**
+	 * Specifies whether window.Promise should be patched
+	 * to record the stack trace of promise rejections.
+	 * @default true
+	 */
+	enablePromisePatch?: boolean
+	/**
 	 * Configure the recording sampling options, eg. how frequently we record canvas updates.
 	 */
 	samplingStrategy?: SamplingStrategy

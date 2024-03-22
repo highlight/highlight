@@ -41,6 +41,7 @@ import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { QueryParam } from '@/components/Search/SearchForm/SearchForm'
 import {
+	BODY_KEY,
 	DEFAULT_OPERATOR,
 	quoteQueryValue,
 	stringifySearchQuery,
@@ -505,18 +506,25 @@ export const LogValue: React.FC<{
 											const index = queryParts.findIndex(
 												(term) => term.key === queryKey,
 											)
+											const queryValue =
+												quoteQueryValue(value)
 
 											if (index !== -1) {
 												queryParts[index].value = value
+												queryParts[index].text =
+													queryKey === BODY_KEY
+														? queryValue
+														: `${queryKey}${DEFAULT_OPERATOR}${queryValue}`
 											}
 
 											let newQuery =
 												stringifySearchQuery(queryParts)
 
 											if (index === -1) {
-												newQuery += ` ${queryKey}${DEFAULT_OPERATOR}${quoteQueryValue(
-													value,
-												)}`
+												newQuery +=
+													queryKey === BODY_KEY
+														? ` ${queryValue}`
+														: ` ${queryKey}${DEFAULT_OPERATOR}${queryValue}`
 
 												newQuery = newQuery.trim()
 											}

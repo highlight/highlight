@@ -7473,6 +7473,19 @@ body {
   height: 100%;
   overflow-y: hidden;
 }
+._1s4anja0 {
+  margin-left: -8px;
+  margin-right: -8px;
+}
+._1s4anja1 {
+  height: calc(100% - 50px);
+}
+._1s4anja2 {
+  overflow-y: scroll;
+}
+._1s4anja2::-webkit-scrollbar {
+  display: none;
+}
 .dg2vg60 {
   z-index: 2;
   backdrop-filter: grayscale(50%);

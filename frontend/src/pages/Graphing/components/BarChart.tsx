@@ -12,6 +12,7 @@ import {
 	CustomXAxisTick,
 	CustomYAxisTick,
 	getFormatter,
+	GROUP_KEY,
 	isActive,
 	SeriesInfo,
 	strokeColors,
@@ -22,6 +23,7 @@ export const BAR_DISPLAY: BarDisplay[] = ['Grouped', 'Stacked']
 
 export type BarChartConfig = {
 	type: 'Bar chart'
+	showLegend: true
 	display?: BarDisplay
 }
 
@@ -71,7 +73,7 @@ export const BarChart = ({
 					tickLine={{ visibility: 'hidden' }}
 					axisLine={{ visibility: 'hidden' }}
 					height={12}
-					type={xAxisMetric === 'name' ? 'category' : 'number'}
+					type={xAxisMetric === GROUP_KEY ? 'category' : 'number'}
 					domain={['auto', 'auto']}
 				/>
 
