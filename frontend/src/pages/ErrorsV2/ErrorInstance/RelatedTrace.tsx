@@ -1,56 +1,42 @@
 import { IconSolidSparkles, Tag } from '@highlight-run/ui/components'
-import moment from 'moment'
-import { createSearchParams } from 'react-router-dom'
+import React from 'react'
 
 import { useAuthContext } from '@/authentication/AuthContext'
-import { Link } from '@/components/Link'
-import { DEFAULT_OPERATOR } from '@/components/Search/SearchForm/utils'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { GetErrorInstanceQuery } from '@/graph/generated/operations'
-import { ReservedTraceKey } from '@/graph/generated/schemas'
 import analytics from '@/util/analytics'
-
-const getTraceLink = (data: GetErrorInstanceQuery | undefined): string => {
-	const errorObject = data?.error_instance?.error_object
-
-	if (!errorObject || !errorObject.trace_id) {
-		return ''
-	}
-
-	const params = createSearchParams({
-		query: `${ReservedTraceKey.TraceId}${DEFAULT_OPERATOR}${errorObject.trace_id}`,
-		start_date: moment(errorObject.timestamp)
-			.add(-5, 'minutes')
-			.toISOString(),
-		end_date: moment(errorObject.timestamp).add(5, 'minutes').toISOString(),
-	})
-
-	return `/${errorObject.project_id}/traces/${errorObject.trace_id}?${params}`
-}
 
 type Props = {
 	data: GetErrorInstanceQuery | undefined
 }
 
-export const RelatedTrace = ({ data }: Props) => {
+export const RelatedTrace: React.FC<Props> = ({ data }) => {
 	const { isLoggedIn } = useAuthContext()
-
-	const traceLink = getTraceLink(data)
+	const { set } = useRelatedResource()
+	const traceId = data?.error_instance?.error_object?.trace_id
 
 	return (
-		<Link
-			to={traceLink}
-			onClick={() => analytics.track('error_related-trace-link_click')}
+		<Tag
+			onClick={() => {
+				if (!traceId) {
+					return
+				}
+
+				set({
+					id: traceId,
+					type: 'trace',
+				})
+
+				analytics.track('error_related-trace-link_click')
+			}}
+			kind="secondary"
+			emphasis="high"
+			size="medium"
+			shape="basic"
+			disabled={!isLoggedIn || !traceId}
+			iconLeft={<IconSolidSparkles size={11} />}
 		>
-			<Tag
-				kind="secondary"
-				emphasis="high"
-				size="medium"
-				shape="basic"
-				disabled={!isLoggedIn || traceLink === ''}
-				iconLeft={<IconSolidSparkles size={11} />}
-			>
-				Related trace
-			</Tag>
-		</Link>
+			Related trace
+		</Tag>
 	)
 }

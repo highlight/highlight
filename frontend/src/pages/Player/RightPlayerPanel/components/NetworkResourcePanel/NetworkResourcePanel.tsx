@@ -113,8 +113,8 @@ export const NetworkResourcePanel = () => {
 				overflow: 'hidden',
 			})}
 			style={{
-				width: '45%',
-				minWidth: 400,
+				width: '50%',
+				minWidth: 500,
 				right: 8,
 				top: 8,
 				bottom: 8,

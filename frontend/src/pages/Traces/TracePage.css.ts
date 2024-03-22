@@ -2,8 +2,6 @@ import { sprinkles } from '@highlight-run/ui/sprinkles'
 import { themeVars } from '@highlight-run/ui/theme'
 import { style } from '@vanilla-extract/css'
 
-export const container = style({})
-
 export const hoveredSpan = style({})
 
 export const span = style({
@@ -43,11 +41,12 @@ export const tabs = style({
 
 export const tabsContainer = sprinkles({
 	borderBottom: 'secondary',
-	px: '20',
+	px: '0',
 })
 
 export const tabsPageContainer = sprinkles({
 	height: 'full',
 	overflowY: 'auto',
 	position: 'relative',
+	pt: '8',
 })
