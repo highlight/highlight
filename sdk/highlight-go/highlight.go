@@ -2,7 +2,6 @@ package highlight
 
 import (
 	"context"
-	"go.opentelemetry.io/otel/trace"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,6 +9,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/attribute"
@@ -154,7 +155,6 @@ func (d deadLog) Errorf(_ string, _ ...interface{}) {}
 func init() {
 	interruptChan = make(chan bool, 1)
 	signalChan = make(chan os.Signal, 1)
-	conf = &config{}
 
 	signal.Notify(signalChan, syscall.SIGABRT, syscall.SIGTERM, syscall.SIGINT)
 	SetOTLPEndpoint(OTLPDefaultEndpoint)
