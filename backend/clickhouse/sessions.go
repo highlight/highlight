@@ -62,42 +62,6 @@ var fieldMap map[string]string = map[string]string{
 	"trace_id":          "TraceID",
 }
 
-type ClickhouseSession struct {
-	ID                 int64
-	Fingerprint        int32
-	ProjectID          int32
-	PagesVisited       int32
-	ViewedByAdmins     clickhouse.ArraySet
-	FieldKeys          clickhouse.ArraySet
-	FieldKeyValues     clickhouse.ArraySet
-	CreatedAt          int64
-	UpdatedAt          int64
-	SecureID           string
-	Identified         bool
-	Identifier         string
-	IP                 string
-	City               string
-	Country            string
-	OSName             string
-	OSVersion          string
-	BrowserName        string
-	BrowserVersion     string
-	Processed          *bool
-	HasComments        bool
-	HasRageClicks      *bool
-	HasErrors          *bool
-	Length             int64
-	ActiveLength       int64
-	Environment        string
-	AppVersion         *string
-	FirstTime          *bool
-	Viewed             *bool
-	WithinBillingQuota *bool
-	EventCounts        *string
-	Excluded           bool
-	Normalness         *float64
-}
-
 type ClickhouseField struct {
 	ProjectID        int32
 	Type             string
@@ -154,7 +118,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			viewedByAdmins = append(viewedByAdmins, int32(admin.ID))
 		}
 
-		chs := ClickhouseSession{
+		chs := modelInputs.SessionClickhouse{
 			ID:                 int64(session.ID),
 			Fingerprint:        int32(session.Fingerprint),
 			ProjectID:          int32(session.ProjectID),
@@ -170,8 +134,8 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			IP:                 session.IP,
 			City:               session.City,
 			Country:            session.Country,
-			OSName:             session.OSName,
-			OSVersion:          session.OSVersion,
+			OsName:             session.OSName,
+			OsVersion:          session.OSVersion,
 			BrowserName:        session.BrowserName,
 			BrowserVersion:     session.BrowserVersion,
 			Processed:          session.Processed,
@@ -203,7 +167,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 	if len(chSessions) > 0 {
 		g.Go(func() error {
 			sessionsSql, sessionsArgs := sqlbuilder.
-				NewStruct(new(ClickhouseSession)).
+				NewStruct(new(modelInputs.SessionClickhouse)).
 				InsertInto(SessionsTable, chSessions...).
 				BuildWithFlavor(sqlbuilder.ClickHouse)
 			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, 33, map[int]bool{7: true, 8: true}, MicroSeconds)
@@ -295,12 +259,13 @@ func GetSessionsQueryImplDeprecated(admin *model.Admin, query modelInputs.Clickh
 	return sql, args, useRandomSample, nil
 }
 
+// func (client *Client) ReadSessions(ctx context.Context, projectID int, params modelInputs.QueryInput, pagination Pagination) (*modelInputs.LogConnection, error) {
+
+// }
+
 // TODO(spenny): update with correct param logic
 func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
-	rules, err := deserializeRules(params.Rules)
-	if err != nil {
-		return "", nil, false, err
-	}
+	rules := make([]Rule, 0)
 
 	sampleRule, sampleRuleIdx, sampleRuleFound := lo.FindIndexOf(rules, func(r Rule) bool {
 		return r.Field == sampleField
@@ -336,7 +301,7 @@ func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, pro
 			sb.GreaterThan("CreatedAt", retentionDate),
 		)
 
-	conditions, err := parseSessionRules(admin, params.IsAnd, rules, projectId, start, end, sb)
+	conditions, err := parseSessionRules(admin, true, rules, projectId, start, end, sb)
 	if err != nil {
 		return "", nil, false, err
 	}

@@ -2,6 +2,8 @@
 
 scalar Any
 scalar Timestamp
+scalar Int32
+scalar UInt32
 scalar Int64
 scalar UInt64
 scalar StringArray
@@ -83,6 +85,42 @@ type Session {
 	last_user_interaction_time: Timestamp!
 	chunked: Boolean
 	session_feedback: [SessionComment!]
+}
+
+type SessionClickhouse {
+	id: Int64!
+	created_at: Int64!
+	updated_at: Int64!
+	secure_id: String!
+	identified: Boolean!
+	fingerprint: Int32!
+	identifier: String!
+	project_id: Int32!
+	city: String!
+	country: String!
+	os_name: String!
+	os_version: String!
+	browser_name: String!
+	browser_version: String!
+	processed: Boolean
+	has_rage_clicks: Boolean
+	has_errors: Boolean
+	has_comments: Boolean!
+	length: Int64!
+	active_length: Int64!
+	field_keys: [String!]
+	field_values: [String!]
+	environment: String!
+	app_version: String
+	first_time: Boolean
+	viewed: Boolean
+	within_billing_quota: Boolean
+	event_counts: String
+	pages_visited: Int32!
+	excluded: Boolean!
+	viewed_by_admins: [Int32!]
+	normalness: Float
+	ip: String!
 }
 
 type SessionInterval {
@@ -699,6 +737,37 @@ type ErrorGroup {
 	error_tag: ErrorTag
 }
 
+type ErrorGroupClickhouse {
+	id: Int64!
+	project_id: Int32!
+	created_at: Int64!
+	updated_at: Int64!
+	event: String!
+	status: String!
+	type: String!
+	error_tag_id: Int64!
+	error_tag_title: String!
+	error_tag_description: String!
+	secure_id: String!
+}
+
+type ErrorObjectClickhouse {
+	id: Int64!
+	project_id: Int32!
+	timestamp: Int64!
+	error_group_id: Int64!
+	has_session: Boolean!
+	browser: String!
+	environment: String!
+	os_name: String!
+	service_name: String!
+	service_version: String!
+	client_id: String!
+	visited_url: String!
+	trace_id: String!
+	secure_session_id: String!
+}
+
 type ErrorMetadata {
 	error_id: Int!
 	session_id: Int!
@@ -789,6 +858,26 @@ type PageInfo {
 }
 
 interface Connection {
+	pageInfo: PageInfo!
+}
+
+type SessionEdge implements Edge {
+	cursor: String!
+	node: SessionClickhouse!
+}
+
+type SessionConnection implements Connection {
+	edges: [SessionEdge!]!
+	pageInfo: PageInfo!
+}
+
+type ErrorGroupEdge implements Edge {
+	cursor: String!
+	node: ErrorGroupClickhouse!
+}
+
+type ErrorGroupConnection implements Connection {
+	edges: [ErrorGroupEdge!]!
 	pageInfo: PageInfo!
 }
 

@@ -17,37 +17,6 @@ import (
 	"github.com/samber/lo"
 )
 
-type ClickhouseErrorGroup struct {
-	ProjectID           int32
-	CreatedAt           int64
-	UpdatedAt           int64
-	ID                  int64
-	SecureID            string
-	Event               string
-	Status              string
-	Type                string
-	ErrorTagID          int64
-	ErrorTagTitle       string
-	ErrorTagDescription string
-}
-
-type ClickhouseErrorObject struct {
-	ProjectID       int32
-	Timestamp       int64
-	ErrorGroupID    int64
-	HasSession      bool
-	ID              int64
-	Browser         string
-	Environment     string
-	OSName          string
-	ServiceName     string
-	ServiceVersion  string
-	ClientID        string
-	VisitedURL      string
-	TraceID         string
-	SecureSessionID string
-}
-
 const ErrorGroupsTable = "error_groups"
 const ErrorObjectsTable = "error_objects"
 const errorsTimeRangeField = "error-field_timestamp"
@@ -60,7 +29,7 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 			return errors.New("nil group")
 		}
 
-		chEg := ClickhouseErrorGroup{
+		chEg := modelInputs.ErrorGroupClickhouse{
 			ProjectID: int32(group.ProjectID),
 			CreatedAt: group.CreatedAt.UTC().UnixMicro(),
 			UpdatedAt: group.UpdatedAt.UTC().UnixMicro(),
@@ -86,7 +55,7 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 
 	if len(chGroups) > 0 {
 		sql, args := sqlbuilder.
-			NewStruct(new(ClickhouseErrorGroup)).
+			NewStruct(new(modelInputs.ErrorGroupClickhouse)).
 			InsertInto(ErrorGroupsTable, chGroups...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
 		sql, args = replaceTimestampInserts(sql, args, 10, map[int]bool{1: true, 2: true}, MicroSeconds)
@@ -125,7 +94,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 			traceId = *object.TraceID
 		}
 
-		chEg := ClickhouseErrorObject{
+		chEg := modelInputs.ErrorObjectClickhouse{
 			ProjectID:       int32(object.ProjectID),
 			Timestamp:       object.Timestamp.UTC().UnixMicro(),
 			ErrorGroupID:    int64(object.ErrorGroupID),
@@ -133,7 +102,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 			ID:              int64(object.ID),
 			Browser:         object.Browser,
 			Environment:     object.Environment,
-			OSName:          object.OS,
+			OsName:          object.OS,
 			ServiceName:     object.ServiceName,
 			ServiceVersion:  object.ServiceVersion,
 			ClientID:        clientId,
@@ -152,7 +121,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 
 	if len(chObjects) > 0 {
 		sql, args := sqlbuilder.
-			NewStruct(new(ClickhouseErrorObject)).
+			NewStruct(new(modelInputs.ErrorObjectClickhouse)).
 			InsertInto(ErrorObjectsTable, chObjects...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
 		sql, args = replaceTimestampInserts(sql, args, 14, map[int]bool{1: true}, MicroSeconds)
@@ -200,12 +169,15 @@ func getErrorQueryImplDeprecated(tableName string, selectColumns string, query m
 	return sql, args, nil
 }
 
+// func (client *Client) ReadErrorGroups(ctx context.Context, projectID int, params modelInputs.QueryInput, pagination Pagination) (*modelInputs.ErrorGroupConnection, error) {
+// 	scanErrorGroup := func(rows driver.Rows) (*Edge[modelInputs.Log], error) {
+
+// 	}
+// }
+
 // TODO(spenny): update with correct param logic
 func getErrorQueryImpl(tableName string, selectColumns string, params modelInputs.QueryInput, projectId int, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
-	rules, err := deserializeRules(params.Rules)
-	if err != nil {
-		return "", nil, err
-	}
+	rules := make([]Rule, 0)
 
 	end := params.DateRange.EndDate.UTC()
 	start := params.DateRange.StartDate.UTC()
@@ -216,7 +188,7 @@ func getErrorQueryImpl(tableName string, selectColumns string, params modelInput
 	}
 	rules = append(rules, timeRangeRule)
 
-	sb, err := parseErrorRules(tableName, selectColumns, params.IsAnd, rules, projectId, start, end)
+	sb, err := parseErrorRules(tableName, selectColumns, true, rules, projectId, start, end)
 	if err != nil {
 		return "", nil, err
 	}

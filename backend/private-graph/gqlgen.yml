@@ -53,6 +53,12 @@ models:
             - github.com/99designs/gqlgen/graphql.Int
             - github.com/99designs/gqlgen/graphql.Int64
             - github.com/99designs/gqlgen/graphql.Int32
+    Int32:
+        model:
+            - github.com/99designs/gqlgen/graphql.Int32
+    UInt32:
+        model:
+            - github.com/99designs/gqlgen/graphql.Uint32
     Int64:
         model:
             - github.com/99designs/gqlgen/graphql.Int64

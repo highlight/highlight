@@ -296,6 +296,36 @@ type ErrorDistributionItem struct {
 	Value        int64     `json:"value"`
 }
 
+type ErrorGroupClickhouse struct {
+	ID                  int64  `json:"id"`
+	ProjectID           int32  `json:"project_id"`
+	CreatedAt           int64  `json:"created_at"`
+	UpdatedAt           int64  `json:"updated_at"`
+	Event               string `json:"event"`
+	Status              string `json:"status"`
+	Type                string `json:"type"`
+	ErrorTagID          int64  `json:"error_tag_id"`
+	ErrorTagTitle       string `json:"error_tag_title"`
+	ErrorTagDescription string `json:"error_tag_description"`
+	SecureID            string `json:"secure_id"`
+}
+
+type ErrorGroupConnection struct {
+	Edges    []*ErrorGroupEdge `json:"edges"`
+	PageInfo *PageInfo         `json:"pageInfo"`
+}
+
+func (ErrorGroupConnection) IsConnection()               {}
+func (this ErrorGroupConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
+type ErrorGroupEdge struct {
+	Cursor string                `json:"cursor"`
+	Node   *ErrorGroupClickhouse `json:"node"`
+}
+
+func (ErrorGroupEdge) IsEdge()                {}
+func (this ErrorGroupEdge) GetCursor() string { return this.Cursor }
+
 type ErrorGroupFrequenciesParamsInput struct {
 	DateRange         *DateRangeRequiredInput `json:"date_range"`
 	ResolutionMinutes int                     `json:"resolution_minutes"`
@@ -326,6 +356,23 @@ type ErrorMetadata struct {
 	UserProperties  *string    `json:"user_properties,omitempty"`
 	RequestID       *string    `json:"request_id,omitempty"`
 	Payload         *string    `json:"payload,omitempty"`
+}
+
+type ErrorObjectClickhouse struct {
+	ID              int64  `json:"id"`
+	ProjectID       int32  `json:"project_id"`
+	Timestamp       int64  `json:"timestamp"`
+	ErrorGroupID    int64  `json:"error_group_id"`
+	HasSession      bool   `json:"has_session"`
+	Browser         string `json:"browser"`
+	Environment     string `json:"environment"`
+	OsName          string `json:"os_name"`
+	ServiceName     string `json:"service_name"`
+	ServiceVersion  string `json:"service_version"`
+	ClientID        string `json:"client_id"`
+	VisitedURL      string `json:"visited_url"`
+	TraceID         string `json:"trace_id"`
+	SecureSessionID string `json:"secure_session_id"`
 }
 
 type ErrorObjectConnection struct {
@@ -767,10 +814,62 @@ type SessionAlertInput struct {
 	TrackProperties        []*TrackPropertyInput         `json:"track_properties"`
 }
 
+type SessionClickhouse struct {
+	ID                 int64    `json:"id"`
+	CreatedAt          int64    `json:"created_at"`
+	UpdatedAt          int64    `json:"updated_at"`
+	SecureID           string   `json:"secure_id"`
+	Identified         bool     `json:"identified"`
+	Fingerprint        int32    `json:"fingerprint"`
+	Identifier         string   `json:"identifier"`
+	ProjectID          int32    `json:"project_id"`
+	City               string   `json:"city"`
+	Country            string   `json:"country"`
+	OsName             string   `json:"os_name"`
+	OsVersion          string   `json:"os_version"`
+	BrowserName        string   `json:"browser_name"`
+	BrowserVersion     string   `json:"browser_version"`
+	Processed          *bool    `json:"processed,omitempty"`
+	HasRageClicks      *bool    `json:"has_rage_clicks,omitempty"`
+	HasErrors          *bool    `json:"has_errors,omitempty"`
+	HasComments        bool     `json:"has_comments"`
+	Length             int64    `json:"length"`
+	ActiveLength       int64    `json:"active_length"`
+	FieldKeys          []string `json:"field_keys,omitempty"`
+	FieldValues        []string `json:"field_values,omitempty"`
+	Environment        string   `json:"environment"`
+	AppVersion         *string  `json:"app_version,omitempty"`
+	FirstTime          *bool    `json:"first_time,omitempty"`
+	Viewed             *bool    `json:"viewed,omitempty"`
+	WithinBillingQuota *bool    `json:"within_billing_quota,omitempty"`
+	EventCounts        *string  `json:"event_counts,omitempty"`
+	PagesVisited       int32    `json:"pages_visited"`
+	Excluded           bool     `json:"excluded"`
+	ViewedByAdmins     []int32  `json:"viewed_by_admins,omitempty"`
+	Normalness         *float64 `json:"normalness,omitempty"`
+	IP                 string   `json:"ip"`
+}
+
 type SessionCommentTagInput struct {
 	ID   *int   `json:"id,omitempty"`
 	Name string `json:"name"`
 }
+
+type SessionConnection struct {
+	Edges    []*SessionEdge `json:"edges"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+}
+
+func (SessionConnection) IsConnection()               {}
+func (this SessionConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
+type SessionEdge struct {
+	Cursor string             `json:"cursor"`
+	Node   *SessionClickhouse `json:"node"`
+}
+
+func (SessionEdge) IsEdge()                {}
+func (this SessionEdge) GetCursor() string { return this.Cursor }
 
 type SessionExportWithSession struct {
 	CreatedAt    time.Time `json:"created_at"`

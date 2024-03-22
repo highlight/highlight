@@ -17,10 +17,12 @@ export type Scalars = {
 	Int: number
 	Float: number
 	Any: any
+	Int32: any
 	Int64: number
 	Map: any
 	StringArray: string[]
 	Timestamp: string
+	UInt32: any
 	UInt64: any
 	Upload: any
 }
@@ -496,6 +498,33 @@ export type ErrorGroup = {
 	viewed?: Maybe<Scalars['Boolean']>
 }
 
+export type ErrorGroupClickhouse = {
+	__typename?: 'ErrorGroupClickhouse'
+	created_at: Scalars['Int64']
+	error_tag_description: Scalars['String']
+	error_tag_id: Scalars['Int64']
+	error_tag_title: Scalars['String']
+	event: Scalars['String']
+	id: Scalars['Int64']
+	project_id: Scalars['Int32']
+	secure_id: Scalars['String']
+	status: Scalars['String']
+	type: Scalars['String']
+	updated_at: Scalars['Int64']
+}
+
+export type ErrorGroupConnection = Connection & {
+	__typename?: 'ErrorGroupConnection'
+	edges: Array<ErrorGroupEdge>
+	pageInfo: PageInfo
+}
+
+export type ErrorGroupEdge = Edge & {
+	__typename?: 'ErrorGroupEdge'
+	cursor: Scalars['String']
+	node: ErrorGroupClickhouse
+}
+
 export type ErrorGroupFrequenciesParamsInput = {
 	date_range: DateRangeRequiredInput
 	resolution_minutes: Scalars['Int']
@@ -566,6 +595,24 @@ export type ErrorObject = {
 	trace_id?: Maybe<Scalars['String']>
 	type: Scalars['String']
 	url: Scalars['String']
+}
+
+export type ErrorObjectClickhouse = {
+	__typename?: 'ErrorObjectClickhouse'
+	browser: Scalars['String']
+	client_id: Scalars['String']
+	environment: Scalars['String']
+	error_group_id: Scalars['Int64']
+	has_session: Scalars['Boolean']
+	id: Scalars['Int64']
+	os_name: Scalars['String']
+	project_id: Scalars['Int32']
+	secure_session_id: Scalars['String']
+	service_name: Scalars['String']
+	service_version: Scalars['String']
+	timestamp: Scalars['Int64']
+	trace_id: Scalars['String']
+	visited_url: Scalars['String']
 }
 
 export type ErrorObjectConnection = Connection & {
@@ -2983,6 +3030,7 @@ export enum ReservedSessionKey {
 	Environment = 'environment',
 	Fingerprint = 'fingerprint',
 	FirstTime = 'first_time',
+	HasComments = 'has_comments',
 	HasErrors = 'has_errors',
 	HasRageClicks = 'has_rage_clicks',
 	Identified = 'identified',
@@ -3263,6 +3311,43 @@ export enum SessionAlertType {
 	UserPropertiesAlert = 'USER_PROPERTIES_ALERT',
 }
 
+export type SessionClickhouse = {
+	__typename?: 'SessionClickhouse'
+	active_length: Scalars['Int64']
+	app_version?: Maybe<Scalars['String']>
+	browser_name: Scalars['String']
+	browser_version: Scalars['String']
+	city: Scalars['String']
+	country: Scalars['String']
+	created_at: Scalars['Int64']
+	environment: Scalars['String']
+	event_counts?: Maybe<Scalars['String']>
+	excluded: Scalars['Boolean']
+	field_keys?: Maybe<Array<Scalars['String']>>
+	field_values?: Maybe<Array<Scalars['String']>>
+	fingerprint: Scalars['Int32']
+	first_time?: Maybe<Scalars['Boolean']>
+	has_comments: Scalars['Boolean']
+	has_errors?: Maybe<Scalars['Boolean']>
+	has_rage_clicks?: Maybe<Scalars['Boolean']>
+	id: Scalars['Int64']
+	identified: Scalars['Boolean']
+	identifier: Scalars['String']
+	ip: Scalars['String']
+	length: Scalars['Int64']
+	normalness?: Maybe<Scalars['Float']>
+	os_name: Scalars['String']
+	os_version: Scalars['String']
+	pages_visited: Scalars['Int32']
+	processed?: Maybe<Scalars['Boolean']>
+	project_id: Scalars['Int32']
+	secure_id: Scalars['String']
+	updated_at: Scalars['Int64']
+	viewed?: Maybe<Scalars['Boolean']>
+	viewed_by_admins?: Maybe<Array<Scalars['Int32']>>
+	within_billing_quota?: Maybe<Scalars['Boolean']>
+}
+
 export type SessionComment = {
 	__typename?: 'SessionComment'
 	attachments: Array<Maybe<ExternalAttachment>>
@@ -3297,6 +3382,18 @@ export type SessionCommentTagInput = {
 export enum SessionCommentType {
 	Admin = 'Admin',
 	Feedback = 'FEEDBACK',
+}
+
+export type SessionConnection = Connection & {
+	__typename?: 'SessionConnection'
+	edges: Array<SessionEdge>
+	pageInfo: PageInfo
+}
+
+export type SessionEdge = Edge & {
+	__typename?: 'SessionEdge'
+	cursor: Scalars['String']
+	node: SessionClickhouse
 }
 
 export enum SessionExcludedReason {
