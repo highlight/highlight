@@ -2938,6 +2938,7 @@ export enum ReservedSessionKey {
 	Environment = 'environment',
 	Fingerprint = 'fingerprint',
 	FirstTime = 'first_time',
+	HasComments = 'has_comments',
 	HasErrors = 'has_errors',
 	HasRageClicks = 'has_rage_clicks',
 	Identified = 'identified',
