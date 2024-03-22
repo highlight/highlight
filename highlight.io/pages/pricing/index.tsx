@@ -4,7 +4,11 @@ import Link from 'next/link'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import Footer from '../../components/common/Footer/Footer'
 import Navbar from '../../components/common/Navbar/Navbar'
+import { Section } from '../../components/common/Section/Section'
 import { Typography } from '../../components/common/Typography/Typography'
+import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel'
+import { CustomerReviewTrack } from '../../components/Home/CustomerReviewTrack'
+import styles from '../../components/Home/Home.module.scss'
 
 import { Listbox, Transition } from '@headlessui/react'
 import { ChevronUpDownIcon } from '@heroicons/react/20/solid'
@@ -61,6 +65,23 @@ const PricingPage: NextPage = () => {
 					setEstimatorCategory={setEstimatorCategory}
 				/>
 			</div>
+
+			<Section>
+				<CompaniesReel />
+			</Section>
+			<Section>
+				<div className={styles.anchorFeature}>
+					<div className={styles.anchorHead}>
+						<Typography type="copy2" onDark>
+							Don&apos;t take our word.{' '}
+							<Link href="/customers">
+								Read our customer review section →
+							</Link>
+						</Typography>
+					</div>
+				</div>
+			</Section>
+			<CustomerReviewTrack />
 			<FooterCallToAction />
 			<Footer />
 		</div>
@@ -415,13 +436,6 @@ const PriceCalculator = ({
 		'30 days',
 	)
 
-	const getCosts = () => {
-		return {
-			'Plan base fee': base,
-			'Session usage': sessionsCost,
-		}
-	}
-
 	return (
 		<div className="flex justify-center w-full">
 			{/* Price calculator */}
@@ -548,26 +562,18 @@ const PriceCalculator = ({
 				<div className="flex flex-col p-4 gap-4 overflow-hidden border rounded-r-lg md:rounded-br-none border-divider-on-dark">
 					<CalculatorRowDesktop
 						title="Session Replay"
-						description="Session replay usage is defined by the number of sessions collected per month. A session is defined by an instance of a user’s tab on your application. "
 						product={'Sessions'}
-						prices={pricingTier.prices}
 						value={sessionUsage}
 						cost={sessionsCost}
-						rate={sessionsRate}
-						includedRange={defaultSessions}
 						retention={sessionRetention}
 						onChange={setSessionUsage}
 						onChangeRetention={setSessionRetention}
 					/>
 					<CalculatorRowDesktop
 						title="Error Monitoring"
-						description="Error monitoring usage is defined by the number of errors collected by Highlight per month. Our frontend/server SDKs send errors, but you can also send custom errors."
 						product={'Errors'}
-						prices={pricingTier.prices}
 						value={errorUsage}
 						cost={errorsCost}
-						rate={errorsRate}
-						includedRange={defaultErrors}
 						rangeMultiplier={100}
 						retention={errorRetention}
 						onChange={setErrorUsage}
@@ -575,26 +581,18 @@ const PriceCalculator = ({
 					/>
 					<CalculatorRowDesktop
 						title="Logging"
-						description="Log usage is defined by the number of logs collected by highlight.io per month. A log is defined by a text field with attributes."
 						product={'Logs'}
-						prices={pricingTier.prices}
 						value={loggingUsage}
 						cost={loggingCost}
-						rate={loggingRate}
-						includedRange={defaultLogs}
 						rangeMultiplier={10000}
 						retention="30 days"
 						onChange={setLoggingUsage}
 					/>
 					<CalculatorRowDesktop
 						title="Traces"
-						description="Tracing usage is defined by the number of spans collected per month. Traces consist of multiple spans, each instrumenting a single section of code with customizable attributes."
 						product={'Traces'}
-						prices={pricingTier.prices}
 						value={tracesUsage}
 						cost={tracesCost}
-						rate={tracesRate}
-						includedRange={defaultTraces}
 						rangeMultiplier={10000}
 						retention="30 days"
 						onChange={setTracesUsage}
@@ -890,27 +888,6 @@ const ListboxOptions = <T extends string>({
 				</Transition>
 			</div>
 		</Listbox>
-	)
-}
-
-const OverageLink = ({
-	children,
-	className,
-}: React.PropsWithChildren<{ className?: string }>) => {
-	return (
-		<a
-			href="#overage"
-			onClick={(e) => {
-				e.preventDefault()
-				document.querySelector('#overage')?.scrollIntoView({
-					behavior: 'smooth',
-				})
-				window.history.pushState({}, '', `#overage`)
-			}}
-			className={className}
-		>
-			{children}
-		</a>
 	)
 }
 
