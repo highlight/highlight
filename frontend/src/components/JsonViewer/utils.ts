@@ -8,11 +8,11 @@ const bodyKey = ReservedLogKey['Message']
 
 export const findMatchingAttributes = (
 	queryParts: Array<SearchExpression | AndOrExpression>,
-	logAttributes: object | string,
+	attributes: object | string,
 	matchingAttributes: any = {},
 	attributeKeyBase: string[] = [],
 ): { [key: string]: { match: string; value: string } } => {
-	if (!queryParts?.length || !logAttributes) {
+	if (!queryParts?.length || !attributes) {
 		return {}
 	}
 
@@ -23,7 +23,7 @@ export const findMatchingAttributes = (
 		)
 		.map((term) => term.value.replace(/^"|"$/g, ''))
 
-	Object.entries(logAttributes).forEach(([key, value]) => {
+	Object.entries(attributes).forEach(([key, value]) => {
 		const isString = typeof value === 'string'
 
 		if (!isString) {
