@@ -3,6 +3,7 @@ package listener
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
@@ -254,8 +255,7 @@ func (s *searchListener[T]) ExitExists_op(ctx *parser.Exists_opContext) {
 }
 
 func (s *searchListener[T]) EnterSearch_value(ctx *parser.Search_valueContext) {
-	value := strings.Trim(ctx.GetText(), "\"")
-	s.appendRules(value)
+	s.appendRules(ctx.GetText())
 }
 func (s *searchListener[T]) ExitSearch_value(ctx *parser.Search_valueContext) {}
 
@@ -265,6 +265,10 @@ func (s *searchListener[T]) EnterEveryRule(ctx antlr.ParserRuleContext) {}
 func (s *searchListener[T]) ExitEveryRule(ctx antlr.ParserRuleContext)  {}
 
 func (s *searchListener[T]) appendRules(value string) {
+	// Quotes are sometimes escaped on the client and need to be unescaped before
+	// being used in the query or they will be double escaped.
+	value = unquote(value)
+
 	// Body column filters
 	if s.currentKey == s.tableConfig.BodyColumn {
 		containsSpecialChars, _ := regexp.MatchString(`[^a-zA-Z0-9]`, value)
@@ -299,10 +303,6 @@ func (s *searchListener[T]) appendRules(value string) {
 	if value == "" && !traceAttributeKey {
 		filterKey = fmt.Sprintf("toString(%s)", filterKey)
 	}
-
-	// Quotes are sometimes escaped on the client and need to be unescaped before
-	// being used in the query or they will be double escaped.
-	value = strings.ReplaceAll(value, `\"`, `"`)
 
 	if s.currentOp == ":" || s.currentOp == "=" || s.currentOp == "!=" {
 		if strings.HasPrefix(value, "/") && strings.HasSuffix(value, "/") {
@@ -444,4 +444,20 @@ func wildcardValue(value string) string {
 	}
 
 	return value
+}
+
+func unquote(s string) string {
+	if strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") {
+		s = strings.Trim(s, "'")
+		s = strings.ReplaceAll(s, "\\'", "'")
+		return s
+	}
+
+	unquotedString, err := strconv.Unquote(s)
+	if err != nil {
+		// Will error if string is not quoted, so return original string
+		return s
+	}
+
+	return unquotedString
 }
