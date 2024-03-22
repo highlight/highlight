@@ -192,7 +192,8 @@ jobs:
               run: |
                   curl -o ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz
                   mkdir ~/bin
-                  tar -C ~/bin -xf ffmpeg.tar.xz
+                  tar -C ~/bin --strip-components=1 -xf ffmpeg.tar.xz
+                  ls ~/bin
 
             - name: Login to Docker Hub
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
