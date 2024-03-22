@@ -62,6 +62,42 @@ var fieldMap map[string]string = map[string]string{
 	"trace_id":          "TraceID",
 }
 
+type ClickhouseSessionRow struct {
+	ID                 int64
+	Fingerprint        int32
+	ProjectID          int32
+	PagesVisited       int32
+	ViewedByAdmins     clickhouse.ArraySet
+	FieldKeys          clickhouse.ArraySet
+	FieldKeyValues     clickhouse.ArraySet
+	CreatedAt          int64
+	UpdatedAt          int64
+	SecureID           string
+	Identified         bool
+	Identifier         string
+	IP                 string
+	City               string
+	Country            string
+	OSName             string
+	OSVersion          string
+	BrowserName        string
+	BrowserVersion     string
+	Processed          *bool
+	HasComments        bool
+	HasRageClicks      *bool
+	HasErrors          *bool
+	Length             int64
+	ActiveLength       int64
+	Environment        string
+	AppVersion         *string
+	FirstTime          *bool
+	Viewed             *bool
+	WithinBillingQuota *bool
+	EventCounts        *string
+	Excluded           bool
+	Normalness         *float64
+}
+
 type ClickhouseField struct {
 	ProjectID        int32
 	Type             string
@@ -118,7 +154,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			viewedByAdmins = append(viewedByAdmins, int32(admin.ID))
 		}
 
-		chs := modelInputs.SessionClickhouse{
+		chs := ClickhouseSessionRow{
 			ID:                 int64(session.ID),
 			Fingerprint:        int32(session.Fingerprint),
 			ProjectID:          int32(session.ProjectID),
@@ -134,8 +170,8 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			IP:                 session.IP,
 			City:               session.City,
 			Country:            session.Country,
-			OsName:             session.OSName,
-			OsVersion:          session.OSVersion,
+			OSName:             session.OSName,
+			OSVersion:          session.OSVersion,
 			BrowserName:        session.BrowserName,
 			BrowserVersion:     session.BrowserVersion,
 			Processed:          session.Processed,
@@ -167,7 +203,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 	if len(chSessions) > 0 {
 		g.Go(func() error {
 			sessionsSql, sessionsArgs := sqlbuilder.
-				NewStruct(new(modelInputs.SessionClickhouse)).
+				NewStruct(new(ClickhouseSessionRow)).
 				InsertInto(SessionsTable, chSessions...).
 				BuildWithFlavor(sqlbuilder.ClickHouse)
 			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, 33, map[int]bool{7: true, 8: true}, MicroSeconds)

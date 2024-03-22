@@ -17,6 +17,37 @@ import (
 	"github.com/samber/lo"
 )
 
+type ClickhouseErrorGroupRow struct {
+	ProjectID           int32
+	CreatedAt           int64
+	UpdatedAt           int64
+	ID                  int64
+	SecureID            string
+	Event               string
+	Status              string
+	Type                string
+	ErrorTagID          int64
+	ErrorTagTitle       string
+	ErrorTagDescription string
+}
+
+type ClickhouseErrorObjectRow struct {
+	ProjectID       int32
+	Timestamp       int64
+	ErrorGroupID    int64
+	HasSession      bool
+	ID              int64
+	Browser         string
+	Environment     string
+	OSName          string
+	ServiceName     string
+	ServiceVersion  string
+	ClientID        string
+	VisitedURL      string
+	TraceID         string
+	SecureSessionID string
+}
+
 const ErrorGroupsTable = "error_groups"
 const ErrorObjectsTable = "error_objects"
 const errorsTimeRangeField = "error-field_timestamp"
@@ -29,7 +60,7 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 			return errors.New("nil group")
 		}
 
-		chEg := modelInputs.ErrorGroupClickhouse{
+		chEg := ClickhouseErrorGroupRow{
 			ProjectID: int32(group.ProjectID),
 			CreatedAt: group.CreatedAt.UTC().UnixMicro(),
 			UpdatedAt: group.UpdatedAt.UTC().UnixMicro(),
@@ -55,7 +86,7 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 
 	if len(chGroups) > 0 {
 		sql, args := sqlbuilder.
-			NewStruct(new(modelInputs.ErrorGroupClickhouse)).
+			NewStruct(new(ClickhouseErrorGroupRow)).
 			InsertInto(ErrorGroupsTable, chGroups...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
 		sql, args = replaceTimestampInserts(sql, args, 10, map[int]bool{1: true, 2: true}, MicroSeconds)
@@ -94,7 +125,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 			traceId = *object.TraceID
 		}
 
-		chEg := modelInputs.ErrorObjectClickhouse{
+		chEg := ClickhouseErrorObjectRow{
 			ProjectID:       int32(object.ProjectID),
 			Timestamp:       object.Timestamp.UTC().UnixMicro(),
 			ErrorGroupID:    int64(object.ErrorGroupID),
@@ -102,7 +133,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 			ID:              int64(object.ID),
 			Browser:         object.Browser,
 			Environment:     object.Environment,
-			OsName:          object.OS,
+			OSName:          object.OS,
 			ServiceName:     object.ServiceName,
 			ServiceVersion:  object.ServiceVersion,
 			ClientID:        clientId,
@@ -121,7 +152,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 
 	if len(chObjects) > 0 {
 		sql, args := sqlbuilder.
-			NewStruct(new(modelInputs.ErrorObjectClickhouse)).
+			NewStruct(new(ClickhouseErrorObjectRow)).
 			InsertInto(ErrorObjectsTable, chObjects...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
 		sql, args = replaceTimestampInserts(sql, args, 14, map[int]bool{1: true}, MicroSeconds)
