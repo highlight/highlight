@@ -25,6 +25,7 @@ import {
 export class FirstLoadListeners {
 	disableConsoleRecording: boolean
 	reportConsoleErrors: boolean
+	enablePromisePatch: boolean
 	consoleMethodsToRecord: ConsoleMethods[]
 	listeners: (() => void)[]
 	errors: ErrorMessage[]
@@ -54,6 +55,7 @@ export class FirstLoadListeners {
 		this.options = options
 		this.disableConsoleRecording = !!options.disableConsoleRecording
 		this.reportConsoleErrors = options.reportConsoleErrors ?? false
+		this.enablePromisePatch = options.enablePromisePatch ?? true
 		this.consoleMethodsToRecord = options.consoleMethodsToRecord || [
 			...ALL_CONSOLE_METHODS,
 		]
@@ -120,17 +122,20 @@ export class FirstLoadListeners {
 			)
 		}
 		this.listeners.push(
-			ErrorListener((e: ErrorMessage) => {
-				if (
-					ERRORS_TO_IGNORE.includes(e.event) ||
-					ERROR_PATTERNS_TO_IGNORE.some((pattern) =>
-						e.event.includes(pattern),
-					)
-				) {
-					return
-				}
-				highlightThis.errors.push(e)
-			}),
+			ErrorListener(
+				(e: ErrorMessage) => {
+					if (
+						ERRORS_TO_IGNORE.includes(e.event) ||
+						ERROR_PATTERNS_TO_IGNORE.some((pattern) =>
+							e.event.includes(pattern),
+						)
+					) {
+						return
+					}
+					highlightThis.errors.push(e)
+				},
+				{ enablePromisePatch: this.enablePromisePatch },
+			),
 		)
 		FirstLoadListeners.setupNetworkListener(this, this.options)
 	}

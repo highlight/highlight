@@ -8,6 +8,7 @@ import {
 	LineChart,
 	LineChartConfig,
 } from '@/pages/Graphing/components/LineChart'
+import { MetricTable, TableConfig } from '@/pages/Graphing/components/Table'
 import { HistogramLoading } from '@/pages/Traces/TracesPage'
 
 import * as style from './Graph.css'
@@ -21,19 +22,17 @@ export const VIEWS: View[] = [
 	'List',
 ]
 
-export const NAME_KEY = 'name'
+export const GROUP_KEY = 'Group'
 const MAX_LABEL_CHARS = 100
 
 export type PieChartConfig = {
 	type: 'Pie chart'
-}
-
-export type TableConfig = {
-	type: 'Table'
+	showLegend: true
 }
 
 export type ListConfig = {
 	type: 'List'
+	showLegend: false
 }
 
 export type ViewConfig =
@@ -47,6 +46,7 @@ export interface ChartProps<TConfig> {
 	data: any[] | undefined
 	xAxisMetric: string
 	yAxisMetric: string
+	yAxisFunction: string
 	title?: string
 	loading?: boolean
 	viewConfig: TConfig
@@ -54,7 +54,7 @@ export interface ChartProps<TConfig> {
 
 export interface SeriesInfo {
 	series: string[]
-	spotlight: number | undefined
+	spotlight?: number | undefined
 }
 
 export const strokeColors = ['#0090FF', '#D6409F']
@@ -70,6 +70,9 @@ const durationUnitMap: [number, string][] = [
 ]
 
 const formatNumber = (n: number) => {
+	if (n < 10000) {
+		return parseFloat(n.toPrecision(4)).toString()
+	}
 	const k = 1000
 	const sizes = ['', 'K', 'M', 'B', 'T']
 	const i = Math.max(
@@ -77,7 +80,7 @@ const formatNumber = (n: number) => {
 		0,
 	)
 	const res = n / Math.pow(k, i)
-	return parseFloat(res.toPrecision(2)) + sizes[i]
+	return parseFloat(res.toPrecision(3)) + sizes[i]
 }
 
 export const getFormatter = (metric: string, bucketCount?: number) => {
@@ -95,7 +98,7 @@ export const getFormatter = (metric: string, bucketCount?: number) => {
 			}
 			return `${value.toFixed(0)}${lastUnit}`
 		}
-	} else if (metric === NAME_KEY) {
+	} else if (metric === GROUP_KEY) {
 		const maxChars = Math.max(MAX_LABEL_CHARS / (bucketCount || 1), 10)
 		return (value: any) => {
 			let result = value.toString() as string
@@ -166,6 +169,7 @@ const Graph = ({
 	data,
 	xAxisMetric,
 	yAxisMetric,
+	yAxisFunction,
 	title,
 	loading,
 	viewConfig,
@@ -193,6 +197,7 @@ const Graph = ({
 					data={data}
 					xAxisMetric={xAxisMetric}
 					yAxisMetric={yAxisMetric}
+					yAxisFunction={yAxisFunction}
 					viewConfig={viewConfig}
 					series={series}
 					spotlight={spotlight}
@@ -205,16 +210,28 @@ const Graph = ({
 					data={data}
 					xAxisMetric={xAxisMetric}
 					yAxisMetric={yAxisMetric}
+					yAxisFunction={yAxisFunction}
 					viewConfig={viewConfig}
 					series={series}
 					spotlight={spotlight}
 				/>
 			)
 			break
+		case 'Table':
+			innerChart = (
+				<MetricTable
+					data={data}
+					xAxisMetric={xAxisMetric}
+					yAxisMetric={yAxisMetric}
+					yAxisFunction={yAxisFunction}
+					viewConfig={viewConfig}
+					series={series}
+				/>
+			)
+			break
 	}
 
-	const showLegend = series.join('') !== ''
-
+	const showLegend = viewConfig.showLegend && series.join('') !== ''
 	return (
 		<Box cssClass={style.graphWrapper} shadow="small">
 			<Box
@@ -250,7 +267,7 @@ const Graph = ({
 						<Box>
 							<Text
 								size="small"
-								weight="medium"
+								color="default"
 								cssClass={style.titleText}
 							>
 								{title || 'Untitled metric view'}
