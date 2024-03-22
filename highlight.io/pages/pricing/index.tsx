@@ -37,8 +37,18 @@ const PricingPage: NextPage = () => {
 		<div>
 			<Navbar />
 			<div className="w-full px-10 mx-auto my-24">
-				<div className="flex justify-center">
-					<h1 className="max-w-3xl my-0">Pricing plans</h1>
+				<div className="flex flex-col items-center text-center">
+					<h1 className="max-w-3xl">
+						Get the{' '}
+						<span className="text-highlight-yellow">
+							visibility
+						</span>{' '}
+						you need today.
+					</h1>
+					<Typography type="copy1" className="my-5 text-copy-on-dark">
+						Fair and transparent pricing that scales with any
+						organization.
+					</Typography>
 				</div>
 				<PlanTable setEstimatorCategory={setEstimatorCategory} />
 			</div>
@@ -57,6 +67,8 @@ const PricingPage: NextPage = () => {
 	)
 }
 
+const overageScroll = () => {}
+
 const retentionOptions = [
 	'30 days',
 	'3 months',
@@ -64,7 +76,7 @@ const retentionOptions = [
 	'1 year',
 	'2 years',
 ] as const
-type Retention = typeof retentionOptions[number]
+type Retention = (typeof retentionOptions)[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'30 days': 1,
 	'3 months': 1,
@@ -74,7 +86,7 @@ const retentionMultipliers: Record<Retention, number> = {
 } as const
 
 const tierOptions = ['Free', 'Professional', 'Enterprise', 'SelfHost'] as const
-type TierName = typeof tierOptions[number]
+type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
 	label: string
@@ -279,9 +291,14 @@ const PlanTier = ({
 			<div className="p-4">
 				{calculateUsage && (
 					<PrimaryButton
-						onClick={() =>
+						onClick={(e) => {
 							setEstimatorCategory(tier.id || tier.label)
-						}
+							e.preventDefault()
+							document.querySelector('#overage')?.scrollIntoView({
+								behavior: 'smooth',
+							})
+							window.history.pushState({}, '', `#overage`)
+						}}
 						href="#overage"
 						className="w-full bg-dark-background border border-copy-on-dark text-copy-on-dark rounded-md text-center py-1 hover:bg-white hover:text-dark-background transition-colors"
 					>
@@ -409,7 +426,7 @@ const PriceCalculator = ({
 		<div className="flex justify-center w-full">
 			{/* Price calculator */}
 			<div className="flex items-center">
-				<div className="flex flex-col justify-between w-[320px] h-full border-y-[1px] border-l-[1px] border-divider-on-dark rounded-l-lg p-4">
+				<div className="flex flex-col w-[320px] h-full border-y-[1px] border-l-[1px] border-divider-on-dark rounded-l-lg p-4 gap-4">
 					<div className="w-full">
 						<ListboxOptions
 							options={
@@ -422,7 +439,7 @@ const PriceCalculator = ({
 						/>
 					</div>
 
-					<div className="flex flex-col gap-2">
+					<div className="flex flex-col justify-end h-full gap-2 border-[1px] border-divider-on-dark rounded-lg p-2">
 						<div className="flex flex-col gap-1">
 							<div className="flex justify-between">
 								<Typography
@@ -513,7 +530,7 @@ const PriceCalculator = ({
 							</Typography>
 							<Typography
 								type="copy3"
-								className="text-darker-copy-on-dark"
+								className="text-white"
 								emphasis
 							>
 								{formatPrice(
@@ -530,6 +547,19 @@ const PriceCalculator = ({
 				</div>
 				<div className="flex flex-col p-4 gap-4 overflow-hidden border rounded-r-lg md:rounded-br-none border-divider-on-dark">
 					<CalculatorRowDesktop
+						title="Session Replay"
+						description="Session replay usage is defined by the number of sessions collected per month. A session is defined by an instance of a user’s tab on your application. "
+						product={'Sessions'}
+						prices={pricingTier.prices}
+						value={sessionUsage}
+						cost={sessionsCost}
+						rate={sessionsRate}
+						includedRange={defaultSessions}
+						retention={sessionRetention}
+						onChange={setSessionUsage}
+						onChangeRetention={setSessionRetention}
+					/>
+					<CalculatorRowDesktop
 						title="Error Monitoring"
 						description="Error monitoring usage is defined by the number of errors collected by Highlight per month. Our frontend/server SDKs send errors, but you can also send custom errors."
 						product={'Errors'}
@@ -542,19 +572,6 @@ const PriceCalculator = ({
 						retention={errorRetention}
 						onChange={setErrorUsage}
 						onChangeRetention={setErrorRetention}
-					/>
-					<CalculatorRowDesktop
-						title="Session Replay"
-						description="Session replay usage is defined by the number of sessions collected per month. A session is defined by an instance of a user’s tab on your application. "
-						product={'Sessions'}
-						prices={pricingTier.prices}
-						value={sessionUsage}
-						cost={sessionsCost}
-						rate={sessionsRate}
-						includedRange={defaultSessions}
-						retention={sessionRetention}
-						onChange={setSessionUsage}
-						onChangeRetention={setSessionRetention}
 					/>
 					<CalculatorRowDesktop
 						title="Logging"
@@ -590,26 +607,18 @@ const PriceCalculator = ({
 
 const CalculatorRowDesktop = ({
 	title,
-	description,
 	product,
-	prices,
 	value,
 	cost,
-	rate,
-	includedRange,
 	rangeMultiplier = 1,
 	retention,
 	onChange,
 	onChangeRetention,
 }: {
 	title: string
-	description: string
 	product: 'Sessions' | 'Errors' | 'Logs' | 'Traces'
-	prices: Prices
 	value: number
-	includedRange: number
 	cost: number
-	rate: number
 	rangeMultiplier?: number
 	retention: Retention
 	onChange: (value: number) => void
@@ -632,20 +641,6 @@ const CalculatorRowDesktop = ({
 				</Typography>
 				<div className="flex justify-between items-center">
 					<div className="flex items-center gap-3">
-						<ListboxOptions
-							options={
-								onChangeRetention !== undefined
-									? [
-											'3 months',
-											'6 months',
-											'1 year',
-											'2 years',
-									  ]
-									: ['30 days']
-							}
-							value={retention}
-							onChange={onChangeRetention}
-						/>
 						<Typography type="copy3" emphasis>
 							{title}
 						</Typography>
@@ -660,18 +655,38 @@ const CalculatorRowDesktop = ({
 					unit={product}
 					onChange={onChange}
 				/>
+
+				<div className="flex justify-between">
+					<ListboxOptions
+						options={
+							onChangeRetention !== undefined
+								? ['3 months', '6 months', '1 year', '2 years']
+								: ['30 days']
+						}
+						title="Retention: "
+						value={retention}
+						onChange={onChangeRetention}
+					/>
+
+					<div className="flex items-center gap-2">
+						<Typography
+							type="copy3"
+							className="text-darker-copy-on-dark"
+						>
+							Monthly ingested {product.toLowerCase()}:
+						</Typography>
+						<Typography
+							type="copy4"
+							emphasis
+							className="text-copy-on-dark border-[1px] border-copy-on-light rounded-full px-3 py-[2px]"
+						>
+							{value.toLocaleString(undefined, {
+								notation: 'compact',
+							})}
+						</Typography>
+					</div>
+				</div>
 			</div>
-			{/* <div className="hidden border-l border-divider-on-dark md:inline-block"> */}
-			{/* 	<CalculatorCostDisplay */}
-			{/* 		heading="Usage (Monthly)" */}
-			{/* 		cost={cost} */}
-			{/* 		rate={{ */}
-			{/* 			value: rate, */}
-			{/* 			unit: prices[product].unit, */}
-			{/* 			product, */}
-			{/* 		}} */}
-			{/* 	/> */}
-			{/* </div> */}
 		</div>
 	)
 }
@@ -735,7 +750,7 @@ const RangedInput = ({
 			<Slider.Root
 				min={min}
 				max={max}
-				step={500}
+				step={200000}
 				value={[denormalize(Math.pow(normalize(value), 1 / 3))]}
 				onValueChange={([value]) =>
 					value != null &&
@@ -757,20 +772,6 @@ const RangedInput = ({
 				</Slider.Track>
 				<Slider.Thumb className="relative w-6 h-6 border-[4px] hover:shadow-white/25 hover:shadow-[0_0_0_4px] outline-none bg-[#F5F5F5] border-dark-background rounded-full flex flex-col items-center transition-all" />
 			</Slider.Root>
-			<div className="flex items-center gap-2">
-				<Typography
-					type="copy4"
-					emphasis
-					className="text-copy-on-dark border-[1px] border-copy-on-light rounded-full px-3 py-[2px]"
-				>
-					{value.toLocaleString(undefined, {
-						notation: 'compact',
-					})}
-				</Typography>
-				<Typography type="copy3" className="text-darker-copy-on-dark">
-					ingested {unit.toLowerCase()} per month
-				</Typography>
-			</div>
 		</>
 	)
 }
@@ -822,10 +823,12 @@ const CalculatorCostDisplay = ({
 const ListboxOptions = <T extends string>({
 	options,
 	value,
+	title,
 	onChange,
 }: {
 	options: readonly T[]
 	value?: T
+	title?: string
 	onChange?: (value: T) => void
 }) => {
 	return (
@@ -834,10 +837,11 @@ const ListboxOptions = <T extends string>({
 				<Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-dark-background border-[1px] border-copy-on-light z-40 py-2 pl-3 pr-10 text-left focus:outline-none sm:text-sm">
 					<span className="block truncate text-center">
 						<Typography
-							type="copy4"
+							type="copy3"
 							className="text-copy-on-dark"
 							emphasis
 						>
+							{title || ''}
 							{value}
 						</Typography>
 					</span>
@@ -886,6 +890,27 @@ const ListboxOptions = <T extends string>({
 				</Transition>
 			</div>
 		</Listbox>
+	)
+}
+
+const OverageLink = ({
+	children,
+	className,
+}: React.PropsWithChildren<{ className?: string }>) => {
+	return (
+		<a
+			href="#overage"
+			onClick={(e) => {
+				e.preventDefault()
+				document.querySelector('#overage')?.scrollIntoView({
+					behavior: 'smooth',
+				})
+				window.history.pushState({}, '', `#overage`)
+			}}
+			className={className}
+		>
+			{children}
+		</a>
 	)
 }
 
