@@ -1,6 +1,7 @@
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { NextPage } from 'next'
 import Link from 'next/link'
+import { InlineWidget } from 'react-calendly'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import Footer from '../../components/common/Footer/Footer'
 import Navbar from '../../components/common/Navbar/Navbar'
@@ -10,8 +11,8 @@ import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel
 import { CustomerReviewTrack } from '../../components/Home/CustomerReviewTrack'
 import styles from '../../components/Home/Home.module.scss'
 
-import { Listbox, Transition } from '@headlessui/react'
-import { ChevronUpDownIcon } from '@heroicons/react/20/solid'
+import { Dialog, Listbox, Transition } from '@headlessui/react'
+import { ChevronUpDownIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import * as Slider from '@radix-ui/react-slider'
 import { Fragment, useState } from 'react'
 import { HeadlessTooltip } from '../../components/Competitors/ComparisonTable'
@@ -97,7 +98,7 @@ const retentionOptions = [
 	'1 year',
 	'2 years',
 ] as const
-type Retention = (typeof retentionOptions)[number]
+type Retention = typeof retentionOptions[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'30 days': 1,
 	'3 months': 1,
@@ -107,7 +108,7 @@ const retentionMultipliers: Record<Retention, number> = {
 } as const
 
 const tierOptions = ['Free', 'Professional', 'Enterprise', 'SelfHost'] as const
-type TierName = (typeof tierOptions)[number]
+type TierName = typeof tierOptions[number]
 
 type PricingTier = {
 	label: string
@@ -120,6 +121,7 @@ type PricingTier = {
 		tooltip?: string
 	}[]
 	calculateUsage?: boolean
+	contactUs?: boolean
 	buttonLabel: string
 	buttonLink: string
 }
@@ -212,8 +214,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 				feature: 'Aggregate user reporting',
 			},
 		],
-		buttonLabel: 'Contact Us',
-		buttonLink: 'mailto:sales@highlight.io',
+		contactUs: true,
 		calculateUsage: true,
 	},
 	SelfHost: {
@@ -264,10 +265,10 @@ const PlanTier = ({
 	return (
 		<div
 			className={
-				'flex flex-col flex-grow border rounded-md min-[1190px]:min-w-[255px] basis-64 border-divider-on-dark'
+				'flex flex-col flex-grow border rounded-md min-[1190px]:min-w-[255px] basis-64 border-divider-on-dark p-4'
 			}
 		>
-			<div className="p-4 border-divider-on-dark">
+			<div className="border-divider-on-dark pb-4">
 				<div className="flex flex-col">
 					{tier.icon}
 					<Typography className="mt-2" type="copy1" emphasis>
@@ -282,19 +283,20 @@ const PlanTier = ({
 					</Typography>
 				</div>
 			</div>
-			<Link
-				href={tier.buttonLink}
-				className="bg-white rounded-md text-center mt-2 mx-4 py-1 hover:bg-copy-on-dark transition-colors"
-			>
-				<Typography
-					className="text-dark-background"
-					type="copy3"
-					emphasis
-				>
+			{tier.contactUs && (
+				<CalendlyModal className="w-full">
+					<PrimaryButton className="w-full bg-white text-dark-background rounded-md text-center py-1">
+						Contact us
+					</PrimaryButton>
+				</CalendlyModal>
+			)}
+
+			{!tier.contactUs && (
+				<PrimaryButton className="bg-white text-dark-background rounded-md text-center py-1">
 					{tier.buttonLabel}
-				</Typography>
-			</Link>
-			<div className="p-4 flex flex-col gap-2.5 flex-grow">
+				</PrimaryButton>
+			)}
+			<div className="flex flex-col gap-2.5 flex-grow my-4">
 				{features.map((feature, index) => (
 					<div
 						key={index}
@@ -309,7 +311,7 @@ const PlanTier = ({
 					</div>
 				))}
 			</div>
-			<div className="p-4">
+			<div className="pt-4">
 				{calculateUsage && (
 					<PrimaryButton
 						onClick={(e) => {
@@ -756,7 +758,7 @@ const RangedInput = ({
 						Math.ceil(denormalize(Math.pow(normalize(value), 3))),
 					)
 				}
-				className="relative items-center hidden w-full h-12 select-none md:flex touch-none group"
+				className="relative items-center hidden w-full h-12 select-none md:flex touch-none group cursor-pointer"
 			>
 				<Slider.Track className="relative flex-1 h-3 overflow-hidden rounded-full bg-divider-on-dark">
 					<div
@@ -888,6 +890,77 @@ const ListboxOptions = <T extends string>({
 				</Transition>
 			</div>
 		</Listbox>
+	)
+}
+
+const CalendlyModal = ({
+	className,
+	children,
+}: React.PropsWithChildren<{ className?: string }>) => {
+	const [calendlyOpen, setCalendlyOpen] = useState(false)
+
+	return (
+		<div>
+			<button
+				type="button"
+				onClick={() => setCalendlyOpen(true)}
+				className={className}
+			>
+				{children}
+			</button>
+
+			<Transition appear show={calendlyOpen} as={Fragment}>
+				<Dialog
+					as="div"
+					className="relative z-10 w-screen h-screen"
+					onClose={() => setCalendlyOpen(false)}
+				>
+					<Transition.Child
+						as={Fragment}
+						enter="ease-out duration-300"
+						enterFrom="opacity-0"
+						enterTo="opacity-100"
+						leave="ease-in duration-200"
+						leaveFrom="opacity-100"
+						leaveTo="opacity-0"
+					>
+						<div className="fixed inset-0 bg-black/25" />
+					</Transition.Child>
+
+					<div className="fixed inset-0 overflow-y-auto">
+						<div className="flex min-h-full items-center justify-center p-4 text-center">
+							<Transition.Child
+								as={Fragment}
+								enter="ease-out duration-300"
+								enterFrom="opacity-0 scale-95"
+								enterTo="opacity-100 scale-100"
+								leave="ease-in duration-200"
+								leaveFrom="opacity-100 scale-100"
+								leaveTo="opacity-0 scale-95"
+							>
+								<Dialog.Panel className="fixed inset-0 z-50 grid place-items-center w-screen h-screen pointer-events-none">
+									<div className="min-w-[320px] w-screen max-w-5xl min-[1000px]:h-[700px] h-[900px] transition-opacity max-[652px]:pt-14 pointer-events-auto">
+										<InlineWidget
+											url="https://calendly.com/d/2gt-rw5-qg5/highlight-demo-call"
+											styles={{
+												width: '100%',
+												height: '100%',
+											}}
+										/>
+									</div>
+									<button
+										className="absolute grid w-10 h-10 rounded-full place-content-center bg-divider-on-dark max-[652px]:right-2 max-[652px]:top-2 right-10 top-10 hover:brightness-150 transition-all pointer-events-auto"
+										onClick={() => setCalendlyOpen(false)}
+									>
+										<XMarkIcon className="w-5 h-5" />
+									</button>
+								</Dialog.Panel>
+							</Transition.Child>
+						</div>
+					</div>
+				</Dialog>
+			</Transition>
+		</div>
 	)
 }
 
