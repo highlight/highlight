@@ -6,7 +6,6 @@ import styles from './IssueModeSelector.module.css'
 export const TagSwitch = <T extends string | number>({
 	onSelect,
 	label,
-	key,
 	selected,
 }: {
 	onSelect: (p: T) => void
@@ -18,7 +17,6 @@ export const TagSwitch = <T extends string | number>({
 
 	return (
 		<div
-			key={key}
 			className={clsx(styles.tagSwitch, modeClass)}
 			onClick={() => onSelect(label)}
 		>
@@ -38,16 +36,6 @@ export const IssueModeSelector = <T extends string | number>({
 	labels: T[]
 	selectedLabel: T
 }) => {
-	const labelDivs = labels.map((label, i) => {
-		return (
-			<TagSwitch
-				selected={label === selectedLabel}
-				onSelect={onSelect as any}
-				key={i}
-				label={label}
-			/>
-		)
-	})
 	return (
 		<Box
 			borderRadius="10"
@@ -59,7 +47,16 @@ export const IssueModeSelector = <T extends string | number>({
 			display="flex"
 			backgroundColor="n3"
 		>
-			{labelDivs}
+			{labels.map((label, i) => {
+				return (
+					<TagSwitch
+						selected={label === selectedLabel}
+						onSelect={onSelect as any}
+						key={i}
+						label={label}
+					/>
+				)
+			})}
 		</Box>
 	)
 }
