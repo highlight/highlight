@@ -3,7 +3,7 @@ import clsx from 'clsx'
 
 import styles from './IssueModeSelector.module.css'
 
-export const ActiveMode = <T extends string | number>({
+export const TagSwitch = <T extends string | number>({
 	onSelect,
 	label,
 	key,
@@ -40,7 +40,7 @@ export const IssueModeSelector = <T extends string | number>({
 }) => {
 	const labelDivs = labels.map((label, i) => {
 		return (
-			<ActiveMode
+			<TagSwitch
 				selected={label === selectedLabel}
 				onSelect={onSelect as any}
 				key={i}
