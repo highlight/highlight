@@ -106,7 +106,7 @@ const retentionOptions = [
 	'1 year',
 	'2 years',
 ] as const
-type Retention = (typeof retentionOptions)[number]
+type Retention = typeof retentionOptions[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'30 days': 1,
 	'3 months': 1,
@@ -116,7 +116,7 @@ const retentionMultipliers: Record<Retention, number> = {
 } as const
 
 const tierOptions = ['Free', 'Professional', 'Enterprise', 'SelfHost'] as const
-type TierName = (typeof tierOptions)[number]
+type TierName = typeof tierOptions[number]
 
 type PricingTier = {
 	label: string
@@ -131,7 +131,7 @@ type PricingTier = {
 	calculateUsage?: boolean
 	contactUs?: boolean
 	buttonLabel: string
-	buttonLink: string
+	buttonLink?: string
 }
 
 const priceTiers: Record<TierName, PricingTier> = {
@@ -223,6 +223,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 			},
 		],
 		contactUs: true,
+		buttonLabel: 'Contact us',
 		calculateUsage: true,
 	},
 	SelfHost: {
