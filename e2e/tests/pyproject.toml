@@ -7,7 +7,7 @@ license = "Apache-2.0"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-black = "^23.11.0"
+black = "^24.3.0"
 pytest = "^7.4.3"
 pytest-mock = "^3.12.0"
 pytest-randomly = "^3.15.0"
