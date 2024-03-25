@@ -2,7 +2,7 @@
 import { CONSTANTS } from '@/constants'
 import type { NodeOptions } from '@highlight-run/node'
 
-export const highlightConfig = {
+const highlightConfig = {
 	projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
 	otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
 	serviceName: 'my-nextjs-backend',
@@ -11,5 +11,6 @@ export const highlightConfig = {
 
 export async function register() {
 	const { registerHighlight } = await import('@highlight-run/next/server')
+
 	registerHighlight(highlightConfig)
 }

@@ -1,4 +1,3 @@
-'use server'
 import logger from '@/highlight.logger'
 
 type Props = {

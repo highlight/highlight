@@ -5,7 +5,7 @@ import { ResourceAttributes } from '@opentelemetry/resources'
 import type { NodeOptions, HighlightContext } from './types.js'
 import type {
 	Attributes,
-	Tracer,
+	Context,
 	Span as OtelSpan,
 	SpanOptions,
 } from '@opentelemetry/api'
@@ -54,7 +54,7 @@ export interface HighlightInterface {
 		metadata?: Attributes,
 	) => Promise<void>
 	setAttributes: (attributes: ResourceAttributes) => void
-	startActiveSpan: (name: string, options: SpanOptions) => Promise<OtelSpan>
+	startActiveSpan: (name: string, options?: SpanOptions) => Promise<OtelSpan>
 	_debug: (...data: any[]) => void
 }
 
@@ -173,8 +173,8 @@ export const H: HighlightInterface = {
 	setAttributes: (attributes: ResourceAttributes) => {
 		return highlight_obj.setAttributes(attributes)
 	},
-	startActiveSpan: (name: string, options: SpanOptions) => {
-		return highlight_obj.startActiveSpan(name, options)
+	startActiveSpan: (name: string, options?: SpanOptions, ctx?: Context) => {
+		return highlight_obj.startActiveSpan(name, options, ctx)
 	},
 
 	_debug: (...data: any[]) => {

@@ -2,7 +2,12 @@ import type { NodeOptions, Highlight } from '@highlight-run/node'
 import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
 import type { ExecutionContext } from '@cloudflare/workers-types'
 import type { WorkersSDK } from '@highlight-run/opentelemetry-sdk-workers'
-import type { Attributes } from '@opentelemetry/api'
+import type {
+	Attributes,
+	SpanOptions,
+	Span as OTelSpan,
+	Context,
+} from '@opentelemetry/api'
 import type { HighlightContext } from '@highlight-run/node'
 import { IncomingHttpHeaders } from 'http'
 
@@ -61,6 +66,11 @@ export interface HighlightInterface {
 	) => void
 	stop: () => Promise<void>
 	flush: () => Promise<void>
+	startActiveSpan: (
+		name: string,
+		options?: SpanOptions,
+		ctx?: Context,
+	) => Promise<OTelSpan>
 }
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'

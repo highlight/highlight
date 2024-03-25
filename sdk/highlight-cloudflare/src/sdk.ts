@@ -3,9 +3,11 @@ import '@highlight-run/opentelemetry-sdk-workers/performance'
 
 import { OTLPProtoLogExporter } from '@highlight-run/opentelemetry-sdk-workers/exporters/OTLPProtoLogExporter'
 import { OTLPProtoTraceExporter } from '@highlight-run/opentelemetry-sdk-workers/exporters/OTLPProtoTraceExporter'
+import { ReadableSpan } from '@opentelemetry/sdk-trace-base'
 import { Resource } from '@opentelemetry/resources'
 import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
 import { WorkersSDK } from '@highlight-run/opentelemetry-sdk-workers'
+import { Span, SpanOptions, Context } from '@opentelemetry/api'
 
 const HIGHLIGHT_PROJECT_ENV = 'HIGHLIGHT_PROJECT_ID'
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
@@ -32,7 +34,19 @@ type Metric = {
 	tags?: { name: string; value: string }[]
 }
 
+type TraceMapValue = {
+	attributes: { 'highlight.session_id': string; 'highlight.trace_id': string }
+
+	destroy: () => void
+}
+
 export interface HighlightInterface {
+	traceAttributesMap: Map<string, TraceMapValue>
+	getTraceMetadata: (span: ReadableSpan) => TraceMapValue | undefined
+	setTraceMetadata: (
+		span: Span,
+		attributes: TraceMapValue['attributes'],
+	) => void
 	init: (
 		request: Request,
 		env: HighlightEnv,
@@ -44,12 +58,39 @@ export interface HighlightInterface {
 	sendResponse: (response: Response) => void
 	setAttributes: (attributes: ResourceAttributes) => void
 	recordMetric: (metric: Metric) => void
+	startActiveSpan: (
+		name: string,
+		options?: SpanOptions,
+		ctx?: Context,
+	) => Promise<Span>
 }
 
+const FIVE_MINUTES = 1000 * 60 * 5
 let sdk: WorkersSDK
 let projectID: string
 
 export const H: HighlightInterface = {
+	traceAttributesMap: new Map<string, TraceMapValue>(),
+
+	getTraceMetadata(span: ReadableSpan) {
+		return this.traceAttributesMap.get(span.spanContext().traceId)
+	},
+
+	setTraceMetadata(span: Span, attributes: TraceMapValue['attributes']) {
+		const { traceId } = span.spanContext()
+
+		if (!this.traceAttributesMap.get(traceId)) {
+			const timer = setTimeout(() => destroy(), FIVE_MINUTES)
+			const destroy = () => {
+				this.traceAttributesMap.delete(traceId)
+
+				clearTimeout(timer)
+			}
+
+			return this.traceAttributesMap.set(traceId, { attributes, destroy })
+		}
+	},
+
 	// Initialize the highlight SDK. This monkeypatches the console methods to start sending console logs to highlight.
 	init: (
 		request: Request,
@@ -158,6 +199,23 @@ export const H: HighlightInterface = {
 			span.setAttribute(t.name, t.value)
 		}
 		span.end()
+	},
+	startActiveSpan: async (
+		name: string,
+		options: SpanOptions = {},
+		ctx?: Context,
+	) => {
+		return new Promise<Span>((resolve) => {
+			if (ctx) {
+				sdk.requestTracer.startActiveSpan(name, options, ctx, (span) =>
+					resolve(span),
+				)
+			} else {
+				sdk.requestTracer.startActiveSpan(name, options, (span) =>
+					resolve(span),
+				)
+			}
+		})
 	},
 }
 
