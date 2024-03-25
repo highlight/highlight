@@ -5128,7 +5128,36 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 
 // ErrorGroups is the resolver for the error_groups field.
 func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count int, params modelInputs.QueryInput, page *int) (*model.ErrorResults, error) {
-	panic(fmt.Errorf("not implemented: ErrorGroups - error_groups"))
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	ids, total, err := r.ClickhouseClient.QueryErrorGroupIds(ctx, project.ID, count, params, page)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*model.ErrorGroup
+	if err := r.DB.WithContext(ctx).Model(&model.ErrorGroup{}).
+		Joins("ErrorTag").
+		Where("error_groups.id in ?", ids).
+		Where("error_groups.project_id = ?", project.ID).
+		Order("error_groups.updated_at DESC").
+		Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	if len(results) > 0 {
+		if err := r.SetErrorFrequenciesClickhouse(ctx, project.ID, results, ErrorGroupLookbackDays); err != nil {
+			return nil, err
+		}
+	}
+
+	return &model.ErrorResults{
+		ErrorGroups: lo.Map(results, func(eg *model.ErrorGroup, idx int) model.ErrorGroup { return *eg }),
+		TotalCount:  total,
+	}, nil
 }
 
 // ErrorsHistogramClickhouse is the resolver for the errors_histogram_clickhouse field.
@@ -5156,7 +5185,25 @@ func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID
 
 // ErrorsHistogram is the resolver for the errors_histogram field.
 func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
-	panic(fmt.Errorf("not implemented: ErrorsHistogram - errors_histogram"))
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogram(ctx, project.ID, params, histogramOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(bucketTimes) > 0 {
+		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
+		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
+	}
+
+	return &model.ErrorsHistogram{
+		BucketTimes:  MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		ErrorObjects: MergeHistogramBucketCounts(totals, histogramOptions.BucketSize.Multiple),
+	}, nil
 }
 
 // ErrorGroup is the resolver for the error_group field.
