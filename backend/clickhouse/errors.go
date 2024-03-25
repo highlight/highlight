@@ -200,7 +200,7 @@ func getErrorQueryImpl(tableName string, selectColumns string, query modelInputs
 	return sql, args, nil
 }
 
-func (client *Client) QueryErrorGroupIds(ctx context.Context, projectId int, count int, query modelInputs.ClickhouseQuery, page *int, retentionDate time.Time) ([]int64, int64, error) {
+func (client *Client) QueryErrorGroupIds(ctx context.Context, projectId int, count int, query modelInputs.ClickhouseQuery, page *int) ([]int64, int64, error) {
 	pageInt := 1
 	if page != nil {
 		pageInt = *page
@@ -521,7 +521,7 @@ func (client *Client) QueryErrorFieldValues(ctx context.Context, projectId int, 
 	return values, nil
 }
 
-func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, query modelInputs.ClickhouseQuery, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, error) {
+func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, query modelInputs.ClickhouseQuery, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, error) {
 	aggFn, addFn, location, err := getClickhouseHistogramSettings(options)
 	if err != nil {
 		return nil, nil, err

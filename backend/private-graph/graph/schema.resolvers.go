@@ -5099,14 +5099,7 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 		return nil, err
 	}
 
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
-
-	ids, total, err := r.ClickhouseClient.QueryErrorGroupIds(ctx, projectID, count, query, page, retentionDate)
+	ids, total, err := r.ClickhouseClient.QueryErrorGroupIds(ctx, project.ID, count, query, page)
 	if err != nil {
 		return nil, err
 	}
@@ -5115,14 +5108,14 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 	if err := r.DB.WithContext(ctx).Model(&model.ErrorGroup{}).
 		Joins("ErrorTag").
 		Where("error_groups.id in ?", ids).
-		Where("error_groups.project_id = ?", projectID).
+		Where("error_groups.project_id = ?", project.ID).
 		Order("error_groups.updated_at DESC").
 		Find(&results).Error; err != nil {
 		return nil, err
 	}
 
 	if len(results) > 0 {
-		if err := r.SetErrorFrequenciesClickhouse(ctx, projectID, results, ErrorGroupLookbackDays); err != nil {
+		if err := r.SetErrorFrequenciesClickhouse(ctx, project.ID, results, ErrorGroupLookbackDays); err != nil {
 			return nil, err
 		}
 	}
@@ -5144,13 +5137,8 @@ func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID
 	if err != nil {
 		return nil, err
 	}
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
 
-	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogram(ctx, projectID, query, retentionDate, histogramOptions)
+	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogram(ctx, project.ID, query, histogramOptions)
 	if err != nil {
 		return nil, err
 	}
