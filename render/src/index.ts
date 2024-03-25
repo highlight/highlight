@@ -3,7 +3,7 @@ import { serialRender } from './serial'
 import { readFileSync } from 'fs'
 import { encodeGIF } from './ffmpeg'
 import { getRenderExport, uploadRenderExport } from './s3'
-import { getSessionSecureID } from './pg'
+import { getLongestSession, getSessionSecureID } from './pg'
 
 interface Args {
 	project?: string
@@ -54,7 +54,7 @@ const media = async (args?: Args) => {
 		})
 		let path = ''
 		if (args?.format === 'image/gif') {
-			path = await encodeGIF(dir)
+			path = await encodeGIF(dir ?? '')
 		} else {
 			path = files[0]
 		}
@@ -91,12 +91,13 @@ if (process.env.DEV?.length) {
 	process.env.PSQL_DB = 'postgres'
 	process.env.PSQL_USER = 'postgres'
 	process.env.PSQL_PASSWORD = 'default'
+	const session = await getLongestSession()
 	await Promise.all([
 		handler({
 			queryStringParameters: {
 				format: 'video/mp4',
-				project: '1',
-				session: '30000002',
+				project: session?.project_id ?? '1',
+				session: session?.id ?? '30000001',
 			},
 		} as unknown as APIGatewayEvent),
 	])
