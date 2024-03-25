@@ -10,7 +10,7 @@ export const RustOtherLogContent: QuickStartContent = {
 		{
 			title: 'Set up your highlight.io SDK.',
 			content: `First, make sure you've followed the [backend getting started](${siteUrl(
-				'/docs/getting-started/backend/rust/other',
+				'/docs/getting-started/backend-sdk/rust/other',
 			)}) guide.`,
 		},
 		{
