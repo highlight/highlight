@@ -57,8 +57,18 @@ const PricingPage: NextPage = () => {
 				</div>
 				<PlanTable setEstimatorCategory={setEstimatorCategory} />
 			</div>
-			<div className="flex justify-center my-16" id="overage">
+			<div className="text-center my-16 px-16" id="overage">
 				<h2>Estimate your bill</h2>
+				<Typography type="copy1" className="my-10 text-copy-on-dark">
+					Each of our plans comes with a pre-defined usage quota, and
+					if you exceed that quota, we charge an additional fee. For
+					custom plans,{' '}
+					<span className="inline-block">
+						<CalendlyModal className="underline">
+							reach out to us.
+						</CalendlyModal>
+					</span>
+				</Typography>
 			</div>
 			<div className="my-16">
 				<PriceCalculator
@@ -89,8 +99,6 @@ const PricingPage: NextPage = () => {
 	)
 }
 
-const overageScroll = () => {}
-
 const retentionOptions = [
 	'30 days',
 	'3 months',
@@ -98,7 +106,7 @@ const retentionOptions = [
 	'1 year',
 	'2 years',
 ] as const
-type Retention = typeof retentionOptions[number]
+type Retention = (typeof retentionOptions)[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'30 days': 1,
 	'3 months': 1,
@@ -108,7 +116,7 @@ const retentionMultipliers: Record<Retention, number> = {
 } as const
 
 const tierOptions = ['Free', 'Professional', 'Enterprise', 'SelfHost'] as const
-type TierName = typeof tierOptions[number]
+type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
 	label: string
@@ -912,7 +920,7 @@ const CalendlyModal = ({
 			<Transition appear show={calendlyOpen} as={Fragment}>
 				<Dialog
 					as="div"
-					className="relative z-10 w-screen h-screen"
+					className="relative z-[999] w-screen h-screen"
 					onClose={() => setCalendlyOpen(false)}
 				>
 					<Transition.Child
@@ -938,8 +946,8 @@ const CalendlyModal = ({
 								leaveFrom="opacity-100 scale-100"
 								leaveTo="opacity-0 scale-95"
 							>
-								<Dialog.Panel className="fixed inset-0 z-50 grid place-items-center w-screen h-screen pointer-events-none">
-									<div className="min-w-[320px] w-screen max-w-5xl min-[1000px]:h-[700px] h-[900px] transition-opacity max-[652px]:pt-14 pointer-events-auto">
+								<Dialog.Panel className="fixed grid place-items-center inset-0 z-50 w-screen h-screen pointer-events-none">
+									<div className="relative flex min-w-[320px] w-screen max-w-5xl min-[1000px]:h-[700px] h-[900px] transition-opacity max-[652px]:pt-14 pointer-events-auto">
 										<InlineWidget
 											url="https://calendly.com/d/2gt-rw5-qg5/highlight-demo-call"
 											styles={{
@@ -947,13 +955,16 @@ const CalendlyModal = ({
 												height: '100%',
 											}}
 										/>
+
+										<button
+											className="absolute grid w-10 h-10 rounded-full place-content-center bg-divider-on-dark max-[652px]:right-2 max-[652px]:top-2 right-10 top-16 hover:brightness-150 transition-all pointer-events-auto"
+											onClick={() =>
+												setCalendlyOpen(false)
+											}
+										>
+											<XMarkIcon className="w-5 h-5" />
+										</button>
 									</div>
-									<button
-										className="absolute grid w-10 h-10 rounded-full place-content-center bg-divider-on-dark max-[652px]:right-2 max-[652px]:top-2 right-10 top-10 hover:brightness-150 transition-all pointer-events-auto"
-										onClick={() => setCalendlyOpen(false)}
-									>
-										<XMarkIcon className="w-5 h-5" />
-									</button>
 								</Dialog.Panel>
 							</Transition.Child>
 						</div>
