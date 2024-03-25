@@ -5133,6 +5133,11 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 	}, nil
 }
 
+// ErrorGroups is the resolver for the error_groups field.
+func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count int, params modelInputs.QueryInput, page *int) (*model.ErrorResults, error) {
+	panic(fmt.Errorf("not implemented: ErrorGroups - error_groups"))
+}
+
 // ErrorsHistogramClickhouse is the resolver for the errors_histogram_clickhouse field.
 func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -5159,6 +5164,11 @@ func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID
 		BucketTimes:  MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
 		ErrorObjects: MergeHistogramBucketCounts(totals, histogramOptions.BucketSize.Multiple),
 	}, nil
+}
+
+// ErrorsHistogram is the resolver for the errors_histogram field.
+func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
+	panic(fmt.Errorf("not implemented: ErrorsHistogram - errors_histogram"))
 }
 
 // ErrorGroup is the resolver for the error_group field.
