@@ -104,7 +104,13 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 							/>
 							<Box height="full">
 								{!loading && logEdges.length === 0 ? (
-									<NoLogsFound />
+									<Box
+										display="flex"
+										alignItems="center"
+										height="full"
+									>
+										<NoLogsFound />
+									</Box>
 								) : (
 									<LogsTable
 										logEdges={logEdges}
