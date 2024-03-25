@@ -202,6 +202,14 @@ jobs:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+            - name: Configure AWS credentials
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: us-east-2
+
             - name: Start docker containers & run cypress
               env:
                   COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -210,9 +218,11 @@ jobs:
               run: |
                   start_time=$(date -Isecond)
 
+                  export RUN_SESSION_SCREENSHOT_LAMBDA=false
                   if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
                     export CYPRESS_CLIENT_VERSION="dev-${COMMIT_SHA}"
                     export REACT_APP_COMMIT_SHA="${COMMIT_SHA}"
+                    export RUN_SESSION_SCREENSHOT_LAMBDA=true
                     echo "Using client version ${CYPRESS_CLIENT_VERSION}";
                   fi
 
@@ -243,8 +253,10 @@ jobs:
                   yarn cy:run;
 
                   # run session screenshot lambda locally
-                  yarn workspace render build
-                  yarn workspace render test:screenshots
+                  if [[ "$RUN_SESSION_SCREENSHOT_LAMBDA" == "true" ]]; then
+                    yarn workspace render build
+                    yarn workspace render test:screenshots
+                  fi
 
                   # look for containers that crashed
                   num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)
