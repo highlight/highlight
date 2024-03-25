@@ -289,6 +289,35 @@ type EnhancedUserDetailsResult struct {
 	Email   *string       `json:"email,omitempty"`
 }
 
+type ErrorClickhouse struct {
+	ID                  int64   `json:"id"`
+	ProjectID           int32   `json:"project_id"`
+	Timestamp           int64   `json:"timestamp"`
+	ErrorGroupID        int64   `json:"error_group_id"`
+	Browser             string  `json:"browser"`
+	Environment         string  `json:"environment"`
+	OsName              string  `json:"os_name"`
+	VisitedURL          string  `json:"visited_url"`
+	ServiceName         string  `json:"service_name"`
+	ServiceVersion      string  `json:"service_version"`
+	ClientID            string  `json:"client_id"`
+	HasSession          bool    `json:"has_session"`
+	Event               string  `json:"event"`
+	Status              string  `json:"status"`
+	Type                string  `json:"type"`
+	ErrorTagID          *int64  `json:"error_tag_id,omitempty"`
+	ErrorTagTitle       *string `json:"error_tag_title,omitempty"`
+	ErrorTagDescription *string `json:"error_tag_description,omitempty"`
+}
+
+type ErrorConnection struct {
+	Edges    []*ErrorEdge `json:"edges"`
+	PageInfo *PageInfo    `json:"pageInfo"`
+}
+
+func (ErrorConnection) IsConnection()               {}
+func (this ErrorConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
 type ErrorDistributionItem struct {
 	ErrorGroupID int       `json:"error_group_id"`
 	Date         time.Time `json:"date"`
@@ -296,35 +325,13 @@ type ErrorDistributionItem struct {
 	Value        int64     `json:"value"`
 }
 
-type ErrorGroupClickhouse struct {
-	ID                  int64  `json:"id"`
-	ProjectID           int32  `json:"project_id"`
-	CreatedAt           int64  `json:"created_at"`
-	UpdatedAt           int64  `json:"updated_at"`
-	Event               string `json:"event"`
-	Status              string `json:"status"`
-	Type                string `json:"type"`
-	ErrorTagID          int64  `json:"error_tag_id"`
-	ErrorTagTitle       string `json:"error_tag_title"`
-	ErrorTagDescription string `json:"error_tag_description"`
-	SecureID            string `json:"secure_id"`
+type ErrorEdge struct {
+	Cursor string           `json:"cursor"`
+	Node   *ErrorClickhouse `json:"node"`
 }
 
-type ErrorGroupConnection struct {
-	Edges    []*ErrorGroupEdge `json:"edges"`
-	PageInfo *PageInfo         `json:"pageInfo"`
-}
-
-func (ErrorGroupConnection) IsConnection()               {}
-func (this ErrorGroupConnection) GetPageInfo() *PageInfo { return this.PageInfo }
-
-type ErrorGroupEdge struct {
-	Cursor string                `json:"cursor"`
-	Node   *ErrorGroupClickhouse `json:"node"`
-}
-
-func (ErrorGroupEdge) IsEdge()                {}
-func (this ErrorGroupEdge) GetCursor() string { return this.Cursor }
+func (ErrorEdge) IsEdge()                {}
+func (this ErrorEdge) GetCursor() string { return this.Cursor }
 
 type ErrorGroupFrequenciesParamsInput struct {
 	DateRange         *DateRangeRequiredInput `json:"date_range"`
@@ -356,23 +363,6 @@ type ErrorMetadata struct {
 	UserProperties  *string    `json:"user_properties,omitempty"`
 	RequestID       *string    `json:"request_id,omitempty"`
 	Payload         *string    `json:"payload,omitempty"`
-}
-
-type ErrorObjectClickhouse struct {
-	ID              int64  `json:"id"`
-	ProjectID       int32  `json:"project_id"`
-	Timestamp       int64  `json:"timestamp"`
-	ErrorGroupID    int64  `json:"error_group_id"`
-	HasSession      bool   `json:"has_session"`
-	Browser         string `json:"browser"`
-	Environment     string `json:"environment"`
-	OsName          string `json:"os_name"`
-	ServiceName     string `json:"service_name"`
-	ServiceVersion  string `json:"service_version"`
-	ClientID        string `json:"client_id"`
-	VisitedURL      string `json:"visited_url"`
-	TraceID         string `json:"trace_id"`
-	SecureSessionID string `json:"secure_session_id"`
 }
 
 type ErrorObjectConnection struct {

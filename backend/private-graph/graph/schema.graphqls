@@ -737,35 +737,25 @@ type ErrorGroup {
 	error_tag: ErrorTag
 }
 
-type ErrorGroupClickhouse {
-	id: Int64!
-	project_id: Int32!
-	created_at: Int64!
-	updated_at: Int64!
-	event: String!
-	status: String!
-	type: String!
-	error_tag_id: Int64!
-	error_tag_title: String!
-	error_tag_description: String!
-	secure_id: String!
-}
-
-type ErrorObjectClickhouse {
+type ErrorClickhouse {
 	id: Int64!
 	project_id: Int32!
 	timestamp: Int64!
 	error_group_id: Int64!
-	has_session: Boolean!
 	browser: String!
 	environment: String!
 	os_name: String!
+	visited_url: String!
 	service_name: String!
 	service_version: String!
 	client_id: String!
-	visited_url: String!
-	trace_id: String!
-	secure_session_id: String!
+	has_session: Boolean!
+	event: String!
+	status: String!
+	type: String!
+	error_tag_id: Int64
+	error_tag_title: String
+	error_tag_description: String
 }
 
 type ErrorMetadata {
@@ -871,13 +861,13 @@ type SessionConnection implements Connection {
 	pageInfo: PageInfo!
 }
 
-type ErrorGroupEdge implements Edge {
+type ErrorEdge implements Edge {
 	cursor: String!
-	node: ErrorGroupClickhouse!
+	node: ErrorClickhouse!
 }
 
-type ErrorGroupConnection implements Connection {
-	edges: [ErrorGroupEdge!]!
+type ErrorConnection implements Connection {
+	edges: [ErrorEdge!]!
 	pageInfo: PageInfo!
 }
 

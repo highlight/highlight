@@ -442,6 +442,28 @@ export type ErrorAlert = {
 	updated_at: Scalars['Timestamp']
 }
 
+export type ErrorClickhouse = {
+	__typename?: 'ErrorClickhouse'
+	browser: Scalars['String']
+	client_id: Scalars['String']
+	environment: Scalars['String']
+	error_group_id: Scalars['Int64']
+	error_tag_description?: Maybe<Scalars['String']>
+	error_tag_id?: Maybe<Scalars['Int64']>
+	error_tag_title?: Maybe<Scalars['String']>
+	event: Scalars['String']
+	has_session: Scalars['Boolean']
+	id: Scalars['Int64']
+	os_name: Scalars['String']
+	project_id: Scalars['Int32']
+	service_name: Scalars['String']
+	service_version: Scalars['String']
+	status: Scalars['String']
+	timestamp: Scalars['Int64']
+	type: Scalars['String']
+	visited_url: Scalars['String']
+}
+
 export type ErrorComment = {
 	__typename?: 'ErrorComment'
 	attachments: Array<Maybe<ExternalAttachment>>
@@ -456,12 +478,24 @@ export type ErrorComment = {
 	updated_at: Scalars['Timestamp']
 }
 
+export type ErrorConnection = Connection & {
+	__typename?: 'ErrorConnection'
+	edges: Array<ErrorEdge>
+	pageInfo: PageInfo
+}
+
 export type ErrorDistributionItem = {
 	__typename?: 'ErrorDistributionItem'
 	date: Scalars['Timestamp']
 	error_group_id: Scalars['ID']
 	name: Scalars['String']
 	value: Scalars['Int64']
+}
+
+export type ErrorEdge = Edge & {
+	__typename?: 'ErrorEdge'
+	cursor: Scalars['String']
+	node: ErrorClickhouse
 }
 
 export type ErrorField = {
@@ -496,33 +530,6 @@ export type ErrorGroup = {
 	type: Scalars['String']
 	updated_at: Scalars['Timestamp']
 	viewed?: Maybe<Scalars['Boolean']>
-}
-
-export type ErrorGroupClickhouse = {
-	__typename?: 'ErrorGroupClickhouse'
-	created_at: Scalars['Int64']
-	error_tag_description: Scalars['String']
-	error_tag_id: Scalars['Int64']
-	error_tag_title: Scalars['String']
-	event: Scalars['String']
-	id: Scalars['Int64']
-	project_id: Scalars['Int32']
-	secure_id: Scalars['String']
-	status: Scalars['String']
-	type: Scalars['String']
-	updated_at: Scalars['Int64']
-}
-
-export type ErrorGroupConnection = Connection & {
-	__typename?: 'ErrorGroupConnection'
-	edges: Array<ErrorGroupEdge>
-	pageInfo: PageInfo
-}
-
-export type ErrorGroupEdge = Edge & {
-	__typename?: 'ErrorGroupEdge'
-	cursor: Scalars['String']
-	node: ErrorGroupClickhouse
 }
 
 export type ErrorGroupFrequenciesParamsInput = {
@@ -595,24 +602,6 @@ export type ErrorObject = {
 	trace_id?: Maybe<Scalars['String']>
 	type: Scalars['String']
 	url: Scalars['String']
-}
-
-export type ErrorObjectClickhouse = {
-	__typename?: 'ErrorObjectClickhouse'
-	browser: Scalars['String']
-	client_id: Scalars['String']
-	environment: Scalars['String']
-	error_group_id: Scalars['Int64']
-	has_session: Scalars['Boolean']
-	id: Scalars['Int64']
-	os_name: Scalars['String']
-	project_id: Scalars['Int32']
-	secure_session_id: Scalars['String']
-	service_name: Scalars['String']
-	service_version: Scalars['String']
-	timestamp: Scalars['Int64']
-	trace_id: Scalars['String']
-	visited_url: Scalars['String']
 }
 
 export type ErrorObjectConnection = Connection & {

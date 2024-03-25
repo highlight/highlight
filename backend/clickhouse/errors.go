@@ -19,8 +19,8 @@ import (
 
 type ClickhouseErrorGroupRow struct {
 	ProjectID           int32
-	CreatedAt           int64
-	UpdatedAt           int64
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
 	ID                  int64
 	SecureID            string
 	Event               string
@@ -33,7 +33,7 @@ type ClickhouseErrorGroupRow struct {
 
 type ClickhouseErrorObjectRow struct {
 	ProjectID       int32
-	Timestamp       int64
+	Timestamp       time.Time
 	ErrorGroupID    int64
 	HasSession      bool
 	ID              int64
@@ -46,6 +46,27 @@ type ClickhouseErrorObjectRow struct {
 	VisitedURL      string
 	TraceID         string
 	SecureSessionID string
+}
+
+type ClickhouseErrorJoinedRow struct {
+	ID                  int64
+	ProjectID           int32
+	Timestamp           time.Time
+	ErrorGroupID        int64
+	Browser             string
+	Environment         string
+	OSName              string
+	VisitedURL          string
+	ServiceName         string
+	ServiceVersion      string
+	ClientID            string
+	HasSession          bool
+	Event               string
+	Status              string
+	Type                string
+	ErrorTagID          int64
+	ErrorTagTitle       string
+	ErrorTagDescription string
 }
 
 const ErrorGroupsTable = "error_groups"
@@ -62,8 +83,8 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 
 		chEg := ClickhouseErrorGroupRow{
 			ProjectID: int32(group.ProjectID),
-			CreatedAt: group.CreatedAt.UTC().UnixMicro(),
-			UpdatedAt: group.UpdatedAt.UTC().UnixMicro(),
+			CreatedAt: group.CreatedAt,
+			UpdatedAt: group.UpdatedAt,
 			ID:        int64(group.ID),
 			SecureID:  group.SecureID,
 			Event:     group.Event,
@@ -127,7 +148,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 
 		chEg := ClickhouseErrorObjectRow{
 			ProjectID:       int32(object.ProjectID),
-			Timestamp:       object.Timestamp.UTC().UnixMicro(),
+			Timestamp:       object.Timestamp,
 			ErrorGroupID:    int64(object.ErrorGroupID),
 			HasSession:      hasSession,
 			ID:              int64(object.ID),
@@ -199,12 +220,6 @@ func getErrorQueryImplDeprecated(tableName string, selectColumns string, query m
 
 	return sql, args, nil
 }
-
-// func (client *Client) ReadErrorGroups(ctx context.Context, projectID int, params modelInputs.QueryInput, pagination Pagination) (*modelInputs.ErrorGroupConnection, error) {
-// 	scanErrorGroup := func(rows driver.Rows) (*Edge[modelInputs.Log], error) {
-
-// 	}
-// }
 
 // TODO(spenny): update with correct param logic
 func getErrorQueryImpl(tableName string, selectColumns string, params modelInputs.QueryInput, projectId int, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
