@@ -87,6 +87,7 @@ jobs:
                   REACT_APP_COMMIT_SHA: abcdef1234567890a1b2c3d4e5f6fedcba098765
 
             - name: Add public IP to AWS security group
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               uses: sohelamin/aws-security-group-add-ip-action@master
               with:
                   aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
