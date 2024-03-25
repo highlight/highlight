@@ -1,5 +1,17 @@
 # highlight.run
 
+## 8.10.0
+
+### Minor Changes
+
+-   112fa2ced: Fix bug with recording traces.
+
+## 8.9.1
+
+### Patch Changes
+
+-   3528f2de7: support sonner by disabling promise monkeypatching
+
 ## 8.9.0
 
 ### Minor Changes

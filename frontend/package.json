@@ -68,6 +68,7 @@
 		"recharts": "^2.12.1",
 		"rrweb": "workspace:*",
 		"rudder-sdk-js": "2.20.0",
+		"sonner": "^1.4.3",
 		"subscriptions-transport-ws": "^0.11.0",
 		"use-query-params": "^2.2.0",
 		"validator": "13.7.0",

@@ -11948,6 +11948,7 @@ enum ReservedSessionKey {
 	browser_name
 	browser_version
 	processed
+	has_comments
 	has_rage_clicks
 	has_errors
 	length

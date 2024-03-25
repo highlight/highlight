@@ -1,3 +1,6 @@
+import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
+
 import { ErrorPanel } from '@/components/RelatedResources/ErrorPanel'
 import {
 	RelatedResource,
@@ -6,12 +9,28 @@ import {
 import { Panel } from '@/components/RelatedResources/Panel'
 import { SessionPanel } from '@/components/RelatedResources/SessionPanel'
 import { TracePanel } from '@/components/RelatedResources/TracePanel'
+import { useNumericProjectId } from '@/hooks/useProjectId'
+import { TraceProvider } from '@/pages/Traces/TraceProvider'
+import analytics from '@/util/analytics'
 
 type Props = React.PropsWithChildren & {}
 export type ResourcePanelProps = { resource: RelatedResource }
 
 export const RelatedResourcePanel: React.FC<Props> = ({}) => {
 	const { resource } = useRelatedResource()
+	const { projectId } = useNumericProjectId()
+	const location = useLocation()
+
+	useEffect(() => {
+		if (!resource) {
+			return
+		}
+
+		analytics.track('related-resource-panel_view', {
+			panelResourceType: resource.type.toLocaleLowerCase(),
+			pageResourceType: location.pathname.split('/')[2],
+		})
+	}, [location.pathname, resource])
 
 	return (
 		<Panel open={!!resource}>
@@ -22,7 +41,13 @@ export const RelatedResourcePanel: React.FC<Props> = ({}) => {
 				<ErrorPanel resource={resource} />
 			)}
 			{resource && resource.type === 'trace' && (
-				<TracePanel resource={resource} />
+				<TraceProvider
+					projectId={projectId!}
+					traceId={resource.id}
+					spanId={resource.spanID}
+				>
+					<TracePanel resource={resource} />
+				</TraceProvider>
 			)}
 		</Panel>
 	)

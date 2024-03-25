@@ -1,6 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
+import { useQueryParam } from 'use-query-params'
 
-import JsonViewer from '@/components/JsonViewer/JsonViewer'
+import { JsonViewerV2 } from '@/components/JsonViewer/JsonViewerV2'
+import { findMatchingAttributes } from '@/components/JsonViewer/utils'
+import { QueryParam } from '@/components/Search/SearchForm/SearchForm'
+import { parseSearch } from '@/components/Search/utils'
 import {
 	FlameGraphSpan,
 	formatDateWithNanoseconds,
@@ -13,59 +17,44 @@ type Props = {
 }
 
 export const TraceSpanAttributes: React.FC<Props> = ({ span }) => {
-	let attributes: { [key: string]: any } = { ...span }
+	const [query] = useQueryParam('query', QueryParam)
+	const queryParts = useMemo(() => parseSearch(query).queryParts, [query])
+	const attributes: { [key: string]: any } = { ...span }
 
-	// Drop any attributes we don't want to display
-	delete attributes.__typename
-	delete attributes.children
-	delete (attributes as any).projectID
+	const formattedSpan = cleanAttributes({
+		timestamp: formatDateWithNanoseconds(attributes.timestamp),
+		parent_span_id: attributes.parentSpanID,
+		secure_session_id: attributes.secureSessionID,
+		span_name: attributes.spanName,
+		duration: humanizeDuration(attributes.duration),
+		service_name: attributes.serviceName,
+		service_version: attributes.serviceVersion,
+		environment: attributes.environment,
+		start_time: attributes.startTime,
+		...attributes.traceAttributes,
+		trace_id: attributes.traceID,
+		span_id: attributes.spanID,
+		span_kind: attributes.spanKind,
+		status_code: attributes.statusCode,
+		host: attributes.host,
+		os: attributes.os,
+		process: attributes.process,
+	})
 
-	// Convert timestamp to a formatted date/time
-	if (attributes.timestamp) {
-		attributes.timestamp = formatDateWithNanoseconds(attributes.timestamp)
-	}
-
-	// Move properties of traceAttributes to the top level
-	if (attributes.traceAttributes) {
-		attributes = { ...attributes, ...attributes.traceAttributes }
-		delete attributes.traceAttributes
-	}
-
-	// Move these attributes down to the bottom of the list
-	const traceID = attributes.traceID
-	const spanID = attributes.spanID
-	const spanKind = attributes.spanKind
-	const statusCode = attributes.statusCode
-	const host = attributes.host
-	const os = attributes.os
-	const process = attributes.process
-	delete attributes.traceID
-	delete attributes.spanID
-	delete attributes.spanKind
-	delete attributes.statusCode
-	delete attributes.host
-	delete attributes.os
-	delete attributes.process
-	attributes.traceID = traceID
-	attributes.spanID = spanID
-	attributes.spanKind = spanKind
-	attributes.statusCode = statusCode
-	attributes.host = host
-	attributes.os = os
-	attributes.process = process
-
-	// Display duration as the appropriate unit: min, s, ms, us, ns
-	if (attributes.duration) {
-		attributes.duration = humanizeDuration(attributes.duration)
-	}
-
-	attributes = cleanAttributes(attributes)
+	const matchedAttributes = findMatchingAttributes(queryParts, formattedSpan)
 
 	useEffect(() => {
 		analytics.track('trace_span-attributes_view')
-	}, [spanID])
+	}, [span.spanID])
 
-	return <JsonViewer src={attributes} collapsed={false} />
+	return (
+		<JsonViewerV2
+			allExpanded
+			attribute={formattedSpan}
+			matchedAttributes={matchedAttributes}
+			queryParts={queryParts}
+		/>
+	)
 }
 
 const cleanAttributes = (attributes: any): any => {

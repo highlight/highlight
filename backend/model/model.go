@@ -717,6 +717,7 @@ type Session struct {
 	HasUnloaded bool `gorm:"default:false"`
 	// Tells us if the session has been parsed by a worker.
 	Processed           *bool `json:"processed"`
+	HasComments         bool  `json:"has_comments" gorm:"default:false"`
 	HasRageClicks       *bool `json:"has_rage_clicks"`
 	HasErrors           *bool `json:"has_errors"`
 	HasOutOfOrderEvents bool  `gorm:"default:false"`
