@@ -3,7 +3,7 @@ import { serialRender } from './serial'
 import { readFileSync } from 'fs'
 import { encodeGIF } from './ffmpeg'
 import { getRenderExport, uploadRenderExport } from './s3'
-import { getLongestSession, getSessionSecureID } from './pg'
+import { getSessionSecureID } from './pg'
 
 interface Args {
 	project?: string
