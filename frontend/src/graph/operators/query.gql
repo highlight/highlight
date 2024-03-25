@@ -1012,6 +1012,7 @@ query GetBillingDetails($workspace_id: ID!) {
 		sessionsBillingLimit
 		errorsBillingLimit
 		logsBillingLimit
+		tracesBillingLimit
 		sessionsDailyAverage
 		errorsDailyAverage
 		logsDailyAverage
