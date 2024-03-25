@@ -50,25 +50,27 @@ const PricingPage: NextPage = () => {
 						</span>{' '}
 						you need today.
 					</h1>
-					<Typography type="copy1" className="my-5 text-copy-on-dark">
+					<Typography type="copy1" className="my-4 text-copy-on-dark">
 						Fair and transparent pricing that scales with any
 						organization.
 					</Typography>
 				</div>
 				<PlanTable setEstimatorCategory={setEstimatorCategory} />
 			</div>
-			<div className="text-center my-16 px-16" id="overage">
-				<h2>Estimate your bill</h2>
-				<Typography type="copy1" className="my-10 text-copy-on-dark">
-					Each of our plans comes with a pre-defined usage quota, and
-					if you exceed that quota, we charge an additional fee. For
-					custom plans,{' '}
-					<span className="inline-block">
-						<CalendlyModal className="underline">
-							reach out to us.
-						</CalendlyModal>
-					</span>
-				</Typography>
+			<div className="flex justify-center my-16" id="overage">
+				<div className="text-center max-w-[950px]">
+					<h2 className="mb-4">Estimate your bill</h2>
+					<Typography type="copy1" className="text-copy-on-dark">
+						Each of our plans comes with a pre-defined usage quota,
+						and if you exceed that quota, we charge an additional
+						fee. For custom plans,{' '}
+						<span className="inline-block">
+							<CalendlyModal className="underline">
+								reach out to us.
+							</CalendlyModal>
+						</span>
+					</Typography>
+				</div>
 			</div>
 			<div className="my-16">
 				<PriceCalculator
