@@ -115,7 +115,7 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 										fetchMoreWhenScrolled={
 											fetchMoreWhenScrolled
 										}
-										bodyHeight="400px"
+										bodyHeight="100%"
 									/>
 								)}
 							</Box>
