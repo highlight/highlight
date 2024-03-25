@@ -95,7 +95,7 @@ const Navbar = ({
 			{!hideBanner && (
 				<Link
 					href="/startups"
-					className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+					className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90 z-[100]"
 				>
 					<Typography type="copy3">
 						Got a startup? Apply for free Highlight credits!
