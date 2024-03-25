@@ -5,17 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/parser/listener"
 
 	"github.com/samber/lo"
 
-	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/huandu/go-sqlbuilder"
 	"github.com/openlyinc/pointy"
 	"golang.org/x/sync/errgroup"
 )
@@ -105,6 +104,12 @@ type ClickhouseField struct {
 	SessionCreatedAt int64
 	SessionID        int64
 	Value            string
+}
+
+// These keys show up as recommendations, but with no recommended values due to high cardinality
+var defaultSessionsKeys = []*modelInputs.QueryKey{
+	{Name: string(modelInputs.ReservedSessionKeyDuration), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedSessionKeyActiveLength), Type: modelInputs.KeyTypeNumeric},
 }
 
 const SessionsTable = "sessions"
@@ -497,7 +502,22 @@ func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, pa
 }
 
 func (client *Client) SessionsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, SessionKeysTable, projectID, startDate, endDate, query, typeArg)
+	sessionKeys, err := KeysAggregated(ctx, client, SessionKeysTable, projectID, startDate, endDate, query, typeArg)
+	if err != nil {
+		return nil, err
+	}
+
+	if query == nil || *query == "" {
+		sessionKeys = append(sessionKeys, defaultSessionsKeys...)
+	} else {
+		for _, key := range defaultSessionsKeys {
+			if strings.Contains(key.Name, *query) {
+				sessionKeys = append(sessionKeys, key)
+			}
+		}
+	}
+
+	return sessionKeys, nil
 }
 
 func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId int, sessionSecureId string, metricNames []string) ([]*model.Metric, error) {
