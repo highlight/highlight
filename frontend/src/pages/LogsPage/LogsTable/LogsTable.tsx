@@ -41,10 +41,10 @@ import {
 	ColumnHeader,
 	CustomColumnHeader,
 } from '@/components/CustomColumnHeader'
+import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { parseSearch } from '@/components/Search/utils'
 import { LogEdge, ProductType } from '@/graph/generated/schemas'
-import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 import analytics from '@/util/analytics'
 
 import { LogDetails } from './LogDetails'
@@ -410,7 +410,7 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 			const log = row.original.node
 			const rowExpanded = row.getIsExpanded()
 
-			const matchedAttributes = findMatchingLogAttributes(queryParts, {
+			const matchedAttributes = findMatchingAttributes(queryParts, {
 				...log.logAttributes,
 				environment: log.environment,
 				level: log.level,

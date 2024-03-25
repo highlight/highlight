@@ -330,26 +330,29 @@ func GetWorkspaceSessionsMeter(ctx context.Context, DB *gorm.DB, ccClient *click
 
 	var meter int64
 	if err := DB.WithContext(ctx).Raw(`
-		WITH materialized_rows AS (
+		WITH billing_start AS (
+			SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
+			FROM workspaces
+			WHERE id=@workspace_id
+		),
+		billing_end AS (
+			SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
+			FROM workspaces
+			WHERE id=@workspace_id
+		),
+		materialized_rows AS (
 			SELECT count, date
 			FROM daily_session_counts_view
 			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=@workspace_id)
-			AND date >= (
-				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
-				FROM workspaces
-				WHERE id=@workspace_id)
-			AND date < (
-				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
-				FROM workspaces
-				WHERE id=@workspace_id))
+			AND date >= (SELECT * FROM billing_start)
+			AND date < (SELECT * FROM billing_end)
+		),
+		start_date as (SELECT COALESCE(MAX(date), (SELECT * from billing_start)) FROM materialized_rows)
 		SELECT SUM(count) as currentPeriodSessionCount from (
 			SELECT COUNT(*) FROM sessions
 			WHERE project_id IN (SELECT id FROM projects WHERE workspace_id=@workspace_id)
-			AND created_at >= (SELECT MAX(date) FROM materialized_rows)
-			AND created_at < (
-			SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
-			FROM workspaces
-			WHERE id=@workspace_id)
+			AND created_at >= (SELECT * FROM start_date)
+			AND created_at < (SELECT * FROM billing_end)
 			AND excluded <> true
 			AND within_billing_quota
 			AND (active_length >= 1000 OR (active_length is null and length >= 1000))
@@ -385,26 +388,29 @@ func GetWorkspaceErrorsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickho
 
 	var meter int64
 	if err := DB.WithContext(ctx).Raw(`
-		WITH materialized_rows AS (
+		WITH billing_start AS (
+			SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
+			FROM workspaces
+			WHERE id=@workspace_id
+		),
+		billing_end AS (
+			SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
+			FROM workspaces
+			WHERE id=@workspace_id
+		),
+		materialized_rows AS (
 			SELECT count, date
 			FROM daily_error_counts_view
 			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=@workspace_id)
-			AND date >= (
-				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
-				FROM workspaces
-				WHERE id=@workspace_id)
-			AND date < (
-				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
-				FROM workspaces
-				WHERE id=@workspace_id))
-		SELECT SUM(count) as currentPeriodErrorsCount from (
+			AND date >= (SELECT * FROM billing_start)
+			AND date < (SELECT * FROM billing_end)
+		),
+		start_date as (SELECT COALESCE(MAX(date), (SELECT * from billing_start)) FROM materialized_rows)
+		SELECT SUM(count) as currentPeriodErrorCount from (
 			SELECT COUNT(*) FROM error_objects
 			WHERE project_id IN (SELECT id FROM projects WHERE workspace_id=@workspace_id)
-			AND created_at >= (SELECT MAX(date) FROM materialized_rows)
-			AND created_at < (
-				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
-				FROM workspaces
-				WHERE id=@workspace_id)
+			AND created_at >= (SELECT * FROM start_date)
+			AND created_at < (SELECT * FROM billing_end)
 			UNION ALL SELECT COALESCE(SUM(count), 0) FROM materialized_rows
 			WHERE date < (SELECT MAX(date) FROM materialized_rows)
 		) a`, sql.Named("workspace_id", workspace.ID)).

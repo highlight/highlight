@@ -1,4 +1,4 @@
-import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
+import { findMatchingAttributes } from './utils'
 
 describe('findMatchingLogAttributes', () => {
 	const logAttributes = {
@@ -68,7 +68,7 @@ describe('findMatchingLogAttributes', () => {
 				stop: 39,
 			},
 		]
-		const matchingAttributes = findMatchingLogAttributes(
+		const matchingAttributes = findMatchingAttributes(
 			queryParts,
 			logAttributes,
 		)
@@ -88,7 +88,7 @@ describe('findMatchingLogAttributes', () => {
 	})
 
 	it('returns an empty object if there are no log attributes', () => {
-		const matchingAttributes = findMatchingLogAttributes([], logAttributes)
+		const matchingAttributes = findMatchingAttributes([], logAttributes)
 		expect(matchingAttributes).toEqual({})
 	})
 })

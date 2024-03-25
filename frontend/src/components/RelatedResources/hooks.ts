@@ -15,6 +15,7 @@ export type RelatedSession = {
 export type RelatedTrace = {
 	type: 'trace'
 	id: string
+	spanID?: string
 }
 export type RelatedResource = RelatedError | RelatedSession | RelatedTrace
 
