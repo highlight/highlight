@@ -5099,7 +5099,7 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 		return nil, err
 	}
 
-	ids, total, err := r.ClickhouseClient.QueryErrorGroupIds(ctx, project.ID, count, query, page)
+	ids, total, err := r.ClickhouseClient.QueryErrorGroupIdsDeprecated(ctx, project.ID, count, query, page)
 	if err != nil {
 		return nil, err
 	}
@@ -5138,7 +5138,7 @@ func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID
 		return nil, err
 	}
 
-	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogram(ctx, project.ID, query, histogramOptions)
+	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogramDeprecated(ctx, project.ID, query, histogramOptions)
 	if err != nil {
 		return nil, err
 	}
