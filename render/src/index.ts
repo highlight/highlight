@@ -86,18 +86,12 @@ export const handler = (event?: APIGatewayEvent) => {
 }
 
 if (process.env.DEV?.length) {
-	process.env.PSQL_HOST = 'localhost'
-	process.env.PSQL_PORT = '5432'
-	process.env.PSQL_DB = 'postgres'
-	process.env.PSQL_USER = 'postgres'
-	process.env.PSQL_PASSWORD = 'default'
-	const session = await getLongestSession()
 	await Promise.all([
 		handler({
 			queryStringParameters: {
 				format: 'video/mp4',
-				project: session?.project_id ?? '1',
-				session: session?.id ?? '30000001',
+				project: '1',
+				session: '617599894',
 			},
 		} as unknown as APIGatewayEvent),
 	])

@@ -252,12 +252,6 @@ jobs:
                   # run cypress tests
                   yarn cy:run;
 
-                  # run session screenshot lambda locally
-                  if [[ "$RUN_SESSION_SCREENSHOT_LAMBDA" == "true" ]]; then
-                    yarn workspace render build
-                    yarn workspace render test:screenshots
-                  fi
-
                   # look for containers that crashed
                   num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)
                   if [ "$num_crashed" -gt 0 ]; then
