@@ -154,12 +154,12 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 	return (
 		<Box id="error-instance-container">
-			<Stack direction="row" my="12">
-				<Stack direction="row" flexGrow={1}>
+			<Stack direction="row" my="12" alignItems="center">
+				<Stack direction="row" flexGrow={1} alignItems="center">
 					<SeeAllInstances data={data} />
 					<PreviousNextInstance data={data} />
 				</Stack>
-				<Stack direction="row" gap="4">
+				<Stack direction="row" gap="4" alignItems="center">
 					<RelatedSession data={data} />
 					<RelatedLogs data={data} />
 					<RelatedTrace data={data} />

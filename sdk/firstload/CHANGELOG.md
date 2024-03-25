@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.10.0
+
+### Minor Changes
+
+-   112fa2ced: Fix bug with recording traces.
+
 ## 8.9.1
 
 ### Patch Changes
