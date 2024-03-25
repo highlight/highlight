@@ -1,4 +1,5 @@
 import { Box } from '@highlight-run/ui/components'
+import { stringify } from 'query-string'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
@@ -62,13 +63,14 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 				end_date: endDate,
 			},
 		)
+		const search = stringify(encodedQuery)
 
 		return resource.logCursor
-			? `/${projectId}/logs/${resource.logCursor}?${encodedQuery}`
-			: `/${projectId}/logs?${encodedQuery}`
+			? `/${projectId}/logs/${resource.logCursor}?${search}`
+			: `/${projectId}/logs?${search}`
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [projectId, resource.logCursor])
+	}, [projectId, query, resource.logCursor])
 
 	useEffect(() => {
 		setQuery(resource.query)
