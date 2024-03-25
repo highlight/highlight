@@ -115,10 +115,11 @@ const PlayerPage = () => {
 
 	const {
 		setShowLeftPanel,
+		setEnableInspectElement,
 		showLeftPanel: showLeftPanelPreference,
 		showRightPanel: showRightPanelPreference,
 	} = usePlayerConfiguration()
-	const { rightPanelView } = usePlayerUIContext()
+	const { rightPanelView, setRightPanelView } = usePlayerUIContext()
 	const showRightPanel =
 		showRightPanelPreference || rightPanelView === RightPanelView.Comments
 
@@ -144,8 +145,17 @@ const PlayerPage = () => {
 	useEffect(() => {
 		if (!session_secure_id) {
 			setShowLeftPanel(true)
+		} else {
+			// Reset to the session view + inspect mode when selecting a new session.
+			setRightPanelView(RightPanelView.Session)
+			setEnableInspectElement(true)
 		}
-	}, [session_secure_id, setShowLeftPanel])
+	}, [
+		session_secure_id,
+		setEnableInspectElement,
+		setRightPanelView,
+		setShowLeftPanel,
+	])
 
 	const resizePlayer = useCallback(
 		(replayer: Replayer): boolean => {
