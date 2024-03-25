@@ -12220,10 +12220,10 @@ type ErrorGroup {
 }
 
 type ErrorClickhouse {
-	id: Int64!
-	project_id: Int32!
-	timestamp: Int64!
-	error_group_id: Int64!
+	id: Int!
+	project_id: Int!
+	timestamp: Timestamp!
+	error_group_id: Int!
 	browser: String!
 	environment: String!
 	os_name: String!
@@ -12235,7 +12235,7 @@ type ErrorClickhouse {
 	event: String!
 	status: String!
 	type: String!
-	error_tag_id: Int64
+	error_tag_id: Int
 	error_tag_title: String
 	error_tag_description: String
 }
@@ -30086,9 +30086,9 @@ func (ec *executionContext) _ErrorClickhouse_id(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNInt642int64(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ErrorClickhouse_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -30098,7 +30098,7 @@ func (ec *executionContext) fieldContext_ErrorClickhouse_id(ctx context.Context,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int64 does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -30130,9 +30130,9 @@ func (ec *executionContext) _ErrorClickhouse_project_id(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int32)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNInt322int32(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ErrorClickhouse_project_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -30142,7 +30142,7 @@ func (ec *executionContext) fieldContext_ErrorClickhouse_project_id(ctx context.
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int32 does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -30174,9 +30174,9 @@ func (ec *executionContext) _ErrorClickhouse_timestamp(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNInt642int64(ctx, field.Selections, res)
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ErrorClickhouse_timestamp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -30186,7 +30186,7 @@ func (ec *executionContext) fieldContext_ErrorClickhouse_timestamp(ctx context.C
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int64 does not have child fields")
+			return nil, errors.New("field of type Timestamp does not have child fields")
 		},
 	}
 	return fc, nil
@@ -30218,9 +30218,9 @@ func (ec *executionContext) _ErrorClickhouse_error_group_id(ctx context.Context,
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNInt642int64(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ErrorClickhouse_error_group_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -30230,7 +30230,7 @@ func (ec *executionContext) fieldContext_ErrorClickhouse_error_group_id(ctx cont
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int64 does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -30743,9 +30743,9 @@ func (ec *executionContext) _ErrorClickhouse_error_tag_id(ctx context.Context, f
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*int64)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ErrorClickhouse_error_tag_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -30755,7 +30755,7 @@ func (ec *executionContext) fieldContext_ErrorClickhouse_error_tag_id(ctx contex
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int64 does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil

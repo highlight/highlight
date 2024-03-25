@@ -447,19 +447,19 @@ export type ErrorClickhouse = {
 	browser: Scalars['String']
 	client_id: Scalars['String']
 	environment: Scalars['String']
-	error_group_id: Scalars['Int64']
+	error_group_id: Scalars['Int']
 	error_tag_description?: Maybe<Scalars['String']>
-	error_tag_id?: Maybe<Scalars['Int64']>
+	error_tag_id?: Maybe<Scalars['Int']>
 	error_tag_title?: Maybe<Scalars['String']>
 	event: Scalars['String']
 	has_session: Scalars['Boolean']
-	id: Scalars['Int64']
+	id: Scalars['Int']
 	os_name: Scalars['String']
-	project_id: Scalars['Int32']
+	project_id: Scalars['Int']
 	service_name: Scalars['String']
 	service_version: Scalars['String']
 	status: Scalars['String']
-	timestamp: Scalars['Int64']
+	timestamp: Scalars['Timestamp']
 	type: Scalars['String']
 	visited_url: Scalars['String']
 }

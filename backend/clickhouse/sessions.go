@@ -295,10 +295,6 @@ func GetSessionsQueryImplDeprecated(admin *model.Admin, query modelInputs.Clickh
 	return sql, args, useRandomSample, nil
 }
 
-// func (client *Client) ReadSessions(ctx context.Context, projectID int, params modelInputs.QueryInput, pagination Pagination) (*modelInputs.LogConnection, error) {
-
-// }
-
 // TODO(spenny): update with correct param logic
 func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
 	rules := make([]Rule, 0)
@@ -711,4 +707,54 @@ func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyN
 
 func (client *Client) GetConn() driver.Conn {
 	return client.conn
+}
+
+func (client *Client) ReadSessions(ctx context.Context, projectID int, params modelInputs.QueryInput, pagination Pagination) (*modelInputs.SessionConnection, error) {
+	scanErrorGroup := func(rows driver.Rows) (*Edge[modelInputs.SessionClickhouse], error) {
+		var result ClickhouseSessionRow
+		if err := rows.ScanStruct(&result); err != nil {
+			return nil, err
+		}
+
+		return &Edge[modelInputs.SessionClickhouse]{
+			Cursor: encodeCursor(result.CreatedAt, result.SecureID),
+			Node: &modelInputs.SessionClickhouse{
+				ID:                 result.ID,
+				CreatedAt:          result.CreatedAt,
+				UpdatedAt:          result.UpdatedAt,
+				SecureID:           result.SecureID,
+				Identified:         result.Identified,
+				Fingerprint:        result.Fingerprint,
+				Identifier:         result.Identifier,
+				ProjectID:          result.ProjectID,
+				City:               result.City,
+				Country:            result.Country,
+				OsName:             result.OSName,
+				OsVersion:          result.OSVersion,
+				BrowserName:        result.BrowserName,
+				BrowserVersion:     result.BrowserVersion,
+				Processed:          result.Processed,
+				HasRageClicks:      result.HasRageClicks,
+				HasErrors:          result.HasErrors,
+				HasComments:        result.HasComments,
+				Length:             result.Length,
+				ActiveLength:       result.ActiveLength,
+				FieldKeys:          result.FieldKeys,
+				FieldValues:        result.FieldKeys,
+				Environment:        result.Environment,
+				AppVersion:         result.AppVersion,
+				FirstTime:          result.FirstTime,
+				Viewed:             result.Viewed,
+				WithinBillingQuota: result.WithinBillingQuota,
+				EventCounts:        result.EventCounts,
+				PagesVisited:       result.PagesVisited,
+				Excluded:           result.Excluded,
+				ViewedByAdmins:     result.ViewedByAdmins,
+				Normalness:         result.Normalness,
+				IP:                 result.IP,
+			},
+		}, nil
+	}
+
+	conn, err := readObjects(ctx, client, errorsJoinedTableConfig, projectID, params, pagination, scanErrorGroup)
 }

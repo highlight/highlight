@@ -290,24 +290,24 @@ type EnhancedUserDetailsResult struct {
 }
 
 type ErrorClickhouse struct {
-	ID                  int64   `json:"id"`
-	ProjectID           int32   `json:"project_id"`
-	Timestamp           int64   `json:"timestamp"`
-	ErrorGroupID        int64   `json:"error_group_id"`
-	Browser             string  `json:"browser"`
-	Environment         string  `json:"environment"`
-	OsName              string  `json:"os_name"`
-	VisitedURL          string  `json:"visited_url"`
-	ServiceName         string  `json:"service_name"`
-	ServiceVersion      string  `json:"service_version"`
-	ClientID            string  `json:"client_id"`
-	HasSession          bool    `json:"has_session"`
-	Event               string  `json:"event"`
-	Status              string  `json:"status"`
-	Type                string  `json:"type"`
-	ErrorTagID          *int64  `json:"error_tag_id,omitempty"`
-	ErrorTagTitle       *string `json:"error_tag_title,omitempty"`
-	ErrorTagDescription *string `json:"error_tag_description,omitempty"`
+	ID                  int       `json:"id"`
+	ProjectID           int       `json:"project_id"`
+	Timestamp           time.Time `json:"timestamp"`
+	ErrorGroupID        int       `json:"error_group_id"`
+	Browser             string    `json:"browser"`
+	Environment         string    `json:"environment"`
+	OsName              string    `json:"os_name"`
+	VisitedURL          string    `json:"visited_url"`
+	ServiceName         string    `json:"service_name"`
+	ServiceVersion      string    `json:"service_version"`
+	ClientID            string    `json:"client_id"`
+	HasSession          bool      `json:"has_session"`
+	Event               string    `json:"event"`
+	Status              string    `json:"status"`
+	Type                string    `json:"type"`
+	ErrorTagID          *int      `json:"error_tag_id,omitempty"`
+	ErrorTagTitle       *string   `json:"error_tag_title,omitempty"`
+	ErrorTagDescription *string   `json:"error_tag_description,omitempty"`
 }
 
 type ErrorConnection struct {

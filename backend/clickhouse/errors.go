@@ -4,11 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/parser/listener"
+	"github.com/highlight-run/highlight/backend/util"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -199,42 +203,6 @@ func getErrorQueryImplDeprecated(tableName string, selectColumns string, query m
 	rules = append(rules, timeRangeRule)
 
 	sb, err := parseErrorRules(tableName, selectColumns, query.IsAnd, rules, projectId, start, end)
-	if err != nil {
-		return "", nil, err
-	}
-
-	if groupBy != nil {
-		sb.GroupBy(*groupBy)
-	}
-	if orderBy != nil {
-		sb.OrderBy(*orderBy)
-	}
-	if limit != nil {
-		sb.Limit(*limit)
-	}
-	if offset != nil {
-		sb.Offset(*offset)
-	}
-
-	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	return sql, args, nil
-}
-
-// TODO(spenny): update with correct param logic
-func getErrorQueryImpl(tableName string, selectColumns string, params modelInputs.QueryInput, projectId int, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
-	rules := make([]Rule, 0)
-
-	end := params.DateRange.EndDate.UTC()
-	start := params.DateRange.StartDate.UTC()
-	timeRangeRule := Rule{
-		Field: errorsTimeRangeField,
-		Op:    BetweenDate,
-		Val:   []string{fmt.Sprintf("%s_%s", start.Format(timeFormat), end.Format(timeFormat))},
-	}
-	rules = append(rules, timeRangeRule)
-
-	sb, err := parseErrorRules(tableName, selectColumns, true, rules, projectId, start, end)
 	if err != nil {
 		return "", nil, err
 	}
@@ -747,4 +715,174 @@ func (client *Client) ErrorsKeyValues(ctx context.Context, projectID int, keyNam
 	}
 
 	return client.QueryErrorFieldValues(ctx, projectID, 10, tableName, keyName, "", startDate, endDate)
+}
+
+func (client *Client) ReadErrorGroups(ctx context.Context, projectID int, params modelInputs.QueryInput, pagination Pagination) (*modelInputs.ErrorConnection, error) {
+	scanErrorGroup := func(rows driver.Rows) (*Edge[modelInputs.ErrorClickhouse], error) {
+		var result ClickhouseErrorJoinedRow
+		if err := rows.ScanStruct(&result); err != nil {
+			return nil, err
+		}
+
+		return &Edge[modelInputs.ErrorClickhouse]{
+			Cursor: encodeCursor(result.Timestamp, string(result.ID)),
+			Node: &modelInputs.ErrorClickhouse{
+				ID:                  int(result.ID),
+				ProjectID:           int(result.ProjectID),
+				Timestamp:           result.Timestamp,
+				ErrorGroupID:        int(result.ErrorGroupID),
+				Browser:             result.Browser,
+				Environment:         result.Environment,
+				OsName:              result.OSName,
+				VisitedURL:          result.VisitedURL,
+				ServiceName:         result.ServiceName,
+				ServiceVersion:      result.ServiceVersion,
+				ClientID:            result.ClientID,
+				HasSession:          result.HasSession,
+				Event:               result.Event,
+				Status:              result.Status,
+				Type:                result.Type,
+				ErrorTagID:          ptr.Int(int(result.ErrorTagID)),
+				ErrorTagTitle:       &result.ErrorTagTitle,
+				ErrorTagDescription: &result.ErrorTagDescription,
+			},
+		}, nil
+	}
+
+	sb := sqlbuilder.NewSelectBuilder()
+	var err error
+	var args []interface{}
+
+	orderForward := OrderForwardNatural
+	orderBackward := OrderBackwardNatural
+	if pagination.Direction == modelInputs.SortDirectionAsc {
+		orderForward = OrderForwardInverted
+		orderBackward = OrderBackwardInverted
+	}
+
+	outerSelect := strings.Join(config.SelectColumns, ", ")
+	innerSelect := []string{"Timestamp", "UUID"}
+	if pagination.At != nil && len(*pagination.At) > 1 {
+		// Create a "window" around the cursor
+		// https://stackoverflow.com/a/71738696
+		beforeSb, err := makeSelectBuilder(
+			config,
+			innerSelect,
+			projectID,
+			params,
+			Pagination{
+				Before: pagination.At,
+			},
+			orderBackward,
+			orderForward)
+		if err != nil {
+			return nil, err
+		}
+		beforeSb.Distinct().Limit(LogsLimit/2 + 1)
+
+		atSb, err := makeSelectBuilder(
+			config,
+			innerSelect,
+			projectID,
+			params,
+			Pagination{
+				At: pagination.At,
+			},
+			orderBackward,
+			orderForward)
+		if err != nil {
+			return nil, err
+		}
+		atSb.Distinct()
+
+		afterSb, err := makeSelectBuilder(
+			config,
+			innerSelect,
+			projectID,
+			params,
+			Pagination{
+				After: pagination.At,
+			},
+			orderBackward,
+			orderForward)
+		if err != nil {
+			return nil, err
+		}
+		afterSb.Distinct().Limit(LogsLimit/2 + 1)
+
+		ub := sqlbuilder.UnionAll(beforeSb, atSb, afterSb)
+		sb.Select(outerSelect).
+			Distinct().
+			From(config.TableName).
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.In(fmt.Sprintf("(%s)", strings.Join(innerSelect, ",")), ub)).
+			OrderBy(orderForward)
+	} else {
+		fromSb, err := makeSelectBuilder(
+			config,
+			innerSelect,
+			projectID,
+			params,
+			pagination,
+			orderBackward,
+			orderForward)
+		if err != nil {
+			return nil, err
+		}
+
+		fromSb.Distinct().Limit(LogsLimit + 1)
+		sb.Select(outerSelect).
+			Distinct().
+			From(config.TableName).
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.In(fmt.Sprintf("(%s)", strings.Join(innerSelect, ",")), fromSb)).
+			OrderBy(orderForward).
+			Limit(LogsLimit + 1)
+	}
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	span, _ := util.StartSpanFromContext(ctx, "clickhouse.ErrorObjectQuery")
+	span.SetAttribute("Table", config.TableName)
+	span.SetAttribute("Query", sql)
+	span.SetAttribute("Params", params)
+	span.SetAttribute("db.system", "clickhouse")
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+
+	if err != nil {
+		span.Finish(err)
+		return nil, err
+	}
+
+	edges := []*Edge[TObj]{}
+
+	for rows.Next() {
+		edge, err := scanObject(rows)
+		if err != nil {
+			return nil, err
+		}
+
+		edges = append(edges, edge)
+	}
+	rows.Close()
+
+	span.Finish(rows.Err())
+	conn, err := getConnection(edges, pagination), nil
+	if err != nil {
+		return nil, err
+	}
+
+	mappedEdges := []*modelInputs.ErrorEdge{}
+	for _, edge := range conn.Edges {
+		mappedEdges = append(mappedEdges, &modelInputs.ErrorEdge{
+			Cursor: edge.Cursor,
+			Node:   edge.Node,
+		})
+	}
+
+	return &modelInputs.ErrorConnection{
+		Edges:    mappedEdges,
+		PageInfo: conn.PageInfo,
+	}, nil
 }

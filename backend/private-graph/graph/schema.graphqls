@@ -738,10 +738,10 @@ type ErrorGroup {
 }
 
 type ErrorClickhouse {
-	id: Int64!
-	project_id: Int32!
-	timestamp: Int64!
-	error_group_id: Int64!
+	id: Int!
+	project_id: Int!
+	timestamp: Timestamp!
+	error_group_id: Int!
 	browser: String!
 	environment: String!
 	os_name: String!
@@ -753,7 +753,7 @@ type ErrorClickhouse {
 	event: String!
 	status: String!
 	type: String!
-	error_tag_id: Int64
+	error_tag_id: Int
 	error_tag_title: String
 	error_tag_description: String
 }
