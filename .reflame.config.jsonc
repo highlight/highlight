@@ -336,6 +336,7 @@
     "@highlight-run/client": {
       "sourceDirectory": "sdk/client/src",
       "exports": {
+        "./": "./index.tsx",
         "./src/listeners/first-load-listeners": "./listeners/first-load-listeners.tsx",
         "./src/listeners/first-load-listeners.js": "./listeners/first-load-listeners.tsx",
         "./src/listeners/network-listener/utils/utils": "./listeners/network-listener/utils/utils.ts",
@@ -348,7 +349,11 @@
         "./src/utils/storage.js": "./utils/storage.ts",
       },
       "nodejsCompatibility": {
-        "packageJson": true,
+        "packageJson": {
+          "exportsDetection": {
+            "ignoreTopLevelDirectory": true
+          }
+        }
       },
       "specifierTransforms": {
         "/publicGraphURI.ts": "consts:publicGraphURI",
