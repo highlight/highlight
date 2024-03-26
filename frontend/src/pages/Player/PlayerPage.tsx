@@ -118,6 +118,7 @@ const PlayerPage = () => {
 		showLeftPanel: showLeftPanelPreference,
 		showRightPanel: showRightPanelPreference,
 	} = usePlayerConfiguration()
+	console.log('::: showLeftPanelPreference', showLeftPanelPreference)
 	const { rightPanelView } = usePlayerUIContext()
 	const showRightPanel =
 		showRightPanelPreference || rightPanelView === RightPanelView.Comments
