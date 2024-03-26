@@ -1,12 +1,14 @@
 import { BufferConfig, ReadableSpan, Span } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
-import type {
+import {
 	Attributes,
-	Tracer,
+	context,
+	propagation,
 	Span as OtelSpan,
 	SpanOptions,
+	trace,
+	Tracer,
 } from '@opentelemetry/api'
-import { trace } from '@opentelemetry/api'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
 import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
@@ -14,6 +16,8 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import { W3CBaggagePropagator } from '@opentelemetry/core'
+import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
 import type { IncomingHttpHeaders } from 'http'
 
 import { clearInterval } from 'timers'
@@ -202,12 +206,16 @@ export class Highlight {
 			}
 		}
 
+		const contextManager = new AsyncHooksContextManager()
+		contextManager.enable()
 		this.otel = new NodeSDK({
 			autoDetectResources: true,
 			resourceDetectors: [processDetectorSync],
 			resource: new Resource(attributes),
-			spanProcessor: this.processor,
+			spanProcessors: [this.processor],
 			traceExporter: exporter,
+			textMapPropagator: new W3CBaggagePropagator(),
+			contextManager,
 			instrumentations,
 		})
 		this.otel.start()
@@ -434,6 +442,16 @@ export class Highlight {
 							'highlight.trace_id': requestId,
 						})
 					}
+					let baggage = propagation.getActiveBaggage()
+					if (!baggage) {
+						const ctx = context.active()
+						baggage = propagation.createBaggage()
+						propagation.setBaggage(ctx, baggage)
+					}
+					baggage.setEntry('hello', { value: 'world' })
+					baggage.setEntry(HIGHLIGHT_REQUEST_HEADER, {
+						value: `${secureSessionId}/${requestId}`,
+					})
 
 					try {
 						const result = await cb()

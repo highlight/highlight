@@ -14,6 +14,8 @@ export const GET = withAppRouterHighlight(async function GET(
 	const success = z.enum(['true', 'false']).parse(searchParams.get('success'))
 	let result: { rows: { message: string }[] } = { rows: [{ message: '' }] }
 
+	await fetch('https://localhost:8082/test')
+
 	console.info('Here: /api/app-router-test/route.ts 💘💘💘', { sql, success })
 	logger.info({ sql, success }, `app router test get`)
 	if (sql === 'true') {

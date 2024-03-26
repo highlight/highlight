@@ -419,6 +419,10 @@ func main() {
 			r.HandleFunc("/validate", oauthSrv.HandleValidate)
 			r.HandleFunc("/revoke", oauthSrv.HandleRevoke)
 		})
+		r.HandleFunc("/test", func(writer http.ResponseWriter, request *http.Request) {
+			log.WithContext(request.Context()).WithField("headers", request.Header).Info("test route hit")
+			writer.WriteHeader(http.StatusOK)
+		})
 		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(ctx, stripeWebhookSecret))
 		r.HandleFunc("/callback/aws-mp", privateResolver.AWSMPCallback(ctx))
 		r.Route("/zapier", func(r chi.Router) {

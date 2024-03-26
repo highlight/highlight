@@ -28951,6 +28951,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vercel/otel@npm:1.7.1-f70cdaea-20240326003818":
+  version: 1.7.1-f70cdaea-20240326003818
+  resolution: "@vercel/otel@npm:1.7.1-f70cdaea-20240326003818"
+  peerDependencies:
+    "@opentelemetry/api": ^1.7.0
+    "@opentelemetry/api-logs": ^0.46.0
+    "@opentelemetry/instrumentation": ^0.46.0
+    "@opentelemetry/resources": ^1.19.0
+    "@opentelemetry/sdk-logs": ^0.46.0
+    "@opentelemetry/sdk-metrics": ^1.19.0
+    "@opentelemetry/sdk-trace-base": ^1.19.0
+  checksum: 10/5746d4a2fe30cd774a48f10a0428bf8e7073312f47357968cc421202ff22974f711ebda835ef0a317d9df572ad69d08b1434794205f81fcccacbdc575daa8ce4
+  languageName: node
+  linkType: hard
+
 "@vercel/python@npm:4.1.1":
   version: 4.1.1
   resolution: "@vercel/python@npm:4.1.1"
@@ -52311,6 +52326,7 @@ __metadata:
     "@types/pg": "npm:^8.10.9"
     "@types/react": "npm:18.2.25"
     "@types/react-dom": "npm:18.2.10"
+    "@vercel/otel": "npm:1.7.1-f70cdaea-20240326003818"
     babylonjs: "npm:^6.23.0"
     classnames: "npm:^2.3.2"
     eslint: "npm:8.50.0"

@@ -48,3 +48,5 @@ export default function RootLayout({
 		</>
 	)
 }
+
+// export const runtime = 'edge'
