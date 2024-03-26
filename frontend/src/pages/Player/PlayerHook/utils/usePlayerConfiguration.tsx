@@ -4,7 +4,7 @@ import {
 } from '@pages/Player/RightPlayerPanel/constants'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
 
@@ -16,12 +16,7 @@ export const PLAYBACK_SPEED_OPTIONS: readonly number[] = [1, 2, 4, 8]
  * Gets configuration for the Player.
  */
 const usePlayerConfiguration = () => {
-	const [showLeftPanel, setShowLeftPanel] = useState<boolean>(
-		() =>
-			localStorage.getItem('highlightMenuShowLeftPanel') === 'true' ||
-			true,
-	)
-	const [_, setShowLeftPanelLocal] = useLocalStorage(
+	const [showLeftPanel, setShowLeftPanel] = useLocalStorage(
 		'highlightMenuShowLeftPanel',
 		true,
 	)
@@ -132,10 +127,7 @@ const usePlayerConfiguration = () => {
 
 	return {
 		showLeftPanel,
-		setShowLeftPanel: (show: boolean) => {
-			setShowLeftPanel(show)
-			setShowLeftPanelLocal(show)
-		},
+		setShowLeftPanel,
 		showRightPanel,
 		setShowRightPanel,
 		showDevTools,

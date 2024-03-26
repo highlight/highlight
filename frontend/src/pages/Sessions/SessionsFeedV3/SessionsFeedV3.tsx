@@ -299,7 +299,6 @@ export const SessionFeedV3 = React.memo(() => {
 		project_id,
 		searchQuery,
 	])
-	console.log('::: showLeftPanelPreference - SessionsFeedV3', showLeftPanel)
 
 	return (
 		<SessionFeedConfigurationContextProvider
