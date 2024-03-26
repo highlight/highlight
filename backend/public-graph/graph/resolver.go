@@ -511,9 +511,6 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, project
 			return nil, e.Wrap(err, "error querying top error group match")
 		}
 	} else {
-		// an alternative query to consider: for M error objects of every error group,
-		// find the average score. then pick the error group
-		// with the lowest average score.
 		var column string
 		switch method {
 		case model.ErrorGroupingMethodAdaEmbeddingV2:
