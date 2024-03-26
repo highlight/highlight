@@ -29,7 +29,7 @@ require (
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/andybalholm/brotli v1.1.0
 	github.com/antlr4-go/antlr/v4 v4.13.0
-	github.com/aws/aws-sdk-go-v2 v1.25.3
+	github.com/aws/aws-sdk-go-v2 v1.26.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.7
 	github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign v1.7.1
 	github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice v1.20.2
