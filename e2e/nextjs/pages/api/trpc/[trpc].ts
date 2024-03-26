@@ -4,10 +4,11 @@ import { initTRPC } from '@trpc/server'
 import { z } from 'zod'
 import { H, Handlers } from '@highlight-run/node'
 import { CONSTANTS } from '@/constants'
+import { highlightConfig } from '@/instrumentation'
 
 const t = initTRPC.create()
 
-H.init({ projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID })
+H.init(highlightConfig)
 
 export const router = t.router
 export const publicProcedure = t.procedure
@@ -30,7 +31,7 @@ export default trpcNext.createNextApiHandler({
 		Handlers.trpcOnError(
 			{ error, req },
 			{
-				projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+				...highlightConfig,
 				serviceName: 'my-trpc-app',
 				serviceVersion: 'test-git-sha',
 			},

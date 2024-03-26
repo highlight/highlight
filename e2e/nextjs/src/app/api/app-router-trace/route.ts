@@ -12,6 +12,13 @@ export const GET = withAppRouterHighlight(async function GET(
 
 		logger.info({}, `app router trace get`)
 
+		await fetch('http://localhost:3010', {
+			method: 'GET',
+			headers: request.headers,
+		}).catch(() =>
+			console.info('Inactive go service at http://localhost:3010'),
+		)
+
 		console.info('Here: /pages/api/app-router-trace/route.ts ⏰⏰⏰')
 
 		span.end()
