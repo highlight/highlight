@@ -48799,10 +48799,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ky@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "ky@npm:1.2.2"
-  checksum: 10/02705df3b6796bd75af64511df0e7d6a5a5e8af6cd6e726f91aee8ae3cb7cf5fa9dc35bd22f12a557d09d102167f8308cc02a95ddbcc71f08c410620ffe46ef9
+"ky@npm:^1.2.3":
+  version: 1.2.3
+  resolution: "ky@npm:1.2.3"
+  checksum: 10/dad5063138364727052ae1950629b104d7878326bc2810f1767cb9a856331ec98f56f72bc27371f8844b0260f9a2d5af675bd3e3083daaacaf9ebad088fdf0a0
   languageName: node
   linkType: hard
 
@@ -52315,7 +52315,7 @@ __metadata:
     classnames: "npm:^2.3.2"
     eslint: "npm:8.50.0"
     eslint-config-next: "npm:13.5.4"
-    ky: "npm:^1.2.2"
+    ky: "npm:^1.2.3"
     next: "npm:13.5.4"
     next-build-id: "npm:^3.0.0"
     pg: "npm:^8.11.3"
