@@ -23,7 +23,7 @@ import (
 
 const timeFormat = "2006-01-02T15:04:05.000Z"
 
-var fieldMap map[string]string = map[string]string{
+var fieldMap = map[string]string{
 	"fingerprint":       "Fingerprint",
 	"pages_visited":     "PagesVisited",
 	"viewed_by_me":      "ViewedByAdmins",
@@ -32,6 +32,7 @@ var fieldMap map[string]string = map[string]string{
 	"identified":        "Identified",
 	"identifier":        "Identifier",
 	"city":              "City",
+	"loc_state":         "State",
 	"country":           "Country",
 	"os_name":           "OSName",
 	"os_version":        "OSVersion",
@@ -78,6 +79,7 @@ type ClickhouseSession struct {
 	Identifier         string
 	IP                 string
 	City               string
+	State              string
 	Country            string
 	OSName             string
 	OSVersion          string
@@ -176,6 +178,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			Identifier:         session.Identifier,
 			IP:                 session.IP,
 			City:               session.City,
+			State:              session.State,
 			Country:            session.Country,
 			OSName:             session.OSName,
 			OSVersion:          session.OSVersion,
@@ -473,6 +476,7 @@ var sessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 		modelInputs.ReservedSessionKeyFingerprint:     "Fingerprint",
 		modelInputs.ReservedSessionKeyIdentifier:      "Identifier",
 		modelInputs.ReservedSessionKeyCity:            "City",
+		modelInputs.ReservedSessionKeyState:           "State",
 		modelInputs.ReservedSessionKeyCountry:         "Country",
 		modelInputs.ReservedSessionKeyOsName:          "OSName",
 		modelInputs.ReservedSessionKeyOsVersion:       "OSVersion",

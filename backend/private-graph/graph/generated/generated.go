@@ -11942,6 +11942,7 @@ enum ReservedSessionKey {
 	fingerprint
 	identifier
 	city
+	state
 	country
 	os_name
 	os_version

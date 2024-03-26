@@ -2951,6 +2951,7 @@ export enum ReservedSessionKey {
 	Processed = 'processed',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
+	State = 'state',
 	Viewed = 'viewed',
 }
 
