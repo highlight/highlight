@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/assets"
 	"html/template"
 	"io"
 	"math/rand"
@@ -513,6 +514,7 @@ func main() {
 			publicServer.Use(htrace.NewGraphqlTracer(string(util.PublicGraph)))
 			publicServer.SetErrorPresenter(htrace.GraphQLErrorPresenter(string(util.PublicGraph)))
 			publicServer.SetRecoverFunc(htrace.GraphQLRecoverFunc())
+			r.HandleFunc("/cors", assets.HandleAsset)
 			r.Handle("/",
 				publicServer,
 			)
