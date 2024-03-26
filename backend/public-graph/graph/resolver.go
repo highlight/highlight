@@ -394,7 +394,7 @@ func (r *Resolver) tagErrorGroup(ctx context.Context, errorObj *model.ErrorObjec
 	return nil
 }
 
-func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, matchFn func() (*int, error), tagGroup bool) (*model.ErrorGroup, error) {
+func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, matchFn func() (*int, error), onCreateGroup func(int) error, tagGroup bool) (*model.ErrorGroup, error) {
 	match, err := matchFn()
 	if err != nil {
 		return nil, err
@@ -441,6 +441,12 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 
 		if err := r.DB.WithContext(ctx).Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
+		}
+
+		if onCreateGroup != nil {
+			if err := onCreateGroup(newErrorGroup.ID); err != nil {
+				return nil, err
+			}
 		}
 
 		errorGroup = newErrorGroup
@@ -793,6 +799,18 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 					log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
 				}
 				return match, err
+			}, func(errorGroupId int) error {
+				if errorObj.ProjectID == 1 {
+					newEmbedding := model.ErrorGroupEmbeddings{
+						ProjectID:         errorObj.ProjectID,
+						ErrorGroupID:      errorGroupId,
+						Count:             1,
+						GteLargeEmbedding: embedding.GteLargeEmbedding,
+					}
+
+					return r.DB.WithContext(ctx).Create(&newEmbedding).Error
+				}
+				return nil
 			}, settings.ErrorEmbeddingsTagGroup)
 			if err != nil {
 				return nil, e.Wrap(err, "Error getting or creating error group")
@@ -810,7 +828,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 				return nil, e.Wrap(err, "Error getting top error group match")
 			}
 			return match, err
-		}, settings != nil && settings.ErrorEmbeddingsTagGroup)
+		}, nil, settings != nil && settings.ErrorEmbeddingsTagGroup)
 		if err != nil {
 			return nil, e.Wrap(err, "Error getting or creating error group")
 		}

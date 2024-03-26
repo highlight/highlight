@@ -340,6 +340,8 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			if len(tc.expectedErrorGroups) == 0 {
 				resolver.DB.Create(&createdErrorGroup)
 			}
+
+			var avgEmbedding model.Vector = make([]float32, 1024)
 			for _, emb := range tc.embeddingsToInsert {
 				eo := model.ErrorObject{ErrorGroupID: createdErrorGroup.ID, ProjectID: projectID}
 				resolver.DB.Create(&eo)
@@ -350,7 +352,17 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					GteLargeEmbedding: emb.GteLargeEmbedding,
 				}
 				resolver.DB.Table("error_object_embeddings_partitioned").Create(&embedding)
+
+				for i := range avgEmbedding {
+					avgEmbedding[i] += (emb.GteLargeEmbedding[i] / float32(len(tc.embeddingsToInsert)))
+				}
 			}
+
+			resolver.DB.Create(&model.ErrorGroupEmbeddings{
+				ProjectID:         projectID,
+				ErrorGroupID:      createdErrorGroup.ID,
+				GteLargeEmbedding: avgEmbedding,
+			})
 
 			receivedErrorGroups := make(map[string]model.ErrorGroup)
 			for _, errorObj := range tc.errorsToInsert {
