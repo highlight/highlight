@@ -24,7 +24,7 @@
 		"@sparticuz/chromium": "116.0.0",
 		"pg": "^8.11.3",
 		"puppeteer": "21.1.1",
-		"puppeteer-core": "21.1.1",
+		"puppeteer-core": "22.6.1",
 		"puppeteer-screen-recorder": "^2.1.2",
 		"rrweb": "workspace:*"
 	},
