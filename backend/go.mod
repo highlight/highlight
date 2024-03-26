@@ -57,7 +57,7 @@ require (
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/highlight/go-oauth2-redis/v4 v4.1.4
 	github.com/highlight/highlight/sdk/highlight-go v0.10.2
-	github.com/huandu/go-assert v1.1.5
+	github.com/huandu/go-assert v1.1.6
 	github.com/influxdata/go-syslog/v3 v3.0.0
 	github.com/infracloudio/msbotbuilder-go v0.2.5
 	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
