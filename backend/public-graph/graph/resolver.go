@@ -3168,11 +3168,24 @@ func (r *Resolver) submitFrontendWebsocketMetric(sessionObj *model.Session, even
 			attribute.String("ws.message", event.Message),
 		)
 
+		requestBody := make(map[string]interface{})
+		// if the request body is json, send the message as structured attributes
+		if err := json.Unmarshal([]byte(event.Message), &requestBody); err == nil {
+			for k, v := range requestBody {
+				for key, value := range hlog.FormatLogAttributes(k, v) {
+					if v != "" {
+						attributes = append(attributes, attribute.String(fmt.Sprintf("ws.json.%s", key), value))
+					}
+				}
+			}
+		}
+
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionObj.SecureID)
 		ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, event.SocketID)
 		span, _ := highlight.StartTraceWithTracer(ctx, r.Tracer, strings.Join([]string{"WS", event.Name}, " "), ts, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
-		span.End(trace.WithTimestamp(ts))
+		// ws messsages don't have a duration, but record them with some duration so they are rendered correctly
+		span.End(trace.WithTimestamp(ts.Add(time.Microsecond)))
 	}
 	return nil
 }
@@ -3204,7 +3217,7 @@ func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj
 			hlog.LogMessageKey.String(message),
 		}
 		for k, v := range row.Attributes {
-			for key, value := range hlog.FormatLogAttributes(ctx, k, v) {
+			for key, value := range hlog.FormatLogAttributes(k, v) {
 				if v != "" {
 					attrs = append(attrs, attribute.String(key, value))
 				}
