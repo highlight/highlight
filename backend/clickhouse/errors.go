@@ -638,7 +638,7 @@ func (client *Client) ErrorsKeyValues(ctx context.Context, projectID int, keyNam
 	return client.QueryErrorFieldValues(ctx, projectID, 10, tableName, keyName, "", startDate, endDate)
 }
 
-func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, params modelInputs.QueryInput, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, error) {
+func (client *Client) QueryErrorObjectsHistogram(ctx context.Context, projectId int, params modelInputs.QueryInput, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, error) {
 	aggFn, addFn, location, err := getClickhouseHistogramSettings(options)
 	if err != nil {
 		return nil, nil, err
@@ -677,7 +677,7 @@ func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, pa
 	return bucketTimes, totals, nil
 }
 
-func (client *Client) QueryErrorGroupIds(ctx context.Context, projectId int, count int, params modelInputs.QueryInput, page *int) ([]int64, int64, error) {
+func (client *Client) QueryErrorGroups(ctx context.Context, projectId int, count int, params modelInputs.QueryInput, page *int) ([]int64, int64, error) {
 	pageInt := 1
 	if page != nil {
 		pageInt = *page

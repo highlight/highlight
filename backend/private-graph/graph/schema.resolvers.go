@@ -5094,12 +5094,12 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 
 // ErrorGroupsClickhouse is the resolver for the error_groups_clickhouse field.
 func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int, count int, query modelInputs.ClickhouseQuery, page *int) (*model.ErrorResults, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	ids, total, err := r.ClickhouseClient.QueryErrorGroupIdsDeprecated(ctx, project.ID, count, query, page)
+	ids, total, err := r.ClickhouseClient.QueryErrorGroupIdsDeprecated(ctx, projectID, count, query, page)
 	if err != nil {
 		return nil, err
 	}
@@ -5108,14 +5108,14 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 	if err := r.DB.WithContext(ctx).Model(&model.ErrorGroup{}).
 		Joins("ErrorTag").
 		Where("error_groups.id in ?", ids).
-		Where("error_groups.project_id = ?", project.ID).
+		Where("error_groups.project_id = ?", projectID).
 		Order("error_groups.updated_at DESC").
 		Find(&results).Error; err != nil {
 		return nil, err
 	}
 
 	if len(results) > 0 {
-		if err := r.SetErrorFrequenciesClickhouse(ctx, project.ID, results, ErrorGroupLookbackDays); err != nil {
+		if err := r.SetErrorFrequenciesClickhouse(ctx, projectID, results, ErrorGroupLookbackDays); err != nil {
 			return nil, err
 		}
 	}
@@ -5133,7 +5133,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 		return nil, err
 	}
 
-	ids, total, err := r.ClickhouseClient.QueryErrorGroupIds(ctx, project.ID, count, params, page)
+	ids, total, err := r.ClickhouseClient.QueryErrorGroups(ctx, project.ID, count, params, page)
 	if err != nil {
 		return nil, err
 	}
@@ -5162,12 +5162,12 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 
 // ErrorsHistogramClickhouse is the resolver for the errors_histogram_clickhouse field.
 func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogramDeprecated(ctx, project.ID, query, histogramOptions)
+	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogramDeprecated(ctx, projectID, query, histogramOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -5190,7 +5190,7 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, para
 		return nil, err
 	}
 
-	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogram(ctx, project.ID, params, histogramOptions)
+	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorObjectsHistogram(ctx, project.ID, params, histogramOptions)
 	if err != nil {
 		return nil, err
 	}
