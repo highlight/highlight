@@ -2664,6 +2664,17 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
 				return e.Wrap(err, "error saving web socket events data")
 			}
+
+			settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+			if err == nil && settings.EnableNetworkTraces {
+				resourcesParsed := make(map[string][]privateModel.WebSocketEvent)
+				if err := json.Unmarshal([]byte(webSocketEventsStr), &resourcesParsed); err != nil {
+					return nil
+				}
+				if err := r.submitFrontendWebsocketMetric(sessionObj, resourcesParsed["webSocketEvents"]); err != nil {
+					return err
+				}
+			}
 		}
 
 		return nil
@@ -3134,6 +3145,34 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, re.RequestResponsePairs.Request.ID)
 		span, _ := highlight.StartTraceWithTracer(ctx, r.Tracer, strings.Join([]string{method, re.Name}, " "), start, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
 		span.End(trace.WithTimestamp(end))
+	}
+	return nil
+}
+
+func (r *Resolver) submitFrontendWebsocketMetric(sessionObj *model.Session, events []privateModel.WebSocketEvent) error {
+	for _, event := range events {
+		ts := time.UnixMicro(int64(1000. * event.TimeStamp))
+		var attributes []attribute.KeyValue
+		attributes = append(attributes, highlight.EmptyResourceAttributes...)
+		attributes = append(attributes, attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeWebSocketRequest)),
+			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
+			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
+			attribute.String(highlight.RequestIDAttribute, event.SocketID),
+			attribute.String(highlight.TraceKeyAttribute, event.Name),
+			semconv.DeploymentEnvironmentKey.String(sessionObj.Environment),
+			semconv.ServiceNameKey.String(sessionObj.ServiceName),
+			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
+			semconv.HTTPURLKey.String(event.Name),
+			attribute.Int("ws.size", event.Size),
+			attribute.Int("ws.message.length", len(event.Message)),
+			attribute.String("ws.message", event.Message),
+		)
+
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionObj.SecureID)
+		ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, event.SocketID)
+		span, _ := highlight.StartTraceWithTracer(ctx, r.Tracer, strings.Join([]string{"WS", event.Name}, " "), ts, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
+		span.End(trace.WithTimestamp(ts))
 	}
 	return nil
 }
