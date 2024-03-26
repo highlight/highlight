@@ -494,17 +494,34 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, project
 		CombinedScore float64 `json:"combined_score"`
 		ErrorGroupID  int     `json:"error_group_id"`
 	}{}
-	// an alternative query to consider: for M error objects of every error group,
-	// find the average score. then pick the error group
-	// with the lowest average score.
-	var column string
-	switch method {
-	case model.ErrorGroupingMethodAdaEmbeddingV2:
-		column = "combined_embedding"
-	case model.ErrorGroupingMethodGteLargeEmbeddingV2:
-		column = "gte_large_embedding"
-	}
-	if err := r.DB.WithContext(ctx).Raw(fmt.Sprintf(`
+
+	if method == model.ErrorGroupingMethodGteLargeEmbeddingV3 {
+		if err := r.DB.WithContext(ctx).Raw(`
+			select gte_large_embedding <-> @embedding as score,
+				error_group_id
+			from error_group_embeddings
+			where project_id = @projectID
+				and gte_large_embedding is not null
+			order by 1
+			limit 1;`,
+			map[string]interface{}{
+				"embedding": embedding,
+				"projectID": projectID,
+			}).Scan(&result).Error; err != nil {
+			return nil, e.Wrap(err, "error querying top error group match")
+		}
+	} else {
+		// an alternative query to consider: for M error objects of every error group,
+		// find the average score. then pick the error group
+		// with the lowest average score.
+		var column string
+		switch method {
+		case model.ErrorGroupingMethodAdaEmbeddingV2:
+			column = "combined_embedding"
+		case model.ErrorGroupingMethodGteLargeEmbeddingV2:
+			column = "gte_large_embedding"
+		}
+		if err := r.DB.WithContext(ctx).Raw(fmt.Sprintf(`
 select eoe.%s <-> @embedding as score,
        eo.error_group_id                              as error_group_id
 from error_object_embeddings_partitioned eoe
@@ -513,16 +530,37 @@ where eoe.project_id = @projectID
     and eoe.%s is not null
 order by 1
 limit 1;`, column, column), map[string]interface{}{
-		"embedding": embedding,
-		"projectID": projectID,
-	}).
-		Scan(&result).Error; err != nil {
-		return nil, e.Wrap(err, "error querying top error group match")
+			"embedding": embedding,
+			"projectID": projectID,
+		}).
+			Scan(&result).Error; err != nil {
+			return nil, e.Wrap(err, "error querying top error group match")
+		}
 	}
+
 	if result.ErrorGroupID > 0 {
 		lg := log.WithContext(ctx).WithField("combined_score", result.CombinedScore).WithField("score", result.Score).WithField("matched_error_group_id", result.ErrorGroupID).WithField("threshold", threshold)
 		if result.Score < threshold {
 			lg.Info("matched error group by embeddings")
+
+			// Update the error group's embedding as a weighted average of the previous embedding plus this new one
+			if method == model.ErrorGroupingMethodGteLargeEmbeddingV3 {
+				if err := r.DB.WithContext(ctx).Raw(`
+					update error_group_embeddings
+					set gte_large_embedding = gte_large_embedding * array_fill(count::numeric / (count + 1), '{1024}')::vector 
+						+ @embedding * array_fill(1::numeric / (count + 1), '{1024}')::vector, 
+						count = count + 1
+					where project_id = @projectID
+					and error_group_id = @errorGroupID`,
+					map[string]interface{}{
+						"embedding":    embedding,
+						"projectID":    projectID,
+						"errorGroupID": result.ErrorGroupID,
+					}).Error; err != nil {
+					return nil, e.Wrap(err, "error updating embedding")
+				}
+			}
+
 			return &result.ErrorGroupID, nil
 		}
 		lg.Info("found error group by embeddings but score too high")
@@ -749,8 +787,12 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
 		} else {
 			embedding = emb[0]
+			embeddingType := model.ErrorGroupingMethodGteLargeEmbeddingV2
+			if errorObj.ProjectID == 1 {
+				embeddingType = model.ErrorGroupingMethodGteLargeEmbeddingV3
+			}
 			errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
-				match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, errorObj.ProjectID, model.ErrorGroupingMethodGteLargeEmbeddingV2, embedding.GteLargeEmbedding, settings.ErrorEmbeddingsThreshold)
+				match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, errorObj.ProjectID, embeddingType, embedding.GteLargeEmbedding, settings.ErrorEmbeddingsThreshold)
 				if err != nil {
 					log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
 				}
@@ -759,7 +801,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			if err != nil {
 				return nil, e.Wrap(err, "Error getting or creating error group")
 			}
-			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodGteLargeEmbeddingV2
+			errorObj.ErrorGroupingMethod = embeddingType
 		}
 	} else {
 		errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
