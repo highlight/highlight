@@ -523,12 +523,11 @@ select eoe.%s <-> @embedding as score,
        eo.error_group_id                              as error_group_id
 from error_object_embeddings_partitioned eoe
          inner join error_objects eo on eo.id = eoe.error_object_id
-where eoe.project_id = @projectID
+where eoe.project_id = %d
     and eoe.%s is not null
 order by 1
-limit 1;`, column, column), map[string]interface{}{
+limit 1;`, column, projectID, column), map[string]interface{}{
 			"embedding": embedding,
-			"projectID": projectID,
 		}).
 			Scan(&result).Error; err != nil {
 			return nil, e.Wrap(err, "error querying top error group match")
