@@ -7466,7 +7466,6 @@ body {
 }
 ._10o9hoe1 {
   min-width: 400px;
-  max-width: 1200px;
   right: 0;
   top: 0;
   bottom: 0;
@@ -7480,17 +7479,6 @@ body {
   transform: translateX(0);
 }
 ._10o9hoe2 {
-  background-color: rgba(0, 0, 0, 0.05);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-._10o9hoe2[data-enter] {
-  opacity: 1;
-}
-._10o9hoe2[data-leave] {
-  opacity: 0;
-}
-._10o9hoe3 {
   cursor: col-resize;
   position: absolute;
   left: -2px;
