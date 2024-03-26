@@ -12,9 +12,11 @@ import (
 
 	"github.com/samber/lo"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/huandu/go-sqlbuilder"
 	"github.com/openlyinc/pointy"
 	"golang.org/x/sync/errgroup"
 )
@@ -108,7 +110,7 @@ type ClickhouseField struct {
 
 // These keys show up as recommendations, but with no recommended values due to high cardinality
 var defaultSessionsKeys = []*modelInputs.QueryKey{
-	{Name: string(modelInputs.ReservedSessionKeyDuration), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedSessionKeyLength), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedSessionKeyActiveLength), Type: modelInputs.KeyTypeNumeric},
 }
 
