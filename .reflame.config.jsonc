@@ -336,7 +336,7 @@
     "@highlight-run/client": {
       "sourceDirectory": "sdk/client/src",
       "exports": {
-        "./": "./index.tsx",
+        ".": "./index.tsx",
         "./src/listeners/first-load-listeners": "./listeners/first-load-listeners.tsx",
         "./src/listeners/first-load-listeners.js": "./listeners/first-load-listeners.tsx",
         "./src/listeners/network-listener/utils/utils": "./listeners/network-listener/utils/utils.ts",
