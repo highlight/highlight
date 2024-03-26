@@ -2,13 +2,21 @@ import * as trpcNext from '@trpc/server/adapters/next'
 
 import { initTRPC } from '@trpc/server'
 import { z } from 'zod'
-import { H, Handlers } from '@highlight-run/node'
-import { CONSTANTS } from '@/constants'
+import { Handlers } from '@highlight-run/node'
 import { highlightConfig } from '@/instrumentation'
 
 const t = initTRPC.create()
 
-H.init(highlightConfig)
+/**
+ * H MUST be imported from @highlight-run/next/server.
+ * Importing from @highlight-run/node is a disaster.
+ * It breaks the span context spreading pattern implemented in CustomSpanProcess
+ * in @highlight-run/node/src/client.ts.
+ *
+ * Even better... don't initialize this at all and let the API wrappers do their own thing.
+ * It simplifies the trace tree significantly. This H.init captures all sorts of noise.
+ */
+// H.init(highlightConfig)
 
 export const router = t.router
 export const publicProcedure = t.procedure

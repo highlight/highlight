@@ -10,7 +10,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/highlight/highlight/sdk/highlight-go"
+
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
@@ -46,36 +49,56 @@ func main() {
 
 	defer highlight.Stop()
 
+	router := chi.NewRouter()
+	router.Use(highlightChi.Middleware)
+
+	router.Get("/x-highlight-request", func(w http.ResponseWriter, r *http.Request) {
+		trace, _ := highlight.StartTrace(r.Context(), "go-custom-span-x-highlight-request", attribute.Int("custom_property", 5))
+
+		defer func() {
+			time.Sleep(1 * time.Second)
+			highlight.EndTrace(trace)
+			fmt.Println("Trace ended")
+		}()
+
+		fmt.Fprint(w, "Hello, world!")
+	})
+
+	// xHighlightRouter := chi.NewRouter()
+	router.Get("/traceparent", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Received request")
+		for k, v := range r.Header {
+			fmt.Printf("%s: %s\n", k, v)
+		}
+
+		traceparent := r.Header.Get("traceparent")
+		tracestate := r.Header.Get("tracestate")
+
+		header := http.Header{}
+		header.Set("traceparent", traceparent)
+		header.Set("tracestate", tracestate)
+
+		propagator := propagation.TraceContext{}
+		ctx := propagator.Extract(r.Context(), propagation.HeaderCarrier(header))
+
+		trace, _ := highlight.StartTrace(ctx, "go-custom-span-traceparent", attribute.Int("custom_property", 5))
+
+		defer func() {
+			time.Sleep(1 * time.Second)
+			highlight.EndTrace(trace)
+			fmt.Println("Trace ended")
+		}()
+
+		fmt.Println("🌍")
+		fmt.Println(trace.SpanContext().TraceID().String())
+		fmt.Println(trace.SpanContext().TraceState().String())
+
+		fmt.Fprint(w, "Hello, world!")
+	})
+
 	srv := &http.Server{
-		Addr: ":3010",
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			fmt.Println("Received request")
-			traceparent := r.Header.Get("traceparent")
-			tracestate := r.Header.Get("tracestate")
-
-			header := http.Header{}
-			header.Set("traceparent", traceparent)
-			header.Set("tracestate", tracestate)
-
-			propagator := propagation.TraceContext{}
-			ctx := propagator.Extract(r.Context(), propagation.HeaderCarrier(header))
-
-			trace, _ := highlight.StartTrace(ctx, "go-custom-span", attribute.Int("custom_property", 5))
-
-			defer func() {
-				time.Sleep(1 * time.Second)
-				highlight.EndTrace(trace)
-				fmt.Println("Trace ended")
-			}()
-
-			fmt.Println("🌍")
-			fmt.Println(trace.SpanContext().TraceID().String())
-			fmt.Println(trace.SpanContext().TraceState().String())
-			fmt.Printf("traceparent: %s\n", traceparent)
-			fmt.Printf("tracestate: %s\n", tracestate)
-
-			fmt.Fprint(w, "Hello, world!")
-		}),
+		Addr:    ":3010",
+		Handler: router,
 	}
 
 	go func() {
