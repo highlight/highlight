@@ -1,7 +1,7 @@
 import { Box, Text } from '@highlight-run/ui/components'
 import clsx from 'clsx'
 
-import styles from './IssueModeSelector.module.css'
+import * as styles from './IssueModeSelector.css'
 
 export const TagSwitch = <T extends string | number>({
 	onSelect,
@@ -13,17 +13,35 @@ export const TagSwitch = <T extends string | number>({
 	key: any
 	selected: boolean
 }) => {
-	const modeClass = selected ? styles.activeSwitch : styles.inactiveSwitch
-
 	return (
-		<div
-			className={clsx(styles.tagSwitch, modeClass)}
+		<Box
+			pt="2"
+			pb="2"
+			pl="6"
+			pr="6"
+			borderRadius="6"
+			display="flex"
+			cursor="pointer"
+			alignItems="center"
+			justifyContent="center"
+			gap="2"
+			cssClass={clsx({
+				[styles.activeSwitch]: selected,
+				[styles.inactiveSwitch]: !selected,
+			})}
 			onClick={() => onSelect(label)}
+			style={{ height: '24px' }}
+			width="full"
 		>
-			<Text userSelect="none" size="small" weight="medium">
+			<Text
+				color={selected ? 'white' : 'secondaryContentText'}
+				userSelect="none"
+				size="small"
+				weight="medium"
+			>
 				{label}
 			</Text>
-		</div>
+		</Box>
 	)
 }
 

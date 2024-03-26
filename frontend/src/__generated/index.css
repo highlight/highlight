@@ -6488,6 +6488,14 @@ body {
   top: 0;
   z-index: 10;
 }
+._1osjosy0 {
+  background: var(--color-purple);
+  box-shadow: 0px -1px 0px 0px rgba(0, 0, 0, 0.32) inset;
+}
+._1osjosy1 {
+  background: var(--color-white);
+  border-color: var(--color-gray-300);
+}
 ._1tn5c580 {
   color: var(--_1pyqka9y);
 }
