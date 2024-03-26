@@ -4,17 +4,14 @@ import type { StorybookConfig } from '@storybook/react-vite'
 const config: StorybookConfig = {
 	stories: ['../src/**/*.mdx', '../src/**/*.stories.@(ts|tsx)'],
 	addons: [
-		getAbsolutePath('@storybook/addon-links'),
-		getAbsolutePath('@storybook/addon-essentials'),
-		getAbsolutePath('@storybook/addon-interactions'),
+		'@storybook/addon-essentials',
+		'@storybook/addon-interactions',
+		'@storybook/addon-links',
 	],
 	core: {
-		builder: getAbsolutePath('@storybook/builder-vite'),
+		builder: '@storybook/builder-vite',
 	},
-	framework: {
-		name: getAbsolutePath('@storybook/react-vite'),
-		options: {},
-	},
+	framework: '@storybook/react-vite',
 	docs: {
 		autodocs: 'tag',
 	},
