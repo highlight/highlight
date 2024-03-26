@@ -10,7 +10,6 @@ export const TagSwitch = <T extends string | number>({
 }: {
 	onSelect: (p: T) => void
 	label: any
-	key: any
 	selected: boolean
 }) => {
 	return (
