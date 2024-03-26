@@ -3163,15 +3163,15 @@ func (r *Resolver) submitFrontendWebsocketMetric(sessionObj *model.Session, even
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
 			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
 			semconv.HTTPURLKey.String(event.Name),
+			attribute.String("ws.message", event.Message),
 			attribute.Int("ws.size", event.Size),
 			attribute.Int("ws.message.length", len(event.Message)),
-			attribute.String("ws.message", event.Message),
 		)
 
 		requestBody := make(map[string]interface{})
 		// if the request body is json, send the message as structured attributes
 		if err := json.Unmarshal([]byte(event.Message), &requestBody); event.Message != "" && err == nil {
-			attributes = append(attributes, attribute.Bool("ws.json", true))
+			attributes = append(attributes, attribute.String("ws.message.type", "json"))
 			for k, v := range requestBody {
 				for key, value := range hlog.FormatLogAttributes(k, v) {
 					if v != "" {
