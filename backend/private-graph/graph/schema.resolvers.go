@@ -6163,7 +6163,7 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 		return nil, err
 	}
 
-	ids, total, ordered, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, chSortStr, page, retentionDate)
+	ids, total, ordered, err := r.ClickhouseClient.QuerySessionIdsDeprecated(ctx, admin, projectID, count, query, chSortStr, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}
@@ -6222,7 +6222,7 @@ func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, project
 		return nil, err
 	}
 
-	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogram(ctx, admin, projectID, query, retentionDate, histogramOptions)
+	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogramDeprecated(ctx, admin, projectID, query, retentionDate, histogramOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -6266,7 +6266,7 @@ func (r *queryResolver) SessionsReport(ctx context.Context, projectID int, query
 		return nil, err
 	}
 
-	sql, args, _, err := clickhouse.GetSessionsQueryImpl(admin, query, projectID, retentionDate, "ID", nil, nil, nil, nil)
+	sql, args, _, err := clickhouse.GetSessionsQueryImplDeprecated(admin, query, projectID, retentionDate, "ID", nil, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}

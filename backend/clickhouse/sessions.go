@@ -225,7 +225,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 	return g.Wait()
 }
 
-func GetSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
+func GetSessionsQueryImplDeprecated(admin *model.Admin, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
 	rules, err := deserializeRules(query.Rules)
 	if err != nil {
 		return "", nil, false, err
@@ -295,14 +295,14 @@ func GetSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 	return sql, args, useRandomSample, nil
 }
 
-func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, projectId int, count int, query modelInputs.ClickhouseQuery, sortField string, page *int, retentionDate time.Time) ([]int64, int64, bool, error) {
+func (client *Client) QuerySessionIdsDeprecated(ctx context.Context, admin *model.Admin, projectId int, count int, query modelInputs.ClickhouseQuery, sortField string, page *int, retentionDate time.Time) ([]int64, int64, bool, error) {
 	pageInt := 1
 	if page != nil {
 		pageInt = *page
 	}
 	offset := (pageInt - 1) * count
 
-	sql, args, sampleRuleFound, err := GetSessionsQueryImpl(admin, query, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
+	sql, args, sampleRuleFound, err := GetSessionsQueryImplDeprecated(admin, query, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -330,7 +330,7 @@ func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, p
 	return ids, int64(total), sampleRuleFound, nil
 }
 
-func (client *Client) QuerySessionHistogram(ctx context.Context, admin *model.Admin, projectId int, query modelInputs.ClickhouseQuery, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, []int64, []int64, error) {
+func (client *Client) QuerySessionHistogramDeprecated(ctx context.Context, admin *model.Admin, projectId int, query modelInputs.ClickhouseQuery, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, []int64, []int64, error) {
 	aggFn, addFn, location, err := getClickhouseHistogramSettings(options)
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -340,7 +340,7 @@ func (client *Client) QuerySessionHistogram(ctx context.Context, admin *model.Ad
 
 	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
 
-	sql, args, _, err := GetSessionsQueryImpl(admin, query, projectId, retentionDate, selectCols, pointy.String("1"), &orderBy, nil, nil)
+	sql, args, _, err := GetSessionsQueryImplDeprecated(admin, query, projectId, retentionDate, selectCols, pointy.String("1"), &orderBy, nil, nil)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
