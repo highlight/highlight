@@ -958,6 +958,7 @@ func (r *Resolver) IndexSessionClickhouse(ctx context.Context, session *model.Se
 		"environment":     session.Environment,
 		"device_id":       strconv.Itoa(session.Fingerprint),
 		"city":            session.City,
+		"loc_state":       session.State,
 		"country":         session.Country,
 		"ip":              session.IP,
 		"service_name":    session.ServiceName,
