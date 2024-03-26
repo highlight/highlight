@@ -1,5 +1,6 @@
 import LoadingBox from '@components/LoadingBox'
 import StackedAreaChart from '@components/StackedAreaChart/StackedAreaChart'
+import { Text } from '@highlight-run/ui/components'
 import SvgActivityIcon from '@icons/ActivityIcon'
 import SvgCarDashboardIcon from '@icons/CarDashboardIcon'
 import SvgTimerIcon from '@icons/TimerIcon'
@@ -7,7 +8,7 @@ import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import React from 'react'
 
-import styles from './PerformancePage.module.scss'
+import * as styles from './style.css'
 
 type Props = {
 	time: number
@@ -77,7 +78,7 @@ const PerformancePage = React.memo(({ time }: Props) => {
 			{hasNoPerformancePayloads && (
 				<div className={styles.emptyContainer}>
 					<div className={styles.messageContainer}>
-						<p>This session has no performance data.</p>
+						<Text>This session has no performance data.</Text>
 					</div>
 				</div>
 			)}
@@ -165,13 +166,15 @@ const PerformancePage = React.memo(({ time }: Props) => {
 									key={key}
 								>
 									{key === 'jank' ? (
-										<p>No UI Jank recording available.</p>
+										<Text>
+											No UI Jank recording available.
+										</Text>
 									) : (
-										<p>
+										<Text>
 											{session?.browser_name}{' '}
 											{session?.browser_version} does not
 											support recording {chartLabel}.
-										</p>
+										</Text>
 									)}
 								</div>
 							)
