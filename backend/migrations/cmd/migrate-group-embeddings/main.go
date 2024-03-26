@@ -35,8 +35,7 @@ func main() {
 		log.WithContext(ctx).Fatal(err)
 	}
 
-	// Only running this migration on project_id = 1 for now
-	for i := 1; i <= 1; i++ {
+	for i := 0; i <= lastCreatedPart; i++ {
 		log.WithContext(ctx).Infof("beginning loop: %d", i)
 		tablename := fmt.Sprintf("error_object_embeddings_partitioned_%d", i)
 
