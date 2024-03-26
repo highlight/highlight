@@ -4334,6 +4334,11 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, qu
 	return true, nil
 }
 
+// DeleteSessionsv2 is the resolver for the deleteSessionsv2 field.
+func (r *mutationResolver) DeleteSessionsv2(ctx context.Context, projectID int, params modelInputs.QueryInput, sessionCount int) (bool, error) {
+	panic(fmt.Errorf("not implemented: DeleteSessionsv2 - deleteSessionsv2"))
+}
+
 // UpdateVercelProjectMappings is the resolver for the updateVercelProjectMappings field.
 func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, projectID int, projectMappings []*modelInputs.VercelProjectMappingInput) (bool, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
@@ -6191,6 +6196,11 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 	}, nil
 }
 
+// Sessions is the resolver for the sessions field.
+func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, params modelInputs.QueryInput, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+	panic(fmt.Errorf("not implemented: Sessions - sessions"))
+}
+
 // SessionsHistogramClickhouse is the resolver for the sessions_histogram_clickhouse field.
 func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -6228,6 +6238,11 @@ func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, project
 		SessionsWithErrors:    MergeHistogramBucketCounts(withErrors, histogramOptions.BucketSize.Multiple),
 		TotalSessions:         MergeHistogramBucketCounts(totals, histogramOptions.BucketSize.Multiple),
 	}, nil
+}
+
+// SessionsHistogram is the resolver for the sessions_histogram field.
+func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
+	panic(fmt.Errorf("not implemented: SessionsHistogram - sessions_histogram"))
 }
 
 // SessionsReport is the resolver for the sessions_report field.
@@ -6304,6 +6319,11 @@ group by 1 order by num_sessions desc;
 	}
 
 	return results, nil
+}
+
+// SessionUsersReport is the resolver for the session_users_report field.
+func (r *queryResolver) SessionUsersReport(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.SessionsReportRow, error) {
+	panic(fmt.Errorf("not implemented: SessionUsersReport - session_users_report"))
 }
 
 // FieldTypesClickhouse is the resolver for the field_types_clickhouse field.
