@@ -29,7 +29,7 @@
 		"classnames": "^2.3.2",
 		"eslint": "8.50.0",
 		"eslint-config-next": "13.5.4",
-		"ky": "^1.0.1",
+		"ky": "^1.2.2",
 		"next": "13.5.4",
 		"next-build-id": "^3.0.0",
 		"pg": "^8.11.3",
