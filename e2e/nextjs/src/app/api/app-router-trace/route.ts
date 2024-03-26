@@ -10,7 +10,7 @@ export const GET = withAppRouterHighlight(async function GET(
 	return new Promise(async (resolve) => {
 		const span = await H.startActiveSpan('app-router-span', {})
 
-		await fetch('https://localhost:8082/test')
+		await fetch('https://pri.highlight.io/test')
 
 		logger.info({}, `app router trace get`)
 

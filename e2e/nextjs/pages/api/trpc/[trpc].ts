@@ -28,14 +28,7 @@ export default trpcNext.createNextApiHandler({
 	router: appRouter,
 	createContext: () => ({}),
 	onError: ({ error, req }) => {
-		Handlers.trpcOnError(
-			{ error, req },
-			{
-				projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
-				serviceName: 'my-trpc-app',
-				serviceVersion: 'test-git-sha',
-			},
-		)
+		Handlers.trpcOnError({ error, req }, highlightConfig)
 		console.error(error)
 	},
 })

@@ -11,7 +11,7 @@ export const GET = withEdgeHighlight(async function GET(request: NextRequest) {
 
 	H.setAttributes({ runtime: 'edge', test: '🌠🌠🌠 stars!!! 🌠🌠🌠' })
 
-	await fetch('https://localhost:8082/test')
+	await fetch('https://pri.highlight.io/test')
 
 	console.info('Here: /api/edge-test/route.ts 🌚🌚🌚', { success })
 

@@ -5,12 +5,10 @@ import {
 	PageRouterErrorProps,
 } from '@highlight-run/next/ssr'
 import { CONSTANTS } from '@/constants'
+import { highlightConfig } from '@/instrumentation'
 
 export default pageRouterCustomErrorHandler(
-	{
-		projectId: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
-		// ...otherHighlightOptions
-	},
+	highlightConfig,
 	/**
 	 *
 	 * This second argument is purely optional.
