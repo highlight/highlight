@@ -497,7 +497,7 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, project
 
 	if method == model.ErrorGroupingMethodGteLargeEmbeddingV3 {
 		if err := r.DB.WithContext(ctx).Raw(`
-			select gte_large_embedding <-> @embedding as score,
+			select gte_large_embedding <=> @embedding as score,
 				error_group_id
 			from error_group_embeddings
 			where project_id = @projectID
