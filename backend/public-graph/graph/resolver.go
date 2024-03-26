@@ -545,7 +545,7 @@ limit 1;`, column, column), map[string]interface{}{
 
 			// Update the error group's embedding as a weighted average of the previous embedding plus this new one
 			if method == model.ErrorGroupingMethodGteLargeEmbeddingV3 {
-				if err := r.DB.WithContext(ctx).Raw(`
+				if err := r.DB.WithContext(ctx).Exec(`
 					update error_group_embeddings
 					set gte_large_embedding = gte_large_embedding * array_fill(count::numeric / (count + 1), '{1024}')::vector 
 						+ @embedding * array_fill(1::numeric / (count + 1), '{1024}')::vector, 
