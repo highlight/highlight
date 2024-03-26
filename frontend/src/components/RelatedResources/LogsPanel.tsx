@@ -80,57 +80,51 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 		<>
 			<Panel.Header path={path}></Panel.Header>
 
-			<>
-				<>
-					<Box
-						flex="stretch"
-						justifyContent="stretch"
-						display="flex"
-						overflow="hidden"
-					>
-						<Box flexDirection="column" display="flex" flexGrow={1}>
-							<SearchForm
-								initialQuery={query}
-								onFormSubmit={setQuery}
-								startDate={startDate}
-								endDate={endDate}
-								onDatesChange={() => null}
-								presets={[]}
-								minDate={startDate}
-								timeMode="permalink"
-								hideDatePicker
-								hideCreateAlert
-								productType={ProductType.Logs}
-							/>
-							<Box height="full">
-								{!loading && logEdges.length === 0 ? (
-									<Box
-										display="flex"
-										alignItems="center"
-										height="full"
-									>
-										<NoLogsFound />
-									</Box>
-								) : (
-									<LogsTable
-										logEdges={logEdges}
-										loading={loading}
-										error={error}
-										refetch={refetch}
-										loadingAfter={loadingAfter}
-										query={query}
-										selectedCursor={undefined}
-										fetchMoreWhenScrolled={
-											fetchMoreWhenScrolled
-										}
-										bodyHeight="100%"
-									/>
-								)}
+			<Box
+				flex="stretch"
+				justifyContent="stretch"
+				display="flex"
+				overflow="hidden"
+			>
+				<Box flexDirection="column" display="flex" flexGrow={1}>
+					<SearchForm
+						initialQuery={query}
+						onFormSubmit={setQuery}
+						startDate={startDate}
+						endDate={endDate}
+						onDatesChange={() => null}
+						presets={[]}
+						minDate={startDate}
+						timeMode="permalink"
+						hideDatePicker
+						hideCreateAlert
+						productType={ProductType.Logs}
+					/>
+					<Box height="full">
+						{!loading && logEdges.length === 0 ? (
+							<Box
+								display="flex"
+								alignItems="center"
+								height="full"
+							>
+								<NoLogsFound />
 							</Box>
-						</Box>
+						) : (
+							<LogsTable
+								logEdges={logEdges}
+								loading={loading}
+								error={error}
+								refetch={refetch}
+								loadingAfter={loadingAfter}
+								query={query}
+								selectedCursor={undefined}
+								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
+								bodyHeight="100%"
+							/>
+						)}
 					</Box>
-				</>
-			</>
+				</Box>
+			</Box>
 		</>
 	)
 }
