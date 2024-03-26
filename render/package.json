@@ -20,7 +20,7 @@
 		"hoistingLimits": "dependencies"
 	},
 	"dependencies": {
-		"@aws-sdk/client-s3": "^3.540.0",
+		"@aws-sdk/client-s3": "^3.400.0",
 		"@sparticuz/chromium": "123.0.0",
 		"pg": "^8.11.3",
 		"puppeteer": "22.6.0",
