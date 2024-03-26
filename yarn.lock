@@ -1377,7 +1377,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.400.0":
+"@aws-sdk/client-s3@npm:^3.540.0":
   version: 3.540.0
   resolution: "@aws-sdk/client-s3@npm:3.540.0"
   dependencies:
@@ -60484,7 +60484,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "render@workspace:render"
   dependencies:
-    "@aws-sdk/client-s3": "npm:^3.400.0"
+    "@aws-sdk/client-s3": "npm:^3.540.0"
     "@sparticuz/chromium": "npm:123.0.0"
     "@types/aws-lambda": "npm:^8.10.119"
     "@types/find": "npm:^0.2.1"
