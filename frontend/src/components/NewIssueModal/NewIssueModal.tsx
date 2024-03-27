@@ -1,8 +1,8 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
+import { IssueModeSelector } from '@components/IssueModeSelector/IssueModeSelector'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
-import { RadioGroup } from '@components/RadioGroup/RadioGroup'
 import {
 	useCreateErrorCommentForExistingIssueMutation,
 	useCreateErrorCommentMutation,
@@ -333,8 +333,8 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			<ModalBody>
 				{/* ClickUp doesn't support searching issues, so we don't need to show this section. */}
 				{selectedIntegration.name !== 'ClickUp' && (
-					<Box px="12" py="8" gap="12" display="flex" align="center">
-						<RadioGroup
+					<Box px="12" py="8">
+						<IssueModeSelector
 							labels={['Create Issue', 'Link Issue']}
 							selectedLabel={
 								mode === NewIntegrationIssueType.CreateIssue
@@ -348,8 +348,6 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 										: NewIntegrationIssueType.LinkIssue,
 								)
 							}
-							labelStyle={{ width: '100%' }}
-							wrapperStyle={{ width: '100%' }}
 						/>
 					</Box>
 				)}

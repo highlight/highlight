@@ -5,7 +5,7 @@ import {
 	filterMentionedSlackUsers,
 	parseAdminSuggestions,
 } from '@components/Comment/utils/utils'
-import { RadioGroup } from '@components/RadioGroup/RadioGroup'
+import { IssueModeSelector } from '@components/IssueModeSelector/IssueModeSelector'
 import {
 	useCreateErrorCommentForExistingIssueMutation,
 	useCreateErrorCommentMutation,
@@ -583,14 +583,8 @@ export const NewCommentForm = ({
 						<Stack direction="column" gap="12" p="12">
 							{/* ClickUp doesn't support searching issues, so we don't need to show this section. */}
 							{integrationName !== 'ClickUp' && (
-								<Box
-									px="12"
-									py="8"
-									gap="12"
-									display="flex"
-									align="center"
-								>
-									<RadioGroup
+								<Box py="4">
+									<IssueModeSelector
 										labels={['Create Issue', 'Link Issue']}
 										selectedLabel={
 											mode ===
@@ -605,8 +599,6 @@ export const NewCommentForm = ({
 													: NewIntegrationIssueType.LinkIssue,
 											)
 										}
-										labelStyle={{ width: '100%' }}
-										wrapperStyle={{ width: '100%' }}
 									/>
 								</Box>
 							)}
