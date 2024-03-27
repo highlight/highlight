@@ -133,13 +133,19 @@ func CreateTracerProvider(endpoint string) (*sdktrace.TracerProvider, error) {
 	}
 	return sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(getSampler()),
-		sdktrace.WithBatcher(exporter),
+		sdktrace.WithBatcher(exporter,
+			sdktrace.WithMaxQueueSize(128*1024*1024),
+			sdktrace.WithBatchTimeout(time.Second),
+			sdktrace.WithExportTimeout(30*time.Second),
+			sdktrace.WithMaxExportBatchSize(16*1024*1024),
+			sdktrace.WithBlocking(),
+		),
 		sdktrace.WithResource(resources),
 	), nil
 }
 
-// deafult tracer is a noop tracer
-var defaultTracerProvider trace.TracerProvider = otel.GetTracerProvider()
+// default tracer is a noop tracer
+var defaultTracerProvider = otel.GetTracerProvider()
 
 func StartOTLP() (*OTLP, error) {
 	tracerProvider, err := CreateTracerProvider(conf.otlpEndpoint)
