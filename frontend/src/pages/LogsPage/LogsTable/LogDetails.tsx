@@ -279,7 +279,8 @@ export const LogDetails: React.FC<Props> = ({
 								if (error_object) {
 									set({
 										type: 'error',
-										id: error_object.error_group_secure_id,
+										secureId:
+											error_object.error_group_secure_id,
 										instanceId: error_object.id,
 									})
 								}

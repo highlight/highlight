@@ -5,12 +5,12 @@ import { useLocalStorage } from 'react-use'
 
 export type RelatedError = {
 	type: 'error'
-	id: string
+	secureId: string
 	instanceId: string
 }
 export type RelatedSession = {
 	type: 'session'
-	id: string
+	secureId: string
 }
 export type RelatedTrace = {
 	type: 'trace'
