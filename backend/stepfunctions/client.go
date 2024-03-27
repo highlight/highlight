@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
+	utilsV2 "github.com/highlight-run/highlight/backend/lambda-functions/deleteSessionsV2/utils"
 	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
 )
@@ -54,7 +55,7 @@ func (c *Client) DeleteSessionsByQuery(ctx context.Context, input utils.QuerySes
 	return output.ExecutionArn, err
 }
 
-func (c *Client) DeleteSessionsByQueryV2(ctx context.Context, input utils.QuerySessionsInputV2) (*string, error) {
+func (c *Client) DeleteSessionsByQueryV2(ctx context.Context, input utilsV2.QuerySessionsInputV2) (*string, error) {
 	marshaled, err := json.Marshal(input)
 	if err != nil {
 		return nil, errors.Wrap(err, "error marshaling DeleteSessionsByQueryV2 input")
