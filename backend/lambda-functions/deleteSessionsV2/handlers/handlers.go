@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
-	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
+	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessionsV2/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
@@ -25,11 +25,11 @@ import (
 )
 
 type Handlers interface {
-	DeleteSessionBatchFromOpenSearch(context.Context, utils.BatchIdResponse) (*utils.BatchIdResponse, error)
-	DeleteSessionBatchFromPostgres(context.Context, utils.BatchIdResponse) (*utils.BatchIdResponse, error)
-	DeleteSessionBatchFromS3(context.Context, utils.BatchIdResponse) (*utils.BatchIdResponse, error)
-	GetSessionIdsByQuery(context.Context, utils.QuerySessionsInput) ([]utils.BatchIdResponse, error)
-	SendEmail(context.Context, utils.QuerySessionsInput) error
+	DeleteSessionBatchFromOpenSearchV2(context.Context, utils.BatchIdResponse) (*utils.BatchIdResponse, error)
+	DeleteSessionBatchFromPostgresV2(context.Context, utils.BatchIdResponse) (*utils.BatchIdResponse, error)
+	DeleteSessionBatchFromS3V2(context.Context, utils.BatchIdResponse) (*utils.BatchIdResponse, error)
+	GetSessionIdsByQueryV2(context.Context, utils.QuerySessionsInputV2) ([]utils.BatchIdResponse, error)
+	SendEmailV2(context.Context, utils.QuerySessionsInputV2) error
 }
 
 type handlers struct {
@@ -80,8 +80,8 @@ func (h *handlers) getSessionClientAndBucket(sessionId int) (*s3.Client, *string
 	return client, bucket
 }
 
-func (h *handlers) DeleteSessionBatchFromOpenSearch(ctx context.Context, event utils.BatchIdResponse) (*utils.BatchIdResponse, error) {
-	sessionIds, err := utils.GetSessionIdsInBatch(h.db, event.TaskId, event.BatchId)
+func (h *handlers) DeleteSessionBatchFromOpenSearchV2(ctx context.Context, event utils.BatchIdResponse) (*utils.BatchIdResponse, error) {
+	sessionIds, err := utils.GetSessionIdsInBatchV2(h.db, event.TaskId, event.BatchId)
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting session ids to delete")
 	}
@@ -95,7 +95,7 @@ func (h *handlers) DeleteSessionBatchFromOpenSearch(ctx context.Context, event u
 	return &event, nil
 }
 
-func (h *handlers) DeleteSessionBatchFromPostgres(ctx context.Context, event utils.BatchIdResponse) (*utils.BatchIdResponse, error) {
+func (h *handlers) DeleteSessionBatchFromPostgresV2(ctx context.Context, event utils.BatchIdResponse) (*utils.BatchIdResponse, error) {
 	if !event.DryRun {
 		if err := h.db.Exec(`
 			DELETE FROM session_fields
@@ -125,8 +125,8 @@ func (h *handlers) DeleteSessionBatchFromPostgres(ctx context.Context, event uti
 	return &event, nil
 }
 
-func (h *handlers) DeleteSessionBatchFromS3(ctx context.Context, event utils.BatchIdResponse) (*utils.BatchIdResponse, error) {
-	sessionIds, err := utils.GetSessionIdsInBatch(h.db, event.TaskId, event.BatchId)
+func (h *handlers) DeleteSessionBatchFromS3V2(ctx context.Context, event utils.BatchIdResponse) (*utils.BatchIdResponse, error) {
+	sessionIds, err := utils.GetSessionIdsInBatchV2(h.db, event.TaskId, event.BatchId)
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting session ids to delete")
 	}
@@ -167,7 +167,7 @@ func (h *handlers) DeleteSessionBatchFromS3(ctx context.Context, event utils.Bat
 	return &event, nil
 }
 
-func (h *handlers) GetSessionIdsByQuery(ctx context.Context, event utils.QuerySessionsInput) ([]utils.BatchIdResponse, error) {
+func (h *handlers) GetSessionIdsByQueryV2(ctx context.Context, event utils.QuerySessionsInputV2) ([]utils.BatchIdResponse, error) {
 	taskId := uuid.New().String()
 	responses := []utils.BatchIdResponse{}
 	page := 1
@@ -175,7 +175,7 @@ func (h *handlers) GetSessionIdsByQuery(ctx context.Context, event utils.QuerySe
 		batchId := uuid.New().String()
 		toDelete := []model.DeleteSessionsTask{}
 
-		ids, _, _, err := h.clickhouseClient.QuerySessionIdsDeprecated(ctx, nil, event.ProjectId, 10000, event.Query, "CreatedAt DESC, ID DESC", pointy.Int(page), time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC))
+		ids, _, _, err := h.clickhouseClient.QuerySessionIds(ctx, nil, event.ProjectId, 10000, event.Params, "CreatedAt DESC, ID DESC", pointy.Int(page), time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC))
 		if err != nil {
 			return nil, err
 		}
@@ -209,7 +209,7 @@ func (h *handlers) GetSessionIdsByQuery(ctx context.Context, event utils.QuerySe
 	return responses, nil
 }
 
-func (h *handlers) SendEmail(ctx context.Context, event utils.QuerySessionsInput) error {
+func (h *handlers) SendEmailV2(ctx context.Context, event utils.QuerySessionsInputV2) error {
 	to := &mail.Email{Address: event.Email}
 
 	m := mail.NewV3Mail()
