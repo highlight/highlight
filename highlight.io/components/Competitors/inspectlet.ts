@@ -9,7 +9,6 @@ import {
 
 export const InspectletSpec: Competitor = {
 	name: 'Inspectlet',
-	header: 'The Open Source Inspectlet Alternative.',
 	subheader:
 		'Pixel-perfect video replay of your frontend web application. Step into the shoes of your users.',
 	logoDesktop: inspectletlogofull,

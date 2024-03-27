@@ -9,7 +9,6 @@ import {
 
 export const HotjarSpec: Competitor = {
 	name: 'Hotjar',
-	header: 'The Open Source Hotjar Alternative.',
 	subheader:
 		'Pixel-perfect video replay of your frontend web application. Step into the shoes of your users.',
 	logoDesktop: hotjarlogofull,

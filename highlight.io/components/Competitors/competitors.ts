@@ -4,6 +4,7 @@ import { FullstorySpec } from './fullstory'
 import { HotjarSpec } from './hotjar'
 import { InspectletSpec } from './inspectlet'
 import { LogRocketSpec } from './logrocket'
+import { OpenReplaySpec } from './open-replay'
 import { SentrySpec } from './sentry'
 import { SmartlookSpec } from './smartlook'
 
@@ -27,7 +28,8 @@ export type CompetitorPara = {
 export type Competitor = {
 	name: string
 	type?: 'session-replay' | 'error-monitoring' | 'logging' //determines which hero image to display
-	header: string
+	headerPartOne?: string
+	headerPartTwo?: string
 	subheader: string
 	logoDesktop?: StaticImageData
 	logoMobile?: StaticImageData
@@ -44,4 +46,5 @@ export const COMPETITORS: { [k: string]: Competitor } = {
 	'highlight-vs-inspectlet': InspectletSpec,
 	'highlight-vs-datadog': DatadogSpec,
 	'highlight-vs-sentry': SentrySpec,
+	'highlight-vs-openreplay': OpenReplaySpec,
 }
