@@ -1,0 +1,185 @@
+@font-face {
+  font-display: swap;
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Poppins Regular'), local('PoppinsRegular'),
+    url('/font/Poppins-Regular.ttf') format('ttf');
+}
+
+@font-face {
+  font-display: swap;
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Poppins Bold'), local('PoppinsBold'),
+    url('/font/Poppins-Bold.ttf') format('ttf');
+}
+
+:root {
+  --color-purple-100: #bea8f1;
+  --color-purple-200: #301e79;
+  --color-purple-300: #eee7ff;
+  --color-purple-400: #a17ce4;
+  --color-purple: #7856ff;
+  --color-purple-800: #302c3a;
+  --color-blue-100: #deebff;
+  --color-blue-200: #b2d4ff;
+  --color-blue-300: #56ccf2;
+  --color-blue-400: #2d9cdb;
+  --color-blue-500: #2f80ed;
+  --color-green-100: #beff6c5e;
+  --color-green-300: #6fcf97;
+  --color-green-400: #27ae60;
+  --color-green-500: #219653;
+  --color-green-600: #006400;
+  --color-yellow-200: #ffd82c;
+  --color-yellow: #f2c94c;
+  --color-orange-300: rgba(242, 106, 76, 0.37);
+  --color-orange-400: #ffb038;
+  --color-orange-500: #c67e29;
+  --color-brown: #835e00;
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-300: #fca5a5;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
+  --color-red-900: #7f1d1d;
+
+  --color-gray-100: #1a1a1a;
+  --color-gray-200: #333333;
+  --color-gray-300: #333333;
+  --color-gray-400: #595959;
+  --color-gray-500: #8c8c8c;
+  --color-gray-600: #a6a6a6;
+  --color-gray-700: #cccccc;
+  --color-gray-800: #f2f2f2;
+
+  --color-black: #111;
+  --color-white: #fff;
+
+  /* Editor Color */
+  --color-editor-background: #111;
+  --color-editor-foreground-text: var(--color-gray-700);
+  --color-editor-secondary-text: #4078f2;
+
+  --color-primary-background: #1f2023;
+  --color-primary-inverted-background: #000;
+  --color-secondary-background: var(--color-gray-200);
+  --color-background-overlay: rgba(0, 0, 0, 0.8);
+  --text-primary-inverted: #1f2023;
+  --text-primary: #f6f6f6;
+  --color-link: var(--color-purple);
+
+
+
+  --color-selected-light: #ebff5e;
+  --color-selected-dark: #8dc31a;
+  --color-secondary-100: #b9f2fe;
+  --color-secondary-200: #72e4fc;
+  --color-secondary-300: #23b6e2;
+  --color-secondary-400: #0b75aa;
+  --color-primary-100: #b19cff;
+  --color-primary-200: #6c37f4;
+  --color-primary-300: #5420d1;
+  --color-primary-400: #120532;
+  --color-primary-500: #0d0225;
+  --color-copy-on-dark: #dfdfdf;
+  --color-darker-copy-on-dark: #9d97aa;
+  --color-copy-on-light: #645d74;
+  --color-divider-on-dark: #30294e;
+  --color-divider-on-purple: rgba(255, 255, 255, 0.32);
+  --brand-accent: var(--color-secondary-300);
+  --brand-accent-light: var(--color-secondary-200);
+
+  --space-unit: 4px;
+  --size-4xLarge: calc(18 * var(--space-unit));
+  --size-xxxLarge: calc(14 * var(--space-unit));
+  --size-xxLarge: calc(11 * var(--space-unit));
+  --size-xLarge: calc(8 * var(--space-unit));
+  --size-large: calc(6 * var(--space-unit));
+  --size-medium: calc(4 * var(--space-unit));
+  --size-small: calc(3 * var(--space-unit));
+  --size-xSmall: calc(2 * var(--space-unit));
+  --size-xxSmall: calc(1 * var(--space-unit));
+
+  --header-font-family: 'Poppins', 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif;
+  --body-font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol';
+  --monospace-font-family: 'Roboto Mono', monospace;
+}
+
+body {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+
+  background-color: var(--color-primary-background) !important;
+  color: var(--text-primary);
+  font-family: var(--body-font-family) !important;
+  font-weight: 400 !important;
+  margin: 0;
+  overscroll-behavior: none;
+  text-rendering: geometricPrecision;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--header-font-family);
+  margin: 0;
+  color: var(--text-primary);
+}
+
+h2 {
+  font-size: 28px;
+}
+
+h3 {
+  font-size: 20px;
+}
+
+h4 {
+  font-weight: 400 !important;
+}
+
+p {
+  line-height: initial !important;
+  margin: var(--size-small) 0 !important;
+}
+
+li,
+p,
+label {
+  color: var(--text-primary);
+}
+
+h3 {
+  margin-bottom: var(--size-xSmall) !important;
+}
+
+h4 {
+  margin-bottom: var(--size-xxSmall) !important;
+
+
+}
+
+h4:last-of-type {
+  margin-bottom: 0 !important;
+}
+
+button {
+  font-family: var(--header-font-family) !important;
+  font-weight: 400;
+}
+
+input {
+  font-weight: 400 !important;
+}

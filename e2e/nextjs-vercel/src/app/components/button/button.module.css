@@ -1,0 +1,30 @@
+.genericButton {
+  padding: 10px var(--size-large);
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 16px;
+  border-radius: var(--size-xxSmall);
+  display: block;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  border: none;
+}
+
+.genericButton:hover {
+  cursor: pointer;
+}
+
+
+.primaryButton {
+  background-color: var(--brand-accent-light);
+  color: var(--text-primary-inverted);
+  border-radius: var(--size-xSmall);
+  font-weight: 700;
+
+}
+
+.primaryButton:hover {
+  background-color: var(--brand-accent);
+  color: var(--text-primary-inverted);
+}
