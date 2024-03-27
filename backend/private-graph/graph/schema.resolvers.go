@@ -4336,7 +4336,61 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, qu
 
 // DeleteSessionsv2 is the resolver for the deleteSessionsv2 field.
 func (r *mutationResolver) DeleteSessionsv2(ctx context.Context, projectID int, params modelInputs.QueryInput, sessionCount int) (bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteSessionsv2 - deleteSessionsv2"))
+	if util.IsDevOrTestEnv() {
+		return false, nil
+	}
+
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	if !settings.EnableDataDeletion {
+		return false, e.New("data deletion is disabled for this workspace")
+	}
+
+	email := ""
+	if admin.Email != nil {
+		email = *admin.Email
+	}
+
+	firstName := ""
+	if admin.FirstName != nil {
+		firstName = *admin.FirstName
+	}
+
+	role, err := r.GetAdminRole(ctx, admin.ID, project.WorkspaceID)
+	if err != nil {
+		return false, err
+	}
+
+	if role != model.AdminRole.ADMIN {
+		return false, e.New("Must be admin role to delete sessions")
+	}
+
+	_, err = r.StepFunctions.DeleteSessionsByQueryV2(ctx, utils.QuerySessionsInputV2{
+		ProjectId:    projectID,
+		Email:        email,
+		FirstName:    firstName,
+		Params:       params,
+		SessionCount: sessionCount,
+		DryRun:       util.IsDevOrTestEnv(),
+	})
+
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // UpdateVercelProjectMappings is the resolver for the updateVercelProjectMappings field.
@@ -6198,7 +6252,63 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 
 // Sessions is the resolver for the sessions field.
 func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, params modelInputs.QueryInput, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
-	panic(fmt.Errorf("not implemented: Sessions - sessions"))
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	chSortStr := "CreatedAt DESC, ID DESC"
+	pgSortStr := "created_at DESC"
+	if !sortDesc {
+		chSortStr = "CreatedAt ASC, ID ASC"
+		pgSortStr = "created_at ASC"
+	}
+
+	// If there's no admin for the context, use `admin=nil`
+	// (admin is used by the "viewed by me" filter)
+	admin, err := r.getCurrentAdmin(ctx)
+	if errors.Is(err, AuthenticationError) {
+		admin = nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	ids, total, ordered, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, params, chSortStr, page, retentionDate)
+	if err != nil {
+		return nil, err
+	}
+
+	q := r.DB.WithContext(ctx).Model(&model.Session{}).
+		Where("id in ?", ids).
+		Where("project_id = ?", projectID)
+	if !ordered {
+		q = q.Order(pgSortStr)
+	}
+
+	var results []model.Session
+	if err := q.Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	if ordered {
+		positions := make(map[int64]int)
+		for idx, id := range ids {
+			positions[id] = idx
+		}
+		sort.Slice(results, func(i, j int) bool {
+			return positions[int64(results[i].ID)] < positions[int64(results[j].ID)]
+		})
+	}
+
+	return &model.SessionResults{
+		Sessions:   results,
+		TotalCount: total,
+	}, nil
 }
 
 // SessionsHistogramClickhouse is the resolver for the sessions_histogram_clickhouse field.
@@ -6242,7 +6352,41 @@ func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, project
 
 // SessionsHistogram is the resolver for the sessions_histogram field.
 func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
-	panic(fmt.Errorf("not implemented: SessionsHistogram - sessions_histogram"))
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	// If there's no admin for the context, use `admin=nil`
+	// (admin is used by the "viewed by me" filter)
+	admin, err := r.getCurrentAdmin(ctx)
+	if errors.Is(err, AuthenticationError) {
+		admin = nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogram(ctx, admin, projectID, params, retentionDate, histogramOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(bucketTimes) > 0 {
+		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
+		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
+	}
+
+	return &model.SessionsHistogram{
+		BucketTimes:           MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		SessionsWithoutErrors: MergeHistogramBucketCounts(withoutErrors, histogramOptions.BucketSize.Multiple),
+		SessionsWithErrors:    MergeHistogramBucketCounts(withErrors, histogramOptions.BucketSize.Multiple),
+		TotalSessions:         MergeHistogramBucketCounts(totals, histogramOptions.BucketSize.Multiple),
+	}, nil
 }
 
 // SessionsReport is the resolver for the sessions_report field.
@@ -6323,7 +6467,78 @@ group by 1 order by num_sessions desc;
 
 // SessionUsersReport is the resolver for the session_users_report field.
 func (r *queryResolver) SessionUsersReport(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.SessionsReportRow, error) {
-	panic(fmt.Errorf("not implemented: SessionUsersReport - session_users_report"))
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	// If there's no admin for the context, use `admin=nil`
+	// (admin is used by the "viewed by me" filter)
+	admin, err := r.getCurrentAdmin(ctx)
+	if errors.Is(err, AuthenticationError) {
+		admin = nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	sql, args, _, err := clickhouse.GetSessionsQueryImpl(admin, params, projectID, retentionDate, "ID", nil, nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	q := fmt.Sprintf(`
+select coalesce(email.Value, nullif(IP, ''), device.Value, Identifier) as key,
+       count(distinct ID)                                              as num_sessions,
+       count(distinct date_trunc('day', CreatedAt))                    as num_days_visited,
+       count(distinct date_trunc('month', CreatedAt))                  as num_months_visited,
+       avg(greatest(0, ActiveLength)) / 1000 / 60                      as avg_active_length_mins,
+       max(greatest(0, ActiveLength)) / 1000 / 60                      as max_active_length_mins,
+       sum(greatest(0, ActiveLength)) / 1000 / 60                      as total_active_length_mins,
+       avg(greatest(0, Length)) / 1000 / 60                            as avg_length_mins,
+       max(greatest(0, Length)) / 1000 / 60                            as max_length_mins,
+       sum(greatest(0, Length)) / 1000 / 60                            as total_length_mins,
+       max(City)                                                       as location
+from sessions final
+         left join (select *
+                    from fields
+                    where fields.ProjectID = %d
+                      and Type = 'user'
+                      and Name = 'email') email on
+    email.SessionCreatedAt = CreatedAt
+        and email.SessionID = ID
+         left join (select *
+                    from fields
+                    where fields.ProjectID = %d
+                      and Type = 'session'
+                      and Name = 'device_id') device on
+    device.SessionCreatedAt = CreatedAt
+        and device.SessionID = ID
+WHERE sessions.ProjectID = %d
+  AND NOT Excluded
+  AND WithinBillingQuota
+  AND ID in (%s)
+group by 1 order by num_sessions desc;
+`, project.ID, project.ID, project.ID, sql)
+	rows, err := r.ClickhouseClient.GetConn().Query(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*modelInputs.SessionsReportRow
+	for rows.Next() {
+		var result modelInputs.SessionsReportRow
+		if err := rows.Scan(&result.Key, &result.NumSessions, &result.NumDaysVisited, &result.NumMonthsVisited, &result.AvgActiveLengthMins, &result.MaxActiveLengthMins, &result.TotalActiveLengthMins, &result.AvgLengthMins, &result.MaxLengthMins, &result.TotalLengthMins, &result.Location); err != nil {
+			return nil, err
+		}
+		results = append(results, &result)
+	}
+
+	return results, nil
 }
 
 // FieldTypesClickhouse is the resolver for the field_types_clickhouse field.

@@ -16,9 +16,11 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 )
 
+// TODO(spenny): create DELETE_SESSIONS_V2_ARN
 var (
-	deleteSessionsArn = os.Getenv("DELETE_SESSIONS_ARN")
-	sessionExportArn  = "arn:aws:states:us-east-2:173971919437:stateMachine:SessionExport"
+	deleteSessionsArn   = os.Getenv("DELETE_SESSIONS_ARN")
+	deleteSessionsV2Arn = os.Getenv("DELETE_SESSIONS_V2_ARN")
+	sessionExportArn    = "arn:aws:states:us-east-2:173971919437:stateMachine:SessionExport"
 )
 
 type Client struct {
@@ -47,6 +49,20 @@ func (c *Client) DeleteSessionsByQuery(ctx context.Context, input utils.QuerySes
 
 	output, err := c.client.StartExecution(context.Background(), &sfn.StartExecutionInput{
 		StateMachineArn: &deleteSessionsArn,
+		Input:           pointy.String(string(marshaled)),
+		Name:            pointy.String(uuid.New().String()),
+	})
+	return output.ExecutionArn, err
+}
+
+func (c *Client) DeleteSessionsByQueryV2(ctx context.Context, input utils.QuerySessionsInputV2) (*string, error) {
+	marshaled, err := json.Marshal(input)
+	if err != nil {
+		return nil, errors.Wrap(err, "error marshaling DeleteSessionsByQueryV2 input")
+	}
+
+	output, err := c.client.StartExecution(context.Background(), &sfn.StartExecutionInput{
+		StateMachineArn: &deleteSessionsV2Arn,
 		Input:           pointy.String(string(marshaled)),
 		Name:            pointy.String(uuid.New().String()),
 	})
