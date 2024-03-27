@@ -6821,6 +6821,8 @@ body {
   white-space: nowrap;
   overflow-x: hidden;
   display: inline-block;
+  font-size: 13px;
+  color: var(--_1pyqka9b);
 }
 ._1m26oyu5 {
   display: flex;
