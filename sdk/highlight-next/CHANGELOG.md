@@ -1,5 +1,13 @@
 # @highlight-run/next
 
+## 7.4.9
+
+### Patch Changes
+
+-   Updated dependencies [bd410081e]
+    -   highlight.run@8.10.1
+    -   @highlight-run/node@3.8.1
+
 ## 7.4.8
 
 ### Patch Changes
