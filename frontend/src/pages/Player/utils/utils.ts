@@ -1,6 +1,10 @@
 import { Session } from '@graph/schemas'
 import { NetworkResourceWithID } from '@pages/Player/ResourcesContext/ResourcesContext'
 
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
+import { useNumericProjectId } from '@/hooks/useProjectId'
+import { useParams } from '@/util/react-router/useParams'
+
 export enum SessionPageSearchParams {
 	/** Automatically sets the date range for the current segment based on the value. */
 	date = 'date',
@@ -116,5 +120,18 @@ export const getTimelineEventTooltipText = (name: string) => {
 			return 'The application became visible.'
 		default:
 			return name
+	}
+}
+
+export const useSessionParams = () => {
+	const { resource } = useRelatedResource()
+	const { projectId } = useNumericProjectId()
+	const { session_secure_id } = useParams<{ session_secure_id: string }>()
+	const sessionSecureId =
+		resource?.type === 'session' ? resource.secureId : session_secure_id
+
+	return {
+		projectId,
+		sessionSecureId,
 	}
 }

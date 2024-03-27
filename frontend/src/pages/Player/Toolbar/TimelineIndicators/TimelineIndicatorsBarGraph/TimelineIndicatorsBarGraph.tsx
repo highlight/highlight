@@ -41,6 +41,8 @@ import {
 } from 'react'
 import { NumberParam, useQueryParams } from 'use-query-params'
 
+import { useSessionParams } from '@/pages/Player/utils/utils'
+
 import { ToolbarControlBar } from '../../ToolbarControlBar/ToolbarControlBar'
 import * as style from './style.css'
 import { TIMELINE_MARGIN } from './style.css'
@@ -69,7 +71,7 @@ const TimelineIndicatorsBarGraph = ({
 	selectedTimelineAnnotationTypes,
 	width,
 }: Props) => {
-	const { session_secure_id } = useParams<{ session_secure_id: string }>()
+	const { sessionSecureId } = useSessionParams()
 
 	const { showPlayerAbsoluteTime, showHistogram: shouldShowHistogram } =
 		usePlayerConfiguration()
@@ -676,7 +678,7 @@ const TimelineIndicatorsBarGraph = ({
 		updateCameraFromZoomArea(zoomPercent)
 		// run once for session secure id
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [session_secure_id])
+	}, [sessionSecureId])
 
 	const isVisible = useCallback(
 		(...percents: number[]) => {

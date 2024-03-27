@@ -29,7 +29,6 @@ import { customEvent, viewportResizeDimension } from '@rrweb/types'
 import analytics from '@util/analytics'
 import { indexedDBFetch, indexedDBString } from '@util/db'
 import log from '@util/log'
-import { useParams } from '@util/react-router/useParams'
 import { timerEnd, timerStart } from '@util/timer/timer'
 import useMapRef from '@util/useMapRef'
 import { H } from 'highlight.run'
@@ -39,6 +38,8 @@ import { useNavigate } from 'react-router-dom'
 import { useLocalStorage } from 'react-use'
 import { EventType } from 'rrweb'
 import { BooleanParam, useQueryParam } from 'use-query-params'
+
+import { useSessionParams } from '@/pages/Player/utils/utils'
 
 import { HighlightEvent } from '../HighlightEvent'
 import { ReplayerContextInterface, ReplayerState } from '../ReplayerContext'
@@ -52,10 +53,7 @@ import usePlayerConfiguration from './utils/usePlayerConfiguration'
 
 export const usePlayer = (): ReplayerContextInterface => {
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
-	const { session_secure_id, project_id } = useParams<{
-		session_secure_id: string
-		project_id: string
-	}>()
+	const { sessionSecureId, projectId } = useSessionParams()
 	const navigate = useNavigate()
 	const [download] = useQueryParam('download', BooleanParam)
 
@@ -107,20 +105,20 @@ export const usePlayer = (): ReplayerContextInterface => {
 	)
 	const { data: sessionIntervals } = useGetSessionIntervalsQuery({
 		variables: {
-			session_secure_id: session_secure_id!,
+			session_secure_id: sessionSecureId!,
 		},
-		skip: !session_secure_id,
+		skip: !sessionSecureId,
 	})
 	const { data: eventChunksData } = useGetEventChunksQuery({
-		variables: { secure_id: session_secure_id! },
+		variables: { secure_id: sessionSecureId! },
 		skip:
-			!session_secure_id ||
-			!project_id ||
-			CHUNKING_DISABLED_PROJECTS.includes(project_id),
+			!sessionSecureId ||
+			!projectId ||
+			CHUNKING_DISABLED_PROJECTS.includes(projectId),
 	})
 	const { data: sessionData } = useGetSessionQuery({
 		variables: {
-			secure_id: session_secure_id!,
+			secure_id: sessionSecureId!,
 		},
 		onCompleted: useCallback((data: GetSessionQuery) => {
 			dispatch({
@@ -134,7 +132,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				data: { session: undefined },
 			})
 		}, []),
-		skip: !session_secure_id,
+		skip: !sessionSecureId,
 		fetchPolicy: 'network-only',
 	})
 	const { timelineIndicatorEvents } = useTimelineIndicators(
@@ -146,12 +144,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 				? undefined
 				: 'no-cache',
 			variables: {
-				session_secure_id: session_secure_id!,
+				session_secure_id: sessionSecureId!,
 				skip_events: sessionData?.session
 					? !!sessionData.session?.direct_download_url
 					: true,
 			},
-			skip: !session_secure_id,
+			skip: !sessionSecureId,
 		})
 
 	// chunk indexes that are currently being loaded (fetched over the network)
@@ -197,16 +195,16 @@ export const usePlayer = (): ReplayerContextInterface => {
 		}
 
 		chunkEventsReset()
-		if (!project_id || !session_secure_id) {
+		if (!projectId || !sessionSecureId) {
 			return
 		}
 		dispatch({
 			type: PlayerActionType.reset,
-			projectId: project_id,
-			sessionSecureId: session_secure_id,
+			projectId: projectId,
+			sessionSecureId: sessionSecureId,
 			nextState: ReplayerState.Loading,
 		})
-	}, [chunkEventsReset, project_id, session_secure_id])
+	}, [chunkEventsReset, projectId, sessionSecureId])
 
 	// Returns the player-relative timestamp of the end of the current inactive interval.
 	// Returns undefined if not in an interval or the interval is marked as active.
@@ -316,7 +314,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			loadingChunks.current.add(_i)
 			try {
 				const url = await fetchEventChunkURL({
-					secure_id: session_secure_id!,
+					secure_id: sessionSecureId!,
 					index: _i,
 				})
 				log('PlayerHook.tsx', 'loading chunk', {
@@ -341,7 +339,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			}
 			return { idx: -1, events: [] }
 		},
-		[fetchEventChunkURL, session_secure_id],
+		[fetchEventChunkURL, sessionSecureId],
 	)
 
 	// Ensure all chunks between startTs and endTs are loaded.
@@ -353,8 +351,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 			forceLoadNext?: boolean,
 		) => {
 			if (
-				!project_id ||
-				CHUNKING_DISABLED_PROJECTS.includes(project_id) ||
+				!projectId ||
+				CHUNKING_DISABLED_PROJECTS.includes(projectId) ||
 				!state.session?.chunked
 			) {
 				if (action) dispatchAction(startTime, action)
@@ -487,7 +485,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			}
 		},
 		[
-			project_id,
+			projectId,
 			state.session?.chunked,
 			state.sessionMetadata.startTime,
 			getChunkIdx,
@@ -697,7 +695,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// Initializes the session state and fetches the session data
 	useEffect(() => {
 		resetPlayer()
-		if (session_secure_id && eventChunksData?.event_chunks?.length) {
+		if (sessionSecureId && eventChunksData?.event_chunks?.length) {
 			loadEventChunk(0)
 				.then(({ events }) => {
 					chunkEventsSet(0, events)
@@ -725,8 +723,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 				})
 		}
 	}, [
-		project_id,
-		session_secure_id,
+		projectId,
+		sessionSecureId,
 		resetPlayer,
 		loadEventChunk,
 		eventChunksData?.event_chunks,
@@ -746,7 +744,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			unsubscribeSessionPayloadFn.current = subscribeToSessionPayload({
 				document: OnSessionPayloadAppendedDocument,
 				variables: {
-					session_secure_id,
+					session_secure_id: sessionSecureId,
 					initial_events_count: sessionPayload.events.length,
 				},
 				updateQuery: (prev, { subscriptionData }) => {
@@ -793,12 +791,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 		state.replayer,
 		state.replayerState,
 		subscribeToSessionPayload,
-		session_secure_id,
+		sessionSecureId,
 		chunkEventsSet,
 	])
 
 	useEffect(() => {
-		if (state.replayer && state.session?.secure_id !== session_secure_id) {
+		if (state.replayer && state.session?.secure_id !== sessionSecureId) {
 			dispatch({
 				type: PlayerActionType.updateCurrentUrl,
 				currentTime:
@@ -808,7 +806,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		}
 	}, [
 		state.session?.secure_id,
-		session_secure_id,
+		sessionSecureId,
 		state.replayer,
 		state.sessionMetadata,
 	])
@@ -832,7 +830,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		state.replayer.on('resize', onViewportChange)
 		state.replayer.on('pause', onPlayStartStop)
 		state.replayer.on('start', onPlayStartStop)
-	}, [state.replayer, project_id, onEvent, onViewportChange, onPlayStartStop])
+	}, [state.replayer, projectId, onEvent, onViewportChange, onPlayStartStop])
 
 	// Downloads the events data only if the URL search parameter '?download=1' is present.
 	useEffect(() => {
@@ -847,7 +845,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					})
 
 					a.href = URL.createObjectURL(file)
-					a.download = `session-${session_secure_id}.json`
+					a.download = `session-${sessionSecureId}.json`
 					a.click()
 
 					URL.revokeObjectURL(a.href)
@@ -867,7 +865,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					})
 			}
 		}
-	}, [download, sessionData?.session?.direct_download_url, session_secure_id])
+	}, [download, sessionData?.session?.direct_download_url, sessionSecureId])
 
 	useEffect(() => {
 		// If events are returned by getSessionPayloadQuery, set the events payload
@@ -938,7 +936,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		}
 	}, [
 		frameAction,
-		session_secure_id,
+		sessionSecureId,
 		state.isLiveMode,
 		state.replayer,
 		state.replayerState,
@@ -951,21 +949,21 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// Finds the next session in the session feed to play if autoplay is enabled.
 	useEffect(() => {
 		if (
-			!!session_secure_id &&
+			!!sessionSecureId &&
 			state.replayerState === ReplayerState.SessionEnded &&
 			autoPlaySessions &&
 			state.sessionResults.sessions.length > 0
 		) {
 			const nextSessionInList = findNextSessionInList(
 				state.sessionResults.sessions,
-				session_secure_id,
+				sessionSecureId,
 			)
 
 			if (nextSessionInList) {
 				pause(state.time).then(() => {
 					resetPlayer()
 					navigate(
-						`/${project_id}/sessions/${nextSessionInList.secure_id}`,
+						`/${projectId}/sessions/${nextSessionInList.secure_id}`,
 					)
 				})
 			}
@@ -974,9 +972,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 	}, [
 		autoPlaySessions,
 		pause,
-		project_id,
+		projectId,
 		resetPlayer,
-		session_secure_id,
+		sessionSecureId,
 		state.replayerState,
 		state.sessionResults.sessions,
 	])
@@ -987,7 +985,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		if (
 			state.sessionMetadata.startTime === 0 ||
 			state.replayerState !== ReplayerState.Playing ||
-			session_secure_id !== state.session_secure_id
+			sessionSecureId !== state.session_secure_id
 		) {
 			return
 		}
@@ -1022,7 +1020,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		getInactivityEnd,
 		play,
 		state.session_secure_id,
-		session_secure_id,
+		sessionSecureId,
 		chunkEventsRef,
 		getLastLoadedEventTimestamp,
 	])
@@ -1074,7 +1072,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		isPlayerReady:
 			state.replayerState !== ReplayerState.Loading &&
 			state.replayerState !== ReplayerState.Empty &&
-			state.scale !== 1 &&
+			// state.scale !== 1 &&
 			state.sessionViewability === SessionViewability.VIEWABLE,
 		setIsLiveMode: useCallback(
 			(isLiveMode) => {

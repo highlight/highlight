@@ -4091,6 +4091,7 @@ body {
   cursor: pointer;
   padding: 0;
   outline: none;
+  flex-shrink: 0;
 }
 ._1ku4sk20[disabled],
 ._1ku4sk20[disabled]:hover,
