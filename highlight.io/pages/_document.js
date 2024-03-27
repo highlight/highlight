@@ -11,6 +11,19 @@ class HighlightDocument extends Document {
 				<Head>
 					<link
 						rel="preconnect"
+						href="https://fonts.googleapis.com"
+					/>
+					<link
+						rel="preconnect"
+						href="https://fonts.gstatic.com"
+						crossOrigin
+					/>
+					<link
+						href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap"
+						rel="stylesheet"
+					/>
+					<link
+						rel="preconnect"
 						href="https://JGT9LI80J2-dsn.algolia.net"
 						crossOrigin="true"
 					/>
