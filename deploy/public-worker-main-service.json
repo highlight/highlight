@@ -5,8 +5,6 @@
 			"name": "highlight-backend",
 			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-production-ecr-repo:f9b8e973e625b9c531399bf0551d7240b3214f62.arm64",
 			"cpu": 0,
-			"memory": 16384,
-			"memoryReservation": 14336,
 			"portMappings": [],
 			"essential": true,
 			"command": [
@@ -20,7 +18,7 @@
 			"environment": [
 				{
 					"name": "GOMEMLIMIT",
-					"value": "12GiB"
+					"value": "8GiB"
 				}
 			],
 			"mountPoints": [],
