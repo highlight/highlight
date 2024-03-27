@@ -11,6 +11,7 @@ export type RelatedError = {
 export type RelatedSession = {
 	type: 'session'
 	secureId: string
+	logCursor?: string
 }
 export type RelatedTrace = {
 	type: 'trace'
