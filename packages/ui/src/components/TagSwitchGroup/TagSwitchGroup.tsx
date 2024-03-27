@@ -39,6 +39,7 @@ export const TagSwitchGroup: React.FC<Props> = ({
 						borderRadius="8"
 						backgroundColor={background ? 'elevated' : undefined}
 						flexGrow={0}
+						// Border radius value does not exist in sprinkles and is a one-off.
 						style={{ borderRadius: 9 }}
 					>
 						{options.map((option, index) => (
