@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/parser"
 	"github.com/highlight-run/highlight/backend/parser/listener"
 
 	"github.com/samber/lo"
@@ -466,7 +467,7 @@ func SessionMatchesQuery(session *model.Session, filters listener.Filters) bool 
 	return matchesQuery(session, SessionsTableConfig, filters)
 }
 
-var sessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey]{
+var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey]{
 	TableName:        "sessions_joined_vw",
 	AttributesColumn: "SessionAttributes",
 	KeysToColumns: map[modelInputs.ReservedSessionKey]string{
@@ -497,7 +498,7 @@ var sessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 }
 
 var sessionsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedSessionKey]{
-	tableConfig: sessionsJoinedTableConfig,
+	tableConfig: SessionsJoinedTableConfig,
 	useSampling: func(time.Duration) bool {
 		return false
 	},
@@ -590,50 +591,16 @@ func (client *Client) GetConn() driver.Conn {
 	return client.conn
 }
 
-// TODO(spenny): use updated logic
 func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
-	rules := make([]Rule, 0)
-
-	sampleRule, sampleRuleIdx, sampleRuleFound := lo.FindIndexOf(rules, func(r Rule) bool {
-		return r.Field == sampleField
-	})
-	if sampleRuleFound {
-		rules = append(rules[:sampleRuleIdx], rules[sampleRuleIdx+1:]...)
-	}
-	useRandomSample := sampleRuleFound && groupBy == nil
-
-	end := params.DateRange.EndDate.UTC()
-	start := params.DateRange.StartDate.UTC()
-	timeRangeRule := Rule{
-		Field: timeRangeField,
-		Op:    BetweenDate,
-		Val:   []string{fmt.Sprintf("%s_%s", start.Format(timeFormat), end.Format(timeFormat))},
-	}
-	rules = append(rules, timeRangeRule)
-
-	if useRandomSample {
-		salt, err := strconv.ParseUint(sampleRule.Val[0], 16, 64)
-		if err != nil {
-			return "", nil, false, err
-		}
-		selectColumns = fmt.Sprintf("%s, toUInt64(farmHash64(SecureID) %% %d) as hash", selectColumns, salt)
-		orderBy = pointy.String("hash")
-	}
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select(selectColumns).
-		From("sessions FINAL").
-		Where(sb.And(sb.Equal("ProjectID", projectId),
-			"NOT Excluded",
-			"WithinBillingQuota"),
-			sb.GreaterThan("CreatedAt", retentionDate),
-		)
+	sb.From(SessionsJoinedTableConfig.TableName)
+	sb.Select(selectColumns)
 
-	conditions, err := parseSessionRules(admin, true, rules, projectId, start, end, sb)
-	if err != nil {
-		return "", nil, false, err
-	}
+	// TODO(spenny): custom rules to check - sampleField
+	sb.Where(sb.LessEqualThan("CreatedAt", params.DateRange.EndDate)).
+		Where(sb.GreaterEqualThan("CreatedAt", params.DateRange.StartDate))
 
-	sb = sb.Where(conditions)
+	parser.AssignSearchFilters(sb, params.Query, SessionsJoinedTableConfig)
 	if groupBy != nil {
 		sb = sb.GroupBy(*groupBy)
 	}
@@ -647,15 +614,8 @@ func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, pro
 		sb = sb.Offset(*offset)
 	}
 
-	if useRandomSample {
-		sbOuter := sqlbuilder.NewSelectBuilder()
-		sb = sbOuter.
-			Select("*").
-			From(sbOuter.BuilderAs(sb, "inner"))
-	}
-
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
-	return sql, args, useRandomSample, nil
+	return sql, args, false, nil
 }
 
 func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, projectId int, count int, params modelInputs.QueryInput, sortField string, page *int, retentionDate time.Time) ([]int64, int64, bool, error) {
