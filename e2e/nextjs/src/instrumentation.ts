@@ -7,6 +7,7 @@ export const highlightConfig = {
 	otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
 	serviceName: 'my-nextjs-backend',
 	environment: 'e2e-test',
+	disableConsoleRecording: true,
 } as NodeOptions
 
 export async function register() {
