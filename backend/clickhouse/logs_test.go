@@ -1522,7 +1522,7 @@ func Test_LogMatchesQuery_ClickHouse_Body(t *testing.T) {
 
 		result, err := client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 			DateRange: makeDateWithinRange(now),
-			Query:     "\"" + body + "\"",
+			Query:     "`" + body + "`",
 		}, Pagination{})
 		assert.NoError(t, err)
 
