@@ -109,7 +109,6 @@ export class SearchListener extends SearchGrammarListener {
 	}
 
 	exitKey_val_search_expr = (_ctx: Key_val_search_exprContext) => {
-		console.log('exitKey_val_search_expr', this.currentExpression)
 		this.currentExpression.value = this.currentExpression.text.substring(
 			this.currentExpression.key.length +
 				this.currentExpression.operator.length,
