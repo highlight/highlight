@@ -11,6 +11,8 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 )
 
+var step = 100000
+
 func main() {
 	ctx := context.Background()
 
@@ -33,8 +35,7 @@ func main() {
 		log.WithContext(ctx).Fatal(err)
 	}
 
-	// Only running this migration on project_id = 1 for now
-	for i := 1; i <= 1; i++ {
+	for i := 0; i <= lastCreatedPart; i++ {
 		log.WithContext(ctx).Infof("beginning loop: %d", i)
 		tablename := fmt.Sprintf("error_object_embeddings_partitioned_%d", i)
 
@@ -55,45 +56,58 @@ func main() {
 		}
 		log.WithContext(ctx).Infof("maxEmbeddingId: %d", maxEmbeddingId)
 
-		if err := db.Transaction(func(tx *gorm.DB) error {
-			if err := tx.Exec(`
-				insert into error_group_embeddings (project_id, error_group_id, count, gte_large_embedding)
-				select a.* from (
-					select eo.project_id, eo.error_group_id, count(*) as count, AVG(eoe.gte_large_embedding) as gte_large_embedding
-					from error_object_embeddings_partitioned eoe
-					inner join error_objects eo
-					on eoe.error_object_id = eo.id
-					where eoe.gte_large_embedding is not null
-					and eoe.id > ?
-					and eoe.id <= ?
-					group by eo.project_id, eo.error_group_id) a
-				on conflict (project_id, error_group_id)
-				do update set
-					gte_large_embedding = 
-						error_group_embeddings.gte_large_embedding * array_fill(error_group_embeddings.count::numeric / (error_group_embeddings.count + excluded.count), '{1024}')::vector
-						+ excluded.gte_large_embedding * array_fill(excluded.count::numeric / (error_group_embeddings.count + excluded.count), '{1024}')::vector,
-					count = error_group_embeddings.count + excluded.count
-			`, prevEmbeddingId, maxEmbeddingId).Error; err != nil {
-				return err
+		for j := prevEmbeddingId; j < maxEmbeddingId; j += step {
+			start := j
+			end := j + step
+			if end > maxEmbeddingId {
+				end = maxEmbeddingId
 			}
 
-			log.WithContext(ctx).Info("done upserting new embeddings")
+			log.WithContext(ctx).Infof("loop (%d, %d]", start, end)
 
-			if err := tx.Exec(`
-				insert into migrated_embeddings (project_id, embedding_id)
-				values (?, ?)
-				on conflict (project_id)
-				do update set embedding_id = excluded.embedding_id
-			`, i, maxEmbeddingId).Error; err != nil {
-				return err
+			if err := db.Transaction(func(tx *gorm.DB) error {
+				if err := tx.Exec(`
+					insert into error_group_embeddings (project_id, error_group_id, count, gte_large_embedding)
+					select a.* from (
+						select eo.project_id, eo.error_group_id, count(*) as count, AVG(eoe.gte_large_embedding) as gte_large_embedding
+						from error_object_embeddings_partitioned eoe
+						inner join error_objects eo
+						on eoe.error_object_id = eo.id
+						where eoe.project_id = ?
+						and eo.project_id = ?
+						and eoe.gte_large_embedding is not null
+						and eoe.id > ?
+						and eoe.id <= ?
+						group by eo.project_id, eo.error_group_id) a
+					on conflict (project_id, error_group_id)
+					do update set
+						gte_large_embedding = 
+							error_group_embeddings.gte_large_embedding * array_fill(error_group_embeddings.count::numeric / (error_group_embeddings.count + excluded.count), '{1024}')::vector
+							+ excluded.gte_large_embedding * array_fill(excluded.count::numeric / (error_group_embeddings.count + excluded.count), '{1024}')::vector,
+						count = error_group_embeddings.count + excluded.count
+				`, i, i, start, end).Error; err != nil {
+					return err
+				}
+
+				log.WithContext(ctx).Info("done upserting new embeddings")
+
+				if err := tx.Exec(`
+					insert into migrated_embeddings (project_id, embedding_id)
+					values (?, ?)
+					on conflict (project_id)
+					do update set embedding_id = excluded.embedding_id
+				`, i, end).Error; err != nil {
+					return err
+				}
+
+				log.WithContext(ctx).Info("done updating maxEmbeddingId")
+
+				return nil
+			}); err != nil {
+				log.WithContext(ctx).Fatal(err)
 			}
-
-			log.WithContext(ctx).Info("done updating maxEmbeddingId")
-
-			return nil
-		}); err != nil {
-			log.WithContext(ctx).Fatal(err)
 		}
+
 		log.WithContext(ctx).Infof("done loop: %d", i)
 	}
 
