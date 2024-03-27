@@ -11,7 +11,10 @@ import { TooltipPlacement } from 'antd/es/tooltip'
 import clsx from 'clsx'
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 
-import { useRelatedResource } from '@/components/RelatedResources/hooks'
+import {
+	RelatedError,
+	useRelatedResource,
+} from '@/components/RelatedResources/hooks'
 import { useReplayerContext } from '@/pages/Player/ReplayerContext'
 
 import styles from './TimelineBar.module.css'
@@ -33,10 +36,11 @@ const TimelineIndicatorsBar = ({
 	viewportRef,
 }: IBar) => {
 	const { resource } = useRelatedResource()
+	const relatedError = resource as RelatedError | undefined
 	const { errors } = useReplayerContext()
 	const activeError = useMemo(
-		() => errors.find((error) => error.id === resource?.id),
-		[errors, resource?.id],
+		() => errors.find((error) => error.id === relatedError?.id),
+		[errors, relatedError?.id],
 	)
 
 	const data = useMemo(() => {

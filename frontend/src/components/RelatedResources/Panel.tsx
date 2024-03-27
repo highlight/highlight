@@ -8,7 +8,7 @@ import { PanelHeader } from '@/components/RelatedResources/PanelHeader'
 import * as styles from './Panel.css'
 
 // Numbers are percentages
-const MIN_PANEL_WIDTH = 40
+const MIN_PANEL_WIDTH = 30
 const MAX_PANEL_WIDTH = 85
 
 type Props = React.PropsWithChildren<{
@@ -84,7 +84,7 @@ export const Panel: PanelComponent = ({ children, open }) => {
 			modal={false}
 			autoFocusOnShow={false}
 			hideOnEscape={true}
-			backdrop={<Box cssClass={styles.backdrop} />}
+			backdrop={false}
 			className={styles.panel}
 			style={{ width: `${panelWidth}%` }}
 			// unmountOnHide is required for this to work as expected when it's being

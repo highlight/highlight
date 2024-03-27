@@ -9,6 +9,7 @@ import {
 import moment from 'moment'
 import { createSearchParams, useNavigate } from 'react-router-dom'
 
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
 import analytics from '@/util/analytics'
 
@@ -31,6 +32,7 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
+	const { set } = useRelatedResource()
 	const errorLinkDisabled = !traceId || disableErrors
 	const sessionLinkDisabled = !traceId || !secureSessionId
 	const logsLinkDisabled = !traceId
@@ -42,7 +44,6 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 		startDate,
 		endDate,
 	})
-	const logsLink = getLogsLink({ projectId, traceId, startDate, endDate })
 
 	return (
 		<>
@@ -86,7 +87,17 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 			</Tag>
 			<Tag
 				onClick={() => {
-					navigate(logsLink)
+					set({
+						type: 'logs',
+						query: `trace_id=${traceId}`,
+						startDate: moment(startDate)
+							.subtract(5, 'minutes')
+							.toISOString(),
+						endDate: moment(endDate)
+							.add(5, 'minutes')
+							.toISOString(),
+					})
+
 					analytics.track('trace_related-logs-button_click')
 				}}
 				size="medium"
@@ -139,14 +150,4 @@ const getSessionLink = ({
 	})
 
 	return `/${projectId}/sessions/${secureSessionId}?${params}`
-}
-
-const getLogsLink = ({ projectId, traceId, startDate, endDate }: LinkProps) => {
-	const params = createSearchParams({
-		query: `trace_id=${traceId}`,
-		start_date: moment(startDate).subtract(5, 'minutes').toISOString(),
-		end_date: moment(endDate).add(5, 'minutes').toISOString(),
-	})
-
-	return `/${projectId}/logs?${params}`
 }
