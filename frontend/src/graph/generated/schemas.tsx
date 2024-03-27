@@ -2047,6 +2047,7 @@ export type Query = {
 	traces_metrics: MetricsBuckets
 	track_properties_alerts: Array<Maybe<SessionAlert>>
 	unprocessedSessionsCount?: Maybe<Scalars['Int64']>
+	usageHistory: UsageHistory
 	userFingerprintCount?: Maybe<UserFingerprintCount>
 	user_properties_alerts: Array<Maybe<SessionAlert>>
 	vercel_project_mappings: Array<VercelProjectMapping>
@@ -2779,6 +2780,11 @@ export type QueryTrack_Properties_AlertsArgs = {
 
 export type QueryUnprocessedSessionsCountArgs = {
 	project_id: Scalars['ID']
+}
+
+export type QueryUsageHistoryArgs = {
+	date_range: DateRangeRequiredInput
+	workspace_id: Scalars['ID']
 }
 
 export type QueryUserFingerprintCountArgs = {
@@ -3542,6 +3548,14 @@ export type TrackPropertyInput = {
 	id?: InputMaybe<Scalars['ID']>
 	name: Scalars['String']
 	value: Scalars['String']
+}
+
+export type UsageHistory = {
+	__typename?: 'UsageHistory'
+	errors_usage: MetricsBuckets
+	logs_usage: MetricsBuckets
+	session_usage: MetricsBuckets
+	traces_usage: MetricsBuckets
 }
 
 export type User = {

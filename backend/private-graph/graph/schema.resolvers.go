@@ -6545,6 +6545,93 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	return details, nil
 }
 
+// UsageHistory is the resolver for the usageHistory field.
+func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, dateRange modelInputs.DateRangeRequiredInput) (*modelInputs.UsageHistory, error) {
+	_, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, nil
+	}
+
+	workspace, err := r.Query().Workspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	var g errgroup.Group
+	var sessionsMeter int64
+	var membersMeter int64
+	var errorsMeter int64
+	var logsMeter int64
+	var tracesMeter int64
+	var sessionsAvg float64
+	var errorsAvg float64
+	var logsAvg float64
+	var tracesAvg float64
+
+	g.Go(func() (err error) {
+		sessionsMeter, err = pricing.GetWorkspaceSessionsMeter(ctx, r.DB, r.ClickhouseClient, workspace)
+		if err != nil {
+			return e.Wrap(err, "error from get quota")
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		membersMeter = pricing.GetWorkspaceMembersMeter(r.DB, workspaceID)
+		if err != nil {
+			return e.Wrap(err, "error querying members meter")
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		errorsMeter, err = pricing.GetWorkspaceErrorsMeter(ctx, r.DB, r.ClickhouseClient, workspace)
+		if err != nil {
+			return e.Wrap(err, "error querying errors meter")
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		logsMeter, err = pricing.GetWorkspaceLogsMeter(ctx, r.DB, r.ClickhouseClient, workspace)
+		if err != nil {
+			return e.Wrap(err, "error querying logs meter")
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		tracesMeter, err = pricing.GetWorkspaceTracesMeter(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
+	})
+
+	g.Go(func() error {
+		sessionsAvg, err = pricing.GetSessions7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
+	})
+
+	g.Go(func() error {
+		errorsAvg, err = pricing.GetErrors7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
+	})
+
+	g.Go(func() error {
+		logsAvg, err = pricing.GetLogs7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
+	})
+
+	g.Go(func() error {
+		tracesAvg, err = pricing.GetTraces7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
+	})
+
+	// Waits for all goroutines to finish, then returns the first non-nil error (if any).
+	if err := g.Wait(); err != nil {
+		return nil, e.Wrap(err, "error querying session data for billing details")
+	}
+
+}
+
 // FieldSuggestion is the resolver for the field_suggestion field.
 func (r *queryResolver) FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model.Field, error) {
 	fields := []*model.Field{}

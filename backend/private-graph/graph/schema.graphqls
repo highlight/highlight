@@ -157,6 +157,13 @@ type BillingDetails {
 	tracesBillingLimit: Int64
 }
 
+type UsageHistory {
+	session_usage: MetricsBuckets!
+	errors_usage: MetricsBuckets!
+	logs_usage: MetricsBuckets!
+	traces_usage: MetricsBuckets!
+}
+
 type Invoice {
 	amountDue: Int64
 	amountPaid: Int64
@@ -1989,6 +1996,10 @@ type Query {
 	): [String!]!
 	billingDetailsForProject(project_id: ID!): BillingDetails
 	billingDetails(workspace_id: ID!): BillingDetails!
+	usageHistory(
+		workspace_id: ID!
+		date_range: DateRangeRequiredInput!
+	): UsageHistory!
 	# gets all the projects of a user
 	field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
 	property_suggestion(project_id: ID!, query: String!, type: String!): [Field]

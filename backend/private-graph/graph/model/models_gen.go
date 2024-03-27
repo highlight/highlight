@@ -929,6 +929,13 @@ type TrackPropertyInput struct {
 	Value string `json:"value"`
 }
 
+type UsageHistory struct {
+	SessionUsage *MetricsBuckets `json:"session_usage"`
+	ErrorsUsage  *MetricsBuckets `json:"errors_usage"`
+	LogsUsage    *MetricsBuckets `json:"logs_usage"`
+	TracesUsage  *MetricsBuckets `json:"traces_usage"`
+}
+
 type User struct {
 	ID int `json:"id"`
 }
