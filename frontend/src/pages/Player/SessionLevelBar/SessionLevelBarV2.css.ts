@@ -1,8 +1,7 @@
 import { colors } from '@highlight-run/ui/colors'
 import { buttonStyles } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
-
-import { vars } from '@/../../packages/ui/vars'
 
 export const sessionLevelBarV2 = style({
 	alignItems: 'center',
