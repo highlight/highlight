@@ -134,11 +134,10 @@ func CreateTracerProvider(endpoint string) (*sdktrace.TracerProvider, error) {
 	return sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(getSampler()),
 		sdktrace.WithBatcher(exporter,
-			sdktrace.WithMaxQueueSize(128*1024*1024),
 			sdktrace.WithBatchTimeout(time.Second),
 			sdktrace.WithExportTimeout(30*time.Second),
-			sdktrace.WithMaxExportBatchSize(1*1024*1024),
-			sdktrace.WithBlocking(),
+			sdktrace.WithMaxExportBatchSize(1024*1024*1024),
+			sdktrace.WithMaxQueueSize(1024*1024*1024),
 		),
 		sdktrace.WithResource(resources),
 	), nil
