@@ -252,7 +252,7 @@ func HandlePinoLogs(w http.ResponseWriter, r *http.Request, lgJson []byte, logs 
 			if has := map[string]bool{"level": true, "time": true, "msg": true}[k]; has {
 				continue
 			}
-			for key, value := range hlog.FormatLogAttributes(r.Context(), k, v) {
+			for key, value := range hlog.FormatLogAttributes(k, v) {
 				lg.Attributes[key] = value
 			}
 		}
@@ -295,7 +295,7 @@ func HandleJSONLog(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		for k, v := range lgAttrs {
-			for key, value := range hlog.FormatLogAttributes(r.Context(), k, v) {
+			for key, value := range hlog.FormatLogAttributes(k, v) {
 				lg.Attributes[key] = value
 			}
 		}

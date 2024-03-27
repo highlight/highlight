@@ -2721,6 +2721,17 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
 				return e.Wrap(err, "error saving web socket events data")
 			}
+
+			settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+			if err == nil && settings.EnableNetworkTraces {
+				resourcesParsed := make(map[string][]privateModel.WebSocketEvent)
+				if err := json.Unmarshal([]byte(webSocketEventsStr), &resourcesParsed); err != nil {
+					return nil
+				}
+				if err := r.submitFrontendWebsocketMetric(sessionObj, resourcesParsed["webSocketEvents"]); err != nil {
+					return err
+				}
+			}
 		}
 
 		return nil
@@ -3195,6 +3206,48 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 	return nil
 }
 
+func (r *Resolver) submitFrontendWebsocketMetric(sessionObj *model.Session, events []privateModel.WebSocketEvent) error {
+	for _, event := range events {
+		ts := time.UnixMicro(int64(1000. * event.TimeStamp))
+		var attributes []attribute.KeyValue
+		attributes = append(attributes, highlight.EmptyResourceAttributes...)
+		attributes = append(attributes, attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeWebSocketRequest)),
+			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
+			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
+			attribute.String(highlight.RequestIDAttribute, event.SocketID),
+			attribute.String(highlight.TraceKeyAttribute, event.Name),
+			semconv.DeploymentEnvironmentKey.String(sessionObj.Environment),
+			semconv.ServiceNameKey.String(sessionObj.ServiceName),
+			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
+			semconv.HTTPURLKey.String(event.Name),
+			attribute.String("ws.message", event.Message),
+			attribute.Int("ws.size", event.Size),
+			attribute.Int("ws.message.length", len(event.Message)),
+		)
+
+		requestBody := make(map[string]interface{})
+		// if the request body is json, send the message as structured attributes
+		if err := json.Unmarshal([]byte(event.Message), &requestBody); event.Message != "" && err == nil {
+			attributes = append(attributes, attribute.String("ws.message.type", "json"))
+			for k, v := range requestBody {
+				for key, value := range hlog.FormatLogAttributes(k, v) {
+					if v != "" {
+						attributes = append(attributes, attribute.String(fmt.Sprintf("ws.json.%s", key), value))
+					}
+				}
+			}
+		}
+
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionObj.SecureID)
+		ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, event.SocketID)
+		span, _ := highlight.StartTraceWithTracer(ctx, r.Tracer, strings.Join([]string{"WS", event.Name}, " "), ts, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
+		// ws messsages don't have a duration, but record them with some duration so they are rendered correctly
+		span.End(trace.WithTimestamp(ts.Add(time.Microsecond)))
+	}
+	return nil
+}
+
 func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj *model.Session, messages string) error {
 	logRows, err := hlog.ParseConsoleMessages(messages)
 	if err != nil {
@@ -3222,7 +3275,7 @@ func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj
 			hlog.LogMessageKey.String(message),
 		}
 		for k, v := range row.Attributes {
-			for key, value := range hlog.FormatLogAttributes(ctx, k, v) {
+			for key, value := range hlog.FormatLogAttributes(k, v) {
 				if v != "" {
 					attrs = append(attrs, attribute.String(key, value))
 				}
