@@ -4,11 +4,13 @@ import {
 	pageRouterCustomErrorHandler,
 	PageRouterErrorProps,
 } from '@highlight-run/next/ssr'
-import { CONSTANTS } from '@/constants'
-import { highlightConfig } from '@/instrumentation'
+import { highlightConfig } from '@/highlight.config'
 
 export default pageRouterCustomErrorHandler(
-	highlightConfig,
+	{
+		...highlightConfig,
+		serviceName: highlightConfig.serviceName + '-error',
+	},
 	/**
 	 *
 	 * This second argument is purely optional.

@@ -3,12 +3,14 @@ import * as trpcNext from '@trpc/server/adapters/next'
 import { initTRPC } from '@trpc/server'
 import { z } from 'zod'
 import { H, Handlers } from '@highlight-run/node'
-import { CONSTANTS } from '@/constants'
-import { highlightConfig } from '@/instrumentation'
+import { highlightConfig } from '@/highlight.config'
 
 const t = initTRPC.create()
 
-H.init(highlightConfig)
+H.init({
+	...highlightConfig,
+	serviceName: highlightConfig.serviceName + '-trpc',
+})
 
 export const router = t.router
 export const publicProcedure = t.procedure
@@ -28,7 +30,13 @@ export default trpcNext.createNextApiHandler({
 	router: appRouter,
 	createContext: () => ({}),
 	onError: ({ error, req }) => {
-		Handlers.trpcOnError({ error, req }, highlightConfig)
+		Handlers.trpcOnError(
+			{ error, req },
+			{
+				...highlightConfig,
+				serviceName: highlightConfig.serviceName + '-trpc-onerror',
+			},
+		)
 		console.error(error)
 	},
 })
