@@ -68,7 +68,6 @@
 		"validate": "yarn workspace scripts validate:client",
 		"private-gen": "cd backend && make private-gen",
 		"public-gen": "cd backend && make public-gen",
-		"publish:all": "run-p --print-label publish:ai publish:client publish:turbo publish:render",
 		"publish:ai": "yarn workspace @highlight-run/ai publish",
 		"publish:client": "yarn workspace scripts publish:client",
 		"publish:react-email-templates": "yarn workspace emails publish",

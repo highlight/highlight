@@ -43,8 +43,6 @@
 	"exports": {
 		"types": "./dist/firstload/src/index.d.ts",
 		"import": "./dist/index.js",
-		"require": "./dist/index.cjs",
-		"node": "./dist/index.cjs",
 		"default": "./dist/index.js"
 	},
 	"files": [

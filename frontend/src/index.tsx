@@ -125,8 +125,6 @@ const options: HighlightOptions = {
 }
 const favicon = document.querySelector("link[rel~='icon']") as any
 if (dev) {
-	options.scriptUrl = 'http://localhost:8080/dist/index.js'
-
 	options.integrations = undefined
 
 	const sampleEnvironmentNames = ['john', 'jay', 'anthony', 'cameron', 'boba']
@@ -149,14 +147,6 @@ if (dev) {
 	}
 	window.document.title = `📸 ${window.document.title}`
 	options.environment = 'Pull Request Preview'
-	options.scriptUrl = `https://static.highlight.io/dev-${
-		import.meta.env.REACT_APP_COMMIT_SHA
-	}/index.js`
-}
-if (import.meta.env.CYPRESS_CLIENT_VERSION) {
-	options.scriptUrl = `https://static.highlight.io/${
-		import.meta.env.CYPRESS_CLIENT_VERSION
-	}/index.js`
 }
 H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
 analytics.track('attribution', getAttributionData())

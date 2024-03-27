@@ -67,11 +67,6 @@ export declare type HighlightOptions = {
 	 */
 	debug?: boolean | DebugOptions
 	/**
-	 * Do not use this.
-	 * @private
-	 */
-	scriptUrl?: string
-	/**
 	 * Specifies where to send Highlight session data.
 	 * You should not have to set this unless you are running an on-premise instance.
 	 */

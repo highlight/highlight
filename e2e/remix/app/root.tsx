@@ -40,7 +40,6 @@ export default function App() {
 				environment="e2e-test"
 				tracingOrigins
 				networkRecording={{ enabled: true, recordHeadersAndBody: true }}
-				scriptUrl="http://localhost:8080/dist/index.js"
 			/>
 
 			<head>

@@ -13,7 +13,6 @@ interface ImportMetaEnv {
 	readonly REACT_APP_STRIPE_API_PK: string
 	readonly REACT_APP_VERCEL_INTEGRATION_NAME: string
 
-	readonly CYPRESS_CLIENT_VERSION: string
 	readonly DD_CLIENT_TOKEN: string
 	readonly DEMO_PROJECT_ID: string
 	readonly DISCORD_CLIENT_ID: string
