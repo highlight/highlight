@@ -19,7 +19,7 @@ func init() {
 func main() {
 	highlight.SetProjectID("1jdkoe52")
 	highlight.Start(
-		highlight.WithServiceName("lambda-functions--deleteSessions-getSessionIdsByQueryV2"),
+		highlight.WithServiceName("lambda-functions--deleteSessionsV2-getSessionIdsByQuery"),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
 		highlight.WithEnvironment(util.EnvironmentName()),
 	)

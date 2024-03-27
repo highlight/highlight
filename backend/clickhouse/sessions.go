@@ -596,7 +596,6 @@ func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, pro
 	sb.From(SessionsJoinedTableConfig.TableName)
 	sb.Select(selectColumns)
 
-	// TODO(spenny): custom rules to check - sampleField
 	sb.Where(sb.LessEqualThan("CreatedAt", params.DateRange.EndDate)).
 		Where(sb.GreaterEqualThan("CreatedAt", params.DateRange.StartDate))
 
@@ -615,6 +614,8 @@ func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, pro
 	}
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	// TODO(spenny): custom rules to check - sampleField
 	return sql, args, false, nil
 }
 
