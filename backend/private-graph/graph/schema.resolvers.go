@@ -38,6 +38,7 @@ import (
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
+	utilsV2 "github.com/highlight-run/highlight/backend/lambda-functions/deleteSessionsV2/utils"
 	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/phonehome"
@@ -4378,7 +4379,7 @@ func (r *mutationResolver) DeleteSessionsv2(ctx context.Context, projectID int, 
 		return false, e.New("Must be admin role to delete sessions")
 	}
 
-	_, err = r.StepFunctions.DeleteSessionsByQueryV2(ctx, utils.QuerySessionsInputV2{
+	_, err = r.StepFunctions.DeleteSessionsByQueryV2(ctx, utilsV2.QuerySessionsInputV2{
 		ProjectId:    projectID,
 		Email:        email,
 		FirstName:    firstName,

@@ -16,7 +16,6 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 )
 
-// TODO(spenny): create DELETE_SESSIONS_V2_ARN
 var (
 	deleteSessionsArn   = os.Getenv("DELETE_SESSIONS_ARN")
 	deleteSessionsV2Arn = os.Getenv("DELETE_SESSIONS_V2_ARN")
