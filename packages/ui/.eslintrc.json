@@ -29,7 +29,8 @@
 		"react/react-in-jsx-scope": "off",
 		"simple-import-sort/imports": "error",
 		"simple-import-sort/exports": "error",
-		"unused-imports/no-unused-imports-ts": "error"
+		"unused-imports/no-unused-imports-ts": "error",
+		"react/prop-types": "off"
 	},
 	"settings": {
 		"react": {
