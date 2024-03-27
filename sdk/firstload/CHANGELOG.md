@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.10.1
+
+### Patch Changes
+
+-   bd410081e: switch replay to using highlight backend for font cors proxying
+
 ## 8.10.0
 
 ### Minor Changes
