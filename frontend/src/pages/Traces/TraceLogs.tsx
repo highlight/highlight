@@ -116,7 +116,7 @@ export const TraceLogs: React.FC = () => {
 	)
 }
 
-const NoLogsFound = () => {
+export const NoLogsFound = () => {
 	return (
 		<Box mx="auto" style={{ maxWidth: 300 }}>
 			<Callout title="No associated logs found">

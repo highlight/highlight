@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/parser/listener"
@@ -22,7 +23,7 @@ import (
 
 const timeFormat = "2006-01-02T15:04:05.000Z"
 
-var fieldMap map[string]string = map[string]string{
+var fieldMap = map[string]string{
 	"fingerprint":       "Fingerprint",
 	"pages_visited":     "PagesVisited",
 	"viewed_by_me":      "ViewedByAdmins",
@@ -31,6 +32,7 @@ var fieldMap map[string]string = map[string]string{
 	"identified":        "Identified",
 	"identifier":        "Identifier",
 	"city":              "City",
+	"loc_state":         "State",
 	"country":           "Country",
 	"os_name":           "OSName",
 	"os_version":        "OSVersion",
@@ -77,6 +79,7 @@ type ClickhouseSession struct {
 	Identifier         string
 	IP                 string
 	City               string
+	State              string
 	Country            string
 	OSName             string
 	OSVersion          string
@@ -105,6 +108,12 @@ type ClickhouseField struct {
 	SessionCreatedAt int64
 	SessionID        int64
 	Value            string
+}
+
+// These keys show up as recommendations, but with no recommended values due to high cardinality
+var defaultSessionsKeys = []*modelInputs.QueryKey{
+	{Name: string(modelInputs.ReservedSessionKeyLength), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedSessionKeyActiveLength), Type: modelInputs.KeyTypeNumeric},
 }
 
 const SessionsTable = "sessions"
@@ -169,6 +178,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			Identifier:         session.Identifier,
 			IP:                 session.IP,
 			City:               session.City,
+			State:              session.State,
 			Country:            session.Country,
 			OSName:             session.OSName,
 			OSVersion:          session.OSVersion,
@@ -206,7 +216,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 				NewStruct(new(ClickhouseSession)).
 				InsertInto(SessionsTable, chSessions...).
 				BuildWithFlavor(sqlbuilder.ClickHouse)
-			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, 33, map[int]bool{7: true, 8: true}, MicroSeconds)
+			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, 34, map[int]bool{7: true, 8: true}, MicroSeconds)
 			return client.conn.Exec(chCtx, sessionsSql, sessionsArgs...)
 		})
 	}
@@ -466,6 +476,7 @@ var sessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 		modelInputs.ReservedSessionKeyFingerprint:     "Fingerprint",
 		modelInputs.ReservedSessionKeyIdentifier:      "Identifier",
 		modelInputs.ReservedSessionKeyCity:            "City",
+		modelInputs.ReservedSessionKeyState:           "State",
 		modelInputs.ReservedSessionKeyCountry:         "Country",
 		modelInputs.ReservedSessionKeyOsName:          "OSName",
 		modelInputs.ReservedSessionKeyOsVersion:       "OSVersion",
@@ -497,7 +508,22 @@ func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, pa
 }
 
 func (client *Client) SessionsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, SessionKeysTable, projectID, startDate, endDate, query, typeArg)
+	sessionKeys, err := KeysAggregated(ctx, client, SessionKeysTable, projectID, startDate, endDate, query, typeArg)
+	if err != nil {
+		return nil, err
+	}
+
+	if query == nil || *query == "" {
+		sessionKeys = append(sessionKeys, defaultSessionsKeys...)
+	} else {
+		for _, key := range defaultSessionsKeys {
+			if strings.Contains(key.Name, *query) {
+				sessionKeys = append(sessionKeys, key)
+			}
+		}
+	}
+
+	return sessionKeys, nil
 }
 
 func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId int, sessionSecureId string, metricNames []string) ([]*model.Metric, error) {

@@ -1032,6 +1032,7 @@ const (
 	ErrorGroupingMethodClassic             ErrorGroupingMethod = "Classic"
 	ErrorGroupingMethodAdaEmbeddingV2      ErrorGroupingMethod = "AdaV2"
 	ErrorGroupingMethodGteLargeEmbeddingV2 ErrorGroupingMethod = "thenlper/gte-large"
+	ErrorGroupingMethodGteLargeEmbeddingV3 ErrorGroupingMethod = "thenlper/gte-large.v3"
 )
 
 type ErrorObject struct {
