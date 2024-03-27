@@ -480,11 +480,11 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config mode
 			if !anyMatch {
 				return false
 			}
+		case listener.OperatorNot:
+			return !matchesQuery(row, config, listener.Filters{filter.Filters[0]})
 		default:
 			matches := matchFilter(row, config, filter)
-			if filter.Operator == listener.OperatorNot && matches {
-				return false
-			} else if !matches {
+			if !matches {
 				return false
 			}
 		}
