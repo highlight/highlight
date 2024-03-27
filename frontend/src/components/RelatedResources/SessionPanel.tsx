@@ -132,7 +132,11 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 						<Box height="full" cssClass={styles.playerBody}>
 							<div className={styles.playerCenterColumn}>
 								{centerColumnResizeListener}
-								<div className={styles.playerWrapperV2}>
+								<Box
+									display="flex"
+									flexDirection="column"
+									flexGrow={1}
+								>
 									<div
 										className={clsx(
 											styles.rrwebPlayerWrapper,
@@ -174,7 +178,7 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 										{!isPlayerReady && <LoadingBox />}
 									</div>
 									<Toolbar width={controllerWidth} />
-								</div>
+								</Box>
 								<DevToolsWindowV2 width={controllerWidth} />
 							</div>
 							<NetworkResourcePanel />
