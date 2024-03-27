@@ -36,10 +36,14 @@ const TimelineIndicatorsBar = ({
 	viewportRef,
 }: IBar) => {
 	const { resource } = useRelatedResource()
-	const relatedError = resource as RelatedError
+	const relatedError = resource as RelatedError | undefined
 	const { errors } = useReplayerContext()
 	const activeError = useMemo(
-		() => errors.find((error) => error.id === relatedError?.secureId),
+		() =>
+			errors.find(
+				(error) =>
+					error.error_group_secure_id === relatedError?.secureId,
+			),
 		[errors, relatedError?.secureId],
 	)
 

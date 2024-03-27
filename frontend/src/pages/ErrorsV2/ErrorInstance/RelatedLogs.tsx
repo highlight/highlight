@@ -3,7 +3,7 @@ import moment from 'moment'
 import { createSearchParams } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
-import { Link } from '@/components/Link'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { DEFAULT_OPERATOR } from '@/components/Search/SearchForm/utils'
 import { GetErrorInstanceQuery } from '@/graph/generated/operations'
 import { ReservedLogKey } from '@/graph/generated/schemas'
@@ -47,24 +47,53 @@ type Props = {
 
 export const RelatedLogs = ({ data }: Props) => {
 	const { isLoggedIn } = useAuthContext()
+	const { set } = useRelatedResource()
 
 	const logsLink = getLogsLink(data)
 
 	return (
-		<Link
-			to={logsLink}
-			onClick={() => analytics.track('error_related-logs_click')}
+		<Tag
+			onClick={() => {
+				const errorObject = data?.error_instance?.error_object
+				if (!errorObject) {
+					return
+				}
+
+				const queryParts = []
+				if (errorObject.session?.secure_id) {
+					queryParts.push(
+						`${ReservedLogKey.SecureSessionId}${DEFAULT_OPERATOR}${errorObject.session?.secure_id}`,
+					)
+				}
+
+				if (errorObject.trace_id) {
+					queryParts.push(
+						`${ReservedLogKey.TraceId}${DEFAULT_OPERATOR}${errorObject.trace_id}`,
+					)
+				}
+
+				set({
+					type: 'logs',
+					query: queryParts.join(' '),
+					logCursor: errorObject.log_cursor ?? undefined,
+					startDate: moment(errorObject.timestamp)
+						.add(-5, 'minutes')
+						.toISOString(),
+					endDate: moment(errorObject.timestamp)
+						.add(5, 'minutes')
+						.toISOString(),
+				})
+
+				analytics.track('error_related-logs_click')
+			}}
+			kind="secondary"
+			emphasis="high"
+			size="medium"
+			shape="basic"
+			disabled={!isLoggedIn || logsLink === ''}
+			iconLeft={<IconSolidLogs size={11} />}
 		>
-			<Tag
-				kind="secondary"
-				emphasis="high"
-				size="medium"
-				shape="basic"
-				disabled={!isLoggedIn || logsLink === ''}
-				iconLeft={<IconSolidLogs size={11} />}
-			>
-				Related logs
-			</Tag>
-		</Link>
+			Related logs
+		</Tag>
 	)
 }

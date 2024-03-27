@@ -53,6 +53,7 @@ const UtilitySpanName = "highlight-ctx"
 type TraceType string
 
 const TraceTypeNetworkRequest TraceType = "http.request"
+const TraceTypeWebSocketRequest TraceType = "http.request.ws"
 const TraceTypeFrontendConsole TraceType = "frontend.console"
 const TraceTypeHighlightInternal TraceType = "highlight.internal"
 const TraceTypePhoneHome TraceType = "highlight.phonehome"
