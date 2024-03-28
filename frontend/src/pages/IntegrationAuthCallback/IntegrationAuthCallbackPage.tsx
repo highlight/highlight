@@ -10,6 +10,7 @@ import {
 	useHandleAwsMarketplaceMutation,
 } from '@graph/hooks'
 import { Form, Stack, Text } from '@highlight-run/ui/components'
+import { useProjectId } from '@hooks/useProjectId'
 import * as styles from '@pages/Auth/AdminForm.css'
 import * as authRouterStyles from '@pages/Auth/AuthRouter.css'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
@@ -561,6 +562,7 @@ const IntegrationAuthCallbackPage = () => {
 	}>()
 	const { isAuthLoading } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
+	const { projectId } = useProjectId()
 
 	useEffect(() => {
 		if (isAuthLoading) {
@@ -568,45 +570,35 @@ const IntegrationAuthCallbackPage = () => {
 		}
 	}, [isAuthLoading, setLoadingState])
 
-	const {
-		code,
-		projectId,
-		workspaceId,
-		next,
-		installationId,
-		setupAction,
-		tenantId,
-	} = useMemo(() => {
-		const urlParams = new URLSearchParams(window.location.search)
-		const code = urlParams.get('code')!
-		const tenantId = urlParams.get('tenant')!
-		const state = urlParams.get('state') || ''
-		const installationId = urlParams.get('installation_id') || ''
-		const setupAction = urlParams.get('setup_action') || ''
-		let projectId: string | undefined = undefined
-		let next: string | undefined = undefined
-		let workspaceId: string | undefined = undefined
-		if (state) {
-			let parsedState: any
-			try {
-				parsedState = JSON.parse(atob(state))
-			} catch (e) {
-				parsedState = JSON.parse(state)
+	const { code, workspaceId, next, installationId, setupAction, tenantId } =
+		useMemo(() => {
+			const urlParams = new URLSearchParams(window.location.search)
+			const code = urlParams.get('code')!
+			const tenantId = urlParams.get('tenant')!
+			const state = urlParams.get('state') || ''
+			const installationId = urlParams.get('installation_id') || ''
+			const setupAction = urlParams.get('setup_action') || ''
+			let next: string | undefined = undefined
+			let workspaceId: string | undefined = undefined
+			if (state) {
+				let parsedState: any
+				try {
+					parsedState = JSON.parse(atob(state))
+				} catch (e) {
+					parsedState = JSON.parse(state)
+				}
+				next = parsedState['next']
+				workspaceId = parsedState['workspace_id']
 			}
-			projectId = parsedState['project_id']
-			next = parsedState['next']
-			workspaceId = parsedState['workspace_id']
-		}
-		return {
-			code,
-			projectId,
-			next,
-			workspaceId,
-			installationId,
-			setupAction,
-			tenantId,
-		}
-	}, [])
+			return {
+				code,
+				next,
+				workspaceId,
+				installationId,
+				setupAction,
+				tenantId,
+			}
+		}, [])
 
 	const name = integrationName?.toLowerCase() || ''
 
