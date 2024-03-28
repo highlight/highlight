@@ -49,6 +49,7 @@ import {
 import {
 	useGetProjectDropdownOptionsQuery,
 	useGetWorkspaceDropdownOptionsQuery,
+	useGetWorkspacesQuery,
 } from '@/graph/generated/hooks'
 import {
 	GetProjectDropdownOptionsQuery,
@@ -123,6 +124,12 @@ export const AppRouter = () => {
 	const [projectListData, setProjectListData] =
 		useState<GetProjectDropdownOptionsQuery>()
 	const isValidProjectId = Number.isInteger(Number(projectId))
+
+	const { data: workspacesData, loading: workspacesDataLoading } =
+		useGetWorkspacesQuery({
+			variables: {},
+			skip: !isLoggedIn || !!workspaceId,
+		})
 
 	const { data: projectDropdownData, loading: projectDropdownDataLoading } =
 		useGetProjectDropdownOptionsQuery({
@@ -242,7 +249,8 @@ export const AppRouter = () => {
 						[],
 					currentWorkspace:
 						(projectListData?.workspace ||
-							workspaceListData?.workspace) ??
+							workspaceListData?.workspace ||
+							workspacesData?.workspaces?.at(0)) ??
 						undefined,
 					workspaces:
 						(projectListData?.workspaces ||
