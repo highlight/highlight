@@ -13,6 +13,7 @@ import {
 	MetricName,
 	MixpanelIntegrationOptions,
 	NetworkRecordingOptions,
+	RecordCrossOriginIframeOption,
 	SessionShortcutOptions,
 } from './types/client'
 import {
@@ -109,7 +110,7 @@ export type HighlightClassOptions = {
 	samplingStrategy?: SamplingStrategy
 	inlineImages?: boolean
 	inlineStylesheet?: boolean
-	recordCrossOriginIframe?: boolean
+	recordCrossOriginIframe?: RecordCrossOriginIframeOption
 	firstloadVersion?: string
 	environment?: 'development' | 'production' | 'staging' | string
 	appVersion?: string
@@ -200,7 +201,7 @@ export class Highlight {
 	_isOnLocalHost!: boolean
 	_onToggleFeedbackFormVisibility!: () => void
 	_firstLoadListeners!: FirstLoadListeners
-	_isCrossOriginIframe!: boolean
+	_isCrossOriginIframe!: RecordCrossOriginIframeOption
 	_eventBytesSinceSnapshot!: number
 	_lastSnapshotTime!: number
 	_lastVisibilityChangeTime!: number
@@ -586,10 +587,15 @@ export class Highlight {
 				destinationDomains =
 					this.options.networkRecording.destinationDomains
 			}
-			if (this._isCrossOriginIframe) {
+			// if we duplicate, we should set up our own session / ignore parent window while still sending events
+			if (
+				this._isCrossOriginIframe &&
+				this.options.recordCrossOriginIframe !== 'duplicate'
+			) {
 				// wait for 'cross-origin iframe ready' message
 				await this._setupCrossOriginIframe()
-			} else {
+			}
+			if (this._isCrossOriginIframe !== true) {
 				const gr = await this.graphqlSDK.initializeSession({
 					organization_verbose_id: this.organizationID,
 					enable_strict_privacy: this.privacySetting === 'strict',
@@ -676,7 +682,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				clearTimeout(this.pushPayloadTimerId)
 				this.pushPayloadTimerId = undefined
 			}
-			if (!this._isCrossOriginIframe) {
+			if (this._isCrossOriginIframe !== true) {
 				this.pushPayloadTimerId = setTimeout(() => {
 					this._save()
 				}, FIRST_SEND_FREQUENCY)
@@ -727,12 +733,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				const [maskAllInputs, maskInputOptions] =
 					determineMaskInputOptions(this.privacySetting)
 
-				this._recordStop = record({
+				const options = {
 					ignoreClass: 'highlight-ignore',
 					blockClass: 'highlight-block',
 					emit,
 					recordCrossOriginIframes:
-						this.options.recordCrossOriginIframe,
+						this.options.recordCrossOriginIframe === true,
 					privacySetting: this.privacySetting,
 					maskAllInputs,
 					maskInputOptions: maskInputOptions,
@@ -764,7 +770,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					inlineStylesheet: this.inlineStylesheet,
 					plugins: [getRecordSequentialIdPlugin()],
 					logger,
+				}
+				this.logger.log(`Starting record() with `, {
+					options,
 				})
+				this._recordStop = record(options)
 				if (this.options.recordCrossOriginIframe) {
 					this._setupCrossOriginIframeParent()
 				}
@@ -870,7 +880,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			const listener = (message: MessageEvent) => {
 				if (message.data.highlight === IFRAME_PARENT_READY) {
 					const msg = message.data as HighlightIframeMessage
-					this.logger.log(`highlight got window message `, msg)
+					this.logger.log(`highlight got parent window message `, msg)
 					this.sessionData.projectID = msg.projectID
 					this.sessionData.sessionSecureID = msg.sessionSecureID
 					// reply back that we got the message and are set up

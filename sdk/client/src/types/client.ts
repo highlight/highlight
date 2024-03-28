@@ -146,6 +146,8 @@ export declare type IntegrationOptions = {
 
 export declare type SessionShortcutOptions = false | string
 
+export declare type RecordCrossOriginIframeOption = boolean | 'duplicate'
+
 type DefaultIntegrationOptions = {
 	disabled?: boolean
 }

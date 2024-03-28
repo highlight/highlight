@@ -3,6 +3,7 @@ import {
 	DebugOptions,
 	IntegrationOptions,
 	NetworkRecordingOptions,
+	RecordCrossOriginIframeOption,
 	SessionShortcutOptions,
 } from './client.js'
 
@@ -195,9 +196,15 @@ export declare type HighlightOptions = {
 	/**
 	 * Enables recording of cross-origin iframes. Should be set in both the parent window and
 	 * in the cross-origin iframe.
+	 *
+	 * 1. Set to `true` to record the cross origin iframe only in the parent window's session
+	 *
+	 * 2. Set to `duplicate` to record the cross origin iframe in the parent window's session
+	 * 	  while recording a dedicated session for the iframe contents
+	 *
 	 * @default false
 	 */
-	recordCrossOriginIframe?: boolean
+	recordCrossOriginIframe?: RecordCrossOriginIframeOption
 	/**
 	 * Deprecated: this setting is now inferred automatically. Passing this option does nothing.
 	 * @deprecated
