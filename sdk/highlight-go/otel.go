@@ -136,8 +136,9 @@ func CreateTracerProvider(endpoint string) (*sdktrace.TracerProvider, error) {
 		sdktrace.WithBatcher(exporter,
 			sdktrace.WithBatchTimeout(time.Second),
 			sdktrace.WithExportTimeout(30*time.Second),
-			sdktrace.WithMaxExportBatchSize(1024*1024*1024),
-			sdktrace.WithMaxQueueSize(1024*1024*1024),
+			sdktrace.WithMaxExportBatchSize(1024*1024),
+			sdktrace.WithMaxQueueSize(1024*1024),
+			sdktrace.WithBlocking(),
 		),
 		sdktrace.WithResource(resources),
 	), nil

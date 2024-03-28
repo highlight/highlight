@@ -18,7 +18,7 @@
 			"environment": [
 				{
 					"name": "GOMEMLIMIT",
-					"value": "8GiB"
+					"value": "15GiB"
 				}
 			],
 			"mountPoints": [],
