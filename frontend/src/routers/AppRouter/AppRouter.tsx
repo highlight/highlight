@@ -135,7 +135,7 @@ export const AppRouter = () => {
 		loading: workspaceDropdownDataLoading,
 	} = useGetWorkspaceDropdownOptionsQuery({
 		variables: { workspace_id: workspaceId ?? '' },
-		skip: !isLoggedIn || !workspaceId,
+		skip: !isLoggedIn,
 	})
 
 	useEffect(() => {
