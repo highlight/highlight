@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"fmt"
+	"go.opentelemetry.io/otel/trace"
 	"math"
 	"strings"
 	"time"
@@ -48,7 +49,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 		func() {
 			var err error
 			defer util.Recover()
-			s, sCtx := util.StartSpanFromContext(ctx, "processPublicWorkerMessage", util.ResourceName("worker.kafka.process"))
+			s, sCtx := util.StartSpanFromContext(ctx, "processPublicWorkerMessage", util.ResourceName("worker.kafka.process"), util.WithSpanKind(trace.SpanKindServer))
 			s.SetAttribute("worker.goroutine", k.WorkerThread)
 			defer s.Finish(err)
 

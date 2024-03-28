@@ -27,7 +27,7 @@ const ConsumerGroupName = "group-default"
 
 const (
 	TaskRetries           = 2
-	prefetchQueueCapacity = 100
+	prefetchQueueCapacity = 1000
 	MaxMessageSizeBytes   = 128 * 1024 * 1024 // MiB
 )
 
@@ -220,34 +220,29 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 		if configOverride != nil {
 			onAssignGroups = (*configOverride).OnAssignGroups
 		}
-		balancer := BalancerWrapper{
-			balancer:       kafka.RackAffinityGroupBalancer{Rack: rack},
-			onAssignGroups: onAssignGroups,
-		}
 		config := kafka.ReaderConfig{
 			Brokers:           brokers,
 			Dialer:            dialer,
 			HeartbeatInterval: time.Second,
 			ReadLagInterval:   time.Second,
-			SessionTimeout:    30 * time.Second,
 			RebalanceTimeout:  rebalanceTimeout,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
 			MinBytes:          1,
-			MaxBytes:          MaxMessageSizeBytes,
-			MaxWait:           KafkaOperationTimeout,
+			MaxBytes:          2 * MaxMessageSizeBytes,
+			MaxWait:           time.Second,
 			ReadBatchTimeout:  KafkaOperationTimeout,
-			ReadBackoffMin:    time.Nanosecond,
-			ReadBackoffMax:    5 * time.Second,
 			QueueCapacity:     prefetchQueueCapacity,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
-			CommitInterval:        time.Second,
-			WatchPartitionChanges: true,
-			Logger:                getLogger("consumer", topic, log.InfoLevel),
-			ErrorLogger:           getLogger("consumer", topic, log.ErrorLevel),
+			CommitInterval: time.Second,
+			Logger:         getLogger("consumer", topic, log.InfoLevel),
+			ErrorLogger:    getLogger("consumer", topic, log.ErrorLevel),
 			GroupBalancers: []kafka.GroupBalancer{
-				&balancer,
+				&BalancerWrapper{
+					balancer:       kafka.RoundRobinGroupBalancer{},
+					onAssignGroups: onAssignGroups,
+				},
 			},
 		}
 
