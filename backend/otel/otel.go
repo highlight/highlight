@@ -188,7 +188,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 
-				fields, err := extractFields(ctx, extractFieldsParams{
+				fields, err := extractFields(extractFieldsParams{
 					resource: &resource,
 					span:     &span,
 					curTime:  curTime,
@@ -207,7 +207,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						break
 					}
 					event := events.At(l)
-					fields, err := extractFields(ctx, extractFieldsParams{
+					fields, err := extractFields(extractFieldsParams{
 						resource: &resource,
 						span:     &span,
 						event:    &event,
@@ -433,7 +433,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 			for k := 0; k < logRecords.Len(); k++ {
 				logRecord := logRecords.At(k)
 
-				fields, err := extractFields(ctx, extractFieldsParams{
+				fields, err := extractFields(extractFieldsParams{
 					resource:  &resource,
 					logRecord: &logRecord,
 					curTime:   curTime,

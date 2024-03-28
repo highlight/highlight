@@ -14,7 +14,7 @@
 		"@pmndrs/branding": "0.0.8",
 		"@react-three/drei": "9.102.3",
 		"@react-three/fiber": "8.15.12",
-		"@react-three/postprocessing": "2.15.11",
+		"@react-three/postprocessing": "2.16.2",
 		"highlight.run": "workspace:*",
 		"random-words": "2.0.0",
 		"react": "18.2.0",

@@ -3055,6 +3055,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 		| 'sessionsBillingLimit'
 		| 'errorsBillingLimit'
 		| 'logsBillingLimit'
+		| 'tracesBillingLimit'
 		| 'sessionsDailyAverage'
 		| 'errorsDailyAverage'
 		| 'logsDailyAverage'
