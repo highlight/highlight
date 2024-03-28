@@ -66,18 +66,6 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 			s.SetAttribute("partition", task.GetKafkaMessage().Partition)
 			s.SetAttribute("partitionKey", string(task.GetKafkaMessage().Key))
 
-			if task.GetKafkaMessage().Partition == 24 {
-				log.WithContext(ctx).WithFields(log.Fields{
-					"worker.goroutine": k.WorkerThread,
-					"taskType":         task.GetType(),
-					"partition":        task.GetKafkaMessage().Partition,
-					"partitionKey":     string(task.GetKafkaMessage().Key),
-					"size":             len(task.GetKafkaMessage().Value),
-					"offset":           task.GetKafkaMessage().Offset,
-					"time":             task.GetKafkaMessage().Time,
-				}).Infof("got interesting partition message")
-			}
-
 			s2, _ := util.StartSpanFromContext(sCtx, "worker.kafka.processMessage")
 			for i := 0; i <= task.GetMaxRetries(); i++ {
 				start := time.Now()
