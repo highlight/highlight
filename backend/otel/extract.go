@@ -1,7 +1,6 @@
 package otel
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -78,7 +77,7 @@ type extractFieldsParams struct {
 	curTime   time.Time
 }
 
-func extractFields(ctx context.Context, params extractFieldsParams) (*extractedFields, error) {
+func extractFields(params extractFieldsParams) (*extractedFields, error) {
 	fields := newExtractedFields()
 
 	var resourceAttributes, spanAttributes, eventAttributes, scopeAttributes, logAttributes map[string]any
@@ -166,7 +165,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	}
 
 	for k, v := range originalAttrs {
-		for key, value := range hlog.FormatLogAttributes(ctx, k, v) {
+		for key, value := range hlog.FormatLogAttributes(k, v) {
 			if v != "" {
 				fields.attrs[key] = value
 			}

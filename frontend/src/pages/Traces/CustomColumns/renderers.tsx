@@ -98,7 +98,10 @@ const StringColumnRenderer: React.FC<ColumnRendererProps> = ({
 	getValue,
 	first,
 }) => {
-	const value = getValue()
+	let value = getValue()
+	if (typeof value === 'object') {
+		value = JSON.stringify(value)
+	}
 	const color = first ? 'strong' : undefined
 
 	return (

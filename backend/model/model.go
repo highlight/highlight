@@ -138,6 +138,7 @@ var Models = []interface{}{
 	&ErrorObject{},
 	&ErrorObjectEmbeddings{},
 	&ErrorGroup{},
+	&ErrorGroupEmbeddings{},
 	&ErrorField{},
 	&ErrorSegment{},
 	&SavedSegment{},
@@ -1031,6 +1032,7 @@ const (
 	ErrorGroupingMethodClassic             ErrorGroupingMethod = "Classic"
 	ErrorGroupingMethodAdaEmbeddingV2      ErrorGroupingMethod = "AdaV2"
 	ErrorGroupingMethodGteLargeEmbeddingV2 ErrorGroupingMethod = "thenlper/gte-large"
+	ErrorGroupingMethodGteLargeEmbeddingV3 ErrorGroupingMethod = "thenlper/gte-large.v3"
 )
 
 type ErrorObject struct {
@@ -1153,6 +1155,14 @@ type ErrorField struct {
 	Name        string
 	Value       string
 	ErrorGroups []ErrorGroup `gorm:"many2many:error_group_fields;"`
+}
+
+type ErrorGroupEmbeddings struct {
+	Model
+	ProjectID         int `gorm:"uniqueIndex:idx_project_id_error_group_id"`
+	ErrorGroupID      int `gorm:"uniqueIndex:idx_project_id_error_group_id"`
+	Count             int
+	GteLargeEmbedding Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large model
 }
 
 type LogAdminsView struct {

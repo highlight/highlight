@@ -75,3 +75,18 @@ export async function getSessionChunks(session: number) {
 	await client.end()
 	return res.rows
 }
+
+// used for testing in dev on local highlight stack
+export async function getLongestSession() {
+	const client = await getClient()
+	const res = await client.query<{ project_id: number; id: number }>(
+		`SELECT project_id, id
+			 FROM sessions
+			 WHERE active_length > 1000
+			 ORDER BY active_length DESC
+			 LIMIT 1`,
+		[],
+	)
+	await client.end()
+	return res.rows.pop()
+}

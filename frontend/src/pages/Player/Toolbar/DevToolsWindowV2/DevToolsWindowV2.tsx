@@ -11,7 +11,6 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { themeVars } from '@highlight-run/ui/theme'
-import { useProjectId } from '@hooks/useProjectId'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -31,9 +30,9 @@ import {
 import useLocalStorage from '@rehooks/local-storage'
 import clsx from 'clsx'
 import React from 'react'
-import { Link } from 'react-router-dom'
 
-import { getLogsURLForSession } from '@/pages/LogsPage/utils'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
+import { buildSessionParams } from '@/pages/LogsPage/utils'
 import { useLinkLogCursor } from '@/pages/Player/PlayerHook/utils'
 import { LogSourceFilter } from '@/pages/Player/Toolbar/DevToolsWindowV2/LogSourceFilter/LogSourceFilter'
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -50,10 +49,10 @@ const DevToolsWindowV2: React.FC<
 		width: number
 	}
 > = (props) => {
-	const { projectId } = useProjectId()
 	const { logCursor } = useLinkLogCursor()
 	const { isPlayerFullscreen } = usePlayerUIContext()
 	const { isLiveMode, setIsLiveMode, time, session } = useReplayerContext()
+	const { set } = useRelatedResource()
 	const {
 		selectedDevToolsTab,
 		setSelectedDevToolsTab,
@@ -318,30 +317,37 @@ const DevToolsWindowV2: React.FC<
 
 										{selectedDevToolsTab === Tab.Console &&
 										session ? (
-											<Link
-												to={getLogsURLForSession({
-													projectId,
-													session,
-													levels: relevantLevelsForRequest,
-													sources,
-												})}
-												style={{ display: 'flex' }}
+											<Button
+												size="xSmall"
+												kind="secondary"
+												trackingId="session_show-in-log-viewer_click"
+												cssClass={styles.autoScroll}
+												iconLeft={
+													<IconSolidLogs
+														width={12}
+														height={12}
+													/>
+												}
+												onClick={() => {
+													const params =
+														buildSessionParams({
+															session,
+															levels: relevantLevelsForRequest,
+															sources,
+														})
+
+													set({
+														type: 'logs',
+														query: params.query,
+														startDate:
+															params.date_range.start_date.toISOString(),
+														endDate:
+															params.date_range.end_date.toISOString(),
+													})
+												}}
 											>
-												<Button
-													size="xSmall"
-													kind="secondary"
-													trackingId="session_show-in-log-viewer_click"
-													cssClass={styles.autoScroll}
-													iconLeft={
-														<IconSolidLogs
-															width={12}
-															height={12}
-														/>
-													}
-												>
-													Show in Log Viewer
-												</Button>
-											</Link>
+												Show in Log Viewer
+											</Button>
 										) : null}
 
 										<Button

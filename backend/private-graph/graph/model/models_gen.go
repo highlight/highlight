@@ -2072,6 +2072,7 @@ const (
 	ReservedSessionKeyFingerprint     ReservedSessionKey = "fingerprint"
 	ReservedSessionKeyIdentifier      ReservedSessionKey = "identifier"
 	ReservedSessionKeyCity            ReservedSessionKey = "city"
+	ReservedSessionKeyState           ReservedSessionKey = "state"
 	ReservedSessionKeyCountry         ReservedSessionKey = "country"
 	ReservedSessionKeyOsName          ReservedSessionKey = "os_name"
 	ReservedSessionKeyOsVersion       ReservedSessionKey = "os_version"
@@ -2098,6 +2099,7 @@ var AllReservedSessionKey = []ReservedSessionKey{
 	ReservedSessionKeyFingerprint,
 	ReservedSessionKeyIdentifier,
 	ReservedSessionKeyCity,
+	ReservedSessionKeyState,
 	ReservedSessionKeyCountry,
 	ReservedSessionKeyOsName,
 	ReservedSessionKeyOsVersion,
@@ -2117,7 +2119,7 @@ var AllReservedSessionKey = []ReservedSessionKey{
 
 func (e ReservedSessionKey) IsValid() bool {
 	switch e {
-	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyAppVersion, ReservedSessionKeySecureSessionID, ReservedSessionKeyIdentified, ReservedSessionKeyFingerprint, ReservedSessionKeyIdentifier, ReservedSessionKeyCity, ReservedSessionKeyCountry, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyProcessed, ReservedSessionKeyHasComments, ReservedSessionKeyHasRageClicks, ReservedSessionKeyHasErrors, ReservedSessionKeyLength, ReservedSessionKeyActiveLength, ReservedSessionKeyFirstTime, ReservedSessionKeyViewed, ReservedSessionKeyPagesVisited, ReservedSessionKeyNormalness:
+	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyAppVersion, ReservedSessionKeySecureSessionID, ReservedSessionKeyIdentified, ReservedSessionKeyFingerprint, ReservedSessionKeyIdentifier, ReservedSessionKeyCity, ReservedSessionKeyState, ReservedSessionKeyCountry, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyProcessed, ReservedSessionKeyHasComments, ReservedSessionKeyHasRageClicks, ReservedSessionKeyHasErrors, ReservedSessionKeyLength, ReservedSessionKeyActiveLength, ReservedSessionKeyFirstTime, ReservedSessionKeyViewed, ReservedSessionKeyPagesVisited, ReservedSessionKeyNormalness:
 		return true
 	}
 	return false

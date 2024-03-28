@@ -844,6 +844,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	'visited-url': 'Visited URL',
 	visited_url: 'Visited URL',
 	city: 'City',
+	loc_state: 'State',
 	country: 'Country',
 	created_at: 'Date',
 	device_id: 'Device ID',

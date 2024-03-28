@@ -3,6 +3,7 @@ package listener
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
@@ -361,71 +362,75 @@ func (s *searchListener[T]) appendRules(value string) {
 			}
 		}
 	} else if s.currentOp == ">" {
+		numValue := numericValue(value)
 		if traceAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) > %s", s.currentKey, value)))
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) > %s", s.currentKey, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   s.attributesColumn,
 				Operator: OperatorGreaterThan,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		} else {
-			s.rules = append(s.rules, s.sb.GreaterThan(filterKey, value))
+			s.rules = append(s.rules, s.sb.GreaterThan(filterKey, numValue))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      filterKey,
 				Operator: OperatorGreaterThan,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		}
 	} else if s.currentOp == ">=" {
+		numValue := numericValue(value)
 		if traceAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) >= %s", s.currentKey, value)))
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) >= %s", s.currentKey, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   s.attributesColumn,
 				Operator: OperatorGreaterThanOrEqualTo,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		} else {
-			s.rules = append(s.rules, s.sb.GreaterEqualThan(filterKey, value))
+			s.rules = append(s.rules, s.sb.GreaterEqualThan(filterKey, numValue))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      filterKey,
 				Operator: OperatorGreaterThanOrEqualTo,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		}
 	} else if s.currentOp == "<" {
+		numValue := numericValue(value)
 		if traceAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) < %s", s.currentKey, value)))
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) < %s", s.currentKey, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   s.attributesColumn,
 				Operator: OperatorLessThan,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		} else {
-			s.rules = append(s.rules, s.sb.LessThan(filterKey, value))
+			s.rules = append(s.rules, s.sb.LessThan(filterKey, numValue))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      filterKey,
 				Operator: OperatorLessThan,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		}
 	} else if s.currentOp == "<=" {
+		numValue := numericValue(value)
 		if traceAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) <= %s", s.currentKey, value)))
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) <= %s", s.currentKey, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   s.attributesColumn,
 				Operator: OperatorLessThanOrEqualTo,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		} else {
-			s.rules = append(s.rules, s.sb.LessEqualThan(filterKey, value))
+			s.rules = append(s.rules, s.sb.LessEqualThan(filterKey, numValue))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      filterKey,
 				Operator: OperatorLessThanOrEqualTo,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		}
 	} else {
@@ -444,4 +449,36 @@ func wildcardValue(value string) string {
 	}
 
 	return value
+}
+
+var suffixToNumeric = map[string]int64{
+	"h":  1e9 * 60 * 60,
+	"m":  1e9 * 60,
+	"s":  1e9,
+	"ms": 1e6,
+	"us": 1e3,
+	"ns": 1,
+}
+
+func numericValue(value string) string {
+	re := regexp.MustCompile(`^(\d+)([a-zA-Z]+)$`)
+	matches := re.FindStringSubmatch(value)
+	if len(matches) != 3 {
+		return value
+	}
+
+	numString := matches[1]
+	unit := matches[2]
+
+	nanoMultiplier := suffixToNumeric[strings.ToLower(unit)]
+	if nanoMultiplier == 0 {
+		return numString
+	}
+
+	num, err := strconv.ParseInt(numString, 10, 64)
+	if err != nil {
+		return numString
+	}
+
+	return strconv.FormatInt(num*nanoMultiplier, 10)
 }

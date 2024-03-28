@@ -34,7 +34,10 @@ export const LogsOverageCard = () => {
 		)
 	}
 
-	const meters = getMeterAmounts(data.billingDetails)
+	const meters = getMeterAmounts({
+		workspace: data.workspace,
+		details: data.billingDetails,
+	})
 	const meter = meters[ProductType.Logs][0]
 	const quota = meters[ProductType.Logs][1]
 	if (quota === undefined || meter < quota) {
