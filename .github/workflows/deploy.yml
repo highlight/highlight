@@ -61,3 +61,18 @@ jobs:
                   task-definition: ${{ steps.image-public-worker-main.outputs.task-definition }}
                   service: public-worker-main-service
                   cluster: highlight-ec2-prod
+
+            # Edit and deploy public worker (datasync topic)
+            - name: Replace image label for public worker (datasync topic) service
+              id: image-public-worker-datasync
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: deploy/public-worker-datasync-service.json
+                  container-name: highlight-backend
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+            - name: Deploy to Amazon ECS public worker (datasync topic) service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.image-public-worker-datasync.outputs.task-definition }}
+                  service: public-worker-datasync-service
+                  cluster: highlight-ec2-prod
