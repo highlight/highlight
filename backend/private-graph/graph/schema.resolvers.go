@@ -939,9 +939,11 @@ func (r *mutationResolver) JoinWorkspace(ctx context.Context, workspaceID int) (
 	if err := r.DB.WithContext(ctx).Model(&workspace).Where("jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))", domain).First(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error querying workspace")
 	}
-	if err := r.DB.WithContext(ctx).Model(&workspace).Association("Admins").Append(admin); err != nil {
-		return nil, e.Wrap(err, "error adding admin to association")
+
+	if err := r.DB.WithContext(ctx).Create(&model.WorkspaceAdmin{AdminID: admin.ID, WorkspaceID: workspace.ID, Role: pointy.String("MEMBER")}).Error; err != nil {
+		return nil, e.Wrap(err, "error adding admin to workspace")
 	}
+
 	return &workspace.ID, nil
 }
 
