@@ -958,6 +958,7 @@ type ComplexityRoot struct {
 		ErrorGroup                       func(childComplexity int, secureID string, useClickhouse *bool) int
 		ErrorGroupFrequencies            func(childComplexity int, projectID int, errorGroupSecureIds []string, params model.ErrorGroupFrequenciesParamsInput, metric *string, useClickhouse *bool) int
 		ErrorGroupTags                   func(childComplexity int, errorGroupSecureID string, useClickhouse *bool) int
+		ErrorGroups                      func(childComplexity int, projectID int, count int, params model.QueryInput, page *int) int
 		ErrorGroupsClickhouse            func(childComplexity int, projectID int, count int, query model.ClickhouseQuery, page *int) int
 		ErrorInstance                    func(childComplexity int, errorGroupSecureID string, errorObjectID *int) int
 		ErrorIssue                       func(childComplexity int, errorGroupSecureID string) int
@@ -968,6 +969,7 @@ type ComplexityRoot struct {
 		ErrorSegments                    func(childComplexity int, projectID int) int
 		ErrorTags                        func(childComplexity int) int
 		Errors                           func(childComplexity int, sessionSecureID string) int
+		ErrorsHistogram                  func(childComplexity int, projectID int, params model.QueryInput, histogramOptions model.DateHistogramOptions) int
 		ErrorsHistogramClickhouse        func(childComplexity int, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) int
 		ErrorsKeyValues                  func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
 		ErrorsKeys                       func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
@@ -1751,7 +1753,9 @@ type QueryResolver interface {
 	RageClicks(ctx context.Context, sessionSecureID string) ([]*model1.RageClickEvent, error)
 	RageClicksForProject(ctx context.Context, projectID int, lookbackDays float64) ([]*model.RageClickEventForProject, error)
 	ErrorGroupsClickhouse(ctx context.Context, projectID int, count int, query model.ClickhouseQuery, page *int) (*model1.ErrorResults, error)
+	ErrorGroups(ctx context.Context, projectID int, count int, params model.QueryInput, page *int) (*model1.ErrorResults, error)
 	ErrorsHistogramClickhouse(ctx context.Context, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) (*model1.ErrorsHistogram, error)
+	ErrorsHistogram(ctx context.Context, projectID int, params model.QueryInput, histogramOptions model.DateHistogramOptions) (*model1.ErrorsHistogram, error)
 	ErrorGroup(ctx context.Context, secureID string, useClickhouse *bool) (*model1.ErrorGroup, error)
 	ErrorObject(ctx context.Context, id int) (*model1.ErrorObject, error)
 	ErrorObjects(ctx context.Context, errorGroupSecureID string, after *string, before *string, query string) (*model.ErrorObjectConnection, error)
@@ -6910,6 +6914,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ErrorGroupTags(childComplexity, args["error_group_secure_id"].(string), args["use_clickhouse"].(*bool)), true
 
+	case "Query.error_groups":
+		if e.complexity.Query.ErrorGroups == nil {
+			break
+		}
+
+		args, err := ec.field_Query_error_groups_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ErrorGroups(childComplexity, args["project_id"].(int), args["count"].(int), args["params"].(model.QueryInput), args["page"].(*int)), true
+
 	case "Query.error_groups_clickhouse":
 		if e.complexity.Query.ErrorGroupsClickhouse == nil {
 			break
@@ -7024,6 +7040,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Errors(childComplexity, args["session_secure_id"].(string)), true
+
+	case "Query.errors_histogram":
+		if e.complexity.Query.ErrorsHistogram == nil {
+			break
+		}
+
+		args, err := ec.field_Query_errors_histogram_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ErrorsHistogram(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["histogram_options"].(model.DateHistogramOptions)), true
 
 	case "Query.errors_histogram_clickhouse":
 		if e.complexity.Query.ErrorsHistogramClickhouse == nil {
@@ -12106,6 +12134,7 @@ input DateHistogramOptions {
 	bounds: DateRangeInput!
 }
 
+# Deprecated: switch to using QueryInput format for searches
 input ClickhouseQuery {
 	isAnd: Boolean!
 	rules: [[String!]!]!
@@ -12772,15 +12801,28 @@ type Query {
 		project_id: ID!
 		lookback_days: Float!
 	): [RageClickEventForProject!]!
+	# deprecated - use error_groups
 	error_groups_clickhouse(
 		project_id: ID!
 		count: Int!
 		query: ClickhouseQuery!
 		page: Int
 	): ErrorResults!
+	error_groups(
+		project_id: ID!
+		count: Int!
+		params: QueryInput!
+		page: Int
+	): ErrorResults!
+	# deprecated - use errors_histogram
 	errors_histogram_clickhouse(
 		project_id: ID!
 		query: ClickhouseQuery!
+		histogram_options: DateHistogramOptions!
+	): ErrorsHistogram!
+	errors_histogram(
+		project_id: ID!
+		params: QueryInput!
 		histogram_options: DateHistogramOptions!
 	): ErrorsHistogram!
 	error_group(secure_id: String!, use_clickhouse: Boolean): ErrorGroup
@@ -18150,6 +18192,48 @@ func (ec *executionContext) field_Query_error_group_args(ctx context.Context, ra
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_error_groups_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["count"] = arg1
+	var arg2 model.QueryInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg2, err = ec.unmarshalNQueryInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["page"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["page"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_error_groups_clickhouse_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -18345,6 +18429,39 @@ func (ec *executionContext) field_Query_errors_args(ctx context.Context, rawArgs
 		}
 	}
 	args["session_secure_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_errors_histogram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 model.QueryInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg1, err = ec.unmarshalNQueryInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg1
+	var arg2 model.DateHistogramOptions
+	if tmp, ok := rawArgs["histogram_options"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("histogram_options"))
+		arg2, err = ec.unmarshalNDateHistogramOptions2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["histogram_options"] = arg2
 	return args, nil
 }
 
@@ -50601,6 +50718,67 @@ func (ec *executionContext) fieldContext_Query_error_groups_clickhouse(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_error_groups(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_error_groups(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ErrorGroups(rctx, fc.Args["project_id"].(int), fc.Args["count"].(int), fc.Args["params"].(model.QueryInput), fc.Args["page"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model1.ErrorResults)
+	fc.Result = res
+	return ec.marshalNErrorResults2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorResults(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_error_groups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "error_groups":
+				return ec.fieldContext_ErrorResults_error_groups(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_ErrorResults_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ErrorResults", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_error_groups_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_errors_histogram_clickhouse(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_errors_histogram_clickhouse(ctx, field)
 	if err != nil {
@@ -50656,6 +50834,67 @@ func (ec *executionContext) fieldContext_Query_errors_histogram_clickhouse(ctx c
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_errors_histogram_clickhouse_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_errors_histogram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_errors_histogram(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ErrorsHistogram(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["histogram_options"].(model.DateHistogramOptions))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model1.ErrorsHistogram)
+	fc.Result = res
+	return ec.marshalNErrorsHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorsHistogram(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_errors_histogram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "bucket_times":
+				return ec.fieldContext_ErrorsHistogram_bucket_times(ctx, field)
+			case "error_objects":
+				return ec.fieldContext_ErrorsHistogram_error_objects(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ErrorsHistogram", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_errors_histogram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -85967,6 +86206,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "error_groups":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_error_groups(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "errors_histogram_clickhouse":
 			field := field
 
@@ -85977,6 +86238,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_errors_histogram_clickhouse(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "errors_histogram":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_errors_histogram(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

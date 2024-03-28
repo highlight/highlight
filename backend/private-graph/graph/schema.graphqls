@@ -1198,6 +1198,7 @@ input DateHistogramOptions {
 	bounds: DateRangeInput!
 }
 
+# Deprecated: switch to using QueryInput format for searches
 input ClickhouseQuery {
 	isAnd: Boolean!
 	rules: [[String!]!]!
@@ -1864,15 +1865,28 @@ type Query {
 		project_id: ID!
 		lookback_days: Float!
 	): [RageClickEventForProject!]!
+	# deprecated - use error_groups
 	error_groups_clickhouse(
 		project_id: ID!
 		count: Int!
 		query: ClickhouseQuery!
 		page: Int
 	): ErrorResults!
+	error_groups(
+		project_id: ID!
+		count: Int!
+		params: QueryInput!
+		page: Int
+	): ErrorResults!
+	# deprecated - use errors_histogram
 	errors_histogram_clickhouse(
 		project_id: ID!
 		query: ClickhouseQuery!
+		histogram_options: DateHistogramOptions!
+	): ErrorsHistogram!
+	errors_histogram(
+		project_id: ID!
+		params: QueryInput!
 		histogram_options: DateHistogramOptions!
 	): ErrorsHistogram!
 	error_group(secure_id: String!, use_clickhouse: Boolean): ErrorGroup

@@ -9,6 +9,7 @@ on:
             - 'backend/**'
             - 'deploy/**'
             - 'docker/backend.Dockerfile'
+            - 'sdk/highlight-go/**'
             - '.github/workflows/deploy.yml'
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
