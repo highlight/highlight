@@ -346,6 +346,10 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.setTime:
 			s.time = action.time
+			s.currentUrl = findLatestUrl(
+				getAllUrlEvents(events),
+				action.time + s.sessionMetadata.startTime,
+			)
 			if (
 				s.replayerState === ReplayerState.SessionEnded &&
 				s.time < state.sessionEndTime
