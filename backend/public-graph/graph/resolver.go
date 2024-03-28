@@ -789,10 +789,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
 		} else {
 			embedding = emb[0]
-			embeddingType := model.ErrorGroupingMethodGteLargeEmbeddingV2
-			if errorObj.ProjectID == 1 {
-				embeddingType = model.ErrorGroupingMethodGteLargeEmbeddingV3
-			}
+			embeddingType := model.ErrorGroupingMethodGteLargeEmbeddingV3
 			errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
 				match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, errorObj.ProjectID, embeddingType, embedding.GteLargeEmbedding, settings.ErrorEmbeddingsThreshold)
 				if err != nil {
@@ -800,17 +797,14 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 				}
 				return match, err
 			}, func(errorGroupId int) error {
-				if errorObj.ProjectID == 1 {
-					newEmbedding := model.ErrorGroupEmbeddings{
-						ProjectID:         errorObj.ProjectID,
-						ErrorGroupID:      errorGroupId,
-						Count:             1,
-						GteLargeEmbedding: embedding.GteLargeEmbedding,
-					}
-
-					return r.DB.WithContext(ctx).Create(&newEmbedding).Error
+				newEmbedding := model.ErrorGroupEmbeddings{
+					ProjectID:         errorObj.ProjectID,
+					ErrorGroupID:      errorGroupId,
+					Count:             1,
+					GteLargeEmbedding: embedding.GteLargeEmbedding,
 				}
-				return nil
+
+				return r.DB.WithContext(ctx).Create(&newEmbedding).Error
 			}, settings.ErrorEmbeddingsTagGroup)
 			if err != nil {
 				return nil, e.Wrap(err, "Error getting or creating error group")
