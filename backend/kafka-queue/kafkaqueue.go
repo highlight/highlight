@@ -220,14 +220,6 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 		if configOverride != nil {
 			onAssignGroups = (*configOverride).OnAssignGroups
 		}
-		groupBalancers := []kafka.GroupBalancer{
-			&BalancerWrapper{
-				balancer:       kafka.RackAffinityGroupBalancer{Rack: rack},
-				onAssignGroups: onAssignGroups,
-			},
-			&kafka.RangeGroupBalancer{},
-			&kafka.RoundRobinGroupBalancer{},
-		}
 		config := kafka.ReaderConfig{
 			Brokers:           brokers,
 			Dialer:            dialer,
@@ -248,7 +240,12 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			WatchPartitionChanges: true,
 			Logger:                getLogger("consumer", topic, log.InfoLevel),
 			ErrorLogger:           getLogger("consumer", topic, log.ErrorLevel),
-			GroupBalancers:        groupBalancers,
+			GroupBalancers: []kafka.GroupBalancer{
+				&BalancerWrapper{
+					balancer:       kafka.RoundRobinGroupBalancer{},
+					onAssignGroups: onAssignGroups,
+				},
+			},
 		}
 
 		if configOverride != nil {
