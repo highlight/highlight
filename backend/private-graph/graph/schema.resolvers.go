@@ -4712,6 +4712,16 @@ func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObject
 	return &errorObject, nil
 }
 
+// UpsertVisualization is the resolver for the upsertVisualization field.
+func (r *mutationResolver) UpsertVisualization(ctx context.Context, visualization modelInputs.VisualizationInput) (int, error) {
+	panic(fmt.Errorf("not implemented: UpsertVisualization - upsertVisualization"))
+}
+
+// DeleteVisualization is the resolver for the deleteVisualization field.
+func (r *mutationResolver) DeleteVisualization(ctx context.Context, id int) (int, error) {
+	panic(fmt.Errorf("not implemented: DeleteVisualization - deleteVisualization"))
+}
+
 // Accounts is the resolver for the accounts field.
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
@@ -8745,6 +8755,11 @@ func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.P
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}
+}
+
+// Visualization is the resolver for the visualization field.
+func (r *queryResolver) Visualization(ctx context.Context, id int) (*model.Visualization, error) {
+	panic(fmt.Errorf("not implemented: Visualization - visualization"))
 }
 
 // Params is the resolver for the params field.

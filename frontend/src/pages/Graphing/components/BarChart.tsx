@@ -8,11 +8,11 @@ import {
 } from 'recharts'
 
 import {
-	ChartProps,
 	CustomXAxisTick,
 	CustomYAxisTick,
 	getFormatter,
 	GROUP_KEY,
+	InnerChartProps,
 	isActive,
 	SeriesInfo,
 	strokeColors,
@@ -51,7 +51,7 @@ export const BarChart = ({
 	series,
 	spotlight,
 	viewConfig,
-}: ChartProps<BarChartConfig> & SeriesInfo) => {
+}: InnerChartProps<BarChartConfig> & SeriesInfo) => {
 	const xAxisTickFormatter = getFormatter(xAxisMetric, data?.length)
 	const yAxisTickFormatter = getFormatter(yAxisMetric)
 

@@ -689,6 +689,42 @@ export type GitlabProject = {
 	nameWithNameSpace: Scalars['String']
 }
 
+export type Graph = {
+	__typename?: 'Graph'
+	bucketByKey?: Maybe<Scalars['String']>
+	bucketCount?: Maybe<Scalars['Int']>
+	display?: Maybe<Scalars['String']>
+	functionType: MetricAggregator
+	groupByKey?: Maybe<Scalars['String']>
+	id: Scalars['ID']
+	limit?: Maybe<Scalars['Int']>
+	limitFunctionType?: Maybe<MetricAggregator>
+	limitMetric?: Maybe<Scalars['String']>
+	metric: Scalars['String']
+	nullHandling?: Maybe<Scalars['String']>
+	productType: ProductType
+	query: Scalars['String']
+	title: Scalars['String']
+	type: Scalars['String']
+}
+
+export type GraphInput = {
+	bucketByKey?: InputMaybe<Scalars['String']>
+	bucketCount?: InputMaybe<Scalars['Int']>
+	display?: InputMaybe<Scalars['String']>
+	functionType: MetricAggregator
+	groupByKey?: InputMaybe<Scalars['String']>
+	limit?: InputMaybe<Scalars['Int']>
+	limitFunctionType?: InputMaybe<MetricAggregator>
+	limitMetric?: InputMaybe<Scalars['String']>
+	metric: Scalars['String']
+	nullHandling?: InputMaybe<Scalars['String']>
+	productType: ProductType
+	query: Scalars['String']
+	title: Scalars['String']
+	type: Scalars['String']
+}
+
 export type HeightList = {
 	__typename?: 'HeightList'
 	id: Scalars['String']
@@ -1105,6 +1141,7 @@ export type Mutation = {
 	deleteSessionAlert?: Maybe<SessionAlert>
 	deleteSessionComment?: Maybe<Scalars['Boolean']>
 	deleteSessions: Scalars['Boolean']
+	deleteVisualization: Scalars['ID']
 	editErrorSegment?: Maybe<Scalars['Boolean']>
 	editProject?: Maybe<Project>
 	editProjectSettings?: Maybe<AllProjectSettings>
@@ -1159,6 +1196,7 @@ export type Mutation = {
 	upsertDashboard: Scalars['ID']
 	upsertDiscordChannel: DiscordChannel
 	upsertSlackChannel: SanitizedSlackChannel
+	upsertVisualization: Scalars['ID']
 }
 
 export type MutationAddAdminToWorkspaceArgs = {
@@ -1431,6 +1469,10 @@ export type MutationDeleteSessionsArgs = {
 	project_id: Scalars['ID']
 	query: ClickhouseQuery
 	sessionCount: Scalars['Int']
+}
+
+export type MutationDeleteVisualizationArgs = {
+	id: Scalars['ID']
 }
 
 export type MutationEditErrorSegmentArgs = {
@@ -1796,6 +1838,10 @@ export type MutationUpsertSlackChannelArgs = {
 	project_id: Scalars['ID']
 }
 
+export type MutationUpsertVisualizationArgs = {
+	visualization: VisualizationInput
+}
+
 export type NamedCount = {
 	__typename?: 'NamedCount'
 	count: Scalars['Int']
@@ -2051,6 +2097,7 @@ export type Query = {
 	user_properties_alerts: Array<Maybe<SessionAlert>>
 	vercel_project_mappings: Array<VercelProjectMapping>
 	vercel_projects: Array<VercelProject>
+	visualization: Visualization
 	web_vitals: Array<Metric>
 	websocket_events?: Maybe<Array<Maybe<Scalars['Any']>>>
 	workspace?: Maybe<Workspace>
@@ -2796,6 +2843,10 @@ export type QueryVercel_Project_MappingsArgs = {
 
 export type QueryVercel_ProjectsArgs = {
 	project_id: Scalars['ID']
+}
+
+export type QueryVisualizationArgs = {
+	id: Scalars['ID']
 }
 
 export type QueryWeb_VitalsArgs = {
@@ -3591,6 +3642,21 @@ export type VercelProjectMappingInput = {
 	new_project_name?: InputMaybe<Scalars['String']>
 	project_id?: InputMaybe<Scalars['ID']>
 	vercel_project_id: Scalars['String']
+}
+
+export type Visualization = {
+	__typename?: 'Visualization'
+	graphs: Array<Graph>
+	id: Scalars['ID']
+	name: Scalars['String']
+	projectId: Scalars['ID']
+}
+
+export type VisualizationInput = {
+	graphs: Array<InputMaybe<GraphInput>>
+	id?: InputMaybe<Scalars['ID']>
+	name: Scalars['String']
+	projectId: Scalars['ID']
 }
 
 export type WebSocketEvent = {

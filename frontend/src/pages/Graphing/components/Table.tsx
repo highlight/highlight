@@ -1,9 +1,9 @@
 import { Box, Table, Text } from '@highlight-run/ui/components'
 
 import {
-	ChartProps,
 	getFormatter,
 	GROUP_KEY,
+	InnerChartProps,
 	SeriesInfo,
 } from '@/pages/Graphing/components/Graph'
 
@@ -36,7 +36,7 @@ export const MetricTable = ({
 	yAxisFunction,
 	series,
 	viewConfig,
-}: ChartProps<TableConfig> & SeriesInfo) => {
+}: InnerChartProps<TableConfig> & SeriesInfo) => {
 	const xAxisTickFormatter = getFormatter(xAxisMetric)
 	const valueFormatter = getFormatter(yAxisMetric)
 

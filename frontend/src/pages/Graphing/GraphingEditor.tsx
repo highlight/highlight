@@ -13,18 +13,18 @@ import { Divider } from 'antd'
 import moment from 'moment'
 import { PropsWithChildren, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { useDebounce, usePrevious } from 'react-use'
+import { useDebounce } from 'react-use'
 
 import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import Switch from '@/components/Switch/Switch'
-import { useGetKeysQuery, useGetMetricsQuery } from '@/graph/generated/hooks'
+import { useGetKeysQuery } from '@/graph/generated/hooks'
 import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
 import Graph, {
-	GROUP_KEY,
+	getViewConfig,
+	TIMESTAMP_KEY,
 	View,
-	ViewConfig,
 	VIEWS,
 } from '@/pages/Graphing/components/Graph'
 import {
@@ -40,7 +40,6 @@ import {
 
 import * as style from './GraphingEditor.css'
 
-const TIMESTAMP_KEY = 'Timestamp'
 const DEFAULT_BUCKET_COUNT = 50
 
 const PRODUCTS: ProductType[] = [
@@ -320,89 +319,17 @@ export const GraphingEditor = () => {
 		setBucketByKey(bucketByKeys[0] ?? '')
 	}, [allKeys, bucketByKeys, numericKeys])
 
-	const queriedBucketCount = bucketByEnabled ? bucketCount : 1
-
-	const { data: metrics, loading: metricsLoading } = useGetMetricsQuery({
-		variables: {
-			product_type: productType,
-			project_id: projectId,
-			params: {
-				date_range: {
-					start_date: startDate,
-					end_date: endDate,
-				},
-				query: debouncedQuery,
-			},
-			column: metric,
-			metric_types: [functionType],
-			group_by: groupByEnabled ? [groupByKey] : [],
-			bucket_by: bucketByEnabled ? bucketByKey : TIMESTAMP_KEY,
-			bucket_count: queriedBucketCount,
-			limit: limit,
-			limit_aggregator: limitFunctionType,
-			limit_column: limitMetric,
-		},
-	})
-
-	// Retain previous data - in case of loading, keep returning old data
-	let metricsToUse = usePrevious(metrics)
-	if (metrics !== undefined) {
-		metricsToUse = metrics
-	}
-
-	let data: any[] | undefined
-	if (metricsToUse?.metrics.buckets) {
-		if (bucketByEnabled) {
-			data = []
-			for (let i = 0; i < metricsToUse.metrics.bucket_count; i++) {
-				data.push({})
-			}
-
-			const seriesKeys = new Set<string>()
-			for (const b of metricsToUse.metrics.buckets) {
-				const seriesKey = b.group.join(' ')
-				seriesKeys.add(seriesKey)
-				data[b.bucket_id][bucketByKey] =
-					(b.bucket_min + b.bucket_max) / 2
-				data[b.bucket_id][seriesKey] = b.metric_value
-			}
-		} else {
-			data = []
-			for (const b of metricsToUse.metrics.buckets) {
-				data.push({
-					[GROUP_KEY]: b.group.join(' '),
-					'': b.metric_value,
-				})
-			}
-		}
-	}
-
-	let viewConfig: ViewConfig
+	let display: string | undefined
+	let nullHandling: string | undefined
 	if (viewType === 'Line chart') {
-		viewConfig = {
-			type: viewType,
-			showLegend: true,
-			display: lineDisplay,
-			nullHandling: lineNullHandling,
-		}
+		display = lineDisplay
+		nullHandling = lineNullHandling
 	} else if (viewType === 'Bar chart') {
-		viewConfig = {
-			type: viewType,
-			showLegend: true,
-			display: barDisplay,
-		}
+		display = barDisplay
 	} else if (viewType === 'Table') {
-		viewConfig = {
-			type: viewType,
-			showLegend: false,
-			nullHandling: tableNullHandling,
-		}
-	} else {
-		viewConfig = {
-			type: 'Line chart',
-			showLegend: true,
-		}
+		nullHandling = tableNullHandling
 	}
+	const viewConfig = getViewConfig(viewType, display, nullHandling)
 
 	return (
 		<>
@@ -476,19 +403,33 @@ export const GraphingEditor = () => {
 							</Box>
 
 							<Graph
-								data={data}
-								loading={metricsLoading}
 								title={metricViewTitle}
-								xAxisMetric={
-									bucketByEnabled ? bucketByKey : GROUP_KEY
-								}
-								yAxisMetric={
-									functionType === MetricAggregator.Count
-										? ''
-										: metric
-								}
-								yAxisFunction={functionType}
 								viewConfig={viewConfig}
+								productType={productType}
+								projectId={projectId}
+								startDate={startDate}
+								endDate={endDate}
+								query={debouncedQuery}
+								metric={metric}
+								functionType={functionType}
+								bucketByKey={
+									bucketByEnabled ? bucketByKey : undefined
+								}
+								bucketCount={
+									bucketByEnabled ? bucketCount : undefined
+								}
+								groupByKey={
+									groupByEnabled ? groupByKey : undefined
+								}
+								limit={groupByEnabled ? limit : undefined}
+								limitFunctionType={
+									groupByEnabled
+										? limitFunctionType
+										: undefined
+								}
+								limitMetric={
+									groupByEnabled ? limitMetric : undefined
+								}
 							/>
 						</Box>
 						<Box

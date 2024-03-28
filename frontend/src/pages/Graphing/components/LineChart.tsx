@@ -8,10 +8,10 @@ import {
 } from 'recharts'
 
 import {
-	ChartProps,
 	CustomXAxisTick,
 	CustomYAxisTick,
 	getFormatter,
+	InnerChartProps,
 	isActive,
 	SeriesInfo,
 	strokeColors,
@@ -41,7 +41,7 @@ export const LineChart = ({
 	series,
 	spotlight,
 	viewConfig,
-}: ChartProps<LineChartConfig> & SeriesInfo) => {
+}: InnerChartProps<LineChartConfig> & SeriesInfo) => {
 	const xAxisTickFormatter = getFormatter(xAxisMetric, data?.length)
 	const yAxisTickFormatter = getFormatter(yAxisMetric)
 

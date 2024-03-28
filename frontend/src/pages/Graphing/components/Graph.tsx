@@ -3,12 +3,24 @@ import _ from 'lodash'
 import moment from 'moment'
 import { useEffect, useMemo, useState } from 'react'
 
-import { BarChart, BarChartConfig } from '@/pages/Graphing/components/BarChart'
+import { useGetMetricsQuery } from '@/graph/generated/hooks'
+import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import {
+	BarChart,
+	BarChartConfig,
+	BarDisplay,
+} from '@/pages/Graphing/components/BarChart'
 import {
 	LineChart,
 	LineChartConfig,
+	LineDisplay,
+	LineNullHandling,
 } from '@/pages/Graphing/components/LineChart'
-import { MetricTable, TableConfig } from '@/pages/Graphing/components/Table'
+import {
+	MetricTable,
+	TableConfig,
+	TableNullHandling,
+} from '@/pages/Graphing/components/Table'
 import { HistogramLoading } from '@/pages/Traces/TracesPage'
 
 import * as style from './Graph.css'
@@ -22,6 +34,7 @@ export const VIEWS: View[] = [
 	'List',
 ]
 
+export const TIMESTAMP_KEY = 'Timestamp'
 export const GROUP_KEY = 'Group'
 const MAX_LABEL_CHARS = 100
 
@@ -43,6 +56,25 @@ export type ViewConfig =
 	| ListConfig
 
 export interface ChartProps<TConfig> {
+	title: string
+	productType: ProductType
+	projectId: string
+	startDate: string
+	endDate: string
+	query: string
+	metric: string
+	functionType: MetricAggregator
+	groupByKey?: string
+	bucketByKey?: string
+	bucketCount?: number
+	limit?: number
+	limitFunctionType?: MetricAggregator
+	limitMetric?: string
+	loading?: boolean
+	viewConfig: TConfig
+}
+
+export interface InnerChartProps<TConfig> {
 	data: any[] | undefined
 	xAxisMetric: string
 	yAxisMetric: string
@@ -165,15 +197,112 @@ export const CustomXAxisTick = ({
 export const isActive = (spotlight: number | undefined, idx: number) =>
 	spotlight === undefined || spotlight === idx
 
+export const getViewConfig = (
+	viewType: string,
+	display: string | undefined,
+	nullHandling: string | undefined,
+): ViewConfig => {
+	let viewConfig: ViewConfig
+	if (viewType === 'Line chart') {
+		viewConfig = {
+			type: viewType,
+			showLegend: true,
+			display: display as LineDisplay,
+			nullHandling: nullHandling as LineNullHandling,
+		}
+	} else if (viewType === 'Bar chart') {
+		viewConfig = {
+			type: viewType,
+			showLegend: true,
+			display: display as BarDisplay,
+		}
+	} else if (viewType === 'Table') {
+		viewConfig = {
+			type: viewType,
+			showLegend: false,
+			nullHandling: nullHandling as TableNullHandling,
+		}
+	} else {
+		viewConfig = {
+			type: 'Line chart',
+			showLegend: true,
+		}
+	}
+	return viewConfig
+}
+
 const Graph = ({
-	data,
-	xAxisMetric,
-	yAxisMetric,
-	yAxisFunction,
+	productType,
+	projectId,
+	startDate,
+	endDate,
+	query,
+	metric,
+	functionType,
+	groupByKey,
+	bucketByKey,
+	bucketCount,
+	limit,
+	limitFunctionType,
+	limitMetric,
 	title,
-	loading,
 	viewConfig,
 }: ChartProps<ViewConfig>) => {
+	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
+
+	const { data: metrics, loading: metricsLoading } = useGetMetricsQuery({
+		variables: {
+			product_type: productType,
+			project_id: projectId,
+			params: {
+				date_range: {
+					start_date: startDate,
+					end_date: endDate,
+				},
+				query: query,
+			},
+			column: metric,
+			metric_types: [functionType],
+			group_by: groupByKey !== undefined ? [groupByKey] : [],
+			bucket_by: bucketByKey !== undefined ? bucketByKey : TIMESTAMP_KEY,
+			bucket_count: queriedBucketCount,
+			limit: limit,
+			limit_aggregator: limitFunctionType,
+			limit_column: limitMetric,
+		},
+	})
+
+	const xAxisMetric = bucketByKey !== undefined ? bucketByKey : GROUP_KEY
+	const yAxisMetric = functionType === MetricAggregator.Count ? '' : metric
+	const yAxisFunction = functionType
+
+	let data: any[] | undefined
+	if (metrics?.metrics.buckets) {
+		if (xAxisMetric !== GROUP_KEY) {
+			data = []
+			for (let i = 0; i < metrics.metrics.bucket_count; i++) {
+				data.push({})
+			}
+
+			const seriesKeys = new Set<string>()
+			for (const b of metrics.metrics.buckets) {
+				const seriesKey = b.group.join(' ')
+				seriesKeys.add(seriesKey)
+				data[b.bucket_id][xAxisMetric] =
+					(b.bucket_min + b.bucket_max) / 2
+				data[b.bucket_id][seriesKey] = b.metric_value
+			}
+		} else {
+			data = []
+			for (const b of metrics.metrics.buckets) {
+				data.push({
+					[GROUP_KEY]: b.group.join(' '),
+					'': b.metric_value,
+				})
+			}
+		}
+	}
+
 	const series = useMemo(
 		() =>
 			_.uniq(data?.flatMap((d) => Object.keys(d))).filter(
@@ -250,7 +379,7 @@ const Graph = ({
 					flexDirection="column"
 					justifyContent="space-between"
 				>
-					{loading && (
+					{metricsLoading && (
 						<Box
 							position="absolute"
 							width="full"
