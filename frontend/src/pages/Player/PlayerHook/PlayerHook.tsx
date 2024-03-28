@@ -670,20 +670,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	)
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const onPlayStartStop = useCallback(
-		_.throttle(() => {
-			if (!state.replayer) return
-			dispatch({
-				type: PlayerActionType.updateCurrentUrl,
-				currentTime:
-					getTimeFromReplayer(state.replayer, state.sessionMetadata) +
-					state.sessionMetadata.startTime,
-			})
-		}, FRAME_MS * 60),
-		[],
-	)
-
-	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const onViewportChange = useCallback(
 		_.throttle((_e) => {
 			dispatch({
@@ -830,9 +816,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			onEvent(e as HighlightEvent),
 		)
 		state.replayer.on('resize', onViewportChange)
-		state.replayer.on('pause', onPlayStartStop)
-		state.replayer.on('start', onPlayStartStop)
-	}, [state.replayer, project_id, onEvent, onViewportChange, onPlayStartStop])
+	}, [state.replayer, project_id, onEvent, onViewportChange])
 
 	// Downloads the events data only if the URL search parameter '?download=1' is present.
 	useEffect(() => {
