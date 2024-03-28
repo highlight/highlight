@@ -48,6 +48,8 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 	const toolbarContext = useToolbarItems()
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
 	const replayerWrapperBbox = replayer?.wrapper.getBoundingClientRect()
+
+	// START: Copied logic from PlayerPage
 	const controllerWidth = centerColumnSize.width
 		? Math.max(styles.MIN_CENTER_COLUMN_WIDTH, centerColumnSize.width ?? 0)
 		: 0
@@ -113,6 +115,7 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 		playerBoundingClientRectWidth,
 		playerBoundingClientRectHeight,
 	])
+	// END: Copied logic from PlayerPage
 
 	return (
 		<ReplayerContextProvider value={playerContext}>
