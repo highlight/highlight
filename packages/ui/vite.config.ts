@@ -28,6 +28,7 @@ export default defineConfig({
 	test: {
 		environment: 'happy-dom',
 		globals: true,
+		setupFiles: ['./src/setupTests.ts'],
 	},
 	plugins: [dts(), react(), vanillaExtractPlugin()],
 })
