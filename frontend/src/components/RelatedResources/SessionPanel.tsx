@@ -1,14 +1,13 @@
-import { Box } from '@highlight-run/ui/components'
+import { Box, Stack } from '@highlight-run/ui/components'
 import clsx from 'clsx'
-import { useCallback, useEffect, useRef } from 'react'
-import useResizeAware from 'react-resize-aware'
-import { Replayer } from 'rrweb'
+import { useRef } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
 import { RelatedSession } from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { usePlayer } from '@/pages/Player/PlayerHook/PlayerHook'
+import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 import { ManualStopCard } from '@/pages/Player/PlayerPage'
 import {
 	ReplayerContextProvider,
@@ -23,18 +22,19 @@ import {
 	SessionCurrentUrl,
 	SessionViewportMetadata,
 } from '@/pages/Player/SessionLevelBar/SessionLevelBarV2'
+import SessionShareButtonV2 from '@/pages/Player/SessionShareButton/SessionShareButtonV2'
 import * as styles from '@/pages/Player/styles.css'
 import DevToolsWindowV2 from '@/pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
 import { Toolbar } from '@/pages/Player/Toolbar/Toolbar'
 import useToolbarItems from '@/pages/Player/Toolbar/ToolbarItems/useToolbarItems'
 import { ToolbarItemsContextProvider } from '@/pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
+import { useResizePlayer } from '@/pages/Player/utils/utils'
 
 export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 	resource,
 }) => {
 	const { projectId } = useNumericProjectId()
-	const path = `/${projectId}/sessions/${resource.secureId}`
-	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
+	const path = `/${projectId}/sessions/${resource.secureId}?${PlayerSearchParameters.search}=false`
 	const playerContext = usePlayer()
 	const {
 		session,
@@ -49,81 +49,33 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
 	const replayerWrapperBbox = replayer?.wrapper.getBoundingClientRect()
 
-	// START: Copied logic from PlayerPage
-	const controllerWidth = centerColumnSize.width
-		? Math.max(styles.MIN_CENTER_COLUMN_WIDTH, centerColumnSize.width ?? 0)
-		: 0
-
-	const resizePlayer = useCallback(
-		(replayer: Replayer): boolean => {
-			const width = replayer?.wrapper?.getBoundingClientRect().width
-			const height = replayer?.wrapper?.getBoundingClientRect().height
-			const targetWidth = playerWrapperRef.current?.clientWidth
-			const targetHeight = playerWrapperRef.current?.clientHeight
-			if (!targetWidth || !targetHeight) {
-				return false
-			}
-			const widthScale = (targetWidth - styles.PLAYER_PADDING_X) / width
-			const heightScale =
-				(targetHeight - styles.PLAYER_PADDING_Y) / height
-			let scale = Math.min(heightScale, widthScale)
-			// If calculated scale is close enough to 1, return to avoid
-			// infinite looping caused by small floating point math differences
-			if (scale >= 0.9999 && scale <= 1.0001) {
-				return false
-			}
-
-			let retry = false
-			if (scale <= 0 || !Number.isFinite(scale)) {
-				retry = true
-				scale = 1
-			}
-
-			setScale((s) => {
-				const replayerScale = s * scale
-
-				// why translate -50 -50 -> https://medium.com/front-end-weekly/absolute-centering-in-css-ea3a9d0ad72e
-				replayer?.wrapper?.setAttribute(
-					'style',
-					`transform: scale(${replayerScale}) translate(-50%, -50%)`,
-				)
-				replayer?.wrapper?.setAttribute(
-					'class',
-					`replayer-wrapper ${styles.rrwebInnerWrapper}`,
-				)
-
-				return replayerScale
-			})
-			return !retry
-		},
-		[setScale],
-	)
-
-	const playerBoundingClientRectWidth =
-		replayer?.wrapper?.getBoundingClientRect().width
-	const playerBoundingClientRectHeight =
-		replayer?.wrapper?.getBoundingClientRect().height
-
-	const [resizeListener, sizes] = useResizeAware()
-	// On any change to replayer, 'sizes', refresh the size of the player.
-	useEffect(() => {
-		replayer && resizePlayer(replayer)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		sizes,
-		replayer,
-		playerBoundingClientRectWidth,
-		playerBoundingClientRectHeight,
-	])
-	// END: Copied logic from PlayerPage
+	const { resizeListener, centerColumnResizeListener, controllerWidth } =
+		useResizePlayer(replayer, playerWrapperRef, setScale)
 
 	return (
 		<ReplayerContextProvider value={playerContext}>
 			<ResourcesContextProvider value={resourcesContext}>
 				<ToolbarItemsContextProvider value={toolbarContext}>
 					<Panel.Header path={path}>
-						<SessionViewportMetadata />
-						<SessionCurrentUrl />
+						<Stack
+							justify="space-between"
+							align="center"
+							flexGrow={1}
+							direction="row"
+							overflow="hidden"
+						>
+							<Stack
+								align="center"
+								direction="row"
+								flexGrow={1}
+								overflow="hidden"
+							>
+								<SessionViewportMetadata />
+								<SessionCurrentUrl />
+							</Stack>
+
+							<SessionShareButtonV2 />
+						</Stack>
 					</Panel.Header>
 
 					<Box

@@ -18,7 +18,10 @@ import PlayerCommentCanvas, {
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas'
 import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook'
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerState'
-import { useLinkLogCursor } from '@pages/Player/PlayerHook/utils'
+import {
+	useLinkLogCursor,
+	useShowSearchParam,
+} from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	ReplayerContextProvider,
@@ -41,16 +44,14 @@ import { useApplicationContext } from '@routers/AppRouter/context/ApplicationCon
 import analytics from '@util/analytics'
 import clsx from 'clsx'
 import Lottie from 'lottie-react'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import useResizeAware from 'react-resize-aware'
 import { useNavigate } from 'react-router-dom'
-import { Replayer } from 'rrweb'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { NetworkResourcePanel } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourcePanel'
 import DevToolsWindowV2 from '@/pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
-import { useSessionParams } from '@/pages/Player/utils/utils'
+import { useResizePlayer, useSessionParams } from '@/pages/Player/utils/utils'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import WaitingAnimation from '../../lottie/waiting.json'
@@ -62,7 +63,6 @@ const PlayerPage = () => {
 	const { projectId, sessionSecureId } = useSessionParams()
 	const [{ integrated }] = useIntegratedLocalStorage(projectId!, 'client')
 
-	const [resizeListener, sizes] = useResizeAware()
 	const { width } = useWindowSize()
 
 	const playerContext = usePlayer()
@@ -125,6 +125,13 @@ const PlayerPage = () => {
 		}
 	}, [logCursor, setShowLeftPanel])
 
+	const { showSearch } = useShowSearchParam()
+	useEffect(() => {
+		if (!showSearch) {
+			setShowLeftPanel(false)
+		}
+	}, [showSearch, setShowLeftPanel])
+
 	const toolbarContext = useToolbarItems()
 
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
@@ -143,87 +150,13 @@ const PlayerPage = () => {
 		}
 	}, [sessionSecureId, setShowLeftPanel])
 
-	const resizePlayer = useCallback(
-		(replayer: Replayer): boolean => {
-			const width = replayer?.wrapper?.getBoundingClientRect().width
-			const height = replayer?.wrapper?.getBoundingClientRect().height
-			const targetWidth = playerWrapperRef.current?.clientWidth
-			const targetHeight = playerWrapperRef.current?.clientHeight
-			if (!targetWidth || !targetHeight) {
-				return false
-			}
-			const widthScale = (targetWidth - style.PLAYER_PADDING_X) / width
-			const heightScale = (targetHeight - style.PLAYER_PADDING_Y) / height
-			let scale = Math.min(heightScale, widthScale)
-			// If calculated scale is close enough to 1, return to avoid
-			// infinite looping caused by small floating point math differences
-			if (scale >= 0.9999 && scale <= 1.0001) {
-				return false
-			}
-
-			let retry = false
-			if (scale <= 0 || !Number.isFinite(scale)) {
-				retry = true
-				scale = 1
-			}
-
-			setScale((s) => {
-				const replayerScale = s * scale
-
-				// why translate -50 -50 -> https://medium.com/front-end-weekly/absolute-centering-in-css-ea3a9d0ad72e
-				replayer?.wrapper?.setAttribute(
-					'style',
-					`transform: scale(${replayerScale}) translate(-50%, -50%)`,
-				)
-				replayer?.wrapper?.setAttribute(
-					'class',
-					`replayer-wrapper ${style.rrwebInnerWrapper}`,
-				)
-
-				return replayerScale
-			})
-			return !retry
-		},
-		[setScale],
-	)
-
-	// This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
-	useEffect(() => {
-		const i = window.setInterval(() => {
-			if (replayer && resizePlayer(replayer)) {
-				clearInterval(i)
-			}
-		}, 1000 / 15)
-		return () => {
-			i && clearInterval(i)
-		}
-	}, [resizePlayer, replayer])
-
-	const playerBoundingClientRectWidth =
-		replayer?.wrapper?.getBoundingClientRect().width
-	const playerBoundingClientRectHeight =
-		replayer?.wrapper?.getBoundingClientRect().height
-
-	// On any change to replayer, 'sizes', refresh the size of the player.
-	useEffect(() => {
-		replayer && resizePlayer(replayer)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		sizes,
-		replayer,
-		playerBoundingClientRectWidth,
-		playerBoundingClientRectHeight,
-	])
+	const { resizeListener, centerColumnResizeListener, controllerWidth } =
+		useResizePlayer(replayer, playerWrapperRef, setScale)
 
 	useEffect(() => analytics.page('Session'), [sessionSecureId])
 
 	const showLeftPanel =
 		showLeftPanelPreference && (isLoggedIn || projectId === DEMO_PROJECT_ID)
-
-	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
-	const controllerWidth = centerColumnSize.width
-		? Math.max(style.MIN_CENTER_COLUMN_WIDTH, centerColumnSize.width ?? 0)
-		: 0
 
 	const playerFiller = useMemo(() => {
 		const playerHeight =
