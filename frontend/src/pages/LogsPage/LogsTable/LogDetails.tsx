@@ -295,7 +295,7 @@ export const LogDetails: React.FC<Props> = ({
 								set({
 									type: 'session',
 									secureId: secureSessionID,
-									logCursor: row.original.cursor,
+									log: row.original.cursor,
 								})
 							}}
 							trackingId="logs_related-session_click"
