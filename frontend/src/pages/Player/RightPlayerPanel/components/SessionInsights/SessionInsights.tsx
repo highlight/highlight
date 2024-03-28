@@ -15,7 +15,6 @@ import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerCon
 import { useReplayerContext } from '@/pages/Player/ReplayerContext'
 import { useSessionParams } from '@/pages/Player/utils/utils'
 import { useGlobalContext } from '@/routers/ProjectRouter/context/GlobalContext'
-import { useParams } from '@/util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@/util/session/utils'
 import { MillisToMinutesAndSeconds } from '@/util/time'
 

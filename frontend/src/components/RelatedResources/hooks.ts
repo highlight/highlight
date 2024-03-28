@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useLocalStorage } from 'react-use'
 
+import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
+
 export type RelatedError = {
 	type: 'error'
 	secureId: string
@@ -11,7 +13,9 @@ export type RelatedError = {
 export type RelatedSession = {
 	type: 'session'
 	secureId: string
-	logCursor?: string
+	[PlayerSearchParameters.errorId]?: string
+	[PlayerSearchParameters.log]?: string
+	[PlayerSearchParameters.tsAbs]?: string
 }
 export type RelatedTrace = {
 	type: 'trace'

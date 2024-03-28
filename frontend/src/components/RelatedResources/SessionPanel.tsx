@@ -1,6 +1,7 @@
 import { Box, Stack } from '@highlight-run/ui/components'
 import clsx from 'clsx'
-import { useRef } from 'react'
+import { stringify } from 'query-string'
+import { useMemo, useRef } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
 import { RelatedSession } from '@/components/RelatedResources/hooks'
@@ -34,7 +35,6 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 	resource,
 }) => {
 	const { projectId } = useNumericProjectId()
-	const path = `/${projectId}/sessions/${resource.secureId}?${PlayerSearchParameters.search}=false`
 	const playerContext = usePlayer()
 	const {
 		session,
@@ -51,6 +51,29 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 
 	const { resizeListener, centerColumnResizeListener, controllerWidth } =
 		useResizePlayer(replayer, playerWrapperRef, setScale)
+
+	const path = useMemo(() => {
+		const params = {
+			[PlayerSearchParameters.errorId]: resource.errorId,
+			[PlayerSearchParameters.log]: resource.log,
+			[PlayerSearchParameters.tsAbs]: resource.tsAbs,
+		}
+
+		const filteredParams = Object.fromEntries(
+			Object.entries(params).filter(([_, value]) => value !== undefined),
+		)
+
+		const paramsString = stringify(filteredParams)
+
+		debugger
+		return `/${projectId}/sessions/${resource.secureId}?${paramsString}`
+	}, [
+		projectId,
+		resource.errorId,
+		resource.log,
+		resource.secureId,
+		resource.tsAbs,
+	])
 
 	return (
 		<ReplayerContextProvider value={playerContext}>

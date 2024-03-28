@@ -175,7 +175,7 @@ export const useLinkLogCursor = () => {
 	const { resource } = useRelatedResource()
 	const logCursor =
 		resource?.type === 'session'
-			? resource.logCursor
+			? resource.log
 			: searchParams.get(PlayerSearchParameters.log)
 
 	return {

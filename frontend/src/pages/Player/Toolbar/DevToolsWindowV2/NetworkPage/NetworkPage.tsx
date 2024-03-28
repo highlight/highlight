@@ -24,7 +24,6 @@ import {
 	RequestType,
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import { useParams } from '@util/react-router/useParams'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
 import _ from 'lodash'
 import moment from 'moment'

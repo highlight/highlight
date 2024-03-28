@@ -1,25 +1,9 @@
 import { IconSolidPlayCircle, Tag, Tooltip } from '@highlight-run/ui/components'
-import { createSearchParams } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { GetErrorInstanceQuery } from '@/graph/generated/operations'
-import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 import analytics from '@/util/analytics'
-
-const getSessionLink = (data: GetErrorInstanceQuery | undefined): string => {
-	const errorObject = data?.error_instance?.error_object
-
-	if (!errorObject?.session) {
-		return ''
-	}
-
-	const params = createSearchParams({
-		tsAbs: errorObject.timestamp,
-		[PlayerSearchParameters.errorId]: errorObject.id,
-	})
-	return `/${errorObject.project_id}/sessions/${errorObject.session?.secure_id}?${params}`
-}
 
 const WithDevToolsTooltip = ({ children }: React.PropsWithChildren) => {
 	return (
@@ -56,6 +40,8 @@ export const RelatedSession = ({ data }: Props) => {
 				set({
 					type: 'session',
 					secureId: session.secure_id,
+					tsAbs: errorObject.timestamp,
+					errorId: errorObject.id,
 				})
 
 				analytics.track('error_related-session-link_click')
