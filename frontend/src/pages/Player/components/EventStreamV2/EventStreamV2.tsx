@@ -18,7 +18,6 @@ import {
 } from '@pages/Player/ReplayerContext'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
@@ -28,8 +27,8 @@ import { styledVerticalScrollbar } from '@/style/common.css'
 import * as style from './EventStreamV2.css'
 
 const EventStreamV2 = function () {
-	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const {
+		session,
 		sessionMetadata,
 		eventsForTimelineIndicator: replayerEvents,
 		state,
@@ -37,6 +36,7 @@ const EventStreamV2 = function () {
 		currentEvent,
 		setCurrentEvent,
 	} = useReplayerContext()
+	const session_secure_id = session?.secure_id
 	const {
 		setActiveEvent,
 		setRightPanelView,

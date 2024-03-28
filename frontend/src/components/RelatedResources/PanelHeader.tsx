@@ -13,27 +13,23 @@ import { useNavigate } from 'react-router-dom'
 import { PreviousNextGroup } from '@/components/PreviousNextGroup/PreviousNextGroup'
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 
-type Props = {
+type Props = React.PropsWithChildren & {
 	path: string
 }
 
-export const PanelHeader: React.FC<React.PropsWithChildren<Props>> = ({
-	children,
-	path,
-}) => {
+export const PanelHeader: React.FC<Props> = ({ children, path }) => {
 	const navigate = useNavigate()
 	const dialogStore = Dialog.useContext()!
 
 	return (
-		<Box
-			py="6"
-			px="8"
-			bb="dividerWeak"
-			display="flex"
-			alignItems="center"
-			justifyContent="space-between"
-		>
-			<Stack gap="4" direction="row" alignItems="center">
+		<Box py="6" px="8" bb="dividerWeak" display="flex" alignItems="center">
+			<Stack
+				gap="4"
+				direction="row"
+				alignItems="center"
+				flexGrow={1}
+				overflow="hidden"
+			>
 				<ButtonIcon
 					icon={<IconSolidArrowsExpand />}
 					emphasis="low"
@@ -44,20 +40,18 @@ export const PanelHeader: React.FC<React.PropsWithChildren<Props>> = ({
 				/>
 
 				<Pagination />
-			</Stack>
 
-			<Stack gap="4" direction="row" alignItems="center">
 				{children}
-
-				<ButtonIcon
-					icon={<IconSolidX />}
-					emphasis="low"
-					kind="secondary"
-					onClick={() => {
-						dialogStore.hide()
-					}}
-				/>
 			</Stack>
+
+			<ButtonIcon
+				icon={<IconSolidX />}
+				emphasis="low"
+				kind="secondary"
+				onClick={() => {
+					dialogStore.hide()
+				}}
+			/>
 		</Box>
 	)
 }

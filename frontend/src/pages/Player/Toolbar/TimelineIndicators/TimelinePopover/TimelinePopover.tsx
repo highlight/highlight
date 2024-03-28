@@ -63,8 +63,12 @@ const TimelinePopover = ({ bucket }: Props) => {
 	const { resource, set } = useRelatedResource()
 	const relatedError = resource as RelatedError | undefined
 	const activeError = useMemo(
-		() => errors.find((error) => error.id === relatedError?.id),
-		[errors, relatedError?.id],
+		() =>
+			errors.find(
+				(error) =>
+					error.error_group_secure_id === relatedError?.secureId,
+			),
+		[errors, relatedError?.secureId],
 	)
 
 	const [selectedType, setSelectedType] = useState<string | null>(null)
@@ -122,7 +126,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 			if (error) {
 				set({
 					type: 'error',
-					id: error.error_group_secure_id,
+					secureId: error.error_group_secure_id,
 					instanceId: error.id,
 				})
 			}
