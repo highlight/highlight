@@ -27,7 +27,7 @@ const ConsumerGroupName = "group-default"
 
 const (
 	TaskRetries           = 2
-	prefetchQueueCapacity = 100
+	prefetchQueueCapacity = 1000
 	MaxMessageSizeBytes   = 128 * 1024 * 1024 // MiB
 )
 
@@ -107,7 +107,7 @@ func getLogger(mode, topic string, level log.Level) kafka.LoggerFunc {
 	if level == log.ErrorLevel {
 		return lg.Errorf
 	}
-	return lg.Debugf
+	return lg.Infof
 }
 
 func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
@@ -220,9 +220,13 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 		if configOverride != nil {
 			onAssignGroups = (*configOverride).OnAssignGroups
 		}
-		balancer := BalancerWrapper{
-			balancer:       kafka.RackAffinityGroupBalancer{Rack: rack},
-			onAssignGroups: onAssignGroups,
+		groupBalancers := []kafka.GroupBalancer{
+			&BalancerWrapper{
+				balancer:       kafka.RackAffinityGroupBalancer{Rack: rack},
+				onAssignGroups: onAssignGroups,
+			},
+			&kafka.RangeGroupBalancer{},
+			&kafka.RoundRobinGroupBalancer{},
 		}
 		config := kafka.ReaderConfig{
 			Brokers:           brokers,
@@ -237,8 +241,6 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			MaxBytes:          MaxMessageSizeBytes,
 			MaxWait:           KafkaOperationTimeout,
 			ReadBatchTimeout:  KafkaOperationTimeout,
-			ReadBackoffMin:    time.Nanosecond,
-			ReadBackoffMax:    5 * time.Second,
 			QueueCapacity:     prefetchQueueCapacity,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
@@ -246,9 +248,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			WatchPartitionChanges: true,
 			Logger:                getLogger("consumer", topic, log.InfoLevel),
 			ErrorLogger:           getLogger("consumer", topic, log.ErrorLevel),
-			GroupBalancers: []kafka.GroupBalancer{
-				&balancer,
-			},
+			GroupBalancers:        groupBalancers,
 		}
 
 		if configOverride != nil {
