@@ -28,7 +28,7 @@ const ConsumerGroupName = "group-default"
 const (
 	TaskRetries           = 2
 	prefetchQueueCapacity = 1000
-	MaxMessageSizeBytes   = 128 * 1024 * 1024 // MiB
+	MaxMessageSizeBytes   = 130 * 1024 * 1024 // MiB
 )
 
 var (
@@ -107,7 +107,7 @@ func getLogger(mode, topic string, level log.Level) kafka.LoggerFunc {
 	if level == log.ErrorLevel {
 		return lg.Errorf
 	}
-	return lg.Infof
+	return lg.Debugf
 }
 
 func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
@@ -225,7 +225,6 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Dialer:            dialer,
 			HeartbeatInterval: time.Second,
 			ReadLagInterval:   time.Second,
-			SessionTimeout:    30 * time.Second,
 			RebalanceTimeout:  rebalanceTimeout,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
