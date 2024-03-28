@@ -23,7 +23,10 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { VercelIntegrationSettings } from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
 import { Landing } from '@pages/Landing/Landing'
-import { ApplicationContextProvider } from '@routers/AppRouter/context/ApplicationContext'
+import {
+	ApplicationContextProvider,
+	useApplicationContext,
+} from '@routers/AppRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
@@ -345,11 +348,15 @@ const WorkspaceIntegrationCallback = ({
 	const { setLoadingState } = useAppLoadingContext()
 
 	useEffect(() => {
-		if (!addIntegration || !code) return
+		if (!addIntegration || !code || !projectId) return
 		const usedCode = sessionStorage.getItem(codeSessionStorageKey) === code
 		if (!!code && usedCode) return
 
-		const redirectUrl = next || `/${projectId}/integrations/${type}`
+		const redirectUrl =
+			next ||
+			(projectId
+				? `/${projectId}/integrations/${type}`
+				: `/integrations/${type}`)
 		;(async () => {
 			try {
 				sessionStorage.setItem(codeSessionStorageKey, code)
@@ -560,6 +567,7 @@ const IntegrationAuthCallbackPage = () => {
 		integrationName: string
 	}>()
 	const { isAuthLoading } = useAuthContext()
+	const { currentWorkspace } = useApplicationContext()
 	const { setLoadingState } = useAppLoadingContext()
 
 	useEffect(() => {
@@ -609,6 +617,10 @@ const IntegrationAuthCallbackPage = () => {
 	}, [])
 
 	const name = integrationName?.toLowerCase() || ''
+
+	if (!currentWorkspace) {
+		return null
+	}
 
 	if (WorkspaceIntegrations.has(name)) {
 		let cb = null
