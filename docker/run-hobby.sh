@@ -17,8 +17,5 @@ if ! docker compose -f compose.hobby.yml up --detach backend frontend >>/tmp/hig
   exit 1
 fi
 
-echo 'waiting for highlight hobby deploy to come online'
-yarn dlx wait-on -l -s 2 "${REACT_APP_FRONTEND_URI}"/index.html "${BACKEND_HEALTH_URI}" || true
-
 echo "Highlight started on ${REACT_APP_FRONTEND_URI}"
 wait
