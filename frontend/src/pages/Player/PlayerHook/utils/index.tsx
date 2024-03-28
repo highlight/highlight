@@ -171,11 +171,11 @@ export const useLinkErrorInstance = () => {
 
 export const useLinkLogCursor = () => {
 	const location = useLocation()
-	const searchParams = new URLSearchParams(location.search)
 	const { resource } = useRelatedResource()
+	const searchParams = new URLSearchParams(location.search)
 	const logCursor =
 		resource?.type === 'session'
-			? resource.log
+			? resource.log ?? null
 			: searchParams.get(PlayerSearchParameters.log)
 
 	return {
