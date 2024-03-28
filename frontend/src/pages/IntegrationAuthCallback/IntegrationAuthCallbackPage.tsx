@@ -348,7 +348,7 @@ const WorkspaceIntegrationCallback = ({
 	const { setLoadingState } = useAppLoadingContext()
 
 	useEffect(() => {
-		if (!addIntegration || !code || !projectId) return
+		if (!addIntegration || !code) return
 		const usedCode = sessionStorage.getItem(codeSessionStorageKey) === code
 		if (!!code && usedCode) return
 
