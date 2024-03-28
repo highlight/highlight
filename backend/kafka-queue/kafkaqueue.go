@@ -28,7 +28,7 @@ const ConsumerGroupName = "group-default"
 const (
 	TaskRetries           = 2
 	prefetchQueueCapacity = 1000
-	MaxMessageSizeBytes   = 130 * 1024 * 1024 // MiB
+	MaxMessageSizeBytes   = 128 * 1024 * 1024 // MiB
 )
 
 var (
@@ -229,8 +229,8 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
 			MinBytes:          1,
-			MaxBytes:          MaxMessageSizeBytes,
-			MaxWait:           KafkaOperationTimeout,
+			MaxBytes:          2 * MaxMessageSizeBytes,
+			MaxWait:           time.Second,
 			ReadBatchTimeout:  KafkaOperationTimeout,
 			QueueCapacity:     prefetchQueueCapacity,
 			// in the future, we would commit only on successful processing of a message.
