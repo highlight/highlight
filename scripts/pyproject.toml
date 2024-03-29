@@ -14,7 +14,7 @@ tqdm = "^4.66.1"
 stripe = "^6.7.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.9.1"
+black = "^24.3.0"
 pytest-mock = "^3.11.1"
 pytest = "^7.4.2"
 
