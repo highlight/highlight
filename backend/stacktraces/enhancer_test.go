@@ -216,6 +216,25 @@ func TestEnhanceStackTrace(t *testing.T) {
 			fetcher: DiskFetcher{},
 			err:     e.New(""),
 		},
+		"test reflame": {
+			stackFrameInput: []*publicModelInput.StackFrameInput{
+				{
+					FileName:     ptr.String("https://app.highlight.io/~r/chunks/X3XZGGFJ.js?~r_rid=G5Qjykm00SuMZ-DTpV_ckUGZvRg"),
+					LineNumber:   ptr.Int(1),
+					ColumnNumber: ptr.Int(1656),
+				},
+			},
+			expectedStackTrace: []modelInput.ErrorTrace{
+				{
+					FileName:     ptr.String("/~r/app/~r_top/pages/Buttons/ButtonsHelper.tsx?~r_rid=WK5-8VqUX1-GQ_6VkgQg71ktp4Y"),
+					LineNumber:   ptr.Int(25),
+					ColumnNumber: ptr.Int(11),
+					FunctionName: ptr.String("Error"),
+				},
+			},
+			fetcher: NetworkFetcher{},
+			err:     e.New(""),
+		},
 	}
 
 	s3Client, err := storage.NewS3Client(ctx)
