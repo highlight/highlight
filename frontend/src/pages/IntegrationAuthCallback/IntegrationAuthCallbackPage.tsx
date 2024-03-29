@@ -618,7 +618,7 @@ const IntegrationAuthCallbackPage = () => {
 
 	const name = integrationName?.toLowerCase() || ''
 
-	if (!currentWorkspace) {
+	if (!currentWorkspace?.id) {
 		return null
 	}
 

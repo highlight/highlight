@@ -125,11 +125,10 @@ export const AppRouter = () => {
 		useState<GetProjectDropdownOptionsQuery>()
 	const isValidProjectId = Number.isInteger(Number(projectId))
 
-	const { data: workspacesData, loading: workspacesDataLoading } =
-		useGetWorkspacesQuery({
-			variables: {},
-			skip: !isLoggedIn || !!workspaceId,
-		})
+	const { data: workspacesData } = useGetWorkspacesQuery({
+		variables: {},
+		skip: !isLoggedIn || !!workspaceId,
+	})
 
 	const { data: projectDropdownData, loading: projectDropdownDataLoading } =
 		useGetProjectDropdownOptionsQuery({
