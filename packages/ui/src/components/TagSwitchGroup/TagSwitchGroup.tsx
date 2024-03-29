@@ -1,8 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useState } from 'react'
 
-import { Stack } from '@/components/Stack/Stack'
-
+import { Stack } from '../Stack/Stack'
 import { Props as TagProps, Tag } from '../Tag/Tag'
 
 type Option = string | number

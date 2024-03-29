@@ -1,9 +1,8 @@
 import { Meta } from '@storybook/react'
 import { useState } from 'react'
 
-import { Box } from '@/components/Box/Box'
-import { Text } from '@/components/Text/Text'
-
+import { Box } from '../Box/Box'
+import { Text } from '../Text/Text'
 import { TagSwitchGroup } from './TagSwitchGroup'
 
 export default {
