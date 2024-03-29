@@ -137,6 +137,7 @@ export const useSessionParams = () => {
 	return {
 		projectId,
 		sessionSecureId,
+		inPanel: resource?.type === 'session',
 	}
 }
 
