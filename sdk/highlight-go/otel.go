@@ -99,6 +99,11 @@ func (ts highlightSampler) Description() string {
 
 // creates a per-span-kind sampler that samples each kind at a provided fraction.
 func getSampler() highlightSampler {
+	if len(conf.samplingRateMap) == 0 {
+		conf.samplingRateMap = map[trace.SpanKind]float64{
+			trace.SpanKindUnspecified: 1.,
+		}
+	}
 	return highlightSampler{
 		description: fmt.Sprintf("TraceIDRatioBased{%+v}", conf.samplingRateMap),
 		traceIDUpperBounds: lo.MapEntries(conf.samplingRateMap, func(key trace.SpanKind, value float64) (trace.SpanKind, uint64) {
