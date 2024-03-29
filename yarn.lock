@@ -14589,7 +14589,7 @@ __metadata:
     react-dom: "npm:17.0.2"
     replace-in-file-webpack-plugin: "npm:^1.0.6"
     sass: "npm:1.63.2"
-    sass-loader: "npm:13.3.1"
+    sass-loader: "npm:14.1.1"
     style-loader: "npm:3.3.3"
     swc-loader: "npm:^0.2.3"
     ts-node: "npm:^10.9.1"
@@ -48755,7 +48755,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"klona@npm:^2.0.4, klona@npm:^2.0.6":
+"klona@npm:^2.0.4":
   version: 2.0.6
   resolution: "klona@npm:2.0.6"
   checksum: 10/ed7e2c9af58cb646e758e60b75dec24bf72466066290f78c515a2bae23a06fa280f11ff3210c43b94a18744954aa5358f9d46583d5e4c36da073ecc3606355c4
@@ -61804,31 +61804,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass-loader@npm:13.3.1":
-  version: 13.3.1
-  resolution: "sass-loader@npm:13.3.1"
-  dependencies:
-    klona: "npm:^2.0.6"
-    neo-async: "npm:^2.6.2"
-  peerDependencies:
-    fibers: ">= 3.1.0"
-    node-sass: ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0 || ^9.0.0
-    sass: ^1.3.0
-    sass-embedded: "*"
-    webpack: ^5.0.0
-  peerDependenciesMeta:
-    fibers:
-      optional: true
-    node-sass:
-      optional: true
-    sass:
-      optional: true
-    sass-embedded:
-      optional: true
-  checksum: 10/e7b90287264370a7e855c2e155e814c4c2767a845c45b62d070988f2e8359e4811493c2c1739c510cac864b9edf4a5f1acfe081f139b3feb6297993e5dca7932
-  languageName: node
-  linkType: hard
-
 "sass-loader@npm:13.3.2":
   version: 13.3.2
   resolution: "sass-loader@npm:13.3.2"
@@ -61850,6 +61825,32 @@ __metadata:
     sass-embedded:
       optional: true
   checksum: 10/3486134c8813660772448bcd73e169fbe180fbaea0b825ec3e8fd1017de026e4e177e4b659a5b7d0f6c1b9f334ebe0134d91c60bd627d8ffff9b21018325a532
+  languageName: node
+  linkType: hard
+
+"sass-loader@npm:14.1.1":
+  version: 14.1.1
+  resolution: "sass-loader@npm:14.1.1"
+  dependencies:
+    neo-async: "npm:^2.6.2"
+  peerDependencies:
+    "@rspack/core": 0.x || 1.x
+    node-sass: ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0 || ^9.0.0
+    sass: ^1.3.0
+    sass-embedded: "*"
+    webpack: ^5.0.0
+  peerDependenciesMeta:
+    "@rspack/core":
+      optional: true
+    node-sass:
+      optional: true
+    sass:
+      optional: true
+    sass-embedded:
+      optional: true
+    webpack:
+      optional: true
+  checksum: 10/6cc0cb8143d04cb462c10efffbab86e9c4ea971bbdbc22d8c01f4ebf774fcf9b4fed775aaec6af23aeb7d440b37dce76cf6f2746ae36421d16ad4182f2220bc8
   languageName: node
   linkType: hard
 
