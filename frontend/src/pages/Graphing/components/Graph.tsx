@@ -1,4 +1,12 @@
-import { Box, Button, Text, Tooltip } from '@highlight-run/ui/components'
+import {
+	Box,
+	Button,
+	IconSolidArrowsExpand,
+	IconSolidDotsHorizontal,
+	IconSolidLink,
+	Text,
+	Tooltip,
+} from '@highlight-run/ui/components'
 import _ from 'lodash'
 import moment from 'moment'
 import { useEffect, useMemo, useState } from 'react'
@@ -70,8 +78,8 @@ export interface ChartProps<TConfig> {
 	limit?: number
 	limitFunctionType?: MetricAggregator
 	limitMetric?: string
-	loading?: boolean
 	viewConfig: TConfig
+	showMenu?: boolean
 }
 
 export interface InnerChartProps<TConfig> {
@@ -247,6 +255,7 @@ const Graph = ({
 	limitMetric,
 	title,
 	viewConfig,
+	showMenu,
 }: ChartProps<ViewConfig>) => {
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
 
@@ -362,124 +371,136 @@ const Graph = ({
 
 	const showLegend = viewConfig.showLegend && series.join('') !== ''
 	return (
-		<Box cssClass={style.graphWrapper} shadow="small">
-			<Box
-				px="16"
-				py="12"
-				width="full"
-				height="full"
-				border="divider"
-				borderRadius="8"
-			>
+		<Box
+			position="relative"
+			width="full"
+			height="full"
+			display="flex"
+			flexDirection="column"
+			justifyContent="space-between"
+		>
+			{metricsLoading && (
 				<Box
-					position="relative"
+					position="absolute"
 					width="full"
 					height="full"
 					display="flex"
-					flexDirection="column"
+					alignItems="center"
+					justifyContent="center"
+					cssClass={style.loadingOverlay}
+				>
+					<HistogramLoading cssClass={style.loadingText} />
+				</Box>
+			)}
+			<Box display="flex" flexDirection="column" gap="4">
+				<Box
+					display="flex"
+					flexDirection="row"
 					justifyContent="space-between"
 				>
-					{metricsLoading && (
-						<Box
-							position="absolute"
-							width="full"
-							height="full"
-							display="flex"
-							alignItems="center"
-							justifyContent="center"
-							cssClass={style.loadingOverlay}
-						>
-							<HistogramLoading cssClass={style.loadingText} />
+					<Text
+						size="small"
+						color="default"
+						cssClass={style.titleText}
+					>
+						{title || 'Untitled metric view'}
+					</Text>
+					{showMenu && (
+						<Box cssClass={style.menu}>
+							<Button
+								size="small"
+								emphasis="low"
+								kind="secondary"
+								iconLeft={<IconSolidLink />}
+							/>
+							<Button
+								size="small"
+								emphasis="low"
+								kind="secondary"
+								iconLeft={<IconSolidArrowsExpand />}
+							/>
+							<Button
+								size="small"
+								emphasis="low"
+								kind="secondary"
+								iconLeft={<IconSolidDotsHorizontal />}
+							/>
 						</Box>
 					)}
-					<Box display="flex" flexDirection="column" gap="4">
-						<Box>
-							<Text
-								size="small"
-								color="default"
-								cssClass={style.titleText}
-							>
-								{title || 'Untitled metric view'}
-							</Text>
-						</Box>
-						<Box position="relative" cssClass={style.legendWrapper}>
-							{showLegend &&
-								series.map((key, idx) => {
-									return (
-										<Button
-											kind="secondary"
-											emphasis="low"
-											size="xSmall"
-											key={key}
-											onClick={() => {
-												if (spotlight === idx) {
-													setSpotlight(undefined)
-												} else {
-													setSpotlight(idx)
-												}
-											}}
-											cssClass={style.legendTextButton}
-										>
-											<Tooltip
-												delayed
-												trigger={
-													<>
-														<Box
-															style={{
-																backgroundColor:
-																	isActive(
-																		spotlight,
-																		idx,
-																	)
-																		? strokeColors[
-																				idx %
-																					strokeColors.length
-																		  ]
-																		: undefined,
-															}}
-															cssClass={
-																style.legendDot
-															}
-														></Box>
-														<Box
-															cssClass={
-																style.legendTextWrapper
-															}
-														>
-															<Text
-																lines="1"
-																color={
-																	isActive(
-																		spotlight,
-																		idx,
-																	)
-																		? undefined
-																		: 'n8'
-																}
-																align="left"
-															>
-																{key ||
-																	'<empty>'}
-															</Text>
-														</Box>
-													</>
-												}
-											>
-												{key || '<empty>'}
-											</Tooltip>
-										</Button>
-									)
-								})}
-						</Box>
-					</Box>
-					<Box
-						height="full"
-						maxHeight="screen"
-						key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
-					>
-						{innerChart}
-					</Box>
 				</Box>
+				<Box position="relative" cssClass={style.legendWrapper}>
+					{showLegend &&
+						series.map((key, idx) => {
+							return (
+								<Button
+									kind="secondary"
+									emphasis="low"
+									size="xSmall"
+									key={key}
+									onClick={() => {
+										if (spotlight === idx) {
+											setSpotlight(undefined)
+										} else {
+											setSpotlight(idx)
+										}
+									}}
+									cssClass={style.legendTextButton}
+								>
+									<Tooltip
+										delayed
+										trigger={
+											<>
+												<Box
+													style={{
+														backgroundColor:
+															isActive(
+																spotlight,
+																idx,
+															)
+																? strokeColors[
+																		idx %
+																			strokeColors.length
+																  ]
+																: undefined,
+													}}
+													cssClass={style.legendDot}
+												></Box>
+												<Box
+													cssClass={
+														style.legendTextWrapper
+													}
+												>
+													<Text
+														lines="1"
+														color={
+															isActive(
+																spotlight,
+																idx,
+															)
+																? undefined
+																: 'n8'
+														}
+														align="left"
+													>
+														{key || '<empty>'}
+													</Text>
+												</Box>
+											</>
+										}
+									>
+										{key || '<empty>'}
+									</Tooltip>
+								</Button>
+							)
+						})}
+				</Box>
+			</Box>
+			<Box
+				height="full"
+				maxHeight="screen"
+				key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
+			>
+				{innerChart}
 			</Box>
 		</Box>
 	)

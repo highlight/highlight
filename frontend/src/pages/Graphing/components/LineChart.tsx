@@ -55,7 +55,7 @@ export const LineChart = ({
 	}
 
 	return (
-		<ResponsiveContainer>
+		<ResponsiveContainer height="100%" width="100%">
 			<AreaChart data={data}>
 				<XAxis
 					dataKey={xAxisMetric}

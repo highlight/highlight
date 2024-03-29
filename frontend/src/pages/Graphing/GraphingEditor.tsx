@@ -402,35 +402,56 @@ export const GraphingEditor = () => {
 								<EditorBackground />
 							</Box>
 
-							<Graph
-								title={metricViewTitle}
-								viewConfig={viewConfig}
-								productType={productType}
-								projectId={projectId}
-								startDate={startDate}
-								endDate={endDate}
-								query={debouncedQuery}
-								metric={metric}
-								functionType={functionType}
-								bucketByKey={
-									bucketByEnabled ? bucketByKey : undefined
-								}
-								bucketCount={
-									bucketByEnabled ? bucketCount : undefined
-								}
-								groupByKey={
-									groupByEnabled ? groupByKey : undefined
-								}
-								limit={groupByEnabled ? limit : undefined}
-								limitFunctionType={
-									groupByEnabled
-										? limitFunctionType
-										: undefined
-								}
-								limitMetric={
-									groupByEnabled ? limitMetric : undefined
-								}
-							/>
+							<Box cssClass={style.graphWrapper} shadow="small">
+								<Box
+									px="16"
+									py="12"
+									width="full"
+									height="full"
+									border="divider"
+									borderRadius="8"
+								>
+									<Graph
+										title={metricViewTitle}
+										viewConfig={viewConfig}
+										productType={productType}
+										projectId={projectId}
+										startDate={startDate}
+										endDate={endDate}
+										query={debouncedQuery}
+										metric={metric}
+										functionType={functionType}
+										bucketByKey={
+											bucketByEnabled
+												? bucketByKey
+												: undefined
+										}
+										bucketCount={
+											bucketByEnabled
+												? bucketCount
+												: undefined
+										}
+										groupByKey={
+											groupByEnabled
+												? groupByKey
+												: undefined
+										}
+										limit={
+											groupByEnabled ? limit : undefined
+										}
+										limitFunctionType={
+											groupByEnabled
+												? limitFunctionType
+												: undefined
+										}
+										limitMetric={
+											groupByEnabled
+												? limitMetric
+												: undefined
+										}
+									/>
+								</Box>
+							</Box>
 						</Box>
 						<Box
 							display="flex"

@@ -18,7 +18,7 @@ import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceB
 import { RelatedResourcePanel } from '@/components/RelatedResources/RelatedResourcePanel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
-import { GraphingEditor } from '@/pages/Graphing/GraphingEditor'
+import { Dashboard } from '@/pages/Graphing/Dashboard'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
 import { TracePanel } from '@/pages/Traces/TracePanel'
 import { TracesPage } from '@/pages/Traces/TracesPage'
@@ -104,7 +104,7 @@ const ApplicationRouter: React.FC = () => {
 								path="metrics/*"
 								element={
 									<Suspense fallback={null}>
-										<GraphingEditor />
+										<Dashboard />
 									</Suspense>
 								}
 							/>

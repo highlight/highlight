@@ -13,14 +13,6 @@ export const loadingText = style({
 	backgroundColor: vars.color.white,
 })
 
-export const graphWrapper = style({
-	width: 720,
-	height: 360,
-	margin: 'auto',
-	zIndex: 1,
-	backgroundColor: vars.color.white,
-})
-
 export const legendWrapper = style({
 	left: -6,
 	maxHeight: 72,
@@ -48,4 +40,8 @@ export const legendTextButton = style({
 
 export const titleText = style({
 	lineHeight: '24px',
+})
+
+export const menu = style({
+	visibility: 'hidden',
 })
