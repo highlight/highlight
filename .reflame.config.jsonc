@@ -380,6 +380,9 @@
         "/createRuntimeFn"
       ],
     },
+    "highlight.run": {
+      "version": "latest"
+    },
     // TODO: create a library for this
     // Might need a shim entry point for .css?
     "@highlight-run/react": {
