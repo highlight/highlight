@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
-	"github.com/andybalholm/brotli"
 	"io"
 	"net/http"
 	"net/url"
@@ -15,6 +14,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/andybalholm/brotli"
 	"github.com/go-sourcemap/sourcemap"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
