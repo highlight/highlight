@@ -24,10 +24,9 @@ export default defineConfig({
 			name: 'H',
 			fileName: 'index',
 		},
-		minify: 'terser',
+		minify: true,
+		sourcemap: true,
 		emptyOutDir: false,
-		// sourcemaps are not published to reduce package size
-		sourcemap: false,
 		rollupOptions: {
 			treeshake: 'smallest',
 			plugins: [
