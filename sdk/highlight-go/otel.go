@@ -42,6 +42,8 @@ const LogEvent = "log"
 const LogSeverityAttribute = "log.severity"
 const LogMessageAttribute = "log.message"
 const LogSeverityDefaultAttribute = "level"
+const LogSeverityLegacyAttribute = "severity"
+const LogMessageLegacyAttribute = "message"
 
 const MetricEvent = "metric"
 const MetricSpanName = "highlight-metric"
