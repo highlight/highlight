@@ -249,24 +249,25 @@
       "to": "@lottie/",
     },
     {
-      "from": "/__generated/rr/rr.js",
-      "to": "rrweb",
-    },
-    {
-      "from": "/__generated/rr/rrTypes.js",
-      "to": "@rrweb/types",
-    },
-    {
-      "from": "/__generated/rr/rr.min.css",
-      "to": "rrweb/dist/rrweb.min.css",
-    },
-    {
       "from": "^/__generated/ve/(.*).css.js$",
       "to": "/$1.css",
       "phase": "pre",
     },
   ],
   "libraries": {
+    "rrweb": {
+      "sourceDirectory": "__generated/rr/rrweb",
+      "exports": {
+        ".": "./rr.js",
+        "./dist/rrweb.min.css": "./rr.min.css",
+      },
+    },
+    "@rrweb/types": {
+      "sourceDirectory": "__generated/rr/rrweb-types",
+      "exports": {
+        ".": "./rrTypes.js",
+      },
+    },
     "@highlight-run/ui": {
       "sourceDirectory": "packages/ui/src",
       "exports": {
@@ -349,11 +350,7 @@
         "./src/utils/storage.js": "./utils/storage.ts",
       },
       "nodejsCompatibility": {
-        "packageJson": {
-          "exportsDetection": {
-            "ignoreTopLevelDirectory": true
-          }
-        }
+        "packageJson": true
       },
       "specifierTransforms": {
         "/publicGraphURI.ts": "consts:publicGraphURI",
