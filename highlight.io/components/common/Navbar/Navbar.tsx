@@ -95,11 +95,29 @@ const Navbar = ({
 			{!hideBanner && (
 				<Link
 					href="/startups"
-					className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+					className="flex justify-center items-center w-full h-[20px] bg-color-primary-200 text-white hover:bg-opacity-90"
+					style={{
+						overflow: 'hidden',
+						whiteSpace: 'nowrap',
+						boxSizing: 'border-box',
+						fontFamily: 'Silkscreen',
+					}}
 				>
-					<Typography type="copy3">
-						Got a startup? Apply for free Highlight credits!
-					</Typography>
+					<div
+						style={{
+							display: 'flex',
+							animation: 'scroll-text 20s linear infinite',
+						}}
+					>
+						{Array(20)
+							.fill(null)
+							.map((_, index) => (
+								<p key={index} className="m-1">
+									Got a startup? Apply for free Highlight
+									credits!
+								</p>
+							))}
+					</div>
 				</Link>
 			)}
 			<div
