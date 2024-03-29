@@ -67,17 +67,14 @@ export const useIntegration = <SettingsQueryOutput, UpdateMutationInput>(
 	})
 
 	const addIntegration = useCallback(
-		(code: string) => {
-			const variables = {
-				integration_type: integrationType,
-				code,
-				workspace_id: workspaceIdStr,
-			}
-			console.log('adding integration', { variables })
+		(code: string) =>
 			addIntegrationImpl({
-				variables,
-			})
-		},
+				variables: {
+					integration_type: integrationType,
+					code,
+					workspace_id: workspaceIdStr,
+				},
+			}),
 		[addIntegrationImpl, integrationType, workspaceIdStr],
 	)
 

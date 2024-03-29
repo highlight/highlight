@@ -23,14 +23,12 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { VercelIntegrationSettings } from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
 import { Landing } from '@pages/Landing/Landing'
-import {
-	ApplicationContextProvider,
-	useApplicationContext,
-} from '@routers/AppRouter/context/ApplicationContext'
+import { ApplicationContextProvider } from '@routers/AppRouter/context/ApplicationContext'
+import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
@@ -347,7 +345,18 @@ const WorkspaceIntegrationCallback = ({
 	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
 
-	useEffect(() => {
+	const add = useCallback(async () => {
+		log('IntegrationAuthCallback.tsx', 'add', {
+			setLoadingState,
+			code,
+			projectId,
+			addIntegration,
+			name,
+			type,
+			navigate,
+			next,
+		})
+
 		if (!addIntegration || !code) return
 		const usedCode = sessionStorage.getItem(codeSessionStorageKey) === code
 		if (!!code && usedCode) return
@@ -357,23 +366,22 @@ const WorkspaceIntegrationCallback = ({
 			(projectId
 				? `/${projectId}/integrations/${type}`
 				: `/integrations/${type}`)
-		;(async () => {
-			try {
-				sessionStorage.setItem(codeSessionStorageKey, code)
-				await addIntegration(code)
-				message.success(`Highlight is now synced with ${name}!`, 5)
-			} catch (e: any) {
-				H.consumeError(e)
-				console.error(e)
-				message.error(
-					'Failed to add integration to project. Please try again.',
-				)
-			} finally {
-				navigate(redirectUrl)
-				setLoadingState(AppLoadingState.LOADED)
-				sessionStorage.removeItem(codeSessionStorageKey)
-			}
-		})()
+		try {
+			sessionStorage.setItem(codeSessionStorageKey, code)
+			log('IntegrationAuthCallback.tsx', 'calling addIntegration')
+			await addIntegration(code)
+			message.success(`Highlight is now synced with ${name}!`, 5)
+		} catch (e: any) {
+			H.consumeError(e)
+			console.error(e)
+			message.error(
+				'Failed to add integration to project. Please try again.',
+			)
+		} finally {
+			navigate(redirectUrl)
+			setLoadingState(AppLoadingState.LOADED)
+			sessionStorage.removeItem(codeSessionStorageKey)
+		}
 	}, [
 		setLoadingState,
 		code,
@@ -384,6 +392,11 @@ const WorkspaceIntegrationCallback = ({
 		navigate,
 		next,
 	])
+	useEffect(() => {
+		add().then(() =>
+			log('IntegrationAuthCallback.tsx', 'added integration'),
+		)
+	}, [add])
 
 	return null
 }
@@ -567,7 +580,6 @@ const IntegrationAuthCallbackPage = () => {
 		integrationName: string
 	}>()
 	const { isAuthLoading } = useAuthContext()
-	const { currentWorkspace } = useApplicationContext()
 	const { setLoadingState } = useAppLoadingContext()
 
 	useEffect(() => {
@@ -618,7 +630,14 @@ const IntegrationAuthCallbackPage = () => {
 
 	const name = integrationName?.toLowerCase() || ''
 
-	if (!currentWorkspace?.id) {
+	const { data: workspacesData } = useGetWorkspacesQuery({
+		variables: {},
+		skip: !!workspaceId,
+	})
+	const currentWorkspaceId = workspacesData?.workspaces?.at(0)?.id ?? ''
+
+	log('IntegrationAuthCallback.tsx', { workspaceId, currentWorkspaceId })
+	if (!workspaceId && !currentWorkspaceId) {
 		return null
 	}
 
@@ -679,7 +698,10 @@ const IntegrationAuthCallbackPage = () => {
 					allProjects: [],
 					currentWorkspace: workspaceId
 						? { id: workspaceId, name: '' }
-						: undefined,
+						: {
+								id: currentWorkspaceId,
+								name: '',
+						  },
 					workspaces: [],
 				}}
 			>
