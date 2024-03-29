@@ -52,7 +52,7 @@ const LivestreamBanner = () => {
 				<Link
 					target="_blank"
 					href="https://lu.ma/b0uz0fiz"
-					className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+					className="w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
 					rel="noreferrer"
 				>
 					Zoom
@@ -61,7 +61,7 @@ const LivestreamBanner = () => {
 				<Link
 					target="_blank"
 					href="https://www.youtube.com/live/z9g-eOPwndk?si=AboTKeFhyKECgrL9"
-					className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+					className="w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
 					rel="noreferrer"
 				>
 					YouTube
