@@ -212,11 +212,19 @@ func extractFields(params extractFieldsParams) (*extractedFields, error) {
 		fields.logSeverity = val
 		delete(fields.attrs, highlight.LogSeverityDefaultAttribute)
 	}
+	if val, ok := fields.attrs[highlight.LogSeverityLegacyAttribute]; ok {
+		fields.logSeverity = val
+		delete(fields.attrs, highlight.LogSeverityLegacyAttribute)
+	}
 	if val, ok := fields.attrs[highlight.LogSeverityAttribute]; ok {
 		fields.logSeverity = val
 		delete(fields.attrs, highlight.LogSeverityAttribute)
 	}
 
+	if val, ok := fields.attrs[highlight.LogMessageLegacyAttribute]; ok {
+		fields.logMessage = val
+		delete(fields.attrs, highlight.LogMessageLegacyAttribute)
+	}
 	if val, ok := fields.attrs[highlight.LogMessageAttribute]; ok {
 		fields.logMessage = val
 		delete(fields.attrs, highlight.LogMessageAttribute)

@@ -320,6 +320,7 @@ func (r *Resolver) demoProjectID(ctx context.Context) int {
 // and laymen in the demo project to have access to.
 func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id int) (*model.Project, error) {
 	authSpan, ctx := util.StartSpanFromContext(ctx, "isAdminInProjectOrDemoProject", util.ResourceName("resolver.internal.auth"))
+	log.WithContext(ctx).WithField("project_id", project_id).Info("checking if admin is in project or demo workspace")
 	defer authSpan.Finish()
 	start := time.Now()
 	defer func() {
@@ -344,6 +345,7 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 
 func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, workspace_id int) (*model.Workspace, error) {
 	authSpan, ctx := util.StartSpanFromContext(ctx, "isAdminInWorkspaceOrDemoWorkspace", util.ResourceName("resolver.internal.auth"))
+	log.WithContext(ctx).WithField("workspace_id", workspace_id).Info("checking if admin is in workspace or demo workspace")
 	defer authSpan.Finish()
 	start := time.Now()
 	defer func() {
