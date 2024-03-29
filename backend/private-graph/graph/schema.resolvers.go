@@ -8581,11 +8581,6 @@ func (r *queryResolver) MatchErrorTag(ctx context.Context, query string) ([]*mod
 	return r.Resolver.MatchErrorTag(ctx, query)
 }
 
-// FindSimilarErrors is the resolver for the find_similar_errors field.
-func (r *queryResolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.MatchedErrorObject, error) {
-	return r.Resolver.FindSimilarErrors(ctx, query)
-}
-
 // Trace is the resolver for the trace field.
 func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string, sessionSecureID *string) (*modelInputs.TracePayload, error) {
 	if _, err := r.canAdminViewSession(ctx, pointy.StringValue(sessionSecureID, "")); err != nil {

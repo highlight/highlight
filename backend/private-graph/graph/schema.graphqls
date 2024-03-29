@@ -2170,7 +2170,6 @@ type Query {
 	serviceByName(project_id: ID!, name: String!): Service
 	error_tags: [ErrorTag]
 	match_error_tag(query: String!): [MatchedErrorTag]
-	find_similar_errors(query: String!): [MatchedErrorObject]
 	trace(
 		project_id: ID!
 		trace_id: String!

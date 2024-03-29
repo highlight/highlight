@@ -2348,16 +2348,6 @@ query MatchErrorTag($query: String!) {
 	}
 }
 
-query FindSimilarErrors($query: String!) {
-	find_similar_errors(query: $query) {
-		id
-		type
-		event
-		stack_trace
-		score
-	}
-}
-
 query GetTrace(
 	$project_id: ID!
 	$trace_id: String!
