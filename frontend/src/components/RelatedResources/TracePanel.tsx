@@ -1,15 +1,17 @@
 import { Box, Callout, Text } from '@highlight-run/ui/components'
 
 import LoadingBox from '@/components/LoadingBox'
+import { RelatedTrace } from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
-import { ResourcePanelProps } from '@/components/RelatedResources/RelatedResourcePanel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
 import { TraceHeader } from '@/pages/Traces/TraceHeader'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
 
-export const TracePanel: React.FC<ResourcePanelProps> = ({ resource }) => {
+export const TracePanel: React.FC<{ resource: RelatedTrace }> = ({
+	resource,
+}) => {
 	const { projectId } = useNumericProjectId()
 	const path = `/${projectId}/traces/${resource.id}`
 	const { highlightedSpan, loading, selectedSpan, traces } = useTrace()

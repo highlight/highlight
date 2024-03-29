@@ -53,6 +53,7 @@ const UtilitySpanName = "highlight-ctx"
 type TraceType string
 
 const TraceTypeNetworkRequest TraceType = "http.request"
+const TraceTypeWebSocketRequest TraceType = "http.request.ws"
 const TraceTypeFrontendConsole TraceType = "frontend.console"
 const TraceTypeHighlightInternal TraceType = "highlight.internal"
 const TraceTypePhoneHome TraceType = "highlight.phonehome"
@@ -132,17 +133,18 @@ func CreateTracerProvider(endpoint string) (*sdktrace.TracerProvider, error) {
 	}
 	return sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(getSampler()),
-		sdktrace.WithBatcher(
-			exporter,
-			sdktrace.WithBatchTimeout(1000*time.Millisecond),
-			sdktrace.WithMaxExportBatchSize(128),
-			sdktrace.WithMaxQueueSize(1024)),
+		sdktrace.WithBatcher(exporter,
+			sdktrace.WithBatchTimeout(time.Second),
+			sdktrace.WithExportTimeout(30*time.Second),
+			sdktrace.WithMaxExportBatchSize(1024*1024),
+			sdktrace.WithMaxQueueSize(1024*1024),
+		),
 		sdktrace.WithResource(resources),
 	), nil
 }
 
-// deafult tracer is a noop tracer
-var defaultTracerProvider trace.TracerProvider = otel.GetTracerProvider()
+// default tracer is a noop tracer
+var defaultTracerProvider = otel.GetTracerProvider()
 
 func StartOTLP() (*OTLP, error) {
 	tracerProvider, err := CreateTracerProvider(conf.otlpEndpoint)
