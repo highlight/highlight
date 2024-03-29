@@ -65,7 +65,6 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 
 		const paramsString = stringify(filteredParams)
 
-		debugger
 		return `/${projectId}/sessions/${resource.secureId}?${paramsString}`
 	}, [
 		projectId,
