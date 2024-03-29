@@ -7,6 +7,7 @@ import LoadingBox from '@/components/LoadingBox'
 import { RelatedSession } from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
+import { usePlayerUIContext } from '@/pages/Player/context/PlayerUIContext'
 import { usePlayer } from '@/pages/Player/PlayerHook/PlayerHook'
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 import { ManualStopCard } from '@/pages/Player/PlayerPage'
@@ -48,6 +49,7 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 	const toolbarContext = useToolbarItems()
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
 	const replayerWrapperBbox = replayer?.wrapper.getBoundingClientRect()
+	const { playerCenterPanelRef } = usePlayerUIContext()
 
 	const { resizeListener, centerColumnResizeListener, controllerWidth } =
 		useResizePlayer(replayer, playerWrapperRef, setScale)
@@ -105,6 +107,8 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 						flexDirection="column"
 						width="full"
 						height="full"
+						id="playerCenterPanel"
+						ref={playerCenterPanelRef}
 					>
 						<Box height="full" cssClass={styles.playerBody}>
 							<div className={styles.playerCenterColumn}>
