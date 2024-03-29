@@ -243,6 +243,9 @@ export class Highlight {
 		this._worker =
 			new HighlightClientWorker() as HighlightClientRequestWorker
 		this._worker.onmessage = (e) => {
+			if (e.data === 'received!') {
+				console.log('worker message received', e)
+			}
 			if (e.data.response?.type === MessageType.AsyncEvents) {
 				this._eventBytesSinceSnapshot += e.data.response.eventsSize
 				this.logger.log(
@@ -263,6 +266,7 @@ export class Highlight {
 				)
 			}
 		}
+		this._worker.postMessage('test')
 
 		let storedSessionData = getPreviousSessionData()
 		this.reloaded = false
