@@ -516,28 +516,6 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, project
 			}).Scan(&result).Error; err != nil {
 			return nil, e.Wrap(err, "error querying top error group match")
 		}
-	} else {
-		var column string
-		switch method {
-		case model.ErrorGroupingMethodAdaEmbeddingV2:
-			column = "combined_embedding"
-		case model.ErrorGroupingMethodGteLargeEmbeddingV2:
-			column = "gte_large_embedding"
-		}
-		if err := r.DB.WithContext(ctx).Raw(fmt.Sprintf(`
-select eoe.%s <-> @embedding as score,
-       eo.error_group_id                              as error_group_id
-from error_object_embeddings_partitioned eoe
-         inner join error_objects eo on eo.id = eoe.error_object_id
-where eoe.project_id = %d
-    and eoe.%s is not null
-order by 1
-limit 1;`, column, projectID, column), map[string]interface{}{
-			"embedding": embedding,
-		}).
-			Scan(&result).Error; err != nil {
-			return nil, e.Wrap(err, "error querying top error group match")
-		}
 	}
 
 	if result.ErrorGroupID > 0 {
