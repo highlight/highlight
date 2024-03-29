@@ -3,7 +3,6 @@ package graph
 import (
 	"context"
 	"crypto/rand"
-	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -3717,31 +3716,6 @@ func (r *Resolver) GetErrorTags() ([]*model.ErrorTag, error) {
 
 func (r *Resolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInputs.MatchedErrorTag, error) {
 	return embeddings.MatchErrorTag(ctx, r.DB, r.EmbeddingsClient, query)
-}
-
-func (r *Resolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.MatchedErrorObject, error) {
-	stringEmbedding, err := r.EmbeddingsClient.GetStringEmbedding(ctx, query)
-
-	if err != nil {
-		return nil, e.Wrap(err, "500: failed to get string embedding")
-	}
-
-	var matchedErrorObjects []*model.MatchedErrorObject
-	if err := r.DB.WithContext(ctx).Raw(`
-		select distinct on (1, error_group_id) eoep.gte_large_embedding <-> @string_embedding as score,
-											   eo.*
-		from error_object_embeddings_partitioned eoep
-				 inner join error_objects eo on eoep.error_object_id = eo.id
-		where eoep.gte_large_embedding is not null
-		  and eoep.project_id = 1
-		order by 1
-		limit 10;
-	`, sql.Named("string_embedding", model.Vector(stringEmbedding))).
-		Scan(&matchedErrorObjects).Error; err != nil {
-		return matchedErrorObjects, e.Wrap(err, "error querying nearest ErrorTag")
-	}
-
-	return matchedErrorObjects, nil
 }
 
 func (r *Resolver) GetJiraProjects(
