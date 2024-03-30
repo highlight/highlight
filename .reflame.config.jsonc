@@ -358,7 +358,11 @@
       "specifierTransforms": {
         "/publicGraphURI.ts": "consts:publicGraphURI",
       },
-      "npmPackages": {},
+      "npmPackages": {
+        "rrweb": {
+          "version": "latest"
+        }
+      },
     },
   },
   // NPM packages listed here will be installed by Reflame every time you update this file.
