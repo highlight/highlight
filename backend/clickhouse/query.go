@@ -363,8 +363,16 @@ func getChildValue(value reflect.Value, key string) (string, bool) {
 // clickhouse token - https://clickhouse.com/docs/en/sql-reference/functions/splitting-merging-functions#tokens
 var nonAlphaNumericChars = regexp.MustCompile(`[^\w:*]`)
 
+// strip toString() wrapper around filter keys to match the KeysToColumns map
+var keyWrapper = regexp.MustCompile(`toString\((\w+)\)`)
+
 func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model.TableConfig[TReservedKey], filter *listener.FilterOperation) bool {
-	bodyFilter := config.BodyColumn != "" && filter.Column == "" && filter.Key == config.BodyColumn
+	key := filter.Key
+	groups := keyWrapper.FindStringSubmatch(key)
+	if len(groups) > 0 {
+		key = groups[1]
+	}
+	bodyFilter := config.BodyColumn != "" && filter.Column == "" && key == config.BodyColumn
 	v := reflect.ValueOf(*row)
 
 	rowBodyTerms := map[string]bool{}
@@ -402,23 +410,23 @@ func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model
 	}
 
 	var rowValue string
-	if chKey, ok := config.KeysToColumns[TReservedKey(filter.Key)]; ok {
+	if chKey, ok := config.KeysToColumns[TReservedKey(key)]; ok {
 		if val, ok := getChildValue(v, chKey); ok {
 			rowValue = val
 		} else {
 			rowValue = repr(v.FieldByName(chKey))
 		}
-	} else if field := v.FieldByName(filter.Key); field.IsValid() {
+	} else if field := v.FieldByName(key); field.IsValid() {
 		rowValue = repr(field)
-	} else if val, ok := getChildValue(v, filter.Key); ok {
+	} else if val, ok := getChildValue(v, key); ok {
 		rowValue = val
 	} else if config.AttributesColumn != "" {
 		value := v.FieldByName(config.AttributesColumn)
 		if value.Kind() == reflect.Map {
-			rowValue = repr(value.MapIndex(reflect.ValueOf(filter.Key)))
+			rowValue = repr(value.MapIndex(reflect.ValueOf(key)))
 		} else if value.Kind() == reflect.Slice {
 			// assume that the key is a 'field' in `type_name` format
-			fieldParts := strings.SplitN(filter.Key, "_", 2)
+			fieldParts := strings.SplitN(key, "_", 2)
 			for i := 0; i < value.Len(); i++ {
 				fieldType := value.Index(i).Elem().FieldByName("Type").String()
 				name := value.Index(i).Elem().FieldByName("Name").String()

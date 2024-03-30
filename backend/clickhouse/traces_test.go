@@ -124,6 +124,33 @@ func Test_TraceMatchesQuery_v2(t *testing.T) {
 	filters = parser.Parse("fs statSync", TracesTableNoDefaultConfig)
 	matches = TraceMatchesQuery(&trace, filters)
 	assert.True(t, matches)
+
+	trace = TraceRow{
+		UUID:            "8a56048f-a3d4-43d3-a7d4-6baed7152efd",
+		TraceId:         "3365d26c9e8c0e6ffa63ab98943056b0",
+		SpanId:          "08703aa1c0b7dc9e",
+		ParentSpanId:    "",
+		ProjectId:       37774,
+		SpanName:        "GraphqlController#execute",
+		SpanKind:        "Server",
+		Duration:        413770,
+		ServiceName:     "data-whop-com",
+		ServiceVersion:  "",
+		TraceAttributes: map[string]string{"net.transport": "ip_tcp", "net.peer.port": "6432", "db.statement": ";", "process.runtime.version": "3.2.2", "net.peer.ip": "10.0.3.188", "process.pid": "1", "telemetry.sdk.name": "opentelemetry", "net.peer.name": "10.0.3.188", "db.user": "u4mcrnapd7u8bb", "telemetry.sdk.language": "ruby", "process.runtime.name": "ruby", "db.system": "postgresql", "process.command": "bin/rails", "telemetry.sdk.version": "1.4.1", "process.runtime.description": "ruby 3.2.2 (2023-03-30 revision e51014f9c0) +YJIT [x86_64-linux]", "db.name": "d6a6mot36t737s"},
+		Environment:     "production",
+		StatusCode:      "Unset",
+	}
+	filters = parser.Parse(`service_name=data-whop-com parent_span_id=""`, TracesTableNoDefaultConfig)
+	matches = TraceMatchesQuery(&trace, filters)
+	assert.True(t, matches)
+
+	filters = parser.Parse(`(service_name=data-whop-com AND parent_span_id!="")`, TracesTableNoDefaultConfig)
+	matches = TraceMatchesQuery(&trace, filters)
+	assert.False(t, matches)
+
+	trace.ParentSpanId = "08703aa1c0b7dc9e"
+	matches = TraceMatchesQuery(&trace, filters)
+	assert.True(t, matches)
 }
 
 func TestReadTracesWithEnvironmentFilter(t *testing.T) {
