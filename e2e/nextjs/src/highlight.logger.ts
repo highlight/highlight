@@ -1,4 +1,3 @@
-// import { highlightConfig } from '@/instrumentation'
 // import type { LoggerOptions } from 'pino'
 // import { isNodeJsRuntime } from '@highlight-run/next/server'
 
@@ -18,11 +17,6 @@
 // 		],
 // 	},
 // } as LoggerOptions
-
-// if (isNodeJsRuntime()) {
-// 	const { H } = require('@highlight-run/node')
-// 	H.init(highlightConfig)
-// }
 
 // const logger = require('pino')(pinoConfig)
 // export default logger
