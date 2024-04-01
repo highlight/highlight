@@ -31,6 +31,7 @@ import {
 	flexRender,
 	getCoreRowModel,
 	getExpandedRowModel,
+	Row,
 	useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -389,7 +390,7 @@ export const IconCollapsed: React.FC = () => (
 )
 
 type LogsTableRowProps = {
-	row: any
+	row: Row<LogEdgeWithResources>
 	rowVirtualizer: any
 	expanded: boolean
 	virtualRowKey: Key
@@ -406,7 +407,7 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 		queryParts,
 		gridColumns,
 	}) => {
-		const attributesRow = (row: any) => {
+		const attributesRow = (row: LogsTableRowProps['row']) => {
 			const log = row.original.node
 			const rowExpanded = row.getIsExpanded()
 
@@ -473,10 +474,17 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 		)
 	},
 	(prevProps, nextProps) => {
+		const prevLog = prevProps.row.original
+		const nextLog = nextProps.row.original
+
 		return (
 			prevProps.expanded === nextProps.expanded &&
 			prevProps.virtualRowKey === nextProps.virtualRowKey &&
-			isEqual(prevProps.gridColumns, nextProps.gridColumns)
+			isEqual(prevProps.gridColumns, nextProps.gridColumns) &&
+			// Ensures loading of related resources triggers a re-render
+			prevLog.traceExist === nextLog.traceExist &&
+			prevLog.node.secureSessionID === nextLog.node.secureSessionID &&
+			isEqual(prevLog.error_object, nextLog.error_object)
 		)
 	},
 )
