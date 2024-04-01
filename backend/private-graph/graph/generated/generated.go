@@ -981,7 +981,6 @@ type ComplexityRoot struct {
 		FieldSuggestion                  func(childComplexity int, projectID int, name string, query string) int
 		FieldTypesClickhouse             func(childComplexity int, projectID int, startDate time.Time, endDate time.Time) int
 		FieldsClickhouse                 func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) int
-		FindSimilarErrors                func(childComplexity int, query string) int
 		GenerateZapierAccessToken        func(childComplexity int, projectID int) int
 		GetSourceMapUploadUrls           func(childComplexity int, apiKey string, paths []string) int
 		GithubIssueLabels                func(childComplexity int, workspaceID int, repository string) int
@@ -1891,7 +1890,6 @@ type QueryResolver interface {
 	ServiceByName(ctx context.Context, projectID int, name string) (*model1.Service, error)
 	ErrorTags(ctx context.Context) ([]*model1.ErrorTag, error)
 	MatchErrorTag(ctx context.Context, query string) ([]*model.MatchedErrorTag, error)
-	FindSimilarErrors(ctx context.Context, query string) ([]*model1.MatchedErrorObject, error)
 	Trace(ctx context.Context, projectID int, traceID string, sessionSecureID *string) (*model.TracePayload, error)
 	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.TraceConnection, error)
 	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
@@ -7184,18 +7182,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FieldsClickhouse(childComplexity, args["project_id"].(int), args["count"].(int), args["field_type"].(string), args["field_name"].(string), args["query"].(string), args["start_date"].(time.Time), args["end_date"].(time.Time)), true
-
-	case "Query.find_similar_errors":
-		if e.complexity.Query.FindSimilarErrors == nil {
-			break
-		}
-
-		args, err := ec.field_Query_find_similar_errors_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.FindSimilarErrors(childComplexity, args["query"].(string)), true
 
 	case "Query.generate_zapier_access_token":
 		if e.complexity.Query.GenerateZapierAccessToken == nil {
@@ -13106,7 +13092,6 @@ type Query {
 	serviceByName(project_id: ID!, name: String!): Service
 	error_tags: [ErrorTag]
 	match_error_tag(query: String!): [MatchedErrorTag]
-	find_similar_errors(query: String!): [MatchedErrorObject]
 	trace(
 		project_id: ID!
 		trace_id: String!
@@ -18888,21 +18873,6 @@ func (ec *executionContext) field_Query_fields_clickhouse_args(ctx context.Conte
 		}
 	}
 	args["end_date"] = arg6
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_find_similar_errors_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg0
 	return args, nil
 }
 
@@ -60022,70 +59992,6 @@ func (ec *executionContext) fieldContext_Query_match_error_tag(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_find_similar_errors(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_find_similar_errors(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindSimilarErrors(rctx, fc.Args["query"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.MatchedErrorObject)
-	fc.Result = res
-	return ec.marshalOMatchedErrorObject2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMatchedErrorObject(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_find_similar_errors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_MatchedErrorObject_id(ctx, field)
-			case "event":
-				return ec.fieldContext_MatchedErrorObject_event(ctx, field)
-			case "type":
-				return ec.fieldContext_MatchedErrorObject_type(ctx, field)
-			case "stack_trace":
-				return ec.fieldContext_MatchedErrorObject_stack_trace(ctx, field)
-			case "score":
-				return ec.fieldContext_MatchedErrorObject_score(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type MatchedErrorObject", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_find_similar_errors_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_trace(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_trace(ctx, field)
 	if err != nil {
@@ -89101,25 +89007,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "find_similar_errors":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_find_similar_errors(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "trace":
 			field := field
 
@@ -100125,54 +100012,6 @@ func (ec *executionContext) marshalOLogAlert2ᚖgithubᚗcomᚋhighlightᚑrun�
 		return graphql.Null
 	}
 	return ec._LogAlert(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOMatchedErrorObject2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMatchedErrorObject(ctx context.Context, sel ast.SelectionSet, v []*model1.MatchedErrorObject) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOMatchedErrorObject2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMatchedErrorObject(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
-func (ec *executionContext) marshalOMatchedErrorObject2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMatchedErrorObject(ctx context.Context, sel ast.SelectionSet, v *model1.MatchedErrorObject) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._MatchedErrorObject(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOMatchedErrorTag2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMatchedErrorTag(ctx context.Context, sel ast.SelectionSet, v []*model.MatchedErrorTag) graphql.Marshaler {
