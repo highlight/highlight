@@ -857,14 +857,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		// If events are returned by getSessionPayloadQuery, set the events payload
 		if (!!sessionPayload?.events?.length) {
 			chunkEventsSet(0, toHighlightEvents(sessionPayload?.events))
-			dispatchAction(0, ReplayerState.Paused)
 		}
-		dispatch({
-			type: PlayerActionType.onChunksLoad,
-			showPlayerMouseTail,
-			time: 0,
-			action: ReplayerState.Paused,
-		})
 		dispatch({
 			type: PlayerActionType.onSessionPayloadLoaded,
 			sessionPayload,
