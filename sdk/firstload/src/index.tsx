@@ -1,13 +1,10 @@
 import {
-	AmplitudeAPI,
+	type AmplitudeAPI,
 	setupAmplitudeIntegration,
 } from './integrations/amplitude.js'
 import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys.js'
+import type { Highlight, HighlightClassOptions } from '@highlight-run/client'
 import type {
-	Highlight,
-	HighlightClassOptions,
-} from '@highlight-run/client/src/index.js'
-import {
 	HighlightOptions,
 	HighlightPublicInterface,
 	Metadata,
@@ -16,7 +13,7 @@ import {
 	SessionDetails,
 } from '@highlight-run/client/src/types/types.js'
 import {
-	MixpanelAPI,
+	type MixpanelAPI,
 	setupMixpanelIntegration,
 } from './integrations/mixpanel.js'
 
@@ -27,10 +24,10 @@ import configureElectronHighlight from './environments/electron.js'
 import firstloadVersion from './__generated/version.js'
 import {
 	getPreviousSessionData,
-	SessionData,
+	type SessionData,
 } from '@highlight-run/client/src/utils/sessionStorage/highlightSession.js'
-import { initializeFetchListener } from './listeners/fetch/index.js'
-import { initializeWebSocketListener } from './listeners/web-socket/index.js'
+import { initializeFetchListener } from './listeners/fetch'
+import { initializeWebSocketListener } from './listeners/web-socket'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
 import { setItem } from '@highlight-run/client/src/utils/storage.js'
 
@@ -114,28 +111,13 @@ const H: HighlightPublicInterface = {
 			}
 			init_called = true
 
-			import('@highlight-run/client').then(() => {
-				const startFunction = () => {
-					highlight_obj = new window.HighlightIO(
-						client_options,
-						first_load_listeners,
-					)
-					if (!options?.manualStart) {
-						highlight_obj.initialize()
-					}
-				}
-
-				if ('HighlightIO' in window) {
-					startFunction()
-				} else {
-					const start = () => {
-						if ('HighlightIO' in window) {
-							startFunction()
-						} else {
-							setTimeout(start, READY_WAIT_LOOP_MS)
-						}
-					}
-					start()
+			import('@highlight-run/client').then(async ({ Highlight }) => {
+				highlight_obj = new Highlight(
+					client_options,
+					first_load_listeners,
+				)
+				if (!options?.manualStart) {
+					await highlight_obj.initialize()
 				}
 			})
 
