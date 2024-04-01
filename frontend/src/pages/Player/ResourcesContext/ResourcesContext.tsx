@@ -2,16 +2,15 @@ import { useGetResourcesQuery } from '@graph/hooks'
 import { Session } from '@graph/schemas'
 import { RequestResponsePair } from '@highlight-run/client'
 import { RequestType } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import {
-	getGraphQLResolverName,
-	useSessionParams,
-} from '@pages/Player/utils/utils'
+import { getGraphQLResolverName } from '@pages/Player/utils/utils'
 import { createContext } from '@util/context/context'
 import { indexedDBFetch } from '@util/db'
 import { checkResourceLimit } from '@util/preload'
 import { H } from 'highlight.run'
 import { useCallback, useEffect, useState } from 'react'
 import { BooleanParam, useQueryParam } from 'use-query-params'
+
+import { useSessionParams } from '@/pages/Sessions/utils'
 
 export enum LoadingError {
 	NetworkResourcesTooLarge = 'payload too large.',

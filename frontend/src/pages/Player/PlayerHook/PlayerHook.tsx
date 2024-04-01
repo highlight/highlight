@@ -39,7 +39,7 @@ import { useLocalStorage } from 'react-use'
 import { EventType } from 'rrweb'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
-import { useSessionParams } from '@/pages/Player/utils/utils'
+import { useSessionParams } from '@/pages/Sessions/utils'
 
 import { HighlightEvent } from '../HighlightEvent'
 import { ReplayerContextInterface, ReplayerState } from '../ReplayerContext'

@@ -41,7 +41,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
 import { PlayerModeSwitch } from '@/pages/Player/SessionLevelBar/PlayerModeSwitch/PlayerModeSwitch'
-import { useSessionParams } from '@/pages/Player/utils/utils'
+import { useSessionParams } from '@/pages/Sessions/utils'
 
 import SessionShareButtonV2 from '../SessionShareButton/SessionShareButtonV2'
 import * as styles from './SessionLevelBarV2.css'

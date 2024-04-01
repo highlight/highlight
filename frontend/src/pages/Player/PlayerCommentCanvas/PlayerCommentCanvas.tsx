@@ -14,7 +14,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { CommentIndicator } from '@/components/Comment/CommentIndicator'
-import { useSessionParams } from '@/pages/Player/utils/utils'
+import { useSessionParams } from '@/pages/Sessions/utils'
 
 import styles from './PlayerCommentCanvas.module.css'
 

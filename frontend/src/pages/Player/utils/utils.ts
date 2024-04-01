@@ -4,10 +4,7 @@ import { useCallback, useEffect } from 'react'
 import useResizeAware from 'react-resize-aware'
 import { Replayer } from 'rrweb'
 
-import { useRelatedResource } from '@/components/RelatedResources/hooks'
-import { useNumericProjectId } from '@/hooks/useProjectId'
 import * as playerStyles from '@/pages/Player/styles.css'
-import { useParams } from '@/util/react-router/useParams'
 
 export enum SessionPageSearchParams {
 	/** Automatically sets the date range for the current segment based on the value. */
@@ -116,20 +113,6 @@ export const getTimelineEventTooltipText = (name: string) => {
 			return 'The application became visible.'
 		default:
 			return name
-	}
-}
-
-export const useSessionParams = () => {
-	const { resource } = useRelatedResource()
-	const { projectId } = useNumericProjectId()
-	const { session_secure_id } = useParams<{ session_secure_id: string }>()
-	const sessionSecureId =
-		resource?.type === 'session' ? resource.secureId : session_secure_id
-
-	return {
-		projectId,
-		sessionSecureId,
-		inPanel: resource?.type === 'session',
 	}
 }
 

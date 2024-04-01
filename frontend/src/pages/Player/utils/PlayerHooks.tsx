@@ -18,7 +18,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
 import { useProjectId } from '@/hooks/useProjectId'
-import { useSessionParams } from '@/pages/Player/utils/utils'
+import { useSessionParams } from '@/pages/Sessions/utils'
 
 import { ReplayerState, useReplayerContext } from '../ReplayerContext'
 

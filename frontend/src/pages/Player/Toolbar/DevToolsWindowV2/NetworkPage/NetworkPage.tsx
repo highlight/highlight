@@ -32,7 +32,7 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import { ErrorObject } from '@/graph/generated/schemas'
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
-import { useSessionParams } from '@/pages/Player/utils/utils'
+import { useSessionParams } from '@/pages/Sessions/utils'
 import { styledVerticalScrollbar } from '@/style/common.css'
 import analytics from '@/util/analytics'
 

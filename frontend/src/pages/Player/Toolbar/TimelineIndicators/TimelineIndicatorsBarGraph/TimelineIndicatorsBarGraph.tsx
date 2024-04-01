@@ -40,7 +40,7 @@ import {
 } from 'react'
 import { NumberParam, useQueryParams } from 'use-query-params'
 
-import { useSessionParams } from '@/pages/Player/utils/utils'
+import { useSessionParams } from '@/pages/Sessions/utils'
 
 import { ToolbarControlBar } from '../../ToolbarControlBar/ToolbarControlBar'
 import * as style from './style.css'

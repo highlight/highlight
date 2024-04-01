@@ -24,7 +24,7 @@ import { copyToClipboard } from '@util/string'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { useState } from 'react'
 
-import { useSessionParams } from '@/pages/Player/utils/utils'
+import { useSessionParams } from '@/pages/Sessions/utils'
 
 import Switch from '../../../components/Switch/Switch'
 import { useReplayerContext } from '../ReplayerContext'

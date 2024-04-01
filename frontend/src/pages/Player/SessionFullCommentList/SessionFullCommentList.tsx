@@ -3,7 +3,7 @@ import { Box, Text } from '@highlight-run/ui/components'
 import { useRef } from 'react'
 
 import { useGetSessionCommentsQuery } from '@/graph/generated/hooks'
-import { useSessionParams } from '@/pages/Player/utils/utils'
+import { useSessionParams } from '@/pages/Sessions/utils'
 
 import FullCommentList from '../../../components/FullCommentList/FullCommentList'
 

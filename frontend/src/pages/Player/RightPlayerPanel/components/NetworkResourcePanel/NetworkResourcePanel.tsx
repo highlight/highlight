@@ -29,8 +29,8 @@ import { NetworkResourceInfo } from '@/pages/Player/RightPlayerPanel/components/
 import { NetworkResourceLogs } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceLogs'
 import { NetworkResourceTrace } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceTrace'
 import { WebSocketMessages } from '@/pages/Player/RightPlayerPanel/components/WebSocketMessages/WebSocketMessages'
-import { useSessionParams } from '@/pages/Player/utils/utils'
 import { useWebSocket } from '@/pages/Player/WebSocketContext/WebSocketContext'
+import { useSessionParams } from '@/pages/Sessions/utils'
 import { TraceProvider } from '@/pages/Traces/TraceProvider'
 
 import * as styles from './NetworkResourcePanel.css'
