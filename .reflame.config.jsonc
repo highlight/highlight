@@ -313,16 +313,6 @@
         "^/__generated/ve/(.*).css.js$": "/$1.css",
       },
     },
-    "highlight.run": {
-      "sourceDirectory": "sdk/firstload/src",
-      "nodejsCompatibility": {
-        "packageJson": {
-          "exportsDetection": {
-            "ignoreTopLevelDirectory": true
-          }
-        },
-      },
-    },
     "highlight.io": {
       "sourceDirectory": "highlight.io",
       "exports": "./index.ts",
