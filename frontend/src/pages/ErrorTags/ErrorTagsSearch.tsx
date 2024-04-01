@@ -11,10 +11,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
 import { Skeleton } from '@/components/Skeleton'
-import {
-	useFindSimilarErrorsQuery,
-	useMatchErrorTagQuery,
-} from '@/graph/generated/hooks'
+import { useMatchErrorTagQuery } from '@/graph/generated/hooks'
 
 import styles from './ErrorTags.module.css'
 
@@ -30,11 +27,6 @@ export function ErrorTagsSearch() {
 		variables: { query },
 		skip: !query,
 	})
-	const { data: similarData, loading: similarLoading } =
-		useFindSimilarErrorsQuery({
-			variables: { query },
-			skip: !query,
-		})
 
 	return (
 		<Stack py="32" gap="32">
@@ -112,50 +104,6 @@ export function ErrorTagsSearch() {
 									</Table.Cell>
 									<Table.Cell>
 										<Score score={tag?.score} />
-									</Table.Cell>
-								</Table.Row>
-							)) || <NoResults />}
-						</Table.Body>
-					</Table>
-				)}
-			</Box>
-			<Box>
-				<Text cssClass={styles.tableHeaderText}>Similar errors</Text>
-
-				{similarLoading ? (
-					<Skeleton height="10rem" width="100%" />
-				) : (
-					<Table>
-						<Table.Head className={styles.searchTableHead}>
-							<Table.Row gridColumns={GRID_COLUMNS}>
-								<Table.Cell>Title</Table.Cell>
-								<Table.Cell>Stack Trace</Table.Cell>
-								<Table.Cell>Score</Table.Cell>
-							</Table.Row>
-						</Table.Head>
-						<Table.Body>
-							{similarData?.find_similar_errors?.map((error) => (
-								<Table.Row
-									gridColumns={GRID_COLUMNS}
-									key={error?.id}
-								>
-									<Table.Cell>
-										<Text
-											cssClass={styles.titleText}
-											title={error?.event.join(', ')}
-										>
-											{error?.event.join(', ')}
-										</Text>
-									</Table.Cell>
-									<Table.Cell>
-										<Text
-											cssClass={styles.titleDescription}
-										>
-											{error?.stack_trace}
-										</Text>
-									</Table.Cell>
-									<Table.Cell>
-										<Score score={error?.score} />
 									</Table.Cell>
 								</Table.Row>
 							)) || <NoResults />}

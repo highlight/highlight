@@ -940,9 +940,11 @@ func (r *mutationResolver) JoinWorkspace(ctx context.Context, workspaceID int) (
 	if err := r.DB.WithContext(ctx).Model(&workspace).Where("jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))", domain).First(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error querying workspace")
 	}
-	if err := r.DB.WithContext(ctx).Model(&workspace).Association("Admins").Append(admin); err != nil {
-		return nil, e.Wrap(err, "error adding admin to association")
+
+	if err := r.DB.WithContext(ctx).Create(&model.WorkspaceAdmin{AdminID: admin.ID, WorkspaceID: workspace.ID, Role: pointy.String("MEMBER")}).Error; err != nil {
+		return nil, e.Wrap(err, "error adding admin to workspace")
 	}
+
 	return &workspace.ID, nil
 }
 
@@ -5154,19 +5156,12 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 
 // ErrorGroupsClickhouse is the resolver for the error_groups_clickhouse field.
 func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int, count int, query modelInputs.ClickhouseQuery, page *int) (*model.ErrorResults, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
-
-	ids, total, err := r.ClickhouseClient.QueryErrorGroupIds(ctx, projectID, count, query, page, retentionDate)
+	ids, total, err := r.ClickhouseClient.QueryErrorGroupIdsDeprecated(ctx, projectID, count, query, page)
 	if err != nil {
 		return nil, err
 	}
@@ -5193,19 +5188,71 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 	}, nil
 }
 
-// ErrorsHistogramClickhouse is the resolver for the errors_histogram_clickhouse field.
-func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
+// ErrorGroups is the resolver for the error_groups field.
+func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count int, params modelInputs.QueryInput, page *int) (*model.ErrorResults, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
+
+	ids, total, err := r.ClickhouseClient.QueryErrorGroups(ctx, project.ID, count, params, page)
 	if err != nil {
 		return nil, err
 	}
-	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
 
-	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogram(ctx, projectID, query, retentionDate, histogramOptions)
+	var results []*model.ErrorGroup
+	if err := r.DB.WithContext(ctx).Model(&model.ErrorGroup{}).
+		Joins("ErrorTag").
+		Where("error_groups.id in ?", ids).
+		Where("error_groups.project_id = ?", project.ID).
+		Order("error_groups.updated_at DESC").
+		Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	if len(results) > 0 {
+		if err := r.SetErrorFrequenciesClickhouse(ctx, project.ID, results, ErrorGroupLookbackDays); err != nil {
+			return nil, err
+		}
+	}
+
+	return &model.ErrorResults{
+		ErrorGroups: lo.Map(results, func(eg *model.ErrorGroup, idx int) model.ErrorGroup { return *eg }),
+		TotalCount:  total,
+	}, nil
+}
+
+// ErrorsHistogramClickhouse is the resolver for the errors_histogram_clickhouse field.
+func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogramDeprecated(ctx, projectID, query, histogramOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(bucketTimes) > 0 {
+		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
+		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
+	}
+
+	return &model.ErrorsHistogram{
+		BucketTimes:  MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		ErrorObjects: MergeHistogramBucketCounts(totals, histogramOptions.BucketSize.Multiple),
+	}, nil
+}
+
+// ErrorsHistogram is the resolver for the errors_histogram field.
+func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorObjectsHistogram(ctx, project.ID, params, histogramOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -8768,11 +8815,6 @@ func (r *queryResolver) ErrorTags(ctx context.Context) ([]*model.ErrorTag, error
 // MatchErrorTag is the resolver for the match_error_tag field.
 func (r *queryResolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInputs.MatchedErrorTag, error) {
 	return r.Resolver.MatchErrorTag(ctx, query)
-}
-
-// FindSimilarErrors is the resolver for the find_similar_errors field.
-func (r *queryResolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.MatchedErrorObject, error) {
-	return r.Resolver.FindSimilarErrors(ctx, query)
 }
 
 // Trace is the resolver for the trace field.
