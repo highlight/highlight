@@ -7,6 +7,15 @@ import (
 	"github.com/google/uuid"
 )
 
+const TraceAttributeValueLengthLimit = 2 << 15
+
+func truncateValue(input string) string {
+	if len(input) > TraceAttributeValueLengthLimit {
+		return input[:TraceAttributeValueLengthLimit] + "..."
+	}
+	return input
+}
+
 type TraceRow struct {
 	Timestamp       time.Time
 	UUID            string
@@ -79,7 +88,7 @@ func (t *TraceRow) WithTraceState(traceState string) *TraceRow {
 }
 
 func (t *TraceRow) WithSpanName(spanName string) *TraceRow {
-	t.SpanName = spanName
+	t.SpanName = truncateValue(spanName)
 	return t
 }
 
@@ -119,11 +128,14 @@ func (t *TraceRow) WithStatusCode(statusCode string) *TraceRow {
 }
 
 func (t *TraceRow) WithStatusMessage(statusMessage string) *TraceRow {
-	t.StatusMessage = statusMessage
+	t.StatusMessage = truncateValue(statusMessage)
 	return t
 }
 
 func (t *TraceRow) WithTraceAttributes(attributes map[string]string) *TraceRow {
+	for k, v := range attributes {
+		attributes[k] = truncateValue(v)
+	}
 	t.TraceAttributes = attributes
 	return t
 }
@@ -160,7 +172,7 @@ func (t *TraceRow) WithLinks(links []map[string]any) *TraceRow {
 func attributesToMap(attributes map[string]any) map[string]string {
 	newAttrMap := make(map[string]string)
 	for k, v := range attributes {
-		newAttrMap[k] = fmt.Sprintf("%v", v)
+		newAttrMap[k] = truncateValue(fmt.Sprintf("%v", v))
 	}
 	return newAttrMap
 }
