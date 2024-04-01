@@ -26,5 +26,5 @@ Your [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) definition may
 ```
 
 ```hint
-highlight.run version 8.11 changes how we bundle the client which no longer require a `script-src` or `worker-src` definition. Make sure you are using the latest version of the SDK.
+highlight.run version 8.11 changes how we bundle the client so that we no longer require a `script-src` or `worker-src` definition. Make sure you are using the latest version of the SDK to use the above CSP policy.
 ```
