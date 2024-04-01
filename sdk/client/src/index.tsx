@@ -1447,8 +1447,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	}
 }
 
-;(window as any).HighlightIO = Highlight
-
 interface HighlightWindow extends Window {
 	Highlight: Highlight
 	Intercom?: any

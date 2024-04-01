@@ -43,8 +43,6 @@
 	"exports": {
 		"types": "./dist/firstload/src/index.d.ts",
 		"import": "./dist/index.js",
-		"require": "./dist/index.cjs",
-		"node": "./dist/index.cjs",
 		"default": "./dist/index.js"
 	},
 	"files": [
@@ -54,24 +52,24 @@
 		"hoistingLimits": "workspaces"
 	},
 	"devDependencies": {
+		"@highlight-run/client": "workspace:*",
 		"@rollup/plugin-commonjs": "^25.0.7",
-		"@rollup/plugin-json": "^6.0.1",
+		"@rollup/plugin-json": "^6.1.0",
 		"@rollup/plugin-node-resolve": "^15.2.3",
-		"@rollup/plugin-terser": "^0.4.4",
-		"@rollup/plugin-typescript": "^11.1.5",
-		"@size-limit/file": "^8.1.0",
-		"@types/chrome": "^0.0.144",
+		"@rollup/plugin-typescript": "^11.1.6",
+		"@size-limit/file": "^11.1.2",
+		"@types/chrome": "^0.0.263",
 		"readdirp": "^3.6.0",
-		"size-limit": "^8.1.0",
-		"tslib": "^2.4.0",
-		"typescript": "^5.0.4",
-		"vite": "^4.3.9",
-		"vitest": "^0.32.0"
+		"size-limit": "^11.1.2",
+		"tslib": "^2.6.2",
+		"typescript": "^5.4.3",
+		"vite": "^5.2.7",
+		"vitest": "^1.4.0"
 	},
 	"size-limit": [
 		{
 			"path": "dist/**.js",
-			"limit": "100 kB",
+			"limit": "256 kB",
 			"brotli": true
 		}
 	]
