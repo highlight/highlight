@@ -1961,6 +1961,7 @@ type Query {
 		project_id: ID!
 		lookback_days: Float!
 	): UserFingerprintCount
+	# deprecated - use sessions
 	sessions_clickhouse(
 		project_id: ID!
 		count: Int!
@@ -1969,14 +1970,33 @@ type Query {
 		sort_desc: Boolean!
 		page: Int
 	): SessionResults!
+	sessions(
+		project_id: ID!
+		count: Int!
+		params: QueryInput!
+		sort_field: String
+		sort_desc: Boolean!
+		page: Int
+	): SessionResults!
+	# deprecated - use sessions_histogram
 	sessions_histogram_clickhouse(
 		project_id: ID!
 		query: ClickhouseQuery!
 		histogram_options: DateHistogramOptions!
 	): SessionsHistogram!
+	sessions_histogram(
+		project_id: ID!
+		params: QueryInput!
+		histogram_options: DateHistogramOptions!
+	): SessionsHistogram!
+	# deprecated - use session_users_report
 	sessions_report(
 		project_id: ID!
 		query: ClickhouseQuery!
+	): [SessionsReportRow!]!
+	session_users_report(
+		project_id: ID!
+		params: QueryInput!
 	): [SessionsReportRow!]!
 	field_types_clickhouse(
 		project_id: ID!
@@ -2689,6 +2709,7 @@ type Mutation {
 		is_default: Boolean
 	): ID!
 	deleteDashboard(id: ID!): Boolean!
+	# TODO(spenny): swap over to using new language
 	deleteSessions(
 		project_id: ID!
 		query: ClickhouseQuery!

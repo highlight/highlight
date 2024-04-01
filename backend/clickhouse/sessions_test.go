@@ -260,7 +260,7 @@ func Test_QuerySessionIds(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			ids, total, sampleRuleFound, err := client.QuerySessionIds(ctx, nil, 1, 10, tc.Query, "CreatedAt DESC, ID DESC", pointy.Int(1), time.Now().Add(-time.Hour))
+			ids, total, sampleRuleFound, err := client.QuerySessionIdsDeprecated(ctx, nil, 1, 10, tc.Query, "CreatedAt DESC, ID DESC", pointy.Int(1), time.Now().Add(-time.Hour))
 			assert.NoError(t, err)
 			assert.True(t, sampleRuleFound)
 			assert.Greater(t, total, int64(0))
