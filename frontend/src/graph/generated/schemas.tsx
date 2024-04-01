@@ -1105,7 +1105,6 @@ export type Mutation = {
 	deleteSessionAlert?: Maybe<SessionAlert>
 	deleteSessionComment?: Maybe<Scalars['Boolean']>
 	deleteSessions: Scalars['Boolean']
-	deleteSessionsv2: Scalars['Boolean']
 	editErrorSegment?: Maybe<Scalars['Boolean']>
 	editProject?: Maybe<Project>
 	editProjectSettings?: Maybe<AllProjectSettings>
@@ -1431,12 +1430,6 @@ export type MutationDeleteSessionCommentArgs = {
 export type MutationDeleteSessionsArgs = {
 	project_id: Scalars['ID']
 	query: ClickhouseQuery
-	sessionCount: Scalars['Int']
-}
-
-export type MutationDeleteSessionsv2Args = {
-	params: QueryInput
-	project_id: Scalars['ID']
 	sessionCount: Scalars['Int']
 }
 

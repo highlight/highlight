@@ -38,7 +38,6 @@ import (
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
-	utilsV2 "github.com/highlight-run/highlight/backend/lambda-functions/deleteSessionsV2/utils"
 	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/phonehome"
@@ -4327,65 +4326,6 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, qu
 		Email:        email,
 		FirstName:    firstName,
 		Query:        query,
-		SessionCount: sessionCount,
-		DryRun:       util.IsDevOrTestEnv(),
-	})
-
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
-// DeleteSessionsv2 is the resolver for the deleteSessionsv2 field.
-func (r *mutationResolver) DeleteSessionsv2(ctx context.Context, projectID int, params modelInputs.QueryInput, sessionCount int) (bool, error) {
-	if util.IsDevOrTestEnv() {
-		return false, nil
-	}
-
-	project, err := r.isAdminInProject(ctx, projectID)
-	if err != nil {
-		return false, err
-	}
-
-	admin, err := r.getCurrentAdmin(ctx)
-	if err != nil {
-		return false, err
-	}
-
-	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
-	if err != nil {
-		return false, err
-	}
-
-	if !settings.EnableDataDeletion {
-		return false, e.New("data deletion is disabled for this workspace")
-	}
-
-	email := ""
-	if admin.Email != nil {
-		email = *admin.Email
-	}
-
-	firstName := ""
-	if admin.FirstName != nil {
-		firstName = *admin.FirstName
-	}
-
-	role, err := r.GetAdminRole(ctx, admin.ID, project.WorkspaceID)
-	if err != nil {
-		return false, err
-	}
-
-	if role != model.AdminRole.ADMIN {
-		return false, e.New("Must be admin role to delete sessions")
-	}
-
-	_, err = r.StepFunctions.DeleteSessionsByQueryV2(ctx, utilsV2.QuerySessionsInputV2{
-		ProjectId:    projectID,
-		Email:        email,
-		FirstName:    firstName,
-		Params:       params,
 		SessionCount: sessionCount,
 		DryRun:       util.IsDevOrTestEnv(),
 	})

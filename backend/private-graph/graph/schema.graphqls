@@ -2709,15 +2709,10 @@ type Mutation {
 		is_default: Boolean
 	): ID!
 	deleteDashboard(id: ID!): Boolean!
-	# deprecated - use deleteSessionsv2
+	# TODO(spenny): swap over to using new language
 	deleteSessions(
 		project_id: ID!
 		query: ClickhouseQuery!
-		sessionCount: Int!
-	): Boolean!
-	deleteSessionsv2(
-		project_id: ID!
-		params: QueryInput!
 		sessionCount: Int!
 	): Boolean!
 	updateVercelProjectMappings(
