@@ -54,7 +54,7 @@ const media = async (args?: Args) => {
 		})
 		let path = ''
 		if (args?.format === 'image/gif') {
-			path = await encodeGIF(dir)
+			path = await encodeGIF(dir ?? '')
 		} else {
 			path = files[0]
 		}
@@ -91,7 +91,7 @@ if (process.env.DEV?.length) {
 			queryStringParameters: {
 				format: 'video/mp4',
 				project: '1',
-				session: '339013668',
+				session: '617599894',
 			},
 		} as unknown as APIGatewayEvent),
 	])

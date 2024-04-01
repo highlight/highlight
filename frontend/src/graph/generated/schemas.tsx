@@ -1936,6 +1936,7 @@ export type Query = {
 	error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>
 	error_fields_clickhouse: Array<Scalars['String']>
 	error_group?: Maybe<ErrorGroup>
+	error_groups: ErrorResults
 	error_groups_clickhouse: ErrorResults
 	error_instance?: Maybe<ErrorInstance>
 	error_issue: Array<Maybe<ExternalAttachment>>
@@ -1946,6 +1947,7 @@ export type Query = {
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	error_tags?: Maybe<Array<Maybe<ErrorTag>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
+	errors_histogram: ErrorsHistogram
 	errors_histogram_clickhouse: ErrorsHistogram
 	errors_key_values: Array<Scalars['String']>
 	errors_keys: Array<QueryKey>
@@ -1957,7 +1959,6 @@ export type Query = {
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
 	field_types_clickhouse: Array<Field>
 	fields_clickhouse: Array<Scalars['String']>
-	find_similar_errors?: Maybe<Array<Maybe<MatchedErrorObject>>>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
 	github_issue_labels: Array<Scalars['String']>
@@ -2025,7 +2026,10 @@ export type Query = {
 	session_exports: Array<SessionExportWithSession>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
+	session_users_report: Array<SessionsReportRow>
+	sessions: SessionResults
 	sessions_clickhouse: SessionResults
+	sessions_histogram: SessionsHistogram
 	sessions_histogram_clickhouse: SessionsHistogram
 	sessions_key_values: Array<Scalars['String']>
 	sessions_keys: Array<QueryKey>
@@ -2209,6 +2213,13 @@ export type QueryError_GroupArgs = {
 	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
+export type QueryError_GroupsArgs = {
+	count: Scalars['Int']
+	page?: InputMaybe<Scalars['Int']>
+	params: QueryInput
+	project_id: Scalars['ID']
+}
+
 export type QueryError_Groups_ClickhouseArgs = {
 	count: Scalars['Int']
 	page?: InputMaybe<Scalars['Int']>
@@ -2250,6 +2261,12 @@ export type QueryError_SegmentsArgs = {
 
 export type QueryErrorsArgs = {
 	session_secure_id: Scalars['String']
+}
+
+export type QueryErrors_HistogramArgs = {
+	histogram_options: DateHistogramOptions
+	params: QueryInput
+	project_id: Scalars['ID']
 }
 
 export type QueryErrors_Histogram_ClickhouseArgs = {
@@ -2323,10 +2340,6 @@ export type QueryFields_ClickhouseArgs = {
 	project_id: Scalars['ID']
 	query: Scalars['String']
 	start_date: Scalars['Timestamp']
-}
-
-export type QueryFind_Similar_ErrorsArgs = {
-	query: Scalars['String']
 }
 
 export type QueryGenerate_Zapier_Access_TokenArgs = {
@@ -2651,6 +2664,20 @@ export type QuerySession_IntervalsArgs = {
 	session_secure_id: Scalars['String']
 }
 
+export type QuerySession_Users_ReportArgs = {
+	params: QueryInput
+	project_id: Scalars['ID']
+}
+
+export type QuerySessionsArgs = {
+	count: Scalars['Int']
+	page?: InputMaybe<Scalars['Int']>
+	params: QueryInput
+	project_id: Scalars['ID']
+	sort_desc: Scalars['Boolean']
+	sort_field?: InputMaybe<Scalars['String']>
+}
+
 export type QuerySessions_ClickhouseArgs = {
 	count: Scalars['Int']
 	page?: InputMaybe<Scalars['Int']>
@@ -2658,6 +2685,12 @@ export type QuerySessions_ClickhouseArgs = {
 	query: ClickhouseQuery
 	sort_desc: Scalars['Boolean']
 	sort_field?: InputMaybe<Scalars['String']>
+}
+
+export type QuerySessions_HistogramArgs = {
+	histogram_options: DateHistogramOptions
+	params: QueryInput
+	project_id: Scalars['ID']
 }
 
 export type QuerySessions_Histogram_ClickhouseArgs = {
@@ -2938,6 +2971,7 @@ export enum ReservedSessionKey {
 	Environment = 'environment',
 	Fingerprint = 'fingerprint',
 	FirstTime = 'first_time',
+	HasComments = 'has_comments',
 	HasErrors = 'has_errors',
 	HasRageClicks = 'has_rage_clicks',
 	Identified = 'identified',
@@ -2950,6 +2984,7 @@ export enum ReservedSessionKey {
 	Processed = 'processed',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
+	State = 'state',
 	Viewed = 'viewed',
 }
 
@@ -3649,6 +3684,7 @@ export type WorkspaceForInviteLink = {
 	existing_account: Scalars['Boolean']
 	expiration_date?: Maybe<Scalars['Timestamp']>
 	invitee_email?: Maybe<Scalars['String']>
+	project_id: Scalars['ID']
 	secret: Scalars['String']
 	workspace_id: Scalars['ID']
 	workspace_name: Scalars['String']

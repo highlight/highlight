@@ -188,7 +188,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 
-				fields, err := extractFields(ctx, extractFieldsParams{
+				fields, err := extractFields(extractFieldsParams{
 					resource: &resource,
 					span:     &span,
 					curTime:  curTime,
@@ -201,13 +201,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				spanID := span.SpanID().String()
 
 				spanHasErrors := false
-				shouldWriteTrace := true
 				for l := 0; l < events.Len(); l++ {
 					if skipped {
 						break
 					}
 					event := events.At(l)
-					fields, err := extractFields(ctx, extractFieldsParams{
+					fields, err := extractFields(extractFieldsParams{
 						resource: &resource,
 						span:     &span,
 						event:    &event,
@@ -256,7 +255,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							projectSessionErrors[fields.projectID][fields.sessionID] = append(projectSessionErrors[fields.projectID][fields.sessionID], backendError)
 						}
 					} else if event.Name() == highlight.LogEvent {
-						shouldWriteTrace = false
 						if fields.logMessage == "" {
 							lg(ctx, fields).Warn("otel received log with no message")
 							continue
@@ -281,7 +279,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 					} else if event.Name() == highlight.MetricEvent {
-						shouldWriteTrace = false
 						metric, err := getMetric(ctx, fields.timestamp, fields, spanID, span.ParentSpanID().String(), traceID)
 						if err != nil {
 							lg(ctx, fields).WithError(err).Error("failed to create metric")
@@ -296,28 +293,26 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 
-				if shouldWriteTrace {
-					timestamp := graph.ClampTime(span.StartTimestamp().AsTime(), curTime)
-					traceRow := clickhouse.NewTraceRow(timestamp, fields.projectIDInt).
-						WithSecureSessionId(fields.sessionID).
-						WithTraceId(traceID).
-						WithSpanId(spanID).
-						WithParentSpanId(span.ParentSpanID().String()).
-						WithTraceState(span.TraceState().AsRaw()).
-						WithSpanName(span.Name()).
-						WithSpanKind(span.Kind().String()).
-						WithDuration(span.StartTimestamp().AsTime(), span.EndTimestamp().AsTime()).
-						WithServiceName(fields.serviceName).
-						WithServiceVersion(fields.serviceVersion).
-						WithEnvironment(fields.environment).
-						WithHasErrors(spanHasErrors).
-						WithStatusCode(span.Status().Code().String()).
-						WithStatusMessage(span.Status().Message()).
-						WithTraceAttributes(fields.attrs).
-						WithEvents(fields.events).
-						WithLinks(fields.links)
-					traceSpans[traceID] = append(traceSpans[traceID], traceRow)
-				}
+				timestamp := graph.ClampTime(span.StartTimestamp().AsTime(), curTime)
+				traceRow := clickhouse.NewTraceRow(timestamp, fields.projectIDInt).
+					WithSecureSessionId(fields.sessionID).
+					WithTraceId(traceID).
+					WithSpanId(spanID).
+					WithParentSpanId(span.ParentSpanID().String()).
+					WithTraceState(span.TraceState().AsRaw()).
+					WithSpanName(span.Name()).
+					WithSpanKind(span.Kind().String()).
+					WithDuration(span.StartTimestamp().AsTime(), span.EndTimestamp().AsTime()).
+					WithServiceName(fields.serviceName).
+					WithServiceVersion(fields.serviceVersion).
+					WithEnvironment(fields.environment).
+					WithHasErrors(spanHasErrors).
+					WithStatusCode(span.Status().Code().String()).
+					WithStatusMessage(span.Status().Message()).
+					WithTraceAttributes(fields.attrs).
+					WithEvents(fields.events).
+					WithLinks(fields.links)
+				traceSpans[traceID] = append(traceSpans[traceID], traceRow)
 			}
 		}
 	}
@@ -433,7 +428,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 			for k := 0; k < logRecords.Len(); k++ {
 				logRecord := logRecords.At(k)
 
-				fields, err := extractFields(ctx, extractFieldsParams{
+				fields, err := extractFields(extractFieldsParams{
 					resource:  &resource,
 					logRecord: &logRecord,
 					curTime:   curTime,

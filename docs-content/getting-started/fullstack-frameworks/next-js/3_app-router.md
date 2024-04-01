@@ -43,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 					enabled: true,
 					recordHeadersAndBody: true
 				}}
+				debug
 			/>
 
 			<html lang="en">
@@ -236,7 +237,7 @@ type Props = {
 }
 
 export default async function SsrPage({ searchParams }: Props) {
-	if (searchParams.error) {
+	if (typeof searchParams.error !== "undefined") {
 		throw new Error(
 			'🎉 SSR Error with use-server: src/app-router/ssr/page.tsx',
 		)

@@ -8,7 +8,7 @@ import { PanelHeader } from '@/components/RelatedResources/PanelHeader'
 import * as styles from './Panel.css'
 
 // Numbers are percentages
-const MIN_PANEL_WIDTH = 40
+const MIN_PANEL_WIDTH = 30
 const MAX_PANEL_WIDTH = 85
 
 type Props = React.PropsWithChildren<{
@@ -35,17 +35,19 @@ export const Panel: PanelComponent = ({ children, open }) => {
 
 	const handleMouseMove = useCallback(
 		(e: MouseEvent) => {
-			if (dragging) {
-				const newWidth =
-					((window.innerWidth - e.clientX) / window.innerWidth) * 100
-
-				setPanelWidth(
-					Math.min(
-						Math.max(newWidth, MIN_PANEL_WIDTH),
-						MAX_PANEL_WIDTH,
-					),
-				)
+			if (!dragging) {
+				return
 			}
+
+			e.stopPropagation()
+			e.preventDefault()
+
+			const newWidth =
+				((window.innerWidth - e.clientX) / window.innerWidth) * 100
+
+			setPanelWidth(
+				Math.min(Math.max(newWidth, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH),
+			)
 		},
 		[dragging, setPanelWidth],
 	)
@@ -82,7 +84,7 @@ export const Panel: PanelComponent = ({ children, open }) => {
 			modal={false}
 			autoFocusOnShow={false}
 			hideOnEscape={true}
-			backdrop={<Box cssClass={styles.backdrop} />}
+			backdrop={false}
 			className={styles.panel}
 			style={{ width: `${panelWidth}%` }}
 			// unmountOnHide is required for this to work as expected when it's being

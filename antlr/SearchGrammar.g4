@@ -16,7 +16,7 @@ top_col_expr
 col_expr
   : LPAREN col_expr RPAREN # col_paren_expr
   | negation_op col_expr # negated_col_expr
-  | col_expr and_op col_expr # and_col_expr
+  | col_expr AND col_expr # and_col_expr
   | col_expr OR col_expr # or_col_expr
   | search_value # col_search_value
   ;
@@ -90,7 +90,7 @@ LPAREN : '(' ;
 RPAREN : ')' ;
 COLON : ':' ;
 ID : [A-Z_0-9.\-*]+ ;
-STRING : '"' .*? '"' ;
+STRING : ('"' ( '\\"' | ~["] )* '"' | '\'' ( '\\\'' | ~['] )* '\'') | '`' ( '\\`' | ~[`] )* '`' ;
 VALUE: ~[ \t\n\r\f=><:!)(]+ ;
 WS : [ \t\n\r\f]+ -> channel(HIDDEN) ;
 

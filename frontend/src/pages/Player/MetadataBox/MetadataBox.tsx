@@ -285,7 +285,7 @@ export const MetadataBox = React.memo(() => {
 					onClick={searchIdentifier}
 				/>
 			</Box>
-			<Box display="flex" justifyContent="center" pb="8">
+			<Box display="flex" pt="4" pb="8" px="8">
 				<RelatedResourceButtons
 					secureSessionId={session_secure_id}
 					disableErrors={!session?.has_errors}

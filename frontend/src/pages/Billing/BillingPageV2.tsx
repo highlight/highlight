@@ -43,7 +43,6 @@ import {
 import {
 	getCostCents,
 	getNextBillingDate,
-	getQuantity,
 	PlanSelectStep,
 	UpdatePlanModal,
 } from '@/pages/Billing/UpdatePlanPage'
@@ -64,6 +63,7 @@ type UsageCardProps = {
 	planType: PlanType
 	billingLimitCents: number | undefined
 	usageAmount: number
+	usageLimitAmount: number | undefined
 	includedQuantity: number
 	isPaying: boolean
 	enableBillingLimits: boolean | undefined
@@ -79,6 +79,7 @@ const UsageCard = ({
 	retentionPeriod,
 	billingLimitCents,
 	usageAmount,
+	usageLimitAmount,
 	includedQuantity,
 	isPaying,
 	enableBillingLimits,
@@ -95,13 +96,6 @@ const UsageCard = ({
 				includedQuantity,
 		  )
 		: 0
-	const usageLimitAmount = getQuantity(
-		productType,
-		rate,
-		retentionPeriod,
-		billingLimitCents,
-		includedQuantity,
-	)
 
 	const costFormatted =
 		'$ ' +
@@ -325,6 +319,11 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const logsUsage = data?.billingDetails.logsMeter ?? 0
 	const tracesUsage = data?.billingDetails.tracesMeter ?? 0
 
+	const sessionsLimit = data?.billingDetails.sessionsBillingLimit ?? undefined
+	const errorsLimit = data?.billingDetails.errorsBillingLimit ?? undefined
+	const logsLimit = data?.billingDetails.logsBillingLimit ?? undefined
+	const tracesLimit = data?.billingDetails.tracesBillingLimit ?? undefined
+
 	const includedSessions = data?.billingDetails.plan.sessionsLimit ?? 0
 	const includedErrors = data?.billingDetails.plan.errorsLimit ?? 0
 	const includedLogs = data?.billingDetails.plan.logsLimit ?? 0
@@ -379,19 +378,19 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		'$ ' +
 		toDecimal(dinero({ amount: Math.round(totalCents), currency: USD }))
 
-	const sessionsLimit = isPaying
+	const sessionsSpendLimit = isPaying
 		? data?.workspace?.sessions_max_cents ?? undefined
 		: 0
 
-	const errorsLimit = isPaying
+	const errorsSpendLimit = isPaying
 		? data?.workspace?.errors_max_cents ?? undefined
 		: 0
 
-	const logsLimit = isPaying
+	const logsSpendLimit = isPaying
 		? data?.workspace?.logs_max_cents ?? undefined
 		: 0
 
-	const tracesLimit = isPaying
+	const tracesSpendLimit = isPaying
 		? data?.workspace?.traces_max_cents ?? undefined
 		: 0
 
@@ -569,8 +568,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						productType={ProductType.Sessions}
 						rate={sessionsRate}
 						retentionPeriod={sessionsRetention}
-						billingLimitCents={sessionsLimit}
+						billingLimitCents={sessionsSpendLimit}
 						usageAmount={sessionsUsage}
+						usageLimitAmount={sessionsLimit}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}
@@ -589,8 +589,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						productType={ProductType.Errors}
 						rate={errorsRate}
 						retentionPeriod={errorsRetention}
-						billingLimitCents={errorsLimit}
+						billingLimitCents={errorsSpendLimit}
 						usageAmount={errorsUsage}
+						usageLimitAmount={errorsLimit}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}
@@ -609,8 +610,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						productType={ProductType.Logs}
 						rate={logsRate}
 						retentionPeriod={logsRetention}
-						billingLimitCents={logsLimit}
+						billingLimitCents={logsSpendLimit}
 						usageAmount={logsUsage}
+						usageLimitAmount={logsLimit}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}
@@ -629,8 +631,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						productType={ProductType.Traces}
 						rate={tracesRate}
 						retentionPeriod={tracesRetention}
-						billingLimitCents={tracesLimit}
+						billingLimitCents={tracesSpendLimit}
 						usageAmount={tracesUsage}
+						usageLimitAmount={tracesLimit}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}

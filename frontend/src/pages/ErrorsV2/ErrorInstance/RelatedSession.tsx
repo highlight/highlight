@@ -55,7 +55,7 @@ export const RelatedSession = ({ data }: Props) => {
 				size="medium"
 				shape="basic"
 				disabled={!isLoggedIn || sessionLink === ''}
-				iconLeft={<IconSolidPlayCircle />}
+				iconLeft={<IconSolidPlayCircle size={11} />}
 			>
 				Related session
 			</Tag>

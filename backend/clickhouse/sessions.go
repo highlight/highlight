@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/parser"
 	"github.com/highlight-run/highlight/backend/parser/listener"
 
 	"github.com/samber/lo"
@@ -22,7 +24,7 @@ import (
 
 const timeFormat = "2006-01-02T15:04:05.000Z"
 
-var fieldMap map[string]string = map[string]string{
+var fieldMap = map[string]string{
 	"fingerprint":       "Fingerprint",
 	"pages_visited":     "PagesVisited",
 	"viewed_by_me":      "ViewedByAdmins",
@@ -31,12 +33,14 @@ var fieldMap map[string]string = map[string]string{
 	"identified":        "Identified",
 	"identifier":        "Identifier",
 	"city":              "City",
+	"loc_state":         "State",
 	"country":           "Country",
 	"os_name":           "OSName",
 	"os_version":        "OSVersion",
 	"browser_name":      "BrowserName",
 	"browser_version":   "BrowserVersion",
 	"processed":         "Processed",
+	"has_comments":      "HasComments",
 	"has_rage_clicks":   "HasRageClicks",
 	"has_errors":        "HasErrors",
 	"has_session":       "HasSession",
@@ -76,12 +80,14 @@ type ClickhouseSession struct {
 	Identifier         string
 	IP                 string
 	City               string
+	State              string
 	Country            string
 	OSName             string
 	OSVersion          string
 	BrowserName        string
 	BrowserVersion     string
 	Processed          *bool
+	HasComments        bool
 	HasRageClicks      *bool
 	HasErrors          *bool
 	Length             int64
@@ -103,6 +109,12 @@ type ClickhouseField struct {
 	SessionCreatedAt int64
 	SessionID        int64
 	Value            string
+}
+
+// These keys show up as recommendations, but with no recommended values due to high cardinality
+var defaultSessionsKeys = []*modelInputs.QueryKey{
+	{Name: string(modelInputs.ReservedSessionKeyLength), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedSessionKeyActiveLength), Type: modelInputs.KeyTypeNumeric},
 }
 
 const SessionsTable = "sessions"
@@ -167,12 +179,14 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			Identifier:         session.Identifier,
 			IP:                 session.IP,
 			City:               session.City,
+			State:              session.State,
 			Country:            session.Country,
 			OSName:             session.OSName,
 			OSVersion:          session.OSVersion,
 			BrowserName:        session.BrowserName,
 			BrowserVersion:     session.BrowserVersion,
 			Processed:          session.Processed,
+			HasComments:        session.HasComments,
 			HasRageClicks:      session.HasRageClicks,
 			HasErrors:          session.HasErrors,
 			Length:             session.Length,
@@ -203,7 +217,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 				NewStruct(new(ClickhouseSession)).
 				InsertInto(SessionsTable, chSessions...).
 				BuildWithFlavor(sqlbuilder.ClickHouse)
-			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, 32, map[int]bool{7: true, 8: true}, MicroSeconds)
+			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, 34, map[int]bool{7: true, 8: true}, MicroSeconds)
 			return client.conn.Exec(chCtx, sessionsSql, sessionsArgs...)
 		})
 	}
@@ -222,7 +236,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 	return g.Wait()
 }
 
-func GetSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
+func GetSessionsQueryImplDeprecated(admin *model.Admin, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
 	rules, err := deserializeRules(query.Rules)
 	if err != nil {
 		return "", nil, false, err
@@ -292,14 +306,14 @@ func GetSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 	return sql, args, useRandomSample, nil
 }
 
-func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, projectId int, count int, query modelInputs.ClickhouseQuery, sortField string, page *int, retentionDate time.Time) ([]int64, int64, bool, error) {
+func (client *Client) QuerySessionIdsDeprecated(ctx context.Context, admin *model.Admin, projectId int, count int, query modelInputs.ClickhouseQuery, sortField string, page *int, retentionDate time.Time) ([]int64, int64, bool, error) {
 	pageInt := 1
 	if page != nil {
 		pageInt = *page
 	}
 	offset := (pageInt - 1) * count
 
-	sql, args, sampleRuleFound, err := GetSessionsQueryImpl(admin, query, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
+	sql, args, sampleRuleFound, err := GetSessionsQueryImplDeprecated(admin, query, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -327,7 +341,7 @@ func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, p
 	return ids, int64(total), sampleRuleFound, nil
 }
 
-func (client *Client) QuerySessionHistogram(ctx context.Context, admin *model.Admin, projectId int, query modelInputs.ClickhouseQuery, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, []int64, []int64, error) {
+func (client *Client) QuerySessionHistogramDeprecated(ctx context.Context, admin *model.Admin, projectId int, query modelInputs.ClickhouseQuery, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, []int64, []int64, error) {
 	aggFn, addFn, location, err := getClickhouseHistogramSettings(options)
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -337,7 +351,7 @@ func (client *Client) QuerySessionHistogram(ctx context.Context, admin *model.Ad
 
 	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
 
-	sql, args, _, err := GetSessionsQueryImpl(admin, query, projectId, retentionDate, selectCols, pointy.String("1"), &orderBy, nil, nil)
+	sql, args, _, err := GetSessionsQueryImplDeprecated(admin, query, projectId, retentionDate, selectCols, pointy.String("1"), &orderBy, nil, nil)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -453,7 +467,7 @@ func SessionMatchesQuery(session *model.Session, filters listener.Filters) bool 
 	return matchesQuery(session, SessionsTableConfig, filters)
 }
 
-var sessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey]{
+var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey]{
 	TableName:        "sessions_joined_vw",
 	AttributesColumn: "SessionAttributes",
 	KeysToColumns: map[modelInputs.ReservedSessionKey]string{
@@ -463,12 +477,14 @@ var sessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 		modelInputs.ReservedSessionKeyFingerprint:     "Fingerprint",
 		modelInputs.ReservedSessionKeyIdentifier:      "Identifier",
 		modelInputs.ReservedSessionKeyCity:            "City",
+		modelInputs.ReservedSessionKeyState:           "State",
 		modelInputs.ReservedSessionKeyCountry:         "Country",
 		modelInputs.ReservedSessionKeyOsName:          "OSName",
 		modelInputs.ReservedSessionKeyOsVersion:       "OSVersion",
 		modelInputs.ReservedSessionKeyBrowserName:     "BrowserName",
 		modelInputs.ReservedSessionKeyBrowserVersion:  "BrowserVersion",
 		modelInputs.ReservedSessionKeyProcessed:       "Processed",
+		modelInputs.ReservedSessionKeyHasComments:     "HasComments",
 		modelInputs.ReservedSessionKeyHasRageClicks:   "HasRageClicks",
 		modelInputs.ReservedSessionKeyHasErrors:       "HasErrors",
 		modelInputs.ReservedSessionKeyLength:          "Length",
@@ -482,7 +498,7 @@ var sessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 }
 
 var sessionsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedSessionKey]{
-	tableConfig: sessionsJoinedTableConfig,
+	tableConfig: SessionsJoinedTableConfig,
 	useSampling: func(time.Duration) bool {
 		return false
 	},
@@ -493,7 +509,22 @@ func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, pa
 }
 
 func (client *Client) SessionsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, SessionKeysTable, projectID, startDate, endDate, query, typeArg)
+	sessionKeys, err := KeysAggregated(ctx, client, SessionKeysTable, projectID, startDate, endDate, query, typeArg)
+	if err != nil {
+		return nil, err
+	}
+
+	if query == nil || *query == "" {
+		sessionKeys = append(sessionKeys, defaultSessionsKeys...)
+	} else {
+		for _, key := range defaultSessionsKeys {
+			if strings.Contains(key.Name, *query) {
+				sessionKeys = append(sessionKeys, key)
+			}
+		}
+	}
+
+	return sessionKeys, nil
 }
 
 func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId int, sessionSecureId string, metricNames []string) ([]*model.Metric, error) {
@@ -558,4 +589,109 @@ func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyN
 
 func (client *Client) GetConn() driver.Conn {
 	return client.conn
+}
+
+func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.From(SessionsJoinedTableConfig.TableName)
+	sb.Select(selectColumns)
+
+	sb.Where(sb.LessEqualThan("CreatedAt", params.DateRange.EndDate)).
+		Where(sb.GreaterEqualThan("CreatedAt", params.DateRange.StartDate))
+
+	parser.AssignSearchFilters(sb, params.Query, SessionsJoinedTableConfig)
+	if groupBy != nil {
+		sb = sb.GroupBy(*groupBy)
+	}
+	if orderBy != nil {
+		sb = sb.OrderBy(*orderBy)
+	}
+	if limit != nil {
+		sb = sb.Limit(*limit)
+	}
+	if offset != nil {
+		sb = sb.Offset(*offset)
+	}
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	// TODO(spenny): custom rules to check - sampleField
+	return sql, args, false, nil
+}
+
+func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, projectId int, count int, params modelInputs.QueryInput, sortField string, page *int, retentionDate time.Time) ([]int64, int64, bool, error) {
+	pageInt := 1
+	if page != nil {
+		pageInt = *page
+	}
+	offset := (pageInt - 1) * count
+
+	sql, args, sampleRuleFound, err := GetSessionsQueryImpl(admin, params, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
+	if err != nil {
+		return nil, 0, false, err
+	}
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, 0, false, err
+	}
+
+	var ids []int64
+	var total uint64
+	for rows.Next() {
+		var id int64
+		columns := []interface{}{&id, &total}
+		if sampleRuleFound {
+			var hash uint64
+			columns = append(columns, &hash)
+		}
+		if err := rows.Scan(columns...); err != nil {
+			return nil, 0, false, err
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, int64(total), sampleRuleFound, nil
+}
+
+func (client *Client) QuerySessionHistogram(ctx context.Context, admin *model.Admin, projectId int, params modelInputs.QueryInput, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, []int64, []int64, error) {
+	aggFn, addFn, location, err := getClickhouseHistogramSettings(options)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	selectCols := fmt.Sprintf("%s(CreatedAt, '%s') as time, count() as count, sum(if(HasErrors, 1, 0)) as has_errors", aggFn, location.String())
+
+	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
+
+	sql, args, _, err := GetSessionsQueryImpl(admin, params, projectId, retentionDate, selectCols, pointy.String("1"), &orderBy, nil, nil)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	args = append(args, *options.Bounds.StartDate, *options.Bounds.EndDate)
+	sql = fmt.Sprintf("SELECT %s(makeDate(0, 0), time), count, has_errors from (%s)", addFn, sql)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	bucketTimes := []time.Time{}
+	totals := []int64{}
+	withErrors := []int64{}
+	withoutErrors := []int64{}
+	for rows.Next() {
+		var time time.Time
+		var total uint64
+		var withError uint64
+		if err := rows.Scan(&time, &total, &withError); err != nil {
+			return nil, nil, nil, nil, err
+		}
+		bucketTimes = append(bucketTimes, time)
+		totals = append(totals, int64(total))
+		withErrors = append(withErrors, int64(withError))
+		withoutErrors = append(withoutErrors, int64(total-withError))
+	}
+
+	return bucketTimes, totals, withErrors, withoutErrors, nil
 }

@@ -36,6 +36,7 @@ import { H } from 'highlight.run'
 import _ from 'lodash'
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLocalStorage } from 'react-use'
 import { EventType } from 'rrweb'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
@@ -67,6 +68,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 		setShowRightPanel,
 		skipInactive,
 	} = usePlayerConfiguration()
+	const [loopSession] = useLocalStorage<boolean>(
+		'highlight-player-loop-session',
+		false,
+	)
 
 	const [markSessionAsViewed] = useMarkSessionAsViewedMutation()
 	const { refetch: rawFetchEventChunkURL } = useGetEventChunkUrlQuery({
@@ -322,11 +327,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				log('PlayerHook.tsx', 'chunk data', {
 					chunkResponse,
 				})
-				log(
-					'PlayerHook.tsx:ensureChunksLoaded',
-					'set data for chunk',
-					_i,
-				)
+				log('PlayerHook.tsx:loadEventChunk', 'set data for chunk', _i)
 				return {
 					idx: _i,
 					events: toHighlightEvents(await chunkResponse.json()),
@@ -380,8 +381,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			log(
 				'PlayerHook.tsx:ensureChunksLoaded',
 				'checking chunk loaded status range',
-				startIdx,
-				endIdx,
+				{ action, startIdx, endIdx },
 			)
 			for (let i = startIdx; i <= endIdx; i++) {
 				log('PlayerHook.tsx:ensureChunksLoaded', 'has', i, {
@@ -414,6 +414,14 @@ export const usePlayer = (): ReplayerContextInterface => {
 					promises.push(loadEventChunk(i))
 				}
 			}
+			log(
+				'PlayerHook.tsx:ensureChunksLoaded',
+				'gathered chunk promises',
+				{
+					action,
+					promises: promises.length,
+				},
+			)
 			if (promises.length) {
 				const toRemove = getChunksToRemove(
 					chunkEventsRef.current,
@@ -504,7 +512,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			}
 
 			timerStart('timelineChangeTime')
-			dispatch({ type: PlayerActionType.setTime, time: newTime })
 			return new Promise<void>((r) =>
 				ensureChunksLoaded(
 					newTime,
@@ -663,20 +670,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	)
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const onPlayStartStop = useCallback(
-		_.throttle(() => {
-			if (!state.replayer) return
-			dispatch({
-				type: PlayerActionType.updateCurrentUrl,
-				currentTime:
-					getTimeFromReplayer(state.replayer, state.sessionMetadata) +
-					state.sessionMetadata.startTime,
-			})
-		}, FRAME_MS * 60),
-		[],
-	)
-
-	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const onViewportChange = useCallback(
 		_.throttle((_e) => {
 			dispatch({
@@ -823,9 +816,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			onEvent(e as HighlightEvent),
 		)
 		state.replayer.on('resize', onViewportChange)
-		state.replayer.on('pause', onPlayStartStop)
-		state.replayer.on('start', onPlayStartStop)
-	}, [state.replayer, project_id, onEvent, onViewportChange, onPlayStartStop])
+	}, [state.replayer, project_id, onEvent, onViewportChange])
 
 	// Downloads the events data only if the URL search parameter '?download=1' is present.
 	useEffect(() => {
@@ -866,14 +857,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		// If events are returned by getSessionPayloadQuery, set the events payload
 		if (!!sessionPayload?.events?.length) {
 			chunkEventsSet(0, toHighlightEvents(sessionPayload?.events))
-			dispatchAction(0, ReplayerState.Paused)
 		}
-		dispatch({
-			type: PlayerActionType.onChunksLoad,
-			showPlayerMouseTail,
-			time: 0,
-			action: ReplayerState.Paused,
-		})
 		dispatch({
 			type: PlayerActionType.onSessionPayloadLoaded,
 			sessionPayload,
@@ -1034,6 +1018,15 @@ export const usePlayer = (): ReplayerContextInterface => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [autoPlayVideo, state.eventsLoaded])
+
+	useEffect(() => {
+		if (state.replayerState === ReplayerState.SessionEnded && loopSession) {
+			log('PlayerHook.tsx', 'Looping session')
+			setTimeout(() => {
+				play(0).then(() => log('PlayerHook.tsx', 'Looped session'))
+			}, FRAME_MS * 120)
+		}
+	}, [play, loopSession, state.replayerState])
 
 	return {
 		...state,

@@ -2,15 +2,13 @@ import { Box, Button, Text, Tooltip } from '@highlight-run/ui/components'
 import _ from 'lodash'
 import moment from 'moment'
 import { useEffect, useMemo, useState } from 'react'
-import {
-	Area,
-	AreaChart,
-	CartesianGrid,
-	ResponsiveContainer,
-	XAxis,
-	YAxis,
-} from 'recharts'
 
+import { BarChart, BarChartConfig } from '@/pages/Graphing/components/BarChart'
+import {
+	LineChart,
+	LineChartConfig,
+} from '@/pages/Graphing/components/LineChart'
+import { MetricTable, TableConfig } from '@/pages/Graphing/components/Table'
 import { HistogramLoading } from '@/pages/Traces/TracesPage'
 
 import * as style from './Graph.css'
@@ -24,35 +22,42 @@ export const VIEWS: View[] = [
 	'List',
 ]
 
-export type NullHandling = 'Hidden' | 'Connected' | 'Zero'
-export const NULL_HANDLING: NullHandling[] = ['Hidden', 'Connected', 'Zero']
+export const GROUP_KEY = 'Group'
+const MAX_LABEL_CHARS = 100
 
-export type LineDisplay = 'Line' | 'Stacked area'
-export const LINE_DISPLAY: LineDisplay[] = ['Line', 'Stacked area']
-
-export type LineChartConfig = {
-	type: 'Line chart'
-	display?: LineDisplay
-	nullHandling?: NullHandling
+export type PieChartConfig = {
+	type: 'Pie chart'
+	showLegend: true
 }
 
-export type ViewConfig = LineChartConfig
+export type ListConfig = {
+	type: 'List'
+	showLegend: false
+}
 
-interface Props<TConfig> {
+export type ViewConfig =
+	| LineChartConfig
+	| BarChartConfig
+	| PieChartConfig
+	| TableConfig
+	| ListConfig
+
+export interface ChartProps<TConfig> {
 	data: any[] | undefined
 	xAxisMetric: string
 	yAxisMetric: string
+	yAxisFunction: string
 	title?: string
 	loading?: boolean
 	viewConfig: TConfig
 }
 
-interface SeriesInfo {
+export interface SeriesInfo {
 	series: string[]
-	spotlight: number | undefined
+	spotlight?: number | undefined
 }
 
-const strokeColors = ['#0090FF', '#D6409F']
+export const strokeColors = ['#0090FF', '#D6409F']
 
 const durationUnitMap: [number, string][] = [
 	[1, 'ns'],
@@ -65,6 +70,9 @@ const durationUnitMap: [number, string][] = [
 ]
 
 const formatNumber = (n: number) => {
+	if (n < 10000) {
+		return parseFloat(n.toPrecision(4)).toString()
+	}
 	const k = 1000
 	const sizes = ['', 'K', 'M', 'B', 'T']
 	const i = Math.max(
@@ -72,14 +80,14 @@ const formatNumber = (n: number) => {
 		0,
 	)
 	const res = n / Math.pow(k, i)
-	return parseFloat(res.toPrecision(2)) + sizes[i]
+	return parseFloat(res.toPrecision(3)) + sizes[i]
 }
 
-const getFormatter = (metric: string) => {
+export const getFormatter = (metric: string, bucketCount?: number) => {
 	if (metric === 'Timestamp') {
-		return (value: number) => moment(value * 1000).format('HH:mm')
+		return (value: any) => moment(value * 1000).format('HH:mm')
 	} else if (metric === 'duration') {
-		return (value: number) => {
+		return (value: any) => {
 			let lastUnit = 'ns'
 			for (const entry of durationUnitMap) {
 				if (value / entry[0] < 1) {
@@ -90,12 +98,21 @@ const getFormatter = (metric: string) => {
 			}
 			return `${value.toFixed(0)}${lastUnit}`
 		}
+	} else if (metric === GROUP_KEY) {
+		const maxChars = Math.max(MAX_LABEL_CHARS / (bucketCount || 1), 10)
+		return (value: any) => {
+			let result = value.toString() as string
+			if (result.length > maxChars) {
+				result = result.substring(0, maxChars - 3) + '...'
+			}
+			return result
+		}
 	} else {
-		return (value: number) => formatNumber(value)
+		return (value: any) => formatNumber(value)
 	}
 }
 
-const CustomYAxisTick = ({
+export const CustomYAxisTick = ({
 	y,
 	payload,
 	tickFormatter,
@@ -118,7 +135,7 @@ const CustomYAxisTick = ({
 	</g>
 )
 
-const CustomXAxisTick = ({
+export const CustomXAxisTick = ({
 	x,
 	y,
 	payload,
@@ -138,113 +155,25 @@ const CustomXAxisTick = ({
 			fill="#C8C7CB"
 			textAnchor="middle"
 			orientation="bottom"
+			width={30}
 		>
 			{tickFormatter(payload.value, payload.index)}
 		</text>
 	</g>
 )
 
-const isActive = (spotlight: number | undefined, idx: number) =>
+export const isActive = (spotlight: number | undefined, idx: number) =>
 	spotlight === undefined || spotlight === idx
-
-const LineChart = ({
-	data,
-	xAxisMetric,
-	yAxisMetric,
-	series,
-	spotlight,
-	viewConfig,
-}: Props<LineChartConfig> & SeriesInfo) => {
-	const xAxisTickFormatter = getFormatter(xAxisMetric)
-	const yAxisTickFormatter = getFormatter(yAxisMetric)
-	return (
-		<ResponsiveContainer>
-			<AreaChart data={data}>
-				<XAxis
-					dataKey={xAxisMetric}
-					fontSize={10}
-					tick={(props: any) => (
-						<CustomXAxisTick
-							x={props.x}
-							y={props.y}
-							payload={props.payload}
-							tickFormatter={xAxisTickFormatter}
-						/>
-					)}
-					tickFormatter={xAxisTickFormatter}
-					tickLine={{ visibility: 'hidden' }}
-					axisLine={{ visibility: 'hidden' }}
-					height={12}
-					type="number"
-					domain={['auto', 'auto']}
-				/>
-
-				<YAxis
-					fontSize={10}
-					tickLine={{ visibility: 'hidden' }}
-					axisLine={{ visibility: 'hidden' }}
-					tick={(props: any) => (
-						<CustomYAxisTick
-							y={props.y}
-							payload={props.payload}
-							tickFormatter={yAxisTickFormatter}
-						/>
-					)}
-					tickFormatter={yAxisTickFormatter}
-					tickCount={7}
-					width={32}
-					type="number"
-				/>
-
-				<CartesianGrid
-					strokeDasharray=""
-					vertical={false}
-					stroke="var(--color-gray-200)"
-				/>
-
-				{series.length > 0 &&
-					series.map((key, idx) => {
-						if (!isActive(spotlight, idx)) {
-							return null
-						}
-
-						return (
-							<Area
-								isAnimationActive={false}
-								key={key}
-								dataKey={key}
-								stackId={
-									viewConfig.display === 'Stacked area'
-										? 1
-										: idx
-								}
-								strokeWidth="2px"
-								stroke={strokeColors[idx % strokeColors.length]}
-								fill={strokeColors[idx % strokeColors.length]}
-								fillOpacity={
-									viewConfig.display === 'Stacked area'
-										? 0.1
-										: 0
-								}
-								connectNulls={
-									viewConfig.nullHandling === 'Connected'
-								}
-							/>
-						)
-					})}
-			</AreaChart>
-		</ResponsiveContainer>
-	)
-}
 
 const Graph = ({
 	data,
 	xAxisMetric,
 	yAxisMetric,
+	yAxisFunction,
 	title,
 	loading,
 	viewConfig,
-}: Props<ViewConfig>) => {
+}: ChartProps<ViewConfig>) => {
 	const series = useMemo(
 		() =>
 			_.uniq(data?.flatMap((d) => Object.keys(d))).filter(
@@ -268,15 +197,41 @@ const Graph = ({
 					data={data}
 					xAxisMetric={xAxisMetric}
 					yAxisMetric={yAxisMetric}
+					yAxisFunction={yAxisFunction}
 					viewConfig={viewConfig}
 					series={series}
 					spotlight={spotlight}
 				/>
 			)
+			break
+		case 'Bar chart':
+			innerChart = (
+				<BarChart
+					data={data}
+					xAxisMetric={xAxisMetric}
+					yAxisMetric={yAxisMetric}
+					yAxisFunction={yAxisFunction}
+					viewConfig={viewConfig}
+					series={series}
+					spotlight={spotlight}
+				/>
+			)
+			break
+		case 'Table':
+			innerChart = (
+				<MetricTable
+					data={data}
+					xAxisMetric={xAxisMetric}
+					yAxisMetric={yAxisMetric}
+					yAxisFunction={yAxisFunction}
+					viewConfig={viewConfig}
+					series={series}
+				/>
+			)
+			break
 	}
 
-	const showLegend = series.join('') !== ''
-
+	const showLegend = viewConfig.showLegend && series.join('') !== ''
 	return (
 		<Box cssClass={style.graphWrapper} shadow="small">
 			<Box
@@ -312,7 +267,7 @@ const Graph = ({
 						<Box>
 							<Text
 								size="small"
-								weight="medium"
+								color="default"
 								cssClass={style.titleText}
 							>
 								{title || 'Untitled metric view'}

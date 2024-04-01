@@ -2667,6 +2667,7 @@ export type GetWorkspaceForInviteLinkQuery = { __typename?: 'Query' } & {
 		| 'secret'
 		| 'workspace_id'
 		| 'workspace_name'
+		| 'project_id'
 	>
 }
 
@@ -3054,6 +3055,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 		| 'sessionsBillingLimit'
 		| 'errorsBillingLimit'
 		| 'logsBillingLimit'
+		| 'tracesBillingLimit'
 		| 'sessionsDailyAverage'
 		| 'errorsDailyAverage'
 		| 'logsDailyAverage'
@@ -4975,23 +4977,6 @@ export type MatchErrorTagQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type FindSimilarErrorsQueryVariables = Types.Exact<{
-	query: Types.Scalars['String']
-}>
-
-export type FindSimilarErrorsQuery = { __typename?: 'Query' } & {
-	find_similar_errors?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'MatchedErrorObject' } & Pick<
-					Types.MatchedErrorObject,
-					'id' | 'type' | 'event' | 'stack_trace' | 'score'
-				>
-			>
-		>
-	>
-}
-
 export type GetTraceQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	trace_id: Types.Scalars['String']
@@ -5311,7 +5296,6 @@ export const namedOperations = {
 		GetServiceByName: 'GetServiceByName' as const,
 		GetErrorTags: 'GetErrorTags' as const,
 		MatchErrorTag: 'MatchErrorTag' as const,
-		FindSimilarErrors: 'FindSimilarErrors' as const,
 		GetTrace: 'GetTrace' as const,
 		GetTraces: 'GetTraces' as const,
 		GetTracesMetrics: 'GetTracesMetrics' as const,

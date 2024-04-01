@@ -15,8 +15,20 @@ export type RelatedSession = {
 export type RelatedTrace = {
 	type: 'trace'
 	id: string
+	spanID?: string
 }
-export type RelatedResource = RelatedError | RelatedSession | RelatedTrace
+export type RelatedLogs = {
+	type: 'logs'
+	query: string
+	startDate: string
+	endDate: string
+	logCursor?: string
+}
+export type RelatedResource =
+	| RelatedError
+	| RelatedSession
+	| RelatedTrace
+	| RelatedLogs
 
 const LOCAL_STORAGE_WIDTH_KEY = 'related-resource-panel-width'
 const RELATED_RESOURCE_PARAM = 'related_resource'

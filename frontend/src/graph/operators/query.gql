@@ -759,6 +759,7 @@ query GetWorkspaceForInviteLink($secret: String!) {
 		secret
 		workspace_id
 		workspace_name
+		project_id
 	}
 }
 
@@ -1011,6 +1012,7 @@ query GetBillingDetails($workspace_id: ID!) {
 		sessionsBillingLimit
 		errorsBillingLimit
 		logsBillingLimit
+		tracesBillingLimit
 		sessionsDailyAverage
 		errorsDailyAverage
 		logsDailyAverage
@@ -2342,16 +2344,6 @@ query MatchErrorTag($query: String!) {
 		id
 		title
 		description
-		score
-	}
-}
-
-query FindSimilarErrors($query: String!) {
-	find_similar_errors(query: $query) {
-		id
-		type
-		event
-		stack_trace
 		score
 	}
 }

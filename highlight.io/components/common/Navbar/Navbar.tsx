@@ -43,6 +43,34 @@ const LaunchWeekBanner = () => {
 	return <Banner>{bannerMessage}</Banner>
 }
 
+const LivestreamBanner = () => {
+	return (
+		<Banner>
+			<div className={styles.launchWeekText}>
+				Distributed Tracing livestream: April 11 at 2pm PDT. Register
+				for&nbsp;
+				<Link
+					target="_blank"
+					href="https://lu.ma/b0uz0fiz"
+					className="w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+					rel="noreferrer"
+				>
+					Zoom
+				</Link>
+				&nbsp;or&nbsp;
+				<Link
+					target="_blank"
+					href="https://www.youtube.com/live/z9g-eOPwndk?si=AboTKeFhyKECgrL9"
+					className="w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+					rel="noreferrer"
+				>
+					YouTube
+				</Link>
+			</div>
+		</Banner>
+	)
+}
+
 const Navbar = ({
 	hideFreeTrialText,
 	isDocsPage,
@@ -84,6 +112,11 @@ const Navbar = ({
 		setPrevY(currentScrollPos)
 	}
 
+	const isLivestreamWeek = moment().isBetween(
+		'2024-03-28T00:00:00Z',
+		'2024-04-12T00:00:00Z',
+	)
+
 	useEffect(() => {
 		changeBackground()
 		window.addEventListener('scroll', changeBackground)
@@ -92,16 +125,20 @@ const Navbar = ({
 	return (
 		<>
 			{!hideGitHubPopup && <GithubPopup />}
-			{!hideBanner && (
-				<Link
-					href="/startups"
-					className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
-				>
-					<Typography type="copy3">
-						Got a startup? Apply for free Highlight credits!
-					</Typography>
-				</Link>
-			)}
+			{!hideBanner ? (
+				isLivestreamWeek ? (
+					<LivestreamBanner />
+				) : (
+					<Link
+						href="/startups"
+						className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+					>
+						<Typography type="copy3">
+							Got a startup? Apply for free Highlight credits!
+						</Typography>
+					</Link>
+				)
+			) : null}
 			<div
 				className={classNames(styles.container, {
 					[styles.hide]: scrolled && !fixed,

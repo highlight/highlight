@@ -119,27 +119,6 @@ export const getCostCents = (
 	)
 }
 
-export const getQuantity = (
-	productType: ProductType,
-	rateCents: number | undefined,
-	retentionPeriod: RetentionPeriod,
-	totalCents: number | undefined,
-	includedQuantity: number,
-): number | undefined => {
-	if (totalCents === undefined) {
-		return undefined
-	}
-
-	if (!rateCents) {
-		rateCents =
-			BASE_UNIT_COST_CENTS[productType] / UNIT_QUANTITY[productType]
-	}
-	return Math.floor(
-		totalCents / (rateCents * RETENTION_MULTIPLIER[retentionPeriod]) +
-			includedQuantity,
-	)
-}
-
 export const getNextBillingDate = (
 	isPaying: boolean,
 	nextInvoiceDate: Date | undefined,

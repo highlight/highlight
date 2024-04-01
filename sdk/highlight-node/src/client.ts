@@ -6,8 +6,9 @@ import type {
 	Span as OtelSpan,
 	SpanOptions,
 	Context,
+	BaggageEntry,
 } from '@opentelemetry/api'
-import { trace } from '@opentelemetry/api'
+import { propagation, trace } from '@opentelemetry/api'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
 import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
@@ -15,6 +16,7 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import { W3CBaggagePropagator } from '@opentelemetry/core'
 import type { IncomingHttpHeaders } from 'http'
 
 import { clearInterval } from 'timers'
@@ -44,6 +46,16 @@ const instrumentations = getNodeAutoInstrumentations({
 		},
 	},
 })
+
+/**
+ * Baggage propagation does not appear to be patching Fetch at the moment,
+ * but we hope it'll get fixed soon:
+ * https://github.com/open-telemetry/opentelemetry-js-contrib/pull/1951
+ *
+ * Docs: https://github.com/open-telemetry/opentelemetry-js/blob/main/packages/opentelemetry-core/README.md
+ */
+propagation.setGlobalPropagator(new W3CBaggagePropagator())
+
 registerInstrumentations({ instrumentations })
 
 // @ts-ignore
@@ -434,6 +446,12 @@ export class Highlight {
 							'highlight.session_id': secureSessionId,
 							'highlight.trace_id': requestId,
 						})
+
+						propagation
+							.getActiveBaggage()
+							?.setEntry(HIGHLIGHT_REQUEST_HEADER, {
+								value: `${secureSessionId}/${requestId}`,
+							} as BaggageEntry)
 					}
 
 					try {

@@ -28,12 +28,21 @@ export const quoteQueryValue = (value: string | number) => {
 		return String(value)
 	}
 
-	if (value.startsWith('"') || value.startsWith("'")) {
+	const isQuotedString =
+		(value.startsWith('"') && value.endsWith('"')) ||
+		(value.startsWith("'") && value.endsWith("'")) ||
+		(value.startsWith('`') && value.endsWith('`'))
+	if (isQuotedString) {
 		return value
 	}
 
-	if (value.indexOf(' ') > -1) {
-		return `"${value}"`
+	const containsSpace = value.indexOf(' ') > -1
+	const containsQuote =
+		value.indexOf('"') > -1 ||
+		value.indexOf("'") > -1 ||
+		value.indexOf('`') > -1
+	if (containsSpace || containsQuote) {
+		return `"${value.replace(/"/g, '\\"')}"`
 	}
 
 	return value
@@ -49,6 +58,8 @@ export type TokenGroup = {
 	expression?: SearchExpression
 	error?: string
 }
+
+const QUOTE_CHARS = ['"', "'", '`']
 
 export const buildTokenGroups = (tokens: SearchToken[]) => {
 	const tokenGroups: TokenGroup[] = []
@@ -78,7 +89,7 @@ export const buildTokenGroups = (tokens: SearchToken[]) => {
 		}
 
 		// Check if we're inside quotes or parentheses
-		if (token.text === '"') {
+		if (QUOTE_CHARS.includes(token.text)) {
 			insideQuotes = !insideQuotes
 		} else if (token.text === '(') {
 			insideParens = true

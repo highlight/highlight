@@ -43,6 +43,7 @@ import {
 	useLocation,
 	useNavigate,
 } from 'react-router-dom'
+import { Toaster } from 'sonner'
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
@@ -185,6 +186,7 @@ const App = () => {
 						}}
 					>
 						<LoadingPage />
+						<Toaster />
 						<BrowserRouter>
 							<QueryParamProvider
 								adapter={ReactRouter6Adapter}

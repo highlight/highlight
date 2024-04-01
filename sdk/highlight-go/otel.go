@@ -42,6 +42,8 @@ const LogEvent = "log"
 const LogSeverityAttribute = "log.severity"
 const LogMessageAttribute = "log.message"
 const LogSeverityDefaultAttribute = "level"
+const LogSeverityLegacyAttribute = "severity"
+const LogMessageLegacyAttribute = "message"
 
 const MetricEvent = "metric"
 const MetricSpanName = "highlight-metric"
@@ -53,6 +55,7 @@ const UtilitySpanName = "highlight-ctx"
 type TraceType string
 
 const TraceTypeNetworkRequest TraceType = "http.request"
+const TraceTypeWebSocketRequest TraceType = "http.request.ws"
 const TraceTypeFrontendConsole TraceType = "frontend.console"
 const TraceTypeHighlightInternal TraceType = "highlight.internal"
 const TraceTypePhoneHome TraceType = "highlight.phonehome"
@@ -96,6 +99,11 @@ func (ts highlightSampler) Description() string {
 
 // creates a per-span-kind sampler that samples each kind at a provided fraction.
 func getSampler() highlightSampler {
+	if len(conf.samplingRateMap) == 0 {
+		conf.samplingRateMap = map[trace.SpanKind]float64{
+			trace.SpanKindUnspecified: 1.,
+		}
+	}
 	return highlightSampler{
 		description: fmt.Sprintf("TraceIDRatioBased{%+v}", conf.samplingRateMap),
 		traceIDUpperBounds: lo.MapEntries(conf.samplingRateMap, func(key trace.SpanKind, value float64) (trace.SpanKind, uint64) {
@@ -132,17 +140,18 @@ func CreateTracerProvider(endpoint string) (*sdktrace.TracerProvider, error) {
 	}
 	return sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(getSampler()),
-		sdktrace.WithBatcher(
-			exporter,
-			sdktrace.WithBatchTimeout(1000*time.Millisecond),
-			sdktrace.WithMaxExportBatchSize(128),
-			sdktrace.WithMaxQueueSize(1024)),
+		sdktrace.WithBatcher(exporter,
+			sdktrace.WithBatchTimeout(time.Second),
+			sdktrace.WithExportTimeout(30*time.Second),
+			sdktrace.WithMaxExportBatchSize(1024*1024),
+			sdktrace.WithMaxQueueSize(1024*1024),
+		),
 		sdktrace.WithResource(resources),
 	), nil
 }
 
-// deafult tracer is a noop tracer
-var defaultTracerProvider trace.TracerProvider = otel.GetTracerProvider()
+// default tracer is a noop tracer
+var defaultTracerProvider = otel.GetTracerProvider()
 
 func StartOTLP() (*OTLP, error) {
 	tracerProvider, err := CreateTracerProvider(conf.otlpEndpoint)
