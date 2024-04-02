@@ -33,6 +33,8 @@ export const OSSCallToAction = () => {
 					<div className="flex flex-col lg:flex-row justify-center gap-4 w-full px-5 md:w-auto">
 						<PrimaryButton
 							href="https://lu.ma/b0uz0fiz"
+							target="_blank"
+							rel="noreferrer"
 							className="md:max-w-[180px]"
 						>
 							<div className="flex justify-center items-center gap-3">

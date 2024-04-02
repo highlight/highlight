@@ -45,19 +45,17 @@ const LaunchWeekBanner = () => {
 
 const LivestreamBanner = () => {
 	return (
-		<Banner>
-			<div className={styles.launchWeekText}>
+		<Link
+			href="https://lu.ma/b0uz0fiz"
+			target="_blank"
+			rel="noreferrer"
+			className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+		>
+			<Typography type="copy3">
 				Distributed Tracing livestream: April 11 at 2pm PDT. Register
-				<Link
-					target="_blank"
-					href="https://lu.ma/b0uz0fiz"
-					className="w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
-					rel="noreferrer"
-				>
-					here.
-				</Link>
-			</div>
-		</Banner>
+				<span className="font-semibold"> here</span>.
+			</Typography>
+		</Link>
 	)
 }
 
