@@ -1674,6 +1674,29 @@ function buildNode(n2, options) {
         const isRemoteOrDynamicCss = tagName === "style" && name === "_cssText";
         if (isRemoteOrDynamicCss && hackCss && typeof value === "string") {
           value = addHoverClass(value, cache);
+          if (typeof value === "string") {
+            const regex = /url\("https:\/\/\S*(.eot|.woff2|.ttf|.woff)\S*"\)/gm;
+            let m;
+            const fontUrls = [];
+            const PROXY_URL = "https://replay-cors-proxy.highlightrun.workers.dev";
+            while ((m = regex.exec(value)) !== null) {
+              if (m.index === regex.lastIndex) {
+                regex.lastIndex++;
+              }
+              m.forEach((match, groupIndex) => {
+                if (groupIndex === 0) {
+                  const url = match.slice(5, match.length - 2);
+                  fontUrls.push({
+                    originalUrl: url,
+                    proxyUrl: url.replace(url, `${PROXY_URL}?url=${url}`)
+                  });
+                }
+              });
+            }
+            fontUrls.forEach((urlPair) => {
+              value = value.replace(urlPair.originalUrl, urlPair.proxyUrl);
+            });
+          }
         }
         if ((isTextarea || isRemoteOrDynamicCss) && typeof value === "string") {
           node.appendChild(doc.createTextNode(value));
