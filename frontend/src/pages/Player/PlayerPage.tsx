@@ -18,10 +18,7 @@ import PlayerCommentCanvas, {
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas'
 import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook'
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerState'
-import {
-	useLinkLogCursor,
-	useShowSearchParam,
-} from '@pages/Player/PlayerHook/utils'
+import { useLinkLogCursor } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	ReplayerContextProvider,
@@ -66,7 +63,6 @@ const PlayerPage = () => {
 		project_id: string
 		session_secure_id: string
 	}>()
-	const { showSearch } = useShowSearchParam()
 	const [{ integrated }] = useIntegratedLocalStorage(project_id!, 'client')
 
 	const [resizeListener, sizes] = useResizeAware()
@@ -119,10 +115,9 @@ const PlayerPage = () => {
 
 	const {
 		setShowLeftPanel,
-		showLeftPanel,
+		showLeftPanel: showLeftPanelPreference,
 		showRightPanel: showRightPanelPreference,
 	} = usePlayerConfiguration()
-	console.log('::: PlayerPage', showLeftPanel)
 	const { rightPanelView } = usePlayerUIContext()
 	const showRightPanel =
 		showRightPanelPreference || rightPanelView === RightPanelView.Comments
@@ -133,13 +128,6 @@ const PlayerPage = () => {
 			setShowLeftPanel(false)
 		}
 	}, [logCursor, setShowLeftPanel])
-
-	useEffect(() => {
-		if (!showSearch) {
-			setShowLeftPanel(false)
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
 
 	const toolbarContext = useToolbarItems()
 
@@ -233,8 +221,9 @@ const PlayerPage = () => {
 
 	useEffect(() => analytics.page('Session'), [session_secure_id])
 
-	const shouldShowLeftPanel =
-		showLeftPanel && (isLoggedIn || project_id === DEMO_PROJECT_ID)
+	const showLeftPanel =
+		showLeftPanelPreference &&
+		(isLoggedIn || project_id === DEMO_PROJECT_ID)
 
 	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
 	const controllerWidth = centerColumnSize.width
@@ -274,7 +263,7 @@ const PlayerPage = () => {
 						<SessionLevelBarV2
 							width={
 								width -
-								(shouldShowLeftPanel
+								(showLeftPanel
 									? SESSION_FEED_LEFT_PANEL_WIDTH
 									: 0) -
 								3 * style.PLAYER_PADDING
@@ -475,7 +464,7 @@ const PlayerPage = () => {
 					</Helmet>
 					<Box
 						cssClass={clsx(style.playerBody, {
-							[style.withLeftPanel]: shouldShowLeftPanel,
+							[style.withLeftPanel]: showLeftPanel,
 						})}
 						height="full"
 						width="full"
@@ -483,8 +472,7 @@ const PlayerPage = () => {
 					>
 						<Box
 							cssClass={clsx(style.playerLeftPanel, {
-								[style.playerLeftPanelHidden]:
-									!shouldShowLeftPanel,
+								[style.playerLeftPanelHidden]: !showLeftPanel,
 							})}
 						>
 							<SessionFeedV3 />
