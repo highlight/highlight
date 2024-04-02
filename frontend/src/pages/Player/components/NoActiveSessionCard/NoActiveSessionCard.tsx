@@ -1,10 +1,10 @@
 import { Box, Callout, Text } from '@highlight-run/ui/components'
 import { useEffect } from 'react'
 
-import { useErrorPageNavigation } from '@/pages/ErrorsV2/ErrorsV2'
+import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 
 const NoActiveSessionCard = () => {
-	const { setShowLeftPanel } = useErrorPageNavigation()
+	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	useEffect(() => {
 		setShowLeftPanel(true)

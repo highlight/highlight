@@ -648,7 +648,7 @@ func (client *Client) QueryErrorObjectsHistogram(ctx context.Context, projectId 
 
 	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
 
-	sb, err := readErrorsObjects(selectCols, params, projectId, orderBy)
+	sb, err := readErrorsObjects(selectCols, params, projectId, "1", orderBy)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -684,7 +684,9 @@ func (client *Client) QueryErrorGroups(ctx context.Context, projectId int, count
 	}
 	offset := (pageInt - 1) * count
 
-	sb, err := readErrorGroups(params, projectId)
+	var sb *sqlbuilder.SelectBuilder
+	var err error
+	sb, err = readErrorGroups(params, projectId)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -720,10 +722,10 @@ func readErrorGroups(params modelInputs.QueryInput, projectId int) (*sqlbuilder.
 	sbInner := sqlbuilder.NewSelectBuilder()
 	sbInner.Select("ErrorGroupID")
 	sbInner.From(ErrorsJoinedTableConfig.TableName)
-	sbInner.Where(sb.Equal("ProjectId", projectId))
+	sbInner.Where(sbInner.Equal("ProjectId", projectId))
 
-	sbInner.Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
-		Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
+	sbInner.Where(sbInner.LessEqualThan("Timestamp", params.DateRange.EndDate)).
+		Where(sbInner.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
 
 	parser.AssignSearchFilters(sbInner, params.Query, ErrorsJoinedTableConfig)
 
@@ -732,13 +734,16 @@ func readErrorGroups(params modelInputs.QueryInput, projectId int) (*sqlbuilder.
 	return sb, nil
 }
 
-func readErrorsObjects(selectCols string, params modelInputs.QueryInput, projectId int, orderBy string) (*sqlbuilder.SelectBuilder, error) {
+func readErrorsObjects(selectCols string, params modelInputs.QueryInput, projectId int, groupBy string, orderBy string) (*sqlbuilder.SelectBuilder, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select(selectCols)
 	sb.From(fmt.Sprintf("%s FINAL", ErrorsJoinedTableConfig.TableName))
 	sb.Where(sb.Equal("ProjectId", projectId))
 
 	parser.AssignSearchFilters(sb, params.Query, ErrorsJoinedTableConfig)
+
+	sb.OrderBy(orderBy)
+	sb.GroupBy(groupBy)
 
 	return sb, nil
 }

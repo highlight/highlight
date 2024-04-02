@@ -18,19 +18,19 @@ import {
 	Box,
 	ButtonIcon,
 	Callout,
+	DEFAULT_TIME_PRESETS,
 	IconSolidExitRight,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
-import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { CompleteSetup } from '@pages/ErrorsV2/CompleteSetup/CompleteSetup'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
 import ErrorTabContent from '@pages/ErrorsV2/ErrorTabContent/ErrorTabContent'
 import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import { IntegrationCta } from '@pages/ErrorsV2/IntegrationCta'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
-import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
+import { SearchPanel } from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
 import {
 	PlayerSearchParameters,
@@ -45,13 +45,22 @@ import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { apiObject } from 'rudder-sdk-js'
-import { StringParam, useQueryParams } from 'use-query-params'
+import {
+	NumberParam,
+	StringParam,
+	useQueryParam,
+	useQueryParams,
+	withDefault,
+} from 'use-query-params'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { QueryParam } from '@/components/Search/SearchForm/SearchForm'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
+import { useSearchTime } from '@/hooks/useSearchTime'
 import ErrorIssueButton from '@/pages/ErrorsV2/ErrorIssueButton/ErrorIssueButton'
 import ErrorShareButton from '@/pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
 import { ErrorStateSelect } from '@/pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
+import { useGetErrors } from '@/pages/ErrorsV2/useGetErrors'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
@@ -59,10 +68,29 @@ import * as styles from './styles.css'
 
 type Params = { project_id: string; error_secure_id: string; referrer?: string }
 
+const PAGE_PARAM = withDefault(NumberParam, 1)
+
 export default function ErrorsV2() {
 	const { project_id, error_secure_id } = useParams<Params>()
 	const { isLoggedIn } = useAuthContext()
 	const [{ integrated }] = useIntegratedLocalStorage(project_id!, 'server')
+
+	const [query, setQuery] = useQueryParam('query', QueryParam)
+	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
+
+	const { startDate, endDate, selectedPreset } = useSearchTime({
+		presets: DEFAULT_TIME_PRESETS,
+		initialPreset: DEFAULT_TIME_PRESETS[5],
+	})
+
+	const getErrorsData = useGetErrors({
+		query,
+		project_id,
+		startDate,
+		endDate,
+		page,
+		disablePolling: !selectedPreset,
+	})
 
 	const { data, loading, errorQueryingErrorGroup } =
 		useErrorGroup(error_secure_id)
@@ -76,7 +104,9 @@ export default function ErrorsV2() {
 	const location = useLocation()
 	const { showSearch } = useShowSearchParam()
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
-	const navigation = useErrorPageNavigation()
+	const navigation = useErrorPageNavigation({
+		searchResultSecureIds: getErrorsData.errorGroupSecureIds,
+	})
 
 	useAllHotKeys(navigation)
 
@@ -143,7 +173,19 @@ export default function ErrorsV2() {
 
 			{!isBlocked && (
 				<Box cssClass={styles.searchPanelContainer}>
-					<SearchPanel />
+					{/* TODO(spenny): can we clean this up */}
+					<SearchPanel
+						query={query}
+						setQuery={setQuery}
+						page={page}
+						setPage={setPage}
+						loading={getErrorsData.loading}
+						errorGroups={getErrorsData.errorGroups}
+						moreErrors={getErrorsData.moreErrors}
+						totalCount={getErrorsData.totalCount}
+						histogramBucketSize={getErrorsData.histogramBucketSize}
+						resetMoreErrors={getErrorsData.resetMoreErrors}
+					/>
 				</Box>
 			)}
 
@@ -447,10 +489,13 @@ export function useErrorGroup(errorSecureId?: string) {
 	return { data, loading, errorQueryingErrorGroup }
 }
 
-export function useErrorPageNavigation() {
+function useErrorPageNavigation({
+	searchResultSecureIds,
+}: {
+	searchResultSecureIds: string[]
+}) {
 	const navigate = useNavigate()
 	const { project_id, error_secure_id } = useParams<Params>()
-	const { searchResultSecureIds } = useErrorSearchContext()
 	const { showLeftPanel, setShowLeftPanel } = usePlayerConfiguration()
 	const goToErrorGroup = useCallback(
 		(secureId: string) => {

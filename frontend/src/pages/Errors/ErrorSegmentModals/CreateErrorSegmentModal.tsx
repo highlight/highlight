@@ -5,10 +5,11 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { ErrorSegment, Maybe } from '@graph/schemas'
-import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
+import { useQueryParam } from 'use-query-params'
+
+import { QueryParam } from '@/components/Search/SearchForm/SearchForm'
 
 interface Props {
 	showModal: boolean
@@ -41,7 +42,8 @@ export const CreateErrorSegmentModal = ({
 		segment_id: string
 	}>()
 
-	const { searchQuery } = useErrorSearchContext()
+	// TODO(spenny): use new saved searches
+	const [query] = useQueryParam('query', QueryParam)
 
 	const onSubmit = (newSegmentName: string) => {
 		if (newSegmentName === currentSegment?.name) {
@@ -55,7 +57,7 @@ export const CreateErrorSegmentModal = ({
 					project_id: project_id!,
 					id: currentSegment.id!,
 					name: newSegmentName,
-					query: searchQuery,
+					query,
 				},
 				onCompleted: () => {
 					message.success(
@@ -79,7 +81,7 @@ export const CreateErrorSegmentModal = ({
 				variables: {
 					project_id: project_id!,
 					name: newSegmentName,
-					query: searchQuery,
+					query,
 				},
 				refetchQueries: [namedOperations.Query.GetErrorSegments],
 				onCompleted: (r) => {
@@ -114,7 +116,7 @@ export const CreateErrorSegmentModal = ({
 			loading={loading}
 			onHideModal={onHideModal}
 			onSubmit={onSubmit}
-			queryBuilder={<ErrorQueryBuilder readonly />}
+			queryBuilder={<div>TODO(spenny)</div>}
 			shouldUpdate={shouldUpdate}
 		/>
 	)

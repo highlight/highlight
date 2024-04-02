@@ -39,10 +39,6 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
-import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import ErrorQueryBuilder, {
-	CUSTOM_FIELDS as ERROR_CUSTOM_FIELDS,
-} from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { SearchContextProvider } from '@pages/Sessions/SearchContext/SearchContext'
 import SessionQueryBuilder, {
@@ -55,7 +51,7 @@ import { showSupportMessage } from '@util/window'
 import { message } from 'antd'
 import _, { upperFirst } from 'lodash'
 import moment from 'moment'
-import React, { useState } from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const DATE_RANGE_PRESETS = [DEFAULT_TIME_PRESETS[1], DEFAULT_TIME_PRESETS[3]]
@@ -172,19 +168,6 @@ export const ProjectProductFilters: React.FC<{
 		CUSTOM_FIELDS,
 	)
 	const { searchQuery, setSearchQuery } = sessionSearchContext
-	const errorSearchContext = useGetBaseSearchContext(
-		'errors',
-		`{"isAnd":true,"rules":[]}`,
-		'highlightSegmentPickerForProjectFilterErrorsSelectedSegmentId',
-		ERROR_CUSTOM_FIELDS,
-	)
-	const [searchResultSecureIds, setSearchResultSecureIds] = useState<
-		string[]
-	>([])
-	const {
-		searchQuery: errorSearchQuery,
-		setSearchQuery: setErrorSearchQuery,
-	} = errorSearchContext
 
 	const formStore = Form.useStore<{
 		samplingPercent: number
@@ -263,10 +246,7 @@ export const ProjectProductFilters: React.FC<{
 			minuteRateLimit: c?.minute_rate_limit ?? null,
 		})
 
-		if (
-			product === ProductType.Sessions ||
-			product === ProductType.Errors
-		) {
+		if (product === ProductType.Sessions) {
 			const params = {} as { [key: string]: string }
 			for (const pair of (c?.exclusion_query ?? '').split(' ')) {
 				const [key, value] = pair.split('=')
@@ -282,17 +262,9 @@ export const ProjectProductFilters: React.FC<{
 					] = `${op}:${value}`
 				}
 			}
-			;(product === ProductType.Sessions
-				? setSearchQuery
-				: setErrorSearchQuery)(buildQueryStateString(params))
+			setSearchQuery(buildQueryStateString(params))
 		}
-	}, [
-		data?.projectSettings?.sampling,
-		formStore,
-		product,
-		setErrorSearchQuery,
-		setSearchQuery,
-	])
+	}, [data?.projectSettings?.sampling, formStore, product, setSearchQuery])
 
 	// updates the form state from the query builder context (for sessions / errors)
 	React.useEffect(() => {
@@ -304,8 +276,6 @@ export const ProjectProductFilters: React.FC<{
 			for (const [key, op, v] of JSON.parse(
 				product === ProductType.Sessions
 					? searchQuery
-					: product === ProductType.Errors
-					? errorSearchQuery
 					: JSON.stringify({ rules: [] }),
 			).rules as [key: string, op: Operator, v: string][]) {
 				const [_, k] = key.split(/_(.*)/s)
@@ -321,7 +291,7 @@ export const ProjectProductFilters: React.FC<{
 			}
 			formStore.setValue('exclusionQuery', rules.join(' '))
 		}
-	}, [errorSearchQuery, formStore, product, searchQuery])
+	}, [formStore, product, searchQuery])
 
 	React.useEffect(resetConfig, [resetConfig])
 
@@ -497,28 +467,7 @@ export const ProjectProductFilters: React.FC<{
 									/>
 								</SearchContextProvider>
 							) : (
-								<ErrorSearchContextProvider
-									value={{
-										...errorSearchContext,
-										searchResultSecureIds,
-										setSearchResultSecureIds,
-									}}
-								>
-									<ErrorQueryBuilder
-										minimal
-										readonly={view}
-										operators={['is', 'is_not']}
-										customFields={ERROR_CUSTOM_FIELDS.filter(
-											(f) =>
-												!f.options?.operators ||
-												f.options.operators ===
-													BOOLEAN_OPERATORS,
-										)}
-										droppedFieldTypes={['error']}
-										onlyAnd
-										setDefault={false}
-									/>
-								</ErrorSearchContextProvider>
+								<div>TODO(spenny):support errors</div>
 							)}
 						</Box>
 						{view ? (

@@ -18,9 +18,11 @@ export const START_PAGE = 1
 const OPENSEARCH_MAX_RESULTS = 10000
 const MAX_PAGES = Math.floor(OPENSEARCH_MAX_RESULTS / PAGE_SIZE) - 1
 
+type SetPageType = (newPage: number) => void
+
 interface Props {
 	page?: number
-	setPage: React.Dispatch<React.SetStateAction<number>>
+	setPage: SetPageType | React.Dispatch<React.SetStateAction<number>>
 	totalCount: number
 	pageSize?: number
 	siblingCount?: number
@@ -45,9 +47,12 @@ const SearchPagination = ({
 	const pageCount = Math.min(MAX_PAGES, Math.ceil(totalCount / $pageSize))
 
 	const skip = (offset: number) => {
-		return setPage((p) =>
-			clamp((p || START_PAGE) + offset, START_PAGE, pageCount),
+		const newPage = clamp(
+			(page || START_PAGE) + offset,
+			START_PAGE,
+			pageCount,
 		)
+		return setPage(newPage)
 	}
 
 	// startIdx | dots | siblings | currentIdx | siblings | dots | endIdx

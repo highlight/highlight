@@ -22,7 +22,6 @@ import {
 	ERROR_TYPE,
 	SESSION_TYPE,
 } from '@/components/QueryBuilder/QueryBuilder'
-import { useErrorSearchContext } from '@/pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { useSearchContext } from '@/pages/Sessions/SearchContext/SearchContext'
 
 export const isErrorAttribute = (attribute: typeof ATTRIBUTES[number]) => {
@@ -100,7 +99,6 @@ export const useAttributeSearch = (form: FormState<CommandBarSearch>) => {
 	const { projectId } = useProjectId()
 	const { commandBarDialog } = useGlobalContext()
 	const { createNewSearch } = useSearchContext()
-	const { createNewSearch: createNewErrorSearch } = useErrorSearchContext()
 	return (
 		attribute: Attribute | undefined,
 		params?: { newTab?: boolean; timeRange?: TimeRangeParams },
@@ -124,12 +122,7 @@ export const useAttributeSearch = (form: FormState<CommandBarSearch>) => {
 
 		if (!params?.newTab) {
 			if (isError) {
-				createNewErrorSearch(
-					buildQueryStateString(qbParams),
-					params?.timeRange?.startDate,
-					params?.timeRange?.endDate,
-					selectedPreset,
-				)
+				// TODO(spenny)
 			} else {
 				createNewSearch(
 					buildQueryStateString(qbParams),

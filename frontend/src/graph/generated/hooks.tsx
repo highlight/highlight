@@ -7983,6 +7983,109 @@ export type GetErrorGroupsClickhouseQueryResult = Apollo.QueryResult<
 	Types.GetErrorGroupsClickhouseQuery,
 	Types.GetErrorGroupsClickhouseQueryVariables
 >
+export const GetErrorGroupsDocument = gql`
+	query GetErrorGroups(
+		$project_id: ID!
+		$count: Int!
+		$params: QueryInput!
+		$page: Int
+	) {
+		error_groups(
+			project_id: $project_id
+			count: $count
+			params: $params
+			page: $page
+		) {
+			error_groups {
+				created_at
+				updated_at
+				id
+				secure_id
+				type
+				event
+				state
+				state
+				snoozed_until
+				environments
+				stack_trace
+				structured_stack_trace {
+					fileName
+					lineNumber
+					functionName
+					columnNumber
+				}
+				error_frequency
+				error_metrics {
+					error_group_id
+					date
+					name
+					value
+				}
+				is_public
+				project_id
+				error_tag {
+					id
+					created_at
+					title
+					description
+				}
+			}
+			totalCount
+		}
+	}
+`
+
+/**
+ * __useGetErrorGroupsQuery__
+ *
+ * To run a query within a React component, call `useGetErrorGroupsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorGroupsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorGroupsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      count: // value for 'count'
+ *      params: // value for 'params'
+ *      page: // value for 'page'
+ *   },
+ * });
+ */
+export function useGetErrorGroupsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorGroupsQuery,
+		Types.GetErrorGroupsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorGroupsQuery,
+		Types.GetErrorGroupsQueryVariables
+	>(GetErrorGroupsDocument, baseOptions)
+}
+export function useGetErrorGroupsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorGroupsQuery,
+		Types.GetErrorGroupsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorGroupsQuery,
+		Types.GetErrorGroupsQueryVariables
+	>(GetErrorGroupsDocument, baseOptions)
+}
+export type GetErrorGroupsQueryHookResult = ReturnType<
+	typeof useGetErrorGroupsQuery
+>
+export type GetErrorGroupsLazyQueryHookResult = ReturnType<
+	typeof useGetErrorGroupsLazyQuery
+>
+export type GetErrorGroupsQueryResult = Apollo.QueryResult<
+	Types.GetErrorGroupsQuery,
+	Types.GetErrorGroupsQueryVariables
+>
 export const GetErrorsHistogramClickhouseDocument = gql`
 	query GetErrorsHistogramClickhouse(
 		$project_id: ID!
@@ -8049,6 +8152,73 @@ export type GetErrorsHistogramClickhouseLazyQueryHookResult = ReturnType<
 export type GetErrorsHistogramClickhouseQueryResult = Apollo.QueryResult<
 	Types.GetErrorsHistogramClickhouseQuery,
 	Types.GetErrorsHistogramClickhouseQueryVariables
+>
+export const GetErrorsHistogramDocument = gql`
+	query GetErrorsHistogram(
+		$project_id: ID!
+		$params: QueryInput!
+		$histogram_options: DateHistogramOptions!
+	) {
+		errors_histogram(
+			project_id: $project_id
+			params: $params
+			histogram_options: $histogram_options
+		) {
+			bucket_times
+			error_objects
+		}
+	}
+`
+
+/**
+ * __useGetErrorsHistogramQuery__
+ *
+ * To run a query within a React component, call `useGetErrorsHistogramQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorsHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorsHistogramQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *      histogram_options: // value for 'histogram_options'
+ *   },
+ * });
+ */
+export function useGetErrorsHistogramQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorsHistogramQuery,
+		Types.GetErrorsHistogramQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorsHistogramQuery,
+		Types.GetErrorsHistogramQueryVariables
+	>(GetErrorsHistogramDocument, baseOptions)
+}
+export function useGetErrorsHistogramLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorsHistogramQuery,
+		Types.GetErrorsHistogramQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorsHistogramQuery,
+		Types.GetErrorsHistogramQueryVariables
+	>(GetErrorsHistogramDocument, baseOptions)
+}
+export type GetErrorsHistogramQueryHookResult = ReturnType<
+	typeof useGetErrorsHistogramQuery
+>
+export type GetErrorsHistogramLazyQueryHookResult = ReturnType<
+	typeof useGetErrorsHistogramLazyQuery
+>
+export type GetErrorsHistogramQueryResult = Apollo.QueryResult<
+	Types.GetErrorsHistogramQuery,
+	Types.GetErrorsHistogramQueryVariables
 >
 export const GetProjectsDocument = gql`
 	query GetProjects {

@@ -2599,6 +2599,63 @@ export type GetErrorGroupsClickhouseQuery = { __typename?: 'Query' } & {
 		}
 }
 
+export type GetErrorGroupsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	count: Types.Scalars['Int']
+	params: Types.QueryInput
+	page?: Types.Maybe<Types.Scalars['Int']>
+}>
+
+export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
+	error_groups: { __typename?: 'ErrorResults' } & Pick<
+		Types.ErrorResults,
+		'totalCount'
+	> & {
+			error_groups: Array<
+				{ __typename?: 'ErrorGroup' } & Pick<
+					Types.ErrorGroup,
+					| 'created_at'
+					| 'updated_at'
+					| 'id'
+					| 'secure_id'
+					| 'type'
+					| 'event'
+					| 'state'
+					| 'snoozed_until'
+					| 'environments'
+					| 'stack_trace'
+					| 'error_frequency'
+					| 'is_public'
+					| 'project_id'
+				> & {
+						structured_stack_trace: Array<
+							Types.Maybe<
+								{ __typename?: 'ErrorTrace' } & Pick<
+									Types.ErrorTrace,
+									| 'fileName'
+									| 'lineNumber'
+									| 'functionName'
+									| 'columnNumber'
+								>
+							>
+						>
+						error_metrics: Array<
+							{ __typename?: 'ErrorDistributionItem' } & Pick<
+								Types.ErrorDistributionItem,
+								'error_group_id' | 'date' | 'name' | 'value'
+							>
+						>
+						error_tag?: Types.Maybe<
+							{ __typename?: 'ErrorTag' } & Pick<
+								Types.ErrorTag,
+								'id' | 'created_at' | 'title' | 'description'
+							>
+						>
+					}
+			>
+		}
+}
+
 export type GetErrorsHistogramClickhouseQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	query: Types.ClickhouseQuery
@@ -2607,6 +2664,19 @@ export type GetErrorsHistogramClickhouseQueryVariables = Types.Exact<{
 
 export type GetErrorsHistogramClickhouseQuery = { __typename?: 'Query' } & {
 	errors_histogram_clickhouse: { __typename?: 'ErrorsHistogram' } & Pick<
+		Types.ErrorsHistogram,
+		'bucket_times' | 'error_objects'
+	>
+}
+
+export type GetErrorsHistogramQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.QueryInput
+	histogram_options: Types.DateHistogramOptions
+}>
+
+export type GetErrorsHistogramQuery = { __typename?: 'Query' } & {
+	errors_histogram: { __typename?: 'ErrorsHistogram' } & Pick<
 		Types.ErrorsHistogram,
 		'bucket_times' | 'error_objects'
 	>
@@ -5186,7 +5256,9 @@ export const namedOperations = {
 			'GetSessionsHistogramClickhouse' as const,
 		GetSessionsReport: 'GetSessionsReport' as const,
 		GetErrorGroupsClickhouse: 'GetErrorGroupsClickhouse' as const,
+		GetErrorGroups: 'GetErrorGroups' as const,
 		GetErrorsHistogramClickhouse: 'GetErrorsHistogramClickhouse' as const,
+		GetErrorsHistogram: 'GetErrorsHistogram' as const,
 		GetProjects: 'GetProjects' as const,
 		GetWorkspace: 'GetWorkspace' as const,
 		GetWorkspaceForInviteLink: 'GetWorkspaceForInviteLink' as const,

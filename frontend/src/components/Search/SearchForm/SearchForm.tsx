@@ -108,6 +108,7 @@ export type SearchFormProps = {
 	hideCreateAlert?: boolean
 	savedSegmentType?: 'Trace' | 'Log'
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
+	isPanelView?: boolean
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({
@@ -127,6 +128,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	hideCreateAlert,
 	savedSegmentType,
 	textAreaRef,
+	// isPanelView, TODO(spenny): UI view
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
