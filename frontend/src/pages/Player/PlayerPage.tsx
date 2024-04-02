@@ -18,7 +18,10 @@ import PlayerCommentCanvas, {
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas'
 import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook'
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerState'
-import { useLinkLogCursor } from '@pages/Player/PlayerHook/utils'
+import {
+	useLinkLogCursor,
+	useShowSearchParam,
+} from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	ReplayerContextProvider,
@@ -128,6 +131,13 @@ const PlayerPage = () => {
 			setShowLeftPanel(false)
 		}
 	}, [logCursor, setShowLeftPanel])
+
+	const { showSearch } = useShowSearchParam()
+	useEffect(() => {
+		if (!showSearch) {
+			setShowLeftPanel(false)
+		}
+	}, [showSearch, setShowLeftPanel])
 
 	const toolbarContext = useToolbarItems()
 
