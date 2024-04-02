@@ -119,10 +119,10 @@ const PlayerPage = () => {
 
 	const {
 		setShowLeftPanel,
-		showLeftPanel: showLeftPanelPreference,
+		showLeftPanel,
 		showRightPanel: showRightPanelPreference,
 	} = usePlayerConfiguration()
-	console.log('::: PlayerPage', showLeftPanelPreference)
+	console.log('::: PlayerPage', showLeftPanel)
 	const { rightPanelView } = usePlayerUIContext()
 	const showRightPanel =
 		showRightPanelPreference || rightPanelView === RightPanelView.Comments
@@ -233,9 +233,8 @@ const PlayerPage = () => {
 
 	useEffect(() => analytics.page('Session'), [session_secure_id])
 
-	const showLeftPanel =
-		showLeftPanelPreference &&
-		(isLoggedIn || project_id === DEMO_PROJECT_ID)
+	const shouldShowLeftPanel =
+		showLeftPanel && (isLoggedIn || project_id === DEMO_PROJECT_ID)
 
 	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
 	const controllerWidth = centerColumnSize.width
@@ -275,7 +274,7 @@ const PlayerPage = () => {
 						<SessionLevelBarV2
 							width={
 								width -
-								(showLeftPanel
+								(shouldShowLeftPanel
 									? SESSION_FEED_LEFT_PANEL_WIDTH
 									: 0) -
 								3 * style.PLAYER_PADDING
@@ -476,7 +475,7 @@ const PlayerPage = () => {
 					</Helmet>
 					<Box
 						cssClass={clsx(style.playerBody, {
-							[style.withLeftPanel]: showLeftPanel,
+							[style.withLeftPanel]: shouldShowLeftPanel,
 						})}
 						height="full"
 						width="full"
@@ -484,7 +483,8 @@ const PlayerPage = () => {
 					>
 						<Box
 							cssClass={clsx(style.playerLeftPanel, {
-								[style.playerLeftPanelHidden]: !showLeftPanel,
+								[style.playerLeftPanelHidden]:
+									!shouldShowLeftPanel,
 							})}
 						>
 							<SessionFeedV3 />
