@@ -9,6 +9,8 @@ const NoActiveErrorCard = () => {
 	const { setShowLeftPanel } = useErrorPageNavigation()
 
 	useEffect(() => {
+		// TODO: Figure out why this shows the search panel but does not bump out
+		// the main content to make room for it.
 		setShowLeftPanel(true)
 	}, [setShowLeftPanel])
 
