@@ -44,7 +44,6 @@ import { HighlightEvent } from '../HighlightEvent'
 import { ReplayerContextInterface, ReplayerState } from '../ReplayerContext'
 import {
 	findNextSessionInList,
-	PlayerSearchParameters,
 	toHighlightEvents,
 	useSetPlayerTimestampFromSearchParam,
 } from './utils'
@@ -798,14 +797,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		state.replayer,
 		state.sessionMetadata,
 	])
-
-	useEffect(() => {
-		const searchParamsObject = new URLSearchParams(location.search)
-		if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
-			setShowLeftPanel(false)
-			setShowRightPanel(true)
-		}
-	}, [setShowLeftPanel, setShowRightPanel])
 
 	// set event listeners for the replayer
 	useEffect(() => {
