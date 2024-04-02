@@ -13,7 +13,7 @@ This new method potentially results in better matches, because we were previousl
 
 ## View Logs in related resource panel
 
-We're continuing the strengthen the connective tissue between Session Replay, Errors, Logs, and Traces.
+We're continuing to strengthen the connective tissue between Session Replay, Errors, Logs, and Traces.
 
 We've now embedded our logs viewer in the Resources Panel, reducing page navigation and accelerating your investigations.
 
@@ -22,7 +22,7 @@ We've now embedded our logs viewer in the Resources Panel, reducing page navigat
 
 ## Duration prefixes
 
-Specifying everything in nanoseconds we getting obnoxious, so we've added support for hours, minutes, seconds, millisecond, and microseconds.
+Specifying everything in nanoseconds was getting obnoxious, so we've added support for hours, minutes, seconds, millisecond, and microseconds.
 
 ![duration prefixes](/images/changelog/29/duration-prefixes.png)
 
