@@ -52677,9 +52677,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nestjs-example@workspace:e2e/nestjs":
+"nestjs@workspace:e2e/nestjs":
   version: 0.0.0-use.local
-  resolution: "nestjs-example@workspace:e2e/nestjs"
+  resolution: "nestjs@workspace:e2e/nestjs"
   dependencies:
     "@highlight-run/nest": "workspace:*"
     "@nestjs/axios": "npm:^3.0.2"
