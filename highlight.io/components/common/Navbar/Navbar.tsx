@@ -48,23 +48,13 @@ const LivestreamBanner = () => {
 		<Banner>
 			<div className={styles.launchWeekText}>
 				Distributed Tracing livestream: April 11 at 2pm PDT. Register
-				for&nbsp;
 				<Link
 					target="_blank"
 					href="https://lu.ma/b0uz0fiz"
 					className="w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
 					rel="noreferrer"
 				>
-					Zoom
-				</Link>
-				&nbsp;or&nbsp;
-				<Link
-					target="_blank"
-					href="https://www.youtube.com/live/z9g-eOPwndk?si=AboTKeFhyKECgrL9"
-					className="w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
-					rel="noreferrer"
-				>
-					YouTube
+					here.
 				</Link>
 			</div>
 		</Banner>
