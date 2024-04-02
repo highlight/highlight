@@ -1,14 +1,10 @@
 import { Highlight } from '@highlight-run/next/server'
 import winston from 'winston'
-
-const projectID = '1jdkoe52'
+import { highlightConfig } from '@/instrumentation'
 
 export const withHighlight = Highlight({
-	projectID,
-	debug: true,
-	backendUrl: 'http://localhost:8082/public',
-	otlpEndpoint: 'http://localhost:4318',
-	serviceName: 'my-nextjs-backend',
+	...highlightConfig,
+	serviceName: 'my-nextjs-backend-winston',
 	environment: 'e2e-test',
 })
 
@@ -18,7 +14,7 @@ const highlightTransport = new winston.transports.Http({
 	ssl: true,
 	path: `/v1/logs/json`,
 	headers: {
-		'x-highlight-project': projectID,
+		'x-highlight-project': highlightConfig.projectID,
 		'x-highlight-service': 'e2e-nextjs',
 	},
 	level: 'success',
