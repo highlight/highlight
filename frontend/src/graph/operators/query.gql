@@ -1718,7 +1718,6 @@ query GetLogAlert($id: ID!) {
 		DailyFrequency
 		disabled
 		EmailsToNotify
-		ExcludedEnvironments
 		id
 		LastAdminToEditID
 		Name
@@ -1760,10 +1759,6 @@ query GetLogAlertsPagePayload($project_id: ID!) {
 			email
 			photo_url
 		}
-	}
-	environment_suggestion(project_id: $project_id) {
-		name
-		value
 	}
 }
 
@@ -1893,7 +1888,6 @@ query GetAlertsPagePayload($project_id: ID!) {
 		disabled
 		default
 		EmailsToNotify
-		ExcludedEnvironments
 		id
 		LastAdminToEditID
 		Name

@@ -33,11 +33,7 @@ import {
 	FREQUENCIES,
 } from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import { useLogAlertsContext } from '@pages/Alerts/LogAlert/context'
-import {
-	AlertForm,
-	dedupeEnvironments,
-	EnvironmentSuggestion,
-} from '@pages/Alerts/utils/AlertsUtils'
+import { AlertForm } from '@pages/Alerts/utils/AlertsUtils'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
@@ -139,7 +135,7 @@ export const LogAlertPage = () => {
 				query: data?.log_alert.query,
 				name: data?.log_alert.Name,
 				belowThreshold: data?.log_alert.BelowThreshold,
-				excludedEnvironments: data?.log_alert.ExcludedEnvironments,
+				excludedEnvironments: [], // log alerts use query instead of excluded environments
 				slackChannels: data?.log_alert.ChannelsToNotify.map((c) => ({
 					...c,
 					webhook_channel_name: c.webhook_channel,
@@ -541,15 +537,6 @@ const LogAlertForm = () => {
 	const { slackLoading, syncSlack } = useSlackSync()
 	const [slackSearchQuery, setSlackSearchQuery] = useState('')
 
-	const environments = dedupeEnvironments(
-		(alertsPayload?.environment_suggestion ??
-			[]) as EnvironmentSuggestion[],
-	).map((environmentSuggestion) => ({
-		displayValue: environmentSuggestion,
-		value: environmentSuggestion,
-		id: environmentSuggestion,
-	}))
-
 	const slackChannels = (alertsPayload?.slack_channel_suggestion ?? []).map(
 		({ webhook_channel, webhook_channel_id }) => ({
 			displayValue: webhook_channel!,
@@ -584,105 +571,70 @@ const LogAlertForm = () => {
 
 	return (
 		<Box cssClass={styles.grid}>
-			<Stack justifyContent="space-between">
-				<Stack gap="12">
-					<Box
-						cssClass={styles.sectionHeader}
-						justifyContent="space-between"
-					>
-						<Text size="large" weight="bold" color="strong">
-							Alert conditions
-						</Text>
-						<Menu>
-							<ThresholdTypeConfiguration />
-						</Menu>
-					</Box>
-					<Box borderTop="dividerWeak" width="full" />
-					<Column.Container gap="12">
-						<Column>
-							<Form.Input
-								name={formStore.names.threshold}
-								type="number"
-								label="Alert threshold"
-								tag={
-									<Badge
-										shape="basic"
-										variant="red"
-										size="small"
-										label="Red"
-									/>
-								}
-								style={{
-									borderColor: errors.threshold
-										? 'var(--color-red-500)'
-										: undefined,
-								}}
-							/>
-						</Column>
+			<Stack gap="12">
+				<Box
+					cssClass={styles.sectionHeader}
+					justifyContent="space-between"
+				>
+					<Text size="large" weight="bold" color="strong">
+						Alert conditions
+					</Text>
+					<Menu>
+						<ThresholdTypeConfiguration />
+					</Menu>
+				</Box>
+				<Box borderTop="dividerWeak" width="full" />
+				<Column.Container gap="12">
+					<Column>
+						<Form.Input
+							name={formStore.names.threshold}
+							type="number"
+							label="Alert threshold"
+							tag={
+								<Badge
+									shape="basic"
+									variant="red"
+									size="small"
+									label="Red"
+								/>
+							}
+							style={{
+								borderColor: errors.threshold
+									? 'var(--color-red-500)'
+									: undefined,
+							}}
+						/>
+					</Column>
 
-						<Column>
-							<Form.Select
-								label="Alert frequency"
-								name={formStore.names.frequency.toString()}
-								onChange={(e) =>
-									formStore.setValue(
-										formStore.names.frequency,
-										e.target.value,
-									)
-								}
-							>
-								<option value="" disabled>
-									Select alert frequency
-								</option>
-								{FREQUENCIES.filter(
-									(freq) =>
-										Number(freq.value) >=
-										LOG_ALERT_MINIMUM_FREQUENCY,
-								).map((freq: any) => (
-									<option
-										key={freq.id}
-										value={Number(freq.value)}
-									>
-										{freq.displayValue}
-									</option>
-								))}
-							</Form.Select>
-						</Column>
-					</Column.Container>
-				</Stack>
-
-				<Stack gap="12">
-					<Box cssClass={styles.sectionHeader}>
-						<Text size="large" weight="bold" color="strong">
-							General
-						</Text>
-					</Box>
-
-					<Box borderTop="dividerWeak" width="full" />
-
-					<Form.NamedSection
-						label="Excluded environments"
-						name={formStore.names.excludedEnvironments}
-					>
-						<Select
-							aria-label="Excluded environments list"
-							placeholder="Select excluded environments"
-							options={environments}
-							onChange={(values: any): any =>
+					<Column>
+						<Form.Select
+							label="Alert frequency"
+							name={formStore.names.frequency.toString()}
+							onChange={(e) =>
 								formStore.setValue(
-									formStore.names.excludedEnvironments,
-									values,
+									formStore.names.frequency,
+									e.target.value,
 								)
 							}
-							notFoundContent={<p>No environment suggestions</p>}
-							className={styles.selectContainer}
-							mode="multiple"
-							value={formStore.getValue(
-								formStore.names.excludedEnvironments,
-							)}
-						/>
-					</Form.NamedSection>
-				</Stack>
+						>
+							<option value="" disabled>
+								Select alert frequency
+							</option>
+							{FREQUENCIES.filter(
+								(freq) =>
+									Number(freq.value) >=
+									LOG_ALERT_MINIMUM_FREQUENCY,
+							).map((freq: any) => (
+								<option
+									key={freq.id}
+									value={Number(freq.value)}
+								>
+									{freq.displayValue}
+								</option>
+							))}
+						</Form.Select>
+					</Column>
+				</Column.Container>
 			</Stack>
 			<Stack gap="12">
 				<Stack gap="12">

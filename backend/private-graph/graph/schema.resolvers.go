@@ -279,17 +279,6 @@ func (r *logAlertResolver) EmailsToNotify(ctx context.Context, obj *model.LogAle
 	}), nil
 }
 
-// ExcludedEnvironments is the resolver for the ExcludedEnvironments field.
-func (r *logAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.LogAlert) ([]string, error) {
-	envs, err := obj.GetExcludedEnvironments()
-	if err != nil {
-		return nil, err
-	}
-	return lo.Map(envs, func(env *string, idx int) string {
-		return *env
-	}), nil
-}
-
 // DailyFrequency is the resolver for the DailyFrequency field.
 func (r *logAlertResolver) DailyFrequency(ctx context.Context, obj *model.LogAlert) ([]*int64, error) {
 	return obj.GetDailyLogEventFrequency(r.DB, obj.ID)
@@ -9370,3 +9359,19 @@ type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *logAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.LogAlert) ([]string, error) {
+	envs, err := obj.GetExcludedEnvironments()
+	if err != nil {
+		return nil, err
+	}
+	return lo.Map(envs, func(env *string, idx int) string {
+		return *env
+	}), nil
+}

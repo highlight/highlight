@@ -860,7 +860,6 @@ export type LogAlert = {
 	DailyFrequency: Array<Maybe<Scalars['Int64']>>
 	DiscordChannelsToNotify: Array<DiscordChannel>
 	EmailsToNotify: Array<Scalars['String']>
-	ExcludedEnvironments: Array<Scalars['String']>
 	LastAdminToEditID?: Maybe<Scalars['ID']>
 	MicrosoftTeamsChannelsToNotify: Array<MicrosoftTeamsChannel>
 	Name: Scalars['String']
@@ -881,7 +880,6 @@ export type LogAlertInput = {
 	disabled: Scalars['Boolean']
 	discord_channels: Array<DiscordChannelInput>
 	emails: Array<Scalars['String']>
-	environments: Array<Scalars['String']>
 	microsoft_teams_channels: Array<MicrosoftTeamsChannelInput>
 	name: Scalars['String']
 	project_id: Scalars['ID']
