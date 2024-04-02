@@ -36,6 +36,7 @@ import {
 } from '@/graph/generated/hooks'
 import {
 	AwsMarketplaceSubscription,
+	DateRangeRequiredInput,
 	PlanType,
 	ProductType,
 	RetentionPeriod,
@@ -246,10 +247,15 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 
 	const location = useLocation()
 	const [step, setStep] = React.useState<PlanSelectStep | null>(null)
+	const [range] = React.useState<DateRangeRequiredInput>({
+		start_date: moment().subtract(12, 'months').toISOString(),
+		end_date: moment().toISOString(),
+	})
 
 	const { data, loading, refetch } = useGetBillingDetailsQuery({
 		variables: {
 			workspace_id: workspace_id!,
+			date_range: range,
 		},
 	})
 

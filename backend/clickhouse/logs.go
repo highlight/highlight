@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/openlyinc/pointy"
 	"math"
 	"strings"
 	"time"
@@ -195,7 +196,7 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 	sb, err := makeSelectBuilder(
 		LogsTableConfig,
 		selectCols,
-		projectID,
+		[]int{projectID},
 		params,
 		Pagination{},
 		OrderBackwardInverted,
@@ -253,7 +254,7 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 	sb, err := makeSelectBuilder(
 		LogsTableConfig,
 		[]string{"COUNT(*)"},
-		projectID,
+		[]int{projectID},
 		params,
 		Pagination{CountOnly: true},
 		OrderBackwardNatural,
@@ -341,7 +342,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		fromSb, err = makeSelectBuilder(
 			logsSamplingTableConfig,
 			[]string{bucketIdxExpr, "toUInt64(round(count() * any(_sample_factor)))", "any(_sample_factor)"},
-			projectID,
+			[]int{projectID},
 			params,
 			Pagination{CountOnly: true},
 			OrderBackwardNatural,
@@ -351,7 +352,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		fromSb, err = makeSelectBuilder(
 			LogsTableConfig,
 			[]string{bucketIdxExpr, "count()", "1.0"},
-			projectID,
+			[]int{projectID},
 			params,
 			Pagination{CountOnly: true},
 			OrderBackwardNatural,
@@ -443,6 +444,11 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 
 func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	return readMetrics(ctx, client, logsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
+}
+
+func (client *Client) ReadWorkspaceLogCounts(ctx context.Context, projectIDs []int, params modelInputs.QueryInput) (*modelInputs.MetricsBuckets, error) {
+	// 12 buckets - 12 months in a year, or 12 weeks in a quarter
+	return readWorkspaceMetrics(ctx, client, logsSampleableTableConfig, projectIDs, params, "", []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, nil, pointy.Int(12), modelInputs.MetricBucketByTimestamp.String(), nil, nil, nil)
 }
 
 func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
