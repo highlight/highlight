@@ -11,11 +11,24 @@ export class AppService {
   async findAll(): Promise<any[]> {
     const { data } = await firstValueFrom(
       this.httpService
-        .post<any[]>('https://pub.highlight.io/v1/logs/json', { logs: [] })
+        .post<any[]>(
+          'https://pub.highlight.io/v1/logs/json',
+          {
+            message: 'yo!',
+            timestamp: new Date().toISOString(),
+            level: 'warning',
+          },
+          {
+            headers: {
+              'x-highlight-project': '2',
+              'x-highlight-service': 'nestjs-axios-request',
+            },
+          },
+        )
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data);
-            throw `An error happened! ${error.response?.data}`;
+            throw `An error happened while hitting pub.highlight.io! ${error.response?.data}`;
           }),
         ),
     );

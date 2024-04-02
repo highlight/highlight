@@ -11,7 +11,7 @@ async function bootstrap() {
       serviceName: 'my-nestjs-app',
       serviceVersion: 'git-sha',
       environment: 'production',
-      debug: true,
+      debug: false,
     }),
   );
   await app.listen(3000);
