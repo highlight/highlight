@@ -4,7 +4,7 @@ import { H, Handlers } from '@highlight-run/node'
 /** @type {import('@highlight-run/node').NodeOptions} */
 const config = {
 	projectID: '1',
-	debug: true,
+	debug: false,
 	serviceName: 'e2e-express',
 	serviceVersion: 'git-sha',
 	otlpEndpoint: 'http://localhost:4318',
