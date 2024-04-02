@@ -37,7 +37,6 @@ import * as style from './SearchPanel.css'
 
 const SearchPanel = () => {
 	const { showLeftPanel } = useErrorPageNavigation()
-	console.log('::: ErrorsSearchPanel', showLeftPanel)
 	const { showBanner } = useGlobalContext()
 	const {
 		searchQuery,

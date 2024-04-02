@@ -73,7 +73,6 @@ export const usePlayerKeyboardShortcuts = () => {
 		setShowHistogram,
 		showHistogram,
 	} = usePlayerConfiguration()
-	console.log('::: PlayerHook', showLeftPanel)
 	const { projectId } = useProjectId()
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const navigate = useNavigate()

@@ -216,7 +216,6 @@ function TopBar({
 		previousSecureId,
 		goToErrorGroup,
 	} = navigation
-	console.log('::: ErrorsV2', showLeftPanel)
 
 	return (isLoggedIn || projectId === DEMO_PROJECT_ID) && !isBlocked ? (
 		<Box
