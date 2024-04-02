@@ -14,10 +14,7 @@ const config = {
 			// required for @opentelemetry/resources which pretends to be an ESM build while using dynamic `require()`
 			transformMixedEsModules: true,
 		}),
-		resolve({
-			browser: false,
-			preferBuiltins: true,
-		}),
+		resolve(),
 		typescript(),
 		terser(),
 	],
@@ -35,7 +32,7 @@ const config = {
 			exports: 'auto',
 		},
 	],
-	treeshake: 'smallest',
+	treeshake: 'safest',
 }
 
 export default config
