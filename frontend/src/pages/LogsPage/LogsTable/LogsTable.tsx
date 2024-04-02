@@ -35,7 +35,6 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { isEqual } from 'lodash'
 import React, { Key, useEffect, useMemo, useRef, useState } from 'react'
 
 import {
@@ -398,93 +397,77 @@ type LogsTableRowProps = {
 	gridColumns: string[]
 }
 
-const LogsTableRow = React.memo<LogsTableRowProps>(
-	({
-		row,
-		rowVirtualizer,
-		expanded,
-		virtualRowKey,
-		queryParts,
-		gridColumns,
-	}) => {
-		const attributesRow = (row: LogsTableRowProps['row']) => {
-			const log = row.original.node
-			const rowExpanded = row.getIsExpanded()
+const LogsTableRow: React.FC<LogsTableRowProps> = ({
+	row,
+	rowVirtualizer,
+	expanded,
+	virtualRowKey,
+	queryParts,
+	gridColumns,
+}) => {
+	const attributesRow = (row: LogsTableRowProps['row']) => {
+		const log = row.original.node
+		const rowExpanded = row.getIsExpanded()
 
-			const matchedAttributes = findMatchingAttributes(queryParts, {
-				...log.logAttributes,
-				environment: log.environment,
-				level: log.level,
-				message: log.message,
-				secure_session_id: log.secureSessionID,
-				service_name: log.serviceName,
-				service_version: log.serviceVersion,
-				source: log.source,
-				span_id: log.spanID,
-				trace_id: log.traceID,
-			})
-
-			return (
-				<Table.Row
-					selected={expanded}
-					className={styles.attributesRow}
-					gridColumns={['32px', '1fr']}
-				>
-					{rowExpanded && (
-						<>
-							<Table.Cell py="4" />
-							<Table.Cell py="4" borderTop="dividerWeak">
-								<LogDetails
-									matchedAttributes={matchedAttributes}
-									row={row}
-									queryParts={queryParts}
-								/>
-							</Table.Cell>
-						</>
-					)}
-				</Table.Row>
-			)
-		}
+		const matchedAttributes = findMatchingAttributes(queryParts, {
+			...log.logAttributes,
+			environment: log.environment,
+			level: log.level,
+			message: log.message,
+			secure_session_id: log.secureSessionID,
+			service_name: log.serviceName,
+			service_version: log.serviceVersion,
+			source: log.source,
+			span_id: log.spanID,
+			trace_id: log.traceID,
+		})
 
 		return (
-			<div
-				key={virtualRowKey}
-				data-index={virtualRowKey}
-				ref={rowVirtualizer.measureElement}
+			<Table.Row
+				selected={expanded}
+				className={styles.attributesRow}
+				gridColumns={['32px', '1fr']}
 			>
-				<Table.Row
-					gridColumns={gridColumns}
-					onClick={row.getToggleExpandedHandler()}
-					selected={expanded}
-					className={styles.dataRow}
-				>
-					{row.getVisibleCells().map((cell: any) => {
-						return (
-							<React.Fragment key={cell.column.id}>
-								{flexRender(
-									cell.column.columnDef.cell,
-									cell.getContext(),
-								)}
-							</React.Fragment>
-						)
-					})}
-				</Table.Row>
-				{attributesRow(row)}
-			</div>
+				{rowExpanded && (
+					<>
+						<Table.Cell py="4" />
+						<Table.Cell py="4" borderTop="dividerWeak">
+							<LogDetails
+								matchedAttributes={matchedAttributes}
+								row={row}
+								queryParts={queryParts}
+							/>
+						</Table.Cell>
+					</>
+				)}
+			</Table.Row>
 		)
-	},
-	(prevProps, nextProps) => {
-		const prevLog = prevProps.row.original
-		const nextLog = nextProps.row.original
+	}
 
-		return (
-			prevProps.expanded === nextProps.expanded &&
-			prevProps.virtualRowKey === nextProps.virtualRowKey &&
-			isEqual(prevProps.gridColumns, nextProps.gridColumns) &&
-			// Ensures loading of related resources triggers a re-render
-			prevLog.traceExist === nextLog.traceExist &&
-			prevLog.node.secureSessionID === nextLog.node.secureSessionID &&
-			isEqual(prevLog.error_object, nextLog.error_object)
-		)
-	},
-)
+	return (
+		<div
+			key={virtualRowKey}
+			data-index={virtualRowKey}
+			ref={rowVirtualizer.measureElement}
+		>
+			<Table.Row
+				gridColumns={gridColumns}
+				onClick={row.getToggleExpandedHandler()}
+				selected={expanded}
+				className={styles.dataRow}
+			>
+				{row.getVisibleCells().map((cell: any) => {
+					return (
+						<React.Fragment key={cell.column.id}>
+							{flexRender(
+								cell.column.columnDef.cell,
+								cell.getContext(),
+							)}
+						</React.Fragment>
+					)
+				})}
+			</Table.Row>
+			{attributesRow(row)}
+		</div>
+	)
+}
