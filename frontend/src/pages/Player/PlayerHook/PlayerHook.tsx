@@ -63,8 +63,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		autoPlaySessions,
 		autoPlayVideo,
 		showPlayerMouseTail,
-		setShowLeftPanel,
-		setShowRightPanel,
 		skipInactive,
 	} = usePlayerConfiguration()
 	const [loopSession] = useLocalStorage<boolean>(
