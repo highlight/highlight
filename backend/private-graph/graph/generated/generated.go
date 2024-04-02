@@ -12045,6 +12045,7 @@ type LogsHistogram {
 
 enum MetricAggregator {
 	Count
+	CountDistinct
 	CountDistinctKey
 	Min
 	Avg

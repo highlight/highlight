@@ -19,6 +19,7 @@ export const bucketByOptions: { value: string; label: string }[] = [
 
 export const metricOptions: { value: string; label: string; tables: Table[] }[] = [
   { value: 'Count', label: 'Count', tables: ['traces', 'logs', 'errors', 'sessions'] },
+  { value: 'CountDistinct', label: 'CountDistinct', tables: ['traces', 'logs', 'errors', 'sessions'] },
   { value: 'Min', label: 'Min', tables: ['traces', 'logs', 'sessions'] },
   { value: 'Avg', label: 'Avg', tables: ['traces', 'logs', 'sessions'] },
   { value: 'P50', label: 'P50', tables: ['traces', 'logs', 'sessions'] },

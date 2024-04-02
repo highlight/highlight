@@ -508,7 +508,7 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSamplin
 		} else {
 			return "round(count() * 1.0)"
 		}
-	case modelInputs.MetricAggregatorCountDistinctKey:
+	case modelInputs.MetricAggregatorCountDistinctKey, modelInputs.MetricAggregatorCountDistinct:
 		if useSampling {
 			return fmt.Sprintf("round(count(distinct %s) * any(_sample_factor))", column)
 		} else {
