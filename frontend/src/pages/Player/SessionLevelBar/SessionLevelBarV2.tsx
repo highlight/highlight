@@ -70,6 +70,7 @@ export const SessionLevelBarV2: React.FC<
 		showRightPanel,
 		setShowRightPanel,
 	} = usePlayerConfiguration()
+	console.log('::: SessionLevelBarV2', showLeftPanel)
 	const { rightPanelView, setRightPanelView } = usePlayerUIContext()
 	const { data } = useGetSessionsClickhouseQuery({
 		variables: {

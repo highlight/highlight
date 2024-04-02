@@ -300,6 +300,8 @@ export const SessionFeedV3 = React.memo(() => {
 		searchQuery,
 	])
 
+	console.log('::: SessionFeedV3', showLeftPanel)
+
 	return (
 		<SessionFeedConfigurationContextProvider
 			value={sessionFeedConfiguration}

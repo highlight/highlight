@@ -18,7 +18,10 @@ import PlayerCommentCanvas, {
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas'
 import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook'
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerState'
-import { useLinkLogCursor } from '@pages/Player/PlayerHook/utils'
+import {
+	useLinkLogCursor,
+	useShowSearchParam,
+} from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	ReplayerContextProvider,
@@ -63,6 +66,7 @@ const PlayerPage = () => {
 		project_id: string
 		session_secure_id: string
 	}>()
+	const { showSearch } = useShowSearchParam()
 	const [{ integrated }] = useIntegratedLocalStorage(project_id!, 'client')
 
 	const [resizeListener, sizes] = useResizeAware()
@@ -118,6 +122,7 @@ const PlayerPage = () => {
 		showLeftPanel: showLeftPanelPreference,
 		showRightPanel: showRightPanelPreference,
 	} = usePlayerConfiguration()
+	console.log('::: PlayerPage', showLeftPanelPreference)
 	const { rightPanelView } = usePlayerUIContext()
 	const showRightPanel =
 		showRightPanelPreference || rightPanelView === RightPanelView.Comments
@@ -128,6 +133,13 @@ const PlayerPage = () => {
 			setShowLeftPanel(false)
 		}
 	}, [logCursor, setShowLeftPanel])
+
+	useEffect(() => {
+		if (!showSearch) {
+			setShowLeftPanel(false)
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	const toolbarContext = useToolbarItems()
 

@@ -11,6 +11,7 @@ import { createSearchParams, useNavigate } from 'react-router-dom'
 
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
+import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 import analytics from '@/util/analytics'
 
 type Props = {
@@ -146,7 +147,8 @@ const getSessionLink = ({
 	if (!secureSessionId) return ''
 
 	const params = createSearchParams({
-		tsAbs: startDate.toISOString(),
+		[PlayerSearchParameters.tsAbs]: startDate.toISOString(),
+		[PlayerSearchParameters.search]: 'false',
 	})
 
 	return `/${projectId}/sessions/${secureSessionId}?${params}`
