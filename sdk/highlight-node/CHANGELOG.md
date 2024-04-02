@@ -1,5 +1,11 @@
 # @highlight-run/node
 
+## 3.8.2
+
+### Patch Changes
+
+-   dded74108: Enabling automatic propagation. It won't work until open-telemetry/opentelemetry-js-contrib PR #1951 goes through.
+
 ## 3.8.1
 
 ### Patch Changes

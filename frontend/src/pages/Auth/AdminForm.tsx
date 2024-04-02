@@ -257,6 +257,7 @@ export const AdminForm: React.FC = () => {
 							<option value="Product">Product</option>
 							<option value="Engineer">Engineering</option>
 							<option value="Founder">Founder</option>
+							<option value="Sales">Business / Finance</option>
 						</Form.Select>
 						<Form.Select
 							className={styles.select}
