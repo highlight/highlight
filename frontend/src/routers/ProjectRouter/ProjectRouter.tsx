@@ -31,7 +31,7 @@ import { setIndexedDBEnabled } from '@util/db'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
-import { useToggle } from 'react-use'
+import { useToggle } from 'usehooks-ts'
 
 import { PRIVATE_GRAPH_URI } from '@/constants'
 import {

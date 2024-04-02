@@ -69,7 +69,7 @@ import moment from 'moment'
 import React, { useEffect, useMemo } from 'react'
 import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useSessionStorage } from 'react-use'
+import { useSessionStorage } from 'usehooks-ts'
 
 import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
 import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'

@@ -72,7 +72,7 @@ import clsx, { ClassValue } from 'clsx'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useToggle } from 'react-use'
+import { useToggle } from 'usehooks-ts'
 
 import LoadingBox from '@/components/LoadingBox'
 import { searchesAreEqual } from '@/components/QueryBuilder/utils'

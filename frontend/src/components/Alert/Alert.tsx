@@ -5,7 +5,7 @@ import {
 	AlertProps as AntDesignAlertProps,
 } from 'antd'
 import clsx from 'clsx'
-import { useSessionStorage } from 'react-use'
+import { useSessionStorage } from 'usehooks-ts'
 
 import SvgInformationIcon from '../../static/InformationIcon'
 import styles from './Alert.module.css'

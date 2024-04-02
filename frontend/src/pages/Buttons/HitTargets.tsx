@@ -1,4 +1,4 @@
-import { useToggle } from 'react-use'
+import { useToggle } from 'usehooks-ts'
 
 import styles from './Buttons.module.css'
 

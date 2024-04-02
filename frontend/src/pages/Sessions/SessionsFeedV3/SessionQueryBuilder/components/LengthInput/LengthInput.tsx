@@ -3,7 +3,7 @@ import Input from '@components/Input/Input'
 import { Slider } from 'antd'
 import { debounce } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
-import { useToggle } from 'react-use'
+import { useToggle } from 'usehooks-ts'
 
 import styles from './LengthInput.module.css'
 

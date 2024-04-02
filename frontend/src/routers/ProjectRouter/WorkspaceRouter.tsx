@@ -12,7 +12,7 @@ import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalCont
 import { useParams } from '@util/react-router/useParams'
 import { useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
-import { useToggle } from 'react-use'
+import { useToggle } from 'usehooks-ts'
 
 import { useLocalStorageProjectId } from '@/hooks/useProjectId'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
