@@ -1,9 +1,9 @@
 import { Box, Button, IconSolidPlus, Text } from '@highlight-run/ui/components'
-import moment from 'moment'
-import { useState } from 'react'
 import { Helmet } from 'react-helmet'
 
+import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
 import { useGetVisualizationQuery } from '@/graph/generated/hooks'
+import useDataTimeRange from '@/hooks/useDataTimeRange'
 import { useProjectId } from '@/hooks/useProjectId'
 import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
 
@@ -13,8 +13,7 @@ export const Dashboard = () => {
 	const { projectId } = useProjectId()
 	const { data } = useGetVisualizationQuery({ variables: { id: '1' } })
 
-	const [endDate] = useState(moment().toISOString())
-	const [startDate] = useState(moment().subtract(4, 'days').toISOString())
+	const { timeRange } = useDataTimeRange()
 
 	return (
 		<>
@@ -55,6 +54,7 @@ export const Dashboard = () => {
 							<Button emphasis="low" kind="secondary">
 								Share
 							</Button>
+							<TimeRangePicker />
 							<Button
 								emphasis="medium"
 								kind="secondary"
@@ -94,8 +94,8 @@ export const Dashboard = () => {
 												)}
 												productType={g.productType}
 												projectId={projectId}
-												startDate={startDate}
-												endDate={endDate}
+												startDate={timeRange.start_date}
+												endDate={timeRange.end_date}
 												query={g.query}
 												metric={g.metric}
 												functionType={g.functionType}
