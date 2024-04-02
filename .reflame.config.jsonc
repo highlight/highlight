@@ -1,4 +1,5 @@
 {
+  // 3
   // This is a JSON with Comments file.
   // It's basically JSON, with the addition of comments, and looser syntax
   // (trailing commas!).
@@ -249,24 +250,25 @@
       "to": "@lottie/",
     },
     {
-      "from": "/__generated/rr/rr.js",
-      "to": "rrweb",
-    },
-    {
-      "from": "/__generated/rr/rrTypes.js",
-      "to": "@rrweb/types",
-    },
-    {
-      "from": "/__generated/rr/rr.min.css",
-      "to": "rrweb/dist/rrweb.min.css",
-    },
-    {
       "from": "^/__generated/ve/(.*).css.js$",
       "to": "/$1.css",
       "phase": "pre",
     },
   ],
   "libraries": {
+    "rrweb": {
+      "sourceDirectory": "__generated/rr/rrweb",
+      "exports": {
+        ".": "./rr.js",
+        "./dist/rrweb.min.css": "./rr.min.css",
+      },
+    },
+    "@rrweb/types": {
+      "sourceDirectory": "__generated/rr/rrweb-types",
+      "exports": {
+        ".": "./rrTypes.js",
+      },
+    },
     "@highlight-run/ui": {
       "sourceDirectory": "packages/ui/src",
       "exports": {
@@ -311,16 +313,6 @@
         "^/__generated/ve/(.*).css.js$": "/$1.css",
       },
     },
-    "highlight.run": {
-      "sourceDirectory": "sdk/firstload/src",
-      "nodejsCompatibility": {
-        "packageJson": {
-          "exportsDetection": {
-            "ignoreTopLevelDirectory": true
-          }
-        },
-      },
-    },
     "highlight.io": {
       "sourceDirectory": "highlight.io",
       "exports": "./index.ts",
@@ -336,6 +328,7 @@
     "@highlight-run/client": {
       "sourceDirectory": "sdk/client/src",
       "exports": {
+        ".": "./index.tsx",
         "./src/listeners/first-load-listeners": "./listeners/first-load-listeners.tsx",
         "./src/listeners/first-load-listeners.js": "./listeners/first-load-listeners.tsx",
         "./src/listeners/network-listener/utils/utils": "./listeners/network-listener/utils/utils.ts",
@@ -348,12 +341,16 @@
         "./src/utils/storage.js": "./utils/storage.ts",
       },
       "nodejsCompatibility": {
-        "packageJson": true,
+        "packageJson": true
       },
       "specifierTransforms": {
         "/publicGraphURI.ts": "consts:publicGraphURI",
       },
-      "npmPackages": {},
+      "npmPackages": {
+        "rrweb": {
+          "version": "latest"
+        }
+      },
     },
   },
   // NPM packages listed here will be installed by Reflame every time you update this file.
@@ -374,6 +371,9 @@
       "entryPoints": [
         "/createRuntimeFn"
       ],
+    },
+    "highlight.run": {
+      "version": "latest"
     },
     // TODO: create a library for this
     // Might need a shim entry point for .css?

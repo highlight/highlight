@@ -22,22 +22,22 @@ export const run = async ({ rootDirectory }) => {
 		entryPoints: [
 			{
 				in: path.join(packageDirectory, packageJson.module),
-				out: 'rr',
+				out: 'rrweb/rr',
 			},
 			{
 				in: path.join(packageDirectoryTypes, packageJsonTypes.module),
-				out: 'rrTypes',
+				out: 'rrweb-types/rrTypes',
 			},
 			{
 				in: path.join(packageDirectory, 'dist/rrweb.min.css'),
-				out: 'rr.min',
+				out: 'rrweb/rr.min',
 			},
 		],
 		bundle: true,
 		sourcemap: false,
 		format: 'esm',
 		platform: 'browser',
-		outdir: path.join(rootDirectory, 'src/__generated/rr'),
+		outdir: path.join(rootDirectory, '../__generated/rr'),
 		minify: false,
 		target: 'esnext',
 		// external: Object.keys(packageJson.dependencies).concat(
