@@ -71,6 +71,7 @@
 		"sonner": "^1.4.3",
 		"subscriptions-transport-ws": "^0.11.0",
 		"use-query-params": "^2.2.0",
+		"usehooks-ts": "^3.0.2",
 		"validator": "13.7.0",
 		"xss": "^1.0.14"
 	},

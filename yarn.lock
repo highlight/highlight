@@ -14544,6 +14544,7 @@ __metadata:
     typed-scss-modules: "npm:^3.4.0"
     typescript: "npm:5.4.2"
     use-query-params: "npm:^2.2.0"
+    usehooks-ts: "npm:^3.0.2"
     validator: "npm:13.7.0"
     vite: "npm:^5.1.5"
     vite-plugin-imp: "npm:^2.4.0"
@@ -68148,6 +68149,17 @@ __metadata:
   version: 3.1.1
   resolution: "use@npm:3.1.1"
   checksum: 10/08a130289f5238fcbf8f59a18951286a6e660d17acccc9d58d9b69dfa0ee19aa038e8f95721b00b432c36d1629a9e32a464bf2e7e0ae6a244c42ddb30bdd8b33
+  languageName: node
+  linkType: hard
+
+"usehooks-ts@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "usehooks-ts@npm:3.0.2"
+  dependencies:
+    lodash.debounce: "npm:^4.0.8"
+  peerDependencies:
+    react: ^16.8.0  || ^17 || ^18
+  checksum: 10/0c8880702c0a306d5481a3968282dc04495e9f51198085ffb3976e069a7e77b2dc82e3f14b74e080a20f0267cb46805d835a8c7ee728335ff26f024aa8e79c42
   languageName: node
   linkType: hard
 
