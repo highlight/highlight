@@ -19,23 +19,23 @@
 	"author": "",
 	"license": "Apache-2.0",
 	"peerDependencies": {
-		"@nestjs/core": ">=8",
+		"@nestjs/core": ">=10",
 		"rxjs": ">=7"
 	},
 	"dependencies": {
 		"@highlight-run/node": "workspace:*"
 	},
 	"devDependencies": {
-		"@nestjs/common": "^9.3.9",
-		"@trpc/server": "^10.16.0",
-		"@types/node": "^18.15.2",
-		"cache-manager": "^5.1.7",
+		"@nestjs/common": "^10.3.7",
+		"@trpc/server": "^10.45.2",
+		"@types/node": "^20.12.3",
+		"cache-manager": "^5.4.0",
 		"class-transformer": "^0.5.1",
-		"class-validator": "^0.14.0",
-		"eslint": "^8.39.0",
-		"reflect-metadata": "^0.1.13",
-		"rxjs": "^7.8.0",
-		"tsup": "^6.6.3",
-		"typescript": "^5.0.4"
+		"class-validator": "^0.14.1",
+		"eslint": "^8.57.0",
+		"reflect-metadata": "^0.2.2",
+		"rxjs": "^7.8.1",
+		"tsup": "^8.0.2",
+		"typescript": "^5.4.3"
 	}
 }

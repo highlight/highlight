@@ -6,7 +6,12 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  async getHello(): Promise<any[]> {
-    return this.appService.findAll();
+  async getHello(): Promise<string[]> {
+    return await this.appService.findAll();
+  }
+
+  @Get('/error')
+  async getError(): Promise<string[]> {
+    return await this.appService.findAll(true);
   }
 }
