@@ -14662,7 +14662,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@highlight-run/node@workspace:sdk/highlight-node"
   dependencies:
-    "@opentelemetry/api": "npm:^1.8.0"
+    "@opentelemetry/api": "npm:^0"
     "@opentelemetry/auto-instrumentations-node": "npm:^0.43.0"
     "@opentelemetry/core": "npm:^1.22.0"
     "@opentelemetry/exporter-trace-otlp-http": "npm:^0.49.1"
@@ -14680,6 +14680,7 @@ __metadata:
     "@types/jest": "npm:^29.2.0"
     "@types/lru-cache": "npm:^7.10.10"
     "@types/node": "npm:17.0.13"
+    check-dependencies: "npm:^2.0.0"
     encoding: "npm:^0.1.13"
     highlight.run: "workspace:*"
     jest: "npm:^29.2.2"
@@ -33735,6 +33736,18 @@ __metadata:
   version: 0.0.2
   resolution: "charenc@npm:0.0.2"
   checksum: 10/81dcadbe57e861d527faf6dd3855dc857395a1c4d6781f4847288ab23cffb7b3ee80d57c15bba7252ffe3e5e8019db767757ee7975663ad2ca0939bb8fcaf2e5
+  languageName: node
+  linkType: hard
+
+"check-dependencies@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "check-dependencies@npm:2.0.0"
+  dependencies:
+    picocolors: "npm:^1.0.0"
+    semver: "npm:^7.5.4"
+  bin:
+    check-dependencies: bin/cli.js
+  checksum: 10/8483cab2cfbcb702313c5ed0fe4cf9b668bcbf264c96deb20e2c20ec55ecbb68c0fbde5bf6b4dcac23967f2cf3a0d99b617562ec59e625e315084fd4f5f165f5
   languageName: node
   linkType: hard
 
