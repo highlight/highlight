@@ -10,6 +10,11 @@
 			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
 			"outputs": ["dist/**/*.d.ts"]
 		},
+		"highlight.run#build": {
+			"dependsOn": ["typegen", "@highlight-run/client#build"],
+			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
+			"outputs": ["dist/**"]
+		},
 		"highlight.io#build": {
 			"dependsOn": ["^build"],
 			"outputs": [".next/**"],

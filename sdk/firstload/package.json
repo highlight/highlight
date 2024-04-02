@@ -1,6 +1,6 @@
 {
 	"name": "highlight.run",
-	"version": "8.10.1",
+	"version": "8.11.0",
 	"description": "Open source, fullstack monitoring. Capture frontend errors, record server side logs, and visualize what broke with session replay.",
 	"keywords": [
 		"highlight",
@@ -52,7 +52,6 @@
 		"hoistingLimits": "workspaces"
 	},
 	"devDependencies": {
-		"@highlight-run/client": "workspace:*",
 		"@rollup/plugin-commonjs": "^25.0.7",
 		"@rollup/plugin-json": "^6.1.0",
 		"@rollup/plugin-node-resolve": "^15.2.3",
