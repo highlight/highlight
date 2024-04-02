@@ -43612,7 +43612,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "highlight.run@workspace:sdk/firstload"
   dependencies:
-    "@highlight-run/client": "workspace:*"
     "@rollup/plugin-commonjs": "npm:^25.0.7"
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-node-resolve": "npm:^15.2.3"
