@@ -20,6 +20,7 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
+import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { getPlanChangeEmail } from '@util/billing/billing'
 import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
@@ -36,7 +37,7 @@ import {
 } from '@/graph/generated/hooks'
 import {
 	AwsMarketplaceSubscription,
-	DateRangeRequiredInput,
+	MetricsBuckets,
 	PlanType,
 	ProductType,
 	RetentionPeriod,
@@ -65,6 +66,8 @@ type UsageCardProps = {
 	billingLimitCents: number | undefined
 	usageAmount: number
 	usageLimitAmount: number | undefined
+	usageHistory?: MetricsBuckets
+	usageRange: { start: moment.Moment; end: moment.Moment }
 	includedQuantity: number
 	isPaying: boolean
 	enableBillingLimits: boolean | undefined
@@ -81,6 +84,8 @@ const UsageCard = ({
 	billingLimitCents,
 	usageAmount,
 	usageLimitAmount,
+	usageHistory,
+	usageRange,
 	includedQuantity,
 	isPaying,
 	enableBillingLimits,
@@ -234,6 +239,29 @@ const UsageCard = ({
 					</Box>
 				</Box>
 			) : null}
+			{usageHistory ? (
+				<Box width="full" height="full">
+					<LogsHistogram
+						startDate={usageRange.start.toDate()}
+						endDate={usageRange.end.toDate()}
+						onDatesChange={() => {}}
+						histogramBuckets={usageHistory.buckets.map((b) => ({
+							bucketId: b.bucket_id,
+							group: b.group,
+							counts: [
+								{
+									level: 'Ingested',
+									count: b.metric_value ?? 0,
+								},
+							],
+						}))}
+						bucketCount={usageHistory.bucket_count}
+						loading={usageHistory === undefined}
+						loadingState="spinner"
+						legend
+					/>
+				</Box>
+			) : null}
 		</Box>
 	)
 }
@@ -247,15 +275,22 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 
 	const location = useLocation()
 	const [step, setStep] = React.useState<PlanSelectStep | null>(null)
-	const [range] = React.useState<DateRangeRequiredInput>({
-		start_date: moment().subtract(12, 'months').toISOString(),
-		end_date: moment().toISOString(),
+	// TODO(vkorolik) should this use workspace billing start/end?
+	const [range] = React.useState<{
+		start: moment.Moment
+		end: moment.Moment
+	}>({
+		start: moment().subtract(12, 'months'),
+		end: moment(),
 	})
 
 	const { data, loading, refetch } = useGetBillingDetailsQuery({
 		variables: {
 			workspace_id: workspace_id!,
-			date_range: range,
+			date_range: {
+				start_date: range.start.toISOString(),
+				end_date: range.end.toISOString(),
+			},
 		},
 	})
 
@@ -577,6 +612,8 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						billingLimitCents={sessionsSpendLimit}
 						usageAmount={sessionsUsage}
 						usageLimitAmount={sessionsLimit}
+						usageHistory={data?.usageHistory.session_usage}
+						usageRange={range}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}
@@ -598,6 +635,8 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						billingLimitCents={errorsSpendLimit}
 						usageAmount={errorsUsage}
 						usageLimitAmount={errorsLimit}
+						usageHistory={data?.usageHistory.errors_usage}
+						usageRange={range}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}
@@ -619,6 +658,8 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						billingLimitCents={logsSpendLimit}
 						usageAmount={logsUsage}
 						usageLimitAmount={logsLimit}
+						usageHistory={data?.usageHistory.logs_usage}
+						usageRange={range}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}
@@ -640,6 +681,8 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						billingLimitCents={tracesSpendLimit}
 						usageAmount={tracesUsage}
 						usageLimitAmount={tracesLimit}
+						usageHistory={data?.usageHistory.traces_usage}
+						usageRange={range}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}

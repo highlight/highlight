@@ -993,6 +993,7 @@ query GetBillingDetails(
 				bucket_id
 				bucket_min
 				bucket_max
+				column
 				group
 				metric_type
 				metric_value
@@ -1005,6 +1006,7 @@ query GetBillingDetails(
 				bucket_id
 				bucket_min
 				bucket_max
+				column
 				group
 				metric_type
 				metric_value
@@ -1017,6 +1019,7 @@ query GetBillingDetails(
 				bucket_id
 				bucket_min
 				bucket_max
+				column
 				group
 				metric_type
 				metric_value
@@ -1029,6 +1032,7 @@ query GetBillingDetails(
 				bucket_id
 				bucket_min
 				bucket_max
+				column
 				group
 				metric_type
 				metric_value
