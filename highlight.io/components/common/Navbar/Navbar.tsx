@@ -49,10 +49,11 @@ const LivestreamBanner = () => {
 			href="https://lu.ma/b0uz0fiz"
 			target="_blank"
 			rel="noreferrer"
-			className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+			className="hidden md:flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
 		>
 			<Typography type="copy3">
-				Distributed Tracing livestream: April 11 at 2pm PDT. Register
+				Join our livestream: April 11 at 2pm PDT on Distributed Tracing
+				in NextJS. Register
 				<span className="font-semibold"> here</span>.
 			</Typography>
 		</Link>
