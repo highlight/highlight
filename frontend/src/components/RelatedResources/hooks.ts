@@ -1,7 +1,7 @@
 import { makeVar, useReactiveVar } from '@apollo/client'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useLocalStorage } from 'react-use'
+import { useLocalStorage } from 'usehooks-ts'
 
 export type RelatedError = {
 	type: 'error'

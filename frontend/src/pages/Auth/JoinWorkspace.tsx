@@ -2,7 +2,7 @@ import { Form, Stack, Text } from '@highlight-run/ui/components'
 import { message } from 'antd'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useLocalStorage } from 'react-use'
+import { useLocalStorage } from 'usehooks-ts'
 
 import { getEmailDomain } from '@/components/AutoJoinEmailsInput'
 import { Button } from '@/components/Button'

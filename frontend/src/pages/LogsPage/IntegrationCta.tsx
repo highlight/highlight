@@ -5,7 +5,7 @@ import { Box, Callout, Stack, Text } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment'
 import React from 'react'
-import { useLocalStorage } from 'react-use'
+import { useLocalStorage } from 'usehooks-ts'
 
 export const IntegrationCta: React.FC = () => {
 	const { projectId } = useProjectId()

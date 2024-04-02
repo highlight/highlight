@@ -4,7 +4,7 @@ import { useGitlabIntegration } from '@pages/IntegrationsPage/components/GitlabI
 import * as style from '@pages/IntegrationsPage/components/style.css'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import { useEffect, useMemo } from 'react'
-import { useLocalStorage } from 'react-use'
+import { useLocalStorage } from 'usehooks-ts'
 
 import { GitlabProject } from '@/graph/generated/schemas'
 

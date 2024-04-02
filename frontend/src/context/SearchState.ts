@@ -6,7 +6,7 @@ import {
 import moment from 'moment'
 import { useCallback, useEffect, useReducer } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useLocalStorage } from 'react-use'
+import { useLocalStorage } from 'usehooks-ts'
 import { JsonParam, NumberParam, useQueryParams } from 'use-query-params'
 
 import { useAuthContext } from '@/authentication/AuthContext'
