@@ -103,7 +103,6 @@ export const LogAlertPage = () => {
 			query: initialQuery,
 			name: '',
 			belowThreshold: false,
-			excludedEnvironments: [],
 			slackChannels: [],
 			discordChannels: [],
 			microsoftTeamsChannels: [],
@@ -135,7 +134,6 @@ export const LogAlertPage = () => {
 				query: data?.log_alert.query,
 				name: data?.log_alert.Name,
 				belowThreshold: data?.log_alert.BelowThreshold,
-				excludedEnvironments: [], // log alerts use query instead of excluded environments
 				slackChannels: data?.log_alert.ChannelsToNotify.map((c) => ({
 					...c,
 					webhook_channel_name: c.webhook_channel,
@@ -270,7 +268,6 @@ export const LogAlertPage = () => {
 									id: c.id,
 								})),
 							emails: formValues.emails,
-							environments: formValues.excludedEnvironments,
 							name: formValues.name,
 							project_id: project_id || '0',
 							slack_channels: formValues.slackChannels.map(
@@ -853,7 +850,7 @@ const ThresholdTypeConfiguration = () => {
 	)
 }
 
-interface LogMonitorForm extends AlertForm {
+interface LogMonitorForm extends Omit<AlertForm, 'excludedEnvironments'> {
 	query: string
 }
 
