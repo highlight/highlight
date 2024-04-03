@@ -31,6 +31,7 @@ import { setIndexedDBEnabled } from '@util/db'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
+import { useToggle } from 'react-use'
 
 import { PRIVATE_GRAPH_URI } from '@/constants'
 import {
@@ -45,8 +46,8 @@ import ApplicationRouter from './ApplicationRouter'
 export const ProjectRouter = () => {
 	const { isLoggedIn } = useAuthContext()
 	const [showKeyboardShortcutsGuide, toggleShowKeyboardShortcutsGuide] =
-		useState(false)
-	const [showBanner, toggleShowBanner] = useState(false)
+		useToggle(false)
+	const [showBanner, toggleShowBanner] = useToggle(false)
 
 	const { projectId } = useNumericProjectId()
 	const { setLoadingState } = useAppLoadingContext()
