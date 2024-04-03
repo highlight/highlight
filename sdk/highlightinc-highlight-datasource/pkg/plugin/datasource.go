@@ -223,6 +223,7 @@ type MetricAggregator string
 
 const (
 	MetricAggregatorCount            MetricAggregator = "Count"
+	MetricAggregatorCountDistinct    MetricAggregator = "CountDistinct"
 	MetricAggregatorCountDistinctKey MetricAggregator = "CountDistinctKey"
 	MetricAggregatorMin              MetricAggregator = "Min"
 	MetricAggregatorAvg              MetricAggregator = "Avg"

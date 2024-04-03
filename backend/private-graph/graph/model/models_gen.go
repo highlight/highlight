@@ -1400,6 +1400,7 @@ type MetricAggregator string
 
 const (
 	MetricAggregatorCount            MetricAggregator = "Count"
+	MetricAggregatorCountDistinct    MetricAggregator = "CountDistinct"
 	MetricAggregatorCountDistinctKey MetricAggregator = "CountDistinctKey"
 	MetricAggregatorMin              MetricAggregator = "Min"
 	MetricAggregatorAvg              MetricAggregator = "Avg"
@@ -1413,6 +1414,7 @@ const (
 
 var AllMetricAggregator = []MetricAggregator{
 	MetricAggregatorCount,
+	MetricAggregatorCountDistinct,
 	MetricAggregatorCountDistinctKey,
 	MetricAggregatorMin,
 	MetricAggregatorAvg,
@@ -1426,7 +1428,7 @@ var AllMetricAggregator = []MetricAggregator{
 
 func (e MetricAggregator) IsValid() bool {
 	switch e {
-	case MetricAggregatorCount, MetricAggregatorCountDistinctKey, MetricAggregatorMin, MetricAggregatorAvg, MetricAggregatorP50, MetricAggregatorP90, MetricAggregatorP95, MetricAggregatorP99, MetricAggregatorMax, MetricAggregatorSum:
+	case MetricAggregatorCount, MetricAggregatorCountDistinct, MetricAggregatorCountDistinctKey, MetricAggregatorMin, MetricAggregatorAvg, MetricAggregatorP50, MetricAggregatorP90, MetricAggregatorP95, MetricAggregatorP99, MetricAggregatorMax, MetricAggregatorSum:
 		return true
 	}
 	return false
