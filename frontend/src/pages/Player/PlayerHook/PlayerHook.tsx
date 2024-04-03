@@ -25,6 +25,7 @@ import {
 	truncate,
 } from '@pages/Player/PlayerHook/PlayerState'
 import { useTimelineIndicators } from '@pages/Player/TimelineIndicatorsContext/TimelineIndicatorsContext'
+import useLocalStorage from '@rehooks/local-storage'
 import { customEvent, viewportResizeDimension } from '@rrweb/types'
 import analytics from '@util/analytics'
 import { indexedDBFetch, indexedDBString } from '@util/db'
@@ -36,7 +37,6 @@ import { H } from 'highlight.run'
 import _ from 'lodash'
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useLocalStorage } from 'react-use'
 import { EventType } from 'rrweb'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
@@ -44,7 +44,6 @@ import { HighlightEvent } from '../HighlightEvent'
 import { ReplayerContextInterface, ReplayerState } from '../ReplayerContext'
 import {
 	findNextSessionInList,
-	PlayerSearchParameters,
 	toHighlightEvents,
 	useSetPlayerTimestampFromSearchParam,
 } from './utils'
@@ -64,8 +63,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		autoPlaySessions,
 		autoPlayVideo,
 		showPlayerMouseTail,
-		setShowLeftPanel,
-		setShowRightPanel,
 		skipInactive,
 	} = usePlayerConfiguration()
 	const [loopSession] = useLocalStorage<boolean>(
@@ -798,14 +795,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		state.replayer,
 		state.sessionMetadata,
 	])
-
-	useEffect(() => {
-		const searchParamsObject = new URLSearchParams(location.search)
-		if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
-			setShowLeftPanel(false)
-			setShowRightPanel(true)
-		}
-	}, [setShowLeftPanel, setShowRightPanel])
 
 	// set event listeners for the replayer
 	useEffect(() => {

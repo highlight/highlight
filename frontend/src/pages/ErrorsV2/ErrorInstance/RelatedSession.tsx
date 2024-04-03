@@ -15,8 +15,8 @@ const getSessionLink = (data: GetErrorInstanceQuery | undefined): string => {
 	}
 
 	const params = createSearchParams({
-		tsAbs: errorObject.timestamp,
-		[PlayerSearchParameters.errorId]: errorObject.id,
+		[PlayerSearchParameters.tsAbs]: errorObject.timestamp,
+		[PlayerSearchParameters.search]: 'false',
 	})
 	return `/${errorObject.project_id}/sessions/${errorObject.session?.secure_id}?${params}`
 }
