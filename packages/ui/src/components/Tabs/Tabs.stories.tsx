@@ -1,9 +1,8 @@
 import { Meta } from '@storybook/react'
 
-import { Stack } from '@/components/Stack/Stack'
-
 import { Box } from '../Box/Box'
 import { IconSolidAcademicCap, IconSolidBeaker } from '../icons'
+import { Stack } from '../Stack/Stack'
 import { Tabs } from './Tabs'
 
 export default {

@@ -1,10 +1,9 @@
 import * as Ariakit from '@ariakit/react'
 import { useState } from 'react'
 
-import { Badge } from '@/components/Badge/Badge'
-import { Stack } from '@/components/Stack/Stack'
-
+import { Badge } from '../Badge/Badge'
 import { Box } from '../Box/Box'
+import { Stack } from '../Stack/Stack'
 import { Props as TagProps, Tag } from '../Tag/Tag'
 
 type Props = React.PropsWithChildren & {
