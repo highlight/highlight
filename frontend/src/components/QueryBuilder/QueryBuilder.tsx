@@ -1335,7 +1335,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		rules: serializedRules,
 	}: QueryBuilderState = JSON.parse(searchQuery)
 	const startingRules = deserializeRules(serializedRules)
-	const [isAnd, toggleIsAnd] = useState(serializedIsAnd)
+	const [isAnd, toggleIsAnd] = useState<boolean>(serializedIsAnd)
 	const [rules, setRules] = useState<RuleProps[]>(startingRules)
 
 	const setRulesImpl = useCallback(
