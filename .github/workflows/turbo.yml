@@ -110,14 +110,6 @@ jobs:
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               run: yarn workspace render zip && yarn workspace render check
 
-            - name: Publish client bundle (preview)
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' && github.ref != 'refs/heads/main'
-              run: yarn publish:client --preview ${GIT_SHA} --replace
-              env:
-                  # this cannot use ${{ github.sha }} as that commit will be a merge ref
-                  # that is not consistent with the frontend PR preview value
-                  GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-
             - name: Upload frontend sourcemaps
               if: github.ref == 'refs/heads/main'
               run: yarn sourcemaps:frontend
@@ -144,10 +136,6 @@ jobs:
             - name: Publish session-insights-email lambda
               if: github.ref == 'refs/heads/main'
               run: yarn publish:react-email-templates
-
-            - name: Publish client bundle
-              if: github.ref == 'refs/heads/main'
-              run: yarn publish:client
 
             - name: Publish changesets
               if: github.ref == 'refs/heads/main'
@@ -220,10 +208,8 @@ jobs:
 
                   export RUN_SESSION_SCREENSHOT_LAMBDA=false
                   if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
-                    export CYPRESS_CLIENT_VERSION="dev-${COMMIT_SHA}"
                     export REACT_APP_COMMIT_SHA="${COMMIT_SHA}"
                     export RUN_SESSION_SCREENSHOT_LAMBDA=true
-                    echo "Using client version ${CYPRESS_CLIENT_VERSION}";
                   fi
 
                   # start highlight
@@ -247,7 +233,7 @@ jobs:
                   popd;
 
                   # wait for highlight to be ready
-                  yarn dlx wait-on -l -s 3 http://127.0.0.1:8080/dist/index.js http://127.0.0.1:3000/index.html http://127.0.0.1:8082/health;
+                  yarn dlx wait-on -l -s 3 http://127.0.0.1:3000/index.html http://127.0.0.1:8082/health;
 
                   # run cypress tests
                   yarn cy:run;

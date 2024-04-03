@@ -24,10 +24,6 @@ type ListErrorObjectsParams struct {
 // Number of results per page
 const LIMIT = 10
 
-func (store *Store) PutEmbeddings(embeddings []*model.ErrorObjectEmbeddings) error {
-	return store.db.Table("error_object_embeddings_partitioned").Model(&model.ErrorObjectEmbeddings{}).CreateInBatches(embeddings, 64).Error
-}
-
 func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErrorObjectsParams) (privateModel.ErrorObjectConnection, error) {
 
 	var errorObjects []model.ErrorObject

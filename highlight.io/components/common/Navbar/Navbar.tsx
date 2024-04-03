@@ -43,6 +43,23 @@ const LaunchWeekBanner = () => {
 	return <Banner>{bannerMessage}</Banner>
 }
 
+const LivestreamBanner = () => {
+	return (
+		<Link
+			href="https://lu.ma/b0uz0fiz"
+			target="_blank"
+			rel="noreferrer"
+			className="hidden md:flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+		>
+			<Typography type="copy3">
+				Join our livestream: April 11 at 2pm PDT on Distributed Tracing
+				in NextJS. Register
+				<span className="font-semibold"> here</span>.
+			</Typography>
+		</Link>
+	)
+}
+
 const Navbar = ({
 	hideFreeTrialText,
 	isDocsPage,
@@ -84,6 +101,11 @@ const Navbar = ({
 		setPrevY(currentScrollPos)
 	}
 
+	const isLivestreamWeek = moment().isBetween(
+		'2024-03-28T00:00:00Z',
+		'2024-04-12T00:00:00Z',
+	)
+
 	useEffect(() => {
 		changeBackground()
 		window.addEventListener('scroll', changeBackground)
@@ -92,16 +114,20 @@ const Navbar = ({
 	return (
 		<>
 			{!hideGitHubPopup && <GithubPopup />}
-			{!hideBanner && (
-				<Link
-					href="/startups"
-					className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
-				>
-					<Typography type="copy3">
-						Got a startup? Apply for free Highlight credits!
-					</Typography>
-				</Link>
-			)}
+			{!hideBanner ? (
+				isLivestreamWeek ? (
+					<LivestreamBanner />
+				) : (
+					<Link
+						href="/startups"
+						className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+					>
+						<Typography type="copy3">
+							Got a startup? Apply for free Highlight credits!
+						</Typography>
+					</Link>
+				)
+			) : null}
 			<div
 				className={classNames(styles.container, {
 					[styles.hide]: scrolled && !fixed,

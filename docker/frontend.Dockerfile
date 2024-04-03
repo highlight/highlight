@@ -51,7 +51,6 @@ COPY ../docker/frontend-entrypoint.py /frontend-entrypoint.py
 
 WORKDIR /build
 COPY --from=frontend-build /highlight/frontend/build /build/frontend/build
-COPY --from=frontend-build /highlight/sdk/client/dist /build/sdk/client/dist
 
 ARG REACT_APP_PRIVATE_GRAPH_URI
 ARG REACT_APP_PUBLIC_GRAPH_URI

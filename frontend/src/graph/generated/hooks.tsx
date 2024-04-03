@@ -14697,66 +14697,6 @@ export type MatchErrorTagQueryResult = Apollo.QueryResult<
 	Types.MatchErrorTagQuery,
 	Types.MatchErrorTagQueryVariables
 >
-export const FindSimilarErrorsDocument = gql`
-	query FindSimilarErrors($query: String!) {
-		find_similar_errors(query: $query) {
-			id
-			type
-			event
-			stack_trace
-			score
-		}
-	}
-`
-
-/**
- * __useFindSimilarErrorsQuery__
- *
- * To run a query within a React component, call `useFindSimilarErrorsQuery` and pass it any options that fit your needs.
- * When your component renders, `useFindSimilarErrorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useFindSimilarErrorsQuery({
- *   variables: {
- *      query: // value for 'query'
- *   },
- * });
- */
-export function useFindSimilarErrorsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.FindSimilarErrorsQuery,
-		Types.FindSimilarErrorsQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.FindSimilarErrorsQuery,
-		Types.FindSimilarErrorsQueryVariables
-	>(FindSimilarErrorsDocument, baseOptions)
-}
-export function useFindSimilarErrorsLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.FindSimilarErrorsQuery,
-		Types.FindSimilarErrorsQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.FindSimilarErrorsQuery,
-		Types.FindSimilarErrorsQueryVariables
-	>(FindSimilarErrorsDocument, baseOptions)
-}
-export type FindSimilarErrorsQueryHookResult = ReturnType<
-	typeof useFindSimilarErrorsQuery
->
-export type FindSimilarErrorsLazyQueryHookResult = ReturnType<
-	typeof useFindSimilarErrorsLazyQuery
->
-export type FindSimilarErrorsQueryResult = Apollo.QueryResult<
-	Types.FindSimilarErrorsQuery,
-	Types.FindSimilarErrorsQueryVariables
->
 export const GetTraceDocument = gql`
 	query GetTrace(
 		$project_id: ID!
