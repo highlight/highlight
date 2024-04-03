@@ -1,6 +1,6 @@
 ---
 title: "Highlight Pod #7: Pipe.com co-founder Zain Allarahkia"
-createdAt: 2024-04-3T12:00:00Z
+createdAt: 2024-04-03T12:00:00Z
 readingTime: 2
 authorFirstName: Chris
 authorLastName: Esplin
@@ -15,7 +15,7 @@ metaTitle: "Highlight Pod Episode #7: Pipe.com co-founder Zain Allarahkia"
 ---
 
 
-[![Watch on YouTube](/images/blog/podcast/6/play.png)](https://dub.sh/BbjrncD)
+[![Watch on YouTube](/images/blog/podcast/7/play.png)](https://dub.sh/BbjrncD)
 
 ## From non-technical to technical founder
 
