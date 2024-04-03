@@ -225,7 +225,7 @@ const DevToolsWindowV2: React.FC<
 								formStore.reset()
 							}}
 						>
-							<Tabs.List>
+							<Tabs.List px="8">
 								<Tabs.Tab id={Tab.Console}>Console</Tabs.Tab>
 								<Tabs.Tab id={Tab.Errors}>Errors</Tabs.Tab>
 								<Tabs.Tab id={Tab.Network}>Network</Tabs.Tab>

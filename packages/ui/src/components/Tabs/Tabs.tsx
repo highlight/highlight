@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useState } from 'react'
 
 import { Badge } from '../Badge/Badge'
-import { Box } from '../Box/Box'
+import { Box, PaddingProps } from '../Box/Box'
 import { Stack } from '../Stack/Stack'
 import { Props as TagProps, Tag } from '../Tag/Tag'
 
@@ -42,7 +42,9 @@ export const Tabs: TabsComponent = ({
 	)
 }
 
-type TabListProps = React.PropsWithChildren<Ariakit.TabListProps>
+type TabListProps = React.PropsWithChildren &
+	Ariakit.TabListProps &
+	PaddingProps
 
 const TabList: React.FC<TabListProps> = ({ children, ...props }) => {
 	return (
