@@ -11,9 +11,9 @@ import {
 } from '@highlight-run/ui/components'
 import { Divider } from 'antd'
 import moment from 'moment'
-import { PropsWithChildren, useEffect, useMemo, useState } from 'react'
+import { PropsWithChildren, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { useDebounce, usePrevious } from 'react-use'
+import { useDebounceCallback } from 'usehooks-ts'
 
 import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import Switch from '@/components/Switch/Switch'
@@ -261,12 +261,9 @@ export const GraphingEditor = () => {
 
 	const [query, setQuery] = useState('')
 	const [debouncedQuery, setDebouncedQuery] = useState('')
-	useDebounce(
-		() => {
-			setDebouncedQuery(query)
-		},
+	const debouncedSetDebouncedQuery = useDebounceCallback(
+		setDebouncedQuery,
 		500,
-		[query],
 	)
 
 	const [metric, setMetric] = useState('')
@@ -345,21 +342,25 @@ export const GraphingEditor = () => {
 	})
 
 	// Retain previous data - in case of loading, keep returning old data
-	let metricsToUse = usePrevious(metrics)
+	const metricsToUse = useRef(metrics)
 	if (metrics !== undefined) {
-		metricsToUse = metrics
+		metricsToUse.current = metrics
 	}
 
 	let data: any[] | undefined
-	if (metricsToUse?.metrics.buckets) {
+	if (metricsToUse.current?.metrics.buckets) {
 		if (bucketByEnabled) {
 			data = []
-			for (let i = 0; i < metricsToUse.metrics.bucket_count; i++) {
+			for (
+				let i = 0;
+				i < metricsToUse.current.metrics.bucket_count;
+				i++
+			) {
 				data.push({})
 			}
 
 			const seriesKeys = new Set<string>()
-			for (const b of metricsToUse.metrics.buckets) {
+			for (const b of metricsToUse.current.metrics.buckets) {
 				const seriesKey = b.group.join(' ')
 				seriesKeys.add(seriesKey)
 				data[b.bucket_id][bucketByKey] =
@@ -368,7 +369,7 @@ export const GraphingEditor = () => {
 			}
 		} else {
 			data = []
-			for (const b of metricsToUse.metrics.buckets) {
+			for (const b of metricsToUse.current.metrics.buckets) {
 				data.push({
 					[GROUP_KEY]: b.group.join(' '),
 					'': b.metric_value,
@@ -592,6 +593,9 @@ export const GraphingEditor = () => {
 											value={query}
 											onChange={(e) => {
 												setQuery(e.target.value)
+												debouncedSetDebouncedQuery(
+													e.target.value,
+												)
 											}}
 											cssClass={style.input}
 										/>

@@ -14530,7 +14530,6 @@ __metadata:
     react-spinners: "npm:^0.13.2"
     react-syntax-highlighter: "npm:^15.5.0"
     react-text-transition: "npm:^1.3.0"
-    react-use: "npm:^17.2.4"
     react-virtualized-auto-sizer: "npm:^1.0.24"
     react-virtuoso: "npm:^2.13.1"
     recharts: "npm:^2.12.1"
@@ -59812,31 +59811,6 @@ __metadata:
     react: ^16.8.0  || ^17.0.0 || ^18.0.0
     react-dom: ^16.8.0  || ^17.0.0 || ^18.0.0
   checksum: 10/98566c4817b00251107824743ea9dff41f167b548bd5f249f6eb9e2ec09388a2de1e89988e4432cead3f8aa83cf706e0255db8a20c0615768c670751973d2761
-  languageName: node
-  linkType: hard
-
-"react-use@npm:^17.2.4":
-  version: 17.2.4
-  resolution: "react-use@npm:17.2.4"
-  dependencies:
-    "@types/js-cookie": "npm:^2.2.6"
-    "@xobotyi/scrollbar-width": "npm:^1.9.5"
-    copy-to-clipboard: "npm:^3.3.1"
-    fast-deep-equal: "npm:^3.1.3"
-    fast-shallow-equal: "npm:^1.0.0"
-    js-cookie: "npm:^2.2.1"
-    nano-css: "npm:^5.3.1"
-    react-universal-interface: "npm:^0.6.2"
-    resize-observer-polyfill: "npm:^1.5.1"
-    screenfull: "npm:^5.1.0"
-    set-harmonic-interval: "npm:^1.0.1"
-    throttle-debounce: "npm:^3.0.1"
-    ts-easing: "npm:^0.2.0"
-    tslib: "npm:^2.1.0"
-  peerDependencies:
-    react: ^16.8.0  || ^17.0.0
-    react-dom: ^16.8.0  || ^17.0.0
-  checksum: 10/553d411e4291718436a846a2c8379dd1744637462248b25483c4ff5087d5698d87ad05185055e66d9bbe7a95b6a49310760849836bc39f0b30ab5696f71795cb
   languageName: node
   linkType: hard
 

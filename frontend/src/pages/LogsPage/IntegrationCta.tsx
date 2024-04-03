@@ -11,6 +11,7 @@ export const IntegrationCta: React.FC = () => {
 	const { projectId } = useProjectId()
 	const [dismissedAt, setDismissedAt] = useLocalStorage(
 		'setup-logging-cta-dismissed-at',
+		undefined,
 	)
 	const { data, loading } = useGetLogsIntegrationQuery({
 		variables: { project_id: projectId! },

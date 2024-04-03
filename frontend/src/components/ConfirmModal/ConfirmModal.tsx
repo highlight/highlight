@@ -3,7 +3,6 @@ import ModalBody from '@components/ModalBody/ModalBody'
 import analytics from '@util/analytics'
 import { H } from 'highlight.run'
 import { useState } from 'react'
-import { useAsyncFn } from 'react-use'
 
 import Button, { GenericHighlightButtonProps } from '../Button/Button/Button'
 
@@ -37,15 +36,21 @@ const ConfirmModal = ({
 	buttonText,
 }: Props) => {
 	const [showModal, setShowModal] = useState(false)
+	const [loading, setLoading] = useState(false)
+	const [error, setError] = useState<Error | undefined>()
 
-	const [confirmState, handleConfirmClick] = useAsyncFn(async () => {
+	const handleConfirmClick = async () => {
+		setLoading(true)
+		setError(undefined)
 		try {
 			await onConfirmHandler({ close: () => setShowModal(false) })
 		} catch (error) {
 			H.consumeError(error as Error)
-			throw error // allow the UI to display the error
+			setError(error as Error)
+		} finally {
+			setLoading(false)
 		}
-	})
+	}
 
 	return (
 		<>
@@ -64,9 +69,9 @@ const ConfirmModal = ({
 					{description && (
 						<p className="text-gray-500">{description}</p>
 					)}
-					{confirmState.error && (
+					{error && (
 						<p className="m-0 text-red-600">
-							{confirmState.error.message ||
+							{error.message ||
 								'Something went wrong, try again.'}
 						</p>
 					)}
@@ -88,8 +93,8 @@ const ConfirmModal = ({
 							trackingId="ConfirmModalConfirmButton"
 							danger
 							type="primary"
-							loading={confirmState.loading}
-							disabled={confirmState.loading}
+							loading={loading}
+							disabled={loading}
 							onClick={handleConfirmClick}
 							className="justify-center"
 						>

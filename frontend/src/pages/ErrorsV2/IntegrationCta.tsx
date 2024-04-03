@@ -11,6 +11,7 @@ export const IntegrationCta: React.FC = () => {
 	const { projectId } = useProjectId()
 	const [dismissedAt, setDismissedAt] = useLocalStorage(
 		'setup-backend-errors-cta-dismissed-at',
+		null,
 	)
 	const { data, loading } = useGetServerIntegrationQuery({
 		variables: { project_id: projectId! },

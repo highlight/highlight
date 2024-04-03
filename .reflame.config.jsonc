@@ -163,7 +163,7 @@
     "display": "standalone",
     "theme_color": "#5629c6",
     "background_color": "#ffffff"
-  },  
+  },
   "storybookCompatibility": {
     "testStories": true,
   },
@@ -471,13 +471,6 @@
         "/dist/esm/prism",
         "/dist/esm/light",
         "/dist/esm/styles/prism",
-      ],
-    },
-    "react-use": {
-      "entryPoints": [
-        "/",
-        "/esm/useSessionStorage",
-        "/esm/useLocalStorage",
       ],
     },
     "use-query-params": {
