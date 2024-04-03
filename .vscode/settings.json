@@ -90,6 +90,7 @@
 	"cSpell.words": [
 		"alexdanilo",
 		"Algora",
+		"Allarahkia",
 		"autoinject",
 		"Autoinjected",
 		"Blocklist",
@@ -116,7 +117,8 @@
 		"unlisten",
 		"unobfuscated",
 		"Vadim",
-		"Yuxin"
+		"Yuxin",
+		"Zain"
 	],
 	"[yaml]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
