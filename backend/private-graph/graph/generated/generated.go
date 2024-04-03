@@ -666,7 +666,6 @@ type ComplexityRoot struct {
 		Disabled                       func(childComplexity int) int
 		DiscordChannelsToNotify        func(childComplexity int) int
 		EmailsToNotify                 func(childComplexity int) int
-		ExcludedEnvironments           func(childComplexity int) int
 		ID                             func(childComplexity int) int
 		LastAdminToEditID              func(childComplexity int) int
 		MicrosoftTeamsChannelsToNotify func(childComplexity int) int
@@ -1636,7 +1635,6 @@ type LogAlertResolver interface {
 	MicrosoftTeamsChannelsToNotify(ctx context.Context, obj *model1.LogAlert) ([]*model1.MicrosoftTeamsChannel, error)
 	WebhookDestinations(ctx context.Context, obj *model1.LogAlert) ([]*model1.WebhookDestination, error)
 	EmailsToNotify(ctx context.Context, obj *model1.LogAlert) ([]string, error)
-	ExcludedEnvironments(ctx context.Context, obj *model1.LogAlert) ([]string, error)
 
 	DailyFrequency(ctx context.Context, obj *model1.LogAlert) ([]*int64, error)
 }
@@ -4735,13 +4733,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LogAlert.EmailsToNotify(childComplexity), true
-
-	case "LogAlert.ExcludedEnvironments":
-		if e.complexity.LogAlert.ExcludedEnvironments == nil {
-			break
-		}
-
-		return e.complexity.LogAlert.ExcludedEnvironments(childComplexity), true
 
 	case "LogAlert.id":
 		if e.complexity.LogAlert.ID == nil {
@@ -12244,7 +12235,6 @@ input LogAlertInput {
 	microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	webhook_destinations: [WebhookDestinationInput!]!
 	emails: [String!]!
-	environments: [String!]!
 	disabled: Boolean!
 	default: Boolean
 	query: String!
@@ -12584,7 +12574,6 @@ type LogAlert {
 	MicrosoftTeamsChannelsToNotify: [MicrosoftTeamsChannel!]!
 	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String!]!
-	ExcludedEnvironments: [String!]!
 	CountThreshold: Int!
 	ThresholdWindow: Int!
 	LastAdminToEditID: ID
@@ -39217,50 +39206,6 @@ func (ec *executionContext) fieldContext_LogAlert_EmailsToNotify(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _LogAlert_ExcludedEnvironments(ctx context.Context, field graphql.CollectedField, obj *model1.LogAlert) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LogAlert_ExcludedEnvironments(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.LogAlert().ExcludedEnvironments(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_LogAlert_ExcludedEnvironments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "LogAlert",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _LogAlert_CountThreshold(ctx context.Context, field graphql.CollectedField, obj *model1.LogAlert) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_LogAlert_CountThreshold(ctx, field)
 	if err != nil {
@@ -46956,8 +46901,6 @@ func (ec *executionContext) fieldContext_Mutation_updateLogAlert(ctx context.Con
 				return ec.fieldContext_LogAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_LogAlert_EmailsToNotify(ctx, field)
-			case "ExcludedEnvironments":
-				return ec.fieldContext_LogAlert_ExcludedEnvironments(ctx, field)
 			case "CountThreshold":
 				return ec.fieldContext_LogAlert_CountThreshold(ctx, field)
 			case "ThresholdWindow":
@@ -47046,8 +46989,6 @@ func (ec *executionContext) fieldContext_Mutation_createLogAlert(ctx context.Con
 				return ec.fieldContext_LogAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_LogAlert_EmailsToNotify(ctx, field)
-			case "ExcludedEnvironments":
-				return ec.fieldContext_LogAlert_ExcludedEnvironments(ctx, field)
 			case "CountThreshold":
 				return ec.fieldContext_LogAlert_CountThreshold(ctx, field)
 			case "ThresholdWindow":
@@ -47136,8 +47077,6 @@ func (ec *executionContext) fieldContext_Mutation_deleteLogAlert(ctx context.Con
 				return ec.fieldContext_LogAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_LogAlert_EmailsToNotify(ctx, field)
-			case "ExcludedEnvironments":
-				return ec.fieldContext_LogAlert_ExcludedEnvironments(ctx, field)
 			case "CountThreshold":
 				return ec.fieldContext_LogAlert_CountThreshold(ctx, field)
 			case "ThresholdWindow":
@@ -47226,8 +47165,6 @@ func (ec *executionContext) fieldContext_Mutation_updateLogAlertIsDisabled(ctx c
 				return ec.fieldContext_LogAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_LogAlert_EmailsToNotify(ctx, field)
-			case "ExcludedEnvironments":
-				return ec.fieldContext_LogAlert_ExcludedEnvironments(ctx, field)
 			case "CountThreshold":
 				return ec.fieldContext_LogAlert_CountThreshold(ctx, field)
 			case "ThresholdWindow":
@@ -55565,8 +55502,6 @@ func (ec *executionContext) fieldContext_Query_log_alerts(ctx context.Context, f
 				return ec.fieldContext_LogAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_LogAlert_EmailsToNotify(ctx, field)
-			case "ExcludedEnvironments":
-				return ec.fieldContext_LogAlert_ExcludedEnvironments(ctx, field)
 			case "CountThreshold":
 				return ec.fieldContext_LogAlert_CountThreshold(ctx, field)
 			case "ThresholdWindow":
@@ -55658,8 +55593,6 @@ func (ec *executionContext) fieldContext_Query_log_alert(ctx context.Context, fi
 				return ec.fieldContext_LogAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_LogAlert_EmailsToNotify(ctx, field)
-			case "ExcludedEnvironments":
-				return ec.fieldContext_LogAlert_ExcludedEnvironments(ctx, field)
 			case "CountThreshold":
 				return ec.fieldContext_LogAlert_CountThreshold(ctx, field)
 			case "ThresholdWindow":
@@ -78951,7 +78884,7 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"project_id", "name", "count_threshold", "below_threshold", "threshold_window", "slack_channels", "discord_channels", "microsoft_teams_channels", "webhook_destinations", "emails", "environments", "disabled", "default", "query"}
+	fieldsInOrder := [...]string{"project_id", "name", "count_threshold", "below_threshold", "threshold_window", "slack_channels", "discord_channels", "microsoft_teams_channels", "webhook_destinations", "emails", "disabled", "default", "query"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -79028,13 +78961,6 @@ func (ec *executionContext) unmarshalInputLogAlertInput(ctx context.Context, obj
 				return it, err
 			}
 			it.Emails = data
-		case "environments":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environments"))
-			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Environments = data
 		case "disabled":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disabled"))
 			data, err := ec.unmarshalNBoolean2bool(ctx, v)
@@ -84364,42 +84290,6 @@ func (ec *executionContext) _LogAlert(ctx context.Context, sel ast.SelectionSet,
 					}
 				}()
 				res = ec._LogAlert_EmailsToNotify(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "ExcludedEnvironments":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._LogAlert_ExcludedEnvironments(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

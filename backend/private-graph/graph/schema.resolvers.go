@@ -279,17 +279,6 @@ func (r *logAlertResolver) EmailsToNotify(ctx context.Context, obj *model.LogAle
 	}), nil
 }
 
-// ExcludedEnvironments is the resolver for the ExcludedEnvironments field.
-func (r *logAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.LogAlert) ([]string, error) {
-	envs, err := obj.GetExcludedEnvironments()
-	if err != nil {
-		return nil, err
-	}
-	return lo.Map(envs, func(env *string, idx int) string {
-		return *env
-	}), nil
-}
-
 // DailyFrequency is the resolver for the DailyFrequency field.
 func (r *logAlertResolver) DailyFrequency(ctx context.Context, obj *model.LogAlert) ([]*int64, error) {
 	return obj.GetDailyLogEventFrequency(r.DB, obj.ID)

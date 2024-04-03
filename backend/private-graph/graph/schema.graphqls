@@ -1280,7 +1280,6 @@ input LogAlertInput {
 	microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	webhook_destinations: [WebhookDestinationInput!]!
 	emails: [String!]!
-	environments: [String!]!
 	disabled: Boolean!
 	default: Boolean
 	query: String!
@@ -1620,7 +1619,6 @@ type LogAlert {
 	MicrosoftTeamsChannelsToNotify: [MicrosoftTeamsChannel!]!
 	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String!]!
-	ExcludedEnvironments: [String!]!
 	CountThreshold: Int!
 	ThresholdWindow: Int!
 	LastAdminToEditID: ID

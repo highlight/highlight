@@ -511,7 +511,6 @@ type LogAlertInput struct {
 	MicrosoftTeamsChannels []*MicrosoftTeamsChannelInput `json:"microsoft_teams_channels"`
 	WebhookDestinations    []*WebhookDestinationInput    `json:"webhook_destinations"`
 	Emails                 []string                      `json:"emails"`
-	Environments           []string                      `json:"environments"`
 	Disabled               bool                          `json:"disabled"`
 	Default                *bool                         `json:"default,omitempty"`
 	Query                  string                        `json:"query"`
