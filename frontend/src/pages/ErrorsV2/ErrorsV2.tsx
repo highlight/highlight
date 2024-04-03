@@ -149,7 +149,6 @@ export default function ErrorsV2() {
 
 			<div
 				className={clsx(styles.detailsContainer, {
-					// This class doesn't seem to be getting applied.
 					[styles.moveDetailsRight]:
 						!isBlocked && navigation.showLeftPanel,
 				})}
