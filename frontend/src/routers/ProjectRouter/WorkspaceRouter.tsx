@@ -10,9 +10,8 @@ import { useGetWorkspaceDropdownOptionsQuery } from '@graph/hooks'
 import { Ariakit } from '@highlight-run/ui/components'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { useParams } from '@util/react-router/useParams'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
-import { useToggle } from 'usehooks-ts'
 
 import { useLocalStorageProjectId } from '@/hooks/useProjectId'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
@@ -22,12 +21,12 @@ import commonStyles from '../../Common.module.css'
 export const WorkspaceRouter = () => {
 	const { isLoggedIn } = useAuthContext()
 	const [showKeyboardShortcutsGuide, toggleShowKeyboardShortcutsGuide] =
-		useToggle(false)
+		useState(false)
 	const {
 		projectId: localStorageProjectId,
 		setProjectId: setLocalStorageProjectId,
 	} = useLocalStorageProjectId()
-	const [showBanner, toggleShowBanner] = useToggle(false)
+	const [showBanner, toggleShowBanner] = useState(false)
 
 	const { workspace_id } = useParams<{
 		workspace_id: string
