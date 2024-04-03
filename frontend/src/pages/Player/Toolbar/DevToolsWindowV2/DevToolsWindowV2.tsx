@@ -232,9 +232,10 @@ const DevToolsWindowV2: React.FC<
 
 								<Box
 									display="flex"
-									justifyContent="space-between"
+									justifyContent="flex-end"
 									gap="6"
 									align="center"
+									flexGrow={1}
 								>
 									<Box
 										display="flex"
