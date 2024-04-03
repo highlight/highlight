@@ -49,7 +49,3 @@ console.log({ message: 'world', hello: `hello`, number: '123' })
 app.listen(port, () => {
 	console.log(`startServer`, { at: `0.0.0.0:${port}` })
 })
-
-process.on('SIGINT', function () {
-	process.exit()
-})
