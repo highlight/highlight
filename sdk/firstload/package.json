@@ -58,6 +58,7 @@
 		"@rollup/plugin-typescript": "^11.1.6",
 		"@size-limit/file": "^11.1.2",
 		"@types/chrome": "^0.0.263",
+		"@vitest/web-worker": "^1.4.0",
 		"readdirp": "^3.6.0",
 		"size-limit": "^11.1.2",
 		"tslib": "^2.6.2",
