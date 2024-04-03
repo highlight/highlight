@@ -1038,7 +1038,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		isPlayerReady:
 			state.replayerState !== ReplayerState.Loading &&
 			state.replayerState !== ReplayerState.Empty &&
-			// state.scale !== 1 &&
 			state.sessionViewability === SessionViewability.VIEWABLE,
 		setIsLiveMode: useCallback(
 			(isLiveMode) => {
