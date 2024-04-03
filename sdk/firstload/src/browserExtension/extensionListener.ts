@@ -11,11 +11,8 @@ export const listenToChromeExtensionMessage = () => {
 				)
 				switch (action) {
 					case 'init': {
-						const scriptUrl = 'http://localhost:8080/dist/index.js'
-						console.log('url', scriptUrl)
 						H.init(1, {
 							debug: true,
-							scriptUrl,
 						})
 						H.getSessionURL().then((url) => {
 							sendResponse({ url })

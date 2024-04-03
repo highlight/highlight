@@ -2,7 +2,6 @@
 to: packages/ui/src/components/<%= name %>/<%= name %>.test.tsx
 ---
 
-import React from 'react'
 import { render, screen } from '@testing-library/react'
 
 import { <%= name %> } from './<%= name %>'

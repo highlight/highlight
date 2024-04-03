@@ -1,5 +1,17 @@
 # highlight.run
 
+## 8.11.0
+
+### Minor Changes
+
+-   4574c8dfa: lazy load client bundle from node modules to avoid ad blockers
+
+## 8.10.1
+
+### Patch Changes
+
+-   bd410081e: switch replay to using highlight backend for font cors proxying
+
 ## 8.10.0
 
 ### Minor Changes

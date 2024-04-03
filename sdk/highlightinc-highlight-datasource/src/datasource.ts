@@ -1,7 +1,7 @@
-import { CoreApp, DataSourceInstanceSettings } from '@grafana/data';
+import { CoreApp, DataSourceInstanceSettings, ScopedVars } from '@grafana/data';
 
 import { HighlightDataSourceOptions, HighlightQuery, Table } from './types';
-import { DataSourceWithBackend } from '@grafana/runtime';
+import { DataSourceWithBackend, getTemplateSrv } from '@grafana/runtime';
 
 export const tableOptions: { value: Table; label: string }[] = [
   { value: 'traces', label: 'traces' },
@@ -37,6 +37,15 @@ export class DataSource extends DataSourceWithBackend<HighlightQuery, HighlightD
     super(instanceSettings);
     this.url = instanceSettings.url;
     this.projectID = instanceSettings.jsonData.projectID;
+  }
+
+  applyTemplateVariables(query: HighlightQuery, scopedVars: ScopedVars): Record<string, any> {
+    const interpolatedQuery: HighlightQuery = {
+      ...query,
+      queryText: getTemplateSrv().replace(query.queryText, scopedVars),
+    };
+
+    return interpolatedQuery;
   }
 
   getDefaultQuery(app: CoreApp): Partial<HighlightQuery> {

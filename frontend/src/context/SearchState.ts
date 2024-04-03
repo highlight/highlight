@@ -3,10 +3,10 @@ import {
 	DEFAULT_TIME_PRESETS,
 	presetStartDate,
 } from '@highlight-run/ui/components'
+import useLocalStorage from '@rehooks/local-storage'
 import moment from 'moment'
 import { useCallback, useEffect, useReducer } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useLocalStorage } from 'react-use'
 import { JsonParam, NumberParam, useQueryParams } from 'use-query-params'
 
 import { useAuthContext } from '@/authentication/AuthContext'

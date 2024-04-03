@@ -8,14 +8,7 @@ describe('web client recording spec', () => {
 				cy.intercept('POST', '/public', (req) => {
 					req.alias = req.body.operationName
 				})
-				cy.visit(`./cypress/pages/${source}.html`, {
-					onBeforeLoad(win) {
-						const clientVersion = Cypress.env('CLIENT_VERSION')
-						if (clientVersion) {
-							win.scriptUrl = `https://static.highlight.io/${clientVersion}/index.js`
-						}
-					},
-				})
+				cy.visit(`./cypress/pages/${source}.html`, {})
 				cy.window().then((win) => {
 					// delay can be long because the client test might run first, and waiting for vite to have the dev bundle ready can take a while.
 					cy.wait('@PushPayloadCompressed', { timeout: 90 * 1000 })
