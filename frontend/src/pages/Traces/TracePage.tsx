@@ -1,4 +1,4 @@
-import { Badge, Box, Callout, Tabs } from '@highlight-run/ui/components'
+import { Badge, Box, Callout, OldTabs } from '@highlight-run/ui/components'
 import React, { useEffect, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
@@ -42,7 +42,7 @@ export const TracePage: React.FC = () => {
 			<TraceFlameGraph />
 
 			<Box pt="20">
-				<Tabs<TraceTabs>
+				<OldTabs<TraceTabs>
 					tab={activeTab}
 					setTab={(tab) => setActiveTab(tab)}
 					containerClass={styles.tabs}

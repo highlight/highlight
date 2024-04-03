@@ -7,7 +7,7 @@ import {
 	IconSolidLogs,
 	IconSolidSearch,
 	IconSolidSwitchHorizontal,
-	Tabs,
+	OldTabs,
 	Text,
 } from '@highlight-run/ui/components'
 import { themeVars } from '@highlight-run/ui/theme'
@@ -178,7 +178,7 @@ const DevToolsWindowV2: React.FC<
 							</Box>
 						</Box>
 					) : (
-						<Tabs<Tab>
+						<OldTabs<Tab>
 							tab={selectedDevToolsTab}
 							setTab={(t: Tab) => {
 								setSelectedDevToolsTab(t)

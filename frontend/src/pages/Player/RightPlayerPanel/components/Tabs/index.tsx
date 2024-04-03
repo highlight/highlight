@@ -3,7 +3,7 @@ import {
 	IconSolidFire,
 	IconSolidHashtag,
 	IconSolidSparkles,
-	Tabs,
+	OldTabs,
 } from '@highlight-run/ui/components'
 import EventStreamV2 from '@pages/Player/components/EventStreamV2/EventStreamV2'
 import {
@@ -30,7 +30,7 @@ const RightPanelTabs = () => {
 	})
 
 	return (
-		<Tabs<RightPlayerTab>
+		<OldTabs<RightPlayerTab>
 			tab={selectedRightPanelTab}
 			setTab={setSelectedRightPanelTab}
 			pages={{

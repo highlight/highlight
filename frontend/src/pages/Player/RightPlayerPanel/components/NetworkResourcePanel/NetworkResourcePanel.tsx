@@ -7,7 +7,7 @@ import {
 	Heading,
 	IconSolidArrowCircleRight,
 	IconSolidX,
-	Tabs,
+	OldTabs,
 	Tag,
 	Text,
 } from '@highlight-run/ui/components'
@@ -345,7 +345,7 @@ function NetworkResourceDetails({
 				</Box>
 			</Box>
 
-			<Tabs<NetworkRequestTabs>
+			<OldTabs<NetworkRequestTabs>
 				tab={activeTab}
 				setTab={(tab) => setActiveTab(tab)}
 				pages={pages}
@@ -537,7 +537,7 @@ function WebSocketDetails({
 				</Box>
 			</Box>
 
-			<Tabs<WebSocketTabs>
+			<OldTabs<WebSocketTabs>
 				tab={activeTab}
 				setTab={(tab) => setActiveTab(tab)}
 				pages={{

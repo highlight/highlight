@@ -4,15 +4,8 @@ import { Tabs } from './Tabs'
 
 describe('Tabs', () => {
 	it('exists', async () => {
-		render(
-			<Tabs
-				pages={{ foo: { page: <div>Test</div> } }}
-				tab="foo"
-				setTab={(t) => {
-					console.log('tab', t)
-				}}
-			/>,
-		)
-		await screen.findByText('Test')
+		render(<Tabs>Testing</Tabs>)
+
+		await screen.findByText('Testing')
 	})
 })
