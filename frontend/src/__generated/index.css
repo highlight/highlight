@@ -7325,18 +7325,6 @@ body {
   height: 100%;
   overflow-y: hidden;
 }
-.izessr0 {
-  padding-left: 8px;
-  height: 100%;
-}
-.izessr1:focus,
-.izessr1:active,
-.izessr1:hover {
-  background-color: #e9e8ea;
-}
-.izessr3 {
-  background-color: #eeedef;
-}
 ._1p577ua0 {
   font-size: 13px;
   height: 100%;
@@ -7367,6 +7355,18 @@ body {
   word-break: break-all;
   -webkit-line-clamp: 1;
   line-clamp: 1;
+}
+.izessr0 {
+  padding-left: 8px;
+  height: 100%;
+}
+.izessr1:focus,
+.izessr1:active,
+.izessr1:hover {
+  background-color: #e9e8ea;
+}
+.izessr3 {
+  background-color: #eeedef;
 }
 ._1eq64x70 {
   align-items: center;
