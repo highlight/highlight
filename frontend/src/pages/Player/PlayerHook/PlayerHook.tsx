@@ -25,6 +25,7 @@ import {
 	truncate,
 } from '@pages/Player/PlayerHook/PlayerState'
 import { useTimelineIndicators } from '@pages/Player/TimelineIndicatorsContext/TimelineIndicatorsContext'
+import useLocalStorage from '@rehooks/local-storage'
 import { customEvent, viewportResizeDimension } from '@rrweb/types'
 import analytics from '@util/analytics'
 import { indexedDBFetch, indexedDBString } from '@util/db'
@@ -38,7 +39,6 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { EventType } from 'rrweb'
 import { BooleanParam, useQueryParam } from 'use-query-params'
-import { useLocalStorage } from 'usehooks-ts'
 
 import { HighlightEvent } from '../HighlightEvent'
 import { ReplayerContextInterface, ReplayerState } from '../ReplayerContext'

@@ -1,12 +1,11 @@
 import { Ariakit } from '@highlight-run/ui/components'
 import { createContext } from '@util/context/context'
-import type { Dispatch, SetStateAction } from 'react'
 
 interface GlobalContext {
 	showKeyboardShortcutsGuide: boolean
-	toggleShowKeyboardShortcutsGuide: Dispatch<SetStateAction<boolean>>
+	toggleShowKeyboardShortcutsGuide: (nextValue?: boolean) => void
 	showBanner: boolean
-	toggleShowBanner: Dispatch<SetStateAction<boolean>>
+	toggleShowBanner: (nextValue?: boolean) => void
 	commandBarDialog: Ariakit.DialogStore
 }
 

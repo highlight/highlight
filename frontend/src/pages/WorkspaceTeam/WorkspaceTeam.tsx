@@ -16,7 +16,7 @@ import { Authorization } from '@util/authorization/authorization'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useToggle } from 'usehooks-ts'
+import { useToggle } from 'react-use'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import styles from './WorkspaceTeam.module.css'

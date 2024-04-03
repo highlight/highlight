@@ -10,12 +10,12 @@ import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
+import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import React, { useEffect, useMemo, useRef } from 'react'
 import { Helmet } from 'react-helmet'
 import { useQueryParam } from 'use-query-params'
-import { useLocalStorage } from 'usehooks-ts'
 
 import {
 	TIME_FORMAT,

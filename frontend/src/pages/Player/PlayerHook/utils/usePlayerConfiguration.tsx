@@ -3,8 +3,8 @@ import {
 	RightPlayerPanelTabType,
 } from '@pages/Player/RightPlayerPanel/constants'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import useLocalStorage from '@rehooks/local-storage'
 import { useCallback, useEffect, useMemo } from 'react'
-import { useLocalStorage } from 'usehooks-ts'
 
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
 

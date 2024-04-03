@@ -135,6 +135,11 @@
 						"name": "@highlight-run/ui",
 						"importNames": ["Button"],
 						"message": "Please use Button from @components/Button instead."
+					},
+					{
+						"name": "react-use",
+						"importNames": ["useLocalStorage"],
+						"message": "Please use @rehooks/local-storage instead."
 					}
 				],
 				"patterns": [

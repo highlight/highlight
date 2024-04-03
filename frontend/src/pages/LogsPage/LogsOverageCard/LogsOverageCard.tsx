@@ -1,7 +1,7 @@
 import { Button } from '@components/Button'
 import { Box, Callout, Stack, Text } from '@highlight-run/ui/components'
 import { useNavigate } from 'react-router-dom'
-import { useSessionStorage } from 'usehooks-ts'
+import { useSessionStorage } from 'react-use'
 
 import { useGetBillingDetailsQuery } from '@/graph/generated/hooks'
 import { ProductType } from '@/graph/generated/schemas'
