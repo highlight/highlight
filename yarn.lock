@@ -29434,6 +29434,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vitest/web-worker@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "@vitest/web-worker@npm:1.4.0"
+  dependencies:
+    debug: "npm:^4.3.4"
+  peerDependencies:
+    vitest: ^1.0.0
+  checksum: 10/dfd7c74a83a06340b803045b1d0adb303657a61ebff89a7c8f14f95b3a35d6782fbccfe1ba7ba199c6a20e36372b4c4f40452dcde7725c5b8b7f8a7d4207f538
+  languageName: node
+  linkType: hard
+
 "@web3-storage/multipart-parser@npm:^1.0.0":
   version: 1.0.0
   resolution: "@web3-storage/multipart-parser@npm:1.0.0"
@@ -43689,6 +43700,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^11.1.6"
     "@size-limit/file": "npm:^11.1.2"
     "@types/chrome": "npm:^0.0.263"
+    "@vitest/web-worker": "npm:^1.4.0"
     readdirp: "npm:^3.6.0"
     size-limit: "npm:^11.1.2"
     tslib: "npm:^2.6.2"
