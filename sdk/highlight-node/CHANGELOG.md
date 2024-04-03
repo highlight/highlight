@@ -1,5 +1,11 @@
 # @highlight-run/node
 
+## 3.8.3
+
+### Patch Changes
+
+-   e14192fa4: fixes opentelemetry http instrumentation breaking nestjs
+
 ## 3.8.2
 
 ### Patch Changes
