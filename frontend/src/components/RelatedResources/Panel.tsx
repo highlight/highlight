@@ -58,16 +58,16 @@ export const Panel: PanelComponent = ({ children, open }) => {
 
 	useEffect(() => {
 		if (dragging) {
-			window.addEventListener('mousemove', handleMouseMove)
-			window.addEventListener('mouseup', handleMouseUp)
+			window.addEventListener('mousemove', handleMouseMove, true)
+			window.addEventListener('mouseup', handleMouseUp, true)
 		} else {
-			window.removeEventListener('mousemove', handleMouseMove)
-			window.removeEventListener('mouseup', handleMouseUp)
+			window.removeEventListener('mousemove', handleMouseMove, true)
+			window.removeEventListener('mouseup', handleMouseUp, true)
 		}
 
 		return () => {
-			window.removeEventListener('mousemove', handleMouseMove)
-			window.removeEventListener('mouseup', handleMouseUp)
+			window.removeEventListener('mousemove', handleMouseMove, true)
+			window.removeEventListener('mouseup', handleMouseUp, true)
 		}
 	}, [dragging, handleMouseMove, handleMouseUp])
 

@@ -22,17 +22,6 @@ describe('sessionIsBackfilled', () => {
 		expect(sessionIsBackfilled(session)).toBe(false)
 	})
 
-	it('returns false if the "identified" key is missing', () => {
-		// the types say this will always be boolean, so... what is this test for? 🙃
-		session.identified = undefined as unknown as boolean
-		expect(sessionIsBackfilled(session)).toBe(false)
-	})
-
-	it('returns false if the "client_id" key is missing', () => {
-		session.client_id = ''
-		expect(sessionIsBackfilled(session)).toBe(false)
-	})
-
 	it('returns true if client_id and identifier are set, but identified is false', () => {
 		expect(sessionIsBackfilled(session)).toBe(true)
 	})

@@ -50,7 +50,7 @@ export const TraceErrors: React.FC = () => {
 							onClick={() => {
 								set({
 									type: 'error',
-									id: error.error_group_secure_id,
+									secureId: error.error_group_secure_id,
 									instanceId: error.id,
 								})
 							}}

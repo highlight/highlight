@@ -7,7 +7,6 @@ import PlayerSessionComment from '@pages/Player/PlayerCommentCanvas/PlayerSessio
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
@@ -15,6 +14,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { CommentIndicator } from '@/components/Comment/CommentIndicator'
+import { useSessionParams } from '@/pages/Sessions/utils'
 
 import styles from './PlayerCommentCanvas.module.css'
 
@@ -38,12 +38,10 @@ const PlayerCommentCanvas = ({
 	setCommentPosition,
 }: Props) => {
 	const { admin } = useAuthContext()
-	const { session_secure_id } = useParams<{
-		session_secure_id: string
-	}>()
+	const { sessionSecureId } = useSessionParams()
 	const { data: sessionCommentsData } = useGetSessionCommentsQuery({
 		variables: {
-			session_secure_id: session_secure_id!,
+			session_secure_id: sessionSecureId!,
 		},
 	})
 	const {

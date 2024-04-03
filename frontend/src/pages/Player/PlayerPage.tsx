@@ -42,18 +42,17 @@ import { SESSION_FEED_LEFT_PANEL_WIDTH } from '@pages/Sessions/SessionsFeedV3/Se
 import { SessionFeedV3 } from '@pages/Sessions/SessionsFeedV3/SessionsFeedV3'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
-import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import Lottie from 'lottie-react'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import useResizeAware from 'react-resize-aware'
 import { useNavigate } from 'react-router-dom'
-import { Replayer } from 'rrweb'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { NetworkResourcePanel } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourcePanel'
 import DevToolsWindowV2 from '@/pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
+import { useResizePlayer } from '@/pages/Player/utils/utils'
+import { useSessionParams } from '@/pages/Sessions/utils'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import WaitingAnimation from '../../lottie/waiting.json'
@@ -62,13 +61,9 @@ import * as style from './styles.css'
 const PlayerPage = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
-	const { project_id, session_secure_id } = useParams<{
-		project_id: string
-		session_secure_id: string
-	}>()
-	const [{ integrated }] = useIntegratedLocalStorage(project_id!, 'client')
+	const { projectId, sessionSecureId } = useSessionParams()
+	const [{ integrated }] = useIntegratedLocalStorage(projectId!, 'client')
 
-	const [resizeListener, sizes] = useResizeAware()
 	const { width } = useWindowSize()
 
 	const playerContext = usePlayer()
@@ -89,29 +84,28 @@ const PlayerPage = () => {
 	useEffect(() => {
 		if (
 			!isLoggedIn &&
-			project_id !== DEMO_PROJECT_ID &&
+			projectId !== DEMO_PROJECT_ID &&
 			sessionViewability === SessionViewability.VIEWABLE &&
-			((session && !session?.is_public) || !session_secure_id)
+			((session && !session?.is_public) || !sessionSecureId)
 		) {
 			navigate('/')
 		}
 	}, [
 		isLoggedIn,
 		navigate,
-		project_id,
+		projectId,
 		session,
 		session?.is_public,
 		sessionViewability,
-		session_secure_id,
+		sessionSecureId,
 	])
 
 	const { data: isSessionPendingData } = useIsSessionPendingQuery({
 		variables: {
-			session_secure_id: session_secure_id!,
+			session_secure_id: sessionSecureId!,
 		},
 		skip:
-			!session_secure_id ||
-			sessionViewability !== SessionViewability.ERROR,
+			!sessionSecureId || sessionViewability !== SessionViewability.ERROR,
 	})
 
 	const resourcesContext = useResources(session)
@@ -152,93 +146,18 @@ const PlayerPage = () => {
 	>(undefined)
 
 	useEffect(() => {
-		if (!session_secure_id) {
+		if (!sessionSecureId) {
 			setShowLeftPanel(true)
 		}
-	}, [session_secure_id, setShowLeftPanel])
+	}, [sessionSecureId, setShowLeftPanel])
 
-	const resizePlayer = useCallback(
-		(replayer: Replayer): boolean => {
-			const width = replayer?.wrapper?.getBoundingClientRect().width
-			const height = replayer?.wrapper?.getBoundingClientRect().height
-			const targetWidth = playerWrapperRef.current?.clientWidth
-			const targetHeight = playerWrapperRef.current?.clientHeight
-			if (!targetWidth || !targetHeight) {
-				return false
-			}
-			const widthScale = (targetWidth - style.PLAYER_PADDING_X) / width
-			const heightScale = (targetHeight - style.PLAYER_PADDING_Y) / height
-			let scale = Math.min(heightScale, widthScale)
-			// If calculated scale is close enough to 1, return to avoid
-			// infinite looping caused by small floating point math differences
-			if (scale >= 0.9999 && scale <= 1.0001) {
-				return false
-			}
+	const { resizeListener, centerColumnResizeListener, controllerWidth } =
+		useResizePlayer(replayer, playerWrapperRef, setScale)
 
-			let retry = false
-			if (scale <= 0 || !Number.isFinite(scale)) {
-				retry = true
-				scale = 1
-			}
-
-			setScale((s) => {
-				const replayerScale = s * scale
-
-				// why translate -50 -50 -> https://medium.com/front-end-weekly/absolute-centering-in-css-ea3a9d0ad72e
-				replayer?.wrapper?.setAttribute(
-					'style',
-					`transform: scale(${replayerScale}) translate(-50%, -50%)`,
-				)
-				replayer?.wrapper?.setAttribute(
-					'class',
-					`replayer-wrapper ${style.rrwebInnerWrapper}`,
-				)
-
-				return replayerScale
-			})
-			return !retry
-		},
-		[setScale],
-	)
-
-	// This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
-	useEffect(() => {
-		const i = window.setInterval(() => {
-			if (replayer && resizePlayer(replayer)) {
-				clearInterval(i)
-			}
-		}, 1000 / 15)
-		return () => {
-			i && clearInterval(i)
-		}
-	}, [resizePlayer, replayer])
-
-	const playerBoundingClientRectWidth =
-		replayer?.wrapper?.getBoundingClientRect().width
-	const playerBoundingClientRectHeight =
-		replayer?.wrapper?.getBoundingClientRect().height
-
-	// On any change to replayer, 'sizes', refresh the size of the player.
-	useEffect(() => {
-		replayer && resizePlayer(replayer)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		sizes,
-		replayer,
-		playerBoundingClientRectWidth,
-		playerBoundingClientRectHeight,
-	])
-
-	useEffect(() => analytics.page('Session'), [session_secure_id])
+	useEffect(() => analytics.page('Session'), [sessionSecureId])
 
 	const showLeftPanel =
-		showLeftPanelPreference &&
-		(isLoggedIn || project_id === DEMO_PROJECT_ID)
-
-	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
-	const controllerWidth = centerColumnSize.width
-		? Math.max(style.MIN_CENTER_COLUMN_WIDTH, centerColumnSize.width ?? 0)
-		: 0
+		showLeftPanelPreference && (isLoggedIn || projectId === DEMO_PROJECT_ID)
 
 	const playerFiller = useMemo(() => {
 		const playerHeight =
@@ -500,7 +419,7 @@ const PlayerPage = () => {
 							commentPosition={commentPosition}
 							commentTime={time}
 							session={session}
-							session_secure_id={session_secure_id}
+							session_secure_id={sessionSecureId}
 							onCancel={() => {
 								setCommentModalPosition(undefined)
 							}}
@@ -513,7 +432,7 @@ const PlayerPage = () => {
 	)
 }
 
-const ManualStopCard: React.FC = () => {
+export const ManualStopCard: React.FC = () => {
 	return (
 		<ElevatedCard title="Session recording manually stopped">
 			<p>

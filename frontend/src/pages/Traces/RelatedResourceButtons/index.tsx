@@ -11,7 +11,6 @@ import { createSearchParams, useNavigate } from 'react-router-dom'
 
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
-import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 import analytics from '@/util/analytics'
 
 type Props = {
@@ -39,12 +38,6 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 	const logsLinkDisabled = !traceId
 
 	const errorLink = getErrorsLink({ projectId, traceId, startDate, endDate })
-	const sessionLink = getSessionLink({
-		projectId,
-		secureSessionId,
-		startDate,
-		endDate,
-	})
 
 	return (
 		<>
@@ -74,7 +67,15 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 			</Tooltip>
 			<Tag
 				onClick={() => {
-					navigate(sessionLink)
+					if (!secureSessionId) {
+						return
+					}
+
+					set({
+						type: 'session',
+						secureId: secureSessionId,
+					})
+
 					analytics.track('trace_related-session-button_click')
 				}}
 				size="medium"
@@ -137,19 +138,4 @@ const getErrorsLink = ({
 	})
 
 	return `/${projectId}/errors?${params}`
-}
-
-const getSessionLink = ({
-	projectId,
-	secureSessionId,
-	startDate,
-}: LinkProps) => {
-	if (!secureSessionId) return ''
-
-	const params = createSearchParams({
-		[PlayerSearchParameters.tsAbs]: startDate.toISOString(),
-		[PlayerSearchParameters.search]: 'false',
-	})
-
-	return `/${projectId}/sessions/${secureSessionId}?${params}`
 }

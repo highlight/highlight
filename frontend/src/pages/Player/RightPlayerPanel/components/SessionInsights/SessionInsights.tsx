@@ -13,8 +13,8 @@ import { Button } from '@/components/Button'
 import { useGetSessionInsightLazyQuery } from '@/graph/generated/hooks'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@/pages/Player/ReplayerContext'
+import { useSessionParams } from '@/pages/Sessions/utils'
 import { useGlobalContext } from '@/routers/ProjectRouter/context/GlobalContext'
-import { useParams } from '@/util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@/util/session/utils'
 import { MillisToMinutesAndSeconds } from '@/util/time'
 
@@ -25,9 +25,7 @@ interface SessionInsight {
 }
 
 const SessionInsights = () => {
-	const { session_secure_id } = useParams<{
-		session_secure_id: string
-	}>()
+	const { sessionSecureId } = useSessionParams()
 	const {
 		setTime,
 		sessionMetadata: { startTime },
@@ -44,7 +42,7 @@ const SessionInsights = () => {
 
 	useEffect(() => {
 		setInsightData('')
-	}, [session_secure_id])
+	}, [sessionSecureId])
 
 	return (
 		<Box p="8" height="full" overflow="auto">
@@ -155,7 +153,7 @@ const SessionInsights = () => {
 						onClick={() => {
 							getSessionInsight({
 								variables: {
-									secure_id: session_secure_id!,
+									secure_id: sessionSecureId!,
 								},
 							})
 						}}

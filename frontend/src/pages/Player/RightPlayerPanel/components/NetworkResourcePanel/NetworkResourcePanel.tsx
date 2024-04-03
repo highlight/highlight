@@ -30,6 +30,7 @@ import { NetworkResourceLogs } from '@/pages/Player/RightPlayerPanel/components/
 import { NetworkResourceTrace } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceTrace'
 import { WebSocketMessages } from '@/pages/Player/RightPlayerPanel/components/WebSocketMessages/WebSocketMessages'
 import { useWebSocket } from '@/pages/Player/WebSocketContext/WebSocketContext'
+import { useSessionParams } from '@/pages/Sessions/utils'
 import { TraceProvider } from '@/pages/Traces/TraceProvider'
 
 import * as styles from './NetworkResourcePanel.css'
@@ -48,6 +49,7 @@ enum WebSocketTabs {
 
 export const NetworkResourcePanel = () => {
 	const { projectId } = useProjectId()
+	const { inPanel } = useSessionParams()
 	const networkResourceDialog = Ariakit.useDialogStore()
 	const networkResourceDialogState = networkResourceDialog.getState()
 	const { activeNetworkResourceId, setActiveNetworkResourceId } =
@@ -107,17 +109,17 @@ export const NetworkResourcePanel = () => {
 				display: 'flex',
 				flexDirection: 'column',
 				border: 'dividerWeak',
-				borderTopRightRadius: '6',
-				borderBottomRightRadius: '6',
+				borderTopRightRadius: inPanel ? undefined : '6',
+				borderBottomRightRadius: inPanel ? undefined : '6',
 				boxShadow: 'small',
 				overflow: 'hidden',
 			})}
 			style={{
 				width: '50%',
 				minWidth: 500,
-				right: 8,
-				top: 8,
-				bottom: 8,
+				right: inPanel ? 0 : 8,
+				top: inPanel ? 0 : 8,
+				bottom: inPanel ? 0 : 8,
 				zIndex: 8,
 				position: 'absolute',
 			}}
