@@ -9,9 +9,8 @@ import React from 'react'
 
 export const IntegrationCta: React.FC = () => {
 	const { projectId } = useProjectId()
-	const [dismissedAt, setDismissedAt] = useLocalStorage<string | undefined>(
+	const [dismissedAt, setDismissedAt] = useLocalStorage(
 		'setup-backend-errors-cta-dismissed-at',
-		undefined,
 	)
 	const { data, loading } = useGetServerIntegrationQuery({
 		variables: { project_id: projectId! },
