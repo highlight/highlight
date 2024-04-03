@@ -6,8 +6,8 @@ import {
 import moment from 'moment'
 import { useCallback, useEffect, useReducer } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useLocalStorage } from 'usehooks-ts'
 import { JsonParam, NumberParam, useQueryParams } from 'use-query-params'
+import { useLocalStorage } from 'usehooks-ts'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { CustomField } from '@/components/QueryBuilder/QueryBuilder'
