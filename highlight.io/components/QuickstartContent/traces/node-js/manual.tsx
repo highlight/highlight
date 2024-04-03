@@ -53,8 +53,8 @@ module.exports = function() {
 			code: [
 				{
 					text: `
-app.get('/', (req, res) => {
-	H.runWithHeaders(req.headers, () => {
+app.get('/', async (req, res) => {
+	await H.runWithHeaders(req.headers, () => {
 		const span = H.startActiveSpan("custom-span", {})
 		const err = new Error('this is a test error')
 		

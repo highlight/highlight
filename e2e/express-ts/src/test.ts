@@ -20,10 +20,6 @@ const HIGHLIGHT_HEADER = { 'x-highlight-request': '123456/78910' }
 	stopApollo()
 })()
 
-process.on('SIGINT', function () {
-	process.exit()
-})
-
 async function testRoot() {
 	const response = await fetch('http://localhost:3003', {
 		headers: { ...HIGHLIGHT_HEADER },

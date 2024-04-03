@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import dts from 'vite-plugin-dts'
 import { defineConfig } from 'vitest/config'
+
 import entryPoints from './entryPoints.mjs'
 
 export default defineConfig({
@@ -27,6 +28,7 @@ export default defineConfig({
 	test: {
 		environment: 'happy-dom',
 		globals: true,
+		setupFiles: ['./src/setupTests.ts'],
 	},
 	plugins: [dts(), react(), vanillaExtractPlugin()],
 })
