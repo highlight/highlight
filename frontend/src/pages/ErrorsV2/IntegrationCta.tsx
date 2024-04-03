@@ -9,9 +9,9 @@ import { useLocalStorage } from 'usehooks-ts'
 
 export const IntegrationCta: React.FC = () => {
 	const { projectId } = useProjectId()
-	const [dismissedAt, setDismissedAt] = useLocalStorage(
+	const [dismissedAt, setDismissedAt] = useLocalStorage<string | undefined>(
 		'setup-backend-errors-cta-dismissed-at',
-		null,
+		undefined,
 	)
 	const { data, loading } = useGetServerIntegrationQuery({
 		variables: { project_id: projectId! },

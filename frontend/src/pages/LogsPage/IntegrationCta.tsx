@@ -9,7 +9,7 @@ import { useLocalStorage } from 'usehooks-ts'
 
 export const IntegrationCta: React.FC = () => {
 	const { projectId } = useProjectId()
-	const [dismissedAt, setDismissedAt] = useLocalStorage(
+	const [dismissedAt, setDismissedAt] = useLocalStorage<string | undefined>(
 		'setup-logging-cta-dismissed-at',
 		undefined,
 	)
