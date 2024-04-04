@@ -1,47 +1,49 @@
 import * as Ariakit from '@ariakit/react'
-import { useState } from 'react'
+import { createContext, useContext, useState } from 'react'
 
 import { Badge } from '../Badge/Badge'
 import { Box, BoxProps, PaddingProps } from '../Box/Box'
 import { Stack } from '../Stack/Stack'
 import { Props as TagProps, Tag } from '../Tag/Tag'
 
-type Props = React.PropsWithChildren & {
-	defaultSelectedId?: Ariakit.TabProviderProps['defaultSelectedId']
-	selectedId?: Ariakit.TabProviderProps['selectedId']
-	onChange?: Ariakit.TabStoreProps['setSelectedId']
+export const TabsContext = createContext({
+	size: 'sm',
+})
+
+type Props<T = string> = React.PropsWithChildren & {
+	defaultSelectedId?: T
+	selectedId?: T
+	size?: 'xs' | 'sm'
+	onChange?: (id: T) => void
 }
 
-type TabsComponent = React.FC<Props> & {
-	Tab: typeof Tab
-	List: typeof TabList
-	Panel: typeof TabPanel
-}
-
-export const Tabs: TabsComponent = ({
+export const Tabs = <T extends string = string>({
 	children,
 	defaultSelectedId,
 	selectedId,
+	size = 'sm',
 	onChange,
-}) => {
+}: Props<T>) => {
 	const tabsStore = Ariakit.useTabStore({
 		setSelectedId: (id) => {
 			if (onChange) {
-				onChange(id)
+				onChange(id as T)
 			}
 		},
 	})
 
 	return (
-		<Ariakit.TabProvider
-			store={tabsStore}
-			defaultSelectedId={defaultSelectedId}
-			selectedId={selectedId}
-		>
-			<Stack direction="column" flexGrow={1} gap="0" width="full">
-				{children}
-			</Stack>
-		</Ariakit.TabProvider>
+		<TabsContext.Provider value={{ size }}>
+			<Ariakit.TabProvider
+				store={tabsStore}
+				defaultSelectedId={defaultSelectedId}
+				selectedId={selectedId}
+			>
+				<Stack direction="column" flexGrow={1} gap="0" width="full">
+					{children}
+				</Stack>
+			</Ariakit.TabProvider>
+		</TabsContext.Provider>
 	)
 }
 
@@ -78,16 +80,10 @@ type TabProps = Ariakit.TabProps & {
 	id: string
 	badgeText?: string
 	icon?: TagProps['icon']
-	size?: 'xs' | 'sm'
 }
 
-const Tab: React.FC<TabProps> = ({
-	badgeText,
-	children,
-	icon,
-	size,
-	...props
-}) => {
+const Tab: React.FC<TabProps> = ({ badgeText, children, icon, ...props }) => {
+	const { size } = useContext(TabsContext)
 	const tabContext = Ariakit.useTabContext()!
 	const selected = tabContext.useState('selectedId') === props.id
 	const [hovered, setHovered] = useState(false)
@@ -167,3 +163,5 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, ...props }) => {
 Tabs.Tab = Tab
 Tabs.List = TabList
 Tabs.Panel = TabPanel
+Tabs.useStore = Ariakit.useTabStore
+Tabs.useContext = Ariakit.useTabContext

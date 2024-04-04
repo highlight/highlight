@@ -3,17 +3,17 @@ import {
 	IconSolidFire,
 	IconSolidHashtag,
 	IconSolidSparkles,
-	OldTabs,
+	Tabs,
 } from '@highlight-run/ui/components'
-import EventStreamV2 from '@pages/Player/components/EventStreamV2/EventStreamV2'
 import {
 	RightPlayerTab,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
-import MetadataPanel from '@pages/Player/MetadataPanel/MetadataPanel'
 
 import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
 import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
+import EventStreamV2 from '@/pages/Player/components/EventStreamV2/EventStreamV2'
+import MetadataPanel from '@/pages/Player/MetadataPanel/MetadataPanel'
 import SessionInsights from '@/pages/Player/RightPlayerPanel/components/SessionInsights/SessionInsights'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
@@ -29,55 +29,74 @@ const RightPanelTabs = () => {
 		skip: !currentWorkspace?.id,
 	})
 
+	const showAiInsights =
+		showSessionInsights && data?.workspaceSettings?.ai_application
+
 	return (
-		<OldTabs<RightPlayerTab>
-			tab={selectedRightPanelTab}
-			setTab={setSelectedRightPanelTab}
-			pages={{
-				['Events']: {
-					page: <EventStreamV2 />,
-					icon: (
+		<Tabs<RightPlayerTab>
+			selectedId={selectedRightPanelTab}
+			onChange={setSelectedRightPanelTab}
+		>
+			<Tabs.List>
+				<Tabs.Tab
+					id={RightPlayerTab.Events}
+					icon={
 						<IconSolidFire
 							color={
-								selectedRightPanelTab === 'Events'
+								selectedRightPanelTab === RightPlayerTab.Events
 									? colors.p9
 									: undefined
 							}
 						/>
-					),
-				},
-				['Metadata']: {
-					page: <MetadataPanel />,
-					icon: (
+					}
+				>
+					Events
+				</Tabs.Tab>
+				<Tabs.Tab
+					id={RightPlayerTab.Metadata}
+					icon={
 						<IconSolidHashtag
 							color={
-								selectedRightPanelTab === 'Metadata'
+								selectedRightPanelTab ===
+								RightPlayerTab.Metadata
 									? colors.p9
 									: undefined
 							}
 						/>
-					),
-				},
-				...(showSessionInsights &&
-				data?.workspaceSettings?.ai_application
-					? {
-							['AI Insights']: {
-								page: <SessionInsights />,
-								icon: (
-									<IconSolidSparkles
-										color={
-											selectedRightPanelTab ===
-											'AI Insights'
-												? colors.p9
-												: undefined
-										}
-									/>
-								),
-							},
-					  }
-					: {}),
-			}}
-		/>
+					}
+				>
+					Metadata
+				</Tabs.Tab>
+				{showAiInsights && (
+					<Tabs.Tab
+						id={RightPlayerTab.AIInsights}
+						icon={
+							<IconSolidSparkles
+								color={
+									selectedRightPanelTab ===
+									RightPlayerTab.AIInsights
+										? colors.p9
+										: undefined
+								}
+							/>
+						}
+					>
+						AI Insights
+					</Tabs.Tab>
+				)}
+			</Tabs.List>
+			<Tabs.Panel id={RightPlayerTab.Events}>
+				<EventStreamV2 />
+			</Tabs.Panel>
+			<Tabs.Panel id={RightPlayerTab.Metadata}>
+				<MetadataPanel />
+			</Tabs.Panel>
+			{showAiInsights && (
+				<Tabs.Panel id={RightPlayerTab.AIInsights}>
+					<SessionInsights />
+				</Tabs.Panel>
+			)}
+		</Tabs>
 	)
 }
 

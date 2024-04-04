@@ -528,36 +528,6 @@ function WebSocketDetails({
 				</Box>
 			</Box>
 
-			{/* <OldTabs<WebSocketTabs>
-				tab={activeTab}
-				setTab={(tab) => setActiveTab(tab)}
-				pages={{
-					[WebSocketTabs.Headers]: {
-						page: (
-							<NetworkResourceInfo
-								selectedNetworkResource={resource}
-								networkRecordingEnabledForSession={
-									session?.enable_recording_network_contents ||
-									false
-								}
-							/>
-						),
-					},
-					[WebSocketTabs.Messages]: {
-						page: (
-							<WebSocketMessages
-								startEvent={resource}
-								eventsLoading={webSocketLoading}
-								events={selectedWebSocketEvents}
-							/>
-						),
-					},
-				}}
-				noHandle
-				tabsContainerClass={styles.tabsContainer}
-				pageContainerClass={styles.pageContainer}
-			/> */}
-
 			<Tabs
 				selectedId={activeTab}
 				onChange={(id) => setActiveTab(id as WebSocketTabs)}

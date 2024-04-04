@@ -1,4 +1,4 @@
-import { Badge, Box, Callout, OldTabs } from '@highlight-run/ui/components'
+import { Box, Callout, Tabs } from '@highlight-run/ui/components'
 import React, { useEffect, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
@@ -9,8 +9,6 @@ import { TraceLogs } from '@/pages/Traces/TraceLogs'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
 import analytics from '@/util/analytics'
-
-import * as styles from './TracePage.css'
 
 enum TraceTabs {
 	Info = 'Info',
@@ -42,7 +40,7 @@ export const TracePage: React.FC = () => {
 			<TraceFlameGraph />
 
 			<Box pt="20">
-				<OldTabs<TraceTabs>
+				{/* <OldTabs<TraceTabs>
 					tab={activeTab}
 					setTab={(tab) => setActiveTab(tab)}
 					containerClass={styles.tabs}
@@ -73,7 +71,30 @@ export const TracePage: React.FC = () => {
 						},
 					}}
 					noHandle
-				/>
+				/> */}
+				<Tabs<TraceTabs> selectedId={activeTab} onChange={setActiveTab}>
+					<Tabs.List>
+						<Tabs.Tab id={TraceTabs.Info}>Info</Tabs.Tab>
+						<Tabs.Tab
+							id={TraceTabs.Errors}
+							badgeText={errors?.length.toString()}
+						>
+							Errors
+						</Tabs.Tab>
+						<Tabs.Tab id={TraceTabs.Logs}>Logs</Tabs.Tab>
+					</Tabs.List>
+					<Tabs.Panel id={TraceTabs.Info}>
+						<Box px="6">
+							<TraceSpanAttributes span={highlightedSpan!} />
+						</Box>
+					</Tabs.Panel>
+					<Tabs.Panel id={TraceTabs.Errors}>
+						<TraceErrors />
+					</Tabs.Panel>
+					<Tabs.Panel id={TraceTabs.Logs}>
+						<TraceLogs />
+					</Tabs.Panel>
+				</Tabs>
 			</Box>
 		</Box>
 	)
