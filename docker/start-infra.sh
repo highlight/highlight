@@ -8,24 +8,24 @@ SERVICES="clickhouse kafka postgres redis zookeeper collector"
 
 BASE_COMPOSE="./compose.yml"
 COLLECTOR_CONFIG="./collector.yml"
-# if [[ "$IN_DOCKER_GO" == "true" ]]; then
-#   if grep -q '*highlight-logging' "$BASE_COMPOSE"; then
-#     sed -i "s/\*highlight-logging/\*local-logging/g" $BASE_COMPOSE
-#   fi
-#   if grep -q 'https://host.docker.internal' "$COLLECTOR_CONFIG"; then
-#     sed -i "s/https:\/\/host\.docker\.internal:8082/http:\/\/backend:8082/g" $COLLECTOR_CONFIG
-#   fi
-#   if grep -q 'insecure_skip_verify' "$COLLECTOR_CONFIG"; then
-#     sed -i "18d;19d" $COLLECTOR_CONFIG
-#   fi
-# elif [[ "$SSL" != "true" ]]; then
-#   if grep -q 'https://host.docker.internal' "$COLLECTOR_CONFIG"; then
-#     sed -i "s/https:\/\/host\.docker/http:\/\/host\.docker/g" $COLLECTOR_CONFIG
-#   fi
-#   if grep -q 'insecure_skip_verify' "$COLLECTOR_CONFIG"; then
-#     sed -i "18d;19d" $COLLECTOR_CONFIG
-#   fi
-# fi
+if [[ "$IN_DOCKER_GO" == "true" ]]; then
+  if grep -q '*highlight-logging' "$BASE_COMPOSE"; then
+    sed -i "s/\*highlight-logging/\*local-logging/g" $BASE_COMPOSE
+  fi
+  if grep -q 'https://host.docker.internal' "$COLLECTOR_CONFIG"; then
+    sed -i "s/https:\/\/host\.docker\.internal:8082/http:\/\/backend:8082/g" $COLLECTOR_CONFIG
+  fi
+  if grep -q 'insecure_skip_verify' "$COLLECTOR_CONFIG"; then
+    sed -i "18d;19d" $COLLECTOR_CONFIG
+  fi
+elif [[ "$SSL" != "true" ]]; then
+  if grep -q 'https://host.docker.internal' "$COLLECTOR_CONFIG"; then
+    sed -i "s/https:\/\/host\.docker/http:\/\/host\.docker/g" $COLLECTOR_CONFIG
+  fi
+  if grep -q 'insecure_skip_verify' "$COLLECTOR_CONFIG"; then
+    sed -i "18d;19d" $COLLECTOR_CONFIG
+  fi
+fi
 
 docker compose pull $SERVICES
 docker compose up --detach --wait --remove-orphans $SERVICES
