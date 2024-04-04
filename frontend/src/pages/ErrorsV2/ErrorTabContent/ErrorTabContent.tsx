@@ -1,11 +1,9 @@
-import Tabs from '@components/Tabs/Tabs'
 import { GetErrorGroupQuery } from '@graph/operations'
 import {
-	Badge,
 	Box,
 	IconSolidTerminal,
 	IconSolidTrendingUp,
-	Stack,
+	Tabs,
 } from '@highlight-run/ui/components'
 import { ErrorInstance } from '@pages/ErrorsV2/ErrorInstance/ErrorInstance'
 import ErrorMetrics from '@pages/ErrorsV2/ErrorMetrics/ErrorMetrics'
@@ -16,7 +14,10 @@ import { useNavigate } from 'react-router-dom'
 
 import { ErrorInstances } from '@/pages/ErrorsV2/ErrorInstances/ErrorInstances'
 
-import styles from './ErrorTabContent.module.css'
+enum ErrorTabs {
+	Instances = 'instances',
+	Metrics = 'metrics',
+}
 
 type Props = React.PropsWithChildren & {
 	errorGroup: GetErrorGroupQuery['error_group']
@@ -29,7 +30,7 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 			project_id: string
 			error_secure_id: string
 			error_object_id?: string
-			error_tab_key?: 'instances' | 'metrics'
+			error_tab_key?: ErrorTabs
 		}>()
 
 	useHotkeys(
@@ -63,70 +64,49 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 		error_tab_key === 'instances' && error_object_id === undefined
 
 	return (
-		<Tabs
-			animated={false}
-			id="errorTabs"
-			className={styles.tabs}
-			noHeaderPadding
-			noPadding
-			unsetOverflowY
-			activeKeyOverride={error_tab_key ?? 'instances'}
-			onChange={(activeKey) => {
-				if (activeKey === 'instances') {
-					// we want instances to load the latest instance, not the list view
-					navigate(`/${project_id}/errors/${error_secure_id}`)
-				} else {
-					navigate(
-						`/${project_id}/errors/${error_secure_id}/${activeKey}`,
-					)
-				}
-			}}
-			tabs={[
-				{
-					key: 'instances',
-					title: (
-						<TabTitle
-							icon={<IconSolidTerminal size={14} />}
-							label="Instances"
-							shortcut="i"
-						/>
-					),
-					panelContent: showAllInstances ? (
-						<ErrorInstances errorGroup={errorGroup} />
-					) : (
-						<ErrorInstance errorGroup={errorGroup} />
-					),
-				},
-				{
-					key: 'metrics',
-					title: (
-						<TabTitle
-							icon={<IconSolidTrendingUp />}
-							label="Metrics"
-							shortcut="m"
-						/>
-					),
-					panelContent: <ErrorMetrics errorGroup={errorGroup} />,
-				},
-			]}
-		/>
-	)
-}
-
-type TabTitleProps = {
-	icon: React.ReactNode
-	label: string
-	shortcut: string
-}
-
-const TabTitle: React.FC<TabTitleProps> = ({ icon, label, shortcut }) => {
-	return (
-		<Box px="6">
-			<Stack direction="row" gap="6" align="center">
-				{icon}
-				{label}
-				<Badge variant="gray" size="small" label={shortcut} />
-			</Stack>
+		<Box mt="44">
+			<Tabs<ErrorTabs>
+				selectedId={error_tab_key}
+				onChange={(id) => {
+					if (id === ErrorTabs.Instances) {
+						// we want instances to load the latest instance, not the list view
+						navigate(`/${project_id}/errors/${error_secure_id}`)
+					} else {
+						navigate(
+							`/${project_id}/errors/${error_secure_id}/${id}`,
+						)
+					}
+				}}
+			>
+				<Tabs.List>
+					<Tabs.Tab
+						id={ErrorTabs.Instances}
+						icon={<IconSolidTerminal />}
+						badgeText="i"
+					>
+						Instances
+					</Tabs.Tab>
+					<Tabs.Tab
+						icon={<IconSolidTrendingUp />}
+						badgeText="m"
+						id={ErrorTabs.Metrics}
+					>
+						Metrics
+					</Tabs.Tab>
+				</Tabs.List>
+				<Tabs.Panel id={ErrorTabs.Instances}>
+					<Box px="6">
+						{showAllInstances ? (
+							<ErrorInstances errorGroup={errorGroup} />
+						) : (
+							<ErrorInstance errorGroup={errorGroup} />
+						)}
+					</Box>
+				</Tabs.Panel>
+				<Tabs.Panel id={ErrorTabs.Metrics}>
+					<ErrorMetrics errorGroup={errorGroup} />
+				</Tabs.Panel>
+			</Tabs>
 		</Box>
 	)
 }
