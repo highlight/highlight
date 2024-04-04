@@ -438,9 +438,10 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					continue
 				}
 
+				traceID := cast(fields.requestID, logRecord.TraceID().String())
 				logRow := clickhouse.NewLogRow(
 					fields.timestamp, uint32(fields.projectIDInt),
-					clickhouse.WithTraceID(logRecord.TraceID().String()),
+					clickhouse.WithTraceID(traceID),
 					clickhouse.WithSecureSessionID(fields.sessionID),
 					clickhouse.WithBody(ctx, fields.logBody),
 					clickhouse.WithLogAttributes(fields.attrs),
