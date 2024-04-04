@@ -27,10 +27,10 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 	const { projectId } = useNumericProjectId()
 	const path = useMemo(
 		() =>
-			`/${projectId}/errors/${resource.id}/instances/${resource.instanceId}?${PlayerSearchParameters.search}=false`,
-		[projectId, resource.id, resource.instanceId],
+			`/${projectId}/errors/${resource.secureId}/instances/${resource.instanceId}?${PlayerSearchParameters.search}=false`,
+		[projectId, resource.secureId, resource.instanceId],
 	)
-	const { data, loading } = useErrorGroup(resource.id)
+	const { data, loading } = useErrorGroup(resource.secureId)
 	const errorGroup = data?.error_group
 	const { data: errorInstanceData, loading: errorInstanceLoading } =
 		useGetErrorInstanceQuery({

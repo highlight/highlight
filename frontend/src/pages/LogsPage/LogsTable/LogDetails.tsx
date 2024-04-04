@@ -1,5 +1,4 @@
 import { Button } from '@components/Button'
-import { LinkButton } from '@components/LinkButton'
 import { LogEdge, LogLevel, Maybe, ReservedLogKey } from '@graph/schemas'
 import {
 	Box,
@@ -15,11 +14,10 @@ import {
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { LogEdgeWithResources } from '@pages/LogsPage/useGetLogs'
-import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
 import React, { useState } from 'react'
-import { createSearchParams, generatePath, useNavigate } from 'react-router-dom'
+import { generatePath, useNavigate } from 'react-router-dom'
 
 import {
 	JsonViewerObject,
@@ -42,16 +40,6 @@ export const getLogURL = (projectId: string, row: Row<LogEdge>) => {
 		log_cursor: row.original.cursor,
 	})
 	return { origin: currentUrl.origin, path }
-}
-
-const getSessionLink = (
-	projectId: string,
-	log: LogEdgeWithResources,
-): string => {
-	const params = createSearchParams({
-		[PlayerSearchParameters.log]: log.cursor,
-	})
-	return `/${projectId}/sessions/${log.node.secureSessionID}?${params}`
 }
 
 export const LogDetails: React.FC<Props> = ({
@@ -279,7 +267,8 @@ export const LogDetails: React.FC<Props> = ({
 								if (error_object) {
 									set({
 										type: 'error',
-										id: error_object.error_group_secure_id,
+										secureId:
+											error_object.error_group_secure_id,
 										instanceId: error_object.id,
 									})
 								}
@@ -299,10 +288,16 @@ export const LogDetails: React.FC<Props> = ({
 					)}
 
 					{secureSessionID && (
-						<LinkButton
+						<Button
 							kind="secondary"
 							emphasis="low"
-							to={getSessionLink(projectId, row.original)}
+							onClick={() => {
+								set({
+									type: 'session',
+									secureId: secureSessionID,
+									log: row.original.cursor,
+								})
+							}}
 							trackingId="logs_related-session_click"
 						>
 							<Box
@@ -314,7 +309,7 @@ export const LogDetails: React.FC<Props> = ({
 								<IconSolidPlayCircle />
 								Related Session
 							</Box>
-						</LinkButton>
+						</Button>
 					)}
 					{row.original.traceExist && (
 						<Button

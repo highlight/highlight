@@ -11,8 +11,6 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 )
 
-var step = 100000
-
 func main() {
 	ctx := context.Background()
 
@@ -37,12 +35,6 @@ func main() {
 
 	for i := 0; i <= lastCreatedPart; i++ {
 		log.WithContext(ctx).Infof("beginning loop: %d", i)
-		tablename := fmt.Sprintf("error_object_embeddings_partitioned_%d", i)
-
-		if err := db.Exec(fmt.Sprintf("CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_%s_id ON %s (id)", tablename, tablename)).Error; err != nil {
-			log.WithContext(ctx).Fatal(err)
-		}
-		log.WithContext(ctx).Info("done creating index")
 
 		var prevEmbeddingId int
 		if err := db.Raw("select coalesce(max(embedding_id), 0) from migrated_embeddings where project_id = ?", i).Scan(&prevEmbeddingId).Error; err != nil {
@@ -51,16 +43,25 @@ func main() {
 		log.WithContext(ctx).Infof("prevEmbeddingId: %d", prevEmbeddingId)
 
 		var maxEmbeddingId int
-		if err := db.Raw("select coalesce(max(id), 0) from error_object_embeddings_partitioned eoe where project_id = ?", i).Scan(&maxEmbeddingId).Error; err != nil {
+		if err := db.Raw(fmt.Sprintf("select coalesce(max(id), 0) from error_object_embeddings_partitioned eoe where project_id = %d", i)).Scan(&maxEmbeddingId).Error; err != nil {
 			log.WithContext(ctx).Fatal(err)
 		}
 		log.WithContext(ctx).Infof("maxEmbeddingId: %d", maxEmbeddingId)
 
-		for j := prevEmbeddingId; j < maxEmbeddingId; j += step {
-			start := j
-			end := j + step
-			if end > maxEmbeddingId {
-				end = maxEmbeddingId
+		start := prevEmbeddingId
+		for start < maxEmbeddingId {
+			var end int
+			if err := db.Raw(
+				fmt.Sprintf(`select coalesce(max(id), ?) from (
+					select id
+					from error_object_embeddings_partitioned
+					where project_id = %d
+					and gte_large_embedding is not null
+					and id > ?
+					and id <= ?
+					order by id
+					limit 10000) a`, i), maxEmbeddingId, start, maxEmbeddingId).Scan(&end).Error; err != nil {
+				log.WithContext(ctx).Fatal(err)
 			}
 
 			log.WithContext(ctx).Infof("loop (%d, %d]", start, end)
@@ -81,7 +82,7 @@ func main() {
 						group by eo.project_id, eo.error_group_id) a
 					on conflict (project_id, error_group_id)
 					do update set
-						gte_large_embedding = 
+						gte_large_embedding =
 							error_group_embeddings.gte_large_embedding * array_fill(error_group_embeddings.count::numeric / (error_group_embeddings.count + excluded.count), '{1024}')::vector
 							+ excluded.gte_large_embedding * array_fill(excluded.count::numeric / (error_group_embeddings.count + excluded.count), '{1024}')::vector,
 						count = error_group_embeddings.count + excluded.count
@@ -106,9 +107,9 @@ func main() {
 			}); err != nil {
 				log.WithContext(ctx).Fatal(err)
 			}
-		}
 
-		log.WithContext(ctx).Infof("done loop: %d", i)
+			start = end
+		}
 	}
 
 }

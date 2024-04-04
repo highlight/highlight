@@ -12,6 +12,7 @@ import {
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { Trace } from '@/graph/generated/schemas'
 import { getTraceDurationString } from '@/pages/Traces/utils'
 import analytics from '@/util/analytics'
@@ -140,13 +141,16 @@ const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 	getValue,
 	first,
 }) => {
-	const navigate = useNavigate()
+	const { set } = useRelatedResource()
 	const secureSessionID = getValue()
-	const trace = row.original.node
 	const onClick = secureSessionID
 		? () => {
-				analytics.track('View session from trace list')
-				navigate(`/${trace.projectID}/sessions/${secureSessionID}`)
+				set({
+					type: 'session',
+					secureId: secureSessionID,
+				})
+
+				analytics.track('traces_session-column_click')
 		  }
 		: undefined
 	const paddingProps = secureSessionID

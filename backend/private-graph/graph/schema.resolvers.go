@@ -279,17 +279,6 @@ func (r *logAlertResolver) EmailsToNotify(ctx context.Context, obj *model.LogAle
 	}), nil
 }
 
-// ExcludedEnvironments is the resolver for the ExcludedEnvironments field.
-func (r *logAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.LogAlert) ([]string, error) {
-	envs, err := obj.GetExcludedEnvironments()
-	if err != nil {
-		return nil, err
-	}
-	return lo.Map(envs, func(env *string, idx int) string {
-		return *env
-	}), nil
-}
-
 // DailyFrequency is the resolver for the DailyFrequency field.
 func (r *logAlertResolver) DailyFrequency(ctx context.Context, obj *model.LogAlert) ([]*int64, error) {
 	return obj.GetDailyLogEventFrequency(r.DB, obj.ID)
@@ -939,9 +928,11 @@ func (r *mutationResolver) JoinWorkspace(ctx context.Context, workspaceID int) (
 	if err := r.DB.WithContext(ctx).Model(&workspace).Where("jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))", domain).First(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error querying workspace")
 	}
-	if err := r.DB.WithContext(ctx).Model(&workspace).Association("Admins").Append(admin); err != nil {
-		return nil, e.Wrap(err, "error adding admin to association")
+
+	if err := r.DB.WithContext(ctx).Create(&model.WorkspaceAdmin{AdminID: admin.ID, WorkspaceID: workspace.ID, Role: pointy.String("MEMBER")}).Error; err != nil {
+		return nil, e.Wrap(err, "error adding admin to workspace")
 	}
+
 	return &workspace.ID, nil
 }
 
@@ -5104,19 +5095,12 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 
 // ErrorGroupsClickhouse is the resolver for the error_groups_clickhouse field.
 func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int, count int, query modelInputs.ClickhouseQuery, page *int) (*model.ErrorResults, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
-
-	ids, total, err := r.ClickhouseClient.QueryErrorGroupIds(ctx, projectID, count, query, page, retentionDate)
+	ids, total, err := r.ClickhouseClient.QueryErrorGroupIdsDeprecated(ctx, projectID, count, query, page)
 	if err != nil {
 		return nil, err
 	}
@@ -5143,19 +5127,71 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 	}, nil
 }
 
-// ErrorsHistogramClickhouse is the resolver for the errors_histogram_clickhouse field.
-func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
+// ErrorGroups is the resolver for the error_groups field.
+func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count int, params modelInputs.QueryInput, page *int) (*model.ErrorResults, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
+
+	ids, total, err := r.ClickhouseClient.QueryErrorGroups(ctx, project.ID, count, params, page)
 	if err != nil {
 		return nil, err
 	}
-	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
 
-	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogram(ctx, projectID, query, retentionDate, histogramOptions)
+	var results []*model.ErrorGroup
+	if err := r.DB.WithContext(ctx).Model(&model.ErrorGroup{}).
+		Joins("ErrorTag").
+		Where("error_groups.id in ?", ids).
+		Where("error_groups.project_id = ?", project.ID).
+		Order("error_groups.updated_at DESC").
+		Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	if len(results) > 0 {
+		if err := r.SetErrorFrequenciesClickhouse(ctx, project.ID, results, ErrorGroupLookbackDays); err != nil {
+			return nil, err
+		}
+	}
+
+	return &model.ErrorResults{
+		ErrorGroups: lo.Map(results, func(eg *model.ErrorGroup, idx int) model.ErrorGroup { return *eg }),
+		TotalCount:  total,
+	}, nil
+}
+
+// ErrorsHistogramClickhouse is the resolver for the errors_histogram_clickhouse field.
+func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogramDeprecated(ctx, projectID, query, histogramOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(bucketTimes) > 0 {
+		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
+		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
+	}
+
+	return &model.ErrorsHistogram{
+		BucketTimes:  MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		ErrorObjects: MergeHistogramBucketCounts(totals, histogramOptions.BucketSize.Multiple),
+	}, nil
+}
+
+// ErrorsHistogram is the resolver for the errors_histogram field.
+func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorObjectsHistogram(ctx, project.ID, params, histogramOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -6168,7 +6204,68 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 		return nil, err
 	}
 
-	ids, total, ordered, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, chSortStr, page, retentionDate)
+	ids, total, ordered, err := r.ClickhouseClient.QuerySessionIdsDeprecated(ctx, admin, projectID, count, query, chSortStr, page, retentionDate)
+	if err != nil {
+		return nil, err
+	}
+
+	q := r.DB.WithContext(ctx).Model(&model.Session{}).
+		Where("id in ?", ids).
+		Where("project_id = ?", projectID)
+	if !ordered {
+		q = q.Order(pgSortStr)
+	}
+
+	var results []model.Session
+	if err := q.Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	if ordered {
+		positions := make(map[int64]int)
+		for idx, id := range ids {
+			positions[id] = idx
+		}
+		sort.Slice(results, func(i, j int) bool {
+			return positions[int64(results[i].ID)] < positions[int64(results[j].ID)]
+		})
+	}
+
+	return &model.SessionResults{
+		Sessions:   results,
+		TotalCount: total,
+	}, nil
+}
+
+// Sessions is the resolver for the sessions field.
+func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, params modelInputs.QueryInput, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	chSortStr := "CreatedAt DESC, ID DESC"
+	pgSortStr := "created_at DESC"
+	if !sortDesc {
+		chSortStr = "CreatedAt ASC, ID ASC"
+		pgSortStr = "created_at ASC"
+	}
+
+	// If there's no admin for the context, use `admin=nil`
+	// (admin is used by the "viewed by me" filter)
+	admin, err := r.getCurrentAdmin(ctx)
+	if errors.Is(err, AuthenticationError) {
+		admin = nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	ids, total, ordered, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, params, chSortStr, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}
@@ -6222,7 +6319,46 @@ func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, project
 		return nil, err
 	}
 
-	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogram(ctx, admin, projectID, query, retentionDate, histogramOptions)
+	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogramDeprecated(ctx, admin, projectID, query, retentionDate, histogramOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(bucketTimes) > 0 {
+		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
+		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
+	}
+
+	return &model.SessionsHistogram{
+		BucketTimes:           MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		SessionsWithoutErrors: MergeHistogramBucketCounts(withoutErrors, histogramOptions.BucketSize.Multiple),
+		SessionsWithErrors:    MergeHistogramBucketCounts(withErrors, histogramOptions.BucketSize.Multiple),
+		TotalSessions:         MergeHistogramBucketCounts(totals, histogramOptions.BucketSize.Multiple),
+	}, nil
+}
+
+// SessionsHistogram is the resolver for the sessions_histogram field.
+func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	// If there's no admin for the context, use `admin=nil`
+	// (admin is used by the "viewed by me" filter)
+	admin, err := r.getCurrentAdmin(ctx)
+	if errors.Is(err, AuthenticationError) {
+		admin = nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogram(ctx, admin, projectID, params, retentionDate, histogramOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -6261,7 +6397,83 @@ func (r *queryResolver) SessionsReport(ctx context.Context, projectID int, query
 		return nil, err
 	}
 
-	sql, args, _, err := clickhouse.GetSessionsQueryImpl(admin, query, projectID, retentionDate, "ID", nil, nil, nil, nil)
+	sql, args, _, err := clickhouse.GetSessionsQueryImplDeprecated(admin, query, projectID, retentionDate, "ID", nil, nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	q := fmt.Sprintf(`
+select coalesce(email.Value, nullif(IP, ''), device.Value, Identifier) as key,
+       count(distinct ID)                                              as num_sessions,
+       count(distinct date_trunc('day', CreatedAt))                    as num_days_visited,
+       count(distinct date_trunc('month', CreatedAt))                  as num_months_visited,
+       avg(greatest(0, ActiveLength)) / 1000 / 60                      as avg_active_length_mins,
+       max(greatest(0, ActiveLength)) / 1000 / 60                      as max_active_length_mins,
+       sum(greatest(0, ActiveLength)) / 1000 / 60                      as total_active_length_mins,
+       avg(greatest(0, Length)) / 1000 / 60                            as avg_length_mins,
+       max(greatest(0, Length)) / 1000 / 60                            as max_length_mins,
+       sum(greatest(0, Length)) / 1000 / 60                            as total_length_mins,
+       max(City)                                                       as location
+from sessions final
+         left join (select *
+                    from fields
+                    where fields.ProjectID = %d
+                      and Type = 'user'
+                      and Name = 'email') email on
+    email.SessionCreatedAt = CreatedAt
+        and email.SessionID = ID
+         left join (select *
+                    from fields
+                    where fields.ProjectID = %d
+                      and Type = 'session'
+                      and Name = 'device_id') device on
+    device.SessionCreatedAt = CreatedAt
+        and device.SessionID = ID
+WHERE sessions.ProjectID = %d
+  AND NOT Excluded
+  AND WithinBillingQuota
+  AND ID in (%s)
+group by 1 order by num_sessions desc;
+`, project.ID, project.ID, project.ID, sql)
+	rows, err := r.ClickhouseClient.GetConn().Query(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*modelInputs.SessionsReportRow
+	for rows.Next() {
+		var result modelInputs.SessionsReportRow
+		if err := rows.Scan(&result.Key, &result.NumSessions, &result.NumDaysVisited, &result.NumMonthsVisited, &result.AvgActiveLengthMins, &result.MaxActiveLengthMins, &result.TotalActiveLengthMins, &result.AvgLengthMins, &result.MaxLengthMins, &result.TotalLengthMins, &result.Location); err != nil {
+			return nil, err
+		}
+		results = append(results, &result)
+	}
+
+	return results, nil
+}
+
+// SessionUsersReport is the resolver for the session_users_report field.
+func (r *queryResolver) SessionUsersReport(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.SessionsReportRow, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	// If there's no admin for the context, use `admin=nil`
+	// (admin is used by the "viewed by me" filter)
+	admin, err := r.getCurrentAdmin(ctx)
+	if errors.Is(err, AuthenticationError) {
+		admin = nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	sql, args, _, err := clickhouse.GetSessionsQueryImpl(admin, params, projectID, retentionDate, "ID", nil, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -8544,11 +8756,6 @@ func (r *queryResolver) MatchErrorTag(ctx context.Context, query string) ([]*mod
 	return r.Resolver.MatchErrorTag(ctx, query)
 }
 
-// FindSimilarErrors is the resolver for the find_similar_errors field.
-func (r *queryResolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.MatchedErrorObject, error) {
-	return r.Resolver.FindSimilarErrors(ctx, query)
-}
-
 // Trace is the resolver for the trace field.
 func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string, sessionSecureID *string) (*modelInputs.TracePayload, error) {
 	if _, err := r.canAdminViewSession(ctx, pointy.StringValue(sessionSecureID, "")); err != nil {
@@ -8833,6 +9040,27 @@ func (r *queryResolver) Visualization(ctx context.Context, id int) (*model.Visua
 			NullHandling:      nil,
 		}},
 	}, nil
+}
+
+// LogLines is the resolver for the log_lines field.
+func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		return r.ClickhouseClient.TracesLogLines(ctx, project.ID, params)
+	case modelInputs.ProductTypeLogs:
+		return r.ClickhouseClient.LogsLogLines(ctx, project.ID, params)
+	case modelInputs.ProductTypeSessions:
+		return r.ClickhouseClient.SessionsLogLines(ctx, project.ID, params)
+	case modelInputs.ProductTypeErrors:
+		return r.ClickhouseClient.ErrorsLogLines(ctx, project.ID, params)
+	default:
+		return nil, e.Errorf("invalid product type %s", productType)
+	}
 }
 
 // Params is the resolver for the params field.

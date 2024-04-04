@@ -528,7 +528,6 @@ type LogAlertInput struct {
 	MicrosoftTeamsChannels []*MicrosoftTeamsChannelInput `json:"microsoft_teams_channels"`
 	WebhookDestinations    []*WebhookDestinationInput    `json:"webhook_destinations"`
 	Emails                 []string                      `json:"emails"`
-	Environments           []string                      `json:"environments"`
 	Disabled               bool                          `json:"disabled"`
 	Default                *bool                         `json:"default,omitempty"`
 	Query                  string                        `json:"query"`
@@ -549,6 +548,13 @@ type LogEdge struct {
 
 func (LogEdge) IsEdge()                {}
 func (this LogEdge) GetCursor() string { return this.Cursor }
+
+type LogLine struct {
+	Timestamp time.Time `json:"timestamp"`
+	Body      string    `json:"body"`
+	Severity  *LogLevel `json:"severity,omitempty"`
+	Labels    string    `json:"labels"`
+}
 
 type LogsHistogram struct {
 	Buckets      []*LogsHistogramBucket `json:"buckets"`
@@ -1425,6 +1431,7 @@ type MetricAggregator string
 
 const (
 	MetricAggregatorCount            MetricAggregator = "Count"
+	MetricAggregatorCountDistinct    MetricAggregator = "CountDistinct"
 	MetricAggregatorCountDistinctKey MetricAggregator = "CountDistinctKey"
 	MetricAggregatorMin              MetricAggregator = "Min"
 	MetricAggregatorAvg              MetricAggregator = "Avg"
@@ -1434,10 +1441,12 @@ const (
 	MetricAggregatorP99              MetricAggregator = "P99"
 	MetricAggregatorMax              MetricAggregator = "Max"
 	MetricAggregatorSum              MetricAggregator = "Sum"
+	MetricAggregatorNone             MetricAggregator = "None"
 )
 
 var AllMetricAggregator = []MetricAggregator{
 	MetricAggregatorCount,
+	MetricAggregatorCountDistinct,
 	MetricAggregatorCountDistinctKey,
 	MetricAggregatorMin,
 	MetricAggregatorAvg,
@@ -1447,11 +1456,12 @@ var AllMetricAggregator = []MetricAggregator{
 	MetricAggregatorP99,
 	MetricAggregatorMax,
 	MetricAggregatorSum,
+	MetricAggregatorNone,
 }
 
 func (e MetricAggregator) IsValid() bool {
 	switch e {
-	case MetricAggregatorCount, MetricAggregatorCountDistinctKey, MetricAggregatorMin, MetricAggregatorAvg, MetricAggregatorP50, MetricAggregatorP90, MetricAggregatorP95, MetricAggregatorP99, MetricAggregatorMax, MetricAggregatorSum:
+	case MetricAggregatorCount, MetricAggregatorCountDistinct, MetricAggregatorCountDistinctKey, MetricAggregatorMin, MetricAggregatorAvg, MetricAggregatorP50, MetricAggregatorP90, MetricAggregatorP95, MetricAggregatorP99, MetricAggregatorMax, MetricAggregatorSum, MetricAggregatorNone:
 		return true
 	}
 	return false

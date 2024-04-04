@@ -2,6 +2,7 @@ package clickhouse
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -363,8 +364,16 @@ func getChildValue(value reflect.Value, key string) (string, bool) {
 // clickhouse token - https://clickhouse.com/docs/en/sql-reference/functions/splitting-merging-functions#tokens
 var nonAlphaNumericChars = regexp.MustCompile(`[^\w:*]`)
 
+// strip toString() wrapper around filter keys to match the KeysToColumns map
+var keyWrapper = regexp.MustCompile(`toString\((\w+)\)`)
+
 func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model.TableConfig[TReservedKey], filter *listener.FilterOperation) bool {
-	bodyFilter := config.BodyColumn != "" && filter.Column == "" && filter.Key == config.BodyColumn
+	key := filter.Key
+	groups := keyWrapper.FindStringSubmatch(key)
+	if len(groups) > 0 {
+		key = groups[1]
+	}
+	bodyFilter := config.BodyColumn != "" && filter.Column == "" && key == config.BodyColumn
 	v := reflect.ValueOf(*row)
 
 	rowBodyTerms := map[string]bool{}
@@ -402,23 +411,23 @@ func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model
 	}
 
 	var rowValue string
-	if chKey, ok := config.KeysToColumns[TReservedKey(filter.Key)]; ok {
+	if chKey, ok := config.KeysToColumns[TReservedKey(key)]; ok {
 		if val, ok := getChildValue(v, chKey); ok {
 			rowValue = val
 		} else {
 			rowValue = repr(v.FieldByName(chKey))
 		}
-	} else if field := v.FieldByName(filter.Key); field.IsValid() {
+	} else if field := v.FieldByName(key); field.IsValid() {
 		rowValue = repr(field)
-	} else if val, ok := getChildValue(v, filter.Key); ok {
+	} else if val, ok := getChildValue(v, key); ok {
 		rowValue = val
 	} else if config.AttributesColumn != "" {
 		value := v.FieldByName(config.AttributesColumn)
 		if value.Kind() == reflect.Map {
-			rowValue = repr(value.MapIndex(reflect.ValueOf(filter.Key)))
+			rowValue = repr(value.MapIndex(reflect.ValueOf(key)))
 		} else if value.Kind() == reflect.Slice {
 			// assume that the key is a 'field' in `type_name` format
-			fieldParts := strings.SplitN(filter.Key, "_", 2)
+			fieldParts := strings.SplitN(key, "_", 2)
 			for i := 0; i < value.Len(); i++ {
 				fieldType := value.Index(i).Elem().FieldByName("Type").String()
 				name := value.Index(i).Elem().FieldByName("Name").String()
@@ -500,7 +509,7 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSamplin
 		} else {
 			return "round(count() * 1.0)"
 		}
-	case modelInputs.MetricAggregatorCountDistinctKey:
+	case modelInputs.MetricAggregatorCountDistinctKey, modelInputs.MetricAggregatorCountDistinct:
 		if useSampling {
 			return fmt.Sprintf("round(count(distinct %s) * any(_sample_factor))", column)
 		} else {
@@ -829,6 +838,78 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	metrics.BucketCount = uint64(nBuckets)
 
 	return metrics, err
+}
+
+func formatColumn(input string, column string) string {
+	base := input
+	if base == "" {
+		base = "null"
+	}
+	return fmt.Sprintf("%s AS %s", base, column)
+}
+
+func logLines[T ~string](ctx context.Context, client *Client, tableConfig model.TableConfig[T], projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
+	body := formatColumn(tableConfig.BodyColumn, "Body")
+	severity := formatColumn(tableConfig.SeverityColumn, "Severity")
+	attributes := formatColumn(tableConfig.AttributesColumn, "Labels")
+	fromSb, err := makeSelectBuilder(
+		tableConfig,
+		[]string{"Timestamp", body, severity, attributes},
+		projectID,
+		params,
+		Pagination{CountOnly: true},
+		OrderBackwardNatural,
+		OrderForwardNatural,
+	)
+	if err != nil {
+		return nil, err
+	}
+	fromSb.Limit(1000)
+
+	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	logLines := []*modelInputs.LogLine{}
+
+	rows, err := client.conn.Query(
+		ctx,
+		sql,
+		args...,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var result struct {
+			Timestamp time.Time
+			Body      string
+			Severity  string
+			Labels    map[string]string
+		}
+		if err := rows.ScanStruct(&result); err != nil {
+			return nil, err
+		}
+
+		labelsJson, err := json.Marshal(expandJSON(result.Labels))
+		if err != nil {
+			return nil, err
+		}
+
+		var severity *modelInputs.LogLevel
+		if result.Severity != "" {
+			logLevel := makeLogLevel(result.Severity)
+			severity = &logLevel
+		}
+		logLines = append(logLines, &modelInputs.LogLine{
+			Timestamp: result.Timestamp,
+			Body:      result.Body,
+			Severity:  severity,
+			Labels:    string(labelsJson),
+		})
+	}
+
+	return logLines, err
 }
 
 func repr(val reflect.Value) string {

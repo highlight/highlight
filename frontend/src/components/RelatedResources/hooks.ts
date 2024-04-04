@@ -1,16 +1,21 @@
 import { makeVar, useReactiveVar } from '@apollo/client'
+import useLocalStorage from '@rehooks/local-storage'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useLocalStorage } from 'react-use'
+
+import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 
 export type RelatedError = {
 	type: 'error'
-	id: string
+	secureId: string
 	instanceId: string
 }
 export type RelatedSession = {
 	type: 'session'
-	id: string
+	secureId: string
+	[PlayerSearchParameters.errorId]?: string
+	[PlayerSearchParameters.log]?: string
+	[PlayerSearchParameters.tsAbs]?: string
 }
 export type RelatedTrace = {
 	type: 'trace'

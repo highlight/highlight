@@ -133,7 +133,7 @@ using OpenTelemetry.Trace;
 
 public class MyService
 {
-private static readonly ActivitySource ActivitySource = new ActivitySource("MyService");
+private static readonly ActivitySource ActivitySource = new ActivitySource("highlight-dot-net-example");
 
     public void DoWork()
     {
@@ -151,52 +151,157 @@ The configuration and code above set up a basic tracing pipeline for a .NET appl
 4. Update the code block to send traces to highlight
 
 ```java
+using System.Diagnostics;
+using OpenTelemetry;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Serilog.Context;
+using Serilog.Core;
+using Serilog.Events;
+using Serilog.Sinks.OpenTelemetry;
 
-public class Startup
+namespace dotnet;
+
+public class HighlightTraceProcessor : BaseProcessor<Activity>
 {
-    public void ConfigureServices(IServiceCollection services)
+    public override void OnStart(Activity data)
     {
-        // Other service configurations ...
-        
-        var resourceBuilder = ResourceBuilder.CreateDefault()
-            .AddService("YourServiceName", serviceVersion: "1.0.0")
-            .AddAttributes(new Dictionary<string, object>
-            {
-                { "environment", "production" },
-                // Add other attributes as needed
-            });
-
-
-        // Configure OpenTelemetry Tracing with OTLP over HTTP
-        services.AddOpenTelemetryTracing(builder =>
+        var ctx = HighlightConfig.GetHighlightContext();
+        foreach (var entry in ctx)
         {
-            builder
-                .SetResourceBuilder(resourceBuilder)
-                .AddAspNetCoreInstrumentation()
-                .AddOtlpExporter(options =>
-                {
-                    options.Endpoint = new Uri("https://otel.highlight.io:4318");
-                    options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+            data.SetTag(entry.Key, entry.Value);
+        }
 
-                    // Optional: Customize batching behavior
-                    options.BatchExportProcessorOptions = new OpenTelemetry.BatchExportProcessorOptions<Activity>
-                    {
-                        MaxQueueSize = 2048,
-                        ScheduledDelayMilliseconds = 5000,
-                        ExporterTimeoutMilliseconds = 30000,
-                        MaxExportBatchSize = 512
-                    };
-                });
+        base.OnStart(data);
+    }
+}
+
+public class HighlightLogProcessor : BaseProcessor<LogRecord>
+{
+    public override void OnStart(LogRecord data)
+    {
+        var ctx = HighlightConfig.GetHighlightContext();
+        var attributes = ctx.Select(entry => new KeyValuePair<string, object?>(entry.Key, entry.Value)).ToList();
+        if (data.Attributes != null)
+        {
+            attributes = attributes.Concat(data.Attributes).ToList();
+        }
+
+        data.Attributes = attributes;
+        base.OnStart(data);
+    }
+}
+
+public class HighlightLogEnricher : ILogEventEnricher
+{
+    public void Enrich(LogEvent logEvent, ILogEventPropertyFactory pf)
+    {
+        var ctx = HighlightConfig.GetHighlightContext();
+        foreach (var entry in ctx)
+        {
+            logEvent.AddOrUpdateProperty(pf.CreateProperty(entry.Key, entry.Value));
+        }
+    }
+}
+
+public class HighlightConfig
+{
+    // Replace with the highlight endpoint. For highlight.io cloud, use https://otel.highlight.io:4318
+    public static readonly String OtlpEndpoint = "https://otel.highlight.io:4318";
+
+    // Replace with your project ID and service name.
+    public static readonly String ProjectId = "<YOUR_PROJECT_ID>";
+    // This must match the ServiceName used by the ActivitySource to ensure traces are sent.
+    public static readonly String ServiceName = "highlight-dot-net-example";
+
+    public static readonly String TracesEndpoint = OtlpEndpoint + "/v1/traces";
+    public static readonly String LogsEndpoint = OtlpEndpoint + "/v1/logs";
+    public static readonly String MetricsEndpoint = OtlpEndpoint + "/v1/metrics";
+
+    public static readonly OtlpProtocol Protocol = OtlpProtocol.HttpProtobuf;
+    public static readonly OtlpExportProtocol ExportProtocol = OtlpExportProtocol.HttpProtobuf;
+    public static readonly String HighlightHeader = "x-highlight-request";
+
+    public static readonly Dictionary<string, object> ResourceAttributes = new()
+    {
+        ["highlight.project_id"] = ProjectId,
+        ["service.name"] = ServiceName,
+    };
+
+    public static Dictionary<string, string> GetHighlightContext()
+    {
+        var ctx = new Dictionary<string, string>
+        {
+            { "highlight.project_id", ProjectId },
+        };
+
+        var headerValue = Baggage.GetBaggage(HighlightHeader);
+        if (headerValue == null) return ctx;
+
+        var parts = headerValue.Split("/");
+        if (parts.Length < 2) return ctx;
+
+        ctx["highlight.session_id"] = parts[0];
+        ctx["highlight.trace_id"] = parts[1];
+        return ctx;
+    }
+
+    public static void EnrichWithHttpRequest(Activity activity, HttpRequest httpRequest)
+    {
+        var headerValues = httpRequest.Headers[HighlightHeader];
+        if (headerValues.Count < 1) return;
+        var headerValue = headerValues[0];
+        if (headerValue == null) return;
+        var parts = headerValue.Split("/");
+        if (parts?.Length < 2) return;
+        activity.SetTag("highlight.session_id", parts?[0]);
+        activity.SetTag("highlight.trace_id", parts?[1]);
+        Baggage.SetBaggage(new KeyValuePair<string, string>[]
+        {
+            new(HighlightHeader, headerValue)
         });
     }
 
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    public static void Configure(WebApplicationBuilder builder)
     {
-        // Existing configuration code...
+        builder.Logging.AddOpenTelemetry(options =>
+        {
+            options
+                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(ResourceAttributes))
+                .AddProcessor(new HighlightLogProcessor())
+                .AddOtlpExporter(exporterOptions =>
+                {
+                    exporterOptions.Endpoint = new Uri(LogsEndpoint);
+                    exporterOptions.Protocol = ExportProtocol;
+                });
+        });
 
-        // Ensure to use the appropriate middleware if needed
-        app.UseOpenTelemetry();
+        builder.Services.AddOpenTelemetry()
+            .ConfigureResource(resource => resource.AddAttributes(ResourceAttributes))
+            .WithTracing(tracing => tracing
+                .AddSource(ServiceName)
+                .AddProcessor(new HighlightTraceProcessor())
+                .AddAspNetCoreInstrumentation(options =>
+                {
+                    options.RecordException = true;
+                    options.EnrichWithHttpRequest = EnrichWithHttpRequest;
+                })
+                .AddOtlpExporter(options =>
+                {
+                    options.Endpoint = new Uri(TracesEndpoint);
+                    options.Protocol = ExportProtocol;
+                }))
+            .WithMetrics(metrics => metrics
+                .AddMeter(ServiceName)
+                .AddAspNetCoreInstrumentation()
+                .AddOtlpExporter(options =>
+                {
+                    options.Endpoint = new Uri(MetricsEndpoint);
+                    options.Protocol = ExportProtocol;
+                }));
     }
 }
 ```

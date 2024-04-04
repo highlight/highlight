@@ -1,6 +1,7 @@
 package stacktraces
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/base64"
@@ -13,6 +14,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/andybalholm/brotli"
 	"github.com/go-sourcemap/sourcemap"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -87,6 +89,14 @@ func (n NetworkFetcher) fetchFile(ctx context.Context, href string) ([]byte, err
 		return nil, e.New("status code not OK")
 	}
 
+	if res.Header.Get("Content-Encoding") == "br" {
+		out := &bytes.Buffer{}
+		if _, err := io.Copy(out, brotli.NewReader(res.Body)); err != nil {
+			return nil, e.New("failed to read brotli content")
+		}
+		return out.Bytes(), nil
+	}
+
 	// unpack file into slice
 	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -148,8 +158,9 @@ func EnhanceStackTrace(ctx context.Context, input []*publicModel.StackFrameInput
 	return mappedStackTrace, nil
 }
 
+// file scheme sourcemaps are uploaded by a user via the sourcemap uploader and cannot be fetched
 func getFileSourcemap(ctx context.Context, projectId int, version *string, stackTraceFileURL string, storageClient storage.Client, stackTraceError *privateModel.SourceMappingError) (sourceMapURL string, sourceMapFileBytes []byte, err error) {
-	pathSubpath := fmt.Sprintf("%s.map", stackTraceFileURL)
+	pathSubpath := mapFileForJS(stackTraceFileURL)
 	sourcemapFetchStrategy := "S3"
 	stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
 	for sourceMapFileBytes == nil {
@@ -213,7 +224,7 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 
 	sourceMapFileName := string(regexp.MustCompile(`(?m)^//# sourceMappingURL=(.*)$`).Find(minifiedFileBytes))
 	if len(sourceMapFileName) < 1 {
-		sourceMapFileName = fmt.Sprintf("%s.map", path.Base(stackTraceFileURL))
+		sourceMapFileName = mapFileForJS(path.Base(stackTraceFileURL))
 	} else {
 		sourceMapFileName = strings.Replace(sourceMapFileName, "//# sourceMappingURL=", "", 1)
 	}
@@ -311,6 +322,24 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 	return sourceMapURL, sourceMapFileBytes, nil
 }
 
+func stripStackTraceQueryString(u string) string {
+	// ensure reflame query string is preserved, as it is necessary to load the file
+	isReflame := strings.Contains(u, "~r_rid=")
+	if !isReflame {
+		// remove query string in the url which may be used to cache bust
+		// eg. main.js?foo=bar -> main.js
+		queryStringIndex := strings.Index(u, "?")
+		if queryStringIndex != -1 {
+			u = u[:queryStringIndex]
+		}
+	}
+	return u
+}
+
+func mapFileForJS(jsFile string) string {
+	return fmt.Sprintf("%s.map", stripStackTraceQueryString(jsFile))
+}
+
 func processStackFrame(ctx context.Context, projectId int, version *string, stackTrace publicModel.StackFrameInput, storageClient storage.Client) (*privateModel.ErrorTrace, error, privateModel.SourceMappingError) {
 	stackTraceFileURL := *stackTrace.FileName
 	stackTraceLineNumber := *stackTrace.LineNumber
@@ -346,17 +375,9 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 	if len(stackTraceFilePath) > 0 && stackTraceFilePath[0:1] == "/" {
 		stackTraceFilePath = stackTraceFilePath[1:]
 	}
-	// TODO(vkorolik) keep the querystring so that add to the .map requests
-	// ensure reflame query string is preserved, as it is necessary to load the file
-	isReflame := strings.Contains(stackTraceFileURL, "~r_rid=")
-	if !isReflame {
-		// remove query string in the url which may be used to cache bust
-		// eg. main.js?foo=bar -> main.js
-		queryStringIndex := strings.Index(stackTraceFileURL, "?")
-		if queryStringIndex != -1 {
-			stackTraceFileURL = stackTraceFileURL[:queryStringIndex]
-		}
-	}
+
+	stackTraceFileURL = stripStackTraceQueryString(stackTraceFileURL)
+
 	var sourceMapURL string
 	var sourceMapFileBytes []byte
 	if u.Scheme == "file" {

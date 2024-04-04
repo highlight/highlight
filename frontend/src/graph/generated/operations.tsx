@@ -4131,7 +4131,6 @@ export type GetLogAlertQuery = { __typename?: 'Query' } & {
 		| 'DailyFrequency'
 		| 'disabled'
 		| 'EmailsToNotify'
-		| 'ExcludedEnvironments'
 		| 'id'
 		| 'LastAdminToEditID'
 		| 'Name'
@@ -4196,13 +4195,6 @@ export type GetLogAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				'id' | 'name' | 'email' | 'photo_url'
 			>
 		}
-	>
-	environment_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
-			>
-		>
 	>
 }
 
@@ -4373,7 +4365,6 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				| 'disabled'
 				| 'default'
 				| 'EmailsToNotify'
-				| 'ExcludedEnvironments'
 				| 'id'
 				| 'LastAdminToEditID'
 				| 'Name'
@@ -4995,23 +4986,6 @@ export type MatchErrorTagQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type FindSimilarErrorsQueryVariables = Types.Exact<{
-	query: Types.Scalars['String']
-}>
-
-export type FindSimilarErrorsQuery = { __typename?: 'Query' } & {
-	find_similar_errors?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'MatchedErrorObject' } & Pick<
-					Types.MatchedErrorObject,
-					'id' | 'type' | 'event' | 'stack_trace' | 'score'
-				>
-			>
-		>
-	>
-}
-
 export type GetTraceQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	trace_id: Types.Scalars['String']
@@ -5363,7 +5337,6 @@ export const namedOperations = {
 		GetServiceByName: 'GetServiceByName' as const,
 		GetErrorTags: 'GetErrorTags' as const,
 		MatchErrorTag: 'MatchErrorTag' as const,
-		FindSimilarErrors: 'FindSimilarErrors' as const,
 		GetTrace: 'GetTrace' as const,
 		GetTraces: 'GetTraces' as const,
 		GetTracesMetrics: 'GetTracesMetrics' as const,

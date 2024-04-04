@@ -90,6 +90,7 @@
 	"cSpell.words": [
 		"alexdanilo",
 		"Algora",
+		"Allarahkia",
 		"autoinject",
 		"Autoinjected",
 		"Blocklist",
@@ -98,6 +99,7 @@
 		"Esplin",
 		"incentivizing",
 		"interactable",
+		"Livestream",
 		"magicpatterns",
 		"munge",
 		"opentelemetry",
@@ -110,10 +112,13 @@
 		"snapshotting",
 		"statfs",
 		"teddarific",
+		"traceparent",
+		"tracestate",
 		"unlisten",
 		"unobfuscated",
 		"Vadim",
-		"Yuxin"
+		"Yuxin",
+		"Zain"
 	],
 	"[yaml]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"

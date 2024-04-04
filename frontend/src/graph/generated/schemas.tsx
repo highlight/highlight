@@ -896,7 +896,6 @@ export type LogAlert = {
 	DailyFrequency: Array<Maybe<Scalars['Int64']>>
 	DiscordChannelsToNotify: Array<DiscordChannel>
 	EmailsToNotify: Array<Scalars['String']>
-	ExcludedEnvironments: Array<Scalars['String']>
 	LastAdminToEditID?: Maybe<Scalars['ID']>
 	MicrosoftTeamsChannelsToNotify: Array<MicrosoftTeamsChannel>
 	Name: Scalars['String']
@@ -917,7 +916,6 @@ export type LogAlertInput = {
 	disabled: Scalars['Boolean']
 	discord_channels: Array<DiscordChannelInput>
 	emails: Array<Scalars['String']>
-	environments: Array<Scalars['String']>
 	microsoft_teams_channels: Array<MicrosoftTeamsChannelInput>
 	name: Scalars['String']
 	project_id: Scalars['ID']
@@ -946,6 +944,14 @@ export enum LogLevel {
 	Info = 'info',
 	Trace = 'trace',
 	Warn = 'warn',
+}
+
+export type LogLine = {
+	__typename?: 'LogLine'
+	body: Scalars['String']
+	labels: Scalars['String']
+	severity?: Maybe<LogLevel>
+	timestamp: Scalars['Timestamp']
 }
 
 export enum LogSource {
@@ -999,9 +1005,11 @@ export type Metric = {
 export enum MetricAggregator {
 	Avg = 'Avg',
 	Count = 'Count',
+	CountDistinct = 'CountDistinct',
 	CountDistinctKey = 'CountDistinctKey',
 	Max = 'Max',
 	Min = 'Min',
+	None = 'None',
 	P50 = 'P50',
 	P90 = 'P90',
 	P95 = 'P95',
@@ -1982,6 +1990,7 @@ export type Query = {
 	error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>
 	error_fields_clickhouse: Array<Scalars['String']>
 	error_group?: Maybe<ErrorGroup>
+	error_groups: ErrorResults
 	error_groups_clickhouse: ErrorResults
 	error_instance?: Maybe<ErrorInstance>
 	error_issue: Array<Maybe<ExternalAttachment>>
@@ -1992,6 +2001,7 @@ export type Query = {
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	error_tags?: Maybe<Array<Maybe<ErrorTag>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
+	errors_histogram: ErrorsHistogram
 	errors_histogram_clickhouse: ErrorsHistogram
 	errors_key_values: Array<Scalars['String']>
 	errors_keys: Array<QueryKey>
@@ -2003,7 +2013,6 @@ export type Query = {
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
 	field_types_clickhouse: Array<Field>
 	fields_clickhouse: Array<Scalars['String']>
-	find_similar_errors?: Maybe<Array<Maybe<MatchedErrorObject>>>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
 	github_issue_labels: Array<Scalars['String']>
@@ -2025,6 +2034,7 @@ export type Query = {
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	log_alert: LogAlert
 	log_alerts: Array<Maybe<LogAlert>>
+	log_lines: Array<LogLine>
 	logs: LogConnection
 	logsIntegration: IntegrationStatus
 	logs_error_objects: Array<ErrorObject>
@@ -2071,7 +2081,10 @@ export type Query = {
 	session_exports: Array<SessionExportWithSession>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
+	session_users_report: Array<SessionsReportRow>
+	sessions: SessionResults
 	sessions_clickhouse: SessionResults
+	sessions_histogram: SessionsHistogram
 	sessions_histogram_clickhouse: SessionsHistogram
 	sessions_key_values: Array<Scalars['String']>
 	sessions_keys: Array<QueryKey>
@@ -2256,6 +2269,13 @@ export type QueryError_GroupArgs = {
 	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
+export type QueryError_GroupsArgs = {
+	count: Scalars['Int']
+	page?: InputMaybe<Scalars['Int']>
+	params: QueryInput
+	project_id: Scalars['ID']
+}
+
 export type QueryError_Groups_ClickhouseArgs = {
 	count: Scalars['Int']
 	page?: InputMaybe<Scalars['Int']>
@@ -2297,6 +2317,12 @@ export type QueryError_SegmentsArgs = {
 
 export type QueryErrorsArgs = {
 	session_secure_id: Scalars['String']
+}
+
+export type QueryErrors_HistogramArgs = {
+	histogram_options: DateHistogramOptions
+	params: QueryInput
+	project_id: Scalars['ID']
 }
 
 export type QueryErrors_Histogram_ClickhouseArgs = {
@@ -2370,10 +2396,6 @@ export type QueryFields_ClickhouseArgs = {
 	project_id: Scalars['ID']
 	query: Scalars['String']
 	start_date: Scalars['Timestamp']
-}
-
-export type QueryFind_Similar_ErrorsArgs = {
-	query: Scalars['String']
 }
 
 export type QueryGenerate_Zapier_Access_TokenArgs = {
@@ -2467,6 +2489,12 @@ export type QueryLog_AlertArgs = {
 }
 
 export type QueryLog_AlertsArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryLog_LinesArgs = {
+	params: QueryInput
+	product_type: ProductType
 	project_id: Scalars['ID']
 }
 
@@ -2698,6 +2726,20 @@ export type QuerySession_IntervalsArgs = {
 	session_secure_id: Scalars['String']
 }
 
+export type QuerySession_Users_ReportArgs = {
+	params: QueryInput
+	project_id: Scalars['ID']
+}
+
+export type QuerySessionsArgs = {
+	count: Scalars['Int']
+	page?: InputMaybe<Scalars['Int']>
+	params: QueryInput
+	project_id: Scalars['ID']
+	sort_desc: Scalars['Boolean']
+	sort_field?: InputMaybe<Scalars['String']>
+}
+
 export type QuerySessions_ClickhouseArgs = {
 	count: Scalars['Int']
 	page?: InputMaybe<Scalars['Int']>
@@ -2705,6 +2747,12 @@ export type QuerySessions_ClickhouseArgs = {
 	query: ClickhouseQuery
 	sort_desc: Scalars['Boolean']
 	sort_field?: InputMaybe<Scalars['String']>
+}
+
+export type QuerySessions_HistogramArgs = {
+	histogram_options: DateHistogramOptions
+	params: QueryInput
+	project_id: Scalars['ID']
 }
 
 export type QuerySessions_Histogram_ClickhouseArgs = {

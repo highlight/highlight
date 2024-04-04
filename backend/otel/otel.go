@@ -201,7 +201,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				spanID := span.SpanID().String()
 
 				spanHasErrors := false
-				shouldWriteTrace := true
 				for l := 0; l < events.Len(); l++ {
 					if skipped {
 						break
@@ -212,6 +211,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						span:     &span,
 						event:    &event,
 					})
+					if err != nil {
+						lg(ctx, fields).WithError(err).Info("failed to extract fields from trace")
+						continue
+					}
 
 					if event.Name() == semconv.ExceptionEventName {
 						if fields.external {
@@ -256,7 +259,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							projectSessionErrors[fields.projectID][fields.sessionID] = append(projectSessionErrors[fields.projectID][fields.sessionID], backendError)
 						}
 					} else if event.Name() == highlight.LogEvent {
-						shouldWriteTrace = false
 						if fields.logMessage == "" {
 							lg(ctx, fields).Warn("otel received log with no message")
 							continue
@@ -281,7 +283,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 					} else if event.Name() == highlight.MetricEvent {
-						shouldWriteTrace = false
 						metric, err := getMetric(ctx, fields.timestamp, fields, spanID, span.ParentSpanID().String(), traceID)
 						if err != nil {
 							lg(ctx, fields).WithError(err).Error("failed to create metric")
@@ -296,28 +297,26 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 
-				if shouldWriteTrace {
-					timestamp := graph.ClampTime(span.StartTimestamp().AsTime(), curTime)
-					traceRow := clickhouse.NewTraceRow(timestamp, fields.projectIDInt).
-						WithSecureSessionId(fields.sessionID).
-						WithTraceId(traceID).
-						WithSpanId(spanID).
-						WithParentSpanId(span.ParentSpanID().String()).
-						WithTraceState(span.TraceState().AsRaw()).
-						WithSpanName(span.Name()).
-						WithSpanKind(span.Kind().String()).
-						WithDuration(span.StartTimestamp().AsTime(), span.EndTimestamp().AsTime()).
-						WithServiceName(fields.serviceName).
-						WithServiceVersion(fields.serviceVersion).
-						WithEnvironment(fields.environment).
-						WithHasErrors(spanHasErrors).
-						WithStatusCode(span.Status().Code().String()).
-						WithStatusMessage(span.Status().Message()).
-						WithTraceAttributes(fields.attrs).
-						WithEvents(fields.events).
-						WithLinks(fields.links)
-					traceSpans[traceID] = append(traceSpans[traceID], traceRow)
-				}
+				timestamp := graph.ClampTime(span.StartTimestamp().AsTime(), curTime)
+				traceRow := clickhouse.NewTraceRow(timestamp, fields.projectIDInt).
+					WithSecureSessionId(fields.sessionID).
+					WithTraceId(traceID).
+					WithSpanId(spanID).
+					WithParentSpanId(span.ParentSpanID().String()).
+					WithTraceState(span.TraceState().AsRaw()).
+					WithSpanName(span.Name()).
+					WithSpanKind(span.Kind().String()).
+					WithDuration(span.StartTimestamp().AsTime(), span.EndTimestamp().AsTime()).
+					WithServiceName(fields.serviceName).
+					WithServiceVersion(fields.serviceVersion).
+					WithEnvironment(fields.environment).
+					WithHasErrors(spanHasErrors).
+					WithStatusCode(span.Status().Code().String()).
+					WithStatusMessage(span.Status().Message()).
+					WithTraceAttributes(fields.attrs).
+					WithEvents(fields.events).
+					WithLinks(fields.links)
+				traceSpans[traceID] = append(traceSpans[traceID], traceRow)
 			}
 		}
 	}
@@ -443,9 +442,10 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					continue
 				}
 
+				traceID := cast(fields.requestID, logRecord.TraceID().String())
 				logRow := clickhouse.NewLogRow(
 					fields.timestamp, uint32(fields.projectIDInt),
-					clickhouse.WithTraceID(logRecord.TraceID().String()),
+					clickhouse.WithTraceID(traceID),
 					clickhouse.WithSecureSessionID(fields.sessionID),
 					clickhouse.WithBody(ctx, fields.logBody),
 					clickhouse.WithLogAttributes(fields.attrs),

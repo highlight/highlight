@@ -503,7 +503,7 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, project
 
 	if method == model.ErrorGroupingMethodGteLargeEmbeddingV3 {
 		if err := r.DB.WithContext(ctx).Raw(`
-			select gte_large_embedding <=> @embedding as score,
+			select (gte_large_embedding <=> @embedding) * 10 as score,
 				error_group_id
 			from error_group_embeddings
 			where project_id = @projectID
@@ -514,28 +514,6 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, project
 				"embedding": embedding,
 				"projectID": projectID,
 			}).Scan(&result).Error; err != nil {
-			return nil, e.Wrap(err, "error querying top error group match")
-		}
-	} else {
-		var column string
-		switch method {
-		case model.ErrorGroupingMethodAdaEmbeddingV2:
-			column = "combined_embedding"
-		case model.ErrorGroupingMethodGteLargeEmbeddingV2:
-			column = "gte_large_embedding"
-		}
-		if err := r.DB.WithContext(ctx).Raw(fmt.Sprintf(`
-select eoe.%s <-> @embedding as score,
-       eo.error_group_id                              as error_group_id
-from error_object_embeddings_partitioned eoe
-         inner join error_objects eo on eo.id = eoe.error_object_id
-where eoe.project_id = %d
-    and eoe.%s is not null
-order by 1
-limit 1;`, column, projectID, column), map[string]interface{}{
-			"embedding": embedding,
-		}).
-			Scan(&result).Error; err != nil {
 			return nil, e.Wrap(err, "error querying top error group match")
 		}
 	}
@@ -549,8 +527,8 @@ limit 1;`, column, projectID, column), map[string]interface{}{
 			if method == model.ErrorGroupingMethodGteLargeEmbeddingV3 {
 				if err := r.DB.WithContext(ctx).Exec(`
 					update error_group_embeddings
-					set gte_large_embedding = gte_large_embedding * array_fill(count::numeric / (count + 1), '{1024}')::vector 
-						+ @embedding * array_fill(1::numeric / (count + 1), '{1024}')::vector, 
+					set gte_large_embedding = gte_large_embedding * array_fill(count::numeric / (count + 1), '{1024}')::vector
+						+ @embedding * array_fill(1::numeric / (count + 1), '{1024}')::vector,
 						count = count + 1
 					where project_id = @projectID
 					and error_group_id = @errorGroupID`,
@@ -789,10 +767,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
 		} else {
 			embedding = emb[0]
-			embeddingType := model.ErrorGroupingMethodGteLargeEmbeddingV2
-			if errorObj.ProjectID == 1 {
-				embeddingType = model.ErrorGroupingMethodGteLargeEmbeddingV3
-			}
+			embeddingType := model.ErrorGroupingMethodGteLargeEmbeddingV3
 			errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
 				match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, errorObj.ProjectID, embeddingType, embedding.GteLargeEmbedding, settings.ErrorEmbeddingsThreshold)
 				if err != nil {
@@ -800,17 +775,14 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 				}
 				return match, err
 			}, func(errorGroupId int) error {
-				if errorObj.ProjectID == 1 {
-					newEmbedding := model.ErrorGroupEmbeddings{
-						ProjectID:         errorObj.ProjectID,
-						ErrorGroupID:      errorGroupId,
-						Count:             1,
-						GteLargeEmbedding: embedding.GteLargeEmbedding,
-					}
-
-					return r.DB.WithContext(ctx).Create(&newEmbedding).Error
+				newEmbedding := model.ErrorGroupEmbeddings{
+					ProjectID:         errorObj.ProjectID,
+					ErrorGroupID:      errorGroupId,
+					Count:             1,
+					GteLargeEmbedding: embedding.GteLargeEmbedding,
 				}
-				return nil
+
+				return r.DB.WithContext(ctx).Create(&newEmbedding).Error
 			}, settings.ErrorEmbeddingsTagGroup)
 			if err != nil {
 				return nil, e.Wrap(err, "Error getting or creating error group")
@@ -837,13 +809,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 
 	if err := r.DB.WithContext(ctx).Create(errorObj).Error; err != nil {
 		return nil, e.Wrap(err, "Error performing error insert for error")
-	}
-
-	if embedding != nil {
-		embedding.ErrorObjectID = errorObj.ID
-		if err := r.Store.PutEmbeddings([]*model.ErrorObjectEmbeddings{embedding}); err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to write embeddings")
-		}
 	}
 
 	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorObj.ID), &kafka_queue.Message{Type: kafka_queue.ErrorObjectDataSync, ErrorObjectDataSync: &kafka_queue.ErrorObjectDataSyncArgs{ErrorObjectID: errorObj.ID}}); err != nil {
@@ -890,18 +855,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 
 	return errorGroup, nil
-}
-
-func (r *Resolver) BatchGenerateEmbeddings(ctx context.Context, errorObjects []*model.ErrorObject) error {
-	if len(errorObjects) == 0 {
-		return nil
-	}
-
-	emb, err := r.EmbeddingsClient.GetEmbeddings(ctx, errorObjects)
-	if err != nil {
-		return err
-	}
-	return r.Store.PutEmbeddings(emb)
 }
 
 func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorField, errorGroup *model.ErrorGroup) error {
@@ -1771,7 +1724,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			}
 			excluded := false
 			for _, env := range excludedEnvironments {
-				if env != nil && *env == sessionObj.Environment {
+				if env != nil && *env == errorObject.Environment {
 					excluded = true
 					break
 				}
@@ -2276,22 +2229,12 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
 	}
 
-	var newInstances []*model.ErrorObject
 	for _, errorInstances := range groupedErrors {
-		newInstances = append(newInstances, errorInstances...)
 		instance := errorInstances[len(errorInstances)-1]
 		data := groups[instance.ErrorGroupID]
 		r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
 	}
 
-	if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddingsWrite {
-		eSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
-			util.ResourceName("BatchGenerateEmbeddings"))
-		if err = r.BatchGenerateEmbeddings(spanCtx, newInstances); err != nil {
-			log.WithContext(spanCtx).WithError(err).WithField("project_id", projectID).Error("failed to generate embeddings")
-		}
-		eSpan.Finish(err)
-	}
 	putErrorsToDBSpan.Finish()
 }
 
@@ -2874,20 +2817,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
 		}
 
-		var newInstances []*model.ErrorObject
 		for _, errorInstances := range groupedErrors {
-			newInstances = append(newInstances, errorInstances...)
 			instance := errorInstances[len(errorInstances)-1]
 			data := groups[instance.ErrorGroupID]
 			r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
-		}
-
-		if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddingsWrite {
-			eSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("BatchGenerateEmbeddings"))
-			if err = r.BatchGenerateEmbeddings(spanCtx, newInstances); err != nil {
-				log.WithContext(spanCtx).WithError(err).WithField("session_secure_id", sessionObj.SecureID).Error("failed to generate embeddings")
-			}
-			eSpan.Finish(err)
 		}
 
 		return nil

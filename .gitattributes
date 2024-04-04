@@ -10,3 +10,4 @@ backend/parser/antlr/* linguist-generated=true
 frontend/src/components/Search/Parser/antlr/* linguist-generated=true
 /.yarn/releases/** binary
 /.yarn/plugins/** binary
+__generated/* linguist-generated=true

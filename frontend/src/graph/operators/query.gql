@@ -1718,7 +1718,6 @@ query GetLogAlert($id: ID!) {
 		DailyFrequency
 		disabled
 		EmailsToNotify
-		ExcludedEnvironments
 		id
 		LastAdminToEditID
 		Name
@@ -1760,10 +1759,6 @@ query GetLogAlertsPagePayload($project_id: ID!) {
 			email
 			photo_url
 		}
-	}
-	environment_suggestion(project_id: $project_id) {
-		name
-		value
 	}
 }
 
@@ -1893,7 +1888,6 @@ query GetAlertsPagePayload($project_id: ID!) {
 		disabled
 		default
 		EmailsToNotify
-		ExcludedEnvironments
 		id
 		LastAdminToEditID
 		Name
@@ -2344,16 +2338,6 @@ query MatchErrorTag($query: String!) {
 		id
 		title
 		description
-		score
-	}
-}
-
-query FindSimilarErrors($query: String!) {
-	find_similar_errors(query: $query) {
-		id
-		type
-		event
-		stack_trace
 		score
 	}
 }
