@@ -41,7 +41,7 @@ const SessionCommentTagSelect = ({
 	const { data: commentTagsData, loading } = useGetCommentTagsForProjectQuery(
 		{
 			variables: { project_id: project_id! },
-			fetchPolicy: 'network-only',
+			fetchPolicy: 'cache-first',
 			skip: !project_id,
 		},
 	)

@@ -70,7 +70,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const [markSessionAsViewed] = useMarkSessionAsViewedMutation()
 	const { refetch: rawFetchEventChunkURL } = useGetEventChunkUrlQuery({
-		fetchPolicy: 'no-cache',
+		fetchPolicy: 'cache-first',
 		skip: true,
 	})
 	const fetchEventChunkURL = useCallback(
@@ -130,7 +130,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			})
 		}, []),
 		skip: !sessionSecureId,
-		fetchPolicy: 'network-only',
+		fetchPolicy: 'cache-first',
 	})
 	const { timelineIndicatorEvents } = useTimelineIndicators(
 		sessionData?.session || undefined,
@@ -138,7 +138,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const { data: sessionPayload, subscribeToMore: subscribeToSessionPayload } =
 		useGetSessionPayloadQuery({
 			fetchPolicy: sessionData?.session?.processed
-				? undefined
+				? 'cache-first'
 				: 'no-cache',
 			variables: {
 				session_secure_id: sessionSecureId!,

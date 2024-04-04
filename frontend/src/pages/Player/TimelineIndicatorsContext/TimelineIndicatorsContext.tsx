@@ -27,7 +27,7 @@ export const useTimelineIndicators = (
 		variables: {
 			session_secure_id: session?.secure_id ?? '',
 		},
-		fetchPolicy: 'no-cache',
+		fetchPolicy: 'cache-first',
 		skip: skipQuery,
 	})
 
