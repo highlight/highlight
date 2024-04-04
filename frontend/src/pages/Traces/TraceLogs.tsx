@@ -88,7 +88,7 @@ export const TraceLogs: React.FC = () => {
 						hideCreateAlert
 						productType={ProductType.Logs}
 					/>
-					<Box height="full" pt="4" px="12" pb="12">
+					<Box height="full">
 						{(!loading && logEdges.length === 0) || !traceId ? (
 							<Box style={{ height: 400 }}>
 								<Box
