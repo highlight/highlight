@@ -11,9 +11,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 Log.Logger = new LoggerConfiguration()
-    .Enrich.FromLogContext()
     .Enrich.WithMachineName()
     .Enrich.With<HighlightLogEnricher>()
+    .Enrich.FromLogContext()
     .WriteTo.Async(async =>
         async.OpenTelemetry(options =>
         {
@@ -53,13 +53,13 @@ ActivitySource.AddActivityListener(activityListener);
 app.MapGet("/weatherforecast", () =>
     {
         Log.Warning("stormy weather ahead");
-        using var span = tracer.StartActivity("SomeWork");
+        using var span = tracer.StartActivity("SomeWork")!;
         span.SetTag("mystring", "value");
         span.SetTag("myint", 100);
         span.SetTag("mydouble", 101.089);
         span.SetTag("mybool", true);
 
-        var childSpan = tracer.StartActivity("child span");
+        var childSpan = tracer.StartActivity("child span")!;
         Log.Information("clear skies now");
         var forecast = Enumerable.Range(1, 5).Select(index =>
                 new WeatherForecast
@@ -73,6 +73,8 @@ app.MapGet("/weatherforecast", () =>
         childSpan.SetTag("forecast", forecast[0].Summary);
         childSpan.SetStatus(Status.Ok);
         childSpan.Stop();
+        
+        Trace.TraceWarning("forecast incoming");
         return forecast;
     })
     .WithName("GetWeatherForecast")

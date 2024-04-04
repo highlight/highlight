@@ -5,6 +5,7 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Serilog.Context;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.OpenTelemetry;
@@ -47,7 +48,7 @@ public class HighlightLogEnricher : ILogEventEnricher
         var ctx = HighlightConfig.GetHighlightContext();
         foreach (var entry in ctx)
         {
-            logEvent.AddOrUpdateProperty(new LogEventProperty(entry.Key, new ScalarValue(entry.Value)));
+            logEvent.AddOrUpdateProperty(pf.CreateProperty(entry.Key, entry.Value));
         }
     }
 }
@@ -74,20 +75,19 @@ public class HighlightConfig
 
     public static Dictionary<string, string> GetHighlightContext()
     {
-        var headerValue = Baggage.GetBaggage(HighlightConfig.HighlightHeader);
-        if (headerValue != null)
-        {
-            var parts = headerValue.Split("/");
-            if (parts.Length >= 2)
-            {
-                return new Dictionary<string, string>
-                {
-                    {"highlight.project_id", HighlightConfig.ProjectId},
-                    {"highlight.session_id", parts[0]},
-                    {"highlight.trace_id", parts[1]}
-                };
-            }
-        }
+        var ctx = new Dictionary<string, string> {
+            {"highlight.project_id", ProjectId},
+        };
+        
+        var headerValue = Baggage.GetBaggage(HighlightHeader);
+        if (headerValue == null) return ctx;
+        
+        var parts = headerValue.Split("/");
+        if (parts.Length < 2) return ctx;
+        
+        ctx["highlight.session_id"] = parts[0];
+        ctx["highlight.trace_id"] = parts[1];
+        return ctx;
     }
 
     public static void EnrichWithHttpRequest(Activity activity, HttpRequest httpRequest)
