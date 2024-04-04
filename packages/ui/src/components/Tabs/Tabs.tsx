@@ -25,6 +25,7 @@ export const Tabs = <T extends string = string>({
 	onChange,
 }: Props<T>) => {
 	const tabsStore = Ariakit.useTabStore({
+		defaultSelectedId,
 		setSelectedId: (id) => {
 			if (onChange) {
 				onChange(id as T)
@@ -34,11 +35,7 @@ export const Tabs = <T extends string = string>({
 
 	return (
 		<TabsContext.Provider value={{ size }}>
-			<Ariakit.TabProvider
-				store={tabsStore}
-				defaultSelectedId={defaultSelectedId}
-				selectedId={selectedId}
-			>
+			<Ariakit.TabProvider store={tabsStore} selectedId={selectedId}>
 				<Stack direction="column" flexGrow={1} gap="0" width="full">
 					{children}
 				</Stack>
