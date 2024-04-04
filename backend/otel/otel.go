@@ -211,6 +211,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						span:     &span,
 						event:    &event,
 					})
+					if err != nil {
+						lg(ctx, fields).WithError(err).Info("failed to extract fields from trace")
+						continue
+					}
 
 					if event.Name() == semconv.ExceptionEventName {
 						if fields.external {
