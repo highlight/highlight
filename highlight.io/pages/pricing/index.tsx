@@ -27,7 +27,7 @@ import { useState } from 'react'
 import Collapsible from 'react-collapsible'
 import { Section } from '../../components/common/Section/Section'
 import { HeadlessTooltip } from '../../components/Competitors/ComparisonTable'
-import { CalendlyPopover } from '../../components/Home/CalendlyPopover'
+import { CalendlyModal } from '../../components/Home/CalendlyPopover'
 import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel'
 
 const OverageLink = ({
@@ -538,7 +538,7 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 						)}
 					>
 						<div className="min-w-[320px] w-screen max-w-5xl min-[1000px]:h-[700px] h-[900px] transition-opacity max-[652px]:pt-14 pointer-events-auto">
-							<CalendlyPopover />
+							<CalendlyModal />
 						</div>
 						<button
 							className="absolute grid w-10 h-10 rounded-full place-content-center bg-divider-on-dark max-[652px]:right-2 max-[652px]:top-2 right-10 top-10 hover:brightness-150 transition-all pointer-events-auto"
