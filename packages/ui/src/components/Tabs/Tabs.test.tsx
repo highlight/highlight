@@ -4,7 +4,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { Tabs } from './Tabs'
 
 describe('Tabs', () => {
-	it('exists', async () => {
+	it('allows you to switch between tabs', async () => {
 		render(
 			<Tabs>
 				<Tabs.List>
