@@ -59,8 +59,8 @@ def run_and_poll(
 @pytest.fixture(scope="session")
 def oauth_api():
     oauth_url, api_url = (
-        "https://localhost:8082/oauth",
-        "https://localhost:8082/private",
+        "http://localhost:8082/oauth",
+        "http://localhost:8082/private",
     )
     client_id, secret = "abc123", "def456"
     r = requests.post(
