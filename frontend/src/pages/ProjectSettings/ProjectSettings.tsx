@@ -35,7 +35,6 @@ import {
 import { AutoresolveStaleErrorsForm } from '@/pages/ProjectSettings/AutoresolveStaleErrorsForm/AutoresolveStaleErrorsForm'
 import { ProjectSettingsContextProvider } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
-import styles from './ProjectSettings.module.css'
 import { SessionFiltersCallout } from './SessionFiltersCallout/SessionFiltersCallout'
 
 enum ProjectSettingsTabs {
@@ -115,7 +114,7 @@ const ProjectSettings = () => {
 				<Heading mt="16" level="h4">
 					Project Settings
 				</Heading>
-				<div className={styles.tabsContainer}>
+				<Box mt="24">
 					<ProjectSettingsContextProvider
 						value={{
 							allProjectSettings,
@@ -241,7 +240,7 @@ const ProjectSettings = () => {
 							</Box>
 						</Tabs>
 					</ProjectSettingsContextProvider>
-				</div>
+				</Box>
 			</Box>
 		</>
 	)
