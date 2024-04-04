@@ -91,6 +91,10 @@ app.MapGet("/error", () =>
     .WithName("GetError")
     .WithOpenApi();
 
+app.MapGet("/", () => "Hello World!")
+    .WithName("GetRoot")
+    .WithOpenApi();
+
 app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
