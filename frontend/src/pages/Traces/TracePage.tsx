@@ -40,38 +40,6 @@ export const TracePage: React.FC = () => {
 			<TraceFlameGraph />
 
 			<Box pt="20">
-				{/* <OldTabs<TraceTabs>
-					tab={activeTab}
-					setTab={(tab) => setActiveTab(tab)}
-					containerClass={styles.tabs}
-					tabsContainerClass={styles.tabsContainer}
-					pageContainerClass={styles.tabsPageContainer}
-					pages={{
-						[TraceTabs.Info]: {
-							page: (
-								<Box px="6">
-									<TraceSpanAttributes
-										span={highlightedSpan!}
-									/>
-								</Box>
-							),
-						},
-						[TraceTabs.Errors]: {
-							badge:
-								errors?.length > 0 ? (
-									<Badge
-										variant="gray"
-										label={String(errors.length)}
-									/>
-								) : undefined,
-							page: <TraceErrors />,
-						},
-						[TraceTabs.Logs]: {
-							page: <TraceLogs />,
-						},
-					}}
-					noHandle
-				/> */}
 				<Tabs<TraceTabs> selectedId={activeTab} onChange={setActiveTab}>
 					<Tabs.List>
 						<Tabs.Tab id={TraceTabs.Info}>Info</Tabs.Tab>
