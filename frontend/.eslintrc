@@ -93,10 +93,6 @@
 						"message": "Please use Tabs from @highlight-run/ui/components instead."
 					},
 					{
-						"name": "@components/Tabs/Tabs",
-						"message": "Please use Tabs from @highlight-run/ui/components instead."
-					},
-					{
 						"name": "antd",
 						"importNames": ["Progress"],
 						"message": "Please use Progress from /src/components/Progress instead."
