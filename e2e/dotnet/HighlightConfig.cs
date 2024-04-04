@@ -55,17 +55,20 @@ public class HighlightLogEnricher : ILogEventEnricher
 
 public class HighlightConfig
 {
-    public static readonly String HighlightHeader = "x-highlight-request";
-    
-    public static readonly String TracesEndpoint = "https://otel.highlight.io:4318/v1/traces";
-    public static readonly String LogsEndpoint = "https://otel.highlight.io:4318/v1/logs";
-    public static readonly String MetricsEndpoint = "https://otel.highlight.io:4318/v1/metrics";
+    // Replace with the highlight endpoint. For highlight.io cloud, use https://otel.highlight.io:4318
+    public static readonly String OtlpEndpoint = "http://localhost:4318";
 
+    // Replace with your project ID and service name.
+    public static readonly String ProjectId = "1";
+    public static readonly String ServiceName = "highlight-dot-net-example";
+    
+    public static readonly String TracesEndpoint = OtlpEndpoint + "/v1/traces";
+    public static readonly String LogsEndpoint = OtlpEndpoint + "/v1/logs";
+    public static readonly String MetricsEndpoint = OtlpEndpoint + "/v1/metrics";
+    
     public static readonly OtlpProtocol Protocol = OtlpProtocol.HttpProtobuf;
     public static readonly OtlpExportProtocol ExportProtocol = OtlpExportProtocol.HttpProtobuf;
-
-    public static readonly String ProjectId = "2";
-    public static readonly String ServiceName = "highlight-dot-net-example";
+    public static readonly String HighlightHeader = "x-highlight-request";
 
     public static readonly Dictionary<string, object> ResourceAttributes = new()
     {
