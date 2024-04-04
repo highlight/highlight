@@ -7,7 +7,7 @@ import {
 	Heading,
 	IconSolidArrowCircleRight,
 	IconSolidX,
-	OldTabs,
+	Tabs,
 	Tag,
 	Text,
 } from '@highlight-run/ui/components'
@@ -32,8 +32,6 @@ import { WebSocketMessages } from '@/pages/Player/RightPlayerPanel/components/We
 import { useWebSocket } from '@/pages/Player/WebSocketContext/WebSocketContext'
 import { useSessionParams } from '@/pages/Sessions/utils'
 import { TraceProvider } from '@/pages/Traces/TraceProvider'
-
-import * as styles from './NetworkResourcePanel.css'
 
 enum NetworkRequestTabs {
 	Info = 'Info',
@@ -196,41 +194,6 @@ function NetworkResourceDetails({
 			: new Date(resource.startTime).getTime()
 	}, [resource.startTime, resource.startTimeAbs, startTime])
 
-	const pages = useMemo(() => {
-		const tabPages: any = {
-			[NetworkRequestTabs.Info]: {
-				page: (
-					<NetworkResourceInfo
-						selectedNetworkResource={resource}
-						networkRecordingEnabledForSession={
-							session?.enable_recording_network_contents || false
-						}
-					/>
-				),
-			},
-			[NetworkRequestTabs.Errors]: {
-				page: <NetworkResourceErrors resource={resource} />,
-			},
-			[NetworkRequestTabs.Logs]: {
-				page: (
-					<NetworkResourceLogs
-						resource={resource}
-						sessionStartTime={startTime}
-					/>
-				),
-			},
-		}
-
-		if (isNetworkRequest) {
-			tabPages[NetworkRequestTabs.Trace] = {
-				page: <NetworkResourceTrace />,
-			}
-		}
-
-		return tabPages
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isNetworkRequest, resource.id])
-
 	useHotkeys(
 		'h',
 		() => {
@@ -345,15 +308,54 @@ function NetworkResourceDetails({
 				</Box>
 			</Box>
 
-			<OldTabs<NetworkRequestTabs>
-				tab={activeTab}
-				setTab={(tab) => setActiveTab(tab)}
-				pages={pages}
-				noHandle
-				containerClass={styles.container}
-				tabsContainerClass={styles.tabsContainer}
-				pageContainerClass={styles.pageContainer}
-			/>
+			<Tabs
+				selectedId={activeTab}
+				onChange={(id) => {
+					setActiveTab(id as NetworkRequestTabs)
+				}}
+			>
+				<Tabs.List>
+					<Tabs.Tab id={NetworkRequestTabs.Info} badgeText="Info">
+						Info
+					</Tabs.Tab>
+					<Tabs.Tab id={NetworkRequestTabs.Errors} badgeText="Errors">
+						Errors
+					</Tabs.Tab>
+					<Tabs.Tab id={NetworkRequestTabs.Logs} badgeText="Logs">
+						Logs
+					</Tabs.Tab>
+					{isNetworkRequest && (
+						<Tabs.Tab
+							id={NetworkRequestTabs.Trace}
+							badgeText="Trace"
+						>
+							Trace
+						</Tabs.Tab>
+					)}
+				</Tabs.List>
+				<Tabs.Panel id={NetworkRequestTabs.Info}>
+					<NetworkResourceInfo
+						selectedNetworkResource={resource}
+						networkRecordingEnabledForSession={
+							session?.enable_recording_network_contents || false
+						}
+					/>
+				</Tabs.Panel>
+				<Tabs.Panel id={NetworkRequestTabs.Errors}>
+					<NetworkResourceErrors resource={resource} />
+				</Tabs.Panel>
+				<Tabs.Panel id={NetworkRequestTabs.Logs}>
+					<NetworkResourceLogs
+						resource={resource}
+						sessionStartTime={startTime}
+					/>
+				</Tabs.Panel>
+				{isNetworkRequest && (
+					<Tabs.Panel id={NetworkRequestTabs.Trace}>
+						<NetworkResourceTrace />
+					</Tabs.Panel>
+				)}
+			</Tabs>
 		</>
 	)
 }
@@ -537,7 +539,7 @@ function WebSocketDetails({
 				</Box>
 			</Box>
 
-			<OldTabs<WebSocketTabs>
+			{/* <OldTabs<WebSocketTabs>
 				tab={activeTab}
 				setTab={(tab) => setActiveTab(tab)}
 				pages={{
@@ -565,7 +567,36 @@ function WebSocketDetails({
 				noHandle
 				tabsContainerClass={styles.tabsContainer}
 				pageContainerClass={styles.pageContainer}
-			/>
+			/> */}
+
+			<Tabs
+				selectedId={activeTab}
+				onChange={(id) => setActiveTab(id as WebSocketTabs)}
+			>
+				<Tabs.List>
+					<Tabs.Tab id={WebSocketTabs.Headers} badgeText="Headers">
+						Headers
+					</Tabs.Tab>
+					<Tabs.Tab id={WebSocketTabs.Messages} badgeText="Messages">
+						Messages
+					</Tabs.Tab>
+				</Tabs.List>
+				<Tabs.Panel id={WebSocketTabs.Headers}>
+					<NetworkResourceInfo
+						selectedNetworkResource={resource}
+						networkRecordingEnabledForSession={
+							session?.enable_recording_network_contents || false
+						}
+					/>
+				</Tabs.Panel>
+				<Tabs.Panel id={WebSocketTabs.Messages}>
+					<WebSocketMessages
+						startEvent={resource}
+						eventsLoading={webSocketLoading}
+						events={selectedWebSocketEvents}
+					/>
+				</Tabs.Panel>
+			</Tabs>
 		</>
 	)
 }

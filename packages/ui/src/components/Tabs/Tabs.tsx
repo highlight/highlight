@@ -8,6 +8,7 @@ import { Props as TagProps, Tag } from '../Tag/Tag'
 
 type Props = React.PropsWithChildren & {
 	defaultSelectedId?: Ariakit.TabProviderProps['defaultSelectedId']
+	selectedId?: Ariakit.TabProviderProps['selectedId']
 	onChange?: Ariakit.TabStoreProps['setSelectedId']
 }
 
@@ -20,6 +21,7 @@ type TabsComponent = React.FC<Props> & {
 export const Tabs: TabsComponent = ({
 	children,
 	defaultSelectedId,
+	selectedId,
 	onChange,
 }) => {
 	const tabsStore = Ariakit.useTabStore({
@@ -34,6 +36,7 @@ export const Tabs: TabsComponent = ({
 		<Ariakit.TabProvider
 			store={tabsStore}
 			defaultSelectedId={defaultSelectedId}
+			selectedId={selectedId}
 		>
 			<Stack direction="column" flexGrow={1} gap="0" width="full">
 				{children}
