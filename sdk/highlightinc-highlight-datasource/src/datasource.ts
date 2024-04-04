@@ -41,7 +41,7 @@ export class DataSource extends DataSourceWithBackend<HighlightQuery, HighlightD
     this.projectID = instanceSettings.jsonData.projectID;
   }
 
-  applyTemplateVariables(query: HighlightQuery, scopedVars: ScopedVars): Record<string, any> {
+  applyTemplateVariables(query: HighlightQuery, scopedVars: ScopedVars): HighlightQuery {
     const interpolatedQuery: HighlightQuery = {
       ...query,
       queryText: getTemplateSrv().replace(query.queryText, scopedVars),
