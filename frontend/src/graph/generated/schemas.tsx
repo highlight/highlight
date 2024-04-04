@@ -910,6 +910,14 @@ export enum LogLevel {
 	Warn = 'warn',
 }
 
+export type LogLine = {
+	__typename?: 'LogLine'
+	body: Scalars['String']
+	labels: Scalars['String']
+	severity?: Maybe<LogLevel>
+	timestamp: Scalars['Timestamp']
+}
+
 export enum LogSource {
 	Backend = 'backend',
 	Frontend = 'frontend',
@@ -965,6 +973,7 @@ export enum MetricAggregator {
 	CountDistinctKey = 'CountDistinctKey',
 	Max = 'Max',
 	Min = 'Min',
+	None = 'None',
 	P50 = 'P50',
 	P90 = 'P90',
 	P95 = 'P95',
@@ -1979,6 +1988,7 @@ export type Query = {
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	log_alert: LogAlert
 	log_alerts: Array<Maybe<LogAlert>>
+	log_lines: Array<LogLine>
 	logs: LogConnection
 	logsIntegration: IntegrationStatus
 	logs_error_objects: Array<ErrorObject>
@@ -2432,6 +2442,12 @@ export type QueryLog_AlertArgs = {
 }
 
 export type QueryLog_AlertsArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryLog_LinesArgs = {
+	params: QueryInput
+	product_type: ProductType
 	project_id: Scalars['ID']
 }
 

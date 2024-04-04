@@ -8954,6 +8954,27 @@ func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.P
 	}
 }
 
+// LogLines is the resolver for the log_lines field.
+func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		return r.ClickhouseClient.TracesLogLines(ctx, project.ID, params)
+	case modelInputs.ProductTypeLogs:
+		return r.ClickhouseClient.LogsLogLines(ctx, project.ID, params)
+	case modelInputs.ProductTypeSessions:
+		return r.ClickhouseClient.SessionsLogLines(ctx, project.ID, params)
+	case modelInputs.ProductTypeErrors:
+		return r.ClickhouseClient.ErrorsLogLines(ctx, project.ID, params)
+	default:
+		return nil, e.Errorf("invalid product type %s", productType)
+	}
+}
+
 // Params is the resolver for the params field.
 func (r *savedSegmentResolver) Params(ctx context.Context, obj *model.SavedSegment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}

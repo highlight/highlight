@@ -78,6 +78,11 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
         </InlineField>
       </InlineFieldRow>
       <InlineFieldRow>
+        <InlineField label="Filter" labelWidth={10}>
+          <Input value={queryText} onChange={onQueryTextChange} placeholder="Enter a Highlight query..." width={60} />
+        </InlineField>
+      </InlineFieldRow>
+      <InlineFieldRow>
         <InlineField label="Function" labelWidth={10}>
           <Select
             value={metric}
@@ -85,7 +90,7 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
             options={metricOptions.filter((o) => o.tables.includes(table ?? 'traces'))}
           />
         </InlineField>
-        {metric !== undefined && metric !== 'Count' && (
+        {![undefined, 'Count', 'None'].includes(metric) && (
           <InlineField>
             <AsyncSelect
               key={table}
@@ -97,59 +102,58 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
           </InlineField>
         )}
       </InlineFieldRow>
-      <InlineFieldRow>
-        <InlineField label="Filter" labelWidth={10}>
-          <Input value={queryText} onChange={onQueryTextChange} placeholder="Enter a Highlight query..." width={60} />
-        </InlineField>
-      </InlineFieldRow>
-      <InlineFieldRow>
-        <InlineField label="Group by" labelWidth={10}>
-          <AsyncMultiSelect
-            key={table}
-            defaultOptions
-            value={groupBy?.map((g) => ({ name: g, label: g }))}
-            onChange={onGroupByChange}
-            loadOptions={(q) => loadGroupByOptions(table, q)}
-          />
-        </InlineField>
-        {groupBy !== undefined && groupBy.length > 0 && (
-          <>
-            <InlineField label="Limit">
-              <Input type="number" value={limit} onChange={onLimitChange} width={8} />
+      {metric !== 'None' && (
+        <>
+          <InlineFieldRow>
+            <InlineField label="Group by" labelWidth={10}>
+              <AsyncMultiSelect
+                key={table}
+                defaultOptions
+                value={groupBy?.map((g) => ({ name: g, label: g }))}
+                onChange={onGroupByChange}
+                loadOptions={(q) => loadGroupByOptions(table, q)}
+              />
             </InlineField>
-            <InlineField label="By">
-              <Select value={limitAggregator} onChange={onLimitAggregatorChange} options={metricOptions} />
+            {groupBy !== undefined && groupBy.length > 0 && (
+              <>
+                <InlineField label="Limit">
+                  <Input type="number" value={limit} onChange={onLimitChange} width={8} />
+                </InlineField>
+                <InlineField label="By">
+                  <Select value={limitAggregator} onChange={onLimitAggregatorChange} options={metricOptions} />
+                </InlineField>
+                {limitAggregator !== undefined && limitAggregator !== 'Count' && (
+                  <InlineField>
+                    <AsyncSelect
+                      key={table}
+                      defaultOptions
+                      value={{ name: limitColumn, label: limitColumn }}
+                      onChange={onLimitColumnChange}
+                      loadOptions={(q) => loadColumnOptions(table, q)}
+                    />
+                  </InlineField>
+                )}
+              </>
+            )}
+          </InlineFieldRow>
+          <InlineFieldRow>
+            <InlineField label="Bucket by" labelWidth={10}>
+              <AsyncSelect
+                key={table}
+                defaultOptions
+                value={{ name: bucketBy, label: bucketBy }}
+                onChange={onBucketByChange}
+                loadOptions={(q) => loadBucketByOptions(table, q)}
+              />
             </InlineField>
-            {limitAggregator !== undefined && limitAggregator !== 'Count' && (
-              <InlineField>
-                <AsyncSelect
-                  key={table}
-                  defaultOptions
-                  value={{ name: limitColumn, label: limitColumn }}
-                  onChange={onLimitColumnChange}
-                  loadOptions={(q) => loadColumnOptions(table, q)}
-                />
+            {bucketBy !== undefined && bucketBy !== 'None' && (
+              <InlineField label="Buckets" labelWidth={8}>
+                <Input type="number" value={bucketCount} onChange={onBucketCountChange} width={8} />
               </InlineField>
             )}
-          </>
-        )}
-      </InlineFieldRow>
-      <InlineFieldRow>
-        <InlineField label="Bucket by" labelWidth={10}>
-          <AsyncSelect
-            key={table}
-            defaultOptions
-            value={{ name: bucketBy, label: bucketBy }}
-            onChange={onBucketByChange}
-            loadOptions={(q) => loadBucketByOptions(table, q)}
-          />
-        </InlineField>
-        {bucketBy !== undefined && bucketBy !== 'None' && (
-          <InlineField label="Buckets" labelWidth={8}>
-            <Input type="number" value={bucketCount} onChange={onBucketCountChange} width={8} />
-          </InlineField>
-        )}
-      </InlineFieldRow>
+          </InlineFieldRow>
+        </>
+      )}
     </div>
   );
 }
