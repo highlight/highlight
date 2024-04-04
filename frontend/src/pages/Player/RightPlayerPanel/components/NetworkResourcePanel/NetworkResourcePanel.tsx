@@ -314,7 +314,7 @@ function NetworkResourceDetails({
 					setActiveTab(id as NetworkRequestTabs)
 				}}
 			>
-				<Tabs.List>
+				<Tabs.List px="8">
 					<Tabs.Tab id={NetworkRequestTabs.Info}>Info</Tabs.Tab>
 					<Tabs.Tab id={NetworkRequestTabs.Errors}>Errors</Tabs.Tab>
 					<Tabs.Tab id={NetworkRequestTabs.Logs}>Logs</Tabs.Tab>
@@ -562,7 +562,7 @@ function WebSocketDetails({
 				selectedId={activeTab}
 				onChange={(id) => setActiveTab(id as WebSocketTabs)}
 			>
-				<Tabs.List>
+				<Tabs.List px="8">
 					<Tabs.Tab id={WebSocketTabs.Headers}>Headers</Tabs.Tab>
 					<Tabs.Tab id={WebSocketTabs.Messages}>Messages</Tabs.Tab>
 				</Tabs.List>
