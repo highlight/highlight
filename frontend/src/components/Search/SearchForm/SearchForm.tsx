@@ -106,7 +106,7 @@ export type SearchFormProps = {
 	}>
 	hideDatePicker?: boolean
 	hideCreateAlert?: boolean
-	savedSegmentType?: 'Trace' | 'Log'
+	savedSegmentType?: 'Trace' | 'Log' | 'Error'
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	isPanelView?: boolean
 }
@@ -128,7 +128,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	hideCreateAlert,
 	savedSegmentType,
 	textAreaRef,
-	// isPanelView, TODO(spenny): UI view
+	isPanelView,
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
@@ -147,6 +147,90 @@ const SearchForm: React.FC<SearchFormProps> = ({
 		projectId,
 	})
 
+	const SearchComponent = (
+		<Search
+			initialQuery={initialQuery}
+			startDate={startDate}
+			endDate={endDate}
+			disableSearch={disableSearch}
+			query={query}
+			textAreaRef={textAreaRef}
+			productType={productType}
+			setQuery={setQuery}
+			onFormSubmit={onFormSubmit}
+			hideIcon={isPanelView}
+		/>
+	)
+
+	// TODO: Handle traces
+	const CreateAlertButton = hideCreateAlert ? null : (
+		<Button
+			kind="secondary"
+			trackingId="logs_create-alert_click"
+			onClick={() => {
+				const encodedQuery = encodeQueryParams(
+					{
+						query: StringParam,
+						start_date: DateTimeParam,
+						end_date: DateTimeParam,
+					},
+					{
+						query: query,
+						start_date: startDate,
+						end_date: endDate,
+					},
+				)
+
+				navigate({
+					pathname: `/${projectId}/alerts/logs/new`,
+					search: stringify(encodedQuery),
+				})
+			}}
+			emphasis="medium"
+			iconLeft={<IconSolidPlus />}
+		>
+			Create alert
+		</Button>
+	)
+
+	const ActionComponent = !actions
+		? null
+		: actions({ query, startDate, endDate })
+
+	const SearchTimeComponent = hideDatePicker ? null : (
+		<DateRangePicker
+			emphasis="medium"
+			iconLeft={<IconSolidClock />}
+			selectedValue={{
+				startDate,
+				endDate,
+				selectedPreset,
+			}}
+			onDatesChange={onDatesChange}
+			presets={presets}
+			minDate={minDate}
+			disabled={timeMode === 'permalink'}
+		/>
+	)
+
+	if (isPanelView) {
+		return (
+			<>
+				{SegmentModals}
+				<Stack alignItems="flex-start" gap="8" width="full" p="8">
+					<Stack flexDirection="row">
+						{SearchTimeComponent}
+						{ActionComponent}
+					</Stack>
+					<Stack>
+						<Box>{SearchComponent}</Box>
+						<Stack flexDirection="row">{SegmentMenu}</Stack>
+					</Stack>
+				</Stack>
+			</>
+		)
+	}
+
 	const displaySeparator =
 		!!SegmentMenu && (!!actions || !hideCreateAlert || !hideDatePicker)
 
@@ -160,17 +244,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 				width="full"
 				borderBottom="dividerWeak"
 			>
-				<Search
-					initialQuery={initialQuery}
-					startDate={startDate}
-					endDate={endDate}
-					disableSearch={disableSearch}
-					query={query}
-					textAreaRef={textAreaRef}
-					productType={productType}
-					setQuery={setQuery}
-					onFormSubmit={onFormSubmit}
-				/>
+				{SearchComponent}
 				<Box display="flex" pr="8" py="6" gap="6">
 					{SegmentMenu}
 					{displaySeparator && (
@@ -181,54 +255,9 @@ const SearchForm: React.FC<SearchFormProps> = ({
 							style={{ height: 18 }}
 						/>
 					)}
-					{!hideCreateAlert && (
-						<Button
-							kind="secondary"
-							trackingId={`${
-								savedSegmentType?.toLowerCase() ?? 'logs'
-							}_create-alert_click`}
-							onClick={() => {
-								const encodedQuery = encodeQueryParams(
-									{
-										query: StringParam,
-										start_date: DateTimeParam,
-										end_date: DateTimeParam,
-									},
-									{
-										query: query,
-										start_date: startDate,
-										end_date: endDate,
-									},
-								)
-
-								navigate({
-									// TODO: Handle traces
-									pathname: `/${projectId}/alerts/logs/new`,
-									search: stringify(encodedQuery),
-								})
-							}}
-							emphasis="medium"
-							iconLeft={<IconSolidPlus />}
-						>
-							Create alert
-						</Button>
-					)}
-					{actions && actions({ query, startDate, endDate })}
-					{!hideDatePicker && (
-						<DateRangePicker
-							emphasis="medium"
-							iconLeft={<IconSolidClock />}
-							selectedValue={{
-								startDate,
-								endDate,
-								selectedPreset,
-							}}
-							onDatesChange={onDatesChange}
-							presets={presets}
-							minDate={minDate}
-							disabled={timeMode === 'permalink'}
-						/>
-					)}
+					{CreateAlertButton}
+					{ActionComponent}
+					{SearchTimeComponent}
 				</Box>
 			</Box>
 		</>

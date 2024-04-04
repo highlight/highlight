@@ -2,10 +2,8 @@ import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { BaseSearchContext } from '@context/BaseSearchContext'
 import {
-	useEditErrorSegmentMutation,
 	useEditSegmentMutation,
 	useGetAppVersionsQuery,
-	useGetErrorSegmentsQuery,
 	useGetSegmentsQuery,
 } from '@graph/hooks'
 import {
@@ -76,8 +74,6 @@ import { useToggle } from 'react-use'
 
 import LoadingBox from '@/components/LoadingBox'
 import { searchesAreEqual } from '@/components/QueryBuilder/utils'
-import { CreateErrorSegmentModal } from '@/pages/Errors/ErrorSegmentModals/CreateErrorSegmentModal'
-import { DeleteErrorSegmentModal } from '@/pages/Errors/ErrorSegmentModals/DeleteErrorSegmentModal'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { CreateSegmentModal } from '@/pages/Sessions/SearchSidebar/SegmentModals/CreateSegmentModal'
 import { DeleteSessionSegmentModal } from '@/pages/Sessions/SearchSidebar/SegmentModals/DeleteSessionSegmentModal'
@@ -1160,18 +1156,10 @@ export interface QueryBuilderProps {
 	onlyAnd?: boolean
 	minimal?: boolean
 	setDefault?: boolean
-	useEditAnySegmentMutation:
-		| typeof useEditSegmentMutation
-		| typeof useEditErrorSegmentMutation
-	useGetAnySegmentsQuery:
-		| typeof useGetSegmentsQuery
-		| typeof useGetErrorSegmentsQuery
-	CreateAnySegmentModal:
-		| typeof CreateSegmentModal
-		| typeof CreateErrorSegmentModal
-	DeleteAnySegmentModal:
-		| typeof DeleteSessionSegmentModal
-		| typeof DeleteErrorSegmentModal
+	useEditAnySegmentMutation: typeof useEditSegmentMutation
+	useGetAnySegmentsQuery: typeof useGetSegmentsQuery
+	CreateAnySegmentModal: typeof CreateSegmentModal
+	DeleteAnySegmentModal: typeof DeleteSessionSegmentModal
 }
 
 enum QueryBuilderMode {

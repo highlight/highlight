@@ -11456,6 +11456,7 @@ enum SortDirection {
 enum SavedSegmentEntityType {
 	Log
 	Trace
+	Error
 }
 
 type Project {

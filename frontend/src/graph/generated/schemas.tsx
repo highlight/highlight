@@ -3086,6 +3086,7 @@ export type SavedSegment = {
 }
 
 export enum SavedSegmentEntityType {
+	Error = 'Error',
 	Log = 'Log',
 	Trace = 'Trace',
 }

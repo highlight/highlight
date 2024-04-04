@@ -108,11 +108,10 @@ export const SearchPanel = ({
 				selectedPreset={selectedPreset}
 				productType={ProductType.Errors}
 				timeMode="fixed-range"
-				// savedSegmentType="Errors"
+				savedSegmentType="Error"
 				textAreaRef={textAreaRef}
-				isPanelView
-				hideDatePicker
 				hideCreateAlert
+				isPanelView
 			/>
 			{showHistogram && (
 				<Box borderBottom="secondary" paddingBottom="8" px="8">
