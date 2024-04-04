@@ -315,22 +315,11 @@ function NetworkResourceDetails({
 				}}
 			>
 				<Tabs.List>
-					<Tabs.Tab id={NetworkRequestTabs.Info} badgeText="Info">
-						Info
-					</Tabs.Tab>
-					<Tabs.Tab id={NetworkRequestTabs.Errors} badgeText="Errors">
-						Errors
-					</Tabs.Tab>
-					<Tabs.Tab id={NetworkRequestTabs.Logs} badgeText="Logs">
-						Logs
-					</Tabs.Tab>
+					<Tabs.Tab id={NetworkRequestTabs.Info}>Info</Tabs.Tab>
+					<Tabs.Tab id={NetworkRequestTabs.Errors}>Errors</Tabs.Tab>
+					<Tabs.Tab id={NetworkRequestTabs.Logs}>Logs</Tabs.Tab>
 					{isNetworkRequest && (
-						<Tabs.Tab
-							id={NetworkRequestTabs.Trace}
-							badgeText="Trace"
-						>
-							Trace
-						</Tabs.Tab>
+						<Tabs.Tab id={NetworkRequestTabs.Trace}>Trace</Tabs.Tab>
 					)}
 				</Tabs.List>
 				<Tabs.Panel id={NetworkRequestTabs.Info}>
@@ -574,12 +563,8 @@ function WebSocketDetails({
 				onChange={(id) => setActiveTab(id as WebSocketTabs)}
 			>
 				<Tabs.List>
-					<Tabs.Tab id={WebSocketTabs.Headers} badgeText="Headers">
-						Headers
-					</Tabs.Tab>
-					<Tabs.Tab id={WebSocketTabs.Messages} badgeText="Messages">
-						Messages
-					</Tabs.Tab>
+					<Tabs.Tab id={WebSocketTabs.Headers}>Headers</Tabs.Tab>
+					<Tabs.Tab id={WebSocketTabs.Messages}>Messages</Tabs.Tab>
 				</Tabs.List>
 				<Tabs.Panel id={WebSocketTabs.Headers}>
 					<NetworkResourceInfo
