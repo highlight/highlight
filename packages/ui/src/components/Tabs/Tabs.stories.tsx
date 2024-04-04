@@ -1,7 +1,13 @@
 import { Meta } from '@storybook/react'
 
 import { Box } from '../Box/Box'
-import { IconSolidAcademicCap, IconSolidBeaker } from '../icons'
+import { Heading } from '../Heading/Heading'
+import {
+	IconSolidAcademicCap,
+	IconSolidBeaker,
+	IconSolidLogs,
+	IconSolidTraces,
+} from '../icons'
 import { Stack } from '../Stack/Stack'
 import { Tabs } from './Tabs'
 
@@ -38,6 +44,76 @@ export const Basic = () => (
 				<TabContent>Panel 4</TabContent>
 			</Tabs.Panel>
 		</Tabs>
+	</Box>
+)
+
+export const Sizes = () => (
+	<Box>
+		<Heading level="h3" mb="16">
+			Small (default)
+		</Heading>
+		<Box display="flex" style={{ height: 300 }}>
+			<Tabs>
+				<Tabs.List>
+					<Tabs.Tab id="1" icon={<IconSolidAcademicCap />}>
+						Info
+					</Tabs.Tab>
+					<Tabs.Tab id="2" icon={<IconSolidLogs />} badgeText="13">
+						Logs
+					</Tabs.Tab>
+					<Tabs.Tab id="3" icon={<IconSolidTraces />} badgeText="4">
+						Trace
+					</Tabs.Tab>
+				</Tabs.List>
+				<Tabs.Panel id="1">
+					<TabContent>Info</TabContent>
+				</Tabs.Panel>
+				<Tabs.Panel id="2">
+					<TabContent>Logs</TabContent>
+				</Tabs.Panel>
+				<Tabs.Panel id="3">
+					<TabContent>Trace</TabContent>
+				</Tabs.Panel>
+			</Tabs>
+		</Box>
+
+		<Heading level="h3" mt="32" mb="16">
+			Extra Small
+		</Heading>
+		<Box display="flex" style={{ height: 300 }}>
+			<Tabs>
+				<Tabs.List>
+					<Tabs.Tab id="1" size="xs" icon={<IconSolidAcademicCap />}>
+						Info
+					</Tabs.Tab>
+					<Tabs.Tab
+						id="2"
+						size="xs"
+						icon={<IconSolidLogs />}
+						badgeText="13"
+					>
+						Logs
+					</Tabs.Tab>
+					<Tabs.Tab
+						id="3"
+						size="xs"
+						icon={<IconSolidTraces />}
+						badgeText="4"
+					>
+						Trace
+					</Tabs.Tab>
+				</Tabs.List>
+				<Tabs.Panel id="1">
+					<TabContent>Info</TabContent>
+				</Tabs.Panel>
+				<Tabs.Panel id="2">
+					<TabContent>Logs</TabContent>
+				</Tabs.Panel>
+				<Tabs.Panel id="3">
+					<TabContent>Trace</TabContent>
+				</Tabs.Panel>
+			</Tabs>
+		</Box>
 	</Box>
 )
 

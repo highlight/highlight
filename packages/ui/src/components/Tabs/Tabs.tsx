@@ -78,9 +78,16 @@ type TabProps = Ariakit.TabProps & {
 	id: string
 	badgeText?: string
 	icon?: TagProps['icon']
+	size?: 'xs' | 'sm'
 }
 
-const Tab: React.FC<TabProps> = ({ badgeText, children, icon, ...props }) => {
+const Tab: React.FC<TabProps> = ({
+	badgeText,
+	children,
+	icon,
+	size,
+	...props
+}) => {
 	const tabContext = Ariakit.useTabContext()!
 	const selected = tabContext.useState('selectedId') === props.id
 	const [hovered, setHovered] = useState(false)
@@ -103,7 +110,7 @@ const Tab: React.FC<TabProps> = ({ badgeText, children, icon, ...props }) => {
 				>
 					<Tag
 						shape="basic"
-						size="large"
+						size={size === 'xs' ? 'medium' : 'large'}
 						emphasis="low"
 						kind={selected ? 'primary' : 'secondary'}
 						icon={icon}

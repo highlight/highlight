@@ -178,47 +178,6 @@ const DevToolsWindowV2: React.FC<
 							</Box>
 						</Box>
 					) : (
-						// <Tabs<Tab>
-						// 	tab={selectedDevToolsTab}
-						// 	setTab={(t: Tab) => {
-						// 		setSelectedDevToolsTab(t)
-						// 		formStore.reset()
-						// 	}}
-						// 	pages={{
-						// 		[Tab.Console]: {
-						// 			page: (
-						// 				<ConsolePage
-						// 					autoScroll={autoScroll}
-						// 					logCursor={logCursor}
-						// 					levels={relevantLevelsForRequest}
-						// 					sources={sources}
-						// 					filter={filter}
-						// 				/>
-						// 			),
-						// 		},
-						// 		[Tab.Errors]: {
-						// 			page: (
-						// 				<ErrorsPage
-						// 					autoScroll={autoScroll}
-						// 					filter={filter}
-						// 					time={time}
-						// 				/>
-						// 			),
-						// 		},
-						// 		[Tab.Network]: {
-						// 			page: (
-						// 				<NetworkPage
-						// 					autoScroll={autoScroll}
-						// 					requestTypes={requestTypes}
-						// 					requestStatuses={requestStatuses}
-						// 					filter={filter}
-						// 					time={time}
-						// 				/>
-						// 			),
-						// 		},
-						// 	}}
-						// 	right={}
-						// />
 						<Tabs
 							onChange={(id) => {
 								setSelectedDevToolsTab(id as Tab)
