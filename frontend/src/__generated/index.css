@@ -5208,69 +5208,6 @@ body {
 ._1oemo0l3[aria-selected=false] ._1oemo0l4 {
   background-color: white;
 }
-._1cf2ys60 {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-._1cf2ys61 {
-  box-shadow: none;
-}
-._1cf2ys62 {
-  display: flex;
-}
-._1cf2ys63 {
-  height: 20px;
-  width: 100%;
-  position: absolute;
-  top: -10px;
-}
-._1cf2ys64 {
-  cursor: grab;
-}
-._1cf2ys64:active {
-  cursor: grabbing;
-}
-._1cf2ys65 {
-  background-color: #e4e2e4;
-  height: 1px;
-  width: 100%;
-  position: relative;
-  top: 10px;
-}
-._1cf2ys66 {
-  background: none;
-  border-radius: 0;
-  border-bottom: none;
-  box-shadow: none;
-}
-._1cf2ys66:focus:enabled,
-._1cf2ys66:active:enabled,
-._1cf2ys66:hover:enabled {
-  background: none;
-  box-shadow: none;
-  border-radius: 0;
-  color: #6f6e77;
-}
-._1cf2ys67 {
-  color: #744ed4;
-}
-._1cf2ys68 {
-  color: #6f6e77;
-}
-._1cf2ys69 {
-  border-radius: 2px 2px 0px 0px;
-  height: 2px;
-}
-._1cf2ys6a {
-  background-color: #744ed4;
-}
-._1cf2ys6b {
-  background-color: var(--_1pyqka91o);
-}
-._1cf2ys6c {
-  background-color: #744ed4;
-}
 ._1nph9oi0 {
   align-items: center;
   border: none;
