@@ -64,12 +64,7 @@ export const TraceLogs: React.FC = () => {
 
 	return (
 		<>
-			<Box
-				flex="stretch"
-				justifyContent="stretch"
-				display="flex"
-				overflow="hidden"
-			>
+			<Box display="flex" overflow="hidden">
 				<Box
 					borderRadius="6"
 					flexDirection="column"
@@ -95,7 +90,17 @@ export const TraceLogs: React.FC = () => {
 					/>
 					<Box height="full" pt="4" px="12" pb="12">
 						{(!loading && logEdges.length === 0) || !traceId ? (
-							<NoLogsFound />
+							<Box style={{ height: 400 }}>
+								<Box
+									display="flex"
+									flexGrow={1}
+									alignItems="center"
+									justifyContent="center"
+									height="full"
+								>
+									<NoLogsFound />
+								</Box>
+							</Box>
 						) : (
 							<LogsTable
 								logEdges={logEdges}

@@ -60,7 +60,9 @@ export const TracePage: React.FC = () => {
 						<TraceErrors />
 					</Tabs.Panel>
 					<Tabs.Panel id={TraceTabs.Logs}>
-						<TraceLogs />
+						<Box pt="8">
+							<TraceLogs />
+						</Box>
 					</Tabs.Panel>
 				</Tabs>
 			</Box>
