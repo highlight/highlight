@@ -36,6 +36,7 @@ public class HighlightLogProcessor : BaseProcessor<LogRecord>
         {
             attributes = attributes.Concat(data.Attributes).ToList();
         }
+
         data.Attributes = attributes;
         base.OnStart(data);
     }
@@ -61,11 +62,11 @@ public class HighlightConfig
     // Replace with your project ID and service name.
     public static readonly String ProjectId = "1";
     public static readonly String ServiceName = "highlight-dot-net-example";
-    
+
     public static readonly String TracesEndpoint = OtlpEndpoint + "/v1/traces";
     public static readonly String LogsEndpoint = OtlpEndpoint + "/v1/logs";
     public static readonly String MetricsEndpoint = OtlpEndpoint + "/v1/metrics";
-    
+
     public static readonly OtlpProtocol Protocol = OtlpProtocol.HttpProtobuf;
     public static readonly OtlpExportProtocol ExportProtocol = OtlpExportProtocol.HttpProtobuf;
     public static readonly String HighlightHeader = "x-highlight-request";
@@ -78,16 +79,17 @@ public class HighlightConfig
 
     public static Dictionary<string, string> GetHighlightContext()
     {
-        var ctx = new Dictionary<string, string> {
-            {"highlight.project_id", ProjectId},
+        var ctx = new Dictionary<string, string>
+        {
+            { "highlight.project_id", ProjectId },
         };
-        
+
         var headerValue = Baggage.GetBaggage(HighlightHeader);
         if (headerValue == null) return ctx;
-        
+
         var parts = headerValue.Split("/");
         if (parts.Length < 2) return ctx;
-        
+
         ctx["highlight.session_id"] = parts[0];
         ctx["highlight.trace_id"] = parts[1];
         return ctx;
@@ -103,7 +105,8 @@ public class HighlightConfig
         if (parts?.Length < 2) return;
         activity.SetTag("highlight.session_id", parts?[0]);
         activity.SetTag("highlight.trace_id", parts?[1]);
-        Baggage.SetBaggage(new KeyValuePair<string, string>[] {
+        Baggage.SetBaggage(new KeyValuePair<string, string>[]
+        {
             new(HighlightHeader, headerValue)
         });
     }
@@ -127,7 +130,11 @@ public class HighlightConfig
             .WithTracing(tracing => tracing
                 .AddSource(ServiceName)
                 .AddProcessor(new HighlightTraceProcessor())
-                .AddAspNetCoreInstrumentation(o => o.EnrichWithHttpRequest = EnrichWithHttpRequest)
+                .AddAspNetCoreInstrumentation(options =>
+                {
+                    options.RecordException = true;
+                    options.EnrichWithHttpRequest = EnrichWithHttpRequest;
+                })
                 .AddOtlpExporter(options =>
                 {
                     options.Endpoint = new Uri(TracesEndpoint);

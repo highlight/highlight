@@ -80,6 +80,17 @@ app.MapGet("/weatherforecast", () =>
     .WithName("GetWeatherForecast")
     .WithOpenApi();
 
+
+app.MapGet("/error", () =>
+    {
+        Log.Warning("going to throw an exception");
+        
+        using var span = tracer.StartActivity("ShouldThrow")!;
+        throw new Exception("oh no, a random error occurred " + Guid.NewGuid());
+    })
+    .WithName("GetError")
+    .WithOpenApi();
+
 app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
