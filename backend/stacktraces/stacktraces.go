@@ -32,7 +32,7 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 	goLinePattern := regexp.MustCompile(`\t(.+):(\d+)( 0x[0-f]+)?`)
 	goFuncPattern := regexp.MustCompile(`^(.+)\.(.+?)(\([^()]*\))?$`)
 	goRecoveredPanicPattern := regexp.MustCompile(`^\s*runtime\.gopanic\s*$`)
-	dotnetExceptionPattern := regexp.MustCompile(`^exception.stacktrace -> System\.Exception: (.+)$`)
+	dotnetExceptionPattern := regexp.MustCompile(`^System\.Exception: (.+)$`)
 	dotnetFilePattern := regexp.MustCompile(`^\s*at (.+?)(?: in (.+?)(?::line (\d+))?)?$`)
 	generalPattern := regexp.MustCompile(`^(.+)`)
 
