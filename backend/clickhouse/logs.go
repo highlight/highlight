@@ -49,6 +49,7 @@ var LogsTableConfig = model.TableConfig[modelInputs.ReservedLogKey]{
 	KeysToColumns:    logKeysToColumns,
 	ReservedKeys:     modelInputs.AllReservedLogKey,
 	BodyColumn:       "Body",
+	SeverityColumn:   "SeverityText",
 	AttributesColumn: "LogAttributes",
 	SelectColumns: []string{
 		"ProjectId",
@@ -468,4 +469,8 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 
 func LogMatchesQuery(logRow *LogRow, filters listener.Filters) bool {
 	return matchesQuery(logRow, LogsTableConfig, filters)
+}
+
+func (client *Client) LogsLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
+	return logLines(ctx, client, LogsTableConfig, projectID, params)
 }

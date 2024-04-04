@@ -532,6 +532,13 @@ type LogEdge struct {
 func (LogEdge) IsEdge()                {}
 func (this LogEdge) GetCursor() string { return this.Cursor }
 
+type LogLine struct {
+	Timestamp time.Time `json:"timestamp"`
+	Body      string    `json:"body"`
+	Severity  *LogLevel `json:"severity,omitempty"`
+	Labels    string    `json:"labels"`
+}
+
 type LogsHistogram struct {
 	Buckets      []*LogsHistogramBucket `json:"buckets"`
 	TotalCount   uint64                 `json:"totalCount"`
@@ -1410,6 +1417,7 @@ const (
 	MetricAggregatorP99              MetricAggregator = "P99"
 	MetricAggregatorMax              MetricAggregator = "Max"
 	MetricAggregatorSum              MetricAggregator = "Sum"
+	MetricAggregatorNone             MetricAggregator = "None"
 )
 
 var AllMetricAggregator = []MetricAggregator{
@@ -1424,11 +1432,12 @@ var AllMetricAggregator = []MetricAggregator{
 	MetricAggregatorP99,
 	MetricAggregatorMax,
 	MetricAggregatorSum,
+	MetricAggregatorNone,
 }
 
 func (e MetricAggregator) IsValid() bool {
 	switch e {
-	case MetricAggregatorCount, MetricAggregatorCountDistinct, MetricAggregatorCountDistinctKey, MetricAggregatorMin, MetricAggregatorAvg, MetricAggregatorP50, MetricAggregatorP90, MetricAggregatorP95, MetricAggregatorP99, MetricAggregatorMax, MetricAggregatorSum:
+	case MetricAggregatorCount, MetricAggregatorCountDistinct, MetricAggregatorCountDistinctKey, MetricAggregatorMin, MetricAggregatorAvg, MetricAggregatorP50, MetricAggregatorP90, MetricAggregatorP95, MetricAggregatorP99, MetricAggregatorMax, MetricAggregatorSum, MetricAggregatorNone:
 		return true
 	}
 	return false

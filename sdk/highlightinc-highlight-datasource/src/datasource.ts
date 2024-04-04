@@ -28,6 +28,7 @@ export const metricOptions: { value: string; label: string; tables: Table[] }[] 
   { value: 'P99', label: 'P99', tables: ['traces', 'logs', 'sessions'] },
   { value: 'Max', label: 'Max', tables: ['traces', 'logs', 'sessions'] },
   { value: 'Sum', label: 'Sum', tables: ['traces', 'logs', 'sessions'] },
+  { value: 'None', label: 'None', tables: ['traces', 'logs', 'errors', 'sessions'] },
 ];
 
 export class DataSource extends DataSourceWithBackend<HighlightQuery, HighlightDataSourceOptions> {
