@@ -18,6 +18,7 @@ type Language string
 const Javascript Language = "js"
 const Python Language = "python"
 const Golang Language = "golang"
+const DotNET Language = "dotnet"
 
 // StructureOTELStackTrace processes a backend opentelemetry stacktrace into a structured ErrorTraces.
 // The operation returns the deepest frame first (reversing the order of the incoming stacktrace).
@@ -31,6 +32,8 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 	goLinePattern := regexp.MustCompile(`\t(.+):(\d+)( 0x[0-f]+)?`)
 	goFuncPattern := regexp.MustCompile(`^(.+)\.(.+?)(\([^()]*\))?$`)
 	goRecoveredPanicPattern := regexp.MustCompile(`^\s*runtime\.gopanic\s*$`)
+	dotnetExceptionPattern := regexp.MustCompile(`^System\.Exception: (.+)$`)
+	dotnetFilePattern := regexp.MustCompile(`^\s*at (.+?)(?: in (.+?)(?::line (\d+))?)?$`)
 	generalPattern := regexp.MustCompile(`^(.+)`)
 
 	var jsonStr string
@@ -55,6 +58,10 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 		if idx == 0 {
 			if line == "" {
 				language = Golang
+				continue
+			} else if matches := dotnetExceptionPattern.FindSubmatch([]byte(line)); matches != nil {
+				language = DotNET
+				errMsg = string(matches[1])
 				continue
 			}
 			errMsg = line
@@ -81,7 +88,13 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 				Error: &errMsg,
 			}
 		}
-		if matches := jsPattern.FindSubmatch([]byte(line)); matches != nil {
+
+		if matches := dotnetFilePattern.FindSubmatch([]byte(line)); language == DotNET && matches != nil {
+			frame.FunctionName = pointy.String(string(matches[1]))
+			frame.FileName = pointy.String(string(matches[2]))
+			line, _ := strconv.ParseInt(string(matches[3]), 10, 32)
+			frame.LineNumber = pointy.Int(int(line))
+		} else if matches := jsPattern.FindSubmatch([]byte(line)); matches != nil {
 			language = Javascript
 			if matches[2] != nil {
 				frame.FunctionName = pointy.String(string(matches[2]))
@@ -132,9 +145,9 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 		frames = append(frames, frame)
 		frame = nil
 	}
-	// for otel non-go errors, stacktraces are sent top-down (top frame is most outer; bottom frame is most inner)
+	// for otel non go/.net errors, stacktraces are sent top-down (top frame is most outer; bottom frame is most inner)
 	// our backend expects to store stack traces in the opposite order, so we have to reverse it before returning.
-	if language != Golang {
+	if language != Golang && language != DotNET {
 		for i, j := 0, len(frames)-1; i < j; i, j = i+1, j-1 {
 			frames[i], frames[j] = frames[j], frames[i]
 		}

@@ -103,3 +103,49 @@ query GetLogs($project_id: ID!, $params: QueryInput!, $after: String, $before: S
     }
   }
 }"""
+
+GET_TRACES = """
+query GetTraces($project_id: ID!, $params: QueryInput!, $after: String, $before: String, $at: String, $direction: SortDirection!) {
+  traces(
+    project_id: $project_id
+    params: $params
+    after: $after
+    before: $before
+    at: $at
+    direction: $direction
+  ) {
+    edges {
+      cursor
+      node {
+        timestamp
+        traceID
+        spanID
+        parentSpanID
+        projectID
+        secureSessionID
+        traceState
+        spanName
+        spanKind
+        duration
+        serviceName
+        serviceVersion
+        environment
+        hasErrors
+        traceAttributes
+        statusCode
+        statusMessage
+        __typename
+      }
+      __typename
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+      __typename
+    }
+    __typename
+  }
+}
+"""
