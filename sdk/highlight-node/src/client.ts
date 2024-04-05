@@ -48,6 +48,9 @@ type TraceMapValue = {
 }
 
 const instrumentations = getNodeAutoInstrumentations({
+	'@opentelemetry/instrumentation-pg': {
+		enabled: true,
+	},
 	'@opentelemetry/instrumentation-http': {
 		enabled: false,
 	},
@@ -61,15 +64,6 @@ const instrumentations = getNodeAutoInstrumentations({
 		},
 	},
 })
-
-/**
- * Baggage propagation does not appear to be patching Fetch at the moment,
- * but we hope it'll get fixed soon:
- * https://github.com/open-telemetry/opentelemetry-js-contrib/pull/1951
- *
- * Docs: https://github.com/open-telemetry/opentelemetry-js/blob/main/packages/opentelemetry-core/README.md
- */
-propagation.setGlobalPropagator(new W3CBaggagePropagator())
 
 registerInstrumentations({ instrumentations })
 

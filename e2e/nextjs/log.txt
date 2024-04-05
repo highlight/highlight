@@ -1,0 +1,8 @@
+   ▲ Next.js 14.1.4
+   - Local:        http://localhost:3005
+   - Environments: .env
+   - Experiments (use at your own risk):
+     · instrumentationHook
+
+ ○ Compiling /instrumentation ...
+[?25h

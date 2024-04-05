@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { withAppRouterHighlight } from '@/app/_utils/app-router-highlight.config'
-import { Client } from 'pg'
 import { statfsSync } from 'node:fs'
 import logger from '@/highlight.logger'
 
@@ -19,6 +18,7 @@ export const GET = withAppRouterHighlight(async function GET(
 	if (sql === 'true') {
 		try {
 			console.info('😇 Connecting to Postgres...')
+			const { Client } = await import('pg')
 			const pgClient = new Client({
 				user: 'postgres',
 				database: 'postgres',
