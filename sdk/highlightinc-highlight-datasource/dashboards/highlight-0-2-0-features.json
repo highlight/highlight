@@ -1,0 +1,323 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 3,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "highlightinc-highlight-datasource",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "bucketBy": "Timestamp",
+          "bucketCount": 50,
+          "column": "duration",
+          "datasource": {
+            "type": "highlightinc-highlight-datasource",
+            "uid": "${datasource}"
+          },
+          "groupBy": [],
+          "limit": 10,
+          "limitAggregator": "Count",
+          "limitColumn": "duration",
+          "metric": "None",
+          "refId": "A",
+          "table": "logs"
+        }
+      ],
+      "title": "Logs Visualization Type",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "highlightinc-highlight-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "bucketBy": "Timestamp",
+          "bucketCount": 50,
+          "column": "duration",
+          "datasource": {
+            "type": "highlightinc-highlight-datasource",
+            "uid": "${datasource}"
+          },
+          "groupBy": [],
+          "limit": 10,
+          "limitAggregator": "Count",
+          "limitColumn": "duration",
+          "metric": "Count",
+          "queryText": "service_name=${service_name}",
+          "refId": "A",
+          "table": "logs"
+        }
+      ],
+      "title": "Query Variable Interpolation",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "highlightinc-highlight-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "bucketBy": "Timestamp",
+          "bucketCount": 50,
+          "column": "device_id",
+          "datasource": {
+            "type": "highlightinc-highlight-datasource",
+            "uid": "${datasource}"
+          },
+          "groupBy": [],
+          "limit": 10,
+          "limitAggregator": "Count",
+          "limitColumn": "duration",
+          "metric": "CountDistinct",
+          "queryText": "",
+          "refId": "A",
+          "table": "sessions"
+        }
+      ],
+      "title": "CountDistinct",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "highlight-io-next-frontend",
+          "value": "highlight-io-next-frontend"
+        },
+        "hide": 0,
+        "name": "service_name",
+        "options": [
+          {
+            "selected": true,
+            "text": "highlight-io-next-frontend",
+            "value": "highlight-io-next-frontend"
+          }
+        ],
+        "query": "highlight-io-next-frontend",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "Highlight.io",
+          "value": "da458d47-e375-44e0-be2c-1f338e86260b"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Datasource",
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "highlightinc-highlight-datasource",
+        "queryValue": "",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Highlight.io plugin v0.2.0 features",
+  "uid": "c502adf7-5b30-49b2-b0bd-48070043d94d",
+  "version": 1,
+  "weekStart": ""
+}
