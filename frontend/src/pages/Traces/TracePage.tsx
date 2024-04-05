@@ -1,4 +1,4 @@
-import { Badge, Box, Callout, Tabs } from '@highlight-run/ui/components'
+import { Box, Callout, Tabs } from '@highlight-run/ui/components'
 import React, { useEffect, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
@@ -9,8 +9,6 @@ import { TraceLogs } from '@/pages/Traces/TraceLogs'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
 import analytics from '@/util/analytics'
-
-import * as styles from './TracePage.css'
 
 enum TraceTabs {
 	Info = 'Info',
@@ -42,38 +40,31 @@ export const TracePage: React.FC = () => {
 			<TraceFlameGraph />
 
 			<Box pt="20">
-				<Tabs<TraceTabs>
-					tab={activeTab}
-					setTab={(tab) => setActiveTab(tab)}
-					containerClass={styles.tabs}
-					tabsContainerClass={styles.tabsContainer}
-					pageContainerClass={styles.tabsPageContainer}
-					pages={{
-						[TraceTabs.Info]: {
-							page: (
-								<Box px="6">
-									<TraceSpanAttributes
-										span={highlightedSpan!}
-									/>
-								</Box>
-							),
-						},
-						[TraceTabs.Errors]: {
-							badge:
-								errors?.length > 0 ? (
-									<Badge
-										variant="gray"
-										label={String(errors.length)}
-									/>
-								) : undefined,
-							page: <TraceErrors />,
-						},
-						[TraceTabs.Logs]: {
-							page: <TraceLogs />,
-						},
-					}}
-					noHandle
-				/>
+				<Tabs<TraceTabs> selectedId={activeTab} onChange={setActiveTab}>
+					<Tabs.List>
+						<Tabs.Tab id={TraceTabs.Info}>Info</Tabs.Tab>
+						<Tabs.Tab
+							id={TraceTabs.Errors}
+							badgeText={errors?.length.toString()}
+						>
+							Errors
+						</Tabs.Tab>
+						<Tabs.Tab id={TraceTabs.Logs}>Logs</Tabs.Tab>
+					</Tabs.List>
+					<Tabs.Panel id={TraceTabs.Info}>
+						<Box px="6">
+							<TraceSpanAttributes span={highlightedSpan!} />
+						</Box>
+					</Tabs.Panel>
+					<Tabs.Panel id={TraceTabs.Errors}>
+						<TraceErrors />
+					</Tabs.Panel>
+					<Tabs.Panel id={TraceTabs.Logs}>
+						<Box pt="8">
+							<TraceLogs />
+						</Box>
+					</Tabs.Panel>
+				</Tabs>
 			</Box>
 		</Box>
 	)

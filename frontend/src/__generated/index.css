@@ -5513,69 +5513,6 @@ body {
 ._13s6meo2:focus {
   outline: 0;
 }
-._189mxz60 {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-._189mxz61 {
-  box-shadow: none;
-}
-._189mxz62 {
-  display: flex;
-}
-._189mxz63 {
-  height: 20px;
-  width: 100%;
-  position: absolute;
-  top: -10px;
-}
-._189mxz64 {
-  cursor: grab;
-}
-._189mxz64:active {
-  cursor: grabbing;
-}
-._189mxz65 {
-  background-color: #e4e2e4;
-  height: 1px;
-  width: 100%;
-  position: relative;
-  top: 10px;
-}
-._189mxz66 {
-  background: none;
-  border-radius: 0;
-  border-bottom: none;
-  box-shadow: none;
-}
-._189mxz66:focus:enabled,
-._189mxz66:active:enabled,
-._189mxz66:hover:enabled {
-  background: none;
-  box-shadow: none;
-  border-radius: 0;
-  color: #6f6e77;
-}
-._189mxz67 {
-  color: #744ed4;
-}
-._189mxz68 {
-  color: #6f6e77;
-}
-._189mxz69 {
-  border-radius: 2px 2px 0px 0px;
-  height: 2px;
-}
-._189mxz6a {
-  background-color: #744ed4;
-}
-._189mxz6b {
-  background-color: var(--_1pyqka91o);
-}
-._189mxz6c {
-  background-color: #744ed4;
-}
 .hqr510 {
   color: var(--_1pyqka9l);
 }
@@ -7321,22 +7258,6 @@ body {
   height: 24px;
   align-items: center;
 }
-._1h7r9xv0 {
-  height: 100%;
-  overflow-y: hidden;
-}
-.izessr0 {
-  padding-left: 8px;
-  height: 100%;
-}
-.izessr1:focus,
-.izessr1:active,
-.izessr1:hover {
-  background-color: #e9e8ea;
-}
-.izessr3 {
-  background-color: #eeedef;
-}
 ._1p577ua0 {
   font-size: 13px;
   height: 100%;
@@ -7367,6 +7288,18 @@ body {
   word-break: break-all;
   -webkit-line-clamp: 1;
   line-clamp: 1;
+}
+.izessr0 {
+  padding-left: 8px;
+  height: 100%;
+}
+.izessr1:focus,
+.izessr1:active,
+.izessr1:hover {
+  background-color: #e9e8ea;
+}
+.izessr3 {
+  background-color: #eeedef;
 }
 ._1eq64x70 {
   align-items: center;
@@ -7655,30 +7588,6 @@ body {
   max-width: 340px;
   padding-top: 5.5px;
   padding-bottom: 5.5px;
-}
-._1r8lbz41 {
-  background-color: var(--_1pyqka91k);
-  border: 1px solid transparent;
-  color: var(--_1pyqka9h);
-  cursor: default;
-}
-._1r8lbz40._1r8lbz41 {
-  background-color: var(--_1pyqka91l);
-}
-._1r8lbz42 {
-  border: 1px solid var(--_1pyqka9g);
-  border-left: 4px solid var(--_1pyqka9g);
-}
-._1r8lbz43 {
-  background-color: var(--_1pyqka9l);
-  color: white;
-}
-._1r8lbz41._1r8lbz40._1r8lbz43 {
-  background-color: var(--_1pyqka9n);
-}
-._1r8lbz44 {
-  height: 100%;
-  overflow-y: hidden;
 }
 ._12wekn71 {
   width: 50%;
