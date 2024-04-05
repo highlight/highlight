@@ -39,8 +39,12 @@ const TimelineIndicatorsBar = ({
 	const relatedError = resource as RelatedError | undefined
 	const { errors } = useReplayerContext()
 	const activeError = useMemo(
-		() => errors.find((error) => error.id === relatedError?.id),
-		[errors, relatedError?.id],
+		() =>
+			errors.find(
+				(error) =>
+					error.error_group_secure_id === relatedError?.secureId,
+			),
+		[errors, relatedError?.secureId],
 	)
 
 	const data = useMemo(() => {

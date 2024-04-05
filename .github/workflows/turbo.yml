@@ -309,6 +309,11 @@ jobs:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: '**/go.sum'
 
+            - name: Setup .NET environment
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: 8.x
+
             - name: Install poetry
               run: pipx install poetry
 

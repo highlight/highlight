@@ -14,23 +14,25 @@ export const JSNestLogContent: QuickStartContent = {
 				'Use the `HighlightLogger` middleware to record backend logs in highlight.io',
 			code: [
 				{
-					text: `import { HttpAdapterHost, NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
-import { HighlightLogger } from '@highlight-run/nest'
+					text: `import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { HighlightInterceptor, H } from '@highlight-run/nest';
+
+const env = {
+  projectID: '<YOUR_PROJECT_ID>',
+  serviceName: 'my-nestjs-app',
+  serviceVersion: 'git-sha',
+  environment: 'production',
+  debug: false,
+};
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
-  app.useLogger(
-    new HighlightLogger({
-      projectID: '<YOUR_PROJECT_ID>',
-      serviceName: 'my-nestjs-app',
-      serviceVersion: 'git-sha',
-      environment: 'production'
-    })
-  )
-  await app.listen(3000)
+  H.init(env);
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalInterceptors(new HighlightInterceptor(env));
+  await app.listen(3000);
 }
-bootstrap()
+bootstrap();
 `,
 					language: 'js',
 				},

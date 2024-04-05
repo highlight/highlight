@@ -10,6 +10,8 @@ import { useCallback, useState } from 'react'
 import { NavigateFunction, useLocation } from 'react-router-dom'
 import { EventType, Replayer } from 'rrweb'
 
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
+
 import { HighlightEvent } from '../../HighlightEvent'
 import {
 	ParsedErrorObject,
@@ -169,8 +171,13 @@ export const useLinkErrorInstance = () => {
 
 export const useLinkLogCursor = () => {
 	const location = useLocation()
+	const { resource } = useRelatedResource()
 	const searchParams = new URLSearchParams(location.search)
-	const logCursor = searchParams.get(PlayerSearchParameters.log)
+	const logCursor =
+		resource?.type === 'session'
+			? resource.log ?? null
+			: searchParams.get(PlayerSearchParameters.log)
+
 	return {
 		logCursor,
 	}

@@ -1,12 +1,11 @@
 import { Button } from '@components/Button'
-import Tabs from '@components/Tabs/Tabs'
 import { useGetWorkspaceAdminsQuery } from '@graph/hooks'
 import { AdminRole, WorkspaceAdminRole } from '@graph/schemas'
 import {
-	Badge,
 	Box,
 	IconSolidUserAdd,
 	Stack,
+	Tabs,
 } from '@highlight-run/ui/components'
 import AllMembers from '@pages/WorkspaceTeam/components/AllMembers'
 import { AutoJoinForm } from '@pages/WorkspaceTeam/components/AutoJoinForm'
@@ -21,10 +20,13 @@ import { useToggle } from 'react-use'
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import styles from './WorkspaceTeam.module.css'
 
-type MemberKeyType = 'members' | 'invites'
+enum MemberKeyType {
+	Members = 'members',
+	Invites = 'invites',
+}
 
 const WorkspaceTeam = () => {
-	const { workspace_id, member_tab_key = 'members' } = useParams<{
+	const { workspace_id, member_tab_key = MemberKeyType.Members } = useParams<{
 		workspace_id: string
 		member_tab_key?: MemberKeyType
 	}>()
@@ -59,54 +61,46 @@ const WorkspaceTeam = () => {
 						toggleShowModal={toggleShowModal}
 					/>
 				</div>
-				<Tabs
-					animated={false}
-					id="memberTabs"
-					className={styles.teamTabs}
-					noHeaderPadding
-					noPadding
-					unsetOverflowY
-					activeKeyOverride={member_tab_key}
-					onChange={(activeKey) =>
-						navigate(`/w/${workspace_id}/team/${activeKey}`)
-					}
-					tabs={[
-						{
-							key: 'members',
-							title: <TabTitle label="Members" />,
-							panelContent: (
-								<TabContentContainer
-									title="All members"
-									toggleInviteModal={toggleShowModal}
-								>
-									<AllMembers
-										workspaceId={workspace_id}
-										admins={
-											data?.admins as WorkspaceAdminRole[]
-										}
-										loading={loading}
-									/>
-								</TabContentContainer>
-							),
-						},
-						{
-							key: 'invites',
-							title: <TabTitle label="Pending invites" />,
-							panelContent: (
-								<TabContentContainer
-									title="Pending invites"
-									toggleInviteModal={toggleShowModal}
-								>
-									<PendingInvites
-										workspaceId={workspace_id}
-										active={member_tab_key === 'invites'}
-										shouldRefetchData={!showModal}
-									/>
-								</TabContentContainer>
-							),
-						},
-					]}
-				/>
+
+				<Tabs<MemberKeyType>
+					selectedId={member_tab_key}
+					onChange={(id) => {
+						navigate(`/w/${workspace_id}/team/${id}`)
+					}}
+				>
+					<Tabs.List>
+						<Tabs.Tab id={MemberKeyType.Members}>Members</Tabs.Tab>
+						<Tabs.Tab id={MemberKeyType.Invites}>
+							Pending invites
+						</Tabs.Tab>
+					</Tabs.List>
+					<Tabs.Panel id={MemberKeyType.Members}>
+						<TabContentContainer
+							title="All members"
+							toggleInviteModal={toggleShowModal}
+						>
+							<AllMembers
+								workspaceId={workspace_id}
+								admins={data?.admins as WorkspaceAdminRole[]}
+								loading={loading}
+							/>
+						</TabContentContainer>
+					</Tabs.Panel>
+					<Tabs.Panel id={MemberKeyType.Invites}>
+						<TabContentContainer
+							title="Pending invites"
+							toggleInviteModal={toggleShowModal}
+						>
+							<PendingInvites
+								workspaceId={workspace_id}
+								active={
+									member_tab_key === MemberKeyType.Invites
+								}
+								shouldRefetchData={!showModal}
+							/>
+						</TabContentContainer>
+					</Tabs.Panel>
+				</Tabs>
 			</Box>
 		</Box>
 	)
@@ -139,28 +133,6 @@ const TabContentContainer = ({
 				</Button>
 			</Stack>
 			{children}
-		</Box>
-	)
-}
-
-type TabTitleProps = {
-	label: string
-	count?: number
-}
-
-const TabTitle: React.FC<TabTitleProps> = ({ label, count }) => {
-	return (
-		<Box px="6">
-			<Stack direction="row" gap="6" align="center">
-				{label}
-				{count && (
-					<Badge
-						variant="gray"
-						size="small"
-						label={count.toString()}
-					/>
-				)}
-			</Stack>
 		</Box>
 	)
 }

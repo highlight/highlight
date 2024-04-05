@@ -2,6 +2,7 @@ import LoadingBox from '@components/LoadingBox'
 import { Box } from '@highlight-run/ui/components'
 import {
 	RightPanelView,
+	RightPlayerTab,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
 import { MetadataBox } from '@pages/Player/MetadataBox/MetadataBox'
@@ -41,7 +42,7 @@ const RightPlayerPanel = () => {
 		if (commentId) {
 			setRightPanelView(RightPanelView.Comments)
 		} else {
-			setSelectedRightPanelTab('Events')
+			setSelectedRightPanelTab(RightPlayerTab.Events)
 		}
 	}, [setRightPanelView, setSelectedRightPanelTab, setShowRightPanel])
 

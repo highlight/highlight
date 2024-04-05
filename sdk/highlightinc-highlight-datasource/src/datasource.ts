@@ -1,7 +1,7 @@
-import { CoreApp, DataSourceInstanceSettings } from '@grafana/data';
+import { CoreApp, DataSourceInstanceSettings, ScopedVars } from '@grafana/data';
 
 import { HighlightDataSourceOptions, HighlightQuery, Table } from './types';
-import { DataSourceWithBackend } from '@grafana/runtime';
+import { DataSourceWithBackend, getTemplateSrv } from '@grafana/runtime';
 
 export const tableOptions: { value: Table; label: string }[] = [
   { value: 'traces', label: 'traces' },
@@ -19,6 +19,7 @@ export const bucketByOptions: { value: string; label: string }[] = [
 
 export const metricOptions: { value: string; label: string; tables: Table[] }[] = [
   { value: 'Count', label: 'Count', tables: ['traces', 'logs', 'errors', 'sessions'] },
+  { value: 'CountDistinct', label: 'CountDistinct', tables: ['traces', 'logs', 'errors', 'sessions'] },
   { value: 'Min', label: 'Min', tables: ['traces', 'logs', 'sessions'] },
   { value: 'Avg', label: 'Avg', tables: ['traces', 'logs', 'sessions'] },
   { value: 'P50', label: 'P50', tables: ['traces', 'logs', 'sessions'] },
@@ -27,6 +28,7 @@ export const metricOptions: { value: string; label: string; tables: Table[] }[] 
   { value: 'P99', label: 'P99', tables: ['traces', 'logs', 'sessions'] },
   { value: 'Max', label: 'Max', tables: ['traces', 'logs', 'sessions'] },
   { value: 'Sum', label: 'Sum', tables: ['traces', 'logs', 'sessions'] },
+  { value: 'None', label: 'None', tables: ['traces', 'logs', 'errors', 'sessions'] },
 ];
 
 export class DataSource extends DataSourceWithBackend<HighlightQuery, HighlightDataSourceOptions> {
@@ -37,6 +39,15 @@ export class DataSource extends DataSourceWithBackend<HighlightQuery, HighlightD
     super(instanceSettings);
     this.url = instanceSettings.url;
     this.projectID = instanceSettings.jsonData.projectID;
+  }
+
+  applyTemplateVariables(query: HighlightQuery, scopedVars: ScopedVars): HighlightQuery {
+    const interpolatedQuery: HighlightQuery = {
+      ...query,
+      queryText: getTemplateSrv().replace(query.queryText, scopedVars),
+    };
+
+    return interpolatedQuery;
   }
 
   getDefaultQuery(app: CoreApp): Partial<HighlightQuery> {

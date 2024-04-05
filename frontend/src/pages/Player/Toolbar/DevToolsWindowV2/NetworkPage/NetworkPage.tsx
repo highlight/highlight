@@ -24,7 +24,6 @@ import {
 	RequestType,
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import { useParams } from '@util/react-router/useParams'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
 import _ from 'lodash'
 import moment from 'moment'
@@ -33,6 +32,7 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import { ErrorObject } from '@/graph/generated/schemas'
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
+import { useSessionParams } from '@/pages/Sessions/utils'
 import { styledVerticalScrollbar } from '@/style/common.css'
 import analytics from '@/util/analytics'
 
@@ -59,7 +59,7 @@ export const NetworkPage = ({
 	const startTime = sessionMetadata.startTime
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 	const { setActiveNetworkResourceId } = useActiveNetworkResourceId()
-	const { session_secure_id } = useParams<{ session_secure_id: string }>()
+	const { sessionSecureId } = useSessionParams()
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
 
@@ -72,7 +72,7 @@ export const NetworkPage = ({
 	useEffect(() => {
 		loadResources()
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [session_secure_id])
+	}, [sessionSecureId])
 
 	const networkRange = useMemo(() => {
 		if (parsedResources.length > 0) {

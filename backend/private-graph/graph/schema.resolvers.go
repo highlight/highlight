@@ -279,17 +279,6 @@ func (r *logAlertResolver) EmailsToNotify(ctx context.Context, obj *model.LogAle
 	}), nil
 }
 
-// ExcludedEnvironments is the resolver for the ExcludedEnvironments field.
-func (r *logAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.LogAlert) ([]string, error) {
-	envs, err := obj.GetExcludedEnvironments()
-	if err != nil {
-		return nil, err
-	}
-	return lo.Map(envs, func(env *string, idx int) string {
-		return *env
-	}), nil
-}
-
 // DailyFrequency is the resolver for the DailyFrequency field.
 func (r *logAlertResolver) DailyFrequency(ctx context.Context, obj *model.LogAlert) ([]*int64, error) {
 	return obj.GetDailyLogEventFrequency(r.DB, obj.ID)
@@ -8965,6 +8954,27 @@ func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.P
 		return r.SessionsKeyValues(ctx, projectID, keyName, dateRange)
 	case modelInputs.ProductTypeErrors:
 		return r.ErrorsKeyValues(ctx, projectID, keyName, dateRange)
+	default:
+		return nil, e.Errorf("invalid product type %s", productType)
+	}
+}
+
+// LogLines is the resolver for the log_lines field.
+func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		return r.ClickhouseClient.TracesLogLines(ctx, project.ID, params)
+	case modelInputs.ProductTypeLogs:
+		return r.ClickhouseClient.LogsLogLines(ctx, project.ID, params)
+	case modelInputs.ProductTypeSessions:
+		return r.ClickhouseClient.SessionsLogLines(ctx, project.ID, params)
+	case modelInputs.ProductTypeErrors:
+		return r.ClickhouseClient.ErrorsLogLines(ctx, project.ID, params)
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}

@@ -72,7 +72,7 @@ export const NetworkResourceErrors: React.FC<{
 									if (error) {
 										set({
 											type: 'error',
-											id: errorGroup.secure_id,
+											secureId: errorGroup.secure_id,
 											instanceId: error.id,
 										})
 									}

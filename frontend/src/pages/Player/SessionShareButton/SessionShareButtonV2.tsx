@@ -20,10 +20,11 @@ import {
 } from '@pages/Player/SessionShareButton/utils/utils'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
-import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard } from '@util/string'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { useState } from 'react'
+
+import { useSessionParams } from '@/pages/Sessions/utils'
 
 import Switch from '../../../components/Switch/Switch'
 import { useReplayerContext } from '../ReplayerContext'
@@ -34,9 +35,7 @@ const SessionShareButtonV2 = () => {
 	const { time } = useReplayerContext()
 	const { isLoggedIn } = useAuthContext()
 	const { session } = useReplayerContext()
-	const { session_secure_id } = useParams<{
-		session_secure_id: string
-	}>()
+	const { sessionSecureId } = useSessionParams()
 	const { currentWorkspace } = useApplicationContext()
 	const { data } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: currentWorkspace?.id ?? '' },
@@ -116,8 +115,7 @@ const SessionShareButtonV2 = () => {
 									)
 									await updateSessionIsPublic({
 										variables: {
-											session_secure_id:
-												session_secure_id!,
+											session_secure_id: sessionSecureId!,
 											is_public: checked,
 										},
 									})

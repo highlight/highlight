@@ -1,16 +1,11 @@
-import { Module, OnModuleDestroy } from '@nestjs/common'
-import { AppController } from './app.controller'
-import { AppService } from './app.service'
-import { HttpAdapterHost } from '@nestjs/core'
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-	controllers: [AppController],
-	providers: [AppService],
+  imports: [HttpModule],
+  controllers: [AppController],
+  providers: [AppService],
 })
-export class AppModule implements OnModuleDestroy {
-	constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
-
-	async onModuleDestroy() {
-		this.httpAdapterHost.httpAdapter.close()
-	}
-}
+export class AppModule {}

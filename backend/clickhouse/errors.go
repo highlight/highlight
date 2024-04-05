@@ -742,3 +742,7 @@ func readErrorsObjects(selectCols string, params modelInputs.QueryInput, project
 
 	return sb, nil
 }
+
+func (client *Client) ErrorsLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
+	return logLines(ctx, client, ErrorsJoinedTableConfig, projectID, params)
+}

@@ -12354,7 +12354,6 @@ export const GetLogAlertDocument = gql`
 			DailyFrequency
 			disabled
 			EmailsToNotify
-			ExcludedEnvironments
 			id
 			LastAdminToEditID
 			Name
@@ -12446,10 +12445,6 @@ export const GetLogAlertsPagePayloadDocument = gql`
 				email
 				photo_url
 			}
-		}
-		environment_suggestion(project_id: $project_id) {
-			name
-			value
 		}
 	}
 	${MicrosoftTeamsChannelFragmentFragmentDoc}
@@ -12631,7 +12626,6 @@ export const GetAlertsPagePayloadDocument = gql`
 			disabled
 			default
 			EmailsToNotify
-			ExcludedEnvironments
 			id
 			LastAdminToEditID
 			Name

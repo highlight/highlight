@@ -211,6 +211,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						span:     &span,
 						event:    &event,
 					})
+					if err != nil {
+						lg(ctx, fields).WithError(err).Info("failed to extract fields from trace")
+						continue
+					}
 
 					if event.Name() == semconv.ExceptionEventName {
 						if fields.external {
@@ -438,9 +442,10 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					continue
 				}
 
+				traceID := cast(fields.requestID, logRecord.TraceID().String())
 				logRow := clickhouse.NewLogRow(
 					fields.timestamp, uint32(fields.projectIDInt),
-					clickhouse.WithTraceID(logRecord.TraceID().String()),
+					clickhouse.WithTraceID(traceID),
 					clickhouse.WithSecureSessionID(fields.sessionID),
 					clickhouse.WithBody(ctx, fields.logBody),
 					clickhouse.WithLogAttributes(fields.attrs),

@@ -7,6 +7,9 @@ slug: getting-started
 Stay up to date with what we work on week over week:
 
 <DocsCardGroup>
+    <DocsCard title="Changelog 29" href="./changelog-29.md">
+    {"Group matching, Logs drawer, Duration prefixes, Self-hosting improvements"}
+    </DocsCard>
     <DocsCard title="Changelog 28" href="./changelog-28.md">
     {"Related resources, Search query evolution, Relate logs back to traces"}
     </DocsCard>
