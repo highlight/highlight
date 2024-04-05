@@ -1,0 +1,41 @@
+{
+	"name": "nextjs-vercel",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev -p 3005",
+		"build": "next build",
+		"deploy": "yarn build && vercel build && vercel deploy --prebuilt",
+		"start": "next start -p 3005",
+		"lint": "next lint"
+	},
+	"installConfig": {
+		"hoistingLimits": "workspaces"
+	},
+	"dependencies": {
+		"@highlight-run/next": "workspace:*",
+		"@next/env": "^14.1.4",
+		"@opentelemetry/api": "^1.8.0",
+		"@opentelemetry/api-logs": "^0.49.1",
+		"@opentelemetry/core": "^1.22.0",
+		"@opentelemetry/instrumentation": "^0.49.1",
+		"@opentelemetry/resources": "^1.22.0",
+		"@opentelemetry/sdk-logs": "^0.49.1",
+		"@opentelemetry/sdk-metrics": "^1.22.0",
+		"@opentelemetry/sdk-trace-base": "^1.22.0",
+		"@vercel/otel": "1.8.1",
+		"next": "^14.1.4",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"zod": "^3.22.4"
+	},
+	"devDependencies": {
+		"@types/node": "^20.11.30",
+		"@types/react": "^18.2.72",
+		"@types/react-dom": "^18.2.22",
+		"eslint": "^8.57.0",
+		"eslint-config-next": "^14.1.4",
+		"typescript": "^5.4.3",
+		"vercel": "^33.6.1"
+	}
+}

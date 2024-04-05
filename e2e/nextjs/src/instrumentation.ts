@@ -1,18 +1,28 @@
 // instrumentation.ts or src/instrumentation.ts
 import { CONSTANTS } from '@/constants'
 import type { NodeOptions } from '@highlight-run/node'
-
-export const highlightConfig = {
-	projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
-	otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
-	serviceName: 'my-nextjs-instrumentation',
-	environment: 'e2e-test',
-	enableFsInstrumentation: true,
-	disableConsoleRecording: false,
-	debug: false,
-} as NodeOptions
+import { isNodeJsRuntime } from '@highlight-run/next/server'
+import { highlightConfig } from './highlight.config'
 
 export async function register() {
-	const { registerHighlight } = await import('@highlight-run/next/server')
-	await registerHighlight(highlightConfig)
+	if (isNodeJsRuntime()) {
+		console.log('Node JS runtime is running')
+		const { registerHighlight } = await import('@highlight-run/next/server')
+		await registerHighlight({
+			...highlightConfig,
+			serviceName: highlightConfig.serviceName + '-register',
+		})
+	} else {
+		console.log('Vercel is running')
+		const { registerOTel } = await import('@vercel/otel')
+		registerOTel({
+			autoDetectResources: true,
+			traceExporter: 'auto',
+			serviceName: 'my-nextjs-instrumentation-vercel',
+			attributes: {
+				'highlight.project_id': '1383',
+				'service.name': 'my-nextjs-instrumentation-attr-vercel',
+			},
+		})
+	}
 }

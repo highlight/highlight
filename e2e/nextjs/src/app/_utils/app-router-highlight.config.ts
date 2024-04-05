@@ -2,20 +2,19 @@
 
 import { context, propagation, SpanContext, trace } from '@opentelemetry/api'
 
-import { AppRouterHighlight, H, HighlightEnv } from '@highlight-run/next/server'
+import { AppRouterHighlight, H } from '@highlight-run/next/server'
 import { TraceState } from '@opentelemetry/core'
-import { highlightConfig } from '@/instrumentation'
+import { highlightConfig } from '@/highlight.config'
 
 type HighlightHandler = ReturnType<typeof AppRouterHighlight>
 type HandlerFunction = Parameters<HighlightHandler>[0]
 
-const env: HighlightEnv = {
-	...highlightConfig,
-	serviceName: 'my-nextjs-frontend-vercel-app-router',
-	environment: 'e2e-test',
-}
-
-export const withAppRouterHighlight = withPropagation(AppRouterHighlight(env))
+export const withAppRouterHighlight = withPropagation(
+	AppRouterHighlight({
+		...highlightConfig,
+		serviceName: highlightConfig.serviceName + '-app-router',
+	}),
+)
 
 function withPropagation(highlightHandler: HighlightHandler) {
 	return (originalHandler: HandlerFunction) =>
