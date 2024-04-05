@@ -432,7 +432,7 @@ func TestResolver_canAdminViewSession(t *testing.T) {
 	for _, v := range tests {
 		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 			redisClient := redis.NewClient()
-			ctx := context.Background()
+			ctx := context.WithValue(context.Background(), model.ContextKeys.UID, "a1b2c3")
 			if err := redisClient.Cache.Delete(ctx, "session-secure-abc123"); err != nil {
 				t.Fatal(err)
 			}
@@ -496,7 +496,7 @@ func TestResolver_isAdminInProjectOrDemoProject(t *testing.T) {
 	}
 	for _, v := range tests {
 		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
-			ctx := context.Background()
+			ctx := context.WithValue(context.Background(), model.ContextKeys.UID, "a1b2c3")
 			r := &queryResolver{Resolver: &Resolver{DB: DB}}
 
 			w := model.Workspace{}

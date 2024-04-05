@@ -113,8 +113,7 @@ class PasswordAuth {
 		return { user: undefined, token: undefined }
 	}
 
-	makePasswordAuthUser(email: string): User {
-		const { token } = this.retrieve()
+	makePasswordAuthUser(email: string, token: string): User {
 		return {
 			async getIdToken(): Promise<string> {
 				return token || ''
@@ -130,7 +129,7 @@ class PasswordAuth {
 		const { user, token } = this.retrieve()
 		if (user?.email && token) {
 			try {
-				this.currentUser = this.makePasswordAuthUser(user.email)
+				this.currentUser = this.makePasswordAuthUser(user.email, token)
 			} catch (error) {
 				console.log('error setting user from storage', error)
 			}
@@ -163,8 +162,7 @@ class PasswordAuth {
 		email: string,
 		password: string,
 	): Promise<Firebase.auth.UserCredential> {
-		const { token } = this.retrieve()
-		return await getFakeFirebaseCredentials(email, token)
+		return await this.signInWithEmailAndPassword(email, password)
 	}
 
 	onAuthStateChanged(
@@ -198,7 +196,10 @@ class PasswordAuth {
 		if (response.status === 200) {
 			const jsonResponse = await response.json()
 
-			const user = this.makePasswordAuthUser(jsonResponse.user.email)
+			const user = this.makePasswordAuthUser(
+				jsonResponse.user.email,
+				jsonResponse.token,
+			)
 			this.currentUser = user
 
 			this.set({ user, token: jsonResponse.token })

@@ -7889,7 +7889,12 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 
 // Admin is the resolver for the admin field.
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
-	admin := &model.Admin{UID: pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))}
+	uid := ctx.Value(model.ContextKeys.UID)
+	if uid == nil {
+		return nil, e.New("uid not found in context")
+	}
+
+	admin := &model.Admin{UID: pointy.String(fmt.Sprintf("%v", uid))}
 	adminSpan, ctx := util.StartSpanFromContext(ctx, "resolver.getAdmin", util.ResourceName("db.admin"),
 		util.Tag("admin_uid", admin.UID))
 

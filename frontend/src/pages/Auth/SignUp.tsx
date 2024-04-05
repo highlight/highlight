@@ -19,6 +19,7 @@ import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
+import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { message } from 'antd'
 import firebase from 'firebase/compat/app'
 import React, { useCallback, useEffect } from 'react'
@@ -30,7 +31,7 @@ import { VERIFY_EMAIL_ROUTE } from '@/routers/AppRouter/AppRouter'
 export const SignUp: React.FC = () => {
 	const navigate = useNavigate()
 	const location = useLocation()
-	const { signIn } = useAuthContext()
+	const { fetchAdmin, signIn } = useAuthContext()
 	const initialEmail: string = location.state?.email ?? ''
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [error, setError] = React.useState('')
@@ -41,18 +42,18 @@ export const SignUp: React.FC = () => {
 		},
 	})
 	const email = formStore.useValue('email')
-	const submitSucceeded = formStore.useState('submitSucceed')
-	const formLoading = formStore.useState('submitting') || submitSucceeded > 0
+	const [loading, setLoading] = React.useState(false)
 	formStore.useSubmit(async (formState) => {
+		setLoading(true)
+
 		auth.createUserWithEmailAndPassword(
 			formState.values.email,
 			formState.values.password,
 		)
-			.then(async (credential) => {
-				handleSubmit(credential)
-			})
+			.then(handleSubmit)
 			.catch((error) => {
 				setError(error.message || error.toString())
+				setLoading(false)
 			})
 	})
 
@@ -77,24 +78,31 @@ export const SignUp: React.FC = () => {
 	const workspaceInvite = data?.workspace_for_invite_link
 
 	const handleSubmit = useCallback(
-		async ({ user }: firebase.auth.UserCredential) => {
-			if (user?.email) {
+		async ({ additionalUserInfo, user }: firebase.auth.UserCredential) => {
+			const isNewUser = additionalUserInfo?.isNewUser && user?.email
+
+			if (isNewUser) {
 				analytics.track('Sign up', {
-					email: user.email,
+					email: user.email!,
+					provider: additionalUserInfo.providerId,
 				})
+
+				if (!user?.emailVerified) {
+					auth.currentUser?.sendEmailVerification()
+				}
+
+				await createAdmin()
+				message.success('Account created succesfully!')
 			}
 
-			if (!user?.emailVerified) {
-				auth.currentUser?.sendEmailVerification()
-			}
-
-			await createAdmin()
-			message.success('Account created succesfully!')
-
+			await fetchAdmin()
 			signIn(user)
-			navigate(VERIFY_EMAIL_ROUTE, { replace: true })
+
+			if (isNewUser) {
+				navigate(VERIFY_EMAIL_ROUTE, { replace: true })
+			}
 		},
-		[createAdmin, navigate, signIn],
+		[createAdmin, navigate, signIn, fetchAdmin],
 	)
 
 	const handleExternalAuthClick = (provider: firebase.auth.AuthProvider) => {
@@ -158,50 +166,58 @@ export const SignUp: React.FC = () => {
 					<Button
 						onClick={() => null}
 						trackingId="sign-up-submit"
-						loading={formLoading}
+						loading={loading}
 						type="submit"
 					>
 						Sign up
 					</Button>
-					<Stack direction="row" align="center">
-						<Box
-							borderTop="divider"
-							style={{ height: 0, flexGrow: 1 }}
-						/>
-						<Text color="weak" size="xSmall" align="center">
-							or
-						</Text>
-						<Box
-							borderTop="divider"
-							style={{ height: 0, flexGrow: 1 }}
-						/>
-					</Stack>
-					<Button
-						kind="secondary"
-						type="button"
-						trackingId="sign-up-with-google"
-						onClick={() => {
-							handleExternalAuthClick(auth.googleProvider!)
-						}}
-					>
-						<Box display="flex" alignItems="center" gap="6">
-							<IconSolidGoogle />
-							Sign up with Google
-						</Box>
-					</Button>
-					<Button
-						kind="secondary"
-						type="button"
-						trackingId="sign-up-with-github"
-						onClick={() =>
-							handleExternalAuthClick(auth.githubProvider!)
-						}
-					>
-						<Box display="flex" alignItems="center" gap="6">
-							<IconSolidGithub />
-							Sign up with Github
-						</Box>
-					</Button>
+					{isOnPrem ? null : (
+						<>
+							<Stack direction="row" align="center">
+								<Box
+									borderTop="divider"
+									style={{ height: 0, flexGrow: 1 }}
+								/>
+								<Text color="weak" size="xSmall" align="center">
+									or
+								</Text>
+								<Box
+									borderTop="divider"
+									style={{ height: 0, flexGrow: 1 }}
+								/>
+							</Stack>
+							<Button
+								kind="secondary"
+								type="button"
+								trackingId="sign-up-with-google"
+								onClick={() => {
+									handleExternalAuthClick(
+										auth.googleProvider!,
+									)
+								}}
+							>
+								<Box display="flex" alignItems="center" gap="6">
+									<IconSolidGoogle />
+									Sign up with Google
+								</Box>
+							</Button>
+							<Button
+								kind="secondary"
+								type="button"
+								trackingId="sign-up-with-github"
+								onClick={() =>
+									handleExternalAuthClick(
+										auth.githubProvider!,
+									)
+								}
+							>
+								<Box display="flex" alignItems="center" gap="6">
+									<IconSolidGithub />
+									Sign up with Github
+								</Box>
+							</Button>
+						</>
+					)}
 				</Stack>
 			</AuthFooter>
 		</Form>
