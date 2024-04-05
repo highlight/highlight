@@ -37,7 +37,7 @@ const RightPanelTabs = () => {
 			selectedId={selectedRightPanelTab}
 			onChange={setSelectedRightPanelTab}
 		>
-			<Tabs.List>
+			<Tabs.List px="8" gap="8">
 				<Tabs.Tab
 					id={RightPlayerTab.Events}
 					icon={
