@@ -285,7 +285,7 @@ const UsageCard = ({
 									{usageRange.end.diff(
 										usageRange.start,
 										'day',
-									) > 60
+									) > 100
 										? 'Monthly'
 										: 'Weekly'}
 								</Text>
@@ -294,7 +294,11 @@ const UsageCard = ({
 								{['Monthly', 'Weekly'].map((option) => (
 									<Menu.Item
 										key={option}
-										onClick={() => setUsageRange(option)}
+										onClick={() =>
+											setUsageRange(
+												option as 'Monthly' | 'Weekly',
+											)
+										}
 									>
 										<Box
 											display="flex"
@@ -358,6 +362,13 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		start: moment().subtract(12, 'months'),
 		end: moment(),
 	})
+
+	const setUsageRange = (option: 'Monthly' | 'Weekly') => {
+		setRange({
+			start: moment().subtract(option === 'Monthly' ? 12 : 3, 'months'),
+			end: moment(),
+		})
+	}
 
 	const { data, loading, refetch } = useGetBillingDetailsQuery({
 		variables: {
