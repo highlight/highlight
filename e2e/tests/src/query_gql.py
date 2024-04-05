@@ -149,3 +149,21 @@ query GetTraces($project_id: ID!, $params: QueryInput!, $after: String, $before:
   }
 }
 """
+
+GET_ADMIN = """
+query GetAdmin {
+  admin {
+    id
+    uid
+    name
+    email
+    phone
+    photo_url
+    slack_im_channel_id
+    email_verified
+    user_defined_role
+    about_you_details_filled
+    __typename
+  }
+}
+"""
