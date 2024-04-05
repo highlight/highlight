@@ -162,8 +162,7 @@ class PasswordAuth {
 		email: string,
 		password: string,
 	): Promise<Firebase.auth.UserCredential> {
-		const { token } = this.retrieve()
-		return await getFakeFirebaseCredentials(email, token)
+		return await this.signInWithEmailAndPassword(email, password)
 	}
 
 	onAuthStateChanged(
