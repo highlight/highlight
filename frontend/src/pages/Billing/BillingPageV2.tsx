@@ -70,6 +70,7 @@ type UsageCardProps = {
 	usageLimitAmount: number | undefined
 	usageHistory?: MetricsBuckets
 	usageRange: { start: moment.Moment; end: moment.Moment }
+	setUsageRange: (range: 'Weekly' | 'Monthly') => void
 	includedQuantity: number
 	isPaying: boolean
 	enableBillingLimits: boolean | undefined
@@ -88,6 +89,7 @@ const UsageCard = ({
 	usageLimitAmount,
 	usageHistory,
 	usageRange,
+	setUsageRange,
 	includedQuantity,
 	isPaying,
 	enableBillingLimits,
@@ -250,9 +252,11 @@ const UsageCard = ({
 					display="flex"
 					flexDirection="column"
 					alignItems="flex-end"
-					background="secondaryDisabled"
 					border="dividerWeak"
 					borderRadius="6"
+					style={{
+						backgroundColor: vars.theme.static.surface.raised,
+					}}
 				>
 					<Box
 						width="full"
@@ -261,7 +265,9 @@ const UsageCard = ({
 						justifyContent="space-between"
 						alignItems="center"
 					>
-						<Text>Past Usage</Text>
+						<Text size="xSmall" color="moderate">
+							Past Usage
+						</Text>
 						<Menu>
 							<Menu.Button
 								iconRight={<IconSolidCheveronDown />}
@@ -269,26 +275,39 @@ const UsageCard = ({
 								kind="secondary"
 								emphasis="medium"
 								style={{
-									border: vars.theme.interactive.outline
-										.secondary.enabled,
+									border: vars.border.secondary,
 									borderRadius: 6,
 									backgroundColor:
-										vars.theme.interactive.outline.secondary
-											.enabled,
+										vars.theme.static.surface.raised,
 								}}
 							>
-								Monthly
+								<Text size="xSmall" color="moderate">
+									{usageRange.end.diff(
+										usageRange.start,
+										'day',
+									) > 60
+										? 'Monthly'
+										: 'Weekly'}
+								</Text>
 							</Menu.Button>
 							<Menu.List>
 								{['Monthly', 'Weekly'].map((option) => (
-									<Menu.Item key={option}>
+									<Menu.Item
+										key={option}
+										onClick={() => setUsageRange(option)}
+									>
 										<Box
 											display="flex"
 											alignItems="center"
 											gap="4"
 											py="2"
 										>
-											<Text>{option}</Text>
+											<Text
+												size="xSmall"
+												color="moderate"
+											>
+												{option}
+											</Text>
 										</Box>
 									</Menu.Item>
 								))}
@@ -332,7 +351,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const location = useLocation()
 	const [step, setStep] = React.useState<PlanSelectStep | null>(null)
 	// TODO(vkorolik) should this use workspace billing start/end?
-	const [range] = React.useState<{
+	const [range, setRange] = React.useState<{
 		start: moment.Moment
 		end: moment.Moment
 	}>({
@@ -670,6 +689,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						usageLimitAmount={sessionsLimit}
 						usageHistory={data?.usageHistory.session_usage}
 						usageRange={range}
+						setUsageRange={setUsageRange}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}
@@ -693,6 +713,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						usageLimitAmount={errorsLimit}
 						usageHistory={data?.usageHistory.errors_usage}
 						usageRange={range}
+						setUsageRange={setUsageRange}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}
@@ -716,6 +737,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						usageLimitAmount={logsLimit}
 						usageHistory={data?.usageHistory.logs_usage}
 						usageRange={range}
+						setUsageRange={setUsageRange}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}
@@ -739,6 +761,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						usageLimitAmount={tracesLimit}
 						usageHistory={data?.usageHistory.traces_usage}
 						usageRange={range}
+						setUsageRange={setUsageRange}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}
