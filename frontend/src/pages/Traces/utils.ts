@@ -203,9 +203,55 @@ export const humanizeDuration = (nanoseconds: number): string => {
 
 export const formatDateWithNanoseconds = (dateString: string) => {
 	const [dateTime, nanoseconds] = dateString.split('.')
-	const [nanoWithoutZ] = nanoseconds.split('Z')
+	const [nanoWithoutZ] = nanoseconds ? nanoseconds.split('Z') : ['']
 	const momentDate = moment(dateTime)
 	const formattedDateTime = momentDate.format('M/D/YYYY, h:mm:ss')
 	const amPm = momentDate.format('a')
 	return `${formattedDateTime}.${nanoWithoutZ} ${amPm}`
+}
+
+export const formatTraceAttributes = (attributes: { [key: string]: any }) => {
+	const { host, os, process, ...otherTraceAttributes } =
+		attributes.traceAttributes
+
+	return cleanAttributes({
+		timestamp: formatDateWithNanoseconds(attributes.timestamp),
+		parent_span_id: attributes.parentSpanID,
+		secure_session_id: attributes.secureSessionID,
+		span_name: attributes.spanName,
+		duration: humanizeDuration(attributes.duration),
+		service_name: attributes.serviceName,
+		service_version: attributes.serviceVersion,
+		environment: attributes.environment,
+		start_time: attributes.startTime,
+		...otherTraceAttributes,
+		trace_id: attributes.traceID,
+		span_id: attributes.spanID,
+		span_kind: attributes.spanKind,
+		status_code: attributes.statusCode,
+		host,
+		os,
+		process,
+	})
+}
+
+export const cleanAttributes = (attributes: any): any => {
+	const copy = { ...attributes }
+
+	Object.keys(copy).forEach((key) => {
+		const value = copy[key as keyof typeof copy]
+
+		if (value === undefined || value === '') {
+			// Remove empty attributes
+			delete copy[key]
+		} else if (typeof value === 'string' && !isNaN(Number(value))) {
+			// Convert all stringified numbers to numbers
+			copy[key] = Number(value)
+		} else if (typeof value === 'object' && value !== null) {
+			// If the value is an object, call the function again
+			copy[key] = cleanAttributes(value)
+		}
+	})
+
+	return copy
 }
