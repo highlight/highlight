@@ -6,6 +6,7 @@ import {
 	Heading,
 	IconProps,
 	IconSolidArrowSmRight,
+	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidExclamation,
 	IconSolidInformationCircle,
@@ -14,6 +15,7 @@ import {
 	IconSolidPencil,
 	IconSolidPlayCircle,
 	IconSolidTraces,
+	Menu,
 	Stack,
 	Tag,
 	Text,
@@ -240,26 +242,80 @@ const UsageCard = ({
 				</Box>
 			) : null}
 			{usageHistory ? (
-				<Box width="full" height="full">
-					<LogsHistogram
-						startDate={usageRange.start.toDate()}
-						endDate={usageRange.end.toDate()}
-						onDatesChange={() => {}}
-						histogramBuckets={usageHistory.buckets.map((b) => ({
-							bucketId: b.bucket_id,
-							group: b.group,
-							counts: [
-								{
-									level: 'Ingested',
-									count: b.metric_value ?? 0,
-								},
-							],
-						}))}
-						bucketCount={usageHistory.bucket_count}
-						loading={usageHistory === undefined}
-						loadingState="spinner"
-						legend
-					/>
+				<Box
+					width="full"
+					height="full"
+					padding="8"
+					gap="4"
+					display="flex"
+					flexDirection="column"
+					alignItems="flex-end"
+					background="secondaryDisabled"
+					border="dividerWeak"
+					borderRadius="6"
+				>
+					<Box
+						width="full"
+						height="full"
+						display="flex"
+						justifyContent="space-between"
+						alignItems="center"
+					>
+						<Text>Past Usage</Text>
+						<Menu>
+							<Menu.Button
+								iconRight={<IconSolidCheveronDown />}
+								size="small"
+								kind="secondary"
+								emphasis="medium"
+								style={{
+									border: vars.theme.interactive.outline
+										.secondary.enabled,
+									borderRadius: 6,
+									backgroundColor:
+										vars.theme.interactive.outline.secondary
+											.enabled,
+								}}
+							>
+								Monthly
+							</Menu.Button>
+							<Menu.List>
+								{['Monthly', 'Weekly'].map((option) => (
+									<Menu.Item key={option}>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+											py="2"
+										>
+											<Text>{option}</Text>
+										</Box>
+									</Menu.Item>
+								))}
+							</Menu.List>
+						</Menu>
+					</Box>
+					<Box width="full" height="full">
+						<LogsHistogram
+							startDate={usageRange.start.toDate()}
+							endDate={usageRange.end.toDate()}
+							onDatesChange={() => {}}
+							histogramBuckets={usageHistory.buckets.map((b) => ({
+								bucketId: b.bucket_id,
+								group: b.group,
+								counts: [
+									{
+										level: 'Ingested',
+										count: b.metric_value ?? 0,
+									},
+								],
+							}))}
+							bucketCount={usageHistory.bucket_count}
+							loading={usageHistory === undefined}
+							loadingState="spinner"
+							legend
+						/>
+					</Box>
 				</Box>
 			) : null}
 		</Box>
