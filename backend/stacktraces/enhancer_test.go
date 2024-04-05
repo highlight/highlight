@@ -2,6 +2,7 @@ package stacktraces
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -314,4 +315,29 @@ func TestEnhanceStackTraceProd(t *testing.T) {
 	assert.Equal(t, 1, len(mappedStackTrace))
 	assert.Equal(t, "normal", *mappedStackTrace[0].FunctionName)
 	assert.Equal(t, "    font-size: ${FontSize.normal};\n", *mappedStackTrace[0].LineContent)
+}
+
+func TestEnhanceAdvancedStackTraceProd(t *testing.T) {
+	// local only for troubleshooting stacktrace enhancement
+	t.Skip()
+	storage.S3SourceMapBucketNameNew = "highlight-source-maps"
+	ctx := context.TODO()
+
+	s3Client, err := storage.NewS3Client(ctx)
+	if err != nil {
+		t.Fatalf("error creating storage client: %v", err)
+	}
+	fetch = NetworkFetcher{}
+
+	var stackFrameInput []*publicModelInput.StackFrameInput
+	err = json.Unmarshal([]byte(`[{"fileName":"node:internal/timers","lineNumber":514,"functionName":"process.processTimers","columnNumber":7,"error":"Error: 🎉 SSR Error with use-server: src/app-router/ssr/page.tsx"},{"fileName":"node:internal/timers","lineNumber":573,"functionName":"listOnTimeout","columnNumber":17,"error":"Error: 🎉 SSR Error with use-server: src/app-router/ssr/page.tsx"},{"fileName":"/var/task/node_modules/.pnpm/next@14.1.4_@babel+core@7.24.3_@opentelemetry+api@1.8.0_react-dom@18.2.0_react@18.2.0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js","lineNumber":12,"functionName":"Timeout._onTimeout","columnNumber":132091,"error":"Error: 🎉 SSR Error with use-server: src/app-router/ssr/page.tsx"},{"fileName":"/var/task/node_modules/.pnpm/next@14.1.4_@babel+core@7.24.3_@opentelemetry+api@1.8.0_react-dom@18.2.0_react@18.2.0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js","lineNumber":12,"functionName":"eP","columnNumber":135311,"error":"Error: 🎉 SSR Error with use-server: src/app-router/ssr/page.tsx"},{"fileName":"/var/task/node_modules/.pnpm/next@14.1.4_@babel+core@7.24.3_@opentelemetry+api@1.8.0_react-dom@18.2.0_react@18.2.0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js","lineNumber":12,"functionName":"eR","columnNumber":134868,"error":"Error: 🎉 SSR Error with use-server: src/app-router/ssr/page.tsx"},{"fileName":"\u003canonymous\u003e","functionName":"stringify","error":"Error: 🎉 SSR Error with use-server: src/app-router/ssr/page.tsx","lineContent":"\u003canonymous\u003e"},{"fileName":"/var/task/node_modules/.pnpm/next@14.1.4_@babel+core@7.24.3_@opentelemetry+api@1.8.0_react-dom@18.2.0_react@18.2.0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js","lineNumber":12,"functionName":"Array.toJSON","columnNumber":146484,"error":"Error: 🎉 SSR Error with use-server: src/app-router/ssr/page.tsx"},{"fileName":"/var/task/node_modules/.pnpm/next@14.1.4_@babel+core@7.24.3_@opentelemetry+api@1.8.0_react-dom@18.2.0_react@18.2.0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js","lineNumber":12,"columnNumber":142906,"error":"Error: 🎉 SSR Error with use-server: src/app-router/ssr/page.tsx"},{"fileName":"/var/task/node_modules/.pnpm/next@14.1.4_@babel+core@7.24.3_@opentelemetry+api@1.8.0_react-dom@18.2.0_react@18.2.0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js","lineNumber":12,"functionName":"em","columnNumber":131205,"error":"Error: 🎉 SSR Error with use-server: src/app-router/ssr/page.tsx"},{"fileName":"/var/task/apps/magicsky/.next/server/app/app-router-ssr/page.js","lineNumber":1,"functionName":"s","columnNumber":3344,"error":"Error: 🎉 SSR Error with use-server: src/app-router/ssr/page.tsx"}]`), &stackFrameInput)
+	assert.NoError(t, err)
+
+	mappedStackTrace, err := EnhanceStackTrace(ctx, stackFrameInput, 29954, nil, s3Client)
+	if err != nil {
+		t.Fatal(e.Wrap(err, "error enhancing source map"))
+	}
+	assert.Equal(t, 9, len(mappedStackTrace))
+	assert.Equal(t, "process.processTimers", *mappedStackTrace[0].FunctionName)
+	assert.Equal(t, "/var/task/apps/magicsky/.next/server/app/app-router-ssr/page.js", *mappedStackTrace[8].FileName)
 }
