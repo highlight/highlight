@@ -4183,7 +4183,6 @@ export type GetLogAlertQuery = { __typename?: 'Query' } & {
 		| 'DailyFrequency'
 		| 'disabled'
 		| 'EmailsToNotify'
-		| 'ExcludedEnvironments'
 		| 'id'
 		| 'LastAdminToEditID'
 		| 'Name'
@@ -4248,13 +4247,6 @@ export type GetLogAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				'id' | 'name' | 'email' | 'photo_url'
 			>
 		}
-	>
-	environment_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
-			>
-		>
 	>
 }
 
@@ -4425,7 +4417,6 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				| 'disabled'
 				| 'default'
 				| 'EmailsToNotify'
-				| 'ExcludedEnvironments'
 				| 'id'
 				| 'LastAdminToEditID'
 				| 'Name'

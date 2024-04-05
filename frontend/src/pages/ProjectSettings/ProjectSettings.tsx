@@ -1,5 +1,4 @@
-import Tabs from '@components/Tabs/Tabs'
-import { Box, Heading, Stack, Text } from '@highlight-run/ui/components'
+import { Box, Heading, Stack, Tabs, Text } from '@highlight-run/ui/components'
 import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm'
 import { ErrorFiltersForm } from '@pages/ProjectSettings/ErrorFiltersForm/ErrorFiltersForm'
 import { ErrorSettingsForm } from '@pages/ProjectSettings/ErrorSettingsForm/ErrorSettingsForm'
@@ -36,12 +35,23 @@ import {
 import { AutoresolveStaleErrorsForm } from '@/pages/ProjectSettings/AutoresolveStaleErrorsForm/AutoresolveStaleErrorsForm'
 import { ProjectSettingsContextProvider } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
-import styles from './ProjectSettings.module.css'
 import { SessionFiltersCallout } from './SessionFiltersCallout/SessionFiltersCallout'
+
+enum ProjectSettingsTabs {
+	General = 'general',
+	Sessions = 'sessions',
+	Errors = 'errors',
+	Services = 'services',
+	Filters = 'filters',
+}
 
 const ProjectSettings = () => {
 	const navigate = useNavigate()
-	const { project_id, ...params } = useParams()
+	const { project_id, ...params } = useParams<{
+		project_id: string
+		tab: ProjectSettingsTabs
+		[key: string]: string
+	}>()
 	const [allProjectSettings, setAllProjectSettings] =
 		useState<GetProjectSettingsQuery>()
 	const { currentWorkspace } = useApplicationContext()
@@ -104,7 +114,7 @@ const ProjectSettings = () => {
 				<Heading mt="16" level="h4">
 					Project Settings
 				</Heading>
-				<div className={styles.tabsContainer}>
+				<Box mt="24">
 					<ProjectSettingsContextProvider
 						value={{
 							allProjectSettings,
@@ -112,129 +122,125 @@ const ProjectSettings = () => {
 							loading,
 						}}
 					>
-						<Tabs
-							activeKeyOverride={params.tab ?? 'sessions'}
-							onChange={(key) => {
-								navigate(`/${project_id}/settings/${key}`)
+						<Tabs<ProjectSettingsTabs>
+							selectedId={
+								params.tab ?? ProjectSettingsTabs.Sessions
+							}
+							onChange={(id) => {
+								navigate(`/${project_id}/settings/${id}`)
 							}}
-							border
-							noHeaderPadding
-							noPadding
-							id="settingsTabs"
-							tabs={[
-								{
-									key: 'general',
-									title: 'General',
-									panelContent: <DangerForm />,
-								},
-								{
-									key: 'sessions',
-									title: 'Session replay',
-									panelContent: (
-										<Stack>
-											<Box
-												display="flex"
-												gap="8"
-												justifyContent="space-between"
-												alignItems="center"
+						>
+							<Tabs.List>
+								<Tabs.Tab id={ProjectSettingsTabs.General}>
+									General
+								</Tabs.Tab>
+								<Tabs.Tab id={ProjectSettingsTabs.Sessions}>
+									Session replay
+								</Tabs.Tab>
+								<Tabs.Tab id={ProjectSettingsTabs.Errors}>
+									Error monitoring
+								</Tabs.Tab>
+								<Tabs.Tab id={ProjectSettingsTabs.Services}>
+									Services
+								</Tabs.Tab>
+								<Tabs.Tab id={ProjectSettingsTabs.Filters}>
+									Filters
+								</Tabs.Tab>
+							</Tabs.List>
+							<Box mt="24">
+								<Tabs.Panel id={ProjectSettingsTabs.General}>
+									<DangerForm />
+								</Tabs.Panel>
+								<Tabs.Panel id={ProjectSettingsTabs.Sessions}>
+									<Stack>
+										<Box
+											display="flex"
+											gap="8"
+											justifyContent="space-between"
+											alignItems="center"
+										>
+											<Text size="large" weight="bold">
+												Session replay
+											</Text>
+											<Button
+												onClick={onSubmit(
+													'session replay',
+												)}
+												trackingId="ProjectSettingsUpdate"
 											>
-												<Text
-													size="large"
-													weight="bold"
-												>
-													Session replay
-												</Text>
-												<Button
-													onClick={onSubmit(
-														'session replay',
-													)}
-													trackingId="ProjectSettingsUpdate"
-												>
-													{editProjectSettingsLoading ? (
-														<CircularSpinner
-															style={{
-																fontSize: 18,
-																color: 'var(--text-primary-inverted)',
-															}}
-														/>
-													) : (
-														'Save changes'
-													)}
-												</Button>
-											</Box>
-											<ExcludedUsersForm />
-											<SessionFiltersCallout />
-											<RageClicksForm />
-											{workspaceSettingsData
-												?.workspaceSettings
-												?.enable_session_export ? (
-												<SessionExportForm />
-											) : null}
-										</Stack>
-									),
-								},
-								{
-									key: 'errors',
-									title: 'Error monitoring',
-									panelContent: (
-										<Stack>
-											<Box
-												display="flex"
-												gap="8"
-												justifyContent="space-between"
-												alignItems="center"
+												{editProjectSettingsLoading ? (
+													<CircularSpinner
+														style={{
+															fontSize: 18,
+															color: 'var(--text-primary-inverted)',
+														}}
+													/>
+												) : (
+													'Save changes'
+												)}
+											</Button>
+										</Box>
+										<ExcludedUsersForm />
+										<SessionFiltersCallout />
+										<RageClicksForm />
+										{workspaceSettingsData
+											?.workspaceSettings
+											?.enable_session_export ? (
+											<SessionExportForm />
+										) : null}
+									</Stack>
+								</Tabs.Panel>
+								<Tabs.Panel id={ProjectSettingsTabs.Errors}>
+									<Stack>
+										<Box
+											display="flex"
+											gap="8"
+											justifyContent="space-between"
+											alignItems="center"
+										>
+											<Text size="large" weight="bold">
+												Error monitoring
+											</Text>
+											<Button
+												onClick={onSubmit(
+													'error monitoring',
+												)}
+												trackingId="ProjectSettingsUpdate"
 											>
-												<Text
-													size="large"
-													weight="bold"
-												>
-													Error monitoring
-												</Text>
-												<Button
-													onClick={onSubmit(
-														'error monitoring',
-													)}
-													trackingId="ProjectSettingsUpdate"
-												>
-													{editProjectSettingsLoading ? (
-														<CircularSpinner
-															style={{
-																fontSize: 18,
-																color: 'var(--text-primary-inverted)',
-															}}
-														/>
-													) : (
-														'Save changes'
-													)}
-												</Button>
-											</Box>
-											<BorderBox>
-												<Stack gap="8">
-													<ErrorSettingsForm />
-													<Box borderTop="dividerWeak" />
-													<ErrorFiltersForm />
-												</Stack>
-											</BorderBox>
-											<FilterExtensionForm />
-											<SourcemapSettings />
-											<AutoresolveStaleErrorsForm />
-										</Stack>
-									),
-								},
-								{
-									key: 'services',
-									title: 'Services',
-									panelContent: <ServicesTable />,
-								},
-								{
-									key: 'filters',
-									title: 'Filters',
-									panelContent: <ProjectFilters />,
-								},
-							]}
-						/>
+												{editProjectSettingsLoading ? (
+													<CircularSpinner
+														style={{
+															fontSize: 18,
+															color: 'var(--text-primary-inverted)',
+														}}
+													/>
+												) : (
+													'Save changes'
+												)}
+											</Button>
+										</Box>
+										<BorderBox>
+											<Stack gap="8">
+												<ErrorSettingsForm />
+												<Box borderTop="dividerWeak" />
+												<ErrorFiltersForm />
+											</Stack>
+										</BorderBox>
+										<FilterExtensionForm />
+										<SourcemapSettings />
+										<AutoresolveStaleErrorsForm />
+									</Stack>
+								</Tabs.Panel>
+								<Tabs.Panel id={ProjectSettingsTabs.Services}>
+									<ServicesTable />
+								</Tabs.Panel>
+								<Tabs.Panel id={ProjectSettingsTabs.Filters}>
+									<ProjectFilters />
+								</Tabs.Panel>
+							</Box>
+						</Tabs>
 					</ProjectSettingsContextProvider>
-				</div>
+				</Box>
 			</Box>
 		</>
 	)

@@ -1,8 +1,8 @@
 import { Form, Stack, Text } from '@highlight-run/ui/components'
+import useLocalStorage from '@rehooks/local-storage'
 import { message } from 'antd'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useLocalStorage } from 'react-use'
 
 import { getEmailDomain } from '@/components/AutoJoinEmailsInput'
 import { Button } from '@/components/Button'

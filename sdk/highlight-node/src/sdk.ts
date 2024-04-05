@@ -23,7 +23,7 @@ export interface HighlightInterface {
 	// Use runWithHeaders to execute a method with a highlight context
 	runWithHeaders: <T>(
 		headers: Headers | IncomingHttpHeaders,
-		cb: () => T,
+		cb: () => T | Promise<T>,
 	) => Promise<T>
 
 	consumeError: (

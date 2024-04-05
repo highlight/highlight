@@ -7,6 +7,7 @@
   "executable": "gpx_highlightinc_highlight_datasource",
   "alerting": true,
   "metrics": true,
+  "logs": true,
   "info": {
     "description": "Query and alert based on metrics from highlight.io traces, logs, errors, and sessions.",
     "author": {
@@ -35,7 +36,7 @@
     "updated": "%TODAY%"
   },
   "dependencies": {
-    "grafanaDependency": ">=10.0.3",
+    "grafanaDependency": ">=10.1.0",
     "plugins": []
   }
 }

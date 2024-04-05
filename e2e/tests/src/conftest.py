@@ -94,6 +94,12 @@ def node_js_bin():
     return os.path.realpath(os.path.join(base, f"v{latest}", "bin"))
 
 
+@pytest.fixture(scope="session")
+def dotnet_bin():
+    stdout = subprocess.check_output(["which", "dotnet"], text=True, env=os.environ)
+    return os.path.realpath(os.path.dirname(stdout))
+
+
 @pytest.fixture()
 def next_dev(node_js_bin):
     yield from run_and_poll(
@@ -162,3 +168,13 @@ def express_ts(node_js_bin):
 @pytest.fixture(params=["express_js", "express_ts"])
 def express_app(request):
     yield request.param, request.getfixturevalue(request.param)
+
+
+@pytest.fixture()
+def dotnet_app(dotnet_bin):
+    yield from run_and_poll(
+        dotnet_bin,
+        ["dotnet", "run"],
+        lambda: requests.get("http://localhost:5249/"),
+        cwd="dotnet",
+    )

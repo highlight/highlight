@@ -8,7 +8,7 @@ import {
 	Injectable,
 	NestInterceptor,
 } from '@nestjs/common'
-import { Observable, throwError } from 'rxjs'
+import { lastValueFrom, Observable, throwError } from 'rxjs'
 import { catchError } from 'rxjs/operators'
 
 @Injectable()
@@ -100,17 +100,28 @@ export class HighlightInterceptor
 		const ctx = context.switchToHttp()
 		const request = ctx.getRequest()
 		const highlightCtx = NodeH.parseHeaders(request.headers)
-		return NodeH.runWithHeaders(request.headers, () => {
-			return next.handle().pipe(
-				catchError((err) => {
-					NodeH.consumeError(
-						err,
-						highlightCtx?.secureSessionId,
-						highlightCtx?.requestId,
-					)
-					return throwError(() => err)
-				}),
+		return NodeH.runWithHeaders(request.headers, async () => {
+			const span = await NodeH.startActiveSpan(
+				`${request.method} ${request.url}`,
+				{
+					attributes: {
+						'http.method': request.method,
+						'http.url': request.url,
+					},
+				},
 			)
+			try {
+				return await lastValueFrom(next.handle())
+			} catch (err: any) {
+				NodeH.consumeError(
+					err,
+					highlightCtx?.secureSessionId,
+					highlightCtx?.requestId,
+				)
+				throw err
+			} finally {
+				span.end()
+			}
 		})
 	}
 }

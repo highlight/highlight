@@ -24,8 +24,8 @@ import { PythonGCPContext } from './backend/python/gcp'
 import { PythonOtherContext } from './backend/python/other'
 import { RubyOtherContent } from './backend/ruby/other'
 import { RubyRailsContent } from './backend/ruby/rails'
-import { RustOtherContent } from './backend/rust/other'
 import { RustActixContent } from './backend/rust/actix'
+import { RustOtherContent } from './backend/rust/other'
 import { AngularContent } from './frontend/angular'
 import { GatsbyContent } from './frontend/gatsby'
 import { NextContent } from './frontend/next'
@@ -54,12 +54,13 @@ import { PythonLoguruLogContent } from './logging/python/loguru'
 import { PythonOtherLogContent } from './logging/python/other'
 import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
-import { RustOtherLogContent } from './logging/rust/other'
 import { RustActixLogContent } from './logging/rust/actix'
+import { RustOtherLogContent } from './logging/rust/other'
 import { SyslogContent } from './logging/syslog'
 import { SystemdContent } from './logging/systemd'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
+import { DotNetOTLPTracingContent } from './traces/dot-net'
 import { GoTracesContent } from './traces/go/go'
 import { GormTracesContent } from './traces/go/gorm'
 import { JSManualTracesContent } from './traces/node-js/manual'
@@ -162,6 +163,7 @@ export enum QuickStartType {
 	HostingFlyIO = 'fly-io',
 	HostingRender = 'render',
 	OTLP = 'otlp',
+	OTLPDotNet = 'dot-net',
 }
 
 export const quickStartContent = {
@@ -254,6 +256,7 @@ export const quickStartContent = {
 			title: 'OpenTelemetry',
 			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPErrorMonitoringContent,
+			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 		},
 	},
 	'backend-logging': {
@@ -334,6 +337,7 @@ export const quickStartContent = {
 			title: 'OpenTelemetry',
 			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPLoggingContent,
+			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 		},
 	},
 	traces: {
@@ -376,6 +380,7 @@ export const quickStartContent = {
 			title: 'OpenTelemetry',
 			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPTracesContent,
+			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 		},
 		rust: {
 			title: 'Rust',

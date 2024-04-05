@@ -2,24 +2,32 @@ import { BufferConfig, ReadableSpan, Span } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
 import type {
 	Attributes,
-	Tracer,
+	BaggageEntry,
 	Span as OtelSpan,
 	SpanOptions,
-	BaggageEntry,
+	Tracer,
 } from '@opentelemetry/api'
-import { propagation, trace } from '@opentelemetry/api'
+import {
+	diag,
+	DiagConsoleLogger,
+	DiagLogLevel,
+	propagation,
+	trace,
+} from '@opentelemetry/api'
 import { NodeSDK } from '@opentelemetry/sdk-node'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
+import {
+	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
+	SEMRESATTRS_SERVICE_NAME,
+	SEMRESATTRS_SERVICE_VERSION,
+} from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { W3CBaggagePropagator } from '@opentelemetry/core'
 import type { IncomingHttpHeaders } from 'http'
-
 import { clearInterval } from 'timers'
-
 import type { HighlightContext, NodeOptions } from './types.js'
 import { hookConsole } from './hooks.js'
 import log from './log.js'
@@ -35,6 +43,9 @@ type TraceMapValue = {
 }
 
 const instrumentations = getNodeAutoInstrumentations({
+	'@opentelemetry/instrumentation-http': {
+		enabled: false,
+	},
 	'@opentelemetry/instrumentation-pino': {
 		logHook: (span, record, level) => {
 			// @ts-ignore
@@ -59,18 +70,9 @@ registerInstrumentations({ instrumentations })
 
 // @ts-ignore
 class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
-	private _listeners: Map<Symbol, () => void>
+	private _listeners: Map<Symbol, () => void> = new Map()
 	private traceAttributesMap = new Map<string, TraceMapValue>()
 	private finishedSpanNames = new Set<string>()
-
-	constructor(exporter: any, options: any) {
-		super(exporter, options)
-
-		this._listeners = new Map()
-
-		// @ts-ignore
-		this._exporter = exporter
-	}
 
 	getTraceMetadata(span: ReadableSpan) {
 		return this.traceAttributesMap.get(span.spanContext().traceId)
@@ -125,13 +127,13 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 		// @ts-ignore
 		const finishedSpansCount = this._finishedSpans.length
 
-		await super.forceFlush()
-
 		if (finishedSpansCount > 0) {
 			Array.from(this._listeners.values()).forEach((listener) =>
 				listener(),
 			)
 		}
+
+		await super.forceFlush()
 	}
 
 	registerListener(listener: () => void) {
@@ -143,9 +145,9 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 }
 
 const OTEL_TO_OPTIONS = {
-	[SemanticResourceAttributes.SERVICE_NAME]: 'serviceName',
-	[SemanticResourceAttributes.SERVICE_VERSION]: 'serviceVersion',
-	[SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: 'environment',
+	[SEMRESATTRS_SERVICE_NAME]: 'serviceName',
+	[SEMRESATTRS_SERVICE_VERSION]: 'serviceVersion',
+	[SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: 'environment',
 } as const
 
 export class Highlight {
@@ -163,6 +165,12 @@ export class Highlight {
 			console.warn(
 				'Highlight project id was not provided. Data will not be recorded.',
 			)
+		}
+
+		if (this._debug) {
+			diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG)
+			options.disableConsoleRecording = true
+			this._log('debug mode is enabled; console recording turned off')
 		}
 
 		if (!options.disableConsoleRecording) {
@@ -233,6 +241,7 @@ export class Highlight {
 		]) {
 			process.on(event, async () => {
 				await this.flush()
+				process.exit()
 			})
 		}
 
@@ -247,11 +256,8 @@ export class Highlight {
 
 	get finishedSpans(): Span[] {
 		const processor = this.activeSpanProcessor
-		const finishedSpans: CustomSpanProcessor['_finishedSpans'] =
-			// @ts-ignore
-			processor?._finishedSpans ?? []
-
-		return finishedSpans
+		// @ts-ignore
+		return processor?._finishedSpans ?? []
 	}
 
 	async stop() {
@@ -431,57 +437,45 @@ export class Highlight {
 
 	async runWithHeaders<T>(
 		headers: Headers | IncomingHttpHeaders,
-		cb: () => T,
+		cb: () => T | Promise<T>,
 	) {
-		return new Promise<T>((resolve, reject) => {
-			this.tracer.startActiveSpan(
-				'highlight-run-with-headers',
-				async (span) => {
-					const { secureSessionId, requestId } =
-						this.parseHeaders(headers)
+		return this.tracer.startActiveSpan(
+			'highlight-run-with-headers',
+			async (span) => {
+				const { secureSessionId, requestId } =
+					this.parseHeaders(headers)
 
-					if (secureSessionId && requestId) {
-						this.processor.setTraceMetadata(span, {
-							'highlight.session_id': secureSessionId,
-							'highlight.trace_id': requestId,
-						})
+				if (secureSessionId && requestId) {
+					this.processor.setTraceMetadata(span, {
+						'highlight.session_id': secureSessionId,
+						'highlight.trace_id': requestId,
+					})
 
-						propagation
-							.getActiveBaggage()
-							?.setEntry(HIGHLIGHT_REQUEST_HEADER, {
-								value: `${secureSessionId}/${requestId}`,
-							} as BaggageEntry)
+					propagation
+						.getActiveBaggage()
+						?.setEntry(HIGHLIGHT_REQUEST_HEADER, {
+							value: `${secureSessionId}/${requestId}`,
+						} as BaggageEntry)
+				}
+
+				try {
+					return await cb()
+				} catch (error) {
+					if (error instanceof Error) {
+						this.consumeCustomError(
+							error,
+							secureSessionId,
+							requestId,
+						)
 					}
 
-					try {
-						const result = await cb()
-
-						resolve(result)
-
-						span.end()
-
-						await this.waitForFlush()
-					} catch (error) {
-						if (error instanceof Error) {
-							await this.consumeCustomError(
-								error,
-								secureSessionId,
-								requestId,
-							)
-						}
-
-						span.end()
-
-						await Promise.allSettled([
-							this.waitForFlush(),
-							this.flush(),
-						])
-
-						reject(error)
-					}
-				},
-			)
-		})
+					throw error
+				} finally {
+					span.end()
+					await this.waitForFlush()
+				}
+			},
+		)
 	}
 
 	startActiveSpan(name: string, options?: SpanOptions) {

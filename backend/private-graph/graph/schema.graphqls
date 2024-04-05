@@ -1082,6 +1082,7 @@ type LogsHistogram {
 
 enum MetricAggregator {
 	Count
+	CountDistinct
 	CountDistinctKey
 	Min
 	Avg
@@ -1091,6 +1092,7 @@ enum MetricAggregator {
 	P99
 	Max
 	Sum
+	None
 }
 
 enum MetricColumn {
@@ -1118,6 +1120,13 @@ type MetricsBuckets {
 	buckets: [MetricBucket!]!
 	bucket_count: UInt64!
 	sample_factor: Float!
+}
+
+type LogLine {
+	timestamp: Timestamp!
+	body: String!
+	severity: LogLevel
+	labels: String!
 }
 
 type QueryKey {
@@ -1281,7 +1290,6 @@ input LogAlertInput {
 	microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	webhook_destinations: [WebhookDestinationInput!]!
 	emails: [String!]!
-	environments: [String!]!
 	disabled: Boolean!
 	default: Boolean
 	query: String!
@@ -1621,7 +1629,6 @@ type LogAlert {
 	MicrosoftTeamsChannelsToNotify: [MicrosoftTeamsChannel!]!
 	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String!]!
-	ExcludedEnvironments: [String!]!
 	CountThreshold: Int!
 	ThresholdWindow: Int!
 	LastAdminToEditID: ID
@@ -2299,6 +2306,11 @@ type Query {
 		key_name: String!
 		date_range: DateRangeRequiredInput!
 	): [String!]!
+	log_lines(
+		product_type: ProductType!
+		project_id: ID!
+		params: QueryInput!
+	): [LogLine!]!
 }
 
 type Mutation {

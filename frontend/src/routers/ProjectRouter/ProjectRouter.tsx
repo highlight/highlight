@@ -127,7 +127,7 @@ export const ProjectRouter = () => {
 	const [selectedRightPanelTab, setSelectedRightPanelTab] =
 		useLocalStorage<RightPlayerTab>(
 			'tabs-PlayerRightPanel-active-tab',
-			'Events',
+			RightPlayerTab.Events,
 		)
 
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =

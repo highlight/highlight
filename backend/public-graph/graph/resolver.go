@@ -527,8 +527,8 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, project
 			if method == model.ErrorGroupingMethodGteLargeEmbeddingV3 {
 				if err := r.DB.WithContext(ctx).Exec(`
 					update error_group_embeddings
-					set gte_large_embedding = gte_large_embedding * array_fill(count::numeric / (count + 1), '{1024}')::vector 
-						+ @embedding * array_fill(1::numeric / (count + 1), '{1024}')::vector, 
+					set gte_large_embedding = gte_large_embedding * array_fill(count::numeric / (count + 1), '{1024}')::vector
+						+ @embedding * array_fill(1::numeric / (count + 1), '{1024}')::vector,
 						count = count + 1
 					where project_id = @projectID
 					and error_group_id = @errorGroupID`,
@@ -1724,7 +1724,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			}
 			excluded := false
 			for _, env := range excludedEnvironments {
-				if env != nil && *env == sessionObj.Environment {
+				if env != nil && *env == errorObject.Environment {
 					excluded = true
 					break
 				}

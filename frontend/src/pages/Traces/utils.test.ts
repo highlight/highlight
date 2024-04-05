@@ -1,7 +1,9 @@
 import { Trace } from '@/graph/generated/schemas'
 
 import {
+	cleanAttributes,
 	formatDateWithNanoseconds,
+	formatTraceAttributes,
 	getTraceTimes,
 	humanizeDuration,
 	organizeSpansForFlameGraph,
@@ -186,5 +188,70 @@ describe('formatDateWithNanoseconds', () => {
 		expect(
 			formatDateWithNanoseconds('2024-01-19T20:42:28.969825Z'),
 		).toEqual('1/19/2024, 8:42:28.969825 pm')
+	})
+})
+
+describe('formatTraceAttributes', () => {
+	it('should reorder attributes correctly', () => {
+		const cleanedAttributes = formatTraceAttributes(trace[0])
+
+		const keys = Object.keys(cleanedAttributes)
+		const lastKey = keys[keys.length - 1]
+		expect(lastKey).toEqual('process')
+
+		expect(cleanedAttributes['process']['executable']['path']).toEqual(
+			trace[0]['traceAttributes']['process']['executable']['path'],
+		)
+		expect(cleanedAttributes['field']).toEqual({
+			arguments: 'null',
+			type: 'String',
+		})
+	})
+
+	it('removes unnecessary attributes', () => {
+		const cleanedAttributes = formatTraceAttributes(trace[0])
+		expect(cleanedAttributes['__typename']).toBeUndefined()
+	})
+
+	it('removes empty attributes', () => {
+		const span = { ...trace[0] }
+		span.traceAttributes.http = {
+			method: '',
+			url: 'example.com',
+			status_code: 200,
+		}
+		const cleanedAttributes = formatTraceAttributes(span)
+
+		expect(cleanedAttributes['http']['method']).toBeUndefined()
+		expect(cleanedAttributes['http']['url']).toEqual('example.com')
+		expect(cleanedAttributes['http']['status_code']).toEqual(200)
+	})
+})
+
+describe('cleanAttributes', () => {
+	it('removes empty attributes', () => {
+		const attributes = {
+			empty: '',
+			notEmpty: 'value',
+			falsey: false,
+			zero: 0,
+			null: null,
+			undefined: undefined,
+		}
+		const cleanedAttributes = cleanAttributes(attributes)
+
+		expect(cleanedAttributes['empty']).toBeUndefined()
+		expect(cleanedAttributes['notEmpty']).toEqual('value')
+		expect(cleanedAttributes['falsey']).toEqual(false)
+		expect(cleanedAttributes['zero']).toEqual(0)
+		expect(cleanedAttributes['null']).toBeNull()
+		expect(cleanedAttributes['undefined']).toBeUndefined()
+
+		expect(Object.keys(cleanedAttributes)).toEqual([
+			'notEmpty',
+			'falsey',
+			'zero',
+			'null',
+		])
 	})
 })

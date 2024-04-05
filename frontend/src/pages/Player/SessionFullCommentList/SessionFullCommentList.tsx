@@ -3,18 +3,18 @@ import { Box, Text } from '@highlight-run/ui/components'
 import { useRef } from 'react'
 
 import { useGetSessionCommentsQuery } from '@/graph/generated/hooks'
-import { useParams } from '@/util/react-router/useParams'
+import { useSessionParams } from '@/pages/Sessions/utils'
 
 import FullCommentList from '../../../components/FullCommentList/FullCommentList'
 
 const SessionFullCommentList = ({}: {}) => {
 	const sessionCommentsRef = useRef(null)
-	const { session_secure_id } = useParams<{ session_secure_id: string }>()
+	const { sessionSecureId } = useSessionParams()
 	const { data, loading } = useGetSessionCommentsQuery({
 		variables: {
-			session_secure_id: session_secure_id!,
+			session_secure_id: sessionSecureId!,
 		},
-		skip: !session_secure_id,
+		skip: !sessionSecureId,
 	})
 
 	return (

@@ -3,9 +3,9 @@ import { LinkButton } from '@components/LinkButton'
 import { useGetServerIntegrationQuery } from '@graph/hooks'
 import { Box, Callout, Stack, Text } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
+import useLocalStorage from '@rehooks/local-storage'
 import moment from 'moment'
 import React from 'react'
-import { useLocalStorage } from 'react-use'
 
 export const IntegrationCta: React.FC = () => {
 	const { projectId } = useProjectId()

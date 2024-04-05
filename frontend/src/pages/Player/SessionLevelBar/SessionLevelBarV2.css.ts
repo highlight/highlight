@@ -1,5 +1,6 @@
 import { colors } from '@highlight-run/ui/colors'
 import { buttonStyles } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
 export const sessionLevelBarV2 = style({
@@ -30,6 +31,8 @@ export const currentUrl = style({
 	whiteSpace: 'nowrap',
 	overflowX: 'hidden',
 	display: 'inline-block',
+	fontSize: 13,
+	color: vars.theme.static.content.default,
 })
 
 export const leftButtons = style({
