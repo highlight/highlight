@@ -222,9 +222,32 @@ const SearchForm: React.FC<SearchFormProps> = ({
 						{SearchTimeComponent}
 						{ActionComponent}
 					</Stack>
-					<Stack>
-						<Box>{SearchComponent}</Box>
-						<Stack flexDirection="row">{SegmentMenu}</Stack>
+					<Stack
+						gap="0"
+						border="dividerWeak"
+						borderRadius="6"
+						width="full"
+					>
+						<Box
+							background="white"
+							borderTopLeftRadius="6"
+							borderTopRightRadius="6"
+						>
+							{SearchComponent}
+						</Box>
+						<Box borderBottom="dividerWeak" />
+						<Stack
+							flexDirection="row"
+							borderBottomLeftRadius="6"
+							borderBottomRightRadius="6"
+							justifyContent="space-between"
+							p="2"
+						>
+							<Box display="flex" alignItems="center">
+								<Text color="weak">results</Text>
+							</Box>
+							{SegmentMenu}
+						</Stack>
 					</Stack>
 				</Stack>
 			</>
