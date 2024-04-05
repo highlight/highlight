@@ -96,7 +96,6 @@ export const SignUp: React.FC = () => {
 			}
 
 			await fetchAdmin()
-			console.log('sign up fetchAdmin', user)
 			signIn(user)
 
 			if (isNewUser) {

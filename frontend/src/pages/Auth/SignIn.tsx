@@ -92,7 +92,6 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			}
 
 			await fetchAdmin()
-			console.log('sign in fetchAdmin', user)
 			signIn(user)
 
 			if (isNewUser) {
