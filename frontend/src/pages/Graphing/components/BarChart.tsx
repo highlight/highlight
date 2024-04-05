@@ -57,7 +57,7 @@ export const BarChart = ({
 
 	return (
 		<ResponsiveContainer>
-			<RechartsBarChart data={data} barCategoryGap={0}>
+			<RechartsBarChart data={data} barCategoryGap={1}>
 				<XAxis
 					dataKey={xAxisMetric}
 					fontSize={10}

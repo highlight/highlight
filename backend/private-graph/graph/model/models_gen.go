@@ -990,10 +990,9 @@ type VercelProjectMappingInput struct {
 }
 
 type VisualizationInput struct {
-	ID        *int          `json:"id,omitempty"`
-	ProjectID int           `json:"projectId"`
-	Name      string        `json:"name"`
-	Graphs    []*GraphInput `json:"graphs"`
+	ID        *int   `json:"id,omitempty"`
+	ProjectID int    `json:"projectId"`
+	Name      string `json:"name"`
 }
 
 type WebSocketEvent struct {

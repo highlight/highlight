@@ -2,11 +2,13 @@ import {
 	Box,
 	Button,
 	IconSolidArrowsExpand,
-	IconSolidDotsHorizontal,
 	IconSolidLink,
+	IconSolidPencil,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
+import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
 import { useEffect, useMemo, useState } from 'react'
@@ -33,14 +35,8 @@ import { HistogramLoading } from '@/pages/Traces/TracesPage'
 
 import * as style from './Graph.css'
 
-export type View = 'Line chart' | 'Bar chart' | 'Pie chart' | 'Table' | 'List'
-export const VIEWS: View[] = [
-	'Line chart',
-	'Bar chart',
-	'Pie chart',
-	'Table',
-	'List',
-]
+export type View = 'Line chart' | 'Bar chart' | 'Table'
+export const VIEWS: View[] = ['Line chart', 'Bar chart', 'Table']
 
 export const TIMESTAMP_KEY = 'Timestamp'
 export const GROUP_KEY = 'Group'
@@ -79,7 +75,9 @@ export interface ChartProps<TConfig> {
 	limitFunctionType?: MetricAggregator
 	limitMetric?: string
 	viewConfig: TConfig
-	showMenu?: boolean
+	onShare?: () => void
+	onExpand?: () => void
+	onEdit?: () => void
 }
 
 export interface InnerChartProps<TConfig> {
@@ -99,17 +97,14 @@ export interface SeriesInfo {
 
 export const strokeColors = ['#0090FF', '#D6409F']
 
-const durationUnitMap: [number, string][] = [
-	[1, 'ns'],
-	[1000, 'µs'],
-	[1000, 'ms'],
-	[1000, 's'],
-	[60, 'm'],
-	[60, 'h'],
-	[24, 'd'],
-]
+export const getColor = (idx: number): string => {
+	return strokeColors[idx % strokeColors.length]
+}
 
-const formatNumber = (n: number) => {
+const formatNumber = (n: number | null) => {
+	if (n === null) {
+		return 'null'
+	}
 	if (n < 10000) {
 		return parseFloat(n.toPrecision(4)).toString()
 	}
@@ -166,7 +161,7 @@ export const CustomYAxisTick = ({
 			x={0}
 			y={0}
 			fontSize={10}
-			fill="#C8C7CB"
+			fill={vars.theme.static.content.weak}
 			textAnchor="start"
 			orientation="left"
 		>
@@ -192,7 +187,7 @@ export const CustomXAxisTick = ({
 			y={0}
 			dy={4}
 			fontSize={10}
-			fill="#C8C7CB"
+			fill={vars.theme.static.content.weak}
 			textAnchor="middle"
 			orientation="bottom"
 			width={30}
@@ -255,9 +250,14 @@ const Graph = ({
 	limitMetric,
 	title,
 	viewConfig,
-	showMenu,
+	onShare,
+	onExpand,
+	onEdit,
 }: ChartProps<ViewConfig>) => {
+	const [graphHover, setGraphHover] = useState(false)
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
+	const showMenu =
+		onShare !== undefined || onExpand !== undefined || onEdit !== undefined
 
 	const { data: metrics, loading: metricsLoading } = useGetMetricsQuery({
 		variables: {
@@ -378,6 +378,12 @@ const Graph = ({
 			display="flex"
 			flexDirection="column"
 			justifyContent="space-between"
+			onMouseEnter={() => {
+				setGraphHover(true)
+			}}
+			onMouseLeave={() => {
+				setGraphHover(false)
+			}}
 		>
 			{metricsLoading && (
 				<Box
@@ -405,26 +411,41 @@ const Graph = ({
 					>
 						{title || 'Untitled metric view'}
 					</Text>
-					{showMenu && (
-						<Box cssClass={style.menu}>
-							<Button
-								size="small"
-								emphasis="low"
-								kind="secondary"
-								iconLeft={<IconSolidLink />}
-							/>
-							<Button
-								size="small"
-								emphasis="low"
-								kind="secondary"
-								iconLeft={<IconSolidArrowsExpand />}
-							/>
-							<Button
-								size="small"
-								emphasis="low"
-								kind="secondary"
-								iconLeft={<IconSolidDotsHorizontal />}
-							/>
+					{showMenu && graphHover && (
+						<Box
+							cssClass={
+								graphHover
+									? style.titleText
+									: clsx(style.titleText, style.hiddenMenu)
+							}
+						>
+							{onShare !== undefined && (
+								<Button
+									size="xSmall"
+									emphasis="low"
+									kind="secondary"
+									iconLeft={<IconSolidLink />}
+									onClick={onShare}
+								/>
+							)}
+							{onExpand !== undefined && (
+								<Button
+									size="xSmall"
+									emphasis="low"
+									kind="secondary"
+									iconLeft={<IconSolidArrowsExpand />}
+									onClick={onExpand}
+								/>
+							)}
+							{onEdit !== undefined && (
+								<Button
+									size="xSmall"
+									emphasis="low"
+									kind="secondary"
+									iconLeft={<IconSolidPencil />}
+									onClick={onEdit}
+								/>
+							)}
 						</Box>
 					)}
 				</Box>

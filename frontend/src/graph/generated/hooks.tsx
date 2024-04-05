@@ -15376,3 +15376,71 @@ export type GetVisualizationQueryResult = Apollo.QueryResult<
 	Types.GetVisualizationQuery,
 	Types.GetVisualizationQueryVariables
 >
+export const GetGraphDocument = gql`
+	query GetGraph($id: ID!) {
+		graph(id: $id) {
+			id
+			type
+			title
+			productType
+			query
+			metric
+			functionType
+			groupByKey
+			bucketByKey
+			bucketCount
+			limit
+			limitFunctionType
+			limitMetric
+			display
+			nullHandling
+		}
+	}
+`
+
+/**
+ * __useGetGraphQuery__
+ *
+ * To run a query within a React component, call `useGetGraphQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGraphQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGraphQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetGraphQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetGraphQuery,
+		Types.GetGraphQueryVariables
+	>,
+) {
+	return Apollo.useQuery<Types.GetGraphQuery, Types.GetGraphQueryVariables>(
+		GetGraphDocument,
+		baseOptions,
+	)
+}
+export function useGetGraphLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetGraphQuery,
+		Types.GetGraphQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetGraphQuery,
+		Types.GetGraphQueryVariables
+	>(GetGraphDocument, baseOptions)
+}
+export type GetGraphQueryHookResult = ReturnType<typeof useGetGraphQuery>
+export type GetGraphLazyQueryHookResult = ReturnType<
+	typeof useGetGraphLazyQuery
+>
+export type GetGraphQueryResult = Apollo.QueryResult<
+	Types.GetGraphQuery,
+	Types.GetGraphQueryVariables
+>

@@ -4709,8 +4709,18 @@ func (r *mutationResolver) UpsertVisualization(ctx context.Context, visualizatio
 }
 
 // DeleteVisualization is the resolver for the deleteVisualization field.
-func (r *mutationResolver) DeleteVisualization(ctx context.Context, id int) (int, error) {
+func (r *mutationResolver) DeleteVisualization(ctx context.Context, id int) (bool, error) {
 	panic(fmt.Errorf("not implemented: DeleteVisualization - deleteVisualization"))
+}
+
+// UpsertGraph is the resolver for the upsertGraph field.
+func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.GraphInput) (int, error) {
+	panic(fmt.Errorf("not implemented: UpsertGraph - upsertGraph"))
+}
+
+// DeleteGraph is the resolver for the deleteGraph field.
+func (r *mutationResolver) DeleteGraph(ctx context.Context, id int) (bool, error) {
+	panic(fmt.Errorf("not implemented: DeleteGraph - deleteGraph"))
 }
 
 // Accounts is the resolver for the accounts field.
@@ -8966,80 +8976,43 @@ func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.P
 
 // Visualization is the resolver for the visualization field.
 func (r *queryResolver) Visualization(ctx context.Context, id int) (*model.Visualization, error) {
-	return &model.Visualization{
-		Model:     model.Model{ID: id},
-		ProjectID: 1,
-		Name:      "Dashboard title",
-		Graphs: []model.Graph{{
-			Model:             model.Model{ID: 1},
-			VisualizationID:   id,
-			Type:              "",
-			Title:             "Logs",
-			ProductType:       "Logs",
-			Query:             "",
-			Metric:            "",
-			FunctionType:      "Count",
-			GroupByKey:        nil,
-			BucketByKey:       pointy.String("Timestamp"),
-			BucketCount:       pointy.Int(50),
-			Limit:             nil,
-			LimitFunctionType: nil,
-			LimitMetric:       nil,
-			Display:           nil,
-			NullHandling:      nil,
-		}, {
-			Model:             model.Model{ID: 2},
-			VisualizationID:   id,
-			Type:              "",
-			Title:             "Traces",
-			ProductType:       "Traces",
-			Query:             "",
-			Metric:            "",
-			FunctionType:      "Count",
-			GroupByKey:        nil,
-			BucketByKey:       pointy.String("Timestamp"),
-			BucketCount:       pointy.Int(50),
-			Limit:             nil,
-			LimitFunctionType: nil,
-			LimitMetric:       nil,
-			Display:           nil,
-			NullHandling:      nil,
-		}, {
-			Model:             model.Model{ID: 3},
-			VisualizationID:   id,
-			Type:              "",
-			Title:             "Errors",
-			ProductType:       "Errors",
-			Query:             "",
-			Metric:            "",
-			FunctionType:      "Count",
-			GroupByKey:        nil,
-			BucketByKey:       pointy.String("Timestamp"),
-			BucketCount:       pointy.Int(50),
-			Limit:             nil,
-			LimitFunctionType: nil,
-			LimitMetric:       nil,
-			Display:           nil,
-			NullHandling:      nil,
-		}, {
-			Model:             model.Model{ID: 4},
-			VisualizationID:   id,
-			Type:              "",
-			Title:             "Sessions",
-			ProductType:       "Sessions",
-			Query:             "",
-			Metric:            "",
-			FunctionType:      "Count",
-			GroupByKey:        nil,
-			BucketByKey:       pointy.String("Timestamp"),
-			BucketCount:       pointy.Int(50),
-			Limit:             nil,
-			LimitFunctionType: nil,
-			LimitMetric:       nil,
-			Display:           nil,
-			NullHandling:      nil,
-		}},
-	}, nil
+	var viz model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", id).Find(&viz).Error; err != nil {
+		return nil, err
+	}
+
+	_, err := r.isAdminInProjectOrDemoProject(ctx, viz.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	graphs := []model.Graph{}
+	if err := r.DB.WithContext(ctx).Order("id ASC").Model(&viz).Association("Graphs").Find(&graphs); err != nil {
+		return nil, err
+	}
+	viz.Graphs = graphs
+
+	return &viz, nil
+}
+
+// Graph is the resolver for the graph field.
+func (r *queryResolver) Graph(ctx context.Context, id int) (*model.Graph, error) {
+	var graph model.Graph
+	if err := r.DB.WithContext(ctx).Model(&graph).Where("id = ?", id).Find(&graph).Error; err != nil {
+		return nil, err
+	}
+
+	var viz model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", graph.VisualizationID).Find(&viz).Error; err != nil {
+		return nil, err
+	}
+
+	_, err := r.isAdminInProjectOrDemoProject(ctx, viz.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &graph, nil
 }
 
 // LogLines is the resolver for the log_lines field.

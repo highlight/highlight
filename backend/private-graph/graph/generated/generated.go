@@ -828,6 +828,7 @@ type ComplexityRoot struct {
 		DeleteErrorAlert                      func(childComplexity int, projectID int, errorAlertID int) int
 		DeleteErrorComment                    func(childComplexity int, id int) int
 		DeleteErrorSegment                    func(childComplexity int, segmentID int) int
+		DeleteGraph                           func(childComplexity int, id int) int
 		DeleteInviteLinkFromWorkspace         func(childComplexity int, workspaceID int, workspaceInviteLinkID int) int
 		DeleteLogAlert                        func(childComplexity int, projectID int, id int) int
 		DeleteMetricMonitor                   func(childComplexity int, projectID int, metricMonitorID int) int
@@ -891,6 +892,7 @@ type ComplexityRoot struct {
 		UpdateVercelProjectMappings           func(childComplexity int, projectID int, projectMappings []*model.VercelProjectMappingInput) int
 		UpsertDashboard                       func(childComplexity int, id *int, projectID int, name string, metrics []*model.DashboardMetricConfigInput, layout *string, isDefault *bool) int
 		UpsertDiscordChannel                  func(childComplexity int, projectID int, name string) int
+		UpsertGraph                           func(childComplexity int, graph model.GraphInput) int
 		UpsertSlackChannel                    func(childComplexity int, projectID int, name string) int
 		UpsertVisualization                   func(childComplexity int, visualization model.VisualizationInput) int
 	}
@@ -1012,6 +1014,7 @@ type ComplexityRoot struct {
 		GithubIssueLabels                func(childComplexity int, workspaceID int, repository string) int
 		GithubRepos                      func(childComplexity int, workspaceID int) int
 		GitlabProjects                   func(childComplexity int, workspaceID int) int
+		Graph                            func(childComplexity int, id int) int
 		HeightLists                      func(childComplexity int, projectID int) int
 		HeightWorkspaces                 func(childComplexity int, workspaceID int) int
 		IdentifierSuggestion             func(childComplexity int, projectID int, query string) int
@@ -1778,7 +1781,9 @@ type MutationResolver interface {
 	UpsertDiscordChannel(ctx context.Context, projectID int, name string) (*model1.DiscordChannel, error)
 	TestErrorEnhancement(ctx context.Context, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) (*model1.ErrorObject, error)
 	UpsertVisualization(ctx context.Context, visualization model.VisualizationInput) (int, error)
-	DeleteVisualization(ctx context.Context, id int) (int, error)
+	DeleteVisualization(ctx context.Context, id int) (bool, error)
+	UpsertGraph(ctx context.Context, graph model.GraphInput) (int, error)
+	DeleteGraph(ctx context.Context, id int) (bool, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -1947,6 +1952,7 @@ type QueryResolver interface {
 	Keys(ctx context.Context, productType model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	KeyValues(ctx context.Context, productType model.ProductType, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	Visualization(ctx context.Context, id int) (*model1.Visualization, error)
+	Graph(ctx context.Context, id int) (*model1.Graph, error)
 	LogLines(ctx context.Context, productType model.ProductType, projectID int, params model.QueryInput) ([]*model.LogLine, error)
 }
 type SavedSegmentResolver interface {
@@ -5686,6 +5692,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteErrorSegment(childComplexity, args["segment_id"].(int)), true
 
+	case "Mutation.deleteGraph":
+		if e.complexity.Mutation.DeleteGraph == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteGraph_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteGraph(childComplexity, args["id"].(int)), true
+
 	case "Mutation.deleteInviteLinkFromWorkspace":
 		if e.complexity.Mutation.DeleteInviteLinkFromWorkspace == nil {
 			break
@@ -6436,6 +6454,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpsertDiscordChannel(childComplexity, args["project_id"].(int), args["name"].(string)), true
+
+	case "Mutation.upsertGraph":
+		if e.complexity.Mutation.UpsertGraph == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_upsertGraph_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpsertGraph(childComplexity, args["graph"].(model.GraphInput)), true
 
 	case "Mutation.upsertSlackChannel":
 		if e.complexity.Mutation.UpsertSlackChannel == nil {
@@ -7436,6 +7466,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GitlabProjects(childComplexity, args["workspace_id"].(int)), true
+
+	case "Query.graph":
+		if e.complexity.Query.Graph == nil {
+			break
+		}
+
+		args, err := ec.field_Query_graph_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Graph(childComplexity, args["id"].(int)), true
 
 	case "Query.height_lists":
 		if e.complexity.Query.HeightLists == nil {
@@ -13107,7 +13149,6 @@ input VisualizationInput {
 	id: ID
 	projectId: ID!
 	name: String!
-	graphs: [GraphInput]!
 }
 
 scalar Upload
@@ -13561,6 +13602,7 @@ type Query {
 		date_range: DateRangeRequiredInput!
 	): [String!]!
 	visualization(id: ID!): Visualization!
+	graph(id: ID!): Graph!
 	log_lines(
 		product_type: ProductType!
 		project_id: ID!
@@ -14023,7 +14065,9 @@ type Mutation {
 		save_error: Boolean
 	): ErrorObject
 	upsertVisualization(visualization: VisualizationInput!): ID!
-	deleteVisualization(id: ID!): ID!
+	deleteVisualization(id: ID!): Boolean!
+	upsertGraph(graph: GraphInput!): ID!
+	deleteGraph(id: ID!): Boolean!
 }
 
 type Subscription {
@@ -15540,6 +15584,21 @@ func (ec *executionContext) field_Mutation_deleteErrorSegment_args(ctx context.C
 		}
 	}
 	args["segment_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteGraph_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -17877,6 +17936,21 @@ func (ec *executionContext) field_Mutation_upsertDiscordChannel_args(ctx context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_upsertGraph_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.GraphInput
+	if tmp, ok := rawArgs["graph"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("graph"))
+		arg0, err = ec.unmarshalNGraphInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐGraphInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["graph"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_upsertSlackChannel_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -19365,6 +19439,21 @@ func (ec *executionContext) field_Query_gitlab_projects_args(ctx context.Context
 		}
 	}
 	args["workspace_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_graph_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -49792,12 +49881,67 @@ func (ec *executionContext) _Mutation_deleteVisualization(ctx context.Context, f
 		}
 		return graphql.Null
 	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteVisualization(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteVisualization_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_upsertGraph(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_upsertGraph(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpsertGraph(rctx, fc.Args["graph"].(model.GraphInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_deleteVisualization(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_upsertGraph(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -49814,7 +49958,62 @@ func (ec *executionContext) fieldContext_Mutation_deleteVisualization(ctx contex
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteVisualization_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_upsertGraph_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteGraph(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteGraph(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteGraph(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteGraph(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteGraph_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -62518,6 +62717,93 @@ func (ec *executionContext) fieldContext_Query_visualization(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_visualization_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_graph(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_graph(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Graph(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model1.Graph)
+	fc.Result = res
+	return ec.marshalNGraph2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐGraph(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_graph(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Graph_id(ctx, field)
+			case "type":
+				return ec.fieldContext_Graph_type(ctx, field)
+			case "title":
+				return ec.fieldContext_Graph_title(ctx, field)
+			case "productType":
+				return ec.fieldContext_Graph_productType(ctx, field)
+			case "query":
+				return ec.fieldContext_Graph_query(ctx, field)
+			case "metric":
+				return ec.fieldContext_Graph_metric(ctx, field)
+			case "functionType":
+				return ec.fieldContext_Graph_functionType(ctx, field)
+			case "groupByKey":
+				return ec.fieldContext_Graph_groupByKey(ctx, field)
+			case "bucketByKey":
+				return ec.fieldContext_Graph_bucketByKey(ctx, field)
+			case "bucketCount":
+				return ec.fieldContext_Graph_bucketCount(ctx, field)
+			case "limit":
+				return ec.fieldContext_Graph_limit(ctx, field)
+			case "limitFunctionType":
+				return ec.fieldContext_Graph_limitFunctionType(ctx, field)
+			case "limitMetric":
+				return ec.fieldContext_Graph_limitMetric(ctx, field)
+			case "display":
+				return ec.fieldContext_Graph_display(ctx, field)
+			case "nullHandling":
+				return ec.fieldContext_Graph_nullHandling(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Graph", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_graph_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -81376,7 +81662,7 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "projectId", "name", "graphs"}
+	fieldsInOrder := [...]string{"id", "projectId", "name"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -81404,13 +81690,6 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 				return it, err
 			}
 			it.Name = data
-		case "graphs":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("graphs"))
-			data, err := ec.unmarshalNGraphInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐGraphInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Graphs = data
 		}
 	}
 
@@ -87754,6 +88033,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "upsertGraph":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_upsertGraph(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteGraph":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteGraph(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -91631,6 +91924,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_visualization(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "graph":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_graph(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -97929,21 +98244,19 @@ func (ec *executionContext) marshalNGraph2ᚕgithubᚗcomᚋhighlightᚑrunᚋhi
 	return ret
 }
 
-func (ec *executionContext) unmarshalNGraphInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐGraphInput(ctx context.Context, v interface{}) ([]*model.GraphInput, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*model.GraphInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOGraphInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐGraphInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
+func (ec *executionContext) marshalNGraph2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐGraph(ctx context.Context, sel ast.SelectionSet, v *model1.Graph) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
+		return graphql.Null
 	}
-	return res, nil
+	return ec._Graph(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNGraphInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐGraphInput(ctx context.Context, v interface{}) (model.GraphInput, error) {
+	res, err := ec.unmarshalInputGraphInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNHeightList2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHeightListᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.HeightList) graphql.Marshaler {
@@ -102277,14 +102590,6 @@ func (ec *executionContext) marshalOGitlabProject2ᚕᚖgithubᚗcomᚋhighlight
 	}
 
 	return ret
-}
-
-func (ec *executionContext) unmarshalOGraphInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐGraphInput(ctx context.Context, v interface{}) (*model.GraphInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputGraphInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOID2int(ctx context.Context, v interface{}) (int, error) {

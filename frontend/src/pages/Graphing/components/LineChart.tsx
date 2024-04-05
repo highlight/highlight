@@ -1,3 +1,4 @@
+import { vars } from '@highlight-run/ui/vars'
 import {
 	Area,
 	AreaChart,
@@ -96,7 +97,7 @@ export const LineChart = ({
 				<CartesianGrid
 					strokeDasharray=""
 					vertical={false}
-					stroke="var(--color-gray-200)"
+					stroke={vars.theme.static.divider.weak}
 				/>
 
 				{series.length > 0 &&

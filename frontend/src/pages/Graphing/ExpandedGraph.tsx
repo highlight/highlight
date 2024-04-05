@@ -1,4 +1,4 @@
-import { Box, Button, IconSolidPlus, Text } from '@highlight-run/ui/components'
+import { Box, Button, Text } from '@highlight-run/ui/components'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 
@@ -11,12 +11,14 @@ import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
 
-export const Dashboard = () => {
-	const { dashboard_id } = useParams<{
+export const ExpandedGraph = () => {
+	const { dashboard_id, graph_id } = useParams<{
 		dashboard_id: string
+		graph_id: string
 	}>()
 
 	const { projectId } = useProjectId()
+
 	const { data } = useGetVisualizationQuery({
 		variables: { id: dashboard_id! },
 	})
@@ -24,6 +26,11 @@ export const Dashboard = () => {
 	const { timeRange } = useDataTimeRange()
 
 	const navigate = useNavigate()
+
+	const g = data?.visualization.graphs.find((g) => g.id === graph_id)
+	if (g === undefined) {
+		return null
+	}
 
 	return (
 		<>
@@ -61,20 +68,16 @@ export const Dashboard = () => {
 							Dashboard title
 						</Text>
 						<Box display="flex" gap="4">
-							<Button emphasis="low" kind="secondary">
-								Share
-							</Button>
-							<TimeRangePicker />
 							<Button
-								emphasis="medium"
+								emphasis="low"
 								kind="secondary"
-								iconLeft={<IconSolidPlus />}
 								onClick={() => {
-									navigate('new')
+									navigate(`../${dashboard_id}`)
 								}}
 							>
-								Add graph
+								Cancel
 							</Button>
+							<TimeRangePicker />
 						</Box>
 					</Box>
 					<Box
@@ -88,59 +91,32 @@ export const Dashboard = () => {
 							position="relative"
 							width="full"
 							height="full"
+							px="12"
+							py="16"
 						>
-							<Box cssClass={style.graphGrid}>
-								{data?.visualization.graphs.map((g, idx) => {
-									return (
-										<Box
-											key={idx}
-											px="16"
-											py="12"
-											cssClass={style.graphDivider}
-										>
-											<Graph
-												title={g.title}
-												viewConfig={getViewConfig(
-													g.type,
-													g.display ?? undefined,
-													g.nullHandling ?? undefined,
-												)}
-												productType={g.productType}
-												projectId={projectId}
-												startDate={timeRange.start_date}
-												endDate={timeRange.end_date}
-												query={g.query}
-												metric={g.metric}
-												functionType={g.functionType}
-												bucketByKey={
-													g.bucketByKey ?? undefined
-												}
-												bucketCount={
-													g.bucketCount ?? undefined
-												}
-												groupByKey={
-													g.groupByKey ?? undefined
-												}
-												limit={g.limit ?? undefined}
-												limitFunctionType={
-													g.limitFunctionType ??
-													undefined
-												}
-												limitMetric={
-													g.limitMetric ?? undefined
-												}
-												onShare={() => {}}
-												onExpand={() => {
-													navigate(`view/${g.id}`)
-												}}
-												onEdit={() => {
-													navigate(`edit/${g.id}`)
-												}}
-											/>
-										</Box>
-									)
-								})}
-							</Box>
+							<Graph
+								title={g.title}
+								viewConfig={getViewConfig(
+									g.type,
+									g.display ?? undefined,
+									g.nullHandling ?? undefined,
+								)}
+								productType={g.productType}
+								projectId={projectId}
+								startDate={timeRange.start_date}
+								endDate={timeRange.end_date}
+								query={g.query}
+								metric={g.metric}
+								functionType={g.functionType}
+								bucketByKey={g.bucketByKey ?? undefined}
+								bucketCount={g.bucketCount ?? undefined}
+								groupByKey={g.groupByKey ?? undefined}
+								limit={g.limit ?? undefined}
+								limitFunctionType={
+									g.limitFunctionType ?? undefined
+								}
+								limitMetric={g.limitMetric ?? undefined}
+							/>
 						</Box>
 					</Box>
 				</Box>

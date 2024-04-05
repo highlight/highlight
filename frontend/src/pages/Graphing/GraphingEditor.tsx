@@ -10,15 +10,20 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { Divider } from 'antd'
-import moment from 'moment'
 import { PropsWithChildren, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
 import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import Switch from '@/components/Switch/Switch'
-import { useGetKeysQuery } from '@/graph/generated/hooks'
+import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
+import {
+	useGetKeysQuery,
+	useGetVisualizationQuery,
+} from '@/graph/generated/hooks'
 import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import useDataTimeRange from '@/hooks/useDataTimeRange'
 import { useProjectId } from '@/hooks/useProjectId'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
 import Graph, {
@@ -242,9 +247,54 @@ const TableSettings = ({
 )
 
 export const GraphingEditor = () => {
+	const { dashboard_id, graph_id } = useParams<{
+		dashboard_id: string
+		graph_id: string
+	}>()
+
+	const isEdit = graph_id !== undefined
+
+	const { timeRange } = useDataTimeRange()
+
+	const { loading: metaLoading } = useGetVisualizationQuery({
+		variables: {
+			id: dashboard_id!,
+		},
+		skip: !isEdit,
+		onCompleted: (data) => {
+			const g = data.visualization.graphs.find((g) => g.id === graph_id)
+			if (g === undefined) {
+				return
+			}
+
+			const viewType = g.type as View
+			setProductType(g.productType)
+			setViewType(viewType)
+			setFunctionType(g.functionType)
+
+			if (viewType === 'Line chart') {
+				setLineNullHandling(g.nullHandling as LineNullHandling)
+				setLineDisplay(g.display as LineDisplay)
+			} else if (viewType === 'Bar chart') {
+				setBarDisplay(g.display as BarDisplay)
+			} else if (viewType === 'Table') {
+				setTableNullHandling(g.nullHandling as TableNullHandling)
+			}
+
+			setMetric(g.metric)
+			setMetricViewTitle(g.title)
+			// setGroupByEnabled(g.groupByKey !== undefined)
+			setGroupByKey(g.groupByKey ?? '')
+			setLimitFunctionType(g.limitFunctionType ?? FUNCTION_TYPES[0])
+			setLimit(g.limit ?? 10)
+			setLimitMetric(g.limitMetric ?? '')
+			setBucketByEnabled(g.bucketByKey !== undefined)
+			setBucketByKey(g.bucketByKey ?? '')
+			setBucketCount(g.bucketCount ?? DEFAULT_BUCKET_COUNT)
+		},
+	})
+
 	const { projectId } = useProjectId()
-	const [endDate] = useState(moment().toISOString())
-	const [startDate] = useState(moment().subtract(4, 'hours').toISOString())
 
 	const [productType, setProductType] = useState(PRODUCTS[0])
 	const [viewType, setViewType] = useState(VIEWS[0])
@@ -282,6 +332,9 @@ export const GraphingEditor = () => {
 	const [bucketByEnabled, setBucketByEnabled] = useState(true)
 	const [bucketByKey, setBucketByKey] = useState('')
 	const [bucketCount, setBucketCount] = useState(DEFAULT_BUCKET_COUNT)
+
+	const startDate = timeRange.start_date
+	const endDate = timeRange.end_date
 
 	const { data: keys } = useGetKeysQuery({
 		variables: {
@@ -331,6 +384,12 @@ export const GraphingEditor = () => {
 	}
 	const viewConfig = getViewConfig(viewType, display, nullHandling)
 
+	const navigate = useNavigate()
+
+	if (metaLoading) {
+		return null
+	}
+
 	return (
 		<>
 			<Helmet>
@@ -364,14 +423,21 @@ export const GraphingEditor = () => {
 						py="6"
 					>
 						<Text size="small" weight="medium">
-							Edit Metric View
+							{isEdit ? 'Edit' : 'Create'} Metric View
 						</Text>
 						<Box display="flex" gap="4">
-							<Button emphasis="low" kind="secondary">
+							<Button
+								emphasis="low"
+								kind="secondary"
+								onClick={() => {
+									navigate(`../${dashboard_id}`)
+								}}
+							>
 								Cancel
 							</Button>
+							<TimeRangePicker />
 							<Button>
-								Create metric view&nbsp;
+								Save&nbsp;
 								<Badge
 									variant="outlinePurple"
 									shape="basic"

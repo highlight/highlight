@@ -40,8 +40,9 @@ export const legendTextButton = style({
 
 export const titleText = style({
 	lineHeight: '24px',
+	height: '24px',
 })
 
-export const menu = style({
+export const hiddenMenu = style({
 	visibility: 'hidden',
 })

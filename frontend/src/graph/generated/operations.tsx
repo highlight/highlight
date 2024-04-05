@@ -5195,6 +5195,31 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 		}
 }
 
+export type GetGraphQueryVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+}>
+
+export type GetGraphQuery = { __typename?: 'Query' } & {
+	graph: { __typename?: 'Graph' } & Pick<
+		Types.Graph,
+		| 'id'
+		| 'type'
+		| 'title'
+		| 'productType'
+		| 'query'
+		| 'metric'
+		| 'functionType'
+		| 'groupByKey'
+		| 'bucketByKey'
+		| 'bucketCount'
+		| 'limit'
+		| 'limitFunctionType'
+		| 'limitMetric'
+		| 'display'
+		| 'nullHandling'
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -5344,6 +5369,7 @@ export const namedOperations = {
 		GetKeyValues: 'GetKeyValues' as const,
 		GetMetrics: 'GetMetrics' as const,
 		GetVisualization: 'GetVisualization' as const,
+		GetGraph: 'GetGraph' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,

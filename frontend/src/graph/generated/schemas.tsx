@@ -1140,6 +1140,7 @@ export type Mutation = {
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteErrorComment?: Maybe<Scalars['Boolean']>
 	deleteErrorSegment?: Maybe<Scalars['Boolean']>
+	deleteGraph: Scalars['Boolean']
 	deleteInviteLinkFromWorkspace: Scalars['Boolean']
 	deleteLogAlert?: Maybe<LogAlert>
 	deleteMetricMonitor?: Maybe<MetricMonitor>
@@ -1149,7 +1150,7 @@ export type Mutation = {
 	deleteSessionAlert?: Maybe<SessionAlert>
 	deleteSessionComment?: Maybe<Scalars['Boolean']>
 	deleteSessions: Scalars['Boolean']
-	deleteVisualization: Scalars['ID']
+	deleteVisualization: Scalars['Boolean']
 	editErrorSegment?: Maybe<Scalars['Boolean']>
 	editProject?: Maybe<Project>
 	editProjectSettings?: Maybe<AllProjectSettings>
@@ -1203,6 +1204,7 @@ export type Mutation = {
 	updateVercelProjectMappings: Scalars['Boolean']
 	upsertDashboard: Scalars['ID']
 	upsertDiscordChannel: DiscordChannel
+	upsertGraph: Scalars['ID']
 	upsertSlackChannel: SanitizedSlackChannel
 	upsertVisualization: Scalars['ID']
 }
@@ -1435,6 +1437,10 @@ export type MutationDeleteErrorCommentArgs = {
 
 export type MutationDeleteErrorSegmentArgs = {
 	segment_id: Scalars['ID']
+}
+
+export type MutationDeleteGraphArgs = {
+	id: Scalars['ID']
 }
 
 export type MutationDeleteInviteLinkFromWorkspaceArgs = {
@@ -1841,6 +1847,10 @@ export type MutationUpsertDiscordChannelArgs = {
 	project_id: Scalars['ID']
 }
 
+export type MutationUpsertGraphArgs = {
+	graph: GraphInput
+}
+
 export type MutationUpsertSlackChannelArgs = {
 	name: Scalars['String']
 	project_id: Scalars['ID']
@@ -2018,6 +2028,7 @@ export type Query = {
 	github_issue_labels: Array<Scalars['String']>
 	github_repos?: Maybe<Array<GitHubRepo>>
 	gitlab_projects?: Maybe<Array<GitlabProject>>
+	graph: Graph
 	height_lists: Array<HeightList>
 	height_workspaces: Array<HeightWorkspace>
 	identifier_suggestion: Array<Scalars['String']>
@@ -2418,6 +2429,10 @@ export type QueryGithub_ReposArgs = {
 
 export type QueryGitlab_ProjectsArgs = {
 	workspace_id: Scalars['ID']
+}
+
+export type QueryGraphArgs = {
+	id: Scalars['ID']
 }
 
 export type QueryHeight_ListsArgs = {
@@ -3701,7 +3716,6 @@ export type Visualization = {
 }
 
 export type VisualizationInput = {
-	graphs: Array<InputMaybe<GraphInput>>
 	id?: InputMaybe<Scalars['ID']>
 	name: Scalars['String']
 	projectId: Scalars['ID']
