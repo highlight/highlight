@@ -2,6 +2,7 @@ package clickhouse
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -837,6 +838,78 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	metrics.BucketCount = uint64(nBuckets)
 
 	return metrics, err
+}
+
+func formatColumn(input string, column string) string {
+	base := input
+	if base == "" {
+		base = "null"
+	}
+	return fmt.Sprintf("%s AS %s", base, column)
+}
+
+func logLines[T ~string](ctx context.Context, client *Client, tableConfig model.TableConfig[T], projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
+	body := formatColumn(tableConfig.BodyColumn, "Body")
+	severity := formatColumn(tableConfig.SeverityColumn, "Severity")
+	attributes := formatColumn(tableConfig.AttributesColumn, "Labels")
+	fromSb, err := makeSelectBuilder(
+		tableConfig,
+		[]string{"Timestamp", body, severity, attributes},
+		projectID,
+		params,
+		Pagination{CountOnly: true},
+		OrderBackwardNatural,
+		OrderForwardNatural,
+	)
+	if err != nil {
+		return nil, err
+	}
+	fromSb.Limit(1000)
+
+	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	logLines := []*modelInputs.LogLine{}
+
+	rows, err := client.conn.Query(
+		ctx,
+		sql,
+		args...,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var result struct {
+			Timestamp time.Time
+			Body      string
+			Severity  string
+			Labels    map[string]string
+		}
+		if err := rows.ScanStruct(&result); err != nil {
+			return nil, err
+		}
+
+		labelsJson, err := json.Marshal(expandJSON(result.Labels))
+		if err != nil {
+			return nil, err
+		}
+
+		var severity *modelInputs.LogLevel
+		if result.Severity != "" {
+			logLevel := makeLogLevel(result.Severity)
+			severity = &logLevel
+		}
+		logLines = append(logLines, &modelInputs.LogLine{
+			Timestamp: result.Timestamp,
+			Body:      result.Body,
+			Severity:  severity,
+			Labels:    string(labelsJson),
+		})
+	}
+
+	return logLines, err
 }
 
 func repr(val reflect.Value) string {

@@ -470,6 +470,7 @@ func SessionMatchesQuery(session *model.Session, filters listener.Filters) bool 
 var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey]{
 	TableName:        "sessions_joined_vw",
 	AttributesColumn: "SessionAttributes",
+	BodyColumn:       `concat(coalesce(nullif(SessionAttributes['email'],''), nullif(Identifier, ''), nullif(toString(Fingerprint), ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
 	KeysToColumns: map[modelInputs.ReservedSessionKey]string{
 		modelInputs.ReservedSessionKeyEnvironment:     "Environment",
 		modelInputs.ReservedSessionKeyAppVersion:      "AppVersion",
@@ -694,4 +695,8 @@ func (client *Client) QuerySessionHistogram(ctx context.Context, admin *model.Ad
 	}
 
 	return bucketTimes, totals, withErrors, withoutErrors, nil
+}
+
+func (client *Client) SessionsLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
+	return logLines(ctx, client, SessionsJoinedTableConfig, projectID, params)
 }

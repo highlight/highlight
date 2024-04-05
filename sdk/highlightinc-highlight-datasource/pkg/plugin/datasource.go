@@ -235,6 +235,15 @@ const (
 	MetricAggregatorSum              MetricAggregator = "Sum"
 )
 
+type ProductType string
+
+const (
+	ProductTypeSessions ProductType = "Sessions"
+	ProductTypeErrors   ProductType = "Errors"
+	ProductTypeLogs     ProductType = "Logs"
+	ProductTypeTraces   ProductType = "Traces"
+)
+
 type MetricBucket struct {
 	BucketID    uint64           `json:"bucket_id" graphql:"bucket_id"`
 	BucketMin   float64          `json:"bucket_min" graphql:"bucket_min"`
@@ -259,6 +268,24 @@ type DateRangeRequiredInput struct {
 type QueryInput struct {
 	Query     string                  `json:"query" graphql:"query"`
 	DateRange *DateRangeRequiredInput `json:"date_range" graphql:"date_range"`
+}
+
+type LogLevel string
+
+const (
+	LogLevelTrace LogLevel = "trace"
+	LogLevelDebug LogLevel = "debug"
+	LogLevelInfo  LogLevel = "info"
+	LogLevelWarn  LogLevel = "warn"
+	LogLevelError LogLevel = "error"
+	LogLevelFatal LogLevel = "fatal"
+)
+
+type LogLine struct {
+	Timestamp time.Time `json:"timestamp"`
+	Body      string    `json:"body"`
+	Severity  *LogLevel `json:"severity,omitempty"`
+	Labels    string    `json:"labels"`
 }
 
 type DataSourceSettings struct {
@@ -287,48 +314,59 @@ const (
 	TableSessions Table = "sessions"
 )
 
-func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
-	from := query.TimeRange.From
-	to := query.TimeRange.To
-
-	var input queryInput
-	err := json.Unmarshal(query.JSON, &input)
-	if err != nil {
-		return backend.ErrDataResponse(backend.StatusBadRequest, err.Error())
+func (d *Datasource) queryLogLines(ctx context.Context, productType ProductType, from time.Time, to time.Time, input queryInput, dataSourceSettings DataSourceSettings) backend.DataResponse {
+	var result struct {
+		LogLines []LogLine `graphql:"log_lines(product_type: $product_type, project_id: $project_id, params: $params)"`
 	}
 
-	var dataSourceSettings DataSourceSettings
-	err = json.Unmarshal(pCtx.DataSourceInstanceSettings.JSONData, &dataSourceSettings)
-	if err != nil {
-		return backend.ErrDataResponse(backend.StatusBadRequest, err.Error())
+	if err := d.Client.Query(ctx, &result, map[string]interface{}{
+		"product_type": productType,
+		"project_id":   ID(strconv.Itoa(dataSourceSettings.ProjectId)),
+		"params": QueryInput{
+			Query: input.QueryText,
+			DateRange: &DateRangeRequiredInput{
+				StartDate: from,
+				EndDate:   to,
+			},
+		},
+	}); err != nil {
+		return backend.DataResponse{Error: err}
 	}
 
-	type TracesResult struct {
-		TracesMetrics MetricsBuckets `graphql:"traces_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by, bucket_count: $bucket_count, limit: $limit, limit_aggregator: $limit_aggregator, limit_column: $limit_column)"`
+	var timestamps []time.Time
+	var bodies []string
+	var severities []*string
+	var labels []json.RawMessage
+	for _, line := range result.LogLines {
+		timestamps = append(timestamps, line.Timestamp)
+		bodies = append(bodies, line.Body)
+		severities = append(severities, (*string)(line.Severity))
+		labels = append(labels, []byte(line.Labels))
 	}
 
-	type LogsResult struct {
-		LogsMetrics MetricsBuckets `graphql:"logs_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by, bucket_count: $bucket_count, limit: $limit, limit_aggregator: $limit_aggregator, limit_column: $limit_column)"`
-	}
+	frame := data.NewFrame(
+		"response",
+		data.NewField("timestamp", nil, timestamps),
+		data.NewField("body", nil, bodies),
+		data.NewField("severity", nil, severities),
+		data.NewField("labels", nil, labels),
+	)
 
-	type ErrorsResult struct {
-		ErrorsMetrics MetricsBuckets `graphql:"errors_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by, bucket_count: $bucket_count, limit: $limit, limit_aggregator: $limit_aggregator, limit_column: $limit_column)"`
-	}
+	frame.SetMeta(&data.FrameMeta{
+		Type:                   data.FrameTypeLogLines,
+		PreferredVisualization: "logs",
+	})
 
-	type SessionsResult struct {
-		SessionsMetrics MetricsBuckets `graphql:"sessions_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by, bucket_count: $bucket_count, limit: $limit, limit_aggregator: $limit_aggregator, limit_column: $limit_column)"`
-	}
+	var response backend.DataResponse
 
-	var q any
-	switch input.Table {
-	case TableTraces:
-		q = &TracesResult{}
-	case TableLogs:
-		q = &LogsResult{}
-	case TableErrors:
-		q = &ErrorsResult{}
-	case TableSessions:
-		q = &SessionsResult{}
+	response.Frames = append(response.Frames, frame)
+
+	return response
+}
+
+func (d *Datasource) queryMetrics(ctx context.Context, productType ProductType, from time.Time, to time.Time, input queryInput, dataSourceSettings DataSourceSettings) backend.DataResponse {
+	var result struct {
+		MetricsBuckets MetricsBuckets `graphql:"metrics(product_type: $product_type, project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by, bucket_count: $bucket_count, limit: $limit, limit_aggregator: $limit_aggregator, limit_column: $limit_column)"`
 	}
 
 	var agg *MetricAggregator
@@ -337,7 +375,8 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 		agg = &tmp
 	}
 
-	err = d.Client.Query(ctx, q, map[string]interface{}{
+	if err := d.Client.Query(ctx, &result, map[string]interface{}{
+		"product_type": productType,
 		"project_id":   ID(strconv.Itoa(dataSourceSettings.ProjectId)),
 		"metric_types": []MetricAggregator{MetricAggregator(input.Metric)},
 		"group_by":     input.GroupBy,
@@ -354,31 +393,20 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 		"limit":            &input.Limit,
 		"limit_aggregator": agg,
 		"limit_column":     &input.LimitColumn,
-	})
-	if err != nil {
+	}); err != nil {
 		return backend.DataResponse{Error: err}
 	}
 
-	var result MetricsBuckets
-	switch input.Table {
-	case TableTraces:
-		result = q.(*TracesResult).TracesMetrics
-	case TableLogs:
-		result = q.(*LogsResult).LogsMetrics
-	case TableErrors:
-		result = q.(*ErrorsResult).ErrorsMetrics
-	case TableSessions:
-		result = q.(*SessionsResult).SessionsMetrics
-	}
+	bucketInfo := result.MetricsBuckets
 
 	bucketIds := []uint64{}
-	for i := uint64(0); i < result.BucketCount; i++ {
+	for i := uint64(0); i < bucketInfo.BucketCount; i++ {
 		bucketIds = append(bucketIds, i)
 	}
 
-	bucketMins := make([]*float64, result.BucketCount)
-	bucketMaxs := make([]*float64, result.BucketCount)
-	for _, bucket := range result.Buckets {
+	bucketMins := make([]*float64, bucketInfo.BucketCount)
+	bucketMaxs := make([]*float64, bucketInfo.BucketCount)
+	for _, bucket := range bucketInfo.Buckets {
 		bucketMins[bucket.BucketID] = pointy.Float64(bucket.BucketMin)
 		bucketMaxs[bucket.BucketID] = pointy.Float64(bucket.BucketMax)
 	}
@@ -388,7 +416,7 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	if input.BucketBy == "Timestamp" {
 		timeValues := lo.Map(bucketIds, func(i uint64, _ int) time.Time {
 			return from.Add(
-				time.Duration(float64(i) / float64(result.BucketCount) * float64(to.Sub(from))))
+				time.Duration(float64(i) / float64(bucketInfo.BucketCount) * float64(to.Sub(from))))
 		})
 
 		frame.Fields = append(frame.Fields, data.NewField("time", nil, timeValues))
@@ -397,18 +425,18 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 		frame.Fields = append(frame.Fields, data.NewField("xMax", nil, bucketMaxs))
 	}
 
-	metricTypes := lo.Uniq(lo.Map(result.Buckets, func(bucket *MetricBucket, _ int) MetricAggregator {
+	metricTypes := lo.Uniq(lo.Map(bucketInfo.Buckets, func(bucket *MetricBucket, _ int) MetricAggregator {
 		return bucket.MetricType
 	}))
 
-	metricGroups := lo.Uniq(lo.Map(result.Buckets, func(bucket *MetricBucket, _ int) string {
+	metricGroups := lo.Uniq(lo.Map(bucketInfo.Buckets, func(bucket *MetricBucket, _ int) string {
 		return strings.Join(bucket.Group, "-")
 	}))
 
 	for _, metricType := range metricTypes {
 		for _, metricGroup := range metricGroups {
-			values := make([]*float64, result.BucketCount)
-			for _, bucket := range result.Buckets {
+			values := make([]*float64, bucketInfo.BucketCount)
+			for _, bucket := range bucketInfo.Buckets {
 				if bucket.MetricType != metricType || strings.Join(bucket.Group, "-") != metricGroup {
 					continue
 				}
@@ -425,6 +453,41 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	response.Frames = append(response.Frames, frame)
 
 	return response
+}
+
+func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
+	from := query.TimeRange.From
+	to := query.TimeRange.To
+
+	var input queryInput
+	err := json.Unmarshal(query.JSON, &input)
+	if err != nil {
+		return backend.ErrDataResponse(backend.StatusBadRequest, err.Error())
+	}
+
+	var dataSourceSettings DataSourceSettings
+	err = json.Unmarshal(pCtx.DataSourceInstanceSettings.JSONData, &dataSourceSettings)
+	if err != nil {
+		return backend.ErrDataResponse(backend.StatusBadRequest, err.Error())
+	}
+
+	var productType ProductType
+	switch input.Table {
+	case TableTraces:
+		productType = ProductTypeTraces
+	case TableLogs:
+		productType = ProductTypeLogs
+	case TableErrors:
+		productType = ProductTypeErrors
+	case TableSessions:
+		productType = ProductTypeSessions
+	}
+
+	if input.Metric == "None" {
+		return d.queryLogLines(ctx, productType, from, to, input, dataSourceSettings)
+	} else {
+		return d.queryMetrics(ctx, productType, from, to, input, dataSourceSettings)
+	}
 }
 
 // CheckHealth handles health checks sent from Grafana to the plugin.

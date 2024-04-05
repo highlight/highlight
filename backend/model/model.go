@@ -2431,6 +2431,7 @@ func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcome
 type TableConfig[TReservedKey ~string] struct {
 	TableName        string
 	BodyColumn       string
+	SeverityColumn   string
 	AttributesColumn string
 	KeysToColumns    map[TReservedKey]string
 	ReservedKeys     []TReservedKey

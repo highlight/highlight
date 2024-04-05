@@ -7889,7 +7889,12 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 
 // Admin is the resolver for the admin field.
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
-	admin := &model.Admin{UID: pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))}
+	uid := ctx.Value(model.ContextKeys.UID)
+	if uid == nil {
+		return nil, e.New("uid not found in context")
+	}
+
+	admin := &model.Admin{UID: pointy.String(fmt.Sprintf("%v", uid))}
 	adminSpan, ctx := util.StartSpanFromContext(ctx, "resolver.getAdmin", util.ResourceName("db.admin"),
 		util.Tag("admin_uid", admin.UID))
 
@@ -8949,6 +8954,27 @@ func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.P
 		return r.SessionsKeyValues(ctx, projectID, keyName, dateRange)
 	case modelInputs.ProductTypeErrors:
 		return r.ErrorsKeyValues(ctx, projectID, keyName, dateRange)
+	default:
+		return nil, e.Errorf("invalid product type %s", productType)
+	}
+}
+
+// LogLines is the resolver for the log_lines field.
+func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		return r.ClickhouseClient.TracesLogLines(ctx, project.ID, params)
+	case modelInputs.ProductTypeLogs:
+		return r.ClickhouseClient.LogsLogLines(ctx, project.ID, params)
+	case modelInputs.ProductTypeSessions:
+		return r.ClickhouseClient.SessionsLogLines(ctx, project.ID, params)
+	case modelInputs.ProductTypeErrors:
+		return r.ClickhouseClient.ErrorsLogLines(ctx, project.ID, params)
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}
