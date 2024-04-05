@@ -6905,7 +6905,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 }
 
 // UsageHistory is the resolver for the usageHistory field.
-func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, dateRange modelInputs.DateRangeRequiredInput) (*modelInputs.UsageHistory, error) {
+func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, dateRange *modelInputs.DateRangeRequiredInput) (*modelInputs.UsageHistory, error) {
 	_, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
@@ -6926,7 +6926,7 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, dateR
 	g.Go(func() (err error) {
 		sessionsMeter, err = r.ClickhouseClient.ReadWorkspaceSessionCounts(ctx, projectIds, modelInputs.QueryInput{
 			Query:     "processed=true AND excluded=false AND active_length > 1000",
-			DateRange: &dateRange,
+			DateRange: dateRange,
 		})
 		if err != nil {
 			return e.Wrap(err, "failed to query session usage")
@@ -6936,7 +6936,7 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, dateR
 	g.Go(func() (err error) {
 		errorsMeter, err = r.ClickhouseClient.ReadWorkspaceErrorCounts(ctx, projectIds, modelInputs.QueryInput{
 			Query:     "",
-			DateRange: &dateRange,
+			DateRange: dateRange,
 		})
 		if err != nil {
 			return e.Wrap(err, "failed to query error usage")
@@ -6946,7 +6946,7 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, dateR
 	g.Go(func() (err error) {
 		logsMeter, err = r.ClickhouseClient.ReadWorkspaceLogCounts(ctx, projectIds, modelInputs.QueryInput{
 			Query:     "",
-			DateRange: &dateRange,
+			DateRange: dateRange,
 		})
 		if err != nil {
 			return e.Wrap(err, "failed to query log usage")
@@ -6956,7 +6956,7 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, dateR
 	g.Go(func() (err error) {
 		tracesMeter, err = r.ClickhouseClient.ReadWorkspaceTraceCounts(ctx, projectIds, modelInputs.QueryInput{
 			Query:     "",
-			DateRange: &dateRange,
+			DateRange: dateRange,
 		})
 		if err != nil {
 			return e.Wrap(err, "failed to query trace usage")

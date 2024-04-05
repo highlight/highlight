@@ -2898,7 +2898,7 @@ export type QueryUnprocessedSessionsCountArgs = {
 }
 
 export type QueryUsageHistoryArgs = {
-	date_range: DateRangeRequiredInput
+	date_range?: InputMaybe<DateRangeRequiredInput>
 	workspace_id: Scalars['ID']
 }
 

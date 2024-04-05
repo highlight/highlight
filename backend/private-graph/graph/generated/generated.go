@@ -1104,7 +1104,7 @@ type ComplexityRoot struct {
 		TracesMetrics                    func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
 		TrackPropertiesAlerts            func(childComplexity int, projectID int) int
 		UnprocessedSessionsCount         func(childComplexity int, projectID int) int
-		UsageHistory                     func(childComplexity int, workspaceID int, dateRange model.DateRangeRequiredInput) int
+		UsageHistory                     func(childComplexity int, workspaceID int, dateRange *model.DateRangeRequiredInput) int
 		UserFingerprintCount             func(childComplexity int, projectID int, lookbackDays float64) int
 		UserPropertiesAlerts             func(childComplexity int, projectID int) int
 		VercelProjectMappings            func(childComplexity int, projectID int) int
@@ -1865,7 +1865,7 @@ type QueryResolver interface {
 	ErrorFieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error)
 	BillingDetailsForProject(ctx context.Context, projectID int) (*model.BillingDetails, error)
 	BillingDetails(ctx context.Context, workspaceID int) (*model.BillingDetails, error)
-	UsageHistory(ctx context.Context, workspaceID int, dateRange model.DateRangeRequiredInput) (*model.UsageHistory, error)
+	UsageHistory(ctx context.Context, workspaceID int, dateRange *model.DateRangeRequiredInput) (*model.UsageHistory, error)
 	FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model1.Field, error)
 	PropertySuggestion(ctx context.Context, projectID int, query string, typeArg string) ([]*model1.Field, error)
 	ErrorFieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model1.ErrorField, error)
@@ -8547,7 +8547,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.UsageHistory(childComplexity, args["workspace_id"].(int), args["date_range"].(model.DateRangeRequiredInput)), true
+		return e.complexity.Query.UsageHistory(childComplexity, args["workspace_id"].(int), args["date_range"].(*model.DateRangeRequiredInput)), true
 
 	case "Query.userFingerprintCount":
 		if e.complexity.Query.UserFingerprintCount == nil {
@@ -13458,7 +13458,7 @@ type Query {
 	billingDetails(workspace_id: ID!): BillingDetails!
 	usageHistory(
 		workspace_id: ID!
-		date_range: DateRangeRequiredInput!
+		date_range: DateRangeRequiredInput
 	): UsageHistory!
 	# gets all the projects of a user
 	field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
@@ -21949,10 +21949,10 @@ func (ec *executionContext) field_Query_usageHistory_args(ctx context.Context, r
 		}
 	}
 	args["workspace_id"] = arg0
-	var arg1 model.DateRangeRequiredInput
+	var arg1 *model.DateRangeRequiredInput
 	if tmp, ok := rawArgs["date_range"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
-		arg1, err = ec.unmarshalNDateRangeRequiredInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, tmp)
+		arg1, err = ec.unmarshalODateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -56144,7 +56144,7 @@ func (ec *executionContext) _Query_usageHistory(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UsageHistory(rctx, fc.Args["workspace_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput))
+		return ec.resolvers.Query().UsageHistory(rctx, fc.Args["workspace_id"].(int), fc.Args["date_range"].(*model.DateRangeRequiredInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -103154,6 +103154,14 @@ func (ec *executionContext) marshalODashboardPayload2ᚖgithubᚗcomᚋhighlight
 		return graphql.Null
 	}
 	return ec._DashboardPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalODateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx context.Context, v interface{}) (*model.DateRangeRequiredInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputDateRangeRequiredInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOEnhancedUserDetailsResult2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐEnhancedUserDetailsResult(ctx context.Context, sel ast.SelectionSet, v *model.EnhancedUserDetailsResult) graphql.Marshaler {

@@ -3042,7 +3042,7 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 
 export type GetBillingDetailsQueryVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
-	date_range: Types.DateRangeRequiredInput
+	date_range?: Types.Maybe<Types.DateRangeRequiredInput>
 }>
 
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {

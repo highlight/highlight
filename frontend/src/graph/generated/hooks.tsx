@@ -9069,7 +9069,7 @@ export type GetBillingDetailsForProjectQueryResult = Apollo.QueryResult<
 export const GetBillingDetailsDocument = gql`
 	query GetBillingDetails(
 		$workspace_id: ID!
-		$date_range: DateRangeRequiredInput!
+		$date_range: DateRangeRequiredInput
 	) {
 		usageHistory(workspace_id: $workspace_id, date_range: $date_range) {
 			session_usage {

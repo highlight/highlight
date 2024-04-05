@@ -575,8 +575,14 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 		nBuckets = 1
 	}
 
-	startTimestamp := int64(params.DateRange.StartDate.Unix())
-	endTimestamp := int64(params.DateRange.EndDate.Unix())
+	if params.DateRange == nil {
+		params.DateRange = &modelInputs.DateRangeRequiredInput{
+			StartDate: time.Now().Add(-time.Hour * 24 * 30),
+			EndDate:   time.Now(),
+		}
+	}
+	startTimestamp := params.DateRange.StartDate.Unix()
+	endTimestamp := params.DateRange.EndDate.Unix()
 	useSampling := sampleableConfig.useSampling(params.DateRange.EndDate.Sub(params.DateRange.StartDate))
 
 	keysToColumns := sampleableConfig.tableConfig.KeysToColumns
