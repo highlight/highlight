@@ -166,9 +166,13 @@ async function getAllSourceMapFiles(
         nodir: true,
         ignore: "**/node_modules/**/*",
       })) {
+        let name = file;
+        if (!file.startsWith("/var/task")) {
+          name = file.replaceAll(new RegExp(/(\(.+?\))\//gm), "");
+        }
         map.push({
           path: join(realPath, file),
-          name: file.replaceAll(new RegExp(/(\(.+?\))\//gm), ""),
+          name,
         });
       }
     })
