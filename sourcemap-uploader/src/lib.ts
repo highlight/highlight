@@ -161,14 +161,14 @@ async function getAllSourceMapFiles(
         );
       }
 
-      for (const file of globSync("**/*.js?(.map)", {
+      for (let file of globSync("**/*.js?(.map)", {
         cwd: realPath,
         nodir: true,
         ignore: "**/node_modules/**/*",
       })) {
         map.push({
           path: join(realPath, file),
-          name: file,
+          name: file.replaceAll(new RegExp(/(\(.+?\))\//gm), ""),
         });
       }
     })
