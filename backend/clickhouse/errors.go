@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/parser"
@@ -477,6 +478,8 @@ func (client *Client) QueryErrorFieldValues(ctx context.Context, projectId int, 
 	var table string
 	var mappedName string
 	var ok bool
+	// needed to support "Tag" for backwards compatibility (can remove with new query language)
+	fieldName = strings.ToLower(fieldName)
 
 	if mappedName, ok = ErrorGroupsTableConfig.KeysToColumns[modelInputs.ReservedErrorGroupKey(fieldName)]; ok {
 		table = ErrorGroupsTable

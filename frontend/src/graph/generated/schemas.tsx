@@ -2923,9 +2923,9 @@ export type ReferrerTablePayload = {
 }
 
 export enum ReservedErrorGroupKey {
-	Tag = 'Tag',
 	Event = 'event',
 	Status = 'status',
+	Tag = 'tag',
 	Type = 'type',
 }
 

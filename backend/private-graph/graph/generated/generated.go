@@ -12002,6 +12002,7 @@ enum ReservedErrorObjectKey {
 enum ReservedErrorGroupKey {
 	event
 	status
+	tag
 	Tag
 	type
 }
