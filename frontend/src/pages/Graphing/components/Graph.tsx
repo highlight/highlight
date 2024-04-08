@@ -118,6 +118,16 @@ const formatNumber = (n: number | null) => {
 	return parseFloat(res.toPrecision(3)) + sizes[i]
 }
 
+const durationUnitMap: [number, string][] = [
+	[1, 'ns'],
+	[1000, 'µs'],
+	[1000, 'ms'],
+	[1000, 's'],
+	[60, 'm'],
+	[60, 'h'],
+	[24, 'd'],
+]
+
 export const getFormatter = (metric: string, bucketCount?: number) => {
 	if (metric === 'Timestamp') {
 		return (value: any) => moment(value * 1000).format('HH:mm')

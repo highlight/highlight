@@ -65,7 +65,7 @@ export const ExpandedGraph = () => {
 						py="6"
 					>
 						<Text size="small" weight="medium">
-							Dashboard title
+							{data?.visualization.name}
 						</Text>
 						<Box display="flex" gap="4">
 							<Button

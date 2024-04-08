@@ -4705,22 +4705,114 @@ func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObject
 
 // UpsertVisualization is the resolver for the upsertVisualization field.
 func (r *mutationResolver) UpsertVisualization(ctx context.Context, visualization modelInputs.VisualizationInput) (int, error) {
-	panic(fmt.Errorf("not implemented: UpsertVisualization - upsertVisualization"))
+	id := 0
+	if visualization.ID != nil {
+		id = *visualization.ID
+
+		var viz model.Visualization
+		if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", *visualization.ID).Find(&viz).Error; err != nil {
+			return 0, err
+		}
+
+		if viz.ProjectID != visualization.ProjectID {
+			return 0, errors.New("project id does not match saved project id")
+		}
+	}
+
+	if _, err := r.isAdminInProject(ctx, visualization.ProjectID); err != nil {
+		return 0, err
+	}
+
+	toSave := model.Visualization{
+		Model:     model.Model{ID: id},
+		ProjectID: visualization.ProjectID,
+		Name:      visualization.Name,
+	}
+	if err := r.DB.WithContext(ctx).Save(&toSave).Error; err != nil {
+		return 0, err
+	}
+
+	return toSave.ID, nil
 }
 
 // DeleteVisualization is the resolver for the deleteVisualization field.
 func (r *mutationResolver) DeleteVisualization(ctx context.Context, id int) (bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteVisualization - deleteVisualization"))
+	var viz model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", id).Find(&viz).Error; err != nil {
+		return false, err
+	}
+
+	if _, err := r.isAdminInProject(ctx, viz.ProjectID); err != nil {
+		return false, err
+	}
+
+	if err := r.DB.WithContext(ctx).Model(&model.Visualization{}).Delete("id = ?", id).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // UpsertGraph is the resolver for the upsertGraph field.
 func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.GraphInput) (int, error) {
-	panic(fmt.Errorf("not implemented: UpsertGraph - upsertGraph"))
+	var viz model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", graph.VisualizationID).Find(&viz).Error; err != nil {
+		return 0, err
+	}
+
+	_, err := r.isAdminInProject(ctx, viz.ProjectID)
+	if err != nil {
+		return 0, err
+	}
+
+	id := 0
+	if graph.ID != nil {
+		id = *graph.ID
+	}
+
+	toSave := model.Graph{
+		Model: model.Model{
+			ID: id,
+		},
+		VisualizationID:   graph.VisualizationID,
+		Type:              graph.Type,
+		Title:             graph.Title,
+		ProductType:       graph.ProductType,
+		Query:             graph.Query,
+		Metric:            graph.Metric,
+		FunctionType:      graph.FunctionType,
+		GroupByKey:        graph.GroupByKey,
+		BucketByKey:       graph.BucketByKey,
+		BucketCount:       graph.BucketCount,
+		Limit:             graph.Limit,
+		LimitFunctionType: graph.LimitFunctionType,
+		LimitMetric:       graph.LimitMetric,
+		Display:           graph.Display,
+		NullHandling:      graph.NullHandling,
+	}
+	if err := r.DB.WithContext(ctx).Save(&toSave).Error; err != nil {
+		return 0, err
+	}
+
+	return toSave.ID, nil
 }
 
 // DeleteGraph is the resolver for the deleteGraph field.
 func (r *mutationResolver) DeleteGraph(ctx context.Context, id int) (bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteGraph - deleteGraph"))
+	var viz model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = (select visualization_id from graphs where id = ?)", id).Find(&viz).Error; err != nil {
+		return false, err
+	}
+
+	if _, err := r.isAdminInProject(ctx, viz.ProjectID); err != nil {
+		return false, err
+	}
+
+	if err := r.DB.WithContext(ctx).Model(&model.Graph{}).Delete("id = ?", id).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // Accounts is the resolver for the accounts field.

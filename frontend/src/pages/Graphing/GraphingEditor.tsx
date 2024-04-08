@@ -21,8 +21,14 @@ import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
 import {
 	useGetKeysQuery,
 	useGetVisualizationQuery,
+	useUpsertGraphMutation,
 } from '@/graph/generated/hooks'
-import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import { namedOperations } from '@/graph/generated/operations'
+import {
+	GraphInput,
+	MetricAggregator,
+	ProductType,
+} from '@/graph/generated/schemas'
 import useDataTimeRange from '@/hooks/useDataTimeRange'
 import { useProjectId } from '@/hooks/useProjectId'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
@@ -256,6 +262,60 @@ export const GraphingEditor = () => {
 
 	const { timeRange } = useDataTimeRange()
 
+	const [upsertGraph] = useUpsertGraphMutation({
+		refetchQueries: [namedOperations.Query.GetVisualization],
+	})
+
+	const navigate = useNavigate()
+
+	const onSave = () => {
+		let display: string | undefined
+		let nullHandling: string | undefined
+
+		switch (viewType) {
+			case 'Line chart':
+				display = lineDisplay
+				nullHandling = lineNullHandling
+				break
+			case 'Bar chart':
+				display = barDisplay
+				break
+			case 'Table':
+				nullHandling = tableNullHandling
+				break
+		}
+
+		const graphInput: GraphInput = {
+			visualizationId: dashboard_id!,
+			bucketByKey,
+			bucketCount,
+			display,
+			functionType,
+			groupByKey: groupByEnabled ? groupByKey : null,
+			limit: groupByEnabled ? limit : null,
+			limitFunctionType: groupByEnabled ? limitFunctionType : null,
+			limitMetric: groupByEnabled ? limitMetric : null,
+			metric,
+			nullHandling,
+			productType,
+			query: debouncedQuery,
+			title: metricViewTitle,
+			type: viewType,
+		}
+
+		if (isEdit) {
+			graphInput.id = graph_id
+		}
+
+		upsertGraph({
+			variables: {
+				graph: graphInput,
+			},
+		}).then(() => {
+			navigate(`../${dashboard_id}`)
+		})
+	}
+
 	const { loading: metaLoading } = useGetVisualizationQuery({
 		variables: {
 			id: dashboard_id!,
@@ -283,7 +343,7 @@ export const GraphingEditor = () => {
 
 			setMetric(g.metric)
 			setMetricViewTitle(g.title)
-			// setGroupByEnabled(g.groupByKey !== undefined)
+			setGroupByEnabled(g.groupByKey !== undefined)
 			setGroupByKey(g.groupByKey ?? '')
 			setLimitFunctionType(g.limitFunctionType ?? FUNCTION_TYPES[0])
 			setLimit(g.limit ?? 10)
@@ -384,8 +444,6 @@ export const GraphingEditor = () => {
 	}
 	const viewConfig = getViewConfig(viewType, display, nullHandling)
 
-	const navigate = useNavigate()
-
 	if (metaLoading) {
 		return null
 	}
@@ -436,7 +494,7 @@ export const GraphingEditor = () => {
 								Cancel
 							</Button>
 							<TimeRangePicker />
-							<Button>
+							<Button onClick={onSave}>
 								Save&nbsp;
 								<Badge
 									variant="outlinePurple"

@@ -714,6 +714,7 @@ export type GraphInput = {
 	display?: InputMaybe<Scalars['String']>
 	functionType: MetricAggregator
 	groupByKey?: InputMaybe<Scalars['String']>
+	id?: InputMaybe<Scalars['ID']>
 	limit?: InputMaybe<Scalars['Int']>
 	limitFunctionType?: InputMaybe<MetricAggregator>
 	limitMetric?: InputMaybe<Scalars['String']>
@@ -723,6 +724,7 @@ export type GraphInput = {
 	query: Scalars['String']
 	title: Scalars['String']
 	type: Scalars['String']
+	visualizationId: Scalars['ID']
 }
 
 export type HeightList = {

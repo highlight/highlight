@@ -1881,6 +1881,8 @@ type Visualization {
 }
 
 input GraphInput {
+	id: ID
+	visualizationId: ID!
 	type: String!
 	title: String!
 	productType: ProductType!

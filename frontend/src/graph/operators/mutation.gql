@@ -1460,3 +1460,11 @@ mutation UpsertVisualization($visualization: VisualizationInput!) {
 mutation DeleteVisualization($id: ID!) {
 	deleteVisualization(id: $id)
 }
+
+mutation UpsertGraph($graph: GraphInput!) {
+	upsertGraph(graph: $graph)
+}
+
+mutation DeleteGraph($id: ID!) {
+	deleteGraph(id: $id)
+}
