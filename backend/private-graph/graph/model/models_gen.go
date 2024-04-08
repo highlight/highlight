@@ -1847,7 +1847,8 @@ type ReservedErrorGroupKey string
 const (
 	ReservedErrorGroupKeyEvent  ReservedErrorGroupKey = "event"
 	ReservedErrorGroupKeyStatus ReservedErrorGroupKey = "status"
-	ReservedErrorGroupKeyTag    ReservedErrorGroupKey = "Tag"
+	ReservedErrorGroupKeyTag    ReservedErrorGroupKey = "tag"
+	ReservedErrorGroupKeyTag0   ReservedErrorGroupKey = "Tag"
 	ReservedErrorGroupKeyType   ReservedErrorGroupKey = "type"
 )
 
@@ -1855,12 +1856,13 @@ var AllReservedErrorGroupKey = []ReservedErrorGroupKey{
 	ReservedErrorGroupKeyEvent,
 	ReservedErrorGroupKeyStatus,
 	ReservedErrorGroupKeyTag,
+	ReservedErrorGroupKeyTag0,
 	ReservedErrorGroupKeyType,
 }
 
 func (e ReservedErrorGroupKey) IsValid() bool {
 	switch e {
-	case ReservedErrorGroupKeyEvent, ReservedErrorGroupKeyStatus, ReservedErrorGroupKeyTag, ReservedErrorGroupKeyType:
+	case ReservedErrorGroupKeyEvent, ReservedErrorGroupKeyStatus, ReservedErrorGroupKeyTag, ReservedErrorGroupKeyTag0, ReservedErrorGroupKeyType:
 		return true
 	}
 	return false
