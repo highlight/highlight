@@ -2,6 +2,7 @@ package stacktraces
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -272,6 +273,28 @@ func TestEnhanceStackTrace(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestEnhanceBackendNextServerlessTrace(t *testing.T) {
+	ctx := context.TODO()
+
+	client, err := storage.NewFSClient(ctx, "http://localhost:8082/public", "./test-files")
+	if err != nil {
+		t.Fatalf("error creating storage client: %v", err)
+	}
+
+	fetch = NetworkFetcher{}
+
+	var stackFrameInput []*publicModelInput.StackFrameInput
+	err = json.Unmarshal([]byte(`[{"fileName":"/var/task/apps/magicsky/.next/server/app/(route-group-test)/[slug]/page-router-edge-test.js","lineNumber":1,"functionName":"s","columnNumber":3344,"error":"Error: 🎉 SSR Error with use-server: src/app-router/ssr/page.tsx"}]`), &stackFrameInput)
+	assert.NoError(t, err)
+
+	mappedStackTrace, err := EnhanceStackTrace(ctx, stackFrameInput, 29954, nil, client)
+	if err != nil {
+		t.Fatal(e.Wrap(err, "error enhancing source map"))
+	}
+	assert.Equal(t, 1, len(mappedStackTrace))
+	assert.Equal(t, "                    console.log(`got fetch cache entry for ${key}, duration: ${Date.now() - start}ms, size: ${Object.keys(cached).length}, cache-state: ${cacheState} tags: ${tags == null ? void 0 : tags.join(\",\")} softTags: ${softTags == null ? void 0 : softTags.join(\",\")}`);\n", *mappedStackTrace[0].LineContent)
 }
 
 func TestGetURLSourcemap(t *testing.T) {

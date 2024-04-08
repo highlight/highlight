@@ -340,6 +340,8 @@ func mapFileForJS(jsFile string) string {
 	return fmt.Sprintf("%s.map", stripStackTraceQueryString(jsFile))
 }
 
+var NextNodeServerlessRegex = regexp.MustCompile(`/var/task/.+/\.next/(.+)`)
+
 func processStackFrame(ctx context.Context, projectId int, version *string, stackTrace publicModel.StackFrameInput, storageClient storage.Client) (*privateModel.ErrorTrace, error, privateModel.SourceMappingError) {
 	stackTraceFileURL := *stackTrace.FileName
 	stackTraceLineNumber := *stackTrace.LineNumber
@@ -372,8 +374,14 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 		return nil, err, stackTraceError
 	}
 	stackTraceFilePath := u.Path
-	if len(stackTraceFilePath) > 0 && stackTraceFilePath[0:1] == "/" {
-		stackTraceFilePath = stackTraceFilePath[1:]
+	if len(stackTraceFilePath) > 0 {
+		if matches := NextNodeServerlessRegex.FindStringSubmatch(stackTraceFilePath); matches != nil {
+			stackTraceFilePath = "_next/" + matches[1]
+			stackTraceFileURL = stackTraceFilePath
+			stackFileNameIndex = strings.Index(stackTraceFileURL, path.Base(stackTraceFileURL))
+		} else if stackTraceFilePath[0:1] == "/" {
+			stackTraceFilePath = stackTraceFilePath[1:]
+		}
 	}
 
 	stackTraceFileURL = stripStackTraceQueryString(stackTraceFileURL)
