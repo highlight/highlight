@@ -29,7 +29,6 @@ const ApplicationRouter: React.FC = () => {
 	const { projectId } = useNumericProjectId()
 	const { page, searchQuery } = useSearchContext()
 	usePreloadSessions({ page: page || 1, query: JSON.parse(searchQuery) })
-	// TODO(spenny): should we preload errors
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 
 	return (

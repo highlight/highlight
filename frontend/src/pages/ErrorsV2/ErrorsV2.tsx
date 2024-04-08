@@ -105,7 +105,7 @@ export default function ErrorsV2() {
 	const { showSearch } = useShowSearchParam()
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
 	const navigation = useErrorPageNavigation({
-		searchResultSecureIds: getErrorsData.errorGroupSecureIds,
+		secureIds: getErrorsData.errorGroupSecureIds,
 	})
 
 	useAllHotKeys(navigation)
@@ -489,11 +489,11 @@ export function useErrorGroup(errorSecureId?: string) {
 	return { data, loading, errorQueryingErrorGroup }
 }
 
-function useErrorPageNavigation({
-	searchResultSecureIds,
-}: {
-	searchResultSecureIds: string[]
-}) {
+type UseErrorPageNavigationProps = {
+	secureIds: string[]
+}
+
+function useErrorPageNavigation({ secureIds }: UseErrorPageNavigationProps) {
 	const navigate = useNavigate()
 	const { project_id, error_secure_id } = useParams<Params>()
 	const { showLeftPanel, setShowLeftPanel } = usePlayerConfiguration()
@@ -505,16 +505,14 @@ function useErrorPageNavigation({
 		},
 		[navigate, project_id],
 	)
-	const currentSearchResultIndex = searchResultSecureIds.findIndex(
+	const currentSearchResultIndex = secureIds.findIndex(
 		(secureId) => secureId === error_secure_id,
 	)
 	const canMoveForward =
-		!!searchResultSecureIds.length &&
-		currentSearchResultIndex < searchResultSecureIds.length - 1
-	const canMoveBackward =
-		!!searchResultSecureIds.length && currentSearchResultIndex > 0
-	const nextSecureId = searchResultSecureIds[currentSearchResultIndex + 1]
-	const previousSecureId = searchResultSecureIds[currentSearchResultIndex - 1]
+		!!secureIds.length && currentSearchResultIndex < secureIds.length - 1
+	const canMoveBackward = !!secureIds.length && currentSearchResultIndex > 0
+	const nextSecureId = secureIds[currentSearchResultIndex + 1]
+	const previousSecureId = secureIds[currentSearchResultIndex - 1]
 
 	return {
 		showLeftPanel,

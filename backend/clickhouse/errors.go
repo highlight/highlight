@@ -473,24 +473,26 @@ func (client *Client) QueryErrorGroupTags(ctx context.Context, projectId int, er
 	return lo.Values(aggs), nil
 }
 
-func (client *Client) QueryErrorFieldValues(ctx context.Context, projectId int, count int, fieldType string, fieldName string, query string, start time.Time, end time.Time) ([]string, error) {
-	mappedName, found := fieldMap[fieldName]
-	if !found {
-		return nil, fmt.Errorf("unknown column %s", fieldName)
-	}
+func (client *Client) QueryErrorFieldValues(ctx context.Context, projectId int, count int, fieldName string, query string, start time.Time, end time.Time) ([]string, error) {
+	var table string
+	var mappedName string
+	var ok bool
 
-	table := ErrorGroupsTable
-	if fieldType == "error-field" {
+	if mappedName, ok = ErrorGroupsTableConfig.KeysToColumns[modelInputs.ReservedErrorGroupKey(fieldName)]; ok {
+		table = ErrorGroupsTable
+	} else if mappedName, ok = ErrorObjectsTableConfig.KeysToColumns[modelInputs.ReservedErrorObjectKey(fieldName)]; ok {
 		table = ErrorObjectsTable
+	} else {
+		return nil, fmt.Errorf("unknown column %s", fieldName)
 	}
 
 	sb := sqlbuilder.NewSelectBuilder()
 	sb = sb.
-		Select(mappedName).
+		Select(fmt.Sprintf("toString(%s)", mappedName)).
 		From(table).
 		Where(sb.Equal("ProjectID", projectId)).
-		Where(fmt.Sprintf("%s ILIKE %s", mappedName, sb.Var("%"+query+"%"))).
-		Where(fmt.Sprintf("%s <> ''", mappedName))
+		Where(fmt.Sprintf("toString(%s) ILIKE %s", mappedName, sb.Var("%"+query+"%"))).
+		Where(fmt.Sprintf("toString(%s) <> ''", mappedName))
 
 	if table == ErrorGroupsTable {
 		sb = sb.Where(sb.Or(
@@ -626,16 +628,7 @@ func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, para
 }
 
 func (client *Client) ErrorsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
-	var tableName string
-	if ok := modelInputs.ReservedErrorGroupKey(keyName).IsValid(); ok {
-		tableName = ErrorGroupsTable
-	} else if ok := modelInputs.ReservedErrorObjectKey(keyName).IsValid(); ok {
-		tableName = ErrorObjectsTable
-	} else {
-		return nil, fmt.Errorf("unknown error key %s", keyName)
-	}
-
-	return client.QueryErrorFieldValues(ctx, projectID, 10, tableName, keyName, "", startDate, endDate)
+	return client.QueryErrorFieldValues(ctx, projectID, 10, keyName, "", startDate, endDate)
 }
 
 func (client *Client) QueryErrorObjectsHistogram(ctx context.Context, projectId int, params modelInputs.QueryInput, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, error) {
