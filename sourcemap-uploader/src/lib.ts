@@ -125,9 +125,13 @@ export const uploadSourcemaps = async ({
   const uploadUrls = urlRes.data.get_source_map_upload_urls;
 
   await Promise.all(
-    fileList.map(({ path }, idx) => uploadFile(path, uploadUrls[idx]))
+    fileList.map(({ path, name }, idx) =>
+      uploadFile(path, uploadUrls[idx], name)
+    )
   );
 };
+
+const NextRouteGroupPattern = new RegExp(/(\(.+?\))\//gm);
 
 async function getAllSourceMapFiles(
   paths: string[],
@@ -161,19 +165,26 @@ async function getAllSourceMapFiles(
         );
       }
 
-      for (let file of globSync("**/*.js?(.map)", {
+      for (const file of globSync("**/*.js?(.map)", {
         cwd: realPath,
         nodir: true,
         ignore: "**/node_modules/**/*",
       })) {
-        let name = file;
-        if (!file.startsWith("/var/task")) {
-          name = file.replaceAll(new RegExp(/(\(.+?\))\//gm), "");
-        }
         map.push({
           path: join(realPath, file),
-          name,
+          name: file,
         });
+        const routeGroupRemovedPath = file.replaceAll(
+          new RegExp(/(\(.+?\))\//gm),
+          ""
+        );
+        if (file !== routeGroupRemovedPath) {
+          // also upload the file to a path without the route group for frontend errors
+          map.push({
+            path: join(realPath, file),
+            name: routeGroupRemovedPath,
+          });
+        }
       }
     })
   );
@@ -194,8 +205,8 @@ function getS3Key(
   return `${organizationId}/${version}/${basePath}${fileName}`;
 }
 
-async function uploadFile(filePath: string, uploadUrl: string) {
+async function uploadFile(filePath: string, uploadUrl: string, name: string) {
   const fileContent = readFileSync(filePath);
   await fetch(uploadUrl, { method: "put", body: fileContent });
-  console.log(`Uploaded ${filePath}`);
+  console.log(`Uploaded ${filePath} to ${name}`);
 }
