@@ -9,10 +9,11 @@ import {
 	Menu,
 	Text,
 } from '@highlight-run/ui/components'
+import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
 import { PropsWithChildren, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
 import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
