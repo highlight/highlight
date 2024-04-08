@@ -1,5 +1,23 @@
 # @highlight-run/nest
 
+## 3.5.0
+
+### Minor Changes
+
+-   e14192fa4: improve tracing for nestjs to capture route information
+
+### Patch Changes
+
+-   Updated dependencies [e14192fa4]
+    -   @highlight-run/node@3.8.3
+
+## 3.4.13
+
+### Patch Changes
+
+-   Updated dependencies [dded74108]
+    -   @highlight-run/node@3.8.2
+
 ## 3.4.12
 
 ### Patch Changes

@@ -37,7 +37,6 @@ export default async function RootLayout({
 					canvasClearWebGLBuffer: false,
 				}}
 				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
-				scriptUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_SCRIPT_URL}
 			/>
 
 			<html lang="en" data-layout>

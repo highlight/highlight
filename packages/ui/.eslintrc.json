@@ -25,11 +25,13 @@
 	],
 	"ignorePatterns": ["src/__generated/*"],
 	"rules": {
+		"@typescript-eslint/no-non-null-assertion": "off",
 		"react/display-name": "off",
 		"react/react-in-jsx-scope": "off",
 		"simple-import-sort/imports": "error",
 		"simple-import-sort/exports": "error",
-		"unused-imports/no-unused-imports-ts": "error"
+		"unused-imports/no-unused-imports-ts": "error",
+		"react/prop-types": "off"
 	},
 	"settings": {
 		"react": {

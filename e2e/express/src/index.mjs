@@ -4,7 +4,7 @@ import { H, Handlers } from '@highlight-run/node'
 /** @type {import('@highlight-run/node').NodeOptions} */
 const config = {
 	projectID: '1',
-	debug: true,
+	debug: false,
 	serviceName: 'e2e-express',
 	serviceVersion: 'git-sha',
 	otlpEndpoint: 'http://localhost:4318',
@@ -48,8 +48,4 @@ console.log(`listen`, { hello: `hello` })
 console.log({ message: 'world', hello: `hello`, number: '123' })
 app.listen(port, () => {
 	console.log(`startServer`, { at: `0.0.0.0:${port}` })
-})
-
-process.on('SIGINT', function () {
-	process.exit()
 })

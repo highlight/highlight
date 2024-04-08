@@ -16,23 +16,25 @@ export const JSNestContent: QuickStartContent = {
 				'Use the `HighlightErrorFilter` middleware to capture backend errors.',
 			code: [
 				{
-					text: `import { HttpAdapterHost, NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
-import { HighlightInterceptor } from '@highlight-run/nest'
+					text: `import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { HighlightInterceptor, H } from '@highlight-run/nest';
+
+const env = {
+  projectID: '<YOUR_PROJECT_ID>',
+  serviceName: 'my-nestjs-app',
+  serviceVersion: 'git-sha',
+  environment: 'production',
+  debug: false,
+};
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
-  app.useGlobalInterceptors(
-    new HighlightInterceptor({
-      projectID: '<YOUR_PROJECT_ID>',
-      serviceName: 'my-nestjs-app',
-      serviceVersion: 'git-sha',
-      environment: 'production'
-    })
-  )
-  await app.listen(3000)
+  H.init(env);
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalInterceptors(new HighlightInterceptor(env));
+  await app.listen(3000);
 }
-bootstrap()
+bootstrap();
 `,
 					language: 'js',
 				},

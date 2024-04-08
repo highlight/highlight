@@ -464,3 +464,7 @@ func (client *Client) TracesMetrics(ctx context.Context, projectID int, startDat
 func TraceMatchesQuery(trace *TraceRow, filters listener.Filters) bool {
 	return matchesQuery(trace, TracesTableConfig, filters)
 }
+
+func (client *Client) TracesLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
+	return logLines(ctx, client, TracesTableConfig, projectID, params)
+}

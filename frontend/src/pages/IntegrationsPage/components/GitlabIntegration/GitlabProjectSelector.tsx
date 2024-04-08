@@ -3,8 +3,8 @@ import { Form } from '@highlight-run/ui/components'
 import { useGitlabIntegration } from '@pages/IntegrationsPage/components/GitlabIntegration/utils'
 import * as style from '@pages/IntegrationsPage/components/style.css'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
+import useLocalStorage from '@rehooks/local-storage'
 import { useEffect, useMemo } from 'react'
-import { useLocalStorage } from 'react-use'
 
 import { GitlabProject } from '@/graph/generated/schemas'
 

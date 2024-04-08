@@ -9,7 +9,6 @@ import { H } from 'highlight.run'
 
 H.init('2', {
 	environment: 'production',
-	scriptUrl: 'http://localhost:8080/dist/index.js',
 	networkRecording: {
 		enabled: true,
 		recordHeadersAndBody: true,

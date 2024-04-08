@@ -13,39 +13,45 @@ type Props = React.PropsWithChildren & {
 	cssClass?: BoxProps['cssClass']
 } & BoxProps
 
-export const Stack: React.FC<Props> = ({
-	as,
-	align,
-	children,
-	direction,
-	flex,
-	gap,
-	justify,
-	wrap,
-	width,
-	...props
-}) => {
-	if (typeof wrap === 'boolean') {
-		wrap = wrap ? 'wrap' : undefined
-	}
+export const Stack: React.FC<Props> = React.forwardRef(
+	(
+		{
+			as,
+			align,
+			children,
+			direction,
+			flex,
+			gap,
+			justify,
+			wrap,
+			width,
+			...props
+		},
+		ref,
+	) => {
+		if (typeof wrap === 'boolean') {
+			wrap = wrap ? 'wrap' : undefined
+		}
 
-	return (
-		<Box
-			as={as}
-			alignItems={align}
-			display="flex"
-			flexDirection={direction}
-			flex={flex}
-			justifyContent={justify}
-			gap={gap}
-			flexWrap={wrap}
-			width={width}
-			{...props}
-		>
-			{children}
-		</Box>
-	)
-}
+		return (
+			<Box
+				as={as}
+				alignItems={align}
+				display="flex"
+				flexDirection={direction}
+				flex={flex}
+				justifyContent={justify}
+				gap={gap}
+				flexWrap={wrap}
+				width={width}
+				ref={ref}
+				{...props}
+			>
+				{children}
+			</Box>
+		)
+	},
+)
 
 Stack.defaultProps = {
 	as: 'div',

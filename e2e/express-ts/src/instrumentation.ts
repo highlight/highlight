@@ -5,7 +5,7 @@ import { CONSTANTS } from './constants'
 export const config = {
 	otlpEndpoint: CONSTANTS.HIGHLIGHT_OTLP_ENDPOINT,
 	projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID ?? '1',
-	debug: true,
+	debug: false,
 	serviceName: 'e2e-express-ts',
 	serviceVersion: 'vadim',
 	environment: 'e2e-test',

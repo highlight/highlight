@@ -131,7 +131,7 @@ const ErrorsPage = ({
 				currentIndex,
 				resources: errors.map((error) => ({
 					type: 'error',
-					id: error.error_group_secure_id,
+					secureId: error.error_group_secure_id,
 					instanceId: error.id,
 				})),
 			})
@@ -159,7 +159,7 @@ const ErrorsPage = ({
 								set(
 									{
 										type: 'error',
-										id: error.error_group_secure_id,
+										secureId: error.error_group_secure_id,
 										instanceId: error.id,
 									},
 									{
@@ -167,7 +167,8 @@ const ErrorsPage = ({
 										resources: errorsToRender.map(
 											(error) => ({
 												type: 'error',
-												id: error.error_group_secure_id,
+												secureId:
+													error.error_group_secure_id,
 												instanceId: error.id,
 											}),
 										),
