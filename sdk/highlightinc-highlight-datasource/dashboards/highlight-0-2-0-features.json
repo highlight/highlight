@@ -18,14 +18,57 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": 3,
   "links": [],
   "liveNow": false,
   "panels": [
     {
       "datasource": {
         "type": "highlightinc-highlight-datasource",
-        "uid": "PEF6434B3EBC14BF0"
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "bucketBy": "Timestamp",
+          "bucketCount": 50,
+          "column": "duration",
+          "datasource": {
+            "type": "highlightinc-highlight-datasource",
+            "uid": "${datasource}"
+          },
+          "groupBy": [],
+          "limit": 10,
+          "limitAggregator": "Count",
+          "limitColumn": "duration",
+          "metric": "None",
+          "refId": "A",
+          "table": "logs"
+        }
+      ],
+      "title": "Logs Visualization Type",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "highlightinc-highlight-datasource",
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -46,6 +89,106 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "bucketBy": "Timestamp",
+          "bucketCount": 50,
+          "column": "duration",
+          "datasource": {
+            "type": "highlightinc-highlight-datasource",
+            "uid": "${datasource}"
+          },
+          "groupBy": [],
+          "limit": 10,
+          "limitAggregator": "Count",
+          "limitColumn": "duration",
+          "metric": "Count",
+          "queryText": "service_name=${service_name}",
+          "refId": "A",
+          "table": "logs"
+        }
+      ],
+      "title": "Query Variable Interpolation",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "highlightinc-highlight-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -83,7 +226,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 0
+        "y": 8
       },
       "id": 3,
       "options": {
@@ -102,257 +245,23 @@
         {
           "bucketBy": "Timestamp",
           "bucketCount": 50,
-          "column": "duration",
+          "column": "device_id",
           "datasource": {
             "type": "highlightinc-highlight-datasource",
-            "uid": "PEF6434B3EBC14BF0"
-          },
-          "groupBy": ["url"],
-          "limit": 10,
-          "limitAggregator": "Count",
-          "limitColumn": "duration",
-          "metric": "Count",
-          "refId": "A",
-          "table": "errors"
-        }
-      ],
-      "title": "Error Count for Popular URLs",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "highlightinc-highlight-datasource",
-        "uid": "PEF6434B3EBC14BF0"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "ns"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      },
-      "id": 1,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "bucketBy": "Timestamp",
-          "bucketCount": 50,
-          "column": "duration",
-          "datasource": {
-            "type": "highlightinc-highlight-datasource",
-            "uid": "PEF6434B3EBC14BF0"
-          },
-          "groupBy": ["service_name"],
-          "limit": 5,
-          "limitAggregator": "Avg",
-          "limitColumn": "duration",
-          "metric": "Avg",
-          "queryText": "service_name EXISTS",
-          "refId": "A",
-          "table": "traces"
-        }
-      ],
-      "title": "Avg Trace Duration by Service",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "highlightinc-highlight-datasource",
-        "uid": "PEF6434B3EBC14BF0"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "percentage",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 70
-              },
-              {
-                "color": "red",
-                "value": 85
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      },
-      "id": 2,
-      "options": {
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": false
-      },
-      "pluginVersion": "10.1.0",
-      "targets": [
-        {
-          "bucketBy": "Timestamp",
-          "bucketCount": 50,
-          "column": "numPages",
-          "datasource": {
-            "type": "highlightinc-highlight-datasource",
-            "uid": "PEF6434B3EBC14BF0"
+            "uid": "${datasource}"
           },
           "groupBy": [],
           "limit": 10,
           "limitAggregator": "Count",
           "limitColumn": "duration",
-          "metric": "Max",
-          "refId": "A",
-          "table": "logs"
-        }
-      ],
-      "title": "Sitemap Page Count",
-      "type": "gauge"
-    },
-    {
-      "datasource": {
-        "type": "highlightinc-highlight-datasource",
-        "uid": "PEF6434B3EBC14BF0"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
-      "id": 4,
-      "options": {
-        "displayLabels": ["percent"],
-        "legend": {
-          "displayMode": "list",
-          "placement": "right",
-          "showLegend": true,
-          "values": []
-        },
-        "pieType": "pie",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "bucketBy": "None",
-          "bucketCount": 1,
-          "column": "clickTextContent",
-          "datasource": {
-            "type": "highlightinc-highlight-datasource",
-            "uid": "PEF6434B3EBC14BF0"
-          },
-          "groupBy": ["country"],
-          "limit": 10,
-          "limitAggregator": "Count",
-          "limitColumn": "duration",
-          "metric": "Count",
-          "queryText": "country:\"United States\" OR country:\"Canada\"",
+          "metric": "CountDistinct",
+          "queryText": "",
           "refId": "A",
           "table": "sessions"
         }
       ],
-      "title": "US vs Canada Sessions",
-      "type": "piechart"
+      "title": "CountDistinct",
+      "type": "timeseries"
     }
   ],
   "refresh": "",
@@ -360,16 +269,55 @@
   "style": "dark",
   "tags": [],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "highlight-io-next-frontend",
+          "value": "highlight-io-next-frontend"
+        },
+        "hide": 0,
+        "name": "service_name",
+        "options": [
+          {
+            "selected": true,
+            "text": "highlight-io-next-frontend",
+            "value": "highlight-io-next-frontend"
+          }
+        ],
+        "query": "highlight-io-next-frontend",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "Highlight.io",
+          "value": "da458d47-e375-44e0-be2c-1f338e86260b"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Datasource",
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "highlightinc-highlight-datasource",
+        "queryValue": "",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      }
+    ]
   },
   "time": {
-    "from": "now-7d",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Highlight.io test dashboard",
-  "uid": "fdc0f85f-24f3-4f27-920a-61fd66d52161",
-  "version": 5,
+  "title": "Highlight.io plugin v0.2.0 features",
+  "uid": "c502adf7-5b30-49b2-b0bd-48070043d94d",
+  "version": 1,
   "weekStart": ""
 }
