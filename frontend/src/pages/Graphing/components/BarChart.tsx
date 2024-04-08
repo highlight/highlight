@@ -3,6 +3,7 @@ import {
 	BarChart as RechartsBarChart,
 	CartesianGrid,
 	ResponsiveContainer,
+	Tooltip,
 	XAxis,
 	YAxis,
 } from 'recharts'
@@ -10,7 +11,8 @@ import {
 import {
 	CustomXAxisTick,
 	CustomYAxisTick,
-	getFormatter,
+	getCustomTooltip,
+	getTickFormatter,
 	GROUP_KEY,
 	InnerChartProps,
 	isActive,
@@ -52,8 +54,8 @@ export const BarChart = ({
 	spotlight,
 	viewConfig,
 }: InnerChartProps<BarChartConfig> & SeriesInfo) => {
-	const xAxisTickFormatter = getFormatter(xAxisMetric, data?.length)
-	const yAxisTickFormatter = getFormatter(yAxisMetric)
+	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data?.length)
+	const yAxisTickFormatter = getTickFormatter(yAxisMetric)
 
 	return (
 		<ResponsiveContainer>
@@ -75,6 +77,11 @@ export const BarChart = ({
 					height={12}
 					type={xAxisMetric === GROUP_KEY ? 'category' : 'number'}
 					domain={['auto', 'auto']}
+				/>
+
+				<Tooltip
+					content={getCustomTooltip(xAxisMetric, yAxisMetric)}
+					cursor={{ fill: '#C8C7CB', fillOpacity: 0.5 }}
 				/>
 
 				<YAxis
