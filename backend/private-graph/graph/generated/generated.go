@@ -12003,7 +12003,6 @@ enum ReservedErrorGroupKey {
 	event
 	status
 	tag
-	Tag
 	type
 }
 
