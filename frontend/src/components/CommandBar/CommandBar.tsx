@@ -7,7 +7,6 @@ import {
 	useCurrentAttribute,
 } from '@components/CommandBar/context'
 import {
-	isErrorAttribute,
 	isSessionAttribute,
 	nextAttribute,
 	useAttributeSearch,
@@ -25,7 +24,6 @@ import {
 	Form,
 	IconProps,
 	IconSolidCalendar,
-	IconSolidLightningBolt,
 	IconSolidPlayCircle,
 	IconSolidSearch,
 	IconSolidSwitchVertical,
@@ -92,7 +90,6 @@ const SearchOptions = () => {
 	return (
 		<>
 			<SessionOptions />
-			<ErrorOptions />
 			<CommandBarHelp />
 		</>
 	)
@@ -347,21 +344,6 @@ const SessionOptions = () => {
 					/>
 				)
 			})}
-		</Box>
-	)
-}
-
-const ErrorOptions = () => {
-	return (
-		<Box display="flex" flexDirection="column" py="4" width="full">
-			<SectionHeader header="Errors" />
-			{ATTRIBUTES.filter(isErrorAttribute).map((attribute, idx) => (
-				<SectionRow
-					key={`errors-${idx}`}
-					attribute={attribute}
-					icon={<IconSolidLightningBolt size={16} />}
-				/>
-			))}
 		</Box>
 	)
 }

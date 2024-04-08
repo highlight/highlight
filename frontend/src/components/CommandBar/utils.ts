@@ -17,16 +17,8 @@ import {
 } from '@util/url/params'
 import { useNavigate } from 'react-router-dom'
 
-import {
-	ERROR_FIELD_TYPE,
-	ERROR_TYPE,
-	SESSION_TYPE,
-} from '@/components/QueryBuilder/QueryBuilder'
+import { SESSION_TYPE } from '@/components/QueryBuilder/QueryBuilder'
 import { useSearchContext } from '@/pages/Sessions/SearchContext/SearchContext'
-
-export const isErrorAttribute = (attribute: typeof ATTRIBUTES[number]) => {
-	return [ERROR_TYPE, ERROR_FIELD_TYPE].includes(attribute.type)
-}
 
 export const isSessionAttribute = (attribute: typeof ATTRIBUTES[number]) => {
 	return ['user', SESSION_TYPE].includes(attribute.type)
@@ -105,9 +97,7 @@ export const useAttributeSearch = (form: FormState<CommandBarSearch>) => {
 	) => {
 		if (!attribute) return
 
-		const isError = isErrorAttribute(attribute)
-
-		const basePath = `/${projectId}/${isError ? 'errors' : 'sessions'}`
+		const basePath = `/${projectId}/sessions`
 		const qbParams = buildQueryBuilderParams({ attribute, query })
 
 		const timeParams = buildTimeParams(
@@ -121,16 +111,12 @@ export const useAttributeSearch = (form: FormState<CommandBarSearch>) => {
 		)
 
 		if (!params?.newTab) {
-			if (isError) {
-				// TODO(spenny)
-			} else {
-				createNewSearch(
-					buildQueryStateString(qbParams),
-					params?.timeRange?.startDate,
-					params?.timeRange?.endDate,
-					selectedPreset,
-				)
-			}
+			createNewSearch(
+				buildQueryStateString(qbParams),
+				params?.timeRange?.startDate,
+				params?.timeRange?.endDate,
+				selectedPreset,
+			)
 			navigate({
 				pathname: basePath,
 				search: `${buildQueryURLString(qbParams)}${timeParams}`,
