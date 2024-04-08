@@ -6542,7 +6542,7 @@ func (r *queryResolver) ErrorFieldsClickhouse(ctx context.Context, projectID int
 	if err != nil {
 		return nil, nil
 	}
-	return r.ClickhouseClient.QueryErrorFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
+	return r.ClickhouseClient.QueryErrorFieldValues(ctx, projectID, count, fieldName, query, startDate, endDate)
 }
 
 // BillingDetailsForProject is the resolver for the billingDetailsForProject field.

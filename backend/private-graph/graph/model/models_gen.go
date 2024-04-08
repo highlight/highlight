@@ -2277,16 +2277,18 @@ type SavedSegmentEntityType string
 const (
 	SavedSegmentEntityTypeLog   SavedSegmentEntityType = "Log"
 	SavedSegmentEntityTypeTrace SavedSegmentEntityType = "Trace"
+	SavedSegmentEntityTypeError SavedSegmentEntityType = "Error"
 )
 
 var AllSavedSegmentEntityType = []SavedSegmentEntityType{
 	SavedSegmentEntityTypeLog,
 	SavedSegmentEntityTypeTrace,
+	SavedSegmentEntityTypeError,
 }
 
 func (e SavedSegmentEntityType) IsValid() bool {
 	switch e {
-	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace:
+	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace, SavedSegmentEntityTypeError:
 		return true
 	}
 	return false
