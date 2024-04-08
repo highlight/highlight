@@ -66,7 +66,7 @@ export const Dashboard = () => {
 							</Button>
 							<TimeRangePicker />
 							<Button
-								emphasis="medium"
+								emphasis="low"
 								kind="secondary"
 								iconLeft={<IconSolidPlus />}
 								onClick={() => {

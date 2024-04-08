@@ -295,32 +295,35 @@ const Graph = ({
 	const yAxisMetric = functionType === MetricAggregator.Count ? '' : metric
 	const yAxisFunction = functionType
 
-	let data: any[] | undefined
-	if (metrics?.metrics.buckets) {
-		if (xAxisMetric !== GROUP_KEY) {
-			data = []
-			for (let i = 0; i < metrics.metrics.bucket_count; i++) {
-				data.push({})
-			}
+	const data = useMemo(() => {
+		let data: any[] | undefined
+		if (metrics?.metrics.buckets) {
+			if (xAxisMetric !== GROUP_KEY) {
+				data = []
+				for (let i = 0; i < metrics.metrics.bucket_count; i++) {
+					data.push({})
+				}
 
-			const seriesKeys = new Set<string>()
-			for (const b of metrics.metrics.buckets) {
-				const seriesKey = b.group.join(' ')
-				seriesKeys.add(seriesKey)
-				data[b.bucket_id][xAxisMetric] =
-					(b.bucket_min + b.bucket_max) / 2
-				data[b.bucket_id][seriesKey] = b.metric_value
-			}
-		} else {
-			data = []
-			for (const b of metrics.metrics.buckets) {
-				data.push({
-					[GROUP_KEY]: b.group.join(' '),
-					'': b.metric_value,
-				})
+				const seriesKeys = new Set<string>()
+				for (const b of metrics.metrics.buckets) {
+					const seriesKey = b.group.join(' ')
+					seriesKeys.add(seriesKey)
+					data[b.bucket_id][xAxisMetric] =
+						(b.bucket_min + b.bucket_max) / 2
+					data[b.bucket_id][seriesKey] = b.metric_value
+				}
+			} else {
+				data = []
+				for (const b of metrics.metrics.buckets) {
+					data.push({
+						[GROUP_KEY]: b.group.join(' '),
+						'': b.metric_value,
+					})
+				}
 			}
 		}
-	}
+		return data
+	}, [metrics?.metrics.bucket_count, metrics?.metrics.buckets, xAxisMetric])
 
 	const series = useMemo(
 		() =>

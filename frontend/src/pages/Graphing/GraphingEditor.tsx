@@ -19,6 +19,7 @@ import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcut
 import Switch from '@/components/Switch/Switch'
 import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
 import {
+	useDeleteGraphMutation,
 	useGetKeysQuery,
 	useGetVisualizationQuery,
 	useUpsertGraphMutation,
@@ -266,6 +267,10 @@ export const GraphingEditor = () => {
 		refetchQueries: [namedOperations.Query.GetVisualization],
 	})
 
+	const [deleteGraph] = useDeleteGraphMutation({
+		refetchQueries: [namedOperations.Query.GetVisualization],
+	})
+
 	const navigate = useNavigate()
 
 	const onSave = () => {
@@ -316,6 +321,20 @@ export const GraphingEditor = () => {
 		})
 	}
 
+	const onDelete = () => {
+		if (!isEdit) {
+			return
+		}
+
+		deleteGraph({
+			variables: {
+				id: graph_id,
+			},
+		}).then(() => {
+			navigate(`../${dashboard_id}`)
+		})
+	}
+
 	const { loading: metaLoading } = useGetVisualizationQuery({
 		variables: {
 			id: dashboard_id!,
@@ -343,12 +362,12 @@ export const GraphingEditor = () => {
 
 			setMetric(g.metric)
 			setMetricViewTitle(g.title)
-			setGroupByEnabled(g.groupByKey !== undefined)
+			setGroupByEnabled(g.groupByKey !== null)
 			setGroupByKey(g.groupByKey ?? '')
 			setLimitFunctionType(g.limitFunctionType ?? FUNCTION_TYPES[0])
 			setLimit(g.limit ?? 10)
 			setLimitMetric(g.limitMetric ?? '')
-			setBucketByEnabled(g.bucketByKey !== undefined)
+			setBucketByEnabled(g.bucketByKey !== null)
 			setBucketByKey(g.bucketByKey ?? '')
 			setBucketCount(g.bucketCount ?? DEFAULT_BUCKET_COUNT)
 		},
@@ -494,6 +513,15 @@ export const GraphingEditor = () => {
 								Cancel
 							</Button>
 							<TimeRangePicker />
+							{isEdit ? (
+								<Button
+									kind="danger"
+									emphasis="low"
+									onClick={onDelete}
+								>
+									Delete
+								</Button>
+							) : null}
 							<Button onClick={onSave}>
 								Save&nbsp;
 								<Badge

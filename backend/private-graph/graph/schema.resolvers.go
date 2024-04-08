@@ -4790,8 +4790,15 @@ func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.Gr
 		Display:           graph.Display,
 		NullHandling:      graph.NullHandling,
 	}
-	if err := r.DB.WithContext(ctx).Save(&toSave).Error; err != nil {
-		return 0, err
+
+	if id == 0 {
+		if err := r.DB.WithContext(ctx).Create(&toSave).Error; err != nil {
+			return 0, err
+		}
+	} else {
+		if err := r.DB.WithContext(ctx).Select("*").Updates(&toSave).Error; err != nil {
+			return 0, err
+		}
 	}
 
 	return toSave.ID, nil
