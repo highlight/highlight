@@ -2923,9 +2923,9 @@ export type ReferrerTablePayload = {
 }
 
 export enum ReservedErrorGroupKey {
+	Tag = 'Tag',
 	Event = 'event',
 	Status = 'status',
-	Tag = 'tag',
 	Type = 'type',
 }
 
@@ -3101,6 +3101,7 @@ export type SavedSegment = {
 }
 
 export enum SavedSegmentEntityType {
+	Error = 'Error',
 	Log = 'Log',
 	Trace = 'Trace',
 }

@@ -1847,7 +1847,7 @@ type ReservedErrorGroupKey string
 const (
 	ReservedErrorGroupKeyEvent  ReservedErrorGroupKey = "event"
 	ReservedErrorGroupKeyStatus ReservedErrorGroupKey = "status"
-	ReservedErrorGroupKeyTag    ReservedErrorGroupKey = "tag"
+	ReservedErrorGroupKeyTag    ReservedErrorGroupKey = "Tag"
 	ReservedErrorGroupKeyType   ReservedErrorGroupKey = "type"
 )
 
@@ -2277,16 +2277,18 @@ type SavedSegmentEntityType string
 const (
 	SavedSegmentEntityTypeLog   SavedSegmentEntityType = "Log"
 	SavedSegmentEntityTypeTrace SavedSegmentEntityType = "Trace"
+	SavedSegmentEntityTypeError SavedSegmentEntityType = "Error"
 )
 
 var AllSavedSegmentEntityType = []SavedSegmentEntityType{
 	SavedSegmentEntityTypeLog,
 	SavedSegmentEntityTypeTrace,
+	SavedSegmentEntityTypeError,
 }
 
 func (e SavedSegmentEntityType) IsValid() bool {
 	switch e {
-	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace:
+	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace, SavedSegmentEntityTypeError:
 		return true
 	}
 	return false

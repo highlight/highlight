@@ -11496,6 +11496,7 @@ enum SortDirection {
 enum SavedSegmentEntityType {
 	Log
 	Trace
+	Error
 }
 
 type Project {
@@ -12001,7 +12002,7 @@ enum ReservedErrorObjectKey {
 enum ReservedErrorGroupKey {
 	event
 	status
-	tag
+	Tag
 	type
 }
 
