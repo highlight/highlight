@@ -15,6 +15,7 @@
 		"lint": "eslint ./src",
 		"lint:ts": "tsc --noEmit",
 		"test": "TZ=UTC vitest --run",
+		"test:watch": "TZ=UTC vitest",
 		"tokens:generate": "npx ts-node-esm ./scripts/generate-tokens.ts",
 		"typegen": "tsc --emitDeclarationOnly"
 	},

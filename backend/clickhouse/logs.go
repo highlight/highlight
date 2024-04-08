@@ -34,6 +34,7 @@ var logKeysToColumns = map[modelInputs.ReservedLogKey]string{
 	modelInputs.ReservedLogKeyServiceName:     "ServiceName",
 	modelInputs.ReservedLogKeyServiceVersion:  "ServiceVersion",
 	modelInputs.ReservedLogKeyEnvironment:     "Environment",
+	modelInputs.ReservedLogKeyMessage:         "Body",
 }
 
 // These keys show up as recommendations, but with no recommended values due to high cardinality
