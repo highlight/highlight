@@ -1847,7 +1847,7 @@ type ReservedErrorGroupKey string
 const (
 	ReservedErrorGroupKeyEvent  ReservedErrorGroupKey = "event"
 	ReservedErrorGroupKeyStatus ReservedErrorGroupKey = "status"
-	ReservedErrorGroupKeyTag    ReservedErrorGroupKey = "tag"
+	ReservedErrorGroupKeyTag    ReservedErrorGroupKey = "Tag"
 	ReservedErrorGroupKeyType   ReservedErrorGroupKey = "type"
 )
 
