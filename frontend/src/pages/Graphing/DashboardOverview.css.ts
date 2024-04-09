@@ -9,5 +9,3 @@ export const emptyContainer = style({
 	paddingBottom: '32px',
 	paddingTop: '32px',
 })
-
-export const searchInputWrapper = style({})

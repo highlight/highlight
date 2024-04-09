@@ -135,10 +135,7 @@ export default function DashboardOverview() {
 										Create new dashboard
 									</Button>
 								</Box>
-								<Table
-									withSearch
-									className={style.searchInputWrapper}
-								>
+								<Table withSearch>
 									<Table.Search
 										placeholder="Search..."
 										handleChange={(e) => {
@@ -221,33 +218,44 @@ const DashboardRows = ({
 		)
 	}
 
-	return rows.map((row, idx) => (
-		<Table.Row width="full" key={idx}>
-			<Link to={`${row.id}`}>
-				<Stack width="full" px="12" py="8" gap="2">
-					<Box display="flex" gap="6" alignItems="center">
-						<Badge color="weak" iconStart={<IconSolidChartBar />} />
-						<Text weight="medium" size="small" color="strong">
-							{row.name}
-						</Text>
-					</Box>
-					<Box>
-						<Text color="weak" display="inline-block">
-							Updated by&nbsp;
-						</Text>
-						<Text
-							color="secondaryContentText"
-							display="inline-block"
-						>
-							{row.updatedByAdmin?.name ?? 'Highlight'}
-							&nbsp;
-						</Text>
-						<Text color="weak" display="inline-block">
-							{moment(row.updatedAt).fromNow()}
-						</Text>
-					</Box>
-				</Stack>
-			</Link>
-		</Table.Row>
-	))
+	return (
+		<>
+			{rows.map((row, idx) => (
+				<Table.Row width="full" key={idx}>
+					<Link to={`${row.id}`}>
+						<Stack width="full" px="12" py="8" gap="2">
+							<Box display="flex" gap="6" alignItems="center">
+								<Badge
+									color="weak"
+									iconStart={<IconSolidChartBar />}
+								/>
+								<Text
+									weight="medium"
+									size="small"
+									color="strong"
+								>
+									{row.name}
+								</Text>
+							</Box>
+							<Box>
+								<Text color="weak" display="inline-block">
+									Updated by&nbsp;
+								</Text>
+								<Text
+									color="secondaryContentText"
+									display="inline-block"
+								>
+									{row.updatedByAdmin?.name ?? 'Highlight'}
+									&nbsp;
+								</Text>
+								<Text color="weak" display="inline-block">
+									{moment(row.updatedAt).fromNow()}
+								</Text>
+							</Box>
+						</Stack>
+					</Link>
+				</Table.Row>
+			))}
+		</>
+	)
 }
