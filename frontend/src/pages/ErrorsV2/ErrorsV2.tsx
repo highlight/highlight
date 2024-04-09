@@ -54,8 +54,8 @@ import {
 } from 'use-query-params'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
-import { QueryParam } from '@/components/Search/SearchForm/SearchForm'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
+import { ErrorState as ErrorStateEnum } from '@/graph/generated/schemas'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import ErrorIssueButton from '@/pages/ErrorsV2/ErrorIssueButton/ErrorIssueButton'
 import ErrorShareButton from '@/pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
@@ -69,13 +69,17 @@ import * as styles from './styles.css'
 type Params = { project_id: string; error_secure_id: string; referrer?: string }
 
 const PAGE_PARAM = withDefault(NumberParam, 1)
+const ERROR_QUERY_PARAM = withDefault(
+	StringParam,
+	`status=${ErrorStateEnum.Open}`,
+)
 
 export default function ErrorsV2() {
 	const { project_id, error_secure_id } = useParams<Params>()
 	const { isLoggedIn } = useAuthContext()
 	const [{ integrated }] = useIntegratedLocalStorage(project_id!, 'server')
 
-	const [query, setQuery] = useQueryParam('query', QueryParam)
+	const [query, setQuery] = useQueryParam('query', ERROR_QUERY_PARAM)
 	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
 
 	const {
