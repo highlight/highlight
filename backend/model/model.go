@@ -202,6 +202,8 @@ var Models = []interface{}{
 	&SystemConfiguration{},
 	&SessionInsight{},
 	&ErrorTag{},
+	&Graph{},
+	&Visualization{},
 }
 
 func init() {
@@ -1430,6 +1432,32 @@ type Retryable struct {
 	PayloadID   string
 	Payload     JSONB `gorm:"type:jsonb"`
 	Error       string
+}
+
+type Graph struct {
+	Model
+	VisualizationID   int `gorm:"index"`
+	Type              string
+	Title             string
+	ProductType       modelInputs.ProductType
+	Query             string
+	Metric            string
+	FunctionType      modelInputs.MetricAggregator
+	GroupByKey        *string
+	BucketByKey       *string
+	BucketCount       *int
+	Limit             *int
+	LimitFunctionType *modelInputs.MetricAggregator
+	LimitMetric       *string
+	Display           *string
+	NullHandling      *string
+}
+
+type Visualization struct {
+	Model
+	ProjectID int    `gorm:"uniqueIndex:visualization_project_id_name_idx"`
+	Name      string `gorm:"uniqueIndex:visualization_project_id_name_idx"`
+	Graphs    []Graph
 }
 
 func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {

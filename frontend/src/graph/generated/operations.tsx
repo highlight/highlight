@@ -1623,6 +1623,42 @@ export type CreateSavedSegmentMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type UpsertVisualizationMutationVariables = Types.Exact<{
+	visualization: Types.VisualizationInput
+}>
+
+export type UpsertVisualizationMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'upsertVisualization'
+>
+
+export type DeleteVisualizationMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+}>
+
+export type DeleteVisualizationMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'deleteVisualization'
+>
+
+export type UpsertGraphMutationVariables = Types.Exact<{
+	graph: Types.GraphInput
+}>
+
+export type UpsertGraphMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'upsertGraph'
+>
+
+export type DeleteGraphMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+}>
+
+export type DeleteGraphMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'deleteGraph'
+>
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -5157,6 +5193,38 @@ export type GetMetricsQuery = { __typename?: 'Query' } & {
 		}
 }
 
+export type GetVisualizationQueryVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+}>
+
+export type GetVisualizationQuery = { __typename?: 'Query' } & {
+	visualization: { __typename?: 'Visualization' } & Pick<
+		Types.Visualization,
+		'id' | 'projectId' | 'name'
+	> & {
+			graphs: Array<
+				{ __typename?: 'Graph' } & Pick<
+					Types.Graph,
+					| 'id'
+					| 'type'
+					| 'title'
+					| 'productType'
+					| 'query'
+					| 'metric'
+					| 'functionType'
+					| 'groupByKey'
+					| 'bucketByKey'
+					| 'bucketCount'
+					| 'limit'
+					| 'limitFunctionType'
+					| 'limitMetric'
+					| 'display'
+					| 'nullHandling'
+				>
+			>
+		}
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -5306,6 +5374,7 @@ export const namedOperations = {
 		GetKeys: 'GetKeys' as const,
 		GetKeyValues: 'GetKeyValues' as const,
 		GetMetrics: 'GetMetrics' as const,
+		GetVisualization: 'GetVisualization' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -5400,6 +5469,10 @@ export const namedOperations = {
 		DeleteSavedSegment: 'DeleteSavedSegment' as const,
 		EditSavedSegment: 'EditSavedSegment' as const,
 		CreateSavedSegment: 'CreateSavedSegment' as const,
+		UpsertVisualization: 'UpsertVisualization' as const,
+		DeleteVisualization: 'DeleteVisualization' as const,
+		UpsertGraph: 'UpsertGraph' as const,
+		DeleteGraph: 'DeleteGraph' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

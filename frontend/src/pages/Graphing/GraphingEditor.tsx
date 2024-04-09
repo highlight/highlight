@@ -9,22 +9,35 @@ import {
 	Menu,
 	Text,
 } from '@highlight-run/ui/components'
+import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
-import moment from 'moment'
 import { PropsWithChildren, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { useDebounce, usePrevious } from 'react-use'
+import { useNavigate } from 'react-router-dom'
+import { useDebounce } from 'react-use'
 
 import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import Switch from '@/components/Switch/Switch'
-import { useGetKeysQuery, useGetMetricsQuery } from '@/graph/generated/hooks'
-import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
+import {
+	useDeleteGraphMutation,
+	useGetKeysQuery,
+	useGetVisualizationQuery,
+	useUpsertGraphMutation,
+} from '@/graph/generated/hooks'
+import { namedOperations } from '@/graph/generated/operations'
+import {
+	GraphInput,
+	MetricAggregator,
+	ProductType,
+} from '@/graph/generated/schemas'
+import useDataTimeRange from '@/hooks/useDataTimeRange'
 import { useProjectId } from '@/hooks/useProjectId'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
 import Graph, {
-	GROUP_KEY,
+	getViewConfig,
+	TIMESTAMP_KEY,
 	View,
-	ViewConfig,
 	VIEWS,
 } from '@/pages/Graphing/components/Graph'
 import {
@@ -40,7 +53,6 @@ import {
 
 import * as style from './GraphingEditor.css'
 
-const TIMESTAMP_KEY = 'Timestamp'
 const DEFAULT_BUCKET_COUNT = 50
 
 const PRODUCTS: ProductType[] = [
@@ -243,9 +255,126 @@ const TableSettings = ({
 )
 
 export const GraphingEditor = () => {
+	const { dashboard_id, graph_id } = useParams<{
+		dashboard_id: string
+		graph_id: string
+	}>()
+
+	const isEdit = graph_id !== undefined
+
+	const { timeRange } = useDataTimeRange()
+
+	const [upsertGraph] = useUpsertGraphMutation({
+		refetchQueries: [namedOperations.Query.GetVisualization],
+	})
+
+	const [deleteGraph] = useDeleteGraphMutation({
+		refetchQueries: [namedOperations.Query.GetVisualization],
+	})
+
+	const navigate = useNavigate()
+
+	const onSave = () => {
+		let display: string | undefined
+		let nullHandling: string | undefined
+
+		switch (viewType) {
+			case 'Line chart':
+				display = lineDisplay
+				nullHandling = lineNullHandling
+				break
+			case 'Bar chart':
+				display = barDisplay
+				break
+			case 'Table':
+				nullHandling = tableNullHandling
+				break
+		}
+
+		const graphInput: GraphInput = {
+			visualizationId: dashboard_id!,
+			bucketByKey,
+			bucketCount,
+			display,
+			functionType,
+			groupByKey: groupByEnabled ? groupByKey : null,
+			limit: groupByEnabled ? limit : null,
+			limitFunctionType: groupByEnabled ? limitFunctionType : null,
+			limitMetric: groupByEnabled ? limitMetric : null,
+			metric,
+			nullHandling,
+			productType,
+			query: debouncedQuery,
+			title: metricViewTitle,
+			type: viewType,
+		}
+
+		if (isEdit) {
+			graphInput.id = graph_id
+		}
+
+		upsertGraph({
+			variables: {
+				graph: graphInput,
+			},
+		}).then(() => {
+			navigate(`../${dashboard_id}`)
+		})
+	}
+
+	const onDelete = () => {
+		if (!isEdit) {
+			return
+		}
+
+		deleteGraph({
+			variables: {
+				id: graph_id,
+			},
+		}).then(() => {
+			navigate(`../${dashboard_id}`)
+		})
+	}
+
+	const { loading: metaLoading } = useGetVisualizationQuery({
+		variables: {
+			id: dashboard_id!,
+		},
+		skip: !isEdit,
+		onCompleted: (data) => {
+			const g = data.visualization.graphs.find((g) => g.id === graph_id)
+			if (g === undefined) {
+				return
+			}
+
+			const viewType = g.type as View
+			setProductType(g.productType)
+			setViewType(viewType)
+			setFunctionType(g.functionType)
+
+			if (viewType === 'Line chart') {
+				setLineNullHandling(g.nullHandling as LineNullHandling)
+				setLineDisplay(g.display as LineDisplay)
+			} else if (viewType === 'Bar chart') {
+				setBarDisplay(g.display as BarDisplay)
+			} else if (viewType === 'Table') {
+				setTableNullHandling(g.nullHandling as TableNullHandling)
+			}
+
+			setMetric(g.metric)
+			setMetricViewTitle(g.title)
+			setGroupByEnabled(g.groupByKey !== null)
+			setGroupByKey(g.groupByKey ?? '')
+			setLimitFunctionType(g.limitFunctionType ?? FUNCTION_TYPES[0])
+			setLimit(g.limit ?? 10)
+			setLimitMetric(g.limitMetric ?? '')
+			setBucketByEnabled(g.bucketByKey !== null)
+			setBucketByKey(g.bucketByKey ?? '')
+			setBucketCount(g.bucketCount ?? DEFAULT_BUCKET_COUNT)
+		},
+	})
+
 	const { projectId } = useProjectId()
-	const [endDate] = useState(moment().toISOString())
-	const [startDate] = useState(moment().subtract(4, 'hours').toISOString())
 
 	const [productType, setProductType] = useState(PRODUCTS[0])
 	const [viewType, setViewType] = useState(VIEWS[0])
@@ -284,6 +413,9 @@ export const GraphingEditor = () => {
 	const [bucketByKey, setBucketByKey] = useState('')
 	const [bucketCount, setBucketCount] = useState(DEFAULT_BUCKET_COUNT)
 
+	const startDate = timeRange.start_date
+	const endDate = timeRange.end_date
+
 	const { data: keys } = useGetKeysQuery({
 		variables: {
 			product_type: productType,
@@ -320,88 +452,20 @@ export const GraphingEditor = () => {
 		setBucketByKey(bucketByKeys[0] ?? '')
 	}, [allKeys, bucketByKeys, numericKeys])
 
-	const queriedBucketCount = bucketByEnabled ? bucketCount : 1
-
-	const { data: metrics, loading: metricsLoading } = useGetMetricsQuery({
-		variables: {
-			product_type: productType,
-			project_id: projectId,
-			params: {
-				date_range: {
-					start_date: startDate,
-					end_date: endDate,
-				},
-				query: debouncedQuery,
-			},
-			column: metric,
-			metric_types: [functionType],
-			group_by: groupByEnabled ? [groupByKey] : [],
-			bucket_by: bucketByEnabled ? bucketByKey : TIMESTAMP_KEY,
-			bucket_count: queriedBucketCount,
-			limit: limit,
-			limit_aggregator: limitFunctionType,
-			limit_column: limitMetric,
-		},
-	})
-
-	// Retain previous data - in case of loading, keep returning old data
-	let metricsToUse = usePrevious(metrics)
-	if (metrics !== undefined) {
-		metricsToUse = metrics
-	}
-
-	let data: any[] | undefined
-	if (metricsToUse?.metrics.buckets) {
-		if (bucketByEnabled) {
-			data = []
-			for (let i = 0; i < metricsToUse.metrics.bucket_count; i++) {
-				data.push({})
-			}
-
-			const seriesKeys = new Set<string>()
-			for (const b of metricsToUse.metrics.buckets) {
-				const seriesKey = b.group.join(' ')
-				seriesKeys.add(seriesKey)
-				data[b.bucket_id][bucketByKey] =
-					(b.bucket_min + b.bucket_max) / 2
-				data[b.bucket_id][seriesKey] = b.metric_value
-			}
-		} else {
-			data = []
-			for (const b of metricsToUse.metrics.buckets) {
-				data.push({
-					[GROUP_KEY]: b.group.join(' '),
-					'': b.metric_value,
-				})
-			}
-		}
-	}
-
-	let viewConfig: ViewConfig
+	let display: string | undefined
+	let nullHandling: string | undefined
 	if (viewType === 'Line chart') {
-		viewConfig = {
-			type: viewType,
-			showLegend: true,
-			display: lineDisplay,
-			nullHandling: lineNullHandling,
-		}
+		display = lineDisplay
+		nullHandling = lineNullHandling
 	} else if (viewType === 'Bar chart') {
-		viewConfig = {
-			type: viewType,
-			showLegend: true,
-			display: barDisplay,
-		}
+		display = barDisplay
 	} else if (viewType === 'Table') {
-		viewConfig = {
-			type: viewType,
-			showLegend: false,
-			nullHandling: tableNullHandling,
-		}
-	} else {
-		viewConfig = {
-			type: 'Line chart',
-			showLegend: true,
-		}
+		nullHandling = tableNullHandling
+	}
+	const viewConfig = getViewConfig(viewType, display, nullHandling)
+
+	if (metaLoading) {
+		return null
 	}
 
 	return (
@@ -437,14 +501,30 @@ export const GraphingEditor = () => {
 						py="6"
 					>
 						<Text size="small" weight="medium">
-							Edit Metric View
+							{isEdit ? 'Edit' : 'Create'} Metric View
 						</Text>
 						<Box display="flex" gap="4">
-							<Button emphasis="low" kind="secondary">
+							<Button
+								emphasis="low"
+								kind="secondary"
+								onClick={() => {
+									navigate(`../${dashboard_id}`)
+								}}
+							>
 								Cancel
 							</Button>
-							<Button>
-								Create metric view&nbsp;
+							<TimeRangePicker />
+							{isEdit ? (
+								<Button
+									kind="danger"
+									emphasis="low"
+									onClick={onDelete}
+								>
+									Delete
+								</Button>
+							) : null}
+							<Button onClick={onSave}>
+								Save&nbsp;
 								<Badge
 									variant="outlinePurple"
 									shape="basic"
@@ -475,21 +555,56 @@ export const GraphingEditor = () => {
 								<EditorBackground />
 							</Box>
 
-							<Graph
-								data={data}
-								loading={metricsLoading}
-								title={metricViewTitle}
-								xAxisMetric={
-									bucketByEnabled ? bucketByKey : GROUP_KEY
-								}
-								yAxisMetric={
-									functionType === MetricAggregator.Count
-										? ''
-										: metric
-								}
-								yAxisFunction={functionType}
-								viewConfig={viewConfig}
-							/>
+							<Box cssClass={style.graphWrapper} shadow="small">
+								<Box
+									px="16"
+									py="12"
+									width="full"
+									height="full"
+									border="divider"
+									borderRadius="8"
+								>
+									<Graph
+										title={metricViewTitle}
+										viewConfig={viewConfig}
+										productType={productType}
+										projectId={projectId}
+										startDate={startDate}
+										endDate={endDate}
+										query={debouncedQuery}
+										metric={metric}
+										functionType={functionType}
+										bucketByKey={
+											bucketByEnabled
+												? bucketByKey
+												: undefined
+										}
+										bucketCount={
+											bucketByEnabled
+												? bucketCount
+												: undefined
+										}
+										groupByKey={
+											groupByEnabled
+												? groupByKey
+												: undefined
+										}
+										limit={
+											groupByEnabled ? limit : undefined
+										}
+										limitFunctionType={
+											groupByEnabled
+												? limitFunctionType
+												: undefined
+										}
+										limitMetric={
+											groupByEnabled
+												? limitMetric
+												: undefined
+										}
+									/>
+								</Box>
+							</Box>
 						</Box>
 						<Box
 							display="flex"

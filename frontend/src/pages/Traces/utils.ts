@@ -58,8 +58,10 @@ export const getTraceDurationString = (duration: number) => {
 		return `${secondString} ${millisecondString}`
 	} else if (millisecondString) {
 		return millisecondString
-	} else {
+	} else if (microsecondString) {
 		return microsecondString
+	} else {
+		return `${nanoseconds}ns`
 	}
 }
 

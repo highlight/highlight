@@ -7446,35 +7446,117 @@ body {
   background-color: #ffffff;
 }
 .dg2vg62 {
-  width: 720px;
-  height: 360px;
-  margin: auto;
-  z-index: 1;
-  background-color: #ffffff;
-}
-.dg2vg63 {
   left: -6px;
   max-height: 72px;
   padding-top: 2px;
   padding-bottom: 2px;
   overflow-y: auto;
 }
-.dg2vg64 {
+.dg2vg63 {
   border-radius: 50%;
   margin: auto;
   margin-right: 4px;
   width: 8px;
   height: 8px;
 }
-.dg2vg65 {
+.dg2vg64 {
   max-width: 145px;
   text-align: left;
 }
-.dg2vg66 {
+.dg2vg65 {
   height: 16px;
 }
-.dg2vg67 {
+.dg2vg66 {
   line-height: 24px;
+  height: 24px;
+}
+.dg2vg67 {
+  visibility: hidden;
+}
+.dg2vg68 {
+  background-color: white;
+  border: var(--_1pyqka9j) solid 1px;
+  border-radius: 6px;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+}
+.dg2vg69 {
+  line-height: 16px;
+}
+.dg2vg6a {
+  border-radius: 50%;
+  margin-right: 4px;
+  width: 8px;
+  height: 8px;
+}
+._1a4jm560 {
+  height: 40px;
+}
+._1a4jm561 {
+  z-index: 0;
+}
+._1a4jm562 {
+  width: 320px;
+}
+._1a4jm563 {
+  margin-bottom: 4px;
+}
+._1a4jm564 {
+  border: var(--_1pyqka9j) solid 1px;
+  width: 100%;
+}
+._1a4jm565 {
+  height: 28px;
+}
+._1a4jm566 {
+  overflow: auto;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  padding: 8px 28px;
+  grid-template-rows: repeat(auto-fill, 280px);
+}
+._1a4jm567 {
+  border-bottom: var(--_1pyqka9k) solid 1px;
+}
+._1a4jm564 > div {
+  width: 100%;
+}
+@media (width <= 850px) {
+  ._1a4jm566 {
+    grid-template-columns: 1fr;
+  }
+  ._1a4jm567:nth-child(n+1):nth-last-child(-n+1) {
+    border-bottom: none;
+  }
+  ._1a4jm567:nth-child(n+1):nth-last-child(-n+1) ~ ._1a4jm567 {
+    border-bottom: none;
+  }
+}
+@media (850px < width <= 1250px) {
+  ._1a4jm566 {
+    grid-template-columns: 1fr 1fr;
+  }
+  ._1a4jm567:nth-child(2n+1):nth-last-child(-n+2) {
+    border-bottom: none;
+  }
+  ._1a4jm567:nth-child(2n+1):nth-last-child(-n+2) ~ ._1a4jm567 {
+    border-bottom: none;
+  }
+}
+@media (1250px < width) {
+  ._1a4jm566 {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  ._1a4jm567:nth-child(3n+1):nth-last-child(-n+3) {
+    border-bottom: none;
+  }
+  ._1a4jm567:nth-child(3n+1):nth-last-child(-n+3) ~ ._1a4jm567 {
+    border-bottom: none;
+  }
 }
 .gw96js0 {
   height: 40px;
@@ -7494,6 +7576,13 @@ body {
 }
 .gw96js5 {
   height: 28px;
+}
+.gw96js6 {
+  width: 720px;
+  height: 360px;
+  margin: auto;
+  z-index: 1;
+  background-color: #ffffff;
 }
 .gw96js4 > div {
   width: 100%;
