@@ -1,28 +1,30 @@
-import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import {
 	Badge,
 	Box,
 	Button,
 	Container,
-	Form,
 	Heading,
 	IconSolidChartBar,
-	IconSolidCheveronRight,
-	IconSolidSearch,
-	Input,
 	Stack,
-	Tag,
+	Table,
 	Text,
 } from '@highlight-run/ui/components'
+import { message } from 'antd'
+import moment from 'moment'
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
+import LoadingBox from '@/components/LoadingBox'
+import { SearchEmptyState } from '@/components/SearchEmptyState/SearchEmptyState'
 import {
 	useGetVisualizationsQuery,
 	useUpsertVisualizationMutation,
 } from '@/graph/generated/hooks'
-import { namedOperations } from '@/graph/generated/operations'
+import {
+	GetVisualizationsQuery,
+	namedOperations,
+} from '@/graph/generated/operations'
 import { useProjectId } from '@/hooks/useProjectId'
 
 import * as style from './DashboardOverview.css'
@@ -36,9 +38,10 @@ export default function DashboardOverview() {
 	const [debouncedQuery, setDebouncedQuery] = useState('')
 	useDebounce(
 		() => {
+			setPage(0)
 			setDebouncedQuery(query)
 		},
-		500,
+		300,
 		[query],
 	)
 	const [page, setPage] = useState(0)
@@ -52,7 +55,11 @@ export default function DashboardOverview() {
 		},
 	})
 
-	const [upsertViz] = useUpsertVisualizationMutation({
+	const count = data?.visualizations.count ?? 0
+	const hasPrev = page > 0
+	const hasNext = (page + 1) * ITEMS_PER_PAGE < count
+
+	const [upsertViz, upsertContext] = useUpsertVisualizationMutation({
 		variables: {
 			visualization: {
 				name: 'Untitled Dashboard',
@@ -65,14 +72,14 @@ export default function DashboardOverview() {
 	const navigate = useNavigate()
 
 	const createDashboard = () => {
-		upsertViz().then((result) => {
-			if (result.data !== undefined && result.data !== null) {
-				navigate(result.data.upsertVisualization)
-			}
-		})
+		upsertViz()
+			.then((result) => {
+				if (result.data !== undefined && result.data !== null) {
+					navigate(result.data.upsertVisualization)
+				}
+			})
+			.catch(() => message.error('Failed to create a new dashboard'))
 	}
-
-	const rows = data?.visualizations?.results
 
 	return (
 		<Box width="full" background="raised" p="8">
@@ -121,121 +128,62 @@ export default function DashboardOverview() {
 									>
 										All dashboards
 									</Text>
-									<Button onClick={createDashboard}>
+									<Button
+										disabled={upsertContext.loading}
+										onClick={createDashboard}
+									>
 										Create new dashboard
 									</Button>
 								</Box>
-								<Stack
-									gap="0"
-									border="dividerWeak"
-									borderRadius="6"
+								<Table
+									withSearch
+									className={style.searchInputWrapper}
 								>
-									<Form>
-										<Box
-											display="flex"
-											gap="6"
-											alignItems="center"
-											cssClass={style.searchInputWrapper}
-										>
-											<IconSolidSearch />
-											<Input
-												type="text"
-												name="title"
-												placeholder="Search..."
-												value={query}
-												onChange={(e) => {
-													setQuery(e.target.value)
-												}}
-												cssClass={style.searchInput}
-											/>
-										</Box>
-									</Form>
-									{rows && rows.length > 0 ? (
-										<>
-											{rows.map((row, idx) => (
-												<Box
-													width="full"
-													display="flex"
-													p="12"
-													gap="16"
-													key={idx}
-												>
-													<Box
-														display="flex"
-														alignItems="center"
-														justifyContent="space-between"
-														gap="8"
-														key={idx}
-													>
-														<Box
-															display="flex"
-															alignItems="center"
-															gap="4"
-														>
-															<Stack>
-																<Box
-																	display="flex"
-																	gap="6"
-																	alignItems="center"
-																>
-																	<Badge
-																		color="weak"
-																		iconStart={
-																			<IconSolidChartBar />
-																		}
-																	/>
-																	<Text
-																		weight="medium"
-																		size="small"
-																		color="strong"
-																	>
-																		{
-																			row.name
-																		}
-																	</Text>
-																</Box>
-																<Text
-																	weight="medium"
-																	size="small"
-																	color="default"
-																>
-																	{row.name}
-																</Text>
-															</Stack>
-														</Box>
-														<Box
-															display="flex"
-															gap="8"
-															flexShrink={0}
-														>
-															<Tag
-																kind="primary"
-																size="medium"
-																shape="basic"
-																emphasis="low"
-																iconRight={
-																	<IconSolidCheveronRight />
-																}
-																onClick={() =>
-																	navigate(
-																		`${row.id}`,
-																	)
-																}
-															>
-																View
-															</Tag>
-														</Box>
-													</Box>
-												</Box>
-											))}
-										</>
-									) : (
-										<SearchEmptyState
-											className={style.emptyContainer}
-											item="dashboards"
+									<Table.Search
+										placeholder="Search..."
+										handleChange={(e) => {
+											setQuery(e.target.value)
+										}}
+									/>
+									<Table.Body>
+										<DashboardRows
+											data={data}
+											loading={loading}
 										/>
-									)}
-								</Stack>
+									</Table.Body>
+								</Table>
+								<Box
+									display="flex"
+									justifyContent="space-between"
+									alignItems="center"
+								>
+									<Text size="xSmall" color="weak">
+										{loading ? '-' : count} result
+										{count !== 1 ? 's' : ''}
+									</Text>
+									<Box display="flex" gap="4">
+										<Button
+											disabled={!hasPrev || loading}
+											onClick={() => {
+												setPage((p) => p - 1)
+											}}
+											kind="secondary"
+											emphasis="high"
+										>
+											Previous
+										</Button>
+										<Button
+											disabled={!hasNext || loading}
+											onClick={() => {
+												setPage((p) => p + 1)
+											}}
+											kind="secondary"
+											emphasis="high"
+										>
+											Next
+										</Button>
+									</Box>
+								</Box>
 							</Stack>
 						</Stack>
 					</Box>
@@ -243,4 +191,63 @@ export default function DashboardOverview() {
 			</Box>
 		</Box>
 	)
+}
+
+const DashboardRows = ({
+	data,
+	loading,
+}: {
+	data: GetVisualizationsQuery | undefined
+	loading: boolean
+}) => {
+	const rows = data?.visualizations?.results
+
+	if (loading) {
+		return (
+			<Table.Row>
+				<LoadingBox width={560} height={326} />
+			</Table.Row>
+		)
+	}
+
+	if (rows?.length === undefined || rows?.length === 0) {
+		return (
+			<Table.Row>
+				<SearchEmptyState
+					className={style.emptyContainer}
+					item="dashboards"
+				/>
+			</Table.Row>
+		)
+	}
+
+	return rows.map((row, idx) => (
+		<Table.Row width="full" key={idx}>
+			<Link to={`${row.id}`}>
+				<Stack width="full" px="12" py="8" gap="2">
+					<Box display="flex" gap="6" alignItems="center">
+						<Badge color="weak" iconStart={<IconSolidChartBar />} />
+						<Text weight="medium" size="small" color="strong">
+							{row.name}
+						</Text>
+					</Box>
+					<Box>
+						<Text color="weak" display="inline-block">
+							Updated by&nbsp;
+						</Text>
+						<Text
+							color="secondaryContentText"
+							display="inline-block"
+						>
+							{row.updatedByAdmin?.name ?? 'Highlight'}
+							&nbsp;
+						</Text>
+						<Text color="weak" display="inline-block">
+							{moment(row.updatedAt).fromNow()}
+						</Text>
+					</Box>
+				</Stack>
+			</Link>
+		</Table.Row>
+	))
 }

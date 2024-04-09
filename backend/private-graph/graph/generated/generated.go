@@ -61,6 +61,7 @@ type ResolverRoot interface {
 	SessionComment() SessionCommentResolver
 	Subscription() SubscriptionResolver
 	TimelineIndicatorEvent() TimelineIndicatorEventResolver
+	Visualization() VisualizationResolver
 }
 
 type DirectiveRoot struct {
@@ -1565,10 +1566,12 @@ type ComplexityRoot struct {
 	}
 
 	Visualization struct {
-		Graphs    func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		ProjectID func(childComplexity int) int
+		Graphs         func(childComplexity int) int
+		ID             func(childComplexity int) int
+		Name           func(childComplexity int) int
+		ProjectID      func(childComplexity int) int
+		UpdatedAt      func(childComplexity int) int
+		UpdatedByAdmin func(childComplexity int) int
 	}
 
 	VisualizationsResponse struct {
@@ -2008,6 +2011,9 @@ type SubscriptionResolver interface {
 }
 type TimelineIndicatorEventResolver interface {
 	Data(ctx context.Context, obj *model1.TimelineIndicatorEvent) (interface{}, error)
+}
+type VisualizationResolver interface {
+	UpdatedByAdmin(ctx context.Context, obj *model1.Visualization) (*model.SanitizedAdmin, error)
 }
 
 type executableSchema struct {
@@ -10798,6 +10804,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Visualization.ProjectID(childComplexity), true
 
+	case "Visualization.updatedAt":
+		if e.complexity.Visualization.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Visualization.UpdatedAt(childComplexity), true
+
+	case "Visualization.updatedByAdmin":
+		if e.complexity.Visualization.UpdatedByAdmin == nil {
+			break
+		}
+
+		return e.complexity.Visualization.UpdatedByAdmin(childComplexity), true
+
 	case "VisualizationsResponse.count":
 		if e.complexity.VisualizationsResponse.Count == nil {
 			break
@@ -13157,8 +13177,10 @@ type Graph {
 
 type Visualization {
 	id: ID!
+	updatedAt: Timestamp!
 	projectId: ID!
 	name: String!
+	updatedByAdmin: SanitizedAdmin
 	graphs: [Graph!]!
 }
 
@@ -62788,10 +62810,14 @@ func (ec *executionContext) fieldContext_Query_visualization(ctx context.Context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Visualization_id(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Visualization_updatedAt(ctx, field)
 			case "projectId":
 				return ec.fieldContext_Visualization_projectId(ctx, field)
 			case "name":
 				return ec.fieldContext_Visualization_name(ctx, field)
+			case "updatedByAdmin":
+				return ec.fieldContext_Visualization_updatedByAdmin(ctx, field)
 			case "graphs":
 				return ec.fieldContext_Visualization_graphs(ctx, field)
 			}
@@ -76313,6 +76339,50 @@ func (ec *executionContext) fieldContext_Visualization_id(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Visualization_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model1.Visualization) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Visualization_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Visualization_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Visualization",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Visualization_projectId(ctx context.Context, field graphql.CollectedField, obj *model1.Visualization) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Visualization_projectId(ctx, field)
 	if err != nil {
@@ -76396,6 +76466,57 @@ func (ec *executionContext) fieldContext_Visualization_name(ctx context.Context,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Visualization_updatedByAdmin(ctx context.Context, field graphql.CollectedField, obj *model1.Visualization) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Visualization_updatedByAdmin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Visualization().UpdatedByAdmin(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.SanitizedAdmin)
+	fc.Result = res
+	return ec.marshalOSanitizedAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Visualization_updatedByAdmin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Visualization",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_SanitizedAdmin_id(ctx, field)
+			case "name":
+				return ec.fieldContext_SanitizedAdmin_name(ctx, field)
+			case "email":
+				return ec.fieldContext_SanitizedAdmin_email(ctx, field)
+			case "photo_url":
+				return ec.fieldContext_SanitizedAdmin_photo_url(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SanitizedAdmin", field.Name)
 		},
 	}
 	return fc, nil
@@ -76562,10 +76683,14 @@ func (ec *executionContext) fieldContext_VisualizationsResponse_results(ctx cont
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Visualization_id(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Visualization_updatedAt(ctx, field)
 			case "projectId":
 				return ec.fieldContext_Visualization_projectId(ctx, field)
 			case "name":
 				return ec.fieldContext_Visualization_name(ctx, field)
+			case "updatedByAdmin":
+				return ec.fieldContext_Visualization_updatedByAdmin(ctx, field)
 			case "graphs":
 				return ec.fieldContext_Visualization_graphs(ctx, field)
 			}
@@ -95953,22 +96078,60 @@ func (ec *executionContext) _Visualization(ctx context.Context, sel ast.Selectio
 		case "id":
 			out.Values[i] = ec._Visualization_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "updatedAt":
+			out.Values[i] = ec._Visualization_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "projectId":
 			out.Values[i] = ec._Visualization_projectId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._Visualization_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "updatedByAdmin":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Visualization_updatedByAdmin(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "graphs":
 			out.Values[i] = ec._Visualization_graphs(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

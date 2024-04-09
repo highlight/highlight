@@ -5188,7 +5188,7 @@ export type GetVisualizationQueryVariables = Types.Exact<{
 export type GetVisualizationQuery = { __typename?: 'Query' } & {
 	visualization: { __typename?: 'Visualization' } & Pick<
 		Types.Visualization,
-		'id' | 'projectId' | 'name'
+		'id' | 'updatedAt' | 'projectId' | 'name'
 	> & {
 			graphs: Array<
 				{ __typename?: 'Graph' } & Pick<
@@ -5210,6 +5210,12 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'nullHandling'
 				>
 			>
+			updatedByAdmin?: Types.Maybe<
+				{ __typename?: 'SanitizedAdmin' } & Pick<
+					Types.SanitizedAdmin,
+					'id' | 'name' | 'email' | 'photo_url'
+				>
+			>
 		}
 }
 
@@ -5228,7 +5234,7 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 			results: Array<
 				{ __typename?: 'Visualization' } & Pick<
 					Types.Visualization,
-					'id' | 'projectId' | 'name'
+					'id' | 'updatedAt' | 'projectId' | 'name'
 				> & {
 						graphs: Array<
 							{ __typename?: 'Graph' } & Pick<
@@ -5248,6 +5254,12 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'limitMetric'
 								| 'display'
 								| 'nullHandling'
+							>
+						>
+						updatedByAdmin?: Types.Maybe<
+							{ __typename?: 'SanitizedAdmin' } & Pick<
+								Types.SanitizedAdmin,
+								'id' | 'name' | 'email' | 'photo_url'
 							>
 						>
 					}

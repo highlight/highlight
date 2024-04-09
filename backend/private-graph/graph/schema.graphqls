@@ -1876,8 +1876,10 @@ type Graph {
 
 type Visualization {
 	id: ID!
+	updatedAt: Timestamp!
 	projectId: ID!
 	name: String!
+	updatedByAdmin: SanitizedAdmin
 	graphs: [Graph!]!
 }
 

@@ -2540,6 +2540,7 @@ query GetMetrics(
 query GetVisualization($id: ID!) {
 	visualization(id: $id) {
 		id
+		updatedAt
 		projectId
 		name
 		graphs {
@@ -2559,6 +2560,12 @@ query GetVisualization($id: ID!) {
 			display
 			nullHandling
 		}
+		updatedByAdmin {
+			id
+			name
+			email
+			photo_url
+		}
 	}
 }
 
@@ -2577,6 +2584,7 @@ query GetVisualizations(
 		count
 		results {
 			id
+			updatedAt
 			projectId
 			name
 			graphs {
@@ -2595,6 +2603,12 @@ query GetVisualizations(
 				limitMetric
 				display
 				nullHandling
+			}
+			updatedByAdmin {
+				id
+				name
+				email
+				photo_url
 			}
 		}
 	}

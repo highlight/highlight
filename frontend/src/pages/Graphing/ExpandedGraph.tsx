@@ -77,7 +77,7 @@ export const ExpandedGraph = () => {
 							>
 								Cancel
 							</Button>
-							<TimeRangePicker />
+							<TimeRangePicker emphasis="low" kind="secondary" />
 						</Box>
 					</Box>
 					<Box

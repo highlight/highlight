@@ -1455,9 +1455,11 @@ type Graph struct {
 
 type Visualization struct {
 	Model
-	ProjectID int `gorm:"index"`
-	Name      string
-	Graphs    []Graph
+	ProjectID        int `gorm:"index"`
+	Name             string
+	UpdatedByAdminId *int
+	UpdatedByAdmin   *Admin `gorm:"foreignKey:UpdatedByAdminId"`
+	Graphs           []Graph
 }
 
 type VisualizationsResponse struct {

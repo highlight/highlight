@@ -3724,6 +3724,8 @@ export type Visualization = {
 	id: Scalars['ID']
 	name: Scalars['String']
 	projectId: Scalars['ID']
+	updatedAt: Scalars['Timestamp']
+	updatedByAdmin?: Maybe<SanitizedAdmin>
 }
 
 export type VisualizationInput = {

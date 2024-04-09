@@ -15399,6 +15399,7 @@ export const GetVisualizationDocument = gql`
 	query GetVisualization($id: ID!) {
 		visualization(id: $id) {
 			id
+			updatedAt
 			projectId
 			name
 			graphs {
@@ -15417,6 +15418,12 @@ export const GetVisualizationDocument = gql`
 				limitMetric
 				display
 				nullHandling
+			}
+			updatedByAdmin {
+				id
+				name
+				email
+				photo_url
 			}
 		}
 	}
@@ -15486,6 +15493,7 @@ export const GetVisualizationsDocument = gql`
 			count
 			results {
 				id
+				updatedAt
 				projectId
 				name
 				graphs {
@@ -15504,6 +15512,12 @@ export const GetVisualizationsDocument = gql`
 					limitMetric
 					display
 					nullHandling
+				}
+				updatedByAdmin {
+					id
+					name
+					email
+					photo_url
 				}
 			}
 		}
