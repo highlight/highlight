@@ -4,6 +4,7 @@ import {
 	AreaChart,
 	CartesianGrid,
 	ResponsiveContainer,
+	Tooltip,
 	XAxis,
 	YAxis,
 } from 'recharts'
@@ -11,7 +12,8 @@ import {
 import {
 	CustomXAxisTick,
 	CustomYAxisTick,
-	getFormatter,
+	getCustomTooltip,
+	getTickFormatter,
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
@@ -43,8 +45,8 @@ export const LineChart = ({
 	spotlight,
 	viewConfig,
 }: InnerChartProps<LineChartConfig> & SeriesInfo) => {
-	const xAxisTickFormatter = getFormatter(xAxisMetric, data?.length)
-	const yAxisTickFormatter = getFormatter(yAxisMetric)
+	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data?.length)
+	const yAxisTickFormatter = getTickFormatter(yAxisMetric)
 
 	// Fill nulls
 	if (viewConfig.nullHandling === 'Zero' && data !== undefined) {
@@ -75,6 +77,12 @@ export const LineChart = ({
 					height={12}
 					type="number"
 					domain={['auto', 'auto']}
+				/>
+
+				<Tooltip
+					content={getCustomTooltip(xAxisMetric, yAxisMetric)}
+					cursor={{ stroke: '#C8C7CB', strokeDasharray: 4 }}
+					isAnimationActive={false}
 				/>
 
 				<YAxis

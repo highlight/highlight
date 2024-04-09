@@ -7473,6 +7473,25 @@ body {
 .dg2vg67 {
   visibility: hidden;
 }
+.dg2vg68 {
+  background-color: white;
+  border: var(--_1pyqka9j) solid 1px;
+  border-radius: 6px;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+}
+.dg2vg69 {
+  line-height: 16px;
+}
+.dg2vg6a {
+  border-radius: 50%;
+  margin-right: 4px;
+  width: 8px;
+  height: 8px;
+}
 ._1a4jm560 {
   height: 40px;
 }

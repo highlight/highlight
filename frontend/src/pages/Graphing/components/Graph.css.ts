@@ -46,3 +46,25 @@ export const titleText = style({
 export const hiddenMenu = style({
 	visibility: 'hidden',
 })
+
+export const tooltipWrapper = style({
+	backgroundColor: 'white',
+	border: vars.border.divider,
+	borderRadius: '6px',
+	minWidth: '100px',
+	display: 'flex',
+	flexDirection: 'column',
+	gap: '6px',
+	padding: '8px',
+})
+
+export const tooltipText = style({
+	lineHeight: '16px',
+})
+
+export const tooltipDot = style({
+	borderRadius: '50%',
+	marginRight: '4px',
+	width: 8,
+	height: 8,
+})

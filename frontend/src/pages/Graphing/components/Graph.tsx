@@ -128,7 +128,7 @@ const durationUnitMap: [number, string][] = [
 	[24, 'd'],
 ]
 
-export const getFormatter = (metric: string, bucketCount?: number) => {
+export const getTickFormatter = (metric: string, bucketCount?: number) => {
 	if (metric === 'Timestamp') {
 		return (value: any) => moment(value * 1000).format('HH:mm')
 	} else if (metric === 'duration') {
@@ -156,6 +156,51 @@ export const getFormatter = (metric: string, bucketCount?: number) => {
 		return (value: any) => formatNumber(value)
 	}
 }
+
+export const getCustomTooltip =
+	(xAxisMetric: any, yAxisMetric: any) =>
+	({ active, payload, label }: any) => {
+		if (active && payload && payload.length) {
+			return (
+				<Box cssClass={style.tooltipWrapper}>
+					<Text
+						size="xxSmall"
+						weight="medium"
+						color="default"
+						cssClass={style.tooltipText}
+					>
+						{getTickFormatter(xAxisMetric)(label)}
+					</Text>
+					{payload.map((p: any, idx: number) => (
+						<Box
+							display="flex"
+							flexDirection="row"
+							alignItems="center"
+							key={idx}
+						>
+							<Box
+								style={{
+									backgroundColor:
+										strokeColors[idx % strokeColors.length],
+								}}
+								cssClass={style.tooltipDot}
+							></Box>
+							<Text
+								size="xxSmall"
+								weight="medium"
+								color="default"
+								cssClass={style.tooltipText}
+							>
+								{getTickFormatter(yAxisMetric)(p.value)}
+							</Text>
+						</Box>
+					))}
+				</Box>
+			)
+		}
+
+		return null
+	}
 
 export const CustomYAxisTick = ({
 	y,
