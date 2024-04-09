@@ -6606,7 +6606,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	})
 
 	g.Go(func() error {
-		membersMeter = pricing.GetWorkspaceMembersMeter(r.DB, workspaceID)
+		membersMeter, err = r.Store.GetWorkspaceAdminCount(ctx, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error querying members meter")
 		}
