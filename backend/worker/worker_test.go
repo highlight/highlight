@@ -29,7 +29,7 @@ var chClient *clickhouse.Client
 
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
-	DB, _ = util.CreateAndMigrateTestDB("highlight_testing_db")
+	DB, _ = util.CreateAndMigrateTestDB("highlight_testing_db_worker")
 	redisClient = redis.NewClient()
 	chClient, _ = clickhouse.NewClient(clickhouse.TestDatabase)
 	clickhouse.RunMigrations(context.TODO(), clickhouse.TestDatabase)
