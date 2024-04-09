@@ -1,5 +1,6 @@
 import { makeVar, useReactiveVar } from '@apollo/client'
 import moment from 'moment'
+import { useCallback } from 'react'
 
 export const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
 
@@ -33,27 +34,32 @@ const setDataTimeRange = makeVar<DataTimeRange>({
 const useDataTimeRange = () => {
 	const timeRange = useReactiveVar(setDataTimeRange)
 
-	const setTimeRange = (start: string, end: string, absolute = false) => {
-		const startDate = moment(start).startOf('minute')
-		const endDate = moment(end).startOf('minute')
-		const lookback = moment.duration(endDate.diff(startDate)).asMinutes()
+	const setTimeRange = useCallback(
+		(start: string, end: string, absolute = false) => {
+			const startDate = moment(start).startOf('minute')
+			const endDate = moment(end).startOf('minute')
+			const lookback = moment
+				.duration(endDate.diff(startDate))
+				.asMinutes()
 
-		setDataTimeRange({
-			start_date: startDate.format(FORMAT),
-			end_date: endDate.format(FORMAT),
-			lookback,
-			absolute,
-		})
-	}
+			setDataTimeRange({
+				start_date: startDate.format(FORMAT),
+				end_date: endDate.format(FORMAT),
+				lookback,
+				absolute,
+			})
+		},
+		[],
+	)
 
-	const resetTimeRange = () => {
+	const resetTimeRange = useCallback(() => {
 		const now = moment()
 
 		setTimeRange(
 			moment(now).subtract(defaultLookback, 'minutes').format(FORMAT),
 			moment(now).format(FORMAT),
 		)
-	}
+	}, [setTimeRange])
 
 	return { timeRange, setTimeRange, resetTimeRange }
 }

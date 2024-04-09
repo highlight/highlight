@@ -26,6 +26,14 @@ export const input = style({
 	height: 28,
 })
 
+export const graphWrapper = style({
+	width: 720,
+	height: 360,
+	margin: 'auto',
+	zIndex: 1,
+	backgroundColor: vars.color.white,
+})
+
 globalStyle(`${menuButton} > div`, {
 	width: '100%',
 })

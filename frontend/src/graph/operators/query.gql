@@ -2536,3 +2536,28 @@ query GetMetrics(
 		sample_factor
 	}
 }
+
+query GetVisualization($id: ID!) {
+	visualization(id: $id) {
+		id
+		projectId
+		name
+		graphs {
+			id
+			type
+			title
+			productType
+			query
+			metric
+			functionType
+			groupByKey
+			bucketByKey
+			bucketCount
+			limit
+			limitFunctionType
+			limitMetric
+			display
+			nullHandling
+		}
+	}
+}

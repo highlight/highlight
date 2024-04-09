@@ -5848,6 +5848,194 @@ export type CreateSavedSegmentMutationOptions = Apollo.BaseMutationOptions<
 	Types.CreateSavedSegmentMutation,
 	Types.CreateSavedSegmentMutationVariables
 >
+export const UpsertVisualizationDocument = gql`
+	mutation UpsertVisualization($visualization: VisualizationInput!) {
+		upsertVisualization(visualization: $visualization)
+	}
+`
+export type UpsertVisualizationMutationFn = Apollo.MutationFunction<
+	Types.UpsertVisualizationMutation,
+	Types.UpsertVisualizationMutationVariables
+>
+
+/**
+ * __useUpsertVisualizationMutation__
+ *
+ * To run a mutation, you first call `useUpsertVisualizationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpsertVisualizationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [upsertVisualizationMutation, { data, loading, error }] = useUpsertVisualizationMutation({
+ *   variables: {
+ *      visualization: // value for 'visualization'
+ *   },
+ * });
+ */
+export function useUpsertVisualizationMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpsertVisualizationMutation,
+		Types.UpsertVisualizationMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpsertVisualizationMutation,
+		Types.UpsertVisualizationMutationVariables
+	>(UpsertVisualizationDocument, baseOptions)
+}
+export type UpsertVisualizationMutationHookResult = ReturnType<
+	typeof useUpsertVisualizationMutation
+>
+export type UpsertVisualizationMutationResult =
+	Apollo.MutationResult<Types.UpsertVisualizationMutation>
+export type UpsertVisualizationMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpsertVisualizationMutation,
+	Types.UpsertVisualizationMutationVariables
+>
+export const DeleteVisualizationDocument = gql`
+	mutation DeleteVisualization($id: ID!) {
+		deleteVisualization(id: $id)
+	}
+`
+export type DeleteVisualizationMutationFn = Apollo.MutationFunction<
+	Types.DeleteVisualizationMutation,
+	Types.DeleteVisualizationMutationVariables
+>
+
+/**
+ * __useDeleteVisualizationMutation__
+ *
+ * To run a mutation, you first call `useDeleteVisualizationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteVisualizationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteVisualizationMutation, { data, loading, error }] = useDeleteVisualizationMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteVisualizationMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.DeleteVisualizationMutation,
+		Types.DeleteVisualizationMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.DeleteVisualizationMutation,
+		Types.DeleteVisualizationMutationVariables
+	>(DeleteVisualizationDocument, baseOptions)
+}
+export type DeleteVisualizationMutationHookResult = ReturnType<
+	typeof useDeleteVisualizationMutation
+>
+export type DeleteVisualizationMutationResult =
+	Apollo.MutationResult<Types.DeleteVisualizationMutation>
+export type DeleteVisualizationMutationOptions = Apollo.BaseMutationOptions<
+	Types.DeleteVisualizationMutation,
+	Types.DeleteVisualizationMutationVariables
+>
+export const UpsertGraphDocument = gql`
+	mutation UpsertGraph($graph: GraphInput!) {
+		upsertGraph(graph: $graph)
+	}
+`
+export type UpsertGraphMutationFn = Apollo.MutationFunction<
+	Types.UpsertGraphMutation,
+	Types.UpsertGraphMutationVariables
+>
+
+/**
+ * __useUpsertGraphMutation__
+ *
+ * To run a mutation, you first call `useUpsertGraphMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpsertGraphMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [upsertGraphMutation, { data, loading, error }] = useUpsertGraphMutation({
+ *   variables: {
+ *      graph: // value for 'graph'
+ *   },
+ * });
+ */
+export function useUpsertGraphMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpsertGraphMutation,
+		Types.UpsertGraphMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpsertGraphMutation,
+		Types.UpsertGraphMutationVariables
+	>(UpsertGraphDocument, baseOptions)
+}
+export type UpsertGraphMutationHookResult = ReturnType<
+	typeof useUpsertGraphMutation
+>
+export type UpsertGraphMutationResult =
+	Apollo.MutationResult<Types.UpsertGraphMutation>
+export type UpsertGraphMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpsertGraphMutation,
+	Types.UpsertGraphMutationVariables
+>
+export const DeleteGraphDocument = gql`
+	mutation DeleteGraph($id: ID!) {
+		deleteGraph(id: $id)
+	}
+`
+export type DeleteGraphMutationFn = Apollo.MutationFunction<
+	Types.DeleteGraphMutation,
+	Types.DeleteGraphMutationVariables
+>
+
+/**
+ * __useDeleteGraphMutation__
+ *
+ * To run a mutation, you first call `useDeleteGraphMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteGraphMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteGraphMutation, { data, loading, error }] = useDeleteGraphMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteGraphMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.DeleteGraphMutation,
+		Types.DeleteGraphMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.DeleteGraphMutation,
+		Types.DeleteGraphMutationVariables
+	>(DeleteGraphDocument, baseOptions)
+}
+export type DeleteGraphMutationHookResult = ReturnType<
+	typeof useDeleteGraphMutation
+>
+export type DeleteGraphMutationResult =
+	Apollo.MutationResult<Types.DeleteGraphMutation>
+export type DeleteGraphMutationOptions = Apollo.BaseMutationOptions<
+	Types.DeleteGraphMutation,
+	Types.DeleteGraphMutationVariables
+>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -15206,4 +15394,79 @@ export type GetMetricsLazyQueryHookResult = ReturnType<
 export type GetMetricsQueryResult = Apollo.QueryResult<
 	Types.GetMetricsQuery,
 	Types.GetMetricsQueryVariables
+>
+export const GetVisualizationDocument = gql`
+	query GetVisualization($id: ID!) {
+		visualization(id: $id) {
+			id
+			projectId
+			name
+			graphs {
+				id
+				type
+				title
+				productType
+				query
+				metric
+				functionType
+				groupByKey
+				bucketByKey
+				bucketCount
+				limit
+				limitFunctionType
+				limitMetric
+				display
+				nullHandling
+			}
+		}
+	}
+`
+
+/**
+ * __useGetVisualizationQuery__
+ *
+ * To run a query within a React component, call `useGetVisualizationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetVisualizationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetVisualizationQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetVisualizationQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetVisualizationQuery,
+		Types.GetVisualizationQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetVisualizationQuery,
+		Types.GetVisualizationQueryVariables
+	>(GetVisualizationDocument, baseOptions)
+}
+export function useGetVisualizationLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetVisualizationQuery,
+		Types.GetVisualizationQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetVisualizationQuery,
+		Types.GetVisualizationQueryVariables
+	>(GetVisualizationDocument, baseOptions)
+}
+export type GetVisualizationQueryHookResult = ReturnType<
+	typeof useGetVisualizationQuery
+>
+export type GetVisualizationLazyQueryHookResult = ReturnType<
+	typeof useGetVisualizationLazyQuery
+>
+export type GetVisualizationQueryResult = Apollo.QueryResult<
+	Types.GetVisualizationQuery,
+	Types.GetVisualizationQueryVariables
 >

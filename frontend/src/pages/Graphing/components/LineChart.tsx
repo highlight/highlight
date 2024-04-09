@@ -1,17 +1,20 @@
+import { vars } from '@highlight-run/ui/vars'
 import {
 	Area,
 	AreaChart,
 	CartesianGrid,
 	ResponsiveContainer,
+	Tooltip,
 	XAxis,
 	YAxis,
 } from 'recharts'
 
 import {
-	ChartProps,
 	CustomXAxisTick,
 	CustomYAxisTick,
-	getFormatter,
+	getCustomTooltip,
+	getTickFormatter,
+	InnerChartProps,
 	isActive,
 	SeriesInfo,
 	strokeColors,
@@ -41,9 +44,9 @@ export const LineChart = ({
 	series,
 	spotlight,
 	viewConfig,
-}: ChartProps<LineChartConfig> & SeriesInfo) => {
-	const xAxisTickFormatter = getFormatter(xAxisMetric, data?.length)
-	const yAxisTickFormatter = getFormatter(yAxisMetric)
+}: InnerChartProps<LineChartConfig> & SeriesInfo) => {
+	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data?.length)
+	const yAxisTickFormatter = getTickFormatter(yAxisMetric)
 
 	// Fill nulls
 	if (viewConfig.nullHandling === 'Zero' && data !== undefined) {
@@ -55,7 +58,7 @@ export const LineChart = ({
 	}
 
 	return (
-		<ResponsiveContainer>
+		<ResponsiveContainer height="100%" width="100%">
 			<AreaChart data={data}>
 				<XAxis
 					dataKey={xAxisMetric}
@@ -74,6 +77,12 @@ export const LineChart = ({
 					height={12}
 					type="number"
 					domain={['auto', 'auto']}
+				/>
+
+				<Tooltip
+					content={getCustomTooltip(xAxisMetric, yAxisMetric)}
+					cursor={{ stroke: '#C8C7CB', strokeDasharray: 4 }}
+					isAnimationActive={false}
 				/>
 
 				<YAxis
@@ -96,7 +105,7 @@ export const LineChart = ({
 				<CartesianGrid
 					strokeDasharray=""
 					vertical={false}
-					stroke="var(--color-gray-200)"
+					stroke={vars.theme.static.divider.weak}
 				/>
 
 				{series.length > 0 &&

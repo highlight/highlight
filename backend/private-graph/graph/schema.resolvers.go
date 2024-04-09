@@ -4703,6 +4703,125 @@ func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObject
 	return &errorObject, nil
 }
 
+// UpsertVisualization is the resolver for the upsertVisualization field.
+func (r *mutationResolver) UpsertVisualization(ctx context.Context, visualization modelInputs.VisualizationInput) (int, error) {
+	id := 0
+	if visualization.ID != nil {
+		id = *visualization.ID
+
+		var viz model.Visualization
+		if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", *visualization.ID).Find(&viz).Error; err != nil {
+			return 0, err
+		}
+
+		if viz.ProjectID != visualization.ProjectID {
+			return 0, errors.New("project id does not match saved project id")
+		}
+	}
+
+	if _, err := r.isAdminInProject(ctx, visualization.ProjectID); err != nil {
+		return 0, err
+	}
+
+	toSave := model.Visualization{
+		Model:     model.Model{ID: id},
+		ProjectID: visualization.ProjectID,
+		Name:      visualization.Name,
+	}
+	if err := r.DB.WithContext(ctx).Save(&toSave).Error; err != nil {
+		return 0, err
+	}
+
+	return toSave.ID, nil
+}
+
+// DeleteVisualization is the resolver for the deleteVisualization field.
+func (r *mutationResolver) DeleteVisualization(ctx context.Context, id int) (bool, error) {
+	var viz model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", id).Find(&viz).Error; err != nil {
+		return false, err
+	}
+
+	if _, err := r.isAdminInProject(ctx, viz.ProjectID); err != nil {
+		return false, err
+	}
+
+	if err := r.DB.WithContext(ctx).Model(&model.Visualization{}).Delete("id = ?", id).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// UpsertGraph is the resolver for the upsertGraph field.
+func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.GraphInput) (int, error) {
+	var viz model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", graph.VisualizationID).Find(&viz).Error; err != nil {
+		return 0, err
+	}
+
+	_, err := r.isAdminInProject(ctx, viz.ProjectID)
+	if err != nil {
+		return 0, err
+	}
+
+	id := 0
+	if graph.ID != nil {
+		id = *graph.ID
+	}
+
+	toSave := model.Graph{
+		Model: model.Model{
+			ID: id,
+		},
+		VisualizationID:   graph.VisualizationID,
+		Type:              graph.Type,
+		Title:             graph.Title,
+		ProductType:       graph.ProductType,
+		Query:             graph.Query,
+		Metric:            graph.Metric,
+		FunctionType:      graph.FunctionType,
+		GroupByKey:        graph.GroupByKey,
+		BucketByKey:       graph.BucketByKey,
+		BucketCount:       graph.BucketCount,
+		Limit:             graph.Limit,
+		LimitFunctionType: graph.LimitFunctionType,
+		LimitMetric:       graph.LimitMetric,
+		Display:           graph.Display,
+		NullHandling:      graph.NullHandling,
+	}
+
+	if id == 0 {
+		if err := r.DB.WithContext(ctx).Create(&toSave).Error; err != nil {
+			return 0, err
+		}
+	} else {
+		if err := r.DB.WithContext(ctx).Select("*").Updates(&toSave).Error; err != nil {
+			return 0, err
+		}
+	}
+
+	return toSave.ID, nil
+}
+
+// DeleteGraph is the resolver for the deleteGraph field.
+func (r *mutationResolver) DeleteGraph(ctx context.Context, id int) (bool, error) {
+	var viz model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = (select visualization_id from graphs where id = ?)", id).Find(&viz).Error; err != nil {
+		return false, err
+	}
+
+	if _, err := r.isAdminInProject(ctx, viz.ProjectID); err != nil {
+		return false, err
+	}
+
+	if err := r.DB.WithContext(ctx).Model(&model.Graph{}).Delete("id = ?", id).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 // Accounts is the resolver for the accounts field.
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
@@ -8957,6 +9076,47 @@ func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.P
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}
+}
+
+// Visualization is the resolver for the visualization field.
+func (r *queryResolver) Visualization(ctx context.Context, id int) (*model.Visualization, error) {
+	var viz model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", id).Find(&viz).Error; err != nil {
+		return nil, err
+	}
+
+	_, err := r.isAdminInProjectOrDemoProject(ctx, viz.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	graphs := []model.Graph{}
+	if err := r.DB.WithContext(ctx).Order("id ASC").Model(&viz).Association("Graphs").Find(&graphs); err != nil {
+		return nil, err
+	}
+	viz.Graphs = graphs
+
+	return &viz, nil
+}
+
+// Graph is the resolver for the graph field.
+func (r *queryResolver) Graph(ctx context.Context, id int) (*model.Graph, error) {
+	var graph model.Graph
+	if err := r.DB.WithContext(ctx).Model(&graph).Where("id = ?", id).Find(&graph).Error; err != nil {
+		return nil, err
+	}
+
+	var viz model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", graph.VisualizationID).Find(&viz).Error; err != nil {
+		return nil, err
+	}
+
+	_, err := r.isAdminInProjectOrDemoProject(ctx, viz.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &graph, nil
 }
 
 // LogLines is the resolver for the log_lines field.

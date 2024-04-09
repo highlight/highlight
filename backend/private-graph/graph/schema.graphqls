@@ -1856,6 +1856,56 @@ enum EmailOptOutCategory {
 	SessionDigests
 }
 
+type Graph {
+	id: ID!
+	type: String!
+	title: String!
+	productType: ProductType!
+	query: String!
+	metric: String!
+	functionType: MetricAggregator!
+	groupByKey: String
+	bucketByKey: String
+	bucketCount: Int
+	limit: Int
+	limitFunctionType: MetricAggregator
+	limitMetric: String
+	display: String
+	nullHandling: String
+}
+
+type Visualization {
+	id: ID!
+	projectId: ID!
+	name: String!
+	graphs: [Graph!]!
+}
+
+input GraphInput {
+	id: ID
+	visualizationId: ID!
+	type: String!
+	title: String!
+	productType: ProductType!
+	query: String!
+	metric: String!
+	functionType: MetricAggregator!
+	groupByKey: String
+	bucketByKey: String
+	bucketCount: Int
+	limit: Int
+	limitFunctionType: MetricAggregator
+	limitMetric: String
+	display: String
+	nullHandling: String
+}
+
+input VisualizationInput {
+	id: ID
+	projectId: ID!
+	name: String!
+}
+
 scalar Upload
 
 type Query {
@@ -2306,6 +2356,8 @@ type Query {
 		key_name: String!
 		date_range: DateRangeRequiredInput!
 	): [String!]!
+	visualization(id: ID!): Visualization!
+	graph(id: ID!): Graph!
 	log_lines(
 		product_type: ProductType!
 		project_id: ID!
@@ -2767,6 +2819,10 @@ type Mutation {
 		build_prefix: String
 		save_error: Boolean
 	): ErrorObject
+	upsertVisualization(visualization: VisualizationInput!): ID!
+	deleteVisualization(id: ID!): Boolean!
+	upsertGraph(graph: GraphInput!): ID!
+	deleteGraph(id: ID!): Boolean!
 }
 
 type Subscription {
