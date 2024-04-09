@@ -10,7 +10,10 @@ import SearchPagination, {
 import { DateHistogramBucketSize, ProductType } from '@graph/schemas'
 import {
 	Box,
+	ButtonIcon,
+	DateRangePreset,
 	DEFAULT_TIME_PRESETS,
+	IconSolidLogout,
 	presetStartDate,
 } from '@highlight-run/ui/components'
 import { ErrorFeedHistogram } from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
@@ -19,7 +22,6 @@ import clsx from 'clsx'
 import { useEffect, useRef, useState } from 'react'
 
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
-import { useSearchTime } from '@/hooks/useSearchTime'
 import { ErrorFeedCard } from '@/pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
@@ -38,6 +40,11 @@ type SearchPanelProps = {
 	resetMoreErrors: () => void
 	totalCount: number
 	histogramBucketSize: DateHistogramBucketSize
+	updateSearchTime: (start: Date, end: Date) => void
+	rebaseSearchTime: () => void
+	startDate: Date
+	endDate: Date
+	selectedPreset?: DateRangePreset
 }
 
 export const SearchPanel = ({
@@ -51,21 +58,15 @@ export const SearchPanel = ({
 	resetMoreErrors,
 	totalCount,
 	histogramBucketSize,
+	updateSearchTime,
+	rebaseSearchTime,
+	startDate,
+	endDate,
+	selectedPreset,
 }: SearchPanelProps) => {
-	const { showLeftPanel } = usePlayerConfiguration()
+	const { showLeftPanel, setShowLeftPanel } = usePlayerConfiguration()
 	const { showBanner } = useGlobalContext()
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
-
-	const {
-		startDate,
-		endDate,
-		selectedPreset,
-		updateSearchTime,
-		rebaseSearchTime,
-	} = useSearchTime({
-		presets: DEFAULT_TIME_PRESETS,
-		initialPreset: DEFAULT_TIME_PRESETS[5],
-	})
 
 	const showHistogram = totalCount >= 0
 
@@ -83,6 +84,21 @@ export const SearchPanel = ({
 			setSyncButtonDisabled(true)
 		}
 	}, [loading])
+
+	const actions = () => {
+		return (
+			<Box marginLeft="auto" display="flex" gap="0">
+				<ButtonIcon
+					kind="secondary"
+					size="small"
+					shape="square"
+					emphasis="low"
+					icon={<IconSolidLogout size={14} />}
+					onClick={() => setShowLeftPanel(false)}
+				/>
+			</Box>
+		)
+	}
 
 	return (
 		<Box
@@ -110,6 +126,8 @@ export const SearchPanel = ({
 				timeMode="fixed-range"
 				savedSegmentType="Error"
 				textAreaRef={textAreaRef}
+				actions={actions}
+				resultCount={totalCount}
 				hideCreateAlert
 				isPanelView
 			/>
@@ -117,6 +135,9 @@ export const SearchPanel = ({
 				<Box borderBottom="secondary" paddingBottom="8" px="8">
 					<ErrorFeedHistogram
 						histogramBucketSize={histogramBucketSize}
+						startDate={startDate}
+						endDate={endDate}
+						updateSearchTime={updateSearchTime}
 					/>
 				</Box>
 			)}

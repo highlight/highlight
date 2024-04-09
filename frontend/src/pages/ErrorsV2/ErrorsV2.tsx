@@ -78,7 +78,13 @@ export default function ErrorsV2() {
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
 
-	const { startDate, endDate, selectedPreset } = useSearchTime({
+	const {
+		startDate,
+		endDate,
+		selectedPreset,
+		rebaseSearchTime,
+		updateSearchTime,
+	} = useSearchTime({
 		presets: DEFAULT_TIME_PRESETS,
 		initialPreset: DEFAULT_TIME_PRESETS[5],
 	})
@@ -173,7 +179,6 @@ export default function ErrorsV2() {
 
 			{!isBlocked && (
 				<Box cssClass={styles.searchPanelContainer}>
-					{/* TODO(spenny): can we clean this up */}
 					<SearchPanel
 						query={query}
 						setQuery={setQuery}
@@ -185,6 +190,11 @@ export default function ErrorsV2() {
 						totalCount={getErrorsData.totalCount}
 						histogramBucketSize={getErrorsData.histogramBucketSize}
 						resetMoreErrors={getErrorsData.resetMoreErrors}
+						updateSearchTime={updateSearchTime}
+						rebaseSearchTime={rebaseSearchTime}
+						startDate={startDate}
+						endDate={endDate}
+						selectedPreset={selectedPreset}
 					/>
 				</Box>
 			)}

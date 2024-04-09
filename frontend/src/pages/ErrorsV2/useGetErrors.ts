@@ -46,7 +46,6 @@ export const useGetErrors = ({
 		fetchPolicy: 'cache-and-network',
 	})
 
-	// TODO(spenny): fetch more errors
 	const [moreDataQuery] = useGetErrorGroupsLazyQuery({
 		fetchPolicy: 'network-only',
 	})
@@ -74,7 +73,7 @@ export const useGetErrors = ({
 			(result) => result?.data?.error_groups.totalCount,
 			[],
 		),
-		skip: !disablePolling,
+		skip: disablePolling,
 	})
 
 	return {

@@ -55,6 +55,7 @@ import {
 } from '@/graph/generated/hooks'
 import { ProductType } from '@/graph/generated/schemas'
 import { useDebounce } from '@/hooks/useDebounce'
+import { formatNumber } from '@/util/numbers'
 
 import * as styles from './SearchForm.css'
 
@@ -109,6 +110,7 @@ export type SearchFormProps = {
 	savedSegmentType?: 'Trace' | 'Log' | 'Error'
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	isPanelView?: boolean
+	resultCount?: number
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({
@@ -129,6 +131,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	savedSegmentType,
 	textAreaRef,
 	isPanelView,
+	resultCount,
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
@@ -152,7 +155,11 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			<>
 				{SegmentModals}
 				<Stack alignItems="flex-start" gap="8" width="full" p="8">
-					<Stack flexDirection="row">
+					<Stack
+						flexDirection="row"
+						justifyContent="space-between"
+						width="full"
+					>
 						{hideDatePicker ? null : (
 							<DateRangePicker
 								emphasis="medium"
@@ -168,9 +175,10 @@ const SearchForm: React.FC<SearchFormProps> = ({
 								disabled={timeMode === 'permalink'}
 							/>
 						)}
-						{!actions
-							? null
-							: actions({ query, startDate, endDate })}
+
+						{!actions ? null : (
+							<Box>{actions({ query, startDate, endDate })}</Box>
+						)}
 					</Stack>
 					<Stack
 						gap="0"
@@ -204,8 +212,12 @@ const SearchForm: React.FC<SearchFormProps> = ({
 							justifyContent="space-between"
 							p="2"
 						>
-							<Box display="flex" alignItems="center">
-								<Text color="weak">results</Text>
+							<Box display="flex" alignItems="center" px="8">
+								{resultCount != null && (
+									<Text color="weak">
+										{formatNumber(resultCount)} results
+									</Text>
+								)}
 							</Box>
 							{SegmentMenu}
 						</Stack>
