@@ -1418,16 +1418,6 @@ query GetSegments($project_id: ID!) {
 	}
 }
 
-query GetErrorSegments($project_id: ID!) {
-	segments: error_segments(project_id: $project_id) {
-		id
-		name
-		params {
-			query
-		}
-	}
-}
-
 query GetSavedSegments(
 	$project_id: ID!
 	$entity_type: SavedSegmentEntityType!

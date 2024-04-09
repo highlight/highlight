@@ -799,31 +799,6 @@ mutation ReplyToErrorComment(
 	}
 }
 
-mutation DeleteErrorSegment($segment_id: ID!) {
-	deleteErrorSegment(segment_id: $segment_id)
-}
-
-mutation EditErrorSegment(
-	$project_id: ID!
-	$id: ID!
-	$query: String!
-	$name: String!
-) {
-	editErrorSegment(
-		project_id: $project_id
-		id: $id
-		query: $query
-		name: $name
-	)
-}
-
-mutation CreateErrorSegment($project_id: ID!, $name: String!, $query: String!) {
-	createErrorSegment(project_id: $project_id, name: $name, query: $query) {
-		name
-		id
-	}
-}
-
 mutation CreateErrorAlert(
 	$project_id: ID!
 	$name: String!

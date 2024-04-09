@@ -848,42 +848,6 @@ export type ReplyToErrorCommentMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type DeleteErrorSegmentMutationVariables = Types.Exact<{
-	segment_id: Types.Scalars['ID']
-}>
-
-export type DeleteErrorSegmentMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'deleteErrorSegment'
->
-
-export type EditErrorSegmentMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	id: Types.Scalars['ID']
-	query: Types.Scalars['String']
-	name: Types.Scalars['String']
-}>
-
-export type EditErrorSegmentMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'editErrorSegment'
->
-
-export type CreateErrorSegmentMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	name: Types.Scalars['String']
-	query: Types.Scalars['String']
-}>
-
-export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
-	createErrorSegment?: Types.Maybe<
-		{ __typename?: 'ErrorSegment' } & Pick<
-			Types.ErrorSegment,
-			'name' | 'id'
-		>
-	>
-}
-
 export type CreateErrorAlertMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
@@ -3645,28 +3609,6 @@ export type GetSegmentsQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetErrorSegmentsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
-	segments?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'ErrorSegment' } & Pick<
-					Types.ErrorSegment,
-					'id' | 'name'
-				> & {
-						params: { __typename?: 'SearchParams' } & Pick<
-							Types.SearchParams,
-							'query'
-						>
-					}
-			>
-		>
-	>
-}
-
 export type GetSavedSegmentsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	entity_type: Types.SavedSegmentEntityType
@@ -5282,7 +5224,6 @@ export const namedOperations = {
 		GetTrackSuggestion: 'GetTrackSuggestion' as const,
 		GetUserSuggestion: 'GetUserSuggestion' as const,
 		GetSegments: 'GetSegments' as const,
-		GetErrorSegments: 'GetErrorSegments' as const,
 		GetSavedSegments: 'GetSavedSegments' as const,
 		GetClientIntegration: 'GetClientIntegration' as const,
 		GetServerIntegration: 'GetServerIntegration' as const,
@@ -5416,9 +5357,6 @@ export const namedOperations = {
 		MuteErrorCommentThread: 'MuteErrorCommentThread' as const,
 		RemoveErrorIssue: 'RemoveErrorIssue' as const,
 		ReplyToErrorComment: 'ReplyToErrorComment' as const,
-		DeleteErrorSegment: 'DeleteErrorSegment' as const,
-		EditErrorSegment: 'EditErrorSegment' as const,
-		CreateErrorSegment: 'CreateErrorSegment' as const,
 		CreateErrorAlert: 'CreateErrorAlert' as const,
 		CreateMetricMonitor: 'CreateMetricMonitor' as const,
 		UpdateMetricMonitor: 'UpdateMetricMonitor' as const,

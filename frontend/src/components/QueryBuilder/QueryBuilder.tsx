@@ -1156,10 +1156,10 @@ export interface QueryBuilderProps {
 	onlyAnd?: boolean
 	minimal?: boolean
 	setDefault?: boolean
-	useEditAnySegmentMutation: typeof useEditSegmentMutation
-	useGetAnySegmentsQuery: typeof useGetSegmentsQuery
-	CreateAnySegmentModal: typeof CreateSegmentModal
-	DeleteAnySegmentModal: typeof DeleteSessionSegmentModal
+	useEditAnySegmentMutation?: typeof useEditSegmentMutation
+	useGetAnySegmentsQuery?: typeof useGetSegmentsQuery
+	CreateAnySegmentModal?: typeof CreateSegmentModal
+	DeleteAnySegmentModal?: typeof DeleteSessionSegmentModal
 }
 
 enum QueryBuilderMode {
@@ -1176,6 +1176,16 @@ enum SegmentModalState {
 
 const defaultMinDate = getNow().subtract(90, 'days').toDate()
 
+const noopQuery = () => ({
+	loading: false,
+	error: undefined,
+	data: {
+		segments: [],
+	},
+})
+
+const noopMutation = () => [null]
+
 function QueryBuilder(props: QueryBuilderProps) {
 	const {
 		searchContext,
@@ -1189,8 +1199,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 		operators,
 		minimal,
 		setDefault,
-		useEditAnySegmentMutation,
-		useGetAnySegmentsQuery,
+		useEditAnySegmentMutation = noopMutation,
+		useGetAnySegmentsQuery = noopQuery,
 		CreateAnySegmentModal,
 		DeleteAnySegmentModal,
 	} = props
@@ -1610,7 +1620,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		!!selectedSegment && rules.length > 0 && areRulesValid
 
 	const updateSegment = useCallback(() => {
-		if (canUpdateSegment) {
+		if (editSegment && canUpdateSegment) {
 			editSegment({
 				variables: {
 					project_id: projectId!,
@@ -1810,43 +1820,47 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	return (
 		<>
-			<CreateAnySegmentModal
-				showModal={segmentModalState !== SegmentModalState.HIDDEN}
-				onHideModal={() => {
-					setSegmentModalState(SegmentModalState.HIDDEN)
-				}}
-				afterCreateHandler={(segmentId, segmentName) => {
-					if (segmentData?.segments) {
-						setSelectedSegment(
-							{
-								id: segmentId,
-								name: segmentName,
-							},
-							searchQuery,
-						)
+			{CreateAnySegmentModal && (
+				<CreateAnySegmentModal
+					showModal={segmentModalState !== SegmentModalState.HIDDEN}
+					onHideModal={() => {
+						setSegmentModalState(SegmentModalState.HIDDEN)
+					}}
+					afterCreateHandler={(segmentId, segmentName) => {
+						if (segmentData?.segments) {
+							setSelectedSegment(
+								{
+									id: segmentId,
+									name: segmentName,
+								},
+								searchQuery,
+							)
+						}
+					}}
+					currentSegment={
+						segmentModalState === SegmentModalState.EDIT_NAME
+							? currentSegment
+							: undefined
 					}
-				}}
-				currentSegment={
-					segmentModalState === SegmentModalState.EDIT_NAME
-						? currentSegment
-						: undefined
-				}
-			/>
-			<DeleteAnySegmentModal
-				showModal={!!segmentToDelete}
-				hideModalHandler={() => {
-					setSegmentToDelete(null)
-				}}
-				segmentToDelete={segmentToDelete}
-				afterDeleteHandler={() => {
-					if (
-						segmentToDelete &&
-						selectedSegment?.name === segmentToDelete.name
-					) {
-						removeSelectedSegment()
-					}
-				}}
-			/>
+				/>
+			)}
+			{DeleteAnySegmentModal && (
+				<DeleteAnySegmentModal
+					showModal={!!segmentToDelete}
+					hideModalHandler={() => {
+						setSegmentToDelete(null)
+					}}
+					segmentToDelete={segmentToDelete}
+					afterDeleteHandler={() => {
+						if (
+							segmentToDelete &&
+							selectedSegment?.name === segmentToDelete.name
+						) {
+							removeSelectedSegment()
+						}
+					}}
+				/>
+			)}
 			{!readonly && !minimal ? controlBar : null}
 			<Box
 				border="secondary"
