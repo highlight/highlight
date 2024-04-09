@@ -52,7 +52,7 @@ export const TracePage: React.FC = () => {
 						<Tabs.Tab id={TraceTabs.Logs}>Logs</Tabs.Tab>
 					</Tabs.List>
 					<Tabs.Panel id={TraceTabs.Info}>
-						<Box px="6">
+						<Box pt="8" px="4">
 							<TraceSpanAttributes span={highlightedSpan!} />
 						</Box>
 					</Tabs.Panel>
