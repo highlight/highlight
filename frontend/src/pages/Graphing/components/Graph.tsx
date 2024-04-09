@@ -14,7 +14,7 @@ import moment from 'moment'
 import { useEffect, useMemo, useState } from 'react'
 
 import { useGetMetricsQuery } from '@/graph/generated/hooks'
-import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import { Maybe, MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import {
 	BarChart,
 	BarChartConfig,
@@ -257,8 +257,8 @@ export const isActive = (spotlight: number | undefined, idx: number) =>
 
 export const getViewConfig = (
 	viewType: string,
-	display: string | undefined,
-	nullHandling: string | undefined,
+	display?: Maybe<string>,
+	nullHandling?: Maybe<string>,
 ): ViewConfig => {
 	let viewConfig: ViewConfig
 	if (viewType === 'Line chart') {

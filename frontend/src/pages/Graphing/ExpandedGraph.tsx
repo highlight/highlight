@@ -98,8 +98,8 @@ export const ExpandedGraph = () => {
 								title={g.title}
 								viewConfig={getViewConfig(
 									g.type,
-									g.display ?? undefined,
-									g.nullHandling ?? undefined,
+									g.display,
+									g.nullHandling,
 								)}
 								productType={g.productType}
 								projectId={projectId}
