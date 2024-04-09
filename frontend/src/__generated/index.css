@@ -7558,6 +7558,25 @@ body {
     border-bottom: none;
   }
 }
+._1y9te7a0 {
+  cursor: auto;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  max-width: 400px;
+  padding-bottom: 32px;
+  padding-top: 32px;
+}
+._1y9te7a1 {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+._1y9te7a2 {
+  border: none;
+}
+._1y9te7a2:hover {
+  border: none;
+}
 .gw96js0 {
   height: 40px;
 }

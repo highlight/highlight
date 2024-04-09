@@ -28,7 +28,7 @@ export const Dashboard = () => {
 	return (
 		<>
 			<Helmet>
-				<title>Edit Metric View</title>
+				<title>{data?.visualization.name}</title>
 			</Helmet>
 			<Box
 				background="n2"

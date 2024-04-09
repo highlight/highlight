@@ -2561,3 +2561,41 @@ query GetVisualization($id: ID!) {
 		}
 	}
 }
+
+query GetVisualizations(
+	$project_id: ID!
+	$input: String!
+	$count: Int!
+	$offset: Int!
+) {
+	visualizations(
+		project_id: $project_id
+		input: $input
+		count: $count
+		offset: $offset
+	) {
+		count
+		results {
+			id
+			projectId
+			name
+			graphs {
+				id
+				type
+				title
+				productType
+				query
+				metric
+				functionType
+				groupByKey
+				bucketByKey
+				bucketCount
+				limit
+				limitFunctionType
+				limitMetric
+				display
+				nullHandling
+			}
+		}
+	}
+}

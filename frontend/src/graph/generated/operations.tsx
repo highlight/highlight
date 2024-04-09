@@ -5213,6 +5213,48 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 		}
 }
 
+export type GetVisualizationsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	input: Types.Scalars['String']
+	count: Types.Scalars['Int']
+	offset: Types.Scalars['Int']
+}>
+
+export type GetVisualizationsQuery = { __typename?: 'Query' } & {
+	visualizations: { __typename?: 'VisualizationsResponse' } & Pick<
+		Types.VisualizationsResponse,
+		'count'
+	> & {
+			results: Array<
+				{ __typename?: 'Visualization' } & Pick<
+					Types.Visualization,
+					'id' | 'projectId' | 'name'
+				> & {
+						graphs: Array<
+							{ __typename?: 'Graph' } & Pick<
+								Types.Graph,
+								| 'id'
+								| 'type'
+								| 'title'
+								| 'productType'
+								| 'query'
+								| 'metric'
+								| 'functionType'
+								| 'groupByKey'
+								| 'bucketByKey'
+								| 'bucketCount'
+								| 'limit'
+								| 'limitFunctionType'
+								| 'limitMetric'
+								| 'display'
+								| 'nullHandling'
+							>
+						>
+					}
+			>
+		}
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -5362,6 +5404,7 @@ export const namedOperations = {
 		GetKeyValues: 'GetKeyValues' as const,
 		GetMetrics: 'GetMetrics' as const,
 		GetVisualization: 'GetVisualization' as const,
+		GetVisualizations: 'GetVisualizations' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,

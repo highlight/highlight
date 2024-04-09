@@ -1881,6 +1881,11 @@ type Visualization {
 	graphs: [Graph!]!
 }
 
+type VisualizationsResponse {
+	count: Int!
+	results: [Visualization!]!
+}
+
 input GraphInput {
 	id: ID
 	visualizationId: ID!
@@ -2357,6 +2362,12 @@ type Query {
 		date_range: DateRangeRequiredInput!
 	): [String!]!
 	visualization(id: ID!): Visualization!
+	visualizations(
+		project_id: ID!
+		input: String!
+		count: Int!
+		offset: Int!
+	): VisualizationsResponse!
 	graph(id: ID!): Graph!
 	log_lines(
 		product_type: ProductType!

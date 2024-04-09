@@ -9099,6 +9099,28 @@ func (r *queryResolver) Visualization(ctx context.Context, id int) (*model.Visua
 	return &viz, nil
 }
 
+// Visualizations is the resolver for the visualizations field.
+func (r *queryResolver) Visualizations(ctx context.Context, projectID int, input string, count int, offset int) (*model.VisualizationsResponse, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Escape any % or _, surround the input with %
+	searchStr := fmt.Sprintf("%%%s%%", strings.ReplaceAll(strings.ReplaceAll(input, "%", "\\%"), "_", "\\_"))
+
+	var viz []model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&model.Visualization{}).Where("project_id = ?", projectID).Where("name ILIKE ?", searchStr).
+		Order("updated_at").Select("*, COUNT(*) OVER ()").Limit(count).Offset(offset).Find(&viz).Error; err != nil {
+		return nil, err
+	}
+
+	return &model.VisualizationsResponse{
+		Count:   count,
+		Results: []model.Visualization{},
+	}, nil
+}
+
 // Graph is the resolver for the graph field.
 func (r *queryResolver) Graph(ctx context.Context, id int) (*model.Graph, error) {
 	var graph model.Graph
