@@ -113,15 +113,15 @@ func (r *Resolver) IsFrontendErrorIngested(ctx context.Context, projectID int, s
 		Event:           frontendError.Event,
 		Payload:         frontendError.Payload,
 		SessionSecureID: &session.SecureID,
-		Source:          frontendError.Source,
-		StackTrace:      string(stack),
-		Timestamp:       frontendError.Timestamp,
-		Type:            frontendError.Type,
-		URL:             frontendError.URL,
 		Service: &modelInputs.ServiceInput{
 			Name:    session.ServiceName,
 			Version: ptr.ToString(session.AppVersion),
 		},
+		Source:     frontendError.Source,
+		StackTrace: string(stack),
+		Timestamp:  frontendError.Timestamp,
+		Type:       frontendError.Type,
+		URL:        frontendError.URL,
 	}
 	if !r.IsErrorIngestedBySample(ctx, projectID, errorObject) {
 		return false

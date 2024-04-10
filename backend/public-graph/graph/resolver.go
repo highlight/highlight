@@ -2701,15 +2701,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			return e.Wrap(err, "error querying workspace")
 		}
 
-		// filter out empty errors
-		seenEvents := map[string]*publicModel.ErrorObjectInput{}
-		for _, errorObject := range errors {
-			if !r.IsFrontendErrorIngested(ctx, project.ID, sessionObj, errorObject) {
-				continue
-			}
-			seenEvents[errorObject.Event] = errorObject
-		}
-		errors = lo.Values(seenEvents)
+		errors = lo.Filter(errors, func(item *publicModel.ErrorObjectInput, index int) bool {
+			return r.IsFrontendErrorIngested(ctx, project.ID, sessionObj, item)
+		})
 
 		// increment daily error table
 		numErrors := int64(len(errors))
@@ -2760,24 +2754,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				IsBeacon:       isBeacon,
 				ServiceVersion: serviceVersion,
 				ServiceName:    sessionObj.ServiceName,
-			}
-
-			if !r.IsErrorIngested(ctx, projectID, &publicModel.BackendErrorObjectInput{
-				SessionSecureID: &sessionSecureID,
-				Event:           errorToInsert.Event,
-				Type:            errorToInsert.Type,
-				URL:             errorToInsert.URL,
-				Source:          errorToInsert.Source,
-				StackTrace:      traceString,
-				Timestamp:       errorToInsert.Timestamp,
-				Payload:         errorToInsert.Payload,
-				Service: &publicModel.ServiceInput{
-					Name:    errorToInsert.ServiceName,
-					Version: errorToInsert.ServiceVersion,
-				},
-				Environment: errorToInsert.Environment,
-			}) {
-				continue
 			}
 
 			var structuredStackTrace []*privateModel.ErrorTrace
