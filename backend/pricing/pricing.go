@@ -998,8 +998,9 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 		}
 	}
 
-	// For annual subscriptions, set PendingInvoiceItemInterval to 'month' if not set
-	if interval == model.PricingSubscriptionIntervalAnnual &&
+	// For non-monthly subscriptions, set PendingInvoiceItemInterval to 'month' if not set
+	// so that overage is reported via monthly invoice items.
+	if interval != model.PricingSubscriptionIntervalMonthly &&
 		subscription.PendingInvoiceItemInterval != nil &&
 		subscription.PendingInvoiceItemInterval.Interval != stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth {
 		updated, err := w.stripeClient.Subscriptions.Update(subscription.ID, &stripe.SubscriptionParams{
