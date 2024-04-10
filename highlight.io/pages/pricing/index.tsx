@@ -35,8 +35,17 @@ import {
 
 const PricingPage: NextPage = () => {
 	const [estimatorCategory, setEstimatorCategory] = useState<
-		'Professional' | 'Enterprise' | 'SelfHost'
-	>('Professional')
+		'PayAsYouGo' | 'Enterprise' | 'SelfHosted'
+	>('PayAsYouGo')
+
+	//Given a PriceTier label
+	const setEstimatorCategoryWithLabel = (value: any) => {
+		if (tierOptions.includes(value)) {
+			setEstimatorCategory(value)
+		} else {
+			console.error(`Invalid value: ${value}`)
+		}
+	}
 
 	return (
 		<div>
@@ -108,7 +117,7 @@ const retentionOptions = [
 	'1 year',
 	'2 years',
 ] as const
-type Retention = typeof retentionOptions[number]
+type Retention = (typeof retentionOptions)[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'30 days': 1,
 	'3 months': 1,
@@ -117,8 +126,8 @@ const retentionMultipliers: Record<Retention, number> = {
 	'2 years': 2.5,
 } as const
 
-const tierOptions = ['Free', 'Professional', 'Enterprise', 'SelfHost'] as const
-type TierName = typeof tierOptions[number]
+const tierOptions = ['Free', 'PayAsYouGo', 'Enterprise', 'SelfHosted'] as const
+type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
 	label: string
@@ -158,9 +167,9 @@ const priceTiers: Record<TierName, PricingTier> = {
 		buttonLabel: 'Start free trial',
 		buttonLink: 'https://app.highlight.io/sign_up',
 	},
-	Professional: {
-		label: 'Professional',
-		subText: 'base per project/month, billed annually',
+	PayAsYouGo: {
+		label: 'Pay-as-you-go',
+		subText: 'base per project/month, billed monthly',
 		prices: professionalPrices,
 		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
 		features: [
@@ -201,7 +210,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 					'Secure user management to ensure you can manage your team with your existing tooling.',
 			},
 			{
-				feature: 'Custom Compliance Contracts',
+				feature: 'Custom Compliance',
 				tooltip:
 					'Custom contracts to abide by your compliance requirements; we handle these on a case-by-case basis.',
 			},
@@ -228,9 +237,9 @@ const priceTiers: Record<TierName, PricingTier> = {
 		buttonLabel: 'Contact us',
 		calculateUsage: true,
 	},
-	SelfHost: {
-		label: 'Self-Host',
-		id: 'SelfHost',
+	SelfHosted: {
+		label: 'Self-Hosted',
+		id: 'SelfHosted',
 		subText: 'per project/month, billed annually',
 		prices: selfHostPrices,
 		icon: <HiServer className="text-[#E93D82] w-8 h-8 -translate-x-1" />,
@@ -337,7 +346,7 @@ const PlanTier = ({
 						className="w-full bg-dark-background border border-copy-on-dark text-copy-on-dark rounded-md text-center py-1 hover:bg-white hover:text-dark-background transition-colors"
 					>
 						<Typography type="copy3" emphasis>
-							Estimate {tier.label.toLowerCase()} bill
+							Estimate Costs
 						</Typography>
 					</PrimaryButton>
 				)}
@@ -453,12 +462,12 @@ const PriceCalculator = ({
 		<div className="flex justify-center w-full">
 			{/* Price calculator */}
 			<div className="flex items-center">
-				<div className="flex flex-col w-[320px] h-full border-y-[1px] border-l-[1px] border-divider-on-dark rounded-l-lg p-4 gap-4">
+				<div className="flex flex-col w-[350px] h-full border-y-[1px] border-l-[1px] border-divider-on-dark rounded-l-lg p-4 gap-4">
 					<div className="w-full">
 						<ListboxOptions
 							options={
 								setEstimatorCategory !== undefined
-									? ['Professional', 'Enterprise', 'SelfHost']
+									? ['PayAsYouGo', 'Enterprise', 'SelfHosted']
 									: ['']
 							}
 							value={pricingTier.label}
@@ -642,7 +651,7 @@ const CalculatorRowDesktop = ({
 
 	return (
 		<div className="flex border border-divider-on-dark rounded-lg">
-			<div className="flex flex-col flex-1 gap-1 p-3 w-[920px]">
+			<div className="flex flex-col flex-1 gap-1 p-3 w-[800px]">
 				<Typography
 					type="copy4"
 					emphasis
@@ -689,10 +698,11 @@ const CalculatorRowDesktop = ({
 						<Typography
 							type="copy4"
 							emphasis
-							className="text-copy-on-dark border-[1px] border-copy-on-light rounded-full px-3 py-[2px]"
+							className="text-copy-on-dark border-[1px] border-copy-on-light rounded-full px-3 py-[2px] w-[65px] text-center"
 						>
 							{value.toLocaleString(undefined, {
 								notation: 'compact',
+								compactDisplay: 'short',
 							})}
 						</Typography>
 					</div>
