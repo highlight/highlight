@@ -175,7 +175,7 @@ export const TracesPage: React.FC = () => {
 	useEffect(() => analytics.page('Traces'), [])
 
 	return (
-		<SearchContext onSubmit={setQuery}>
+		<SearchContext initialQuery={query} onSubmit={setQuery}>
 			<Helmet>
 				<title>Traces</title>
 			</Helmet>
@@ -199,7 +199,6 @@ export const TracesPage: React.FC = () => {
 					overflow="hidden"
 				>
 					<SearchForm
-						initialQuery={query ?? ''}
 						startDate={startDate}
 						endDate={endDate}
 						presets={DEFAULT_TIME_PRESETS}
@@ -207,7 +206,6 @@ export const TracesPage: React.FC = () => {
 						selectedPreset={selectedPreset}
 						timeMode={timeMode}
 						hideCreateAlert
-						onFormSubmit={setQuery}
 						onDatesChange={updateSearchTime}
 						productType={ProductType.Traces}
 						savedSegmentType="Trace"

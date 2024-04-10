@@ -83,7 +83,7 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 	}, [resource.query])
 
 	return (
-		<SearchContext onSubmit={handleSubmit}>
+		<SearchContext initialQuery={query} onSubmit={handleSubmit}>
 			<Panel.Header path={path}></Panel.Header>
 
 			<Box
@@ -94,8 +94,6 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 			>
 				<Box flexDirection="column" display="flex" flexGrow={1}>
 					<SearchForm
-						initialQuery={query}
-						onFormSubmit={setQuery}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={() => null}

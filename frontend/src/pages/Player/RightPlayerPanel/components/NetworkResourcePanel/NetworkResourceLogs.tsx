@@ -92,7 +92,7 @@ export const NetworkResourceLogs: React.FC<{
 	}, [requestId])
 
 	return (
-		<SearchContext onSubmit={setQuery}>
+		<SearchContext initialQuery={query} onSubmit={setQuery}>
 			<Box
 				padding="8"
 				flex="stretch"
@@ -110,8 +110,6 @@ export const NetworkResourceLogs: React.FC<{
 					shadow="medium"
 				>
 					<SearchForm
-						initialQuery={query}
-						onFormSubmit={setQuery}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={() => null}

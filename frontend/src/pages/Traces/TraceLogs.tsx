@@ -64,7 +64,7 @@ export const TraceLogs: React.FC = () => {
 	}, [traceId])
 
 	return (
-		<SearchContext onSubmit={setQuery}>
+		<SearchContext initialQuery={query} onSubmit={setQuery}>
 			<Box display="flex" overflow="hidden">
 				<Box
 					borderRadius="6"
@@ -75,8 +75,6 @@ export const TraceLogs: React.FC = () => {
 					shadow="medium"
 				>
 					<SearchForm
-						initialQuery={query}
-						onFormSubmit={setQuery}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={() => null}

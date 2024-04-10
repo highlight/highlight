@@ -158,7 +158,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	}, [])
 
 	return (
-		<SearchContext onSubmit={setQuery}>
+		<SearchContext initialQuery={query} onSubmit={setQuery}>
 			<Helmet>
 				<title>Logs</title>
 			</Helmet>
@@ -179,8 +179,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 					shadow="medium"
 				>
 					<SearchForm
-						initialQuery={query}
-						onFormSubmit={setQuery}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={updateSearchTime}

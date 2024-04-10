@@ -26,6 +26,7 @@ import {
 import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { SearchExpression } from '@/components/Search/Parser/listener'
+import { useSearchContext } from '@/components/Search/SearchContext'
 
 type Props = {
 	row: Row<LogEdgeWithResources>
@@ -47,6 +48,7 @@ export const LogDetails: React.FC<Props> = ({
 	row,
 	queryParts,
 }) => {
+	const { onSubmit } = useSearchContext()
 	const { set } = useRelatedResource()
 	const { projectId } = useProjectId()
 	const navigate = useNavigate()
@@ -107,6 +109,7 @@ export const LogDetails: React.FC<Props> = ({
 								matchedAttributes={matchedAttributes}
 								queryParts={queryParts}
 								queryBaseKeys={[key]}
+								setQuery={onSubmit}
 							/>
 						) : (
 							<JsonViewerValue
@@ -115,6 +118,7 @@ export const LogDetails: React.FC<Props> = ({
 								queryKey={key}
 								queryParts={queryParts}
 								queryMatch={matchedAttributes[key]?.match}
+								setQuery={onSubmit}
 							/>
 						)}
 					</Box>
@@ -131,6 +135,7 @@ export const LogDetails: React.FC<Props> = ({
 								queryKey={key}
 								queryParts={queryParts}
 								queryMatch={matchedAttributes[key]?.match}
+								setQuery={onSubmit}
 							/>
 						</Box>
 					),

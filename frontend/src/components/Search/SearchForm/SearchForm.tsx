@@ -85,8 +85,6 @@ export const SEARCH_OPERATORS = [
 export type SearchOperator = typeof SEARCH_OPERATORS[number]
 
 export type SearchFormProps = {
-	onFormSubmit: (query: string) => void
-	initialQuery: string
 	startDate: Date
 	endDate: Date
 	selectedPreset?: DateRangePreset
@@ -112,13 +110,11 @@ export type SearchFormProps = {
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({
-	initialQuery,
 	startDate,
 	endDate,
 	selectedPreset,
 	productType,
 	onDatesChange,
-	onFormSubmit,
 	presets,
 	minDate,
 	timeMode,
@@ -131,12 +127,12 @@ const SearchForm: React.FC<SearchFormProps> = ({
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
-	const { query, setQuery } = useSearchContext()
+	const { initialQuery, query, setQuery, onSubmit } = useSearchContext()
 
 	const handleQueryChange = (query?: string) => {
 		const updatedQuery = query ?? ''
 		setQuery(updatedQuery)
-		onFormSubmit(updatedQuery)
+		onSubmit(updatedQuery)
 	}
 
 	const { SegmentMenu, SegmentModals } = useSavedSegments({
@@ -168,7 +164,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					textAreaRef={textAreaRef}
 					productType={productType}
 					setQuery={setQuery}
-					onFormSubmit={onFormSubmit}
+					onFormSubmit={onSubmit}
 				/>
 				<Box display="flex" pr="8" py="6" gap="6">
 					{SegmentMenu}
@@ -248,7 +244,7 @@ export const Search: React.FC<{
 	query: string // TODO: Move to context
 	productType: ProductType
 	setQuery: (value: string) => void // TODO: Move to context
-	onFormSubmit: (query: string) => void // TODO: Move to context
+	onFormSubmit: (query: string) => void
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 }> = ({
 	initialQuery,
@@ -628,7 +624,7 @@ export const Search: React.FC<{
 				/>
 
 				{isDirty && !disableSearch && (
-					<Box pt="6">
+					<Box style={{ paddingTop: 9 }}>
 						<IconSolidXCircle
 							size={16}
 							onClick={(e) => {

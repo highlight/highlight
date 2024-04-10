@@ -459,6 +459,7 @@ export const ProjectProductFilters: React.FC<{
 							{product === ProductType.Logs ||
 							product === ProductType.Traces ? (
 								<SearchContext
+									initialQuery={query}
 									onSubmit={(value: string) => {
 										formStore.setValue(
 											'exclusionQuery',
@@ -467,14 +468,6 @@ export const ProjectProductFilters: React.FC<{
 									}}
 								>
 									<SearchForm
-										initialQuery={query}
-										// TODO: Remove
-										onFormSubmit={(value: string) => {
-											formStore.setValue(
-												'exclusionQuery',
-												value,
-											)
-										}}
 										disableSearch={view}
 										hideDatePicker
 										hideCreateAlert
