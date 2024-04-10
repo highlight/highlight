@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	confirm = flag.Bool("confirm", false, "confirm migration")
+	confirm = flag.Bool("confirm", false, "confirm migration or run in dry run mode")
 )
 
 func init() {

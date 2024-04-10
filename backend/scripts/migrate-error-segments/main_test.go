@@ -7,6 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// workaround for setting flag
+var _ = func() bool {
+	testing.Init()
+	return true
+}()
+
 // Note: no between or matches cases for errors
 var testCases = []struct {
 	input          *string
@@ -51,6 +57,10 @@ var testCases = []struct {
 	{
 		ptr.String(`{"Query":"{\"isAnd\":true,\"rules\":[[\"error_state\",\"is\",\"OPEN\"],[\"error-field_browser\",\"matches\",\".+\\\\d\",\".+\\\\s\"],[\"error-field_environment\",\"is\",\"production\",\"prod\"]],\"dateRange\":{\"start_date\":\"2024-03-11T20:12:54.219Z\",\"end_date\":\"2024-04-10T20:12:54.219Z\"}}"}`),
 		ptr.String("status=OPEN (browser=\\.+\\d\\ OR browser=\\.+\\s\\) environment=(production OR prod)"),
+	},
+	{
+		ptr.String(`{"Query":"{\"isAnd\":true,\"rules\":[[\"error_state\",\"is\",\"OPEN\"],[\"error-field_browser\",\"is\",\"Chrome\"],[\"error-field_environment\",\"is\",\"dev\",\"cameron-localhost\"],[\"error-field_secure_session_id\",\"contains\",\"a\",\"b\"],[\"error-field_os_name\",\"matches\",\".+\\\\d.+\",\".+\\\\s.+\"]],\"dateRange\":{\"start_date\":\"2024-03-11T20:56:06.523Z\",\"end_date\":\"2024-04-10T20:56:06.523Z\"}}"}`),
+		ptr.String("status=OPEN browser=Chrome environment=(dev OR cameron-localhost) secure_session_id=(*a* OR *b*) (os_name=\\.+\\d.+\\ OR os_name=\\.+\\s.+\\)"),
 	},
 }
 
