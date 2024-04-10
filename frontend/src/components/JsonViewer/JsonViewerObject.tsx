@@ -7,11 +7,9 @@ import {
 } from '@highlight-run/ui/components'
 import { message as antdMessage } from 'antd'
 import { useEffect, useState } from 'react'
-import { useQueryParam } from 'use-query-params'
 
 import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { SearchExpression } from '@/components/Search/Parser/listener'
-import { QueryParam } from '@/components/Search/SearchForm/SearchForm'
 import {
 	BODY_KEY,
 	DEFAULT_OPERATOR,
@@ -35,6 +33,7 @@ export type Props = {
 	queryBaseKeys: string[]
 	queryParts: SearchExpression[]
 	matchedAttributes: ReturnType<typeof findMatchingAttributes>
+	setQuery?: (query: string) => void
 }
 
 export const JsonViewerObject: React.FC<Props> = ({
@@ -44,6 +43,7 @@ export const JsonViewerObject: React.FC<Props> = ({
 	matchedAttributes,
 	queryBaseKeys,
 	queryParts,
+	setQuery,
 }) => {
 	const [open, setOpen] = useState(false)
 
@@ -87,6 +87,7 @@ export const JsonViewerObject: React.FC<Props> = ({
 						matchedAttributes={matchedAttributes}
 						queryParts={queryParts}
 						queryBaseKeys={[...queryBaseKeys, key]}
+						setQuery={setQuery}
 					/>
 				))}
 		</Box>
@@ -98,6 +99,7 @@ export const JsonViewerObject: React.FC<Props> = ({
 				queryKey={queryKey}
 				queryParts={queryParts}
 				queryMatch={queryMatch?.match}
+				setQuery={setQuery}
 			/>
 		</Box>
 	)
@@ -109,10 +111,8 @@ export const JsonViewerValue: React.FC<{
 	queryParts: SearchExpression[]
 	queryKey: string
 	queryMatch?: string
-	hideActions?: boolean
-}> = ({ label, queryKey, queryParts, value, queryMatch, hideActions }) => {
-	const [_, setQuery] = useQueryParam('query', QueryParam)
-
+	setQuery?: Props['setQuery']
+}> = ({ label, queryKey, queryParts, value, queryMatch, setQuery }) => {
 	// replace wildcards for highlighting.
 	const matchPattern = queryMatch?.replaceAll('*', '')
 
@@ -147,7 +147,7 @@ export const JsonViewerValue: React.FC<{
 						)}
 					</Text>
 				</Box>
-				{!hideActions && (
+				{setQuery && (
 					<Box cssClass={styles.attributeActions}>
 						{!!queryParts && (
 							<Box>
@@ -157,7 +157,7 @@ export const JsonViewerValue: React.FC<{
 											className={styles.attributeAction}
 											size="12"
 											onClick={() => {
-												if (!queryParts) {
+												if (!queryParts || !setQuery) {
 													return
 												}
 

@@ -3,8 +3,12 @@ import { stringify } from 'query-string'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
-import { RelatedLogs } from '@/components/RelatedResources/hooks'
+import {
+	RelatedLogs,
+	useRelatedResource,
+} from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
+import { SearchContextProvider } from '@/components/Search/SearchContext'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import { ProductType } from '@/graph/generated/schemas'
 import { useNumericProjectId } from '@/hooks/useProjectId'
@@ -15,7 +19,9 @@ import { NoLogsFound } from '@/pages/Traces/TraceLogs'
 export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 	resource,
 }) => {
+	const { set } = useRelatedResource()
 	const [query, setQuery] = useState(resource.query ?? '')
+	const onSubmit = (query: string) => set({ ...resource, query })
 	const { projectId } = useNumericProjectId()
 
 	/* eslint-disable react-hooks/exhaustive-deps */
@@ -77,7 +83,7 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 	}, [resource.query])
 
 	return (
-		<>
+		<SearchContextProvider value={{ query, setQuery, onSubmit }}>
 			<Panel.Header path={path}></Panel.Header>
 
 			<Box
@@ -125,6 +131,6 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 					</Box>
 				</Box>
 			</Box>
-		</>
+		</SearchContextProvider>
 	)
 }

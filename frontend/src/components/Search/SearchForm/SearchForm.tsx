@@ -36,6 +36,7 @@ import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
 import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { SearchExpression } from '@/components/Search/Parser/listener'
+import { useSearchContext } from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -130,7 +131,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
-	const [query, setQuery] = React.useState(initialQuery)
+	const { query, setQuery } = useSearchContext()
 
 	const handleQueryChange = (query?: string) => {
 		const updatedQuery = query ?? ''

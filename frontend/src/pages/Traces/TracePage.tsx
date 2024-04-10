@@ -1,5 +1,6 @@
 import { Box, Callout, Tabs } from '@highlight-run/ui/components'
 import React, { useEffect, useState } from 'react'
+import { StringParam, useQueryParam } from 'use-query-params'
 
 import LoadingBox from '@/components/LoadingBox'
 import { TraceErrors } from '@/pages/Traces/TraceErrors'
@@ -17,6 +18,7 @@ enum TraceTabs {
 }
 
 export const TracePage: React.FC = () => {
+	const [query] = useQueryParam('query', StringParam)
 	const [activeTab, setActiveTab] = useState<TraceTabs>(TraceTabs.Info)
 	const { errors, highlightedSpan, loading, traces, traceId } = useTrace()
 
@@ -53,7 +55,10 @@ export const TracePage: React.FC = () => {
 					</Tabs.List>
 					<Tabs.Panel id={TraceTabs.Info}>
 						<Box pt="8" px="4">
-							<TraceSpanAttributes span={highlightedSpan!} />
+							<TraceSpanAttributes
+								span={highlightedSpan!}
+								query={query!}
+							/>
 						</Box>
 					</Tabs.Panel>
 					<Tabs.Panel id={TraceTabs.Errors}>
