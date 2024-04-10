@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"strings"
@@ -16,6 +17,17 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var (
+	confirm = flag.Bool("confirm", false, "confirm migration")
+)
+
+func init() {
+	flag.Parse()
+	if confirm == nil {
+		confirm = ptr.Bool(false)
+	}
+}
+
 func main() {
 	highlight.SetProjectID("1jdkoe52")
 	highlight.Start(
@@ -27,7 +39,7 @@ func main() {
 	hlog.Init()
 
 	ctx := context.TODO()
-	dryRun := os.Getenv("CONFIRM") != "true"
+	dryRun := !*confirm
 
 	if dryRun {
 		log.WithContext(ctx).Info("Running in dry run mode")
