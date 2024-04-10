@@ -2,7 +2,12 @@ import os
 from datetime import datetime, timedelta
 
 import requests
-from brotli import decompress
+
+try:
+    import brotli
+except ImportError:
+    print("You must install brotli to support events parsing.")
+    print("pip install brotli")
 
 GET_SESSIONS_CLICKHOUSE = """
 query GetSessionsClickhouse($project_id: ID!, $count: Int!, $query: ClickhouseQuery!, $sort_desc: Boolean!, $sort_field: String, $page: Int) {
@@ -154,6 +159,7 @@ query GetEventChunkURL($secure_id: String!, $index: Int!) {
 OAUTH_URL = "https://pri.highlight.io/oauth"
 API_URL = "https://pri.highlight.io"
 
+PROJECT_ID = os.environ["HIGHLIGHT_PROJECT_ID"]
 CLIENT_ID = os.environ["HIGHLIGHT_OAUTH_CLIENT_ID"]
 SECRET = os.environ["HIGHLIGHT_OAUTH_CLIENT_SECRET"]
 
@@ -193,7 +199,7 @@ def main():
                 },
                 "count": 1_000,
                 "page": 1,
-                "project_id": "5403",
+                "project_id": PROJECT_ID,
                 "sort_desc": True,
             },
             "query": GET_SESSIONS_CLICKHOUSE,
