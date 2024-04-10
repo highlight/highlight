@@ -334,7 +334,7 @@ jobs:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Start docker containers & run cypress
+            - name: Start docker containers & run sdk e2e test
               run: |
                   start_time=$(date -Isecond)
 
@@ -393,10 +393,3 @@ jobs:
               with:
                   name: db-dump
                   path: docker/backups/*
-
-            - name: Save videos
-              uses: actions/upload-artifact@v3
-              if: failure()
-              with:
-                  name: cypress-videos
-                  path: cypress/videos
