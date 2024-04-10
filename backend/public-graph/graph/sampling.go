@@ -109,14 +109,15 @@ func (r *Resolver) IsLogIngestedByFilter(ctx context.Context, logRow *clickhouse
 func (r *Resolver) IsFrontendErrorIngested(ctx context.Context, projectID int, session *model.Session, frontendError *modelInputs.ErrorObjectInput) bool {
 	stack, _ := json.Marshal(frontendError.StackTrace)
 	errorObject := &modelInputs.BackendErrorObjectInput{
-		SessionSecureID: &session.SecureID,
+		Environment:     session.Environment,
 		Event:           frontendError.Event,
+		Payload:         frontendError.Payload,
+		SessionSecureID: &session.SecureID,
+		Source:          frontendError.Source,
+		StackTrace:      string(stack),
+		Timestamp:       frontendError.Timestamp,
 		Type:            frontendError.Type,
 		URL:             frontendError.URL,
-		Source:          frontendError.Source,
-		Timestamp:       frontendError.Timestamp,
-		Payload:         frontendError.Payload,
-		StackTrace:      string(stack),
 		Service: &modelInputs.ServiceInput{
 			Name:    session.ServiceName,
 			Version: ptr.ToString(session.AppVersion),
