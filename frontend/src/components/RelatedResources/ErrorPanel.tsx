@@ -1,6 +1,5 @@
 import { Box } from '@highlight-run/ui/components'
-import { useEffect, useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useMemo, useState } from 'react'
 
 import { Divider } from '@/components/CreateAlertButton/CreateAlertButton'
 import LoadingBox from '@/components/LoadingBox'
@@ -20,20 +19,18 @@ import { ErrorStateSelect } from '@/pages/ErrorsV2/ErrorStateSelect/ErrorStateSe
 import { useErrorGroup } from '@/pages/ErrorsV2/ErrorsV2'
 import ErrorTitle from '@/pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
-import analytics from '@/util/analytics'
 
 export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 	resource,
 }) => {
 	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(false)
-	const location = useLocation()
 	const { projectId } = useNumericProjectId()
 	const path = useMemo(
 		() =>
-			`/${projectId}/errors/${resource.id}/instances/${resource.instanceId}?${PlayerSearchParameters.search}=false`,
-		[projectId, resource.id, resource.instanceId],
+			`/${projectId}/errors/${resource.secureId}/instances/${resource.instanceId}?${PlayerSearchParameters.search}=false`,
+		[projectId, resource.secureId, resource.instanceId],
 	)
-	const { data, loading } = useErrorGroup(resource.id)
+	const { data, loading } = useErrorGroup(resource.secureId)
 	const errorGroup = data?.error_group
 	const { data: errorInstanceData, loading: errorInstanceLoading } =
 		useGetErrorInstanceQuery({
@@ -46,14 +43,6 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 	const errorInstance = errorInstanceData?.error_instance
 	const showLoading =
 		loading || errorInstanceLoading || !errorGroup || !errorInstance
-
-	useEffect(() => {
-		analytics.track('related-resource-panel_view', {
-			panelResourceType: 'error',
-			pageResourceType: location.pathname.split('/')[2],
-		})
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [resource.id])
 
 	return (
 		<>
@@ -76,7 +65,7 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 				<LoadingBox />
 			) : (
 				<Box overflowY="scroll" width="full">
-					<Box py="24" px="20" mx="auto" style={{ maxWidth: 940 }}>
+					<Box py="28" px="36" mx="auto" style={{ maxWidth: 940 }}>
 						<ErrorTitle errorGroup={errorGroup} />
 						<ErrorBody errorGroup={errorGroup} />
 

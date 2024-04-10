@@ -106,7 +106,7 @@ func TestHandler_HandleTrace(t *testing.T) {
 			expectedMessageCounts: map[kafkaqueue.PayloadType]int{
 				kafkaqueue.PushBackendPayload:  4,   // 4 exceptions, pushed as individual messages
 				kafkaqueue.PushLogsFlattened:   15,  // 4 exceptions, 11 logs
-				kafkaqueue.PushTracesFlattened: 501, // 512 spans - 11 logs
+				kafkaqueue.PushTracesFlattened: 512, // 512 spans, of which 11 are logs that also save a span
 			},
 			expectedLogCounts: map[privateModel.LogSource]int{
 				privateModel.LogSourceFrontend: 1,
@@ -117,7 +117,7 @@ func TestHandler_HandleTrace(t *testing.T) {
 			expectedMessageCounts: map[kafkaqueue.PayloadType]int{
 				// no errors expected
 				kafkaqueue.PushLogsFlattened:   11,  // 11 logs
-				kafkaqueue.PushTracesFlattened: 501, // 512 spans - 11 logs
+				kafkaqueue.PushTracesFlattened: 512, // 512 spans, of which 11 are logs that also save a span
 			},
 			external: true,
 		},

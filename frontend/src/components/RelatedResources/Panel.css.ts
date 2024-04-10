@@ -11,7 +11,6 @@ export const panel = style([
 	}),
 	{
 		minWidth: 400,
-		maxWidth: 1200,
 		right: 0,
 		top: 0,
 		bottom: 0,
@@ -28,20 +27,6 @@ export const panel = style([
 		},
 	},
 ])
-
-export const backdrop = style({
-	backgroundColor: 'rgba(0, 0, 0, 0.05)',
-	opacity: 0,
-	transition: 'opacity 0.2s',
-	selectors: {
-		'&[data-enter]': {
-			opacity: 1,
-		},
-		'&[data-leave]': {
-			opacity: 0,
-		},
-	},
-})
 
 export const panelDragHandle = style({
 	cursor: 'col-resize',

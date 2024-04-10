@@ -11,13 +11,11 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { themeVars } from '@highlight-run/ui/theme'
-import { useProjectId } from '@hooks/useProjectId'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
-import { NetworkPage } from '@pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
 import {
 	DEV_TOOLS_MIN_HEIGHT,
 	ResizePanel,
@@ -31,18 +29,19 @@ import {
 import useLocalStorage from '@rehooks/local-storage'
 import clsx from 'clsx'
 import React from 'react'
-import { Link } from 'react-router-dom'
 
-import { getLogsURLForSession } from '@/pages/LogsPage/utils'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
+import { buildSessionParams } from '@/pages/LogsPage/utils'
 import { useLinkLogCursor } from '@/pages/Player/PlayerHook/utils'
+import ErrorsPage from '@/pages/Player/Toolbar/DevToolsWindowV2/ErrorsPage/ErrorsPage'
+import { LogLevelFilter } from '@/pages/Player/Toolbar/DevToolsWindowV2/LogLevelFilter/LogLevelFilter'
 import { LogSourceFilter } from '@/pages/Player/Toolbar/DevToolsWindowV2/LogSourceFilter/LogSourceFilter'
+import { NetworkPage } from '@/pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
+import { RequestStatusFilter } from '@/pages/Player/Toolbar/DevToolsWindowV2/RequestStatusFilter/RequestStatusFilter'
+import { RequestTypeFilter } from '@/pages/Player/Toolbar/DevToolsWindowV2/RequestTypeFilter/RequestTypeFilter'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
-import ErrorsPage from './ErrorsPage/ErrorsPage'
-import { LogLevelFilter } from './LogLevelFilter/LogLevelFilter'
-import { RequestStatusFilter } from './RequestStatusFilter/RequestStatusFilter'
-import { RequestTypeFilter } from './RequestTypeFilter/RequestTypeFilter'
 import * as styles from './style.css'
 
 const DevToolsWindowV2: React.FC<
@@ -50,10 +49,10 @@ const DevToolsWindowV2: React.FC<
 		width: number
 	}
 > = (props) => {
-	const { projectId } = useProjectId()
 	const { logCursor } = useLinkLogCursor()
 	const { isPlayerFullscreen } = usePlayerUIContext()
 	const { isLiveMode, setIsLiveMode, time, session } = useReplayerContext()
+	const { set } = useRelatedResource()
 	const {
 		selectedDevToolsTab,
 		setSelectedDevToolsTab,
@@ -179,51 +178,25 @@ const DevToolsWindowV2: React.FC<
 							</Box>
 						</Box>
 					) : (
-						<Tabs<Tab>
-							tab={selectedDevToolsTab}
-							setTab={(t: Tab) => {
-								setSelectedDevToolsTab(t)
+						<Tabs
+							onChange={(id) => {
+								setSelectedDevToolsTab(id as Tab)
 								formStore.reset()
 							}}
-							pages={{
-								[Tab.Console]: {
-									page: (
-										<ConsolePage
-											autoScroll={autoScroll}
-											logCursor={logCursor}
-											levels={relevantLevelsForRequest}
-											sources={sources}
-											filter={filter}
-										/>
-									),
-								},
-								[Tab.Errors]: {
-									page: (
-										<ErrorsPage
-											autoScroll={autoScroll}
-											filter={filter}
-											time={time}
-										/>
-									),
-								},
-								[Tab.Network]: {
-									page: (
-										<NetworkPage
-											autoScroll={autoScroll}
-											requestTypes={requestTypes}
-											requestStatuses={requestStatuses}
-											filter={filter}
-											time={time}
-										/>
-									),
-								},
-							}}
-							right={
+						>
+							<Tabs.List px="8">
+								<Tabs.Tab id={Tab.Console}>
+									Console Logs
+								</Tabs.Tab>
+								<Tabs.Tab id={Tab.Errors}>Errors</Tabs.Tab>
+								<Tabs.Tab id={Tab.Network}>Network</Tabs.Tab>
+
 								<Box
 									display="flex"
-									justifyContent="space-between"
+									justifyContent="flex-end"
 									gap="6"
 									align="center"
+									flexGrow={1}
 								>
 									<Box
 										display="flex"
@@ -318,30 +291,37 @@ const DevToolsWindowV2: React.FC<
 
 										{selectedDevToolsTab === Tab.Console &&
 										session ? (
-											<Link
-												to={getLogsURLForSession({
-													projectId,
-													session,
-													levels: relevantLevelsForRequest,
-													sources,
-												})}
-												style={{ display: 'flex' }}
+											<Button
+												size="xSmall"
+												kind="secondary"
+												trackingId="session_show-in-log-viewer_click"
+												cssClass={styles.autoScroll}
+												iconLeft={
+													<IconSolidLogs
+														width={12}
+														height={12}
+													/>
+												}
+												onClick={() => {
+													const params =
+														buildSessionParams({
+															session,
+															levels: relevantLevelsForRequest,
+															sources,
+														})
+
+													set({
+														type: 'logs',
+														query: params.query,
+														startDate:
+															params.date_range.start_date.toISOString(),
+														endDate:
+															params.date_range.end_date.toISOString(),
+													})
+												}}
 											>
-												<Button
-													size="xSmall"
-													kind="secondary"
-													trackingId="session_show-in-log-viewer_click"
-													cssClass={styles.autoScroll}
-													iconLeft={
-														<IconSolidLogs
-															width={12}
-															height={12}
-														/>
-													}
-												>
-													Show in Log Viewer
-												</Button>
-											</Link>
+												Show in Log Viewer
+											</Button>
 										) : null}
 
 										<Button
@@ -370,8 +350,33 @@ const DevToolsWindowV2: React.FC<
 										</Button>
 									</Box>
 								</Box>
-							}
-						/>
+							</Tabs.List>
+							<Tabs.Panel id={Tab.Console}>
+								<ConsolePage
+									autoScroll={autoScroll}
+									logCursor={logCursor}
+									levels={relevantLevelsForRequest}
+									sources={sources}
+									filter={filter}
+								/>
+							</Tabs.Panel>
+							<Tabs.Panel id={Tab.Errors}>
+								<ErrorsPage
+									autoScroll={autoScroll}
+									filter={filter}
+									time={time}
+								/>
+							</Tabs.Panel>
+							<Tabs.Panel id={Tab.Network}>
+								<NetworkPage
+									autoScroll={autoScroll}
+									requestTypes={requestTypes}
+									requestStatuses={requestStatuses}
+									filter={filter}
+									time={time}
+								/>
+							</Tabs.Panel>
+						</Tabs>
 					)}
 				</Box>
 			)}

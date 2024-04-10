@@ -12,10 +12,6 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
-import {
-	RightPanelView,
-	usePlayerUIContext,
-} from '@pages/Player/context/PlayerUIContext'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import ActivityGraph from '@pages/Sessions/SessionsFeedV3/ActivityGraph/ActivityGraph'
@@ -86,17 +82,12 @@ export const SessionFeedCard = React.memo(
 			}
 		}, [autoPlaySessions, selected, session.secure_id])
 
-		const { setRightPanelView } = usePlayerUIContext()
-
 		return (
 			<Box ref={ref}>
 				<Link
 					to={{
 						pathname: `/${projectId}/sessions/${session.secure_id}`,
 						search: location.search,
-					}}
-					onClick={() => {
-						setRightPanelView(RightPanelView.Session)
 					}}
 				>
 					<Box

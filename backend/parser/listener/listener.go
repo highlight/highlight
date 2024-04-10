@@ -3,6 +3,7 @@ package listener
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
@@ -254,8 +255,7 @@ func (s *searchListener[T]) ExitExists_op(ctx *parser.Exists_opContext) {
 }
 
 func (s *searchListener[T]) EnterSearch_value(ctx *parser.Search_valueContext) {
-	value := strings.Trim(ctx.GetText(), "\"")
-	s.appendRules(value)
+	s.appendRules(ctx.GetText())
 }
 func (s *searchListener[T]) ExitSearch_value(ctx *parser.Search_valueContext) {}
 
@@ -265,6 +265,10 @@ func (s *searchListener[T]) EnterEveryRule(ctx antlr.ParserRuleContext) {}
 func (s *searchListener[T]) ExitEveryRule(ctx antlr.ParserRuleContext)  {}
 
 func (s *searchListener[T]) appendRules(value string) {
+	// Quotes are sometimes escaped on the client and need to be unescaped before
+	// being used in the query or they will be double escaped.
+	value = unquote(value)
+
 	// Body column filters
 	if s.currentKey == s.tableConfig.BodyColumn {
 		containsSpecialChars, _ := regexp.MatchString(`[^a-zA-Z0-9]`, value)
@@ -357,71 +361,75 @@ func (s *searchListener[T]) appendRules(value string) {
 			}
 		}
 	} else if s.currentOp == ">" {
+		numValue := numericValue(value)
 		if traceAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) > %s", s.currentKey, value)))
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) > %s", s.currentKey, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   s.attributesColumn,
 				Operator: OperatorGreaterThan,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		} else {
-			s.rules = append(s.rules, s.sb.GreaterThan(filterKey, value))
+			s.rules = append(s.rules, s.sb.GreaterThan(filterKey, numValue))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      filterKey,
 				Operator: OperatorGreaterThan,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		}
 	} else if s.currentOp == ">=" {
+		numValue := numericValue(value)
 		if traceAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) >= %s", s.currentKey, value)))
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) >= %s", s.currentKey, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   s.attributesColumn,
 				Operator: OperatorGreaterThanOrEqualTo,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		} else {
-			s.rules = append(s.rules, s.sb.GreaterEqualThan(filterKey, value))
+			s.rules = append(s.rules, s.sb.GreaterEqualThan(filterKey, numValue))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      filterKey,
 				Operator: OperatorGreaterThanOrEqualTo,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		}
 	} else if s.currentOp == "<" {
+		numValue := numericValue(value)
 		if traceAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) < %s", s.currentKey, value)))
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) < %s", s.currentKey, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   s.attributesColumn,
 				Operator: OperatorLessThan,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		} else {
-			s.rules = append(s.rules, s.sb.LessThan(filterKey, value))
+			s.rules = append(s.rules, s.sb.LessThan(filterKey, numValue))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      filterKey,
 				Operator: OperatorLessThan,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		}
 	} else if s.currentOp == "<=" {
+		numValue := numericValue(value)
 		if traceAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) <= %s", s.currentKey, value)))
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) <= %s", s.currentKey, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   s.attributesColumn,
 				Operator: OperatorLessThanOrEqualTo,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		} else {
-			s.rules = append(s.rules, s.sb.LessEqualThan(filterKey, value))
+			s.rules = append(s.rules, s.sb.LessEqualThan(filterKey, numValue))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      filterKey,
 				Operator: OperatorLessThanOrEqualTo,
-				Values:   []string{value},
+				Values:   []string{numValue},
 			})
 		}
 	} else {
@@ -440,4 +448,52 @@ func wildcardValue(value string) string {
 	}
 
 	return value
+}
+
+func unquote(s string) string {
+	if strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") {
+		s = strings.Trim(s, "'")
+		s = strings.ReplaceAll(s, "\\'", "'")
+		return s
+	}
+
+	unquotedString, err := strconv.Unquote(s)
+	if err != nil {
+		// Will error if string is not quoted, so return original string
+		return s
+	}
+
+	return unquotedString
+}
+
+var suffixToNumeric = map[string]int64{
+	"h":  1e9 * 60 * 60,
+	"m":  1e9 * 60,
+	"s":  1e9,
+	"ms": 1e6,
+	"us": 1e3,
+	"ns": 1,
+}
+
+func numericValue(value string) string {
+	re := regexp.MustCompile(`^(\d+)([a-zA-Z]+)$`)
+	matches := re.FindStringSubmatch(value)
+	if len(matches) != 3 {
+		return value
+	}
+
+	numString := matches[1]
+	unit := matches[2]
+
+	nanoMultiplier := suffixToNumeric[strings.ToLower(unit)]
+	if nanoMultiplier == 0 {
+		return numString
+	}
+
+	num, err := strconv.ParseInt(numString, 10, 64)
+	if err != nil {
+		return numString
+	}
+
+	return strconv.FormatInt(num*nanoMultiplier, 10)
 }

@@ -162,7 +162,7 @@ func SubmitHTTPLog(ctx context.Context, tracer trace.Tracer, projectID int, lg L
 	return nil
 }
 
-func FormatLogAttributes(ctx context.Context, k string, v interface{}) map[string]string {
+func FormatLogAttributes(k string, v interface{}) map[string]string {
 	if vStr, ok := v.(string); ok {
 		if len(vStr) > LogAttributeValueLengthLimit {
 			vStr = vStr[:LogAttributeValueLengthLimit] + "..."
@@ -178,7 +178,7 @@ func FormatLogAttributes(ctx context.Context, k string, v interface{}) map[strin
 	if vMap, ok := v.(map[string]interface{}); ok {
 		m := make(map[string]string)
 		for mapKey, mapV := range vMap {
-			for k2, v2 := range FormatLogAttributes(ctx, mapKey, mapV) {
+			for k2, v2 := range FormatLogAttributes(mapKey, mapV) {
 				m[fmt.Sprintf("%s.%s", k, k2)] = v2
 			}
 		}

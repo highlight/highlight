@@ -6,10 +6,11 @@ import { getGraphQLResolverName } from '@pages/Player/utils/utils'
 import { createContext } from '@util/context/context'
 import { indexedDBFetch } from '@util/db'
 import { checkResourceLimit } from '@util/preload'
-import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import { useCallback, useEffect, useState } from 'react'
 import { BooleanParam, useQueryParam } from 'use-query-params'
+
+import { useSessionParams } from '@/pages/Sessions/utils'
 
 export enum LoadingError {
 	NetworkResourcesTooLarge = 'payload too large.',
@@ -97,7 +98,7 @@ const buildResources = (resources: NetworkResource[]) => {
 export const useResources = (
 	session: Session | undefined,
 ): ResourcesContext => {
-	const { session_secure_id } = useParams<{ session_secure_id: string }>()
+	const { sessionSecureId: session_secure_id } = useSessionParams()
 	const [sessionSecureId, setSessionSecureId] = useState<string>()
 	const [error, setError] = useState<LoadingError>()
 	const [downloadResources] = useQueryParam('downloadresources', BooleanParam)

@@ -1452,3 +1452,19 @@ mutation CreateSavedSegment(
 		id
 	}
 }
+
+mutation UpsertVisualization($visualization: VisualizationInput!) {
+	upsertVisualization(visualization: $visualization)
+}
+
+mutation DeleteVisualization($id: ID!) {
+	deleteVisualization(id: $id)
+}
+
+mutation UpsertGraph($graph: GraphInput!) {
+	upsertGraph(graph: $graph)
+}
+
+mutation DeleteGraph($id: ID!) {
+	deleteGraph(id: $id)
+}

@@ -1,5 +1,52 @@
 # @highlight-run/next
 
+## 7.4.12
+
+### Patch Changes
+
+-   Updated dependencies [5e61d5859]
+    -   @highlight-run/sourcemap-uploader@0.6.2
+
+## 7.4.11
+
+### Patch Changes
+
+-   Updated dependencies [e14192fa4]
+    -   @highlight-run/node@3.8.3
+
+## 7.4.10
+
+### Patch Changes
+
+-   Updated dependencies [4574c8dfa]
+    -   highlight.run@8.11.0
+    -   @highlight-run/node@3.8.2
+
+## 7.4.9
+
+### Patch Changes
+
+-   Updated dependencies [bd410081e]
+-   Updated dependencies [dded74108]
+    -   highlight.run@8.10.1
+    -   @highlight-run/node@3.8.2
+
+## 7.4.8
+
+### Patch Changes
+
+-   Updated dependencies [112fa2ced]
+    -   highlight.run@8.10.0
+    -   @highlight-run/node@3.8.1
+
+## 7.4.7
+
+### Patch Changes
+
+-   Updated dependencies [3528f2de7]
+    -   highlight.run@8.9.1
+    -   @highlight-run/node@3.8.1
+
 ## 7.4.6
 
 ### Patch Changes

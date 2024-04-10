@@ -689,6 +689,44 @@ export type GitlabProject = {
 	nameWithNameSpace: Scalars['String']
 }
 
+export type Graph = {
+	__typename?: 'Graph'
+	bucketByKey?: Maybe<Scalars['String']>
+	bucketCount?: Maybe<Scalars['Int']>
+	display?: Maybe<Scalars['String']>
+	functionType: MetricAggregator
+	groupByKey?: Maybe<Scalars['String']>
+	id: Scalars['ID']
+	limit?: Maybe<Scalars['Int']>
+	limitFunctionType?: Maybe<MetricAggregator>
+	limitMetric?: Maybe<Scalars['String']>
+	metric: Scalars['String']
+	nullHandling?: Maybe<Scalars['String']>
+	productType: ProductType
+	query: Scalars['String']
+	title: Scalars['String']
+	type: Scalars['String']
+}
+
+export type GraphInput = {
+	bucketByKey?: InputMaybe<Scalars['String']>
+	bucketCount?: InputMaybe<Scalars['Int']>
+	display?: InputMaybe<Scalars['String']>
+	functionType: MetricAggregator
+	groupByKey?: InputMaybe<Scalars['String']>
+	id?: InputMaybe<Scalars['ID']>
+	limit?: InputMaybe<Scalars['Int']>
+	limitFunctionType?: InputMaybe<MetricAggregator>
+	limitMetric?: InputMaybe<Scalars['String']>
+	metric: Scalars['String']
+	nullHandling?: InputMaybe<Scalars['String']>
+	productType: ProductType
+	query: Scalars['String']
+	title: Scalars['String']
+	type: Scalars['String']
+	visualizationId: Scalars['ID']
+}
+
 export type HeightList = {
 	__typename?: 'HeightList'
 	id: Scalars['String']
@@ -860,7 +898,6 @@ export type LogAlert = {
 	DailyFrequency: Array<Maybe<Scalars['Int64']>>
 	DiscordChannelsToNotify: Array<DiscordChannel>
 	EmailsToNotify: Array<Scalars['String']>
-	ExcludedEnvironments: Array<Scalars['String']>
 	LastAdminToEditID?: Maybe<Scalars['ID']>
 	MicrosoftTeamsChannelsToNotify: Array<MicrosoftTeamsChannel>
 	Name: Scalars['String']
@@ -881,7 +918,6 @@ export type LogAlertInput = {
 	disabled: Scalars['Boolean']
 	discord_channels: Array<DiscordChannelInput>
 	emails: Array<Scalars['String']>
-	environments: Array<Scalars['String']>
 	microsoft_teams_channels: Array<MicrosoftTeamsChannelInput>
 	name: Scalars['String']
 	project_id: Scalars['ID']
@@ -910,6 +946,14 @@ export enum LogLevel {
 	Info = 'info',
 	Trace = 'trace',
 	Warn = 'warn',
+}
+
+export type LogLine = {
+	__typename?: 'LogLine'
+	body: Scalars['String']
+	labels: Scalars['String']
+	severity?: Maybe<LogLevel>
+	timestamp: Scalars['Timestamp']
 }
 
 export enum LogSource {
@@ -963,9 +1007,11 @@ export type Metric = {
 export enum MetricAggregator {
 	Avg = 'Avg',
 	Count = 'Count',
+	CountDistinct = 'CountDistinct',
 	CountDistinctKey = 'CountDistinctKey',
 	Max = 'Max',
 	Min = 'Min',
+	None = 'None',
 	P50 = 'P50',
 	P90 = 'P90',
 	P95 = 'P95',
@@ -1096,6 +1142,7 @@ export type Mutation = {
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteErrorComment?: Maybe<Scalars['Boolean']>
 	deleteErrorSegment?: Maybe<Scalars['Boolean']>
+	deleteGraph: Scalars['Boolean']
 	deleteInviteLinkFromWorkspace: Scalars['Boolean']
 	deleteLogAlert?: Maybe<LogAlert>
 	deleteMetricMonitor?: Maybe<MetricMonitor>
@@ -1105,6 +1152,7 @@ export type Mutation = {
 	deleteSessionAlert?: Maybe<SessionAlert>
 	deleteSessionComment?: Maybe<Scalars['Boolean']>
 	deleteSessions: Scalars['Boolean']
+	deleteVisualization: Scalars['Boolean']
 	editErrorSegment?: Maybe<Scalars['Boolean']>
 	editProject?: Maybe<Project>
 	editProjectSettings?: Maybe<AllProjectSettings>
@@ -1158,7 +1206,9 @@ export type Mutation = {
 	updateVercelProjectMappings: Scalars['Boolean']
 	upsertDashboard: Scalars['ID']
 	upsertDiscordChannel: DiscordChannel
+	upsertGraph: Scalars['ID']
 	upsertSlackChannel: SanitizedSlackChannel
+	upsertVisualization: Scalars['ID']
 }
 
 export type MutationAddAdminToWorkspaceArgs = {
@@ -1391,6 +1441,10 @@ export type MutationDeleteErrorSegmentArgs = {
 	segment_id: Scalars['ID']
 }
 
+export type MutationDeleteGraphArgs = {
+	id: Scalars['ID']
+}
+
 export type MutationDeleteInviteLinkFromWorkspaceArgs = {
 	workspace_id: Scalars['ID']
 	workspace_invite_link_id: Scalars['ID']
@@ -1431,6 +1485,10 @@ export type MutationDeleteSessionsArgs = {
 	project_id: Scalars['ID']
 	query: ClickhouseQuery
 	sessionCount: Scalars['Int']
+}
+
+export type MutationDeleteVisualizationArgs = {
+	id: Scalars['ID']
 }
 
 export type MutationEditErrorSegmentArgs = {
@@ -1791,9 +1849,17 @@ export type MutationUpsertDiscordChannelArgs = {
 	project_id: Scalars['ID']
 }
 
+export type MutationUpsertGraphArgs = {
+	graph: GraphInput
+}
+
 export type MutationUpsertSlackChannelArgs = {
 	name: Scalars['String']
 	project_id: Scalars['ID']
+}
+
+export type MutationUpsertVisualizationArgs = {
+	visualization: VisualizationInput
 }
 
 export type NamedCount = {
@@ -1936,6 +2002,7 @@ export type Query = {
 	error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>
 	error_fields_clickhouse: Array<Scalars['String']>
 	error_group?: Maybe<ErrorGroup>
+	error_groups: ErrorResults
 	error_groups_clickhouse: ErrorResults
 	error_instance?: Maybe<ErrorInstance>
 	error_issue: Array<Maybe<ExternalAttachment>>
@@ -1946,6 +2013,7 @@ export type Query = {
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	error_tags?: Maybe<Array<Maybe<ErrorTag>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
+	errors_histogram: ErrorsHistogram
 	errors_histogram_clickhouse: ErrorsHistogram
 	errors_key_values: Array<Scalars['String']>
 	errors_keys: Array<QueryKey>
@@ -1957,12 +2025,12 @@ export type Query = {
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
 	field_types_clickhouse: Array<Field>
 	fields_clickhouse: Array<Scalars['String']>
-	find_similar_errors?: Maybe<Array<Maybe<MatchedErrorObject>>>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
 	github_issue_labels: Array<Scalars['String']>
 	github_repos?: Maybe<Array<GitHubRepo>>
 	gitlab_projects?: Maybe<Array<GitlabProject>>
+	graph: Graph
 	height_lists: Array<HeightList>
 	height_workspaces: Array<HeightWorkspace>
 	identifier_suggestion: Array<Scalars['String']>
@@ -1979,6 +2047,7 @@ export type Query = {
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	log_alert: LogAlert
 	log_alerts: Array<Maybe<LogAlert>>
+	log_lines: Array<LogLine>
 	logs: LogConnection
 	logsIntegration: IntegrationStatus
 	logs_error_objects: Array<ErrorObject>
@@ -2025,7 +2094,10 @@ export type Query = {
 	session_exports: Array<SessionExportWithSession>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
+	session_users_report: Array<SessionsReportRow>
+	sessions: SessionResults
 	sessions_clickhouse: SessionResults
+	sessions_histogram: SessionsHistogram
 	sessions_histogram_clickhouse: SessionsHistogram
 	sessions_key_values: Array<Scalars['String']>
 	sessions_keys: Array<QueryKey>
@@ -2051,6 +2123,8 @@ export type Query = {
 	user_properties_alerts: Array<Maybe<SessionAlert>>
 	vercel_project_mappings: Array<VercelProjectMapping>
 	vercel_projects: Array<VercelProject>
+	visualization: Visualization
+	visualizations: VisualizationsResponse
 	web_vitals: Array<Metric>
 	websocket_events?: Maybe<Array<Maybe<Scalars['Any']>>>
 	workspace?: Maybe<Workspace>
@@ -2209,6 +2283,13 @@ export type QueryError_GroupArgs = {
 	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
+export type QueryError_GroupsArgs = {
+	count: Scalars['Int']
+	page?: InputMaybe<Scalars['Int']>
+	params: QueryInput
+	project_id: Scalars['ID']
+}
+
 export type QueryError_Groups_ClickhouseArgs = {
 	count: Scalars['Int']
 	page?: InputMaybe<Scalars['Int']>
@@ -2250,6 +2331,12 @@ export type QueryError_SegmentsArgs = {
 
 export type QueryErrorsArgs = {
 	session_secure_id: Scalars['String']
+}
+
+export type QueryErrors_HistogramArgs = {
+	histogram_options: DateHistogramOptions
+	params: QueryInput
+	project_id: Scalars['ID']
 }
 
 export type QueryErrors_Histogram_ClickhouseArgs = {
@@ -2325,10 +2412,6 @@ export type QueryFields_ClickhouseArgs = {
 	start_date: Scalars['Timestamp']
 }
 
-export type QueryFind_Similar_ErrorsArgs = {
-	query: Scalars['String']
-}
-
 export type QueryGenerate_Zapier_Access_TokenArgs = {
 	project_id: Scalars['ID']
 }
@@ -2349,6 +2432,10 @@ export type QueryGithub_ReposArgs = {
 
 export type QueryGitlab_ProjectsArgs = {
 	workspace_id: Scalars['ID']
+}
+
+export type QueryGraphArgs = {
+	id: Scalars['ID']
 }
 
 export type QueryHeight_ListsArgs = {
@@ -2420,6 +2507,12 @@ export type QueryLog_AlertArgs = {
 }
 
 export type QueryLog_AlertsArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryLog_LinesArgs = {
+	params: QueryInput
+	product_type: ProductType
 	project_id: Scalars['ID']
 }
 
@@ -2651,6 +2744,20 @@ export type QuerySession_IntervalsArgs = {
 	session_secure_id: Scalars['String']
 }
 
+export type QuerySession_Users_ReportArgs = {
+	params: QueryInput
+	project_id: Scalars['ID']
+}
+
+export type QuerySessionsArgs = {
+	count: Scalars['Int']
+	page?: InputMaybe<Scalars['Int']>
+	params: QueryInput
+	project_id: Scalars['ID']
+	sort_desc: Scalars['Boolean']
+	sort_field?: InputMaybe<Scalars['String']>
+}
+
 export type QuerySessions_ClickhouseArgs = {
 	count: Scalars['Int']
 	page?: InputMaybe<Scalars['Int']>
@@ -2658,6 +2765,12 @@ export type QuerySessions_ClickhouseArgs = {
 	query: ClickhouseQuery
 	sort_desc: Scalars['Boolean']
 	sort_field?: InputMaybe<Scalars['String']>
+}
+
+export type QuerySessions_HistogramArgs = {
+	histogram_options: DateHistogramOptions
+	params: QueryInput
+	project_id: Scalars['ID']
 }
 
 export type QuerySessions_Histogram_ClickhouseArgs = {
@@ -2795,6 +2908,17 @@ export type QueryVercel_Project_MappingsArgs = {
 }
 
 export type QueryVercel_ProjectsArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryVisualizationArgs = {
+	id: Scalars['ID']
+}
+
+export type QueryVisualizationsArgs = {
+	count: Scalars['Int']
+	input: Scalars['String']
+	offset: Scalars['Int']
 	project_id: Scalars['ID']
 }
 
@@ -2938,6 +3062,7 @@ export enum ReservedSessionKey {
 	Environment = 'environment',
 	Fingerprint = 'fingerprint',
 	FirstTime = 'first_time',
+	HasComments = 'has_comments',
 	HasErrors = 'has_errors',
 	HasRageClicks = 'has_rage_clicks',
 	Identified = 'identified',
@@ -2950,6 +3075,7 @@ export enum ReservedSessionKey {
 	Processed = 'processed',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
+	State = 'state',
 	Viewed = 'viewed',
 }
 
@@ -3051,6 +3177,7 @@ export type SavedSegment = {
 }
 
 export enum SavedSegmentEntityType {
+	Error = 'Error',
 	Log = 'Log',
 	Trace = 'Trace',
 }
@@ -3589,6 +3716,28 @@ export type VercelProjectMappingInput = {
 	new_project_name?: InputMaybe<Scalars['String']>
 	project_id?: InputMaybe<Scalars['ID']>
 	vercel_project_id: Scalars['String']
+}
+
+export type Visualization = {
+	__typename?: 'Visualization'
+	graphs: Array<Graph>
+	id: Scalars['ID']
+	name: Scalars['String']
+	projectId: Scalars['ID']
+	updatedAt: Scalars['Timestamp']
+	updatedByAdmin?: Maybe<SanitizedAdmin>
+}
+
+export type VisualizationInput = {
+	id?: InputMaybe<Scalars['ID']>
+	name: Scalars['String']
+	projectId: Scalars['ID']
+}
+
+export type VisualizationsResponse = {
+	__typename?: 'VisualizationsResponse'
+	count: Scalars['Int']
+	results: Array<Visualization>
 }
 
 export type WebSocketEvent = {

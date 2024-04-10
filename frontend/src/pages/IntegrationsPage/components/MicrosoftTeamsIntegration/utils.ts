@@ -67,7 +67,6 @@ export const useMicrosoftTeamsBot = (next?: string) => {
 	})
 
 	useEffect(() => {
-		console.log('microsoftTeamsIntegResponse', microsoftTeamsIntegResponse)
 		if (!microsoftTeamsIntegResponse) return
 		setIsMicrosoftTeamsConnectedToWorkspace(
 			microsoftTeamsIntegResponse.is_integrated_with_microsoft_teams ||

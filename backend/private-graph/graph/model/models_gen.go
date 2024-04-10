@@ -389,6 +389,25 @@ type GitlabProject struct {
 	NameWithNameSpace string `json:"nameWithNameSpace"`
 }
 
+type GraphInput struct {
+	ID                *int              `json:"id,omitempty"`
+	VisualizationID   int               `json:"visualizationId"`
+	Type              string            `json:"type"`
+	Title             string            `json:"title"`
+	ProductType       ProductType       `json:"productType"`
+	Query             string            `json:"query"`
+	Metric            string            `json:"metric"`
+	FunctionType      MetricAggregator  `json:"functionType"`
+	GroupByKey        *string           `json:"groupByKey,omitempty"`
+	BucketByKey       *string           `json:"bucketByKey,omitempty"`
+	BucketCount       *int              `json:"bucketCount,omitempty"`
+	Limit             *int              `json:"limit,omitempty"`
+	LimitFunctionType *MetricAggregator `json:"limitFunctionType,omitempty"`
+	LimitMetric       *string           `json:"limitMetric,omitempty"`
+	Display           *string           `json:"display,omitempty"`
+	NullHandling      *string           `json:"nullHandling,omitempty"`
+}
+
 type HeightList struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -511,7 +530,6 @@ type LogAlertInput struct {
 	MicrosoftTeamsChannels []*MicrosoftTeamsChannelInput `json:"microsoft_teams_channels"`
 	WebhookDestinations    []*WebhookDestinationInput    `json:"webhook_destinations"`
 	Emails                 []string                      `json:"emails"`
-	Environments           []string                      `json:"environments"`
 	Disabled               bool                          `json:"disabled"`
 	Default                *bool                         `json:"default,omitempty"`
 	Query                  string                        `json:"query"`
@@ -532,6 +550,13 @@ type LogEdge struct {
 
 func (LogEdge) IsEdge()                {}
 func (this LogEdge) GetCursor() string { return this.Cursor }
+
+type LogLine struct {
+	Timestamp time.Time `json:"timestamp"`
+	Body      string    `json:"body"`
+	Severity  *LogLevel `json:"severity,omitempty"`
+	Labels    string    `json:"labels"`
+}
 
 type LogsHistogram struct {
 	Buckets      []*LogsHistogramBucket `json:"buckets"`
@@ -964,6 +989,12 @@ type VercelProjectMappingInput struct {
 	VercelProjectID string  `json:"vercel_project_id"`
 	NewProjectName  *string `json:"new_project_name,omitempty"`
 	ProjectID       *int    `json:"project_id,omitempty"`
+}
+
+type VisualizationInput struct {
+	ID        *int   `json:"id,omitempty"`
+	ProjectID int    `json:"projectId"`
+	Name      string `json:"name"`
 }
 
 type WebSocketEvent struct {
@@ -1401,6 +1432,7 @@ type MetricAggregator string
 
 const (
 	MetricAggregatorCount            MetricAggregator = "Count"
+	MetricAggregatorCountDistinct    MetricAggregator = "CountDistinct"
 	MetricAggregatorCountDistinctKey MetricAggregator = "CountDistinctKey"
 	MetricAggregatorMin              MetricAggregator = "Min"
 	MetricAggregatorAvg              MetricAggregator = "Avg"
@@ -1410,10 +1442,12 @@ const (
 	MetricAggregatorP99              MetricAggregator = "P99"
 	MetricAggregatorMax              MetricAggregator = "Max"
 	MetricAggregatorSum              MetricAggregator = "Sum"
+	MetricAggregatorNone             MetricAggregator = "None"
 )
 
 var AllMetricAggregator = []MetricAggregator{
 	MetricAggregatorCount,
+	MetricAggregatorCountDistinct,
 	MetricAggregatorCountDistinctKey,
 	MetricAggregatorMin,
 	MetricAggregatorAvg,
@@ -1423,11 +1457,12 @@ var AllMetricAggregator = []MetricAggregator{
 	MetricAggregatorP99,
 	MetricAggregatorMax,
 	MetricAggregatorSum,
+	MetricAggregatorNone,
 }
 
 func (e MetricAggregator) IsValid() bool {
 	switch e {
-	case MetricAggregatorCount, MetricAggregatorCountDistinctKey, MetricAggregatorMin, MetricAggregatorAvg, MetricAggregatorP50, MetricAggregatorP90, MetricAggregatorP95, MetricAggregatorP99, MetricAggregatorMax, MetricAggregatorSum:
+	case MetricAggregatorCount, MetricAggregatorCountDistinct, MetricAggregatorCountDistinctKey, MetricAggregatorMin, MetricAggregatorAvg, MetricAggregatorP50, MetricAggregatorP90, MetricAggregatorP95, MetricAggregatorP99, MetricAggregatorMax, MetricAggregatorSum, MetricAggregatorNone:
 		return true
 	}
 	return false
@@ -2072,12 +2107,14 @@ const (
 	ReservedSessionKeyFingerprint     ReservedSessionKey = "fingerprint"
 	ReservedSessionKeyIdentifier      ReservedSessionKey = "identifier"
 	ReservedSessionKeyCity            ReservedSessionKey = "city"
+	ReservedSessionKeyState           ReservedSessionKey = "state"
 	ReservedSessionKeyCountry         ReservedSessionKey = "country"
 	ReservedSessionKeyOsName          ReservedSessionKey = "os_name"
 	ReservedSessionKeyOsVersion       ReservedSessionKey = "os_version"
 	ReservedSessionKeyBrowserName     ReservedSessionKey = "browser_name"
 	ReservedSessionKeyBrowserVersion  ReservedSessionKey = "browser_version"
 	ReservedSessionKeyProcessed       ReservedSessionKey = "processed"
+	ReservedSessionKeyHasComments     ReservedSessionKey = "has_comments"
 	ReservedSessionKeyHasRageClicks   ReservedSessionKey = "has_rage_clicks"
 	ReservedSessionKeyHasErrors       ReservedSessionKey = "has_errors"
 	ReservedSessionKeyLength          ReservedSessionKey = "length"
@@ -2097,12 +2134,14 @@ var AllReservedSessionKey = []ReservedSessionKey{
 	ReservedSessionKeyFingerprint,
 	ReservedSessionKeyIdentifier,
 	ReservedSessionKeyCity,
+	ReservedSessionKeyState,
 	ReservedSessionKeyCountry,
 	ReservedSessionKeyOsName,
 	ReservedSessionKeyOsVersion,
 	ReservedSessionKeyBrowserName,
 	ReservedSessionKeyBrowserVersion,
 	ReservedSessionKeyProcessed,
+	ReservedSessionKeyHasComments,
 	ReservedSessionKeyHasRageClicks,
 	ReservedSessionKeyHasErrors,
 	ReservedSessionKeyLength,
@@ -2115,7 +2154,7 @@ var AllReservedSessionKey = []ReservedSessionKey{
 
 func (e ReservedSessionKey) IsValid() bool {
 	switch e {
-	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyAppVersion, ReservedSessionKeySecureSessionID, ReservedSessionKeyIdentified, ReservedSessionKeyFingerprint, ReservedSessionKeyIdentifier, ReservedSessionKeyCity, ReservedSessionKeyCountry, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyProcessed, ReservedSessionKeyHasRageClicks, ReservedSessionKeyHasErrors, ReservedSessionKeyLength, ReservedSessionKeyActiveLength, ReservedSessionKeyFirstTime, ReservedSessionKeyViewed, ReservedSessionKeyPagesVisited, ReservedSessionKeyNormalness:
+	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyAppVersion, ReservedSessionKeySecureSessionID, ReservedSessionKeyIdentified, ReservedSessionKeyFingerprint, ReservedSessionKeyIdentifier, ReservedSessionKeyCity, ReservedSessionKeyState, ReservedSessionKeyCountry, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyProcessed, ReservedSessionKeyHasComments, ReservedSessionKeyHasRageClicks, ReservedSessionKeyHasErrors, ReservedSessionKeyLength, ReservedSessionKeyActiveLength, ReservedSessionKeyFirstTime, ReservedSessionKeyViewed, ReservedSessionKeyPagesVisited, ReservedSessionKeyNormalness:
 		return true
 	}
 	return false
@@ -2263,16 +2302,18 @@ type SavedSegmentEntityType string
 const (
 	SavedSegmentEntityTypeLog   SavedSegmentEntityType = "Log"
 	SavedSegmentEntityTypeTrace SavedSegmentEntityType = "Trace"
+	SavedSegmentEntityTypeError SavedSegmentEntityType = "Error"
 )
 
 var AllSavedSegmentEntityType = []SavedSegmentEntityType{
 	SavedSegmentEntityTypeLog,
 	SavedSegmentEntityTypeTrace,
+	SavedSegmentEntityTypeError,
 }
 
 func (e SavedSegmentEntityType) IsValid() bool {
 	switch e {
-	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace:
+	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace, SavedSegmentEntityTypeError:
 		return true
 	}
 	return false

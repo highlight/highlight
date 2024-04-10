@@ -12,13 +12,13 @@ import usePlayerConfiguration, {
 	PLAYBACK_SPEED_OPTIONS,
 } from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import analytics from '@util/analytics'
-import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
 import { useProjectId } from '@/hooks/useProjectId'
+import { useSessionParams } from '@/pages/Sessions/utils'
 
 import { ReplayerState, useReplayerContext } from '../ReplayerContext'
 
@@ -74,7 +74,7 @@ export const usePlayerKeyboardShortcuts = () => {
 		showHistogram,
 	} = usePlayerConfiguration()
 	const { projectId } = useProjectId()
-	const { session_secure_id } = useParams<{ session_secure_id: string }>()
+	const { sessionSecureId } = useSessionParams()
 	const navigate = useNavigate()
 	message.config({
 		maxCount: 1,
@@ -194,13 +194,13 @@ export const usePlayerKeyboardShortcuts = () => {
 	useHotkeys(
 		'shift+n',
 		(e) => {
-			if (sessionResults.sessions.length > 0 && !!session_secure_id) {
+			if (sessionResults.sessions.length > 0 && !!sessionSecureId) {
 				analytics.track('PlayerSkipToNextSessionKeyboardShortcut')
 				moveFocusToDocument(e)
 
 				const nextSession = findNextSessionInList(
 					sessionResults.sessions,
-					session_secure_id,
+					sessionSecureId,
 				)
 				changeSession(
 					projectId!,
@@ -210,19 +210,19 @@ export const usePlayerKeyboardShortcuts = () => {
 				)
 			}
 		},
-		[session_secure_id, sessionResults],
+		[sessionSecureId, sessionResults],
 	)
 
 	useHotkeys(
 		'shift+p',
 		(e) => {
-			if (sessionResults.sessions.length > 0 && !!session_secure_id) {
+			if (sessionResults.sessions.length > 0 && !!sessionSecureId) {
 				analytics.track('PlayerSkipToPreviousSessionKeyboardShortcut')
 				moveFocusToDocument(e)
 
 				const nextSession = findPreviousSessionInList(
 					sessionResults.sessions,
-					session_secure_id,
+					sessionSecureId,
 				)
 				changeSession(
 					projectId!,
@@ -232,7 +232,7 @@ export const usePlayerKeyboardShortcuts = () => {
 				)
 			}
 		},
-		[session_secure_id, sessionResults],
+		[sessionSecureId, sessionResults],
 	)
 
 	useHotkeys(

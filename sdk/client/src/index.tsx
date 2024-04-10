@@ -101,10 +101,11 @@ export type HighlightClassOptions = {
 	disableSessionRecording?: boolean
 	reportConsoleErrors?: boolean
 	consoleMethodsToRecord?: ConsoleMethods[]
-	enableSegmentIntegration?: boolean
 	privacySetting?: PrivacySettingOption
+	enableSegmentIntegration?: boolean
 	enableCanvasRecording?: boolean
 	enablePerformanceRecording?: boolean
+	enablePromisePatch?: boolean
 	samplingStrategy?: SamplingStrategy
 	inlineImages?: boolean
 	inlineStylesheet?: boolean
@@ -1445,8 +1446,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		this._lastSnapshotTime = new Date().getTime()
 	}
 }
-
-;(window as any).HighlightIO = Highlight
 
 interface HighlightWindow extends Window {
 	Highlight: Highlight

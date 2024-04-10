@@ -1012,6 +1012,7 @@ query GetBillingDetails($workspace_id: ID!) {
 		sessionsBillingLimit
 		errorsBillingLimit
 		logsBillingLimit
+		tracesBillingLimit
 		sessionsDailyAverage
 		errorsDailyAverage
 		logsDailyAverage
@@ -1717,7 +1718,6 @@ query GetLogAlert($id: ID!) {
 		DailyFrequency
 		disabled
 		EmailsToNotify
-		ExcludedEnvironments
 		id
 		LastAdminToEditID
 		Name
@@ -1759,10 +1759,6 @@ query GetLogAlertsPagePayload($project_id: ID!) {
 			email
 			photo_url
 		}
-	}
-	environment_suggestion(project_id: $project_id) {
-		name
-		value
 	}
 }
 
@@ -1892,7 +1888,6 @@ query GetAlertsPagePayload($project_id: ID!) {
 		disabled
 		default
 		EmailsToNotify
-		ExcludedEnvironments
 		id
 		LastAdminToEditID
 		Name
@@ -2347,16 +2342,6 @@ query MatchErrorTag($query: String!) {
 	}
 }
 
-query FindSimilarErrors($query: String!) {
-	find_similar_errors(query: $query) {
-		id
-		type
-		event
-		stack_trace
-		score
-	}
-}
-
 query GetTrace(
 	$project_id: ID!
 	$trace_id: String!
@@ -2549,5 +2534,82 @@ query GetMetrics(
 		}
 		bucket_count
 		sample_factor
+	}
+}
+
+query GetVisualization($id: ID!) {
+	visualization(id: $id) {
+		id
+		updatedAt
+		projectId
+		name
+		graphs {
+			id
+			type
+			title
+			productType
+			query
+			metric
+			functionType
+			groupByKey
+			bucketByKey
+			bucketCount
+			limit
+			limitFunctionType
+			limitMetric
+			display
+			nullHandling
+		}
+		updatedByAdmin {
+			id
+			name
+			email
+			photo_url
+		}
+	}
+}
+
+query GetVisualizations(
+	$project_id: ID!
+	$input: String!
+	$count: Int!
+	$offset: Int!
+) {
+	visualizations(
+		project_id: $project_id
+		input: $input
+		count: $count
+		offset: $offset
+	) {
+		count
+		results {
+			id
+			updatedAt
+			projectId
+			name
+			graphs {
+				id
+				type
+				title
+				productType
+				query
+				metric
+				functionType
+				groupByKey
+				bucketByKey
+				bucketCount
+				limit
+				limitFunctionType
+				limitMetric
+				display
+				nullHandling
+			}
+			updatedByAdmin {
+				id
+				name
+				email
+				photo_url
+			}
+		}
 	}
 }

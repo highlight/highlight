@@ -16,6 +16,7 @@ export const variants = recipe({
 			cursor: 'pointer',
 			padding: 0,
 			outline: 'none',
+			flexShrink: 0,
 			selectors: {
 				'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 					boxShadow: 'none',

@@ -394,7 +394,7 @@ func (r *Resolver) tagErrorGroup(ctx context.Context, errorObj *model.ErrorObjec
 	return nil
 }
 
-func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, matchFn func() (*int, error), tagGroup bool) (*model.ErrorGroup, error) {
+func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, matchFn func() (*int, error), onCreateGroup func(int) error, tagGroup bool) (*model.ErrorGroup, error) {
 	match, err := matchFn()
 	if err != nil {
 		return nil, err
@@ -441,6 +441,12 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 
 		if err := r.DB.WithContext(ctx).Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
+		}
+
+		if onCreateGroup != nil {
+			if err := onCreateGroup(newErrorGroup.ID); err != nil {
+				return nil, err
+			}
 		}
 
 		errorGroup = newErrorGroup
@@ -494,35 +500,47 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, project
 		CombinedScore float64 `json:"combined_score"`
 		ErrorGroupID  int     `json:"error_group_id"`
 	}{}
-	// an alternative query to consider: for M error objects of every error group,
-	// find the average score. then pick the error group
-	// with the lowest average score.
-	var column string
-	switch method {
-	case model.ErrorGroupingMethodAdaEmbeddingV2:
-		column = "combined_embedding"
-	case model.ErrorGroupingMethodGteLargeEmbeddingV2:
-		column = "gte_large_embedding"
+
+	if method == model.ErrorGroupingMethodGteLargeEmbeddingV3 {
+		if err := r.DB.WithContext(ctx).Raw(`
+			select (gte_large_embedding <=> @embedding) * 10 as score,
+				error_group_id
+			from error_group_embeddings
+			where project_id = @projectID
+				and gte_large_embedding is not null
+			order by 1
+			limit 1;`,
+			map[string]interface{}{
+				"embedding": embedding,
+				"projectID": projectID,
+			}).Scan(&result).Error; err != nil {
+			return nil, e.Wrap(err, "error querying top error group match")
+		}
 	}
-	if err := r.DB.WithContext(ctx).Raw(fmt.Sprintf(`
-select eoe.%s <-> @embedding as score,
-       eo.error_group_id                              as error_group_id
-from error_object_embeddings_partitioned eoe
-         inner join error_objects eo on eo.id = eoe.error_object_id
-where eoe.project_id = @projectID
-    and eoe.%s is not null
-order by 1
-limit 1;`, column, column), map[string]interface{}{
-		"embedding": embedding,
-		"projectID": projectID,
-	}).
-		Scan(&result).Error; err != nil {
-		return nil, e.Wrap(err, "error querying top error group match")
-	}
+
 	if result.ErrorGroupID > 0 {
 		lg := log.WithContext(ctx).WithField("combined_score", result.CombinedScore).WithField("score", result.Score).WithField("matched_error_group_id", result.ErrorGroupID).WithField("threshold", threshold)
 		if result.Score < threshold {
 			lg.Info("matched error group by embeddings")
+
+			// Update the error group's embedding as a weighted average of the previous embedding plus this new one
+			if method == model.ErrorGroupingMethodGteLargeEmbeddingV3 {
+				if err := r.DB.WithContext(ctx).Exec(`
+					update error_group_embeddings
+					set gte_large_embedding = gte_large_embedding * array_fill(count::numeric / (count + 1), '{1024}')::vector
+						+ @embedding * array_fill(1::numeric / (count + 1), '{1024}')::vector,
+						count = count + 1
+					where project_id = @projectID
+					and error_group_id = @errorGroupID`,
+					map[string]interface{}{
+						"embedding":    embedding,
+						"projectID":    projectID,
+						"errorGroupID": result.ErrorGroupID,
+					}).Error; err != nil {
+					return nil, e.Wrap(err, "error updating embedding")
+				}
+			}
+
 			return &result.ErrorGroupID, nil
 		}
 		lg.Info("found error group by embeddings but score too high")
@@ -749,17 +767,27 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
 		} else {
 			embedding = emb[0]
+			embeddingType := model.ErrorGroupingMethodGteLargeEmbeddingV3
 			errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
-				match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, errorObj.ProjectID, model.ErrorGroupingMethodGteLargeEmbeddingV2, embedding.GteLargeEmbedding, settings.ErrorEmbeddingsThreshold)
+				match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, errorObj.ProjectID, embeddingType, embedding.GteLargeEmbedding, settings.ErrorEmbeddingsThreshold)
 				if err != nil {
 					log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
 				}
 				return match, err
+			}, func(errorGroupId int) error {
+				newEmbedding := model.ErrorGroupEmbeddings{
+					ProjectID:         errorObj.ProjectID,
+					ErrorGroupID:      errorGroupId,
+					Count:             1,
+					GteLargeEmbedding: embedding.GteLargeEmbedding,
+				}
+
+				return r.DB.WithContext(ctx).Create(&newEmbedding).Error
 			}, settings.ErrorEmbeddingsTagGroup)
 			if err != nil {
 				return nil, e.Wrap(err, "Error getting or creating error group")
 			}
-			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodGteLargeEmbeddingV2
+			errorObj.ErrorGroupingMethod = embeddingType
 		}
 	} else {
 		errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
@@ -772,7 +800,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 				return nil, e.Wrap(err, "Error getting top error group match")
 			}
 			return match, err
-		}, settings != nil && settings.ErrorEmbeddingsTagGroup)
+		}, nil, settings != nil && settings.ErrorEmbeddingsTagGroup)
 		if err != nil {
 			return nil, e.Wrap(err, "Error getting or creating error group")
 		}
@@ -781,13 +809,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 
 	if err := r.DB.WithContext(ctx).Create(errorObj).Error; err != nil {
 		return nil, e.Wrap(err, "Error performing error insert for error")
-	}
-
-	if embedding != nil {
-		embedding.ErrorObjectID = errorObj.ID
-		if err := r.Store.PutEmbeddings([]*model.ErrorObjectEmbeddings{embedding}); err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to write embeddings")
-		}
 	}
 
 	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorObj.ID), &kafka_queue.Message{Type: kafka_queue.ErrorObjectDataSync, ErrorObjectDataSync: &kafka_queue.ErrorObjectDataSyncArgs{ErrorObjectID: errorObj.ID}}); err != nil {
@@ -834,18 +855,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 
 	return errorGroup, nil
-}
-
-func (r *Resolver) BatchGenerateEmbeddings(ctx context.Context, errorObjects []*model.ErrorObject) error {
-	if len(errorObjects) == 0 {
-		return nil
-	}
-
-	emb, err := r.EmbeddingsClient.GetEmbeddings(ctx, errorObjects)
-	if err != nil {
-		return err
-	}
-	return r.Store.PutEmbeddings(emb)
 }
 
 func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorField, errorGroup *model.ErrorGroup) error {
@@ -958,6 +967,7 @@ func (r *Resolver) IndexSessionClickhouse(ctx context.Context, session *model.Se
 		"environment":     session.Environment,
 		"device_id":       strconv.Itoa(session.Fingerprint),
 		"city":            session.City,
+		"loc_state":       session.State,
 		"country":         session.Country,
 		"ip":              session.IP,
 		"service_name":    session.ServiceName,
@@ -1714,7 +1724,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			}
 			excluded := false
 			for _, env := range excludedEnvironments {
-				if env != nil && *env == sessionObj.Environment {
+				if env != nil && *env == errorObject.Environment {
 					excluded = true
 					break
 				}
@@ -2179,7 +2189,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		var stackFrameInput []*publicModel.StackFrameInput
 
 		if err := json.Unmarshal([]byte(v.StackTrace), &stackFrameInput); err == nil {
-			mapped, structured, err := r.getMappedStackTraceString(ctx, stackFrameInput, projectID, errorToInsert, pointy.String(fmt.Sprintf("%s-%s", v.Service.Name, v.Service.Version)))
+			var version *string
+			if v.Service.Name != "" && v.Service.Version != "" {
+				version = pointy.String(fmt.Sprintf("%s-%s", v.Service.Name, v.Service.Version))
+			}
+			mapped, structured, err := r.getMappedStackTraceString(ctx, stackFrameInput, projectID, errorToInsert, version)
 			if err != nil {
 				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)
 			} else if mapped != nil && *mapped != "null" {
@@ -2219,22 +2233,12 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
 	}
 
-	var newInstances []*model.ErrorObject
 	for _, errorInstances := range groupedErrors {
-		newInstances = append(newInstances, errorInstances...)
 		instance := errorInstances[len(errorInstances)-1]
 		data := groups[instance.ErrorGroupID]
 		r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
 	}
 
-	if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddingsWrite {
-		eSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
-			util.ResourceName("BatchGenerateEmbeddings"))
-		if err = r.BatchGenerateEmbeddings(spanCtx, newInstances); err != nil {
-			log.WithContext(spanCtx).WithError(err).WithField("project_id", projectID).Error("failed to generate embeddings")
-		}
-		eSpan.Finish(err)
-	}
 	putErrorsToDBSpan.Finish()
 }
 
@@ -2664,6 +2668,17 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
 				return e.Wrap(err, "error saving web socket events data")
 			}
+
+			settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+			if err == nil && settings.EnableNetworkTraces {
+				resourcesParsed := make(map[string][]privateModel.WebSocketEvent)
+				if err := json.Unmarshal([]byte(webSocketEventsStr), &resourcesParsed); err != nil {
+					return nil
+				}
+				if err := r.submitFrontendWebsocketMetric(sessionObj, resourcesParsed["webSocketEvents"]); err != nil {
+					return err
+				}
+			}
 		}
 
 		return nil
@@ -2806,20 +2821,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
 		}
 
-		var newInstances []*model.ErrorObject
 		for _, errorInstances := range groupedErrors {
-			newInstances = append(newInstances, errorInstances...)
 			instance := errorInstances[len(errorInstances)-1]
 			data := groups[instance.ErrorGroupID]
 			r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
-		}
-
-		if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddingsWrite {
-			eSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("BatchGenerateEmbeddings"))
-			if err = r.BatchGenerateEmbeddings(spanCtx, newInstances); err != nil {
-				log.WithContext(spanCtx).WithError(err).WithField("session_secure_id", sessionObj.SecureID).Error("failed to generate embeddings")
-			}
-			eSpan.Finish(err)
 		}
 
 		return nil
@@ -3138,6 +3143,48 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 	return nil
 }
 
+func (r *Resolver) submitFrontendWebsocketMetric(sessionObj *model.Session, events []privateModel.WebSocketEvent) error {
+	for _, event := range events {
+		ts := time.UnixMicro(int64(1000. * event.TimeStamp))
+		var attributes []attribute.KeyValue
+		attributes = append(attributes, highlight.EmptyResourceAttributes...)
+		attributes = append(attributes, attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeWebSocketRequest)),
+			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
+			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
+			attribute.String(highlight.RequestIDAttribute, event.SocketID),
+			attribute.String(highlight.TraceKeyAttribute, event.Name),
+			semconv.DeploymentEnvironmentKey.String(sessionObj.Environment),
+			semconv.ServiceNameKey.String(sessionObj.ServiceName),
+			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
+			semconv.HTTPURLKey.String(event.Name),
+			attribute.String("ws.message", event.Message),
+			attribute.Int("ws.size", event.Size),
+			attribute.Int("ws.message.length", len(event.Message)),
+		)
+
+		requestBody := make(map[string]interface{})
+		// if the request body is json, send the message as structured attributes
+		if err := json.Unmarshal([]byte(event.Message), &requestBody); event.Message != "" && err == nil {
+			attributes = append(attributes, attribute.String("ws.message.type", "json"))
+			for k, v := range requestBody {
+				for key, value := range hlog.FormatLogAttributes(k, v) {
+					if v != "" {
+						attributes = append(attributes, attribute.String(fmt.Sprintf("ws.json.%s", key), value))
+					}
+				}
+			}
+		}
+
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionObj.SecureID)
+		ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, event.SocketID)
+		span, _ := highlight.StartTraceWithTracer(ctx, r.Tracer, strings.Join([]string{"WS", event.Name}, " "), ts, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
+		// ws messsages don't have a duration, but record them with some duration so they are rendered correctly
+		span.End(trace.WithTimestamp(ts.Add(time.Microsecond)))
+	}
+	return nil
+}
+
 func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj *model.Session, messages string) error {
 	logRows, err := hlog.ParseConsoleMessages(messages)
 	if err != nil {
@@ -3165,7 +3212,7 @@ func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj
 			hlog.LogMessageKey.String(message),
 		}
 		for k, v := range row.Attributes {
-			for key, value := range hlog.FormatLogAttributes(ctx, k, v) {
+			for key, value := range hlog.FormatLogAttributes(k, v) {
 				if v != "" {
 					attrs = append(attrs, attribute.String(key, value))
 				}

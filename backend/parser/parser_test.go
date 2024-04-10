@@ -26,7 +26,7 @@ func TestBasicSqlForSearch(t *testing.T) {
 }
 
 func TestComplexSqlForSearch(t *testing.T) {
-	sql, _ := buildSqlForQuery("span_name=\"Chris Schmitz\" duration>1000 level:info source=(backend OR frontend) OR (service_name!=private-graph span_name=gorm.Query span_name!=(testing OR testing2)) AND (\"body query\" asdf)")
+	sql, _ := buildSqlForQuery("span_name=\"Chris Schmitz\" duration>1us level:info source=(backend OR frontend) OR (service_name!=private-graph span_name=gorm.Query span_name!=(testing OR testing2)) AND (\"body query\" asdf)")
 
 	assert.Equal(
 		t,

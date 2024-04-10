@@ -2,16 +2,40 @@ package worker
 
 import (
 	"context"
-	"io"
-	"testing"
-	"time"
-
-	log "github.com/sirupsen/logrus"
-
 	"github.com/go-test/deep"
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/pricing"
+	"github.com/highlight-run/highlight/backend/private-graph/graph"
+	model2 "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/store"
+	"github.com/highlight-run/highlight/backend/util"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
+	"io"
+	"os"
+	"testing"
+	"time"
 )
+
+var DB *gorm.DB
+var redisClient *redis.Client
+var chClient *clickhouse.Client
+
+// Gets run once; M.run() calls the tests in this file.
+func TestMain(m *testing.M) {
+	DB, _ = util.CreateAndMigrateTestDB("highlight_testing_db_worker")
+	redisClient = redis.NewClient()
+	chClient, _ = clickhouse.NewClient(clickhouse.TestDatabase)
+	clickhouse.RunMigrations(context.TODO(), clickhouse.TestDatabase)
+	code := m.Run()
+	os.Exit(code)
+}
 
 func TestCalculateSessionLength(t *testing.T) {
 	tables := map[string]struct {
@@ -812,5 +836,154 @@ func TestFullSnapshotProcessed(t *testing.T) {
 				t.Errorf("expected success, actual error: %v", a.Error)
 			}
 		})
+	}
+}
+
+func TestCalculateOverages(t *testing.T) {
+	defer func(inclSessions, inclErrors, inclLogs, inclTraces int64) {
+		pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeSessions] = pricing.ProductPricing{
+			Included: inclSessions,
+			Items:    pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeSessions].Items,
+		}
+		pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeErrors] = pricing.ProductPricing{
+			Included: inclErrors,
+			Items:    pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeErrors].Items,
+		}
+		pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeLogs] = pricing.ProductPricing{
+			Included: inclLogs,
+			Items:    pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeLogs].Items,
+		}
+		pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeTraces] = pricing.ProductPricing{
+			Included: inclTraces,
+			Items:    pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeTraces].Items,
+		}
+	}(
+		pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeSessions].Included,
+		pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeErrors].Included,
+		pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeLogs].Included,
+		pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeTraces].Included,
+	)
+
+	pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeSessions] = pricing.ProductPricing{
+		Included: 2,
+		Items:    pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeSessions].Items,
+	}
+	pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeErrors] = pricing.ProductPricing{
+		Included: 3,
+		Items:    pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeErrors].Items,
+	}
+	pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeLogs] = pricing.ProductPricing{
+		Included: 4,
+		Items:    pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeLogs].Items,
+	}
+	pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeTraces] = pricing.ProductPricing{
+		Included: 5,
+		Items:    pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeTraces].Items,
+	}
+
+	ctx := context.TODO()
+	s := store.NewStore(DB, redisClient, nil, nil, nil, chClient)
+	pWorker := pricing.NewWorker(DB, redisClient, s, chClient, nil, nil, nil)
+	worker := Worker{
+		Resolver: &graph.Resolver{
+			DB:               DB,
+			ClickhouseClient: chClient,
+		},
+	}
+
+	now := time.Now().AddDate(0, 0, -14)
+	end := now.AddDate(0, 1, 0)
+
+	w := model.Workspace{
+		BillingPeriodStart: &now,
+		BillingPeriodEnd:   &end,
+		PlanTier:           string(model2.PlanTypeGraduated),
+	}
+	if err := DB.Create(&w).Error; err != nil {
+		t.Fatal(e.Wrap(err, "error inserting workspace"))
+	}
+	wMP := model.Workspace{
+		BillingPeriodStart: &now,
+		BillingPeriodEnd:   &end,
+		PlanTier:           string(model2.PlanTypeGraduated),
+		AWSMarketplaceCustomer: &model.AWSMarketplaceCustomer{
+			CustomerIdentifier:   pointy.String("customer"),
+			CustomerAWSAccountID: pointy.String("aws-account"),
+			ProductCode:          pointy.String("product"),
+		},
+	}
+	if err := DB.Create(&wMP).Error; err != nil {
+		t.Fatal(e.Wrap(err, "error inserting workspace"))
+	}
+
+	for _, w := range []model.Workspace{w, wMP} {
+		for i := 0; i < 5; i++ {
+			p := model.Project{
+				Name:        pointy.String("normal-workspace"),
+				WorkspaceID: w.ID,
+			}
+			if err := DB.Create(&p).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting project"))
+			}
+			a := model.Admin{
+				Name:       pointy.String("bob-normal"),
+				Workspaces: []model.Workspace{w},
+			}
+			if err := DB.Create(&a).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting project"))
+			}
+
+			var sessions []*model.Session
+			for idx := 0; idx < 10; idx++ {
+				sessions = append(sessions, &model.Session{
+					ProjectID:    p.ID,
+					Excluded:     false,
+					Processed:    pointy.Bool(true),
+					ActiveLength: int64(1000 * idx),
+				})
+			}
+			if err := DB.Model(&model.Session{}).CreateInBatches(&sessions, 1000).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting sessions"))
+			}
+
+			var errors []*model.ErrorObject
+			for idx := 0; idx < 11; idx++ {
+				errors = append(errors, &model.ErrorObject{
+					ProjectID: p.ID,
+				})
+			}
+			if err := DB.Model(&model.ErrorObject{}).CreateInBatches(&errors, 1000).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting errors"))
+			}
+
+			var logs []*clickhouse.LogRow
+			for idx := 0; idx < 12; idx++ {
+				logs = append(logs, clickhouse.NewLogRow(time.Now(), uint32(p.ID)))
+			}
+			if err := chClient.BatchWriteLogRows(ctx, logs); err != nil {
+				t.Error(e.Wrap(err, "error inserting logs"))
+				return
+			}
+
+			for idx := 0; idx < 13; idx++ {
+				var traces []*clickhouse.TraceRow
+				traces = append(traces, clickhouse.NewTraceRow(time.Now(), p.ID))
+				if err := chClient.BatchWriteTraceRows(ctx, traces); err != nil {
+					t.Error(e.Wrap(err, "error inserting traces"))
+					return
+				}
+			}
+		}
+	}
+
+	worker.RefreshMaterializedViews(ctx)
+
+	for _, w := range []*model.Workspace{&w, &wMP} {
+		overages, err := pWorker.CalculateOverages(ctx, w.ID)
+		assert.NoError(t, err)
+		assert.Len(t, overages, 5)
+		for product, overage := range overages {
+			assert.Greaterf(t, overage, int64(1), "expected an overage for %d %s", w.ID, product)
+		}
 	}
 }

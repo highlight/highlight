@@ -67,11 +67,6 @@ export declare type HighlightOptions = {
 	 */
 	debug?: boolean | DebugOptions
 	/**
-	 * Do not use this.
-	 * @private
-	 */
-	scriptUrl?: string
-	/**
 	 * Specifies where to send Highlight session data.
 	 * You should not have to set this unless you are running an on-premise instance.
 	 */
@@ -166,6 +161,12 @@ export declare type HighlightOptions = {
 	 * @default true
 	 */
 	enablePerformanceRecording?: boolean
+	/**
+	 * Specifies whether window.Promise should be patched
+	 * to record the stack trace of promise rejections.
+	 * @default true
+	 */
+	enablePromisePatch?: boolean
 	/**
 	 * Configure the recording sampling options, eg. how frequently we record canvas updates.
 	 */

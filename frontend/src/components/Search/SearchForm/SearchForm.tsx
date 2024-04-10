@@ -540,7 +540,7 @@ export const Search: React.FC<{
 				display="flex"
 				alignItems="flex-start"
 				gap="6"
-				pt="6"
+				py="3"
 				width="full"
 				color="weak"
 				position="relative"

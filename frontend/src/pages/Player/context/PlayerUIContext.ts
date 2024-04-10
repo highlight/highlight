@@ -8,7 +8,12 @@ export enum RightPanelView {
 	Event = 'EVENT',
 }
 
-export type RightPlayerTab = 'Events' | 'Metadata' | 'AI Insights'
+export enum RightPlayerTab {
+	Events = 'Events',
+	Metadata = 'Metadata',
+	AIInsights = 'AI Insights',
+}
+
 interface PlayerUIContext {
 	isPlayerFullscreen: boolean
 	setIsPlayerFullscreen: React.Dispatch<React.SetStateAction<boolean>>

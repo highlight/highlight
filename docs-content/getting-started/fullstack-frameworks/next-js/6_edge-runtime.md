@@ -57,11 +57,11 @@ export const runtime = 'edge'
 
 **App Router**
 ```typescript
-// pages/api/edge-page-router-test.ts
+// app/edge-page-router-test/route.ts
 import { NextRequest } from 'next/server'
 import { withEdgeHighlight } from '../../utils/edge-highlight.config'
 
-export default withEdgeHighlight(async function GET(request: NextRequest) {
+export const GET = withEdgeHighlight(async function GET(request: NextRequest) {
 	console.info('Here: pages/api/edge-page-router-test', request.url)
 
 	if (request.url.includes('error')) {

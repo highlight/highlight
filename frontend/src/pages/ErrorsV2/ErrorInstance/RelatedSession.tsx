@@ -1,25 +1,9 @@
 import { IconSolidPlayCircle, Tag, Tooltip } from '@highlight-run/ui/components'
-import { createSearchParams } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
-import { Link } from '@/components/Link'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { GetErrorInstanceQuery } from '@/graph/generated/operations'
-import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 import analytics from '@/util/analytics'
-
-const getSessionLink = (data: GetErrorInstanceQuery | undefined): string => {
-	const errorObject = data?.error_instance?.error_object
-
-	if (!errorObject?.session) {
-		return ''
-	}
-
-	const params = createSearchParams({
-		tsAbs: errorObject.timestamp,
-		[PlayerSearchParameters.errorId]: errorObject.id,
-	})
-	return `/${errorObject.project_id}/sessions/${errorObject.session?.secure_id}?${params}`
-}
 
 const WithDevToolsTooltip = ({ children }: React.PropsWithChildren) => {
 	return (
@@ -42,31 +26,40 @@ type Props = {
 
 export const RelatedSession = ({ data }: Props) => {
 	const { isLoggedIn } = useAuthContext()
-	const sessionLink = getSessionLink(data)
+	const { set } = useRelatedResource()
+	const errorObject = data?.error_instance?.error_object
+	const session = errorObject?.session
 
 	const tag = (
-		<Link
-			to={sessionLink}
-			onClick={() => analytics.track('error_related-session-link_click')}
+		<Tag
+			onClick={() => {
+				if (!session) {
+					return
+				}
+
+				set({
+					type: 'session',
+					secureId: session.secure_id,
+					tsAbs: errorObject.timestamp,
+					errorId: errorObject.id,
+				})
+
+				analytics.track('error_related-session-link_click')
+			}}
+			kind="secondary"
+			emphasis="high"
+			size="medium"
+			shape="basic"
+			disabled={!isLoggedIn || !session}
+			iconLeft={<IconSolidPlayCircle size={11} />}
 		>
-			<Tag
-				kind="secondary"
-				emphasis="high"
-				size="medium"
-				shape="basic"
-				disabled={!isLoggedIn || sessionLink === ''}
-				iconLeft={<IconSolidPlayCircle />}
-			>
-				Related session
-			</Tag>
-		</Link>
+			Related session
+		</Tag>
 	)
 
-	if (sessionLink === '') {
+	if (!session) {
 		return <NoSessionTooltip>{tag}</NoSessionTooltip>
-	} else if (
-		data?.error_instance?.error_object.session?.processed === false
-	) {
+	} else if (session.processed === false) {
 		return <WithDevToolsTooltip>{tag}</WithDevToolsTooltip>
 	} else {
 		return tag

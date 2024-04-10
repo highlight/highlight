@@ -136,8 +136,8 @@ var ContextKeys = struct {
 var Models = []interface{}{
 	&AWSMarketplaceCustomer{},
 	&ErrorObject{},
-	&ErrorObjectEmbeddings{},
 	&ErrorGroup{},
+	&ErrorGroupEmbeddings{},
 	&ErrorField{},
 	&ErrorSegment{},
 	&SavedSegment{},
@@ -202,6 +202,8 @@ var Models = []interface{}{
 	&SystemConfiguration{},
 	&SessionInsight{},
 	&ErrorTag{},
+	&Graph{},
+	&Visualization{},
 }
 
 func init() {
@@ -454,8 +456,6 @@ type AllWorkspaceSettings struct {
 	AIApplication bool `gorm:"default:true"`
 	AIInsights    bool `gorm:"default:false"`
 
-	// store embeddings for errors in this workspace
-	ErrorEmbeddingsWrite bool `gorm:"default:false"`
 	// use embeddings to group errors in this workspace
 	ErrorEmbeddingsGroup bool `gorm:"default:true"`
 	// use embeddings to tag error groups in this workspace
@@ -717,6 +717,7 @@ type Session struct {
 	HasUnloaded bool `gorm:"default:false"`
 	// Tells us if the session has been parsed by a worker.
 	Processed           *bool `json:"processed"`
+	HasComments         bool  `json:"has_comments" gorm:"default:false"`
 	HasRageClicks       *bool `json:"has_rage_clicks"`
 	HasErrors           *bool `json:"has_errors"`
 	HasOutOfOrderEvents bool  `gorm:"default:false"`
@@ -1030,6 +1031,7 @@ const (
 	ErrorGroupingMethodClassic             ErrorGroupingMethod = "Classic"
 	ErrorGroupingMethodAdaEmbeddingV2      ErrorGroupingMethod = "AdaV2"
 	ErrorGroupingMethodGteLargeEmbeddingV2 ErrorGroupingMethod = "thenlper/gte-large"
+	ErrorGroupingMethodGteLargeEmbeddingV3 ErrorGroupingMethod = "thenlper/gte-large.v3"
 )
 
 type ErrorObject struct {
@@ -1152,6 +1154,14 @@ type ErrorField struct {
 	Name        string
 	Value       string
 	ErrorGroups []ErrorGroup `gorm:"many2many:error_group_fields;"`
+}
+
+type ErrorGroupEmbeddings struct {
+	Model
+	ProjectID         int `gorm:"uniqueIndex:idx_project_id_error_group_id"`
+	ErrorGroupID      int `gorm:"uniqueIndex:idx_project_id_error_group_id"`
+	Count             int
+	GteLargeEmbedding Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large model
 }
 
 type LogAdminsView struct {
@@ -1424,6 +1434,39 @@ type Retryable struct {
 	Error       string
 }
 
+type Graph struct {
+	Model
+	VisualizationID   int `gorm:"index"`
+	Type              string
+	Title             string
+	ProductType       modelInputs.ProductType
+	Query             string
+	Metric            string
+	FunctionType      modelInputs.MetricAggregator
+	GroupByKey        *string
+	BucketByKey       *string
+	BucketCount       *int
+	Limit             *int
+	LimitFunctionType *modelInputs.MetricAggregator
+	LimitMetric       *string
+	Display           *string
+	NullHandling      *string
+}
+
+type Visualization struct {
+	Model
+	ProjectID        int `gorm:"index"`
+	Name             string
+	UpdatedByAdminId *int
+	UpdatedByAdmin   *Admin `gorm:"foreignKey:UpdatedByAdminId"`
+	Graphs           []Graph
+}
+
+type VisualizationsResponse struct {
+	Count   int
+	Results []Visualization
+}
+
 func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {
 	var (
 		host     = os.Getenv("PSQL_HOST")
@@ -1673,58 +1716,6 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		END;
 	`, PARTITION_SESSION_ID, PARTITION_SESSION_ID).Error; err != nil {
 		return false, e.Wrap(err, "Error setting session id sequence to 30000000")
-	}
-
-	if err := DB.Exec(`
-		CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned
-		(LIKE error_object_embeddings INCLUDING DEFAULTS INCLUDING IDENTITY)
-		PARTITION BY LIST (project_id);
-	`).Error; err != nil {
-		return false, e.Wrap(err, "Error creating error_object_embeddings_partitioned")
-	}
-
-	var lastVal int
-	if err := DB.Raw("SELECT coalesce(max(id), 1) FROM projects").Scan(&lastVal).Error; err != nil {
-		return false, e.Wrap(err, "Error selecting max project id")
-	}
-
-	var lastCreatedPart int
-	// ignore errors - an error means that there are no partitions, so we can safely use the zero-value.
-	DB.Raw("select split_part(relname, '_', 5) from pg_stat_all_tables where relname like 'error_object_embeddings_partitioned%' order by relid desc limit 1").Scan(&lastCreatedPart)
-
-	endPart := lastVal + 1000
-	if IsDevOrTestEnv() {
-		// limit the number of partitions created in dev or test to limit disk usage
-		endPart = lastVal + 10
-	}
-	if IsTestEnv() {
-		// create a 0 partition for tests
-		lastCreatedPart = -1
-	}
-
-	// Make sure partitions are created for the next N projects, starting with the next partition needed
-	for i := lastCreatedPart + 1; i < endPart; i++ {
-		if err := DB.Exec(fmt.Sprintf(`
-			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d
-			(LIKE error_object_embeddings_partitioned INCLUDING DEFAULTS INCLUDING IDENTITY);
-		`, i)).Error; err != nil {
-			return false, e.Wrapf(err, "Error creating partitioned error_object_embeddings for index %d", i)
-		}
-
-		if err := DB.Exec(fmt.Sprintf(`
-			CREATE INDEX ON error_object_embeddings_partitioned_%d
-			USING ivfflat (gte_large_embedding vector_l2_ops) WITH (lists = 1000);
-		`, i)).Error; err != nil {
-			return false, e.Wrapf(err, "Error creating index error_object_embeddings for index %d", i)
-		}
-
-		// in case this partition was already attached by a previous failed migration, this will fail.
-		// ignore errors
-		DB.Exec(fmt.Sprintf(`
-			ALTER TABLE error_object_embeddings_partitioned
-			ATTACH PARTITION error_object_embeddings_partitioned_%d
-			FOR VALUES IN ('%d');
-		`, i, i))
 	}
 
 	// Create sequence for session_fields.id manually. This started as a join
@@ -2475,6 +2466,7 @@ func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcome
 type TableConfig[TReservedKey ~string] struct {
 	TableName        string
 	BodyColumn       string
+	SeverityColumn   string
 	AttributesColumn string
 	KeysToColumns    map[TReservedKey]string
 	ReservedKeys     []TReservedKey

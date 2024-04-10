@@ -1,31 +1,64 @@
 {
-	"name": "nestjs",
-	"packageManager": "yarn@4.0.2",
-	"private": true,
-	"scripts": {
-		"build": "nest build",
-		"dev": "nest start --watch",
-		"start": "nest start"
-	},
-	"dependencies": {
-		"@highlight-run/nest": "workspace:*",
-		"@highlight-run/node": "workspace:*",
-		"@nestjs/axios": "^0.0.7",
-		"@nestjs/common": ">=8",
-		"@nestjs/config": "^2.0.0",
-		"@nestjs/core": ">=8",
-		"@nestjs/jwt": ">=8",
-		"@nestjs/mapped-types": "*",
-		"@nestjs/microservices": ">=8",
-		"@nestjs/passport": ">=8",
-		"@nestjs/platform-express": ">=8",
-		"@nestjs/schedule": "^1.0.2",
-		"@nestjs/swagger": "^5.1.5"
-	},
-	"devDependencies": {
-		"@nestjs/cli": ">=8",
-		"@nestjs/schematics": ">=8",
-		"@nestjs/testing": ">=8",
-		"typescript": "^4.9.5"
-	}
+  "name": "nestjs",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
+  },
+  "dependencies": {
+    "@highlight-run/nest": "workspace:*",
+    "@nestjs/axios": "^3.0.2",
+    "@nestjs/cli": "^10.0.0",
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/mapped-types": "*",
+    "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/schedule": "^4.0.0",
+    "@nestjs/schematics": "^10.0.0",
+    "@nestjs/swagger": "^7.1.10",
+    "@types/express": "^4.17.17",
+    "@types/jest": "^29.5.2",
+    "@types/node": "^20.3.1",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "axios": "^1.6.8",
+    "eslint": "^8.42.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "jest": "^29.5.0",
+    "prettier": "^3.0.0",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.1",
+    "source-map-support": "^0.5.21",
+    "ts-jest": "^29.1.0",
+    "ts-loader": "^9.4.3",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.1.3"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage"
+  },
+  "packageManager": "yarn@4.1.1"
 }

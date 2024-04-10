@@ -12,8 +12,8 @@ export const dialog = style([
 		overflow: 'hidden',
 	}),
 	{
-		width: '45%',
-		minWidth: 400,
+		width: '50%',
+		minWidth: 600,
 		right: 8,
 		top: 8,
 		bottom: 8,
