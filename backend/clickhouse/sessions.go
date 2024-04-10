@@ -464,7 +464,7 @@ var SessionsTableConfig = model.TableConfig[string]{
 }
 
 func SessionMatchesQuery(session *model.Session, filters listener.Filters) bool {
-	return matchesQuery(session, SessionsTableConfig, filters)
+	return matchesQuery(session, SessionsTableConfig, filters, listener.OperatorAnd)
 }
 
 var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey]{
