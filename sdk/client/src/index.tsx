@@ -491,6 +491,7 @@ export class Highlight {
 				delete obj[key]
 			}
 		})
+		this.addCustomEvent<object>(typeArg?.eventName || 'Custom', obj)
 		this._worker.postMessage({
 			message: {
 				type: MessageType.Properties,
@@ -773,10 +774,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						document.referrer.includes(window.location.origin)
 					)
 				) {
-					this.addCustomEvent<string>('Referrer', document.referrer)
 					this.addProperties(
 						{ referrer: document.referrer },
-						{ type: 'session' },
+						{ type: 'session', eventName: 'Referrer' },
 					)
 				}
 			}
@@ -904,18 +904,14 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this.listeners.push(
 				PathListener((url: string) => {
 					if (this.reloaded) {
-						this.addCustomEvent<string>('Reload', url)
 						this.reloaded = false
-						highlightThis.addProperties(
-							{ reload: true },
-							{ type: 'session' },
-						)
-					} else {
-						this.addCustomEvent<string>('Navigate', url)
 					}
 					highlightThis.addProperties(
-						{ 'visited-url': url },
-						{ type: 'session' },
+						{ 'visited-url': url, url, reload: this.reloaded },
+						{
+							type: 'session',
+							eventName: this.reloaded ? 'Reload' : 'Navigate',
+						},
 					)
 				}),
 			)
@@ -928,9 +924,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
 			this.listeners.push(
 				ClickListener((clickTarget, event) => {
-					if (clickTarget) {
-						this.addCustomEvent('Click', clickTarget)
-					}
 					let selector = null
 					let textContent = null
 					if (event && event.target) {
@@ -946,8 +939,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						{
 							clickTextContent: textContent,
 							clickSelector: selector,
+							clickTarget,
 						},
-						{ type: 'session' },
+						{ type: 'session', eventName: 'Click' },
 					)
 				}),
 			)
