@@ -61,6 +61,7 @@ type ResolverRoot interface {
 	SessionComment() SessionCommentResolver
 	Subscription() SubscriptionResolver
 	TimelineIndicatorEvent() TimelineIndicatorEventResolver
+	Visualization() VisualizationResolver
 }
 
 type DirectiveRoot struct {
@@ -1108,6 +1109,7 @@ type ComplexityRoot struct {
 		VercelProjectMappings            func(childComplexity int, projectID int) int
 		VercelProjects                   func(childComplexity int, projectID int) int
 		Visualization                    func(childComplexity int, id int) int
+		Visualizations                   func(childComplexity int, projectID int, input string, count int, offset int) int
 		WebVitals                        func(childComplexity int, sessionSecureID string) int
 		WebsocketEvents                  func(childComplexity int, sessionSecureID string) int
 		Workspace                        func(childComplexity int, id int) int
@@ -1564,10 +1566,17 @@ type ComplexityRoot struct {
 	}
 
 	Visualization struct {
-		Graphs    func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		ProjectID func(childComplexity int) int
+		Graphs         func(childComplexity int) int
+		ID             func(childComplexity int) int
+		Name           func(childComplexity int) int
+		ProjectID      func(childComplexity int) int
+		UpdatedAt      func(childComplexity int) int
+		UpdatedByAdmin func(childComplexity int) int
+	}
+
+	VisualizationsResponse struct {
+		Count   func(childComplexity int) int
+		Results func(childComplexity int) int
 	}
 
 	WebSocketEvent struct {
@@ -1952,6 +1961,7 @@ type QueryResolver interface {
 	Keys(ctx context.Context, productType model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	KeyValues(ctx context.Context, productType model.ProductType, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	Visualization(ctx context.Context, id int) (*model1.Visualization, error)
+	Visualizations(ctx context.Context, projectID int, input string, count int, offset int) (*model1.VisualizationsResponse, error)
 	Graph(ctx context.Context, id int) (*model1.Graph, error)
 	LogLines(ctx context.Context, productType model.ProductType, projectID int, params model.QueryInput) ([]*model.LogLine, error)
 }
@@ -2001,6 +2011,9 @@ type SubscriptionResolver interface {
 }
 type TimelineIndicatorEventResolver interface {
 	Data(ctx context.Context, obj *model1.TimelineIndicatorEvent) (interface{}, error)
+}
+type VisualizationResolver interface {
+	UpdatedByAdmin(ctx context.Context, obj *model1.Visualization) (*model.SanitizedAdmin, error)
 }
 
 type executableSchema struct {
@@ -8575,6 +8588,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Visualization(childComplexity, args["id"].(int)), true
 
+	case "Query.visualizations":
+		if e.complexity.Query.Visualizations == nil {
+			break
+		}
+
+		args, err := ec.field_Query_visualizations_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Visualizations(childComplexity, args["project_id"].(int), args["input"].(string), args["count"].(int), args["offset"].(int)), true
+
 	case "Query.web_vitals":
 		if e.complexity.Query.WebVitals == nil {
 			break
@@ -10778,6 +10803,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Visualization.ProjectID(childComplexity), true
+
+	case "Visualization.updatedAt":
+		if e.complexity.Visualization.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Visualization.UpdatedAt(childComplexity), true
+
+	case "Visualization.updatedByAdmin":
+		if e.complexity.Visualization.UpdatedByAdmin == nil {
+			break
+		}
+
+		return e.complexity.Visualization.UpdatedByAdmin(childComplexity), true
+
+	case "VisualizationsResponse.count":
+		if e.complexity.VisualizationsResponse.Count == nil {
+			break
+		}
+
+		return e.complexity.VisualizationsResponse.Count(childComplexity), true
+
+	case "VisualizationsResponse.results":
+		if e.complexity.VisualizationsResponse.Results == nil {
+			break
+		}
+
+		return e.complexity.VisualizationsResponse.Results(childComplexity), true
 
 	case "WebSocketEvent.message":
 		if e.complexity.WebSocketEvent.Message == nil {
@@ -13124,9 +13177,16 @@ type Graph {
 
 type Visualization {
 	id: ID!
+	updatedAt: Timestamp!
 	projectId: ID!
 	name: String!
+	updatedByAdmin: SanitizedAdmin
 	graphs: [Graph!]!
+}
+
+type VisualizationsResponse {
+	count: Int!
+	results: [Visualization!]!
 }
 
 input GraphInput {
@@ -13605,6 +13665,12 @@ type Query {
 		date_range: DateRangeRequiredInput!
 	): [String!]!
 	visualization(id: ID!): Visualization!
+	visualizations(
+		project_id: ID!
+		input: String!
+		count: Int!
+		offset: Int!
+	): VisualizationsResponse!
 	graph(id: ID!): Graph!
 	log_lines(
 		product_type: ProductType!
@@ -21881,6 +21947,48 @@ func (ec *executionContext) field_Query_visualization_args(ctx context.Context, 
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_visualizations_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	var arg2 int
+	if tmp, ok := rawArgs["count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["count"] = arg2
+	var arg3 int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg3, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg3
 	return args, nil
 }
 
@@ -62702,10 +62810,14 @@ func (ec *executionContext) fieldContext_Query_visualization(ctx context.Context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Visualization_id(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Visualization_updatedAt(ctx, field)
 			case "projectId":
 				return ec.fieldContext_Visualization_projectId(ctx, field)
 			case "name":
 				return ec.fieldContext_Visualization_name(ctx, field)
+			case "updatedByAdmin":
+				return ec.fieldContext_Visualization_updatedByAdmin(ctx, field)
 			case "graphs":
 				return ec.fieldContext_Visualization_graphs(ctx, field)
 			}
@@ -62720,6 +62832,67 @@ func (ec *executionContext) fieldContext_Query_visualization(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_visualization_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_visualizations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_visualizations(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Visualizations(rctx, fc.Args["project_id"].(int), fc.Args["input"].(string), fc.Args["count"].(int), fc.Args["offset"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model1.VisualizationsResponse)
+	fc.Result = res
+	return ec.marshalNVisualizationsResponse2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐVisualizationsResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_visualizations(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "count":
+				return ec.fieldContext_VisualizationsResponse_count(ctx, field)
+			case "results":
+				return ec.fieldContext_VisualizationsResponse_results(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VisualizationsResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_visualizations_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -76166,6 +76339,50 @@ func (ec *executionContext) fieldContext_Visualization_id(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Visualization_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model1.Visualization) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Visualization_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Visualization_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Visualization",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Visualization_projectId(ctx context.Context, field graphql.CollectedField, obj *model1.Visualization) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Visualization_projectId(ctx, field)
 	if err != nil {
@@ -76254,6 +76471,57 @@ func (ec *executionContext) fieldContext_Visualization_name(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Visualization_updatedByAdmin(ctx context.Context, field graphql.CollectedField, obj *model1.Visualization) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Visualization_updatedByAdmin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Visualization().UpdatedByAdmin(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.SanitizedAdmin)
+	fc.Result = res
+	return ec.marshalOSanitizedAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Visualization_updatedByAdmin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Visualization",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_SanitizedAdmin_id(ctx, field)
+			case "name":
+				return ec.fieldContext_SanitizedAdmin_name(ctx, field)
+			case "email":
+				return ec.fieldContext_SanitizedAdmin_email(ctx, field)
+			case "photo_url":
+				return ec.fieldContext_SanitizedAdmin_photo_url(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SanitizedAdmin", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Visualization_graphs(ctx context.Context, field graphql.CollectedField, obj *model1.Visualization) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Visualization_graphs(ctx, field)
 	if err != nil {
@@ -76325,6 +76593,108 @@ func (ec *executionContext) fieldContext_Visualization_graphs(ctx context.Contex
 				return ec.fieldContext_Graph_nullHandling(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Graph", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VisualizationsResponse_count(ctx context.Context, field graphql.CollectedField, obj *model1.VisualizationsResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VisualizationsResponse_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VisualizationsResponse_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VisualizationsResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VisualizationsResponse_results(ctx context.Context, field graphql.CollectedField, obj *model1.VisualizationsResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VisualizationsResponse_results(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Results, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]model1.Visualization)
+	fc.Result = res
+	return ec.marshalNVisualization2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐVisualizationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VisualizationsResponse_results(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VisualizationsResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Visualization_id(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Visualization_updatedAt(ctx, field)
+			case "projectId":
+				return ec.fieldContext_Visualization_projectId(ctx, field)
+			case "name":
+				return ec.fieldContext_Visualization_name(ctx, field)
+			case "updatedByAdmin":
+				return ec.fieldContext_Visualization_updatedByAdmin(ctx, field)
+			case "graphs":
+				return ec.fieldContext_Visualization_graphs(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Visualization", field.Name)
 		},
 	}
 	return fc, nil
@@ -91953,6 +92323,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "visualizations":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_visualizations(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "graph":
 			field := field
 
@@ -95686,20 +96078,102 @@ func (ec *executionContext) _Visualization(ctx context.Context, sel ast.Selectio
 		case "id":
 			out.Values[i] = ec._Visualization_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "updatedAt":
+			out.Values[i] = ec._Visualization_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "projectId":
 			out.Values[i] = ec._Visualization_projectId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._Visualization_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "updatedByAdmin":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Visualization_updatedByAdmin(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "graphs":
 			out.Values[i] = ec._Visualization_graphs(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var visualizationsResponseImplementors = []string{"VisualizationsResponse"}
+
+func (ec *executionContext) _VisualizationsResponse(ctx context.Context, sel ast.SelectionSet, obj *model1.VisualizationsResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, visualizationsResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("VisualizationsResponse")
+		case "count":
+			out.Values[i] = ec._VisualizationsResponse_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "results":
+			out.Values[i] = ec._VisualizationsResponse_results(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -101473,6 +101947,50 @@ func (ec *executionContext) marshalNVisualization2githubᚗcomᚋhighlightᚑrun
 	return ec._Visualization(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNVisualization2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐVisualizationᚄ(ctx context.Context, sel ast.SelectionSet, v []model1.Visualization) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNVisualization2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐVisualization(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalNVisualization2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐVisualization(ctx context.Context, sel ast.SelectionSet, v *model1.Visualization) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -101486,6 +102004,20 @@ func (ec *executionContext) marshalNVisualization2ᚖgithubᚗcomᚋhighlightᚑ
 func (ec *executionContext) unmarshalNVisualizationInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVisualizationInput(ctx context.Context, v interface{}) (model.VisualizationInput, error) {
 	res, err := ec.unmarshalInputVisualizationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNVisualizationsResponse2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐVisualizationsResponse(ctx context.Context, sel ast.SelectionSet, v model1.VisualizationsResponse) graphql.Marshaler {
+	return ec._VisualizationsResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNVisualizationsResponse2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐVisualizationsResponse(ctx context.Context, sel ast.SelectionSet, v *model1.VisualizationsResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._VisualizationsResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNWebhookDestination2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWebhookDestinationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.WebhookDestination) graphql.Marshaler {

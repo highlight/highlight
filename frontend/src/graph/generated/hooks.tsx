@@ -15399,6 +15399,7 @@ export const GetVisualizationDocument = gql`
 	query GetVisualization($id: ID!) {
 		visualization(id: $id) {
 			id
+			updatedAt
 			projectId
 			name
 			graphs {
@@ -15417,6 +15418,12 @@ export const GetVisualizationDocument = gql`
 				limitMetric
 				display
 				nullHandling
+			}
+			updatedByAdmin {
+				id
+				name
+				email
+				photo_url
 			}
 		}
 	}
@@ -15469,4 +15476,102 @@ export type GetVisualizationLazyQueryHookResult = ReturnType<
 export type GetVisualizationQueryResult = Apollo.QueryResult<
 	Types.GetVisualizationQuery,
 	Types.GetVisualizationQueryVariables
+>
+export const GetVisualizationsDocument = gql`
+	query GetVisualizations(
+		$project_id: ID!
+		$input: String!
+		$count: Int!
+		$offset: Int!
+	) {
+		visualizations(
+			project_id: $project_id
+			input: $input
+			count: $count
+			offset: $offset
+		) {
+			count
+			results {
+				id
+				updatedAt
+				projectId
+				name
+				graphs {
+					id
+					type
+					title
+					productType
+					query
+					metric
+					functionType
+					groupByKey
+					bucketByKey
+					bucketCount
+					limit
+					limitFunctionType
+					limitMetric
+					display
+					nullHandling
+				}
+				updatedByAdmin {
+					id
+					name
+					email
+					photo_url
+				}
+			}
+		}
+	}
+`
+
+/**
+ * __useGetVisualizationsQuery__
+ *
+ * To run a query within a React component, call `useGetVisualizationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetVisualizationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetVisualizationsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      input: // value for 'input'
+ *      count: // value for 'count'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useGetVisualizationsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetVisualizationsQuery,
+		Types.GetVisualizationsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetVisualizationsQuery,
+		Types.GetVisualizationsQueryVariables
+	>(GetVisualizationsDocument, baseOptions)
+}
+export function useGetVisualizationsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetVisualizationsQuery,
+		Types.GetVisualizationsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetVisualizationsQuery,
+		Types.GetVisualizationsQueryVariables
+	>(GetVisualizationsDocument, baseOptions)
+}
+export type GetVisualizationsQueryHookResult = ReturnType<
+	typeof useGetVisualizationsQuery
+>
+export type GetVisualizationsLazyQueryHookResult = ReturnType<
+	typeof useGetVisualizationsLazyQuery
+>
+export type GetVisualizationsQueryResult = Apollo.QueryResult<
+	Types.GetVisualizationsQuery,
+	Types.GetVisualizationsQueryVariables
 >

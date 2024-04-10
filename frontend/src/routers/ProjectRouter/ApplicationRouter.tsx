@@ -2,7 +2,6 @@ import { useAuthContext } from '@authentication/AuthContext'
 import AlertsRouter from '@pages/Alerts/AlertsRouter'
 import LogAlertsRouter from '@pages/Alerts/LogAlert/LogAlertRouter'
 import { CanvasPage } from '@pages/Buttons/CanvasV2'
-import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
 import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
@@ -101,12 +100,10 @@ const ApplicationRouter: React.FC = () => {
 						/>
 						{isHighlightAdmin && (
 							<Route
-								path="metrics/*"
+								path="dashboards/*"
 								element={<DashboardRouter />}
 							/>
 						)}
-
-						<Route path="*" element={<DashboardsRouter />} />
 					</>
 				) : (
 					<Route path="*" element={<SignInRedirect />} />

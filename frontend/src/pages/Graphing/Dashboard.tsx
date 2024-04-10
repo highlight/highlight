@@ -1,6 +1,15 @@
-import { Box, Button, IconSolidPlus, Text } from '@highlight-run/ui/components'
+import {
+	Badge,
+	Box,
+	Button,
+	IconSolidChartBar,
+	IconSolidCheveronRight,
+	IconSolidPlus,
+	Text,
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { Helmet } from 'react-helmet'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
 import { useGetVisualizationQuery } from '@/graph/generated/hooks'
@@ -19,6 +28,7 @@ export const Dashboard = () => {
 	const { projectId } = useProjectId()
 	const { data } = useGetVisualizationQuery({
 		variables: { id: dashboard_id! },
+		fetchPolicy: 'cache-and-network',
 	})
 
 	const { timeRange } = useDataTimeRange()
@@ -28,7 +38,7 @@ export const Dashboard = () => {
 	return (
 		<>
 			<Helmet>
-				<title>Edit Metric View</title>
+				<title>{data?.visualization.name}</title>
 			</Helmet>
 			<Box
 				background="n2"
@@ -57,14 +67,33 @@ export const Dashboard = () => {
 						paddingRight="8"
 						py="6"
 					>
-						<Text size="small" weight="medium">
-							{data?.visualization.name}
-						</Text>
+						<Box
+							display="flex"
+							flexDirection="row"
+							alignItems="center"
+							gap="4"
+						>
+							<Link to="..">
+								<Badge
+									shape="basic"
+									size="medium"
+									variant="gray"
+									iconStart={<IconSolidChartBar />}
+									label="Dashboards"
+								/>
+							</Link>
+							<IconSolidCheveronRight
+								color={vars.theme.static.content.weak}
+							/>
+							<Text size="small" weight="medium" color="default">
+								{data?.visualization.name}
+							</Text>
+						</Box>
 						<Box display="flex" gap="4">
 							<Button emphasis="low" kind="secondary">
 								Share
 							</Button>
-							<TimeRangePicker />
+							<TimeRangePicker emphasis="low" kind="secondary" />
 							<Button
 								emphasis="low"
 								kind="secondary"

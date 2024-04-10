@@ -82,6 +82,7 @@ export const BarChart = ({
 				<Tooltip
 					content={getCustomTooltip(xAxisMetric, yAxisMetric)}
 					cursor={{ fill: '#C8C7CB', fillOpacity: 0.5 }}
+					isAnimationActive={false}
 				/>
 
 				<YAxis
