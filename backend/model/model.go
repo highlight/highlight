@@ -1455,9 +1455,16 @@ type Graph struct {
 
 type Visualization struct {
 	Model
-	ProjectID int    `gorm:"uniqueIndex:visualization_project_id_name_idx"`
-	Name      string `gorm:"uniqueIndex:visualization_project_id_name_idx"`
-	Graphs    []Graph
+	ProjectID        int `gorm:"index"`
+	Name             string
+	UpdatedByAdminId *int
+	UpdatedByAdmin   *Admin `gorm:"foreignKey:UpdatedByAdminId"`
+	Graphs           []Graph
+}
+
+type VisualizationsResponse struct {
+	Count   int
+	Results []Visualization
 }
 
 func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {

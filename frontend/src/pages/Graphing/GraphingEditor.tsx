@@ -513,7 +513,7 @@ export const GraphingEditor = () => {
 							>
 								Cancel
 							</Button>
-							<TimeRangePicker />
+							<TimeRangePicker emphasis="low" kind="secondary" />
 							{isEdit ? (
 								<Button
 									kind="danger"

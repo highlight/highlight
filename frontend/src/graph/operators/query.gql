@@ -2540,6 +2540,7 @@ query GetMetrics(
 query GetVisualization($id: ID!) {
 	visualization(id: $id) {
 		id
+		updatedAt
 		projectId
 		name
 		graphs {
@@ -2558,6 +2559,57 @@ query GetVisualization($id: ID!) {
 			limitMetric
 			display
 			nullHandling
+		}
+		updatedByAdmin {
+			id
+			name
+			email
+			photo_url
+		}
+	}
+}
+
+query GetVisualizations(
+	$project_id: ID!
+	$input: String!
+	$count: Int!
+	$offset: Int!
+) {
+	visualizations(
+		project_id: $project_id
+		input: $input
+		count: $count
+		offset: $offset
+	) {
+		count
+		results {
+			id
+			updatedAt
+			projectId
+			name
+			graphs {
+				id
+				type
+				title
+				productType
+				query
+				metric
+				functionType
+				groupByKey
+				bucketByKey
+				bucketCount
+				limit
+				limitFunctionType
+				limitMetric
+				display
+				nullHandling
+			}
+			updatedByAdmin {
+				id
+				name
+				email
+				photo_url
+			}
 		}
 	}
 }

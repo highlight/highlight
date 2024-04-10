@@ -117,6 +117,14 @@ const cache = new InMemoryCache({
 				error_groups_clickhouse: {
 					keyArgs: ['project_id', 'count', 'query', 'page'],
 				},
+				visualization: {
+					read(_, { args, toReference }) {
+						return toReference({
+							__typename: 'Visualization',
+							id: args?.id,
+						})
+					},
+				},
 			},
 		},
 	},
