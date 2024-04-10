@@ -11,6 +11,7 @@ import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
+import { SearchContext } from '@/components/Search/SearchContext'
 import {
 	SearchForm,
 	SearchFormProps,
@@ -91,7 +92,7 @@ export const NetworkResourceLogs: React.FC<{
 	}, [requestId])
 
 	return (
-		<>
+		<SearchContext onSubmit={setQuery}>
 			<Box
 				padding="8"
 				flex="stretch"
@@ -142,7 +143,7 @@ export const NetworkResourceLogs: React.FC<{
 					</Box>
 				</Box>
 			</Box>
-		</>
+		</SearchContext>
 	)
 }
 

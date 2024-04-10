@@ -10,6 +10,7 @@ import React, { useEffect, useState } from 'react'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
 import { LinkButton } from '@/components/LinkButton'
+import { SearchContext } from '@/components/Search/SearchContext'
 import {
 	SearchForm,
 	SearchFormProps,
@@ -63,7 +64,7 @@ export const TraceLogs: React.FC = () => {
 	}, [traceId])
 
 	return (
-		<>
+		<SearchContext onSubmit={setQuery}>
 			<Box display="flex" overflow="hidden">
 				<Box
 					borderRadius="6"
@@ -117,7 +118,7 @@ export const TraceLogs: React.FC = () => {
 					</Box>
 				</Box>
 			</Box>
-		</>
+		</SearchContext>
 	)
 }
 
