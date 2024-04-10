@@ -466,9 +466,9 @@ export const ProjectProductFilters: React.FC<{
 											value,
 										)
 									}}
+									disabled={view}
 								>
 									<SearchForm
-										disableSearch={view}
 										hideDatePicker
 										hideCreateAlert
 										startDate={dateRange.start}

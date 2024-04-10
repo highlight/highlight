@@ -83,7 +83,7 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 	}, [resource.query])
 
 	return (
-		<SearchContext initialQuery={query} onSubmit={handleSubmit}>
+		<SearchContext initialQuery={query} onSubmit={handleSubmit} disabled>
 			<Panel.Header path={path}></Panel.Header>
 
 			<Box

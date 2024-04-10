@@ -43,6 +43,7 @@ import {
 } from '@/components/CustomColumnHeader'
 import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { SearchExpression } from '@/components/Search/Parser/listener'
+import { useSearchContext } from '@/components/Search/SearchContext'
 import { parseSearch } from '@/components/Search/utils'
 import { LogEdge, ProductType } from '@/graph/generated/schemas'
 import analytics from '@/util/analytics'
@@ -117,7 +118,6 @@ export const LogsTable = (props: Props) => {
 type LogsTableInnerProps = {
 	loadingAfter: boolean
 	logEdges: LogEdgeWithResources[]
-	query: string
 	selectedCursor: string | undefined
 	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
 	// necessary for loading most recent loads
@@ -134,7 +134,6 @@ const LOADING_AFTER_HEIGHT = 28
 const LogsTableInner = ({
 	logEdges,
 	loadingAfter,
-	query,
 	selectedCursor,
 	moreLogs,
 	bodyHeight,
@@ -144,11 +143,11 @@ const LogsTableInner = ({
 	selectedColumns = DEFAULT_LOG_COLUMNS,
 	setSelectedColumns,
 }: LogsTableInnerProps) => {
+	const { query, queryParts } = useSearchContext()
 	const bodyRef = useRef<HTMLDivElement>(null)
 	const enableFetchMoreLogs =
 		!!moreLogs && !!clearMoreLogs && !!handleAdditionalLogsDateChange
 
-	const { queryParts } = parseSearch(query)
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const columnHelper = createColumnHelper<LogEdge>()

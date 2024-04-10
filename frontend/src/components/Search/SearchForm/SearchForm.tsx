@@ -44,12 +44,10 @@ import {
 import { QueryPart } from '@/components/Search/SearchForm/QueryPart'
 import {
 	BODY_KEY,
-	buildTokenGroups,
 	DEFAULT_OPERATOR,
 	quoteQueryValue,
 	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
-import { parseSearch } from '@/components/Search/utils'
 import {
 	useGetKeysLazyQuery,
 	useGetKeyValuesLazyQuery,
@@ -97,7 +95,6 @@ export type SearchFormProps = {
 	minDate: Date
 	timeMode: TIME_MODE
 	productType: ProductType
-	disableSearch?: boolean
 	actions?: React.FC<{
 		query: string
 		startDate: Date
@@ -118,7 +115,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	presets,
 	minDate,
 	timeMode,
-	disableSearch,
 	actions,
 	hideDatePicker,
 	hideCreateAlert,
@@ -127,7 +123,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
-	const { initialQuery, query, setQuery, onSubmit } = useSearchContext()
+	const { disabled, query, setQuery, onSubmit } = useSearchContext()
 
 	const handleQueryChange = (query?: string) => {
 		const updatedQuery = query ?? ''
@@ -156,15 +152,11 @@ const SearchForm: React.FC<SearchFormProps> = ({
 				borderBottom="dividerWeak"
 			>
 				<Search
-					initialQuery={initialQuery}
 					startDate={startDate}
 					endDate={endDate}
-					disableSearch={disableSearch}
-					query={query}
+					disableSearch={disabled}
 					textAreaRef={textAreaRef}
 					productType={productType}
-					setQuery={setQuery}
-					onFormSubmit={onSubmit}
 				/>
 				<Box display="flex" pr="8" py="6" gap="6">
 					{SegmentMenu}
@@ -235,30 +227,24 @@ export { SearchForm }
 export const DEFAULT_INPUT_HEIGHT = 31
 
 export const Search: React.FC<{
-	initialQuery: string // TODO: Move to context
-	startDate: Date // TODO: Move to context
-	endDate: Date // TODO: Move to context
+	startDate: Date
+	endDate: Date
 	hideIcon?: boolean
 	disableSearch?: boolean
 	placeholder?: string
-	query: string // TODO: Move to context
 	productType: ProductType
-	setQuery: (value: string) => void // TODO: Move to context
-	onFormSubmit: (query: string) => void
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 }> = ({
-	initialQuery,
 	startDate,
 	endDate,
 	hideIcon,
 	disableSearch,
 	placeholder,
-	query,
 	textAreaRef,
 	productType,
-	setQuery,
-	onFormSubmit,
 }) => {
+	const { initialQuery, query, queryParts, tokenGroups, onSubmit, setQuery } =
+		useSearchContext()
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const defaultInputRef = useRef<HTMLTextAreaElement | null>(null)
@@ -274,8 +260,6 @@ export const Search: React.FC<{
 	const [cursorIndex, setCursorIndex] = useState(0)
 	const [isPending, startTransition] = React.useTransition()
 
-	const { queryParts, tokens } = parseSearch(query)
-	const tokenGroups = buildTokenGroups(tokens)
 	const activePart = getActivePart(cursorIndex, queryParts)
 	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
 		activePart.value,
@@ -328,7 +312,7 @@ export const Search: React.FC<{
 	const isDirty = query !== ''
 
 	const submitQuery = (query: string) => {
-		onFormSubmit(query)
+		onSubmit(query)
 	}
 
 	const handleSetCursorIndex = () => {

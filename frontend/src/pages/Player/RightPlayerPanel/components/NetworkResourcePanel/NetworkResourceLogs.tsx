@@ -92,7 +92,7 @@ export const NetworkResourceLogs: React.FC<{
 	}, [requestId])
 
 	return (
-		<SearchContext initialQuery={query} onSubmit={setQuery}>
+		<SearchContext initialQuery={query} onSubmit={setQuery} disabled>
 			<Box
 				padding="8"
 				flex="stretch"
@@ -116,7 +116,6 @@ export const NetworkResourceLogs: React.FC<{
 						presets={[]}
 						minDate={new Date(sessionStartTime)}
 						timeMode="permalink"
-						disableSearch
 						actions={SearchFormActions}
 						hideDatePicker
 						hideCreateAlert

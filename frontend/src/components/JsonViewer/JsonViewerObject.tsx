@@ -147,84 +147,48 @@ export const JsonViewerValue: React.FC<{
 						)}
 					</Text>
 				</Box>
-				{setQuery && (
-					<Box cssClass={styles.attributeActions}>
-						{!!queryParts && (
-							<Box>
-								<Tooltip
-									trigger={
-										<IconSolidFilter
-											className={styles.attributeAction}
-											size="12"
-											onClick={() => {
-												if (!queryParts || !setQuery) {
-													return
-												}
-
-												const index =
-													queryParts.findIndex(
-														(term) =>
-															term.key ===
-															queryKey,
-													)
-												const queryValue =
-													quoteQueryValue(value)
-
-												if (index !== -1) {
-													queryParts[index].value =
-														value
-													queryParts[index].text =
-														queryKey === BODY_KEY
-															? queryValue
-															: `${queryKey}${DEFAULT_OPERATOR}${queryValue}`
-												}
-
-												let newQuery =
-													stringifySearchQuery(
-														queryParts,
-													)
-
-												if (index === -1) {
-													newQuery +=
-														queryKey === BODY_KEY
-															? ` ${queryValue}`
-															: ` ${queryKey}${DEFAULT_OPERATOR}${queryValue}`
-
-													newQuery = newQuery.trim()
-												}
-
-												setQuery(newQuery)
-												analytics.track(
-													'logs_apply-filter_click',
-												)
-											}}
-										/>
-									}
-									delayed
-								>
-									<Box p="4">
-										<Text userSelect="none" color="n11">
-											Apply as filter
-										</Text>
-									</Box>
-								</Tooltip>
-							</Box>
-						)}
+				<Box cssClass={styles.attributeActions}>
+					{!!queryParts && !!setQuery && (
 						<Box>
 							<Tooltip
 								trigger={
-									<IconSolidClipboardCopy
+									<IconSolidFilter
 										className={styles.attributeAction}
 										size="12"
 										onClick={() => {
-											navigator.clipboard.writeText(
-												quoteQueryValue(value),
+											if (!queryParts || !setQuery) {
+												return
+											}
+
+											const index = queryParts.findIndex(
+												(term) => term.key === queryKey,
 											)
-											antdMessage.success(
-												'Value copied to your clipboard',
-											)
+											const queryValue =
+												quoteQueryValue(value)
+
+											if (index !== -1) {
+												queryParts[index].value = value
+												queryParts[index].text =
+													queryKey === BODY_KEY
+														? queryValue
+														: `${queryKey}${DEFAULT_OPERATOR}${queryValue}`
+											}
+
+											let newQuery =
+												stringifySearchQuery(queryParts)
+
+											if (index === -1) {
+												newQuery +=
+													queryKey === BODY_KEY
+														? ` ${queryValue}`
+														: ` ${queryKey}${DEFAULT_OPERATOR}${queryValue}`
+
+												newQuery = newQuery.trim()
+											}
+
+											setQuery(newQuery)
 											analytics.track(
-												'json-viewer_copy-to-clipboard_click',
+												'logs_apply-filter_click',
 											)
 										}}
 									/>
@@ -233,13 +197,41 @@ export const JsonViewerValue: React.FC<{
 							>
 								<Box p="4">
 									<Text userSelect="none" color="n11">
-										Copy to your clipboard
+										Apply as filter
 									</Text>
 								</Box>
 							</Tooltip>
 						</Box>
+					)}
+					<Box>
+						<Tooltip
+							trigger={
+								<IconSolidClipboardCopy
+									className={styles.attributeAction}
+									size="12"
+									onClick={() => {
+										navigator.clipboard.writeText(
+											quoteQueryValue(value),
+										)
+										antdMessage.success(
+											'Value copied to your clipboard',
+										)
+										analytics.track(
+											'json-viewer_copy-to-clipboard_click',
+										)
+									}}
+								/>
+							}
+							delayed
+						>
+							<Box p="4">
+								<Text userSelect="none" color="n11">
+									Copy to your clipboard
+								</Text>
+							</Box>
+						</Tooltip>
 					</Box>
-				)}
+				</Box>
 			</Box>
 		</AttributeLine>
 	)

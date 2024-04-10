@@ -64,7 +64,7 @@ export const TraceLogs: React.FC = () => {
 	}, [traceId])
 
 	return (
-		<SearchContext initialQuery={query} onSubmit={setQuery}>
+		<SearchContext initialQuery={query} onSubmit={setQuery} disabled>
 			<Box display="flex" overflow="hidden">
 				<Box
 					borderRadius="6"
@@ -81,7 +81,6 @@ export const TraceLogs: React.FC = () => {
 						presets={[]}
 						minDate={startDate}
 						timeMode="permalink"
-						disableSearch
 						actions={SearchFormActions}
 						hideDatePicker
 						hideCreateAlert

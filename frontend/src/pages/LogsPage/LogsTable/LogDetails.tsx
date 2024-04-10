@@ -48,7 +48,7 @@ export const LogDetails: React.FC<Props> = ({
 	row,
 	queryParts,
 }) => {
-	const { onSubmit } = useSearchContext()
+	const { disabled, onSubmit } = useSearchContext()
 	const { set } = useRelatedResource()
 	const { projectId } = useProjectId()
 	const navigate = useNavigate()
@@ -135,7 +135,7 @@ export const LogDetails: React.FC<Props> = ({
 								queryKey={key}
 								queryParts={queryParts}
 								queryMatch={matchedAttributes[key]?.match}
-								setQuery={onSubmit}
+								setQuery={disabled ? undefined : onSubmit}
 							/>
 						</Box>
 					),
