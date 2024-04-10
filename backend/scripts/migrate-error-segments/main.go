@@ -91,7 +91,7 @@ func main() {
 		// check if segment already exists
 		// NOTE: n+1 query here, but this is a one-off migration with <100 segments
 		var exists bool
-		if err := db.WithContext(ctx).Model(savedSegment).Select("COUNT(*) > 0").Find(&exists).Error; err != nil {
+		if err := db.WithContext(ctx).Model(model.SavedSegment{}).Select("COUNT(*) > 0").Where(savedSegment).Find(&exists).Error; err != nil {
 			log.WithContext(ctx).Errorf("error checking for existing saved segment %v", err)
 			errorCount++
 			continue
