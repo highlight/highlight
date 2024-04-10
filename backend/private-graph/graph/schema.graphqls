@@ -1876,9 +1876,16 @@ type Graph {
 
 type Visualization {
 	id: ID!
+	updatedAt: Timestamp!
 	projectId: ID!
 	name: String!
+	updatedByAdmin: SanitizedAdmin
 	graphs: [Graph!]!
+}
+
+type VisualizationsResponse {
+	count: Int!
+	results: [Visualization!]!
 }
 
 input GraphInput {
@@ -2357,6 +2364,12 @@ type Query {
 		date_range: DateRangeRequiredInput!
 	): [String!]!
 	visualization(id: ID!): Visualization!
+	visualizations(
+		project_id: ID!
+		input: String!
+		count: Int!
+		offset: Int!
+	): VisualizationsResponse!
 	graph(id: ID!): Graph!
 	log_lines(
 		product_type: ProductType!

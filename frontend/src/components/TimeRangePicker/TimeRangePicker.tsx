@@ -1,4 +1,5 @@
 import { PreviousDateRangePicker } from '@highlight-run/ui/components'
+import { MenuButtonProps } from '@highlight-run/ui/dist/components/Menu/Menu'
 import useDataTimeRange, {
 	defaultDataTimeRange,
 	FORMAT,
@@ -41,7 +42,9 @@ const minDate = moment(defaultDataTimeRange.end_date)
 	.subtract(90, 'days')
 	.toDate()
 
-const TimeRangePicker: React.FC<React.PropsWithChildren<unknown>> = () => {
+const TimeRangePicker: React.FC<
+	React.PropsWithChildren<Omit<MenuButtonProps, 'ref' | 'store'>>
+> = (props) => {
 	const [customDateRange, setCustomDateRange] = useState<Date[]>([
 		presets[5].startDate,
 		moment().toDate(),
@@ -65,6 +68,7 @@ const TimeRangePicker: React.FC<React.PropsWithChildren<unknown>> = () => {
 			selectedDates={customDateRange}
 			onDatesChange={setCustomDateRange}
 			minDate={minDate}
+			{...props}
 		/>
 	)
 }

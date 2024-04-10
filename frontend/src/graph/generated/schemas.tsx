@@ -2124,6 +2124,7 @@ export type Query = {
 	vercel_project_mappings: Array<VercelProjectMapping>
 	vercel_projects: Array<VercelProject>
 	visualization: Visualization
+	visualizations: VisualizationsResponse
 	web_vitals: Array<Metric>
 	websocket_events?: Maybe<Array<Maybe<Scalars['Any']>>>
 	workspace?: Maybe<Workspace>
@@ -2912,6 +2913,13 @@ export type QueryVercel_ProjectsArgs = {
 
 export type QueryVisualizationArgs = {
 	id: Scalars['ID']
+}
+
+export type QueryVisualizationsArgs = {
+	count: Scalars['Int']
+	input: Scalars['String']
+	offset: Scalars['Int']
+	project_id: Scalars['ID']
 }
 
 export type QueryWeb_VitalsArgs = {
@@ -3716,12 +3724,20 @@ export type Visualization = {
 	id: Scalars['ID']
 	name: Scalars['String']
 	projectId: Scalars['ID']
+	updatedAt: Scalars['Timestamp']
+	updatedByAdmin?: Maybe<SanitizedAdmin>
 }
 
 export type VisualizationInput = {
 	id?: InputMaybe<Scalars['ID']>
 	name: Scalars['String']
 	projectId: Scalars['ID']
+}
+
+export type VisualizationsResponse = {
+	__typename?: 'VisualizationsResponse'
+	count: Scalars['Int']
+	results: Array<Visualization>
 }
 
 export type WebSocketEvent = {

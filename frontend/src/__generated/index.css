@@ -7558,6 +7558,15 @@ body {
     border-bottom: none;
   }
 }
+._1y9te7a0 {
+  cursor: auto;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  max-width: 400px;
+  padding-bottom: 32px;
+  padding-top: 32px;
+}
 .gw96js0 {
   height: 40px;
 }
