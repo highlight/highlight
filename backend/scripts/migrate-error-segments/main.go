@@ -91,7 +91,9 @@ func main() {
 		}
 
 		// create new saved segment
-		if !dryRun {
+		if dryRun {
+			log.WithContext(ctx).Infof("would migrate segment %d: %s", segment.ID, savedSegment.Params)
+		} else {
 			if err := db.WithContext(ctx).Create(&savedSegment).Error; err != nil {
 				log.WithContext(ctx).Errorf("error migrating error segment %d, %v", segment.ID, err)
 				errorCount++
