@@ -239,16 +239,16 @@ export { SearchForm }
 export const DEFAULT_INPUT_HEIGHT = 31
 
 export const Search: React.FC<{
-	initialQuery: string
-	startDate: Date
-	endDate: Date
+	initialQuery: string // TODO: Move to context
+	startDate: Date // TODO: Move to context
+	endDate: Date // TODO: Move to context
 	hideIcon?: boolean
 	disableSearch?: boolean
 	placeholder?: string
-	query: string
+	query: string // TODO: Move to context
 	productType: ProductType
-	setQuery: (value: string) => void
-	onFormSubmit: (query: string) => void
+	setQuery: (value: string) => void // TODO: Move to context
+	onFormSubmit: (query: string) => void // TODO: Move to context
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 }> = ({
 	initialQuery,

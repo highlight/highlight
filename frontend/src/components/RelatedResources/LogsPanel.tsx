@@ -8,7 +8,7 @@ import {
 	useRelatedResource,
 } from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
-import { SearchContextProvider } from '@/components/Search/SearchContext'
+import { SearchContext } from '@/components/Search/SearchContext'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import { ProductType } from '@/graph/generated/schemas'
 import { useNumericProjectId } from '@/hooks/useProjectId'
@@ -21,7 +21,7 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 }) => {
 	const { set } = useRelatedResource()
 	const [query, setQuery] = useState(resource.query ?? '')
-	const onSubmit = (query: string) => set({ ...resource, query })
+	const handleSubmit = (query: string) => set({ ...resource, query })
 	const { projectId } = useNumericProjectId()
 
 	/* eslint-disable react-hooks/exhaustive-deps */
@@ -83,7 +83,7 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 	}, [resource.query])
 
 	return (
-		<SearchContextProvider value={{ query, setQuery, onSubmit }}>
+		<SearchContext onSubmit={handleSubmit}>
 			<Panel.Header path={path}></Panel.Header>
 
 			<Box
@@ -131,6 +131,6 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 					</Box>
 				</Box>
 			</Box>
-		</SearchContextProvider>
+		</SearchContext>
 	)
 }

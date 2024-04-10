@@ -17,6 +17,7 @@ import React, { useEffect, useMemo, useRef } from 'react'
 import { Helmet } from 'react-helmet'
 import { useQueryParam } from 'use-query-params'
 
+import { SearchContext } from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -157,7 +158,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	}, [])
 
 	return (
-		<>
+		<SearchContext onSubmit={setQuery}>
 			<Helmet>
 				<title>Logs</title>
 			</Helmet>
@@ -229,7 +230,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 					</Box>
 				</Box>
 			</Box>
-		</>
+		</SearchContext>
 	)
 }
 

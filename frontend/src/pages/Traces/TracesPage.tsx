@@ -15,6 +15,7 @@ import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
 import { loadingIcon } from '@/components/Button/style.css'
+import { SearchContext } from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -174,7 +175,7 @@ export const TracesPage: React.FC = () => {
 	useEffect(() => analytics.page('Traces'), [])
 
 	return (
-		<>
+		<SearchContext onSubmit={setQuery}>
 			<Helmet>
 				<title>Traces</title>
 			</Helmet>
@@ -323,7 +324,7 @@ export const TracesPage: React.FC = () => {
 			</Box>
 
 			<Outlet context={outletContext} />
-		</>
+		</SearchContext>
 	)
 }
 
