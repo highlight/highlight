@@ -23,7 +23,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import { ErrorFeedCard } from '@/pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
-import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import { useErrorPageNavigation } from '@/pages/ErrorsV2/ErrorsV2'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
@@ -64,7 +64,7 @@ export const SearchPanel = ({
 	endDate,
 	selectedPreset,
 }: SearchPanelProps) => {
-	const { showLeftPanel, setShowLeftPanel } = usePlayerConfiguration()
+	const { showLeftPanel, setShowLeftPanel } = useErrorPageNavigation({})
 	const { showBanner } = useGlobalContext()
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 
