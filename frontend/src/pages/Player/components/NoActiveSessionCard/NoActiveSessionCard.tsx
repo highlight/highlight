@@ -1,11 +1,11 @@
 import { Box, Callout, Text } from '@highlight-run/ui/components'
 import { useEffect } from 'react'
 
-import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import { useErrorPageNavigation } from '@/pages/ErrorsV2/ErrorsV2'
 import { useParams } from '@/util/react-router/useParams'
 
 const NoActiveSessionCard = () => {
-	const { setShowLeftPanel } = usePlayerConfiguration()
+	const { setShowLeftPanel } = useErrorPageNavigation({})
 	const { session_secure_id } = useParams<{
 		session_secure_id: string
 	}>()

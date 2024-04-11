@@ -507,10 +507,12 @@ export function useErrorGroup(errorSecureId?: string) {
 }
 
 type UseErrorPageNavigationProps = {
-	secureIds: string[]
+	secureIds?: string[]
 }
 
-function useErrorPageNavigation({ secureIds }: UseErrorPageNavigationProps) {
+export function useErrorPageNavigation({
+	secureIds = [],
+}: UseErrorPageNavigationProps) {
 	const navigate = useNavigate()
 	const location = useLocation()
 	const { project_id, error_secure_id } = useParams<Params>()
