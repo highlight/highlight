@@ -134,6 +134,7 @@ export const SearchPanel = ({
 			{showHistogram && (
 				<Box borderBottom="secondary" paddingBottom="8" px="8">
 					<ErrorFeedHistogram
+						query={query}
 						histogramBucketSize={histogramBucketSize}
 						startDate={startDate}
 						endDate={endDate}

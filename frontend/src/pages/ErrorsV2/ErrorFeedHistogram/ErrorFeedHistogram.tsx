@@ -4,12 +4,11 @@ import { useGetErrorsHistogramQuery } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate } from '@util/time'
 import React from 'react'
-import { useQueryParam } from 'use-query-params'
 
-import { QueryParam } from '@/components/Search/SearchForm/SearchForm'
 import { DateHistogramBucketSize } from '@/graph/generated/schemas'
 
 export const ErrorFeedHistogram: React.FC<{
+	query: string
 	readonly?: boolean
 	histogramBucketSize: DateHistogramBucketSize
 	startDate: Date
@@ -17,6 +16,7 @@ export const ErrorFeedHistogram: React.FC<{
 	updateSearchTime: (start: Date, end: Date) => void
 }> = React.memo(
 	({
+		query,
 		readonly,
 		histogramBucketSize,
 		startDate,
@@ -24,7 +24,6 @@ export const ErrorFeedHistogram: React.FC<{
 		updateSearchTime,
 	}) => {
 		const { project_id } = useParams<{ project_id: string }>()
-		const [query] = useQueryParam('query', QueryParam)
 
 		const { loading, data } = useGetErrorsHistogramQuery({
 			variables: {
