@@ -34,6 +34,7 @@ import {
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
+import LoadingBox from '@/components/LoadingBox'
 import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import {
@@ -111,6 +112,7 @@ export type SearchFormProps = {
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	isPanelView?: boolean
 	resultCount?: number
+	loading?: boolean
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({
@@ -132,6 +134,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	textAreaRef,
 	isPanelView,
 	resultCount,
+	loading,
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
@@ -250,10 +253,14 @@ const SearchForm: React.FC<SearchFormProps> = ({
 							p="2"
 						>
 							<Box display="flex" alignItems="center" px="8">
-								{resultCount != null && (
-									<Text color="weak">
-										{formatNumber(resultCount)} results
-									</Text>
+								{loading ? (
+									<LoadingBox />
+								) : (
+									resultCount != null && (
+										<Text color="weak">
+											{formatNumber(resultCount)} results
+										</Text>
+									)
 								)}
 							</Box>
 							{SegmentMenu}

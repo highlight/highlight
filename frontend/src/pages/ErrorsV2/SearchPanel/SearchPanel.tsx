@@ -128,6 +128,7 @@ export const SearchPanel = ({
 				textAreaRef={textAreaRef}
 				actions={actions}
 				resultCount={totalCount}
+				loading={loading}
 				hideCreateAlert
 				isPanelView
 			/>
