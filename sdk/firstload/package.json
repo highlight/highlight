@@ -27,7 +27,7 @@
 	"scripts": {
 		"build": "yarn typegen && vite build && yarn build:umd",
 		"build:umd": "cp dist/index.umd.cjs dist/index.umd.js",
-		"build:watch": "yarn build --watch",
+		"build:watch": "vite build --watch",
 		"dev": "vite dev",
 		"dev:watch": "run-p dev build:watch",
 		"enforce-size": "size-limit",

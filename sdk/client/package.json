@@ -8,15 +8,13 @@
 	"main": "./dist/index.js",
 	"types": "./dist/src/index.d.ts",
 	"scripts": {
-		"build": "yarn types:check && yarn typegen && vite build",
-		"build:watch": "yarn build --watch",
 		"codegen": "graphql-codegen --config codegen.yml",
-		"dev": "run-p dev:gql build:watch",
+		"dev": "yarn dev:gql",
 		"dev:gql": "graphql-codegen --config --watch codegen.yml",
 		"enforce-size": "size-limit",
 		"test": "vitest --run",
 		"typegen": "tsc",
-		"types:check": "tsc"
+		"types:check": "yarn typegen"
 	},
 	"repository": {
 		"type": "git",
@@ -38,11 +36,9 @@
 		"@size-limit/file": "^8.1.0",
 		"@types/json-stringify-safe": "^5.0.0",
 		"@types/node": "^16.3.1",
-		"onchange": "^7.1.0",
 		"prettier": "^3.1.0",
 		"size-limit": "^8.1.0",
 		"typescript": "^5.0.4",
-		"vite": "^5.1.5",
 		"vitest": "^1.3.1"
 	},
 	"dependencies": {
