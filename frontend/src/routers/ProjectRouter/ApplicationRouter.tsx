@@ -11,7 +11,7 @@ import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { SetupRouter } from '@pages/Setup/SetupRouter/SetupRouter'
 import { usePreloadErrors, usePreloadSessions } from '@util/preload'
 import React, { Suspense } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { RelatedResourcePanel } from '@/components/RelatedResources/RelatedResourcePanel'
@@ -24,6 +24,8 @@ import { TracesPage } from '@/pages/Traces/TracesPage'
 
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
+
+const BASE_PATH = 'sessions'
 
 const ApplicationRouter: React.FC = () => {
 	const { projectId } = useNumericProjectId()
@@ -104,6 +106,10 @@ const ApplicationRouter: React.FC = () => {
 								element={<DashboardRouter />}
 							/>
 						)}
+						<Route
+							path="*"
+							element={<Navigate to={BASE_PATH} replace />}
+						/>
 					</>
 				) : (
 					<Route path="*" element={<SignInRedirect />} />
