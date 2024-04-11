@@ -6,7 +6,7 @@ import { useErrorPageNavigation } from '@/pages/ErrorsV2/ErrorsV2'
 import styles from './NoActiveErrorCard.module.css'
 
 const NoActiveErrorCard = () => {
-	const { setShowLeftPanel } = useErrorPageNavigation({})
+	const { setShowLeftPanel } = useErrorPageNavigation()
 
 	useEffect(() => {
 		setShowLeftPanel(true)

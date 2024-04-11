@@ -114,9 +114,7 @@ export default function ErrorsV2() {
 	const location = useLocation()
 	const { showSearch } = useShowSearchParam()
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
-	const navigation = useErrorPageNavigation({
-		secureIds: getErrorsData.errorGroupSecureIds,
-	})
+	const navigation = useErrorPageNavigation(getErrorsData.errorGroupSecureIds)
 
 	useAllHotKeys(navigation)
 
@@ -506,13 +504,7 @@ export function useErrorGroup(errorSecureId?: string) {
 	return { data, loading, errorQueryingErrorGroup }
 }
 
-type UseErrorPageNavigationProps = {
-	secureIds?: string[]
-}
-
-export function useErrorPageNavigation({
-	secureIds = [],
-}: UseErrorPageNavigationProps) {
+export function useErrorPageNavigation(secureIds: string[] = []) {
 	const navigate = useNavigate()
 	const location = useLocation()
 	const { project_id, error_secure_id } = useParams<Params>()

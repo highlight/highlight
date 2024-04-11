@@ -5,7 +5,7 @@ import { useErrorPageNavigation } from '@/pages/ErrorsV2/ErrorsV2'
 import { useParams } from '@/util/react-router/useParams'
 
 const NoActiveSessionCard = () => {
-	const { setShowLeftPanel } = useErrorPageNavigation({})
+	const { setShowLeftPanel } = useErrorPageNavigation()
 	const { session_secure_id } = useParams<{
 		session_secure_id: string
 	}>()

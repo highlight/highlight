@@ -64,7 +64,7 @@ export const SearchPanel = ({
 	endDate,
 	selectedPreset,
 }: SearchPanelProps) => {
-	const { showLeftPanel, setShowLeftPanel } = useErrorPageNavigation({})
+	const { showLeftPanel, setShowLeftPanel } = useErrorPageNavigation()
 	const { showBanner } = useGlobalContext()
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 
