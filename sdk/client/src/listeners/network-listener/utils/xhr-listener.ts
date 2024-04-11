@@ -39,12 +39,16 @@ export const XHRListener = (
 	/**
 	 * When a request gets initiated, store metadata for that specific request.
 	 */
-	XHR.open = function (this: BrowserXHR, method: string, url: string) {
+	XHR.open = function (this: BrowserXHR, method: string, url: string | URL) {
+		if (typeof url === 'string') {
+			this._url = url
+		} else {
+			this._url = url.toString()
+		}
 		this._method = method
-		this._url = url
 		this._requestHeaders = {}
 		this._shouldRecordHeaderAndBody = !urlBlocklist.some((blockedUrl) =>
-			url.toLowerCase().includes(blockedUrl),
+			this._url.toLowerCase().includes(blockedUrl),
 		)
 
 		// @ts-expect-error
