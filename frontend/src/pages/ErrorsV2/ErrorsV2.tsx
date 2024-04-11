@@ -158,7 +158,10 @@ export default function ErrorsV2() {
 			}).then(() => {
 				const searchParams = new URLSearchParams(location.search)
 				searchParams.delete(PlayerSearchParameters.muted)
-				navigate(`${location.pathname}?${searchParams.toString()}`)
+				navigate({
+					pathname: location.pathname,
+					search: searchParams.toString(),
+				})
 
 				message.success('Muted notifications for this comment thread.')
 			})
@@ -509,15 +512,22 @@ type UseErrorPageNavigationProps = {
 
 function useErrorPageNavigation({ secureIds }: UseErrorPageNavigationProps) {
 	const navigate = useNavigate()
+	const location = useLocation()
 	const { project_id, error_secure_id } = useParams<Params>()
 	const { showLeftPanel, setShowLeftPanel } = usePlayerConfiguration()
 	const goToErrorGroup = useCallback(
 		(secureId: string) => {
-			navigate(`/${project_id}/errors/${secureId}${location.search}`, {
-				replace: true,
-			})
+			navigate(
+				{
+					pathname: `/${project_id}/errors/${secureId}`,
+					search: location.search,
+				},
+				{
+					replace: true,
+				},
+			)
 		},
-		[navigate, project_id],
+		[navigate, project_id, location.search],
 	)
 	const currentSearchResultIndex = secureIds.findIndex(
 		(secureId) => secureId === error_secure_id,
