@@ -715,11 +715,12 @@ func (client *Client) QueryErrorGroups(ctx context.Context, projectId int, count
 func readErrorGroups(params modelInputs.QueryInput, projectId int) (*sqlbuilder.SelectBuilder, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.From(ErrorGroupsTableConfig.TableName)
+	sb.From(fmt.Sprintf("%s FINAL", ErrorGroupsTableConfig.TableName))
 	sb.Select("ID, count() OVER() AS total")
 
 	sbInner := sqlbuilder.NewSelectBuilder()
 	sbInner.Select("ErrorGroupID")
-	sbInner.From(ErrorsJoinedTableConfig.TableName)
+	sbInner.From(fmt.Sprintf("%s FINAL", ErrorsJoinedTableConfig.TableName))
 	sbInner.Where(sbInner.Equal("ProjectId", projectId))
 
 	sbInner.Where(sbInner.LessEqualThan("Timestamp", params.DateRange.EndDate)).
@@ -737,6 +738,9 @@ func readErrorsObjects(selectCols string, params modelInputs.QueryInput, project
 	sb.Select(selectCols)
 	sb.From(fmt.Sprintf("%s FINAL", ErrorsJoinedTableConfig.TableName))
 	sb.Where(sb.Equal("ProjectId", projectId))
+
+	sb.Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
+		Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
 
 	parser.AssignSearchFilters(sb, params.Query, ErrorsJoinedTableConfig)
 
