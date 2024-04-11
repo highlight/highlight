@@ -148,6 +148,7 @@ export const SearchPanel = ({
 				type="errors"
 				onClick={() => {
 					resetMoreErrors()
+					setPage(1)
 					rebaseSearchTime()
 				}}
 			/>
