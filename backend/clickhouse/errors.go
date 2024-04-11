@@ -714,7 +714,6 @@ func (client *Client) QueryErrorGroups(ctx context.Context, projectId int, count
 
 func readErrorGroups(params modelInputs.QueryInput, projectId int) (*sqlbuilder.SelectBuilder, error) {
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.From(ErrorGroupsTableConfig.TableName)
 	sb.From(fmt.Sprintf("%s FINAL", ErrorGroupsTableConfig.TableName))
 	sb.Select("ID, count() OVER() AS total")
 
