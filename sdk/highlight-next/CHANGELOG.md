@@ -1,5 +1,12 @@
 # @highlight-run/next
 
+## 7.4.12
+
+### Patch Changes
+
+-   Updated dependencies [5e61d5859]
+    -   @highlight-run/sourcemap-uploader@0.6.2
+
 ## 7.4.11
 
 ### Patch Changes

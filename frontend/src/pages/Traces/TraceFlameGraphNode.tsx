@@ -82,7 +82,10 @@ export const TraceFlameGraphNode = memo<Props>(
 			setHoveredSpan,
 			setSelectedSpan,
 		} = useTrace()
-		const spanWidth = (span.duration / totalDuration) * width * zoom
+		const spanWidth = Math.max(
+			(span.duration / totalDuration) * width * zoom,
+			3,
+		)
 		const offsetX =
 			(span.startTime / totalDuration) * width * zoom + outsidePadding
 		const offsetY = span.depth

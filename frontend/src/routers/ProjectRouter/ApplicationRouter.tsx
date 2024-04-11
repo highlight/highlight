@@ -2,7 +2,6 @@ import { useAuthContext } from '@authentication/AuthContext'
 import AlertsRouter from '@pages/Alerts/AlertsRouter'
 import LogAlertsRouter from '@pages/Alerts/LogAlert/LogAlertRouter'
 import { CanvasPage } from '@pages/Buttons/CanvasV2'
-import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
 import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
@@ -18,7 +17,7 @@ import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceB
 import { RelatedResourcePanel } from '@/components/RelatedResources/RelatedResourcePanel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
-import { GraphingEditor } from '@/pages/Graphing/GraphingEditor'
+import DashboardRouter from '@/pages/Graphing/DashboardRouter'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
 import { TracePanel } from '@/pages/Traces/TracePanel'
 import { TracesPage } from '@/pages/Traces/TracesPage'
@@ -101,16 +100,10 @@ const ApplicationRouter: React.FC = () => {
 						/>
 						{isHighlightAdmin && (
 							<Route
-								path="metrics/*"
-								element={
-									<Suspense fallback={null}>
-										<GraphingEditor />
-									</Suspense>
-								}
+								path="dashboards/*"
+								element={<DashboardRouter />}
 							/>
 						)}
-
-						<Route path="*" element={<DashboardsRouter />} />
 					</>
 				) : (
 					<Route path="*" element={<SignInRedirect />} />
