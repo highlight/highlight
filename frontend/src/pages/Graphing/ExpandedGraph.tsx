@@ -1,6 +1,14 @@
-import { Box, Button, Text } from '@highlight-run/ui/components'
+import {
+	Box,
+	Button,
+	IconSolidChartBar,
+	IconSolidCheveronRight,
+	Stack,
+	Tag,
+	Text,
+} from '@highlight-run/ui/components'
 import { Helmet } from 'react-helmet'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
 import { useGetVisualizationQuery } from '@/graph/generated/hooks'
@@ -10,6 +18,8 @@ import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
 import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
+import { HeaderDivider } from '@/pages/Graphing/Dashboard'
+import { vars } from '@highlight-run/ui/vars'
 
 export const ExpandedGraph = () => {
 	const { dashboard_id, graph_id } = useParams<{
@@ -64,10 +74,34 @@ export const ExpandedGraph = () => {
 						paddingRight="8"
 						py="6"
 					>
-						<Text size="small" weight="medium">
-							{data?.visualization.name}
-						</Text>
+						<Stack
+							display="flex"
+							direction="row"
+							alignItems="center"
+							gap="4"
+						>
+							<Link to="..">
+								<Stack>
+									<Tag
+										shape="basic"
+										size="medium"
+										kind="secondary"
+										iconLeft={<IconSolidChartBar />}
+									>
+										Dashboards
+									</Tag>
+								</Stack>
+							</Link>
+							<IconSolidCheveronRight
+								color={vars.theme.static.content.weak}
+							/>
+							<Text size="small" weight="medium" color="default">
+								{data?.visualization.name}
+							</Text>
+						</Stack>
 						<Box display="flex" gap="4">
+							<TimeRangePicker emphasis="low" kind="secondary" />
+							<HeaderDivider />
 							<Button
 								emphasis="low"
 								kind="secondary"
@@ -77,7 +111,6 @@ export const ExpandedGraph = () => {
 							>
 								Cancel
 							</Button>
-							<TimeRangePicker emphasis="low" kind="secondary" />
 						</Box>
 					</Box>
 					<Box

@@ -5,6 +5,16 @@ export const editGraphHeader = style({
 	height: 40,
 })
 
+export const dashboardContent = style({
+	height: 'calc(100% - 40px)',
+})
+
+export const headerDivider = style({
+	width: 1,
+	backgroundColor: vars.theme.static.divider.weak,
+	margin: '4px 2px',
+})
+
 export const graphBackground = style({
 	zIndex: 0,
 })
