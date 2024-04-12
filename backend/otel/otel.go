@@ -210,6 +210,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						resource: &resource,
 						span:     &span,
 						event:    &event,
+						curTime:  curTime,
 					})
 					if err != nil {
 						lg(ctx, fields).WithError(err).Info("failed to extract fields from trace")
