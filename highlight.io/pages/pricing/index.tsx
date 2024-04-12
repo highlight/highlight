@@ -38,12 +38,13 @@ const PricingPage: NextPage = () => {
 		'PayAsYouGo' | 'Enterprise' | 'SelfHosted'
 	>('PayAsYouGo')
 
-	//Given a PriceTier label
+	//Allows for the selection of the tier from the dropdown
 	const setEstimatorCategoryWithLabel = (value: any) => {
 		if (tierOptions.includes(value)) {
 			setEstimatorCategory(value)
 		} else {
-			console.error(`Invalid value: ${value}`)
+			const val = value.replaceAll('-', '')
+			setEstimatorCategory(val)
 		}
 	}
 
@@ -64,7 +65,9 @@ const PricingPage: NextPage = () => {
 						organization.
 					</Typography>
 				</div>
-				<PlanTable setEstimatorCategory={setEstimatorCategory} />
+				<PlanTable
+					setEstimatorCategory={setEstimatorCategoryWithLabel}
+				/>
 			</div>
 			<div className="flex justify-center my-16" id="overage">
 				<div className="text-center max-w-[950px]">
@@ -84,7 +87,7 @@ const PricingPage: NextPage = () => {
 			<div className="my-16">
 				<PriceCalculator
 					pricingTier={priceTiers[estimatorCategory]}
-					setEstimatorCategory={setEstimatorCategory}
+					setEstimatorCategory={setEstimatorCategoryWithLabel}
 				/>
 			</div>
 
@@ -131,8 +134,8 @@ type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
 	label: string
-	id?: string
-	subText?: string //PlanTier name, if not same as label
+	id?: string //PlanTier name, if not same as label
+	subText?: string
 	prices: Prices
 	icon: JSX.Element
 	features: {
@@ -169,6 +172,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 	},
 	PayAsYouGo: {
 		label: 'Pay-as-you-go',
+		id: 'PayAsYouGo',
 		subText: 'base per project/month, billed monthly',
 		prices: professionalPrices,
 		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
@@ -405,6 +409,8 @@ const PriceCalculator = ({
 	const [sessionRetention, setSessionRetention] =
 		useState<Retention>('3 months')
 
+	const [annualPricing, setAnnualPricing] = useState(false)
+
 	const getUsagePrice = (
 		usage: number,
 		product: 'Sessions' | 'Errors' | 'Logs' | 'Traces',
@@ -467,7 +473,11 @@ const PriceCalculator = ({
 						<ListboxOptions
 							options={
 								setEstimatorCategory !== undefined
-									? ['PayAsYouGo', 'Enterprise', 'SelfHosted']
+									? [
+											'Pay-As-You-Go',
+											'Enterprise',
+											'Self-Hosted',
+									  ]
 									: ['']
 							}
 							value={pricingTier.label}
@@ -475,112 +485,140 @@ const PriceCalculator = ({
 						/>
 					</div>
 
-					<div className="flex flex-col justify-end h-full gap-2 border-[1px] border-divider-on-dark rounded-lg p-2">
-						<div className="flex flex-col gap-1">
-							<div className="flex justify-between">
-								<Typography
-									type="copy3"
-									className="text-darker-copy-on-dark"
-								>
-									Plan base fee
-								</Typography>
-								<Typography
-									type="copy3"
-									className="text-darker-copy-on-dark"
-									emphasis
-								>
-									${base}
-								</Typography>
-							</div>
-							<div className="flex justify-between">
-								<Typography
-									type="copy3"
-									className="text-darker-copy-on-dark"
-								>
-									Session usage fee
-								</Typography>
-								<Typography
-									type="copy3"
-									className="text-darker-copy-on-dark"
-									emphasis
-								>
-									${sessionsCost}
-								</Typography>
-							</div>
+					<div className="flex flex-col justify-between h-full border-[1px] border-divider-on-dark rounded-lg p-4">
+						<MonthlySlider
+							annualPricing={annualPricing}
+							setAnnualPricing={setAnnualPricing}
+						/>
+						<div className="flex flex-col gap-2">
+							<div className="flex flex-col gap-1">
+								<div className="flex justify-between">
+									<Typography
+										type="copy3"
+										className="text-darker-copy-on-dark"
+									>
+										Plan base fee
+									</Typography>
+									<Typography
+										type="copy3"
+										className="text-darker-copy-on-dark"
+										emphasis
+									>
+										${base}
+									</Typography>
+								</div>
+								<div className="flex justify-between">
+									<Typography
+										type="copy3"
+										className="text-darker-copy-on-dark"
+									>
+										Session usage fee
+									</Typography>
+									<Typography
+										type="copy3"
+										className="text-darker-copy-on-dark"
+										emphasis
+									>
+										${sessionsCost}
+									</Typography>
+								</div>
 
-							<div className="flex justify-between">
-								<Typography
-									type="copy3"
-									className="text-darker-copy-on-dark"
-								>
-									Error usage fee
-								</Typography>
-								<Typography
-									type="copy3"
-									className="text-darker-copy-on-dark"
-									emphasis
-								>
-									${errorsCost}
-								</Typography>
-							</div>
+								<div className="flex justify-between">
+									<Typography
+										type="copy3"
+										className="text-darker-copy-on-dark"
+									>
+										Error usage fee
+									</Typography>
+									<Typography
+										type="copy3"
+										className="text-darker-copy-on-dark"
+										emphasis
+									>
+										${errorsCost}
+									</Typography>
+								</div>
 
-							<div className="flex justify-between">
-								<Typography
-									type="copy3"
-									className="text-darker-copy-on-dark"
-								>
-									Logging usage fee
-								</Typography>
-								<Typography
-									type="copy3"
-									className="text-darker-copy-on-dark"
-									emphasis
-								>
-									${loggingCost}
-								</Typography>
-							</div>
+								<div className="flex justify-between">
+									<Typography
+										type="copy3"
+										className="text-darker-copy-on-dark"
+									>
+										Logging usage fee
+									</Typography>
+									<Typography
+										type="copy3"
+										className="text-darker-copy-on-dark"
+										emphasis
+									>
+										${loggingCost}
+									</Typography>
+								</div>
 
+								<div className="flex justify-between">
+									<Typography
+										type="copy3"
+										className="text-darker-copy-on-dark"
+									>
+										Tracing usage fee
+									</Typography>
+									<Typography
+										type="copy3"
+										className="text-darker-copy-on-dark"
+										emphasis
+									>
+										${tracesCost}
+									</Typography>
+								</div>
+							</div>
+							{annualPricing && (
+								<>
+									<div className="w-full h-[1px] rounded-full bg-divider-on-dark" />
+									<div className="flex justify-between">
+										<Typography
+											type="copy3"
+											className="text-darker-copy-on-dark"
+										>
+											Discount
+										</Typography>
+										<Typography
+											type="copy3"
+											className="text-darker-copy-on-dark"
+											emphasis
+										>
+											-15%
+										</Typography>
+									</div>
+								</>
+							)}
+							<div className="w-full h-[1px] rounded-full bg-divider-on-dark" />
 							<div className="flex justify-between">
 								<Typography
 									type="copy3"
 									className="text-darker-copy-on-dark"
 								>
-									Tracing usage fee
+									Monthly Total
 								</Typography>
 								<Typography
 									type="copy3"
-									className="text-darker-copy-on-dark"
+									className="text-white"
 									emphasis
 								>
-									${tracesCost}
+									{formatPrice(
+										(base +
+											sessionsCost +
+											tracesCost +
+											loggingCost +
+											errorsCost) *
+											(annualPricing ? 0.85 : 1),
+										'never',
+									)}
 								</Typography>
 							</div>
-						</div>
-						<div className="w-full h-[1px] rounded-full bg-divider-on-dark" />
-						<div className="flex justify-between">
-							<Typography
-								type="copy3"
-								className="text-darker-copy-on-dark"
-							>
-								Total estimate
-							</Typography>
-							<Typography
-								type="copy3"
-								className="text-white"
-								emphasis
-							>
-								{formatPrice(
-									base +
-										sessionsCost +
-										tracesCost +
-										loggingCost +
-										errorsCost,
-									'never',
-								)}
-							</Typography>
 						</div>
 					</div>
 				</div>
+
 				<div className="flex flex-col p-4 gap-4 overflow-hidden border rounded-r-lg md:rounded-br-none border-divider-on-dark">
 					<CalculatorRowDesktop
 						title="Session Replay"
@@ -700,6 +738,7 @@ const CalculatorRowDesktop = ({
 							emphasis
 							className="text-copy-on-dark border-[1px] border-copy-on-light rounded-full px-3 py-[2px] w-[65px] text-center"
 						>
+							{}
 							{value.toLocaleString(undefined, {
 								notation: 'compact',
 								compactDisplay: 'short',
@@ -855,7 +894,13 @@ const ListboxOptions = <T extends string>({
 	return (
 		<Listbox value={value} onChange={onChange}>
 			<div className="relative">
-				<Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-dark-background border-[1px] border-copy-on-light z-40 py-2 pl-3 pr-10 text-left focus:outline-none sm:text-sm">
+				<Listbox.Button
+					className={`${
+						options.length == 1
+							? 'border-divider-on-dark pr-3'
+							: 'border-copy-on-light pr-10'
+					} relative w-full cursor-pointer rounded-lg bg-dark-background border-[1px] z-40 py-2 pl-3 text-left focus:outline-none sm:text-sm`}
+				>
 					<span className="block truncate text-center">
 						<Typography
 							type="copy3"
@@ -866,12 +911,14 @@ const ListboxOptions = <T extends string>({
 							{value}
 						</Typography>
 					</span>
-					<span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-						<ChevronUpDownIcon
-							className="h-5 w-5 text-gray-400"
-							aria-hidden="true"
-						/>
-					</span>
+					{options.length > 1 && (
+						<span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+							<ChevronUpDownIcon
+								className="h-5 w-5 text-gray-400"
+								aria-hidden="true"
+							/>
+						</span>
+					)}
 				</Listbox.Button>
 				<Transition
 					as={Fragment}
@@ -988,4 +1035,53 @@ const CalendlyModal = ({
 	)
 }
 
+const MonthlySlider = ({
+	annualPricing,
+	setAnnualPricing,
+}: {
+	annualPricing: boolean
+	setAnnualPricing: (value: any) => void
+}) => {
+	return (
+		<div className="relative flex justify-center w-full p-1 border border-divider-on-dark rounded-md h-9">
+			<div className="flex w-full z-10 items-center h-full">
+				<div
+					className="flex justify-center w-1/2 cursor-pointer"
+					onClick={() => setAnnualPricing(false)}
+				>
+					<Typography
+						type="copy3"
+						className="text-copy-on-dark"
+						emphasis
+					>
+						Monthly
+					</Typography>
+				</div>
+
+				<div
+					className="flex justify-center w-1/2 cursor-pointer"
+					onClick={() => setAnnualPricing(true)}
+				>
+					<Typography
+						type="copy3"
+						className="text-copy-on-dark"
+						emphasis
+					>
+						Annually
+					</Typography>
+				</div>
+			</div>
+
+			<div className="absolute w-full h-full top-0">
+				<div className="relative h-full mx-1">
+					<span
+						className={`${
+							annualPricing ? 'left-1/2' : 'left-0'
+						} absolute w-1/2 inset-y-1 bg-[#744ED4] border border-[#744ED4] transition-all rounded-[3px]`}
+					/>
+				</div>
+			</div>
+		</div>
+	)
+}
 export default PricingPage
