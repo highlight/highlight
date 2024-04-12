@@ -1,24 +1,32 @@
 import {
-	Badge,
 	Box,
 	Button,
 	IconSolidChartBar,
 	IconSolidCheveronRight,
 	IconSolidPlus,
+	Stack,
+	Tag,
 	Text,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
+import { message } from 'antd'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
 import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
-import { useGetVisualizationQuery } from '@/graph/generated/hooks'
+import {
+	useDeleteGraphMutation,
+	useGetVisualizationQuery,
+} from '@/graph/generated/hooks'
+import { namedOperations } from '@/graph/generated/operations'
 import useDataTimeRange from '@/hooks/useDataTimeRange'
 import { useProjectId } from '@/hooks/useProjectId'
 import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
 import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
+
+export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
 export const Dashboard = () => {
 	const { dashboard_id } = useParams<{
@@ -34,6 +42,10 @@ export const Dashboard = () => {
 	const { timeRange } = useDataTimeRange()
 
 	const navigate = useNavigate()
+
+	const [deleteGraph] = useDeleteGraphMutation({
+		refetchQueries: [namedOperations.Query.GetVisualization],
+	})
 
 	return (
 		<>
@@ -67,20 +79,18 @@ export const Dashboard = () => {
 						paddingRight="8"
 						py="6"
 					>
-						<Box
-							display="flex"
-							flexDirection="row"
-							alignItems="center"
-							gap="4"
-						>
+						<Stack direction="row" alignItems="center" gap="4">
 							<Link to="..">
-								<Badge
-									shape="basic"
-									size="medium"
-									variant="gray"
-									iconStart={<IconSolidChartBar />}
-									label="Dashboards"
-								/>
+								<Stack>
+									<Tag
+										shape="basic"
+										size="medium"
+										kind="secondary"
+										iconLeft={<IconSolidChartBar />}
+									>
+										Dashboards
+									</Tag>
+								</Stack>
 							</Link>
 							<IconSolidCheveronRight
 								color={vars.theme.static.content.weak}
@@ -88,12 +98,13 @@ export const Dashboard = () => {
 							<Text size="small" weight="medium" color="default">
 								{data?.visualization.name}
 							</Text>
-						</Box>
+						</Stack>
 						<Box display="flex" gap="4">
 							<Button emphasis="low" kind="secondary">
 								Share
 							</Button>
 							<TimeRangePicker emphasis="low" kind="secondary" />
+							<HeaderDivider />
 							<Button
 								emphasis="low"
 								kind="secondary"
@@ -111,6 +122,7 @@ export const Dashboard = () => {
 						flexDirection="row"
 						justifyContent="space-between"
 						height="full"
+						cssClass={style.dashboardContent}
 					>
 						<Box
 							display="flex"
@@ -119,10 +131,10 @@ export const Dashboard = () => {
 							height="full"
 						>
 							<Box cssClass={style.graphGrid}>
-								{data?.visualization.graphs.map((g, idx) => {
+								{data?.visualization.graphs.map((g) => {
 									return (
 										<Box
-											key={idx}
+											key={g.id}
 											px="16"
 											py="12"
 											cssClass={style.graphDivider}
@@ -158,7 +170,21 @@ export const Dashboard = () => {
 												limitMetric={
 													g.limitMetric ?? undefined
 												}
-												onShare={() => {}}
+												onDelete={() => {
+													deleteGraph({
+														variables: { id: g.id },
+													})
+														.then(() =>
+															message.success(
+																'Metric view deleted',
+															),
+														)
+														.catch(() =>
+															message.error(
+																'Failed to delete metric view',
+															),
+														)
+												}}
 												onExpand={() => {
 													navigate(`view/${g.id}`)
 												}}

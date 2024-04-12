@@ -1,4 +1,5 @@
 import { vars } from '@highlight-run/ui/vars'
+import { useMemo } from 'react'
 import {
 	Area,
 	AreaChart,
@@ -12,12 +13,12 @@ import {
 import {
 	CustomXAxisTick,
 	CustomYAxisTick,
+	getColor,
 	getCustomTooltip,
 	getTickFormatter,
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
-	strokeColors,
 } from '@/pages/Graphing/components/Graph'
 
 export type LineNullHandling = 'Hidden' | 'Connected' | 'Zero'
@@ -48,18 +49,23 @@ export const LineChart = ({
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data?.length)
 	const yAxisTickFormatter = getTickFormatter(yAxisMetric)
 
-	// Fill nulls
-	if (viewConfig.nullHandling === 'Zero' && data !== undefined) {
-		for (const d of data) {
-			for (const s of series) {
-				d[s] = d[s] ?? 0
+	// Fill nulls as a copy of data
+	const filledData = useMemo(() => {
+		const filled = data?.slice()
+		if (viewConfig.nullHandling === 'Zero' && filled !== undefined) {
+			for (let i = 0; i < filled.length; i++) {
+				filled[i] = { ...filled[i] }
+				for (const s of series) {
+					filled[i][s] = filled[i][s] ?? 0
+				}
 			}
 		}
-	}
+		return filled
+	}, [data, viewConfig.nullHandling, series])
 
 	return (
 		<ResponsiveContainer height="100%" width="100%">
-			<AreaChart data={data}>
+			<AreaChart data={filledData}>
 				<XAxis
 					dataKey={xAxisMetric}
 					fontSize={10}
@@ -125,8 +131,8 @@ export const LineChart = ({
 										: idx
 								}
 								strokeWidth="2px"
-								fill={strokeColors[idx % strokeColors.length]}
-								stroke={strokeColors[idx % strokeColors.length]}
+								fill={getColor(idx)}
+								stroke={getColor(idx)}
 								fillOpacity={
 									viewConfig.display === 'Stacked area'
 										? 0.1
