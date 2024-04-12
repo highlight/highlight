@@ -1,9 +1,9 @@
 import * as Ariakit from '@ariakit/react'
+import clsx, { ClassValue } from 'clsx'
 import { useState } from 'react'
 
 import { Stack } from '../Stack/Stack'
 import { Props as TagProps, Tag } from '../Tag/Tag'
-import clsx, { ClassValue } from 'clsx'
 
 type Option = string | number
 type Props = {
