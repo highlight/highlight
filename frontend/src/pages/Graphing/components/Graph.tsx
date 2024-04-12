@@ -225,6 +225,29 @@ export const getCustomTooltip =
 		return null
 	}
 
+export const CustomYAxisTick = ({
+	y,
+	payload,
+	tickFormatter,
+}: {
+	y: any
+	payload: any
+	tickFormatter: (value: any, index: number) => string
+}) => (
+	<g transform={`translate(${0},${y})`}>
+		<text
+			x={0}
+			y={0}
+			fontSize={10}
+			fill={vars.theme.static.content.weak}
+			textAnchor="start"
+			orientation="left"
+		>
+			{tickFormatter(payload.value, payload.index)}
+		</text>
+	</g>
+)
+
 export const CustomXAxisTick = ({
 	x,
 	y,
