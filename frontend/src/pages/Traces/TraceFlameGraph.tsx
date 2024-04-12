@@ -348,7 +348,7 @@ export const TraceFlameGraph: React.FC = () => {
 					debounce(handleScroll, 50)(currentTarget)
 				}}
 			>
-				{width && (
+				{!!width && (
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						height={height + 20}
@@ -443,7 +443,7 @@ export const TraceFlameGraph: React.FC = () => {
 					</svg>
 				)}
 
-				{hoveredSpan && (
+				{!!hoveredSpan && (
 					<Box
 						ref={tooltipRef}
 						position="fixed"
