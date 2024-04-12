@@ -1,6 +1,5 @@
 import { NextPage } from 'next'
 import Link from 'next/link'
-import { InlineWidget } from 'react-calendly'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import Footer from '../../components/common/Footer/Footer'
 import Navbar from '../../components/common/Navbar/Navbar'
@@ -10,10 +9,11 @@ import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel
 import { CustomerReviewTrack } from '../../components/Home/CustomerReviewTrack'
 import styles from '../../components/Home/Home.module.scss'
 
-import { Dialog, Listbox, Transition } from '@headlessui/react'
-import { ChevronUpDownIcon, XMarkIcon } from '@heroicons/react/20/solid'
+import { Listbox, Transition } from '@headlessui/react'
+import { ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import * as Slider from '@radix-ui/react-slider'
 import { Fragment, useState } from 'react'
+import { CalendlyModal } from '../../components/common/CalendlyModal/CalendlyModal'
 import { HeadlessTooltip } from '../../components/Competitors/ComparisonTable'
 
 import {
@@ -623,7 +623,7 @@ const CalculatorPriceRow = ({
 				className="text-darker-copy-on-dark"
 				emphasis
 			>
-				${cost}
+				{`${cost}`}
 			</Typography>
 		</div>
 	)
@@ -719,7 +719,6 @@ const CalculatorRowDesktop = ({
 const RangedInput = ({
 	options,
 	value,
-	unit,
 	onChange,
 }: {
 	options: number[]
@@ -730,14 +729,6 @@ const RangedInput = ({
 	const sortedOptions = [...options].sort((a, b) => a - b)
 	const min = sortedOptions[0] ?? 0
 	const max = sortedOptions[sortedOptions.length - 1] ?? 100
-
-	const snapValue = (value: number) => {
-		const deltas = sortedOptions.map((v) => Math.abs(v - value))
-		for (const [i, delta] of deltas.entries()) {
-			if ((deltas[i + 1] ?? Infinity) > delta) return sortedOptions[i]
-		}
-		return sortedOptions[0]
-	}
 
 	const normalize = (value: number) => (value - min) / (max - min)
 	const denormalize = (normal: number) => normal * (max - min) + min
@@ -870,80 +861,6 @@ const ListboxOptions = <T extends string>({
 				</Transition>
 			</div>
 		</Listbox>
-	)
-}
-
-const CalendlyModal = ({
-	className,
-	children,
-}: React.PropsWithChildren<{ className?: string }>) => {
-	const [calendlyOpen, setCalendlyOpen] = useState(false)
-
-	return (
-		<div>
-			<button
-				type="button"
-				onClick={() => setCalendlyOpen(true)}
-				className={className}
-			>
-				{children}
-			</button>
-
-			<Transition appear show={calendlyOpen} as={Fragment}>
-				<Dialog
-					as="div"
-					className="relative z-[999] w-screen h-screen"
-					onClose={() => setCalendlyOpen(false)}
-				>
-					<Transition.Child
-						as={Fragment}
-						enter="ease-out duration-300"
-						enterFrom="opacity-0"
-						enterTo="opacity-100"
-						leave="ease-in duration-200"
-						leaveFrom="opacity-100"
-						leaveTo="opacity-0"
-					>
-						<div className="fixed inset-0 bg-black/25" />
-					</Transition.Child>
-
-					<div className="fixed inset-0 overflow-y-auto">
-						<div className="flex min-h-full items-center justify-center p-4 text-center">
-							<Transition.Child
-								as={Fragment}
-								enter="ease-out duration-300"
-								enterFrom="opacity-0 scale-95"
-								enterTo="opacity-100 scale-100"
-								leave="ease-in duration-200"
-								leaveFrom="opacity-100 scale-100"
-								leaveTo="opacity-0 scale-95"
-							>
-								<Dialog.Panel className="fixed grid place-items-center inset-0 z-50 w-screen h-screen pointer-events-none">
-									<div className="relative flex min-w-[320px] w-screen max-w-5xl min-[1000px]:h-[700px] h-[900px] transition-opacity max-[652px]:pt-14 pointer-events-auto">
-										<InlineWidget
-											url="https://calendly.com/d/2gt-rw5-qg5/highlight-demo-call"
-											styles={{
-												width: '100%',
-												height: '100%',
-											}}
-										/>
-
-										<button
-											className="absolute grid w-10 h-10 rounded-full place-content-center bg-divider-on-dark max-[652px]:right-2 max-[652px]:top-2 right-10 top-16 hover:brightness-150 transition-all pointer-events-auto"
-											onClick={() =>
-												setCalendlyOpen(false)
-											}
-										>
-											<XMarkIcon className="w-5 h-5" />
-										</button>
-									</div>
-								</Dialog.Panel>
-							</Transition.Child>
-						</div>
-					</div>
-				</Dialog>
-			</Transition>
-		</div>
 	)
 }
 
