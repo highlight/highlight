@@ -733,19 +733,39 @@ const RangedInput = ({
 	const normalize = (value: number) => (value - min) / (max - min)
 	const denormalize = (normal: number) => normal * (max - min) + min
 
+	const parseFormattedNumber = (formattedNumberString) => {
+		const si = [
+			{ value: 1e9, symbol: 'B' },
+			{ value: 1e6, symbol: 'M' },
+			{ value: 1e3, symbol: 'K' },
+		]
+
+		const regex = /([0-9.]+)([BMK])/
+		const match = formattedNumberString.match(regex)
+
+		if (!match) {
+			return parseFloat(formattedNumberString)
+		}
+
+		const [, valueStr, symbol] = match
+		const value = parseFloat(valueStr)
+
+		for (let i = 0; i < si.length; i++) {
+			if (symbol === si[i].symbol) {
+				return value * si[i].value
+			}
+		}
+
+		return NaN // Invalid symbol
+	}
+
 	return (
 		<>
 			<div className="flex md:hidden w-full ">
 				<ListboxOptions
-					options={options.map((number) =>
-						number.toLocaleString(undefined, {
-							notation: 'compact',
-						}),
-					)}
-					value={value.toLocaleString(undefined, {
-						notation: 'compact',
-					})}
-					onChange={(ev) => onChange(parseFloat(ev))}
+					options={options.map((number) => formatNumber(number))}
+					value={formatNumber(value)}
+					onChange={(ev) => onChange(parseFormattedNumber(ev))}
 					title="Usage: "
 				/>
 			</div>
@@ -793,7 +813,7 @@ const ListboxOptions = <T extends string>({
 	return (
 		<Listbox
 			value={value}
-			onChange={onChange}
+			onChange={(ev) => onChange?.(ev)}
 			disabled={options.length <= 1}
 		>
 			<div className="relative w-full">
