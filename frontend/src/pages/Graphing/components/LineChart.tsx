@@ -1,4 +1,5 @@
 import { vars } from '@highlight-run/ui/vars'
+import { useMemo } from 'react'
 import {
 	Area,
 	AreaChart,
@@ -19,7 +20,6 @@ import {
 	isActive,
 	SeriesInfo,
 } from '@/pages/Graphing/components/Graph'
-import { useMemo } from 'react'
 
 export type LineNullHandling = 'Hidden' | 'Connected' | 'Zero'
 export const LINE_NULL_HANDLING: LineNullHandling[] = [
@@ -61,7 +61,7 @@ export const LineChart = ({
 			}
 		}
 		return filled
-	}, [data, viewConfig.nullHandling])
+	}, [data, viewConfig.nullHandling, series])
 
 	return (
 		<ResponsiveContainer height="100%" width="100%">

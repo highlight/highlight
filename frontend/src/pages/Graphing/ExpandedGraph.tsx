@@ -7,6 +7,7 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -15,11 +16,10 @@ import { useGetVisualizationQuery } from '@/graph/generated/hooks'
 import useDataTimeRange from '@/hooks/useDataTimeRange'
 import { useProjectId } from '@/hooks/useProjectId'
 import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
+import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
-import { HeaderDivider } from '@/pages/Graphing/Dashboard'
-import { vars } from '@highlight-run/ui/vars'
 
 export const ExpandedGraph = () => {
 	const { dashboard_id, graph_id } = useParams<{

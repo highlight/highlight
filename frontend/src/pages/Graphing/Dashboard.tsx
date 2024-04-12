@@ -1,5 +1,4 @@
 import {
-	Badge,
 	Box,
 	Button,
 	IconSolidChartBar,
@@ -10,6 +9,7 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
+import { message } from 'antd'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -18,14 +18,13 @@ import {
 	useDeleteGraphMutation,
 	useGetVisualizationQuery,
 } from '@/graph/generated/hooks'
+import { namedOperations } from '@/graph/generated/operations'
 import useDataTimeRange from '@/hooks/useDataTimeRange'
 import { useProjectId } from '@/hooks/useProjectId'
 import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
 import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
-import { namedOperations } from '@/graph/generated/operations'
-import { Divider, message } from 'antd'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -132,7 +131,7 @@ export const Dashboard = () => {
 							height="full"
 						>
 							<Box cssClass={style.graphGrid}>
-								{data?.visualization.graphs.map((g, idx) => {
+								{data?.visualization.graphs.map((g) => {
 									return (
 										<Box
 											key={g.id}

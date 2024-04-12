@@ -4,17 +4,16 @@ import {
 	Button,
 	Form,
 	IconSolidCheveronDown,
+	IconSolidLightningBolt,
+	IconSolidLogs,
+	IconSolidPlayCircle,
+	IconSolidSparkles,
 	Input,
 	Label,
 	Menu,
-	Text,
-	TagSwitchGroup,
-	IconSolidLogs,
-	IconSolidTraces,
-	IconSolidPlayCircle,
-	IconSolidLightningBolt,
-	IconSolidSparkles,
 	Stack,
+	TagSwitchGroup,
+	Text,
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { Divider, message } from 'antd'
@@ -24,10 +23,10 @@ import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
 import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
+import { Search } from '@/components/Search/SearchForm/SearchForm'
 import Switch from '@/components/Switch/Switch'
 import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
 import {
-	useDeleteGraphMutation,
 	useGetKeysQuery,
 	useGetVisualizationQuery,
 	useUpsertGraphMutation,
@@ -58,10 +57,9 @@ import {
 	TABLE_NULL_HANDLING,
 	TableNullHandling,
 } from '@/pages/Graphing/components/Table'
+import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 
 import * as style from './GraphingEditor.css'
-import { Search, SearchForm } from '@/components/Search/SearchForm/SearchForm'
-import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 
 const DEFAULT_BUCKET_COUNT = 50
 
@@ -73,10 +71,10 @@ const PRODUCTS: ProductType[] = [
 ]
 
 const PRODUCT_ICONS = [
-	<IconSolidLogs />,
-	<IconSolidSparkles />,
-	<IconSolidPlayCircle />,
-	<IconSolidLightningBolt />,
+	<IconSolidLogs key="logs" />,
+	<IconSolidSparkles key="traces" />,
+	<IconSolidPlayCircle key="sessions" />,
+	<IconSolidLightningBolt key="errors" />,
 ]
 
 const FUNCTION_TYPES: MetricAggregator[] = [

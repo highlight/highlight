@@ -15,7 +15,7 @@ import {
 import { message } from 'antd'
 import moment from 'moment'
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
 import LoadingBox from '@/components/LoadingBox'
