@@ -1,4 +1,3 @@
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { NextPage } from 'next'
 import Link from 'next/link'
 import { InlineWidget } from 'react-calendly'
@@ -33,86 +32,6 @@ import {
 	selfHostPrices,
 } from '../../components/Pricing/estimator_details'
 
-const PricingPage: NextPage = () => {
-	const [estimatorCategory, setEstimatorCategory] = useState<
-		'PayAsYouGo' | 'Enterprise' | 'SelfHosted'
-	>('PayAsYouGo')
-
-	//Allows for the selection of the tier from the dropdown
-	const setEstimatorCategoryWithLabel = (value: any) => {
-		if (tierOptions.includes(value)) {
-			setEstimatorCategory(value)
-		} else {
-			const val = value.replaceAll('-', '')
-			setEstimatorCategory(val)
-		}
-	}
-
-	return (
-		<div>
-			<Navbar />
-			<div className="w-full px-10 mx-auto my-24">
-				<div className="flex flex-col items-center text-center">
-					<h1 className="max-w-3xl">
-						Get the{' '}
-						<span className="text-highlight-yellow">
-							visibility
-						</span>{' '}
-						you need today.
-					</h1>
-					<Typography type="copy1" className="my-4 text-copy-on-dark">
-						Fair and transparent pricing that scales with any
-						organization.
-					</Typography>
-				</div>
-				<PlanTable
-					setEstimatorCategory={setEstimatorCategoryWithLabel}
-				/>
-			</div>
-			<div className="flex justify-center my-16" id="overage">
-				<div className="text-center max-w-[950px]">
-					<h2 className="mb-4">Estimate your bill</h2>
-					<Typography type="copy1" className="text-copy-on-dark">
-						Each of our plans comes with a pre-defined usage quota,
-						and if you exceed that quota, we charge an additional
-						fee. For custom plans,{' '}
-						<span className="inline-block">
-							<CalendlyModal className="underline">
-								reach out to us.
-							</CalendlyModal>
-						</span>
-					</Typography>
-				</div>
-			</div>
-			<div className="my-16">
-				<PriceCalculator
-					pricingTier={priceTiers[estimatorCategory]}
-					setEstimatorCategory={setEstimatorCategoryWithLabel}
-				/>
-			</div>
-
-			<Section>
-				<CompaniesReel />
-			</Section>
-			<Section>
-				<div className={styles.anchorFeature}>
-					<div className={styles.anchorHead}>
-						<Typography type="copy2" onDark>
-							Don&apos;t take our word.{' '}
-							<Link href="/customers">
-								Read our customer review section →
-							</Link>
-						</Typography>
-					</div>
-				</div>
-			</Section>
-			<CustomerReviewTrack />
-			<FooterCallToAction />
-			<Footer />
-		</div>
-	)
-}
-
 const retentionOptions = [
 	'30 days',
 	'3 months',
@@ -120,7 +39,7 @@ const retentionOptions = [
 	'1 year',
 	'2 years',
 ] as const
-type Retention = (typeof retentionOptions)[number]
+type Retention = typeof retentionOptions[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'30 days': 1,
 	'3 months': 1,
@@ -130,7 +49,7 @@ const retentionMultipliers: Record<Retention, number> = {
 } as const
 
 const tierOptions = ['Free', 'PayAsYouGo', 'Enterprise', 'SelfHosted'] as const
-type TierName = (typeof tierOptions)[number]
+type TierName = typeof tierOptions[number]
 
 type PricingTier = {
 	label: string
@@ -255,6 +174,85 @@ const priceTiers: Record<TierName, PricingTier> = {
 	},
 }
 
+const PricingPage: NextPage = () => {
+	const [estimatorCategory, setEstimatorCategory] = useState<
+		'PayAsYouGo' | 'Enterprise' | 'SelfHosted'
+	>('PayAsYouGo')
+
+	//Allows for the selection of the tier from the dropdown
+	const setEstimatorCategoryWithLabel = (value: any) => {
+		if (tierOptions.includes(value)) {
+			setEstimatorCategory(value)
+		} else {
+			const val = value.replaceAll('-', '')
+			setEstimatorCategory(val)
+		}
+	}
+
+	return (
+		<div>
+			<Navbar />
+			<div className="w-full px-4 mx-auto my-24">
+				<div className="flex flex-col items-center text-center">
+					<h1 className="max-w-3xl">
+						Get the{' '}
+						<span className="text-highlight-yellow">
+							visibility
+						</span>{' '}
+						you need today.
+					</h1>
+					<Typography type="copy1" className="my-4 text-copy-on-dark">
+						Fair and transparent pricing that scales with any
+						organization.
+					</Typography>
+				</div>
+				<PlanTable
+					setEstimatorCategory={setEstimatorCategoryWithLabel}
+				/>
+			</div>
+			<div className="flex justify-center my-16 px-10" id="overage">
+				<div className="text-center max-w-[950px]">
+					<h2 className="mb-4">Estimate your bill</h2>
+					<Typography type="copy1" className="text-copy-on-dark">
+						Each of our plans comes with a pre-defined usage quota,
+						and if you exceed that quota, we charge an additional
+						fee. For custom plans,{' '}
+						<span className="inline-block">
+							<CalendlyModal className="underline">
+								reach out to us.
+							</CalendlyModal>
+						</span>
+					</Typography>
+				</div>
+			</div>
+			<div className="my-16">
+				<PriceCalculator
+					pricingTier={priceTiers[estimatorCategory]}
+					setEstimatorCategory={setEstimatorCategoryWithLabel}
+				/>
+			</div>
+
+			<Section>
+				<CompaniesReel />
+			</Section>
+			<Section>
+				<div className={styles.anchorFeature}>
+					<div className={styles.anchorHead}>
+						<Typography type="copy2" onDark>
+							Don&apos;t take our word.{' '}
+							<Link href="/customers">
+								Read our customer review section →
+							</Link>
+						</Typography>
+					</div>
+				</div>
+			</Section>
+			<CustomerReviewTrack />
+			<FooterCallToAction />
+			<Footer />
+		</div>
+	)
+}
 const PlanTable = ({
 	setEstimatorCategory,
 }: {
@@ -316,7 +314,10 @@ const PlanTier = ({
 			)}
 
 			{!tier.contactUs && (
-				<PrimaryButton className="bg-white text-dark-background rounded-md text-center py-1">
+				<PrimaryButton
+					href={tier.buttonLink}
+					className="bg-white text-dark-background rounded-md text-center py-1"
+				>
 					{tier.buttonLabel}
 				</PrimaryButton>
 			)}
@@ -465,10 +466,10 @@ const PriceCalculator = ({
 	)
 
 	return (
-		<div className="flex justify-center w-full">
+		<div className="flex justify-center px-4 sm:px-16">
 			{/* Price calculator */}
-			<div className="flex items-center">
-				<div className="flex flex-col w-[350px] h-full border-y-[1px] border-l-[1px] border-divider-on-dark rounded-l-lg p-4 gap-4">
+			<div className="flex flex-col lg:flex-row items-center w-full lg:w-auto">
+				<div className="flex flex-col lg:h-full w-full lg:w-[350px] border-y-[1px] border-l-[1px] rounded-b-none rounded-t-lg  border-r-[1px] border-divider-on-dark p-4 gap-4 lg:border-r-0 lg:rounded-l-lg lg:rounded-r-none">
 					<div className="w-full">
 						<ListboxOptions
 							options={
@@ -485,91 +486,33 @@ const PriceCalculator = ({
 						/>
 					</div>
 
-					<div className="flex flex-col justify-between h-full border-[1px] border-divider-on-dark rounded-lg p-4">
+					<div className="flex flex-col justify-between gap-8 border-[1px] border-divider-on-dark rounded-lg p-4 lg:h-full">
 						<MonthlySlider
 							annualPricing={annualPricing}
 							setAnnualPricing={setAnnualPricing}
 						/>
 						<div className="flex flex-col gap-2">
 							<div className="flex flex-col gap-1">
-								<div className="flex justify-between">
-									<Typography
-										type="copy3"
-										className="text-darker-copy-on-dark"
-									>
-										Plan base fee
-									</Typography>
-									<Typography
-										type="copy3"
-										className="text-darker-copy-on-dark"
-										emphasis
-									>
-										${base}
-									</Typography>
-								</div>
-								<div className="flex justify-between">
-									<Typography
-										type="copy3"
-										className="text-darker-copy-on-dark"
-									>
-										Session usage fee
-									</Typography>
-									<Typography
-										type="copy3"
-										className="text-darker-copy-on-dark"
-										emphasis
-									>
-										${sessionsCost}
-									</Typography>
-								</div>
-
-								<div className="flex justify-between">
-									<Typography
-										type="copy3"
-										className="text-darker-copy-on-dark"
-									>
-										Error usage fee
-									</Typography>
-									<Typography
-										type="copy3"
-										className="text-darker-copy-on-dark"
-										emphasis
-									>
-										${errorsCost}
-									</Typography>
-								</div>
-
-								<div className="flex justify-between">
-									<Typography
-										type="copy3"
-										className="text-darker-copy-on-dark"
-									>
-										Logging usage fee
-									</Typography>
-									<Typography
-										type="copy3"
-										className="text-darker-copy-on-dark"
-										emphasis
-									>
-										${loggingCost}
-									</Typography>
-								</div>
-
-								<div className="flex justify-between">
-									<Typography
-										type="copy3"
-										className="text-darker-copy-on-dark"
-									>
-										Tracing usage fee
-									</Typography>
-									<Typography
-										type="copy3"
-										className="text-darker-copy-on-dark"
-										emphasis
-									>
-										${tracesCost}
-									</Typography>
-								</div>
+								<CalculatorPriceRow
+									title="Plan base fee"
+									cost={base}
+								/>
+								<CalculatorPriceRow
+									title="Session usage fee"
+									cost={sessionsCost}
+								/>
+								<CalculatorPriceRow
+									title="Error usage fee"
+									cost={errorsCost}
+								/>
+								<CalculatorPriceRow
+									title="Logging fee"
+									cost={loggingCost}
+								/>
+								<CalculatorPriceRow
+									title="Tracing usage fee"
+									cost={tracesCost}
+								/>
 							</div>
 							{annualPricing && (
 								<>
@@ -619,7 +562,7 @@ const PriceCalculator = ({
 					</div>
 				</div>
 
-				<div className="flex flex-col p-4 gap-4 overflow-hidden border rounded-r-lg md:rounded-br-none border-divider-on-dark">
+				<div className="flex flex-col p-4 gap-4 overflow-hidden border border-t-0 rounded-b-lg rounded-t-none border-divider-on-dark h-full w-full lg:rounded-bl-none lg:rounded-tr-lg lg:border-t lg:w-[640px] xl:w-[720px] 2xl:w-[800px] ">
 					<CalculatorRowDesktop
 						title="Session Replay"
 						product={'Sessions'}
@@ -663,6 +606,29 @@ const PriceCalculator = ({
 	)
 }
 
+const CalculatorPriceRow = ({
+	title,
+	cost,
+}: {
+	title: String
+	cost: Number
+}) => {
+	return (
+		<div className="flex justify-between">
+			<Typography type="copy3" className="text-darker-copy-on-dark">
+				{title}
+			</Typography>
+			<Typography
+				type="copy3"
+				className="text-darker-copy-on-dark"
+				emphasis
+			>
+				${cost}
+			</Typography>
+		</div>
+	)
+}
+
 const CalculatorRowDesktop = ({
 	title,
 	product,
@@ -688,16 +654,9 @@ const CalculatorRowDesktop = ({
 	].map((v) => v * rangeMultiplier)
 
 	return (
-		<div className="flex border border-divider-on-dark rounded-lg">
-			<div className="flex flex-col flex-1 gap-1 p-3 w-[800px]">
-				<Typography
-					type="copy4"
-					emphasis
-					className="rounded-full bg-blue-cta text-dark-background self-start inline-block md:hidden"
-				>
-					{formatPrice(cost)}
-				</Typography>
-				<div className="flex justify-between items-center">
+		<div className="flex border border-divider-on-dark rounded-lg w-full">
+			<div className="flex flex-col flex-1 gap-1 p-3 w-full">
+				<div className="flex justify-between items-center mb-4 md:mb-4">
 					<div className="flex items-center gap-3">
 						<Typography type="copy3" emphasis>
 							{title}
@@ -715,18 +674,25 @@ const CalculatorRowDesktop = ({
 				/>
 
 				<div className="flex justify-between">
-					<ListboxOptions
-						options={
-							onChangeRetention !== undefined
-								? ['3 months', '6 months', '1 year', '2 years']
-								: ['30 days']
-						}
-						title="Retention: "
-						value={retention}
-						onChange={onChangeRetention}
-					/>
+					<div className="w-full md:w-auto">
+						<ListboxOptions
+							options={
+								onChangeRetention !== undefined
+									? [
+											'3 months',
+											'6 months',
+											'1 year',
+											'2 years',
+									  ]
+									: ['30 days']
+							}
+							title="Retention: "
+							value={retention}
+							onChange={onChangeRetention}
+						/>
+					</div>
 
-					<div className="flex items-center gap-2">
+					<div className="hidden md:flex items-center gap-2">
 						<Typography
 							type="copy3"
 							className="text-darker-copy-on-dark"
@@ -736,9 +702,8 @@ const CalculatorRowDesktop = ({
 						<Typography
 							type="copy4"
 							emphasis
-							className="text-copy-on-dark border-[1px] border-copy-on-light rounded-full px-3 py-[2px] w-[65px] text-center"
+							className="text-white border-[1px] border-copy-on-light rounded-full px-3 py-[2px] w-[65px] text-center"
 						>
-							{}
 							{value.toLocaleString(undefined, {
 								notation: 'compact',
 								compactDisplay: 'short',
@@ -779,34 +744,21 @@ const RangedInput = ({
 
 	return (
 		<>
-			<div className="block md:hidden">
-				<label className="flex flex-col gap-2">
-					<div className="relative">
-						<select
-							className="flex items-center justify-center w-full h-12 gap-2 text-center text-transparent transition-all border rounded-lg appearance-none cursor-pointer border-copy-on-light hover:bg-white/10 bg-dark-background"
-							onChange={(ev) =>
-								onChange(parseFloat(ev.target.value))
-							}
-						>
-							{options.map((value, i) => (
-								<option value={value} key={i}>
-									{value.toLocaleString(undefined, {
-										notation: 'compact',
-									})}
-								</option>
-							))}
-						</select>
-						<div className="absolute inset-0 flex items-center justify-center w-full h-12 gap-2 transition-all border rounded-lg pointer-events-none border-copy-on-light hover:bg-white/10">
-							<Typography type="copy2" emphasis onDark>
-								{snapValue(value).toLocaleString(undefined, {
-									notation: 'compact',
-								})}
-							</Typography>
-							<ChevronDownIcon className="w-5 h-5 text-darker-copy-on-dark" />
-						</div>
-					</div>
-				</label>
+			<div className="flex md:hidden w-full ">
+				<ListboxOptions
+					options={options.map((number) =>
+						number.toLocaleString(undefined, {
+							notation: 'compact',
+						}),
+					)}
+					value={value.toLocaleString(undefined, {
+						notation: 'compact',
+					})}
+					onChange={(ev) => onChange(parseFloat(ev))}
+					title="Usage: "
+				/>
 			</div>
+
 			<Slider.Root
 				min={min}
 				max={max}
@@ -836,50 +788,6 @@ const RangedInput = ({
 	)
 }
 
-const CalculatorCostDisplay = ({
-	cost,
-	rate,
-	heading,
-	subtitle,
-}: {
-	cost: number
-	heading: string
-	subtitle?: string
-	rate?: {
-		value: number
-		unit: number
-		product: 'Sessions' | 'Errors' | 'Logs' | 'Traces'
-	}
-}) => {
-	return (
-		<div className="gap-4 grid flex-shrink-0 place-content-center place-items-center w-[343px] h-full">
-			<div className="grid flex-shrink-0 place-content-center place-items-center w-[343px] h-full">
-				<Typography type="copy3" emphasis onDark>
-					{heading}
-				</Typography>
-				<span className="text-4xl font-semibold">
-					{formatPrice(cost)}
-				</span>
-			</div>
-			{rate ? (
-				<div className="grid flex-shrink-0 place-content-center place-items-center w-[343px] h-full">
-					<Typography type="copy4" onDark>
-						Average rate: {formatPrice(rate.value, 'auto')} /{' '}
-						{formatNumber(rate.unit)} {rate.product.toLowerCase()}
-					</Typography>
-				</div>
-			) : null}
-			{subtitle ? (
-				<div className="grid flex-shrink-0 place-content-center place-items-center w-[343px] h-full">
-					<Typography type="copy4" onDark>
-						{subtitle}
-					</Typography>
-				</div>
-			) : null}
-		</div>
-	)
-}
-
 const ListboxOptions = <T extends string>({
 	options,
 	value,
@@ -888,18 +796,22 @@ const ListboxOptions = <T extends string>({
 }: {
 	options: readonly T[]
 	value?: T
-	title?: string
+	title?: string //Displayed prefix to the value. "Usage: " for example.
 	onChange?: (value: T) => void
 }) => {
 	return (
-		<Listbox value={value} onChange={onChange}>
-			<div className="relative">
+		<Listbox
+			value={value}
+			onChange={onChange}
+			disabled={options.length <= 1}
+		>
+			<div className="relative w-full">
 				<Listbox.Button
 					className={`${
 						options.length == 1
-							? 'border-divider-on-dark pr-3'
-							: 'border-copy-on-light pr-10'
-					} relative w-full cursor-pointer rounded-lg bg-dark-background border-[1px] z-40 py-2 pl-3 text-left focus:outline-none sm:text-sm`}
+							? 'border-divider-on-dark pr-3 cursor-default'
+							: 'border-copy-on-light cursor-pointer pr-10'
+					} relative w-full rounded-lg bg-dark-background border-[1px] z-40 py-2 pl-3 text-left focus:outline-none sm:text-sm`}
 				>
 					<span className="block truncate text-center">
 						<Typography
@@ -1051,7 +963,9 @@ const MonthlySlider = ({
 				>
 					<Typography
 						type="copy3"
-						className="text-copy-on-dark"
+						className={`${
+							!annualPricing ? 'text-white' : 'text-copy-on-dark'
+						} transition-colors`}
 						emphasis
 					>
 						Monthly
@@ -1064,7 +978,9 @@ const MonthlySlider = ({
 				>
 					<Typography
 						type="copy3"
-						className="text-copy-on-dark"
+						className={`${
+							annualPricing ? 'text-white' : 'text-copy-on-dark'
+						} transition-colors`}
 						emphasis
 					>
 						Annually
