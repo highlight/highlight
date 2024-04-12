@@ -657,14 +657,14 @@ func (client *Client) QueryErrorObjectsHistogram(ctx context.Context, projectId 
 		return nil, nil, err
 	}
 
-	selectCols := fmt.Sprintf("%s(Timestamp, '%s') as time, count() as count", aggFn, location.String())
-
-	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
-
-	sb, err := readErrorsObjects(selectCols, params, projectId, "1", orderBy)
+	sb, err := readErrorsObjects(params, projectId)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	sb.Select(fmt.Sprintf("%s(Timestamp, '%s') as time, count() as count", aggFn, location.String()))
+	sb.GroupBy("1")
+	sb.OrderBy(fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String()))
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 	args = append(args, *options.Bounds.StartDate, *options.Bounds.EndDate)
@@ -704,6 +704,8 @@ func (client *Client) QueryErrorGroups(ctx context.Context, projectId int, count
 		return nil, 0, err
 	}
 
+	sb.Select("ID, count() OVER() AS total")
+	sb.OrderBy("UpdatedAt DESC, ID DESC")
 	sb.Limit(count)
 	sb.Offset(offset)
 
@@ -729,12 +731,11 @@ func (client *Client) QueryErrorGroups(ctx context.Context, projectId int, count
 
 func readErrorGroups(params modelInputs.QueryInput, projectId int) (*sqlbuilder.SelectBuilder, error) {
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.From(ErrorGroupsTableConfig.TableName)
-	sb.Select("ID, count() OVER() AS total")
+	sb.From(fmt.Sprintf("%s FINAL", ErrorGroupsTableConfig.TableName))
 
 	sbInner := sqlbuilder.NewSelectBuilder()
 	sbInner.Select("ErrorGroupID")
-	sbInner.From(ErrorsJoinedTableConfig.TableName)
+	sbInner.From(fmt.Sprintf("%s FINAL", ErrorsJoinedTableConfig.TableName))
 	sbInner.Where(sbInner.Equal("ProjectId", projectId))
 
 	sbInner.Where(sbInner.LessEqualThan("Timestamp", params.DateRange.EndDate)).
@@ -747,16 +748,15 @@ func readErrorGroups(params modelInputs.QueryInput, projectId int) (*sqlbuilder.
 	return sb, nil
 }
 
-func readErrorsObjects(selectCols string, params modelInputs.QueryInput, projectId int, groupBy string, orderBy string) (*sqlbuilder.SelectBuilder, error) {
+func readErrorsObjects(params modelInputs.QueryInput, projectId int) (*sqlbuilder.SelectBuilder, error) {
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select(selectCols)
 	sb.From(fmt.Sprintf("%s FINAL", ErrorsJoinedTableConfig.TableName))
 	sb.Where(sb.Equal("ProjectId", projectId))
 
-	parser.AssignSearchFilters(sb, params.Query, ErrorsJoinedTableConfig)
+	sb.Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
+		Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
 
-	sb.OrderBy(orderBy)
-	sb.GroupBy(groupBy)
+	parser.AssignSearchFilters(sb, params.Query, ErrorsJoinedTableConfig)
 
 	return sb, nil
 }
