@@ -14588,7 +14588,7 @@ __metadata:
     firebase: "npm:^9.19.1"
     framer-motion: "npm:^6.3.15"
     graphql: "npm:^15.7.2"
-    happy-dom: "npm:^14.3.8"
+    happy-dom: "npm:^14.7.1"
     highlight.io: "workspace:*"
     highlight.run: "workspace:*"
     js-cookie: "npm:^3.0.1"
@@ -42853,14 +42853,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:^14.3.8":
-  version: 14.3.8
-  resolution: "happy-dom@npm:14.3.8"
+"happy-dom@npm:^14.7.1":
+  version: 14.7.1
+  resolution: "happy-dom@npm:14.7.1"
   dependencies:
     entities: "npm:^4.5.0"
     webidl-conversions: "npm:^7.0.0"
     whatwg-mimetype: "npm:^3.0.0"
-  checksum: 10/064610da1b99d5fcdacfc7d22d0a74e36a9710d85526d34a4a3bebfe5662955d7991d26d528246ecc23f6cfeaf1ad40e4782803b9590d36d09c30c5366450cb7
+  checksum: 10/8a8c8995abc92d5319750d71cac08a4aafd26e8a7203d2a970270c5c1ca68dad2b3af772de761e061107f3aaa51d6cb9430f07e05366047a126ef908377a4c08
   languageName: node
   linkType: hard
 
