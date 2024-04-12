@@ -4,6 +4,7 @@ on:
     push:
         branches:
             - 'main'
+            - 'vadim/kafka-msg-size'
         paths:
             - 'go.work'
             - 'go.work.sum'
