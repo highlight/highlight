@@ -12952,17 +12952,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphql-codegen/named-operations-object@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "@graphql-codegen/named-operations-object@npm:2.1.0"
+"@graphql-codegen/named-operations-object@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@graphql-codegen/named-operations-object@npm:3.0.0"
   dependencies:
-    "@graphql-codegen/plugin-helpers": "npm:^2.1.0"
-    change-case-all: "npm:1.0.14"
-    tslib: "npm:~2.3.0"
+    "@graphql-codegen/plugin-helpers": "npm:^3.0.0"
+    change-case-all: "npm:1.0.15"
+    tslib: "npm:~2.6.0"
   peerDependencies:
-    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
+    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
     graphql-tag: ^2.0.0
-  checksum: 10/94897ae13f82624eb3be1f5ce1ca6fc7d511ef388068355a43bac09c2248a9cb6054f4226a4d17cbd32d97648d84d912e9beb3789831c6b23108f08bdb500440
+  checksum: 10/c792c2bcff3528dcfa9027bdea93bd8ac1fa20b1a767d36a18e962ef91c2c3a7d8b45c06c50c075f04c07926981341264534b9c01ec9b8a5afa0114a5563e074
   languageName: node
   linkType: hard
 
@@ -12984,22 +12984,6 @@ __metadata:
   peerDependencies:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
   checksum: 10/d1516c049ebc5a9bb2713770a01114f26eee434c8fb50c2af75666b1486a46842d801be5d69188117234acebc5c1d424df0b5f08a3646a842c2abe6d0a1c09d3
-  languageName: node
-  linkType: hard
-
-"@graphql-codegen/plugin-helpers@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "@graphql-codegen/plugin-helpers@npm:2.1.0"
-  dependencies:
-    "@graphql-tools/utils": "npm:^8.1.1"
-    change-case-all: "npm:1.0.14"
-    common-tags: "npm:1.8.0"
-    import-from: "npm:4.0.0"
-    lodash: "npm:~4.17.0"
-    tslib: "npm:~2.3.0"
-  peerDependencies:
-    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
-  checksum: 10/d304e773f8b19816b27fe7fdb713ab60fd940f7c263bc872de002fcb3244ab36b814447d7d06080cc75042e7eaabe98e138385be5a1018ae57e458bb443eb211
   languageName: node
   linkType: hard
 
@@ -14191,17 +14175,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphql-tools/utils@npm:^8.1.1":
-  version: 8.1.2
-  resolution: "@graphql-tools/utils@npm:8.1.2"
-  dependencies:
-    tslib: "npm:~2.3.0"
-  peerDependencies:
-    graphql: ^14.0.0 || ^15.0.0
-  checksum: 10/1220204f604ddff88e0fa75b80265bec1d832b1db305a29fee0a851ac60460959824fb71614039f20fc9a65feb78a090aba077d8eb205376fac51057de6806be
-  languageName: node
-  linkType: hard
-
 "@graphql-tools/utils@npm:^9.0.0, @graphql-tools/utils@npm:^9.2.1":
   version: 9.2.1
   resolution: "@graphql-tools/utils@npm:9.2.1"
@@ -14546,7 +14519,7 @@ __metadata:
     "@frontapp/plugin-sdk": "npm:^1.1.2"
     "@graphql-codegen/cli": "npm:^2.13.7"
     "@graphql-codegen/import-types-preset": "npm:^1.18.1"
-    "@graphql-codegen/named-operations-object": "npm:^2.1.0"
+    "@graphql-codegen/named-operations-object": "npm:^3.0.0"
     "@graphql-codegen/typescript": "npm:^2.8.1"
     "@graphql-codegen/typescript-operations": "npm:^1.17.14"
     "@graphql-codegen/typescript-react-apollo": "npm:^2.2.1"
@@ -66422,13 +66395,6 @@ __metadata:
   version: 2.0.3
   resolution: "tslib@npm:2.0.3"
   checksum: 10/5f57eb3c6d01ebde567020539dd2282455bce24b5066228d3ca7bb5a5511b2d7c754225d6b2a0ea3c128cf6cd467469b581f946de834ccd0e042fa29279551f6
-  languageName: node
-  linkType: hard
-
-"tslib@npm:~2.3.0":
-  version: 2.3.1
-  resolution: "tslib@npm:2.3.1"
-  checksum: 10/5e7de59ed9f2b705b399bda28326b7c3e7526deb48bbe1716e2e17fbd4cecbb610253d09c7b8fd0a6e76cfed9304e2e608cdb81bb1ee812d69e5089d1a94c71a
   languageName: node
   linkType: hard
 
