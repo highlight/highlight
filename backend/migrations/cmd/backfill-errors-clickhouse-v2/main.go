@@ -2,11 +2,10 @@ package main
 
 import (
 	"context"
+	"gorm.io/gorm"
 	"os"
 	"strconv"
 	"time"
-
-	"gorm.io/gorm"
 
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
@@ -28,13 +27,13 @@ func main() {
 
 	var errorObjectIds []int
 	db.Raw(`
-		SELECT distinct error_group_id
-		FROM error_objects
-		WHERE created_at > now() - interval '12 months'
+			SELECT id
+			FROM error_objects
+			WHERE timestamp > now() - interval '3 months'
 		`).FindInBatches(&errorObjectIds, 10000, func(tx *gorm.DB, batch int) error {
 		log.WithContext(ctx).Infof("%d errorObjectIds", len(errorObjectIds))
 		for _, id := range errorObjectIds {
-			if err := kafkaDataSyncProducer.Submit(ctx, strconv.Itoa(id), &kafka_queue.Message{Type: kafka_queue.ErrorGroupDataSync, ErrorGroupDataSync: &kafka_queue.ErrorGroupDataSyncArgs{ErrorGroupID: id}}); err != nil {
+			if err := kafkaDataSyncProducer.Submit(ctx, strconv.Itoa(id), &kafka_queue.Message{Type: kafka_queue.ErrorObjectDataSync, ErrorObjectDataSync: &kafka_queue.ErrorObjectDataSyncArgs{ErrorObjectID: id}}); err != nil {
 				log.WithContext(ctx).Fatal(err)
 			}
 		}
