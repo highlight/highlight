@@ -185,7 +185,6 @@ export const getCustomTooltip =
 	(xAxisMetric: any, yAxisMetric: any) =>
 	({ active, payload, label }: any) => {
 		if (active && payload && payload.length) {
-			console.log('payload', payload)
 			return (
 				<Box cssClass={style.tooltipWrapper}>
 					<Text

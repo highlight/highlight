@@ -195,10 +195,8 @@ export default function DashboardOverview() {
 }
 
 const DashboardRow = ({
-	idx,
 	row,
 }: {
-	idx: number
 	row: GetVisualizationsQuery['visualizations']['results'][number]
 }) => {
 	const [hover, setHover] = useState(false)
@@ -215,7 +213,6 @@ const DashboardRow = ({
 	return (
 		<Table.Row
 			width="full"
-			key={idx}
 			onMouseEnter={() => {
 				setHover(true)
 			}}
@@ -324,8 +321,8 @@ const DashboardRows = ({
 
 	return (
 		<>
-			{rows.map((row, idx) => (
-				<DashboardRow key={row.id} idx={idx} row={row} />
+			{rows.map((row) => (
+				<DashboardRow key={row.id} row={row} />
 			))}
 		</>
 	)

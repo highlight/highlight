@@ -44,7 +44,7 @@ export const Dashboard = () => {
 
 	const navigate = useNavigate()
 
-	const [deleteGraph, deleteContext] = useDeleteGraphMutation({
+	const [deleteGraph] = useDeleteGraphMutation({
 		refetchQueries: [namedOperations.Query.GetVisualization],
 	})
 
@@ -80,12 +80,7 @@ export const Dashboard = () => {
 						paddingRight="8"
 						py="6"
 					>
-						<Stack
-							display="flex"
-							direction="row"
-							alignItems="center"
-							gap="4"
-						>
+						<Stack direction="row" alignItems="center" gap="4">
 							<Link to="..">
 								<Stack>
 									<Tag
