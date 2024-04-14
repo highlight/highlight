@@ -603,15 +603,30 @@ var ErrorsJoinedTableConfig = model.TableConfig[modelInputs.ReservedErrorsJoined
 		modelInputs.ReservedErrorsJoinedKeyEvent:           "Event",
 		modelInputs.ReservedErrorsJoinedKeyHasSession:      "HasSession",
 		modelInputs.ReservedErrorsJoinedKeyOsName:          "OSName",
+		modelInputs.ReservedErrorsJoinedKeySecureSessionID: "SecureSessionID",
 		modelInputs.ReservedErrorsJoinedKeyServiceName:     "ServiceName",
 		modelInputs.ReservedErrorsJoinedKeyServiceVersion:  "ServiceVersion",
+		modelInputs.ReservedErrorsJoinedKeyStatus:          "Status",
 		modelInputs.ReservedErrorsJoinedKeyTag:             "ErrorTagTitle",
+		modelInputs.ReservedErrorsJoinedKeyTimestamp:       "Timestamp",
+		modelInputs.ReservedErrorsJoinedKeyTraceID:         "TraceID",
 		modelInputs.ReservedErrorsJoinedKeyType:            "Type",
 		modelInputs.ReservedErrorsJoinedKeyVisitedURL:      "VisitedURL",
-		modelInputs.ReservedErrorsJoinedKeyTimestamp:       "Timestamp",
-		modelInputs.ReservedErrorsJoinedKeyStatus:          "Status",
-		modelInputs.ReservedErrorsJoinedKeySecureSessionID: "SecureSessionID",
-		modelInputs.ReservedErrorsJoinedKeyTraceID:         "TraceID",
+	},
+	BodyColumn:   "Event",
+	ReservedKeys: modelInputs.AllReservedErrorsJoinedKey,
+}
+
+var BackendErrorObjectInputConfig = model.TableConfig[modelInputs.ReservedErrorsJoinedKey]{
+	KeysToColumns: map[modelInputs.ReservedErrorsJoinedKey]string{
+		modelInputs.ReservedErrorsJoinedKeyEnvironment:    "Environment",
+		modelInputs.ReservedErrorsJoinedKeyEvent:          "Event",
+		modelInputs.ReservedErrorsJoinedKeyHasSession:     "SessionSecureID",
+		modelInputs.ReservedErrorsJoinedKeyServiceName:    "Service.Name",
+		modelInputs.ReservedErrorsJoinedKeyServiceVersion: "Service.Version",
+		modelInputs.ReservedErrorsJoinedKeyTimestamp:      "Timestamp",
+		modelInputs.ReservedErrorsJoinedKeyType:           "Type",
+		modelInputs.ReservedErrorsJoinedKeyVisitedURL:     "URL",
 	},
 	BodyColumn:   "Event",
 	ReservedKeys: modelInputs.AllReservedErrorsJoinedKey,
@@ -625,7 +640,7 @@ var errorsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedErro
 }
 
 func ErrorMatchesQuery(errorObject *model2.BackendErrorObjectInput, filters listener.Filters) bool {
-	return matchesQuery(errorObject, ErrorsJoinedTableConfig, filters)
+	return matchesQuery(errorObject, BackendErrorObjectInputConfig, filters, listener.OperatorAnd)
 }
 
 func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {

@@ -4,23 +4,29 @@ import {
 	Button,
 	Form,
 	IconSolidCheveronDown,
+	IconSolidLightningBolt,
+	IconSolidLogs,
+	IconSolidPlayCircle,
+	IconSolidSparkles,
 	Input,
 	Label,
 	Menu,
+	Stack,
+	TagSwitchGroup,
 	Text,
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
-import { Divider } from 'antd'
+import { Divider, message } from 'antd'
 import { PropsWithChildren, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
 import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
+import { Search } from '@/components/Search/SearchForm/SearchForm'
 import Switch from '@/components/Switch/Switch'
 import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
 import {
-	useDeleteGraphMutation,
 	useGetKeysQuery,
 	useGetVisualizationQuery,
 	useUpsertGraphMutation,
@@ -38,6 +44,7 @@ import Graph, {
 	getViewConfig,
 	TIMESTAMP_KEY,
 	View,
+	VIEW_ICONS,
 	VIEWS,
 } from '@/pages/Graphing/components/Graph'
 import {
@@ -50,6 +57,7 @@ import {
 	TABLE_NULL_HANDLING,
 	TableNullHandling,
 } from '@/pages/Graphing/components/Table'
+import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 
 import * as style from './GraphingEditor.css'
 
@@ -62,8 +70,16 @@ const PRODUCTS: ProductType[] = [
 	ProductType.Errors,
 ]
 
+const PRODUCT_ICONS = [
+	<IconSolidLogs key="logs" />,
+	<IconSolidSparkles key="traces" />,
+	<IconSolidPlayCircle key="sessions" />,
+	<IconSolidLightningBolt key="errors" />,
+]
+
 const FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.Count,
+	MetricAggregator.CountDistinct,
 	MetricAggregator.Min,
 	MetricAggregator.Avg,
 	MetricAggregator.P50,
@@ -122,11 +138,15 @@ const OptionDropdown = <T extends string>({
 	options,
 	selection,
 	setSelection,
+	icons,
 }: {
 	options: T[]
-	selection: string
+	selection: T
 	setSelection: (option: T) => void
+	icons?: JSX.Element[]
 }) => {
+	const selectedIndex = options.indexOf(selection)
+	const selectedIcon = icons?.at(selectedIndex)
 	return (
 		<Menu>
 			<Menu.Button
@@ -142,19 +162,25 @@ const OptionDropdown = <T extends string>({
 					gap="4"
 					justifyContent="space-between"
 				>
-					<Box>{selection}</Box>
+					<Stack direction="row" alignItems="center" gap="4">
+						{selectedIcon}
+						{selection}
+					</Stack>
 					<IconSolidCheveronDown />
 				</Box>
 			</Menu.Button>
 			<Menu.List>
-				{options.map((p) => (
+				{options.map((p, idx) => (
 					<Menu.Item
 						key={p}
 						onClick={() => {
 							setSelection(p as T)
 						}}
 					>
-						{p}
+						<Stack direction="row" alignItems="center" gap="4">
+							{icons?.at(idx)}
+							{p}
+						</Stack>
 					</Menu.Item>
 				))}
 			</Menu.List>
@@ -202,17 +228,24 @@ const LineChartSettings = ({
 }) => (
 	<>
 		<LabeledRow label="Line display" name="lineDisplay">
-			<OptionDropdown
+			<TagSwitchGroup
 				options={LINE_DISPLAY}
-				selection={lineDisplay}
-				setSelection={setLineDisplay}
+				defaultValue={lineDisplay}
+				onChange={(o: string | number) => {
+					setLineDisplay(o as LineDisplay)
+				}}
+				cssClass={style.tagSwitch}
 			/>
 		</LabeledRow>
 		<LabeledRow label="Nulls" name="lineNullHandling">
-			<OptionDropdown
+			<TagSwitchGroup
 				options={LINE_NULL_HANDLING}
-				selection={nullHandling}
-				setSelection={setNullHandling}
+				defaultValue={nullHandling}
+				onChange={(o: string | number) => {
+					console.log('setNullHandling', o)
+					setNullHandling(o as LineNullHandling)
+				}}
+				cssClass={style.tagSwitch}
 			/>
 		</LabeledRow>
 	</>
@@ -227,10 +260,13 @@ const BarChartSettings = ({
 }) => (
 	<>
 		<LabeledRow label="Bar display" name="barDisplay">
-			<OptionDropdown
+			<TagSwitchGroup
 				options={BAR_DISPLAY}
-				selection={barDisplay}
-				setSelection={setBarDisplay}
+				defaultValue={barDisplay}
+				onChange={(o: string | number) => {
+					setBarDisplay(o as BarDisplay)
+				}}
+				cssClass={style.tagSwitch}
 			/>
 		</LabeledRow>
 	</>
@@ -245,10 +281,13 @@ const TableSettings = ({
 }) => (
 	<>
 		<LabeledRow label="Nulls" name="tableNullHandling">
-			<OptionDropdown
+			<TagSwitchGroup
 				options={TABLE_NULL_HANDLING}
-				selection={nullHandling}
-				setSelection={setNullHandling}
+				defaultValue={nullHandling}
+				onChange={(o: string | number) => {
+					setNullHandling(o as TableNullHandling)
+				}}
+				cssClass={style.tagSwitch}
 			/>
 		</LabeledRow>
 	</>
@@ -264,11 +303,7 @@ export const GraphingEditor = () => {
 
 	const { timeRange } = useDataTimeRange()
 
-	const [upsertGraph] = useUpsertGraphMutation({
-		refetchQueries: [namedOperations.Query.GetVisualization],
-	})
-
-	const [deleteGraph] = useDeleteGraphMutation({
+	const [upsertGraph, upsertGraphContext] = useUpsertGraphMutation({
 		refetchQueries: [namedOperations.Query.GetVisualization],
 	})
 
@@ -293,8 +328,8 @@ export const GraphingEditor = () => {
 
 		const graphInput: GraphInput = {
 			visualizationId: dashboard_id!,
-			bucketByKey,
-			bucketCount,
+			bucketByKey: bucketByEnabled ? bucketByKey : null,
+			bucketCount: bucketByEnabled ? bucketCount : null,
 			display,
 			functionType,
 			groupByKey: groupByEnabled ? groupByKey : null,
@@ -317,23 +352,14 @@ export const GraphingEditor = () => {
 			variables: {
 				graph: graphInput,
 			},
-		}).then(() => {
-			navigate(`../${dashboard_id}`)
 		})
-	}
-
-	const onDelete = () => {
-		if (!isEdit) {
-			return
-		}
-
-		deleteGraph({
-			variables: {
-				id: graph_id,
-			},
-		}).then(() => {
-			navigate(`../${dashboard_id}`)
-		})
+			.then(() => {
+				navigate(`../${dashboard_id}`)
+				message.success(`Metric view ${isEdit ? 'updated' : 'created'}`)
+			})
+			.catch(() => {
+				message.error('Failed to create metric view')
+			})
 	}
 
 	const { loading: metaLoading } = useGetVisualizationQuery({
@@ -394,7 +420,7 @@ export const GraphingEditor = () => {
 		() => {
 			setDebouncedQuery(query)
 		},
-		500,
+		300,
 		[query],
 	)
 
@@ -479,6 +505,7 @@ export const GraphingEditor = () => {
 				flex="stretch"
 				justifyContent="stretch"
 				display="flex"
+				overflow="hidden"
 			>
 				<Box
 					background="white"
@@ -501,9 +528,11 @@ export const GraphingEditor = () => {
 						py="6"
 					>
 						<Text size="small" weight="medium">
-							{isEdit ? 'Edit' : 'Create'} Metric View
+							{isEdit ? 'Edit' : 'Create'} metric view
 						</Text>
 						<Box display="flex" gap="4">
+							<TimeRangePicker emphasis="low" kind="secondary" />
+							<HeaderDivider />
 							<Button
 								emphasis="low"
 								kind="secondary"
@@ -513,17 +542,10 @@ export const GraphingEditor = () => {
 							>
 								Cancel
 							</Button>
-							<TimeRangePicker emphasis="low" kind="secondary" />
-							{isEdit ? (
-								<Button
-									kind="danger"
-									emphasis="low"
-									onClick={onDelete}
-								>
-									Delete
-								</Button>
-							) : null}
-							<Button onClick={onSave}>
+							<Button
+								disabled={upsertGraphContext.loading}
+								onClick={onSave}
+							>
 								Save&nbsp;
 								<Badge
 									variant="outlinePurple"
@@ -538,13 +560,13 @@ export const GraphingEditor = () => {
 						display="flex"
 						flexDirection="row"
 						justifyContent="space-between"
-						height="full"
+						cssClass={style.editGraphPanel}
 					>
 						<Box
 							display="flex"
 							position="relative"
-							width="full"
 							height="full"
+							cssClass={style.previewWindow}
 						>
 							<Box
 								position="absolute"
@@ -611,6 +633,8 @@ export const GraphingEditor = () => {
 							borderLeft="dividerWeak"
 							height="full"
 							cssClass={style.editGraphSidebar}
+							overflowY="auto"
+							overflowX="hidden"
 						>
 							<Form className={style.editGraphSidebar}>
 								<SidebarSection>
@@ -621,7 +645,7 @@ export const GraphingEditor = () => {
 										<Input
 											type="text"
 											name="title"
-											placeholder="Enter name displayed as the title"
+											placeholder="Untitled metric view"
 											value={metricViewTitle}
 											onChange={(e) => {
 												setMetricViewTitle(
@@ -639,6 +663,7 @@ export const GraphingEditor = () => {
 											options={PRODUCTS}
 											selection={productType}
 											setSelection={setProductType}
+											icons={PRODUCT_ICONS}
 										/>
 									</LabeledRow>
 								</SidebarSection>
@@ -652,6 +677,7 @@ export const GraphingEditor = () => {
 											options={VIEWS}
 											selection={viewType}
 											setSelection={setViewType}
+											icons={VIEW_ICONS}
 										/>
 									</LabeledRow>
 									{viewType === 'Line chart' && (
@@ -693,23 +719,34 @@ export const GraphingEditor = () => {
 										{functionType !==
 											MetricAggregator.Count && (
 											<OptionDropdown<string>
-												options={numericKeys}
+												options={
+													functionType ===
+													MetricAggregator.CountDistinct
+														? allKeys
+														: numericKeys
+												}
 												selection={metric}
 												setSelection={setMetric}
 											/>
 										)}
 									</LabeledRow>
 									<LabeledRow label="Filters" name="query">
-										<Input
-											type="text"
-											name="query"
-											placeholder="Enter search filters"
-											value={query}
-											onChange={(e) => {
-												setQuery(e.target.value)
-											}}
-											cssClass={style.input}
-										/>
+										<Box
+											border="divider"
+											width="full"
+											borderRadius="6"
+										>
+											<Search
+												initialQuery={query}
+												query={query}
+												setQuery={setQuery}
+												startDate={new Date(startDate)}
+												endDate={new Date(endDate)}
+												productType={productType}
+												onFormSubmit={setQuery}
+												hideIcon
+											/>
+										</Box>
 									</LabeledRow>
 								</SidebarSection>
 								<Divider className="m-0" />

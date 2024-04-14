@@ -11,13 +11,13 @@ import {
 import {
 	CustomXAxisTick,
 	CustomYAxisTick,
+	getColor,
 	getCustomTooltip,
 	getTickFormatter,
 	GROUP_KEY,
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
-	strokeColors,
 } from '@/pages/Graphing/components/Graph'
 
 export type BarDisplay = 'Grouped' | 'Stacked'
@@ -118,7 +118,7 @@ export const BarChart = ({
 							<Bar
 								key={key}
 								dataKey={key}
-								fill={strokeColors[idx % strokeColors.length]}
+								fill={getColor(idx)}
 								maxBarSize={30}
 								isAnimationActive={false}
 								stackId={

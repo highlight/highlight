@@ -1,18 +1,10 @@
 x-local-logging: &local-logging
     driver: local
 
-x-highlight-logging: &highlight-logging
-    driver: fluentd
-    options:
-        fluentd-address: '127.0.0.1:24224'
-        fluentd-async: 'true'
-        fluentd-sub-second-precision: 'true'
-        tag: 'highlight.project_id=1'
-
 # Highlight.io services for the development deployment.
 services:
     zookeeper:
-        logging: *highlight-logging
+        logging: *local-logging
         image: confluentinc/cp-zookeeper
         container_name: zookeeper
         restart: on-failure
@@ -24,7 +16,7 @@ services:
             ZOOKEEPER_TICK_TIME: 2000
 
     kafka:
-        logging: *highlight-logging
+        logging: *local-logging
         image: confluentinc/cp-kafka
         container_name: kafka
         volumes:
@@ -50,7 +42,7 @@ services:
             KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
 
     redis:
-        logging: *highlight-logging
+        logging: *local-logging
         container_name: redis
         image: redis
         restart: on-failure
@@ -64,7 +56,7 @@ services:
             - --loglevel warning
 
     postgres:
-        logging: *highlight-logging
+        logging: *local-logging
         container_name: postgres
         # a postgres image with pgvector installed
         image: ankane/pgvector
@@ -83,7 +75,7 @@ services:
             retries: 5
 
     clickhouse:
-        logging: *highlight-logging
+        logging: *local-logging
         container_name: clickhouse
         image: clickhouse/clickhouse-server
         restart: on-failure
@@ -96,8 +88,16 @@ services:
             - clickhouse-logs:/var/log/clickhouse-server
 
     collector:
-        logging: *highlight-logging
+        logging: *local-logging
         restart: on-failure
+        build:
+            dockerfile: collector.Dockerfile
+            pull: true
+            target: collector
+            args:
+                - IN_DOCKER_GO
+                - SSL
+        container_name: collector
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
@@ -107,12 +107,6 @@ services:
             - '0.0.0.0:8888:8888'
             - '0.0.0.0:24224:24224'
             - '0.0.0.0:34302:34302'
-        container_name: collector
-        image: otel/opentelemetry-collector-contrib
-        command:
-            - '--config=/etc/collector.yml'
-        volumes:
-            - ./collector.yml:/etc/collector.yml
 
 volumes:
     postgres-data:

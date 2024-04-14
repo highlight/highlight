@@ -1,9 +1,17 @@
 import {
+	Badge,
 	Box,
 	Button,
 	IconSolidArrowsExpand,
-	IconSolidLink,
+	IconSolidChartSquareBar,
+	IconSolidChartSquareLine,
+	IconSolidDocumentReport,
+	IconSolidDotsHorizontal,
 	IconSolidPencil,
+	IconSolidTable,
+	IconSolidTrash,
+	Menu,
+	Stack,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui/components'
@@ -37,6 +45,11 @@ import * as style from './Graph.css'
 
 export type View = 'Line chart' | 'Bar chart' | 'Table'
 export const VIEWS: View[] = ['Line chart', 'Bar chart', 'Table']
+export const VIEW_ICONS = [
+	<IconSolidChartSquareLine size={16} key="line chart" />,
+	<IconSolidChartSquareBar size={16} key="bar chart" />,
+	<IconSolidTable size={16} key="table" />,
+]
 
 export const TIMESTAMP_KEY = 'Timestamp'
 export const GROUP_KEY = 'Group'
@@ -75,7 +88,7 @@ export interface ChartProps<TConfig> {
 	limitFunctionType?: MetricAggregator
 	limitMetric?: string
 	viewConfig: TConfig
-	onShare?: () => void
+	onDelete?: () => void
 	onExpand?: () => void
 	onEdit?: () => void
 }
@@ -95,7 +108,18 @@ export interface SeriesInfo {
 	spotlight?: number | undefined
 }
 
-export const strokeColors = ['#0090FF', '#D6409F']
+const strokeColors = [
+	'#0090FF',
+	'#D6409F',
+	'#744ED4',
+	'#F76B15',
+	'#BDEE63',
+	'#29A383',
+	'#E5484D',
+	'#FFE629',
+	'#46A758',
+	'#3E63DD',
+]
 
 export const getColor = (idx: number): string => {
 	return strokeColors[idx % strokeColors.length]
@@ -180,8 +204,7 @@ export const getCustomTooltip =
 						>
 							<Box
 								style={{
-									backgroundColor:
-										strokeColors[idx % strokeColors.length],
+									backgroundColor: p.color,
 								}}
 								cssClass={style.tooltipDot}
 							></Box>
@@ -305,14 +328,14 @@ const Graph = ({
 	limitMetric,
 	title,
 	viewConfig,
-	onShare,
+	onDelete,
 	onExpand,
 	onEdit,
 }: ChartProps<ViewConfig>) => {
 	const [graphHover, setGraphHover] = useState(false)
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
 	const showMenu =
-		onShare !== undefined || onExpand !== undefined || onEdit !== undefined
+		onDelete !== undefined || onExpand !== undefined || onEdit !== undefined
 
 	const { data: metrics, loading: metricsLoading } = useGetMetricsQuery({
 		variables: {
@@ -385,46 +408,76 @@ const Graph = ({
 		setSpotlight(undefined)
 	}, [series])
 
+	console.log('data', data)
+
+	let isEmpty = data !== undefined
+	for (const d of data ?? []) {
+		for (const v of Object.values(d)) {
+			if (!!v) {
+				isEmpty = false
+			}
+		}
+	}
+
 	let innerChart: JSX.Element | null = null
-	switch (viewConfig.type) {
-		case 'Line chart':
-			innerChart = (
-				<LineChart
-					data={data}
-					xAxisMetric={xAxisMetric}
-					yAxisMetric={yAxisMetric}
-					yAxisFunction={yAxisFunction}
-					viewConfig={viewConfig}
-					series={series}
-					spotlight={spotlight}
+	if (isEmpty) {
+		innerChart = (
+			<Stack
+				width="full"
+				height="full"
+				alignItems="center"
+				justifyContent="center"
+			>
+				<Badge
+					size="medium"
+					shape="basic"
+					variant="gray"
+					label="No data found"
+					iconStart={<IconSolidDocumentReport />}
 				/>
-			)
-			break
-		case 'Bar chart':
-			innerChart = (
-				<BarChart
-					data={data}
-					xAxisMetric={xAxisMetric}
-					yAxisMetric={yAxisMetric}
-					yAxisFunction={yAxisFunction}
-					viewConfig={viewConfig}
-					series={series}
-					spotlight={spotlight}
-				/>
-			)
-			break
-		case 'Table':
-			innerChart = (
-				<MetricTable
-					data={data}
-					xAxisMetric={xAxisMetric}
-					yAxisMetric={yAxisMetric}
-					yAxisFunction={yAxisFunction}
-					viewConfig={viewConfig}
-					series={series}
-				/>
-			)
-			break
+			</Stack>
+		)
+	} else {
+		switch (viewConfig.type) {
+			case 'Line chart':
+				innerChart = (
+					<LineChart
+						data={data}
+						xAxisMetric={xAxisMetric}
+						yAxisMetric={yAxisMetric}
+						yAxisFunction={yAxisFunction}
+						viewConfig={viewConfig}
+						series={series}
+						spotlight={spotlight}
+					/>
+				)
+				break
+			case 'Bar chart':
+				innerChart = (
+					<BarChart
+						data={data}
+						xAxisMetric={xAxisMetric}
+						yAxisMetric={yAxisMetric}
+						yAxisFunction={yAxisFunction}
+						viewConfig={viewConfig}
+						series={series}
+						spotlight={spotlight}
+					/>
+				)
+				break
+			case 'Table':
+				innerChart = (
+					<MetricTable
+						data={data}
+						xAxisMetric={xAxisMetric}
+						yAxisMetric={yAxisMetric}
+						yAxisFunction={yAxisFunction}
+						viewConfig={viewConfig}
+						series={series}
+					/>
+				)
+				break
+		}
 	}
 
 	const showLegend = viewConfig.showLegend && series.join('') !== ''
@@ -477,15 +530,6 @@ const Graph = ({
 									: clsx(style.titleText, style.hiddenMenu)
 							}
 						>
-							{onShare !== undefined && (
-								<Button
-									size="xSmall"
-									emphasis="low"
-									kind="secondary"
-									iconLeft={<IconSolidLink />}
-									onClick={onShare}
-								/>
-							)}
 							{onExpand !== undefined && (
 								<Button
 									size="xSmall"
@@ -503,6 +547,36 @@ const Graph = ({
 									iconLeft={<IconSolidPencil />}
 									onClick={onEdit}
 								/>
+							)}
+							{onDelete !== undefined && (
+								<Menu>
+									<Menu.Button
+										size="medium"
+										emphasis="low"
+										kind="secondary"
+										iconLeft={<IconSolidDotsHorizontal />}
+										onClick={(e: any) => {
+											e.stopPropagation()
+										}}
+									/>
+									<Menu.List>
+										<Menu.Item
+											onClick={(e) => {
+												e.stopPropagation()
+												onDelete()
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconSolidTrash />
+												Delete metric view
+											</Box>
+										</Menu.Item>
+									</Menu.List>
+								</Menu>
 							)}
 						</Box>
 					)}
@@ -536,10 +610,7 @@ const Graph = ({
 																spotlight,
 																idx,
 															)
-																? strokeColors[
-																		idx %
-																			strokeColors.length
-																  ]
+																? getColor(idx)
 																: undefined,
 													}}
 													cssClass={style.legendDot}

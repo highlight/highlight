@@ -5,6 +5,9 @@ import {
 	Container,
 	Heading,
 	IconSolidChartBar,
+	IconSolidDotsHorizontal,
+	IconSolidTrash,
+	Menu,
 	Stack,
 	Table,
 	Text,
@@ -12,12 +15,13 @@ import {
 import { message } from 'antd'
 import moment from 'moment'
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
 import LoadingBox from '@/components/LoadingBox'
 import { SearchEmptyState } from '@/components/SearchEmptyState/SearchEmptyState'
 import {
+	useDeleteVisualizationMutation,
 	useGetVisualizationsQuery,
 	useUpsertVisualizationMutation,
 } from '@/graph/generated/hooks'
@@ -190,6 +194,103 @@ export default function DashboardOverview() {
 	)
 }
 
+const DashboardRow = ({
+	row,
+}: {
+	row: GetVisualizationsQuery['visualizations']['results'][number]
+}) => {
+	const [hover, setHover] = useState(false)
+
+	const [deleteViz, deleteContext] = useDeleteVisualizationMutation({
+		variables: {
+			id: row.id,
+		},
+		refetchQueries: [namedOperations.Query.GetVisualizations],
+	})
+
+	const navigate = useNavigate()
+
+	return (
+		<Table.Row
+			width="full"
+			onMouseEnter={() => {
+				setHover(true)
+			}}
+			onMouseLeave={() => {
+				setHover(false)
+			}}
+			onClick={() => {
+				navigate(`${row.id}`)
+			}}
+		>
+			<Stack direction="row" alignItems="center" px="12" py="8">
+				<Stack width="full" gap="2">
+					<Box display="flex" gap="6" alignItems="center">
+						<Badge color="weak" iconStart={<IconSolidChartBar />} />
+						<Text weight="medium" size="small" color="strong">
+							{row.name}
+						</Text>
+					</Box>
+					<Box>
+						<Text color="weak" display="inline-block">
+							Updated by&nbsp;
+						</Text>
+						<Text
+							color="secondaryContentText"
+							display="inline-block"
+						>
+							{row.updatedByAdmin?.name ?? 'Highlight'}
+							&nbsp;
+						</Text>
+						<Text color="weak" display="inline-block">
+							{moment(row.updatedAt).fromNow()}
+						</Text>
+					</Box>
+				</Stack>
+				{hover && (
+					<Menu>
+						<Menu.Button
+							size="medium"
+							emphasis="low"
+							kind="secondary"
+							iconLeft={<IconSolidDotsHorizontal />}
+							onClick={(e: any) => {
+								e.stopPropagation()
+							}}
+						/>
+						<Menu.List>
+							<Menu.Item disabled={deleteContext.loading}>
+								<Box
+									display="flex"
+									alignItems="center"
+									gap="4"
+									onClick={(e) => {
+										e.stopPropagation()
+										deleteViz()
+											.then(() =>
+												message.success(
+													'Dashboard deleted',
+												),
+											)
+											.catch(() =>
+												message.error(
+													'Failed to delete dashboard',
+												),
+											)
+									}}
+								>
+									<IconSolidTrash />
+									Delete dashboard
+								</Box>
+							</Menu.Item>
+						</Menu.List>
+					</Menu>
+				)}
+			</Stack>
+		</Table.Row>
+	)
+}
+
 const DashboardRows = ({
 	data,
 	loading,
@@ -220,41 +321,8 @@ const DashboardRows = ({
 
 	return (
 		<>
-			{rows.map((row, idx) => (
-				<Table.Row width="full" key={idx}>
-					<Link to={`${row.id}`}>
-						<Stack width="full" px="12" py="8" gap="2">
-							<Box display="flex" gap="6" alignItems="center">
-								<Badge
-									color="weak"
-									iconStart={<IconSolidChartBar />}
-								/>
-								<Text
-									weight="medium"
-									size="small"
-									color="strong"
-								>
-									{row.name}
-								</Text>
-							</Box>
-							<Box>
-								<Text color="weak" display="inline-block">
-									Updated by&nbsp;
-								</Text>
-								<Text
-									color="secondaryContentText"
-									display="inline-block"
-								>
-									{row.updatedByAdmin?.name ?? 'Highlight'}
-									&nbsp;
-								</Text>
-								<Text color="weak" display="inline-block">
-									{moment(row.updatedAt).fromNow()}
-								</Text>
-							</Box>
-						</Stack>
-					</Link>
-				</Table.Row>
+			{rows.map((row) => (
+				<DashboardRow key={row.id} row={row} />
 			))}
 		</>
 	)

@@ -486,6 +486,11 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 		PromoCode:                 promoCode,
 	}
 
+	if util.IsOnPrem() {
+		// unlock self hosted usage
+		workspace.PlanTier = modelInputs.PlanTypeEnterprise.String()
+	}
+
 	if err := r.DB.WithContext(ctx).Create(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error creating workspace")
 	}

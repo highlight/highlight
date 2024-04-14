@@ -1,4 +1,5 @@
 import { Box } from '@highlight-run/ui/components'
+import MuxPlayer from '@mux/mux-player-react'
 import { CSSProperties, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/Button'
@@ -178,6 +179,18 @@ export const CanvasPage = function () {
 					<Button
 						trackingId="canvasIncrement"
 						onClick={() => setNumCanvases((n) => n + 1)}
+					/>
+				</Box>
+				<Box border="dividerStrong">
+					MUX
+					<MuxPlayer
+						playbackId="DS00Spx1CV902MCtPj5WknGlR102V5HFkDe"
+						metadata={{
+							video_id: 'video-id-123456',
+							video_title: 'Bick Buck Bunny',
+							viewer_user_id: 'user-id-bc-789',
+						}}
+						streamType="on-demand"
 					/>
 				</Box>
 			</Box>

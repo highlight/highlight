@@ -9017,20 +9017,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@blakeembrey/deque@npm:^1.0.5":
-  version: 1.0.5
-  resolution: "@blakeembrey/deque@npm:1.0.5"
-  checksum: 10/c96cac16d1c9bb0c97039f13db35c252a86fa2c8307d188e0bd4f23e263b5b689b5a059bc50e08e4c358351d76e11fa3490f98de124be6524e5c04c89e352606
-  languageName: node
-  linkType: hard
-
-"@blakeembrey/template@npm:^1.0.0":
-  version: 1.1.0
-  resolution: "@blakeembrey/template@npm:1.1.0"
-  checksum: 10/994f2c5f1188880e106bfaff987513aeca6398010c9086590111281b0be5ea51ca2dc76933b4c603960831a6f1b3093366dd1939651588e78381c9a9a74bcb43
-  languageName: node
-  linkType: hard
-
 "@braintree/sanitize-url@npm:7.0.0":
   version: 7.0.0
   resolution: "@braintree/sanitize-url@npm:7.0.0"
@@ -14462,7 +14448,7 @@ __metadata:
     graphql-request: "npm:^6.1.0"
     graphql-tag: "npm:^2.12.6"
     json-stringify-safe: "npm:^5.0.1"
-    onchange: "npm:^7.1.0"
+    npm-run-all: "npm:^4.1.5"
     prettier: "npm:^3.1.0"
     rrweb: "workspace:*"
     size-limit: "npm:^8.1.0"
@@ -14517,6 +14503,8 @@ __metadata:
     "@highlight-run/react-mentions": "npm:4.4.2"
     "@highlight-run/sourcemap-uploader": "workspace:*"
     "@highlight-run/ui": "workspace:*"
+    "@mux/mux-player": "npm:^2.4.1"
+    "@mux/mux-player-react": "npm:^2.4.1"
     "@rehooks/local-storage": "npm:^2.4.5"
     "@rrweb/types": "workspace:*"
     "@stripe/stripe-js": "npm:^1.32.0"
@@ -16745,6 +16733,59 @@ __metadata:
     hey-listen: "npm:^1.0.8"
     tslib: "npm:^2.3.1"
   checksum: 10/317dd16b9f75c39470ff4aeae29fecea2f205d1276e70e0254d8124e23713634786b4fb4d9dafebc3d731ab235b5c6260016ddde8e0c354af79bd9d64af99b1d
+  languageName: node
+  linkType: hard
+
+"@mux/mux-player-react@npm:^2.4.1":
+  version: 2.4.1
+  resolution: "@mux/mux-player-react@npm:2.4.1"
+  dependencies:
+    "@mux/mux-player": "npm:2.4.1"
+    "@mux/playback-core": "npm:0.22.4"
+    prop-types: "npm:^15.7.2"
+  peerDependencies:
+    "@types/react": ^17.0.0 || ^18
+    react: ^17.0.2 || ^18
+    react-dom: ^17.0.2 || ^18
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: 10/2fb2582a30155302c881b397688bb35d27389944bc04e8f4e941c02d3684ecc8d7dd7f7d37870b630d69aeb281fd52a20abee85e1b3160f1b07becde0b33118c
+  languageName: node
+  linkType: hard
+
+"@mux/mux-player@npm:2.4.1, @mux/mux-player@npm:^2.4.1":
+  version: 2.4.1
+  resolution: "@mux/mux-player@npm:2.4.1"
+  dependencies:
+    "@mux/mux-video": "npm:0.17.5"
+    "@mux/playback-core": "npm:0.22.4"
+    media-chrome: "npm:~3.1.1"
+  checksum: 10/c918de8ca56d7d2cb10d352da49f8384a4367d3ee13de886af8ec367d56a63657f7af025a92995b084a5d4575309ade25bc07077107b527391af6e43c90c1566
+  languageName: node
+  linkType: hard
+
+"@mux/mux-video@npm:0.17.5":
+  version: 0.17.5
+  resolution: "@mux/mux-video@npm:0.17.5"
+  dependencies:
+    "@mux/playback-core": "npm:0.22.4"
+    castable-video: "npm:~1.0.6"
+    custom-media-element: "npm:~1.2.3"
+    media-tracks: "npm:~0.3.0"
+  checksum: 10/789cca7f608aa28865fa6e5ce4967552a4f38d9a2349d54ba8969e5f337c4457eed6da559afab2e0080063d700d435bb13832a36f44a27d09429fdf855a039d2
+  languageName: node
+  linkType: hard
+
+"@mux/playback-core@npm:0.22.4":
+  version: 0.22.4
+  resolution: "@mux/playback-core@npm:0.22.4"
+  dependencies:
+    hls.js: "npm:~1.4.13"
+    mux-embed: "npm:~4.30.0"
+  checksum: 10/6f2a06614e849d4eaeac149fab9fe5fb72d5c61b693efe4bd6ff4a857736a52d3153cb77000ec821c61c97d39ac8a9cc4c22eaf9c1bc28a21c08b1354aa38fad
   languageName: node
   linkType: hard
 
@@ -30543,7 +30584,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"arg@npm:^4.1.0, arg@npm:^4.1.3":
+"arg@npm:^4.1.0":
   version: 4.1.3
   resolution: "arg@npm:4.1.3"
   checksum: 10/969b491082f20cad166649fa4d2073ea9e974a4e5ac36247ca23d2e5a8b3cb12d60e9ff70a8acfe26d76566c71fd351ee5e6a9a6595157eb36f92b1fd64e1599
@@ -33061,6 +33102,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"castable-video@npm:~1.0.6":
+  version: 1.0.6
+  resolution: "castable-video@npm:1.0.6"
+  dependencies:
+    custom-media-element: "npm:~1.2.2"
+  checksum: 10/3de9a9b1558c643fea737351fb1aaa8fb0c727b710beed4e20837a839e89c10d7884e7d2977e18fa57b80d192a2e46f8d13076c228c9a44abe27a85663385ace
+  languageName: node
+  linkType: hard
+
 "catharsis@npm:^0.9.0":
   version: 0.9.0
   resolution: "catharsis@npm:0.9.0"
@@ -33478,7 +33528,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chokidar@npm:3.5.3, chokidar@npm:>=3.0.0 <4.0.0, chokidar@npm:^3.0.0, chokidar@npm:^3.3.0, chokidar@npm:^3.3.1, chokidar@npm:^3.4.1, chokidar@npm:^3.5.0, chokidar@npm:^3.5.1, chokidar@npm:^3.5.2, chokidar@npm:^3.5.3":
+"chokidar@npm:3.5.3, chokidar@npm:>=3.0.0 <4.0.0, chokidar@npm:^3.0.0, chokidar@npm:^3.3.0, chokidar@npm:^3.4.1, chokidar@npm:^3.5.0, chokidar@npm:^3.5.1, chokidar@npm:^3.5.2, chokidar@npm:^3.5.3":
   version: 3.5.3
   resolution: "chokidar@npm:3.5.3"
   dependencies:
@@ -35515,6 +35565,13 @@ __metadata:
   version: 1.0.1
   resolution: "custom-event@npm:1.0.1"
   checksum: 10/9871fe460f6133639087716cb5a0d1738add3ced72a4c7e105a77022c6f17be15cd9f21b328dc7d064887ebbf400cff6047fde74654c0bd1d6a1e21c2af21a9c
+  languageName: node
+  linkType: hard
+
+"custom-media-element@npm:~1.2.2, custom-media-element@npm:~1.2.3":
+  version: 1.2.3
+  resolution: "custom-media-element@npm:1.2.3"
+  checksum: 10/babfc54ed1e799f139bfb0fa7ede4851337c879986a70fd111d5ed7e7abb935f624ae79ba77cb6c82a0a391fd65b0777054a53634cf4b9dc198059a48471375e
   languageName: node
   linkType: hard
 
@@ -43313,6 +43370,7 @@ __metadata:
     "@size-limit/file": "npm:^11.1.2"
     "@types/chrome": "npm:^0.0.263"
     "@vitest/web-worker": "npm:^1.4.0"
+    npm-run-all: "npm:^4.1.5"
     readdirp: "npm:^3.6.0"
     size-limit: "npm:^11.1.2"
     tslib: "npm:^2.6.2"
@@ -43371,6 +43429,13 @@ __metadata:
   dependencies:
     "@babel/runtime": "npm:^7.7.6"
   checksum: 10/52ba685b842ca6438ff11ef459951eb13d413ae715866a8dc5f7c3b1ea0cdeb8db6aabf7254551b85f56abc205e6e2d7e1d5afb36b711b401cdaff4f2cf187e9
+  languageName: node
+  linkType: hard
+
+"hls.js@npm:~1.4.13":
+  version: 1.4.14
+  resolution: "hls.js@npm:1.4.14"
+  checksum: 10/9b4bbb379022da6a0c923d351c4592aac3be271d7458804ee7beaf6fa61f58a2538f16b5b23e180c7d636aa033ba373a32829b803dd654627fac5b647fac9e67
   languageName: node
   linkType: hard
 
@@ -50638,12 +50703,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"media-chrome@npm:~3.1.1":
+  version: 3.1.1
+  resolution: "media-chrome@npm:3.1.1"
+  checksum: 10/d77f5ab920ce25e6488950428923abc2ff17356df1e830d3c681b5ea93ca53274e59c21e9711c9bb02e5067f6feb5dd9f3ea1c57764b385f04fb986ccce57654
+  languageName: node
+  linkType: hard
+
 "media-query-parser@npm:^2.0.2":
   version: 2.0.2
   resolution: "media-query-parser@npm:2.0.2"
   dependencies:
     "@babel/runtime": "npm:^7.12.5"
   checksum: 10/9dff3ed135149944717a8687567f4fda1d39d28637f265c6ce7efe5ed55cd88ed49136c912ee0c7f3a6e5debc50b1ff969db609d862318f1af97f48752b08b0b
+  languageName: node
+  linkType: hard
+
+"media-tracks@npm:~0.3.0":
+  version: 0.3.0
+  resolution: "media-tracks@npm:0.3.0"
+  checksum: 10/010eeafe5193e40194fc7bc99207dd98de556cec94ecbe118ec4a48d46c09fff8c9232489653d7d29c7b050df7f73da8c6671f4210cd9031a25492f5d8b7c91e
   languageName: node
   linkType: hard
 
@@ -52002,6 +52081,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mux-embed@npm:~4.30.0":
+  version: 4.30.0
+  resolution: "mux-embed@npm:4.30.0"
+  checksum: 10/8fa0ad3a4db0a42667a11590db542f6f0cbac3ba8cafffdd6be4599964417c9162ad8cb69c0c4a570ddd6108a0110d3ef6ad04a30680cfd938d09d8b87b28eb8
+  languageName: node
+  linkType: hard
+
 "mv@npm:~2":
   version: 2.1.1
   resolution: "mv@npm:2.1.1"
@@ -53202,23 +53288,6 @@ __metadata:
   dependencies:
     wrappy: "npm:1"
   checksum: 10/8e832de08b1d73b470e01690c211cb4fcefccab1fd1bd19e706d572d74d3e9b7e38a8bfcdabdd364f9f868757d9e8e5812a59817dc473eaf698ff3bfae2219f2
-  languageName: node
-  linkType: hard
-
-"onchange@npm:^7.1.0":
-  version: 7.1.0
-  resolution: "onchange@npm:7.1.0"
-  dependencies:
-    "@blakeembrey/deque": "npm:^1.0.5"
-    "@blakeembrey/template": "npm:^1.0.0"
-    arg: "npm:^4.1.3"
-    chokidar: "npm:^3.3.1"
-    cross-spawn: "npm:^7.0.1"
-    ignore: "npm:^5.1.4"
-    tree-kill: "npm:^1.2.2"
-  bin:
-    onchange: dist/bin.js
-  checksum: 10/d5614b28f15e1a7913bd718e9e95f01b08a9f799d6420bd57ecd8bd39d40262529a68fbc1e07d8cb875fe07904591278f363513b63abcd0e74ff3d95bc76ff2b
   languageName: node
   linkType: hard
 
