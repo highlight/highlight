@@ -64,7 +64,7 @@ export const SearchPanel = ({
 	endDate,
 	selectedPreset,
 }: SearchPanelProps) => {
-	const { showLeftPanel, setShowLeftPanel } = useErrorPageNavigation()
+	const { setShowLeftPanel } = useErrorPageNavigation()
 	const { showBanner } = useGlobalContext()
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 
@@ -156,7 +156,8 @@ export const SearchPanel = ({
 				padding="8"
 				overflowX="hidden"
 				overflowY="auto"
-				cssClass={[style.content, styledVerticalScrollbar]}
+				height="full"
+				cssClass={styledVerticalScrollbar}
 			>
 				{loading ? (
 					<LoadingBox />

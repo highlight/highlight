@@ -229,10 +229,10 @@ export default function ErrorsV2() {
 
 			{!isBlocked && (
 				<Box
-					cssClass={styles.searchPanelContainer}
+					display={navigation.showLeftPanel ? 'block' : 'none'}
+					position="relative"
 					style={{
 						width: `${navigation.leftPanelWidth}%`,
-						display: navigation.showLeftPanel ? 'block' : 'none',
 					}}
 				>
 					<Box
@@ -268,7 +268,7 @@ export default function ErrorsV2() {
 				style={{
 					width:
 						!isBlocked && navigation.showLeftPanel
-							? `${navigation.leftPanelWidth}%`
+							? `${100 - navigation.leftPanelWidth}%`
 							: '100%',
 				}}
 			>
