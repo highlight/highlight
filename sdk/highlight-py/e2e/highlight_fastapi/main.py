@@ -131,7 +131,7 @@ def trace():
     rng = random.randint(0, 1024 * 1024)
     with H.trace(span_name=f'custom-{rng}'):
         logging.warning(f'hi {rng}')
-        lg.warning(f'world {rng}')
+        lg.warning('world %d', rng)
         return 'hi!'
 
 

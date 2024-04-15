@@ -73,7 +73,8 @@ class LogHandler(logging.Handler):
             ctx = self.highlight.trace
 
         with ctx():
-            self.highlight.log_hook(trace.get_current_span(), record)
+            if self.filter(record):
+                self.highlight.log_hook(trace.get_current_span(), record, formatted=self.format(record))
 
 
 class H(object):
@@ -400,7 +401,7 @@ class H(object):
         """
         return self._log_handler
 
-    def log_hook(self, span: Span, record: logging.LogRecord):
+    def log_hook(self, span: Span, record: logging.LogRecord, formatted: str = ""):
         if span and span.is_recording():
             ctx = span.get_span_context()
             session_id, request_id = H._instance.get_highlight_context(
@@ -415,9 +416,9 @@ class H(object):
             attributes[SpanAttributes.CODE_LINENO] = record.lineno
             attributes["highlight.trace_id"] = request_id
             attributes["highlight.session_id"] = session_id
-            attributes.update(record.args or {})
+            attributes.update(filter(lambda x: isinstance(x, dict), record.args) or {})
 
-            message = record.getMessage()
+            message = formatted or record.getMessage()
             try:
                 # Handle loguru's serialize=True format
                 # See: https://loguru.readthedocs.io/en/stable/api/logger.html#record
