@@ -20,6 +20,7 @@ H = highlight_io.H(
     service_name="my-fastapi-app",
     service_version="1.0.0",
     environment="e2e-test",
+    debug=True,
 )
 
 app = FastAPI()
@@ -115,6 +116,14 @@ async def boto3sqs(request: Request):
 def health_check():
     logging.info("oh, no!")
     raise HTTPException(status_code=404, detail="Item not found")
+
+
+@router.get("/trace")
+def health_check():
+    rng = random.randint(0, 1024*1024)
+    with H.trace(span_name=f'custom-{rng}'):
+        logging.warning(f'hi {rng}')
+        return 'hi!'
 
 
 app.include_router(router)
