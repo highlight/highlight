@@ -698,7 +698,7 @@ export const Search: React.FC<{
 				/>
 
 				{isDirty && !disableSearch && (
-					<Box pt="6">
+					<Box pt="10" pr="4">
 						<IconSolidXCircle
 							size={16}
 							onClick={(e) => {

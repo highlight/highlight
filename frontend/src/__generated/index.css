@@ -6571,7 +6571,7 @@ body {
 }
 ._1f2v8en0 {
   transition: transform 0.2s ease-in-out;
-  width: 340px;
+  width: 400px;
   position: fixed;
   height: calc(100vh - var(--header-height));
 }
@@ -6580,7 +6580,7 @@ body {
 }
 ._1f2v8en2 {
   position: fixed;
-  transform: translateX(-340px);
+  transform: translateX(-400px);
 }
 ._1f2v8en3 {
   position: absolute;
@@ -6647,7 +6647,7 @@ body {
   width: 100%;
 }
 ._75g8nf3 {
-  margin-left: 340px;
+  margin-left: 400px;
 }
 ._75g8nf4 {
   border: 0 !important;

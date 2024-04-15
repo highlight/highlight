@@ -1,6 +1,6 @@
 import { style } from '@vanilla-extract/css'
 
-export const ERROR_FEED_LEFT_PANEL_WIDTH = 340
+export const ERROR_FEED_LEFT_PANEL_WIDTH = 400
 
 export const searchPanel = style({
 	transition: 'transform 0.2s ease-in-out',

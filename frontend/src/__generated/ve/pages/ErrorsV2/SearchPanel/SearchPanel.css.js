@@ -1,5 +1,5 @@
 // src/pages/ErrorsV2/SearchPanel/SearchPanel.css.ts
-var ERROR_FEED_LEFT_PANEL_WIDTH = 340;
+var ERROR_FEED_LEFT_PANEL_WIDTH = 400;
 var SEARCH_PANEL_CONTROL_BAR_HEIGHT = 44;
 var content = "_1f2v8en5";
 var controlBar = "_1f2v8en6";
