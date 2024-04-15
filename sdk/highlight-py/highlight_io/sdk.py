@@ -2,6 +2,7 @@ import contextlib
 import http
 import json
 import logging
+import sys
 import traceback
 import typing
 
@@ -16,8 +17,6 @@ from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.sdk._logs import (
     LoggerProvider,
     LogRecord,
-    LogRecordProcessor,
-    LogData,
 )
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.resources import Resource
@@ -25,7 +24,7 @@ from opentelemetry.sdk.trace import TracerProvider, Span, SpanProcessor
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.semconv.resource import ResourceAttributes
 from opentelemetry.semconv.trace import SpanAttributes
-from opentelemetry.trace import INVALID_SPAN, get_current_span
+from opentelemetry.trace import INVALID_SPAN
 
 from highlight_io.integrations import Integration
 from highlight_io.integrations.boto import BotoIntegration
@@ -91,6 +90,8 @@ class H(object):
         service_name: str = "",
         service_version: str = "",
         environment: str = "",
+        debug: bool = False,
+        **kwargs,
     ):
         """
         Setup Highlight backend instrumentation.
@@ -108,20 +109,40 @@ class H(object):
         :param service_name: a string to name this app
         :param service_version: a string to set this app's version (typically a Git deploy sha).
         :param environment: a string to set this app's environment (e.g. 'production', 'development').
+        :param debug: a boolean to turn on debug logging.
+        :param **kwargs: optional kwargs passed to the BatchLogRecordProcessor and BatchSpanProcessor.
         :return: a configured H instance
         """
+        kwargs.update({
+            'schedule_delay_millis': 1000,
+            'max_export_batch_size': 1024*1024,
+            'max_queue_size': 1024*1024,
+        })
+
+        if debug:
+            root = logging.getLogger()
+            root.setLevel(logging.DEBUG)
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setLevel(logging.DEBUG)
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            handler.setFormatter(formatter)
+            root.addHandler(handler)
+
+        logger = logging.getLogger('highlight_io')
+
         H._instance = self
         self._project_id = project_id
         self._integrations = integrations or []
         self._disabled_integrations = disabled_integrations or []
         self._otlp_endpoint = otlp_endpoint or H.OTLP_HTTP
+        logger.debug("Highlight initializing: %s %s %s", self._otlp_endpoint, self._project_id, kwargs)
         self._log_handler = LogHandler(self, level=log_level)
         if instrument_logging:
             self._instrument_logging()
 
         class HighlightSpanProcessor(SpanProcessor):
             def on_start(
-                self, span: Span, parent_context: typing.Optional[Context] = None
+                    self, span: Span, parent_context: typing.Optional[Context] = None
             ) -> None:
                 session_id, request_id = "", ""
                 try:
@@ -163,9 +184,7 @@ class H(object):
                 OTLPSpanExporter(
                     f"{self._otlp_endpoint}/v1/traces", compression=Compression.Gzip
                 ),
-                schedule_delay_millis=1000,
-                max_export_batch_size=128,
-                max_queue_size=1024,
+                **kwargs
             )
         )
         trace.set_tracer_provider(self._trace_provider)
@@ -179,9 +198,7 @@ class H(object):
                 OTLPLogExporter(
                     f"{self._otlp_endpoint}/v1/logs", compression=Compression.Gzip
                 ),
-                schedule_delay_millis=1000,
-                max_export_batch_size=128,
-                max_queue_size=1024,
+                **kwargs
             )
         )
         _logs.set_logger_provider(self._log_provider)
