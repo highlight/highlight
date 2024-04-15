@@ -6142,7 +6142,7 @@ body {
   font-weight: 500 !important;
   max-width: calc(100% - 24px);
   padding-bottom: 12px;
-  padding-right: 10px;
+  padding-right: 14px;
   padding-top: 12px;
   pointer-events: none;
   position: absolute;
@@ -6225,6 +6225,7 @@ body {
   flex-grow: 1;
   max-width: 600px;
   max-height: min(var(--popover-available-height,300px), 300px);
+  min-width: 350px;
   padding-bottom: 33px;
   z-index: 10;
 }

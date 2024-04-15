@@ -239,20 +239,22 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					>
 						<Box
 							background="white"
-							borderTopLeftRadius="6"
-							borderTopRightRadius="6"
+							borderTopLeftRadius="4"
+							borderTopRightRadius="4"
 						>
 							{SearchComponent}
 						</Box>
 						<Box borderBottom="dividerWeak" />
 						<Stack
 							flexDirection="row"
-							borderBottomLeftRadius="6"
-							borderBottomRightRadius="6"
+							borderBottomLeftRadius="4"
+							borderBottomRightRadius="4"
 							justifyContent="space-between"
-							p="2"
+							py="6"
+							pl="8"
+							pr="4"
 						>
-							<Box display="flex" alignItems="center" px="8">
+							<Box display="flex" alignItems="center">
 								{loading ? (
 									<LoadingBox />
 								) : (
@@ -280,7 +282,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			<Box
 				alignItems="stretch"
 				display="flex"
-				gap="8"
 				width="full"
 				borderBottom="dividerWeak"
 			>
@@ -611,16 +612,16 @@ export const Search: React.FC<{
 				display="flex"
 				alignItems="flex-start"
 				gap="6"
-				py="3"
 				width="full"
 				color="weak"
 				position="relative"
+				margin="auto"
 			>
 				<Box
 					cssClass={styles.comboboxTagsContainer}
 					style={{
-						left: 2,
-						paddingLeft: hideIcon ? 4 : 38,
+						left: hideIcon ? 4 : 2,
+						paddingLeft: hideIcon ? 2 : 38,
 					}}
 				>
 					{tokenGroups.map((tokenGroup, index) => {
@@ -653,6 +654,7 @@ export const Search: React.FC<{
 						<TextareaAutosize
 							ref={inputRef}
 							style={{ resize: 'none', overflowY: 'hidden' }}
+							spellCheck={false}
 						/>
 					}
 					value={query}
@@ -698,7 +700,7 @@ export const Search: React.FC<{
 				/>
 
 				{isDirty && !disableSearch && (
-					<Box pt="10" pr="4">
+					<Box pt="8" pr="8">
 						<IconSolidXCircle
 							size={16}
 							onClick={(e) => {

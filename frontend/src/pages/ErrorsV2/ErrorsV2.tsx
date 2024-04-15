@@ -71,7 +71,7 @@ type Params = { project_id: string; error_secure_id: string; referrer?: string }
 const PAGE_PARAM = withDefault(NumberParam, 1)
 const ERROR_QUERY_PARAM = withDefault(
 	StringParam,
-	`status=${ErrorStateEnum.Open}`,
+	`status=${ErrorStateEnum.Open} `,
 )
 
 export default function ErrorsV2() {
