@@ -1,4 +1,5 @@
 import { NextPage } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import Footer from '../../components/common/Footer/Footer'
@@ -48,7 +49,12 @@ const retentionMultipliers: Record<Retention, number> = {
 	'2 years': 2.5,
 } as const
 
-const tierOptions = ['Free', 'PayAsYouGo', 'Enterprise', 'SelfHosted'] as const
+const tierOptions = [
+	'Free',
+	'PayAsYouGo',
+	'Enterprise',
+	'SelfHostedEnterprise',
+] as const
 type TierName = typeof tierOptions[number]
 
 type PricingTier = {
@@ -65,6 +71,7 @@ type PricingTier = {
 	contactUs?: boolean
 	buttonLabel: string
 	buttonLink?: string
+	hidden?: boolean // hidden from plan tier, but not in estimator
 }
 
 const priceTiers: Record<TierName, PricingTier> = {
@@ -92,7 +99,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 	PayAsYouGo: {
 		label: 'Pay-as-you-go',
 		id: 'PayAsYouGo',
-		subText: 'base per project/month, billed monthly',
+		subText: 'per month, billed monthly',
 		prices: professionalPrices,
 		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
 		features: [
@@ -116,7 +123,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 
 	Enterprise: {
 		label: 'Enterprise',
-		subText: 'base per project/month, billed annually',
+		subText: 'per month, billed annually',
 		prices: enterprisePrices,
 		icon: (
 			<HiOfficeBuilding className="text-white w-8 h-8 -translate-x-1" />
@@ -160,10 +167,11 @@ const priceTiers: Record<TierName, PricingTier> = {
 		buttonLabel: 'Contact us',
 		calculateUsage: true,
 	},
-	SelfHosted: {
-		label: 'Self-Hosted',
-		id: 'SelfHosted',
-		subText: 'per project/month, billed annually',
+	SelfHostedEnterprise: {
+		label: 'Self-Hosted Enterprise',
+		id: 'SelfHostedEnterprise',
+
+		subText: 'per month, billed annually',
 		prices: selfHostPrices,
 		icon: <HiServer className="text-[#E93D82] w-8 h-8 -translate-x-1" />,
 		features: [],
@@ -171,12 +179,13 @@ const priceTiers: Record<TierName, PricingTier> = {
 		buttonLabel: 'Learn More',
 		buttonLink:
 			'/docs/general/company/open-source/hosting/self-host-enterprise',
+		hidden: true,
 	},
 }
 
 const PricingPage: NextPage = () => {
 	const [estimatorCategory, setEstimatorCategory] = useState<
-		'PayAsYouGo' | 'Enterprise' | 'SelfHosted'
+		'PayAsYouGo' | 'Enterprise' | 'SelfHostedEnterprise'
 	>('PayAsYouGo')
 
 	//Allows for the selection of the tier from the dropdown
@@ -184,7 +193,7 @@ const PricingPage: NextPage = () => {
 		if (tierOptions.includes(value)) {
 			setEstimatorCategory(value)
 		} else {
-			const val = value.replaceAll('-', '')
+			const val = value.replaceAll('-', '').replaceAll(' ', '')
 			setEstimatorCategory(val)
 		}
 	}
@@ -261,14 +270,21 @@ const PlanTable = ({
 	return (
 		<div className="flex flex-col items-center w-full gap-6 mx-auto mt-16">
 			{/* Pricing */}
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 justify-center">
-				{Object.entries(priceTiers).map(([name, tier]) => (
-					<PlanTier
-						tier={tier}
-						key={name}
-						setEstimatorCategory={setEstimatorCategory}
-					/>
-				))}
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 justify-center">
+				{Object.entries(priceTiers).map(
+					([name, tier]) =>
+						!tier.hidden && (
+							<PlanTier
+								tier={tier}
+								key={name}
+								setEstimatorCategory={setEstimatorCategory}
+							/>
+						),
+				)}
+
+				<div className="md:col-span-2 lg:col-span-3 ">
+					<SFECard setEstimatorCategory={setEstimatorCategory} />
+				</div>
 			</div>
 			<div className="flex-shrink w-48" />
 		</div>
@@ -307,7 +323,7 @@ const PlanTier = ({
 			</div>
 			{tier.contactUs && (
 				<CalendlyModal className="w-full">
-					<PrimaryButton className="w-full bg-white text-dark-background rounded-md text-center py-1">
+					<PrimaryButton className="w-full bg-white text-dark-background rounded-md text-center py-1 hover:bg-copy-on-dark transition-colors">
 						Contact us
 					</PrimaryButton>
 				</CalendlyModal>
@@ -316,7 +332,7 @@ const PlanTier = ({
 			{!tier.contactUs && (
 				<PrimaryButton
 					href={tier.buttonLink}
-					className="bg-white text-dark-background rounded-md text-center py-1"
+					className="bg-white text-dark-background rounded-md text-center py-1 hover:bg-copy-on-dark transition-colors"
 				>
 					{tier.buttonLabel}
 				</PrimaryButton>
@@ -477,7 +493,7 @@ const PriceCalculator = ({
 									? [
 											'Pay-As-You-Go',
 											'Enterprise',
-											'Self-Hosted',
+											'Self-Hosted Enterprise',
 									  ]
 									: ['']
 							}
@@ -623,7 +639,7 @@ const CalculatorPriceRow = ({
 				className="text-darker-copy-on-dark"
 				emphasis
 			>
-				{`${cost}`}
+				{`$${cost}`}
 			</Typography>
 		</div>
 	)
@@ -937,4 +953,76 @@ const MonthlySlider = ({
 		</div>
 	)
 }
+
+const SFECard = ({
+	setEstimatorCategory,
+}: {
+	setEstimatorCategory: (value: any) => void
+}) => {
+	return (
+		<div className="flex w-full flex-col md:flex-row justify-between items-start md:items-center p-4 border-[1px] border-divider-on-dark rounded-lg">
+			<div className="flex flex-col md:flex-row gap-4 md:items-start">
+				<Image
+					src={'/images/companies/icons/highlight.png'}
+					alt="logo"
+					height="50"
+					width="50"
+					className="rounded-md flex-shrink-0 w-[50px] h-[50px]"
+				/>
+				<div className="flex flex-col ">
+					<Typography
+						type="copy1"
+						emphasis
+						className="text-color-copy-on-dark"
+					>
+						Self-Hosted Enterprise
+					</Typography>
+					<Typography
+						type="copy3"
+						className="text-color-darker-copy-on-dark"
+					>
+						For large enterprises looking to host Highlight on their
+						own infrastructure.
+					</Typography>
+
+					<div className="flex flex-col lg:flex-row gap-2 mt-4 w-full">
+						<PrimaryButton
+							className={
+								'bg-white text-dark-background rounded-md text-center py-1 hover:bg-copy-on-dark transition-colors'
+							}
+							href={
+								'/docs/general/company/open-source/hosting/self-host-enterprise'
+							}
+						>
+							<Typography type="copy3" emphasis>
+								Learn more
+							</Typography>
+						</PrimaryButton>
+
+						<PrimaryButton
+							className={
+								'bg-dark-background border border-copy-on-dark text-copy-on-dark rounded-md text-center py-1 hover:bg-white hover:text-dark-background transition-colors'
+							}
+							onClick={(e) => {
+								setEstimatorCategory('SelfHostedEnterprise')
+								e.preventDefault()
+								document
+									.querySelector('#overage')
+									?.scrollIntoView({
+										behavior: 'smooth',
+									})
+								window.history.pushState({}, '', `#overage`)
+							}}
+						>
+							<Typography type="copy3" emphasis>
+								Estimate Costs
+							</Typography>
+						</PrimaryButton>
+					</div>
+				</div>
+			</div>
+		</div>
+	)
+}
+
 export default PricingPage
