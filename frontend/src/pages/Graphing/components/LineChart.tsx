@@ -1,20 +1,24 @@
+import { vars } from '@highlight-run/ui/vars'
+import { useMemo } from 'react'
 import {
 	Area,
 	AreaChart,
 	CartesianGrid,
 	ResponsiveContainer,
+	Tooltip,
 	XAxis,
 	YAxis,
 } from 'recharts'
 
 import {
-	ChartProps,
 	CustomXAxisTick,
 	CustomYAxisTick,
-	getFormatter,
+	getColor,
+	getCustomTooltip,
+	getTickFormatter,
+	InnerChartProps,
 	isActive,
 	SeriesInfo,
-	strokeColors,
 } from '@/pages/Graphing/components/Graph'
 
 export type LineNullHandling = 'Hidden' | 'Connected' | 'Zero'
@@ -41,22 +45,27 @@ export const LineChart = ({
 	series,
 	spotlight,
 	viewConfig,
-}: ChartProps<LineChartConfig> & SeriesInfo) => {
-	const xAxisTickFormatter = getFormatter(xAxisMetric, data?.length)
-	const yAxisTickFormatter = getFormatter(yAxisMetric)
+}: InnerChartProps<LineChartConfig> & SeriesInfo) => {
+	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data?.length)
+	const yAxisTickFormatter = getTickFormatter(yAxisMetric)
 
-	// Fill nulls
-	if (viewConfig.nullHandling === 'Zero' && data !== undefined) {
-		for (const d of data) {
-			for (const s of series) {
-				d[s] = d[s] ?? 0
+	// Fill nulls as a copy of data
+	const filledData = useMemo(() => {
+		const filled = data?.slice()
+		if (viewConfig.nullHandling === 'Zero' && filled !== undefined) {
+			for (let i = 0; i < filled.length; i++) {
+				filled[i] = { ...filled[i] }
+				for (const s of series) {
+					filled[i][s] = filled[i][s] ?? 0
+				}
 			}
 		}
-	}
+		return filled
+	}, [data, viewConfig.nullHandling, series])
 
 	return (
-		<ResponsiveContainer>
-			<AreaChart data={data}>
+		<ResponsiveContainer height="100%" width="100%">
+			<AreaChart data={filledData}>
 				<XAxis
 					dataKey={xAxisMetric}
 					fontSize={10}
@@ -74,6 +83,12 @@ export const LineChart = ({
 					height={12}
 					type="number"
 					domain={['auto', 'auto']}
+				/>
+
+				<Tooltip
+					content={getCustomTooltip(xAxisMetric, yAxisMetric)}
+					cursor={{ stroke: '#C8C7CB', strokeDasharray: 4 }}
+					isAnimationActive={false}
 				/>
 
 				<YAxis
@@ -96,7 +111,7 @@ export const LineChart = ({
 				<CartesianGrid
 					strokeDasharray=""
 					vertical={false}
-					stroke="var(--color-gray-200)"
+					stroke={vars.theme.static.divider.weak}
 				/>
 
 				{series.length > 0 &&
@@ -116,8 +131,8 @@ export const LineChart = ({
 										: idx
 								}
 								strokeWidth="2px"
-								fill={strokeColors[idx % strokeColors.length]}
-								stroke={strokeColors[idx % strokeColors.length]}
+								fill={getColor(idx)}
+								stroke={getColor(idx)}
 								fillOpacity={
 									viewConfig.display === 'Stacked area'
 										? 0.1

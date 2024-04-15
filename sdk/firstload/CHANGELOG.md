@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.11.1
+
+### Patch Changes
+
+-   4ecafffe6: fix xhr monkeypatch breaking for URL objects
+
 ## 8.11.0
 
 ### Minor Changes

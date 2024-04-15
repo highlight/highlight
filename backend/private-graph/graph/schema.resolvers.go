@@ -486,6 +486,11 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 		PromoCode:                 promoCode,
 	}
 
+	if util.IsOnPrem() {
+		// unlock self hosted usage
+		workspace.PlanTier = modelInputs.PlanTypeEnterprise.String()
+	}
+
 	if err := r.DB.WithContext(ctx).Create(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error creating workspace")
 	}
@@ -4703,6 +4708,145 @@ func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObject
 	return &errorObject, nil
 }
 
+// UpsertVisualization is the resolver for the upsertVisualization field.
+func (r *mutationResolver) UpsertVisualization(ctx context.Context, visualization modelInputs.VisualizationInput) (int, error) {
+	id := 0
+	if visualization.ID != nil {
+		id = *visualization.ID
+
+		var viz model.Visualization
+		if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", *visualization.ID).Find(&viz).Error; err != nil {
+			return 0, err
+		}
+
+		if viz.ProjectID != visualization.ProjectID {
+			return 0, errors.New("project id does not match saved project id")
+		}
+	}
+
+	if _, err := r.isAdminInProject(ctx, visualization.ProjectID); err != nil {
+		return 0, err
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	toSave := model.Visualization{
+		Model:            model.Model{ID: id},
+		ProjectID:        visualization.ProjectID,
+		Name:             visualization.Name,
+		UpdatedByAdminId: &admin.ID,
+	}
+	if err := r.DB.WithContext(ctx).Save(&toSave).Error; err != nil {
+		return 0, err
+	}
+
+	return toSave.ID, nil
+}
+
+// DeleteVisualization is the resolver for the deleteVisualization field.
+func (r *mutationResolver) DeleteVisualization(ctx context.Context, id int) (bool, error) {
+	var viz model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", id).Find(&viz).Error; err != nil {
+		return false, err
+	}
+
+	if _, err := r.isAdminInProject(ctx, viz.ProjectID); err != nil {
+		return false, err
+	}
+
+	if err := r.DB.WithContext(ctx).Model(&model.Visualization{}).Delete("id = ?", id).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// UpsertGraph is the resolver for the upsertGraph field.
+func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.GraphInput) (int, error) {
+	var viz model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", graph.VisualizationID).Take(&viz).Error; err != nil {
+		return 0, err
+	}
+
+	_, err := r.isAdminInProject(ctx, viz.ProjectID)
+	if err != nil {
+		return 0, err
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	id := 0
+	if graph.ID != nil {
+		id = *graph.ID
+	}
+
+	toSave := model.Graph{
+		Model: model.Model{
+			ID: id,
+		},
+		VisualizationID:   graph.VisualizationID,
+		Type:              graph.Type,
+		Title:             graph.Title,
+		ProductType:       graph.ProductType,
+		Query:             graph.Query,
+		Metric:            graph.Metric,
+		FunctionType:      graph.FunctionType,
+		GroupByKey:        graph.GroupByKey,
+		BucketByKey:       graph.BucketByKey,
+		BucketCount:       graph.BucketCount,
+		Limit:             graph.Limit,
+		LimitFunctionType: graph.LimitFunctionType,
+		LimitMetric:       graph.LimitMetric,
+		Display:           graph.Display,
+		NullHandling:      graph.NullHandling,
+	}
+
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+		if id == 0 {
+			if err := tx.WithContext(ctx).Create(&toSave).Error; err != nil {
+				return err
+			}
+		} else {
+			if err := tx.WithContext(ctx).Select("*").Updates(&toSave).Error; err != nil {
+				return err
+			}
+		}
+		if err := tx.WithContext(ctx).Model(&model.Visualization{}).Where("id = ?", graph.VisualizationID).
+			Update("UpdatedByAdminId", admin.ID).Error; err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return 0, nil
+	}
+
+	return toSave.ID, nil
+}
+
+// DeleteGraph is the resolver for the deleteGraph field.
+func (r *mutationResolver) DeleteGraph(ctx context.Context, id int) (bool, error) {
+	var viz model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = (select visualization_id from graphs where id = ?)", id).Find(&viz).Error; err != nil {
+		return false, err
+	}
+
+	if _, err := r.isAdminInProject(ctx, viz.ProjectID); err != nil {
+		return false, err
+	}
+
+	if err := r.DB.WithContext(ctx).Model(&model.Graph{}).Delete("id = ?", id).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 // Accounts is the resolver for the accounts field.
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
@@ -6606,7 +6750,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	})
 
 	g.Go(func() error {
-		membersMeter = pricing.GetWorkspaceMembersMeter(r.DB, workspaceID)
+		membersMeter, err = r.Store.GetWorkspaceAdminCount(ctx, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error querying members meter")
 		}
@@ -8959,6 +9103,79 @@ func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.P
 	}
 }
 
+// Visualization is the resolver for the visualization field.
+func (r *queryResolver) Visualization(ctx context.Context, id int) (*model.Visualization, error) {
+	var viz model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", id).Preload("Graphs").Preload("UpdatedByAdmin").Find(&viz).Error; err != nil {
+		return nil, err
+	}
+
+	_, err := r.isAdminInProjectOrDemoProject(ctx, viz.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &viz, nil
+}
+
+// Visualizations is the resolver for the visualizations field.
+func (r *queryResolver) Visualizations(ctx context.Context, projectID int, input string, count int, offset int) (*model.VisualizationsResponse, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Escape any % or _, surround the input with %
+	searchStr := fmt.Sprintf("%%%s%%", strings.ReplaceAll(strings.ReplaceAll(input, "%", "\\%"), "_", "\\_"))
+
+	type vizWithCount struct {
+		model.Visualization
+		Count int
+	}
+
+	var viz []vizWithCount
+	if err := r.DB.WithContext(ctx).Model(&model.Visualization{}).Debug().Preload("UpdatedByAdmin").
+		Where("project_id = ?", projectID).Where("name ILIKE ?", searchStr).
+		Order("updated_at DESC").Select("*, COUNT(*) OVER () as count").Limit(count).Offset(offset).Find(&viz).Error; err != nil {
+		return nil, err
+	}
+
+	results := []model.Visualization{}
+	for _, v := range viz {
+		results = append(results, v.Visualization)
+	}
+
+	totalCount := 0
+	if len(viz) > 0 {
+		totalCount = viz[0].Count
+	}
+
+	return &model.VisualizationsResponse{
+		Count:   totalCount,
+		Results: results,
+	}, nil
+}
+
+// Graph is the resolver for the graph field.
+func (r *queryResolver) Graph(ctx context.Context, id int) (*model.Graph, error) {
+	var graph model.Graph
+	if err := r.DB.WithContext(ctx).Model(&graph).Where("id = ?", id).Find(&graph).Error; err != nil {
+		return nil, err
+	}
+
+	var viz model.Visualization
+	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", graph.VisualizationID).Find(&viz).Error; err != nil {
+		return nil, err
+	}
+
+	_, err := r.isAdminInProjectOrDemoProject(ctx, viz.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &graph, nil
+}
+
 // LogLines is the resolver for the log_lines field.
 func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -9303,6 +9520,25 @@ func (r *timelineIndicatorEventResolver) Data(ctx context.Context, obj *model.Ti
 	return obj.Data, nil
 }
 
+// UpdatedByAdmin is the resolver for the updatedByAdmin field.
+func (r *visualizationResolver) UpdatedByAdmin(ctx context.Context, obj *model.Visualization) (*modelInputs.SanitizedAdmin, error) {
+	if obj.UpdatedByAdmin == nil {
+		return nil, nil
+	}
+
+	email := ""
+	if obj.UpdatedByAdmin.Email != nil {
+		email = *obj.UpdatedByAdmin.Email
+	}
+
+	return &modelInputs.SanitizedAdmin{
+		ID:       obj.UpdatedByAdmin.ID,
+		Name:     obj.UpdatedByAdmin.Name,
+		Email:    email,
+		PhotoURL: obj.UpdatedByAdmin.PhotoURL,
+	}, nil
+}
+
 // CommentReply returns generated.CommentReplyResolver implementation.
 func (r *Resolver) CommentReply() generated.CommentReplyResolver { return &commentReplyResolver{r} }
 
@@ -9366,6 +9602,9 @@ func (r *Resolver) TimelineIndicatorEvent() generated.TimelineIndicatorEventReso
 	return &timelineIndicatorEventResolver{r}
 }
 
+// Visualization returns generated.VisualizationResolver implementation.
+func (r *Resolver) Visualization() generated.VisualizationResolver { return &visualizationResolver{r} }
+
 type commentReplyResolver struct{ *Resolver }
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }
@@ -9385,3 +9624,4 @@ type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
+type visualizationResolver struct{ *Resolver }

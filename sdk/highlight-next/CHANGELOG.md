@@ -1,5 +1,20 @@
 # @highlight-run/next
 
+## 7.4.13
+
+### Patch Changes
+
+-   Updated dependencies [4ecafffe6]
+    -   highlight.run@8.11.1
+    -   @highlight-run/node@3.8.3
+
+## 7.4.12
+
+### Patch Changes
+
+-   Updated dependencies [5e61d5859]
+    -   @highlight-run/sourcemap-uploader@0.6.2
+
 ## 7.4.11
 
 ### Patch Changes

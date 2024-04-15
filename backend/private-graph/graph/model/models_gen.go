@@ -389,6 +389,25 @@ type GitlabProject struct {
 	NameWithNameSpace string `json:"nameWithNameSpace"`
 }
 
+type GraphInput struct {
+	ID                *int              `json:"id,omitempty"`
+	VisualizationID   int               `json:"visualizationId"`
+	Type              string            `json:"type"`
+	Title             string            `json:"title"`
+	ProductType       ProductType       `json:"productType"`
+	Query             string            `json:"query"`
+	Metric            string            `json:"metric"`
+	FunctionType      MetricAggregator  `json:"functionType"`
+	GroupByKey        *string           `json:"groupByKey,omitempty"`
+	BucketByKey       *string           `json:"bucketByKey,omitempty"`
+	BucketCount       *int              `json:"bucketCount,omitempty"`
+	Limit             *int              `json:"limit,omitempty"`
+	LimitFunctionType *MetricAggregator `json:"limitFunctionType,omitempty"`
+	LimitMetric       *string           `json:"limitMetric,omitempty"`
+	Display           *string           `json:"display,omitempty"`
+	NullHandling      *string           `json:"nullHandling,omitempty"`
+}
+
 type HeightList struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -970,6 +989,12 @@ type VercelProjectMappingInput struct {
 	VercelProjectID string  `json:"vercel_project_id"`
 	NewProjectName  *string `json:"new_project_name,omitempty"`
 	ProjectID       *int    `json:"project_id,omitempty"`
+}
+
+type VisualizationInput struct {
+	ID        *int   `json:"id,omitempty"`
+	ProjectID int    `json:"projectId"`
+	Name      string `json:"name"`
 }
 
 type WebSocketEvent struct {

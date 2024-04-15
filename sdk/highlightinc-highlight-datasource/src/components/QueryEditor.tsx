@@ -90,14 +90,25 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
             options={metricOptions.filter((o) => o.tables.includes(table ?? 'traces'))}
           />
         </InlineField>
-        {![undefined, 'Count', 'None'].includes(metric) && (
+        {![undefined, 'Count', 'None', 'CountDistinct'].includes(metric) && (
           <InlineField>
             <AsyncSelect
-              key={table}
+              key={`column-${table}`}
               defaultOptions
               value={{ name: column, label: column }}
               onChange={onColumnChange}
               loadOptions={(q) => loadColumnOptions(table, q)}
+            />
+          </InlineField>
+        )}
+        {metric === 'CountDistinct' && (
+          <InlineField>
+            <AsyncSelect
+              key={`group-${table}`}
+              defaultOptions
+              value={{ name: column, label: column }}
+              onChange={onColumnChange}
+              loadOptions={(q) => loadGroupByOptions(table, q)}
             />
           </InlineField>
         )}
@@ -107,7 +118,7 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
           <InlineFieldRow>
             <InlineField label="Group by" labelWidth={10}>
               <AsyncMultiSelect
-                key={table}
+                key={`group-${table}`}
                 defaultOptions
                 value={groupBy?.map((g) => ({ name: g, label: g }))}
                 onChange={onGroupByChange}
@@ -125,7 +136,7 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
                 {limitAggregator !== undefined && limitAggregator !== 'Count' && (
                   <InlineField>
                     <AsyncSelect
-                      key={table}
+                      key={`column-${table}`}
                       defaultOptions
                       value={{ name: limitColumn, label: limitColumn }}
                       onChange={onLimitColumnChange}

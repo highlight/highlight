@@ -284,9 +284,8 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	email := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.Email))
 	// Allow access to engineering@highlight.run or any verified @highlight.run / @runhighlight.com email.
-	_, isAdmin := lo.Find(HighlightAdminEmailDomains, func(domain string) bool { return strings.Contains(email, domain) })
-	isDockerDefaultAccount := util.IsInDocker() && !util.IsProduction()
-	return isAdmin || uid == WhitelistedUID || isDockerDefaultAccount
+	_, isHighlightAdmin := lo.Find(HighlightAdminEmailDomains, func(domain string) bool { return strings.Contains(email, domain) })
+	return !util.IsInDocker() && isHighlightAdmin || uid == WhitelistedUID
 }
 
 func (r *Resolver) isDemoProject(ctx context.Context, project_id int) bool {

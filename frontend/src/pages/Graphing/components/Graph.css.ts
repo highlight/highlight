@@ -13,14 +13,6 @@ export const loadingText = style({
 	backgroundColor: vars.color.white,
 })
 
-export const graphWrapper = style({
-	width: 720,
-	height: 360,
-	margin: 'auto',
-	zIndex: 1,
-	backgroundColor: vars.color.white,
-})
-
 export const legendWrapper = style({
 	left: -6,
 	maxHeight: 72,
@@ -48,4 +40,31 @@ export const legendTextButton = style({
 
 export const titleText = style({
 	lineHeight: '24px',
+	height: '24px',
+})
+
+export const hiddenMenu = style({
+	visibility: 'hidden',
+})
+
+export const tooltipWrapper = style({
+	backgroundColor: 'white',
+	border: vars.border.divider,
+	borderRadius: '6px',
+	minWidth: '100px',
+	display: 'flex',
+	flexDirection: 'column',
+	gap: '6px',
+	padding: '8px',
+})
+
+export const tooltipText = style({
+	lineHeight: '16px',
+})
+
+export const tooltipDot = style({
+	borderRadius: '50%',
+	marginRight: '4px',
+	width: 8,
+	height: 8,
 })
