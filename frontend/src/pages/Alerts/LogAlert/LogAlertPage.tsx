@@ -115,16 +115,15 @@ export const LogAlertPage = () => {
 			loaded: false,
 		},
 	})
-	const formValues = formStore.useState().values
+	const formValues = formStore.useState('values')
 
-	const [query, setQuery] = useState(initialQuery)
 	const handleUpdateInputQuery = (query: string) => {
 		setSubmittedQuery(query)
 		formStore.setValue(formStore.names.query, query)
 	}
 
 	formStore.useSubmit(() => {
-		setSubmittedQuery(query)
+		setSubmittedQuery(formValues.query)
 	})
 
 	useEffect(() => {

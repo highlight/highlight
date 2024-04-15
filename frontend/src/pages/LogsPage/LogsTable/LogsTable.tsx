@@ -44,7 +44,6 @@ import {
 import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { useSearchContext } from '@/components/Search/SearchContext'
-import { parseSearch } from '@/components/Search/utils'
 import { LogEdge, ProductType } from '@/graph/generated/schemas'
 import analytics from '@/util/analytics'
 
