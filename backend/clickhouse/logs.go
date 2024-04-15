@@ -208,13 +208,8 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	span, _ := util.StartSpanFromContext(ctx, "logs", util.ResourceName("ReadSessionLogs"))
-	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
-	if err != nil {
-		span.Finish(err)
-		return nil, err
-	}
-	span.SetAttribute("Query", query)
-	span.SetAttribute("Params", params)
+	span.SetAttribute("sql", sql)
+	span.SetAttribute("args", args)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
