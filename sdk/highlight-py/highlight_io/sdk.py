@@ -416,7 +416,12 @@ class H(object):
             attributes[SpanAttributes.CODE_LINENO] = record.lineno
             attributes["highlight.trace_id"] = request_id
             attributes["highlight.session_id"] = session_id
-            attributes.update(filter(lambda x: isinstance(x, dict), record.args) or {})
+            if isinstance(record.args, dict):
+                attributes.update(record.args)
+            elif isinstance(record.args, list):
+                attributes["args"] = record.args
+            elif record.args:
+                attributes["args"] = str(record.args)
 
             message = formatted or record.getMessage()
             try:
