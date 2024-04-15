@@ -1,7 +1,5 @@
 import { style } from '@vanilla-extract/css'
 
-import { ERROR_FEED_LEFT_PANEL_WIDTH } from './SearchPanel/SearchPanel.css'
-
 export const searchPanelContainer = style({
 	position: 'relative',
 	zIndex: 98,
@@ -21,11 +19,16 @@ export const errorMetrics = style({
 	width: '100%',
 })
 
-export const moveDetailsRight = style({
-	marginLeft: ERROR_FEED_LEFT_PANEL_WIDTH,
-})
-
 export const sessionSwitchButton = style({
 	border: '0 !important',
 	borderRadius: '0',
+})
+
+export const panelDragHandle = style({
+	cursor: 'col-resize',
+	position: 'absolute',
+	right: -2,
+	top: 0,
+	bottom: 0,
+	width: 4,
 })

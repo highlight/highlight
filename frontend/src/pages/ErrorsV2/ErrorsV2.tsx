@@ -36,11 +36,11 @@ import {
 	PlayerSearchParameters,
 	useShowSearchParam,
 } from '@pages/Player/PlayerHook/utils'
+import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import clsx from 'clsx'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -64,6 +64,12 @@ import { useGetErrors } from '@/pages/ErrorsV2/useGetErrors'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
+import {
+	DEFAULT_PANEL_WIDTH,
+	LOCAL_STORAGE_PANEL_WIDTH_KEY,
+	MAX_PANEL_WIDTH,
+	MIN_PANEL_WIDTH,
+} from './constants'
 import * as styles from './styles.css'
 
 type Params = { project_id: string; error_secure_id: string; referrer?: string }
@@ -115,6 +121,45 @@ export default function ErrorsV2() {
 	const { showSearch } = useShowSearchParam()
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
 	const navigation = useErrorPageNavigation(getErrorsData.errorGroupSecureIds)
+
+	const dragHandleRef = useRef<HTMLDivElement>(null)
+	const [dragging, setDragging] = useState(false)
+
+	const handleMouseMove = useCallback(
+		(e: MouseEvent) => {
+			if (!dragging) {
+				return
+			}
+
+			e.stopPropagation()
+			e.preventDefault()
+
+			const newWidth = (e.clientX / window.innerWidth) * 100
+			navigation.setLeftPanelWidth(
+				Math.min(Math.max(newWidth, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH),
+			)
+		},
+		[dragging, navigation],
+	)
+
+	const handleMouseUp = useCallback(() => {
+		setDragging(false)
+	}, [])
+
+	useEffect(() => {
+		if (dragging) {
+			window.addEventListener('mousemove', handleMouseMove, true)
+			window.addEventListener('mouseup', handleMouseUp, true)
+		} else {
+			window.removeEventListener('mousemove', handleMouseMove, true)
+			window.removeEventListener('mouseup', handleMouseUp, true)
+		}
+
+		return () => {
+			window.removeEventListener('mousemove', handleMouseMove, true)
+			window.removeEventListener('mouseup', handleMouseUp, true)
+		}
+	}, [dragging, handleMouseMove, handleMouseUp])
 
 	useAllHotKeys(navigation)
 
@@ -183,7 +228,21 @@ export default function ErrorsV2() {
 			</Helmet>
 
 			{!isBlocked && (
-				<Box cssClass={styles.searchPanelContainer}>
+				<Box
+					cssClass={styles.searchPanelContainer}
+					style={{
+						width: `${navigation.leftPanelWidth}%`,
+						display: navigation.showLeftPanel ? 'block' : 'none',
+					}}
+				>
+					<Box
+						ref={dragHandleRef}
+						cssClass={styles.panelDragHandle}
+						onMouseDown={(e) => {
+							e.preventDefault()
+							setDragging(true)
+						}}
+					/>
 					<SearchPanel
 						query={query}
 						setQuery={setQuery}
@@ -205,10 +264,13 @@ export default function ErrorsV2() {
 			)}
 
 			<div
-				className={clsx(styles.detailsContainer, {
-					[styles.moveDetailsRight]:
-						!isBlocked && navigation.showLeftPanel,
-				})}
+				className={styles.detailsContainer}
+				style={{
+					width:
+						!isBlocked && navigation.showLeftPanel
+							? `${navigation.leftPanelWidth}%`
+							: '100%',
+				}}
 			>
 				<Box
 					background="white"
@@ -532,7 +594,14 @@ export function useErrorPageNavigation(secureIds: string[] = []) {
 	const nextSecureId = secureIds[currentSearchResultIndex + 1]
 	const previousSecureId = secureIds[currentSearchResultIndex - 1]
 
+	const [leftPanelWidth, setLeftPanelWidth] = useLocalStorage(
+		LOCAL_STORAGE_PANEL_WIDTH_KEY,
+		DEFAULT_PANEL_WIDTH,
+	)
+
 	return {
+		leftPanelWidth,
+		setLeftPanelWidth,
 		showLeftPanel,
 		setShowLeftPanel,
 		canMoveBackward,

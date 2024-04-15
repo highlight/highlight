@@ -108,7 +108,6 @@ export const SearchPanel = ({
 			borderRight="secondary"
 			position="relative"
 			cssClass={clsx(style.searchPanel, {
-				[style.searchPanelHidden]: !showLeftPanel,
 				[style.searchPanelWithBanner]: showBanner,
 			})}
 			background="n2"
