@@ -12,6 +12,7 @@ import os
 
 import highlight_io
 from highlight_io.integrations.fastapi import FastAPIMiddleware
+from highlight_io.sdk import LogHandler
 
 H = highlight_io.H(
     "1",
@@ -44,6 +45,13 @@ try:
     )
 except:
     logging.warning("Not able to connect to AWS. Check credentials")
+
+# example setup for custom highlight LogHandler
+formatter = logging.Formatter(' %(name)s :: %(levelname)-8s :: %(message)s')
+handler = LogHandler(H)
+handler.setFormatter(formatter)
+lg = logging.getLogger("trace.test.logger")
+lg.addHandler(handler)
 
 
 @app.get("/")
@@ -119,10 +127,11 @@ def health_check():
 
 
 @router.get("/trace")
-def health_check():
-    rng = random.randint(0, 1024*1024)
+def trace():
+    rng = random.randint(0, 1024 * 1024)
     with H.trace(span_name=f'custom-{rng}'):
         logging.warning(f'hi {rng}')
+        lg.warning(f'world {rng}')
         return 'hi!'
 
 

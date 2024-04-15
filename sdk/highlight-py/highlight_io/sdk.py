@@ -47,6 +47,21 @@ DEFAULT_INTEGRATIONS = [
 
 class LogHandler(logging.Handler):
     def __init__(self, highlight: "H", level=logging.NOTSET):
+        """Create a `logging.Handler` that ships data to highlight.
+        :param highlight: Highlight object
+        :param level: Log level
+
+        Example:
+            # define the formatting for logs sent to highlight
+            formatter = logging.Formatter(' %(name)s :: %(levelname)-8s :: %(message)s')
+            handler = LogHandler(H)
+            handler.setFormatter(formatter)
+            # create the logger object with a custom logger module name
+            lg = logging.getLogger("my.logger")
+            lg.addHandler(handler)
+
+            lg.warning("oh, no!")
+        """
         self.highlight = highlight
         super(LogHandler, self).__init__(level=level)
 
