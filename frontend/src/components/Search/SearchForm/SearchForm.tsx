@@ -619,8 +619,8 @@ export const Search: React.FC<{
 				<Box
 					cssClass={styles.comboboxTagsContainer}
 					style={{
-						left: hideIcon ? 6 : 2,
-						paddingLeft: hideIcon ? undefined : 38,
+						left: 2,
+						paddingLeft: hideIcon ? 4 : 38,
 					}}
 				>
 					{tokenGroups.map((tokenGroup, index) => {
