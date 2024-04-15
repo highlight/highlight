@@ -131,7 +131,6 @@ export const NetworkResourceLogs: React.FC<{
 								error={error}
 								refetch={refetch}
 								loadingAfter={loadingAfter}
-								query={query}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 								bodyHeight={`calc(100% - ${SEARCH_AND_HEADER_HEIGHT}px)`}

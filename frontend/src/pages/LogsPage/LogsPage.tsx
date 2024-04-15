@@ -215,7 +215,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 							error={error}
 							refetch={refetch}
 							loadingAfter={loadingAfter}
-							query={query}
 							selectedCursor={logCursor}
 							moreLogs={moreLogs}
 							clearMoreLogs={clearMoreLogs}

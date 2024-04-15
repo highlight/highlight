@@ -120,7 +120,6 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 								error={error}
 								refetch={refetch}
 								loadingAfter={loadingAfter}
-								query={query}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 								bodyHeight="100%"

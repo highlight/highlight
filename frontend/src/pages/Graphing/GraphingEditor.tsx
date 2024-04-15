@@ -23,6 +23,7 @@ import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
 import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
+import { SearchContext } from '@/components/Search/SearchContext'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import Switch from '@/components/Switch/Switch'
 import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
@@ -736,16 +737,19 @@ export const GraphingEditor = () => {
 											width="full"
 											borderRadius="6"
 										>
-											<Search
+											<SearchContext
 												initialQuery={query}
-												query={query}
-												setQuery={setQuery}
-												startDate={new Date(startDate)}
-												endDate={new Date(endDate)}
-												productType={productType}
-												onFormSubmit={setQuery}
-												hideIcon
-											/>
+												onSubmit={setQuery}
+											>
+												<Search
+													startDate={
+														new Date(startDate)
+													}
+													endDate={new Date(endDate)}
+													productType={productType}
+													hideIcon
+												/>
+											</SearchContext>
 										</Box>
 									</LabeledRow>
 								</SidebarSection>

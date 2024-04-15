@@ -106,7 +106,6 @@ export const TraceLogs: React.FC = () => {
 								error={error}
 								refetch={refetch}
 								loadingAfter={loadingAfter}
-								query={query}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 								bodyHeight="400px"
