@@ -229,10 +229,18 @@ export const TraceFlameGraph: React.FC = () => {
 
 	useEffect(() => {
 		if (svgContainerRef.current) {
-			setWidth(svgContainerRef.current?.clientWidth)
+			const handleResize = debounce((entries: ResizeObserverEntry[]) => {
+				setWidth(entries[0].contentRect.width)
+			}, 50)
+
+			const resizeObserver = new ResizeObserver(handleResize)
+			resizeObserver.observe(svgContainerRef.current)
+
+			return () => {
+				resizeObserver.disconnect()
+			}
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [loading, svgContainerRef.current?.clientWidth])
+	}, [])
 
 	const [dragging, setDragging] = useState(false)
 	const [initialDragX, setInitialDragX] = useState(0)
