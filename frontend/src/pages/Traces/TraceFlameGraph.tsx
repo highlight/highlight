@@ -20,7 +20,6 @@ import {
 } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
-import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { useHTMLElementEvent } from '@/hooks/useHTMLElementEvent'
 import { ZOOM_SCALING_FACTOR } from '@/pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import {
@@ -68,7 +67,6 @@ export const TraceFlameGraph: React.FC = () => {
 		x: 0,
 		y: 0,
 	})
-	const { panelWidth } = useRelatedResource()
 
 	const height = useMemo(() => {
 		if (!traces.length) return 260
@@ -234,7 +232,7 @@ export const TraceFlameGraph: React.FC = () => {
 			setWidth(svgContainerRef.current?.clientWidth)
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [loading, panelWidth])
+	}, [loading, svgContainerRef.current?.clientWidth])
 
 	const [dragging, setDragging] = useState(false)
 	const [initialDragX, setInitialDragX] = useState(0)
