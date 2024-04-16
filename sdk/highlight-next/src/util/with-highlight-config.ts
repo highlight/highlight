@@ -168,6 +168,9 @@ const getHighlightConfig = async (
 			if (config.webpack) {
 				originalConfig = config.webpack(webpackConfig, opts)
 			}
+			if (opts.isServer) {
+				originalConfig.devtool = 'source-map'
+			}
 
 			originalConfig.plugins.push(
 				new HighlightWebpackPlugin(
