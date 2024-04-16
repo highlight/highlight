@@ -54,6 +54,7 @@ import {
 } from 'use-query-params'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
 import { ErrorState as ErrorStateEnum } from '@/graph/generated/schemas'
 import { useSearchTime } from '@/hooks/useSearchTime'
@@ -74,7 +75,7 @@ import * as styles from './styles.css'
 
 type Params = { project_id: string; error_secure_id: string; referrer?: string }
 
-const PAGE_PARAM = withDefault(NumberParam, 1)
+const PAGE_PARAM = withDefault(NumberParam, START_PAGE)
 const ERROR_QUERY_PARAM = withDefault(
 	StringParam,
 	`status=${ErrorStateEnum.Open} `,
@@ -87,6 +88,14 @@ export default function ErrorsV2() {
 
 	const [query, setQuery] = useQueryParam('query', ERROR_QUERY_PARAM)
 	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
+
+	const updateQuery = useCallback(
+		(newQuery: string) => {
+			setQuery(newQuery)
+			setPage(START_PAGE)
+		},
+		[setPage, setQuery],
+	)
 
 	const {
 		startDate,
@@ -134,9 +143,8 @@ export default function ErrorsV2() {
 			e.stopPropagation()
 			e.preventDefault()
 
-			const newWidth = (e.clientX / window.innerWidth) * 100
 			navigation.setLeftPanelWidth(
-				Math.min(Math.max(newWidth, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH),
+				Math.min(Math.max(e.clientX, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH),
 			)
 		},
 		[dragging, navigation],
@@ -232,7 +240,7 @@ export default function ErrorsV2() {
 					display={navigation.showLeftPanel ? 'block' : 'none'}
 					position="relative"
 					style={{
-						width: `${navigation.leftPanelWidth}%`,
+						width: `${navigation.leftPanelWidth}px`,
 					}}
 				>
 					<Box
@@ -245,7 +253,7 @@ export default function ErrorsV2() {
 					/>
 					<SearchPanel
 						query={query}
-						setQuery={setQuery}
+						setQuery={updateQuery}
 						page={page}
 						setPage={setPage}
 						loading={getErrorsData.loading}
@@ -268,7 +276,7 @@ export default function ErrorsV2() {
 				style={{
 					width:
 						!isBlocked && navigation.showLeftPanel
-							? `${100 - navigation.leftPanelWidth}%`
+							? `calc(100% - ${navigation.leftPanelWidth}px)`
 							: '100%',
 				}}
 			>
