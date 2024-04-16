@@ -7,7 +7,13 @@ export class AppService {
   private readonly logger = new Logger(AppService.name);
   constructor(private readonly httpService: HttpService) {}
 
-  async findAll(throwError: boolean = false): Promise<string[]> {
+  async findAll({
+    error,
+    empty,
+  }: {
+    error?: true;
+    empty?: true;
+  }): Promise<string[]> {
     await firstValueFrom(
       this.httpService.post<any[]>(
         'https://pub.highlight.io/v1/logs/json',
@@ -27,10 +33,12 @@ export class AppService {
 
     this.logger.log('hello, world!');
     this.logger.warn('whoa there! ', Math.random());
-    if (throwError) {
+    if (error) {
       // error will be caught by the HighlightErrorFilter
       throw new Error(`a random error occurred!`);
     }
-    return [`Hello World!`];
+    if (!empty) {
+      return [`Hello World!`];
+    }
   }
 }

@@ -8,7 +8,7 @@ import {
 	Injectable,
 	NestInterceptor,
 } from '@nestjs/common'
-import { lastValueFrom, Observable, throwError } from 'rxjs'
+import { finalize, Observable, throwError } from 'rxjs'
 import { catchError } from 'rxjs/operators'
 
 @Injectable()
@@ -110,18 +110,19 @@ export class HighlightInterceptor
 					},
 				},
 			)
-			try {
-				return await lastValueFrom(next.handle())
-			} catch (err: any) {
-				NodeH.consumeError(
-					err,
-					highlightCtx?.secureSessionId,
-					highlightCtx?.requestId,
-				)
-				throw err
-			} finally {
-				span.end()
-			}
+			return next.handle().pipe(
+				catchError((err) => {
+					NodeH.consumeError(
+						err,
+						highlightCtx?.secureSessionId,
+						highlightCtx?.requestId,
+					)
+					return throwError(() => err)
+				}),
+				finalize(() => {
+					span.end()
+				}),
+			)
 		})
 	}
 }
