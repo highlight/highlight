@@ -1046,36 +1046,36 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ariakit/core@npm:0.4.2":
-  version: 0.4.2
-  resolution: "@ariakit/core@npm:0.4.2"
-  checksum: 10/68ac1d7759fd887e2e0944e767fadefe8518c4e58cd6ff37524ca2700354948d89607ac47c54cdf53d9348be99c703d1d16e8d170085795e79fe3f18a9bb5012
+"@ariakit/core@npm:0.4.5":
+  version: 0.4.5
+  resolution: "@ariakit/core@npm:0.4.5"
+  checksum: 10/9feeeef854fd69902845e8ae1dfe297e42fe88d9d6ff001f296b7cb5bf94a46b8c9ba973b45afe5306a5c8e6cc67bbce57ba715b30659769c427e0fe244c95d7
   languageName: node
   linkType: hard
 
-"@ariakit/react-core@npm:0.4.2":
-  version: 0.4.2
-  resolution: "@ariakit/react-core@npm:0.4.2"
+"@ariakit/react-core@npm:0.4.5":
+  version: 0.4.5
+  resolution: "@ariakit/react-core@npm:0.4.5"
   dependencies:
-    "@ariakit/core": "npm:0.4.2"
+    "@ariakit/core": "npm:0.4.5"
     "@floating-ui/dom": "npm:^1.0.0"
     use-sync-external-store: "npm:^1.2.0"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0
     react-dom: ^17.0.0 || ^18.0.0
-  checksum: 10/2af0f9d8d4822304a2d3109f87fb84151ff0a6ed0eb916d6093f1f1700c5ed73ab82315957511a353895ef129d1a57d9fd2afa8b15a3ab7835b69da252ffc0d8
+  checksum: 10/9e2ad03ca9c1fbe7e56762243c8e4825a555ad8453f8e8f73b7f84e1acd6b8580550e0b7c9d69293539dc6ee92c87b10bdca9490bf9442a1247913d5ddb1af6a
   languageName: node
   linkType: hard
 
-"@ariakit/react@npm:^0.4.2":
-  version: 0.4.2
-  resolution: "@ariakit/react@npm:0.4.2"
+"@ariakit/react@npm:^0.4.5":
+  version: 0.4.5
+  resolution: "@ariakit/react@npm:0.4.5"
   dependencies:
-    "@ariakit/react-core": "npm:0.4.2"
+    "@ariakit/react-core": "npm:0.4.5"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0
     react-dom: ^17.0.0 || ^18.0.0
-  checksum: 10/21b4f1de04f3cac82fc3f6929ee2163db6844f8eaad47c5f394592a02f5c0a4045eb5103fe3e78b7ffc4e89c8d67000e98ea064487c6400053b8aec9cde94450
+  checksum: 10/829855669048978e1e6729f7322c0239468da57ada4f693fcea190138a75e696d9eaf24968f3cd50acb9ec96357a8383c99e7279f49cfcf6cd6ec4cd49eee2d4
   languageName: node
   linkType: hard
 
@@ -14870,7 +14870,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@highlight-run/ui@workspace:packages/ui"
   dependencies:
-    "@ariakit/react": "npm:^0.4.2"
+    "@ariakit/react": "npm:^0.4.5"
     "@babel/core": "npm:^7.19.3"
     "@capsizecss/core": "npm:^3.0.0"
     "@capsizecss/metrics": "npm:^0.3.0"

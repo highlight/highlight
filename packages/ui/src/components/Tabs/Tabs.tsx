@@ -74,7 +74,6 @@ const TabList: React.FC<TabListProps> = ({
 
 type TabProps = Ariakit.TabProps & {
 	children: string
-	id: string
 	badgeText?: string
 	icon?: TagProps['icon']
 }
