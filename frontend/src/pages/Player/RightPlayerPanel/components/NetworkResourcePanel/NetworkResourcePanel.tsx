@@ -322,7 +322,7 @@ function NetworkResourceDetails({
 						<Tabs.Tab id={NetworkRequestTabs.Trace}>Trace</Tabs.Tab>
 					)}
 				</Tabs.List>
-				<Tabs.Panel id={NetworkRequestTabs.Info}>
+				<Tabs.Panel id={NetworkRequestTabs.Info} unmountOnHide>
 					<NetworkResourceInfo
 						selectedNetworkResource={resource}
 						networkRecordingEnabledForSession={
@@ -330,17 +330,17 @@ function NetworkResourceDetails({
 						}
 					/>
 				</Tabs.Panel>
-				<Tabs.Panel id={NetworkRequestTabs.Errors}>
+				<Tabs.Panel id={NetworkRequestTabs.Errors} unmountOnHide>
 					<NetworkResourceErrors resource={resource} />
 				</Tabs.Panel>
-				<Tabs.Panel id={NetworkRequestTabs.Logs}>
+				<Tabs.Panel id={NetworkRequestTabs.Logs} unmountOnHide>
 					<NetworkResourceLogs
 						resource={resource}
 						sessionStartTime={startTime}
 					/>
 				</Tabs.Panel>
 				{isNetworkRequest && (
-					<Tabs.Panel id={NetworkRequestTabs.Trace}>
+					<Tabs.Panel id={NetworkRequestTabs.Trace} unmountOnHide>
 						<NetworkResourceTrace />
 					</Tabs.Panel>
 				)}
@@ -536,7 +536,7 @@ function WebSocketDetails({
 					<Tabs.Tab id={WebSocketTabs.Headers}>Headers</Tabs.Tab>
 					<Tabs.Tab id={WebSocketTabs.Messages}>Messages</Tabs.Tab>
 				</Tabs.List>
-				<Tabs.Panel id={WebSocketTabs.Headers}>
+				<Tabs.Panel id={WebSocketTabs.Headers} unmountOnHide>
 					<NetworkResourceInfo
 						selectedNetworkResource={resource}
 						networkRecordingEnabledForSession={
@@ -544,7 +544,7 @@ function WebSocketDetails({
 						}
 					/>
 				</Tabs.Panel>
-				<Tabs.Panel id={WebSocketTabs.Messages}>
+				<Tabs.Panel id={WebSocketTabs.Messages} unmountOnHide>
 					<WebSocketMessages
 						startEvent={resource}
 						eventsLoading={webSocketLoading}
