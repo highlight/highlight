@@ -663,56 +663,6 @@ query GetSessionsReport($project_id: ID!, $query: ClickhouseQuery!) {
 	}
 }
 
-query GetErrorGroupsClickhouse(
-	$project_id: ID!
-	$count: Int!
-	$query: ClickhouseQuery!
-	$page: Int
-) {
-	error_groups_clickhouse(
-		project_id: $project_id
-		count: $count
-		query: $query
-		page: $page
-	) {
-		error_groups {
-			created_at
-			updated_at
-			id
-			secure_id
-			type
-			event
-			state
-			state
-			snoozed_until
-			environments
-			stack_trace
-			structured_stack_trace {
-				fileName
-				lineNumber
-				functionName
-				columnNumber
-			}
-			error_frequency
-			error_metrics {
-				error_group_id
-				date
-				name
-				value
-			}
-			is_public
-			project_id
-			error_tag {
-				id
-				created_at
-				title
-				description
-			}
-		}
-		totalCount
-	}
-}
-
 query GetErrorGroups(
 	$project_id: ID!
 	$count: Int!
@@ -760,21 +710,6 @@ query GetErrorGroups(
 			}
 		}
 		totalCount
-	}
-}
-
-query GetErrorsHistogramClickhouse(
-	$project_id: ID!
-	$query: ClickhouseQuery!
-	$histogram_options: DateHistogramOptions!
-) {
-	errors_histogram_clickhouse(
-		project_id: $project_id
-		query: $query
-		histogram_options: $histogram_options
-	) {
-		bucket_times
-		error_objects
 	}
 }
 

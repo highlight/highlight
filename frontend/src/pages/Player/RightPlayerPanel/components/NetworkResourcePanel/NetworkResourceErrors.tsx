@@ -4,7 +4,7 @@ import { useEffect, useMemo } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
-import { useGetErrorGroupsClickhouseQuery } from '@/graph/generated/hooks'
+import { useGetErrorGroupsQuery } from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
 import { ErrorFeedCard } from '@/pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import { FullScreenContainer } from '@/pages/LogsPage/LogsTable/FullScreenContainer'
@@ -25,12 +25,12 @@ export const NetworkResourceErrors: React.FC<{
 	const errorGroupSecureIds = errors.map((e) => e.error_group_secure_id)
 	const start = useMemo(() => moment().subtract(30, 'days').toISOString(), [])
 	const end = useMemo(() => moment().toISOString(), [])
-	const { data, loading } = useGetErrorGroupsClickhouseQuery({
+
+	const { data, loading } = useGetErrorGroupsQuery({
 		variables: {
-			query: {
-				isAnd: true,
-				rules: [['error_secure_id', 'is', ...errorGroupSecureIds]],
-				dateRange: {
+			params: {
+				query: `secure_id=(${errorGroupSecureIds.join(' OR ')})`,
+				date_range: {
 					start_date: start,
 					end_date: end,
 				},
@@ -49,38 +49,36 @@ export const NetworkResourceErrors: React.FC<{
 
 	return (
 		<>
-			{data?.error_groups_clickhouse.error_groups?.length ? (
-				data?.error_groups_clickhouse.error_groups.map(
-					(errorGroup, idx) => (
-						<Box
-							py="8"
-							px="12"
-							flex="stretch"
-							justifyContent="stretch"
-							display="flex"
-							key={idx}
-						>
-							<ErrorFeedCard
-								errorGroup={errorGroup}
-								onClick={() => {
-									const error = errors.find(
-										(e) =>
-											e.error_group_secure_id ===
-											errorGroup.secure_id,
-									)
+			{data?.error_groups.error_groups?.length ? (
+				data?.error_groups.error_groups.map((errorGroup, idx) => (
+					<Box
+						py="8"
+						px="12"
+						flex="stretch"
+						justifyContent="stretch"
+						display="flex"
+						key={idx}
+					>
+						<ErrorFeedCard
+							errorGroup={errorGroup}
+							onClick={() => {
+								const error = errors.find(
+									(e) =>
+										e.error_group_secure_id ===
+										errorGroup.secure_id,
+								)
 
-									if (error) {
-										set({
-											type: 'error',
-											secureId: errorGroup.secure_id,
-											instanceId: error.id,
-										})
-									}
-								}}
-							/>
-						</Box>
-					),
-				)
+								if (error) {
+									set({
+										type: 'error',
+										secureId: errorGroup.secure_id,
+										instanceId: error.id,
+									})
+								}
+							}}
+						/>
+					</Box>
+				))
 			) : loading ? (
 				<LoadingBox />
 			) : (
