@@ -20,7 +20,7 @@ if __name__ == "__main__":
         "1",
         instrument_logging=True,
         otlp_endpoint="http://localhost:4318",
-        service_name="my-fastapi-app",
+        service_name="my-celery-worker",
         service_version="1.0.0",
         environment="e2e-test",
         debug=True,
