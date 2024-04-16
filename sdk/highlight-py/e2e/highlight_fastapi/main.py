@@ -47,7 +47,7 @@ except:
     logging.warning("Not able to connect to AWS. Check credentials")
 
 # example setup for custom highlight LogHandler
-formatter = logging.Formatter(' %(name)s :: %(levelname)-8s :: %(message)s')
+formatter = logging.Formatter(" %(name)s :: %(levelname)-8s :: %(message)s")
 handler = LogHandler(H)
 handler.setFormatter(formatter)
 lg = logging.getLogger("trace.test.logger")
@@ -129,12 +129,12 @@ def health_check():
 @router.get("/trace")
 def trace():
     rng = random.randint(0, 1024 * 1024)
-    with H.trace(span_name=f'custom-{rng}'):
-        logging.warning(f'hi {rng}')
-        lg.warning(f'there {rng}', {'rng': rng})
-        lg.warning(f'oh {rng} %d %d', *[rng, rng*2])
-        lg.warning('world %d', rng)
-        return 'hi!'
+    with H.trace(span_name=f"custom-{rng}"):
+        logging.warning(f"hi {rng}")
+        lg.warning(f"there {rng}", {"rng": rng})
+        lg.warning(f"oh {rng} %d %d", *[rng, rng * 2])
+        lg.warning("world %d", rng)
+        return "hi!"
 
 
 app.include_router(router)

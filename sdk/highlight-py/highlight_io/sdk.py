@@ -74,7 +74,9 @@ class LogHandler(logging.Handler):
 
         with ctx():
             if self.filter(record):
-                self.highlight.log_hook(trace.get_current_span(), record, formatted=self.format(record))
+                self.highlight.log_hook(
+                    trace.get_current_span(), record, formatted=self.format(record)
+                )
 
 
 class H(object):
@@ -129,36 +131,45 @@ class H(object):
         :param **kwargs: optional kwargs passed to the BatchLogRecordProcessor and BatchSpanProcessor.
         :return: a configured H instance
         """
-        kwargs.update({
-            'schedule_delay_millis': 1000,
-            'max_export_batch_size': 1024*1024,
-            'max_queue_size': 1024*1024,
-        })
+        kwargs.update(
+            {
+                "schedule_delay_millis": 1000,
+                "max_export_batch_size": 1024 * 1024,
+                "max_queue_size": 1024 * 1024,
+            }
+        )
 
         if debug:
             root = logging.getLogger()
             root.setLevel(logging.DEBUG)
             handler = logging.StreamHandler(sys.stdout)
             handler.setLevel(logging.DEBUG)
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            formatter = logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            )
             handler.setFormatter(formatter)
             root.addHandler(handler)
 
-        logger = logging.getLogger('highlight_io')
+        logger = logging.getLogger("highlight_io")
 
         H._instance = self
         self._project_id = project_id
         self._integrations = integrations or []
         self._disabled_integrations = disabled_integrations or []
         self._otlp_endpoint = otlp_endpoint or H.OTLP_HTTP
-        logger.debug("Highlight initializing: %s %s %s", self._otlp_endpoint, self._project_id, kwargs)
+        logger.debug(
+            "Highlight initializing: %s %s %s",
+            self._otlp_endpoint,
+            self._project_id,
+            kwargs,
+        )
         self._log_handler = LogHandler(self, level=log_level)
         if instrument_logging:
             self._instrument_logging()
 
         class HighlightSpanProcessor(SpanProcessor):
             def on_start(
-                    self, span: Span, parent_context: typing.Optional[Context] = None
+                self, span: Span, parent_context: typing.Optional[Context] = None
             ) -> None:
                 session_id, request_id = "", ""
                 try:
@@ -200,7 +211,7 @@ class H(object):
                 OTLPSpanExporter(
                     f"{self._otlp_endpoint}/v1/traces", compression=Compression.Gzip
                 ),
-                **kwargs
+                **kwargs,
             )
         )
         trace.set_tracer_provider(self._trace_provider)
@@ -214,7 +225,7 @@ class H(object):
                 OTLPLogExporter(
                     f"{self._otlp_endpoint}/v1/logs", compression=Compression.Gzip
                 ),
-                **kwargs
+                **kwargs,
             )
         )
         _logs.set_logger_provider(self._log_provider)

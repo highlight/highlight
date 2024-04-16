@@ -20,7 +20,9 @@ class FastAPIMiddleware(BaseHTTPMiddleware):
             pass
 
         span_name = f"{request.method} {request.base_url}"
-        with highlight_io.H.get_instance().trace(session_id, request_id, span_name=span_name):
+        with highlight_io.H.get_instance().trace(
+            session_id, request_id, span_name=span_name
+        ):
             resp = await call_next(request)
             # if the request raises an `HTTPException`, the exception isn't propagated.
             # we detect this by checking the status code and recording a special type of error
