@@ -143,10 +143,15 @@ const Tab: React.FC<TabProps> = ({ badgeText, children, icon, ...props }) => {
 
 type TabPanelProps = React.PropsWithChildren<Ariakit.TabPanelProps>
 
-const TabPanel: React.FC<TabPanelProps> = ({ children, ...props }) => {
+const TabPanel: React.FC<TabPanelProps> = ({
+	children,
+	unmountOnHide = true,
+	...props
+}) => {
 	return (
 		<Ariakit.TabPanel
 			{...props}
+			unmountOnHide={unmountOnHide}
 			render={
 				<Stack direction="column" flexGrow={1} id={props.id}>
 					{children}
