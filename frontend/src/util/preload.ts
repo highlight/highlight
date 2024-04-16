@@ -1,10 +1,6 @@
 import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
 import {
 	GetEnhancedUserDetailsDocument,
-	GetErrorGroupDocument,
-	GetErrorGroupsClickhouseDocument,
-	GetErrorInstanceDocument,
-	GetErrorsHistogramClickhouseDocument,
 	GetEventChunksDocument,
 	GetEventChunkUrlDocument,
 	GetSessionDocument,
@@ -14,11 +10,7 @@ import {
 	GetSessionsHistogramClickhouseDocument,
 	GetWebVitalsDocument,
 } from '@graph/hooks'
-import {
-	ClickhouseQuery,
-	ErrorInstance,
-	OpenSearchCalendarInterval,
-} from '@graph/schemas'
+import { ClickhouseQuery, OpenSearchCalendarInterval } from '@graph/schemas'
 import { LoadingError } from '@pages/Player/ResourcesContext/ResourcesContext'
 import { indexedDBFetch, IndexedDBLink, isIndexedDBEnabled } from '@util/db'
 import { client } from '@util/graph'
@@ -30,16 +22,12 @@ import moment from 'moment'
 import { useEffect, useRef } from 'react'
 
 import {
-	GetErrorGroupsClickhouseQuery,
-	GetErrorGroupsClickhouseQueryVariables,
 	GetSessionsClickhouseQuery,
 	GetSessionsClickhouseQueryVariables,
 	GetSessionsHistogramClickhouseQueryVariables,
 } from '@/graph/generated/operations'
 
 const CONCURRENT_SESSION_PRELOADS = 1
-const CONCURRENT_ERROR_PRELOADS = 10
-const PREVIOUS_ERROR_OBJECTS_TO_FETCH = 3
 // Max brotlied resource file allowed. Note that a brotli file with some binary data
 // has a compression ratio of >5x, so unbrotlied this file will take up much more memory.
 const RESOURCE_FILE_SIZE_LIMIT_BYTES = 64 * 1024 * 1024
@@ -130,90 +118,6 @@ export const usePreloadSessions = function ({
 			await Promise.all(promises)
 		})()
 	}, [pageToLoad, project_id, query])
-}
-
-export const usePreloadErrors = function ({
-	query,
-}: {
-	page: number
-	query: ClickhouseQuery
-}) {
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
-	const endDate = useRef<moment.Moment>(roundFeedDate(null))
-	const preloadedPages = useRef<Set<number>>(new Set<number>())
-
-	// only load the first page
-	// const pageToLoad = page ?? 1
-	const pageToLoad = 1
-
-	useEffect(() => {
-		;(async () => {
-			if (
-				!isIndexedDBEnabled() ||
-				preloadedPages.current.has(pageToLoad)
-			) {
-				return false
-			}
-			if (!query) {
-				return false
-			}
-			const {
-				data: errors,
-			}: { data: GetErrorGroupsClickhouseQuery | undefined } =
-				await client.query({
-					query: GetErrorGroupsClickhouseDocument,
-					variables: {
-						query,
-						count: DEFAULT_PAGE_SIZE,
-						page: pageToLoad,
-						project_id,
-					} as GetErrorGroupsClickhouseQueryVariables,
-				})
-
-			if (!errors?.error_groups_clickhouse.error_groups.length)
-				return false
-			preloadedPages.current.add(pageToLoad)
-
-			log('preload.ts', 'errors query', {
-				query,
-			})
-			client.query({
-				query: GetErrorsHistogramClickhouseDocument,
-				variables: {
-					query,
-					project_id,
-					histogram_options: {
-						bounds: {
-							start_date: endDate.current
-								.clone()
-								.subtract(30, 'days')
-								.format(),
-							end_date: endDate.current.format(),
-						},
-						bucket_size: {
-							calendar_interval: OpenSearchCalendarInterval.Day,
-							multiple: 1,
-						},
-						time_zone:
-							Intl.DateTimeFormat().resolvedOptions().timeZone ??
-							'UTC',
-					},
-				},
-			})
-			const promises: Promise<void>[] = []
-			for (const _eg of errors?.error_groups_clickhouse.error_groups ||
-				[]) {
-				promises.push(loadErrorGroup(project_id!, _eg.secure_id))
-				if (promises.length === CONCURRENT_ERROR_PRELOADS) {
-					await Promise.all(promises)
-					promises.length = 0
-				}
-			}
-			await Promise.all(promises)
-		})()
-	}, [project_id, pageToLoad, query])
 }
 
 export const checkResourceLimit = async function (resources_url: string) {
@@ -318,70 +222,6 @@ export const loadSession = async function (secureID: string) {
 		H.metrics([
 			{
 				name: 'preload-session-ms',
-				value: preloadTime,
-				tags: [
-					{
-						name: 'SecureID',
-						value: secureID,
-					},
-				],
-			},
-		])
-	} catch (e: any) {
-		log('preload.ts', `failed to preload session ${secureID}`)
-	}
-}
-
-const loadErrorGroup = async function (projectID: string, secureID: string) {
-	// we repeat loading error groups since they are lightweight and we can benefit from loading apollo in-memory cache
-	const start = window.performance.now()
-	log('preload.ts', `preloading error group ${secureID}`)
-	try {
-		await client.query({
-			query: GetErrorGroupDocument,
-			variables: {
-				secure_id: secureID,
-			},
-		})
-		// run this query with the `error_object_id` variable set to 0 as well, as the ui uses both
-		await client.query({
-			query: GetErrorInstanceDocument,
-			variables: {
-				error_group_secure_id: secureID,
-				error_object_id: '0',
-			},
-		})
-		let errorObjectID = '0'
-		for (let i = 0; i < PREVIOUS_ERROR_OBJECTS_TO_FETCH; i++) {
-			const errorInstance = (
-				await client.query({
-					query: GetErrorInstanceDocument,
-					variables:
-						errorObjectID === '0'
-							? { error_group_secure_id: secureID }
-							: {
-									error_group_secure_id: secureID,
-									error_object_id: errorObjectID,
-							  },
-				})
-			)?.data?.error_instance as ErrorInstance
-			if (
-				errorInstance?.previous_id?.length &&
-				errorInstance.previous_id !== '0'
-			) {
-				errorObjectID = errorInstance?.previous_id
-			} else {
-				break
-			}
-		}
-		const preloadTime = window.performance.now() - start
-		log(
-			'preload.ts',
-			`preloaded error group ${secureID} in ${preloadTime / 1000} s.`,
-		)
-		H.metrics([
-			{
-				name: 'preload-error-ms',
 				value: preloadTime,
 				tags: [
 					{

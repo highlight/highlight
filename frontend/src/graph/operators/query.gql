@@ -663,16 +663,16 @@ query GetSessionsReport($project_id: ID!, $query: ClickhouseQuery!) {
 	}
 }
 
-query GetErrorGroupsClickhouse(
+query GetErrorGroups(
 	$project_id: ID!
 	$count: Int!
-	$query: ClickhouseQuery!
+	$params: QueryInput!
 	$page: Int
 ) {
-	error_groups_clickhouse(
+	error_groups(
 		project_id: $project_id
 		count: $count
-		query: $query
+		params: $params
 		page: $page
 	) {
 		error_groups {
@@ -713,14 +713,14 @@ query GetErrorGroupsClickhouse(
 	}
 }
 
-query GetErrorsHistogramClickhouse(
+query GetErrorsHistogram(
 	$project_id: ID!
-	$query: ClickhouseQuery!
+	$params: QueryInput!
 	$histogram_options: DateHistogramOptions!
 ) {
-	errors_histogram_clickhouse(
+	errors_histogram(
 		project_id: $project_id
-		query: $query
+		params: $params
 		histogram_options: $histogram_options
 	) {
 		bucket_times
@@ -1345,16 +1345,6 @@ query GetUserSuggestion($project_id: ID!, $query: String!) {
 
 query GetSegments($project_id: ID!) {
 	segments(project_id: $project_id) {
-		id
-		name
-		params {
-			query
-		}
-	}
-}
-
-query GetErrorSegments($project_id: ID!) {
-	segments: error_segments(project_id: $project_id) {
 		id
 		name
 		params {

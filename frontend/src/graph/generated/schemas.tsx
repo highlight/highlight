@@ -3000,6 +3000,7 @@ export type ReferrerTablePayload = {
 
 export enum ReservedErrorGroupKey {
 	Event = 'event',
+	SecureId = 'secure_id',
 	Status = 'status',
 	Tag = 'tag',
 	Type = 'type',
@@ -3028,6 +3029,7 @@ export enum ReservedErrorsJoinedKey {
 	Event = 'event',
 	HasSession = 'has_session',
 	OsName = 'os_name',
+	SecureId = 'secure_id',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
 	ServiceVersion = 'service_version',

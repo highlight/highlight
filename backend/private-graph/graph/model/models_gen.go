@@ -1870,14 +1870,16 @@ func (e ProductType) MarshalGQL(w io.Writer) {
 type ReservedErrorGroupKey string
 
 const (
-	ReservedErrorGroupKeyEvent  ReservedErrorGroupKey = "event"
-	ReservedErrorGroupKeyStatus ReservedErrorGroupKey = "status"
-	ReservedErrorGroupKeyTag    ReservedErrorGroupKey = "tag"
-	ReservedErrorGroupKeyType   ReservedErrorGroupKey = "type"
+	ReservedErrorGroupKeyEvent    ReservedErrorGroupKey = "event"
+	ReservedErrorGroupKeySecureID ReservedErrorGroupKey = "secure_id"
+	ReservedErrorGroupKeyStatus   ReservedErrorGroupKey = "status"
+	ReservedErrorGroupKeyTag      ReservedErrorGroupKey = "tag"
+	ReservedErrorGroupKeyType     ReservedErrorGroupKey = "type"
 )
 
 var AllReservedErrorGroupKey = []ReservedErrorGroupKey{
 	ReservedErrorGroupKeyEvent,
+	ReservedErrorGroupKeySecureID,
 	ReservedErrorGroupKeyStatus,
 	ReservedErrorGroupKeyTag,
 	ReservedErrorGroupKeyType,
@@ -1885,7 +1887,7 @@ var AllReservedErrorGroupKey = []ReservedErrorGroupKey{
 
 func (e ReservedErrorGroupKey) IsValid() bool {
 	switch e {
-	case ReservedErrorGroupKeyEvent, ReservedErrorGroupKeyStatus, ReservedErrorGroupKeyTag, ReservedErrorGroupKeyType:
+	case ReservedErrorGroupKeyEvent, ReservedErrorGroupKeySecureID, ReservedErrorGroupKeyStatus, ReservedErrorGroupKeyTag, ReservedErrorGroupKeyType:
 		return true
 	}
 	return false
@@ -1987,10 +1989,11 @@ const (
 	ReservedErrorsJoinedKeyTraceID         ReservedErrorsJoinedKey = "trace_id"
 	ReservedErrorsJoinedKeyVisitedURL      ReservedErrorsJoinedKey = "visited_url"
 	// ReservedErrorGroupKey
-	ReservedErrorsJoinedKeyEvent  ReservedErrorsJoinedKey = "event"
-	ReservedErrorsJoinedKeyStatus ReservedErrorsJoinedKey = "status"
-	ReservedErrorsJoinedKeyTag    ReservedErrorsJoinedKey = "tag"
-	ReservedErrorsJoinedKeyType   ReservedErrorsJoinedKey = "type"
+	ReservedErrorsJoinedKeyEvent    ReservedErrorsJoinedKey = "event"
+	ReservedErrorsJoinedKeySecureID ReservedErrorsJoinedKey = "secure_id"
+	ReservedErrorsJoinedKeyStatus   ReservedErrorsJoinedKey = "status"
+	ReservedErrorsJoinedKeyTag      ReservedErrorsJoinedKey = "tag"
+	ReservedErrorsJoinedKeyType     ReservedErrorsJoinedKey = "type"
 )
 
 var AllReservedErrorsJoinedKey = []ReservedErrorsJoinedKey{
@@ -2006,6 +2009,7 @@ var AllReservedErrorsJoinedKey = []ReservedErrorsJoinedKey{
 	ReservedErrorsJoinedKeyTraceID,
 	ReservedErrorsJoinedKeyVisitedURL,
 	ReservedErrorsJoinedKeyEvent,
+	ReservedErrorsJoinedKeySecureID,
 	ReservedErrorsJoinedKeyStatus,
 	ReservedErrorsJoinedKeyTag,
 	ReservedErrorsJoinedKeyType,
@@ -2013,7 +2017,7 @@ var AllReservedErrorsJoinedKey = []ReservedErrorsJoinedKey{
 
 func (e ReservedErrorsJoinedKey) IsValid() bool {
 	switch e {
-	case ReservedErrorsJoinedKeyBrowser, ReservedErrorsJoinedKeyClientID, ReservedErrorsJoinedKeyEnvironment, ReservedErrorsJoinedKeyHasSession, ReservedErrorsJoinedKeyOsName, ReservedErrorsJoinedKeySecureSessionID, ReservedErrorsJoinedKeyServiceName, ReservedErrorsJoinedKeyServiceVersion, ReservedErrorsJoinedKeyTimestamp, ReservedErrorsJoinedKeyTraceID, ReservedErrorsJoinedKeyVisitedURL, ReservedErrorsJoinedKeyEvent, ReservedErrorsJoinedKeyStatus, ReservedErrorsJoinedKeyTag, ReservedErrorsJoinedKeyType:
+	case ReservedErrorsJoinedKeyBrowser, ReservedErrorsJoinedKeyClientID, ReservedErrorsJoinedKeyEnvironment, ReservedErrorsJoinedKeyHasSession, ReservedErrorsJoinedKeyOsName, ReservedErrorsJoinedKeySecureSessionID, ReservedErrorsJoinedKeyServiceName, ReservedErrorsJoinedKeyServiceVersion, ReservedErrorsJoinedKeyTimestamp, ReservedErrorsJoinedKeyTraceID, ReservedErrorsJoinedKeyVisitedURL, ReservedErrorsJoinedKeyEvent, ReservedErrorsJoinedKeySecureID, ReservedErrorsJoinedKeyStatus, ReservedErrorsJoinedKeyTag, ReservedErrorsJoinedKeyType:
 		return true
 	}
 	return false
