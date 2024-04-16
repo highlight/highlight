@@ -4,7 +4,6 @@ on:
     push:
         branches:
             - 'main'
-            - 'vadim/fix-error-filters'
         paths:
             - 'go.work'
             - 'go.work.sum'
