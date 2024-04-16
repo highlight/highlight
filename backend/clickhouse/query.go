@@ -13,15 +13,15 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
-	"github.com/huandu/go-sqlbuilder"
-	"github.com/nqd/flat"
-
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/parser"
 	"github.com/highlight-run/highlight/backend/parser/listener"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/huandu/go-sqlbuilder"
+	"github.com/nqd/flat"
+	e "github.com/pkg/errors"
 )
 
 const SamplingRows = 20_000_000
@@ -367,7 +367,7 @@ var nonAlphaNumericChars = regexp.MustCompile(`[^\w:*]`)
 // strip toString() wrapper around filter keys to match the KeysToColumns map
 var keyWrapper = regexp.MustCompile(`toString\((\w+)\)`)
 
-func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model.TableConfig[TReservedKey], filter *listener.FilterOperation) bool {
+func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model.TableConfig[TReservedKey], filter *listener.FilterOperation) (bool, error) {
 	key := filter.Key
 	groups := keyWrapper.FindStringSubmatch(key)
 	if len(groups) > 0 {
@@ -384,30 +384,32 @@ func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model
 				rowBodyTerms[field] = true
 			}
 		}
-		for _, bodyFilter := range filter.Values {
+		for _, bf := range filter.Values {
 			if filter.Operator == listener.OperatorRegExp {
-				pat, err := regexp.Compile(bodyFilter)
+				pat, err := regexp.Compile(bf)
 				if err == nil {
 					matches := pat.MatchString(body)
 					shouldMatch := filter.Operator == listener.OperatorRegExp
 
 					if (shouldMatch && !matches) || (!shouldMatch && matches) {
-						return false
+						return false, nil
 					}
 				}
-			} else if strings.Contains(bodyFilter, "%") {
-				pat, err := regexp.Compile(strings.ReplaceAll(regexp.QuoteMeta(bodyFilter), "%", ".*"))
+			} else if strings.Contains(bf, "%") {
+				pat, err := regexp.Compile(strings.ReplaceAll(regexp.QuoteMeta(bf), "%", ".*"))
 				// this may over match if the expression cannot be compiled,
 				// but we'd prefer to over match as this fn is used to determine sampling
-				if err == nil {
-					if !pat.MatchString(body) {
-						return false
-					}
+				if err != nil {
+					return false, err
 				}
-			} else if !rowBodyTerms[bodyFilter] {
-				return false
+				if !pat.MatchString(body) {
+					return false, nil
+				}
+			} else if !rowBodyTerms[bf] {
+				return false, nil
 			}
 		}
+		return true, nil
 	}
 
 	var rowValue string
@@ -438,50 +440,48 @@ func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model
 			}
 		}
 	} else {
-		return true
+		return true, e.New(fmt.Sprintf("invalid filter %s", key))
 	}
-	if !bodyFilter {
-		for _, v := range filter.Values {
-			if filter.Operator == listener.OperatorRegExp {
-				pat, err := regexp.Compile(v)
-				if err == nil {
-					matches := pat.MatchString(rowValue)
-					shouldMatch := filter.Operator == listener.OperatorRegExp
+	for _, v := range filter.Values {
+		if filter.Operator == listener.OperatorRegExp {
+			pat, err := regexp.Compile(v)
+			if err == nil {
+				matches := pat.MatchString(rowValue)
+				shouldMatch := filter.Operator == listener.OperatorRegExp
 
-					if (shouldMatch && !matches) || (!shouldMatch && matches) {
-						return false
-					}
+				if (shouldMatch && !matches) || (!shouldMatch && matches) {
+					return false, nil
 				}
-			} else if strings.Contains(v, "%") {
-				if matched, _ := regexp.Match(strings.ReplaceAll(v, "%", ".*"), []byte(rowValue)); !matched {
-					return false
-				}
-			} else if filter.Operator == listener.OperatorNotEqual {
-				if rowValue == strings.Replace(v, "-", "", 1) {
-					return false
-				}
-			} else if v != rowValue {
-				return false
 			}
+		} else if strings.Contains(v, "%") {
+			if matched, _ := regexp.Match(strings.ReplaceAll(v, "%", ".*"), []byte(rowValue)); !matched {
+				return false, nil
+			}
+		} else if filter.Operator == listener.OperatorNotEqual {
+			if rowValue == strings.Replace(v, "-", "", 1) {
+				return false, nil
+			}
+		} else if v != rowValue {
+			return false, nil
 		}
 	}
-	return true
+	return true, nil
 }
 
-func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config model.TableConfig[TReservedKey], filters listener.Filters) bool {
+func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config model.TableConfig[TReservedKey], filters listener.Filters, op listener.Operator) bool {
 	// if multiple filters are passed in, assume an AND operation between them
 	for _, filter := range filters {
 		switch filter.Operator {
 		case listener.OperatorAnd:
 			for _, childFilter := range filter.Filters {
-				if !matchesQuery(row, config, listener.Filters{childFilter}) {
+				if !matchesQuery(row, config, listener.Filters{childFilter}, filter.Operator) {
 					return false
 				}
 			}
 		case listener.OperatorOr:
 			var anyMatch bool
 			for _, childFilter := range filter.Filters {
-				if matchesQuery(row, config, listener.Filters{childFilter}) {
+				if matchesQuery(row, config, listener.Filters{childFilter}, filter.Operator) {
 					anyMatch = true
 					break
 				}
@@ -490,9 +490,18 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config mode
 				return false
 			}
 		case listener.OperatorNot:
-			return !matchesQuery(row, config, listener.Filters{filter.Filters[0]})
+			return !matchesQuery(row, config, listener.Filters{filter.Filters[0]}, filter.Operator)
 		default:
-			matches := matchFilter(row, config, filter)
+			matches, err := matchFilter(row, config, filter)
+			if err != nil {
+				if op == listener.OperatorOr {
+					return false
+				} else if op == listener.OperatorNot {
+					return true
+				} else {
+					return true
+				}
+			}
 			if !matches {
 				return false
 			}

@@ -14,6 +14,7 @@ import (
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/parser"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -671,5 +672,48 @@ func TestInitializeSessionImpl(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.NotNil(t, service.ID)
+	})
+}
+
+func TestErrorIngestFilters(t *testing.T) {
+	ctx := context.TODO()
+
+	util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
+		err := resolver.Redis.FlushDB(ctx)
+		if err != nil {
+			t.Fatal(e.Wrap(err, "error clearing database"))
+		}
+
+		project := model.Project{Name: pointy.String("test")}
+		if err := resolver.DB.Create(&project).Error; err != nil {
+			t.Fatal(err)
+		}
+
+		filterSettings := model.ProjectFilterSettings{ProjectID: project.ID, ErrorExclusionQuery: pointy.String(`service_name=whop-api-v2 OR service_name=data-whop-com OR (service_name=core-marketplace-v2 AND event="*Minified*")`)}
+		if err := resolver.DB.Create(&filterSettings).Error; err != nil {
+			t.Fatal(err)
+		}
+
+		errorObject := publicModel.BackendErrorObjectInput{
+			Event: "Dang a React Minified error has occurred.",
+			Service: &publicModel.ServiceInput{
+				Name: "core-marketplace-v2",
+			},
+		}
+		filters := parser.Parse(*filterSettings.ErrorExclusionQuery, clickhouse.BackendErrorObjectInputConfig)
+		matches := clickhouse.ErrorMatchesQuery(&errorObject, filters)
+		assert.True(t, matches)
+		assert.False(t, resolver.IsErrorIngested(ctx, project.ID, &errorObject))
+
+		errorObject.Service.Name = "bean"
+		matches = clickhouse.ErrorMatchesQuery(&errorObject, filters)
+		assert.False(t, matches)
+		assert.True(t, resolver.IsErrorIngested(ctx, project.ID, &errorObject))
+
+		errorObject.Service.Name = "whop-api-v2"
+		errorObject.Event = "another error tho"
+		matches = clickhouse.ErrorMatchesQuery(&errorObject, filters)
+		assert.True(t, matches)
+		assert.False(t, resolver.IsErrorIngested(ctx, project.ID, &errorObject))
 	})
 }

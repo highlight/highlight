@@ -2189,7 +2189,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		var stackFrameInput []*publicModel.StackFrameInput
 
 		if err := json.Unmarshal([]byte(v.StackTrace), &stackFrameInput); err == nil {
-			mapped, structured, err := r.getMappedStackTraceString(ctx, stackFrameInput, projectID, errorToInsert, pointy.String(fmt.Sprintf("%s-%s", v.Service.Name, v.Service.Version)))
+			var version *string
+			if v.Service.Name != "" && v.Service.Version != "" {
+				version = pointy.String(fmt.Sprintf("%s-%s", v.Service.Name, v.Service.Version))
+			}
+			mapped, structured, err := r.getMappedStackTraceString(ctx, stackFrameInput, projectID, errorToInsert, version)
 			if err != nil {
 				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)
 			} else if mapped != nil && *mapped != "null" {
@@ -2697,15 +2701,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			return e.Wrap(err, "error querying workspace")
 		}
 
-		// filter out empty errors
-		seenEvents := map[string]*publicModel.ErrorObjectInput{}
-		for _, errorObject := range errors {
-			if !r.IsFrontendErrorIngested(ctx, project.ID, sessionObj, errorObject) {
-				continue
-			}
-			seenEvents[errorObject.Event] = errorObject
-		}
-		errors = lo.Values(seenEvents)
+		errors = lo.Filter(errors, func(item *publicModel.ErrorObjectInput, index int) bool {
+			return r.IsFrontendErrorIngested(ctx, project.ID, sessionObj, item)
+		})
 
 		// increment daily error table
 		numErrors := int64(len(errors))
@@ -2756,24 +2754,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				IsBeacon:       isBeacon,
 				ServiceVersion: serviceVersion,
 				ServiceName:    sessionObj.ServiceName,
-			}
-
-			if !r.IsErrorIngested(ctx, projectID, &publicModel.BackendErrorObjectInput{
-				SessionSecureID: &sessionSecureID,
-				Event:           errorToInsert.Event,
-				Type:            errorToInsert.Type,
-				URL:             errorToInsert.URL,
-				Source:          errorToInsert.Source,
-				StackTrace:      traceString,
-				Timestamp:       errorToInsert.Timestamp,
-				Payload:         errorToInsert.Payload,
-				Service: &publicModel.ServiceInput{
-					Name:    errorToInsert.ServiceName,
-					Version: errorToInsert.ServiceVersion,
-				},
-				Environment: errorToInsert.Environment,
-			}) {
-				continue
 			}
 
 			var structuredStackTrace []*privateModel.ErrorTrace

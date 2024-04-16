@@ -5,6 +5,18 @@ export const editGraphHeader = style({
 	height: 40,
 })
 
+export const editGraphPanel = style({
+	height: 'calc(100% - 40px)',
+})
+
+export const previewWindow = style({
+	width: 'calc(100% - 320px)',
+})
+
+export const tagSwitch = style({
+	width: '100%',
+})
+
 export const graphBackground = style({
 	zIndex: 0,
 })
@@ -24,6 +36,14 @@ export const menuButton = style({
 
 export const input = style({
 	height: 28,
+})
+
+export const graphWrapper = style({
+	width: 720,
+	height: 360,
+	margin: 'auto',
+	zIndex: 1,
+	backgroundColor: vars.color.white,
 })
 
 globalStyle(`${menuButton} > div`, {

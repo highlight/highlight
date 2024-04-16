@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/parser"
@@ -473,24 +474,28 @@ func (client *Client) QueryErrorGroupTags(ctx context.Context, projectId int, er
 	return lo.Values(aggs), nil
 }
 
-func (client *Client) QueryErrorFieldValues(ctx context.Context, projectId int, count int, fieldType string, fieldName string, query string, start time.Time, end time.Time) ([]string, error) {
-	mappedName, found := fieldMap[fieldName]
-	if !found {
-		return nil, fmt.Errorf("unknown column %s", fieldName)
-	}
+func (client *Client) QueryErrorFieldValues(ctx context.Context, projectId int, count int, fieldName string, query string, start time.Time, end time.Time) ([]string, error) {
+	var table string
+	var mappedName string
+	var ok bool
+	// needed to support "Tag" for backwards compatibility (can remove with new query language)
+	fieldName = strings.ToLower(fieldName)
 
-	table := ErrorGroupsTable
-	if fieldType == "error-field" {
+	if mappedName, ok = ErrorGroupsTableConfig.KeysToColumns[modelInputs.ReservedErrorGroupKey(fieldName)]; ok {
+		table = ErrorGroupsTable
+	} else if mappedName, ok = ErrorObjectsTableConfig.KeysToColumns[modelInputs.ReservedErrorObjectKey(fieldName)]; ok {
 		table = ErrorObjectsTable
+	} else {
+		return nil, fmt.Errorf("unknown column %s", fieldName)
 	}
 
 	sb := sqlbuilder.NewSelectBuilder()
 	sb = sb.
-		Select(mappedName).
+		Select(fmt.Sprintf("toString(%s)", mappedName)).
 		From(table).
 		Where(sb.Equal("ProjectID", projectId)).
-		Where(fmt.Sprintf("%s ILIKE %s", mappedName, sb.Var("%"+query+"%"))).
-		Where(fmt.Sprintf("%s <> ''", mappedName))
+		Where(fmt.Sprintf("toString(%s) ILIKE %s", mappedName, sb.Var("%"+query+"%"))).
+		Where(fmt.Sprintf("toString(%s) <> ''", mappedName))
 
 	if table == ErrorGroupsTable {
 		sb = sb.Where(sb.Or(
@@ -592,19 +597,36 @@ var ErrorObjectsTableConfig = model.TableConfig[modelInputs.ReservedErrorObjectK
 var ErrorsJoinedTableConfig = model.TableConfig[modelInputs.ReservedErrorsJoinedKey]{
 	TableName: "errors_joined_vw",
 	KeysToColumns: map[modelInputs.ReservedErrorsJoinedKey]string{
-		modelInputs.ReservedErrorsJoinedKeyBrowser:        "Browser",
-		modelInputs.ReservedErrorsJoinedKeyClientID:       "ClientID",
+		modelInputs.ReservedErrorsJoinedKeyBrowser:         "Browser",
+		modelInputs.ReservedErrorsJoinedKeyClientID:        "ClientID",
+		modelInputs.ReservedErrorsJoinedKeyEnvironment:     "Environment",
+		modelInputs.ReservedErrorsJoinedKeyEvent:           "Event",
+		modelInputs.ReservedErrorsJoinedKeyHasSession:      "HasSession",
+		modelInputs.ReservedErrorsJoinedKeyOsName:          "OSName",
+		modelInputs.ReservedErrorsJoinedKeySecureSessionID: "SecureSessionID",
+		modelInputs.ReservedErrorsJoinedKeyServiceName:     "ServiceName",
+		modelInputs.ReservedErrorsJoinedKeyServiceVersion:  "ServiceVersion",
+		modelInputs.ReservedErrorsJoinedKeyStatus:          "Status",
+		modelInputs.ReservedErrorsJoinedKeyTag:             "ErrorTagTitle",
+		modelInputs.ReservedErrorsJoinedKeyTimestamp:       "Timestamp",
+		modelInputs.ReservedErrorsJoinedKeyTraceID:         "TraceID",
+		modelInputs.ReservedErrorsJoinedKeyType:            "Type",
+		modelInputs.ReservedErrorsJoinedKeyVisitedURL:      "VisitedURL",
+	},
+	BodyColumn:   "Event",
+	ReservedKeys: modelInputs.AllReservedErrorsJoinedKey,
+}
+
+var BackendErrorObjectInputConfig = model.TableConfig[modelInputs.ReservedErrorsJoinedKey]{
+	KeysToColumns: map[modelInputs.ReservedErrorsJoinedKey]string{
 		modelInputs.ReservedErrorsJoinedKeyEnvironment:    "Environment",
 		modelInputs.ReservedErrorsJoinedKeyEvent:          "Event",
-		modelInputs.ReservedErrorsJoinedKeyHasSession:     "HasSession",
-		modelInputs.ReservedErrorsJoinedKeyOsName:         "OSName",
-		modelInputs.ReservedErrorsJoinedKeyServiceName:    "ServiceName",
-		modelInputs.ReservedErrorsJoinedKeyServiceVersion: "ServiceVersion",
-		modelInputs.ReservedErrorsJoinedKeyTag:            "ErrorTagTitle",
-		modelInputs.ReservedErrorsJoinedKeyType:           "Type",
-		modelInputs.ReservedErrorsJoinedKeyVisitedURL:     "VisitedURL",
+		modelInputs.ReservedErrorsJoinedKeyHasSession:     "SessionSecureID",
+		modelInputs.ReservedErrorsJoinedKeyServiceName:    "Service.Name",
+		modelInputs.ReservedErrorsJoinedKeyServiceVersion: "Service.Version",
 		modelInputs.ReservedErrorsJoinedKeyTimestamp:      "Timestamp",
-		modelInputs.ReservedErrorsJoinedKeyStatus:         "Status",
+		modelInputs.ReservedErrorsJoinedKeyType:           "Type",
+		modelInputs.ReservedErrorsJoinedKeyVisitedURL:     "URL",
 	},
 	BodyColumn:   "Event",
 	ReservedKeys: modelInputs.AllReservedErrorsJoinedKey,
@@ -618,7 +640,7 @@ var errorsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedErro
 }
 
 func ErrorMatchesQuery(errorObject *model2.BackendErrorObjectInput, filters listener.Filters) bool {
-	return matchesQuery(errorObject, ErrorsJoinedTableConfig, filters)
+	return matchesQuery(errorObject, BackendErrorObjectInputConfig, filters, listener.OperatorAnd)
 }
 
 func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
@@ -626,16 +648,7 @@ func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, para
 }
 
 func (client *Client) ErrorsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
-	var tableName string
-	if ok := modelInputs.ReservedErrorGroupKey(keyName).IsValid(); ok {
-		tableName = ErrorGroupsTable
-	} else if ok := modelInputs.ReservedErrorObjectKey(keyName).IsValid(); ok {
-		tableName = ErrorObjectsTable
-	} else {
-		return nil, fmt.Errorf("unknown error key %s", keyName)
-	}
-
-	return client.QueryErrorFieldValues(ctx, projectID, 10, tableName, keyName, "", startDate, endDate)
+	return client.QueryErrorFieldValues(ctx, projectID, 10, keyName, "", startDate, endDate)
 }
 
 func (client *Client) QueryErrorObjectsHistogram(ctx context.Context, projectId int, params modelInputs.QueryInput, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, error) {
@@ -644,14 +657,14 @@ func (client *Client) QueryErrorObjectsHistogram(ctx context.Context, projectId 
 		return nil, nil, err
 	}
 
-	selectCols := fmt.Sprintf("%s(Timestamp, '%s') as time, count() as count", aggFn, location.String())
-
-	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
-
-	sb, err := readErrorsObjects(selectCols, params, projectId, orderBy)
+	sb, err := readErrorsObjects(params, projectId)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	sb.Select(fmt.Sprintf("%s(Timestamp, '%s') as time, count() as count", aggFn, location.String()))
+	sb.GroupBy("1")
+	sb.OrderBy(fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String()))
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 	args = append(args, *options.Bounds.StartDate, *options.Bounds.EndDate)
@@ -684,11 +697,15 @@ func (client *Client) QueryErrorGroups(ctx context.Context, projectId int, count
 	}
 	offset := (pageInt - 1) * count
 
-	sb, err := readErrorGroups(params, projectId)
+	var sb *sqlbuilder.SelectBuilder
+	var err error
+	sb, err = readErrorGroups(params, projectId)
 	if err != nil {
 		return nil, 0, err
 	}
 
+	sb.Select("ID, count() OVER() AS total")
+	sb.OrderBy("UpdatedAt DESC, ID DESC")
 	sb.Limit(count)
 	sb.Offset(offset)
 
@@ -714,16 +731,15 @@ func (client *Client) QueryErrorGroups(ctx context.Context, projectId int, count
 
 func readErrorGroups(params modelInputs.QueryInput, projectId int) (*sqlbuilder.SelectBuilder, error) {
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.From(ErrorGroupsTableConfig.TableName)
-	sb.Select("ID, count() OVER() AS total")
+	sb.From(fmt.Sprintf("%s FINAL", ErrorGroupsTableConfig.TableName))
 
 	sbInner := sqlbuilder.NewSelectBuilder()
 	sbInner.Select("ErrorGroupID")
-	sbInner.From(ErrorsJoinedTableConfig.TableName)
-	sbInner.Where(sb.Equal("ProjectId", projectId))
+	sbInner.From(fmt.Sprintf("%s FINAL", ErrorsJoinedTableConfig.TableName))
+	sbInner.Where(sbInner.Equal("ProjectId", projectId))
 
-	sbInner.Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
-		Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
+	sbInner.Where(sbInner.LessEqualThan("Timestamp", params.DateRange.EndDate)).
+		Where(sbInner.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
 
 	parser.AssignSearchFilters(sbInner, params.Query, ErrorsJoinedTableConfig)
 
@@ -732,11 +748,13 @@ func readErrorGroups(params modelInputs.QueryInput, projectId int) (*sqlbuilder.
 	return sb, nil
 }
 
-func readErrorsObjects(selectCols string, params modelInputs.QueryInput, projectId int, orderBy string) (*sqlbuilder.SelectBuilder, error) {
+func readErrorsObjects(params modelInputs.QueryInput, projectId int) (*sqlbuilder.SelectBuilder, error) {
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select(selectCols)
 	sb.From(fmt.Sprintf("%s FINAL", ErrorsJoinedTableConfig.TableName))
 	sb.Where(sb.Equal("ProjectId", projectId))
+
+	sb.Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
+		Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
 
 	parser.AssignSearchFilters(sb, params.Query, ErrorsJoinedTableConfig)
 

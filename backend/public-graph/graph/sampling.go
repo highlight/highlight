@@ -109,18 +109,19 @@ func (r *Resolver) IsLogIngestedByFilter(ctx context.Context, logRow *clickhouse
 func (r *Resolver) IsFrontendErrorIngested(ctx context.Context, projectID int, session *model.Session, frontendError *modelInputs.ErrorObjectInput) bool {
 	stack, _ := json.Marshal(frontendError.StackTrace)
 	errorObject := &modelInputs.BackendErrorObjectInput{
-		SessionSecureID: &session.SecureID,
+		Environment:     session.Environment,
 		Event:           frontendError.Event,
-		Type:            frontendError.Type,
-		URL:             frontendError.URL,
-		Source:          frontendError.Source,
-		Timestamp:       frontendError.Timestamp,
 		Payload:         frontendError.Payload,
-		StackTrace:      string(stack),
+		SessionSecureID: &session.SecureID,
 		Service: &modelInputs.ServiceInput{
 			Name:    session.ServiceName,
 			Version: ptr.ToString(session.AppVersion),
 		},
+		Source:     frontendError.Source,
+		StackTrace: string(stack),
+		Timestamp:  frontendError.Timestamp,
+		Type:       frontendError.Type,
+		URL:        frontendError.URL,
 	}
 	if !r.IsErrorIngestedBySample(ctx, projectID, errorObject) {
 		return false
@@ -389,7 +390,7 @@ func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateMo
 			filters := parser.Parse(query, clickhouse.SessionsTableConfig)
 			return clickhouse.SessionMatchesQuery(object.(*model.Session), filters)
 		case privateModel.ProductTypeErrors:
-			filters := parser.Parse(query, clickhouse.ErrorObjectsTableConfig)
+			filters := parser.Parse(query, clickhouse.BackendErrorObjectInputConfig)
 			return clickhouse.ErrorMatchesQuery(object.(*modelInputs.BackendErrorObjectInput), filters)
 		case privateModel.ProductTypeLogs:
 			filters := parser.Parse(query, clickhouse.LogsTableConfig)

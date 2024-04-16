@@ -4,27 +4,47 @@ import {
 	Button,
 	Form,
 	IconSolidCheveronDown,
+	IconSolidLightningBolt,
+	IconSolidLogs,
+	IconSolidPlayCircle,
+	IconSolidSparkles,
 	Input,
 	Label,
 	Menu,
+	Stack,
+	TagSwitchGroup,
 	Text,
 } from '@highlight-run/ui/components'
-import { Divider } from 'antd'
-import moment from 'moment'
+import { useParams } from '@util/react-router/useParams'
+import { Divider, message } from 'antd'
 import { PropsWithChildren, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { useDebounce, usePrevious } from 'react-use'
+import { useNavigate } from 'react-router-dom'
+import { useDebounce } from 'react-use'
 
 import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
+import { Search } from '@/components/Search/SearchForm/SearchForm'
 import Switch from '@/components/Switch/Switch'
-import { useGetKeysQuery, useGetMetricsQuery } from '@/graph/generated/hooks'
-import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
+import {
+	useGetKeysQuery,
+	useGetVisualizationQuery,
+	useUpsertGraphMutation,
+} from '@/graph/generated/hooks'
+import { namedOperations } from '@/graph/generated/operations'
+import {
+	GraphInput,
+	MetricAggregator,
+	ProductType,
+} from '@/graph/generated/schemas'
+import useDataTimeRange from '@/hooks/useDataTimeRange'
 import { useProjectId } from '@/hooks/useProjectId'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
 import Graph, {
-	GROUP_KEY,
+	getViewConfig,
+	TIMESTAMP_KEY,
 	View,
-	ViewConfig,
+	VIEW_ICONS,
 	VIEWS,
 } from '@/pages/Graphing/components/Graph'
 import {
@@ -37,10 +57,10 @@ import {
 	TABLE_NULL_HANDLING,
 	TableNullHandling,
 } from '@/pages/Graphing/components/Table'
+import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 
 import * as style from './GraphingEditor.css'
 
-const TIMESTAMP_KEY = 'Timestamp'
 const DEFAULT_BUCKET_COUNT = 50
 
 const PRODUCTS: ProductType[] = [
@@ -50,8 +70,16 @@ const PRODUCTS: ProductType[] = [
 	ProductType.Errors,
 ]
 
+const PRODUCT_ICONS = [
+	<IconSolidLogs key="logs" />,
+	<IconSolidSparkles key="traces" />,
+	<IconSolidPlayCircle key="sessions" />,
+	<IconSolidLightningBolt key="errors" />,
+]
+
 const FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.Count,
+	MetricAggregator.CountDistinct,
 	MetricAggregator.Min,
 	MetricAggregator.Avg,
 	MetricAggregator.P50,
@@ -110,11 +138,15 @@ const OptionDropdown = <T extends string>({
 	options,
 	selection,
 	setSelection,
+	icons,
 }: {
 	options: T[]
-	selection: string
+	selection: T
 	setSelection: (option: T) => void
+	icons?: JSX.Element[]
 }) => {
+	const selectedIndex = options.indexOf(selection)
+	const selectedIcon = icons?.at(selectedIndex)
 	return (
 		<Menu>
 			<Menu.Button
@@ -130,19 +162,25 @@ const OptionDropdown = <T extends string>({
 					gap="4"
 					justifyContent="space-between"
 				>
-					<Box>{selection}</Box>
+					<Stack direction="row" alignItems="center" gap="4">
+						{selectedIcon}
+						{selection}
+					</Stack>
 					<IconSolidCheveronDown />
 				</Box>
 			</Menu.Button>
 			<Menu.List>
-				{options.map((p) => (
+				{options.map((p, idx) => (
 					<Menu.Item
 						key={p}
 						onClick={() => {
 							setSelection(p as T)
 						}}
 					>
-						{p}
+						<Stack direction="row" alignItems="center" gap="4">
+							{icons?.at(idx)}
+							{p}
+						</Stack>
 					</Menu.Item>
 				))}
 			</Menu.List>
@@ -190,17 +228,24 @@ const LineChartSettings = ({
 }) => (
 	<>
 		<LabeledRow label="Line display" name="lineDisplay">
-			<OptionDropdown
+			<TagSwitchGroup
 				options={LINE_DISPLAY}
-				selection={lineDisplay}
-				setSelection={setLineDisplay}
+				defaultValue={lineDisplay}
+				onChange={(o: string | number) => {
+					setLineDisplay(o as LineDisplay)
+				}}
+				cssClass={style.tagSwitch}
 			/>
 		</LabeledRow>
 		<LabeledRow label="Nulls" name="lineNullHandling">
-			<OptionDropdown
+			<TagSwitchGroup
 				options={LINE_NULL_HANDLING}
-				selection={nullHandling}
-				setSelection={setNullHandling}
+				defaultValue={nullHandling}
+				onChange={(o: string | number) => {
+					console.log('setNullHandling', o)
+					setNullHandling(o as LineNullHandling)
+				}}
+				cssClass={style.tagSwitch}
 			/>
 		</LabeledRow>
 	</>
@@ -215,10 +260,13 @@ const BarChartSettings = ({
 }) => (
 	<>
 		<LabeledRow label="Bar display" name="barDisplay">
-			<OptionDropdown
+			<TagSwitchGroup
 				options={BAR_DISPLAY}
-				selection={barDisplay}
-				setSelection={setBarDisplay}
+				defaultValue={barDisplay}
+				onChange={(o: string | number) => {
+					setBarDisplay(o as BarDisplay)
+				}}
+				cssClass={style.tagSwitch}
 			/>
 		</LabeledRow>
 	</>
@@ -233,19 +281,126 @@ const TableSettings = ({
 }) => (
 	<>
 		<LabeledRow label="Nulls" name="tableNullHandling">
-			<OptionDropdown
+			<TagSwitchGroup
 				options={TABLE_NULL_HANDLING}
-				selection={nullHandling}
-				setSelection={setNullHandling}
+				defaultValue={nullHandling}
+				onChange={(o: string | number) => {
+					setNullHandling(o as TableNullHandling)
+				}}
+				cssClass={style.tagSwitch}
 			/>
 		</LabeledRow>
 	</>
 )
 
 export const GraphingEditor = () => {
+	const { dashboard_id, graph_id } = useParams<{
+		dashboard_id: string
+		graph_id: string
+	}>()
+
+	const isEdit = graph_id !== undefined
+
+	const { timeRange } = useDataTimeRange()
+
+	const [upsertGraph, upsertGraphContext] = useUpsertGraphMutation({
+		refetchQueries: [namedOperations.Query.GetVisualization],
+	})
+
+	const navigate = useNavigate()
+
+	const onSave = () => {
+		let display: string | undefined
+		let nullHandling: string | undefined
+
+		switch (viewType) {
+			case 'Line chart':
+				display = lineDisplay
+				nullHandling = lineNullHandling
+				break
+			case 'Bar chart':
+				display = barDisplay
+				break
+			case 'Table':
+				nullHandling = tableNullHandling
+				break
+		}
+
+		const graphInput: GraphInput = {
+			visualizationId: dashboard_id!,
+			bucketByKey: bucketByEnabled ? bucketByKey : null,
+			bucketCount: bucketByEnabled ? bucketCount : null,
+			display,
+			functionType,
+			groupByKey: groupByEnabled ? groupByKey : null,
+			limit: groupByEnabled ? limit : null,
+			limitFunctionType: groupByEnabled ? limitFunctionType : null,
+			limitMetric: groupByEnabled ? limitMetric : null,
+			metric,
+			nullHandling,
+			productType,
+			query: debouncedQuery,
+			title: metricViewTitle,
+			type: viewType,
+		}
+
+		if (isEdit) {
+			graphInput.id = graph_id
+		}
+
+		upsertGraph({
+			variables: {
+				graph: graphInput,
+			},
+		})
+			.then(() => {
+				navigate(`../${dashboard_id}`)
+				message.success(`Metric view ${isEdit ? 'updated' : 'created'}`)
+			})
+			.catch(() => {
+				message.error('Failed to create metric view')
+			})
+	}
+
+	const { loading: metaLoading } = useGetVisualizationQuery({
+		variables: {
+			id: dashboard_id!,
+		},
+		skip: !isEdit,
+		onCompleted: (data) => {
+			const g = data.visualization.graphs.find((g) => g.id === graph_id)
+			if (g === undefined) {
+				return
+			}
+
+			const viewType = g.type as View
+			setProductType(g.productType)
+			setViewType(viewType)
+			setFunctionType(g.functionType)
+
+			if (viewType === 'Line chart') {
+				setLineNullHandling(g.nullHandling as LineNullHandling)
+				setLineDisplay(g.display as LineDisplay)
+			} else if (viewType === 'Bar chart') {
+				setBarDisplay(g.display as BarDisplay)
+			} else if (viewType === 'Table') {
+				setTableNullHandling(g.nullHandling as TableNullHandling)
+			}
+
+			setMetric(g.metric)
+			setMetricViewTitle(g.title)
+			setGroupByEnabled(g.groupByKey !== null)
+			setGroupByKey(g.groupByKey ?? '')
+			setLimitFunctionType(g.limitFunctionType ?? FUNCTION_TYPES[0])
+			setLimit(g.limit ?? 10)
+			setLimitMetric(g.limitMetric ?? '')
+			setBucketByEnabled(g.bucketByKey !== null)
+			setBucketByKey(g.bucketByKey ?? '')
+			setBucketCount(g.bucketCount ?? DEFAULT_BUCKET_COUNT)
+		},
+	})
+
 	const { projectId } = useProjectId()
-	const [endDate] = useState(moment().toISOString())
-	const [startDate] = useState(moment().subtract(4, 'hours').toISOString())
 
 	const [productType, setProductType] = useState(PRODUCTS[0])
 	const [viewType, setViewType] = useState(VIEWS[0])
@@ -265,7 +420,7 @@ export const GraphingEditor = () => {
 		() => {
 			setDebouncedQuery(query)
 		},
-		500,
+		300,
 		[query],
 	)
 
@@ -283,6 +438,9 @@ export const GraphingEditor = () => {
 	const [bucketByEnabled, setBucketByEnabled] = useState(true)
 	const [bucketByKey, setBucketByKey] = useState('')
 	const [bucketCount, setBucketCount] = useState(DEFAULT_BUCKET_COUNT)
+
+	const startDate = timeRange.start_date
+	const endDate = timeRange.end_date
 
 	const { data: keys } = useGetKeysQuery({
 		variables: {
@@ -320,88 +478,20 @@ export const GraphingEditor = () => {
 		setBucketByKey(bucketByKeys[0] ?? '')
 	}, [allKeys, bucketByKeys, numericKeys])
 
-	const queriedBucketCount = bucketByEnabled ? bucketCount : 1
-
-	const { data: metrics, loading: metricsLoading } = useGetMetricsQuery({
-		variables: {
-			product_type: productType,
-			project_id: projectId,
-			params: {
-				date_range: {
-					start_date: startDate,
-					end_date: endDate,
-				},
-				query: debouncedQuery,
-			},
-			column: metric,
-			metric_types: [functionType],
-			group_by: groupByEnabled ? [groupByKey] : [],
-			bucket_by: bucketByEnabled ? bucketByKey : TIMESTAMP_KEY,
-			bucket_count: queriedBucketCount,
-			limit: limit,
-			limit_aggregator: limitFunctionType,
-			limit_column: limitMetric,
-		},
-	})
-
-	// Retain previous data - in case of loading, keep returning old data
-	let metricsToUse = usePrevious(metrics)
-	if (metrics !== undefined) {
-		metricsToUse = metrics
-	}
-
-	let data: any[] | undefined
-	if (metricsToUse?.metrics.buckets) {
-		if (bucketByEnabled) {
-			data = []
-			for (let i = 0; i < metricsToUse.metrics.bucket_count; i++) {
-				data.push({})
-			}
-
-			const seriesKeys = new Set<string>()
-			for (const b of metricsToUse.metrics.buckets) {
-				const seriesKey = b.group.join(' ')
-				seriesKeys.add(seriesKey)
-				data[b.bucket_id][bucketByKey] =
-					(b.bucket_min + b.bucket_max) / 2
-				data[b.bucket_id][seriesKey] = b.metric_value
-			}
-		} else {
-			data = []
-			for (const b of metricsToUse.metrics.buckets) {
-				data.push({
-					[GROUP_KEY]: b.group.join(' '),
-					'': b.metric_value,
-				})
-			}
-		}
-	}
-
-	let viewConfig: ViewConfig
+	let display: string | undefined
+	let nullHandling: string | undefined
 	if (viewType === 'Line chart') {
-		viewConfig = {
-			type: viewType,
-			showLegend: true,
-			display: lineDisplay,
-			nullHandling: lineNullHandling,
-		}
+		display = lineDisplay
+		nullHandling = lineNullHandling
 	} else if (viewType === 'Bar chart') {
-		viewConfig = {
-			type: viewType,
-			showLegend: true,
-			display: barDisplay,
-		}
+		display = barDisplay
 	} else if (viewType === 'Table') {
-		viewConfig = {
-			type: viewType,
-			showLegend: false,
-			nullHandling: tableNullHandling,
-		}
-	} else {
-		viewConfig = {
-			type: 'Line chart',
-			showLegend: true,
-		}
+		nullHandling = tableNullHandling
+	}
+	const viewConfig = getViewConfig(viewType, display, nullHandling)
+
+	if (metaLoading) {
+		return null
 	}
 
 	return (
@@ -415,6 +505,7 @@ export const GraphingEditor = () => {
 				flex="stretch"
 				justifyContent="stretch"
 				display="flex"
+				overflow="hidden"
 			>
 				<Box
 					background="white"
@@ -437,14 +528,25 @@ export const GraphingEditor = () => {
 						py="6"
 					>
 						<Text size="small" weight="medium">
-							Edit Metric View
+							{isEdit ? 'Edit' : 'Create'} metric view
 						</Text>
 						<Box display="flex" gap="4">
-							<Button emphasis="low" kind="secondary">
+							<TimeRangePicker emphasis="low" kind="secondary" />
+							<HeaderDivider />
+							<Button
+								emphasis="low"
+								kind="secondary"
+								onClick={() => {
+									navigate(`../${dashboard_id}`)
+								}}
+							>
 								Cancel
 							</Button>
-							<Button>
-								Create metric view&nbsp;
+							<Button
+								disabled={upsertGraphContext.loading}
+								onClick={onSave}
+							>
+								Save&nbsp;
 								<Badge
 									variant="outlinePurple"
 									shape="basic"
@@ -458,13 +560,13 @@ export const GraphingEditor = () => {
 						display="flex"
 						flexDirection="row"
 						justifyContent="space-between"
-						height="full"
+						cssClass={style.editGraphPanel}
 					>
 						<Box
 							display="flex"
 							position="relative"
-							width="full"
 							height="full"
+							cssClass={style.previewWindow}
 						>
 							<Box
 								position="absolute"
@@ -475,27 +577,64 @@ export const GraphingEditor = () => {
 								<EditorBackground />
 							</Box>
 
-							<Graph
-								data={data}
-								loading={metricsLoading}
-								title={metricViewTitle}
-								xAxisMetric={
-									bucketByEnabled ? bucketByKey : GROUP_KEY
-								}
-								yAxisMetric={
-									functionType === MetricAggregator.Count
-										? ''
-										: metric
-								}
-								yAxisFunction={functionType}
-								viewConfig={viewConfig}
-							/>
+							<Box cssClass={style.graphWrapper} shadow="small">
+								<Box
+									px="16"
+									py="12"
+									width="full"
+									height="full"
+									border="divider"
+									borderRadius="8"
+								>
+									<Graph
+										title={metricViewTitle}
+										viewConfig={viewConfig}
+										productType={productType}
+										projectId={projectId}
+										startDate={startDate}
+										endDate={endDate}
+										query={debouncedQuery}
+										metric={metric}
+										functionType={functionType}
+										bucketByKey={
+											bucketByEnabled
+												? bucketByKey
+												: undefined
+										}
+										bucketCount={
+											bucketByEnabled
+												? bucketCount
+												: undefined
+										}
+										groupByKey={
+											groupByEnabled
+												? groupByKey
+												: undefined
+										}
+										limit={
+											groupByEnabled ? limit : undefined
+										}
+										limitFunctionType={
+											groupByEnabled
+												? limitFunctionType
+												: undefined
+										}
+										limitMetric={
+											groupByEnabled
+												? limitMetric
+												: undefined
+										}
+									/>
+								</Box>
+							</Box>
 						</Box>
 						<Box
 							display="flex"
 							borderLeft="dividerWeak"
 							height="full"
 							cssClass={style.editGraphSidebar}
+							overflowY="auto"
+							overflowX="hidden"
 						>
 							<Form className={style.editGraphSidebar}>
 								<SidebarSection>
@@ -506,7 +645,7 @@ export const GraphingEditor = () => {
 										<Input
 											type="text"
 											name="title"
-											placeholder="Enter name displayed as the title"
+											placeholder="Untitled metric view"
 											value={metricViewTitle}
 											onChange={(e) => {
 												setMetricViewTitle(
@@ -524,6 +663,7 @@ export const GraphingEditor = () => {
 											options={PRODUCTS}
 											selection={productType}
 											setSelection={setProductType}
+											icons={PRODUCT_ICONS}
 										/>
 									</LabeledRow>
 								</SidebarSection>
@@ -537,6 +677,7 @@ export const GraphingEditor = () => {
 											options={VIEWS}
 											selection={viewType}
 											setSelection={setViewType}
+											icons={VIEW_ICONS}
 										/>
 									</LabeledRow>
 									{viewType === 'Line chart' && (
@@ -578,23 +719,34 @@ export const GraphingEditor = () => {
 										{functionType !==
 											MetricAggregator.Count && (
 											<OptionDropdown<string>
-												options={numericKeys}
+												options={
+													functionType ===
+													MetricAggregator.CountDistinct
+														? allKeys
+														: numericKeys
+												}
 												selection={metric}
 												setSelection={setMetric}
 											/>
 										)}
 									</LabeledRow>
 									<LabeledRow label="Filters" name="query">
-										<Input
-											type="text"
-											name="query"
-											placeholder="Enter search filters"
-											value={query}
-											onChange={(e) => {
-												setQuery(e.target.value)
-											}}
-											cssClass={style.input}
-										/>
+										<Box
+											border="divider"
+											width="full"
+											borderRadius="6"
+										>
+											<Search
+												initialQuery={query}
+												query={query}
+												setQuery={setQuery}
+												startDate={new Date(startDate)}
+												endDate={new Date(endDate)}
+												productType={productType}
+												onFormSubmit={setQuery}
+												hideIcon
+											/>
+										</Box>
 									</LabeledRow>
 								</SidebarSection>
 								<Divider className="m-0" />

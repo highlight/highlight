@@ -1,5 +1,11 @@
 # @highlight-run/sourcemap-uploader
 
+## 0.6.2
+
+### Patch Changes
+
+-   5e61d5859: support next.js route groups by removing frontend groups from paths
+
 ## 0.6.1
 
 ### Patch Changes

@@ -90,7 +90,7 @@
 					{
 						"name": "antd",
 						"importNames": ["Tabs"],
-						"message": "Please use Tabs from /src/components/Tab instead."
+						"message": "Please use Tabs from @highlight-run/ui/components instead."
 					},
 					{
 						"name": "antd",

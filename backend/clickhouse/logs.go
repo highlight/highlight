@@ -34,6 +34,7 @@ var logKeysToColumns = map[modelInputs.ReservedLogKey]string{
 	modelInputs.ReservedLogKeyServiceName:     "ServiceName",
 	modelInputs.ReservedLogKeyServiceVersion:  "ServiceVersion",
 	modelInputs.ReservedLogKeyEnvironment:     "Environment",
+	modelInputs.ReservedLogKeyMessage:         "Body",
 }
 
 // These keys show up as recommendations, but with no recommended values due to high cardinality
@@ -468,7 +469,7 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 }
 
 func LogMatchesQuery(logRow *LogRow, filters listener.Filters) bool {
-	return matchesQuery(logRow, LogsTableConfig, filters)
+	return matchesQuery(logRow, LogsTableConfig, filters, listener.OperatorAnd)
 }
 
 func (client *Client) LogsLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
