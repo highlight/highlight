@@ -567,10 +567,11 @@ func (client *Client) QueryErrorHistogramDeprecated(ctx context.Context, project
 var ErrorGroupsTableConfig = model.TableConfig[modelInputs.ReservedErrorGroupKey]{
 	TableName: ErrorGroupsTable,
 	KeysToColumns: map[modelInputs.ReservedErrorGroupKey]string{
-		modelInputs.ReservedErrorGroupKeyEvent:  "Event",
-		modelInputs.ReservedErrorGroupKeyStatus: "Status",
-		modelInputs.ReservedErrorGroupKeyTag:    "ErrorTagTitle",
-		modelInputs.ReservedErrorGroupKeyType:   "Type",
+		modelInputs.ReservedErrorGroupKeyEvent:    "Event",
+		modelInputs.ReservedErrorGroupKeySecureID: "SecureID",
+		modelInputs.ReservedErrorGroupKeyStatus:   "Status",
+		modelInputs.ReservedErrorGroupKeyTag:      "ErrorTagTitle",
+		modelInputs.ReservedErrorGroupKeyType:     "Type",
 	},
 	BodyColumn:   "Event",
 	ReservedKeys: modelInputs.AllReservedErrorGroupKey,
@@ -603,6 +604,7 @@ var ErrorsJoinedTableConfig = model.TableConfig[modelInputs.ReservedErrorsJoined
 		modelInputs.ReservedErrorsJoinedKeyEvent:           "Event",
 		modelInputs.ReservedErrorsJoinedKeyHasSession:      "HasSession",
 		modelInputs.ReservedErrorsJoinedKeyOsName:          "OSName",
+		modelInputs.ReservedErrorsJoinedKeySecureID:        "SecureID",
 		modelInputs.ReservedErrorsJoinedKeySecureSessionID: "SecureSessionID",
 		modelInputs.ReservedErrorsJoinedKeyServiceName:     "ServiceName",
 		modelInputs.ReservedErrorsJoinedKeyServiceVersion:  "ServiceVersion",
