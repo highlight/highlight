@@ -390,7 +390,7 @@ func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateMo
 			filters := parser.Parse(query, clickhouse.SessionsTableConfig)
 			return clickhouse.SessionMatchesQuery(object.(*model.Session), filters)
 		case privateModel.ProductTypeErrors:
-			filters := parser.Parse(query, clickhouse.ErrorObjectsTableConfig)
+			filters := parser.Parse(query, clickhouse.BackendErrorObjectInputConfig)
 			return clickhouse.ErrorMatchesQuery(object.(*modelInputs.BackendErrorObjectInput), filters)
 		case privateModel.ProductTypeLogs:
 			filters := parser.Parse(query, clickhouse.LogsTableConfig)
