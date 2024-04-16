@@ -437,45 +437,37 @@ export class Highlight {
 
 	async runWithHeaders<T>(
 		headers: Headers | IncomingHttpHeaders,
-		cb: () => T | Promise<T>,
+		cb: (span: OtelSpan) => T | Promise<T>,
 	) {
-		return this.tracer.startActiveSpan(
-			'highlight-run-with-headers',
-			async (span) => {
-				const { secureSessionId, requestId } =
-					this.parseHeaders(headers)
+		return this.tracer.startActiveSpan('highlight-ctx', async (span) => {
+			const { secureSessionId, requestId } = this.parseHeaders(headers)
 
-				if (secureSessionId && requestId) {
-					this.processor.setTraceMetadata(span, {
-						'highlight.session_id': secureSessionId,
-						'highlight.trace_id': requestId,
-					})
+			if (secureSessionId && requestId) {
+				this.processor.setTraceMetadata(span, {
+					'highlight.session_id': secureSessionId,
+					'highlight.trace_id': requestId,
+				})
 
-					propagation
-						.getActiveBaggage()
-						?.setEntry(HIGHLIGHT_REQUEST_HEADER, {
-							value: `${secureSessionId}/${requestId}`,
-						} as BaggageEntry)
+				propagation
+					.getActiveBaggage()
+					?.setEntry(HIGHLIGHT_REQUEST_HEADER, {
+						value: `${secureSessionId}/${requestId}`,
+					} as BaggageEntry)
+			}
+
+			try {
+				return await cb(span)
+			} catch (error) {
+				if (error instanceof Error) {
+					this.consumeCustomError(error, secureSessionId, requestId)
 				}
 
-				try {
-					return await cb()
-				} catch (error) {
-					if (error instanceof Error) {
-						this.consumeCustomError(
-							error,
-							secureSessionId,
-							requestId,
-						)
-					}
-
-					throw error
-				} finally {
-					span.end()
-					await this.waitForFlush()
-				}
-			},
-		)
+				throw error
+			} finally {
+				span.end()
+				await this.waitForFlush()
+			}
+		})
 	}
 
 	startActiveSpan(name: string, options?: SpanOptions) {

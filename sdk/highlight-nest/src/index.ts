@@ -100,7 +100,7 @@ export class HighlightInterceptor
 		const ctx = context.switchToHttp()
 		const request = ctx.getRequest()
 		const highlightCtx = NodeH.parseHeaders(request.headers)
-		return NodeH.runWithHeaders(request.headers, async () => {
+		return NodeH.runWithHeaders(request.headers, async (ctxSpan) => {
 			const span = await NodeH.startActiveSpan(
 				`${request.method} ${request.url}`,
 				{
@@ -121,6 +121,7 @@ export class HighlightInterceptor
 				}),
 				finalize(() => {
 					span.end()
+					ctxSpan.end()
 				}),
 			)
 		})

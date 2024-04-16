@@ -2,10 +2,9 @@ import { IncomingHttpHeaders } from 'http'
 import { Highlight } from './client'
 import log from './log'
 import { ResourceAttributes } from '@opentelemetry/resources'
-import type { NodeOptions, HighlightContext } from './types.js'
+import type { HighlightContext, NodeOptions } from './types.js'
 import type {
 	Attributes,
-	Tracer,
 	Span as OtelSpan,
 	SpanOptions,
 } from '@opentelemetry/api'
@@ -23,7 +22,7 @@ export interface HighlightInterface {
 	// Use runWithHeaders to execute a method with a highlight context
 	runWithHeaders: <T>(
 		headers: Headers | IncomingHttpHeaders,
-		cb: () => T | Promise<T>,
+		cb: (span: OtelSpan) => T | Promise<T>,
 	) => Promise<T>
 
 	consumeError: (
