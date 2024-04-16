@@ -1,3 +1,4 @@
+import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
 export const detailsContainer = style({
@@ -13,6 +14,11 @@ export const panelDragHandle = style({
 	right: -2,
 	top: 0,
 	bottom: 0,
+	transition: 'background-color 0.3s',
 	width: 4,
 	zIndex: 1,
+
+	':hover': {
+		backgroundColor: vars.color.n8,
+	},
 })

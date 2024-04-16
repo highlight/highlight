@@ -6617,8 +6617,12 @@ body {
   right: -2px;
   top: 0;
   bottom: 0;
+  transition: background-color 0.3s;
   width: 4px;
   z-index: 1;
+}
+._75g8nf1:hover {
+  background-color: #c8c7cb;
 }
 ._1yp8bvx0 {
   border-radius: 50%;
