@@ -1,5 +1,14 @@
 # @highlight-run/next
 
+## 7.5.1
+
+### Patch Changes
+
+-   Updated dependencies [ec466b8b2]
+-   Updated dependencies [ec466b8b2]
+-   Updated dependencies [ec466b8b2]
+    -   @highlight-run/node@3.9.0
+
 ## 7.5.0
 
 ### Minor Changes
