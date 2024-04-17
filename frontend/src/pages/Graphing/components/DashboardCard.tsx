@@ -1,10 +1,9 @@
-import { Box } from '@highlight-run/ui/components'
-
-import * as style from './DashboardCard.css'
-
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { Box } from '@highlight-run/ui/components'
 import clsx from 'clsx'
+
+import * as style from './DashboardCard.css'
 
 export const DashboardCard = ({
 	id,

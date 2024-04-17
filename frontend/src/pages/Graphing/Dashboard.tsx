@@ -1,4 +1,18 @@
 import {
+	closestCenter,
+	DndContext,
+	KeyboardSensor,
+	PointerSensor,
+	useSensor,
+	useSensors,
+} from '@dnd-kit/core'
+import {
+	arrayMove,
+	rectSortingStrategy,
+	SortableContext,
+	sortableKeyboardCoordinates,
+} from '@dnd-kit/sortable'
+import {
 	Box,
 	Button,
 	Form,
@@ -12,6 +26,8 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { message } from 'antd'
+import clsx from 'clsx'
+import { useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -27,28 +43,11 @@ import {
 } from '@/graph/generated/operations'
 import useDataTimeRange from '@/hooks/useDataTimeRange'
 import { useProjectId } from '@/hooks/useProjectId'
+import { DashboardCard } from '@/pages/Graphing/components/DashboardCard'
 import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
 import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
-import { useState } from 'react'
-import clsx from 'clsx'
-import { DashboardCard } from '@/pages/Graphing/components/DashboardCard'
-
-import {
-	DndContext,
-	closestCenter,
-	KeyboardSensor,
-	PointerSensor,
-	useSensor,
-	useSensors,
-} from '@dnd-kit/core'
-import {
-	arrayMove,
-	SortableContext,
-	sortableKeyboardCoordinates,
-	rectSortingStrategy,
-} from '@dnd-kit/sortable'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -86,7 +85,7 @@ export const Dashboard = () => {
 	}
 
 	const { projectId } = useProjectId()
-	const { data } = useGetVisualizationQuery({
+	useGetVisualizationQuery({
 		variables: { id: dashboard_id! },
 		fetchPolicy: 'cache-and-network',
 		onCompleted: (d) => {

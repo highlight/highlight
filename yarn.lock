@@ -14541,6 +14541,7 @@ __metadata:
     "@dinero.js/currencies": "npm:2.0.0-alpha.14"
     "@dnd-kit/core": "npm:^6.1.0"
     "@dnd-kit/sortable": "npm:^8.0.0"
+    "@dnd-kit/utilities": "npm:^3.2.2"
     "@fontsource/poppins": "npm:^4.5.9"
     "@frontapp/plugin-sdk": "npm:^1.1.2"
     "@graphql-codegen/cli": "npm:^2.13.7"

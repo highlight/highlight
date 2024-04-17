@@ -1,4 +1,5 @@
 import { Box, Table, Text } from '@highlight-run/ui/components'
+import clsx from 'clsx'
 
 import {
 	getTickFormatter,
@@ -8,7 +9,6 @@ import {
 } from '@/pages/Graphing/components/Graph'
 
 import * as style from './Table.css'
-import clsx from 'clsx'
 
 export type TableNullHandling = 'Hide row' | 'Blank' | 'Zero'
 export const TABLE_NULL_HANDLING: TableNullHandling[] = [
