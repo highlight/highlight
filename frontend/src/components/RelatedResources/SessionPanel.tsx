@@ -6,7 +6,6 @@ import { useMemo, useRef } from 'react'
 import LoadingBox from '@/components/LoadingBox'
 import { RelatedSession } from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
-import { Divider } from '@/components/RelatedResources/PanelHeader'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { usePlayerUIContext } from '@/pages/Player/context/PlayerUIContext'
 import { usePlayer } from '@/pages/Player/PlayerHook/PlayerHook'
@@ -101,7 +100,7 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 							</Stack>
 
 							<SessionShareButtonV2 />
-							<Divider />
+							<Panel.HeaderDivider />
 						</Stack>
 					</Panel.Header>
 

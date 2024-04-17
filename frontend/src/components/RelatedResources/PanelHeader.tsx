@@ -60,6 +60,7 @@ export const PanelHeader: React.FC<Props> = ({ children, path }) => {
 				alignItems="center"
 				flexGrow={1}
 				overflow="hidden"
+				justifyContent="flex-end"
 			>
 				{children}
 			</Stack>
@@ -85,12 +86,13 @@ export const PanelHeader: React.FC<Props> = ({ children, path }) => {
 	)
 }
 
-// TODO: Should we export these on Panel?
-export const Divider = () => (
+export const PanelHeaderDivider = () => (
 	<Box bl="divider" style={{ height: 16, width: 0 }} />
 )
 
-export const CopyLinkButton: React.FC<{ path: string }> = ({ path }) => (
+export const PanelHeaderCopyLinkButton: React.FC<{ path: string }> = ({
+	path,
+}) => (
 	<Button
 		kind="secondary"
 		emphasis="low"

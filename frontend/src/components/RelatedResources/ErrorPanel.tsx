@@ -1,7 +1,6 @@
 import { Box } from '@highlight-run/ui/components'
 import { useMemo, useState } from 'react'
 
-import { Divider } from '@/components/CreateAlertButton/CreateAlertButton'
 import LoadingBox from '@/components/LoadingBox'
 import { RelatedError } from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
@@ -55,8 +54,9 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 							state={errorGroup.state}
 							snoozedUntil={errorGroup.snoozed_until}
 						/>
-						<Divider />
+						<Panel.HeaderDivider />
 						<ErrorIssueButton errorGroup={errorGroup} />
+						<Panel.HeaderDivider />
 					</>
 				)}
 			</Panel.Header>

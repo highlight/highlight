@@ -3,10 +3,6 @@ import { Box, Callout, Text } from '@highlight-run/ui/components'
 import LoadingBox from '@/components/LoadingBox'
 import { RelatedTrace } from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
-import {
-	CopyLinkButton,
-	Divider,
-} from '@/components/RelatedResources/PanelHeader'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
 import { TraceHeader } from '@/pages/Traces/TraceHeader'
@@ -24,16 +20,8 @@ export const TracePanel: React.FC<{ resource: RelatedTrace }> = ({
 	return (
 		<>
 			<Panel.Header path={path}>
-				<Box
-					display="flex"
-					alignItems="center"
-					justifyContent="flex-end"
-					flexGrow={1}
-					gap="4"
-				>
-					<CopyLinkButton path={path} />
-					<Divider />
-				</Box>
+				<Panel.HeaderCopyLinkButton path={path} />
+				<Panel.HeaderDivider />
 			</Panel.Header>
 
 			<Box overflowY="scroll" px="36" pt="28" pb="20">

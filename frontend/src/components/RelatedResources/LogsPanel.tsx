@@ -5,10 +5,6 @@ import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
 import { RelatedLogs } from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
-import {
-	CopyLinkButton,
-	Divider,
-} from '@/components/RelatedResources/PanelHeader'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import { ProductType } from '@/graph/generated/schemas'
 import { useNumericProjectId } from '@/hooks/useProjectId'
@@ -83,16 +79,8 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 	return (
 		<>
 			<Panel.Header path={path}>
-				<Box
-					display="flex"
-					alignItems="center"
-					justifyContent="flex-end"
-					flexGrow={1}
-					gap="4"
-				>
-					<CopyLinkButton path={path} />
-					<Divider />
-				</Box>
+				<Panel.HeaderCopyLinkButton path={path} />
+				<Panel.HeaderDivider />
 			</Panel.Header>
 
 			<Box
