@@ -49,6 +49,7 @@ export const LogDetails: React.FC<Props> = ({
 	queryParts,
 }) => {
 	const { disabled, onSubmit } = useSearchContext()
+	const setQuery = disabled ? undefined : onSubmit
 	const { set } = useRelatedResource()
 	const { projectId } = useProjectId()
 	const navigate = useNavigate()
@@ -109,7 +110,7 @@ export const LogDetails: React.FC<Props> = ({
 								matchedAttributes={matchedAttributes}
 								queryParts={queryParts}
 								queryBaseKeys={[key]}
-								setQuery={onSubmit}
+								setQuery={setQuery}
 							/>
 						) : (
 							<JsonViewerValue
@@ -118,7 +119,7 @@ export const LogDetails: React.FC<Props> = ({
 								queryKey={key}
 								queryParts={queryParts}
 								queryMatch={matchedAttributes[key]?.match}
-								setQuery={onSubmit}
+								setQuery={setQuery}
 							/>
 						)}
 					</Box>
@@ -135,7 +136,7 @@ export const LogDetails: React.FC<Props> = ({
 								queryKey={key}
 								queryParts={queryParts}
 								queryMatch={matchedAttributes[key]?.match}
-								setQuery={disabled ? undefined : onSubmit}
+								setQuery={setQuery}
 							/>
 						</Box>
 					),
