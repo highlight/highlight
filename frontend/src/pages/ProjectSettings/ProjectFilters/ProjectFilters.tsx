@@ -565,7 +565,10 @@ const IngestTimeline: React.FC<{
 	})
 
 	const groupedByBucket = _.groupBy(
-		data?.traces_metrics.buckets,
+		data?.traces_metrics.buckets.map((b) => ({
+			...b,
+			group: b.group[0],
+		})),
 		(i) => i.bucket_id,
 	)
 
@@ -577,10 +580,15 @@ const IngestTimeline: React.FC<{
 				level: 'Ingested',
 				count:
 					(100 *
-						(groupedByBucket[b.bucket_id][0]?.metric_value ?? 0)) /
-					((groupedByBucket[b.bucket_id][0]?.metric_value ?? 0) +
-						(groupedByBucket[b.bucket_id][1]?.metric_value ?? 0) ||
-						1),
+						(groupedByBucket[b.bucket_id].find(
+							(g) => g.group === 'true',
+						)?.metric_value ?? 0)) /
+					((groupedByBucket[b.bucket_id].find(
+						(g) => g.group === 'true',
+					)?.metric_value ?? 0) +
+						(groupedByBucket[b.bucket_id].find(
+							(g) => g.group === 'false',
+						)?.metric_value ?? 0) || 1),
 				unit: '%',
 			},
 		],
