@@ -470,11 +470,11 @@ export class Highlight {
 		}
 	}
 
-	async startWithHeaders<T>(
+	startWithHeaders<T>(
 		spanName: string,
 		headers: Headers | IncomingHttpHeaders,
 		options?: SpanOptions,
-	): Promise<{ span: OtelSpan; ctx: Context }> {
+	): { span: OtelSpan; ctx: Context } {
 		const ctx = api.context.active()
 		const span = this.tracer.startSpan(spanName, options, ctx)
 		const contextWithSpanSet = api.trace.setSpan(ctx, span)

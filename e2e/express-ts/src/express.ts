@@ -2,6 +2,7 @@ import express from 'express'
 import { H, Handlers } from '@highlight-run/node'
 import { CONSTANTS } from './constants'
 import { config } from './instrumentation'
+import { context } from '@opentelemetry/api'
 
 H.init(config)
 
@@ -11,17 +12,25 @@ const port = 3003
 // This should be before any controllers (route definitions)
 app.use(Handlers.middleware(config))
 app.get('/', async (req, res) => {
-	await H.runWithHeaders(req.headers, () => {
+	await H.runWithHeaders(req.headers, async () => {
 		const err = new Error('this is a test error', {
 			cause: { route: '/', foo: ['bar'] },
 		})
 		console.info('Sending error to highlight')
 		H.consumeError(err)
-		H.consumeError(
-			new Error('this is another test error', {
-				cause: 'bad code',
-			}),
+		const { span, ctx } = H.startWithHeaders(
+			'second-error',
+			req.headers,
+			{},
 		)
+		context.with(ctx, () => {
+			H.consumeError(
+				new Error('this is another test error', {
+					cause: 'bad code',
+				}),
+			)
+		})
+		span.end()
 
 		res.send('Hello World!')
 	})

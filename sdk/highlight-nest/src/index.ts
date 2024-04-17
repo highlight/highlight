@@ -94,24 +94,20 @@ export class HighlightInterceptor
 		await NodeH.flush()
 	}
 
-	async intercept(
-		context: ExecutionContext,
-		next: CallHandler,
-	): Promise<Observable<any>> {
+	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
 		const ctx = context.switchToHttp()
 		const request = ctx.getRequest()
 
-		const { span: requestSpan, ctx: spanCtx } =
-			await NodeH.startWithHeaders(
-				`${request.method} ${request.url}`,
-				request.headers,
-				{
-					attributes: {
-						'http.method': request.method,
-						'http.url': request.url,
-					},
+		const { span: requestSpan, ctx: spanCtx } = NodeH.startWithHeaders(
+			`${request.method} ${request.url}`,
+			request.headers,
+			{
+				attributes: {
+					'http.method': request.method,
+					'http.url': request.url,
 				},
-			)
+			},
+		)
 		const fn = api.context.bind(spanCtx, () =>
 			next.handle().pipe(
 				catchError((err) => {

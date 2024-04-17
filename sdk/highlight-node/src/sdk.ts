@@ -29,7 +29,7 @@ export interface HighlightInterface {
 		name: string,
 		headers: Headers | IncomingHttpHeaders,
 		options: SpanOptions,
-	) => Promise<{ span: OtelSpan; ctx: Context }>
+	) => { span: OtelSpan; ctx: Context }
 
 	consumeError: (
 		error: Error,
