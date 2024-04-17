@@ -78,7 +78,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 	Free: {
 		label: 'Free',
 		prices: freePrices,
-		subText: 'Free forever',
+		subText: 'Free Forever',
 		icon: (
 			<HiReceiptTax className="text-darker-copy-on-dark w-8 h-8 -translate-x-1" />
 		),
@@ -99,7 +99,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 	PayAsYouGo: {
 		label: 'Pay-as-you-go',
 		id: 'PayAsYouGo',
-		subText: 'per month, billed monthly',
+		subText: 'Starts at',
 		prices: professionalPrices,
 		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
 		features: [
@@ -123,7 +123,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 
 	Enterprise: {
 		label: 'Enterprise',
-		subText: 'per month, billed annually',
+		subText: 'Starts at',
 		prices: enterprisePrices,
 		icon: (
 			<HiOfficeBuilding className="text-white w-8 h-8 -translate-x-1" />
@@ -303,22 +303,31 @@ const PlanTier = ({
 	return (
 		<div
 			className={
-				'flex flex-col flex-grow border rounded-md min-[1190px]:min-w-[255px] basis-64 border-divider-on-dark p-4'
+				'flex flex-col flex-grow border rounded-md min-[1190px]:min-w-[300px] basis-64 border-divider-on-dark p-4'
 			}
 		>
 			<div className="border-divider-on-dark pb-4">
 				<div className="flex flex-col">
 					{tier.icon}
-					<Typography className="mt-2" type="copy1" emphasis>
+					<Typography className="my-2" type="copy1" emphasis>
 						{tier.label}
 					</Typography>
-					<h4 className="mt-0">${tier.prices.monthlyPrice}</h4>
 					<Typography
 						className="text-darker-copy-on-dark"
 						type="copy4"
 					>
-						{tier.subText ?? ''}
+						{tier.subText}
 					</Typography>
+					<div className="flex items-end">
+						<h4 className="mt-0">${tier.prices.monthlyPrice}</h4>
+
+						<Typography
+							className="text-darker-copy-on-dark mb-2 ml-1"
+							type="copy4"
+						>
+							/ month
+						</Typography>
+					</div>
 				</div>
 			</div>
 			{tier.contactUs && (
