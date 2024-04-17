@@ -190,7 +190,7 @@ export const TracesList: React.FC<Props> = ({
 
 	if (!traceEdges.length) {
 		return (
-			<Box px="12" py="8">
+			<Box m="8">
 				<Box
 					border="secondary"
 					borderRadius="6"
