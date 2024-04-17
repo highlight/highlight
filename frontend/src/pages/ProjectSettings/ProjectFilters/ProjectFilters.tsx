@@ -583,12 +583,9 @@ const IngestTimeline: React.FC<{
 						(groupedByBucket[b.bucket_id].find(
 							(g) => g.group === 'true',
 						)?.metric_value ?? 0)) /
-					((groupedByBucket[b.bucket_id].find(
-						(g) => g.group === 'true',
-					)?.metric_value ?? 0) +
-						(groupedByBucket[b.bucket_id].find(
-							(g) => g.group === 'false',
-						)?.metric_value ?? 0) || 1),
+					(groupedByBucket[b.bucket_id]
+						.map((g) => g?.metric_value ?? 0)
+						.reduce((a, b) => a + b, 0) || 1),
 				unit: '%',
 			},
 		],
