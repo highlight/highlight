@@ -193,7 +193,7 @@ slug: nodejs
 <section className="section">
   <div className="left">
     <h3>H.runWithHeaders</h3>
-    <p>H.runWithHeaders() wraps its callback with a span named highlight-run-with-headers, and spreads Highlight's secureSessionId and requestId across all spans with matching a traceId.</p>
+    <p>H.runWithHeaders() wraps its callback with a span named highlight-ctx, and spreads Highlight's secureSessionId and requestId across all spans with matching a traceId.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
       <h5>headers<code>IncomingHttpHeaders</code> <code>required</code></h5>
