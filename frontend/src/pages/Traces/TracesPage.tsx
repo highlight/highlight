@@ -7,14 +7,15 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
-import _ from 'lodash'
+import { sumBy } from 'lodash'
 import moment from 'moment'
 import React, { useEffect, useMemo, useRef } from 'react'
 import { Helmet } from 'react-helmet'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
 import { loadingIcon } from '@/components/Button/style.css'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -45,8 +46,15 @@ import * as styles from './TracesPage.css'
 export type TracesOutletContext = Partial<Trace>[]
 
 export const TracesPage: React.FC = () => {
+	const navigate = useNavigate()
 	const { projectId } = useProjectId()
-	const { trace_cursor: traceCursor } = useParams<{
+	const {
+		trace_id: traceId,
+		span_id: spanId,
+		trace_cursor: traceCursor,
+	} = useParams<{
+		trace_id: string
+		span_id: string
 		trace_cursor: string
 	}>()
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
@@ -63,6 +71,7 @@ export const TracesPage: React.FC = () => {
 	})
 	const minDate = presetStartDate(DEFAULT_TIME_PRESETS[5])
 	const timeMode: TIME_MODE = 'fixed-range' // TODO: Support permalink mode
+	const { resource, remove, set } = useRelatedResource()
 
 	const {
 		traceEdges,
@@ -130,7 +139,7 @@ export const TracesPage: React.FC = () => {
 			counts: [{ level: 'traces', count: b.metric_value! }],
 		}))
 
-	const totalCount = _.sumBy(
+	const totalCount = sumBy(
 		metricsData?.traces_metrics.buckets.filter(
 			(b) => b.metric_type === MetricAggregator.Count,
 		),
@@ -172,6 +181,29 @@ export const TracesPage: React.FC = () => {
 	}, [traceEdges])
 
 	useEffect(() => analytics.page('Traces'), [])
+
+	useEffect(() => {
+		if (traceId) {
+			set({
+				type: 'trace',
+				id: traceId,
+				spanID: spanId,
+				canGoBack: `/${projectId}/traces`,
+			})
+		} else {
+			remove()
+		}
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [traceId])
+
+	useEffect(() => {
+		if (!resource && traceId) {
+			navigate(`/${projectId}/traces`)
+		}
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [resource])
 
 	return (
 		<>

@@ -18,7 +18,6 @@ import { useNumericProjectId } from '@/hooks/useProjectId'
 import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
 import DashboardRouter from '@/pages/Graphing/DashboardRouter'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
-import { TracePanel } from '@/pages/Traces/TracePanel'
 import { TracesPage } from '@/pages/Traces/TracesPage'
 
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
@@ -47,12 +46,10 @@ const ApplicationRouter: React.FC = () => {
 
 				{isLoggedIn || projectId === DEMO_PROJECT_ID ? (
 					<>
-						<Route path="traces" element={<TracesPage />}>
-							<Route
-								path=":trace_id/:span_id?"
-								element={<TracePanel />}
-							/>
-						</Route>
+						<Route
+							path="traces/:trace_id?/:span_id?"
+							element={<TracesPage />}
+						/>
 						<Route
 							path="logs/:log_cursor?"
 							element={<LogsPage />}

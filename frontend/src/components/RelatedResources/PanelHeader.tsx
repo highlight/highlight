@@ -2,14 +2,18 @@ import {
 	Box,
 	ButtonIcon,
 	Dialog,
+	IconSolidArrowLeft,
 	IconSolidArrowsExpand,
+	IconSolidLink,
 	IconSolidX,
 	Stack,
 } from '@highlight-run/ui/components'
+import { message } from 'antd'
 import { useCallback } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
+import { Button } from '@/components/Button'
 import { PreviousNextGroup } from '@/components/PreviousNextGroup/PreviousNextGroup'
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 
@@ -20,9 +24,36 @@ type Props = React.PropsWithChildren & {
 export const PanelHeader: React.FC<Props> = ({ children, path }) => {
 	const navigate = useNavigate()
 	const dialogStore = Dialog.useContext()!
+	const { resource } = useRelatedResource()
 
 	return (
-		<Box py="6" px="8" bb="dividerWeak" display="flex" alignItems="center">
+		<Stack
+			py="6"
+			px="8"
+			bb="dividerWeak"
+			align="center"
+			gap="4"
+			direction="row"
+		>
+			<Stack gap="8" direction="row" align="center" pr="4">
+				{resource?.canGoBack && (
+					<ButtonIcon
+						icon={<IconSolidArrowLeft />}
+						emphasis="medium"
+						kind="secondary"
+						onClick={() => {
+							if (typeof resource.canGoBack === 'string') {
+								navigate(resource.canGoBack)
+							} else {
+								navigate(-1)
+							}
+						}}
+					/>
+				)}
+
+				<Pagination />
+			</Stack>
+
 			<Stack
 				gap="4"
 				direction="row"
@@ -30,19 +61,17 @@ export const PanelHeader: React.FC<Props> = ({ children, path }) => {
 				flexGrow={1}
 				overflow="hidden"
 			>
-				<ButtonIcon
-					icon={<IconSolidArrowsExpand />}
-					emphasis="low"
-					kind="secondary"
-					onClick={() => {
-						navigate(path)
-					}}
-				/>
-
-				<Pagination />
-
 				{children}
 			</Stack>
+
+			<ButtonIcon
+				icon={<IconSolidArrowsExpand />}
+				emphasis="low"
+				kind="secondary"
+				onClick={() => {
+					navigate(path)
+				}}
+			/>
 
 			<ButtonIcon
 				icon={<IconSolidX />}
@@ -52,9 +81,30 @@ export const PanelHeader: React.FC<Props> = ({ children, path }) => {
 					dialogStore.hide()
 				}}
 			/>
-		</Box>
+		</Stack>
 	)
 }
+
+// TODO: Should we export these on Panel?
+export const Divider = () => (
+	<Box bl="divider" style={{ height: 16, width: 0 }} />
+)
+
+export const CopyLinkButton: React.FC<{ path: string }> = ({ path }) => (
+	<Button
+		kind="secondary"
+		emphasis="low"
+		size="small"
+		iconLeft={<IconSolidLink />}
+		trackingId="related-resource_back-button"
+		onClick={() => {
+			navigator.clipboard.writeText(window.location.origin + path)
+			message.success('Link copied to clipboard!')
+		}}
+	>
+		Copy link
+	</Button>
+)
 
 const Pagination = () => {
 	const { set, panelPagination } = useRelatedResource()
