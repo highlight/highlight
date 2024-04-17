@@ -2,7 +2,7 @@
 import './globals.css'
 
 import { CONSTANTS } from '@/constants'
-import { HighlightInit } from '@highlight-run/next/client'
+import { ErrorBoundary, HighlightInit } from '@highlight-run/next/client'
 
 export const metadata = {
 	title: 'Highlight Next Demo',
@@ -15,7 +15,7 @@ export default function RootLayout({
 	children: React.ReactNode
 }) {
 	return (
-		<>
+		<ErrorBoundary>
 			<HighlightInit
 				debug={{ clientInteractions: true, domRecording: true }}
 				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
@@ -44,6 +44,6 @@ export default function RootLayout({
 					<div>{children}</div>
 				</body>
 			</html>
-		</>
+		</ErrorBoundary>
 	)
 }
