@@ -995,6 +995,7 @@ type VisualizationInput struct {
 	ID        *int   `json:"id,omitempty"`
 	ProjectID int    `json:"projectId"`
 	Name      string `json:"name"`
+	GraphIds  []int  `json:"graphIds,omitempty"`
 }
 
 type WebSocketEvent struct {

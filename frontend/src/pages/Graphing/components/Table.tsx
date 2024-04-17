@@ -8,6 +8,7 @@ import {
 } from '@/pages/Graphing/components/Graph'
 
 import * as style from './Table.css'
+import clsx from 'clsx'
 
 export type TableNullHandling = 'Hide row' | 'Blank' | 'Zero'
 export const TABLE_NULL_HANDLING: TableNullHandling[] = [
@@ -36,6 +37,7 @@ export const MetricTable = ({
 	yAxisFunction,
 	series,
 	viewConfig,
+	disabled,
 }: InnerChartProps<TableConfig> & SeriesInfo) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric)
 	const valueFormatter = getTickFormatter(yAxisMetric)
@@ -65,7 +67,12 @@ export const MetricTable = ({
 						))}
 					</Table.Row>
 				</Table.Head>
-				<Box height="full" cssClass={style.scrollableBody}>
+				<Box
+					height="full"
+					cssClass={clsx(style.scrollableBody, {
+						[style.preventScroll]: disabled,
+					})}
+				>
 					<Table.Body>
 						{data?.map((d, i) => {
 							// If every value for the bucket is null, skip this row

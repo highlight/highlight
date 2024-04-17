@@ -88,6 +88,7 @@ export interface ChartProps<TConfig> {
 	limitFunctionType?: MetricAggregator
 	limitMetric?: string
 	viewConfig: TConfig
+	disabled?: boolean
 	onDelete?: () => void
 	onExpand?: () => void
 	onEdit?: () => void
@@ -101,6 +102,7 @@ export interface InnerChartProps<TConfig> {
 	title?: string
 	loading?: boolean
 	viewConfig: TConfig
+	disabled?: boolean
 }
 
 export interface SeriesInfo {
@@ -328,6 +330,7 @@ const Graph = ({
 	limitMetric,
 	title,
 	viewConfig,
+	disabled,
 	onDelete,
 	onExpand,
 	onEdit,
@@ -474,6 +477,7 @@ const Graph = ({
 						yAxisFunction={yAxisFunction}
 						viewConfig={viewConfig}
 						series={series}
+						disabled={disabled}
 					/>
 				)
 				break
@@ -522,13 +526,11 @@ const Graph = ({
 					>
 						{title || 'Untitled metric view'}
 					</Text>
-					{showMenu && graphHover && (
+					{showMenu && graphHover && !disabled && (
 						<Box
-							cssClass={
-								graphHover
-									? style.titleText
-									: clsx(style.titleText, style.hiddenMenu)
-							}
+							cssClass={clsx(style.titleText, {
+								[style.hiddenMenu]: !graphHover,
+							})}
 						>
 							{onExpand !== undefined && (
 								<Button
@@ -581,9 +583,9 @@ const Graph = ({
 						</Box>
 					)}
 				</Box>
-				<Box position="relative" cssClass={style.legendWrapper}>
-					{showLegend &&
-						series.map((key, idx) => {
+				{showLegend && (
+					<Box position="relative" cssClass={style.legendWrapper}>
+						{series.map((key, idx) => {
 							return (
 								<Button
 									kind="secondary"
@@ -643,12 +645,14 @@ const Graph = ({
 								</Button>
 							)
 						})}
-				</Box>
+					</Box>
+				)}
 			</Box>
 			<Box
 				height="full"
 				maxHeight="screen"
 				key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
+				cssClass={clsx({ [style.disabled]: disabled })}
 			>
 				{innerChart}
 			</Box>
