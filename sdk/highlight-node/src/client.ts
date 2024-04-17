@@ -208,8 +208,8 @@ export class Highlight {
 
 		this.processor = new CustomSpanProcessor(exporter, {
 			scheduledDelayMillis: 1000,
-			maxExportBatchSize: 128,
-			maxQueueSize: 1024,
+			maxExportBatchSize: 1024 * 1024,
+			maxQueueSize: 1024 * 1024,
 			exportTimeoutMillis: this.FLUSH_TIMEOUT_MS,
 		})
 
