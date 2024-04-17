@@ -217,7 +217,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 				NewStruct(new(ClickhouseSession)).
 				InsertInto(SessionsTable, chSessions...).
 				BuildWithFlavor(sqlbuilder.ClickHouse)
-			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, 34, map[int]bool{7: true, 8: true}, MicroSeconds)
+			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, map[int]bool{7: true, 8: true}, MicroSeconds)
 			return client.conn.Exec(chCtx, sessionsSql, sessionsArgs...)
 		})
 	}
@@ -228,7 +228,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 				NewStruct(new(ClickhouseField)).
 				InsertInto(FieldsTable, chFields...).
 				BuildWithFlavor(sqlbuilder.ClickHouse)
-			fieldsSql, fieldsArgs = replaceTimestampInserts(fieldsSql, fieldsArgs, 6, map[int]bool{3: true}, MicroSeconds)
+			fieldsSql, fieldsArgs = replaceTimestampInserts(fieldsSql, fieldsArgs, map[int]bool{3: true}, MicroSeconds)
 			return client.conn.Exec(chCtx, fieldsSql, fieldsArgs...)
 		})
 	}
