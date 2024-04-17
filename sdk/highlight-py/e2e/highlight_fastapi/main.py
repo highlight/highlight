@@ -12,6 +12,7 @@ import os
 
 import highlight_io
 from highlight_io.integrations.fastapi import FastAPIMiddleware
+from highlight_io.sdk import LogHandler
 
 H = highlight_io.H(
     "1",
@@ -20,6 +21,7 @@ H = highlight_io.H(
     service_name="my-fastapi-app",
     service_version="1.0.0",
     environment="e2e-test",
+    debug=True,
 )
 
 app = FastAPI()
@@ -43,6 +45,13 @@ try:
     )
 except:
     logging.warning("Not able to connect to AWS. Check credentials")
+
+# example setup for custom highlight LogHandler
+formatter = logging.Formatter(" %(name)s :: %(levelname)-8s :: %(message)s")
+handler = LogHandler(H)
+handler.setFormatter(formatter)
+lg = logging.getLogger("trace.test.logger")
+lg.addHandler(handler)
 
 
 @app.get("/")
@@ -115,6 +124,17 @@ async def boto3sqs(request: Request):
 def health_check():
     logging.info("oh, no!")
     raise HTTPException(status_code=404, detail="Item not found")
+
+
+@router.get("/trace")
+def trace():
+    rng = random.randint(0, 1024 * 1024)
+    with H.trace(span_name=f"custom-{rng}"):
+        logging.warning(f"hi {rng}")
+        lg.warning(f"there {rng}", {"rng": rng})
+        lg.warning(f"oh {rng} %d %d", *[rng, rng * 2])
+        lg.warning("world %d", rng)
+        return "hi!"
 
 
 app.include_router(router)

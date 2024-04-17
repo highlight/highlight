@@ -190,6 +190,10 @@ func translateParams(params *string) (*string, error) {
 		query = ptr.String(strings.Join(queryParts, " OR "))
 	}
 
+	if query != nil && *query != "" {
+		*query = fmt.Sprintf(`{"Query":"%s"}`, *query)
+	}
+
 	return query, nil
 }
 

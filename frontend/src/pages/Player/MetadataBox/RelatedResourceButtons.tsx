@@ -103,7 +103,7 @@ const getErrorsLink = ({
 	if (!secureSessionId) return ''
 
 	const params = createSearchParams({
-		query: `and||error-field_secure_session_id,is,${secureSessionId}`,
+		query: `secure_session_id=${secureSessionId}`,
 		start_date: moment(startDate).subtract(5, 'minutes').toISOString(),
 		end_date: moment(endDate).add(5, 'minutes').toISOString(),
 	})

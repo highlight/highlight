@@ -34,6 +34,7 @@ import {
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
+import LoadingBox from '@/components/LoadingBox'
 import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { useSearchContext } from '@/components/Search/SearchContext'
@@ -54,6 +55,7 @@ import {
 } from '@/graph/generated/hooks'
 import { ProductType } from '@/graph/generated/schemas'
 import { useDebounce } from '@/hooks/useDebounce'
+import { formatNumber } from '@/util/numbers'
 
 import * as styles from './SearchForm.css'
 
@@ -102,8 +104,11 @@ export type SearchFormProps = {
 	}>
 	hideDatePicker?: boolean
 	hideCreateAlert?: boolean
-	savedSegmentType?: 'Trace' | 'Log'
+	savedSegmentType?: 'Trace' | 'Log' | 'Error'
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
+	isPanelView?: boolean
+	resultCount?: number
+	loading?: boolean
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({
@@ -120,10 +125,13 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	hideCreateAlert,
 	savedSegmentType,
 	textAreaRef,
+	isPanelView,
+	resultCount,
+	loading,
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
-	const { disabled, query, setQuery, onSubmit } = useSearchContext()
+	const { query, setQuery, onSubmit } = useSearchContext()
 
 	const handleQueryChange = (query?: string) => {
 		const updatedQuery = query ?? ''
@@ -138,6 +146,121 @@ const SearchForm: React.FC<SearchFormProps> = ({
 		projectId,
 	})
 
+	const DatePickerComponent = hideDatePicker ? null : (
+		<DateRangePicker
+			emphasis="medium"
+			iconLeft={<IconSolidClock />}
+			selectedValue={{
+				startDate,
+				endDate,
+				selectedPreset,
+			}}
+			onDatesChange={onDatesChange}
+			presets={presets}
+			minDate={minDate}
+			disabled={timeMode === 'permalink'}
+		/>
+	)
+
+	const ActionsComponent = !actions ? null : (
+		<Box>{actions({ query, startDate, endDate })}</Box>
+	)
+
+	const SearchComponent = (
+		<Search
+			startDate={startDate}
+			endDate={endDate}
+			textAreaRef={textAreaRef}
+			productType={productType}
+			hideIcon={isPanelView}
+		/>
+	)
+
+	const AlertComponent = hideCreateAlert ? null : (
+		<Button
+			kind="secondary"
+			trackingId="logs_create-alert_click"
+			onClick={() => {
+				const encodedQuery = encodeQueryParams(
+					{
+						query: StringParam,
+						start_date: DateTimeParam,
+						end_date: DateTimeParam,
+					},
+					{
+						query: query,
+						start_date: startDate,
+						end_date: endDate,
+					},
+				)
+
+				navigate({
+					pathname: `/${projectId}/alerts/logs/new`,
+					search: stringify(encodedQuery),
+				})
+			}}
+			emphasis="medium"
+			iconLeft={<IconSolidPlus />}
+		>
+			Create alert
+		</Button>
+	)
+
+	if (isPanelView) {
+		return (
+			<>
+				{SegmentModals}
+				<Stack alignItems="flex-start" gap="8" width="full" p="8">
+					<Stack
+						flexDirection="row"
+						justifyContent="space-between"
+						width="full"
+					>
+						{DatePickerComponent}
+						{ActionsComponent}
+					</Stack>
+					<Stack
+						gap="0"
+						border="dividerWeak"
+						borderRadius="6"
+						width="full"
+					>
+						<Box
+							background="white"
+							borderTopLeftRadius="4"
+							borderTopRightRadius="4"
+						>
+							{SearchComponent}
+						</Box>
+						<Box borderBottom="dividerWeak" />
+						<Stack
+							flexDirection="row"
+							borderBottomLeftRadius="4"
+							borderBottomRightRadius="4"
+							justifyContent="space-between"
+							py="6"
+							pl="8"
+							pr="4"
+						>
+							<Box display="flex" alignItems="center">
+								{loading ? (
+									<LoadingBox />
+								) : (
+									resultCount != null && (
+										<Text color="weak">
+											{formatNumber(resultCount)} results
+										</Text>
+									)
+								)}
+							</Box>
+							{SegmentMenu}
+						</Stack>
+					</Stack>
+				</Stack>
+			</>
+		)
+	}
+
 	const displaySeparator =
 		!!SegmentMenu && (!!actions || !hideCreateAlert || !hideDatePicker)
 
@@ -147,17 +270,10 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			<Box
 				alignItems="stretch"
 				display="flex"
-				gap="8"
 				width="full"
 				borderBottom="dividerWeak"
 			>
-				<Search
-					startDate={startDate}
-					endDate={endDate}
-					disableSearch={disabled}
-					textAreaRef={textAreaRef}
-					productType={productType}
-				/>
+				{SearchComponent}
 				<Box display="flex" pr="8" py="6" gap="6">
 					{SegmentMenu}
 					{displaySeparator && (
@@ -168,54 +284,9 @@ const SearchForm: React.FC<SearchFormProps> = ({
 							style={{ height: 18 }}
 						/>
 					)}
-					{!hideCreateAlert && (
-						<Button
-							kind="secondary"
-							trackingId={`${
-								savedSegmentType?.toLowerCase() ?? 'logs'
-							}_create-alert_click`}
-							onClick={() => {
-								const encodedQuery = encodeQueryParams(
-									{
-										query: StringParam,
-										start_date: DateTimeParam,
-										end_date: DateTimeParam,
-									},
-									{
-										query: query,
-										start_date: startDate,
-										end_date: endDate,
-									},
-								)
-
-								navigate({
-									// TODO: Handle traces
-									pathname: `/${projectId}/alerts/logs/new`,
-									search: stringify(encodedQuery),
-								})
-							}}
-							emphasis="medium"
-							iconLeft={<IconSolidPlus />}
-						>
-							Create alert
-						</Button>
-					)}
-					{actions && actions({ query, startDate, endDate })}
-					{!hideDatePicker && (
-						<DateRangePicker
-							emphasis="medium"
-							iconLeft={<IconSolidClock />}
-							selectedValue={{
-								startDate,
-								endDate,
-								selectedPreset,
-							}}
-							onDatesChange={onDatesChange}
-							presets={presets}
-							minDate={minDate}
-							disabled={timeMode === 'permalink'}
-						/>
-					)}
+					{AlertComponent}
+					{ActionsComponent}
+					{DatePickerComponent}
 				</Box>
 			</Box>
 		</>
@@ -230,7 +301,6 @@ export const Search: React.FC<{
 	startDate: Date
 	endDate: Date
 	hideIcon?: boolean
-	disableSearch?: boolean
 	placeholder?: string
 	productType: ProductType
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
@@ -238,13 +308,19 @@ export const Search: React.FC<{
 	startDate,
 	endDate,
 	hideIcon,
-	disableSearch,
 	placeholder,
 	textAreaRef,
 	productType,
 }) => {
-	const { initialQuery, query, queryParts, tokenGroups, onSubmit, setQuery } =
-		useSearchContext()
+	const {
+		disabled,
+		initialQuery,
+		query,
+		queryParts,
+		tokenGroups,
+		onSubmit,
+		setQuery,
+	} = useSearchContext()
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const defaultInputRef = useRef<HTMLTextAreaElement | null>(null)
@@ -521,16 +597,16 @@ export const Search: React.FC<{
 				display="flex"
 				alignItems="flex-start"
 				gap="6"
-				py="3"
 				width="full"
 				color="weak"
 				position="relative"
+				margin="auto"
 			>
 				<Box
 					cssClass={styles.comboboxTagsContainer}
 					style={{
-						left: hideIcon ? 6 : 2,
-						paddingLeft: hideIcon ? undefined : 38,
+						left: hideIcon ? 4 : 2,
+						paddingLeft: hideIcon ? 2 : 38,
 					}}
 				>
 					{tokenGroups.map((tokenGroup, index) => {
@@ -552,7 +628,7 @@ export const Search: React.FC<{
 					})}
 				</Box>
 				<Combobox
-					disabled={disableSearch}
+					disabled={disabled}
 					store={comboboxStore}
 					name="search"
 					placeholder={placeholder ?? 'Search...'}
@@ -563,6 +639,7 @@ export const Search: React.FC<{
 						<TextareaAutosize
 							ref={inputRef}
 							style={{ resize: 'none', overflowY: 'hidden' }}
+							spellCheck={false}
 						/>
 					}
 					value={query}
@@ -607,8 +684,8 @@ export const Search: React.FC<{
 					data-hl-record
 				/>
 
-				{isDirty && !disableSearch && (
-					<Box style={{ paddingTop: 9 }}>
+				{isDirty && !disabled && (
+					<Box pt="8" pr="8">
 						<IconSolidXCircle
 							size={16}
 							onClick={(e) => {
