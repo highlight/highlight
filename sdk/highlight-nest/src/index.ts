@@ -111,7 +111,13 @@ export class HighlightInterceptor
 		const fn = api.context.bind(spanCtx, () =>
 			next.handle().pipe(
 				catchError((err) => {
-					NodeH.consumeError(err)
+					NodeH.consumeError(
+						err,
+						undefined,
+						undefined,
+						{},
+						{ span: requestSpan },
+					)
 					return throwError(() => err)
 				}),
 				finalize(() => {

@@ -36,6 +36,7 @@ export interface HighlightInterface {
 		secureSessionId?: string,
 		requestId?: string,
 		metadata?: Attributes,
+		options?: { span: OtelSpan },
 	) => void
 	recordMetric: (
 		secureSessionId: string,
@@ -95,6 +96,7 @@ export const H: HighlightInterface = {
 		secureSessionId?: string,
 		requestId?: string,
 		metadata?: Attributes,
+		options?: { span: OtelSpan },
 	) => {
 		try {
 			highlight_obj.consumeCustomError(
@@ -102,6 +104,7 @@ export const H: HighlightInterface = {
 				secureSessionId,
 				requestId,
 				metadata,
+				options,
 			)
 		} catch (e) {
 			console.warn('highlight-node consumeError error: ', e)

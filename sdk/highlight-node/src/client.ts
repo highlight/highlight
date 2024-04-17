@@ -350,8 +350,9 @@ export class Highlight {
 		secureSessionId: string | undefined,
 		requestId: string | undefined,
 		metadata?: Attributes,
+		options?: { span: OtelSpan },
 	) {
-		let span = api.trace.getActiveSpan()
+		let span = options?.span ?? api.trace.getActiveSpan()
 		if (!span) {
 			span = this.tracer.startSpan('highlight.error')
 		}
