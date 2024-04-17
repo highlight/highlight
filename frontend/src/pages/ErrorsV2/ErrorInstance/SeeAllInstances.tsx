@@ -18,7 +18,10 @@ export const SeeAllInstances = ({ data }: Props) => {
 
 	return (
 		<Link
-			to={`/${projectId}/errors/${errorGroupSecureID}/instances`}
+			to={{
+				pathname: `/${projectId}/errors/${errorGroupSecureID}/instances`,
+				search: location.search,
+			}}
 			onClick={() => analytics.track('error_see-all-instances_click')}
 		>
 			<Tag
