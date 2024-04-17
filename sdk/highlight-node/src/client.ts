@@ -286,7 +286,7 @@ export class Highlight {
 		tags?: { name: string; value: string }[],
 	) {
 		if (!this.tracer) return
-		const span = this.tracer.startSpan('highlight-ctx')
+		const span = this.tracer.startSpan('highlight.metric')
 		span.addEvent('metric', {
 			['highlight.project_id']: this._projectID,
 			['metric.name']: name,
@@ -318,7 +318,7 @@ export class Highlight {
 		metadata?: Attributes,
 	) {
 		if (!this.tracer) return
-		const span = this.tracer.startSpan('highlight-ctx')
+		const span = this.tracer.startSpan('highlight.log')
 		// log specific events from https://github.com/highlight/highlight/blob/19ea44c616c432ef977c73c888c6dfa7d6bc82f3/sdk/highlight-go/otel.go#L34-L36
 		span.addEvent(
 			'log',
@@ -353,7 +353,7 @@ export class Highlight {
 	) {
 		let span = api.trace.getActiveSpan()
 		if (!span) {
-			span = this.tracer.startSpan('highlight-ctx')
+			span = this.tracer.startSpan('highlight.error')
 		}
 		span.recordException(error)
 		if (metadata != undefined) {
