@@ -9,9 +9,9 @@ import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
 import { sumBy } from 'lodash'
 import moment from 'moment'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
 import { loadingIcon } from '@/components/Button/style.css'
@@ -171,14 +171,6 @@ export const TracesPage: React.FC = () => {
 				break
 		}
 	})
-
-	const outletContext = useMemo<TracesOutletContext>(() => {
-		if (!traceEdges) {
-			return []
-		}
-
-		return traceEdges.map((edge) => edge.node)
-	}, [traceEdges])
 
 	useEffect(() => analytics.page('Traces'), [])
 
@@ -363,8 +355,6 @@ export const TracesPage: React.FC = () => {
 					/>
 				</Box>
 			</Box>
-
-			<Outlet context={outletContext} />
 		</>
 	)
 }

@@ -1,8 +1,9 @@
-import { Box } from '@highlight-run/ui/components'
+import { Box, Callout, Text } from '@highlight-run/ui/components'
 import { stringify } from 'query-string'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
+import { LinkButton } from '@/components/LinkButton'
 import { RelatedLogs } from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
@@ -10,7 +11,6 @@ import { ProductType } from '@/graph/generated/schemas'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
-import { NoLogsFound } from '@/pages/Traces/TraceLogs'
 
 export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 	resource,
@@ -129,5 +129,34 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 				</Box>
 			</Box>
 		</>
+	)
+}
+
+const NoLogsFound = () => {
+	return (
+		<Box mx="auto" style={{ maxWidth: 300 }}>
+			<Callout title="No associated logs found">
+				<Box
+					display="flex"
+					flexDirection="column"
+					gap="16"
+					alignItems="flex-start"
+				>
+					<Text color="moderate">
+						To match backend logs to traces, make sure to enable
+						"full stack mapping."
+					</Text>
+
+					<LinkButton
+						trackingId="logs-empty-state_specification-docs"
+						kind="secondary"
+						to="https://www.highlight.io/docs/getting-started/frontend-backend-mapping"
+						target="_blank"
+					>
+						Learn more
+					</LinkButton>
+				</Box>
+			</Callout>
+		</Box>
 	)
 }
