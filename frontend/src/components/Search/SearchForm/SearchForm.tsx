@@ -21,16 +21,10 @@ import { useProjectId } from '@hooks/useProjectId'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import moment from 'moment'
-import { stringify } from 'query-string'
 import React, { useEffect, useRef, useState } from 'react'
 import TextareaAutosize from 'react-autosize-textarea'
 import { useNavigate } from 'react-router-dom'
-import {
-	DateTimeParam,
-	encodeQueryParams,
-	StringParam,
-	withDefault,
-} from 'use-query-params'
+import { StringParam, withDefault } from 'use-query-params'
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
@@ -176,27 +170,15 @@ const SearchForm: React.FC<SearchFormProps> = ({
 		/>
 	)
 
+	// TODO: only supported for logs
 	const AlertComponent = hideCreateAlert ? null : (
 		<Button
 			kind="secondary"
 			trackingId="logs_create-alert_click"
 			onClick={() => {
-				const encodedQuery = encodeQueryParams(
-					{
-						query: StringParam,
-						start_date: DateTimeParam,
-						end_date: DateTimeParam,
-					},
-					{
-						query: query,
-						start_date: startDate,
-						end_date: endDate,
-					},
-				)
-
 				navigate({
 					pathname: `/${projectId}/alerts/logs/new`,
-					search: stringify(encodedQuery),
+					search: location.search,
 				})
 			}}
 			emphasis="medium"
