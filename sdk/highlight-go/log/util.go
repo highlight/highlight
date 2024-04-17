@@ -74,10 +74,10 @@ type VercelLog struct {
 	Proxy       VercelProxy `json:"proxy"`
 }
 
-func submitVercelLog(ctx context.Context, tracer trace.Tracer, projectID int, log VercelLog) {
+func submitVercelLog(ctx context.Context, tracer trace.Tracer, projectID int, serviceName string, log VercelLog) {
 	span, _ := highlight.StartTraceWithoutResourceAttributes(
 		ctx, tracer, highlight.UtilitySpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
-		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
+		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)), semconv.ServiceNameKey.String(serviceName),
 	)
 	defer highlight.EndTrace(span)
 
@@ -95,7 +95,7 @@ func submitVercelLog(ctx context.Context, tracer trace.Tracer, projectID int, lo
 	attrs := []attribute.KeyValue{
 		LogSeverityKey.String(level),
 		LogMessageKey.String(log.Message),
-		semconv.ServiceNameKey.String("vercel-log-drain-" + log.ProjectId),
+		attribute.String("vercel.project", log.ProjectId),
 		semconv.ServiceVersionKey.String(log.DeploymentId),
 		semconv.CodeNamespaceKey.String(log.Source),
 		semconv.CodeFilepathKey.String(log.Path),
@@ -121,13 +121,13 @@ func submitVercelLog(ctx context.Context, tracer trace.Tracer, projectID int, lo
 	}
 }
 
-func SubmitVercelLogs(ctx context.Context, tracer trace.Tracer, projectID int, logs []VercelLog) {
+func SubmitVercelLogs(ctx context.Context, tracer trace.Tracer, projectID int, serviceName string, logs []VercelLog) {
 	if len(logs) == 0 {
 		return
 	}
 
 	for _, log := range logs {
-		submitVercelLog(ctx, tracer, projectID, log)
+		submitVercelLog(ctx, tracer, projectID, serviceName, log)
 	}
 }
 
