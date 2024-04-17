@@ -37,6 +37,7 @@ import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
 import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { SearchExpression } from '@/components/Search/Parser/listener'
+import { useSearchContext } from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -44,12 +45,10 @@ import {
 import { QueryPart } from '@/components/Search/SearchForm/QueryPart'
 import {
 	BODY_KEY,
-	buildTokenGroups,
 	DEFAULT_OPERATOR,
 	quoteQueryValue,
 	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
-import { parseSearch } from '@/components/Search/utils'
 import {
 	useGetKeysLazyQuery,
 	useGetKeyValuesLazyQuery,
@@ -86,8 +85,6 @@ export const SEARCH_OPERATORS = [
 export type SearchOperator = typeof SEARCH_OPERATORS[number]
 
 export type SearchFormProps = {
-	onFormSubmit: (query: string) => void
-	initialQuery: string
 	startDate: Date
 	endDate: Date
 	selectedPreset?: DateRangePreset
@@ -100,7 +97,6 @@ export type SearchFormProps = {
 	minDate: Date
 	timeMode: TIME_MODE
 	productType: ProductType
-	disableSearch?: boolean
 	actions?: React.FC<{
 		query: string
 		startDate: Date
@@ -116,17 +112,14 @@ export type SearchFormProps = {
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({
-	initialQuery,
 	startDate,
 	endDate,
 	selectedPreset,
 	productType,
 	onDatesChange,
-	onFormSubmit,
 	presets,
 	minDate,
 	timeMode,
-	disableSearch,
 	actions,
 	hideDatePicker,
 	hideCreateAlert,
@@ -138,12 +131,12 @@ const SearchForm: React.FC<SearchFormProps> = ({
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
-	const [query, setQuery] = React.useState(initialQuery)
+	const { query, setQuery, onSubmit } = useSearchContext()
 
 	const handleQueryChange = (query?: string) => {
 		const updatedQuery = query ?? ''
 		setQuery(updatedQuery)
-		onFormSubmit(updatedQuery)
+		onSubmit(updatedQuery)
 	}
 
 	const { SegmentMenu, SegmentModals } = useSavedSegments({
@@ -175,15 +168,10 @@ const SearchForm: React.FC<SearchFormProps> = ({
 
 	const SearchComponent = (
 		<Search
-			initialQuery={initialQuery}
 			startDate={startDate}
 			endDate={endDate}
-			disableSearch={disableSearch}
-			query={query}
 			textAreaRef={textAreaRef}
 			productType={productType}
-			setQuery={setQuery}
-			onFormSubmit={onFormSubmit}
 			hideIcon={isPanelView}
 		/>
 	)
@@ -310,30 +298,29 @@ export { SearchForm }
 export const DEFAULT_INPUT_HEIGHT = 31
 
 export const Search: React.FC<{
-	initialQuery: string
 	startDate: Date
 	endDate: Date
 	hideIcon?: boolean
-	disableSearch?: boolean
 	placeholder?: string
-	query: string
 	productType: ProductType
-	setQuery: (value: string) => void
-	onFormSubmit: (query: string) => void
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 }> = ({
-	initialQuery,
 	startDate,
 	endDate,
 	hideIcon,
-	disableSearch,
 	placeholder,
-	query,
 	textAreaRef,
 	productType,
-	setQuery,
-	onFormSubmit,
 }) => {
+	const {
+		disabled,
+		initialQuery,
+		query,
+		queryParts,
+		tokenGroups,
+		onSubmit,
+		setQuery,
+	} = useSearchContext()
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const defaultInputRef = useRef<HTMLTextAreaElement | null>(null)
@@ -349,8 +336,6 @@ export const Search: React.FC<{
 	const [cursorIndex, setCursorIndex] = useState(0)
 	const [isPending, startTransition] = React.useTransition()
 
-	const { queryParts, tokens } = parseSearch(query)
-	const tokenGroups = buildTokenGroups(tokens)
 	const activePart = getActivePart(cursorIndex, queryParts)
 	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
 		activePart.value,
@@ -403,7 +388,7 @@ export const Search: React.FC<{
 	const isDirty = query !== ''
 
 	const submitQuery = (query: string) => {
-		onFormSubmit(query)
+		onSubmit(query)
 	}
 
 	const handleSetCursorIndex = () => {
@@ -643,7 +628,7 @@ export const Search: React.FC<{
 					})}
 				</Box>
 				<Combobox
-					disabled={disableSearch}
+					disabled={disabled}
 					store={comboboxStore}
 					name="search"
 					placeholder={placeholder ?? 'Search...'}
@@ -699,7 +684,7 @@ export const Search: React.FC<{
 					data-hl-record
 				/>
 
-				{isDirty && !disableSearch && (
+				{isDirty && !disabled && (
 					<Box pt="8" pr="8">
 						<IconSolidXCircle
 							size={16}
