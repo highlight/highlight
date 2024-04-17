@@ -3,8 +3,9 @@ import { Highlight } from './client'
 import log from './log'
 import { ResourceAttributes } from '@opentelemetry/resources'
 import type { HighlightContext, NodeOptions } from './types.js'
-import type {
+import {
 	Attributes,
+	Context,
 	Span as OtelSpan,
 	SpanOptions,
 } from '@opentelemetry/api'
@@ -24,6 +25,11 @@ export interface HighlightInterface {
 		headers: Headers | IncomingHttpHeaders,
 		cb: (span: OtelSpan) => T | Promise<T>,
 	) => Promise<T>
+	startWithHeaders: (
+		name: string,
+		headers: Headers | IncomingHttpHeaders,
+		options: SpanOptions,
+	) => Promise<{ span: OtelSpan; ctx: Context }>
 
 	consumeError: (
 		error: Error,
@@ -159,6 +165,9 @@ export const H: HighlightInterface = {
 
 	runWithHeaders: (headers, cb) => {
 		return highlight_obj.runWithHeaders(headers, cb)
+	},
+	startWithHeaders: (spanName, headers, options) => {
+		return highlight_obj.startWithHeaders(spanName, headers, options)
 	},
 	consumeAndFlush: async function (...args) {
 		try {

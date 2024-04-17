@@ -1,19 +1,24 @@
-import { BufferConfig, ReadableSpan, Span } from '@opentelemetry/sdk-trace-base'
+import {
+	AlwaysOnSampler,
+	BufferConfig,
+	ReadableSpan,
+	Span,
+} from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
-import type {
+import api, {
 	Attributes,
 	BaggageEntry,
-	Span as OtelSpan,
-	SpanOptions,
-	Tracer,
-} from '@opentelemetry/api'
-import {
+	Context,
 	diag,
 	DiagConsoleLogger,
 	DiagLogLevel,
 	propagation,
+	Span as OtelSpan,
+	SpanOptions,
 	trace,
+	Tracer,
 } from '@opentelemetry/api'
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
@@ -226,8 +231,10 @@ export class Highlight {
 			autoDetectResources: true,
 			resourceDetectors: [processDetectorSync],
 			resource: new Resource(attributes),
-			spanProcessor: this.processor,
+			spanProcessors: [this.processor],
 			traceExporter: exporter,
+			contextManager: new AsyncLocalStorageContextManager(),
+			sampler: new AlwaysOnSampler(),
 			instrumentations,
 		})
 		this.otel.start()
@@ -344,7 +351,10 @@ export class Highlight {
 		requestId: string | undefined,
 		metadata?: Attributes,
 	) {
-		const span = this.tracer.startSpan('highlight-ctx')
+		let span = api.trace.getActiveSpan()
+		if (!span) {
+			span = this.tracer.startSpan('highlight-ctx')
+		}
 		span.recordException(error)
 		if (metadata != undefined) {
 			span.setAttributes(metadata)
@@ -439,42 +449,52 @@ export class Highlight {
 		headers: Headers | IncomingHttpHeaders,
 		cb: (span: OtelSpan) => T | Promise<T>,
 	) {
-		console.log('vadim', 'runWithHeaders', 'start')
-		return this.tracer.startActiveSpan('highlight-ctx', async (span) => {
-			console.log('vadim', 'runWithHeaders', 'cb')
-			const { secureSessionId, requestId } = this.parseHeaders(headers)
-
-			if (secureSessionId && requestId) {
-				this.processor.setTraceMetadata(span, {
-					'highlight.session_id': secureSessionId,
-					'highlight.trace_id': requestId,
-				})
-
-				propagation
-					.getActiveBaggage()
-					?.setEntry(HIGHLIGHT_REQUEST_HEADER, {
-						value: `${secureSessionId}/${requestId}`,
-					} as BaggageEntry)
+		const { secureSessionId, requestId } = this.parseHeaders(headers)
+		const { span, ctx } = await this.startWithHeaders(
+			'highlight-ctx',
+			headers,
+		)
+		try {
+			return await api.context.with(ctx, async () => {
+				return cb(span)
+			})
+		} catch (error) {
+			if (error instanceof Error) {
+				this.consumeCustomError(error, secureSessionId, requestId)
 			}
 
-			try {
-				return await cb(span)
-			} catch (error) {
-				if (error instanceof Error) {
-					this.consumeCustomError(error, secureSessionId, requestId)
-				}
+			throw error
+		} finally {
+			span.end()
+			await this.waitForFlush()
+		}
+	}
 
-				throw error
-			} finally {
-				span.end()
-				await this.waitForFlush()
-				console.log('vadim', 'runWithHeaders', 'cb finally')
-			}
-		})
+	async startWithHeaders<T>(
+		spanName: string,
+		headers: Headers | IncomingHttpHeaders,
+		options?: SpanOptions,
+	): Promise<{ span: OtelSpan; ctx: Context }> {
+		const ctx = api.context.active()
+		const span = this.tracer.startSpan(spanName, options, ctx)
+		const contextWithSpanSet = api.trace.setSpan(ctx, span)
+
+		const { secureSessionId, requestId } = this.parseHeaders(headers)
+		if (secureSessionId && requestId) {
+			this.processor.setTraceMetadata(span, {
+				'highlight.session_id': secureSessionId,
+				'highlight.trace_id': requestId,
+			})
+
+			propagation.getActiveBaggage()?.setEntry(HIGHLIGHT_REQUEST_HEADER, {
+				value: `${secureSessionId}/${requestId}`,
+			} as BaggageEntry)
+		}
+
+		return { span, ctx: contextWithSpanSet }
 	}
 
 	startActiveSpan(name: string, options?: SpanOptions) {
-		console.log('vadim', 'runWithHeaders', 'startActiveSpan')
 		return new Promise<OtelSpan>((resolve) =>
 			this.tracer.startActiveSpan(name, options || {}, resolve),
 		)

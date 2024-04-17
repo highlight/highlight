@@ -8,21 +8,9 @@ import {
 	Injectable,
 	NestInterceptor,
 } from '@nestjs/common'
-import {
-	bindCallback,
-	finalize,
-	from,
-	interval,
-	map,
-	mergeMap,
-	mergeWith,
-	Observable,
-	of,
-	tap,
-	throwError,
-} from 'rxjs'
+import { finalize, Observable, throwError } from 'rxjs'
 import { catchError } from 'rxjs/operators'
-import type { Span as OtelSpan } from '@opentelemetry/api'
+import api from '@opentelemetry/api'
 
 @Injectable()
 export class HighlightLogger
@@ -106,55 +94,36 @@ export class HighlightInterceptor
 		await NodeH.flush()
 	}
 
-	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+	async intercept(
+		context: ExecutionContext,
+		next: CallHandler,
+	): Promise<Observable<any>> {
 		const ctx = context.switchToHttp()
 		const request = ctx.getRequest()
-		const highlightCtx = NodeH.parseHeaders(request.headers)
 
-		const ctxSpanPromise = bindCallback(
-			async (cb: (span: OtelSpan) => void) => {
-				await NodeH.runWithHeaders(request.headers, (ctxSpan) =>
-					cb(ctxSpan),
-				)
-			},
-		)
-		let requestSpan: OtelSpan
-		const requestSpanPromise = from(
-			NodeH.startActiveSpan(`${request.method} ${request.url}`, {
-				attributes: {
-					'http.method': request.method,
-					'http.url': request.url,
+		const { span: requestSpan, ctx: spanCtx } =
+			await NodeH.startWithHeaders(
+				`${request.method} ${request.url}`,
+				request.headers,
+				{
+					attributes: {
+						'http.method': request.method,
+						'http.url': request.url,
+					},
 				},
-			}),
-		).pipe(tap((span) => (requestSpan = span)))
-		return next.handle().pipe(
-			mergeWith(requestSpanPromise, ctxSpanPromise()),
-			catchError((err) => {
-				NodeH.consumeError(
-					err,
-					highlightCtx?.secureSessionId,
-					highlightCtx?.requestId,
-				)
-				return throwError(() => err)
-			}),
-			finalize(() => requestSpan.end()),
+			)
+		const fn = api.context.bind(spanCtx, () =>
+			next.handle().pipe(
+				catchError((err) => {
+					NodeH.consumeError(err)
+					return throwError(() => err)
+				}),
+				finalize(() => {
+					requestSpan.end()
+				}),
+			),
 		)
-		// return ctxSpanPromise().pipe(
-		// 	mergeWith(
-		// 		requestSpanPromise,
-		// 		next.handle().pipe(
-		// 			catchError((err) => {
-		// 				NodeH.consumeError(
-		// 					err,
-		// 					highlightCtx?.secureSessionId,
-		// 					highlightCtx?.requestId,
-		// 				)
-		// 				return throwError(() => err)
-		// 			}),
-		// 			finalize(() => requestSpan.end()),
-		// 		),
-		// 	),
-		// )
+		return fn()
 	}
 }
 
