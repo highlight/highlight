@@ -1,5 +1,11 @@
 # @highlight-run/sourcemap-uploader
 
+## 0.6.3
+
+### Patch Changes
+
+-   83b8e75c0: update sourcemap uploader log line
+
 ## 0.6.2
 
 ### Patch Changes
