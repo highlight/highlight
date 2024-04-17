@@ -1,5 +1,17 @@
 # highlight.run
 
+## 8.12.0
+
+### Minor Changes
+
+-   b27a0bcd2: update rrweb version to 729361e
+
+## 8.11.1
+
+### Patch Changes
+
+-   4ecafffe6: fix xhr monkeypatch breaking for URL objects
+
 ## 8.11.0
 
 ### Minor Changes

@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import clsx, { ClassValue } from 'clsx'
 import { useState } from 'react'
 
 import { Stack } from '../Stack/Stack'
@@ -12,6 +13,7 @@ type Props = {
 	name?: string
 	size?: TagProps['size']
 	onChange?: (value: Option) => void
+	cssClass?: ClassValue | ClassValue[]
 }
 
 export const TagSwitchGroup: React.FC<Props> = ({
@@ -20,6 +22,7 @@ export const TagSwitchGroup: React.FC<Props> = ({
 	name,
 	options,
 	onChange,
+	cssClass,
 }) => {
 	const [selectedOption, setSelectedOption] = useState(
 		defaultValue ?? options[0],
@@ -34,7 +37,10 @@ export const TagSwitchGroup: React.FC<Props> = ({
 
 	return (
 		<Ariakit.RadioProvider>
-			<Ariakit.RadioGroup data-testid="radio-group">
+			<Ariakit.RadioGroup
+				data-testid="radio-group"
+				className={clsx(cssClass)}
+			>
 				<Stack
 					direction="row"
 					gap="4"
@@ -65,7 +71,7 @@ export const TagSwitchGroup: React.FC<Props> = ({
 										style={{
 											alignItems: 'center',
 											justifyContent: 'center',
-											flexGrow: 1,
+											flex: 1,
 											textAlign: 'center',
 										}}
 										data-testid="radio-option"

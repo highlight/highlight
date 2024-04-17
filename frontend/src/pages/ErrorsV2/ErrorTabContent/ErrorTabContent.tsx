@@ -40,7 +40,10 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 				return
 			}
 
-			navigate(`/${project_id}/errors/${error_secure_id}/metrics`)
+			navigate({
+				pathname: `/${project_id}/errors/${error_secure_id}/metrics`,
+				search: location.search,
+			})
 		},
 		[project_id, error_secure_id, error_tab_key],
 	)
@@ -52,7 +55,10 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 				return
 			}
 
-			navigate(`/${project_id}/errors/${error_secure_id}/instances`)
+			navigate({
+				pathname: `/${project_id}/errors/${error_secure_id}/instances`,
+				search: location.search,
+			})
 		},
 		[project_id, error_secure_id, error_tab_key],
 	)
@@ -68,14 +74,16 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 			<Tabs<ErrorTabs>
 				selectedId={error_tab_key}
 				onChange={(id) => {
+					let pathname = `/${project_id}/errors/${error_secure_id}/${id}`
 					if (id === ErrorTabs.Instances) {
 						// we want instances to load the latest instance, not the list view
-						navigate(`/${project_id}/errors/${error_secure_id}`)
-					} else {
-						navigate(
-							`/${project_id}/errors/${error_secure_id}/${id}`,
-						)
+						pathname = `/${project_id}/errors/${error_secure_id}`
 					}
+
+					navigate({
+						pathname,
+						search: location.search,
+					})
 				}}
 			>
 				<Tabs.List>

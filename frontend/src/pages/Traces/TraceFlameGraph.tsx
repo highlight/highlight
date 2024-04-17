@@ -20,7 +20,6 @@ import {
 } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
-import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { useHTMLElementEvent } from '@/hooks/useHTMLElementEvent'
 import { ZOOM_SCALING_FACTOR } from '@/pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import {
@@ -68,7 +67,6 @@ export const TraceFlameGraph: React.FC = () => {
 		x: 0,
 		y: 0,
 	})
-	const { panelWidth } = useRelatedResource()
 
 	const height = useMemo(() => {
 		if (!traces.length) return 260
@@ -231,10 +229,18 @@ export const TraceFlameGraph: React.FC = () => {
 
 	useEffect(() => {
 		if (svgContainerRef.current) {
-			setWidth(svgContainerRef.current?.clientWidth)
+			const handleResize = debounce((entries: ResizeObserverEntry[]) => {
+				setWidth(entries[0].contentRect.width)
+			}, 50)
+
+			const resizeObserver = new ResizeObserver(handleResize)
+			resizeObserver.observe(svgContainerRef.current)
+
+			return () => {
+				resizeObserver.disconnect()
+			}
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [loading, panelWidth])
+	}, [])
 
 	const [dragging, setDragging] = useState(false)
 	const [initialDragX, setInitialDragX] = useState(0)
@@ -348,7 +354,7 @@ export const TraceFlameGraph: React.FC = () => {
 					debounce(handleScroll, 50)(currentTarget)
 				}}
 			>
-				{width && (
+				{!!width && (
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						height={height + 20}
@@ -443,7 +449,7 @@ export const TraceFlameGraph: React.FC = () => {
 					</svg>
 				)}
 
-				{hoveredSpan && (
+				{!!hoveredSpan && (
 					<Box
 						ref={tooltipRef}
 						position="fixed"

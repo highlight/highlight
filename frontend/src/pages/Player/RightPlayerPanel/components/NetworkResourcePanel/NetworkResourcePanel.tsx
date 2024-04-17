@@ -46,22 +46,17 @@ enum WebSocketTabs {
 }
 
 export const NetworkResourcePanel = () => {
-	const { projectId } = useProjectId()
 	const { inPanel } = useSessionParams()
 	const networkResourceDialog = Ariakit.useDialogStore()
 	const networkResourceDialogState = networkResourceDialog.getState()
 	const { activeNetworkResourceId, setActiveNetworkResourceId } =
 		useActiveNetworkResourceId()
 
-	const { session } = useReplayerContext()
 	const { resources } = useResourcesContext()
 	const resourceIdx = resources.findIndex(
 		(r) => activeNetworkResourceId === r.id,
 	)
 	const resource = resources[resourceIdx] as NetworkResource | undefined
-	const traceId = useMemo(() => {
-		return resource?.requestResponsePairs?.request?.id
-	}, [resource?.requestResponsePairs?.request?.id])
 
 	const hide = useCallback(() => {
 		setActiveNetworkResourceId(undefined)
@@ -126,16 +121,7 @@ export const NetworkResourcePanel = () => {
 				(resource.initiatorType === 'websocket' ? (
 					<WebSocketDetails resource={resource} hide={hide} />
 				) : (
-					<TraceProvider
-						projectId={projectId}
-						traceId={traceId}
-						session_secure_id={session?.secure_id}
-					>
-						<NetworkResourceDetails
-							resource={resource}
-							hide={hide}
-						/>
-					</TraceProvider>
+					<NetworkResourceDetails resource={resource} hide={hide} />
 				))}
 		</Ariakit.Dialog>
 	)
@@ -148,6 +134,10 @@ function NetworkResourceDetails({
 	resource: NetworkResource
 	hide: () => void
 }) {
+	const { projectId } = useProjectId()
+	const traceId = useMemo(() => {
+		return resource?.requestResponsePairs?.request?.id
+	}, [resource?.requestResponsePairs?.request?.id])
 	const { resources } = useResourcesContext()
 	const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
 		NetworkRequestTabs.Info,
@@ -341,7 +331,13 @@ function NetworkResourceDetails({
 				</Tabs.Panel>
 				{isNetworkRequest && (
 					<Tabs.Panel id={NetworkRequestTabs.Trace}>
-						<NetworkResourceTrace />
+						<TraceProvider
+							projectId={projectId}
+							traceId={traceId}
+							secureSessionId={session?.secure_id}
+						>
+							<NetworkResourceTrace />
+						</TraceProvider>
 					</Tabs.Panel>
 				)}
 			</Tabs>

@@ -1588,13 +1588,11 @@ function getTagName(n2) {
 function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+var MEDIA_SELECTOR = /(max|min)-device-(width|height)/;
+var MEDIA_SELECTOR_GLOBAL = new RegExp(MEDIA_SELECTOR.source, "g");
 var HOVER_SELECTOR = /([^\\]):hover/;
 var HOVER_SELECTOR_GLOBAL = new RegExp(HOVER_SELECTOR.source, "g");
-function addHoverClass(cssText, cache) {
-  var _a2;
-  if (!((_a2 = window === null || window === void 0 ? void 0 : window.HIG_CONFIGURATION) === null || _a2 === void 0 ? void 0 : _a2.enableOnHoverClass)) {
-    return cssText;
-  }
+function adaptCssForReplay(cssText, cache) {
   const cachedStyle = cache === null || cache === void 0 ? void 0 : cache.stylesWithHoverClass.get(cssText);
   if (cachedStyle)
     return cachedStyle;
@@ -1605,25 +1603,41 @@ function addHoverClass(cssText, cache) {
     return cssText;
   }
   const selectors = [];
-  ast.stylesheet.rules.forEach((rule) => {
-    if ("selectors" in rule) {
-      (rule.selectors || []).forEach((selector) => {
+  const medias = [];
+  function getSelectors(rule) {
+    if ("selectors" in rule && rule.selectors) {
+      rule.selectors.forEach((selector) => {
         if (HOVER_SELECTOR.test(selector)) {
           selectors.push(selector);
         }
       });
     }
-  });
-  if (selectors.length === 0) {
-    return cssText;
+    if ("media" in rule && rule.media && MEDIA_SELECTOR.test(rule.media)) {
+      medias.push(rule.media);
+    }
+    if ("rules" in rule && rule.rules) {
+      rule.rules.forEach(getSelectors);
+    }
   }
-  const selectorMatcher = new RegExp(selectors.filter((selector, index) => selectors.indexOf(selector) === index).sort((a2, b) => b.length - a2.length).map((selector) => {
-    return escapeRegExp(selector);
-  }).join("|"), "g");
-  const result = cssText.replace(selectorMatcher, (selector) => {
-    const newSelector = selector.replace(HOVER_SELECTOR_GLOBAL, "$1.\\:hover");
-    return `${selector}, ${newSelector}`;
-  });
+  getSelectors(ast.stylesheet);
+  let result = cssText;
+  if (selectors.length > 0) {
+    const selectorMatcher = new RegExp(selectors.filter((selector, index) => selectors.indexOf(selector) === index).sort((a2, b) => b.length - a2.length).map((selector) => {
+      return escapeRegExp(selector);
+    }).join("|"), "g");
+    result = result.replace(selectorMatcher, (selector) => {
+      const newSelector = selector.replace(HOVER_SELECTOR_GLOBAL, "$1.\\:hover");
+      return `${selector}, ${newSelector}`;
+    });
+  }
+  if (medias.length > 0) {
+    const mediaMatcher = new RegExp(medias.filter((media, index) => medias.indexOf(media) === index).sort((a2, b) => b.length - a2.length).map((media) => {
+      return escapeRegExp(media);
+    }).join("|"), "g");
+    result = result.replace(mediaMatcher, (media) => {
+      return media.replace(MEDIA_SELECTOR_GLOBAL, "$1-$2");
+    });
+  }
   cache === null || cache === void 0 ? void 0 : cache.stylesWithHoverClass.set(cssText, result);
   return result;
 }
@@ -1673,7 +1687,7 @@ function buildNode(n2, options) {
         const isTextarea = tagName === "textarea" && name === "value";
         const isRemoteOrDynamicCss = tagName === "style" && name === "_cssText";
         if (isRemoteOrDynamicCss && hackCss && typeof value === "string") {
-          value = addHoverClass(value, cache);
+          value = adaptCssForReplay(value, cache);
         }
         if ((isTextarea || isRemoteOrDynamicCss) && typeof value === "string") {
           node.appendChild(doc.createTextNode(value));
@@ -1747,7 +1761,7 @@ function buildNode(n2, options) {
       return node;
     }
     case NodeType.Text:
-      return doc.createTextNode(n2.isStyle && hackCss ? addHoverClass(n2.textContent, cache) : n2.textContent);
+      return doc.createTextNode(n2.isStyle && hackCss ? adaptCssForReplay(n2.textContent, cache) : n2.textContent);
     case NodeType.CDATA:
       return doc.createCDATASection(n2.textContent);
     case NodeType.Comment:
@@ -2597,7 +2611,7 @@ var MutationBuffer = class {
         texts: this.texts.map((text) => {
           var _a2, _b2;
           const n2 = text.node;
-          if (n2.parentNode.tagName === "TEXTAREA") {
+          if (n2.parentNode && n2.parentNode.tagName === "TEXTAREA") {
             this.genTextAreaValueMutation(n2.parentNode);
           }
           let value = text.value;
@@ -4439,66 +4453,6 @@ var CanvasManager = class {
       }
       this.pendingCanvasMutations.get(target).push(mutation);
     };
-    this.snapshot = (canvas) => __awaiter(this, void 0, void 0, function* () {
-      var _a2;
-      this.debug(canvas, "starting snapshotting");
-      const id = this.mirror.getId(canvas);
-      if (this.snapshotInProgressMap.get(id)) {
-        this.debug(canvas, "snapshotting already in progress for", id);
-        return;
-      }
-      this.snapshotInProgressMap.set(id, true);
-      try {
-        if (this.options.clearWebGLBuffer !== false && ["webgl", "webgl2"].includes(canvas.__context)) {
-          const context = canvas.getContext(canvas.__context);
-          if (((_a2 = context === null || context === void 0 ? void 0 : context.getContextAttributes()) === null || _a2 === void 0 ? void 0 : _a2.preserveDrawingBuffer) === false) {
-            context.clear(context === null || context === void 0 ? void 0 : context.COLOR_BUFFER_BIT);
-            this.debug(canvas, "cleared webgl canvas to load it into memory", {
-              attributes: context === null || context === void 0 ? void 0 : context.getContextAttributes()
-            });
-          }
-        }
-        if (canvas.width === 0 || canvas.height === 0) {
-          this.debug(canvas, "not yet ready", {
-            width: canvas.width,
-            height: canvas.height
-          });
-          return;
-        }
-        let scale = this.options.resizeFactor || 1;
-        if (this.options.maxSnapshotDimension) {
-          const maxDim = Math.max(canvas.width, canvas.height);
-          scale = Math.min(scale, this.options.maxSnapshotDimension / maxDim);
-        }
-        const width = canvas.width * scale;
-        const height = canvas.height * scale;
-        const bitmap = yield createImageBitmap(canvas, {
-          resizeWidth: width,
-          resizeHeight: height
-        });
-        this.debug(canvas, "created image bitmap", {
-          width: bitmap.width,
-          height: bitmap.height
-        });
-        this.worker.postMessage({
-          id,
-          bitmap,
-          width,
-          height,
-          dx: 0,
-          dy: 0,
-          dw: canvas.width,
-          dh: canvas.height,
-          dataURLOptions: this.options.dataURLOptions,
-          logDebug: !!this.logger
-        }, [bitmap]);
-        this.debug(canvas, "sent message");
-      } catch (e2) {
-        this.debug(canvas, "failed to snapshot", e2);
-      } finally {
-        this.snapshotInProgressMap.set(id, false);
-      }
-    });
     const { sampling, win, blockClass, blockSelector, recordCanvas, recordVideos, initialSnapshotDelay, dataURLOptions } = options;
     this.mutationCb = options.mutationCb;
     this.mirror = options.mirror;
@@ -4569,6 +4523,75 @@ var CanvasManager = class {
       }
     }
     this.logger.debug(prefix, element, ...args);
+  }
+  snapshot(canvas) {
+    var _a2;
+    return __awaiter(this, void 0, void 0, function* () {
+      this.debug(canvas, "starting snapshotting");
+      const id = this.mirror.getId(canvas);
+      if (this.snapshotInProgressMap.get(id)) {
+        this.debug(canvas, "snapshotting already in progress for", id);
+        return;
+      }
+      if (canvas.width === 0 || canvas.height === 0) {
+        this.debug(canvas, "not yet ready", {
+          width: canvas.width,
+          height: canvas.height
+        });
+        return;
+      }
+      this.snapshotInProgressMap.set(id, true);
+      try {
+        if (this.options.clearWebGLBuffer !== false && ["webgl", "webgl2"].includes(canvas.__context)) {
+          const context = canvas.getContext(canvas.__context);
+          if (((_a2 = context === null || context === void 0 ? void 0 : context.getContextAttributes()) === null || _a2 === void 0 ? void 0 : _a2.preserveDrawingBuffer) === false) {
+            context.clear(context.COLOR_BUFFER_BIT);
+            this.debug(canvas, "cleared webgl canvas to load it into memory", {
+              attributes: context === null || context === void 0 ? void 0 : context.getContextAttributes()
+            });
+          }
+        }
+        if (canvas.width === 0 || canvas.height === 0) {
+          this.debug(canvas, "not yet ready", {
+            width: canvas.width,
+            height: canvas.height
+          });
+          return;
+        }
+        let scale = this.options.resizeFactor || 1;
+        if (this.options.maxSnapshotDimension) {
+          const maxDim = Math.max(canvas.width, canvas.height);
+          scale = Math.min(scale, this.options.maxSnapshotDimension / maxDim);
+        }
+        const width = canvas.width * scale;
+        const height = canvas.height * scale;
+        const bitmap = yield createImageBitmap(canvas, {
+          resizeWidth: width,
+          resizeHeight: height
+        });
+        this.debug(canvas, "created image bitmap", {
+          width: bitmap.width,
+          height: bitmap.height
+        });
+        this.worker.postMessage({
+          id,
+          bitmap,
+          width,
+          height,
+          dx: 0,
+          dy: 0,
+          dw: canvas.width,
+          dh: canvas.height,
+          dataURLOptions: this.options.dataURLOptions,
+          logDebug: !!this.logger
+        }, [bitmap]);
+        this.debug(canvas, "sent message");
+      } catch (e2) {
+        this.debug(canvas, "failed to snapshot", e2);
+      } finally {
+        this.snapshotInProgressMap.set(id, false);
+      }
+    });
   }
   initCanvasFPSObserver(recordVideos, fps, win, blockClass, blockSelector, options, resizeFactor, maxSnapshotDimension) {
     const canvasContextReset = initCanvasContextObserver(win, blockClass, blockSelector, true);
@@ -4651,7 +4674,7 @@ var CanvasManager = class {
             resizeWidth: width,
             resizeHeight: height
           });
-          let outputScale = Math.max(boxWidth, boxHeight) / maxDim;
+          const outputScale = Math.max(boxWidth, boxHeight) / maxDim;
           const outputWidth = actualWidth * outputScale;
           const outputHeight = actualHeight * outputScale;
           const offsetX = (boxWidth - outputWidth) / 2;
@@ -8588,7 +8611,6 @@ var rules = (blockClass) => [
 ];
 
 // ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/replay/index.js
-var SKIP_TIME_THRESHOLD = 10 * 1e3;
 var SKIP_TIME_INTERVAL = 5 * 1e3;
 var SKIP_TIME_MIN = 1 * 1e3;
 var SKIP_DURATION_LIMIT = 60 * 60 * 1e3;
@@ -8705,7 +8727,7 @@ var Replayer = class {
                   continue;
                 }
                 if (this.isUserInteraction(_event)) {
-                  if (_event.delay - event.delay > SKIP_TIME_THRESHOLD * this.speedService.state.context.timer.speed) {
+                  if (_event.delay - event.delay > this.config.inactivePeriodThreshold * this.speedService.state.context.timer.speed) {
                     this.nextUserInteractionEvent = _event;
                   }
                   break;
@@ -8761,6 +8783,7 @@ var Replayer = class {
       root: document.body,
       loadTimeout: 0,
       skipInactive: false,
+      inactivePeriodThreshold: 10 * 1e3,
       showWarning: true,
       showDebug: false,
       blockClass: "highlight-block",
@@ -8982,7 +9005,7 @@ var Replayer = class {
       for (let i2 = 1; i2 < userInteractionEvents.length; i2++) {
         const currentInterval2 = userInteractionEvents[i2 - 1];
         const _event = userInteractionEvents[i2];
-        if (_event.timestamp - currentInterval2.timestamp > SKIP_TIME_THRESHOLD) {
+        if (_event.timestamp - currentInterval2.timestamp > this.config.inactivePeriodThreshold) {
           allIntervals.push({
             startTime: currentInterval2.timestamp,
             endTime: _event.timestamp,

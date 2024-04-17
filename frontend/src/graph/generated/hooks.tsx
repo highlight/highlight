@@ -3128,173 +3128,6 @@ export type ReplyToErrorCommentMutationOptions = Apollo.BaseMutationOptions<
 	Types.ReplyToErrorCommentMutation,
 	Types.ReplyToErrorCommentMutationVariables
 >
-export const DeleteErrorSegmentDocument = gql`
-	mutation DeleteErrorSegment($segment_id: ID!) {
-		deleteErrorSegment(segment_id: $segment_id)
-	}
-`
-export type DeleteErrorSegmentMutationFn = Apollo.MutationFunction<
-	Types.DeleteErrorSegmentMutation,
-	Types.DeleteErrorSegmentMutationVariables
->
-
-/**
- * __useDeleteErrorSegmentMutation__
- *
- * To run a mutation, you first call `useDeleteErrorSegmentMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteErrorSegmentMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteErrorSegmentMutation, { data, loading, error }] = useDeleteErrorSegmentMutation({
- *   variables: {
- *      segment_id: // value for 'segment_id'
- *   },
- * });
- */
-export function useDeleteErrorSegmentMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.DeleteErrorSegmentMutation,
-		Types.DeleteErrorSegmentMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.DeleteErrorSegmentMutation,
-		Types.DeleteErrorSegmentMutationVariables
-	>(DeleteErrorSegmentDocument, baseOptions)
-}
-export type DeleteErrorSegmentMutationHookResult = ReturnType<
-	typeof useDeleteErrorSegmentMutation
->
-export type DeleteErrorSegmentMutationResult =
-	Apollo.MutationResult<Types.DeleteErrorSegmentMutation>
-export type DeleteErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
-	Types.DeleteErrorSegmentMutation,
-	Types.DeleteErrorSegmentMutationVariables
->
-export const EditErrorSegmentDocument = gql`
-	mutation EditErrorSegment(
-		$project_id: ID!
-		$id: ID!
-		$query: String!
-		$name: String!
-	) {
-		editErrorSegment(
-			project_id: $project_id
-			id: $id
-			query: $query
-			name: $name
-		)
-	}
-`
-export type EditErrorSegmentMutationFn = Apollo.MutationFunction<
-	Types.EditErrorSegmentMutation,
-	Types.EditErrorSegmentMutationVariables
->
-
-/**
- * __useEditErrorSegmentMutation__
- *
- * To run a mutation, you first call `useEditErrorSegmentMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useEditErrorSegmentMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [editErrorSegmentMutation, { data, loading, error }] = useEditErrorSegmentMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      id: // value for 'id'
- *      query: // value for 'query'
- *      name: // value for 'name'
- *   },
- * });
- */
-export function useEditErrorSegmentMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.EditErrorSegmentMutation,
-		Types.EditErrorSegmentMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.EditErrorSegmentMutation,
-		Types.EditErrorSegmentMutationVariables
-	>(EditErrorSegmentDocument, baseOptions)
-}
-export type EditErrorSegmentMutationHookResult = ReturnType<
-	typeof useEditErrorSegmentMutation
->
-export type EditErrorSegmentMutationResult =
-	Apollo.MutationResult<Types.EditErrorSegmentMutation>
-export type EditErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
-	Types.EditErrorSegmentMutation,
-	Types.EditErrorSegmentMutationVariables
->
-export const CreateErrorSegmentDocument = gql`
-	mutation CreateErrorSegment(
-		$project_id: ID!
-		$name: String!
-		$query: String!
-	) {
-		createErrorSegment(
-			project_id: $project_id
-			name: $name
-			query: $query
-		) {
-			name
-			id
-		}
-	}
-`
-export type CreateErrorSegmentMutationFn = Apollo.MutationFunction<
-	Types.CreateErrorSegmentMutation,
-	Types.CreateErrorSegmentMutationVariables
->
-
-/**
- * __useCreateErrorSegmentMutation__
- *
- * To run a mutation, you first call `useCreateErrorSegmentMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateErrorSegmentMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createErrorSegmentMutation, { data, loading, error }] = useCreateErrorSegmentMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      name: // value for 'name'
- *      query: // value for 'query'
- *   },
- * });
- */
-export function useCreateErrorSegmentMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.CreateErrorSegmentMutation,
-		Types.CreateErrorSegmentMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.CreateErrorSegmentMutation,
-		Types.CreateErrorSegmentMutationVariables
-	>(CreateErrorSegmentDocument, baseOptions)
-}
-export type CreateErrorSegmentMutationHookResult = ReturnType<
-	typeof useCreateErrorSegmentMutation
->
-export type CreateErrorSegmentMutationResult =
-	Apollo.MutationResult<Types.CreateErrorSegmentMutation>
-export type CreateErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
-	Types.CreateErrorSegmentMutation,
-	Types.CreateErrorSegmentMutationVariables
->
 export const CreateErrorAlertDocument = gql`
 	mutation CreateErrorAlert(
 		$project_id: ID!
@@ -8068,17 +7901,17 @@ export type GetSessionsReportQueryResult = Apollo.QueryResult<
 	Types.GetSessionsReportQuery,
 	Types.GetSessionsReportQueryVariables
 >
-export const GetErrorGroupsClickhouseDocument = gql`
-	query GetErrorGroupsClickhouse(
+export const GetErrorGroupsDocument = gql`
+	query GetErrorGroups(
 		$project_id: ID!
 		$count: Int!
-		$query: ClickhouseQuery!
+		$params: QueryInput!
 		$page: Int
 	) {
-		error_groups_clickhouse(
+		error_groups(
 			project_id: $project_id
 			count: $count
-			query: $query
+			params: $params
 			page: $page
 		) {
 			error_groups {
@@ -8121,65 +7954,65 @@ export const GetErrorGroupsClickhouseDocument = gql`
 `
 
 /**
- * __useGetErrorGroupsClickhouseQuery__
+ * __useGetErrorGroupsQuery__
  *
- * To run a query within a React component, call `useGetErrorGroupsClickhouseQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetErrorGroupsClickhouseQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetErrorGroupsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorGroupsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetErrorGroupsClickhouseQuery({
+ * const { data, loading, error } = useGetErrorGroupsQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
- *      query: // value for 'query'
+ *      params: // value for 'params'
  *      page: // value for 'page'
  *   },
  * });
  */
-export function useGetErrorGroupsClickhouseQuery(
+export function useGetErrorGroupsQuery(
 	baseOptions: Apollo.QueryHookOptions<
-		Types.GetErrorGroupsClickhouseQuery,
-		Types.GetErrorGroupsClickhouseQueryVariables
+		Types.GetErrorGroupsQuery,
+		Types.GetErrorGroupsQueryVariables
 	>,
 ) {
 	return Apollo.useQuery<
-		Types.GetErrorGroupsClickhouseQuery,
-		Types.GetErrorGroupsClickhouseQueryVariables
-	>(GetErrorGroupsClickhouseDocument, baseOptions)
+		Types.GetErrorGroupsQuery,
+		Types.GetErrorGroupsQueryVariables
+	>(GetErrorGroupsDocument, baseOptions)
 }
-export function useGetErrorGroupsClickhouseLazyQuery(
+export function useGetErrorGroupsLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetErrorGroupsClickhouseQuery,
-		Types.GetErrorGroupsClickhouseQueryVariables
+		Types.GetErrorGroupsQuery,
+		Types.GetErrorGroupsQueryVariables
 	>,
 ) {
 	return Apollo.useLazyQuery<
-		Types.GetErrorGroupsClickhouseQuery,
-		Types.GetErrorGroupsClickhouseQueryVariables
-	>(GetErrorGroupsClickhouseDocument, baseOptions)
+		Types.GetErrorGroupsQuery,
+		Types.GetErrorGroupsQueryVariables
+	>(GetErrorGroupsDocument, baseOptions)
 }
-export type GetErrorGroupsClickhouseQueryHookResult = ReturnType<
-	typeof useGetErrorGroupsClickhouseQuery
+export type GetErrorGroupsQueryHookResult = ReturnType<
+	typeof useGetErrorGroupsQuery
 >
-export type GetErrorGroupsClickhouseLazyQueryHookResult = ReturnType<
-	typeof useGetErrorGroupsClickhouseLazyQuery
+export type GetErrorGroupsLazyQueryHookResult = ReturnType<
+	typeof useGetErrorGroupsLazyQuery
 >
-export type GetErrorGroupsClickhouseQueryResult = Apollo.QueryResult<
-	Types.GetErrorGroupsClickhouseQuery,
-	Types.GetErrorGroupsClickhouseQueryVariables
+export type GetErrorGroupsQueryResult = Apollo.QueryResult<
+	Types.GetErrorGroupsQuery,
+	Types.GetErrorGroupsQueryVariables
 >
-export const GetErrorsHistogramClickhouseDocument = gql`
-	query GetErrorsHistogramClickhouse(
+export const GetErrorsHistogramDocument = gql`
+	query GetErrorsHistogram(
 		$project_id: ID!
-		$query: ClickhouseQuery!
+		$params: QueryInput!
 		$histogram_options: DateHistogramOptions!
 	) {
-		errors_histogram_clickhouse(
+		errors_histogram(
 			project_id: $project_id
-			query: $query
+			params: $params
 			histogram_options: $histogram_options
 		) {
 			bucket_times
@@ -8189,54 +8022,54 @@ export const GetErrorsHistogramClickhouseDocument = gql`
 `
 
 /**
- * __useGetErrorsHistogramClickhouseQuery__
+ * __useGetErrorsHistogramQuery__
  *
- * To run a query within a React component, call `useGetErrorsHistogramClickhouseQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetErrorsHistogramClickhouseQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetErrorsHistogramQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorsHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetErrorsHistogramClickhouseQuery({
+ * const { data, loading, error } = useGetErrorsHistogramQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      query: // value for 'query'
+ *      params: // value for 'params'
  *      histogram_options: // value for 'histogram_options'
  *   },
  * });
  */
-export function useGetErrorsHistogramClickhouseQuery(
+export function useGetErrorsHistogramQuery(
 	baseOptions: Apollo.QueryHookOptions<
-		Types.GetErrorsHistogramClickhouseQuery,
-		Types.GetErrorsHistogramClickhouseQueryVariables
+		Types.GetErrorsHistogramQuery,
+		Types.GetErrorsHistogramQueryVariables
 	>,
 ) {
 	return Apollo.useQuery<
-		Types.GetErrorsHistogramClickhouseQuery,
-		Types.GetErrorsHistogramClickhouseQueryVariables
-	>(GetErrorsHistogramClickhouseDocument, baseOptions)
+		Types.GetErrorsHistogramQuery,
+		Types.GetErrorsHistogramQueryVariables
+	>(GetErrorsHistogramDocument, baseOptions)
 }
-export function useGetErrorsHistogramClickhouseLazyQuery(
+export function useGetErrorsHistogramLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetErrorsHistogramClickhouseQuery,
-		Types.GetErrorsHistogramClickhouseQueryVariables
+		Types.GetErrorsHistogramQuery,
+		Types.GetErrorsHistogramQueryVariables
 	>,
 ) {
 	return Apollo.useLazyQuery<
-		Types.GetErrorsHistogramClickhouseQuery,
-		Types.GetErrorsHistogramClickhouseQueryVariables
-	>(GetErrorsHistogramClickhouseDocument, baseOptions)
+		Types.GetErrorsHistogramQuery,
+		Types.GetErrorsHistogramQueryVariables
+	>(GetErrorsHistogramDocument, baseOptions)
 }
-export type GetErrorsHistogramClickhouseQueryHookResult = ReturnType<
-	typeof useGetErrorsHistogramClickhouseQuery
+export type GetErrorsHistogramQueryHookResult = ReturnType<
+	typeof useGetErrorsHistogramQuery
 >
-export type GetErrorsHistogramClickhouseLazyQueryHookResult = ReturnType<
-	typeof useGetErrorsHistogramClickhouseLazyQuery
+export type GetErrorsHistogramLazyQueryHookResult = ReturnType<
+	typeof useGetErrorsHistogramLazyQuery
 >
-export type GetErrorsHistogramClickhouseQueryResult = Apollo.QueryResult<
-	Types.GetErrorsHistogramClickhouseQuery,
-	Types.GetErrorsHistogramClickhouseQueryVariables
+export type GetErrorsHistogramQueryResult = Apollo.QueryResult<
+	Types.GetErrorsHistogramQuery,
+	Types.GetErrorsHistogramQueryVariables
 >
 export const GetProjectsDocument = gql`
 	query GetProjects {
@@ -10402,66 +10235,6 @@ export type GetSegmentsLazyQueryHookResult = ReturnType<
 export type GetSegmentsQueryResult = Apollo.QueryResult<
 	Types.GetSegmentsQuery,
 	Types.GetSegmentsQueryVariables
->
-export const GetErrorSegmentsDocument = gql`
-	query GetErrorSegments($project_id: ID!) {
-		segments: error_segments(project_id: $project_id) {
-			id
-			name
-			params {
-				query
-			}
-		}
-	}
-`
-
-/**
- * __useGetErrorSegmentsQuery__
- *
- * To run a query within a React component, call `useGetErrorSegmentsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetErrorSegmentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetErrorSegmentsQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *   },
- * });
- */
-export function useGetErrorSegmentsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetErrorSegmentsQuery,
-		Types.GetErrorSegmentsQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetErrorSegmentsQuery,
-		Types.GetErrorSegmentsQueryVariables
-	>(GetErrorSegmentsDocument, baseOptions)
-}
-export function useGetErrorSegmentsLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetErrorSegmentsQuery,
-		Types.GetErrorSegmentsQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetErrorSegmentsQuery,
-		Types.GetErrorSegmentsQueryVariables
-	>(GetErrorSegmentsDocument, baseOptions)
-}
-export type GetErrorSegmentsQueryHookResult = ReturnType<
-	typeof useGetErrorSegmentsQuery
->
-export type GetErrorSegmentsLazyQueryHookResult = ReturnType<
-	typeof useGetErrorSegmentsLazyQuery
->
-export type GetErrorSegmentsQueryResult = Apollo.QueryResult<
-	Types.GetErrorSegmentsQuery,
-	Types.GetErrorSegmentsQueryVariables
 >
 export const GetSavedSegmentsDocument = gql`
 	query GetSavedSegments(

@@ -356,17 +356,21 @@ func (r *Resolver) GetErrorAppVersion(ctx context.Context, errorObj *model.Error
 	var session *model.Session
 	if err := r.DB.WithContext(ctx).Model(&session).
 		Where("id = ?", errorObj.SessionID).
-		Pluck("app_version", &session).Error; err != nil {
-		if !e.Is(err, gorm.ErrRecordNotFound) {
-			return nil
-		}
+		Pluck("app_version", &session).Error; err == nil && session.AppVersion != nil {
+		return session.AppVersion
 	}
-	return session.AppVersion
+
+	// guess version from error service
+	if errorObj.ServiceVersion != "" {
+		return pointy.String(errorObj.ServiceVersion)
+	}
+
+	return nil
 }
 
-func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject, version *string) (*string, []*privateModel.ErrorTrace, error) {
+func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []*privateModel.ErrorTrace, error) {
 	var newMappedStackTraceString *string
-	mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, stackTrace, projectID, version, r.StorageClient)
+	mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, stackTrace, projectID, r.GetErrorAppVersion(ctx, errorObj), r.StorageClient)
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "error object: %+v", errorObj))
 	} else {
@@ -2189,11 +2193,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		var stackFrameInput []*publicModel.StackFrameInput
 
 		if err := json.Unmarshal([]byte(v.StackTrace), &stackFrameInput); err == nil {
-			var version *string
-			if v.Service.Name != "" && v.Service.Version != "" {
-				version = pointy.String(fmt.Sprintf("%s-%s", v.Service.Name, v.Service.Version))
-			}
-			mapped, structured, err := r.getMappedStackTraceString(ctx, stackFrameInput, projectID, errorToInsert, version)
+			mapped, structured, err := r.getMappedStackTraceString(ctx, stackFrameInput, projectID, errorToInsert)
 			if err != nil {
 				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)
 			} else if mapped != nil && *mapped != "null" {
@@ -2757,7 +2757,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 
 			var structuredStackTrace []*privateModel.ErrorTrace
-			mapped, structured, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert, r.GetErrorAppVersion(ctx, errorToInsert))
+			mapped, structured, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert)
 
 			if err != nil {
 				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)

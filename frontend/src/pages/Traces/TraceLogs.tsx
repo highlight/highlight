@@ -10,6 +10,7 @@ import React, { useEffect, useState } from 'react'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
 import { LinkButton } from '@/components/LinkButton'
+import { SearchContext } from '@/components/Search/SearchContext'
 import {
 	SearchForm,
 	SearchFormProps,
@@ -63,7 +64,7 @@ export const TraceLogs: React.FC = () => {
 	}, [traceId])
 
 	return (
-		<>
+		<SearchContext initialQuery={query} onSubmit={setQuery} disabled>
 			<Box display="flex" overflow="hidden">
 				<Box
 					borderRadius="6"
@@ -74,15 +75,12 @@ export const TraceLogs: React.FC = () => {
 					shadow="medium"
 				>
 					<SearchForm
-						initialQuery={query}
-						onFormSubmit={setQuery}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={() => null}
 						presets={[]}
 						minDate={startDate}
 						timeMode="permalink"
-						disableSearch
 						actions={SearchFormActions}
 						hideDatePicker
 						hideCreateAlert
@@ -108,7 +106,6 @@ export const TraceLogs: React.FC = () => {
 								error={error}
 								refetch={refetch}
 								loadingAfter={loadingAfter}
-								query={query}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 								bodyHeight="400px"
@@ -117,7 +114,7 @@ export const TraceLogs: React.FC = () => {
 					</Box>
 				</Box>
 			</Box>
-		</>
+		</SearchContext>
 	)
 }
 

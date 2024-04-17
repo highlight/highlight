@@ -58,6 +58,8 @@ import moment from 'moment'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { SearchContext } from '@/components/Search/SearchContext'
+
 const DATE_RANGE_PRESETS = [DEFAULT_TIME_PRESETS[1], DEFAULT_TIME_PRESETS[3]]
 const DEFAULT_PRESET = DATE_RANGE_PRESETS[0]
 
@@ -456,27 +458,30 @@ export const ProjectProductFilters: React.FC<{
 						<Box width="full" style={{ minHeight: 20 }}>
 							{product === ProductType.Logs ||
 							product === ProductType.Traces ? (
-								<SearchForm
+								<SearchContext
 									initialQuery={query}
-									onFormSubmit={(value: string) => {
+									onSubmit={(value: string) => {
 										formStore.setValue(
 											'exclusionQuery',
 											value,
 										)
 									}}
-									disableSearch={view}
-									hideDatePicker
-									hideCreateAlert
-									startDate={dateRange.start}
-									endDate={dateRange.end}
-									onDatesChange={() => {}}
-									presets={[]}
-									minDate={moment()
-										.subtract(30, 'days')
-										.toDate()}
-									timeMode="fixed-range"
-									productType={product}
-								/>
+									disabled={view}
+								>
+									<SearchForm
+										hideDatePicker
+										hideCreateAlert
+										startDate={dateRange.start}
+										endDate={dateRange.end}
+										onDatesChange={() => {}}
+										presets={[]}
+										minDate={moment()
+											.subtract(30, 'days')
+											.toDate()}
+										timeMode="fixed-range"
+										productType={product}
+									/>
+								</SearchContext>
 							) : product === ProductType.Sessions ? (
 								<SearchContextProvider
 									value={sessionSearchContext}

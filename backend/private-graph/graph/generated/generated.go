@@ -12298,6 +12298,7 @@ enum ReservedErrorObjectKey {
 
 enum ReservedErrorGroupKey {
 	event
+	secure_id
 	status
 	tag
 	type
@@ -12322,6 +12323,7 @@ enum ReservedErrorsJoinedKey {
 	ReservedErrorGroupKey
 	"""
 	event
+	secure_id
 	status
 	tag
 	type

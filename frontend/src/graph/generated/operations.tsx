@@ -848,42 +848,6 @@ export type ReplyToErrorCommentMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type DeleteErrorSegmentMutationVariables = Types.Exact<{
-	segment_id: Types.Scalars['ID']
-}>
-
-export type DeleteErrorSegmentMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'deleteErrorSegment'
->
-
-export type EditErrorSegmentMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	id: Types.Scalars['ID']
-	query: Types.Scalars['String']
-	name: Types.Scalars['String']
-}>
-
-export type EditErrorSegmentMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'editErrorSegment'
->
-
-export type CreateErrorSegmentMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	name: Types.Scalars['String']
-	query: Types.Scalars['String']
-}>
-
-export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
-	createErrorSegment?: Types.Maybe<
-		{ __typename?: 'ErrorSegment' } & Pick<
-			Types.ErrorSegment,
-			'name' | 'id'
-		>
-	>
-}
-
 export type CreateErrorAlertMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
@@ -2578,15 +2542,15 @@ export type GetSessionsReportQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetErrorGroupsClickhouseQueryVariables = Types.Exact<{
+export type GetErrorGroupsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	count: Types.Scalars['Int']
-	query: Types.ClickhouseQuery
+	params: Types.QueryInput
 	page?: Types.Maybe<Types.Scalars['Int']>
 }>
 
-export type GetErrorGroupsClickhouseQuery = { __typename?: 'Query' } & {
-	error_groups_clickhouse: { __typename?: 'ErrorResults' } & Pick<
+export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
+	error_groups: { __typename?: 'ErrorResults' } & Pick<
 		Types.ErrorResults,
 		'totalCount'
 	> & {
@@ -2635,14 +2599,14 @@ export type GetErrorGroupsClickhouseQuery = { __typename?: 'Query' } & {
 		}
 }
 
-export type GetErrorsHistogramClickhouseQueryVariables = Types.Exact<{
+export type GetErrorsHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	query: Types.ClickhouseQuery
+	params: Types.QueryInput
 	histogram_options: Types.DateHistogramOptions
 }>
 
-export type GetErrorsHistogramClickhouseQuery = { __typename?: 'Query' } & {
-	errors_histogram_clickhouse: { __typename?: 'ErrorsHistogram' } & Pick<
+export type GetErrorsHistogramQuery = { __typename?: 'Query' } & {
+	errors_histogram: { __typename?: 'ErrorsHistogram' } & Pick<
 		Types.ErrorsHistogram,
 		'bucket_times' | 'error_objects'
 	>
@@ -3599,28 +3563,6 @@ export type GetSegmentsQuery = { __typename?: 'Query' } & {
 			Types.Maybe<
 				{ __typename?: 'Segment' } & Pick<
 					Types.Segment,
-					'id' | 'name'
-				> & {
-						params: { __typename?: 'SearchParams' } & Pick<
-							Types.SearchParams,
-							'query'
-						>
-					}
-			>
-		>
-	>
-}
-
-export type GetErrorSegmentsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
-	segments?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'ErrorSegment' } & Pick<
-					Types.ErrorSegment,
 					'id' | 'name'
 				> & {
 						params: { __typename?: 'SearchParams' } & Pick<
@@ -5298,8 +5240,8 @@ export const namedOperations = {
 		GetSessionsHistogramClickhouse:
 			'GetSessionsHistogramClickhouse' as const,
 		GetSessionsReport: 'GetSessionsReport' as const,
-		GetErrorGroupsClickhouse: 'GetErrorGroupsClickhouse' as const,
-		GetErrorsHistogramClickhouse: 'GetErrorsHistogramClickhouse' as const,
+		GetErrorGroups: 'GetErrorGroups' as const,
+		GetErrorsHistogram: 'GetErrorsHistogram' as const,
 		GetProjects: 'GetProjects' as const,
 		GetWorkspace: 'GetWorkspace' as const,
 		GetWorkspaceForInviteLink: 'GetWorkspaceForInviteLink' as const,
@@ -5332,7 +5274,6 @@ export const namedOperations = {
 		GetTrackSuggestion: 'GetTrackSuggestion' as const,
 		GetUserSuggestion: 'GetUserSuggestion' as const,
 		GetSegments: 'GetSegments' as const,
-		GetErrorSegments: 'GetErrorSegments' as const,
 		GetSavedSegments: 'GetSavedSegments' as const,
 		GetClientIntegration: 'GetClientIntegration' as const,
 		GetServerIntegration: 'GetServerIntegration' as const,
@@ -5468,9 +5409,6 @@ export const namedOperations = {
 		MuteErrorCommentThread: 'MuteErrorCommentThread' as const,
 		RemoveErrorIssue: 'RemoveErrorIssue' as const,
 		ReplyToErrorComment: 'ReplyToErrorComment' as const,
-		DeleteErrorSegment: 'DeleteErrorSegment' as const,
-		EditErrorSegment: 'EditErrorSegment' as const,
-		CreateErrorSegment: 'CreateErrorSegment' as const,
 		CreateErrorAlert: 'CreateErrorAlert' as const,
 		CreateMetricMonitor: 'CreateMetricMonitor' as const,
 		UpdateMetricMonitor: 'UpdateMetricMonitor' as const,

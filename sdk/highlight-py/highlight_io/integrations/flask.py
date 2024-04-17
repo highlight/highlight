@@ -36,7 +36,10 @@ class FlaskIntegration(Integration):
             except (KeyError, ValueError):
                 pass
 
-            with highlight_io.H.get_instance().trace(session_id, request_id):
+            span_name = f"{environ.get('REQUEST_METHOD')} {environ.get('REQUEST_URI')}"
+            with highlight_io.H.get_instance().trace(
+                session_id, request_id, span_name=span_name
+            ):
                 return self._orig_flask(app, environ, start_response)
 
         Flask.__call__ = wrapped_call

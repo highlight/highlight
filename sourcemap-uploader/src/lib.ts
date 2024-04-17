@@ -208,5 +208,5 @@ function getS3Key(
 async function uploadFile(filePath: string, uploadUrl: string, name: string) {
   const fileContent = readFileSync(filePath);
   await fetch(uploadUrl, { method: "put", body: fileContent });
-  console.log(`Uploaded ${filePath} to ${name}`);
+  console.log(`[Highlight] Uploaded ${filePath} to ${name}`);
 }

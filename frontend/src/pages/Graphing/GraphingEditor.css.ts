@@ -5,6 +5,18 @@ export const editGraphHeader = style({
 	height: 40,
 })
 
+export const editGraphPanel = style({
+	height: 'calc(100% - 40px)',
+})
+
+export const previewWindow = style({
+	width: 'calc(100% - 320px)',
+})
+
+export const tagSwitch = style({
+	width: '100%',
+})
+
 export const graphBackground = style({
 	zIndex: 0,
 })

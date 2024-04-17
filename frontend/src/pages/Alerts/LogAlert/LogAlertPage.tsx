@@ -45,6 +45,7 @@ import { DateTimeParam, StringParam, useQueryParam } from 'use-query-params'
 
 import { getSlackUrl } from '@/components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LoadingBox from '@/components/LoadingBox'
+import { SearchContext } from '@/components/Search/SearchContext'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import { namedOperations } from '@/graph/generated/operations'
@@ -114,16 +115,15 @@ export const LogAlertPage = () => {
 			loaded: false,
 		},
 	})
-	const formValues = formStore.useState().values
+	const formValues = formStore.useState('values')
 
-	const [query, setQuery] = useState(initialQuery)
 	const handleUpdateInputQuery = (query: string) => {
 		setSubmittedQuery(query)
 		formStore.setValue(formStore.names.query, query)
 	}
 
 	formStore.useSubmit(() => {
-		setSubmittedQuery(query)
+		setSubmittedQuery(formValues.query)
 	})
 
 	useEffect(() => {
@@ -472,19 +472,23 @@ export const LogAlertPage = () => {
 													: undefined,
 											}}
 										>
-											<Search
+											<SearchContext
+												// TODO: Click test.
 												initialQuery={initialQuery}
-												startDate={startDate}
-												endDate={endDate}
-												hideIcon
-												placeholder="Define query..."
-												query={query}
-												setQuery={setQuery}
-												onFormSubmit={
+												onSubmit={
 													handleUpdateInputQuery
 												}
-												productType={ProductType.Logs}
-											/>
+											>
+												<Search
+													startDate={startDate}
+													endDate={endDate}
+													hideIcon
+													placeholder="Define query..."
+													productType={
+														ProductType.Logs
+													}
+												/>
+											</SearchContext>
 										</Box>
 										<LogsHistogram
 											startDate={startDate}
