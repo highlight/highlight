@@ -21,6 +21,7 @@ import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import clsx from 'clsx'
 import { useEffect, useRef, useState } from 'react'
 
+import { SearchContext } from '@/components/Search/SearchContext'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import { ErrorFeedCard } from '@/pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import { useErrorPageNavigation } from '@/pages/ErrorsV2/ErrorsV2'
@@ -112,25 +113,25 @@ export const SearchPanel = ({
 			})}
 			background="n2"
 		>
-			<SearchForm
-				initialQuery={query}
-				onFormSubmit={setQuery}
-				startDate={startDate}
-				endDate={endDate}
-				onDatesChange={updateSearchTime}
-				presets={DEFAULT_TIME_PRESETS}
-				minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
-				selectedPreset={selectedPreset}
-				productType={ProductType.Errors}
-				timeMode="fixed-range"
-				savedSegmentType="Error"
-				textAreaRef={textAreaRef}
-				actions={actions}
-				resultCount={totalCount}
-				loading={loading}
-				hideCreateAlert
-				isPanelView
-			/>
+			<SearchContext initialQuery={query} onSubmit={setQuery}>
+				<SearchForm
+					startDate={startDate}
+					endDate={endDate}
+					onDatesChange={updateSearchTime}
+					presets={DEFAULT_TIME_PRESETS}
+					minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
+					selectedPreset={selectedPreset}
+					productType={ProductType.Errors}
+					timeMode="fixed-range"
+					savedSegmentType="Error"
+					textAreaRef={textAreaRef}
+					actions={actions}
+					resultCount={totalCount}
+					loading={loading}
+					hideCreateAlert
+					isPanelView
+				/>
+			</SearchContext>
 			{showHistogram && (
 				<Box borderBottom="secondary" paddingBottom="8" px="8">
 					<ErrorFeedHistogram
