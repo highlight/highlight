@@ -11,6 +11,7 @@ import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
+import { SearchContext } from '@/components/Search/SearchContext'
 import {
 	SearchForm,
 	SearchFormProps,
@@ -91,7 +92,7 @@ export const NetworkResourceLogs: React.FC<{
 	}, [requestId])
 
 	return (
-		<>
+		<SearchContext initialQuery={query} onSubmit={setQuery} disabled>
 			<Box
 				padding="8"
 				flex="stretch"
@@ -109,15 +110,12 @@ export const NetworkResourceLogs: React.FC<{
 					shadow="medium"
 				>
 					<SearchForm
-						initialQuery={query}
-						onFormSubmit={setQuery}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={() => null}
 						presets={[]}
 						minDate={new Date(sessionStartTime)}
 						timeMode="permalink"
-						disableSearch
 						actions={SearchFormActions}
 						hideDatePicker
 						hideCreateAlert
@@ -133,7 +131,6 @@ export const NetworkResourceLogs: React.FC<{
 								error={error}
 								refetch={refetch}
 								loadingAfter={loadingAfter}
-								query={query}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 								bodyHeight={`calc(100% - ${SEARCH_AND_HEADER_HEIGHT}px)`}
@@ -142,7 +139,7 @@ export const NetworkResourceLogs: React.FC<{
 					</Box>
 				</Box>
 			</Box>
-		</>
+		</SearchContext>
 	)
 }
 

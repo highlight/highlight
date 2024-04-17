@@ -16,6 +16,7 @@ import { useQueryParam } from 'use-query-params'
 
 import { loadingIcon } from '@/components/Button/style.css'
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
+import { SearchContext } from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -208,7 +209,7 @@ export const TracesPage: React.FC = () => {
 	}, [resource])
 
 	return (
-		<>
+		<SearchContext initialQuery={query} onSubmit={setQuery}>
 			<Helmet>
 				<title>Traces</title>
 			</Helmet>
@@ -232,7 +233,6 @@ export const TracesPage: React.FC = () => {
 					overflow="hidden"
 				>
 					<SearchForm
-						initialQuery={query ?? ''}
 						startDate={startDate}
 						endDate={endDate}
 						presets={DEFAULT_TIME_PRESETS}
@@ -240,7 +240,6 @@ export const TracesPage: React.FC = () => {
 						selectedPreset={selectedPreset}
 						timeMode={timeMode}
 						hideCreateAlert
-						onFormSubmit={setQuery}
 						onDatesChange={updateSearchTime}
 						productType={ProductType.Traces}
 						savedSegmentType="Trace"
@@ -355,7 +354,7 @@ export const TracesPage: React.FC = () => {
 					/>
 				</Box>
 			</Box>
-		</>
+		</SearchContext>
 	)
 }
 

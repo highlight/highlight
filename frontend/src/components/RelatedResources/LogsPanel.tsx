@@ -4,8 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
 import { LinkButton } from '@/components/LinkButton'
-import { RelatedLogs } from '@/components/RelatedResources/hooks'
+import {
+	RelatedLogs,
+	useRelatedResource,
+} from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
+import { SearchContext } from '@/components/Search/SearchContext'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import { ProductType } from '@/graph/generated/schemas'
 import { useNumericProjectId } from '@/hooks/useProjectId'
@@ -15,7 +19,9 @@ import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
 export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 	resource,
 }) => {
+	const { set } = useRelatedResource()
 	const [query, setQuery] = useState(resource.query ?? '')
+	const handleSubmit = (query: string) => set({ ...resource, query })
 	const { projectId } = useNumericProjectId()
 
 	/* eslint-disable react-hooks/exhaustive-deps */
@@ -77,7 +83,7 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 	}, [resource.query])
 
 	return (
-		<>
+		<SearchContext initialQuery={query} onSubmit={handleSubmit} disabled>
 			<Panel.Header path={path}>
 				<Panel.HeaderCopyLinkButton path={path} />
 				<Panel.HeaderDivider />
@@ -91,8 +97,6 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 			>
 				<Box flexDirection="column" display="flex" flexGrow={1}>
 					<SearchForm
-						initialQuery={query}
-						onFormSubmit={setQuery}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={() => null}
@@ -119,7 +123,6 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 								error={error}
 								refetch={refetch}
 								loadingAfter={loadingAfter}
-								query={query}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 								bodyHeight="100%"
@@ -128,7 +131,7 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 					</Box>
 				</Box>
 			</Box>
-		</>
+		</SearchContext>
 	)
 }
 
