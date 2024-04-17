@@ -82,10 +82,10 @@ const getDefaultOpts = async (
 	}
 
 	return {
+		// upload source maps even if config.productionBrowserSourceMaps is set to upload server maps
 		uploadSourceMaps:
 			isProdBuild &&
-			(highlightOpts?.uploadSourceMaps ??
-				(!config.productionBrowserSourceMaps && hasSourcemapApiKey)),
+			(highlightOpts?.uploadSourceMaps ?? hasSourcemapApiKey),
 		configureHighlightProxy: highlightOpts?.configureHighlightProxy ?? true,
 		apiKey: highlightOpts?.apiKey ?? '',
 		appVersion: highlightOpts?.appVersion ?? version ?? '',
@@ -167,6 +167,9 @@ const getHighlightConfig = async (
 			let originalConfig = webpackConfig
 			if (config.webpack) {
 				originalConfig = config.webpack(webpackConfig, opts)
+			}
+			if (opts.isServer) {
+				originalConfig.devtool = 'source-map'
 			}
 
 			originalConfig.plugins.push(

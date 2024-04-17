@@ -367,8 +367,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					}
 				}
 
-				version := resolver.GetErrorAppVersion(context.Background(), &errorObj)
-				_, structuredStackTrace, err := resolver.getMappedStackTraceString(context.Background(), frames, 1, &errorObj, version)
+				_, structuredStackTrace, err := resolver.getMappedStackTraceString(context.Background(), frames, 1, &errorObj)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error making mapped stacktrace"))
 				}
@@ -715,5 +714,35 @@ func TestErrorIngestFilters(t *testing.T) {
 		matches = clickhouse.ErrorMatchesQuery(&errorObject, filters)
 		assert.True(t, matches)
 		assert.False(t, resolver.IsErrorIngested(ctx, project.ID, &errorObject))
+	})
+}
+
+func TestGetErrorAppVersion(t *testing.T) {
+	ctx := context.TODO()
+
+	util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
+		session := &model.Session{
+			ServiceName: "foo",
+			AppVersion:  pointy.String("bar"),
+			Environment: "production",
+		}
+		assert.NoError(t, resolver.DB.Create(session).Error)
+
+		errorObject := model.ErrorObject{
+			Event: "Dang a React Minified error has occurred.",
+		}
+		version := resolver.GetErrorAppVersion(ctx, &errorObject)
+		assert.Nil(t, version)
+
+		errorObject.ServiceName = "yo"
+		errorObject.ServiceVersion = "dawg"
+		version = resolver.GetErrorAppVersion(ctx, &errorObject)
+		assert.NotNil(t, version)
+		assert.Equal(t, *version, "dawg")
+
+		errorObject.SessionID = pointy.Int(session.ID)
+		version = resolver.GetErrorAppVersion(ctx, &errorObject)
+		assert.NotNil(t, version)
+		assert.Equal(t, *version, "bar")
 	})
 }
