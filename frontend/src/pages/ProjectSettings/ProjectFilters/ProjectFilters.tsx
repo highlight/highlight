@@ -567,7 +567,7 @@ const IngestTimeline: React.FC<{
 	const groupedByBucket = _.groupBy(
 		data?.traces_metrics.buckets.map((b) => ({
 			...b,
-			group: b.group[0],
+			group: b.group[0] || 'true',
 		})),
 		(i) => i.bucket_id,
 	)
