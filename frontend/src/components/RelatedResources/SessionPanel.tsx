@@ -9,8 +9,9 @@ import { Panel } from '@/components/RelatedResources/Panel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { usePlayerUIContext } from '@/pages/Player/context/PlayerUIContext'
 import { usePlayer } from '@/pages/Player/PlayerHook/PlayerHook'
+import { SessionViewability } from '@/pages/Player/PlayerHook/PlayerState'
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
-import { ManualStopCard } from '@/pages/Player/PlayerPage'
+import { ManualStopCard, SessionFiller } from '@/pages/Player/PlayerPage'
 import {
 	ReplayerContextProvider,
 	ReplayerState,
@@ -43,6 +44,7 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 		isLoadingEvents,
 		isPlayerReady,
 		replayer,
+		sessionViewability,
 		setScale,
 	} = playerContext
 	const resourcesContext = useResources(session)
@@ -75,6 +77,9 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 		resource.secureId,
 		resource.tsAbs,
 	])
+
+	const showSession =
+		sessionViewability === SessionViewability.VIEWABLE && !!session
 
 	return (
 		<ReplayerContextProvider value={playerContext}>
@@ -110,60 +115,67 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 						id="playerCenterPanel"
 						ref={playerCenterPanelRef}
 					>
-						<Box height="full" cssClass={styles.playerBody}>
-							<div className={styles.playerCenterColumn}>
-								{centerColumnResizeListener}
-								<Box
-									display="flex"
-									flexDirection="column"
-									flexGrow={1}
-								>
-									<div
-										className={clsx(
-											styles.rrwebPlayerWrapper,
-											{
-												[styles.blurBackground]:
-													isLoadingEvents &&
-													isPlayerReady,
-											},
-										)}
-										ref={playerWrapperRef}
+						{showSession ? (
+							<Box height="full" cssClass={styles.playerBody}>
+								<div className={styles.playerCenterColumn}>
+									{centerColumnResizeListener}
+									<Box
+										display="flex"
+										flexDirection="column"
+										flexGrow={1}
 									>
-										{resizeListener}
-										{replayerState ===
-											ReplayerState.SessionRecordingStopped && (
-											<Box
-												display="flex"
-												alignItems="center"
-												flexDirection="column"
-												justifyContent="center"
-												position="absolute"
-												style={{
-													height: replayerWrapperBbox?.height,
-													width: replayerWrapperBbox?.width,
-													zIndex: 2,
-												}}
-											>
-												<ManualStopCard />
-											</Box>
-										)}
 										<div
-											style={{
-												visibility: isPlayerReady
-													? 'visible'
-													: 'hidden',
-											}}
-											className="highlight-block"
-											id="player"
-										/>
-										{!isPlayerReady && <LoadingBox />}
-									</div>
-									<Toolbar width={controllerWidth} />
-								</Box>
-								<DevToolsWindowV2 width={controllerWidth} />
-							</div>
-							<NetworkResourcePanel />
-						</Box>
+											className={clsx(
+												styles.rrwebPlayerWrapper,
+												{
+													[styles.blurBackground]:
+														isLoadingEvents &&
+														isPlayerReady,
+												},
+											)}
+											ref={playerWrapperRef}
+										>
+											{resizeListener}
+											{replayerState ===
+												ReplayerState.SessionRecordingStopped && (
+												<Box
+													display="flex"
+													alignItems="center"
+													flexDirection="column"
+													justifyContent="center"
+													position="absolute"
+													style={{
+														height: replayerWrapperBbox?.height,
+														width: replayerWrapperBbox?.width,
+														zIndex: 2,
+													}}
+												>
+													<ManualStopCard />
+												</Box>
+											)}
+											<div
+												style={{
+													visibility: isPlayerReady
+														? 'visible'
+														: 'hidden',
+												}}
+												className="highlight-block"
+												id="player"
+											/>
+											{!isPlayerReady && <LoadingBox />}
+										</div>
+										<Toolbar width={controllerWidth} />
+									</Box>
+									<DevToolsWindowV2 width={controllerWidth} />
+								</div>
+								<NetworkResourcePanel />
+							</Box>
+						) : (
+							<SessionFiller
+								sessionViewability={sessionViewability}
+								session={session}
+							/>
+						)}
 					</Box>
 				</ToolbarItemsContextProvider>
 			</ResourcesContextProvider>
