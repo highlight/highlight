@@ -439,7 +439,9 @@ export class Highlight {
 		headers: Headers | IncomingHttpHeaders,
 		cb: (span: OtelSpan) => T | Promise<T>,
 	) {
+		console.log('vadim', 'runWithHeaders', 'start')
 		return this.tracer.startActiveSpan('highlight-ctx', async (span) => {
+			console.log('vadim', 'runWithHeaders', 'cb')
 			const { secureSessionId, requestId } = this.parseHeaders(headers)
 
 			if (secureSessionId && requestId) {
@@ -466,11 +468,13 @@ export class Highlight {
 			} finally {
 				span.end()
 				await this.waitForFlush()
+				console.log('vadim', 'runWithHeaders', 'cb finally')
 			}
 		})
 	}
 
 	startActiveSpan(name: string, options?: SpanOptions) {
+		console.log('vadim', 'runWithHeaders', 'startActiveSpan')
 		return new Promise<OtelSpan>((resolve) =>
 			this.tracer.startActiveSpan(name, options || {}, resolve),
 		)

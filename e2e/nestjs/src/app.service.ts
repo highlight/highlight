@@ -31,6 +31,7 @@ export class AppService {
       ),
     );
 
+    console.log('hello, world!');
     this.logger.log('hello, world!');
     this.logger.warn('whoa there! ', Math.random());
     if (error) {
