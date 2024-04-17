@@ -738,7 +738,7 @@ func TestGetErrorAppVersion(t *testing.T) {
 		errorObject.ServiceVersion = "dawg"
 		version = resolver.GetErrorAppVersion(ctx, &errorObject)
 		assert.NotNil(t, version)
-		assert.Equal(t, *version, "yo-dawg")
+		assert.Equal(t, *version, "dawg")
 
 		errorObject.SessionID = pointy.Int(session.ID)
 		version = resolver.GetErrorAppVersion(ctx, &errorObject)

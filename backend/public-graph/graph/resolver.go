@@ -361,8 +361,8 @@ func (r *Resolver) GetErrorAppVersion(ctx context.Context, errorObj *model.Error
 	}
 
 	// guess version from error service
-	if errorObj.ServiceName != "" && errorObj.ServiceVersion != "" {
-		return pointy.String(fmt.Sprintf("%s-%s", errorObj.ServiceName, errorObj.ServiceVersion))
+	if errorObj.ServiceVersion != "" {
+		return pointy.String(errorObj.ServiceVersion)
 	}
 
 	return nil
