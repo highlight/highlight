@@ -18,21 +18,21 @@ export const OSSCallToAction = () => {
 				<h3 className="text-center leading-normal">
 					Join our{' '}
 					<span className={styles.highlightedText}>
-						distributed tracing
+						Native OpenTelemetry for Next.js
 					</span>{' '}
 					livestream.
 				</h3>
 				<div className="text-center px-2 md:px-16 mt-6">
 					<Typography type="copy1" className="leading-relaxed">
-						If you’re curious about how you can get tracing working
-						in your Next application with several microservices,
-						join us on April 11th at 2pm PDT for a full walkthrough.
+						Highlight works with native OpenTelemetry! If you’re
+						curious about a native example in Next.js, join us on
+						Thursday, May 16th at 11am PDT for a full walkthrough.
 					</Typography>
 				</div>
 				<div className="flex justify-center mt-8">
 					<div className="flex flex-col lg:flex-row justify-center gap-4 w-full px-5 md:w-auto">
 						<PrimaryButton
-							href="https://lu.ma/b0uz0fiz"
+							href="https://lu.ma/7116dpav"
 							target="_blank"
 							rel="noreferrer"
 							className="md:max-w-[180px]"

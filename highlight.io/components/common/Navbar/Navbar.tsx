@@ -46,14 +46,14 @@ const LaunchWeekBanner = () => {
 const LivestreamBanner = () => {
 	return (
 		<Link
-			href="https://lu.ma/b0uz0fiz"
+			href="https://lu.ma/7116dpav"
 			target="_blank"
 			rel="noreferrer"
 			className="hidden md:flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
 		>
 			<Typography type="copy3">
-				Join our livestream: April 11 at 2pm PDT on Distributed Tracing
-				in NextJS. Register
+				Join our livestream: May 16 at 11am PDT on Native OpenTelemetry
+				for Next.js. Register{' '}
 				<span className="font-semibold"> here</span>.
 			</Typography>
 		</Link>
@@ -102,8 +102,8 @@ const Navbar = ({
 	}
 
 	const isLivestreamWeek = moment().isBetween(
-		'2024-03-28T00:00:00Z',
-		'2024-04-12T00:00:00Z',
+		'2024-04-16T00:00:00Z',
+		'2024-05-16T00:00:00Z',
 	)
 
 	useEffect(() => {
