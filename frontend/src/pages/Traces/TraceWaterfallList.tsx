@@ -97,8 +97,8 @@ export const TraceWaterfallList: React.FC<Props> = () => {
 								</Box>
 								<Box flexGrow={1}>
 									<Box
+										borderRadius="4"
 										style={{
-											display: 'block',
 											height: 10,
 											width: `${Math.min(
 												(span.duration /
