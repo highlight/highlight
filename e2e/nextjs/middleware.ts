@@ -12,6 +12,7 @@ const highlightConfig = {
 } as HighlightEnv
 
 export function middleware(request: NextRequest, event: NextFetchEvent) {
+	//@ts-ignore
 	const { headers } = highlightMiddleware(request, highlightConfig, event)
 
 	return NextResponse.next({ headers })
