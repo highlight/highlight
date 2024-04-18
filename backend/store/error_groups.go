@@ -190,8 +190,25 @@ type UpdateErrorGroupParams struct {
 }
 
 func (store *Store) UpdateErrorGroupStateByAdmin(ctx context.Context,
-	admin model.Admin, params UpdateErrorGroupParams) error {
-	return store.updateErrorGroupState(ctx, &admin, params)
+	admin model.Admin, params UpdateErrorGroupParams) (*model.ErrorGroup, error) {
+	err := store.updateErrorGroupState(ctx, &admin, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// For user-driven state updates, write the error group directly to Clickhouse.
+	// Write to the data sync queue as well to guarantee eventual consistency.
+	var errorGroup model.ErrorGroup
+	if err = store.db.WithContext(ctx).Where(&model.ErrorGroup{Model: model.Model{ID: params.ID}}).First(&errorGroup).Error; err != nil {
+		return nil, err
+	}
+
+	err = store.clickhouseClient.WriteErrorGroups(ctx, []*model.ErrorGroup{&errorGroup})
+	if err != nil {
+		return nil, err
+	}
+
+	return &errorGroup, nil
 }
 
 func (store *Store) UpdateErrorGroupStateBySystem(ctx context.Context,

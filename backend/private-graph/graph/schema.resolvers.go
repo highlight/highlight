@@ -840,20 +840,11 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 
-	if err = r.Store.UpdateErrorGroupStateByAdmin(ctx, *admin, store.UpdateErrorGroupParams{
+	return r.Store.UpdateErrorGroupStateByAdmin(ctx, *admin, store.UpdateErrorGroupParams{
 		ID:           errorGroup.ID,
 		State:        state,
 		SnoozedUntil: snoozedUntil,
-	}); err != nil {
-		return nil, err
-	}
-
-	var updatedErrorGroup model.ErrorGroup
-	if err := r.DB.WithContext(ctx).Where(&model.ErrorGroup{Model: model.Model{ID: errorGroup.ID}}).First(&updatedErrorGroup).Error; err != nil {
-		return nil, e.Wrap(err, "error querying error group")
-	}
-
-	return &updatedErrorGroup, err
+	})
 }
 
 // DeleteProject is the resolver for the deleteProject field.
