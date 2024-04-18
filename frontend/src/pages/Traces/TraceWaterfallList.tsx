@@ -1,35 +1,27 @@
-import { Box, Form, IconSolidSearch, Stack } from '@highlight-run/ui/components'
-import { useVirtualizer } from '@tanstack/react-virtual'
+import {
+	Box,
+	Form,
+	IconSolidCheveronDown,
+	IconSolidCheveronRight,
+	IconSolidSearch,
+	Stack,
+	Text,
+} from '@highlight-run/ui/components'
 import { useMemo, useRef, useState } from 'react'
 
 import { getSpanTheme } from '@/pages/Traces/TraceFlameGraphNode'
 import { useTrace } from '@/pages/Traces/TraceProvider'
-import { getTraceDurationString } from '@/pages/Traces/utils'
+import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
 
-type Props = {}
-
-export const TraceWaterfallList: React.FC<Props> = () => {
+export const TraceWaterfallList: React.FC = () => {
 	const { spans, totalDuration } = useTrace()
 	const scrollableRef = useRef<HTMLTableSectionElement>(null)
 	const [query, setQuery] = useState('')
 
 	const filteredSpans = useMemo(
-		() =>
-			[...spans]
-				.sort((a, b) => a.startTime - b.startTime)
-				.filter((span) =>
-					span.spanName.toLowerCase().includes(query.toLowerCase()),
-				),
-		[query, spans],
+		() => spans.sort((a, b) => a.startTime - b.startTime),
+		[spans],
 	)
-
-	const rowVirtualizer = useVirtualizer({
-		count: filteredSpans.length,
-		estimateSize: () => 22,
-		getScrollElement: () => scrollableRef.current,
-		overscan: 50,
-	})
-	const virtualRows = rowVirtualizer.getVirtualItems()
 
 	return (
 		<Box border="dividerWeak" borderRadius="4">
@@ -56,66 +48,131 @@ export const TraceWaterfallList: React.FC<Props> = () => {
 				</Stack>
 			</Form>
 			<Box style={{ height: 300, overflowY: 'auto' }}>
-				<Box
-					ref={scrollableRef}
-					style={{
-						height: `${rowVirtualizer.getTotalSize()}px`,
-						width: '100%',
-						position: 'relative',
-					}}
-				>
-					{virtualRows.map((row) => {
-						const span = filteredSpans[row.index]
-						const spanTheme = getSpanTheme(span)
-						console.log(
-							span.duration,
-							totalDuration,
-							`${span.duration / totalDuration}%`,
-						)
-
-						return (
-							<Stack
-								direction="row"
-								gap="4"
-								align="center"
-								p="8"
-								key={row.key}
-								style={{
-									position: 'absolute',
-									top: 0,
-									left: 0,
-									width: '100%',
-									height: `${row.size}px`,
-									transform: `translateY(${row.start}px)`,
-								}}
-							>
-								<Box style={{ width: 100 }}>
-									{span.spanName}
-								</Box>
-								<Box style={{ width: 100 }}>
-									{getTraceDurationString(span.duration)}
-								</Box>
-								<Box flexGrow={1}>
-									<Box
-										borderRadius="4"
-										style={{
-											height: 10,
-											width: `${Math.min(
-												(span.duration /
-													totalDuration) *
-													100,
-												100,
-											)}%`,
-											backgroundColor:
-												spanTheme.selectedBackground,
-										}}
-									/>
-								</Box>
-							</Stack>
-						)
-					})}
+				<Box ref={scrollableRef}>
+					{filteredSpans.map((span) => (
+						<WaterfallRow
+							key={span.spanID}
+							depth={0}
+							span={span}
+							totalDuration={totalDuration}
+							query={query}
+						/>
+					))}
 				</Box>
 			</Box>
 		</Box>
 	)
+}
+
+const WaterfallRow: React.FC<{
+	depth: number
+	span: FlameGraphSpan
+	totalDuration: number
+	query: string
+}> = ({ depth, span, totalDuration, query }) => {
+	const spanTheme = getSpanTheme(span)
+	const [open, setOpen] = useState(true)
+	const hasChildren = span.children && span.children.length > 0
+
+	const matchQuery = useMemo(
+		() => doesSpanOrDescendantsMatchQuery(span, query),
+		[span, query],
+	)
+
+	if (!matchQuery) {
+		return null
+	}
+
+	return (
+		<>
+			<Stack direction="row" gap="4" align="center" px="8">
+				<Stack
+					py="8"
+					br="dividerWeak"
+					position="relative"
+					align="center"
+					direction="row"
+					gap="2"
+					pl="16"
+					cursor="pointer"
+					onClick={() => setOpen(!open)}
+					style={{ width: 250 - depth * 15 }}
+				>
+					<Box
+						style={{
+							position: 'absolute',
+							left: 0,
+							top: 3,
+						}}
+					>
+						{hasChildren &&
+							(open ? (
+								<IconSolidCheveronDown />
+							) : (
+								<IconSolidCheveronRight />
+							))}
+					</Box>
+					<Text weight="medium">{span.spanName}</Text>
+				</Stack>
+				<Stack flexGrow={1} gap="6" align="center" direction="row">
+					<Box
+						borderRadius="4"
+						style={{
+							height: 10,
+							marginLeft: `${
+								(span.startTime / totalDuration) * 100
+							}%`,
+							width: `${Math.min(
+								(span.duration / totalDuration) * 100,
+								100,
+							)}%`,
+							backgroundColor: spanTheme.selectedBackground,
+						}}
+					/>
+
+					<Text size="xSmall">
+						{getTraceDurationString(span.duration)}
+					</Text>
+				</Stack>
+			</Stack>
+
+			{hasChildren && open && (
+				<Box
+					style={{
+						borderLeft: `1px solid ${spanTheme.border}`,
+						marginLeft: 14,
+					}}
+				>
+					{span.children?.map((childSpan, index) => (
+						<WaterfallRow
+							key={index}
+							depth={depth + 1}
+							span={childSpan}
+							totalDuration={totalDuration}
+							query={query}
+						/>
+					))}
+				</Box>
+			)}
+		</>
+	)
+}
+
+const doesSpanOrDescendantsMatchQuery = (
+	span: FlameGraphSpan,
+	query: string,
+): boolean => {
+	const checkSpan = (span: FlameGraphSpan): boolean => {
+		if (span.spanName.toLowerCase().includes(query.toLowerCase())) {
+			return true
+		}
+
+		if (span.children) {
+			return span.children.some(checkSpan)
+		}
+
+		return false
+	}
+
+	return checkSpan(span)
 }

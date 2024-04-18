@@ -2,13 +2,14 @@ import { ApolloError } from '@apollo/client'
 import { createContext, useContext, useMemo, useState } from 'react'
 
 import { useGetTraceQuery } from '@/graph/generated/hooks'
-import { Trace, TraceError } from '@/graph/generated/schemas'
+import { TraceError } from '@/graph/generated/schemas'
 import {
 	FlameGraphSpan,
 	getFirstSpan,
 	getTraceDurationString,
 	getTraceTimes,
 	organizeSpansForFlameGraph,
+	organizeSpansWithChildren,
 } from '@/pages/Traces/utils'
 
 type TraceContext = {
@@ -23,7 +24,7 @@ type TraceContext = {
 	highlightedSpan: FlameGraphSpan | undefined
 	loading: boolean
 	traces: FlameGraphSpan[][]
-	spans: Trace[]
+	spans: FlameGraphSpan[]
 	error?: ApolloError
 	traceId?: string
 	secureSessionId?: string
@@ -126,7 +127,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 			return []
 		}
 
-		return data.trace.trace
+		return organizeSpansWithChildren(data.trace.trace)
 	}, [data?.trace?.trace])
 
 	return (
