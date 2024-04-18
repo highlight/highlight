@@ -225,7 +225,10 @@ const WaterfallRow: React.FC<{
 								(span.startTime / totalDuration) * 100
 							}%`,
 							width: `${Math.min(
-								(span.duration / totalDuration) * 100,
+								Math.min(
+									(span.duration / totalDuration) * 100,
+									1,
+								),
 								100,
 							)}%`,
 							backgroundColor: isSelected
