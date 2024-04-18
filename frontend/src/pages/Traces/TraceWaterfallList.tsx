@@ -112,7 +112,14 @@ const WaterfallRow: React.FC<{
 								<IconSolidCheveronRight />
 							))}
 					</Box>
-					<Text weight="medium">{span.spanName}</Text>
+					<Text
+						color="strong"
+						weight={hasChildren ? 'bold' : 'medium'}
+						size="xSmall"
+					>
+						{span.spanName}{' '}
+						{span.serviceName ? <>({span.serviceName})</> : null}
+					</Text>
 				</Stack>
 				<Stack flexGrow={1} gap="6" align="center" direction="row">
 					<Box
