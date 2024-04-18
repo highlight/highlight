@@ -19,6 +19,7 @@ export const TraceWaterfallList: React.FC = () => {
 	const [dragging, setDragging] = useState(false)
 	const dragHandleRef = useRef<HTMLDivElement>(null)
 	const {
+		hoveredSpan,
 		selectedSpan,
 		spans,
 		totalDuration,
@@ -122,6 +123,7 @@ export const TraceWaterfallList: React.FC = () => {
 						key={span.spanID}
 						attributesWidth={attributesWidth}
 						depth={0}
+						hoveredSpan={hoveredSpan}
 						selectedSpan={selectedSpan}
 						span={span}
 						totalDuration={totalDuration}
@@ -138,6 +140,7 @@ export const TraceWaterfallList: React.FC = () => {
 const WaterfallRow: React.FC<{
 	attributesWidth: number
 	depth: number
+	hoveredSpan: FlameGraphSpan | undefined
 	selectedSpan: FlameGraphSpan | undefined
 	span: FlameGraphSpan
 	totalDuration: number
@@ -147,6 +150,7 @@ const WaterfallRow: React.FC<{
 }> = ({
 	attributesWidth,
 	depth,
+	hoveredSpan,
 	selectedSpan,
 	span,
 	totalDuration,
@@ -155,10 +159,11 @@ const WaterfallRow: React.FC<{
 	setSelectedSpan,
 }) => {
 	const spanTheme = getSpanTheme(span)
-	const [hovered, setHovered] = useState(false)
 	const [open, setOpen] = useState(true)
 	const hasChildren = span.children && span.children.length > 0
-	const isSelected = selectedSpan?.spanID === span.spanID || hovered
+	const isSelected =
+		selectedSpan?.spanID === span.spanID ||
+		hoveredSpan?.spanID === span.spanID
 
 	const matchQuery = useMemo(
 		() => doesSpanOrDescendantsMatchQuery(span, query),
@@ -178,14 +183,8 @@ const WaterfallRow: React.FC<{
 				px="8"
 				cursor="pointer"
 				onClick={() => setSelectedSpan(span)}
-				onMouseOver={() => {
-					setHovered(true)
-					setHoveredSpan(span)
-				}}
-				onMouseOut={() => {
-					setHovered(false)
-					setHoveredSpan(undefined)
-				}}
+				onMouseOver={() => setHoveredSpan(span)}
+				onMouseOut={() => setHoveredSpan(undefined)}
 			>
 				<Stack
 					py="8"
@@ -255,6 +254,7 @@ const WaterfallRow: React.FC<{
 							key={index}
 							attributesWidth={attributesWidth}
 							depth={depth + 1}
+							hoveredSpan={hoveredSpan}
 							selectedSpan={selectedSpan}
 							span={childSpan}
 							totalDuration={totalDuration}
