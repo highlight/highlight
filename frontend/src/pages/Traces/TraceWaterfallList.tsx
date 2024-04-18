@@ -175,6 +175,7 @@ const WaterfallRow: React.FC<{
 				gap="4"
 				align="center"
 				px="8"
+				cursor="pointer"
 				onClick={() => setSelectedSpan(span)}
 				onMouseOver={() => setHoveredSpan(span)}
 				onMouseOut={() => setHoveredSpan(undefined)}
@@ -186,6 +187,7 @@ const WaterfallRow: React.FC<{
 					direction="row"
 					gap="2"
 					pl="16"
+					flexShrink={0}
 					style={{ width: attributesWidth - depth * 13 - 6 }}
 				>
 					<Box
@@ -209,7 +211,7 @@ const WaterfallRow: React.FC<{
 						{span.serviceName && `(${span.serviceName})`}
 					</Text>
 				</Stack>
-				<Stack flexGrow={1} gap="6" align="center" direction="row">
+				<Box flexGrow={1} pl="4">
 					<Box
 						borderRadius="4"
 						style={{
@@ -226,11 +228,12 @@ const WaterfallRow: React.FC<{
 								: spanTheme.background,
 						}}
 					/>
-
+				</Box>
+				<Box flexShrink={0}>
 					<Text size="xSmall">
 						{getTraceDurationString(span.duration)}
 					</Text>
-				</Stack>
+				</Box>
 			</Stack>
 
 			{hasChildren && open && (
