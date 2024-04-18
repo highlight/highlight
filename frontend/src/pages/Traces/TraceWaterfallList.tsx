@@ -101,7 +101,7 @@ const WaterfallRow: React.FC<{
 					<Box
 						style={{
 							position: 'absolute',
-							left: 0,
+							left: -2,
 							top: 3,
 						}}
 					>
@@ -140,7 +140,7 @@ const WaterfallRow: React.FC<{
 				<Box
 					style={{
 						borderLeft: `1px solid ${spanTheme.border}`,
-						marginLeft: 14,
+						marginLeft: 12,
 					}}
 				>
 					{span.children?.map((childSpan, index) => (
