@@ -85,16 +85,17 @@ export const Dashboard = () => {
 	}
 
 	const { projectId } = useProjectId()
-	useGetVisualizationQuery({
+	const { refetch: refetchViz } = useGetVisualizationQuery({
 		variables: { id: dashboard_id! },
-		fetchPolicy: 'cache-and-network',
 		onCompleted: (d) => {
 			setName(d.visualization.name)
 			setGraphs(d.visualization.graphs)
 		},
 	})
 
-	const [upsertViz] = useUpsertVisualizationMutation({})
+	const [upsertViz] = useUpsertVisualizationMutation({
+		refetchQueries: [namedOperations.Query.GetVisualizations],
+	})
 
 	const { timeRange } = useDataTimeRange()
 
@@ -175,30 +176,69 @@ export const Dashboard = () => {
 						</Stack>
 						<Box display="flex" gap="4">
 							{editing ? (
-								<Button
-									emphasis="high"
-									kind="primary"
-									onClick={() => {
-										setEditing(false)
-										const graphIds = graphs?.map(
-											(g) => g.id,
-										)
-										upsertViz({
-											variables: {
-												visualization: {
-													projectId,
-													id: dashboard_id,
-													name,
-													graphIds: graphIds,
+								<>
+									<Button
+										emphasis="low"
+										kind="secondary"
+										onClick={() => {
+											refetchViz()
+												.then((d) => {
+													setName(
+														d.data.visualization
+															.name,
+													)
+													setGraphs(
+														d.data.visualization
+															.graphs,
+													)
+													setEditing(false)
+													message.success(
+														'Reverted dashboard changes',
+													)
+												})
+												.catch(() => {
+													setEditing(false)
+													message.error(
+														'Failed to refetch dashboard',
+													)
+												})
+										}}
+									>
+										Cancel
+									</Button>
+									<Button
+										emphasis="high"
+										kind="primary"
+										onClick={() => {
+											const graphIds = graphs?.map(
+												(g) => g.id,
+											)
+											upsertViz({
+												variables: {
+													visualization: {
+														projectId,
+														id: dashboard_id,
+														name,
+														graphIds: graphIds,
+													},
 												},
-											},
-										}).then(() => {
-											message.success('Dashboard updated')
-										})
-									}}
-								>
-									Done
-								</Button>
+											})
+												.then(() => {
+													setEditing(false)
+													message.success(
+														'Dashboard updated',
+													)
+												})
+												.catch(() =>
+													message.error(
+														'Failed to update dashboard',
+													),
+												)
+										}}
+									>
+										Save
+									</Button>
+								</>
 							) : (
 								<>
 									<Button emphasis="low" kind="secondary">

@@ -9160,7 +9160,7 @@ func (r *queryResolver) Visualizations(ctx context.Context, projectID int, input
 	}
 
 	var viz []vizWithCount
-	if err := r.DB.WithContext(ctx).Model(&model.Visualization{}).Preload("UpdatedByAdmin").
+	if err := r.DB.WithContext(ctx).Model(&model.Visualization{}).Preload("Graphs").Preload("UpdatedByAdmin").
 		Where("project_id = ?", projectID).Where("name ILIKE ?", searchStr).
 		Order("updated_at DESC").Select("*, COUNT(*) OVER () as count").Limit(count).Offset(offset).Find(&viz).Error; err != nil {
 		return nil, err

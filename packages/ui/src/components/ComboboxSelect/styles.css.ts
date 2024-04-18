@@ -4,6 +4,10 @@ import { vars } from '@/vars'
 
 import { colors } from '../../css/colors'
 
+export const buttonWrapper = style({
+	flex: 1,
+})
+
 export const selectLabel = style({
 	display: 'none',
 })

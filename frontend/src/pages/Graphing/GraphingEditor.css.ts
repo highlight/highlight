@@ -29,9 +29,20 @@ export const editorLabel = style({
 	marginBottom: 4,
 })
 
+export const combobox = style({
+	width: '100%',
+	height: 28,
+	borderRadius: 6,
+})
+
+export const comboboxText = style({
+	lineHeight: '24px',
+})
+
 export const menuButton = style({
 	border: vars.border.divider,
 	width: '100%',
+	flex: 1,
 })
 
 export const input = style({
