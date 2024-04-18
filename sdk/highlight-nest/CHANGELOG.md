@@ -1,5 +1,19 @@
 # @highlight-run/nest
 
+## 3.6.0
+
+### Minor Changes
+
+-   ec466b8b2: fix nestjs trace context propagation and update node sdk span names
+
+### Patch Changes
+
+-   ec466b8b2: fix nest sdk breaking endpoints that do not return
+-   Updated dependencies [ec466b8b2]
+-   Updated dependencies [ec466b8b2]
+-   Updated dependencies [ec466b8b2]
+    -   @highlight-run/node@3.9.0
+
 ## 3.5.0
 
 ### Minor Changes
