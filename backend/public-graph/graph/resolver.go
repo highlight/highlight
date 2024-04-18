@@ -2622,7 +2622,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	g.Go(func() error {
 		defer util.Recover()
 		unmarshalMessagesSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			util.ResourceName("go.unmarshal.messages"), util.Tag("project_id", projectID))
+			util.ResourceName("go.unmarshal.messages"), util.Tag("project_id", projectID), util.Tag("message_string_len", len(messages)), util.Tag("secure_session_id", sessionSecureID), util.WithSpanKind(trace.SpanKindServer))
 		defer unmarshalMessagesSpan.Finish()
 
 		if err := r.submitFrontendConsoleMessages(ctx, sessionObj, messages); err != nil {
