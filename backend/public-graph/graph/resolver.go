@@ -2498,6 +2498,13 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	}
 
 	g.Go(func() error {
+		if sessionObj.SecureID == "upuL62WVq4Bqzg7RIqNjkMDnyDII" {
+			log.WithContext(ctx).WithField("secure_session_id", sessionSecureID).Warn("unmarshal events for suss session")
+			defer func() {
+				log.WithContext(ctx).WithField("secure_session_id", sessionSecureID).Warn("done unmarshal events for suss session")
+			}()
+		}
+
 		defer util.Recover()
 		parseEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			util.ResourceName("go.parseEvents"), util.Tag("project_id", projectID))
@@ -2620,6 +2627,13 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	// unmarshal messages
 	g.Go(func() error {
+		if sessionObj.SecureID == "upuL62WVq4Bqzg7RIqNjkMDnyDII" {
+			log.WithContext(ctx).WithField("secure_session_id", sessionSecureID).Warn("unmarshal messages for suss session")
+			defer func() {
+				log.WithContext(ctx).WithField("secure_session_id", sessionSecureID).Warn("done unmarshal messages for suss session")
+			}()
+		}
+
 		defer util.Recover()
 		unmarshalMessagesSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			util.ResourceName("go.unmarshal.messages"), util.Tag("project_id", projectID), util.Tag("message_string_len", len(messages)), util.Tag("secure_session_id", sessionSecureID), util.WithSpanKind(trace.SpanKindServer))
@@ -2634,6 +2648,13 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	// unmarshal resources
 	g.Go(func() error {
+		if sessionObj.SecureID == "upuL62WVq4Bqzg7RIqNjkMDnyDII" {
+			log.WithContext(ctx).WithField("secure_session_id", sessionSecureID).Warn("unmarshal resources for suss session")
+			defer func() {
+				log.WithContext(ctx).WithField("secure_session_id", sessionSecureID).Warn("done unmarshal resources for suss session")
+			}()
+		}
+
 		defer util.Recover()
 		unmarshalResourcesSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			util.ResourceName("go.unmarshal.resources"), util.Tag("project_id", projectID))
@@ -2659,6 +2680,13 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	// unmarshal WebSocket events
 	g.Go(func() error {
+		if sessionObj.SecureID == "upuL62WVq4Bqzg7RIqNjkMDnyDII" {
+			log.WithContext(ctx).WithField("secure_session_id", sessionSecureID).Warn("unmarshal websocket for suss session")
+			defer func() {
+				log.WithContext(ctx).WithField("secure_session_id", sessionSecureID).Warn("done unmarshal websocket for suss session")
+			}()
+		}
+
 		defer util.Recover()
 		if webSocketEventsStr != "" {
 			unmarshalWebSocketEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
@@ -2686,6 +2714,13 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	// process errors
 	g.Go(func() error {
+		if sessionObj.SecureID == "upuL62WVq4Bqzg7RIqNjkMDnyDII" {
+			log.WithContext(ctx).WithField("secure_session_id", sessionSecureID).Warn("unmarshal errors for suss session")
+			defer func() {
+				log.WithContext(ctx).WithField("secure_session_id", sessionSecureID).Warn("done unmarshal errors for suss session")
+			}()
+		}
+
 		defer util.Recover()
 		if hasBeacon {
 			r.DB.WithContext(ctx).Where(&model.ErrorObject{SessionID: &sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
