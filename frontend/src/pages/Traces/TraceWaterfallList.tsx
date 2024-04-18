@@ -18,7 +18,14 @@ export const TraceWaterfallList: React.FC = () => {
 	const [attributesWidth, setAttributesWidth] = useState(250)
 	const [dragging, setDragging] = useState(false)
 	const dragHandleRef = useRef<HTMLDivElement>(null)
-	const { spans, totalDuration } = useTrace()
+	const {
+		hoveredSpan,
+		selectedSpan,
+		spans,
+		totalDuration,
+		setHoveredSpan,
+		setSelectedSpan,
+	} = useTrace()
 	const scrollableRef = useRef<HTMLTableSectionElement>(null)
 	const [query, setQuery] = useState('')
 
@@ -119,9 +126,12 @@ export const TraceWaterfallList: React.FC = () => {
 						key={span.spanID}
 						attributesWidth={attributesWidth}
 						depth={0}
+						selectedSpan={selectedSpan}
 						span={span}
 						totalDuration={totalDuration}
 						query={query}
+						setHoveredSpan={setHoveredSpan}
+						setSelectedSpan={setSelectedSpan}
 					/>
 				))}
 			</Box>
@@ -132,13 +142,26 @@ export const TraceWaterfallList: React.FC = () => {
 const WaterfallRow: React.FC<{
 	attributesWidth: number
 	depth: number
+	selectedSpan: FlameGraphSpan | undefined
 	span: FlameGraphSpan
 	totalDuration: number
 	query: string
-}> = ({ attributesWidth, depth, span, totalDuration, query }) => {
+	setHoveredSpan: (span: FlameGraphSpan | undefined) => void
+	setSelectedSpan: (span: FlameGraphSpan | undefined) => void
+}> = ({
+	attributesWidth,
+	depth,
+	selectedSpan,
+	span,
+	totalDuration,
+	query,
+	setHoveredSpan,
+	setSelectedSpan,
+}) => {
 	const spanTheme = getSpanTheme(span)
 	const [open, setOpen] = useState(true)
 	const hasChildren = span.children && span.children.length > 0
+	const isSelected = selectedSpan?.spanID === span.spanID
 
 	const matchQuery = useMemo(
 		() => doesSpanOrDescendantsMatchQuery(span, query),
@@ -151,7 +174,15 @@ const WaterfallRow: React.FC<{
 
 	return (
 		<>
-			<Stack direction="row" gap="4" align="center" px="8">
+			<Stack
+				direction="row"
+				gap="4"
+				align="center"
+				px="8"
+				onClick={() => setSelectedSpan(span)}
+				onMouseOver={() => setHoveredSpan(span)}
+				onMouseOut={() => setHoveredSpan(undefined)}
+			>
 				<Stack
 					py="8"
 					position="relative"
@@ -159,11 +190,11 @@ const WaterfallRow: React.FC<{
 					direction="row"
 					gap="2"
 					pl="16"
-					cursor="pointer"
-					onClick={() => setOpen(!open)}
 					style={{ width: attributesWidth - depth * 13 - 6 }}
 				>
 					<Box
+						cursor="pointer"
+						onClick={() => setOpen(!open)}
 						style={{
 							position: 'absolute',
 							left: -2,
@@ -194,7 +225,9 @@ const WaterfallRow: React.FC<{
 								(span.duration / totalDuration) * 100,
 								100,
 							)}%`,
-							backgroundColor: spanTheme.selectedBackground,
+							backgroundColor: isSelected
+								? spanTheme.selectedBackground
+								: spanTheme.background,
 						}}
 					/>
 
@@ -216,9 +249,12 @@ const WaterfallRow: React.FC<{
 							key={index}
 							attributesWidth={attributesWidth}
 							depth={depth + 1}
+							selectedSpan={selectedSpan}
 							span={childSpan}
 							totalDuration={totalDuration}
 							query={query}
+							setHoveredSpan={setHoveredSpan}
+							setSelectedSpan={setSelectedSpan}
 						/>
 					))}
 				</Box>
