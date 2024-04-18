@@ -23,7 +23,10 @@ export const TraceWaterfallList: React.FC = () => {
 	const [query, setQuery] = useState('')
 
 	const filteredSpans = useMemo(
-		() => spans.sort((a, b) => a.startTime - b.startTime),
+		() =>
+			[...spans, ...spans, ...spans, ...spans].sort(
+				(a, b) => a.startTime - b.startTime,
+			),
 		[spans],
 	)
 
@@ -158,7 +161,7 @@ const WaterfallRow: React.FC<{
 					pl="16"
 					cursor="pointer"
 					onClick={() => setOpen(!open)}
-					style={{ width: attributesWidth - depth * 13 }}
+					style={{ width: attributesWidth - depth * 13 - 16 }}
 				>
 					<Box
 						style={{
