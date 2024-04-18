@@ -4871,6 +4871,7 @@ body {
 .in1xv90 {
   border: none;
   font-size: 13px;
+  font-weight: 500;
   color: var(--_1pyqka9b);
   caret-color: var(--_1pyqka9l);
   outline: 0;

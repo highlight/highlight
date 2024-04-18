@@ -4,11 +4,11 @@ import { StringParam, useQueryParam } from 'use-query-params'
 
 import LoadingBox from '@/components/LoadingBox'
 import { TraceErrors } from '@/pages/Traces/TraceErrors'
-import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
 import { TraceHeader } from '@/pages/Traces/TraceHeader'
 import { TraceLogs } from '@/pages/Traces/TraceLogs'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
+import { TraceVisualizer } from '@/pages/Traces/TraceVisualizer'
 import analytics from '@/util/analytics'
 
 enum TraceTabs {
@@ -39,7 +39,7 @@ export const TracePage: React.FC = () => {
 	return (
 		<Box overflowY="scroll" px="36" pt="28" pb="20">
 			<TraceHeader />
-			<TraceFlameGraph />
+			<TraceVisualizer />
 
 			<Box pt="20">
 				<Tabs<TraceTabs> selectedId={activeTab} onChange={setActiveTab}>
