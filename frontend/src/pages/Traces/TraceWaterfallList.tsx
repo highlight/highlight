@@ -19,7 +19,6 @@ export const TraceWaterfallList: React.FC = () => {
 	const [dragging, setDragging] = useState(false)
 	const dragHandleRef = useRef<HTMLDivElement>(null)
 	const {
-		hoveredSpan,
 		selectedSpan,
 		spans,
 		totalDuration,
@@ -30,10 +29,7 @@ export const TraceWaterfallList: React.FC = () => {
 	const [query, setQuery] = useState('')
 
 	const filteredSpans = useMemo(
-		() =>
-			[...spans, ...spans, ...spans, ...spans].sort(
-				(a, b) => a.startTime - b.startTime,
-			),
+		() => [...spans].sort((a, b) => a.startTime - b.startTime),
 		[spans],
 	)
 
