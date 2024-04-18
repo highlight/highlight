@@ -44,7 +44,7 @@ var testCases = []struct {
 	},
 	{
 		ptr.String(`{"date_range":null,"browser":null,"os":null,"visited_url":null,"event":null,"state":null,"query":"{\"isAnd\":false,\"rules\":[[\"error_state\",\"is\",\"OPEN\"],[\"error-field_visited_url\",\"not_contains\",\"localhost\"],[\"error-field_browser\",\"matches\",\".+\\\\d\"]]}"}`),
-		ptr.String(`{"Query":"status=OPEN OR visited_url!=*localhost* OR browser=\.+\d\"}`),
+		ptr.String(`{"Query":"status=OPEN OR visited_url!=*localhost* OR browser=/.+\d/"}`),
 	},
 	{
 		ptr.String(`{"Query":"{\"isAnd\":true,\"rules\":[[\"error_state\",\"is\",\"OPEN\"],[\"error-field_browser\",\"is\",\"Chrome\"],[\"error-field_browser\",\"is\",\"Chrome\"],[\"error-field_environment\",\"is\",\"production\",\"prod\"]],\"dateRange\":{\"start_date\":\"2024-03-11T17:28:20.610Z\",\"end_date\":\"2024-04-10T17:28:20.610Z\"}}"}`),
@@ -52,15 +52,15 @@ var testCases = []struct {
 	},
 	{
 		ptr.String(`{"Query":"{\"isAnd\":true,\"rules\":[[\"error_state\",\"is\",\"OPEN\"],[\"error-field_browser\",\"matches\",\".+\\\\d\"],[\"error-field_browser\",\"matches\",\".+\\\\s\"],[\"error-field_environment\",\"is\",\"production\",\"prod\"]],\"dateRange\":{\"start_date\":\"2024-03-11T20:04:35.411Z\",\"end_date\":\"2024-04-10T20:04:35.411Z\"}}"}`),
-		ptr.String(`{"Query":"status=OPEN browser=\.+\d\ browser=\.+\s\ environment=(production OR prod)"}`),
+		ptr.String(`{"Query":"status=OPEN browser=/.+\d/ browser=/.+\s/ environment=(production OR prod)"}`),
 	},
 	{
 		ptr.String(`{"Query":"{\"isAnd\":true,\"rules\":[[\"error_state\",\"is\",\"OPEN\"],[\"error-field_browser\",\"matches\",\".+\\\\d\",\".+\\\\s\"],[\"error-field_environment\",\"is\",\"production\",\"prod\"]],\"dateRange\":{\"start_date\":\"2024-03-11T20:12:54.219Z\",\"end_date\":\"2024-04-10T20:12:54.219Z\"}}"}`),
-		ptr.String(`{"Query":"status=OPEN (browser=\.+\d\ OR browser=\.+\s\) environment=(production OR prod)"}`),
+		ptr.String(`{"Query":"status=OPEN (browser=/.+\d/ OR browser=/.+\s/) environment=(production OR prod)"}`),
 	},
 	{
 		ptr.String(`{"Query":"{\"isAnd\":true,\"rules\":[[\"error_state\",\"is\",\"OPEN\"],[\"error-field_browser\",\"is\",\"Chrome\"],[\"error-field_environment\",\"is\",\"dev\",\"cameron-localhost\"],[\"error-field_secure_session_id\",\"contains\",\"a\",\"b\"],[\"error-field_os_name\",\"matches\",\".+\\\\d.+\",\".+\\\\s.+\"]],\"dateRange\":{\"start_date\":\"2024-03-11T20:56:06.523Z\",\"end_date\":\"2024-04-10T20:56:06.523Z\"}}"}`),
-		ptr.String(`{"Query":"status=OPEN browser=Chrome environment=(dev OR cameron-localhost) secure_session_id=(*a* OR *b*) (os_name=\.+\d.+\ OR os_name=\.+\s.+\)"}`),
+		ptr.String(`{"Query":"status=OPEN browser=Chrome environment=(dev OR cameron-localhost) secure_session_id=(*a* OR *b*) (os_name=/.+\d.+/ OR os_name=/.+\s.+/)"}`),
 	},
 }
 
