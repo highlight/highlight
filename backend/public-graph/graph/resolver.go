@@ -3171,11 +3171,6 @@ func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj
 		return nil
 	}
 
-	if sessionObj.SecureID == "upuL62WVq4Bqzg7RIqNjkMDnyDII" {
-		log.WithContext(ctx).WithField("secure_session_id", sessionObj.SecureID).Warn("skipping frontend console messages for suss session")
-		return nil
-	}
-
 	for _, row := range logRows {
 		attributes := []attribute.KeyValue{
 			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeFrontendConsole)),
