@@ -6,8 +6,8 @@ export const dragHandle = style({
 	cursor: 'ew-resize',
 	position: 'absolute',
 	transition: 'background-color 0.3s',
+	height: '100%',
 	top: 0,
-	bottom: 0,
 	width: 4,
 	zIndex: 1,
 	selectors: {

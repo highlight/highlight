@@ -93,7 +93,7 @@ export const TraceWaterfallList: React.FC = () => {
 					/>
 				</Stack>
 			</Form>
-			{/* TODO: Make height dynamic */}
+
 			<Box
 				position="relative"
 				overflowY="auto"
