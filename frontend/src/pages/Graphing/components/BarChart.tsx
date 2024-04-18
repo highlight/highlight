@@ -6,6 +6,8 @@ import {
 	Tooltip,
 	XAxis,
 	YAxis,
+	Cell,
+	BarProps,
 } from 'recharts'
 
 import {
@@ -19,6 +21,7 @@ import {
 	isActive,
 	SeriesInfo,
 } from '@/pages/Graphing/components/Graph'
+import { useId } from 'react'
 
 export type BarDisplay = 'Grouped' | 'Stacked'
 export const BAR_DISPLAY: BarDisplay[] = ['Grouped', 'Stacked']
@@ -29,20 +32,32 @@ export type BarChartConfig = {
 	display?: BarDisplay
 }
 
-const RoundedBar = (props: any) => {
+const RoundedBar = (id: string, isLast: boolean) => (props: BarProps) => {
 	const { fill, x, y, width, height } = props
 	return (
-		<g>
+		<>
 			<rect
-				rx={5}
 				x={x}
 				y={y}
 				width={width}
-				height={Math.max(height - 1, 0)}
+				height={Math.max((height ?? 0) - 1.5, 0)}
 				stroke="none"
 				fill={fill}
+				mask={`url(#barmask-${id}-${x})`}
 			/>
-		</g>
+			{isLast && (
+				<mask id={`barmask-${id}-${x}`}>
+					<rect
+						rx={Math.min((width ?? 0) / 3, 5)}
+						x={x}
+						y={y}
+						width={width}
+						height="10000"
+						fill="white"
+					/>
+				</mask>
+			)}
+		</>
 	)
 }
 
@@ -56,6 +71,9 @@ export const BarChart = ({
 }: InnerChartProps<BarChartConfig> & SeriesInfo) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data?.length)
 	const yAxisTickFormatter = getTickFormatter(yAxisMetric)
+
+	// used to give svg masks an id unique to the page
+	const id = useId()
 
 	return (
 		<ResponsiveContainer>
@@ -114,6 +132,11 @@ export const BarChart = ({
 							return null
 						}
 
+						const isLastBar =
+							viewConfig.display !== 'Stacked' ||
+							spotlight === idx ||
+							idx === series.length - 1
+
 						return (
 							<Bar
 								key={key}
@@ -124,7 +147,7 @@ export const BarChart = ({
 								stackId={
 									viewConfig.display === 'Stacked' ? 1 : idx
 								}
-								shape={RoundedBar}
+								shape={RoundedBar(id, isLastBar)}
 							/>
 						)
 					})}

@@ -50,6 +50,7 @@ export const VIEW_ICONS = [
 	<IconSolidChartSquareBar size={16} key="bar chart" />,
 	<IconSolidTable size={16} key="table" />,
 ]
+export const VIEW_LABELS = ['Line chart', 'Bar chart / histogram', 'Table']
 
 export const TIMESTAMP_KEY = 'Timestamp'
 export const GROUP_KEY = 'Group'
@@ -410,8 +411,6 @@ const Graph = ({
 	useEffect(() => {
 		setSpotlight(undefined)
 	}, [series])
-
-	console.log('data', data)
 
 	let isEmpty = data !== undefined
 	for (const d of data ?? []) {

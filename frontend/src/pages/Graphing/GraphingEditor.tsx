@@ -46,6 +46,7 @@ import Graph, {
 	TIMESTAMP_KEY,
 	View,
 	VIEW_ICONS,
+	VIEW_LABELS,
 	VIEWS,
 } from '@/pages/Graphing/components/Graph'
 import {
@@ -174,14 +175,17 @@ const OptionDropdown = <T extends string>({
 	selection,
 	setSelection,
 	icons,
+	labels,
 }: {
 	options: T[]
 	selection: T
 	setSelection: (option: T) => void
 	icons?: JSX.Element[]
+	labels?: string[]
 }) => {
 	const selectedIndex = options.indexOf(selection)
 	const selectedIcon = icons?.at(selectedIndex)
+	const selectedLabel = labels?.at(selectedIndex)
 	return (
 		<Menu>
 			<Menu.Button
@@ -199,7 +203,7 @@ const OptionDropdown = <T extends string>({
 				>
 					<Stack direction="row" alignItems="center" gap="4">
 						{selectedIcon}
-						{selection}
+						{selectedLabel ?? selection}
 					</Stack>
 					<IconSolidCheveronDown />
 				</Box>
@@ -214,7 +218,7 @@ const OptionDropdown = <T extends string>({
 					>
 						<Stack direction="row" alignItems="center" gap="4">
 							{icons?.at(idx)}
-							{p}
+							{labels?.at(idx) ?? p}
 						</Stack>
 					</Menu.Item>
 				))}
@@ -732,6 +736,7 @@ export const GraphingEditor = () => {
 											selection={viewType}
 											setSelection={setViewType}
 											icons={VIEW_ICONS}
+											labels={VIEW_LABELS}
 										/>
 									</LabeledRow>
 									{viewType === 'Line chart' && (
