@@ -111,7 +111,7 @@ export const TraceWaterfallList: React.FC = () => {
 						e.preventDefault()
 						setDragging(true)
 					}}
-					style={{ left: attributesWidth + 1 }}
+					style={{ left: attributesWidth }}
 				/>
 
 				{filteredSpans.map((span) => (
@@ -161,7 +161,7 @@ const WaterfallRow: React.FC<{
 					pl="16"
 					cursor="pointer"
 					onClick={() => setOpen(!open)}
-					style={{ width: attributesWidth - depth * 13 - 16 }}
+					style={{ width: attributesWidth - depth * 13 - 6 }}
 				>
 					<Box
 						style={{
