@@ -158,9 +158,8 @@ const WaterfallRow: React.FC<{
 	const spanTheme = getSpanTheme(span)
 	const [open, setOpen] = useState(true)
 	const hasChildren = span.children && span.children.length > 0
-	const isSelected =
-		selectedSpan?.spanID === span.spanID ||
-		hoveredSpan?.spanID === span.spanID
+	const isHovered = hoveredSpan?.spanID === span.spanID
+	const isSelected = selectedSpan?.spanID === span.spanID || isHovered
 
 	const matchQuery = useMemo(
 		() => doesSpanOrDescendantsMatchQuery(span, query),
@@ -232,6 +231,7 @@ const WaterfallRow: React.FC<{
 							backgroundColor: isSelected
 								? spanTheme.selectedBackground
 								: spanTheme.background,
+							opacity: isHovered ? 0.5 : 1,
 						}}
 					/>
 				</Box>
