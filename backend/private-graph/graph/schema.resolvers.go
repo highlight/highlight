@@ -840,13 +840,11 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 
-	updatedErrorGroup, err := r.Store.UpdateErrorGroupStateByAdmin(ctx, *admin, store.UpdateErrorGroupParams{
+	return r.Store.UpdateErrorGroupStateByAdmin(ctx, *admin, store.UpdateErrorGroupParams{
 		ID:           errorGroup.ID,
 		State:        state,
 		SnoozedUntil: snoozedUntil,
 	})
-
-	return &updatedErrorGroup, err
 }
 
 // DeleteProject is the resolver for the deleteProject field.
