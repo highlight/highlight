@@ -101,37 +101,34 @@ export const TraceWaterfallList: React.FC = () => {
 				</Stack>
 			</Form>
 
-			<Box
-				position="relative"
-				overflowY="auto"
-				ref={scrollableRef}
-				style={{ height: 300 }}
-			>
-				<Box
-					br="dividerWeak"
-					ref={dragHandleRef}
-					cssClass={styles.dragHandle}
-					onMouseDown={(e) => {
-						e.preventDefault()
-						setDragging(true)
-					}}
-					style={{ left: attributesWidth }}
-				/>
-
-				{filteredSpans.map((span) => (
-					<WaterfallRow
-						key={span.spanID}
-						attributesWidth={attributesWidth}
-						depth={0}
-						hoveredSpan={hoveredSpan}
-						selectedSpan={selectedSpan}
-						span={span}
-						totalDuration={totalDuration}
-						query={query}
-						setHoveredSpan={setHoveredSpan}
-						setSelectedSpan={setSelectedSpan}
+			<Box overflowY="auto" style={{ height: 300 }}>
+				<Box position="relative" ref={scrollableRef}>
+					<Box
+						br="dividerWeak"
+						ref={dragHandleRef}
+						cssClass={styles.dragHandle}
+						onMouseDown={(e) => {
+							e.preventDefault()
+							setDragging(true)
+						}}
+						style={{ left: attributesWidth }}
 					/>
-				))}
+
+					{filteredSpans.map((span) => (
+						<WaterfallRow
+							key={span.spanID}
+							attributesWidth={attributesWidth}
+							depth={0}
+							hoveredSpan={hoveredSpan}
+							selectedSpan={selectedSpan}
+							span={span}
+							totalDuration={totalDuration}
+							query={query}
+							setHoveredSpan={setHoveredSpan}
+							setSelectedSpan={setSelectedSpan}
+						/>
+					))}
+				</Box>
 			</Box>
 		</Box>
 	)
@@ -198,7 +195,10 @@ const WaterfallRow: React.FC<{
 				>
 					<Box
 						cursor="pointer"
-						onClick={() => setOpen(!open)}
+						onClick={(e) => {
+							e.stopPropagation()
+							setOpen(!open)
+						}}
 						style={{
 							position: 'absolute',
 							left: -2,
