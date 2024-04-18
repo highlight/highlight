@@ -108,11 +108,7 @@ export const TraceWaterfallList: React.FC = () => {
 						e.preventDefault()
 						setDragging(true)
 					}}
-					style={{
-						left: attributesWidth - 1,
-						top: 0,
-						bottom: 0,
-					}}
+					style={{ left: attributesWidth + 1 }}
 				/>
 
 				{filteredSpans.map((span) => (

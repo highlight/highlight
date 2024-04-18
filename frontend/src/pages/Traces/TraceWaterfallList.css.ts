@@ -7,7 +7,6 @@ export const dragHandle = style({
 	position: 'absolute',
 	transition: 'background-color 0.3s',
 	top: 0,
-	left: -2,
 	bottom: 0,
 	width: 4,
 	zIndex: 1,

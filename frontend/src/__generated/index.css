@@ -7400,7 +7400,6 @@ body {
   position: absolute;
   transition: background-color 0.3s;
   top: 0;
-  left: -2px;
   bottom: 0;
   width: 4px;
   z-index: 1;
