@@ -18,7 +18,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { Divider, message } from 'antd'
-import { PropsWithChildren, useEffect, useMemo, useState } from 'react'
+import { PropsWithChildren, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
