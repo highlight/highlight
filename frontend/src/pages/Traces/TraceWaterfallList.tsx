@@ -112,12 +112,10 @@ const WaterfallRow: React.FC<{
 								<IconSolidCheveronRight />
 							))}
 					</Box>
-					<Text color="strong">{span.spanName} </Text>
-					{span.serviceName && (
-						<Text weight="bold" size="xSmall">
-							({span.serviceName})
-						</Text>
-					)}
+					<Text color="strong" lines="1">
+						{span.spanName}{' '}
+						{span.serviceName && `(${span.serviceName})`}
+					</Text>
 				</Stack>
 				<Stack flexGrow={1} gap="6" align="center" direction="row">
 					<Box
