@@ -20,8 +20,8 @@ import (
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 )
 
-// KafkaOperationTimeout If an ECS task is being replaced, there's a 30 second window to do cleanup work. A shorter timeout means we shouldn't be killed mid-operation.
-const KafkaOperationTimeout = 25 * time.Second
+// KafkaOperationTimeout The timeout for all kafka send/receive operations.
+const KafkaOperationTimeout = time.Minute
 
 const ConsumerGroupName = "group-default"
 
@@ -223,16 +223,16 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 		config := kafka.ReaderConfig{
 			Brokers:           brokers,
 			Dialer:            dialer,
-			HeartbeatInterval: time.Second,
-			ReadLagInterval:   time.Second,
-			RebalanceTimeout:  rebalanceTimeout,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
 			MinBytes:          1,
-			MaxBytes:          2 * MaxMessageSizeBytes,
-			MaxWait:           time.Second,
+			MaxBytes:          MaxMessageSizeBytes,
+			HeartbeatInterval: time.Second,
+			ReadLagInterval:   time.Second,
+			MaxWait:           KafkaOperationTimeout,
 			ReadBatchTimeout:  KafkaOperationTimeout,
 			QueueCapacity:     prefetchQueueCapacity,
+			RebalanceTimeout:  rebalanceTimeout,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval: time.Second,
