@@ -96,7 +96,7 @@ const WaterfallRow: React.FC<{
 					pl="16"
 					cursor="pointer"
 					onClick={() => setOpen(!open)}
-					style={{ width: 250 - depth * 15 }}
+					style={{ width: 250 - depth * 13 }}
 				>
 					<Box
 						style={{
