@@ -1,13 +1,13 @@
+import { useId } from 'react'
 import {
 	Bar,
 	BarChart as RechartsBarChart,
+	BarProps,
 	CartesianGrid,
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
 	YAxis,
-	Cell,
-	BarProps,
 } from 'recharts'
 
 import {
@@ -21,7 +21,6 @@ import {
 	isActive,
 	SeriesInfo,
 } from '@/pages/Graphing/components/Graph'
-import { useId } from 'react'
 
 export type BarDisplay = 'Grouped' | 'Stacked'
 export const BAR_DISPLAY: BarDisplay[] = ['Grouped', 'Stacked']
