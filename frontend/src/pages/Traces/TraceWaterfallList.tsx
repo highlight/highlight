@@ -155,9 +155,10 @@ const WaterfallRow: React.FC<{
 	setSelectedSpan,
 }) => {
 	const spanTheme = getSpanTheme(span)
+	const [hovered, setHovered] = useState(false)
 	const [open, setOpen] = useState(true)
 	const hasChildren = span.children && span.children.length > 0
-	const isSelected = selectedSpan?.spanID === span.spanID
+	const isSelected = selectedSpan?.spanID === span.spanID || hovered
 
 	const matchQuery = useMemo(
 		() => doesSpanOrDescendantsMatchQuery(span, query),
@@ -177,8 +178,14 @@ const WaterfallRow: React.FC<{
 				px="8"
 				cursor="pointer"
 				onClick={() => setSelectedSpan(span)}
-				onMouseOver={() => setHoveredSpan(span)}
-				onMouseOut={() => setHoveredSpan(undefined)}
+				onMouseOver={() => {
+					setHovered(true)
+					setHoveredSpan(span)
+				}}
+				onMouseOut={() => {
+					setHovered(false)
+					setHoveredSpan(undefined)
+				}}
 			>
 				<Stack
 					py="8"
