@@ -7,11 +7,16 @@ export class AppController {
 
   @Get()
   async getHello(): Promise<string[]> {
-    return await this.appService.findAll();
+    return await this.appService.findAll({});
+  }
+
+  @Get('/empty')
+  async getEmpty() {
+    return await this.appService.findAll({ empty: true });
   }
 
   @Get('/error')
   async getError(): Promise<string[]> {
-    return await this.appService.findAll(true);
+    return await this.appService.findAll({ error: true });
   }
 }

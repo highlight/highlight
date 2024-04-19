@@ -91,7 +91,7 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 			NewStruct(new(ClickhouseErrorGroup)).
 			InsertInto(ErrorGroupsTable, chGroups...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
-		sql, args = replaceTimestampInserts(sql, args, 10, map[int]bool{1: true, 2: true}, MicroSeconds)
+		sql, args = replaceTimestampInserts(sql, args, map[int]bool{1: true, 2: true}, MicroSeconds)
 		return client.conn.Exec(chCtx, sql, args...)
 	}
 
@@ -157,7 +157,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 			NewStruct(new(ClickhouseErrorObject)).
 			InsertInto(ErrorObjectsTable, chObjects...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
-		sql, args = replaceTimestampInserts(sql, args, 14, map[int]bool{1: true}, MicroSeconds)
+		sql, args = replaceTimestampInserts(sql, args, map[int]bool{1: true}, MicroSeconds)
 		return client.conn.Exec(chCtx, sql, args...)
 	}
 

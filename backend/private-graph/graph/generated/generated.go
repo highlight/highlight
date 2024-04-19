@@ -13214,6 +13214,7 @@ input VisualizationInput {
 	id: ID
 	projectId: ID!
 	name: String!
+	graphIds: [ID!]
 }
 
 scalar Upload
@@ -82051,7 +82052,7 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "projectId", "name"}
+	fieldsInOrder := [...]string{"id", "projectId", "name", "graphIds"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -82079,6 +82080,13 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 				return it, err
 			}
 			it.Name = data
+		case "graphIds":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("graphIds"))
+			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GraphIds = data
 		}
 	}
 
@@ -103151,6 +103159,44 @@ func (ec *executionContext) unmarshalOID2int(ctx context.Context, v interface{})
 func (ec *executionContext) marshalOID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
 	res := graphql.MarshalIntID(v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOID2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]int, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2int(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOID2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2int(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOID2ᚖint(ctx context.Context, v interface{}) (*int, error) {

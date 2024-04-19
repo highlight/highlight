@@ -1913,6 +1913,7 @@ input VisualizationInput {
 	id: ID
 	projectId: ID!
 	name: String!
+	graphIds: [ID!]
 }
 
 scalar Upload

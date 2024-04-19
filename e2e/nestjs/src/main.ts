@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { HighlightInterceptor, H } from '@highlight-run/nest';
 
 const env = {
   projectID: '2',
@@ -11,6 +10,7 @@ const env = {
 };
 
 async function bootstrap() {
+  const { HighlightInterceptor, H } = await import('@highlight-run/nest');
   H.init(env);
   const app = await NestFactory.create(AppModule);
   app.useGlobalInterceptors(new HighlightInterceptor(env));

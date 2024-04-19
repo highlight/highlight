@@ -1,20 +1,25 @@
-import { BufferConfig, ReadableSpan, Span } from '@opentelemetry/sdk-trace-base'
+import {
+	AlwaysOnSampler,
+	BufferConfig,
+	ReadableSpan,
+	Span,
+} from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
-import type {
+import {
 	Attributes,
 	BaggageEntry,
-	Span as OtelSpan,
-	SpanOptions,
 	Context,
-	Tracer,
-} from '@opentelemetry/api'
-import {
+	context,
 	diag,
 	DiagConsoleLogger,
 	DiagLogLevel,
 	propagation,
+	Span as OtelSpan,
+	SpanOptions,
 	trace,
+	Tracer,
 } from '@opentelemetry/api'
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
@@ -209,8 +214,8 @@ export class Highlight {
 
 		this.processor = new CustomSpanProcessor(exporter, {
 			scheduledDelayMillis: 1000,
-			maxExportBatchSize: 128,
-			maxQueueSize: 1024,
+			maxExportBatchSize: 1024 * 1024,
+			maxQueueSize: 1024 * 1024,
 			exportTimeoutMillis: this.FLUSH_TIMEOUT_MS,
 		})
 
@@ -227,8 +232,10 @@ export class Highlight {
 			autoDetectResources: true,
 			resourceDetectors: [processDetectorSync],
 			resource: new Resource(attributes),
-			spanProcessor: this.processor,
+			spanProcessors: [this.processor],
 			traceExporter: exporter,
+			contextManager: new AsyncLocalStorageContextManager(),
+			sampler: new AlwaysOnSampler(),
 			instrumentations,
 		})
 		this.otel.start()
@@ -280,7 +287,7 @@ export class Highlight {
 		tags?: { name: string; value: string }[],
 	) {
 		if (!this.tracer) return
-		const span = this.tracer.startSpan('highlight-ctx')
+		const span = this.tracer.startSpan('highlight.metric')
 		span.addEvent('metric', {
 			['highlight.project_id']: this._projectID,
 			['metric.name']: name,
@@ -312,7 +319,7 @@ export class Highlight {
 		metadata?: Attributes,
 	) {
 		if (!this.tracer) return
-		const span = this.tracer.startSpan('highlight-ctx')
+		const span = this.tracer.startSpan('highlight.log')
 		// log specific events from https://github.com/highlight/highlight/blob/19ea44c616c432ef977c73c888c6dfa7d6bc82f3/sdk/highlight-go/otel.go#L34-L36
 		span.addEvent(
 			'log',
@@ -344,8 +351,12 @@ export class Highlight {
 		secureSessionId: string | undefined,
 		requestId: string | undefined,
 		metadata?: Attributes,
+		options?: { span: OtelSpan },
 	) {
-		const span = this.tracer.startSpan('highlight-ctx')
+		let span = options?.span ?? trace.getActiveSpan()
+		if (!span) {
+			span = this.tracer.startSpan('highlight.error')
+		}
 		span.recordException(error)
 		if (metadata != undefined) {
 			span.setAttributes(metadata)
@@ -438,45 +449,51 @@ export class Highlight {
 
 	async runWithHeaders<T>(
 		headers: Headers | IncomingHttpHeaders,
-		cb: () => T | Promise<T>,
+		cb: (span: OtelSpan) => T | Promise<T>,
 	) {
-		return this.tracer.startActiveSpan(
-			'highlight-run-with-headers',
-			async (span) => {
-				const { secureSessionId, requestId } =
-					this.parseHeaders(headers)
-
-				if (secureSessionId && requestId) {
-					this.processor.setTraceMetadata(span, {
-						'highlight.session_id': secureSessionId,
-						'highlight.trace_id': requestId,
-					})
-
-					propagation
-						.getActiveBaggage()
-						?.setEntry(HIGHLIGHT_REQUEST_HEADER, {
-							value: `${secureSessionId}/${requestId}`,
-						} as BaggageEntry)
-				}
-
-				try {
-					return await cb()
-				} catch (error) {
-					if (error instanceof Error) {
-						this.consumeCustomError(
-							error,
-							secureSessionId,
-							requestId,
-						)
-					}
-
-					throw error
-				} finally {
-					span.end()
-					await this.waitForFlush()
-				}
-			},
+		const { secureSessionId, requestId } = this.parseHeaders(headers)
+		const { span, ctx } = await this.startWithHeaders(
+			'highlight-ctx',
+			headers,
 		)
+		try {
+			return await context.with(ctx, async () => {
+				return cb(span)
+			})
+		} catch (error) {
+			if (error instanceof Error) {
+				this.consumeCustomError(error, secureSessionId, requestId)
+			}
+
+			throw error
+		} finally {
+			span.end()
+			await this.waitForFlush()
+		}
+	}
+
+	startWithHeaders<T>(
+		spanName: string,
+		headers: Headers | IncomingHttpHeaders,
+		options?: SpanOptions,
+	): { span: OtelSpan; ctx: Context } {
+		const ctx = context.active()
+		const span = this.tracer.startSpan(spanName, options, ctx)
+		const contextWithSpanSet = trace.setSpan(ctx, span)
+
+		const { secureSessionId, requestId } = this.parseHeaders(headers)
+		if (secureSessionId && requestId) {
+			this.processor.setTraceMetadata(span, {
+				'highlight.session_id': secureSessionId,
+				'highlight.trace_id': requestId,
+			})
+
+			propagation.getActiveBaggage()?.setEntry(HIGHLIGHT_REQUEST_HEADER, {
+				value: `${secureSessionId}/${requestId}`,
+			} as BaggageEntry)
+		}
+
+		return { span, ctx: contextWithSpanSet }
 	}
 
 	startActiveSpan(name: string, options: SpanOptions = {}, ctx?: Context) {

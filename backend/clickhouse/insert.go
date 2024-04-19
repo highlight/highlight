@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"slices"
+	"strings"
 )
 
 type TimeUnit uint8
@@ -15,14 +16,17 @@ const (
 	NanoSeconds  TimeUnit = 9
 )
 
-var pattern = regexp.MustCompile(`\?`)
+var keysPattern = regexp.MustCompile(`^INSERT INTO \w+ \(([^)]+)\) VALUES`)
+var argPattern = regexp.MustCompile(`\?`)
 
 // replaceTimestampInserts updates direct timestamp inserts to accept int64 unix values
-func replaceTimestampInserts(sql string, args []interface{}, numColumns int, columnsToReplace map[int]bool, scale TimeUnit) (string, []interface{}) {
+func replaceTimestampInserts(sql string, args []interface{}, columnsToReplace map[int]bool, scale TimeUnit) (string, []interface{}) {
+	keysMatch := keysPattern.FindStringSubmatch(sql)
+	keys := strings.Split(keysMatch[1], ",")
 	var replaced, found int
-	sql = pattern.ReplaceAllStringFunc(sql, func(s string) string {
+	sql = argPattern.ReplaceAllStringFunc(sql, func(s string) string {
 		defer func() { found++ }()
-		idx := found % numColumns
+		idx := found % len(keys)
 		if !columnsToReplace[idx] {
 			return "?"
 		}
