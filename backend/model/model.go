@@ -1458,7 +1458,8 @@ type Visualization struct {
 	ProjectID        int `gorm:"index"`
 	Name             string
 	UpdatedByAdminId *int
-	UpdatedByAdmin   *Admin `gorm:"foreignKey:UpdatedByAdminId"`
+	UpdatedByAdmin   *Admin        `gorm:"foreignKey:UpdatedByAdminId"`
+	GraphIds         pq.Int32Array `gorm:"type:integer[]"`
 	Graphs           []Graph
 }
 

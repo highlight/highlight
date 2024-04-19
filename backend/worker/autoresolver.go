@@ -81,21 +81,25 @@ func (autoResolver *AutoResolver) resolveStaleErrorsForProject(ctx context.Conte
 	}
 
 	for _, errorGroup := range errorGroups {
-		log.WithContext(ctx).WithFields(
-			log.Fields{
-				"project_id":     project.ID,
-				"error_group_id": errorGroup.ID,
-				"worker":         "autoresolver",
-			}).Info("Autoresolving error group")
+		logFields := log.Fields{
+			"project_id":     project.ID,
+			"error_group_id": errorGroup.ID,
+			"worker":         "autoresolver",
+		}
 
-		_, err := autoResolver.store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
+		log.WithContext(ctx).WithFields(logFields).Info("Autoresolving error group")
+
+		err := autoResolver.store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
 			ID:    errorGroup.ID,
 			State: privateModel.ErrorStateResolved,
 		})
 
 		if err != nil {
-			return err
+			log.WithContext(ctx).WithFields(logFields).Error(err)
+			continue
 		}
+
+		log.WithContext(ctx).WithFields(logFields).Info("Resolved error group")
 	}
 
 	return nil

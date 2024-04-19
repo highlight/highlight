@@ -2,6 +2,7 @@ import {
 	Badge,
 	Box,
 	Button,
+	ComboboxSelect,
 	Form,
 	IconSolidCheveronDown,
 	IconSolidLightningBolt,
@@ -17,7 +18,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { Divider, message } from 'antd'
-import { PropsWithChildren, useEffect, useMemo, useState } from 'react'
+import { PropsWithChildren, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
@@ -32,7 +33,7 @@ import {
 	useGetVisualizationQuery,
 	useUpsertGraphMutation,
 } from '@/graph/generated/hooks'
-import { namedOperations } from '@/graph/generated/operations'
+import { GetKeysQuery, namedOperations } from '@/graph/generated/operations'
 import {
 	GraphInput,
 	MetricAggregator,
@@ -46,6 +47,7 @@ import Graph, {
 	TIMESTAMP_KEY,
 	View,
 	VIEW_ICONS,
+	VIEW_LABELS,
 	VIEWS,
 } from '@/pages/Graphing/components/Graph'
 import {
@@ -135,19 +137,56 @@ const LabeledRow = ({
 	)
 }
 
+const Combobox = ({
+	options,
+	selection,
+	setSelection,
+	setQuery,
+	label,
+}: {
+	options: string[]
+	selection: string
+	setSelection: (selection: string) => void
+	setQuery: (query: string) => void
+	label: string
+}) => {
+	return (
+		<ComboboxSelect
+			label={label}
+			value={selection}
+			valueRender={<Text cssClass={style.comboboxText}>{selection}</Text>}
+			options={options.map((o) => ({
+				key: o,
+				render: o,
+			}))}
+			onChange={(val: string) => {
+				setSelection(val)
+			}}
+			onChangeQuery={(val: string) => {
+				setQuery(val)
+			}}
+			cssClass={style.combobox}
+			queryPlaceholder="Filter..."
+		/>
+	)
+}
+
 const OptionDropdown = <T extends string>({
 	options,
 	selection,
 	setSelection,
 	icons,
+	labels,
 }: {
 	options: T[]
 	selection: T
 	setSelection: (option: T) => void
 	icons?: JSX.Element[]
+	labels?: string[]
 }) => {
 	const selectedIndex = options.indexOf(selection)
 	const selectedIcon = icons?.at(selectedIndex)
+	const selectedLabel = labels?.at(selectedIndex)
 	return (
 		<Menu>
 			<Menu.Button
@@ -165,7 +204,7 @@ const OptionDropdown = <T extends string>({
 				>
 					<Stack direction="row" alignItems="center" gap="4">
 						{selectedIcon}
-						{selection}
+						{selectedLabel ?? selection}
 					</Stack>
 					<IconSolidCheveronDown />
 				</Box>
@@ -180,7 +219,7 @@ const OptionDropdown = <T extends string>({
 					>
 						<Stack direction="row" alignItems="center" gap="4">
 							{icons?.at(idx)}
-							{p}
+							{labels?.at(idx) ?? p}
 						</Stack>
 					</Menu.Item>
 				))}
@@ -437,13 +476,16 @@ export const GraphingEditor = () => {
 	const [limitMetric, setLimitMetric] = useState('')
 
 	const [bucketByEnabled, setBucketByEnabled] = useState(true)
-	const [bucketByKey, setBucketByKey] = useState('')
+	const [bucketByKey, setBucketByKey] = useState(TIMESTAMP_KEY)
 	const [bucketCount, setBucketCount] = useState(DEFAULT_BUCKET_COUNT)
+
+	const [keysQuery, setKeysQuery] = useState('')
 
 	const startDate = timeRange.start_date
 	const endDate = timeRange.end_date
 
-	const { data: keys } = useGetKeysQuery({
+	const [keys, setKeys] = useState<GetKeysQuery | undefined>()
+	const { refetch: refetchKeys } = useGetKeysQuery({
 		variables: {
 			product_type: productType,
 			project_id: projectId,
@@ -451,9 +493,29 @@ export const GraphingEditor = () => {
 				start_date: startDate,
 				end_date: endDate,
 			},
-			query: '',
+			query: keysQuery,
 		},
 	})
+
+	useMemo(() => {
+		refetchKeys({
+			product_type: productType,
+			project_id: projectId,
+			date_range: {
+				start_date: startDate,
+				end_date: endDate,
+			},
+			query: keysQuery,
+		}).then((r) => setKeys(r.data))
+	}, [
+		refetchKeys,
+		setKeys,
+		productType,
+		projectId,
+		startDate,
+		endDate,
+		keysQuery,
+	])
 
 	const allKeys = useMemo(
 		() => keys?.keys.map((k) => k.name).slice(0, 10) ?? [],
@@ -467,17 +529,13 @@ export const GraphingEditor = () => {
 				.slice(0, 10) ?? [],
 		[keys],
 	)
-	const bucketByKeys = useMemo(
-		() => [TIMESTAMP_KEY].concat(numericKeys).slice(0, 10),
-		[numericKeys],
-	)
-
-	useEffect(() => {
-		setGroupByKey(allKeys[0] ?? '')
-		setMetric(numericKeys[0] ?? '')
-		setLimitMetric(numericKeys[0] ?? '')
-		setBucketByKey(bucketByKeys[0] ?? '')
-	}, [allKeys, bucketByKeys, numericKeys])
+	const bucketByKeys = useMemo(() => {
+		const baseArray = []
+		if (TIMESTAMP_KEY.includes(keysQuery)) {
+			baseArray.push(TIMESTAMP_KEY)
+		}
+		return baseArray.concat(numericKeys).slice(0, 10)
+	}, [numericKeys, keysQuery])
 
 	let display: string | undefined
 	let nullHandling: string | undefined
@@ -679,6 +737,7 @@ export const GraphingEditor = () => {
 											selection={viewType}
 											setSelection={setViewType}
 											icons={VIEW_ICONS}
+											labels={VIEW_LABELS}
 										/>
 									</LabeledRow>
 									{viewType === 'Line chart' && (
@@ -719,7 +778,7 @@ export const GraphingEditor = () => {
 										/>
 										{functionType !==
 											MetricAggregator.Count && (
-											<OptionDropdown<string>
+											<Combobox
 												options={
 													functionType ===
 													MetricAggregator.CountDistinct
@@ -728,6 +787,8 @@ export const GraphingEditor = () => {
 												}
 												selection={metric}
 												setSelection={setMetric}
+												setQuery={setKeysQuery}
+												label="metric"
 											/>
 										)}
 									</LabeledRow>
@@ -761,10 +822,12 @@ export const GraphingEditor = () => {
 										enabled={groupByEnabled}
 										setEnabled={setGroupByEnabled}
 									>
-										<OptionDropdown<string>
+										<Combobox
 											options={allKeys}
 											selection={groupByKey}
 											setSelection={setGroupByKey}
+											setQuery={setKeysQuery}
+											label="groupBy"
 										/>
 									</LabeledRow>
 									{groupByEnabled && (
@@ -807,12 +870,14 @@ export const GraphingEditor = () => {
 												/>
 												{limitFunctionType !==
 													MetricAggregator.Count && (
-													<OptionDropdown<string>
+													<Combobox
 														options={numericKeys}
 														selection={limitMetric}
 														setSelection={
 															setLimitMetric
 														}
+														setQuery={setKeysQuery}
+														label="limitMetric"
 													/>
 												)}
 											</LabeledRow>
@@ -827,10 +892,12 @@ export const GraphingEditor = () => {
 										enabled={bucketByEnabled}
 										setEnabled={setBucketByEnabled}
 									>
-										<OptionDropdown<string>
+										<Combobox
 											options={bucketByKeys}
 											selection={bucketByKey}
 											setSelection={setBucketByKey}
+											setQuery={setKeysQuery}
+											label="bucketBy"
 										/>
 									</LabeledRow>
 									{bucketByEnabled && (

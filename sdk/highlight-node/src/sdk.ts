@@ -2,10 +2,10 @@ import { IncomingHttpHeaders } from 'http'
 import { Highlight } from './client'
 import log from './log'
 import { ResourceAttributes } from '@opentelemetry/resources'
-import type { NodeOptions, HighlightContext } from './types.js'
-import type {
+import type { HighlightContext, NodeOptions } from './types.js'
+import {
 	Attributes,
-	Tracer,
+	Context,
 	Span as OtelSpan,
 	SpanOptions,
 } from '@opentelemetry/api'
@@ -23,14 +23,20 @@ export interface HighlightInterface {
 	// Use runWithHeaders to execute a method with a highlight context
 	runWithHeaders: <T>(
 		headers: Headers | IncomingHttpHeaders,
-		cb: () => T | Promise<T>,
+		cb: (span: OtelSpan) => T | Promise<T>,
 	) => Promise<T>
+	startWithHeaders: (
+		name: string,
+		headers: Headers | IncomingHttpHeaders,
+		options: SpanOptions,
+	) => { span: OtelSpan; ctx: Context }
 
 	consumeError: (
 		error: Error,
 		secureSessionId?: string,
 		requestId?: string,
 		metadata?: Attributes,
+		options?: { span: OtelSpan },
 	) => void
 	recordMetric: (
 		secureSessionId: string,
@@ -90,6 +96,7 @@ export const H: HighlightInterface = {
 		secureSessionId?: string,
 		requestId?: string,
 		metadata?: Attributes,
+		options?: { span: OtelSpan },
 	) => {
 		try {
 			highlight_obj.consumeCustomError(
@@ -97,6 +104,7 @@ export const H: HighlightInterface = {
 				secureSessionId,
 				requestId,
 				metadata,
+				options,
 			)
 		} catch (e) {
 			console.warn('highlight-node consumeError error: ', e)
@@ -160,6 +168,9 @@ export const H: HighlightInterface = {
 
 	runWithHeaders: (headers, cb) => {
 		return highlight_obj.runWithHeaders(headers, cb)
+	},
+	startWithHeaders: (spanName, headers, options) => {
+		return highlight_obj.startWithHeaders(spanName, headers, options)
 	},
 	consumeAndFlush: async function (...args) {
 		try {

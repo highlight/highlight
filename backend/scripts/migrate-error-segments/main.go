@@ -257,12 +257,12 @@ func buildStringQuery(fieldName modelInputs.ReservedErrorsJoinedKey, op string, 
 		queryArray = append(queryArray, fmt.Sprintf("%s!=%s", fieldName, value))
 	case "matches":
 		for _, v := range val {
-			value := fmt.Sprintf("\\%s\\", v)
+			value := fmt.Sprintf("/%s/", v)
 			queryArray = append(queryArray, fmt.Sprintf("%s=%s", fieldName, value))
 		}
 	case "not_matches":
 		for _, v := range val {
-			value := fmt.Sprintf("\\%s\\", v)
+			value := fmt.Sprintf("/%s/", v)
 			queryArray = append(queryArray, fmt.Sprintf("%s!=%s", fieldName, value))
 		}
 	}

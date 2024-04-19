@@ -3731,6 +3731,7 @@ export type Visualization = {
 }
 
 export type VisualizationInput = {
+	graphIds?: InputMaybe<Array<Scalars['ID']>>
 	id?: InputMaybe<Scalars['ID']>
 	name: Scalars['String']
 	projectId: Scalars['ID']
