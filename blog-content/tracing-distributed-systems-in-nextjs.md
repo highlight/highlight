@@ -92,9 +92,7 @@ See the full [list of monkey patches](https://www.highlight.io/docs/getting-star
     onClick={async () => {
         await fetch("/propagation-test");       
     }}
->
-    Trigger propagation
-</button>
+>Trigger propagation</button>
 ```
 
 ### Wrapping Next.js API functions
