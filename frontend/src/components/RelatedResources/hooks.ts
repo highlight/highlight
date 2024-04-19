@@ -85,26 +85,45 @@ export const useRelatedResource = () => {
 		}
 	}, [searchParams])
 
+	const setPanelWidth = useCallback(
+		(width: number) => {
+			panelWidthVar(width)
+			setLocalStorageWidth(width)
+		},
+		[setLocalStorageWidth],
+	)
+
+	const setPanelPagination = (pagination: PanelPagination) => {
+		panelPaginationVar(pagination)
+	}
+
 	const set = useCallback(
 		(
 			newResource: RelatedResource,
 			pagination: PanelPagination | null = null,
 		) => {
 			// Enable back button on nested related resources
-			if (!!resource && newResource.canGoBack === undefined) {
+			if (
+				!!resource &&
+				resource.type !== newResource.type &&
+				newResource.canGoBack === undefined
+			) {
 				newResource.canGoBack = true
 			}
 
 			searchParams.set(
 				RELATED_RESOURCE_PARAM,
-				encodeURIComponent(JSON.stringify(newResource)),
+				encodeURI(JSON.stringify(newResource)),
 			)
 
 			setSearchParams(Object.fromEntries(searchParams.entries()))
 			setResource(newResource)
-			panelPaginationVar(pagination)
+
+			if (pagination !== null) {
+				panelPaginationVar(pagination)
+			}
 		},
-		[resource, searchParams, setSearchParams, setResource],
+		[resource, searchParams, setSearchParams],
 	)
 
 	const remove = useCallback(() => {
@@ -114,18 +133,6 @@ export const useRelatedResource = () => {
 		setResource(null)
 		panelPaginationVar(null)
 	}, [searchParams, setSearchParams])
-
-	const setPanelWidth = useCallback(
-		(width: number) => {
-			panelWidthVar(width)
-			setLocalStorageWidth(width)
-		},
-		[setLocalStorageWidth],
-	)
-
-	const setPanelPagination = useCallback((pagination: PanelPagination) => {
-		panelPaginationVar(pagination)
-	}, [])
 
 	return {
 		resource,

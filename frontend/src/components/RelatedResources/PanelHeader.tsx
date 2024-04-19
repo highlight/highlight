@@ -7,6 +7,7 @@ import {
 	IconSolidLink,
 	IconSolidX,
 	Stack,
+	Text,
 } from '@highlight-run/ui/components'
 import { message } from 'antd'
 import { useCallback } from 'react'
@@ -154,13 +155,19 @@ const Pagination = () => {
 	}
 
 	return (
-		<PreviousNextGroup
-			onPrev={goToPrevious}
-			onNext={goToNext}
-			prevShortcut="l"
-			nextShortcut="h"
-			canMoveBackward={canMoveBackward}
-			canMoveForward={canMoveForward}
-		/>
+		<Stack direction="row" align="center" gap="6">
+			<PreviousNextGroup
+				onPrev={goToPrevious}
+				onNext={goToNext}
+				prevShortcut="l"
+				nextShortcut="h"
+				canMoveBackward={canMoveBackward}
+				canMoveForward={canMoveForward}
+			/>
+			<Text color="weak" size="xSmall">
+				{panelPagination.currentIndex + 1}/
+				{panelPagination.resources.length}
+			</Text>
+		</Stack>
 	)
 }

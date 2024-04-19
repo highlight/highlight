@@ -9,13 +9,15 @@ import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
 import { sumBy } from 'lodash'
 import moment from 'moment'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Helmet } from 'react-helmet'
-import { useNavigate } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
 import { loadingIcon } from '@/components/Button/style.css'
-import { useRelatedResource } from '@/components/RelatedResources/hooks'
+import {
+	RelatedTrace,
+	useRelatedResource,
+} from '@/components/RelatedResources/hooks'
 import { SearchContext } from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
@@ -47,17 +49,8 @@ import * as styles from './TracesPage.css'
 export type TracesOutletContext = Partial<Trace>[]
 
 export const TracesPage: React.FC = () => {
-	const navigate = useNavigate()
 	const { projectId } = useProjectId()
-	const {
-		trace_id: traceId,
-		span_id: spanId,
-		trace_cursor: traceCursor,
-	} = useParams<{
-		trace_id: string
-		span_id: string
-		trace_cursor: string
-	}>()
+	const { trace_cursor: traceCursor } = useParams<{ trace_cursor: string }>()
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const {
@@ -72,7 +65,6 @@ export const TracesPage: React.FC = () => {
 	})
 	const minDate = presetStartDate(DEFAULT_TIME_PRESETS[5])
 	const timeMode: TIME_MODE = 'fixed-range' // TODO: Support permalink mode
-	const { resource, remove, set } = useRelatedResource()
 
 	const {
 		traceEdges,
@@ -175,37 +167,28 @@ export const TracesPage: React.FC = () => {
 
 	useEffect(() => analytics.page('Traces'), [])
 
-	const [hasRendered, setHasRendered] = useState(false)
-
+	const { resource, panelPagination, setPanelPagination } =
+		useRelatedResource()
 	useEffect(() => {
-		if (traceId) {
-			set({
+		if (!resource || !!panelPagination || !traceEdges.length) {
+			return
+		}
+
+		const trace = resource as RelatedTrace
+
+		const currentInded = traceEdges.findIndex(
+			(edge) => edge.node.spanID === trace.spanID,
+		)
+
+		setPanelPagination({
+			currentIndex: currentInded,
+			resources: traceEdges.map((edge) => ({
 				type: 'trace',
-				id: traceId,
-				spanID: spanId,
-			})
-		} else {
-			remove()
-		}
-
-		if (!hasRendered) {
-			setHasRendered(true)
-		}
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [traceId])
-
-	useEffect(() => {
-		// Reset :trace_id/:span_id if the resource panel was closed
-		if (hasRendered && traceId && !resource) {
-			navigate({
-				pathname: `/${projectId}/traces`,
-				search: window.location.search,
-			})
-		}
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [resource])
+				id: edge.node.traceID,
+				spanID: edge.node.spanID,
+			})),
+		})
+	}, [panelPagination, resource, setPanelPagination, traceEdges])
 
 	return (
 		<SearchContext initialQuery={query} onSubmit={setQuery}>

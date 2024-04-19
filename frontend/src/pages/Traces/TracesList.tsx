@@ -26,6 +26,10 @@ import { CustomColumnPopover } from '@/components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
+import {
+	RelatedTrace,
+	useRelatedResource,
+} from '@/components/RelatedResources/hooks'
 import { DEFAULT_INPUT_HEIGHT } from '@/components/Search/SearchForm/SearchForm'
 import { ProductType, TraceEdge } from '@/graph/generated/schemas'
 import { useParams } from '@/util/react-router/useParams'
@@ -61,8 +65,8 @@ export const TracesList: React.FC<Props> = ({
 	loadingAfter,
 	textAreaRef,
 }) => {
-	const { span_id } = useParams<{ span_id?: string }>()
-
+	const { resource } = useRelatedResource()
+	const trace = resource as RelatedTrace
 	const [selectedColumns, setSelectedColumns] = useLocalStorage(
 		`highlight-traces-table-columns`,
 		DEFAULT_TRACE_COLUMNS,
@@ -278,7 +282,8 @@ export const TracesList: React.FC<Props> = ({
 				{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
 				{virtualRows.map((virtualRow) => {
 					const row = rows[virtualRow.index]
-					const isSelected = row.original.node.spanID === span_id
+					const isSelected =
+						row.original.node.spanID === trace?.spanID
 
 					return (
 						<TracesTableRow
