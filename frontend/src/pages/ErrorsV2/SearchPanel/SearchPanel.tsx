@@ -7,11 +7,10 @@ import LoadingBox from '@components/LoadingBox'
 import SearchPagination, {
 	PAGE_SIZE,
 } from '@components/SearchPagination/SearchPagination'
-import { DateHistogramBucketSize, ProductType } from '@graph/schemas'
+import { ProductType } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
-	DateRangePreset,
 	DEFAULT_TIME_PRESETS,
 	IconSolidLogout,
 	presetStartDate,
@@ -21,7 +20,7 @@ import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import clsx from 'clsx'
 import { useEffect, useRef, useState } from 'react'
 
-import { SearchContext } from '@/components/Search/SearchContext'
+import { useSearchContext } from '@/components/Search/SearchContext'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import { ErrorFeedCard } from '@/pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import { useErrorPageNavigation } from '@/pages/ErrorsV2/ErrorsV2'
@@ -30,44 +29,24 @@ import { styledVerticalScrollbar } from '@/style/common.css'
 
 import * as style from './SearchPanel.css'
 
-type SearchPanelProps = {
-	query: string
-	setQuery: (query: string) => void
-	page: number
-	setPage: (page: number) => void
-	errorGroups: any[]
-	loading: boolean
-	moreErrors: number
-	resetMoreErrors: () => void
-	totalCount: number
-	histogramBucketSize: DateHistogramBucketSize
-	updateSearchTime: (start: Date, end: Date) => void
-	rebaseSearchTime: () => void
-	startDate: Date
-	endDate: Date
-	selectedPreset?: DateRangePreset
-}
-
-export const SearchPanel = ({
-	query,
-	setQuery,
-	page,
-	setPage,
-	errorGroups,
-	loading,
-	moreErrors,
-	resetMoreErrors,
-	totalCount,
-	histogramBucketSize,
-	updateSearchTime,
-	rebaseSearchTime,
-	startDate,
-	endDate,
-	selectedPreset,
-}: SearchPanelProps) => {
+export const SearchPanel = () => {
 	const { setShowLeftPanel } = useErrorPageNavigation()
 	const { showBanner } = useGlobalContext()
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
+	const {
+		results: errorGroups,
+		totalCount,
+		moreResults: moreErrors,
+		resetMoreResults: resetMoreErrors,
+		loading,
+		page,
+		setPage,
+		startDate,
+		endDate,
+		selectedPreset,
+		rebaseSearchTime,
+		updateSearchTime,
+	} = useSearchContext()
 
 	const showHistogram = totalCount >= 0
 
@@ -113,34 +92,26 @@ export const SearchPanel = ({
 			})}
 			background="n2"
 		>
-			<SearchContext initialQuery={query} onSubmit={setQuery}>
-				<SearchForm
-					startDate={startDate}
-					endDate={endDate}
-					onDatesChange={updateSearchTime}
-					presets={DEFAULT_TIME_PRESETS}
-					minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
-					selectedPreset={selectedPreset}
-					productType={ProductType.Errors}
-					timeMode="fixed-range"
-					savedSegmentType="Error"
-					textAreaRef={textAreaRef}
-					actions={actions}
-					resultCount={totalCount}
-					loading={loading}
-					hideCreateAlert
-					isPanelView
-				/>
-			</SearchContext>
+			<SearchForm
+				startDate={startDate!}
+				endDate={endDate!}
+				onDatesChange={updateSearchTime!}
+				presets={DEFAULT_TIME_PRESETS}
+				minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
+				selectedPreset={selectedPreset}
+				productType={ProductType.Errors}
+				timeMode="fixed-range"
+				savedSegmentType="Error"
+				textAreaRef={textAreaRef}
+				actions={actions}
+				resultCount={totalCount}
+				loading={loading}
+				hideCreateAlert
+				isPanelView
+			/>
 			{showHistogram && (
 				<Box borderBottom="secondary" paddingBottom="8" px="8">
-					<ErrorFeedHistogram
-						query={query}
-						histogramBucketSize={histogramBucketSize}
-						startDate={startDate}
-						endDate={endDate}
-						updateSearchTime={updateSearchTime}
-					/>
+					<ErrorFeedHistogram />
 				</Box>
 			)}
 			<AdditionalFeedResults
@@ -149,7 +120,7 @@ export const SearchPanel = ({
 				onClick={() => {
 					resetMoreErrors()
 					setPage(1)
-					rebaseSearchTime()
+					rebaseSearchTime!()
 				}}
 			/>
 			<Box
