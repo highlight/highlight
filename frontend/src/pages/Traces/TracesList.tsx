@@ -32,7 +32,6 @@ import {
 } from '@/components/RelatedResources/hooks'
 import { DEFAULT_INPUT_HEIGHT } from '@/components/Search/SearchForm/SearchForm'
 import { ProductType, TraceEdge } from '@/graph/generated/schemas'
-import { useParams } from '@/util/react-router/useParams'
 
 import {
 	DEFAULT_TRACE_COLUMNS,
