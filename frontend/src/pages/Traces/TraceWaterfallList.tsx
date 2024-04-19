@@ -5,27 +5,21 @@ import {
 	IconSolidCheveronRight,
 	IconSolidSearch,
 	Stack,
+	Table,
 	Text,
 } from '@highlight-run/ui/components'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { getSpanTheme } from '@/pages/Traces/TraceFlameGraphNode'
 import { useTrace } from '@/pages/Traces/TraceProvider'
-import * as styles from '@/pages/Traces/TraceWaterfallList.css'
 import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
+
+const gridColumns = ['1fr', '1fr', '3fr']
 
 export const TraceWaterfallList: React.FC = () => {
 	const [attributesWidth, setAttributesWidth] = useState(250)
 	const [dragging, setDragging] = useState(false)
-	const dragHandleRef = useRef<HTMLDivElement>(null)
-	const {
-		hoveredSpan,
-		selectedSpan,
-		spans,
-		totalDuration,
-		setHoveredSpan,
-		setSelectedSpan,
-	} = useTrace()
+	const { selectedSpan, spans, totalDuration, setSelectedSpan } = useTrace()
 	const scrollableRef = useRef<HTMLTableSectionElement>(null)
 	const [query, setQuery] = useState('')
 
@@ -101,35 +95,29 @@ export const TraceWaterfallList: React.FC = () => {
 				</Stack>
 			</Form>
 
-			<Box overflowY="auto" style={{ height: 300 }}>
-				<Box position="relative" ref={scrollableRef}>
-					<Box
-						br="dividerWeak"
-						ref={dragHandleRef}
-						cssClass={styles.dragHandle}
-						onMouseDown={(e) => {
-							e.preventDefault()
-							setDragging(true)
-						}}
-						style={{ left: attributesWidth }}
-					/>
-
+			<Table noBorder>
+				<Table.Head>
+					<Table.Row gridColumns={gridColumns}>
+						<Table.Header>Span name</Table.Header>
+						<Table.Header>Duration</Table.Header>
+						<Table.Header>Waterfall</Table.Header>
+					</Table.Row>
+				</Table.Head>
+				<Table.Body overflowY="auto" style={{ height: 280 }}>
 					{filteredSpans.map((span) => (
 						<WaterfallRow
 							key={span.spanID}
 							attributesWidth={attributesWidth}
 							depth={0}
-							hoveredSpan={hoveredSpan}
 							selectedSpan={selectedSpan}
 							span={span}
 							totalDuration={totalDuration}
 							query={query}
-							setHoveredSpan={setHoveredSpan}
 							setSelectedSpan={setSelectedSpan}
 						/>
 					))}
-				</Box>
-			</Box>
+				</Table.Body>
+			</Table>
 		</Box>
 	)
 }
@@ -137,29 +125,24 @@ export const TraceWaterfallList: React.FC = () => {
 const WaterfallRow: React.FC<{
 	attributesWidth: number
 	depth: number
-	hoveredSpan: FlameGraphSpan | undefined
 	selectedSpan: FlameGraphSpan | undefined
 	span: FlameGraphSpan
 	totalDuration: number
 	query: string
-	setHoveredSpan: (span: FlameGraphSpan | undefined) => void
 	setSelectedSpan: (span: FlameGraphSpan | undefined) => void
 }> = ({
 	attributesWidth,
 	depth,
-	hoveredSpan,
 	selectedSpan,
 	span,
 	totalDuration,
 	query,
-	setHoveredSpan,
 	setSelectedSpan,
 }) => {
 	const spanTheme = getSpanTheme(span)
 	const [open, setOpen] = useState(true)
 	const hasChildren = span.children && span.children.length > 0
-	const isHovered = hoveredSpan?.spanID === span.spanID
-	const isSelected = selectedSpan?.spanID === span.spanID || isHovered
+	const isSelected = selectedSpan?.spanID === span.spanID
 
 	const matchQuery = useMemo(
 		() => doesSpanOrDescendantsMatchQuery(span, query),
@@ -172,55 +155,49 @@ const WaterfallRow: React.FC<{
 
 	return (
 		<>
-			<Stack
-				direction="row"
-				gap="4"
-				align="center"
-				px="8"
+			<Table.Row
+				gridColumns={gridColumns}
 				cursor="pointer"
 				onClick={() => setSelectedSpan(span)}
-				onMouseOver={() => setHoveredSpan(span)}
-				onMouseOut={() => setHoveredSpan(undefined)}
 			>
-				<Stack
-					py="8"
-					position="relative"
-					align="center"
-					direction="row"
-					gap="2"
-					pl="16"
-					flexShrink={0}
-					style={{ width: attributesWidth - depth * 13 - 6 }}
+				<Table.Cell
+					onClick={(e) => {
+						e.stopPropagation()
+						setOpen(!open)
+					}}
+					style={{ paddingLeft: depth * 16 + 8 }}
 				>
-					<Box
-						cursor="pointer"
-						onClick={(e) => {
-							e.stopPropagation()
-							setOpen(!open)
-						}}
-						style={{
-							position: 'absolute',
-							left: -2,
-							top: 3,
-						}}
+					{hasChildren &&
+						(open ? (
+							<IconSolidCheveronDown size={12} />
+						) : (
+							<IconSolidCheveronRight size={12} />
+						))}
+
+					<Text
+						color="strong"
+						lines="1"
+						weight={isSelected ? 'bold' : 'regular'}
 					>
-						{hasChildren &&
-							(open ? (
-								<IconSolidCheveronDown />
-							) : (
-								<IconSolidCheveronRight />
-							))}
-					</Box>
-					<Text color="strong" lines="1">
 						{span.spanName}{' '}
 						{span.serviceName && `(${span.serviceName})`}
 					</Text>
-				</Stack>
-				<Box flexGrow={1} pl="4">
+				</Table.Cell>
+				<Table.Cell>
+					<Text
+						lines="1"
+						size="xSmall"
+						weight={isSelected ? 'bold' : 'regular'}
+					>
+						{getTraceDurationString(span.duration)}
+					</Text>
+				</Table.Cell>
+				<Table.Cell py="4">
 					<Box
 						borderRadius="4"
+						p="2"
 						style={{
-							height: 10,
+							height: 16,
 							marginLeft: `${
 								(span.startTime / totalDuration) * 100
 							}%`,
@@ -234,39 +211,26 @@ const WaterfallRow: React.FC<{
 							backgroundColor: isSelected
 								? spanTheme.selectedBackground
 								: spanTheme.background,
-							opacity: isHovered ? 0.5 : 1,
 						}}
 					/>
-				</Box>
-				<Box flexShrink={0}>
-					<Text size="xSmall">
-						{getTraceDurationString(span.duration)}
-					</Text>
-				</Box>
-			</Stack>
+				</Table.Cell>
+			</Table.Row>
 
 			{hasChildren && open && (
-				<Box
-					style={{
-						borderLeft: `1px solid ${spanTheme.border}`,
-						marginLeft: 12,
-					}}
-				>
+				<>
 					{span.children?.map((childSpan, index) => (
 						<WaterfallRow
 							key={index}
 							attributesWidth={attributesWidth}
 							depth={depth + 1}
-							hoveredSpan={hoveredSpan}
 							selectedSpan={selectedSpan}
 							span={childSpan}
 							totalDuration={totalDuration}
 							query={query}
-							setHoveredSpan={setHoveredSpan}
 							setSelectedSpan={setSelectedSpan}
 						/>
 					))}
-				</Box>
+				</>
 			)}
 		</>
 	)
