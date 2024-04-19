@@ -518,8 +518,9 @@ func (client *Client) SessionsKeys(ctx context.Context, projectID int, startDate
 	if query == nil || *query == "" {
 		sessionKeys = append(sessionKeys, defaultSessionsKeys...)
 	} else {
+		queryLower := strings.ToLower(*query)
 		for _, key := range defaultSessionsKeys {
-			if strings.Contains(key.Name, *query) {
+			if strings.Contains(key.Name, queryLower) {
 				sessionKeys = append(sessionKeys, key)
 			}
 		}

@@ -41,6 +41,8 @@ export const legendTextButton = style({
 export const titleText = style({
 	lineHeight: '24px',
 	height: '24px',
+	alignItems: 'center',
+	display: 'flex',
 })
 
 export const hiddenMenu = style({
@@ -67,4 +69,8 @@ export const tooltipDot = style({
 	marginRight: '4px',
 	width: 8,
 	height: 8,
+})
+
+export const disabled = style({
+	pointerEvents: 'none',
 })

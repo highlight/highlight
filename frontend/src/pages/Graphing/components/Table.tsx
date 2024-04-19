@@ -1,4 +1,5 @@
 import { Box, Table, Text } from '@highlight-run/ui/components'
+import clsx from 'clsx'
 
 import {
 	getTickFormatter,
@@ -36,6 +37,7 @@ export const MetricTable = ({
 	yAxisFunction,
 	series,
 	viewConfig,
+	disabled,
 }: InnerChartProps<TableConfig> & SeriesInfo) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric)
 	const valueFormatter = getTickFormatter(yAxisMetric)
@@ -65,7 +67,12 @@ export const MetricTable = ({
 						))}
 					</Table.Row>
 				</Table.Head>
-				<Box height="full" cssClass={style.scrollableBody}>
+				<Box
+					height="full"
+					cssClass={clsx(style.scrollableBody, {
+						[style.preventScroll]: disabled,
+					})}
+				>
 					<Table.Body>
 						{data?.map((d, i) => {
 							// If every value for the bucket is null, skip this row

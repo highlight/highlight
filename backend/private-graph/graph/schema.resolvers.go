@@ -4731,11 +4731,16 @@ func (r *mutationResolver) UpsertVisualization(ctx context.Context, visualizatio
 		return 0, err
 	}
 
+	graphIds := lo.Map(visualization.GraphIds, func(i int, _ int) int32 {
+		return int32(i)
+	})
+
 	toSave := model.Visualization{
 		Model:            model.Model{ID: id},
 		ProjectID:        visualization.ProjectID,
 		Name:             visualization.Name,
 		UpdatedByAdminId: &admin.ID,
+		GraphIds:         graphIds,
 	}
 	if err := r.DB.WithContext(ctx).Save(&toSave).Error; err != nil {
 		return 0, err
@@ -9108,6 +9113,27 @@ func (r *queryResolver) Visualization(ctx context.Context, id int) (*model.Visua
 		return nil, err
 	}
 
+	// Reorder the graphs according to the ordering in viz.GraphIds.
+	// If the ordering includes ids not present in viz.Graphs, disregard those.
+	// If the ordering does not include ids present in viz.Graphs, append those at the end in order.
+	graphsById := lo.SliceToMap(viz.Graphs, func(g model.Graph) (int32, model.Graph) { return int32(g.ID), g })
+	orderedGraphs := []model.Graph{}
+	for _, id := range viz.GraphIds {
+		graph, found := graphsById[id]
+		if !found {
+			continue
+		}
+		orderedGraphs = append(orderedGraphs, graph)
+	}
+	graphIds := lo.SliceToMap(viz.GraphIds, func(id int32) (int32, struct{}) { return id, struct{}{} })
+	for _, graph := range viz.Graphs {
+		_, found := graphIds[int32(graph.ID)]
+		if !found {
+			orderedGraphs = append(orderedGraphs, graph)
+		}
+	}
+	viz.Graphs = orderedGraphs
+
 	_, err := r.isAdminInProjectOrDemoProject(ctx, viz.ProjectID)
 	if err != nil {
 		return nil, err
@@ -9132,7 +9158,7 @@ func (r *queryResolver) Visualizations(ctx context.Context, projectID int, input
 	}
 
 	var viz []vizWithCount
-	if err := r.DB.WithContext(ctx).Model(&model.Visualization{}).Debug().Preload("UpdatedByAdmin").
+	if err := r.DB.WithContext(ctx).Model(&model.Visualization{}).Preload("Graphs").Preload("UpdatedByAdmin").
 		Where("project_id = ?", projectID).Where("name ILIKE ?", searchStr).
 		Order("updated_at DESC").Select("*, COUNT(*) OVER () as count").Limit(count).Offset(offset).Find(&viz).Error; err != nil {
 		return nil, err
