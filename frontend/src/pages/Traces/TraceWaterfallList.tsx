@@ -163,7 +163,12 @@ const WaterfallRow: React.FC<{
 				<Table.Cell
 					onClick={(e) => {
 						e.stopPropagation()
-						setOpen(!open)
+
+						if (hasChildren) {
+							setOpen(!open)
+						} else {
+							setSelectedSpan(span)
+						}
 					}}
 					style={{ paddingLeft: depth * 16 + 8 }}
 				>
