@@ -17,3 +17,7 @@ export const scrollableBody = style({
 		},
 	},
 })
+
+export const preventScroll = style({
+	overflowY: 'hidden',
+})

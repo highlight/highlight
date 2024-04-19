@@ -1,17 +1,21 @@
 import { promises as fsp } from 'fs'
 import { gql } from 'graphql-request'
+import pino from 'pino'
+import { createWriteStream } from 'pino-http-send'
 import { COMPETITORS } from '../../../components/Competitors/competitors'
 import { FEATURES, iFeature } from '../../../components/Features/features'
 import { iProduct, PRODUCTS } from '../../../components/Products/products'
-import pino from 'pino'
-import { GraphQLRequest } from '../../../utils/graphql'
-import { createWriteStream } from 'pino-http-send'
 import { withAppRouterHighlight } from '../../../highlight.app.config'
 import { getGithubDocsPaths } from '../../../pages/api/docs/github'
 import { getBlogPaths } from '../../../shared/blog'
+import { GraphQLRequest } from '../../../utils/graphql'
 
 const stream = createWriteStream({
-	url: 'https://pub.highlight.io/v1/logs/json?project=4d7k1xeo&service=highlight-io-next-frontend',
+	url: 'https://pub.highlight.io/v1/logs/json',
+	headers: {
+		'x-highlight-project': '2',
+		'x-highlight-service': 'next-suspense',
+	},
 })
 
 const logger = pino({ level: 'trace' }, stream)

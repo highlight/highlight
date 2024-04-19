@@ -443,8 +443,9 @@ func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate t
 	if query == nil || *query == "" {
 		traceKeys = append(traceKeys, defaultTraceKeys...)
 	} else {
+		queryLower := strings.ToLower(*query)
 		for _, key := range defaultTraceKeys {
-			if strings.Contains(key.Name, *query) {
+			if strings.Contains(key.Name, queryLower) {
 				traceKeys = append(traceKeys, key)
 			}
 		}

@@ -1,7 +1,5 @@
 import {
-	useEditErrorSegmentMutation,
 	useGetErrorFieldsClickhouseQuery,
-	useGetErrorSegmentsQuery,
 	useGetErrorTagsQuery,
 } from '@graph/hooks'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
@@ -14,8 +12,6 @@ import QueryBuilder, {
 	FetchFieldVariables,
 	QueryBuilderProps,
 } from '@/components/QueryBuilder/QueryBuilder'
-import { CreateErrorSegmentModal } from '@/pages/Errors/ErrorSegmentModals/CreateErrorSegmentModal'
-import { DeleteErrorSegmentModal } from '@/pages/Errors/ErrorSegmentModals/DeleteErrorSegmentModal'
 
 export const CUSTOM_FIELDS: CustomField[] = [
 	{
@@ -130,10 +126,6 @@ const ErrorQueryBuilder = (props: Partial<QueryBuilderProps>) => {
 			customFields={props.customFields ?? CUSTOM_FIELDS}
 			fetchFields={props.fetchFields ?? fetchFields}
 			errorTagData={props.errorTagData ?? data}
-			useEditAnySegmentMutation={useEditErrorSegmentMutation}
-			useGetAnySegmentsQuery={useGetErrorSegmentsQuery}
-			CreateAnySegmentModal={CreateErrorSegmentModal}
-			DeleteAnySegmentModal={DeleteErrorSegmentModal}
 			{...props}
 		/>
 	)

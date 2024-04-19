@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.12.0
+
+### Minor Changes
+
+-   b27a0bcd2: update rrweb version to 729361e
+
 ## 8.11.1
 
 ### Patch Changes

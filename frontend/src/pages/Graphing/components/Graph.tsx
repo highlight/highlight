@@ -50,6 +50,7 @@ export const VIEW_ICONS = [
 	<IconSolidChartSquareBar size={16} key="bar chart" />,
 	<IconSolidTable size={16} key="table" />,
 ]
+export const VIEW_LABELS = ['Line chart', 'Bar chart / histogram', 'Table']
 
 export const TIMESTAMP_KEY = 'Timestamp'
 export const GROUP_KEY = 'Group'
@@ -88,6 +89,7 @@ export interface ChartProps<TConfig> {
 	limitFunctionType?: MetricAggregator
 	limitMetric?: string
 	viewConfig: TConfig
+	disabled?: boolean
 	onDelete?: () => void
 	onExpand?: () => void
 	onEdit?: () => void
@@ -101,6 +103,7 @@ export interface InnerChartProps<TConfig> {
 	title?: string
 	loading?: boolean
 	viewConfig: TConfig
+	disabled?: boolean
 }
 
 export interface SeriesInfo {
@@ -328,6 +331,7 @@ const Graph = ({
 	limitMetric,
 	title,
 	viewConfig,
+	disabled,
 	onDelete,
 	onExpand,
 	onEdit,
@@ -408,8 +412,6 @@ const Graph = ({
 		setSpotlight(undefined)
 	}, [series])
 
-	console.log('data', data)
-
 	let isEmpty = data !== undefined
 	for (const d of data ?? []) {
 		for (const v of Object.values(d)) {
@@ -474,6 +476,7 @@ const Graph = ({
 						yAxisFunction={yAxisFunction}
 						viewConfig={viewConfig}
 						series={series}
+						disabled={disabled}
 					/>
 				)
 				break
@@ -522,13 +525,11 @@ const Graph = ({
 					>
 						{title || 'Untitled metric view'}
 					</Text>
-					{showMenu && graphHover && (
+					{showMenu && graphHover && !disabled && (
 						<Box
-							cssClass={
-								graphHover
-									? style.titleText
-									: clsx(style.titleText, style.hiddenMenu)
-							}
+							cssClass={clsx(style.titleText, {
+								[style.hiddenMenu]: !graphHover,
+							})}
 						>
 							{onExpand !== undefined && (
 								<Button
@@ -581,9 +582,9 @@ const Graph = ({
 						</Box>
 					)}
 				</Box>
-				<Box position="relative" cssClass={style.legendWrapper}>
-					{showLegend &&
-						series.map((key, idx) => {
+				{showLegend && (
+					<Box position="relative" cssClass={style.legendWrapper}>
+						{series.map((key, idx) => {
 							return (
 								<Button
 									kind="secondary"
@@ -643,12 +644,14 @@ const Graph = ({
 								</Button>
 							)
 						})}
-				</Box>
+					</Box>
+				)}
 			</Box>
 			<Box
 				height="full"
 				maxHeight="screen"
 				key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
+				cssClass={clsx({ [style.disabled]: disabled })}
 			>
 				{innerChart}
 			</Box>

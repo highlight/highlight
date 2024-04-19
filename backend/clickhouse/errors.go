@@ -91,7 +91,7 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 			NewStruct(new(ClickhouseErrorGroup)).
 			InsertInto(ErrorGroupsTable, chGroups...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
-		sql, args = replaceTimestampInserts(sql, args, 10, map[int]bool{1: true, 2: true}, MicroSeconds)
+		sql, args = replaceTimestampInserts(sql, args, map[int]bool{1: true, 2: true}, MicroSeconds)
 		return client.conn.Exec(chCtx, sql, args...)
 	}
 
@@ -157,7 +157,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 			NewStruct(new(ClickhouseErrorObject)).
 			InsertInto(ErrorObjectsTable, chObjects...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
-		sql, args = replaceTimestampInserts(sql, args, 14, map[int]bool{1: true}, MicroSeconds)
+		sql, args = replaceTimestampInserts(sql, args, map[int]bool{1: true}, MicroSeconds)
 		return client.conn.Exec(chCtx, sql, args...)
 	}
 
@@ -567,10 +567,11 @@ func (client *Client) QueryErrorHistogramDeprecated(ctx context.Context, project
 var ErrorGroupsTableConfig = model.TableConfig[modelInputs.ReservedErrorGroupKey]{
 	TableName: ErrorGroupsTable,
 	KeysToColumns: map[modelInputs.ReservedErrorGroupKey]string{
-		modelInputs.ReservedErrorGroupKeyEvent:  "Event",
-		modelInputs.ReservedErrorGroupKeyStatus: "Status",
-		modelInputs.ReservedErrorGroupKeyTag:    "ErrorTagTitle",
-		modelInputs.ReservedErrorGroupKeyType:   "Type",
+		modelInputs.ReservedErrorGroupKeyEvent:    "Event",
+		modelInputs.ReservedErrorGroupKeySecureID: "SecureID",
+		modelInputs.ReservedErrorGroupKeyStatus:   "Status",
+		modelInputs.ReservedErrorGroupKeyTag:      "ErrorTagTitle",
+		modelInputs.ReservedErrorGroupKeyType:     "Type",
 	},
 	BodyColumn:   "Event",
 	ReservedKeys: modelInputs.AllReservedErrorGroupKey,
@@ -603,6 +604,7 @@ var ErrorsJoinedTableConfig = model.TableConfig[modelInputs.ReservedErrorsJoined
 		modelInputs.ReservedErrorsJoinedKeyEvent:           "Event",
 		modelInputs.ReservedErrorsJoinedKeyHasSession:      "HasSession",
 		modelInputs.ReservedErrorsJoinedKeyOsName:          "OSName",
+		modelInputs.ReservedErrorsJoinedKeySecureID:        "SecureID",
 		modelInputs.ReservedErrorsJoinedKeySecureSessionID: "SecureSessionID",
 		modelInputs.ReservedErrorsJoinedKeyServiceName:     "ServiceName",
 		modelInputs.ReservedErrorsJoinedKeyServiceVersion:  "ServiceVersion",

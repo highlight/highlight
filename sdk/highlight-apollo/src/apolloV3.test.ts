@@ -49,7 +49,7 @@ describe('ApolloServerV3HighlightPlugin', () => {
 		const { details } = await getResourceSpans(port)
 
 		const highlightRunWithHeadersSpan = details.find(({ spanNames }) =>
-			spanNames.includes('highlight-run-with-headers'),
+			spanNames.includes('highlight-ctx'),
 		)
 		const sessionId =
 			highlightRunWithHeadersSpan?.attributes['highlight.session_id']

@@ -13,11 +13,7 @@ import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
-import {
-	ERROR_FIELD_TYPE,
-	ERROR_TYPE,
-	SESSION_TYPE,
-} from '@/components/QueryBuilder/QueryBuilder'
+import { SESSION_TYPE } from '@/components/QueryBuilder/QueryBuilder'
 
 export interface CommandBarSearch {
 	search: string
@@ -50,26 +46,6 @@ export const ATTRIBUTES = [
 		type: SESSION_TYPE,
 		name: 'browser_name',
 		displayName: 'Browser',
-	},
-	{
-		type: ERROR_FIELD_TYPE,
-		name: 'browser',
-		displayName: 'Browser',
-	},
-	{
-		type: ERROR_FIELD_TYPE,
-		name: 'os_name',
-		displayName: 'Operating System',
-	},
-	{
-		type: ERROR_FIELD_TYPE,
-		name: 'visited_url',
-		displayName: 'Visited URL',
-	},
-	{
-		type: ERROR_TYPE,
-		name: 'Event',
-		displayName: 'Error Body',
 	},
 ] as const
 

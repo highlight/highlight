@@ -99,7 +99,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 	const allOptions = queryOptions.concat(createdOptions).concat(options ?? [])
 
 	return (
-		<div>
+		<div className={styles.buttonWrapper}>
 			<SelectLabel store={select} className={styles.selectLabel}>
 				{label}
 			</SelectLabel>

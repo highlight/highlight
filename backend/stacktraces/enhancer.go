@@ -388,17 +388,20 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 
 	var sourceMapURL string
 	var sourceMapFileBytes []byte
-	if u.Scheme == "file" {
-		// if this is an electron file reference, treat it as a path so we can match a subdirectory
-		sourceMapURL, sourceMapFileBytes, err = getFileSourcemap(ctx, projectId, version, u.Path, storageClient, &stackTraceError)
-		if err != nil {
-			return nil, err, stackTraceError
+	var versions = []*string{version}
+	if versions[0] != nil {
+		versions = append(versions, nil)
+	}
+	for _, v := range versions {
+		if u.Scheme == "file" {
+			// if this is an electron file reference, treat it as a path so we can match a subdirectory
+			sourceMapURL, sourceMapFileBytes, err = getFileSourcemap(ctx, projectId, v, u.Path, storageClient, &stackTraceError)
+		} else {
+			sourceMapURL, sourceMapFileBytes, err = getURLSourcemap(ctx, projectId, v, stackTraceFileURL, stackTraceFilePath, stackFileNameIndex, storageClient, &stackTraceError)
 		}
-	} else {
-		sourceMapURL, sourceMapFileBytes, err = getURLSourcemap(ctx, projectId, version, stackTraceFileURL, stackTraceFilePath, stackFileNameIndex, storageClient, &stackTraceError)
-		if err != nil {
-			return nil, err, stackTraceError
-		}
+	}
+	if err != nil {
+		return nil, err, stackTraceError
 	}
 	sourceMapFileSize := len(sourceMapFileBytes)
 	stackTraceError.SourcemapFileSize = &sourceMapFileSize

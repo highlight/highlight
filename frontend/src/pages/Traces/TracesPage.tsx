@@ -15,6 +15,7 @@ import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
 import { loadingIcon } from '@/components/Button/style.css'
+import { SearchContext } from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -174,7 +175,7 @@ export const TracesPage: React.FC = () => {
 	useEffect(() => analytics.page('Traces'), [])
 
 	return (
-		<>
+		<SearchContext initialQuery={query} onSubmit={setQuery}>
 			<Helmet>
 				<title>Traces</title>
 			</Helmet>
@@ -198,7 +199,6 @@ export const TracesPage: React.FC = () => {
 					overflow="hidden"
 				>
 					<SearchForm
-						initialQuery={query ?? ''}
 						startDate={startDate}
 						endDate={endDate}
 						presets={DEFAULT_TIME_PRESETS}
@@ -206,7 +206,6 @@ export const TracesPage: React.FC = () => {
 						selectedPreset={selectedPreset}
 						timeMode={timeMode}
 						hideCreateAlert
-						onFormSubmit={setQuery}
 						onDatesChange={updateSearchTime}
 						productType={ProductType.Traces}
 						savedSegmentType="Trace"
@@ -323,7 +322,7 @@ export const TracesPage: React.FC = () => {
 			</Box>
 
 			<Outlet context={outletContext} />
-		</>
+		</SearchContext>
 	)
 }
 

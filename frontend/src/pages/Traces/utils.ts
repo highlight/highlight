@@ -7,7 +7,9 @@ export const getFirstSpan = (trace: Trace[]) => {
 	const spans = rootSpans.length > 0 ? rootSpans : [...trace]
 	const sortedTrace = spans.sort(
 		(a, b) =>
-			new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+			new Date(a.timestamp).getTime() -
+			a.duration -
+			(new Date(b.timestamp).getTime() - b.duration),
 	)
 
 	return sortedTrace[0]
@@ -109,8 +111,19 @@ export const organizeSpansWithChildren = (spans: Partial<FlameGraphSpan>[]) => {
 export const organizeSpansForFlameGraph = (
 	trace: Partial<FlameGraphSpan>[],
 ) => {
-	const rootSpans = trace.filter((span) => !span.parentSpanID)
 	const spans = [[]]
+	const rootSpans = trace
+		.filter((span) => !span.parentSpanID)
+		.sort((a, b) => {
+			// Subtract the duration from the start time to ensure that the longer
+			// span is at the root of the flame graph if there is a match.
+			const startA =
+				new Date(a.timestamp ?? 0).getTime() - (a.duration ?? 0)
+			const startB =
+				new Date(b.timestamp ?? 0).getTime() - (b.duration ?? 0)
+
+			return startA - startB
+		})
 
 	if (rootSpans.length === 0) {
 		rootSpans.push(getFirstSpan(trace as Trace[]))
