@@ -42,11 +42,7 @@ export const PanelHeader: React.FC<Props> = ({ children, path }) => {
 						emphasis="medium"
 						kind="secondary"
 						onClick={() => {
-							if (typeof resource.canGoBack === 'string') {
-								navigate(resource.canGoBack)
-							} else {
-								navigate(-1)
-							}
+							navigate(-1)
 						}}
 					/>
 				)}

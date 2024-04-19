@@ -7,7 +7,7 @@ import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 
 type RelatedResourceCommon = {
 	type: 'error' | 'session' | 'trace' | 'logs'
-	canGoBack?: boolean | string
+	canGoBack?: boolean
 	onClose?: () => void
 }
 
@@ -91,7 +91,7 @@ export const useRelatedResource = () => {
 			pagination: PanelPagination | null = null,
 		) => {
 			// Enable back button on nested related resources
-			if (!!resource && !newResource.canGoBack) {
+			if (!!resource && newResource.canGoBack === undefined) {
 				newResource.canGoBack = true
 			}
 

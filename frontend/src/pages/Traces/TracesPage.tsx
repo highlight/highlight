@@ -183,7 +183,6 @@ export const TracesPage: React.FC = () => {
 				type: 'trace',
 				id: traceId,
 				spanID: spanId,
-				canGoBack: `/${projectId}/traces`,
 			})
 		} else {
 			remove()

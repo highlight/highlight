@@ -225,7 +225,9 @@ export const formatDateWithNanoseconds = (dateString: string) => {
 	return `${formattedDateTime}.${nanoWithoutZ} ${amPm}`
 }
 
-export const formatTraceAttributes = (attributes: { [key: string]: any }) => {
+export const formatTraceAttributes = (
+	attributes: { [key: string]: any } = {},
+) => {
 	const { host, os, process, ...otherTraceAttributes } =
 		attributes.traceAttributes
 
