@@ -443,7 +443,7 @@ const PriceCalculator = ({
 		retention: Retention,
 	) => {
 		const cost = pricingTier.prices[product]
-		let remainder = usage - cost.free
+		let remainder = usage
 		let tier = 0
 		let price = 0
 		while (remainder > 0) {
@@ -458,33 +458,27 @@ const PriceCalculator = ({
 			remainder -= itemUsage
 			tier += 1
 		}
-		return [
-			Math.trunc(price * retentionMultipliers[retention] * 100) / 100,
-			price
-				? Math.trunc((price / (usage - cost.free)) * cost.unit * 100) /
-				  100
-				: 0,
-		]
+		return (price * retentionMultipliers[retention] * 100) / 100
 	}
 
 	const base = pricingTier.prices.monthlyPrice
 
-	const [errorsCost, errorsRate] = getUsagePrice(
+	const errorsCost = getUsagePrice(
 		errorUsage - defaultErrors,
 		'Errors',
 		errorRetention,
 	)
-	const [sessionsCost, sessionsRate] = getUsagePrice(
+	const sessionsCost = getUsagePrice(
 		sessionUsage - defaultSessions,
 		'Sessions',
 		sessionRetention,
 	)
-	const [loggingCost, loggingRate] = getUsagePrice(
+	const loggingCost = getUsagePrice(
 		loggingUsage - defaultLogs,
 		'Logs',
 		'30 days',
 	)
-	const [tracesCost, tracesRate] = getUsagePrice(
+	const tracesCost = getUsagePrice(
 		tracesUsage - defaultTraces,
 		'Traces',
 		'30 days',
@@ -649,7 +643,7 @@ const CalculatorPriceRow = ({
 				className="text-darker-copy-on-dark"
 				emphasis
 			>
-				{`$${cost}`}
+				{`$${cost.toFixed(2)}`}
 			</Typography>
 		</div>
 	)
@@ -691,7 +685,7 @@ const CalculatorRowDesktop = ({
 						</Typography>
 					</div>
 					<Typography type="copy2" emphasis>
-						${cost}
+						${cost.toFixed(2)}
 					</Typography>
 				</div>
 				<RangedInput
@@ -806,7 +800,7 @@ const RangedInput = ({
 			<Slider.Root
 				min={min}
 				max={max}
-				step={200000}
+				step={500}
 				value={[denormalize(Math.pow(normalize(value), 1 / 3))]}
 				onValueChange={([value]) =>
 					value != null &&
