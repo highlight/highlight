@@ -1,5 +1,4 @@
 import { NextPage } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import Footer from '../../components/common/Footer/Footer'
@@ -24,6 +23,7 @@ import {
 	HiServer,
 } from 'react-icons/hi'
 
+import classNames from 'classnames'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
 import {
 	enterprisePrices,
@@ -40,7 +40,7 @@ const retentionOptions = [
 	'1 year',
 	'2 years',
 ] as const
-type Retention = typeof retentionOptions[number]
+type Retention = (typeof retentionOptions)[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'30 days': 1,
 	'3 months': 1,
@@ -55,7 +55,7 @@ const tierOptions = [
 	'Enterprise',
 	'SelfHostedEnterprise',
 ] as const
-type TierName = typeof tierOptions[number]
+type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
 	label: string
@@ -624,6 +624,7 @@ const PriceCalculator = ({
 						rangeMultiplier={10000}
 						retention="30 days"
 						onChange={setTracesUsage}
+						showAbove
 					/>
 				</div>
 			</div>
@@ -661,6 +662,7 @@ const CalculatorRowDesktop = ({
 	cost,
 	rangeMultiplier = 1,
 	retention,
+	showAbove,
 	onChange,
 	onChangeRetention,
 }: {
@@ -670,6 +672,7 @@ const CalculatorRowDesktop = ({
 	cost: number
 	rangeMultiplier?: number
 	retention: Retention
+	showAbove?: boolean //Shows listbox options above the button
 	onChange: (value: number) => void
 	onChangeRetention?: (value: Retention) => void
 }) => {
@@ -695,6 +698,7 @@ const CalculatorRowDesktop = ({
 					options={rangeOptions}
 					value={value}
 					unit={product}
+					showAbove={showAbove}
 					onChange={onChange}
 				/>
 
@@ -713,6 +717,7 @@ const CalculatorRowDesktop = ({
 							}
 							title="Retention: "
 							value={retention}
+							showAbove={showAbove}
 							onChange={onChangeRetention}
 						/>
 					</div>
@@ -744,11 +749,13 @@ const CalculatorRowDesktop = ({
 const RangedInput = ({
 	options,
 	value,
+	showAbove,
 	onChange,
 }: {
 	options: number[]
 	value: number
 	unit: string
+	showAbove?: boolean //Shows listbox options above the button
 	onChange: (value: number) => void
 }) => {
 	const sortedOptions = [...options].sort((a, b) => a - b)
@@ -792,6 +799,7 @@ const RangedInput = ({
 					value={formatNumber(value)}
 					onChange={(ev) => onChange(parseFormattedNumber(ev))}
 					title="Usage: "
+					showAbove={showAbove}
 				/>
 			</div>
 
@@ -828,11 +836,13 @@ const ListboxOptions = <T extends string>({
 	options,
 	value,
 	title,
+	showAbove,
 	onChange,
 }: {
 	options: readonly T[]
 	value?: T
 	title?: string //Displayed prefix to the value. "Usage: " for example.
+	showAbove?: boolean //Displays options above the button
 	onChange?: (value: T) => void
 }) => {
 	return (
@@ -874,7 +884,12 @@ const ListboxOptions = <T extends string>({
 					leaveFrom="opacity-100"
 					leaveTo="opacity-0"
 				>
-					<Listbox.Options className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-md bg-dark-background border border-copy-on-light py-1 sm:text-sm">
+					<Listbox.Options
+						className={classNames(
+							'absolute z-50 w-full max-h-60 overflow-auto rounded-md bg-dark-background border border-copy-on-light py-1 sm:text-sm',
+							showAbove ? 'mb-1 bottom-full' : 'mt-1 top-full',
+						)}
+					>
 						{options.map((option, optionIdx) => (
 							<Listbox.Option
 								key={optionIdx}
@@ -969,16 +984,10 @@ const SFECard = ({
 	setEstimatorCategory: (value: any) => void
 }) => {
 	return (
-		<div className="flex w-full flex-col md:flex-row justify-between items-start md:items-center p-4 border-[1px] border-divider-on-dark rounded-lg">
-			<div className="flex flex-col md:flex-row gap-4 md:items-start">
-				<Image
-					src={'/images/companies/icons/highlight.png'}
-					alt="logo"
-					height="50"
-					width="50"
-					className="rounded-md flex-shrink-0 w-[50px] h-[50px]"
-				/>
-				<div className="flex flex-col ">
+		<div className="flex w-full flex-col lg:flex-row lg:items-center justify-between p-4 border-[1px] border-divider-on-dark rounded-lg gap-4">
+			<div className="flex flex-col">
+				<div className="flex items-center gap-2">
+					<HiServer className="text-[#E93D82] w-8 h-8 -translate-x-1" />
 					<Typography
 						type="copy1"
 						emphasis
@@ -986,50 +995,35 @@ const SFECard = ({
 					>
 						Self-Hosted Enterprise
 					</Typography>
-					<Typography
-						type="copy3"
-						className="text-color-darker-copy-on-dark"
-					>
-						For large enterprises looking to host Highlight on their
-						own infrastructure.
-					</Typography>
-
-					<div className="flex flex-col lg:flex-row gap-2 mt-4 w-full">
-						<PrimaryButton
-							className={
-								'bg-white text-dark-background rounded-md text-center py-1 hover:bg-copy-on-dark transition-colors'
-							}
-							href={
-								'/docs/general/company/open-source/hosting/self-host-enterprise'
-							}
-						>
-							<Typography type="copy3" emphasis>
-								Learn more
-							</Typography>
-						</PrimaryButton>
-
-						<PrimaryButton
-							className={
-								'bg-dark-background border border-copy-on-dark text-copy-on-dark rounded-md text-center py-1 hover:bg-white hover:text-dark-background transition-colors'
-							}
-							onClick={(e) => {
-								setEstimatorCategory('SelfHostedEnterprise')
-								e.preventDefault()
-								document
-									.querySelector('#overage')
-									?.scrollIntoView({
-										behavior: 'smooth',
-									})
-								window.history.pushState({}, '', `#overage`)
-							}}
-						>
-							<Typography type="copy3" emphasis>
-								Estimate Costs
-							</Typography>
-						</PrimaryButton>
-					</div>
 				</div>
+				<Typography
+					type="copy3"
+					className="text-color-darker-copy-on-dark"
+				>
+					For large enterprises hosting Highlight on their own
+					infrastructure.{' '}
+					<Link href="/docs/general/company/open-source/hosting/self-host-enterprise">
+						Learn more.
+					</Link>
+				</Typography>
 			</div>
+			<PrimaryButton
+				className={
+					'bg-dark-background border border-copy-on-dark text-copy-on-dark rounded-md text-center py-1 hover:bg-white hover:text-dark-background transition-colors'
+				}
+				onClick={(e) => {
+					setEstimatorCategory('SelfHostedEnterprise')
+					e.preventDefault()
+					document.querySelector('#overage')?.scrollIntoView({
+						behavior: 'smooth',
+					})
+					window.history.pushState({}, '', `#overage`)
+				}}
+			>
+				<Typography type="copy3" emphasis>
+					Estimate Costs
+				</Typography>
+			</PrimaryButton>
 		</div>
 	)
 }

@@ -11,7 +11,7 @@ updatedAt: 2024-04-12T02:35:22.000Z
 
 ### Self-hosted Enterprise Feature Set:
 
-| Subprocessor                                                 | Hobby | Enterprise |
+| Features                                                     | Hobby | Enterprise |
 | ------------------------------------------------------------ | ----- | ---------- |
 | Native Platform Integrations (Teams, Slack, Sendgrid, etc..) | ❌    | ✅         |
 | Native Email Integrations (Sendgrid, SMTP, etc..)            | ❌    | ✅         |
