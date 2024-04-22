@@ -234,6 +234,8 @@ export default function ErrorsV2() {
 			moreResults={getErrorsData.moreErrors}
 			resetMoreResults={getErrorsData.resetMoreErrors}
 			histogramBucketSize={getErrorsData.histogramBucketSize}
+			page={page}
+			setPage={setPage}
 			{...searchTimeContext}
 		>
 			<Helmet>

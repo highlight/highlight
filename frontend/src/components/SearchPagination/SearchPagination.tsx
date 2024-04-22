@@ -7,7 +7,7 @@ import {
 	IconSolidDotsHorizontal,
 } from '@highlight-run/ui/components'
 import { clamp, range } from '@util/numbers'
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 
 import * as style from './style.css'
 
@@ -26,6 +26,7 @@ interface Props {
 	totalCount: number
 	pageSize?: number
 	siblingCount?: number
+	loading?: boolean
 }
 
 enum ExpandAction {
@@ -39,12 +40,21 @@ const SearchPagination = ({
 	totalCount,
 	pageSize,
 	siblingCount,
+	loading,
 }: Props) => {
 	const currentPage = page ?? START_PAGE
 	const $pageSize = pageSize ?? PAGE_SIZE
 	const $siblingCount = siblingCount ?? DEFAULT_SIBLING_COUNT
 
-	const pageCount = Math.min(MAX_PAGES, Math.ceil(totalCount / $pageSize))
+	const [resultCount, setResultCount] = React.useState(totalCount)
+
+	useEffect(() => {
+		if (!loading) {
+			setResultCount(totalCount)
+		}
+	}, [totalCount, loading])
+
+	const pageCount = Math.min(MAX_PAGES, Math.ceil(resultCount / $pageSize))
 
 	const skip = (offset: number) => {
 		const newPage = clamp(
