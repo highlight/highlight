@@ -49,6 +49,7 @@ import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { useNumericProjectId } from '@/hooks/useProjectId'
 import { NetworkResourcePanel } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourcePanel'
 import DevToolsWindowV2 from '@/pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
 import { useResizePlayer } from '@/pages/Player/utils/utils'
@@ -60,9 +61,7 @@ import * as style from './styles.css'
 
 const PlayerPage = () => {
 	const { isLoggedIn } = useAuthContext()
-	const { currentWorkspace } = useApplicationContext()
 	const { projectId, sessionSecureId } = useSessionParams()
-	const [{ integrated }] = useIntegratedLocalStorage(projectId!, 'client')
 
 	const { width } = useWindowSize()
 
@@ -99,14 +98,6 @@ const PlayerPage = () => {
 		sessionViewability,
 		sessionSecureId,
 	])
-
-	const { data: isSessionPendingData } = useIsSessionPendingQuery({
-		variables: {
-			session_secure_id: sessionSecureId!,
-		},
-		skip:
-			!sessionSecureId || sessionViewability !== SessionViewability.ERROR,
-	})
 
 	const resourcesContext = useResources(session)
 
@@ -173,7 +164,7 @@ const PlayerPage = () => {
 
 	const { isPlayerFullscreen, playerCenterPanelRef } = usePlayerUIContext()
 
-	const sessionView = showSession ? (
+	const sessionView = (
 		<Box
 			background="raised"
 			height="full"
@@ -264,125 +255,7 @@ const PlayerPage = () => {
 				</Box>
 			</div>
 		</Box>
-	) : null
-
-	const sessionFiller = useMemo(() => {
-		switch (sessionViewability) {
-			case SessionViewability.ERROR:
-				if (isSessionPendingData?.isSessionPending) {
-					return (
-						<Box m="auto" style={{ maxWidth: 300 }}>
-							<Callout
-								kind="info"
-								title="This session is on the way!"
-							>
-								<Box pb="6">
-									<Text>
-										We are processing the data and will show
-										the recording here soon. Please come
-										back in a minute.
-									</Text>
-								</Box>
-							</Callout>
-						</Box>
-					)
-				} else {
-					let reasonText: React.ReactNode
-					switch (session?.excluded_reason) {
-						case 'BillingQuotaExceeded':
-							reasonText = (
-								<>
-									This session was recorded after your billing
-									limit was reached. You can update your
-									billing limits{' '}
-									<a
-										href={`/w/${currentWorkspace?.id}/current-plan`}
-									>
-										here
-									</a>
-									.
-								</>
-							)
-							break
-						case 'RetentionPeriodExceeded':
-							reasonText = (
-								<>
-									This session is older than your plan's
-									retention date. You can update your plan's
-									retention settings{' '}
-									<a
-										href={`/w/${currentWorkspace?.id}/current-plan`}
-									>
-										here
-									</a>
-									.
-								</>
-							)
-							break
-						default:
-							reasonText =
-								'This session does not exist or has not been made public.'
-							break
-					}
-					return (
-						<Box m="auto" style={{ maxWidth: 300 }}>
-							<Callout kind="info" title="Can't load session">
-								<Box pb="6">
-									<Text>{reasonText}</Text>
-								</Box>
-							</Callout>
-						</Box>
-					)
-				}
-			case SessionViewability.EMPTY_SESSION:
-				return (
-					<ElevatedCard
-						title="Session isn't ready to view yet 😔"
-						animation={<Lottie animationData={WaitingAnimation} />}
-						className={style.emptySessionCard}
-					>
-						<p>
-							We need more time to process this session. If this
-							looks like a bug, please reach out to us!
-						</p>
-					</ElevatedCard>
-				)
-			default:
-				return (
-					<div className={style.playerContainer}>
-						<div className={style.rrwebPlayerSection}>
-							<Box
-								display="flex"
-								flexDirection="column"
-								width="full"
-								height="full"
-							>
-								<SessionLevelBarV2 width="100%" />
-								<Box
-									width="full"
-									height="full"
-									display="flex"
-									justifyContent="center"
-									borderTop="secondary"
-								>
-									{integrated ? (
-										<NoActiveSessionCard />
-									) : (
-										<CompleteSetup />
-									)}
-								</Box>
-							</Box>
-						</div>
-					</div>
-				)
-		}
-	}, [
-		currentWorkspace?.id,
-		isSessionPendingData?.isSessionPending,
-		sessionViewability,
-		integrated,
-		session?.excluded_reason,
-	])
+	)
 
 	return (
 		<ReplayerContextProvider value={playerContext}>
@@ -411,7 +284,14 @@ const PlayerPage = () => {
 							className={style.playerCenterPanel}
 							ref={playerCenterPanelRef}
 						>
-							{showSession ? sessionView : sessionFiller}
+							{showSession ? (
+								sessionView
+							) : (
+								<SessionFiller
+									sessionViewability={sessionViewability}
+									session={session}
+								/>
+							)}
 						</div>
 						<NewCommentModal
 							newCommentModalRef={newCommentModalRef}
@@ -466,4 +346,132 @@ const getTabTitle = (session?: Session) => {
 		return 'Sessions'
 	}
 	return `Sessions: ${getDisplayName(session)}`
+}
+
+export const SessionFiller: React.FC<{
+	sessionViewability: SessionViewability
+	session: Session | undefined
+}> = ({ session, sessionViewability }) => {
+	const { currentWorkspace } = useApplicationContext()
+	const { projectId } = useNumericProjectId()
+	const [{ integrated }] = useIntegratedLocalStorage(projectId!, 'client')
+	const sessionSecureId = session?.secure_id
+
+	const { data: isSessionPendingData } = useIsSessionPendingQuery({
+		variables: {
+			session_secure_id: sessionSecureId!,
+		},
+		skip:
+			!sessionSecureId || sessionViewability !== SessionViewability.ERROR,
+	})
+
+	switch (sessionViewability) {
+		case SessionViewability.ERROR:
+			if (isSessionPendingData?.isSessionPending) {
+				return (
+					<Box m="auto" style={{ maxWidth: 300 }}>
+						<Callout
+							kind="info"
+							title="This session is on the way!"
+						>
+							<Box pb="6">
+								<Text>
+									We are processing the data and will show the
+									recording here soon. Please come back in a
+									minute.
+								</Text>
+							</Box>
+						</Callout>
+					</Box>
+				)
+			} else {
+				let reasonText: React.ReactNode
+				switch (session?.excluded_reason) {
+					case 'BillingQuotaExceeded':
+						reasonText = (
+							<>
+								This session was recorded after your billing
+								limit was reached. You can update your billing
+								limits{' '}
+								<a
+									href={`/w/${currentWorkspace?.id}/current-plan`}
+								>
+									here
+								</a>
+								.
+							</>
+						)
+						break
+					case 'RetentionPeriodExceeded':
+						reasonText = (
+							<>
+								This session is older than your plan's retention
+								date. You can update your plan's retention
+								settings{' '}
+								<a
+									href={`/w/${currentWorkspace?.id}/current-plan`}
+								>
+									here
+								</a>
+								.
+							</>
+						)
+						break
+					default:
+						reasonText =
+							'This session does not exist or has not been made public.'
+						break
+				}
+				return (
+					<Box m="auto" style={{ maxWidth: 300 }}>
+						<Callout kind="info" title="Can't load session">
+							<Box pb="6">
+								<Text>{reasonText}</Text>
+							</Box>
+						</Callout>
+					</Box>
+				)
+			}
+		case SessionViewability.EMPTY_SESSION:
+			return (
+				<ElevatedCard
+					title="Session isn't ready to view yet 😔"
+					animation={<Lottie animationData={WaitingAnimation} />}
+					className={style.emptySessionCard}
+				>
+					<p>
+						We need more time to process this session. If this looks
+						like a bug, please reach out to us!
+					</p>
+				</ElevatedCard>
+			)
+		default:
+			return (
+				<div className={style.playerContainer}>
+					<div className={style.rrwebPlayerSection}>
+						<Box
+							display="flex"
+							flexDirection="column"
+							width="full"
+							height="full"
+						>
+							<SessionLevelBarV2 width="100%" />
+							<Box
+								width="full"
+								height="full"
+								display="flex"
+								justifyContent="center"
+								borderTop="secondary"
+							>
+								{integrated ? (
+									<NoActiveSessionCard />
+								) : (
+									<CompleteSetup />
+								)}
+							</Box>
+						</Box>
+					</div>
+				</div>
+			)
+	}
 }
