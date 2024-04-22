@@ -15,6 +15,7 @@ type Props<T = string> = React.PropsWithChildren & {
 	selectedId?: T
 	size?: 'xs' | 'sm'
 	onChange?: (id: T) => void
+	scrollable?: boolean
 }
 
 export const Tabs = <T extends string = string>({
@@ -23,6 +24,7 @@ export const Tabs = <T extends string = string>({
 	selectedId,
 	size = 'sm',
 	onChange,
+	scrollable,
 }: Props<T>) => {
 	const tabsStore = Ariakit.useTabStore({
 		defaultSelectedId,
@@ -36,7 +38,13 @@ export const Tabs = <T extends string = string>({
 	return (
 		<TabsContext.Provider value={{ size }}>
 			<Ariakit.TabProvider store={tabsStore} selectedId={selectedId}>
-				<Stack direction="column" flexGrow={1} gap="0" width="full">
+				<Stack
+					direction="column"
+					flexGrow={1}
+					gap="0"
+					width="full"
+					overflowY={scrollable ? 'hidden' : undefined}
+				>
 					{children}
 				</Stack>
 			</Ariakit.TabProvider>
@@ -141,10 +149,13 @@ const Tab: React.FC<TabProps> = ({ badgeText, children, icon, ...props }) => {
 	)
 }
 
-type TabPanelProps = React.PropsWithChildren<Ariakit.TabPanelProps>
+type TabPanelProps = React.PropsWithChildren<Ariakit.TabPanelProps> & {
+	scrollable?: boolean
+}
 
 const TabPanel: React.FC<TabPanelProps> = ({
 	children,
+	scrollable,
 	unmountOnHide = true,
 	...props
 }) => {
@@ -153,7 +164,12 @@ const TabPanel: React.FC<TabPanelProps> = ({
 			{...props}
 			unmountOnHide={unmountOnHide}
 			render={
-				<Stack direction="column" flexGrow={1} id={props.id}>
+				<Stack
+					direction="column"
+					flexGrow={1}
+					id={props.id}
+					overflowY={scrollable ? 'auto' : undefined}
+				>
 					{children}
 				</Stack>
 			}
