@@ -385,15 +385,26 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 		logs = append(logs, l)
 	}
 
-	serviceName := r.Header.Get(highlightHttp.LogDrainServiceHeader)
-	projectVerboseID := r.Header.Get(highlightHttp.LogDrainProjectHeader)
-	projectID, err := model.FromVerboseID(projectVerboseID)
-	if err != nil {
-		log.WithContext(r.Context()).WithError(err).WithField("projectVerboseID", projectVerboseID).Error("failed to parse highlight project id from vercel request")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	for vercelProjectID, logs := range lo.GroupBy(logs, func(item hlog.VercelLog) string {
+		return item.ProjectId
+	}) {
+		projectVerboseID := r.Header.Get(highlightHttp.LogDrainProjectHeader)
+		projectID, err := model.FromVerboseID(projectVerboseID)
+		if err != nil {
+			log.WithContext(r.Context()).WithError(err).WithField("projectVerboseID", projectVerboseID).Error("failed to parse highlight project id from vercel request")
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		serviceName := r.Header.Get(highlightHttp.LogDrainServiceHeader)
+		// handle old log drains without the header
+		if serviceName == "" {
+			serviceName = "vercel-log-drain-" + vercelProjectID
+		}
+		
+		hlog.SubmitVercelLogs(r.Context(), tracer, projectID, serviceName, logs)
+
 	}
-	hlog.SubmitVercelLogs(r.Context(), tracer, projectID, serviceName, logs)
 
 	w.WriteHeader(http.StatusOK)
 }
