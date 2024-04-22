@@ -23,6 +23,9 @@ export const AdditionalFeedResults = function ({
 }: Props) {
 	const rounded = ['sessions', 'errors'].includes(type)
 
+	const countText = more >= maxResults ? `${maxResults}+` : more
+	const resourceText = more === 1 ? type.slice(0, type.length - 1) : type
+
 	return (
 		<AnimatePresence>
 			{more > 0 ? (
@@ -54,11 +57,7 @@ export const AdditionalFeedResults = function ({
 							<Box display="flex" alignItems="center" gap="8">
 								<IconOutlineArrowNarrowUp />
 								<Text>
-									{Math.min(more, maxResults)}
-									{more >= maxResults ? '+' : ''} new{' '}
-									{more === 1
-										? type.slice(0, type.length - 1)
-										: type}
+									{countText} new {resourceText}
 								</Text>
 							</Box>
 						</Button>

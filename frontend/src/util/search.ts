@@ -22,7 +22,14 @@ export function usePollQuery<T, U>({
 	const [numMore, setNumMore] = useState<number>(0)
 
 	useEffect(() => {
-		if (skip || numMore >= maxResults) {
+		if (numMore >= maxResults) {
+			clearTimeout(pollTimeout.current)
+			pollTimeout.current = undefined
+		}
+	}, [numMore, maxResults])
+
+	useEffect(() => {
+		if (skip) {
 			return
 		}
 
@@ -55,10 +62,11 @@ export function usePollQuery<T, U>({
 			POLL_INTERVAL,
 		) as unknown as number
 		return () => {
+			setNumMore(0)
 			clearTimeout(pollTimeout.current)
 			pollTimeout.current = undefined
 		}
-	}, [getResultCount, moreDataQuery, variableFn, skip, numMore, maxResults])
+	}, [getResultCount, moreDataQuery, variableFn, skip])
 
 	return {
 		numMore,
