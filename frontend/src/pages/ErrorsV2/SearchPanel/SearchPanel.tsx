@@ -115,6 +115,7 @@ export const SearchPanel = () => {
 				</Box>
 			)}
 			<AdditionalFeedResults
+				maxResults={PAGE_SIZE}
 				more={moreErrors}
 				type="errors"
 				onClick={() => {

@@ -45,6 +45,7 @@ import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { useSearchContext } from '@/components/Search/SearchContext'
 import { LogEdge, ProductType } from '@/graph/generated/schemas'
+import { MAX_LOGS } from '@/pages/LogsPage/useGetLogs'
 import analytics from '@/util/analytics'
 
 import { LogDetails } from './LogDetails'
@@ -328,6 +329,7 @@ const LogsTableInner = ({
 					<Table.Row>
 						<Box width="full">
 							<AdditionalFeedResults
+								maxResults={MAX_LOGS}
 								more={moreLogs}
 								type="logs"
 								onClick={() => {

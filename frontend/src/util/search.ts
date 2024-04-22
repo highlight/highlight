@@ -10,14 +10,23 @@ export function usePollQuery<T, U>({
 	moreDataQuery,
 	getResultCount,
 	skip,
+	maxResults,
 }: {
 	variableFn: () => U | undefined
 	moreDataQuery: LazyQueryExecFunction<T, U>
 	getResultCount: (variables: QueryResult<T, U>) => number | undefined
 	skip?: boolean
+	maxResults: number
 }) {
 	const pollTimeout = useRef<number>()
 	const [numMore, setNumMore] = useState<number>(0)
+
+	useEffect(() => {
+		if (numMore >= maxResults) {
+			clearTimeout(pollTimeout.current)
+			pollTimeout.current = undefined
+		}
+	}, [numMore, maxResults])
 
 	useEffect(() => {
 		if (skip) {
