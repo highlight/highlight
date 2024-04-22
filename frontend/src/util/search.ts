@@ -67,7 +67,6 @@ export function usePollQuery<T, U>({
 			pollTimeout.current = undefined
 		}
 	}, [getResultCount, moreDataQuery, variableFn, skip])
-
 	return {
 		numMore,
 		reset: () => {
