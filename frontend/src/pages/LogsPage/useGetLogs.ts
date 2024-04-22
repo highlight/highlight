@@ -27,6 +27,8 @@ const initialWindowInfo: PageInfo = {
 	endCursor: '', // unused but needed for typedef
 }
 
+export const MAX_LOGS = 50
+
 export const useGetLogs = ({
 	query,
 	project_id,
@@ -114,6 +116,7 @@ export const useGetLogs = ({
 		GetLogsQuery,
 		GetLogsQueryVariables
 	>({
+		maxResults: MAX_LOGS,
 		skip: disablePolling,
 		variableFn: useCallback(
 			() => ({
