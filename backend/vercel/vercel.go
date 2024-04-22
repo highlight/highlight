@@ -401,7 +401,7 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 		if serviceName == "" {
 			serviceName = "vercel-log-drain-" + vercelProjectID
 		}
-		
+
 		hlog.SubmitVercelLogs(r.Context(), tracer, projectID, serviceName, logs)
 
 	}
