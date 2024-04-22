@@ -128,7 +128,6 @@ const PlayerPage = () => {
 
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
 
-	const newCommentModalRef = useRef<HTMLDivElement>(null)
 	const [commentModalPosition, setCommentModalPosition] = useState<
 		Coordinates2D | undefined
 	>(undefined)
@@ -294,7 +293,6 @@ const PlayerPage = () => {
 							)}
 						</div>
 						<NewCommentModal
-							newCommentModalRef={newCommentModalRef}
 							commentModalPosition={commentModalPosition}
 							commentPosition={commentPosition}
 							commentTime={time}
