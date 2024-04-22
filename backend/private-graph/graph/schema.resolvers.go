@@ -8949,6 +8949,10 @@ func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelI
 		return nil, err
 	}
 
+	if strings.Contains(params.Query, "tv2z9-1713710970963-2a81b060c298") {
+		return nil, e.New("temporarily ignoring vercel request query")
+	}
+
 	return r.ClickhouseClient.ReadTraces(ctx, project.ID, params, clickhouse.Pagination{
 		After:     after,
 		Before:    before,
