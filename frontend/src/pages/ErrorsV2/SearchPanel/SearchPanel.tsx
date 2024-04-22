@@ -156,6 +156,7 @@ export const SearchPanel = () => {
 				setPage={setPage}
 				totalCount={totalCount ?? 0}
 				pageSize={PAGE_SIZE}
+				loading={loading}
 			/>
 		</Box>
 	)

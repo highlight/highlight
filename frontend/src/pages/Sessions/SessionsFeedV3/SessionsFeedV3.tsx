@@ -384,6 +384,7 @@ export const SessionFeedV3 = React.memo(() => {
 					setPage={setPage}
 					totalCount={searchResultsCount ?? 0}
 					pageSize={DEFAULT_PAGE_SIZE}
+					loading={searchResultsLoading}
 				/>
 			</Box>
 		</SessionFeedConfigurationContextProvider>
