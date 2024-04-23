@@ -29,7 +29,7 @@ import { useClientIntegration } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate } from '@util/time'
 import clsx from 'clsx'
-import React, { useCallback, useEffect, useRef } from 'react'
+import React, { useCallback, useEffect } from 'react'
 
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { useSearchContext } from '@/components/Search/SearchContext'
@@ -37,7 +37,6 @@ import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
-import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration'
 import * as style from './SessionFeedV3.css'
 import { SessionFeedConfigurationContextProvider } from './SessionQueryBuilder/context/SessionFeedConfigurationContext'
 import { useSessionFeedConfiguration } from './SessionQueryBuilder/hooks/useSessionFeedConfiguration'
@@ -130,15 +129,8 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 )
 
 export const SessionFeedV3 = React.memo(() => {
-	const { project_id, session_secure_id } = useParams<{
-		project_id: string
-		session_secure_id: string
-	}>()
+	const { project_id } = useParams<{ project_id: string }>()
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
-	const { autoPlaySessions, showDetailedSessionView } =
-		usePlayerConfiguration()
-
-	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 
 	const {
 		loading,
@@ -159,7 +151,7 @@ export const SessionFeedV3 = React.memo(() => {
 
 	const { integrated } = useClientIntegration()
 	const { showBanner } = useGlobalContext()
-	const showHistogram = totalCount !== 0
+	const showHistogram = totalCount >= 0
 
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: project_id! },
@@ -223,7 +215,6 @@ export const SessionFeedV3 = React.memo(() => {
 					productType={ProductType.Sessions}
 					timeMode="fixed-range"
 					savedSegmentType={SavedSegmentEntityType.Session}
-					textAreaRef={textAreaRef}
 					// TODO(spenny): action
 					// actions={actions}
 					resultCount={totalCount}
@@ -265,21 +256,11 @@ export const SessionFeedV3 = React.memo(() => {
 							) : (
 								<>
 									{results?.map(
-										(s: Maybe<Session>, ind: number) =>
+										(s: Maybe<Session>) =>
 											s && (
 												<SessionFeedCard
-													key={ind}
+													key={s.secure_id}
 													session={s}
-													selected={
-														session_secure_id ===
-														s?.secure_id
-													}
-													showDetailedSessionView={
-														showDetailedSessionView
-													}
-													autoPlaySessions={
-														autoPlaySessions
-													}
 													configuration={{
 														countFormat:
 															sessionFeedConfiguration.countFormat,

@@ -32,7 +32,7 @@ import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import analytics from '@util/analytics'
 import { message } from 'antd'
 import { delay } from 'lodash'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
@@ -52,15 +52,8 @@ export const SessionLevelBarV2: React.FC<
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const { sessionSecureId } = useSessionParams()
-	const { session, setSessionResults } = useReplayerContext()
-	const { results, totalCount } = useSearchContext()
-
-	useEffect(() => {
-		setSessionResults({
-			totalCount,
-			sessions: results,
-		})
-	}, [results, totalCount, setSessionResults])
+	const { session } = useReplayerContext()
+	const { results } = useSearchContext()
 
 	const { isLoggedIn } = useAuthContext()
 	const {

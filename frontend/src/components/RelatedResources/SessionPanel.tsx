@@ -11,7 +11,6 @@ import { usePlayerUIContext } from '@/pages/Player/context/PlayerUIContext'
 import { usePlayer } from '@/pages/Player/PlayerHook/PlayerHook'
 import { SessionViewability } from '@/pages/Player/PlayerHook/PlayerState'
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
-import { ManualStopCard, SessionFiller } from '@/pages/Player/PlayerPage'
 import {
 	ReplayerContextProvider,
 	ReplayerState,
@@ -26,6 +25,7 @@ import {
 	SessionViewportMetadata,
 } from '@/pages/Player/SessionLevelBar/SessionLevelBarV2'
 import SessionShareButtonV2 from '@/pages/Player/SessionShareButton/SessionShareButtonV2'
+import { ManualStopCard, SessionFiller } from '@/pages/Player/SessionView'
 import * as styles from '@/pages/Player/styles.css'
 import DevToolsWindowV2 from '@/pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
 import { Toolbar } from '@/pages/Player/Toolbar/Toolbar'

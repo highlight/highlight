@@ -18,7 +18,7 @@ import {
 import { ErrorFeedHistogram } from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import clsx from 'clsx'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useSearchContext } from '@/components/Search/SearchContext'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
@@ -32,7 +32,6 @@ import * as style from './SearchPanel.css'
 export const SearchPanel = () => {
 	const { setShowLeftPanel } = useErrorPageNavigation()
 	const { showBanner } = useGlobalContext()
-	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const {
 		results: errorGroups,
 		totalCount,
@@ -102,7 +101,6 @@ export const SearchPanel = () => {
 				productType={ProductType.Errors}
 				timeMode="fixed-range"
 				savedSegmentType={SavedSegmentEntityType.Error}
-				textAreaRef={textAreaRef}
 				actions={actions}
 				resultCount={totalCount}
 				loading={loading}

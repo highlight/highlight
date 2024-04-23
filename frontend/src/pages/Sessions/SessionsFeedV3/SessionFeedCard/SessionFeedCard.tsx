@@ -17,9 +17,12 @@ import { sessionIsBackfilled } from '@pages/Player/utils/utils'
 import ActivityGraph from '@pages/Sessions/SessionsFeedV3/ActivityGraph/ActivityGraph'
 import { formatDatetime } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfiguration/SessionFeedConfiguration'
 import { SessionFeedConfigurationContext } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/context/SessionFeedConfigurationContext'
+import { useParams } from '@util/react-router/useParams'
 import moment from 'moment/moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+
+import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 
 import {
 	getDisplayName,
@@ -28,22 +31,17 @@ import {
 import * as style from './SessionFeedCard.css'
 interface Props {
 	session: Session
-	showDetailedSessionView?: boolean
-	autoPlaySessions?: boolean
-	selected?: boolean
 	configuration?: Pick<
 		SessionFeedConfigurationContext,
 		'countFormat' | 'datetimeFormat'
 	>
 }
 export const SessionFeedCard = React.memo(
-	({
-		session,
-		showDetailedSessionView,
-		autoPlaySessions,
-		selected,
-		configuration,
-	}: Props) => {
+	({ session, configuration }: Props) => {
+		const { session_secure_id } = useParams<{
+			project_id: string
+			session_secure_id: string
+		}>()
 		const ref = useRef<HTMLDivElement | null>(null)
 		const { projectId } = useProjectId()
 		const { onSubmit } = useSearchContext()
@@ -52,6 +50,10 @@ export const SessionFeedCard = React.memo(
 		const customAvatarImage = getIdentifiedUserProfileImage(session)
 		const backfilled = sessionIsBackfilled(session as Session | undefined)
 		const [viewed, setViewed] = useState(session.viewed || false)
+		const { autoPlaySessions, showDetailedSessionView } =
+			usePlayerConfiguration()
+
+		const selected = session?.secure_id === session_secure_id
 
 		useEffect(() => {
 			if (selected) {
