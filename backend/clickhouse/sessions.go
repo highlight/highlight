@@ -509,6 +509,7 @@ func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, pa
 	return readMetrics(ctx, client, sessionsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
 }
 
+// TODO(spenny): missing keys from session table (has_errors, has_comments, etc)
 func (client *Client) SessionsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	sessionKeys, err := KeysAggregated(ctx, client, SessionKeysTable, projectID, startDate, endDate, query, typeArg)
 	if err != nil {
@@ -595,7 +596,7 @@ func (client *Client) GetConn() driver.Conn {
 
 func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.From(SessionsJoinedTableConfig.TableName)
+	sb.From(fmt.Sprintf("%s FINAL", SessionsJoinedTableConfig.TableName))
 	sb.Select(selectColumns)
 
 	sb.Where(sb.LessEqualThan("CreatedAt", params.DateRange.EndDate)).

@@ -43,7 +43,7 @@ enum SegmentModalState {
 
 type UseSavedSegmentsProps = {
 	query: string
-	entityType?: 'Log' | 'Trace' | 'Error'
+	entityType?: SavedSegmentEntityType
 	projectId: string
 	setQuery: (query?: string) => void
 }
@@ -70,7 +70,7 @@ export const useSavedSegments = ({
 		useGetSavedSegmentsQuery({
 			variables: {
 				project_id: projectId!,
-				entity_type: entityType as SavedSegmentEntityType,
+				entity_type: entityType!,
 			},
 			skip: !projectId || !entityType,
 		})

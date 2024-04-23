@@ -11794,6 +11794,7 @@ enum SavedSegmentEntityType {
 	Log
 	Trace
 	Error
+	Session
 }
 
 type Project {

@@ -2305,20 +2305,22 @@ func (e RetentionPeriod) MarshalGQL(w io.Writer) {
 type SavedSegmentEntityType string
 
 const (
-	SavedSegmentEntityTypeLog   SavedSegmentEntityType = "Log"
-	SavedSegmentEntityTypeTrace SavedSegmentEntityType = "Trace"
-	SavedSegmentEntityTypeError SavedSegmentEntityType = "Error"
+	SavedSegmentEntityTypeLog     SavedSegmentEntityType = "Log"
+	SavedSegmentEntityTypeTrace   SavedSegmentEntityType = "Trace"
+	SavedSegmentEntityTypeError   SavedSegmentEntityType = "Error"
+	SavedSegmentEntityTypeSession SavedSegmentEntityType = "Session"
 )
 
 var AllSavedSegmentEntityType = []SavedSegmentEntityType{
 	SavedSegmentEntityTypeLog,
 	SavedSegmentEntityTypeTrace,
 	SavedSegmentEntityTypeError,
+	SavedSegmentEntityTypeSession,
 }
 
 func (e SavedSegmentEntityType) IsValid() bool {
 	switch e {
-	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace, SavedSegmentEntityTypeError:
+	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace, SavedSegmentEntityTypeError, SavedSegmentEntityTypeSession:
 		return true
 	}
 	return false

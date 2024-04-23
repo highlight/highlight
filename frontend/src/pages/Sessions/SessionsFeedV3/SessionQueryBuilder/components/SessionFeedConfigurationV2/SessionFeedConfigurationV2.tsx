@@ -15,7 +15,6 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import {
 	formatCount,
 	formatDatetime,
@@ -35,6 +34,7 @@ import { message } from 'antd'
 import { H } from 'highlight.run'
 import React, { useRef, useState } from 'react'
 
+import { useSearchContext } from '@/components/Search/SearchContext'
 import { ClickhouseQuery } from '@/graph/generated/schemas'
 
 import DeleteSessionsModal from '../DeleteSessionsModal/DeleteSessionsModal'
@@ -93,7 +93,7 @@ export const DropdownMenu = function ({
 }: {
 	sessionQuery: ClickhouseQuery
 }) {
-	const { sessionResults } = useReplayerContext()
+	const { totalCount } = useSearchContext()
 	const { checkPolicyAccess } = useAuthorization()
 	const canDelete = checkPolicyAccess({
 		policyName: POLICY_NAMES.DeleteSessions,
@@ -392,6 +392,7 @@ export const DropdownMenu = function ({
 				</Section>
 				{showReportButton ? (
 					<Section clickable>
+						{/* TODO(spenny): test this */}
 						<Menu.Item
 							key="download"
 							className={styles.menuItem}
@@ -447,12 +448,8 @@ export const DropdownMenu = function ({
 											}
 										/>
 									}
-									text={`Delete ${
-										sessionResults.totalCount
-									} Session${
-										sessionResults.totalCount !== 1
-											? 's'
-											: ''
+									text={`Delete ${totalCount} Session${
+										totalCount !== 1 ? 's' : ''
 									}?`}
 								/>
 							</SectionRow>
@@ -461,7 +458,7 @@ export const DropdownMenu = function ({
 							visible={showModal}
 							setVisible={setShowModal}
 							query={sessionQuery}
-							sessionCount={sessionResults.totalCount}
+							sessionCount={totalCount}
 						/>
 					</Section>
 				) : null}

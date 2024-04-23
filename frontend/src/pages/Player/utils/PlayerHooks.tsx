@@ -17,6 +17,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
+import { useSearchContext } from '@/components/Search/SearchContext'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSessionParams } from '@/pages/Sessions/utils'
 
@@ -50,15 +51,9 @@ export const getNewTimeWithSkip = ({
 }
 
 export const usePlayerKeyboardShortcuts = () => {
-	const {
-		state,
-		play,
-		pause,
-		time,
-		replayer,
-		sessionResults,
-		sessionMetadata,
-	} = useReplayerContext()
+	const { results } = useSearchContext()
+	const { state, play, pause, time, replayer, sessionMetadata } =
+		useReplayerContext()
 	const { setIsPlayerFullscreen, setRightPanelView } = usePlayerUIContext()
 	const {
 		setPlayerSpeedIdx,
@@ -194,12 +189,12 @@ export const usePlayerKeyboardShortcuts = () => {
 	useHotkeys(
 		'shift+n',
 		(e) => {
-			if (sessionResults.sessions.length > 0 && !!sessionSecureId) {
+			if (results.length > 0 && !!sessionSecureId) {
 				analytics.track('PlayerSkipToNextSessionKeyboardShortcut')
 				moveFocusToDocument(e)
 
 				const nextSession = findNextSessionInList(
-					sessionResults.sessions,
+					results,
 					sessionSecureId,
 				)
 				changeSession(
@@ -210,18 +205,18 @@ export const usePlayerKeyboardShortcuts = () => {
 				)
 			}
 		},
-		[sessionSecureId, sessionResults],
+		[sessionSecureId, results],
 	)
 
 	useHotkeys(
 		'shift+p',
 		(e) => {
-			if (sessionResults.sessions.length > 0 && !!sessionSecureId) {
+			if (results.length > 0 && !!sessionSecureId) {
 				analytics.track('PlayerSkipToPreviousSessionKeyboardShortcut')
 				moveFocusToDocument(e)
 
 				const nextSession = findPreviousSessionInList(
-					sessionResults.sessions,
+					results,
 					sessionSecureId,
 				)
 				changeSession(
@@ -232,7 +227,7 @@ export const usePlayerKeyboardShortcuts = () => {
 				)
 			}
 		},
-		[sessionSecureId, sessionResults],
+		[sessionSecureId, results],
 	)
 
 	useHotkeys(

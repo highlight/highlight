@@ -1,6 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
-import CommandBar from '@components/CommandBar/CommandBar'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
 import { linkStyle } from '@components/Header/styles.css'
@@ -213,7 +212,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 
 	return (
 		<>
-			<CommandBar />
 			<CommandBarV1 />
 			<Box background="n2" borderBottom="secondary">
 				{!!projectId && !isSettings && getBanner(projectId, isSetup)}

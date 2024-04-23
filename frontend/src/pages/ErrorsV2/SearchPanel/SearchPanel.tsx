@@ -7,7 +7,7 @@ import LoadingBox from '@components/LoadingBox'
 import SearchPagination, {
 	PAGE_SIZE,
 } from '@components/SearchPagination/SearchPagination'
-import { ProductType } from '@graph/schemas'
+import { ProductType, SavedSegmentEntityType } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
@@ -101,7 +101,7 @@ export const SearchPanel = () => {
 				selectedPreset={selectedPreset}
 				productType={ProductType.Errors}
 				timeMode="fixed-range"
-				savedSegmentType="Error"
+				savedSegmentType={SavedSegmentEntityType.Error}
 				textAreaRef={textAreaRef}
 				actions={actions}
 				resultCount={totalCount}

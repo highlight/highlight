@@ -1,4 +1,5 @@
 import { Avatar } from '@components/Avatar/Avatar'
+import { useSearchContext } from '@components/Search/SearchContext'
 import { Session } from '@graph/schemas'
 import {
 	Box,
@@ -13,15 +14,12 @@ import {
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import ActivityGraph from '@pages/Sessions/SessionsFeedV3/ActivityGraph/ActivityGraph'
 import { formatDatetime } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfiguration/SessionFeedConfiguration'
 import { SessionFeedConfigurationContext } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/context/SessionFeedConfigurationContext'
 import moment from 'moment/moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-
-import { buildQueryStateString } from '@/util/url/params'
 
 import {
 	getDisplayName,
@@ -48,7 +46,7 @@ export const SessionFeedCard = React.memo(
 	}: Props) => {
 		const ref = useRef<HTMLDivElement | null>(null)
 		const { projectId } = useProjectId()
-		const { setSearchQuery } = useSearchContext()
+		const { onSubmit } = useSearchContext()
 		const [eventCounts, setEventCounts] =
 			useState<{ ts: number; value: number }[]>()
 		const customAvatarImage = getIdentifiedUserProfileImage(session)
@@ -166,6 +164,10 @@ export const SessionFeedCard = React.memo(
 													size={12}
 												/>
 											}
+											onClick={(e) => {
+												e.stopPropagation()
+												onSubmit('has_errors=true')
+											}}
 										/>
 									)}
 									{session.first_time && (
@@ -179,12 +181,9 @@ export const SessionFeedCard = React.memo(
 													size={12}
 												/>
 											}
-											onClick={() => {
-												setSearchQuery(
-													buildQueryStateString({
-														custom_first_time: true,
-													}),
-												)
+											onClick={(e) => {
+												e.stopPropagation()
+												onSubmit('first_time=true')
 											}}
 										/>
 									)}
@@ -199,6 +198,10 @@ export const SessionFeedCard = React.memo(
 													size={12}
 												/>
 											}
+											onClick={(e) => {
+												e.stopPropagation()
+												onSubmit('has_rage_clicks=true')
+											}}
 										/>
 									)}
 									{!viewed && (
@@ -208,12 +211,9 @@ export const SessionFeedCard = React.memo(
 											emphasis="low"
 											size="small"
 											icon={<IconSolidEyeOff size={12} />}
-											onClick={() => {
-												setSearchQuery(
-													buildQueryStateString({
-														custom_viewed: false,
-													}),
-												)
+											onClick={(e) => {
+												e.stopPropagation()
+												onSubmit('viewed=false')
 											}}
 										/>
 									)}
@@ -235,12 +235,9 @@ export const SessionFeedCard = React.memo(
 											kind="primary"
 											size="small"
 											iconLeft={<IconSolidVideoCamera />}
-											onClick={() => {
-												setSearchQuery(
-													buildQueryStateString({
-														custom_processed: false,
-													}),
-												)
+											onClick={(e) => {
+												e.stopPropagation()
+												onSubmit('processed=false')
 											}}
 										>
 											Live

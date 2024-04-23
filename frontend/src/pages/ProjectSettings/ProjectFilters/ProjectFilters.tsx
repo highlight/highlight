@@ -498,7 +498,6 @@ export const ProjectProductFilters: React.FC<{
 										)}
 										droppedFieldTypes={['user', 'track']}
 										onlyAnd
-										setDefault={false}
 									/>
 								</SearchContextProvider>
 							) : (
@@ -521,7 +520,6 @@ export const ProjectProductFilters: React.FC<{
 										)}
 										droppedFieldTypes={['error']}
 										onlyAnd
-										setDefault={false}
 									/>
 								</ErrorSearchContextProvider>
 							)}

@@ -1,14 +1,15 @@
 import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
+import { useSearchContext } from '@components/Search/SearchContext'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import { useGetSessionsClickhouseQuery } from '@graph/hooks'
+import { useGetSessionsQuery } from '@graph/hooks'
+import { DEFAULT_TIME_PRESETS } from '@highlight-run/ui/components'
 import SvgShareIcon from '@icons/ShareIcon'
 import { useFrontContext } from '@pages/FrontPlugin/Front/FrontContext'
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import MinimalSessionCard from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/MinimalSessionCard'
 import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useParams } from '@util/react-router/useParams'
@@ -16,21 +17,33 @@ import { GetBaseURL } from '@util/window'
 import moment from 'moment/moment'
 import { useEffect } from 'react'
 
-function HighlightSessions() {
+import { useSearchTime } from '@/hooks/useSearchTime'
+
+// TODO(spenny): make sure this works
+export function HighlightSessions() {
 	const { setLoadingState } = useAppLoadingContext()
-	const { setSearchQuery, searchQuery, startDate, endDate, setSearchTime } =
-		useSearchContext()
+	const { setQuery, query } = useSearchContext()
+	const { startDate, endDate, updateSearchTime } = useSearchTime({
+		initialPreset: DEFAULT_TIME_PRESETS[5],
+		presets: DEFAULT_TIME_PRESETS,
+	})
 	const frontContext = useFrontContext()
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
 
-	const { data, called } = useGetSessionsClickhouseQuery({
+	const { data, called } = useGetSessionsQuery({
 		variables: {
 			project_id: project_id!,
 			count: 100,
 			page: 1,
-			query: JSON.parse(searchQuery),
+			params: {
+				query,
+				date_range: {
+					start_date: startDate.toISOString(),
+					end_date: endDate.toISOString(),
+				},
+			},
 			sort_desc: true,
 		},
 		skip: !project_id,
@@ -64,12 +77,12 @@ function HighlightSessions() {
 						rules: [['user_email', 'contains', email]],
 					})
 
-					setSearchTime(start.toDate(), end.toDate())
-					setSearchQuery(query)
+					updateSearchTime(start.toDate(), end.toDate())
+					setQuery(query)
 				}
 			})
 		}
-	}, [email, frontContext, setSearchQuery, setSearchTime])
+	}, [email, frontContext, setQuery, updateSearchTime])
 
 	useEffect(() => {
 		if (called) {
@@ -88,7 +101,7 @@ function HighlightSessions() {
 			<div className="flex w-full flex-col gap-2">
 				<SessionQueryBuilder />
 				<div className="flex w-full flex-col">
-					{data?.sessions_clickhouse.sessions.map((s) => (
+					{data?.sessions.sessions.map((s) => (
 						<MinimalSessionCard
 							compact
 							session={{
@@ -107,7 +120,7 @@ function HighlightSessions() {
 							}}
 						/>
 					))}
-					{data?.sessions_clickhouse.sessions.length === 0 && (
+					{data?.sessions.sessions.length === 0 && (
 						<Card className="m-0 px-4 py-0">
 							<EmptyCardPlaceholder
 								compact
@@ -136,5 +149,3 @@ function HighlightSessions() {
 		</div>
 	)
 }
-
-export default HighlightSessions

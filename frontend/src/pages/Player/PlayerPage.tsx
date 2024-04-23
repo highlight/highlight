@@ -5,7 +5,12 @@ import ElevatedCard from '@components/ElevatedCard/ElevatedCard'
 import LoadingBox from '@components/LoadingBox'
 import { useIsSessionPendingQuery } from '@graph/hooks'
 import { Session } from '@graph/schemas'
-import { Box, Callout, Text } from '@highlight-run/ui/components'
+import {
+	Box,
+	Callout,
+	DEFAULT_TIME_PRESETS,
+	Text,
+} from '@highlight-run/ui/components'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { CompleteSetup } from '@pages/Player/components/CompleteSetup/CompleteSetup'
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard'
@@ -38,30 +43,131 @@ import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
-import { SESSION_FEED_LEFT_PANEL_WIDTH } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
 import { SessionFeedV3 } from '@pages/Sessions/SessionsFeedV3/SessionsFeedV3'
+import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import clsx from 'clsx'
 import Lottie from 'lottie-react'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
+import {
+	NumberParam,
+	StringParam,
+	useQueryParam,
+	withDefault,
+} from 'use-query-params'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { SearchContext } from '@/components/Search/SearchContext'
+import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
 import { useNumericProjectId } from '@/hooks/useProjectId'
+import { useSearchTime } from '@/hooks/useSearchTime'
 import { NetworkResourcePanel } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourcePanel'
 import DevToolsWindowV2 from '@/pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
 import { useResizePlayer } from '@/pages/Player/utils/utils'
+import { useSessionFeedConfiguration } from '@/pages/Sessions/SessionsFeedV3/SessionQueryBuilder/hooks/useSessionFeedConfiguration'
+import { useGetSessions } from '@/pages/Sessions/useGetSessions'
 import { useSessionParams } from '@/pages/Sessions/utils'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import WaitingAnimation from '../../lottie/waiting.json'
+import {
+	DEFAULT_PANEL_WIDTH,
+	LOCAL_STORAGE_PANEL_WIDTH_KEY,
+	MAX_PANEL_WIDTH,
+	MIN_PANEL_WIDTH,
+} from './constants'
 import * as style from './styles.css'
+
+const PAGE_PARAM = withDefault(NumberParam, START_PAGE)
+const ERROR_QUERY_PARAM = withDefault(StringParam, `processed=true`)
 
 const PlayerPage = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { projectId, sessionSecureId } = useSessionParams()
+
+	const dragHandleRef = useRef<HTMLDivElement>(null)
+	const [dragging, setDragging] = useState(false)
+
+	const [leftPanelWidth, setLeftPanelWidth] = useLocalStorage(
+		LOCAL_STORAGE_PANEL_WIDTH_KEY,
+		DEFAULT_PANEL_WIDTH,
+	)
+
+	const handleMouseMove = useCallback(
+		(e: MouseEvent) => {
+			if (!dragging) {
+				return
+			}
+
+			e.stopPropagation()
+			e.preventDefault()
+
+			setLeftPanelWidth(
+				Math.min(Math.max(e.clientX, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH),
+			)
+		},
+		[dragging, setLeftPanelWidth],
+	)
+
+	const handleMouseUp = useCallback(() => {
+		setDragging(false)
+	}, [])
+
+	useEffect(() => {
+		if (dragging) {
+			window.addEventListener('mousemove', handleMouseMove, true)
+			window.addEventListener('mouseup', handleMouseUp, true)
+		} else {
+			window.removeEventListener('mousemove', handleMouseMove, true)
+			window.removeEventListener('mouseup', handleMouseUp, true)
+		}
+
+		return () => {
+			window.removeEventListener('mousemove', handleMouseMove, true)
+			window.removeEventListener('mouseup', handleMouseUp, true)
+		}
+	}, [dragging, handleMouseMove, handleMouseUp])
+
+	const [query, setQuery] = useQueryParam('query', ERROR_QUERY_PARAM)
+	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
+	const sessionFeedConfiguration = useSessionFeedConfiguration()
+
+	const searchTimeContext = useSearchTime({
+		presets: DEFAULT_TIME_PRESETS,
+		initialPreset: DEFAULT_TIME_PRESETS[5],
+	})
+
+	const getSessionsData = useGetSessions({
+		query,
+		project_id: projectId,
+		startDate: searchTimeContext.startDate,
+		endDate: searchTimeContext.endDate,
+		page,
+		disablePolling: !searchTimeContext.selectedPreset,
+		sortDesc: sessionFeedConfiguration.sortOrder === 'Descending',
+	})
+
+	const [sessionResults, setSessionResults] = useState<any[]>([])
+
+	useEffect(() => {
+		setSessionResults(
+			getSessionsData.sessions.map((s) => ({
+				...s,
+				payload_updated_at: new Date().toISOString(),
+			})),
+		)
+	}, [getSessionsData.sessions])
+
+	const handleSubmit = useCallback(
+		(newQuery: string) => {
+			setQuery(newQuery)
+			setPage(START_PAGE)
+		},
+		[setPage, setQuery],
+	)
 
 	const { width } = useWindowSize()
 
@@ -182,9 +288,7 @@ const PlayerPage = () => {
 						<SessionLevelBarV2
 							width={
 								width -
-								(showLeftPanel
-									? SESSION_FEED_LEFT_PANEL_WIDTH
-									: 0) -
+								(showLeftPanel ? leftPanelWidth : 0) -
 								3 * style.PLAYER_PADDING
 							}
 						/>
@@ -260,50 +364,79 @@ const PlayerPage = () => {
 		<ReplayerContextProvider value={playerContext}>
 			<ResourcesContextProvider value={resourcesContext}>
 				<ToolbarItemsContextProvider value={toolbarContext}>
-					<Helmet>
-						<title>{getTabTitle(session)}</title>
-					</Helmet>
-					<Box
-						cssClass={clsx(style.playerBody, {
-							[style.withLeftPanel]: showLeftPanel,
-						})}
-						height="full"
-						width="full"
-						overflow="hidden"
+					<SearchContext
+						initialQuery={query}
+						onSubmit={handleSubmit}
+						loading={getSessionsData.loading}
+						results={sessionResults}
+						totalCount={getSessionsData.totalCount}
+						moreResults={getSessionsData.moreSessions}
+						resetMoreResults={getSessionsData.resetMoreSessions}
+						histogramBucketSize={
+							getSessionsData.histogramBucketSize
+						}
+						page={page}
+						setPage={setPage}
+						{...searchTimeContext}
 					>
+						<Helmet>
+							<title>{getTabTitle(session)}</title>
+						</Helmet>
 						<Box
-							cssClass={clsx(style.playerLeftPanel, {
-								[style.playerLeftPanelHidden]: !showLeftPanel,
-							})}
+							display="flex"
+							height="full"
+							width="full"
+							overflow="hidden"
 						>
-							<SessionFeedV3 />
-						</Box>
-						<div
-							id="playerCenterPanel"
-							className={style.playerCenterPanel}
-							ref={playerCenterPanelRef}
-						>
-							{showSession ? (
-								sessionView
-							) : (
-								<SessionFiller
-									sessionViewability={sessionViewability}
-									session={session}
+							<Box
+								display={showLeftPanel ? 'block' : 'none'}
+								position="relative"
+								style={{
+									width: `${leftPanelWidth}px`,
+								}}
+							>
+								<Box
+									ref={dragHandleRef}
+									cssClass={style.panelDragHandle}
+									onMouseDown={(e) => {
+										e.preventDefault()
+										setDragging(true)
+									}}
 								/>
-							)}
-						</div>
-						<NewCommentModal
-							commentModalPosition={commentModalPosition}
-							commentPosition={commentPosition}
-							commentTime={time}
-							session={session}
-							session_secure_id={sessionSecureId}
-							onCancel={() => {
-								setCommentModalPosition(undefined)
-							}}
-							currentUrl={currentUrl}
-						/>
-					</Box>
+								<SessionFeedV3 />
+							</Box>
+							<div
+								id="playerCenterPanel"
+								className={style.playerCenterPanel}
+								ref={playerCenterPanelRef}
+								style={{
+									width: showLeftPanel
+										? `calc(100% - ${leftPanelWidth}px)`
+										: '100%',
+								}}
+							>
+								{showSession ? (
+									sessionView
+								) : (
+									<SessionFiller
+										sessionViewability={sessionViewability}
+										session={session}
+									/>
+								)}
+							</div>
+							<NewCommentModal
+								commentModalPosition={commentModalPosition}
+								commentPosition={commentPosition}
+								commentTime={time}
+								session={session}
+								session_secure_id={sessionSecureId}
+								onCancel={() => {
+									setCommentModalPosition(undefined)
+								}}
+								currentUrl={currentUrl}
+							/>
+						</Box>
+					</SearchContext>
 				</ToolbarItemsContextProvider>
 			</ResourcesContextProvider>
 		</ReplayerContextProvider>

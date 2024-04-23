@@ -47,7 +47,7 @@ import {
 	useGetKeysLazyQuery,
 	useGetKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
-import { ProductType } from '@/graph/generated/schemas'
+import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatNumber } from '@/util/numbers'
 
@@ -98,7 +98,7 @@ export type SearchFormProps = {
 	}>
 	hideDatePicker?: boolean
 	hideCreateAlert?: boolean
-	savedSegmentType?: 'Trace' | 'Log' | 'Error'
+	savedSegmentType?: SavedSegmentEntityType
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	isPanelView?: boolean
 	resultCount?: number

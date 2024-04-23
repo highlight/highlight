@@ -1,4 +1,5 @@
 import { Avatar } from '@components/Avatar/Avatar'
+import { useSearchContext } from '@components/Search/SearchContext'
 import { TableList, TableListItem } from '@components/TableList/TableList'
 import { useGetEnhancedUserDetailsQuery } from '@graph/hooks'
 import { GetEnhancedUserDetailsQuery } from '@graph/operations'
@@ -14,7 +15,6 @@ import {
 } from '@highlight-run/ui/components'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import {
 	getDisplayName,
 	getDisplayNameAndField,
@@ -35,7 +35,6 @@ import {
 } from 'react-icons/fa'
 
 import { RelatedResourceButtons } from '@/pages/Player/MetadataBox/RelatedResourceButtons'
-import { buildQueryStateString } from '@/util/url/params'
 
 import { useReplayerContext } from '../ReplayerContext'
 import * as style from './MetadataBox.css'
@@ -44,7 +43,7 @@ import { getAbsoluteUrl, getMajorVersion } from './utils/utils'
 export const MetadataBox = React.memo(() => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const { session, sessionMetadata } = useReplayerContext()
-	const { setSearchQuery } = useSearchContext()
+	const { query, onSubmit } = useSearchContext()
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	const [enhancedAvatar, setEnhancedAvatar] = React.useState<string>()
@@ -198,19 +197,15 @@ export const MetadataBox = React.memo(() => {
 		const displayName = getDisplayName(session)
 		const userParam = validateEmail(displayName) ? 'email' : 'identifier'
 
-		setSearchQuery((query) => {
-			const params = session.identified
-				? { [`user_${userParam}`]: displayName }
-				: { session_device_id: String(session.fingerprint) }
+		// TODO(spenny): check for duplicate keys?
+		const newQuery = session.identified
+			? `${query} ${userParam}=${displayName}`
+			: `${query}  session_device_id=${String(session.fingerprint)}`
 
-			return buildQueryStateString({
-				query,
-				...params,
-			})
-		})
+		onSubmit(newQuery.trim())
 
 		setShowLeftPanel(true)
-	}, [session, setSearchQuery, setShowLeftPanel])
+	}, [session, onSubmit, query, setShowLeftPanel])
 
 	return (
 		<Box display="flex" flexDirection="column" style={{ width: 300 }}>

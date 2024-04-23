@@ -3,12 +3,9 @@ import {
 	CreateAlertButton,
 	Divider,
 } from '@components/CreateAlertButton/CreateAlertButton'
-import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
-import {
-	useGetAlertsPagePayloadQuery,
-	useGetSessionsClickhouseQuery,
-} from '@graph/hooks'
+import { useSearchContext } from '@components/Search/SearchContext'
+import { useGetAlertsPagePayloadQuery } from '@graph/hooks'
 import { colors } from '@highlight-run/ui/colors'
 import {
 	Badge,
@@ -32,7 +29,6 @@ import {
 import { changeSession } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import analytics from '@util/analytics'
 import { message } from 'antd'
 import { delay } from 'lodash'
@@ -56,8 +52,16 @@ export const SessionLevelBarV2: React.FC<
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const { sessionSecureId } = useSessionParams()
-	const { sessionResults, setSessionResults, session } = useReplayerContext()
-	const { page, searchQuery } = useSearchContext()
+	const { session, setSessionResults } = useReplayerContext()
+	const { results, totalCount } = useSearchContext()
+
+	useEffect(() => {
+		setSessionResults({
+			totalCount,
+			sessions: results,
+		})
+	}, [results, totalCount, setSessionResults])
+
 	const { isLoggedIn } = useAuthContext()
 	const {
 		showLeftPanel,
@@ -66,17 +70,7 @@ export const SessionLevelBarV2: React.FC<
 		setShowRightPanel,
 	} = usePlayerConfiguration()
 	const { rightPanelView, setRightPanelView } = usePlayerUIContext()
-	const { data } = useGetSessionsClickhouseQuery({
-		variables: {
-			query: JSON.parse(searchQuery),
-			count: DEFAULT_PAGE_SIZE,
-			page: page && page > 0 ? page : 1,
-			project_id: projectId!,
-			sort_desc: true,
-		},
-		fetchPolicy: 'cache-first',
-		skip: !projectId,
-	})
+
 	const { data: alertsData } = useGetAlertsPagePayloadQuery({
 		variables: {
 			project_id: projectId!,
@@ -87,43 +81,18 @@ export const SessionLevelBarV2: React.FC<
 
 	const isDefaultView = DEFAULT_RIGHT_PANEL_VIEWS.includes(rightPanelView)
 
-	const sessionIdx = sessionResults.sessions.findIndex(
-		(s) => s.secure_id === sessionSecureId,
-	)
+	const sessionIdx = results.findIndex((s) => s.secure_id === sessionSecureId)
 	const [prev, next] = [sessionIdx - 1, sessionIdx + 1]
 
-	useEffect(() => {
-		if (
-			!sessionResults.sessions.length &&
-			data?.sessions_clickhouse.sessions.length
-		) {
-			setSessionResults({
-				...data.sessions_clickhouse,
-				sessions: data.sessions_clickhouse.sessions.map((s) => ({
-					...s,
-					payload_updated_at: new Date().toISOString(),
-				})),
-			})
-		}
-	}, [
-		data?.sessions_clickhouse,
-		sessionResults.sessions.length,
-		setSessionResults,
-	])
-
-	const canMoveForward = !!projectId && sessionResults.sessions[next]
-	const canMoveBackward = !!projectId && sessionResults.sessions[prev]
+	const canMoveForward = !!projectId && results[next]
+	const canMoveBackward = !!projectId && results[prev]
 
 	useHotkeys(
 		'j',
 		() => {
 			if (canMoveForward && projectId) {
 				analytics.track('NextSessionKeyboardShortcut')
-				changeSession(
-					projectId,
-					navigate,
-					sessionResults.sessions[next],
-				)
+				changeSession(projectId, navigate, results[next])
 			}
 		},
 		[canMoveForward, next],
@@ -134,11 +103,7 @@ export const SessionLevelBarV2: React.FC<
 		() => {
 			if (canMoveBackward && projectId) {
 				analytics.track('PrevSessionKeyboardShortcut')
-				changeSession(
-					projectId,
-					navigate,
-					sessionResults.sessions[prev],
-				)
+				changeSession(projectId, navigate, results[prev])
 			}
 		},
 		[canMoveBackward, prev],
@@ -177,7 +142,7 @@ export const SessionLevelBarV2: React.FC<
 								changeSession(
 									projectId,
 									navigate,
-									sessionResults.sessions[prev],
+									results[prev],
 								)
 							}
 						}}
@@ -187,7 +152,7 @@ export const SessionLevelBarV2: React.FC<
 								changeSession(
 									projectId,
 									navigate,
-									sessionResults.sessions[next],
+									results[next],
 								)
 							}
 						}}
