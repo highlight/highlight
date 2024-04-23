@@ -221,8 +221,9 @@ func main() {
 	var samplingMap = map[trace.SpanKind]float64{}
 	if util.IsProduction() {
 		samplingMap = map[trace.SpanKind]float64{
-			trace.SpanKindUnspecified: 1. / 1000,
-			trace.SpanKindInternal:    1. / 1000,
+			trace.SpanKindUnspecified: 1. / 1_000_000,
+			trace.SpanKindInternal:    1. / 1_000_000,
+			trace.SpanKindConsumer:    1. / 1_000,
 			// report `sampling`
 			trace.SpanKindServer: 1.,
 			// report all customer data
