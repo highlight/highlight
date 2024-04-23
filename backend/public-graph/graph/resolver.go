@@ -2469,8 +2469,17 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	querySessionSpan.Finish()
 	sessionID := sessionObj.ID
 
-	if sessionID%1000 == 0 {
-		log.WithContext(ctx).WithField("session_id", sessionID).Info("processing payload")
+	if len(events.Events) > 10_000 {
+		log.WithContext(ctx).
+			WithField("sessionSecureID", sessionSecureID).
+			WithField("sessionID", sessionObj.ID).
+			WithField("projectID", sessionObj.ProjectID).
+			WithField("numberOfEvents", len(events.Events)).
+			WithField("messagesLength", len(messages)).
+			WithField("resourcesLength", len(resources)).
+			WithField("webSocketEventsLength", len(webSocketEventsStr)).
+			WithField("numberOfErrors", len(errors)).
+			Warn("ProcessPayload with large event count")
 	}
 
 	// If the session is processing or processed, set ResumedAfterProcessedTime and continue

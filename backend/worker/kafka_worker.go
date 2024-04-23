@@ -2,15 +2,11 @@ package worker
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"math"
 	"strings"
 	"time"
-
-	e "github.com/pkg/errors"
-	"github.com/samber/lo"
-
-	"encoding/binary"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
@@ -21,7 +17,10 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
+	e "github.com/pkg/errors"
+	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func (k *KafkaWorker) processWorkerError(ctx context.Context, task kafkaqueue.RetryableMessage, err error, start time.Time) {
@@ -66,7 +65,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 		func() {
 			var err error
 			defer util.Recover()
-			s, sCtx := util.StartSpanFromContext(ctx, "processPublicWorkerMessage", util.ResourceName("worker.kafka.process"))
+			s, sCtx := util.StartSpanFromContext(ctx, "processPublicWorkerMessage", util.ResourceName("worker.kafka.process"), util.WithSpanKind(trace.SpanKindConsumer))
 			s.SetAttribute("worker.goroutine", k.WorkerThread)
 			defer s.Finish(err)
 
