@@ -15,7 +15,7 @@ export const CompleteSetup = () => {
 	return (
 		<Box margin="auto" style={{ maxWidth: 300 }}>
 			<Callout
-				title="Finish installing Highlight"
+				title="Hi!!!"
 				icon={() => (
 					<Box
 						alignItems="center"
