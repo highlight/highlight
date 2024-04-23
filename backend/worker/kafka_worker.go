@@ -44,11 +44,14 @@ func (k *KafkaWorker) processWorkerError(ctx context.Context, task kafkaqueue.Re
 }
 
 func (k *KafkaWorker) log(ctx context.Context, task kafkaqueue.RetryableMessage, msg ...interface{}) {
+	if task == nil {
+		return
+	}
 	m := task.GetKafkaMessage()
 	if m == nil {
 		return
 	}
-	if m.Partition == 478 || m.Partition == 214 || m.Partition == 482 {
+	if m.Partition == 478 || m.Partition == 214 || m.Partition == 140 {
 		log.WithContext(ctx).
 			WithField("key", string(m.Key)).
 			WithField("offset", m.Offset).
@@ -69,7 +72,6 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 
 			s1, _ := util.StartSpanFromContext(sCtx, "worker.kafka.receiveMessage")
 			task := k.KafkaQueue.Receive(ctx)
-			k.log(ctx, task, "received message")
 			s1.Finish()
 
 			if task == nil {
@@ -80,6 +82,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 			s.SetAttribute("taskType", task.GetType())
 			s.SetAttribute("partition", task.GetKafkaMessage().Partition)
 			s.SetAttribute("partitionKey", string(task.GetKafkaMessage().Key))
+			k.log(ctx, task, "received message")
 
 			s2, _ := util.StartSpanFromContext(sCtx, "worker.kafka.processMessage")
 			for i := 0; i <= task.GetMaxRetries(); i++ {
