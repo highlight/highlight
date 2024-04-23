@@ -43,6 +43,21 @@ func (k *KafkaWorker) processWorkerError(ctx context.Context, task kafkaqueue.Re
 	task.SetFailures(task.GetFailures() + 1)
 }
 
+func (k *KafkaWorker) log(ctx context.Context, task kafkaqueue.RetryableMessage, msg ...interface{}) {
+	m := task.GetKafkaMessage()
+	if m == nil {
+		return
+	}
+	if m.Partition == 478 || m.Partition == 214 || m.Partition == 482 {
+		log.WithContext(ctx).
+			WithField("key", string(m.Key)).
+			WithField("offset", m.Offset).
+			WithField("taskType", task.GetType()).
+			WithField("partition", m.Partition).
+			Info(msg...)
+	}
+}
+
 func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 	for {
 		func() {
@@ -54,6 +69,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 
 			s1, _ := util.StartSpanFromContext(sCtx, "worker.kafka.receiveMessage")
 			task := k.KafkaQueue.Receive(ctx)
+			k.log(ctx, task, "received message")
 			s1.Finish()
 
 			if task == nil {
@@ -67,6 +83,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 
 			s2, _ := util.StartSpanFromContext(sCtx, "worker.kafka.processMessage")
 			for i := 0; i <= task.GetMaxRetries(); i++ {
+				k.log(ctx, task, "starting processing", i)
 				start := time.Now()
 				publicWorkerMessage, ok := task.(*kafka_queue.Message)
 				if !ok {
@@ -79,11 +96,13 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 					break
 				}
 			}
+			k.log(ctx, task, "finished processing", task.GetFailures())
 			s.SetAttribute("taskFailures", task.GetFailures())
 			s2.Finish(err)
 
 			s3, _ := util.StartSpanFromContext(sCtx, "worker.kafka.commitMessage")
 			k.KafkaQueue.Commit(ctx, task.GetKafkaMessage())
+			k.log(ctx, task, "committed")
 			s3.Finish()
 
 			hmetric.Incr(ctx, "worker.kafka.processed.total", nil, 1)
