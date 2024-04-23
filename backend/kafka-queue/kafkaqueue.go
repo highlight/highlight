@@ -28,7 +28,6 @@ const ConsumerGroupName = "group-default"
 const (
 	TaskRetries           = 2
 	prefetchQueueCapacity = 10_000
-	MinMessageSizeBytes   = 1 * 1024 * 1024   // MiB
 	MaxMessageSizeBytes   = 256 * 1024 * 1024 // MiB
 )
 
@@ -226,7 +225,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Dialer:            dialer,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
-			MinBytes:          MinMessageSizeBytes, // wait until there is substantial data in a partition
+			MinBytes:          1,
 			MaxBytes:          MaxMessageSizeBytes,
 			HeartbeatInterval: time.Second,
 			ReadLagInterval:   time.Second,
@@ -236,7 +235,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			RebalanceTimeout:  rebalanceTimeout,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
-			CommitInterval: time.Millisecond,
+			CommitInterval: time.Nanosecond,
 			Logger:         getLogger("consumer", topic, log.InfoLevel),
 			ErrorLogger:    getLogger("consumer", topic, log.ErrorLevel),
 			GroupBalancers: []kafka.GroupBalancer{
