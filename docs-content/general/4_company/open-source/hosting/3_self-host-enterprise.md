@@ -19,7 +19,7 @@ updatedAt: 2024-04-12T02:35:22.000Z
 | HA Deploy & Persistent Storage                               | ❌    | ✅         |
 | Custom Retention Policies                                    | ❌    | ✅         |
 | Automatic Upgrades                                           | ❌    | ✅         |
-| Platform Fee Guarantees                                      | ❌    | ✅         |
+| Availability Guarantees                                      | ❌    | ✅         |
 
 ## Pricing
 
