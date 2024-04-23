@@ -11,7 +11,10 @@ import { useProjectId } from '@hooks/useProjectId'
 import { COLOR_MAPPING } from '@pages/LogsPage/constants'
 import { THROTTLED_UPDATE_MS } from '@pages/Player/PlayerHook/PlayerState'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
-import { Tab, findLastActiveEventIndex } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import {
+	Tab,
+	findLastActiveEventIndex,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import clsx from 'clsx'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -156,7 +159,9 @@ export const ConsolePage = ({
 							past={_index <= lastActiveLogIndex}
 							onSelect={() => {
 								setSelectedCursor(logEdge.cursor)
-								const timestamp = new Date(logEdge.node.timestamp).getTime() - sessionMetadata.startTime
+								const timestamp =
+									new Date(logEdge.node.timestamp).getTime() -
+									sessionMetadata.startTime
 								setTime(timestamp)
 								analytics.track('session_go-to-log_click')
 							}}
@@ -181,7 +186,6 @@ const MessageRow = React.memo(function ({
 	current?: boolean
 	past: boolean
 }) {
-
 	return (
 		<Box
 			cssClass={clsx(

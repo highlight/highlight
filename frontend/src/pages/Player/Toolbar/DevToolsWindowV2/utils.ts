@@ -28,7 +28,8 @@ export const findLastActiveEventIndex = (
 	while (start <= end) {
 		const mid = Math.floor(start + (end - start) / 2)
 		const event = events[mid]
-		const eventTimestamp = new Date(event.timestamp).getTime() - sessionStartTime
+		const eventTimestamp =
+			new Date(event.timestamp).getTime() - sessionStartTime
 
 		if (eventTimestamp === currentTimestamp) {
 			lastMatchIndex = mid
@@ -40,7 +41,9 @@ export const findLastActiveEventIndex = (
 		}
 	}
 
-	return lastMatchIndex !== -1 ? lastMatchIndex : Math.min(end, events.length - 1);
+	return lastMatchIndex !== -1
+		? lastMatchIndex
+		: Math.min(end, events.length - 1)
 }
 
 interface Request {
