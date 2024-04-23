@@ -2623,13 +2623,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		defer util.Recover()
 		unmarshalMessagesSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			util.ResourceName("go.unmarshal.messages"), util.Tag("project_id", projectID), util.Tag("message_string_len", len(messages)), util.Tag("secure_session_id", sessionSecureID), util.WithSpanKind(trace.SpanKindConsumer))
-		defer unmarshalMessagesSpan.Finish()
 
-		if err := r.submitFrontendConsoleMessages(ctx, sessionObj, messages); err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to parse console messages")
-		}
-
-		return nil
+		err := r.submitFrontendConsoleMessages(ctx, sessionObj, messages)
+		unmarshalMessagesSpan.Finish(err)
+		return err
 	})
 
 	// unmarshal resources
@@ -2647,7 +2644,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		if err == nil && settings.EnableNetworkTraces {
 			resourcesParsed := make(map[string][]NetworkResource)
 			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-				return nil
+				return e.Wrap(err, "failed to unmarshal network resources")
 			}
 			if err := r.submitFrontendNetworkMetric(sessionObj, resourcesParsed["resources"]); err != nil {
 				return err
@@ -2673,7 +2670,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			if err == nil && settings.EnableNetworkTraces {
 				resourcesParsed := make(map[string][]privateModel.WebSocketEvent)
 				if err := json.Unmarshal([]byte(webSocketEventsStr), &resourcesParsed); err != nil {
-					return nil
+					return e.Wrap(err, "failed to unmarshal websocket events")
 				}
 				if err := r.submitFrontendWebsocketMetric(sessionObj, resourcesParsed["webSocketEvents"]); err != nil {
 					return err
@@ -3165,10 +3162,6 @@ func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj
 	logRows, err := hlog.ParseConsoleMessages(messages)
 	if err != nil {
 		return err
-	}
-
-	if len(logRows) == 0 {
-		return nil
 	}
 
 	for _, row := range logRows {
