@@ -2508,9 +2508,28 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	g.Go(func() error {
 		defer util.Recover()
-		parseEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			util.ResourceName("go.parseEvents"), util.Tag("project_id", projectID))
+
+		opts := []util.SpanOption{util.ResourceName("go.parseEvents"), util.Tag("project_id", projectID)}
+		if len(events.Events) > 1_000 {
+			opts = append(opts, util.WithSpanKind(trace.SpanKindServer))
+		}
+		parseEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", opts...)
 		defer parseEventsSpan.Finish()
+
+		if len(events.Events) > 50_000 {
+			log.WithContext(ctx).
+				WithField("sessionSecureID", sessionSecureID).
+				WithField("sessionID", sessionObj.ID).
+				WithField("projectID", sessionObj.ProjectID).
+				WithField("numberOfEvents", len(events.Events)).
+				WithField("messagesLength", len(messages)).
+				WithField("resourcesLength", len(resources)).
+				WithField("webSocketEventsLength", len(webSocketEventsStr)).
+				WithField("numberOfErrors", len(errors)).
+				Error("ProcessPayload with large event count skipping events processing")
+			return nil
+		}
+
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 			// should fix at some point.
