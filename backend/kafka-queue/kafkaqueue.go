@@ -28,7 +28,8 @@ const ConsumerGroupName = "group-default"
 const (
 	TaskRetries           = 2
 	prefetchQueueCapacity = 1_000
-	MaxMessageSizeBytes   = 268435456
+	MinMessageSizeBytes   = 1 * 1024 * 1024   // MiB
+	MaxMessageSizeBytes   = 256 * 1024 * 1024 // MiB
 )
 
 var (
@@ -225,7 +226,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Dialer:            dialer,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
-			MinBytes:          0,
+			MinBytes:          MinMessageSizeBytes, // wait until there is substantial data in a partition
 			MaxBytes:          MaxMessageSizeBytes,
 			HeartbeatInterval: time.Second,
 			ReadLagInterval:   time.Second,
