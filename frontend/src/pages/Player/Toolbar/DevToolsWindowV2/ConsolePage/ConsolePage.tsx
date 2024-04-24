@@ -12,8 +12,8 @@ import { COLOR_MAPPING } from '@pages/LogsPage/constants'
 import { THROTTLED_UPDATE_MS } from '@pages/Player/PlayerHook/PlayerState'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import {
-	Tab,
 	findLastActiveEventIndex,
+	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import clsx from 'clsx'
 import _ from 'lodash'
