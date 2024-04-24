@@ -28,6 +28,7 @@ import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { GitHubEnhancementSettings } from '@pages/ErrorsV2/GitHubEnhancementSettings/GitHubEnhancementSettings'
 import {
+	getDisplayName,
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
 	getUserProperties,
@@ -35,10 +36,9 @@ import {
 import analytics from '@util/analytics'
 import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
-import { copyToClipboard } from '@util/string'
-import { buildQueryURLString } from '@util/url/params'
+import { copyToClipboard, validateEmail } from '@util/string'
 import moment from 'moment'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
@@ -356,20 +356,14 @@ const User: React.FC<{
 	const { isLoggedIn } = useAuthContext()
 	const [truncated, setTruncated] = useState(true)
 
-	// TODO(spenny): link to user sessions search
-	const setUserSessionIdentifier = useCallback(() => {
-		// if (!errorObject?.session) return
-		// const displayName = getDisplayName(errorObject?.session)
-		// const userParam = validateEmail(displayName) ? 'email' : 'identifier'
-		// setSearchQuery((query) => {
-		// 	const qp = buildQueryParams({ query }, true)
-		// 	qp.rules = qp.rules.filter((r) => !r[0].startsWith('user_'))
-		// 	return buildQueryStateString({
-		// 		query: JSON.stringify(qp),
-		// 		[`user_${userParam}`]: displayName,
-		// 	})
-		// })
-	}, [])
+	const searchQuery = useMemo(() => {
+		if (!errorObject?.session) return
+
+		const displayName = getDisplayName(errorObject?.session)
+		const userParam = validateEmail(displayName) ? 'email' : 'identifier'
+
+		return `query=${userParam}=${displayName}`
+	}, [errorObject?.session])
 
 	const userDetailsBox = (
 		<Box pb="12">
@@ -457,10 +451,9 @@ const User: React.FC<{
 									)
 								}
 
-								setUserSessionIdentifier()
 								navigate({
 									pathname: `/${projectId}/sessions`,
-									search: buildQueryURLString(searchParams),
+									search: searchQuery,
 								})
 							}}
 							trackingId="error_all-sessions-for-user_click"
