@@ -24,6 +24,7 @@ import { FeatureCarousel } from '../components/Home/FeatureCarousel/FeatureCarou
 import LandingInfoRow from '../components/Home/LandingInfoRow'
 import { Review } from '../components/Home/Reviews'
 import InfoRow from '../components/Products/InfoRow'
+import { WebinarCarousel } from '../components/Webinar/WebinarCarousel'
 
 export const FeatureItem = ({
 	children,
@@ -290,6 +291,23 @@ const Home: NextPage = () => {
 						imgSrc={LandingInfoRowSecurity}
 					/>
 				</div>
+				<Section>
+					<div className={styles.anchorFeature} id="features">
+						<div className={classNames(styles.anchorTitle, 'mb-2')}>
+							<h2>
+								Tune in to{' '}
+								<span className={styles.highlightedText}>
+									our events.
+								</span>
+							</h2>
+						</div>
+						<Typography type="copy2" onDark>
+							Highlight powers forward-thinking companies. Check
+							out our events below.
+						</Typography>
+						<WebinarCarousel />
+					</div>
+				</Section>
 				<BigHeroArt />
 				<OSSCallToAction />
 				<Section>
