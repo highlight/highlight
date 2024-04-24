@@ -2,6 +2,7 @@ package hlog
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -74,6 +75,10 @@ type VercelLog struct {
 	Proxy       VercelProxy `json:"proxy"`
 }
 
+var reservedVercelLogAttributes = map[string]bool{
+	"vercel.timestamp": true, "vercel.proxy.timestamp": true, "vercel.message": true,
+}
+
 func submitVercelLog(ctx context.Context, tracer trace.Tracer, projectID int, serviceName string, log VercelLog) {
 	ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, log.RequestId)
 	ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, log.RequestId)
@@ -116,8 +121,15 @@ func submitVercelLog(ctx context.Context, tracer trace.Tracer, projectID int, se
 		attrs = append(attrs, semconv.HTTPUserAgentKey.String(strings.Join(log.Proxy.UserAgent, ",")))
 	}
 
-	for k, v := range FormatLogAttributes("vercel", log) {
-		attrs = append(attrs, attribute.String(k, v))
+	if bytes, err := json.Marshal(&log); err == nil {
+		logMap := map[string]interface{}{}
+		if err := json.Unmarshal(bytes, &logMap); err == nil {
+			for k, v := range FormatLogAttributes("vercel", logMap) {
+				if !reservedVercelLogAttributes[k] && v != "" {
+					attrs = append(attrs, attribute.String(k, v))
+				}
+			}
+		}
 	}
 
 	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(log.Timestamp)))

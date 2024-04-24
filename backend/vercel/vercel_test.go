@@ -8,19 +8,25 @@ import (
 	http2 "github.com/highlight-run/highlight/backend/http"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
-	"go.opentelemetry.io/otel"
+	"github.com/openlyinc/pointy"
+	"github.com/samber/lo"
+	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel/attribute"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
-
-	"github.com/openlyinc/pointy"
-	"github.com/stretchr/testify/assert"
 )
 
+var spanRecorder = tracetest.NewSpanRecorder()
+
 func TestMain(m *testing.M) {
-	tracer = otel.GetTracerProvider().Tracer("test")
+	tracer = sdktrace.NewTracerProvider(
+		sdktrace.WithSpanProcessor(spanRecorder),
+	).Tracer("test")
 
 	code := m.Run()
 	os.Exit(code)
@@ -99,7 +105,12 @@ func TestHandleLog(t *testing.T) {
 	defer server.Close()
 
 	body, _ := json.Marshal(&hlog.VercelLog{
-		Message: "hello world",
+		Message:    "hello world",
+		StatusCode: 200,
+		Proxy: hlog.VercelProxy{
+			Region:     "sjc",
+			StatusCode: 302,
+		},
 	})
 
 	req, _ := http.NewRequest("POST", server.URL, bytes.NewReader(body))
@@ -111,4 +122,31 @@ func TestHandleLog(t *testing.T) {
 	resp, err := client.Do(req)
 	assert.NoError(t, err)
 	assert.Equal(t, resp.StatusCode, 200)
+
+	spans := spanRecorder.Ended()
+	assert.Equal(t, 1, len(spans))
+	span := spans[0]
+	event := span.Events()[0]
+	assert.Equal(t, "highlight-ctx", span.Name())
+	assert.Equal(t, "log", event.Name)
+
+	msg, found := lo.Find(event.Attributes, func(attr attribute.KeyValue) bool {
+		return string(attr.Key) == "log.message"
+	})
+	assert.True(t, found)
+	assert.Equal(t, "hello world", msg.Value.AsString())
+
+	assert.Equal(t, 11, len(event.Attributes))
+
+	msg, found = lo.Find(event.Attributes, func(attr attribute.KeyValue) bool {
+		return string(attr.Key) == "vercel.statusCode"
+	})
+	assert.True(t, found)
+	assert.Equal(t, "200", msg.Value.AsString())
+
+	msg, found = lo.Find(event.Attributes, func(attr attribute.KeyValue) bool {
+		return string(attr.Key) == "vercel.proxy.region"
+	})
+	assert.True(t, found)
+	assert.Equal(t, "sjc", msg.Value.AsString())
 }
