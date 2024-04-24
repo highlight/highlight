@@ -82,6 +82,11 @@ export const SessionFeedCard = React.memo(
 			}
 		}, [autoPlaySessions, selected, session.secure_id])
 
+		const handleIconClick = (query: string) => (e: React.MouseEvent) => {
+			e.preventDefault()
+			onSubmit(query)
+		}
+
 		return (
 			<Box ref={ref}>
 				<Link
@@ -166,10 +171,9 @@ export const SessionFeedCard = React.memo(
 													size={12}
 												/>
 											}
-											onClick={(e) => {
-												e.stopPropagation()
-												onSubmit('has_errors=true')
-											}}
+											onClick={handleIconClick(
+												'has_errors=true',
+											)}
 										/>
 									)}
 									{session.first_time && (
@@ -183,10 +187,9 @@ export const SessionFeedCard = React.memo(
 													size={12}
 												/>
 											}
-											onClick={(e) => {
-												e.stopPropagation()
-												onSubmit('first_time=true')
-											}}
+											onClick={handleIconClick(
+												'first_time=true',
+											)}
 										/>
 									)}
 									{session.has_rage_clicks && (
@@ -200,10 +203,9 @@ export const SessionFeedCard = React.memo(
 													size={12}
 												/>
 											}
-											onClick={(e) => {
-												e.stopPropagation()
-												onSubmit('has_rage_clicks=true')
-											}}
+											onClick={handleIconClick(
+												'has_rage_clicks=true',
+											)}
 										/>
 									)}
 									{!viewed && (
@@ -213,10 +215,9 @@ export const SessionFeedCard = React.memo(
 											emphasis="low"
 											size="small"
 											icon={<IconSolidEyeOff size={12} />}
-											onClick={(e) => {
-												e.stopPropagation()
-												onSubmit('viewed=false')
-											}}
+											onClick={handleIconClick(
+												'viewed=false',
+											)}
 										/>
 									)}
 								</Box>
@@ -237,10 +238,9 @@ export const SessionFeedCard = React.memo(
 											kind="primary"
 											size="small"
 											iconLeft={<IconSolidVideoCamera />}
-											onClick={(e) => {
-												e.stopPropagation()
-												onSubmit('processed=false')
-											}}
+											onClick={handleIconClick(
+												'processed=false',
+											)}
 										>
 											Live
 										</Tag>
