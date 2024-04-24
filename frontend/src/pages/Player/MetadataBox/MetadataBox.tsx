@@ -34,6 +34,8 @@ import {
 	FaTwitterSquare,
 } from 'react-icons/fa'
 
+import { SearchExpression } from '@/components/Search/Parser/listener'
+import { stringifyExpression } from '@/components/Search/utils'
 import { RelatedResourceButtons } from '@/pages/Player/MetadataBox/RelatedResourceButtons'
 
 import { useReplayerContext } from '../ReplayerContext'
@@ -43,7 +45,7 @@ import { getAbsoluteUrl, getMajorVersion } from './utils/utils'
 export const MetadataBox = React.memo(() => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const { session, sessionMetadata } = useReplayerContext()
-	const { query, onSubmit } = useSearchContext()
+	const { onSubmit, queryParts } = useSearchContext()
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	const [enhancedAvatar, setEnhancedAvatar] = React.useState<string>()
@@ -194,18 +196,36 @@ export const MetadataBox = React.memo(() => {
 	const searchIdentifier = useCallback(() => {
 		if (!session) return
 
-		const displayName = getDisplayName(session)
-		const userParam = validateEmail(displayName) ? 'email' : 'identifier'
+		let newQueryParts = []
+		if (session.identified) {
+			const displayName = getDisplayName(session)
+			const userParam = validateEmail(displayName)
+				? 'email'
+				: 'identifier'
 
-		// TODO(spenny): check for duplicate keys?
-		const newQuery = session.identified
-			? `${query} ${userParam}=${displayName}`
-			: `${query}  session_device_id=${String(session.fingerprint)}`
+			newQueryParts = queryParts.filter((part) => part.key !== userParam)
+			newQueryParts.push({
+				key: userParam,
+				operator: '=',
+				value: displayName,
+				text: `${userParam}=${displayName}`,
+			} as SearchExpression)
+		} else {
+			newQueryParts = queryParts.filter(
+				(part) => part.key !== 'session_device_id',
+			)
+			newQueryParts.push({
+				key: 'session_device_id',
+				operator: '=',
+				value: String(session.fingerprint),
+				text: `session_device_id=${session.fingerprint}`,
+			} as SearchExpression)
+		}
 
-		onSubmit(newQuery.trim())
+		onSubmit(stringifyExpression(newQueryParts))
 
 		setShowLeftPanel(true)
-	}, [session, onSubmit, query, setShowLeftPanel])
+	}, [session, onSubmit, setShowLeftPanel, queryParts])
 
 	return (
 		<Box display="flex" flexDirection="column" style={{ width: 300 }}>

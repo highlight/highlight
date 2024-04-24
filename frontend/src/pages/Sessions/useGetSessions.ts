@@ -28,8 +28,6 @@ export const useGetSessions = ({
 	disablePolling?: boolean
 	sortDesc: boolean
 }) => {
-	// TODO(spenny): remove extra search when clicking into session
-	// TODO(spenny): do we need to insert `payload_updated_at:  new Date().toISOString()` into session
 	const { data, loading, error, refetch } = useGetSessionsQuery({
 		variables: {
 			project_id: project_id!,

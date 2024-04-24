@@ -55,6 +55,10 @@ export const parseSearch = (input: string) => {
 	}
 }
 
+export const stringifyExpression = (expressions: SearchExpression[]) => {
+	return expressions.map((exp) => exp.text).join(' ')
+}
+
 export type SearchToken = {
 	type: number
 	text: string

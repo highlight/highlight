@@ -7,7 +7,7 @@ import { FrontContextProvider } from '@pages/FrontPlugin/Front/FrontContext'
 import { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 
-// TODO(spenny): figure out what this is
+// TODO: fix this page
 const FrontPlugin = () => {
 	const { setLoadingState } = useAppLoadingContext()
 

@@ -6,7 +6,10 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetSessionsQuery } from '@graph/hooks'
-import { DEFAULT_TIME_PRESETS } from '@highlight-run/ui/components'
+import {
+	DEFAULT_TIME_PRESETS,
+	presetStartDate,
+} from '@highlight-run/ui/components'
 import SvgShareIcon from '@icons/ShareIcon'
 import { useFrontContext } from '@pages/FrontPlugin/Front/FrontContext'
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'
@@ -16,16 +19,21 @@ import { GetBaseURL } from '@util/window'
 import moment from 'moment/moment'
 import { useEffect } from 'react'
 
-import { useSearchTime } from '@/hooks/useSearchTime'
+import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
+import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
 
-// TODO(spenny): make sure this works
 export function HighlightSessions() {
 	const { setLoadingState } = useAppLoadingContext()
-	const { setQuery, query } = useSearchContext()
-	const { startDate, endDate, updateSearchTime } = useSearchTime({
-		initialPreset: DEFAULT_TIME_PRESETS[5],
-		presets: DEFAULT_TIME_PRESETS,
-	})
+	const {
+		loading,
+		setQuery,
+		query,
+		totalCount,
+		startDate,
+		endDate,
+		selectedPreset,
+		updateSearchTime,
+	} = useSearchContext()
 	const frontContext = useFrontContext()
 	const { project_id } = useParams<{
 		project_id: string
@@ -39,8 +47,8 @@ export function HighlightSessions() {
 			params: {
 				query,
 				date_range: {
-					start_date: startDate.toISOString(),
-					end_date: endDate.toISOString(),
+					start_date: startDate!.toISOString(),
+					end_date: endDate!.toISOString(),
 				},
 			},
 			sort_desc: true,
@@ -76,7 +84,7 @@ export function HighlightSessions() {
 						rules: [['user_email', 'contains', email]],
 					})
 
-					updateSearchTime(start.toDate(), end.toDate())
+					updateSearchTime!(start.toDate(), end.toDate())
 					setQuery(query)
 				}
 			})
@@ -90,16 +98,29 @@ export function HighlightSessions() {
 	}, [called, setLoadingState])
 
 	const qs = encodeURI(
-		`?end_date=${startDate.toISOString()}&start_date=${endDate.toISOString()}&query=and` +
-			(email ? `||user_email,contains,${email}` : ''),
+		`?end_date=${startDate!.toISOString()}&start_date=${endDate!.toISOString()}&query=` +
+			(email ? `email=*${email}*` : ''),
 	)
 	const url = `${GetBaseURL()}/${project_id}/sessions${qs}`
 
-	// TODO(spenny): replace with new search
 	return (
 		<div className="flex w-full flex-row justify-center p-2">
 			<div className="flex w-full flex-col gap-2">
-				{/* <SessionQueryBuilder /> */}
+				<SearchForm
+					startDate={startDate!}
+					endDate={endDate!}
+					onDatesChange={updateSearchTime!}
+					presets={DEFAULT_TIME_PRESETS}
+					minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
+					selectedPreset={selectedPreset}
+					productType={ProductType.Sessions}
+					timeMode="fixed-range"
+					savedSegmentType={SavedSegmentEntityType.Session}
+					resultCount={totalCount}
+					loading={loading}
+					hideCreateAlert
+					isPanelView
+				/>
 				<div className="flex w-full flex-col">
 					{data?.sessions.sessions.map((s) => (
 						<MinimalSessionCard

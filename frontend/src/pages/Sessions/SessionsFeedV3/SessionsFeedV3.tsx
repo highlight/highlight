@@ -1,8 +1,4 @@
 import {
-	DEMO_PROJECT_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
-import {
 	EmptySearchResults,
 	SearchResultsKind,
 } from '@components/EmptySearchResults/EmptySearchResults'
@@ -12,12 +8,9 @@ import SearchPagination, {
 	PAGE_SIZE,
 } from '@components/SearchPagination/SearchPagination'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
-import {
-	useGetBillingDetailsForProjectQuery,
-	useGetSessionsHistogramQuery,
-} from '@graph/hooks'
+import { useGetSessionsHistogramQuery } from '@graph/hooks'
 import { SavedSegmentEntityType } from '@graph/schemas'
-import { Maybe, PlanType, ProductType, Session } from '@graph/schemas'
+import { Maybe, ProductType, Session } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
@@ -28,11 +21,10 @@ import {
 } from '@highlight-run/ui/components'
 import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/SessionFeedCard'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
-import { useClientIntegration } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate } from '@util/time'
 import clsx from 'clsx'
-import React, { useCallback, useEffect } from 'react'
+import React from 'react'
 
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { useSearchContext } from '@/components/Search/SearchContext'
@@ -45,7 +37,6 @@ import { SessionFeedConfigurationContextProvider } from './context/SessionFeedCo
 import { useSessionFeedConfiguration } from './hooks/useSessionFeedConfiguration'
 import { SessionFeedConfigDropdown } from './SessionFeedConfigDropdown'
 import * as style from './SessionFeedV3.css'
-import { showLiveSessions } from './utils'
 
 export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 	({ readonly }) => {
@@ -134,14 +125,10 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 )
 
 export const SessionFeedV3 = React.memo(() => {
-	const { project_id } = useParams<{ project_id: string }>()
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
-
 	const {
 		loading,
 		totalCount,
-		query,
-		onSubmit,
 		startDate,
 		endDate,
 		selectedPreset,
@@ -154,48 +141,10 @@ export const SessionFeedV3 = React.memo(() => {
 		updateSearchTime,
 	} = useSearchContext()
 
-	const { integrated } = useClientIntegration()
 	const { showBanner } = useGlobalContext()
 	const showHistogram = totalCount >= 0
 
 	const { setShowLeftPanel } = usePlayerConfiguration()
-
-	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
-		variables: { project_id: project_id! },
-		skip: !project_id || project_id === DEMO_PROJECT_ID,
-	})
-
-	const enableLiveSessions = useCallback(() => {
-		if (query) {
-			// TODO(spenny): check for duplicate keys?
-			const newQuery = `${query} processed=(true OR false)`
-			onSubmit(newQuery.trim())
-		}
-	}, [query, onSubmit])
-
-	useEffect(() => {
-		// We're showing live sessions for new users.
-		// The assumption here is if a project is on the free plan and the project has less than 15 sessions than there must be live sessions.
-		// We show live sessions along with the processed sessions so the user isn't confused on why sessions are not showing up in the feed.
-		if (
-			billingDetails?.billingDetailsForProject &&
-			integrated &&
-			project_id !== DEMO_PROJECT_ID &&
-			project_id !== DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
-			!showLiveSessions(query) &&
-			billingDetails.billingDetailsForProject.plan.type ===
-				PlanType.Free &&
-			billingDetails.billingDetailsForProject.meter < 15
-		) {
-			enableLiveSessions()
-		}
-	}, [
-		billingDetails?.billingDetailsForProject,
-		enableLiveSessions,
-		integrated,
-		project_id,
-		query,
-	])
 
 	const actions = () => {
 		return (

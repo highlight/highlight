@@ -21,7 +21,7 @@ import { getDisplayName } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCar
 import { SessionFeedV3 } from '@pages/Sessions/SessionsFeedV3/SessionsFeedV3'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -31,13 +31,19 @@ import {
 	withDefault,
 } from 'use-query-params'
 
-import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import {
+	DEMO_PROJECT_ID,
+	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { SearchContext } from '@/components/Search/SearchContext'
 import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
+import { useGetBillingDetailsForProjectQuery } from '@/graph/generated/hooks'
+import { PlanType } from '@/graph/generated/schemas'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { useSessionFeedConfiguration } from '@/pages/Sessions/SessionsFeedV3/hooks/useSessionFeedConfiguration'
 import { useGetSessions } from '@/pages/Sessions/useGetSessions'
 import { useSessionParams } from '@/pages/Sessions/utils'
+import { useClientIntegration } from '@/util/integrated'
 
 import {
 	DEFAULT_PANEL_WIDTH,
@@ -49,7 +55,6 @@ import { SessionView } from './SessionView'
 import * as style from './styles.css'
 
 const PAGE_PARAM = withDefault(NumberParam, START_PAGE)
-const ERROR_QUERY_PARAM = withDefault(StringParam, `processed=true`)
 
 const PlayerPageBase: React.FC = () => {
 	const { isLoggedIn } = useAuthContext()
@@ -194,7 +199,30 @@ export const PlayerPage = () => {
 	const { session } = playerContext
 	const resourcesContext = useResources(session)
 
-	const [query, setQuery] = useQueryParam('query', ERROR_QUERY_PARAM)
+	const { integrated } = useClientIntegration()
+
+	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
+		variables: { project_id: projectId! },
+		skip: !projectId || projectId === DEMO_PROJECT_ID,
+	})
+
+	const sessionQueryParam = useMemo(() => {
+		const showLiveSessions =
+			billingDetails?.billingDetailsForProject &&
+			integrated &&
+			projectId !== DEMO_PROJECT_ID &&
+			projectId !== DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
+			billingDetails.billingDetailsForProject.plan.type ===
+				PlanType.Free &&
+			billingDetails.billingDetailsForProject.meter < 15
+
+		const defaultValue = showLiveSessions
+			? `processed=(true OR false)`
+			: `processed=true`
+		return withDefault(StringParam, defaultValue)
+	}, [billingDetails?.billingDetailsForProject, integrated, projectId])
+
+	const [query, setQuery] = useQueryParam('query', sessionQueryParam)
 	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
 
