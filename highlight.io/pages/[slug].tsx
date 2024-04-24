@@ -58,6 +58,7 @@ const IMAGE_MAP = {
 const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 	const [imageLoaded, setImageLoaded] = useState(false)
 
+	//Created to handle the span in each subheader
 	const subHeader2List = [
 		<>
 			Debug from a{' '}
@@ -77,6 +78,10 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 			<span className="text-color-selected-light">
 				across your application.
 			</span>
+		</>,
+		<>
+			Analyze metrics across your{' '}
+			<span className="text-color-selected-light">entire stack.</span>
 		</>,
 	]
 

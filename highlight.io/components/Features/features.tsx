@@ -313,4 +313,63 @@ export const FEATURES: { [k: string]: iFeature } = {
 			},
 		],
 	},
+
+	metrics: {
+		slug: 'metrics',
+		header: 'Metrics & APM for modern web apps',
+		subheader:
+			'Visualize and analyze your observability data on a single pane.',
+		docsLink: '/docs/general/product-features/metrics/overview',
+		slantedImage: sessionReplayHeroKey,
+		regularImage: sessionscreenshotKey,
+		header2Selection: 4,
+		subheader2:
+			'A suite of tools for visualizing and manipulating data on your web application.',
+		infoRows: [
+			{
+				header: 'From downtime to regressions.',
+				subheader:
+					'Understand the real reason why your web app has slow downs, increased error rates, and more.',
+				link: '/docs/general/product-features/metrics/overview',
+				linkText: 'Read the Docs',
+				imgSrc: sessionReplay2,
+				invert: true,
+			},
+			{
+				header: 'Understand user engagement across your application',
+				subheader: 'Visualize the reason why users stay and leave.',
+				link: '/docs/general/product-features/metrics/overview',
+				linkText: 'Read the Docs',
+				imgSrc: sessionReplay2,
+				invert: false,
+			},
+			{
+				header: 'Insane Performance. Powered by ClickHouse.',
+				subheader:
+					'Perform fast queries across all of your resources. Powered by ClickHouse, an industry leading time-series database.',
+				link: '/docs/general/product-features/metrics/overview',
+				linkText: 'Read the Docs',
+				imgSrc: tracing2,
+				invert: true,
+			},
+			{
+				header: 'Get alerted across each resource',
+				subheader:
+					'Create alerts to make sure the right teams know when something goes wrong.',
+				link: '/docs/general/product-features/metrics/overview',
+				linkText: 'Read the Docs',
+				imgSrc: tracing2,
+				invert: false,
+			},
+			{
+				header: 'Support for all the modern frameworks.',
+				subheader:
+					"Whether it's React, Angular, or even vanilla JS, we got you covered.",
+				link: '/frameworks',
+				linkText: 'View all frameworks',
+				imgSrc: sessionReplay4,
+				invert: true,
+			},
+		],
+	},
 }
