@@ -17,7 +17,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
-import { useSearchContext } from '@/components/Search/SearchContext'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSessionParams } from '@/pages/Sessions/utils'
 
@@ -51,9 +50,15 @@ export const getNewTimeWithSkip = ({
 }
 
 export const usePlayerKeyboardShortcuts = () => {
-	const { results } = useSearchContext()
-	const { state, play, pause, time, replayer, sessionMetadata } =
-		useReplayerContext()
+	const {
+		state,
+		play,
+		pause,
+		time,
+		replayer,
+		sessionResults,
+		sessionMetadata,
+	} = useReplayerContext()
 	const { setIsPlayerFullscreen, setRightPanelView } = usePlayerUIContext()
 	const {
 		setPlayerSpeedIdx,
@@ -189,12 +194,12 @@ export const usePlayerKeyboardShortcuts = () => {
 	useHotkeys(
 		'shift+n',
 		(e) => {
-			if (results.length > 0 && !!sessionSecureId) {
+			if (sessionResults.sessions.length > 0 && !!sessionSecureId) {
 				analytics.track('PlayerSkipToNextSessionKeyboardShortcut')
 				moveFocusToDocument(e)
 
 				const nextSession = findNextSessionInList(
-					results,
+					sessionResults.sessions,
 					sessionSecureId,
 				)
 				changeSession(
@@ -205,18 +210,18 @@ export const usePlayerKeyboardShortcuts = () => {
 				)
 			}
 		},
-		[sessionSecureId, results],
+		[sessionSecureId, sessionResults.sessions],
 	)
 
 	useHotkeys(
 		'shift+p',
 		(e) => {
-			if (results.length > 0 && !!sessionSecureId) {
+			if (sessionResults.sessions.length > 0 && !!sessionSecureId) {
 				analytics.track('PlayerSkipToPreviousSessionKeyboardShortcut')
 				moveFocusToDocument(e)
 
 				const nextSession = findPreviousSessionInList(
-					results,
+					sessionResults.sessions,
 					sessionSecureId,
 				)
 				changeSession(
@@ -227,7 +232,7 @@ export const usePlayerKeyboardShortcuts = () => {
 				)
 			}
 		},
-		[sessionSecureId, results],
+		[sessionSecureId, sessionResults.sessions],
 	)
 
 	useHotkeys(

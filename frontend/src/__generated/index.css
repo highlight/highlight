@@ -5604,6 +5604,12 @@ body {
 .bsyaa20:hover {
   color: var(--_1pyqka9y);
 }
+._1kpm5g60 {
+  text-decoration: none;
+}
+._1kpm5g60:focus-visible {
+  outline: revert !important;
+}
 ._1ukfp2a0 {
   border-radius: 0;
   border: 0 !important;
@@ -5621,12 +5627,6 @@ body {
 ._1ukfp2a2:focus,
 ._1ukfp2a2:active {
   background: var(--_1pyqka9u);
-}
-._1kpm5g60 {
-  text-decoration: none;
-}
-._1kpm5g60:focus-visible {
-  outline: revert !important;
 }
 ._1vb6x0p0 {
   text-decoration: none;
