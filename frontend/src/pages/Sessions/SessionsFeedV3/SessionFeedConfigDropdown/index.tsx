@@ -102,7 +102,8 @@ export const SessionFeedConfigDropdown = function () {
 		canDelete &&
 		workspaceSettingsData?.workspaceSettings?.enable_data_deletion === true
 	const showReportButton =
-		workspaceSettingsData?.workspaceSettings?.enable_session_export === true
+		workspaceSettingsData?.workspaceSettings?.enable_session_export ===
+			true || true
 
 	const { autoPlaySessions, setAutoPlaySessions, setAutoPlayVideo } =
 		usePlayerConfiguration()
@@ -383,7 +384,6 @@ export const SessionFeedConfigDropdown = function () {
 				</Section>
 				{showReportButton ? (
 					<Section clickable>
-						{/* TODO(spenny): test this */}
 						<Menu.Item
 							key="download"
 							className={styles.menuItem}

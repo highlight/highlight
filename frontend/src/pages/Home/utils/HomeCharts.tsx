@@ -42,7 +42,6 @@ export const SessionCountGraph = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	// TODO(spenny): check this works
 	const { updateSearchTime } = useSearchTime({
 		presets: DEFAULT_TIME_PRESETS,
 		initialPreset: DEFAULT_TIME_PRESETS[5],

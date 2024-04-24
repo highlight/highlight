@@ -56,6 +56,7 @@ export const parseSearch = (input: string) => {
 }
 
 export const stringifyExpression = (expressions: SearchExpression[]) => {
+	// TODO(spenny): removes NOT's
 	return expressions.map((exp) => exp.text).join(' ')
 }
 

@@ -7,6 +7,8 @@ import { Maybe, Session, SessionsReportRow } from '@graph/schemas'
 import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment/moment'
 
+import { SearchExpression } from '@/components/Search/Parser/listener'
+
 const processRows = <
 	T extends { __typename?: Maybe<string>; user_properties?: Maybe<string> },
 >(
@@ -55,13 +57,9 @@ const processRows = <
 const getQueryRows = (
 	start: Date,
 	end: Date,
-	query: string,
+	queryParts: SearchExpression[],
 	sessions: Session[],
 ) => {
-	// TODO(spenny)
-	// const rules = query.rules.filter(
-	// 	(rule: any) => (rule[1] as Operator) !== 'between_date',
-	// )
 	const startFormatted = moment(start).format()
 	const endFormatted = moment(end).format()
 	return [
@@ -71,7 +69,7 @@ const getQueryRows = (
 			'Time To',
 			'',
 			'',
-			// ...rules.map((_, index) => `Filter ${index + 1}`),
+			...queryParts.map((_, index) => `Filter ${index + 1}`),
 		],
 		[
 			sessions.length,
@@ -79,11 +77,17 @@ const getQueryRows = (
 			endFormatted,
 			'',
 			'Filter',
-			// ...rules.map((rule) => rule[0].split('_', 2)[1]),
+			...queryParts.map((part) => part.key),
 		],
-		// TODO(spenny): ...rules.map((rule) => [
-		['', '', '', '', 'Operator'],
-		['', '', '', '', 'Value'],
+		[
+			'',
+			'',
+			'',
+			'',
+			'Operator',
+			...queryParts.map((part) => part.operator),
+		],
+		['', '', '', '', 'Value', ...queryParts.map((part) => part.value)],
 	]
 }
 
@@ -109,7 +113,7 @@ type SessionWithUpdatedAt = Session & { payload_updated_at: string }
 
 export const useGenerateSessionsReportCSV = () => {
 	const PAGE_SIZE = 1_000
-	const { query, startDate, endDate } = useSearchContext()
+	const { query, queryParts, startDate, endDate } = useSearchContext()
 	const { projectId } = useProjectId()
 	const [getReport, { loading }] = useGetSessionUsersReportsLazyQuery()
 	const [, { loading: sessionsLoading, fetchMore }] =
@@ -196,7 +200,7 @@ export const useGenerateSessionsReportCSV = () => {
 			)
 
 			const rows: any[][] = [
-				...getQueryRows(startDate!, endDate!, query, sessions),
+				...getQueryRows(startDate!, endDate!, queryParts, sessions),
 				// leave a blank row between the sub reports
 				[],
 				...getReportRows(await sessionReportPromise),
