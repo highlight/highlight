@@ -1,19 +1,30 @@
 package vercel
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	http2 "github.com/highlight-run/highlight/backend/http"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
+	"go.opentelemetry.io/otel"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestMain(m *testing.M) {
+	tracer = otel.GetTracerProvider().Tracer("test")
+
+	code := m.Run()
+	os.Exit(code)
+}
 
 func TestCreateLogDrain(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -81,4 +92,23 @@ func TestCreateLogDrain(t *testing.T) {
 	if err := CreateLogDrain(context.TODO(), pointy.String("team_FRV1rjc2RxkhqoTsz8t76fGs"), []string{"prj_UYboDfJ3kTGcKmmqu4Ydryzy2KQC"}, "1", "Highlight Log Drain", "b81LedZpnZtAVrPy5kIdEgWi"); err != nil {
 		t.Errorf("failed to create log drain")
 	}
+}
+
+func TestHandleLog(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(HandleLog))
+	defer server.Close()
+
+	body, _ := json.Marshal(&hlog.VercelLog{
+		Message: "hello world",
+	})
+
+	req, _ := http.NewRequest("POST", server.URL, bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("x-highlight-project", "1")
+	req.Header.Set("x-highlight-service", "svc")
+
+	client := http.Client{}
+	resp, err := client.Do(req)
+	assert.NoError(t, err)
+	assert.Equal(t, resp.StatusCode, 200)
 }
