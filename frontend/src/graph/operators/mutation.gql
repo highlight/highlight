@@ -1214,12 +1214,12 @@ mutation DeleteDashboard($id: ID!) {
 
 mutation DeleteSessions(
 	$project_id: ID!
-	$query: ClickhouseQuery!
+	$params: QueryInput!
 	$sessionCount: Int!
 ) {
 	deleteSessions(
 		project_id: $project_id
-		query: $query
+		params: $params
 		sessionCount: $sessionCount
 	)
 }

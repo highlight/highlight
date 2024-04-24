@@ -4270,7 +4270,7 @@ func (r *mutationResolver) DeleteDashboard(ctx context.Context, id int) (bool, e
 }
 
 // DeleteSessions is the resolver for the deleteSessions field.
-func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, sessionCount int) (bool, error) {
+func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, params modelInputs.QueryInput, sessionCount int) (bool, error) {
 	if util.IsDevOrTestEnv() {
 		return false, nil
 	}
@@ -4317,7 +4317,7 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, qu
 		ProjectId:    projectID,
 		Email:        email,
 		FirstName:    firstName,
-		Query:        query,
+		Params:       params,
 		SessionCount: sessionCount,
 		DryRun:       util.IsDevOrTestEnv(),
 	})

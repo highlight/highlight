@@ -11,7 +11,6 @@ import SvgShareIcon from '@icons/ShareIcon'
 import { useFrontContext } from '@pages/FrontPlugin/Front/FrontContext'
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'
 import MinimalSessionCard from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/MinimalSessionCard'
-import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import moment from 'moment/moment'
@@ -96,10 +95,11 @@ export function HighlightSessions() {
 	)
 	const url = `${GetBaseURL()}/${project_id}/sessions${qs}`
 
+	// TODO(spenny): replace with new search
 	return (
 		<div className="flex w-full flex-row justify-center p-2">
 			<div className="flex w-full flex-col gap-2">
-				<SessionQueryBuilder />
+				{/* <SessionQueryBuilder /> */}
 				<div className="flex w-full flex-col">
 					{data?.sessions.sessions.map((s) => (
 						<MinimalSessionCard

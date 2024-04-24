@@ -15,19 +15,19 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
 import ActivityGraph from '@pages/Sessions/SessionsFeedV3/ActivityGraph/ActivityGraph'
-import { formatDatetime } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfiguration/SessionFeedConfiguration'
-import { SessionFeedConfigurationContext } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/context/SessionFeedConfigurationContext'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment/moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import { SessionFeedConfigurationContext } from '@/pages/Sessions/SessionsFeedV3/context/SessionFeedConfigurationContext'
 
 import {
 	getDisplayName,
 	getIdentifiedUserProfileImage,
 } from '../MinimalSessionCard/utils/utils'
+import { formatDatetime } from '../SessionFeedConfigDropdown/helpers'
 import * as style from './SessionFeedCard.css'
 interface Props {
 	session: Session

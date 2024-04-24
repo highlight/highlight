@@ -1,4 +1,3 @@
-import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { BaseSearchContext } from '@context/BaseSearchContext'
 import { useGetAppVersionsQuery } from '@graph/hooks'
@@ -9,11 +8,7 @@ import {
 import { Exact, Field } from '@graph/schemas'
 import {
 	Box,
-	ButtonIcon,
 	ComboboxSelect,
-	DateRangePicker,
-	DEFAULT_TIME_PRESETS,
-	getNow,
 	IconSolidCalendar,
 	IconSolidChat,
 	IconSolidClock,
@@ -29,7 +24,6 @@ import {
 	IconSolidGlobeAlt,
 	IconSolidLightningBolt,
 	IconSolidLink,
-	IconSolidLogout,
 	IconSolidPencil,
 	IconSolidPlayCircle,
 	IconSolidPlusSm,
@@ -48,21 +42,16 @@ import {
 } from '@highlight-run/ui/components'
 import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
-import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import clsx, { ClassValue } from 'clsx'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import LoadingBox from '@/components/LoadingBox'
-import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 
-import { DropdownMenu } from '../../pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfigurationV2/SessionFeedConfigurationV2'
 import * as newStyle from './QueryBuilder.css'
-import styles from './QueryBuilder.module.css'
 export interface RuleProps {
 	field: SelectOption | undefined
 	op: Operator | undefined
@@ -1136,10 +1125,7 @@ export interface QueryBuilderProps {
 
 	readonly?: boolean
 	onlyAnd?: boolean
-	minimal?: boolean
 }
-
-const defaultMinDate = getNow().subtract(90, 'days').toDate()
 
 function QueryBuilder(props: QueryBuilderProps) {
 	const {
@@ -1152,26 +1138,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 		readonly,
 		onlyAnd,
 		operators,
-		minimal,
 	} = props
 	const ops = operators ?? OPERATORS
 
-	const {
-		searchQuery,
-		setSearchQuery,
-		searchResultsCount,
-		setSearchTime,
-		startDate,
-		endDate,
-		selectedPreset,
-	} = searchContext
+	const { searchQuery, setSearchQuery, startDate, endDate } = searchContext
 
 	const { project_id: projectId } = useParams<{
 		project_id: string
 	}>()
-
-	const location = useLocation()
-	const isOnErrorsPage = location.pathname.includes('errors')
 
 	const getCustomFieldOptions = useCallback(
 		(field: SelectOption | undefined) => {
@@ -1431,8 +1405,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}, [searchQuery, toggleIsAnd])
 
-	const { setShowLeftPanel } = usePlayerConfiguration()
-
 	const addFilterButton = useMemo(() => {
 		if (readonly) {
 			return null
@@ -1465,51 +1437,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [addRule, currentRule, getKeyOptions, readonly])
 
-	const controlBar = useMemo(() => {
-		return (
-			<Box
-				display="flex"
-				alignItems="center"
-				px="12"
-				borderBottom="secondary"
-				cssClass={styles.controlBar}
-			>
-				<DateRangePicker
-					presets={DEFAULT_TIME_PRESETS}
-					selectedValue={{
-						startDate,
-						endDate,
-						selectedPreset,
-					}}
-					minDate={defaultMinDate}
-					onDatesChange={setSearchTime}
-				/>
-				<Box marginLeft="auto" display="flex" gap="0">
-					{!isOnErrorsPage && (
-						<DropdownMenu sessionQuery={JSON.parse(searchQuery)} />
-					)}
-
-					<ButtonIcon
-						kind="secondary"
-						size="small"
-						shape="square"
-						emphasis="low"
-						icon={<IconSolidLogout size={14} />}
-						onClick={() => setShowLeftPanel(false)}
-					/>
-				</Box>
-			</Box>
-		)
-	}, [
-		endDate,
-		setSearchTime,
-		isOnErrorsPage,
-		searchQuery,
-		selectedPreset,
-		setShowLeftPanel,
-		startDate,
-	])
-
 	// Don't render anything if this is a readonly query builder and there are no rules
 	if (readonly && rules.length === 0) {
 		return null
@@ -1517,7 +1444,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	return (
 		<>
-			{!readonly && !minimal ? controlBar : null}
 			<Box
 				border="secondary"
 				borderRadius="8"
@@ -1525,14 +1451,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 				flexDirection="column"
 				overflow="hidden"
 				flexShrink={0}
-				m={readonly || minimal ? undefined : '8'}
-				shadow={minimal ? undefined : 'medium'}
-				style={minimal ? { minHeight: 28 } : undefined}
+				m={undefined}
+				shadow={undefined}
+				style={{ minHeight: 28 }}
 			>
 				<Box
 					p="4"
 					background="white"
-					borderBottom={readonly || minimal ? undefined : 'secondary'}
+					borderBottom={undefined}
 					display="flex"
 					alignItems="center"
 					flexWrap="wrap"
@@ -1565,34 +1491,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 							getValueOptionsCallback={getValueOptionsCallback}
 							removeRule={removeRule}
 							readonly={readonly ?? false}
-							minimal={minimal ?? false}
+							minimal
 							updateRule={updateRule}
 						/>,
 					])}
 					{addFilterButton}
 				</Box>
-				{!readonly && !minimal ? (
-					<Box
-						display="flex"
-						p="8"
-						paddingRight="4"
-						justifyContent="space-between"
-						alignItems="center"
-					>
-						{searchResultsCount === undefined ? (
-							<Skeleton width="100px" />
-						) : (
-							<Text
-								size="xSmall"
-								weight="medium"
-								color="n9"
-								userSelect="none"
-							>
-								{formatNumber(searchResultsCount)} results
-							</Text>
-						)}
-					</Box>
-				) : null}
 			</Box>
 		</>
 	)

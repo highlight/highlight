@@ -20,8 +20,11 @@ import { SavedSegmentEntityType } from '@graph/schemas'
 import { Maybe, PlanType, ProductType, Session } from '@graph/schemas'
 import {
 	Box,
+	ButtonIcon,
 	DEFAULT_TIME_PRESETS,
+	IconSolidLogout,
 	presetStartDate,
+	Stack,
 } from '@highlight-run/ui/components'
 import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/SessionFeedCard'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
@@ -34,12 +37,14 @@ import React, { useCallback, useEffect } from 'react'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { useSearchContext } from '@/components/Search/SearchContext'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
+import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
+import { SessionFeedConfigurationContextProvider } from './context/SessionFeedConfigurationContext'
+import { useSessionFeedConfiguration } from './hooks/useSessionFeedConfiguration'
+import { SessionFeedConfigDropdown } from './SessionFeedConfigDropdown'
 import * as style from './SessionFeedV3.css'
-import { SessionFeedConfigurationContextProvider } from './SessionQueryBuilder/context/SessionFeedConfigurationContext'
-import { useSessionFeedConfiguration } from './SessionQueryBuilder/hooks/useSessionFeedConfiguration'
 import { showLiveSessions } from './utils'
 
 export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
@@ -153,6 +158,8 @@ export const SessionFeedV3 = React.memo(() => {
 	const { showBanner } = useGlobalContext()
 	const showHistogram = totalCount >= 0
 
+	const { setShowLeftPanel } = usePlayerConfiguration()
+
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: project_id! },
 		skip: !project_id || project_id === DEMO_PROJECT_ID,
@@ -190,6 +197,24 @@ export const SessionFeedV3 = React.memo(() => {
 		query,
 	])
 
+	const actions = () => {
+		return (
+			<Stack direction="row" gap="2">
+				<Box marginLeft="auto" display="flex" gap="0">
+					<ButtonIcon
+						kind="secondary"
+						size="small"
+						shape="square"
+						emphasis="low"
+						icon={<IconSolidLogout size={14} />}
+						onClick={() => setShowLeftPanel(false)}
+					/>
+				</Box>
+				<SessionFeedConfigDropdown />
+			</Stack>
+		)
+	}
+
 	return (
 		<SessionFeedConfigurationContextProvider
 			value={sessionFeedConfiguration}
@@ -215,8 +240,7 @@ export const SessionFeedV3 = React.memo(() => {
 					productType={ProductType.Sessions}
 					timeMode="fixed-range"
 					savedSegmentType={SavedSegmentEntityType.Session}
-					// TODO(spenny): action
-					// actions={actions}
+					actions={actions}
 					resultCount={totalCount}
 					loading={loading}
 					hideCreateAlert

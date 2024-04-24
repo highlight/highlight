@@ -35,7 +35,7 @@ import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceB
 import { SearchContext } from '@/components/Search/SearchContext'
 import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
 import { useSearchTime } from '@/hooks/useSearchTime'
-import { useSessionFeedConfiguration } from '@/pages/Sessions/SessionsFeedV3/SessionQueryBuilder/hooks/useSessionFeedConfiguration'
+import { useSessionFeedConfiguration } from '@/pages/Sessions/SessionsFeedV3/hooks/useSessionFeedConfiguration'
 import { useGetSessions } from '@/pages/Sessions/useGetSessions'
 import { useSessionParams } from '@/pages/Sessions/utils'
 

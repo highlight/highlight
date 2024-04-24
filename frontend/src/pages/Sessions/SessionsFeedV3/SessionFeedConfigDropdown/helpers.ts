@@ -6,7 +6,7 @@ import {
 	SESSION_FEED_COUNT_FORMAT,
 	SESSION_FEED_DATETIME_FORMAT,
 	SESSION_FEED_SORT_ORDER,
-} from '../../context/SessionFeedConfigurationContext'
+} from '../context/SessionFeedConfigurationContext'
 
 export const formatDatetime = (
 	datetime: string,

@@ -487,7 +487,6 @@ export const ProjectProductFilters: React.FC<{
 									value={sessionSearchContext}
 								>
 									<SessionQueryBuilder
-										minimal
 										readonly={view}
 										operators={['is', 'is_not']}
 										customFields={CUSTOM_FIELDS.filter(
@@ -509,7 +508,6 @@ export const ProjectProductFilters: React.FC<{
 									}}
 								>
 									<ErrorQueryBuilder
-										minimal
 										readonly={view}
 										operators={['is', 'is_not']}
 										customFields={ERROR_CUSTOM_FIELDS.filter(

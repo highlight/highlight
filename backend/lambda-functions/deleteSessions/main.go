@@ -37,9 +37,8 @@ func main() {
 		ProjectId: 1,
 		Email:     "zane@highlight.io",
 		FirstName: "Zane",
-		Query: model.ClickhouseQuery{
-			IsAnd: true,
-			Rules: [][]string{{"custom_processed", "is", "true"}},
+		Params: model.QueryInput{
+			Query: "processed=true",
 			DateRange: &model.DateRangeRequiredInput{
 				StartDate: start,
 				EndDate:   end,
