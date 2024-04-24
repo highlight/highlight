@@ -46,7 +46,7 @@ export const ConsolePage = ({
 	levels: LogLevel[]
 }) => {
 	const { projectId } = useProjectId()
-	const [selectedCursor, setSelectedCursor] = useState(logCursor)
+	const [, setSelectedCursor] = useState(logCursor)
 	const { session, time, setTime, sessionMetadata, isPlayerReady } =
 		useReplayerContext()
 
@@ -91,7 +91,7 @@ export const ConsolePage = ({
 		return message.node
 	})
 
-	let lastActiveLogIndex = useMemo(() => {
+	const lastActiveLogIndex = useMemo(() => {
 		return findLastActiveEventIndex(
 			time,
 			sessionMetadata.startTime,
