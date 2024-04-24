@@ -1,10 +1,8 @@
 import 'rc-slider/assets/index.css'
 
 import { useAuthContext } from '@authentication/AuthContext'
-import { Session } from '@graph/schemas'
 import { Box, DEFAULT_TIME_PRESETS } from '@highlight-run/ui/components'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
-import { Coordinates2D } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas'
 import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook'
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerState'
 import {
@@ -12,15 +10,11 @@ import {
 	useShowSearchParam,
 } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import {
-	ReplayerContextProvider,
-	useReplayerContext,
-} from '@pages/Player/ReplayerContext'
+import { ReplayerContextProvider } from '@pages/Player/ReplayerContext'
 import {
 	ResourcesContextProvider,
 	useResources,
 } from '@pages/Player/ResourcesContext/ResourcesContext'
-import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommentModal'
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
@@ -60,48 +54,7 @@ const ERROR_QUERY_PARAM = withDefault(StringParam, `processed=true`)
 const PlayerPageBase: React.FC = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { projectId, sessionSecureId } = useSessionParams()
-
-	const [query, setQuery] = useQueryParam('query', ERROR_QUERY_PARAM)
-	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
-	const sessionFeedConfiguration = useSessionFeedConfiguration()
-
-	const searchTimeContext = useSearchTime({
-		presets: DEFAULT_TIME_PRESETS,
-		initialPreset: DEFAULT_TIME_PRESETS[5],
-	})
-
-	const getSessionsData = useGetSessions({
-		query,
-		project_id: projectId,
-		startDate: searchTimeContext.startDate,
-		endDate: searchTimeContext.endDate,
-		page,
-		disablePolling: !searchTimeContext.selectedPreset,
-		sortDesc: sessionFeedConfiguration.sortOrder === 'Descending',
-	})
-
-	const handleSubmit = useCallback(
-		(newQuery: string) => {
-			setQuery(newQuery)
-			setPage(START_PAGE)
-		},
-		[setPage, setQuery],
-	)
-
-	const { time, sessionViewability, session, currentUrl } = usePlayer()
-	const { setSessionResults } = useReplayerContext()
-
-	useEffect(() => {
-		setSessionResults({
-			totalCount: getSessionsData.totalCount,
-			sessions: getSessionsData.sessions as Session[],
-		})
-	}, [
-		setSessionResults,
-		getSessionsData.totalCount,
-		getSessionsData.sessions,
-	])
-
+	const { sessionViewability, session } = usePlayer()
 	const navigate = useNavigate()
 
 	useEffect(() => {
@@ -139,13 +92,6 @@ const PlayerPageBase: React.FC = () => {
 			setShowLeftPanel(false)
 		}
 	}, [showSearch, setShowLeftPanel])
-
-	const [commentModalPosition, setCommentModalPosition] = useState<
-		Coordinates2D | undefined
-	>(undefined)
-	const [commentPosition, setCommentPosition] = useState<
-		Coordinates2D | undefined
-	>(undefined)
 
 	useEffect(() => {
 		if (!sessionSecureId) {
@@ -204,92 +150,105 @@ const PlayerPageBase: React.FC = () => {
 	const { playerCenterPanelRef } = usePlayerUIContext()
 
 	return (
-		<SearchContext
-			initialQuery={query}
-			onSubmit={handleSubmit}
-			loading={getSessionsData.loading}
-			results={getSessionsData.sessions}
-			totalCount={getSessionsData.totalCount}
-			moreResults={getSessionsData.moreSessions}
-			resetMoreResults={getSessionsData.resetMoreSessions}
-			histogramBucketSize={getSessionsData.histogramBucketSize}
-			page={page}
-			setPage={setPage}
-			{...searchTimeContext}
-		>
-			<Helmet>
-				<title>{getTabTitle(session)}</title>
-			</Helmet>
-			<Box display="flex" height="full" width="full" overflow="hidden">
+		<Box display="flex" height="full" width="full" overflow="hidden">
+			<Box
+				display={showLeftPanel ? 'block' : 'none'}
+				position="relative"
+				style={{
+					width: `${leftPanelWidth}px`,
+				}}
+			>
 				<Box
-					display={showLeftPanel ? 'block' : 'none'}
-					position="relative"
-					style={{
-						width: `${leftPanelWidth}px`,
+					ref={dragHandleRef}
+					cssClass={style.panelDragHandle}
+					onMouseDown={(e) => {
+						e.preventDefault()
+						setDragging(true)
 					}}
-				>
-					<Box
-						ref={dragHandleRef}
-						cssClass={style.panelDragHandle}
-						onMouseDown={(e) => {
-							e.preventDefault()
-							setDragging(true)
-						}}
-					/>
-					<SessionFeedV3 />
-				</Box>
-				<div
-					id="playerCenterPanel"
-					className={style.playerCenterPanel}
-					ref={playerCenterPanelRef}
-					style={{
-						width: showLeftPanel
-							? `calc(100% - ${leftPanelWidth}px)`
-							: '100%',
-					}}
-				>
-					<SessionView
-						showLeftPanel={showLeftPanel}
-						leftPanelWidth={leftPanelWidth}
-						modalPosition={commentModalPosition}
-						setModalPosition={setCommentModalPosition}
-						setCommentPosition={setCommentPosition}
-					/>
-				</div>
-				<NewCommentModal
-					commentModalPosition={commentModalPosition}
-					commentPosition={commentPosition}
-					commentTime={time}
-					session={session}
-					session_secure_id={sessionSecureId}
-					onCancel={() => {
-						setCommentModalPosition(undefined)
-					}}
-					currentUrl={currentUrl}
 				/>
+				<SessionFeedV3 />
 			</Box>
-		</SearchContext>
+			<div
+				id="playerCenterPanel"
+				className={style.playerCenterPanel}
+				ref={playerCenterPanelRef}
+				style={{
+					width: showLeftPanel
+						? `calc(100% - ${leftPanelWidth}px)`
+						: '100%',
+				}}
+			>
+				<SessionView
+					showLeftPanel={showLeftPanel}
+					leftPanelWidth={leftPanelWidth}
+				/>
+			</div>
+		</Box>
 	)
 }
 
-const getTabTitle = (session?: Session) => {
-	if (!session) {
-		return 'Sessions'
-	}
-	return `Sessions: ${getDisplayName(session)}`
-}
-
 export const PlayerPage = () => {
+	const { projectId } = useSessionParams()
 	const toolbarContext = useToolbarItems()
 	const playerContext = usePlayer()
 	const { session } = playerContext
 	const resourcesContext = useResources(session)
 
+	const [query, setQuery] = useQueryParam('query', ERROR_QUERY_PARAM)
+	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
+	const sessionFeedConfiguration = useSessionFeedConfiguration()
+
+	const searchTimeContext = useSearchTime({
+		presets: DEFAULT_TIME_PRESETS,
+		initialPreset: DEFAULT_TIME_PRESETS[5],
+	})
+
+	const getSessionsData = useGetSessions({
+		query,
+		project_id: projectId,
+		startDate: searchTimeContext.startDate,
+		endDate: searchTimeContext.endDate,
+		page,
+		disablePolling: !searchTimeContext.selectedPreset,
+		sortDesc: sessionFeedConfiguration.sortOrder === 'Descending',
+	})
+
+	const handleSubmit = useCallback(
+		(newQuery: string) => {
+			setQuery(newQuery)
+			setPage(START_PAGE)
+		},
+		[setPage, setQuery],
+	)
+
+	const tabTitle = !!session
+		? `Sessions: ${getDisplayName(session)}`
+		: 'Sessions'
+
 	return (
 		<ReplayerContextProvider value={playerContext}>
 			<ResourcesContextProvider value={resourcesContext}>
 				<ToolbarItemsContextProvider value={toolbarContext}>
-					<PlayerPageBase />
+					<SearchContext
+						initialQuery={query}
+						onSubmit={handleSubmit}
+						loading={getSessionsData.loading}
+						results={getSessionsData.sessions}
+						totalCount={getSessionsData.totalCount}
+						moreResults={getSessionsData.moreSessions}
+						resetMoreResults={getSessionsData.resetMoreSessions}
+						histogramBucketSize={
+							getSessionsData.histogramBucketSize
+						}
+						page={page}
+						setPage={setPage}
+						{...searchTimeContext}
+					>
+						<Helmet>
+							<title>{tabTitle}</title>
+						</Helmet>
+						<PlayerPageBase />
+					</SearchContext>
 				</ToolbarItemsContextProvider>
 			</ResourcesContextProvider>
 		</ReplayerContextProvider>

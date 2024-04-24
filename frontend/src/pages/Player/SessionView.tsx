@@ -18,19 +18,25 @@ import PlayerCommentCanvas, {
 import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook'
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerState'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import { ReplayerState } from '@pages/Player/ReplayerContext'
+import {
+	ReplayerState,
+	useReplayerContext,
+} from '@pages/Player/ReplayerContext'
 import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
 import SessionLevelBarV2 from '@pages/Player/SessionLevelBar/SessionLevelBarV2'
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import clsx from 'clsx'
 import Lottie from 'lottie-react'
-import React, { useMemo, useRef } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 
+import { useSearchContext } from '@/components/Search/SearchContext'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { NetworkResourcePanel } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourcePanel'
 import DevToolsWindowV2 from '@/pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
+import { NewCommentModal } from '@/pages/Player/Toolbar/NewCommentModal/NewCommentModal'
 import { useResizePlayer } from '@/pages/Player/utils/utils'
+import { useSessionParams } from '@/pages/Sessions/utils'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import WaitingAnimation from '../../lottie/waiting.json'
@@ -39,22 +45,13 @@ import * as style from './styles.css'
 type SessionViewProps = {
 	showLeftPanel: boolean
 	leftPanelWidth: number
-	modalPosition?: Coordinates2D
-	setModalPosition: React.Dispatch<
-		React.SetStateAction<Coordinates2D | undefined>
-	>
-	setCommentPosition: React.Dispatch<
-		React.SetStateAction<Coordinates2D | undefined>
-	>
 }
 
 export const SessionView: React.FC<SessionViewProps> = ({
 	showLeftPanel,
 	leftPanelWidth,
-	modalPosition,
-	setModalPosition,
-	setCommentPosition,
 }) => {
+	const { sessionSecureId } = useSessionParams()
 	const { width } = useWindowSize()
 
 	const {
@@ -65,7 +62,19 @@ export const SessionView: React.FC<SessionViewProps> = ({
 		setScale,
 		replayer,
 		isPlayerReady,
+		currentUrl,
+		time,
 	} = usePlayer()
+
+	const { setSessionResults } = useReplayerContext()
+	const { totalCount, results } = useSearchContext()
+
+	const [commentModalPosition, setCommentModalPosition] = useState<
+		Coordinates2D | undefined
+	>(undefined)
+	const [commentPosition, setCommentPosition] = useState<
+		Coordinates2D | undefined
+	>(undefined)
 
 	const showSession =
 		sessionViewability === SessionViewability.VIEWABLE && !!session
@@ -91,6 +100,13 @@ export const SessionView: React.FC<SessionViewProps> = ({
 	const replayerWrapperBbox = replayer?.wrapper.getBoundingClientRect()
 
 	const { isPlayerFullscreen } = usePlayerUIContext()
+
+	useEffect(() => {
+		setSessionResults({
+			totalCount,
+			sessions: results,
+		})
+	}, [setSessionResults, totalCount, results])
 
 	if (!showSession) {
 		return (
@@ -172,8 +188,10 @@ export const SessionView: React.FC<SessionViewProps> = ({
 										id="player"
 									/>
 									<PlayerCommentCanvas
-										setModalPosition={setModalPosition}
-										modalPosition={modalPosition}
+										setModalPosition={
+											setCommentModalPosition
+										}
+										modalPosition={commentModalPosition}
 										setCommentPosition={setCommentPosition}
 									/>
 									{!isPlayerReady && playerFiller}
@@ -187,6 +205,17 @@ export const SessionView: React.FC<SessionViewProps> = ({
 					</Box>
 				</Box>
 			</div>
+			<NewCommentModal
+				commentModalPosition={commentModalPosition}
+				commentPosition={commentPosition}
+				commentTime={time}
+				session={session}
+				session_secure_id={sessionSecureId}
+				onCancel={() => {
+					setCommentModalPosition(undefined)
+				}}
+				currentUrl={currentUrl}
+			/>
 		</Box>
 	)
 }
