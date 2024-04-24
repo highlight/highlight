@@ -8,13 +8,16 @@ export type ConsoleMessage = {
 	trace?: StackTrace.StackFrame[]
 }
 
+export type ErrorMessageType =
+	| 'console.error'
+	| 'window.onerror'
+	| 'window.onunhandledrejection'
+	| 'custom'
+	| 'React.ErrorBoundary'
+
 export type ErrorMessage = {
 	event: string
-	type:
-		| 'console.error'
-		| 'window.onerror'
-		| 'window.onunhandledrejection'
-		| 'custom'
+	type: ErrorMessageType
 	url: string
 	source: string
 	lineNumber: number
