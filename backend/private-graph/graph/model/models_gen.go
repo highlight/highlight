@@ -2134,6 +2134,7 @@ const (
 	ReservedSessionKeySample          ReservedSessionKey = "sample"
 	ReservedSessionKeyIP              ReservedSessionKey = "ip"
 	ReservedSessionKeyDeviceID        ReservedSessionKey = "device_id"
+	ReservedSessionKeyViewedByMe      ReservedSessionKey = "viewed_by_me"
 )
 
 var AllReservedSessionKey = []ReservedSessionKey{
@@ -2163,11 +2164,12 @@ var AllReservedSessionKey = []ReservedSessionKey{
 	ReservedSessionKeySample,
 	ReservedSessionKeyIP,
 	ReservedSessionKeyDeviceID,
+	ReservedSessionKeyViewedByMe,
 }
 
 func (e ReservedSessionKey) IsValid() bool {
 	switch e {
-	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyServiceVersion, ReservedSessionKeySecureSessionID, ReservedSessionKeyIdentified, ReservedSessionKeyIdentifier, ReservedSessionKeyCity, ReservedSessionKeyState, ReservedSessionKeyCountry, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyProcessed, ReservedSessionKeyHasComments, ReservedSessionKeyHasRageClicks, ReservedSessionKeyHasErrors, ReservedSessionKeyLength, ReservedSessionKeyActiveLength, ReservedSessionKeyFirstTime, ReservedSessionKeyViewed, ReservedSessionKeyPagesVisited, ReservedSessionKeyNormalness, ReservedSessionKeySample, ReservedSessionKeyIP, ReservedSessionKeyDeviceID:
+	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyServiceVersion, ReservedSessionKeySecureSessionID, ReservedSessionKeyIdentified, ReservedSessionKeyIdentifier, ReservedSessionKeyCity, ReservedSessionKeyState, ReservedSessionKeyCountry, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyProcessed, ReservedSessionKeyHasComments, ReservedSessionKeyHasRageClicks, ReservedSessionKeyHasErrors, ReservedSessionKeyLength, ReservedSessionKeyActiveLength, ReservedSessionKeyFirstTime, ReservedSessionKeyViewed, ReservedSessionKeyPagesVisited, ReservedSessionKeyNormalness, ReservedSessionKeySample, ReservedSessionKeyIP, ReservedSessionKeyDeviceID, ReservedSessionKeyViewedByMe:
 		return true
 	}
 	return false

@@ -12357,6 +12357,7 @@ enum ReservedSessionKey {
 	sample
 	ip
 	device_id
+	viewed_by_me
 }
 
 enum LogSource {

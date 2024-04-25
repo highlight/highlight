@@ -268,7 +268,7 @@ func (s *SearchListener[T]) ExitEveryRule(ctx antlr.ParserRuleContext)  {}
 
 func (s *SearchListener[T]) appendRules(value string) {
 	if s.tableConfig.IgnoredFilters != nil && s.tableConfig.IgnoredFilters[s.currentKey] {
-		s.IgnoredFilters[s.currentKey] = value
+		s.IgnoredFilters[s.currentKey] = string(value)
 		return
 	}
 	// Quotes are sometimes escaped on the client and need to be unescaped before

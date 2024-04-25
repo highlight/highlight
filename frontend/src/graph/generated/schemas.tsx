@@ -3083,6 +3083,7 @@ export enum ReservedSessionKey {
 	ServiceVersion = 'service_version',
 	State = 'state',
 	Viewed = 'viewed',
+	ViewedByMe = 'viewed_by_me',
 }
 
 export enum ReservedTraceKey {

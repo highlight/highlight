@@ -124,6 +124,7 @@ var defaultSessionsKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedSessionKeyFirstTime), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedSessionKeyViewed), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedSessionKeyHasComments), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyViewedByMe), Type: modelInputs.KeyTypeBoolean},
 }
 
 var booleanKeys = map[string]bool{
@@ -134,6 +135,7 @@ var booleanKeys = map[string]bool{
 	string(modelInputs.ReservedSessionKeyFirstTime):     true,
 	string(modelInputs.ReservedSessionKeyViewed):        true,
 	string(modelInputs.ReservedSessionKeyHasComments):   true,
+	string(modelInputs.ReservedSessionKeyViewedByMe):    true,
 }
 
 const SessionsTable = "sessions"
@@ -412,9 +414,6 @@ func (client *Client) QueryFieldNames(ctx context.Context, projectId int, start 
 			sb.Between("SessionCreatedAt", start, end))).
 		BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	// TODO(spenny): missing Identified, Fingerprint, Processed, HasRageClicks, HasErrors, AppVersion, FirstTime, Viewed, IP
-	// also missing HasComments on table entirely
-
 	rows, err := client.conn.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, err
@@ -521,7 +520,8 @@ var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 	},
 	ReservedKeys: modelInputs.AllReservedSessionKey,
 	IgnoredFilters: map[string]bool{
-		modelInputs.ReservedSessionKeySample.String(): true,
+		modelInputs.ReservedSessionKeySample.String():     true,
+		modelInputs.ReservedSessionKeyViewedByMe.String(): true,
 	},
 }
 
@@ -625,8 +625,6 @@ func (client *Client) GetConn() driver.Conn {
 }
 
 func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
-	// TODO(spenny): Length and ActiveLength are in s (not ns)
-	// TODO(spenny): viewed_by_me search
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.From(fmt.Sprintf("%s FINAL", SessionsJoinedTableConfig.TableName))
 
@@ -635,6 +633,16 @@ func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, pro
 
 	listener := parser.GetSearchListener(sb, params.Query, SessionsJoinedTableConfig)
 	parser.GetSearchFilters(params.Query, SessionsJoinedTableConfig, listener)
+
+	useViewedByMe := listener.IgnoredFilters != nil && listener.IgnoredFilters[modelInputs.ReservedSessionKeyViewedByMe.String()] != ""
+	if useViewedByMe {
+		viewedByMe := listener.IgnoredFilters[modelInputs.ReservedSessionKeyViewedByMe.String()]
+		if viewedByMe == "true" {
+			sb.Where(fmt.Sprintf("has(ViewedByAdmins, %d)", admin.ID))
+		} else {
+			sb.Where(fmt.Sprintf("NOT has(ViewedByAdmins, %d)", admin.ID))
+		}
+	}
 
 	useRandomSample := listener.IgnoredFilters != nil && listener.IgnoredFilters[modelInputs.ReservedSessionKeySample.String()] != ""
 	if useRandomSample {
