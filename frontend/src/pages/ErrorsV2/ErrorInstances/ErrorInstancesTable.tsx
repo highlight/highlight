@@ -151,7 +151,10 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 				return (
 					<Link
 						key={row.id}
-						to={`/${projectId}/errors/${row.original.node.errorGroupSecureID}/instances/${row.original.cursor}`}
+						to={{
+							pathname: `/${projectId}/errors/${row.original.node.errorGroupSecureID}/instances/${row.original.cursor}`,
+							search: location.search,
+						}}
 						className={styles.rowLink}
 					>
 						<Stack
