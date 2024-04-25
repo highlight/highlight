@@ -5741,7 +5741,10 @@ body {
   z-index: 1;
 }
 ._1gpgayid:hover {
-  background-color: #c8c7cb;
+  background-color: var(--_1pyqka91m);
+}
+._1gpgayid:focus {
+  background-color: var(--_1pyqka91m);
 }
 ._14ud0dc0::-webkit-scrollbar {
   width: 9px;
@@ -6500,7 +6503,10 @@ body {
   z-index: 1;
 }
 ._75g8nf1:hover {
-  background-color: #c8c7cb;
+  background-color: var(--_1pyqka91m);
+}
+._75g8nf1:focus {
+  background-color: var(--_1pyqka91m);
 }
 ._1yp8bvx0 {
   border-radius: 50%;
