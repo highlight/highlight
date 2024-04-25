@@ -1,9 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { Button } from '@components/Button'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
 import { linkStyle } from '@components/Header/styles.css'
-import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
 import {
 	useGetBillingDetailsForProjectQuery,
@@ -34,7 +32,6 @@ import {
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidPlusSm,
-	IconSolidSearch,
 	IconSolidSparkles,
 	IconSolidSpeakerphone,
 	IconSolidSwitchHorizontal,
@@ -474,25 +471,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 								)}
 							{!isSetup && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
-									{!!projectId && (
-										<Button
-											trackingId="quickSearchClicked"
-											kind="secondary"
-											size="small"
-											emphasis="high"
-											iconLeft={<IconSolidSearch />}
-											onClick={commandBarDialog.toggle}
-										>
-											<Badge
-												variant="outlineGray"
-												shape="basic"
-												size="small"
-												label={OpenCommandBarShortcut.shortcut.join(
-													'+',
-												)}
-											/>
-										</Button>
-									)}
 									<Box>
 										<ButtonIcon
 											cssClass={styles.button}
