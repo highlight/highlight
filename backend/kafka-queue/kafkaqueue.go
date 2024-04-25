@@ -27,7 +27,7 @@ const ConsumerGroupName = "group-default"
 
 const (
 	TaskRetries           = 2
-	prefetchQueueCapacity = 10_000
+	prefetchQueueCapacity = 1_000
 	MaxMessageSizeBytes   = 256 * 1024 * 1024 // MiB
 )
 
@@ -231,6 +231,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			ReadBatchTimeout: KafkaOperationTimeout,
 			QueueCapacity:    prefetchQueueCapacity,
 			RebalanceTimeout: rebalanceTimeout,
+			CommitInterval:   time.Second,
 			Logger:           getLogger("consumer", topic, log.InfoLevel),
 			ErrorLogger:      getLogger("consumer", topic, log.ErrorLevel),
 			GroupBalancers: []kafka.GroupBalancer{
