@@ -496,7 +496,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 }
 
 func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, projectID int, method model.ErrorGroupingMethod, embedding model.Vector, threshold float64) (*int, error) {
-	span, ctx := util.StartSpanFromContext(ctx, "public-resolver", util.ResourceName("GetTopErrorGroupMatchByEmbedding"), util.WithSpanKind(trace.SpanKindConsumer), util.Tag("projectID", projectID))
+	span, ctx := util.StartSpanFromContext(ctx, "public-resolver", util.ResourceName("GetTopErrorGroupMatchByEmbedding"), util.Tag("projectID", projectID))
 	defer span.Finish()
 
 	result := struct {
@@ -2516,20 +2516,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		parseEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", opts...)
 		defer parseEventsSpan.Finish()
 
-		if len(events.Events) > 50_000 {
-			log.WithContext(ctx).
-				WithField("sessionSecureID", sessionSecureID).
-				WithField("sessionID", sessionObj.ID).
-				WithField("projectID", sessionObj.ProjectID).
-				WithField("numberOfEvents", len(events.Events)).
-				WithField("messagesLength", len(messages)).
-				WithField("resourcesLength", len(resources)).
-				WithField("webSocketEventsLength", len(webSocketEventsStr)).
-				WithField("numberOfErrors", len(errors)).
-				Error("ProcessPayload with large event count skipping events processing")
-			return nil
-		}
-
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 			// should fix at some point.
@@ -2650,7 +2636,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	g.Go(func() error {
 		defer util.Recover()
 		unmarshalMessagesSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			util.ResourceName("go.unmarshal.messages"), util.Tag("project_id", projectID), util.Tag("message_string_len", len(messages)), util.Tag("secure_session_id", sessionSecureID), util.WithSpanKind(trace.SpanKindConsumer))
+			util.ResourceName("go.unmarshal.messages"), util.Tag("project_id", projectID), util.Tag("message_string_len", len(messages)), util.Tag("secure_session_id", sessionSecureID))
 
 		err := r.submitFrontendConsoleMessages(ctx, sessionObj, messages)
 		unmarshalMessagesSpan.Finish(err)

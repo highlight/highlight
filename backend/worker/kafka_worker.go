@@ -50,7 +50,7 @@ func (k *KafkaWorker) log(ctx context.Context, task kafkaqueue.RetryableMessage,
 	if m == nil {
 		return
 	}
-	if m.Partition == 478 || m.Partition == 214 || m.Partition == 140 {
+	if m.Partition == 408 || m.Partition == 58 || m.Partition == 289 {
 		log.WithContext(ctx).
 			WithField("key", string(m.Key)).
 			WithField("offset", m.Offset).
