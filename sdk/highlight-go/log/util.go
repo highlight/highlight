@@ -2,6 +2,7 @@ package hlog
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -74,7 +75,13 @@ type VercelLog struct {
 	Proxy       VercelProxy `json:"proxy"`
 }
 
+var reservedVercelLogAttributes = map[string]bool{
+	"vercel.timestamp": true, "vercel.proxy.timestamp": true, "vercel.message": true,
+}
+
 func submitVercelLog(ctx context.Context, tracer trace.Tracer, projectID int, serviceName string, log VercelLog) {
+	ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, log.RequestId)
+	ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, log.RequestId)
 	span, _ := highlight.StartTraceWithoutResourceAttributes(
 		ctx, tracer, highlight.UtilitySpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)), semconv.ServiceNameKey.String(serviceName),
@@ -95,7 +102,6 @@ func submitVercelLog(ctx context.Context, tracer trace.Tracer, projectID int, se
 	attrs := []attribute.KeyValue{
 		LogSeverityKey.String(level),
 		LogMessageKey.String(log.Message),
-		attribute.String("vercel.project", log.ProjectId),
 		semconv.ServiceVersionKey.String(log.DeploymentId),
 		semconv.CodeNamespaceKey.String(log.Source),
 		semconv.CodeFilepathKey.String(log.Path),
@@ -113,6 +119,17 @@ func submitVercelLog(ctx context.Context, tracer trace.Tracer, projectID int, se
 
 	if len(log.Proxy.UserAgent) > 0 {
 		attrs = append(attrs, semconv.HTTPUserAgentKey.String(strings.Join(log.Proxy.UserAgent, ",")))
+	}
+
+	if bytes, err := json.Marshal(&log); err == nil {
+		logMap := map[string]interface{}{}
+		if err := json.Unmarshal(bytes, &logMap); err == nil {
+			for k, v := range FormatLogAttributes("vercel", logMap) {
+				if !reservedVercelLogAttributes[k] && v != "" {
+					attrs = append(attrs, attribute.String(k, v))
+				}
+			}
+		}
 	}
 
 	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(log.Timestamp)))
