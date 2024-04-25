@@ -66,6 +66,7 @@ const MAX_ITEMS = 25
 
 const EXISTS_OPERATORS = ['EXISTS', 'NOT EXISTS'] as const
 const NUMERIC_OPERATORS = ['>', '>=', '<', '<='] as const
+const EQUAL_OPERATOR = ['='] as const
 const BOOLEAN_OPERATORS = ['=', '!='] as const
 const CONTAINS_OPERATOR = ['=**', '!=**'] as const
 const MATCHES_OPERATOR = ['=//', '!=//'] as const
@@ -77,6 +78,11 @@ export const SEARCH_OPERATORS = [
 	...MATCHES_OPERATOR,
 ] as const
 export type SearchOperator = typeof SEARCH_OPERATORS[number]
+
+type Creatable = {
+	label: string
+	value: string
+}
 
 export type SearchFormProps = {
 	startDate: Date
@@ -103,6 +109,7 @@ export type SearchFormProps = {
 	isPanelView?: boolean
 	resultCount?: number
 	loading?: boolean
+	creatables?: { [key: string]: Creatable }
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({
@@ -122,6 +129,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	isPanelView,
 	resultCount,
 	loading,
+	creatables,
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
@@ -167,6 +175,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			textAreaRef={textAreaRef}
 			productType={productType}
 			hideIcon={isPanelView}
+			creatables={creatables}
 		/>
 	)
 
@@ -286,6 +295,7 @@ export const Search: React.FC<{
 	placeholder?: string
 	productType: ProductType
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
+	creatables?: { [key: string]: Creatable }
 }> = ({
 	startDate,
 	endDate,
@@ -293,6 +303,7 @@ export const Search: React.FC<{
 	placeholder,
 	textAreaRef,
 	productType,
+	creatables,
 }) => {
 	const {
 		disabled,
@@ -343,24 +354,36 @@ export const Search: React.FC<{
 	const showOperators = !!keyMatch
 
 	if (showOperators) {
-		const operators =
-			keyMatch.type === 'Numeric'
-				? [
-						...BOOLEAN_OPERATORS,
-						...NUMERIC_OPERATORS,
-						...EXISTS_OPERATORS,
-				  ]
-				: [
-						...BOOLEAN_OPERATORS,
-						...EXISTS_OPERATORS,
-						...CONTAINS_OPERATOR,
-						...MATCHES_OPERATOR,
-				  ]
+		let operators = [] as string[]
+		switch (keyMatch.type) {
+			case 'Numeric':
+				operators = [
+					...BOOLEAN_OPERATORS,
+					...NUMERIC_OPERATORS,
+					...EXISTS_OPERATORS,
+				]
+				break
+			case 'String':
+				operators = [
+					...BOOLEAN_OPERATORS,
+					...EXISTS_OPERATORS,
+					...CONTAINS_OPERATOR,
+					...MATCHES_OPERATOR,
+				]
+				break
+			case 'Creatable':
+				operators = [...EQUAL_OPERATOR]
+		}
 
-		visibleItems = operators.map((operator) => ({
-			name: operator,
-			type: 'Operator',
-		}))
+		keyMatch.type === 'Numeric'
+			? [...BOOLEAN_OPERATORS, ...NUMERIC_OPERATORS, ...EXISTS_OPERATORS]
+			: (visibleItems = operators.map(
+					(operator) =>
+						({
+							name: operator,
+							type: 'Operator',
+						} as SearchResult),
+			  ))
 	}
 
 	// Limit number of items shown.
@@ -422,6 +445,12 @@ export const Search: React.FC<{
 			return
 		}
 
+		const creatableType = creatables?.[activePart.key]
+		if (!!creatableType) {
+			setValues([creatableType?.label])
+			return
+		}
+
 		getKeyValues({
 			variables: {
 				product_type: productType,
@@ -439,6 +468,7 @@ export const Search: React.FC<{
 		})
 	}, [
 		activePart.key,
+		creatables,
 		endDate,
 		getKeyValues,
 		productType,
@@ -505,7 +535,12 @@ export const Search: React.FC<{
 			activePart.text = `${key}${space}${activePart.operator}`
 			activePart.stop = activePart.start + activePart.text.length
 		} else if (isValueSelect) {
-			activePart.value = quoteQueryValue(item.name)
+			const creatableType = creatables?.[activePart.key]
+			if (!!creatableType) {
+				activePart.value = quoteQueryValue(creatableType.value)
+			} else {
+				activePart.value = quoteQueryValue(item.name)
+			}
 			activePart.text = `${activePart.key}${activePart.operator}${activePart.value}`
 			activePart.stop = activePart.start + activePart.text.length
 		} else {

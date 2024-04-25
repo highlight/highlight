@@ -192,6 +192,16 @@ export const SessionFeedV3 = React.memo(() => {
 					actions={actions}
 					resultCount={totalCount}
 					loading={loading}
+					creatables={{
+						sample: {
+							label: 'New Random Seed',
+							value: [...Array(16)]
+								.map(() =>
+									Math.floor(Math.random() * 16).toString(16),
+								)
+								.join(''),
+						},
+					}}
 					hideCreateAlert
 					isPanelView
 				/>

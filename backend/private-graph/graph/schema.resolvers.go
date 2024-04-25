@@ -8999,7 +8999,7 @@ func (r *queryResolver) ErrorsKeys(ctx context.Context, projectID int, dateRange
 		return nil, err
 	}
 
-	if typeArg != nil && *typeArg == modelInputs.KeyTypeNumeric {
+	if typeArg != nil && *typeArg != modelInputs.KeyTypeString {
 		return []*modelInputs.QueryKey{}, nil
 	} else {
 		return lo.Map(modelInputs.AllReservedErrorsJoinedKey, func(k modelInputs.ReservedErrorsJoinedKey, _ int) *modelInputs.QueryKey {

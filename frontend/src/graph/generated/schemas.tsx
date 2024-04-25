@@ -852,6 +852,7 @@ export type JiraTeam = {
 }
 
 export enum KeyType {
+	Creatable = 'Creatable',
 	Numeric = 'Numeric',
 	String = 'String',
 }
@@ -3075,6 +3076,7 @@ export enum ReservedSessionKey {
 	OsVersion = 'os_version',
 	PagesVisited = 'pages_visited',
 	Processed = 'processed',
+	Sample = 'sample',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
 	State = 'state',

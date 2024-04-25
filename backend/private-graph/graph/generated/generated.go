@@ -12355,6 +12355,7 @@ enum ReservedSessionKey {
 	viewed
 	pages_visited
 	normalness
+	sample
 }
 
 enum LogSource {
@@ -12365,6 +12366,7 @@ enum LogSource {
 enum KeyType {
 	String
 	Numeric
+	Creatable
 }
 
 type LogsHistogramBucketCount {

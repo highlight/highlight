@@ -1301,18 +1301,20 @@ func (e IntegrationType) MarshalGQL(w io.Writer) {
 type KeyType string
 
 const (
-	KeyTypeString  KeyType = "String"
-	KeyTypeNumeric KeyType = "Numeric"
+	KeyTypeString    KeyType = "String"
+	KeyTypeNumeric   KeyType = "Numeric"
+	KeyTypeCreatable KeyType = "Creatable"
 )
 
 var AllKeyType = []KeyType{
 	KeyTypeString,
 	KeyTypeNumeric,
+	KeyTypeCreatable,
 }
 
 func (e KeyType) IsValid() bool {
 	switch e {
-	case KeyTypeString, KeyTypeNumeric:
+	case KeyTypeString, KeyTypeNumeric, KeyTypeCreatable:
 		return true
 	}
 	return false
@@ -2128,6 +2130,7 @@ const (
 	ReservedSessionKeyViewed          ReservedSessionKey = "viewed"
 	ReservedSessionKeyPagesVisited    ReservedSessionKey = "pages_visited"
 	ReservedSessionKeyNormalness      ReservedSessionKey = "normalness"
+	ReservedSessionKeySample          ReservedSessionKey = "sample"
 )
 
 var AllReservedSessionKey = []ReservedSessionKey{
@@ -2155,11 +2158,12 @@ var AllReservedSessionKey = []ReservedSessionKey{
 	ReservedSessionKeyViewed,
 	ReservedSessionKeyPagesVisited,
 	ReservedSessionKeyNormalness,
+	ReservedSessionKeySample,
 }
 
 func (e ReservedSessionKey) IsValid() bool {
 	switch e {
-	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyAppVersion, ReservedSessionKeySecureSessionID, ReservedSessionKeyIdentified, ReservedSessionKeyFingerprint, ReservedSessionKeyIdentifier, ReservedSessionKeyCity, ReservedSessionKeyState, ReservedSessionKeyCountry, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyProcessed, ReservedSessionKeyHasComments, ReservedSessionKeyHasRageClicks, ReservedSessionKeyHasErrors, ReservedSessionKeyLength, ReservedSessionKeyActiveLength, ReservedSessionKeyFirstTime, ReservedSessionKeyViewed, ReservedSessionKeyPagesVisited, ReservedSessionKeyNormalness:
+	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyAppVersion, ReservedSessionKeySecureSessionID, ReservedSessionKeyIdentified, ReservedSessionKeyFingerprint, ReservedSessionKeyIdentifier, ReservedSessionKeyCity, ReservedSessionKeyState, ReservedSessionKeyCountry, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyProcessed, ReservedSessionKeyHasComments, ReservedSessionKeyHasRageClicks, ReservedSessionKeyHasErrors, ReservedSessionKeyLength, ReservedSessionKeyActiveLength, ReservedSessionKeyFirstTime, ReservedSessionKeyViewed, ReservedSessionKeyPagesVisited, ReservedSessionKeyNormalness, ReservedSessionKeySample:
 		return true
 	}
 	return false

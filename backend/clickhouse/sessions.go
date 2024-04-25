@@ -115,6 +115,7 @@ type ClickhouseField struct {
 var defaultSessionsKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedSessionKeyLength), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedSessionKeyActiveLength), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedSessionKeySample), Type: modelInputs.KeyTypeCreatable},
 }
 
 const SessionsTable = "sessions"
@@ -496,6 +497,9 @@ var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 		modelInputs.ReservedSessionKeyNormalness:      "Normalness",
 	},
 	ReservedKeys: modelInputs.AllReservedSessionKey,
+	IgnoredFilters: map[string]bool{
+		modelInputs.ReservedSessionKeySample.String(): true,
+	},
 }
 
 var sessionsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedSessionKey]{
@@ -597,12 +601,26 @@ func (client *Client) GetConn() driver.Conn {
 func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.From(fmt.Sprintf("%s FINAL", SessionsJoinedTableConfig.TableName))
-	sb.Select(selectColumns)
 
 	sb.Where(sb.LessEqualThan("CreatedAt", params.DateRange.EndDate)).
 		Where(sb.GreaterEqualThan("CreatedAt", params.DateRange.StartDate))
 
-	parser.AssignSearchFilters(sb, params.Query, SessionsJoinedTableConfig)
+	listener := parser.GetSearchListener(sb, params.Query, SessionsJoinedTableConfig)
+	parser.GetSearchFilters(params.Query, SessionsJoinedTableConfig, listener)
+
+	useRandomSample := listener.IgnoredFilters != nil && listener.IgnoredFilters[modelInputs.ReservedSessionKeySample.String()] != ""
+	if useRandomSample {
+		sampleRule := listener.IgnoredFilters[modelInputs.ReservedSessionKeySample.String()]
+		salt, err := strconv.ParseUint(sampleRule, 16, 64)
+		if err != nil {
+			return "", nil, false, err
+		}
+		selectColumns = fmt.Sprintf("%s, toUInt64(farmHash64(SecureID) %% %d) as hash", selectColumns, salt)
+		orderBy = pointy.String("hash")
+	}
+
+	sb.Select(selectColumns)
+
 	if groupBy != nil {
 		sb = sb.GroupBy(*groupBy)
 	}
@@ -616,10 +634,16 @@ func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, pro
 		sb = sb.Offset(*offset)
 	}
 
+	if useRandomSample {
+		sbOuter := sqlbuilder.NewSelectBuilder()
+		sb = sbOuter.
+			Select("*").
+			From(sbOuter.BuilderAs(sb, "inner"))
+	}
+
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	// TODO(spenny): custom rules to check - sampleField
-	return sql, args, false, nil
+	return sql, args, useRandomSample, nil
 }
 
 func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, projectId int, count int, params modelInputs.QueryInput, sortField string, page *int, retentionDate time.Time) ([]int64, int64, bool, error) {
