@@ -12356,6 +12356,7 @@ enum ReservedSessionKey {
 	pages_visited
 	normalness
 	sample
+	ip_address
 }
 
 enum LogSource {

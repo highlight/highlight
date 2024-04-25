@@ -115,6 +115,8 @@ type ClickhouseField struct {
 var defaultSessionsKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedSessionKeyLength), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedSessionKeyActiveLength), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedSessionKeyFingerprint), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedSessionKeyPagesVisited), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedSessionKeySample), Type: modelInputs.KeyTypeCreatable},
 }
 
@@ -394,6 +396,9 @@ func (client *Client) QueryFieldNames(ctx context.Context, projectId int, start 
 			sb.Between("SessionCreatedAt", start, end))).
 		BuildWithFlavor(sqlbuilder.ClickHouse)
 
+	// TODO(spenny): missing Identified, Fingerprint, Processed, HasRageClicks, HasErrors, AppVersion, FirstTime, Viewed, IP
+	// also missing HasComments on table entirely
+
 	rows, err := client.conn.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, err
@@ -478,6 +483,7 @@ var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 		modelInputs.ReservedSessionKeySecureSessionID: "SecureID",
 		modelInputs.ReservedSessionKeyFingerprint:     "Fingerprint",
 		modelInputs.ReservedSessionKeyIdentifier:      "Identifier",
+		modelInputs.ReservedSessionKeyIdentified:      "Identified",
 		modelInputs.ReservedSessionKeyCity:            "City",
 		modelInputs.ReservedSessionKeyState:           "State",
 		modelInputs.ReservedSessionKeyCountry:         "Country",
@@ -495,6 +501,7 @@ var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 		modelInputs.ReservedSessionKeyViewed:          "Viewed",
 		modelInputs.ReservedSessionKeyPagesVisited:    "PagesVisited",
 		modelInputs.ReservedSessionKeyNormalness:      "Normalness",
+		modelInputs.ReservedSessionKeyIPAddress:       "IP",
 	},
 	ReservedKeys: modelInputs.AllReservedSessionKey,
 	IgnoredFilters: map[string]bool{
@@ -513,7 +520,6 @@ func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, pa
 	return readMetrics(ctx, client, sessionsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
 }
 
-// TODO(spenny): missing keys from session table (has_errors, has_comments, etc)
 func (client *Client) SessionsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	sessionKeys, err := KeysAggregated(ctx, client, SessionKeysTable, projectID, startDate, endDate, query, typeArg)
 	if err != nil {
@@ -599,6 +605,8 @@ func (client *Client) GetConn() driver.Conn {
 }
 
 func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
+	// TODO(spenny): Length and ActiveLength are in s (not ns)
+	// TODO(spenny): viewed_by_me search
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.From(fmt.Sprintf("%s FINAL", SessionsJoinedTableConfig.TableName))
 

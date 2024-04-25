@@ -3070,6 +3070,7 @@ export enum ReservedSessionKey {
 	HasRageClicks = 'has_rage_clicks',
 	Identified = 'identified',
 	Identifier = 'identifier',
+	IpAddress = 'ip_address',
 	Length = 'length',
 	Normalness = 'normalness',
 	OsName = 'os_name',

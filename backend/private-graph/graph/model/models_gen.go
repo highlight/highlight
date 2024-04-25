@@ -2131,6 +2131,7 @@ const (
 	ReservedSessionKeyPagesVisited    ReservedSessionKey = "pages_visited"
 	ReservedSessionKeyNormalness      ReservedSessionKey = "normalness"
 	ReservedSessionKeySample          ReservedSessionKey = "sample"
+	ReservedSessionKeyIPAddress       ReservedSessionKey = "ip_address"
 )
 
 var AllReservedSessionKey = []ReservedSessionKey{
@@ -2159,11 +2160,12 @@ var AllReservedSessionKey = []ReservedSessionKey{
 	ReservedSessionKeyPagesVisited,
 	ReservedSessionKeyNormalness,
 	ReservedSessionKeySample,
+	ReservedSessionKeyIPAddress,
 }
 
 func (e ReservedSessionKey) IsValid() bool {
 	switch e {
-	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyAppVersion, ReservedSessionKeySecureSessionID, ReservedSessionKeyIdentified, ReservedSessionKeyFingerprint, ReservedSessionKeyIdentifier, ReservedSessionKeyCity, ReservedSessionKeyState, ReservedSessionKeyCountry, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyProcessed, ReservedSessionKeyHasComments, ReservedSessionKeyHasRageClicks, ReservedSessionKeyHasErrors, ReservedSessionKeyLength, ReservedSessionKeyActiveLength, ReservedSessionKeyFirstTime, ReservedSessionKeyViewed, ReservedSessionKeyPagesVisited, ReservedSessionKeyNormalness, ReservedSessionKeySample:
+	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyAppVersion, ReservedSessionKeySecureSessionID, ReservedSessionKeyIdentified, ReservedSessionKeyFingerprint, ReservedSessionKeyIdentifier, ReservedSessionKeyCity, ReservedSessionKeyState, ReservedSessionKeyCountry, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyProcessed, ReservedSessionKeyHasComments, ReservedSessionKeyHasRageClicks, ReservedSessionKeyHasErrors, ReservedSessionKeyLength, ReservedSessionKeyActiveLength, ReservedSessionKeyFirstTime, ReservedSessionKeyViewed, ReservedSessionKeyPagesVisited, ReservedSessionKeyNormalness, ReservedSessionKeySample, ReservedSessionKeyIPAddress:
 		return true
 	}
 	return false
