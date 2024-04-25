@@ -212,13 +212,13 @@ export const MetadataBox = React.memo(() => {
 			} as SearchExpression)
 		} else {
 			newQueryParts = queryParts.filter(
-				(part) => part.key !== 'session_device_id',
+				(part) => part.key !== 'device_id',
 			)
 			newQueryParts.push({
-				key: 'session_device_id',
+				key: 'device_id',
 				operator: '=',
 				value: String(session.fingerprint),
-				text: `session_device_id=${session.fingerprint}`,
+				text: `device_id=${session.fingerprint}`,
 			} as SearchExpression)
 		}
 

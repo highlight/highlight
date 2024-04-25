@@ -371,6 +371,9 @@ export const Search: React.FC<{
 					...MATCHES_OPERATOR,
 				]
 				break
+			case 'Boolean':
+				operators = [...BOOLEAN_OPERATORS]
+				break
 			case 'Creatable':
 				operators = [...EQUAL_OPERATOR]
 		}
@@ -447,7 +450,7 @@ export const Search: React.FC<{
 
 		const creatableType = creatables?.[activePart.key]
 		if (!!creatableType) {
-			setValues([creatableType?.label])
+			setValues([creatableType.label])
 			return
 		}
 

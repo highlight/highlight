@@ -1301,20 +1301,22 @@ func (e IntegrationType) MarshalGQL(w io.Writer) {
 type KeyType string
 
 const (
-	KeyTypeString    KeyType = "String"
-	KeyTypeNumeric   KeyType = "Numeric"
+	KeyTypeBoolean   KeyType = "Boolean"
 	KeyTypeCreatable KeyType = "Creatable"
+	KeyTypeNumeric   KeyType = "Numeric"
+	KeyTypeString    KeyType = "String"
 )
 
 var AllKeyType = []KeyType{
-	KeyTypeString,
-	KeyTypeNumeric,
+	KeyTypeBoolean,
 	KeyTypeCreatable,
+	KeyTypeNumeric,
+	KeyTypeString,
 }
 
 func (e KeyType) IsValid() bool {
 	switch e {
-	case KeyTypeString, KeyTypeNumeric, KeyTypeCreatable:
+	case KeyTypeBoolean, KeyTypeCreatable, KeyTypeNumeric, KeyTypeString:
 		return true
 	}
 	return false
@@ -2108,10 +2110,9 @@ type ReservedSessionKey string
 const (
 	ReservedSessionKeyEnvironment     ReservedSessionKey = "environment"
 	ReservedSessionKeyServiceName     ReservedSessionKey = "service_name"
-	ReservedSessionKeyAppVersion      ReservedSessionKey = "app_version"
+	ReservedSessionKeyServiceVersion  ReservedSessionKey = "service_version"
 	ReservedSessionKeySecureSessionID ReservedSessionKey = "secure_session_id"
 	ReservedSessionKeyIdentified      ReservedSessionKey = "identified"
-	ReservedSessionKeyFingerprint     ReservedSessionKey = "fingerprint"
 	ReservedSessionKeyIdentifier      ReservedSessionKey = "identifier"
 	ReservedSessionKeyCity            ReservedSessionKey = "city"
 	ReservedSessionKeyState           ReservedSessionKey = "state"
@@ -2131,16 +2132,16 @@ const (
 	ReservedSessionKeyPagesVisited    ReservedSessionKey = "pages_visited"
 	ReservedSessionKeyNormalness      ReservedSessionKey = "normalness"
 	ReservedSessionKeySample          ReservedSessionKey = "sample"
-	ReservedSessionKeyIPAddress       ReservedSessionKey = "ip_address"
+	ReservedSessionKeyIP              ReservedSessionKey = "ip"
+	ReservedSessionKeyDeviceID        ReservedSessionKey = "device_id"
 )
 
 var AllReservedSessionKey = []ReservedSessionKey{
 	ReservedSessionKeyEnvironment,
 	ReservedSessionKeyServiceName,
-	ReservedSessionKeyAppVersion,
+	ReservedSessionKeyServiceVersion,
 	ReservedSessionKeySecureSessionID,
 	ReservedSessionKeyIdentified,
-	ReservedSessionKeyFingerprint,
 	ReservedSessionKeyIdentifier,
 	ReservedSessionKeyCity,
 	ReservedSessionKeyState,
@@ -2160,12 +2161,13 @@ var AllReservedSessionKey = []ReservedSessionKey{
 	ReservedSessionKeyPagesVisited,
 	ReservedSessionKeyNormalness,
 	ReservedSessionKeySample,
-	ReservedSessionKeyIPAddress,
+	ReservedSessionKeyIP,
+	ReservedSessionKeyDeviceID,
 }
 
 func (e ReservedSessionKey) IsValid() bool {
 	switch e {
-	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyAppVersion, ReservedSessionKeySecureSessionID, ReservedSessionKeyIdentified, ReservedSessionKeyFingerprint, ReservedSessionKeyIdentifier, ReservedSessionKeyCity, ReservedSessionKeyState, ReservedSessionKeyCountry, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyProcessed, ReservedSessionKeyHasComments, ReservedSessionKeyHasRageClicks, ReservedSessionKeyHasErrors, ReservedSessionKeyLength, ReservedSessionKeyActiveLength, ReservedSessionKeyFirstTime, ReservedSessionKeyViewed, ReservedSessionKeyPagesVisited, ReservedSessionKeyNormalness, ReservedSessionKeySample, ReservedSessionKeyIPAddress:
+	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyServiceVersion, ReservedSessionKeySecureSessionID, ReservedSessionKeyIdentified, ReservedSessionKeyIdentifier, ReservedSessionKeyCity, ReservedSessionKeyState, ReservedSessionKeyCountry, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyProcessed, ReservedSessionKeyHasComments, ReservedSessionKeyHasRageClicks, ReservedSessionKeyHasErrors, ReservedSessionKeyLength, ReservedSessionKeyActiveLength, ReservedSessionKeyFirstTime, ReservedSessionKeyViewed, ReservedSessionKeyPagesVisited, ReservedSessionKeyNormalness, ReservedSessionKeySample, ReservedSessionKeyIP, ReservedSessionKeyDeviceID:
 		return true
 	}
 	return false

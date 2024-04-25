@@ -852,6 +852,7 @@ export type JiraTeam = {
 }
 
 export enum KeyType {
+	Boolean = 'Boolean',
 	Creatable = 'Creatable',
 	Numeric = 'Numeric',
 	String = 'String',
@@ -3057,20 +3058,19 @@ export enum ReservedLogKey {
 
 export enum ReservedSessionKey {
 	ActiveLength = 'active_length',
-	AppVersion = 'app_version',
 	BrowserName = 'browser_name',
 	BrowserVersion = 'browser_version',
 	City = 'city',
 	Country = 'country',
+	DeviceId = 'device_id',
 	Environment = 'environment',
-	Fingerprint = 'fingerprint',
 	FirstTime = 'first_time',
 	HasComments = 'has_comments',
 	HasErrors = 'has_errors',
 	HasRageClicks = 'has_rage_clicks',
 	Identified = 'identified',
 	Identifier = 'identifier',
-	IpAddress = 'ip_address',
+	Ip = 'ip',
 	Length = 'length',
 	Normalness = 'normalness',
 	OsName = 'os_name',
@@ -3080,6 +3080,7 @@ export enum ReservedSessionKey {
 	Sample = 'sample',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
+	ServiceVersion = 'service_version',
 	State = 'state',
 	Viewed = 'viewed',
 }

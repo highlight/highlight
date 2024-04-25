@@ -115,9 +115,25 @@ type ClickhouseField struct {
 var defaultSessionsKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedSessionKeyLength), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedSessionKeyActiveLength), Type: modelInputs.KeyTypeNumeric},
-	{Name: string(modelInputs.ReservedSessionKeyFingerprint), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedSessionKeyPagesVisited), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedSessionKeySample), Type: modelInputs.KeyTypeCreatable},
+	{Name: string(modelInputs.ReservedSessionKeyIdentified), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyProcessed), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyHasRageClicks), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyHasErrors), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyFirstTime), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyViewed), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyHasComments), Type: modelInputs.KeyTypeBoolean},
+}
+
+var booleanKeys = map[string]bool{
+	string(modelInputs.ReservedSessionKeyIdentified):    true,
+	string(modelInputs.ReservedSessionKeyProcessed):     true,
+	string(modelInputs.ReservedSessionKeyHasRageClicks): true,
+	string(modelInputs.ReservedSessionKeyHasErrors):     true,
+	string(modelInputs.ReservedSessionKeyFirstTime):     true,
+	string(modelInputs.ReservedSessionKeyViewed):        true,
+	string(modelInputs.ReservedSessionKeyHasComments):   true,
 }
 
 const SessionsTable = "sessions"
@@ -479,9 +495,9 @@ var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 	BodyColumn:       `concat(coalesce(nullif(SessionAttributes['email'],''), nullif(Identifier, ''), nullif(toString(Fingerprint), ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
 	KeysToColumns: map[modelInputs.ReservedSessionKey]string{
 		modelInputs.ReservedSessionKeyEnvironment:     "Environment",
-		modelInputs.ReservedSessionKeyAppVersion:      "AppVersion",
+		modelInputs.ReservedSessionKeyServiceVersion:  "AppVersion",
 		modelInputs.ReservedSessionKeySecureSessionID: "SecureID",
-		modelInputs.ReservedSessionKeyFingerprint:     "Fingerprint",
+		modelInputs.ReservedSessionKeyDeviceID:        "Fingerprint",
 		modelInputs.ReservedSessionKeyIdentifier:      "Identifier",
 		modelInputs.ReservedSessionKeyIdentified:      "Identified",
 		modelInputs.ReservedSessionKeyCity:            "City",
@@ -501,7 +517,7 @@ var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 		modelInputs.ReservedSessionKeyViewed:          "Viewed",
 		modelInputs.ReservedSessionKeyPagesVisited:    "PagesVisited",
 		modelInputs.ReservedSessionKeyNormalness:      "Normalness",
-		modelInputs.ReservedSessionKeyIPAddress:       "IP",
+		modelInputs.ReservedSessionKeyIP:              "IP",
 	},
 	ReservedKeys: modelInputs.AllReservedSessionKey,
 	IgnoredFilters: map[string]bool{
@@ -570,6 +586,10 @@ func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId i
 }
 
 func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
+	if booleanKeys[keyName] {
+		return []string{"true", "false"}, nil
+	}
+
 	sb := sqlbuilder.NewSelectBuilder()
 	sql, args := sb.
 		Select("Value").

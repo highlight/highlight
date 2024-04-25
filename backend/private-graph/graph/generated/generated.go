@@ -12333,10 +12333,9 @@ enum ReservedErrorsJoinedKey {
 enum ReservedSessionKey {
 	environment
 	service_name
-	app_version
+	service_version
 	secure_session_id
 	identified
-	fingerprint
 	identifier
 	city
 	state
@@ -12356,7 +12355,8 @@ enum ReservedSessionKey {
 	pages_visited
 	normalness
 	sample
-	ip_address
+	ip
+	device_id
 }
 
 enum LogSource {
@@ -12365,9 +12365,10 @@ enum LogSource {
 }
 
 enum KeyType {
-	String
-	Numeric
+	Boolean
 	Creatable
+	Numeric
+	String
 }
 
 type LogsHistogramBucketCount {
