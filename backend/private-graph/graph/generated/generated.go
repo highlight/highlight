@@ -11794,6 +11794,7 @@ enum SavedSegmentEntityType {
 	Log
 	Trace
 	Error
+	Session
 }
 
 type Project {
@@ -12332,10 +12333,9 @@ enum ReservedErrorsJoinedKey {
 enum ReservedSessionKey {
 	environment
 	service_name
-	app_version
+	service_version
 	secure_session_id
 	identified
-	fingerprint
 	identifier
 	city
 	state
@@ -12354,6 +12354,10 @@ enum ReservedSessionKey {
 	viewed
 	pages_visited
 	normalness
+	sample
+	ip
+	device_id
+	viewed_by_me
 }
 
 enum LogSource {
@@ -12362,8 +12366,10 @@ enum LogSource {
 }
 
 enum KeyType {
-	String
+	Boolean
+	Creatable
 	Numeric
+	String
 }
 
 type LogsHistogramBucketCount {

@@ -39,7 +39,7 @@ type FilterOperation struct {
 
 type Filters []*FilterOperation
 
-type searchListener[T ~string] struct {
+type SearchListener[T ~string] struct {
 	parser.SearchGrammarListener
 
 	currentKey       string
@@ -49,14 +49,15 @@ type searchListener[T ~string] struct {
 	sb               *sqlbuilder.SelectBuilder
 	attributesColumn string
 	tableConfig      model.TableConfig[T]
+	IgnoredFilters   map[string]string
 }
 
-func (s *searchListener[T]) GetFilters() Filters {
+func (s *SearchListener[T]) GetFilters() Filters {
 	return s.ops
 }
 
-func NewSearchListener[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, tableConfig model.TableConfig[T]) *searchListener[T] {
-	return &searchListener[T]{
+func NewSearchListener[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, tableConfig model.TableConfig[T]) *SearchListener[T] {
+	return &SearchListener[T]{
 		currentKey:       tableConfig.TableName,
 		currentOp:        "=",
 		rules:            []string{},
@@ -64,28 +65,29 @@ func NewSearchListener[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, tableCon
 		sb:               sqlBuilder,
 		attributesColumn: tableConfig.AttributesColumn,
 		tableConfig:      tableConfig,
+		IgnoredFilters:   map[string]string{},
 	}
 }
 
-func (s *searchListener[T]) EnterSearch_query(ctx *parser.Search_queryContext) {}
-func (s *searchListener[T]) ExitSearch_query(ctx *parser.Search_queryContext) {
+func (s *SearchListener[T]) EnterSearch_query(ctx *parser.Search_queryContext) {}
+func (s *SearchListener[T]) ExitSearch_query(ctx *parser.Search_queryContext) {
 	s.sb.Where(s.rules...)
 }
 
-func (s *searchListener[T]) EnterTop_paren_col_expr(ctx *parser.Top_paren_col_exprContext) {}
-func (s *searchListener[T]) ExitTop_paren_col_expr(ctx *parser.Top_paren_col_exprContext)  {}
+func (s *SearchListener[T]) EnterTop_paren_col_expr(ctx *parser.Top_paren_col_exprContext) {}
+func (s *SearchListener[T]) ExitTop_paren_col_expr(ctx *parser.Top_paren_col_exprContext)  {}
 
-func (s *searchListener[T]) EnterNegated_top_col_expr(ctx *parser.Negated_top_col_exprContext) {}
-func (s *searchListener[T]) ExitNegated_top_col_expr(ctx *parser.Negated_top_col_exprContext)  {}
+func (s *SearchListener[T]) EnterNegated_top_col_expr(ctx *parser.Negated_top_col_exprContext) {}
+func (s *SearchListener[T]) ExitNegated_top_col_expr(ctx *parser.Negated_top_col_exprContext)  {}
 
-func (s *searchListener[T]) EnterTop_col_search_value(ctx *parser.Top_col_search_valueContext) {}
-func (s *searchListener[T]) ExitTop_col_search_value(ctx *parser.Top_col_search_valueContext)  {}
+func (s *SearchListener[T]) EnterTop_col_search_value(ctx *parser.Top_col_search_valueContext) {}
+func (s *SearchListener[T]) ExitTop_col_search_value(ctx *parser.Top_col_search_valueContext)  {}
 
-func (s *searchListener[T]) EnterCol_paren_expr(ctx *parser.Col_paren_exprContext) {}
-func (s *searchListener[T]) ExitCol_paren_expr(ctx *parser.Col_paren_exprContext)  {}
+func (s *SearchListener[T]) EnterCol_paren_expr(ctx *parser.Col_paren_exprContext) {}
+func (s *SearchListener[T]) ExitCol_paren_expr(ctx *parser.Col_paren_exprContext)  {}
 
-func (s *searchListener[T]) EnterNegated_col_expr(ctx *parser.Negated_col_exprContext) {}
-func (s *searchListener[T]) ExitNegated_col_expr(ctx *parser.Negated_col_exprContext) {
+func (s *SearchListener[T]) EnterNegated_col_expr(ctx *parser.Negated_col_exprContext) {}
+func (s *SearchListener[T]) ExitNegated_col_expr(ctx *parser.Negated_col_exprContext) {
 	rule := s.rules[len(s.rules)-1]
 	s.rules = s.rules[:len(s.rules)-1]
 	s.rules = append(s.rules, fmt.Sprintf("NOT (%s)", rule))
@@ -98,8 +100,8 @@ func (s *searchListener[T]) ExitNegated_col_expr(ctx *parser.Negated_col_exprCon
 	})
 }
 
-func (s *searchListener[T]) EnterAnd_col_expr(ctx *parser.And_col_exprContext) {}
-func (s *searchListener[T]) ExitAnd_col_expr(ctx *parser.And_col_exprContext) {
+func (s *SearchListener[T]) EnterAnd_col_expr(ctx *parser.And_col_exprContext) {}
+func (s *SearchListener[T]) ExitAnd_col_expr(ctx *parser.And_col_exprContext) {
 	rules := s.rules[len(s.rules)-2:]
 	s.rules = s.rules[:len(s.rules)-2]
 	s.rules = append(s.rules, s.sb.And(rules...))
@@ -112,8 +114,8 @@ func (s *searchListener[T]) ExitAnd_col_expr(ctx *parser.And_col_exprContext) {
 	})
 }
 
-func (s *searchListener[T]) EnterOr_col_expr(ctx *parser.Or_col_exprContext) {}
-func (s *searchListener[T]) ExitOr_col_expr(ctx *parser.Or_col_exprContext) {
+func (s *SearchListener[T]) EnterOr_col_expr(ctx *parser.Or_col_exprContext) {}
+func (s *SearchListener[T]) ExitOr_col_expr(ctx *parser.Or_col_exprContext) {
 	rules := s.rules[len(s.rules)-2:]
 	s.rules = s.rules[:len(s.rules)-2]
 	s.rules = append(s.rules, s.sb.Or(rules...))
@@ -126,11 +128,11 @@ func (s *searchListener[T]) ExitOr_col_expr(ctx *parser.Or_col_exprContext) {
 	})
 }
 
-func (s *searchListener[T]) EnterCol_search_value(ctx *parser.Col_search_valueContext) {}
-func (s *searchListener[T]) ExitCol_search_value(ctx *parser.Col_search_valueContext)  {}
+func (s *SearchListener[T]) EnterCol_search_value(ctx *parser.Col_search_valueContext) {}
+func (s *SearchListener[T]) ExitCol_search_value(ctx *parser.Col_search_valueContext)  {}
 
-func (s *searchListener[T]) EnterNegated_search_expr(ctx *parser.Negated_search_exprContext) {}
-func (s *searchListener[T]) ExitNegated_search_expr(ctx *parser.Negated_search_exprContext) {
+func (s *SearchListener[T]) EnterNegated_search_expr(ctx *parser.Negated_search_exprContext) {}
+func (s *SearchListener[T]) ExitNegated_search_expr(ctx *parser.Negated_search_exprContext) {
 	rule := s.rules[len(s.rules)-1]
 	s.rules = s.rules[:len(s.rules)-1]
 	s.rules = append(s.rules, fmt.Sprintf("NOT (%s)", rule))
@@ -143,17 +145,17 @@ func (s *searchListener[T]) ExitNegated_search_expr(ctx *parser.Negated_search_e
 	})
 }
 
-func (s *searchListener[T]) EnterBody_search_expr(ctx *parser.Body_search_exprContext) {
+func (s *SearchListener[T]) EnterBody_search_expr(ctx *parser.Body_search_exprContext) {
 	s.currentKey = s.tableConfig.BodyColumn
 	s.currentOp = "="
 }
-func (s *searchListener[T]) ExitBody_search_expr(ctx *parser.Body_search_exprContext) {}
+func (s *SearchListener[T]) ExitBody_search_expr(ctx *parser.Body_search_exprContext) {}
 
-func (s *searchListener[T]) EnterExists_search_expr(ctx *parser.Exists_search_exprContext) {}
-func (s *searchListener[T]) ExitExists_search_expr(ctx *parser.Exists_search_exprContext)  {}
+func (s *SearchListener[T]) EnterExists_search_expr(ctx *parser.Exists_search_exprContext) {}
+func (s *SearchListener[T]) ExitExists_search_expr(ctx *parser.Exists_search_exprContext)  {}
 
-func (s *searchListener[T]) EnterAnd_search_expr(ctx *parser.And_search_exprContext) {}
-func (s *searchListener[T]) ExitAnd_search_expr(ctx *parser.And_search_exprContext) {
+func (s *SearchListener[T]) EnterAnd_search_expr(ctx *parser.And_search_exprContext) {}
+func (s *SearchListener[T]) ExitAnd_search_expr(ctx *parser.And_search_exprContext) {
 	rules := s.rules[len(s.rules)-2:]
 	s.rules = s.rules[:len(s.rules)-2]
 	s.rules = append(s.rules, s.sb.And(rules...))
@@ -166,13 +168,13 @@ func (s *searchListener[T]) ExitAnd_search_expr(ctx *parser.And_search_exprConte
 	})
 }
 
-func (s *searchListener[T]) EnterImplicit_and_search_expr(ctx *parser.Implicit_and_search_exprContext) {
+func (s *SearchListener[T]) EnterImplicit_and_search_expr(ctx *parser.Implicit_and_search_exprContext) {
 }
-func (s *searchListener[T]) ExitImplicit_and_search_expr(ctx *parser.Implicit_and_search_exprContext) {
+func (s *SearchListener[T]) ExitImplicit_and_search_expr(ctx *parser.Implicit_and_search_exprContext) {
 }
 
-func (s *searchListener[T]) EnterOr_search_expr(ctx *parser.Or_search_exprContext) {}
-func (s *searchListener[T]) ExitOr_search_expr(ctx *parser.Or_search_exprContext) {
+func (s *SearchListener[T]) EnterOr_search_expr(ctx *parser.Or_search_exprContext) {}
+func (s *SearchListener[T]) ExitOr_search_expr(ctx *parser.Or_search_exprContext) {
 	rules := s.rules[len(s.rules)-2:]
 	s.rules = s.rules[:len(s.rules)-2]
 	s.rules = append(s.rules, s.sb.Or(rules...))
@@ -185,8 +187,8 @@ func (s *searchListener[T]) ExitOr_search_expr(ctx *parser.Or_search_exprContext
 	})
 }
 
-func (s *searchListener[T]) EnterKey_val_search_expr(ctx *parser.Key_val_search_exprContext) {}
-func (s *searchListener[T]) ExitKey_val_search_expr(ctx *parser.Key_val_search_exprContext) {
+func (s *SearchListener[T]) EnterKey_val_search_expr(ctx *parser.Key_val_search_exprContext) {}
+func (s *SearchListener[T]) ExitKey_val_search_expr(ctx *parser.Key_val_search_exprContext) {
 	if s.currentOp == "!=" {
 		rule := s.rules[len(s.rules)-1]
 		s.rules = s.rules[:len(s.rules)-1]
@@ -201,33 +203,33 @@ func (s *searchListener[T]) ExitKey_val_search_expr(ctx *parser.Key_val_search_e
 	}
 }
 
-func (s *searchListener[T]) EnterParen_search_expr(ctx *parser.Paren_search_exprContext) {}
-func (s *searchListener[T]) ExitParen_search_expr(ctx *parser.Paren_search_exprContext)  {}
+func (s *SearchListener[T]) EnterParen_search_expr(ctx *parser.Paren_search_exprContext) {}
+func (s *SearchListener[T]) ExitParen_search_expr(ctx *parser.Paren_search_exprContext)  {}
 
-func (s *searchListener[T]) EnterSearch_key(ctx *parser.Search_keyContext) {
+func (s *SearchListener[T]) EnterSearch_key(ctx *parser.Search_keyContext) {
 	s.currentKey = ctx.GetText()
 }
-func (s *searchListener[T]) ExitSearch_key(ctx *parser.Search_keyContext) {}
+func (s *SearchListener[T]) ExitSearch_key(ctx *parser.Search_keyContext) {}
 
-func (s *searchListener[T]) EnterAnd_op(ctx *parser.And_opContext) {}
-func (s *searchListener[T]) ExitAnd_op(ctx *parser.And_opContext)  {}
+func (s *SearchListener[T]) EnterAnd_op(ctx *parser.And_opContext) {}
+func (s *SearchListener[T]) ExitAnd_op(ctx *parser.And_opContext)  {}
 
-func (s *searchListener[T]) EnterOr_op(ctx *parser.Or_opContext) {}
-func (s *searchListener[T]) ExitOr_op(ctx *parser.Or_opContext)  {}
+func (s *SearchListener[T]) EnterOr_op(ctx *parser.Or_opContext) {}
+func (s *SearchListener[T]) ExitOr_op(ctx *parser.Or_opContext)  {}
 
-func (s *searchListener[T]) EnterImplicit_and_op(ctx *parser.Implicit_and_opContext) {}
-func (s *searchListener[T]) ExitImplicit_and_op(ctx *parser.Implicit_and_opContext)  {}
+func (s *SearchListener[T]) EnterImplicit_and_op(ctx *parser.Implicit_and_opContext) {}
+func (s *SearchListener[T]) ExitImplicit_and_op(ctx *parser.Implicit_and_opContext)  {}
 
-func (s *searchListener[T]) EnterNegation_op(ctx *parser.Negation_opContext) {}
-func (s *searchListener[T]) ExitNegation_op(ctx *parser.Negation_opContext)  {}
+func (s *SearchListener[T]) EnterNegation_op(ctx *parser.Negation_opContext) {}
+func (s *SearchListener[T]) ExitNegation_op(ctx *parser.Negation_opContext)  {}
 
-func (s *searchListener[T]) EnterBin_op(ctx *parser.Bin_opContext) {
+func (s *SearchListener[T]) EnterBin_op(ctx *parser.Bin_opContext) {
 	s.currentOp = ctx.GetText()
 }
-func (s *searchListener[T]) ExitBin_op(ctx *parser.Bin_opContext) {}
+func (s *SearchListener[T]) ExitBin_op(ctx *parser.Bin_opContext) {}
 
-func (s *searchListener[T]) EnterExists_op(ctx *parser.Exists_opContext) {}
-func (s *searchListener[T]) ExitExists_op(ctx *parser.Exists_opContext) {
+func (s *SearchListener[T]) EnterExists_op(ctx *parser.Exists_opContext) {}
+func (s *SearchListener[T]) ExitExists_op(ctx *parser.Exists_opContext) {
 	op := strings.ToUpper(ctx.GetText())
 	switch op {
 	case "EXISTS":
@@ -254,17 +256,21 @@ func (s *searchListener[T]) ExitExists_op(ctx *parser.Exists_opContext) {
 	}
 }
 
-func (s *searchListener[T]) EnterSearch_value(ctx *parser.Search_valueContext) {
+func (s *SearchListener[T]) EnterSearch_value(ctx *parser.Search_valueContext) {
 	s.appendRules(ctx.GetText())
 }
-func (s *searchListener[T]) ExitSearch_value(ctx *parser.Search_valueContext) {}
+func (s *SearchListener[T]) ExitSearch_value(ctx *parser.Search_valueContext) {}
 
-func (s *searchListener[T]) VisitTerminal(node antlr.TerminalNode)      {}
-func (s *searchListener[T]) VisitErrorNode(node antlr.ErrorNode)        {}
-func (s *searchListener[T]) EnterEveryRule(ctx antlr.ParserRuleContext) {}
-func (s *searchListener[T]) ExitEveryRule(ctx antlr.ParserRuleContext)  {}
+func (s *SearchListener[T]) VisitTerminal(node antlr.TerminalNode)      {}
+func (s *SearchListener[T]) VisitErrorNode(node antlr.ErrorNode)        {}
+func (s *SearchListener[T]) EnterEveryRule(ctx antlr.ParserRuleContext) {}
+func (s *SearchListener[T]) ExitEveryRule(ctx antlr.ParserRuleContext)  {}
 
-func (s *searchListener[T]) appendRules(value string) {
+func (s *SearchListener[T]) appendRules(value string) {
+	if s.tableConfig.IgnoredFilters != nil && s.tableConfig.IgnoredFilters[s.currentKey] {
+		s.IgnoredFilters[s.currentKey] = string(value)
+		return
+	}
 	// Quotes are sometimes escaped on the client and need to be unescaped before
 	// being used in the query or they will be double escaped.
 	value = unquote(value)
