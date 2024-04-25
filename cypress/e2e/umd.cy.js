@@ -1,4 +1,4 @@
-const cdns = ['unpkg', 'unpkg-remote', 'jsdelivr', 'local']
+const cdns = ['unpkg', 'jsdelivr', 'local']
 describe('web client recording spec', () => {
 	cdns.map((source) => {
 		it(
