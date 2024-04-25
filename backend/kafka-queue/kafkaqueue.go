@@ -233,11 +233,8 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			ReadBatchTimeout:  KafkaOperationTimeout,
 			QueueCapacity:     prefetchQueueCapacity,
 			RebalanceTimeout:  rebalanceTimeout,
-			// in the future, we would commit only on successful processing of a message.
-			// this means we commit very often to avoid repeating tasks on worker restart.
-			CommitInterval: 100 * time.Millisecond,
-			Logger:         getLogger("consumer", topic, log.InfoLevel),
-			ErrorLogger:    getLogger("consumer", topic, log.ErrorLevel),
+			Logger:            getLogger("consumer", topic, log.InfoLevel),
+			ErrorLogger:       getLogger("consumer", topic, log.ErrorLevel),
 			GroupBalancers: []kafka.GroupBalancer{
 				&BalancerWrapper{
 					balancer:       kafka.RoundRobinGroupBalancer{},
