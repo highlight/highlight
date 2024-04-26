@@ -182,7 +182,7 @@ func getFileSourcemap(ctx context.Context, projectId int, version *string, stack
 	stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
 	for sourceMapFileBytes == nil {
 		sourceMapFileBytes, err = storageClient.ReadSourceMapFileCached(ctx, projectId, version, pathSubpath)
-		if err != nil {
+		if sourceMapFileBytes == nil || err != nil {
 			if pathSubpath == "" {
 				// SOURCEMAP_ERROR: could not find source map file in s3
 				// (user-facing error message can include all the paths searched)
@@ -207,7 +207,7 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 	stackTraceError.MinifiedFetchStrategy = &minifiedFetchStrategy
 	stackTraceError.ActualMinifiedFetchedPath = &stackTraceFilePath
 
-	if err != nil {
+	if minifiedFileBytes == nil || err != nil {
 		// if not in s3, get from url and put in s3
 		minifiedFileBytes, err = fetch.fetchFile(ctx, stackTraceFileURL)
 		minifiedFetchStrategy = "URL"
@@ -304,7 +304,7 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 		sourceMapFileBytes, err = storageClient.ReadSourceMapFileCached(ctx, projectId, version, sourceMapFilePath)
 		sourcemapFetchStrategy := "S3"
 		stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
-		if err != nil {
+		if sourceMapFileBytes == nil || err != nil {
 			// if not in s3, get from url and put in s3
 			sourceMapFileBytes, err = fetch.fetchFile(ctx, sourceMapURL)
 			sourcemapFetchStrategy = "URL"

@@ -275,9 +275,11 @@ func TestEnhanceStackTrace(t *testing.T) {
 	}
 
 	// run tests
+	redisClient := redis.NewClient()
 	for _, client := range []storage.Client{s3Client, fsClient} {
 		for name, tc := range tests {
 			t.Run(fmt.Sprintf("%s/%v", name, client), func(t *testing.T) {
+				_ = redisClient.FlushDB(ctx)
 				if tc.projectID == 0 {
 					tc.projectID = 1
 				} else if client == s3Client {
