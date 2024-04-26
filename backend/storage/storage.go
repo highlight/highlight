@@ -474,7 +474,7 @@ func (f *FilesystemClient) SetupHTTPSListener(r chi.Router) {
 }
 
 func NewFSClient(_ context.Context, origin, fsRoot string) (*FilesystemClient, error) {
-	return &FilesystemClient{origin: origin, fsRoot: fsRoot}, nil
+	return &FilesystemClient{origin: origin, fsRoot: fsRoot, redis: hredis.NewClient()}, nil
 }
 
 type S3Client struct {
@@ -500,6 +500,7 @@ func NewS3Client(ctx context.Context) (*S3Client, error) {
 		S3ClientEast2:   clientEast2,
 		S3PresignClient: s3.NewPresignClient(clientEast2),
 		URLSigner:       getURLSigner(ctx),
+		Redis:           hredis.NewClient(),
 	}, nil
 }
 
