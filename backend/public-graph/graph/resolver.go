@@ -369,6 +369,9 @@ func (r *Resolver) GetErrorAppVersion(ctx context.Context, errorObj *model.Error
 }
 
 func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []*privateModel.ErrorTrace, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "getMappedStackTraceString")
+	defer span.Finish()
+
 	var newMappedStackTraceString *string
 	mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, stackTrace, projectID, r.GetErrorAppVersion(ctx, errorObj), r.StorageClient)
 	if err != nil {
@@ -672,6 +675,9 @@ func (r *Resolver) GetTopErrorGroupMatch(ctx context.Context, event string, proj
 
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
 func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace, fields []*model.ErrorField, projectID int, workspace *model.Workspace) (*model.ErrorGroup, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "HandleErrorAndGroup", util.Tag("projectID", projectID))
+	defer span.Finish()
+
 	if errorObj == nil {
 		return nil, e.New("error object was nil")
 	}
@@ -2734,9 +2740,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		})
 
 		for _, v := range errors {
+			span, c := util.StartSpanFromContext(ctx, "MarshalError")
 			traceBytes, err := json.Marshal(v.StackTrace)
 			if err != nil {
-				log.WithContext(ctx).Errorf("Error marshaling trace: %v", v.StackTrace)
+				log.WithContext(c).Errorf("Error marshaling trace: %v", v.StackTrace)
 				continue
 			}
 
@@ -2766,6 +2773,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				ServiceVersion: serviceVersion,
 				ServiceName:    sessionObj.ServiceName,
 			}
+			span.Finish()
 
 			var structuredStackTrace []*privateModel.ErrorTrace
 			mapped, structured, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert)
