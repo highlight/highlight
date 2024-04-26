@@ -673,6 +673,23 @@ func (r *Resolver) GetTopErrorGroupMatch(ctx context.Context, event string, proj
 	}
 }
 
+func (r *Resolver) isWithinErrorQuota(ctx context.Context, workspace *model.Workspace) bool {
+	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, model.PricingProductTypeErrors, workspace, time.Now())
+	go func() {
+		defer util.Recover()
+		if quotaPercent >= 1 {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage100Percent, workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+			}
+		} else if quotaPercent >= .8 {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage80Percent, workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+			}
+		}
+	}()
+	return withinBillingQuota
+}
+
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
 func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace, fields []*model.ErrorField, projectID int, workspace *model.Workspace) (*model.ErrorGroup, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "HandleErrorAndGroup", util.Tag("projectID", projectID))
@@ -696,23 +713,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 
 	if errorgroups.IsErrorTraceFiltered(*project, structuredStackTrace) {
 		return nil, ErrUserFilteredError
-	}
-
-	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, model.PricingProductTypeErrors, workspace, time.Now())
-	go func() {
-		defer util.Recover()
-		if quotaPercent >= 1 {
-			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage100Percent, workspace); err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
-			}
-		} else if quotaPercent >= .8 {
-			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage80Percent, workspace); err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
-			}
-		}
-	}()
-	if !withinBillingQuota {
-		return nil, ErrQuotaExceeded
 	}
 
 	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
@@ -2134,6 +2134,13 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		return
 	}
 
+	if !r.isWithinErrorQuota(ctx, workspace) {
+		log.WithContext(ctx).
+			WithField("workspace_id", workspace.ID).
+			Info("workspace outside error quota, dropping backend errors")
+		return
+	}
+
 	if len(errorObjects) == 0 {
 		return
 	}
@@ -2223,7 +2230,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID, workspace)
 		if err != nil {
-			if e.Is(err, ErrQuotaExceeded) || e.Is(err, ErrUserFilteredError) {
+			if e.Is(err, ErrUserFilteredError) {
 				log.WithContext(ctx).WithError(err).Info("Will not update error group")
 			} else {
 				log.WithContext(ctx).WithError(err).Error("Error updating error group")
@@ -2718,6 +2725,13 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			return e.Wrap(err, "error querying workspace")
 		}
 
+		if !r.isWithinErrorQuota(ctx, workspace) {
+			log.WithContext(ctx).
+				WithField("workspace_id", workspace.ID).
+				Info("workspace outside error quota, dropping frontend errors")
+			return nil
+		}
+
 		errors = lo.Filter(errors, func(item *publicModel.ErrorObjectInput, index int) bool {
 			return r.IsFrontendErrorIngested(ctx, project.ID, sessionObj, item)
 		})
@@ -2800,7 +2814,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(sessionObj, errorToInsert), projectID, workspace)
 			if err != nil {
-				if e.Is(err, ErrQuotaExceeded) || e.Is(err, ErrUserFilteredError) {
+				if e.Is(err, ErrUserFilteredError) {
 					log.WithContext(ctx).WithError(err).Info("Will not update error group")
 				} else {
 					log.WithContext(ctx).WithError(err).Error("Error updating error group")
