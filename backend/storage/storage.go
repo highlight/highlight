@@ -294,14 +294,18 @@ func (f *FilesystemClient) ReadWebSocketEvents(ctx context.Context, sessionId in
 	return webSocketEvents, nil
 }
 
-func (f *FilesystemClient) readSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
-	span, ctx := util.StartSpanFromContext(ctx, "fs.ReadSourceMapFile")
-	defer span.Finish()
+func (f *FilesystemClient) getSourceMapKey(projectId int, version *string, fileName string) string {
 	if version == nil {
 		unversioned := "unversioned"
 		version = &unversioned
 	}
-	key := fmt.Sprintf("%s/%d/%s/%s", f.fsRoot, projectId, *version, fileName)
+	return fmt.Sprintf("%s/%d/%s/%s", f.fsRoot, projectId, *version, fileName)
+}
+
+func (f *FilesystemClient) readSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "fs.ReadSourceMapFile")
+	defer span.Finish()
+	key := f.getSourceMapKey(projectId, version, fileName)
 	span.SetAttribute("key", key)
 	if b, err := f.readFSBytes(ctx, key); err == nil {
 		return b.Bytes(), nil
@@ -313,7 +317,7 @@ func (f *FilesystemClient) readSourceMapFile(ctx context.Context, projectId int,
 func (f *FilesystemClient) ReadSourceMapFileCached(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "fs.ReadSourceMapFileCached")
 	defer span.Finish()
-	key := fmt.Sprintf("%s/%d/%s/%s", f.fsRoot, projectId, *version, fileName)
+	key := f.getSourceMapKey(projectId, version, fileName)
 	span.SetAttribute("key", key)
 	b, err := hredis.CachedEval(ctx, f.redis, key, time.Second, time.Minute, func() (*[]byte, error) {
 		bt, err := f.readSourceMapFile(ctx, projectId, version, fileName)
