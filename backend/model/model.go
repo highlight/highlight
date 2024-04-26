@@ -2473,4 +2473,5 @@ type TableConfig[TReservedKey ~string] struct {
 	ReservedKeys     []TReservedKey
 	SelectColumns    []string
 	DefaultFilter    string
+	IgnoredFilters   map[string]bool
 }

@@ -1301,18 +1301,22 @@ func (e IntegrationType) MarshalGQL(w io.Writer) {
 type KeyType string
 
 const (
-	KeyTypeString  KeyType = "String"
-	KeyTypeNumeric KeyType = "Numeric"
+	KeyTypeBoolean   KeyType = "Boolean"
+	KeyTypeCreatable KeyType = "Creatable"
+	KeyTypeNumeric   KeyType = "Numeric"
+	KeyTypeString    KeyType = "String"
 )
 
 var AllKeyType = []KeyType{
-	KeyTypeString,
+	KeyTypeBoolean,
+	KeyTypeCreatable,
 	KeyTypeNumeric,
+	KeyTypeString,
 }
 
 func (e KeyType) IsValid() bool {
 	switch e {
-	case KeyTypeString, KeyTypeNumeric:
+	case KeyTypeBoolean, KeyTypeCreatable, KeyTypeNumeric, KeyTypeString:
 		return true
 	}
 	return false
@@ -2104,62 +2108,66 @@ func (e ReservedLogKey) MarshalGQL(w io.Writer) {
 type ReservedSessionKey string
 
 const (
-	ReservedSessionKeyEnvironment     ReservedSessionKey = "environment"
-	ReservedSessionKeyServiceName     ReservedSessionKey = "service_name"
-	ReservedSessionKeyAppVersion      ReservedSessionKey = "app_version"
-	ReservedSessionKeySecureSessionID ReservedSessionKey = "secure_session_id"
-	ReservedSessionKeyIdentified      ReservedSessionKey = "identified"
-	ReservedSessionKeyFingerprint     ReservedSessionKey = "fingerprint"
-	ReservedSessionKeyIdentifier      ReservedSessionKey = "identifier"
-	ReservedSessionKeyCity            ReservedSessionKey = "city"
-	ReservedSessionKeyState           ReservedSessionKey = "state"
-	ReservedSessionKeyCountry         ReservedSessionKey = "country"
-	ReservedSessionKeyOsName          ReservedSessionKey = "os_name"
-	ReservedSessionKeyOsVersion       ReservedSessionKey = "os_version"
-	ReservedSessionKeyBrowserName     ReservedSessionKey = "browser_name"
-	ReservedSessionKeyBrowserVersion  ReservedSessionKey = "browser_version"
-	ReservedSessionKeyProcessed       ReservedSessionKey = "processed"
-	ReservedSessionKeyHasComments     ReservedSessionKey = "has_comments"
-	ReservedSessionKeyHasRageClicks   ReservedSessionKey = "has_rage_clicks"
-	ReservedSessionKeyHasErrors       ReservedSessionKey = "has_errors"
-	ReservedSessionKeyLength          ReservedSessionKey = "length"
-	ReservedSessionKeyActiveLength    ReservedSessionKey = "active_length"
-	ReservedSessionKeyFirstTime       ReservedSessionKey = "first_time"
-	ReservedSessionKeyViewed          ReservedSessionKey = "viewed"
-	ReservedSessionKeyPagesVisited    ReservedSessionKey = "pages_visited"
-	ReservedSessionKeyNormalness      ReservedSessionKey = "normalness"
+	ReservedSessionKeyActiveLength   ReservedSessionKey = "active_length"
+	ReservedSessionKeyBrowserName    ReservedSessionKey = "browser_name"
+	ReservedSessionKeyBrowserVersion ReservedSessionKey = "browser_version"
+	ReservedSessionKeyCity           ReservedSessionKey = "city"
+	ReservedSessionKeyCountry        ReservedSessionKey = "country"
+	ReservedSessionKeyDeviceID       ReservedSessionKey = "device_id"
+	ReservedSessionKeyEnvironment    ReservedSessionKey = "environment"
+	ReservedSessionKeyFirstTime      ReservedSessionKey = "first_time"
+	ReservedSessionKeyHasComments    ReservedSessionKey = "has_comments"
+	ReservedSessionKeyHasErrors      ReservedSessionKey = "has_errors"
+	ReservedSessionKeyHasRageClicks  ReservedSessionKey = "has_rage_clicks"
+	ReservedSessionKeyIdentified     ReservedSessionKey = "identified"
+	ReservedSessionKeyIdentifier     ReservedSessionKey = "identifier"
+	ReservedSessionKeyIP             ReservedSessionKey = "ip"
+	ReservedSessionKeyLength         ReservedSessionKey = "length"
+	ReservedSessionKeyLocState       ReservedSessionKey = "loc_state"
+	ReservedSessionKeyNormalness     ReservedSessionKey = "normalness"
+	ReservedSessionKeyOsName         ReservedSessionKey = "os_name"
+	ReservedSessionKeyOsVersion      ReservedSessionKey = "os_version"
+	ReservedSessionKeyPagesVisited   ReservedSessionKey = "pages_visited"
+	ReservedSessionKeyProcessed      ReservedSessionKey = "processed"
+	ReservedSessionKeySample         ReservedSessionKey = "sample"
+	ReservedSessionKeySecureID       ReservedSessionKey = "secure_id"
+	ReservedSessionKeyServiceVersion ReservedSessionKey = "service_version"
+	ReservedSessionKeyViewed         ReservedSessionKey = "viewed"
+	ReservedSessionKeyViewedByMe     ReservedSessionKey = "viewed_by_me"
 )
 
 var AllReservedSessionKey = []ReservedSessionKey{
-	ReservedSessionKeyEnvironment,
-	ReservedSessionKeyServiceName,
-	ReservedSessionKeyAppVersion,
-	ReservedSessionKeySecureSessionID,
-	ReservedSessionKeyIdentified,
-	ReservedSessionKeyFingerprint,
-	ReservedSessionKeyIdentifier,
-	ReservedSessionKeyCity,
-	ReservedSessionKeyState,
-	ReservedSessionKeyCountry,
-	ReservedSessionKeyOsName,
-	ReservedSessionKeyOsVersion,
+	ReservedSessionKeyActiveLength,
 	ReservedSessionKeyBrowserName,
 	ReservedSessionKeyBrowserVersion,
-	ReservedSessionKeyProcessed,
-	ReservedSessionKeyHasComments,
-	ReservedSessionKeyHasRageClicks,
-	ReservedSessionKeyHasErrors,
-	ReservedSessionKeyLength,
-	ReservedSessionKeyActiveLength,
+	ReservedSessionKeyCity,
+	ReservedSessionKeyCountry,
+	ReservedSessionKeyDeviceID,
+	ReservedSessionKeyEnvironment,
 	ReservedSessionKeyFirstTime,
-	ReservedSessionKeyViewed,
-	ReservedSessionKeyPagesVisited,
+	ReservedSessionKeyHasComments,
+	ReservedSessionKeyHasErrors,
+	ReservedSessionKeyHasRageClicks,
+	ReservedSessionKeyIdentified,
+	ReservedSessionKeyIdentifier,
+	ReservedSessionKeyIP,
+	ReservedSessionKeyLength,
+	ReservedSessionKeyLocState,
 	ReservedSessionKeyNormalness,
+	ReservedSessionKeyOsName,
+	ReservedSessionKeyOsVersion,
+	ReservedSessionKeyPagesVisited,
+	ReservedSessionKeyProcessed,
+	ReservedSessionKeySample,
+	ReservedSessionKeySecureID,
+	ReservedSessionKeyServiceVersion,
+	ReservedSessionKeyViewed,
+	ReservedSessionKeyViewedByMe,
 }
 
 func (e ReservedSessionKey) IsValid() bool {
 	switch e {
-	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyAppVersion, ReservedSessionKeySecureSessionID, ReservedSessionKeyIdentified, ReservedSessionKeyFingerprint, ReservedSessionKeyIdentifier, ReservedSessionKeyCity, ReservedSessionKeyState, ReservedSessionKeyCountry, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyProcessed, ReservedSessionKeyHasComments, ReservedSessionKeyHasRageClicks, ReservedSessionKeyHasErrors, ReservedSessionKeyLength, ReservedSessionKeyActiveLength, ReservedSessionKeyFirstTime, ReservedSessionKeyViewed, ReservedSessionKeyPagesVisited, ReservedSessionKeyNormalness:
+	case ReservedSessionKeyActiveLength, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyCity, ReservedSessionKeyCountry, ReservedSessionKeyDeviceID, ReservedSessionKeyEnvironment, ReservedSessionKeyFirstTime, ReservedSessionKeyHasComments, ReservedSessionKeyHasErrors, ReservedSessionKeyHasRageClicks, ReservedSessionKeyIdentified, ReservedSessionKeyIdentifier, ReservedSessionKeyIP, ReservedSessionKeyLength, ReservedSessionKeyLocState, ReservedSessionKeyNormalness, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyPagesVisited, ReservedSessionKeyProcessed, ReservedSessionKeySample, ReservedSessionKeySecureID, ReservedSessionKeyServiceVersion, ReservedSessionKeyViewed, ReservedSessionKeyViewedByMe:
 		return true
 	}
 	return false
@@ -2305,20 +2313,22 @@ func (e RetentionPeriod) MarshalGQL(w io.Writer) {
 type SavedSegmentEntityType string
 
 const (
-	SavedSegmentEntityTypeLog   SavedSegmentEntityType = "Log"
-	SavedSegmentEntityTypeTrace SavedSegmentEntityType = "Trace"
-	SavedSegmentEntityTypeError SavedSegmentEntityType = "Error"
+	SavedSegmentEntityTypeLog     SavedSegmentEntityType = "Log"
+	SavedSegmentEntityTypeTrace   SavedSegmentEntityType = "Trace"
+	SavedSegmentEntityTypeError   SavedSegmentEntityType = "Error"
+	SavedSegmentEntityTypeSession SavedSegmentEntityType = "Session"
 )
 
 var AllSavedSegmentEntityType = []SavedSegmentEntityType{
 	SavedSegmentEntityTypeLog,
 	SavedSegmentEntityTypeTrace,
 	SavedSegmentEntityTypeError,
+	SavedSegmentEntityTypeSession,
 }
 
 func (e SavedSegmentEntityType) IsValid() bool {
 	switch e {
-	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace, SavedSegmentEntityTypeError:
+	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace, SavedSegmentEntityTypeError, SavedSegmentEntityTypeSession:
 		return true
 	}
 	return false

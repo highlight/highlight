@@ -852,6 +852,8 @@ export type JiraTeam = {
 }
 
 export enum KeyType {
+	Boolean = 'Boolean',
+	Creatable = 'Creatable',
 	Numeric = 'Numeric',
 	String = 'String',
 }
@@ -3056,29 +3058,31 @@ export enum ReservedLogKey {
 
 export enum ReservedSessionKey {
 	ActiveLength = 'active_length',
-	AppVersion = 'app_version',
 	BrowserName = 'browser_name',
 	BrowserVersion = 'browser_version',
 	City = 'city',
 	Country = 'country',
+	DeviceId = 'device_id',
 	Environment = 'environment',
-	Fingerprint = 'fingerprint',
 	FirstTime = 'first_time',
 	HasComments = 'has_comments',
 	HasErrors = 'has_errors',
 	HasRageClicks = 'has_rage_clicks',
 	Identified = 'identified',
 	Identifier = 'identifier',
+	Ip = 'ip',
 	Length = 'length',
+	LocState = 'loc_state',
 	Normalness = 'normalness',
 	OsName = 'os_name',
 	OsVersion = 'os_version',
 	PagesVisited = 'pages_visited',
 	Processed = 'processed',
-	SecureSessionId = 'secure_session_id',
-	ServiceName = 'service_name',
-	State = 'state',
+	Sample = 'sample',
+	SecureId = 'secure_id',
+	ServiceVersion = 'service_version',
 	Viewed = 'viewed',
+	ViewedByMe = 'viewed_by_me',
 }
 
 export enum ReservedTraceKey {
@@ -3181,6 +3185,7 @@ export type SavedSegment = {
 export enum SavedSegmentEntityType {
 	Error = 'Error',
 	Log = 'Log',
+	Session = 'Session',
 	Trace = 'Trace',
 }
 

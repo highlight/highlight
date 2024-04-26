@@ -8,14 +8,23 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 )
 
-func AssignSearchFilters[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, query string, tableConfig model.TableConfig[T]) listener.Filters {
+func GetSearchListener[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, query string, tableConfig model.TableConfig[T]) *listener.SearchListener[T] {
+	return listener.NewSearchListener(sqlBuilder, tableConfig)
+}
+
+func GetSearchFilters[T ~string](query string, tableConfig model.TableConfig[T], listener *listener.SearchListener[T]) listener.Filters {
 	is := antlr.NewInputStream(query + " " + tableConfig.DefaultFilter)
 	lexer := parser.NewSearchGrammarLexer(is)
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 	p := parser.NewSearchGrammarParser(stream)
-	l := listener.NewSearchListener(sqlBuilder, tableConfig)
-	antlr.ParseTreeWalkerDefault.Walk(l, p.Search_query())
-	return l.GetFilters()
+
+	antlr.ParseTreeWalkerDefault.Walk(listener, p.Search_query())
+	return listener.GetFilters()
+}
+
+func AssignSearchFilters[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, query string, tableConfig model.TableConfig[T]) listener.Filters {
+	l := GetSearchListener(sqlBuilder, query, tableConfig)
+	return GetSearchFilters(query, tableConfig, l)
 }
 
 func Parse[T ~string](query string, tableConfig model.TableConfig[T]) listener.Filters {

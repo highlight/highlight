@@ -111,12 +111,34 @@ type ClickhouseField struct {
 	Value            string
 }
 
-// These keys show up as recommendations, but with no recommended values due to high cardinality
+// These keys show up as recommendations, not in fields table due to high cardinality or post processing booleans
 var defaultSessionsKeys = []*modelInputs.QueryKey{
-	{Name: string(modelInputs.ReservedSessionKeyLength), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedSessionKeyActiveLength), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedSessionKeyFirstTime), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyHasComments), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyHasErrors), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyHasRageClicks), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyIdentified), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyLength), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedSessionKeyPagesVisited), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedSessionKeyProcessed), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeySample), Type: modelInputs.KeyTypeCreatable},
+	{Name: string(modelInputs.ReservedSessionKeyViewed), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyViewedByMe), Type: modelInputs.KeyTypeBoolean},
 }
 
+var booleanKeys = map[string]bool{
+	string(modelInputs.ReservedSessionKeyFirstTime):     true,
+	string(modelInputs.ReservedSessionKeyIdentified):    true,
+	string(modelInputs.ReservedSessionKeyHasComments):   true,
+	string(modelInputs.ReservedSessionKeyHasErrors):     true,
+	string(modelInputs.ReservedSessionKeyHasRageClicks): true,
+	string(modelInputs.ReservedSessionKeyProcessed):     true,
+	string(modelInputs.ReservedSessionKeyViewed):        true,
+	string(modelInputs.ReservedSessionKeyViewedByMe):    true,
+}
+
+const SessionsJoinedTable = "sessions_joined_vw"
 const SessionsTable = "sessions"
 const FieldsTable = "fields"
 const SessionKeysTable = "session_keys"
@@ -468,34 +490,40 @@ func SessionMatchesQuery(session *model.Session, filters listener.Filters) bool 
 }
 
 var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey]{
-	TableName:        "sessions_joined_vw",
+	TableName:        SessionsJoinedTable,
 	AttributesColumn: "SessionAttributes",
 	BodyColumn:       `concat(coalesce(nullif(SessionAttributes['email'],''), nullif(Identifier, ''), nullif(toString(Fingerprint), ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
 	KeysToColumns: map[modelInputs.ReservedSessionKey]string{
-		modelInputs.ReservedSessionKeyEnvironment:     "Environment",
-		modelInputs.ReservedSessionKeyAppVersion:      "AppVersion",
-		modelInputs.ReservedSessionKeySecureSessionID: "SecureID",
-		modelInputs.ReservedSessionKeyFingerprint:     "Fingerprint",
-		modelInputs.ReservedSessionKeyIdentifier:      "Identifier",
-		modelInputs.ReservedSessionKeyCity:            "City",
-		modelInputs.ReservedSessionKeyState:           "State",
-		modelInputs.ReservedSessionKeyCountry:         "Country",
-		modelInputs.ReservedSessionKeyOsName:          "OSName",
-		modelInputs.ReservedSessionKeyOsVersion:       "OSVersion",
-		modelInputs.ReservedSessionKeyBrowserName:     "BrowserName",
-		modelInputs.ReservedSessionKeyBrowserVersion:  "BrowserVersion",
-		modelInputs.ReservedSessionKeyProcessed:       "Processed",
-		modelInputs.ReservedSessionKeyHasComments:     "HasComments",
-		modelInputs.ReservedSessionKeyHasRageClicks:   "HasRageClicks",
-		modelInputs.ReservedSessionKeyHasErrors:       "HasErrors",
-		modelInputs.ReservedSessionKeyLength:          "Length",
-		modelInputs.ReservedSessionKeyActiveLength:    "ActiveLength",
-		modelInputs.ReservedSessionKeyFirstTime:       "FirstTime",
-		modelInputs.ReservedSessionKeyViewed:          "Viewed",
-		modelInputs.ReservedSessionKeyPagesVisited:    "PagesVisited",
-		modelInputs.ReservedSessionKeyNormalness:      "Normalness",
+		modelInputs.ReservedSessionKeyActiveLength:   "ActiveLength",
+		modelInputs.ReservedSessionKeyServiceVersion: "AppVersion",
+		modelInputs.ReservedSessionKeyBrowserName:    "BrowserName",
+		modelInputs.ReservedSessionKeyBrowserVersion: "BrowserVersion",
+		modelInputs.ReservedSessionKeyCity:           "City",
+		modelInputs.ReservedSessionKeyCountry:        "Country",
+		modelInputs.ReservedSessionKeyEnvironment:    "Environment",
+		modelInputs.ReservedSessionKeyDeviceID:       "Fingerprint",
+		modelInputs.ReservedSessionKeyFirstTime:      "FirstTime",
+		modelInputs.ReservedSessionKeyHasComments:    "HasComments",
+		modelInputs.ReservedSessionKeyHasErrors:      "HasErrors",
+		modelInputs.ReservedSessionKeyHasRageClicks:  "HasRageClicks",
+		modelInputs.ReservedSessionKeyIdentified:     "Identified",
+		modelInputs.ReservedSessionKeyIdentifier:     "Identifier",
+		modelInputs.ReservedSessionKeyIP:             "IP",
+		modelInputs.ReservedSessionKeyLength:         "Length",
+		modelInputs.ReservedSessionKeyNormalness:     "Normalness",
+		modelInputs.ReservedSessionKeyOsName:         "OSName",
+		modelInputs.ReservedSessionKeyOsVersion:      "OSVersion",
+		modelInputs.ReservedSessionKeyPagesVisited:   "PagesVisited",
+		modelInputs.ReservedSessionKeyProcessed:      "Processed",
+		modelInputs.ReservedSessionKeySecureID:       "SecureID",
+		modelInputs.ReservedSessionKeyLocState:       "State",
+		modelInputs.ReservedSessionKeyViewed:         "Viewed",
 	},
 	ReservedKeys: modelInputs.AllReservedSessionKey,
+	IgnoredFilters: map[string]bool{
+		modelInputs.ReservedSessionKeySample.String():     true,
+		modelInputs.ReservedSessionKeyViewedByMe.String(): true,
+	},
 }
 
 var sessionsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedSessionKey]{
@@ -559,6 +587,10 @@ func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId i
 }
 
 func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
+	if booleanKeys[keyName] {
+		return []string{"true", "false"}, nil
+	}
+
 	sb := sqlbuilder.NewSelectBuilder()
 	sql, args := sb.
 		Select("Value").
@@ -595,13 +627,37 @@ func (client *Client) GetConn() driver.Conn {
 
 func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.From(SessionsJoinedTableConfig.TableName)
-	sb.Select(selectColumns)
+	sb.From(fmt.Sprintf("%s FINAL", SessionsJoinedTableConfig.TableName))
 
 	sb.Where(sb.LessEqualThan("CreatedAt", params.DateRange.EndDate)).
 		Where(sb.GreaterEqualThan("CreatedAt", params.DateRange.StartDate))
 
-	parser.AssignSearchFilters(sb, params.Query, SessionsJoinedTableConfig)
+	listener := parser.GetSearchListener(sb, params.Query, SessionsJoinedTableConfig)
+	parser.GetSearchFilters(params.Query, SessionsJoinedTableConfig, listener)
+
+	useViewedByMe := listener.IgnoredFilters != nil && listener.IgnoredFilters[modelInputs.ReservedSessionKeyViewedByMe.String()] != ""
+	if useViewedByMe {
+		viewedByMe := listener.IgnoredFilters[modelInputs.ReservedSessionKeyViewedByMe.String()]
+		if viewedByMe == "true" {
+			sb.Where(fmt.Sprintf("has(ViewedByAdmins, %d)", admin.ID))
+		} else {
+			sb.Where(fmt.Sprintf("NOT has(ViewedByAdmins, %d)", admin.ID))
+		}
+	}
+
+	useRandomSample := listener.IgnoredFilters != nil && listener.IgnoredFilters[modelInputs.ReservedSessionKeySample.String()] != ""
+	if useRandomSample {
+		sampleRule := listener.IgnoredFilters[modelInputs.ReservedSessionKeySample.String()]
+		salt, err := strconv.ParseUint(sampleRule, 16, 64)
+		if err != nil {
+			return "", nil, false, err
+		}
+		selectColumns = fmt.Sprintf("%s, toUInt64(farmHash64(SecureID) %% %d) as hash", selectColumns, salt)
+		orderBy = pointy.String("hash")
+	}
+
+	sb.Select(selectColumns)
+
 	if groupBy != nil {
 		sb = sb.GroupBy(*groupBy)
 	}
@@ -615,10 +671,16 @@ func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, pro
 		sb = sb.Offset(*offset)
 	}
 
+	if useRandomSample {
+		sbOuter := sqlbuilder.NewSelectBuilder()
+		sb = sbOuter.
+			Select("*").
+			From(sbOuter.BuilderAs(sb, "inner"))
+	}
+
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	// TODO(spenny): custom rules to check - sampleField
-	return sql, args, false, nil
+	return sql, args, useRandomSample, nil
 }
 
 func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, projectId int, count int, params modelInputs.QueryInput, sortField string, page *int, retentionDate time.Time) ([]int64, int64, bool, error) {
