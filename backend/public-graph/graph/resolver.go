@@ -991,6 +991,18 @@ func (r *Resolver) IndexSessionClickhouse(ctx context.Context, session *model.Se
 	return r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}})
 }
 
+func (r *Resolver) getSession(ctx context.Context, sessionSecureID string) (*model.Session, error) {
+	sessionObj, found := r.SessionCache.Get(sessionSecureID)
+	if !found {
+		if err := r.DB.WithContext(ctx).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Take(&sessionObj).Error; err != nil {
+			retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
+			log.WithContext(ctx).WithField("sessionSecureID", sessionSecureID).WithError(retErr).Error("failed to get session")
+			return nil, err
+		}
+	}
+	return sessionObj, nil
+}
+
 func (r *Resolver) getExistingSession(ctx context.Context, projectID int, secureID string) (*model.Session, error) {
 	existingSessionObj := &model.Session{}
 	if err := r.DB.WithContext(ctx).Model(&existingSessionObj).Where(&model.Session{SecureID: secureID}).Take(&existingSessionObj).Error; err != nil {
@@ -1557,10 +1569,15 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	return nil
 }
 
-func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionID int, propertiesObject interface{}) error {
+func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionSecureID string, propertiesObject interface{}) error {
 	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AddSessionPropertiesImpl",
 		util.ResourceName("go.sessions.AddSessionPropertiesImpl"))
 	defer outerSpan.Finish()
+
+	sessionObj, err := r.getSession(ctx, sessionSecureID)
+	if err != nil {
+		return err
+	}
 
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
@@ -1570,7 +1587,7 @@ func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionID int, 
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	err := r.AppendProperties(ctx, sessionID, fields, PropertyType.SESSION)
+	err = r.AppendProperties(ctx, sessionObj.ID, fields, PropertyType.SESSION)
 	if err != nil {
 		return e.Wrap(err, "error adding set of properties to db")
 	}
@@ -2256,10 +2273,15 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 }
 
 // Deprecated, left for backward compatibility with older client versions. Use AddTrackProperties instead
-func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionID int, propertiesObject interface{}) error {
+func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionSecureID string, propertiesObject interface{}) error {
 	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AddTrackPropertiesImpl",
 		util.ResourceName("go.sessions.AddTrackPropertiesImpl"))
 	defer outerSpan.Finish()
+
+	sessionObj, err := r.getSession(ctx, sessionSecureID)
+	if err != nil {
+		return err
+	}
 
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
@@ -2272,7 +2294,7 @@ func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionID int, pr
 			return e.New("therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues")
 		}
 	}
-	err := r.AppendProperties(ctx, sessionID, fields, PropertyType.TRACK)
+	err = r.AppendProperties(ctx, sessionObj.ID, fields, PropertyType.TRACK)
 	if err != nil {
 		return e.Wrap(err, "error adding set of properties to db")
 	}
@@ -2468,14 +2490,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		return e.New("ProcessPayload called without secureID")
 	}
 
-	sessionObj, found := r.SessionCache.Get(sessionSecureID)
-	if !found {
-		if err := r.DB.WithContext(ctx).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Take(&sessionObj).Error; err != nil {
-			retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
-			log.WithContext(ctx).Error(retErr)
-			querySessionSpan.Finish(retErr)
-			return retErr
-		}
+	sessionObj, err := r.getSession(ctx, sessionSecureID)
+	if err != nil {
+		querySessionSpan.Finish(err)
+		return err
 	}
 	querySessionSpan.SetAttribute("secure_id", sessionObj.SecureID)
 	querySessionSpan.SetAttribute("project_id", sessionObj.ProjectID)

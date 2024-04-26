@@ -297,22 +297,6 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	return nil
 }
 
-func (w *Worker) getSessionID(ctx context.Context, sessionSecureID string) (id int, err error) {
-	s, _ := util.StartSpanFromContext(ctx, "getSessionID", util.ResourceName("worker.getSessionID"))
-	s.SetAttribute("secure_id", sessionSecureID)
-	defer s.Finish()
-	if sessionSecureID == "" {
-		return 0, e.New("getSessionID called with no secure id")
-	}
-	session := &model.Session{}
-	w.Resolver.DB.Select("id").Where(&model.Session{SecureID: sessionSecureID}).Take(&session)
-	if session.ID == 0 {
-		return 0, e.New(fmt.Sprintf("no session found for secure id: '%s'", sessionSecureID))
-	}
-	id = session.ID
-	return
-}
-
 func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueue.Message) error {
 	switch task.Type {
 	case kafkaqueue.PushPayload:
@@ -375,11 +359,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.AddTrackProperties == nil {
 			break
 		}
-		sessionID, err := w.getSessionID(ctx, task.AddTrackProperties.SessionSecureID)
-		if err != nil {
-			return err
-		}
-		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, sessionID, task.AddTrackProperties.PropertiesObject); err != nil {
+		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, task.AddTrackProperties.SessionSecureID, task.AddTrackProperties.PropertiesObject); err != nil {
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
@@ -387,11 +367,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.AddSessionProperties == nil {
 			break
 		}
-		sessionID, err := w.getSessionID(ctx, task.AddSessionProperties.SessionSecureID)
-		if err != nil {
-			return err
-		}
-		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, sessionID, task.AddSessionProperties.PropertiesObject); err != nil {
+		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, task.AddSessionProperties.SessionSecureID, task.AddSessionProperties.PropertiesObject); err != nil {
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
