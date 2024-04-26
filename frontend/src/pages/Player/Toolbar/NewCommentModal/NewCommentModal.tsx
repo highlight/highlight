@@ -33,6 +33,10 @@ export function NewCommentModal({
 	errorTitle,
 	currentUrl,
 }: Props) {
+	if (!commentModalPosition) {
+		return null
+	}
+
 	return (
 		<Modal
 			mask={!!mask}
