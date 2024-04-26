@@ -12331,32 +12331,31 @@ enum ReservedErrorsJoinedKey {
 }
 
 enum ReservedSessionKey {
-	environment
-	service_name
-	service_version
-	secure_session_id
-	identified
-	identifier
-	city
-	state
-	country
-	os_name
-	os_version
+	active_length
 	browser_name
 	browser_version
-	processed
-	has_comments
-	has_rage_clicks
-	has_errors
-	length
-	active_length
-	first_time
-	viewed
-	pages_visited
-	normalness
-	sample
-	ip
+	city
+	country
 	device_id
+	environment
+	first_time
+	has_comments
+	has_errors
+	has_rage_clicks
+	identified
+	identifier
+	ip
+	length
+	loc_state
+	normalness
+	os_name
+	os_version
+	pages_visited
+	processed
+	sample
+	secure_id
+	service_version
+	viewed
 	viewed_by_me
 }
 
