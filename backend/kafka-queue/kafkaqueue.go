@@ -21,7 +21,7 @@ import (
 )
 
 // KafkaOperationTimeout The timeout for all kafka send/receive operations.
-const KafkaOperationTimeout = time.Minute
+const KafkaOperationTimeout = 25 * time.Second
 
 const ConsumerGroupName = "group-default"
 
