@@ -7294,7 +7294,15 @@ body {
   left: -2px;
   top: 0;
   bottom: 0;
+  transition: background-color 0.3s;
   width: 4px;
+  z-index: 1;
+}
+._10o9hoe2:hover {
+  background-color: var(--_1pyqka91m);
+}
+._10o9hoe2:focus {
+  background-color: var(--_1pyqka91m);
 }
 ._11t98zr0 {
   border-bottom: var(--_1pyqka9k) solid 1px;
