@@ -53,7 +53,10 @@ var fetch fetcher
 
 type DiskFetcher struct{}
 
-func (n DiskFetcher) fetchFile(_ context.Context, href string) ([]byte, error) {
+func (n DiskFetcher) fetchFile(ctx context.Context, href string) ([]byte, error) {
+	span, _ := util.StartSpanFromContext(ctx, "disk.fetchFile")
+	defer span.Finish()
+
 	inputBytes, err := os.ReadFile(href)
 	if err != nil {
 		return nil, e.Wrap(err, "error fetching file from disk")
@@ -66,6 +69,9 @@ type NetworkFetcher struct {
 }
 
 func (n NetworkFetcher) fetchFile(ctx context.Context, href string) ([]byte, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "network.fetchFile")
+	defer span.Finish()
+
 	// check if source is a URL
 	_, err := url.ParseRequestURI(href)
 	if err != nil {
