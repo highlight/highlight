@@ -629,6 +629,7 @@ func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, pro
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.From(fmt.Sprintf("%s FINAL", SessionsJoinedTableConfig.TableName))
 
+	sb.Where(sb.Equal("ProjectId", projectId))
 	sb.Where(sb.LessEqualThan("CreatedAt", params.DateRange.EndDate)).
 		Where(sb.GreaterEqualThan("CreatedAt", params.DateRange.StartDate))
 
