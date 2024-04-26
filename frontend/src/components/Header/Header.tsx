@@ -139,8 +139,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const enableGrafanaDashboard =
 		workspaceSettingsData?.workspaceSettings?.enable_grafana_dashboard
 
-	const { toggleShowKeyboardShortcutsGuide, commandBarDialog } =
-		useGlobalContext()
+	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
 
 	const pages = [
 		{

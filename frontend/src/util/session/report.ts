@@ -1,3 +1,4 @@
+import { SearchExpression } from '@components/Search/Parser/listener'
 import { useSearchContext } from '@components/Search/SearchContext'
 import {
 	useGetSessionsLazyQuery,
@@ -6,8 +7,6 @@ import {
 import { Maybe, Session, SessionsReportRow } from '@graph/schemas'
 import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment/moment'
-
-import { SearchExpression } from '@/components/Search/Parser/listener'
 
 const processRows = <
 	T extends { __typename?: Maybe<string>; user_properties?: Maybe<string> },
