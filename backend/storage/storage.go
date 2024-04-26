@@ -249,6 +249,9 @@ func (f *FilesystemClient) PushRawEvents(ctx context.Context, sessionId, project
 }
 
 func (f *FilesystemClient) PushSourceMapFile(ctx context.Context, projectId int, version *string, fileName string, fileBytes []byte) (*int64, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "fs.PushSourceMapFile")
+	defer span.Finish()
+
 	buf := new(bytes.Buffer)
 	_, err := buf.Read(fileBytes)
 	if err != nil {
@@ -289,6 +292,8 @@ func (f *FilesystemClient) ReadWebSocketEvents(ctx context.Context, sessionId in
 }
 
 func (f *FilesystemClient) ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "fs.ReadSourceMapFile")
+	defer span.Finish()
 	if version == nil {
 		unversioned := "unversioned"
 		version = &unversioned
@@ -822,11 +827,16 @@ func (s *S3Client) PushSourceMapFileReaderToS3(ctx context.Context, projectId in
 }
 
 func (s *S3Client) PushSourceMapFile(ctx context.Context, projectId int, version *string, fileName string, fileBytes []byte) (*int64, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "s3.PushSourceMapFile")
+	defer span.Finish()
+
 	body := bytes.NewReader(fileBytes)
 	return s.PushSourceMapFileReaderToS3(ctx, projectId, version, fileName, body)
 }
 
 func (s *S3Client) ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "s3.ReadSourceMapFile")
+	defer span.Finish()
 	output, err := s.S3ClientEast2.GetObject(ctx, &s3.GetObjectInput{Bucket: pointy.String(S3SourceMapBucketNameNew),
 		Key: s.sourceMapBucketKey(projectId, version, fileName)})
 	if err != nil {

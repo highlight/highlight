@@ -221,8 +221,9 @@ func main() {
 	var samplingMap = map[trace.SpanKind]float64{}
 	if util.IsProduction() {
 		samplingMap = map[trace.SpanKind]float64{
-			trace.SpanKindUnspecified: 1. / 1000,
-			trace.SpanKindInternal:    1. / 1000,
+			trace.SpanKindUnspecified: 1. / 1_000_000,
+			trace.SpanKindInternal:    1. / 1_000_000,
+			trace.SpanKindConsumer:    1. / 1_00,
 			// report `sampling`
 			trace.SpanKindServer: 1.,
 			// report all customer data
@@ -234,7 +235,7 @@ func main() {
 	highlight.Start(
 		highlight.WithProjectID("1jdkoe52"),
 		highlight.WithEnvironment(util.EnvironmentName()),
-		highlight.WithMetricSamplingRate(1./1000),
+		highlight.WithMetricSamplingRate(1./1_000_000),
 		highlight.WithSamplingRateMap(samplingMap),
 		highlight.WithServiceName(serviceName),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),

@@ -19,6 +19,7 @@ import (
 const TimestampFormat = "2006-01-02T15:04:05.000Z"
 const TimestampFormatNano = "2006-01-02T15:04:05.999999999Z"
 const LogAttributeValueLengthLimit = 2 << 15
+const MaxLogAttributesDepth uint8 = 255
 
 type PinoLog struct {
 	Level    uint8  `json:"level"`
@@ -179,7 +180,10 @@ func SubmitHTTPLog(ctx context.Context, tracer trace.Tracer, projectID int, lg L
 	return nil
 }
 
-func FormatLogAttributes(k string, v interface{}) map[string]string {
+func formatLogAttributes(k string, v interface{}, depth uint8) map[string]string {
+	if depth >= MaxLogAttributesDepth {
+		return nil
+	}
 	if vStr, ok := v.(string); ok {
 		if len(vStr) > LogAttributeValueLengthLimit {
 			vStr = vStr[:LogAttributeValueLengthLimit] + "..."
@@ -195,11 +199,15 @@ func FormatLogAttributes(k string, v interface{}) map[string]string {
 	if vMap, ok := v.(map[string]interface{}); ok {
 		m := make(map[string]string)
 		for mapKey, mapV := range vMap {
-			for k2, v2 := range FormatLogAttributes(mapKey, mapV) {
+			for k2, v2 := range formatLogAttributes(mapKey, mapV, depth+1) {
 				m[fmt.Sprintf("%s.%s", k, k2)] = v2
 			}
 		}
 		return m
 	}
 	return nil
+}
+
+func FormatLogAttributes(k string, v interface{}) map[string]string {
+	return formatLogAttributes(k, v, 0)
 }

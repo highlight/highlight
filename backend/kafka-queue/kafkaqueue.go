@@ -20,15 +20,15 @@ import (
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 )
 
-// KafkaOperationTimeout If an ECS task is being replaced, there's a 30 second window to do cleanup work. A shorter timeout means we shouldn't be killed mid-operation.
+// KafkaOperationTimeout The timeout for all kafka send/receive operations.
 const KafkaOperationTimeout = 25 * time.Second
 
 const ConsumerGroupName = "group-default"
 
 const (
 	TaskRetries           = 2
-	prefetchQueueCapacity = 1000
-	MaxMessageSizeBytes   = 128 * 1024 * 1024 // MiB
+	prefetchQueueCapacity = 1_000
+	MaxMessageSizeBytes   = 256 * 1024 * 1024 // MiB
 )
 
 var (
@@ -187,9 +187,9 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
 			Async:        true,
-			BatchSize:    1_000,
+			BatchSize:    prefetchQueueCapacity,
 			BatchBytes:   MaxMessageSizeBytes,
-			BatchTimeout: 5 * time.Second,
+			BatchTimeout: KafkaOperationTimeout,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
 			Logger:       getLogger("producer", topic, log.InfoLevel),
@@ -221,23 +221,19 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			onAssignGroups = (*configOverride).OnAssignGroups
 		}
 		config := kafka.ReaderConfig{
-			Brokers:           brokers,
-			Dialer:            dialer,
-			HeartbeatInterval: time.Second,
-			ReadLagInterval:   time.Second,
-			RebalanceTimeout:  rebalanceTimeout,
-			Topic:             pool.Topic,
-			GroupID:           pool.ConsumerGroup,
-			MinBytes:          1,
-			MaxBytes:          2 * MaxMessageSizeBytes,
-			MaxWait:           time.Second,
-			ReadBatchTimeout:  KafkaOperationTimeout,
-			QueueCapacity:     prefetchQueueCapacity,
-			// in the future, we would commit only on successful processing of a message.
-			// this means we commit very often to avoid repeating tasks on worker restart.
-			CommitInterval: time.Second,
-			Logger:         getLogger("consumer", topic, log.InfoLevel),
-			ErrorLogger:    getLogger("consumer", topic, log.ErrorLevel),
+			Brokers:          brokers,
+			Dialer:           dialer,
+			Topic:            pool.Topic,
+			GroupID:          pool.ConsumerGroup,
+			MinBytes:         1,
+			MaxBytes:         MaxMessageSizeBytes,
+			MaxWait:          KafkaOperationTimeout,
+			ReadBatchTimeout: KafkaOperationTimeout,
+			QueueCapacity:    prefetchQueueCapacity,
+			RebalanceTimeout: rebalanceTimeout,
+			CommitInterval:   time.Second,
+			Logger:           getLogger("consumer", topic, log.InfoLevel),
+			ErrorLogger:      getLogger("consumer", topic, log.ErrorLevel),
 			GroupBalancers: []kafka.GroupBalancer{
 				&BalancerWrapper{
 					balancer:       kafka.RoundRobinGroupBalancer{},

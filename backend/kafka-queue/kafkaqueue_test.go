@@ -4,6 +4,7 @@ import (
 	"context"
 	cryptorand "crypto/rand"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/util"
 	"math/rand"
 	"sync"
 	"testing"
@@ -17,10 +18,12 @@ import (
 const (
 	workers          = 24
 	submitsPerWorker = 32
-	msgSizeBytes     = 128 * 1000
+	msgSizeBytes     = 1024 * 1024 // 1 MiB
 )
 
 func BenchmarkQueue_Submit(b *testing.B) {
+	util.InDocker = "true"
+
 	ctx := context.TODO()
 	log.SetLevel(log.DebugLevel)
 	log.WithContext(ctx).Infof("Starting benchmark")
@@ -74,7 +77,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 		}(i)
 		go func() {
 			for receive {
-				msg := reader.Receive(context.TODO())
+				msg := reader.Receive(ctx)
 				if msg == nil {
 					if receive {
 						b.Errorf("expected to get a message")
@@ -83,6 +86,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 				} else if msg.GetType() != PushPayload {
 					b.Errorf("expected to consume dummy payload of PushPayload")
 				} else {
+					b.Logf("received message of type PushPayload")
 					publicWorkerMessage, ok := msg.(*Message)
 					if !ok {
 						b.Errorf("failed type assertion")
@@ -102,8 +106,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 	receive = false
 	log.WithContext(ctx).Infof("Waiting for receivers to finish.")
 	recWg.Wait()
-	log.WithContext(ctx).Infof("Receivers finished. Stopping reader.")
-	reader.Stop(ctx)
+	log.WithContext(ctx).Infof("Receivers finished.")
 }
 
 func TestPartitionKey(t *testing.T) {
