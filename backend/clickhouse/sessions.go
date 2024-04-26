@@ -111,33 +111,34 @@ type ClickhouseField struct {
 	Value            string
 }
 
-// These keys show up as recommendations, but with no recommended values due to high cardinality
+// These keys show up as recommendations, not in fields table due to high cardinality or post processing booleans
 var defaultSessionsKeys = []*modelInputs.QueryKey{
-	{Name: string(modelInputs.ReservedSessionKeyLength), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedSessionKeyActiveLength), Type: modelInputs.KeyTypeNumeric},
-	{Name: string(modelInputs.ReservedSessionKeyPagesVisited), Type: modelInputs.KeyTypeNumeric},
-	{Name: string(modelInputs.ReservedSessionKeySample), Type: modelInputs.KeyTypeCreatable},
-	{Name: string(modelInputs.ReservedSessionKeyIdentified), Type: modelInputs.KeyTypeBoolean},
-	{Name: string(modelInputs.ReservedSessionKeyProcessed), Type: modelInputs.KeyTypeBoolean},
-	{Name: string(modelInputs.ReservedSessionKeyHasRageClicks), Type: modelInputs.KeyTypeBoolean},
-	{Name: string(modelInputs.ReservedSessionKeyHasErrors), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedSessionKeyFirstTime), Type: modelInputs.KeyTypeBoolean},
-	{Name: string(modelInputs.ReservedSessionKeyViewed), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedSessionKeyHasComments), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyHasErrors), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyHasRageClicks), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyIdentified), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyLength), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedSessionKeyPagesVisited), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedSessionKeyProcessed), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeySample), Type: modelInputs.KeyTypeCreatable},
+	{Name: string(modelInputs.ReservedSessionKeyViewed), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedSessionKeyViewedByMe), Type: modelInputs.KeyTypeBoolean},
 }
 
 var booleanKeys = map[string]bool{
-	string(modelInputs.ReservedSessionKeyIdentified):    true,
-	string(modelInputs.ReservedSessionKeyProcessed):     true,
-	string(modelInputs.ReservedSessionKeyHasRageClicks): true,
-	string(modelInputs.ReservedSessionKeyHasErrors):     true,
 	string(modelInputs.ReservedSessionKeyFirstTime):     true,
-	string(modelInputs.ReservedSessionKeyViewed):        true,
+	string(modelInputs.ReservedSessionKeyIdentified):    true,
 	string(modelInputs.ReservedSessionKeyHasComments):   true,
+	string(modelInputs.ReservedSessionKeyHasErrors):     true,
+	string(modelInputs.ReservedSessionKeyHasRageClicks): true,
+	string(modelInputs.ReservedSessionKeyProcessed):     true,
+	string(modelInputs.ReservedSessionKeyViewed):        true,
 	string(modelInputs.ReservedSessionKeyViewedByMe):    true,
 }
 
+const SessionsJoinedTable = "sessions_joined_vw"
 const SessionsTable = "sessions"
 const FieldsTable = "fields"
 const SessionKeysTable = "session_keys"
@@ -489,34 +490,34 @@ func SessionMatchesQuery(session *model.Session, filters listener.Filters) bool 
 }
 
 var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey]{
-	TableName:        "sessions_joined_vw",
+	TableName:        SessionsJoinedTable,
 	AttributesColumn: "SessionAttributes",
 	BodyColumn:       `concat(coalesce(nullif(SessionAttributes['email'],''), nullif(Identifier, ''), nullif(toString(Fingerprint), ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
 	KeysToColumns: map[modelInputs.ReservedSessionKey]string{
-		modelInputs.ReservedSessionKeyEnvironment:     "Environment",
-		modelInputs.ReservedSessionKeyServiceVersion:  "AppVersion",
-		modelInputs.ReservedSessionKeySecureSessionID: "SecureID",
-		modelInputs.ReservedSessionKeyDeviceID:        "Fingerprint",
-		modelInputs.ReservedSessionKeyIdentifier:      "Identifier",
-		modelInputs.ReservedSessionKeyIdentified:      "Identified",
-		modelInputs.ReservedSessionKeyCity:            "City",
-		modelInputs.ReservedSessionKeyState:           "State",
-		modelInputs.ReservedSessionKeyCountry:         "Country",
-		modelInputs.ReservedSessionKeyOsName:          "OSName",
-		modelInputs.ReservedSessionKeyOsVersion:       "OSVersion",
-		modelInputs.ReservedSessionKeyBrowserName:     "BrowserName",
-		modelInputs.ReservedSessionKeyBrowserVersion:  "BrowserVersion",
-		modelInputs.ReservedSessionKeyProcessed:       "Processed",
-		modelInputs.ReservedSessionKeyHasComments:     "HasComments",
-		modelInputs.ReservedSessionKeyHasRageClicks:   "HasRageClicks",
-		modelInputs.ReservedSessionKeyHasErrors:       "HasErrors",
-		modelInputs.ReservedSessionKeyLength:          "Length",
-		modelInputs.ReservedSessionKeyActiveLength:    "ActiveLength",
-		modelInputs.ReservedSessionKeyFirstTime:       "FirstTime",
-		modelInputs.ReservedSessionKeyViewed:          "Viewed",
-		modelInputs.ReservedSessionKeyPagesVisited:    "PagesVisited",
-		modelInputs.ReservedSessionKeyNormalness:      "Normalness",
-		modelInputs.ReservedSessionKeyIP:              "IP",
+		modelInputs.ReservedSessionKeyActiveLength:   "ActiveLength",
+		modelInputs.ReservedSessionKeyServiceVersion: "AppVersion",
+		modelInputs.ReservedSessionKeyBrowserName:    "BrowserName",
+		modelInputs.ReservedSessionKeyBrowserVersion: "BrowserVersion",
+		modelInputs.ReservedSessionKeyCity:           "City",
+		modelInputs.ReservedSessionKeyCountry:        "Country",
+		modelInputs.ReservedSessionKeyEnvironment:    "Environment",
+		modelInputs.ReservedSessionKeyDeviceID:       "Fingerprint",
+		modelInputs.ReservedSessionKeyFirstTime:      "FirstTime",
+		modelInputs.ReservedSessionKeyHasComments:    "HasComments",
+		modelInputs.ReservedSessionKeyHasErrors:      "HasErrors",
+		modelInputs.ReservedSessionKeyHasRageClicks:  "HasRageClicks",
+		modelInputs.ReservedSessionKeyIdentified:     "Identified",
+		modelInputs.ReservedSessionKeyIdentifier:     "Identifier",
+		modelInputs.ReservedSessionKeyIP:             "IP",
+		modelInputs.ReservedSessionKeyLength:         "Length",
+		modelInputs.ReservedSessionKeyNormalness:     "Normalness",
+		modelInputs.ReservedSessionKeyOsName:         "OSName",
+		modelInputs.ReservedSessionKeyOsVersion:      "OSVersion",
+		modelInputs.ReservedSessionKeyPagesVisited:   "PagesVisited",
+		modelInputs.ReservedSessionKeyProcessed:      "Processed",
+		modelInputs.ReservedSessionKeySecureID:       "SecureID",
+		modelInputs.ReservedSessionKeyLocState:       "State",
+		modelInputs.ReservedSessionKeyViewed:         "Viewed",
 	},
 	ReservedKeys: modelInputs.AllReservedSessionKey,
 	IgnoredFilters: map[string]bool{
