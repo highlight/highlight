@@ -94,7 +94,8 @@ type Client interface {
 	PushSourceMapFile(ctx context.Context, projectId int, version *string, fileName string, fileBytes []byte) (*int64, error)
 	ReadResources(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
 	ReadWebSocketEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
-	ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error)
+	readSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error)
+	ReadSourceMapFileCached(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error)
 	ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error)
 	UploadAsset(ctx context.Context, uuid string, contentType string, reader io.Reader, retentionPeriod privateModel.RetentionPeriod) error
 	ReadGitHubFile(ctx context.Context, repoPath string, fileName string, version string) ([]byte, error)
@@ -293,14 +294,16 @@ func (f *FilesystemClient) ReadWebSocketEvents(ctx context.Context, sessionId in
 	return webSocketEvents, nil
 }
 
-func (f *FilesystemClient) ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
+func (f *FilesystemClient) readSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "fs.ReadSourceMapFile")
 	defer span.Finish()
 	if version == nil {
 		unversioned := "unversioned"
 		version = &unversioned
 	}
-	if b, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%d/%s/%s", f.fsRoot, projectId, *version, fileName)); err == nil {
+	key := fmt.Sprintf("%s/%d/%s/%s", f.fsRoot, projectId, *version, fileName)
+	span.SetAttribute("key", key)
+	if b, err := f.readFSBytes(ctx, key); err == nil {
 		return b.Bytes(), nil
 	} else {
 		return nil, err
@@ -311,10 +314,11 @@ func (f *FilesystemClient) ReadSourceMapFileCached(ctx context.Context, projectI
 	span, ctx := util.StartSpanFromContext(ctx, "fs.ReadSourceMapFileCached")
 	defer span.Finish()
 	key := fmt.Sprintf("%s/%d/%s/%s", f.fsRoot, projectId, *version, fileName)
+	span.SetAttribute("key", key)
 	b, err := hredis.CachedEval(ctx, f.redis, key, time.Second, time.Minute, func() (*[]byte, error) {
-		bt, err := f.ReadSourceMapFile(ctx, projectId, version, fileName)
+		bt, err := f.readSourceMapFile(ctx, projectId, version, fileName)
 		return &bt, err
-	}, hredis.WithStoreNil(true))
+	}, hredis.WithStoreNil(true), hredis.WithIgnoreError(true))
 
 	if b == nil || err != nil {
 		return nil, err
@@ -852,7 +856,7 @@ func (s *S3Client) PushSourceMapFile(ctx context.Context, projectId int, version
 	return s.PushSourceMapFileReaderToS3(ctx, projectId, version, fileName, body)
 }
 
-func (s *S3Client) ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
+func (s *S3Client) readSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "s3.ReadSourceMapFile")
 	defer span.Finish()
 	output, err := s.S3ClientEast2.GetObject(ctx, &s3.GetObjectInput{Bucket: pointy.String(S3SourceMapBucketNameNew),
@@ -872,10 +876,11 @@ func (s *S3Client) ReadSourceMapFileCached(ctx context.Context, projectId int, v
 	span, ctx := util.StartSpanFromContext(ctx, "s3.ReadSourceMapFileCached")
 	defer span.Finish()
 	key := s.sourceMapBucketKey(projectId, version, fileName)
+	span.SetAttribute("key", key)
 	b, err := hredis.CachedEval(ctx, s.Redis, *key, time.Second, time.Minute, func() (*[]byte, error) {
-		bt, err := s.ReadSourceMapFile(ctx, projectId, version, fileName)
+		bt, err := s.readSourceMapFile(ctx, projectId, version, fileName)
 		return &bt, err
-	}, hredis.WithStoreNil(true))
+	}, hredis.WithStoreNil(true), hredis.WithIgnoreError(true))
 
 	if b == nil || err != nil {
 		return nil, err

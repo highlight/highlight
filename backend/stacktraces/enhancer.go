@@ -56,7 +56,7 @@ var fetch fetcher
 type DiskFetcher struct{}
 
 func (n DiskFetcher) fetchFile(ctx context.Context, href string) ([]byte, error) {
-	span, _ := util.StartSpanFromContext(ctx, "disk.fetchFile")
+	span, _ := util.StartSpanFromContext(ctx, "disk.fetchFile", util.Tag("href", href))
 	defer span.Finish()
 
 	inputBytes, err := os.ReadFile(href)
@@ -72,7 +72,7 @@ type NetworkFetcher struct {
 }
 
 func (n NetworkFetcher) fetchFile(ctx context.Context, href string) ([]byte, error) {
-	span, ctx := util.StartSpanFromContext(ctx, "network.fetchFile")
+	span, ctx := util.StartSpanFromContext(ctx, "network.fetchFileCached", util.Tag("href", href))
 	defer span.Finish()
 
 	b, err := redis.CachedEval(ctx, n.redis, href, time.Second, time.Minute, func() (*[]byte, error) {
@@ -115,7 +115,7 @@ func (n NetworkFetcher) fetchFile(ctx context.Context, href string) ([]byte, err
 		}
 
 		return &bodyBytes, nil
-	}, redis.WithStoreNil(true))
+	}, redis.WithStoreNil(true), redis.WithIgnoreError(true))
 
 	if b == nil || err != nil {
 		return nil, err
@@ -181,7 +181,7 @@ func getFileSourcemap(ctx context.Context, projectId int, version *string, stack
 	sourcemapFetchStrategy := "S3"
 	stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
 	for sourceMapFileBytes == nil {
-		sourceMapFileBytes, err = storageClient.ReadSourceMapFile(ctx, projectId, version, pathSubpath)
+		sourceMapFileBytes, err = storageClient.ReadSourceMapFileCached(ctx, projectId, version, pathSubpath)
 		if err != nil {
 			if pathSubpath == "" {
 				// SOURCEMAP_ERROR: could not find source map file in s3
@@ -201,7 +201,7 @@ func getFileSourcemap(ctx context.Context, projectId int, version *string, stack
 
 func getURLSourcemap(ctx context.Context, projectId int, version *string, stackTraceFileURL string, stackTraceFilePath string, stackFileNameIndex int, storageClient storage.Client, stackTraceError *privateModel.SourceMappingError) (string, []byte, error) {
 	// try to get file from s3
-	minifiedFileBytes, err := storageClient.ReadSourceMapFile(ctx, projectId, version, stackTraceFilePath)
+	minifiedFileBytes, err := storageClient.ReadSourceMapFileCached(ctx, projectId, version, stackTraceFilePath)
 	minifiedFetchStrategy := "S3"
 	var stackTraceErrorCode privateModel.SourceMappingErrorCode
 	stackTraceError.MinifiedFetchStrategy = &minifiedFetchStrategy
@@ -301,7 +301,7 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 
 		// fetch source map file
 		// try to get file from s3
-		sourceMapFileBytes, err = storageClient.ReadSourceMapFile(ctx, projectId, version, sourceMapFilePath)
+		sourceMapFileBytes, err = storageClient.ReadSourceMapFileCached(ctx, projectId, version, sourceMapFilePath)
 		sourcemapFetchStrategy := "S3"
 		stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
 		if err != nil {
