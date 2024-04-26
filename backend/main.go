@@ -223,7 +223,7 @@ func main() {
 		samplingMap = map[trace.SpanKind]float64{
 			trace.SpanKindUnspecified: 1. / 1_000_000,
 			trace.SpanKindInternal:    1. / 1_000_000,
-			trace.SpanKindConsumer:    1. / 10,
+			trace.SpanKindConsumer:    1. / 1_00,
 			// report `sampling`
 			trace.SpanKindServer: 1.,
 			// report all customer data
