@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/redis"
 	"io"
 	"net/http"
 	"net/url"
@@ -13,6 +14,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/andybalholm/brotli"
 	"github.com/go-sourcemap/sourcemap"
@@ -43,9 +45,9 @@ func init() {
 		customTransport := http.DefaultTransport.(*http.Transport).Clone()
 		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 		client := &http.Client{Transport: customTransport}
-		fetch = NetworkFetcher{client: client}
+		fetch = NetworkFetcher{client: client, redis: redis.NewClient()}
 	} else {
-		fetch = NetworkFetcher{}
+		fetch = NetworkFetcher{redis: redis.NewClient()}
 	}
 }
 
@@ -66,50 +68,59 @@ func (n DiskFetcher) fetchFile(ctx context.Context, href string) ([]byte, error)
 
 type NetworkFetcher struct {
 	client *http.Client
+	redis  *redis.Client
 }
 
 func (n NetworkFetcher) fetchFile(ctx context.Context, href string) ([]byte, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "network.fetchFile")
 	defer span.Finish()
 
-	// check if source is a URL
-	_, err := url.ParseRequestURI(href)
-	if err != nil {
+	b, err := redis.CachedEval(ctx, n.redis, href, time.Second, time.Minute, func() (*[]byte, error) {
+		// check if source is a URL
+		_, err := url.ParseRequestURI(href)
+		if err != nil {
+			return nil, err
+		}
+		// get minified file
+		if n.client == nil {
+			n.client = http.DefaultClient
+		}
+		res, err := n.client.Get(href)
+		if err != nil {
+			return nil, e.Wrap(err, "error getting source file")
+		}
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				log.WithContext(ctx).Errorf("failed to close network reader %+v", err)
+			}
+		}(res.Body)
+		if res.StatusCode != http.StatusOK {
+			return nil, e.New("status code not OK")
+		}
+
+		if res.Header.Get("Content-Encoding") == "br" {
+			out := &bytes.Buffer{}
+			if _, err := io.Copy(out, brotli.NewReader(res.Body)); err != nil {
+				return nil, e.New("failed to read brotli content")
+			}
+			bt := out.Bytes()
+			return &bt, nil
+		}
+
+		// unpack file into slice
+		bodyBytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, e.Wrap(err, "error reading response body")
+		}
+
+		return &bodyBytes, nil
+	}, redis.WithStoreNil(true))
+
+	if b == nil || err != nil {
 		return nil, err
 	}
-	// get minified file
-	if n.client == nil {
-		n.client = http.DefaultClient
-	}
-	res, err := n.client.Get(href)
-	if err != nil {
-		return nil, e.Wrap(err, "error getting source file")
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			log.WithContext(ctx).Errorf("failed to close network reader %+v", err)
-		}
-	}(res.Body)
-	if res.StatusCode != http.StatusOK {
-		return nil, e.New("status code not OK")
-	}
-
-	if res.Header.Get("Content-Encoding") == "br" {
-		out := &bytes.Buffer{}
-		if _, err := io.Copy(out, brotli.NewReader(res.Body)); err != nil {
-			return nil, e.New("failed to read brotli content")
-		}
-		return out.Bytes(), nil
-	}
-
-	// unpack file into slice
-	bodyBytes, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, e.Wrap(err, "error reading response body")
-	}
-
-	return bodyBytes, nil
+	return *b, nil
 }
 
 func limitMaxSize(value *string) *string {

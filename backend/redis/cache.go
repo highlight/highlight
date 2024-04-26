@@ -10,6 +10,7 @@ import (
 
 type Config struct {
 	BypassCache bool
+	StoreNil    bool
 }
 
 type Option func(cfg *Config)
@@ -17,6 +18,12 @@ type Option func(cfg *Config)
 func WithBypassCache(bypass bool) Option {
 	return func(cfg *Config) {
 		cfg.BypassCache = bypass
+	}
+}
+
+func WithStoreNil(storeNil bool) Option {
+	return func(cfg *Config) {
+		cfg.StoreNil = storeNil
 	}
 }
 
@@ -43,7 +50,7 @@ func CachedEval[T any](ctx context.Context, redis *Client, cacheKey string, lock
 				}
 			}()
 		}
-		if value, err = fn(); value == nil || err != nil {
+		if value, err = fn(); (!cfg.StoreNil && value == nil) || err != nil {
 			return
 		}
 		if err = redis.Cache.Set(&cache.Item{
