@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/aws/smithy-go/ptr"
@@ -31,7 +32,7 @@ func init() {
 func main() {
 	highlight.SetProjectID("1jdkoe52")
 	highlight.Start(
-		highlight.WithServiceName("task--migrate-error-segments"),
+		highlight.WithServiceName("task--migrate-session-segments"),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
 		highlight.WithEnvironment(util.EnvironmentName()),
 	)
@@ -52,12 +53,12 @@ func main() {
 		log.WithContext(ctx).Fatalf("error setting up DB: %v", err)
 	}
 
-	segments := []*model.ErrorSegment{}
-	if err := db.WithContext(ctx).Model(model.ErrorSegment{}).Find(&segments).Error; err != nil {
-		log.WithContext(ctx).Fatalf("error querying error segments: %v", err)
+	segments := []*model.Segment{}
+	if err := db.WithContext(ctx).Model(model.Segment{}).Find(&segments).Error; err != nil {
+		log.WithContext(ctx).Fatalf("error querying session segments: %v", err)
 	}
 
-	log.WithContext(ctx).Infof("migrating %d error segments", len(segments))
+	log.WithContext(ctx).Infof("migrating %d session segments", len(segments))
 
 	migratedCount := 0
 	skipCount := 0
@@ -83,7 +84,7 @@ func main() {
 
 		savedSegment := model.SavedSegment{
 			Name:       *name,
-			EntityType: modelInputs.SavedSegmentEntityTypeError,
+			EntityType: modelInputs.SavedSegmentEntityTypeSession,
 			ProjectID:  segment.ProjectID,
 			Params:     *params,
 		}
@@ -107,7 +108,7 @@ func main() {
 			log.WithContext(ctx).Infof("would migrate segment %d: %s", segment.ID, savedSegment.Params)
 		} else {
 			if err := db.WithContext(ctx).Create(&savedSegment).Error; err != nil {
-				log.WithContext(ctx).Errorf("error migrating error segment %d, %v", segment.ID, err)
+				log.WithContext(ctx).Errorf("error migrating session segment %d, %v", segment.ID, err)
 				errorCount++
 				continue
 			}
@@ -123,26 +124,30 @@ func main() {
 	}
 }
 
+type SavedSegmentParams struct {
+	Query string
+}
+
 func translateParams(params *string) (*string, error) {
 	if params == nil {
 		return nil, nil
 	}
 
-	var paramsObject map[string]*string
+	var paramsObject SavedSegmentParams
 	if err := json.Unmarshal([]byte(*params), &paramsObject); err != nil {
 		return nil, fmt.Errorf("error unmarshalling params: %v", err)
 	}
 
-	queryString := paramsObject["Query"]
-	if queryString == nil || *queryString == "" {
-		queryString = paramsObject["query"]
-		if queryString == nil || *queryString == "" {
+	queryString := paramsObject.Query
+	if queryString == "" {
+		queryString = paramsObject.Query
+		if queryString == "" {
 			return nil, nil
 		}
 	}
 
 	var clickhouseQuery modelInputs.ClickhouseQuery
-	if err := json.Unmarshal([]byte(*queryString), &clickhouseQuery); err != nil {
+	if err := json.Unmarshal([]byte(queryString), &clickhouseQuery); err != nil {
 		return nil, fmt.Errorf("error unmarshalling query: %v", err)
 	}
 	if clickhouseQuery.Rules == nil || len(clickhouseQuery.Rules) == 0 {
@@ -167,10 +172,16 @@ func translateParams(params *string) (*string, error) {
 			continue
 		}
 
-		// translate field
-		fieldName, valid := validFieldMap[field]
-		if !valid {
+		//ignore field
+		if ignoredFieldMap[field] {
 			continue
+		}
+
+		fieldString := field
+		// translate field
+		fieldName, valid := sessionFieldMap[field]
+		if valid {
+			fieldString = string(fieldName)
 		}
 
 		_, valid = validOpMap[rule.Op]
@@ -178,7 +189,7 @@ func translateParams(params *string) (*string, error) {
 			continue
 		}
 
-		queryPart := buildStringQuery(fieldName, rule.Op, rule.Val)
+		queryPart := buildStringQuery(fieldString, rule.Op, rule.Val)
 
 		queryParts = append(queryParts, queryPart)
 	}
@@ -218,53 +229,79 @@ func deserializeRules(rules [][]string) ([]Rule, error) {
 	return ret, nil
 }
 
-func buildStringQuery(fieldName modelInputs.ReservedErrorsJoinedKey, op string, val []string) string {
+func buildStringQuery(field string, op string, values []string) string {
 	queryArray := []string{}
 	switch op {
 	case "is":
+		val := []string{}
+		for _, v := range values {
+			val = append(val, quotedString(v))
+		}
+
 		value := strings.Join(val, " OR ")
 		if len(val) > 1 {
 			value = fmt.Sprintf("(%s)", value)
 		}
-		queryArray = append(queryArray, fmt.Sprintf("%s=%s", fieldName, value))
+		queryArray = append(queryArray, fmt.Sprintf("%s=%s", field, value))
 	case "is_not":
+		val := []string{}
+		for _, v := range values {
+			val = append(val, quotedString(v))
+		}
+
 		value := strings.Join(val, " OR ")
 		if len(val) > 1 {
 			value = fmt.Sprintf("(%s)", value)
 		}
-		queryArray = append(queryArray, fmt.Sprintf("%s!=%s", fieldName, value))
+		queryArray = append(queryArray, fmt.Sprintf("%s!=%s", field, value))
 	case "contains":
 		containsValues := []string{}
-		for _, v := range val {
-			containsValues = append(containsValues, fmt.Sprintf("*%s*", v))
+		for _, v := range values {
+			containsValues = append(containsValues, quotedString(fmt.Sprintf("*%s*", v)))
 		}
 
 		value := strings.Join(containsValues, " OR ")
-		if len(val) > 1 {
+		if len(values) > 1 {
 			value = fmt.Sprintf("(%s)", value)
 		}
-		queryArray = append(queryArray, fmt.Sprintf("%s=%s", fieldName, value))
+		queryArray = append(queryArray, fmt.Sprintf("%s=%s", field, value))
 	case "not_contains":
 		containsValues := []string{}
-		for _, v := range val {
-			containsValues = append(containsValues, fmt.Sprintf("*%s*", v))
+		for _, v := range values {
+			containsValues = append(containsValues, quotedString(fmt.Sprintf("*%s*", v)))
 		}
 
 		value := strings.Join(containsValues, " OR ")
-		if len(val) > 1 {
+		if len(values) > 1 {
 			value = fmt.Sprintf("(%s)", value)
 		}
-		queryArray = append(queryArray, fmt.Sprintf("%s!=%s", fieldName, value))
+		queryArray = append(queryArray, fmt.Sprintf("%s!=%s", field, value))
 	case "matches":
-		for _, v := range val {
-			value := fmt.Sprintf("/%s/", v)
-			queryArray = append(queryArray, fmt.Sprintf("%s=%s", fieldName, value))
+		for _, v := range values {
+			value := quotedString(fmt.Sprintf("/%s/", v))
+			queryArray = append(queryArray, fmt.Sprintf("%s=%s", field, value))
 		}
 	case "not_matches":
-		for _, v := range val {
-			value := fmt.Sprintf("/%s/", v)
-			queryArray = append(queryArray, fmt.Sprintf("%s!=%s", fieldName, value))
+		for _, v := range values {
+			value := quotedString(fmt.Sprintf("/%s/", v))
+			queryArray = append(queryArray, fmt.Sprintf("%s!=%s", field, value))
 		}
+	case "between_time":
+		start, end, _ := strings.Cut(values[0], "_")
+		queryArray = append(queryArray, fmt.Sprintf("(%s>=%s AND %s<=%s)", field, start, field, end))
+	case "between":
+		start, end, _ := strings.Cut(values[0], "_")
+		queryArray = append(queryArray, fmt.Sprintf("(%s>=%s AND %s<=%s)", field, start, field, end))
+	case "not_between_time":
+		start, end, _ := strings.Cut(values[0], "_")
+		queryArray = append(queryArray, fmt.Sprintf("(%s<%s AND %s>%s)", field, start, field, end))
+	case "not_between":
+		start, end, _ := strings.Cut(values[0], "_")
+		queryArray = append(queryArray, fmt.Sprintf("(%s<%s AND %s>%s)", field, start, field, end))
+	case "exists":
+		queryArray = append(queryArray, fmt.Sprintf("%s EXISTS", field))
+	case "not_exists":
+		queryArray = append(queryArray, fmt.Sprintf("%s NOT EXISTS", field))
 	}
 
 	queryString := strings.Join(queryArray, " OR ")
@@ -275,27 +312,58 @@ func buildStringQuery(fieldName modelInputs.ReservedErrorsJoinedKey, op string, 
 	return queryString
 }
 
-var validFieldMap = map[string]modelInputs.ReservedErrorsJoinedKey{
-	"os_name":           modelInputs.ReservedErrorsJoinedKeyOsName,
-	"has_session":       modelInputs.ReservedErrorsJoinedKeyHasSession,
-	"environment":       modelInputs.ReservedErrorsJoinedKeyEnvironment,
-	"Type":              modelInputs.ReservedErrorsJoinedKeyType,
-	"Event":             modelInputs.ReservedErrorsJoinedKeyEvent,
-	"state":             modelInputs.ReservedErrorsJoinedKeyStatus,
-	"browser":           modelInputs.ReservedErrorsJoinedKeyBrowser,
-	"visited_url":       modelInputs.ReservedErrorsJoinedKeyVisitedURL,
-	"service_name":      modelInputs.ReservedErrorsJoinedKeyServiceName,
-	"service_version":   modelInputs.ReservedErrorsJoinedKeyServiceVersion,
-	"Tag":               modelInputs.ReservedErrorsJoinedKeyTag,
-	"secure_session_id": modelInputs.ReservedErrorsJoinedKeySecureSessionID,
-	"trace_id":          modelInputs.ReservedErrorsJoinedKeyTraceID,
+func quotedString(value string) string {
+	if !regexp.MustCompile(`\s`).MatchString(value) {
+		return value
+	}
+
+	return "\"" + value + "\""
+}
+
+var sessionFieldMap = map[string]modelInputs.ReservedSessionKey{
+	"active_length":   modelInputs.ReservedSessionKeyActiveLength,
+	"app_version":     modelInputs.ReservedSessionKeyServiceVersion,
+	"browser_name":    modelInputs.ReservedSessionKeyBrowserName,
+	"browser_version": modelInputs.ReservedSessionKeyBrowserVersion,
+	"city":            modelInputs.ReservedSessionKeyCity,
+	"country":         modelInputs.ReservedSessionKeyCountry,
+	"environment":     modelInputs.ReservedSessionKeyEnvironment,
+	"fingerprint":     modelInputs.ReservedSessionKeyDeviceID,
+	"first_time":      modelInputs.ReservedSessionKeyFirstTime,
+	"has_comments":    modelInputs.ReservedSessionKeyHasComments,
+	"has_errors":      modelInputs.ReservedSessionKeyHasErrors,
+	"has_rage_clicks": modelInputs.ReservedSessionKeyHasRageClicks,
+	"identified":      modelInputs.ReservedSessionKeyIdentified,
+	"identifier":      modelInputs.ReservedSessionKeyIdentifier,
+	"ip":              modelInputs.ReservedSessionKeyIP,
+	"length":          modelInputs.ReservedSessionKeyLength,
+	"loc_state":       modelInputs.ReservedSessionKeyLocState,
+	"normalness":      modelInputs.ReservedSessionKeyNormalness,
+	"os_name":         modelInputs.ReservedSessionKeyOsName,
+	"os_version":      modelInputs.ReservedSessionKeyOsVersion,
+	"pages_visited":   modelInputs.ReservedSessionKeyPagesVisited,
+	"processed":       modelInputs.ReservedSessionKeyProcessed,
+	"sample":          modelInputs.ReservedSessionKeySample,
+	"secure_id":       modelInputs.ReservedSessionKeySecureID,
+	"viewed":          modelInputs.ReservedSessionKeyViewed,
+	"viewed_by_me":    modelInputs.ReservedSessionKeyViewedByMe,
+}
+
+var ignoredFieldMap = map[string]bool{
+	"custom_created_at": true,
 }
 
 var validOpMap = map[string]string{
-	"is":           "=",
-	"is_not":       "!=",
-	"contains":     "=",
-	"not_contains": "!=",
-	"matches":      "=",
-	"not_matches":  "!=",
+	"is":               "=",
+	"is_not":           "!=",
+	"contains":         "=",
+	"not_contains":     "!=",
+	"matches":          "=",
+	"not_matches":      "!=",
+	"between":          ">=",
+	"not_between":      "<=",
+	"between_time":     ">=",
+	"not_between_time": "<=",
+	"exists":           "EXISTS",
+	"not_exists":       "NOT EXISTS",
 }
