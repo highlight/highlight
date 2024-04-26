@@ -2,15 +2,11 @@ package worker
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"math"
 	"strings"
 	"time"
-
-	e "github.com/pkg/errors"
-	"github.com/samber/lo"
-
-	"encoding/binary"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
@@ -21,7 +17,10 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
+	e "github.com/pkg/errors"
+	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func (k *KafkaWorker) processWorkerError(ctx context.Context, task kafkaqueue.RetryableMessage, err error, start time.Time) {
@@ -43,12 +42,30 @@ func (k *KafkaWorker) processWorkerError(ctx context.Context, task kafkaqueue.Re
 	task.SetFailures(task.GetFailures() + 1)
 }
 
+func (k *KafkaWorker) log(ctx context.Context, task kafkaqueue.RetryableMessage, msg ...interface{}) {
+	if task == nil {
+		return
+	}
+	m := task.GetKafkaMessage()
+	if m == nil {
+		return
+	}
+	if m.Partition == 408 || m.Partition == 58 || m.Partition == 289 {
+		log.WithContext(ctx).
+			WithField("key", string(m.Key)).
+			WithField("offset", m.Offset).
+			WithField("taskType", task.GetType()).
+			WithField("partition", m.Partition).
+			Info(msg...)
+	}
+}
+
 func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 	for {
 		func() {
 			var err error
 			defer util.Recover()
-			s, sCtx := util.StartSpanFromContext(ctx, "processPublicWorkerMessage", util.ResourceName("worker.kafka.process"))
+			s, sCtx := util.StartSpanFromContext(ctx, "processPublicWorkerMessage", util.ResourceName("worker.kafka.process"), util.WithSpanKind(trace.SpanKindConsumer))
 			s.SetAttribute("worker.goroutine", k.WorkerThread)
 			defer s.Finish(err)
 
@@ -64,9 +81,11 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 			s.SetAttribute("taskType", task.GetType())
 			s.SetAttribute("partition", task.GetKafkaMessage().Partition)
 			s.SetAttribute("partitionKey", string(task.GetKafkaMessage().Key))
+			k.log(ctx, task, "received message")
 
 			s2, _ := util.StartSpanFromContext(sCtx, "worker.kafka.processMessage")
 			for i := 0; i <= task.GetMaxRetries(); i++ {
+				k.log(ctx, task, "starting processing", i)
 				start := time.Now()
 				publicWorkerMessage, ok := task.(*kafka_queue.Message)
 				if !ok {
@@ -79,11 +98,13 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 					break
 				}
 			}
+			k.log(ctx, task, "finished processing", task.GetFailures())
 			s.SetAttribute("taskFailures", task.GetFailures())
 			s2.Finish(err)
 
 			s3, _ := util.StartSpanFromContext(sCtx, "worker.kafka.commitMessage")
 			k.KafkaQueue.Commit(ctx, task.GetKafkaMessage())
+			k.log(ctx, task, "committed")
 			s3.Finish()
 
 			hmetric.Incr(ctx, "worker.kafka.processed.total", nil, 1)
