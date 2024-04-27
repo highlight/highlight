@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/openlyinc/pointy"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -553,17 +552,6 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	span, ctx := util.StartSpanFromContext(ctx, "clickhouse.readMetrics")
 	span.SetAttribute("project_id", projectID)
 	span.SetAttribute("table", sampleableConfig.tableConfig.TableName)
-	span.SetAttribute("params", params)
-	span.SetAttribute("column", column)
-	span.SetAttribute("metric_types", metricTypes)
-	span.SetAttribute("group_by", groupBy)
-	span.SetAttribute("bucket_count", pointy.IntValue(bucketCount, 0))
-	span.SetAttribute("bucket_by", bucketBy)
-	span.SetAttribute("limit", pointy.IntValue(limit, 0))
-	span.SetAttribute("limit_column", pointy.StringValue(limitColumn, ""))
-	if limitAggregator != nil {
-		span.SetAttribute("limit_aggregator", limitAggregator.String())
-	}
 	defer span.Finish()
 
 	if len(metricTypes) == 0 {
