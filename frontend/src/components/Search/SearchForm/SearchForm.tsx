@@ -353,6 +353,8 @@ export const Search: React.FC<{
 	const keyMatch = visibleItems.find((item) => item.name === activePart.text)
 	const showOperators = !!keyMatch
 
+	console.log('Search', keyMatch, showOperators)
+
 	if (showOperators) {
 		let operators = [] as string[]
 		switch (keyMatch.type) {
@@ -378,15 +380,13 @@ export const Search: React.FC<{
 				operators = [...EQUAL_OPERATOR]
 		}
 
-		keyMatch.type === 'Numeric'
-			? [...BOOLEAN_OPERATORS, ...NUMERIC_OPERATORS, ...EXISTS_OPERATORS]
-			: (visibleItems = operators.map(
-					(operator) =>
-						({
-							name: operator,
-							type: 'Operator',
-						} as SearchResult),
-			  ))
+		visibleItems = operators.map(
+			(operator) =>
+				({
+					name: operator,
+					type: 'Operator',
+				} as SearchResult),
+		)
 	}
 
 	// Limit number of items shown.
