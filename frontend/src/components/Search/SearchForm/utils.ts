@@ -37,11 +37,12 @@ export const quoteQueryValue = (value: string | number) => {
 	}
 
 	const containsSpace = value.indexOf(' ') > -1
+	const containsColon = value.indexOf(':') > -1
 	const containsQuote =
 		value.indexOf('"') > -1 ||
 		value.indexOf("'") > -1 ||
 		value.indexOf('`') > -1
-	if (containsSpace || containsQuote) {
+	if (containsSpace || containsColon || containsQuote) {
 		return `"${value.replace(/"/g, '\\"')}"`
 	}
 
