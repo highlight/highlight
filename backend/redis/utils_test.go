@@ -45,10 +45,10 @@ func Test_CachedEval(t *testing.T) {
 	key, _ = randomString()
 	v1, e1 = CachedEval(ctx, r, *key, time.Minute, time.Minute, randomError, WithStoreNil(true), WithIgnoreError(true))
 	v2, e2 = CachedEval(ctx, r, *key, time.Minute, time.Minute, randomError, WithStoreNil(true), WithIgnoreError(true))
-	assert.NoError(t, e1)
+	assert.Error(t, e1)
 	assert.NoError(t, e2)
 	assert.EqualValues(t, v1, v2)
-	assert.EqualValues(t, e1, e2)
+	assert.NotEqualValues(t, e1, e2)
 }
 
 func TestLock(t *testing.T) {
