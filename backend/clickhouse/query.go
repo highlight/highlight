@@ -553,7 +553,6 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	span, ctx := util.StartSpanFromContext(ctx, "clickhouse.readMetrics")
 	span.SetAttribute("project_id", projectID)
 	span.SetAttribute("table", sampleableConfig.tableConfig.TableName)
-	span.SetAttribute("config", sampleableConfig)
 	span.SetAttribute("params", params)
 	span.SetAttribute("column", column)
 	span.SetAttribute("metric_types", metricTypes)
