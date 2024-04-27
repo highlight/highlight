@@ -60,13 +60,13 @@ func CachedEval[T any](ctx context.Context, redis *Client, cacheKey string, lock
 		if value, err = fn(); (!cfg.StoreNil && value == nil) || (!cfg.IgnoreError && err != nil) {
 			return
 		}
-		if err = redis.Cache.Set(&cache.Item{
+		if setError := redis.Cache.Set(&cache.Item{
 			Ctx:   ctx,
 			Key:   cacheKey,
 			Value: &value,
 			TTL:   cacheExpiration,
-		}); err != nil {
-			return
+		}); setError != nil {
+			return nil, setError
 		}
 	}
 

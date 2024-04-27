@@ -212,7 +212,7 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 		minifiedFileBytes, err = fetch.fetchFile(ctx, stackTraceFileURL)
 		minifiedFetchStrategy = "URL"
 		stackTraceError.MinifiedFetchStrategy = &minifiedFetchStrategy
-		if err != nil {
+		if minifiedFileBytes == nil || err != nil {
 			// fallback if we can't get the source file at all
 			// SOURCEMAP_ERROR: minified file does not exist in S3 and could not be found at the URL
 			// (user-facing error message can include the S3 path and URL that was searched)
@@ -309,7 +309,7 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 			sourceMapFileBytes, err = fetch.fetchFile(ctx, sourceMapURL)
 			sourcemapFetchStrategy = "URL"
 			stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
-			if err != nil {
+			if sourceMapFileBytes == nil || err != nil {
 				// fallback if we can't get the source file at all
 				// SOURCEMAP_ERROR: source map file does not exist in S3 and could not be found at the URL
 				// (user-facing error message can include the S3 path and URL that was searched)
