@@ -353,8 +353,6 @@ export const Search: React.FC<{
 	const keyMatch = visibleItems.find((item) => item.name === activePart.text)
 	const showOperators = !!keyMatch
 
-	console.log('Search', keyMatch, showOperators)
-
 	if (showOperators) {
 		let operators = [] as string[]
 		switch (keyMatch.type) {
