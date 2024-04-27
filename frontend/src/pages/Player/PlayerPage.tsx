@@ -217,8 +217,8 @@ export const PlayerPage = () => {
 			billingDetails.billingDetailsForProject.meter < 15
 
 		const defaultValue = showLiveSessions
-			? `processed=(true OR false)`
-			: `processed=true`
+			? `processed=(true OR false) `
+			: `processed=true `
 		return withDefault(StringParam, defaultValue)
 	}, [billingDetails?.billingDetailsForProject, integrated, projectId])
 
