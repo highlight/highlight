@@ -23,6 +23,8 @@ export const stringifySearchQuery = (params: SearchExpression[]) => {
 	return querySegments.join('').trim()
 }
 
+const NEED_QUOTE_REGEX = /["'` :=><]/
+
 export const quoteQueryValue = (value: string | number) => {
 	if (typeof value !== 'string') {
 		return String(value)
@@ -36,13 +38,7 @@ export const quoteQueryValue = (value: string | number) => {
 		return value
 	}
 
-	const containsSpace = value.indexOf(' ') > -1
-	const containsColon = value.indexOf(':') > -1
-	const containsQuote =
-		value.indexOf('"') > -1 ||
-		value.indexOf("'") > -1 ||
-		value.indexOf('`') > -1
-	if (containsSpace || containsColon || containsQuote) {
+	if (NEED_QUOTE_REGEX.test(value)) {
 		return `"${value.replace(/"/g, '\\"')}"`
 	}
 
