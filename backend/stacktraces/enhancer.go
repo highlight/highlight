@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/redis"
 	"io"
 	"net/http"
 	"net/url"
@@ -13,6 +14,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/andybalholm/brotli"
 	"github.com/go-sourcemap/sourcemap"
@@ -43,9 +45,9 @@ func init() {
 		customTransport := http.DefaultTransport.(*http.Transport).Clone()
 		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 		client := &http.Client{Transport: customTransport}
-		fetch = NetworkFetcher{client: client}
+		fetch = NetworkFetcher{client: client, redis: redis.NewClient()}
 	} else {
-		fetch = NetworkFetcher{}
+		fetch = NetworkFetcher{redis: redis.NewClient()}
 	}
 }
 
@@ -54,7 +56,7 @@ var fetch fetcher
 type DiskFetcher struct{}
 
 func (n DiskFetcher) fetchFile(ctx context.Context, href string) ([]byte, error) {
-	span, _ := util.StartSpanFromContext(ctx, "disk.fetchFile")
+	span, _ := util.StartSpanFromContext(ctx, "disk.fetchFile", util.Tag("href", href))
 	defer span.Finish()
 
 	inputBytes, err := os.ReadFile(href)
@@ -66,50 +68,59 @@ func (n DiskFetcher) fetchFile(ctx context.Context, href string) ([]byte, error)
 
 type NetworkFetcher struct {
 	client *http.Client
+	redis  *redis.Client
 }
 
 func (n NetworkFetcher) fetchFile(ctx context.Context, href string) ([]byte, error) {
-	span, ctx := util.StartSpanFromContext(ctx, "network.fetchFile")
+	span, ctx := util.StartSpanFromContext(ctx, "network.fetchFileCached", util.Tag("href", href))
 	defer span.Finish()
 
-	// check if source is a URL
-	_, err := url.ParseRequestURI(href)
-	if err != nil {
+	b, err := redis.CachedEval(ctx, n.redis, href, time.Second, time.Minute, func() (*[]byte, error) {
+		// check if source is a URL
+		_, err := url.ParseRequestURI(href)
+		if err != nil {
+			return nil, err
+		}
+		// get minified file
+		if n.client == nil {
+			n.client = http.DefaultClient
+		}
+		res, err := n.client.Get(href)
+		if err != nil {
+			return nil, e.Wrap(err, "error getting source file")
+		}
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				log.WithContext(ctx).Errorf("failed to close network reader %+v", err)
+			}
+		}(res.Body)
+		if res.StatusCode != http.StatusOK {
+			return nil, e.New("status code not OK")
+		}
+
+		if res.Header.Get("Content-Encoding") == "br" {
+			out := &bytes.Buffer{}
+			if _, err := io.Copy(out, brotli.NewReader(res.Body)); err != nil {
+				return nil, e.New("failed to read brotli content")
+			}
+			bt := out.Bytes()
+			return &bt, nil
+		}
+
+		// unpack file into slice
+		bodyBytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, e.Wrap(err, "error reading response body")
+		}
+
+		return &bodyBytes, nil
+	}, redis.WithStoreNil(true), redis.WithIgnoreError(true))
+
+	if b == nil || err != nil {
 		return nil, err
 	}
-	// get minified file
-	if n.client == nil {
-		n.client = http.DefaultClient
-	}
-	res, err := n.client.Get(href)
-	if err != nil {
-		return nil, e.Wrap(err, "error getting source file")
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			log.WithContext(ctx).Errorf("failed to close network reader %+v", err)
-		}
-	}(res.Body)
-	if res.StatusCode != http.StatusOK {
-		return nil, e.New("status code not OK")
-	}
-
-	if res.Header.Get("Content-Encoding") == "br" {
-		out := &bytes.Buffer{}
-		if _, err := io.Copy(out, brotli.NewReader(res.Body)); err != nil {
-			return nil, e.New("failed to read brotli content")
-		}
-		return out.Bytes(), nil
-	}
-
-	// unpack file into slice
-	bodyBytes, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, e.Wrap(err, "error reading response body")
-	}
-
-	return bodyBytes, nil
+	return *b, nil
 }
 
 func limitMaxSize(value *string) *string {
@@ -170,8 +181,8 @@ func getFileSourcemap(ctx context.Context, projectId int, version *string, stack
 	sourcemapFetchStrategy := "S3"
 	stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
 	for sourceMapFileBytes == nil {
-		sourceMapFileBytes, err = storageClient.ReadSourceMapFile(ctx, projectId, version, pathSubpath)
-		if err != nil {
+		sourceMapFileBytes, err = storageClient.ReadSourceMapFileCached(ctx, projectId, version, pathSubpath)
+		if sourceMapFileBytes == nil || err != nil {
 			if pathSubpath == "" {
 				// SOURCEMAP_ERROR: could not find source map file in s3
 				// (user-facing error message can include all the paths searched)
@@ -190,18 +201,18 @@ func getFileSourcemap(ctx context.Context, projectId int, version *string, stack
 
 func getURLSourcemap(ctx context.Context, projectId int, version *string, stackTraceFileURL string, stackTraceFilePath string, stackFileNameIndex int, storageClient storage.Client, stackTraceError *privateModel.SourceMappingError) (string, []byte, error) {
 	// try to get file from s3
-	minifiedFileBytes, err := storageClient.ReadSourceMapFile(ctx, projectId, version, stackTraceFilePath)
+	minifiedFileBytes, err := storageClient.ReadSourceMapFileCached(ctx, projectId, version, stackTraceFilePath)
 	minifiedFetchStrategy := "S3"
 	var stackTraceErrorCode privateModel.SourceMappingErrorCode
 	stackTraceError.MinifiedFetchStrategy = &minifiedFetchStrategy
 	stackTraceError.ActualMinifiedFetchedPath = &stackTraceFilePath
 
-	if err != nil {
+	if minifiedFileBytes == nil || err != nil {
 		// if not in s3, get from url and put in s3
 		minifiedFileBytes, err = fetch.fetchFile(ctx, stackTraceFileURL)
 		minifiedFetchStrategy = "URL"
 		stackTraceError.MinifiedFetchStrategy = &minifiedFetchStrategy
-		if err != nil {
+		if minifiedFileBytes == nil || err != nil {
 			// fallback if we can't get the source file at all
 			// SOURCEMAP_ERROR: minified file does not exist in S3 and could not be found at the URL
 			// (user-facing error message can include the S3 path and URL that was searched)
@@ -290,15 +301,15 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 
 		// fetch source map file
 		// try to get file from s3
-		sourceMapFileBytes, err = storageClient.ReadSourceMapFile(ctx, projectId, version, sourceMapFilePath)
+		sourceMapFileBytes, err = storageClient.ReadSourceMapFileCached(ctx, projectId, version, sourceMapFilePath)
 		sourcemapFetchStrategy := "S3"
 		stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
-		if err != nil {
+		if sourceMapFileBytes == nil || err != nil {
 			// if not in s3, get from url and put in s3
 			sourceMapFileBytes, err = fetch.fetchFile(ctx, sourceMapURL)
 			sourcemapFetchStrategy = "URL"
 			stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
-			if err != nil {
+			if sourceMapFileBytes == nil || err != nil {
 				// fallback if we can't get the source file at all
 				// SOURCEMAP_ERROR: source map file does not exist in S3 and could not be found at the URL
 				// (user-facing error message can include the S3 path and URL that was searched)

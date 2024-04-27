@@ -549,6 +549,11 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSamplin
 }
 
 func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfig sampleableTableConfig[T], projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketCount *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "clickhouse.readMetrics")
+	span.SetAttribute("project_id", projectID)
+	span.SetAttribute("table", sampleableConfig.tableConfig.TableName)
+	defer span.Finish()
+
 	if len(metricTypes) == 0 {
 		return nil, errors.New("no metric types provided")
 	}
@@ -758,11 +763,15 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		Buckets: []*modelInputs.MetricBucket{},
 	}
 
+	span, ctx = util.StartSpanFromContext(ctx, "readMetrics.query")
+	span.SetAttribute("sql", sql)
+	span.SetAttribute("args", args)
 	rows, err := client.conn.Query(
 		ctx,
 		sql,
 		args...,
 	)
+	span.Finish(err)
 
 	if err != nil {
 		return nil, err
