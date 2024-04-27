@@ -1,5 +1,7 @@
 import { Avatar } from '@components/Avatar/Avatar'
+import { SearchExpression } from '@components/Search/Parser/listener'
 import { useSearchContext } from '@components/Search/SearchContext'
+import { stringifyExpression } from '@components/Search/utils'
 import { Session } from '@graph/schemas'
 import {
 	Box,
@@ -13,15 +15,14 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
 import ActivityGraph from '@pages/Sessions/SessionsFeedV3/ActivityGraph/ActivityGraph'
+import { SessionFeedConfigurationContext } from '@pages/Sessions/SessionsFeedV3/context/SessionFeedConfigurationContext'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment/moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-
-import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import { SessionFeedConfigurationContext } from '@/pages/Sessions/SessionsFeedV3/context/SessionFeedConfigurationContext'
 
 import {
 	getDisplayName,
@@ -44,7 +45,7 @@ export const SessionFeedCard = React.memo(
 		}>()
 		const ref = useRef<HTMLDivElement | null>(null)
 		const { projectId } = useProjectId()
-		const { onSubmit } = useSearchContext()
+		const { onSubmit, queryParts } = useSearchContext()
 		const [eventCounts, setEventCounts] =
 			useState<{ ts: number; value: number }[]>()
 		const customAvatarImage = getIdentifiedUserProfileImage(session)
@@ -82,10 +83,21 @@ export const SessionFeedCard = React.memo(
 			}
 		}, [autoPlaySessions, selected, session.secure_id])
 
-		const handleIconClick = (query: string) => (e: React.MouseEvent) => {
-			e.preventDefault()
-			onSubmit(query)
-		}
+		const handleIconClick =
+			(key: string, value: boolean) => (e: React.MouseEvent) => {
+				e.preventDefault()
+
+				let newQueryParts = []
+				newQueryParts = queryParts.filter((part) => part.key !== key)
+				newQueryParts.push({
+					key,
+					operator: '=',
+					value: `${value}`,
+					text: `${key}=${value}`,
+				} as SearchExpression)
+
+				onSubmit(stringifyExpression(newQueryParts))
+			}
 
 		return (
 			<Box ref={ref}>
@@ -172,7 +184,8 @@ export const SessionFeedCard = React.memo(
 												/>
 											}
 											onClick={handleIconClick(
-												'has_errors=true',
+												'has_errors',
+												true,
 											)}
 										/>
 									)}
@@ -188,7 +201,8 @@ export const SessionFeedCard = React.memo(
 												/>
 											}
 											onClick={handleIconClick(
-												'first_time=true',
+												'first_time',
+												true,
 											)}
 										/>
 									)}
@@ -204,7 +218,8 @@ export const SessionFeedCard = React.memo(
 												/>
 											}
 											onClick={handleIconClick(
-												'has_rage_clicks=true',
+												'has_rage_click',
+												true,
 											)}
 										/>
 									)}
@@ -216,7 +231,8 @@ export const SessionFeedCard = React.memo(
 											size="small"
 											icon={<IconSolidEyeOff size={12} />}
 											onClick={handleIconClick(
-												'viewed=false',
+												'viewed',
+												false,
 											)}
 										/>
 									)}
@@ -239,7 +255,8 @@ export const SessionFeedCard = React.memo(
 											size="small"
 											iconLeft={<IconSolidVideoCamera />}
 											onClick={handleIconClick(
-												'processed=false',
+												'processed',
+												false,
 											)}
 										>
 											Live
