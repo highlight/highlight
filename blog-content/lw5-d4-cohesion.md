@@ -23,4 +23,4 @@ With these new cohesion changes, we’re reducing the number of clicks it takes 
 
 ![SDK Images](/images/blog/launch-week/5/d4-related-resources.png)
 
-If you’re interested in setting up a more ‘connected’ set up when it comes to your highlight resources, feel free to reach out to us in [discord](https://highlight.io/community).
+If you’re interested in setting up a more ‘connected’ set up when it comes to your highlight resources, check out our [docs](https://www.highlight.io/docs/getting-started/frontend-backend-mapping), or feel free to reach out to us in [discord](https://highlight.io/community).
