@@ -9113,26 +9113,7 @@ func (r *queryResolver) Visualization(ctx context.Context, id int) (*model.Visua
 		return nil, err
 	}
 
-	// Reorder the graphs according to the ordering in viz.GraphIds.
-	// If the ordering includes ids not present in viz.Graphs, disregard those.
-	// If the ordering does not include ids present in viz.Graphs, append those at the end in order.
-	graphsById := lo.SliceToMap(viz.Graphs, func(g model.Graph) (int32, model.Graph) { return int32(g.ID), g })
-	orderedGraphs := []model.Graph{}
-	for _, id := range viz.GraphIds {
-		graph, found := graphsById[id]
-		if !found {
-			continue
-		}
-		orderedGraphs = append(orderedGraphs, graph)
-	}
-	graphIds := lo.SliceToMap(viz.GraphIds, func(id int32) (int32, struct{}) { return id, struct{}{} })
-	for _, graph := range viz.Graphs {
-		_, found := graphIds[int32(graph.ID)]
-		if !found {
-			orderedGraphs = append(orderedGraphs, graph)
-		}
-	}
-	viz.Graphs = orderedGraphs
+	reorderGraphs(&viz)
 
 	_, err := r.isAdminInProjectOrDemoProject(ctx, viz.ProjectID)
 	if err != nil {
@@ -9166,12 +9147,18 @@ func (r *queryResolver) Visualizations(ctx context.Context, projectID int, input
 
 	results := []model.Visualization{}
 	for _, v := range viz {
+		reorderGraphs(&v.Visualization)
 		results = append(results, v.Visualization)
 	}
 
 	totalCount := 0
 	if len(viz) > 0 {
 		totalCount = viz[0].Count
+	}
+
+	// If no dashboards have been created for this project, create a default dashboard.
+	if searchStr == "" && totalCount == 0 {
+		r.CreateDefaultDashboard(projectID)
 	}
 
 	return &model.VisualizationsResponse{
