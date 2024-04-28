@@ -18,7 +18,7 @@ export const OSSCallToAction = () => {
 				<h3 className="text-center leading-normal">
 					Join our{' '}
 					<span className={styles.highlightedText}>
-						Native OpenTelemetry for Next.js
+						OpenTelemetry for Next.js
 					</span>{' '}
 					livestream.
 				</h3>
