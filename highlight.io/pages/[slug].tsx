@@ -17,6 +17,8 @@ import {
 	iFeature,
 	loggingHeroKey,
 	loggingscreenshotKey,
+	metricsHeroKey,
+	metricsMobileKey,
 	monitoringscreenshotKey,
 	sessionReplayHeroKey,
 	sessionscreenshotKey,
@@ -32,6 +34,8 @@ import errorMonitoringHero from '../public/images/features/errorMonitoringHero.p
 import loggingHero from '../public/images/features/loggingHero.png'
 import sessionReplayHero from '../public/images/features/sessionReplayHero.png'
 import loggingscreenshot from '../public/images/loggingscreenshot.png'
+import metricsHero from '../public/images/metricshero.webp'
+import metricsScreenshot from '../public/images/metricsmobile.png'
 import monitoringscreenshot from '../public/images/monitoringscreenshot.png'
 import sessionscreenshot from '../public/images/sessionscreenshot.png'
 import tracingHero from '../public/images/traces.png'
@@ -53,11 +57,14 @@ const IMAGE_MAP = {
 	[loggingscreenshotKey]: loggingscreenshot,
 	[monitoringscreenshotKey]: monitoringscreenshot,
 	[sessionscreenshotKey]: sessionscreenshot,
+	[metricsHeroKey]: metricsHero,
+	[metricsMobileKey]: metricsScreenshot,
 } as Record<string, StaticImageData>
 
 const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 	const [imageLoaded, setImageLoaded] = useState(false)
 
+	//Created to handle the span in each subheader
 	const subHeader2List = [
 		<>
 			Debug from a{' '}
@@ -77,6 +84,10 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 			<span className="text-color-selected-light">
 				across your application.
 			</span>
+		</>,
+		<>
+			Analyze metrics across your{' '}
+			<span className="text-color-selected-light">entire stack.</span>
 		</>,
 	]
 
