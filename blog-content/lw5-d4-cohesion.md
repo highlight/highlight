@@ -17,10 +17,10 @@ metaTitle: "Day 4: Metrics & APM"
 
 ## Day 4: Cohesion!
 
-Day 4 is all about ‘cohesion’, or how the Highlight product connects each and every resource. If you’re curious and want to read more, we’ve written a lot about this when it comes to our product philosophy. 
+Day 4 is all about ‘cohesion’, or how the Highlight product connects each and every resource. If you’re curious and want to read more, we’ve written a lot about this when it comes to our [product philosophy](https://www.highlight.io/docs/general/company/product-philosophy#cohesion). 
 
 With these new cohesion changes, we’re reducing the number of clicks it takes to jump from, say, a session reply to a log, which helps you keep context when you’re investigating an issue. 
 
 ![SDK Images](/images/blog/launch-week/5/d4-related-resources.png)
 
-If you’re interested in setting up a more ‘connected’ set up when it comes to your highlight resources, feel free to reach out to us in the discord.
+If you’re interested in setting up a more ‘connected’ set up when it comes to your highlight resources, feel free to reach out to us in [discord](https://highlight.io/community).
