@@ -6,6 +6,8 @@ export const monitoringscreenshotKey = '/images/monitoringscreenshot.png'
 export const sessionscreenshotKey = '/images/sessionscreenshot.png'
 export const tracesHeroKey = '/images/traces.png'
 export const tracesscreenshotKey = '/images/tracesmobile.svg'
+export const metricsMobileKey = '/images/metricsmobile.png'
+export const metricsHeroKey = '/images/metricshero.webp'
 
 const sessionReplay2 = '/images/features/sessionReplay2.png'
 const sessionReplay3 = '/images/landingInfoRow1.png'
@@ -13,9 +15,12 @@ const sessionReplay4 = '/images/landingInfoRow2.png'
 const errorMonitoring1 = '/images/features/errorMonitoring1.png'
 const errorMonitoring2 = '/images/features/errorMonitoring2.png'
 const logging1 = '/images/features/logging1.png'
-const logging2 = '/images/features/logging2.png'
 const tracing1 = '/images/features/tracing1.png'
 const tracing2 = '/images/features/tracing2.png'
+const clickhouse = '/images/features/clickhouse.png'
+
+const metrics1 = '/images/features/metricserrorrate.png'
+const metrics2 = '/images/features/metricsengagement.png'
 
 type InfoRow = {
 	header: string
@@ -220,7 +225,7 @@ export const FEATURES: { [k: string]: iFeature } = {
 					'Perform fine-grained searches across all of your logs. Powered by ClickHouse, an industry leading time-series database.',
 				link: '/docs/general/product-features/logging/overview',
 				linkText: 'Read the Docs',
-				imgSrc: logging2,
+				imgSrc: clickhouse,
 				invert: false,
 			},
 			{
@@ -280,7 +285,7 @@ export const FEATURES: { [k: string]: iFeature } = {
 					'Perform fine-grained searches across all of your traces. Powered by ClickHouse, an industry leading time-series database.',
 				link: '/docs/general/product-features/tracing/trace-search',
 				linkText: 'Read the Docs',
-				imgSrc: tracing2,
+				imgSrc: clickhouse,
 				invert: false,
 			},
 			{
@@ -320,8 +325,8 @@ export const FEATURES: { [k: string]: iFeature } = {
 		subheader:
 			'Visualize and analyze your observability data on a single pane.',
 		docsLink: '/docs/general/product-features/metrics/overview',
-		slantedImage: sessionReplayHeroKey,
-		regularImage: sessionscreenshotKey,
+		slantedImage: metricsHeroKey,
+		regularImage: metricsMobileKey,
 		header2Selection: 4,
 		subheader2:
 			'A suite of tools for visualizing and manipulating data on your web application.',
@@ -332,7 +337,7 @@ export const FEATURES: { [k: string]: iFeature } = {
 					'Understand the real reason why your web app has slow downs, increased error rates, and more.',
 				link: '/docs/general/product-features/metrics/overview',
 				linkText: 'Read the Docs',
-				imgSrc: sessionReplay2,
+				imgSrc: metrics1,
 				invert: true,
 			},
 			{
@@ -340,7 +345,7 @@ export const FEATURES: { [k: string]: iFeature } = {
 				subheader: 'Visualize the reason why users stay and leave.',
 				link: '/docs/general/product-features/metrics/overview',
 				linkText: 'Read the Docs',
-				imgSrc: sessionReplay2,
+				imgSrc: metrics2,
 				invert: false,
 			},
 			{
@@ -349,7 +354,7 @@ export const FEATURES: { [k: string]: iFeature } = {
 					'Perform fast queries across all of your resources. Powered by ClickHouse, an industry leading time-series database.',
 				link: '/docs/general/product-features/metrics/overview',
 				linkText: 'Read the Docs',
-				imgSrc: tracing2,
+				imgSrc: clickhouse,
 				invert: true,
 			},
 			{
@@ -358,7 +363,7 @@ export const FEATURES: { [k: string]: iFeature } = {
 					'Create alerts to make sure the right teams know when something goes wrong.',
 				link: '/docs/general/product-features/metrics/overview',
 				linkText: 'Read the Docs',
-				imgSrc: tracing2,
+				imgSrc: logging1,
 				invert: false,
 			},
 			{

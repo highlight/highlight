@@ -28,6 +28,7 @@ import errorMonitoring from '../../../public/images/error-monitoring.webp'
 import fullstackLogging from '../../../public/images/fullstack-logging.webp'
 import githubscreenshot from '../../../public/images/githubscreenshot.png'
 import loggingscreenshot from '../../../public/images/loggingscreenshot.png'
+import metrics from '../../../public/images/metrics.webp'
 import monitoringscreenshot from '../../../public/images/monitoringscreenshot.png'
 import openSource from '../../../public/images/open-source.webp'
 import sessionReplay from '../../../public/images/session-replay.webp'
@@ -142,7 +143,7 @@ const features: Feature[] = [
 		description:
 			'Visualize and analyze your observability data on a single pane.',
 		thumbnail: <HiChartBar className="h-[25px] w-[25px]" />,
-		desktopImage: traces,
+		desktopImage: metrics,
 		mobileImage: tracesscreenshot,
 		right: true,
 		feature1: 'Customizable dashboards',
@@ -152,6 +153,7 @@ const features: Feature[] = [
 		feature3: 'User analytics',
 		featureImage3: <HiUsers className="h-[20px] w-[20px]" />,
 		link: '/metrics',
+		beta: true,
 	},
 	{
 		name: 'Self-Hosting',
