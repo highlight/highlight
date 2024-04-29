@@ -205,12 +205,15 @@ const WaterfallRow: React.FC<{
 					}}
 					style={{ paddingLeft: depth * 16 + 8 }}
 				>
-					{hasChildren &&
-						(open ? (
-							<IconSolidCheveronDown size={12} />
-						) : (
-							<IconSolidCheveronRight size={12} />
-						))}
+					{hasChildren && (
+						<Box flexShrink={0}>
+							{open ? (
+								<IconSolidCheveronDown size={12} />
+							) : (
+								<IconSolidCheveronRight size={12} />
+							)}
+						</Box>
+					)}
 
 					<Text
 						color="strong"
