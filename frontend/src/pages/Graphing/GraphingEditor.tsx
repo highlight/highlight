@@ -428,6 +428,7 @@ export const GraphingEditor = () => {
 				setTableNullHandling(g.nullHandling as TableNullHandling)
 			}
 
+			setQuery(g.query)
 			setMetric(g.metric)
 			setMetricViewTitle(g.title)
 			setGroupByEnabled(g.groupByKey !== null)
