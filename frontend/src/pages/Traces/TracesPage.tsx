@@ -199,15 +199,6 @@ export const TracesPage: React.FC = () => {
 	// Temporary workaround to preserve functionality for linking to a trace.
 	// Eventually we can delete this + the params from the router.
 	useEffect(() => {
-		if (!resource) {
-			navigate({
-				pathname: `/${projectId}/traces`,
-				search: location.search,
-			})
-		}
-	}, [navigate, projectId, resource])
-
-	useEffect(() => {
 		if (trace_id) {
 			set({
 				type: 'trace',
@@ -215,7 +206,8 @@ export const TracesPage: React.FC = () => {
 				spanID: span_id,
 			})
 		}
-	}, [trace_id, span_id, set, navigate, projectId])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	return (
 		<SearchContext initialQuery={query} onSubmit={setQuery}>
