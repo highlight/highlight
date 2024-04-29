@@ -101,15 +101,15 @@ export const TraceWaterfallList: React.FC = () => {
 				<Table.Head>
 					<Table.Row gridColumns={gridColumns}>
 						<Table.Header>
-							<Text>Span name</Text>
+							<Text lines="1">Span name</Text>
 							<DragHandle name="Span name" onDrag={handleDrag} />
 						</Table.Header>
 						<Table.Header>
-							<Text>Duration</Text>
+							<Text lines="1">Duration</Text>
 							<DragHandle name="Duration" onDrag={handleDrag} />
 						</Table.Header>
 						<Table.Header>
-							<Text>Waterfall</Text>
+							<Text lines="1">Waterfall</Text>
 						</Table.Header>
 					</Table.Row>
 				</Table.Head>
