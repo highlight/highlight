@@ -23,7 +23,7 @@
 		"@opentelemetry/sdk-logs": "^0.50.0",
 		"@opentelemetry/sdk-metrics": "^1.23.0",
 		"@opentelemetry/sdk-trace-base": "^1.23.0",
-		"@vercel/otel": "1.8.1",
+		"@vercel/otel": "^1.8.2",
 		"next": "^14.1.4",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
