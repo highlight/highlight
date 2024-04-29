@@ -125,28 +125,18 @@ export const TraceWaterfallList: React.FC = () => {
 					overflowY="auto"
 					style={{ height: bodyHeight }}
 				>
-					{spans.length ? (
-						spans.map((span) => (
-							<WaterfallRow
-								key={span.spanID}
-								depth={0}
-								gridColumns={gridColumns}
-								selectedSpan={selectedSpan}
-								span={span}
-								totalDuration={totalDuration}
-								query={query}
-								setSelectedSpan={setSelectedSpan}
-							/>
-						))
-					) : (
-						<Table.Row>
-							<Table.Cell colSpan={3}>
-								<Text color="moderate" align="center">
-									No spans match query
-								</Text>
-							</Table.Cell>
-						</Table.Row>
-					)}
+					{spans.map((span) => (
+						<WaterfallRow
+							key={span.spanID}
+							depth={0}
+							gridColumns={gridColumns}
+							selectedSpan={selectedSpan}
+							span={span}
+							totalDuration={totalDuration}
+							query={query}
+							setSelectedSpan={setSelectedSpan}
+						/>
+					))}
 				</Table.Body>
 			</Table>
 		</Box>
