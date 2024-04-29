@@ -9157,8 +9157,8 @@ func (r *queryResolver) Visualizations(ctx context.Context, projectID int, input
 	}
 
 	// If no dashboards have been created for this project, create a default dashboard.
-	if searchStr == "" && totalCount == 0 {
-		r.CreateDefaultDashboard(projectID)
+	if input == "" && totalCount == 0 {
+		return r.CreateDefaultDashboard(ctx, projectID)
 	}
 
 	return &model.VisualizationsResponse{

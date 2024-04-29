@@ -3775,7 +3775,7 @@ func (r *Resolver) GetGitlabProjects(
 	return gitlab.GetGitlabProjects(workspace, *accessToken)
 }
 
-func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) error {
+func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*model.VisualizationsResponse, error) {
 	viz := model.Visualization{
 		ProjectID: projectID,
 		Name:      "Insights",
@@ -3797,10 +3797,23 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) er
 		},
 		{
 			VisualizationID:   viz.ID,
-			Type:              "Line chart",
-			Title:             "Events",
+			Type:              "Bar chart",
+			Title:             "Most visited pages",
 			ProductType:       "Sessions",
-			Query:             "email exists",
+			FunctionType:      "Count",
+			GroupByKey:        pointy.String("visited-url"),
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Limit:             pointy.Int(5),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Stacked"),
+		},
+		{
+			VisualizationID:   viz.ID,
+			Type:              "Line chart",
+			Title:             "H.track events",
+			ProductType:       "Sessions",
+			Query:             "event exists",
 			Metric:            "active_length",
 			FunctionType:      "Avg",
 			GroupByKey:        pointy.String("event"),
@@ -3813,80 +3826,43 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) er
 		},
 		{
 			VisualizationID: viz.ID,
-			Type:            "Bar chart",
-			Title:           "Active users",
+			Type:            "Line chart",
+			Title:           "Sessions with user frustration",
 			ProductType:     "Sessions",
-			Query:           "email exists",
+			Query:           "has_rage_clicks=true",
 			FunctionType:    "Count",
 			BucketByKey:     pointy.String("Timestamp"),
 			BucketCount:     pointy.Int(24),
-			Display:         pointy.String("Stacked"),
+			Display:         pointy.String("Line"),
+			NullHandling:    pointy.String("Hidden"),
 		},
 		{
-			VisualizationID: viz.ID,
-			Type:            "Bar chart",
-			Title:           "Active users",
-			ProductType:     "Sessions",
-			Query:           "email exists",
-			FunctionType:    "Count",
-			BucketByKey:     pointy.String("Timestamp"),
-			BucketCount:     pointy.Int(24),
-			Display:         pointy.String("Stacked"),
+			VisualizationID:   viz.ID,
+			Type:              "Line chart",
+			Title:             "Slowest APIs",
+			ProductType:       "Traces",
+			Query:             "http.method exists http.url exists http.url=*api*",
+			FunctionType:      "P95",
+			Metric:            "duration",
+			GroupByKey:        pointy.String("span_name"),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
 		},
 		{
-			VisualizationID: viz.ID,
-			Type:            "Bar chart",
-			Title:           "Active users",
-			ProductType:     "Sessions",
-			Query:           "email exists",
-			FunctionType:    "Count",
-			BucketByKey:     pointy.String("Timestamp"),
-			BucketCount:     pointy.Int(24),
-			Display:         pointy.String("Stacked"),
-		},
-		{
-			VisualizationID: viz.ID,
-			Type:            "Bar chart",
-			Title:           "Active users",
-			ProductType:     "Sessions",
-			Query:           "email exists",
-			FunctionType:    "Count",
-			BucketByKey:     pointy.String("Timestamp"),
-			BucketCount:     pointy.Int(24),
-			Display:         pointy.String("Stacked"),
-		},
-		{
-			VisualizationID: viz.ID,
-			Type:            "Bar chart",
-			Title:           "Active users",
-			ProductType:     "Sessions",
-			Query:           "email exists",
-			FunctionType:    "Count",
-			BucketByKey:     pointy.String("Timestamp"),
-			BucketCount:     pointy.Int(24),
-			Display:         pointy.String("Stacked"),
-		},
-		{
-			VisualizationID: viz.ID,
-			Type:            "Bar chart",
-			Title:           "Active users",
-			ProductType:     "Sessions",
-			Query:           "email exists",
-			FunctionType:    "Count",
-			BucketByKey:     pointy.String("Timestamp"),
-			BucketCount:     pointy.Int(24),
-			Display:         pointy.String("Stacked"),
-		},
-		{
-			VisualizationID: viz.ID,
-			Type:            "Bar chart",
-			Title:           "Active users",
-			ProductType:     "Sessions",
-			Query:           "email exists",
-			FunctionType:    "Count",
-			BucketByKey:     pointy.String("Timestamp"),
-			BucketCount:     pointy.Int(24),
-			Display:         pointy.String("Stacked"),
+			VisualizationID:   viz.ID,
+			Type:              "Table",
+			Title:             "Errors by browser",
+			ProductType:       "Errors",
+			FunctionType:      "Count",
+			Query:             "browser exists",
+			GroupByKey:        pointy.String("browser"),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			NullHandling:      pointy.String("Hide row"),
 		},
 	}
 
@@ -3896,7 +3872,7 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) er
 		}
 
 		var count int64
-		if err := r.DB.WithContext(ctx).Model(&model.Visualization{}).
+		if err := tx.WithContext(ctx).Model(&model.Visualization{}).
 			Where("project_id = ?", projectID).Count(&count).Error; err != nil {
 			return err
 		}
@@ -3905,16 +3881,21 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) er
 			return errors.New("default dashboard already created")
 		}
 
+		if err := tx.Create(&graphs).Error; err != nil {
+			return err
+		}
+
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
-	if err := r.DB.Create(&graphs).Error; err != nil {
-		return err
-	}
+	viz.Graphs = graphs
 
-	return nil
+	return &model.VisualizationsResponse{
+		Count:   1,
+		Results: []model.Visualization{viz},
+	}, nil
 }
 
 func reorderGraphs(viz *model.Visualization) {
