@@ -104,6 +104,7 @@
 	"packageManager": "yarn@4.1.1",
 	"resolutions": {
 		"@cypress/requests": "3.0.0",
+		"@opentelemetry/resources": "1.23.0",
 		"@sideway/formula": "3.0.1",
 		"@types/dom-webcodecs": "0.1.5",
 		"@types/react": "^18.2.25",
