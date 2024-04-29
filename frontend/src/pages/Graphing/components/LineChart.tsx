@@ -46,8 +46,8 @@ export const LineChart = ({
 	spotlight,
 	viewConfig,
 }: InnerChartProps<LineChartConfig> & SeriesInfo) => {
-	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data?.length)
-	const yAxisTickFormatter = getTickFormatter(yAxisMetric)
+	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
+	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
 
 	// Fill nulls as a copy of data
 	const filledData = useMemo(() => {
@@ -86,7 +86,7 @@ export const LineChart = ({
 				/>
 
 				<Tooltip
-					content={getCustomTooltip(xAxisMetric, yAxisMetric)}
+					content={getCustomTooltip(xAxisMetric, yAxisMetric, data)}
 					cursor={{ stroke: '#C8C7CB', strokeDasharray: 4 }}
 					isAnimationActive={false}
 				/>

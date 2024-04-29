@@ -155,9 +155,22 @@ const durationUnitMap: [number, string][] = [
 	[24, 'd'],
 ]
 
-export const getTickFormatter = (metric: string, bucketCount?: number) => {
+export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 	if (metric === 'Timestamp') {
-		return (value: any) => moment(value * 1000).format('HH:mm')
+		if (data === undefined) {
+			return (value: any) => moment(value * 1000).format('MM/DD HH:mm:SS')
+		}
+
+		const start = data.at(0).Timestamp * 1000
+		const end = data.at(data.length - 1).Timestamp * 1000
+		const diffMinutes = moment(end).diff(start, 'minutes')
+		if (diffMinutes < 15) {
+			return (value: any) => moment(value * 1000).format('HH:mm:SS')
+		} else if (diffMinutes < 12 * 60) {
+			return (value: any) => moment(value * 1000).format('HH:mm')
+		} else {
+			return (value: any) => moment(value * 1000).format('MM/DD')
+		}
 	} else if (metric === 'duration') {
 		return (value: any) => {
 			let lastUnit = 'ns'
@@ -171,7 +184,7 @@ export const getTickFormatter = (metric: string, bucketCount?: number) => {
 			return `${value.toFixed(0)}${lastUnit}`
 		}
 	} else if (metric === GROUP_KEY) {
-		const maxChars = Math.max(MAX_LABEL_CHARS / (bucketCount || 1), 10)
+		const maxChars = Math.max(MAX_LABEL_CHARS / (data?.length || 1), 10)
 		return (value: any) => {
 			let result = value.toString() as string
 			if (result.length > maxChars) {
@@ -185,7 +198,7 @@ export const getTickFormatter = (metric: string, bucketCount?: number) => {
 }
 
 export const getCustomTooltip =
-	(xAxisMetric: any, yAxisMetric: any) =>
+	(xAxisMetric: any, yAxisMetric: any, data: any[] | undefined) =>
 	({ active, payload, label }: any) => {
 		if (active && payload && payload.length) {
 			return (

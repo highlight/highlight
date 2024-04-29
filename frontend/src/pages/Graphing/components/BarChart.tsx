@@ -68,8 +68,8 @@ export const BarChart = ({
 	spotlight,
 	viewConfig,
 }: InnerChartProps<BarChartConfig> & SeriesInfo) => {
-	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data?.length)
-	const yAxisTickFormatter = getTickFormatter(yAxisMetric)
+	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
+	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
 
 	// used to give svg masks an id unique to the page
 	const id = useId()
@@ -97,7 +97,7 @@ export const BarChart = ({
 				/>
 
 				<Tooltip
-					content={getCustomTooltip(xAxisMetric, yAxisMetric)}
+					content={getCustomTooltip(xAxisMetric, yAxisMetric, data)}
 					cursor={{ fill: '#C8C7CB', fillOpacity: 0.5 }}
 					isAnimationActive={false}
 				/>
