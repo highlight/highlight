@@ -301,7 +301,7 @@ const SpanName: React.FC<{ spanName: string; query: string }> = ({
 	return (
 		<>
 			{beforeMatch}
-			<strong>{match}</strong>
+			<strong style={{ fontWeight: 'bold' }}>{match}</strong>
 			{afterMatch}
 		</>
 	)
