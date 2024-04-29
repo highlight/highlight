@@ -18,6 +18,10 @@ import * as styles from './TraceWaterfallList.css'
 
 const MINIMUM_COLUMN_WIDTH = 50
 
+const img = new Image()
+img.src =
+	'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs='
+
 export const TraceWaterfallList: React.FC = () => {
 	const { selectedSpan, spans, totalDuration, setSelectedSpan } = useTrace()
 	const [query, setQuery] = useState('')
@@ -33,7 +37,9 @@ export const TraceWaterfallList: React.FC = () => {
 		[spans],
 	)
 
-	const handleDrag = (e: React.MouseEvent, name: string) => {
+	const handleDrag = (e: React.DragEvent, name: string) => {
+		e.dataTransfer.setDragImage(img, 0, 0) // hide ghost image
+
 		const headerRef = e.currentTarget.parentElement?.parentElement
 		const leftElementCoord = headerRef?.getBoundingClientRect()
 		const rightElementCoord =
