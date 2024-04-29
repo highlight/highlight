@@ -39,6 +39,11 @@ export const TraceWaterfallList: React.FC = () => {
 		],
 	)
 	const gridColumns = columns.map((c) => c.size)
+	const canRenderSpans = useMemo(
+		() =>
+			spans.some((span) => doesSpanOrDescendantsMatchQuery(span, query)),
+		[spans, query],
+	)
 
 	useEffect(() => {
 		setBodyHeight(spanCount * ROW_HEIGHT > 280 ? '280px' : 'auto')
@@ -125,18 +130,28 @@ export const TraceWaterfallList: React.FC = () => {
 					overflowY="auto"
 					style={{ height: bodyHeight }}
 				>
-					{spans.map((span) => (
-						<WaterfallRow
-							key={span.spanID}
-							depth={0}
-							gridColumns={gridColumns}
-							selectedSpan={selectedSpan}
-							span={span}
-							totalDuration={totalDuration}
-							query={query}
-							setSelectedSpan={setSelectedSpan}
-						/>
-					))}
+					{canRenderSpans ? (
+						spans.map((span) => (
+							<WaterfallRow
+								key={span.spanID}
+								depth={0}
+								gridColumns={gridColumns}
+								selectedSpan={selectedSpan}
+								span={span}
+								totalDuration={totalDuration}
+								query={query}
+								setSelectedSpan={setSelectedSpan}
+							/>
+						))
+					) : (
+						<Table.Row>
+							<Table.Cell colSpan={3}>
+								<Text color="weak" align="center">
+									No spans match query
+								</Text>
+							</Table.Cell>
+						</Table.Row>
+					)}
 				</Table.Body>
 			</Table>
 		</Box>
