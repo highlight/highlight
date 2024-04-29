@@ -21,6 +21,7 @@ import _ from 'lodash'
 import moment from 'moment'
 import { useEffect, useMemo, useState } from 'react'
 
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useGetMetricsQuery } from '@/graph/generated/hooks'
 import { Maybe, MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import {
@@ -77,8 +78,8 @@ export interface ChartProps<TConfig> {
 	title: string
 	productType: ProductType
 	projectId: string
-	startDate: string
-	endDate: string
+	startDate: Date
+	endDate: Date
 	query: string
 	metric: string
 	functionType: MetricAggregator
@@ -360,8 +361,8 @@ const Graph = ({
 			project_id: projectId,
 			params: {
 				date_range: {
-					start_date: startDate,
-					end_date: endDate,
+					start_date: moment(startDate).format(TIME_FORMAT),
+					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 				query: query,
 			},
