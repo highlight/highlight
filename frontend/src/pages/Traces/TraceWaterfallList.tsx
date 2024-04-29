@@ -73,7 +73,7 @@ export const TraceWaterfallList: React.FC = () => {
 	}
 
 	return (
-		<Box border="dividerWeak" borderRadius="4">
+		<Box border="dividerWeak" borderRadius="6">
 			<Form>
 				<Stack
 					align="center"
@@ -169,6 +169,7 @@ const WaterfallRow: React.FC<{
 				gridColumns={gridColumns}
 				cursor="pointer"
 				onClick={() => setSelectedSpan(span)}
+				selected={isSelected}
 			>
 				<Table.Cell
 					borderRadius="0"
@@ -230,9 +231,7 @@ const WaterfallRow: React.FC<{
 								),
 								100,
 							)}%`,
-							backgroundColor: isSelected
-								? spanTheme.selectedBackground
-								: spanTheme.background,
+							backgroundColor: spanTheme.selectedBackground,
 						}}
 					/>
 				</Table.Cell>
@@ -301,7 +300,7 @@ const SpanName: React.FC<{ spanName: string; query: string }> = ({
 	return (
 		<>
 			{beforeMatch}
-			<span className={styles.highlightedText}>{match}</span>
+			<b>{match}</b>
 			{afterMatch}
 		</>
 	)
