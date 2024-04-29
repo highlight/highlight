@@ -199,13 +199,11 @@ const WaterfallRow: React.FC<{
 				>
 					{hasChildren && (
 						<Box display="flex" flexShrink={0}>
-							<Text>
-								{open ? (
-									<IconSolidCheveronDown size={12} />
-								) : (
-									<IconSolidCheveronRight size={12} />
-								)}
-							</Text>
+							{open ? (
+								<IconSolidCheveronDown size={12} />
+							) : (
+								<IconSolidCheveronRight size={12} />
+							)}
 						</Box>
 					)}
 
