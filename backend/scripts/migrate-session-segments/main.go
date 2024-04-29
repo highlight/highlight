@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 
 	"github.com/aws/smithy-go/ptr"
@@ -313,7 +312,8 @@ func buildStringQuery(field string, op string, values []string) string {
 }
 
 func quotedString(value string) string {
-	if !regexp.MustCompile(`\s`).MatchString(value) {
+	// check if any of these chgaracters are in the string: "'` :=><
+	if !strings.ContainsAny(value, "\"'` :=><") {
 		return value
 	}
 
