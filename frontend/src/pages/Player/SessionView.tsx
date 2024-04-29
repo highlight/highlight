@@ -15,7 +15,6 @@ import {
 import PlayerCommentCanvas, {
 	Coordinates2D,
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas'
-import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook'
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerState'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
@@ -55,6 +54,7 @@ export const SessionView: React.FC<SessionViewProps> = ({
 	const { width } = useWindowSize()
 
 	const {
+		setSessionResults,
 		state: replayerState,
 		sessionViewability,
 		session,
@@ -64,9 +64,7 @@ export const SessionView: React.FC<SessionViewProps> = ({
 		isPlayerReady,
 		currentUrl,
 		time,
-	} = usePlayer()
-
-	const { setSessionResults } = useReplayerContext()
+	} = useReplayerContext()
 	const { totalCount, results } = useSearchContext()
 
 	const [commentModalPosition, setCommentModalPosition] = useState<

@@ -10,7 +10,10 @@ import {
 	useShowSearchParam,
 } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import { ReplayerContextProvider } from '@pages/Player/ReplayerContext'
+import {
+	ReplayerContextProvider,
+	useReplayerContext,
+} from '@pages/Player/ReplayerContext'
 import {
 	ResourcesContextProvider,
 	useResources,
@@ -59,7 +62,7 @@ const PAGE_PARAM = withDefault(NumberParam, START_PAGE)
 const PlayerPageBase: React.FC = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { projectId, sessionSecureId } = useSessionParams()
-	const { sessionViewability, session } = usePlayer()
+	const { sessionViewability, session } = useReplayerContext()
 	const navigate = useNavigate()
 
 	useEffect(() => {
