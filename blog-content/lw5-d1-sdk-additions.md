@@ -1,6 +1,6 @@
 ---
 title: "Day 1: SDK Additions"
-createdAt: 2024-02-02T12:00:00Z
+createdAt: 2024-04-29T12:00:00Z
 readingTime: 3
 authorFirstName: Jay
 authorLastName: Khatri
@@ -16,7 +16,7 @@ metaTitle: "Day 1: SDK Additions"
 
 ## Day 1: SDK Additions!
 
-Welcome to Launch Week 5. Checkout our [launch video](https://youtu.be/3uTiek9uQTY) or keep reading!
+Welcome to Launch Week 5. Checkout our [launch video](https://youtu.be/HGo6wB_fL1w) or keep reading!
 
 Today is day one, and we're launching several new SDKs and many improvements to our existing ones! Buckle up!
 First of all, we've added official support for the following languages:
