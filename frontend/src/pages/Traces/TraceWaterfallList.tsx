@@ -43,7 +43,7 @@ export const TraceWaterfallList: React.FC = () => {
 	)
 
 	const bodyHeight = useMemo(
-		() => Math.max(ROW_HEIGHT * filteredSpans.length, 280),
+		() => Math.min(ROW_HEIGHT * filteredSpans.length, 280),
 		[filteredSpans.length],
 	)
 
