@@ -101,7 +101,7 @@ export const TraceWaterfallList: React.FC = () => {
 						outline={false}
 						style={{
 							background: 'transparent',
-							padding: '4px 0',
+							padding: '6px 0',
 						}}
 					/>
 				</Stack>
