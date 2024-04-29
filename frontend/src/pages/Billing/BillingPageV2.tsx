@@ -6,6 +6,7 @@ import {
 	Heading,
 	IconProps,
 	IconSolidArrowSmRight,
+	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidExclamation,
 	IconSolidInformationCircle,
@@ -14,12 +15,14 @@ import {
 	IconSolidPencil,
 	IconSolidPlayCircle,
 	IconSolidTraces,
+	Menu,
 	Stack,
 	Tag,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
+import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { getPlanChangeEmail } from '@util/billing/billing'
 import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
@@ -36,6 +39,7 @@ import {
 } from '@/graph/generated/hooks'
 import {
 	AwsMarketplaceSubscription,
+	MetricsBuckets,
 	PlanType,
 	ProductType,
 	RetentionPeriod,
@@ -64,6 +68,9 @@ type UsageCardProps = {
 	billingLimitCents: number | undefined
 	usageAmount: number
 	usageLimitAmount: number | undefined
+	usageHistory?: MetricsBuckets
+	usageRange: { start: moment.Moment; end: moment.Moment }
+	setUsageRange: (range: 'Weekly' | 'Monthly') => void
 	includedQuantity: number
 	isPaying: boolean
 	enableBillingLimits: boolean | undefined
@@ -80,6 +87,9 @@ const UsageCard = ({
 	billingLimitCents,
 	usageAmount,
 	usageLimitAmount,
+	usageHistory,
+	usageRange,
+	setUsageRange,
 	includedQuantity,
 	isPaying,
 	enableBillingLimits,
@@ -233,6 +243,99 @@ const UsageCard = ({
 					</Box>
 				</Box>
 			) : null}
+			{usageHistory ? (
+				<Box
+					width="full"
+					height="full"
+					padding="8"
+					gap="4"
+					display="flex"
+					flexDirection="column"
+					alignItems="flex-end"
+					border="dividerWeak"
+					borderRadius="6"
+					style={{
+						backgroundColor: vars.theme.static.surface.raised,
+					}}
+				>
+					<Box
+						width="full"
+						height="full"
+						display="flex"
+						justifyContent="space-between"
+						alignItems="center"
+					>
+						<Text size="xSmall" color="moderate">
+							Past Usage
+						</Text>
+						<Menu>
+							<Menu.Button
+								iconRight={<IconSolidCheveronDown />}
+								size="xSmall"
+								kind="secondary"
+								emphasis="medium"
+								style={{
+									border: vars.border.secondary,
+									borderRadius: 6,
+									backgroundColor:
+										vars.theme.static.surface.raised,
+								}}
+							>
+								<Text size="xSmall" color="moderate">
+									{usageRange.end.diff(
+										usageRange.start,
+										'day',
+									) > 100
+										? 'Monthly'
+										: 'Weekly'}
+								</Text>
+							</Menu.Button>
+							<Menu.List>
+								{['Monthly', 'Weekly'].map((option) => (
+									<Menu.Item
+										key={option}
+										onClick={() =>
+											setUsageRange(
+												option as 'Monthly' | 'Weekly',
+											)
+										}
+									>
+										<Box display="flex" alignItems="center">
+											<Text
+												size="xSmall"
+												color="moderate"
+											>
+												{option}
+											</Text>
+										</Box>
+									</Menu.Item>
+								))}
+							</Menu.List>
+						</Menu>
+					</Box>
+					<Box width="full" height="full">
+						<LogsHistogram
+							startDate={usageRange.start.toDate()}
+							endDate={usageRange.end.toDate()}
+							onDatesChange={() => {}}
+							histogramBuckets={usageHistory.buckets.map((b) => ({
+								bucketId: b.bucket_id,
+								group: b.group,
+								counts: [
+									{
+										level: 'Ingested',
+										count: b.metric_value ?? 0,
+									},
+								],
+							}))}
+							bucketCount={usageHistory.bucket_count}
+							loading={usageHistory === undefined}
+							loadingState="spinner"
+							legend
+						/>
+					</Box>
+				</Box>
+			) : null}
 		</Box>
 	)
 }
@@ -246,10 +349,29 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 
 	const location = useLocation()
 	const [step, setStep] = React.useState<PlanSelectStep | null>(null)
+	// TODO(vkorolik) should this use workspace billing start/end?
+	const [range, setRange] = React.useState<{
+		start: moment.Moment
+		end: moment.Moment
+	}>({
+		start: moment().subtract(12, 'months'),
+		end: moment(),
+	})
+
+	const setUsageRange = (option: 'Monthly' | 'Weekly') => {
+		setRange({
+			start: moment().subtract(option === 'Monthly' ? 12 : 3, 'months'),
+			end: moment(),
+		})
+	}
 
 	const { data, loading, refetch } = useGetBillingDetailsQuery({
 		variables: {
 			workspace_id: workspace_id!,
+			date_range: {
+				start_date: range.start.toISOString(),
+				end_date: range.end.toISOString(),
+			},
 		},
 	})
 
@@ -571,6 +693,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						billingLimitCents={sessionsSpendLimit}
 						usageAmount={sessionsUsage}
 						usageLimitAmount={sessionsLimit}
+						usageHistory={data?.usageHistory.session_usage}
+						usageRange={range}
+						setUsageRange={setUsageRange}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}
@@ -592,6 +717,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						billingLimitCents={errorsSpendLimit}
 						usageAmount={errorsUsage}
 						usageLimitAmount={errorsLimit}
+						usageHistory={data?.usageHistory.errors_usage}
+						usageRange={range}
+						setUsageRange={setUsageRange}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}
@@ -613,6 +741,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						billingLimitCents={logsSpendLimit}
 						usageAmount={logsUsage}
 						usageLimitAmount={logsLimit}
+						usageHistory={data?.usageHistory.logs_usage}
+						usageRange={range}
+						setUsageRange={setUsageRange}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}
@@ -634,6 +765,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						billingLimitCents={tracesSpendLimit}
 						usageAmount={tracesUsage}
 						usageLimitAmount={tracesLimit}
+						usageHistory={data?.usageHistory.traces_usage}
+						usageRange={range}
+						setUsageRange={setUsageRange}
 						awsMpSubscription={
 							data?.billingDetails?.plan.aws_mp_subscription
 						}

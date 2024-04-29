@@ -6904,6 +6904,78 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	return details, nil
 }
 
+// UsageHistory is the resolver for the usageHistory field.
+func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, dateRange *modelInputs.DateRangeRequiredInput) (*modelInputs.UsageHistory, error) {
+	_, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, nil
+	}
+
+	workspace, err := r.Query().Workspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	projectIds := lo.Map(workspace.Projects, func(p model.Project, _ int) int {
+		return p.ID
+	})
+
+	var g errgroup.Group
+	var sessionsMeter, errorsMeter, logsMeter, tracesMeter *modelInputs.MetricsBuckets
+
+	g.Go(func() (err error) {
+		sessionsMeter, err = r.ClickhouseClient.ReadWorkspaceSessionCounts(ctx, projectIds, modelInputs.QueryInput{
+			Query:     "processed=true AND excluded=false AND active_length > 1000",
+			DateRange: dateRange,
+		})
+		if err != nil {
+			return e.Wrap(err, "failed to query session usage")
+		}
+		return nil
+	})
+	g.Go(func() (err error) {
+		errorsMeter, err = r.ClickhouseClient.ReadWorkspaceErrorCounts(ctx, projectIds, modelInputs.QueryInput{
+			Query:     "",
+			DateRange: dateRange,
+		})
+		if err != nil {
+			return e.Wrap(err, "failed to query error usage")
+		}
+		return nil
+	})
+	g.Go(func() (err error) {
+		logsMeter, err = r.ClickhouseClient.ReadWorkspaceLogCounts(ctx, projectIds, modelInputs.QueryInput{
+			Query:     "",
+			DateRange: dateRange,
+		})
+		if err != nil {
+			return e.Wrap(err, "failed to query log usage")
+		}
+		return nil
+	})
+	g.Go(func() (err error) {
+		tracesMeter, err = r.ClickhouseClient.ReadWorkspaceTraceCounts(ctx, projectIds, modelInputs.QueryInput{
+			Query:     "",
+			DateRange: dateRange,
+		})
+		if err != nil {
+			return e.Wrap(err, "failed to query trace usage")
+		}
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	return &modelInputs.UsageHistory{
+		SessionUsage: sessionsMeter,
+		ErrorsUsage:  errorsMeter,
+		LogsUsage:    logsMeter,
+		TracesUsage:  tracesMeter,
+	}, nil
+}
+
 // FieldSuggestion is the resolver for the field_suggestion field.
 func (r *queryResolver) FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model.Field, error) {
 	fields := []*model.Field{}

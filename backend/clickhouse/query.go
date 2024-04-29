@@ -54,7 +54,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		beforeSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
-			projectID,
+			[]int{projectID},
 			params,
 			Pagination{
 				Before: pagination.At,
@@ -69,7 +69,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		atSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
-			projectID,
+			[]int{projectID},
 			params,
 			Pagination{
 				At: pagination.At,
@@ -84,7 +84,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		afterSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
-			projectID,
+			[]int{projectID},
 			params,
 			Pagination{
 				After: pagination.At,
@@ -107,7 +107,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		fromSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
-			projectID,
+			[]int{projectID},
 			params,
 			pagination,
 			orderBackward,
@@ -160,7 +160,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 func makeSelectBuilder[T ~string](
 	config model.TableConfig[T],
 	selectCols []string,
-	projectID int,
+	projectIDs []int,
 	params modelInputs.QueryInput,
 	pagination Pagination,
 	orderBackward string,
@@ -170,7 +170,7 @@ func makeSelectBuilder[T ~string](
 
 	sb.Select(selectCols...)
 	sb.From(config.TableName)
-	sb.Where(sb.Equal("ProjectId", projectID))
+	sb.Where(sb.In("ProjectId", projectIDs))
 
 	if pagination.After != nil && len(*pagination.After) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.After)
@@ -549,8 +549,12 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSamplin
 }
 
 func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfig sampleableTableConfig[T], projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketCount *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	return readWorkspaceMetrics(ctx, client, sampleableConfig, []int{projectID}, params, column, metricTypes, groupBy, bucketCount, bucketBy, limit, limitAggregator, limitColumn)
+}
+
+func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sampleableConfig sampleableTableConfig[T], projectIDs []int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketCount *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "clickhouse.readMetrics")
-	span.SetAttribute("project_id", projectID)
+	span.SetAttribute("project_ids", projectIDs)
 	span.SetAttribute("table", sampleableConfig.tableConfig.TableName)
 	defer span.Finish()
 
@@ -571,8 +575,14 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		nBuckets = 1
 	}
 
-	startTimestamp := int64(params.DateRange.StartDate.Unix())
-	endTimestamp := int64(params.DateRange.EndDate.Unix())
+	if params.DateRange == nil {
+		params.DateRange = &modelInputs.DateRangeRequiredInput{
+			StartDate: time.Now().Add(-time.Hour * 24 * 30),
+			EndDate:   time.Now(),
+		}
+	}
+	startTimestamp := params.DateRange.StartDate.Unix()
+	endTimestamp := params.DateRange.EndDate.Unix()
 	useSampling := sampleableConfig.useSampling(params.DateRange.EndDate.Sub(params.DateRange.StartDate))
 
 	keysToColumns := sampleableConfig.tableConfig.KeysToColumns
@@ -594,7 +604,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	fromSb, err = makeSelectBuilder(
 		config,
 		nil,
-		projectID,
+		projectIDs,
 		params,
 		Pagination{CountOnly: true},
 		OrderBackwardNatural,
@@ -704,7 +714,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		innerSb.
 			From(config.TableName).
 			Select(strings.Join(colStrs, ", ")).
-			Where(innerSb.Equal("ProjectId", projectID)).
+			Where(innerSb.In("ProjectId", projectIDs)).
 			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
 			Where(innerSb.LessEqualThan("Timestamp", endTimestamp))
 
@@ -873,7 +883,7 @@ func logLines[T ~string](ctx context.Context, client *Client, tableConfig model.
 	fromSb, err := makeSelectBuilder(
 		tableConfig,
 		[]string{"Timestamp", body, severity, attributes},
-		projectID,
+		[]int{projectID},
 		params,
 		Pagination{CountOnly: true},
 		OrderBackwardNatural,
