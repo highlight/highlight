@@ -282,7 +282,7 @@ const SpanName: React.FC<{ spanName: string; query: string }> = ({
 	query,
 }) => {
 	if (!query) {
-		return <Text>{spanName}</Text>
+		return <>{spanName}</>
 	}
 
 	const lowerCaseSpanName = spanName.toLowerCase()
@@ -290,7 +290,7 @@ const SpanName: React.FC<{ spanName: string; query: string }> = ({
 
 	const startIndex = lowerCaseSpanName.indexOf(lowerCaseQuery)
 	if (startIndex === -1) {
-		return <Text>{spanName}</Text>
+		return <>{spanName}</>
 	}
 
 	const endIndex = startIndex + query.length
@@ -299,11 +299,11 @@ const SpanName: React.FC<{ spanName: string; query: string }> = ({
 	const afterMatch = spanName.slice(endIndex)
 
 	return (
-		<Text>
+		<>
 			{beforeMatch}
 			<strong>{match}</strong>
 			{afterMatch}
-		</Text>
+		</>
 	)
 }
 
