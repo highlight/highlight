@@ -9002,8 +9002,13 @@ func (r *queryResolver) ErrorsKeys(ctx context.Context, projectID int, dateRange
 	if typeArg != nil && *typeArg != modelInputs.KeyTypeString {
 		return []*modelInputs.QueryKey{}, nil
 	} else {
-		return lo.Map(modelInputs.AllReservedErrorsJoinedKey, func(k modelInputs.ReservedErrorsJoinedKey, _ int) *modelInputs.QueryKey {
-			return &modelInputs.QueryKey{Name: string(k), Type: modelInputs.KeyTypeString}
+		return lo.FilterMap(modelInputs.AllReservedErrorsJoinedKey, func(k modelInputs.ReservedErrorsJoinedKey, _ int) (*modelInputs.QueryKey, bool) {
+			// Skip this key if filtered out by the query
+			if query != nil && !strings.Contains(strings.ToLower(string(k)), strings.ToLower(*query)) {
+				return nil, false
+			}
+
+			return &modelInputs.QueryKey{Name: string(k), Type: modelInputs.KeyTypeString}, true
 		}), nil
 	}
 }

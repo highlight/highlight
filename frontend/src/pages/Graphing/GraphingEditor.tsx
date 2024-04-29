@@ -520,7 +520,7 @@ export const GraphingEditor = () => {
 	])
 
 	const allKeys = useMemo(
-		() => keys?.keys.map((k) => k.name).slice(0, 10) ?? [],
+		() => keys?.keys.map((k) => k.name).slice(0, 8) ?? [],
 		[keys],
 	)
 	const numericKeys = useMemo(
@@ -528,15 +528,15 @@ export const GraphingEditor = () => {
 			keys?.keys
 				.filter((k) => k.type === 'Numeric')
 				.map((k) => k.name)
-				.slice(0, 10) ?? [],
+				.slice(0, 8) ?? [],
 		[keys],
 	)
 	const bucketByKeys = useMemo(() => {
 		const baseArray = []
-		if (TIMESTAMP_KEY.includes(keysQuery)) {
+		if (TIMESTAMP_KEY.toLowerCase().includes(keysQuery.toLowerCase())) {
 			baseArray.push(TIMESTAMP_KEY)
 		}
-		return baseArray.concat(numericKeys).slice(0, 10)
+		return baseArray.concat(numericKeys).slice(0, 8)
 	}, [numericKeys, keysQuery])
 
 	let display: string | undefined
