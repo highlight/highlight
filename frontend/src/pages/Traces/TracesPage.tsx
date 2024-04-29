@@ -50,7 +50,11 @@ export type TracesOutletContext = Partial<Trace>[]
 
 export const TracesPage: React.FC = () => {
 	const { projectId } = useProjectId()
-	const { trace_cursor: traceCursor } = useParams<{ trace_cursor: string }>()
+	const {
+		trace_id,
+		span_id,
+		trace_cursor: traceCursor,
+	} = useParams<{ trace_id: string; span_id: string; trace_cursor: string }>()
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const {
@@ -167,7 +171,7 @@ export const TracesPage: React.FC = () => {
 
 	useEffect(() => analytics.page('Traces'), [])
 
-	const { resource, panelPagination, setPanelPagination } =
+	const { resource, panelPagination, set, setPanelPagination } =
 		useRelatedResource()
 	useEffect(() => {
 		if (!resource || !!panelPagination || !traceEdges.length) {
@@ -189,6 +193,16 @@ export const TracesPage: React.FC = () => {
 			})),
 		})
 	}, [panelPagination, resource, setPanelPagination, traceEdges])
+
+	useEffect(() => {
+		if (trace_id) {
+			set({
+				type: 'trace',
+				id: trace_id,
+				spanID: span_id,
+			})
+		}
+	}, [trace_id, span_id, set])
 
 	return (
 		<SearchContext initialQuery={query} onSubmit={setQuery}>
