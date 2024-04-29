@@ -145,7 +145,10 @@ export const TraceWaterfallList: React.FC = () => {
 						))
 					) : (
 						<Table.Row>
-							<Table.Cell colSpan={3}>
+							<Table.Cell
+								colSpan={3}
+								style={{ height: ROW_HEIGHT }}
+							>
 								<Text color="weak" align="center">
 									No spans match query
 								</Text>
