@@ -198,7 +198,7 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 }
 
 export const getCustomTooltip =
-	(xAxisMetric: any, yAxisMetric: any, data: any[] | undefined) =>
+	(xAxisMetric: any, yAxisMetric: any) =>
 	({ active, payload, label }: any) => {
 		if (active && payload && payload.length) {
 			return (
@@ -504,6 +504,7 @@ const Graph = ({
 			height="full"
 			display="flex"
 			flexDirection="column"
+			gap="4"
 			justifyContent="space-between"
 			onMouseEnter={() => {
 				setGraphHover(true)
@@ -525,7 +526,7 @@ const Graph = ({
 					<HistogramLoading cssClass={style.loadingText} />
 				</Box>
 			)}
-			<Box display="flex" flexDirection="column" gap="4">
+			<Box display="flex" flexDirection="column">
 				<Box
 					display="flex"
 					flexDirection="row"

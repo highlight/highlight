@@ -7473,10 +7473,12 @@ body {
 }
 .dg2vg62 {
   left: -6px;
-  max-height: 72px;
+  max-height: 48px;
   padding-top: 2px;
   padding-bottom: 2px;
   overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
 }
 .dg2vg63 {
   border-radius: 50%;
@@ -7484,13 +7486,15 @@ body {
   margin-right: 4px;
   width: 8px;
   height: 8px;
+  flex-shrink: 0;
 }
 .dg2vg64 {
-  max-width: 145px;
   text-align: left;
 }
 .dg2vg65 {
   height: 16px;
+  flex: 1 0 calc(100% / 3);
+  max-width: fit-content;
 }
 .dg2vg66 {
   line-height: 24px;

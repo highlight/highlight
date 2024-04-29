@@ -86,7 +86,7 @@ export const LineChart = ({
 				/>
 
 				<Tooltip
-					content={getCustomTooltip(xAxisMetric, yAxisMetric, data)}
+					content={getCustomTooltip(xAxisMetric, yAxisMetric)}
 					cursor={{ stroke: '#C8C7CB', strokeDasharray: 4 }}
 					isAnimationActive={false}
 				/>
