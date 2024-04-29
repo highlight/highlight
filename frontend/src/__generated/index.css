@@ -7615,24 +7615,27 @@ body {
   border-radius: 6px;
 }
 .gw96js8 {
-  line-height: 24px;
+  flex: 1;
 }
 .gw96js9 {
+  line-height: 24px;
+}
+.gw96jsa {
   border: var(--_1pyqka9j) solid 1px;
   width: 100%;
   flex: 1;
 }
-.gw96jsa {
+.gw96jsb {
   height: 28px;
 }
-.gw96jsb {
+.gw96jsc {
   width: 720px;
   height: 360px;
   margin: auto;
   z-index: 1;
   background-color: #ffffff;
 }
-.gw96js9 > div {
+.gw96jsa > div {
   width: 100%;
 }
 ._1kp6do40 {

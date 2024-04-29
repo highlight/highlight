@@ -166,6 +166,7 @@ const Combobox = ({
 				setQuery(val)
 			}}
 			cssClass={style.combobox}
+			wrapperCssClass={style.comboboxWrapper}
 			queryPlaceholder="Filter..."
 		/>
 	)
