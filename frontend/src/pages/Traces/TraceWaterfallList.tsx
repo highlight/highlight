@@ -111,6 +111,7 @@ export const TraceWaterfallList: React.FC = () => {
 								onDragEnd={(e) => {
 									// disable the revet ghost image
 									e.dataTransfer.clearData()
+									return
 								}}
 								style={{
 									position: 'absolute',
