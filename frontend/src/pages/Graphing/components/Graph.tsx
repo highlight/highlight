@@ -525,7 +525,7 @@ const Graph = ({
 					>
 						{title || 'Untitled metric view'}
 					</Text>
-					{showMenu && graphHover && !disabled && (
+					{showMenu && graphHover && !disabled && !metricsLoading && (
 						<Box
 							cssClass={clsx(style.titleText, {
 								[style.hiddenMenu]: !graphHover,

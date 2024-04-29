@@ -6255,7 +6255,7 @@ body {
   flex-grow: 1;
   max-width: 600px;
   max-height: min(var(--popover-available-height,300px), 300px);
-  min-width: 350px;
+  min-width: min(var(--popover-available-width,350px), 350px);
   padding-bottom: 33px;
   z-index: 10;
 }
