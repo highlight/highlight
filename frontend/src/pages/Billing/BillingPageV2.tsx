@@ -271,7 +271,7 @@ const UsageCard = ({
 						<Menu>
 							<Menu.Button
 								iconRight={<IconSolidCheveronDown />}
-								size="small"
+								size="xSmall"
 								kind="secondary"
 								emphasis="medium"
 								style={{
@@ -300,12 +300,7 @@ const UsageCard = ({
 											)
 										}
 									>
-										<Box
-											display="flex"
-											alignItems="center"
-											gap="4"
-											py="2"
-										>
+										<Box display="flex" alignItems="center">
 											<Text
 												size="xSmall"
 												color="moderate"
