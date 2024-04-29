@@ -13,6 +13,7 @@ import {
 	IconSolidVideoCamera,
 	Tag,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -173,68 +174,126 @@ export const SessionFeedCard = React.memo(
 									style={{ minHeight: 18 }}
 								>
 									{session.has_errors && (
-										<Tag
-											shape="basic"
-											kind="secondary"
-											emphasis="low"
-											size="small"
-											icon={
-												<IconSolidLightningBolt
-													size={12}
+										<Tooltip
+											trigger={
+												<Tag
+													shape="basic"
+													kind="secondary"
+													emphasis="low"
+													size="small"
+													icon={
+														<IconSolidLightningBolt
+															size={12}
+														/>
+													}
+													onClick={handleIconClick(
+														'has_errors',
+														true,
+													)}
 												/>
 											}
-											onClick={handleIconClick(
-												'has_errors',
-												true,
-											)}
-										/>
+										>
+											<Box
+												style={{ maxWidth: 250 }}
+												p="8"
+											>
+												<Text>
+													Filter by sessions with
+													errors
+												</Text>
+											</Box>
+										</Tooltip>
 									)}
 									{session.first_time && (
-										<Tag
-											shape="basic"
-											kind="secondary"
-											emphasis="low"
-											size="small"
-											icon={
-												<IconSolidUserCircle
-													size={12}
+										<Tooltip
+											trigger={
+												<Tag
+													shape="basic"
+													kind="secondary"
+													emphasis="low"
+													size="small"
+													icon={
+														<IconSolidUserCircle
+															size={12}
+														/>
+													}
+													onClick={handleIconClick(
+														'first_time',
+														true,
+													)}
 												/>
 											}
-											onClick={handleIconClick(
-												'first_time',
-												true,
-											)}
-										/>
+										>
+											<Box
+												style={{ maxWidth: 250 }}
+												p="8"
+											>
+												<Text>
+													Filter by first time users
+												</Text>
+											</Box>
+										</Tooltip>
 									)}
 									{session.has_rage_clicks && (
-										<Tag
-											shape="basic"
-											kind="secondary"
-											emphasis="low"
-											size="small"
-											icon={
-												<IconSolidCursorClick
-													size={12}
+										<Tooltip
+											trigger={
+												<Tag
+													shape="basic"
+													kind="secondary"
+													emphasis="low"
+													size="small"
+													icon={
+														<IconSolidCursorClick
+															size={12}
+														/>
+													}
+													onClick={handleIconClick(
+														'has_rage_click',
+														true,
+													)}
 												/>
 											}
-											onClick={handleIconClick(
-												'has_rage_click',
-												true,
-											)}
-										/>
+										>
+											<Box
+												style={{ maxWidth: 250 }}
+												p="8"
+											>
+												<Text>
+													Filter by sessions with rage
+													clicks
+												</Text>
+											</Box>
+										</Tooltip>
 									)}
 									{!viewed && (
-										<Tag
-											shape="basic"
-											kind="secondary"
-											emphasis="low"
-											size="small"
-											icon={<IconSolidEyeOff size={12} />}
-											onClick={handleIconClick(
-												'viewed',
-												false,
-											)}
-										/>
+										<Tooltip
+											trigger={
+												<Tag
+													shape="basic"
+													kind="secondary"
+													emphasis="low"
+													size="small"
+													icon={
+														<IconSolidEyeOff
+															size={12}
+														/>
+													}
+													onClick={handleIconClick(
+														'viewed',
+														false,
+													)}
+												/>
+											}
+										>
+											<Box
+												style={{ maxWidth: 250 }}
+												p="8"
+											>
+												<Text>
+													Filter by unviewed sessions
+												</Text>
+											</Box>
+										</Tooltip>
 									)}
 								</Box>
 								<Box display="flex" gap="4" alignItems="center">
@@ -249,18 +308,33 @@ export const SessionFeedCard = React.memo(
 												.format('H:mm:ss')}
 										</Tag>
 									) : (
-										<Tag
-											shape="basic"
-											kind="primary"
-											size="small"
-											iconLeft={<IconSolidVideoCamera />}
-											onClick={handleIconClick(
-												'processed',
-												false,
-											)}
+										<Tooltip
+											trigger={
+												<Tag
+													shape="basic"
+													kind="primary"
+													size="small"
+													iconLeft={
+														<IconSolidVideoCamera />
+													}
+													onClick={handleIconClick(
+														'processed',
+														false,
+													)}
+												>
+													Live
+												</Tag>
+											}
 										>
-											Live
-										</Tag>
+											<Box
+												style={{ maxWidth: 250 }}
+												p="8"
+											>
+												<Text>
+													Filter by live sessions
+												</Text>
+											</Box>
+										</Tooltip>
 									)}
 									<Tag
 										size="small"
