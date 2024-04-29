@@ -126,14 +126,6 @@ export const TraceWaterfallList: React.FC = () => {
 					style={{ height: bodyHeight }}
 				>
 					{spans.length ? (
-						<Table.Row>
-							<Table.Cell colSpan={3}>
-								<Text color="moderate" align="center">
-									No spans found
-								</Text>
-							</Table.Cell>
-						</Table.Row>
-					) : (
 						spans.map((span) => (
 							<WaterfallRow
 								key={span.spanID}
@@ -146,6 +138,14 @@ export const TraceWaterfallList: React.FC = () => {
 								setSelectedSpan={setSelectedSpan}
 							/>
 						))
+					) : (
+						<Table.Row>
+							<Table.Cell colSpan={3}>
+								<Text color="moderate" align="center">
+									No spans match query
+								</Text>
+							</Table.Cell>
+						</Table.Row>
 					)}
 				</Table.Body>
 			</Table>
