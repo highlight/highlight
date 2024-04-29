@@ -3,7 +3,7 @@ import { Button } from '@components/Button'
 import CommandBar from '@components/CommandBar/CommandBar'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
-import { linkStyle } from '@components/Header/styles.css'
+import { betaTag, linkStyle } from '@components/Header/styles.css'
 import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
 import {
@@ -123,6 +123,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId: localStorageProjectId } = useLocalStorageProjectId()
 	const { isLoggedIn, signOut } = useAuthContext()
 	const showAnalytics = useFeatureFlag(Feature.Analytics)
+	const showDashboards = useFeatureFlag(Feature.Dashboards)
 	const { allProjects, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 	const localStorageProject = allProjects?.find(
@@ -162,6 +163,12 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		{
 			key: 'traces',
 			icon: IconSolidSparkles,
+		},
+		{
+			key: 'dashboards',
+			icon: IconSolidChartBar,
+			isBeta: true,
+			hidden: !showDashboards,
 		},
 		{
 			key: 'alerts',
@@ -257,6 +264,9 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							{projectId && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
 									{pages.map((p) => {
+										if (p.hidden) {
+											return null
+										}
 										return (
 											<LinkButton
 												iconLeft={
@@ -290,6 +300,11 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												trackingId={`header-link-click-${p.key}`}
 											>
 												{titleCaseString(p.key)}
+												{p.isBeta ? (
+													<Box cssClass={betaTag}>
+														Beta
+													</Box>
+												) : null}
 											</LinkButton>
 										)
 									})}
