@@ -38,8 +38,6 @@ export const TraceWaterfallList: React.FC = () => {
 	)
 
 	const handleDrag = (e: React.DragEvent, name: string) => {
-		e.dataTransfer.setDragImage(img, 0, 0) // hide ghost image
-
 		const headerRef = e.currentTarget.parentElement?.parentElement
 		const leftElementCoord = headerRef?.getBoundingClientRect()
 		const rightElementCoord =
@@ -108,10 +106,8 @@ export const TraceWaterfallList: React.FC = () => {
 								cssClass={styles.dragHandle}
 								draggable
 								onDrag={(e) => handleDrag(e, 'Span name')}
-								onDragEnd={(e) => {
-									// disable the revet ghost image
-									e.dataTransfer.clearData()
-									return
+								onDragStart={(e) => {
+									e.dataTransfer.setDragImage(img, 0, 0) // hide ghost image
 								}}
 								style={{
 									position: 'absolute',
