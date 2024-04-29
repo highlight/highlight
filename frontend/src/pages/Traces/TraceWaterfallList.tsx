@@ -52,17 +52,19 @@ export const TraceWaterfallList: React.FC = () => {
 				rightElementWidth - (leftElementNewWidth - leftElementWidth)
 
 			const columnIndex = columns.findIndex((c) => c.name === name)
-			const newColumns = [...columns]
-			newColumns[columnIndex] = {
-				...newColumns[columnIndex],
-				size: `${leftElementNewWidth}px`,
-			}
-			newColumns[columnIndex + 1] = {
-				...newColumns[columnIndex + 1],
-				size: `${rightElementNewWidth}px`,
-			}
+			if (columnIndex < columns.length - 1) {
+				const newColumns = [...columns]
+				newColumns[columnIndex] = {
+					...newColumns[columnIndex],
+					size: `${leftElementNewWidth}px`,
+				}
+				newColumns[columnIndex + 1] = {
+					...newColumns[columnIndex + 1],
+					size: `${rightElementNewWidth}px`,
+				}
 
-			setColumns(newColumns)
+				setColumns(newColumns)
+			}
 		}
 	}
 
@@ -94,7 +96,22 @@ export const TraceWaterfallList: React.FC = () => {
 			<Table noBorder>
 				<Table.Head>
 					<Table.Row gridColumns={gridColumns}>
-						<Table.Header>Span name</Table.Header>
+						<Table.Header>
+							<Text>Span name</Text>
+							<Box
+								cssClass={styles.dragHandle}
+								draggable
+								onDrag={(e) => handleDrag(e, 'Duration')}
+								style={{
+									position: 'absolute',
+									top: 0,
+									bottom: 0,
+									right: 0,
+									width: 3,
+									cursor: 'col-resize',
+								}}
+							/>
+						</Table.Header>
 						<Table.Header>
 							<Text>Duration</Text>
 							<Box
