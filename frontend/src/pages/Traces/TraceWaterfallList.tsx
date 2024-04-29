@@ -26,8 +26,8 @@ export const TraceWaterfallList: React.FC = () => {
 	const { selectedSpan, spans, totalDuration, setSelectedSpan } = useTrace()
 	const [query, setQuery] = useState('')
 	const [columns, setColumns] = useState([
-		{ name: 'Span name', size: '1fr' },
-		{ name: 'Duration', size: '85px' },
+		{ name: 'Span name', size: '2fr' },
+		{ name: 'Duration', size: '80px' },
 		{ name: 'Waterfall', size: '3fr' },
 	])
 	const gridColumns = columns.map((c) => c.size)
