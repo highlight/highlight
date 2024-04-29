@@ -101,7 +101,7 @@ export const TraceWaterfallList: React.FC = () => {
 							<Box
 								cssClass={styles.dragHandle}
 								draggable
-								onDrag={(e) => handleDrag(e, 'Duration')}
+								onDrag={(e) => handleDrag(e, 'Span name')}
 								style={{
 									position: 'absolute',
 									top: 0,
