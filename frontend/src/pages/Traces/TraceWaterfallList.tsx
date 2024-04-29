@@ -216,6 +216,9 @@ const WaterfallRow: React.FC<{
 						color="strong"
 						lines="1"
 						weight={isSelected ? 'bold' : 'regular'}
+						title={`${span.spanName}${
+							span.serviceName ? ` (${span.serviceName})` : ''
+						}`}
 					>
 						{span.spanName}{' '}
 						{span.serviceName && `(${span.serviceName})`}
