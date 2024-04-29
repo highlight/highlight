@@ -204,15 +204,18 @@ export const TracesPage: React.FC = () => {
 				type: 'trace',
 				id: trace_id,
 				spanID: span_id,
-				onClose: () => {
-					navigate({
-						pathname: `/${projectId}/traces`,
-						search: location.search,
-					})
-				},
 			})
 		}
 	}, [trace_id, span_id, set, navigate, projectId])
+
+	useEffect(() => {
+		if (!resource) {
+			navigate({
+				pathname: `/${projectId}/traces`,
+				search: location.search,
+			})
+		}
+	}, [navigate, projectId, resource])
 
 	return (
 		<SearchContext initialQuery={query} onSubmit={setQuery}>

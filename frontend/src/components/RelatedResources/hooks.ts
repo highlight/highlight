@@ -8,7 +8,6 @@ import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 type RelatedResourceCommon = {
 	type: 'error' | 'session' | 'trace' | 'logs'
 	canGoBack?: boolean
-	onClose?: () => void
 }
 
 export type RelatedError = RelatedResourceCommon & {
