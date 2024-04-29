@@ -299,11 +299,11 @@ const SpanName: React.FC<{ spanName: string; query: string }> = ({
 	const afterMatch = spanName.slice(endIndex)
 
 	return (
-		<>
-			<Text>{beforeMatch}</Text>
-			<Text weight="bold">{match}</Text>
-			<Text>{afterMatch}</Text>
-		</>
+		<Text>
+			{beforeMatch}
+			<strong>{match}</strong>
+			{afterMatch}
+		</Text>
 	)
 }
 
