@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"math"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/aws/smithy-go/ptr"
@@ -286,17 +288,45 @@ func buildStringQuery(field string, op string, values []string) string {
 			queryArray = append(queryArray, fmt.Sprintf("%s!=%s", field, value))
 		}
 	case "between_time":
-		start, end, _ := strings.Cut(values[0], "_")
-		queryArray = append(queryArray, fmt.Sprintf("(%s>=%s AND %s<=%s)", field, start, field, end))
+		before, after, _ := strings.Cut(values[0], "_")
+		start, err := strconv.ParseFloat(before, 64)
+		if err != nil {
+			return ""
+		}
+		start *= 60000
+		startInt := int(math.Round(start))
+
+		end, err := strconv.ParseFloat(after, 64)
+		if err != nil {
+			return ""
+		}
+		end *= 60000
+		endInt := int(math.Round(end))
+
+		if endInt >= 60*60000 {
+			queryArray = append(queryArray, fmt.Sprintf("%s>=%d", field, startInt))
+		} else {
+			queryArray = append(queryArray, fmt.Sprintf("(%s>=%d AND %s<=%d)", field, startInt, field, endInt))
+		}
+	case "not_between_time":
+		before, after, _ := strings.Cut(values[0], "_")
+		start, err := strconv.ParseInt(before, 10, 64)
+		if err != nil {
+			return ""
+		}
+		start *= 60000
+		end, err := strconv.ParseInt(after, 10, 64)
+		if err != nil {
+			return ""
+		}
+		end *= 60000
+		queryArray = append(queryArray, fmt.Sprintf("(%s<=%d OR %s>=%d)", field, start, field, end))
 	case "between":
 		start, end, _ := strings.Cut(values[0], "_")
 		queryArray = append(queryArray, fmt.Sprintf("(%s>=%s AND %s<=%s)", field, start, field, end))
-	case "not_between_time":
-		start, end, _ := strings.Cut(values[0], "_")
-		queryArray = append(queryArray, fmt.Sprintf("(%s<%s AND %s>%s)", field, start, field, end))
 	case "not_between":
 		start, end, _ := strings.Cut(values[0], "_")
-		queryArray = append(queryArray, fmt.Sprintf("(%s<%s AND %s>%s)", field, start, field, end))
+		queryArray = append(queryArray, fmt.Sprintf("(%s<=%s OR %s>=%s)", field, start, field, end))
 	case "exists":
 		queryArray = append(queryArray, fmt.Sprintf("%s EXISTS", field))
 	case "not_exists":
