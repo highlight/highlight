@@ -647,14 +647,16 @@ const Graph = ({
 					</Box>
 				)}
 			</Box>
-			<Box
-				height="full"
-				maxHeight="screen"
-				key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
-				cssClass={clsx({ [style.disabled]: disabled })}
-			>
-				{innerChart}
-			</Box>
+			{!metricsLoading && (
+				<Box
+					height="full"
+					maxHeight="screen"
+					key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
+					cssClass={clsx({ [style.disabled]: disabled })}
+				>
+					{innerChart}
+				</Box>
+			)}
 		</Box>
 	)
 }
