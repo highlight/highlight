@@ -93,12 +93,10 @@ const ApplicationRouter: React.FC = () => {
 								</Suspense>
 							}
 						/>
-						{isHighlightAdmin && (
-							<Route
-								path="dashboards/*"
-								element={<DashboardRouter />}
-							/>
-						)}
+						<Route
+							path="dashboards/*"
+							element={<DashboardRouter />}
+						/>
 						<Route
 							path="*"
 							element={<Navigate to={BASE_PATH} replace />}
