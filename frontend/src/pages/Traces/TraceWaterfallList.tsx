@@ -10,6 +10,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useMemo, useState } from 'react'
 
+import { textHighlight } from '@/pages/LogsPage/LogsTable/LogsTable.css'
 import { getSpanTheme } from '@/pages/Traces/TraceFlameGraphNode'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
@@ -301,7 +302,7 @@ const SpanName: React.FC<{ spanName: string; query: string }> = ({
 	return (
 		<>
 			{beforeMatch}
-			<strong style={{ fontWeight: 'bold' }}>{match}</strong>
+			<span className={textHighlight}>{match}</span>
 			{afterMatch}
 		</>
 	)
