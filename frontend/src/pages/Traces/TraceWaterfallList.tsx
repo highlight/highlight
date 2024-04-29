@@ -9,7 +9,6 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
-import { flatten } from 'lodash'
 import { useMemo, useState } from 'react'
 
 import { getSpanTheme } from '@/pages/Traces/TraceFlameGraphNode'
@@ -26,7 +25,8 @@ img.src =
 	'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs='
 
 export const TraceWaterfallList: React.FC = () => {
-	const { selectedSpan, spans, totalDuration, setSelectedSpan } = useTrace()
+	const { selectedSpan, spanCount, spans, totalDuration, setSelectedSpan } =
+		useTrace()
 	const [query, setQuery] = useState('')
 	const [columns, setColumns] = useLocalStorage(
 		'highlight-trace-waterfall-list-column-sizes',
@@ -43,10 +43,10 @@ export const TraceWaterfallList: React.FC = () => {
 		[spans],
 	)
 
-	const bodyHeight = useMemo(() => {
-		const flattenedSpans = flatten(filteredSpans)
-		return Math.min(ROW_HEIGHT * flattenedSpans.length, 280)
-	}, [filteredSpans])
+	const bodyHeight = useMemo(
+		() => Math.min(ROW_HEIGHT * spanCount, 280),
+		[spanCount],
+	)
 
 	const handleDrag = (e: React.DragEvent, name: string) => {
 		const headerRef = e.currentTarget.parentElement?.parentElement
