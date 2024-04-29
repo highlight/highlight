@@ -206,11 +206,7 @@ const WaterfallRow: React.FC<{
 					</Text>
 				</Table.Cell>
 				<Table.Cell br="dividerWeak" borderRadius="0">
-					<Text
-						lines="1"
-						size="xSmall"
-						weight={isSelected ? 'bold' : 'regular'}
-					>
+					<Text lines="1" size="xSmall">
 						{getTraceDurationString(span.duration)}
 					</Text>
 				</Table.Cell>
