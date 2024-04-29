@@ -262,6 +262,12 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/php.svg'),
 			[QuickStartType.Other]: PHPOtherContent,
 		},
+		dotnet: {
+			title: 'C# .NET',
+			subtitle: 'ASP C# .NET Applications',
+			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
+			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+		},
 		otlp: {
 			title: 'OpenTelemetry',
 			subtitle: 'OpenTelemetry Protocol (OTLP)',
@@ -350,6 +356,12 @@ export const quickStartContent = {
 			[QuickStartType.HostingFlyIO]: HostingFlyIOLogContent,
 			[QuickStartType.HostingRender]: HostingRenderLogContent,
 		},
+		dotnet: {
+			title: 'C# .NET',
+			subtitle: 'ASP C# .NET Applications',
+			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
+			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+		},
 		otlp: {
 			title: 'OpenTelemetry',
 			subtitle: 'OpenTelemetry Protocol (OTLP)',
@@ -398,6 +410,12 @@ export const quickStartContent = {
 			subtitle: 'Install tracing in your PHP application.',
 			logoUrl: siteUrl('/images/quickstart/php.svg'),
 			[QuickStartType.Other]: PHPTracesContent,
+		},
+		dotnet: {
+			title: 'C# .NET',
+			subtitle: 'ASP C# .NET Applications',
+			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
+			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 		},
 		otlp: {
 			title: 'OpenTelemetry',
