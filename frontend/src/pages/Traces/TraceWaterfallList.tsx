@@ -109,7 +109,8 @@ export const TraceWaterfallList: React.FC = () => {
 								draggable
 								onDrag={(e) => handleDrag(e, 'Span name')}
 								onDragEnd={(e) => {
-									e.preventDefault()
+									// disable the revet ghost image
+									e.dataTransfer.clearData()
 								}}
 								style={{
 									position: 'absolute',
