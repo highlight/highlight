@@ -21,6 +21,7 @@ const MINIMUM_COLUMN_WIDTH = 50
 export const TraceWaterfallList: React.FC = () => {
 	const { selectedSpan, spans, totalDuration, setSelectedSpan } = useTrace()
 	const [query, setQuery] = useState('')
+	const [isDragging, setIsDragging] = useState(false)
 	const [columns, setColumns] = useState([
 		{ name: 'Span name', size: '1fr' },
 		{ name: 'Duration', size: '85px' },
@@ -34,6 +35,10 @@ export const TraceWaterfallList: React.FC = () => {
 	)
 
 	const handleDrag = (e: React.MouseEvent, name: string) => {
+		if (!isDragging) {
+			return
+		}
+
 		const headerRef = e.currentTarget.parentElement?.parentElement
 		const leftElementCoord = headerRef?.getBoundingClientRect()
 		const rightElementCoord =
@@ -101,8 +106,9 @@ export const TraceWaterfallList: React.FC = () => {
 							<Box
 								cssClass={styles.dragHandle}
 								draggable
-								onDrag={(e) => handleDrag(e, 'Span name')}
-								onDragStart={(e) => e.preventDefault()}
+								onMouseDown={() => setIsDragging(true)}
+								onMouseMove={(e) => handleDrag(e, 'Span name')}
+								onMouseUp={() => setIsDragging(false)}
 								style={{
 									position: 'absolute',
 									top: 0,
@@ -118,8 +124,9 @@ export const TraceWaterfallList: React.FC = () => {
 							<Box
 								cssClass={styles.dragHandle}
 								draggable
-								onDrag={(e) => handleDrag(e, 'Duration')}
-								onDragStart={(e) => e.preventDefault()}
+								onMouseDown={() => setIsDragging(true)}
+								onMouseMove={(e) => handleDrag(e, 'Duration')}
+								onMouseUp={() => setIsDragging(false)}
 								style={{
 									position: 'absolute',
 									top: 0,
