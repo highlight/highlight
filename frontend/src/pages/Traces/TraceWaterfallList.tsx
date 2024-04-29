@@ -9,6 +9,7 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
+import { flatten } from 'lodash'
 import { useMemo, useState } from 'react'
 
 import { getSpanTheme } from '@/pages/Traces/TraceFlameGraphNode'
@@ -42,10 +43,10 @@ export const TraceWaterfallList: React.FC = () => {
 		[spans],
 	)
 
-	const bodyHeight = useMemo(
-		() => Math.min(ROW_HEIGHT * spans.length, 280),
-		[spans.length],
-	)
+	const bodyHeight = useMemo(() => {
+		const flattenedSpans = flatten(filteredSpans)
+		return Math.min(ROW_HEIGHT * flattenedSpans.length, 280)
+	}, [filteredSpans])
 
 	const handleDrag = (e: React.DragEvent, name: string) => {
 		const headerRef = e.currentTarget.parentElement?.parentElement
