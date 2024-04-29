@@ -8,67 +8,63 @@ import {
 	Table,
 	Text,
 } from '@highlight-run/ui/components'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { getSpanTheme } from '@/pages/Traces/TraceFlameGraphNode'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
 
-const gridColumns = ['1fr', '1fr', '3fr']
+import * as styles from './TraceWaterfallList.css'
+
+const MINIMUM_COLUMN_WIDTH = 50
 
 export const TraceWaterfallList: React.FC = () => {
-	const [attributesWidth, setAttributesWidth] = useState(250)
-	const [dragging, setDragging] = useState(false)
 	const { selectedSpan, spans, totalDuration, setSelectedSpan } = useTrace()
-	const scrollableRef = useRef<HTMLTableSectionElement>(null)
 	const [query, setQuery] = useState('')
+	const [columns, setColumns] = useState([
+		{ name: 'Span name', size: '1fr' },
+		{ name: 'Duration', size: '85px' },
+		{ name: 'Waterfall', size: '3fr' },
+	])
+	const gridColumns = columns.map((c) => c.size)
 
 	const filteredSpans = useMemo(
 		() => [...spans].sort((a, b) => a.startTime - b.startTime),
 		[spans],
 	)
 
-	const handleMouseMove = useCallback(
-		(e: MouseEvent) => {
-			if (!dragging) {
-				return
+	const handleDrag = (e: React.MouseEvent, name: string) => {
+		const headerRef = e.currentTarget.parentElement?.parentElement
+		const leftElementCoord = headerRef?.getBoundingClientRect()
+		const rightElementCoord =
+			headerRef?.nextElementSibling?.getBoundingClientRect()
+
+		if (
+			leftElementCoord &&
+			rightElementCoord &&
+			e.pageX > leftElementCoord.left + MINIMUM_COLUMN_WIDTH &&
+			e.pageX < rightElementCoord.right - MINIMUM_COLUMN_WIDTH
+		) {
+			const leftElementWidth = leftElementCoord.width
+			const rightElementWidth = rightElementCoord.width
+			const leftElementNewWidth = e.pageX - leftElementCoord.left
+			const rightElementNewWidth =
+				rightElementWidth - (leftElementNewWidth - leftElementWidth)
+
+			const columnIndex = columns.findIndex((c) => c.name === name)
+			const newColumns = [...columns]
+			newColumns[columnIndex] = {
+				...newColumns[columnIndex],
+				size: `${leftElementNewWidth}px`,
+			}
+			newColumns[columnIndex + 1] = {
+				...newColumns[columnIndex + 1],
+				size: `${rightElementNewWidth}px`,
 			}
 
-			const scrollableRect =
-				scrollableRef.current!.getBoundingClientRect()
-
-			// width is distance between left edge of scrollableRef and mouse position
-			const newWidth = Math.max(
-				Math.min(
-					scrollableRect.width - 200,
-					e.clientX - scrollableRect.left,
-				),
-				100,
-			)
-
-			setAttributesWidth(newWidth)
-		},
-		[dragging, setAttributesWidth],
-	)
-
-	const handleMouseUp = useCallback(() => {
-		setDragging(false)
-	}, [])
-
-	useEffect(() => {
-		if (dragging) {
-			window.addEventListener('mousemove', handleMouseMove, true)
-			window.addEventListener('mouseup', handleMouseUp, true)
-		} else {
-			window.removeEventListener('mousemove', handleMouseMove, true)
-			window.removeEventListener('mouseup', handleMouseUp, true)
+			setColumns(newColumns)
 		}
-
-		return () => {
-			window.removeEventListener('mousemove', handleMouseMove, true)
-			window.removeEventListener('mouseup', handleMouseUp, true)
-		}
-	}, [dragging, handleMouseMove, handleMouseUp])
+	}
 
 	return (
 		<Box border="dividerWeak" borderRadius="4">
@@ -99,16 +95,33 @@ export const TraceWaterfallList: React.FC = () => {
 				<Table.Head>
 					<Table.Row gridColumns={gridColumns}>
 						<Table.Header>Span name</Table.Header>
-						<Table.Header>Duration</Table.Header>
-						<Table.Header>Waterfall</Table.Header>
+						<Table.Header>
+							<Text>Duration</Text>
+							<Box
+								cssClass={styles.dragHandle}
+								draggable
+								onDrag={(e) => handleDrag(e, 'Duration')}
+								style={{
+									position: 'absolute',
+									top: 0,
+									bottom: 0,
+									right: 0,
+									width: 3,
+									cursor: 'col-resize',
+								}}
+							/>
+						</Table.Header>
+						<Table.Header>
+							<Text>Waterfall</Text>
+						</Table.Header>
 					</Table.Row>
 				</Table.Head>
 				<Table.Body overflowY="auto" style={{ height: 280 }}>
 					{filteredSpans.map((span) => (
 						<WaterfallRow
 							key={span.spanID}
-							attributesWidth={attributesWidth}
 							depth={0}
+							gridColumns={gridColumns}
 							selectedSpan={selectedSpan}
 							span={span}
 							totalDuration={totalDuration}
@@ -123,16 +136,16 @@ export const TraceWaterfallList: React.FC = () => {
 }
 
 const WaterfallRow: React.FC<{
-	attributesWidth: number
 	depth: number
+	gridColumns: string[]
 	selectedSpan: FlameGraphSpan | undefined
 	span: FlameGraphSpan
 	totalDuration: number
 	query: string
 	setSelectedSpan: (span: FlameGraphSpan | undefined) => void
 }> = ({
-	attributesWidth,
 	depth,
+	gridColumns,
 	selectedSpan,
 	span,
 	totalDuration,
@@ -161,6 +174,7 @@ const WaterfallRow: React.FC<{
 				onClick={() => setSelectedSpan(span)}
 			>
 				<Table.Cell
+					borderRadius="0"
 					onClick={(e) => {
 						e.stopPropagation()
 
@@ -188,7 +202,7 @@ const WaterfallRow: React.FC<{
 						{span.serviceName && `(${span.serviceName})`}
 					</Text>
 				</Table.Cell>
-				<Table.Cell>
+				<Table.Cell br="dividerWeak" borderRadius="0">
 					<Text
 						lines="1"
 						size="xSmall"
@@ -197,7 +211,7 @@ const WaterfallRow: React.FC<{
 						{getTraceDurationString(span.duration)}
 					</Text>
 				</Table.Cell>
-				<Table.Cell py="4">
+				<Table.Cell py="4" borderRadius="0">
 					<Box
 						borderRadius="4"
 						p="2"
@@ -226,8 +240,8 @@ const WaterfallRow: React.FC<{
 					{span.children?.map((childSpan, index) => (
 						<WaterfallRow
 							key={index}
-							attributesWidth={attributesWidth}
 							depth={depth + 1}
+							gridColumns={gridColumns}
 							selectedSpan={selectedSpan}
 							span={childSpan}
 							totalDuration={totalDuration}
