@@ -3783,20 +3783,18 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 
 	countAggregator := modelInputs.MetricAggregatorCount
 
-	graphs := []model.Graph{
+	graphs := []*model.Graph{
 		{
-			VisualizationID: viz.ID,
-			Type:            "Bar chart",
-			Title:           "Active users",
-			ProductType:     "Sessions",
-			Query:           "email exists",
-			FunctionType:    "Count",
-			BucketByKey:     pointy.String("Timestamp"),
-			BucketCount:     pointy.Int(24),
-			Display:         pointy.String("Stacked"),
+			Type:         "Bar chart",
+			Title:        "Active users",
+			ProductType:  "Sessions",
+			Query:        "email exists",
+			FunctionType: "Count",
+			BucketByKey:  pointy.String("Timestamp"),
+			BucketCount:  pointy.Int(24),
+			Display:      pointy.String("Stacked"),
 		},
 		{
-			VisualizationID:   viz.ID,
 			Type:              "Bar chart",
 			Title:             "Most visited pages",
 			ProductType:       "Sessions",
@@ -3809,7 +3807,6 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			Display:           pointy.String("Stacked"),
 		},
 		{
-			VisualizationID:   viz.ID,
 			Type:              "Line chart",
 			Title:             "H.track events",
 			ProductType:       "Sessions",
@@ -3825,19 +3822,17 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			NullHandling:      pointy.String("Hidden"),
 		},
 		{
-			VisualizationID: viz.ID,
-			Type:            "Line chart",
-			Title:           "Sessions with user frustration",
-			ProductType:     "Sessions",
-			Query:           "has_rage_clicks=true",
-			FunctionType:    "Count",
-			BucketByKey:     pointy.String("Timestamp"),
-			BucketCount:     pointy.Int(24),
-			Display:         pointy.String("Line"),
-			NullHandling:    pointy.String("Hidden"),
+			Type:         "Line chart",
+			Title:        "Sessions with user frustration",
+			ProductType:  "Sessions",
+			Query:        "has_rage_clicks=true",
+			FunctionType: "Count",
+			BucketByKey:  pointy.String("Timestamp"),
+			BucketCount:  pointy.Int(24),
+			Display:      pointy.String("Line"),
+			NullHandling: pointy.String("Hidden"),
 		},
 		{
-			VisualizationID:   viz.ID,
 			Type:              "Line chart",
 			Title:             "Slowest APIs",
 			ProductType:       "Traces",
@@ -3853,7 +3848,6 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			NullHandling:      pointy.String("Hidden"),
 		},
 		{
-			VisualizationID:   viz.ID,
 			Type:              "Table",
 			Title:             "Errors by browser",
 			ProductType:       "Errors",
@@ -3877,6 +3871,10 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			return err
 		}
 
+		for _, g := range graphs {
+			g.VisualizationID = viz.ID
+		}
+
 		if count > 1 {
 			return errors.New("default dashboard already created")
 		}
@@ -3890,7 +3888,9 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 		return nil, err
 	}
 
-	viz.Graphs = graphs
+	for _, g := range graphs {
+		viz.Graphs = append(viz.Graphs, *g)
+	}
 
 	return &model.VisualizationsResponse{
 		Count:   1,
