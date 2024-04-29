@@ -12395,7 +12395,7 @@ enum ReservedSessionKey {
 	country
 	device_id
 	environment
-    excluded
+	excluded
 	first_time
 	has_comments
 	has_errors
@@ -12415,7 +12415,7 @@ enum ReservedSessionKey {
 	service_version
 	viewed
 	viewed_by_me
-    within_billing_quota
+	within_billing_quota
 }
 
 enum LogSource {
