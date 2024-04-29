@@ -18,6 +18,7 @@ import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
 import * as styles from './TraceWaterfallList.css'
 
 const MINIMUM_COLUMN_WIDTH = 50
+const ROW_HEIGHT = 28
 
 const img = new Image()
 img.src =
@@ -39,6 +40,11 @@ export const TraceWaterfallList: React.FC = () => {
 	const filteredSpans = useMemo(
 		() => [...spans].sort((a, b) => a.startTime - b.startTime),
 		[spans],
+	)
+
+	const bodyHeight = useMemo(
+		() => Math.max(ROW_HEIGHT * filteredSpans.length, 280),
+		[filteredSpans.length],
 	)
 
 	const handleDrag = (e: React.DragEvent, name: string) => {
@@ -117,7 +123,7 @@ export const TraceWaterfallList: React.FC = () => {
 						</Table.Header>
 					</Table.Row>
 				</Table.Head>
-				<Table.Body overflowY="auto" style={{ height: 280 }}>
+				<Table.Body overflowY="auto" style={{ height: bodyHeight }}>
 					{filteredSpans.map((span) => (
 						<WaterfallRow
 							key={span.spanID}
