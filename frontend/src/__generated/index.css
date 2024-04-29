@@ -7409,6 +7409,21 @@ body {
   bottom: 0;
   width: 4px;
 }
+.rcvc2q0 {
+  background-color: transparent;
+  cursor: ew-resize;
+  position: absolute;
+  transition: background-color 0.3s;
+  height: 100%;
+  top: 0;
+  bottom: 0;
+  right: -2px;
+  width: 4px;
+  z-index: 1;
+}
+.rcvc2q0:hover {
+  background-color: var(--_1pyqka9i);
+}
 ._11t98zr0 {
   border-bottom: var(--_1pyqka9k) solid 1px;
   height: 280px;
