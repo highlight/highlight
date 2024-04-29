@@ -30,7 +30,7 @@ const ApplicationRouter: React.FC = () => {
 	const { projectId } = useNumericProjectId()
 	const { page, searchQuery } = useSearchContext()
 	usePreloadSessions({ page: page || 1, query: JSON.parse(searchQuery) })
-	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
+	const { isLoggedIn } = useAuthContext()
 
 	return (
 		<>
@@ -93,12 +93,10 @@ const ApplicationRouter: React.FC = () => {
 								</Suspense>
 							}
 						/>
-						{isHighlightAdmin && (
-							<Route
-								path="dashboards/*"
-								element={<DashboardRouter />}
-							/>
-						)}
+						<Route
+							path="dashboards/*"
+							element={<DashboardRouter />}
+						/>
 						<Route
 							path="*"
 							element={<Navigate to={BASE_PATH} replace />}

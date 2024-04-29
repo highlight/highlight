@@ -15,10 +15,12 @@ export const loadingText = style({
 
 export const legendWrapper = style({
 	left: -6,
-	maxHeight: 72,
+	maxHeight: 48,
 	paddingTop: 2,
 	paddingBottom: 2,
 	overflowY: 'auto',
+	display: 'flex',
+	flexWrap: 'wrap',
 })
 
 export const legendDot = style({
@@ -27,15 +29,17 @@ export const legendDot = style({
 	marginRight: '4px',
 	width: 8,
 	height: 8,
+	flexShrink: 0,
 })
 
 export const legendTextWrapper = style({
-	maxWidth: 145,
 	textAlign: 'left',
 })
 
 export const legendTextButton = style({
 	height: 16,
+	flex: '1 0 calc(100% / 3)',
+	maxWidth: 'fit-content',
 })
 
 export const titleText = style({
