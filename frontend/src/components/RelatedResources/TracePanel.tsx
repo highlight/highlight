@@ -42,7 +42,7 @@ export const TracePanel: React.FC<{ resource: RelatedTrace }> = ({
 							</Text>
 							<Box bb="dividerWeak" mt="12" mb="8" />
 
-							<TraceSpanAttributes span={span!} />
+							{span && <TraceSpanAttributes span={span} />}
 						</Box>
 					</Box>
 				)}

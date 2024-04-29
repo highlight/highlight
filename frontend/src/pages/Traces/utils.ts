@@ -227,7 +227,7 @@ export const formatDateWithNanoseconds = (dateString: string) => {
 
 export const formatTraceAttributes = (attributes: { [key: string]: any }) => {
 	const { host, os, process, ...otherTraceAttributes } =
-		attributes.traceAttributes ?? {}
+		attributes.traceAttributes
 
 	return cleanAttributes({
 		timestamp: formatDateWithNanoseconds(attributes.timestamp),
