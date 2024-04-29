@@ -41,8 +41,7 @@ export const TraceWaterfallList: React.FC = () => {
 	const gridColumns = columns.map((c) => c.size)
 
 	useEffect(() => {
-		const bodyHeight = bodyRef.current?.clientHeight ?? 0
-		setBodyHeight(bodyHeight > 280 ? '280px' : 'auto')
+		setBodyHeight(spanCount * ROW_HEIGHT > 280 ? '280px' : 'auto')
 	}, [spanCount])
 
 	const handleDrag = (e: React.DragEvent, name: string) => {
