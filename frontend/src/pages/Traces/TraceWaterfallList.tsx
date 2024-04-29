@@ -108,6 +108,9 @@ export const TraceWaterfallList: React.FC = () => {
 								cssClass={styles.dragHandle}
 								draggable
 								onDrag={(e) => handleDrag(e, 'Span name')}
+								onDragEnd={(e) => {
+									e.preventDefault()
+								}}
 								style={{
 									position: 'absolute',
 									top: 0,
