@@ -10,8 +10,6 @@ import {
 } from '@highlight-run/ui/components'
 import { useMemo, useState } from 'react'
 
-import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
-import { textHighlight } from '@/pages/LogsPage/LogsTable/LogsTable.css'
 import { getSpanTheme } from '@/pages/Traces/TraceFlameGraphNode'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
@@ -203,11 +201,7 @@ const WaterfallRow: React.FC<{
 							span.serviceName ? ` (${span.serviceName})` : ''
 						}`}
 					>
-						<TextHighlighter
-							highlightClassName={textHighlight}
-							searchWords={[query]}
-							textToHighlight={span.spanName}
-						/>{' '}
+						<SpanName spanName={span.spanName} query={query} />{' '}
 						{span.serviceName && `(${span.serviceName})`}
 					</Text>
 				</Table.Cell>
@@ -281,6 +275,36 @@ const doesSpanOrDescendantsMatchQuery = (
 	}
 
 	return checkSpan(span)
+}
+
+const SpanName: React.FC<{ spanName: string; query: string }> = ({
+	spanName,
+	query,
+}) => {
+	if (!query) {
+		return <>{spanName}</>
+	}
+
+	const lowerCaseSpanName = spanName.toLowerCase()
+	const lowerCaseQuery = query.toLowerCase()
+
+	const startIndex = lowerCaseSpanName.indexOf(lowerCaseQuery)
+	if (startIndex === -1) {
+		return <>{spanName}</>
+	}
+
+	const endIndex = startIndex + query.length
+	const beforeMatch = spanName.slice(0, startIndex)
+	const match = spanName.slice(startIndex, endIndex)
+	const afterMatch = spanName.slice(endIndex)
+
+	return (
+		<>
+			{beforeMatch}
+			<span className={styles.highlightedText}>{match}</span>
+			{afterMatch}
+		</>
+	)
 }
 
 const DragHandle: React.FC<{
