@@ -197,7 +197,7 @@ export const TracesPage: React.FC = () => {
 	}, [panelPagination, resource, setPanelPagination, traceEdges])
 
 	// Temporary workaround to preserve functionality for linking to a trace.
-	// Eventually we can delete this + the params from the router.
+	// Eventually we can delete both of these useEffects + params in the router.
 	useEffect(() => {
 		if (trace_id) {
 			set({
