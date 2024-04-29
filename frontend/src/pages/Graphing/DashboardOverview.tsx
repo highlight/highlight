@@ -66,7 +66,7 @@ export default function DashboardOverview() {
 	const [upsertViz, upsertContext] = useUpsertVisualizationMutation({
 		variables: {
 			visualization: {
-				name: 'Untitled Dashboard',
+				name: 'Untitled dashboard',
 				projectId: projectId,
 			},
 		},

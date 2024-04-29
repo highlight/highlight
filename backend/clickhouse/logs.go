@@ -454,8 +454,9 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate tim
 	if query == nil || *query == "" {
 		logKeys = append(logKeys, defaultLogKeys...)
 	} else {
+		queryLower := strings.ToLower(*query)
 		for _, key := range defaultLogKeys {
-			if strings.Contains(key.Name, *query) {
+			if strings.Contains(key.Name, queryLower) {
 				logKeys = append(logKeys, key)
 			}
 		}

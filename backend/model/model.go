@@ -1458,7 +1458,8 @@ type Visualization struct {
 	ProjectID        int `gorm:"index"`
 	Name             string
 	UpdatedByAdminId *int
-	UpdatedByAdmin   *Admin `gorm:"foreignKey:UpdatedByAdminId"`
+	UpdatedByAdmin   *Admin        `gorm:"foreignKey:UpdatedByAdminId"`
+	GraphIds         pq.Int32Array `gorm:"type:integer[]"`
 	Graphs           []Graph
 }
 
@@ -2472,4 +2473,5 @@ type TableConfig[TReservedKey ~string] struct {
 	ReservedKeys     []TReservedKey
 	SelectColumns    []string
 	DefaultFilter    string
+	IgnoredFilters   map[string]bool
 }

@@ -74,6 +74,7 @@ export const useGetErrors = ({
 			[],
 		),
 		skip: disablePolling,
+		maxResults: PAGE_SIZE,
 	})
 
 	return {

@@ -11794,6 +11794,7 @@ enum SavedSegmentEntityType {
 	Log
 	Trace
 	Error
+	Session
 }
 
 type Project {
@@ -12330,30 +12331,32 @@ enum ReservedErrorsJoinedKey {
 }
 
 enum ReservedSessionKey {
-	environment
-	service_name
-	app_version
-	secure_session_id
-	identified
-	fingerprint
-	identifier
-	city
-	state
-	country
-	os_name
-	os_version
+	active_length
 	browser_name
 	browser_version
-	processed
-	has_comments
-	has_rage_clicks
-	has_errors
-	length
-	active_length
+	city
+	country
+	device_id
+	environment
 	first_time
-	viewed
-	pages_visited
+	has_comments
+	has_errors
+	has_rage_clicks
+	identified
+	identifier
+	ip
+	length
+	loc_state
 	normalness
+	os_name
+	os_version
+	pages_visited
+	processed
+	sample
+	secure_id
+	service_version
+	viewed
+	viewed_by_me
 }
 
 enum LogSource {
@@ -12362,8 +12365,10 @@ enum LogSource {
 }
 
 enum KeyType {
-	String
+	Boolean
+	Creatable
 	Numeric
+	String
 }
 
 type LogsHistogramBucketCount {
@@ -13214,6 +13219,7 @@ input VisualizationInput {
 	id: ID
 	projectId: ID!
 	name: String!
+	graphIds: [ID!]
 }
 
 scalar Upload
@@ -82051,7 +82057,7 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "projectId", "name"}
+	fieldsInOrder := [...]string{"id", "projectId", "name", "graphIds"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -82079,6 +82085,13 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 				return it, err
 			}
 			it.Name = data
+		case "graphIds":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("graphIds"))
+			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GraphIds = data
 		}
 	}
 
@@ -103151,6 +103164,44 @@ func (ec *executionContext) unmarshalOID2int(ctx context.Context, v interface{})
 func (ec *executionContext) marshalOID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
 	res := graphql.MarshalIntID(v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOID2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]int, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2int(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOID2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2int(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOID2ᚖint(ctx context.Context, v interface{}) (*int, error) {

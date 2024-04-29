@@ -8,8 +8,9 @@ import {
 	Injectable,
 	NestInterceptor,
 } from '@nestjs/common'
-import { lastValueFrom, Observable, throwError } from 'rxjs'
+import { finalize, Observable, throwError } from 'rxjs'
 import { catchError } from 'rxjs/operators'
+import api from '@opentelemetry/api'
 
 @Injectable()
 export class HighlightLogger
@@ -93,36 +94,38 @@ export class HighlightInterceptor
 		await NodeH.flush()
 	}
 
-	intercept(
-		context: ExecutionContext,
-		next: CallHandler,
-	): Promise<Observable<any>> {
+	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
 		const ctx = context.switchToHttp()
 		const request = ctx.getRequest()
-		const highlightCtx = NodeH.parseHeaders(request.headers)
-		return NodeH.runWithHeaders(request.headers, async () => {
-			const span = await NodeH.startActiveSpan(
-				`${request.method} ${request.url}`,
-				{
-					attributes: {
-						'http.method': request.method,
-						'http.url': request.url,
-					},
+
+		const { span: requestSpan, ctx: spanCtx } = NodeH.startWithHeaders(
+			`${request.method} ${request.url}`,
+			request.headers,
+			{
+				attributes: {
+					'http.method': request.method,
+					'http.url': request.url,
 				},
-			)
-			try {
-				return await lastValueFrom(next.handle())
-			} catch (err: any) {
-				NodeH.consumeError(
-					err,
-					highlightCtx?.secureSessionId,
-					highlightCtx?.requestId,
-				)
-				throw err
-			} finally {
-				span.end()
-			}
-		})
+			},
+		)
+		const fn = api.context.bind(spanCtx, () =>
+			next.handle().pipe(
+				catchError((err) => {
+					NodeH.consumeError(
+						err,
+						undefined,
+						undefined,
+						{},
+						{ span: requestSpan },
+					)
+					return throwError(() => err)
+				}),
+				finalize(() => {
+					requestSpan.end()
+				}),
+			),
+		)
+		return fn()
 	}
 }
 

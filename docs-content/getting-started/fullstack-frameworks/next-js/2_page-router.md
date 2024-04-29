@@ -216,6 +216,28 @@ export default pageRouterCustomErrorHandler(
 )
 ```
 
+```hint
+`pageRouterCustomErrorHandler` is incompatible with `getInitialProps`. 
+
+You'll see `Error: You can not use getInitialProps with getServerSideProps. Please remove getInitialProps.` 
+
+Remove `pageRouterCustomErrorHandler` and consume the error in your `getServerSideProps` function by injecting the following code into your handler:
+```
+
+```javascript
+// client-side example; 
+// Errors can be sent server-side with `import { H } from '@highlight-run/next/server'`
+import { H } from '@highlight-run/next/ssr'
+
+const projectId = '<project id>'
+const highlightOptions = {
+	// Highlight options: https://www.highlight.io/docs/sdk/client#Hinit
+}
+
+H.init(projectId, highlightOptions)
+H.consumeError(new Error("Your custom error message"))
+```
+
 ### Validate SSR error capture
 
 1. Copy the following code into `pages/page-router-ssr.tsx`.

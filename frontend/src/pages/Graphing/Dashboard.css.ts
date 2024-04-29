@@ -57,41 +57,8 @@ export const graphGrid = style({
 	},
 })
 
-export const graphDivider = style({
-	borderBottom: vars.border.dividerWeak,
-
-	'@media': {
-		[`(width <= 850px)`]: {
-			selectors: {
-				'&:nth-child(1n + 1):nth-last-child(-n + 1)': {
-					borderBottom: 'none',
-				},
-				'&:nth-child(1n + 1):nth-last-child(-n + 1) ~ &': {
-					borderBottom: 'none',
-				},
-			},
-		},
-		[`(850px < width <= 1250px)`]: {
-			selectors: {
-				'&:nth-child(2n + 1):nth-last-child(-n + 2)': {
-					borderBottom: 'none',
-				},
-				'&:nth-child(2n + 1):nth-last-child(-n + 2) ~ &': {
-					borderBottom: 'none',
-				},
-			},
-		},
-		[`(1250px < width)`]: {
-			selectors: {
-				'&:nth-child(3n + 1):nth-last-child(-n + 3)': {
-					borderBottom: 'none',
-				},
-				'&:nth-child(3n + 1):nth-last-child(-n + 3) ~ &': {
-					borderBottom: 'none',
-				},
-			},
-		},
-	},
+export const gridEditing = style({
+	backgroundColor: vars.theme.static.surface.raised,
 })
 
 globalStyle(`${menuButton} > div`, {

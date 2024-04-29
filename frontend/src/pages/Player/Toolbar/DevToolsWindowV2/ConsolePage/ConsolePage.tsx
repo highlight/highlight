@@ -11,7 +11,10 @@ import { useProjectId } from '@hooks/useProjectId'
 import { COLOR_MAPPING } from '@pages/LogsPage/constants'
 import { THROTTLED_UPDATE_MS } from '@pages/Player/PlayerHook/PlayerState'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
-import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import {
+	findLastActiveEventIndex,
+	Tab,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import clsx from 'clsx'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -43,7 +46,7 @@ export const ConsolePage = ({
 	levels: LogLevel[]
 }) => {
 	const { projectId } = useProjectId()
-	const [selectedCursor, setSelectedCursor] = useState(logCursor)
+	const [, setSelectedCursor] = useState(logCursor)
 	const { session, time, setTime, sessionMetadata, isPlayerReady } =
 		useReplayerContext()
 
@@ -84,40 +87,23 @@ export const ConsolePage = ({
 		return data.sessionLogs
 	}, [filter, data?.sessionLogs])
 
-	// Logic for scrolling to current entry.
-	useEffect(() => {
-		if (!autoScroll) {
-			return
-		}
-		if (messagesToRender.length) {
-			let cursor = ''
-			let msgDiff: number = Number.MAX_VALUE
-			for (let i = 0; i < messagesToRender.length; i++) {
-				const currentDiff: number =
-					time -
-					(new Date(messagesToRender[i].node.timestamp).getTime() -
-						new Date(messagesToRender[0].node.timestamp).getTime())
-				if (currentDiff < 0) break
-				if (currentDiff < msgDiff) {
-					cursor = messagesToRender[i].cursor
-					msgDiff = currentDiff
-				}
-			}
-			setSelectedCursor(cursor)
-		}
-	}, [time, messagesToRender, autoScroll])
+	const messageNodes = messagesToRender.map((message) => {
+		return message.node
+	})
+
+	const lastActiveLogIndex = useMemo(() => {
+		return findLastActiveEventIndex(
+			time,
+			sessionMetadata.startTime,
+			messageNodes,
+		)
+	}, [time, sessionMetadata.startTime, messageNodes])
 
 	useEffect(() => {
 		analytics.track('session_view-console-logs')
 	}, [])
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
-
-	const foundIndex = useMemo(() => {
-		return messagesToRender.findIndex(
-			(logEdge) => logEdge.cursor === selectedCursor,
-		)
-	}, [messagesToRender, selectedCursor])
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const scrollFunction = useCallback(
@@ -140,11 +126,19 @@ export const ConsolePage = ({
 			virtuoso.current &&
 			messagesToRender
 		) {
-			if (foundIndex >= 0) {
-				scrollFunction(foundIndex)
+			if (autoScroll) {
+				if (lastActiveLogIndex >= 0) {
+					scrollFunction(lastActiveLogIndex)
+				}
 			}
 		}
-	}, [foundIndex, isPlayerReady, messagesToRender, scrollFunction])
+	}, [
+		lastActiveLogIndex,
+		isPlayerReady,
+		messagesToRender,
+		scrollFunction,
+		autoScroll,
+	])
 
 	return (
 		<Box cssClass={styles.consoleBox}>
@@ -161,13 +155,13 @@ export const ConsolePage = ({
 						<MessageRow
 							key={logEdge.cursor}
 							logEdge={logEdge}
-							current={selectedCursor === logEdge.cursor}
+							current={_index === lastActiveLogIndex}
+							past={_index <= lastActiveLogIndex}
 							onSelect={() => {
 								setSelectedCursor(logEdge.cursor)
 								const timestamp =
-									new Date(
-										messagesToRender[_index].node.timestamp,
-									).getTime() - sessionMetadata.startTime
+									new Date(logEdge.node.timestamp).getTime() -
+									sessionMetadata.startTime
 								setTime(timestamp)
 								analytics.track('session_go-to-log_click')
 							}}
@@ -185,10 +179,12 @@ const MessageRow = React.memo(function ({
 	logEdge,
 	onSelect,
 	current,
+	past,
 }: {
 	logEdge: SessionLogEdge
 	onSelect: () => void
 	current?: boolean
+	past: boolean
 }) {
 	return (
 		<Box
@@ -200,6 +196,9 @@ const MessageRow = React.memo(function ({
 			)}
 			borderBottom="dividerWeak"
 			py="8"
+			style={{
+				opacity: past ? 1 : 0.4,
+			}}
 		>
 			<Stack direction="row">
 				<Box flexGrow={1}>

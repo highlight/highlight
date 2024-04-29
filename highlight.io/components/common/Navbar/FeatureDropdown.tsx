@@ -43,6 +43,12 @@ const FeatureDropdown = ({
 			link: '/traces',
 			sameTab: true,
 		},
+		{
+			title: 'Metrics',
+			icon: <Icons.HiChartBar className={styles.copyOnLight} />,
+			link: '/metrics',
+			sameTab: true,
+		},
 	]
 
 	return (

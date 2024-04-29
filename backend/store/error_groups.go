@@ -190,34 +190,49 @@ type UpdateErrorGroupParams struct {
 }
 
 func (store *Store) UpdateErrorGroupStateByAdmin(ctx context.Context,
-	admin model.Admin, params UpdateErrorGroupParams) (model.ErrorGroup, error) {
-	return store.updateErrorGroupState(ctx, &admin, params)
+	admin model.Admin, params UpdateErrorGroupParams) (*model.ErrorGroup, error) {
+	err := store.updateErrorGroupState(ctx, &admin, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// For user-driven state updates, write the error group directly to Clickhouse.
+	// Write to the data sync queue as well to guarantee eventual consistency.
+	var errorGroup model.ErrorGroup
+	if err = store.db.WithContext(ctx).Where(&model.ErrorGroup{Model: model.Model{ID: params.ID}}).First(&errorGroup).Error; err != nil {
+		return nil, err
+	}
+
+	err = store.clickhouseClient.WriteErrorGroups(ctx, []*model.ErrorGroup{&errorGroup})
+	if err != nil {
+		return nil, err
+	}
+
+	return &errorGroup, nil
 }
 
 func (store *Store) UpdateErrorGroupStateBySystem(ctx context.Context,
-	params UpdateErrorGroupParams) (model.ErrorGroup, error) {
+	params UpdateErrorGroupParams) error {
 	return store.updateErrorGroupState(ctx, nil, params)
 }
 
 func (store *Store) updateErrorGroupState(ctx context.Context,
-	admin *model.Admin, params UpdateErrorGroupParams) (model.ErrorGroup, error) {
-
-	var errorGroup model.ErrorGroup
+	admin *model.Admin, params UpdateErrorGroupParams) error {
 
 	if err := AssertRecordFound(store.db.WithContext(ctx).Where(&model.ErrorGroup{
 		Model: model.Model{
 			ID: params.ID,
 		},
-	}).Model(&errorGroup).Clauses(clause.Returning{}).Updates(map[string]interface{}{
+	}).Model(&model.ErrorGroup{}).Clauses(clause.Returning{}).Updates(map[string]interface{}{
 		"State":        params.State,
 		"SnoozedUntil": params.SnoozedUntil,
 	})); err != nil {
-		return errorGroup, err
+		return err
 	}
 
 	eventType, err := getEventType(params.State)
 	if err != nil {
-		return errorGroup, err
+		return err
 	}
 
 	eventData := map[string]interface{}{}
@@ -229,28 +244,19 @@ func (store *Store) updateErrorGroupState(ctx context.Context,
 	err = store.CreateErrorGroupActivityLog(ctx, model.ErrorGroupActivityLog{
 		Admin:        admin,
 		EventType:    eventType,
-		ErrorGroupID: errorGroup.ID,
+		ErrorGroupID: params.ID,
 		EventData:    eventData,
 	})
 
 	if err != nil {
-		return errorGroup, err
+		return err
 	}
 
-	// For user-driven state updates, write the error group directly to Clickhouse.
-	// Write to the data sync queue as well to guarantee eventual consistency.
-	if admin != nil {
-		err = store.clickhouseClient.WriteErrorGroups(ctx, []*model.ErrorGroup{&errorGroup})
-		if err != nil {
-			return errorGroup, err
-		}
+	if err := store.dataSyncQueue.Submit(ctx, strconv.Itoa(params.ID), &kafka_queue.Message{Type: kafka_queue.ErrorGroupDataSync, ErrorGroupDataSync: &kafka_queue.ErrorGroupDataSyncArgs{ErrorGroupID: params.ID}}); err != nil {
+		return err
 	}
 
-	if err := store.dataSyncQueue.Submit(ctx, strconv.Itoa(errorGroup.ID), &kafka_queue.Message{Type: kafka_queue.ErrorGroupDataSync, ErrorGroupDataSync: &kafka_queue.ErrorGroupDataSyncArgs{ErrorGroupID: errorGroup.ID}}); err != nil {
-		return errorGroup, err
-	}
-
-	return errorGroup, nil
+	return nil
 
 }
 

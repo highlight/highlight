@@ -1,0 +1,399 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"math"
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/aws/smithy-go/ptr"
+	"github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight/highlight/sdk/highlight-go"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
+	log "github.com/sirupsen/logrus"
+)
+
+var (
+	confirm = flag.Bool("confirm", false, "confirm migration or run in dry run mode")
+)
+
+func init() {
+	flag.Parse()
+	if confirm == nil {
+		confirm = ptr.Bool(false)
+	}
+}
+
+func main() {
+	highlight.SetProjectID("1jdkoe52")
+	highlight.Start(
+		highlight.WithServiceName("task--migrate-session-segments"),
+		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
+		highlight.WithEnvironment(util.EnvironmentName()),
+	)
+	defer highlight.Stop()
+	hlog.Init()
+
+	ctx := context.TODO()
+	dryRun := !*confirm
+
+	if dryRun {
+		log.WithContext(ctx).Info("Running in dry run mode")
+	} else {
+		log.WithContext(ctx).Info("Running in migration mode")
+	}
+
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	if err != nil {
+		log.WithContext(ctx).Fatalf("error setting up DB: %v", err)
+	}
+
+	segments := []*model.Segment{}
+	if err := db.WithContext(ctx).Model(model.Segment{}).Find(&segments).Error; err != nil {
+		log.WithContext(ctx).Fatalf("error querying session segments: %v", err)
+	}
+
+	log.WithContext(ctx).Infof("migrating %d session segments", len(segments))
+
+	migratedCount := 0
+	skipCount := 0
+	errorCount := 0
+
+	for _, segment := range segments {
+		name := segment.Name
+		if name == nil {
+			name = ptr.String("Untitled Segment")
+		}
+
+		params, err := translateParams(segment.Params)
+		if err != nil {
+			log.WithContext(ctx).Errorf("error translating params for segment %d, %v", segment.ID, err)
+			errorCount++
+			continue
+		}
+		if params == nil || *params == "" {
+			log.WithContext(ctx).Infof("skipping segment %d, empty query", segment.ID)
+			skipCount++
+			continue
+		}
+
+		savedSegment := model.SavedSegment{
+			Name:       *name,
+			EntityType: modelInputs.SavedSegmentEntityTypeSession,
+			ProjectID:  segment.ProjectID,
+			Params:     *params,
+		}
+
+		// check if segment already exists
+		// NOTE: n+1 query here, but this is a one-off migration with <100 segments
+		var exists bool
+		if err := db.WithContext(ctx).Model(model.SavedSegment{}).Select("COUNT(*) > 0").Where(savedSegment).Find(&exists).Error; err != nil {
+			log.WithContext(ctx).Errorf("error checking for existing saved segment %v", err)
+			errorCount++
+			continue
+		}
+		if exists {
+			log.WithContext(ctx).Infof("skipping segment %d, already exists", segment.ID)
+			skipCount++
+			continue
+		}
+
+		// create new saved segment
+		if dryRun {
+			log.WithContext(ctx).Infof("would migrate segment %d: %s", segment.ID, savedSegment.Params)
+		} else {
+			if err := db.WithContext(ctx).Create(&savedSegment).Error; err != nil {
+				log.WithContext(ctx).Errorf("error migrating session segment %d, %v", segment.ID, err)
+				errorCount++
+				continue
+			}
+		}
+
+		migratedCount++
+	}
+
+	if dryRun {
+		log.WithContext(ctx).Infof("Dry run complete: %d TO BE migrated, %d skipped, %d errored", migratedCount, skipCount, errorCount)
+	} else {
+		log.WithContext(ctx).Infof("Migration complete: %d migrated, %d skipped, %d errored", migratedCount, skipCount, errorCount)
+	}
+}
+
+type SavedSegmentParams struct {
+	Query string
+}
+
+func translateParams(params *string) (*string, error) {
+	if params == nil {
+		return nil, nil
+	}
+
+	var paramsObject SavedSegmentParams
+	if err := json.Unmarshal([]byte(*params), &paramsObject); err != nil {
+		return nil, fmt.Errorf("error unmarshalling params: %v", err)
+	}
+
+	queryString := paramsObject.Query
+	if queryString == "" {
+		queryString = paramsObject.Query
+		if queryString == "" {
+			return nil, nil
+		}
+	}
+
+	var clickhouseQuery modelInputs.ClickhouseQuery
+	if err := json.Unmarshal([]byte(queryString), &clickhouseQuery); err != nil {
+		return nil, fmt.Errorf("error unmarshalling query: %v", err)
+	}
+	if clickhouseQuery.Rules == nil || len(clickhouseQuery.Rules) == 0 {
+		return nil, nil
+	}
+
+	isAnd := clickhouseQuery.IsAnd
+
+	// parse params
+	rules, err := deserializeRules(clickhouseQuery.Rules)
+	if err != nil {
+		return nil, err
+	}
+	if len(rules) == 0 {
+		return nil, nil
+	}
+
+	queryParts := []string{}
+	for _, rule := range rules {
+		_, field, found := strings.Cut(rule.Field, "_")
+		if !found {
+			continue
+		}
+
+		//ignore field
+		if ignoredFieldMap[field] {
+			continue
+		}
+
+		fieldString := field
+		// translate field
+		fieldName, valid := sessionFieldMap[field]
+		if valid {
+			fieldString = string(fieldName)
+		}
+
+		_, valid = validOpMap[rule.Op]
+		if !valid {
+			continue
+		}
+
+		queryPart := buildStringQuery(fieldString, rule.Op, rule.Val)
+
+		queryParts = append(queryParts, queryPart)
+	}
+
+	var query *string
+	if isAnd {
+		query = ptr.String(strings.Join(queryParts, " "))
+	} else {
+		query = ptr.String(strings.Join(queryParts, " OR "))
+	}
+
+	if query != nil && *query != "" {
+		*query = fmt.Sprintf(`{"Query":"%s"}`, *query)
+	}
+
+	return query, nil
+}
+
+type Rule struct {
+	Field string
+	Op    string
+	Val   []string
+}
+
+func deserializeRules(rules [][]string) ([]Rule, error) {
+	ret := []Rule{}
+	for _, r := range rules {
+		if len(r) < 2 {
+			return nil, fmt.Errorf("expecting >= 2 fields in rule %#v", r)
+		}
+		ret = append(ret, Rule{
+			Field: r[0],
+			Op:    r[1],
+			Val:   r[2:],
+		})
+	}
+	return ret, nil
+}
+
+func buildStringQuery(field string, op string, values []string) string {
+	queryArray := []string{}
+	switch op {
+	case "is":
+		val := []string{}
+		for _, v := range values {
+			val = append(val, quotedString(v))
+		}
+
+		value := strings.Join(val, " OR ")
+		if len(val) > 1 {
+			value = fmt.Sprintf("(%s)", value)
+		}
+		queryArray = append(queryArray, fmt.Sprintf("%s=%s", field, value))
+	case "is_not":
+		val := []string{}
+		for _, v := range values {
+			val = append(val, quotedString(v))
+		}
+
+		value := strings.Join(val, " OR ")
+		if len(val) > 1 {
+			value = fmt.Sprintf("(%s)", value)
+		}
+		queryArray = append(queryArray, fmt.Sprintf("%s!=%s", field, value))
+	case "contains":
+		containsValues := []string{}
+		for _, v := range values {
+			containsValues = append(containsValues, quotedString(fmt.Sprintf("*%s*", v)))
+		}
+
+		value := strings.Join(containsValues, " OR ")
+		if len(values) > 1 {
+			value = fmt.Sprintf("(%s)", value)
+		}
+		queryArray = append(queryArray, fmt.Sprintf("%s=%s", field, value))
+	case "not_contains":
+		containsValues := []string{}
+		for _, v := range values {
+			containsValues = append(containsValues, quotedString(fmt.Sprintf("*%s*", v)))
+		}
+
+		value := strings.Join(containsValues, " OR ")
+		if len(values) > 1 {
+			value = fmt.Sprintf("(%s)", value)
+		}
+		queryArray = append(queryArray, fmt.Sprintf("%s!=%s", field, value))
+	case "matches":
+		for _, v := range values {
+			value := quotedString(fmt.Sprintf("/%s/", v))
+			queryArray = append(queryArray, fmt.Sprintf("%s=%s", field, value))
+		}
+	case "not_matches":
+		for _, v := range values {
+			value := quotedString(fmt.Sprintf("/%s/", v))
+			queryArray = append(queryArray, fmt.Sprintf("%s!=%s", field, value))
+		}
+	case "between_time":
+		before, after, _ := strings.Cut(values[0], "_")
+		start, err := strconv.ParseFloat(before, 64)
+		if err != nil {
+			return ""
+		}
+		start *= 60000
+		startInt := int(math.Round(start))
+
+		end, err := strconv.ParseFloat(after, 64)
+		if err != nil {
+			return ""
+		}
+		end *= 60000
+		endInt := int(math.Round(end))
+
+		if endInt >= 60*60000 {
+			queryArray = append(queryArray, fmt.Sprintf("%s>=%d", field, startInt))
+		} else {
+			queryArray = append(queryArray, fmt.Sprintf("(%s>=%d AND %s<=%d)", field, startInt, field, endInt))
+		}
+	case "not_between_time":
+		before, after, _ := strings.Cut(values[0], "_")
+		start, err := strconv.ParseInt(before, 10, 64)
+		if err != nil {
+			return ""
+		}
+		start *= 60000
+		end, err := strconv.ParseInt(after, 10, 64)
+		if err != nil {
+			return ""
+		}
+		end *= 60000
+		queryArray = append(queryArray, fmt.Sprintf("(%s<=%d OR %s>=%d)", field, start, field, end))
+	case "between":
+		start, end, _ := strings.Cut(values[0], "_")
+		queryArray = append(queryArray, fmt.Sprintf("(%s>=%s AND %s<=%s)", field, start, field, end))
+	case "not_between":
+		start, end, _ := strings.Cut(values[0], "_")
+		queryArray = append(queryArray, fmt.Sprintf("(%s<=%s OR %s>=%s)", field, start, field, end))
+	case "exists":
+		queryArray = append(queryArray, fmt.Sprintf("%s EXISTS", field))
+	case "not_exists":
+		queryArray = append(queryArray, fmt.Sprintf("%s NOT EXISTS", field))
+	}
+
+	queryString := strings.Join(queryArray, " OR ")
+	if len(queryArray) > 1 {
+		queryString = fmt.Sprintf("(%s)", queryString)
+	}
+
+	return queryString
+}
+
+func quotedString(value string) string {
+	// check if any of these chgaracters are in the string: "'` :=><
+	if !strings.ContainsAny(value, "\"'` :=><") {
+		return value
+	}
+
+	return "\\\"" + value + "\\\""
+}
+
+var sessionFieldMap = map[string]modelInputs.ReservedSessionKey{
+	"active_length":   modelInputs.ReservedSessionKeyActiveLength,
+	"app_version":     modelInputs.ReservedSessionKeyServiceVersion,
+	"browser_name":    modelInputs.ReservedSessionKeyBrowserName,
+	"browser_version": modelInputs.ReservedSessionKeyBrowserVersion,
+	"city":            modelInputs.ReservedSessionKeyCity,
+	"country":         modelInputs.ReservedSessionKeyCountry,
+	"environment":     modelInputs.ReservedSessionKeyEnvironment,
+	"fingerprint":     modelInputs.ReservedSessionKeyDeviceID,
+	"first_time":      modelInputs.ReservedSessionKeyFirstTime,
+	"has_comments":    modelInputs.ReservedSessionKeyHasComments,
+	"has_errors":      modelInputs.ReservedSessionKeyHasErrors,
+	"has_rage_clicks": modelInputs.ReservedSessionKeyHasRageClicks,
+	"identified":      modelInputs.ReservedSessionKeyIdentified,
+	"identifier":      modelInputs.ReservedSessionKeyIdentifier,
+	"ip":              modelInputs.ReservedSessionKeyIP,
+	"length":          modelInputs.ReservedSessionKeyLength,
+	"loc_state":       modelInputs.ReservedSessionKeyLocState,
+	"normalness":      modelInputs.ReservedSessionKeyNormalness,
+	"os_name":         modelInputs.ReservedSessionKeyOsName,
+	"os_version":      modelInputs.ReservedSessionKeyOsVersion,
+	"pages_visited":   modelInputs.ReservedSessionKeyPagesVisited,
+	"processed":       modelInputs.ReservedSessionKeyProcessed,
+	"sample":          modelInputs.ReservedSessionKeySample,
+	"secure_id":       modelInputs.ReservedSessionKeySecureID,
+	"viewed":          modelInputs.ReservedSessionKeyViewed,
+	"viewed_by_me":    modelInputs.ReservedSessionKeyViewedByMe,
+}
+
+var ignoredFieldMap = map[string]bool{
+	"custom_created_at": true,
+}
+
+var validOpMap = map[string]string{
+	"is":               "=",
+	"is_not":           "!=",
+	"contains":         "=",
+	"not_contains":     "!=",
+	"matches":          "=",
+	"not_matches":      "!=",
+	"between":          ">=",
+	"not_between":      "<=",
+	"between_time":     ">=",
+	"not_between_time": "<=",
+	"exists":           "EXISTS",
+	"not_exists":       "NOT EXISTS",
+}

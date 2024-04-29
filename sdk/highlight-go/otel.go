@@ -76,6 +76,12 @@ type highlightSampler struct {
 
 func (ts highlightSampler) ShouldSample(p sdktrace.SamplingParameters) sdktrace.SamplingResult {
 	psc := trace.SpanContextFromContext(p.ParentContext)
+	if psc.IsSampled() {
+		return sdktrace.SamplingResult{
+			Decision:   sdktrace.RecordAndSample,
+			Tracestate: psc.TraceState(),
+		}
+	}
 	x := binary.BigEndian.Uint64(p.TraceID[8:16]) >> 1
 	bound, ok := ts.traceIDUpperBounds[p.Kind]
 	if !ok {

@@ -303,6 +303,7 @@ function NetworkResourceDetails({
 				onChange={(id) => {
 					setActiveTab(id as NetworkRequestTabs)
 				}}
+				scrollable
 			>
 				<Tabs.List px="8" gap="12">
 					<Tabs.Tab id={NetworkRequestTabs.Info}>Info</Tabs.Tab>
@@ -312,7 +313,7 @@ function NetworkResourceDetails({
 						<Tabs.Tab id={NetworkRequestTabs.Trace}>Trace</Tabs.Tab>
 					)}
 				</Tabs.List>
-				<Tabs.Panel id={NetworkRequestTabs.Info}>
+				<Tabs.Panel id={NetworkRequestTabs.Info} scrollable>
 					<NetworkResourceInfo
 						selectedNetworkResource={resource}
 						networkRecordingEnabledForSession={
@@ -320,17 +321,17 @@ function NetworkResourceDetails({
 						}
 					/>
 				</Tabs.Panel>
-				<Tabs.Panel id={NetworkRequestTabs.Errors}>
+				<Tabs.Panel id={NetworkRequestTabs.Errors} scrollable>
 					<NetworkResourceErrors resource={resource} />
 				</Tabs.Panel>
-				<Tabs.Panel id={NetworkRequestTabs.Logs}>
+				<Tabs.Panel id={NetworkRequestTabs.Logs} scrollable>
 					<NetworkResourceLogs
 						resource={resource}
 						sessionStartTime={startTime}
 					/>
 				</Tabs.Panel>
 				{isNetworkRequest && (
-					<Tabs.Panel id={NetworkRequestTabs.Trace}>
+					<Tabs.Panel id={NetworkRequestTabs.Trace} scrollable>
 						<TraceProvider
 							projectId={projectId}
 							traceId={traceId}
