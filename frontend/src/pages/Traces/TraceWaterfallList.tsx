@@ -85,7 +85,7 @@ export const TraceWaterfallList: React.FC = () => {
 	}
 
 	return (
-		<Box border="dividerWeak" borderRadius="6">
+		<Box border="dividerWeak" borderRadius="6" overflow="hidden">
 			<Form>
 				<Stack
 					align="center"
