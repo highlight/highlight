@@ -84,7 +84,7 @@ export const TraceWaterfallList: React.FC = () => {
 				>
 					<IconSolidSearch />
 					<Form.Input
-						placeholder="Search"
+						placeholder="Search span names"
 						name="search"
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
@@ -201,7 +201,7 @@ const WaterfallRow: React.FC<{
 							span.serviceName ? ` (${span.serviceName})` : ''
 						}`}
 					>
-						{span.spanName}{' '}
+						<SpanName spanName={span.spanName} query={query} />{' '}
 						{span.serviceName && `(${span.serviceName})`}
 					</Text>
 				</Table.Cell>
@@ -275,6 +275,36 @@ const doesSpanOrDescendantsMatchQuery = (
 	}
 
 	return checkSpan(span)
+}
+
+const SpanName: React.FC<{ spanName: string; query: string }> = ({
+	spanName,
+	query,
+}) => {
+	if (!query) {
+		return <Text>{spanName}</Text>
+	}
+
+	const lowerCaseSpanName = spanName.toLowerCase()
+	const lowerCaseQuery = query.toLowerCase()
+
+	const startIndex = lowerCaseSpanName.indexOf(lowerCaseQuery)
+	if (startIndex === -1) {
+		return <Text>{spanName}</Text>
+	}
+
+	const endIndex = startIndex + query.length
+	const beforeMatch = spanName.slice(0, startIndex)
+	const match = spanName.slice(startIndex, endIndex)
+	const afterMatch = spanName.slice(endIndex)
+
+	return (
+		<>
+			<Text>{beforeMatch}</Text>
+			<Text weight="bold">{match}</Text>
+			<Text>{afterMatch}</Text>
+		</>
+	)
 }
 
 const DragHandle: React.FC<{
