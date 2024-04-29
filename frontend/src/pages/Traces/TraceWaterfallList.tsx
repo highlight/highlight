@@ -8,6 +8,7 @@ import {
 	Table,
 	Text,
 } from '@highlight-run/ui/components'
+import useLocalStorage from '@rehooks/local-storage'
 import { useMemo, useState } from 'react'
 
 import { getSpanTheme } from '@/pages/Traces/TraceFlameGraphNode'
@@ -25,11 +26,14 @@ img.src =
 export const TraceWaterfallList: React.FC = () => {
 	const { selectedSpan, spans, totalDuration, setSelectedSpan } = useTrace()
 	const [query, setQuery] = useState('')
-	const [columns, setColumns] = useState([
-		{ name: 'Span name', size: '2fr' },
-		{ name: 'Duration', size: '85px' },
-		{ name: 'Waterfall', size: '3fr' },
-	])
+	const [columns, setColumns] = useLocalStorage(
+		'highlight-trace-waterfall-list-column-sizes',
+		[
+			{ name: 'Span name', size: '2fr' },
+			{ name: 'Duration', size: '85px' },
+			{ name: 'Waterfall', size: '3fr' },
+		],
+	)
 	const gridColumns = columns.map((c) => c.size)
 
 	const filteredSpans = useMemo(
