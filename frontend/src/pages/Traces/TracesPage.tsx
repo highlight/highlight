@@ -209,6 +209,15 @@ export const TracesPage: React.FC = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
+	useEffect(() => {
+		if (!resource) {
+			navigate({
+				pathname: `/${projectId}/traces`,
+				search: location.search,
+			})
+		}
+	}, [navigate, projectId, resource])
+
 	return (
 		<SearchContext initialQuery={query} onSubmit={setQuery}>
 			<Helmet>
