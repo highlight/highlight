@@ -192,15 +192,20 @@ const WaterfallRow: React.FC<{
 							setSelectedSpan(span)
 						}
 					}}
-					style={{ paddingLeft: depth * 16 + 8 }}
+					style={{
+						height: ROW_HEIGHT, // to avoid extra height from icon
+						paddingLeft: depth * 16 + 8,
+					}}
 				>
 					{hasChildren && (
 						<Box display="flex" flexShrink={0}>
-							{open ? (
-								<IconSolidCheveronDown size={12} />
-							) : (
-								<IconSolidCheveronRight size={12} />
-							)}
+							<Text>
+								{open ? (
+									<IconSolidCheveronDown size={12} />
+								) : (
+									<IconSolidCheveronRight size={12} />
+								)}
+							</Text>
 						</Box>
 					)}
 
