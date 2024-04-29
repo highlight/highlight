@@ -317,7 +317,7 @@ func quotedString(value string) string {
 		return value
 	}
 
-	return "\"" + value + "\""
+	return "\\\"" + value + "\\\""
 }
 
 var sessionFieldMap = map[string]modelInputs.ReservedSessionKey{
