@@ -9,6 +9,7 @@ export const dragHandle = style({
 	height: '100%',
 	top: 0,
 	bottom: 0,
+	right: -2,
 	width: 4,
 	zIndex: 1,
 	selectors: {

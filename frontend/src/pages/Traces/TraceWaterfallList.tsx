@@ -14,8 +14,6 @@ import { getSpanTheme } from '@/pages/Traces/TraceFlameGraphNode'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
 
-import * as styles from './TraceWaterfallList.css'
-
 const MINIMUM_COLUMN_WIDTH = 50
 
 const img = new Image()
@@ -102,38 +100,11 @@ export const TraceWaterfallList: React.FC = () => {
 					<Table.Row gridColumns={gridColumns}>
 						<Table.Header>
 							<Text>Span name</Text>
-							<Box
-								cssClass={styles.dragHandle}
-								draggable
-								onDrag={(e) => handleDrag(e, 'Span name')}
-								onDragStart={(e) => {
-									e.dataTransfer.setDragImage(img, 0, 0) // hide ghost image
-								}}
-								style={{
-									position: 'absolute',
-									top: 0,
-									bottom: 0,
-									right: 0,
-									width: 3,
-									cursor: 'col-resize',
-								}}
-							/>
+							<DragHandle name="Span name" onDrag={handleDrag} />
 						</Table.Header>
 						<Table.Header>
 							<Text>Duration</Text>
-							<Box
-								cssClass={styles.dragHandle}
-								draggable
-								onDrag={(e) => handleDrag(e, 'Duration')}
-								style={{
-									position: 'absolute',
-									top: 0,
-									bottom: 0,
-									right: 0,
-									width: 3,
-									cursor: 'col-resize',
-								}}
-							/>
+							<DragHandle name="Duration" onDrag={handleDrag} />
 						</Table.Header>
 						<Table.Header>
 							<Text>Waterfall</Text>
@@ -302,4 +273,27 @@ const doesSpanOrDescendantsMatchQuery = (
 	}
 
 	return checkSpan(span)
+}
+
+const DragHandle: React.FC<{
+	name: string
+	onDrag: (e: React.DragEvent, name: string) => void
+}> = ({ onDrag }) => {
+	return (
+		<Box
+			draggable
+			onDrag={(e) => onDrag(e, 'Duration')}
+			onDragStart={(e) => {
+				e.dataTransfer.setDragImage(img, 0, 0) // hide ghost image
+			}}
+			style={{
+				position: 'absolute',
+				top: 0,
+				bottom: 0,
+				right: 0,
+				width: 3,
+				cursor: 'col-resize',
+			}}
+		/>
+	)
 }
