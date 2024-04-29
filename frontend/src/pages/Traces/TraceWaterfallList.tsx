@@ -43,8 +43,8 @@ export const TraceWaterfallList: React.FC = () => {
 	)
 
 	const bodyHeight = useMemo(
-		() => Math.min(ROW_HEIGHT * filteredSpans.length, 280),
-		[filteredSpans.length],
+		() => Math.min(ROW_HEIGHT * spans.length, 280),
+		[spans.length],
 	)
 
 	const handleDrag = (e: React.DragEvent, name: string) => {
