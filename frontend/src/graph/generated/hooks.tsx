@@ -9067,7 +9067,64 @@ export type GetBillingDetailsForProjectQueryResult = Apollo.QueryResult<
 	Types.GetBillingDetailsForProjectQueryVariables
 >
 export const GetBillingDetailsDocument = gql`
-	query GetBillingDetails($workspace_id: ID!) {
+	query GetBillingDetails(
+		$workspace_id: ID!
+		$date_range: DateRangeRequiredInput
+	) {
+		usageHistory(workspace_id: $workspace_id, date_range: $date_range) {
+			session_usage {
+				buckets {
+					bucket_id
+					bucket_min
+					bucket_max
+					column
+					group
+					metric_type
+					metric_value
+				}
+				bucket_count
+				sample_factor
+			}
+			errors_usage {
+				buckets {
+					bucket_id
+					bucket_min
+					bucket_max
+					column
+					group
+					metric_type
+					metric_value
+				}
+				bucket_count
+				sample_factor
+			}
+			logs_usage {
+				buckets {
+					bucket_id
+					bucket_min
+					bucket_max
+					column
+					group
+					metric_type
+					metric_value
+				}
+				bucket_count
+				sample_factor
+			}
+			traces_usage {
+				buckets {
+					bucket_id
+					bucket_min
+					bucket_max
+					column
+					group
+					metric_type
+					metric_value
+				}
+				bucket_count
+				sample_factor
+			}
+		}
 		billingDetails(workspace_id: $workspace_id) {
 			plan {
 				aws_mp_subscription {
@@ -9151,6 +9208,7 @@ export const GetBillingDetailsDocument = gql`
  * const { data, loading, error } = useGetBillingDetailsQuery({
  *   variables: {
  *      workspace_id: // value for 'workspace_id'
+ *      date_range: // value for 'date_range'
  *   },
  * });
  */

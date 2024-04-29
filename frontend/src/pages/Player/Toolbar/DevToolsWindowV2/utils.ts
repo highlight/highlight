@@ -23,21 +23,27 @@ export const findLastActiveEventIndex = (
 
 	let start = 0
 	let end = events.length - 1
+	let lastMatchIndex = -1
 
 	while (start <= end) {
 		const mid = Math.floor(start + (end - start) / 2)
 		const event = events[mid]
 		const eventTimestamp =
 			new Date(event.timestamp).getTime() - sessionStartTime
+
 		if (eventTimestamp === currentTimestamp) {
-			return mid
+			lastMatchIndex = mid
+			start = mid + 1
 		} else if (eventTimestamp < currentTimestamp) {
 			start = mid + 1
 		} else {
 			end = mid - 1
 		}
 	}
-	return Math.min(end, events.length - 1)
+
+	return lastMatchIndex !== -1
+		? lastMatchIndex
+		: Math.min(end, events.length - 1)
 }
 
 interface Request {

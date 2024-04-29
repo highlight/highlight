@@ -148,41 +148,20 @@ export const CommentTextBody = ({
 			}
 		>
 			<Mention
-				className={mentionsClassNames.mentionsMention}
 				trigger="@"
 				data={suggestions}
 				displayTransform={onDisplayTransformHandler}
 				appendSpaceOnAdd
 				suggestionLimit={15}
-				renderSuggestion={(
-					suggestion,
-					search,
-					highlightedDisplay,
-					index,
-					focused,
-				) => (
-					<Suggestion
-						focused={focused}
-						highlightedDisplay={highlightedDisplay}
-						index={index}
-						search={search}
-						suggestion={suggestion as AdminSuggestion}
-					/>
+				renderSuggestion={(suggestion) => (
+					<Suggestion suggestion={suggestion as AdminSuggestion} />
 				)}
 			/>
 		</MentionsInput>
 	)
 }
 
-const Suggestion = ({
-	suggestion,
-}: {
-	suggestion: AdminSuggestion
-	search: string
-	highlightedDisplay: React.ReactNode
-	index: number
-	focused: boolean
-}) => {
+const Suggestion = ({ suggestion }: { suggestion: AdminSuggestion }) => {
 	return (
 		<div className={styles.suggestionContainer}>
 			<div className={styles.avatarContainer}>

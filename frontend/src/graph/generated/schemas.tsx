@@ -852,6 +852,8 @@ export type JiraTeam = {
 }
 
 export enum KeyType {
+	Boolean = 'Boolean',
+	Creatable = 'Creatable',
 	Numeric = 'Numeric',
 	String = 'String',
 }
@@ -2119,6 +2121,7 @@ export type Query = {
 	traces_metrics: MetricsBuckets
 	track_properties_alerts: Array<Maybe<SessionAlert>>
 	unprocessedSessionsCount?: Maybe<Scalars['Int64']>
+	usageHistory: UsageHistory
 	userFingerprintCount?: Maybe<UserFingerprintCount>
 	user_properties_alerts: Array<Maybe<SessionAlert>>
 	vercel_project_mappings: Array<VercelProjectMapping>
@@ -2894,6 +2897,11 @@ export type QueryUnprocessedSessionsCountArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryUsageHistoryArgs = {
+	date_range?: InputMaybe<DateRangeRequiredInput>
+	workspace_id: Scalars['ID']
+}
+
 export type QueryUserFingerprintCountArgs = {
 	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
@@ -3021,13 +3029,14 @@ export enum ReservedErrorObjectKey {
 }
 
 export enum ReservedErrorsJoinedKey {
-	/** ReservedErrorObjectKey */
 	Browser = 'browser',
 	ClientId = 'client_id',
 	Environment = 'environment',
 	/** ReservedErrorGroupKey */
 	Event = 'event',
 	HasSession = 'has_session',
+	/** ReservedErrorObjectKey */
+	Id = 'id',
 	OsName = 'os_name',
 	SecureId = 'secure_id',
 	SecureSessionId = 'secure_session_id',
@@ -3056,29 +3065,33 @@ export enum ReservedLogKey {
 
 export enum ReservedSessionKey {
 	ActiveLength = 'active_length',
-	AppVersion = 'app_version',
 	BrowserName = 'browser_name',
 	BrowserVersion = 'browser_version',
 	City = 'city',
 	Country = 'country',
+	DeviceId = 'device_id',
 	Environment = 'environment',
-	Fingerprint = 'fingerprint',
+	Excluded = 'excluded',
 	FirstTime = 'first_time',
 	HasComments = 'has_comments',
 	HasErrors = 'has_errors',
 	HasRageClicks = 'has_rage_clicks',
 	Identified = 'identified',
 	Identifier = 'identifier',
+	Ip = 'ip',
 	Length = 'length',
+	LocState = 'loc_state',
 	Normalness = 'normalness',
 	OsName = 'os_name',
 	OsVersion = 'os_version',
 	PagesVisited = 'pages_visited',
 	Processed = 'processed',
-	SecureSessionId = 'secure_session_id',
-	ServiceName = 'service_name',
-	State = 'state',
+	Sample = 'sample',
+	SecureId = 'secure_id',
+	ServiceVersion = 'service_version',
 	Viewed = 'viewed',
+	ViewedByMe = 'viewed_by_me',
+	WithinBillingQuota = 'within_billing_quota',
 }
 
 export enum ReservedTraceKey {
@@ -3181,6 +3194,7 @@ export type SavedSegment = {
 export enum SavedSegmentEntityType {
 	Error = 'Error',
 	Log = 'Log',
+	Session = 'Session',
 	Trace = 'Trace',
 }
 
@@ -3669,6 +3683,14 @@ export type TrackPropertyInput = {
 	id?: InputMaybe<Scalars['ID']>
 	name: Scalars['String']
 	value: Scalars['String']
+}
+
+export type UsageHistory = {
+	__typename?: 'UsageHistory'
+	errors_usage: MetricsBuckets
+	logs_usage: MetricsBuckets
+	session_usage: MetricsBuckets
+	traces_usage: MetricsBuckets
 }
 
 export type User = {

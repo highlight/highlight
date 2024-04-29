@@ -234,6 +234,7 @@ export const SessionFeedV3 = React.memo(() => {
 			[],
 		),
 		skip: !selectedPreset,
+		maxResults: DEFAULT_PAGE_SIZE,
 	})
 
 	// Used to determine if we need to show the loading skeleton.
@@ -323,6 +324,7 @@ export const SessionFeedV3 = React.memo(() => {
 					</Box>
 				)}
 				<AdditionalFeedResults
+					maxResults={DEFAULT_PAGE_SIZE}
 					more={moreSessions}
 					type="sessions"
 					onClick={() => {
@@ -383,6 +385,7 @@ export const SessionFeedV3 = React.memo(() => {
 					setPage={setPage}
 					totalCount={searchResultsCount ?? 0}
 					pageSize={DEFAULT_PAGE_SIZE}
+					loading={searchResultsLoading}
 				/>
 			</Box>
 		</SessionFeedConfigurationContextProvider>

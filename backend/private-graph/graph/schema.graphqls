@@ -157,6 +157,13 @@ type BillingDetails {
 	tracesBillingLimit: Int64
 }
 
+type UsageHistory {
+	session_usage: MetricsBuckets!
+	errors_usage: MetricsBuckets!
+	logs_usage: MetricsBuckets!
+	traces_usage: MetricsBuckets!
+}
+
 type Invoice {
 	amountDue: Int64
 	amountPaid: Int64
@@ -493,6 +500,7 @@ enum SavedSegmentEntityType {
 	Log
 	Trace
 	Error
+	Session
 }
 
 type Project {
@@ -1007,6 +1015,7 @@ enum ReservedErrorsJoinedKey {
 	"""
 	ReservedErrorObjectKey
 	"""
+	id
 	browser
 	client_id
 	environment
@@ -1029,30 +1038,34 @@ enum ReservedErrorsJoinedKey {
 }
 
 enum ReservedSessionKey {
-	environment
-	service_name
-	app_version
-	secure_session_id
-	identified
-	fingerprint
-	identifier
-	city
-	state
-	country
-	os_name
-	os_version
+	active_length
 	browser_name
 	browser_version
-	processed
-	has_comments
-	has_rage_clicks
-	has_errors
-	length
-	active_length
+	city
+	country
+	device_id
+	environment
+	excluded
 	first_time
-	viewed
-	pages_visited
+	has_comments
+	has_errors
+	has_rage_clicks
+	identified
+	identifier
+	ip
+	length
+	loc_state
 	normalness
+	os_name
+	os_version
+	pages_visited
+	processed
+	sample
+	secure_id
+	service_version
+	viewed
+	viewed_by_me
+	within_billing_quota
 }
 
 enum LogSource {
@@ -1061,8 +1074,10 @@ enum LogSource {
 }
 
 enum KeyType {
-	String
+	Boolean
+	Creatable
 	Numeric
+	String
 }
 
 type LogsHistogramBucketCount {
@@ -2091,6 +2106,10 @@ type Query {
 	): [String!]!
 	billingDetailsForProject(project_id: ID!): BillingDetails
 	billingDetails(workspace_id: ID!): BillingDetails!
+	usageHistory(
+		workspace_id: ID!
+		date_range: DateRangeRequiredInput
+	): UsageHistory!
 	# gets all the projects of a user
 	field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
 	property_suggestion(project_id: ID!, query: String!, type: String!): [Field]

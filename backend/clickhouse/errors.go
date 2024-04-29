@@ -598,6 +598,7 @@ var ErrorObjectsTableConfig = model.TableConfig[modelInputs.ReservedErrorObjectK
 var ErrorsJoinedTableConfig = model.TableConfig[modelInputs.ReservedErrorsJoinedKey]{
 	TableName: "errors_joined_vw",
 	KeysToColumns: map[modelInputs.ReservedErrorsJoinedKey]string{
+		modelInputs.ReservedErrorsJoinedKeyID:              "ID",
 		modelInputs.ReservedErrorsJoinedKeyBrowser:         "Browser",
 		modelInputs.ReservedErrorsJoinedKeyClientID:        "ClientID",
 		modelInputs.ReservedErrorsJoinedKeyEnvironment:     "Environment",
@@ -647,6 +648,11 @@ func ErrorMatchesQuery(errorObject *model2.BackendErrorObjectInput, filters list
 
 func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	return readMetrics(ctx, client, errorsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
+}
+
+func (client *Client) ReadWorkspaceErrorCounts(ctx context.Context, projectIDs []int, params modelInputs.QueryInput) (*modelInputs.MetricsBuckets, error) {
+	// 12 buckets - 12 months in a year, or 12 weeks in a quarter
+	return readWorkspaceMetrics(ctx, client, errorsSampleableTableConfig, projectIDs, params, "id", []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, nil, pointy.Int(12), modelInputs.MetricBucketByTimestamp.String(), nil, nil, nil)
 }
 
 func (client *Client) ErrorsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {

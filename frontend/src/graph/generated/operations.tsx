@@ -3042,9 +3042,80 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 
 export type GetBillingDetailsQueryVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
+	date_range?: Types.Maybe<Types.DateRangeRequiredInput>
 }>
 
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
+	usageHistory: { __typename?: 'UsageHistory' } & {
+		session_usage: { __typename?: 'MetricsBuckets' } & Pick<
+			Types.MetricsBuckets,
+			'bucket_count' | 'sample_factor'
+		> & {
+				buckets: Array<
+					{ __typename?: 'MetricBucket' } & Pick<
+						Types.MetricBucket,
+						| 'bucket_id'
+						| 'bucket_min'
+						| 'bucket_max'
+						| 'column'
+						| 'group'
+						| 'metric_type'
+						| 'metric_value'
+					>
+				>
+			}
+		errors_usage: { __typename?: 'MetricsBuckets' } & Pick<
+			Types.MetricsBuckets,
+			'bucket_count' | 'sample_factor'
+		> & {
+				buckets: Array<
+					{ __typename?: 'MetricBucket' } & Pick<
+						Types.MetricBucket,
+						| 'bucket_id'
+						| 'bucket_min'
+						| 'bucket_max'
+						| 'column'
+						| 'group'
+						| 'metric_type'
+						| 'metric_value'
+					>
+				>
+			}
+		logs_usage: { __typename?: 'MetricsBuckets' } & Pick<
+			Types.MetricsBuckets,
+			'bucket_count' | 'sample_factor'
+		> & {
+				buckets: Array<
+					{ __typename?: 'MetricBucket' } & Pick<
+						Types.MetricBucket,
+						| 'bucket_id'
+						| 'bucket_min'
+						| 'bucket_max'
+						| 'column'
+						| 'group'
+						| 'metric_type'
+						| 'metric_value'
+					>
+				>
+			}
+		traces_usage: { __typename?: 'MetricsBuckets' } & Pick<
+			Types.MetricsBuckets,
+			'bucket_count' | 'sample_factor'
+		> & {
+				buckets: Array<
+					{ __typename?: 'MetricBucket' } & Pick<
+						Types.MetricBucket,
+						| 'bucket_id'
+						| 'bucket_min'
+						| 'bucket_max'
+						| 'column'
+						| 'group'
+						| 'metric_type'
+						| 'metric_value'
+					>
+				>
+			}
+	}
 	billingDetails: { __typename?: 'BillingDetails' } & Pick<
 		Types.BillingDetails,
 		| 'meter'

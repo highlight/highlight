@@ -32,6 +32,7 @@ import {
 } from '@/components/RelatedResources/hooks'
 import { DEFAULT_INPUT_HEIGHT } from '@/components/Search/SearchForm/SearchForm'
 import { ProductType, TraceEdge } from '@/graph/generated/schemas'
+import { MAX_TRACES } from '@/pages/Traces/useGetTraces'
 
 import {
 	DEFAULT_TRACE_COLUMNS,
@@ -257,6 +258,7 @@ export const TracesList: React.FC<Props> = ({
 					<Table.Row>
 						<Box width="full">
 							<AdditionalFeedResults
+								maxResults={MAX_TRACES}
 								more={numMoreTraces}
 								type="traces"
 								onClick={() => {

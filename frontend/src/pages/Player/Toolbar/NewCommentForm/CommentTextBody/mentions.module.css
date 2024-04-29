@@ -74,13 +74,3 @@
 .mentions__suggestions__item--focused {
 	background: var(--color-gray-300);
 }
-
-.mentions__mention {
-	color: var(--color-link);
-	font-weight: 400 !important;
-	pointer-events: none;
-	position: relative;
-	text-shadow: 1px 1px 1px var(--color-white), 1px -1px 1px var(--color-white),
-		-1px 1px 1px var(--color-white), -1px -1px 1px var(--color-white);
-	z-index: 1;
-}

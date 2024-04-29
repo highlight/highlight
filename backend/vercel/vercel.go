@@ -13,23 +13,20 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi"
+	highlightHttp "github.com/highlight-run/highlight/backend/http"
+	"github.com/highlight-run/highlight/backend/model"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+	"github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/trace"
-
-	model2 "github.com/highlight-run/highlight/backend/model"
-	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
-	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
-
-	"github.com/pkg/errors"
-
-	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 const (
-	SourcemapEnvKey       = "HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY"
-	ProjectIdEnvVar       = "NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID"
-	LogDrainProjectHeader = "x-highlight-project"
+	SourcemapEnvKey = "HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY"
+	ProjectIdEnvVar = "NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID"
 )
 
 var (
@@ -204,10 +201,10 @@ func RemoveLogDrain(logDrainId string, accessToken string, teamId *string) error
 	return nil
 }
 
-func GetProjects(accessToken string, teamId *string) ([]*model.VercelProject, error) {
+func GetProjects(accessToken string, teamId *string) ([]*privateModel.VercelProject, error) {
 	client := &http.Client{}
 
-	projects := []*model.VercelProject{}
+	projects := []*privateModel.VercelProject{}
 	next := 0
 	for {
 		data := url.Values{}
@@ -246,7 +243,7 @@ func GetProjects(accessToken string, teamId *string) ([]*model.VercelProject, er
 		}
 
 		var projectsResponse struct {
-			Projects   []*model.VercelProject `json:"projects"`
+			Projects   []*privateModel.VercelProject `json:"projects"`
 			Pagination struct {
 				Next int `json:"next"`
 			} `json:"pagination"`
@@ -315,40 +312,48 @@ func RemoveLogDrains(ctx context.Context, vercelTeamID *string, accessToken stri
 }
 
 func CreateLogDrain(ctx context.Context, vercelTeamID *string, vercelProjectIDs []string, projectVerboseID string, name string, accessToken string) error {
+	projects, err := GetProjects(accessToken, vercelTeamID)
+	if err != nil {
+		return err
+	}
+	vercelProjectNames := lo.SliceToMap(projects, func(item *privateModel.VercelProject) (string, string) {
+		return item.ID, item.Name
+	})
+
 	client := &http.Client{}
+	for _, vercelProjectID := range vercelProjectIDs {
+		serviceName := vercelProjectNames[vercelProjectID]
+		headers := fmt.Sprintf(`{"%s":"%s","%s":"%s"}`, highlightHttp.LogDrainProjectHeader, projectVerboseID, highlightHttp.LogDrainServiceHeader, serviceName)
+		projectIds := fmt.Sprintf(`["%s"]`, vercelProjectID)
+		body := fmt.Sprintf(`{"url":"https://pub.highlight.run/vercel/v1/logs", "name":"%s", "headers":%s, "projectIds":%s, "deliveryFormat":"ndjson", "secret": "%s", "sources": ["static", "lambda", "edge", "build", "external"]}`, name, headers, projectIds, projectVerboseID)
+		u := fmt.Sprintf("%s/v2/integrations/log-drains", ApiBaseUrl)
+		if vercelTeamID != nil {
+			u = fmt.Sprintf("%s?teamId=%s", u, *vercelTeamID)
+		}
+		req, err := http.NewRequest("POST", u, strings.NewReader(body))
+		if err != nil {
+			return errors.Wrap(err, "error creating api request to Vercel")
+		}
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 
-	headers := fmt.Sprintf(`{"%s":"%s"}`, LogDrainProjectHeader, projectVerboseID)
-	projectIds := fmt.Sprintf(`[%s]`, strings.Join(lo.Map(vercelProjectIDs, func(t string, i int) string {
-		return fmt.Sprintf("\"%s\"", t)
-	}), ","))
-	body := fmt.Sprintf(`{"url":"https://pub.highlight.run/vercel/v1/logs", "name":"%s", "headers":%s, "projectIds":%s, "deliveryFormat":"ndjson", "secret": "%s", "sources": ["static", "lambda", "edge", "build", "external"]}`, name, headers, projectIds, projectVerboseID)
-	u := fmt.Sprintf("%s/v2/integrations/log-drains", ApiBaseUrl)
-	if vercelTeamID != nil {
-		u = fmt.Sprintf("%s?teamId=%s", u, *vercelTeamID)
-	}
-	req, err := http.NewRequest("POST", u, strings.NewReader(body))
-	if err != nil {
-		return errors.Wrap(err, "error creating api request to Vercel")
-	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		res, err := client.Do(req)
 
-	res, err := client.Do(req)
+		if err != nil {
+			return errors.Wrap(err, "error getting response from Vercel log-drain endpoint")
+		}
 
-	if err != nil {
-		return errors.Wrap(err, "error getting response from Vercel log-drain endpoint")
-	}
+		b, err := io.ReadAll(res.Body)
 
-	b, err := io.ReadAll(res.Body)
+		if res.StatusCode != 200 {
+			log.WithContext(ctx).WithField("Body", string(b)).
+				WithField("Url", u).
+				Errorf("Vercel Log Drain API responded with error")
+			return errors.New("Vercel Log Drain API responded with error; status_code=" + res.Status + "; body=" + string(b))
+		}
 
-	if res.StatusCode != 200 {
-		log.WithContext(ctx).WithField("Body", string(b)).
-			WithField("Url", u).
-			Errorf("Vercel Log Drain API responded with error")
-		return errors.New("Vercel Log Drain API responded with error; status_code=" + res.Status + "; body=" + string(b))
-	}
-
-	if err != nil {
-		return errors.Wrap(err, "error reading response body from Vercel log-drain endpoint")
+		if err != nil {
+			return errors.Wrap(err, "error reading response body from Vercel log-drain endpoint")
+		}
 	}
 
 	return nil
@@ -380,14 +385,26 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 		logs = append(logs, l)
 	}
 
-	projectVerboseID := r.Header.Get(LogDrainProjectHeader)
-	projectID, err := model2.FromVerboseID(projectVerboseID)
-	if err != nil {
-		log.WithContext(r.Context()).WithError(err).WithField("projectVerboseID", projectVerboseID).Error("failed to parse highlight project id from vercel request")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	for vercelProjectID, logs := range lo.GroupBy(logs, func(item hlog.VercelLog) string {
+		return item.ProjectId
+	}) {
+		projectVerboseID := r.Header.Get(highlightHttp.LogDrainProjectHeader)
+		projectID, err := model.FromVerboseID(projectVerboseID)
+		if err != nil {
+			log.WithContext(r.Context()).WithError(err).WithField("projectVerboseID", projectVerboseID).Error("failed to parse highlight project id from vercel request")
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		serviceName := r.Header.Get(highlightHttp.LogDrainServiceHeader)
+		// handle old log drains without the header
+		if serviceName == "" {
+			serviceName = "vercel-log-drain-" + vercelProjectID
+		}
+
+		hlog.SubmitVercelLogs(r.Context(), tracer, projectID, serviceName, logs)
+
 	}
-	hlog.SubmitVercelLogs(r.Context(), tracer, projectID, logs)
 
 	w.WriteHeader(http.StatusOK)
 }

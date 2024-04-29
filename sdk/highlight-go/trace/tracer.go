@@ -12,6 +12,8 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
+	"time"
 )
 
 type GraphqlTracer interface {
@@ -24,10 +26,11 @@ type GraphqlTracer interface {
 type Tracer struct {
 	graphName           string
 	requestFieldLogging bool
+	opts                []trace.SpanStartOption
 }
 
-func NewGraphqlTracer(graphName string) GraphqlTracer {
-	return Tracer{graphName: graphName}
+func NewGraphqlTracer(graphName string, opts ...trace.SpanStartOption) GraphqlTracer {
+	return Tracer{graphName: graphName, opts: opts}
 }
 
 // WithRequestFieldLogging configures the tracer to log each graphql operation.
@@ -85,7 +88,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	}
 	name := fmt.Sprintf("graphql.operation.%s", opName)
 
-	span, ctx := highlight.StartTrace(ctx, name)
+	span, ctx := highlight.StartTraceWithTimestamp(ctx, name, time.Now(), t.opts)
 	span.SetAttributes(
 		semconv.ServiceNameKey.String(t.graphName),
 		semconv.GraphqlOperationName(opName),

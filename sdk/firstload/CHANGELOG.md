@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.12.1
+
+### Patch Changes
+
+-   926c3a1d7: fix rrweb merge conflict breaking canvas recording
+
 ## 8.12.0
 
 ### Minor Changes
