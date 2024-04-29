@@ -11,6 +11,7 @@ import { sumBy } from 'lodash'
 import moment from 'moment'
 import React, { useEffect, useRef } from 'react'
 import { Helmet } from 'react-helmet'
+import { useNavigate } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
 import { loadingIcon } from '@/components/Button/style.css'
@@ -50,6 +51,7 @@ export type TracesOutletContext = Partial<Trace>[]
 
 export const TracesPage: React.FC = () => {
 	const { projectId } = useProjectId()
+	const navigate = useNavigate()
 	const {
 		trace_id,
 		span_id,
@@ -194,15 +196,23 @@ export const TracesPage: React.FC = () => {
 		})
 	}, [panelPagination, resource, setPanelPagination, traceEdges])
 
+	// Temporary workaround to preserve functionality for linking to a trace.
+	// Eventually we can delete this + the params from the router.
 	useEffect(() => {
 		if (trace_id) {
 			set({
 				type: 'trace',
 				id: trace_id,
 				spanID: span_id,
+				onClose: () => {
+					navigate({
+						pathname: `/${projectId}/traces`,
+						search: location.search,
+					})
+				},
 			})
 		}
-	}, [trace_id, span_id, set])
+	}, [trace_id, span_id, set, navigate, projectId])
 
 	return (
 		<SearchContext initialQuery={query} onSubmit={setQuery}>
