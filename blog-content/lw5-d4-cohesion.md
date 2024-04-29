@@ -11,11 +11,12 @@ authorGithub: 'https://github.com/jay-khatri'
 authorWebsite: 'https://jaykhatri.com'
 authorPFP: 'https://ca.slack-edge.com/T01AEDTQ8DS-U01A88AV6TU-4f7b4e7d637a-512'
 image: '/images/blog/launch-week/5/d4-splash.png'
-tags: Launch Week 5
 metaTitle: "Day 4: Cohesion"
 ---
 
 ## Day 4: Cohesion!
+
+Checkout our [launch video](https://youtu.be/gD5pMCuUhCg) or keep reading!
 
 Day 4 is all about ‘cohesion’, or how the Highlight product connects each and every resource. If you’re curious and want to read more, we’ve written a lot about this when it comes to our [product philosophy](https://www.highlight.io/docs/general/company/product-philosophy#cohesion). 
 

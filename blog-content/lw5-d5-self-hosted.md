@@ -11,7 +11,6 @@ authorGithub: 'https://github.com/jay-khatri'
 authorWebsite: 'https://jaykhatri.com'
 authorPFP: 'https://ca.slack-edge.com/T01AEDTQ8DS-U01A88AV6TU-4f7b4e7d637a-512'
 image: '/images/blog/launch-week/5/d5-splash.png'
-tags: Launch Week 5
 metaTitle: "Day 4: Self-hosted & Enterprise"
 ---
 
@@ -19,7 +18,9 @@ metaTitle: "Day 4: Self-hosted & Enterprise"
 
 Finally, Day 5 is all about supporting the open source distribution and larger enterprises. 
 
-In particular, we’ve been putting a lot of work these past few months into supporting our self-hosted deploy and making it easier for folks to get started on their own infrastructure.
+Checkout our [launch video](https://youtu.be/HGo6wB_fL1w) or keep reading!
+
+We’ve been putting a lot of work these past few months into supporting our self-hosted deploy and making it easier for folks to get started on their own infrastructure.
 
 ### Self-hosted
 

@@ -11,13 +11,16 @@ authorGithub: 'https://github.com/jay-khatri'
 authorWebsite: 'https://jaykhatri.com'
 authorPFP: 'https://ca.slack-edge.com/T01AEDTQ8DS-U01A88AV6TU-4f7b4e7d637a-512'
 image: '/images/blog/launch-week/5/d3-splash.png'
-tags: Launch Week 5
 metaTitle: "Day 3: Metrics & APM"
 ---
 
 ## Day 3: Metrics & APM!
 
-Day 3 is probably our biggest day this week; we’re launching the beginning of our new metrics product!  This will allow you to query all of your Highlight data on a single pane of glass, enabling features around product analytics, performance metrics and more!
+Day 3 is probably our biggest day this week!
+
+Checkout our [launch video](https://youtu.be/MzJMCcgf6iU) or keep reading!
+
+Today we’re launching the beginning of our new metrics product!  This will allow you to query all of your Highlight data on a single pane of glass, enabling features around product analytics, performance metrics and more!
 
 ![SDK Images](/images/blog/launch-week/5/d3-dashboards.png)
 

@@ -11,13 +11,16 @@ authorGithub: 'https://github.com/jay-khatri'
 authorWebsite: 'https://jaykhatri.com'
 authorPFP: 'https://ca.slack-edge.com/T01AEDTQ8DS-U01A88AV6TU-4f7b4e7d637a-512'
 image: '/images/blog/launch-week/5/d2-splash.png'
-tags: Launch Week 5
 metaTitle: "Day 2: Logs & Traces"
 ---
 
 ## Day 2: Logs & Traces!
 
-It’s Day 2 of launch week and today we’re highlighting (no pun intended) several additions & improvements to our logging and tracing UIs.
+It’s Day 2 of launch week!
+
+Checkout our [launch video](https://youtu.be/63Y3q32Ll0Y) or keep reading!
+
+Today we’re highlighting (no pun intended) several additions & improvements to our logging and tracing UIs.
 
 First of all, if you’re  looking to do more complex searches on the logs & traces UI (such as “does not exist”, “or”, etc..) we now support that! 
 
