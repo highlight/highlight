@@ -40,6 +40,7 @@ const dragImg = new Image()
 dragImg.src =
 	'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
 
+const DEFAULT_HEIGHT = 150
 const MAX_VISIBLE_TICKS = 6
 const MAX_TICKS = 20
 const MAX_ZOOM = 1000
@@ -69,15 +70,15 @@ export const TraceFlameGraph: React.FC = () => {
 	})
 
 	const height = useMemo(() => {
-		if (!traces.length) return 260
+		if (!traces.length || !width) return DEFAULT_HEIGHT - 60
 
 		const maxDepth = traces.length
 		const lineHeightWithPadding = lineHeight + 4
 		return maxDepth * lineHeightWithPadding + ticksHeight + outsidePadding
-	}, [traces])
+	}, [traces.length, width])
 
 	const ticks = useMemo(() => {
-		if (!totalDuration || !width) return []
+		if (!totalDuration || !width || !svgContainerRef.current) return []
 
 		const length = Math.round(MAX_VISIBLE_TICKS * zoom)
 		const timeUnit =
@@ -86,12 +87,12 @@ export const TraceFlameGraph: React.FC = () => {
 			) ?? timeUnits[timeUnits.length - 2]
 
 		const scrollPercent =
-			x / Math.max(svgContainerRef.current!.scrollWidth, 1)
+			x / Math.max(svgContainerRef.current.scrollWidth, 1)
 		const ticksVisibleAtX = Math.round(length * scrollPercent)
 		const minIndex = Math.max(ticksVisibleAtX - MAX_TICKS / 2, 0)
 		const maxIndex = Math.min(ticksVisibleAtX + MAX_TICKS / 2, length - 1)
 
-		const ticks = []
+		const tcks = []
 		for (let index = minIndex; index <= maxIndex; index++) {
 			const percent = index / (length - 1)
 			const tickDuration = totalDuration * percent
@@ -99,14 +100,14 @@ export const TraceFlameGraph: React.FC = () => {
 				Math.round((tickDuration / timeUnit!.divider) * 10) / 10
 			const time = `${displayDuration}${timeUnit!.unit}` ?? '0ms'
 
-			ticks.push({
+			tcks.push({
 				time,
 				percent,
 				x: width * percent * zoom,
 			})
 		}
 
-		return ticks
+		return tcks
 	}, [totalDuration, zoom, width, x])
 
 	const setTooltipCoordinatesImpl = useCallback((e: React.MouseEvent) => {
@@ -240,7 +241,9 @@ export const TraceFlameGraph: React.FC = () => {
 				resizeObserver.disconnect()
 			}
 		}
-	}, [])
+
+		// Pass loading to trigger again in case ref wasn't ready on initial render
+	}, [loading])
 
 	const [dragging, setDragging] = useState(false)
 	const [initialDragX, setInitialDragX] = useState(0)
@@ -328,7 +331,7 @@ export const TraceFlameGraph: React.FC = () => {
 				backgroundColor="raised"
 				borderRadius="6"
 				border="dividerWeak"
-				style={{ height: 150 }}
+				style={{ height: DEFAULT_HEIGHT }}
 			>
 				<LoadingBox />
 			</Box>
