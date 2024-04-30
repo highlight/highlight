@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering/types"
 	"github.com/aws/smithy-go/ptr"
+	"github.com/google/uuid"
 	"github.com/stripe/stripe-go/v76"
 
 	"github.com/highlight-run/highlight/backend/redis"
@@ -1255,7 +1256,7 @@ func (w *Worker) AddOrUpdateOverageItem(newPrice *stripe.Price, invoiceLine *str
 				Subscription: &subscription.ID,
 				Price:        &newPrice.ID,
 			}
-			params.SetIdempotencyKey(subscription.ID + ":" + newPrice.ID + ":item")
+			params.SetIdempotencyKey(subscription.ID + ":" + newPrice.ID + ":item:" + uuid.New().String())
 			subscriptionItem, err := w.stripeClient.SubscriptionItems.New(params)
 			if err != nil {
 				return e.Wrapf(err, "BILLING_ERROR failed to add invoice item for usage record item; invoiceLine=%+v, priceID=%s, subscriptionID=%s", invoiceLine, newPrice.ID, subscription.ID)
@@ -1288,7 +1289,7 @@ func (w *Worker) AddOrUpdateOverageItem(newPrice *stripe.Price, invoiceLine *str
 				Price:        &newPrice.ID,
 				Quantity:     stripe.Int64(overage),
 			}
-			params.SetIdempotencyKey(customer.ID + ":" + subscription.ID + ":" + newPrice.ID)
+			params.SetIdempotencyKey(customer.ID + ":" + subscription.ID + ":" + newPrice.ID + ":" + uuid.New().String())
 			if _, err := w.stripeClient.InvoiceItems.New(params); err != nil {
 				return e.Wrap(err, "BILLING_ERROR failed to add invoice item")
 			}
