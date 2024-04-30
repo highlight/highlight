@@ -997,7 +997,6 @@ func (w *Worker) GetSessionsToProcess(ctx context.Context, payloadLookbackPeriod
 
 // Start begins the worker's tasks.
 func (w *Worker) Start(ctx context.Context) {
-	go reportProcessSessionCount(ctx, w.Resolver.DB, pubgraph.SessionProcessDelaySeconds, pubgraph.SessionProcessLockMinutes)
 	maxWorkerCount := 10
 	wp := workerpool.New(maxWorkerCount)
 	wp.SetPanicHandler(util.Recover)
@@ -1542,25 +1541,4 @@ func processEventChunk(ctx context.Context, a EventProcessingAccumulator, events
 		}
 	}
 	return a
-}
-
-func reportProcessSessionCount(ctx context.Context, db *gorm.DB, lookbackPeriod, lockPeriod int) {
-	defer util.Recover()
-	for {
-		time.Sleep(1*time.Minute + time.Duration(59*float64(time.Minute.Nanoseconds())*rand.Float64()))
-		var count int64
-		if err := db.WithContext(ctx).Raw(`
-			SELECT COUNT(*)
-			FROM sessions
-			WHERE (processed = false)
-				AND (excluded = false)
-				AND (payload_updated_at < NOW() - (? * INTERVAL '1 SECOND'))
-				AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))
-				AND (retry_count < ?)
-			`, lookbackPeriod, lockPeriod, MAX_RETRIES).Scan(&count).Error; err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error getting count of sessions to process"))
-			continue
-		}
-		hmetric.Histogram(ctx, "processSessionsCount", float64(count), nil, 1)
-	}
 }
