@@ -103,8 +103,18 @@ export const getStaticProps: GetStaticProps = async () => {
 	let tags = await loadTagsFromGithub(posts)
 
 	posts
-		.filter((a) => new Date().getTime() - Date.parse(a.postedAt) >= 0)
 		.sort((a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt))
+		.map((a) => {
+			if (new Date().getTime() - Date.parse(a.postedAt) < 0) {
+				console.log('hiding future post', {
+					slug: a.slug,
+					postedAt: a.postedAt,
+					parsed: Date.parse(a.postedAt),
+				})
+			}
+			return a
+		})
+		.filter((a) => new Date().getTime() - Date.parse(a.postedAt) >= 0)
 	tags = getUniqueTags(tags)
 
 	return {

@@ -1,6 +1,6 @@
 ---
 title: "Day 5: Self-hosted & Enterprise"
-createdAt: 2024-05-03T00:00:00Z
+createdAt: 2024-05-03T07:00:00Z
 readingTime: 3
 authorFirstName: Jay
 authorLastName: Khatri
