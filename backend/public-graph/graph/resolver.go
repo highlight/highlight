@@ -1596,7 +1596,7 @@ func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionSecureID
 
 var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 	maxCostCents    func(*model.Workspace) *int
-	meter           func(context.Context, *gorm.DB, *clickhouse.Client, *model.Workspace) (int64, error)
+	meter           func(context.Context, *gorm.DB, *clickhouse.Client, *redis.Client, *model.Workspace) (int64, error)
 	retentionPeriod func(*model.Workspace) privateModel.RetentionPeriod
 	included        func(*model.Workspace) int64
 }{
@@ -1696,7 +1696,7 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 		return true, 0
 	}
 
-	meter, err := cfg.meter(ctx, r.DB, r.Clickhouse, workspace)
+	meter, err := cfg.meter(ctx, r.DB, r.Clickhouse, r.Redis, workspace)
 	if err != nil {
 		log.WithContext(ctx).Warn(fmt.Sprintf("error getting %s meter for workspace %d", productType, workspace.ID))
 	}
