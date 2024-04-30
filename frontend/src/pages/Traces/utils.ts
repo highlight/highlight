@@ -112,8 +112,9 @@ export const organizeSpansForFlameGraph = (
 	trace: Partial<FlameGraphSpan>[],
 ) => {
 	const spans = [[]]
+	const spanIDs = new Set(trace.flat().map((span) => span.spanID))
 	const rootSpans = trace
-		.filter((span) => !span.parentSpanID)
+		.filter((span) => !spanIDs.has(span.parentSpanID))
 		.sort((a, b) => {
 			// Subtract the duration from the start time to ensure that the longer
 			// span is at the root of the flame graph if there is a match.
@@ -131,13 +132,6 @@ export const organizeSpansForFlameGraph = (
 
 	rootSpans.forEach((rootSpan) =>
 		organizeSpanInLevel(rootSpan!, trace, spans, 0),
-	)
-
-	// Handle orphan spans
-	const spanIDs = new Set(trace.flat().map((span) => span.spanID))
-	const orphanSpans = trace.filter((span) => !spanIDs.has(span.parentSpanID))
-	orphanSpans.forEach((orphanSpan) =>
-		organizeSpanInLevel(orphanSpan, trace, spans, 0),
 	)
 
 	return spans as FlameGraphSpan[][]
