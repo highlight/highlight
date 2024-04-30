@@ -144,7 +144,7 @@ type Response struct {
 	Status  float64           `json:"status"`
 	Size    float64           `json:"size"`
 	Headers map[string]string `json:"headers"`
-	Body    string            `json:"body"`
+	Body    any               `json:"body"`
 }
 
 type RequestResponsePairs struct {
