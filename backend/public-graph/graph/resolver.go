@@ -2540,6 +2540,23 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	g.Go(func() error {
 		defer util.Recover()
 
+		project, err := r.Store.GetProject(ctx, projectID)
+		if err != nil {
+			return err
+		}
+
+		workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
+		if err != nil {
+			return e.Wrap(err, "error querying workspace")
+		}
+
+		if withinBillingQuota, _ := r.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now()); !withinBillingQuota {
+			log.WithContext(ctx).
+				WithField("workspace_id", workspace.ID).
+				Info("workspace outside session quota, dropping frontend session events")
+			return nil
+		}
+
 		opts := []util.SpanOption{util.ResourceName("go.parseEvents"), util.Tag("project_id", projectID)}
 		if len(events.Events) > 1_000 {
 			opts = append(opts, util.WithSpanKind(trace.SpanKindServer))
@@ -2729,9 +2746,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// process errors
 	g.Go(func() error {
 		defer util.Recover()
-		if hasBeacon {
-			r.DB.WithContext(ctx).Where(&model.ErrorObject{SessionID: &sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
-		}
 
 		project, err := r.Store.GetProject(ctx, projectID)
 		if err != nil {
@@ -2748,6 +2762,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				WithField("workspace_id", workspace.ID).
 				Info("workspace outside error quota, dropping frontend errors")
 			return nil
+		}
+
+		if hasBeacon {
+			r.DB.WithContext(ctx).Where(&model.ErrorObject{SessionID: &sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
 		}
 
 		errors = lo.Filter(errors, func(item *publicModel.ErrorObjectInput, index int) bool {
@@ -2859,6 +2877,23 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	if err := g.Wait(); err != nil {
 		return err
+	}
+
+	project, err := r.Store.GetProject(ctx, projectID)
+	if err != nil {
+		return err
+	}
+
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
+	if err != nil {
+		return e.Wrap(err, "error querying workspace")
+	}
+
+	if withinBillingQuota, _ := r.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now()); !withinBillingQuota {
+		log.WithContext(ctx).
+			WithField("workspace_id", workspace.ID).
+			Info("workspace outside session quota, dropping frontend session update")
+		return nil
 	}
 
 	now := time.Now()
