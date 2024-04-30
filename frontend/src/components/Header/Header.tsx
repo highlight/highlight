@@ -123,7 +123,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId: localStorageProjectId } = useLocalStorageProjectId()
 	const { isLoggedIn, signOut } = useAuthContext()
 	const showAnalytics = useFeatureFlag(Feature.Analytics)
-	const showDashboards = useFeatureFlag(Feature.Dashboards)
+	const showMetrics = useFeatureFlag(Feature.Metrics)
 	const { allProjects, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 	const localStorageProject = allProjects?.find(
@@ -165,10 +165,10 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 			icon: IconSolidSparkles,
 		},
 		{
-			key: 'dashboards',
+			key: 'metrics',
 			icon: IconSolidChartBar,
 			isBeta: true,
-			hidden: !showDashboards,
+			hidden: !showMetrics,
 		},
 		{
 			key: 'alerts',
