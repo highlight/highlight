@@ -1,10 +1,12 @@
 import {
 	Box,
+	ButtonIcon,
 	Callout,
 	Form,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidSearch,
+	IconSolidXCircle,
 	Stack,
 	Table,
 	Text,
@@ -104,9 +106,16 @@ export const TraceWaterfallList: React.FC = () => {
 						outline={false}
 						style={{
 							background: 'transparent',
+							flexGrow: 1,
 							padding: '6px 0',
 						}}
 					/>
+					{query && (
+						<ButtonIcon
+							icon={<IconSolidXCircle />}
+							onClick={() => setQuery('')}
+						/>
+					)}
 				</Stack>
 			</Form>
 
