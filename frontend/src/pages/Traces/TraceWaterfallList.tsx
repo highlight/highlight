@@ -209,22 +209,26 @@ const WaterfallRow: React.FC<{
 			>
 				<Table.Cell
 					borderRadius="0"
-					onClick={(e) => {
-						e.stopPropagation()
-
-						if (hasChildren) {
-							setOpen(!open)
-						} else {
-							setSelectedSpan(span)
-						}
-					}}
 					style={{
 						height: ROW_HEIGHT, // to avoid extra height from icon
 						paddingLeft: depth * 16 + 8,
 					}}
 				>
 					{hasChildren && (
-						<Box display="flex" flexShrink={0}>
+						<Box
+							display="flex"
+							flexShrink={0}
+							onClick={(e) => {
+								e.stopPropagation()
+
+								if (hasChildren) {
+									setOpen(!open)
+								} else {
+									setSelectedSpan(span)
+								}
+							}}
+							cursor="pointer"
+						>
 							{open ? (
 								<IconSolidCheveronDown size={12} />
 							) : (
