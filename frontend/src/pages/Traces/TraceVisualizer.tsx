@@ -22,10 +22,10 @@ export const TraceVisualizer: React.FC<Props> = () => {
 				</Tabs.Tab>
 			</Tabs.List>
 			<Box mt="10">
-				<Tabs.Panel id={TraceVisualizerTab.FlameGraph} unmountOnHide>
+				<Tabs.Panel id={TraceVisualizerTab.FlameGraph}>
 					<TraceFlameGraph />
 				</Tabs.Panel>
-				<Tabs.Panel id={TraceVisualizerTab.Waterfall} unmountOnHide>
+				<Tabs.Panel id={TraceVisualizerTab.Waterfall}>
 					<TraceWaterfallList />
 				</Tabs.Panel>
 			</Box>
