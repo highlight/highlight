@@ -102,7 +102,9 @@ export const getStaticProps: GetStaticProps = async () => {
 	let posts = await loadPostsFromGithub()
 	let tags = await loadTagsFromGithub(posts)
 
-	posts.sort((a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt))
+	posts
+		.filter((a) => new Date().getTime() - Date.parse(a.postedAt) > 0)
+		.sort((a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt))
 	tags = getUniqueTags(tags)
 
 	return {
