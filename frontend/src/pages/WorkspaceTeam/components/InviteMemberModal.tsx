@@ -46,7 +46,7 @@ function InviteMemberModal({
 
 	const [
 		sendInviteEmail,
-		{ loading: sendLoading, data: sendInviteEmailData },
+		{ loading: sendLoading, data: sendInviteEmailData, reset: sendReset },
 	] = useSendAdminWorkspaceInviteMutation()
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
@@ -64,6 +64,7 @@ function InviteMemberModal({
 				role: newAdminRole,
 			},
 		}).then(() => {
+			setEmail('')
 			message.success(`Invite email sent to ${email}!`, 5)
 			emailRef.current?.focus()
 		})
@@ -76,7 +77,11 @@ function InviteMemberModal({
 			title="Invite Member"
 			visible={showModal}
 			width={600}
-			onCancel={() => toggleShowModal(false)}
+			onCancel={() => {
+				toggleShowModal(false)
+				setEmail('')
+				sendReset()
+			}}
 		>
 			<form onSubmit={onSubmit}>
 				<p className={styles.boxSubTitle}>
@@ -85,6 +90,7 @@ function InviteMemberModal({
 				</p>
 				<div className={styles.buttonRow}>
 					<Input
+						ref={emailRef}
 						className={styles.emailInput}
 						placeholder="Email"
 						type="email"
