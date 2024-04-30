@@ -632,12 +632,6 @@ export const GraphingEditor = () => {
 								onClick={onSave}
 							>
 								Save&nbsp;
-								<Badge
-									variant="outlinePurple"
-									shape="basic"
-									size="small"
-									label={[cmdKey, 'S'].join('+')}
-								/>
 							</Button>
 						</Box>
 					</Box>
