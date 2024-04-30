@@ -8,10 +8,11 @@ import {
 	IconSolidXCircle,
 	Stack,
 	Table,
+	Tabs,
 	Text,
 } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { getSpanTheme } from '@/pages/Traces/TraceFlameGraphNode'
 import { useTrace } from '@/pages/Traces/TraceProvider'
@@ -27,9 +28,13 @@ img.src =
 	'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs='
 
 export const TraceWaterfallList: React.FC = () => {
-	const { selectedSpan, spans, totalDuration, setSelectedSpan } = useTrace()
+	const { selectedSpan, spanCount, spans, totalDuration, setSelectedSpan } =
+		useTrace()
 	const bodyRef = useRef<HTMLDivElement>(null)
+	const tabsContext = Tabs.useContext()!
+	const activeTab = tabsContext.useState('activeId')
 	const [query, setQuery] = useState('')
+	const [bodyHeight, setBodyHeight] = useState('auto')
 	const [columns, setColumns] = useLocalStorage(
 		'highlight-trace-waterfall-list-column-sizes',
 		[
@@ -44,6 +49,11 @@ export const TraceWaterfallList: React.FC = () => {
 			spans.some((span) => doesSpanOrDescendantsMatchQuery(span, query)),
 		[spans, query],
 	)
+
+	useEffect(() => {
+		const bodyHeight = bodyRef.current?.clientHeight ?? ROW_HEIGHT
+		setBodyHeight(`${Math.min(bodyHeight, 280)}px`)
+	}, [spanCount, activeTab])
 
 	const handleDrag = (e: React.DragEvent, name: string) => {
 		const headerRef = e.currentTarget.parentElement?.parentElement
@@ -137,7 +147,7 @@ export const TraceWaterfallList: React.FC = () => {
 				<Table.Body
 					ref={bodyRef}
 					overflowY="auto"
-					style={{ maxHeight: 280 }}
+					style={{ height: bodyHeight }}
 				>
 					{canRenderSpans ? (
 						spans.map((span) => (
@@ -157,9 +167,6 @@ export const TraceWaterfallList: React.FC = () => {
 							justifyContent="center"
 							alignItems="center"
 							height="full"
-							style={{
-								minHeight: ROW_HEIGHT,
-							}}
 						>
 							<Text>No spans match search query</Text>
 						</Stack>
