@@ -151,7 +151,7 @@ export const TraceWaterfallList: React.FC = () => {
 						<Stack
 							justifyContent="center"
 							alignItems="center"
-							style={{ height: 280 }}
+							style={{ height: ROW_HEIGHT }}
 						>
 							<Text>No spans match search query</Text>
 						</Stack>
