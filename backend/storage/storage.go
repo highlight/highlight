@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	hredis "github.com/highlight-run/highlight/backend/redis"
 	"io"
 	"net/http"
 	"os"
@@ -93,7 +94,8 @@ type Client interface {
 	PushSourceMapFile(ctx context.Context, projectId int, version *string, fileName string, fileBytes []byte) (*int64, error)
 	ReadResources(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
 	ReadWebSocketEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
-	ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error)
+	readSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error)
+	ReadSourceMapFileCached(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error)
 	ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error)
 	UploadAsset(ctx context.Context, uuid string, contentType string, reader io.Reader, retentionPeriod privateModel.RetentionPeriod) error
 	ReadGitHubFile(ctx context.Context, repoPath string, fileName string, version string) ([]byte, error)
@@ -103,6 +105,7 @@ type Client interface {
 type FilesystemClient struct {
 	origin string
 	fsRoot string
+	redis  *hredis.Client
 }
 
 func (f *FilesystemClient) GetDirectDownloadURL(_ context.Context, projectId int, sessionId int, payloadType PayloadType, chunkId *int) (*string, error) {
@@ -291,18 +294,40 @@ func (f *FilesystemClient) ReadWebSocketEvents(ctx context.Context, sessionId in
 	return webSocketEvents, nil
 }
 
-func (f *FilesystemClient) ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
-	span, ctx := util.StartSpanFromContext(ctx, "fs.ReadSourceMapFile")
-	defer span.Finish()
+func (f *FilesystemClient) getSourceMapKey(projectId int, version *string, fileName string) string {
 	if version == nil {
 		unversioned := "unversioned"
 		version = &unversioned
 	}
-	if b, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%d/%s/%s", f.fsRoot, projectId, *version, fileName)); err == nil {
+	return fmt.Sprintf("%s/%d/%s/%s", f.fsRoot, projectId, *version, fileName)
+}
+
+func (f *FilesystemClient) readSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "fs.ReadSourceMapFile")
+	defer span.Finish()
+	key := f.getSourceMapKey(projectId, version, fileName)
+	span.SetAttribute("key", key)
+	if b, err := f.readFSBytes(ctx, key); err == nil {
 		return b.Bytes(), nil
 	} else {
 		return nil, err
 	}
+}
+
+func (f *FilesystemClient) ReadSourceMapFileCached(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "fs.ReadSourceMapFileCached")
+	defer span.Finish()
+	key := f.getSourceMapKey(projectId, version, fileName)
+	span.SetAttribute("key", key)
+	b, err := hredis.CachedEval(ctx, f.redis, key, time.Second, time.Minute, func() (*[]byte, error) {
+		bt, err := f.readSourceMapFile(ctx, projectId, version, fileName)
+		return &bt, err
+	}, hredis.WithStoreNil(true), hredis.WithIgnoreError(true))
+
+	if b == nil || err != nil {
+		return nil, err
+	}
+	return *b, nil
 }
 
 func (f *FilesystemClient) GetAssetURL(_ context.Context, projectId string, hashVal string) (string, error) {
@@ -449,13 +474,14 @@ func (f *FilesystemClient) SetupHTTPSListener(r chi.Router) {
 }
 
 func NewFSClient(_ context.Context, origin, fsRoot string) (*FilesystemClient, error) {
-	return &FilesystemClient{origin: origin, fsRoot: fsRoot}, nil
+	return &FilesystemClient{origin: origin, fsRoot: fsRoot, redis: hredis.NewClient()}, nil
 }
 
 type S3Client struct {
 	S3ClientEast2   *s3.Client
 	S3PresignClient *s3.PresignClient
 	URLSigner       *sign.URLSigner
+	Redis           *hredis.Client
 }
 
 func NewS3Client(ctx context.Context) (*S3Client, error) {
@@ -474,6 +500,7 @@ func NewS3Client(ctx context.Context) (*S3Client, error) {
 		S3ClientEast2:   clientEast2,
 		S3PresignClient: s3.NewPresignClient(clientEast2),
 		URLSigner:       getURLSigner(ctx),
+		Redis:           hredis.NewClient(),
 	}, nil
 }
 
@@ -834,7 +861,7 @@ func (s *S3Client) PushSourceMapFile(ctx context.Context, projectId int, version
 	return s.PushSourceMapFileReaderToS3(ctx, projectId, version, fileName, body)
 }
 
-func (s *S3Client) ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
+func (s *S3Client) readSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "s3.ReadSourceMapFile")
 	defer span.Finish()
 	output, err := s.S3ClientEast2.GetObject(ctx, &s3.GetObjectInput{Bucket: pointy.String(S3SourceMapBucketNameNew),
@@ -848,6 +875,22 @@ func (s *S3Client) ReadSourceMapFile(ctx context.Context, projectId int, version
 		return nil, errors.Wrap(err, "error reading from s3 buffer")
 	}
 	return buf.Bytes(), nil
+}
+
+func (s *S3Client) ReadSourceMapFileCached(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "s3.ReadSourceMapFileCached")
+	defer span.Finish()
+	key := s.sourceMapBucketKey(projectId, version, fileName)
+	span.SetAttribute("key", key)
+	b, err := hredis.CachedEval(ctx, s.Redis, *key, time.Second, time.Minute, func() (*[]byte, error) {
+		bt, err := s.readSourceMapFile(ctx, projectId, version, fileName)
+		return &bt, err
+	}, hredis.WithStoreNil(true), hredis.WithIgnoreError(true))
+
+	if b == nil || err != nil {
+		return nil, err
+	}
+	return *b, nil
 }
 
 func (s *S3Client) GetDirectDownloadURL(_ context.Context, projectId int, sessionId int, payloadType PayloadType, chunkId *int) (*string, error) {

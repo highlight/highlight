@@ -21,17 +21,12 @@ import Banner from '../Banner/Banner'
 import FeatureDropdown from './FeatureDropdown'
 
 const LaunchWeekBanner = () => {
-	const day = moment().diff(moment('2023-07-17T16:00:00Z'), 'days') + 1
-	if (day < 1 || day > 5) {
-		return null
-	}
-
 	const bannerMessage = (
 		<div className={styles.launchWeekText}>
-			Launch Week 2 is here.{' '}
+			Launch Week 5 is here.{' '}
 			<a
 				target="_blank"
-				href="https://www.highlight.io/launch-week-2"
+				href="https://www.highlight.io/blog/tag/launch-week-5"
 				rel="noreferrer"
 			>
 				Follow along
@@ -101,9 +96,9 @@ const Navbar = ({
 		setPrevY(currentScrollPos)
 	}
 
-	const isLivestreamWeek = moment().isBetween(
-		'2024-04-16T00:00:00Z',
-		'2024-05-16T00:00:00Z',
+	const isLaunchWeek = moment().isBetween(
+		'2024-04-29T16:00:00Z',
+		'2024-05-04T16:00:00Z',
 	)
 
 	useEffect(() => {
@@ -115,8 +110,8 @@ const Navbar = ({
 		<>
 			{!hideGitHubPopup && <GithubPopup />}
 			{!hideBanner ? (
-				isLivestreamWeek ? (
-					<LivestreamBanner />
+				isLaunchWeek ? (
+					<LaunchWeekBanner />
 				) : (
 					<Link
 						href="/startups"

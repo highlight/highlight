@@ -1,8 +1,11 @@
 import {
 	Box,
 	Button,
+	DateRangePicker,
+	DEFAULT_TIME_PRESETS,
 	IconSolidChartBar,
 	IconSolidCheveronRight,
+	presetStartDate,
 	Stack,
 	Tag,
 	Text,
@@ -11,10 +14,9 @@ import { vars } from '@highlight-run/ui/vars'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
-import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
 import { useGetVisualizationQuery } from '@/graph/generated/hooks'
-import useDataTimeRange from '@/hooks/useDataTimeRange'
 import { useProjectId } from '@/hooks/useProjectId'
+import { useSearchTime } from '@/hooks/useSearchTime'
 import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { useParams } from '@/util/react-router/useParams'
@@ -33,7 +35,11 @@ export const ExpandedGraph = () => {
 		variables: { id: dashboard_id! },
 	})
 
-	const { timeRange } = useDataTimeRange()
+	const { startDate, endDate, selectedPreset, updateSearchTime } =
+		useSearchTime({
+			presets: DEFAULT_TIME_PRESETS,
+			initialPreset: DEFAULT_TIME_PRESETS[2],
+		})
 
 	const navigate = useNavigate()
 
@@ -100,13 +106,29 @@ export const ExpandedGraph = () => {
 							</Text>
 						</Stack>
 						<Box display="flex" gap="4">
-							<TimeRangePicker emphasis="low" kind="secondary" />
+							<DateRangePicker
+								emphasis="low"
+								kind="secondary"
+								selectedValue={{
+									startDate,
+									endDate,
+									selectedPreset,
+								}}
+								onDatesChange={updateSearchTime}
+								presets={DEFAULT_TIME_PRESETS}
+								minDate={presetStartDate(
+									DEFAULT_TIME_PRESETS[5],
+								)}
+							/>
 							<HeaderDivider />
 							<Button
 								emphasis="low"
 								kind="secondary"
 								onClick={() => {
-									navigate(`../${dashboard_id}`)
+									navigate({
+										pathname: `../${dashboard_id}`,
+										search: location.search,
+									})
 								}}
 							>
 								Cancel
@@ -136,8 +158,8 @@ export const ExpandedGraph = () => {
 								)}
 								productType={g.productType}
 								projectId={projectId}
-								startDate={timeRange.start_date}
-								endDate={timeRange.end_date}
+								startDate={startDate}
+								endDate={endDate}
 								query={g.query}
 								metric={g.metric}
 								functionType={g.functionType}

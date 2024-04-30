@@ -220,7 +220,6 @@ export const SessionFeedV3 = React.memo(() => {
 					}}
 				/>
 				<Box
-					paddingTop="4"
 					padding="8"
 					overflowX="hidden"
 					overflowY="auto"

@@ -15,11 +15,14 @@ import {
 import {
 	Box,
 	Button,
+	DateRangePicker,
+	DEFAULT_TIME_PRESETS,
 	Form,
 	IconSolidChartBar,
 	IconSolidCheveronRight,
 	IconSolidPlus,
 	IconSolidTemplate,
+	presetStartDate,
 	Stack,
 	Tag,
 	Text,
@@ -31,7 +34,6 @@ import { useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
-import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
 import {
 	useDeleteGraphMutation,
 	useGetVisualizationQuery,
@@ -41,8 +43,8 @@ import {
 	GetVisualizationQuery,
 	namedOperations,
 } from '@/graph/generated/operations'
-import useDataTimeRange from '@/hooks/useDataTimeRange'
 import { useProjectId } from '@/hooks/useProjectId'
+import { useSearchTime } from '@/hooks/useSearchTime'
 import { DashboardCard } from '@/pages/Graphing/components/DashboardCard'
 import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
 import { useParams } from '@/util/react-router/useParams'
@@ -97,7 +99,11 @@ export const Dashboard = () => {
 		refetchQueries: [namedOperations.Query.GetVisualizations],
 	})
 
-	const { timeRange } = useDataTimeRange()
+	const { startDate, endDate, selectedPreset, updateSearchTime } =
+		useSearchTime({
+			presets: DEFAULT_TIME_PRESETS,
+			initialPreset: DEFAULT_TIME_PRESETS[2],
+		})
 
 	const navigate = useNavigate()
 
@@ -244,9 +250,19 @@ export const Dashboard = () => {
 									<Button emphasis="low" kind="secondary">
 										Share
 									</Button>
-									<TimeRangePicker
+									<DateRangePicker
 										emphasis="low"
 										kind="secondary"
+										selectedValue={{
+											startDate,
+											endDate,
+											selectedPreset,
+										}}
+										onDatesChange={updateSearchTime}
+										presets={DEFAULT_TIME_PRESETS}
+										minDate={presetStartDate(
+											DEFAULT_TIME_PRESETS[5],
+										)}
 									/>
 									<HeaderDivider />
 									<Button
@@ -264,7 +280,10 @@ export const Dashboard = () => {
 										kind="secondary"
 										iconLeft={<IconSolidPlus />}
 										onClick={() => {
-											navigate('new')
+											navigate({
+												pathname: 'new',
+												search: location.search,
+											})
 										}}
 									>
 										Add graph
@@ -321,12 +340,8 @@ export const Dashboard = () => {
 															g.productType
 														}
 														projectId={projectId}
-														startDate={
-															timeRange.start_date
-														}
-														endDate={
-															timeRange.end_date
-														}
+														startDate={startDate}
+														endDate={endDate}
 														query={g.query}
 														metric={g.metric}
 														functionType={
@@ -373,14 +388,16 @@ export const Dashboard = () => {
 																)
 														}}
 														onExpand={() => {
-															navigate(
-																`view/${g.id}`,
-															)
+															navigate({
+																pathname: `view/${g.id}`,
+																search: location.search,
+															})
 														}}
 														onEdit={() => {
-															navigate(
-																`edit/${g.id}`,
-															)
+															navigate({
+																pathname: `edit/${g.id}`,
+																search: location.search,
+															})
 														}}
 														disabled={editing}
 													/>

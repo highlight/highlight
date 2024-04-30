@@ -2121,6 +2121,7 @@ export type Query = {
 	traces_metrics: MetricsBuckets
 	track_properties_alerts: Array<Maybe<SessionAlert>>
 	unprocessedSessionsCount?: Maybe<Scalars['Int64']>
+	usageHistory: UsageHistory
 	userFingerprintCount?: Maybe<UserFingerprintCount>
 	user_properties_alerts: Array<Maybe<SessionAlert>>
 	vercel_project_mappings: Array<VercelProjectMapping>
@@ -2896,6 +2897,11 @@ export type QueryUnprocessedSessionsCountArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryUsageHistoryArgs = {
+	date_range?: InputMaybe<DateRangeRequiredInput>
+	workspace_id: Scalars['ID']
+}
+
 export type QueryUserFingerprintCountArgs = {
 	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
@@ -3023,13 +3029,14 @@ export enum ReservedErrorObjectKey {
 }
 
 export enum ReservedErrorsJoinedKey {
-	/** ReservedErrorObjectKey */
 	Browser = 'browser',
 	ClientId = 'client_id',
 	Environment = 'environment',
 	/** ReservedErrorGroupKey */
 	Event = 'event',
 	HasSession = 'has_session',
+	/** ReservedErrorObjectKey */
+	Id = 'id',
 	OsName = 'os_name',
 	SecureId = 'secure_id',
 	SecureSessionId = 'secure_session_id',
@@ -3064,6 +3071,7 @@ export enum ReservedSessionKey {
 	Country = 'country',
 	DeviceId = 'device_id',
 	Environment = 'environment',
+	Excluded = 'excluded',
 	FirstTime = 'first_time',
 	HasComments = 'has_comments',
 	HasErrors = 'has_errors',
@@ -3083,6 +3091,7 @@ export enum ReservedSessionKey {
 	ServiceVersion = 'service_version',
 	Viewed = 'viewed',
 	ViewedByMe = 'viewed_by_me',
+	WithinBillingQuota = 'within_billing_quota',
 }
 
 export enum ReservedTraceKey {
@@ -3674,6 +3683,14 @@ export type TrackPropertyInput = {
 	id?: InputMaybe<Scalars['ID']>
 	name: Scalars['String']
 	value: Scalars['String']
+}
+
+export type UsageHistory = {
+	__typename?: 'UsageHistory'
+	errors_usage: MetricsBuckets
+	logs_usage: MetricsBuckets
+	session_usage: MetricsBuckets
+	traces_usage: MetricsBuckets
 }
 
 export type User = {

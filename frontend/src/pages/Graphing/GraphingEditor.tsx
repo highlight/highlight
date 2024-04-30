@@ -3,6 +3,8 @@ import {
 	Box,
 	Button,
 	ComboboxSelect,
+	DateRangePicker,
+	DEFAULT_TIME_PRESETS,
 	Form,
 	IconSolidCheveronDown,
 	IconSolidLightningBolt,
@@ -12,12 +14,14 @@ import {
 	Input,
 	Label,
 	Menu,
+	presetStartDate,
 	Stack,
 	TagSwitchGroup,
 	Text,
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { Divider, message } from 'antd'
+import moment from 'moment'
 import { PropsWithChildren, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
@@ -25,9 +29,9 @@ import { useDebounce } from 'react-use'
 
 import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { SearchContext } from '@/components/Search/SearchContext'
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import Switch from '@/components/Switch/Switch'
-import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
 import {
 	useGetKeysQuery,
 	useGetVisualizationQuery,
@@ -39,8 +43,8 @@ import {
 	MetricAggregator,
 	ProductType,
 } from '@/graph/generated/schemas'
-import useDataTimeRange from '@/hooks/useDataTimeRange'
 import { useProjectId } from '@/hooks/useProjectId'
+import { useSearchTime } from '@/hooks/useSearchTime'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
 import Graph, {
 	getViewConfig,
@@ -166,6 +170,7 @@ const Combobox = ({
 				setQuery(val)
 			}}
 			cssClass={style.combobox}
+			wrapperCssClass={style.comboboxWrapper}
 			queryPlaceholder="Filter..."
 		/>
 	)
@@ -282,7 +287,6 @@ const LineChartSettings = ({
 				options={LINE_NULL_HANDLING}
 				defaultValue={nullHandling}
 				onChange={(o: string | number) => {
-					console.log('setNullHandling', o)
 					setNullHandling(o as LineNullHandling)
 				}}
 				cssClass={style.tagSwitch}
@@ -341,7 +345,11 @@ export const GraphingEditor = () => {
 
 	const isEdit = graph_id !== undefined
 
-	const { timeRange } = useDataTimeRange()
+	const { startDate, endDate, selectedPreset, updateSearchTime } =
+		useSearchTime({
+			presets: DEFAULT_TIME_PRESETS,
+			initialPreset: DEFAULT_TIME_PRESETS[2],
+		})
 
 	const [upsertGraph, upsertGraphContext] = useUpsertGraphMutation({
 		refetchQueries: [namedOperations.Query.GetVisualization],
@@ -394,7 +402,10 @@ export const GraphingEditor = () => {
 			},
 		})
 			.then(() => {
-				navigate(`../${dashboard_id}`)
+				navigate({
+					pathname: `../${dashboard_id}`,
+					search: location.search,
+				})
 				message.success(`Metric view ${isEdit ? 'updated' : 'created'}`)
 			})
 			.catch(() => {
@@ -427,6 +438,8 @@ export const GraphingEditor = () => {
 				setTableNullHandling(g.nullHandling as TableNullHandling)
 			}
 
+			setQuery(g.query)
+			setDebouncedQuery(g.query)
 			setMetric(g.metric)
 			setMetricViewTitle(g.title)
 			setGroupByEnabled(g.groupByKey !== null)
@@ -481,17 +494,14 @@ export const GraphingEditor = () => {
 
 	const [keysQuery, setKeysQuery] = useState('')
 
-	const startDate = timeRange.start_date
-	const endDate = timeRange.end_date
-
 	const [keys, setKeys] = useState<GetKeysQuery | undefined>()
 	const { refetch: refetchKeys } = useGetKeysQuery({
 		variables: {
 			product_type: productType,
 			project_id: projectId,
 			date_range: {
-				start_date: startDate,
-				end_date: endDate,
+				start_date: moment(startDate).format(TIME_FORMAT),
+				end_date: moment(endDate).format(TIME_FORMAT),
 			},
 			query: keysQuery,
 		},
@@ -502,8 +512,8 @@ export const GraphingEditor = () => {
 			product_type: productType,
 			project_id: projectId,
 			date_range: {
-				start_date: startDate,
-				end_date: endDate,
+				start_date: moment(startDate).format(TIME_FORMAT),
+				end_date: moment(endDate).format(TIME_FORMAT),
 			},
 			query: keysQuery,
 		}).then((r) => setKeys(r.data))
@@ -518,7 +528,7 @@ export const GraphingEditor = () => {
 	])
 
 	const allKeys = useMemo(
-		() => keys?.keys.map((k) => k.name).slice(0, 10) ?? [],
+		() => keys?.keys.map((k) => k.name).slice(0, 8) ?? [],
 		[keys],
 	)
 	const numericKeys = useMemo(
@@ -526,15 +536,15 @@ export const GraphingEditor = () => {
 			keys?.keys
 				.filter((k) => k.type === 'Numeric')
 				.map((k) => k.name)
-				.slice(0, 10) ?? [],
+				.slice(0, 8) ?? [],
 		[keys],
 	)
 	const bucketByKeys = useMemo(() => {
 		const baseArray = []
-		if (TIMESTAMP_KEY.includes(keysQuery)) {
+		if (TIMESTAMP_KEY.toLowerCase().includes(keysQuery.toLowerCase())) {
 			baseArray.push(TIMESTAMP_KEY)
 		}
-		return baseArray.concat(numericKeys).slice(0, 10)
+		return baseArray.concat(numericKeys).slice(0, 8)
 	}, [numericKeys, keysQuery])
 
 	let display: string | undefined
@@ -590,13 +600,29 @@ export const GraphingEditor = () => {
 							{isEdit ? 'Edit' : 'Create'} metric view
 						</Text>
 						<Box display="flex" gap="4">
-							<TimeRangePicker emphasis="low" kind="secondary" />
+							<DateRangePicker
+								emphasis="low"
+								kind="secondary"
+								selectedValue={{
+									startDate,
+									endDate,
+									selectedPreset,
+								}}
+								onDatesChange={updateSearchTime}
+								presets={DEFAULT_TIME_PRESETS}
+								minDate={presetStartDate(
+									DEFAULT_TIME_PRESETS[5],
+								)}
+							/>
 							<HeaderDivider />
 							<Button
 								emphasis="low"
 								kind="secondary"
 								onClick={() => {
-									navigate(`../${dashboard_id}`)
+									navigate({
+										pathname: `../${dashboard_id}`,
+										search: location.search,
+									})
 								}}
 							>
 								Cancel

@@ -17,6 +17,7 @@ export enum Feature {
 	HistogramTimelineV2,
 	AiSessionInsights,
 	Analytics,
+	Dashboards,
 }
 
 // configures the criteria and percentage of population for which the feature is active.
@@ -46,12 +47,15 @@ export const FeatureConfig: { [key: number]: Config } = {
 		workspace: true,
 		percent: 0,
 		workspaceOverride: new Set<string>([
-			'1',
 			// Numero
 			'701',
 			// MediaJel
 			'9634',
 		]),
+	},
+	[Feature.Dashboards]: {
+		workspace: true,
+		percent: 100,
 	},
 } as const
 

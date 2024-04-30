@@ -33,10 +33,14 @@ export function NewCommentModal({
 	errorTitle,
 	currentUrl,
 }: Props) {
+	if (commentModalPosition == undefined) {
+		return null
+	}
+
 	return (
 		<Modal
 			mask={!!mask}
-			visible={commentModalPosition !== undefined}
+			visible
 			onCancel={onCancel}
 			// Sets the Modal's mount node as the player center panel.
 			// The default is document.body

@@ -92,6 +92,7 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 							flexGrow={1}
 							direction="row"
 							overflow="hidden"
+							gap="4"
 						>
 							<Stack
 								align="center"
@@ -104,6 +105,7 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 							</Stack>
 
 							<SessionShareButtonV2 />
+							<Panel.HeaderDivider />
 						</Stack>
 					</Panel.Header>
 

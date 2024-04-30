@@ -40,6 +40,7 @@ var fieldMap = map[string]string{
 	"browser_name":      "BrowserName",
 	"browser_version":   "BrowserVersion",
 	"processed":         "Processed",
+	"excluded":          "Excluded",
 	"has_comments":      "HasComments",
 	"has_rage_clicks":   "HasRageClicks",
 	"has_errors":        "HasErrors",
@@ -494,30 +495,32 @@ var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 	AttributesColumn: "SessionAttributes",
 	BodyColumn:       `concat(coalesce(nullif(SessionAttributes['email'],''), nullif(Identifier, ''), nullif(toString(Fingerprint), ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
 	KeysToColumns: map[modelInputs.ReservedSessionKey]string{
-		modelInputs.ReservedSessionKeyActiveLength:   "ActiveLength",
-		modelInputs.ReservedSessionKeyServiceVersion: "AppVersion",
-		modelInputs.ReservedSessionKeyBrowserName:    "BrowserName",
-		modelInputs.ReservedSessionKeyBrowserVersion: "BrowserVersion",
-		modelInputs.ReservedSessionKeyCity:           "City",
-		modelInputs.ReservedSessionKeyCountry:        "Country",
-		modelInputs.ReservedSessionKeyEnvironment:    "Environment",
-		modelInputs.ReservedSessionKeyDeviceID:       "Fingerprint",
-		modelInputs.ReservedSessionKeyFirstTime:      "FirstTime",
-		modelInputs.ReservedSessionKeyHasComments:    "HasComments",
-		modelInputs.ReservedSessionKeyHasErrors:      "HasErrors",
-		modelInputs.ReservedSessionKeyHasRageClicks:  "HasRageClicks",
-		modelInputs.ReservedSessionKeyIdentified:     "Identified",
-		modelInputs.ReservedSessionKeyIdentifier:     "Identifier",
-		modelInputs.ReservedSessionKeyIP:             "IP",
-		modelInputs.ReservedSessionKeyLength:         "Length",
-		modelInputs.ReservedSessionKeyNormalness:     "Normalness",
-		modelInputs.ReservedSessionKeyOsName:         "OSName",
-		modelInputs.ReservedSessionKeyOsVersion:      "OSVersion",
-		modelInputs.ReservedSessionKeyPagesVisited:   "PagesVisited",
-		modelInputs.ReservedSessionKeyProcessed:      "Processed",
-		modelInputs.ReservedSessionKeySecureID:       "SecureID",
-		modelInputs.ReservedSessionKeyLocState:       "State",
-		modelInputs.ReservedSessionKeyViewed:         "Viewed",
+		modelInputs.ReservedSessionKeyActiveLength:       "ActiveLength",
+		modelInputs.ReservedSessionKeyServiceVersion:     "AppVersion",
+		modelInputs.ReservedSessionKeyBrowserName:        "BrowserName",
+		modelInputs.ReservedSessionKeyBrowserVersion:     "BrowserVersion",
+		modelInputs.ReservedSessionKeyCity:               "City",
+		modelInputs.ReservedSessionKeyCountry:            "Country",
+		modelInputs.ReservedSessionKeyEnvironment:        "Environment",
+		modelInputs.ReservedSessionKeyExcluded:           "Excluded",
+		modelInputs.ReservedSessionKeyDeviceID:           "Fingerprint",
+		modelInputs.ReservedSessionKeyFirstTime:          "FirstTime",
+		modelInputs.ReservedSessionKeyHasComments:        "HasComments",
+		modelInputs.ReservedSessionKeyHasErrors:          "HasErrors",
+		modelInputs.ReservedSessionKeyHasRageClicks:      "HasRageClicks",
+		modelInputs.ReservedSessionKeyIdentified:         "Identified",
+		modelInputs.ReservedSessionKeyIdentifier:         "Identifier",
+		modelInputs.ReservedSessionKeyIP:                 "IP",
+		modelInputs.ReservedSessionKeyLength:             "Length",
+		modelInputs.ReservedSessionKeyNormalness:         "Normalness",
+		modelInputs.ReservedSessionKeyOsName:             "OSName",
+		modelInputs.ReservedSessionKeyOsVersion:          "OSVersion",
+		modelInputs.ReservedSessionKeyPagesVisited:       "PagesVisited",
+		modelInputs.ReservedSessionKeyProcessed:          "Processed",
+		modelInputs.ReservedSessionKeySecureID:           "SecureID",
+		modelInputs.ReservedSessionKeyLocState:           "State",
+		modelInputs.ReservedSessionKeyViewed:             "Viewed",
+		modelInputs.ReservedSessionKeyWithinBillingQuota: "WithinBillingQuota",
 	},
 	ReservedKeys: modelInputs.AllReservedSessionKey,
 	IgnoredFilters: map[string]bool{
@@ -535,6 +538,11 @@ var sessionsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedSe
 
 func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	return readMetrics(ctx, client, sessionsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
+}
+
+func (client *Client) ReadWorkspaceSessionCounts(ctx context.Context, projectIDs []int, params modelInputs.QueryInput) (*modelInputs.MetricsBuckets, error) {
+	// 12 buckets - 12 months in a year, or 12 weeks in a quarter
+	return readWorkspaceMetrics(ctx, client, sessionsSampleableTableConfig, projectIDs, params, "", []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, nil, pointy.Int(12), modelInputs.MetricBucketByTimestamp.String(), nil, nil, nil)
 }
 
 func (client *Client) SessionsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {

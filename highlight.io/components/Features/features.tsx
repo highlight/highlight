@@ -6,6 +6,8 @@ export const monitoringscreenshotKey = '/images/monitoringscreenshot.png'
 export const sessionscreenshotKey = '/images/sessionscreenshot.png'
 export const tracesHeroKey = '/images/traces.png'
 export const tracesscreenshotKey = '/images/tracesmobile.svg'
+export const metricsMobileKey = '/images/metricsmobile.png'
+export const metricsHeroKey = '/images/metricshero.webp'
 
 const sessionReplay2 = '/images/features/sessionReplay2.png'
 const sessionReplay3 = '/images/landingInfoRow1.png'
@@ -13,9 +15,12 @@ const sessionReplay4 = '/images/landingInfoRow2.png'
 const errorMonitoring1 = '/images/features/errorMonitoring1.png'
 const errorMonitoring2 = '/images/features/errorMonitoring2.png'
 const logging1 = '/images/features/logging1.png'
-const logging2 = '/images/features/logging2.png'
 const tracing1 = '/images/features/tracing1.png'
 const tracing2 = '/images/features/tracing2.png'
+const clickhouse = '/images/features/clickhouse.png'
+
+const metrics1 = '/images/features/metricserrorrate.png'
+const metrics2 = '/images/features/metricsengagement.png'
 
 type InfoRow = {
 	header: string
@@ -220,7 +225,7 @@ export const FEATURES: { [k: string]: iFeature } = {
 					'Perform fine-grained searches across all of your logs. Powered by ClickHouse, an industry leading time-series database.',
 				link: '/docs/general/product-features/logging/overview',
 				linkText: 'Read the Docs',
-				imgSrc: logging2,
+				imgSrc: clickhouse,
 				invert: false,
 			},
 			{
@@ -280,7 +285,7 @@ export const FEATURES: { [k: string]: iFeature } = {
 					'Perform fine-grained searches across all of your traces. Powered by ClickHouse, an industry leading time-series database.',
 				link: '/docs/general/product-features/tracing/trace-search',
 				linkText: 'Read the Docs',
-				imgSrc: tracing2,
+				imgSrc: clickhouse,
 				invert: false,
 			},
 			{
@@ -310,6 +315,65 @@ export const FEATURES: { [k: string]: iFeature } = {
 				invert: true,
 				code: tracingSnippet,
 				codeFrom: 'Python',
+			},
+		],
+	},
+
+	metrics: {
+		slug: 'metrics',
+		header: 'Metrics & APM for modern web apps',
+		subheader:
+			'Visualize and analyze your observability data on a single pane.',
+		docsLink: '/docs/general/product-features/metrics/overview',
+		slantedImage: metricsHeroKey,
+		regularImage: metricsMobileKey,
+		header2Selection: 4,
+		subheader2:
+			'A suite of tools for visualizing and manipulating data on your web application.',
+		infoRows: [
+			{
+				header: 'From downtime to regressions.',
+				subheader:
+					'Understand the real reason why your web app has slow downs, increased error rates, and more.',
+				link: '/docs/general/product-features/metrics/overview',
+				linkText: 'Read the Docs',
+				imgSrc: metrics1,
+				invert: true,
+			},
+			{
+				header: 'Understand user engagement across your application',
+				subheader: 'Visualize the reason why users stay and leave.',
+				link: '/docs/general/product-features/metrics/overview',
+				linkText: 'Read the Docs',
+				imgSrc: metrics2,
+				invert: false,
+			},
+			{
+				header: 'Insane Performance. Powered by ClickHouse.',
+				subheader:
+					'Perform fast queries across all of your resources. Powered by ClickHouse, an industry leading time-series database.',
+				link: '/docs/general/product-features/metrics/overview',
+				linkText: 'Read the Docs',
+				imgSrc: clickhouse,
+				invert: true,
+			},
+			{
+				header: 'Get alerted across each resource',
+				subheader:
+					'Create alerts to make sure the right teams know when something goes wrong.',
+				link: '/docs/general/product-features/metrics/overview',
+				linkText: 'Read the Docs',
+				imgSrc: logging1,
+				invert: false,
+			},
+			{
+				header: 'Support for all the modern frameworks.',
+				subheader:
+					"Whether it's React, Angular, or even vanilla JS, we got you covered.",
+				link: '/frameworks',
+				linkText: 'View all frameworks',
+				imgSrc: sessionReplay4,
+				invert: true,
 			},
 		],
 	},

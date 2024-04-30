@@ -145,7 +145,7 @@ export const comboboxPopover = style({
 	flexGrow: 1,
 	maxWidth: 600,
 	maxHeight: 'min(var(--popover-available-height,300px),300px)',
-	minWidth: 350,
+	minWidth: 'min(var(--popover-available-width,350px),350px)',
 	paddingBottom: 33,
 	zIndex: 10,
 })

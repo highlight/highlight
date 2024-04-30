@@ -475,7 +475,7 @@ func main() {
 			})
 			privateServer.Use(private.NewGraphqlOAuthValidator(privateResolver.Store))
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
-			privateServer.Use(htrace.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
+			privateServer.Use(htrace.NewGraphqlTracer(string(util.PrivateGraph), trace.WithSpanKind(trace.SpanKindServer)).WithRequestFieldLogging())
 			privateServer.SetErrorPresenter(htrace.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			privateServer.SetRecoverFunc(htrace.GraphQLRecoverFunc())
 			r.Handle("/",

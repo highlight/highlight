@@ -3774,3 +3774,149 @@ func (r *Resolver) GetGitlabProjects(
 
 	return gitlab.GetGitlabProjects(workspace, *accessToken)
 }
+
+func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*model.VisualizationsResponse, error) {
+	viz := model.Visualization{
+		ProjectID: projectID,
+		Name:      "Insights",
+	}
+
+	countAggregator := modelInputs.MetricAggregatorCount
+
+	graphs := []*model.Graph{
+		{
+			Type:         "Bar chart",
+			Title:        "Active users",
+			ProductType:  "Sessions",
+			Query:        "email exists",
+			FunctionType: "Count",
+			BucketByKey:  pointy.String("Timestamp"),
+			BucketCount:  pointy.Int(24),
+			Display:      pointy.String("Stacked"),
+		},
+		{
+			Type:              "Bar chart",
+			Title:             "Most visited pages",
+			ProductType:       "Sessions",
+			FunctionType:      "Count",
+			GroupByKey:        pointy.String("visited-url"),
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Limit:             pointy.Int(5),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Stacked"),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "H.track events",
+			ProductType:       "Sessions",
+			Query:             "event exists",
+			Metric:            "active_length",
+			FunctionType:      "Avg",
+			GroupByKey:        pointy.String("event"),
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Stacked area"),
+			NullHandling:      pointy.String("Hidden"),
+		},
+		{
+			Type:         "Line chart",
+			Title:        "Sessions with user frustration",
+			ProductType:  "Sessions",
+			Query:        "has_rage_clicks=true",
+			FunctionType: "Count",
+			BucketByKey:  pointy.String("Timestamp"),
+			BucketCount:  pointy.Int(24),
+			Display:      pointy.String("Line"),
+			NullHandling: pointy.String("Hidden"),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "Slowest APIs",
+			ProductType:       "Traces",
+			Query:             "http.method exists http.url exists http.url=*api*",
+			FunctionType:      "P95",
+			Metric:            "duration",
+			GroupByKey:        pointy.String("span_name"),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+		},
+		{
+			Type:              "Table",
+			Title:             "Errors by browser",
+			ProductType:       "Errors",
+			FunctionType:      "Count",
+			Query:             "browser exists",
+			GroupByKey:        pointy.String("browser"),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			NullHandling:      pointy.String("Hide row"),
+		},
+	}
+
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&viz).Error; err != nil {
+			return err
+		}
+
+		var count int64
+		if err := tx.WithContext(ctx).Model(&model.Visualization{}).
+			Where("project_id = ?", projectID).Count(&count).Error; err != nil {
+			return err
+		}
+
+		for _, g := range graphs {
+			g.VisualizationID = viz.ID
+		}
+
+		if count > 1 {
+			return errors.New("default dashboard already created")
+		}
+
+		if err := tx.Create(&graphs).Error; err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	for _, g := range graphs {
+		viz.Graphs = append(viz.Graphs, *g)
+	}
+
+	return &model.VisualizationsResponse{
+		Count:   1,
+		Results: []model.Visualization{viz},
+	}, nil
+}
+
+func reorderGraphs(viz *model.Visualization) {
+	// Reorder the graphs according to the ordering in viz.GraphIds.
+	// If the ordering includes ids not present in viz.Graphs, disregard those.
+	// If the ordering does not include ids present in viz.Graphs, append those at the end in order.
+	graphsById := lo.SliceToMap(viz.Graphs, func(g model.Graph) (int32, model.Graph) { return int32(g.ID), g })
+	orderedGraphs := []model.Graph{}
+	for _, id := range viz.GraphIds {
+		graph, found := graphsById[id]
+		if !found {
+			continue
+		}
+		orderedGraphs = append(orderedGraphs, graph)
+	}
+	graphIds := lo.SliceToMap(viz.GraphIds, func(id int32) (int32, struct{}) { return id, struct{}{} })
+	for _, graph := range viz.Graphs {
+		_, found := graphIds[int32(graph.ID)]
+		if !found {
+			orderedGraphs = append(orderedGraphs, graph)
+		}
+	}
+	viz.Graphs = orderedGraphs
+}

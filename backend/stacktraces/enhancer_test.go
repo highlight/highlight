@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -107,7 +108,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 					FunctionName: ptr.String("arrayIncludesWith"),
 				},
 			},
-			fetcher: NetworkFetcher{},
+			fetcher: NetworkFetcher{redis: redis.NewClient()},
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:no related source map": {
@@ -157,7 +158,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 					},
 				},
 			},
-			fetcher: NetworkFetcher{},
+			fetcher: NetworkFetcher{redis: redis.NewClient()},
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:filename is not a url": {
@@ -182,7 +183,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 					},
 				},
 			},
-			fetcher: NetworkFetcher{},
+			fetcher: NetworkFetcher{redis: redis.NewClient()},
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:trace is nil": {
@@ -258,7 +259,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 					FunctionName: ptr.String("Error"),
 				},
 			},
-			fetcher: NetworkFetcher{},
+			fetcher: NetworkFetcher{redis: redis.NewClient()},
 			err:     e.New(""),
 		},
 	}
@@ -274,9 +275,11 @@ func TestEnhanceStackTrace(t *testing.T) {
 	}
 
 	// run tests
+	redisClient := redis.NewClient()
 	for _, client := range []storage.Client{s3Client, fsClient} {
 		for name, tc := range tests {
 			t.Run(fmt.Sprintf("%s/%v", name, client), func(t *testing.T) {
+				_ = redisClient.FlushDB(ctx)
 				if tc.projectID == 0 {
 					tc.projectID = 1
 				} else if client == s3Client {
@@ -313,7 +316,7 @@ func TestEnhanceBackendNextServerlessTrace(t *testing.T) {
 		t.Fatalf("error creating storage client: %v", err)
 	}
 
-	fetch = NetworkFetcher{}
+	fetch = NetworkFetcher{redis: redis.NewClient()}
 
 	var stackFrameInput []*publicModelInput.StackFrameInput
 	err = json.Unmarshal([]byte(`[{"fileName":"/var/task/apps/magicsky/.next/server/app/(route-group-test)/[slug]/page-router-edge-test.js","lineNumber":1,"functionName":"s","columnNumber":3344,"error":"Error: 🎉 SSR Error with use-server: src/app-router/ssr/page.tsx"}]`), &stackFrameInput)
@@ -351,7 +354,7 @@ func TestEnhanceStackTraceProd(t *testing.T) {
 		t.Fatalf("error creating storage client: %v", err)
 	}
 
-	fetch = NetworkFetcher{}
+	fetch = NetworkFetcher{redis: redis.NewClient()}
 	mappedStackTrace, err := EnhanceStackTrace(ctx, []*publicModelInput.StackFrameInput{
 		{
 			FunctionName: nil,
