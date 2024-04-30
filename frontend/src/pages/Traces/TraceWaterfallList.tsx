@@ -28,8 +28,7 @@ img.src =
 	'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs='
 
 export const TraceWaterfallList: React.FC = () => {
-	const { selectedSpan, spanCount, spans, totalDuration, setSelectedSpan } =
-		useTrace()
+	const { selectedSpan, spans, totalDuration, setSelectedSpan } = useTrace()
 	const bodyRef = useRef<HTMLDivElement>(null)
 	const tabsContext = Tabs.useContext()!
 	const activeTab = tabsContext.useState('activeId')
@@ -51,12 +50,14 @@ export const TraceWaterfallList: React.FC = () => {
 	)
 
 	useEffect(() => {
-		const bodyHeight = bodyRef.current?.clientHeight ?? 0
+		const bodyRefHeight = bodyRef.current?.clientHeight ?? 0
 
-		if (bodyHeight > 0) {
-			setBodyHeight(`${Math.min(bodyHeight, 280)}px`)
+		debugger
+		if (bodyHeight === 'auto' && bodyRefHeight > 0) {
+			setBodyHeight(`${Math.min(bodyRefHeight, 280)}px`)
 		}
-	}, [spanCount, activeTab])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	const handleDrag = (e: React.DragEvent, name: string) => {
 		const headerRef = e.currentTarget.parentElement?.parentElement

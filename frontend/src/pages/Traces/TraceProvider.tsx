@@ -26,7 +26,6 @@ type TraceContext = {
 	loading: boolean
 	traces: FlameGraphSpan[][]
 	spans: FlameGraphSpan[]
-	spanCount: number
 	error?: ApolloError
 	traceId?: string
 	secureSessionId?: string
@@ -110,14 +109,6 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 
 	const durationString = getTraceDurationString(totalDuration)
 
-	const spanCount = useMemo(() => {
-		if (!data?.trace?.trace) {
-			return 0
-		}
-
-		return data.trace.trace.length
-	}, [data?.trace?.trace])
-
 	const traces = useMemo(() => {
 		if (!data?.trace?.trace) return []
 		const sortableTraces = [...data.trace.trace]
@@ -157,7 +148,6 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 				traceId,
 				traces,
 				spans,
-				spanCount,
 				error,
 				secureSessionId: firstSpan?.secureSessionID,
 				setHoveredSpan,
