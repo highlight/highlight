@@ -211,13 +211,11 @@ const WaterfallRow: React.FC<{
 					borderRadius="0"
 					style={{
 						height: ROW_HEIGHT, // to avoid extra height from icon
-						paddingLeft: depth * 16 + 8,
+						padding: `0 0 0 ${depth * 16 + 8}px`,
 					}}
 				>
 					{hasChildren && (
-						<Box
-							display="flex"
-							flexShrink={0}
+						<ButtonIcon
 							onClick={(e) => {
 								e.stopPropagation()
 
@@ -227,14 +225,18 @@ const WaterfallRow: React.FC<{
 									setSelectedSpan(span)
 								}
 							}}
-							cursor="pointer"
-						>
-							{open ? (
-								<IconSolidCheveronDown size={12} />
-							) : (
-								<IconSolidCheveronRight size={12} />
-							)}
-						</Box>
+							icon={
+								open ? (
+									<IconSolidCheveronDown size={12} />
+								) : (
+									<IconSolidCheveronRight size={12} />
+								)
+							}
+							style={{
+								display: 'flex',
+								flexShrink: 0,
+							}}
+						/>
 					)}
 
 					<Text
