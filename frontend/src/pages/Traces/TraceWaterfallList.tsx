@@ -52,17 +52,21 @@ export const TraceWaterfallList: React.FC = () => {
 
 	useEffect(() => {
 		setQuery('')
+		setBodyHeight('auto')
 	}, [activeTab])
 
 	useEffect(() => {
-		const bodyRefHeight = bodyRef.current?.clientHeight ?? 0
+		if (bodyHeight !== 'auto') {
+			return
+		}
 
-		if (bodyHeight === 'auto' && bodyRefHeight > 0) {
+		const bodyRefHeight = bodyRef.current?.clientHeight ?? 0
+		if (bodyRefHeight > 0) {
 			setBodyHeight(`${Math.min(bodyRefHeight, 280)}px`)
 		}
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [traceId, activeTab])
+	}, [traceId, activeTab, query])
 
 	const handleDrag = (e: React.DragEvent, name: string) => {
 		const headerRef = e.currentTarget.parentElement?.parentElement
@@ -176,6 +180,9 @@ export const TraceWaterfallList: React.FC = () => {
 							justifyContent="center"
 							alignItems="center"
 							height="full"
+							style={{
+								height: ROW_HEIGHT,
+							}}
 						>
 							<Text>No spans match search query</Text>
 						</Stack>
