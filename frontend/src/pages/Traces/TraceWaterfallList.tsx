@@ -11,7 +11,7 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 
 import { getSpanTheme } from '@/pages/Traces/TraceFlameGraphNode'
 import { useTrace } from '@/pages/Traces/TraceProvider'
@@ -27,11 +27,9 @@ img.src =
 	'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs='
 
 export const TraceWaterfallList: React.FC = () => {
-	const { selectedSpan, spanCount, spans, totalDuration, setSelectedSpan } =
-		useTrace()
+	const { selectedSpan, spans, totalDuration, setSelectedSpan } = useTrace()
 	const bodyRef = useRef<HTMLDivElement>(null)
 	const [query, setQuery] = useState('')
-	const [bodyHeight, setBodyHeight] = useState('auto')
 	const [columns, setColumns] = useLocalStorage(
 		'highlight-trace-waterfall-list-column-sizes',
 		[
@@ -46,11 +44,6 @@ export const TraceWaterfallList: React.FC = () => {
 			spans.some((span) => doesSpanOrDescendantsMatchQuery(span, query)),
 		[spans, query],
 	)
-
-	useEffect(() => {
-		const bodyHeight = bodyRef.current?.clientHeight ?? ROW_HEIGHT
-		setBodyHeight(`${Math.min(bodyHeight, 280)}px`)
-	}, [spanCount, bodyRef.current?.clientHeight])
 
 	const handleDrag = (e: React.DragEvent, name: string) => {
 		const headerRef = e.currentTarget.parentElement?.parentElement
@@ -144,7 +137,7 @@ export const TraceWaterfallList: React.FC = () => {
 				<Table.Body
 					ref={bodyRef}
 					overflowY="auto"
-					style={{ height: bodyHeight }}
+					style={{ maxHeight: 280 }}
 				>
 					{canRenderSpans ? (
 						spans.map((span) => (
