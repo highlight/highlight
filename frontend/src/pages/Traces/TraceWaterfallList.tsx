@@ -1,5 +1,6 @@
 import {
 	Box,
+	Callout,
 	Form,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
@@ -144,14 +145,13 @@ export const TraceWaterfallList: React.FC = () => {
 							/>
 						))
 					) : (
-						<Table.Row>
-							<Table.Cell
-								colSpan={3}
-								style={{ height: ROW_HEIGHT }}
-							>
-								<Text>No spans match query</Text>
-							</Table.Cell>
-						</Table.Row>
+						<Stack
+							justifyContent="center"
+							alignItems="center"
+							height="full"
+						>
+							<Callout kind="info" title="No spans found" />
+						</Stack>
 					)}
 				</Table.Body>
 			</Table>
