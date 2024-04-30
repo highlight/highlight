@@ -1,7 +1,6 @@
 import {
 	Box,
 	ButtonIcon,
-	Callout,
 	Form,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
@@ -117,7 +116,7 @@ export const TraceWaterfallList: React.FC = () => {
 						<ButtonIcon
 							kind="secondary"
 							emphasis="low"
-							size="small"
+							size="xSmall"
 							icon={<IconSolidXCircle />}
 							onClick={() => setQuery('')}
 						/>
@@ -165,7 +164,7 @@ export const TraceWaterfallList: React.FC = () => {
 							alignItems="center"
 							height="full"
 						>
-							<Callout kind="info" title="No spans found" />
+							<Text>No spans match search query</Text>
 						</Stack>
 					)}
 				</Table.Body>
