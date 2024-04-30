@@ -1,6 +1,6 @@
 ---
 title: "Day 1: SDK Additions"
-createdAt: 2024-04-29T12:00:00Z
+createdAt: 2024-04-29T00:00:00Z
 readingTime: 3
 authorFirstName: Jay
 authorLastName: Khatri

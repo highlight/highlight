@@ -1,6 +1,6 @@
 ---
 title: "Day 2: Logs & Traces"
-createdAt: 2024-04-30T07:00:00Z
+createdAt: 2024-04-30T00:00:00Z
 readingTime: 3
 authorFirstName: Jay
 authorLastName: Khatri
