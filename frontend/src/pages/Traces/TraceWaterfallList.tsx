@@ -115,6 +115,9 @@ export const TraceWaterfallList: React.FC = () => {
 					/>
 					{query && (
 						<ButtonIcon
+							kind="secondary"
+							emphasis="low"
+							size="small"
 							icon={<IconSolidXCircle />}
 							onClick={() => setQuery('')}
 						/>
