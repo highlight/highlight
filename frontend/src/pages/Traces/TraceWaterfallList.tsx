@@ -50,7 +50,7 @@ export const TraceWaterfallList: React.FC = () => {
 	useEffect(() => {
 		const bodyHeight = bodyRef.current?.clientHeight ?? ROW_HEIGHT
 		setBodyHeight(`${Math.min(bodyHeight, 280)}px`)
-	}, [spanCount])
+	}, [spanCount, bodyRef.current?.clientHeight])
 
 	const handleDrag = (e: React.DragEvent, name: string) => {
 		const headerRef = e.currentTarget.parentElement?.parentElement
