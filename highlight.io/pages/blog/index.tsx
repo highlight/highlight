@@ -67,7 +67,7 @@ export function markdownToPost(
 		metaDescription: data.metaDescription || data.description || null,
 		metaTitle: data.metaTitle || data.title || null,
 		publishedAt: data.createdAt,
-		postedAt: data.createdAt,
+		postedAt: data.createdAt || new Date().toISOString(),
 		readingTime: data.readingTime || '12',
 		richcontent: {
 			markdown: content,
@@ -103,7 +103,7 @@ export const getStaticProps: GetStaticProps = async () => {
 	let tags = await loadTagsFromGithub(posts)
 
 	posts
-		.filter((a) => new Date().getTime() - Date.parse(a.postedAt) > 0)
+		.filter((a) => new Date().getTime() - Date.parse(a.postedAt) >= 0)
 		.sort((a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt))
 	tags = getUniqueTags(tags)
 
