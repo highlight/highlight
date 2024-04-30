@@ -43,6 +43,9 @@ import {
 import { HistogramLoading } from '@/pages/Traces/TracesPage'
 
 import * as style from './Graph.css'
+import SvgGraphingHovercardBar from '@/static/SvgGraphingHovercardBar'
+import SvgGraphingHovercardLine from '@/static/SvgGraphingHovercardLine'
+import SvgGraphingHovercardTable from '@/static/SvgGraphingHovercardTable'
 
 export type View = 'Line chart' | 'Bar chart' | 'Table'
 export const VIEWS: View[] = ['Line chart', 'Bar chart', 'Table']
@@ -52,6 +55,29 @@ export const VIEW_ICONS = [
 	<IconSolidTable size={16} key="table" />,
 ]
 export const VIEW_LABELS = ['Line chart', 'Bar chart / histogram', 'Table']
+export const VIEW_TOOLTIPS = [
+	<Stack>
+		<SvgGraphingHovercardLine />
+		<Text>
+			Bar charts that plot the values of the metric on the Y axis with
+			time on the X axis.{' '}
+		</Text>
+	</Stack>,
+	<Stack>
+		<SvgGraphingHovercardBar />
+		<Text>
+			Bar charts that plot the values of the metric on the Y axis with
+			time on the X axis.{' '}
+		</Text>
+	</Stack>,
+	<Stack>
+		<SvgGraphingHovercardTable />
+		<Text>
+			Bar charts that plot the values of the metric on the Y axis with
+			time on the X axis.{' '}
+		</Text>
+	</Stack>,
+]
 
 export const TIMESTAMP_KEY = 'Timestamp'
 export const GROUP_KEY = 'Group'

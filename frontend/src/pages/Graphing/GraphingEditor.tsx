@@ -18,6 +18,7 @@ import {
 	Stack,
 	TagSwitchGroup,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { Divider, message } from 'antd'
@@ -52,6 +53,7 @@ import Graph, {
 	View,
 	VIEW_ICONS,
 	VIEW_LABELS,
+	VIEW_TOOLTIPS,
 	VIEWS,
 } from '@/pages/Graphing/components/Graph'
 import {
@@ -67,6 +69,7 @@ import {
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 
 import * as style from './GraphingEditor.css'
+import SvgGraphingHovercardBar from '@/static/SvgGraphingHovercardBar'
 
 const DEFAULT_BUCKET_COUNT = 50
 
@@ -182,12 +185,14 @@ const OptionDropdown = <T extends string>({
 	setSelection,
 	icons,
 	labels,
+	tooltips,
 }: {
 	options: T[]
 	selection: T
 	setSelection: (option: T) => void
 	icons?: JSX.Element[]
 	labels?: string[]
+	tooltips?: React.ReactNode[]
 }) => {
 	const selectedIndex = options.indexOf(selection)
 	const selectedIcon = icons?.at(selectedIndex)
@@ -215,19 +220,31 @@ const OptionDropdown = <T extends string>({
 				</Box>
 			</Menu.Button>
 			<Menu.List>
-				{options.map((p, idx) => (
-					<Menu.Item
-						key={p}
-						onClick={() => {
-							setSelection(p as T)
-						}}
-					>
+				{options.map((p, idx) => {
+					let innerContent: React.ReactNode = (
 						<Stack direction="row" alignItems="center" gap="4">
 							{icons?.at(idx)}
 							{labels?.at(idx) ?? p}
 						</Stack>
-					</Menu.Item>
-				))}
+					)
+					if (tooltips !== undefined) {
+						innerContent = (
+							<Tooltip placement={'left'} trigger={innerContent}>
+								{tooltips[idx]}
+							</Tooltip>
+						)
+					}
+					return (
+						<Menu.Item
+							key={p}
+							onClick={() => {
+								setSelection(p as T)
+							}}
+						>
+							{innerContent}
+						</Menu.Item>
+					)
+				})}
 			</Menu.List>
 		</Menu>
 	)
@@ -764,6 +781,7 @@ export const GraphingEditor = () => {
 											setSelection={setViewType}
 											icons={VIEW_ICONS}
 											labels={VIEW_LABELS}
+											tooltips={VIEW_TOOLTIPS}
 										/>
 									</LabeledRow>
 									{viewType === 'Line chart' && (
