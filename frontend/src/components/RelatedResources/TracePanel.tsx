@@ -19,7 +19,10 @@ export const TracePanel: React.FC<{ resource: RelatedTrace }> = ({
 
 	return (
 		<>
-			<Panel.Header path={path} />
+			<Panel.Header path={path}>
+				<Panel.HeaderCopyLinkButton path={path} />
+				<Panel.HeaderDivider />
+			</Panel.Header>
 
 			<Box overflowY="scroll" px="36" pt="28" pb="20">
 				{!traces?.length && loading ? (
@@ -39,7 +42,7 @@ export const TracePanel: React.FC<{ resource: RelatedTrace }> = ({
 							</Text>
 							<Box bb="dividerWeak" mt="12" mb="8" />
 
-							<TraceSpanAttributes span={span!} />
+							{span && <TraceSpanAttributes span={span} />}
 						</Box>
 					</Box>
 				)}

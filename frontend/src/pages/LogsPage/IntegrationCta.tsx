@@ -27,14 +27,7 @@ export const IntegrationCta: React.FC = () => {
 	}
 
 	return (
-		<Box
-			style={{
-				marginTop: 5,
-				marginLeft: -2,
-				marginRight: -2,
-				marginBottom: 8,
-			}}
-		>
+		<Box m="8">
 			<Callout kind="info">
 				<Stack direction="row" justify="space-between" align="center">
 					<Stack gap="12" direction="column" paddingBottom="6">

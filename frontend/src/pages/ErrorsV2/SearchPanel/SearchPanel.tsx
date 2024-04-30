@@ -125,7 +125,6 @@ export const SearchPanel = () => {
 				}}
 			/>
 			<Box
-				paddingTop="4"
 				padding="8"
 				overflowX="hidden"
 				overflowY="auto"

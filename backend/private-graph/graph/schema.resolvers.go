@@ -6904,6 +6904,78 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	return details, nil
 }
 
+// UsageHistory is the resolver for the usageHistory field.
+func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, dateRange *modelInputs.DateRangeRequiredInput) (*modelInputs.UsageHistory, error) {
+	_, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, nil
+	}
+
+	workspace, err := r.Query().Workspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	projectIds := lo.Map(workspace.Projects, func(p model.Project, _ int) int {
+		return p.ID
+	})
+
+	var g errgroup.Group
+	var sessionsMeter, errorsMeter, logsMeter, tracesMeter *modelInputs.MetricsBuckets
+
+	g.Go(func() (err error) {
+		sessionsMeter, err = r.ClickhouseClient.ReadWorkspaceSessionCounts(ctx, projectIds, modelInputs.QueryInput{
+			Query:     "processed=true AND excluded=false AND active_length > 1000",
+			DateRange: dateRange,
+		})
+		if err != nil {
+			return e.Wrap(err, "failed to query session usage")
+		}
+		return nil
+	})
+	g.Go(func() (err error) {
+		errorsMeter, err = r.ClickhouseClient.ReadWorkspaceErrorCounts(ctx, projectIds, modelInputs.QueryInput{
+			Query:     "",
+			DateRange: dateRange,
+		})
+		if err != nil {
+			return e.Wrap(err, "failed to query error usage")
+		}
+		return nil
+	})
+	g.Go(func() (err error) {
+		logsMeter, err = r.ClickhouseClient.ReadWorkspaceLogCounts(ctx, projectIds, modelInputs.QueryInput{
+			Query:     "",
+			DateRange: dateRange,
+		})
+		if err != nil {
+			return e.Wrap(err, "failed to query log usage")
+		}
+		return nil
+	})
+	g.Go(func() (err error) {
+		tracesMeter, err = r.ClickhouseClient.ReadWorkspaceTraceCounts(ctx, projectIds, modelInputs.QueryInput{
+			Query:     "",
+			DateRange: dateRange,
+		})
+		if err != nil {
+			return e.Wrap(err, "failed to query trace usage")
+		}
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	return &modelInputs.UsageHistory{
+		SessionUsage: sessionsMeter,
+		ErrorsUsage:  errorsMeter,
+		LogsUsage:    logsMeter,
+		TracesUsage:  tracesMeter,
+	}, nil
+}
+
 // FieldSuggestion is the resolver for the field_suggestion field.
 func (r *queryResolver) FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model.Field, error) {
 	fields := []*model.Field{}
@@ -9002,8 +9074,13 @@ func (r *queryResolver) ErrorsKeys(ctx context.Context, projectID int, dateRange
 	if typeArg != nil && *typeArg != modelInputs.KeyTypeString {
 		return []*modelInputs.QueryKey{}, nil
 	} else {
-		return lo.Map(modelInputs.AllReservedErrorsJoinedKey, func(k modelInputs.ReservedErrorsJoinedKey, _ int) *modelInputs.QueryKey {
-			return &modelInputs.QueryKey{Name: string(k), Type: modelInputs.KeyTypeString}
+		return lo.FilterMap(modelInputs.AllReservedErrorsJoinedKey, func(k modelInputs.ReservedErrorsJoinedKey, _ int) (*modelInputs.QueryKey, bool) {
+			// Skip this key if filtered out by the query
+			if query != nil && !strings.Contains(strings.ToLower(string(k)), strings.ToLower(*query)) {
+				return nil, false
+			}
+
+			return &modelInputs.QueryKey{Name: string(k), Type: modelInputs.KeyTypeString}, true
 		}), nil
 	}
 }
@@ -9113,26 +9190,7 @@ func (r *queryResolver) Visualization(ctx context.Context, id int) (*model.Visua
 		return nil, err
 	}
 
-	// Reorder the graphs according to the ordering in viz.GraphIds.
-	// If the ordering includes ids not present in viz.Graphs, disregard those.
-	// If the ordering does not include ids present in viz.Graphs, append those at the end in order.
-	graphsById := lo.SliceToMap(viz.Graphs, func(g model.Graph) (int32, model.Graph) { return int32(g.ID), g })
-	orderedGraphs := []model.Graph{}
-	for _, id := range viz.GraphIds {
-		graph, found := graphsById[id]
-		if !found {
-			continue
-		}
-		orderedGraphs = append(orderedGraphs, graph)
-	}
-	graphIds := lo.SliceToMap(viz.GraphIds, func(id int32) (int32, struct{}) { return id, struct{}{} })
-	for _, graph := range viz.Graphs {
-		_, found := graphIds[int32(graph.ID)]
-		if !found {
-			orderedGraphs = append(orderedGraphs, graph)
-		}
-	}
-	viz.Graphs = orderedGraphs
+	reorderGraphs(&viz)
 
 	_, err := r.isAdminInProjectOrDemoProject(ctx, viz.ProjectID)
 	if err != nil {
@@ -9166,12 +9224,18 @@ func (r *queryResolver) Visualizations(ctx context.Context, projectID int, input
 
 	results := []model.Visualization{}
 	for _, v := range viz {
+		reorderGraphs(&v.Visualization)
 		results = append(results, v.Visualization)
 	}
 
 	totalCount := 0
 	if len(viz) > 0 {
 		totalCount = viz[0].Count
+	}
+
+	// If no dashboards have been created for this project, create a default dashboard.
+	if input == "" && totalCount == 0 {
+		return r.CreateDefaultDashboard(ctx, projectID)
 	}
 
 	return &model.VisualizationsResponse{

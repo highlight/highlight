@@ -1,6 +1,6 @@
 ---
 title: "Day 3: Metrics & APM"
-createdAt: 2024-02-02T12:00:00Z
+createdAt: 2024-05-01T07:00:00Z
 readingTime: 3
 authorFirstName: Jay
 authorLastName: Khatri

@@ -68,8 +68,8 @@ export const BarChart = ({
 	spotlight,
 	viewConfig,
 }: InnerChartProps<BarChartConfig> & SeriesInfo) => {
-	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data?.length)
-	const yAxisTickFormatter = getTickFormatter(yAxisMetric)
+	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
+	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
 
 	// used to give svg masks an id unique to the page
 	const id = useId()

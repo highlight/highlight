@@ -1104,6 +1104,7 @@ type ComplexityRoot struct {
 		TracesMetrics                    func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
 		TrackPropertiesAlerts            func(childComplexity int, projectID int) int
 		UnprocessedSessionsCount         func(childComplexity int, projectID int) int
+		UsageHistory                     func(childComplexity int, workspaceID int, dateRange *model.DateRangeRequiredInput) int
 		UserFingerprintCount             func(childComplexity int, projectID int, lookbackDays float64) int
 		UserPropertiesAlerts             func(childComplexity int, projectID int) int
 		VercelProjectMappings            func(childComplexity int, projectID int) int
@@ -1534,6 +1535,13 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	UsageHistory struct {
+		ErrorsUsage  func(childComplexity int) int
+		LogsUsage    func(childComplexity int) int
+		SessionUsage func(childComplexity int) int
+		TracesUsage  func(childComplexity int) int
+	}
+
 	User struct {
 		ID func(childComplexity int) int
 	}
@@ -1857,6 +1865,7 @@ type QueryResolver interface {
 	ErrorFieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error)
 	BillingDetailsForProject(ctx context.Context, projectID int) (*model.BillingDetails, error)
 	BillingDetails(ctx context.Context, workspaceID int) (*model.BillingDetails, error)
+	UsageHistory(ctx context.Context, workspaceID int, dateRange *model.DateRangeRequiredInput) (*model.UsageHistory, error)
 	FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model1.Field, error)
 	PropertySuggestion(ctx context.Context, projectID int, query string, typeArg string) ([]*model1.Field, error)
 	ErrorFieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model1.ErrorField, error)
@@ -8528,6 +8537,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.UnprocessedSessionsCount(childComplexity, args["project_id"].(int)), true
 
+	case "Query.usageHistory":
+		if e.complexity.Query.UsageHistory == nil {
+			break
+		}
+
+		args, err := ec.field_Query_usageHistory_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.UsageHistory(childComplexity, args["workspace_id"].(int), args["date_range"].(*model.DateRangeRequiredInput)), true
+
 	case "Query.userFingerprintCount":
 		if e.complexity.Query.UserFingerprintCount == nil {
 			break
@@ -10685,6 +10706,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TrackProperty.Value(childComplexity), true
 
+	case "UsageHistory.errors_usage":
+		if e.complexity.UsageHistory.ErrorsUsage == nil {
+			break
+		}
+
+		return e.complexity.UsageHistory.ErrorsUsage(childComplexity), true
+
+	case "UsageHistory.logs_usage":
+		if e.complexity.UsageHistory.LogsUsage == nil {
+			break
+		}
+
+		return e.complexity.UsageHistory.LogsUsage(childComplexity), true
+
+	case "UsageHistory.session_usage":
+		if e.complexity.UsageHistory.SessionUsage == nil {
+			break
+		}
+
+		return e.complexity.UsageHistory.SessionUsage(childComplexity), true
+
+	case "UsageHistory.traces_usage":
+		if e.complexity.UsageHistory.TracesUsage == nil {
+			break
+		}
+
+		return e.complexity.UsageHistory.TracesUsage(childComplexity), true
+
 	case "User.id":
 		if e.complexity.User.ID == nil {
 			break
@@ -11456,6 +11505,13 @@ type BillingDetails {
 	errorsBillingLimit: Int64
 	logsBillingLimit: Int64
 	tracesBillingLimit: Int64
+}
+
+type UsageHistory {
+	session_usage: MetricsBuckets!
+	errors_usage: MetricsBuckets!
+	logs_usage: MetricsBuckets!
+	traces_usage: MetricsBuckets!
 }
 
 type Invoice {
@@ -12309,6 +12365,7 @@ enum ReservedErrorsJoinedKey {
 	"""
 	ReservedErrorObjectKey
 	"""
+	id
 	browser
 	client_id
 	environment
@@ -12338,6 +12395,7 @@ enum ReservedSessionKey {
 	country
 	device_id
 	environment
+	excluded
 	first_time
 	has_comments
 	has_errors
@@ -12357,6 +12415,7 @@ enum ReservedSessionKey {
 	service_version
 	viewed
 	viewed_by_me
+	within_billing_quota
 }
 
 enum LogSource {
@@ -13397,6 +13456,10 @@ type Query {
 	): [String!]!
 	billingDetailsForProject(project_id: ID!): BillingDetails
 	billingDetails(workspace_id: ID!): BillingDetails!
+	usageHistory(
+		workspace_id: ID!
+		date_range: DateRangeRequiredInput
+	): UsageHistory!
 	# gets all the projects of a user
 	field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
 	property_suggestion(project_id: ID!, query: String!, type: String!): [Field]
@@ -21871,6 +21934,30 @@ func (ec *executionContext) field_Query_unprocessedSessionsCount_args(ctx contex
 		}
 	}
 	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_usageHistory_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	var arg1 *model.DateRangeRequiredInput
+	if tmp, ok := rawArgs["date_range"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
+		arg1, err = ec.unmarshalODateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["date_range"] = arg1
 	return args, nil
 }
 
@@ -56043,6 +56130,71 @@ func (ec *executionContext) fieldContext_Query_billingDetails(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_usageHistory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_usageHistory(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().UsageHistory(rctx, fc.Args["workspace_id"].(int), fc.Args["date_range"].(*model.DateRangeRequiredInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.UsageHistory)
+	fc.Result = res
+	return ec.marshalNUsageHistory2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUsageHistory(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_usageHistory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "session_usage":
+				return ec.fieldContext_UsageHistory_session_usage(ctx, field)
+			case "errors_usage":
+				return ec.fieldContext_UsageHistory_errors_usage(ctx, field)
+			case "logs_usage":
+				return ec.fieldContext_UsageHistory_logs_usage(ctx, field)
+			case "traces_usage":
+				return ec.fieldContext_UsageHistory_traces_usage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UsageHistory", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_usageHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_field_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_field_suggestion(ctx, field)
 	if err != nil {
@@ -75723,6 +75875,214 @@ func (ec *executionContext) fieldContext_TrackProperty_value(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _UsageHistory_session_usage(ctx context.Context, field graphql.CollectedField, obj *model.UsageHistory) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UsageHistory_session_usage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionUsage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.MetricsBuckets)
+	fc.Result = res
+	return ec.marshalNMetricsBuckets2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricsBuckets(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UsageHistory_session_usage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UsageHistory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "buckets":
+				return ec.fieldContext_MetricsBuckets_buckets(ctx, field)
+			case "bucket_count":
+				return ec.fieldContext_MetricsBuckets_bucket_count(ctx, field)
+			case "sample_factor":
+				return ec.fieldContext_MetricsBuckets_sample_factor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MetricsBuckets", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UsageHistory_errors_usage(ctx context.Context, field graphql.CollectedField, obj *model.UsageHistory) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UsageHistory_errors_usage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorsUsage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.MetricsBuckets)
+	fc.Result = res
+	return ec.marshalNMetricsBuckets2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricsBuckets(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UsageHistory_errors_usage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UsageHistory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "buckets":
+				return ec.fieldContext_MetricsBuckets_buckets(ctx, field)
+			case "bucket_count":
+				return ec.fieldContext_MetricsBuckets_bucket_count(ctx, field)
+			case "sample_factor":
+				return ec.fieldContext_MetricsBuckets_sample_factor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MetricsBuckets", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UsageHistory_logs_usage(ctx context.Context, field graphql.CollectedField, obj *model.UsageHistory) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UsageHistory_logs_usage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogsUsage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.MetricsBuckets)
+	fc.Result = res
+	return ec.marshalNMetricsBuckets2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricsBuckets(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UsageHistory_logs_usage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UsageHistory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "buckets":
+				return ec.fieldContext_MetricsBuckets_buckets(ctx, field)
+			case "bucket_count":
+				return ec.fieldContext_MetricsBuckets_bucket_count(ctx, field)
+			case "sample_factor":
+				return ec.fieldContext_MetricsBuckets_sample_factor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MetricsBuckets", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UsageHistory_traces_usage(ctx context.Context, field graphql.CollectedField, obj *model.UsageHistory) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UsageHistory_traces_usage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TracesUsage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.MetricsBuckets)
+	fc.Result = res
+	return ec.marshalNMetricsBuckets2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricsBuckets(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UsageHistory_traces_usage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UsageHistory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "buckets":
+				return ec.fieldContext_MetricsBuckets_buckets(ctx, field)
+			case "bucket_count":
+				return ec.fieldContext_MetricsBuckets_bucket_count(ctx, field)
+			case "sample_factor":
+				return ec.fieldContext_MetricsBuckets_sample_factor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MetricsBuckets", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_User_id(ctx, field)
 	if err != nil {
@@ -90146,6 +90506,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "usageHistory":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_usageHistory(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "field_suggestion":
 			field := field
 
@@ -95784,6 +96166,60 @@ func (ec *executionContext) _TrackProperty(ctx context.Context, sel ast.Selectio
 			}
 		case "value":
 			out.Values[i] = ec._TrackProperty_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var usageHistoryImplementors = []string{"UsageHistory"}
+
+func (ec *executionContext) _UsageHistory(ctx context.Context, sel ast.SelectionSet, obj *model.UsageHistory) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, usageHistoryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UsageHistory")
+		case "session_usage":
+			out.Values[i] = ec._UsageHistory_session_usage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "errors_usage":
+			out.Values[i] = ec._UsageHistory_errors_usage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "logs_usage":
+			out.Values[i] = ec._UsageHistory_logs_usage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "traces_usage":
+			out.Values[i] = ec._UsageHistory_traces_usage(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -101714,6 +102150,20 @@ func (ec *executionContext) marshalNUInt642uint64(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) marshalNUsageHistory2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUsageHistory(ctx context.Context, sel ast.SelectionSet, v model.UsageHistory) graphql.Marshaler {
+	return ec._UsageHistory(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUsageHistory2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUsageHistory(ctx context.Context, sel ast.SelectionSet, v *model.UsageHistory) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._UsageHistory(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx context.Context, sel ast.SelectionSet, v []*model1.UserProperty) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -102704,6 +103154,14 @@ func (ec *executionContext) marshalODashboardPayload2ᚖgithubᚗcomᚋhighlight
 		return graphql.Null
 	}
 	return ec._DashboardPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalODateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx context.Context, v interface{}) (*model.DateRangeRequiredInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputDateRangeRequiredInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOEnhancedUserDetailsResult2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐEnhancedUserDetailsResult(ctx context.Context, sel ast.SelectionSet, v *model.EnhancedUserDetailsResult) graphql.Marshaler {

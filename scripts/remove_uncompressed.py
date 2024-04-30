@@ -17,7 +17,7 @@ WORKER_PREFETCH = 4
 WORKERS = cpu_count() * 4
 MAX_TASKS_WAITING = WORKERS * WORKER_PREFETCH
 
-HIGHLIGHT_FILES = {'session-contents', 'network-resources'}
+HIGHLIGHT_FILES = {"session-contents", "network-resources"}
 
 
 class PatchedQueue:
@@ -37,7 +37,7 @@ class BoundedPool(Pool):
 
 
 def init_bucket(bucket):
-    s3 = boto3.Session().resource('s3')
+    s3 = boto3.Session().resource("s3")
     return s3.Bucket(bucket)
 
 
@@ -47,21 +47,34 @@ def process(bucket, prefix, do_compress=False, do_delete=False, debug=False):
         pool = BoundedPool(processes=WORKERS)
 
     b = init_bucket(bucket)
-    last = {'project': '0', 'session': '0'}
+    last = {"project": "0", "session": "0"}
     has_compressed = {k: False for k in HIGHLIGHT_FILES}
     session_files = []
 
     def process_session_files():
-        files = [x.key for x in session_files if not x.key.endswith('/')]
+        files = [x.key for x in session_files if not x.key.endswith("/")]
         if not files:
             return
         if debug:
-            process_session(bucket, files, all_compressed=all(has_compressed.values()),
-                            do_compress=do_compress, do_delete=do_delete, **last)
+            process_session(
+                bucket,
+                files,
+                all_compressed=all(has_compressed.values()),
+                do_compress=do_compress,
+                do_delete=do_delete,
+                **last,
+            )
         else:
-            pool.apply_async(process_session, args=(bucket, files),
-                             kwds={'all_compressed': all(has_compressed.values()),
-                                   'do_compress': do_compress, 'do_delete': do_delete, **last})
+            pool.apply_async(
+                process_session,
+                args=(bucket, files),
+                kwds={
+                    "all_compressed": all(has_compressed.values()),
+                    "do_compress": do_compress,
+                    "do_delete": do_delete,
+                    **last,
+                },
+            )
 
     for idx, f in enumerate(b.objects.filter(Prefix=prefix)):
         try:
@@ -69,29 +82,37 @@ def process(bucket, prefix, do_compress=False, do_delete=False, debug=False):
         except ValueError:
             continue
 
-        if p != last['project'] or s != last['session']:
+        if p != last["project"] or s != last["session"]:
             process_session_files()
             session_files = []
-            last = {'project': p, 'session': s}
+            last = {"project": p, "session": s}
             has_compressed = {k: False for k in HIGHLIGHT_FILES}
         session_files.append(f)
 
         for k in HIGHLIGHT_FILES:
-            if f'{k}-compressed' == obj:
+            if f"{k}-compressed" == obj:
                 has_compressed[k] = True
                 break
 
     process_session_files()
     if pool:
         pool.close()
-        print('waiting for thread pool to finish...')
+        print("waiting for thread pool to finish...")
         pool.join()
-    print('done!')
+    print("done!")
 
 
-def process_session(bucket, files, all_compressed=False, do_delete=False, do_compress=False, project='0', session='0'):
+def process_session(
+    bucket,
+    files,
+    all_compressed=False,
+    do_delete=False,
+    do_compress=False,
+    project="0",
+    session="0",
+):
     local = threading.local()
-    if not getattr(local, 'b', None):
+    if not getattr(local, "b", None):
         local.b = init_bucket(bucket)
 
     if all_compressed and do_delete:
@@ -102,24 +123,26 @@ def process_session(bucket, files, all_compressed=False, do_delete=False, do_com
             delete_uncompressed(local, files, project, session)
 
 
-def compress_uncompressed(local, files: List[str], project='0', session='0'):
+def compress_uncompressed(local, files: List[str], project="0", session="0"):
     for f in files:
-        if 'compressed' in f:
+        if "compressed" in f:
             continue
 
-        print('COMPRESSING', project, session, f)
+        print("COMPRESSING", project, session, f)
         tmpdir = tempfile.mkdtemp()
         try:
-            file_path = os.path.join(tmpdir, f.replace('/', '_'))
+            file_path = os.path.join(tmpdir, f.replace("/", "_"))
             local.b.download_file(f, file_path)
-            with open(file_path, 'r') as data_file:
+            with open(file_path, "r") as data_file:
                 data_str = data_file.read()
 
             datum = []
             try:
                 datum.append(json.loads(data_str))
             except JSONDecodeError:
-                for msg_str in filter(lambda s: s.strip(), re.split(r'\w*\n\n\n\w*', data_str)):
+                for msg_str in filter(
+                    lambda s: s.strip(), re.split(r"\w*\n\n\n\w*", data_str)
+                ):
                     datum.append(json.loads(msg_str))
 
             new_data_format = []
@@ -127,42 +150,61 @@ def compress_uncompressed(local, files: List[str], project='0', session='0'):
                 keys = set()
                 for d in datum:
                     keys |= set(d)
-                assert len(keys) == 1, 'only one message type per file expected'
+                assert len(keys) == 1, "only one message type per file expected"
                 p_key = list(keys)[0]
                 for d in datum:
                     new_data_format += d[p_key]
 
             compressed = brotli.compress(json.dumps(new_data_format).encode())
             compressed_path = os.path.join(tmpdir, f"{f.replace('/', '_')}-compressed")
-            with open(compressed_path, 'wb') as data_file:
+            with open(compressed_path, "wb") as data_file:
                 data_file.write(compressed)
-            local.b.upload_file(compressed_path, f'{f}-compressed', ExtraArgs={
-                'ContentType': 'application/json',
-                'ContentEncoding': 'br'
-            })
+            local.b.upload_file(
+                compressed_path,
+                f"{f}-compressed",
+                ExtraArgs={"ContentType": "application/json", "ContentEncoding": "br"},
+            )
         finally:
             shutil.rmtree(tmpdir)
 
 
-def delete_uncompressed(local, files: List[str], project='0', session='0'):
-    files = list(filter(lambda x: 'compressed' not in x, files))
+def delete_uncompressed(local, files: List[str], project="0", session="0"):
+    files = list(filter(lambda x: "compressed" not in x, files))
     if not files:
         return
-    print('DELETING', project, session, files)
-    local.b.delete_objects(
-        Delete={'Objects': [{'Key': f} for f in files]}
-    )
+    print("DELETING", project, session, files)
+    local.b.delete_objects(Delete={"Objects": [{"Key": f} for f in files]})
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Description of your program')
-    parser.add_argument('-b', '--bucket', help='the s3 bucket to process', default='highlight-session-s3-test')
-    parser.add_argument('-p', '--prefix', help='the bucket prefix to process', default='1/')
-    parser.add_argument('--do-compress', help='confirm compress files', default=False, action='store_true')
-    parser.add_argument('--do-delete', help='confirm delete files', default=False, action='store_true')
-    parser.add_argument('-d', '--debug', help='debug (no multiprocessing)', default=False, action='store_true')
+    parser = argparse.ArgumentParser(description="Description of your program")
+    parser.add_argument(
+        "-b",
+        "--bucket",
+        help="the s3 bucket to process",
+        default="highlight-session-s3-test",
+    )
+    parser.add_argument(
+        "-p", "--prefix", help="the bucket prefix to process", default="1/"
+    )
+    parser.add_argument(
+        "--do-compress",
+        help="confirm compress files",
+        default=False,
+        action="store_true",
+    )
+    parser.add_argument(
+        "--do-delete", help="confirm delete files", default=False, action="store_true"
+    )
+    parser.add_argument(
+        "-d",
+        "--debug",
+        help="debug (no multiprocessing)",
+        default=False,
+        action="store_true",
+    )
     process(**vars(parser.parse_args()))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

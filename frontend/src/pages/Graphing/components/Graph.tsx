@@ -21,6 +21,7 @@ import _ from 'lodash'
 import moment from 'moment'
 import { useEffect, useMemo, useState } from 'react'
 
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useGetMetricsQuery } from '@/graph/generated/hooks'
 import { Maybe, MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import {
@@ -77,8 +78,8 @@ export interface ChartProps<TConfig> {
 	title: string
 	productType: ProductType
 	projectId: string
-	startDate: string
-	endDate: string
+	startDate: Date
+	endDate: Date
 	query: string
 	metric: string
 	functionType: MetricAggregator
@@ -155,9 +156,22 @@ const durationUnitMap: [number, string][] = [
 	[24, 'd'],
 ]
 
-export const getTickFormatter = (metric: string, bucketCount?: number) => {
+export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 	if (metric === 'Timestamp') {
-		return (value: any) => moment(value * 1000).format('HH:mm')
+		if (data === undefined) {
+			return (value: any) => moment(value * 1000).format('MM/DD HH:mm:SS')
+		}
+
+		const start = data.at(0).Timestamp * 1000
+		const end = data.at(data.length - 1).Timestamp * 1000
+		const diffMinutes = moment(end).diff(start, 'minutes')
+		if (diffMinutes < 15) {
+			return (value: any) => moment(value * 1000).format('HH:mm:SS')
+		} else if (diffMinutes < 12 * 60) {
+			return (value: any) => moment(value * 1000).format('HH:mm')
+		} else {
+			return (value: any) => moment(value * 1000).format('MM/DD')
+		}
 	} else if (metric === 'duration') {
 		return (value: any) => {
 			let lastUnit = 'ns'
@@ -171,7 +185,7 @@ export const getTickFormatter = (metric: string, bucketCount?: number) => {
 			return `${value.toFixed(0)}${lastUnit}`
 		}
 	} else if (metric === GROUP_KEY) {
-		const maxChars = Math.max(MAX_LABEL_CHARS / (bucketCount || 1), 10)
+		const maxChars = Math.max(MAX_LABEL_CHARS / (data?.length || 1), 10)
 		return (value: any) => {
 			let result = value.toString() as string
 			if (result.length > maxChars) {
@@ -347,8 +361,8 @@ const Graph = ({
 			project_id: projectId,
 			params: {
 				date_range: {
-					start_date: startDate,
-					end_date: endDate,
+					start_date: moment(startDate).format(TIME_FORMAT),
+					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 				query: query,
 			},
@@ -491,6 +505,7 @@ const Graph = ({
 			height="full"
 			display="flex"
 			flexDirection="column"
+			gap="4"
 			justifyContent="space-between"
 			onMouseEnter={() => {
 				setGraphHover(true)
@@ -512,7 +527,7 @@ const Graph = ({
 					<HistogramLoading cssClass={style.loadingText} />
 				</Box>
 			)}
-			<Box display="flex" flexDirection="column" gap="4">
+			<Box display="flex" flexDirection="column">
 				<Box
 					display="flex"
 					flexDirection="row"
@@ -525,7 +540,7 @@ const Graph = ({
 					>
 						{title || 'Untitled metric view'}
 					</Text>
-					{showMenu && graphHover && !disabled && (
+					{showMenu && graphHover && !disabled && !metricsLoading && (
 						<Box
 							cssClass={clsx(style.titleText, {
 								[style.hiddenMenu]: !graphHover,
@@ -647,14 +662,16 @@ const Graph = ({
 					</Box>
 				)}
 			</Box>
-			<Box
-				height="full"
-				maxHeight="screen"
-				key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
-				cssClass={clsx({ [style.disabled]: disabled })}
-			>
-				{innerChart}
-			</Box>
+			{!metricsLoading && (
+				<Box
+					height="full"
+					maxHeight="screen"
+					key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
+					cssClass={clsx({ [style.disabled]: disabled })}
+				>
+					{innerChart}
+				</Box>
+			)}
 		</Box>
 	)
 }
