@@ -3,6 +3,8 @@ title: Dashboard Management
 slug: dashboard-management
 ---
 
+![Dashboard page](/images/docs/graphing/dashboard_view.png)
+
 ## Dashboard overview
 
 At [app.highlight.io/metrics](https://app.highlight.io/metrics), there is an overview of all dashboards in your project. Here, you can create or delete dashboards, or click into the dashboard you want to view / edit. If your project has many dashboards, you can filter on their name using the search.

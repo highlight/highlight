@@ -4,7 +4,7 @@ title: Metrics
 slug: overview
 ---
 
-Metrics are features of your sessions, errors, logs, and traces that you can graph, analyze, and monitor. For a lot of cases, the data you need is already in highlight.io.
+Metrics are representations of your sessions, errors, logs, and traces that you can graph, analyze, and monitor. When understanding your business or application, the reality is that a lot of the data you need is already in highlight.io.
 
 You can find our metrics product at [app.highlight.io/metrics](https://app.highlight.io/metrics).
 
