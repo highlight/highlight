@@ -143,7 +143,7 @@ export function register() {
 
 ```
 
-## Visualizing Edge Runtime Spansin Highlight.io
+## Visualizing Edge Runtime Spans in Highlight.io
 
 Highlight.io is an observability platform that supports the visualization of spans from various runtimes,
 including the Vercel Edge. By integrating with OpenTelemetry, Highlight.io allows developers to view detailed

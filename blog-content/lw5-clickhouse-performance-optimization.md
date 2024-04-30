@@ -19,10 +19,13 @@ customers every month. A large chunk of the volume goes to our ClickHouse cluste
 and Session metadata. Not only do we need to gracefully handle the volume and daily spikes in the traffic patterns, but
 we also need to ensure that the data is ingested in an efficient format that is performant to query.
 
+About a year ago, once we started onboarding larger customers, we started hitting scaling issues with our Clickhouse set
+up that warranted several "phases" of improvements to our query and ingest systems. This post goes through the initial
+realization that we had a challenge on our hands, and how we tackled it.
+
 ## The Incident
 
-As our data ingest has grown, we have needed to make improvements to our ClickHouse configuration to keep up and further
-improve query performance. For example, one day, we onboarded a large customer that sends close to 1 billion trace spans
+One day, we onboarded a large customer that sent close to 1 billion trace spans
 a day, adding another terabyte to our data ingestion. Beyond the total volume, the larger problem was in the number of
 small batches of rows inserted into ClickHouse. Our Kafka queue responsible for buffering data started accruing a
 backlog, and we quickly noticed that the rate of trace insertion into ClickHouse was significantly lower than the number
@@ -45,8 +48,6 @@ ClickHouse will asynchronously merge data as it is initially ingested to get it 
 storage, but this process consumes CPU on background threads that ultimately may decrease performance of concurrent
 storage. Inserting data with the right configuration helps the merges that ClickHouse has to perform and can speed up
 how much each merge takes.
-
-## Optimizing CPU Usage: Our Strategies
 
 Let’s dive into the strategies we used to optimize our ClickHouse cluster and reduce the CPU load.
 
@@ -179,4 +180,13 @@ group by 1
 order by 2 desc;
 ```
 
-system drop parts
+In our case, we encountered parts that were active and well outside our TTL
+but still not being deleted. If there is not enough data for a part to be merged, it may not be deleted by the TTL. To
+the rescue comes
+a [manual command](https://clickhouse.com/docs/en/sql-reference/statements/alter/partition#drop-partitionpart) for
+deleting parts or partitions:
+
+```SQL
+ALTER TABLE my_table
+    DROP PARTITION partition_expr;
+```
