@@ -1007,9 +1007,8 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 
 	// For non-monthly subscriptions, set PendingInvoiceItemInterval to 'month' if not set
 	// so that overage is reported via monthly invoice items.
-	if interval != model.PricingSubscriptionIntervalMonthly &&
-		subscription.PendingInvoiceItemInterval != nil &&
-		subscription.PendingInvoiceItemInterval.Interval != stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth {
+	if interval != model.PricingSubscriptionIntervalMonthly {
+		log.WithContext(ctx).WithField("workspaceID", workspaceID).Info("configuring monthly invoices for non-monthly subscription")
 		updated, err := w.stripeClient.Subscriptions.Update(subscription.ID, &stripe.SubscriptionParams{
 			PendingInvoiceItemInterval: &stripe.SubscriptionPendingInvoiceItemIntervalParams{
 				Interval: stripe.String(string(stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth)),
@@ -1248,7 +1247,7 @@ func calculateOverage(workspace *model.Workspace, limit *int64, meter int64) int
 
 func (w *Worker) AddOrUpdateOverageItem(newPrice *stripe.Price, invoiceLine *stripe.InvoiceLineItem, customer *stripe.Customer, subscription *stripe.Subscription, overage int64) error {
 	// if the price is a metered recurring subscription, use subscription items and usage records
-	if newPrice.Recurring != nil && newPrice.Recurring.UsageType == stripe.PriceRecurringUsageTypeMetered {
+	if newPrice.Recurring != nil {
 		var subscriptionItemID string
 		// if the subscription item doesn't create for this price, create it
 		if invoiceLine == nil || invoiceLine.SubscriptionItem.ID == "" {
