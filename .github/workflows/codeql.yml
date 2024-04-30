@@ -49,8 +49,6 @@ jobs:
                       build-mode: autobuild
                     - language: go
                       build-mode: autobuild
-                    - language: java-kotlin
-                      build-mode: 'autobuild' # This mode only analyzes Java. Set this to 'autobuild' or 'manual' to analyze Kotlin too.
                     - language: javascript-typescript
                       build-mode: none
                     - language: python
