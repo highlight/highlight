@@ -1,4 +1,4 @@
-import { Tabs } from '@highlight-run/ui/components'
+import { Box, Tabs } from '@highlight-run/ui/components'
 
 import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
 import { TraceWaterfallList } from '@/pages/Traces/TraceWaterfallList'
@@ -21,12 +21,14 @@ export const TraceVisualizer: React.FC<Props> = () => {
 					{TraceVisualizerTab.Waterfall}
 				</Tabs.Tab>
 			</Tabs.List>
-			<Tabs.Panel id={TraceVisualizerTab.FlameGraph}>
-				<TraceFlameGraph />
-			</Tabs.Panel>
-			<Tabs.Panel id={TraceVisualizerTab.Waterfall}>
-				<TraceWaterfallList />
-			</Tabs.Panel>
+			<Box mt="10">
+				<Tabs.Panel id={TraceVisualizerTab.FlameGraph}>
+					<TraceFlameGraph />
+				</Tabs.Panel>
+				<Tabs.Panel id={TraceVisualizerTab.Waterfall}>
+					<TraceWaterfallList />
+				</Tabs.Panel>
+			</Box>
 		</Tabs>
 	)
 }
