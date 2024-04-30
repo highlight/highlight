@@ -135,7 +135,7 @@ export const organizeSpansForFlameGraph = (
 
 	// Handle orphan spans
 	const spanIDs = new Set(trace.flat().map((span) => span.spanID))
-	const orphanSpans = trace.filter((span) => !spanIDs.has(span.spanID))
+	const orphanSpans = trace.filter((span) => !spanIDs.has(span.parentSpanID))
 	orphanSpans.forEach((orphanSpan) =>
 		organizeSpanInLevel(orphanSpan, trace, spans, 0),
 	)
