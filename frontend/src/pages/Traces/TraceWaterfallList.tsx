@@ -158,7 +158,7 @@ export const TraceWaterfallList: React.FC = () => {
 							alignItems="center"
 							height="full"
 							style={{
-								minHeight: 100,
+								minHeight: ROW_HEIGHT,
 							}}
 						>
 							<Text>No spans match search query</Text>
