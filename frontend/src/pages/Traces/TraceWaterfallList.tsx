@@ -51,6 +51,10 @@ export const TraceWaterfallList: React.FC = () => {
 	)
 
 	useEffect(() => {
+		setQuery('')
+	}, [activeTab])
+
+	useEffect(() => {
 		const bodyRefHeight = bodyRef.current?.clientHeight ?? 0
 
 		if (bodyHeight === 'auto' && bodyRefHeight > 0) {
