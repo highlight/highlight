@@ -36,9 +36,9 @@ export const TraceWaterfallList: React.FC = () => {
 	const [columns, setColumns] = useLocalStorage(
 		'highlight-trace-waterfall-list-column-sizes',
 		[
-			{ name: 'Span name', size: '2fr' },
+			{ name: 'Span name', size: '175px' },
 			{ name: 'Duration', size: '85px' },
-			{ name: 'Waterfall', size: '3fr' },
+			{ name: 'Waterfall', size: '1fr' },
 		],
 	)
 	const gridColumns = columns.map((c) => c.size)
@@ -81,6 +81,9 @@ export const TraceWaterfallList: React.FC = () => {
 					...newColumns[columnIndex + 1],
 					size: `${rightElementNewWidth}px`,
 				}
+
+				// Always make the last column take up the remaining space
+				newColumns[2].size = '1fr'
 
 				setColumns(newColumns)
 			}
