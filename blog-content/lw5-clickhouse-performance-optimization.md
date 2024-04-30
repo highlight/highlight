@@ -28,11 +28,15 @@ small batches of rows inserted into ClickHouse. Our Kafka queue responsible for 
 backlog, and we quickly noticed that the rate of trace insertion into ClickHouse was significantly lower than the number
 of new records added to Kafka.
 
+![ClickHouse Backlog](/images/blog/launch-week/5/clickhouse-backlog.png)
+
 At that time, all we could spot was that ClickHouse had a significant CPU load utilizing all of the available CPU cores
 of the ClickHouse Cloud Cluster, which we observed to cause the `INSERT` commands to operate slower in synchronous mode
 as the cluster created backpressure to reduce the overall CPU load. We also observed “too many parts” errors as
 ClickHouse was unable to merge the data into fewer parts because of the CPU load. While the hotfix was increasing the
 CPU allocated the cluster, we quickly had to find a long term solution to avoid the problem.
+
+![ClickHouse CPU Wait](/images/blog/launch-week/5/clickhouse-cpu-wait.png)
 
 Unlike traditional OTLP SQL, the way that data is written to a ClickHouse table affects query performance.
 For instance, if data is written in smaller chunks, ClickHouse ends up creating more “parts” (in other words, files) to
@@ -60,41 +64,63 @@ atomic
 resulting in duplicate data being inserted during worker reboots.
 
 We opted to use the ClickHouse Kafka Connect Sink that implements batched writes and exactly-once semantics achieved
-through ClickHouse Keeper. Check out a detailed overview of this feature here TODO.
+through ClickHouse Keeper. Check out a detailed overview of this
+feature [here](https://clickhouse.com/docs/en/integrations/kafka/clickhouse-kafka-connect-sink).
 
-To ensure our changes had the right effect, we monitored the Max Parts TODO graph in ClickHouse for the number of parts
+To ensure our changes had the right effect, we monitored
+the [Max Parts graph](https://clickhouse.com/docs/knowledgebase/maximum_number_of_tables_and_databases) in ClickHouse
+for the number of parts
 waiting to be merged. Read more on how this works from ClickHouse here.
+
+![ClickHouse Inserted Rows/sec](/images/blog/launch-week/5/clickhouse-1.png)
+
+![ClickHouse Max Parts For Partition](/images/blog/launch-week/5/clickhouse-2.png)
 
 ### Keeping Data in Wide Parts
 
 CPU Usage during merges can be incurred by the conversion of parts from compact to wide. When data is inserted
 compressed, it must be decompressed into the wide format for it to be merged. If inserting large batch sizes (100k+ rows
-at 10MB+ data), a table level setting that helps is using min_rows_for_wide_part=0, min_bytes_for_wide_part=0 to make
+at 10MB+ data), a table level setting that helps is using `min_rows_for_wide_part=0`, `min_bytes_for_wide_part=0` to
+make
 sure that ClickHouse will keep inserted data as WIDE to avoid having to convert back and forth between the compact and
 narrow format, since each conversion incurs a CPU cost.
 
 ### Optimizing Order By Granularity
 
-TODO what does the ORDER BY do
-
 If a table is ordered by columns with high granularity, this will result in increased sorting of data when ClickHouse is
 merging parts. For instance, we found that switching our `ORDER BY Timestamp` to an `ORDER BY TODO date_trunc(‘minute’,
 Timestamp)` reduced the CPU load of merging since everything within the same minute would be grouped into the same part
-without having to besorted. The tradeoff occurs with query performance – a granular `ORDER BY` means that a `SELECT`
-will
-load more parts that must be filtered and sorted, but this is well worth the reduced merging that must happen.
+without having to be sorted. The tradeoff occurs with query performance – a granular `ORDER BY` means that a `SELECT`
+will load more parts that must be filtered and sorted, but this is well worth the reduced merging that must happen.
 
 Another common use case for ordering is using a ID. However, adding the ID to the `ORDER BY` will require all rows to be
-sorted by a value where each row’s value is unique. A better approach would be to use a truncated version of the ID
-which would use the first N digits of the value to select a p
-
--- change order by timestamp to minute granularity
--- order by trace id instead of uuid?
-Ensure most writes are coming to a few partitions.
+sorted by a value where each row’s value is unique. A better approach could be to use a truncated version of the ID
+which would use the first N digits of the value to select a smaller range of rows to sort.
 
 ### Checking Merge Levels
 
-set min_bytes_for_full_part_storage=4294967296 works well but not needed since we have mostly level 0 parts
+The performance of merges depends on a number of factors around the type of data and the way that it is inserted.
+Batch insertion often means that bulk merges may be more efficient. Observing the merge `level` helps understand
+how many times data is re-merged within a part. If insertions are large, full part storage is more efficient since
+the data is already in the right format.
+
+You can also observe all current merges to understand what tables / partitions are causing the most.
+
+```SQL
+select merge_type, merge_algorithm, count()
+from clusterAllReplicas(default, system.merges)
+where table = 'my_table'
+group by 1, 2
+order by 3 desc;
+```
+
+If you are inserting in large batches but are still seeing many high-level merges, you may want to
+adjust the `min_bytes_for_full_part_storage` setting. For instance,  
+setting `min_bytes_for_full_part_storage=4294967296` will ensure most parts are only merged as level 0 merges.
+
+```SQL
+ALTER TABLE my_table MODIFY SETTING min_bytes_for_full_part_storage = 4294967296;
+```
 
 ### Avoiding Use of Projections
 
@@ -110,5 +136,47 @@ a materialized view and selecting manually as part of our application logic depe
 reliable.
 
 ### TTL Optimization / Clearing Old Parts
+
+It's important to ensure most writes are coming to a few partitions to limit the number of parts that are being merged.
+Otherwise, ClickHouse will have to merge all parts to keep the data up to date.
+
+A table's `PARTITION BY` clause will dictate how data is partitioned. For example, if a table is partitioned
+by `Timestamp`,
+data will be written to different parts based on the timestamp. If you have many concurrent writes with vastly different
+timestamps, ClickHouse will have to merge many parts as the different writes will land in different active parts. This,
+in turn, will increase background CPU activity.
+
+In our application (this will depend on your use case), we ensure that most writes are coming to
+a few partitions, limiting the number of parts that are being merged. We also set a TTL on our tables to clear out old
+data, which helps with parts remaining active. You can always check how many parts are active by running the following
+SQL query:
+
+```SQL
+select table, count()
+from clusterAllReplicas(default, system.parts)
+where active
+group by 1
+order by 2 desc;
+```
+
+You can see what parts are active across different partitions to understand where writes are landing.
+
+```SQL
+select partition, level, count()
+from clusterAllReplicas(default, system.parts)
+where active and table = 'my_table'
+group by 1, 2, 3
+order by 1, 2, 3;
+```
+
+You can also observe all current merges to understand what tables / partitions are causing the most.
+
+```SQL
+select partition, sum(num_parts)
+from clusterAllReplicas(default, system.merges)
+where table = 'my_table'
+group by 1
+order by 2 desc;
+```
 
 system drop parts
