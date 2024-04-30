@@ -29,6 +29,7 @@ import {
 	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
+import { parseSearch } from '@/components/Search/utils'
 import { useGetLogsHistogramQuery } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
@@ -68,6 +69,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		project_id: string
 	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
+	const { queryParts } = parseSearch(query)
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 
 	const [selectedColumns, setSelectedColumns] = useLocalStorage(
@@ -210,6 +212,8 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						<LogsOverageCard />
 						<IntegrationCta />
 						<LogsTable
+							query={query}
+							queryParts={queryParts}
 							logEdges={logEdges}
 							loading={loading}
 							error={error}
