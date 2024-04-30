@@ -136,7 +136,18 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 			return []
 		}
 
-		return organizeSpansWithChildren(data.trace.trace)
+		const spans = data.trace.trace.sort((a, b) => {
+			// Subtract the duration from the start time to ensure that the longer
+			// span is at the root of the flame graph if there is a match.
+			const startA =
+				new Date(a.timestamp ?? 0).getTime() - (a.duration ?? 0)
+			const startB =
+				new Date(b.timestamp ?? 0).getTime() - (b.duration ?? 0)
+
+			return startA - startB
+		})
+
+		return organizeSpansWithChildren(spans)
 	}, [data?.trace?.trace])
 
 	return (
