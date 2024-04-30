@@ -9,13 +9,12 @@ export const PHPTracesContent: QuickStartContent = {
 		{
 			title: 'Set up your highlight.io SDK.',
 			content: `First, make sure you've followed the [backend getting started](${siteUrl(
-				'/docs/getting-started/backend/php',
+				'/docs/getting-started/backend-logging/php',
 			)}) guide.`,
 		},
 		{
 			title: 'Record a trace.',
-			content:
-				'Use the tracing crate to create spans and events. You can read more about this [on the docs.rs page of the tracing crate](https://docs.rs/tracing/latest/tracing/).',
+			content: 'Use the Highlight SDK to create spans and events.',
 			code: [
 				{
 					text: `use Highlight\\SDK\\Highlight;

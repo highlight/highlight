@@ -9,6 +9,12 @@ export const PHPOtherLogContent: QuickStartContent = {
 	entries: [
 		previousInstallSnippet('php'),
 		{
+			title: 'Set up your highlight.io SDK.',
+			content: `Make sure you've also followed the [backend getting started](${siteUrl(
+				'/docs/getting-started/backend-sdk/php/other',
+			)}) guide.`,
+		},
+		{
 			title: 'Add Highlight logger.',
 			content:
 				'Highlight.captureLog() will record and send logs to Highlight.',
