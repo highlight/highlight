@@ -8,11 +8,10 @@ import {
 	IconSolidXCircle,
 	Stack,
 	Table,
-	Tabs,
 	Text,
 } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { getSpanTheme } from '@/pages/Traces/TraceFlameGraphNode'
 import { useTrace } from '@/pages/Traces/TraceProvider'
@@ -28,13 +27,8 @@ img.src =
 	'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs='
 
 export const TraceWaterfallList: React.FC = () => {
-	const { selectedSpan, spans, traceId, totalDuration, setSelectedSpan } =
-		useTrace()
-	const bodyRef = useRef<HTMLDivElement>(null)
-	const tabsContext = Tabs.useContext()!
-	const activeTab = tabsContext.useState('activeId')
+	const { selectedSpan, spans, totalDuration, setSelectedSpan } = useTrace()
 	const [query, setQuery] = useState('')
-	const [bodyHeight, setBodyHeight] = useState('auto')
 	const [columns, setColumns] = useLocalStorage(
 		'highlight-trace-waterfall-list-column-sizes',
 		[
@@ -49,24 +43,6 @@ export const TraceWaterfallList: React.FC = () => {
 			spans.some((span) => doesSpanOrDescendantsMatchQuery(span, query)),
 		[spans, query],
 	)
-
-	useEffect(() => {
-		setQuery('')
-		setBodyHeight('auto')
-	}, [activeTab])
-
-	useEffect(() => {
-		if (bodyHeight !== 'auto') {
-			return
-		}
-
-		const bodyRefHeight = bodyRef.current?.clientHeight ?? 0
-		if (bodyRefHeight > 0) {
-			setBodyHeight(`${Math.min(bodyRefHeight, 280)}px`)
-		}
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [traceId, activeTab, query])
 
 	const handleDrag = (e: React.DragEvent, name: string) => {
 		const headerRef = e.currentTarget.parentElement?.parentElement
@@ -157,11 +133,7 @@ export const TraceWaterfallList: React.FC = () => {
 						</Table.Header>
 					</Table.Row>
 				</Table.Head>
-				<Table.Body
-					ref={bodyRef}
-					overflowY="auto"
-					style={{ height: bodyHeight }}
-				>
+				<Table.Body overflowY="auto" style={{ maxHeight: 280 }}>
 					{canRenderSpans ? (
 						spans.map((span) => (
 							<WaterfallRow
@@ -179,7 +151,7 @@ export const TraceWaterfallList: React.FC = () => {
 						<Stack
 							justifyContent="center"
 							alignItems="center"
-							height="full"
+							style={{ height: 280 }}
 						>
 							<Text>No spans match search query</Text>
 						</Stack>
