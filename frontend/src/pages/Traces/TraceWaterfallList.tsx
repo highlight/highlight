@@ -216,6 +216,9 @@ const WaterfallRow: React.FC<{
 				>
 					{hasChildren && (
 						<ButtonIcon
+							size="xSmall"
+							emphasis="low"
+							kind="secondary"
 							onClick={(e) => {
 								e.stopPropagation()
 
