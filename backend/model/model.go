@@ -2012,6 +2012,7 @@ type ErrorAlert struct {
 	Model
 	Alert
 	RegexGroups *string
+	Query       string
 	AlertIntegrations
 }
 

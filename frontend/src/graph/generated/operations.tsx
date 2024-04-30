@@ -868,14 +868,9 @@ export type CreateErrorAlertMutationVariables = Types.Exact<{
 	emails:
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
-	environments:
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	regex_groups:
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
 	frequency: Types.Scalars['Int']
 	default?: Types.Maybe<Types.Scalars['Boolean']>
+	query: Types.Scalars['String']
 }>
 
 export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
@@ -885,11 +880,9 @@ export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
 			| 'id'
 			| 'EmailsToNotify'
 			| 'Name'
-			| 'ExcludedEnvironments'
 			| 'CountThreshold'
 			| 'ThresholdWindow'
 			| 'LastAdminToEditID'
-			| 'RegexGroups'
 			| 'Frequency'
 			| 'disabled'
 		> & {
@@ -1086,16 +1079,9 @@ export type UpdateErrorAlertMutationVariables = Types.Exact<{
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
 	>
-	environments?: Types.Maybe<
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	>
-	regex_groups?: Types.Maybe<
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	>
 	frequency?: Types.Maybe<Types.Scalars['Int']>
 	disabled?: Types.Maybe<Types.Scalars['Boolean']>
+	query: Types.Scalars['String']
 }>
 
 export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
@@ -1104,13 +1090,12 @@ export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
 			Types.ErrorAlert,
 			| 'Name'
 			| 'EmailsToNotify'
-			| 'ExcludedEnvironments'
 			| 'CountThreshold'
 			| 'ThresholdWindow'
 			| 'LastAdminToEditID'
-			| 'RegexGroups'
 			| 'Frequency'
 			| 'disabled'
+			| 'Query'
 		> & {
 				ChannelsToNotify: Array<
 					Types.Maybe<
@@ -4272,12 +4257,10 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 			{ __typename?: 'ErrorAlert' } & Pick<
 				Types.ErrorAlert,
 				| 'EmailsToNotify'
-				| 'ExcludedEnvironments'
 				| 'updated_at'
 				| 'CountThreshold'
 				| 'LastAdminToEditID'
 				| 'ThresholdWindow'
-				| 'RegexGroups'
 				| 'Frequency'
 				| 'id'
 				| 'Type'
@@ -4285,6 +4268,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				| 'DailyFrequency'
 				| 'disabled'
 				| 'default'
+				| 'Query'
 			> & {
 					ChannelsToNotify: Array<
 						Types.Maybe<

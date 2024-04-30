@@ -425,12 +425,11 @@ export type ErrorAlert = {
 	DailyFrequency: Array<Maybe<Scalars['Int64']>>
 	DiscordChannelsToNotify: Array<DiscordChannel>
 	EmailsToNotify: Array<Maybe<Scalars['String']>>
-	ExcludedEnvironments: Array<Maybe<Scalars['String']>>
 	Frequency: Scalars['Int']
 	LastAdminToEditID?: Maybe<Scalars['ID']>
 	MicrosoftTeamsChannelsToNotify: Array<MicrosoftTeamsChannel>
 	Name?: Maybe<Scalars['String']>
-	RegexGroups: Array<Maybe<Scalars['String']>>
+	Query: Scalars['String']
 	ThresholdWindow?: Maybe<Scalars['Int']>
 	Type: Scalars['String']
 	WebhookDestinations: Array<WebhookDestination>
@@ -1241,12 +1240,11 @@ export type MutationCreateErrorAlertArgs = {
 	default?: InputMaybe<Scalars['Boolean']>
 	discord_channels: Array<DiscordChannelInput>
 	emails: Array<InputMaybe<Scalars['String']>>
-	environments: Array<InputMaybe<Scalars['String']>>
 	frequency: Scalars['Int']
 	microsoft_teams_channels: Array<MicrosoftTeamsChannelInput>
 	name: Scalars['String']
 	project_id: Scalars['ID']
-	regex_groups: Array<InputMaybe<Scalars['String']>>
+	query: Scalars['String']
 	slack_channels: Array<InputMaybe<SanitizedSlackChannelInput>>
 	threshold_window: Scalars['Int']
 	webhook_destinations: Array<WebhookDestinationInput>
@@ -1747,13 +1745,12 @@ export type MutationUpdateErrorAlertArgs = {
 	disabled?: InputMaybe<Scalars['Boolean']>
 	discord_channels: Array<DiscordChannelInput>
 	emails?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
-	environments?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
 	error_alert_id: Scalars['ID']
 	frequency?: InputMaybe<Scalars['Int']>
 	microsoft_teams_channels: Array<MicrosoftTeamsChannelInput>
 	name?: InputMaybe<Scalars['String']>
 	project_id: Scalars['ID']
-	regex_groups?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
+	query: Scalars['String']
 	slack_channels?: InputMaybe<Array<InputMaybe<SanitizedSlackChannelInput>>>
 	threshold_window?: InputMaybe<Scalars['Int']>
 	webhook_destinations: Array<WebhookDestinationInput>
