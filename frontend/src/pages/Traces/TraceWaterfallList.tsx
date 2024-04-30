@@ -46,7 +46,7 @@ export const TraceWaterfallList: React.FC = () => {
 	)
 
 	useEffect(() => {
-		setBodyHeight(spanCount * ROW_HEIGHT > 280 ? '280px' : 'auto')
+		setBodyHeight(`${Math.min(spanCount * (ROW_HEIGHT + 1), 280)}px`)
 	}, [spanCount])
 
 	const handleDrag = (e: React.DragEvent, name: string) => {
