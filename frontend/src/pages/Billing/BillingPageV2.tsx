@@ -43,7 +43,6 @@ import {
 import {
 	AwsMarketplaceSubscription,
 	MetricAggregator,
-	MetricsBuckets,
 	PlanType,
 	ProductType,
 	RetentionPeriod,
@@ -72,15 +71,13 @@ type UsageCardProps = {
 	billingLimitCents: number | undefined
 	usageAmount: number
 	usageLimitAmount: number | undefined
-	usageHistory?: MetricsBuckets
-	usageRange: { start: moment.Moment; end: moment.Moment }
-	setUsageRange: (range: 'Weekly' | 'Monthly') => void
 	includedQuantity: number
 	isPaying: boolean
 	enableBillingLimits: boolean | undefined
 	billingIssues: boolean
 	setStep: (step: PlanSelectStep) => void
 	awsMpSubscription?: AwsMarketplaceSubscription | null | undefined
+	billingPeriodEnd?: moment.Moment
 }
 
 const UsageCard = ({
@@ -91,16 +88,45 @@ const UsageCard = ({
 	billingLimitCents,
 	usageAmount,
 	usageLimitAmount,
-	usageHistory,
-	usageRange,
-	setUsageRange,
 	includedQuantity,
 	isPaying,
 	enableBillingLimits,
 	billingIssues,
 	setStep,
 	awsMpSubscription,
+	billingPeriodEnd,
 }: UsageCardProps) => {
+	const { workspace_id } = useParams<{
+		workspace_id: string
+	}>()
+
+	const [usageRange, setRange] = React.useState<{
+		start: moment.Moment
+		end: moment.Moment
+	}>({
+		start: (billingPeriodEnd ?? moment()).subtract(3, 'months'),
+		end: billingPeriodEnd ?? moment(),
+	})
+
+	const setUsageRange = (option: 'Monthly' | 'Weekly') => {
+		setRange({
+			start: moment().subtract(option === 'Monthly' ? 12 : 3, 'months'),
+			end: moment(),
+		})
+	}
+
+	const { data: usageHistoryData } = useGetWorkspaceUsageHistoryQuery({
+		variables: {
+			workspace_id: workspace_id!,
+			product_type: productType,
+			date_range: {
+				start_date: usageRange.start.toISOString(),
+				end_date: usageRange.end.toISOString(),
+			},
+		},
+	})
+	const usageHistory = usageHistoryData?.usageHistory?.usage
+
 	const costCents = isPaying
 		? getCostCents(
 				productType,
@@ -390,35 +416,10 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 
 	const location = useLocation()
 	const [step, setStep] = React.useState<PlanSelectStep | null>(null)
-	// TODO(vkorolik) should this use workspace billing start/end?
-	const [range, setRange] = React.useState<{
-		start: moment.Moment
-		end: moment.Moment
-	}>({
-		start: moment().subtract(3, 'months'),
-		end: moment(),
-	})
-
-	const setUsageRange = (option: 'Monthly' | 'Weekly') => {
-		setRange({
-			start: moment().subtract(option === 'Monthly' ? 12 : 3, 'months'),
-			end: moment(),
-		})
-	}
 
 	const { data, loading, refetch } = useGetBillingDetailsQuery({
 		variables: {
 			workspace_id: workspace_id!,
-		},
-	})
-
-	const { data: usageHistoryData } = useGetWorkspaceUsageHistoryQuery({
-		variables: {
-			workspace_id: workspace_id!,
-			date_range: {
-				start_date: range.start.toISOString(),
-				end_date: range.end.toISOString(),
-			},
 		},
 	})
 
@@ -732,107 +733,79 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					gap="12"
 					mt="8"
 				>
-					<UsageCard
-						productIcon={<IconSolidPlayCircle />}
-						productType={ProductType.Sessions}
-						rate={sessionsRate}
-						retentionPeriod={sessionsRetention}
-						billingLimitCents={sessionsSpendLimit}
-						usageAmount={sessionsUsage}
-						usageLimitAmount={sessionsLimit}
-						usageHistory={
-							usageHistoryData?.usageHistory.session_usage
-						}
-						usageRange={range}
-						setUsageRange={setUsageRange}
-						awsMpSubscription={
-							data?.billingDetails?.plan.aws_mp_subscription
-						}
-						includedQuantity={includedSessions}
-						isPaying={isPaying}
-						planType={planType}
-						enableBillingLimits={
-							data?.billingDetails.plan.enableBillingLimits
-						}
-						billingIssues={billingIssue}
-						setStep={setStep}
-					/>
-					<Box borderTop="secondary" />
-					<UsageCard
-						productIcon={<IconSolidLightningBolt />}
-						productType={ProductType.Errors}
-						rate={errorsRate}
-						retentionPeriod={errorsRetention}
-						billingLimitCents={errorsSpendLimit}
-						usageAmount={errorsUsage}
-						usageLimitAmount={errorsLimit}
-						usageHistory={
-							usageHistoryData?.usageHistory.errors_usage
-						}
-						usageRange={range}
-						setUsageRange={setUsageRange}
-						awsMpSubscription={
-							data?.billingDetails?.plan.aws_mp_subscription
-						}
-						includedQuantity={includedErrors}
-						isPaying={isPaying}
-						planType={planType}
-						enableBillingLimits={
-							data?.billingDetails.plan.enableBillingLimits
-						}
-						billingIssues={billingIssue}
-						setStep={setStep}
-					/>
-					<Box borderTop="secondary" />
-					<UsageCard
-						productIcon={<IconSolidLogs />}
-						productType={ProductType.Logs}
-						rate={logsRate}
-						retentionPeriod={logsRetention}
-						billingLimitCents={logsSpendLimit}
-						usageAmount={logsUsage}
-						usageLimitAmount={logsLimit}
-						usageHistory={usageHistoryData?.usageHistory.logs_usage}
-						usageRange={range}
-						setUsageRange={setUsageRange}
-						awsMpSubscription={
-							data?.billingDetails?.plan.aws_mp_subscription
-						}
-						includedQuantity={includedLogs}
-						isPaying={isPaying}
-						planType={planType}
-						enableBillingLimits={
-							data?.billingDetails.plan.enableBillingLimits
-						}
-						billingIssues={billingIssue}
-						setStep={setStep}
-					/>
-					<Box borderTop="secondary" />
-					<UsageCard
-						productIcon={<IconSolidTraces />}
-						productType={ProductType.Traces}
-						rate={tracesRate}
-						retentionPeriod={tracesRetention}
-						billingLimitCents={tracesSpendLimit}
-						usageAmount={tracesUsage}
-						usageLimitAmount={tracesLimit}
-						usageHistory={
-							usageHistoryData?.usageHistory.traces_usage
-						}
-						usageRange={range}
-						setUsageRange={setUsageRange}
-						awsMpSubscription={
-							data?.billingDetails?.plan.aws_mp_subscription
-						}
-						includedQuantity={includedTraces}
-						isPaying={isPaying}
-						planType={planType}
-						enableBillingLimits={
-							data?.billingDetails.plan.enableBillingLimits
-						}
-						billingIssues={billingIssue}
-						setStep={setStep}
-					/>
+					{[
+						{
+							icon: <IconSolidPlayCircle />,
+							productType: ProductType.Sessions,
+							rate: sessionsRate,
+							retentionPeriod: sessionsRetention,
+							billingLimitCents: sessionsSpendLimit,
+							usageAmount: sessionsUsage,
+							usageLimitAmount: sessionsLimit,
+							includedQuantity: includedSessions,
+						},
+						{
+							icon: <IconSolidLightningBolt />,
+							productType: ProductType.Errors,
+							rate: errorsRate,
+							retentionPeriod: errorsRetention,
+							billingLimitCents: errorsSpendLimit,
+							usageAmount: errorsUsage,
+							usageLimitAmount: errorsLimit,
+							includedQuantity: includedErrors,
+						},
+						{
+							icon: <IconSolidLogs />,
+							productType: ProductType.Logs,
+							rate: logsRate,
+							retentionPeriod: logsRetention,
+							billingLimitCents: logsSpendLimit,
+							usageAmount: logsUsage,
+							usageLimitAmount: logsLimit,
+							includedQuantity: includedLogs,
+						},
+						{
+							icon: <IconSolidTraces />,
+							productType: ProductType.Traces,
+							rate: tracesRate,
+							retentionPeriod: tracesRetention,
+							billingLimitCents: tracesSpendLimit,
+							usageAmount: tracesUsage,
+							usageLimitAmount: tracesLimit,
+							includedQuantity: includedTraces,
+						},
+					].map((product, idx) => (
+						<>
+							<UsageCard
+								productIcon={<IconSolidPlayCircle />}
+								awsMpSubscription={
+									data?.billingDetails?.plan
+										.aws_mp_subscription
+								}
+								isPaying={isPaying}
+								planType={planType}
+								enableBillingLimits={
+									data?.billingDetails.plan
+										.enableBillingLimits
+								}
+								billingIssues={billingIssue}
+								setStep={setStep}
+								billingPeriodEnd={
+									data?.workspace?.next_invoice_date ??
+									data?.workspace?.billing_period_end
+										? moment(
+												data?.workspace
+													?.next_invoice_date ??
+													data?.workspace
+														?.billing_period_end,
+										  ).add(-1, 'month')
+										: undefined
+								}
+								{...product}
+							/>
+							{idx < 3 ? <Box borderTop="secondary" /> : null}
+						</>
+					))}
 				</Box>
 				{isAWSMP ? null : (
 					<Stack

@@ -2899,6 +2899,7 @@ export type QueryUnprocessedSessionsCountArgs = {
 
 export type QueryUsageHistoryArgs = {
 	date_range?: InputMaybe<DateRangeRequiredInput>
+	product_type: ProductType
 	workspace_id: Scalars['ID']
 }
 
@@ -3687,10 +3688,7 @@ export type TrackPropertyInput = {
 
 export type UsageHistory = {
 	__typename?: 'UsageHistory'
-	errors_usage: MetricsBuckets
-	logs_usage: MetricsBuckets
-	session_usage: MetricsBuckets
-	traces_usage: MetricsBuckets
+	usage: MetricsBuckets
 }
 
 export type User = {
