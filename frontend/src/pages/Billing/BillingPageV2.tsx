@@ -35,6 +35,7 @@ import { LoadingRightPanel } from '@/components/Loading/Loading'
 import {
 	useGetBillingDetailsQuery,
 	useGetCustomerPortalUrlLazyQuery,
+	useGetWorkspaceUsageHistoryQuery,
 	useUpdateBillingDetailsMutation,
 } from '@/graph/generated/hooks'
 import {
@@ -243,82 +244,77 @@ const UsageCard = ({
 					</Box>
 				</Box>
 			) : null}
-			{usageHistory ? (
+			<Box
+				width="full"
+				height="full"
+				padding="8"
+				gap="4"
+				display="flex"
+				flexDirection="column"
+				alignItems="flex-end"
+				border="dividerWeak"
+				borderRadius="6"
+				style={{
+					backgroundColor: vars.theme.static.surface.raised,
+				}}
+			>
 				<Box
 					width="full"
 					height="full"
-					padding="8"
-					gap="4"
 					display="flex"
-					flexDirection="column"
-					alignItems="flex-end"
-					border="dividerWeak"
-					borderRadius="6"
-					style={{
-						backgroundColor: vars.theme.static.surface.raised,
-					}}
+					justifyContent="space-between"
+					alignItems="center"
 				>
-					<Box
-						width="full"
-						height="full"
-						display="flex"
-						justifyContent="space-between"
-						alignItems="center"
-					>
-						<Text size="xSmall" color="moderate">
-							Past Usage
-						</Text>
-						<Menu>
-							<Menu.Button
-								iconRight={<IconSolidCheveronDown />}
-								size="xSmall"
-								kind="secondary"
-								emphasis="medium"
-								style={{
-									border: vars.border.secondary,
-									borderRadius: 6,
-									backgroundColor:
-										vars.theme.static.surface.raised,
-								}}
-							>
-								<Text size="xSmall" color="moderate">
-									{usageRange.end.diff(
-										usageRange.start,
-										'day',
-									) > 100
-										? 'Monthly'
-										: 'Weekly'}
-								</Text>
-							</Menu.Button>
-							<Menu.List>
-								{['Monthly', 'Weekly'].map((option) => (
-									<Menu.Item
-										key={option}
-										onClick={() =>
-											setUsageRange(
-												option as 'Monthly' | 'Weekly',
-											)
-										}
-									>
-										<Box display="flex" alignItems="center">
-											<Text
-												size="xSmall"
-												color="moderate"
-											>
-												{option}
-											</Text>
-										</Box>
-									</Menu.Item>
-								))}
-							</Menu.List>
-						</Menu>
-					</Box>
-					<Box width="full" height="full">
-						<LogsHistogram
-							startDate={usageRange.start.toDate()}
-							endDate={usageRange.end.toDate()}
-							onDatesChange={() => {}}
-							histogramBuckets={usageHistory.buckets.map((b) => ({
+					<Text size="xSmall" color="moderate">
+						Past Usage
+					</Text>
+					<Menu>
+						<Menu.Button
+							iconRight={<IconSolidCheveronDown />}
+							size="xSmall"
+							kind="secondary"
+							emphasis="medium"
+							style={{
+								border: vars.border.secondary,
+								borderRadius: 6,
+								backgroundColor:
+									vars.theme.static.surface.raised,
+							}}
+						>
+							<Text size="xSmall" color="moderate">
+								{usageRange.end.diff(usageRange.start, 'day') >
+								100
+									? 'Monthly'
+									: 'Weekly'}
+							</Text>
+						</Menu.Button>
+						<Menu.List>
+							{['Monthly', 'Weekly'].map((option) => (
+								<Menu.Item
+									key={option}
+									onClick={() =>
+										setUsageRange(
+											option as 'Monthly' | 'Weekly',
+										)
+									}
+								>
+									<Box display="flex" alignItems="center">
+										<Text size="xSmall" color="moderate">
+											{option}
+										</Text>
+									</Box>
+								</Menu.Item>
+							))}
+						</Menu.List>
+					</Menu>
+				</Box>
+				<Box width="full" height="full">
+					<LogsHistogram
+						startDate={usageRange.start.toDate()}
+						endDate={usageRange.end.toDate()}
+						onDatesChange={() => {}}
+						histogramBuckets={
+							usageHistory?.buckets.map((b) => ({
 								bucketId: b.bucket_id,
 								group: b.group,
 								counts: [
@@ -327,15 +323,15 @@ const UsageCard = ({
 										count: b.metric_value ?? 0,
 									},
 								],
-							}))}
-							bucketCount={usageHistory.bucket_count}
-							loading={usageHistory === undefined}
-							loadingState="spinner"
-							legend
-						/>
-					</Box>
+							})) ?? []
+						}
+						bucketCount={usageHistory?.bucket_count ?? 0}
+						loading={usageHistory === undefined}
+						loadingState="spinner"
+						legend
+					/>
 				</Box>
-			) : null}
+			</Box>
 		</Box>
 	)
 }
@@ -366,6 +362,12 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	}
 
 	const { data, loading, refetch } = useGetBillingDetailsQuery({
+		variables: {
+			workspace_id: workspace_id!,
+		},
+	})
+
+	const { data: usageHistoryData } = useGetWorkspaceUsageHistoryQuery({
 		variables: {
 			workspace_id: workspace_id!,
 			date_range: {
@@ -693,7 +695,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						billingLimitCents={sessionsSpendLimit}
 						usageAmount={sessionsUsage}
 						usageLimitAmount={sessionsLimit}
-						usageHistory={data?.usageHistory.session_usage}
+						usageHistory={
+							usageHistoryData?.usageHistory.session_usage
+						}
 						usageRange={range}
 						setUsageRange={setUsageRange}
 						awsMpSubscription={
@@ -717,7 +721,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						billingLimitCents={errorsSpendLimit}
 						usageAmount={errorsUsage}
 						usageLimitAmount={errorsLimit}
-						usageHistory={data?.usageHistory.errors_usage}
+						usageHistory={
+							usageHistoryData?.usageHistory.errors_usage
+						}
 						usageRange={range}
 						setUsageRange={setUsageRange}
 						awsMpSubscription={
@@ -741,7 +747,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						billingLimitCents={logsSpendLimit}
 						usageAmount={logsUsage}
 						usageLimitAmount={logsLimit}
-						usageHistory={data?.usageHistory.logs_usage}
+						usageHistory={usageHistoryData?.usageHistory.logs_usage}
 						usageRange={range}
 						setUsageRange={setUsageRange}
 						awsMpSubscription={
@@ -765,7 +771,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						billingLimitCents={tracesSpendLimit}
 						usageAmount={tracesUsage}
 						usageLimitAmount={tracesLimit}
-						usageHistory={data?.usageHistory.traces_usage}
+						usageHistory={
+							usageHistoryData?.usageHistory.traces_usage
+						}
 						usageRange={range}
 						setUsageRange={setUsageRange}
 						awsMpSubscription={

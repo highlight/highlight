@@ -3040,12 +3040,12 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetBillingDetailsQueryVariables = Types.Exact<{
+export type GetWorkspaceUsageHistoryQueryVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	date_range?: Types.Maybe<Types.DateRangeRequiredInput>
 }>
 
-export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
+export type GetWorkspaceUsageHistoryQuery = { __typename?: 'Query' } & {
 	usageHistory: { __typename?: 'UsageHistory' } & {
 		session_usage: { __typename?: 'MetricsBuckets' } & Pick<
 			Types.MetricsBuckets,
@@ -3116,6 +3116,13 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 				>
 			}
 	}
+}
+
+export type GetBillingDetailsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 	billingDetails: { __typename?: 'BillingDetails' } & Pick<
 		Types.BillingDetails,
 		| 'meter'
@@ -5328,6 +5335,7 @@ export const namedOperations = {
 		GetAdminAboutYou: 'GetAdminAboutYou' as const,
 		GetProject: 'GetProject' as const,
 		GetBillingDetailsForProject: 'GetBillingDetailsForProject' as const,
+		GetWorkspaceUsageHistory: 'GetWorkspaceUsageHistory' as const,
 		GetBillingDetails: 'GetBillingDetails' as const,
 		GetSubscriptionDetails: 'GetSubscriptionDetails' as const,
 		GetErrorGroup: 'GetErrorGroup' as const,

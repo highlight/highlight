@@ -9066,8 +9066,8 @@ export type GetBillingDetailsForProjectQueryResult = Apollo.QueryResult<
 	Types.GetBillingDetailsForProjectQuery,
 	Types.GetBillingDetailsForProjectQueryVariables
 >
-export const GetBillingDetailsDocument = gql`
-	query GetBillingDetails(
+export const GetWorkspaceUsageHistoryDocument = gql`
+	query GetWorkspaceUsageHistory(
 		$workspace_id: ID!
 		$date_range: DateRangeRequiredInput
 	) {
@@ -9125,6 +9125,60 @@ export const GetBillingDetailsDocument = gql`
 				sample_factor
 			}
 		}
+	}
+`
+
+/**
+ * __useGetWorkspaceUsageHistoryQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceUsageHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceUsageHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceUsageHistoryQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      date_range: // value for 'date_range'
+ *   },
+ * });
+ */
+export function useGetWorkspaceUsageHistoryQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceUsageHistoryQuery,
+		Types.GetWorkspaceUsageHistoryQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceUsageHistoryQuery,
+		Types.GetWorkspaceUsageHistoryQueryVariables
+	>(GetWorkspaceUsageHistoryDocument, baseOptions)
+}
+export function useGetWorkspaceUsageHistoryLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceUsageHistoryQuery,
+		Types.GetWorkspaceUsageHistoryQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceUsageHistoryQuery,
+		Types.GetWorkspaceUsageHistoryQueryVariables
+	>(GetWorkspaceUsageHistoryDocument, baseOptions)
+}
+export type GetWorkspaceUsageHistoryQueryHookResult = ReturnType<
+	typeof useGetWorkspaceUsageHistoryQuery
+>
+export type GetWorkspaceUsageHistoryLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceUsageHistoryLazyQuery
+>
+export type GetWorkspaceUsageHistoryQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceUsageHistoryQuery,
+	Types.GetWorkspaceUsageHistoryQueryVariables
+>
+export const GetBillingDetailsDocument = gql`
+	query GetBillingDetails($workspace_id: ID!) {
 		billingDetails(workspace_id: $workspace_id) {
 			plan {
 				aws_mp_subscription {
@@ -9208,7 +9262,6 @@ export const GetBillingDetailsDocument = gql`
  * const { data, loading, error } = useGetBillingDetailsQuery({
  *   variables: {
  *      workspace_id: // value for 'workspace_id'
- *      date_range: // value for 'date_range'
  *   },
  * });
  */

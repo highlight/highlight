@@ -983,7 +983,7 @@ query GetBillingDetailsForProject($project_id: ID!) {
 	}
 }
 
-query GetBillingDetails(
+query GetWorkspaceUsageHistory(
 	$workspace_id: ID!
 	$date_range: DateRangeRequiredInput
 ) {
@@ -1041,6 +1041,9 @@ query GetBillingDetails(
 			sample_factor
 		}
 	}
+}
+
+query GetBillingDetails($workspace_id: ID!) {
 	billingDetails(workspace_id: $workspace_id) {
 		plan {
 			aws_mp_subscription {
