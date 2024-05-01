@@ -1,5 +1,6 @@
 /// <reference types="vite-plugin-svgr/client" />
 
+import { CustomEventPayload } from '@pages/Player/components/EventStreamV2/utils'
 import WebVitalSimpleRenderer from '@pages/Player/StreamElement/Renderers/WebVitals/WebVitalRender'
 import React from 'react'
 import { EventType } from 'rrweb'
@@ -20,7 +21,7 @@ export const getEventRenderDetails = (
 		displayValue: '',
 	}
 	if (e.type === EventType.Custom) {
-		const payload = e.data.payload as any
+		const payload = e.data.payload as CustomEventPayload
 
 		details.title = e.data.tag
 		switch (e.data.tag) {
@@ -65,10 +66,10 @@ export const getEventRenderDetails = (
 				details.displayValue = `Total clicks: ${payload}`
 				break
 			default:
-				details.displayValue = payload
+				details.displayValue = JSON.stringify(payload)
 				break
 		}
-		details.payload = e.data.payload as string
+		details.payload = JSON.stringify(e.data.payload)
 	}
 
 	return details

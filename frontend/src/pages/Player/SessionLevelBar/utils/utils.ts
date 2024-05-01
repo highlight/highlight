@@ -1,3 +1,4 @@
+import { NavigationEvent } from '@pages/Player/components/EventStreamV2/utils'
 import { customEvent } from '@rrweb/types'
 
 import {
@@ -25,7 +26,7 @@ export const findFirstEventOfType = (
 }
 
 export const findLatestUrl = (
-	urlEvents: customEvent<string>[],
+	urlEvents: customEvent<string | NavigationEvent>[],
 	currentTime: number,
 ) => {
 	if (urlEvents.length === 0) {
@@ -45,6 +46,10 @@ export const findLatestUrl = (
 		i++
 	}
 
+	if (typeof latestUrl === 'object') {
+		return (latestUrl as NavigationEvent).url
+	}
+
 	return latestUrl
 }
 
@@ -59,7 +64,7 @@ export const getAllUrlEvents = (events: HighlightEvent[]) => {
 		}
 	})
 
-	return urlEvents as customEvent<string>[]
+	return urlEvents as customEvent<string | NavigationEvent>[]
 }
 
 export const getBrowserExtensionScriptURLs = (events: HighlightEvent[]) => {

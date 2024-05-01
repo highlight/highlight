@@ -11,7 +11,10 @@ import {
 	SessionResults,
 	TimelineIndicatorEvent,
 } from '@graph/schemas'
-import { usefulEvent } from '@pages/Player/components/EventStreamV2/utils'
+import {
+	NavigationEvent,
+	usefulEvent,
+} from '@pages/Player/components/EventStreamV2/utils'
 import {
 	HighlightEvent,
 	HighlightJankPayload,
@@ -496,7 +499,13 @@ export const PlayerReducer = (
 				switch (action.event.data.tag) {
 					case 'Navigate':
 					case 'Reload':
-						s.currentUrl = action.event.data.payload as string
+						if (typeof action.event.data.payload === 'object') {
+							s.currentUrl = (
+								action.event.data.payload as NavigationEvent
+							).url
+						} else {
+							s.currentUrl = action.event.data.payload as string
+						}
 						break
 				}
 			}
@@ -604,7 +613,12 @@ const initReplayer = (
 
 	const onlyUrlEvents = getAllUrlEvents(events)
 	if (onlyUrlEvents.length >= 1) {
-		s.currentUrl = onlyUrlEvents[0].data.payload
+		const event = onlyUrlEvents[0].data.payload
+		if (typeof event === 'object') {
+			s.currentUrl = event.url
+		} else {
+			s.currentUrl = event
+		}
 	}
 	s.performancePayloads = getAllPerformanceEvents(events)
 	s.jankPayloads = getAllJankEvents(events)
