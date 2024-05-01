@@ -1,6 +1,7 @@
 // src/pages/Graphing/components/Graph.css.ts
 var disabled = "dg2vg6b";
 var hiddenMenu = "dg2vg67";
+var hoverCard = "dg2vg6c";
 var legendDot = "dg2vg63";
 var legendTextButton = "dg2vg65";
 var legendTextWrapper = "dg2vg64";
@@ -14,6 +15,7 @@ var tooltipWrapper = "dg2vg68";
 export {
   disabled,
   hiddenMenu,
+  hoverCard,
   legendDot,
   legendTextButton,
   legendTextWrapper,
