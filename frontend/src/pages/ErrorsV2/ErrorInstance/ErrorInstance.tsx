@@ -46,6 +46,7 @@ import moment from 'moment'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { useSearchContext } from '@/components/Search/SearchContext'
 import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
 import ErrorBodyText from '@/pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
 import { AiErrorSuggestion } from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestion'
@@ -57,7 +58,7 @@ import { RelatedSession } from '@/pages/ErrorsV2/ErrorInstance/RelatedSession'
 import { RelatedTrace } from '@/pages/ErrorsV2/ErrorInstance/RelatedTrace'
 import { SeeAllInstances } from '@/pages/ErrorsV2/ErrorInstance/SeeAllInstances'
 import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
-import { useSearchContext } from '@/pages/Sessions/SearchContext/SearchContext'
+import { useSearchContext as useSessionSearchContext } from '@/pages/Sessions/SearchContext/SearchContext'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 const MAX_USER_PROPERTIES = 4
@@ -76,6 +77,7 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const client = useApolloClient()
 	const { currentWorkspace } = useApplicationContext()
 	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(false)
+	const { query, startDate, endDate } = useSearchContext()
 
 	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: String(currentWorkspace?.id) },
@@ -86,6 +88,13 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		variables: {
 			error_group_secure_id: String(errorGroup?.secure_id),
 			error_object_id,
+			params: {
+				query,
+				date_range: {
+					start_date: startDate!.toISOString(),
+					end_date: endDate!.toISOString(),
+				},
+			},
 		},
 		onCompleted: (data) => {
 			const previousErrorObjectId = data?.error_instance?.previous_id
@@ -362,7 +371,7 @@ const User: React.FC<{
 	const { isLoggedIn } = useAuthContext()
 	const [truncated, setTruncated] = useState(true)
 
-	const { setSearchQuery } = useSearchContext()
+	const { setSearchQuery } = useSessionSearchContext()
 	const setUserSessionIdentifier = useCallback(() => {
 		if (!errorObject?.session) return
 

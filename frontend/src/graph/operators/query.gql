@@ -1268,10 +1268,15 @@ query GetErrorObject($id: ID!) {
 	}
 }
 
-query GetErrorInstance($error_group_secure_id: String!, $error_object_id: ID) {
+query GetErrorInstance(
+	$error_group_secure_id: String!
+	$error_object_id: ID
+	$params: QueryInput
+) {
 	error_instance(
 		error_group_secure_id: $error_group_secure_id
 		error_object_id: $error_object_id
+		params: $params
 	) {
 		error_object {
 			...ErrorObject

@@ -3415,6 +3415,7 @@ export type GetErrorObjectQuery = { __typename?: 'Query' } & {
 export type GetErrorInstanceQueryVariables = Types.Exact<{
 	error_group_secure_id: Types.Scalars['String']
 	error_object_id?: Types.Maybe<Types.Scalars['ID']>
+	params?: Types.Maybe<Types.QueryInput>
 }>
 
 export type GetErrorInstanceQuery = { __typename?: 'Query' } & {

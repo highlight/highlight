@@ -984,7 +984,7 @@ type ComplexityRoot struct {
 		ErrorGroupTags                   func(childComplexity int, errorGroupSecureID string, useClickhouse *bool) int
 		ErrorGroups                      func(childComplexity int, projectID int, count int, params model.QueryInput, page *int) int
 		ErrorGroupsClickhouse            func(childComplexity int, projectID int, count int, query model.ClickhouseQuery, page *int) int
-		ErrorInstance                    func(childComplexity int, errorGroupSecureID string, errorObjectID *int) int
+		ErrorInstance                    func(childComplexity int, errorGroupSecureID string, errorObjectID *int, params *model.QueryInput) int
 		ErrorIssue                       func(childComplexity int, errorGroupSecureID string) int
 		ErrorObject                      func(childComplexity int, id int) int
 		ErrorObjectForLog                func(childComplexity int, logCursor string) int
@@ -1815,7 +1815,7 @@ type QueryResolver interface {
 	ErrorObject(ctx context.Context, id int) (*model1.ErrorObject, error)
 	ErrorObjects(ctx context.Context, errorGroupSecureID string, count int, params model.QueryInput, page *int) (*model.ErrorObjectResults, error)
 	ErrorObjectForLog(ctx context.Context, logCursor string) (*model1.ErrorObject, error)
-	ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int) (*model1.ErrorInstance, error)
+	ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int, params *model.QueryInput) (*model1.ErrorInstance, error)
 	EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*model.EnhancedUserDetailsResult, error)
 	Errors(ctx context.Context, sessionSecureID string) ([]*model1.ErrorObject, error)
 	Resources(ctx context.Context, sessionSecureID string) ([]interface{}, error)
@@ -7173,7 +7173,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorInstance(childComplexity, args["error_group_secure_id"].(string), args["error_object_id"].(*int)), true
+		return e.complexity.Query.ErrorInstance(childComplexity, args["error_group_secure_id"].(string), args["error_object_id"].(*int), args["params"].(*model.QueryInput)), true
 
 	case "Query.error_issue":
 		if e.complexity.Query.ErrorIssue == nil {
@@ -13310,6 +13310,7 @@ type Query {
 	error_instance(
 		error_group_secure_id: String!
 		error_object_id: ID
+		params: QueryInput
 	): ErrorInstance
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
@@ -18871,6 +18872,15 @@ func (ec *executionContext) field_Query_error_instance_args(ctx context.Context,
 		}
 	}
 	args["error_object_id"] = arg1
+	var arg2 *model.QueryInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg2, err = ec.unmarshalOQueryInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg2
 	return args, nil
 }
 
@@ -52966,7 +52976,7 @@ func (ec *executionContext) _Query_error_instance(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorInstance(rctx, fc.Args["error_group_secure_id"].(string), fc.Args["error_object_id"].(*int))
+		return ec.resolvers.Query().ErrorInstance(rctx, fc.Args["error_group_secure_id"].(string), fc.Args["error_object_id"].(*int), fc.Args["params"].(*model.QueryInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -104034,6 +104044,14 @@ func (ec *executionContext) marshalOProject2ᚖgithubᚗcomᚋhighlightᚑrunᚋ
 		return graphql.Null
 	}
 	return ec._Project(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOQueryInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryInput(ctx context.Context, v interface{}) (*model.QueryInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputQueryInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOReferrerTablePayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐReferrerTablePayload(ctx context.Context, sel ast.SelectionSet, v *model.ReferrerTablePayload) graphql.Marshaler {

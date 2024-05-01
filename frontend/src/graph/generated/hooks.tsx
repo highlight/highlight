@@ -9533,10 +9533,12 @@ export const GetErrorInstanceDocument = gql`
 	query GetErrorInstance(
 		$error_group_secure_id: String!
 		$error_object_id: ID
+		$params: QueryInput
 	) {
 		error_instance(
 			error_group_secure_id: $error_group_secure_id
 			error_object_id: $error_object_id
+			params: $params
 		) {
 			error_object {
 				...ErrorObject
@@ -9562,6 +9564,7 @@ export const GetErrorInstanceDocument = gql`
  *   variables: {
  *      error_group_secure_id: // value for 'error_group_secure_id'
  *      error_object_id: // value for 'error_object_id'
+ *      params: // value for 'params'
  *   },
  * });
  */

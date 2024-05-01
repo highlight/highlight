@@ -2297,6 +2297,7 @@ export type QueryError_Groups_ClickhouseArgs = {
 export type QueryError_InstanceArgs = {
 	error_group_secure_id: Scalars['String']
 	error_object_id?: InputMaybe<Scalars['ID']>
+	params?: InputMaybe<QueryInput>
 }
 
 export type QueryError_IssueArgs = {

@@ -1979,6 +1979,7 @@ type Query {
 	error_instance(
 		error_group_secure_id: String!
 		error_object_id: ID
+		params: QueryInput
 	): ErrorInstance
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
