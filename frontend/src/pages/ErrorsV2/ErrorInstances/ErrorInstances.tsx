@@ -144,9 +144,10 @@ const ErrorInstancesContainer: React.FC<
 					direction="column"
 					justifyContent="space-between"
 					style={{
-						minHeight: '351px',
+						minHeight: '401px',
 					}}
 					width="full"
+					gap="0"
 				>
 					{children}
 				</Stack>

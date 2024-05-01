@@ -139,7 +139,7 @@ export const ErrorInstancesTable = ({ nodes }: Props) => {
 	})
 
 	return (
-		<Box>
+		<Box width="full">
 			{table.getRowModel().rows.map((row) => {
 				return (
 					<Link
