@@ -1,10 +1,4 @@
-import {
-	Box,
-	BoxProps,
-	Callout,
-	Stack,
-	Text,
-} from '@highlight-run/ui/components'
+import { Box, Callout, Stack, Text } from '@highlight-run/ui/components'
 import React, { useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
@@ -64,9 +58,8 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			<ErrorInstancesContainer
 				onSubmit={handleSubmit}
 				query={submittedQuery}
-				verticallyAlign
 			>
-				<LoadingBox />
+				<LoadingBox m="auto" />
 			</ErrorInstancesContainer>
 		)
 	}
@@ -118,43 +111,46 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 
 type ErrorInstancesContainerProps = {
 	onSubmit: (query: string) => void
-	verticallyAlign?: boolean
 	query: string
 }
 
 const ErrorInstancesContainer: React.FC<
 	React.PropsWithChildren<ErrorInstancesContainerProps>
-> = ({ onSubmit, children, verticallyAlign = false, query }) => {
+> = ({ onSubmit, children, query }) => {
 	const { startDate, endDate } = useSearchContext()
 
-	const childrenBoxProps: BoxProps = {
-		mb: '20',
-		borderBottom: 'secondary',
-		style: { minHeight: '351px' },
-	}
-
-	if (verticallyAlign) {
-		childrenBoxProps.display = 'flex'
-		childrenBoxProps.alignItems = 'center'
-	}
 	return (
-		<Stack direction="column">
-			<SearchContext initialQuery={query} onSubmit={onSubmit}>
-				<Box border="secondary" borderRadius="4" mt="16">
-					<SearchForm
-						startDate={startDate!}
-						endDate={endDate!}
-						onDatesChange={() => null}
-						presets={[]}
-						minDate={startDate!}
-						timeMode="permalink"
-						hideDatePicker
-						hideCreateAlert
-						productType={ProductType.Errors}
-					/>
-				</Box>
-				<Box {...childrenBoxProps}>{children}</Box>
-			</SearchContext>
-		</Stack>
+		<SearchContext initialQuery={query} onSubmit={onSubmit}>
+			<Stack
+				direction="column"
+				borderRadius="6"
+				border="dividerWeak"
+				mt="16"
+				gap="0"
+			>
+				<SearchForm
+					startDate={startDate!}
+					endDate={endDate!}
+					onDatesChange={() => null}
+					presets={[]}
+					minDate={startDate!}
+					timeMode="permalink"
+					hideDatePicker
+					hideCreateAlert
+					productType={ProductType.Errors}
+				/>
+				<Stack
+					alignItems="center"
+					direction="column"
+					justifyContent="space-between"
+					style={{
+						minHeight: '351px',
+					}}
+					width="full"
+				>
+					{children}
+				</Stack>
+			</Stack>
+		</SearchContext>
 	)
 }
