@@ -148,20 +148,59 @@ const UsageCard = ({
 				</Box>
 				<Box display="flex" gap="4">
 					{!enableBillingLimits ? (
-						<Badge
-							size="medium"
-							shape="basic"
-							kind="primary"
-							variant="gray"
-							label={`${usageAmount.toLocaleString()} ${productType.toLocaleLowerCase()}`}
-						></Badge>
+						<Tooltip
+							maxWidth={177}
+							delayed
+							trigger={
+								<Badge
+									size="medium"
+									shape="basic"
+									kind="primary"
+									variant="gray"
+									label={`${usageAmount.toLocaleString()} ${productType.toLocaleLowerCase()} this month`}
+									iconEnd={
+										<IconSolidInformationCircle size={12} />
+									}
+								></Badge>
+							}
+						>
+							<Box padding="4">
+								<Text size="xSmall" color="moderate">
+									We’ve ingested{' '}
+									<b>
+										{usageAmount.toLocaleString()}{' '}
+										{productType.toLocaleLowerCase()}
+									</b>{' '}
+									this month. 300000 are included in the free
+									tier.
+								</Text>
+							</Box>
+						</Tooltip>
 					) : null}
-					<Badge
-						size="medium"
-						shape="basic"
-						kind="secondary"
-						label={RETENTION_PERIOD_LABELS[retentionPeriod]}
-					/>
+					<Tooltip
+						maxWidth={177}
+						delayed
+						trigger={
+							<Badge
+								size="medium"
+								shape="basic"
+								kind="secondary"
+								label={RETENTION_PERIOD_LABELS[retentionPeriod]}
+								iconEnd={
+									<IconSolidInformationCircle size={12} />
+								}
+							/>
+						}
+					>
+						<Box padding="4">
+							<Text size="xSmall" color="moderate">
+								We retain your{' '}
+								<b>{productType.toLocaleLowerCase()}</b> for{' '}
+								{RETENTION_PERIOD_LABELS[retentionPeriod]}. Data
+								is deleted after that period.
+							</Text>
+						</Box>
+					</Tooltip>
 					{enableBillingLimits ? (
 						<Tooltip
 							delayed
