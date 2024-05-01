@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-function SvgGraphingHovercardTable(props: React.SVGProps<SVGSVGElement>) {
+function SvgGraphingHovercardTable() {
 	return (
 		<svg
 			width="177"
@@ -25,7 +25,7 @@ function SvgGraphingHovercardTable(props: React.SVGProps<SVGSVGElement>) {
 				rx="3.5"
 				stroke="#E4E2E4"
 			/>
-			<g clip-path="url(#clip0_3228_14281)">
+			<g clipPath="url(#clip0_3228_14281)">
 				<rect
 					x="37.5"
 					y="9.5"
@@ -40,7 +40,7 @@ function SvgGraphingHovercardTable(props: React.SVGProps<SVGSVGElement>) {
 					transform="translate(37.5 9.5)"
 					fill="#F9F8F9"
 				/>
-				<g clip-path="url(#clip1_3228_14281)">
+				<g clipPath="url(#clip1_3228_14281)">
 					<rect
 						x="40.5"
 						y="12.5"
@@ -56,7 +56,7 @@ function SvgGraphingHovercardTable(props: React.SVGProps<SVGSVGElement>) {
 					transform="translate(74.5 9.5)"
 					fill="#E4E2E4"
 				/>
-				<g clip-path="url(#clip2_3228_14281)">
+				<g clipPath="url(#clip2_3228_14281)">
 					<rect
 						x="78.5"
 						y="12.5"
@@ -72,7 +72,7 @@ function SvgGraphingHovercardTable(props: React.SVGProps<SVGSVGElement>) {
 					transform="translate(107 9.5)"
 					fill="#E4E2E4"
 				/>
-				<g clip-path="url(#clip3_3228_14281)">
+				<g clipPath="url(#clip3_3228_14281)">
 					<rect
 						x="111"
 						y="12.5"
@@ -88,7 +88,7 @@ function SvgGraphingHovercardTable(props: React.SVGProps<SVGSVGElement>) {
 					transform="translate(37.5 21.5)"
 					fill="#E4E2E4"
 				/>
-				<g clip-path="url(#clip4_3228_14281)">
+				<g clipPath="url(#clip4_3228_14281)">
 					<rect
 						x="40.5"
 						y="26.5"
@@ -123,7 +123,7 @@ function SvgGraphingHovercardTable(props: React.SVGProps<SVGSVGElement>) {
 					height="15"
 					rx="2.5"
 					fill="#E9E8EA"
-					fill-opacity="0.48"
+					fillOpacity="0.48"
 				/>
 				<rect
 					x="37"
@@ -133,7 +133,7 @@ function SvgGraphingHovercardTable(props: React.SVGProps<SVGSVGElement>) {
 					rx="2.5"
 					stroke="#E4E2E4"
 				/>
-				<g clip-path="url(#clip5_3228_14281)">
+				<g clipPath="url(#clip5_3228_14281)">
 					<rect
 						x="40.5"
 						y="41.5"
@@ -161,7 +161,7 @@ function SvgGraphingHovercardTable(props: React.SVGProps<SVGSVGElement>) {
 					transform="translate(37.5 51.5)"
 					fill="#E4E2E4"
 				/>
-				<g clip-path="url(#clip6_3228_14281)">
+				<g clipPath="url(#clip6_3228_14281)">
 					<rect
 						x="40.5"
 						y="56.5"
@@ -191,7 +191,7 @@ function SvgGraphingHovercardTable(props: React.SVGProps<SVGSVGElement>) {
 				height="58"
 				rx="5.5"
 				stroke="#E4E2E4"
-				stroke-linecap="round"
+				strokeLinecap="round"
 			/>
 			<defs>
 				<clipPath id="clip0_3228_14281">

@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-function SvgGraphingHovercardLine(props: React.SVGProps<SVGSVGElement>) {
+function SvgGraphingHovercardLine() {
 	return (
 		<svg
 			width="177"
@@ -28,12 +28,12 @@ function SvgGraphingHovercardLine(props: React.SVGProps<SVGSVGElement>) {
 			<path
 				d="M32 38L52.5 34.9877L91.9787 54.7883L118.437 23.7534L128.524 34.9877L145 31.8948"
 				stroke="#E4E2E4"
-				stroke-width="2"
+				strokeWidth="2"
 			/>
 			<path
 				d="M32 48.4449L54.0689 52.2437L93 27.3158L118.5 47.6667L128.873 45.1209L145 50.6767"
 				stroke="#6F6E77"
-				stroke-width="2"
+				strokeWidth="2"
 			/>
 			<line
 				x1="118.5"
@@ -41,8 +41,8 @@ function SvgGraphingHovercardLine(props: React.SVGProps<SVGSVGElement>) {
 				x2="117.5"
 				y2="66.5"
 				stroke="#C8C7CB"
-				stroke-linecap="round"
-				stroke-dasharray="4 4"
+				strokeLinecap="round"
+				strokeDasharray="4 4"
 			/>
 			<ellipse
 				cx="118.5"

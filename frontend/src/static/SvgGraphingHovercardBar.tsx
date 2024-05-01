@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-function SvgGraphingHovercardBar(props: React.SVGProps<SVGSVGElement>) {
+function SvgGraphingHovercardBar() {
 	return (
 		<svg
 			width="177"
@@ -29,8 +29,8 @@ function SvgGraphingHovercardBar(props: React.SVGProps<SVGSVGElement>) {
 				d="M39.5 48C39.5 44.6863 42.1863 42 45.5 42H54.25C57.5637 42 60.25 44.6863 60.25 48V66H39.5V48Z"
 				fill="#F4F2F4"
 				stroke="#6F6E77"
-				stroke-linecap="round"
-				stroke-dasharray="6 6"
+				strokeLinecap="round"
+				strokeDasharray="6 6"
 			/>
 			<path
 				d="M65.25 23C65.25 19.6863 67.9363 17 71.25 17H80C83.3137 17 86 19.6863 86 23V66H65.25V23Z"
@@ -44,8 +44,8 @@ function SvgGraphingHovercardBar(props: React.SVGProps<SVGSVGElement>) {
 				d="M116.75 18C116.75 14.6863 119.436 12 122.75 12H131.5C134.814 12 137.5 14.6863 137.5 18V66H116.75V18Z"
 				fill="#F4F2F4"
 				stroke="#6F6E77"
-				stroke-linecap="round"
-				stroke-dasharray="6 6"
+				strokeLinecap="round"
+				strokeDasharray="6 6"
 			/>
 			<rect
 				width="122"
