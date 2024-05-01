@@ -596,8 +596,13 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 	} else {
 		config = sampleableConfig.tableConfig
 	}
+	var isCountDistinct bool
 	for _, metricType := range metricTypes {
+		if metricType == modelInputs.MetricAggregatorCountDistinct {
+			isCountDistinct = true
+		}
 		if metricType == modelInputs.MetricAggregatorCountDistinctKey {
+			isCountDistinct = true
 			config.DefaultFilter = ""
 		}
 	}
@@ -611,11 +616,13 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 		OrderForwardNatural,
 	)
 
-	var metricExpr string
-	if col, found := keysToColumns[T(strings.ToLower(column))]; found {
-		metricExpr = fmt.Sprintf("toFloat64(%s)", col)
-	} else {
-		metricExpr = fmt.Sprintf("toFloat64OrNull(%s[%s])", attributesColumn, fromSb.Var(column))
+	var col string
+	if col = keysToColumns[T(strings.ToLower(column))]; col == "" {
+		col = fmt.Sprintf("%s[%s]", attributesColumn, fromSb.Var(column))
+	}
+	var metricExpr = col
+	if !isCountDistinct {
+		metricExpr = fmt.Sprintf("toFloat64OrNull(%s)", col)
 	}
 
 	switch column {
