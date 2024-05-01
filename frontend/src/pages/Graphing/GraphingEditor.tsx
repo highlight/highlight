@@ -35,7 +35,7 @@ import {
 	useGetVisualizationQuery,
 	useUpsertGraphMutation,
 } from '@/graph/generated/hooks'
-import { GetKeysQuery, namedOperations } from '@/graph/generated/operations'
+import { GetKeysQuery } from '@/graph/generated/operations'
 import {
 	GraphInput,
 	MetricAggregator,
@@ -65,7 +65,6 @@ import {
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 
 import * as style from './GraphingEditor.css'
-import { client } from '@/util/graph'
 
 const DEFAULT_BUCKET_COUNT = 50
 
