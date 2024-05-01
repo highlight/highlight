@@ -36,7 +36,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.21.2
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.53.0
 	github.com/aws/smithy-go v1.20.1
-	github.com/bradleyfalzon/ghinstallation/v2 v2.9.0
+	github.com/bradleyfalzon/ghinstallation/v2 v2.10.0
 	github.com/clearbit/clearbit-go v1.1.0
 	github.com/dchest/uniuri v1.2.0
 	github.com/disintegration/imaging v1.6.2
@@ -129,7 +129,7 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/google/go-github/v57 v57.0.0 // indirect
+	github.com/google/go-github/v60 v60.0.0 // indirect
 	github.com/google/pprof v0.0.0-20240227163752-401108e1b7e7 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
