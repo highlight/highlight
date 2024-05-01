@@ -65,7 +65,7 @@ jobs:
                   aws-region: us-east-2
 
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
 
             # setting REACT_APP_COMMIT_SHA to a dummy value in CI to allow consistent turborepo remote caching
 
