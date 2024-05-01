@@ -26,7 +26,7 @@ jobs:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Add public IP to AWS security group
               uses: sohelamin/aws-security-group-add-ip-action@master
               with:
@@ -57,7 +57,7 @@ jobs:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -145,7 +145,7 @@ jobs:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -197,7 +197,7 @@ jobs:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -261,7 +261,7 @@ jobs:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -313,7 +313,7 @@ jobs:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -353,7 +353,7 @@ jobs:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
