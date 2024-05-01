@@ -297,22 +297,6 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	return nil
 }
 
-func (w *Worker) getSessionID(ctx context.Context, sessionSecureID string) (id int, err error) {
-	s, _ := util.StartSpanFromContext(ctx, "getSessionID", util.ResourceName("worker.getSessionID"))
-	s.SetAttribute("secure_id", sessionSecureID)
-	defer s.Finish()
-	if sessionSecureID == "" {
-		return 0, e.New("getSessionID called with no secure id")
-	}
-	session := &model.Session{}
-	w.Resolver.DB.Select("id").Where(&model.Session{SecureID: sessionSecureID}).Take(&session)
-	if session.ID == 0 {
-		return 0, e.New(fmt.Sprintf("no session found for secure id: '%s'", sessionSecureID))
-	}
-	id = session.ID
-	return
-}
-
 func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueue.Message) error {
 	switch task.Type {
 	case kafkaqueue.PushPayload:
@@ -375,11 +359,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.AddTrackProperties == nil {
 			break
 		}
-		sessionID, err := w.getSessionID(ctx, task.AddTrackProperties.SessionSecureID)
-		if err != nil {
-			return err
-		}
-		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, sessionID, task.AddTrackProperties.PropertiesObject); err != nil {
+		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, task.AddTrackProperties.SessionSecureID, task.AddTrackProperties.PropertiesObject); err != nil {
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
@@ -387,11 +367,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.AddSessionProperties == nil {
 			break
 		}
-		sessionID, err := w.getSessionID(ctx, task.AddSessionProperties.SessionSecureID)
-		if err != nil {
-			return err
-		}
-		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, sessionID, task.AddSessionProperties.PropertiesObject); err != nil {
+		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, task.AddSessionProperties.SessionSecureID, task.AddSessionProperties.PropertiesObject); err != nil {
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
@@ -1021,7 +997,6 @@ func (w *Worker) GetSessionsToProcess(ctx context.Context, payloadLookbackPeriod
 
 // Start begins the worker's tasks.
 func (w *Worker) Start(ctx context.Context) {
-	go reportProcessSessionCount(ctx, w.Resolver.DB, pubgraph.SessionProcessDelaySeconds, pubgraph.SessionProcessLockMinutes)
 	maxWorkerCount := 10
 	wp := workerpool.New(maxWorkerCount)
 	wp.SetPanicHandler(util.Recover)
@@ -1566,25 +1541,4 @@ func processEventChunk(ctx context.Context, a EventProcessingAccumulator, events
 		}
 	}
 	return a
-}
-
-func reportProcessSessionCount(ctx context.Context, db *gorm.DB, lookbackPeriod, lockPeriod int) {
-	defer util.Recover()
-	for {
-		time.Sleep(1*time.Minute + time.Duration(59*float64(time.Minute.Nanoseconds())*rand.Float64()))
-		var count int64
-		if err := db.WithContext(ctx).Raw(`
-			SELECT COUNT(*)
-			FROM sessions
-			WHERE (processed = false)
-				AND (excluded = false)
-				AND (payload_updated_at < NOW() - (? * INTERVAL '1 SECOND'))
-				AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))
-				AND (retry_count < ?)
-			`, lookbackPeriod, lockPeriod, MAX_RETRIES).Scan(&count).Error; err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error getting count of sessions to process"))
-			continue
-		}
-		hmetric.Histogram(ctx, "processSessionsCount", float64(count), nil, 1)
-	}
 }

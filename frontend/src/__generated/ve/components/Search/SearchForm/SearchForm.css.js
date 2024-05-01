@@ -1,6 +1,6 @@
 // src/components/Search/SearchForm/SearchForm.css.ts
-var combobox = "_10xh0c23 mt0ih23n mt0ih247 mt0ih24r mt0ih25b";
-var comboboxGroup = "_10xh0c2i mt0ih23m mt0ih246";
+var combobox = "_10xh0c23 mt0ih23s mt0ih24c mt0ih24w mt0ih25g";
+var comboboxGroup = "_10xh0c2i mt0ih23r mt0ih24b";
 var comboboxItem = "_10xh0c2g";
 var comboboxNotEmpty = "_10xh0c24";
 var comboboxPopover = "_10xh0c2e";

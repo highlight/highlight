@@ -90,10 +90,7 @@ const ApplicationRouter: React.FC = () => {
 								</Suspense>
 							}
 						/>
-						<Route
-							path="dashboards/*"
-							element={<DashboardRouter />}
-						/>
+						<Route path="metrics/*" element={<DashboardRouter />} />
 						<Route
 							path="*"
 							element={<Navigate to={BASE_PATH} replace />}

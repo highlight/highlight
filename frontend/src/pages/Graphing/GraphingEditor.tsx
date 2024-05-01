@@ -1,5 +1,4 @@
 import {
-	Badge,
 	Box,
 	Button,
 	ComboboxSelect,
@@ -27,7 +26,6 @@ import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
-import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { SearchContext } from '@/components/Search/SearchContext'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
@@ -632,12 +630,6 @@ export const GraphingEditor = () => {
 								onClick={onSave}
 							>
 								Save&nbsp;
-								<Badge
-									variant="outlinePurple"
-									shape="basic"
-									size="small"
-									label={[cmdKey, 'S'].join('+')}
-								/>
 							</Button>
 						</Box>
 					</Box>

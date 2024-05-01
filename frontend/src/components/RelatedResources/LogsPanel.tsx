@@ -11,6 +11,7 @@ import {
 import { Panel } from '@/components/RelatedResources/Panel'
 import { SearchContext } from '@/components/Search/SearchContext'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
+import { parseSearch } from '@/components/Search/utils'
 import { ProductType } from '@/graph/generated/schemas'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
@@ -21,6 +22,7 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 }) => {
 	const { set } = useRelatedResource()
 	const [query, setQuery] = useState(resource.query ?? '')
+	const { queryParts } = parseSearch(query)
 	const handleSubmit = (query: string) => set({ ...resource, query })
 	const { projectId } = useNumericProjectId()
 
@@ -118,6 +120,8 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 							</Box>
 						) : (
 							<LogsTable
+								query={query}
+								queryParts={queryParts}
 								logEdges={logEdges}
 								loading={loading}
 								error={error}

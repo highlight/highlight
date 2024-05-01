@@ -73,10 +73,16 @@ const size = {
 	large: large,
 } as const
 
+export const fontWeights = {
+	regular: '400',
+	medium: '500',
+	bold: '600',
+} as const
+
 const weight = {
-	regular: { fontWeight: '400' },
-	medium: { fontWeight: '500' },
-	bold: { fontWeight: '600' },
+	regular: { fontWeight: fontWeights.regular },
+	medium: { fontWeight: fontWeights.medium },
+	bold: { fontWeight: fontWeights.bold },
 } as const
 
 export const typographyStyles = {
