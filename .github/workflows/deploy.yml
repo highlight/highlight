@@ -19,14 +19,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Add public IP to AWS security group
               uses: sohelamin/aws-security-group-add-ip-action@master
               with:
@@ -50,14 +50,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -138,14 +138,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -190,14 +190,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -254,14 +254,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -306,14 +306,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -346,14 +346,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -386,7 +386,7 @@ jobs:
         runs-on: buildjet-2vcpu-ubuntu-2204-arm
         steps:
             - name: Check out the repo
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
 
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v4
@@ -555,7 +555,7 @@ jobs:
               uses: aws-actions/amazon-ecr-login@v2
 
             - name: Check out the repo
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - uses: dorny/paths-filter@v2
               id: filter
               with:
