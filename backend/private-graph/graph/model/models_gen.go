@@ -955,8 +955,7 @@ type TrackPropertyInput struct {
 }
 
 type UsageHistory struct {
-	Product ProductType     `json:"product"`
-	Usage   *MetricsBuckets `json:"usage"`
+	Usage *MetricsBuckets `json:"usage"`
 }
 
 type User struct {

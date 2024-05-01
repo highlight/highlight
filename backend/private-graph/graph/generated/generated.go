@@ -1536,8 +1536,7 @@ type ComplexityRoot struct {
 	}
 
 	UsageHistory struct {
-		Product func(childComplexity int) int
-		Usage   func(childComplexity int) int
+		Usage func(childComplexity int) int
 	}
 
 	User struct {
@@ -10704,13 +10703,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TrackProperty.Value(childComplexity), true
 
-	case "UsageHistory.product":
-		if e.complexity.UsageHistory.Product == nil {
-			break
-		}
-
-		return e.complexity.UsageHistory.Product(childComplexity), true
-
 	case "UsageHistory.usage":
 		if e.complexity.UsageHistory.Usage == nil {
 			break
@@ -11492,7 +11484,6 @@ type BillingDetails {
 }
 
 type UsageHistory {
-	product: ProductType!
 	usage: MetricsBuckets!
 }
 
@@ -56161,8 +56152,6 @@ func (ec *executionContext) fieldContext_Query_usageHistory(ctx context.Context,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "product":
-				return ec.fieldContext_UsageHistory_product(ctx, field)
 			case "usage":
 				return ec.fieldContext_UsageHistory_usage(ctx, field)
 			}
@@ -75858,50 +75847,6 @@ func (ec *executionContext) fieldContext_TrackProperty_value(ctx context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _UsageHistory_product(ctx context.Context, field graphql.CollectedField, obj *model.UsageHistory) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_UsageHistory_product(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Product, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(model.ProductType)
-	fc.Result = res
-	return ec.marshalNProductType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_UsageHistory_product(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "UsageHistory",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ProductType does not have child fields")
 		},
 	}
 	return fc, nil
@@ -96079,11 +96024,6 @@ func (ec *executionContext) _UsageHistory(ctx context.Context, sel ast.Selection
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("UsageHistory")
-		case "product":
-			out.Values[i] = ec._UsageHistory_product(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "usage":
 			out.Values[i] = ec._UsageHistory_usage(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
