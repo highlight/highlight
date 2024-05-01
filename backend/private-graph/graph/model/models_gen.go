@@ -328,22 +328,6 @@ type ErrorMetadata struct {
 	Payload         *string    `json:"payload,omitempty"`
 }
 
-type ErrorObjectConnection struct {
-	Edges    []*ErrorObjectEdge `json:"edges"`
-	PageInfo *PageInfo          `json:"pageInfo"`
-}
-
-func (ErrorObjectConnection) IsConnection()               {}
-func (this ErrorObjectConnection) GetPageInfo() *PageInfo { return this.PageInfo }
-
-type ErrorObjectEdge struct {
-	Cursor string           `json:"cursor"`
-	Node   *ErrorObjectNode `json:"node"`
-}
-
-func (ErrorObjectEdge) IsEdge()                {}
-func (this ErrorObjectEdge) GetCursor() string { return this.Cursor }
-
 type ErrorObjectNode struct {
 	ID                 int                     `json:"id"`
 	CreatedAt          time.Time               `json:"createdAt"`
@@ -360,6 +344,11 @@ type ErrorObjectNodeSession struct {
 	Email       *string `json:"email,omitempty"`
 	Fingerprint *int    `json:"fingerprint,omitempty"`
 	Excluded    bool    `json:"excluded"`
+}
+
+type ErrorObjectResults struct {
+	ErrorObjects []*ErrorObjectNode `json:"error_objects"`
+	TotalCount   int64              `json:"totalCount"`
 }
 
 type ErrorTrace struct {

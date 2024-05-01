@@ -5373,19 +5373,16 @@ func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorOb
 }
 
 // ErrorObjects is the resolver for the error_objects field.
-func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID string, after *string, before *string, query string) (*modelInputs.ErrorObjectConnection, error) {
+func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID string, count int, params modelInputs.QueryInput, page *int) (*modelInputs.ErrorObjectResults, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, err
 	}
 
-	connection, err := r.Store.ListErrorObjects(*errorGroup, store.ListErrorObjectsParams{
-		After:  after,
-		Before: before,
-		Query:  query,
-	})
+	ids, total, err := r.ClickhouseClient.QueryErrorObjects(ctx, errorGroup.ProjectID, errorGroup.ID, count, params, page)
 
-	return &connection, err
+	results, err := r.Store.ListErrorObjects(*errorGroup, ids, total)
+	return &results, err
 }
 
 // ErrorObjectForLog is the resolver for the error_object_for_log field.
