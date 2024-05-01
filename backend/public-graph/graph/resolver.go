@@ -144,7 +144,7 @@ type Response struct {
 	Status  float64           `json:"status"`
 	Size    float64           `json:"size"`
 	Headers map[string]string `json:"headers"`
-	Body    string            `json:"body"`
+	Body    any               `json:"body"`
 }
 
 type RequestResponsePairs struct {
@@ -991,6 +991,18 @@ func (r *Resolver) IndexSessionClickhouse(ctx context.Context, session *model.Se
 	return r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}})
 }
 
+func (r *Resolver) getSession(ctx context.Context, sessionSecureID string) (*model.Session, error) {
+	sessionObj, found := r.SessionCache.Get(sessionSecureID)
+	if !found {
+		if err := r.DB.WithContext(ctx).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Take(&sessionObj).Error; err != nil {
+			retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
+			log.WithContext(ctx).WithField("sessionSecureID", sessionSecureID).WithError(retErr).Error("failed to get session")
+			return nil, err
+		}
+	}
+	return sessionObj, nil
+}
+
 func (r *Resolver) getExistingSession(ctx context.Context, projectID int, secureID string) (*model.Session, error) {
 	existingSessionObj := &model.Session{}
 	if err := r.DB.WithContext(ctx).Model(&existingSessionObj).Where(&model.Session{SecureID: secureID}).Take(&existingSessionObj).Error; err != nil {
@@ -1557,10 +1569,15 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	return nil
 }
 
-func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionID int, propertiesObject interface{}) error {
+func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionSecureID string, propertiesObject interface{}) error {
 	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AddSessionPropertiesImpl",
 		util.ResourceName("go.sessions.AddSessionPropertiesImpl"))
 	defer outerSpan.Finish()
+
+	sessionObj, err := r.getSession(ctx, sessionSecureID)
+	if err != nil {
+		return err
+	}
 
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
@@ -1570,7 +1587,7 @@ func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionID int, 
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	err := r.AppendProperties(ctx, sessionID, fields, PropertyType.SESSION)
+	err = r.AppendProperties(ctx, sessionObj.ID, fields, PropertyType.SESSION)
 	if err != nil {
 		return e.Wrap(err, "error adding set of properties to db")
 	}
@@ -1579,7 +1596,7 @@ func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionID int, 
 
 var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 	maxCostCents    func(*model.Workspace) *int
-	meter           func(context.Context, *gorm.DB, *clickhouse.Client, *model.Workspace) (int64, error)
+	meter           func(context.Context, *gorm.DB, *clickhouse.Client, *redis.Client, *model.Workspace) (int64, error)
 	retentionPeriod func(*model.Workspace) privateModel.RetentionPeriod
 	included        func(*model.Workspace) int64
 }{
@@ -1679,7 +1696,7 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 		return true, 0
 	}
 
-	meter, err := cfg.meter(ctx, r.DB, r.Clickhouse, workspace)
+	meter, err := cfg.meter(ctx, r.DB, r.Clickhouse, r.Redis, workspace)
 	if err != nil {
 		log.WithContext(ctx).Warn(fmt.Sprintf("error getting %s meter for workspace %d", productType, workspace.ID))
 	}
@@ -2256,10 +2273,15 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 }
 
 // Deprecated, left for backward compatibility with older client versions. Use AddTrackProperties instead
-func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionID int, propertiesObject interface{}) error {
+func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionSecureID string, propertiesObject interface{}) error {
 	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AddTrackPropertiesImpl",
 		util.ResourceName("go.sessions.AddTrackPropertiesImpl"))
 	defer outerSpan.Finish()
+
+	sessionObj, err := r.getSession(ctx, sessionSecureID)
+	if err != nil {
+		return err
+	}
 
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
@@ -2272,7 +2294,7 @@ func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionID int, pr
 			return e.New("therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues")
 		}
 	}
-	err := r.AppendProperties(ctx, sessionID, fields, PropertyType.TRACK)
+	err = r.AppendProperties(ctx, sessionObj.ID, fields, PropertyType.TRACK)
 	if err != nil {
 		return e.Wrap(err, "error adding set of properties to db")
 	}
@@ -2468,14 +2490,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		return e.New("ProcessPayload called without secureID")
 	}
 
-	sessionObj, found := r.SessionCache.Get(sessionSecureID)
-	if !found {
-		if err := r.DB.WithContext(ctx).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Take(&sessionObj).Error; err != nil {
-			retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
-			log.WithContext(ctx).Error(retErr)
-			querySessionSpan.Finish(retErr)
-			return retErr
-		}
+	sessionObj, err := r.getSession(ctx, sessionSecureID)
+	if err != nil {
+		querySessionSpan.Finish(err)
+		return err
 	}
 	querySessionSpan.SetAttribute("secure_id", sessionObj.SecureID)
 	querySessionSpan.SetAttribute("project_id", sessionObj.ProjectID)
@@ -2521,6 +2539,23 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	g.Go(func() error {
 		defer util.Recover()
+
+		project, err := r.Store.GetProject(ctx, projectID)
+		if err != nil {
+			return err
+		}
+
+		workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
+		if err != nil {
+			return e.Wrap(err, "error querying workspace")
+		}
+
+		if withinBillingQuota, _ := r.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now()); !withinBillingQuota {
+			log.WithContext(ctx).
+				WithField("workspace_id", workspace.ID).
+				Info("workspace outside session quota, dropping frontend session events")
+			return nil
+		}
 
 		opts := []util.SpanOption{util.ResourceName("go.parseEvents"), util.Tag("project_id", projectID)}
 		if len(events.Events) > 1_000 {
@@ -2711,9 +2746,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// process errors
 	g.Go(func() error {
 		defer util.Recover()
-		if hasBeacon {
-			r.DB.WithContext(ctx).Where(&model.ErrorObject{SessionID: &sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
-		}
 
 		project, err := r.Store.GetProject(ctx, projectID)
 		if err != nil {
@@ -2730,6 +2762,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				WithField("workspace_id", workspace.ID).
 				Info("workspace outside error quota, dropping frontend errors")
 			return nil
+		}
+
+		if hasBeacon {
+			r.DB.WithContext(ctx).Where(&model.ErrorObject{SessionID: &sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
 		}
 
 		errors = lo.Filter(errors, func(item *publicModel.ErrorObjectInput, index int) bool {
@@ -2841,6 +2877,23 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	if err := g.Wait(); err != nil {
 		return err
+	}
+
+	project, err := r.Store.GetProject(ctx, projectID)
+	if err != nil {
+		return err
+	}
+
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
+	if err != nil {
+		return e.Wrap(err, "error querying workspace")
+	}
+
+	if withinBillingQuota, _ := r.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now()); !withinBillingQuota {
+		log.WithContext(ctx).
+			WithField("workspace_id", workspace.ID).
+			Info("workspace outside session quota, dropping frontend session update")
+		return nil
 	}
 
 	now := time.Now()

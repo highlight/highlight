@@ -67,7 +67,7 @@ import { ReplayEventsInput } from './graph/generated/schemas'
 import { MessageType, PropertyType, Source } from './workers/types'
 import { Logger } from './logger'
 import { HighlightFetchWindow } from './listeners/network-listener/utils/fetch-listener'
-import { ConsoleMessage } from './types/shared-types'
+import { ConsoleMessage, ErrorMessageType } from './types/shared-types'
 import { RequestResponsePair } from './listeners/network-listener/utils/models'
 import {
 	JankListener,
@@ -455,43 +455,55 @@ export class Highlight {
 		})
 	}
 
-	async pushCustomError(message: string, payload?: string) {
-		const result = await StackTrace.get()
-		const frames = result.slice(1)
-		this._firstLoadListeners.errors.push({
-			event: message,
-			type: 'custom',
-			url: window.location.href,
-			source: frames[0].fileName ?? '',
-			lineNumber: frames[0].lineNumber ?? 0,
-			columnNumber: frames[0].columnNumber ?? 0,
-			stackTrace: frames,
-			timestamp: new Date().toISOString(),
-			payload: payload,
+	pushCustomError(message: string, payload?: string) {
+		return this.consumeCustomError(new Error(message), undefined, payload)
+	}
+
+	consumeCustomError(error: Error, message?: string, payload?: string) {
+		let obj = {}
+		if (payload) {
+			try {
+				obj = { ...JSON.parse(payload), ...obj }
+			} catch (e) {}
+		}
+		return this.consumeError(error, {
+			message,
+			payload: obj,
 		})
 	}
 
-	async consumeCustomError(error: Error, message?: string, payload?: string) {
+	consumeError(
+		error: Error,
+		{
+			message,
+			payload,
+			source,
+			type,
+		}: {
+			message?: string
+			payload?: object
+			source?: string
+			type?: ErrorMessageType
+		},
+	) {
 		if (error.cause) {
-			let obj = { 'exception.cause': error.cause }
-			if (payload) {
-				try {
-					obj = { ...JSON.parse(payload), ...obj }
-				} catch (e) {}
-			}
-			payload = JSON.stringify(obj)
+			payload = { ...payload, 'exception.cause': error.cause }
+		}
+		let event = message ? message + ':' + error.message : error.message
+		if (type === 'React.ErrorBoundary') {
+			event = 'ErrorBoundary: ' + event
 		}
 		const res = ErrorStackParser.parse(error)
 		this._firstLoadListeners.errors.push({
-			event: message ? message + ':' + error.message : error.message,
-			type: 'custom',
+			event,
+			type: type ?? 'custom',
 			url: window.location.href,
-			source: '',
+			source: source ?? '',
 			lineNumber: res[0]?.lineNumber ? res[0]?.lineNumber : 0,
 			columnNumber: res[0]?.columnNumber ? res[0]?.columnNumber : 0,
 			stackTrace: res,
 			timestamp: new Date().toISOString(),
-			payload: payload,
+			payload: JSON.stringify(payload),
 		})
 	}
 

@@ -19,7 +19,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
               with:
                   submodules: recursive
                   fetch-depth: 0
@@ -65,7 +65,7 @@ jobs:
                   aws-region: us-east-2
 
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
 
             # setting REACT_APP_COMMIT_SHA to a dummy value in CI to allow consistent turborepo remote caching
 
@@ -160,7 +160,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
               with:
                   submodules: recursive
 
@@ -274,13 +274,13 @@ jobs:
 
             - name: Save database artifacts
               if: failure()
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               with:
                   name: db-dump
                   path: docker/backups/*
 
             - name: Save videos
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               if: failure()
               with:
                   name: cypress-videos
@@ -293,7 +293,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
               with:
                   submodules: recursive
 
@@ -389,7 +389,7 @@ jobs:
 
             - name: Save database artifacts
               if: failure()
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               with:
                   name: db-dump
                   path: docker/backups/*

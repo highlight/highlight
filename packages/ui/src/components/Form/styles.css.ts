@@ -2,12 +2,13 @@ import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
 
 import { colors } from '../../css/colors'
 import { vars } from '../../css/vars'
-import { typographyStyles } from '../Text/styles.css'
+import { fontWeights, typographyStyles } from '../Text/styles.css'
 
 export const inputVariants = recipe({
 	base: {
 		border: 'none',
 		fontSize: 13,
+		fontWeight: fontWeights.medium,
 		color: vars.theme.static.content.default,
 		caretColor: vars.theme.interactive.fill.primary.enabled,
 		outline: 0,

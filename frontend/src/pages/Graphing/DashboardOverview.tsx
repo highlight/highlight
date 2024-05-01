@@ -107,14 +107,14 @@ export default function DashboardOverview() {
 						<Stack gap="24" width="full">
 							<Stack gap="16" direction="column" width="full">
 								<Heading mt="16" level="h4">
-									Dashboards
+									Metrics
 								</Heading>
 								<Text
 									weight="medium"
 									size="small"
 									color="default"
 								>
-									Dashboards allow you to visualize what's
+									Metrics allow you to visualize what's
 									happening in your app.
 								</Text>
 							</Stack>

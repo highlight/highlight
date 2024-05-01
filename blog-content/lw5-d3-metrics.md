@@ -1,6 +1,6 @@
 ---
 title: "Day 3: Metrics & APM"
-createdAt: 2024-02-02T12:00:00Z
+createdAt: 2024-05-01T07:00:00Z
 readingTime: 3
 authorFirstName: Jay
 authorLastName: Khatri
@@ -11,6 +11,7 @@ authorGithub: 'https://github.com/jay-khatri'
 authorWebsite: 'https://jaykhatri.com'
 authorPFP: 'https://ca.slack-edge.com/T01AEDTQ8DS-U01A88AV6TU-4f7b4e7d637a-512'
 image: '/images/blog/launch-week/5/d3-splash.png'
+tags: Launch Week 5
 metaTitle: "Day 3: Metrics & APM"
 ---
 
