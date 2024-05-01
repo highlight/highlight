@@ -48,9 +48,11 @@ import (
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/parser"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	modelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stacktraces"
@@ -1727,63 +1729,35 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			if errorAlert.CountThreshold < 1 {
 				continue
 			}
-			excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
-			if err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
-				continue
-			}
-			excluded := false
-			for _, env := range excludedEnvironments {
-				if env != nil && *env == errorObject.Environment {
-					excluded = true
-					break
+			matches := true
+			if errorAlert.Query != "" {
+				testErrorObject := &publicModel.BackendErrorObjectInput{
+					Environment:     errorObject.Environment,
+					Event:           errorObject.Event,
+					Payload:         errorObject.Payload,
+					SessionSecureID: &sessionObj.SecureID,
+					Service: &modelInputs.ServiceInput{
+						Name:    errorObject.ServiceName,
+						Version: errorObject.ServiceVersion,
+					},
+					Source:     errorObject.Source,
+					StackTrace: string(*errorObject.StackTrace),
+					Timestamp:  errorObject.Timestamp,
+					Type:       errorObject.Type,
+					URL:        errorObject.URL,
 				}
+
+				filters := parser.Parse(errorAlert.Query, clickhouse.BackendErrorObjectInputConfig)
+				matches = clickhouse.ErrorMatchesQuery(testErrorObject, filters)
 			}
-			if excluded {
+
+			if !matches {
 				continue
 			}
+
 			if errorAlert.ThresholdWindow == nil {
 				t := 30
 				errorAlert.ThresholdWindow = &t
-			}
-
-			if errorAlert.RegexGroups != nil {
-				groups, err := errorAlert.GetRegexGroups()
-				if err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "error getting regex groups from ErrorAlert"))
-					continue
-				}
-				matched := false
-				for _, g := range groups {
-					if g == nil {
-						continue
-					}
-					matched, err = regexp.MatchString(*g, group.Event)
-					if err != nil {
-						log.WithContext(ctx).Warn(err)
-					}
-					if matched {
-						break
-					}
-					if group.MappedStackTrace != nil {
-						matched, err = regexp.MatchString(*g, *group.MappedStackTrace)
-						if err != nil {
-							log.WithContext(ctx).Warn(err)
-						}
-					} else {
-						matched, err = regexp.MatchString(*g, group.StackTrace)
-						if err != nil {
-							log.WithContext(ctx).Warn(err)
-						}
-					}
-					if matched {
-						break
-					}
-				}
-				if matched {
-					log.WithContext(ctx).Warn("error event matches regex group, skipping alert...")
-					continue
-				}
 			}
 
 			// Suppress alerts if ignored or snoozed.
