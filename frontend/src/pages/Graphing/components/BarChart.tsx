@@ -66,6 +66,7 @@ export const BarChart = ({
 	yAxisMetric,
 	series,
 	spotlight,
+	strokeColors,
 	viewConfig,
 }: InnerChartProps<BarChartConfig> & SeriesInfo) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
@@ -140,7 +141,7 @@ export const BarChart = ({
 							<Bar
 								key={key}
 								dataKey={key}
-								fill={getColor(idx)}
+								fill={strokeColors?.at(idx) ?? getColor(idx)}
 								maxBarSize={30}
 								isAnimationActive={false}
 								stackId={

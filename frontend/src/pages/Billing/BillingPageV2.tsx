@@ -393,6 +393,7 @@ const UsageCard = ({
 							xAxisMetric={TIMESTAMP_KEY}
 							yAxisMetric="Ingested"
 							series={['Ingested']}
+							strokeColors={[vars.theme.static.content.moderate]}
 							viewConfig={{
 								type: 'Bar chart',
 								showLegend: true,
