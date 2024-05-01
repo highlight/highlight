@@ -1,3 +1,4 @@
+import LoadingBox from '@components/LoadingBox'
 import { USD } from '@dinero.js/currencies'
 import {
 	Badge,
@@ -22,7 +23,8 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
+import { BarChart } from '@pages/Graphing/components/BarChart'
+import { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
 import { getPlanChangeEmail } from '@util/billing/billing'
 import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
@@ -40,6 +42,7 @@ import {
 } from '@/graph/generated/hooks'
 import {
 	AwsMarketplaceSubscription,
+	MetricAggregator,
 	MetricsBuckets,
 	PlanType,
 	ProductType,
@@ -347,28 +350,31 @@ const UsageCard = ({
 						</Menu.List>
 					</Menu>
 				</Box>
-				<Box width="full" height="full">
-					<LogsHistogram
-						startDate={usageRange.start.toDate()}
-						endDate={usageRange.end.toDate()}
-						onDatesChange={() => {}}
-						histogramBuckets={
-							usageHistory?.buckets.map((b) => ({
-								bucketId: b.bucket_id,
-								group: b.group,
-								counts: [
-									{
-										level: 'Ingested',
-										count: b.metric_value ?? 0,
-									},
-								],
-							})) ?? []
-						}
-						bucketCount={usageHistory?.bucket_count ?? 0}
-						loading={usageHistory === undefined}
-						loadingState="spinner"
-						legend
-					/>
+				<Box
+					width="full"
+					style={{
+						height: 100,
+					}}
+				>
+					{usageHistory?.buckets ? (
+						<BarChart
+							data={usageHistory.buckets.map((b) => ({
+								[TIMESTAMP_KEY]:
+									(b.bucket_min + b.bucket_max) / 2,
+								['Ingested']: b.metric_value,
+							}))}
+							yAxisFunction={MetricAggregator.Count}
+							xAxisMetric={TIMESTAMP_KEY}
+							yAxisMetric="Ingested"
+							series={['Ingested']}
+							viewConfig={{
+								type: 'Bar chart',
+								showLegend: true,
+							}}
+						/>
+					) : (
+						<LoadingBox height={100} />
+					)}
 				</Box>
 			</Box>
 		</Box>
@@ -389,7 +395,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		start: moment.Moment
 		end: moment.Moment
 	}>({
-		start: moment().subtract(12, 'months'),
+		start: moment().subtract(3, 'months'),
 		end: moment(),
 	})
 
