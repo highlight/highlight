@@ -21,7 +21,7 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import { Divider, message } from 'antd'
 import moment from 'moment'
-import { PropsWithChildren, useMemo, useState } from 'react'
+import { PropsWithChildren, useId, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
@@ -65,6 +65,7 @@ import {
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 
 import * as style from './GraphingEditor.css'
+import { client } from '@/util/graph'
 
 const DEFAULT_BUCKET_COUNT = 50
 
@@ -349,9 +350,9 @@ export const GraphingEditor = () => {
 			initialPreset: DEFAULT_TIME_PRESETS[2],
 		})
 
-	const [upsertGraph, upsertGraphContext] = useUpsertGraphMutation({
-		refetchQueries: [namedOperations.Query.GetVisualization],
-	})
+	const [upsertGraph, upsertGraphContext] = useUpsertGraphMutation()
+
+	const tempId = useId()
 
 	const navigate = useNavigate()
 
@@ -398,17 +399,46 @@ export const GraphingEditor = () => {
 			variables: {
 				graph: graphInput,
 			},
+			optimisticResponse: {
+				upsertGraph: {
+					...graphInput,
+					id: graphInput.id ?? `temp-${tempId}`,
+					__typename: 'Graph',
+				},
+			},
+			update(cache, result) {
+				if (isEdit) {
+					return
+				}
+				const vizId = cache.identify({
+					id: dashboard_id,
+					__typename: 'Visualization',
+				})
+				const graphId = cache.identify({
+					id: result.data?.upsertGraph.id,
+					__typename: 'Graph',
+				})
+				cache.modify({
+					id: vizId,
+					fields: {
+						graphs(existing: any[] = []) {
+							return existing.concat([{ __ref: graphId }])
+						},
+					},
+				})
+			},
 		})
 			.then(() => {
-				navigate({
-					pathname: `../${dashboard_id}`,
-					search: location.search,
-				})
 				message.success(`Metric view ${isEdit ? 'updated' : 'created'}`)
 			})
 			.catch(() => {
 				message.error('Failed to create metric view')
 			})
+
+		navigate({
+			pathname: `../${dashboard_id}`,
+			search: location.search,
+		})
 	}
 
 	const { loading: metaLoading } = useGetVisualizationQuery({

@@ -1799,7 +1799,7 @@ type MutationResolver interface {
 	TestErrorEnhancement(ctx context.Context, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) (*model1.ErrorObject, error)
 	UpsertVisualization(ctx context.Context, visualization model.VisualizationInput) (int, error)
 	DeleteVisualization(ctx context.Context, id int) (bool, error)
-	UpsertGraph(ctx context.Context, graph model.GraphInput) (int, error)
+	UpsertGraph(ctx context.Context, graph model.GraphInput) (*model1.Graph, error)
 	DeleteGraph(ctx context.Context, id int) (bool, error)
 }
 type QueryResolver interface {
@@ -14206,7 +14206,7 @@ type Mutation {
 	): ErrorObject
 	upsertVisualization(visualization: VisualizationInput!): ID!
 	deleteVisualization(id: ID!): Boolean!
-	upsertGraph(graph: GraphInput!): ID!
+	upsertGraph(graph: GraphInput!): Graph!
 	deleteGraph(id: ID!): Boolean!
 }
 
@@ -50142,9 +50142,9 @@ func (ec *executionContext) _Mutation_upsertGraph(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*model1.Graph)
 	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
+	return ec.marshalNGraph2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐGraph(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_upsertGraph(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -50154,7 +50154,39 @@ func (ec *executionContext) fieldContext_Mutation_upsertGraph(ctx context.Contex
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Graph_id(ctx, field)
+			case "type":
+				return ec.fieldContext_Graph_type(ctx, field)
+			case "title":
+				return ec.fieldContext_Graph_title(ctx, field)
+			case "productType":
+				return ec.fieldContext_Graph_productType(ctx, field)
+			case "query":
+				return ec.fieldContext_Graph_query(ctx, field)
+			case "metric":
+				return ec.fieldContext_Graph_metric(ctx, field)
+			case "functionType":
+				return ec.fieldContext_Graph_functionType(ctx, field)
+			case "groupByKey":
+				return ec.fieldContext_Graph_groupByKey(ctx, field)
+			case "bucketByKey":
+				return ec.fieldContext_Graph_bucketByKey(ctx, field)
+			case "bucketCount":
+				return ec.fieldContext_Graph_bucketCount(ctx, field)
+			case "limit":
+				return ec.fieldContext_Graph_limit(ctx, field)
+			case "limitFunctionType":
+				return ec.fieldContext_Graph_limitFunctionType(ctx, field)
+			case "limitMetric":
+				return ec.fieldContext_Graph_limitMetric(ctx, field)
+			case "display":
+				return ec.fieldContext_Graph_display(ctx, field)
+			case "nullHandling":
+				return ec.fieldContext_Graph_nullHandling(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Graph", field.Name)
 		},
 	}
 	defer func() {

@@ -4768,20 +4768,20 @@ func (r *mutationResolver) DeleteVisualization(ctx context.Context, id int) (boo
 }
 
 // UpsertGraph is the resolver for the upsertGraph field.
-func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.GraphInput) (int, error) {
+func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.GraphInput) (*model.Graph, error) {
 	var viz model.Visualization
 	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", graph.VisualizationID).Take(&viz).Error; err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	_, err := r.isAdminInProject(ctx, viz.ProjectID)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	id := 0
@@ -4826,10 +4826,10 @@ func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.Gr
 		}
 		return nil
 	}); err != nil {
-		return 0, nil
+		return nil, err
 	}
 
-	return toSave.ID, nil
+	return &toSave, nil
 }
 
 // DeleteGraph is the resolver for the deleteGraph field.

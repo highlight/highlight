@@ -1208,7 +1208,7 @@ export type Mutation = {
 	updateVercelProjectMappings: Scalars['Boolean']
 	upsertDashboard: Scalars['ID']
 	upsertDiscordChannel: DiscordChannel
-	upsertGraph: Scalars['ID']
+	upsertGraph: Graph
 	upsertSlackChannel: SanitizedSlackChannel
 	upsertVisualization: Scalars['ID']
 }

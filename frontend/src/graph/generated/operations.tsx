@@ -1645,10 +1645,26 @@ export type UpsertGraphMutationVariables = Types.Exact<{
 	graph: Types.GraphInput
 }>
 
-export type UpsertGraphMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'upsertGraph'
->
+export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
+	upsertGraph: { __typename?: 'Graph' } & Pick<
+		Types.Graph,
+		| 'id'
+		| 'type'
+		| 'title'
+		| 'productType'
+		| 'query'
+		| 'metric'
+		| 'functionType'
+		| 'groupByKey'
+		| 'bucketByKey'
+		| 'bucketCount'
+		| 'limit'
+		| 'limitFunctionType'
+		| 'limitMetric'
+		| 'display'
+		| 'nullHandling'
+	>
+}
 
 export type DeleteGraphMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']

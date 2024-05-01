@@ -361,8 +361,12 @@ const Graph = ({
 			project_id: projectId,
 			params: {
 				date_range: {
-					start_date: moment(startDate).format(TIME_FORMAT),
-					end_date: moment(endDate).format(TIME_FORMAT),
+					start_date: moment(startDate)
+						.startOf('minute')
+						.format(TIME_FORMAT),
+					end_date: moment(endDate)
+						.startOf('minute')
+						.format(TIME_FORMAT),
 				},
 				query: query,
 			},
