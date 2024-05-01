@@ -400,7 +400,7 @@ const UsageCard = ({
 							}}
 						/>
 					) : (
-						<LoadingBox height={100} />
+						<LoadingBox />
 					)}
 				</Box>
 			</Box>
