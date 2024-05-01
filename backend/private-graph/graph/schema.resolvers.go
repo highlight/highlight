@@ -882,6 +882,30 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		}
 	}
 
+	// Check if an invite to the email address already exists
+	var existingInvite model.WorkspaceInviteLink
+	if err := r.DB.WithContext(ctx).Where("workspace_id = ? AND invitee_email ILIKE ?", workspaceID, email).First(&existingInvite).Error; err != gorm.ErrRecordNotFound {
+		if err != nil {
+			return nil, e.Wrap(err, "error checking for existing invite link")
+		}
+		return nil, e.Errorf("Looks like \"%s\" has already been invited to join this workspace.", email)
+	}
+
+	// Check if the email is already assigned to an admin in the workspace
+	var existingAdmin model.Admin
+	if err := r.DB.WithContext(ctx).Where("email ILIKE ?", email).First(&existingAdmin).Error; err != gorm.ErrRecordNotFound {
+		if err != nil {
+			return nil, e.Wrap(err, "error checking for existing admin")
+		}
+		var workspaceAdmin model.WorkspaceAdmin
+		if err := r.DB.WithContext(ctx).Where("admin_id = ? AND workspace_id = ?", existingAdmin.ID, workspaceID).First(&workspaceAdmin).Error; err != gorm.ErrRecordNotFound {
+			if err != nil {
+				return nil, e.Wrap(err, "error checking for existing admin in workspace")
+			}
+			return nil, e.Errorf("Looks like \"%s\" is already an admin in this workspace.", email)
+		}
+	}
+
 	inviteLink := r.CreateInviteLink(workspaceID, &email, role, false)
 
 	if err := r.DB.WithContext(ctx).Create(inviteLink).Error; err != nil {
