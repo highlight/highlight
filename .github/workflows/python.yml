@@ -19,7 +19,7 @@ jobs:
             run:
                 working-directory: ./sdk/highlight-py
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
             - name: Install poetry
               run: pipx install poetry
             - uses: actions/setup-python@v4
@@ -59,7 +59,7 @@ jobs:
                 working-directory: ./e2e/tests
 
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
             - name: Install poetry
               run: pipx install poetry
             - uses: actions/setup-python@v4

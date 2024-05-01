@@ -17,7 +17,7 @@ export enum Feature {
 	HistogramTimelineV2,
 	AiSessionInsights,
 	Analytics,
-	Dashboards,
+	Metrics,
 }
 
 // configures the criteria and percentage of population for which the feature is active.
@@ -53,7 +53,7 @@ export const FeatureConfig: { [key: number]: Config } = {
 			'9634',
 		]),
 	},
-	[Feature.Dashboards]: {
+	[Feature.Metrics]: {
 		workspace: true,
 		percent: 100,
 	},

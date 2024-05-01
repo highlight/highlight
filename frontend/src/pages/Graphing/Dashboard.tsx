@@ -152,7 +152,7 @@ export const Dashboard = () => {
 										kind="secondary"
 										iconLeft={<IconSolidChartBar />}
 									>
-										Dashboards
+										Metrics
 									</Tag>
 								</Stack>
 							</Link>
@@ -247,9 +247,6 @@ export const Dashboard = () => {
 								</>
 							) : (
 								<>
-									<Button emphasis="low" kind="secondary">
-										Share
-									</Button>
 									<DateRangePicker
 										emphasis="low"
 										kind="secondary"

@@ -140,6 +140,7 @@ const logRequest = (
 			size: 0,
 		}
 		let requestHandled = false
+		let urlBlocked = !shouldRecordHeaderAndBody
 
 		if ('stack' in response || response instanceof Error) {
 			responsePayload = {
@@ -199,6 +200,17 @@ const logRequest = (
 				responsePayload.size = text.length * 8
 			}
 
+			if (
+				response.type === 'opaque' ||
+				response.type === 'opaqueredirect'
+			) {
+				urlBlocked = true
+				responsePayload = {
+					...responsePayload,
+					body: 'CORS blocked request',
+				}
+			}
+
 			requestHandled = true
 		}
 
@@ -206,7 +218,7 @@ const logRequest = (
 			const event: RequestResponsePair = {
 				request: requestPayload,
 				response: responsePayload,
-				urlBlocked: !shouldRecordHeaderAndBody,
+				urlBlocked,
 			}
 
 			callback(event)
