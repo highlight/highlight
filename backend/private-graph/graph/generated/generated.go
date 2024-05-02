@@ -446,16 +446,6 @@ type ComplexityRoot struct {
 		URL                  func(childComplexity int) int
 	}
 
-	ErrorObjectConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
-	}
-
-	ErrorObjectEdge struct {
-		Cursor func(childComplexity int) int
-		Node   func(childComplexity int) int
-	}
-
 	ErrorObjectNode struct {
 		CreatedAt          func(childComplexity int) int
 		ErrorGroupSecureID func(childComplexity int) int
@@ -472,6 +462,11 @@ type ComplexityRoot struct {
 		Excluded    func(childComplexity int) int
 		Fingerprint func(childComplexity int) int
 		SecureID    func(childComplexity int) int
+	}
+
+	ErrorObjectResults struct {
+		ErrorObjects func(childComplexity int) int
+		TotalCount   func(childComplexity int) int
 	}
 
 	ErrorResults struct {
@@ -989,11 +984,11 @@ type ComplexityRoot struct {
 		ErrorGroupTags                   func(childComplexity int, errorGroupSecureID string, useClickhouse *bool) int
 		ErrorGroups                      func(childComplexity int, projectID int, count int, params model.QueryInput, page *int) int
 		ErrorGroupsClickhouse            func(childComplexity int, projectID int, count int, query model.ClickhouseQuery, page *int) int
-		ErrorInstance                    func(childComplexity int, errorGroupSecureID string, errorObjectID *int) int
+		ErrorInstance                    func(childComplexity int, errorGroupSecureID string, errorObjectID *int, params *model.QueryInput) int
 		ErrorIssue                       func(childComplexity int, errorGroupSecureID string) int
 		ErrorObject                      func(childComplexity int, id int) int
 		ErrorObjectForLog                func(childComplexity int, logCursor string) int
-		ErrorObjects                     func(childComplexity int, errorGroupSecureID string, after *string, before *string, query string) int
+		ErrorObjects                     func(childComplexity int, errorGroupSecureID string, count int, params model.QueryInput, page *int) int
 		ErrorResolutionSuggestion        func(childComplexity int, errorObjectID int) int
 		ErrorSegments                    func(childComplexity int, projectID int) int
 		ErrorTags                        func(childComplexity int) int
@@ -1814,9 +1809,9 @@ type QueryResolver interface {
 	ErrorsHistogram(ctx context.Context, projectID int, params model.QueryInput, histogramOptions model.DateHistogramOptions) (*model1.ErrorsHistogram, error)
 	ErrorGroup(ctx context.Context, secureID string, useClickhouse *bool) (*model1.ErrorGroup, error)
 	ErrorObject(ctx context.Context, id int) (*model1.ErrorObject, error)
-	ErrorObjects(ctx context.Context, errorGroupSecureID string, after *string, before *string, query string) (*model.ErrorObjectConnection, error)
+	ErrorObjects(ctx context.Context, errorGroupSecureID string, count int, params model.QueryInput, page *int) (*model.ErrorObjectResults, error)
 	ErrorObjectForLog(ctx context.Context, logCursor string) (*model1.ErrorObject, error)
-	ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int) (*model1.ErrorInstance, error)
+	ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int, params *model.QueryInput) (*model1.ErrorInstance, error)
 	EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*model.EnhancedUserDetailsResult, error)
 	Errors(ctx context.Context, sessionSecureID string) ([]*model1.ErrorObject, error)
 	Resources(ctx context.Context, sessionSecureID string) ([]interface{}, error)
@@ -3888,34 +3883,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObject.URL(childComplexity), true
 
-	case "ErrorObjectConnection.edges":
-		if e.complexity.ErrorObjectConnection.Edges == nil {
-			break
-		}
-
-		return e.complexity.ErrorObjectConnection.Edges(childComplexity), true
-
-	case "ErrorObjectConnection.pageInfo":
-		if e.complexity.ErrorObjectConnection.PageInfo == nil {
-			break
-		}
-
-		return e.complexity.ErrorObjectConnection.PageInfo(childComplexity), true
-
-	case "ErrorObjectEdge.cursor":
-		if e.complexity.ErrorObjectEdge.Cursor == nil {
-			break
-		}
-
-		return e.complexity.ErrorObjectEdge.Cursor(childComplexity), true
-
-	case "ErrorObjectEdge.node":
-		if e.complexity.ErrorObjectEdge.Node == nil {
-			break
-		}
-
-		return e.complexity.ErrorObjectEdge.Node(childComplexity), true
-
 	case "ErrorObjectNode.createdAt":
 		if e.complexity.ErrorObjectNode.CreatedAt == nil {
 			break
@@ -3999,6 +3966,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorObjectNodeSession.SecureID(childComplexity), true
+
+	case "ErrorObjectResults.error_objects":
+		if e.complexity.ErrorObjectResults.ErrorObjects == nil {
+			break
+		}
+
+		return e.complexity.ErrorObjectResults.ErrorObjects(childComplexity), true
+
+	case "ErrorObjectResults.totalCount":
+		if e.complexity.ErrorObjectResults.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.ErrorObjectResults.TotalCount(childComplexity), true
 
 	case "ErrorResults.error_groups":
 		if e.complexity.ErrorResults.ErrorGroups == nil {
@@ -7188,7 +7169,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorInstance(childComplexity, args["error_group_secure_id"].(string), args["error_object_id"].(*int)), true
+		return e.complexity.Query.ErrorInstance(childComplexity, args["error_group_secure_id"].(string), args["error_object_id"].(*int), args["params"].(*model.QueryInput)), true
 
 	case "Query.error_issue":
 		if e.complexity.Query.ErrorIssue == nil {
@@ -7236,7 +7217,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorObjects(childComplexity, args["error_group_secure_id"].(string), args["after"].(*string), args["before"].(*string), args["query"].(string)), true
+		return e.complexity.Query.ErrorObjects(childComplexity, args["error_group_secure_id"].(string), args["count"].(int), args["params"].(model.QueryInput), args["page"].(*int)), true
 
 	case "Query.error_resolution_suggestion":
 		if e.complexity.Query.ErrorResolutionSuggestion == nil {
@@ -12230,16 +12211,6 @@ type ErrorObjectNode {
 	serviceName: String!
 }
 
-type ErrorObjectEdge implements Edge {
-	cursor: String!
-	node: ErrorObjectNode!
-}
-
-type ErrorObjectConnection implements Connection {
-	edges: [ErrorObjectEdge!]!
-	pageInfo: PageInfo!
-}
-
 enum ServiceStatus {
 	healthy
 	error
@@ -12730,6 +12701,11 @@ type SessionResults {
 
 type ErrorResults {
 	error_groups: [ErrorGroup!]!
+	totalCount: Int64!
+}
+
+type ErrorObjectResults {
+	error_objects: [ErrorObjectNode!]!
 	totalCount: Int64!
 }
 
@@ -13298,14 +13274,15 @@ type Query {
 	error_object(id: ID!): ErrorObject
 	error_objects(
 		error_group_secure_id: String!
-		after: String
-		before: String
-		query: String!
-	): ErrorObjectConnection!
+		count: Int!
+		params: QueryInput!
+		page: Int
+	): ErrorObjectResults!
 	error_object_for_log(log_cursor: String!): ErrorObject
 	error_instance(
 		error_group_secure_id: String!
 		error_object_id: ID
+		params: QueryInput
 	): ErrorInstance
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
@@ -18867,6 +18844,15 @@ func (ec *executionContext) field_Query_error_instance_args(ctx context.Context,
 		}
 	}
 	args["error_object_id"] = arg1
+	var arg2 *model.QueryInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg2, err = ec.unmarshalOQueryInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg2
 	return args, nil
 }
 
@@ -18927,33 +18913,33 @@ func (ec *executionContext) field_Query_error_objects_args(ctx context.Context, 
 		}
 	}
 	args["error_group_secure_id"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["after"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	var arg1 int
+	if tmp, ok := rawArgs["count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["after"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["before"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	args["count"] = arg1
+	var arg2 model.QueryInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg2, err = ec.unmarshalNQueryInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["before"] = arg2
-	var arg3 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+	args["params"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["page"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["query"] = arg3
+	args["page"] = arg3
 	return args, nil
 }
 
@@ -34101,216 +34087,6 @@ func (ec *executionContext) fieldContext_ErrorObject_serviceName(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _ErrorObjectConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.ErrorObjectConnection) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorObjectConnection_edges(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Edges, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.ErrorObjectEdge)
-	fc.Result = res
-	return ec.marshalNErrorObjectEdge2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectEdgeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ErrorObjectConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ErrorObjectConnection",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "cursor":
-				return ec.fieldContext_ErrorObjectEdge_cursor(ctx, field)
-			case "node":
-				return ec.fieldContext_ErrorObjectEdge_node(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ErrorObjectEdge", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ErrorObjectConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.ErrorObjectConnection) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorObjectConnection_pageInfo(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PageInfo, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.PageInfo)
-	fc.Result = res
-	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPageInfo(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ErrorObjectConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ErrorObjectConnection",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "hasNextPage":
-				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
-			case "hasPreviousPage":
-				return ec.fieldContext_PageInfo_hasPreviousPage(ctx, field)
-			case "startCursor":
-				return ec.fieldContext_PageInfo_startCursor(ctx, field)
-			case "endCursor":
-				return ec.fieldContext_PageInfo_endCursor(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ErrorObjectEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *model.ErrorObjectEdge) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorObjectEdge_cursor(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Cursor, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ErrorObjectEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ErrorObjectEdge",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ErrorObjectEdge_node(ctx context.Context, field graphql.CollectedField, obj *model.ErrorObjectEdge) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorObjectEdge_node(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Node, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.ErrorObjectNode)
-	fc.Result = res
-	return ec.marshalNErrorObjectNode2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectNode(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ErrorObjectEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ErrorObjectEdge",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ErrorObjectNode_id(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_ErrorObjectNode_createdAt(ctx, field)
-			case "event":
-				return ec.fieldContext_ErrorObjectNode_event(ctx, field)
-			case "timestamp":
-				return ec.fieldContext_ErrorObjectNode_timestamp(ctx, field)
-			case "session":
-				return ec.fieldContext_ErrorObjectNode_session(ctx, field)
-			case "errorGroupSecureID":
-				return ec.fieldContext_ErrorObjectNode_errorGroupSecureID(ctx, field)
-			case "serviceVersion":
-				return ec.fieldContext_ErrorObjectNode_serviceVersion(ctx, field)
-			case "serviceName":
-				return ec.fieldContext_ErrorObjectNode_serviceName(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ErrorObjectNode", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _ErrorObjectNode_id(ctx context.Context, field graphql.CollectedField, obj *model.ErrorObjectNode) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ErrorObjectNode_id(ctx, field)
 	if err != nil {
@@ -34835,6 +34611,112 @@ func (ec *executionContext) fieldContext_ErrorObjectNodeSession_excluded(ctx con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorObjectResults_error_objects(ctx context.Context, field graphql.CollectedField, obj *model.ErrorObjectResults) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorObjectResults_error_objects(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorObjects, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ErrorObjectNode)
+	fc.Result = res
+	return ec.marshalNErrorObjectNode2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectNodeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorObjectResults_error_objects(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorObjectResults",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ErrorObjectNode_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ErrorObjectNode_createdAt(ctx, field)
+			case "event":
+				return ec.fieldContext_ErrorObjectNode_event(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ErrorObjectNode_timestamp(ctx, field)
+			case "session":
+				return ec.fieldContext_ErrorObjectNode_session(ctx, field)
+			case "errorGroupSecureID":
+				return ec.fieldContext_ErrorObjectNode_errorGroupSecureID(ctx, field)
+			case "serviceVersion":
+				return ec.fieldContext_ErrorObjectNode_serviceVersion(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_ErrorObjectNode_serviceName(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ErrorObjectNode", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorObjectResults_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.ErrorObjectResults) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorObjectResults_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorObjectResults_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorObjectResults",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -52940,7 +52822,7 @@ func (ec *executionContext) _Query_error_objects(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorObjects(rctx, fc.Args["error_group_secure_id"].(string), fc.Args["after"].(*string), fc.Args["before"].(*string), fc.Args["query"].(string))
+		return ec.resolvers.Query().ErrorObjects(rctx, fc.Args["error_group_secure_id"].(string), fc.Args["count"].(int), fc.Args["params"].(model.QueryInput), fc.Args["page"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -52952,9 +52834,9 @@ func (ec *executionContext) _Query_error_objects(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.ErrorObjectConnection)
+	res := resTmp.(*model.ErrorObjectResults)
 	fc.Result = res
-	return ec.marshalNErrorObjectConnection2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectConnection(ctx, field.Selections, res)
+	return ec.marshalNErrorObjectResults2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectResults(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_error_objects(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -52965,12 +52847,12 @@ func (ec *executionContext) fieldContext_Query_error_objects(ctx context.Context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "edges":
-				return ec.fieldContext_ErrorObjectConnection_edges(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_ErrorObjectConnection_pageInfo(ctx, field)
+			case "error_objects":
+				return ec.fieldContext_ErrorObjectResults_error_objects(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_ErrorObjectResults_totalCount(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type ErrorObjectConnection", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type ErrorObjectResults", field.Name)
 		},
 	}
 	defer func() {
@@ -53107,7 +52989,7 @@ func (ec *executionContext) _Query_error_instance(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorInstance(rctx, fc.Args["error_group_secure_id"].(string), fc.Args["error_object_id"].(*int))
+		return ec.resolvers.Query().ErrorInstance(rctx, fc.Args["error_group_secure_id"].(string), fc.Args["error_object_id"].(*int), fc.Args["params"].(*model.QueryInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -82365,13 +82247,6 @@ func (ec *executionContext) _Connection(ctx context.Context, sel ast.SelectionSe
 			return graphql.Null
 		}
 		return ec._TraceConnection(ctx, sel, obj)
-	case model.ErrorObjectConnection:
-		return ec._ErrorObjectConnection(ctx, sel, &obj)
-	case *model.ErrorObjectConnection:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._ErrorObjectConnection(ctx, sel, obj)
 	case model.ServiceConnection:
 		return ec._ServiceConnection(ctx, sel, &obj)
 	case *model.ServiceConnection:
@@ -82402,13 +82277,6 @@ func (ec *executionContext) _Edge(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._TraceEdge(ctx, sel, obj)
-	case model.ErrorObjectEdge:
-		return ec._ErrorObjectEdge(ctx, sel, &obj)
-	case *model.ErrorObjectEdge:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._ErrorObjectEdge(ctx, sel, obj)
 	case model.ServiceEdge:
 		return ec._ServiceEdge(ctx, sel, &obj)
 	case *model.ServiceEdge:
@@ -85248,94 +85116,6 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
-var errorObjectConnectionImplementors = []string{"ErrorObjectConnection", "Connection"}
-
-func (ec *executionContext) _ErrorObjectConnection(ctx context.Context, sel ast.SelectionSet, obj *model.ErrorObjectConnection) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, errorObjectConnectionImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ErrorObjectConnection")
-		case "edges":
-			out.Values[i] = ec._ErrorObjectConnection_edges(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "pageInfo":
-			out.Values[i] = ec._ErrorObjectConnection_pageInfo(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var errorObjectEdgeImplementors = []string{"ErrorObjectEdge", "Edge"}
-
-func (ec *executionContext) _ErrorObjectEdge(ctx context.Context, sel ast.SelectionSet, obj *model.ErrorObjectEdge) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, errorObjectEdgeImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ErrorObjectEdge")
-		case "cursor":
-			out.Values[i] = ec._ErrorObjectEdge_cursor(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "node":
-			out.Values[i] = ec._ErrorObjectEdge_node(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
 var errorObjectNodeImplementors = []string{"ErrorObjectNode"}
 
 func (ec *executionContext) _ErrorObjectNode(ctx context.Context, sel ast.SelectionSet, obj *model.ErrorObjectNode) graphql.Marshaler {
@@ -85429,6 +85209,50 @@ func (ec *executionContext) _ErrorObjectNodeSession(ctx context.Context, sel ast
 			out.Values[i] = ec._ErrorObjectNodeSession_fingerprint(ctx, field, obj)
 		case "excluded":
 			out.Values[i] = ec._ErrorObjectNodeSession_excluded(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var errorObjectResultsImplementors = []string{"ErrorObjectResults"}
+
+func (ec *executionContext) _ErrorObjectResults(ctx context.Context, sel ast.SelectionSet, obj *model.ErrorObjectResults) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, errorObjectResultsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ErrorObjectResults")
+		case "error_objects":
+			out.Values[i] = ec._ErrorObjectResults_error_objects(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalCount":
+			out.Values[i] = ec._ErrorObjectResults_totalCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -98594,21 +98418,7 @@ func (ec *executionContext) marshalNErrorObject2ᚖgithubᚗcomᚋhighlightᚑru
 	return ec._ErrorObject(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNErrorObjectConnection2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectConnection(ctx context.Context, sel ast.SelectionSet, v model.ErrorObjectConnection) graphql.Marshaler {
-	return ec._ErrorObjectConnection(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNErrorObjectConnection2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectConnection(ctx context.Context, sel ast.SelectionSet, v *model.ErrorObjectConnection) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._ErrorObjectConnection(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNErrorObjectEdge2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorObjectEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNErrorObjectNode2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectNodeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorObjectNode) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -98632,7 +98442,7 @@ func (ec *executionContext) marshalNErrorObjectEdge2ᚕᚖgithubᚗcomᚋhighlig
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNErrorObjectEdge2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectEdge(ctx, sel, v[i])
+			ret[i] = ec.marshalNErrorObjectNode2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectNode(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -98652,16 +98462,6 @@ func (ec *executionContext) marshalNErrorObjectEdge2ᚕᚖgithubᚗcomᚋhighlig
 	return ret
 }
 
-func (ec *executionContext) marshalNErrorObjectEdge2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectEdge(ctx context.Context, sel ast.SelectionSet, v *model.ErrorObjectEdge) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._ErrorObjectEdge(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNErrorObjectNode2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectNode(ctx context.Context, sel ast.SelectionSet, v *model.ErrorObjectNode) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -98670,6 +98470,20 @@ func (ec *executionContext) marshalNErrorObjectNode2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return ec._ErrorObjectNode(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNErrorObjectResults2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectResults(ctx context.Context, sel ast.SelectionSet, v model.ErrorObjectResults) graphql.Marshaler {
+	return ec._ErrorObjectResults(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNErrorObjectResults2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectResults(ctx context.Context, sel ast.SelectionSet, v *model.ErrorObjectResults) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ErrorObjectResults(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNErrorResults2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorResults(ctx context.Context, sel ast.SelectionSet, v model1.ErrorResults) graphql.Marshaler {
@@ -104035,6 +103849,14 @@ func (ec *executionContext) marshalOProject2ᚖgithubᚗcomᚋhighlightᚑrunᚋ
 		return graphql.Null
 	}
 	return ec._Project(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOQueryInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryInput(ctx context.Context, v interface{}) (*model.QueryInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputQueryInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOReferrerTablePayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐReferrerTablePayload(ctx context.Context, sel ast.SelectionSet, v *model.ReferrerTablePayload) graphql.Marshaler {

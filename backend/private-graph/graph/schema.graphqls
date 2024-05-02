@@ -905,16 +905,6 @@ type ErrorObjectNode {
 	serviceName: String!
 }
 
-type ErrorObjectEdge implements Edge {
-	cursor: String!
-	node: ErrorObjectNode!
-}
-
-type ErrorObjectConnection implements Connection {
-	edges: [ErrorObjectEdge!]!
-	pageInfo: PageInfo!
-}
-
 enum ServiceStatus {
 	healthy
 	error
@@ -1405,6 +1395,11 @@ type SessionResults {
 
 type ErrorResults {
 	error_groups: [ErrorGroup!]!
+	totalCount: Int64!
+}
+
+type ErrorObjectResults {
+	error_objects: [ErrorObjectNode!]!
 	totalCount: Int64!
 }
 
@@ -1973,14 +1968,15 @@ type Query {
 	error_object(id: ID!): ErrorObject
 	error_objects(
 		error_group_secure_id: String!
-		after: String
-		before: String
-		query: String!
-	): ErrorObjectConnection!
+		count: Int!
+		params: QueryInput!
+		page: Int
+	): ErrorObjectResults!
 	error_object_for_log(log_cursor: String!): ErrorObject
 	error_instance(
 		error_group_secure_id: String!
 		error_object_id: ID
+		params: QueryInput
 	): ErrorInstance
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]

@@ -1237,10 +1237,15 @@ query GetErrorObject($id: ID!) {
 	}
 }
 
-query GetErrorInstance($error_group_secure_id: String!, $error_object_id: ID) {
+query GetErrorInstance(
+	$error_group_secure_id: String!
+	$error_object_id: ID
+	$params: QueryInput
+) {
 	error_instance(
 		error_group_secure_id: $error_group_secure_id
 		error_object_id: $error_object_id
+		params: $params
 	) {
 		error_object {
 			...ErrorObject
@@ -2242,40 +2247,32 @@ query GetSystemConfiguration {
 
 query GetErrorObjects(
 	$errorGroupSecureID: String!
-	$after: String
-	$before: String
-	$query: String!
+	$count: Int!
+	$params: QueryInput!
+	$page: Int
 ) {
 	error_objects(
 		error_group_secure_id: $errorGroupSecureID
-		after: $after
-		before: $before
-		query: $query
+		count: $count
+		params: $params
+		page: $page
 	) {
-		edges {
-			cursor
-			node {
-				id
-				createdAt
-				event
-				timestamp
-				errorGroupSecureID
-				serviceVersion
-				serviceName
-				session {
-					secureID
-					email
-					fingerprint
-					excluded
-				}
+		error_objects {
+			id
+			createdAt
+			event
+			timestamp
+			errorGroupSecureID
+			serviceVersion
+			serviceName
+			session {
+				secureID
+				email
+				fingerprint
+				excluded
 			}
 		}
-		pageInfo {
-			hasNextPage
-			hasPreviousPage
-			startCursor
-			endCursor
-		}
+		totalCount
 	}
 }
 

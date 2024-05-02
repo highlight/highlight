@@ -1,34 +1,23 @@
-import {
-	Box,
-	BoxProps,
-	Callout,
-	Form,
-	IconSolidCheckCircle,
-	IconSolidSearch,
-	Stack,
-	SwitchButton,
-	Text,
-} from '@highlight-run/ui/components'
-import useLocalStorage from '@rehooks/local-storage'
+import { Box, Callout, Stack, Text } from '@highlight-run/ui/components'
 import React, { useState } from 'react'
 
-import { Button } from '@/components/Button'
 import LoadingBox from '@/components/LoadingBox'
+import {
+	SearchContext,
+	useSearchContext,
+} from '@/components/Search/SearchContext'
+import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
+import SearchPagination, {
+	START_PAGE,
+} from '@/components/SearchPagination/SearchPagination'
 import { useGetErrorObjectsQuery } from '@/graph/generated/hooks'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
-import { ErrorObjectEdge } from '@/graph/generated/schemas'
+import { ProductType } from '@/graph/generated/schemas'
 import { ErrorInstancesTable } from '@/pages/ErrorsV2/ErrorInstances/ErrorInstancesTable'
 import { NoErrorInstancesFound } from '@/pages/ErrorsV2/ErrorInstances/NoErrorInstancesFound'
 
-import * as styles from './ErrorInstances.css'
-
 type Props = {
 	errorGroup: GetErrorGroupQuery['error_group']
-}
-
-type Pagination = {
-	after: string | null
-	before: string | null
 }
 
 export interface SearchFormState {
@@ -36,73 +25,49 @@ export interface SearchFormState {
 	hasSession: boolean
 }
 
+const PAGE_SIZE = 10
+
 export const ErrorInstances = ({ errorGroup }: Props) => {
-	const [hasSessionDefault, setHasSessionDefault] = useLocalStorage<boolean>(
-		'highlight-error-object-instances-has-session',
-		false,
-	)
-	const [currentSearchEmail, setCurrentSearchEmail] = React.useState('')
-	const [args, setArgs] = useState<SearchFormState>({
-		email: '',
-		hasSession: hasSessionDefault,
-	})
-	const [query, setQuery] = useState<{
-		query: string
-		pagination: Pagination
-	}>({
-		query: hasSessionDefault ? 'has_session:true ' : '',
-		pagination: {
-			after: null,
-			before: null,
-		},
-	})
+	const { startDate, endDate, query } = useSearchContext()
+	const [submittedQuery, setSubmittedQuery] = useState(query)
+	const [page, setPage] = useState(START_PAGE)
 
 	const { data, loading, error } = useGetErrorObjectsQuery({
 		variables: {
 			errorGroupSecureID: errorGroup?.secure_id ?? '',
-			after: query.pagination.after,
-			before: query.pagination.before,
-			query: query.query,
+			count: PAGE_SIZE,
+			page: page,
+			params: {
+				query: submittedQuery,
+				date_range: {
+					start_date: startDate!.toISOString(),
+					end_date: endDate!.toISOString(),
+				},
+			},
 		},
 		skip: !errorGroup?.secure_id,
 	})
 
-	const handleSubmit = ({ email, hasSession }: SearchFormState) => {
-		setArgs({ hasSession, email })
-		setQuery({
-			query: `${hasSession ? 'has_session:true ' : ''}email:${email}`,
-			pagination: {
-				after: null,
-				before: null,
-			},
-		})
-		setCurrentSearchEmail(email)
+	const handleSubmit = (query: string) => {
+		setSubmittedQuery(query)
+		setPage(START_PAGE)
 	}
-
-	React.useEffect(() => {
-		setHasSessionDefault(args.hasSession)
-	}, [args.hasSession, setHasSessionDefault])
 
 	if (loading) {
 		return (
 			<ErrorInstancesContainer
-				canMoveBackward={false}
-				canMoveForward={false}
-				args={args}
 				onSubmit={handleSubmit}
-				verticallyAlign
+				query={submittedQuery}
 			>
-				<LoadingBox />
+				<LoadingBox m="auto" />
 			</ErrorInstancesContainer>
 		)
 	}
 	if (error || !data)
 		return (
 			<ErrorInstancesContainer
-				canMoveBackward={false}
-				canMoveForward={false}
-				args={args}
 				onSubmit={handleSubmit}
+				query={submittedQuery}
 			>
 				<Box m="auto" style={{ maxWidth: 300 }}>
 					<Callout
@@ -119,176 +84,74 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			</ErrorInstancesContainer>
 		)
 
-	const handlePreviousPage = () => {
-		setQuery((q) => ({
-			query: q.query,
-			pagination: {
-				after: null,
-				before: data.error_objects.pageInfo.startCursor,
-			},
-		}))
-	}
+	const { error_objects = [], totalCount = 0 } = data.error_objects
 
-	const handleNextPage = () => {
-		setQuery((q) => ({
-			query: q.query,
-			pagination: {
-				after: data.error_objects.pageInfo.endCursor,
-				before: null,
-			},
-		}))
-	}
-
-	const edges: ErrorObjectEdge[] =
-		data.error_objects?.edges.map((edge) => edge) || []
-
-	if (edges.length === 0) {
+	if (error_objects.length === 0) {
 		return (
 			<ErrorInstancesContainer
-				canMoveBackward={false}
-				canMoveForward={false}
-				args={args}
 				onSubmit={handleSubmit}
+				query={submittedQuery}
 			>
 				<NoErrorInstancesFound />
 			</ErrorInstancesContainer>
 		)
 	}
 
-	const pageInfo = data?.error_objects.pageInfo
-
 	return (
-		<ErrorInstancesContainer
-			canMoveBackward={pageInfo?.hasPreviousPage ?? false}
-			canMoveForward={pageInfo?.hasNextPage ?? false}
-			onPrevious={handlePreviousPage}
-			onNext={handleNextPage}
-			args={args}
-			onSubmit={handleSubmit}
-		>
-			<ErrorInstancesTable
-				edges={edges}
-				searchedEmail={currentSearchEmail}
+		<ErrorInstancesContainer onSubmit={handleSubmit} query={submittedQuery}>
+			<ErrorInstancesTable nodes={error_objects} />
+			<SearchPagination
+				page={page}
+				setPage={setPage}
+				totalCount={totalCount}
 			/>
 		</ErrorInstancesContainer>
 	)
 }
 
 type ErrorInstancesContainerProps = {
-	canMoveBackward: boolean
-	canMoveForward: boolean
-	args: SearchFormState
-	onSubmit: ({ email, hasSession }: SearchFormState) => void
-	onPrevious?: () => void
-	onNext?: () => void
-	verticallyAlign?: boolean
+	onSubmit: (query: string) => void
+	query: string
 }
 
 const ErrorInstancesContainer: React.FC<
 	React.PropsWithChildren<ErrorInstancesContainerProps>
-> = ({
-	canMoveBackward,
-	canMoveForward,
-	onPrevious,
-	onNext,
-	onSubmit,
-	args,
-	children,
-	verticallyAlign = false,
-}) => {
-	const form = Form.useStore<{ email: string }>({
-		defaultValues: {
-			email: '',
-		},
-	})
-	const childrenBoxProps: BoxProps = {
-		mb: '20',
-		borderBottom: 'secondary',
-		style: { minHeight: '351px' },
-	}
+> = ({ onSubmit, children, query }) => {
+	const { startDate, endDate } = useSearchContext()
 
-	if (verticallyAlign) {
-		childrenBoxProps.display = 'flex'
-		childrenBoxProps.alignItems = 'center'
-	}
 	return (
-		<Stack direction="column">
-			<Box my="8">
-				<Box display="flex" alignItems="center" gap="12">
-					<Box
-						position="relative"
-						alignItems="stretch"
-						display="flex"
-						flexGrow={1}
-						color="weak"
-					>
-						<IconSolidSearch
-							size={16}
-							className={styles.searchIcon}
-						/>
-						<Form
-							style={{ width: '100%' }}
-							store={form}
-							onChange={() => {
-								onSubmit({
-									email: form.getValue('email'),
-									hasSession: args.hasSession,
-								})
-							}}
-						>
-							<Form.Input
-								name={form.names.email}
-								placeholder="Search for email"
-								style={{ paddingLeft: 28, width: '100%' }}
-							/>
-						</Form>
-						<Box
-							position="absolute"
-							display="flex"
-							justifyContent="flex-end"
-							alignItems="center"
-							gap="6"
-							height="full"
-							style={{ right: 8 }}
-						>
-							<SwitchButton
-								type="button"
-								size="xxSmall"
-								iconLeft={<IconSolidCheckCircle size={12} />}
-								checked={args.hasSession}
-								onChange={() => {
-									onSubmit({
-										email: args.email,
-										hasSession: !args.hasSession,
-									})
-								}}
-							/>
-							<Text size="xSmall">
-								Only instances with recorded sessions
-							</Text>
-						</Box>
-					</Box>
-				</Box>
-			</Box>
-			<Box {...childrenBoxProps}>{children}</Box>
-			<Stack direction="row" justifyContent="flex-end">
-				<Button
-					kind="secondary"
-					trackingId="errorInstancesPreviousButton"
-					disabled={!canMoveBackward}
-					onClick={onPrevious}
+		<SearchContext initialQuery={query} onSubmit={onSubmit}>
+			<Stack
+				direction="column"
+				borderRadius="6"
+				border="dividerWeak"
+				mt="16"
+				gap="0"
+			>
+				<SearchForm
+					startDate={startDate!}
+					endDate={endDate!}
+					onDatesChange={() => null}
+					presets={[]}
+					minDate={startDate!}
+					timeMode="permalink"
+					hideDatePicker
+					hideCreateAlert
+					productType={ProductType.Errors}
+				/>
+				<Stack
+					alignItems="center"
+					direction="column"
+					justifyContent="space-between"
+					style={{
+						minHeight: '401px',
+					}}
+					width="full"
+					gap="0"
 				>
-					Previous
-				</Button>
-				<Button
-					kind="secondary"
-					trackingId="errorInstancesNextButton"
-					disabled={!canMoveForward}
-					onClick={onNext}
-				>
-					Next
-				</Button>
+					{children}
+				</Stack>
 			</Stack>
-		</Stack>
+		</SearchContext>
 	)
 }

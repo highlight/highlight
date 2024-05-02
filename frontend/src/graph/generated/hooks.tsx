@@ -9407,10 +9407,12 @@ export const GetErrorInstanceDocument = gql`
 	query GetErrorInstance(
 		$error_group_secure_id: String!
 		$error_object_id: ID
+		$params: QueryInput
 	) {
 		error_instance(
 			error_group_secure_id: $error_group_secure_id
 			error_object_id: $error_object_id
+			params: $params
 		) {
 			error_object {
 				...ErrorObject
@@ -9436,6 +9438,7 @@ export const GetErrorInstanceDocument = gql`
  *   variables: {
  *      error_group_secure_id: // value for 'error_group_secure_id'
  *      error_object_id: // value for 'error_object_id'
+ *      params: // value for 'params'
  *   },
  * });
  */
@@ -14173,40 +14176,32 @@ export type GetSystemConfigurationQueryResult = Apollo.QueryResult<
 export const GetErrorObjectsDocument = gql`
 	query GetErrorObjects(
 		$errorGroupSecureID: String!
-		$after: String
-		$before: String
-		$query: String!
+		$count: Int!
+		$params: QueryInput!
+		$page: Int
 	) {
 		error_objects(
 			error_group_secure_id: $errorGroupSecureID
-			after: $after
-			before: $before
-			query: $query
+			count: $count
+			params: $params
+			page: $page
 		) {
-			edges {
-				cursor
-				node {
-					id
-					createdAt
-					event
-					timestamp
-					errorGroupSecureID
-					serviceVersion
-					serviceName
-					session {
-						secureID
-						email
-						fingerprint
-						excluded
-					}
+			error_objects {
+				id
+				createdAt
+				event
+				timestamp
+				errorGroupSecureID
+				serviceVersion
+				serviceName
+				session {
+					secureID
+					email
+					fingerprint
+					excluded
 				}
 			}
-			pageInfo {
-				hasNextPage
-				hasPreviousPage
-				startCursor
-				endCursor
-			}
+			totalCount
 		}
 	}
 `
@@ -14224,9 +14219,9 @@ export const GetErrorObjectsDocument = gql`
  * const { data, loading, error } = useGetErrorObjectsQuery({
  *   variables: {
  *      errorGroupSecureID: // value for 'errorGroupSecureID'
- *      after: // value for 'after'
- *      before: // value for 'before'
- *      query: // value for 'query'
+ *      count: // value for 'count'
+ *      params: // value for 'params'
+ *      page: // value for 'page'
  *   },
  * });
  */

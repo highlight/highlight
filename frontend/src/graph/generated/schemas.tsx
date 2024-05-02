@@ -568,18 +568,6 @@ export type ErrorObject = {
 	url: Scalars['String']
 }
 
-export type ErrorObjectConnection = Connection & {
-	__typename?: 'ErrorObjectConnection'
-	edges: Array<ErrorObjectEdge>
-	pageInfo: PageInfo
-}
-
-export type ErrorObjectEdge = Edge & {
-	__typename?: 'ErrorObjectEdge'
-	cursor: Scalars['String']
-	node: ErrorObjectNode
-}
-
 export type ErrorObjectNode = {
 	__typename?: 'ErrorObjectNode'
 	createdAt: Scalars['Timestamp']
@@ -598,6 +586,12 @@ export type ErrorObjectNodeSession = {
 	excluded: Scalars['Boolean']
 	fingerprint?: Maybe<Scalars['Int']>
 	secureID: Scalars['String']
+}
+
+export type ErrorObjectResults = {
+	__typename?: 'ErrorObjectResults'
+	error_objects: Array<ErrorObjectNode>
+	totalCount: Scalars['Int64']
 }
 
 export type ErrorResults = {
@@ -2010,7 +2004,7 @@ export type Query = {
 	error_issue: Array<Maybe<ExternalAttachment>>
 	error_object?: Maybe<ErrorObject>
 	error_object_for_log?: Maybe<ErrorObject>
-	error_objects: ErrorObjectConnection
+	error_objects: ErrorObjectResults
 	error_resolution_suggestion: Scalars['String']
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	error_tags?: Maybe<Array<Maybe<ErrorTag>>>
@@ -2303,6 +2297,7 @@ export type QueryError_Groups_ClickhouseArgs = {
 export type QueryError_InstanceArgs = {
 	error_group_secure_id: Scalars['String']
 	error_object_id?: InputMaybe<Scalars['ID']>
+	params?: InputMaybe<QueryInput>
 }
 
 export type QueryError_IssueArgs = {
@@ -2318,10 +2313,10 @@ export type QueryError_Object_For_LogArgs = {
 }
 
 export type QueryError_ObjectsArgs = {
-	after?: InputMaybe<Scalars['String']>
-	before?: InputMaybe<Scalars['String']>
+	count: Scalars['Int']
 	error_group_secure_id: Scalars['String']
-	query: Scalars['String']
+	page?: InputMaybe<Scalars['Int']>
+	params: QueryInput
 }
 
 export type QueryError_Resolution_SuggestionArgs = {

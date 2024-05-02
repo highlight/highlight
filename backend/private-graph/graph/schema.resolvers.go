@@ -5382,19 +5382,16 @@ func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorOb
 }
 
 // ErrorObjects is the resolver for the error_objects field.
-func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID string, after *string, before *string, query string) (*modelInputs.ErrorObjectConnection, error) {
+func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID string, count int, params modelInputs.QueryInput, page *int) (*modelInputs.ErrorObjectResults, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, err
 	}
 
-	connection, err := r.Store.ListErrorObjects(*errorGroup, store.ListErrorObjectsParams{
-		After:  after,
-		Before: before,
-		Query:  query,
-	})
+	ids, total, err := r.ClickhouseClient.QueryErrorObjects(ctx, errorGroup.ProjectID, errorGroup.ID, count, params, page)
 
-	return &connection, err
+	results, err := r.Store.ListErrorObjects(*errorGroup, ids, total)
+	return &results, err
 }
 
 // ErrorObjectForLog is the resolver for the error_object_for_log field.
@@ -5411,7 +5408,7 @@ func (r *queryResolver) ErrorObjectForLog(ctx context.Context, logCursor string)
 }
 
 // ErrorInstance is the resolver for the error_instance field.
-func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int) (*model.ErrorInstance, error) {
+func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int, params *modelInputs.QueryInput) (*model.ErrorInstance, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, err
@@ -5425,15 +5422,28 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 	errorObject := model.ErrorObject{}
 	errorObjectQuery := r.DB.WithContext(ctx).Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID})
 
-	if errorObjectID == nil {
-		if err := errorObjectQuery.Last(&errorObject).Error; err != nil {
-			return nil, e.Wrap(err, "error reading error object for instance")
-		}
-	} else {
+	if errorObjectID != nil {
 		if err := errorObjectQuery.Where(&model.ErrorObject{Model: model.Model{ID: *errorObjectID}}).Take(&errorObject).Error; err != nil {
 			return nil, e.Wrap(err, "error reading error object for instance")
 		}
+	} else if params != nil {
+		ids, _, err := r.ClickhouseClient.QueryErrorObjects(ctx, errorGroup.ProjectID, errorGroup.ID, 1, *params, nil)
+		if err != nil {
+			return nil, err
+		}
+		if len(ids) != 0 {
+			if err := r.DB.WithContext(ctx).Model(&errorObject).Where("id = ?", ids[0]).Take(&errorObject).Error; err != nil {
+				return nil, err
+			}
+		}
 	}
+
+	if errorObject.ID == 0 {
+		if err := errorObjectQuery.Last(&errorObject).Error; err != nil {
+			return nil, e.Wrap(err, "error reading error object for instance")
+		}
+	}
+
 	var nextID int
 	if err := r.DB.
 		Model(&model.ErrorObject{}).

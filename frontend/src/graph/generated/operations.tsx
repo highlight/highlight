@@ -3349,6 +3349,7 @@ export type GetErrorObjectQuery = { __typename?: 'Query' } & {
 export type GetErrorInstanceQueryVariables = Types.Exact<{
 	error_group_secure_id: Types.Scalars['String']
 	error_object_id?: Types.Maybe<Types.Scalars['ID']>
+	params?: Types.Maybe<Types.QueryInput>
 }>
 
 export type GetErrorInstanceQuery = { __typename?: 'Query' } & {
@@ -4797,47 +4798,39 @@ export type GetSystemConfigurationQuery = { __typename?: 'Query' } & {
 
 export type GetErrorObjectsQueryVariables = Types.Exact<{
 	errorGroupSecureID: Types.Scalars['String']
-	after?: Types.Maybe<Types.Scalars['String']>
-	before?: Types.Maybe<Types.Scalars['String']>
-	query: Types.Scalars['String']
+	count: Types.Scalars['Int']
+	params: Types.QueryInput
+	page?: Types.Maybe<Types.Scalars['Int']>
 }>
 
 export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
-	error_objects: { __typename?: 'ErrorObjectConnection' } & {
-		edges: Array<
-			{ __typename?: 'ErrorObjectEdge' } & Pick<
-				Types.ErrorObjectEdge,
-				'cursor'
-			> & {
-					node: { __typename?: 'ErrorObjectNode' } & Pick<
-						Types.ErrorObjectNode,
-						| 'id'
-						| 'createdAt'
-						| 'event'
-						| 'timestamp'
-						| 'errorGroupSecureID'
-						| 'serviceVersion'
-						| 'serviceName'
-					> & {
-							session?: Types.Maybe<
-								{
-									__typename?: 'ErrorObjectNodeSession'
-								} & Pick<
-									Types.ErrorObjectNodeSession,
-									| 'secureID'
-									| 'email'
-									| 'fingerprint'
-									| 'excluded'
-								>
+	error_objects: { __typename?: 'ErrorObjectResults' } & Pick<
+		Types.ErrorObjectResults,
+		'totalCount'
+	> & {
+			error_objects: Array<
+				{ __typename?: 'ErrorObjectNode' } & Pick<
+					Types.ErrorObjectNode,
+					| 'id'
+					| 'createdAt'
+					| 'event'
+					| 'timestamp'
+					| 'errorGroupSecureID'
+					| 'serviceVersion'
+					| 'serviceName'
+				> & {
+						session?: Types.Maybe<
+							{ __typename?: 'ErrorObjectNodeSession' } & Pick<
+								Types.ErrorObjectNodeSession,
+								| 'secureID'
+								| 'email'
+								| 'fingerprint'
+								| 'excluded'
 							>
-						}
-				}
-		>
-		pageInfo: { __typename?: 'PageInfo' } & Pick<
-			Types.PageInfo,
-			'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
-		>
-	}
+						>
+					}
+			>
+		}
 }
 
 export type GetServicesQueryVariables = Types.Exact<{
