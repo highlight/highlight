@@ -1,4 +1,5 @@
 import { Avatar } from '@components/Avatar/Avatar'
+import { useSearchContext } from '@components/Search/SearchContext'
 import { TableList, TableListItem } from '@components/TableList/TableList'
 import { useGetEnhancedUserDetailsQuery } from '@graph/hooks'
 import { GetEnhancedUserDetailsQuery } from '@graph/operations'
@@ -14,7 +15,6 @@ import {
 } from '@highlight-run/ui/components'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import {
 	getDisplayName,
 	getDisplayNameAndField,
@@ -34,8 +34,9 @@ import {
 	FaTwitterSquare,
 } from 'react-icons/fa'
 
+import { SearchExpression } from '@/components/Search/Parser/listener'
+import { stringifyExpression } from '@/components/Search/utils'
 import { RelatedResourceButtons } from '@/pages/Player/MetadataBox/RelatedResourceButtons'
-import { buildQueryStateString } from '@/util/url/params'
 
 import { useReplayerContext } from '../ReplayerContext'
 import * as style from './MetadataBox.css'
@@ -44,7 +45,7 @@ import { getAbsoluteUrl, getMajorVersion } from './utils/utils'
 export const MetadataBox = React.memo(() => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const { session, sessionMetadata } = useReplayerContext()
-	const { setSearchQuery } = useSearchContext()
+	const { onSubmit, queryParts } = useSearchContext()
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	const [enhancedAvatar, setEnhancedAvatar] = React.useState<string>()
@@ -195,22 +196,36 @@ export const MetadataBox = React.memo(() => {
 	const searchIdentifier = useCallback(() => {
 		if (!session) return
 
-		const displayName = getDisplayName(session)
-		const userParam = validateEmail(displayName) ? 'email' : 'identifier'
+		let newQueryParts = []
+		if (session.identified) {
+			const displayName = getDisplayName(session)
+			const userParam = validateEmail(displayName)
+				? 'email'
+				: 'identifier'
 
-		setSearchQuery((query) => {
-			const params = session.identified
-				? { [`user_${userParam}`]: displayName }
-				: { session_device_id: String(session.fingerprint) }
+			newQueryParts = queryParts.filter((part) => part.key !== userParam)
+			newQueryParts.push({
+				key: userParam,
+				operator: '=',
+				value: displayName,
+				text: `${userParam}=${displayName}`,
+			} as SearchExpression)
+		} else {
+			newQueryParts = queryParts.filter(
+				(part) => part.key !== 'device_id',
+			)
+			newQueryParts.push({
+				key: 'device_id',
+				operator: '=',
+				value: String(session.fingerprint),
+				text: `device_id=${session.fingerprint}`,
+			} as SearchExpression)
+		}
 
-			return buildQueryStateString({
-				query,
-				...params,
-			})
-		})
+		onSubmit(stringifyExpression(newQueryParts))
 
 		setShowLeftPanel(true)
-	}, [session, setSearchQuery, setShowLeftPanel])
+	}, [session, onSubmit, setShowLeftPanel, queryParts])
 
 	return (
 		<Box display="flex" flexDirection="column" style={{ width: 300 }}>

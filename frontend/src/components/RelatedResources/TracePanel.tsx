@@ -4,10 +4,10 @@ import LoadingBox from '@/components/LoadingBox'
 import { RelatedTrace } from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
-import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
 import { TraceHeader } from '@/pages/Traces/TraceHeader'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
+import { TraceVisualizer } from '@/pages/Traces/TraceVisualizer'
 
 export const TracePanel: React.FC<{ resource: RelatedTrace }> = ({
 	resource,
@@ -34,7 +34,7 @@ export const TracePanel: React.FC<{ resource: RelatedTrace }> = ({
 				) : (
 					<Box>
 						<TraceHeader />
-						<TraceFlameGraph />
+						<TraceVisualizer />
 
 						<Box mt="40">
 							<Text size="large" weight="bold">

@@ -11,7 +11,6 @@ import {
 } from '@context/AppLoadingContext'
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
 import { Maybe, Project, Workspace } from '@graph/schemas'
-import { Ariakit } from '@highlight-run/ui/components'
 import {
 	useLocalStorageProjectId,
 	useNumericProjectId,
@@ -133,8 +132,6 @@ export const ProjectRouter = () => {
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
 
-	const commandBarDialog = Ariakit.useDialogStore()
-
 	const playerUIContext = {
 		isPlayerFullscreen,
 		setIsPlayerFullscreen,
@@ -158,7 +155,6 @@ export const ProjectRouter = () => {
 				toggleShowKeyboardShortcutsGuide,
 				showBanner,
 				toggleShowBanner,
-				commandBarDialog,
 			}}
 		>
 			<PlayerUIContextProvider value={playerUIContext}>

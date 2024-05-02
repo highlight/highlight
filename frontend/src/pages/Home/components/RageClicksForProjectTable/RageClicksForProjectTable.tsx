@@ -12,7 +12,6 @@ import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgCursorClickIcon from '@icons/CursorClickIcon'
 import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/DashboardInnerTable'
 import { getUserDisplayName } from '@pages/Home/utils/HomePageUtils'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { validateEmail } from '@util/string'
 import { buildQueryURLString } from '@util/url/params'
@@ -51,7 +50,6 @@ const RageClicksForProjectTable = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	const { removeSelectedSegment } = useSearchContext()
 	const { timeRange } = useDataTimeRange()
 	const navigate = useNavigate()
 
@@ -105,8 +103,6 @@ const RageClicksForProjectTable = ({
 					columns={Columns}
 					data={filteredTableData}
 					onClickHandler={(record) => {
-						removeSelectedSegment()
-
 						const displayName = getUserDisplayName(record)
 						const userParam = validateEmail(displayName)
 							? 'email'

@@ -9,6 +9,8 @@ import {
 	getTraceDurationString,
 	getTraceTimes,
 	organizeSpansForFlameGraph,
+	organizeSpansWithChildren,
+	traceSortFn,
 } from '@/pages/Traces/utils'
 
 type TraceContext = {
@@ -23,6 +25,7 @@ type TraceContext = {
 	highlightedSpan: FlameGraphSpan | undefined
 	loading: boolean
 	traces: FlameGraphSpan[][]
+	spans: FlameGraphSpan[]
 	error?: ApolloError
 	traceId?: string
 	secureSessionId?: string
@@ -120,6 +123,15 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.trace?.trace])
 
+	const spans = useMemo(() => {
+		if (!data?.trace?.trace) {
+			return []
+		}
+
+		const spans = data.trace.trace.sort(traceSortFn)
+		return organizeSpansWithChildren(spans)
+	}, [data?.trace?.trace])
+
 	return (
 		<TraceContext.Provider
 			value={{
@@ -135,6 +147,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 				loading,
 				traceId,
 				traces,
+				spans,
 				error,
 				secureSessionId: firstSpan?.secureSessionID,
 				setHoveredSpan,

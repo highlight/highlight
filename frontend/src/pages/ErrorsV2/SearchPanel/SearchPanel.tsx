@@ -7,7 +7,7 @@ import LoadingBox from '@components/LoadingBox'
 import SearchPagination, {
 	PAGE_SIZE,
 } from '@components/SearchPagination/SearchPagination'
-import { ProductType } from '@graph/schemas'
+import { ProductType, SavedSegmentEntityType } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
@@ -18,7 +18,7 @@ import {
 import { ErrorFeedHistogram } from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import clsx from 'clsx'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useSearchContext } from '@/components/Search/SearchContext'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
@@ -32,7 +32,6 @@ import * as style from './SearchPanel.css'
 export const SearchPanel = () => {
 	const { setShowLeftPanel } = useErrorPageNavigation()
 	const { showBanner } = useGlobalContext()
-	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const {
 		results: errorGroups,
 		totalCount,
@@ -101,8 +100,7 @@ export const SearchPanel = () => {
 				selectedPreset={selectedPreset}
 				productType={ProductType.Errors}
 				timeMode="fixed-range"
-				savedSegmentType="Error"
-				textAreaRef={textAreaRef}
+				savedSegmentType={SavedSegmentEntityType.Error}
 				actions={actions}
 				resultCount={totalCount}
 				loading={loading}

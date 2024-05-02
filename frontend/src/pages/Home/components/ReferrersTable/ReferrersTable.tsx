@@ -10,7 +10,6 @@ import {
 import { useGetReferrersCountQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgReferrer from '@icons/Referrer'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
@@ -40,7 +39,6 @@ const ReferrersTable = ({
 
 	const { timeRange } = useDataTimeRange()
 	const navigate = useNavigate()
-	const { removeSelectedSegment } = useSearchContext()
 
 	const { loading } = useGetReferrersCountQuery({
 		variables: {
@@ -86,7 +84,6 @@ const ReferrersTable = ({
 								{ session_referrer: record.host },
 							)}`,
 						)
-						removeSelectedSegment()
 						message.success(
 							`Showing sessions that were referred by ${record.host}`,
 						)
