@@ -657,7 +657,7 @@ export const GraphingEditor = () => {
 	return (
 		<>
 			<Helmet>
-				<title>Edit Metric View</title>
+				<title>{isEdit ? 'Edit' : 'Create'} Metric View</title>
 			</Helmet>
 			<Box
 				background="n2"
