@@ -2980,10 +2980,10 @@ export const CreateErrorAlertDocument = gql`
 		$webhook_destinations: [WebhookDestinationInput!]!
 		$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		$emails: [String]!
-		$environments: [String]!
 		$regex_groups: [String]!
 		$frequency: Int!
 		$default: Boolean
+		$query: String!
 	) {
 		createErrorAlert(
 			project_id: $project_id
@@ -2994,11 +2994,11 @@ export const CreateErrorAlertDocument = gql`
 			microsoft_teams_channels: $microsoft_teams_channels
 			webhook_destinations: $webhook_destinations
 			emails: $emails
-			environments: $environments
 			threshold_window: $threshold_window
 			regex_groups: $regex_groups
 			frequency: $frequency
 			default: $default
+			query: $query
 		) {
 			id
 			ChannelsToNotify {
@@ -3007,13 +3007,13 @@ export const CreateErrorAlertDocument = gql`
 			}
 			EmailsToNotify
 			Name
-			ExcludedEnvironments
 			CountThreshold
 			ThresholdWindow
 			LastAdminToEditID
 			RegexGroups
 			Frequency
 			disabled
+			Query
 		}
 	}
 `
@@ -3044,10 +3044,10 @@ export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
  *      webhook_destinations: // value for 'webhook_destinations'
  *      microsoft_teams_channels: // value for 'microsoft_teams_channels'
  *      emails: // value for 'emails'
- *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
  *      frequency: // value for 'frequency'
  *      default: // value for 'default'
+ *      query: // value for 'query'
  *   },
  * });
  */
@@ -3453,10 +3453,10 @@ export const UpdateErrorAlertDocument = gql`
 		$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		$webhook_destinations: [WebhookDestinationInput!]!
 		$emails: [String]
-		$environments: [String]
 		$regex_groups: [String]
 		$frequency: Int
 		$disabled: Boolean
+		$query: String!
 	) {
 		updateErrorAlert(
 			project_id: $project_id
@@ -3468,11 +3468,11 @@ export const UpdateErrorAlertDocument = gql`
 			microsoft_teams_channels: $microsoft_teams_channels
 			webhook_destinations: $webhook_destinations
 			emails: $emails
-			environments: $environments
 			threshold_window: $threshold_window
 			regex_groups: $regex_groups
 			frequency: $frequency
 			disabled: $disabled
+			query: $query
 		) {
 			Name
 			ChannelsToNotify {
@@ -3488,13 +3488,12 @@ export const UpdateErrorAlertDocument = gql`
 				name
 			}
 			EmailsToNotify
-			ExcludedEnvironments
 			CountThreshold
 			ThresholdWindow
 			LastAdminToEditID
-			RegexGroups
 			Frequency
 			disabled
+			Query
 		}
 	}
 `
@@ -3526,10 +3525,10 @@ export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
  *      microsoft_teams_channels: // value for 'microsoft_teams_channels'
  *      webhook_destinations: // value for 'webhook_destinations'
  *      emails: // value for 'emails'
- *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
  *      frequency: // value for 'frequency'
  *      disabled: // value for 'disabled'
+ *      query: // value for 'query'
  *   },
  * });
  */
@@ -12367,7 +12366,6 @@ export const GetAlertsPagePayloadDocument = gql`
 				authorization
 			}
 			EmailsToNotify
-			ExcludedEnvironments
 			updated_at
 			CountThreshold
 			LastAdminToEditID
@@ -12380,6 +12378,7 @@ export const GetAlertsPagePayloadDocument = gql`
 			DailyFrequency
 			disabled
 			default
+			Query
 		}
 		new_session_alerts(project_id: $project_id) {
 			...SessionAlertFragment

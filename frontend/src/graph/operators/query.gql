@@ -1850,7 +1850,6 @@ query GetAlertsPagePayload($project_id: ID!) {
 			authorization
 		}
 		EmailsToNotify
-		ExcludedEnvironments
 		updated_at
 		CountThreshold
 		LastAdminToEditID
@@ -1863,6 +1862,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 		DailyFrequency
 		disabled
 		default
+		Query
 	}
 	new_session_alerts(project_id: $project_id) {
 		...SessionAlertFragment
