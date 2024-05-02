@@ -2805,10 +2805,9 @@ type Mutation {
 		is_default: Boolean
 	): ID!
 	deleteDashboard(id: ID!): Boolean!
-	# TODO(spenny): swap over to using new language
 	deleteSessions(
 		project_id: ID!
-		query: ClickhouseQuery!
+		params: QueryInput!
 		sessionCount: Int!
 	): Boolean!
 	updateVercelProjectMappings(
@@ -2852,7 +2851,7 @@ type Mutation {
 	): ErrorObject
 	upsertVisualization(visualization: VisualizationInput!): ID!
 	deleteVisualization(id: ID!): Boolean!
-	upsertGraph(graph: GraphInput!): ID!
+	upsertGraph(graph: GraphInput!): Graph!
 	deleteGraph(id: ID!): Boolean!
 }
 

@@ -1,4 +1,4 @@
-import { LogLevel, ProductType } from '@graph/schemas'
+import { LogLevel, ProductType, SavedSegmentEntityType } from '@graph/schemas'
 import {
 	Box,
 	DateRangePreset,
@@ -189,7 +189,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						selectedPreset={selectedPreset}
 						productType={ProductType.Logs}
 						timeMode={timeMode}
-						savedSegmentType="Log"
+						savedSegmentType={SavedSegmentEntityType.Log}
 						textAreaRef={textAreaRef}
 					/>
 					<LogsCount

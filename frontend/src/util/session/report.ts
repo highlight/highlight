@@ -1,16 +1,11 @@
-import { Operator } from '@components/QueryBuilder/QueryBuilder'
+import { SearchExpression } from '@components/Search/Parser/listener'
+import { useSearchContext } from '@components/Search/SearchContext'
 import {
-	useGetSessionsClickhouseLazyQuery,
-	useGetSessionsReportLazyQuery,
+	useGetSessionsLazyQuery,
+	useGetSessionUsersReportsLazyQuery,
 } from '@graph/hooks'
-import {
-	ClickhouseQuery,
-	Maybe,
-	Session,
-	SessionsReportRow,
-} from '@graph/schemas'
+import { Maybe, Session, SessionsReportRow } from '@graph/schemas'
 import { useProjectId } from '@hooks/useProjectId'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import moment from 'moment/moment'
 
 const processRows = <
@@ -61,12 +56,9 @@ const processRows = <
 const getQueryRows = (
 	start: Date,
 	end: Date,
-	query: ClickhouseQuery,
+	queryParts: SearchExpression[],
 	sessions: Session[],
 ) => {
-	const rules = query.rules.filter(
-		(rule: any) => (rule[1] as Operator) !== 'between_date',
-	)
 	const startFormatted = moment(start).format()
 	const endFormatted = moment(end).format()
 	return [
@@ -76,7 +68,7 @@ const getQueryRows = (
 			'Time To',
 			'',
 			'',
-			...rules.map((_, index) => `Filter ${index + 1}`),
+			...queryParts.map((_, index) => `Filter ${index + 1}`),
 		],
 		[
 			sessions.length,
@@ -84,10 +76,17 @@ const getQueryRows = (
 			endFormatted,
 			'',
 			'Filter',
-			...rules.map((rule) => rule[0].split('_', 2)[1]),
+			...queryParts.map((part) => part.key),
 		],
-		['', '', '', '', 'Operator', ...rules.map((rule) => rule[1])],
-		['', '', '', '', 'Value', ...rules.map((rule) => rule[2])],
+		[
+			'',
+			'',
+			'',
+			'',
+			'Operator',
+			...queryParts.map((part) => part.operator),
+		],
+		['', '', '', '', 'Value', ...queryParts.map((part) => part.value)],
 	]
 }
 
@@ -113,43 +112,53 @@ type SessionWithUpdatedAt = Session & { payload_updated_at: string }
 
 export const useGenerateSessionsReportCSV = () => {
 	const PAGE_SIZE = 1_000
-	const { searchQuery, startDate, endDate } = useSearchContext()
+	const { query, queryParts, startDate, endDate } = useSearchContext()
 	const { projectId } = useProjectId()
-	const [getReport, { loading }] = useGetSessionsReportLazyQuery()
+	const [getReport, { loading }] = useGetSessionUsersReportsLazyQuery()
 	const [, { loading: sessionsLoading, fetchMore }] =
-		useGetSessionsClickhouseLazyQuery()
+		useGetSessionsLazyQuery()
 
 	return {
 		loading: loading || sessionsLoading,
 		generateSessionsReportCSV: async () => {
-			const query = JSON.parse(searchQuery) as ClickhouseQuery
-
 			const getSessionReport = async () => {
 				const { data, error } = await getReport({
 					variables: {
-						query,
+						params: {
+							query,
+							date_range: {
+								start_date: startDate!.toISOString(),
+								end_date: endDate!.toISOString(),
+							},
+						},
 						project_id: projectId,
 					},
 				})
-				if (!data?.sessions_report) {
+				if (!data?.session_users_report) {
 					throw new Error(
 						`No sessions report data: ${error?.message}`,
 					)
 				}
-				return data.sessions_report
+				return data.session_users_report
 			}
 
 			const getSessions = async (page: number) => {
 				const { data, error } = await fetchMore({
 					variables: {
-						query,
+						params: {
+							query,
+							date_range: {
+								start_date: startDate,
+								end_date: endDate,
+							},
+						},
 						count: PAGE_SIZE,
 						page,
 						project_id: projectId,
 						sort_desc: true,
 					},
 				})
-				if (!data?.sessions_clickhouse) {
+				if (!data?.sessions) {
 					console.error(`No sessions data: ${error?.message}`)
 					return {
 						totalCount: 0,
@@ -157,8 +166,8 @@ export const useGenerateSessionsReportCSV = () => {
 					}
 				}
 				return {
-					totalCount: data.sessions_clickhouse.totalCount ?? 0,
-					sessions: data.sessions_clickhouse.sessions.map((s) => ({
+					totalCount: data.sessions.totalCount ?? 0,
+					sessions: data.sessions.sessions.map((s) => ({
 						...s,
 						payload_updated_at: new Date().toISOString(),
 					})),
@@ -190,7 +199,7 @@ export const useGenerateSessionsReportCSV = () => {
 			)
 
 			const rows: any[][] = [
-				...getQueryRows(startDate, endDate, query, sessions),
+				...getQueryRows(startDate!, endDate!, queryParts, sessions),
 				// leave a blank row between the sub reports
 				[],
 				...getReportRows(await sessionReportPromise),

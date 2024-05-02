@@ -7,9 +7,9 @@ import {
 	useGetDailyErrorsCountQuery,
 	useGetDailySessionsCountQuery,
 } from '@graph/hooks'
+import { DEFAULT_TIME_PRESETS } from '@highlight-run/ui/components'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import { SessionPageSearchParams } from '@pages/Player/utils/utils'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { dailyCountData } from '@util/dashboardCalculations'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
@@ -18,6 +18,8 @@ import moment from 'moment/moment'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ResponsiveContainer } from 'recharts'
+
+import { useSearchTime } from '@/hooks/useSearchTime'
 
 import styles from './HomeCharts.module.css'
 
@@ -40,7 +42,11 @@ export const SessionCountGraph = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	const { setSearchTime, removeSelectedSegment } = useSearchContext()
+	const { updateSearchTime } = useSearchTime({
+		presets: DEFAULT_TIME_PRESETS,
+		initialPreset: DEFAULT_TIME_PRESETS[5],
+	})
+
 	const { timeRange } = useDataTimeRange()
 	const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
 		[],
@@ -102,9 +108,8 @@ export const SessionCountGraph = ({
 				name="Sessions"
 				onClickHandler={(payload: any) => {
 					const date = moment(payload.activePayload[0].payload.date)
-					removeSelectedSegment()
 
-					setSearchTime(
+					updateSearchTime(
 						date.startOf('day').toDate(),
 						date.endOf('day').toDate(),
 					)

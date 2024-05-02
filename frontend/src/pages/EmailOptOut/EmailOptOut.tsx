@@ -8,7 +8,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
-import { Ariakit, Heading, Stack, Text } from '@highlight-run/ui/components'
+import { Heading, Stack, Text } from '@highlight-run/ui/components'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
 import { useEffect } from 'react'
@@ -171,8 +171,6 @@ export const EmailOptOutPage = () => {
 		token: StringParam,
 	})
 
-	const commandBarDialog = Ariakit.useDialogStore()
-
 	useEffect(() => {
 		// Show the Intercom message after 5 seconds in case the user needs help.
 		setTimeout(() => {
@@ -187,7 +185,6 @@ export const EmailOptOutPage = () => {
 				toggleShowKeyboardShortcutsGuide: () => {},
 				showBanner: false,
 				toggleShowBanner: () => {},
-				commandBarDialog,
 			}}
 		>
 			<Header />

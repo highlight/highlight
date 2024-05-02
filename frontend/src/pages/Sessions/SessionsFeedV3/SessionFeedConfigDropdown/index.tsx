@@ -15,18 +15,6 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import {
-	formatCount,
-	formatDatetime,
-	getSortOrderDisplayName,
-} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfiguration/SessionFeedConfiguration'
-import {
-	countFormats,
-	dateTimeFormats,
-	sortOrders,
-} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/context/SessionFeedConfigurationContext'
-import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/hooks/useSessionFeedConfiguration'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
@@ -35,10 +23,17 @@ import { message } from 'antd'
 import { H } from 'highlight.run'
 import React, { useRef, useState } from 'react'
 
-import { ClickhouseQuery } from '@/graph/generated/schemas'
+import { useSearchContext } from '@/components/Search/SearchContext'
+import {
+	countFormats,
+	dateTimeFormats,
+	sortOrders,
+} from '@/pages/Sessions/SessionsFeedV3/context/SessionFeedConfigurationContext'
 
-import DeleteSessionsModal from '../DeleteSessionsModal/DeleteSessionsModal'
-import * as styles from './SessionFeedConfigurationV2.css'
+import DeleteSessionsModal from '../DeleteSessionsModal'
+import { useSessionFeedConfiguration } from '../hooks/useSessionFeedConfiguration'
+import { formatCount, formatDatetime, getSortOrderDisplayName } from './helpers'
+import * as styles from './styles.css'
 
 const Section: React.FC<React.PropsWithChildren<{ clickable?: true }>> = ({
 	children,
@@ -88,12 +83,8 @@ const IconGroup: React.FC<{ icon: React.ReactNode; text: string }> = ({
 	</>
 )
 
-export const DropdownMenu = function ({
-	sessionQuery,
-}: {
-	sessionQuery: ClickhouseQuery
-}) {
-	const { sessionResults } = useReplayerContext()
+export const SessionFeedConfigDropdown = function () {
+	const { totalCount, query, startDate, endDate } = useSearchContext()
 	const { checkPolicyAccess } = useAuthorization()
 	const canDelete = checkPolicyAccess({
 		policyName: POLICY_NAMES.DeleteSessions,
@@ -111,7 +102,8 @@ export const DropdownMenu = function ({
 		canDelete &&
 		workspaceSettingsData?.workspaceSettings?.enable_data_deletion === true
 	const showReportButton =
-		workspaceSettingsData?.workspaceSettings?.enable_session_export === true
+		workspaceSettingsData?.workspaceSettings?.enable_session_export ===
+			true || true
 
 	const { autoPlaySessions, setAutoPlaySessions, setAutoPlayVideo } =
 		usePlayerConfiguration()
@@ -447,12 +439,8 @@ export const DropdownMenu = function ({
 											}
 										/>
 									}
-									text={`Delete ${
-										sessionResults.totalCount
-									} Session${
-										sessionResults.totalCount !== 1
-											? 's'
-											: ''
+									text={`Delete ${totalCount} Session${
+										totalCount !== 1 ? 's' : ''
 									}?`}
 								/>
 							</SectionRow>
@@ -460,8 +448,10 @@ export const DropdownMenu = function ({
 						<DeleteSessionsModal
 							visible={showModal}
 							setVisible={setShowModal}
-							query={sessionQuery}
-							sessionCount={sessionResults.totalCount}
+							query={query}
+							sessionCount={totalCount}
+							startDate={startDate!}
+							endDate={endDate!}
 						/>
 					</Section>
 				) : null}

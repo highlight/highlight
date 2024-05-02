@@ -1,8 +1,6 @@
 import {
-	useEditSegmentMutation,
 	useGetFieldsClickhouseQuery,
 	useGetFieldTypesClickhouseQuery,
-	useGetSegmentsQuery,
 } from '@graph/hooks'
 import { useProjectId } from '@hooks/useProjectId'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
@@ -17,8 +15,6 @@ import QueryBuilder, {
 	RANGE_OPERATORS,
 	TIME_OPERATORS,
 } from '@/components/QueryBuilder/QueryBuilder'
-import { CreateSegmentModal } from '@/pages/Sessions/SearchSidebar/SegmentModals/CreateSegmentModal'
-import { DeleteSessionSegmentModal } from '@/pages/Sessions/SearchSidebar/SegmentModals/DeleteSessionSegmentModal'
 
 export const InitialSearchParamsForUrl = {
 	browser: undefined,
@@ -161,10 +157,6 @@ const SessionQueryBuilder = React.memo((props: Partial<QueryBuilderProps>) => {
 			customFields={props.customFields ?? CUSTOM_FIELDS}
 			fetchFields={props.fetchFields ?? fetchFields}
 			fieldData={props.fieldData ?? fieldData}
-			useEditAnySegmentMutation={useEditSegmentMutation}
-			useGetAnySegmentsQuery={useGetSegmentsQuery}
-			CreateAnySegmentModal={CreateSegmentModal}
-			DeleteAnySegmentModal={DeleteSessionSegmentModal}
 			{...props}
 		/>
 	)

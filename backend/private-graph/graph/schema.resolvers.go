@@ -4270,7 +4270,7 @@ func (r *mutationResolver) DeleteDashboard(ctx context.Context, id int) (bool, e
 }
 
 // DeleteSessions is the resolver for the deleteSessions field.
-func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, sessionCount int) (bool, error) {
+func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, params modelInputs.QueryInput, sessionCount int) (bool, error) {
 	if util.IsDevOrTestEnv() {
 		return false, nil
 	}
@@ -4317,7 +4317,7 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, qu
 		ProjectId:    projectID,
 		Email:        email,
 		FirstName:    firstName,
-		Query:        query,
+		Params:       params,
 		SessionCount: sessionCount,
 		DryRun:       util.IsDevOrTestEnv(),
 	})
@@ -4768,20 +4768,20 @@ func (r *mutationResolver) DeleteVisualization(ctx context.Context, id int) (boo
 }
 
 // UpsertGraph is the resolver for the upsertGraph field.
-func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.GraphInput) (int, error) {
+func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.GraphInput) (*model.Graph, error) {
 	var viz model.Visualization
 	if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", graph.VisualizationID).Take(&viz).Error; err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	_, err := r.isAdminInProject(ctx, viz.ProjectID)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	id := 0
@@ -4826,10 +4826,10 @@ func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.Gr
 		}
 		return nil
 	}); err != nil {
-		return 0, nil
+		return nil, err
 	}
 
-	return toSave.ID, nil
+	return &toSave, nil
 }
 
 // DeleteGraph is the resolver for the deleteGraph field.

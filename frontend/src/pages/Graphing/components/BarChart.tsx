@@ -42,10 +42,10 @@ const RoundedBar = (id: string, isLast: boolean) => (props: BarProps) => {
 				height={Math.max((height ?? 0) - 1.5, 0)}
 				stroke="none"
 				fill={fill}
-				mask={`url(#barmask-${id}-${x})`}
+				clipPath={`url(#barmask-${id}-${x})`}
 			/>
 			{isLast && (
-				<mask id={`barmask-${id}-${x}`}>
+				<clipPath id={`barmask-${id}-${x}`}>
 					<rect
 						rx={Math.min((width ?? 0) / 3, 5)}
 						x={x}
@@ -54,7 +54,7 @@ const RoundedBar = (id: string, isLast: boolean) => (props: BarProps) => {
 						height="10000"
 						fill="white"
 					/>
-				</mask>
+				</clipPath>
 			)}
 		</>
 	)

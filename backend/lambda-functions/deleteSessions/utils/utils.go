@@ -8,12 +8,12 @@ import (
 )
 
 type QuerySessionsInput struct {
-	ProjectId    int                         `json:"projectId"`
-	Query        modelInputs.ClickhouseQuery `json:"clickhouseQuery"`
-	Email        string                      `json:"email"`
-	FirstName    string                      `json:"firstName"`
-	SessionCount int                         `json:"sessionCount"`
-	DryRun       bool                        `json:"dryRun"`
+	ProjectId    int                    `json:"projectId"`
+	Params       modelInputs.QueryInput `json:"params"`
+	Email        string                 `json:"email"`
+	FirstName    string                 `json:"firstName"`
+	SessionCount int                    `json:"sessionCount"`
+	DryRun       bool                   `json:"dryRun"`
 }
 
 type BatchIdResponse struct {
