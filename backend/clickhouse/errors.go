@@ -712,7 +712,7 @@ func (client *Client) QueryErrorObjects(ctx context.Context, projectId int, erro
 	sb.Where(sb.Equal("ErrorGroupID", errorGroupId))
 
 	sb.Select("ID, count() OVER() AS total")
-	sb.OrderBy("UpdatedAt DESC, ID DESC")
+	sb.OrderBy("Timestamp DESC")
 	sb.Limit(count)
 	sb.Offset(offset)
 

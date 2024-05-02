@@ -23,7 +23,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, ids []int64, t
 		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
 		Where("id IN (?)", ids).
 		Limit(LIMIT + 1).
-		Order("error_objects.id DESC")
+		Order("error_objects.timestamp DESC")
 
 	if err := query.Find(&errorObjects).Error; err != nil {
 		return privateModel.ErrorObjectResults{
