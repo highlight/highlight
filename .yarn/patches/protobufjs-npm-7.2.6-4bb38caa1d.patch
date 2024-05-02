@@ -30,7 +30,7 @@ index 62d6833262b3ca13f4c49a797509f855090ba4dc..d516f9c700e7b131c2ee524b2a85c210
  /**
   * Regular expression used to verify 2 bit (`bool`) map keys.
 diff --git a/src/util.js b/src/util.js
-index c39d33a6adab477f2989978f02ffce5f872a3e28..eeee8448d15b442b5a205000b72180857931577f 100644
+index 6c508990b0b03f465ec5460f3588218d0fe1cb39..2b876700403f0764bc847ff5e42ab6e466946537 100644
 --- a/src/util.js
 +++ b/src/util.js
 @@ -19,7 +19,7 @@ util.path    = require("@protobufjs/path");
