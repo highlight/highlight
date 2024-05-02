@@ -6914,7 +6914,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 }
 
 // UsageHistory is the resolver for the usageHistory field.
-func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, dateRange *modelInputs.DateRangeRequiredInput) (*modelInputs.UsageHistory, error) {
+func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, productType modelInputs.ProductType, dateRange *modelInputs.DateRangeRequiredInput) (*modelInputs.UsageHistory, error) {
 	_, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
@@ -6929,59 +6929,36 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, dateR
 		return p.ID
 	})
 
-	var g errgroup.Group
-	var sessionsMeter, errorsMeter, logsMeter, tracesMeter *modelInputs.MetricsBuckets
-
-	g.Go(func() (err error) {
-		sessionsMeter, err = r.ClickhouseClient.ReadWorkspaceSessionCounts(ctx, projectIds, modelInputs.QueryInput{
+	var meter *modelInputs.MetricsBuckets
+	switch productType {
+	case modelInputs.ProductTypeSessions:
+		meter, err = r.ClickhouseClient.ReadWorkspaceSessionCounts(ctx, projectIds, modelInputs.QueryInput{
 			Query:     "processed=true AND excluded=false AND active_length > 1000",
 			DateRange: dateRange,
 		})
-		if err != nil {
-			return e.Wrap(err, "failed to query session usage")
-		}
-		return nil
-	})
-	g.Go(func() (err error) {
-		errorsMeter, err = r.ClickhouseClient.ReadWorkspaceErrorCounts(ctx, projectIds, modelInputs.QueryInput{
+	case modelInputs.ProductTypeErrors:
+		meter, err = r.ClickhouseClient.ReadWorkspaceErrorCounts(ctx, projectIds, modelInputs.QueryInput{
 			Query:     "",
 			DateRange: dateRange,
 		})
-		if err != nil {
-			return e.Wrap(err, "failed to query error usage")
-		}
-		return nil
-	})
-	g.Go(func() (err error) {
-		logsMeter, err = r.ClickhouseClient.ReadWorkspaceLogCounts(ctx, projectIds, modelInputs.QueryInput{
+	case modelInputs.ProductTypeLogs:
+		meter, err = r.ClickhouseClient.ReadWorkspaceLogCounts(ctx, projectIds, modelInputs.QueryInput{
 			Query:     "",
 			DateRange: dateRange,
 		})
-		if err != nil {
-			return e.Wrap(err, "failed to query log usage")
-		}
-		return nil
-	})
-	g.Go(func() (err error) {
-		tracesMeter, err = r.ClickhouseClient.ReadWorkspaceTraceCounts(ctx, projectIds, modelInputs.QueryInput{
+	case modelInputs.ProductTypeTraces:
+		meter, err = r.ClickhouseClient.ReadWorkspaceTraceCounts(ctx, projectIds, modelInputs.QueryInput{
 			Query:     "",
 			DateRange: dateRange,
 		})
-		if err != nil {
-			return e.Wrap(err, "failed to query trace usage")
-		}
-		return nil
-	})
+	}
 
-	if err := g.Wait(); err != nil {
+	if err != nil {
 		return nil, err
 	}
 
 	return &modelInputs.UsageHistory{
-		SessionUsage: sessionsMeter,
-		ErrorsUsage:  errorsMeter,
-		LogsUsage:    logsMeter,
-		TracesUsage:  tracesMeter,
+		Usage: meter,
 	}, nil
 }
 

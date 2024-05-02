@@ -110,6 +110,7 @@ export interface InnerChartProps<TConfig> {
 export interface SeriesInfo {
 	series: string[]
 	spotlight?: number | undefined
+	strokeColors?: string[]
 }
 
 const strokeColors = [

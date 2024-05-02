@@ -158,10 +158,7 @@ type BillingDetails {
 }
 
 type UsageHistory {
-	session_usage: MetricsBuckets!
-	errors_usage: MetricsBuckets!
-	logs_usage: MetricsBuckets!
-	traces_usage: MetricsBuckets!
+	usage: MetricsBuckets!
 }
 
 type Invoice {
@@ -2108,6 +2105,7 @@ type Query {
 	billingDetails(workspace_id: ID!): BillingDetails!
 	usageHistory(
 		workspace_id: ID!
+		product_type: ProductType!
 		date_range: DateRangeRequiredInput
 	): UsageHistory!
 	# gets all the projects of a user
