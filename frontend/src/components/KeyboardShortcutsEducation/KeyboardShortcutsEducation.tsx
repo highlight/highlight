@@ -297,23 +297,11 @@ export interface ShortcutItem {
 const isOnMac = window.navigator.userAgent.includes('Mac')
 export const cmdKey = isOnMac ? '⌘' : 'Ctrl'
 
-export const OpenCommandBarShortcut: ShortcutItem = {
-	description: `Toggle the command bar`,
-	shortcut: [cmdKey, 'K'],
-}
-
-export const OpenCommandBarShortcutAlt: ShortcutItem = {
-	description: `Toggle the command bar`,
-	shortcut: ['/'],
-}
-
 export const GeneralKeyboardShortcuts: ShortcutItem[] = [
 	{
 		description: 'Open Keyboard Shortcuts Guide',
 		shortcut: ['?'],
 	},
-	OpenCommandBarShortcut,
-	OpenCommandBarShortcutAlt,
 ]
 
 export const DevToolsShortcut: ShortcutItem = {

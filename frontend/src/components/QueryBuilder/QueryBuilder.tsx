@@ -1,36 +1,22 @@
-import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { BaseSearchContext } from '@context/BaseSearchContext'
-import {
-	useEditSegmentMutation,
-	useGetAppVersionsQuery,
-	useGetSegmentsQuery,
-} from '@graph/hooks'
+import { useGetAppVersionsQuery } from '@graph/hooks'
 import {
 	GetErrorTagsQuery,
 	GetFieldTypesClickhouseQuery,
-	namedOperations,
 } from '@graph/operations'
-import { ErrorSegment, Exact, Field, Segment } from '@graph/schemas'
-import { colors } from '@highlight-run/ui/colors'
+import { Exact, Field } from '@graph/schemas'
 import {
 	Box,
-	ButtonIcon,
 	ComboboxSelect,
-	DateRangePicker,
-	DEFAULT_TIME_PRESETS,
-	getNow,
 	IconSolidCalendar,
 	IconSolidChat,
-	IconSolidCheveronDown,
 	IconSolidClock,
-	IconSolidCloudUpload,
 	IconSolidCube,
 	IconSolidCubeTransparent,
 	IconSolidCursorClick,
 	IconSolidDesktopComputer,
 	IconSolidDocumentAdd,
-	IconSolidDocumentDuplicate,
 	IconSolidDocumentRemove,
 	IconSolidDocumentText,
 	IconSolidEye,
@@ -38,23 +24,17 @@ import {
 	IconSolidGlobeAlt,
 	IconSolidLightningBolt,
 	IconSolidLink,
-	IconSolidLogout,
 	IconSolidPencil,
 	IconSolidPlayCircle,
-	IconSolidPlusCircle,
 	IconSolidPlusSm,
 	IconSolidQuestionMarkCircle,
 	IconSolidRefresh,
-	IconSolidSave,
-	IconSolidSegment,
 	IconSolidSparkles,
 	IconSolidTag,
 	IconSolidTerminal,
-	IconSolidTrash,
 	IconSolidUser,
 	IconSolidUserAdd,
 	IconSolidX,
-	Menu,
 	Popover,
 	Tag,
 	Text,
@@ -62,25 +42,16 @@ import {
 } from '@highlight-run/ui/components'
 import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
-import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
-import { message } from 'antd'
 import clsx, { ClassValue } from 'clsx'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import LoadingBox from '@/components/LoadingBox'
-import { searchesAreEqual } from '@/components/QueryBuilder/utils'
-import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import { CreateSegmentModal } from '@/pages/Sessions/SearchSidebar/SegmentModals/CreateSegmentModal'
-import { DeleteSessionSegmentModal } from '@/pages/Sessions/SearchSidebar/SegmentModals/DeleteSessionSegmentModal'
 
-import { DropdownMenu } from '../../pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfigurationV2/SessionFeedConfigurationV2'
 import * as newStyle from './QueryBuilder.css'
-import styles from './QueryBuilder.module.css'
 export interface RuleProps {
 	field: SelectOption | undefined
 	op: Operator | undefined
@@ -1154,37 +1125,7 @@ export interface QueryBuilderProps {
 
 	readonly?: boolean
 	onlyAnd?: boolean
-	minimal?: boolean
-	setDefault?: boolean
-	useEditAnySegmentMutation?: typeof useEditSegmentMutation
-	useGetAnySegmentsQuery?: typeof useGetSegmentsQuery
-	CreateAnySegmentModal?: typeof CreateSegmentModal
-	DeleteAnySegmentModal?: typeof DeleteSessionSegmentModal
 }
-
-enum QueryBuilderMode {
-	CUSTOM = 'CUSTOM',
-	SEGMENT = 'SEGMENT',
-	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
-}
-
-enum SegmentModalState {
-	HIDDEN = 'HIDDEN',
-	CREATE = 'CREATE',
-	EDIT_NAME = 'EDIT_NAME',
-}
-
-const defaultMinDate = getNow().subtract(90, 'days').toDate()
-
-const noopQuery = () => ({
-	loading: false,
-	error: undefined,
-	data: {
-		segments: [],
-	},
-})
-
-const noopMutation = () => [null]
 
 function QueryBuilder(props: QueryBuilderProps) {
 	const {
@@ -1197,104 +1138,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 		readonly,
 		onlyAnd,
 		operators,
-		minimal,
-		setDefault,
-		useEditAnySegmentMutation = noopMutation,
-		useGetAnySegmentsQuery = noopQuery,
-		CreateAnySegmentModal,
-		DeleteAnySegmentModal,
 	} = props
 	const ops = operators ?? OPERATORS
 
-	const {
-		searchQuery,
-		setSearchQuery,
-		existingQuery,
-		searchResultsCount,
-		selectedSegment,
-		setSelectedSegment,
-		removeSelectedSegment,
-		setSearchTime,
-		resetTime,
-		startDate,
-		endDate,
-		selectedPreset,
-	} = searchContext
+	const { searchQuery, setSearchQuery, startDate, endDate } = searchContext
 
 	const { project_id: projectId } = useParams<{
 		project_id: string
 	}>()
-
-	const location = useLocation()
-	const isOnErrorsPage = location.pathname.includes('errors')
-
-	const { loading: segmentsLoading, data: segmentData } =
-		useGetAnySegmentsQuery({
-			variables: { project_id: projectId! },
-			skip: !projectId,
-			onCompleted: (data) => {
-				if (selectedSegment && selectedSegment.id) {
-					const match = data?.segments
-						?.map((s) => s)
-						.find((s) => s?.id === selectedSegment.id)
-
-					if (match && match.params?.query) {
-						setSelectedSegment(
-							{ id: match.id, name: match.name },
-							match.params?.query,
-						)
-						return
-					} else {
-						setSelectedSegment(undefined, searchQuery)
-					}
-				}
-			},
-		})
-
-	const [segmentModalState, setSegmentModalState] = useState(
-		SegmentModalState.HIDDEN,
-	)
-
-	const [segmentToDelete, setSegmentToDelete] = useState<{
-		name?: string
-		id?: string
-	} | null>(null)
-
-	const [editSegment] = useEditAnySegmentMutation({
-		refetchQueries: [namedOperations.Query.GetSegments],
-	})
-
-	const segmentOptions = (segmentData?.segments || [])
-		.map((segment) => ({
-			name: segment?.name || '',
-			id: segment?.id || '',
-		}))
-		.sort((a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1))
-
-	const currentSegment = segmentData?.segments
-		?.map((s) => s)
-		.find((s) => s?.id === selectedSegment?.id)
-
-	const selectSegment = useCallback(
-		(segment?: Pick<Segment | ErrorSegment, 'id' | 'name'>) => {
-			if (segment && segment.id && segment.name) {
-				const match = segmentData?.segments
-					?.map((s) => s)
-					.find((s) => s?.id === segment?.id)
-
-				if (match && match.params?.query) {
-					setSelectedSegment(
-						{ id: segment.id, name: segment.name },
-						match.params?.query,
-					)
-					return
-				}
-			}
-
-			removeSelectedSegment()
-		},
-		[removeSelectedSegment, segmentData?.segments, setSelectedSegment],
-	)
 
 	const getCustomFieldOptions = useCallback(
 		(field: SelectOption | undefined) => {
@@ -1542,8 +1393,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		],
 	)
 
-	const areRulesValid = rules.every(isComplete)
-
 	// If the search query is updated externally,
 	// set the rules and `isAnd` toggle based on it
 	useEffect(() => {
@@ -1555,34 +1404,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 			setRules(deserializedRules)
 		}
 	}, [searchQuery, toggleIsAnd])
-
-	// When the query builder is unmounted, reset the state.
-	// Not sure if this is desired behavior in the long term, but
-	// this matches the current prod behavior.
-	useEffect(() => {
-		return () => {
-			if (!readonly && setDefault !== false) {
-				resetTime()
-				if (selectedSegment) {
-					removeSelectedSegment()
-				}
-			}
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
-
-	const { setShowLeftPanel } = usePlayerConfiguration()
-
-	const mode = (() => {
-		if (selectedSegment !== undefined) {
-			if (searchesAreEqual(searchQuery, existingQuery)) {
-				return QueryBuilderMode.SEGMENT
-			} else {
-				return QueryBuilderMode.SEGMENT_UPDATE
-			}
-		}
-		return QueryBuilderMode.CUSTOM
-	})()
 
 	const addFilterButton = useMemo(() => {
 		if (readonly) {
@@ -1616,203 +1437,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [addRule, currentRule, getKeyOptions, readonly])
 
-	const canUpdateSegment =
-		!!selectedSegment && rules.length > 0 && areRulesValid
-
-	const updateSegment = useCallback(() => {
-		if (editSegment && canUpdateSegment) {
-			editSegment({
-				variables: {
-					project_id: projectId!,
-					id: selectedSegment.id,
-					query: searchQuery,
-					name: selectedSegment.name,
-				},
-			})
-				.then(() => {
-					message.success(`Updated '${selectedSegment.name}'`, 5)
-					setSelectedSegment(
-						{
-							id: selectedSegment.id,
-							name: selectedSegment.name,
-						},
-						searchQuery,
-					)
-				})
-				.catch(() => {
-					message.error('Error updating segment!', 5)
-				})
-		}
-	}, [
-		canUpdateSegment,
-		editSegment,
-		projectId,
-		searchQuery,
-		selectedSegment?.id,
-		selectedSegment?.name,
-		setSelectedSegment,
-	])
-
-	const actionButton = useMemo(() => {
-		switch (mode) {
-			case QueryBuilderMode.CUSTOM:
-				return (
-					<Menu.Button
-						kind="secondary"
-						size="xSmall"
-						emphasis="medium"
-						iconLeft={<IconSolidSave size={12} />}
-						onClick={(e: React.MouseEvent) => {
-							e.preventDefault()
-							setSegmentModalState(SegmentModalState.CREATE)
-						}}
-						disabled={!areRulesValid}
-					>
-						Save
-					</Menu.Button>
-				)
-			case QueryBuilderMode.SEGMENT:
-				return (
-					<Menu.Button
-						kind="secondary"
-						size="xSmall"
-						emphasis="medium"
-						iconLeft={<IconSolidSegment size={12} />}
-						iconRight={<IconSolidCheveronDown size={12} />}
-						onClick={() => {}}
-					>
-						<Text lines="1">{selectedSegment?.name}</Text>
-					</Menu.Button>
-				)
-			case QueryBuilderMode.SEGMENT_UPDATE:
-				return (
-					<Menu.Button
-						kind="primary"
-						size="xSmall"
-						emphasis="high"
-						iconLeft={<IconSolidSegment size={12} />}
-						iconRight={<IconSolidCheveronDown size={12} />}
-					>
-						<Text lines="1">{selectedSegment?.name}</Text>
-					</Menu.Button>
-				)
-		}
-	}, [areRulesValid, mode, selectedSegment?.name])
-
-	const controlBar = useMemo(() => {
-		return (
-			<Box
-				display="flex"
-				alignItems="center"
-				px="12"
-				borderBottom="secondary"
-				cssClass={styles.controlBar}
-			>
-				<DateRangePicker
-					presets={DEFAULT_TIME_PRESETS}
-					selectedValue={{
-						startDate,
-						endDate,
-						selectedPreset,
-					}}
-					minDate={defaultMinDate}
-					onDatesChange={setSearchTime}
-				/>
-				<Box marginLeft="auto" display="flex" gap="0">
-					{!isOnErrorsPage && (
-						<DropdownMenu sessionQuery={JSON.parse(searchQuery)} />
-					)}
-
-					<ButtonIcon
-						kind="secondary"
-						size="small"
-						shape="square"
-						emphasis="low"
-						icon={<IconSolidLogout size={14} />}
-						onClick={() => setShowLeftPanel(false)}
-					/>
-				</Box>
-			</Box>
-		)
-	}, [
-		endDate,
-		setSearchTime,
-		isOnErrorsPage,
-		searchQuery,
-		selectedPreset,
-		setShowLeftPanel,
-		startDate,
-	])
-
-	const alteredSegmentSettings = useMemo(() => {
-		return (
-			<>
-				<Menu.Item
-					onClick={(e) => {
-						e.stopPropagation()
-						updateSegment()
-					}}
-					disabled={!canUpdateSegment}
-				>
-					<Box
-						display="flex"
-						alignItems="center"
-						gap="4"
-						userSelect="none"
-					>
-						<IconSolidCloudUpload size={16} color={colors.n9} />
-						Update segment
-					</Box>
-				</Menu.Item>
-				<Menu.Item
-					onClick={(e) => {
-						e.stopPropagation()
-						setSelectedSegment(undefined, searchQuery)
-						setSegmentModalState(SegmentModalState.CREATE)
-					}}
-					disabled={!canUpdateSegment}
-				>
-					<Box
-						display="flex"
-						alignItems="center"
-						gap="4"
-						userSelect="none"
-					>
-						<IconSolidPlusCircle size={16} color={colors.n9} />
-						Save as a new segment
-					</Box>
-				</Menu.Item>
-				<Menu.Item
-					onClick={(e) => {
-						e.stopPropagation()
-						if (currentSegment) {
-							selectSegment(currentSegment)
-						}
-					}}
-				>
-					<Box
-						display="flex"
-						alignItems="center"
-						gap="4"
-						userSelect="none"
-					>
-						<IconSolidRefresh size={16} color={colors.n9} />
-						Reset to segment filters
-					</Box>
-				</Menu.Item>
-
-				<Menu.Divider />
-			</>
-		)
-	}, [
-		canUpdateSegment,
-		currentSegment,
-		searchQuery,
-		selectSegment,
-		setSelectedSegment,
-		updateSegment,
-	])
-
 	// Don't render anything if this is a readonly query builder and there are no rules
 	if (readonly && rules.length === 0) {
 		return null
@@ -1820,48 +1444,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	return (
 		<>
-			{CreateAnySegmentModal && (
-				<CreateAnySegmentModal
-					showModal={segmentModalState !== SegmentModalState.HIDDEN}
-					onHideModal={() => {
-						setSegmentModalState(SegmentModalState.HIDDEN)
-					}}
-					afterCreateHandler={(segmentId, segmentName) => {
-						if (segmentData?.segments) {
-							setSelectedSegment(
-								{
-									id: segmentId,
-									name: segmentName,
-								},
-								searchQuery,
-							)
-						}
-					}}
-					currentSegment={
-						segmentModalState === SegmentModalState.EDIT_NAME
-							? currentSegment
-							: undefined
-					}
-				/>
-			)}
-			{DeleteAnySegmentModal && (
-				<DeleteAnySegmentModal
-					showModal={!!segmentToDelete}
-					hideModalHandler={() => {
-						setSegmentToDelete(null)
-					}}
-					segmentToDelete={segmentToDelete}
-					afterDeleteHandler={() => {
-						if (
-							segmentToDelete &&
-							selectedSegment?.name === segmentToDelete.name
-						) {
-							removeSelectedSegment()
-						}
-					}}
-				/>
-			)}
-			{!readonly && !minimal ? controlBar : null}
 			<Box
 				border="secondary"
 				borderRadius="8"
@@ -1869,14 +1451,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 				flexDirection="column"
 				overflow="hidden"
 				flexShrink={0}
-				m={readonly || minimal ? undefined : '8'}
-				shadow={minimal ? undefined : 'medium'}
-				style={minimal ? { minHeight: 28 } : undefined}
+				m={undefined}
+				shadow={undefined}
+				style={{ minHeight: 28 }}
 			>
 				<Box
 					p="4"
 					background="white"
-					borderBottom={readonly || minimal ? undefined : 'secondary'}
+					borderBottom={undefined}
 					display="flex"
 					alignItems="center"
 					flexWrap="wrap"
@@ -1909,187 +1491,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 							getValueOptionsCallback={getValueOptionsCallback}
 							removeRule={removeRule}
 							readonly={readonly ?? false}
-							minimal={minimal ?? false}
+							minimal
 							updateRule={updateRule}
 						/>,
 					])}
 					{addFilterButton}
 				</Box>
-				{!readonly && !minimal ? (
-					<Box
-						display="flex"
-						p="8"
-						paddingRight="4"
-						justifyContent="space-between"
-						alignItems="center"
-					>
-						{searchResultsCount === undefined ? (
-							<Skeleton width="100px" />
-						) : (
-							<Text
-								size="xSmall"
-								weight="medium"
-								color="n9"
-								userSelect="none"
-							>
-								{formatNumber(searchResultsCount)} results
-							</Text>
-						)}
-						<Box
-							display="flex"
-							gap="4"
-							alignItems="center"
-							cssClass={newStyle.maxHalfWidth}
-						>
-							<Menu placement="bottom-end">
-								{actionButton}
-								<Menu.List cssClass={styles.menuList}>
-									<Box
-										background="n2"
-										borderBottom="secondary"
-										p="8"
-										mb="4"
-									>
-										<Text
-											weight="medium"
-											size="xxSmall"
-											color="n11"
-											userSelect="none"
-										>
-											Segment settings
-										</Text>
-									</Box>
-									{mode === QueryBuilderMode.SEGMENT_UPDATE
-										? alteredSegmentSettings
-										: null}
-
-									<Menu.Item
-										onClick={(e) => {
-											e.stopPropagation()
-											setSegmentModalState(
-												SegmentModalState.EDIT_NAME,
-											)
-										}}
-									>
-										<Box
-											display="flex"
-											alignItems="center"
-											gap="4"
-											userSelect="none"
-										>
-											<IconSolidPencil
-												size={16}
-												color={colors.n9}
-											/>
-											Edit segment name
-										</Box>
-									</Menu.Item>
-
-									<Menu.Item
-										onClick={(e) => {
-											e.stopPropagation()
-											if (currentSegment) {
-												selectSegment(currentSegment)
-												setSegmentModalState(
-													SegmentModalState.CREATE,
-												)
-											}
-										}}
-									>
-										<Box
-											display="flex"
-											alignItems="center"
-											gap="4"
-											userSelect="none"
-										>
-											<IconSolidDocumentDuplicate
-												size={16}
-												color={colors.n9}
-											/>
-											Duplicate segment
-										</Box>
-									</Menu.Item>
-
-									<Menu.Divider />
-									<Menu.Item
-										onClick={(e) => {
-											e.stopPropagation()
-											setSegmentToDelete({
-												id: currentSegment?.id,
-												name: currentSegment?.name,
-											})
-										}}
-									>
-										<Box
-											display="flex"
-											alignItems="center"
-											gap="4"
-											userSelect="none"
-										>
-											<IconSolidTrash
-												size={16}
-												color={colors.n9}
-											/>
-											Delete segment
-										</Box>
-									</Menu.Item>
-								</Menu.List>
-							</Menu>
-
-							<Menu>
-								<Menu.Button
-									kind="secondary"
-									disabled={segmentsLoading}
-									emphasis="high"
-									icon={<IconSolidSegment size={12} />}
-									size="xSmall"
-									cssClass={newStyle.noShrink}
-								/>
-								<Menu.List cssClass={styles.menuList}>
-									<Box
-										background="n2"
-										borderBottom="secondary"
-										p="8"
-										mb="4"
-									>
-										<Text
-											weight="medium"
-											size="xxSmall"
-											color="n11"
-											userSelect="none"
-										>
-											Segments
-										</Text>
-									</Box>
-									{segmentOptions.map((segment, idx) => (
-										<Menu.Item
-											key={idx}
-											onClick={(e) => {
-												e.stopPropagation()
-												selectSegment(segment)
-											}}
-										>
-											<Text lines="1">
-												{segment.name}
-											</Text>
-										</Menu.Item>
-									))}
-									{segmentOptions.length > 0 && (
-										<Menu.Divider />
-									)}
-									<Menu.Item
-										onClick={(e) => {
-											e.stopPropagation()
-											selectSegment()
-										}}
-									>
-										Reset to defaults
-									</Menu.Item>
-								</Menu.List>
-							</Menu>
-						</Box>
-					</Box>
-				) : null}
 			</Box>
 		</>
 	)

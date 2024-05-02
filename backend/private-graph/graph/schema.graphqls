@@ -2809,10 +2809,9 @@ type Mutation {
 		is_default: Boolean
 	): ID!
 	deleteDashboard(id: ID!): Boolean!
-	# TODO(spenny): swap over to using new language
 	deleteSessions(
 		project_id: ID!
-		query: ClickhouseQuery!
+		params: QueryInput!
 		sessionCount: Int!
 	): Boolean!
 	updateVercelProjectMappings(

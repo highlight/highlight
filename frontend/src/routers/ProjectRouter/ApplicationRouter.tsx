@@ -5,10 +5,8 @@ import { CanvasPage } from '@pages/Buttons/CanvasV2'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
 import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
 import LogsPage from '@pages/LogsPage/LogsPage'
-import PlayerPage from '@pages/Player/PlayerPage'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
+import { PlayerPage } from '@pages/Player/PlayerPage'
 import { SetupRouter } from '@pages/Setup/SetupRouter/SetupRouter'
-import { usePreloadSessions } from '@util/preload'
 import React, { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
@@ -27,8 +25,6 @@ const BASE_PATH = 'sessions'
 
 const ApplicationRouter: React.FC = () => {
 	const { projectId } = useNumericProjectId()
-	const { page, searchQuery } = useSearchContext()
-	usePreloadSessions({ page: page || 1, query: JSON.parse(searchQuery) })
 	const { isLoggedIn } = useAuthContext()
 
 	return (

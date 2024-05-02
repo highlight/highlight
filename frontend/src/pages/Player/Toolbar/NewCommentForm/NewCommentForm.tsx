@@ -99,14 +99,14 @@ export const NewCommentForm = ({
 	const [createComment] = useCreateSessionCommentMutation({
 		refetchQueries: [
 			namedOperations.Query.GetSessionComments,
-			namedOperations.Query.GetSessionsClickhouse,
+			namedOperations.Query.GetSessions,
 		],
 	})
 	const [createCommentWithExistingIssue] =
 		useCreateSessionCommentWithExistingIssueMutation({
 			refetchQueries: [
 				namedOperations.Query.GetSessionComments,
-				namedOperations.Query.GetSessionsClickhouse,
+				namedOperations.Query.GetSessions,
 			],
 		})
 	const [createErrorComment] = useCreateErrorCommentMutation()

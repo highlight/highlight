@@ -1793,165 +1793,6 @@ export type EditWorkspaceSettingsMutationOptions = Apollo.BaseMutationOptions<
 	Types.EditWorkspaceSettingsMutation,
 	Types.EditWorkspaceSettingsMutationVariables
 >
-export const DeleteSegmentDocument = gql`
-	mutation DeleteSegment($segment_id: ID!) {
-		deleteSegment(segment_id: $segment_id)
-	}
-`
-export type DeleteSegmentMutationFn = Apollo.MutationFunction<
-	Types.DeleteSegmentMutation,
-	Types.DeleteSegmentMutationVariables
->
-
-/**
- * __useDeleteSegmentMutation__
- *
- * To run a mutation, you first call `useDeleteSegmentMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteSegmentMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteSegmentMutation, { data, loading, error }] = useDeleteSegmentMutation({
- *   variables: {
- *      segment_id: // value for 'segment_id'
- *   },
- * });
- */
-export function useDeleteSegmentMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.DeleteSegmentMutation,
-		Types.DeleteSegmentMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.DeleteSegmentMutation,
-		Types.DeleteSegmentMutationVariables
-	>(DeleteSegmentDocument, baseOptions)
-}
-export type DeleteSegmentMutationHookResult = ReturnType<
-	typeof useDeleteSegmentMutation
->
-export type DeleteSegmentMutationResult =
-	Apollo.MutationResult<Types.DeleteSegmentMutation>
-export type DeleteSegmentMutationOptions = Apollo.BaseMutationOptions<
-	Types.DeleteSegmentMutation,
-	Types.DeleteSegmentMutationVariables
->
-export const EditSegmentDocument = gql`
-	mutation EditSegment(
-		$project_id: ID!
-		$id: ID!
-		$query: String!
-		$name: String!
-	) {
-		editSegment(
-			project_id: $project_id
-			id: $id
-			query: $query
-			name: $name
-		)
-	}
-`
-export type EditSegmentMutationFn = Apollo.MutationFunction<
-	Types.EditSegmentMutation,
-	Types.EditSegmentMutationVariables
->
-
-/**
- * __useEditSegmentMutation__
- *
- * To run a mutation, you first call `useEditSegmentMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useEditSegmentMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [editSegmentMutation, { data, loading, error }] = useEditSegmentMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      id: // value for 'id'
- *      query: // value for 'query'
- *      name: // value for 'name'
- *   },
- * });
- */
-export function useEditSegmentMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.EditSegmentMutation,
-		Types.EditSegmentMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.EditSegmentMutation,
-		Types.EditSegmentMutationVariables
-	>(EditSegmentDocument, baseOptions)
-}
-export type EditSegmentMutationHookResult = ReturnType<
-	typeof useEditSegmentMutation
->
-export type EditSegmentMutationResult =
-	Apollo.MutationResult<Types.EditSegmentMutation>
-export type EditSegmentMutationOptions = Apollo.BaseMutationOptions<
-	Types.EditSegmentMutation,
-	Types.EditSegmentMutationVariables
->
-export const CreateSegmentDocument = gql`
-	mutation CreateSegment($project_id: ID!, $name: String!, $query: String!) {
-		createSegment(project_id: $project_id, name: $name, query: $query) {
-			name
-			id
-		}
-	}
-`
-export type CreateSegmentMutationFn = Apollo.MutationFunction<
-	Types.CreateSegmentMutation,
-	Types.CreateSegmentMutationVariables
->
-
-/**
- * __useCreateSegmentMutation__
- *
- * To run a mutation, you first call `useCreateSegmentMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateSegmentMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createSegmentMutation, { data, loading, error }] = useCreateSegmentMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      name: // value for 'name'
- *      query: // value for 'query'
- *   },
- * });
- */
-export function useCreateSegmentMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.CreateSegmentMutation,
-		Types.CreateSegmentMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.CreateSegmentMutation,
-		Types.CreateSegmentMutationVariables
-	>(CreateSegmentDocument, baseOptions)
-}
-export type CreateSegmentMutationHookResult = ReturnType<
-	typeof useCreateSegmentMutation
->
-export type CreateSegmentMutationResult =
-	Apollo.MutationResult<Types.CreateSegmentMutation>
-export type CreateSegmentMutationOptions = Apollo.BaseMutationOptions<
-	Types.CreateSegmentMutation,
-	Types.CreateSegmentMutationVariables
->
 export const CreateSessionCommentDocument = gql`
 	mutation CreateSessionComment(
 		$project_id: ID!
@@ -4769,12 +4610,12 @@ export type DeleteDashboardMutationOptions = Apollo.BaseMutationOptions<
 export const DeleteSessionsDocument = gql`
 	mutation DeleteSessions(
 		$project_id: ID!
-		$query: ClickhouseQuery!
+		$params: QueryInput!
 		$sessionCount: Int!
 	) {
 		deleteSessions(
 			project_id: $project_id
-			query: $query
+			params: $params
 			sessionCount: $sessionCount
 		)
 	}
@@ -4798,7 +4639,7 @@ export type DeleteSessionsMutationFn = Apollo.MutationFunction<
  * const [deleteSessionsMutation, { data, loading, error }] = useDeleteSessionsMutation({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      query: // value for 'query'
+ *      params: // value for 'params'
  *      sessionCount: // value for 'sessionCount'
  *   },
  * });
@@ -7667,19 +7508,19 @@ export type GetErrorFieldsClickhouseQueryResult = Apollo.QueryResult<
 	Types.GetErrorFieldsClickhouseQuery,
 	Types.GetErrorFieldsClickhouseQueryVariables
 >
-export const GetSessionsClickhouseDocument = gql`
-	query GetSessionsClickhouse(
+export const GetSessionsDocument = gql`
+	query GetSessions(
 		$project_id: ID!
 		$count: Int!
-		$query: ClickhouseQuery!
+		$params: QueryInput!
 		$sort_desc: Boolean!
 		$sort_field: String
 		$page: Int
 	) {
-		sessions_clickhouse(
+		sessions(
 			project_id: $project_id
 			count: $count
-			query: $query
+			params: $params
 			sort_field: $sort_field
 			sort_desc: $sort_desc
 			page: $page
@@ -7729,67 +7570,65 @@ export const GetSessionsClickhouseDocument = gql`
 `
 
 /**
- * __useGetSessionsClickhouseQuery__
+ * __useGetSessionsQuery__
  *
- * To run a query within a React component, call `useGetSessionsClickhouseQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSessionsClickhouseQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetSessionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetSessionsClickhouseQuery({
+ * const { data, loading, error } = useGetSessionsQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
- *      query: // value for 'query'
+ *      params: // value for 'params'
  *      sort_desc: // value for 'sort_desc'
  *      sort_field: // value for 'sort_field'
  *      page: // value for 'page'
  *   },
  * });
  */
-export function useGetSessionsClickhouseQuery(
+export function useGetSessionsQuery(
 	baseOptions: Apollo.QueryHookOptions<
-		Types.GetSessionsClickhouseQuery,
-		Types.GetSessionsClickhouseQueryVariables
+		Types.GetSessionsQuery,
+		Types.GetSessionsQueryVariables
 	>,
 ) {
 	return Apollo.useQuery<
-		Types.GetSessionsClickhouseQuery,
-		Types.GetSessionsClickhouseQueryVariables
-	>(GetSessionsClickhouseDocument, baseOptions)
+		Types.GetSessionsQuery,
+		Types.GetSessionsQueryVariables
+	>(GetSessionsDocument, baseOptions)
 }
-export function useGetSessionsClickhouseLazyQuery(
+export function useGetSessionsLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetSessionsClickhouseQuery,
-		Types.GetSessionsClickhouseQueryVariables
+		Types.GetSessionsQuery,
+		Types.GetSessionsQueryVariables
 	>,
 ) {
 	return Apollo.useLazyQuery<
-		Types.GetSessionsClickhouseQuery,
-		Types.GetSessionsClickhouseQueryVariables
-	>(GetSessionsClickhouseDocument, baseOptions)
+		Types.GetSessionsQuery,
+		Types.GetSessionsQueryVariables
+	>(GetSessionsDocument, baseOptions)
 }
-export type GetSessionsClickhouseQueryHookResult = ReturnType<
-	typeof useGetSessionsClickhouseQuery
+export type GetSessionsQueryHookResult = ReturnType<typeof useGetSessionsQuery>
+export type GetSessionsLazyQueryHookResult = ReturnType<
+	typeof useGetSessionsLazyQuery
 >
-export type GetSessionsClickhouseLazyQueryHookResult = ReturnType<
-	typeof useGetSessionsClickhouseLazyQuery
+export type GetSessionsQueryResult = Apollo.QueryResult<
+	Types.GetSessionsQuery,
+	Types.GetSessionsQueryVariables
 >
-export type GetSessionsClickhouseQueryResult = Apollo.QueryResult<
-	Types.GetSessionsClickhouseQuery,
-	Types.GetSessionsClickhouseQueryVariables
->
-export const GetSessionsHistogramClickhouseDocument = gql`
-	query GetSessionsHistogramClickhouse(
+export const GetSessionsHistogramDocument = gql`
+	query GetSessionsHistogram(
 		$project_id: ID!
-		$query: ClickhouseQuery!
+		$params: QueryInput!
 		$histogram_options: DateHistogramOptions!
 	) {
-		sessions_histogram_clickhouse(
+		sessions_histogram(
 			project_id: $project_id
-			query: $query
+			params: $params
 			histogram_options: $histogram_options
 		) {
 			bucket_times
@@ -7801,58 +7640,58 @@ export const GetSessionsHistogramClickhouseDocument = gql`
 `
 
 /**
- * __useGetSessionsHistogramClickhouseQuery__
+ * __useGetSessionsHistogramQuery__
  *
- * To run a query within a React component, call `useGetSessionsHistogramClickhouseQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSessionsHistogramClickhouseQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetSessionsHistogramQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionsHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetSessionsHistogramClickhouseQuery({
+ * const { data, loading, error } = useGetSessionsHistogramQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      query: // value for 'query'
+ *      params: // value for 'params'
  *      histogram_options: // value for 'histogram_options'
  *   },
  * });
  */
-export function useGetSessionsHistogramClickhouseQuery(
+export function useGetSessionsHistogramQuery(
 	baseOptions: Apollo.QueryHookOptions<
-		Types.GetSessionsHistogramClickhouseQuery,
-		Types.GetSessionsHistogramClickhouseQueryVariables
+		Types.GetSessionsHistogramQuery,
+		Types.GetSessionsHistogramQueryVariables
 	>,
 ) {
 	return Apollo.useQuery<
-		Types.GetSessionsHistogramClickhouseQuery,
-		Types.GetSessionsHistogramClickhouseQueryVariables
-	>(GetSessionsHistogramClickhouseDocument, baseOptions)
+		Types.GetSessionsHistogramQuery,
+		Types.GetSessionsHistogramQueryVariables
+	>(GetSessionsHistogramDocument, baseOptions)
 }
-export function useGetSessionsHistogramClickhouseLazyQuery(
+export function useGetSessionsHistogramLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetSessionsHistogramClickhouseQuery,
-		Types.GetSessionsHistogramClickhouseQueryVariables
+		Types.GetSessionsHistogramQuery,
+		Types.GetSessionsHistogramQueryVariables
 	>,
 ) {
 	return Apollo.useLazyQuery<
-		Types.GetSessionsHistogramClickhouseQuery,
-		Types.GetSessionsHistogramClickhouseQueryVariables
-	>(GetSessionsHistogramClickhouseDocument, baseOptions)
+		Types.GetSessionsHistogramQuery,
+		Types.GetSessionsHistogramQueryVariables
+	>(GetSessionsHistogramDocument, baseOptions)
 }
-export type GetSessionsHistogramClickhouseQueryHookResult = ReturnType<
-	typeof useGetSessionsHistogramClickhouseQuery
+export type GetSessionsHistogramQueryHookResult = ReturnType<
+	typeof useGetSessionsHistogramQuery
 >
-export type GetSessionsHistogramClickhouseLazyQueryHookResult = ReturnType<
-	typeof useGetSessionsHistogramClickhouseLazyQuery
+export type GetSessionsHistogramLazyQueryHookResult = ReturnType<
+	typeof useGetSessionsHistogramLazyQuery
 >
-export type GetSessionsHistogramClickhouseQueryResult = Apollo.QueryResult<
-	Types.GetSessionsHistogramClickhouseQuery,
-	Types.GetSessionsHistogramClickhouseQueryVariables
+export type GetSessionsHistogramQueryResult = Apollo.QueryResult<
+	Types.GetSessionsHistogramQuery,
+	Types.GetSessionsHistogramQueryVariables
 >
-export const GetSessionsReportDocument = gql`
-	query GetSessionsReport($project_id: ID!, $query: ClickhouseQuery!) {
-		sessions_report(project_id: $project_id, query: $query) {
+export const GetSessionUsersReportsDocument = gql`
+	query GetSessionUsersReports($project_id: ID!, $params: QueryInput!) {
+		session_users_report(project_id: $project_id, params: $params) {
 			key
 			num_sessions
 			num_days_visited
@@ -7869,53 +7708,53 @@ export const GetSessionsReportDocument = gql`
 `
 
 /**
- * __useGetSessionsReportQuery__
+ * __useGetSessionUsersReportsQuery__
  *
- * To run a query within a React component, call `useGetSessionsReportQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSessionsReportQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetSessionUsersReportsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionUsersReportsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetSessionsReportQuery({
+ * const { data, loading, error } = useGetSessionUsersReportsQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      query: // value for 'query'
+ *      params: // value for 'params'
  *   },
  * });
  */
-export function useGetSessionsReportQuery(
+export function useGetSessionUsersReportsQuery(
 	baseOptions: Apollo.QueryHookOptions<
-		Types.GetSessionsReportQuery,
-		Types.GetSessionsReportQueryVariables
+		Types.GetSessionUsersReportsQuery,
+		Types.GetSessionUsersReportsQueryVariables
 	>,
 ) {
 	return Apollo.useQuery<
-		Types.GetSessionsReportQuery,
-		Types.GetSessionsReportQueryVariables
-	>(GetSessionsReportDocument, baseOptions)
+		Types.GetSessionUsersReportsQuery,
+		Types.GetSessionUsersReportsQueryVariables
+	>(GetSessionUsersReportsDocument, baseOptions)
 }
-export function useGetSessionsReportLazyQuery(
+export function useGetSessionUsersReportsLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetSessionsReportQuery,
-		Types.GetSessionsReportQueryVariables
+		Types.GetSessionUsersReportsQuery,
+		Types.GetSessionUsersReportsQueryVariables
 	>,
 ) {
 	return Apollo.useLazyQuery<
-		Types.GetSessionsReportQuery,
-		Types.GetSessionsReportQueryVariables
-	>(GetSessionsReportDocument, baseOptions)
+		Types.GetSessionUsersReportsQuery,
+		Types.GetSessionUsersReportsQueryVariables
+	>(GetSessionUsersReportsDocument, baseOptions)
 }
-export type GetSessionsReportQueryHookResult = ReturnType<
-	typeof useGetSessionsReportQuery
+export type GetSessionUsersReportsQueryHookResult = ReturnType<
+	typeof useGetSessionUsersReportsQuery
 >
-export type GetSessionsReportLazyQueryHookResult = ReturnType<
-	typeof useGetSessionsReportLazyQuery
+export type GetSessionUsersReportsLazyQueryHookResult = ReturnType<
+	typeof useGetSessionUsersReportsLazyQuery
 >
-export type GetSessionsReportQueryResult = Apollo.QueryResult<
-	Types.GetSessionsReportQuery,
-	Types.GetSessionsReportQueryVariables
+export type GetSessionUsersReportsQueryResult = Apollo.QueryResult<
+	Types.GetSessionUsersReportsQuery,
+	Types.GetSessionUsersReportsQueryVariables
 >
 export const GetErrorGroupsDocument = gql`
 	query GetErrorGroups(
@@ -10251,64 +10090,6 @@ export type GetUserSuggestionLazyQueryHookResult = ReturnType<
 export type GetUserSuggestionQueryResult = Apollo.QueryResult<
 	Types.GetUserSuggestionQuery,
 	Types.GetUserSuggestionQueryVariables
->
-export const GetSegmentsDocument = gql`
-	query GetSegments($project_id: ID!) {
-		segments(project_id: $project_id) {
-			id
-			name
-			params {
-				query
-			}
-		}
-	}
-`
-
-/**
- * __useGetSegmentsQuery__
- *
- * To run a query within a React component, call `useGetSegmentsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSegmentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSegmentsQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *   },
- * });
- */
-export function useGetSegmentsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetSegmentsQuery,
-		Types.GetSegmentsQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetSegmentsQuery,
-		Types.GetSegmentsQueryVariables
-	>(GetSegmentsDocument, baseOptions)
-}
-export function useGetSegmentsLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetSegmentsQuery,
-		Types.GetSegmentsQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetSegmentsQuery,
-		Types.GetSegmentsQueryVariables
-	>(GetSegmentsDocument, baseOptions)
-}
-export type GetSegmentsQueryHookResult = ReturnType<typeof useGetSegmentsQuery>
-export type GetSegmentsLazyQueryHookResult = ReturnType<
-	typeof useGetSegmentsLazyQuery
->
-export type GetSegmentsQueryResult = Apollo.QueryResult<
-	Types.GetSegmentsQuery,
-	Types.GetSegmentsQueryVariables
 >
 export const GetSavedSegmentsDocument = gql`
 	query GetSavedSegments(

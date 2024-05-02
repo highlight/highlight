@@ -6,12 +6,15 @@ import { useDeleteSessionsMutation } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
+import moment from 'moment'
 import { useState } from 'react'
 
-import { ClickhouseQuery } from '@/graph/generated/schemas'
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
 interface Props {
-	query: ClickhouseQuery
+	query: string
+	startDate: Date
+	endDate: Date
 	sessionCount: number
 	visible: boolean
 	setVisible: (newVal: boolean) => void
@@ -21,6 +24,8 @@ const DELETE_SESSIONS_TEXT = 'delete sessions'
 
 const DeleteSessionsModal = ({
 	query,
+	startDate,
+	endDate,
 	sessionCount,
 	visible,
 	setVisible,
@@ -38,7 +43,13 @@ const DeleteSessionsModal = ({
 			await deleteSessions({
 				variables: {
 					project_id: project_id!,
-					query,
+					params: {
+						query,
+						date_range: {
+							start_date: moment(startDate).format(TIME_FORMAT),
+							end_date: moment(endDate).format(TIME_FORMAT),
+						},
+					},
 					sessionCount,
 				},
 			})

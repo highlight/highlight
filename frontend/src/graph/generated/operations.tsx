@@ -361,39 +361,6 @@ export type EditWorkspaceSettingsMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type DeleteSegmentMutationVariables = Types.Exact<{
-	segment_id: Types.Scalars['ID']
-}>
-
-export type DeleteSegmentMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'deleteSegment'
->
-
-export type EditSegmentMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	id: Types.Scalars['ID']
-	query: Types.Scalars['String']
-	name: Types.Scalars['String']
-}>
-
-export type EditSegmentMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'editSegment'
->
-
-export type CreateSegmentMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	name: Types.Scalars['String']
-	query: Types.Scalars['String']
-}>
-
-export type CreateSegmentMutation = { __typename?: 'Mutation' } & {
-	createSegment?: Types.Maybe<
-		{ __typename?: 'Segment' } & Pick<Types.Segment, 'name' | 'id'>
-	>
-}
-
 export type CreateSessionCommentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	session_secure_id: Types.Scalars['String']
@@ -1405,7 +1372,7 @@ export type DeleteDashboardMutation = { __typename?: 'Mutation' } & Pick<
 
 export type DeleteSessionsMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	query: Types.ClickhouseQuery
+	params: Types.QueryInput
 	sessionCount: Types.Scalars['Int']
 }>
 
@@ -2454,17 +2421,17 @@ export type GetErrorFieldsClickhouseQuery = { __typename?: 'Query' } & Pick<
 	'error_fields_clickhouse'
 >
 
-export type GetSessionsClickhouseQueryVariables = Types.Exact<{
+export type GetSessionsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	count: Types.Scalars['Int']
-	query: Types.ClickhouseQuery
+	params: Types.QueryInput
 	sort_desc: Types.Scalars['Boolean']
 	sort_field?: Types.Maybe<Types.Scalars['String']>
 	page?: Types.Maybe<Types.Scalars['Int']>
 }>
 
-export type GetSessionsClickhouseQuery = { __typename?: 'Query' } & {
-	sessions_clickhouse: { __typename?: 'SessionResults' } & Pick<
+export type GetSessionsQuery = { __typename?: 'Query' } & {
+	sessions: { __typename?: 'SessionResults' } & Pick<
 		Types.SessionResults,
 		'totalCount'
 	> & {
@@ -2518,14 +2485,14 @@ export type GetSessionsClickhouseQuery = { __typename?: 'Query' } & {
 		}
 }
 
-export type GetSessionsHistogramClickhouseQueryVariables = Types.Exact<{
+export type GetSessionsHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	query: Types.ClickhouseQuery
+	params: Types.QueryInput
 	histogram_options: Types.DateHistogramOptions
 }>
 
-export type GetSessionsHistogramClickhouseQuery = { __typename?: 'Query' } & {
-	sessions_histogram_clickhouse: { __typename?: 'SessionsHistogram' } & Pick<
+export type GetSessionsHistogramQuery = { __typename?: 'Query' } & {
+	sessions_histogram: { __typename?: 'SessionsHistogram' } & Pick<
 		Types.SessionsHistogram,
 		| 'bucket_times'
 		| 'sessions_without_errors'
@@ -2534,13 +2501,13 @@ export type GetSessionsHistogramClickhouseQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetSessionsReportQueryVariables = Types.Exact<{
+export type GetSessionUsersReportsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	query: Types.ClickhouseQuery
+	params: Types.QueryInput
 }>
 
-export type GetSessionsReportQuery = { __typename?: 'Query' } & {
-	sessions_report: Array<
+export type GetSessionUsersReportsQuery = { __typename?: 'Query' } & {
+	session_users_report: Array<
 		{ __typename?: 'SessionsReportRow' } & Pick<
 			Types.SessionsReportRow,
 			| 'key'
@@ -3635,28 +3602,6 @@ export type GetUserSuggestionQuery = { __typename?: 'Query' } & {
 					Types.Field,
 					'id' | 'name' | 'value'
 				>
-			>
-		>
-	>
-}
-
-export type GetSegmentsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type GetSegmentsQuery = { __typename?: 'Query' } & {
-	segments?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Segment' } & Pick<
-					Types.Segment,
-					'id' | 'name'
-				> & {
-						params: { __typename?: 'SearchParams' } & Pick<
-							Types.SearchParams,
-							'query'
-						>
-					}
 			>
 		>
 	>
@@ -5323,10 +5268,9 @@ export const namedOperations = {
 		GetFieldTypesClickhouse: 'GetFieldTypesClickhouse' as const,
 		GetFieldsClickhouse: 'GetFieldsClickhouse' as const,
 		GetErrorFieldsClickhouse: 'GetErrorFieldsClickhouse' as const,
-		GetSessionsClickhouse: 'GetSessionsClickhouse' as const,
-		GetSessionsHistogramClickhouse:
-			'GetSessionsHistogramClickhouse' as const,
-		GetSessionsReport: 'GetSessionsReport' as const,
+		GetSessions: 'GetSessions' as const,
+		GetSessionsHistogram: 'GetSessionsHistogram' as const,
+		GetSessionUsersReports: 'GetSessionUsersReports' as const,
 		GetErrorGroups: 'GetErrorGroups' as const,
 		GetErrorsHistogram: 'GetErrorsHistogram' as const,
 		GetProjects: 'GetProjects' as const,
@@ -5360,7 +5304,6 @@ export const namedOperations = {
 		GetSessionSearchResults: 'GetSessionSearchResults' as const,
 		GetTrackSuggestion: 'GetTrackSuggestion' as const,
 		GetUserSuggestion: 'GetUserSuggestion' as const,
-		GetSegments: 'GetSegments' as const,
 		GetSavedSegments: 'GetSavedSegments' as const,
 		GetClientIntegration: 'GetClientIntegration' as const,
 		GetServerIntegration: 'GetServerIntegration' as const,
@@ -5477,9 +5420,6 @@ export const namedOperations = {
 		DeleteProject: 'DeleteProject' as const,
 		EditWorkspace: 'EditWorkspace' as const,
 		EditWorkspaceSettings: 'EditWorkspaceSettings' as const,
-		DeleteSegment: 'DeleteSegment' as const,
-		EditSegment: 'EditSegment' as const,
-		CreateSegment: 'CreateSegment' as const,
 		CreateSessionComment: 'CreateSessionComment' as const,
 		CreateSessionCommentWithExistingIssue:
 			'CreateSessionCommentWithExistingIssue' as const,

@@ -34,6 +34,7 @@ import {
 	MetricAggregator,
 	MetricColumn,
 	ProductType,
+	SavedSegmentEntityType,
 	Trace,
 } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -252,7 +253,7 @@ export const TracesPage: React.FC = () => {
 						hideCreateAlert
 						onDatesChange={updateSearchTime}
 						productType={ProductType.Traces}
-						savedSegmentType="Trace"
+						savedSegmentType={SavedSegmentEntityType.Trace}
 						textAreaRef={textAreaRef}
 					/>
 					<Box

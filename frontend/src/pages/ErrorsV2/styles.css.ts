@@ -18,7 +18,12 @@ export const panelDragHandle = style({
 	width: 4,
 	zIndex: 1,
 
-	':hover': {
-		backgroundColor: vars.color.n8,
+	selectors: {
+		'&:hover': {
+			backgroundColor: vars.theme.interactive.outline.primary.pressed,
+		},
+		'&:focus': {
+			backgroundColor: vars.theme.interactive.outline.primary.pressed,
+		},
 	},
 })

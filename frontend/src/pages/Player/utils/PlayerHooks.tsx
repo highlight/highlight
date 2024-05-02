@@ -210,7 +210,7 @@ export const usePlayerKeyboardShortcuts = () => {
 				)
 			}
 		},
-		[sessionSecureId, sessionResults],
+		[sessionSecureId, sessionResults.sessions],
 	)
 
 	useHotkeys(
@@ -232,7 +232,7 @@ export const usePlayerKeyboardShortcuts = () => {
 				)
 			}
 		},
-		[sessionSecureId, sessionResults],
+		[sessionSecureId, sessionResults.sessions],
 	)
 
 	useHotkeys(

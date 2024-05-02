@@ -1,8 +1,5 @@
 import { PAGE_SIZE } from '@components/SearchPagination/SearchPagination'
-import {
-	useGetErrorGroupsLazyQuery,
-	useGetErrorGroupsQuery,
-} from '@graph/hooks'
+import { useGetSessionsLazyQuery, useGetSessionsQuery } from '@graph/hooks'
 import { usePollQuery } from '@util/search'
 import moment from 'moment'
 import { useCallback } from 'react'
@@ -10,17 +7,18 @@ import { useCallback } from 'react'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { GetHistogramBucketSize } from '@/components/SearchResultsHistogram/SearchResultsHistogram'
 import {
-	GetErrorGroupsQuery,
-	GetErrorGroupsQueryVariables,
+	GetSessionsQuery,
+	GetSessionsQueryVariables,
 } from '@/graph/generated/operations'
 
-export const useGetErrors = ({
+export const useGetSessions = ({
 	query,
 	project_id,
 	startDate,
 	endDate,
 	page = 1,
 	disablePolling,
+	sortDesc,
 }: {
 	query: string
 	project_id: string | undefined
@@ -28,8 +26,9 @@ export const useGetErrors = ({
 	endDate: Date
 	page?: number
 	disablePolling?: boolean
+	sortDesc: boolean
 }) => {
-	const { data, loading, error, refetch } = useGetErrorGroupsQuery({
+	const { data, loading, error, refetch } = useGetSessionsQuery({
 		variables: {
 			project_id: project_id!,
 			count: PAGE_SIZE,
@@ -41,17 +40,18 @@ export const useGetErrors = ({
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 			},
+			sort_desc: sortDesc,
 		},
 		fetchPolicy: 'cache-and-network',
 	})
 
-	const [moreDataQuery] = useGetErrorGroupsLazyQuery({
+	const [moreDataQuery] = useGetSessionsLazyQuery({
 		fetchPolicy: 'network-only',
 	})
 
-	const { numMore: moreErrors, reset: resetMoreErrors } = usePollQuery<
-		GetErrorGroupsQuery,
-		GetErrorGroupsQueryVariables
+	const { numMore: moreSessions, reset: resetMoreSessions } = usePollQuery<
+		GetSessionsQuery,
+		GetSessionsQueryVariables
 	>({
 		variableFn: useCallback(() => {
 			return {
@@ -65,27 +65,27 @@ export const useGetErrors = ({
 				count: PAGE_SIZE,
 				page: 1,
 				project_id: project_id!,
+				sort_desc: true,
 			}
 		}, [endDate, project_id, query]),
 		moreDataQuery,
 		getResultCount: useCallback(
-			(result) => result?.data?.error_groups.totalCount,
+			(result) => result?.data?.sessions.totalCount,
 			[],
 		),
-		skip: disablePolling,
+		skip: disablePolling || !sortDesc,
 		maxResults: PAGE_SIZE,
 	})
 
 	return {
-		errorGroups: data?.error_groups?.error_groups || [],
-		errorGroupSecureIds:
-			data?.error_groups?.error_groups.map((eg) => eg.secure_id) || [],
-		moreErrors,
-		resetMoreErrors,
+		sessions: data?.sessions?.sessions || [],
+		sessionSes: data?.sessions?.sessions.map((eg) => eg.secure_id) || [],
+		moreSessions,
+		resetMoreSessions,
 		loading,
 		error,
 		refetch,
-		totalCount: data?.error_groups?.totalCount || 0,
+		totalCount: data?.sessions?.totalCount || 0,
 		histogramBucketSize: determineHistogramBucketSize(startDate, endDate),
 	}
 }
