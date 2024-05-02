@@ -54,7 +54,7 @@ export const ErrorInstancesTable = ({ nodes }: Props) => {
 				</Box>
 			),
 		}),
-		columnHelper.accessor('createdAt', {
+		columnHelper.accessor('timestamp', {
 			cell: ({ getValue }) => (
 				<Tag shape="basic" kind="secondary">
 					{toYearMonthDay(getValue())}
