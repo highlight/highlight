@@ -789,6 +789,7 @@ mutation CreateErrorAlert(
 	$webhook_destinations: [WebhookDestinationInput!]!
 	$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	$emails: [String]!
+	$regex_groups: [String]!
 	$frequency: Int!
 	$default: Boolean
 	$query: String!
@@ -803,6 +804,7 @@ mutation CreateErrorAlert(
 		webhook_destinations: $webhook_destinations
 		emails: $emails
 		threshold_window: $threshold_window
+		regex_groups: $regex_groups
 		frequency: $frequency
 		default: $default
 		query: $query
@@ -817,8 +819,10 @@ mutation CreateErrorAlert(
 		CountThreshold
 		ThresholdWindow
 		LastAdminToEditID
+		RegexGroups
 		Frequency
 		disabled
+		Query
 	}
 }
 
@@ -961,6 +965,7 @@ mutation UpdateErrorAlert(
 	$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	$webhook_destinations: [WebhookDestinationInput!]!
 	$emails: [String]
+	$regex_groups: [String]
 	$frequency: Int
 	$disabled: Boolean
 	$query: String!
@@ -976,6 +981,7 @@ mutation UpdateErrorAlert(
 		webhook_destinations: $webhook_destinations
 		emails: $emails
 		threshold_window: $threshold_window
+		regex_groups: $regex_groups
 		frequency: $frequency
 		disabled: $disabled
 		query: $query

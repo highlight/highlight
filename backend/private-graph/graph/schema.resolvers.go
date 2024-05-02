@@ -101,6 +101,11 @@ func (r *errorAlertResolver) EmailsToNotify(ctx context.Context, obj *model.Erro
 	return obj.GetEmailsToNotify()
 }
 
+// RegexGroups is the resolver for the RegexGroups field.
+func (r *errorAlertResolver) RegexGroups(ctx context.Context, obj *model.ErrorAlert) ([]*string, error) {
+	return obj.GetRegexGroups()
+}
+
 // DailyFrequency is the resolver for the DailyFrequency field.
 func (r *errorAlertResolver) DailyFrequency(ctx context.Context, obj *model.ErrorAlert) ([]*int64, error) {
 	return obj.GetDailyErrorEventFrequency(r.DB, obj.ID)
@@ -3396,7 +3401,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateErrorAlert is the resolver for the createErrorAlert field.
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, microsoftTeamsChannels []*modelInputs.MicrosoftTeamsChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, query string, frequency int, defaultArg *bool) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, microsoftTeamsChannels []*modelInputs.MicrosoftTeamsChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency int, defaultArg *bool) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -3408,6 +3413,12 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	if err != nil {
 		return nil, err
 	}
+
+	regexGroupsBytes, err := json.Marshal(regexGroups)
+	if err != nil {
+		return nil, e.Wrap(err, "error marshalling regex groups")
+	}
+	regexGroupsString := string(regexGroupsBytes)
 
 	emailsString, err := r.MarshalAlertEmails(emails)
 	if err != nil {
@@ -3431,7 +3442,8 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 			Frequency:         frequency,
 			Default:           *defaultArg,
 		},
-		Query: query,
+		RegexGroups: &regexGroupsString,
+		Query:       query,
 		AlertIntegrations: model.AlertIntegrations{
 			DiscordChannelsToNotify:        discord.GQLInputToGo(discordChannels),
 			MicrosoftTeamsChannelsToNotify: microsoft_teams.GQLInputToGo(microsoftTeamsChannels),
@@ -3459,7 +3471,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 }
 
 // UpdateErrorAlert is the resolver for the updateErrorAlert field.
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, microsoftTeamsChannels []*modelInputs.MicrosoftTeamsChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, query string, frequency *int, disabled *bool) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, microsoftTeamsChannels []*modelInputs.MicrosoftTeamsChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency *int, disabled *bool) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -3479,6 +3491,15 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 		}
 
 		projectAlert.ChannelsToNotify = channelsString
+	}
+
+	if regexGroups != nil {
+		regexGroupsBytes, err := json.Marshal(regexGroups)
+		if err != nil {
+			return nil, e.Wrap(err, "error marshalling regex groups")
+		}
+		regexGroupsString := string(regexGroupsBytes)
+		projectAlert.RegexGroups = &regexGroupsString
 	}
 
 	if emails != nil {

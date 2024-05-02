@@ -1591,11 +1591,12 @@ type ErrorAlert {
 	MicrosoftTeamsChannelsToNotify: [MicrosoftTeamsChannel!]!
 	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String]!
+	Query: String!
 	CountThreshold: Int!
 	ThresholdWindow: Int
 	LastAdminToEditID: ID
 	Type: String!
-	Query: String!
+	RegexGroups: [String]!
 	Frequency: Int!
 	DailyFrequency: [Int64]!
 	disabled: Boolean!
@@ -2728,6 +2729,7 @@ type Mutation {
 		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]!
 		query: String!
+		regex_groups: [String]!
 		frequency: Int!
 		default: Boolean
 	): ErrorAlert
@@ -2743,6 +2745,7 @@ type Mutation {
 		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]
 		query: String!
+		regex_groups: [String]
 		frequency: Int
 		disabled: Boolean
 	): ErrorAlert

@@ -430,6 +430,7 @@ export type ErrorAlert = {
 	MicrosoftTeamsChannelsToNotify: Array<MicrosoftTeamsChannel>
 	Name?: Maybe<Scalars['String']>
 	Query: Scalars['String']
+	RegexGroups: Array<Maybe<Scalars['String']>>
 	ThresholdWindow?: Maybe<Scalars['Int']>
 	Type: Scalars['String']
 	WebhookDestinations: Array<WebhookDestination>
@@ -1245,6 +1246,7 @@ export type MutationCreateErrorAlertArgs = {
 	name: Scalars['String']
 	project_id: Scalars['ID']
 	query: Scalars['String']
+	regex_groups: Array<InputMaybe<Scalars['String']>>
 	slack_channels: Array<InputMaybe<SanitizedSlackChannelInput>>
 	threshold_window: Scalars['Int']
 	webhook_destinations: Array<WebhookDestinationInput>
@@ -1751,6 +1753,7 @@ export type MutationUpdateErrorAlertArgs = {
 	name?: InputMaybe<Scalars['String']>
 	project_id: Scalars['ID']
 	query: Scalars['String']
+	regex_groups?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
 	slack_channels?: InputMaybe<Array<InputMaybe<SanitizedSlackChannelInput>>>
 	threshold_window?: InputMaybe<Scalars['Int']>
 	webhook_destinations: Array<WebhookDestinationInput>

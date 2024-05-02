@@ -1854,6 +1854,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 		CountThreshold
 		LastAdminToEditID
 		ThresholdWindow
+		RegexGroups
 		Frequency
 		id
 		Type

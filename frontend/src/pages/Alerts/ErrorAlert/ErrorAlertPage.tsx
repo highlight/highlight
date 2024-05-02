@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import Select from '@components/Select/Select'
 import {
 	useCreateErrorAlertMutation,
 	useDeleteErrorAlertMutation,
@@ -77,6 +78,7 @@ export const ErrorAlertPage = () => {
 			webhookDestinations: [],
 			emails: [],
 			threshold: undefined,
+			regex_groups: [],
 			frequency: Number(DEFAULT_FREQUENCY),
 			threshold_window: Number(DEFAULT_FREQUENCY),
 			loaded: false,
@@ -122,6 +124,7 @@ export const ErrorAlertPage = () => {
 				emails: alert.EmailsToNotify,
 				threshold: alert.CountThreshold,
 				frequency: getFrequencyOption(alert.Frequency).value,
+				regex_groups: alert.RegexGroups || [],
 				threshold_window: alert.ThresholdWindow,
 				loaded: true,
 				query: alert.Query,
@@ -237,10 +240,13 @@ export const ErrorAlertPage = () => {
 							threshold_window: formStore.getValue(
 								formStore.names.threshold_window,
 							),
-							query: formStore.getValue(formStore.names.query),
+							regex_groups: formStore.getValue(
+								formStore.names.regex_groups,
+							),
 							frequency: formStore.getValue(
 								formStore.names.frequency,
 							),
+							query: formStore.getValue(formStore.names.query),
 						}
 
 						const nameErr = !input.name
@@ -392,7 +398,12 @@ export const ErrorAlertPage = () => {
 										initialQuery={initialQuery}
 										onSubmit={handleUpdateInputQuery}
 									>
-										<ErrorAlertForm />
+										<ErrorAlertForm
+											hideRegexExpression={
+												isCreate ||
+												!alert?.RegexGroups?.length
+											}
+										/>
 									</SearchContext>
 								</Stack>
 							</Form>
@@ -404,7 +415,11 @@ export const ErrorAlertPage = () => {
 	)
 }
 
-const ErrorAlertForm = () => {
+type ErrorAlertFormProps = {
+	hideRegexExpression: boolean
+}
+
+const ErrorAlertForm = ({ hideRegexExpression }: ErrorAlertFormProps) => {
 	const formStore = Form.useContext() as FormState<ErrorAlertFormItem>
 	const errors = formStore.useState('errors')
 
@@ -445,6 +460,28 @@ const ErrorAlertForm = () => {
 						</Menu>
 					</Box>
 					<Box borderTop="dividerWeak" width="full" />
+					{!hideRegexExpression && (
+						<Form.NamedSection
+							label="Regex Patterns to Ignore"
+							name={formStore.names.regex_groups}
+						>
+							<Select
+								aria-label="Regex Patterns to Ignore list"
+								placeholder={`Input any valid regex, like: \\d{5}(-\\d{4})?, Hello\\nworld, [b-chm-pP]at|ot`}
+								onChange={(values: any): any =>
+									formStore.setValue(
+										formStore.names.regex_groups,
+										values,
+									)
+								}
+								className={styles.selectContainer}
+								mode="tags"
+								value={formStore.getValue(
+									formStore.names.regex_groups,
+								)}
+							/>
+						</Form.NamedSection>
+					)}
 					<Column.Container gap="12">
 						<Column>
 							<Form.Input
@@ -561,6 +598,7 @@ const ThresholdTypeConfiguration = () => {
 }
 
 interface ErrorAlertFormItem extends Omit<AlertForm, 'excludedEnvironments'> {
+	regex_groups: string[]
 	query: string
 }
 

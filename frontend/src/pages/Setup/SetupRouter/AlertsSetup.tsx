@@ -495,8 +495,9 @@ const AlertPicker = function ({
 								variables: {
 									...requestVariables,
 									name: 'Error Alert',
-									query: '',
+									regex_groups: [],
 									frequency: 3600,
+									query: '',
 								},
 							})
 						}

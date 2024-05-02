@@ -1746,7 +1746,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			if errorAlert.CountThreshold < 1 {
 				continue
 			}
-			matches := true
+			matchesQuery := true
 			if errorAlert.Query != "" {
 				testErrorObject := &publicModel.BackendErrorObjectInput{
 					Environment:     errorObject.Environment,
@@ -1765,11 +1765,51 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 				}
 
 				filters := parser.Parse(errorAlert.Query, clickhouse.BackendErrorObjectInputConfig)
-				matches = clickhouse.ErrorMatchesQuery(testErrorObject, filters)
+				matchesQuery = clickhouse.ErrorMatchesQuery(testErrorObject, filters)
 			}
 
-			if !matches {
+			if !matchesQuery {
 				continue
+			}
+
+			// only used in older alerts
+			if errorAlert.RegexGroups != nil {
+				groups, err := errorAlert.GetRegexGroups()
+				if err != nil {
+					log.WithContext(ctx).Error(e.Wrap(err, "error getting regex groups from ErrorAlert"))
+					continue
+				}
+				matched := false
+				for _, g := range groups {
+					if g == nil {
+						continue
+					}
+					matched, err = regexp.MatchString(*g, group.Event)
+					if err != nil {
+						log.WithContext(ctx).Warn(err)
+					}
+					if matched {
+						break
+					}
+					if group.MappedStackTrace != nil {
+						matched, err = regexp.MatchString(*g, *group.MappedStackTrace)
+						if err != nil {
+							log.WithContext(ctx).Warn(err)
+						}
+					} else {
+						matched, err = regexp.MatchString(*g, group.StackTrace)
+						if err != nil {
+							log.WithContext(ctx).Warn(err)
+						}
+					}
+					if matched {
+						break
+					}
+				}
+				if matched {
+					log.WithContext(ctx).Warn("error event matches regex group, skipping alert...")
+					continue
+				}
 			}
 
 			if errorAlert.ThresholdWindow == nil {

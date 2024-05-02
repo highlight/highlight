@@ -325,6 +325,7 @@ type ComplexityRoot struct {
 		MicrosoftTeamsChannelsToNotify func(childComplexity int) int
 		Name                           func(childComplexity int) int
 		Query                          func(childComplexity int) int
+		RegexGroups                    func(childComplexity int) int
 		ThresholdWindow                func(childComplexity int) int
 		Type                           func(childComplexity int) int
 		UpdatedAt                      func(childComplexity int) int
@@ -805,7 +806,7 @@ type ComplexityRoot struct {
 		AddIntegrationToWorkspace             func(childComplexity int, integrationType *model.IntegrationType, workspaceID int, code string) int
 		ChangeAdminRole                       func(childComplexity int, workspaceID int, adminID int, newRole string) int
 		CreateAdmin                           func(childComplexity int) int
-		CreateErrorAlert                      func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, query string, frequency int, defaultArg *bool) int
+		CreateErrorAlert                      func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency int, defaultArg *bool) int
 		CreateErrorComment                    func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
 		CreateErrorCommentForExistingIssue    func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueURL string, issueTitle string, issueID string, integrations []*model.IntegrationType) int
 		CreateErrorSegment                    func(childComplexity int, projectID int, name string, query string) int
@@ -876,7 +877,7 @@ type ComplexityRoot struct {
 		UpdateBillingDetails                  func(childComplexity int, workspaceID int) int
 		UpdateClickUpProjectMappings          func(childComplexity int, workspaceID int, projectMappings []*model.ClickUpProjectMappingInput) int
 		UpdateEmailOptOut                     func(childComplexity int, token *string, adminID *int, category model.EmailOptOutCategory, isOptOut bool, projectID *int) int
-		UpdateErrorAlert                      func(childComplexity int, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, query string, frequency *int, disabled *bool) int
+		UpdateErrorAlert                      func(childComplexity int, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency *int, disabled *bool) int
 		UpdateErrorAlertIsDisabled            func(childComplexity int, id int, projectID int, disabled bool) int
 		UpdateErrorGroupIsPublic              func(childComplexity int, errorGroupSecureID string, isPublic bool) int
 		UpdateErrorGroupState                 func(childComplexity int, secureID string, state model.ErrorState, snoozedUntil *time.Time) int
@@ -1660,6 +1661,8 @@ type ErrorAlertResolver interface {
 	WebhookDestinations(ctx context.Context, obj *model1.ErrorAlert) ([]*model1.WebhookDestination, error)
 	EmailsToNotify(ctx context.Context, obj *model1.ErrorAlert) ([]*string, error)
 
+	RegexGroups(ctx context.Context, obj *model1.ErrorAlert) ([]*string, error)
+
 	DailyFrequency(ctx context.Context, obj *model1.ErrorAlert) ([]*int64, error)
 }
 type ErrorCommentResolver interface {
@@ -1760,8 +1763,8 @@ type MutationResolver interface {
 	SyncSlackIntegration(ctx context.Context, projectID int) (*model.SlackSyncResponse, error)
 	CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, filters []*model.MetricTagFilterInput) (*model1.MetricMonitor, error)
 	UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *model.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, disabled *bool, filters []*model.MetricTagFilterInput) (*model1.MetricMonitor, error)
-	CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, query string, frequency int, defaultArg *bool) (*model1.ErrorAlert, error)
-	UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, query string, frequency *int, disabled *bool) (*model1.ErrorAlert, error)
+	CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency int, defaultArg *bool) (*model1.ErrorAlert, error)
+	UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency *int, disabled *bool) (*model1.ErrorAlert, error)
 	DeleteErrorAlert(ctx context.Context, projectID int, errorAlertID int) (*model1.ErrorAlert, error)
 	DeleteMetricMonitor(ctx context.Context, projectID int, metricMonitorID int) (*model1.MetricMonitor, error)
 	UpdateSessionAlertIsDisabled(ctx context.Context, id int, projectID int, disabled bool) (*model1.SessionAlert, error)
@@ -3243,6 +3246,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorAlert.Query(childComplexity), true
+
+	case "ErrorAlert.RegexGroups":
+		if e.complexity.ErrorAlert.RegexGroups == nil {
+			break
+		}
+
+		return e.complexity.ErrorAlert.RegexGroups(childComplexity), true
 
 	case "ErrorAlert.ThresholdWindow":
 		if e.complexity.ErrorAlert.ThresholdWindow == nil {
@@ -5437,7 +5447,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateErrorAlert(childComplexity, args["project_id"].(int), args["name"].(string), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["discord_channels"].([]*model.DiscordChannelInput), args["microsoft_teams_channels"].([]*model.MicrosoftTeamsChannelInput), args["webhook_destinations"].([]*model.WebhookDestinationInput), args["emails"].([]*string), args["query"].(string), args["frequency"].(int), args["default"].(*bool)), true
+		return e.complexity.Mutation.CreateErrorAlert(childComplexity, args["project_id"].(int), args["name"].(string), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["discord_channels"].([]*model.DiscordChannelInput), args["microsoft_teams_channels"].([]*model.MicrosoftTeamsChannelInput), args["webhook_destinations"].([]*model.WebhookDestinationInput), args["emails"].([]*string), args["query"].(string), args["regex_groups"].([]*string), args["frequency"].(int), args["default"].(*bool)), true
 
 	case "Mutation.createErrorComment":
 		if e.complexity.Mutation.CreateErrorComment == nil {
@@ -6289,7 +6299,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateErrorAlert(childComplexity, args["project_id"].(int), args["name"].(*string), args["error_alert_id"].(int), args["count_threshold"].(*int), args["threshold_window"].(*int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["discord_channels"].([]*model.DiscordChannelInput), args["microsoft_teams_channels"].([]*model.MicrosoftTeamsChannelInput), args["webhook_destinations"].([]*model.WebhookDestinationInput), args["emails"].([]*string), args["query"].(string), args["frequency"].(*int), args["disabled"].(*bool)), true
+		return e.complexity.Mutation.UpdateErrorAlert(childComplexity, args["project_id"].(int), args["name"].(*string), args["error_alert_id"].(int), args["count_threshold"].(*int), args["threshold_window"].(*int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["discord_channels"].([]*model.DiscordChannelInput), args["microsoft_teams_channels"].([]*model.MicrosoftTeamsChannelInput), args["webhook_destinations"].([]*model.WebhookDestinationInput), args["emails"].([]*string), args["query"].(string), args["regex_groups"].([]*string), args["frequency"].(*int), args["disabled"].(*bool)), true
 
 	case "Mutation.updateErrorAlertIsDisabled":
 		if e.complexity.Mutation.UpdateErrorAlertIsDisabled == nil {
@@ -12930,11 +12940,12 @@ type ErrorAlert {
 	MicrosoftTeamsChannelsToNotify: [MicrosoftTeamsChannel!]!
 	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String]!
+	Query: String!
 	CountThreshold: Int!
 	ThresholdWindow: Int
 	LastAdminToEditID: ID
 	Type: String!
-	Query: String!
+	RegexGroups: [String]!
 	Frequency: Int!
 	DailyFrequency: [Int64]!
 	disabled: Boolean!
@@ -14067,6 +14078,7 @@ type Mutation {
 		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]!
 		query: String!
+		regex_groups: [String]!
 		frequency: Int!
 		default: Boolean
 	): ErrorAlert
@@ -14082,6 +14094,7 @@ type Mutation {
 		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]
 		query: String!
+		regex_groups: [String]
 		frequency: Int
 		disabled: Boolean
 	): ErrorAlert
@@ -14425,24 +14438,33 @@ func (ec *executionContext) field_Mutation_createErrorAlert_args(ctx context.Con
 		}
 	}
 	args["query"] = arg9
-	var arg10 int
+	var arg10 []*string
+	if tmp, ok := rawArgs["regex_groups"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("regex_groups"))
+		arg10, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["regex_groups"] = arg10
+	var arg11 int
 	if tmp, ok := rawArgs["frequency"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("frequency"))
-		arg10, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg11, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["frequency"] = arg10
-	var arg11 *bool
+	args["frequency"] = arg11
+	var arg12 *bool
 	if tmp, ok := rawArgs["default"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("default"))
-		arg11, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg12, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["default"] = arg11
+	args["default"] = arg12
 	return args, nil
 }
 
@@ -17521,24 +17543,33 @@ func (ec *executionContext) field_Mutation_updateErrorAlert_args(ctx context.Con
 		}
 	}
 	args["query"] = arg10
-	var arg11 *int
+	var arg11 []*string
+	if tmp, ok := rawArgs["regex_groups"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("regex_groups"))
+		arg11, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["regex_groups"] = arg11
+	var arg12 *int
 	if tmp, ok := rawArgs["frequency"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("frequency"))
-		arg11, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg12, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["frequency"] = arg11
-	var arg12 *bool
+	args["frequency"] = arg12
+	var arg13 *bool
 	if tmp, ok := rawArgs["disabled"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disabled"))
-		arg12, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg13, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["disabled"] = arg12
+	args["disabled"] = arg13
 	return args, nil
 }
 
@@ -29622,6 +29653,50 @@ func (ec *executionContext) fieldContext_ErrorAlert_EmailsToNotify(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _ErrorAlert_Query(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorAlert_Query(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Query, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorAlert_Query(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorAlert",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ErrorAlert_CountThreshold(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ErrorAlert_CountThreshold(ctx, field)
 	if err != nil {
@@ -29792,8 +29867,8 @@ func (ec *executionContext) fieldContext_ErrorAlert_Type(ctx context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _ErrorAlert_Query(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorAlert_Query(ctx, field)
+func (ec *executionContext) _ErrorAlert_RegexGroups(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorAlert_RegexGroups(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -29806,7 +29881,7 @@ func (ec *executionContext) _ErrorAlert_Query(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Query, nil
+		return ec.resolvers.ErrorAlert().RegexGroups(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -29818,17 +29893,17 @@ func (ec *executionContext) _ErrorAlert_Query(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.([]*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ErrorAlert_Query(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ErrorAlert_RegexGroups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ErrorAlert",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -47389,7 +47464,7 @@ func (ec *executionContext) _Mutation_createErrorAlert(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateErrorAlert(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["count_threshold"].(int), fc.Args["threshold_window"].(int), fc.Args["slack_channels"].([]*model.SanitizedSlackChannelInput), fc.Args["discord_channels"].([]*model.DiscordChannelInput), fc.Args["microsoft_teams_channels"].([]*model.MicrosoftTeamsChannelInput), fc.Args["webhook_destinations"].([]*model.WebhookDestinationInput), fc.Args["emails"].([]*string), fc.Args["query"].(string), fc.Args["frequency"].(int), fc.Args["default"].(*bool))
+		return ec.resolvers.Mutation().CreateErrorAlert(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["count_threshold"].(int), fc.Args["threshold_window"].(int), fc.Args["slack_channels"].([]*model.SanitizedSlackChannelInput), fc.Args["discord_channels"].([]*model.DiscordChannelInput), fc.Args["microsoft_teams_channels"].([]*model.MicrosoftTeamsChannelInput), fc.Args["webhook_destinations"].([]*model.WebhookDestinationInput), fc.Args["emails"].([]*string), fc.Args["query"].(string), fc.Args["regex_groups"].([]*string), fc.Args["frequency"].(int), fc.Args["default"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -47427,6 +47502,8 @@ func (ec *executionContext) fieldContext_Mutation_createErrorAlert(ctx context.C
 				return ec.fieldContext_ErrorAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_ErrorAlert_EmailsToNotify(ctx, field)
+			case "Query":
+				return ec.fieldContext_ErrorAlert_Query(ctx, field)
 			case "CountThreshold":
 				return ec.fieldContext_ErrorAlert_CountThreshold(ctx, field)
 			case "ThresholdWindow":
@@ -47435,8 +47512,8 @@ func (ec *executionContext) fieldContext_Mutation_createErrorAlert(ctx context.C
 				return ec.fieldContext_ErrorAlert_LastAdminToEditID(ctx, field)
 			case "Type":
 				return ec.fieldContext_ErrorAlert_Type(ctx, field)
-			case "Query":
-				return ec.fieldContext_ErrorAlert_Query(ctx, field)
+			case "RegexGroups":
+				return ec.fieldContext_ErrorAlert_RegexGroups(ctx, field)
 			case "Frequency":
 				return ec.fieldContext_ErrorAlert_Frequency(ctx, field)
 			case "DailyFrequency":
@@ -47477,7 +47554,7 @@ func (ec *executionContext) _Mutation_updateErrorAlert(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateErrorAlert(rctx, fc.Args["project_id"].(int), fc.Args["name"].(*string), fc.Args["error_alert_id"].(int), fc.Args["count_threshold"].(*int), fc.Args["threshold_window"].(*int), fc.Args["slack_channels"].([]*model.SanitizedSlackChannelInput), fc.Args["discord_channels"].([]*model.DiscordChannelInput), fc.Args["microsoft_teams_channels"].([]*model.MicrosoftTeamsChannelInput), fc.Args["webhook_destinations"].([]*model.WebhookDestinationInput), fc.Args["emails"].([]*string), fc.Args["query"].(string), fc.Args["frequency"].(*int), fc.Args["disabled"].(*bool))
+		return ec.resolvers.Mutation().UpdateErrorAlert(rctx, fc.Args["project_id"].(int), fc.Args["name"].(*string), fc.Args["error_alert_id"].(int), fc.Args["count_threshold"].(*int), fc.Args["threshold_window"].(*int), fc.Args["slack_channels"].([]*model.SanitizedSlackChannelInput), fc.Args["discord_channels"].([]*model.DiscordChannelInput), fc.Args["microsoft_teams_channels"].([]*model.MicrosoftTeamsChannelInput), fc.Args["webhook_destinations"].([]*model.WebhookDestinationInput), fc.Args["emails"].([]*string), fc.Args["query"].(string), fc.Args["regex_groups"].([]*string), fc.Args["frequency"].(*int), fc.Args["disabled"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -47515,6 +47592,8 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorAlert(ctx context.C
 				return ec.fieldContext_ErrorAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_ErrorAlert_EmailsToNotify(ctx, field)
+			case "Query":
+				return ec.fieldContext_ErrorAlert_Query(ctx, field)
 			case "CountThreshold":
 				return ec.fieldContext_ErrorAlert_CountThreshold(ctx, field)
 			case "ThresholdWindow":
@@ -47523,8 +47602,8 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorAlert(ctx context.C
 				return ec.fieldContext_ErrorAlert_LastAdminToEditID(ctx, field)
 			case "Type":
 				return ec.fieldContext_ErrorAlert_Type(ctx, field)
-			case "Query":
-				return ec.fieldContext_ErrorAlert_Query(ctx, field)
+			case "RegexGroups":
+				return ec.fieldContext_ErrorAlert_RegexGroups(ctx, field)
 			case "Frequency":
 				return ec.fieldContext_ErrorAlert_Frequency(ctx, field)
 			case "DailyFrequency":
@@ -47603,6 +47682,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteErrorAlert(ctx context.C
 				return ec.fieldContext_ErrorAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_ErrorAlert_EmailsToNotify(ctx, field)
+			case "Query":
+				return ec.fieldContext_ErrorAlert_Query(ctx, field)
 			case "CountThreshold":
 				return ec.fieldContext_ErrorAlert_CountThreshold(ctx, field)
 			case "ThresholdWindow":
@@ -47611,8 +47692,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteErrorAlert(ctx context.C
 				return ec.fieldContext_ErrorAlert_LastAdminToEditID(ctx, field)
 			case "Type":
 				return ec.fieldContext_ErrorAlert_Type(ctx, field)
-			case "Query":
-				return ec.fieldContext_ErrorAlert_Query(ctx, field)
+			case "RegexGroups":
+				return ec.fieldContext_ErrorAlert_RegexGroups(ctx, field)
 			case "Frequency":
 				return ec.fieldContext_ErrorAlert_Frequency(ctx, field)
 			case "DailyFrequency":
@@ -47867,6 +47948,8 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorAlertIsDisabled(ctx
 				return ec.fieldContext_ErrorAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_ErrorAlert_EmailsToNotify(ctx, field)
+			case "Query":
+				return ec.fieldContext_ErrorAlert_Query(ctx, field)
 			case "CountThreshold":
 				return ec.fieldContext_ErrorAlert_CountThreshold(ctx, field)
 			case "ThresholdWindow":
@@ -47875,8 +47958,8 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorAlertIsDisabled(ctx
 				return ec.fieldContext_ErrorAlert_LastAdminToEditID(ctx, field)
 			case "Type":
 				return ec.fieldContext_ErrorAlert_Type(ctx, field)
-			case "Query":
-				return ec.fieldContext_ErrorAlert_Query(ctx, field)
+			case "RegexGroups":
+				return ec.fieldContext_ErrorAlert_RegexGroups(ctx, field)
 			case "Frequency":
 				return ec.fieldContext_ErrorAlert_Frequency(ctx, field)
 			case "DailyFrequency":
@@ -56668,6 +56751,8 @@ func (ec *executionContext) fieldContext_Query_error_alerts(ctx context.Context,
 				return ec.fieldContext_ErrorAlert_WebhookDestinations(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_ErrorAlert_EmailsToNotify(ctx, field)
+			case "Query":
+				return ec.fieldContext_ErrorAlert_Query(ctx, field)
 			case "CountThreshold":
 				return ec.fieldContext_ErrorAlert_CountThreshold(ctx, field)
 			case "ThresholdWindow":
@@ -56676,8 +56761,8 @@ func (ec *executionContext) fieldContext_Query_error_alerts(ctx context.Context,
 				return ec.fieldContext_ErrorAlert_LastAdminToEditID(ctx, field)
 			case "Type":
 				return ec.fieldContext_ErrorAlert_Type(ctx, field)
-			case "Query":
-				return ec.fieldContext_ErrorAlert_Query(ctx, field)
+			case "RegexGroups":
+				return ec.fieldContext_ErrorAlert_RegexGroups(ctx, field)
 			case "Frequency":
 				return ec.fieldContext_ErrorAlert_Frequency(ctx, field)
 			case "DailyFrequency":
@@ -84335,6 +84420,11 @@ func (ec *executionContext) _ErrorAlert(ctx context.Context, sel ast.SelectionSe
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "Query":
+			out.Values[i] = ec._ErrorAlert_Query(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "CountThreshold":
 			out.Values[i] = ec._ErrorAlert_CountThreshold(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -84349,11 +84439,42 @@ func (ec *executionContext) _ErrorAlert(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "Query":
-			out.Values[i] = ec._ErrorAlert_Query(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+		case "RegexGroups":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorAlert_RegexGroups(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "Frequency":
 			out.Values[i] = ec._ErrorAlert_Frequency(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

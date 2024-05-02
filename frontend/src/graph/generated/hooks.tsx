@@ -2980,6 +2980,7 @@ export const CreateErrorAlertDocument = gql`
 		$webhook_destinations: [WebhookDestinationInput!]!
 		$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		$emails: [String]!
+		$regex_groups: [String]!
 		$frequency: Int!
 		$default: Boolean
 		$query: String!
@@ -2994,6 +2995,7 @@ export const CreateErrorAlertDocument = gql`
 			webhook_destinations: $webhook_destinations
 			emails: $emails
 			threshold_window: $threshold_window
+			regex_groups: $regex_groups
 			frequency: $frequency
 			default: $default
 			query: $query
@@ -3008,8 +3010,10 @@ export const CreateErrorAlertDocument = gql`
 			CountThreshold
 			ThresholdWindow
 			LastAdminToEditID
+			RegexGroups
 			Frequency
 			disabled
+			Query
 		}
 	}
 `
@@ -3040,6 +3044,7 @@ export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
  *      webhook_destinations: // value for 'webhook_destinations'
  *      microsoft_teams_channels: // value for 'microsoft_teams_channels'
  *      emails: // value for 'emails'
+ *      regex_groups: // value for 'regex_groups'
  *      frequency: // value for 'frequency'
  *      default: // value for 'default'
  *      query: // value for 'query'
@@ -3448,6 +3453,7 @@ export const UpdateErrorAlertDocument = gql`
 		$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		$webhook_destinations: [WebhookDestinationInput!]!
 		$emails: [String]
+		$regex_groups: [String]
 		$frequency: Int
 		$disabled: Boolean
 		$query: String!
@@ -3463,6 +3469,7 @@ export const UpdateErrorAlertDocument = gql`
 			webhook_destinations: $webhook_destinations
 			emails: $emails
 			threshold_window: $threshold_window
+			regex_groups: $regex_groups
 			frequency: $frequency
 			disabled: $disabled
 			query: $query
@@ -3518,6 +3525,7 @@ export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
  *      microsoft_teams_channels: // value for 'microsoft_teams_channels'
  *      webhook_destinations: // value for 'webhook_destinations'
  *      emails: // value for 'emails'
+ *      regex_groups: // value for 'regex_groups'
  *      frequency: // value for 'frequency'
  *      disabled: // value for 'disabled'
  *      query: // value for 'query'
@@ -12362,6 +12370,7 @@ export const GetAlertsPagePayloadDocument = gql`
 			CountThreshold
 			LastAdminToEditID
 			ThresholdWindow
+			RegexGroups
 			Frequency
 			id
 			Type
