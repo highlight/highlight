@@ -101,6 +101,7 @@ function InviteMemberModal({
 						className={styles.emailInput}
 						placeholder="Email"
 						type="email"
+						required
 						name="invitedEmail"
 						autoFocus
 						value={email}
