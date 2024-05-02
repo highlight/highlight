@@ -3542,7 +3542,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 		Model: model.Model{
 			ID: errorAlertID,
 		},
-	}).Select("query").Where("project_id = ?", projectID).Updates(projectAlert).Error; err != nil {
+	}).Select("*").Where("project_id = ?", projectID).Updates(projectAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
 
