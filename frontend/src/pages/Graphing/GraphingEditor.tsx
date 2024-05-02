@@ -1,5 +1,4 @@
 import {
-	Badge,
 	Box,
 	Button,
 	ComboboxSelect,
@@ -22,12 +21,11 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import { Divider, message } from 'antd'
 import moment from 'moment'
-import { PropsWithChildren, useMemo, useState } from 'react'
+import { PropsWithChildren, useId, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
-import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { SearchContext } from '@/components/Search/SearchContext'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
@@ -37,7 +35,7 @@ import {
 	useGetVisualizationQuery,
 	useUpsertGraphMutation,
 } from '@/graph/generated/hooks'
-import { GetKeysQuery, namedOperations } from '@/graph/generated/operations'
+import { GetKeysQuery } from '@/graph/generated/operations'
 import {
 	GraphInput,
 	MetricAggregator,
@@ -351,9 +349,9 @@ export const GraphingEditor = () => {
 			initialPreset: DEFAULT_TIME_PRESETS[2],
 		})
 
-	const [upsertGraph, upsertGraphContext] = useUpsertGraphMutation({
-		refetchQueries: [namedOperations.Query.GetVisualization],
-	})
+	const [upsertGraph, upsertGraphContext] = useUpsertGraphMutation()
+
+	const tempId = useId()
 
 	const navigate = useNavigate()
 
@@ -400,17 +398,46 @@ export const GraphingEditor = () => {
 			variables: {
 				graph: graphInput,
 			},
+			optimisticResponse: {
+				upsertGraph: {
+					...graphInput,
+					id: graphInput.id ?? `temp-${tempId}`,
+					__typename: 'Graph',
+				},
+			},
+			update(cache, result) {
+				if (isEdit) {
+					return
+				}
+				const vizId = cache.identify({
+					id: dashboard_id,
+					__typename: 'Visualization',
+				})
+				const graphId = cache.identify({
+					id: result.data?.upsertGraph.id,
+					__typename: 'Graph',
+				})
+				cache.modify({
+					id: vizId,
+					fields: {
+						graphs(existing: any[] = []) {
+							return existing.concat([{ __ref: graphId }])
+						},
+					},
+				})
+			},
 		})
 			.then(() => {
-				navigate({
-					pathname: `../${dashboard_id}`,
-					search: location.search,
-				})
 				message.success(`Metric view ${isEdit ? 'updated' : 'created'}`)
 			})
 			.catch(() => {
 				message.error('Failed to create metric view')
 			})
+
+		navigate({
+			pathname: `../${dashboard_id}`,
+			search: location.search,
+		})
 	}
 
 	const { loading: metaLoading } = useGetVisualizationQuery({
@@ -632,12 +659,6 @@ export const GraphingEditor = () => {
 								onClick={onSave}
 							>
 								Save&nbsp;
-								<Badge
-									variant="outlinePurple"
-									shape="basic"
-									size="small"
-									label={[cmdKey, 'S'].join('+')}
-								/>
 							</Button>
 						</Box>
 					</Box>

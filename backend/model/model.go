@@ -697,8 +697,8 @@ type Session struct {
 	Fingerprint int  `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
 	Identifier string  `json:"identifier"`
-	ProjectID  int     `json:"project_id" gorm:"index:idx_project_id_email"`
-	Email      *string `json:"email" gorm:"index:idx_project_id_email"`
+	ProjectID  int     `json:"project_id"`
+	Email      *string `json:"email"`
 	// Location data based off user ip (see InitializeSession)
 	IP        string  `json:"ip"`
 	City      string  `json:"city"`

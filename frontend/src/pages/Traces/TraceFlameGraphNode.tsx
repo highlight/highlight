@@ -1,5 +1,6 @@
 import { memo } from 'react'
 
+import { Trace } from '@/graph/generated/schemas'
 import {
 	lineHeight,
 	outsidePadding,
@@ -203,7 +204,7 @@ export const TraceFlameGraphNode = memo<Props>(
 	},
 )
 
-export const getSpanTheme = (span?: FlameGraphSpan) => {
+export const getSpanTheme = (span?: FlameGraphSpan | Trace) => {
 	if (!span) return spanThemes['purple']
 
 	const isDbSpan = !!span.traceAttributes?.db?.system

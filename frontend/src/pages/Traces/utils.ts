@@ -112,18 +112,10 @@ export const organizeSpansForFlameGraph = (
 	trace: Partial<FlameGraphSpan>[],
 ) => {
 	const spans = [[]]
+	const spanIDs = new Set(trace.flat().map((span) => span.spanID))
 	const rootSpans = trace
-		.filter((span) => !span.parentSpanID)
-		.sort((a, b) => {
-			// Subtract the duration from the start time to ensure that the longer
-			// span is at the root of the flame graph if there is a match.
-			const startA =
-				new Date(a.timestamp ?? 0).getTime() - (a.duration ?? 0)
-			const startB =
-				new Date(b.timestamp ?? 0).getTime() - (b.duration ?? 0)
-
-			return startA - startB
-		})
+		.filter((span) => !spanIDs.has(span.parentSpanID))
+		.sort(traceSortFn)
 
 	if (rootSpans.length === 0) {
 		rootSpans.push(getFirstSpan(trace as Trace[]))
@@ -269,4 +261,16 @@ export const cleanAttributes = (attributes: any): any => {
 	})
 
 	return copy
+}
+
+export const traceSortFn = (
+	a: Partial<FlameGraphSpan>,
+	b: Partial<FlameGraphSpan>,
+) => {
+	// Subtract the duration from the start time to ensure that the longer
+	// span is at the root of the flame graph if there is a match.
+	const startA = new Date(a.timestamp ?? 0).getTime() - (a.duration ?? 0)
+	const startB = new Date(b.timestamp ?? 0).getTime() - (b.duration ?? 0)
+
+	return startA - startB
 }

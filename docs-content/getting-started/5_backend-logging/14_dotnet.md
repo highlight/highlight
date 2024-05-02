@@ -6,4 +6,4 @@ updatedAt: 2024-04-03T20:22:54.000Z
 quickstart: true
 ---
 
-<QuickStart content={quickStartContent["traces"]["otlp"]["dot-net"]}/>
+<QuickStart content={quickStartContent["backend-logging"]["otlp"]["dot-net"]}/>

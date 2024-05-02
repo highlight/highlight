@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.12.2
+
+### Patch Changes
+
+-   8899ee039: report additional metadata on error boundary exceptions
+
 ## 8.12.1
 
 ### Patch Changes

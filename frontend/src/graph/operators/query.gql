@@ -571,18 +571,18 @@ query GetErrorFieldsClickhouse(
 	)
 }
 
-query GetSessionsClickhouse(
+query GetSessions(
 	$project_id: ID!
 	$count: Int!
-	$query: ClickhouseQuery!
+	$params: QueryInput!
 	$sort_desc: Boolean!
 	$sort_field: String
 	$page: Int
 ) {
-	sessions_clickhouse(
+	sessions(
 		project_id: $project_id
 		count: $count
-		query: $query
+		params: $params
 		sort_field: $sort_field
 		sort_desc: $sort_desc
 		page: $page
@@ -630,14 +630,14 @@ query GetSessionsClickhouse(
 	}
 }
 
-query GetSessionsHistogramClickhouse(
+query GetSessionsHistogram(
 	$project_id: ID!
-	$query: ClickhouseQuery!
+	$params: QueryInput!
 	$histogram_options: DateHistogramOptions!
 ) {
-	sessions_histogram_clickhouse(
+	sessions_histogram(
 		project_id: $project_id
-		query: $query
+		params: $params
 		histogram_options: $histogram_options
 	) {
 		bucket_times
@@ -647,8 +647,8 @@ query GetSessionsHistogramClickhouse(
 	}
 }
 
-query GetSessionsReport($project_id: ID!, $query: ClickhouseQuery!) {
-	sessions_report(project_id: $project_id, query: $query) {
+query GetSessionUsersReports($project_id: ID!, $params: QueryInput!) {
+	session_users_report(project_id: $project_id, params: $params) {
 		key
 		num_sessions
 		num_days_visited
@@ -1397,16 +1397,6 @@ query GetUserSuggestion($project_id: ID!, $query: String!) {
 		id
 		name
 		value
-	}
-}
-
-query GetSegments($project_id: ID!) {
-	segments(project_id: $project_id) {
-		id
-		name
-		params {
-			query
-		}
 	}
 }
 

@@ -12952,17 +12952,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphql-codegen/named-operations-object@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "@graphql-codegen/named-operations-object@npm:2.1.0"
+"@graphql-codegen/named-operations-object@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@graphql-codegen/named-operations-object@npm:3.0.0"
   dependencies:
-    "@graphql-codegen/plugin-helpers": "npm:^2.1.0"
-    change-case-all: "npm:1.0.14"
-    tslib: "npm:~2.3.0"
+    "@graphql-codegen/plugin-helpers": "npm:^3.0.0"
+    change-case-all: "npm:1.0.15"
+    tslib: "npm:~2.6.0"
   peerDependencies:
-    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
+    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
     graphql-tag: ^2.0.0
-  checksum: 10/94897ae13f82624eb3be1f5ce1ca6fc7d511ef388068355a43bac09c2248a9cb6054f4226a4d17cbd32d97648d84d912e9beb3789831c6b23108f08bdb500440
+  checksum: 10/c792c2bcff3528dcfa9027bdea93bd8ac1fa20b1a767d36a18e962ef91c2c3a7d8b45c06c50c075f04c07926981341264534b9c01ec9b8a5afa0114a5563e074
   languageName: node
   linkType: hard
 
@@ -12984,22 +12984,6 @@ __metadata:
   peerDependencies:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
   checksum: 10/d1516c049ebc5a9bb2713770a01114f26eee434c8fb50c2af75666b1486a46842d801be5d69188117234acebc5c1d424df0b5f08a3646a842c2abe6d0a1c09d3
-  languageName: node
-  linkType: hard
-
-"@graphql-codegen/plugin-helpers@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "@graphql-codegen/plugin-helpers@npm:2.1.0"
-  dependencies:
-    "@graphql-tools/utils": "npm:^8.1.1"
-    change-case-all: "npm:1.0.14"
-    common-tags: "npm:1.8.0"
-    import-from: "npm:4.0.0"
-    lodash: "npm:~4.17.0"
-    tslib: "npm:~2.3.0"
-  peerDependencies:
-    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
-  checksum: 10/d304e773f8b19816b27fe7fdb713ab60fd940f7c263bc872de002fcb3244ab36b814447d7d06080cc75042e7eaabe98e138385be5a1018ae57e458bb443eb211
   languageName: node
   linkType: hard
 
@@ -14191,17 +14175,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphql-tools/utils@npm:^8.1.1":
-  version: 8.1.2
-  resolution: "@graphql-tools/utils@npm:8.1.2"
-  dependencies:
-    tslib: "npm:~2.3.0"
-  peerDependencies:
-    graphql: ^14.0.0 || ^15.0.0
-  checksum: 10/1220204f604ddff88e0fa75b80265bec1d832b1db305a29fee0a851ac60460959824fb71614039f20fc9a65feb78a090aba077d8eb205376fac51057de6806be
-  languageName: node
-  linkType: hard
-
 "@graphql-tools/utils@npm:^9.0.0, @graphql-tools/utils@npm:^9.2.1":
   version: 9.2.1
   resolution: "@graphql-tools/utils@npm:9.2.1"
@@ -14546,7 +14519,7 @@ __metadata:
     "@frontapp/plugin-sdk": "npm:^1.1.2"
     "@graphql-codegen/cli": "npm:^2.13.7"
     "@graphql-codegen/import-types-preset": "npm:^1.18.1"
-    "@graphql-codegen/named-operations-object": "npm:^2.1.0"
+    "@graphql-codegen/named-operations-object": "npm:^3.0.0"
     "@graphql-codegen/typescript": "npm:^2.8.1"
     "@graphql-codegen/typescript-operations": "npm:^1.17.14"
     "@graphql-codegen/typescript-react-apollo": "npm:^2.2.1"
@@ -14587,7 +14560,7 @@ __metadata:
     "@types/react-slider": "npm:^1.3.1"
     "@types/react-syntax-highlighter": "npm:^15.5.6"
     "@types/react-virtualized-auto-sizer": "npm:^1.0.4"
-    "@types/sanitize-html": "npm:^2.6.2"
+    "@types/sanitize-html": "npm:^2.11.0"
     "@types/validator": "npm:^13.1.3"
     "@typescript-eslint/eslint-plugin": "npm:^5.46.1"
     "@typescript-eslint/parser": "npm:^5.46.1"
@@ -14615,7 +14588,7 @@ __metadata:
     firebase: "npm:^9.19.1"
     framer-motion: "npm:^6.3.15"
     graphql: "npm:^15.7.2"
-    happy-dom: "npm:^14.3.8"
+    happy-dom: "npm:^14.7.1"
     highlight.io: "workspace:*"
     highlight.run: "workspace:*"
     js-cookie: "npm:^3.0.1"
@@ -14666,7 +14639,7 @@ __metadata:
     recharts: "npm:^2.12.1"
     rrweb: "workspace:*"
     rudder-sdk-js: "npm:2.20.0"
-    sonner: "npm:^1.4.3"
+    sonner: "npm:^1.4.41"
     source-map-explorer: "npm:^2.5.2"
     stylelint: "npm:^14.9.1"
     subscriptions-transport-ws: "npm:^0.11.0"
@@ -14719,7 +14692,7 @@ __metadata:
     react-dom: "npm:17.0.2"
     replace-in-file-webpack-plugin: "npm:^1.0.6"
     sass: "npm:1.63.2"
-    sass-loader: "npm:13.3.1"
+    sass-loader: "npm:14.2.1"
     style-loader: "npm:3.3.3"
     swc-loader: "npm:^0.2.3"
     ts-node: "npm:^10.9.1"
@@ -27206,12 +27179,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/sanitize-html@npm:^2.6.2":
-  version: 2.6.2
-  resolution: "@types/sanitize-html@npm:2.6.2"
+"@types/sanitize-html@npm:^2.11.0":
+  version: 2.11.0
+  resolution: "@types/sanitize-html@npm:2.11.0"
   dependencies:
-    htmlparser2: "npm:^6.0.0"
-  checksum: 10/08b43427427cbd8acd2843bbf9e00576c06e3916fc523d27fd9016f39563f7999f78b632ff473ef83a77f86bdea9286de2f81e3a8f8a05af6721687651c84f1c
+    htmlparser2: "npm:^8.0.0"
+  checksum: 10/a901d55d31cd946a7fce0130cc7cf6bcf56602af9c87291be77d8149c60e7afc47c83ca74c67c2d84e6ba029fe9bbd6f14f89a8cb30fbd185766eebc5722c251
   languageName: node
   linkType: hard
 
@@ -42880,14 +42853,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:^14.3.8":
-  version: 14.3.8
-  resolution: "happy-dom@npm:14.3.8"
+"happy-dom@npm:^14.7.1":
+  version: 14.7.1
+  resolution: "happy-dom@npm:14.7.1"
   dependencies:
     entities: "npm:^4.5.0"
     webidl-conversions: "npm:^7.0.0"
     whatwg-mimetype: "npm:^3.0.0"
-  checksum: 10/064610da1b99d5fcdacfc7d22d0a74e36a9710d85526d34a4a3bebfe5662955d7991d26d528246ecc23f6cfeaf1ad40e4782803b9590d36d09c30c5366450cb7
+  checksum: 10/8a8c8995abc92d5319750d71cac08a4aafd26e8a7203d2a970270c5c1ca68dad2b3af772de761e061107f3aaa51d6cb9430f07e05366047a126ef908377a4c08
   languageName: node
   linkType: hard
 
@@ -43644,7 +43617,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"htmlparser2@npm:^6.0.0, htmlparser2@npm:^6.1.0":
+"htmlparser2@npm:^6.1.0":
   version: 6.1.0
   resolution: "htmlparser2@npm:6.1.0"
   dependencies:
@@ -43656,7 +43629,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"htmlparser2@npm:^8.0.2":
+"htmlparser2@npm:^8.0.0, htmlparser2@npm:^8.0.2":
   version: 8.0.2
   resolution: "htmlparser2@npm:8.0.2"
   dependencies:
@@ -48810,7 +48783,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"klona@npm:^2.0.4, klona@npm:^2.0.6":
+"klona@npm:^2.0.4":
   version: 2.0.6
   resolution: "klona@npm:2.0.6"
   checksum: 10/ed7e2c9af58cb646e758e60b75dec24bf72466066290f78c515a2bae23a06fa280f11ff3210c43b94a18744954aa5358f9d46583d5e4c36da073ecc3606355c4
@@ -61927,31 +61900,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass-loader@npm:13.3.1":
-  version: 13.3.1
-  resolution: "sass-loader@npm:13.3.1"
-  dependencies:
-    klona: "npm:^2.0.6"
-    neo-async: "npm:^2.6.2"
-  peerDependencies:
-    fibers: ">= 3.1.0"
-    node-sass: ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0 || ^9.0.0
-    sass: ^1.3.0
-    sass-embedded: "*"
-    webpack: ^5.0.0
-  peerDependenciesMeta:
-    fibers:
-      optional: true
-    node-sass:
-      optional: true
-    sass:
-      optional: true
-    sass-embedded:
-      optional: true
-  checksum: 10/e7b90287264370a7e855c2e155e814c4c2767a845c45b62d070988f2e8359e4811493c2c1739c510cac864b9edf4a5f1acfe081f139b3feb6297993e5dca7932
-  languageName: node
-  linkType: hard
-
 "sass-loader@npm:13.3.2":
   version: 13.3.2
   resolution: "sass-loader@npm:13.3.2"
@@ -61973,6 +61921,32 @@ __metadata:
     sass-embedded:
       optional: true
   checksum: 10/3486134c8813660772448bcd73e169fbe180fbaea0b825ec3e8fd1017de026e4e177e4b659a5b7d0f6c1b9f334ebe0134d91c60bd627d8ffff9b21018325a532
+  languageName: node
+  linkType: hard
+
+"sass-loader@npm:14.2.1":
+  version: 14.2.1
+  resolution: "sass-loader@npm:14.2.1"
+  dependencies:
+    neo-async: "npm:^2.6.2"
+  peerDependencies:
+    "@rspack/core": 0.x || 1.x
+    node-sass: ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0 || ^9.0.0
+    sass: ^1.3.0
+    sass-embedded: "*"
+    webpack: ^5.0.0
+  peerDependenciesMeta:
+    "@rspack/core":
+      optional: true
+    node-sass:
+      optional: true
+    sass:
+      optional: true
+    sass-embedded:
+      optional: true
+    webpack:
+      optional: true
+  checksum: 10/9cb864fd8d4c4f73d05f6cedae9ff4500f15fa742385e1f1cffcc0f994270810288fe99009f233ac6516fdc497570ce21f53c63f079c70e841c1e5bf994bc27d
   languageName: node
   linkType: hard
 
@@ -63236,13 +63210,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sonner@npm:^1.4.3":
-  version: 1.4.3
-  resolution: "sonner@npm:1.4.3"
+"sonner@npm:^1.4.41":
+  version: 1.4.41
+  resolution: "sonner@npm:1.4.41"
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 10/514c1d49ba34fff2a5ff4bd5ba280cc4b9fc4fd55d60b581a813c87d041b00572f28bbf0a73343aa64d17f5d7012b3899047b0f97fdb4837203a79758c0ba661
+  checksum: 10/f300db8b2603e72fad94d895935c17f13c93b91396333a7f77f028c1d0f605d9929ea0c36ead1df0b4ded66dfaa7a20c58cd9bd31b70f6efcd0fbcce91e4487f
   languageName: node
   linkType: hard
 
@@ -66422,13 +66396,6 @@ __metadata:
   version: 2.0.3
   resolution: "tslib@npm:2.0.3"
   checksum: 10/5f57eb3c6d01ebde567020539dd2282455bce24b5066228d3ca7bb5a5511b2d7c754225d6b2a0ea3c128cf6cd467469b581f946de834ccd0e042fa29279551f6
-  languageName: node
-  linkType: hard
-
-"tslib@npm:~2.3.0":
-  version: 2.3.1
-  resolution: "tslib@npm:2.3.1"
-  checksum: 10/5e7de59ed9f2b705b399bda28326b7c3e7526deb48bbe1716e2e17fbd4cecbb610253d09c7b8fd0a6e76cfed9304e2e608cdb81bb1ee812d69e5089d1a94c71a
   languageName: node
   linkType: hard
 

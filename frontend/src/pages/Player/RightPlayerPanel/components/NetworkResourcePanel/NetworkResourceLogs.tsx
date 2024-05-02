@@ -17,6 +17,7 @@ import {
 	SearchFormProps,
 } from '@/components/Search/SearchForm/SearchForm'
 import { DEFAULT_OPERATOR } from '@/components/Search/SearchForm/utils'
+import { parseSearch } from '@/components/Search/utils'
 import { ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { FullScreenContainer } from '@/pages/LogsPage/LogsTable/FullScreenContainer'
@@ -41,6 +42,7 @@ export const NetworkResourceLogs: React.FC<{
 	}>()
 	const requestId = resource.requestResponsePairs?.request?.id
 	const [query, setQuery] = useState('')
+	const { queryParts } = parseSearch(query)
 	const startDate = useMemo(() => {
 		// startTime used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
 		const resourceStart =
@@ -126,6 +128,8 @@ export const NetworkResourceLogs: React.FC<{
 							<NoLogsFound />
 						) : (
 							<LogsTable
+								query={query}
+								queryParts={queryParts}
 								logEdges={logEdges}
 								loading={loading}
 								error={error}

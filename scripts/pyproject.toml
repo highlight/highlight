@@ -13,6 +13,7 @@ brotli = ">=1.0,<2.0"
 tqdm = "^4.66.1"
 stripe = "^6.7.0"
 clickhouse-connect = "^0.7.8"
+pandas = "^2.2.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.3.0"

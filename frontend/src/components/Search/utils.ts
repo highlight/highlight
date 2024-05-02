@@ -55,6 +55,11 @@ export const parseSearch = (input: string) => {
 	}
 }
 
+export const stringifyExpression = (expressions: SearchExpression[]) => {
+	const validExpressions = expressions.filter((exp) => exp.text.trim() !== '')
+	return validExpressions.map((exp) => exp.text).join(' ')
+}
+
 export type SearchToken = {
 	type: number
 	text: string

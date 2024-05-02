@@ -4,7 +4,6 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useGetKeyPerformanceIndicatorsQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
@@ -26,7 +25,6 @@ const KeyPerformanceIndicators = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 	const { timeRange } = useDataTimeRange()
-	const { removeSelectedSegment } = useSearchContext()
 	const { loading, data } = useGetKeyPerformanceIndicatorsQuery({
 		variables: {
 			project_id: project_id!,
@@ -58,7 +56,6 @@ const KeyPerformanceIndicators = ({
 				})}`}
 				onClick={() => {
 					message.success('Showing sessions for new users')
-					removeSelectedSegment()
 				}}
 				tooltipText={
 					<>
