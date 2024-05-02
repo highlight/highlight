@@ -5777,7 +5777,23 @@ export type DeleteVisualizationMutationOptions = Apollo.BaseMutationOptions<
 >
 export const UpsertGraphDocument = gql`
 	mutation UpsertGraph($graph: GraphInput!) {
-		upsertGraph(graph: $graph)
+		upsertGraph(graph: $graph) {
+			id
+			type
+			title
+			productType
+			query
+			metric
+			functionType
+			groupByKey
+			bucketByKey
+			bucketCount
+			limit
+			limitFunctionType
+			limitMetric
+			display
+			nullHandling
+		}
 	}
 `
 export type UpsertGraphMutationFn = Apollo.MutationFunction<

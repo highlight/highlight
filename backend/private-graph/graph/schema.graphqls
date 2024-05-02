@@ -2856,7 +2856,7 @@ type Mutation {
 	): ErrorObject
 	upsertVisualization(visualization: VisualizationInput!): ID!
 	deleteVisualization(id: ID!): Boolean!
-	upsertGraph(graph: GraphInput!): ID!
+	upsertGraph(graph: GraphInput!): Graph!
 	deleteGraph(id: ID!): Boolean!
 }
 

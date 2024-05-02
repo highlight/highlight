@@ -30,7 +30,7 @@ import {
 import { vars } from '@highlight-run/ui/vars'
 import { message } from 'antd'
 import clsx from 'clsx'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -39,10 +39,7 @@ import {
 	useGetVisualizationQuery,
 	useUpsertVisualizationMutation,
 } from '@/graph/generated/hooks'
-import {
-	GetVisualizationQuery,
-	namedOperations,
-} from '@/graph/generated/operations'
+import { GetVisualizationQuery } from '@/graph/generated/operations'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { DashboardCard } from '@/pages/Graphing/components/DashboardCard'
@@ -87,17 +84,18 @@ export const Dashboard = () => {
 	}
 
 	const { projectId } = useProjectId()
-	const { refetch: refetchViz } = useGetVisualizationQuery({
+	const { data } = useGetVisualizationQuery({
 		variables: { id: dashboard_id! },
-		onCompleted: (d) => {
-			setName(d.visualization.name)
-			setGraphs(d.visualization.graphs)
-		},
 	})
 
-	const [upsertViz] = useUpsertVisualizationMutation({
-		refetchQueries: [namedOperations.Query.GetVisualizations],
-	})
+	useEffect(() => {
+		if (data !== undefined) {
+			setName(data.visualization.name)
+			setGraphs(data.visualization.graphs)
+		}
+	}, [data])
+
+	const [upsertViz] = useUpsertVisualizationMutation()
 
 	const { startDate, endDate, selectedPreset, updateSearchTime } =
 		useSearchTime({
@@ -107,9 +105,7 @@ export const Dashboard = () => {
 
 	const navigate = useNavigate()
 
-	const [deleteGraph] = useDeleteGraphMutation({
-		refetchQueries: [namedOperations.Query.GetVisualization],
-	})
+	const [deleteGraph] = useDeleteGraphMutation()
 
 	return (
 		<>
@@ -187,27 +183,18 @@ export const Dashboard = () => {
 										emphasis="low"
 										kind="secondary"
 										onClick={() => {
-											refetchViz()
-												.then((d) => {
-													setName(
-														d.data.visualization
-															.name,
-													)
-													setGraphs(
-														d.data.visualization
-															.graphs,
-													)
-													setEditing(false)
-													message.success(
-														'Reverted dashboard changes',
-													)
-												})
-												.catch(() => {
-													setEditing(false)
-													message.error(
-														'Failed to refetch dashboard',
-													)
-												})
+											if (data !== undefined) {
+												setName(
+													data?.visualization.name,
+												)
+												setGraphs(
+													data?.visualization.graphs,
+												)
+											}
+											setEditing(false)
+											message.success(
+												'Canceled dashboard changes',
+											)
 										}}
 									>
 										Cancel
@@ -228,9 +215,43 @@ export const Dashboard = () => {
 														graphIds: graphIds,
 													},
 												},
+												optimisticResponse: {
+													upsertVisualization:
+														dashboard_id!,
+												},
+												update(cache) {
+													const vizId =
+														cache.identify({
+															id: dashboard_id,
+															__typename:
+																'Visualization',
+														})
+													const graphs =
+														graphIds?.map(
+															(gId) => ({
+																__ref: cache.identify(
+																	{
+																		id: gId,
+																		__typename:
+																			'Graph',
+																	},
+																),
+															}),
+														)
+													cache.modify({
+														id: vizId,
+														fields: {
+															name() {
+																return name
+															},
+															graphs() {
+																return graphs
+															},
+														},
+													})
+												},
 											})
 												.then(() => {
-													setEditing(false)
 													message.success(
 														'Dashboard updated',
 													)
@@ -240,6 +261,7 @@ export const Dashboard = () => {
 														'Failed to update dashboard',
 													),
 												)
+											setEditing(false)
 										}}
 									>
 										Save
@@ -318,6 +340,8 @@ export const Dashboard = () => {
 										disabled={!editing}
 									>
 										{graphs?.map((g) => {
+											const isTemp =
+												g.id.startsWith('temp-')
 											return (
 												<DashboardCard
 													id={g.id}
@@ -367,35 +391,101 @@ export const Dashboard = () => {
 															g.limitMetric ??
 															undefined
 														}
-														onDelete={() => {
-															deleteGraph({
-																variables: {
-																	id: g.id,
-																},
-															})
-																.then(() =>
-																	message.success(
-																		'Metric view deleted',
-																	),
-																)
-																.catch(() =>
-																	message.error(
-																		'Failed to delete metric view',
-																	),
-																)
-														}}
-														onExpand={() => {
-															navigate({
-																pathname: `view/${g.id}`,
-																search: location.search,
-															})
-														}}
-														onEdit={() => {
-															navigate({
-																pathname: `edit/${g.id}`,
-																search: location.search,
-															})
-														}}
+														onDelete={
+															isTemp
+																? undefined
+																: () => {
+																		deleteGraph(
+																			{
+																				variables:
+																					{
+																						id: g.id,
+																					},
+																				optimisticResponse:
+																					{
+																						deleteGraph:
+																							true,
+																					},
+																				update(
+																					cache,
+																				) {
+																					const vizId =
+																						cache.identify(
+																							{
+																								id: dashboard_id,
+																								__typename:
+																									'Visualization',
+																							},
+																						)
+																					const graphId =
+																						cache.identify(
+																							{
+																								id: g.id,
+																								__typename:
+																									'Graph',
+																							},
+																						)
+																					cache.modify(
+																						{
+																							id: vizId,
+																							fields: {
+																								graphs(
+																									existing: any[] = [],
+																								) {
+																									const filtered =
+																										existing.filter(
+																											(
+																												e: any,
+																											) =>
+																												e.__ref !==
+																												graphId,
+																										)
+																									return filtered
+																								},
+																							},
+																						},
+																					)
+																				},
+																			},
+																		)
+																			.then(
+																				() =>
+																					message.success(
+																						'Metric view deleted',
+																					),
+																			)
+																			.catch(
+																				() =>
+																					message.error(
+																						'Failed to delete metric view',
+																					),
+																			)
+																  }
+														}
+														onExpand={
+															isTemp
+																? undefined
+																: () => {
+																		navigate(
+																			{
+																				pathname: `view/${g.id}`,
+																				search: location.search,
+																			},
+																		)
+																  }
+														}
+														onEdit={
+															isTemp
+																? undefined
+																: () => {
+																		navigate(
+																			{
+																				pathname: `edit/${g.id}`,
+																				search: location.search,
+																			},
+																		)
+																  }
+														}
 														disabled={editing}
 													/>
 												</DashboardCard>

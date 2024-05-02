@@ -1437,7 +1437,23 @@ mutation DeleteVisualization($id: ID!) {
 }
 
 mutation UpsertGraph($graph: GraphInput!) {
-	upsertGraph(graph: $graph)
+	upsertGraph(graph: $graph) {
+		id
+		type
+		title
+		productType
+		query
+		metric
+		functionType
+		groupByKey
+		bucketByKey
+		bucketCount
+		limit
+		limitFunctionType
+		limitMetric
+		display
+		nullHandling
+	}
 }
 
 mutation DeleteGraph($id: ID!) {
