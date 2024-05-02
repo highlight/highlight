@@ -79,3 +79,7 @@ export const tooltipDot = style({
 export const disabled = style({
 	pointerEvents: 'none',
 })
+
+export const hoverCard = style({
+	width: 'min-content',
+})

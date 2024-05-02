@@ -7470,6 +7470,9 @@ body {
 .dg2vg6b {
   pointer-events: none;
 }
+.dg2vg6c {
+  width: min-content;
+}
 ._1a4jm560 {
   height: 40px;
 }
