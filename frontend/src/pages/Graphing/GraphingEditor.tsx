@@ -6,6 +6,7 @@ import {
 	DEFAULT_TIME_PRESETS,
 	Form,
 	IconSolidCheveronDown,
+	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
@@ -17,11 +18,13 @@ import {
 	Stack,
 	TagSwitchGroup,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
 import { Divider, message } from 'antd'
 import moment from 'moment'
-import { PropsWithChildren, useId, useMemo, useState } from 'react'
+import React, { PropsWithChildren, useId, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
@@ -103,22 +106,48 @@ const SidebarSection = (props: PropsWithChildren) => {
 	)
 }
 
+const GRAPHING_FIELD_DOCS_LINK =
+	'https://www.highlight.io/docs/general/product-features/metrics/graphing#graphing-fields'
+
+const InfoTooltip = ({ text }: { text: string }) => {
+	return (
+		<Tooltip
+			trigger={
+				<IconSolidInformationCircle
+					color={
+						vars.theme.interactive.fill.secondary.content.onDisabled
+					}
+					size={13}
+				/>
+			}
+		>
+			{text}{' '}
+			<a href={GRAPHING_FIELD_DOCS_LINK} target="_blank" rel="noreferrer">
+				Read more
+			</a>
+		</Tooltip>
+	)
+}
+
 const LabeledRow = ({
 	label,
 	name,
 	enabled,
 	setEnabled,
 	children,
+	tooltip,
 }: PropsWithChildren<{
 	label: string
 	name: string
 	enabled?: boolean
 	setEnabled?: (value: boolean) => void
+	tooltip?: string
 }>) => {
 	return (
 		<Box width="full" display="flex" flexDirection="column" gap="4">
 			<Box display="flex" flexDirection="row" gap="6">
 				<Label label={label} name={name} />
+				{tooltip !== undefined && <InfoTooltip text={tooltip} />}
 				{setEnabled !== undefined && (
 					<Switch
 						trackingId={`${label}-switch`}
@@ -180,12 +209,14 @@ const OptionDropdown = <T extends string>({
 	setSelection,
 	icons,
 	labels,
+	tooltips,
 }: {
 	options: T[]
 	selection: T
 	setSelection: (option: T) => void
 	icons?: JSX.Element[]
 	labels?: string[]
+	tooltips?: React.ReactNode[]
 }) => {
 	const selectedIndex = options.indexOf(selection)
 	const selectedIcon = icons?.at(selectedIndex)
@@ -213,19 +244,36 @@ const OptionDropdown = <T extends string>({
 				</Box>
 			</Menu.Button>
 			<Menu.List>
-				{options.map((p, idx) => (
-					<Menu.Item
-						key={p}
-						onClick={() => {
-							setSelection(p as T)
-						}}
-					>
-						<Stack direction="row" alignItems="center" gap="4">
+				{options.map((p, idx) => {
+					let innerContent: React.ReactNode = (
+						<Stack
+							direction="row"
+							alignItems="center"
+							gap="4"
+							width="full"
+						>
 							{icons?.at(idx)}
 							{labels?.at(idx) ?? p}
 						</Stack>
-					</Menu.Item>
-				))}
+					)
+					if (tooltips !== undefined) {
+						innerContent = (
+							<Tooltip placement="left" trigger={innerContent}>
+								{tooltips[idx]}
+							</Tooltip>
+						)
+					}
+					return (
+						<Menu.Item
+							key={p}
+							onClick={() => {
+								setSelection(p as T)
+							}}
+						>
+							{innerContent}
+						</Menu.Item>
+					)
+				})}
 			</Menu.List>
 		</Menu>
 	)
@@ -270,7 +318,11 @@ const LineChartSettings = ({
 	setLineDisplay: (option: LineDisplay) => void
 }) => (
 	<>
-		<LabeledRow label="Line display" name="lineDisplay">
+		<LabeledRow
+			label="Line display"
+			name="lineDisplay"
+			tooltip="Lines in charts with multiple series can be stacked."
+		>
 			<TagSwitchGroup
 				options={LINE_DISPLAY}
 				defaultValue={lineDisplay}
@@ -280,7 +332,11 @@ const LineChartSettings = ({
 				cssClass={style.tagSwitch}
 			/>
 		</LabeledRow>
-		<LabeledRow label="Nulls" name="lineNullHandling">
+		<LabeledRow
+			label="Nulls"
+			name="lineNullHandling"
+			tooltip="Determines how null / empty values are handled."
+		>
 			<TagSwitchGroup
 				options={LINE_NULL_HANDLING}
 				defaultValue={nullHandling}
@@ -301,7 +357,11 @@ const BarChartSettings = ({
 	setBarDisplay: (option: BarDisplay) => void
 }) => (
 	<>
-		<LabeledRow label="Bar display" name="barDisplay">
+		<LabeledRow
+			label="Bar display"
+			name="barDisplay"
+			tooltip="Bars in charts with multiple series can be stacked or displayed next to each other."
+		>
 			<TagSwitchGroup
 				options={BAR_DISPLAY}
 				defaultValue={barDisplay}
@@ -322,7 +382,11 @@ const TableSettings = ({
 	setNullHandling: (option: TableNullHandling) => void
 }) => (
 	<>
-		<LabeledRow label="Nulls" name="tableNullHandling">
+		<LabeledRow
+			label="Nulls"
+			name="tableNullHandling"
+			tooltip="Determines how null / empty values are handled."
+		>
 			<TagSwitchGroup
 				options={TABLE_NULL_HANDLING}
 				defaultValue={nullHandling}
@@ -764,7 +828,11 @@ export const GraphingEditor = () => {
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
-									<LabeledRow label="Source" name="source">
+									<LabeledRow
+										label="Source"
+										name="source"
+										tooltip="The resource being queried, one of the four highlight.io resources."
+									>
 										<OptionDropdown<ProductType>
 											options={PRODUCTS}
 											selection={productType}
@@ -817,6 +885,7 @@ export const GraphingEditor = () => {
 									<LabeledRow
 										label="Function"
 										name="function"
+										tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
 									>
 										<OptionDropdown<MetricAggregator>
 											options={FUNCTION_TYPES}
@@ -839,7 +908,11 @@ export const GraphingEditor = () => {
 											/>
 										)}
 									</LabeledRow>
-									<LabeledRow label="Filters" name="query">
+									<LabeledRow
+										label="Filters"
+										name="query"
+										tooltip="The search query used to filter which data points are included before aggregating."
+									>
 										<Box
 											border="divider"
 											width="full"
@@ -868,6 +941,7 @@ export const GraphingEditor = () => {
 										name="groupBy"
 										enabled={groupByEnabled}
 										setEnabled={setGroupByEnabled}
+										tooltip="A categorical field for grouping results into separate series."
 									>
 										<Combobox
 											options={allKeys}
@@ -886,6 +960,7 @@ export const GraphingEditor = () => {
 											<LabeledRow
 												label="Limit"
 												name="limit"
+												tooltip="The maximum number of groups to include."
 											>
 												<Input
 													type="number"
@@ -905,6 +980,7 @@ export const GraphingEditor = () => {
 											<LabeledRow
 												label="By"
 												name="limitBy"
+												tooltip="The function used to determine which groups are included."
 											>
 												<OptionDropdown<MetricAggregator>
 													options={FUNCTION_TYPES}
@@ -938,6 +1014,7 @@ export const GraphingEditor = () => {
 										name="bucketBy"
 										enabled={bucketByEnabled}
 										setEnabled={setBucketByEnabled}
+										tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
 									>
 										<Combobox
 											options={bucketByKeys}
@@ -951,6 +1028,7 @@ export const GraphingEditor = () => {
 										<LabeledRow
 											label="Buckets"
 											name="bucketCount"
+											tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
 										>
 											<Input
 												type="number"

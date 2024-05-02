@@ -10,10 +10,9 @@ import {
 	Box,
 	Column,
 	Container,
-	defaultPresets,
+	DEFAULT_TIME_PRESETS,
 	Form,
 	FormState,
-	getNow,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidCheveronUp,
@@ -29,8 +28,6 @@ import {
 } from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import {
 	AlertForm,
-	dedupeEnvironments,
-	EnvironmentSuggestion,
 	findAlert,
 	getFrequencyOption,
 } from '@pages/Alerts/utils/AlertsUtils'
@@ -39,10 +36,14 @@ import { message } from 'antd'
 import { capitalize } from 'lodash'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { DateTimeParam, useQueryParam } from 'use-query-params'
+import { StringParam, useQueryParam } from 'use-query-params'
 
 import LoadingBox from '@/components/LoadingBox'
+import { SearchContext } from '@/components/Search/SearchContext'
+import { Search } from '@/components/Search/SearchForm/SearchForm'
 import { namedOperations } from '@/graph/generated/operations'
+import { ProductType } from '@/graph/generated/schemas'
+import { useSearchTime } from '@/hooks/useSearchTime'
 import { useAlertsContext } from '@/pages/Alerts/AlertsContext/AlertsContext'
 import AlertNotifyForm from '@/pages/Alerts/components/AlertNotifyForm/AlertNotifyForm'
 import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
@@ -51,15 +52,8 @@ import analytics from '@/util/analytics'
 import * as styles from './styles.css'
 
 export const ErrorAlertPage = () => {
-	const [startDateParam] = useQueryParam('start_date', DateTimeParam)
-	const [endDateParam] = useQueryParam('end_date', DateTimeParam)
-
-	const [startDate, setStartDate] = useState(
-		startDateParam ?? defaultPresets[0].startDate,
-	)
-
-	const [endDate, setEndDate] = useState(endDateParam ?? getNow().toDate())
-	const [selectedDates] = useState<Date[]>([startDate, endDate])
+	const [queryParam] = useQueryParam('query', StringParam)
+	const [initialQuery, setInitialQuery] = useState(queryParam ?? '')
 
 	const { alert_id } = useParams<{
 		alert_id: string
@@ -67,13 +61,6 @@ export const ErrorAlertPage = () => {
 
 	const isCreate = alert_id === undefined
 	const createStr = isCreate ? 'create' : 'update'
-
-	useEffect(() => {
-		if (selectedDates.length === 2) {
-			setStartDate(selectedDates[0])
-			setEndDate(selectedDates[1])
-		}
-	}, [selectedDates])
 
 	const { alertsPayload } = useAlertsContext()
 	const alert = alert_id
@@ -84,7 +71,7 @@ export const ErrorAlertPage = () => {
 		defaultValues: {
 			name: '',
 			belowThreshold: false,
-			excludedEnvironments: [],
+			query: initialQuery,
 			slackChannels: [],
 			discordChannels: [],
 			microsoftTeamsChannels: [],
@@ -99,12 +86,16 @@ export const ErrorAlertPage = () => {
 	})
 	const formValues = formStore.useState().values
 
+	const handleUpdateInputQuery = (query: string) => {
+		formStore.setValue(formStore.names.query, query)
+	}
+
 	useEffect(() => {
 		if (alert) {
+			setInitialQuery(alert.Query)
 			formStore.setValues({
 				name: alert.Name ?? 'Error',
 				belowThreshold: false,
-				excludedEnvironments: alert.ExcludedEnvironments,
 				slackChannels: alert.ChannelsToNotify.map((c: any) => ({
 					...c,
 					webhook_channel_name: c.webhook_channel,
@@ -136,6 +127,7 @@ export const ErrorAlertPage = () => {
 				regex_groups: alert.RegexGroups || [],
 				threshold_window: alert.ThresholdWindow,
 				loaded: true,
+				query: alert.Query,
 			})
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -233,9 +225,6 @@ export const ErrorAlertPage = () => {
 									id: c.id,
 								})),
 							emails: formStore.getValue(formStore.names.emails),
-							environments: formStore.getValue(
-								formStore.names.excludedEnvironments,
-							),
 							name: formStore.getValue(formStore.names.name),
 							project_id: project_id || '0',
 							slack_channels: formValues.slackChannels.map(
@@ -257,6 +246,7 @@ export const ErrorAlertPage = () => {
 							frequency: formStore.getValue(
 								formStore.names.frequency,
 							),
+							query: formStore.getValue(formStore.names.query),
 						}
 
 						const nameErr = !input.name
@@ -402,9 +392,19 @@ export const ErrorAlertPage = () => {
 							</Box>
 
 							<Form store={formStore} resetOnSubmit={false}>
-								<Stack gap="40">
+								<Stack gap="12">
 									<AlertTitleField />
-									<ErrorAlertForm />
+									<SearchContext
+										initialQuery={initialQuery}
+										onSubmit={handleUpdateInputQuery}
+									>
+										<ErrorAlertForm
+											hideRegexExpression={
+												isCreate ||
+												!alert?.RegexGroups?.length
+											}
+										/>
+									</SearchContext>
 								</Stack>
 							</Form>
 						</Container>
@@ -415,23 +415,38 @@ export const ErrorAlertPage = () => {
 	)
 }
 
-const ErrorAlertForm = () => {
+type ErrorAlertFormProps = {
+	hideRegexExpression: boolean
+}
+
+const ErrorAlertForm = ({ hideRegexExpression }: ErrorAlertFormProps) => {
 	const formStore = Form.useContext() as FormState<ErrorAlertFormItem>
 	const errors = formStore.useState('errors')
 
-	const { alertsPayload } = useAlertsContext()
-	const environments = dedupeEnvironments(
-		(alertsPayload?.environment_suggestion ??
-			[]) as EnvironmentSuggestion[],
-	).map((environmentSuggestion) => ({
-		displayValue: environmentSuggestion,
-		value: environmentSuggestion,
-		id: environmentSuggestion,
-	}))
+	const { startDate, endDate } = useSearchTime({
+		presets: DEFAULT_TIME_PRESETS,
+		initialPreset: DEFAULT_TIME_PRESETS[5],
+	})
 
 	return (
-		<Box cssClass={styles.grid}>
-			<Stack gap="40">
+		<Stack gap="40">
+			<Box
+				cssClass={styles.queryContainer}
+				style={{
+					borderColor: formStore.getError('query')
+						? 'var(--color-red-500)'
+						: undefined,
+				}}
+			>
+				<Search
+					startDate={startDate}
+					endDate={endDate}
+					hideIcon
+					placeholder="Define query..."
+					productType={ProductType.Errors}
+				/>
+			</Box>
+			<Box cssClass={styles.grid}>
 				<Stack gap="12">
 					<Box
 						cssClass={styles.sectionHeader}
@@ -445,26 +460,28 @@ const ErrorAlertForm = () => {
 						</Menu>
 					</Box>
 					<Box borderTop="dividerWeak" width="full" />
-					<Form.NamedSection
-						label="Regex Patterns to Ignore"
-						name={formStore.names.regex_groups}
-					>
-						<Select
-							aria-label="Regex Patterns to Ignore list"
-							placeholder={`Input any valid regex, like: \\d{5}(-\\d{4})?, Hello\\nworld, [b-chm-pP]at|ot`}
-							onChange={(values: any): any =>
-								formStore.setValue(
+					{!hideRegexExpression && (
+						<Form.NamedSection
+							label="Regex Patterns to Ignore"
+							name={formStore.names.regex_groups}
+						>
+							<Select
+								aria-label="Regex Patterns to Ignore list"
+								placeholder={`Input any valid regex, like: \\d{5}(-\\d{4})?, Hello\\nworld, [b-chm-pP]at|ot`}
+								onChange={(values: any): any =>
+									formStore.setValue(
+										formStore.names.regex_groups,
+										values,
+									)
+								}
+								className={styles.selectContainer}
+								mode="tags"
+								value={formStore.getValue(
 									formStore.names.regex_groups,
-									values,
-								)
-							}
-							className={styles.selectContainer}
-							mode="tags"
-							value={formStore.getValue(
-								formStore.names.regex_groups,
-							)}
-						/>
-					</Form.NamedSection>
+								)}
+							/>
+						</Form.NamedSection>
+					)}
 					<Column.Container gap="12">
 						<Column>
 							<Form.Input
@@ -532,42 +549,9 @@ const ErrorAlertForm = () => {
 						))}
 					</Form.Select>
 				</Stack>
-
-				<Stack gap="12">
-					<Box cssClass={styles.sectionHeader}>
-						<Text size="large" weight="bold" color="strong">
-							General
-						</Text>
-					</Box>
-
-					<Box borderTop="dividerWeak" width="full" />
-
-					<Form.NamedSection
-						label="Excluded environments"
-						name={formStore.names.excludedEnvironments}
-					>
-						<Select
-							aria-label="Excluded environments list"
-							placeholder="Select excluded environments"
-							options={environments}
-							onChange={(values: any): any =>
-								formStore.setValue(
-									formStore.names.excludedEnvironments,
-									values,
-								)
-							}
-							notFoundContent={<p>No environment suggestions</p>}
-							className={styles.selectContainer}
-							mode="multiple"
-							value={formStore.getValue(
-								formStore.names.excludedEnvironments,
-							)}
-						/>
-					</Form.NamedSection>
-				</Stack>
-			</Stack>
-			<AlertNotifyForm />
-		</Box>
+				<AlertNotifyForm />
+			</Box>
+		</Stack>
 	)
 }
 
@@ -613,8 +597,9 @@ const ThresholdTypeConfiguration = () => {
 	)
 }
 
-interface ErrorAlertFormItem extends AlertForm {
+interface ErrorAlertFormItem extends Omit<AlertForm, 'excludedEnvironments'> {
 	regex_groups: string[]
+	query: string
 }
 
 export default ErrorAlertPage

@@ -23,13 +23,13 @@ import { SearchEmptyState } from '@/components/SearchEmptyState/SearchEmptyState
 import {
 	useDeleteVisualizationMutation,
 	useGetVisualizationsQuery,
-	useUpsertVisualizationMutation,
 } from '@/graph/generated/hooks'
 import {
 	GetVisualizationsQuery,
 	namedOperations,
 } from '@/graph/generated/operations'
 import { useProjectId } from '@/hooks/useProjectId'
+import { CreateDashboardModal } from '@/pages/Graphing/components/CreateDashboardModal'
 
 import * as style from './DashboardOverview.css'
 
@@ -49,6 +49,7 @@ export default function DashboardOverview() {
 		[query],
 	)
 	const [page, setPage] = useState(0)
+	const [showModal, setShowModal] = useState(false)
 
 	const { data, loading } = useGetVisualizationsQuery({
 		variables: {
@@ -63,30 +64,19 @@ export default function DashboardOverview() {
 	const hasPrev = page > 0
 	const hasNext = (page + 1) * ITEMS_PER_PAGE < count
 
-	const [upsertViz, upsertContext] = useUpsertVisualizationMutation({
-		variables: {
-			visualization: {
-				name: 'Untitled dashboard',
-				projectId: projectId,
-			},
-		},
-		refetchQueries: [namedOperations.Query.GetVisualizations],
-	})
-
 	const navigate = useNavigate()
-
-	const createDashboard = () => {
-		upsertViz()
-			.then((result) => {
-				if (result.data !== undefined && result.data !== null) {
-					navigate(result.data.upsertVisualization)
-				}
-			})
-			.catch(() => message.error('Failed to create a new dashboard'))
-	}
 
 	return (
 		<Box width="full" background="raised" p="8">
+			<CreateDashboardModal
+				showModal={showModal}
+				onHideModal={() => {
+					setShowModal(false)
+				}}
+				afterCreateHandler={(id) => {
+					navigate(id)
+				}}
+			/>
 			<Box
 				border="dividerWeak"
 				borderRadius="6"
@@ -133,8 +123,9 @@ export default function DashboardOverview() {
 										All dashboards
 									</Text>
 									<Button
-										disabled={upsertContext.loading}
-										onClick={createDashboard}
+										onClick={() => {
+											setShowModal(true)
+										}}
 									>
 										Create new dashboard
 									</Button>
