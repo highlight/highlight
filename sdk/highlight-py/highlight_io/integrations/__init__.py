@@ -2,6 +2,7 @@ import abc
 import logging
 from typing import Collection
 
+import opentelemetry.instrumentation.instrumentor
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 
 
@@ -12,6 +13,12 @@ class NoopInstrumentor(BaseInstrumentor):
     def instrumentation_dependencies(self) -> Collection[str]:
         return []
 
+    def instrument(self, **kwargs):
+        pass
+
+    def uninstrument(self, **kwargs):
+        pass
+
 
 class Integration(abc.ABC):
     INTEGRATION_KEY: str = ""
@@ -21,14 +28,19 @@ class Integration(abc.ABC):
 
     def importer(self):
         try:
-            return self.instrumentor()
-        except (ImportError, ModuleNotFoundError) as e:
-            self.logger.warning(
+            instrumentor = self.instrumentor()
+            # noinspection PyProtectedMember
+            conflicts = instrumentor._check_dependency_conflicts()
+            if conflicts:
+                raise RuntimeError(conflicts)
+            return instrumentor
+        except (ImportError, ModuleNotFoundError, RuntimeError) as e:
+            self.logger.debug(
                 "Instrumentation %s not available: %s", self.INTEGRATION_KEY, e
             )
             return NoopInstrumentor()
 
-    def instrumentor(self):
+    def instrumentor(self) -> opentelemetry.instrumentation.instrumentor.BaseInstrumentor:
         raise NotImplementedError()
 
     def enable(self):
