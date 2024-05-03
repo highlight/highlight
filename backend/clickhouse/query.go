@@ -684,7 +684,7 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 	for idx, group := range groupBy {
 		groupCol := ""
 		if col, found := keysToColumns[T(group)]; found {
-			groupCol = col
+			groupCol = fmt.Sprintf("toString(%s)", col)
 		} else {
 			groupCol = fmt.Sprintf("toString(%s[%s])", attributesColumn, fromSb.Var(group))
 		}

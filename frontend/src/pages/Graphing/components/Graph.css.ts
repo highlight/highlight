@@ -63,6 +63,8 @@ export const tooltipWrapper = style({
 	flexDirection: 'column',
 	gap: '6px',
 	padding: '8px',
+	maxHeight: '180px',
+	overflowY: 'auto',
 })
 
 export const tooltipText = style({
