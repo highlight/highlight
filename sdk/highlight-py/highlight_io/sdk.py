@@ -6,7 +6,15 @@ import sys
 import traceback
 import typing
 
-from opentelemetry import trace, _logs
+from highlight_io.integrations import Integration
+from highlight_io.integrations.boto import BotoIntegration
+from highlight_io.integrations.boto3sqs import Boto3SQSIntegration
+from highlight_io.integrations.celery import CeleryIntegration
+from highlight_io.integrations.redis import RedisIntegration
+from highlight_io.integrations.requests import RequestsIntegration
+from highlight_io.integrations.sqlalchemy import SQLAlchemyIntegration
+from highlight_io.utils.lru_cache import LRUCache
+from opentelemetry import trace as otel_trace, _logs
 from opentelemetry._logs.severity import std_to_otel
 from opentelemetry.baggage import set_baggage, get_baggage
 from opentelemetry.context import Context, attach
@@ -25,15 +33,6 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.semconv.resource import ResourceAttributes
 from opentelemetry.semconv.trace import SpanAttributes
 from opentelemetry.trace import INVALID_SPAN
-
-from highlight_io.integrations import Integration
-from highlight_io.integrations.boto import BotoIntegration
-from highlight_io.integrations.boto3sqs import Boto3SQSIntegration
-from highlight_io.integrations.celery import CeleryIntegration
-from highlight_io.integrations.redis import RedisIntegration
-from highlight_io.integrations.requests import RequestsIntegration
-from highlight_io.integrations.sqlalchemy import SQLAlchemyIntegration
-from highlight_io.utils.lru_cache import LRUCache
 
 DEFAULT_INTEGRATIONS = [
     BotoIntegration,
@@ -67,7 +66,7 @@ class LogHandler(logging.Handler):
 
     def emit(self, record: logging.LogRecord):
         ctx = contextlib.nullcontext
-        span = trace.get_current_span()
+        span = otel_trace.get_current_span()
 
         if span is None or not span.is_recording():
             ctx = self.highlight.trace
@@ -75,7 +74,7 @@ class LogHandler(logging.Handler):
         with ctx():
             if self.filter(record):
                 self.highlight.log_hook(
-                    trace.get_current_span(), record, formatted=self.format(record)
+                    otel_trace.get_current_span(), record, formatted=self.format(record)
                 )
 
 
@@ -214,8 +213,8 @@ class H(object):
                 **kwargs,
             )
         )
-        trace.set_tracer_provider(self._trace_provider)
-        self.tracer = trace.get_tracer(__name__)
+        otel_trace.set_tracer_provider(self._trace_provider)
+        self.tracer = otel_trace.get_tracer(__name__)
 
         self._log_provider = LoggerProvider(
             resource=resource,
@@ -327,7 +326,7 @@ class H(object):
         :param attributes: additional metadata to attribute to this error.
         :return: None
         """
-        span = trace.get_current_span()
+        span = otel_trace.get_current_span()
         if not span:
             raise RuntimeError("H.record_http_error called without a span context")
 
@@ -387,7 +386,7 @@ class H(object):
         :param attributes: additional metadata to attribute to this error.
         :return: None
         """
-        span = trace.get_current_span()
+        span = otel_trace.get_current_span()
         if not span:
             raise RuntimeError("H.record_exception called without a span context")
         span.record_exception(e, attributes)
@@ -474,7 +473,7 @@ class H(object):
         otel_factory = logging.getLogRecordFactory()
 
         def factory(*args, **kwargs) -> LogRecord:
-            span = trace.get_current_span()
+            span = otel_trace.get_current_span()
             if span != INVALID_SPAN:
                 manager = contextlib.nullcontext(enter_result=span)
             else:
@@ -499,6 +498,14 @@ class H(object):
         :return: a tuple of (session_id, request_id)
         """
         return self._context_map.get(trace_id, ("", ""))
+
+
+def trace(func):
+    def wrapper():
+        with H.get_instance().trace(span_name=func.__name__):
+            return func()
+
+    return wrapper
 
 
 def _build_resource(
