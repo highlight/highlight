@@ -18,20 +18,17 @@ export const PythonLibrariesTracesContent: QuickStartContent = {
 \n[Redis](https://redis.io/docs/connect/clients/python/)
 \n[Requests](https://requests.readthedocs.io/en/latest/)
 \n[SQLAlchemy](https://www.sqlalchemy.org/)
-\n[Common AI / LLM Libraries](../python-ai)
+\n[Common AI / LLM Libraries](../python/python-ai)
 `,
 			code: [
 				{
-					text: `# install the highlight instrumentation
-pip install highlight-io
-
-# install and use your library in your code
+					text: `# install and use your library in your code
 pip install Boto Boto3SQS Celery Redis requests SQLAlchemy`,
 					language: 'bash',
 				},
 			],
 		},
-		downloadSnippet('{YOUR LIBRARY}'),
+		downloadSnippet(),
 		{
 			title: 'Initialize the Highlight SDK for your respective framework.',
 			content:
