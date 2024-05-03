@@ -3,10 +3,10 @@ import { downloadSnippet, init } from '../../backend/python/shared-snippets'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets'
 
-export const PythonLibrariesTracesContent: QuickStartContent = {
-	title: 'Python Libraries',
+export const PythonAITracesContent: QuickStartContent = {
+	title: 'Python AI / LLM Libraries',
 	subtitle:
-		'Learn how to set up highlight.io tracing for common Python Libraries.',
+		'Learn how to set up highlight.io tracing for common Python AI / LLM libraries to automatically instrument model training, inference, and evaluation.',
 	logoUrl: siteUrl('/images/quickstart/python.svg'),
 	entries: [
 		{
