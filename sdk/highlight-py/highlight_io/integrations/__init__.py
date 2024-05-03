@@ -40,7 +40,9 @@ class Integration(abc.ABC):
             )
             return NoopInstrumentor()
 
-    def instrumentor(self) -> opentelemetry.instrumentation.instrumentor.BaseInstrumentor:
+    def instrumentor(
+        self,
+    ) -> opentelemetry.instrumentation.instrumentor.BaseInstrumentor:
         raise NotImplementedError()
 
     def enable(self):
