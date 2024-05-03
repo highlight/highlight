@@ -403,7 +403,7 @@ const H: HighlightPublicInterface = {
 			})
 		})
 	},
-	get: () => {
+	getRecordingState: () => {
 		return highlight_obj.state
 	},
 	onHighlightReady: async (func, options) => {
