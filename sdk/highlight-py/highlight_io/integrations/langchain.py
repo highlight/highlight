@@ -1,13 +1,9 @@
 from highlight_io.integrations import Integration
 
-from opentelemetry.instrumentation.langchain import LangchainInstrumentor
-
 
 class LangchainIntegration(Integration):
     INTEGRATION_KEY = "langchain"
 
-    def enable(self):
-        LangchainInstrumentor().instrument()
-
-    def disable(self):
-        LangchainInstrumentor().uninstrument()
+    def instrumentor(self):
+        from opentelemetry.instrumentation.langchain import LangchainInstrumentor
+        return LangchainInstrumentor()

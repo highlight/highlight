@@ -311,7 +311,7 @@ class H(object):
             return
 
         with self.tracer.start_as_current_span(
-            span_name, record_exception=False, set_status_on_exception=False, ctx=ctx
+            span_name, record_exception=False, set_status_on_exception=False, context=ctx
         ) as span:
             span.set_attributes({"highlight.project_id": self._project_id})
             span.set_attributes({"highlight.session_id": session_id})

@@ -5,7 +5,6 @@ description = ""
 authors = ["Vadim Korolik <vkorolik@gmail.com>"]
 license = "Apache 2.0"
 readme = "README.md"
-packages = [{include = "highlight_e2e"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"

@@ -20,6 +20,7 @@ chat_history = [
 ]
 
 
+@highlight_io.trace
 def complete(message: str) -> str:
     chat_history.append({"role": "user", "content": message})
     completion = client.chat.completions.create(

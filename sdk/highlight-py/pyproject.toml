@@ -32,18 +32,6 @@ opentelemetry-exporter-otlp-proto-http = "^1.24.0"
 opentelemetry-instrumentation = "^0.45b0"
 opentelemetry-proto = "^1.24.0"
 opentelemetry-sdk = "^1.24.0"
-blinker = { version = ">=1", optional = true }
-boto = { version = ">=2", optional = true }
-boto3 = { version = ">=1", optional = true }
-celery = { version = ">=5", optional = true }
-django = { version = ">=3", optional = true }
-fastapi = { version = ">=0", optional = true }
-flask = { version = ">=2", optional = true }
-redis = { version = ">=5", optional = true }
-sqlalchemy = { version = ">=2", optional = true }
-uvicorn = {version = ">=0", extras = ["standard"], optional = true }
-
-[tool.poetry.group.instrumentations.dependencies]
 opentelemetry-instrumentation-anthropic = "^0.17.1"
 opentelemetry-instrumentation-bedrock = "^0.17.1"
 opentelemetry-instrumentation-boto = "^0.45b0"
@@ -66,6 +54,16 @@ opentelemetry-instrumentation-transformers = "^0.17.1"
 opentelemetry-instrumentation-vertexai = "^0.17.1"
 opentelemetry-instrumentation-watsonx = "^0.17.1"
 opentelemetry-instrumentation-weaviate = "^0.17.1"
+blinker = { version = ">=1", optional = true }
+boto = { version = ">=2", optional = true }
+boto3 = { version = ">=1", optional = true }
+celery = { version = ">=5", optional = true }
+django = { version = ">=3", optional = true }
+fastapi = { version = ">=0", optional = true }
+flask = { version = ">=2", optional = true }
+redis = { version = ">=5", optional = true }
+sqlalchemy = { version = ">=2", optional = true }
+uvicorn = {version = ">=0", extras = ["standard"], optional = true }
 
 [tool.poetry.group.dev.dependencies]
 azure-functions = ">=1"

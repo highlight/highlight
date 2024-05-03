@@ -1,13 +1,9 @@
-from opentelemetry.instrumentation.openai import OpenAIInstrumentor
-
 from highlight_io.integrations import Integration
 
 
 class OpenAIIntegration(Integration):
     INTEGRATION_KEY = "openai"
 
-    def enable(self):
-        OpenAIInstrumentor().instrument()
-
-    def disable(self):
-        OpenAIInstrumentor().uninstrument()
+    def instrumentor(self):
+        from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+        return OpenAIInstrumentor()
