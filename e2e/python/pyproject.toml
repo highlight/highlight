@@ -1,6 +1,23 @@
-[project]
-name = "highlight_example"
-classifiers = ["Private :: Do Not Upload"]
-version = "0"
-dependencies = ["highlight-io"]
+[tool.poetry]
+name = "highlight-e2e"
+version = "0.1.0"
+description = ""
+authors = ["Vadim Korolik <vkorolik@gmail.com>"]
+license = "Apache 2.0"
+readme = "README.md"
+packages = [{include = "highlight_e2e"}]
 
+[tool.poetry.dependencies]
+python = "^3.10"
+highlight-io = {path = "../../sdk/highlight-py"}
+django = "^5.0.4"
+flask = "^3.0.3"
+loguru = "^0.7.2"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.4.2"
+pytest = "^8.2.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
