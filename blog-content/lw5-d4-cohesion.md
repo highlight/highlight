@@ -17,7 +17,7 @@ metaTitle: "Day 4: Cohesion"
 
 ## Day 4: Cohesion!
 
-Checkout our [launch video](https://youtu.be/gD5pMCuUhCg) or keep reading!
+Checkout our [launch video](https://www.youtube.com/watch?v=63Y3q32Ll0Y) or keep reading!
 
 Day 4 is all about ‘cohesion’, or how the Highlight product connects each and every resource. If you’re curious and want to read more, we’ve written a lot about this when it comes to our [product philosophy](https://www.highlight.io/docs/general/company/product-philosophy#cohesion). 
 
