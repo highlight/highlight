@@ -6,18 +6,10 @@ import sys
 import traceback
 import typing
 
-from highlight_io.integrations import Integration
-from highlight_io.integrations.boto import BotoIntegration
-from highlight_io.integrations.boto3sqs import Boto3SQSIntegration
-from highlight_io.integrations.celery import CeleryIntegration
-from highlight_io.integrations.redis import RedisIntegration
-from highlight_io.integrations.requests import RequestsIntegration
-from highlight_io.integrations.sqlalchemy import SQLAlchemyIntegration
-from highlight_io.utils.lru_cache import LRUCache
 from opentelemetry import trace as otel_trace, _logs
 from opentelemetry._logs.severity import std_to_otel
 from opentelemetry.baggage import set_baggage, get_baggage
-from opentelemetry.context import Context, attach
+from opentelemetry.context import Context, attach, get_current
 from opentelemetry.exporter.otlp.proto.http import Compression
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -34,14 +26,9 @@ from opentelemetry.semconv.resource import ResourceAttributes
 from opentelemetry.semconv.trace import SpanAttributes
 from opentelemetry.trace import INVALID_SPAN
 
-DEFAULT_INTEGRATIONS = [
-    BotoIntegration,
-    Boto3SQSIntegration,
-    CeleryIntegration,
-    RedisIntegration,
-    RequestsIntegration,
-    SQLAlchemyIntegration,
-]
+from highlight_io.integrations import Integration
+from highlight_io.integrations.all import DEFAULT_INTEGRATIONS
+from highlight_io.utils.lru_cache import LRUCache
 
 
 class LogHandler(logging.Handler):
@@ -247,10 +234,11 @@ class H(object):
     @contextlib.contextmanager
     def trace(
         self,
+        span_name: typing.Optional[str] = "highlight.trace",
         session_id: typing.Optional[str] = "",
         request_id: typing.Optional[str] = "",
-        span_name: typing.Optional[str] = "highlight-ctx",
         attributes: typing.Optional[typing.Dict[str, any]] = None,
+        context: typing.Optional[Context] = None,
     ) -> Span:
         """
         Catch exceptions raised by your app using this context manager.
@@ -268,8 +256,9 @@ class H(object):
 
         :param session_id: the highlight session that initiated this network request.
         :param request_id: the identifier of the current network request.
-        :param attributes: additional attributes to attribute to this error.
         :param span_name: span name to record.
+        :param attributes: additional attributes to attribute to this error.
+        :param context: `opentelemetry.Context` for multithreaded trace context propagation.
         :return: Span
         """
         # in case the otel library is in a non-recording context, do nothing
@@ -278,7 +267,10 @@ class H(object):
             return
 
         with self.tracer.start_as_current_span(
-            span_name, record_exception=False, set_status_on_exception=False
+            span_name,
+            record_exception=False,
+            set_status_on_exception=False,
+            context=context,
         ) as span:
             span.set_attributes({"highlight.project_id": self._project_id})
             span.set_attributes({"highlight.session_id": session_id})
@@ -315,7 +307,7 @@ class H(object):
 
             @router.get("/health")
             def health_check():
-                with H.trace(session_id, request_id):
+                with H.trace("health_check", session_id, request_id):
                     logging.info('hello, world!')
                     H.record_http_error(status_code=404)
                     raise HTTPException(status_code=404, detail="Item not found")
@@ -477,7 +469,7 @@ class H(object):
             if span != INVALID_SPAN:
                 manager = contextlib.nullcontext(enter_result=span)
             else:
-                manager = self.trace()
+                manager = self.trace("highlight.log")
 
             try:
                 with manager:
@@ -499,11 +491,18 @@ class H(object):
         """
         return self._context_map.get(trace_id, ("", ""))
 
+    @property
+    def context(self) -> Context:
+        """
+        Get the opentelemetry context of the current trace.
+        """
+        return get_current()
+
 
 def trace(func):
-    def wrapper():
+    def wrapper(*args, **kwargs):
         with H.get_instance().trace(span_name=func.__name__):
-            return func()
+            return func(*args, **kwargs)
 
     return wrapper
 

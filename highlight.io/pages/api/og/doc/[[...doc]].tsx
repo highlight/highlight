@@ -1,8 +1,8 @@
 import { ImageResponse } from '@vercel/og'
-import { NextRequest, URLPattern } from 'next/server'
-import { bug1, bug2, font, fontLight, logoOnDark } from '../util'
 import 'fs'
+import { NextRequest, URLPattern } from 'next/server'
 import { withEdgeRouterHighlight } from '../../../../highlight.edge.config'
+import { bug1, bug2, font, fontLight, logoOnDark } from '../util'
 
 export const config = {
 	runtime: 'edge',
@@ -37,7 +37,11 @@ const handler = withEdgeRouterHighlight(async function (req: NextRequest) {
 		s
 			.substring(s.indexOf('_') + 1)
 			.split('-')
-			.map((string) => string.charAt(0).toUpperCase() + string.slice(1))
+			.map((string) =>
+				string.length < 3
+					? string.toUpperCase()
+					: string.charAt(0).toUpperCase() + string.slice(1),
+			)
 			.join(' '),
 	)
 	const crumbs = readablePaths?.slice(-3, -1)

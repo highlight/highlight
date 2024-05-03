@@ -40,9 +40,7 @@ class DjangoIntegration(Integration):
             qs = environ.get("QUERY_STRING")
             if qs:
                 span_name = f"{span_name}?{qs}"
-            with highlight_io.H.get_instance().trace(
-                session_id, request_id, span_name=span_name
-            ):
+            with highlight_io.H.get_instance().trace(span_name, session_id, request_id):
                 return self._orig_django(app, environ, start_response)
 
         WSGIHandler.__call__ = wrapped_call
