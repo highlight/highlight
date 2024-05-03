@@ -44,7 +44,9 @@ def highlight_setup(request):
 )
 @pytest.mark.asyncio
 async def test_fastapi(mocker, highlight_setup, exception, response):
-    mock_trace = mocker.patch("highlight_io.sdk.trace.get_current_span", autospec=Span)
+    mock_trace = mocker.patch(
+        "highlight_io.sdk.otel_trace.get_current_span", autospec=Span
+    )
     mock_trace.return_value.get_span_context.return_value = SpanContext(123, 456, False)
     app = mocker.MagicMock()
     middleware = FastAPIMiddleware(app)
