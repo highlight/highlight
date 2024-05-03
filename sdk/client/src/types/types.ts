@@ -282,6 +282,7 @@ export declare interface HighlightPublicInterface {
 		func: () => void | Promise<void>,
 		options?: OnHighlightReadyOptions,
 	) => Promise<void>
+	getRecordingState: () => 'NotRecording' | 'Recording'
 	options: HighlightOptions | undefined
 	/**
 	 * Calling this will add a feedback comment to the session.
