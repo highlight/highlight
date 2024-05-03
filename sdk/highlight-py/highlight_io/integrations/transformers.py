@@ -6,4 +6,5 @@ class TransformersIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.transformers import TransformersInstrumentor
+
         return TransformersInstrumentor()

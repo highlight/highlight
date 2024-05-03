@@ -6,4 +6,5 @@ class BedrockIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.bedrock import BedrockInstrumentor
+
         return BedrockInstrumentor()

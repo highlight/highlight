@@ -6,4 +6,5 @@ class RedisIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.redis import RedisInstrumentor
+
         return RedisInstrumentor()

@@ -6,4 +6,5 @@ class CeleryIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.celery import CeleryInstrumentor
+
         return CeleryInstrumentor()

@@ -6,4 +6,5 @@ class LlamaIndexIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.llamaindex import LlamaIndexInstrumentor
+
         return LlamaIndexInstrumentor()

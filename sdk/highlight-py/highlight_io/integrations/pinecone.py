@@ -6,4 +6,5 @@ class PineconeIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.pinecone import PineconeInstrumentor
+
         return PineconeInstrumentor()

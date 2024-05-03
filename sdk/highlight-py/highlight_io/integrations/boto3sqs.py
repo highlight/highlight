@@ -6,4 +6,5 @@ class Boto3SQSIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.boto3sqs import Boto3SQSInstrumentor
+
         return Boto3SQSInstrumentor()

@@ -6,4 +6,5 @@ class WeaviateIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.weaviate import WeaviateInstrumentor
+
         return WeaviateInstrumentor()

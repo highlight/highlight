@@ -6,4 +6,5 @@ class LangchainIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.langchain import LangchainInstrumentor
+
         return LangchainInstrumentor()

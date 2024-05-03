@@ -6,4 +6,5 @@ class VertexAIIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.vertexai import VertexAIInstrumentor
+
         return VertexAIInstrumentor()

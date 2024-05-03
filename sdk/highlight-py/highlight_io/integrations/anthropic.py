@@ -6,4 +6,5 @@ class AnthropicIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.anthropic import AnthropicInstrumentor
+
         return AnthropicInstrumentor()

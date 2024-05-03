@@ -6,4 +6,5 @@ class ReplicateIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.replicate import ReplicateInstrumentor
+
         return ReplicateInstrumentor()

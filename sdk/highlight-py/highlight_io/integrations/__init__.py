@@ -14,7 +14,7 @@ class NoopInstrumentor(BaseInstrumentor):
 
 
 class Integration(abc.ABC):
-    INTEGRATION_KEY: str = ''
+    INTEGRATION_KEY: str = ""
 
     def __init__(self):
         self.logger = logging.getLogger("highlight_io")
@@ -23,7 +23,9 @@ class Integration(abc.ABC):
         try:
             return self.instrumentor()
         except (ImportError, ModuleNotFoundError) as e:
-            self.logger.warning("Instrumentation %s not available: %s", self.INTEGRATION_KEY, e)
+            self.logger.warning(
+                "Instrumentation %s not available: %s", self.INTEGRATION_KEY, e
+            )
             return NoopInstrumentor()
 
     def instrumentor(self):

@@ -6,4 +6,5 @@ class HaystackIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.haystack import HaystackInstrumentor
+
         return HaystackInstrumentor()

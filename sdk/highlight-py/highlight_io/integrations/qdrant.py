@@ -6,4 +6,5 @@ class QdrantInstrumentation(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.qdrant import QdrantInstrumentor
+
         return QdrantInstrumentor()

@@ -6,4 +6,5 @@ class CohereIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.cohere import CohereInstrumentor
+
         return CohereInstrumentor()

@@ -6,4 +6,5 @@ class OpenAIIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+
         return OpenAIInstrumentor()

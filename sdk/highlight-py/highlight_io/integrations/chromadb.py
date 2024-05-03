@@ -6,4 +6,5 @@ class ChromadbIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.chromadb import ChromaInstrumentor
+
         return ChromaInstrumentor()

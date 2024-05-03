@@ -6,4 +6,5 @@ class SQLAlchemyIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+
         return SQLAlchemyInstrumentor()

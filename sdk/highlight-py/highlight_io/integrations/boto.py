@@ -6,4 +6,5 @@ class BotoIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.boto import BotoInstrumentor
+
         return BotoInstrumentor()

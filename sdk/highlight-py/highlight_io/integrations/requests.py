@@ -6,4 +6,5 @@ class RequestsIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.requests import RequestsInstrumentor
+
         return RequestsInstrumentor()

@@ -6,4 +6,5 @@ class WatsonXIntegration(Integration):
 
     def instrumentor(self):
         from opentelemetry.instrumentation.watsonx import WatsonxInstrumentor
+
         return WatsonxInstrumentor()
