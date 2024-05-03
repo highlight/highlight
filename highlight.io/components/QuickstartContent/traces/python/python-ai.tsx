@@ -8,7 +8,7 @@ const libs = {
 	'Bedrock (AWS)': { url: 'https://aws.amazon.com/bedrock/', pypi: 'boto3' },
 	ChromaDB: { url: 'https://www.trychroma.com/', pypi: 'chromadb' },
 	Cohere: { url: 'https://cohere.com/', pypi: 'cohere' },
-	Haystack: { url: 'https://haystack.deepset.ai/', pypi: 'haystack' },
+	Haystack: { url: 'https://haystack.deepset.ai/', pypi: 'haystack-ai' },
 	Langchain: { url: 'https://www.langchain.com/', pypi: 'langchain' },
 	LlamaIndex: { url: 'https://www.llamaindex.ai/', pypi: 'llamaindex' },
 	'OpenAI (Azure)': { url: 'https://openai.com/', pypi: 'openai' },
