@@ -4,7 +4,12 @@ import time
 
 import highlight_io
 
-H = highlight_io.H("1", instrument_logging=True, otlp_endpoint="http://localhost:4318", service_name='manual')
+H = highlight_io.H(
+    "1",
+    instrument_logging=True,
+    otlp_endpoint="http://localhost:4318",
+    service_name="manual",
+)
 
 
 @highlight_io.trace
