@@ -89,8 +89,7 @@ narrow format, since each conversion incurs a CPU cost.
 ### Optimizing Order By Granularity
 
 If a table is ordered by columns with high granularity, this will result in increased sorting of data when ClickHouse is
-merging parts. For instance, we found that switching our `ORDER BY Timestamp` to an `ORDER BY TODO date_trunc(‘minute’,
-Timestamp)` reduced the CPU load of merging since everything within the same minute would be grouped into the same part
+merging parts. For instance, we found that switching our `ORDER BY Timestamp` to an `ORDER BY toStartOfSecond(Timestamp)` reduced the CPU load of merging since everything within the same minute would be grouped into the same part
 without having to be sorted. The tradeoff occurs with query performance – a granular `ORDER BY` means that a `SELECT`
 will load more parts that must be filtered and sorted, but this is well worth the reduced merging that must happen.
 
@@ -117,10 +116,11 @@ order by 3 desc;
 
 If you are inserting in large batches but are still seeing many high-level merges, you may want to
 adjust the `min_bytes_for_full_part_storage` setting. For instance,  
-setting `min_bytes_for_full_part_storage=4294967296` will ensure most parts are only merged as level 0 merges.
+setting `min_bytes_for_full_part_storage=0` will ensure most parts use `Full` storage which may
+be more efficient for future large merges as the `part_storage_type` data format will not have to be converted from `Packed` to `Full`.
 
 ```SQL
-ALTER TABLE my_table MODIFY SETTING min_bytes_for_full_part_storage = 4294967296;
+ALTER TABLE my_table MODIFY SETTING min_bytes_for_full_part_storage = 0;
 ```
 
 ### Avoiding Use of Projections
