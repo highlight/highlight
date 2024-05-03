@@ -80,7 +80,7 @@ def test_log_no_trace(mock_trace):
     logger.info(f"hey there!")
     h.flush()
 
-    assert mock_trace.call_args_list[0].args[1:] == ()
+    assert mock_trace.call_args_list[0].args[1:] == ("highlight.log",)
 
 
 def test_test_decorator(mock_trace):
@@ -93,4 +93,4 @@ def test_test_decorator(mock_trace):
     my_func()
     h.flush()
 
-    assert mock_trace.call_args_list[0].args[1:] == ()
+    assert mock_trace.call_args_list[0].args[1:] == ("highlight.log",)

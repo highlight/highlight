@@ -1,8 +1,23 @@
+import logging
+import random
+
 import azure.functions as func
 import pytest
 
-from e2e.highlight_azure.HttpTrigger import main
 from highlight_io import H
+from highlight_io.integrations.azure import observe_handler
+
+
+@observe_handler
+def main(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info("Python HTTP trigger function processed a request.")
+
+    if random.random() < 0.2:
+        raise ValueError("oh no!")
+
+    return func.HttpResponse(
+        f"Hello! This HTTP triggered function executed successfully."
+    )
 
 
 def test_azure(mocker):
@@ -20,4 +35,6 @@ def test_azure(mocker):
     with pytest.raises(expected_exception=ValueError):
         main(req)
 
-    mock_trace.assert_called_with(H.get_instance(), "a1b2c3", "1234")
+    mock_trace.assert_called_with(
+        H.get_instance(), "observe_serverless", "a1b2c3", "1234"
+    )

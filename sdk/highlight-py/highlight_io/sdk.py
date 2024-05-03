@@ -27,6 +27,7 @@ from opentelemetry.semconv.trace import SpanAttributes
 from opentelemetry.trace import INVALID_SPAN
 
 from highlight_io.integrations import Integration
+from highlight_io.integrations.all import DEFAULT_INTEGRATIONS
 from highlight_io.utils.lru_cache import LRUCache
 
 
