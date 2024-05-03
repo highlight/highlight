@@ -40,7 +40,7 @@ jobs:
             - name: Build
               run: poetry build
             - name: Validate PyProject
-              working-directory: ./e2e/python
+              working-directory: ./e2e/python/setuptools
               run: |
                   python -m pip install -U pip-tools;
                   python -m piptools compile --upgrade pyproject.toml;
