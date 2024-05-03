@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "openllmetry"
+version = "0.1.0"
+description = ""
+authors = ["Vadim Korolik <vkorolik@gmail.com>"]
+license = "Apache 2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+highlight-io = {path = "../../sdk/highlight-py"}
+flask = "^3.0.3"
+openai = "^1.25.1"
+opentelemetry-instrumentation-openai = "^0.17.1"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.4.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
