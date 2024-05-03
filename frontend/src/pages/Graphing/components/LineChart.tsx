@@ -120,6 +120,37 @@ export const LineChart = ({
 							return null
 						}
 
+						const CustomizedDot = (props: any) => {
+							if (
+								viewConfig.nullHandling !== 'Hidden' &&
+								viewConfig.nullHandling !== undefined
+							) {
+								return null
+							}
+
+							const { cx, cy, stroke, index } = props
+
+							const prev = (data?.at(index - 1) ?? {})[key]
+							const cur = (data?.at(index) ?? {})[key]
+							const next = (data?.at(index + 1) ?? {})[key]
+
+							// Draw a dot if discontinuous at this point
+							if (
+								cur !== null &&
+								(prev === null || next === null)
+							) {
+								return (
+									<svg x={cx - 2} y={cy - 2}>
+										<g transform="translate(2 2)">
+											<circle r="2" fill={stroke} />
+										</g>
+									</svg>
+								)
+							}
+
+							return null
+						}
+
 						return (
 							<Area
 								isAnimationActive={false}
@@ -141,6 +172,7 @@ export const LineChart = ({
 								connectNulls={
 									viewConfig.nullHandling === 'Connected'
 								}
+								dot={<CustomizedDot />}
 							/>
 						)
 					})}
