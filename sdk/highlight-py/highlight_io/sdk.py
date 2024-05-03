@@ -500,9 +500,9 @@ class H(object):
 
 
 def trace(func):
-    def wrapper():
+    def wrapper(*args, **kwargs):
         with H.get_instance().trace(span_name=func.__name__):
-            return func()
+            return func(*args, **kwargs)
 
     return wrapper
 
