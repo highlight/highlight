@@ -7461,6 +7461,8 @@ body {
   flex-direction: column;
   gap: 6px;
   padding: 8px;
+  max-height: 180px;
+  overflow-y: auto;
 }
 .dg2vg69 {
   line-height: 16px;
