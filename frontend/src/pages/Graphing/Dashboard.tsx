@@ -43,6 +43,7 @@ import { GetVisualizationQuery } from '@/graph/generated/operations'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { DashboardCard } from '@/pages/Graphing/components/DashboardCard'
+import { EmptyDashboardCallout } from '@/pages/Graphing/components/EmptyDashboardCallout'
 import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
 import { useParams } from '@/util/react-router/useParams'
 
@@ -107,10 +108,12 @@ export const Dashboard = () => {
 
 	const [deleteGraph] = useDeleteGraphMutation()
 
+	const noGraphs = graphs?.length === 0
+
 	return (
 		<>
 			<Helmet>
-				<title>{name}</title>
+				<title>Dashboard</title>
 			</Helmet>
 			<Box
 				background="n2"
@@ -311,191 +314,200 @@ export const Dashboard = () => {
 							)}
 						</Box>
 					</Box>
-					<Box
-						display="flex"
-						flexDirection="row"
-						justifyContent="space-between"
-						height="full"
-						cssClass={style.dashboardContent}
-					>
+					{noGraphs ? (
+						<EmptyDashboardCallout />
+					) : (
 						<Box
 							display="flex"
-							position="relative"
-							width="full"
+							flexDirection="row"
+							justifyContent="space-between"
 							height="full"
+							cssClass={style.dashboardContent}
 						>
 							<Box
-								cssClass={clsx(style.graphGrid, {
-									[style.gridEditing]: editing,
-								})}
+								display="flex"
+								position="relative"
+								width="full"
+								height="full"
 							>
-								<DndContext
-									sensors={sensors}
-									collisionDetection={closestCenter}
-									onDragEnd={handleDragEnd}
+								<Box
+									cssClass={clsx(style.graphGrid, {
+										[style.gridEditing]: editing,
+									})}
 								>
-									<SortableContext
-										items={graphs ?? []}
-										strategy={rectSortingStrategy}
-										disabled={!editing}
+									<DndContext
+										sensors={sensors}
+										collisionDetection={closestCenter}
+										onDragEnd={handleDragEnd}
 									>
-										{graphs?.map((g) => {
-											const isTemp =
-												g.id.startsWith('temp-')
-											return (
-												<DashboardCard
-													id={g.id}
-													key={g.id}
-													editing={editing}
-												>
-													<Graph
-														title={g.title}
-														viewConfig={getViewConfig(
-															g.type,
-															g.display ??
-																undefined,
-															g.nullHandling ??
-																undefined,
-														)}
-														productType={
-															g.productType
-														}
-														projectId={projectId}
-														startDate={startDate}
-														endDate={endDate}
-														query={g.query}
-														metric={g.metric}
-														functionType={
-															g.functionType
-														}
-														bucketByKey={
-															g.bucketByKey ??
-															undefined
-														}
-														bucketCount={
-															g.bucketCount ??
-															undefined
-														}
-														groupByKey={
-															g.groupByKey ??
-															undefined
-														}
-														limit={
-															g.limit ?? undefined
-														}
-														limitFunctionType={
-															g.limitFunctionType ??
-															undefined
-														}
-														limitMetric={
-															g.limitMetric ??
-															undefined
-														}
-														onDelete={
-															isTemp
-																? undefined
-																: () => {
-																		deleteGraph(
-																			{
-																				variables:
-																					{
-																						id: g.id,
-																					},
-																				optimisticResponse:
-																					{
-																						deleteGraph:
-																							true,
-																					},
-																				update(
-																					cache,
-																				) {
-																					const vizId =
-																						cache.identify(
-																							{
-																								id: dashboard_id,
-																								__typename:
-																									'Visualization',
-																							},
-																						)
-																					const graphId =
-																						cache.identify(
-																							{
-																								id: g.id,
-																								__typename:
-																									'Graph',
-																							},
-																						)
-																					cache.modify(
+										<SortableContext
+											items={graphs ?? []}
+											strategy={rectSortingStrategy}
+											disabled={!editing}
+										>
+											{graphs?.map((g) => {
+												const isTemp =
+													g.id.startsWith('temp-')
+												return (
+													<DashboardCard
+														id={g.id}
+														key={g.id}
+														editing={editing}
+													>
+														<Graph
+															title={g.title}
+															viewConfig={getViewConfig(
+																g.type,
+																g.display ??
+																	undefined,
+																g.nullHandling ??
+																	undefined,
+															)}
+															productType={
+																g.productType
+															}
+															projectId={
+																projectId
+															}
+															startDate={
+																startDate
+															}
+															endDate={endDate}
+															query={g.query}
+															metric={g.metric}
+															functionType={
+																g.functionType
+															}
+															bucketByKey={
+																g.bucketByKey ??
+																undefined
+															}
+															bucketCount={
+																g.bucketCount ??
+																undefined
+															}
+															groupByKey={
+																g.groupByKey ??
+																undefined
+															}
+															limit={
+																g.limit ??
+																undefined
+															}
+															limitFunctionType={
+																g.limitFunctionType ??
+																undefined
+															}
+															limitMetric={
+																g.limitMetric ??
+																undefined
+															}
+															onDelete={
+																isTemp
+																	? undefined
+																	: () => {
+																			deleteGraph(
+																				{
+																					variables:
 																						{
-																							id: vizId,
-																							fields: {
-																								graphs(
-																									existing: any[] = [],
-																								) {
-																									const filtered =
-																										existing.filter(
-																											(
-																												e: any,
-																											) =>
-																												e.__ref !==
-																												graphId,
-																										)
-																									return filtered
+																							id: g.id,
+																						},
+																					optimisticResponse:
+																						{
+																							deleteGraph:
+																								true,
+																						},
+																					update(
+																						cache,
+																					) {
+																						const vizId =
+																							cache.identify(
+																								{
+																									id: dashboard_id,
+																									__typename:
+																										'Visualization',
+																								},
+																							)
+																						const graphId =
+																							cache.identify(
+																								{
+																									id: g.id,
+																									__typename:
+																										'Graph',
+																								},
+																							)
+																						cache.modify(
+																							{
+																								id: vizId,
+																								fields: {
+																									graphs(
+																										existing: any[] = [],
+																									) {
+																										const filtered =
+																											existing.filter(
+																												(
+																													e: any,
+																												) =>
+																													e.__ref !==
+																													graphId,
+																											)
+																										return filtered
+																									},
 																								},
 																							},
-																						},
-																					)
+																						)
+																					},
 																				},
-																			},
-																		)
-																			.then(
-																				() =>
-																					message.success(
-																						'Metric view deleted',
-																					),
 																			)
-																			.catch(
-																				() =>
-																					message.error(
-																						'Failed to delete metric view',
-																					),
+																				.then(
+																					() =>
+																						message.success(
+																							'Metric view deleted',
+																						),
+																				)
+																				.catch(
+																					() =>
+																						message.error(
+																							'Failed to delete metric view',
+																						),
+																				)
+																	  }
+															}
+															onExpand={
+																isTemp
+																	? undefined
+																	: () => {
+																			navigate(
+																				{
+																					pathname: `view/${g.id}`,
+																					search: location.search,
+																				},
 																			)
-																  }
-														}
-														onExpand={
-															isTemp
-																? undefined
-																: () => {
-																		navigate(
-																			{
-																				pathname: `view/${g.id}`,
-																				search: location.search,
-																			},
-																		)
-																  }
-														}
-														onEdit={
-															isTemp
-																? undefined
-																: () => {
-																		navigate(
-																			{
-																				pathname: `edit/${g.id}`,
-																				search: location.search,
-																			},
-																		)
-																  }
-														}
-														disabled={editing}
-													/>
-												</DashboardCard>
-											)
-										})}
-									</SortableContext>
-								</DndContext>
+																	  }
+															}
+															onEdit={
+																isTemp
+																	? undefined
+																	: () => {
+																			navigate(
+																				{
+																					pathname: `edit/${g.id}`,
+																					search: location.search,
+																				},
+																			)
+																	  }
+															}
+															disabled={editing}
+														/>
+													</DashboardCard>
+												)
+											})}
+										</SortableContext>
+									</DndContext>
+								</Box>
 							</Box>
 						</Box>
-					</Box>
+					)}
 				</Box>
 			</Box>
 		</>

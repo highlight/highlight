@@ -15,6 +15,7 @@ import {
 import { message } from 'antd'
 import moment from 'moment'
 import React, { useState } from 'react'
+import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
@@ -67,121 +68,126 @@ export default function DashboardOverview() {
 	const navigate = useNavigate()
 
 	return (
-		<Box width="full" background="raised" p="8">
-			<CreateDashboardModal
-				showModal={showModal}
-				onHideModal={() => {
-					setShowModal(false)
-				}}
-				afterCreateHandler={(id) => {
-					navigate(id)
-				}}
-			/>
-			<Box
-				border="dividerWeak"
-				borderRadius="6"
-				width="full"
-				shadow="medium"
-				background="default"
-				display="flex"
-				flexDirection="column"
-				height="full"
-			>
-				<Container display="flex" flexDirection="column" gap="24">
-					<Box
-						style={{ maxWidth: 560 }}
-						my="40"
-						mx="auto"
-						width="full"
-					>
-						<Stack gap="24" width="full">
-							<Stack gap="16" direction="column" width="full">
-								<Heading mt="16" level="h4">
-									Metrics
-								</Heading>
-								<Text
-									weight="medium"
-									size="small"
-									color="default"
-								>
-									Metrics allow you to visualize what's
-									happening in your app.
-								</Text>
-							</Stack>
-							<Stack gap="8" width="full">
-								<Box
-									display="flex"
-									justifyContent="space-between"
-									alignItems="center"
-									width="full"
-								>
+		<>
+			<Helmet>
+				<title>Metrics</title>
+			</Helmet>
+			<Box width="full" background="raised" p="8">
+				<CreateDashboardModal
+					showModal={showModal}
+					onHideModal={() => {
+						setShowModal(false)
+					}}
+					afterCreateHandler={(id) => {
+						navigate(id)
+					}}
+				/>
+				<Box
+					border="dividerWeak"
+					borderRadius="6"
+					width="full"
+					shadow="medium"
+					background="default"
+					display="flex"
+					flexDirection="column"
+					height="full"
+				>
+					<Container display="flex" flexDirection="column" gap="24">
+						<Box
+							style={{ maxWidth: 560 }}
+							my="40"
+							mx="auto"
+							width="full"
+						>
+							<Stack gap="24" width="full">
+								<Stack gap="16" direction="column" width="full">
+									<Heading mt="16" level="h4">
+										Metrics
+									</Heading>
 									<Text
-										weight="bold"
+										weight="medium"
 										size="small"
-										color="strong"
+										color="default"
 									>
-										All dashboards
+										Metrics allow you to visualize what's
+										happening in your app.
 									</Text>
-									<Button
-										onClick={() => {
-											setShowModal(true)
-										}}
+								</Stack>
+								<Stack gap="8" width="full">
+									<Box
+										display="flex"
+										justifyContent="space-between"
+										alignItems="center"
+										width="full"
 									>
-										Create new dashboard
-									</Button>
-								</Box>
-								<Table withSearch>
-									<Table.Search
-										placeholder="Search..."
-										handleChange={(e) => {
-											setQuery(e.target.value)
-										}}
-									/>
-									<Table.Body>
-										<DashboardRows
-											data={data}
-											loading={loading}
-										/>
-									</Table.Body>
-								</Table>
-								<Box
-									display="flex"
-									justifyContent="space-between"
-									alignItems="center"
-								>
-									<Text size="xSmall" color="weak">
-										{loading ? '-' : count} result
-										{count !== 1 ? 's' : ''}
-									</Text>
-									<Box display="flex" gap="4">
-										<Button
-											disabled={!hasPrev || loading}
-											onClick={() => {
-												setPage((p) => p - 1)
-											}}
-											kind="secondary"
-											emphasis="high"
+										<Text
+											weight="bold"
+											size="small"
+											color="strong"
 										>
-											Previous
-										</Button>
+											All dashboards
+										</Text>
 										<Button
-											disabled={!hasNext || loading}
 											onClick={() => {
-												setPage((p) => p + 1)
+												setShowModal(true)
 											}}
-											kind="secondary"
-											emphasis="high"
 										>
-											Next
+											Create new dashboard
 										</Button>
 									</Box>
-								</Box>
+									<Table withSearch>
+										<Table.Search
+											placeholder="Search..."
+											handleChange={(e) => {
+												setQuery(e.target.value)
+											}}
+										/>
+										<Table.Body>
+											<DashboardRows
+												data={data}
+												loading={loading}
+											/>
+										</Table.Body>
+									</Table>
+									<Box
+										display="flex"
+										justifyContent="space-between"
+										alignItems="center"
+									>
+										<Text size="xSmall" color="weak">
+											{loading ? '-' : count} result
+											{count !== 1 ? 's' : ''}
+										</Text>
+										<Box display="flex" gap="4">
+											<Button
+												disabled={!hasPrev || loading}
+												onClick={() => {
+													setPage((p) => p - 1)
+												}}
+												kind="secondary"
+												emphasis="high"
+											>
+												Previous
+											</Button>
+											<Button
+												disabled={!hasNext || loading}
+												onClick={() => {
+													setPage((p) => p + 1)
+												}}
+												kind="secondary"
+												emphasis="high"
+											>
+												Next
+											</Button>
+										</Box>
+									</Box>
+								</Stack>
 							</Stack>
-						</Stack>
-					</Box>
-				</Container>
+						</Box>
+					</Container>
+				</Box>
 			</Box>
-		</Box>
+		</>
 	)
 }
 

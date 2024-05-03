@@ -21,3 +21,11 @@ export const scrollableBody = style({
 export const preventScroll = style({
 	overflowY: 'hidden',
 })
+
+export const firstCell = style({
+	minWidth: '106px',
+})
+
+export const tableRow = style({
+	overflow: 'hidden',
+})

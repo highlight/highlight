@@ -7401,6 +7401,12 @@ body {
 ._1s4anja3 {
   overflow-y: hidden;
 }
+._1s4anja4 {
+  min-width: 106px;
+}
+._1s4anja5 {
+  overflow: hidden;
+}
 .dg2vg60 {
   z-index: 2;
   backdrop-filter: grayscale(50%);

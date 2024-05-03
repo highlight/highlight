@@ -51,18 +51,24 @@ export const MetricTable = ({
 		<Box height="full" cssClass={style.tableWrapper}>
 			<Table noBorder className={style.fullHeight}>
 				<Table.Head>
-					<Table.Row>
+					<Table.Row className={style.tableRow}>
 						{showXAxisColumn && (
-							<Table.Header>{xAxisMetric}</Table.Header>
+							<Table.Header>
+								<Text lines="1" cssClass={style.firstCell}>
+									{xAxisMetric}
+								</Text>
+							</Table.Header>
 						)}
 						{series.map((s, i) => (
 							<Table.Header key={i}>
-								{showMetricFn
-									? getMetricDisplay(
-											yAxisMetric,
-											yAxisFunction,
-									  )
-									: s}
+								<Text lines="1">
+									{showMetricFn
+										? getMetricDisplay(
+												yAxisMetric,
+												yAxisFunction,
+										  )
+										: s}
+								</Text>
 							</Table.Header>
 						))}
 					</Table.Row>
@@ -86,10 +92,15 @@ export const MetricTable = ({
 							}
 
 							return (
-								<Table.Row key={i}>
+								<Table.Row key={i} className={style.tableRow}>
 									{showXAxisColumn && (
 										<Table.Cell key={i}>
-											<Text size="small" color="default">
+											<Text
+												size="small"
+												color="default"
+												lines="1"
+												cssClass={style.firstCell}
+											>
 												{xAxisTickFormatter(
 													d[xAxisMetric],
 												)}
@@ -123,6 +134,7 @@ export const MetricTable = ({
 												<Text
 													size="small"
 													color="default"
+													lines="1"
 												>
 													{value}
 												</Text>

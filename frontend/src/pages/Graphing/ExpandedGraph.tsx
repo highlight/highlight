@@ -51,7 +51,7 @@ export const ExpandedGraph = () => {
 	return (
 		<>
 			<Helmet>
-				<title>Edit Metric View</title>
+				<title>Dashboard</title>
 			</Helmet>
 			<Box
 				background="n2"
