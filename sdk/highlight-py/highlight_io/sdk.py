@@ -6,14 +6,6 @@ import sys
 import traceback
 import typing
 
-from highlight_io.integrations import Integration
-from highlight_io.integrations.boto import BotoIntegration
-from highlight_io.integrations.boto3sqs import Boto3SQSIntegration
-from highlight_io.integrations.celery import CeleryIntegration
-from highlight_io.integrations.redis import RedisIntegration
-from highlight_io.integrations.requests import RequestsIntegration
-from highlight_io.integrations.sqlalchemy import SQLAlchemyIntegration
-from highlight_io.utils.lru_cache import LRUCache
 from opentelemetry import trace as otel_trace, _logs
 from opentelemetry._logs.severity import std_to_otel
 from opentelemetry.baggage import set_baggage, get_baggage
@@ -34,13 +26,52 @@ from opentelemetry.semconv.resource import ResourceAttributes
 from opentelemetry.semconv.trace import SpanAttributes
 from opentelemetry.trace import INVALID_SPAN
 
+from highlight_io.integrations import Integration
+from highlight_io.integrations.anthropic import AnthropicIntegration
+from highlight_io.integrations.bedrock import BedrockIntegration
+from highlight_io.integrations.boto import BotoIntegration
+from highlight_io.integrations.boto3sqs import Boto3SQSIntegration
+from highlight_io.integrations.celery import CeleryIntegration
+from highlight_io.integrations.chromadb import ChromadbIntegration
+from highlight_io.integrations.cohere import CohereIntegration
+from highlight_io.integrations.haystack import HaystackIntegration
+from highlight_io.integrations.langchain import LangchainIntegration
+from highlight_io.integrations.llamaindex import LlamaIndexIntegration
+from highlight_io.integrations.openai import OpenAIIntegration
+from highlight_io.integrations.pinecone import PineconeIntegration
+from highlight_io.integrations.qdrant import QdrantInstrumentation
+from highlight_io.integrations.redis import RedisIntegration
+from highlight_io.integrations.replicate import ReplicateIntegration
+from highlight_io.integrations.requests import RequestsIntegration
+from highlight_io.integrations.sqlalchemy import SQLAlchemyIntegration
+from highlight_io.integrations.transformers import TransformersIntegration
+from highlight_io.integrations.vertexai import VertexAIIntegration
+from highlight_io.integrations.watsonx import WatsonXIntegration
+from highlight_io.integrations.weaviate import WeaviateIntegration
+from highlight_io.utils.lru_cache import LRUCache
+
 DEFAULT_INTEGRATIONS = [
-    BotoIntegration,
+    AnthropicIntegration,
+    BedrockIntegration,
     Boto3SQSIntegration,
+    BotoIntegration,
     CeleryIntegration,
+    ChromadbIntegration,
+    CohereIntegration,
+    HaystackIntegration,
+    LangchainIntegration,
+    LlamaIndexIntegration,
+    OpenAIIntegration,
+    PineconeIntegration,
+    QdrantInstrumentation,
     RedisIntegration,
+    ReplicateIntegration,
     RequestsIntegration,
     SQLAlchemyIntegration,
+    TransformersIntegration,
+    VertexAIIntegration,
+    WatsonXIntegration,
+    WeaviateIntegration,
 ]
 
 
@@ -251,6 +282,7 @@ class H(object):
         request_id: typing.Optional[str] = "",
         span_name: typing.Optional[str] = "highlight-ctx",
         attributes: typing.Optional[typing.Dict[str, any]] = None,
+        ctx: typing.Optional[Context] = None,
     ) -> Span:
         """
         Catch exceptions raised by your app using this context manager.
@@ -268,8 +300,9 @@ class H(object):
 
         :param session_id: the highlight session that initiated this network request.
         :param request_id: the identifier of the current network request.
-        :param attributes: additional attributes to attribute to this error.
         :param span_name: span name to record.
+        :param attributes: additional attributes to attribute to this error.
+        :param ctx: `opentelemetry.Context` for multithreaded trace context propagation.
         :return: Span
         """
         # in case the otel library is in a non-recording context, do nothing
@@ -278,7 +311,7 @@ class H(object):
             return
 
         with self.tracer.start_as_current_span(
-            span_name, record_exception=False, set_status_on_exception=False
+            span_name, record_exception=False, set_status_on_exception=False, ctx=ctx
         ) as span:
             span.set_attributes({"highlight.project_id": self._project_id})
             span.set_attributes({"highlight.session_id": session_id})

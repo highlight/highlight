@@ -25,7 +25,13 @@ classifiers = [
 packages = [{ include = "highlight_io" }]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<4"
+python = ">=3.9,<4"
+opentelemetry-api = "^1.24.0"
+opentelemetry-distro = "^0.45b0"
+opentelemetry-exporter-otlp-proto-http = "^1.24.0"
+opentelemetry-instrumentation = "^0.45b0"
+opentelemetry-proto = "^1.24.0"
+opentelemetry-sdk = "^1.24.0"
 blinker = { version = ">=1", optional = true }
 boto = { version = ">=2", optional = true }
 boto3 = { version = ">=1", optional = true }
@@ -33,22 +39,33 @@ celery = { version = ">=5", optional = true }
 django = { version = ">=3", optional = true }
 fastapi = { version = ">=0", optional = true }
 flask = { version = ">=2", optional = true }
-opentelemetry-api = "^1.24.0"
-opentelemetry-distro = "^0.45b0"
-opentelemetry-exporter-otlp-proto-http = "^1.24.0"
-opentelemetry-instrumentation = "^0.45b0"
-opentelemetry-instrumentation-boto = "^0.45b0"
-opentelemetry-instrumentation-boto3sqs = "^0.45b0"
-opentelemetry-instrumentation-celery = "^0.45b0"
-opentelemetry-instrumentation-logging = "^0.45b0"
-opentelemetry-instrumentation-redis = "^0.45b0"
-opentelemetry-instrumentation-requests = "^0.45b0"
-opentelemetry-instrumentation-sqlalchemy = "^0.45b0"
-opentelemetry-proto = "^1.24.0"
-opentelemetry-sdk = "^1.24.0"
 redis = { version = ">=5", optional = true }
 sqlalchemy = { version = ">=2", optional = true }
 uvicorn = {version = ">=0", extras = ["standard"], optional = true }
+
+[tool.poetry.group.instrumentations.dependencies]
+opentelemetry-instrumentation-anthropic = "^0.17.1"
+opentelemetry-instrumentation-bedrock = "^0.17.1"
+opentelemetry-instrumentation-boto = "^0.45b0"
+opentelemetry-instrumentation-boto3sqs = "^0.45b0"
+opentelemetry-instrumentation-celery = "^0.45b0"
+opentelemetry-instrumentation-chromadb = "^0.17.1"
+opentelemetry-instrumentation-cohere = "^0.17.1"
+opentelemetry-instrumentation-haystack = "^0.17.1"
+opentelemetry-instrumentation-langchain = "^0.17.1"
+opentelemetry-instrumentation-llamaindex = "^0.17.1"
+opentelemetry-instrumentation-logging = "^0.45b0"
+opentelemetry-instrumentation-openai = "^0.17.1"
+opentelemetry-instrumentation-pinecone = "^0.17.1"
+opentelemetry-instrumentation-qdrant = "^0.17.1"
+opentelemetry-instrumentation-redis = "^0.45b0"
+opentelemetry-instrumentation-replicate = "^0.17.1"
+opentelemetry-instrumentation-requests = "^0.45b0"
+opentelemetry-instrumentation-sqlalchemy = "^0.45b0"
+opentelemetry-instrumentation-transformers = "^0.17.1"
+opentelemetry-instrumentation-vertexai = "^0.17.1"
+opentelemetry-instrumentation-watsonx = "^0.17.1"
+opentelemetry-instrumentation-weaviate = "^0.17.1"
 
 [tool.poetry.group.dev.dependencies]
 azure-functions = ">=1"
@@ -62,14 +79,14 @@ loguru = ">=0"
 stripe = ">=6"
 
 [tool.poetry.extras]
-Boto = ["boto", "opentelemetry-instrumentation-boto"]
-Boto3SQS = ["boto3", "opentelemetry-instrumentation-boto3sqs"]
-Celery = ["celery", "opentelemetry-instrumentation-celery"]
+Boto = ["boto"]
+Boto3SQS = ["boto3"]
+Celery = ["celery"]
 Django = ["django"]
 FastAPI = ["fastapi", "uvicorn"]
 Flask = ["blinker", "flask"]
-Redis = ["redis", "opentelemetry-instrumentation-redis"]
-SQLAlchemy = ["sqlalchemy", "opentelemetry-instrumentation-sqlalchemy"]
+Redis = ["redis"]
+SQLAlchemy = ["sqlalchemy"]
 
 [build-system]
 requires = ["poetry-core"]
