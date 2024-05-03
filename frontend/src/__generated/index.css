@@ -6545,6 +6545,22 @@ body {
 ._1yp8bvx1 {
   filter: grayscale(0.5);
 }
+.tibghc0 {
+  cursor: col-resize;
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  transition: background-color 0.3s;
+  width: 4px;
+  z-index: 1;
+}
+.tibghc0:hover {
+  background-color: var(--_1pyqka91m);
+}
+.tibghc0:focus {
+  background-color: var(--_1pyqka91m);
+}
 ._9rz0ta0 {
   border: none;
 }

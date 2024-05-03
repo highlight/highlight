@@ -73,7 +73,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 
 	const [selectedColumns, setSelectedColumns] = useLocalStorage(
-		`highlight-logs-table-columns`,
+		`highlight-logs-table-columns-v2`,
 		DEFAULT_LOG_COLUMNS,
 	)
 

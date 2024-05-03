@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import React from 'react'
+import React, { forwardRef } from 'react'
 
 import { Box, BoxProps } from '../Box/Box'
 import { Body } from './Body/Body'
@@ -20,28 +20,25 @@ type Props = {
 	withSearch?: boolean
 }
 
-const TableComponent: React.FC<Props> = ({
-	children,
-	className,
-	height,
-	noBorder,
-	withSearch,
-}) => {
-	return (
-		<Box
-			cssClass={clsx(styles.table, className, {
-				[styles.noBorder]: noBorder,
-				[styles.withSearch]: withSearch,
-			})}
-			height={height}
-			width="full"
-		>
-			{children}
-		</Box>
-	)
-}
+const TableComponent = forwardRef<HTMLDivElement, Props>(
+	({ children, className, height, noBorder, withSearch }, ref) => {
+		return (
+			<Box
+				cssClass={clsx(styles.table, className, {
+					[styles.noBorder]: noBorder,
+					[styles.withSearch]: withSearch,
+				})}
+				height={height}
+				width="full"
+				ref={ref}
+			>
+				{children}
+			</Box>
+		)
+	},
+)
 
-type TableWithComponents = React.FC<Props> & {
+type TableWithComponents = typeof TableComponent & {
 	Body: typeof Body
 	Cell: typeof Cell
 	Discoverable: typeof Discoverable

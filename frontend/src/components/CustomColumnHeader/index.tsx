@@ -1,8 +1,10 @@
 import { Box, Table, Text } from '@highlight-run/ui/components'
-import { useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { CustomColumnActions } from '@/components/CustomColumnActions'
 import { ValidCustomColumn } from '@/components/CustomColumnPopover'
+
+import * as styles from './styles.css'
 
 export type ColumnHeader = {
 	id: string
@@ -17,6 +19,7 @@ type Props = {
 	setSelectedColumns: (columns: ValidCustomColumn[]) => void
 	standardColumns: Record<string, ValidCustomColumn>
 	trackingIdPrefix: string
+	tableRef: React.RefObject<HTMLDivElement>
 }
 
 const MINIMUM_COLUMN_WIDTH = 50
@@ -27,6 +30,7 @@ export const CustomColumnHeader: React.FC<Props> = ({
 	setSelectedColumns,
 	standardColumns,
 	trackingIdPrefix,
+	tableRef,
 }) => {
 	const headerRef = useRef<HTMLDivElement>(null)
 
@@ -35,36 +39,75 @@ export const CustomColumnHeader: React.FC<Props> = ({
 		[selectedColumns, header.id],
 	)
 
-	const handleDrag = (e: React.MouseEvent) => {
-		const leftElementCoord = headerRef.current?.getBoundingClientRect()
-		const rightElementCoord =
-			headerRef.current?.nextElementSibling?.getBoundingClientRect()
+	const dragHandleRef = useRef<HTMLDivElement>(null)
+	const [dragging, setDragging] = useState(false)
 
-		if (
-			leftElementCoord &&
-			rightElementCoord &&
-			e.pageX > leftElementCoord.left + MINIMUM_COLUMN_WIDTH &&
-			e.pageX < rightElementCoord.right - MINIMUM_COLUMN_WIDTH
-		) {
-			const leftElementWidth = leftElementCoord.width
-			const rightElementWidth = rightElementCoord.width
-			const leftElementNewWidth = e.pageX - leftElementCoord.left
-			const rightElementNewWidth =
-				rightElementWidth - (leftElementNewWidth - leftElementWidth)
-
-			const newSelectedColumns = [...selectedColumns]
-			newSelectedColumns[columnIndex] = {
-				...newSelectedColumns[columnIndex],
-				size: `${leftElementNewWidth}px`,
+	const handleMouseMove = useCallback(
+		(e: MouseEvent) => {
+			if (!dragging) {
+				return
 			}
-			newSelectedColumns[columnIndex + 1] = {
-				...newSelectedColumns[columnIndex + 1],
-				size: `${rightElementNewWidth}px`,
-			}
+			e.stopPropagation()
+			e.preventDefault()
 
-			setSelectedColumns(newSelectedColumns)
+			const tableWidth = tableRef.current?.getBoundingClientRect().width
+			const leftElementCoord = headerRef.current?.getBoundingClientRect()
+			const rightElementCoord =
+				headerRef.current?.nextElementSibling?.getBoundingClientRect()
+
+			if (
+				tableWidth &&
+				leftElementCoord &&
+				rightElementCoord &&
+				e.pageX > leftElementCoord.left + MINIMUM_COLUMN_WIDTH &&
+				e.pageX < rightElementCoord.right - MINIMUM_COLUMN_WIDTH
+			) {
+				const leftElementWidth = leftElementCoord.width
+				const rightElementWidth = rightElementCoord.width
+
+				const leftElementNewWidth = e.pageX - leftElementCoord.left
+				const rightElementNewWidth =
+					rightElementWidth - (leftElementNewWidth - leftElementWidth)
+
+				const leftElementNewWidtPecentage =
+					(leftElementNewWidth / tableWidth) * 100
+				const rightElementNewWidthPercentage =
+					(rightElementNewWidth / tableWidth) * 100
+
+				const newSelectedColumns = [...selectedColumns]
+				newSelectedColumns[columnIndex] = {
+					...newSelectedColumns[columnIndex],
+					size: `${leftElementNewWidtPecentage}%`,
+				}
+				newSelectedColumns[columnIndex + 1] = {
+					...newSelectedColumns[columnIndex + 1],
+					size: `${rightElementNewWidthPercentage}%`,
+				}
+
+				setSelectedColumns(newSelectedColumns)
+			}
+		},
+		[columnIndex, dragging, selectedColumns, setSelectedColumns, tableRef],
+	)
+
+	const handleMouseUp = useCallback(() => {
+		setDragging(false)
+	}, [])
+
+	useEffect(() => {
+		if (dragging) {
+			window.addEventListener('mousemove', handleMouseMove, true)
+			window.addEventListener('mouseup', handleMouseUp, true)
+		} else {
+			window.removeEventListener('mousemove', handleMouseMove, true)
+			window.removeEventListener('mouseup', handleMouseUp, true)
 		}
-	}
+
+		return () => {
+			window.removeEventListener('mousemove', handleMouseMove, true)
+			window.removeEventListener('mouseup', handleMouseUp, true)
+		}
+	}, [dragging, handleMouseMove, handleMouseUp])
 
 	const resizeable =
 		header.showActions && columnIndex !== selectedColumns.length - 1
@@ -93,16 +136,12 @@ export const CustomColumnHeader: React.FC<Props> = ({
 			</Box>
 			{resizeable && (
 				<Box
-					style={{
-						position: 'absolute',
-						top: 0,
-						bottom: 0,
-						right: 0,
-						width: 3,
-						cursor: 'col-resize',
+					ref={dragHandleRef}
+					cssClass={styles.panelDragHandle}
+					onMouseDown={(e) => {
+						e.preventDefault()
+						setDragging(true)
 					}}
-					draggable
-					onDrag={handleDrag}
 				/>
 			)}
 		</Table.Header>

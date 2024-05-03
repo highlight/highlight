@@ -147,6 +147,7 @@ const LogsTableInner = ({
 	setSelectedColumns,
 }: LogsTableInnerProps) => {
 	const bodyRef = useRef<HTMLDivElement>(null)
+	const tableRef = useRef<HTMLDivElement>(null)
 	const enableFetchMoreLogs =
 		!!moreLogs && !!clearMoreLogs && !!handleAdditionalLogsDateChange
 
@@ -313,7 +314,7 @@ const LogsTableInner = ({
 	}
 
 	return (
-		<Table height="full" noBorder>
+		<Table ref={tableRef} height="full" noBorder>
 			<Table.Head>
 				<Table.Row gridColumns={columnData.gridColumns}>
 					{columnData.columnHeaders.map((header) => (
@@ -324,6 +325,7 @@ const LogsTableInner = ({
 							setSelectedColumns={setSelectedColumns!}
 							standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
 							trackingIdPrefix="LogsTableColumn"
+							tableRef={tableRef}
 						/>
 					))}
 				</Table.Row>

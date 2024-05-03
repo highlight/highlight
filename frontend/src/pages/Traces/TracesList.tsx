@@ -65,10 +65,11 @@ export const TracesList: React.FC<Props> = ({
 	loadingAfter,
 	textAreaRef,
 }) => {
+	const tableRef = useRef<HTMLDivElement>(null)
 	const { resource } = useRelatedResource()
 	const trace = resource as RelatedTrace
 	const [selectedColumns, setSelectedColumns] = useLocalStorage(
-		`highlight-traces-table-columns`,
+		`highlight-traces-table-columns-v2`,
 		DEFAULT_TRACE_COLUMNS,
 	)
 
@@ -240,7 +241,7 @@ export const TracesList: React.FC<Props> = ({
 	}
 
 	return (
-		<Table height="full" noBorder>
+		<Table ref={tableRef} height="full" noBorder>
 			<Table.Head>
 				<Table.Row gridColumns={columnData.gridColumns}>
 					{columnData.columnHeaders.map((header) => (
@@ -251,6 +252,7 @@ export const TracesList: React.FC<Props> = ({
 							setSelectedColumns={setSelectedColumns!}
 							standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
 							trackingIdPrefix="TracesTableColumn"
+							tableRef={tableRef}
 						/>
 					))}
 				</Table.Row>
