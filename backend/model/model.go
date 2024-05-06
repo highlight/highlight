@@ -1329,9 +1329,9 @@ type IntegrationWorkspaceMapping struct {
 }
 
 type IntegrationProjectMapping struct {
-	IntegrationType modelInputs.IntegrationType `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type"`
+	IntegrationType modelInputs.IntegrationType `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type;uniqueIndex:idx_integration_project_mapping_integration_type_external_id"`
 	ProjectID       int                         `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type"`
-	ExternalID      string
+	ExternalID      string                      `gorm:"uniqueIndex:idx_integration_project_mapping_integration_type_external_id"`
 }
 
 type OAuthClientStore struct {
