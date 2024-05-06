@@ -714,20 +714,6 @@ func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*mo
 	return segment, nil
 }
 
-func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_id int) (*model.ErrorSegment, error) {
-	authSpan, ctx := util.StartSpanFromContext(ctx, "isAdminErrorSegmentOwner", util.ResourceName("resolver.internal.auth"))
-	defer authSpan.Finish()
-	segment := &model.ErrorSegment{}
-	if err := r.DB.WithContext(ctx).Where("id = ?", error_segment_id).Take(&segment).Error; err != nil {
-		return nil, e.Wrap(err, "error querying error segment")
-	}
-	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
-	if err != nil {
-		return nil, err
-	}
-	return segment, nil
-}
-
 func (r *Resolver) isAdminSavedSegmentOwner(ctx context.Context, segment_id int) (*model.SavedSegment, error) {
 	authSpan, ctx := util.StartSpanFromContext(ctx, "isAdminSavedSegmentOwner", util.ResourceName("resolver.internal.auth"))
 	defer authSpan.Finish()

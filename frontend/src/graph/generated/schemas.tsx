@@ -600,14 +600,6 @@ export type ErrorResults = {
 	totalCount: Scalars['Int64']
 }
 
-export type ErrorSegment = {
-	__typename?: 'ErrorSegment'
-	id: Scalars['ID']
-	name: Scalars['String']
-	params: SearchParams
-	project_id: Scalars['ID']
-}
-
 export enum ErrorState {
 	Ignored = 'IGNORED',
 	Open = 'OPEN',
@@ -1118,7 +1110,6 @@ export type Mutation = {
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
 	createErrorCommentForExistingIssue?: Maybe<ErrorComment>
-	createErrorSegment?: Maybe<ErrorSegment>
 	createErrorTag: ErrorTag
 	createIssueForErrorComment?: Maybe<ErrorComment>
 	createIssueForSessionComment?: Maybe<SessionComment>
@@ -1137,7 +1128,6 @@ export type Mutation = {
 	deleteDashboard: Scalars['Boolean']
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteErrorComment?: Maybe<Scalars['Boolean']>
-	deleteErrorSegment?: Maybe<Scalars['Boolean']>
 	deleteGraph: Scalars['Boolean']
 	deleteInviteLinkFromWorkspace: Scalars['Boolean']
 	deleteLogAlert?: Maybe<LogAlert>
@@ -1149,7 +1139,6 @@ export type Mutation = {
 	deleteSessionComment?: Maybe<Scalars['Boolean']>
 	deleteSessions: Scalars['Boolean']
 	deleteVisualization: Scalars['Boolean']
-	editErrorSegment?: Maybe<Scalars['Boolean']>
 	editProject?: Maybe<Project>
 	editProjectSettings?: Maybe<AllProjectSettings>
 	editSavedSegment?: Maybe<Scalars['Boolean']>
@@ -1275,12 +1264,6 @@ export type MutationCreateErrorCommentForExistingIssueArgs = {
 	tagged_slack_users: Array<InputMaybe<SanitizedSlackChannelInput>>
 	text: Scalars['String']
 	text_for_email: Scalars['String']
-}
-
-export type MutationCreateErrorSegmentArgs = {
-	name: Scalars['String']
-	project_id: Scalars['ID']
-	query: Scalars['String']
 }
 
 export type MutationCreateErrorTagArgs = {
@@ -1433,10 +1416,6 @@ export type MutationDeleteErrorCommentArgs = {
 	id: Scalars['ID']
 }
 
-export type MutationDeleteErrorSegmentArgs = {
-	segment_id: Scalars['ID']
-}
-
 export type MutationDeleteGraphArgs = {
 	id: Scalars['ID']
 }
@@ -1485,13 +1464,6 @@ export type MutationDeleteSessionsArgs = {
 
 export type MutationDeleteVisualizationArgs = {
 	id: Scalars['ID']
-}
-
-export type MutationEditErrorSegmentArgs = {
-	id: Scalars['ID']
-	name: Scalars['String']
-	project_id: Scalars['ID']
-	query: Scalars['String']
 }
 
 export type MutationEditProjectArgs = {
@@ -2006,7 +1978,6 @@ export type Query = {
 	error_object_for_log?: Maybe<ErrorObject>
 	error_objects: ErrorObjectResults
 	error_resolution_suggestion: Scalars['String']
-	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	error_tags?: Maybe<Array<Maybe<ErrorTag>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram: ErrorsHistogram
@@ -2321,10 +2292,6 @@ export type QueryError_ObjectsArgs = {
 
 export type QueryError_Resolution_SuggestionArgs = {
 	error_object_id: Scalars['ID']
-}
-
-export type QueryError_SegmentsArgs = {
-	project_id: Scalars['ID']
 }
 
 export type QueryErrorsArgs = {

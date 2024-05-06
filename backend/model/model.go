@@ -139,7 +139,6 @@ var Models = []interface{}{
 	&ErrorGroup{},
 	&ErrorGroupEmbeddings{},
 	&ErrorField{},
-	&ErrorSegment{},
 	&SavedSegment{},
 	&Organization{},
 	&Segment{},
@@ -1020,12 +1019,7 @@ type ErrorSearchParams struct {
 	State      *modelInputs.ErrorState `json:"state"`
 	Query      *string                 `json:"query"`
 }
-type ErrorSegment struct {
-	Model
-	Name      *string
-	Params    *string `json:"params"`
-	ProjectID int     `json:"project_id"`
-}
+
 type ErrorGroupingMethod string
 
 const (
