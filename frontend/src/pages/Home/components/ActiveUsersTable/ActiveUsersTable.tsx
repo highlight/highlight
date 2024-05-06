@@ -105,7 +105,7 @@ const ActiveUsersTable = ({
 
 						navigate({
 							pathname: `/${projectIdRemapped}/sessions`,
-							search: `query=${userParam}=displayName`,
+							search: `query=${userParam}=${displayName}`,
 						})
 
 						message.success(`Showing sessions for ${displayName}`)
