@@ -623,13 +623,6 @@ type Segment {
 	project_id: ID!
 }
 
-type ErrorSegment {
-	id: ID!
-	name: String!
-	params: SearchParams!
-	project_id: ID!
-}
-
 type SavedSegment {
 	id: ID!
 	name: String!
@@ -2180,7 +2173,6 @@ type Query {
 	admin_role(workspace_id: ID!): WorkspaceAdminRole
 	admin_role_by_project(project_id: ID!): WorkspaceAdminRole
 	segments(project_id: ID!): [Segment]
-	error_segments(project_id: ID!): [ErrorSegment]
 	saved_segments(
 		project_id: ID!
 		entity_type: SavedSegmentEntityType!
@@ -2479,18 +2471,6 @@ type Mutation {
 		name: String!
 	): Boolean
 	deleteSegment(segment_id: ID!): Boolean
-	createErrorSegment(
-		project_id: ID!
-		name: String!
-		query: String!
-	): ErrorSegment
-	editErrorSegment(
-		id: ID!
-		project_id: ID!
-		query: String!
-		name: String!
-	): Boolean
-	deleteErrorSegment(segment_id: ID!): Boolean
 	createSavedSegment(
 		project_id: ID!
 		name: String!
