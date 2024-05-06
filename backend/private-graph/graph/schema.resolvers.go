@@ -6597,33 +6597,6 @@ group by 1 order by num_sessions desc;
 	return results, nil
 }
 
-// FieldTypesClickhouse is the resolver for the field_types_clickhouse field.
-func (r *queryResolver) FieldTypesClickhouse(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, nil
-	}
-	return r.ClickhouseClient.QueryFieldNames(ctx, projectID, startDate, endDate)
-}
-
-// FieldsClickhouse is the resolver for the fields_clickhouse field.
-func (r *queryResolver) FieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, nil
-	}
-	return r.ClickhouseClient.QueryFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
-}
-
-// ErrorFieldsClickhouse is the resolver for the error_fields_clickhouse field.
-func (r *queryResolver) ErrorFieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, nil
-	}
-	return r.ClickhouseClient.QueryErrorFieldValues(ctx, projectID, count, fieldName, query, startDate, endDate)
-}
-
 // BillingDetailsForProject is the resolver for the billingDetailsForProject field.
 func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -7179,20 +7152,6 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int
 		return nil, e.Wrap(err, "error querying field suggestion")
 	}
 	return fields, nil
-}
-
-// AppVersionSuggestion is the resolver for the app_version_suggestion field.
-func (r *queryResolver) AppVersionSuggestion(ctx context.Context, projectID int) ([]*string, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-	appVersions := []*string{}
-
-	if err := r.DB.WithContext(ctx).Raw("SELECT DISTINCT app_version FROM sessions WHERE app_version IS NOT NULL AND project_id = ?", projectID).Find(&appVersions).Error; err != nil {
-		return nil, e.Wrap(err, "error getting app version suggestions")
-	}
-
-	return appVersions, nil
 }
 
 // IdentifierSuggestion is the resolver for the identifier_suggestion field.

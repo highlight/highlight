@@ -516,61 +516,6 @@ query GetWebSocketEvents($session_secure_id: String!) {
 	websocket_events(session_secure_id: $session_secure_id)
 }
 
-query GetFieldTypesClickhouse(
-	$project_id: ID!
-	$start_date: Timestamp!
-	$end_date: Timestamp!
-) {
-	field_types: field_types_clickhouse(
-		project_id: $project_id
-		start_date: $start_date
-		end_date: $end_date
-	) {
-		type
-		name
-	}
-}
-
-query GetFieldsClickhouse(
-	$project_id: ID!
-	$count: Int!
-	$field_type: String!
-	$field_name: String!
-	$query: String!
-	$start_date: Timestamp!
-	$end_date: Timestamp!
-) {
-	fields_clickhouse(
-		project_id: $project_id
-		count: $count
-		field_type: $field_type
-		field_name: $field_name
-		query: $query
-		start_date: $start_date
-		end_date: $end_date
-	)
-}
-
-query GetErrorFieldsClickhouse(
-	$project_id: ID!
-	$count: Int!
-	$field_type: String!
-	$field_name: String!
-	$query: String!
-	$start_date: Timestamp!
-	$end_date: Timestamp!
-) {
-	error_fields_clickhouse(
-		project_id: $project_id
-		count: $count
-		field_type: $field_type
-		field_name: $field_name
-		query: $query
-		start_date: $start_date
-		end_date: $end_date
-	)
-}
-
 query GetSessions(
 	$project_id: ID!
 	$count: Int!
@@ -1271,10 +1216,6 @@ query GetEnvironments($project_id: ID!) {
 		name
 		value
 	}
-}
-
-query GetAppVersions($project_id: ID!) {
-	app_version_suggestion(project_id: $project_id)
 }
 
 query GetProjectSuggestion($query: String!) {

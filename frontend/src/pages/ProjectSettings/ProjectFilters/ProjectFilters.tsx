@@ -1,11 +1,6 @@
 import { Button } from '@components/Button'
-import {
-	BOOLEAN_OPERATORS,
-	Operator,
-} from '@components/QueryBuilder/QueryBuilder'
 import { TIME_FORMAT } from '@components/Search/SearchForm/constants'
 import { SearchForm } from '@components/Search/SearchForm/SearchForm'
-import { useGetBaseSearchContext } from '@context/SearchState'
 import {
 	useEditProjectSettingsMutation,
 	useGetBillingDetailsForProjectQuery,
@@ -39,23 +34,14 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
-import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import ErrorQueryBuilder, {
-	CUSTOM_FIELDS as ERROR_CUSTOM_FIELDS,
-} from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
-import { SearchContextProvider } from '@pages/Sessions/SearchContext/SearchContext'
-import SessionQueryBuilder, {
-	CUSTOM_FIELDS,
-} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
-import { buildQueryStateString } from '@util/url/params'
 import { showSupportMessage } from '@util/window'
 import { message } from 'antd'
 import _, { upperFirst } from 'lodash'
 import moment from 'moment'
-import React, { useState } from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { SearchContext } from '@/components/Search/SearchContext'
@@ -167,27 +153,6 @@ export const ProjectProductFilters: React.FC<{
 			awaitRefetchQueries: true,
 		})
 
-	const sessionSearchContext = useGetBaseSearchContext(
-		'sessions',
-		`{"isAnd":true,"rules":[]}`,
-		'highlightSegmentPickerForProjectFilterSessionsSelectedSegmentId',
-		CUSTOM_FIELDS,
-	)
-	const { searchQuery, setSearchQuery } = sessionSearchContext
-	const errorSearchContext = useGetBaseSearchContext(
-		'errors',
-		`{"isAnd":true,"rules":[]}`,
-		'highlightSegmentPickerForProjectFilterErrorsSelectedSegmentId',
-		ERROR_CUSTOM_FIELDS,
-	)
-	const [searchResultSecureIds, setSearchResultSecureIds] = useState<
-		string[]
-	>([])
-	const {
-		searchQuery: errorSearchQuery,
-		setSearchQuery: setErrorSearchQuery,
-	} = errorSearchContext
-
 	const formStore = Form.useStore<{
 		samplingPercent: number
 		minuteRateLimit: number | null
@@ -264,66 +229,7 @@ export const ProjectProductFilters: React.FC<{
 			exclusionQuery: c?.exclusion_query ?? null,
 			minuteRateLimit: c?.minute_rate_limit ?? null,
 		})
-
-		if (
-			product === ProductType.Sessions ||
-			product === ProductType.Errors
-		) {
-			const params = {} as { [key: string]: string }
-			for (const pair of (c?.exclusion_query ?? '').split(' ')) {
-				const [key, value] = pair.split('=')
-				if (key && value) {
-					let op: Operator = 'is'
-					let k = key
-					if (k.endsWith('!')) {
-						op = 'is_not'
-						k = k.slice(0, -1)
-					}
-					params[
-						`${product.toLowerCase().slice(0, -1)}_${k}`
-					] = `${op}:${value}`
-				}
-			}
-			;(product === ProductType.Sessions
-				? setSearchQuery
-				: setErrorSearchQuery)(buildQueryStateString(params))
-		}
-	}, [
-		data?.projectSettings?.sampling,
-		formStore,
-		product,
-		setErrorSearchQuery,
-		setSearchQuery,
-	])
-
-	// updates the form state from the query builder context (for sessions / errors)
-	React.useEffect(() => {
-		if (
-			product === ProductType.Sessions ||
-			product === ProductType.Errors
-		) {
-			const rules = []
-			for (const [key, op, v] of JSON.parse(
-				product === ProductType.Sessions
-					? searchQuery
-					: product === ProductType.Errors
-					? errorSearchQuery
-					: JSON.stringify({ rules: [] }),
-			).rules as [key: string, op: Operator, v: string][]) {
-				const [_, k] = key.split(/_(.*)/s)
-				if (product === ProductType.Sessions && k === 'created_at')
-					continue
-				if (product === ProductType.Errors && k === 'timestamp')
-					continue
-				if (v.indexOf(' ') !== -1) {
-					rules.push(`${k}${op === 'is_not' ? '!' : ''}="${v}"`)
-				} else {
-					rules.push(`${k}${op === 'is_not' ? '!' : ''}=${v}`)
-				}
-			}
-			formStore.setValue('exclusionQuery', rules.join(' '))
-		}
-	}, [errorSearchQuery, formStore, product, searchQuery])
+	}, [data?.projectSettings?.sampling, formStore, product])
 
 	React.useEffect(resetConfig, [resetConfig])
 
@@ -456,71 +362,27 @@ export const ProjectProductFilters: React.FC<{
 				<Stack gap="6" py="6">
 					<Box display="flex" width="full" gap="6">
 						<Box width="full" style={{ minHeight: 20 }}>
-							{product === ProductType.Logs ||
-							product === ProductType.Traces ? (
-								<SearchContext
-									initialQuery={query}
-									onSubmit={(value: string) => {
-										formStore.setValue(
-											'exclusionQuery',
-											value,
-										)
-									}}
-									disabled={view}
-								>
-									<SearchForm
-										hideDatePicker
-										hideCreateAlert
-										startDate={dateRange.start}
-										endDate={dateRange.end}
-										onDatesChange={() => {}}
-										presets={[]}
-										minDate={moment()
-											.subtract(30, 'days')
-											.toDate()}
-										timeMode="fixed-range"
-										productType={product}
-									/>
-								</SearchContext>
-							) : product === ProductType.Sessions ? (
-								<SearchContextProvider
-									value={sessionSearchContext}
-								>
-									<SessionQueryBuilder
-										readonly={view}
-										operators={['is', 'is_not']}
-										customFields={CUSTOM_FIELDS.filter(
-											(f) =>
-												!f.options?.operators ||
-												f.options.operators ===
-													BOOLEAN_OPERATORS,
-										)}
-										droppedFieldTypes={['user', 'track']}
-										onlyAnd
-									/>
-								</SearchContextProvider>
-							) : (
-								<ErrorSearchContextProvider
-									value={{
-										...errorSearchContext,
-										searchResultSecureIds,
-										setSearchResultSecureIds,
-									}}
-								>
-									<ErrorQueryBuilder
-										readonly={view}
-										operators={['is', 'is_not']}
-										customFields={ERROR_CUSTOM_FIELDS.filter(
-											(f) =>
-												!f.options?.operators ||
-												f.options.operators ===
-													BOOLEAN_OPERATORS,
-										)}
-										droppedFieldTypes={['error']}
-										onlyAnd
-									/>
-								</ErrorSearchContextProvider>
-							)}
+							<SearchContext
+								initialQuery={query}
+								onSubmit={(value: string) => {
+									formStore.setValue('exclusionQuery', value)
+								}}
+								disabled={view}
+							>
+								<SearchForm
+									hideDatePicker
+									hideCreateAlert
+									startDate={dateRange.start}
+									endDate={dateRange.end}
+									onDatesChange={() => {}}
+									presets={[]}
+									minDate={moment()
+										.subtract(30, 'days')
+										.toDate()}
+									timeMode="fixed-range"
+									productType={product}
+								/>
+							</SearchContext>
 						</Box>
 						{view ? (
 							<FilterPaywall

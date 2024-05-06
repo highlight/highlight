@@ -1943,7 +1943,6 @@ export type Query = {
 	admin_role?: Maybe<WorkspaceAdminRole>
 	admin_role_by_project?: Maybe<WorkspaceAdminRole>
 	api_key_to_org_id?: Maybe<Scalars['ID']>
-	app_version_suggestion: Array<Maybe<Scalars['String']>>
 	averageSessionLength?: Maybe<AverageSessionLength>
 	billingDetails: BillingDetails
 	billingDetailsForProject?: Maybe<BillingDetails>
@@ -1968,7 +1967,6 @@ export type Query = {
 	error_comments_for_admin: Array<Maybe<ErrorComment>>
 	error_comments_for_project: Array<Maybe<ErrorComment>>
 	error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>
-	error_fields_clickhouse: Array<Scalars['String']>
 	error_group?: Maybe<ErrorGroup>
 	error_groups: ErrorResults
 	error_groups_clickhouse: ErrorResults
@@ -1990,8 +1988,6 @@ export type Query = {
 	events?: Maybe<Array<Maybe<Scalars['Any']>>>
 	existing_logs_traces: Array<Scalars['String']>
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
-	field_types_clickhouse: Array<Field>
-	fields_clickhouse: Array<Scalars['String']>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
 	github_issue_labels: Array<Scalars['String']>
@@ -2127,10 +2123,6 @@ export type QueryApi_Key_To_Org_IdArgs = {
 	api_key: Scalars['String']
 }
 
-export type QueryApp_Version_SuggestionArgs = {
-	project_id: Scalars['ID']
-}
-
 export type QueryAverageSessionLengthArgs = {
 	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
@@ -2234,16 +2226,6 @@ export type QueryError_Field_SuggestionArgs = {
 	name: Scalars['String']
 	project_id: Scalars['ID']
 	query: Scalars['String']
-}
-
-export type QueryError_Fields_ClickhouseArgs = {
-	count: Scalars['Int']
-	end_date: Scalars['Timestamp']
-	field_name: Scalars['String']
-	field_type: Scalars['String']
-	project_id: Scalars['ID']
-	query: Scalars['String']
-	start_date: Scalars['Timestamp']
 }
 
 export type QueryError_GroupArgs = {
@@ -2359,22 +2341,6 @@ export type QueryField_SuggestionArgs = {
 	name: Scalars['String']
 	project_id: Scalars['ID']
 	query: Scalars['String']
-}
-
-export type QueryField_Types_ClickhouseArgs = {
-	end_date: Scalars['Timestamp']
-	project_id: Scalars['ID']
-	start_date: Scalars['Timestamp']
-}
-
-export type QueryFields_ClickhouseArgs = {
-	count: Scalars['Int']
-	end_date: Scalars['Timestamp']
-	field_name: Scalars['String']
-	field_type: Scalars['String']
-	project_id: Scalars['ID']
-	query: Scalars['String']
-	start_date: Scalars['Timestamp']
 }
 
 export type QueryGenerate_Zapier_Access_TokenArgs = {

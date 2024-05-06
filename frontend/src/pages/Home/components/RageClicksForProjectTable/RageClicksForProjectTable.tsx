@@ -14,7 +14,6 @@ import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/
 import { getUserDisplayName } from '@pages/Home/utils/HomePageUtils'
 import { useParams } from '@util/react-router/useParams'
 import { validateEmail } from '@util/string'
-import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
 import { ColumnsType } from 'antd/es/table'
 import clsx from 'clsx'
@@ -110,9 +109,7 @@ const RageClicksForProjectTable = ({
 
 						navigate({
 							pathname: `/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
-							search: buildQueryURLString({
-								[`user_${userParam}`]: displayName,
-							}),
+							search: `query=${userParam}=${displayName}`,
 						})
 
 						message.success(
