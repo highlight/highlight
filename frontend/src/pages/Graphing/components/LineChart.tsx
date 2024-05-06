@@ -45,7 +45,11 @@ export const LineChart = ({
 	series,
 	spotlight,
 	viewConfig,
-}: InnerChartProps<LineChartConfig> & SeriesInfo) => {
+	onMouseDown,
+	onMouseMove,
+	onMouseUp,
+	children,
+}: React.PropsWithChildren<InnerChartProps<LineChartConfig> & SeriesInfo>) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
 	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
 
@@ -65,7 +69,13 @@ export const LineChart = ({
 
 	return (
 		<ResponsiveContainer height="100%" width="100%">
-			<AreaChart data={filledData}>
+			<AreaChart
+				data={filledData}
+				onMouseDown={onMouseDown}
+				onMouseMove={onMouseMove}
+				onMouseUp={onMouseUp}
+			>
+				{children}
 				<XAxis
 					dataKey={xAxisMetric}
 					fontSize={10}

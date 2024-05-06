@@ -85,3 +85,7 @@ export const disabled = style({
 export const hoverCard = style({
 	width: 'min-content',
 })
+
+export const tickText = style({
+	userSelect: 'none',
+})

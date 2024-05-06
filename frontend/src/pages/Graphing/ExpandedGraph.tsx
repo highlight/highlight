@@ -171,6 +171,7 @@ export const ExpandedGraph = () => {
 									g.limitFunctionType ?? undefined
 								}
 								limitMetric={g.limitMetric ?? undefined}
+								setTimeRange={updateSearchTime}
 							/>
 						</Box>
 					</Box>

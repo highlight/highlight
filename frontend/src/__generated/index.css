@@ -7479,6 +7479,9 @@ body {
 .dg2vg6c {
   width: min-content;
 }
+.dg2vg6d {
+  user-select: none;
+}
 ._1a4jm560 {
   height: 40px;
 }
