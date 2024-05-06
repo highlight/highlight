@@ -773,6 +773,7 @@ export enum IntegrationType {
 	GitHub = 'GitHub',
 	GitLab = 'GitLab',
 	Height = 'Height',
+	Heroku = 'Heroku',
 	Jira = 'Jira',
 	Linear = 'Linear',
 	MicrosoftTeams = 'MicrosoftTeams',
