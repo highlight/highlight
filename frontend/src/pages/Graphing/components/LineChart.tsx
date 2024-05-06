@@ -16,6 +16,7 @@ import {
 	getColor,
 	getCustomTooltip,
 	getTickFormatter,
+	GROUP_KEY,
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
@@ -91,8 +92,8 @@ export const LineChart = ({
 					tickLine={{ visibility: 'hidden' }}
 					axisLine={{ visibility: 'hidden' }}
 					height={12}
-					type="number"
-					domain={['auto', 'auto']}
+					type={xAxisMetric === GROUP_KEY ? 'category' : 'number'}
+					domain={['dataMin', 'dataMax']}
 				/>
 
 				<Tooltip
@@ -132,23 +133,31 @@ export const LineChart = ({
 
 						const CustomizedDot = (props: any) => {
 							if (
-								viewConfig.nullHandling !== 'Hidden' &&
-								viewConfig.nullHandling !== undefined
+								(viewConfig.nullHandling !== 'Hidden' &&
+									viewConfig.nullHandling !== undefined) ||
+								data === undefined
 							) {
 								return null
 							}
 
 							const { cx, cy, stroke, index } = props
 
-							const prev = (data?.at(index - 1) ?? {})[key]
-							const cur = (data?.at(index) ?? {})[key]
-							const next = (data?.at(index + 1) ?? {})[key]
+							const hasPrev =
+								index === 0 ||
+								![null, undefined].includes(
+									data[index - 1][key],
+								)
+							const hasCur = ![null, undefined].includes(
+								data[index][key],
+							)
+							const hasNext =
+								index === data.length - 1 ||
+								![null, undefined].includes(
+									data[index + 1][key],
+								)
 
 							// Draw a dot if discontinuous at this point
-							if (
-								cur !== null &&
-								(prev === null || next === null)
-							) {
+							if (hasCur && (!hasPrev || !hasNext)) {
 								return (
 									<svg x={cx - 2} y={cy - 2}>
 										<g transform="translate(2 2)">
