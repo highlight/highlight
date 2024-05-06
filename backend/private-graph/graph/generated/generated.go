@@ -11580,6 +11580,7 @@ enum IntegrationType {
 	Jira
 	MicrosoftTeams
 	GitLab
+	Heroku
 }
 
 enum ErrorState {

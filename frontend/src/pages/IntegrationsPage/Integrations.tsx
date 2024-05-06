@@ -103,7 +103,7 @@ export const HEROKU_INTEGRATION: Integration = {
 	description: 'Setup a Heroku Log Drain.',
 	icon: HerokuLogo,
 	configurationPage: (opts) => <HerokuIntegrationConfig {...opts} />,
-	hasSettings: true,
+	hasSettings: false,
 }
 
 export const LINEAR_INTEGRATION: IssueTrackerIntegration = {

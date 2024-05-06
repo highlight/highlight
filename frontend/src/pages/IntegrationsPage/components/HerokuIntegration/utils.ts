@@ -72,7 +72,7 @@ export const useHerokuIntegration = () => {
 			setLoading(true)
 			await addHerokuIntegrationToProject(token, projectId)
 			setIsHerokuConnectedToProject(true)
-			message.success('Highlight is now synced with Microsoft Teams!', 5)
+			message.success('Highlight is now synced with Heroku!', 5)
 			setLoading(false)
 		},
 		[
