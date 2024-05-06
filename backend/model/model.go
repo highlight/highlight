@@ -328,6 +328,7 @@ func (w *Workspace) AdminEmailAddresses(db *gorm.DB) ([]struct {
 			INNER JOIN admins a
 			ON wa.admin_id = a.id
 			WHERE wa.workspace_id = ?
+			AND wa.role = 'ADMIN'
 			AND NOT EXISTS (
 				SELECT *
 				FROM email_opt_outs eoo
