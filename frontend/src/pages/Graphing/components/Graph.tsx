@@ -443,8 +443,6 @@ const Graph = ({
 	const [refAreaStart, setRefAreaStart] = useState<number | undefined>()
 	const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>()
 
-	console.log('refAreas', refAreaStart, refAreaEnd)
-
 	const referenceArea =
 		refAreaStart && refAreaEnd ? (
 			<ReferenceArea
