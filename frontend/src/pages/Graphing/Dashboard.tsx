@@ -498,6 +498,9 @@ export const Dashboard = () => {
 																	  }
 															}
 															disabled={editing}
+															setTimeRange={
+																updateSearchTime
+															}
 														/>
 													</DashboardCard>
 												)

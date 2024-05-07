@@ -20,6 +20,8 @@ import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
 import { useEffect, useMemo, useState } from 'react'
+import { ReferenceArea } from 'recharts'
+import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useGetMetricsQuery } from '@/graph/generated/hooks'
@@ -94,6 +96,7 @@ export interface ChartProps<TConfig> {
 	onDelete?: () => void
 	onExpand?: () => void
 	onEdit?: () => void
+	setTimeRange?: (startDate: Date, endDate: Date) => void
 }
 
 export interface InnerChartProps<TConfig> {
@@ -105,6 +108,9 @@ export interface InnerChartProps<TConfig> {
 	loading?: boolean
 	viewConfig: TConfig
 	disabled?: boolean
+	onMouseDown?: CategoricalChartFunc
+	onMouseMove?: CategoricalChartFunc
+	onMouseUp?: CategoricalChartFunc
 }
 
 export interface SeriesInfo {
@@ -260,6 +266,7 @@ export const CustomYAxisTick = ({
 			fill={vars.theme.static.content.weak}
 			textAnchor="start"
 			orientation="left"
+			className={style.tickText}
 		>
 			{tickFormatter(payload.value, payload.index)}
 		</text>
@@ -287,6 +294,7 @@ export const CustomXAxisTick = ({
 			textAnchor="middle"
 			orientation="bottom"
 			width={30}
+			className={style.tickText}
 		>
 			{tickFormatter(payload.value, payload.index)}
 		</text>
@@ -350,6 +358,7 @@ const Graph = ({
 	onDelete,
 	onExpand,
 	onEdit,
+	setTimeRange,
 }: ChartProps<ViewConfig>) => {
 	const [graphHover, setGraphHover] = useState(false)
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
@@ -431,6 +440,53 @@ const Graph = ({
 		setSpotlight(undefined)
 	}, [series])
 
+	const [refAreaStart, setRefAreaStart] = useState<number | undefined>()
+	const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>()
+
+	const referenceArea =
+		refAreaStart && refAreaEnd ? (
+			<ReferenceArea
+				x1={refAreaStart}
+				x2={refAreaEnd}
+				strokeOpacity={0.3}
+			/>
+		) : null
+
+	const allowDrag =
+		setTimeRange !== undefined && xAxisMetric === TIMESTAMP_KEY
+
+	const onMouseDown: CategoricalChartFunc | undefined = allowDrag
+		? (e) => {
+				if (e.activeLabel !== undefined) {
+					setRefAreaStart(Number(e.activeLabel))
+				}
+		  }
+		: undefined
+
+	const onMouseMove: CategoricalChartFunc | undefined = allowDrag
+		? (e) => {
+				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
+					setRefAreaEnd(Number(e.activeLabel))
+				}
+		  }
+		: undefined
+
+	const onMouseUp: CategoricalChartFunc | undefined = allowDrag
+		? () => {
+				if (refAreaStart !== undefined && refAreaEnd !== undefined) {
+					const startDate = Math.min(refAreaStart, refAreaEnd)
+					const endDate = Math.max(refAreaStart, refAreaEnd)
+
+					setTimeRange(
+						new Date(startDate * 1000),
+						new Date(endDate * 1000),
+					)
+				}
+				setRefAreaStart(undefined)
+				setRefAreaEnd(undefined)
+		  }
+		: undefined
+
 	let isEmpty = data !== undefined
 	for (const d of data ?? []) {
 		for (const v of Object.values(d)) {
@@ -470,7 +526,12 @@ const Graph = ({
 						viewConfig={viewConfig}
 						series={series}
 						spotlight={spotlight}
-					/>
+						onMouseDown={onMouseDown}
+						onMouseMove={onMouseMove}
+						onMouseUp={onMouseUp}
+					>
+						{referenceArea}
+					</LineChart>
 				)
 				break
 			case 'Bar chart':
@@ -483,7 +544,12 @@ const Graph = ({
 						viewConfig={viewConfig}
 						series={series}
 						spotlight={spotlight}
-					/>
+						onMouseDown={onMouseDown}
+						onMouseMove={onMouseMove}
+						onMouseUp={onMouseUp}
+					>
+						{referenceArea}
+					</BarChart>
 				)
 				break
 			case 'Table':

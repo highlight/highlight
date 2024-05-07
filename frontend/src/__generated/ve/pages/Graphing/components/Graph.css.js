@@ -8,6 +8,7 @@ var legendTextWrapper = "dg2vg64";
 var legendWrapper = "dg2vg62";
 var loadingOverlay = "dg2vg60";
 var loadingText = "dg2vg61";
+var tickText = "dg2vg6d";
 var titleText = "dg2vg66";
 var tooltipDot = "dg2vg6a";
 var tooltipText = "dg2vg69";
@@ -22,6 +23,7 @@ export {
   legendWrapper,
   loadingOverlay,
   loadingText,
+  tickText,
   titleText,
   tooltipDot,
   tooltipText,

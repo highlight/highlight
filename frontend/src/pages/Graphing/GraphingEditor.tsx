@@ -794,6 +794,7 @@ export const GraphingEditor = () => {
 												? limitMetric
 												: undefined
 										}
+										setTimeRange={updateSearchTime}
 									/>
 								</Box>
 							</Box>

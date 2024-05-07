@@ -68,7 +68,11 @@ export const BarChart = ({
 	spotlight,
 	strokeColors,
 	viewConfig,
-}: InnerChartProps<BarChartConfig> & SeriesInfo) => {
+	onMouseDown,
+	onMouseMove,
+	onMouseUp,
+	children,
+}: React.PropsWithChildren<InnerChartProps<BarChartConfig> & SeriesInfo>) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
 	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
 
@@ -77,7 +81,14 @@ export const BarChart = ({
 
 	return (
 		<ResponsiveContainer>
-			<RechartsBarChart data={data} barCategoryGap={1}>
+			<RechartsBarChart
+				data={data}
+				barCategoryGap={1}
+				onMouseDown={onMouseDown}
+				onMouseMove={onMouseMove}
+				onMouseUp={onMouseUp}
+			>
+				{children}
 				<XAxis
 					dataKey={xAxisMetric}
 					fontSize={10}
