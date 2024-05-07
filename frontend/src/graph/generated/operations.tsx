@@ -2911,7 +2911,10 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
 	workspace?: Types.Maybe<
 		{ __typename?: 'Workspace' } & Pick<
 			Types.Workspace,
-			'id' | 'slack_webhook_channel'
+			| 'id'
+			| 'slack_webhook_channel'
+			| 'retention_period'
+			| 'errors_retention_period'
 		>
 	>
 }

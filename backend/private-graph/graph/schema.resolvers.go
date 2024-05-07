@@ -7952,9 +7952,12 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 	}
 
 	if r.isDemoProject(ctx, projectID) {
+		threeMonth := modelInputs.RetentionPeriodThreeMonths
 		return &model.Workspace{
-			Model: workspace.Model,
-			Name:  workspace.Name,
+			Model:                 workspace.Model,
+			Name:                  workspace.Name,
+			RetentionPeriod:       &threeMonth,
+			ErrorsRetentionPeriod: &threeMonth,
 			Projects: []model.Project{{
 				Model: project.Model,
 				Name:  project.Name,

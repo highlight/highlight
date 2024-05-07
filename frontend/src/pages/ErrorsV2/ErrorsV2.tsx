@@ -18,7 +18,10 @@ import {
 	Box,
 	ButtonIcon,
 	Callout,
+<<<<<<< Updated upstream
 	EXTENDED_TIME_PRESETS,
+=======
+>>>>>>> Stashed changes
 	IconSolidExitRight,
 	Text,
 	Tooltip,
@@ -55,9 +58,13 @@ import {
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { SearchContext } from '@/components/Search/SearchContext'
+import { useRetentionPresets } from '@/components/Search/SearchForm/utils'
 import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
-import { ErrorState as ErrorStateEnum } from '@/graph/generated/schemas'
+import {
+	ErrorState as ErrorStateEnum,
+	ProductType,
+} from '@/graph/generated/schemas'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import ErrorIssueButton from '@/pages/ErrorsV2/ErrorIssueButton/ErrorIssueButton'
 import ErrorShareButton from '@/pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
@@ -90,9 +97,11 @@ export default function ErrorsV2() {
 	const [query, setQuery] = useQueryParam('query', ERROR_QUERY_PARAM)
 	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
 
+	const { presets } = useRetentionPresets(ProductType.Errors)
+
 	const searchTimeContext = useSearchTime({
-		presets: EXTENDED_TIME_PRESETS,
-		initialPreset: EXTENDED_TIME_PRESETS[5],
+		presets: presets,
+		initialPreset: presets[5],
 	})
 
 	const handleSubmit = useCallback(

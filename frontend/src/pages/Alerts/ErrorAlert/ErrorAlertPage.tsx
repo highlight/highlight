@@ -10,7 +10,10 @@ import {
 	Box,
 	Column,
 	Container,
+<<<<<<< Updated upstream
 	EXTENDED_TIME_PRESETS,
+=======
+>>>>>>> Stashed changes
 	Form,
 	FormState,
 	IconSolidCheveronDown,
@@ -41,6 +44,7 @@ import { StringParam, useQueryParam } from 'use-query-params'
 import LoadingBox from '@/components/LoadingBox'
 import { SearchContext } from '@/components/Search/SearchContext'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
+import { useRetentionPresets } from '@/components/Search/SearchForm/utils'
 import { namedOperations } from '@/graph/generated/operations'
 import { ProductType } from '@/graph/generated/schemas'
 import { useSearchTime } from '@/hooks/useSearchTime'
@@ -423,9 +427,11 @@ const ErrorAlertForm = ({ hideRegexExpression }: ErrorAlertFormProps) => {
 	const formStore = Form.useContext() as FormState<ErrorAlertFormItem>
 	const errors = formStore.useState('errors')
 
+	const { presets } = useRetentionPresets(ProductType.Errors)
+
 	const { startDate, endDate } = useSearchTime({
-		presets: EXTENDED_TIME_PRESETS,
-		initialPreset: EXTENDED_TIME_PRESETS[5],
+		presets: presets,
+		initialPreset: presets[5],
 	})
 
 	return (

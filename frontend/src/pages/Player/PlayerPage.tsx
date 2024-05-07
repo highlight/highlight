@@ -1,7 +1,11 @@
 import 'rc-slider/assets/index.css'
 
 import { useAuthContext } from '@authentication/AuthContext'
+<<<<<<< Updated upstream
 import { Box, EXTENDED_TIME_PRESETS } from '@highlight-run/ui/components'
+=======
+import { Box } from '@highlight-run/ui/components'
+>>>>>>> Stashed changes
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook'
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerState'
@@ -39,9 +43,10 @@ import {
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { SearchContext } from '@/components/Search/SearchContext'
+import { useRetentionPresets } from '@/components/Search/SearchForm/utils'
 import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
 import { useGetBillingDetailsForProjectQuery } from '@/graph/generated/hooks'
-import { PlanType } from '@/graph/generated/schemas'
+import { PlanType, ProductType } from '@/graph/generated/schemas'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { useSessionFeedConfiguration } from '@/pages/Sessions/SessionsFeedV3/hooks/useSessionFeedConfiguration'
 import { useGetSessions } from '@/pages/Sessions/useGetSessions'
@@ -229,9 +234,11 @@ export const PlayerPage = () => {
 	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
 
+	const { presets } = useRetentionPresets(ProductType.Sessions)
+
 	const searchTimeContext = useSearchTime({
-		presets: EXTENDED_TIME_PRESETS,
-		initialPreset: EXTENDED_TIME_PRESETS[5],
+		presets: presets,
+		initialPreset: presets[5],
 	})
 
 	const getSessionsData = useGetSessions({

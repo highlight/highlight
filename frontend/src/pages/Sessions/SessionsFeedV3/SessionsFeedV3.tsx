@@ -14,9 +14,11 @@ import { Maybe, ProductType, Session } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
+<<<<<<< Updated upstream
 	EXTENDED_TIME_PRESETS,
+=======
+>>>>>>> Stashed changes
 	IconSolidLogout,
-	presetStartDate,
 	Stack,
 } from '@highlight-run/ui/components'
 import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/SessionFeedCard'
@@ -29,6 +31,7 @@ import React from 'react'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { useSearchContext } from '@/components/Search/SearchContext'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
+import { useRetentionPresets } from '@/components/Search/SearchForm/utils'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -164,6 +167,8 @@ export const SessionFeedV3 = React.memo(() => {
 		)
 	}
 
+	const { presets, minDate } = useRetentionPresets(ProductType.Sessions)
+
 	return (
 		<SessionFeedConfigurationContextProvider
 			value={sessionFeedConfiguration}
@@ -183,8 +188,8 @@ export const SessionFeedV3 = React.memo(() => {
 					startDate={startDate!}
 					endDate={endDate!}
 					onDatesChange={updateSearchTime!}
-					presets={EXTENDED_TIME_PRESETS}
-					minDate={presetStartDate(EXTENDED_TIME_PRESETS[6])}
+					presets={presets}
+					minDate={minDate}
 					selectedPreset={selectedPreset}
 					productType={ProductType.Sessions}
 					timeMode="fixed-range"
