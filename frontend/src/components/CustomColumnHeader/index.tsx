@@ -26,8 +26,8 @@ type Props = {
 	setSelectedColumns: (columns: ValidCustomColumn[]) => void
 	standardColumns: Record<string, ValidCustomColumn>
 	trackingIdPrefix: string
-	sortColumn: string | null | undefined
-	sortDirection: string | null | undefined
+	sortColumn?: string | null
+	sortDirection?: string | null
 }
 
 const MINIMUM_COLUMN_WIDTH = 50
