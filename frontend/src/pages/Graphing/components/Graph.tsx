@@ -19,12 +19,12 @@ import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ReferenceArea } from 'recharts'
 import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
-import { useGetMetricsQuery } from '@/graph/generated/hooks'
+import { useGetMetricsLazyQuery } from '@/graph/generated/hooks'
 import { Maybe, MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import {
 	BarChart,
@@ -365,31 +365,91 @@ const Graph = ({
 	const showMenu =
 		onDelete !== undefined || onExpand !== undefined || onEdit !== undefined
 
-	const { data: metrics, loading: metricsLoading } = useGetMetricsQuery({
-		variables: {
-			product_type: productType,
-			project_id: projectId,
-			params: {
-				date_range: {
-					start_date: moment(startDate)
-						.startOf('minute')
-						.format(TIME_FORMAT),
-					end_date: moment(endDate)
-						.startOf('minute')
-						.format(TIME_FORMAT),
+	const pollTimeout = useRef<number>()
+	const [pollInterval, setPollInterval] = useState<number>()
+	const [getMetricsQuery, { data: metrics, loading, called }] =
+		useGetMetricsLazyQuery()
+	const metricsLoading = !called || loading
+
+	const poll = useCallback(async () => {
+		const currentTimeout = pollTimeout.current
+		await getMetricsQuery({
+			variables: {
+				product_type: productType,
+				project_id: projectId,
+				params: {
+					date_range: {
+						start_date: moment(startDate)
+							.startOf('minute')
+							.format(TIME_FORMAT),
+						end_date: moment(endDate)
+							.startOf('minute')
+							.format(TIME_FORMAT),
+					},
+					query: query,
 				},
-				query: query,
+				column: metric,
+				metric_types: [functionType],
+				group_by: groupByKey !== undefined ? [groupByKey] : [],
+				bucket_by:
+					bucketByKey !== undefined ? bucketByKey : TIMESTAMP_KEY,
+				bucket_count: queriedBucketCount,
+				limit: limit,
+				limit_aggregator: limitFunctionType,
+				limit_column: limitMetric,
 			},
-			column: metric,
-			metric_types: [functionType],
-			group_by: groupByKey !== undefined ? [groupByKey] : [],
-			bucket_by: bucketByKey !== undefined ? bucketByKey : TIMESTAMP_KEY,
-			bucket_count: queriedBucketCount,
-			limit: limit,
-			limit_aggregator: limitFunctionType,
-			limit_column: limitMetric,
-		},
-	})
+		})
+		if (pollTimeout.current === currentTimeout) {
+			pollTimeout.current = setTimeout(
+				poll,
+				pollInterval,
+			) as unknown as number
+		}
+	}, [
+		bucketByKey,
+		endDate,
+		functionType,
+		getMetricsQuery,
+		groupByKey,
+		limit,
+		limitFunctionType,
+		pollInterval,
+		limitMetric,
+		metric,
+		productType,
+		projectId,
+		queriedBucketCount,
+		query,
+		startDate,
+	])
+
+	useEffect(() => {
+		if (!pollInterval) {
+			return
+		}
+		console.log('poll change', pollInterval)
+
+		pollTimeout.current = setTimeout(
+			poll,
+			pollInterval,
+		) as unknown as number
+
+		return () => {
+			clearTimeout(pollTimeout.current)
+			pollTimeout.current = undefined
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [poll])
+
+	// update poll timeout when datas change
+	useEffect(() => {
+		const newTimeOut = Math.floor(
+			(endDate.valueOf() - startDate.valueOf()) /
+				(queriedBucketCount || 1),
+		)
+		setPollInterval(newTimeOut)
+		pollTimeout.current = setTimeout(poll, newTimeOut) as unknown as number
+	}, [startDate, endDate, poll, queriedBucketCount])
 
 	const xAxisMetric = bucketByKey !== undefined ? bucketByKey : GROUP_KEY
 	const yAxisMetric = functionType === MetricAggregator.Count ? '' : metric
