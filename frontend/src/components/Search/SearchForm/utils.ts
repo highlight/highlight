@@ -193,12 +193,12 @@ export const useRetentionPresets = (productType: ProductType) => {
 		case ProductType.Errors:
 			retentionPeriod =
 				data?.workspace?.errors_retention_period ??
-				RetentionPeriod.SixMonths
+				RetentionPeriod.ThreeYears
 			defaultPresets = EXTENDED_TIME_PRESETS
 			break
 		case ProductType.Sessions:
 			retentionPeriod =
-				data?.workspace?.retention_period ?? RetentionPeriod.SixMonths
+				data?.workspace?.retention_period ?? RetentionPeriod.ThreeYears
 			defaultPresets = EXTENDED_TIME_PRESETS
 			break
 	}
@@ -252,5 +252,6 @@ export const useRetentionPresets = (productType: ProductType) => {
 	return {
 		presets,
 		minDate,
+		loading: data === undefined,
 	}
 }
