@@ -7597,64 +7597,6 @@ body {
 .gw96jsa > div {
   width: 100%;
 }
-.ti67jy0 {
-  padding: 2px 4px;
-  background: #eeedef;
-  box-shadow: inset 0 -1px #0000001a;
-  border: none;
-  border-radius: 5px;
-}
-.ti67jy1 {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-}
-.ti67jy2 {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-}
-.ti67jy3 {
-  display: inline-flex;
-  height: 20px;
-}
-.ti67jy4 {
-  padding: 2px 4px;
-  border: none;
-  border-radius: 5px;
-}
-.ti67jy5 {
-  word-break: normal;
-  white-space: nowrap;
-}
-.ti67jy6 {
-  flex-shrink: 0;
-}
-.ti67jy7 {
-  max-width: 50%;
-}
-.ti67jy8 {
-  align-items: center;
-  display: flex;
-  overflow: hidden;
-  position: relative;
-  text-overflow: ellipsis;
-  width: 100%;
-  padding: 0;
-  color: #6f6e77;
-  gap: 6px;
-  font-weight: 500;
-}
-.ti67jy9 {
-  background-color: #ffffff;
-  border: var(--_1pyqka91o) solid 1px;
-  border-radius: 6px;
-  min-width: 150px;
-  z-index: 10;
-  max-width: 50vw;
-}
-.ti67jya {
-  height: 20px;
-  pointer-events: none;
-}
 ._1kp6do40 {
   width: 100%;
 }

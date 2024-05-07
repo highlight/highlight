@@ -2373,48 +2373,6 @@ export type GetWebSocketEventsQuery = { __typename?: 'Query' } & Pick<
 	'websocket_events'
 >
 
-export type GetFieldTypesClickhouseQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	start_date: Types.Scalars['Timestamp']
-	end_date: Types.Scalars['Timestamp']
-}>
-
-export type GetFieldTypesClickhouseQuery = { __typename?: 'Query' } & {
-	field_types: Array<
-		{ __typename?: 'Field' } & Pick<Types.Field, 'type' | 'name'>
-	>
-}
-
-export type GetFieldsClickhouseQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	count: Types.Scalars['Int']
-	field_type: Types.Scalars['String']
-	field_name: Types.Scalars['String']
-	query: Types.Scalars['String']
-	start_date: Types.Scalars['Timestamp']
-	end_date: Types.Scalars['Timestamp']
-}>
-
-export type GetFieldsClickhouseQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'fields_clickhouse'
->
-
-export type GetErrorFieldsClickhouseQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	count: Types.Scalars['Int']
-	field_type: Types.Scalars['String']
-	field_name: Types.Scalars['String']
-	query: Types.Scalars['String']
-	start_date: Types.Scalars['Timestamp']
-	end_date: Types.Scalars['Timestamp']
-}>
-
-export type GetErrorFieldsClickhouseQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'error_fields_clickhouse'
->
-
 export type GetSessionsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	count: Types.Scalars['Int']
@@ -3403,15 +3361,6 @@ export type GetEnvironmentsQuery = { __typename?: 'Query' } & {
 		>
 	>
 }
-
-export type GetAppVersionsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type GetAppVersionsQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'app_version_suggestion'
->
 
 export type GetProjectSuggestionQueryVariables = Types.Exact<{
 	query: Types.Scalars['String']
@@ -5209,9 +5158,6 @@ export const namedOperations = {
 		GetSessionIntervals: 'GetSessionIntervals' as const,
 		GetTimelineIndicatorEvents: 'GetTimelineIndicatorEvents' as const,
 		GetWebSocketEvents: 'GetWebSocketEvents' as const,
-		GetFieldTypesClickhouse: 'GetFieldTypesClickhouse' as const,
-		GetFieldsClickhouse: 'GetFieldsClickhouse' as const,
-		GetErrorFieldsClickhouse: 'GetErrorFieldsClickhouse' as const,
 		GetSessions: 'GetSessions' as const,
 		GetSessionsHistogram: 'GetSessionsHistogram' as const,
 		GetSessionUsersReports: 'GetSessionUsersReports' as const,
@@ -5242,7 +5188,6 @@ export const namedOperations = {
 		GetResources: 'GetResources' as const,
 		GetFieldSuggestion: 'GetFieldSuggestion' as const,
 		GetEnvironments: 'GetEnvironments' as const,
-		GetAppVersions: 'GetAppVersions' as const,
 		GetProjectSuggestion: 'GetProjectSuggestion' as const,
 		GetErrorFieldSuggestion: 'GetErrorFieldSuggestion' as const,
 		GetErrorSearchSuggestions: 'GetErrorSearchSuggestions' as const,

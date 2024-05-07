@@ -2067,29 +2067,6 @@ type Query {
 		project_id: ID!
 		params: QueryInput!
 	): [SessionsReportRow!]!
-	field_types_clickhouse(
-		project_id: ID!
-		start_date: Timestamp!
-		end_date: Timestamp!
-	): [Field!]!
-	fields_clickhouse(
-		project_id: ID!
-		count: Int!
-		field_type: String!
-		field_name: String!
-		query: String!
-		start_date: Timestamp!
-		end_date: Timestamp!
-	): [String!]!
-	error_fields_clickhouse(
-		project_id: ID!
-		count: Int!
-		field_type: String!
-		field_name: String!
-		query: String!
-		start_date: Timestamp!
-		end_date: Timestamp!
-	): [String!]!
 	billingDetailsForProject(project_id: ID!): BillingDetails
 	billingDetails(workspace_id: ID!): BillingDetails!
 	usageHistory(
@@ -2119,7 +2096,6 @@ type Query {
 	log_alert(id: ID!): LogAlert!
 	projectSuggestion(query: String!): [Project]!
 	environment_suggestion(project_id: ID!): [Field]
-	app_version_suggestion(project_id: ID!): [String]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
 	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel!]!
 	microsoft_teams_channel_suggestions(
