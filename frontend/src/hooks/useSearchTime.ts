@@ -101,7 +101,7 @@ export function useSearchTime({
 					start_date: undefined,
 					end_date: undefined,
 				},
-				'replace',
+				'replaceIn',
 			)
 		} else {
 			setParams(
@@ -110,7 +110,7 @@ export function useSearchTime({
 					start_date: startDate,
 					end_date: endDate,
 				},
-				'replace',
+				'replaceIn',
 			)
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
