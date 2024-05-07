@@ -195,7 +195,8 @@ class H(object):
         self._trace_provider.add_span_processor(
             BatchSpanProcessor(
                 OTLPSpanExporter(
-                    f"{self._otlp_endpoint}/v1/traces", compression=Compression.Gzip,
+                    f"{self._otlp_endpoint}/v1/traces",
+                    compression=Compression.Gzip,
                     timeout=30,
                 ),
                 **kwargs,
@@ -210,7 +211,8 @@ class H(object):
         self._log_provider.add_log_record_processor(
             BatchLogRecordProcessor(
                 OTLPLogExporter(
-                    f"{self._otlp_endpoint}/v1/logs", compression=Compression.Gzip,
+                    f"{self._otlp_endpoint}/v1/logs",
+                    compression=Compression.Gzip,
                     timeout=30,
                 ),
                 **kwargs,

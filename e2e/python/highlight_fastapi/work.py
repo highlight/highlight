@@ -6,11 +6,7 @@ from loguru import logger
 import highlight_io
 from highlight_io.integrations.celery import CeleryIntegration
 
-logger.configure(
-    handlers=[
-        {"sink": sys.stdout, "level": 'DEBUG'}
-    ]
-)
+logger.configure(handlers=[{"sink": sys.stdout, "level": "DEBUG"}])
 
 app = Celery(
     "work",
@@ -41,7 +37,7 @@ if __name__ == "__main__":
         H.logging_handler,
         serialize=True,
         format="{message}",
-        level='DEBUG',
+        level="DEBUG",
         backtrace=True,
     )
     worker = app.Worker(include=["work"])
