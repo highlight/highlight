@@ -65,11 +65,12 @@ blinker = "^1.8.1"
 django = "^4"
 fastapi = "^0.111.0"
 flask = "^3.0.3"
+loguru = "^0.7.2"
+orjson = "3.9.15"
 pytest = "^8.2.0"
 pytest-asyncio = "^0.23.6"
 pytest-cov = "^5.0.0"
 pytest-mock = "^3.14.0"
-orjson = "3.9.15"
 
 [build-system]
 requires = ["poetry-core"]
