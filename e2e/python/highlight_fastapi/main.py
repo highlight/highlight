@@ -4,7 +4,7 @@ import logging
 import random
 
 from fastapi import FastAPI, Request, HTTPException, APIRouter
-from e2e.highlight_fastapi.work import add
+from work import add
 import redis
 import boto
 import boto3
