@@ -14,7 +14,7 @@ import { Maybe, ProductType, Session } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
-	DEFAULT_TIME_PRESETS,
+	EXTENDED_TIME_PRESETS,
 	IconSolidLogout,
 	presetStartDate,
 	Stack,
@@ -183,8 +183,8 @@ export const SessionFeedV3 = React.memo(() => {
 					startDate={startDate!}
 					endDate={endDate!}
 					onDatesChange={updateSearchTime!}
-					presets={DEFAULT_TIME_PRESETS}
-					minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
+					presets={EXTENDED_TIME_PRESETS}
+					minDate={presetStartDate(EXTENDED_TIME_PRESETS[6])}
 					selectedPreset={selectedPreset}
 					productType={ProductType.Sessions}
 					timeMode="fixed-range"
