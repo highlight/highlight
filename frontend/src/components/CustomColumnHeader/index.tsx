@@ -104,18 +104,18 @@ export const CustomColumnHeader: React.FC<Props> = ({
 				<Stack direction="row" gap="6" align="center">
 					<Text lines="1">{header.component}</Text>
 					{sortColumn === header.id &&
-					sortDirection &&
-					sortDirection === SortDirection.Desc ? (
-						<IconSolidCheveronDown
-							size={13}
-							style={{ flexShrink: 0 }}
-						/>
-					) : (
-						<IconSolidCheveronUp
-							size={13}
-							style={{ flexShrink: 0 }}
-						/>
-					)}
+						sortDirection &&
+						(sortDirection === SortDirection.Desc ? (
+							<IconSolidCheveronDown
+								size={13}
+								style={{ flexShrink: 0 }}
+							/>
+						) : (
+							<IconSolidCheveronUp
+								size={13}
+								style={{ flexShrink: 0 }}
+							/>
+						))}
 				</Stack>
 
 				<Stack align="center" direction="row" gap="6">
