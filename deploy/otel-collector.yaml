@@ -6,6 +6,7 @@ receivers:
             http:
                 endpoint: '0.0.0.0:4318'
                 max_request_body_size: 0
+                include_metadata: true
                 cors:
                     allowed_origins:
                         - '*'
