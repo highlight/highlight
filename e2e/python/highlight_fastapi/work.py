@@ -44,5 +44,5 @@ if __name__ == "__main__":
         level='DEBUG',
         backtrace=True,
     )
-    worker = app.Worker(include=["e2e.highlight_fastapi.work"])
+    worker = app.Worker(include=["work"])
     worker.start()
