@@ -105,7 +105,7 @@ export const CustomColumnActions: React.FC<Props> = ({
 
 	return (
 		<>
-			<Menu>
+			<Menu placement="bottom-end">
 				<Table.Discoverable trigger="header">
 					<Menu.Button
 						style={{
@@ -115,7 +115,10 @@ export const CustomColumnActions: React.FC<Props> = ({
 						size="small"
 						emphasis="low"
 						kind="secondary"
-						onClick={() => trackEvent('open')}
+						onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+							e.stopPropagation()
+							trackEvent('open')
+						}}
 					>
 						<IconOutlineDotsHorizontal />
 					</Menu.Button>

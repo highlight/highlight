@@ -3,10 +3,11 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"github.com/openlyinc/pointy"
 	"math"
 	"strings"
 	"time"
+
+	"github.com/openlyinc/pointy"
 
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	e "github.com/pkg/errors"
@@ -36,6 +37,7 @@ var logKeysToColumns = map[modelInputs.ReservedLogKey]string{
 	modelInputs.ReservedLogKeyServiceVersion:  "ServiceVersion",
 	modelInputs.ReservedLogKeyEnvironment:     "Environment",
 	modelInputs.ReservedLogKeyMessage:         "Body",
+	modelInputs.ReservedLogKeyTimestamp:       "Timestmap",
 }
 
 // These keys show up as recommendations, but with no recommended values due to high cardinality

@@ -3,9 +3,10 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"github.com/openlyinc/pointy"
 	"strings"
 	"time"
+
+	"github.com/openlyinc/pointy"
 
 	"github.com/highlight-run/highlight/backend/parser/listener"
 
@@ -47,6 +48,7 @@ var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeyMetric:          "Events.Attributes[1]['metric.name']",
 	modelInputs.ReservedTraceKeyEnvironment:     "Environment",
 	modelInputs.ReservedTraceKeyHasErrors:       "HasErrors",
+	modelInputs.ReservedTraceKeyTimestamp:       "Timestamp",
 }
 
 var traceColumns = []string{
@@ -267,7 +269,12 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 		}, nil
 	}
 
-	conn, err := readObjects(ctx, client, TracesTableConfig, projectID, params, pagination, scanTrace)
+	tableConfig := TracesTableConfig
+	if params.Sort != nil {
+		tableConfig = tracesSamplingTableConfig
+	}
+
+	conn, err := readObjects(ctx, client, tableConfig, projectID, params, pagination, scanTrace)
 	if err != nil {
 		return nil, err
 	}

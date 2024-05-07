@@ -3060,6 +3060,7 @@ export enum ReservedLogKey {
 	ServiceVersion = 'service_version',
 	Source = 'source',
 	SpanId = 'span_id',
+	Timestamp = 'timestamp',
 	TraceId = 'trace_id',
 }
 
@@ -3108,6 +3109,7 @@ export enum ReservedTraceKey {
 	SpanId = 'span_id',
 	SpanKind = 'span_kind',
 	SpanName = 'span_name',
+	Timestamp = 'timestamp',
 	TraceId = 'trace_id',
 	TraceState = 'trace_state',
 }

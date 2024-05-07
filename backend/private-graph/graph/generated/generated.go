@@ -12320,6 +12320,7 @@ enum ReservedLogKey {
 	source
 	service_name
 	service_version
+	timestamp
 }
 
 enum ReservedTraceKey {
@@ -12338,6 +12339,7 @@ enum ReservedTraceKey {
 	duration
 	service_name
 	service_version
+	timestamp
 }
 
 enum ReservedErrorObjectKey {

@@ -63,7 +63,7 @@ export const useGetTraces = ({
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 				sort: {
-					column: sortColumn ?? 'Timestamp',
+					column: sortColumn ?? 'timestamp',
 					direction: sortDirection ?? Types.SortDirection.Desc,
 				},
 			},

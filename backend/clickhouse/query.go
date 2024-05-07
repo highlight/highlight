@@ -39,12 +39,29 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	var err error
 	var args []interface{}
 
-	orderForward := OrderForwardNatural
-	orderBackward := OrderBackwardNatural
-	if pagination.Direction == modelInputs.SortDirectionAsc {
-		orderForward = OrderForwardInverted
-		orderBackward = OrderBackwardInverted
+	sortColumn := "timestamp"
+	sortDirection := modelInputs.SortDirectionDesc
+	if params.Sort != nil {
+		sortColumn = params.Sort.Column
+		sortDirection = params.Sort.Direction
 	}
+
+	if col, found := config.KeysToColumns[TReservedKey(sortColumn)]; found {
+		sortColumn = col
+	} else {
+		sortColumn = fmt.Sprintf("%s['%s']", config.AttributesColumn, sortColumn)
+	}
+
+	forwardDirection := "DESC"
+	backwardDirection := "ASC"
+	if pagination.Direction == modelInputs.SortDirectionAsc || sortDirection == modelInputs.SortDirectionAsc {
+		forwardDirection = "ASC"
+	} else {
+		backwardDirection = "DESC"
+	}
+
+	orderForward := fmt.Sprintf("%s %s, UUID %s", sortColumn, forwardDirection, forwardDirection)
+	orderBackward := fmt.Sprintf("%s %s, UUID %s", sortColumn, backwardDirection, backwardDirection)
 
 	outerSelect := strings.Join(config.SelectColumns, ", ")
 	innerSelect := []string{"Timestamp", "UUID"}
@@ -214,20 +231,7 @@ func makeSelectBuilder[T ~string](
 			Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
 
 		if !pagination.CountOnly { // count queries can't be ordered because we don't include Timestamp in the select
-			sortColumn := params.Sort.Column
-			sortDirection := params.Sort.Direction
-
-			if sortColumn != "Timestamp" {
-				if col, found := config.KeysToColumns[T(sortColumn)]; found {
-					sortColumn = col
-				} else {
-					sortColumn = fmt.Sprintf("%s[%s]", config.AttributesColumn, sb.Var(sortColumn))
-				}
-
-				sb.OrderBy(fmt.Sprintf("%s %s", sortColumn, sortDirection))
-			} else {
-				sb.OrderBy(orderForward)
-			}
+			sb.OrderBy(orderForward)
 		}
 	}
 
