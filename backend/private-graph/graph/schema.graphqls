@@ -2296,6 +2296,7 @@ type Query {
 		after: String
 		before: String
 		at: String
+		direction: SortDirection!
 	): TraceConnection!
 	traces_metrics(
 		project_id: ID!

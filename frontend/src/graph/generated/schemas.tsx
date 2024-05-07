@@ -2854,6 +2854,7 @@ export type QueryTracesArgs = {
 	after?: InputMaybe<Scalars['String']>
 	at?: InputMaybe<Scalars['String']>
 	before?: InputMaybe<Scalars['String']>
+	direction: SortDirection
 	params: QueryInput
 	project_id: Scalars['ID']
 }

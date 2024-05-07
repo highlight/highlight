@@ -5035,6 +5035,7 @@ export type GetTracesQueryVariables = Types.Exact<{
 	after?: Types.Maybe<Types.Scalars['String']>
 	before?: Types.Maybe<Types.Scalars['String']>
 	at?: Types.Maybe<Types.Scalars['String']>
+	direction: Types.SortDirection
 }>
 
 export type GetTracesQuery = { __typename?: 'Query' } & {

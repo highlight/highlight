@@ -9015,16 +9015,17 @@ func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string
 }
 
 // Traces is the resolver for the traces field.
-func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string) (*modelInputs.TraceConnection, error) {
+func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.TraceConnection, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
 	return r.ClickhouseClient.ReadTraces(ctx, project.ID, params, clickhouse.Pagination{
-		After:  after,
-		Before: before,
-		At:     at,
+		After:     after,
+		Before:    before,
+		At:        at,
+		Direction: direction,
 	})
 }
 

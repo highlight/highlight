@@ -2430,6 +2430,7 @@ query GetTraces(
 	$after: String
 	$before: String
 	$at: String
+	$direction: SortDirection!
 ) {
 	traces(
 		project_id: $project_id
@@ -2437,6 +2438,7 @@ query GetTraces(
 		after: $after
 		before: $before
 		at: $at
+		direction: $direction
 	) {
 		edges {
 			cursor
