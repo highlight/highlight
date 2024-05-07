@@ -28,6 +28,7 @@ func Middleware() gin.HandlerFunc {
 		c.Set(string(highlight.ContextKeys.RequestID), ids[1])
 
 		span, _ := highlight.StartTrace(c, "highlight.gin")
+		defer middleware.Recoverer(span, c.Writer, c.Request)
 		defer highlight.EndTrace(span)
 
 		c.Next()
