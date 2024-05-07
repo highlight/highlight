@@ -1,7 +1,7 @@
 import 'rc-slider/assets/index.css'
 
 import { useAuthContext } from '@authentication/AuthContext'
-import { Box, DEFAULT_TIME_PRESETS } from '@highlight-run/ui/components'
+import { Box, EXTENDED_TIME_PRESETS } from '@highlight-run/ui/components'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook'
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerState'
@@ -230,8 +230,8 @@ export const PlayerPage = () => {
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
 
 	const searchTimeContext = useSearchTime({
-		presets: DEFAULT_TIME_PRESETS,
-		initialPreset: DEFAULT_TIME_PRESETS[5],
+		presets: EXTENDED_TIME_PRESETS,
+		initialPreset: EXTENDED_TIME_PRESETS[5],
 	})
 
 	const getSessionsData = useGetSessions({
