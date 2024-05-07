@@ -128,7 +128,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 			return []
 		}
 
-		const spans = data.trace.trace.sort(traceSortFn)
+		const spans = [...data.trace.trace].sort(traceSortFn)
 		return organizeSpansWithChildren(spans)
 	}, [data?.trace?.trace])
 

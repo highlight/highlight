@@ -2854,7 +2854,6 @@ export type QueryTracesArgs = {
 	after?: InputMaybe<Scalars['String']>
 	at?: InputMaybe<Scalars['String']>
 	before?: InputMaybe<Scalars['String']>
-	direction: SortDirection
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -2973,6 +2972,7 @@ export type QueryWorkspace_Invite_LinksArgs = {
 export type QueryInput = {
 	date_range: DateRangeRequiredInput
 	query: Scalars['String']
+	sort?: InputMaybe<SortInput>
 }
 
 export type QueryKey = {
@@ -3512,6 +3512,11 @@ export enum SocialType {
 export enum SortDirection {
 	Asc = 'ASC',
 	Desc = 'DESC',
+}
+
+export type SortInput = {
+	column: Scalars['String']
+	direction: SortDirection
 }
 
 export type SourceMappingError = {

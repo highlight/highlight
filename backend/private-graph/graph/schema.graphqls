@@ -1192,9 +1192,15 @@ input ErrorGroupFrequenciesParamsInput {
 	resolution_minutes: Int!
 }
 
+input SortInput {
+	column: String!
+	direction: SortDirection!
+}
+
 input QueryInput {
 	query: String!
 	date_range: DateRangeRequiredInput!
+	sort: SortInput
 }
 
 enum MetricTagFilterOp {
@@ -2288,7 +2294,6 @@ type Query {
 		after: String
 		before: String
 		at: String
-		direction: SortDirection!
 	): TraceConnection!
 	traces_metrics(
 		project_id: ID!

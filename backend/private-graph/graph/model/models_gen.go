@@ -669,6 +669,7 @@ type Plan struct {
 type QueryInput struct {
 	Query     string                  `json:"query"`
 	DateRange *DateRangeRequiredInput `json:"date_range"`
+	Sort      *SortInput              `json:"sort,omitempty"`
 }
 
 type QueryKey struct {
@@ -834,6 +835,11 @@ type SlackSyncResponse struct {
 type SocialLink struct {
 	Type SocialType `json:"type"`
 	Link *string    `json:"link,omitempty"`
+}
+
+type SortInput struct {
+	Column    string        `json:"column"`
+	Direction SortDirection `json:"direction"`
 }
 
 type SourceMappingError struct {

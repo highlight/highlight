@@ -214,7 +214,20 @@ func makeSelectBuilder[T ~string](
 			Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
 
 		if !pagination.CountOnly { // count queries can't be ordered because we don't include Timestamp in the select
-			sb.OrderBy(orderForward)
+			sortColumn := params.Sort.Column
+			sortDirection := params.Sort.Direction
+
+			if sortColumn != "Timestamp" {
+				if col, found := config.KeysToColumns[T(sortColumn)]; found {
+					sortColumn = col
+				} else {
+					sortColumn = fmt.Sprintf("%s[%s]", config.AttributesColumn, sb.Var(sortColumn))
+				}
+
+				sb.OrderBy(fmt.Sprintf("%s %s", sortColumn, sortDirection))
+			} else {
+				sb.OrderBy(orderForward)
+			}
 		}
 	}
 

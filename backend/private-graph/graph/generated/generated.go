@@ -1097,7 +1097,7 @@ type ComplexityRoot struct {
 		TimelineIndicatorEvents          func(childComplexity int, sessionSecureID string) int
 		TopUsers                         func(childComplexity int, projectID int, lookbackDays float64) int
 		Trace                            func(childComplexity int, projectID int, traceID string, sessionSecureID *string) int
-		Traces                           func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) int
+		Traces                           func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string) int
 		TracesIntegration                func(childComplexity int, projectID int) int
 		TracesKeyValues                  func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
 		TracesKeys                       func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
@@ -1956,7 +1956,7 @@ type QueryResolver interface {
 	ErrorTags(ctx context.Context) ([]*model1.ErrorTag, error)
 	MatchErrorTag(ctx context.Context, query string) ([]*model.MatchedErrorTag, error)
 	Trace(ctx context.Context, projectID int, traceID string, sessionSecureID *string) (*model.TracePayload, error)
-	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.TraceConnection, error)
+	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string) (*model.TraceConnection, error)
 	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, bucketCount *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
@@ -8463,7 +8463,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Traces(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["after"].(*string), args["before"].(*string), args["at"].(*string), args["direction"].(model.SortDirection)), true
+		return e.complexity.Query.Traces(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["after"].(*string), args["before"].(*string), args["at"].(*string)), true
 
 	case "Query.tracesIntegration":
 		if e.complexity.Query.TracesIntegration == nil {
@@ -11229,6 +11229,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSanitizedSlackChannelInput,
 		ec.unmarshalInputSessionAlertInput,
 		ec.unmarshalInputSessionCommentTagInput,
+		ec.unmarshalInputSortInput,
 		ec.unmarshalInputTrackPropertyInput,
 		ec.unmarshalInputUserPropertyInput,
 		ec.unmarshalInputVercelProjectMappingInput,
@@ -12542,9 +12543,15 @@ input ErrorGroupFrequenciesParamsInput {
 	resolution_minutes: Int!
 }
 
+input SortInput {
+	column: String!
+	direction: SortDirection!
+}
+
 input QueryInput {
 	query: String!
 	date_range: DateRangeRequiredInput!
+	sort: SortInput
 }
 
 enum MetricTagFilterOp {
@@ -13638,7 +13645,6 @@ type Query {
 		after: String
 		before: String
 		at: String
-		direction: SortDirection!
 	): TraceConnection!
 	traces_metrics(
 		project_id: ID!
@@ -21723,15 +21729,6 @@ func (ec *executionContext) field_Query_traces_args(ctx context.Context, rawArgs
 		}
 	}
 	args["at"] = arg4
-	var arg5 model.SortDirection
-	if tmp, ok := rawArgs["direction"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
-		arg5, err = ec.unmarshalNSortDirection2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSortDirection(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["direction"] = arg5
 	return args, nil
 }
 
@@ -62197,7 +62194,7 @@ func (ec *executionContext) _Query_traces(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Traces(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["after"].(*string), fc.Args["before"].(*string), fc.Args["at"].(*string), fc.Args["direction"].(model.SortDirection))
+		return ec.resolvers.Query().Traces(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["after"].(*string), fc.Args["before"].(*string), fc.Args["at"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -81946,7 +81943,7 @@ func (ec *executionContext) unmarshalInputQueryInput(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"query", "date_range"}
+	fieldsInOrder := [...]string{"query", "date_range", "sort"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -81967,6 +81964,13 @@ func (ec *executionContext) unmarshalInputQueryInput(ctx context.Context, obj in
 				return it, err
 			}
 			it.DateRange = data
+		case "sort":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
+			data, err := ec.unmarshalOSortInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSortInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Sort = data
 		}
 	}
 
@@ -82312,6 +82316,40 @@ func (ec *executionContext) unmarshalInputSessionCommentTagInput(ctx context.Con
 				return it, err
 			}
 			it.Name = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSortInput(ctx context.Context, obj interface{}) (model.SortInput, error) {
+	var it model.SortInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"column", "direction"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "column":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("column"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Column = data
+		case "direction":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			data, err := ec.unmarshalNSortDirection2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSortDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Direction = data
 		}
 	}
 
@@ -104658,6 +104696,14 @@ func (ec *executionContext) marshalOSocialLink2ᚖgithubᚗcomᚋhighlightᚑrun
 		return graphql.Null
 	}
 	return ec._SocialLink(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOSortInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSortInput(ctx context.Context, v interface{}) (*model.SortInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputSortInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOSourceMappingError2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingError(ctx context.Context, sel ast.SelectionSet, v *model.SourceMappingError) graphql.Marshaler {
