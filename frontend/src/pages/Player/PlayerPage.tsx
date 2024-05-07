@@ -39,7 +39,7 @@ import {
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { SearchContext } from '@/components/Search/SearchContext'
-import { useRetentionPresets } from '@/components/Search/SearchForm/utils'
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
 import { useGetBillingDetailsForProjectQuery } from '@/graph/generated/hooks'
 import { PlanType, ProductType } from '@/graph/generated/schemas'

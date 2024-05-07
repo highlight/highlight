@@ -15,8 +15,8 @@ import { GetBaseURL } from '@util/window'
 import moment from 'moment/moment'
 import { useEffect } from 'react'
 
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
-import { useRetentionPresets } from '@/components/Search/SearchForm/utils'
 import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
 
 export function HighlightSessions() {
