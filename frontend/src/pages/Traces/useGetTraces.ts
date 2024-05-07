@@ -56,6 +56,7 @@ export const useGetTraces = ({
 		variables: {
 			project_id: projectId!,
 			at: traceCursor,
+			direction: Types.SortDirection.Desc,
 			params: {
 				query,
 				date_range: {
