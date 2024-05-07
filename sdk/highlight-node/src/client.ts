@@ -5,10 +5,11 @@ import {
 	Span,
 } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
-import api, {
+import {
 	Attributes,
 	BaggageEntry,
 	Context,
+	context,
 	diag,
 	DiagConsoleLogger,
 	DiagLogLevel,
@@ -352,7 +353,7 @@ export class Highlight {
 		metadata?: Attributes,
 		options?: { span: OtelSpan },
 	) {
-		let span = options?.span ?? api.trace.getActiveSpan()
+		let span = options?.span ?? trace.getActiveSpan()
 		if (!span) {
 			span = this.tracer.startSpan('highlight.error')
 		}
@@ -456,7 +457,7 @@ export class Highlight {
 			headers,
 		)
 		try {
-			return await api.context.with(ctx, async () => {
+			return await context.with(ctx, async () => {
 				return cb(span)
 			})
 		} catch (error) {
@@ -476,9 +477,9 @@ export class Highlight {
 		headers: Headers | IncomingHttpHeaders,
 		options?: SpanOptions,
 	): { span: OtelSpan; ctx: Context } {
-		const ctx = api.context.active()
+		const ctx = context.active()
 		const span = this.tracer.startSpan(spanName, options, ctx)
-		const contextWithSpanSet = api.trace.setSpan(ctx, span)
+		const contextWithSpanSet = trace.setSpan(ctx, span)
 
 		const { secureSessionId, requestId } = this.parseHeaders(headers)
 		if (secureSessionId && requestId) {
@@ -495,10 +496,14 @@ export class Highlight {
 		return { span, ctx: contextWithSpanSet }
 	}
 
-	startActiveSpan(name: string, options?: SpanOptions) {
-		return new Promise<OtelSpan>((resolve) =>
-			this.tracer.startActiveSpan(name, options || {}, resolve),
-		)
+	startActiveSpan(name: string, options: SpanOptions = {}, ctx?: Context) {
+		return new Promise<OtelSpan>((resolve) => {
+			if (ctx) {
+				this.tracer.startActiveSpan(name, options, ctx, resolve)
+			} else {
+				this.tracer.startActiveSpan(name, options, resolve)
+			}
+		})
 	}
 }
 function parseHeaders(

@@ -4,7 +4,19 @@ import { context, propagation, SpanContext, trace } from '@opentelemetry/api'
 
 import { AppRouterHighlight, H, HighlightEnv } from '@highlight-run/next/server'
 import { TraceState } from '@opentelemetry/core'
-import { highlightConfig } from '@/instrumentation'
+
+import { CONSTANTS } from '@/constants'
+import type { NodeOptions } from '@highlight-run/node'
+
+const highlightConfig = {
+	projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+	otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
+	serviceName: 'my-nextjs-instrumentation',
+	environment: 'e2e-test',
+	enableFsInstrumentation: true,
+	disableConsoleRecording: false,
+	debug: false,
+} as NodeOptions
 
 type HighlightHandler = ReturnType<typeof AppRouterHighlight>
 type HandlerFunction = Parameters<HighlightHandler>[0]

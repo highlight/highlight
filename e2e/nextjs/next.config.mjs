@@ -5,6 +5,7 @@ import { withHighlightConfig } from '@highlight-run/next/config'
 const nextConfig = {
 	productionBrowserSourceMaps: true,
 	experimental: {
+		instrumentationHook: true,
 		serverComponentsExternalPackages: ['pino', 'pino-pretty'],
 	},
 	images: {

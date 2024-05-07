@@ -1,9 +1,19 @@
 import * as trpcNext from '@trpc/server/adapters/next'
+import { CONSTANTS } from '@/constants'
 
 import { initTRPC } from '@trpc/server'
 import { z } from 'zod'
 import { Handlers } from '@highlight-run/node'
-import { highlightConfig } from '@/instrumentation'
+
+const highlightConfig = {
+	projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+	otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
+	serviceName: 'my-nextjs-instrumentation',
+	environment: 'e2e-test',
+	enableFsInstrumentation: true,
+	disableConsoleRecording: false,
+	debug: false,
+}
 
 const t = initTRPC.create()
 
