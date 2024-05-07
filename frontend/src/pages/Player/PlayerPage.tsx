@@ -1,11 +1,7 @@
 import 'rc-slider/assets/index.css'
 
 import { useAuthContext } from '@authentication/AuthContext'
-<<<<<<< Updated upstream
-import { Box, EXTENDED_TIME_PRESETS } from '@highlight-run/ui/components'
-=======
 import { Box } from '@highlight-run/ui/components'
->>>>>>> Stashed changes
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook'
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerState'

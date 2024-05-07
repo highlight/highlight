@@ -18,10 +18,6 @@ import {
 	Box,
 	ButtonIcon,
 	Callout,
-<<<<<<< Updated upstream
-	EXTENDED_TIME_PRESETS,
-=======
->>>>>>> Stashed changes
 	IconSolidExitRight,
 	Text,
 	Tooltip,

@@ -1,3 +1,4 @@
+import { useMenuContext } from '@ariakit/react'
 import { DatePickerStateProvider } from '@rehookify/datepicker'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
@@ -104,12 +105,15 @@ type Props = {
 	noCustom?: boolean
 } & Omit<MenuButtonProps, 'ref' | 'store'>
 
-export const DateRangePicker: React.FC<Props> = (props) => (
-	<Menu placement="bottom-end">
-		{/* Rendering inside wrapper so we can work with menu store via useMenu. */}
-		<DateRangePickerImpl {...props} />
-	</Menu>
-)
+export const DateRangePicker: React.FC<Props> = (props) => {
+	const [open, setOpen] = useState(false)
+	return (
+		<Menu open={open} setOpen={setOpen} placement="bottom-end">
+			{/* Rendering inside wrapper so we can work with menu store via useMenu. */}
+			<DateRangePickerImpl {...props} open={open} />
+		</Menu>
+	)
+}
 
 const CheckboxIconIfSelected = ({
 	isSelected,
@@ -132,8 +136,9 @@ const DateRangePickerImpl = ({
 	noCustom,
 	minDate,
 	maxDate = moment().toDate(),
+	open,
 	...props
-}: Props) => {
+}: Props & { open: boolean }) => {
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
 	)
@@ -146,8 +151,7 @@ const DateRangePickerImpl = ({
 	)
 
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-	const menu = Menu.useContext()!
-	const open = menu.getState().open
+	const menu = useMenuContext()!
 
 	useEffect(() => {
 		if (!open) {

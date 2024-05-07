@@ -6,13 +6,6 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetSessionsQuery } from '@graph/hooks'
-<<<<<<< Updated upstream
-import {
-	EXTENDED_TIME_PRESETS,
-	presetStartDate,
-} from '@highlight-run/ui/components'
-=======
->>>>>>> Stashed changes
 import SvgShareIcon from '@icons/ShareIcon'
 import { useFrontContext } from '@pages/FrontPlugin/Front/FrontContext'
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'

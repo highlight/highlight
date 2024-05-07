@@ -10,10 +10,6 @@ import {
 	Box,
 	Column,
 	Container,
-<<<<<<< Updated upstream
-	EXTENDED_TIME_PRESETS,
-=======
->>>>>>> Stashed changes
 	Form,
 	FormState,
 	IconSolidCheveronDown,

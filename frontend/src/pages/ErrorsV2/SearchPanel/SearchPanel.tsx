@@ -8,17 +8,7 @@ import SearchPagination, {
 	PAGE_SIZE,
 } from '@components/SearchPagination/SearchPagination'
 import { ProductType, SavedSegmentEntityType } from '@graph/schemas'
-<<<<<<< Updated upstream
-import {
-	Box,
-	ButtonIcon,
-	EXTENDED_TIME_PRESETS,
-	IconSolidLogout,
-	presetStartDate,
-} from '@highlight-run/ui/components'
-=======
 import { Box, ButtonIcon, IconSolidLogout } from '@highlight-run/ui/components'
->>>>>>> Stashed changes
 import { ErrorFeedHistogram } from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import clsx from 'clsx'

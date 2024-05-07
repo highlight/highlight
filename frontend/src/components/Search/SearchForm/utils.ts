@@ -1,6 +1,7 @@
 import {
 	DateRangePreset,
 	DEFAULT_TIME_PRESETS,
+	EXTENDED_TIME_PRESETS,
 	presetStartDate,
 } from '@highlight-run/ui/components'
 import _ from 'lodash'
@@ -186,18 +187,19 @@ export const useRetentionPresets = (productType: ProductType) => {
 		},
 	})
 
-	// TODO(zmaybe): use EXTENDED_TIME_PRESETS for other product types
-	const defaultPresets = DEFAULT_TIME_PRESETS
-	let retentionPeriod: RetentionPeriod = RetentionPeriod.ThirtyDays
+	let defaultPresets = DEFAULT_TIME_PRESETS
+	let retentionPeriod = RetentionPeriod.ThirtyDays
 	switch (productType) {
 		case ProductType.Errors:
 			retentionPeriod =
 				data?.workspace?.errors_retention_period ??
 				RetentionPeriod.SixMonths
+			defaultPresets = EXTENDED_TIME_PRESETS
 			break
 		case ProductType.Sessions:
 			retentionPeriod =
 				data?.workspace?.retention_period ?? RetentionPeriod.SixMonths
+			defaultPresets = EXTENDED_TIME_PRESETS
 			break
 	}
 

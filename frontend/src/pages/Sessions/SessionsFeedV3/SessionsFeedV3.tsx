@@ -14,10 +14,6 @@ import { Maybe, ProductType, Session } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
-<<<<<<< Updated upstream
-	EXTENDED_TIME_PRESETS,
-=======
->>>>>>> Stashed changes
 	IconSolidLogout,
 	Stack,
 } from '@highlight-run/ui/components'
