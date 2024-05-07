@@ -5,34 +5,30 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
-	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 
-	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
-
-	model2 "github.com/highlight-run/highlight/backend/model"
-	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-
-	"github.com/samber/lo"
-
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 
 	"github.com/go-chi/chi"
-	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
+	model2 "github.com/highlight-run/highlight/backend/model"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight/highlight/sdk/highlight-go"
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
 )
 
 type Handler struct {
