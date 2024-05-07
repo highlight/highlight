@@ -5,6 +5,13 @@ receivers:
                 endpoint: '0.0.0.0:4317'
             http:
                 endpoint: '0.0.0.0:4318'
+                max_request_body_size: 0
+                cors:
+                    allowed_origins:
+                        - '*'
+                    allowed_headers:
+                        - 'X-Highlight-Request'
+                    max_age: 7200
     fluentforward:
         endpoint: '0.0.0.0:24224'
     tcplog:
