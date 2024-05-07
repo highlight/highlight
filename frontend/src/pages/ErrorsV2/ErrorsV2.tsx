@@ -18,7 +18,7 @@ import {
 	Box,
 	ButtonIcon,
 	Callout,
-	DEFAULT_TIME_PRESETS,
+	EXTENDED_TIME_PRESETS,
 	IconSolidExitRight,
 	Text,
 	Tooltip,
@@ -91,8 +91,8 @@ export default function ErrorsV2() {
 	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
 
 	const searchTimeContext = useSearchTime({
-		presets: DEFAULT_TIME_PRESETS,
-		initialPreset: DEFAULT_TIME_PRESETS[5],
+		presets: EXTENDED_TIME_PRESETS,
+		initialPreset: EXTENDED_TIME_PRESETS[5],
 	})
 
 	const handleSubmit = useCallback(

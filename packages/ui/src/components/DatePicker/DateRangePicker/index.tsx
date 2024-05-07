@@ -73,6 +73,12 @@ export const DEFAULT_TIME_PRESETS: DateRangePreset[] = [
 	},
 ]
 
+export const EXTENDED_TIME_PRESETS: DateRangePreset[] =
+	DEFAULT_TIME_PRESETS.concat({
+		unit: 'months',
+		quantity: 3,
+	})
+
 export const presetLabel = (preset: DateRangePreset) => {
 	return preset.label || `Last ${preset.quantity} ${preset.unit}`
 }

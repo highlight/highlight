@@ -10,7 +10,7 @@ import {
 	Box,
 	Column,
 	Container,
-	DEFAULT_TIME_PRESETS,
+	EXTENDED_TIME_PRESETS,
 	Form,
 	FormState,
 	IconSolidCheveronDown,
@@ -424,8 +424,8 @@ const ErrorAlertForm = ({ hideRegexExpression }: ErrorAlertFormProps) => {
 	const errors = formStore.useState('errors')
 
 	const { startDate, endDate } = useSearchTime({
-		presets: DEFAULT_TIME_PRESETS,
-		initialPreset: DEFAULT_TIME_PRESETS[5],
+		presets: EXTENDED_TIME_PRESETS,
+		initialPreset: EXTENDED_TIME_PRESETS[5],
 	})
 
 	return (
