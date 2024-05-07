@@ -105,7 +105,7 @@ export const BarChart = ({
 					axisLine={{ visibility: 'hidden' }}
 					height={12}
 					type={xAxisMetric === GROUP_KEY ? 'category' : 'number'}
-					domain={['auto', 'auto']}
+					domain={['dataMin', 'dataMax']}
 				/>
 
 				<Tooltip
