@@ -64,9 +64,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
-	"github.com/stripe/stripe-go/v76"
-	"github.com/stripe/stripe-go/v76/client"
-	"github.com/stripe/stripe-go/v76/webhook"
+	"github.com/stripe/stripe-go/v78"
+	"github.com/stripe/stripe-go/v78/client"
+	"github.com/stripe/stripe-go/v78/webhook"
 
 	"github.com/highlight-run/workerpool"
 

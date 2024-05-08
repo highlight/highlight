@@ -15,7 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering/types"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
-	"github.com/stripe/stripe-go/v76"
+	"github.com/stripe/stripe-go/v78"
 
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/store"
@@ -25,7 +25,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
-	"github.com/stripe/stripe-go/v76/client"
+	"github.com/stripe/stripe-go/v78/client"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"

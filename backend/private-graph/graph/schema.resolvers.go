@@ -58,7 +58,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
-	stripe "github.com/stripe/stripe-go/v76"
+	stripe "github.com/stripe/stripe-go/v78"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"golang.org/x/sync/errgroup"
