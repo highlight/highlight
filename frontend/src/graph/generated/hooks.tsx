@@ -8560,6 +8560,8 @@ export const GetProjectDocument = gql`
 		workspace: workspace_for_project(project_id: $id) {
 			id
 			slack_webhook_channel
+			retention_period
+			errors_retention_period
 		}
 	}
 `

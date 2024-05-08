@@ -5042,13 +5042,18 @@ body {
   width: 100%;
 }
 .ybwwtm0 {
+  display: flex;
+  width: 20px;
+  justify-content: space-around;
+}
+.ybwwtm1 {
   align-items: center;
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   height: 2rem;
   row-gap: 0.5rem;
 }
-.ybwwtm1 {
+.ybwwtm2 {
   align-items: center;
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));

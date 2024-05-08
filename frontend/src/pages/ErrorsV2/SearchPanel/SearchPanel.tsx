@@ -8,19 +8,14 @@ import SearchPagination, {
 	PAGE_SIZE,
 } from '@components/SearchPagination/SearchPagination'
 import { ProductType, SavedSegmentEntityType } from '@graph/schemas'
-import {
-	Box,
-	ButtonIcon,
-	EXTENDED_TIME_PRESETS,
-	IconSolidLogout,
-	presetStartDate,
-} from '@highlight-run/ui/components'
+import { Box, ButtonIcon, IconSolidLogout } from '@highlight-run/ui/components'
 import { ErrorFeedHistogram } from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
 import { useSearchContext } from '@/components/Search/SearchContext'
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import { ErrorFeedCard } from '@/pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import { useErrorPageNavigation } from '@/pages/ErrorsV2/ErrorsV2'
@@ -79,6 +74,8 @@ export const SearchPanel = () => {
 		)
 	}
 
+	const { presets, minDate } = useRetentionPresets(ProductType.Errors)
+
 	return (
 		<Box
 			display="flex"
@@ -95,8 +92,8 @@ export const SearchPanel = () => {
 				startDate={startDate!}
 				endDate={endDate!}
 				onDatesChange={updateSearchTime!}
-				presets={EXTENDED_TIME_PRESETS}
-				minDate={presetStartDate(EXTENDED_TIME_PRESETS[6])}
+				presets={presets}
+				minDate={minDate}
 				selectedPreset={selectedPreset}
 				productType={ProductType.Errors}
 				timeMode="fixed-range"

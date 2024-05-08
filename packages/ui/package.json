@@ -66,7 +66,7 @@
 	},
 	"dependencies": {
 		"@ariakit/react": "^0.4.5",
-		"@rehookify/datepicker": "^4.1.5",
+		"@rehookify/datepicker": "^6.6.1",
 		"@storybook/test": "^8.0.4",
 		"@vanilla-extract/css": "^1.13.0",
 		"@vanilla-extract/recipes": "^0.5.0",

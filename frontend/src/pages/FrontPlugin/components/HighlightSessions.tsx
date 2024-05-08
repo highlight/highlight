@@ -6,10 +6,6 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetSessionsQuery } from '@graph/hooks'
-import {
-	EXTENDED_TIME_PRESETS,
-	presetStartDate,
-} from '@highlight-run/ui/components'
 import SvgShareIcon from '@icons/ShareIcon'
 import { useFrontContext } from '@pages/FrontPlugin/Front/FrontContext'
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'
@@ -19,6 +15,7 @@ import { GetBaseURL } from '@util/window'
 import moment from 'moment/moment'
 import { useEffect } from 'react'
 
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
 
@@ -103,6 +100,8 @@ export function HighlightSessions() {
 	)
 	const url = `${GetBaseURL()}/${project_id}/sessions${qs}`
 
+	const { presets, minDate } = useRetentionPresets(ProductType.Sessions)
+
 	return (
 		<div className="flex w-full flex-row justify-center p-2">
 			<div className="flex w-full flex-col gap-2">
@@ -110,8 +109,8 @@ export function HighlightSessions() {
 					startDate={startDate!}
 					endDate={endDate!}
 					onDatesChange={updateSearchTime!}
-					presets={EXTENDED_TIME_PRESETS}
-					minDate={presetStartDate(EXTENDED_TIME_PRESETS[5])}
+					presets={presets}
+					minDate={minDate}
 					selectedPreset={selectedPreset}
 					productType={ProductType.Sessions}
 					timeMode="fixed-range"

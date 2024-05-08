@@ -14900,7 +14900,7 @@ __metadata:
     "@capsizecss/core": "npm:^3.0.0"
     "@capsizecss/metrics": "npm:^0.3.0"
     "@mdx-js/react": "npm:^1.6.22"
-    "@rehookify/datepicker": "npm:^4.1.5"
+    "@rehookify/datepicker": "npm:^6.6.1"
     "@storybook/addon-essentials": "npm:^8.0.4"
     "@storybook/addon-interactions": "npm:^8.0.4"
     "@storybook/addon-links": "npm:^8.0.4"
@@ -20967,12 +20967,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rehookify/datepicker@npm:^4.1.5":
-  version: 4.2.0
-  resolution: "@rehookify/datepicker@npm:4.2.0"
+"@rehookify/datepicker@npm:^6.6.1":
+  version: 6.6.1
+  resolution: "@rehookify/datepicker@npm:6.6.1"
   peerDependencies:
     react: ^16.8.0 || ^17 || ^18
-  checksum: 10/7fd61f8d3b5f201dc6e89dff8438aa508c39cbda4c897e914c9430b65354ea4dc1253fb4c3315fa1028c839d80508bd09c01cfae2d4fb721e7653d8c38b1c595
+  checksum: 10/f3709dde061589c65fb297f4922162c0900b1ed1f66800e212fd018eb5fb4fbb28f430c75e96c8d3d6c8c91b6635b8005447a1768f4c1949d5b7cb2b37bddae1
   languageName: node
   linkType: hard
 
