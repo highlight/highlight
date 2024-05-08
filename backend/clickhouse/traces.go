@@ -3,9 +3,10 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"github.com/openlyinc/pointy"
 	"strings"
 	"time"
+
+	"github.com/openlyinc/pointy"
 
 	"github.com/highlight-run/highlight/backend/parser/listener"
 
@@ -18,9 +19,7 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 	e "github.com/pkg/errors"
 
-	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
-	"github.com/samber/lo"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
@@ -136,54 +135,55 @@ type ClickhouseTraceRow struct {
 	StatusMessage    string
 	Environment      string
 	HasErrors        bool
-	EventsTimestamp  clickhouse.ArraySet `ch:"Events.Timestamp"`
-	EventsName       clickhouse.ArraySet `ch:"Events.Name"`
-	EventsAttributes clickhouse.ArraySet `ch:"Events.Attributes"`
-	LinksTraceId     clickhouse.ArraySet `ch:"Links.TraceId"`
-	LinksSpanId      clickhouse.ArraySet `ch:"Links.SpanId"`
-	LinksTraceState  clickhouse.ArraySet `ch:"Links.TraceState"`
-	LinksAttributes  clickhouse.ArraySet `ch:"Links.Attributes"`
+	EventsTimestamp  []time.Time         `json:"Events.Timestamp" ch:"Events.Timestamp"`
+	EventsName       []string            `json:"Events.Name" ch:"Events.Name"`
+	EventsAttributes []map[string]string `json:"Events.Attributes" ch:"Events.Attributes"`
+	LinksTraceId     []string            `json:"Links.TraceId" ch:"Links.TraceId"`
+	LinksSpanId      []string            `json:"Links.SpanId" ch:"Links.SpanId"`
+	LinksTraceState  []string            `json:"Links.TraceState" ch:"Links.TraceState"`
+	LinksAttributes  []map[string]string `json:"Links.Attributes" ch:"Links.Attributes"`
 }
 
-func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*TraceRow) error {
+func ConvertTraceRow(traceRow *TraceRow) *ClickhouseTraceRow {
+	traceTimes, traceNames, traceAttrs := convertEvents(traceRow)
+	linkTraceIds, linkSpanIds, linkStates, linkAttrs := convertLinks(traceRow)
+
+	return &ClickhouseTraceRow{
+		Timestamp:        traceRow.Timestamp,
+		UUID:             traceRow.UUID,
+		TraceId:          traceRow.TraceId,
+		SpanId:           traceRow.SpanId,
+		ParentSpanId:     traceRow.ParentSpanId,
+		ProjectId:        traceRow.ProjectId,
+		SecureSessionId:  traceRow.SecureSessionId,
+		TraceState:       traceRow.TraceState,
+		SpanName:         traceRow.SpanName,
+		SpanKind:         traceRow.SpanKind,
+		Duration:         traceRow.Duration,
+		ServiceName:      traceRow.ServiceName,
+		ServiceVersion:   traceRow.ServiceVersion,
+		TraceAttributes:  traceRow.TraceAttributes,
+		StatusCode:       traceRow.StatusCode,
+		StatusMessage:    traceRow.StatusMessage,
+		Environment:      traceRow.Environment,
+		HasErrors:        traceRow.HasErrors,
+		EventsTimestamp:  traceTimes,
+		EventsName:       traceNames,
+		EventsAttributes: traceAttrs,
+		LinksTraceId:     linkTraceIds,
+		LinksSpanId:      linkSpanIds,
+		LinksTraceState:  linkStates,
+		LinksAttributes:  linkAttrs,
+	}
+}
+
+func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*ClickhouseTraceRow) error {
 	if len(traceRows) == 0 {
 		return nil
 	}
 
 	span, _ := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName("worker.kafka.batched.flushTraces.prepareRows"))
 	span.SetAttribute("BatchSize", len(traceRows))
-	rows := lo.Map(traceRows, func(traceRow *TraceRow, _ int) *ClickhouseTraceRow {
-		traceTimes, traceNames, traceAttrs := convertEvents(traceRow)
-		linkTraceIds, linkSpanIds, linkStates, linkAttrs := convertLinks(traceRow)
-
-		return &ClickhouseTraceRow{
-			Timestamp:        traceRow.Timestamp,
-			UUID:             traceRow.UUID,
-			TraceId:          traceRow.TraceId,
-			SpanId:           traceRow.SpanId,
-			ParentSpanId:     traceRow.ParentSpanId,
-			ProjectId:        traceRow.ProjectId,
-			SecureSessionId:  traceRow.SecureSessionId,
-			TraceState:       traceRow.TraceState,
-			SpanName:         traceRow.SpanName,
-			SpanKind:         traceRow.SpanKind,
-			Duration:         traceRow.Duration,
-			ServiceName:      traceRow.ServiceName,
-			ServiceVersion:   traceRow.ServiceVersion,
-			TraceAttributes:  traceRow.TraceAttributes,
-			StatusCode:       traceRow.StatusCode,
-			StatusMessage:    traceRow.StatusMessage,
-			Environment:      traceRow.Environment,
-			HasErrors:        traceRow.HasErrors,
-			EventsTimestamp:  traceTimes,
-			EventsName:       traceNames,
-			EventsAttributes: traceAttrs,
-			LinksTraceId:     linkTraceIds,
-			LinksSpanId:      linkSpanIds,
-			LinksTraceState:  linkStates,
-			LinksAttributes:  linkAttrs,
-		}
-	})
 
 	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", TracesTable))
 	if err != nil {
@@ -191,7 +191,7 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 		return e.Wrap(err, "failed to create traces batch")
 	}
 
-	for _, traceRow := range rows {
+	for _, traceRow := range traceRows {
 		err = batch.AppendStruct(traceRow)
 		if err != nil {
 			span.Finish(err)
@@ -203,11 +203,11 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 	return batch.Send()
 }
 
-func convertEvents(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet, clickhouse.ArraySet) {
+func convertEvents(traceRow *TraceRow) ([]time.Time, []string, []map[string]string) {
 	var (
-		times clickhouse.ArraySet
-		names clickhouse.ArraySet
-		attrs clickhouse.ArraySet
+		times []time.Time
+		names []string
+		attrs []map[string]string
 	)
 
 	events := traceRow.Events
@@ -219,13 +219,14 @@ func convertEvents(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet
 	return times, names, attrs
 }
 
-func convertLinks(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet, clickhouse.ArraySet, clickhouse.ArraySet) {
+func convertLinks(traceRow *TraceRow) ([]string, []string, []string, []map[string]string) {
 	var (
-		traceIDs clickhouse.ArraySet
-		spanIDs  clickhouse.ArraySet
-		states   clickhouse.ArraySet
-		attrs    clickhouse.ArraySet
+		traceIDs []string
+		spanIDs  []string
+		states   []string
+		attrs    []map[string]string
 	)
+
 	links := traceRow.Links
 	for _, link := range links {
 		traceIDs = append(traceIDs, link.TraceId)

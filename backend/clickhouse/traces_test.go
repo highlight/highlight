@@ -2,9 +2,10 @@ package clickhouse
 
 import (
 	"context"
-	"github.com/highlight-run/highlight/backend/parser"
 	"testing"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/parser"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 
@@ -18,8 +19,8 @@ func TestBatchWriteTraceRows(t *testing.T) {
 
 	now := time.Now()
 
-	rows := []*TraceRow{
-		NewTraceRow(now, 1).WithServiceName("gqlgen"),
+	rows := []*ClickhouseTraceRow{
+		NewTraceRow(now, 1).WithServiceName("gqlgen").AsClickhouseTraceRow(),
 	}
 
 	assert.NoError(t, client.BatchWriteTraceRows(ctx, rows))
@@ -159,10 +160,10 @@ func TestReadTracesWithEnvironmentFilter(t *testing.T) {
 	defer teardown(t)
 
 	now := time.Now()
-	rows := []*TraceRow{
-		NewTraceRow(now, 1),
-		NewTraceRow(now, 1).WithEnvironment("production"),
-		NewTraceRow(now, 1).WithEnvironment("development"),
+	rows := []*ClickhouseTraceRow{
+		NewTraceRow(now, 1).AsClickhouseTraceRow(),
+		NewTraceRow(now, 1).WithEnvironment("production").AsClickhouseTraceRow(),
+		NewTraceRow(now, 1).WithEnvironment("development").AsClickhouseTraceRow(),
 	}
 
 	assert.NoError(t, client.BatchWriteTraceRows(ctx, rows))
