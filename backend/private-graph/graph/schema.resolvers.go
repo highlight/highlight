@@ -8200,7 +8200,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		}
 
 		if len(c.Subscriptions.Data) == 0 {
-			return &SubscriptionDetails{&modelInputs.SubscriptionDetails{}, nil}, nil
+			return nil, nil
 		}
 
 		amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
@@ -8231,6 +8231,9 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	})
 	if err != nil {
 		return nil, err
+	}
+	if result == nil {
+		result = &SubscriptionDetails{&modelInputs.SubscriptionDetails{}, nil}
 	}
 
 	if result.invoice != nil {
