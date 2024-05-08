@@ -5,7 +5,6 @@ import {
 import { useGetKeyPerformanceIndicatorsQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import { useParams } from '@util/react-router/useParams'
-import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
@@ -51,9 +50,7 @@ const KeyPerformanceIndicators = ({
 			<KeyPerformanceIndicator
 				value={formatLongNumber(data?.newUsersCount?.count || 0)}
 				title="New Users"
-				route={`/${projectIdRemapped}/sessions${buildQueryURLString({
-					custom_first_time: true,
-				})}`}
+				route={`/${projectIdRemapped}/sessions?query=first_time=true`}
 				onClick={() => {
 					message.success('Showing sessions for new users')
 				}}

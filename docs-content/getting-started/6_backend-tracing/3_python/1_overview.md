@@ -33,4 +33,7 @@ The Python SDK supports auto-instrumentation tracing for the Django, FastAPI, an
     <DocsCard title="Python Libraries" href="./9_python-libraries.md">
         {"Integrate tracing with common Python libraries."}
     </DocsCard>
+    <DocsCard title="Python AI / LLM Libraries" href="./10_python-ai.md">
+        {"Integrate tracing with common Python AI / LLM libraries like OpenAI."}
+    </DocsCard>
 </DocsCardGroup>

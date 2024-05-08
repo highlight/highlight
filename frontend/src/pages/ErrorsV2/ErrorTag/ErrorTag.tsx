@@ -35,9 +35,7 @@ const ErrorTag = React.memo(
 					shape="basic"
 					lines="1"
 				>
-					{errorGroup.serviceName && errorGroup.serviceName != ''
-						? errorGroup.serviceName
-						: errorGroup.type}
+					{errorGroup.type}
 				</Tag>
 
 				<IconSolidCheveronRight />

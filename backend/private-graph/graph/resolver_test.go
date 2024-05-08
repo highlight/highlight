@@ -564,3 +564,64 @@ func TestCreateAllModels(t *testing.T) {
 		}
 	})
 }
+
+func TestAdminEmailAddresses(t *testing.T) {
+	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+		w1 := model.Workspace{}
+		if err := DB.Create(&w1).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error creating workspace w1"))
+		}
+
+		w2 := model.Workspace{}
+		if err := DB.Create(&w2).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error creating workspace w2"))
+		}
+
+		for _, info := range []struct {
+			AdminID     int
+			WorkspaceID int
+			Email       string
+			Role        string
+		}{
+			{1, w1.ID, "admin@example.com", "ADMIN"},
+			{2, w1.ID, "member@example.com", "MEMBER"},
+			{3, w2.ID, "admin2@example.com", "ADMIN"},
+			{4, w2.ID, "member2@example.com", "MEMBER"},
+		} {
+			admin := model.Admin{
+				Model: model.Model{ID: info.AdminID},
+				Email: &info.Email,
+			}
+
+			if err := DB.Create(&admin).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating admin"))
+			}
+
+			workspaceAdmin := model.WorkspaceAdmin{
+				AdminID:     info.AdminID,
+				WorkspaceID: info.WorkspaceID,
+				Role:        &info.Role,
+			}
+
+			if err := DB.Create(&workspaceAdmin).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating workspace admin"))
+			}
+		}
+
+		addrs, err := w1.AdminEmailAddresses(DB)
+		assert.NoError(t, err)
+		assert.Len(t, addrs, 1)
+		if len(addrs) > 0 {
+			assert.Equal(t, addrs[0].AdminID, 1)
+			assert.Equal(t, addrs[0].Email, "admin@example.com")
+		}
+
+		addrs, err = w2.AdminEmailAddresses(DB)
+		assert.NoError(t, err)
+		assert.Len(t, addrs, 1)
+		if len(addrs) > 0 {
+			assert.Equal(t, addrs[0].AdminID, 3)
+			assert.Equal(t, addrs[0].Email, "admin2@example.com")
+		}
+	})
+}

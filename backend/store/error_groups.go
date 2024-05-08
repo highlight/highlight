@@ -3,92 +3,39 @@ package store
 import (
 	"context"
 	"errors"
-	"sort"
 	"strconv"
 	"time"
 
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/queryparser"
-	"github.com/samber/lo"
 	"gorm.io/gorm/clause"
 )
-
-type ListErrorObjectsParams struct {
-	After  *string
-	Before *string
-	Query  string
-}
 
 // Number of results per page
 const LIMIT = 10
 
-func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErrorObjectsParams) (privateModel.ErrorObjectConnection, error) {
+func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, ids []int64, totalCount int64) (privateModel.ErrorObjectResults, error) {
 
 	var errorObjects []model.ErrorObject
 
-	query := store.db.WithContext(context.TODO()).Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Limit(LIMIT + 1)
-
-	if params.Query != "" {
-		filters := queryparser.Parse(params.Query)
-
-		emailFilter, sessionFilter := "", false
-		if val, ok := filters.Attributes["email"]; ok {
-			if len(val) > 0 && val[0] != "" {
-				emailFilter = val[0]
-			}
-		}
-		if val, ok := filters.Attributes["has_session"]; ok {
-			if len(val) > 0 && val[0] == "true" {
-				sessionFilter = true
-			}
-		}
-		if emailFilter != "" || sessionFilter {
-			query = query.
-				Joins("INNER JOIN sessions ON error_objects.session_id = sessions.id").
-				Where("sessions.excluded is false")
-		}
-		if emailFilter != "" {
-			query = query.
-				Where("sessions.project_id = ?", errorGroup.ProjectID). // Attaching project id so we can utilize the composite index sessions
-				Where("sessions.email ILIKE ?", "%"+emailFilter+"%")
-		}
-	}
-
-	var (
-		endCursor       string
-		startCursor     string
-		hasNextPage     bool
-		hasPreviousPage bool
-	)
-
-	if params.After != nil {
-		query = query.Order("error_objects.id DESC").Where("error_objects.id < ?", *params.After)
-	} else if params.Before != nil {
-		query = query.Order("error_objects.id ASC").Where("error_objects.id > ?", *params.Before)
-	} else {
-		query = query.Order("error_objects.id DESC")
-	}
+	query := store.db.WithContext(context.TODO()).
+		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
+		Where("id IN (?)", ids).
+		Limit(LIMIT + 1).
+		Order("error_objects.timestamp DESC")
 
 	if err := query.Find(&errorObjects).Error; err != nil {
-		return privateModel.ErrorObjectConnection{
-			Edges:    []*privateModel.ErrorObjectEdge{},
-			PageInfo: &privateModel.PageInfo{},
+		return privateModel.ErrorObjectResults{
+			ErrorObjects: []*privateModel.ErrorObjectNode{},
+			TotalCount:   0,
 		}, err
 	}
 
-	if params.Before != nil {
-		// Reverse the slice to maintain a descending order view
-		sort.Slice(errorObjects, func(i, j int) bool {
-			return errorObjects[i].ID < errorObjects[j].ID
-		})
-	}
-
 	if len(errorObjects) == 0 {
-		return privateModel.ErrorObjectConnection{
-			Edges:    []*privateModel.ErrorObjectEdge{},
-			PageInfo: &privateModel.PageInfo{},
+		return privateModel.ErrorObjectResults{
+			ErrorObjects: []*privateModel.ErrorObjectNode{},
+			TotalCount:   0,
 		}, nil
 	}
 
@@ -104,7 +51,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 	var sessions []model.Session
 	err := store.db.WithContext(context.TODO()).Where("id IN (?)", sessionIDs).Find(&sessions).Error
 	if err != nil {
-		return privateModel.ErrorObjectConnection{}, errors.New("Failed to preload sessions for error objects")
+		return privateModel.ErrorObjectResults{}, errors.New("Failed to preload sessions for error objects")
 	}
 
 	// Build a map of session IDs to sessions
@@ -113,27 +60,24 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 		sessionMap[session.ID] = session
 	}
 
-	edges := []*privateModel.ErrorObjectEdge{}
+	nodes := []*privateModel.ErrorObjectNode{}
 
 	for _, errorObject := range errorObjects {
-		edge := &privateModel.ErrorObjectEdge{
-			Cursor: strconv.Itoa(errorObject.ID),
-			Node: &privateModel.ErrorObjectNode{
-				ID:                 errorObject.ID,
-				CreatedAt:          errorObject.CreatedAt,
-				Event:              errorObject.Event,
-				Timestamp:          errorObject.Timestamp,
-				ServiceVersion:     errorObject.ServiceVersion,
-				ServiceName:        errorObject.ServiceName,
-				ErrorGroupSecureID: errorGroup.SecureID,
-			},
+		node := &privateModel.ErrorObjectNode{
+			ID:                 errorObject.ID,
+			CreatedAt:          errorObject.CreatedAt,
+			Event:              errorObject.Event,
+			Timestamp:          errorObject.Timestamp,
+			ServiceVersion:     errorObject.ServiceVersion,
+			ServiceName:        errorObject.ServiceName,
+			ErrorGroupSecureID: errorGroup.SecureID,
 		}
 
 		// Attach the session we preloaded earlier to this error_object
 		if errorObject.SessionID != nil {
 			session, exists := sessionMap[*errorObject.SessionID]
 			if exists {
-				edge.Node.Session = &privateModel.ErrorObjectNodeSession{
+				node.Session = &privateModel.ErrorObjectNodeSession{
 					SecureID:    session.SecureID,
 					Email:       session.Email,
 					Fingerprint: &session.Fingerprint,
@@ -142,45 +86,13 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 			}
 		}
 
-		edges = append(edges, edge)
+		nodes = append(nodes, node)
 	}
 
-	if params.After != nil {
-		hasPreviousPage = true // Assume we have a previous page if `after` is provided
-
-		if len(edges) == LIMIT+1 {
-			edges = edges[:LIMIT]
-			hasNextPage = true
-		}
-	} else if params.Before != nil {
-		hasNextPage = true // Assume we have a next page if `before` is provided
-
-		if len(edges) == LIMIT+1 {
-			edges = edges[:LIMIT]
-			hasPreviousPage = true
-		}
-
-		edges = lo.Reverse(edges)
-	} else {
-		if len(edges) > LIMIT {
-			edges = edges[:LIMIT]
-			hasNextPage = true
-		}
-	}
-
-	startCursor = edges[0].Cursor
-	endCursor = edges[len(edges)-1].Cursor
-
-	return privateModel.ErrorObjectConnection{
-		Edges: edges,
-		PageInfo: &privateModel.PageInfo{
-			HasNextPage:     hasNextPage,
-			HasPreviousPage: hasPreviousPage,
-			StartCursor:     startCursor,
-			EndCursor:       endCursor,
-		},
+	return privateModel.ErrorObjectResults{
+		ErrorObjects: nodes,
+		TotalCount:   totalCount,
 	}, nil
-
 }
 
 type UpdateErrorGroupParams struct {

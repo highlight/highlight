@@ -51,7 +51,7 @@ export const ExpandedGraph = () => {
 	return (
 		<>
 			<Helmet>
-				<title>Edit Metric View</title>
+				<title>Dashboard</title>
 			</Helmet>
 			<Box
 				background="n2"
@@ -171,6 +171,7 @@ export const ExpandedGraph = () => {
 									g.limitFunctionType ?? undefined
 								}
 								limitMetric={g.limitMetric ?? undefined}
+								setTimeRange={updateSearchTime}
 							/>
 						</Box>
 					</Box>

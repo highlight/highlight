@@ -516,61 +516,6 @@ query GetWebSocketEvents($session_secure_id: String!) {
 	websocket_events(session_secure_id: $session_secure_id)
 }
 
-query GetFieldTypesClickhouse(
-	$project_id: ID!
-	$start_date: Timestamp!
-	$end_date: Timestamp!
-) {
-	field_types: field_types_clickhouse(
-		project_id: $project_id
-		start_date: $start_date
-		end_date: $end_date
-	) {
-		type
-		name
-	}
-}
-
-query GetFieldsClickhouse(
-	$project_id: ID!
-	$count: Int!
-	$field_type: String!
-	$field_name: String!
-	$query: String!
-	$start_date: Timestamp!
-	$end_date: Timestamp!
-) {
-	fields_clickhouse(
-		project_id: $project_id
-		count: $count
-		field_type: $field_type
-		field_name: $field_name
-		query: $query
-		start_date: $start_date
-		end_date: $end_date
-	)
-}
-
-query GetErrorFieldsClickhouse(
-	$project_id: ID!
-	$count: Int!
-	$field_type: String!
-	$field_name: String!
-	$query: String!
-	$start_date: Timestamp!
-	$end_date: Timestamp!
-) {
-	error_fields_clickhouse(
-		project_id: $project_id
-		count: $count
-		field_type: $field_type
-		field_name: $field_name
-		query: $query
-		start_date: $start_date
-		end_date: $end_date
-	)
-}
-
 query GetSessions(
 	$project_id: ID!
 	$count: Int!
@@ -939,6 +884,8 @@ query GetProject($id: ID!) {
 	workspace: workspace_for_project(project_id: $id) {
 		id
 		slack_webhook_channel
+		retention_period
+		errors_retention_period
 	}
 }
 
@@ -983,51 +930,17 @@ query GetBillingDetailsForProject($project_id: ID!) {
 	}
 }
 
-query GetBillingDetails(
+query GetWorkspaceUsageHistory(
 	$workspace_id: ID!
+	$product_type: ProductType!
 	$date_range: DateRangeRequiredInput
 ) {
-	usageHistory(workspace_id: $workspace_id, date_range: $date_range) {
-		session_usage {
-			buckets {
-				bucket_id
-				bucket_min
-				bucket_max
-				column
-				group
-				metric_type
-				metric_value
-			}
-			bucket_count
-			sample_factor
-		}
-		errors_usage {
-			buckets {
-				bucket_id
-				bucket_min
-				bucket_max
-				column
-				group
-				metric_type
-				metric_value
-			}
-			bucket_count
-			sample_factor
-		}
-		logs_usage {
-			buckets {
-				bucket_id
-				bucket_min
-				bucket_max
-				column
-				group
-				metric_type
-				metric_value
-			}
-			bucket_count
-			sample_factor
-		}
-		traces_usage {
+	usageHistory(
+		workspace_id: $workspace_id
+		product_type: $product_type
+		date_range: $date_range
+	) {
+		usage {
 			buckets {
 				bucket_id
 				bucket_min
@@ -1041,6 +954,9 @@ query GetBillingDetails(
 			sample_factor
 		}
 	}
+}
+
+query GetBillingDetails($workspace_id: ID!) {
 	billingDetails(workspace_id: $workspace_id) {
 		plan {
 			aws_mp_subscription {
@@ -1268,10 +1184,15 @@ query GetErrorObject($id: ID!) {
 	}
 }
 
-query GetErrorInstance($error_group_secure_id: String!, $error_object_id: ID) {
+query GetErrorInstance(
+	$error_group_secure_id: String!
+	$error_object_id: ID
+	$params: QueryInput
+) {
 	error_instance(
 		error_group_secure_id: $error_group_secure_id
 		error_object_id: $error_object_id
+		params: $params
 	) {
 		error_object {
 			...ErrorObject
@@ -1297,10 +1218,6 @@ query GetEnvironments($project_id: ID!) {
 		name
 		value
 	}
-}
-
-query GetAppVersions($project_id: ID!) {
-	app_version_suggestion(project_id: $project_id)
 }
 
 query GetProjectSuggestion($query: String!) {
@@ -1850,7 +1767,6 @@ query GetAlertsPagePayload($project_id: ID!) {
 			authorization
 		}
 		EmailsToNotify
-		ExcludedEnvironments
 		updated_at
 		CountThreshold
 		LastAdminToEditID
@@ -1863,6 +1779,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 		DailyFrequency
 		disabled
 		default
+		Query
 	}
 	new_session_alerts(project_id: $project_id) {
 		...SessionAlertFragment
@@ -2273,40 +2190,32 @@ query GetSystemConfiguration {
 
 query GetErrorObjects(
 	$errorGroupSecureID: String!
-	$after: String
-	$before: String
-	$query: String!
+	$count: Int!
+	$params: QueryInput!
+	$page: Int
 ) {
 	error_objects(
 		error_group_secure_id: $errorGroupSecureID
-		after: $after
-		before: $before
-		query: $query
+		count: $count
+		params: $params
+		page: $page
 	) {
-		edges {
-			cursor
-			node {
-				id
-				createdAt
-				event
-				timestamp
-				errorGroupSecureID
-				serviceVersion
-				serviceName
-				session {
-					secureID
-					email
-					fingerprint
-					excluded
-				}
+		error_objects {
+			id
+			createdAt
+			event
+			timestamp
+			errorGroupSecureID
+			serviceVersion
+			serviceName
+			session {
+				secureID
+				email
+				fingerprint
+				excluded
 			}
 		}
-		pageInfo {
-			hasNextPage
-			hasPreviousPage
-			startCursor
-			endCursor
-		}
+		totalCount
 	}
 }
 

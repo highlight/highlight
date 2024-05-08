@@ -88,6 +88,7 @@ const InnerModal = ({ loading, onHideModal, onSubmit }: ModalProps) => {
 						placeholder="Untitled dashboard"
 						type="name"
 						autoFocus
+						autoComplete="off"
 					/>
 					<Box borderTop="dividerWeak" my="12" width="full" />
 

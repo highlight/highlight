@@ -16,6 +16,7 @@ import {
 	getColor,
 	getCustomTooltip,
 	getTickFormatter,
+	GROUP_KEY,
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
@@ -45,7 +46,11 @@ export const LineChart = ({
 	series,
 	spotlight,
 	viewConfig,
-}: InnerChartProps<LineChartConfig> & SeriesInfo) => {
+	onMouseDown,
+	onMouseMove,
+	onMouseUp,
+	children,
+}: React.PropsWithChildren<InnerChartProps<LineChartConfig> & SeriesInfo>) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
 	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
 
@@ -65,7 +70,13 @@ export const LineChart = ({
 
 	return (
 		<ResponsiveContainer height="100%" width="100%">
-			<AreaChart data={filledData}>
+			<AreaChart
+				data={filledData}
+				onMouseDown={onMouseDown}
+				onMouseMove={onMouseMove}
+				onMouseUp={onMouseUp}
+			>
+				{children}
 				<XAxis
 					dataKey={xAxisMetric}
 					fontSize={10}
@@ -81,8 +92,8 @@ export const LineChart = ({
 					tickLine={{ visibility: 'hidden' }}
 					axisLine={{ visibility: 'hidden' }}
 					height={12}
-					type="number"
-					domain={['auto', 'auto']}
+					type={xAxisMetric === GROUP_KEY ? 'category' : 'number'}
+					domain={['dataMin', 'dataMax']}
 				/>
 
 				<Tooltip
@@ -120,6 +131,45 @@ export const LineChart = ({
 							return null
 						}
 
+						const CustomizedDot = (props: any) => {
+							if (
+								(viewConfig.nullHandling !== 'Hidden' &&
+									viewConfig.nullHandling !== undefined) ||
+								data === undefined
+							) {
+								return null
+							}
+
+							const { cx, cy, stroke, index } = props
+
+							const hasPrev =
+								index === 0 ||
+								![null, undefined].includes(
+									data[index - 1][key],
+								)
+							const hasCur = ![null, undefined].includes(
+								data[index][key],
+							)
+							const hasNext =
+								index === data.length - 1 ||
+								![null, undefined].includes(
+									data[index + 1][key],
+								)
+
+							// Draw a dot if discontinuous at this point
+							if (hasCur && (!hasPrev || !hasNext)) {
+								return (
+									<svg x={cx - 2} y={cy - 2}>
+										<g transform="translate(2 2)">
+											<circle r="2" fill={stroke} />
+										</g>
+									</svg>
+								)
+							}
+
+							return null
+						}
+
 						return (
 							<Area
 								isAnimationActive={false}
@@ -141,6 +191,7 @@ export const LineChart = ({
 								connectNulls={
 									viewConfig.nullHandling === 'Connected'
 								}
+								dot={<CustomizedDot />}
 							/>
 						)
 					})}

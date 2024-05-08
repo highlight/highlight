@@ -789,10 +789,10 @@ mutation CreateErrorAlert(
 	$webhook_destinations: [WebhookDestinationInput!]!
 	$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	$emails: [String]!
-	$environments: [String]!
 	$regex_groups: [String]!
 	$frequency: Int!
 	$default: Boolean
+	$query: String!
 ) {
 	createErrorAlert(
 		project_id: $project_id
@@ -803,11 +803,11 @@ mutation CreateErrorAlert(
 		microsoft_teams_channels: $microsoft_teams_channels
 		webhook_destinations: $webhook_destinations
 		emails: $emails
-		environments: $environments
 		threshold_window: $threshold_window
 		regex_groups: $regex_groups
 		frequency: $frequency
 		default: $default
+		query: $query
 	) {
 		id
 		ChannelsToNotify {
@@ -816,13 +816,13 @@ mutation CreateErrorAlert(
 		}
 		EmailsToNotify
 		Name
-		ExcludedEnvironments
 		CountThreshold
 		ThresholdWindow
 		LastAdminToEditID
 		RegexGroups
 		Frequency
 		disabled
+		Query
 	}
 }
 
@@ -965,10 +965,10 @@ mutation UpdateErrorAlert(
 	$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	$webhook_destinations: [WebhookDestinationInput!]!
 	$emails: [String]
-	$environments: [String]
 	$regex_groups: [String]
 	$frequency: Int
 	$disabled: Boolean
+	$query: String!
 ) {
 	updateErrorAlert(
 		project_id: $project_id
@@ -980,11 +980,11 @@ mutation UpdateErrorAlert(
 		microsoft_teams_channels: $microsoft_teams_channels
 		webhook_destinations: $webhook_destinations
 		emails: $emails
-		environments: $environments
 		threshold_window: $threshold_window
 		regex_groups: $regex_groups
 		frequency: $frequency
 		disabled: $disabled
+		query: $query
 	) {
 		Name
 		ChannelsToNotify {
@@ -1000,13 +1000,12 @@ mutation UpdateErrorAlert(
 			name
 		}
 		EmailsToNotify
-		ExcludedEnvironments
 		CountThreshold
 		ThresholdWindow
 		LastAdminToEditID
-		RegexGroups
 		Frequency
 		disabled
+		Query
 	}
 }
 

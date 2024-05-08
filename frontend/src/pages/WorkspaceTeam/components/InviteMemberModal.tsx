@@ -46,8 +46,15 @@ function InviteMemberModal({
 
 	const [
 		sendInviteEmail,
-		{ loading: sendLoading, data: sendInviteEmailData, reset: sendReset },
-	] = useSendAdminWorkspaceInviteMutation()
+		{
+			loading: sendLoading,
+			data: sendData,
+			error: sendError,
+			reset: sendReset,
+		},
+	] = useSendAdminWorkspaceInviteMutation({
+		fetchPolicy: 'no-cache',
+	})
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
@@ -94,6 +101,7 @@ function InviteMemberModal({
 						className={styles.emailInput}
 						placeholder="Email"
 						type="email"
+						required
 						name="invitedEmail"
 						autoFocus
 						value={email}
@@ -143,7 +151,7 @@ function InviteMemberModal({
 					</Button>
 				</div>
 			</form>
-			{sendInviteEmailData?.sendAdminWorkspaceInvite && (
+			{sendData?.sendAdminWorkspaceInvite && (
 				<Alert
 					shouldAlwaysShow
 					trackingId="InviteAdminToWorkspaceConfirmation"
@@ -154,15 +162,22 @@ function InviteMemberModal({
 							You can also share with them this link:{' '}
 							<span>
 								<CopyText
-									text={
-										sendInviteEmailData.sendAdminWorkspaceInvite
-									}
+									text={sendData.sendAdminWorkspaceInvite}
 									onCopyTooltipText="Copied invite link to clipboard!"
 									inline
 								/>
 							</span>
 						</>
 					}
+				/>
+			)}
+			{sendError && (
+				<Alert
+					shouldAlwaysShow
+					trackingId="InviteAdminToWorkspaceError"
+					message="Couldn't send workspace invite"
+					type="error"
+					description={sendError.message}
 				/>
 			)}
 			<hr className={styles.hr} />

@@ -17,8 +17,7 @@ import { createSearchParams } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { Link } from '@/components/Link'
-import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
-import { ErrorObjectEdge } from '@/graph/generated/schemas'
+import { ErrorObjectNode } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 
@@ -30,8 +29,7 @@ const toYearMonthDay = (timestamp: string) => {
 }
 
 type Props = {
-	edges: ErrorObjectEdge[]
-	searchedEmail: string
+	nodes: ErrorObjectNode[]
 }
 
 function truncateVersion(version: string) {
@@ -43,27 +41,27 @@ function truncateVersion(version: string) {
 	}
 }
 
-export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
+export const ErrorInstancesTable = ({ nodes }: Props) => {
 	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
-	const columnHelper = createColumnHelper<ErrorObjectEdge>()
+	const columnHelper = createColumnHelper<ErrorObjectNode>()
 
 	const columns = [
-		columnHelper.accessor('node.event', {
+		columnHelper.accessor('event', {
 			cell: ({ getValue }) => (
 				<Box display="flex" flexGrow={1} flexBasis={1}>
 					<Text lines="1">{getValue()}</Text>
 				</Box>
 			),
 		}),
-		columnHelper.accessor('node.createdAt', {
+		columnHelper.accessor('timestamp', {
 			cell: ({ getValue }) => (
 				<Tag shape="basic" kind="secondary">
 					{toYearMonthDay(getValue())}
 				</Tag>
 			),
 		}),
-		columnHelper.accessor('node.serviceName', {
+		columnHelper.accessor('serviceName', {
 			cell: ({ getValue }) => {
 				const serviceVersion = getValue()
 				if (!serviceVersion) {
@@ -77,7 +75,7 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 				)
 			},
 		}),
-		columnHelper.accessor('node.serviceVersion', {
+		columnHelper.accessor('serviceVersion', {
 			cell: ({ getValue }) => {
 				const serviceVersion = getValue()
 				if (!serviceVersion) {
@@ -91,23 +89,18 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 				)
 			},
 		}),
-		columnHelper.accessor('node', {
-			cell: ({ getValue }) => {
-				const errorObjectId = getValue().id
-				const timestamp = getValue().timestamp
-				const session = getValue().session
+		columnHelper.accessor('id', {
+			cell: ({ row }) => {
+				const errorObjectId = row.original.id
+				const timestamp = row.original.timestamp
+				const session = row.original.session
 
 				let content = <>no session</>
 				let sessionLink = ''
 
 				if (session && !session.excluded) {
 					if (session.email) {
-						content = (
-							<TextHighlighter
-								searchWords={[searchedEmail]}
-								textToHighlight={session.email}
-							/>
-						)
+						content = <>{session.email}</>
 					} else {
 						content = <>{session.fingerprint?.toString()}</> ?? (
 							<>(no value)</>
@@ -141,18 +134,18 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 
 	const table = useReactTable({
 		columns,
-		data: edges,
+		data: nodes,
 		getCoreRowModel: getCoreRowModel(),
 	})
 
 	return (
-		<Box>
+		<Box width="full">
 			{table.getRowModel().rows.map((row) => {
 				return (
 					<Link
 						key={row.id}
 						to={{
-							pathname: `/${projectId}/errors/${row.original.node.errorGroupSecureID}/instances/${row.original.cursor}`,
+							pathname: `/${projectId}/errors/${row.original.errorGroupSecureID}/instances/${row.original.id}`,
 							search: location.search,
 						}}
 						className={styles.rowLink}

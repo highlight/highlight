@@ -462,7 +462,6 @@ export const LogAlertPage = () => {
 											}}
 										>
 											<SearchContext
-												// TODO: Click test.
 												initialQuery={initialQuery}
 												onSubmit={
 													handleUpdateInputQuery

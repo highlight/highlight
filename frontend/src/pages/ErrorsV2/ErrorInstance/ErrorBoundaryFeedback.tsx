@@ -4,7 +4,6 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui/components'
-import { buildQueryURLString } from '@util/url/params'
 import moment from 'moment'
 import { useNavigate } from 'react-router-dom'
 
@@ -31,10 +30,7 @@ const getSessionLink = (
 		return ''
 	}
 
-	const params = buildQueryURLString({
-		tsAbs: errorObject.timestamp,
-		[PlayerSearchParameters.errorId]: errorObject.id,
-	})
+	const params = `tsAbs=${errorObject.timestamp}&${PlayerSearchParameters.errorId}=${errorObject.id}`
 	return `/${errorObject.project_id}/sessions/${errorObject.session?.secure_id}?${params}`
 }
 

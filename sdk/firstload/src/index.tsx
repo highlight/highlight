@@ -403,6 +403,9 @@ const H: HighlightPublicInterface = {
 			})
 		})
 	},
+	getRecordingState: () => {
+		return highlight_obj.state
+	},
 	onHighlightReady: async (func, options) => {
 		onHighlightReadyQueue.push({ options, func })
 		if (onHighlightReadyTimeout === undefined) {

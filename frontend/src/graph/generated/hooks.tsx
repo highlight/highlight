@@ -2980,10 +2980,10 @@ export const CreateErrorAlertDocument = gql`
 		$webhook_destinations: [WebhookDestinationInput!]!
 		$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		$emails: [String]!
-		$environments: [String]!
 		$regex_groups: [String]!
 		$frequency: Int!
 		$default: Boolean
+		$query: String!
 	) {
 		createErrorAlert(
 			project_id: $project_id
@@ -2994,11 +2994,11 @@ export const CreateErrorAlertDocument = gql`
 			microsoft_teams_channels: $microsoft_teams_channels
 			webhook_destinations: $webhook_destinations
 			emails: $emails
-			environments: $environments
 			threshold_window: $threshold_window
 			regex_groups: $regex_groups
 			frequency: $frequency
 			default: $default
+			query: $query
 		) {
 			id
 			ChannelsToNotify {
@@ -3007,13 +3007,13 @@ export const CreateErrorAlertDocument = gql`
 			}
 			EmailsToNotify
 			Name
-			ExcludedEnvironments
 			CountThreshold
 			ThresholdWindow
 			LastAdminToEditID
 			RegexGroups
 			Frequency
 			disabled
+			Query
 		}
 	}
 `
@@ -3044,10 +3044,10 @@ export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
  *      webhook_destinations: // value for 'webhook_destinations'
  *      microsoft_teams_channels: // value for 'microsoft_teams_channels'
  *      emails: // value for 'emails'
- *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
  *      frequency: // value for 'frequency'
  *      default: // value for 'default'
+ *      query: // value for 'query'
  *   },
  * });
  */
@@ -3453,10 +3453,10 @@ export const UpdateErrorAlertDocument = gql`
 		$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		$webhook_destinations: [WebhookDestinationInput!]!
 		$emails: [String]
-		$environments: [String]
 		$regex_groups: [String]
 		$frequency: Int
 		$disabled: Boolean
+		$query: String!
 	) {
 		updateErrorAlert(
 			project_id: $project_id
@@ -3468,11 +3468,11 @@ export const UpdateErrorAlertDocument = gql`
 			microsoft_teams_channels: $microsoft_teams_channels
 			webhook_destinations: $webhook_destinations
 			emails: $emails
-			environments: $environments
 			threshold_window: $threshold_window
 			regex_groups: $regex_groups
 			frequency: $frequency
 			disabled: $disabled
+			query: $query
 		) {
 			Name
 			ChannelsToNotify {
@@ -3488,13 +3488,12 @@ export const UpdateErrorAlertDocument = gql`
 				name
 			}
 			EmailsToNotify
-			ExcludedEnvironments
 			CountThreshold
 			ThresholdWindow
 			LastAdminToEditID
-			RegexGroups
 			Frequency
 			disabled
+			Query
 		}
 	}
 `
@@ -3526,10 +3525,10 @@ export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
  *      microsoft_teams_channels: // value for 'microsoft_teams_channels'
  *      webhook_destinations: // value for 'webhook_destinations'
  *      emails: // value for 'emails'
- *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
  *      frequency: // value for 'frequency'
  *      disabled: // value for 'disabled'
+ *      query: // value for 'query'
  *   },
  * });
  */
@@ -7289,225 +7288,6 @@ export type GetWebSocketEventsQueryResult = Apollo.QueryResult<
 	Types.GetWebSocketEventsQuery,
 	Types.GetWebSocketEventsQueryVariables
 >
-export const GetFieldTypesClickhouseDocument = gql`
-	query GetFieldTypesClickhouse(
-		$project_id: ID!
-		$start_date: Timestamp!
-		$end_date: Timestamp!
-	) {
-		field_types: field_types_clickhouse(
-			project_id: $project_id
-			start_date: $start_date
-			end_date: $end_date
-		) {
-			type
-			name
-		}
-	}
-`
-
-/**
- * __useGetFieldTypesClickhouseQuery__
- *
- * To run a query within a React component, call `useGetFieldTypesClickhouseQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetFieldTypesClickhouseQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetFieldTypesClickhouseQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      start_date: // value for 'start_date'
- *      end_date: // value for 'end_date'
- *   },
- * });
- */
-export function useGetFieldTypesClickhouseQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetFieldTypesClickhouseQuery,
-		Types.GetFieldTypesClickhouseQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetFieldTypesClickhouseQuery,
-		Types.GetFieldTypesClickhouseQueryVariables
-	>(GetFieldTypesClickhouseDocument, baseOptions)
-}
-export function useGetFieldTypesClickhouseLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetFieldTypesClickhouseQuery,
-		Types.GetFieldTypesClickhouseQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetFieldTypesClickhouseQuery,
-		Types.GetFieldTypesClickhouseQueryVariables
-	>(GetFieldTypesClickhouseDocument, baseOptions)
-}
-export type GetFieldTypesClickhouseQueryHookResult = ReturnType<
-	typeof useGetFieldTypesClickhouseQuery
->
-export type GetFieldTypesClickhouseLazyQueryHookResult = ReturnType<
-	typeof useGetFieldTypesClickhouseLazyQuery
->
-export type GetFieldTypesClickhouseQueryResult = Apollo.QueryResult<
-	Types.GetFieldTypesClickhouseQuery,
-	Types.GetFieldTypesClickhouseQueryVariables
->
-export const GetFieldsClickhouseDocument = gql`
-	query GetFieldsClickhouse(
-		$project_id: ID!
-		$count: Int!
-		$field_type: String!
-		$field_name: String!
-		$query: String!
-		$start_date: Timestamp!
-		$end_date: Timestamp!
-	) {
-		fields_clickhouse(
-			project_id: $project_id
-			count: $count
-			field_type: $field_type
-			field_name: $field_name
-			query: $query
-			start_date: $start_date
-			end_date: $end_date
-		)
-	}
-`
-
-/**
- * __useGetFieldsClickhouseQuery__
- *
- * To run a query within a React component, call `useGetFieldsClickhouseQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetFieldsClickhouseQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetFieldsClickhouseQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      count: // value for 'count'
- *      field_type: // value for 'field_type'
- *      field_name: // value for 'field_name'
- *      query: // value for 'query'
- *      start_date: // value for 'start_date'
- *      end_date: // value for 'end_date'
- *   },
- * });
- */
-export function useGetFieldsClickhouseQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetFieldsClickhouseQuery,
-		Types.GetFieldsClickhouseQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetFieldsClickhouseQuery,
-		Types.GetFieldsClickhouseQueryVariables
-	>(GetFieldsClickhouseDocument, baseOptions)
-}
-export function useGetFieldsClickhouseLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetFieldsClickhouseQuery,
-		Types.GetFieldsClickhouseQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetFieldsClickhouseQuery,
-		Types.GetFieldsClickhouseQueryVariables
-	>(GetFieldsClickhouseDocument, baseOptions)
-}
-export type GetFieldsClickhouseQueryHookResult = ReturnType<
-	typeof useGetFieldsClickhouseQuery
->
-export type GetFieldsClickhouseLazyQueryHookResult = ReturnType<
-	typeof useGetFieldsClickhouseLazyQuery
->
-export type GetFieldsClickhouseQueryResult = Apollo.QueryResult<
-	Types.GetFieldsClickhouseQuery,
-	Types.GetFieldsClickhouseQueryVariables
->
-export const GetErrorFieldsClickhouseDocument = gql`
-	query GetErrorFieldsClickhouse(
-		$project_id: ID!
-		$count: Int!
-		$field_type: String!
-		$field_name: String!
-		$query: String!
-		$start_date: Timestamp!
-		$end_date: Timestamp!
-	) {
-		error_fields_clickhouse(
-			project_id: $project_id
-			count: $count
-			field_type: $field_type
-			field_name: $field_name
-			query: $query
-			start_date: $start_date
-			end_date: $end_date
-		)
-	}
-`
-
-/**
- * __useGetErrorFieldsClickhouseQuery__
- *
- * To run a query within a React component, call `useGetErrorFieldsClickhouseQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetErrorFieldsClickhouseQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetErrorFieldsClickhouseQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      count: // value for 'count'
- *      field_type: // value for 'field_type'
- *      field_name: // value for 'field_name'
- *      query: // value for 'query'
- *      start_date: // value for 'start_date'
- *      end_date: // value for 'end_date'
- *   },
- * });
- */
-export function useGetErrorFieldsClickhouseQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetErrorFieldsClickhouseQuery,
-		Types.GetErrorFieldsClickhouseQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetErrorFieldsClickhouseQuery,
-		Types.GetErrorFieldsClickhouseQueryVariables
-	>(GetErrorFieldsClickhouseDocument, baseOptions)
-}
-export function useGetErrorFieldsClickhouseLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetErrorFieldsClickhouseQuery,
-		Types.GetErrorFieldsClickhouseQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetErrorFieldsClickhouseQuery,
-		Types.GetErrorFieldsClickhouseQueryVariables
-	>(GetErrorFieldsClickhouseDocument, baseOptions)
-}
-export type GetErrorFieldsClickhouseQueryHookResult = ReturnType<
-	typeof useGetErrorFieldsClickhouseQuery
->
-export type GetErrorFieldsClickhouseLazyQueryHookResult = ReturnType<
-	typeof useGetErrorFieldsClickhouseLazyQuery
->
-export type GetErrorFieldsClickhouseQueryResult = Apollo.QueryResult<
-	Types.GetErrorFieldsClickhouseQuery,
-	Types.GetErrorFieldsClickhouseQueryVariables
->
 export const GetSessionsDocument = gql`
 	query GetSessions(
 		$project_id: ID!
@@ -8780,6 +8560,8 @@ export const GetProjectDocument = gql`
 		workspace: workspace_for_project(project_id: $id) {
 			id
 			slack_webhook_channel
+			retention_period
+			errors_retention_period
 		}
 	}
 `
@@ -8921,52 +8703,18 @@ export type GetBillingDetailsForProjectQueryResult = Apollo.QueryResult<
 	Types.GetBillingDetailsForProjectQuery,
 	Types.GetBillingDetailsForProjectQueryVariables
 >
-export const GetBillingDetailsDocument = gql`
-	query GetBillingDetails(
+export const GetWorkspaceUsageHistoryDocument = gql`
+	query GetWorkspaceUsageHistory(
 		$workspace_id: ID!
+		$product_type: ProductType!
 		$date_range: DateRangeRequiredInput
 	) {
-		usageHistory(workspace_id: $workspace_id, date_range: $date_range) {
-			session_usage {
-				buckets {
-					bucket_id
-					bucket_min
-					bucket_max
-					column
-					group
-					metric_type
-					metric_value
-				}
-				bucket_count
-				sample_factor
-			}
-			errors_usage {
-				buckets {
-					bucket_id
-					bucket_min
-					bucket_max
-					column
-					group
-					metric_type
-					metric_value
-				}
-				bucket_count
-				sample_factor
-			}
-			logs_usage {
-				buckets {
-					bucket_id
-					bucket_min
-					bucket_max
-					column
-					group
-					metric_type
-					metric_value
-				}
-				bucket_count
-				sample_factor
-			}
-			traces_usage {
+		usageHistory(
+			workspace_id: $workspace_id
+			product_type: $product_type
+			date_range: $date_range
+		) {
+			usage {
 				buckets {
 					bucket_id
 					bucket_min
@@ -8980,6 +8728,61 @@ export const GetBillingDetailsDocument = gql`
 				sample_factor
 			}
 		}
+	}
+`
+
+/**
+ * __useGetWorkspaceUsageHistoryQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceUsageHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceUsageHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceUsageHistoryQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      product_type: // value for 'product_type'
+ *      date_range: // value for 'date_range'
+ *   },
+ * });
+ */
+export function useGetWorkspaceUsageHistoryQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceUsageHistoryQuery,
+		Types.GetWorkspaceUsageHistoryQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceUsageHistoryQuery,
+		Types.GetWorkspaceUsageHistoryQueryVariables
+	>(GetWorkspaceUsageHistoryDocument, baseOptions)
+}
+export function useGetWorkspaceUsageHistoryLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceUsageHistoryQuery,
+		Types.GetWorkspaceUsageHistoryQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceUsageHistoryQuery,
+		Types.GetWorkspaceUsageHistoryQueryVariables
+	>(GetWorkspaceUsageHistoryDocument, baseOptions)
+}
+export type GetWorkspaceUsageHistoryQueryHookResult = ReturnType<
+	typeof useGetWorkspaceUsageHistoryQuery
+>
+export type GetWorkspaceUsageHistoryLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceUsageHistoryLazyQuery
+>
+export type GetWorkspaceUsageHistoryQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceUsageHistoryQuery,
+	Types.GetWorkspaceUsageHistoryQueryVariables
+>
+export const GetBillingDetailsDocument = gql`
+	query GetBillingDetails($workspace_id: ID!) {
 		billingDetails(workspace_id: $workspace_id) {
 			plan {
 				aws_mp_subscription {
@@ -9063,7 +8866,6 @@ export const GetBillingDetailsDocument = gql`
  * const { data, loading, error } = useGetBillingDetailsQuery({
  *   variables: {
  *      workspace_id: // value for 'workspace_id'
- *      date_range: // value for 'date_range'
  *   },
  * });
  */
@@ -9388,10 +9190,12 @@ export const GetErrorInstanceDocument = gql`
 	query GetErrorInstance(
 		$error_group_secure_id: String!
 		$error_object_id: ID
+		$params: QueryInput
 	) {
 		error_instance(
 			error_group_secure_id: $error_group_secure_id
 			error_object_id: $error_object_id
+			params: $params
 		) {
 			error_object {
 				...ErrorObject
@@ -9417,6 +9221,7 @@ export const GetErrorInstanceDocument = gql`
  *   variables: {
  *      error_group_secure_id: // value for 'error_group_secure_id'
  *      error_object_id: // value for 'error_object_id'
+ *      params: // value for 'params'
  *   },
  * });
  */
@@ -9625,60 +9430,6 @@ export type GetEnvironmentsLazyQueryHookResult = ReturnType<
 export type GetEnvironmentsQueryResult = Apollo.QueryResult<
 	Types.GetEnvironmentsQuery,
 	Types.GetEnvironmentsQueryVariables
->
-export const GetAppVersionsDocument = gql`
-	query GetAppVersions($project_id: ID!) {
-		app_version_suggestion(project_id: $project_id)
-	}
-`
-
-/**
- * __useGetAppVersionsQuery__
- *
- * To run a query within a React component, call `useGetAppVersionsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAppVersionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAppVersionsQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *   },
- * });
- */
-export function useGetAppVersionsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetAppVersionsQuery,
-		Types.GetAppVersionsQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetAppVersionsQuery,
-		Types.GetAppVersionsQueryVariables
-	>(GetAppVersionsDocument, baseOptions)
-}
-export function useGetAppVersionsLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetAppVersionsQuery,
-		Types.GetAppVersionsQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetAppVersionsQuery,
-		Types.GetAppVersionsQueryVariables
-	>(GetAppVersionsDocument, baseOptions)
-}
-export type GetAppVersionsQueryHookResult = ReturnType<
-	typeof useGetAppVersionsQuery
->
-export type GetAppVersionsLazyQueryHookResult = ReturnType<
-	typeof useGetAppVersionsLazyQuery
->
-export type GetAppVersionsQueryResult = Apollo.QueryResult<
-	Types.GetAppVersionsQuery,
-	Types.GetAppVersionsQueryVariables
 >
 export const GetProjectSuggestionDocument = gql`
 	query GetProjectSuggestion($query: String!) {
@@ -12367,7 +12118,6 @@ export const GetAlertsPagePayloadDocument = gql`
 				authorization
 			}
 			EmailsToNotify
-			ExcludedEnvironments
 			updated_at
 			CountThreshold
 			LastAdminToEditID
@@ -12380,6 +12130,7 @@ export const GetAlertsPagePayloadDocument = gql`
 			DailyFrequency
 			disabled
 			default
+			Query
 		}
 		new_session_alerts(project_id: $project_id) {
 			...SessionAlertFragment
@@ -14154,40 +13905,32 @@ export type GetSystemConfigurationQueryResult = Apollo.QueryResult<
 export const GetErrorObjectsDocument = gql`
 	query GetErrorObjects(
 		$errorGroupSecureID: String!
-		$after: String
-		$before: String
-		$query: String!
+		$count: Int!
+		$params: QueryInput!
+		$page: Int
 	) {
 		error_objects(
 			error_group_secure_id: $errorGroupSecureID
-			after: $after
-			before: $before
-			query: $query
+			count: $count
+			params: $params
+			page: $page
 		) {
-			edges {
-				cursor
-				node {
-					id
-					createdAt
-					event
-					timestamp
-					errorGroupSecureID
-					serviceVersion
-					serviceName
-					session {
-						secureID
-						email
-						fingerprint
-						excluded
-					}
+			error_objects {
+				id
+				createdAt
+				event
+				timestamp
+				errorGroupSecureID
+				serviceVersion
+				serviceName
+				session {
+					secureID
+					email
+					fingerprint
+					excluded
 				}
 			}
-			pageInfo {
-				hasNextPage
-				hasPreviousPage
-				startCursor
-				endCursor
-			}
+			totalCount
 		}
 	}
 `
@@ -14205,9 +13948,9 @@ export const GetErrorObjectsDocument = gql`
  * const { data, loading, error } = useGetErrorObjectsQuery({
  *   variables: {
  *      errorGroupSecureID: // value for 'errorGroupSecureID'
- *      after: // value for 'after'
- *      before: // value for 'before'
- *      query: // value for 'query'
+ *      count: // value for 'count'
+ *      params: // value for 'params'
+ *      page: // value for 'page'
  *   },
  * });
  */

@@ -328,22 +328,6 @@ type ErrorMetadata struct {
 	Payload         *string    `json:"payload,omitempty"`
 }
 
-type ErrorObjectConnection struct {
-	Edges    []*ErrorObjectEdge `json:"edges"`
-	PageInfo *PageInfo          `json:"pageInfo"`
-}
-
-func (ErrorObjectConnection) IsConnection()               {}
-func (this ErrorObjectConnection) GetPageInfo() *PageInfo { return this.PageInfo }
-
-type ErrorObjectEdge struct {
-	Cursor string           `json:"cursor"`
-	Node   *ErrorObjectNode `json:"node"`
-}
-
-func (ErrorObjectEdge) IsEdge()                {}
-func (this ErrorObjectEdge) GetCursor() string { return this.Cursor }
-
 type ErrorObjectNode struct {
 	ID                 int                     `json:"id"`
 	CreatedAt          time.Time               `json:"createdAt"`
@@ -360,6 +344,11 @@ type ErrorObjectNodeSession struct {
 	Email       *string `json:"email,omitempty"`
 	Fingerprint *int    `json:"fingerprint,omitempty"`
 	Excluded    bool    `json:"excluded"`
+}
+
+type ErrorObjectResults struct {
+	ErrorObjects []*ErrorObjectNode `json:"error_objects"`
+	TotalCount   int64              `json:"totalCount"`
 }
 
 type ErrorTrace struct {
@@ -961,10 +950,7 @@ type TrackPropertyInput struct {
 }
 
 type UsageHistory struct {
-	SessionUsage *MetricsBuckets `json:"session_usage"`
-	ErrorsUsage  *MetricsBuckets `json:"errors_usage"`
-	LogsUsage    *MetricsBuckets `json:"logs_usage"`
-	TracesUsage  *MetricsBuckets `json:"traces_usage"`
+	Usage *MetricsBuckets `json:"usage"`
 }
 
 type User struct {
@@ -1365,6 +1351,7 @@ const (
 	LogLevelWarn  LogLevel = "warn"
 	LogLevelError LogLevel = "error"
 	LogLevelFatal LogLevel = "fatal"
+	LogLevelPanic LogLevel = "panic"
 )
 
 var AllLogLevel = []LogLevel{
@@ -1374,11 +1361,12 @@ var AllLogLevel = []LogLevel{
 	LogLevelWarn,
 	LogLevelError,
 	LogLevelFatal,
+	LogLevelPanic,
 }
 
 func (e LogLevel) IsValid() bool {
 	switch e {
-	case LogLevelTrace, LogLevelDebug, LogLevelInfo, LogLevelWarn, LogLevelError, LogLevelFatal:
+	case LogLevelTrace, LogLevelDebug, LogLevelInfo, LogLevelWarn, LogLevelError, LogLevelFatal, LogLevelPanic:
 		return true
 	}
 	return false

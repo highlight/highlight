@@ -45,6 +45,32 @@ if __name__ == "__main__":
 				},
 			],
 		},
+		{
+			title: 'Use a decorator to trace your functions.',
+			content:
+				'Use the `highlight_io.trace()` decorator to create spans for your functions.',
+			code: [
+				{
+					text: `import logging
+
+@highlight_io.trace
+def my_cool_method():
+    logging.info("hello my_cool_method", {"customer": "unknown", "trace": "inside"})
+    time.sleep(random.randint(0, 10) / 1000)
+    logging.info("goodbye my_cool_method", {"customer": "unknown", "trace": "inside"})
+
+def main():
+    with H.trace(span_name="my_span"):
+        logging.info('hello, world!', {'favorite_number': 7})
+        my_cool_method()
+        return f"<h1>Hello world</h1>"
+
+if __name__ == "__main__":
+    main()`,
+					language: 'python',
+				},
+			],
+		},
 		verifyTraces,
 	],
 }

@@ -6,7 +6,7 @@ import JsonViewer from '@components/JsonViewer/JsonViewer'
 import LoadingBox from '@components/LoadingBox'
 import {
 	GetErrorInstanceDocument,
-	useGetErrorInstanceQuery,
+	useGetErrorInstanceLazyQuery,
 } from '@graph/hooks'
 import {
 	ErrorObjectFragment,
@@ -41,6 +41,7 @@ import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { useSearchContext } from '@/components/Search/SearchContext'
 import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
 import ErrorBodyText from '@/pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
 import { AiErrorSuggestion } from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestion'
@@ -70,50 +71,70 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const client = useApolloClient()
 	const { currentWorkspace } = useApplicationContext()
 	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(false)
+	const { query, startDate, endDate } = useSearchContext()
 
 	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: String(currentWorkspace?.id) },
 		skip: !currentWorkspace?.id,
 	})
 
-	const { loading, error, data } = useGetErrorInstanceQuery({
-		variables: {
-			error_group_secure_id: String(errorGroup?.secure_id),
-			error_object_id,
-		},
-		onCompleted: (data) => {
-			const previousErrorObjectId = data?.error_instance?.previous_id
-			const nextErrorObjectId = data?.error_instance?.next_id
+	const [getErrorInstance, { error, data, loading, called }] =
+		useGetErrorInstanceLazyQuery()
 
-			// Prefetch the next/previous error objects so they are in the cache.
-			// Using client directly because the lazy query had issues with canceling
-			// multiple requests: https://github.com/apollographql/apollo-client/issues/9755
-			if (previousErrorObjectId) {
-				client.query({
-					query: GetErrorInstanceDocument,
-					variables: {
-						error_group_secure_id: String(errorGroup?.secure_id),
-						error_object_id: previousErrorObjectId,
+	useEffect(() => {
+		getErrorInstance({
+			variables: {
+				error_group_secure_id: String(errorGroup?.secure_id),
+				error_object_id,
+				params: {
+					query,
+					date_range: {
+						start_date: startDate!.toISOString(),
+						end_date: endDate!.toISOString(),
 					},
-				})
-			}
+				},
+			},
+			onCompleted: (data) => {
+				const previousErrorObjectId = data?.error_instance?.previous_id
+				const nextErrorObjectId = data?.error_instance?.next_id
 
-			if (nextErrorObjectId) {
-				client.query({
-					query: GetErrorInstanceDocument,
-					variables: {
-						error_group_secure_id: String(errorGroup?.secure_id),
-						error_object_id: nextErrorObjectId,
-					},
-				})
-			}
+				// Prefetch the next/previous error objects so they are in the cache.
+				// Using client directly because the lazy query had issues with canceling
+				// multiple requests: https://github.com/apollographql/apollo-client/issues/9755
+				if (previousErrorObjectId) {
+					client.query({
+						query: GetErrorInstanceDocument,
+						variables: {
+							error_group_secure_id: String(
+								errorGroup?.secure_id,
+							),
+							error_object_id: previousErrorObjectId,
+						},
+					})
+				}
 
-			// Prefetch session data.
-			if (data?.error_instance?.error_object?.session) {
-				loadSession(data.error_instance.error_object.session.secure_id)
-			}
-		},
-	})
+				if (nextErrorObjectId) {
+					client.query({
+						query: GetErrorInstanceDocument,
+						variables: {
+							error_group_secure_id: String(
+								errorGroup?.secure_id,
+							),
+							error_object_id: nextErrorObjectId,
+						},
+					})
+				}
+
+				// Prefetch session data.
+				if (data?.error_instance?.error_object?.session) {
+					loadSession(
+						data.error_instance.error_object.session.secure_id,
+					)
+				}
+			},
+		})
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [error_object_id, errorGroup?.secure_id])
 
 	useEffect(
 		() =>
@@ -123,7 +144,7 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		[error_object_id],
 	)
 
-	if (loading) {
+	if (!called || loading) {
 		return (
 			<Box mt="10">
 				<LoadingBox />

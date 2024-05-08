@@ -66,8 +66,13 @@ export const BarChart = ({
 	yAxisMetric,
 	series,
 	spotlight,
+	strokeColors,
 	viewConfig,
-}: InnerChartProps<BarChartConfig> & SeriesInfo) => {
+	onMouseDown,
+	onMouseMove,
+	onMouseUp,
+	children,
+}: React.PropsWithChildren<InnerChartProps<BarChartConfig> & SeriesInfo>) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
 	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
 
@@ -76,7 +81,14 @@ export const BarChart = ({
 
 	return (
 		<ResponsiveContainer>
-			<RechartsBarChart data={data} barCategoryGap={1}>
+			<RechartsBarChart
+				data={data}
+				barCategoryGap={1}
+				onMouseDown={onMouseDown}
+				onMouseMove={onMouseMove}
+				onMouseUp={onMouseUp}
+			>
+				{children}
 				<XAxis
 					dataKey={xAxisMetric}
 					fontSize={10}
@@ -93,7 +105,7 @@ export const BarChart = ({
 					axisLine={{ visibility: 'hidden' }}
 					height={12}
 					type={xAxisMetric === GROUP_KEY ? 'category' : 'number'}
-					domain={['auto', 'auto']}
+					domain={['dataMin', 'dataMax']}
 				/>
 
 				<Tooltip
@@ -140,7 +152,7 @@ export const BarChart = ({
 							<Bar
 								key={key}
 								dataKey={key}
-								fill={getColor(idx)}
+								fill={strokeColors?.at(idx) ?? getColor(idx)}
 								maxBarSize={30}
 								isAnimationActive={false}
 								stackId={

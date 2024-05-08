@@ -76,6 +76,7 @@ import { PythonFastAPITracesContent } from './traces/python/fastapi'
 import { PythonFlaskTracesContent } from './traces/python/flask'
 import { PythonGCPTracesContent } from './traces/python/gcp'
 import { PythonManualTracesContent } from './traces/python/manual'
+import { PythonAITracesContent } from './traces/python/python-ai'
 import { PythonLibrariesTracesContent } from './traces/python/python-libraries'
 import { RustTracesContent } from './traces/rust'
 
@@ -130,6 +131,7 @@ export enum QuickStartType {
 	PythonAzureFn = 'azure-functions',
 	PythonGCPFn = 'google-cloud-functions',
 	PythonLibraries = 'python-libraries',
+	PythonAI = 'python-ai',
 	GoGqlgen = 'gqlgen',
 	GoFiber = 'fiber',
 	GoChi = 'chi',
@@ -404,6 +406,7 @@ export const quickStartContent = {
 			[QuickStartType.PythonFlask]: PythonFlaskTracesContent,
 			[QuickStartType.PythonGCPFn]: PythonGCPTracesContent,
 			[QuickStartType.PythonLibraries]: PythonLibrariesTracesContent,
+			[QuickStartType.PythonAI]: PythonAITracesContent,
 		},
 		php: {
 			title: 'PHP',

@@ -175,6 +175,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			textAreaRef={textAreaRef}
 			productType={productType}
 			hideIcon={isPanelView}
+			hasAdditonalActions={!hideCreateAlert || !hideDatePicker}
 			creatables={creatables}
 		/>
 	)
@@ -295,6 +296,7 @@ export const Search: React.FC<{
 	placeholder?: string
 	productType: ProductType
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
+	hasAdditonalActions?: boolean
 	creatables?: { [key: string]: Creatable }
 }> = ({
 	startDate,
@@ -303,6 +305,7 @@ export const Search: React.FC<{
 	placeholder,
 	textAreaRef,
 	productType,
+	hasAdditonalActions,
 	creatables,
 }) => {
 	const {
@@ -608,7 +611,11 @@ export const Search: React.FC<{
 			position="relative"
 		>
 			{!hideIcon ? (
-				<IconSolidSearch className={styles.searchIcon} />
+				<IconSolidSearch
+					className={clsx(styles.searchIcon, {
+						[styles.searchIconWithActions]: hasAdditonalActions,
+					})}
+				/>
 			) : null}
 
 			<Box

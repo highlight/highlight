@@ -8,9 +8,13 @@ import { styledVerticalScrollbar } from '@/style/common.css'
 
 export const searchIcon = style({
 	position: 'absolute',
-	top: 12,
+	top: 10,
 	left: 14,
 	color: vars.theme.interactive.fill.secondary.content.text,
+})
+
+export const searchIconWithActions = style({
+	top: 12,
 })
 
 const WORD_SPACING = 4

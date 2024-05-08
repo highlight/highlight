@@ -122,6 +122,7 @@ const SearchPagination = ({
 			px="16"
 			pt="8"
 			pb="12"
+			width="full"
 		>
 			<ButtonIcon
 				kind="secondary"

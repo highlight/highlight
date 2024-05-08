@@ -1,13 +1,13 @@
-import { CalendarDay, useContextDaysPropGetters } from '@rehookify/datepicker'
 import {
-	PropGettersDisabled,
-	PropGettersEnabled,
-} from '@rehookify/datepicker/dist/utils/create-prop-getter'
+	DPDay,
+	DPPropGetter,
+	useContextDaysPropGetters,
+} from '@rehookify/datepicker'
 import { CSSProperties, Fragment, ReactNode } from 'react'
 
 import { Box, BoxProps } from '../../Box/Box'
 
-const getColor = (day: CalendarDay) => {
+const getColor = (day: DPDay) => {
 	const { selected, disabled, range } = day
 
 	if (disabled) {
@@ -29,7 +29,7 @@ const getColor = (day: CalendarDay) => {
 	return 'inherit'
 }
 
-const getContainerBorderTopLeftRadius = (day: CalendarDay) => {
+const getContainerBorderTopLeftRadius = (day: DPDay) => {
 	const { range, selected, now } = day
 
 	if (!selected && !now && range === '') {
@@ -63,7 +63,7 @@ const getContainerBorderTopLeftRadius = (day: CalendarDay) => {
 	return 'inherit'
 }
 
-const getContainerBorderTopRightRadius = (day: CalendarDay) => {
+const getContainerBorderTopRightRadius = (day: DPDay) => {
 	const { range, selected, now } = day
 
 	if (!selected && !now && range === '') {
@@ -93,7 +93,7 @@ const getContainerBorderTopRightRadius = (day: CalendarDay) => {
 	return 'inherit'
 }
 
-const getContainerBorderBottomLeftRadius = (day: CalendarDay) => {
+const getContainerBorderBottomLeftRadius = (day: DPDay) => {
 	const { range, selected, now } = day
 
 	if (!selected && !now && range === '') {
@@ -127,7 +127,7 @@ const getContainerBorderBottomLeftRadius = (day: CalendarDay) => {
 	return 'inherit'
 }
 
-const getContainerBorderBottomRightRadius = (day: CalendarDay) => {
+const getContainerBorderBottomRightRadius = (day: DPDay) => {
 	const { range, selected, now } = day
 
 	if (!selected && !now && range === '') {
@@ -160,7 +160,7 @@ const getContainerBorderBottomRightRadius = (day: CalendarDay) => {
 	return 'inherit'
 }
 
-const getContainerBackgroundColor = (day: CalendarDay) => {
+const getContainerBackgroundColor = (day: DPDay) => {
 	const { selected, range, now, disabled } = day
 
 	if (disabled) {
@@ -190,7 +190,7 @@ const getContainerBackgroundColor = (day: CalendarDay) => {
 	return 'inherit'
 }
 
-const getBackgroundColor = (day: CalendarDay) => {
+const getBackgroundColor = (day: DPDay) => {
 	const { selected, range, now, disabled } = day
 
 	if (disabled) {
@@ -224,7 +224,7 @@ const getBackgroundColor = (day: CalendarDay) => {
 	return 'inherit'
 }
 
-const getBorderRadius = (day: CalendarDay) => {
+const getBorderRadius = (day: DPDay) => {
 	const { selected, range, now } = day
 
 	if (now) {
@@ -246,13 +246,13 @@ const getBorderRadius = (day: CalendarDay) => {
 	return 'inherit'
 }
 
-const getPointer = (day: CalendarDay) => {
+const getPointer = (day: DPDay) => {
 	const { disabled } = day
 
 	return disabled ? 'not-allowed' : 'pointer'
 }
 
-const getWidth = (day: CalendarDay) => {
+const getWidth = (day: DPDay) => {
 	const { now } = day
 
 	if (now) {
@@ -262,7 +262,7 @@ const getWidth = (day: CalendarDay) => {
 	return '36px'
 }
 
-const getHeight = (day: CalendarDay) => {
+const getHeight = (day: DPDay) => {
 	const { now } = day
 
 	if (now) {
@@ -282,7 +282,7 @@ const containerStyles: CSSProperties = {
 
 interface Props {
 	children: ReactNode
-	day: CalendarDay
+	day: DPDay
 	onMouseEnter?: () => void
 	onMouseLeave?: () => void
 }
@@ -315,7 +315,7 @@ const Day = ({ children, day, onMouseEnter, onMouseLeave }: Props) => {
 		  } as BoxProps)
 		: {}
 
-	const dayProps: (PropGettersEnabled | PropGettersDisabled) & {
+	const dayProps: DPPropGetter & {
 		onMouseEnter?: () => void
 	} = dayButton(day)
 

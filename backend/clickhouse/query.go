@@ -639,7 +639,11 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 	}
 	var metricExpr = col
 	if !isCountDistinct {
-		metricExpr = fmt.Sprintf("toFloat64OrNull(%s)", col)
+		if reservedCol, found := keysToColumns[T(strings.ToLower(column))]; found {
+			metricExpr = fmt.Sprintf("toFloat64(%s)", reservedCol)
+		} else {
+			metricExpr = fmt.Sprintf("toFloat64OrNull(%s)", col)
+		}
 	}
 
 	switch column {
@@ -697,7 +701,7 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 	for idx, group := range groupBy {
 		groupCol := ""
 		if col, found := keysToColumns[T(group)]; found {
-			groupCol = col
+			groupCol = fmt.Sprintf("toString(%s)", col)
 		} else {
 			groupCol = fmt.Sprintf("toString(%s[%s])", attributesColumn, fromSb.Var(group))
 		}
