@@ -2,6 +2,7 @@ import {
 	Badge,
 	Box,
 	Button,
+	DateRangePreset,
 	IconSolidArrowsExpand,
 	IconSolidChartSquareBar,
 	IconSolidChartSquareLine,
@@ -11,6 +12,7 @@ import {
 	IconSolidTable,
 	IconSolidTrash,
 	Menu,
+	presetStartDate,
 	Stack,
 	Text,
 	Tooltip,
@@ -82,6 +84,7 @@ export interface ChartProps<TConfig> {
 	projectId: string
 	startDate: Date
 	endDate: Date
+	selectedPreset?: DateRangePreset
 	query: string
 	metric: string
 	functionType: MetricAggregator
@@ -338,6 +341,8 @@ export const getViewConfig = (
 	return viewConfig
 }
 
+const POLL_INTERVAL_VALUE = 60000
+
 const Graph = ({
 	productType,
 	projectId,
@@ -359,6 +364,7 @@ const Graph = ({
 	onExpand,
 	onEdit,
 	setTimeRange,
+	selectedPreset,
 }: ChartProps<ViewConfig>) => {
 	const [graphHover, setGraphHover] = useState(false)
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
@@ -366,23 +372,48 @@ const Graph = ({
 		onDelete !== undefined || onExpand !== undefined || onEdit !== undefined
 
 	const pollTimeout = useRef<number>()
-	const [pollInterval, setPollInterval] = useState<number>()
-	const [getMetricsQuery, { data: metrics, loading, called }] =
-		useGetMetricsLazyQuery()
-	const metricsLoading = !called || loading
+	const [pollInterval, setPollInterval] = useState<number>(0)
+	const [fetchStart, setFetchStart] = useState<Date>()
+	const [fetchEnd, setFetchEnd] = useState<Date>()
 
-	const poll = useCallback(async () => {
-		const currentTimeout = pollTimeout.current
-		await getMetricsQuery({
+	const [getMetrics, { data: metrics, loading, called, previousData }] =
+		useGetMetricsLazyQuery()
+	const metricsLoading = !called || (!previousData && loading)
+
+	const rebaseFetchTime = useCallback(() => {
+		if (!selectedPreset) {
+			setPollInterval(0)
+			setFetchStart(startDate)
+			setFetchEnd(endDate)
+			return
+		}
+
+		setPollInterval(POLL_INTERVAL_VALUE)
+		setFetchStart(presetStartDate(selectedPreset))
+		setFetchEnd(moment().toDate())
+	}, [selectedPreset, startDate, endDate])
+
+	// set the fetch dates and poll interval when selected date changes
+	useEffect(() => {
+		rebaseFetchTime()
+	}, [rebaseFetchTime])
+
+	// fetch new metrics when varaibles change (including polled fetch time)
+	useEffect(() => {
+		if (!fetchStart || !fetchEnd) {
+			return
+		}
+
+		getMetrics({
 			variables: {
 				product_type: productType,
 				project_id: projectId,
 				params: {
 					date_range: {
-						start_date: moment(startDate)
+						start_date: moment(fetchStart)
 							.startOf('minute')
 							.format(TIME_FORMAT),
-						end_date: moment(endDate)
+						end_date: moment(fetchEnd)
 							.startOf('minute')
 							.format(TIME_FORMAT),
 					},
@@ -398,58 +429,39 @@ const Graph = ({
 				limit_aggregator: limitFunctionType,
 				limit_column: limitMetric,
 			},
+		}).then(() => {
+			// create another poll timeout if pollInterval is set
+			if (pollInterval) {
+				pollTimeout.current = setTimeout(
+					rebaseFetchTime,
+					pollInterval,
+				) as unknown as number
+			}
 		})
-		if (pollTimeout.current === currentTimeout) {
-			pollTimeout.current = setTimeout(
-				poll,
-				pollInterval,
-			) as unknown as number
+
+		return () => {
+			if (!!pollTimeout.current) {
+				clearTimeout(pollTimeout.current)
+				pollTimeout.current = undefined
+			}
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		bucketByKey,
-		endDate,
+		fetchEnd,
+		fetchStart,
 		functionType,
-		getMetricsQuery,
+		getMetrics,
 		groupByKey,
 		limit,
 		limitFunctionType,
-		pollInterval,
 		limitMetric,
 		metric,
 		productType,
 		projectId,
 		queriedBucketCount,
 		query,
-		startDate,
 	])
-
-	useEffect(() => {
-		if (!pollInterval) {
-			return
-		}
-		console.log('poll change', pollInterval)
-
-		pollTimeout.current = setTimeout(
-			poll,
-			pollInterval,
-		) as unknown as number
-
-		return () => {
-			clearTimeout(pollTimeout.current)
-			pollTimeout.current = undefined
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [poll])
-
-	// update poll timeout when datas change
-	useEffect(() => {
-		const newTimeOut = Math.floor(
-			(endDate.valueOf() - startDate.valueOf()) /
-				(queriedBucketCount || 1),
-		)
-		setPollInterval(newTimeOut)
-		pollTimeout.current = setTimeout(poll, newTimeOut) as unknown as number
-	}, [startDate, endDate, poll, queriedBucketCount])
 
 	const xAxisMetric = bucketByKey !== undefined ? bucketByKey : GROUP_KEY
 	const yAxisMetric = functionType === MetricAggregator.Count ? '' : metric
