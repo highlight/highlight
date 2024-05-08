@@ -681,7 +681,7 @@ const Graph = ({
 					>
 						{title || 'Untitled metric view'}
 					</Text>
-					{showMenu && graphHover && !disabled && !called && (
+					{showMenu && graphHover && !disabled && called && (
 						<Box
 							cssClass={clsx(style.titleText, {
 								[style.hiddenMenu]: !graphHover,
