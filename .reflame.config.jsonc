@@ -51,6 +51,7 @@
     "/index",
     "/vanilla.js",
     "/canny.js",
+    "/clearbit.js",
     "https://js.hs-scripts.com/20473940.js",
   ],
   "stylesheets": [
