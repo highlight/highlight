@@ -803,7 +803,7 @@ const Graph = ({
 					</Box>
 				)}
 			</Box>
-			{!called && (
+			{called && (
 				<Box
 					height="full"
 					maxHeight="screen"
