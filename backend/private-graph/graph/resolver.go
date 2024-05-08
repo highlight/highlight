@@ -1738,8 +1738,8 @@ func (r *Resolver) StripeWebhook(ctx context.Context, endpointSecret string) fun
 			return
 		}
 
-		event, err := webhook.ConstructEvent(payload, req.Header.Get("Stripe-Signature"),
-			endpointSecret)
+		event, err := webhook.ConstructEventWithOptions(payload, req.Header.Get("Stripe-Signature"),
+			endpointSecret, webhook.ConstructEventOptions{IgnoreAPIVersionMismatch: true})
 		if err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error verifying webhook signature"))
 			w.WriteHeader(http.StatusBadRequest)
