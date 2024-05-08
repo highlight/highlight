@@ -34,6 +34,12 @@ class HighlightDocument extends Document {
 						strategy="afterInteractive"
 						src="//js.hs-scripts.com/20473940.js"
 					></Script>
+					<Script
+						id="cb-script"
+						src="https://tag.clearbitscripts.com/v1/pk_07d68634b41ba01ce3e518b6120f201e/tags.js"
+						referrerPolicy="strict-origin-when-cross-origin"
+						strategy="afterInteractive"
+					></Script>
 					<Script id="google-tag-manager" strategy="afterInteractive">
 						{`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 						new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
