@@ -135,7 +135,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 	var syncErrorGroupIds []int
 	var syncErrorObjectIds []int
 	var logRows []*clickhouse.LogRow
-	var traceRows []*clickhouse.TraceRow
+	var traceRows []*clickhouse.ClickhouseTraceRow
 
 	var lastMsg kafkaqueue.RetryableMessage
 	var oldestMsg = time.Now()
@@ -174,7 +174,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 				continue
 			}
 			if traceRow != nil {
-				traceRows = append(traceRows, traceRow.TraceRow)
+				traceRows = append(traceRows, traceRow.ClickhouseTraceRow)
 			}
 		case kafkaqueue.PushLogs:
 			logRow := publicWorkerMessage.PushLogs.LogRow
@@ -184,7 +184,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 		case kafkaqueue.PushTraces:
 			traceRow := publicWorkerMessage.PushTraces.TraceRow
 			if traceRow != nil {
-				traceRows = append(traceRows, traceRow)
+				traceRows = append(traceRows, clickhouse.ConvertTraceRow(traceRow))
 			}
 		default:
 			log.WithContext(ctx).Errorf("unknown message type received by batch worker %+v", lastMsg.GetType())
@@ -378,7 +378,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 	return nil
 }
 
-func (k *KafkaBatchWorker) flushTraces(ctx context.Context, traceRows []*clickhouse.TraceRow) error {
+func (k *KafkaBatchWorker) flushTraces(ctx context.Context, traceRows []*clickhouse.ClickhouseTraceRow) error {
 	markBackendSetupProjectIds := map[uint32]struct{}{}
 	projectIds := map[uint32]struct{}{}
 	for _, trace := range traceRows {
@@ -394,7 +394,7 @@ func (k *KafkaBatchWorker) flushTraces(ctx context.Context, traceRows []*clickho
 		return err
 	}
 
-	filteredTraceRows := []*clickhouse.TraceRow{}
+	filteredTraceRows := []*clickhouse.ClickhouseTraceRow{}
 	for _, trace := range traceRows {
 		if quotaExceededByProject[trace.ProjectId] {
 			continue

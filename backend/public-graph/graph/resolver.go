@@ -2047,8 +2047,8 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 			continue
 		}
 		messages = append(messages, &kafka_queue.TraceRowMessage{
-			Type:     kafka_queue.PushTracesFlattened,
-			TraceRow: traceRow,
+			Type:               kafka_queue.PushTracesFlattened,
+			ClickhouseTraceRow: clickhouse.ConvertTraceRow(traceRow),
 		})
 	}
 	return r.TracesQueue.Submit(ctx, "", messages...)

@@ -169,6 +169,10 @@ func (t *TraceRow) WithLinks(links []map[string]any) *TraceRow {
 	return t
 }
 
+func (t *TraceRow) AsClickhouseTraceRow() *ClickhouseTraceRow {
+	return ConvertTraceRow(t)
+}
+
 func attributesToMap(attributes map[string]any) map[string]string {
 	newAttrMap := make(map[string]string)
 	for k, v := range attributes {
