@@ -1,11 +1,12 @@
 import { Button } from '@components/Button'
+import LoadingBox from '@components/LoadingBox'
 import { TIME_FORMAT } from '@components/Search/SearchForm/constants'
 import { SearchForm } from '@components/Search/SearchForm/SearchForm'
 import {
 	useEditProjectSettingsMutation,
 	useGetBillingDetailsForProjectQuery,
+	useGetMetricsQuery,
 	useGetProjectSettingsQuery,
-	useGetTracesMetricsQuery,
 	useGetWorkspaceSettingsQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
@@ -33,13 +34,15 @@ import {
 	Text,
 	Tooltip,
 } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { useProjectId } from '@hooks/useProjectId'
-import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
+import { BarChart } from '@pages/Graphing/components/BarChart'
+import { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { showSupportMessage } from '@util/window'
 import { message } from 'antd'
-import _, { upperFirst } from 'lodash'
+import { groupBy, upperFirst } from 'lodash'
 import moment from 'moment'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -548,12 +551,14 @@ const IngestTimeline: React.FC<{
 	dateRange: DateRange
 }> = ({ product, dateRange }) => {
 	const { projectId } = useProjectId()
-	const { data, loading } = useGetTracesMetricsQuery({
+	const { data, loading } = useGetMetricsQuery({
 		variables: {
+			product_type: ProductType.Traces,
 			project_id: projectId,
 			column: MetricColumn.Duration,
 			metric_types: [MetricAggregator.CountDistinctKey],
 			group_by: ['ingested'],
+			bucket_by: TIMESTAMP_KEY,
 			params: {
 				query: `span_name:IsIngestedBy product:${product}`,
 				date_range: {
@@ -564,29 +569,28 @@ const IngestTimeline: React.FC<{
 		},
 	})
 
-	const groupedByBucket = _.groupBy(
-		data?.traces_metrics.buckets,
+	const groupedByBucket = groupBy(
+		data?.metrics.buckets.map((b) => ({
+			...b,
+			group: b.group[0] || 'true',
+		})),
 		(i) => i.bucket_id,
 	)
 
-	const histogramBuckets = data?.traces_metrics.buckets.map((b) => ({
-		bucketId: b.bucket_id,
-		group: b.group,
-		counts: [
-			{
-				level: 'Ingested',
-				count:
-					(100 *
-						(groupedByBucket[b.bucket_id][0]?.metric_value ?? 0)) /
-					((groupedByBucket[b.bucket_id][0]?.metric_value ?? 0) +
-						(groupedByBucket[b.bucket_id][1]?.metric_value ?? 0) ||
-						1),
-				unit: '%',
-			},
-		],
+	const histogramBuckets = data?.metrics.buckets.map((b) => ({
+		[TIMESTAMP_KEY]: (b.bucket_min + b.bucket_max) / 2,
+		['percent']:
+			(100 *
+				(groupedByBucket[b.bucket_id].find((g) => g.group === 'true')
+					?.metric_value ?? 0)) /
+			(groupedByBucket[b.bucket_id]
+				.map((g) => g?.metric_value ?? 0)
+				.reduce((a, b) => a + b, 0) || 1),
 	}))
 
-	if (!loading && !data?.traces_metrics.buckets?.length) {
+	if (loading) {
+		return <LoadingBox />
+	} else if (!data?.metrics.buckets?.length) {
 		return (
 			<Box
 				display="flex"
@@ -603,16 +607,18 @@ const IngestTimeline: React.FC<{
 	}
 
 	return (
-		<Box width="full" height="full">
-			<LogsHistogram
-				startDate={dateRange.start}
-				endDate={dateRange.end}
-				onDatesChange={() => {}}
-				histogramBuckets={histogramBuckets}
-				bucketCount={data?.traces_metrics.bucket_count}
-				loading={loading}
-				loadingState="spinner"
-				legend
+		<Box width="full" style={{ height: 100 }}>
+			<BarChart
+				data={histogramBuckets}
+				yAxisFunction={MetricAggregator.Count}
+				xAxisMetric={TIMESTAMP_KEY}
+				yAxisMetric="percent"
+				series={['percent']}
+				strokeColors={[vars.theme.static.content.moderate]}
+				viewConfig={{
+					type: 'Bar chart',
+					showLegend: true,
+				}}
 			/>
 		</Box>
 	)

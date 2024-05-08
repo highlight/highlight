@@ -191,6 +191,10 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 			}
 			return `${value.toFixed(0)}${lastUnit}`
 		}
+	} else if (metric === 'percent') {
+		return (value: any) => {
+			return `${value.toFixed(1)}%`
+		}
 	} else if (metric === GROUP_KEY) {
 		const maxChars = Math.max(MAX_LABEL_CHARS / (data?.length || 1), 10)
 		return (value: any) => {
