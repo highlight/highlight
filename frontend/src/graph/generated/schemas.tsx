@@ -932,6 +932,7 @@ export enum LogLevel {
 	Error = 'error',
 	Fatal = 'fatal',
 	Info = 'info',
+	Panic = 'panic',
 	Trace = 'trace',
 	Warn = 'warn',
 }

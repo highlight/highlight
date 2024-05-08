@@ -11641,6 +11641,7 @@ enum LogLevel {
 	warn
 	error
 	fatal
+	panic
 }
 
 enum SortDirection {

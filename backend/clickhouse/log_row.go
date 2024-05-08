@@ -149,6 +149,8 @@ func makeLogLevel(severityText string) modelInputs.LogLevel {
 		return modelInputs.LogLevelError
 	case "fatal":
 		return modelInputs.LogLevelFatal
+	case "panic":
+		return modelInputs.LogLevelPanic
 	default:
 		return modelInputs.LogLevelInfo
 	}
@@ -168,6 +170,8 @@ func getSeverityNumber(logLevel modelInputs.LogLevel) int32 {
 		return int32(log.ErrorLevel)
 	case modelInputs.LogLevelFatal:
 		return int32(log.FatalLevel)
+	case modelInputs.LogLevelPanic:
+		return int32(log.PanicLevel)
 	default:
 		return int32(log.InfoLevel)
 	}
@@ -187,6 +191,8 @@ func getLogLevel(level logrus.Level) modelInputs.LogLevel {
 		return modelInputs.LogLevelError
 	case log.FatalLevel:
 		return modelInputs.LogLevelFatal
+	case log.PanicLevel:
+		return modelInputs.LogLevelPanic
 	default:
 		return modelInputs.LogLevelInfo
 	}

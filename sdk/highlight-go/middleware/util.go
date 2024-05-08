@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/gofiber/fiber/v2/log"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	e "github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -76,7 +75,7 @@ func Recoverer(s trace.Span, w http.ResponseWriter, r *http.Request) {
 			panic(rvr)
 		}
 
-		log.WithContext(r.Context()).Panicf("%+v\n%s", rvr, debug.Stack())
+		logrus.WithContext(r.Context()).Panicf("%+v\n%s", rvr, debug.Stack())
 		highlight.RecordSpanError(s, RecoverToError(rvr))
 
 		if r.Header.Get("Connection") != "Upgrade" {

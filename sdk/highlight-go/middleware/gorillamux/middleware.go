@@ -21,8 +21,8 @@ func Middleware(next http.Handler) http.Handler {
 		r = r.WithContext(ctx)
 
 		span, ctx := highlight.StartTrace(ctx, "highlight.gorillamux")
-		defer middleware.Recoverer(span, w, r)
 		defer highlight.EndTrace(span)
+		defer middleware.Recoverer(span, w, r)
 
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)

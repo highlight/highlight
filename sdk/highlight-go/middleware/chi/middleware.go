@@ -18,8 +18,8 @@ func Middleware(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := highlight.InterceptRequest(r)
 		span, ctx := highlight.StartTrace(ctx, "highlight.chi")
-		defer middleware.Recoverer(span, w, r)
 		defer highlight.EndTrace(span)
+		defer middleware.Recoverer(span, w, r)
 
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
