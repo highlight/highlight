@@ -1379,6 +1379,11 @@ func (r *Resolver) updateStripeBillingDetails(ctx context.Context, stripeCustome
 	return nil
 }
 
+type SubscriptionDetails struct {
+	details *modelInputs.SubscriptionDetails
+	invoice *stripe.Invoice
+}
+
 type planDetails struct {
 	tier               modelInputs.PlanType
 	unlimitedMembers   bool
@@ -1412,6 +1417,11 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, workspace *model.Wo
 			"DeletedAt":   time.Now(),
 		}).Error; err != nil {
 		return e.Wrapf(err, "BILLING_ERROR error updating BillingEmailHistory objects for workspace %d", workspace.ID)
+	}
+
+	// clear redis cache for stripe customer data
+	if err := r.Redis.Cache.Delete(ctx, redis.GetSubscriptionDetailsKey(workspace.ID)); err != nil {
+		log.WithContext(ctx).WithError(err).Error("BILLING_ERROR failed to clear workspace billing cache key")
 	}
 
 	return nil
