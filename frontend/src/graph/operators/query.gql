@@ -945,7 +945,6 @@ query GetWorkspaceUsageHistory(
 				bucket_id
 				bucket_min
 				bucket_max
-				column
 				group
 				metric_type
 				metric_value

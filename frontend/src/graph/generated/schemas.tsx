@@ -1013,7 +1013,6 @@ export type MetricBucket = {
 	bucket_id: Scalars['UInt64']
 	bucket_max: Scalars['Float']
 	bucket_min: Scalars['Float']
-	column: MetricColumn
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator
 	metric_value?: Maybe<Scalars['Float']>
@@ -1023,11 +1022,6 @@ export enum MetricBucketBy {
 	Histogram = 'Histogram',
 	None = 'None',
 	Timestamp = 'Timestamp',
-}
-
-export enum MetricColumn {
-	Duration = 'Duration',
-	MetricValue = 'MetricValue',
 }
 
 export type MetricMonitor = {

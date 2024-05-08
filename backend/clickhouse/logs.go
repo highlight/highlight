@@ -467,7 +467,8 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate tim
 }
 
 func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
-	return KeyValuesAggregated(ctx, client, LogKeyValuesTable, projectID, keyName, startDate, endDate)
+	values, _, err := KeyValuesAggregated(ctx, client, LogKeyValuesTable, projectID, keyName, startDate, endDate)
+	return values, err
 }
 
 func LogMatchesQuery(logRow *LogRow, filters listener.Filters) bool {

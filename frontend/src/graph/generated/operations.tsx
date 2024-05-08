@@ -2996,7 +2996,6 @@ export type GetWorkspaceUsageHistoryQuery = { __typename?: 'Query' } & {
 						| 'bucket_id'
 						| 'bucket_min'
 						| 'bucket_max'
-						| 'column'
 						| 'group'
 						| 'metric_type'
 						| 'metric_value'

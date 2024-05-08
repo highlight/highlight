@@ -8719,7 +8719,6 @@ export const GetWorkspaceUsageHistoryDocument = gql`
 					bucket_id
 					bucket_min
 					bucket_max
-					column
 					group
 					metric_type
 					metric_value
