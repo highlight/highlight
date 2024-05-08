@@ -8191,7 +8191,19 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		return nil, err
 	}
 
-	result, err := redis.CachedEval(ctx, r.Redis, redis.GetSubscriptionDetailsKey(workspaceID), time.Minute, time.Hour, func() (*SubscriptionDetails, error) {
+	return redis.CachedEval(ctx, r.Redis, redis.GetSubscriptionDetailsKey(workspaceID), time.Minute, time.Minute, func() (*modelInputs.SubscriptionDetails, error) {
+		workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+		if err != nil {
+			return nil, nil
+		}
+		if workspace.StripeCustomerID == nil {
+			return nil, e.New("workspace has no stripe customer ID")
+		}
+
+		if err := r.validateAdminRole(ctx, workspaceID); err != nil {
+			return nil, err
+		}
+
 		customerParams := &stripe.CustomerParams{}
 		customerParams.AddExpand("subscriptions")
 		c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
@@ -8200,7 +8212,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		}
 
 		if len(c.Subscriptions.Data) == 0 {
-			return nil, nil
+			return &modelInputs.SubscriptionDetails{}, nil
 		}
 
 		amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
@@ -8227,38 +8239,30 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 			return nil, e.Wrap(err, "error querying stripe invoice")
 		}
 
-		return &SubscriptionDetails{details, invoice}, nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	if result == nil {
-		result = &SubscriptionDetails{&modelInputs.SubscriptionDetails{}, nil}
-	}
-
-	if result.invoice != nil {
-		invoiceDue := time.Unix(result.invoice.Created, 0)
-		status := string(result.invoice.Status)
-		result.details.LastInvoice = &modelInputs.Invoice{
-			Date:         &invoiceDue,
-			AmountDue:    &result.invoice.AmountDue,
-			AmountPaid:   &result.invoice.AmountPaid,
-			AttemptCount: &result.invoice.AttemptCount,
-			Status:       &status,
-			URL:          &result.invoice.HostedInvoiceURL,
+		if invoice != nil {
+			invoiceDue := time.Unix(invoice.Created, 0)
+			status := string(invoice.Status)
+			details.LastInvoice = &modelInputs.Invoice{
+				Date:         &invoiceDue,
+				AmountDue:    &invoice.AmountDue,
+				AmountPaid:   &invoice.AmountPaid,
+				AttemptCount: &invoice.AttemptCount,
+				Status:       &status,
+				URL:          &invoice.HostedInvoiceURL,
+			}
+			warningSent, err := r.Redis.GetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID))
+			if err != nil {
+				return nil, err
+			}
+			details.BillingIssue = !warningSent.IsZero()
 		}
-		warningSent, err := r.Redis.GetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID))
-		if err != nil {
+
+		if details.BillingIngestBlocked, err = r.Redis.GetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID)); err != nil {
 			return nil, err
 		}
-		result.details.BillingIssue = !warningSent.IsZero()
-	}
 
-	if result.details.BillingIngestBlocked, err = r.Redis.GetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID)); err != nil {
-		return nil, err
-	}
-
-	return result.details, nil
+		return details, nil
+	})
 }
 
 // DashboardDefinitions is the resolver for the dashboard_definitions field.
