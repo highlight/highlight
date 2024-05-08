@@ -376,9 +376,7 @@ const Graph = ({
 	const [fetchStart, setFetchStart] = useState<Date>()
 	const [fetchEnd, setFetchEnd] = useState<Date>()
 
-	const [getMetrics, { data: metrics, loading, called, previousData }] =
-		useGetMetricsLazyQuery()
-	const metricsLoading = !called || (!previousData && loading)
+	const [getMetrics, { data: metrics, called }] = useGetMetricsLazyQuery()
 
 	const rebaseFetchTime = useCallback(() => {
 		if (!selectedPreset) {
@@ -657,7 +655,7 @@ const Graph = ({
 				setGraphHover(false)
 			}}
 		>
-			{metricsLoading && (
+			{!called && (
 				<Box
 					position="absolute"
 					width="full"
@@ -683,7 +681,7 @@ const Graph = ({
 					>
 						{title || 'Untitled metric view'}
 					</Text>
-					{showMenu && graphHover && !disabled && !metricsLoading && (
+					{showMenu && graphHover && !disabled && !called && (
 						<Box
 							cssClass={clsx(style.titleText, {
 								[style.hiddenMenu]: !graphHover,
@@ -805,7 +803,7 @@ const Graph = ({
 					</Box>
 				)}
 			</Box>
-			{!metricsLoading && (
+			{!called && (
 				<Box
 					height="full"
 					maxHeight="screen"
