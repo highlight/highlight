@@ -160,6 +160,7 @@ export const ExpandedGraph = () => {
 								projectId={projectId}
 								startDate={startDate}
 								endDate={endDate}
+								selectedPreset={selectedPreset}
 								query={g.query}
 								metric={g.metric}
 								functionType={g.functionType}

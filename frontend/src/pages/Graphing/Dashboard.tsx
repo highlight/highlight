@@ -369,6 +369,9 @@ export const Dashboard = () => {
 															projectId={
 																projectId
 															}
+															selectedPreset={
+																selectedPreset
+															}
 															startDate={
 																startDate
 															}
