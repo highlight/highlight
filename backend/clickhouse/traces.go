@@ -19,7 +19,6 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 	e "github.com/pkg/errors"
 
-	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -136,13 +135,13 @@ type ClickhouseTraceRow struct {
 	StatusMessage    string
 	Environment      string
 	HasErrors        bool
-	EventsTimestamp  clickhouse.ArraySet `ch:"Events.Timestamp" json:"Events.Timestamp"`
-	EventsName       clickhouse.ArraySet `ch:"Events.Name" json:"Events.Name"`
-	EventsAttributes clickhouse.ArraySet `ch:"Events.Attributes" json:"Events.Attributes"`
-	LinksTraceId     clickhouse.ArraySet `ch:"Links.TraceId" json:"Links.TraceId"`
-	LinksSpanId      clickhouse.ArraySet `ch:"Links.SpanId" json:"Links.SpanId"`
-	LinksTraceState  clickhouse.ArraySet `ch:"Links.TraceState" json:"Links.TraceState"`
-	LinksAttributes  clickhouse.ArraySet `ch:"Links.Attributes" json:"Links.Attributes"`
+	EventsTimestamp  []time.Time         `json:"Events.Timestamp" ch:"Events.Timestamp"`
+	EventsName       []string            `json:"Events.Name" ch:"Events.Name"`
+	EventsAttributes []map[string]string `json:"Events.Attributes" ch:"Events.Attributes"`
+	LinksTraceId     []string            `json:"Links.TraceId" ch:"Links.TraceId"`
+	LinksSpanId      []string            `json:"Links.SpanId" ch:"Links.SpanId"`
+	LinksTraceState  []string            `json:"Links.TraceState" ch:"Links.TraceState"`
+	LinksAttributes  []map[string]string `json:"Links.Attributes" ch:"Links.Attributes"`
 }
 
 func ConvertTraceRow(traceRow *TraceRow) *ClickhouseTraceRow {
@@ -204,11 +203,11 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Clic
 	return batch.Send()
 }
 
-func convertEvents(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet, clickhouse.ArraySet) {
+func convertEvents(traceRow *TraceRow) ([]time.Time, []string, []map[string]string) {
 	var (
-		times clickhouse.ArraySet
-		names clickhouse.ArraySet
-		attrs clickhouse.ArraySet
+		times []time.Time
+		names []string
+		attrs []map[string]string
 	)
 
 	events := traceRow.Events
@@ -220,13 +219,14 @@ func convertEvents(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet
 	return times, names, attrs
 }
 
-func convertLinks(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet, clickhouse.ArraySet, clickhouse.ArraySet) {
+func convertLinks(traceRow *TraceRow) ([]string, []string, []string, []map[string]string) {
 	var (
-		traceIDs clickhouse.ArraySet
-		spanIDs  clickhouse.ArraySet
-		states   clickhouse.ArraySet
-		attrs    clickhouse.ArraySet
+		traceIDs []string
+		spanIDs  []string
+		states   []string
+		attrs    []map[string]string
 	)
+
 	links := traceRow.Links
 	for _, link := range links {
 		traceIDs = append(traceIDs, link.TraceId)
