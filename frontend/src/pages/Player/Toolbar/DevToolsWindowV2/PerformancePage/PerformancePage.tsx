@@ -1,11 +1,13 @@
 import LoadingBox from '@components/LoadingBox'
-import StackedAreaChart from '@components/StackedAreaChart/StackedAreaChart'
+import { MetricAggregator } from '@graph/schemas'
 import { Text } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import SvgActivityIcon from '@icons/ActivityIcon'
 import SvgCarDashboardIcon from '@icons/CarDashboardIcon'
 import SvgTimerIcon from '@icons/TimerIcon'
+import { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
+import { LineChart } from '@pages/Graphing/components/LineChart'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import { MillisToMinutesAndSeconds } from '@util/time'
 import React from 'react'
 
 import * as styles from './style.css'
@@ -181,36 +183,20 @@ const PerformancePage = React.memo(({ time }: Props) => {
 						}
 
 						return (
-							<StackedAreaChart
-								key={key}
+							<LineChart
 								data={data}
-								xAxisKey="timestamp"
-								showXAxis={key === 'jank'}
-								heightPercent="30%"
-								fillColor={fillColor}
-								strokeColor={strokeColor}
-								xAxisTickFormatter={(tickItem) => {
-									return MillisToMinutesAndSeconds(tickItem)
+								yAxisFunction={MetricAggregator.Count}
+								xAxisMetric={TIMESTAMP_KEY}
+								yAxisMetric="percent"
+								series={['percent']}
+								strokeColors={[
+									vars.theme.static.content.moderate,
+								]}
+								viewConfig={{
+									type: 'Line chart',
+									display: 'Stacked area',
+									showLegend: true,
 								}}
-								onClickHandler={(event) => {
-									if (event?.activePayload?.length > 0) {
-										const timestamp =
-											event.activePayload[0].payload
-												.timestamp
-
-										pause(timestamp)
-									}
-								}}
-								yAxisTickFormatter={yAxisTickFormatter}
-								referenceLineProps={{
-									stroke: 'var(--color-purple)',
-									x: closestTimestamp,
-								}}
-								yAxisLabel={yAxisLabel}
-								noTooltipLabel={noTooltipLabel || false}
-								tooltipIcon={tooltipIcon}
-								chartLabel={chartLabel}
-								helpLink={helpLink}
 							/>
 						)
 					},
