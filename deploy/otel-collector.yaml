@@ -1,14 +1,22 @@
 receivers:
+    fluentforward:
+        endpoint: '0.0.0.0:24224'
+    tcplog:
+        listen_address: '0.0.0.0:34302'
     otlp:
         protocols:
             grpc:
                 endpoint: '0.0.0.0:4317'
             http:
                 endpoint: '0.0.0.0:4318'
-    fluentforward:
-        endpoint: '0.0.0.0:24224'
-    tcplog:
-        listen_address: '0.0.0.0:34302'
+                max_request_body_size: 0
+                include_metadata: true
+                cors:
+                    allowed_origins:
+                        - '*'
+                    allowed_headers:
+                        - 'X-Highlight-Request'
+                    max_age: 7200
 exporters:
     otlphttp:
         endpoint: 'http://pub.prod.vpc.highlight.io:8082/otel'

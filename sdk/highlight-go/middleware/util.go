@@ -1,11 +1,15 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/highlight/highlight/sdk/highlight-go"
+	e "github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
 	"net/http"
+	"runtime/debug"
 	"strings"
 )
 
@@ -50,4 +54,32 @@ func GetRequestAttributes(r *http.Request) []attribute.KeyValue {
 		attrs = append(attrs, attribute.Int(string(semconv.HTTPStatusCodeKey), r.Response.StatusCode))
 	}
 	return attrs
+}
+
+func RecoverToError(r interface{}) error {
+	switch x := r.(type) {
+	case string:
+		return e.New(x)
+	case error:
+		return x
+	default:
+		return e.New(fmt.Sprint(x))
+	}
+}
+
+func Recoverer(s trace.Span, w http.ResponseWriter, r *http.Request) {
+	if rvr := recover(); rvr != nil {
+		if rvr == http.ErrAbortHandler {
+			// we don't recover http.ErrAbortHandler so the response
+			// to the client is aborted, this should not be logged
+			panic(rvr)
+		}
+
+		logrus.WithContext(r.Context()).Panicf("%+v\n%s", rvr, debug.Stack())
+		highlight.RecordSpanError(s, RecoverToError(rvr))
+
+		if r.Header.Get("Connection") != "Upgrade" {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}
 }

@@ -120,7 +120,7 @@ class H(object):
         kwargs.update(
             {
                 "schedule_delay_millis": 1000,
-                "max_export_batch_size": 1024 * 1024,
+                "max_export_batch_size": 128 * 1024,
                 "max_queue_size": 1024 * 1024,
             }
         )
@@ -195,7 +195,9 @@ class H(object):
         self._trace_provider.add_span_processor(
             BatchSpanProcessor(
                 OTLPSpanExporter(
-                    f"{self._otlp_endpoint}/v1/traces", compression=Compression.Gzip
+                    f"{self._otlp_endpoint}/v1/traces",
+                    compression=Compression.Gzip,
+                    timeout=30,
                 ),
                 **kwargs,
             )
@@ -209,7 +211,9 @@ class H(object):
         self._log_provider.add_log_record_processor(
             BatchLogRecordProcessor(
                 OTLPLogExporter(
-                    f"{self._otlp_endpoint}/v1/logs", compression=Compression.Gzip
+                    f"{self._otlp_endpoint}/v1/logs",
+                    compression=Compression.Gzip,
+                    timeout=30,
                 ),
                 **kwargs,
             )

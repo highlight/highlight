@@ -1345,6 +1345,7 @@ const (
 	LogLevelWarn  LogLevel = "warn"
 	LogLevelError LogLevel = "error"
 	LogLevelFatal LogLevel = "fatal"
+	LogLevelPanic LogLevel = "panic"
 )
 
 var AllLogLevel = []LogLevel{
@@ -1354,11 +1355,12 @@ var AllLogLevel = []LogLevel{
 	LogLevelWarn,
 	LogLevelError,
 	LogLevelFatal,
+	LogLevelPanic,
 }
 
 func (e LogLevel) IsValid() bool {
 	switch e {
-	case LogLevelTrace, LogLevelDebug, LogLevelInfo, LogLevelWarn, LogLevelError, LogLevelFatal:
+	case LogLevelTrace, LogLevelDebug, LogLevelInfo, LogLevelWarn, LogLevelError, LogLevelFatal, LogLevelPanic:
 		return true
 	}
 	return false

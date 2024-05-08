@@ -10,28 +10,25 @@ import (
 	"strings"
 	"time"
 
-	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
-
-	model2 "github.com/highlight-run/highlight/backend/model"
-	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-
-	"github.com/samber/lo"
-
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 
 	"github.com/go-chi/chi"
-	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
+	model2 "github.com/highlight-run/highlight/backend/model"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight/highlight/sdk/highlight-go"
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
 )
 
 type Handler struct {
@@ -479,6 +476,45 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("invalid metric body")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	gz, err := gzip.NewReader(bytes.NewReader(body))
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("invalid gzip format for metric")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	output, err := io.ReadAll(gz)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("invalid gzip stream for metric")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	req := pmetricotlp.NewExportRequest()
+	err = req.UnmarshalProto(output)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("invalid metric protobuf")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	log.WithContext(ctx).
+		WithField("count", req.Metrics().MetricCount()).
+		WithField("dp_count", req.Metrics().DataPointCount()).
+		Info("received otel metrics")
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func (o *Handler) getQuotaExceededByProject(ctx context.Context, projectIds map[uint32]struct{}, productType model2.PricingProductType) (map[uint32]bool, error) {
 	// If it's saved in Redis that a project has exceeded / not exceeded
 	// its quota, use that value. Else, add the projectId to a list of
@@ -655,6 +691,7 @@ func (o *Handler) Listen(r *chi.Mux) {
 		r.Use(highlightChi.Middleware)
 		r.HandleFunc("/traces", o.HandleTrace)
 		r.HandleFunc("/logs", o.HandleLog)
+		r.HandleFunc("/metrics", o.HandleMetric)
 	})
 }
 
