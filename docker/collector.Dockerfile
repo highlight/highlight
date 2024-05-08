@@ -7,7 +7,7 @@ ARG IN_DOCKER_GO
 ARG SSL
 RUN /configure-collector.sh
 
-FROM otel/opentelemetry-collector-contrib:latest as collector
+FROM otel/opentelemetry-collector-contrib as collector
 
 COPY --from=collector-build /collector.yml /etc/otel-collector-config.yaml
 CMD ["--config=/etc/otel-collector-config.yaml"]
