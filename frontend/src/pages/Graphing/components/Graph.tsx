@@ -341,7 +341,8 @@ export const getViewConfig = (
 	return viewConfig
 }
 
-const POLL_INTERVAL_VALUE = 60000
+const POLL_INTERVAL_VALUE = 1000 * 60
+const LONGER_POLL_INTERVAL_VALUE = 1000 * 60 * 5
 
 const Graph = ({
 	productType,
@@ -386,8 +387,14 @@ const Graph = ({
 			return
 		}
 
-		setPollInterval(POLL_INTERVAL_VALUE)
-		setFetchStart(presetStartDate(selectedPreset))
+		const newStartFetch = presetStartDate(selectedPreset)
+		const newPollInterval =
+			moment().diff(newStartFetch, 'hours') > 5
+				? LONGER_POLL_INTERVAL_VALUE
+				: POLL_INTERVAL_VALUE
+
+		setPollInterval(newPollInterval)
+		setFetchStart(newStartFetch)
 		setFetchEnd(moment().toDate())
 	}, [selectedPreset, startDate, endDate])
 
