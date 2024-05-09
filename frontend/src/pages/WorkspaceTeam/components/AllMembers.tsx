@@ -1,20 +1,16 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { AdminAvatar } from '@components/Avatar/Avatar'
-import Card from '@components/Card/Card'
 import Select from '@components/Select/Select'
-import Table from '@components/Table/Table'
 import {
 	useChangeAdminRoleMutation,
 	useDeleteAdminFromWorkspaceMutation,
 } from '@graph/hooks'
-import { namedOperations } from '@graph/operations'
 import { AdminRole, WorkspaceAdminRole } from '@graph/schemas'
+import { Stack, Table, Text } from '@highlight-run/ui/components'
 import SvgTrashIconSolid from '@icons/TrashIconSolid'
 import { useAuthorization } from '@util/authorization/authorization'
-import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { getDisplayNameFromEmail, titleCaseString } from '@util/string'
 import { message } from 'antd'
-import clsx from 'clsx'
 
 import Button from '../../../components/Button/Button/Button'
 import PopConfirm from '../../../components/PopConfirm/PopConfirm'
@@ -31,7 +27,7 @@ const AllMembers = ({
 }) => {
 	const { checkPolicyAccess } = useAuthorization()
 
-	const { admin } = useAuthContext()
+	const { admin: self } = useAuthContext()
 	const [deleteAdminFromWorkspace] = useDeleteAdminFromWorkspaceMutation({
 		update(cache, { data }) {
 			cache.modify({
@@ -51,72 +47,120 @@ const AllMembers = ({
 	const [changeAdminRole] = useChangeAdminRoleMutation()
 
 	return (
-		<div className={clsx(styles.memberCardWrapper, 'highlight-mask')}>
-			<Card noPadding>
-				<Table
-					columns={
-						checkPolicyAccess({
-							policyName: POLICY_NAMES.RolesUpdate,
-						})
-							? TABLE_COLUMNS
-							: TABLE_COLUMNS.slice(0, 2)
-					}
-					loading={loading}
-					dataSource={admins?.map((wa: WorkspaceAdminRole) => ({
-						name: wa.admin?.name,
-						email: wa.admin?.email,
-						role: wa.role,
-						photoUrl: wa.admin?.photo_url,
-						id: wa.admin?.id,
-						isSameAdmin: wa.admin?.id === admin?.id,
-						onDeleteHandler: () => {
-							if (!workspaceId) {
-								return
-							}
-							deleteAdminFromWorkspace({
-								variables: {
-									admin_id: wa.admin!.id,
-									workspace_id: workspaceId!,
-								},
-								refetchQueries: [
-									namedOperations.Query.GetWorkspaceAdmins,
-								],
-							})
-						},
-						onUpdateRoleHandler: (new_role: string) => {
-							changeAdminRole({
-								variables: {
-									admin_id: wa.admin!.id,
-									workspace_id: workspaceId!,
-									new_role,
-								},
-							})
-
-							let messageText = ''
-							const displayName =
-								wa.admin?.name ||
-								getDisplayNameFromEmail(wa.admin?.email || '')
-							switch (new_role) {
-								case AdminRole.Admin:
-									messageText = `${displayName} has been granted Admin powers 🧙`
-									break
-								case AdminRole.Member:
-									messageText = `${displayName} no longer has admin access.`
-									break
-							}
-							message.success(messageText)
-						},
-						canUpdateAdminRole: checkPolicyAccess({
-							policyName: POLICY_NAMES.RolesUpdate,
-						}),
-					}))}
-					pagination={false}
-					showHeader={false}
-					rowHasPadding
-				/>
-			</Card>
-		</div>
+		<Table>
+			<Table.Head>
+				<Table.Row>
+					<Table.Header>User</Table.Header>
+					<Table.Header>Project Access</Table.Header>
+					<Table.Header>Role</Table.Header>
+				</Table.Row>
+			</Table.Head>
+			<Table.Body>
+				{admins?.map((wa) => {
+					const admin = wa.admin
+					const role = wa.role
+					return (
+						<Table.Row key={admin.id}>
+							<Table.Cell>
+								<Stack
+									direction="row"
+									gap="6"
+									alignItems="center"
+								>
+									<AdminAvatar
+										size={20}
+										adminInfo={{
+											email: admin.email,
+											name: admin.name,
+											photo_url: admin.photo_url,
+										}}
+									/>
+									<Stack gap="4">
+										<Text lines="1">
+											{admin?.name
+												? admin?.name
+												: getDisplayNameFromEmail(
+														admin.email,
+												  )}{' '}
+											{self?.id === admin.id && '(You)'}
+										</Text>
+									</Stack>
+								</Stack>
+							</Table.Cell>
+						</Table.Row>
+					)
+				})}
+			</Table.Body>
+		</Table>
 	)
+
+	// return (
+	// 	<div className={clsx(styles.memberCardWrapper, 'highlight-mask')}>
+	// 		<Card noPadding>
+	// 			<Table
+	// 				columns={
+	// 					checkPolicyAccess({
+	// 						policyName: POLICY_NAMES.RolesUpdate,
+	// 					})
+	// 						? TABLE_COLUMNS
+	// 						: TABLE_COLUMNS.slice(0, 2)
+	// 				}
+	// 				loading={loading}
+	// 				dataSource={admins?.map((wa: WorkspaceAdminRole) => ({
+	// 					name: wa.admin?.name,
+	// 					email: wa.admin?.email,
+	// 					role: wa.role,
+	// 					photoUrl: wa.admin?.photo_url,
+	// 					id: wa.admin?.id,
+	// 					isSameAdmin: wa.admin?.id === admin?.id,
+	// 					onDeleteHandler: () => {
+	// 						if (!workspaceId) {
+	// 							return
+	// 						}
+	// 						deleteAdminFromWorkspace({
+	// 							variables: {
+	// 								admin_id: wa.admin!.id,
+	// 								workspace_id: workspaceId!,
+	// 							},
+	// 							refetchQueries: [
+	// 								namedOperations.Query.GetWorkspaceAdmins,
+	// 							],
+	// 						})
+	// 					},
+	// 					onUpdateRoleHandler: (new_role: string) => {
+	// 						changeAdminRole({
+	// 							variables: {
+	// 								admin_id: wa.admin!.id,
+	// 								workspace_id: workspaceId!,
+	// 								new_role,
+	// 							},
+	// 						})
+
+	// 						let messageText = ''
+	// 						const displayName =
+	// 							wa.admin?.name ||
+	// 							getDisplayNameFromEmail(wa.admin?.email || '')
+	// 						switch (new_role) {
+	// 							case AdminRole.Admin:
+	// 								messageText = `${displayName} has been granted Admin powers 🧙`
+	// 								break
+	// 							case AdminRole.Member:
+	// 								messageText = `${displayName} no longer has admin access.`
+	// 								break
+	// 						}
+	// 						message.success(messageText)
+	// 					},
+	// 					canUpdateAdminRole: checkPolicyAccess({
+	// 						policyName: POLICY_NAMES.RolesUpdate,
+	// 					}),
+	// 				}))}
+	// 				pagination={false}
+	// 				showHeader={false}
+	// 				rowHasPadding
+	// 			/>
+	// 		</Card>
+	// 	</div>
+	// )
 }
 
 export default AllMembers
@@ -138,13 +182,11 @@ const TABLE_COLUMNS = [
 						}}
 					/>
 					<div>
-						<h4>
-							{record?.name
-								? record?.name
-								: getDisplayNameFromEmail(record.email)}{' '}
-							{record.isSameAdmin && '(You)'}
-						</h4>
-						<div className={styles.email}>{record?.email}</div>
+						{record?.name
+							? record?.name
+							: getDisplayNameFromEmail(record.email)}{' '}
+						{record.isSameAdmin && '(You)'}
+						<div>{record?.email}</div>
 					</div>
 				</div>
 			)

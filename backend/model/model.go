@@ -472,6 +472,7 @@ type AllWorkspaceSettings struct {
 	EnableDataDeletion        bool    `gorm:"default:true"`
 	CanShowBillingIssueBanner bool    `gorm:"default:true"`
 	EnableGrafanaDashboard    bool    `gorm:"default:false"`
+	EnableProjectLevelAccess  bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {

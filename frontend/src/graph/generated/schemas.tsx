@@ -155,6 +155,7 @@ export type AllWorkspaceSettings = {
 	enable_data_deletion: Scalars['Boolean']
 	enable_grafana_dashboard: Scalars['Boolean']
 	enable_ingest_sampling: Scalars['Boolean']
+	enable_project_level_access: Scalars['Boolean']
 	enable_session_export: Scalars['Boolean']
 	enable_unlisted_sharing: Scalars['Boolean']
 	workspace_id: Scalars['ID']
@@ -1107,6 +1108,7 @@ export type Mutation = {
 	addIntegrationToProject: Scalars['Boolean']
 	addIntegrationToWorkspace: Scalars['Boolean']
 	changeAdminRole: Scalars['Boolean']
+	changeProjectMembership: Scalars['Boolean']
 	createAdmin: Admin
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
@@ -1124,7 +1126,6 @@ export type Mutation = {
 	createSessionComment?: Maybe<SessionComment>
 	createSessionCommentWithExistingIssue?: Maybe<SessionComment>
 	createWorkspace?: Maybe<Workspace>
-	deleteAdminFromProject?: Maybe<Scalars['ID']>
 	deleteAdminFromWorkspace?: Maybe<Scalars['ID']>
 	deleteDashboard: Scalars['Boolean']
 	deleteErrorAlert?: Maybe<ErrorAlert>
@@ -1217,6 +1218,12 @@ export type MutationAddIntegrationToWorkspaceArgs = {
 export type MutationChangeAdminRoleArgs = {
 	admin_id: Scalars['ID']
 	new_role: Scalars['String']
+	workspace_id: Scalars['ID']
+}
+
+export type MutationChangeProjectMembershipArgs = {
+	admin_id: Scalars['ID']
+	project_ids?: InputMaybe<Array<Scalars['ID']>>
 	workspace_id: Scalars['ID']
 }
 
@@ -1392,11 +1399,6 @@ export type MutationCreateSessionCommentWithExistingIssueArgs = {
 export type MutationCreateWorkspaceArgs = {
 	name: Scalars['String']
 	promo_code?: InputMaybe<Scalars['String']>
-}
-
-export type MutationDeleteAdminFromProjectArgs = {
-	admin_id: Scalars['ID']
-	project_id: Scalars['ID']
 }
 
 export type MutationDeleteAdminFromWorkspaceArgs = {

@@ -831,54 +831,6 @@ export type ChangeAdminRoleMutationOptions = Apollo.BaseMutationOptions<
 	Types.ChangeAdminRoleMutation,
 	Types.ChangeAdminRoleMutationVariables
 >
-export const DeleteAdminFromProjectDocument = gql`
-	mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
-		deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
-	}
-`
-export type DeleteAdminFromProjectMutationFn = Apollo.MutationFunction<
-	Types.DeleteAdminFromProjectMutation,
-	Types.DeleteAdminFromProjectMutationVariables
->
-
-/**
- * __useDeleteAdminFromProjectMutation__
- *
- * To run a mutation, you first call `useDeleteAdminFromProjectMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteAdminFromProjectMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteAdminFromProjectMutation, { data, loading, error }] = useDeleteAdminFromProjectMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      admin_id: // value for 'admin_id'
- *   },
- * });
- */
-export function useDeleteAdminFromProjectMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.DeleteAdminFromProjectMutation,
-		Types.DeleteAdminFromProjectMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.DeleteAdminFromProjectMutation,
-		Types.DeleteAdminFromProjectMutationVariables
-	>(DeleteAdminFromProjectDocument, baseOptions)
-}
-export type DeleteAdminFromProjectMutationHookResult = ReturnType<
-	typeof useDeleteAdminFromProjectMutation
->
-export type DeleteAdminFromProjectMutationResult =
-	Apollo.MutationResult<Types.DeleteAdminFromProjectMutation>
-export type DeleteAdminFromProjectMutationOptions = Apollo.BaseMutationOptions<
-	Types.DeleteAdminFromProjectMutation,
-	Types.DeleteAdminFromProjectMutationVariables
->
 export const DeleteAdminFromWorkspaceDocument = gql`
 	mutation DeleteAdminFromWorkspace($workspace_id: ID!, $admin_id: ID!) {
 		deleteAdminFromWorkspace(

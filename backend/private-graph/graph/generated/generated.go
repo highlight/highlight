@@ -154,14 +154,15 @@ type ComplexityRoot struct {
 	}
 
 	AllWorkspaceSettings struct {
-		AIApplication          func(childComplexity int) int
-		AIInsights             func(childComplexity int) int
-		EnableDataDeletion     func(childComplexity int) int
-		EnableGrafanaDashboard func(childComplexity int) int
-		EnableIngestSampling   func(childComplexity int) int
-		EnableSessionExport    func(childComplexity int) int
-		EnableUnlistedSharing  func(childComplexity int) int
-		WorkspaceID            func(childComplexity int) int
+		AIApplication            func(childComplexity int) int
+		AIInsights               func(childComplexity int) int
+		EnableDataDeletion       func(childComplexity int) int
+		EnableGrafanaDashboard   func(childComplexity int) int
+		EnableIngestSampling     func(childComplexity int) int
+		EnableProjectLevelAccess func(childComplexity int) int
+		EnableSessionExport      func(childComplexity int) int
+		EnableUnlistedSharing    func(childComplexity int) int
+		WorkspaceID              func(childComplexity int) int
 	}
 
 	AverageSessionLength struct {
@@ -809,7 +810,6 @@ type ComplexityRoot struct {
 		CreateSessionComment                  func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) int
 		CreateSessionCommentWithExistingIssue func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, tags []*model.SessionCommentTagInput, integrations []*model.IntegrationType, issueTitle *string, issueURL string, issueID string, additionalContext *string) int
 		CreateWorkspace                       func(childComplexity int, name string, promoCode *string) int
-		DeleteAdminFromProject                func(childComplexity int, projectID int, adminID int) int
 		DeleteAdminFromWorkspace              func(childComplexity int, workspaceID int, adminID int) int
 		DeleteDashboard                       func(childComplexity int, id int) int
 		DeleteErrorAlert                      func(childComplexity int, projectID int, errorAlertID int) int
@@ -1698,7 +1698,6 @@ type MutationResolver interface {
 	JoinWorkspace(ctx context.Context, workspaceID int) (*int, error)
 	UpdateAllowedEmailOrigins(ctx context.Context, workspaceID int, allowedAutoJoinEmailOrigins string) (*int, error)
 	ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (bool, error)
-	DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error)
 	DeleteAdminFromWorkspace(ctx context.Context, workspaceID int, adminID int) (*int, error)
 	CreateSegment(ctx context.Context, projectID int, name string, query string) (*model1.Segment, error)
 	EmailSignup(ctx context.Context, email string) (string, error)
@@ -2497,6 +2496,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AllWorkspaceSettings.EnableIngestSampling(childComplexity), true
+
+	case "AllWorkspaceSettings.enable_project_level_access":
+		if e.complexity.AllWorkspaceSettings.EnableProjectLevelAccess == nil {
+			break
+		}
+
+		return e.complexity.AllWorkspaceSettings.EnableProjectLevelAccess(childComplexity), true
 
 	case "AllWorkspaceSettings.enable_session_export":
 		if e.complexity.AllWorkspaceSettings.EnableSessionExport == nil {
@@ -5551,18 +5557,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateWorkspace(childComplexity, args["name"].(string), args["promo_code"].(*string)), true
-
-	case "Mutation.deleteAdminFromProject":
-		if e.complexity.Mutation.DeleteAdminFromProject == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_deleteAdminFromProject_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeleteAdminFromProject(childComplexity, args["project_id"].(int), args["admin_id"].(int)), true
 
 	case "Mutation.deleteAdminFromWorkspace":
 		if e.complexity.Mutation.DeleteAdminFromWorkspace == nil {
@@ -11700,6 +11694,7 @@ type AllWorkspaceSettings {
 	enable_ingest_sampling: Boolean!
 	enable_data_deletion: Boolean!
 	enable_grafana_dashboard: Boolean!
+	enable_project_level_access: Boolean!
 }
 
 type Account {
@@ -13592,7 +13587,6 @@ type Mutation {
 		admin_id: ID!
 		new_role: String!
 	): Boolean!
-	deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
 	deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
 	createSegment(project_id: ID!, name: String!, query: String!): Segment
 	emailSignup(email: String!): String!
@@ -15329,30 +15323,6 @@ func (ec *executionContext) field_Mutation_createWorkspace_args(ctx context.Cont
 		}
 	}
 	args["promo_code"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_deleteAdminFromProject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["admin_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("admin_id"))
-		arg1, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["admin_id"] = arg1
 	return args, nil
 }
 
@@ -24954,6 +24924,50 @@ func (ec *executionContext) _AllWorkspaceSettings_enable_grafana_dashboard(ctx c
 }
 
 func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_grafana_dashboard(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllWorkspaceSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllWorkspaceSettings_enable_project_level_access(ctx context.Context, field graphql.CollectedField, obj *model1.AllWorkspaceSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AllWorkspaceSettings_enable_project_level_access(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EnableProjectLevelAccess, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_project_level_access(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AllWorkspaceSettings",
 		Field:      field,
@@ -43503,6 +43517,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspaceSettings(ctx cont
 				return ec.fieldContext_AllWorkspaceSettings_enable_data_deletion(ctx, field)
 			case "enable_grafana_dashboard":
 				return ec.fieldContext_AllWorkspaceSettings_enable_grafana_dashboard(ctx, field)
+			case "enable_project_level_access":
+				return ec.fieldContext_AllWorkspaceSettings_enable_project_level_access(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllWorkspaceSettings", field.Name)
 		},
@@ -44300,58 +44316,6 @@ func (ec *executionContext) fieldContext_Mutation_changeAdminRole(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_changeAdminRole_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_deleteAdminFromProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_deleteAdminFromProject(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteAdminFromProject(rctx, fc.Args["project_id"].(int), fc.Args["admin_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_deleteAdminFromProject(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteAdminFromProject_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -58347,6 +58311,8 @@ func (ec *executionContext) fieldContext_Query_workspaceSettings(ctx context.Con
 				return ec.fieldContext_AllWorkspaceSettings_enable_data_deletion(ctx, field)
 			case "enable_grafana_dashboard":
 				return ec.fieldContext_AllWorkspaceSettings_enable_grafana_dashboard(ctx, field)
+			case "enable_project_level_access":
+				return ec.fieldContext_AllWorkspaceSettings_enable_project_level_access(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllWorkspaceSettings", field.Name)
 		},
@@ -81709,6 +81675,11 @@ func (ec *executionContext) _AllWorkspaceSettings(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "enable_project_level_access":
+			out.Values[i] = ec._AllWorkspaceSettings_enable_project_level_access(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -86882,10 +86853,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "deleteAdminFromProject":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteAdminFromProject(ctx, field)
-			})
 		case "deleteAdminFromWorkspace":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteAdminFromWorkspace(ctx, field)

@@ -545,6 +545,7 @@ type AllWorkspaceSettings {
 	enable_ingest_sampling: Boolean!
 	enable_data_deletion: Boolean!
 	enable_grafana_dashboard: Boolean!
+	enable_project_level_access: Boolean!
 }
 
 type Account {
@@ -2437,7 +2438,11 @@ type Mutation {
 		admin_id: ID!
 		new_role: String!
 	): Boolean!
-	deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
+	changeProjectMembership(
+		workspace_id: ID!
+		admin_id: ID!
+		project_ids: [ID!]
+	): Boolean!
 	deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
 	createSegment(project_id: ID!, name: String!, query: String!): Segment
 	emailSignup(email: String!): String!

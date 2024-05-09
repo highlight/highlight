@@ -132,16 +132,6 @@ export type ChangeAdminRoleMutation = { __typename?: 'Mutation' } & Pick<
 	'changeAdminRole'
 >
 
-export type DeleteAdminFromProjectMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	admin_id: Types.Scalars['ID']
-}>
-
-export type DeleteAdminFromProjectMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'deleteAdminFromProject'
->
-
 export type DeleteAdminFromWorkspaceMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	admin_id: Types.Scalars['ID']
@@ -5296,7 +5286,6 @@ export const namedOperations = {
 		AddAdminToWorkspace: 'AddAdminToWorkspace' as const,
 		JoinWorkspace: 'JoinWorkspace' as const,
 		ChangeAdminRole: 'ChangeAdminRole' as const,
-		DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
 		DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,
 		AddIntegrationToProject: 'AddIntegrationToProject' as const,
 		RemoveIntegrationFromProject: 'RemoveIntegrationFromProject' as const,
