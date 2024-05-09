@@ -500,6 +500,12 @@ export const Search: React.FC<{
 			return
 		}
 
+		const { activeId } = comboboxStore.getState()
+		const activeElement = activeId && !items.find((i) => i.id === activeId)
+		if (activeElement) {
+			return
+		}
+
 		// Give preference to the first item with a value
 		const firstItem = items.find((i) => !!i.value) ?? items[0]
 		if (firstItem) {
