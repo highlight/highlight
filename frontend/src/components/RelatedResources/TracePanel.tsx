@@ -1,7 +1,10 @@
 import { Box, Callout, Text } from '@highlight-run/ui/components'
 
 import LoadingBox from '@/components/LoadingBox'
-import { RelatedTrace } from '@/components/RelatedResources/hooks'
+import {
+	RELATED_RESOURCE_PARAM,
+	RelatedTrace,
+} from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { TraceHeader } from '@/pages/Traces/TraceHeader'
@@ -13,9 +16,10 @@ export const TracePanel: React.FC<{ resource: RelatedTrace }> = ({
 	resource,
 }) => {
 	const { projectId } = useNumericProjectId()
-	const path = `/${projectId}/traces/${resource.id}`
 	const { highlightedSpan, loading, selectedSpan, traces } = useTrace()
 	const span = selectedSpan || highlightedSpan
+	const relatedResourceParam = encodeURIComponent(JSON.stringify(resource))
+	const path = `/${projectId}/traces?${RELATED_RESOURCE_PARAM}=${relatedResourceParam}`
 
 	return (
 		<>
