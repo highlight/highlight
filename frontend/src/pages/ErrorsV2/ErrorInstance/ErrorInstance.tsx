@@ -28,14 +28,14 @@ import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { GitHubEnhancementSettings } from '@pages/ErrorsV2/GitHubEnhancementSettings/GitHubEnhancementSettings'
 import {
-	getDisplayName,
+	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
 	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import analytics from '@util/analytics'
 import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
-import { copyToClipboard, validateEmail } from '@util/string'
+import { copyToClipboard } from '@util/string'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -375,14 +375,24 @@ const User: React.FC<{
 	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
 	const [truncated, setTruncated] = useState(true)
-	const displayName = getDisplayName(errorObject?.session)
+	const [displayName, field] = getDisplayNameAndField(errorObject?.session)
 
 	const searchQuery = useMemo(() => {
-		if (!displayName) return ''
+		if (errorObject?.session?.identifier && field !== null) {
+			return encodeURIComponent(`${field}=${displayName}`)
+		} else if (errorObject?.session?.fingerprint) {
+			return encodeURIComponent(
+				`device_id=${errorObject?.session.fingerprint}`,
+			)
+		}
 
-		const userParam = validateEmail(displayName) ? 'email' : 'device_id'
-		return encodeURIComponent(`${userParam}=${displayName}`)
-	}, [displayName])
+		return ''
+	}, [
+		displayName,
+		errorObject?.session?.fingerprint,
+		errorObject?.session?.identifier,
+		field,
+	])
 
 	const userDetailsBox = (
 		<Box pb="12">
