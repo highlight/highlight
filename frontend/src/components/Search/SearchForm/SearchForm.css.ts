@@ -17,13 +17,11 @@ export const searchIconWithActions = style({
 	top: 12,
 })
 
-const WORD_SPACING = 4
-
 export const combobox = style([
 	sprinkles({
 		p: '6',
 	}),
-	typographyStyles.family.body,
+	typographyStyles.family.monospace,
 	typographyStyles.size.small,
 	{
 		background: 'transparent',
@@ -34,7 +32,6 @@ export const combobox = style([
 		fontWeight: '500 !important',
 		pointerEvents: 'auto',
 		width: '100%',
-		wordSpacing: WORD_SPACING,
 		selectors: {
 			'&:focus': {
 				outline: 0,
@@ -54,7 +51,7 @@ export const comboboxNotEmpty = style({
 })
 
 export const comboboxTagsContainer = style([
-	typographyStyles.family.body,
+	typographyStyles.family.monospace,
 	typographyStyles.size.small,
 	{
 		display: 'block',
@@ -81,13 +78,6 @@ export const comboboxTag = style({
 
 export const token = style({
 	height: 20,
-	letterSpacing: 0,
-	wordSpacing: WORD_SPACING,
-})
-
-export const whitespaceToken = style({
-	letterSpacing: WORD_SPACING,
-	wordSpacing: 0,
 })
 
 export const errorToken = style({

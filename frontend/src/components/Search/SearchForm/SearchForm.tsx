@@ -688,7 +688,7 @@ export const Search: React.FC<{
 						// component. For some reason the combobox value isn't updated until
 						// after a delay or blurring the input. We also trim any leading
 						// space characters since this produces some UI jank.
-						setQuery(e.target.value.replace(/^\s+/, ''))
+						setQuery(e.target.value)
 					}}
 					onBlur={() => {
 						submitQuery(query)
