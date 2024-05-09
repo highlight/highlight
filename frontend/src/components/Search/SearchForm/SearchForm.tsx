@@ -323,6 +323,10 @@ export const Search: React.FC<{
 	const inputRef = textAreaRef || defaultInputRef
 	const [keys, setKeys] = useState<Keys | undefined>()
 	const [values, setValues] = useState<string[] | undefined>()
+	const [showErrors, setShowErrors] = useState(false)
+	const hasErrors = tokenGroups.some((group) =>
+		group.tokens.some((token) => (token as any).errorMessage !== undefined),
+	)
 	const comboboxStore = useComboboxStore({
 		defaultValue: query ?? '',
 	})
@@ -336,6 +340,12 @@ export const Search: React.FC<{
 	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
 		activePart.value,
 	)
+
+	useEffect(() => {
+		if (showErrors && !hasErrors) {
+			setShowErrors(false)
+		}
+	}, [hasErrors, setShowErrors, showErrors])
 
 	// TODO: code smell, user is not able to use "message" as a search key
 	// because we are reserving it for the body implicitly
@@ -647,6 +657,7 @@ export const Search: React.FC<{
 								index={index}
 								tokenGroup={tokenGroup}
 								showValues={showValues}
+								showErrors={showErrors}
 								onRemoveItem={handleRemoveItem}
 							/>
 						)
@@ -683,6 +694,10 @@ export const Search: React.FC<{
 						submitQuery(query)
 						handleSetCursorIndex()
 						inputRef.current?.blur()
+
+						if (hasErrors && !showErrors) {
+							setShowErrors(true)
+						}
 					}}
 					onKeyDown={(e) => {
 						if (e.key === 'Escape') {
