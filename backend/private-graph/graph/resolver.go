@@ -1379,11 +1379,6 @@ func (r *Resolver) updateStripeBillingDetails(ctx context.Context, stripeCustome
 	return nil
 }
 
-type SubscriptionDetails struct {
-	details *modelInputs.SubscriptionDetails
-	invoice *stripe.Invoice
-}
-
 type planDetails struct {
 	tier               modelInputs.PlanType
 	unlimitedMembers   bool
