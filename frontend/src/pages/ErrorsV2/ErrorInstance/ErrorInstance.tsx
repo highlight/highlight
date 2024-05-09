@@ -377,8 +377,6 @@ const User: React.FC<{
 	const [truncated, setTruncated] = useState(true)
 	const displayName = getDisplayName(errorObject?.session)
 
-	console.log('window.location.search', window.location.search)
-
 	const searchQuery = useMemo(() => {
 		if (!displayName) return ''
 
