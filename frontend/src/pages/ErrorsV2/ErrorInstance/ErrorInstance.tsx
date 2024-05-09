@@ -379,11 +379,9 @@ const User: React.FC<{
 
 	const searchQuery = useMemo(() => {
 		if (errorObject?.session?.identifier && field !== null) {
-			return encodeURIComponent(`${field}=${displayName}`)
+			return `${field}=${displayName}`
 		} else if (errorObject?.session?.fingerprint) {
-			return encodeURIComponent(
-				`device_id=${errorObject?.session.fingerprint}`,
-			)
+			return `device_id=${errorObject?.session.fingerprint}`
 		}
 
 		return ''
