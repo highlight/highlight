@@ -493,27 +493,30 @@ export const Search: React.FC<{
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [query])
 
-	const { items, open } = comboboxStore.getState()
+	const comboboxItems = comboboxStore.useState('items')
+	const comboboxOpen = comboboxStore.useState('open')
 
 	useEffect(() => {
-		if (!open) {
+		if (!comboboxOpen) {
 			return
 		}
 
 		const { activeId } = comboboxStore.getState()
-		const activeElement = activeId && items.find((i) => i.id === activeId)
+		const activeElement =
+			activeId && comboboxItems.find((i) => i.id === activeId)
 		if (activeElement) {
 			return
 		}
 
 		// Give preference to the first item with a value
-		const firstItem = items.find((i) => !!i.value) ?? items[0]
+		const firstItem =
+			comboboxItems.find((i) => !!i.value) ?? comboboxItems[0]
 		if (firstItem) {
 			comboboxStore.setActiveId(firstItem.id)
 			comboboxStore.setState('moves', 0)
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [items, open, query])
+	}, [comboboxItems, comboboxOpen, query])
 
 	useEffect(() => {
 		if (!showValues) {
