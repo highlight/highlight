@@ -329,7 +329,7 @@ export const Search: React.FC<{
 	const [getKeys, { loading: keysLoading }] = useGetKeysLazyQuery()
 	const [getKeyValues, { loading: valuesLoading }] =
 		useGetKeyValuesLazyQuery()
-	const [cursorIndex, setCursorIndex] = useState(0)
+	const [cursorIndex, setCursorIndex] = useState(query.length)
 	const [isPending, startTransition] = React.useTransition()
 
 	const activePart = getActivePart(cursorIndex, queryParts)
@@ -501,7 +501,7 @@ export const Search: React.FC<{
 		}
 
 		const { activeId } = comboboxStore.getState()
-		const activeElement = activeId && !items.find((i) => i.id === activeId)
+		const activeElement = activeId && items.find((i) => i.id === activeId)
 		if (activeElement) {
 			return
 		}
