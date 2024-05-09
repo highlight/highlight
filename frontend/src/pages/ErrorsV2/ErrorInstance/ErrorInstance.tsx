@@ -29,7 +29,6 @@ import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { GitHubEnhancementSettings } from '@pages/ErrorsV2/GitHubEnhancementSettings/GitHubEnhancementSettings'
 import {
 	getDisplayName,
-	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
 	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
@@ -376,15 +375,16 @@ const User: React.FC<{
 	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
 	const [truncated, setTruncated] = useState(true)
+	const displayName = getDisplayName(errorObject?.session)
+
+	console.log('window.location.search', window.location.search)
 
 	const searchQuery = useMemo(() => {
-		if (!errorObject?.session) return
+		if (!displayName) return ''
 
-		const displayName = getDisplayName(errorObject?.session)
 		const userParam = validateEmail(displayName) ? 'email' : 'identifier'
-
-		return `query=${userParam}=${displayName}`
-	}, [errorObject?.session])
+		return encodeURIComponent(`${userParam}=${displayName}`)
+	}, [displayName])
 
 	const userDetailsBox = (
 		<Box pb="12">
@@ -406,7 +406,6 @@ const User: React.FC<{
 	const userProperties = getUserProperties(
 		errorObject?.session?.user_properties,
 	)
-	const [displayName, field] = getDisplayNameAndField(errorObject?.session)
 	const avatarImage = getIdentifiedUserProfileImage(errorObject?.session)
 	const userDisplayPropertyKeys = Object.keys(userProperties)
 		.filter((k) => k !== 'avatar')
@@ -460,21 +459,9 @@ const User: React.FC<{
 									return
 								}
 
-								const searchParams: any = {}
-								if (
-									errorObject?.session?.identifier &&
-									field !== null
-								) {
-									searchParams[`user_${field}`] = displayName
-								} else if (errorObject?.session?.fingerprint) {
-									searchParams.device_id = String(
-										errorObject?.session.fingerprint,
-									)
-								}
-
 								navigate({
 									pathname: `/${projectId}/sessions`,
-									search: searchQuery,
+									search: `query=${searchQuery}`,
 								})
 							}}
 							trackingId="error_all-sessions-for-user_click"
