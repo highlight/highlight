@@ -6,19 +6,25 @@ import classNames from 'classnames'
 import { useSearchParams } from 'next/navigation'
 import { InlineWidget } from 'react-calendly'
 import { Typography } from '../common/Typography/Typography'
+import { setAttributionData } from '../../utils/attribution'
 
 export const CalendlyModal = () => {
 	const query = useSearchParams()
+	const referrer = setAttributionData()
 	return (
 		<InlineWidget
 			url="https://calendly.com/highlight-io/discussion"
 			styles={{ width: '100%', height: '100%' }}
 			utm={{
-				utmCampaign: query?.get('utm_campaign') ?? '',
-				utmSource: query?.get('utm_source') ?? '',
-				utmMedium: query?.get('utm_medium') ?? '',
-				utmContent: query?.get('utm_content') ?? '',
-				utmTerm: query?.get('utm_term') ?? '',
+				utmCampaign:
+					referrer.utm_campaign ?? query?.get('utm_campaign') ?? '',
+				utmSource:
+					referrer.utm_source ?? query?.get('utm_source') ?? '',
+				utmMedium:
+					referrer.utm_medium ?? query?.get('utm_medium') ?? '',
+				utmContent:
+					referrer.utm_content ?? query?.get('utm_content') ?? '',
+				utmTerm: referrer.utm_term ?? query?.get('utm_term') ?? '',
 			}}
 		/>
 	)
