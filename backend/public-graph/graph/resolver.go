@@ -139,7 +139,7 @@ type Request struct {
 	URL     string            `json:"url"`
 	Method  string            `json:"verb"`
 	Headers map[string]string `json:"headers"`
-	Body    string            `json:"body"`
+	Body    any               `json:"body"`
 }
 
 type Response struct {
