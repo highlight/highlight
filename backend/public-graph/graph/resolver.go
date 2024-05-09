@@ -3184,6 +3184,13 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		if url, err := url2.Parse(re.Name); err == nil && url.Host == "pub.highlight.io" {
 			continue
 		}
+		body, ok := re.RequestResponsePairs.Request.Body.(string)
+		if !ok {
+			bdBytes, err := json.Marshal(body)
+			if err == nil {
+				body = string(bdBytes)
+			}
+		}
 		attributes := []attribute.KeyValue{}
 		attributes = append(attributes, highlight.EmptyResourceAttributes...)
 		attributes = append(attributes, attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
@@ -3195,7 +3202,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
 			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
 			semconv.HTTPURLKey.String(re.Name),
-			semconv.HTTPRequestContentLengthKey.Int(len(re.RequestResponsePairs.Request.Body)),
+			semconv.HTTPRequestContentLengthKey.Int(len(body)),
 			semconv.HTTPResponseContentLengthKey.Float64(re.RequestResponsePairs.Response.Size),
 			semconv.HTTPStatusCodeKey.Float64(re.RequestResponsePairs.Response.Status),
 			semconv.HTTPMethodKey.String(method),
@@ -3204,7 +3211,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		)
 		requestBody := make(map[string]interface{})
 		// if the request body is json and contains the graphql key operationName, treat it as an operation
-		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
+		if err := json.Unmarshal([]byte(body), &requestBody); err == nil {
 			if _, ok := requestBody["operationName"]; ok {
 				if opName, ok := requestBody["operationName"].(string); ok {
 					attributes = append(attributes, semconv.GraphqlOperationName(opName))
