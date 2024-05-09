@@ -329,7 +329,7 @@ export const Search: React.FC<{
 	const [getKeys, { loading: keysLoading }] = useGetKeysLazyQuery()
 	const [getKeyValues, { loading: valuesLoading }] =
 		useGetKeyValuesLazyQuery()
-	const [cursorIndex, setCursorIndex] = useState(0)
+	const [cursorIndex, setCursorIndex] = useState(query.length)
 	const [isPending, startTransition] = React.useTransition()
 
 	const activePart = getActivePart(cursorIndex, queryParts)
@@ -350,7 +350,6 @@ export const Search: React.FC<{
 	let visibleItems: SearchResult[] = showValues
 		? getVisibleValues(activePart, values)
 		: getVisibleKeys(query, activePart, keys)
-	const comboboxItems = comboboxStore.useState('items')
 
 	// Show operators when we have an exact match for a key
 	const keyMatch = visibleItems.find((item) => item.name === activePart.text)
@@ -494,21 +493,30 @@ export const Search: React.FC<{
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [query])
 
-	useEffect(() => {
-		// Logic for selecting a default item from the results. We don't want to
-		// select a value by default, but if there is a query, an item isn't
-		// currently selected, and there are items, select the first item.
-		const { activeId, items } = comboboxStore.getState()
-		// Give preference to the "Show all results for..." item if it exists.
-		const firstItem = items.find((i) => i.value === undefined) ?? items[0]
-		const noActiveId = !activeId || !items.find((i) => i.id === activeId)
+	const comboboxItems = comboboxStore.useState('items')
+	const comboboxOpen = comboboxStore.useState('open')
 
-		if (activePart.text.trim() !== '' && noActiveId && firstItem) {
+	useEffect(() => {
+		if (!comboboxOpen) {
+			return
+		}
+
+		const { activeId } = comboboxStore.getState()
+		const activeElement =
+			activeId && comboboxItems.find((i) => i.id === activeId)
+		if (activeElement) {
+			return
+		}
+
+		// Give preference to the first item with a value
+		const firstItem =
+			comboboxItems.find((i) => !!i.value) ?? comboboxItems[0]
+		if (firstItem) {
 			comboboxStore.setActiveId(firstItem.id)
 			comboboxStore.setState('moves', 0)
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [comboboxItems, query])
+	}, [comboboxItems, comboboxOpen, query])
 
 	useEffect(() => {
 		if (!showValues) {
