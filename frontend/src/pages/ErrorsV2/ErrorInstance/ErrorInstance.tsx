@@ -380,7 +380,7 @@ const User: React.FC<{
 	const searchQuery = useMemo(() => {
 		if (!displayName) return ''
 
-		const userParam = validateEmail(displayName) ? 'email' : 'identifier'
+		const userParam = validateEmail(displayName) ? 'email' : 'device_id'
 		return encodeURIComponent(`${userParam}=${displayName}`)
 	}, [displayName])
 
