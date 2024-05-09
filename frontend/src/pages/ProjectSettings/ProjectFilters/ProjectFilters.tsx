@@ -12,6 +12,7 @@ import {
 import { namedOperations } from '@graph/operations'
 import {
 	MetricAggregator,
+	MetricColumn,
 	PlanType,
 	ProductType,
 	Sampling,
@@ -554,7 +555,7 @@ const IngestTimeline: React.FC<{
 		variables: {
 			product_type: ProductType.Traces,
 			project_id: projectId,
-			column: 'duration',
+			column: MetricColumn.Duration,
 			metric_types: [MetricAggregator.CountDistinctKey],
 			group_by: ['ingested'],
 			bucket_by: TIMESTAMP_KEY,

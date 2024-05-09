@@ -298,20 +298,20 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 	return keys, rows.Err()
 }
 
-func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, string, error) {
+func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"max_rows_to_read": KeyValuesMaxRows,
 	}))
 
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("Value, Type, sum(Count)").
+	sb.Select("Value, sum(Count)").
 		From(tableName).
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(sb.Equal("Key", keyName)).
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
 		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate))).
-		GroupBy("1, 2").
-		OrderBy("3 DESC, 1").
+		GroupBy("1").
+		OrderBy("2 DESC, 1").
 		Limit(500)
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
@@ -323,18 +323,17 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 
 	rows, err := client.conn.Query(chCtx, sql, args...)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
-	var column string
 	values := []string{}
 	for rows.Next() {
 		var (
 			value string
 			count uint64
 		)
-		if err := rows.Scan(&value, &column, &count); err != nil {
-			return nil, "", err
+		if err := rows.Scan(&value, &count); err != nil {
+			return nil, err
 		}
 
 		values = append(values, value)
@@ -343,7 +342,7 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 	rows.Close()
 
 	span.Finish(rows.Err())
-	return values, column, rows.Err()
+	return values, rows.Err()
 }
 
 func getChildValue(value reflect.Value, key string) (string, bool) {
@@ -631,7 +630,7 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 	}
 
 	switch column {
-	case string(modelInputs.ReservedTraceKeyMetric):
+	case string(modelInputs.MetricColumnMetricValue):
 		metricExpr = "toFloat64OrZero(Events.Attributes[1]['metric.value'])"
 	case "":
 		metricExpr = "1.0"

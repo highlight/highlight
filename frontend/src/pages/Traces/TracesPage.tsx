@@ -32,6 +32,7 @@ import {
 import { useGetTracesMetricsQuery } from '@/graph/generated/hooks'
 import {
 	MetricAggregator,
+	MetricColumn,
 	ProductType,
 	SavedSegmentEntityType,
 	Trace,
@@ -92,7 +93,7 @@ export const TracesPage: React.FC = () => {
 		useGetTracesMetricsQuery({
 			variables: {
 				project_id: projectId!,
-				column: 'duration',
+				column: MetricColumn.Duration,
 				group_by: [],
 				params: {
 					query,

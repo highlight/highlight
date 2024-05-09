@@ -3561,7 +3561,7 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 	metrics, err := ccClient.ReadTracesMetrics(ctx, projectID, modelInputs.QueryInput{
 		Query:     strings.Join(parts, " "),
 		DateRange: params.DateRange,
-	}, string(modelInputs.ReservedTraceKeyMetric), []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
+	}, string(modelInputs.MetricColumnMetricValue), []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}

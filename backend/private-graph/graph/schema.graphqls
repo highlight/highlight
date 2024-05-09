@@ -1098,6 +1098,11 @@ enum MetricAggregator {
 	None
 }
 
+enum MetricColumn {
+	Duration
+	MetricValue
+}
+
 enum MetricBucketBy {
 	None
 	Timestamp
@@ -1109,6 +1114,7 @@ type MetricBucket {
 	bucket_min: Float!
 	bucket_max: Float!
 	group: [String!]!
+	column: MetricColumn!
 	metric_type: MetricAggregator!
 	metric_value: Float
 }

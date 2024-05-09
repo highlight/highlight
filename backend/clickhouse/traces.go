@@ -433,21 +433,7 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 }
 
 func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
-	// check if the queried column is a value, and transform it into a metric query if so
-	// eventually, when metrics are extracted from traces, this will be removed
-	_, columnType, err := client.TracesKeyValues(ctx, projectID, column, params.DateRange.StartDate, params.DateRange.EndDate)
-	if err != nil {
-		return nil, err
-	}
-	config := tracesSampleableTableConfig
-	if columnType == modelInputs.ReservedTraceKeyMetric.String() {
-		params.Query = fmt.Sprintf("%s=%s", modelInputs.ReservedTraceKeyMetric, column)
-		column = columnType
-		config.tableConfig.DefaultFilter = ""
-		config.samplingTableConfig.DefaultFilter = ""
-	}
-
-	return readMetrics(ctx, client, config, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
+	return readMetrics(ctx, client, tracesSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
 }
 
 func (client *Client) ReadWorkspaceTraceCounts(ctx context.Context, projectIDs []int, params modelInputs.QueryInput) (*modelInputs.MetricsBuckets, error) {
@@ -475,7 +461,7 @@ func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate t
 	return traceKeys, nil
 }
 
-func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, string, error) {
+func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
 	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate)
 }
 

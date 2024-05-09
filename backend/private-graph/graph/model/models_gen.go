@@ -576,6 +576,7 @@ type MetricBucket struct {
 	BucketMin   float64          `json:"bucket_min"`
 	BucketMax   float64          `json:"bucket_max"`
 	Group       []string         `json:"group"`
+	Column      MetricColumn     `json:"column"`
 	MetricType  MetricAggregator `json:"metric_type"`
 	MetricValue *float64         `json:"metric_value,omitempty"`
 }
@@ -1528,6 +1529,47 @@ func (e *MetricBucketBy) UnmarshalGQL(v interface{}) error {
 }
 
 func (e MetricBucketBy) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type MetricColumn string
+
+const (
+	MetricColumnDuration    MetricColumn = "Duration"
+	MetricColumnMetricValue MetricColumn = "MetricValue"
+)
+
+var AllMetricColumn = []MetricColumn{
+	MetricColumnDuration,
+	MetricColumnMetricValue,
+}
+
+func (e MetricColumn) IsValid() bool {
+	switch e {
+	case MetricColumnDuration, MetricColumnMetricValue:
+		return true
+	}
+	return false
+}
+
+func (e MetricColumn) String() string {
+	return string(e)
+}
+
+func (e *MetricColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MetricColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MetricColumn", str)
+	}
+	return nil
+}
+
+func (e MetricColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

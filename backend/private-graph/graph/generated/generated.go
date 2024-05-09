@@ -741,6 +741,7 @@ type ComplexityRoot struct {
 		BucketID    func(childComplexity int) int
 		BucketMax   func(childComplexity int) int
 		BucketMin   func(childComplexity int) int
+		Column      func(childComplexity int) int
 		Group       func(childComplexity int) int
 		MetricType  func(childComplexity int) int
 		MetricValue func(childComplexity int) int
@@ -5100,6 +5101,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MetricBucket.BucketMin(childComplexity), true
+
+	case "MetricBucket.column":
+		if e.complexity.MetricBucket.Column == nil {
+			break
+		}
+
+		return e.complexity.MetricBucket.Column(childComplexity), true
 
 	case "MetricBucket.group":
 		if e.complexity.MetricBucket.Group == nil {
@@ -12245,6 +12253,11 @@ enum MetricAggregator {
 	None
 }
 
+enum MetricColumn {
+	Duration
+	MetricValue
+}
+
 enum MetricBucketBy {
 	None
 	Timestamp
@@ -12256,6 +12269,7 @@ type MetricBucket {
 	bucket_min: Float!
 	bucket_max: Float!
 	group: [String!]!
+	column: MetricColumn!
 	metric_type: MetricAggregator!
 	metric_value: Float
 }
@@ -41529,6 +41543,50 @@ func (ec *executionContext) fieldContext_MetricBucket_group(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _MetricBucket_column(ctx context.Context, field graphql.CollectedField, obj *model.MetricBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricBucket_column(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Column, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.MetricColumn)
+	fc.Result = res
+	return ec.marshalNMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricColumn(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricBucket_column(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type MetricColumn does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _MetricBucket_metric_type(ctx context.Context, field graphql.CollectedField, obj *model.MetricBucket) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_MetricBucket_metric_type(ctx, field)
 	if err != nil {
@@ -42558,6 +42616,8 @@ func (ec *executionContext) fieldContext_MetricsBuckets_buckets(ctx context.Cont
 				return ec.fieldContext_MetricBucket_bucket_max(ctx, field)
 			case "group":
 				return ec.fieldContext_MetricBucket_group(ctx, field)
+			case "column":
+				return ec.fieldContext_MetricBucket_column(ctx, field)
 			case "metric_type":
 				return ec.fieldContext_MetricBucket_metric_type(ctx, field)
 			case "metric_value":
@@ -86237,6 +86297,11 @@ func (ec *executionContext) _MetricBucket(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "column":
+			out.Values[i] = ec._MetricBucket_column(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "metric_type":
 			out.Values[i] = ec._MetricBucket_metric_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -98390,6 +98455,16 @@ func (ec *executionContext) marshalNMetricBucket2ᚖgithubᚗcomᚋhighlightᚑr
 		return graphql.Null
 	}
 	return ec._MetricBucket(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricColumn(ctx context.Context, v interface{}) (model.MetricColumn, error) {
+	var res model.MetricColumn
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricColumn(ctx context.Context, sel ast.SelectionSet, v model.MetricColumn) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNMetricMonitor2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricMonitor(ctx context.Context, sel ast.SelectionSet, v []*model1.MetricMonitor) graphql.Marshaler {
