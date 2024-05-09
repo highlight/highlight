@@ -8191,7 +8191,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		return nil, err
 	}
 
-	return redis.CachedEval(ctx, r.Redis, redis.GetSubscriptionDetailsKey(workspaceID), time.Minute, time.Minute, func() (*modelInputs.SubscriptionDetails, error) {
+	return redis.CachedEval(ctx, r.Redis, redis.GetSubscriptionDetailsKey(workspaceID), time.Minute, time.Hour, func() (*modelInputs.SubscriptionDetails, error) {
 		workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 		if err != nil {
 			return nil, nil
