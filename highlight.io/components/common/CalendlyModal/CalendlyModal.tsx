@@ -12,21 +12,19 @@ import { Typography } from '../Typography/Typography'
 function Calendly() {
 	const query = useSearchParams()
 	const referrer = setAttributionData()
+	const utm = {
+		utmCampaign: referrer.utm_campaign ?? query?.get('utm_campaign') ?? '',
+		utmSource: referrer.utm_source ?? query?.get('utm_source') ?? '',
+		utmMedium: referrer.utm_medium ?? query?.get('utm_medium') ?? '',
+		utmContent: referrer.utm_content ?? query?.get('utm_content') ?? '',
+		utmTerm: referrer.utm_term ?? query?.get('utm_term') ?? '',
+	}
+	console.log({ utm })
 	return (
 		<InlineWidget
 			url="https://calendly.com/highlight-io/discussion"
 			styles={{ width: '100%', height: '100%' }}
-			utm={{
-				utmCampaign:
-					referrer.utm_campaign ?? query?.get('utm_campaign') ?? '',
-				utmSource:
-					referrer.utm_source ?? query?.get('utm_source') ?? '',
-				utmMedium:
-					referrer.utm_medium ?? query?.get('utm_medium') ?? '',
-				utmContent:
-					referrer.utm_content ?? query?.get('utm_content') ?? '',
-				utmTerm: referrer.utm_term ?? query?.get('utm_term') ?? '',
-			}}
+			utm={utm}
 		/>
 	)
 }
@@ -44,7 +42,11 @@ export function CalendlyModal({
 				onClick={() => setCalendlyOpen(true)}
 				className={className}
 			>
-				{children}
+				{children ?? (
+					<Typography type="copy2" emphasis>
+						Request a Demo Call
+					</Typography>
+				)}
 			</button>
 
 			<Transition appear show={calendlyOpen} as={Fragment}>
