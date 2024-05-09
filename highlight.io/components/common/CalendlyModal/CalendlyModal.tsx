@@ -1,7 +1,8 @@
 'use client'
 
 import { Dialog, Transition } from '@headlessui/react'
-import { XMarkIcon } from '@heroicons/react/20/solid'
+import { ArrowRightCircleIcon, XMarkIcon } from '@heroicons/react/20/solid'
+import classNames from 'classnames'
 import { useSearchParams } from 'next/navigation'
 import { Fragment, useState } from 'react'
 import { InlineWidget } from 'react-calendly'
@@ -40,12 +41,21 @@ export function CalendlyModal({
 			<button
 				type="button"
 				onClick={() => setCalendlyOpen(true)}
-				className={className}
+				className={classNames(
+					'flex items-center gap-1 px-3 transition-colors rounded active:brightness-50',
+					className,
+					calendlyOpen
+						? 'bg-blue-cta text-dark-background'
+						: 'hover:bg-white/10',
+				)}
 			>
 				{children ?? (
-					<Typography type="copy2" emphasis>
-						Request a Demo Call
-					</Typography>
+					<div className={'flex items-center gap-1'}>
+						<Typography type="copy2" emphasis>
+							Request a Demo Call
+						</Typography>
+						<ArrowRightCircleIcon className="w-5 h-5" />
+					</div>
 				)}
 			</button>
 
