@@ -518,10 +518,10 @@ export const Search: React.FC<{
 
 	const handleItemSelect = (item: SearchResult) => {
 		const isValueSelect = item.type === 'Value'
+		const isExists = !!EXISTS_OPERATORS.find((eo) => eo === item.name)
 		let cursorShift = 0
 
 		if (item.type === 'Operator') {
-			const isExists = !!EXISTS_OPERATORS.find((eo) => eo === item.name)
 			const space = isExists ? ' ' : ''
 
 			const isContainsOrMatches = !![
@@ -561,7 +561,7 @@ export const Search: React.FC<{
 			setQuery(newQuery)
 			setCursorIndex(newCursorPosition)
 
-			if (isValueSelect) {
+			if (isValueSelect || isExists) {
 				submitQuery(newQuery)
 				comboboxStore.setOpen(false)
 			}
