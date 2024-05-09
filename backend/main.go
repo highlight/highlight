@@ -38,7 +38,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
-	"github.com/stripe/stripe-go/v76/client"
+	"github.com/stripe/stripe-go/v78/client"
 	"gorm.io/gorm"
 
 	dd "github.com/highlight-run/highlight/backend/datadog"

@@ -233,7 +233,7 @@ type TraceRowMessage struct {
 	Failures     int
 	MaxRetries   int
 	KafkaMessage *kafka.Message `json:",omitempty"`
-	*clickhouse.TraceRow
+	*clickhouse.ClickhouseTraceRow
 }
 
 func (m *TraceRowMessage) GetType() PayloadType {

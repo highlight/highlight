@@ -64,9 +64,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
-	"github.com/stripe/stripe-go/v76"
-	"github.com/stripe/stripe-go/v76/client"
-	"github.com/stripe/stripe-go/v76/webhook"
+	"github.com/stripe/stripe-go/v78"
+	"github.com/stripe/stripe-go/v78/client"
+	"github.com/stripe/stripe-go/v78/webhook"
 
 	"github.com/highlight-run/workerpool"
 
@@ -1414,6 +1414,11 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, workspace *model.Wo
 		return e.Wrapf(err, "BILLING_ERROR error updating BillingEmailHistory objects for workspace %d", workspace.ID)
 	}
 
+	// clear redis cache for stripe customer data
+	if err := r.Redis.Cache.Delete(ctx, redis.GetSubscriptionDetailsKey(workspace.ID)); err != nil {
+		log.WithContext(ctx).WithError(err).Error("BILLING_ERROR failed to clear workspace billing cache key")
+	}
+
 	return nil
 }
 
@@ -1738,8 +1743,8 @@ func (r *Resolver) StripeWebhook(ctx context.Context, endpointSecret string) fun
 			return
 		}
 
-		event, err := webhook.ConstructEvent(payload, req.Header.Get("Stripe-Signature"),
-			endpointSecret)
+		event, err := webhook.ConstructEventWithOptions(payload, req.Header.Get("Stripe-Signature"),
+			endpointSecret, webhook.ConstructEventOptions{IgnoreAPIVersionMismatch: true})
 		if err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error verifying webhook signature"))
 			w.WriteHeader(http.StatusBadRequest)

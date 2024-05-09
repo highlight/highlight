@@ -58,7 +58,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
-	stripe "github.com/stripe/stripe-go/v76"
+	stripe "github.com/stripe/stripe-go/v78"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"golang.org/x/sync/errgroup"
@@ -8176,6 +8176,9 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 
 // SubscriptionDetails is the resolver for the subscription_details field.
 func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int) (*modelInputs.SubscriptionDetails, error) {
+	span, _ := util.StartSpanFromContext(ctx, "SubscriptionDetails", util.Tag("workspaceID", workspaceID))
+	defer span.Finish()
+
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
@@ -8188,64 +8191,66 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		return nil, err
 	}
 
-	customerParams := &stripe.CustomerParams{}
-	customerParams.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying stripe customer")
-	}
-
-	if len(c.Subscriptions.Data) == 0 {
-		return &modelInputs.SubscriptionDetails{}, nil
-	}
-
-	amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
-	details := &modelInputs.SubscriptionDetails{BaseAmount: amount}
-
-	discount := c.Subscriptions.Data[0].Discount
-	if discount != nil && discount.Coupon != nil {
-		details.Discount = &modelInputs.SubscriptionDiscount{
-			Name:    discount.Coupon.Name,
-			Percent: discount.Coupon.PercentOff,
-			Amount:  discount.Coupon.AmountOff,
-		}
-		if discount.Coupon.Duration != stripe.CouponDurationForever {
-			t := time.Unix(discount.Start, 0).AddDate(0, int(discount.Coupon.DurationInMonths), 0)
-			details.Discount.Until = &t
-		}
-	}
-
-	invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID
-	invoiceParams := &stripe.InvoiceParams{}
-	customerParams.AddExpand("invoice_items")
-	invoice, err := r.StripeClient.Invoices.Get(invoiceID, invoiceParams)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying stripe invoice")
-	}
-
-	if invoice != nil {
-		invoiceDue := time.Unix(invoice.Created, 0)
-		status := string(invoice.Status)
-		details.LastInvoice = &modelInputs.Invoice{
-			Date:         &invoiceDue,
-			AmountDue:    &invoice.AmountDue,
-			AmountPaid:   &invoice.AmountPaid,
-			AttemptCount: &invoice.AttemptCount,
-			Status:       &status,
-			URL:          &invoice.HostedInvoiceURL,
-		}
-		warningSent, err := r.Redis.GetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID))
+	return redis.CachedEval(ctx, r.Redis, redis.GetSubscriptionDetailsKey(workspaceID), time.Minute, time.Minute, func() (*modelInputs.SubscriptionDetails, error) {
+		customerParams := &stripe.CustomerParams{}
+		customerParams.AddExpand("subscriptions")
+		c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
 		if err != nil {
+			return nil, e.Wrap(err, "error querying stripe customer")
+		}
+
+		if len(c.Subscriptions.Data) == 0 {
+			return &modelInputs.SubscriptionDetails{}, nil
+		}
+
+		amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
+		details := &modelInputs.SubscriptionDetails{BaseAmount: amount}
+
+		discount := c.Subscriptions.Data[0].Discount
+		if discount != nil && discount.Coupon != nil {
+			details.Discount = &modelInputs.SubscriptionDiscount{
+				Name:    discount.Coupon.Name,
+				Percent: discount.Coupon.PercentOff,
+				Amount:  discount.Coupon.AmountOff,
+			}
+			if discount.Coupon.Duration != stripe.CouponDurationForever {
+				t := time.Unix(discount.Start, 0).AddDate(0, int(discount.Coupon.DurationInMonths), 0)
+				details.Discount.Until = &t
+			}
+		}
+
+		invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID
+		invoiceParams := &stripe.InvoiceParams{}
+		customerParams.AddExpand("invoice_items")
+		invoice, err := r.StripeClient.Invoices.Get(invoiceID, invoiceParams)
+		if err != nil {
+			return nil, e.Wrap(err, "error querying stripe invoice")
+		}
+
+		if invoice != nil {
+			invoiceDue := time.Unix(invoice.Created, 0)
+			status := string(invoice.Status)
+			details.LastInvoice = &modelInputs.Invoice{
+				Date:         &invoiceDue,
+				AmountDue:    &invoice.AmountDue,
+				AmountPaid:   &invoice.AmountPaid,
+				AttemptCount: &invoice.AttemptCount,
+				Status:       &status,
+				URL:          &invoice.HostedInvoiceURL,
+			}
+			warningSent, err := r.Redis.GetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID))
+			if err != nil {
+				return nil, err
+			}
+			details.BillingIssue = !warningSent.IsZero()
+		}
+
+		if details.BillingIngestBlocked, err = r.Redis.GetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID)); err != nil {
 			return nil, err
 		}
-		details.BillingIssue = !warningSent.IsZero()
-	}
 
-	if details.BillingIngestBlocked, err = r.Redis.GetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID)); err != nil {
-		return nil, err
-	}
-
-	return details, nil
+		return details, nil
+	})
 }
 
 // DashboardDefinitions is the resolver for the dashboard_definitions field.

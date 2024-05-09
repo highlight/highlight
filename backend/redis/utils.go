@@ -187,6 +187,10 @@ func GetKey(sessionId int, payloadType model.RawPayloadType) string {
 	}
 }
 
+func GetSubscriptionDetailsKey(workspaceID int) string {
+	return fmt.Sprintf(`workspace-subscription-details-%d`, workspaceID)
+}
+
 func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType model.RawPayloadType, objects map[int]string) ([]string, error) {
 	key := GetKey(sessionId, payloadType)
 

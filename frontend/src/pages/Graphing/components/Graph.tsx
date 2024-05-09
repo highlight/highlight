@@ -2,6 +2,7 @@ import {
 	Badge,
 	Box,
 	Button,
+	DateRangePreset,
 	IconSolidArrowsExpand,
 	IconSolidChartSquareBar,
 	IconSolidChartSquareLine,
@@ -11,6 +12,7 @@ import {
 	IconSolidTable,
 	IconSolidTrash,
 	Menu,
+	presetStartDate,
 	Stack,
 	Text,
 	Tooltip,
@@ -19,12 +21,12 @@ import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ReferenceArea } from 'recharts'
 import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
-import { useGetMetricsQuery } from '@/graph/generated/hooks'
+import { useGetMetricsLazyQuery } from '@/graph/generated/hooks'
 import { Maybe, MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import {
 	BarChart,
@@ -82,6 +84,7 @@ export interface ChartProps<TConfig> {
 	projectId: string
 	startDate: Date
 	endDate: Date
+	selectedPreset?: DateRangePreset
 	query: string
 	metric: string
 	functionType: MetricAggregator
@@ -342,6 +345,9 @@ export const getViewConfig = (
 	return viewConfig
 }
 
+const POLL_INTERVAL_VALUE = 1000 * 60
+const LONGER_POLL_INTERVAL_VALUE = 1000 * 60 * 5
+
 const Graph = ({
 	productType,
 	projectId,
@@ -363,37 +369,108 @@ const Graph = ({
 	onExpand,
 	onEdit,
 	setTimeRange,
+	selectedPreset,
 }: ChartProps<ViewConfig>) => {
 	const [graphHover, setGraphHover] = useState(false)
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
 	const showMenu =
 		onDelete !== undefined || onExpand !== undefined || onEdit !== undefined
 
-	const { data: metrics, loading: metricsLoading } = useGetMetricsQuery({
-		variables: {
-			product_type: productType,
-			project_id: projectId,
-			params: {
-				date_range: {
-					start_date: moment(startDate)
-						.startOf('minute')
-						.format(TIME_FORMAT),
-					end_date: moment(endDate)
-						.startOf('minute')
-						.format(TIME_FORMAT),
+	const pollTimeout = useRef<number>()
+	const [pollInterval, setPollInterval] = useState<number>(0)
+	const [fetchStart, setFetchStart] = useState<Date>()
+	const [fetchEnd, setFetchEnd] = useState<Date>()
+
+	const [getMetrics, { data: metrics, called }] = useGetMetricsLazyQuery()
+
+	const rebaseFetchTime = useCallback(() => {
+		if (!selectedPreset) {
+			setPollInterval(0)
+			setFetchStart(startDate)
+			setFetchEnd(endDate)
+			return
+		}
+
+		const newStartFetch = presetStartDate(selectedPreset)
+		const newPollInterval =
+			moment().diff(newStartFetch, 'hours') > 5
+				? LONGER_POLL_INTERVAL_VALUE
+				: POLL_INTERVAL_VALUE
+
+		setPollInterval(newPollInterval)
+		setFetchStart(newStartFetch)
+		setFetchEnd(moment().toDate())
+	}, [selectedPreset, startDate, endDate])
+
+	// set the fetch dates and poll interval when selected date changes
+	useEffect(() => {
+		rebaseFetchTime()
+	}, [rebaseFetchTime])
+
+	// fetch new metrics when varaibles change (including polled fetch time)
+	useEffect(() => {
+		if (!fetchStart || !fetchEnd) {
+			return
+		}
+
+		getMetrics({
+			variables: {
+				product_type: productType,
+				project_id: projectId,
+				params: {
+					date_range: {
+						start_date: moment(fetchStart)
+							.startOf('minute')
+							.format(TIME_FORMAT),
+						end_date: moment(fetchEnd)
+							.startOf('minute')
+							.format(TIME_FORMAT),
+					},
+					query: query,
 				},
-				query: query,
+				column: metric,
+				metric_types: [functionType],
+				group_by: groupByKey !== undefined ? [groupByKey] : [],
+				bucket_by:
+					bucketByKey !== undefined ? bucketByKey : TIMESTAMP_KEY,
+				bucket_count: queriedBucketCount,
+				limit: limit,
+				limit_aggregator: limitFunctionType,
+				limit_column: limitMetric,
 			},
-			column: metric,
-			metric_types: [functionType],
-			group_by: groupByKey !== undefined ? [groupByKey] : [],
-			bucket_by: bucketByKey !== undefined ? bucketByKey : TIMESTAMP_KEY,
-			bucket_count: queriedBucketCount,
-			limit: limit,
-			limit_aggregator: limitFunctionType,
-			limit_column: limitMetric,
-		},
-	})
+		}).then(() => {
+			// create another poll timeout if pollInterval is set
+			if (pollInterval) {
+				pollTimeout.current = setTimeout(
+					rebaseFetchTime,
+					pollInterval,
+				) as unknown as number
+			}
+		})
+
+		return () => {
+			if (!!pollTimeout.current) {
+				clearTimeout(pollTimeout.current)
+				pollTimeout.current = undefined
+			}
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		bucketByKey,
+		fetchEnd,
+		fetchStart,
+		functionType,
+		getMetrics,
+		groupByKey,
+		limit,
+		limitFunctionType,
+		limitMetric,
+		metric,
+		productType,
+		projectId,
+		queriedBucketCount,
+		query,
+	])
 
 	const xAxisMetric = bucketByKey !== undefined ? bucketByKey : GROUP_KEY
 	const yAxisMetric = functionType === MetricAggregator.Count ? '' : metric
@@ -589,7 +666,7 @@ const Graph = ({
 				setGraphHover(false)
 			}}
 		>
-			{metricsLoading && (
+			{!called && (
 				<Box
 					position="absolute"
 					width="full"
@@ -615,7 +692,7 @@ const Graph = ({
 					>
 						{title || 'Untitled metric view'}
 					</Text>
-					{showMenu && graphHover && !disabled && !metricsLoading && (
+					{showMenu && graphHover && !disabled && called && (
 						<Box
 							cssClass={clsx(style.titleText, {
 								[style.hiddenMenu]: !graphHover,
@@ -737,7 +814,7 @@ const Graph = ({
 					</Box>
 				)}
 			</Box>
-			{!metricsLoading && (
+			{called && (
 				<Box
 					height="full"
 					maxHeight="screen"

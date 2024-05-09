@@ -665,8 +665,8 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 				continue
 			}
 			messages = append(messages, &kafkaqueue.TraceRowMessage{
-				Type:     kafkaqueue.PushTracesFlattened,
-				TraceRow: traceRow,
+				Type:               kafkaqueue.PushTracesFlattened,
+				ClickhouseTraceRow: clickhouse.ConvertTraceRow(traceRow),
 			})
 		}
 
