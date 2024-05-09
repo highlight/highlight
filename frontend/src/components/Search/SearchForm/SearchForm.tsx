@@ -350,7 +350,6 @@ export const Search: React.FC<{
 	let visibleItems: SearchResult[] = showValues
 		? getVisibleValues(activePart, values)
 		: getVisibleKeys(query, activePart, keys)
-	const comboboxItems = comboboxStore.useState('items')
 
 	// Show operators when we have an exact match for a key
 	const keyMatch = visibleItems.find((item) => item.name === activePart.text)
@@ -494,21 +493,21 @@ export const Search: React.FC<{
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [query])
 
-	useEffect(() => {
-		// Logic for selecting a default item from the results. We don't want to
-		// select a value by default, but if there is a query, an item isn't
-		// currently selected, and there are items, select the first item.
-		const { activeId, items } = comboboxStore.getState()
-		// Give preference to the "Show all results for..." item if it exists.
-		const firstItem = items.find((i) => i.value === undefined) ?? items[0]
-		const noActiveId = !activeId || !items.find((i) => i.id === activeId)
+	const { items, open } = comboboxStore.getState()
 
-		if (activePart.text.trim() !== '' && noActiveId && firstItem) {
+	useEffect(() => {
+		if (!open) {
+			return
+		}
+
+		// Give preference to the first item with a value
+		const firstItem = items.find((i) => !!i.value) ?? items[0]
+		if (firstItem) {
 			comboboxStore.setActiveId(firstItem.id)
 			comboboxStore.setState('moves', 0)
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [comboboxItems, query])
+	}, [items, open, query])
 
 	useEffect(() => {
 		if (!showValues) {
