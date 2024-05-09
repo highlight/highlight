@@ -1,0 +1,66 @@
+diff --git a/src/util/minimal.js b/src/util/minimal.js
+index 62d6833262b3ca13f4c49a797509f855090ba4dc..d516f9c700e7b131c2ee524b2a85c210b900c2f7 100644
+--- a/src/util/minimal.js
++++ b/src/util/minimal.js
+@@ -14,7 +14,7 @@ util.EventEmitter = require("@protobufjs/eventemitter");
+ util.float = require("@protobufjs/float");
+ 
+ // requires modules optionally and hides the call from bundlers
+-util.inquire = require("@protobufjs/inquire");
++// util.inquire = require("@protobufjs/inquire");
+ 
+ // converts to / from utf8 encoded strings
+ util.utf8 = require("@protobufjs/utf8");
+@@ -125,7 +125,7 @@ util.isSet = function isSet(obj, prop) {
+  */
+ util.Buffer = (function() {
+     try {
+-        var Buffer = util.inquire("buffer").Buffer;
++        var Buffer = require("buffer").Buffer;
+         // refuse to use non-node buffers if not explicitly assigned (perf reasons):
+         return Buffer.prototype.utf8Write ? Buffer : /* istanbul ignore next */ null;
+     } catch (e) {
+@@ -179,7 +179,7 @@ util.Array = typeof Uint8Array !== "undefined" ? Uint8Array /* istanbul ignore n
+  */
+ util.Long = /* istanbul ignore next */ util.global.dcodeIO && /* istanbul ignore next */ util.global.dcodeIO.Long
+          || /* istanbul ignore next */ util.global.Long
+-         || util.inquire("long");
++         || require("long");
+ 
+ /**
+  * Regular expression used to verify 2 bit (`bool`) map keys.
+diff --git a/src/util.js b/src/util.js
+index 6c508990b0b03f465ec5460f3588218d0fe1cb39..2b876700403f0764bc847ff5e42ab6e466946537 100644
+--- a/src/util.js
++++ b/src/util.js
+@@ -19,7 +19,7 @@ util.path    = require("@protobufjs/path");
+  * Node's fs module if available.
+  * @type {Object.<string,*>}
+  */
+-util.fs = util.inquire("fs");
++util.fs = require("fs");
+ 
+ /**
+  * Converts an object's values to an array.
+diff --git a/src/writer_buffer.js b/src/writer_buffer.js
+index 09a4a912a74cd6cc88c1d485ee095a13c279c410..fb2fc05f1c7618521a94f40893a7d197df661626 100644
+--- a/src/writer_buffer.js
++++ b/src/writer_buffer.js
+@@ -55,12 +55,12 @@ BufferWriter.prototype.bytes = function write_bytes_buffer(value) {
+ };
+ 
+ function writeStringBuffer(val, buf, pos) {
+-    if (val.length < 40) // plain js is faster for short strings (probably due to redundant assertions)
++    // if (val.length < 40) // plain js is faster for short strings (probably due to redundant assertions)
+         util.utf8.write(val, buf, pos);
+-    else if (buf.utf8Write)
+-        buf.utf8Write(val, pos);
+-    else
+-        buf.write(val, pos);
++    // else if (buf.utf8Write)
++    //     buf.utf8Write(val, pos);
++    // else
++    //     buf.write(val, pos);
+ }
+ 
+ /**

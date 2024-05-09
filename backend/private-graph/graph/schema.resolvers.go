@@ -58,7 +58,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
-	stripe "github.com/stripe/stripe-go/v76"
+	stripe "github.com/stripe/stripe-go/v78"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"golang.org/x/sync/errgroup"
@@ -229,18 +229,6 @@ func (r *errorObjectResolver) Session(ctx context.Context, obj *model.ErrorObjec
 		return nil, nil
 	}
 	return r.Store.GetSession(ctx, *obj.SessionID)
-}
-
-// Params is the resolver for the params field.
-func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegment) (*model.SearchParams, error) {
-	params := &model.SearchParams{}
-	if obj.Params == nil {
-		return params, nil
-	}
-	if err := json.Unmarshal([]byte(*obj.Params), params); err != nil {
-		return nil, e.Wrapf(err, "error unmarshalling segment params")
-	}
-	return params, nil
 }
 
 // ChannelsToNotify is the resolver for the ChannelsToNotify field.
@@ -1135,81 +1123,6 @@ func (r *mutationResolver) DeleteSegment(ctx context.Context, segmentID int) (*b
 		return nil, e.Wrap(err, "admin is not segment owner")
 	}
 	if err := r.DB.Delete(&model.Segment{Model: model.Model{ID: segmentID}}).Error; err != nil {
-		return nil, e.Wrap(err, "error deleting segment")
-	}
-	return &model.T, nil
-}
-
-// CreateErrorSegment is the resolver for the createErrorSegment field.
-func (r *mutationResolver) CreateErrorSegment(ctx context.Context, projectID int, name string, query string) (*model.ErrorSegment, error) {
-	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-	modelParams := SavedSegmentQueryToParams(query)
-	// Convert to json to store in the db.
-	paramBytes, err := json.Marshal(modelParams)
-	if err != nil {
-		return nil, e.Wrap(err, "error unmarshaling search params")
-	}
-	paramString := string(paramBytes)
-
-	// check if such a segment exists
-	var count int64
-	if err := r.DB.WithContext(ctx).Model(&model.ErrorSegment{}).Where("project_id = ? AND name = ?", projectID, name).Count(&count).Error; err != nil {
-		return nil, e.Wrap(err, "error checking if segment exists")
-	}
-	if count > 0 {
-		return nil, e.New("segment with this name already exists")
-	}
-
-	segment := &model.ErrorSegment{
-		Name:      &name,
-		Params:    &paramString,
-		ProjectID: projectID,
-	}
-	if err := r.DB.WithContext(ctx).Create(segment).Error; err != nil {
-		return nil, e.Wrap(err, "error creating segment")
-	}
-	return segment, nil
-}
-
-// EditErrorSegment is the resolver for the editErrorSegment field.
-func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, projectID int, query string, name string) (*bool, error) {
-	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-	modelParams := SavedSegmentQueryToParams(query)
-	// Convert to json to store in the db.
-	paramBytes, err := json.Marshal(modelParams)
-	if err != nil {
-		return nil, e.Wrap(err, "error unmarshaling search params")
-	}
-	paramString := string(paramBytes)
-
-	var count int64
-	if err := r.DB.WithContext(ctx).Model(&model.ErrorSegment{}).Where("project_id = ? AND name = ? AND id <> ?", projectID, name, id).Count(&count).Error; err != nil {
-		return nil, e.Wrap(err, "error checking if segment exists")
-	}
-	if count > 0 {
-		return nil, e.New("segment with this name already exists")
-	}
-
-	if err := r.DB.WithContext(ctx).Model(&model.ErrorSegment{Model: model.Model{ID: id}}).Updates(&model.ErrorSegment{
-		Params: &paramString,
-		Name:   &name,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error writing new recording settings")
-	}
-	return &model.T, nil
-}
-
-// DeleteErrorSegment is the resolver for the deleteErrorSegment field.
-func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error) {
-	_, err := r.isAdminErrorSegmentOwner(ctx, segmentID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin is not error segment owner")
-	}
-	if err := r.DB.Delete(&model.ErrorSegment{Model: model.Model{ID: segmentID}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting segment")
 	}
 	return &model.T, nil
@@ -6684,33 +6597,6 @@ group by 1 order by num_sessions desc;
 	return results, nil
 }
 
-// FieldTypesClickhouse is the resolver for the field_types_clickhouse field.
-func (r *queryResolver) FieldTypesClickhouse(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, nil
-	}
-	return r.ClickhouseClient.QueryFieldNames(ctx, projectID, startDate, endDate)
-}
-
-// FieldsClickhouse is the resolver for the fields_clickhouse field.
-func (r *queryResolver) FieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, nil
-	}
-	return r.ClickhouseClient.QueryFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
-}
-
-// ErrorFieldsClickhouse is the resolver for the error_fields_clickhouse field.
-func (r *queryResolver) ErrorFieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, nil
-	}
-	return r.ClickhouseClient.QueryErrorFieldValues(ctx, projectID, count, fieldName, query, startDate, endDate)
-}
-
 // BillingDetailsForProject is the resolver for the billingDetailsForProject field.
 func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -7266,20 +7152,6 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int
 		return nil, e.Wrap(err, "error querying field suggestion")
 	}
 	return fields, nil
-}
-
-// AppVersionSuggestion is the resolver for the app_version_suggestion field.
-func (r *queryResolver) AppVersionSuggestion(ctx context.Context, projectID int) ([]*string, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-	appVersions := []*string{}
-
-	if err := r.DB.WithContext(ctx).Raw("SELECT DISTINCT app_version FROM sessions WHERE app_version IS NOT NULL AND project_id = ?", projectID).Find(&appVersions).Error; err != nil {
-		return nil, e.Wrap(err, "error getting app version suggestions")
-	}
-
-	return appVersions, nil
 }
 
 // IdentifierSuggestion is the resolver for the identifier_suggestion field.
@@ -8080,9 +7952,12 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 	}
 
 	if r.isDemoProject(ctx, projectID) {
+		threeMonth := modelInputs.RetentionPeriodThreeMonths
 		return &model.Workspace{
-			Model: workspace.Model,
-			Name:  workspace.Name,
+			Model:                 workspace.Model,
+			Name:                  workspace.Name,
+			RetentionPeriod:       &threeMonth,
+			ErrorsRetentionPeriod: &threeMonth,
 			Projects: []model.Project{{
 				Model: project.Model,
 				Name:  project.Name,
@@ -8221,19 +8096,6 @@ func (r *queryResolver) Segments(ctx context.Context, projectID int) ([]*model.S
 	return segments, nil
 }
 
-// ErrorSegments is the resolver for the error_segments field.
-func (r *queryResolver) ErrorSegments(ctx context.Context, projectID int) ([]*model.ErrorSegment, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-	// list of maps, where each map represents a field query.
-	segments := []*model.ErrorSegment{}
-	if err := r.DB.WithContext(ctx).Model(model.ErrorSegment{}).Where("project_id = ?", projectID).Find(&segments).Error; err != nil {
-		log.WithContext(ctx).Errorf("error querying segments from project: %v", err)
-	}
-	return segments, nil
-}
-
 // SavedSegments is the resolver for the saved_segments field.
 func (r *queryResolver) SavedSegments(ctx context.Context, projectID int, entityType modelInputs.SavedSegmentEntityType) ([]*model.SavedSegment, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
@@ -8314,6 +8176,9 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 
 // SubscriptionDetails is the resolver for the subscription_details field.
 func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int) (*modelInputs.SubscriptionDetails, error) {
+	span, _ := util.StartSpanFromContext(ctx, "SubscriptionDetails", util.Tag("workspaceID", workspaceID))
+	defer span.Finish()
+
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
@@ -8326,64 +8191,66 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		return nil, err
 	}
 
-	customerParams := &stripe.CustomerParams{}
-	customerParams.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying stripe customer")
-	}
-
-	if len(c.Subscriptions.Data) == 0 {
-		return &modelInputs.SubscriptionDetails{}, nil
-	}
-
-	amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
-	details := &modelInputs.SubscriptionDetails{BaseAmount: amount}
-
-	discount := c.Subscriptions.Data[0].Discount
-	if discount != nil && discount.Coupon != nil {
-		details.Discount = &modelInputs.SubscriptionDiscount{
-			Name:    discount.Coupon.Name,
-			Percent: discount.Coupon.PercentOff,
-			Amount:  discount.Coupon.AmountOff,
-		}
-		if discount.Coupon.Duration != stripe.CouponDurationForever {
-			t := time.Unix(discount.Start, 0).AddDate(0, int(discount.Coupon.DurationInMonths), 0)
-			details.Discount.Until = &t
-		}
-	}
-
-	invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID
-	invoiceParams := &stripe.InvoiceParams{}
-	customerParams.AddExpand("invoice_items")
-	invoice, err := r.StripeClient.Invoices.Get(invoiceID, invoiceParams)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying stripe invoice")
-	}
-
-	if invoice != nil {
-		invoiceDue := time.Unix(invoice.Created, 0)
-		status := string(invoice.Status)
-		details.LastInvoice = &modelInputs.Invoice{
-			Date:         &invoiceDue,
-			AmountDue:    &invoice.AmountDue,
-			AmountPaid:   &invoice.AmountPaid,
-			AttemptCount: &invoice.AttemptCount,
-			Status:       &status,
-			URL:          &invoice.HostedInvoiceURL,
-		}
-		warningSent, err := r.Redis.GetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID))
+	return redis.CachedEval(ctx, r.Redis, redis.GetSubscriptionDetailsKey(workspaceID), time.Minute, time.Minute, func() (*modelInputs.SubscriptionDetails, error) {
+		customerParams := &stripe.CustomerParams{}
+		customerParams.AddExpand("subscriptions")
+		c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
 		if err != nil {
+			return nil, e.Wrap(err, "error querying stripe customer")
+		}
+
+		if len(c.Subscriptions.Data) == 0 {
+			return &modelInputs.SubscriptionDetails{}, nil
+		}
+
+		amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
+		details := &modelInputs.SubscriptionDetails{BaseAmount: amount}
+
+		discount := c.Subscriptions.Data[0].Discount
+		if discount != nil && discount.Coupon != nil {
+			details.Discount = &modelInputs.SubscriptionDiscount{
+				Name:    discount.Coupon.Name,
+				Percent: discount.Coupon.PercentOff,
+				Amount:  discount.Coupon.AmountOff,
+			}
+			if discount.Coupon.Duration != stripe.CouponDurationForever {
+				t := time.Unix(discount.Start, 0).AddDate(0, int(discount.Coupon.DurationInMonths), 0)
+				details.Discount.Until = &t
+			}
+		}
+
+		invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID
+		invoiceParams := &stripe.InvoiceParams{}
+		customerParams.AddExpand("invoice_items")
+		invoice, err := r.StripeClient.Invoices.Get(invoiceID, invoiceParams)
+		if err != nil {
+			return nil, e.Wrap(err, "error querying stripe invoice")
+		}
+
+		if invoice != nil {
+			invoiceDue := time.Unix(invoice.Created, 0)
+			status := string(invoice.Status)
+			details.LastInvoice = &modelInputs.Invoice{
+				Date:         &invoiceDue,
+				AmountDue:    &invoice.AmountDue,
+				AmountPaid:   &invoice.AmountPaid,
+				AttemptCount: &invoice.AttemptCount,
+				Status:       &status,
+				URL:          &invoice.HostedInvoiceURL,
+			}
+			warningSent, err := r.Redis.GetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID))
+			if err != nil {
+				return nil, err
+			}
+			details.BillingIssue = !warningSent.IsZero()
+		}
+
+		if details.BillingIngestBlocked, err = r.Redis.GetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID)); err != nil {
 			return nil, err
 		}
-		details.BillingIssue = !warningSent.IsZero()
-	}
 
-	if details.BillingIngestBlocked, err = r.Redis.GetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID)); err != nil {
-		return nil, err
-	}
-
-	return details, nil
+		return details, nil
+	})
 }
 
 // DashboardDefinitions is the resolver for the dashboard_definitions field.
@@ -9638,9 +9505,6 @@ func (r *Resolver) ErrorGroup() generated.ErrorGroupResolver { return &errorGrou
 // ErrorObject returns generated.ErrorObjectResolver implementation.
 func (r *Resolver) ErrorObject() generated.ErrorObjectResolver { return &errorObjectResolver{r} }
 
-// ErrorSegment returns generated.ErrorSegmentResolver implementation.
-func (r *Resolver) ErrorSegment() generated.ErrorSegmentResolver { return &errorSegmentResolver{r} }
-
 // LogAlert returns generated.LogAlertResolver implementation.
 func (r *Resolver) LogAlert() generated.LogAlertResolver { return &logAlertResolver{r} }
 
@@ -9694,7 +9558,6 @@ type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
-type errorSegmentResolver struct{ *Resolver }
 type logAlertResolver struct{ *Resolver }
 type matchedErrorObjectResolver struct{ *Resolver }
 type metricMonitorResolver struct{ *Resolver }

@@ -2047,8 +2047,8 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 			continue
 		}
 		messages = append(messages, &kafka_queue.TraceRowMessage{
-			Type:     kafka_queue.PushTracesFlattened,
-			TraceRow: traceRow,
+			Type:               kafka_queue.PushTracesFlattened,
+			ClickhouseTraceRow: clickhouse.ConvertTraceRow(traceRow),
 		})
 	}
 	return r.TracesQueue.Submit(ctx, "", messages...)
@@ -3206,7 +3206,9 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		// if the request body is json and contains the graphql key operationName, treat it as an operation
 		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
 			if _, ok := requestBody["operationName"]; ok {
-				attributes = append(attributes, semconv.GraphqlOperationName(requestBody["operationName"].(string)))
+				if opName, ok := requestBody["operationName"].(string); ok {
+					attributes = append(attributes, semconv.GraphqlOperationName(opName))
+				}
 			}
 		}
 

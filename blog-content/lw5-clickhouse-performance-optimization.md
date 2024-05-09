@@ -11,33 +11,26 @@ authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
 authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
 tags: Launch Week 5
-metaTitle: "Optimizing Clickhouse Cost + CPU: 5 Tactics That Worked"
+metaTitle: "Optimizing Clickhouse: The Tactics That Worked for Us"
 ---
 
-Scaling an observability stack isn’t an easy problem. At Highlight.io, we ingest nearly 100 terabytes of data from our
-customers every month. A large chunk of the volume goes to our ClickHouse cluster, handling our client’s Logs, Traces,
-and Session metadata. Not only do we need to gracefully handle the volume and daily spikes in the traffic patterns, but
-we also need to ensure that the data is ingested in an efficient format that is performant to query.
+```hint
+Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring distribution. We’re building a suite of tools to monitor your web application, and on this blog, we write about the infra challenges we face along the way. If you’re interested in learning more, get started at [app.highlight.io](https://app.highlight.io).
+```
 
-About a year ago, once we started onboarding larger customers, we started hitting scaling issues with our Clickhouse set
-up that warranted several "phases" of improvements to our query and ingest systems. This post goes through the initial
-realization that we had a challenge on our hands, and how we tackled it.
+At Highlight.io, we ingest nearly 100 terabytes of observability data from our customers every month. A large chunk of the volume goes to our ClickHouse cluster, handling our client’s Logs, Traces, and Session metadata. Not only do we need to gracefully handle the volume and daily spikes in the traffic patterns, but we also need to ensure that the data is ingested in an efficient format that is performant to query.
+
+About a year ago,having onboarded several larger customers, we started hitting scaling issues with our Clickhouse setup that necessitated several phases of improvements to our query and ingest systems. 
+
+This post goes through the initial realization and how we tackled it; we went from a largely un-optimized, cpu-heavy clickhouse cluster to a much more efficient, affordable configuration. And more importantly, this yielded a much more “realtime” experience for our customers.
 
 ## The Incident
 
-One day, we onboarded a large customer that sent close to 1 billion trace spans
-a day, adding another terabyte to our data ingestion. Beyond the total volume, the larger problem was in the number of
-small batches of rows inserted into ClickHouse. Our Kafka queue responsible for buffering data started accruing a
-backlog, and we quickly noticed that the rate of trace insertion into ClickHouse was significantly lower than the number
-of new records added to Kafka.
+Sometime last year, we onboarded a large customer that sent close to 1 billion spans a day, adding another terabyte to our data ingestion. Beyond the total volume, the real problem with this was in the number of small batches of rows inserted into ClickHouse. Our Kafka queue responsible for buffering data started accruing a backlog, and we quickly noticed that the rate of trace insertion into ClickHouse was significantly lower than the number of new records added to Kafka.
 
 ![ClickHouse Backlog](/images/blog/launch-week/5/clickhouse-backlog.png)
 
-At that time, all we could spot was that ClickHouse had a significant CPU load utilizing all of the available CPU cores
-of the ClickHouse Cloud Cluster, which we observed to cause the `INSERT` commands to operate slower in synchronous mode
-as the cluster created backpressure to reduce the overall CPU load. We also observed “too many parts” errors as
-ClickHouse was unable to merge the data into fewer parts because of the CPU load. While the hotfix was increasing the
-CPU allocated the cluster, we quickly had to find a long term solution to avoid the problem.
+At that time, all we could spot was that ClickHouse had a significant CPU load utilizing all of the available CPU cores of the ClickHouse Cloud Cluster. This seemed to  cause the INSERT commands to operate slower in synchronous mode as the cluster created backpressure to reduce the overall CPU load. We also observed “too many parts” errors as ClickHouse was unable to merge the data into fewer parts because of the CPU load. While the hotfix was increasing the CPU allocated the cluster, we quickly had to find a long term solution.
 
 ![ClickHouse CPU Wait](/images/blog/launch-week/5/clickhouse-cpu-wait.png)
 
@@ -64,14 +57,11 @@ issue a single `INSERT` command with many values. Though this worked to ensure i
 atomic
 resulting in duplicate data being inserted during worker reboots.
 
-We opted to use the ClickHouse Kafka Connect Sink that implements batched writes and exactly-once semantics achieved
-through ClickHouse Keeper. Check out a detailed overview of this
-feature [here](https://clickhouse.com/docs/en/integrations/kafka/clickhouse-kafka-connect-sink).
+We opted to use the ClickHouse Kafka Connect Sink that implements batched writes and exactly-once semantics achieved through ClickHouse Keeper. 
 
-To ensure our changes had the right effect, we monitored
-the [Max Parts graph](https://clickhouse.com/docs/knowledgebase/maximum_number_of_tables_and_databases) in ClickHouse
-for the number of parts
-waiting to be merged. Read more on how this works from ClickHouse here.
+We opted to use the [ClickHouse Kafka Connect Sink](https://clickhouse.com/docs/en/integrations/kafka/clickhouse-kafka-connect-sink) that implements batched writes and exactly-once semantics achieved through ClickHouse Keeper.
+
+To ensure our changes had the right effect, we monitored the Max Parts graph in ClickHouse for the number of parts waiting to be merged. Read more on how this works from ClickHouse [here](https://clickhouse.com/docs/knowledgebase/maximum_number_of_tables_and_databases).
 
 ![ClickHouse Inserted Rows/sec](/images/blog/launch-week/5/clickhouse-1.png)
 
@@ -79,7 +69,7 @@ waiting to be merged. Read more on how this works from ClickHouse here.
 
 ### Keeping Data in Wide Parts
 
-CPU Usage during merges can be incurred by the conversion of parts from compact to wide. When data is inserted
+CPU Usage during merges can also be incurred by the conversion of parts from compact to wide. When data is inserted
 compressed, it must be decompressed into the wide format for it to be merged. If inserting large batch sizes (100k+ rows
 at 10MB+ data), a table level setting that helps is using `min_rows_for_wide_part=0`, `min_bytes_for_wide_part=0` to
 make
@@ -89,8 +79,7 @@ narrow format, since each conversion incurs a CPU cost.
 ### Optimizing Order By Granularity
 
 If a table is ordered by columns with high granularity, this will result in increased sorting of data when ClickHouse is
-merging parts. For instance, we found that switching our `ORDER BY Timestamp` to an `ORDER BY TODO date_trunc(‘minute’,
-Timestamp)` reduced the CPU load of merging since everything within the same minute would be grouped into the same part
+merging parts. For instance, we found that switching our `ORDER BY Timestamp` to an `ORDER BY toStartOfSecond(Timestamp)` reduced the CPU load of merging since everything within the same minute would be grouped into the same part
 without having to be sorted. The tradeoff occurs with query performance – a granular `ORDER BY` means that a `SELECT`
 will load more parts that must be filtered and sorted, but this is well worth the reduced merging that must happen.
 
@@ -117,10 +106,11 @@ order by 3 desc;
 
 If you are inserting in large batches but are still seeing many high-level merges, you may want to
 adjust the `min_bytes_for_full_part_storage` setting. For instance,  
-setting `min_bytes_for_full_part_storage=4294967296` will ensure most parts are only merged as level 0 merges.
+setting `min_bytes_for_full_part_storage=0` will ensure most parts use `Full` storage which may
+be more efficient for future large merges as the `part_storage_type` data format will not have to be converted from `Packed` to `Full`.
 
 ```SQL
-ALTER TABLE my_table MODIFY SETTING min_bytes_for_full_part_storage = 4294967296;
+ALTER TABLE my_table MODIFY SETTING min_bytes_for_full_part_storage = 0;
 ```
 
 ### Avoiding Use of Projections
@@ -190,3 +180,7 @@ deleting parts or partitions:
 ALTER TABLE my_table
     DROP PARTITION partition_expr;
 ```
+
+### Conclusion
+
+To conclude, from a largely un-optimized, cpu-heavy clickhouse cluster, we now have a much more efficient, affordable configuration. This experience has also yielded a much more “realtime” experience for our customers. We hope that these strategies can help you optimize your ClickHouse cluster as well. If you have any questions or feedback, feel free to reach out to me on [Twitter](https://twitter.com/vkorolik) or [LinkedIn](https://www.linkedin.com/in/vkorolik/).

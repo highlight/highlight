@@ -11,7 +11,6 @@ import { useGetReferrersCountQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgReferrer from '@icons/Referrer'
 import { useParams } from '@util/react-router/useParams'
-import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
 import { ColumnsType } from 'antd/es/table'
 import clsx from 'clsx'
@@ -80,9 +79,7 @@ const ReferrersTable = ({
 					loading={false}
 					onClickHandler={(record) => {
 						navigate(
-							`/${projectIdRemapped}/sessions${buildQueryURLString(
-								{ session_referrer: record.host },
-							)}`,
+							`/${projectIdRemapped}/sessions?query=referrer=${record.host}`,
 						)
 						message.success(
 							`Showing sessions that were referred by ${record.host}`,

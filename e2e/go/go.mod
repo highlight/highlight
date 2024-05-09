@@ -1,8 +1,6 @@
 module github.com/highlight/highlight/e2e/go
 
-go 1.21
-
-toolchain go1.21.3
+go 1.22.2
 
 replace github.com/highlight/highlight/sdk/highlight-go => ../../sdk/highlight-go
 

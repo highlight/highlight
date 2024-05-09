@@ -281,7 +281,6 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 		// get path from url
 		u2, err := url.Parse(sourceMapURL)
 		stackTraceError.SourceMapURL = &sourceMapURL
-		stackTraceError.ActualSourcemapFetchedPath = &u2.Path
 		if err != nil {
 			if len(sourceMapURL) > 500 {
 				sourceMapURL = sourceMapURL[:500]

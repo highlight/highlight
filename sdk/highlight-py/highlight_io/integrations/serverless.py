@@ -20,7 +20,7 @@ def observe_serverless(get_highlight_header, fn):
         except ValueError:
             pass
         try:
-            with H.get_instance().trace(session_id, request_id):
+            with H.get_instance().trace("observe_serverless", session_id, request_id):
                 return fn(*args, **kwargs)
         finally:
             # cloud functions may terminate quickly after response is sent.

@@ -369,6 +369,9 @@ export const Dashboard = () => {
 															projectId={
 																projectId
 															}
+															selectedPreset={
+																selectedPreset
+															}
 															startDate={
 																startDate
 															}
@@ -498,6 +501,9 @@ export const Dashboard = () => {
 																	  }
 															}
 															disabled={editing}
+															setTimeRange={
+																updateSearchTime
+															}
 														/>
 													</DashboardCard>
 												)

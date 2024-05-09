@@ -1,5 +1,5 @@
 import {
-	Calendar as CalendarType,
+	DPCalendar as CalendarType,
 	useContextCalendars,
 } from '@rehookify/datepicker'
 import { FC, ReactNode, useState } from 'react'
@@ -29,7 +29,7 @@ export const Calendar: FC<CalendarProps> = ({
 	const { days, month, year } = calendar
 
 	return (
-		<Box backgroundColor="white" p="10">
+		<Box backgroundColor="white" p="10" cursor="default">
 			<Stack direction="row" align="center">
 				{prevButton}
 

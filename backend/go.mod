@@ -1,8 +1,6 @@
 module github.com/highlight-run/highlight/backend
 
-go 1.21
-
-toolchain go1.21.3
+go 1.22.2
 
 replace golang.org/x/crypto => golang.org/x/crypto v0.17.0
 
@@ -80,7 +78,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slack-go/slack v0.12.5
 	github.com/speps/go-hashids v2.0.0+incompatible
-	github.com/stripe/stripe-go/v76 v76.20.0
+	github.com/stripe/stripe-go/v78 v78.5.0
 	github.com/urfave/cli/v2 v2.27.1
 	github.com/vektah/gqlparser/v2 v2.5.11
 	go.opentelemetry.io/collector/pdata v1.3.0

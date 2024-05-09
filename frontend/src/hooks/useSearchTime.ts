@@ -5,7 +5,7 @@ import {
 } from '@highlight-run/ui/components'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
-import { DateTimeParam, useQueryParam } from 'use-query-params'
+import { DateTimeParam, StringParam, useQueryParams } from 'use-query-params'
 
 export interface UseSearchTimeReturnValue {
 	startDate: Date
@@ -26,20 +26,14 @@ export function useSearchTime({
 	initialPreset,
 }: UseSearchTimeProps): UseSearchTimeReturnValue {
 	const defaultPreset = initialPreset ?? presets[0]
-	const [startDateParam, setStartDateParam] = useQueryParam(
-		'start_date',
-		DateTimeParam,
-	)
-	const [endDateParam, setEndDateParam] = useQueryParam(
-		'end_date',
-		DateTimeParam,
-	)
-	const [presetParam, setPresetParam] = useQueryParam<string | undefined>(
-		'relative_time',
-	)
+	const [params, setParams] = useQueryParams({
+		relative_time: StringParam,
+		start_date: DateTimeParam,
+		end_date: DateTimeParam,
+	})
 
 	const findPreset = useCallback(
-		(value?: string): DateRangePreset => {
+		(value?: string | null): DateRangePreset => {
 			if (!value) {
 				return defaultPreset
 			}
@@ -54,18 +48,19 @@ export function useSearchTime({
 	)
 
 	// initalize state to url params
-	const useRelativeTime = presetParam || !startDateParam || !endDateParam
+	const useRelativeTime =
+		params.relative_time || !params.start_date || !params.end_date
 	const [selectedPreset, setSelectedPreset] = useState<
 		DateRangePreset | undefined
-	>(useRelativeTime ? findPreset(presetParam) : undefined)
+	>(useRelativeTime ? findPreset(params.relative_time) : undefined)
 
 	const [endDate, setEndDate] = useState<Date>(
-		useRelativeTime ? moment().toDate() : new Date(endDateParam!),
+		useRelativeTime ? moment().toDate() : new Date(params.end_date!),
 	)
 	const [startDate, setStartDate] = useState<Date>(
 		useRelativeTime
 			? presetStartDate(selectedPreset ?? defaultPreset)
-			: new Date(startDateParam!),
+			: new Date(params.start_date!),
 	)
 
 	const updateSearchTime = (
@@ -100,13 +95,23 @@ export function useSearchTime({
 				selectedPresetValue = undefined
 			}
 
-			setPresetParam(selectedPresetValue)
-			setEndDateParam(undefined)
-			setStartDateParam(undefined)
+			setParams(
+				{
+					relative_time: selectedPresetValue,
+					start_date: undefined,
+					end_date: undefined,
+				},
+				'replaceIn',
+			)
 		} else {
-			setPresetParam(undefined)
-			setEndDateParam(endDate)
-			setStartDateParam(startDate)
+			setParams(
+				{
+					relative_time: undefined,
+					start_date: startDate,
+					end_date: endDate,
+				},
+				'replaceIn',
+			)
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [startDate, endDate, selectedPreset])

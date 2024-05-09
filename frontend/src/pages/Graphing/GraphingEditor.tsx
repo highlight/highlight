@@ -762,6 +762,7 @@ export const GraphingEditor = () => {
 										productType={productType}
 										projectId={projectId}
 										startDate={startDate}
+										selectedPreset={selectedPreset}
 										endDate={endDate}
 										query={debouncedQuery}
 										metric={metric}
@@ -794,6 +795,7 @@ export const GraphingEditor = () => {
 												? limitMetric
 												: undefined
 										}
+										setTimeRange={updateSearchTime}
 									/>
 								</Box>
 							</Box>

@@ -1,7 +1,26 @@
+import logging
+import random
+
 import pytest
 
-from e2e.highlight_aws.lambda_function import lambda_handler
 from highlight_io import H
+from highlight_io.integrations.aws import observe_handler
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+
+@observe_handler
+def lambda_handler(event, context):
+    logger.info(f"Python AWS Lambda request {event}, {context}")
+
+    if random.random() < 0.2:
+        raise ValueError("oh no!")
+
+    return {
+        "statusCode": 200,
+        "body": f"Hello! This HTTP triggered function executed successfully.",
+    }
 
 
 def test_aws(mocker):
@@ -15,4 +34,6 @@ def test_aws(mocker):
     with pytest.raises(expected_exception=ValueError):
         lambda_handler(req, None)
 
-    mock_trace.assert_called_with(H.get_instance(), "a1b2c3", "1234")
+    mock_trace.assert_called_with(
+        H.get_instance(), "observe_serverless", "a1b2c3", "1234"
+    )

@@ -30,7 +30,7 @@ INSERT INTO admins (id, created_at, updated_at, deleted_at, name, first_name, la
                     number_of_logs_viewed, email_verified, photo_url, uid, slack_im_channel_id, referral,
                     user_defined_role, user_defined_team_size, user_defined_persona, heard_about,
                     phone_home_contact_allowed)
-VALUES (1, '2023-12-08 20:59:28.019967 +00:00', '2023-12-08 20:59:28.019967 +00:00', null, 'Hobby Highlighter', 'Hobby',
+VALUES (2, '2023-12-08 20:59:28.019967 +00:00', '2023-12-08 20:59:28.019967 +00:00', null, 'Hobby Highlighter', 'Hobby',
         'Highlighter', null, 'demo@example.com', true, '+14081234567', null, null, null, true,
         'https://avatars.githubusercontent.com/u/1351531?s=40&v=4', 'Hobby Highlighter', null, '', 'eng', null,
         'ENGINEERING', null, null);
@@ -39,7 +39,7 @@ INSERT INTO admins (id, created_at, updated_at, deleted_at, name, first_name, la
                     number_of_logs_viewed, email_verified, photo_url, uid, slack_im_channel_id, referral,
                     user_defined_role, user_defined_team_size, user_defined_persona, heard_about,
                     phone_home_contact_allowed)
-VALUES (2, '2023-12-08 20:59:47.788060 +00:00', '2023-12-08 20:59:47.788060 +00:00', null, 'Hobby Highlighter', null,
+VALUES (3, '2023-12-08 20:59:47.788060 +00:00', '2023-12-08 20:59:47.788060 +00:00', null, 'Hobby Highlighter', null,
         null, null, 'demo@example.com', true, '+14081234567', null, null, null, true, 'https://picsum.photos/200',
         '<nil>', null, null, null, null, null, null, null);
 INSERT INTO admins (id, created_at, updated_at, deleted_at, name, first_name, last_name, hubspot_contact_id, email,
@@ -47,7 +47,7 @@ INSERT INTO admins (id, created_at, updated_at, deleted_at, name, first_name, la
                     number_of_logs_viewed, email_verified, photo_url, uid, slack_im_channel_id, referral,
                     user_defined_role, user_defined_team_size, user_defined_persona, heard_about,
                     phone_home_contact_allowed)
-VALUES (3, '2023-12-08 21:06:03.546024 +00:00', '2023-12-08 21:06:03.546024 +00:00', null, 'Hobby Highlighter', null,
+VALUES (4, '2023-12-08 21:06:03.546024 +00:00', '2023-12-08 21:06:03.546024 +00:00', null, 'Hobby Highlighter', null,
         null, null, 'demo@example.com', true, '+14081234567', null, null, null, true, 'https://picsum.photos/200',
         '12345abcdef09876a1b2c3d4e5f', null, null, null, null, null, null, null);
 
@@ -57,15 +57,17 @@ INSERT INTO workspace_admins (admin_id, workspace_id, created_at, updated_at, de
 VALUES (2, 1, NOW(), NOW(), null, 'ADMIN');
 INSERT INTO workspace_admins (admin_id, workspace_id, created_at, updated_at, deleted_at, role)
 VALUES (3, 1, NOW(), NOW(), null, 'ADMIN');
+INSERT INTO workspace_admins (admin_id, workspace_id, created_at, updated_at, deleted_at, role)
+VALUES (4, 1, NOW(), NOW(), null, 'ADMIN');
 
 INSERT INTO all_workspace_settings (id, created_at, updated_at, deleted_at, workspace_id, ai_application, ai_insights,
-                                    error_embeddings_write, error_embeddings_group, error_embeddings_threshold,
+                                    error_embeddings_group, error_embeddings_threshold,
                                     replace_assets, store_ip, enable_session_export, enable_network_traces)
 VALUES (1, now(), now(), null, 1,
-        true, false, false, false, 0.2, true, true, true, true);
+        true, false, false, 0.2, true, true, true, true);
 
 INSERT INTO sessions (created_at, updated_at, deleted_at, secure_id, client_id, identified, fingerprint, identifier,
-                      organization_id, project_id, email, ip, city, state, postal, country, latitude, longitude,
+                      project_id, email, ip, city, state, postal, country, latitude, longitude,
                       os_name, os_version, browser_name, browser_version, language, has_unloaded, processed,
                       has_rage_clicks, has_errors, has_out_of_order_events, resumed_after_processed_time, length,
                       active_length, environment, app_version, service_name, user_object, first_time,
@@ -76,7 +78,7 @@ INSERT INTO sessions (created_at, updated_at, deleted_at, secure_id, client_id, 
                       excluded, excluded_reason, lock, retry_count, chunked, process_with_redis, avoid_postgres_storage,
                       normalness)
 VALUES (now(), now(), null,
-        'abc123', 'T0kuxw2zpGbtE96A1x0Qxg1ivs48', true, 1334974370, '6', 0, 1,
+        'abc123', 'T0kuxw2zpGbtE96A1x0Qxg1ivs48', true, 1334974370, '6', 1,
         'vadim@highlight.run', '[::1]:64684', '', '', '', 'United States', 37.751, -97.822, 'Mac OS X', '10.15.7',
         'Chrome', '119.0.0.0', 'en-US,en;q=0.9,ru;q=0.8,ko;q=0.7', true, true, false, true, false,
         '2023-11-23 00:09:20.020096 +00:00', 1654849, 986625, 'boba-localhost', 'asdf', 'frontend', 'null',

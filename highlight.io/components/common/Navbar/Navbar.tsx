@@ -55,6 +55,19 @@ const LivestreamBanner = () => {
 	)
 }
 
+const HFSBanner = () => {
+	return (
+		<Link
+			href="/startups"
+			className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+		>
+			<Typography type="copy3">
+				Got a startup? Apply for free Highlight credits!
+			</Typography>
+		</Link>
+	)
+}
+
 const Navbar = ({
 	hideFreeTrialText,
 	isDocsPage,
@@ -113,14 +126,7 @@ const Navbar = ({
 				isLaunchWeek ? (
 					<LaunchWeekBanner />
 				) : (
-					<Link
-						href="/startups"
-						className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
-					>
-						<Typography type="copy3">
-							Got a startup? Apply for free Highlight credits!
-						</Typography>
-					</Link>
+					<LivestreamBanner />
 				)
 			) : null}
 			<div
