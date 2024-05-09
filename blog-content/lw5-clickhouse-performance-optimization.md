@@ -14,6 +14,10 @@ tags: Launch Week 5
 metaTitle: "Optimizing Clickhouse: The Tactics That Worked for Us"
 ---
 
+```hint
+Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring distribution. We’re building a suite of tools to monitor your web application, and on this blog, we write about the infra challenges we face along the way. If you’re interested in learning more, get started at [app.highlight.io](https://app.highlight.io).
+```
+
 At Highlight.io, we ingest nearly 100 terabytes of observability data from our customers every month. A large chunk of the volume goes to our ClickHouse cluster, handling our client’s Logs, Traces, and Session metadata. Not only do we need to gracefully handle the volume and daily spikes in the traffic patterns, but we also need to ensure that the data is ingested in an efficient format that is performant to query.
 
 About a year ago,having onboarded several larger customers, we started hitting scaling issues with our Clickhouse setup that necessitated several phases of improvements to our query and ingest systems. 
