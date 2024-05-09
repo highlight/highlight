@@ -6,6 +6,7 @@ import {
 	DEFAULT_TIME_PRESETS,
 	Form,
 	IconSolidCheveronDown,
+	IconSolidDatabase,
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
@@ -76,6 +77,7 @@ const PRODUCTS: ProductType[] = [
 	ProductType.Traces,
 	ProductType.Sessions,
 	ProductType.Errors,
+	ProductType.Metrics,
 ]
 
 const PRODUCT_ICONS = [
@@ -83,6 +85,7 @@ const PRODUCT_ICONS = [
 	<IconSolidSparkles key="traces" />,
 	<IconSolidPlayCircle key="sessions" />,
 	<IconSolidLightningBolt key="errors" />,
+	<IconSolidDatabase key="metrics" />,
 ]
 
 const FUNCTION_TYPES: MetricAggregator[] = [

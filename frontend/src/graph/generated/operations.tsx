@@ -4412,16 +4412,6 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetSuggestedMetricsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	prefix: Types.Scalars['String']
-}>
-
-export type GetSuggestedMetricsQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'suggested_metrics'
->
-
 export type GetMetricTagsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	metric_name: Types.Scalars['String']
@@ -5248,7 +5238,6 @@ export const namedOperations = {
 		GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
 		GetWebVitals: 'GetWebVitals' as const,
 		GetDashboardDefinitions: 'GetDashboardDefinitions' as const,
-		GetSuggestedMetrics: 'GetSuggestedMetrics' as const,
 		GetMetricTags: 'GetMetricTags' as const,
 		GetMetricTagValues: 'GetMetricTagValues' as const,
 		GetSourcemapFiles: 'GetSourcemapFiles' as const,

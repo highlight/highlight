@@ -1829,6 +1829,7 @@ const (
 	ProductTypeErrors   ProductType = "Errors"
 	ProductTypeLogs     ProductType = "Logs"
 	ProductTypeTraces   ProductType = "Traces"
+	ProductTypeMetrics  ProductType = "Metrics"
 )
 
 var AllProductType = []ProductType{
@@ -1836,11 +1837,12 @@ var AllProductType = []ProductType{
 	ProductTypeErrors,
 	ProductTypeLogs,
 	ProductTypeTraces,
+	ProductTypeMetrics,
 }
 
 func (e ProductType) IsValid() bool {
 	switch e {
-	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs, ProductTypeTraces:
+	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs, ProductTypeTraces, ProductTypeMetrics:
 		return true
 	}
 	return false
