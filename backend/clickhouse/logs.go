@@ -200,9 +200,8 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 		selectCols,
 		[]int{projectID},
 		params,
-		Pagination{},
-		OrderBackwardInverted,
-		OrderForwardInverted)
+		Pagination{Direction: modelInputs.SortDirectionAsc},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -253,9 +252,7 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 		[]string{"COUNT(*)"},
 		[]int{projectID},
 		params,
-		Pagination{CountOnly: true},
-		OrderBackwardNatural,
-		OrderForwardNatural)
+		Pagination{CountOnly: true})
 	if err != nil {
 		return 0, err
 	}
@@ -342,8 +339,6 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 			[]int{projectID},
 			params,
 			Pagination{CountOnly: true},
-			OrderBackwardNatural,
-			OrderForwardNatural,
 		)
 	} else {
 		fromSb, err = makeSelectBuilder(
@@ -352,8 +347,6 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 			[]int{projectID},
 			params,
 			Pagination{CountOnly: true},
-			OrderBackwardNatural,
-			OrderForwardNatural,
 		)
 	}
 	if err != nil {
