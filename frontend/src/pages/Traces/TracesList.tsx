@@ -91,7 +91,6 @@ export const TracesList: React.FC<Props> = ({
 
 	const handleSort = useCallback(
 		(column: string, direction?: SortDirection | null) => {
-			debugger
 			if (
 				column === sortColumn &&
 				(direction === null || sortDirection === SortDirection.Asc)
