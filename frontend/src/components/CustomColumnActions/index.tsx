@@ -57,13 +57,13 @@ export const CustomColumnActions: React.FC<Props> = ({
 		analytics.track(`Button-${trackingId}_${action}`, { columnId })
 	}
 
-	const removeColumn = (e: MouseEvent) => {
+	const removeColumn = (e: React.MouseEvent) => {
 		e.stopPropagation()
 		trackEvent('hide')
 		setSelectedColumns(selectedColumns.filter((c) => c.id !== columnId))
 	}
 
-	const moveColumnLeft = (e: MouseEvent) => {
+	const moveColumnLeft = (e: React.MouseEvent) => {
 		e.stopPropagation()
 		trackEvent('left')
 		const newColumns = [...selectedColumns]
@@ -72,7 +72,7 @@ export const CustomColumnActions: React.FC<Props> = ({
 		setSelectedColumns(newColumns)
 	}
 
-	const moveColumnRight = (e: MouseEvent) => {
+	const moveColumnRight = (e: React.MouseEvent) => {
 		e.stopPropagation()
 		trackEvent('right')
 		const newColumns = [...selectedColumns]
@@ -81,7 +81,7 @@ export const CustomColumnActions: React.FC<Props> = ({
 		setSelectedColumns(newColumns)
 	}
 
-	const copyColumn = (e: MouseEvent) => {
+	const copyColumn = (e: React.MouseEvent) => {
 		e.stopPropagation()
 		trackEvent('copy')
 		copyToClipboard(columnId, {
@@ -89,7 +89,7 @@ export const CustomColumnActions: React.FC<Props> = ({
 		})
 	}
 
-	const handleLabelUpdateColumn = (e: MouseEvent) => {
+	const handleLabelUpdateColumn = (e: React.MouseEvent) => {
 		e.stopPropagation()
 		trackEvent('rename')
 		setLabelModalOpen(true)
@@ -101,7 +101,7 @@ export const CustomColumnActions: React.FC<Props> = ({
 		setSelectedColumns(newColumns)
 	}
 
-	const resetSize = (e: MouseEvent) => {
+	const resetSize = (e: React.MouseEvent) => {
 		e.stopPropagation()
 		trackEvent('resetSize')
 		const newColumns = [...selectedColumns]
