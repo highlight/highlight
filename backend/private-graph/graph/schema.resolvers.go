@@ -6829,7 +6829,7 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, produ
 	switch productType {
 	case modelInputs.ProductTypeSessions:
 		meter, err = r.ClickhouseClient.ReadWorkspaceSessionCounts(ctx, projectIds, modelInputs.QueryInput{
-			Query:     "processed=true AND excluded=false AND active_length > 1000",
+			Query:     "completed=true AND excluded=false AND active_length > 1000",
 			DateRange: dateRange,
 		})
 	case modelInputs.ProductTypeErrors:

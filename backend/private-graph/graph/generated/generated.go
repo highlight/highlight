@@ -12178,6 +12178,7 @@ enum ReservedSessionKey {
 	browser_name
 	browser_version
 	city
+	completed
 	country
 	device_id
 	environment
@@ -12190,18 +12191,22 @@ enum ReservedSessionKey {
 	identifier
 	ip
 	length
-	loc_state
 	normalness
 	os_name
 	os_version
 	pages_visited
-	processed
 	sample
 	secure_id
 	service_version
-	viewed
+	state
+	viewed_by_anyone
 	viewed_by_me
 	within_billing_quota
+
+	# deprecated but kept in for backwards compatibility of search
+	loc_state
+	processed
+	viewed
 }
 
 enum LogSource {
