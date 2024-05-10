@@ -5,16 +5,14 @@ import '../styles/globals.scss'
 import '../styles/nprogress.css'
 import '../styles/public.css'
 
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { H } from 'highlight.run'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
-import { useEffect } from 'react'
 import { SSRProvider } from 'react-aria'
+import Analytics from '../components/Analytics'
 import { Meta } from '../components/common/Head/Meta'
 import MetaImage from '../public/images/meta-image.jpg'
-import { rudderInitialize } from '../scripts/rudder-initialize'
-import { setAttributionData } from '../utils/attribution'
-import { SpeedInsights } from '@vercel/speed-insights/next'
 
 Router.events.on('routeChangeStart', nProgress.start)
 Router.events.on('routeChangeError', nProgress.done)
@@ -37,17 +35,6 @@ H.init('4d7k1xeo', {
 })
 
 function MyApp({ Component, pageProps }: AppProps) {
-	useEffect(() => {
-		const initialize = async () => {
-			await rudderInitialize()
-			window.rudderanalytics?.page()
-
-			setAttributionData()
-		}
-
-		initialize()
-	}, [])
-
 	return (
 		<SSRProvider>
 			<Head>
@@ -69,6 +56,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 			/>
 			<Component {...pageProps} />
 			<SpeedInsights />
+			<Analytics />
 		</SSRProvider>
 	)
 }
