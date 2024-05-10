@@ -200,9 +200,9 @@ func TestReadTracesWithSorting(t *testing.T) {
 
 	now := time.Now()
 	rows := []*ClickhouseTraceRow{
-		NewTraceRow(now, 1).WithSpanName("Span A").WithDuration(100).WithTraceAttributes(map[string]string{"host.name": "b"}).AsClickhouseTraceRow(),
-		NewTraceRow(now, 1).WithSpanName("Span B").WithDuration(300).WithTraceAttributes(map[string]string{"host.name": "c"}).AsClickhouseTraceRow(),
-		NewTraceRow(now, 1).WithSpanName("Span C").WithDuration(200).WithTraceAttributes(map[string]string{"host.name": "a"}).AsClickhouseTraceRow(),
+		NewTraceRow(now, 1).WithSpanName("Span A").WithDuration(now, now.Add(100*time.Nanosecond)).WithTraceAttributes(map[string]string{"host.name": "b"}).AsClickhouseTraceRow(),
+		NewTraceRow(now, 1).WithSpanName("Span B").WithDuration(now, now.Add(300*time.Nanosecond)).WithTraceAttributes(map[string]string{"host.name": "c"}).AsClickhouseTraceRow(),
+		NewTraceRow(now, 1).WithSpanName("Span C").WithDuration(now, now.Add(200*time.Nanosecond)).WithTraceAttributes(map[string]string{"host.name": "a"}).AsClickhouseTraceRow(),
 	}
 
 	assert.NoError(t, client.BatchWriteTraceRows(ctx, rows))

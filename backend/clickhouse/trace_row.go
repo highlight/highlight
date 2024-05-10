@@ -97,8 +97,8 @@ func (t *TraceRow) WithSpanKind(spanKind string) *TraceRow {
 	return t
 }
 
-func (t *TraceRow) WithDuration(duration time.Duration) *TraceRow {
-	t.Duration = duration.Nanoseconds()
+func (t *TraceRow) WithDuration(startTime time.Time, endTime time.Time) *TraceRow {
+	t.Duration = int64(endTime.Sub(startTime).Nanoseconds())
 	return t
 }
 
