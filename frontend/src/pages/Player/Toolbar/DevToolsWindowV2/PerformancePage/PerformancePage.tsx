@@ -1,7 +1,6 @@
 import LoadingBox from '@components/LoadingBox'
 import { MetricAggregator } from '@graph/schemas'
-import { Text } from '@highlight-run/ui/components'
-import { vars } from '@highlight-run/ui/vars'
+import { Box, Text } from '@highlight-run/ui/components'
 import SvgActivityIcon from '@icons/ActivityIcon'
 import SvgCarDashboardIcon from '@icons/CarDashboardIcon'
 import SvgTimerIcon from '@icons/TimerIcon'
@@ -27,14 +26,12 @@ interface PerformanceData {
 	memoryUsagePercent?: number
 }
 
-const PerformancePage = React.memo(({ time }: Props) => {
+const PerformancePage = React.memo(({}: Props) => {
 	const {
 		performancePayloads,
 		jankPayloads,
-		pause,
 		eventsForTimelineIndicator,
 		session,
-		sessionMetadata,
 	} = useReplayerContext()
 
 	const performanceData: PerformanceData[] = performancePayloads.map(
@@ -123,104 +120,50 @@ const PerformancePage = React.memo(({ time }: Props) => {
 						helpLink:
 							'https://developer.mozilla.org/en-US/docs/Glossary/Jank',
 					},
-				].map(
-					({
-						key,
-						strokeColor,
-						fillColor,
-						yAxisTickFormatter,
-						yAxisLabel,
-						noTooltipLabel,
-						tooltipIcon,
-						chartLabel,
-						helpLink,
-					}) => {
-						const timestamps = performanceData.map(
-							(d) => d.timestamp,
-						)
-						const closestTimestamp = findClosestTimestamp(
-							timestamps,
-							time - sessionMetadata.startTime,
-						)
-						const data = performanceData.map((d) => ({
-							timestamp: d.timestamp,
-							...(key === 'jank'
-								? {
-										jank: d.jank.amount,
-										selector: d.jank.selector,
-										...(d.jank.newLocation
-											? {
-													locationChanged:
-														d.jank.newLocation,
-											  }
-											: {}),
-								  }
-								: { [key]: d[key] }),
-						}))
+				].map(({ key, strokeColor, yAxisLabel, chartLabel }, idx) => {
+					const data = performanceData.map((b) => ({
+						[TIMESTAMP_KEY]: b.timestamp,
+						[key]: b[key],
+					}))
 
-						const hasData = data.some(
-							(data: any) => !isNaN(data[key]),
-						)
-						if (data.length === 0 || !hasData) {
-							return (
-								<div
-									className={styles.noDataContainer}
-									key={key}
-								>
-									{key === 'jank' ? (
-										<Text>
-											No UI Jank recording available.
-										</Text>
-									) : (
-										<Text>
-											{session?.browser_name}{' '}
-											{session?.browser_version} does not
-											support recording {chartLabel}.
-										</Text>
-									)}
-								</div>
-							)
-						}
+					console.log('vadim', { key, yAxisLabel, chartLabel })
 
-						return (
+					const hasData = data.some((data: any) => !isNaN(data[key]))
+					if (data.length === 0 || !hasData) {
+						return null
+					}
+
+					return (
+						<Box
+							key={key}
+							width="full"
+							my={idx === 0 ? undefined : '32'}
+							px="16"
+							style={{ height: 60 }}
+						>
+							<Box position="relative" my="8" px="28">
+								<Text lines="1" color="n8" align="left">
+									{yAxisLabel || '<empty>'}
+								</Text>
+							</Box>
 							<LineChart
 								data={data}
 								yAxisFunction={MetricAggregator.Count}
 								xAxisMetric={TIMESTAMP_KEY}
-								yAxisMetric="percent"
-								series={['percent']}
-								strokeColors={[
-									vars.theme.static.content.moderate,
-								]}
+								yAxisMetric={key}
+								series={[key]}
+								strokeColors={[strokeColor]}
 								viewConfig={{
 									type: 'Line chart',
 									display: 'Stacked area',
 									showLegend: true,
 								}}
 							/>
-						)
-					},
-				)}
+						</Box>
+					)
+				})}
 		</div>
 	)
 })
 
 export default PerformancePage
-
-function findClosestTimestamp(nums: Array<number>, key: number): number {
-	let low = 0
-	let high = nums.length - 1
-	let mid = 0
-	while (low <= high) {
-		mid = Math.floor((low + high) / 2)
-		if (nums[mid] === key) {
-			return nums[mid + 1]
-		}
-		if (key > nums[mid]) {
-			low = mid + 1
-		} else {
-			high = mid - 1
-		}
-	}
-	return nums[mid - 1]
-}
