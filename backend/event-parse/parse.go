@@ -778,7 +778,9 @@ func tryGetAssetUrls(ctx context.Context, projectId int, node map[string]interfa
 		newUrl, ok := replacements[href]
 		if ok {
 			attributes["href"] = newUrl
-			delete(attributes, "rel")
+			if rel, ok := attributes["rel"].(string); ok && rel == "modulepreload" {
+				delete(attributes, "rel")
+			}
 		}
 		urls = append(urls, href)
 	}
