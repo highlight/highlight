@@ -139,7 +139,7 @@ type Request struct {
 	URL     string            `json:"url"`
 	Method  string            `json:"verb"`
 	Headers map[string]string `json:"headers"`
-	Body    string            `json:"body"`
+	Body    any               `json:"body"`
 }
 
 type Response struct {
@@ -2722,7 +2722,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 				return e.Wrap(err, "failed to unmarshal network resources")
 			}
-			if err := r.submitFrontendNetworkMetric(sessionObj, resourcesParsed["resources"]); err != nil {
+			if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
 				return err
 			}
 		}
@@ -3173,7 +3173,7 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 	return nil
 }
 
-func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resources []NetworkResource) error {
+func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
 	for _, re := range resources {
 		method := re.RequestResponsePairs.Request.Method
 		if method == "" {
@@ -3184,7 +3184,16 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		if url, err := url2.Parse(re.Name); err == nil && url.Host == "pub.highlight.io" {
 			continue
 		}
-		attributes := []attribute.KeyValue{}
+		body, ok := re.RequestResponsePairs.Request.Body.(string)
+		if !ok {
+			bdBytes, err := json.Marshal(body)
+			if err != nil {
+				log.WithContext(ctx).WithError(err).WithField("sessionID", sessionObj.ID).Error("failed to serialize network request body as json")
+			} else {
+				body = string(bdBytes)
+			}
+		}
+		var attributes []attribute.KeyValue
 		attributes = append(attributes, highlight.EmptyResourceAttributes...)
 		attributes = append(attributes, attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
 			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
@@ -3195,7 +3204,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
 			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
 			semconv.HTTPURLKey.String(re.Name),
-			semconv.HTTPRequestContentLengthKey.Int(len(re.RequestResponsePairs.Request.Body)),
+			semconv.HTTPRequestContentLengthKey.Int(len(body)),
 			semconv.HTTPResponseContentLengthKey.Float64(re.RequestResponsePairs.Response.Size),
 			semconv.HTTPStatusCodeKey.Float64(re.RequestResponsePairs.Response.Status),
 			semconv.HTTPMethodKey.String(method),
@@ -3204,7 +3213,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		)
 		requestBody := make(map[string]interface{})
 		// if the request body is json and contains the graphql key operationName, treat it as an operation
-		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
+		if err := json.Unmarshal([]byte(body), &requestBody); err == nil {
 			if _, ok := requestBody["operationName"]; ok {
 				if opName, ok := requestBody["operationName"].(string); ok {
 					attributes = append(attributes, semconv.GraphqlOperationName(opName))

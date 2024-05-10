@@ -1,8 +1,7 @@
-import React from 'react'
-import { ButtonProps } from 'antd'
 import classNames from 'classnames'
-import { BiRightArrowAlt } from 'react-icons/bi'
+import React from 'react'
 import styles from './Buttons.module.scss'
+import { ButtonProps } from './PrimaryButton'
 
 export const PrimaryLink = ({
 	children,

@@ -1,8 +1,12 @@
-import { ButtonProps } from 'antd'
 import classNames from 'classnames'
 import React from 'react'
 
 import styles from './Buttons.module.scss'
+
+export type ButtonProps = React.DetailedHTMLProps<
+	React.AnchorHTMLAttributes<HTMLAnchorElement>,
+	HTMLAnchorElement
+>
 
 export const PrimaryButton = ({
 	children,

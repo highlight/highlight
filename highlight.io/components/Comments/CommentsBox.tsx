@@ -1,4 +1,3 @@
-import { Button, message } from 'antd'
 import classNames from 'classnames'
 import Image from 'next/image'
 import { useState } from 'react'
@@ -141,14 +140,12 @@ export const CommentsBox = function ({
 							/>
 						</div>
 						<div className="flex w-full gap-4">
-							<Button
+							<button
 								className="bg-blue-cta text-black px-3 py-1 rounded-lg"
-								size={'small'}
 								onClick={() => {
 									if (!email || !name || !body) {
-										message.warn(
+										alert(
 											'Please fill out the name, email, and comment body.',
-											5,
 										)
 										return
 									}
@@ -162,7 +159,7 @@ export const CommentsBox = function ({
 								<Typography type="copy3" emphasis={true}>
 									New Comment
 								</Typography>
-							</Button>
+							</button>
 						</div>
 					</div>
 				</div>
