@@ -103,10 +103,10 @@ export const comboboxTagClose = style({
 	bottom: 8,
 	color: themeVars.static.content.default,
 	cursor: 'pointer',
+	marginLeft: -6,
 	position: 'absolute',
 	pointerEvents: 'auto',
 	opacity: 0,
-	right: -8,
 	zIndex: 1,
 })
 
@@ -116,10 +116,10 @@ export const comboboxTagErrorIndicator = style({
 	bottom: 8,
 	color: themeVars.static.content.sentiment.bad,
 	fontWeight: 'bold',
+	marginLeft: -6,
 	opacity: 1,
 	position: 'absolute',
 	pointerEvents: 'auto',
-	right: -8,
 	zIndex: 1,
 })
 
