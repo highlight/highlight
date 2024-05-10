@@ -12,7 +12,7 @@ export BACKEND_HEALTH_URI=$(echo "$REACT_APP_PUBLIC_GRAPH_URI" | sed -e 's/\/pub
 
 # if doppler is configured, use the doppler SSL value
 DOPPLER_SSL=$(DOPPLER_CONFIG="" doppler secrets get SSL --plain || true)
-if [ $? -eq 0 ]; then
+if [[ "$DOPPLER_SSL" =~ ^(true|false)$ ]]; then
     export SSL=${DOPPLER_SSL}
     echo "Using doppler-set SSL value ${SSL}."
 fi
