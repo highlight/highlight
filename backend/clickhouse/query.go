@@ -49,7 +49,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	if col, found := config.KeysToColumns[TReservedKey(sortColumn)]; found {
 		sortColumn = col
 	} else {
-		sortColumn = fmt.Sprintf("%s['%s']", config.AttributesColumn, sortColumn)
+		sortColumn = fmt.Sprintf("%s['%s']", config.AttributesColumn, sb.Var(sortColumn))
 	}
 
 	forwardDirection := "DESC"
@@ -60,8 +60,8 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		backwardDirection = "DESC"
 	}
 
-	orderForward := fmt.Sprintf("%s %s, UUID %s", sortColumn, forwardDirection, forwardDirection)
-	orderBackward := fmt.Sprintf("%s %s, UUID %s", sortColumn, backwardDirection, backwardDirection)
+	orderForward := fmt.Sprintf("%s %s, UUID %s", sb.Var(sortColumn), forwardDirection, forwardDirection)
+	orderBackward := fmt.Sprintf("%s %s, UUID %s", sb.Var(sortColumn), backwardDirection, backwardDirection)
 
 	outerSelect := strings.Join(config.SelectColumns, ", ")
 	innerSelect := []string{"Timestamp", "UUID"}
