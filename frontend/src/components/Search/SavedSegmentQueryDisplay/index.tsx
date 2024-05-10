@@ -50,6 +50,7 @@ export const SavedSegmentQueryDisplay: React.FC<Props> = ({ query }) => {
 								<Token
 									key={`${token.text}-${index}`}
 									token={token}
+									showErrors={false}
 								/>
 							)
 						})}
