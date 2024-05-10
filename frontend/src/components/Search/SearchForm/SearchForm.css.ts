@@ -100,26 +100,26 @@ export const comboboxTagError = style({})
 export const comboboxTagClose = style({
 	backgroundColor: vars.color.white,
 	borderRadius: vars.borderRadius.round,
+	bottom: 8,
 	color: themeVars.static.content.default,
 	cursor: 'pointer',
+	marginLeft: -6,
 	position: 'absolute',
 	pointerEvents: 'auto',
 	opacity: 0,
-	right: -8,
-	top: -8,
 	zIndex: 1,
 })
 
 export const comboboxTagErrorIndicator = style({
 	backgroundColor: vars.color.white,
 	borderRadius: vars.borderRadius.round,
+	bottom: 8,
 	color: themeVars.static.content.sentiment.bad,
 	fontWeight: 'bold',
+	marginLeft: -6,
 	opacity: 1,
 	position: 'absolute',
 	pointerEvents: 'auto',
-	right: -8,
-	top: -8,
 	zIndex: 1,
 })
 
