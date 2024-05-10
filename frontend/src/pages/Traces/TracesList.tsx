@@ -90,16 +90,21 @@ export const TracesList: React.FC<Props> = ({
 	const [query] = useQueryParam('query', QueryParam)
 
 	const handleSort = useCallback(
-		(column: string) => {
-			if (column === sortColumn && sortDirection === SortDirection.Asc) {
+		(column: string, direction?: SortDirection | null) => {
+			debugger
+			if (
+				column === sortColumn &&
+				(direction === null || sortDirection === SortDirection.Asc)
+			) {
 				setSortColumn(undefined)
 				setSortDirection(undefined)
 			} else {
 				const nextDirection =
-					column === sortColumn &&
+					direction ??
+					(column === sortColumn &&
 					sortDirection === SortDirection.Desc
 						? SortDirection.Asc
-						: SortDirection.Desc
+						: SortDirection.Desc)
 
 				setSortColumn(column)
 				setSortDirection(nextDirection)
@@ -129,8 +134,8 @@ export const TracesList: React.FC<Props> = ({
 				id: column.id,
 				component: column.label,
 				showActions: true,
-				onSort: () => {
-					handleSort(column.id)
+				onSort: (direction?: SortDirection | null) => {
+					handleSort(column.id, direction)
 				},
 			})
 

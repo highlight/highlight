@@ -8,6 +8,8 @@ import {
 	IconSolidClipboardCopy,
 	IconSolidCloudUpload,
 	IconSolidRefresh,
+	IconSolidSortAscending,
+	IconSolidSortDescending,
 	IconSolidXCircle,
 	Menu,
 	Stack,
@@ -19,6 +21,7 @@ import { useMemo } from 'react'
 
 import { ValidCustomColumn } from '@/components/CustomColumnPopover'
 import { Modal } from '@/components/Modal/ModalV2'
+import { SortDirection } from '@/graph/generated/schemas'
 import analytics from '@/util/analytics'
 
 type Props = {
@@ -27,6 +30,9 @@ type Props = {
 	columnId: string
 	trackingId: string
 	standardColumns: Record<string, ValidCustomColumn>
+	sortColumn: string | null | undefined
+	sortDirection: string | null | undefined
+	onSort?: (direction?: SortDirection | null) => void
 }
 
 export const CustomColumnActions: React.FC<Props> = ({
@@ -35,6 +41,9 @@ export const CustomColumnActions: React.FC<Props> = ({
 	columnId,
 	trackingId,
 	standardColumns,
+	sortColumn,
+	sortDirection,
+	onSort,
 }) => {
 	const [labelModalOpen, setLabelModalOpen] = React.useState(false)
 
@@ -42,17 +51,20 @@ export const CustomColumnActions: React.FC<Props> = ({
 		() => selectedColumns.findIndex((c) => c.id === columnId),
 		[selectedColumns, columnId],
 	)
+	const isSorted = sortColumn === columnId
 
 	const trackEvent = (action: string) => {
 		analytics.track(`Button-${trackingId}_${action}`, { columnId })
 	}
 
-	const removeColumn = () => {
+	const removeColumn = (e: MouseEvent) => {
+		e.stopPropagation()
 		trackEvent('hide')
 		setSelectedColumns(selectedColumns.filter((c) => c.id !== columnId))
 	}
 
-	const moveColumnLeft = () => {
+	const moveColumnLeft = (e: MouseEvent) => {
+		e.stopPropagation()
 		trackEvent('left')
 		const newColumns = [...selectedColumns]
 		newColumns[columnIndex] = selectedColumns[columnIndex - 1]
@@ -60,7 +72,8 @@ export const CustomColumnActions: React.FC<Props> = ({
 		setSelectedColumns(newColumns)
 	}
 
-	const moveColumnRight = () => {
+	const moveColumnRight = (e: MouseEvent) => {
+		e.stopPropagation()
 		trackEvent('right')
 		const newColumns = [...selectedColumns]
 		newColumns[columnIndex] = selectedColumns[columnIndex + 1]
@@ -68,14 +81,16 @@ export const CustomColumnActions: React.FC<Props> = ({
 		setSelectedColumns(newColumns)
 	}
 
-	const copyColumn = () => {
+	const copyColumn = (e: MouseEvent) => {
+		e.stopPropagation()
 		trackEvent('copy')
 		copyToClipboard(columnId, {
 			onCopyText: 'Copied to clipboard',
 		})
 	}
 
-	const handleLabelUpdateColumn = () => {
+	const handleLabelUpdateColumn = (e: MouseEvent) => {
+		e.stopPropagation()
 		trackEvent('rename')
 		setLabelModalOpen(true)
 	}
@@ -86,7 +101,8 @@ export const CustomColumnActions: React.FC<Props> = ({
 		setSelectedColumns(newColumns)
 	}
 
-	const resetSize = () => {
+	const resetSize = (e: MouseEvent) => {
+		e.stopPropagation()
 		trackEvent('resetSize')
 		const newColumns = [...selectedColumns]
 
@@ -124,6 +140,48 @@ export const CustomColumnActions: React.FC<Props> = ({
 					</Menu.Button>
 				</Table.Discoverable>
 				<Menu.List>
+					{onSort && (
+						<>
+							<Menu.Item
+								disabled={
+									isSorted &&
+									sortDirection === SortDirection.Desc
+								}
+								onClick={(e) => {
+									e.stopPropagation()
+									onSort(SortDirection.Desc)
+								}}
+							>
+								<IconSolidSortDescending size={16} />
+								Sort Descending
+							</Menu.Item>
+							<Menu.Item
+								disabled={
+									isSorted &&
+									sortDirection === SortDirection.Asc
+								}
+								onClick={(e) => {
+									e.stopPropagation()
+									onSort(SortDirection.Asc)
+								}}
+							>
+								<IconSolidSortAscending size={16} />
+								Sort Ascending
+							</Menu.Item>
+							{isSorted && (
+								<Menu.Item
+									onClick={(e) => {
+										e.stopPropagation()
+										onSort(null)
+									}}
+								>
+									<IconSolidXCircle size={16} />
+									Remove Sort
+								</Menu.Item>
+							)}
+							<Menu.Divider />
+						</>
+					)}
 					<Menu.Item disabled={disableLeft} onClick={moveColumnLeft}>
 						<Box display="flex" alignItems="center" gap="4">
 							<IconSolidArrowLeft size={16} />

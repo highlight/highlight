@@ -1,7 +1,7 @@
 import {
 	Box,
-	IconSolidCheveronDown,
-	IconSolidCheveronUp,
+	IconSolidSortAscending,
+	IconSolidSortDescending,
 	Stack,
 	Table,
 	Text,
@@ -17,7 +17,7 @@ export type ColumnHeader = {
 	component: React.ReactNode
 	showActions?: boolean
 	noPadding?: boolean
-	onSort?: (column: string) => void
+	onSort?: (direction?: SortDirection | null) => void
 }
 
 type Props = {
@@ -93,7 +93,7 @@ export const CustomColumnHeader: React.FC<Props> = ({
 					return
 				}
 
-				header.onSort(header.id)
+				header.onSort()
 			}}
 		>
 			<Box
@@ -106,12 +106,12 @@ export const CustomColumnHeader: React.FC<Props> = ({
 					{sortColumn === header.id &&
 						sortDirection &&
 						(sortDirection === SortDirection.Desc ? (
-							<IconSolidCheveronDown
+							<IconSolidSortDescending
 								size={13}
 								style={{ flexShrink: 0 }}
 							/>
 						) : (
-							<IconSolidCheveronUp
+							<IconSolidSortAscending
 								size={13}
 								style={{ flexShrink: 0 }}
 							/>
@@ -126,6 +126,9 @@ export const CustomColumnHeader: React.FC<Props> = ({
 							setSelectedColumns={setSelectedColumns}
 							trackingId={trackingIdPrefix}
 							standardColumns={standardColumns}
+							onSort={header.onSort}
+							sortColumn={sortColumn}
+							sortDirection={sortDirection}
 						/>
 					)}
 				</Stack>
