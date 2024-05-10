@@ -2998,6 +2998,7 @@ export enum ReservedSessionKey {
 	BrowserName = 'browser_name',
 	BrowserVersion = 'browser_version',
 	City = 'city',
+	Completed = 'completed',
 	Country = 'country',
 	DeviceId = 'device_id',
 	Environment = 'environment',
@@ -3019,7 +3020,9 @@ export enum ReservedSessionKey {
 	Sample = 'sample',
 	SecureId = 'secure_id',
 	ServiceVersion = 'service_version',
+	State = 'state',
 	Viewed = 'viewed',
+	ViewedByAnyone = 'viewed_by_anyone',
 	ViewedByMe = 'viewed_by_me',
 	WithinBillingQuota = 'within_billing_quota',
 }
