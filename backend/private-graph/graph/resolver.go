@@ -3851,6 +3851,23 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 		},
 	}
 
+	for vital, desc := range map[string]string{"CLS": "Cumulative Layout Shift", "INP": "Interaction to Next Paint", "LCP": "Longest Contentful Paint"} {
+		graphs = append(graphs, &model.Graph{
+			Type:              "Line chart",
+			Title:             "Web Vitals: " + desc,
+			ProductType:       "Metrics",
+			FunctionType:      "P95",
+			Metric:            vital,
+			GroupByKey:        pointy.String("browser"),
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Stacked area"),
+			NullHandling:      pointy.String("Hidden"),
+		})
+	}
+
 	if err := r.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&viz).Error; err != nil {
 			return err
