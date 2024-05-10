@@ -46,7 +46,7 @@ export class FirstLoadListeners {
 	networkBodyKeysToRedact: string[] | undefined
 	networkBodyKeysToRecord: string[] | undefined
 	networkHeaderKeysToRecord: string[] | undefined
-	lastNetworkRequestResponsePairTimestamp?: number
+	lastNetworkRequestTimestamp: number
 	urlBlocklist!: string[]
 	requestResponseSanitizer?: (
 		pair: RequestResponsePair,
@@ -63,6 +63,7 @@ export class FirstLoadListeners {
 		this.listeners = []
 		this.errors = []
 		this.messages = []
+		this.lastNetworkRequestTimestamp = 0
 	}
 
 	isListening() {
@@ -290,11 +291,7 @@ export class FirstLoadListeners {
 
 			httpResources = httpResources
 				.filter((r) => {
-					if (
-						sThis.lastNetworkRequestResponsePairTimestamp &&
-						r.startTime <
-							sThis.lastNetworkRequestResponsePairTimestamp
-					) {
+					if (r.startTime < sThis.lastNetworkRequestTimestamp) {
 						return false
 					}
 
@@ -313,8 +310,9 @@ export class FirstLoadListeners {
 					}
 				})
 
-			sThis.lastNetworkRequestResponsePairTimestamp =
-				httpResources.at(-1)?.startTime
+			sThis.lastNetworkRequestTimestamp =
+				httpResources.at(-1)?.startTime ||
+				sThis.lastNetworkRequestTimestamp
 
 			if (sThis.enableRecordingNetworkContents) {
 				const sanitizeOptions = {
