@@ -658,7 +658,7 @@ export const MetricSelector = ({
 				query: debouncedQuery,
 			},
 		})
-	}, [getKeys, project_id, debouncedQuery])
+	}, [getKeys, project_id, debouncedQuery, startDate, endDate])
 
 	useEffect(() => {
 		setOptions(
