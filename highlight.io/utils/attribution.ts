@@ -71,7 +71,7 @@ export const setAttributionData = () => {
 		referrer = { ...referrer, pathReferrer: pathRef }
 	}
 
-	const domain = window.location.hostname.split('.').slice(-2).join('.')
+	const domain = window.location.hostname.replace('www.', '')
 	console.debug('highlight.io', { domain, clientID, referrer })
 	identify(clientID, referrer)
 	Cookies.set('referrer', JSON.stringify(referrer), {
