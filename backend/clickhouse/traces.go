@@ -42,7 +42,8 @@ var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeyDuration:        "Duration",
 	modelInputs.ReservedTraceKeyServiceName:     "ServiceName",
 	modelInputs.ReservedTraceKeyServiceVersion:  "ServiceVersion",
-	modelInputs.ReservedTraceKeyMetric:          "Events.Attributes[1]['metric.name']",
+	modelInputs.ReservedTraceKeyMetricName:      "MetricName",
+	modelInputs.ReservedTraceKeyMetricValue:     "MetricValue",
 	modelInputs.ReservedTraceKeyEnvironment:     "Environment",
 	modelInputs.ReservedTraceKeyHasErrors:       "HasErrors",
 }

@@ -1027,7 +1027,6 @@ export enum MetricBucketBy {
 
 export enum MetricColumn {
 	Duration = 'Duration',
-	MetricValue = 'MetricValue',
 }
 
 export type MetricMonitor = {
@@ -3028,7 +3027,8 @@ export enum ReservedTraceKey {
 	HasErrors = 'has_errors',
 	Level = 'level',
 	Message = 'message',
-	Metric = 'metric',
+	MetricName = 'metric_name',
+	MetricValue = 'metric_value',
 	ParentSpanId = 'parent_span_id',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',

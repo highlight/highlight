@@ -12099,7 +12099,8 @@ enum ReservedTraceKey {
 	has_errors
 	level
 	message
-	metric
+	metric_name
+	metric_value
 	secure_session_id
 	span_id
 	trace_id
@@ -12242,7 +12243,6 @@ enum MetricAggregator {
 
 enum MetricColumn {
 	Duration
-	MetricValue
 }
 
 enum MetricBucketBy {

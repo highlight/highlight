@@ -1535,18 +1535,16 @@ func (e MetricBucketBy) MarshalGQL(w io.Writer) {
 type MetricColumn string
 
 const (
-	MetricColumnDuration    MetricColumn = "Duration"
-	MetricColumnMetricValue MetricColumn = "MetricValue"
+	MetricColumnDuration MetricColumn = "Duration"
 )
 
 var AllMetricColumn = []MetricColumn{
 	MetricColumnDuration,
-	MetricColumnMetricValue,
 }
 
 func (e MetricColumn) IsValid() bool {
 	switch e {
-	case MetricColumnDuration, MetricColumnMetricValue:
+	case MetricColumnDuration:
 		return true
 	}
 	return false
@@ -2210,7 +2208,8 @@ const (
 	ReservedTraceKeyHasErrors       ReservedTraceKey = "has_errors"
 	ReservedTraceKeyLevel           ReservedTraceKey = "level"
 	ReservedTraceKeyMessage         ReservedTraceKey = "message"
-	ReservedTraceKeyMetric          ReservedTraceKey = "metric"
+	ReservedTraceKeyMetricName      ReservedTraceKey = "metric_name"
+	ReservedTraceKeyMetricValue     ReservedTraceKey = "metric_value"
 	ReservedTraceKeySecureSessionID ReservedTraceKey = "secure_session_id"
 	ReservedTraceKeySpanID          ReservedTraceKey = "span_id"
 	ReservedTraceKeyTraceID         ReservedTraceKey = "trace_id"
@@ -2228,7 +2227,8 @@ var AllReservedTraceKey = []ReservedTraceKey{
 	ReservedTraceKeyHasErrors,
 	ReservedTraceKeyLevel,
 	ReservedTraceKeyMessage,
-	ReservedTraceKeyMetric,
+	ReservedTraceKeyMetricName,
+	ReservedTraceKeyMetricValue,
 	ReservedTraceKeySecureSessionID,
 	ReservedTraceKeySpanID,
 	ReservedTraceKeyTraceID,
@@ -2243,7 +2243,7 @@ var AllReservedTraceKey = []ReservedTraceKey{
 
 func (e ReservedTraceKey) IsValid() bool {
 	switch e {
-	case ReservedTraceKeyEnvironment, ReservedTraceKeyHasErrors, ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetric, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
+	case ReservedTraceKeyEnvironment, ReservedTraceKeyHasErrors, ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetricName, ReservedTraceKeyMetricValue, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
 		return true
 	}
 	return false

@@ -4988,6 +4988,7 @@ export type GetKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeRequiredInput
 	query?: Types.Maybe<Types.Scalars['String']>
+	type?: Types.Maybe<Types.KeyType>
 }>
 
 export type GetKeysQuery = { __typename?: 'Query' } & {

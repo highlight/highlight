@@ -2414,12 +2414,14 @@ query GetKeys(
 	$project_id: ID!
 	$date_range: DateRangeRequiredInput!
 	$query: String
+	$type: KeyType
 ) {
 	keys(
 		product_type: $product_type
 		project_id: $project_id
 		date_range: $date_range
 		query: $query
+		type: $type
 	) {
 		name
 		type

@@ -3549,7 +3549,7 @@ func (r *Resolver) UpsertDiscordChannel(workspaceId int, name string) (*model.Di
 func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
 	const numBuckets = 48
 	agg := params.Aggregator
-	parts := []string{string(modelInputs.ReservedTraceKeyMetric) + ":" + metricName}
+	parts := []string{string(modelInputs.ReservedTraceKeyMetricName) + "=" + metricName}
 	for _, filter := range params.Filters {
 		switch filter.Op {
 		case modelInputs.MetricTagFilterOpEquals:
@@ -3558,10 +3558,10 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 			parts = append(parts, fmt.Sprintf("%s:%%%v%%", filter.Tag, filter.Value))
 		}
 	}
-	metrics, err := ccClient.ReadTracesMetrics(ctx, projectID, modelInputs.QueryInput{
+	metrics, err := ccClient.ReadEventMetrics(ctx, projectID, modelInputs.QueryInput{
 		Query:     strings.Join(parts, " "),
 		DateRange: params.DateRange,
-	}, string(modelInputs.MetricColumnMetricValue), []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
+	}, metricName, []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}

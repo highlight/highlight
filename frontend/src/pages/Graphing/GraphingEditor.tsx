@@ -42,6 +42,7 @@ import {
 import { GetKeysQuery } from '@/graph/generated/operations'
 import {
 	GraphInput,
+	KeyType,
 	MetricAggregator,
 	ProductType,
 } from '@/graph/generated/schemas'
@@ -88,9 +89,7 @@ const PRODUCT_ICONS = [
 	<IconSolidDatabase key="metrics" />,
 ]
 
-const FUNCTION_TYPES: MetricAggregator[] = [
-	MetricAggregator.Count,
-	MetricAggregator.CountDistinct,
+const NUMERIC_FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.Min,
 	MetricAggregator.Avg,
 	MetricAggregator.P50,
@@ -99,6 +98,12 @@ const FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.P99,
 	MetricAggregator.Max,
 	MetricAggregator.Sum,
+]
+
+const FUNCTION_TYPES: MetricAggregator[] = [
+	MetricAggregator.Count,
+	MetricAggregator.CountDistinct,
+	...NUMERIC_FUNCTION_TYPES,
 ]
 
 const SidebarSection = (props: PropsWithChildren) => {
@@ -598,6 +603,9 @@ export const GraphingEditor = () => {
 				end_date: moment(endDate).format(TIME_FORMAT),
 			},
 			query: keysQuery,
+			type: NUMERIC_FUNCTION_TYPES.includes(functionType)
+				? KeyType.Numeric
+				: undefined,
 		},
 	})
 

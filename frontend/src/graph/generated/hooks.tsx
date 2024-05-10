@@ -14487,12 +14487,14 @@ export const GetKeysDocument = gql`
 		$project_id: ID!
 		$date_range: DateRangeRequiredInput!
 		$query: String
+		$type: KeyType
 	) {
 		keys(
 			product_type: $product_type
 			project_id: $project_id
 			date_range: $date_range
 			query: $query
+			type: $type
 		) {
 			name
 			type
@@ -14516,6 +14518,7 @@ export const GetKeysDocument = gql`
  *      project_id: // value for 'project_id'
  *      date_range: // value for 'date_range'
  *      query: // value for 'query'
+ *      type: // value for 'type'
  *   },
  * });
  */
