@@ -961,7 +961,7 @@ func getSortOrders[TReservedKey ~string](
 	if col, found := config.KeysToColumns[TReservedKey(sortColumn)]; found {
 		sortColumn = col
 	} else {
-		sortColumn = fmt.Sprintf("%s['%s']", config.AttributesColumn, sb.Var(sortColumn))
+		sortColumn = fmt.Sprintf("%s[%s]", config.AttributesColumn, sb.Var(sortColumn))
 	}
 
 	forwardDirection := "DESC"
@@ -972,8 +972,8 @@ func getSortOrders[TReservedKey ~string](
 		backwardDirection = "DESC"
 	}
 
-	orderForward := fmt.Sprintf("%s %s, UUID %s", sb.Var(sortColumn), forwardDirection, forwardDirection)
-	orderBackward := fmt.Sprintf("%s %s, UUID %s", sb.Var(sortColumn), backwardDirection, backwardDirection)
+	orderForward := fmt.Sprintf("%s %s, UUID %s", sortColumn, forwardDirection, forwardDirection)
+	orderBackward := fmt.Sprintf("%s %s, UUID %s", sortColumn, backwardDirection, backwardDirection)
 
 	return orderForward, orderBackward
 }
