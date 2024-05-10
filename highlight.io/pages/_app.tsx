@@ -39,14 +39,10 @@ H.init('4d7k1xeo', {
 function MyApp({ Component, pageProps }: AppProps) {
 	useEffect(() => {
 		const initialize = async () => {
-			const ref = setAttributionData()
-
 			await rudderInitialize()
 			window.rudderanalytics?.page()
-			window.rudderanalytics?.identify(
-				ref.clientID,
-				ref as unknown as { [k: string]: string },
-			)
+
+			setAttributionData()
 		}
 
 		initialize()
