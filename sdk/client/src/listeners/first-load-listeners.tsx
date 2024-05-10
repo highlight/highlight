@@ -291,7 +291,7 @@ export class FirstLoadListeners {
 
 			httpResources = httpResources
 				.filter((r) => {
-					if (r.startTime < sThis.lastNetworkRequestTimestamp) {
+					if (r.responseEnd < sThis.lastNetworkRequestTimestamp) {
 						return false
 					}
 
@@ -311,7 +311,7 @@ export class FirstLoadListeners {
 				})
 
 			sThis.lastNetworkRequestTimestamp =
-				httpResources.at(-1)?.startTime ||
+				httpResources.at(-1)?.responseEnd ||
 				sThis.lastNetworkRequestTimestamp
 
 			if (sThis.enableRecordingNetworkContents) {
