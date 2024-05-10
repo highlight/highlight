@@ -1,4 +1,4 @@
-ALTER TABLE trace_metrics ADD COLUMN Type LowCardinality(String);
+ALTER TABLE trace_metrics ADD COLUMN IF NOT EXISTS Type LowCardinality(String);
 
 DROP VIEW IF EXISTS trace_metrics_mv;
 CREATE MATERIALIZED VIEW IF NOT EXISTS trace_metrics_mv
