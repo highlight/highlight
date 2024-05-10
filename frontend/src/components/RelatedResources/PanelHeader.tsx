@@ -19,7 +19,7 @@ import { PreviousNextGroup } from '@/components/PreviousNextGroup/PreviousNextGr
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 
 type Props = React.PropsWithChildren & {
-	path?: string
+	path: string
 }
 
 export const PanelHeader: React.FC<Props> = ({ children, path }) => {
@@ -62,16 +62,14 @@ export const PanelHeader: React.FC<Props> = ({ children, path }) => {
 				{children}
 			</Stack>
 
-			{path && (
-				<Link to={path}>
-					<ButtonIcon
-						icon={<IconSolidArrowsExpand />}
-						emphasis="low"
-						kind="secondary"
-						onClick={() => null}
-					/>
-				</Link>
-			)}
+			<Link to={path}>
+				<ButtonIcon
+					icon={<IconSolidArrowsExpand />}
+					emphasis="low"
+					kind="secondary"
+					onClick={() => null}
+				/>
+			</Link>
 
 			<ButtonIcon
 				icon={<IconSolidX />}
