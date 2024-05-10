@@ -167,6 +167,8 @@ const durationUnitMap: [number, string][] = [
 ]
 
 const timeMetrics = {
+	active_length: 'ms',
+	length: 'ms',
 	duration: 'ns',
 	Jank: 'ms',
 	FCP: 'ms',

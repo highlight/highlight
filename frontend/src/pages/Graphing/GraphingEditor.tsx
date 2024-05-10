@@ -39,7 +39,6 @@ import {
 	useGetVisualizationQuery,
 	useUpsertGraphMutation,
 } from '@/graph/generated/hooks'
-import { GetKeysQuery } from '@/graph/generated/operations'
 import {
 	GraphInput,
 	KeyType,
@@ -593,8 +592,7 @@ export const GraphingEditor = () => {
 
 	const [keysQuery, setKeysQuery] = useState('')
 
-	const [keys, setKeys] = useState<GetKeysQuery | undefined>()
-	const { refetch: refetchKeys } = useGetKeysQuery({
+	const { data: keys } = useGetKeysQuery({
 		variables: {
 			product_type: productType,
 			project_id: projectId,
@@ -609,38 +607,19 @@ export const GraphingEditor = () => {
 		},
 	})
 
-	useMemo(() => {
-		refetchKeys({
-			product_type: productType,
-			project_id: projectId,
-			date_range: {
-				start_date: moment(startDate).format(TIME_FORMAT),
-				end_date: moment(endDate).format(TIME_FORMAT),
-			},
-			query: keysQuery,
-		}).then((r) => setKeys(r.data))
-	}, [
-		refetchKeys,
-		setKeys,
-		productType,
-		projectId,
-		startDate,
-		endDate,
-		keysQuery,
-	])
-
 	const allKeys = useMemo(
 		() => keys?.keys.map((k) => k.name).slice(0, 8) ?? [],
-		[keys],
+		[keys?.keys],
 	)
 	const numericKeys = useMemo(
 		() =>
 			keys?.keys
-				.filter((k) => k.type === 'Numeric')
+				.filter((k) => k.type === KeyType.Numeric)
 				.map((k) => k.name)
 				.slice(0, 8) ?? [],
-		[keys],
+		[keys?.keys],
 	)
+
 	const bucketByKeys = useMemo(() => {
 		const baseArray = []
 		if (TIMESTAMP_KEY.toLowerCase().includes(keysQuery.toLowerCase())) {

@@ -38,6 +38,7 @@ export class FirstLoadListeners {
 	enableRecordingNetworkContents!: boolean
 	xhrNetworkContents!: RequestResponsePair[]
 	fetchNetworkContents!: RequestResponsePair[]
+	lastNetworkRequestResponsePairTimestamp!: number | undefined
 	disableRecordingWebSocketContents!: boolean
 	webSocketNetworkContents!: WebSocketRequest[] | undefined
 	webSocketEventContents!: WebSocketEvent[]
@@ -282,6 +283,14 @@ export class FirstLoadListeners {
 			httpResources = performance.getEntriesByType(
 				'resource',
 			) as PerformanceResourceTiming[]
+			httpResources = httpResources.filter((r) =>
+				sThis.lastNetworkRequestResponsePairTimestamp
+					? r.startTime >
+					  sThis.lastNetworkRequestResponsePairTimestamp
+					: true,
+			)
+			sThis.lastNetworkRequestResponsePairTimestamp =
+				httpResources.at(-1)?.startTime
 
 			// Subtract session start time from performance.timeOrigin
 			// Subtract diff to the times to do the offsets

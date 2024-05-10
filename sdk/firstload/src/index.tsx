@@ -443,9 +443,9 @@ const H: HighlightPublicInterface = {
 	},
 }
 
-if (typeof window !== 'undefined') {
-	window.H = H
-}
+// if (typeof window !== 'undefined') {
+window.H = H
+// }
 
 listenToChromeExtensionMessage()
 initializeFetchListener()
