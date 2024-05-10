@@ -2722,7 +2722,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 				return e.Wrap(err, "failed to unmarshal network resources")
 			}
-			if err := r.submitFrontendNetworkMetric(sessionObj, resourcesParsed["resources"]); err != nil {
+			if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
 				return err
 			}
 		}
@@ -3173,7 +3173,7 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 	return nil
 }
 
-func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resources []NetworkResource) error {
+func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
 	for _, re := range resources {
 		method := re.RequestResponsePairs.Request.Method
 		if method == "" {
@@ -3187,11 +3187,13 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		body, ok := re.RequestResponsePairs.Request.Body.(string)
 		if !ok {
 			bdBytes, err := json.Marshal(body)
-			if err == nil {
+			if err != nil {
+				log.WithContext(ctx).WithError(err).WithField("sessionID", sessionObj.ID).Error("failed to serialize network request body as json")
+			} else {
 				body = string(bdBytes)
 			}
 		}
-		attributes := []attribute.KeyValue{}
+		var attributes []attribute.KeyValue
 		attributes = append(attributes, highlight.EmptyResourceAttributes...)
 		attributes = append(attributes, attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
 			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
