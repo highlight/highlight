@@ -40,18 +40,19 @@ import { HighlightInit } from '@highlight-run/next/client'
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<>
-			<HighlightInit
-				projectId={'<YOUR_PROJECT_ID>'}
-				serviceName="my-nextjs-frontend"
-				tracingOrigins
-				networkRecording={{
-					enabled: true,
-					recordHeadersAndBody: true,
-					urlBlocklist: [],
-				}}
-			/>
-
 			<html lang="en">
+			    <head>
+                    <HighlightInit
+                        projectId={'<YOUR_PROJECT_ID>'}
+                        serviceName="my-nextjs-frontend"
+                        tracingOrigins
+                        networkRecording={{
+                            enabled: true,
+                            recordHeadersAndBody: true,
+                            urlBlocklist: [],
+                        }}
+                    />  
+			    </head>
 				<body>{children}</body>
 			</html>
 		</>

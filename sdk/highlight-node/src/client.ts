@@ -5,10 +5,10 @@ import {
 	Span,
 } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
-import api, {
+import {
 	Attributes,
-	BaggageEntry,
 	Context,
+	context,
 	diag,
 	DiagConsoleLogger,
 	DiagLogLevel,
@@ -48,6 +48,9 @@ type TraceMapValue = {
 }
 
 const instrumentations = getNodeAutoInstrumentations({
+	'@opentelemetry/instrumentation-pg': {
+		enabled: true,
+	},
 	'@opentelemetry/instrumentation-http': {
 		enabled: false,
 	},
@@ -61,15 +64,6 @@ const instrumentations = getNodeAutoInstrumentations({
 		},
 	},
 })
-
-/**
- * Baggage propagation does not appear to be patching Fetch at the moment,
- * but we hope it'll get fixed soon:
- * https://github.com/open-telemetry/opentelemetry-js-contrib/pull/1951
- *
- * Docs: https://github.com/open-telemetry/opentelemetry-js/blob/main/packages/opentelemetry-core/README.md
- */
-propagation.setGlobalPropagator(new W3CBaggagePropagator())
 
 registerInstrumentations({ instrumentations })
 
@@ -235,6 +229,7 @@ export class Highlight {
 			traceExporter: exporter,
 			contextManager: new AsyncLocalStorageContextManager(),
 			sampler: new AlwaysOnSampler(),
+			textMapPropagator: new W3CBaggagePropagator(),
 			instrumentations,
 		})
 		this.otel.start()
@@ -352,7 +347,7 @@ export class Highlight {
 		metadata?: Attributes,
 		options?: { span: OtelSpan },
 	) {
-		let span = options?.span ?? api.trace.getActiveSpan()
+		let span = options?.span ?? trace.getActiveSpan()
 		if (!span) {
 			span = this.tracer.startSpan('highlight.error')
 		}
@@ -451,12 +446,9 @@ export class Highlight {
 		cb: (span: OtelSpan) => T | Promise<T>,
 	) {
 		const { secureSessionId, requestId } = this.parseHeaders(headers)
-		const { span, ctx } = await this.startWithHeaders(
-			'highlight-ctx',
-			headers,
-		)
+		const { span, ctx } = this.startWithHeaders('highlight-ctx', headers)
 		try {
-			return await api.context.with(ctx, async () => {
+			return await context.with(ctx, async () => {
 				return cb(span)
 			})
 		} catch (error) {
@@ -476,9 +468,9 @@ export class Highlight {
 		headers: Headers | IncomingHttpHeaders,
 		options?: SpanOptions,
 	): { span: OtelSpan; ctx: Context } {
-		const ctx = api.context.active()
+		const ctx = context.active()
 		const span = this.tracer.startSpan(spanName, options, ctx)
-		const contextWithSpanSet = api.trace.setSpan(ctx, span)
+		const contextWithSpanSet = trace.setSpan(ctx, span)
 
 		const { secureSessionId, requestId } = this.parseHeaders(headers)
 		if (secureSessionId && requestId) {
@@ -487,9 +479,15 @@ export class Highlight {
 				'highlight.trace_id': requestId,
 			})
 
-			propagation.getActiveBaggage()?.setEntry(HIGHLIGHT_REQUEST_HEADER, {
-				value: `${secureSessionId}/${requestId}`,
-			} as BaggageEntry)
+			propagation.setBaggage(
+				context.active(),
+				(
+					propagation.getActiveBaggage() ??
+					propagation.createBaggage()
+				).setEntry(HIGHLIGHT_REQUEST_HEADER, {
+					value: `${secureSessionId}/${requestId}`,
+				}),
+			)
 		}
 
 		return { span, ctx: contextWithSpanSet }
@@ -501,16 +499,24 @@ export class Highlight {
 		)
 	}
 }
+
 function parseHeaders(
 	headers: Headers | IncomingHttpHeaders,
 ): HighlightContext {
+	const baggage = propagation.getActiveBaggage()
 	const requestHeaders = extractIncomingHttpHeaders(headers)
 
-	if (requestHeaders[HIGHLIGHT_REQUEST_HEADER]) {
+	const headerValue: string =
+		requestHeaders[HIGHLIGHT_REQUEST_HEADER]?.toString() ||
+		baggage?.getEntry(HIGHLIGHT_REQUEST_HEADER)?.value ||
+		''
+
+	if (headerValue) {
 		const [secureSessionId, requestId] =
 			`${requestHeaders[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
 		return { secureSessionId, requestId }
 	}
+
 	return { secureSessionId: undefined, requestId: undefined }
 }
 

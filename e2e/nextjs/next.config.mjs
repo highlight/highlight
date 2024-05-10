@@ -6,6 +6,7 @@ const nextConfig = {
 	productionBrowserSourceMaps: true,
 	experimental: {
 		serverComponentsExternalPackages: ['pino', 'pino-pretty'],
+		instrumentationHook: true,
 	},
 	images: {
 		remotePatterns: [{ protocol: 'https', hostname: 'i.travelapi.com' }],

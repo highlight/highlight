@@ -1,6 +1,6 @@
 import { Highlight } from '@highlight-run/next/server'
 import winston from 'winston'
-import { highlightConfig } from '@/instrumentation'
+import { highlightConfig } from '@/highlight.config'
 
 export const withHighlight = Highlight({
 	...highlightConfig,

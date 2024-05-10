@@ -3,7 +3,7 @@ import * as trpcNext from '@trpc/server/adapters/next'
 import { initTRPC } from '@trpc/server'
 import { z } from 'zod'
 import { Handlers } from '@highlight-run/node'
-import { highlightConfig } from '@/instrumentation'
+import { highlightConfig } from '@/highlight.config'
 
 const t = initTRPC.create()
 
@@ -40,7 +40,7 @@ export default trpcNext.createNextApiHandler({
 			{ error, req },
 			{
 				...highlightConfig,
-				serviceName: 'my-trpc-app',
+				serviceName: highlightConfig.serviceName + '-trpc-onerror',
 				serviceVersion: 'test-git-sha',
 			},
 		)

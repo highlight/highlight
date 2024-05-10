@@ -16,30 +16,31 @@ export default function RootLayout({
 }) {
 	return (
 		<ErrorBoundary>
-			<HighlightInit
-				debug={{ clientInteractions: true, domRecording: true }}
-				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
-				serviceName="my-nextjs-frontend"
-				environment="e2e-test"
-				tracingOrigins
-				networkRecording={{
-					enabled: true,
-					recordHeadersAndBody: true,
-				}}
-				consoleMethodsToRecord={['log', 'warn']}
-				// inlineImages={false}
-				enableCanvasRecording={true}
-				samplingStrategy={{
-					canvas: undefined,
-					canvasManualSnapshot: 1,
-					canvasMaxSnapshotDimension: 480,
-					canvasFactor: 0.5,
-					canvasClearWebGLBuffer: false,
-				}}
-				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
-			/>
-
 			<html lang="en" data-layout>
+				<head>
+					<HighlightInit
+						debug={{ clientInteractions: true, domRecording: true }}
+						projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
+						serviceName="my-nextjs-frontend"
+						environment="e2e-test"
+						tracingOrigins
+						networkRecording={{
+							enabled: true,
+							recordHeadersAndBody: true,
+						}}
+						consoleMethodsToRecord={['log', 'warn']}
+						// inlineImages={false}
+						enableCanvasRecording={true}
+						samplingStrategy={{
+							canvas: undefined,
+							canvasManualSnapshot: 1,
+							canvasMaxSnapshotDimension: 480,
+							canvasFactor: 0.5,
+							canvasClearWebGLBuffer: false,
+						}}
+						backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
+					/>
+				</head>
 				<body>
 					<div>{children}</div>
 				</body>
@@ -47,3 +48,5 @@ export default function RootLayout({
 		</ErrorBoundary>
 	)
 }
+
+// export const runtime = 'edge'
