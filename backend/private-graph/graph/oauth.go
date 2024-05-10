@@ -10,6 +10,7 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/trace"
+	"time"
 )
 
 type OAuthValidator interface {
@@ -18,11 +19,32 @@ type OAuthValidator interface {
 }
 
 type Tracer struct {
-	store *store.Store
+	store          *store.Store
+	clientRequests map[string]uint64
 }
 
 func NewGraphqlOAuthValidator(store *store.Store) OAuthValidator {
-	return Tracer{store: store}
+	tracer := Tracer{
+		store:          store,
+		clientRequests: make(map[string]uint64),
+	}
+	go tracer.flushClientRequests()
+	return tracer
+}
+
+func (t Tracer) flushClientRequests() {
+	ctx := context.Background()
+	for {
+		for clientID, requests := range t.clientRequests {
+			span, _ := util.StartSpanFromContext(ctx, "private.oauth.field", util.WithSpanKind(trace.SpanKindServer), util.Tag("client_id", clientID), util.Tag("requests", requests))
+			span.Finish()
+		}
+
+		// though this may cause a race with the `InterceptField` execution,
+		// we don't mind a small error here since this is just used for overall tracking.
+		t.clientRequests = make(map[string]uint64)
+		time.Sleep(5 * time.Second)
+	}
 }
 
 func (t Tracer) ExtensionName() string {
@@ -34,7 +56,7 @@ func (t Tracer) Validate(graphql.ExecutableSchema) error {
 }
 
 func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (interface{}, error) {
-	span, _ := util.StartSpanFromContext(ctx, "private.oauth.field", util.WithSpanKind(trace.SpanKindServer))
+	span, ctx := util.StartSpanFromContext(ctx, "private.oauth.field")
 	defer span.Finish()
 
 	clientID, _ := ctx.Value(model.ContextKeys.OAuthClientID).(string)
@@ -42,6 +64,7 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 		return next(ctx)
 	}
 	span.SetAttribute("client_id", clientID)
+	t.clientRequests[clientID]++
 
 	if !graphql.HasOperationContext(ctx) {
 		return next(ctx)
