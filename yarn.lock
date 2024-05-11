@@ -14179,7 +14179,7 @@ __metadata:
     "@rrweb/rrweb-plugin-sequential-id-record": "workspace:*"
     "@rrweb/types": "workspace:*"
     "@size-limit/file": "npm:^8.1.0"
-    "@types/json-stringify-safe": "npm:^5.0.0"
+    "@types/json-stringify-safe": "npm:^5.0.3"
     "@types/node": "npm:^16.3.1"
     error-stack-parser: "npm:2.0.6"
     fflate: "npm:^0.8.1"
@@ -26192,10 +26192,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/json-stringify-safe@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "@types/json-stringify-safe@npm:5.0.0"
-  checksum: 10/d4f26e6f57a50a0dcb56af5f686148d7a400e557a524a33c5ecc54af6131f86616d4b8c8ab2186744015b8ff5e565fb83ea232093aa1879335175dbdc8e8152f
+"@types/json-stringify-safe@npm:^5.0.3":
+  version: 5.0.3
+  resolution: "@types/json-stringify-safe@npm:5.0.3"
+  checksum: 10/66826a59b53ce5a5becc9c05cd0bdadb7e2032e02803a9dd13137de134a0882a6c67ae334371ccff07a20b1d2b2c23fa3a81b5e23f40b27cfcf553c7cce06e35
   languageName: node
   linkType: hard
 
