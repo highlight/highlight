@@ -1,5 +1,6 @@
 package io.highlight.sdk.common;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import io.opentelemetry.api.common.Attributes;
@@ -10,225 +11,218 @@ import io.opentelemetry.api.common.AttributesBuilder;
  * backend URL, environment, version, and default attributes.
  */
 public final class HighlightOptions {
-    private final String projectId;
-    private final String backendUrl;
-    private final String enviroment;
-    private final String version;
-    private final String serviceName;
-    private final boolean metric;
-    private final Attributes defaultAttributes;
 
-    /**
-     *
-     */
-    public HighlightOptions(String projectId, String backendUrl, String enviroment, String version, String serviceName, boolean metric,
-                            Attributes defaultAttributes) {
-        this.projectId = projectId;
-        this.backendUrl = backendUrl;
-        this.enviroment = enviroment;
-        this.version = version;
-        this.serviceName = serviceName;
-        this.metric = metric;
-        this.defaultAttributes = defaultAttributes;
-    }
+	private final String projectId;
+	private final String backendUrl;
 
-    /**
-     * Returns a new builder for constructing {@link HighlightOptions} with the
-     * specified project ID.
-     *
-     * @param projectId the project ID to use
-     * @return a new builder for constructing {@link HighlightOptions}
-     */
-    public static Builder builder(String projectId) {
-        return new Builder(projectId);
-    }
+	private final String enviroment;
+	private final String version;
 
-    public String projectId() {
-        return projectId;
-    }
+	private final String serviceName;
 
-    public String backendUrl() {
-        return backendUrl;
-    }
+	private final boolean metric;
 
-    public String enviroment() {
-        return enviroment;
-    }
+	private final Attributes defaultAttributes;
 
-    public String version() {
-        return version;
-    }
+	public HighlightOptions(String projectId, String backendUrl, String enviroment, String version, String serviceName,
+			boolean metric, Attributes defaultAttributes) {
+		this.projectId = projectId;
+		this.backendUrl = backendUrl;
+		this.enviroment = enviroment;
+		this.version = version;
+		this.serviceName = serviceName;
+		this.metric = metric;
+		this.defaultAttributes = defaultAttributes;
+	}
 
-    public String serviceName() {
-        return serviceName;
-    }
+	/**
+	 * Returns a new builder for constructing {@link HighlightOptions} with the
+	 * specified project ID.
+	 *
+	 * @param projectId the project ID to use
+	 * @return a new builder for constructing {@link HighlightOptions}
+	 */
+	public static Builder builder(String projectId) {
+		return new Builder(projectId);
+	}
 
-    public boolean metric() {
-        return metric;
-    }
+	public String projectId() {
+		return projectId;
+	}
 
-    public Attributes defaultAttributes() {
-        return defaultAttributes;
-    }
+	public String backendUrl() {
+		return backendUrl;
+	}
 
-    @java.lang.Override
-    public boolean equals(java.lang.Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (HighlightOptions) obj;
-        return java.util.Objects.equals(this.projectId, that.projectId) &&
-                java.util.Objects.equals(this.backendUrl, that.backendUrl) &&
-                java.util.Objects.equals(this.enviroment, that.enviroment) &&
-                java.util.Objects.equals(this.version, that.version) &&
-                java.util.Objects.equals(this.serviceName, that.serviceName) &&
-                this.metric == that.metric &&
-                java.util.Objects.equals(this.defaultAttributes, that.defaultAttributes);
-    }
+	public String enviroment() {
+		return enviroment;
+	}
 
-    @java.lang.Override
-    public int hashCode() {
-        return java.util.Objects.hash(projectId, backendUrl, enviroment, version, serviceName, metric, defaultAttributes);
-    }
+	public String version() {
+		return version;
+	}
 
-    @java.lang.Override
-    public String toString() {
-        return "HighlightOptions[" +
-                "projectId=" + projectId + ", " +
-                "backendUrl=" + backendUrl + ", " +
-                "enviroment=" + enviroment + ", " +
-                "version=" + version + ", " +
-                "serviceName=" + serviceName + ", " +
-                "metric=" + metric + ", " +
-                "defaultAttributes=" + defaultAttributes + ']';
-    }
+	public String serviceName() {
+		return serviceName;
+	}
 
+	public boolean metric() {
+		return metric;
+	}
 
-    /**
-     * A builder class for constructing {@link HighlightOptions}.
-     */
-    public static class Builder {
+	public Attributes defaultAttributes() {
+		return defaultAttributes;
+	}
 
-        private static final String DEFAULT_ENVIROMENT = "development";
-        private static final String DEFAULT_VERSION = "unknown";
-        private static final String DEFAULT_SERVICE_NAME = "unknown";
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof HighlightOptions)) {
+			return false;
+		}
+		HighlightOptions other = (HighlightOptions) obj;
+		return Objects.equals(backendUrl, other.backendUrl)
+				&& Objects.equals(defaultAttributes, other.defaultAttributes)
+				&& Objects.equals(enviroment, other.enviroment) && metric == other.metric
+				&& Objects.equals(projectId, other.projectId) && Objects.equals(serviceName, other.serviceName)
+				&& Objects.equals(version, other.version);
+	}
 
-        private final String projectId;
+	@Override
+	public int hashCode() {
+		return Objects.hash(backendUrl, defaultAttributes, enviroment, metric, projectId, serviceName, version);
+	}
 
-        private String backendUrl = null;
+	@Override
+	public String toString() {
+		return "HighlightOptions [projectId=" + projectId + ", backendUrl=" + backendUrl + ", enviroment=" + enviroment
+				+ ", version=" + version + ", serviceName=" + serviceName + ", metric=" + metric
+				+ ", defaultAttributes=" + defaultAttributes + "]";
+	}
 
-        private String environment = null;
-        private String version = null;
-        private String serviceName = null;
+	/**
+	 * A builder class for constructing {@link HighlightOptions}.
+	 */
+	public static class Builder {
 
-        private boolean metric = true;
+		private static final String DEFAULT_ENVIROMENT = "development";
+		private static final String DEFAULT_VERSION = "unknown";
 
-        private AttributesBuilder defaultAttributes = Attributes.builder();
+		private final String projectId;
 
-        /**
-         * Creates a new builder for constructing {@link HighlightOptions} with the
-         * specified project ID.
-         *
-         * @param projectId the project ID to use
-         */
-        public Builder(String projectId) {
-            this.projectId = projectId;
-        }
+		private String backendUrl = null;
 
-        /**
-         * Sets the backend URL for the highlight options being constructed. <br>
-         * If not set, the default value is <b>https://otel.highlight.io:4318</b>
-         *
-         * @param backendUrl the backend URL to set
-         * @return this builder
-         */
-        public Builder backendUrl(String backendUrl) {
-            this.backendUrl = backendUrl;
-            return this;
-        }
+		private String environment = null;
+		private String version = null;
 
-        /**
-         * Sets the environment for the highlight options being constructed. <br>
-         * If not set, the default value is <b>development</b>.
-         *
-         * @param environment the environment to set
-         * @return this builder
-         */
-        public Builder environment(String environment) {
-            this.environment = environment;
-            return this;
-        }
+		private String serviceName = null;
 
-        /**
-         * Sets the version for the highlight options being constructed. <br>
-         * If not set, the default value is <b>"unknown"</b>.
-         *
-         * @param version the version to set
-         * @return this builder
-         */
-        public Builder version(String version) {
-            this.version = version;
-            return this;
-        }
+		private boolean metric = true;
 
+		private AttributesBuilder defaultAttributes = Attributes.builder();
 
-        /**
-         * Sets the service name for the highlight options being constructed. <br>
-         * If not set, the default value is <b>"unknown"</b>.
-         *
-         * @param serviceName the service name to set
-         * @return this builder
-         */
-        public Builder serviceName(String serviceName) {
-            this.serviceName = serviceName;
-            return this;
-        }
+		/**
+		 * Creates a new builder for constructing {@link HighlightOptions} with the
+		 * specified project ID.
+		 *
+		 * @param projectId the project ID to use
+		 */
+		public Builder(String projectId) {
+			this.projectId = projectId;
+		}
 
-        /**
-         * Sets whether metric is enabled or not for the highlight options being
-         * constructed. <br>
-         * If not set, the default value is <b>true</b>.
-         *
-         * @param enabled whether to enable metric or not
-         * @return this builder
-         */
-        public Builder metric(boolean enabled) {
-            this.metric = enabled;
-            return this;
-        }
+		/**
+		 * Sets the backend URL for the highlight options being constructed. <br>
+		 * If not set, the default value is <b>https://otel.highlight.io:4318</b>
+		 *
+		 * @param backendUrl the backend URL to set
+		 * @return this builder
+		 */
+		public Builder backendUrl(String backendUrl) {
+			this.backendUrl = backendUrl;
+			return this;
+		}
 
-        /**
-         * Sets the default attributes for the highlight options being constructed using
-         * the specified consumer function.
-         *
-         * @param attributes a consumer function that accepts an
-         *                   {@link AttributesBuilder}
-         * @return this builder
-         */
-        public Builder attributes(Consumer<AttributesBuilder> attributes) {
-            attributes.accept(this.defaultAttributes);
-            return this;
-        }
+		/**
+		 * Sets the environment for the highlight options being constructed. <br>
+		 * If not set, the default value is <b>development</b>.
+		 *
+		 * @param environment the environment to set
+		 * @return this builder
+		 */
+		public Builder environment(String environment) {
+			this.environment = environment;
+			return this;
+		}
 
-        /**
-         * Builds the {@link HighlightOptions} using the specified project ID, backend
-         * URL, environment, version, metric, and default attributes.
-         *
-         * @return the constructed {@link HighlightOptions}
-         */
-        public HighlightOptions build() {
-            if (this.environment == null) {
-                this.environment = DEFAULT_ENVIROMENT;
-            }
-            if (this.version == null) {
-                this.version = DEFAULT_VERSION;
-            }
+		/**
+		 * Sets the version for the highlight options being constructed. <br>
+		 * If not set, the default value is <b>"unknown"</b>.
+		 *
+		 * @param version the version to set
+		 * @return this builder
+		 */
+		public Builder version(String version) {
+			this.version = version;
+			return this;
+		}
 
-            if (this.serviceName == null) {
-                this.serviceName = DEFAULT_SERVICE_NAME;
-            }
+		/**
+		 * Sets the service name for the highlight options being constructed. <br>
+		 * If not set, the default value is <b>"unknown"</b>.
+		 *
+		 * @param serviceName the service name to set
+		 * @return this builder
+		 */
+		public Builder serviceName(String serviceName) {
+			this.serviceName = serviceName;
+			return this;
+		}
 
-            return new HighlightOptions(this.projectId, this.backendUrl, this.environment, this.version, this.serviceName, this.metric,
-                    this.defaultAttributes.build());
-        }
-    }
+		/**
+		 * Sets whether metric is enabled or not for the highlight options being
+		 * constructed. <br>
+		 * If not set, the default value is <b>true</b>.
+		 *
+		 * @param enabled whether to enable metric or not
+		 * @return this builder
+		 */
+		public Builder metric(boolean enabled) {
+			this.metric = enabled;
+			return this;
+		}
+
+		/**
+		 * Sets the default attributes for the highlight options being constructed using
+		 * the specified consumer function.
+		 *
+		 * @param attributes a consumer function that accepts an
+		 *                   {@link AttributesBuilder}
+		 * @return this builder
+		 */
+		public Builder attributes(Consumer<AttributesBuilder> attributes) {
+			attributes.accept(this.defaultAttributes);
+			return this;
+		}
+
+		/**
+		 * Builds the {@link HighlightOptions} using the specified project ID, backend
+		 * URL, environment, version, metric, and default attributes.
+		 *
+		 * @return the constructed {@link HighlightOptions}
+		 */
+		public HighlightOptions build() {
+			if (this.environment == null) {
+				this.environment = DEFAULT_ENVIROMENT;
+			}
+			if (this.version == null) {
+				this.version = DEFAULT_VERSION;
+			}
+
+			return new HighlightOptions(this.projectId, this.backendUrl, this.environment, this.version,
+					this.serviceName, this.metric, this.defaultAttributes.build());
+		}
+	}
 }
