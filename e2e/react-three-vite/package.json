@@ -19,7 +19,7 @@
 		"random-words": "2.0.0",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
-		"three": "0.159.0"
+		"three": "0.164.1"
 	},
 	"devDependencies": {
 		"@types/react": "^18.2.56",

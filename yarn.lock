@@ -58818,7 +58818,7 @@ __metadata:
     random-words: "npm:2.0.0"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
-    three: "npm:0.159.0"
+    three: "npm:0.164.1"
     vite: "npm:^5.1.4"
   languageName: unknown
   linkType: soft
@@ -64629,10 +64629,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"three@npm:0.159.0":
-  version: 0.159.0
-  resolution: "three@npm:0.159.0"
-  checksum: 10/ef1d94f8c1b66d35fa4e3836f40cbd85d23a598e40d9e9e2af2f31c7ad790422dd843ff7a9baab28df0494cbb7bc46e6016499ce2de2665c49099c7753412c34
+"three@npm:0.164.1":
+  version: 0.164.1
+  resolution: "three@npm:0.164.1"
+  checksum: 10/561f28a84c6978b3fb548c11892ac6411df97a848089611d16ef921613d71af7a77815f531d10311cd7f9f9477ba900b69a99a39fe978d193a990476050fe062
   languageName: node
   linkType: hard
 
