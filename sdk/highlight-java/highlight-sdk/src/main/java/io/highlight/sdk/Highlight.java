@@ -93,8 +93,11 @@ public class Highlight {
 	public static void captureException(Throwable throwable, String sessionId, String requestId) {
 		Highlight.requireInitialization();
 
-		Highlight.captureRecord(
-				HighlightRecord.error().throwable(throwable).requestId(requestId).userSession(sessionId).build());
+		Highlight.captureRecord(HighlightRecord.error()
+				.throwable(throwable)
+				.requestId(requestId)
+				.userSession(sessionId)
+				.build());
 	}
 
 	/**
@@ -108,7 +111,10 @@ public class Highlight {
 	public static void captureException(Throwable throwable, HighlightHeader header) {
 		Highlight.requireInitialization();
 
-		Highlight.captureRecord(HighlightRecord.error().throwable(throwable).requestHeader(header).build());
+		Highlight.captureRecord(HighlightRecord.error()
+				.throwable(throwable)
+				.requestHeader(header)
+				.build());
 	}
 
 	/**
@@ -138,8 +144,12 @@ public class Highlight {
 	public static void captureLog(Severity severity, String message, String sessionId, String requestId) {
 		Highlight.requireInitialization();
 
-		Highlight.captureRecord(HighlightRecord.log().severity(severity).message(message).requestId(requestId)
-				.userSession(sessionId).build());
+		Highlight.captureRecord(HighlightRecord.log()
+				.severity(severity)
+				.message(message)
+				.requestId(requestId)
+				.userSession(sessionId)
+				.build());
 	}
 
 	/**
@@ -155,7 +165,11 @@ public class Highlight {
 		Highlight.requireInitialization();
 
 		Highlight
-				.captureRecord(HighlightRecord.log().severity(severity).message(message).requestHeader(header).build());
+				.captureRecord(HighlightRecord.log()
+						.severity(severity)
+						.message(message)
+						.requestHeader(header)
+						.build());
 	}
 
 	/**
@@ -286,6 +300,8 @@ public class Highlight {
 	 * This class contains the currently highlight states.
 	 */
 	private enum State {
-		INITIALIZE, RUNNING, SHUTDOWN
+		INITIALIZE,
+		RUNNING,
+		SHUTDOWN
 	}
 }
