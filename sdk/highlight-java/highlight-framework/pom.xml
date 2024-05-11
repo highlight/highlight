@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -9,7 +11,10 @@
 
 	<artifactId>highlight-framework</artifactId>
 	<name>Highlight Java SDK</name>
-	<description>highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a cohesive, modern and fully-featured monitoring solution, something we wished WE had. And it's all open source :)</description>
+	<description>highlight.io is a monitoring tool for the next generation of
+		developers (like you!). Unlike the age-old, outdated tools out there, we
+		aim to build a cohesive, modern and fully-featured monitoring solution,
+		something we wished WE had. And it's all open source :)</description>
 	<packaging>pom</packaging>
 
 	<modules>

@@ -93,28 +93,22 @@ public class Highlight {
 	public static void captureException(Throwable throwable, String sessionId, String requestId) {
 		Highlight.requireInitialization();
 
-		Highlight.captureRecord(HighlightRecord.error()
-				.throwable(throwable)
-				.requestId(requestId)
-				.userSession(sessionId)
-				.build());
+		Highlight.captureRecord(
+				HighlightRecord.error().throwable(throwable).requestId(requestId).userSession(sessionId).build());
 	}
 
 	/**
 	 * Captures an exception and sends it to Highlight.
 	 * 
 	 * @param throwable the throwable to capture
-	 * @param header the {@link HighlightHeader} associated with the record
+	 * @param header    the {@link HighlightHeader} associated with the record
 	 * @throws HighlightIllegalStateException  if Highlight is not initialized
 	 * @throws HighlightInvalidRecordException if the record is invalid
 	 */
 	public static void captureException(Throwable throwable, HighlightHeader header) {
 		Highlight.requireInitialization();
 
-		Highlight.captureRecord(HighlightRecord.error()
-				.throwable(throwable)
-				.requestHeader(header)
-				.build());
+		Highlight.captureRecord(HighlightRecord.error().throwable(throwable).requestHeader(header).build());
 	}
 
 	/**
@@ -144,31 +138,24 @@ public class Highlight {
 	public static void captureLog(Severity severity, String message, String sessionId, String requestId) {
 		Highlight.requireInitialization();
 
-		Highlight.captureRecord(HighlightRecord.log()
-				.severity(severity)
-				.message(message)
-				.requestId(requestId)
-				.userSession(sessionId)
-				.build());
+		Highlight.captureRecord(HighlightRecord.log().severity(severity).message(message).requestId(requestId)
+				.userSession(sessionId).build());
 	}
 
 	/**
 	 * Captures a log and sends it to Highlight.
 	 * 
-	 * @param severity  the severity of the log
-	 * @param message   the message to log
-	 * @param header the {@link HighlightHeader} associated with the record
+	 * @param severity the severity of the log
+	 * @param message  the message to log
+	 * @param header   the {@link HighlightHeader} associated with the record
 	 * @throws HighlightIllegalStateException  if Highlight is not initialized
 	 * @throws HighlightInvalidRecordException if the record is invalid
 	 */
 	public static void captureLog(Severity severity, String message, HighlightHeader header) {
 		Highlight.requireInitialization();
 
-		Highlight.captureRecord(HighlightRecord.log()
-				.severity(severity)
-				.message(message)
-				.requestHeader(header)
-				.build());
+		Highlight
+				.captureRecord(HighlightRecord.log().severity(severity).message(message).requestHeader(header).build());
 	}
 
 	/**
@@ -225,7 +212,8 @@ public class Highlight {
 			long startTime = System.currentTimeMillis();
 
 			if (!this.state.compareAndSet(State.RUNNING, State.SHUTDOWN)) {
-				System.out.println("Highlight is trying to force shutdown everyting because the currently state is invalid!");
+				System.out.println(
+						"Highlight is trying to force shutdown everyting because the currently state is invalid!");
 			}
 
 			if (this.openTelemetry != null) {
@@ -298,8 +286,6 @@ public class Highlight {
 	 * This class contains the currently highlight states.
 	 */
 	private enum State {
-		INITIALIZE,
-		RUNNING,
-		SHUTDOWN
+		INITIALIZE, RUNNING, SHUTDOWN
 	}
 }
