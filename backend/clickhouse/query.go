@@ -630,8 +630,6 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 	}
 
 	switch column {
-	case string(modelInputs.MetricColumnMetricValue):
-		metricExpr = "toFloat64OrZero(Events.Attributes[1]['metric.value'])"
 	case "":
 		metricExpr = "1.0"
 	}

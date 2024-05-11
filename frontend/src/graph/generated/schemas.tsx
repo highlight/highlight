@@ -1027,7 +1027,6 @@ export enum MetricBucketBy {
 
 export enum MetricColumn {
 	Duration = 'Duration',
-	MetricValue = 'MetricValue',
 }
 
 export type MetricMonitor = {
@@ -1914,6 +1913,7 @@ export enum PlanType {
 export enum ProductType {
 	Errors = 'Errors',
 	Logs = 'Logs',
+	Metrics = 'Metrics',
 	Sessions = 'Sessions',
 	Traces = 'Traces',
 }
@@ -2071,7 +2071,6 @@ export type Query = {
 	sourcemap_files: Array<S3File>
 	sourcemap_versions: Array<Scalars['String']>
 	subscription_details: SubscriptionDetails
-	suggested_metrics: Array<Scalars['String']>
 	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
 	topUsers: Array<Maybe<TopUsersPayload>>
@@ -2759,11 +2758,6 @@ export type QuerySubscription_DetailsArgs = {
 	workspace_id: Scalars['ID']
 }
 
-export type QuerySuggested_MetricsArgs = {
-	prefix: Scalars['String']
-	project_id: Scalars['ID']
-}
-
 export type QueryTimeline_Indicator_EventsArgs = {
 	session_secure_id: Scalars['String']
 }
@@ -3033,7 +3027,8 @@ export enum ReservedTraceKey {
 	HasErrors = 'has_errors',
 	Level = 'level',
 	Message = 'message',
-	Metric = 'metric',
+	MetricName = 'metric_name',
+	MetricValue = 'metric_value',
 	ParentSpanId = 'parent_span_id',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',

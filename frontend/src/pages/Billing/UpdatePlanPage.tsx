@@ -50,7 +50,11 @@ import {
 	useSaveBillingPlanMutation,
 } from '@/graph/generated/hooks'
 import { namedOperations } from '@/graph/generated/operations'
-import { PlanType, RetentionPeriod } from '@/graph/generated/schemas'
+import {
+	PlanType,
+	ProductType,
+	RetentionPeriod,
+} from '@/graph/generated/schemas'
 import {
 	RETENTION_PERIOD_LABELS,
 	tryCastDate,
@@ -59,8 +63,7 @@ import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './UpdatePlanPage.css'
 
-type ProductType = 'Sessions' | 'Errors' | 'Logs' | 'Traces'
-
+// TODO(vkorolik) billing for metrics ingest
 const RETENTION_OPTIONS = {
 	Sessions: [
 		RetentionPeriod.ThreeMonths,
@@ -76,6 +79,7 @@ const RETENTION_OPTIONS = {
 	],
 	Logs: [RetentionPeriod.ThirtyDays],
 	Traces: [RetentionPeriod.ThirtyDays],
+	Metrics: [RetentionPeriod.ThirtyDays],
 } as const
 
 const RETENTION_MULTIPLIER = {
@@ -92,6 +96,7 @@ const BASE_UNIT_COST_CENTS = {
 	Errors: 20,
 	Logs: 150,
 	Traces: 150,
+	Metrics: 150,
 } as const
 
 const UNIT_QUANTITY = {
@@ -99,6 +104,7 @@ const UNIT_QUANTITY = {
 	Errors: 1_000,
 	Logs: 1_000_000,
 	Traces: 1_000_000,
+	Metrics: 1_000_000,
 } as const
 
 export const getCostCents = (
@@ -645,14 +651,14 @@ const UpdatePlanPage = ({
 	)
 	const includedSessions = data?.billingDetails.plan.sessionsLimit ?? 0
 	let predictedSessionsCost = getCostCents(
-		'Sessions',
+		ProductType.Sessions,
 		data?.billingDetails.plan.sessionsRate,
 		formState.values.sessionsRetention,
 		predictedSessionsUsage,
 		includedSessions,
 	)
 	const actualSessionsCost = getCostCents(
-		'Sessions',
+		ProductType.Sessions,
 		data?.billingDetails.plan.sessionsRate,
 		formState.values.sessionsRetention,
 		sessionsUsage,
@@ -674,14 +680,14 @@ const UpdatePlanPage = ({
 	)
 	const includedErrors = data?.billingDetails.plan.errorsLimit ?? 0
 	let predictedErrorsCost = getCostCents(
-		'Errors',
+		ProductType.Errors,
 		data?.billingDetails.plan.errorsRate,
 		formState.values.errorsRetention,
 		predictedErrorsUsage,
 		includedErrors,
 	)
 	const actualErrorsCost = getCostCents(
-		'Errors',
+		ProductType.Errors,
 		data?.billingDetails.plan.errorsRate,
 		formState.values.errorsRetention,
 		errorsUsage,
@@ -703,14 +709,14 @@ const UpdatePlanPage = ({
 	)
 	const includedLogs = data?.billingDetails.plan.logsLimit ?? 0
 	let predictedLogsCost = getCostCents(
-		'Logs',
+		ProductType.Logs,
 		data?.billingDetails.plan.logsRate,
 		formState.values.logsRetention,
 		predictedLogsUsage,
 		includedLogs,
 	)
 	const actualLogsCost = getCostCents(
-		'Logs',
+		ProductType.Logs,
 		data?.billingDetails.plan.logsRate,
 		formState.values.logsRetention,
 		logsUsage,
@@ -732,14 +738,14 @@ const UpdatePlanPage = ({
 	)
 	const includedTraces = data?.billingDetails.plan.tracesLimit ?? 0
 	let predictedTracesCost = getCostCents(
-		'Traces',
+		ProductType.Traces,
 		data?.billingDetails.plan.tracesRate,
 		formState.values.tracesRetention,
 		predictedTracesUsage,
 		includedTraces,
 	)
 	const actualTracesCost = getCostCents(
-		'Traces',
+		ProductType.Traces,
 		data?.billingDetails.plan.tracesRate,
 		formState.values.logsRetention,
 		tracesUsage,
@@ -849,7 +855,7 @@ const UpdatePlanPage = ({
 								color={vars.theme.static.content.weak}
 							/>
 						}
-						productType="Sessions"
+						productType={ProductType.Sessions}
 						rate={data?.billingDetails.plan.sessionsRate}
 						retentionPeriod={formState.values.sessionsRetention}
 						setRetentionPeriod={(rp) =>
@@ -880,7 +886,7 @@ const UpdatePlanPage = ({
 								color={vars.theme.static.content.weak}
 							/>
 						}
-						productType="Errors"
+						productType={ProductType.Errors}
 						rate={data?.billingDetails.plan.errorsRate}
 						retentionPeriod={formState.values.errorsRetention}
 						setRetentionPeriod={(rp) =>
@@ -911,7 +917,7 @@ const UpdatePlanPage = ({
 								color={vars.theme.static.content.weak}
 							/>
 						}
-						productType="Logs"
+						productType={ProductType.Logs}
 						rate={data?.billingDetails.plan.logsRate}
 						retentionPeriod={formState.values.logsRetention}
 						setRetentionPeriod={(rp) =>
@@ -942,7 +948,7 @@ const UpdatePlanPage = ({
 								color={vars.theme.static.content.weak}
 							/>
 						}
-						productType="Traces"
+						productType={ProductType.Traces}
 						rate={data?.billingDetails.plan.tracesRate}
 						retentionPeriod={formState.values.tracesRetention}
 						setRetentionPeriod={(rp) =>
