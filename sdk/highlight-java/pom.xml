@@ -48,8 +48,7 @@
 	</issueManagement>
 
 	<properties>
-		<revision>1.0.0.-b0</revision>
-		<version>${revision}</version>
+		<revision>0.0.0.-b0</revision>
 		<project.language.name>java</project.language.name>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
@@ -106,22 +105,19 @@
 			<dependency>
 				<groupId>io.opentelemetry</groupId>
 				<artifactId>opentelemetry-sdk-logs</artifactId>
-				<version>${dependency.opentelemetry-alpha.version}</version> <!--
-				waiting for final release -->
+				<version>${dependency.opentelemetry-alpha.version}</version> <!-- waiting for final release -->
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>io.opentelemetry</groupId>
 				<artifactId>opentelemetry-exporter-otlp-logs</artifactId>
-				<version>${dependency.opentelemetry-alpha.version}</version> <!--
-				waiting for final release -->
+				<version>${dependency.opentelemetry-alpha.version}</version> <!-- waiting for final release -->
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>io.opentelemetry</groupId>
 				<artifactId>opentelemetry-semconv</artifactId>
-				<version>${dependency.opentelemetry-alpha.version}</version> <!--
-				waiting for final release -->
+				<version>${dependency.opentelemetry-alpha.version}</version> <!-- waiting for final release -->
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
