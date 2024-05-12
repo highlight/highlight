@@ -9,7 +9,8 @@ export type Webinar = {
 export const WEBINARS: { [k: string]: Webinar } = {
 	'tracing-in-next': {
 		title: 'Tracing in Next.js',
-		description: 'This is the first event',
+		description:
+			'Learn about how you can get tracing working in your Next application with several microservices.',
 		date: '2021-01-01',
 		slug: 'tracing-in-next',
 		image: '/images/webinars/tracing-in-next.png',

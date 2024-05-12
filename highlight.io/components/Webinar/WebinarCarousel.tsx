@@ -8,11 +8,11 @@ export const WebinarCarousel = () => {
 
 	return (
 		<div className="overflow-hidden max-w-[950px] border" ref={emblaRef}>
-			<div className="flex justify-center items-center my-8 pl-1">
-				{WEBINARS.map((webinar, id) => (
+			<div className="flex justify-center items-center my-8 pl-1 gap-4">
+				{Object.entries(WEBINARS).map(([id, webinar]) => (
 					<div
 						key={id}
-						className="flex flex-col items-start flex-shrink-0 flex-grow-0 w-1/3"
+						className="flex flex-col items-start flex-shrink-0 flex-grow-0  overflow-hidden"
 					>
 						<div className="relative h-[180px] w-[300px] bg-copy-on-dark rounded-md overflow-hidden">
 							<Image

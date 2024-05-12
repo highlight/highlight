@@ -2,11 +2,11 @@ import Navbar from '../../components/common/Navbar/Navbar'
 
 import classNames from 'classnames'
 import Link from 'next/link'
-import { FaPlay } from 'react-icons/fa'
 import { MdKeyboardReturn } from 'react-icons/md'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
 import { Typography } from '../../components/common/Typography/Typography'
 import homeStyles from '../../components/Home/Home.module.scss'
+import { EventForm } from '../../components/Webinar/DemoModal'
 import { Webinar, WEBINARS } from '../../components/Webinar/webinar'
 
 import { GetStaticPaths, GetStaticProps } from 'next'
@@ -55,8 +55,8 @@ const Webinars = ({ webinar }: { webinar: Webinar }) => {
 				</Link>
 			</div>
 			<main>
-				<div className="flex flex-col xl:flex-row justify-between w-screen px-8 lg:px-4 lg:py-28 ">
-					<div className="flex justify-center mt-10 ml-8">
+				<div className="flex flex-col xl:flex-row justify-between items-center w-screen px-8 mt-8 mx-auto lg:px-4 lg:py-28 max-w-[1200px] 2xl:max-w-[1400px]">
+					<div className="flex justify-center lg:w-1/2">
 						<div className="flex flex-col max-w-4xl gap-8 text-center lg:text-left">
 							<h2 className="text-white">{webinar.title}</h2>
 							<Typography
@@ -77,24 +77,11 @@ const Webinars = ({ webinar }: { webinar: Webinar }) => {
 										Get started
 									</Typography>
 								</PrimaryButton>
-								<PrimaryButton
-									href={'https://app.highlight.io/demo'}
-									className={classNames(
-										homeStyles.hollowButton,
-									)}
-								>
-									<div className="flex items-center gap-2">
-										<FaPlay />
-										<Typography
-											type="copy2"
-											emphasis={true}
-										>
-											Live demo
-										</Typography>
-									</div>
-								</PrimaryButton>
 							</div>
 						</div>
+					</div>
+					<div className="w-1/3">
+						<EventForm />
 					</div>
 				</div>
 			</main>
