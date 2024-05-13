@@ -41,6 +41,7 @@ import {
 	ColumnHeader,
 	CustomColumnHeader,
 } from '@/components/CustomColumnHeader'
+import { convertToPixels } from '@/components/CustomColumnHeader/utils'
 import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { LogEdge, ProductType } from '@/graph/generated/schemas'
@@ -505,12 +506,4 @@ const LogsTableRow: React.FC<LogsTableRowProps> = ({
 			{attributesRow(row)}
 		</div>
 	)
-}
-
-const convertToPixels = (size: string, rowWidth?: number): string => {
-	if (!!rowWidth && size.includes('%')) {
-		return `${(parseFloat(size) / 100) * rowWidth}px`
-	}
-	// px and fr
-	return size
 }

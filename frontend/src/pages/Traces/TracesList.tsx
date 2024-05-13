@@ -22,6 +22,7 @@ import {
 	ColumnHeader,
 	CustomColumnHeader,
 } from '@/components/CustomColumnHeader'
+import { convertToPixels } from '@/components/CustomColumnHeader/utils'
 import { CustomColumnPopover } from '@/components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { LinkButton } from '@/components/LinkButton'
@@ -73,15 +74,21 @@ export const TracesList: React.FC<Props> = ({
 		`highlight-traces-table-columns-v2`,
 		DEFAULT_TRACE_COLUMNS,
 	)
-	const [tableWidth, setTableWidth] = useState(
-		tableRef.current?.getBoundingClientRect().width,
-	)
+	const [rowWidth, setRowWidth] = useState(0)
+
+	const handleResize = () => {
+		const newWidth =
+			(tableRef.current?.getBoundingClientRect().width || 0) -
+			CUSTOM_COLUMN_SIZE
+
+		setRowWidth(Math.max(newWidth, 0))
+	}
 
 	useEffect(() => {
-		const handleResize = () => {
-			setTableWidth(tableRef.current?.getBoundingClientRect().width)
-		}
+		handleResize()
+	}, [tableRef.current?.clientWidth])
 
+	useEffect(() => {
 		window.addEventListener('resize', handleResize)
 
 		return () => {
@@ -105,7 +112,7 @@ export const TracesList: React.FC<Props> = ({
 		selectedColumns.forEach((column, index) => {
 			const first = index === 0
 
-			gridColumns.push(column.size)
+			gridColumns.push(convertToPixels(column.size, rowWidth))
 			columnHeaders.push({
 				id: column.id,
 				component: column.label,
@@ -133,12 +140,7 @@ export const TracesList: React.FC<Props> = ({
 		})
 
 		// add custom column
-		if (!!tableWidth) {
-			const cursorPercentage = (CUSTOM_COLUMN_SIZE / tableWidth) * 100
-			gridColumns.push(`${cursorPercentage}%`)
-		} else {
-			gridColumns.push(`${CUSTOM_COLUMN_SIZE}px`)
-		}
+		gridColumns.push(`${CUSTOM_COLUMN_SIZE}px`)
 		columnHeaders.push({
 			id: 'edit-column-button',
 			noPadding: true,
@@ -158,7 +160,7 @@ export const TracesList: React.FC<Props> = ({
 			columnHeaders,
 			columns,
 		}
-	}, [columnHelper, selectedColumns, setSelectedColumns, tableWidth])
+	}, [columnHelper, rowWidth, selectedColumns, setSelectedColumns])
 
 	const table = useReactTable({
 		data: traceEdges,
@@ -273,7 +275,7 @@ export const TracesList: React.FC<Props> = ({
 							setSelectedColumns={setSelectedColumns!}
 							standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
 							trackingIdPrefix="TracesTableColumn"
-							// tableRef={tableRef}
+							rowWidth={rowWidth}
 						/>
 					))}
 				</Table.Row>
