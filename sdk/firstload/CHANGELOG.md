@@ -1,5 +1,12 @@
 # highlight.run
 
+## 8.12.3
+
+### Patch Changes
+
+-   2ea916328: Fix duplicate network requests when performance.clearResourceTimings has been monkeypatched by external libraries
+-   11fe2921b: export highlight state on sdk
+
 ## 8.12.2
 
 ### Patch Changes
