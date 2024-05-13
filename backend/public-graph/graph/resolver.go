@@ -3184,13 +3184,22 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		if url, err := url2.Parse(re.Name); err == nil && url.Host == "pub.highlight.io" {
 			continue
 		}
-		body, ok := re.RequestResponsePairs.Request.Body.(string)
+		requestBody, ok := re.RequestResponsePairs.Request.Body.(string)
 		if !ok {
-			bdBytes, err := json.Marshal(body)
+			bdBytes, err := json.Marshal(requestBody)
 			if err != nil {
 				log.WithContext(ctx).WithError(err).WithField("sessionID", sessionObj.ID).Error("failed to serialize network request body as json")
 			} else {
-				body = string(bdBytes)
+				requestBody = string(bdBytes)
+			}
+		}
+		responseBody, ok := re.RequestResponsePairs.Response.Body.(string)
+		if !ok {
+			bdBytes, err := json.Marshal(responseBody)
+			if err != nil {
+				log.WithContext(ctx).WithError(err).WithField("sessionID", sessionObj.ID).Error("failed to serialize network response body as json")
+			} else {
+				responseBody = string(bdBytes)
 			}
 		}
 		var attributes []attribute.KeyValue
@@ -3204,21 +3213,39 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			semconv.ServiceName(sessionObj.ServiceName),
 			semconv.ServiceVersion(ptr.ToString(sessionObj.AppVersion)),
 			semconv.HTTPURL(re.Name),
-			semconv.HTTPRequestContentLength(len(body)),
+			attribute.String("http.request.body", requestBody),
+			attribute.String("http.response.body", responseBody),
+			semconv.HTTPRequestContentLength(len(requestBody)),
 			semconv.HTTPResponseContentLength(int(re.RequestResponsePairs.Response.Size)),
 			semconv.HTTPStatusCode(int(re.RequestResponsePairs.Response.Status)),
 			semconv.HTTPMethod(method),
+			semconv.HTTPUserAgent(re.RequestResponsePairs.Request.Headers["User-Agent"]),
+			semconv.UserAgentOriginal(re.RequestResponsePairs.Request.Headers["User-Agent"]),
 			attribute.String(privateModel.NetworkRequestAttributeInitiatorType.String(), re.InitiatorType),
 			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64(end.Sub(start).Nanoseconds())),
 		)
-		requestBody := make(map[string]interface{})
+		if u, err := url2.Parse(re.Name); err == nil {
+			attributes = append(attributes, semconv.HTTPScheme(u.Scheme), semconv.HTTPTarget(u.Path))
+		}
+		for requestHeader, requestHeaderValue := range re.RequestResponsePairs.Request.Headers {
+			attributes = append(attributes, attribute.String(fmt.Sprintf("http.request.%s", requestHeader), requestHeaderValue))
+		}
+		for responseHeader, responseHeaderValue := range re.RequestResponsePairs.Response.Headers {
+			attributes = append(attributes, attribute.String(fmt.Sprintf("http.response.%s", responseHeader), responseHeaderValue))
+		}
+		requestBodyJson := make(map[string]interface{})
 		// if the request body is json and contains the graphql key operationName, treat it as an operation
-		if err := json.Unmarshal([]byte(body), &requestBody); err == nil {
-			if _, ok := requestBody["operationName"]; ok {
-				if opName, ok := requestBody["operationName"].(string); ok {
+		if err := json.Unmarshal([]byte(requestBody), &requestBodyJson); err == nil {
+			if _, ok := requestBodyJson["operationName"]; ok {
+				if opName, ok := requestBodyJson["operationName"].(string); ok {
 					attributes = append(attributes, semconv.GraphqlOperationName(opName))
 				}
 			}
+		}
+		responseBodyJson := make(map[string]interface{})
+		// if the request body is json and contains the graphql key operationName, treat it as an operation
+		if err := json.Unmarshal([]byte(responseBody), &responseBodyJson); err == nil {
+			log.WithContext(ctx).Warn("TODO(vkorolik)")
 		}
 
 		ctx := context.Background()
