@@ -5933,25 +5933,25 @@ body {
 ._10xh0c2c {
   background-color: #ffffff;
   border-radius: 999px;
+  bottom: 8px;
   color: var(--_1pyqka9b);
   cursor: pointer;
+  margin-left: -6px;
   position: absolute;
   pointer-events: auto;
   opacity: 0;
-  right: -8px;
-  top: -8px;
   z-index: 1;
 }
 ._10xh0c2d {
   background-color: #ffffff;
   border-radius: 999px;
+  bottom: 8px;
   color: var(--_1pyqka9g);
   font-weight: bold;
+  margin-left: -6px;
   opacity: 1;
   position: absolute;
   pointer-events: auto;
-  right: -8px;
-  top: -8px;
   z-index: 1;
 }
 ._10xh0c2a._10xh0c26 {

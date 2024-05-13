@@ -115,6 +115,7 @@ type ClickhouseField struct {
 // These keys show up as recommendations, not in fields table due to high cardinality or post processing booleans
 var defaultSessionsKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedSessionKeyActiveLength), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedSessionKeyCompleted), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedSessionKeyFirstTime), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedSessionKeyHasComments), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedSessionKeyHasErrors), Type: modelInputs.KeyTypeBoolean},
@@ -122,21 +123,20 @@ var defaultSessionsKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedSessionKeyIdentified), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedSessionKeyLength), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedSessionKeyPagesVisited), Type: modelInputs.KeyTypeNumeric},
-	{Name: string(modelInputs.ReservedSessionKeyProcessed), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedSessionKeySample), Type: modelInputs.KeyTypeCreatable},
-	{Name: string(modelInputs.ReservedSessionKeyViewed), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyViewedByAnyone), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedSessionKeyViewedByMe), Type: modelInputs.KeyTypeBoolean},
 }
 
 var booleanKeys = map[string]bool{
-	string(modelInputs.ReservedSessionKeyFirstTime):     true,
-	string(modelInputs.ReservedSessionKeyIdentified):    true,
-	string(modelInputs.ReservedSessionKeyHasComments):   true,
-	string(modelInputs.ReservedSessionKeyHasErrors):     true,
-	string(modelInputs.ReservedSessionKeyHasRageClicks): true,
-	string(modelInputs.ReservedSessionKeyProcessed):     true,
-	string(modelInputs.ReservedSessionKeyViewed):        true,
-	string(modelInputs.ReservedSessionKeyViewedByMe):    true,
+	string(modelInputs.ReservedSessionKeyCompleted):      true,
+	string(modelInputs.ReservedSessionKeyFirstTime):      true,
+	string(modelInputs.ReservedSessionKeyIdentified):     true,
+	string(modelInputs.ReservedSessionKeyHasComments):    true,
+	string(modelInputs.ReservedSessionKeyHasErrors):      true,
+	string(modelInputs.ReservedSessionKeyHasRageClicks):  true,
+	string(modelInputs.ReservedSessionKeyViewedByAnyone): true,
+	string(modelInputs.ReservedSessionKeyViewedByMe):     true,
 }
 
 const SessionsJoinedTable = "sessions_joined_vw"
@@ -500,6 +500,7 @@ var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 		modelInputs.ReservedSessionKeyBrowserName:        "BrowserName",
 		modelInputs.ReservedSessionKeyBrowserVersion:     "BrowserVersion",
 		modelInputs.ReservedSessionKeyCity:               "City",
+		modelInputs.ReservedSessionKeyCompleted:          "Processed",
 		modelInputs.ReservedSessionKeyCountry:            "Country",
 		modelInputs.ReservedSessionKeyEnvironment:        "Environment",
 		modelInputs.ReservedSessionKeyExcluded:           "Excluded",
@@ -516,11 +517,15 @@ var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 		modelInputs.ReservedSessionKeyOsName:             "OSName",
 		modelInputs.ReservedSessionKeyOsVersion:          "OSVersion",
 		modelInputs.ReservedSessionKeyPagesVisited:       "PagesVisited",
-		modelInputs.ReservedSessionKeyProcessed:          "Processed",
 		modelInputs.ReservedSessionKeySecureID:           "SecureID",
-		modelInputs.ReservedSessionKeyLocState:           "State",
-		modelInputs.ReservedSessionKeyViewed:             "Viewed",
+		modelInputs.ReservedSessionKeyState:              "State",
+		modelInputs.ReservedSessionKeyViewedByAnyone:     "Viewed",
 		modelInputs.ReservedSessionKeyWithinBillingQuota: "WithinBillingQuota",
+
+		// deprecated but kept in for backwards compatibility of search
+		modelInputs.ReservedSessionKeyViewed:    "Viewed",
+		modelInputs.ReservedSessionKeyProcessed: "Processed",
+		modelInputs.ReservedSessionKeyLocState:  "State",
 	},
 	ReservedKeys: modelInputs.AllReservedSessionKey,
 	IgnoredFilters: map[string]bool{
