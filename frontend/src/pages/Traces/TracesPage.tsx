@@ -12,7 +12,7 @@ import moment from 'moment'
 import React, { useEffect, useRef } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
-import { StringParam, useQueryParam } from 'use-query-params'
+import { useQueryParam } from 'use-query-params'
 
 import { loadingIcon } from '@/components/Button/style.css'
 import {
@@ -35,7 +35,6 @@ import {
 	MetricColumn,
 	ProductType,
 	SavedSegmentEntityType,
-	SortDirection,
 	Trace,
 } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -61,8 +60,6 @@ export const TracesPage: React.FC = () => {
 	} = useParams<{ trace_id: string; span_id: string; trace_cursor: string }>()
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [query, setQuery] = useQueryParam('query', QueryParam)
-	const [sortColumn] = useQueryParam('sort_column', StringParam)
-	const [sortDirection] = useQueryParam('sort_direction', StringParam)
 	const {
 		startDate,
 		endDate,
@@ -90,8 +87,6 @@ export const TracesPage: React.FC = () => {
 		startDate,
 		endDate,
 		skipPolling: !selectedPreset,
-		sortColumn,
-		sortDirection: sortDirection as SortDirection,
 	})
 
 	const { data: metricsData, loading: metricsLoading } =

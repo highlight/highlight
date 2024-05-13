@@ -2897,7 +2897,6 @@ export type QueryWorkspace_Invite_LinksArgs = {
 export type QueryInput = {
 	date_range: DateRangeRequiredInput
 	query: Scalars['String']
-	sort?: InputMaybe<SortInput>
 }
 
 export type QueryKey = {
@@ -2985,7 +2984,6 @@ export enum ReservedLogKey {
 	ServiceVersion = 'service_version',
 	Source = 'source',
 	SpanId = 'span_id',
-	Timestamp = 'timestamp',
 	TraceId = 'trace_id',
 }
 
@@ -3038,7 +3036,6 @@ export enum ReservedTraceKey {
 	SpanId = 'span_id',
 	SpanKind = 'span_kind',
 	SpanName = 'span_name',
-	Timestamp = 'timestamp',
 	TraceId = 'trace_id',
 	TraceState = 'trace_state',
 }
@@ -3443,11 +3440,6 @@ export enum SocialType {
 export enum SortDirection {
 	Asc = 'ASC',
 	Desc = 'DESC',
-}
-
-export type SortInput = {
-	column: Scalars['String']
-	direction: SortDirection
 }
 
 export type SourceMappingError = {

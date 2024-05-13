@@ -74,7 +74,7 @@ export const LogDetails: React.FC<Props> = ({
 		level: LogLevel
 		message: string
 	} & {
-		[key in ReservedLogKey]?: Maybe<string> | undefined
+		[key in ReservedLogKey]: Maybe<string> | undefined
 	} = {
 		environment,
 		level,
