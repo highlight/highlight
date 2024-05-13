@@ -71,7 +71,7 @@ export const TracesList: React.FC<Props> = ({
 	const { resource } = useRelatedResource()
 	const trace = resource as RelatedTrace
 	const [selectedColumns, setSelectedColumns] = useLocalStorage(
-		`highlight-traces-table-columns-v2`,
+		`highlight-traces-table-columns`,
 		DEFAULT_TRACE_COLUMNS,
 	)
 	const [rowWidth, setRowWidth] = useState(0)
