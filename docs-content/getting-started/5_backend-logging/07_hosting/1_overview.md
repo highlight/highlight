@@ -33,4 +33,7 @@ If you don't see one of your languages / frameworks below, reach out to us in ou
     <DocsCard title="Vercel" href="./vercel.md">
         {"Set up logging in Vercel."}
     </DocsCard>
+    <DocsCard title="Heroku" href="./heroku.md">
+        {"Set up logging in Heroku."}
+    </DocsCard>
 </DocsCardGroup>
