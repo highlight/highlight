@@ -269,12 +269,7 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 		}, nil
 	}
 
-	tableConfig := TracesTableConfig
-	if params.Sort != nil {
-		tableConfig = tracesSamplingTableConfig
-	}
-
-	conn, err := readObjects(ctx, client, tableConfig, projectID, params, pagination, scanTrace)
+	conn, err := readObjects(ctx, client, TracesTableConfig, tracesSamplingTableConfig, projectID, params, pagination, scanTrace)
 	if err != nil {
 		return nil, err
 	}

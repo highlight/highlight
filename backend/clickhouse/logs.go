@@ -172,7 +172,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 		}, nil
 	}
 
-	conn, err := readObjects(ctx, client, LogsTableConfig, projectID, params, pagination, scanLog)
+	conn, err := readObjects(ctx, client, LogsTableConfig, logsSamplingTableConfig, projectID, params, pagination, scanLog)
 	if err != nil {
 		return nil, err
 	}
