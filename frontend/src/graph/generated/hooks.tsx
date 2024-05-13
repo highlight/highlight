@@ -12623,61 +12623,6 @@ export type GetDashboardDefinitionsQueryResult = Apollo.QueryResult<
 	Types.GetDashboardDefinitionsQuery,
 	Types.GetDashboardDefinitionsQueryVariables
 >
-export const GetSuggestedMetricsDocument = gql`
-	query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
-		suggested_metrics(project_id: $project_id, prefix: $prefix)
-	}
-`
-
-/**
- * __useGetSuggestedMetricsQuery__
- *
- * To run a query within a React component, call `useGetSuggestedMetricsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSuggestedMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSuggestedMetricsQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      prefix: // value for 'prefix'
- *   },
- * });
- */
-export function useGetSuggestedMetricsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetSuggestedMetricsQuery,
-		Types.GetSuggestedMetricsQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetSuggestedMetricsQuery,
-		Types.GetSuggestedMetricsQueryVariables
-	>(GetSuggestedMetricsDocument, baseOptions)
-}
-export function useGetSuggestedMetricsLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetSuggestedMetricsQuery,
-		Types.GetSuggestedMetricsQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetSuggestedMetricsQuery,
-		Types.GetSuggestedMetricsQueryVariables
-	>(GetSuggestedMetricsDocument, baseOptions)
-}
-export type GetSuggestedMetricsQueryHookResult = ReturnType<
-	typeof useGetSuggestedMetricsQuery
->
-export type GetSuggestedMetricsLazyQueryHookResult = ReturnType<
-	typeof useGetSuggestedMetricsLazyQuery
->
-export type GetSuggestedMetricsQueryResult = Apollo.QueryResult<
-	Types.GetSuggestedMetricsQuery,
-	Types.GetSuggestedMetricsQueryVariables
->
 export const GetMetricTagsDocument = gql`
 	query GetMetricTags(
 		$project_id: ID!
@@ -14542,12 +14487,14 @@ export const GetKeysDocument = gql`
 		$project_id: ID!
 		$date_range: DateRangeRequiredInput!
 		$query: String
+		$type: KeyType
 	) {
 		keys(
 			product_type: $product_type
 			project_id: $project_id
 			date_range: $date_range
 			query: $query
+			type: $type
 		) {
 			name
 			type
@@ -14571,6 +14518,7 @@ export const GetKeysDocument = gql`
  *      project_id: // value for 'project_id'
  *      date_range: // value for 'date_range'
  *      query: // value for 'query'
+ *      type: // value for 'type'
  *   },
  * });
  */

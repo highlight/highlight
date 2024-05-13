@@ -1,32 +1,39 @@
+'use client'
+
 import { Dialog, Transition } from '@headlessui/react'
-import { XMarkIcon } from '@heroicons/react/20/solid'
+import { ArrowRightCircleIcon, XMarkIcon } from '@heroicons/react/20/solid'
+import classNames from 'classnames'
 import { useSearchParams } from 'next/navigation'
 import { Fragment, useState } from 'react'
 import { InlineWidget } from 'react-calendly'
+import { setAttributionData } from '../../../utils/attribution'
 import styles from '../../Docs/Docs.module.scss'
 import { Typography } from '../Typography/Typography'
 
-const CalendlyPopup = () => {
+function Calendly() {
 	const query = useSearchParams()
+	const referrer = setAttributionData()
+	const utm = {
+		utmCampaign: referrer.utm_campaign ?? query?.get('utm_campaign') ?? '',
+		utmSource: referrer.utm_source ?? query?.get('utm_source') ?? '',
+		utmMedium: referrer.utm_medium ?? query?.get('utm_medium') ?? '',
+		utmContent: referrer.utm_content ?? query?.get('utm_content') ?? '',
+		utmTerm: referrer.utm_term ?? query?.get('utm_term') ?? '',
+	}
+	console.log({ utm })
 	return (
 		<InlineWidget
 			url="https://calendly.com/highlight-io/discussion"
 			styles={{ width: '100%', height: '100%' }}
-			utm={{
-				utmCampaign: query?.get('utm_campaign') ?? '',
-				utmSource: query?.get('utm_source') ?? '',
-				utmMedium: query?.get('utm_medium') ?? '',
-				utmContent: query?.get('utm_content') ?? '',
-				utmTerm: query?.get('utm_term') ?? '',
-			}}
+			utm={utm}
 		/>
 	)
 }
 
-export const CalendlyModal = ({
+export function CalendlyModal({
 	className,
 	children,
-}: React.PropsWithChildren<{ className?: string }>) => {
+}: React.PropsWithChildren<{ className?: string }>) {
 	const [calendlyOpen, setCalendlyOpen] = useState(false)
 
 	return (
@@ -34,9 +41,22 @@ export const CalendlyModal = ({
 			<button
 				type="button"
 				onClick={() => setCalendlyOpen(true)}
-				className={className}
+				className={classNames(
+					'flex items-center gap-1 px-3 transition-colors rounded active:brightness-50',
+					className,
+					calendlyOpen
+						? 'bg-blue-cta text-dark-background'
+						: 'hover:bg-white/10',
+				)}
 			>
-				{children}
+				{children ?? (
+					<div className={'flex items-center gap-1'}>
+						<Typography type="copy2" emphasis>
+							Request a Demo Call
+						</Typography>
+						<ArrowRightCircleIcon className="w-5 h-5" />
+					</div>
+				)}
 			</button>
 
 			<Transition appear show={calendlyOpen} as={Fragment}>
@@ -70,7 +90,7 @@ export const CalendlyModal = ({
 							>
 								<Dialog.Panel className="fixed grid place-items-center inset-0 z-50 w-screen h-screen pointer-events-none">
 									<div className="relative flex min-w-[320px] w-screen max-w-5xl min-[1000px]:h-[700px] h-[900px] transition-opacity max-[652px]:pt-14 pointer-events-auto">
-										<CalendlyPopup />
+										<Calendly />
 
 										<button
 											className="absolute grid w-10 h-10 rounded-full place-content-center bg-divider-on-dark max-[652px]:right-2 max-[652px]:top-2 right-10 top-16 hover:brightness-150 transition-all pointer-events-auto"
@@ -93,11 +113,11 @@ export const CalendlyModal = ({
 
 //Specific component created to allow for the CalendlyModal to be used in the enterpise self-host docs in an inline style
 //Inline components are not possible in MDX (as far as I can tell)
-export const EnterpriseSelfHostCalendlyComponent = ({
+export function EnterpriseSelfHostCalendlyComponent({
 	prefix,
 }: {
 	prefix: String
-}) => {
+}) {
 	return (
 		<div className={styles.contentRender}>
 			<Typography type="copy2" onDark>

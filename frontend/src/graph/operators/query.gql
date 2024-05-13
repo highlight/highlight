@@ -1933,10 +1933,6 @@ query GetDashboardDefinitions($project_id: ID!) {
 	}
 }
 
-query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
-	suggested_metrics(project_id: $project_id, prefix: $prefix)
-}
-
 query GetMetricTags($project_id: ID!, $metric_name: String!, $query: String) {
 	metric_tags(
 		project_id: $project_id
@@ -2418,12 +2414,14 @@ query GetKeys(
 	$project_id: ID!
 	$date_range: DateRangeRequiredInput!
 	$query: String
+	$type: KeyType
 ) {
 	keys(
 		product_type: $product_type
 		project_id: $project_id
 		date_range: $date_range
 		query: $query
+		type: $type
 	) {
 		name
 		type

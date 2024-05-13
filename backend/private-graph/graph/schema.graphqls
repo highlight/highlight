@@ -225,6 +225,7 @@ enum ProductType {
 	Errors
 	Logs
 	Traces
+	Metrics
 }
 
 enum IngestReason {
@@ -957,7 +958,8 @@ enum ReservedTraceKey {
 	has_errors
 	level
 	message
-	metric
+	metric_name
+	metric_value
 	secure_session_id
 	span_id
 	trace_id
@@ -1023,6 +1025,7 @@ enum ReservedSessionKey {
 	browser_name
 	browser_version
 	city
+	completed
 	country
 	device_id
 	environment
@@ -1035,18 +1038,22 @@ enum ReservedSessionKey {
 	identifier
 	ip
 	length
-	loc_state
 	normalness
 	os_name
 	os_version
 	pages_visited
-	processed
 	sample
 	secure_id
 	service_version
-	viewed
+	state
+	viewed_by_anyone
 	viewed_by_me
 	within_billing_quota
+
+	# deprecated but kept in for backwards compatibility of search
+	loc_state
+	processed
+	viewed
 }
 
 enum LogSource {
@@ -1095,7 +1102,6 @@ enum MetricAggregator {
 
 enum MetricColumn {
 	Duration
-	MetricValue
 }
 
 enum MetricBucketBy {
@@ -2159,7 +2165,6 @@ type Query {
 	customer_portal_url(workspace_id: ID!): String!
 	subscription_details(workspace_id: ID!): SubscriptionDetails!
 	dashboard_definitions(project_id: ID!): [DashboardDefinition]!
-	suggested_metrics(project_id: ID!, prefix: String!): [String!]!
 	metric_tags(
 		project_id: ID!
 		metric_name: String!

@@ -5,15 +5,17 @@ import { StandardDropdown } from '@components/Dropdown/StandardDropdown/Standard
 import Input from '@components/Input/Input'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
+import { TIME_FORMAT } from '@components/Search/SearchForm/constants'
+import { FixedRangePreset } from '@components/Search/SearchForm/SearchForm'
 import {
 	SearchOption,
 	SearchSelect,
 	SimpleSearchSelect,
 } from '@components/Select/SearchSelect/SearchSelect'
 import {
+	useGetKeysLazyQuery,
 	useGetMetricTagsLazyQuery,
 	useGetMetricTagValuesLazyQuery,
-	useGetSuggestedMetricsLazyQuery,
 } from '@graph/hooks'
 import {
 	DashboardChartType,
@@ -23,12 +25,16 @@ import {
 	MetricTagFilter,
 	MetricTagFilterOp,
 	MetricViewComponentType,
+	ProductType,
 } from '@graph/schemas'
+import { DEFAULT_TIME_PRESETS } from '@highlight-run/ui/components'
+import { useSearchTime } from '@hooks/useSearchTime'
 import SaveIcon from '@icons/SaveIcon'
 import TrashIcon from '@icons/TrashIcon'
 import { UNIT_OPTIONS } from '@pages/Dashboards/components/DashboardCard/DashboardCard'
 import { useParams } from '@util/react-router/useParams'
 import { Form } from 'antd'
+import moment from 'moment/moment'
 import React, { useEffect, useState } from 'react'
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
@@ -630,29 +636,38 @@ export const MetricSelector = ({
 	const [options, setOptions] = useState<SearchOption[]>([])
 	const [query, setQuery] = useState<string>('')
 	const debouncedQuery = useDebouncedValue(query) || ''
-	const [getSuggestedMetrics, { data }] = useGetSuggestedMetricsLazyQuery()
+	const [getKeys, { data }] = useGetKeysLazyQuery()
+	const { startDate, endDate } = useSearchTime({
+		presets: DEFAULT_TIME_PRESETS,
+		initialPreset: FixedRangePreset,
+	})
 
 	const getValueOptions = (input: string) => {
 		setQuery(input)
 	}
 
 	useEffect(() => {
-		getSuggestedMetrics({
+		getKeys({
 			variables: {
 				project_id: project_id!,
-				prefix: debouncedQuery,
+				date_range: {
+					start_date: moment(startDate).format(TIME_FORMAT),
+					end_date: moment(endDate).format(TIME_FORMAT),
+				},
+				product_type: ProductType.Metrics,
+				query: debouncedQuery,
 			},
 		})
-	}, [getSuggestedMetrics, project_id, debouncedQuery])
+	}, [getKeys, project_id, debouncedQuery, startDate, endDate])
 
 	useEffect(() => {
 		setOptions(
-			data?.suggested_metrics.map((s) => ({
-				label: s,
-				value: s,
+			data?.keys.map((s) => ({
+				label: s.name,
+				value: s.name,
 			})) || [],
 		)
-	}, [data?.suggested_metrics])
+	}, [data?.keys])
 
 	return (
 		<SearchSelect

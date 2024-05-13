@@ -7,10 +7,10 @@ import Navbar from '../../components/common/Navbar/Navbar'
 import { Section } from '../../components/common/Section/Section'
 import styles from '../../components/Home/Home.module.scss'
 
+import { CalendlyModal } from '../../components/common/CalendlyModal/CalendlyModal'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import Footer from '../../components/common/Footer/Footer'
 import { Meta } from '../../components/common/Head/Meta'
-import { CalendlyPopover } from '../../components/Home/CalendlyPopover'
 import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel'
 import BlueGradient from '../../public/images/bg_blue_gradient.svg'
 import PurpleGradient from '../../public/images/bg_purple_gradient.svg'
@@ -52,7 +52,7 @@ const Comments: NextPage = () => {
 								<PrimaryButton href="https://app.highlight.io/sign_up">
 									Get Started For Free
 								</PrimaryButton>
-								<CalendlyPopover />
+								<CalendlyModal />
 							</div>
 						</div>
 					</div>

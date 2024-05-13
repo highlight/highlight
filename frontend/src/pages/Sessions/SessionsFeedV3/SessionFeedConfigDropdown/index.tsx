@@ -21,7 +21,7 @@ import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { useGenerateSessionsReportCSV } from '@util/session/report'
 import { message } from 'antd'
 import { H } from 'highlight.run'
-import React, { useRef, useState } from 'react'
+import React, { useState } from 'react'
 
 import { useSearchContext } from '@/components/Search/SearchContext'
 import {
@@ -109,9 +109,6 @@ export const SessionFeedConfigDropdown = function () {
 		usePlayerConfiguration()
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
 
-	const menuRef = useRef<HTMLDivElement>(null)
-	const buttonRef = useRef<HTMLButtonElement>(null)
-
 	return (
 		<Menu>
 			<Menu.Button
@@ -119,13 +116,8 @@ export const SessionFeedConfigDropdown = function () {
 				size="small"
 				emphasis="low"
 				iconRight={<IconSolidAdjustments size={14} />}
-				ref={buttonRef}
 			/>
-			<Menu.List
-				ref={menuRef}
-				style={{ minWidth: 264 }}
-				cssClass={styles.menuContents}
-			>
+			<Menu.List style={{ minWidth: 264 }} cssClass={styles.menuContents}>
 				<Section>
 					<Menu.Item
 						key="autoplay"

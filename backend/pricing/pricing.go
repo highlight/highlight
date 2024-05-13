@@ -1043,13 +1043,8 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 	// Cancelled subscriptions have no upcoming invoice - we can skip these since we won't
 	// be charging any overage for their next billing period.
 	if err != nil {
-		if err.Error() == string(stripe.ErrorCodeInvoiceUpcomingNone) {
-			log.WithContext(ctx).WithField("workspaceID", workspaceID).Warn("workspace has no invoice upcoming, will not report overage")
-			return nil
-		} else {
-			log.WithContext(ctx).Error(err)
-			return e.Wrap(err, "BILLING_ERROR cannot report usage - failed to retrieve upcoming invoice for customer "+c.ID)
-		}
+		log.WithContext(ctx).WithField("workspaceID", workspaceID).WithError(err).Warn("workspace has no invoice upcoming, will not report overage")
+		return nil
 	}
 
 	invoiceLinesParams := &stripe.InvoiceUpcomingLinesParams{

@@ -12,12 +12,12 @@ import classNames from 'classnames'
 import Link from 'next/link'
 import { FaPlay } from 'react-icons/fa'
 import { AnimateBugLeft, AnimateBugRight } from '../components/Animate'
+import { CalendlyModal } from '../components/common/CalendlyModal/CalendlyModal'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
 import { OSSCallToAction } from '../components/common/CallToAction/OSSCallToAction'
 import Footer from '../components/common/Footer/Footer'
 import { Typography } from '../components/common/Typography/Typography'
 import { BigHeroArt } from '../components/Home/BigHeroArt'
-import { CalendlyPopover } from '../components/Home/CalendlyPopover'
 import { CompaniesReel } from '../components/Home/CompaniesReel/CompaniesReel'
 import { CustomerReviewTrack } from '../components/Home/CustomerReviewTrack'
 import { FeatureCarousel } from '../components/Home/FeatureCarousel/FeatureCarousel'
@@ -237,7 +237,7 @@ const Home: NextPage = () => {
 							</div>
 						</div>
 						<div className="relative flex flex-col items-center mt-8 mb-28">
-							<CalendlyPopover />
+							<CalendlyModal />
 						</div>
 						<FeatureCarousel />
 					</div>

@@ -267,6 +267,34 @@ func TestSnapshot_ReplaceAssets(t *testing.T) {
 			}
 			assert.True(t, matched, "no asset matched %s", exp)
 		}
+
+		gotMsg, err := snapshot.Encode()
+		if err != nil {
+			t.Fatalf("error marshalling: %v", err)
+		}
+
+		var gotInterface struct {
+			Node struct {
+				ChildNodes []struct {
+					ChildNodes []struct {
+						ChildNodes []struct {
+							Id         int                    `json:"id"`
+							Attributes map[string]interface{} `json:"attributes"`
+						} `json:"childNodes"`
+					} `json:"childNodes"`
+				} `json:"childNodes"`
+			} `json:"node"`
+		}
+		err = json.Unmarshal(gotMsg, &gotInterface)
+		if err != nil {
+			t.Fatalf("error getting interface: %v", err)
+		}
+
+		assert.Equal(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[30].Id, 36)
+		assert.Equal(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[31].Id, 37)
+
+		assert.Nil(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[30].Attributes["rel"])
+		assert.Nil(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[31].Attributes["rel"])
 	})
 }
 func TestSnapshot_ReplaceAssets_Capacitor(t *testing.T) {

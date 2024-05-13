@@ -1,4 +1,3 @@
-import { ExclamationCircleFilled } from '@ant-design/icons'
 import classNames from 'classnames'
 import useEmblaCarousel from 'embla-carousel-react'
 import { StaticImageData } from 'next/image'
@@ -97,9 +96,7 @@ const features: Feature[] = [
 		feature2: 'Customizable Alerting Rules',
 		featureImage2: <HiViewBoards className="h-[20px] w-[20px]" />,
 		feature3: 'Powered by Open Telemetry',
-		featureImage3: (
-			<ExclamationCircleFilled className="h-[20px] w-[20px]" />
-		),
+		featureImage3: <HiExclamationCircle className="h-[20px] w-[20px]" />,
 		link: '/error-monitoring',
 	},
 	{
