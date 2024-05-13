@@ -42,7 +42,11 @@ export const setAttributionData = () => {
 	}
 	const prevRef = Cookies.get('referrer')
 	if (prevRef) {
-		referrer = { ...referrer, ...(JSON.parse(prevRef) as Referrer) }
+		try {
+			referrer = { ...referrer, ...(JSON.parse(prevRef) as Referrer) }
+		} catch (e) {
+			referrer = { ...referrer, pathReferrer: prevRef }
+		}
 	}
 	referrer.documentReferrer = document.referrer
 
