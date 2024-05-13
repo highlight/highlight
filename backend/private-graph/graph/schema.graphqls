@@ -506,7 +506,6 @@ type Project {
 	verbose_id: String!
 	name: String!
 	billing_email: String
-	secret: String
 	workspace_id: ID!
 	excluded_users: StringArray
 	error_filters: StringArray
@@ -1353,8 +1352,10 @@ type Admin {
 }
 
 type WorkspaceAdminRole {
+	workspaceId: ID!
 	admin: Admin!
 	role: String!
+	projectIds: [ID!]!
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
@@ -2437,12 +2438,12 @@ type Mutation {
 		workspace_id: ID!
 		admin_id: ID!
 		new_role: String!
-	): Boolean!
+	): WorkspaceAdminRole!
 	changeProjectMembership(
 		workspace_id: ID!
 		admin_id: ID!
-		project_ids: [ID!]
-	): Boolean!
+		project_ids: [ID!]!
+	): WorkspaceAdminRole!
 	deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
 	createSegment(project_id: ID!, name: String!, query: String!): Segment
 	emailSignup(email: String!): String!

@@ -1107,8 +1107,8 @@ export type Mutation = {
 	addAdminToWorkspace?: Maybe<Scalars['ID']>
 	addIntegrationToProject: Scalars['Boolean']
 	addIntegrationToWorkspace: Scalars['Boolean']
-	changeAdminRole: Scalars['Boolean']
-	changeProjectMembership: Scalars['Boolean']
+	changeAdminRole: WorkspaceAdminRole
+	changeProjectMembership: WorkspaceAdminRole
 	createAdmin: Admin
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
@@ -1223,7 +1223,7 @@ export type MutationChangeAdminRoleArgs = {
 
 export type MutationChangeProjectMembershipArgs = {
 	admin_id: Scalars['ID']
-	project_ids?: InputMaybe<Array<Scalars['ID']>>
+	project_ids: Array<Scalars['ID']>
 	workspace_id: Scalars['ID']
 }
 
@@ -3744,7 +3744,9 @@ export type Workspace = {
 export type WorkspaceAdminRole = {
 	__typename?: 'WorkspaceAdminRole'
 	admin: Admin
+	projectIds: Array<Scalars['ID']>
 	role: Scalars['String']
+	workspaceId: Scalars['ID']
 }
 
 export type WorkspaceForInviteLink = {

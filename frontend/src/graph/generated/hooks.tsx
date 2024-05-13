@@ -784,7 +784,14 @@ export const ChangeAdminRoleDocument = gql`
 			workspace_id: $workspace_id
 			admin_id: $admin_id
 			new_role: $new_role
-		)
+		) {
+			workspaceId
+			admin {
+				id
+			}
+			role
+			projectIds
+		}
 	}
 `
 export type ChangeAdminRoleMutationFn = Apollo.MutationFunction<
@@ -830,6 +837,70 @@ export type ChangeAdminRoleMutationResult =
 export type ChangeAdminRoleMutationOptions = Apollo.BaseMutationOptions<
 	Types.ChangeAdminRoleMutation,
 	Types.ChangeAdminRoleMutationVariables
+>
+export const ChangeProjectMembershipDocument = gql`
+	mutation ChangeProjectMembership(
+		$workspace_id: ID!
+		$admin_id: ID!
+		$project_ids: [ID!]!
+	) {
+		changeProjectMembership(
+			workspace_id: $workspace_id
+			admin_id: $admin_id
+			project_ids: $project_ids
+		) {
+			workspaceId
+			admin {
+				id
+			}
+			role
+			projectIds
+		}
+	}
+`
+export type ChangeProjectMembershipMutationFn = Apollo.MutationFunction<
+	Types.ChangeProjectMembershipMutation,
+	Types.ChangeProjectMembershipMutationVariables
+>
+
+/**
+ * __useChangeProjectMembershipMutation__
+ *
+ * To run a mutation, you first call `useChangeProjectMembershipMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useChangeProjectMembershipMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [changeProjectMembershipMutation, { data, loading, error }] = useChangeProjectMembershipMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      admin_id: // value for 'admin_id'
+ *      project_ids: // value for 'project_ids'
+ *   },
+ * });
+ */
+export function useChangeProjectMembershipMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.ChangeProjectMembershipMutation,
+		Types.ChangeProjectMembershipMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.ChangeProjectMembershipMutation,
+		Types.ChangeProjectMembershipMutationVariables
+	>(ChangeProjectMembershipDocument, baseOptions)
+}
+export type ChangeProjectMembershipMutationHookResult = ReturnType<
+	typeof useChangeProjectMembershipMutation
+>
+export type ChangeProjectMembershipMutationResult =
+	Apollo.MutationResult<Types.ChangeProjectMembershipMutation>
+export type ChangeProjectMembershipMutationOptions = Apollo.BaseMutationOptions<
+	Types.ChangeProjectMembershipMutation,
+	Types.ChangeProjectMembershipMutationVariables
 >
 export const DeleteAdminFromWorkspaceDocument = gql`
 	mutation DeleteAdminFromWorkspace($workspace_id: ID!, $admin_id: ID!) {
@@ -6196,6 +6267,7 @@ export type GetSessionQueryResult = Apollo.QueryResult<
 export const GetWorkspaceAdminsByProjectIdDocument = gql`
 	query GetWorkspaceAdminsByProjectId($project_id: ID!) {
 		admins: workspace_admins_by_project_id(project_id: $project_id) {
+			workspaceId
 			admin {
 				id
 				name
@@ -6203,6 +6275,7 @@ export const GetWorkspaceAdminsByProjectIdDocument = gql`
 				photo_url
 			}
 			role
+			projectIds
 		}
 	}
 `
@@ -6258,6 +6331,7 @@ export type GetWorkspaceAdminsByProjectIdQueryResult = Apollo.QueryResult<
 export const GetWorkspaceAdminsDocument = gql`
 	query GetWorkspaceAdmins($workspace_id: ID!) {
 		admins: workspace_admins(workspace_id: $workspace_id) {
+			workspaceId
 			admin {
 				id
 				name
@@ -6265,6 +6339,7 @@ export const GetWorkspaceAdminsDocument = gql`
 				photo_url
 			}
 			role
+			projectIds
 		}
 		workspace(id: $workspace_id) {
 			id
@@ -8302,6 +8377,7 @@ export type GetAdminQueryResult = Apollo.QueryResult<
 export const GetAdminRoleDocument = gql`
 	query GetAdminRole($workspace_id: ID!) {
 		admin_role(workspace_id: $workspace_id) {
+			workspaceId
 			admin {
 				id
 				uid
@@ -8315,6 +8391,7 @@ export const GetAdminRoleDocument = gql`
 				about_you_details_filled
 			}
 			role
+			projectIds
 		}
 	}
 `
@@ -8370,6 +8447,7 @@ export type GetAdminRoleQueryResult = Apollo.QueryResult<
 export const GetAdminRoleByProjectDocument = gql`
 	query GetAdminRoleByProject($project_id: ID!) {
 		admin_role_by_project(project_id: $project_id) {
+			workspaceId
 			admin {
 				id
 				uid
@@ -8383,6 +8461,7 @@ export const GetAdminRoleByProjectDocument = gql`
 				about_you_details_filled
 			}
 			role
+			projectIds
 		}
 	}
 `
@@ -11958,6 +12037,7 @@ export const GetLogAlertsPagePayloadDocument = gql`
 			...DiscordChannelFragment
 		}
 		admins: workspace_admins_by_project_id(project_id: $project_id) {
+			workspaceId
 			admin {
 				id
 				name
@@ -12043,6 +12123,7 @@ export const GetAlertsPagePayloadDocument = gql`
 			...MicrosoftTeamsChannelFragment
 		}
 		admins: workspace_admins_by_project_id(project_id: $project_id) {
+			workspaceId
 			admin {
 				id
 				name
@@ -13746,6 +13827,7 @@ export const GetWorkspaceSettingsDocument = gql`
 			enable_ingest_sampling
 			enable_data_deletion
 			enable_grafana_dashboard
+			enable_project_level_access
 		}
 	}
 `

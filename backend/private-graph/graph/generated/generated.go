@@ -793,6 +793,7 @@ type ComplexityRoot struct {
 		AddIntegrationToProject               func(childComplexity int, integrationType *model.IntegrationType, projectID int, code string) int
 		AddIntegrationToWorkspace             func(childComplexity int, integrationType *model.IntegrationType, workspaceID int, code string) int
 		ChangeAdminRole                       func(childComplexity int, workspaceID int, adminID int, newRole string) int
+		ChangeProjectMembership               func(childComplexity int, workspaceID int, adminID int, projectIds []int) int
 		CreateAdmin                           func(childComplexity int) int
 		CreateErrorAlert                      func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency int, defaultArg *bool) int
 		CreateErrorComment                    func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
@@ -931,7 +932,6 @@ type ComplexityRoot struct {
 		RageClickCount         func(childComplexity int) int
 		RageClickRadiusPixels  func(childComplexity int) int
 		RageClickWindowSeconds func(childComplexity int) int
-		Secret                 func(childComplexity int) int
 		VerboseID              func(childComplexity int) int
 		WorkspaceID            func(childComplexity int) int
 	}
@@ -1603,8 +1603,10 @@ type ComplexityRoot struct {
 	}
 
 	WorkspaceAdminRole struct {
-		Admin func(childComplexity int) int
-		Role  func(childComplexity int) int
+		Admin       func(childComplexity int) int
+		ProjectIds  func(childComplexity int) int
+		Role        func(childComplexity int) int
+		WorkspaceId func(childComplexity int) int
 	}
 
 	WorkspaceForInviteLink struct {
@@ -1697,7 +1699,8 @@ type MutationResolver interface {
 	DeleteInviteLinkFromWorkspace(ctx context.Context, workspaceID int, workspaceInviteLinkID int) (bool, error)
 	JoinWorkspace(ctx context.Context, workspaceID int) (*int, error)
 	UpdateAllowedEmailOrigins(ctx context.Context, workspaceID int, allowedAutoJoinEmailOrigins string) (*int, error)
-	ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (bool, error)
+	ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (*model1.WorkspaceAdminRole, error)
+	ChangeProjectMembership(ctx context.Context, workspaceID int, adminID int, projectIds []int) (*model1.WorkspaceAdminRole, error)
 	DeleteAdminFromWorkspace(ctx context.Context, workspaceID int, adminID int) (*int, error)
 	CreateSegment(ctx context.Context, projectID int, name string, query string) (*model1.Segment, error)
 	EmailSignup(ctx context.Context, email string) (string, error)
@@ -5359,6 +5362,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ChangeAdminRole(childComplexity, args["workspace_id"].(int), args["admin_id"].(int), args["new_role"].(string)), true
 
+	case "Mutation.changeProjectMembership":
+		if e.complexity.Mutation.ChangeProjectMembership == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_changeProjectMembership_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ChangeProjectMembership(childComplexity, args["workspace_id"].(int), args["admin_id"].(int), args["project_ids"].([]int)), true
+
 	case "Mutation.createAdmin":
 		if e.complexity.Mutation.CreateAdmin == nil {
 			break
@@ -6623,13 +6638,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Project.RageClickWindowSeconds(childComplexity), true
-
-	case "Project.secret":
-		if e.complexity.Project.Secret == nil {
-			break
-		}
-
-		return e.complexity.Project.Secret(childComplexity), true
 
 	case "Project.verbose_id":
 		if e.complexity.Project.VerboseID == nil {
@@ -10897,12 +10905,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.WorkspaceAdminRole.Admin(childComplexity), true
 
+	case "WorkspaceAdminRole.projectIds":
+		if e.complexity.WorkspaceAdminRole.ProjectIds == nil {
+			break
+		}
+
+		return e.complexity.WorkspaceAdminRole.ProjectIds(childComplexity), true
+
 	case "WorkspaceAdminRole.role":
 		if e.complexity.WorkspaceAdminRole.Role == nil {
 			break
 		}
 
 		return e.complexity.WorkspaceAdminRole.Role(childComplexity), true
+
+	case "WorkspaceAdminRole.workspaceId":
+		if e.complexity.WorkspaceAdminRole.WorkspaceId == nil {
+			break
+		}
+
+		return e.complexity.WorkspaceAdminRole.WorkspaceId(childComplexity), true
 
 	case "WorkspaceForInviteLink.existing_account":
 		if e.complexity.WorkspaceForInviteLink.ExistingAccount == nil {
@@ -11655,7 +11677,6 @@ type Project {
 	verbose_id: String!
 	name: String!
 	billing_email: String
-	secret: String
 	workspace_id: ID!
 	excluded_users: StringArray
 	error_filters: StringArray
@@ -12502,8 +12523,10 @@ type Admin {
 }
 
 type WorkspaceAdminRole {
+	workspaceId: ID!
 	admin: Admin!
 	role: String!
+	projectIds: [ID!]!
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
@@ -13586,7 +13609,12 @@ type Mutation {
 		workspace_id: ID!
 		admin_id: ID!
 		new_role: String!
-	): Boolean!
+	): WorkspaceAdminRole!
+	changeProjectMembership(
+		workspace_id: ID!
+		admin_id: ID!
+		project_ids: [ID!]!
+	): WorkspaceAdminRole!
 	deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
 	createSegment(project_id: ID!, name: String!, query: String!): Segment
 	emailSignup(email: String!): String!
@@ -14093,6 +14121,39 @@ func (ec *executionContext) field_Mutation_changeAdminRole_args(ctx context.Cont
 		}
 	}
 	args["new_role"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_changeProjectMembership_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["admin_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("admin_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["admin_id"] = arg1
+	var arg2 []int
+	if tmp, ok := rawArgs["project_ids"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_ids"))
+		arg2, err = ec.unmarshalNID2ᚕintᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_ids"] = arg2
 	return args, nil
 }
 
@@ -42858,8 +42919,6 @@ func (ec *executionContext) fieldContext_Mutation_updateAdminAndCreateWorkspace(
 				return ec.fieldContext_Project_name(ctx, field)
 			case "billing_email":
 				return ec.fieldContext_Project_billing_email(ctx, field)
-			case "secret":
-				return ec.fieldContext_Project_secret(ctx, field)
 			case "workspace_id":
 				return ec.fieldContext_Project_workspace_id(ctx, field)
 			case "excluded_users":
@@ -43067,8 +43126,6 @@ func (ec *executionContext) fieldContext_Mutation_createProject(ctx context.Cont
 				return ec.fieldContext_Project_name(ctx, field)
 			case "billing_email":
 				return ec.fieldContext_Project_billing_email(ctx, field)
-			case "secret":
-				return ec.fieldContext_Project_secret(ctx, field)
 			case "workspace_id":
 				return ec.fieldContext_Project_workspace_id(ctx, field)
 			case "excluded_users":
@@ -43245,8 +43302,6 @@ func (ec *executionContext) fieldContext_Mutation_editProject(ctx context.Contex
 				return ec.fieldContext_Project_name(ctx, field)
 			case "billing_email":
 				return ec.fieldContext_Project_billing_email(ctx, field)
-			case "secret":
-				return ec.fieldContext_Project_secret(ctx, field)
 			case "workspace_id":
 				return ec.fieldContext_Project_workspace_id(ctx, field)
 			case "excluded_users":
@@ -44293,9 +44348,9 @@ func (ec *executionContext) _Mutation_changeAdminRole(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*model1.WorkspaceAdminRole)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNWorkspaceAdminRole2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceAdminRole(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_changeAdminRole(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -44305,7 +44360,17 @@ func (ec *executionContext) fieldContext_Mutation_changeAdminRole(ctx context.Co
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			switch field.Name {
+			case "workspaceId":
+				return ec.fieldContext_WorkspaceAdminRole_workspaceId(ctx, field)
+			case "admin":
+				return ec.fieldContext_WorkspaceAdminRole_admin(ctx, field)
+			case "role":
+				return ec.fieldContext_WorkspaceAdminRole_role(ctx, field)
+			case "projectIds":
+				return ec.fieldContext_WorkspaceAdminRole_projectIds(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WorkspaceAdminRole", field.Name)
 		},
 	}
 	defer func() {
@@ -44316,6 +44381,71 @@ func (ec *executionContext) fieldContext_Mutation_changeAdminRole(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_changeAdminRole_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_changeProjectMembership(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_changeProjectMembership(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ChangeProjectMembership(rctx, fc.Args["workspace_id"].(int), fc.Args["admin_id"].(int), fc.Args["project_ids"].([]int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model1.WorkspaceAdminRole)
+	fc.Result = res
+	return ec.marshalNWorkspaceAdminRole2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceAdminRole(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_changeProjectMembership(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "workspaceId":
+				return ec.fieldContext_WorkspaceAdminRole_workspaceId(ctx, field)
+			case "admin":
+				return ec.fieldContext_WorkspaceAdminRole_admin(ctx, field)
+			case "role":
+				return ec.fieldContext_WorkspaceAdminRole_role(ctx, field)
+			case "projectIds":
+				return ec.fieldContext_WorkspaceAdminRole_projectIds(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WorkspaceAdminRole", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_changeProjectMembership_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -50441,47 +50571,6 @@ func (ec *executionContext) fieldContext_Project_billing_email(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Project_secret(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Project_secret(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Secret, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Project_secret(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Project",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Project_workspace_id(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Project_workspace_id(ctx, field)
 	if err != nil {
@@ -53150,10 +53239,14 @@ func (ec *executionContext) fieldContext_Query_workspace_admins(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "workspaceId":
+				return ec.fieldContext_WorkspaceAdminRole_workspaceId(ctx, field)
 			case "admin":
 				return ec.fieldContext_WorkspaceAdminRole_admin(ctx, field)
 			case "role":
 				return ec.fieldContext_WorkspaceAdminRole_role(ctx, field)
+			case "projectIds":
+				return ec.fieldContext_WorkspaceAdminRole_projectIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkspaceAdminRole", field.Name)
 		},
@@ -53211,10 +53304,14 @@ func (ec *executionContext) fieldContext_Query_workspace_admins_by_project_id(ct
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "workspaceId":
+				return ec.fieldContext_WorkspaceAdminRole_workspaceId(ctx, field)
 			case "admin":
 				return ec.fieldContext_WorkspaceAdminRole_admin(ctx, field)
 			case "role":
 				return ec.fieldContext_WorkspaceAdminRole_role(ctx, field)
+			case "projectIds":
+				return ec.fieldContext_WorkspaceAdminRole_projectIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkspaceAdminRole", field.Name)
 		},
@@ -55270,8 +55367,6 @@ func (ec *executionContext) fieldContext_Query_projects(ctx context.Context, fie
 				return ec.fieldContext_Project_name(ctx, field)
 			case "billing_email":
 				return ec.fieldContext_Project_billing_email(ctx, field)
-			case "secret":
-				return ec.fieldContext_Project_secret(ctx, field)
 			case "workspace_id":
 				return ec.fieldContext_Project_workspace_id(ctx, field)
 			case "excluded_users":
@@ -56307,8 +56402,6 @@ func (ec *executionContext) fieldContext_Query_projectSuggestion(ctx context.Con
 				return ec.fieldContext_Project_name(ctx, field)
 			case "billing_email":
 				return ec.fieldContext_Project_billing_email(ctx, field)
-			case "secret":
-				return ec.fieldContext_Project_secret(ctx, field)
 			case "workspace_id":
 				return ec.fieldContext_Project_workspace_id(ctx, field)
 			case "excluded_users":
@@ -57830,8 +57923,6 @@ func (ec *executionContext) fieldContext_Query_project(ctx context.Context, fiel
 				return ec.fieldContext_Project_name(ctx, field)
 			case "billing_email":
 				return ec.fieldContext_Project_billing_email(ctx, field)
-			case "secret":
-				return ec.fieldContext_Project_secret(ctx, field)
 			case "workspace_id":
 				return ec.fieldContext_Project_workspace_id(ctx, field)
 			case "excluded_users":
@@ -58536,10 +58627,14 @@ func (ec *executionContext) fieldContext_Query_admin_role(ctx context.Context, f
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "workspaceId":
+				return ec.fieldContext_WorkspaceAdminRole_workspaceId(ctx, field)
 			case "admin":
 				return ec.fieldContext_WorkspaceAdminRole_admin(ctx, field)
 			case "role":
 				return ec.fieldContext_WorkspaceAdminRole_role(ctx, field)
+			case "projectIds":
+				return ec.fieldContext_WorkspaceAdminRole_projectIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkspaceAdminRole", field.Name)
 		},
@@ -58594,10 +58689,14 @@ func (ec *executionContext) fieldContext_Query_admin_role_by_project(ctx context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "workspaceId":
+				return ec.fieldContext_WorkspaceAdminRole_workspaceId(ctx, field)
 			case "admin":
 				return ec.fieldContext_WorkspaceAdminRole_admin(ctx, field)
 			case "role":
 				return ec.fieldContext_WorkspaceAdminRole_role(ctx, field)
+			case "projectIds":
+				return ec.fieldContext_WorkspaceAdminRole_projectIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkspaceAdminRole", field.Name)
 		},
@@ -76251,8 +76350,6 @@ func (ec *executionContext) fieldContext_Workspace_projects(ctx context.Context,
 				return ec.fieldContext_Project_name(ctx, field)
 			case "billing_email":
 				return ec.fieldContext_Project_billing_email(ctx, field)
-			case "secret":
-				return ec.fieldContext_Project_secret(ctx, field)
 			case "workspace_id":
 				return ec.fieldContext_Project_workspace_id(ctx, field)
 			case "excluded_users":
@@ -76950,6 +77047,50 @@ func (ec *executionContext) fieldContext_Workspace_traces_max_cents(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _WorkspaceAdminRole_workspaceId(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceAdminRole) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WorkspaceAdminRole_workspaceId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WorkspaceId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WorkspaceAdminRole_workspaceId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WorkspaceAdminRole",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _WorkspaceAdminRole_admin(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceAdminRole) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_WorkspaceAdminRole_admin(ctx, field)
 	if err != nil {
@@ -77063,6 +77204,50 @@ func (ec *executionContext) fieldContext_WorkspaceAdminRole_role(ctx context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WorkspaceAdminRole_projectIds(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceAdminRole) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WorkspaceAdminRole_projectIds(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProjectIds, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int)
+	fc.Result = res
+	return ec.marshalNID2ᚕintᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WorkspaceAdminRole_projectIds(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WorkspaceAdminRole",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -86853,6 +87038,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "changeProjectMembership":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_changeProjectMembership(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "deleteAdminFromWorkspace":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteAdminFromWorkspace(ctx, field)
@@ -87530,8 +87722,6 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "billing_email":
 			out.Values[i] = ec._Project_billing_email(ctx, field, obj)
-		case "secret":
-			out.Values[i] = ec._Project_secret(ctx, field, obj)
 		case "workspace_id":
 			out.Values[i] = ec._Project_workspace_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -95141,6 +95331,11 @@ func (ec *executionContext) _WorkspaceAdminRole(ctx context.Context, sel ast.Sel
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("WorkspaceAdminRole")
+		case "workspaceId":
+			out.Values[i] = ec._WorkspaceAdminRole_workspaceId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "admin":
 			out.Values[i] = ec._WorkspaceAdminRole_admin(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -95148,6 +95343,11 @@ func (ec *executionContext) _WorkspaceAdminRole(ctx context.Context, sel ast.Sel
 			}
 		case "role":
 			out.Values[i] = ec._WorkspaceAdminRole_role(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "projectIds":
+			out.Values[i] = ec._WorkspaceAdminRole_projectIds(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -97527,6 +97727,38 @@ func (ec *executionContext) marshalNID2int(ctx context.Context, sel ast.Selectio
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNID2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]int, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2int(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNID2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2int(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNID2ᚖint(ctx context.Context, v interface{}) (*int, error) {
@@ -100764,6 +100996,10 @@ func (ec *executionContext) unmarshalNWebhookDestinationInput2ᚕᚖgithubᚗcom
 func (ec *executionContext) unmarshalNWebhookDestinationInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebhookDestinationInput(ctx context.Context, v interface{}) (*model.WebhookDestinationInput, error) {
 	res, err := ec.unmarshalInputWebhookDestinationInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNWorkspaceAdminRole2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceAdminRole(ctx context.Context, sel ast.SelectionSet, v model1.WorkspaceAdminRole) graphql.Marshaler {
+	return ec._WorkspaceAdminRole(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNWorkspaceAdminRole2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceAdminRoleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.WorkspaceAdminRole) graphql.Marshaler {

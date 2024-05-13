@@ -388,17 +388,21 @@ func (r *Resolver) GetAWSMarketPlaceWorkspace(ctx context.Context, workspaceID i
 	return &workspace, nil
 }
 
-func (r *Resolver) GetAdminRole(ctx context.Context, adminID int, workspaceID int) (string, error) {
+func (r *Resolver) getAdminRole(ctx context.Context, adminID int, workspaceID int) (string, []int, error) {
 	var workspaceAdmin model.WorkspaceAdmin
 	if err := r.DB.WithContext(ctx).Where(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).Take(&workspaceAdmin).Error; err != nil {
-		return "", e.Wrap(err, "error querying workspace_admin")
+		return "", nil, e.Wrap(err, "error querying workspace_admin")
 	}
 	if workspaceAdmin.Role == nil || *workspaceAdmin.Role == "" {
 		log.WithContext(ctx).Errorf("workspace_admin admin_id:%d,workspace_id:%d has invalid role", adminID, workspaceID)
-		return "", e.New("workspace_admin has invalid role")
-
+		return "", nil, e.New("workspace_admin has invalid role")
 	}
-	return *workspaceAdmin.Role, nil
+
+	projectIds := lo.Map(workspaceAdmin.ProjectIds, func(in int32, _ int) int {
+		return int(in)
+	})
+
+	return *workspaceAdmin.Role, projectIds, nil
 }
 
 func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, inviteID string) (*int, error) {
@@ -1243,7 +1247,7 @@ func (r *Resolver) validateAdminRole(ctx context.Context, workspaceID int) error
 		return err
 	}
 
-	role, err := r.GetAdminRole(ctx, admin.ID, workspaceID)
+	role, _, err := r.getAdminRole(ctx, admin.ID, workspaceID)
 	if err != nil || role != model.AdminRole.ADMIN {
 		return AuthorizationError
 	}

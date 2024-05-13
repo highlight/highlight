@@ -341,17 +341,20 @@ func (w *Workspace) AdminEmailAddresses(db *gorm.DB) ([]struct {
 }
 
 type WorkspaceAdmin struct {
-	AdminID     int        `gorm:"primaryKey"`
-	WorkspaceID int        `gorm:"primaryKey"`
-	CreatedAt   time.Time  `json:"created_at" deep:"-"`
-	UpdatedAt   time.Time  `json:"updated_at" deep:"-"`
-	DeletedAt   *time.Time `json:"deleted_at" deep:"-"`
-	Role        *string    `json:"role" gorm:"default:ADMIN"`
+	AdminID     int           `gorm:"primaryKey"`
+	WorkspaceID int           `gorm:"primaryKey"`
+	CreatedAt   time.Time     `json:"created_at" deep:"-"`
+	UpdatedAt   time.Time     `json:"updated_at" deep:"-"`
+	DeletedAt   *time.Time    `json:"deleted_at" deep:"-"`
+	Role        *string       `json:"role" gorm:"default:ADMIN"`
+	ProjectIds  pq.Int32Array `gorm:"type:integer[]"`
 }
 
 type WorkspaceAdminRole struct {
-	Admin *Admin
-	Role  string
+	WorkspaceId int
+	Admin       *Admin
+	Role        string
+	ProjectIds  []int
 }
 
 type WorkspaceInviteLink struct {
@@ -386,7 +389,6 @@ type Project struct {
 	FrontTokenExpiresAt *time.Time
 	BillingEmail        *string
 	Secret              *string    `json:"-"`
-	Admins              []Admin    `gorm:"many2many:project_admins;"`
 	TrialEndDate        *time.Time `json:"trial_end_date"`
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
@@ -653,7 +655,6 @@ type Admin struct {
 	PhotoURL                  *string          `json:"photo_url"`
 	UID                       *string          `gorm:"uniqueIndex"`
 	Organizations             []Organization   `gorm:"many2many:organization_admins;"`
-	Projects                  []Project        `gorm:"many2many:project_admins;"`
 	SessionComments           []SessionComment `gorm:"many2many:session_comment_admins;"`
 	ErrorComments             []ErrorComment   `gorm:"many2many:error_comment_admins;"`
 	Workspaces                []Workspace      `gorm:"many2many:workspace_admins;"`

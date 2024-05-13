@@ -971,30 +971,84 @@ func (r *mutationResolver) UpdateAllowedEmailOrigins(ctx context.Context, worksp
 }
 
 // ChangeAdminRole is the resolver for the changeAdminRole field.
-func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (bool, error) {
+func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (*model.WorkspaceAdminRole, error) {
 	_, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
-		return false, e.Wrap(err, "A non-Admin role Admin tried changing an admin role.")
+		return nil, e.Wrap(err, "Admin role required to change user access.")
 	}
 
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	if admin.ID == adminID {
-		return false, e.New("A admin tried changing their own role.")
+		return nil, e.New("User cannot change their own access.")
 	}
 
-	if err := r.DB.WithContext(ctx).Model(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).Update("Role", newRole).Error; err != nil {
-		return false, e.Wrap(err, "error updating workspace_admin role")
+	if newRole != model.AdminRole.ADMIN && newRole != model.AdminRole.MEMBER {
+		return nil, e.Errorf("Invalid role %s", newRole)
 	}
 
-	return true, nil
+	wa := model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}
+	if err := r.DB.WithContext(ctx).Model(&wa).
+		Clauses(clause.Returning{}).
+		Updates(map[string]interface{}{"Role": newRole, "ProjectIds": pq.Int32Array{}}).Error; err != nil {
+		return nil, e.Wrap(err, "Error updating workspace_admin role")
+	}
+
+	return &model.WorkspaceAdminRole{
+		WorkspaceId: wa.WorkspaceID,
+		Admin:       &model.Admin{Model: model.Model{ID: adminID}},
+		Role:        *wa.Role,
+		ProjectIds: lo.Map(wa.ProjectIds, func(in int32, _ int) int {
+			return int(in)
+		}),
+	}, nil
+}
+
+// ChangeProjectMembership is the resolver for the changeProjectMembership field.
+func (r *mutationResolver) ChangeProjectMembership(ctx context.Context, workspaceID int, adminID int, projectIds []int) (*model.WorkspaceAdminRole, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
+		return nil, e.Wrap(err, "Admin role required to change user access.")
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if admin.ID == adminID {
+		return nil, e.New("User cannot change their own access.")
+	}
+
+	var newProjectIds pq.Int32Array = lo.Map(projectIds, func(in int, _ int) int32 {
+		return int32(in)
+	})
+
+	wa := model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}
+	if err := r.DB.WithContext(ctx).Model(&wa).
+		Clauses(clause.Returning{}).Update("ProjectIds", newProjectIds).Error; err != nil {
+		return nil, e.Wrap(err, "error updating workspace_admin role")
+	}
+
+	return &model.WorkspaceAdminRole{
+		WorkspaceId: wa.WorkspaceID,
+		Admin:       &model.Admin{Model: model.Model{ID: adminID}},
+		Role:        *wa.Role,
+		ProjectIds: lo.Map(wa.ProjectIds, func(in int32, _ int) int {
+			return int(in)
+		}),
+	}, nil
 }
 
 // DeleteAdminFromWorkspace is the resolver for the deleteAdminFromWorkspace field.
@@ -4216,13 +4270,8 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, pa
 		firstName = *admin.FirstName
 	}
 
-	role, err := r.GetAdminRole(ctx, admin.ID, project.WorkspaceID)
-	if err != nil {
+	if err := r.validateAdminRole(ctx, project.WorkspaceID); err != nil {
 		return false, err
-	}
-
-	if role != model.AdminRole.ADMIN {
-		return false, e.New("Must be admin role to delete sessions")
 	}
 
 	_, err = r.StepFunctions.DeleteSessionsByQuery(ctx, utils.QuerySessionsInput{
@@ -5732,13 +5781,15 @@ func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([
 
 	var roles []*model.WorkspaceAdminRole
 	for _, admin := range admins {
-		role, err := r.GetAdminRole(ctx, admin.ID, workspace.ID)
+		role, projectIds, err := r.getAdminRole(ctx, admin.ID, workspace.ID)
 		if err != nil {
 			return nil, e.Wrap(err, "failed to retrieve admin role")
 		}
 		roles = append(roles, &model.WorkspaceAdminRole{
-			Admin: admin,
-			Role:  role,
+			WorkspaceId: workspace.ID,
+			Admin:       admin,
+			Role:        role,
+			ProjectIds:  projectIds,
 		})
 	}
 
@@ -5757,7 +5808,23 @@ func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectI
 		return nil, err
 	}
 
-	return r.WorkspaceAdmins(ctx, workspace.ID)
+	admins, err := r.WorkspaceAdmins(ctx, workspace.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Only return admins with all or specific project-level access
+	return lo.Filter(admins, func(wa *model.WorkspaceAdminRole, _ int) bool {
+		if len(wa.ProjectIds) == 0 {
+			return true
+		}
+		for _, id := range wa.ProjectIds {
+			if projectID == id {
+				return true
+			}
+		}
+		return false
+	}), nil
 }
 
 // ClientIntegration is the resolver for the clientIntegration field.
@@ -6912,15 +6979,14 @@ func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) 
 	projects := []*model.Project{}
 	if err := r.DB.WithContext(ctx).Order("id ASC").Model(&model.Project{}).Where(`
 		id IN (
-			SELECT project_id
-			FROM project_admins
-			WHERE admin_id = ?
-			UNION
 			SELECT id
 			FROM projects p
 			INNER JOIN workspace_admins wa
 			ON p.workspace_id = wa.workspace_id
 			AND wa.admin_id = ?
+			AND (
+				wa.project_ids IS NULL 
+				OR p.id = ANY(wa.project_ids))
 		)
 	`, admin.ID, admin.ID).Scan(&projects).Error; err != nil {
 		return nil, e.Wrap(err, "error getting associated projects")
@@ -8031,16 +8097,20 @@ func (r *queryResolver) AdminRole(ctx context.Context, workspaceID int) (*model.
 
 	if r.isWhitelistedAccount(ctx) {
 		return &model.WorkspaceAdminRole{
-			Admin: admin,
-			Role:  model.AdminRole.ADMIN,
+			WorkspaceId: workspaceID,
+			Admin:       admin,
+			Role:        model.AdminRole.ADMIN,
+			ProjectIds:  nil,
 		}, nil
 	}
 
 	// ok to have empty string role, treated as unauthenticated user
-	role, _ := r.GetAdminRole(ctx, admin.ID, workspaceID)
+	role, projectIds, _ := r.getAdminRole(ctx, admin.ID, workspaceID)
 	return &model.WorkspaceAdminRole{
-		Admin: admin,
-		Role:  role,
+		WorkspaceId: workspaceID,
+		Admin:       admin,
+		Role:        role,
+		ProjectIds:  projectIds,
 	}, nil
 }
 
@@ -8052,24 +8122,37 @@ func (r *queryResolver) AdminRoleByProject(ctx context.Context, projectID int) (
 	}
 
 	if r.isWhitelistedAccount(ctx) {
+		project, err := r.Query().Project(ctx, projectID)
+		if err != nil {
+			return nil, err
+		}
+		workspace, err := r.GetWorkspace(project.WorkspaceID)
+		if err != nil {
+			return nil, err
+		}
 		return &model.WorkspaceAdminRole{
-			Admin: admin,
-			Role:  model.AdminRole.ADMIN,
+			WorkspaceId: workspace.ID,
+			Admin:       admin,
+			Role:        model.AdminRole.ADMIN,
+			ProjectIds:  nil,
 		}, nil
 	}
 
 	var role string
+	var projectIds []int
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err == nil {
 		if workspace, err := r.GetWorkspace(project.WorkspaceID); err == nil {
 			// ok to have empty string role, treated as unauthenticated user
-			role, _ = r.GetAdminRole(ctx, admin.ID, workspace.ID)
+			role, projectIds, _ = r.getAdminRole(ctx, admin.ID, workspace.ID)
 		}
 	}
 
 	return &model.WorkspaceAdminRole{
-		Admin: admin,
-		Role:  role,
+		WorkspaceId: project.WorkspaceID,
+		Admin:       admin,
+		Role:        role,
+		ProjectIds:  projectIds,
 	}, nil
 }
 
@@ -9557,18 +9640,3 @@ type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
 type visualizationResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *mutationResolver) DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	return r.DeleteAdminAssociation(ctx, project, adminID)
-}

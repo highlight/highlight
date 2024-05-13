@@ -250,6 +250,9 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 			WHERE eoo.admin_id = a.id
 			AND eoo.category IN ('All', 'Digests', 'SessionDigests')
 		)
+		AND (
+			wa.project_ids IS NULL 
+			OR p.id = ANY(wa.project_ids))
 	`, input.ProjectId).Scan(&toAddrs).Error; err != nil {
 		return errors.Wrap(err, "error querying recipient emails")
 	}

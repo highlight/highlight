@@ -91,6 +91,9 @@ const cache = new InMemoryCache({
 		ErrorObject: {
 			keyFields: ['id'],
 		},
+		WorkspaceAdminRole: {
+			keyFields: ['workspaceId', 'admin', ['id']],
+		},
 		DashboardPayload: {
 			fields: {
 				metrics_histogram: {
