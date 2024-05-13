@@ -1480,6 +1480,13 @@ query GetWorkspaceIsIntegratedWithMicrosoftTeams($project_id: ID!) {
 	)
 }
 
+query GetWorkspaceIsIntegratedWithHeroku($project_id: ID!) {
+	is_integrated_with_heroku: is_integrated_with(
+		integration_type: Heroku
+		project_id: $project_id
+	)
+}
+
 query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
 	is_integrated_with_linear: is_integrated_with(
 		integration_type: Linear

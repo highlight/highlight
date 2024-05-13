@@ -3772,6 +3772,14 @@ export type GetWorkspaceIsIntegratedWithMicrosoftTeamsQuery = {
 	__typename?: 'Query'
 } & { is_integrated_with_microsoft_teams: Types.Query['is_integrated_with'] }
 
+export type GetWorkspaceIsIntegratedWithHerokuQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetWorkspaceIsIntegratedWithHerokuQuery = {
+	__typename?: 'Query'
+} & { is_integrated_with_heroku: Types.Query['is_integrated_with'] }
+
 export type GetWorkspaceIsIntegratedWithLinearQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -5209,6 +5217,8 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithSlack' as const,
 		GetWorkspaceIsIntegratedWithMicrosoftTeams:
 			'GetWorkspaceIsIntegratedWithMicrosoftTeams' as const,
+		GetWorkspaceIsIntegratedWithHeroku:
+			'GetWorkspaceIsIntegratedWithHeroku' as const,
 		GetWorkspaceIsIntegratedWithLinear:
 			'GetWorkspaceIsIntegratedWithLinear' as const,
 		GetWorkspaceIsIntegratedWithZapier:

@@ -10920,6 +10920,63 @@ export type GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryResult =
 		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQuery,
 		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryVariables
 	>
+export const GetWorkspaceIsIntegratedWithHerokuDocument = gql`
+	query GetWorkspaceIsIntegratedWithHeroku($project_id: ID!) {
+		is_integrated_with_heroku: is_integrated_with(
+			integration_type: Heroku
+			project_id: $project_id
+		)
+	}
+`
+
+/**
+ * __useGetWorkspaceIsIntegratedWithHerokuQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithHerokuQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithHerokuQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithHerokuQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithHerokuQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithHerokuQuery,
+		Types.GetWorkspaceIsIntegratedWithHerokuQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceIsIntegratedWithHerokuQuery,
+		Types.GetWorkspaceIsIntegratedWithHerokuQueryVariables
+	>(GetWorkspaceIsIntegratedWithHerokuDocument, baseOptions)
+}
+export function useGetWorkspaceIsIntegratedWithHerokuLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithHerokuQuery,
+		Types.GetWorkspaceIsIntegratedWithHerokuQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceIsIntegratedWithHerokuQuery,
+		Types.GetWorkspaceIsIntegratedWithHerokuQueryVariables
+	>(GetWorkspaceIsIntegratedWithHerokuDocument, baseOptions)
+}
+export type GetWorkspaceIsIntegratedWithHerokuQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithHerokuQuery
+>
+export type GetWorkspaceIsIntegratedWithHerokuLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithHerokuLazyQuery
+>
+export type GetWorkspaceIsIntegratedWithHerokuQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceIsIntegratedWithHerokuQuery,
+	Types.GetWorkspaceIsIntegratedWithHerokuQueryVariables
+>
 export const GetWorkspaceIsIntegratedWithLinearDocument = gql`
 	query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
 		is_integrated_with_linear: is_integrated_with(

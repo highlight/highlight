@@ -79,6 +79,7 @@ import { PythonManualTracesContent } from './traces/python/manual'
 import { PythonAITracesContent } from './traces/python/python-ai'
 import { PythonLibrariesTracesContent } from './traces/python/python-libraries'
 import { RustTracesContent } from './traces/rust'
+import { HostingHerokuLogContent } from './logging/hosting/heroku'
 
 export type QuickStartOptions = {
 	title: string
@@ -167,6 +168,7 @@ export enum QuickStartType {
 	HostingVercel = 'vercel',
 	HostingFlyIO = 'fly-io',
 	HostingRender = 'render',
+	HostingHeroku = 'heroku',
 	OTLP = 'otlp',
 	OTLPDotNet = 'dot-net',
 }
@@ -357,6 +359,7 @@ export const quickStartContent = {
 			[QuickStartType.HostingVercel]: HostingVercelLogContent,
 			[QuickStartType.HostingFlyIO]: HostingFlyIOLogContent,
 			[QuickStartType.HostingRender]: HostingRenderLogContent,
+			[QuickStartType.HostingHeroku]: HostingHerokuLogContent,
 		},
 		dotnet: {
 			title: 'C# .NET',
