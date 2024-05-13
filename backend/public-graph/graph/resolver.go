@@ -3242,11 +3242,6 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 				}
 			}
 		}
-		responseBodyJson := make(map[string]interface{})
-		// if the request body is json and contains the graphql key operationName, treat it as an operation
-		if err := json.Unmarshal([]byte(responseBody), &responseBodyJson); err == nil {
-			log.WithContext(ctx).Warn("TODO(vkorolik)")
-		}
 
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionObj.SecureID)
