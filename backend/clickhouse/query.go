@@ -39,12 +39,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	var err error
 	var args []interface{}
 
-	orderForward := OrderForwardNatural
-	orderBackward := OrderBackwardNatural
-	if pagination.Direction == modelInputs.SortDirectionAsc {
-		orderForward = OrderForwardInverted
-		orderBackward = OrderBackwardInverted
-	}
+	orderForward, _ := getSortOrders[TReservedKey](sb, pagination.Direction, config, params)
 
 	outerSelect := strings.Join(config.SelectColumns, ", ")
 	innerSelect := []string{"Timestamp", "UUID"}
@@ -58,9 +53,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			params,
 			Pagination{
 				Before: pagination.At,
-			},
-			orderBackward,
-			orderForward)
+			})
 		if err != nil {
 			return nil, err
 		}
@@ -73,9 +66,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			params,
 			Pagination{
 				At: pagination.At,
-			},
-			orderBackward,
-			orderForward)
+			})
 		if err != nil {
 			return nil, err
 		}
@@ -88,9 +79,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			params,
 			Pagination{
 				After: pagination.At,
-			},
-			orderBackward,
-			orderForward)
+			})
 		if err != nil {
 			return nil, err
 		}
@@ -109,9 +98,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			innerSelect,
 			[]int{projectID},
 			params,
-			pagination,
-			orderBackward,
-			orderForward)
+			pagination)
 		if err != nil {
 			return nil, err
 		}
@@ -163,10 +150,10 @@ func makeSelectBuilder[T ~string](
 	projectIDs []int,
 	params modelInputs.QueryInput,
 	pagination Pagination,
-	orderBackward string,
-	orderForward string,
 ) (*sqlbuilder.SelectBuilder, error) {
 	sb := sqlbuilder.NewSelectBuilder()
+
+	orderForward, orderBackward := getSortOrders[T](sb, pagination.Direction, config, params)
 
 	sb.Select(selectCols...)
 	sb.From(config.TableName)
@@ -612,8 +599,6 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 		projectIDs,
 		params,
 		Pagination{CountOnly: true},
-		OrderBackwardNatural,
-		OrderForwardNatural,
 	)
 
 	var col string
@@ -895,8 +880,6 @@ func logLines[T ~string](ctx context.Context, client *Client, tableConfig model.
 		[]int{projectID},
 		params,
 		Pagination{CountOnly: true},
-		OrderBackwardNatural,
-		OrderForwardNatural,
 	)
 	if err != nil {
 		return nil, err
@@ -958,4 +941,37 @@ func repr(val reflect.Value) string {
 	default:
 		return val.String()
 	}
+}
+
+func getSortOrders[TReservedKey ~string](
+	sb *sqlbuilder.SelectBuilder,
+	paginationDirection modelInputs.SortDirection,
+	config model.TableConfig[TReservedKey],
+	params modelInputs.QueryInput,
+) (string, string) {
+	sortColumn := "timestamp"
+	sortDirection := modelInputs.SortDirectionDesc
+	if params.Sort != nil {
+		sortColumn = params.Sort.Column
+		sortDirection = params.Sort.Direction
+	}
+
+	if col, found := config.KeysToColumns[TReservedKey(sortColumn)]; found {
+		sortColumn = col
+	} else {
+		sortColumn = fmt.Sprintf("%s[%s]", config.AttributesColumn, sb.Var(sortColumn))
+	}
+
+	forwardDirection := "DESC"
+	backwardDirection := "ASC"
+	if paginationDirection == modelInputs.SortDirectionAsc || sortDirection == modelInputs.SortDirectionAsc {
+		forwardDirection = "ASC"
+	} else {
+		backwardDirection = "DESC"
+	}
+
+	orderForward := fmt.Sprintf("%s %s, UUID %s", sortColumn, forwardDirection, forwardDirection)
+	orderBackward := fmt.Sprintf("%s %s, UUID %s", sortColumn, backwardDirection, backwardDirection)
+
+	return orderForward, orderBackward
 }

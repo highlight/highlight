@@ -951,6 +951,7 @@ enum ReservedLogKey {
 	source
 	service_name
 	service_version
+	timestamp
 }
 
 enum ReservedTraceKey {
@@ -970,6 +971,7 @@ enum ReservedTraceKey {
 	duration
 	service_name
 	service_version
+	timestamp
 }
 
 enum ReservedErrorObjectKey {
@@ -1179,9 +1181,15 @@ input ErrorGroupFrequenciesParamsInput {
 	resolution_minutes: Int!
 }
 
+input SortInput {
+	column: String!
+	direction: SortDirection!
+}
+
 input QueryInput {
 	query: String!
 	date_range: DateRangeRequiredInput!
+	sort: SortInput
 }
 
 enum MetricTagFilterOp {
