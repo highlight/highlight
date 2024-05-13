@@ -19,7 +19,7 @@ type Props = {
 	setSelectedColumns: (columns: ValidCustomColumn[]) => void
 	standardColumns: Record<string, ValidCustomColumn>
 	trackingIdPrefix: string
-	tableRef: React.RefObject<HTMLDivElement>
+	rowWidth?: number
 }
 
 const MINIMUM_COLUMN_WIDTH = 50
@@ -30,7 +30,7 @@ export const CustomColumnHeader: React.FC<Props> = ({
 	setSelectedColumns,
 	standardColumns,
 	trackingIdPrefix,
-	tableRef,
+	rowWidth,
 }) => {
 	const headerRef = useRef<HTMLDivElement>(null)
 
@@ -50,13 +50,12 @@ export const CustomColumnHeader: React.FC<Props> = ({
 			e.stopPropagation()
 			e.preventDefault()
 
-			const tableWidth = tableRef.current?.getBoundingClientRect().width
 			const leftElementCoord = headerRef.current?.getBoundingClientRect()
 			const rightElementCoord =
 				headerRef.current?.nextElementSibling?.getBoundingClientRect()
 
 			if (
-				tableWidth &&
+				rowWidth &&
 				leftElementCoord &&
 				rightElementCoord &&
 				e.pageX > leftElementCoord.left + MINIMUM_COLUMN_WIDTH &&
@@ -69,15 +68,15 @@ export const CustomColumnHeader: React.FC<Props> = ({
 				const rightElementNewWidth =
 					rightElementWidth - (leftElementNewWidth - leftElementWidth)
 
-				const leftElementNewWidtPecentage =
-					(leftElementNewWidth / tableWidth) * 100
+				const leftElementNewWidthPecentage =
+					(leftElementNewWidth / rowWidth) * 100
 				const rightElementNewWidthPercentage =
-					(rightElementNewWidth / tableWidth) * 100
+					(rightElementNewWidth / rowWidth) * 100
 
 				const newSelectedColumns = [...selectedColumns]
 				newSelectedColumns[columnIndex] = {
 					...newSelectedColumns[columnIndex],
-					size: `${leftElementNewWidtPecentage}%`,
+					size: `${leftElementNewWidthPecentage}%`,
 				}
 				newSelectedColumns[columnIndex + 1] = {
 					...newSelectedColumns[columnIndex + 1],
@@ -87,7 +86,7 @@ export const CustomColumnHeader: React.FC<Props> = ({
 				setSelectedColumns(newSelectedColumns)
 			}
 		},
-		[columnIndex, dragging, selectedColumns, setSelectedColumns, tableRef],
+		[columnIndex, dragging, rowWidth, selectedColumns, setSelectedColumns],
 	)
 
 	const handleMouseUp = useCallback(() => {

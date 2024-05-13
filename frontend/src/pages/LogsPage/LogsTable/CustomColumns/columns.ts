@@ -4,7 +4,7 @@ const TIMESTAMP_COLUMN: LogCustomColumn = {
 	id: 'timestamp',
 	label: 'Timestamp',
 	type: 'datetime',
-	size: '175px',
+	size: '2fr',
 	accessKey: 'timestamp',
 }
 
@@ -12,7 +12,7 @@ const LEVEL_COLUMN: LogCustomColumn = {
 	id: 'level',
 	label: 'Level',
 	type: 'level',
-	size: '75px',
+	size: '1fr',
 	accessKey: 'level',
 }
 

@@ -16,7 +16,7 @@ import {
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { isEqual } from 'lodash'
-import React, { Key, useMemo, useRef } from 'react'
+import React, { Key, useEffect, useMemo, useRef, useState } from 'react'
 
 import {
 	ColumnHeader,
@@ -54,6 +54,7 @@ type Props = {
 const LOADING_AFTER_HEIGHT = 28
 const HEADERS_AND_CHARTS_HEIGHT = 120
 const LOAD_BEFORE_HEIGHT = 28
+const CUSTOM_COLUMN_SIZE = 25
 
 export const TracesList: React.FC<Props> = ({
 	loading,
@@ -72,6 +73,21 @@ export const TracesList: React.FC<Props> = ({
 		`highlight-traces-table-columns-v2`,
 		DEFAULT_TRACE_COLUMNS,
 	)
+	const [tableWidth, setTableWidth] = useState(
+		tableRef.current?.getBoundingClientRect().width,
+	)
+
+	useEffect(() => {
+		const handleResize = () => {
+			setTableWidth(tableRef.current?.getBoundingClientRect().width)
+		}
+
+		window.addEventListener('resize', handleResize)
+
+		return () => {
+			window.removeEventListener('resize', handleResize)
+		}
+	}, [])
 
 	const bodyRef = useRef<HTMLDivElement>(null)
 	const enableFetchMoreTraces =
@@ -117,7 +133,12 @@ export const TracesList: React.FC<Props> = ({
 		})
 
 		// add custom column
-		gridColumns.push('25px')
+		if (!!tableWidth) {
+			const cursorPercentage = (CUSTOM_COLUMN_SIZE / tableWidth) * 100
+			gridColumns.push(`${cursorPercentage}%`)
+		} else {
+			gridColumns.push(`${CUSTOM_COLUMN_SIZE}px`)
+		}
 		columnHeaders.push({
 			id: 'edit-column-button',
 			noPadding: true,
@@ -137,7 +158,7 @@ export const TracesList: React.FC<Props> = ({
 			columnHeaders,
 			columns,
 		}
-	}, [columnHelper, selectedColumns, setSelectedColumns])
+	}, [columnHelper, selectedColumns, setSelectedColumns, tableWidth])
 
 	const table = useReactTable({
 		data: traceEdges,
@@ -252,7 +273,7 @@ export const TracesList: React.FC<Props> = ({
 							setSelectedColumns={setSelectedColumns!}
 							standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
 							trackingIdPrefix="TracesTableColumn"
-							tableRef={tableRef}
+							// tableRef={tableRef}
 						/>
 					))}
 				</Table.Row>

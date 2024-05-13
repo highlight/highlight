@@ -131,6 +131,8 @@ type LogsTableInnerProps = {
 }
 
 const LOADING_AFTER_HEIGHT = 28
+const PREFIX_COLUMN_SIZE = 32
+const CUSTOM_COLUMN_SIZE = 25
 
 const LogsTableInner = ({
 	logEdges,
@@ -148,6 +150,29 @@ const LogsTableInner = ({
 }: LogsTableInnerProps) => {
 	const bodyRef = useRef<HTMLDivElement>(null)
 	const tableRef = useRef<HTMLDivElement>(null)
+	const [rowWidth, setRowWidth] = useState(0)
+
+	const handleResize = () => {
+		const newWidth =
+			(tableRef.current?.getBoundingClientRect().width || 0) -
+			PREFIX_COLUMN_SIZE -
+			CUSTOM_COLUMN_SIZE
+
+		setRowWidth(Math.max(newWidth, 0))
+	}
+
+	useEffect(() => {
+		handleResize()
+	}, [tableRef.current?.clientWidth])
+
+	useEffect(() => {
+		window.addEventListener('resize', handleResize)
+
+		return () => {
+			window.removeEventListener('resize', handleResize)
+		}
+	}, [])
+
 	const enableFetchMoreLogs =
 		!!moreLogs && !!clearMoreLogs && !!handleAdditionalLogsDateChange
 
@@ -160,7 +185,7 @@ const LogsTableInner = ({
 		const columnHeaders: ColumnHeader[] = []
 		const columns: ColumnDef<LogEdge, any>[] = []
 
-		gridColumns.push('32px')
+		gridColumns.push(`${PREFIX_COLUMN_SIZE}px`)
 		columnHeaders.push({ id: 'cursor', component: '' })
 		columns.push(
 			columnHelper.accessor('cursor', {
@@ -181,7 +206,7 @@ const LogsTableInner = ({
 		)
 
 		selectedColumns.forEach((column) => {
-			gridColumns.push(column.size)
+			gridColumns.push(convertToPixels(column.size, rowWidth))
 			columnHeaders.push({
 				id: column.id,
 				component: column.label,
@@ -210,7 +235,7 @@ const LogsTableInner = ({
 
 		if (setSelectedColumns) {
 			// add custom column
-			gridColumns.push('25px')
+			gridColumns.push(`${CUSTOM_COLUMN_SIZE}px`)
 			columnHeaders.push({
 				id: 'edit-column-button',
 				noPadding: true,
@@ -231,7 +256,13 @@ const LogsTableInner = ({
 			columnHeaders,
 			columns,
 		}
-	}, [columnHelper, queryParts, selectedColumns, setSelectedColumns])
+	}, [
+		columnHelper,
+		queryParts,
+		selectedColumns,
+		setSelectedColumns,
+		rowWidth,
+	])
 
 	const table = useReactTable({
 		data: logEdges,
@@ -325,7 +356,7 @@ const LogsTableInner = ({
 							setSelectedColumns={setSelectedColumns!}
 							standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
 							trackingIdPrefix="LogsTableColumn"
-							tableRef={tableRef}
+							rowWidth={rowWidth}
 						/>
 					))}
 				</Table.Row>
@@ -474,4 +505,12 @@ const LogsTableRow: React.FC<LogsTableRowProps> = ({
 			{attributesRow(row)}
 		</div>
 	)
+}
+
+const convertToPixels = (size: string, rowWidth?: number): string => {
+	if (!!rowWidth && size.includes('%')) {
+		return `${(parseFloat(size) / 100) * rowWidth}px`
+	}
+	// px and fr
+	return size
 }

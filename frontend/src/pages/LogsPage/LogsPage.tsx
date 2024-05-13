@@ -170,6 +170,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 				flex="stretch"
 				justifyContent="stretch"
 				display="flex"
+				width="full"
 			>
 				<Box
 					background="white"
@@ -179,6 +180,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 					flexGrow={1}
 					border="dividerWeak"
 					shadow="medium"
+					width="full"
 				>
 					<SearchForm
 						startDate={startDate}
