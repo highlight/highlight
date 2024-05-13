@@ -3549,7 +3549,7 @@ func (r *Resolver) UpsertDiscordChannel(workspaceId int, name string) (*model.Di
 func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
 	const numBuckets = 48
 	agg := params.Aggregator
-	parts := []string{string(modelInputs.ReservedTraceKeyMetric) + ":" + metricName}
+	parts := []string{string(modelInputs.ReservedTraceKeyMetricName) + "=" + metricName}
 	for _, filter := range params.Filters {
 		switch filter.Op {
 		case modelInputs.MetricTagFilterOpEquals:
@@ -3558,10 +3558,10 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 			parts = append(parts, fmt.Sprintf("%s:%%%v%%", filter.Tag, filter.Value))
 		}
 	}
-	metrics, err := ccClient.ReadTracesMetrics(ctx, projectID, modelInputs.QueryInput{
+	metrics, err := ccClient.ReadEventMetrics(ctx, projectID, modelInputs.QueryInput{
 		Query:     strings.Join(parts, " "),
 		DateRange: params.DateRange,
-	}, string(modelInputs.MetricColumnMetricValue), []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
+	}, metricName, []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -3849,6 +3849,23 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			LimitFunctionType: &countAggregator,
 			NullHandling:      pointy.String("Hide row"),
 		},
+	}
+
+	for vital, desc := range map[string]string{"CLS": "Cumulative Layout Shift", "INP": "Interaction to Next Paint", "LCP": "Longest Contentful Paint"} {
+		graphs = append(graphs, &model.Graph{
+			Type:              "Line chart",
+			Title:             "Web Vitals: " + desc,
+			ProductType:       "Metrics",
+			FunctionType:      "P95",
+			Metric:            vital,
+			GroupByKey:        pointy.String("browser"),
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Stacked area"),
+			NullHandling:      pointy.String("Hidden"),
+		})
 	}
 
 	if err := r.DB.Transaction(func(tx *gorm.DB) error {

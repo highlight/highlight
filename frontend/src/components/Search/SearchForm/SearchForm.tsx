@@ -68,8 +68,8 @@ const EXISTS_OPERATORS = ['EXISTS', 'NOT EXISTS'] as const
 const NUMERIC_OPERATORS = ['>', '>=', '<', '<='] as const
 const EQUAL_OPERATOR = ['='] as const
 const BOOLEAN_OPERATORS = ['=', '!='] as const
-const CONTAINS_OPERATOR = ['=**', '!=**'] as const
-const MATCHES_OPERATOR = ['=//', '!=//'] as const
+const CONTAINS_OPERATOR = ['="**"', '!="**"'] as const
+const MATCHES_OPERATOR = ['="//"', '!="//"'] as const
 export const SEARCH_OPERATORS = [
 	...BOOLEAN_OPERATORS,
 	...NUMERIC_OPERATORS,
@@ -537,7 +537,7 @@ export const Search: React.FC<{
 				...MATCHES_OPERATOR,
 			].find((o) => o === item.name)
 			if (isContainsOrMatches) {
-				cursorShift = -1
+				cursorShift = -2
 			}
 
 			const key =
@@ -1016,13 +1016,13 @@ const getSearchResultBadgeText = (key: SearchResult) => {
 				return 'exists'
 			case 'NOT EXISTS':
 				return 'does not exist'
-			case '=**':
+			case '="**"':
 				return 'contains'
-			case '!=**':
+			case '!="**"':
 				return 'does not contain'
-			case '=//':
+			case '="//"':
 				return 'matches'
-			case '!=//':
+			case '!="//"':
 				return 'does not match'
 		}
 	} else if (key.type === 'Value') {

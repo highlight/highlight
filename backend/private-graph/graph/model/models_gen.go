@@ -1541,18 +1541,16 @@ func (e MetricBucketBy) MarshalGQL(w io.Writer) {
 type MetricColumn string
 
 const (
-	MetricColumnDuration    MetricColumn = "Duration"
-	MetricColumnMetricValue MetricColumn = "MetricValue"
+	MetricColumnDuration MetricColumn = "Duration"
 )
 
 var AllMetricColumn = []MetricColumn{
 	MetricColumnDuration,
-	MetricColumnMetricValue,
 }
 
 func (e MetricColumn) IsValid() bool {
 	switch e {
-	case MetricColumnDuration, MetricColumnMetricValue:
+	case MetricColumnDuration:
 		return true
 	}
 	return false
@@ -1835,6 +1833,7 @@ const (
 	ProductTypeErrors   ProductType = "Errors"
 	ProductTypeLogs     ProductType = "Logs"
 	ProductTypeTraces   ProductType = "Traces"
+	ProductTypeMetrics  ProductType = "Metrics"
 )
 
 var AllProductType = []ProductType{
@@ -1842,11 +1841,12 @@ var AllProductType = []ProductType{
 	ProductTypeErrors,
 	ProductTypeLogs,
 	ProductTypeTraces,
+	ProductTypeMetrics,
 }
 
 func (e ProductType) IsValid() bool {
 	switch e {
-	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs, ProductTypeTraces:
+	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs, ProductTypeTraces, ProductTypeMetrics:
 		return true
 	}
 	return false
@@ -2117,6 +2117,7 @@ const (
 	ReservedSessionKeyBrowserName        ReservedSessionKey = "browser_name"
 	ReservedSessionKeyBrowserVersion     ReservedSessionKey = "browser_version"
 	ReservedSessionKeyCity               ReservedSessionKey = "city"
+	ReservedSessionKeyCompleted          ReservedSessionKey = "completed"
 	ReservedSessionKeyCountry            ReservedSessionKey = "country"
 	ReservedSessionKeyDeviceID           ReservedSessionKey = "device_id"
 	ReservedSessionKeyEnvironment        ReservedSessionKey = "environment"
@@ -2129,18 +2130,20 @@ const (
 	ReservedSessionKeyIdentifier         ReservedSessionKey = "identifier"
 	ReservedSessionKeyIP                 ReservedSessionKey = "ip"
 	ReservedSessionKeyLength             ReservedSessionKey = "length"
-	ReservedSessionKeyLocState           ReservedSessionKey = "loc_state"
 	ReservedSessionKeyNormalness         ReservedSessionKey = "normalness"
 	ReservedSessionKeyOsName             ReservedSessionKey = "os_name"
 	ReservedSessionKeyOsVersion          ReservedSessionKey = "os_version"
 	ReservedSessionKeyPagesVisited       ReservedSessionKey = "pages_visited"
-	ReservedSessionKeyProcessed          ReservedSessionKey = "processed"
 	ReservedSessionKeySample             ReservedSessionKey = "sample"
 	ReservedSessionKeySecureID           ReservedSessionKey = "secure_id"
 	ReservedSessionKeyServiceVersion     ReservedSessionKey = "service_version"
-	ReservedSessionKeyViewed             ReservedSessionKey = "viewed"
+	ReservedSessionKeyState              ReservedSessionKey = "state"
+	ReservedSessionKeyViewedByAnyone     ReservedSessionKey = "viewed_by_anyone"
 	ReservedSessionKeyViewedByMe         ReservedSessionKey = "viewed_by_me"
 	ReservedSessionKeyWithinBillingQuota ReservedSessionKey = "within_billing_quota"
+	ReservedSessionKeyLocState           ReservedSessionKey = "loc_state"
+	ReservedSessionKeyProcessed          ReservedSessionKey = "processed"
+	ReservedSessionKeyViewed             ReservedSessionKey = "viewed"
 )
 
 var AllReservedSessionKey = []ReservedSessionKey{
@@ -2148,6 +2151,7 @@ var AllReservedSessionKey = []ReservedSessionKey{
 	ReservedSessionKeyBrowserName,
 	ReservedSessionKeyBrowserVersion,
 	ReservedSessionKeyCity,
+	ReservedSessionKeyCompleted,
 	ReservedSessionKeyCountry,
 	ReservedSessionKeyDeviceID,
 	ReservedSessionKeyEnvironment,
@@ -2160,23 +2164,25 @@ var AllReservedSessionKey = []ReservedSessionKey{
 	ReservedSessionKeyIdentifier,
 	ReservedSessionKeyIP,
 	ReservedSessionKeyLength,
-	ReservedSessionKeyLocState,
 	ReservedSessionKeyNormalness,
 	ReservedSessionKeyOsName,
 	ReservedSessionKeyOsVersion,
 	ReservedSessionKeyPagesVisited,
-	ReservedSessionKeyProcessed,
 	ReservedSessionKeySample,
 	ReservedSessionKeySecureID,
 	ReservedSessionKeyServiceVersion,
-	ReservedSessionKeyViewed,
+	ReservedSessionKeyState,
+	ReservedSessionKeyViewedByAnyone,
 	ReservedSessionKeyViewedByMe,
 	ReservedSessionKeyWithinBillingQuota,
+	ReservedSessionKeyLocState,
+	ReservedSessionKeyProcessed,
+	ReservedSessionKeyViewed,
 }
 
 func (e ReservedSessionKey) IsValid() bool {
 	switch e {
-	case ReservedSessionKeyActiveLength, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyCity, ReservedSessionKeyCountry, ReservedSessionKeyDeviceID, ReservedSessionKeyEnvironment, ReservedSessionKeyExcluded, ReservedSessionKeyFirstTime, ReservedSessionKeyHasComments, ReservedSessionKeyHasErrors, ReservedSessionKeyHasRageClicks, ReservedSessionKeyIdentified, ReservedSessionKeyIdentifier, ReservedSessionKeyIP, ReservedSessionKeyLength, ReservedSessionKeyLocState, ReservedSessionKeyNormalness, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyPagesVisited, ReservedSessionKeyProcessed, ReservedSessionKeySample, ReservedSessionKeySecureID, ReservedSessionKeyServiceVersion, ReservedSessionKeyViewed, ReservedSessionKeyViewedByMe, ReservedSessionKeyWithinBillingQuota:
+	case ReservedSessionKeyActiveLength, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyCity, ReservedSessionKeyCompleted, ReservedSessionKeyCountry, ReservedSessionKeyDeviceID, ReservedSessionKeyEnvironment, ReservedSessionKeyExcluded, ReservedSessionKeyFirstTime, ReservedSessionKeyHasComments, ReservedSessionKeyHasErrors, ReservedSessionKeyHasRageClicks, ReservedSessionKeyIdentified, ReservedSessionKeyIdentifier, ReservedSessionKeyIP, ReservedSessionKeyLength, ReservedSessionKeyNormalness, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyPagesVisited, ReservedSessionKeySample, ReservedSessionKeySecureID, ReservedSessionKeyServiceVersion, ReservedSessionKeyState, ReservedSessionKeyViewedByAnyone, ReservedSessionKeyViewedByMe, ReservedSessionKeyWithinBillingQuota, ReservedSessionKeyLocState, ReservedSessionKeyProcessed, ReservedSessionKeyViewed:
 		return true
 	}
 	return false
@@ -2210,7 +2216,8 @@ const (
 	ReservedTraceKeyHasErrors       ReservedTraceKey = "has_errors"
 	ReservedTraceKeyLevel           ReservedTraceKey = "level"
 	ReservedTraceKeyMessage         ReservedTraceKey = "message"
-	ReservedTraceKeyMetric          ReservedTraceKey = "metric"
+	ReservedTraceKeyMetricName      ReservedTraceKey = "metric_name"
+	ReservedTraceKeyMetricValue     ReservedTraceKey = "metric_value"
 	ReservedTraceKeySecureSessionID ReservedTraceKey = "secure_session_id"
 	ReservedTraceKeySpanID          ReservedTraceKey = "span_id"
 	ReservedTraceKeyTraceID         ReservedTraceKey = "trace_id"
@@ -2229,7 +2236,8 @@ var AllReservedTraceKey = []ReservedTraceKey{
 	ReservedTraceKeyHasErrors,
 	ReservedTraceKeyLevel,
 	ReservedTraceKeyMessage,
-	ReservedTraceKeyMetric,
+	ReservedTraceKeyMetricName,
+	ReservedTraceKeyMetricValue,
 	ReservedTraceKeySecureSessionID,
 	ReservedTraceKeySpanID,
 	ReservedTraceKeyTraceID,
@@ -2245,7 +2253,7 @@ var AllReservedTraceKey = []ReservedTraceKey{
 
 func (e ReservedTraceKey) IsValid() bool {
 	switch e {
-	case ReservedTraceKeyEnvironment, ReservedTraceKeyHasErrors, ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetric, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion, ReservedTraceKeyTimestamp:
+	case ReservedTraceKeyEnvironment, ReservedTraceKeyHasErrors, ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetricName, ReservedTraceKeyMetricValue, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion, ReservedTraceKeyTimestamp:
 		return true
 	}
 	return false

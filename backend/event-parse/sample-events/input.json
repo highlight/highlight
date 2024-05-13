@@ -233,18 +233,24 @@
 								"type": 2
 							},
 							{
+								"attributes": {
+									"href": "https://pri.highlight.io/assets/1079/l4NeTC0Z_WRgQW7I6x9qBA22t1B6oVZk6XZFjBDgpoY~",
+									"rel": "modulepreload"
+								},
+								"childNodes": [],
 								"id": 36,
-								"textContent": "\n        ",
-								"type": 3
+								"tagName": "link",
+								"type": 2
 							},
 							{
 								"attributes": {
-									"content": "Highlight gives your team full transparency into the errors, interactions, and performance metrics of your client-side application.",
-									"property": "og:description"
+									"href": "https://pri.highlight.io/assets/1079/_ZQLI9RtgPGhqFe1X1WDaigth52_TOp9ZNUmEenxIxY~",
+									"rel": "modulepreload",
+									"crossorigin": ""
 								},
 								"childNodes": [],
 								"id": 37,
-								"tagName": "meta",
+								"tagName": "link",
 								"type": 2
 							},
 							{

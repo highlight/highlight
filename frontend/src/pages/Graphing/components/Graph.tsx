@@ -166,6 +166,18 @@ const durationUnitMap: [number, string][] = [
 	[24, 'd'],
 ]
 
+const timeMetrics = {
+	active_length: 'ms',
+	length: 'ms',
+	duration: 'ns',
+	Jank: 'ms',
+	FCP: 'ms',
+	FID: 'ms',
+	LCP: 'ms',
+	TTFB: 'ms',
+	INP: 'ms',
+}
+
 export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 	if (metric === 'Timestamp') {
 		if (data === undefined) {
@@ -182,10 +194,16 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 		} else {
 			return (value: any) => moment(value * 1000).format('MM/DD')
 		}
-	} else if (metric === 'duration') {
+	} else if (Object.hasOwn(timeMetrics, metric)) {
 		return (value: any) => {
-			let lastUnit = 'ns'
+			let startUnit =
+				timeMetrics[metric as keyof typeof timeMetrics] ?? 'ns'
+			let lastUnit = startUnit
 			for (const entry of durationUnitMap) {
+				if (startUnit !== '' && startUnit !== entry[1]) {
+					continue
+				}
+				startUnit = ''
 				if (value / entry[0] < 1) {
 					break
 				}
