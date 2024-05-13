@@ -77,13 +77,6 @@ export const Panel: PanelComponent = ({ children, open }) => {
 		}
 	}, [dragging, handleMouseMove, handleMouseUp])
 
-	useEffect(() => {
-		if (resource) {
-			remove()
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [location.pathname])
-
 	return (
 		<Dialog
 			store={dialogStore}
