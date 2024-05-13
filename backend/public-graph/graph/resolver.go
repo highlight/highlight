@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel/codes"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -3200,14 +3200,14 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
 			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
 			attribute.String(highlight.TraceKeyAttribute, re.Name),
-			semconv.DeploymentEnvironmentKey.String(sessionObj.Environment),
-			semconv.ServiceNameKey.String(sessionObj.ServiceName),
-			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
-			semconv.HTTPURLKey.String(re.Name),
-			semconv.HTTPRequestContentLengthKey.Int(len(body)),
-			semconv.HTTPResponseContentLengthKey.Float64(re.RequestResponsePairs.Response.Size),
-			semconv.HTTPStatusCodeKey.Float64(re.RequestResponsePairs.Response.Status),
-			semconv.HTTPMethodKey.String(method),
+			semconv.DeploymentEnvironment(sessionObj.Environment),
+			semconv.ServiceName(sessionObj.ServiceName),
+			semconv.ServiceVersion(ptr.ToString(sessionObj.AppVersion)),
+			semconv.HTTPURL(re.Name),
+			semconv.HTTPRequestContentLength(len(body)),
+			semconv.HTTPResponseContentLength(int(re.RequestResponsePairs.Response.Size)),
+			semconv.HTTPStatusCode(int(re.RequestResponsePairs.Response.Status)),
+			semconv.HTTPMethod(method),
 			attribute.String(privateModel.NetworkRequestAttributeInitiatorType.String(), re.InitiatorType),
 			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64(end.Sub(start).Nanoseconds())),
 		)

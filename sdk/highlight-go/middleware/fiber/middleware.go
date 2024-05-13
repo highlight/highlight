@@ -7,7 +7,7 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/highlight/highlight/sdk/highlight-go/middleware"
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 )
 
 // Middleware is a fiber compatible middleware
@@ -40,7 +40,7 @@ func Middleware() fiber.Handler {
 			attribute.String(string(semconv.HTTPURLKey), c.OriginalURL()),
 			attribute.String(string(semconv.HTTPRouteKey), c.Path()),
 			attribute.String(string(semconv.HTTPMethodKey), c.Method()),
-			attribute.String(string(semconv.HTTPClientIPKey), c.IP()),
+			attribute.String(string(semconv.ClientAddressKey), c.IP()),
 			attribute.Int(string(semconv.HTTPStatusCodeKey), c.Response().StatusCode()),
 		)
 		return err
