@@ -3228,10 +3228,10 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			attributes = append(attributes, semconv.HTTPScheme(u.Scheme), semconv.HTTPTarget(u.Path))
 		}
 		for requestHeader, requestHeaderValue := range re.RequestResponsePairs.Request.Headers {
-			attributes = append(attributes, attribute.String(fmt.Sprintf("http.request.%s", requestHeader), requestHeaderValue))
+			attributes = append(attributes, attribute.String(fmt.Sprintf("http.request.header.%s", requestHeader), requestHeaderValue))
 		}
 		for responseHeader, responseHeaderValue := range re.RequestResponsePairs.Response.Headers {
-			attributes = append(attributes, attribute.String(fmt.Sprintf("http.response.%s", responseHeader), responseHeaderValue))
+			attributes = append(attributes, attribute.String(fmt.Sprintf("http.response.header.%s", responseHeader), responseHeaderValue))
 		}
 		requestBodyJson := make(map[string]interface{})
 		// if the request body is json and contains the graphql key operationName, treat it as an operation
