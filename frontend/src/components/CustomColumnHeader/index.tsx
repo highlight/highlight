@@ -1,23 +1,14 @@
-import {
-	Box,
-	IconSolidSortAscending,
-	IconSolidSortDescending,
-	Stack,
-	Table,
-	Text,
-} from '@highlight-run/ui/components'
+import { Box, Table, Text } from '@highlight-run/ui/components'
 import { useMemo, useRef } from 'react'
 
 import { CustomColumnActions } from '@/components/CustomColumnActions'
 import { ValidCustomColumn } from '@/components/CustomColumnPopover'
-import { SortDirection } from '@/graph/generated/schemas'
 
 export type ColumnHeader = {
 	id: string
 	component: React.ReactNode
 	showActions?: boolean
 	noPadding?: boolean
-	onSort?: (direction?: SortDirection | null) => void
 }
 
 type Props = {
@@ -26,8 +17,6 @@ type Props = {
 	setSelectedColumns: (columns: ValidCustomColumn[]) => void
 	standardColumns: Record<string, ValidCustomColumn>
 	trackingIdPrefix: string
-	sortColumn?: string | null
-	sortDirection?: string | null
 }
 
 const MINIMUM_COLUMN_WIDTH = 50
@@ -38,8 +27,6 @@ export const CustomColumnHeader: React.FC<Props> = ({
 	setSelectedColumns,
 	standardColumns,
 	trackingIdPrefix,
-	sortColumn,
-	sortDirection,
 }) => {
 	const headerRef = useRef<HTMLDivElement>(null)
 
@@ -87,51 +74,22 @@ export const CustomColumnHeader: React.FC<Props> = ({
 			key={header.id}
 			noPadding={header.noPadding}
 			ref={headerRef}
-			cursor={header.onSort ? 'pointer' : 'default'}
-			onClick={() => {
-				if (!header.onSort) {
-					return
-				}
-
-				header.onSort()
-			}}
 		>
 			<Box
 				display="flex"
 				alignItems="center"
 				justifyContent="space-between"
 			>
-				<Stack direction="row" gap="6" align="center">
-					<Text lines="1">{header.component}</Text>
-					{sortColumn === header.id &&
-						sortDirection &&
-						(sortDirection === SortDirection.Desc ? (
-							<IconSolidSortDescending
-								size={13}
-								style={{ flexShrink: 0 }}
-							/>
-						) : (
-							<IconSolidSortAscending
-								size={13}
-								style={{ flexShrink: 0 }}
-							/>
-						))}
-				</Stack>
-
-				<Stack align="center" direction="row" gap="6">
-					{header.showActions && (
-						<CustomColumnActions
-							columnId={header.id}
-							selectedColumns={selectedColumns}
-							setSelectedColumns={setSelectedColumns}
-							trackingId={trackingIdPrefix}
-							standardColumns={standardColumns}
-							onSort={header.onSort}
-							sortColumn={sortColumn}
-							sortDirection={sortDirection}
-						/>
-					)}
-				</Stack>
+				<Text lines="1">{header.component}</Text>
+				{header.showActions && (
+					<CustomColumnActions
+						columnId={header.id}
+						selectedColumns={selectedColumns}
+						setSelectedColumns={setSelectedColumns}
+						trackingId={trackingIdPrefix}
+						standardColumns={standardColumns}
+					/>
+				)}
 			</Box>
 			{resizeable && (
 				<Box

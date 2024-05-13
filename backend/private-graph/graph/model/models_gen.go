@@ -658,7 +658,6 @@ type Plan struct {
 type QueryInput struct {
 	Query     string                  `json:"query"`
 	DateRange *DateRangeRequiredInput `json:"date_range"`
-	Sort      *SortInput              `json:"sort,omitempty"`
 }
 
 type QueryKey struct {
@@ -824,11 +823,6 @@ type SlackSyncResponse struct {
 type SocialLink struct {
 	Type SocialType `json:"type"`
 	Link *string    `json:"link,omitempty"`
-}
-
-type SortInput struct {
-	Column    string        `json:"column"`
-	Direction SortDirection `json:"direction"`
 }
 
 type SourceMappingError struct {
@@ -2065,7 +2059,6 @@ const (
 	ReservedLogKeySource          ReservedLogKey = "source"
 	ReservedLogKeyServiceName     ReservedLogKey = "service_name"
 	ReservedLogKeyServiceVersion  ReservedLogKey = "service_version"
-	ReservedLogKeyTimestamp       ReservedLogKey = "timestamp"
 )
 
 var AllReservedLogKey = []ReservedLogKey{
@@ -2078,12 +2071,11 @@ var AllReservedLogKey = []ReservedLogKey{
 	ReservedLogKeySource,
 	ReservedLogKeyServiceName,
 	ReservedLogKeyServiceVersion,
-	ReservedLogKeyTimestamp,
 }
 
 func (e ReservedLogKey) IsValid() bool {
 	switch e {
-	case ReservedLogKeyEnvironment, ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName, ReservedLogKeyServiceVersion, ReservedLogKeyTimestamp:
+	case ReservedLogKeyEnvironment, ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName, ReservedLogKeyServiceVersion:
 		return true
 	}
 	return false
@@ -2228,7 +2220,6 @@ const (
 	ReservedTraceKeyDuration        ReservedTraceKey = "duration"
 	ReservedTraceKeyServiceName     ReservedTraceKey = "service_name"
 	ReservedTraceKeyServiceVersion  ReservedTraceKey = "service_version"
-	ReservedTraceKeyTimestamp       ReservedTraceKey = "timestamp"
 )
 
 var AllReservedTraceKey = []ReservedTraceKey{
@@ -2248,12 +2239,11 @@ var AllReservedTraceKey = []ReservedTraceKey{
 	ReservedTraceKeyDuration,
 	ReservedTraceKeyServiceName,
 	ReservedTraceKeyServiceVersion,
-	ReservedTraceKeyTimestamp,
 }
 
 func (e ReservedTraceKey) IsValid() bool {
 	switch e {
-	case ReservedTraceKeyEnvironment, ReservedTraceKeyHasErrors, ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetricName, ReservedTraceKeyMetricValue, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion, ReservedTraceKeyTimestamp:
+	case ReservedTraceKeyEnvironment, ReservedTraceKeyHasErrors, ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetricName, ReservedTraceKeyMetricValue, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
 		return true
 	}
 	return false
