@@ -127,9 +127,20 @@ export const useGetTraces = ({
 							.format(TIME_FORMAT),
 						end_date: moment().format(TIME_FORMAT),
 					},
+					sort: {
+						column: sortColumn ?? 'timestamp',
+						direction: sortDirection ?? Types.SortDirection.Desc,
+					},
 				},
 			}),
-			[projectId, traceCursor, query, traceResultMetadata.endDate],
+			[
+				projectId,
+				traceCursor,
+				query,
+				traceResultMetadata.endDate,
+				sortColumn,
+				sortDirection,
+			],
 		),
 		moreDataQuery,
 		getResultCount: useCallback((result) => {
