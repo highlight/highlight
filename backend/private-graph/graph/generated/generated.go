@@ -12114,6 +12114,7 @@ enum ReservedTraceKey {
 	service_name
 	service_version
 	timestamp
+	highlight_type
 }
 
 enum ReservedErrorObjectKey {

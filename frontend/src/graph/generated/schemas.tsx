@@ -3027,6 +3027,7 @@ export enum ReservedTraceKey {
 	Duration = 'duration',
 	Environment = 'environment',
 	HasErrors = 'has_errors',
+	HighlightType = 'highlight_type',
 	Level = 'level',
 	Message = 'message',
 	MetricName = 'metric_name',
