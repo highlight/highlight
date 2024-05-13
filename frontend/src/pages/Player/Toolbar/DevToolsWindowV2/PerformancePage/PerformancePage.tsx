@@ -27,12 +27,8 @@ interface PerformanceData {
 }
 
 const PerformancePage = React.memo(({}: Props) => {
-	const {
-		performancePayloads,
-		jankPayloads,
-		eventsForTimelineIndicator,
-		session,
-	} = useReplayerContext()
+	const { performancePayloads, jankPayloads, eventsForTimelineIndicator } =
+		useReplayerContext()
 
 	const performanceData: PerformanceData[] = performancePayloads.map(
 		(payload) => {
