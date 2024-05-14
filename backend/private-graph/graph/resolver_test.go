@@ -518,7 +518,7 @@ func TestResolver_isAdminInProjectOrDemoProject(t *testing.T) {
 			if v.expError {
 				id += 1
 			}
-			pr, err := r.isAdminInProjectOrDemoProject(ctx, id)
+			pr, err := r.isUserInProjectOrDemoProject(ctx, id)
 			if v.expError {
 				if err == nil {
 					t.Fatalf("error result invalid, saw %s", err)

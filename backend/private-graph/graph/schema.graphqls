@@ -506,6 +506,7 @@ type Project {
 	verbose_id: String!
 	name: String!
 	billing_email: String
+	secret: String
 	workspace_id: ID!
 	excluded_users: StringArray
 	error_filters: StringArray
@@ -521,7 +522,6 @@ type AllProjectSettings {
 	verbose_id: String!
 	name: String!
 	billing_email: String
-	secret: String
 	workspace_id: ID!
 	excluded_users: StringArray
 	error_filters: StringArray
