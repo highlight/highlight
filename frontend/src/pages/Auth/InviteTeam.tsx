@@ -122,7 +122,8 @@ export const InviteTeamForm: React.FC = () => {
 							workspace_id: workspace.id,
 							email,
 							base_url: window.location.origin,
-							role: adminRole,
+							role: AdminRole.Member,
+							projectIds: [],
 						},
 					}),
 				)

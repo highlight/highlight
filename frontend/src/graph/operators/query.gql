@@ -290,7 +290,6 @@ query GetWorkspaceAdmins($workspace_id: ID!) {
 	workspace(id: $workspace_id) {
 		id
 		name
-		secret
 		allowed_auto_join_email_origins
 	}
 	workspace_invite_links(workspace_id: $workspace_id) {
@@ -489,12 +488,14 @@ mutation SendAdminWorkspaceInvite(
 	$email: String!
 	$base_url: String!
 	$role: String!
+	$projectIds: [ID!]!
 ) {
 	sendAdminWorkspaceInvite(
 		workspace_id: $workspace_id
 		email: $email
 		base_url: $base_url
 		role: $role
+		projectIds: $projectIds
 	)
 }
 
@@ -689,7 +690,6 @@ query GetWorkspace($id: ID!) {
 	workspace(id: $id) {
 		id
 		name
-		secret
 		plan_tier
 		unlimited_members
 		clearbit_enabled

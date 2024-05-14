@@ -143,7 +143,6 @@ export type AllProjectSettings = {
 	rage_click_radius_pixels?: Maybe<Scalars['Int']>
 	rage_click_window_seconds?: Maybe<Scalars['Int']>
 	sampling: Sampling
-	secret?: Maybe<Scalars['String']>
 	verbose_id: Scalars['String']
 	workspace_id: Scalars['ID']
 }
@@ -1651,6 +1650,7 @@ export type MutationSaveBillingPlanArgs = {
 export type MutationSendAdminWorkspaceInviteArgs = {
 	base_url: Scalars['String']
 	email: Scalars['String']
+	projectIds: Array<Scalars['ID']>
 	role: Scalars['String']
 	workspace_id: Scalars['ID']
 }
@@ -3731,7 +3731,6 @@ export type Workspace = {
 	plan_tier: Scalars['String']
 	projects: Array<Maybe<Project>>
 	retention_period?: Maybe<RetentionPeriod>
-	secret?: Maybe<Scalars['String']>
 	sessions_max_cents?: Maybe<Scalars['Int']>
 	slack_channels?: Maybe<Scalars['String']>
 	slack_webhook_channel?: Maybe<Scalars['String']>

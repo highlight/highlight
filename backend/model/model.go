@@ -364,6 +364,7 @@ type WorkspaceInviteLink struct {
 	InviteeRole    *string
 	ExpirationDate *time.Time
 	Secret         *string
+	ProjectIds     pq.Int32Array `gorm:"type:integer[]"`
 }
 
 type WorkspaceAccessRequest struct {

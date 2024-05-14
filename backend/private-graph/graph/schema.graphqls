@@ -593,7 +593,6 @@ type Workspace {
 	name: String!
 	slack_webhook_channel: String
 	slack_channels: String
-	secret: String
 	projects: [Project]!
 	plan_tier: String!
 	unlimited_members: Boolean!
@@ -2423,6 +2422,7 @@ type Mutation {
 		email: String!
 		base_url: String!
 		role: String!
+		projectIds: [ID!]!
 	): String
 	addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
 	deleteInviteLinkFromWorkspace(

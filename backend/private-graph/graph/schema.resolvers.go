@@ -842,7 +842,7 @@ func (r *mutationResolver) DeleteProject(ctx context.Context, id int) (*bool, er
 }
 
 // SendAdminWorkspaceInvite is the resolver for the sendAdminWorkspaceInvite field.
-func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error) {
+func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string, projectIds []int) (*string, error) {
 	workspace, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, err
@@ -888,7 +888,7 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		}
 	}
 
-	inviteLink := r.CreateInviteLink(workspaceID, &email, role, false)
+	inviteLink := r.CreateInviteLink(workspaceID, &email, role, false, projectIds)
 
 	if err := r.DB.WithContext(ctx).Create(inviteLink).Error; err != nil {
 		return nil, e.Wrap(err, "error creating new invite link")
@@ -1016,6 +1016,10 @@ func (r *mutationResolver) ChangeProjectMembership(ctx context.Context, workspac
 	var newProjectIds pq.Int32Array = lo.Map(projectIds, func(in int, _ int) int32 {
 		return int32(in)
 	})
+
+	if len(newProjectIds) == 0 {
+		newProjectIds = nil
+	}
 
 	wa := model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}
 	if err := r.DB.WithContext(ctx).Model(&wa).
@@ -7960,7 +7964,7 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 	}
 
 	if shouldCreateNewInviteLink {
-		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil, model.AdminRole.ADMIN, true)
+		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil, model.AdminRole.MEMBER, true, nil)
 
 		if err := r.DB.WithContext(ctx).Create(&workspaceInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "failed to create new invite link to replace expired one.")

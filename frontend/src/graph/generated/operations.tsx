@@ -2045,7 +2045,7 @@ export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
 	workspace?: Types.Maybe<
 		{ __typename?: 'Workspace' } & Pick<
 			Types.Workspace,
-			'id' | 'name' | 'secret' | 'allowed_auto_join_email_origins'
+			'id' | 'name' | 'allowed_auto_join_email_origins'
 		>
 	>
 	workspace_invite_links: { __typename?: 'WorkspaceInviteLink' } & Pick<
@@ -2337,6 +2337,7 @@ export type SendAdminWorkspaceInviteMutationVariables = Types.Exact<{
 	email: Types.Scalars['String']
 	base_url: Types.Scalars['String']
 	role: Types.Scalars['String']
+	projectIds: Array<Types.Scalars['ID']> | Types.Scalars['ID']
 }>
 
 export type SendAdminWorkspaceInviteMutation = {
@@ -2577,7 +2578,6 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
 			Types.Workspace,
 			| 'id'
 			| 'name'
-			| 'secret'
 			| 'plan_tier'
 			| 'unlimited_members'
 			| 'clearbit_enabled'

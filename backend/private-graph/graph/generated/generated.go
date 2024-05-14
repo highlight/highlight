@@ -850,7 +850,7 @@ type ComplexityRoot struct {
 		ReplyToSessionComment                 func(childComplexity int, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		RequestAccess                         func(childComplexity int, projectID int) int
 		SaveBillingPlan                       func(childComplexity int, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod) int
-		SendAdminWorkspaceInvite              func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
+		SendAdminWorkspaceInvite              func(childComplexity int, workspaceID int, email string, baseURL string, role string, projectIds []int) int
 		SubmitRegistrationForm                func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
 		SyncSlackIntegration                  func(childComplexity int, projectID int) int
 		TestErrorEnhancement                  func(childComplexity int, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) int
@@ -1592,7 +1592,6 @@ type ComplexityRoot struct {
 		PlanTier                    func(childComplexity int) int
 		Projects                    func(childComplexity int) int
 		RetentionPeriod             func(childComplexity int) int
-		Secret                      func(childComplexity int) int
 		SessionsMaxCents            func(childComplexity int) int
 		SlackChannels               func(childComplexity int) int
 		SlackWebhookChannel         func(childComplexity int) int
@@ -1694,7 +1693,7 @@ type MutationResolver interface {
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
 	UpdateErrorGroupState(ctx context.Context, secureID string, state model.ErrorState, snoozedUntil *time.Time) (*model1.ErrorGroup, error)
 	DeleteProject(ctx context.Context, id int) (*bool, error)
-	SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error)
+	SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string, projectIds []int) (*string, error)
 	AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error)
 	DeleteInviteLinkFromWorkspace(ctx context.Context, workspaceID int, workspaceInviteLinkID int) (bool, error)
 	JoinWorkspace(ctx context.Context, workspaceID int) (*int, error)
@@ -6056,7 +6055,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SendAdminWorkspaceInvite(childComplexity, args["workspace_id"].(int), args["email"].(string), args["base_url"].(string), args["role"].(string)), true
+		return e.complexity.Mutation.SendAdminWorkspaceInvite(childComplexity, args["workspace_id"].(int), args["email"].(string), args["base_url"].(string), args["role"].(string), args["projectIds"].([]int)), true
 
 	case "Mutation.submitRegistrationForm":
 		if e.complexity.Mutation.SubmitRegistrationForm == nil {
@@ -10842,13 +10841,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Workspace.RetentionPeriod(childComplexity), true
 
-	case "Workspace.secret":
-		if e.complexity.Workspace.Secret == nil {
-			break
-		}
-
-		return e.complexity.Workspace.Secret(childComplexity), true
-
 	case "Workspace.sessions_max_cents":
 		if e.complexity.Workspace.SessionsMaxCents == nil {
 			break
@@ -11764,7 +11756,6 @@ type Workspace {
 	name: String!
 	slack_webhook_channel: String
 	slack_channels: String
-	secret: String
 	projects: [Project]!
 	plan_tier: String!
 	unlimited_members: Boolean!
@@ -13594,6 +13585,7 @@ type Mutation {
 		email: String!
 		base_url: String!
 		role: String!
+		projectIds: [ID!]!
 	): String
 	addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
 	deleteInviteLinkFromWorkspace(
@@ -16809,6 +16801,15 @@ func (ec *executionContext) field_Mutation_sendAdminWorkspaceInvite_args(ctx con
 		}
 	}
 	args["role"] = arg3
+	var arg4 []int
+	if tmp, ok := rawArgs["projectIds"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectIds"))
+		arg4, err = ec.unmarshalNID2ᚕintᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["projectIds"] = arg4
 	return args, nil
 }
 
@@ -43167,8 +43168,6 @@ func (ec *executionContext) fieldContext_Mutation_createWorkspace(ctx context.Co
 				return ec.fieldContext_Workspace_slack_webhook_channel(ctx, field)
 			case "slack_channels":
 				return ec.fieldContext_Workspace_slack_channels(ctx, field)
-			case "secret":
-				return ec.fieldContext_Workspace_secret(ctx, field)
 			case "projects":
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
@@ -43429,8 +43428,6 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspace(ctx context.Cont
 				return ec.fieldContext_Workspace_slack_webhook_channel(ctx, field)
 			case "slack_channels":
 				return ec.fieldContext_Workspace_slack_channels(ctx, field)
-			case "secret":
-				return ec.fieldContext_Workspace_secret(ctx, field)
 			case "projects":
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
@@ -44036,7 +44033,7 @@ func (ec *executionContext) _Mutation_sendAdminWorkspaceInvite(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SendAdminWorkspaceInvite(rctx, fc.Args["workspace_id"].(int), fc.Args["email"].(string), fc.Args["base_url"].(string), fc.Args["role"].(string))
+		return ec.resolvers.Mutation().SendAdminWorkspaceInvite(rctx, fc.Args["workspace_id"].(int), fc.Args["email"].(string), fc.Args["base_url"].(string), fc.Args["role"].(string), fc.Args["projectIds"].([]int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -48093,8 +48090,6 @@ func (ec *executionContext) fieldContext_Mutation_updateAllowMeterOverage(ctx co
 				return ec.fieldContext_Workspace_slack_webhook_channel(ctx, field)
 			case "slack_channels":
 				return ec.fieldContext_Workspace_slack_channels(ctx, field)
-			case "secret":
-				return ec.fieldContext_Workspace_secret(ctx, field)
 			case "projects":
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
@@ -55440,8 +55435,6 @@ func (ec *executionContext) fieldContext_Query_workspaces(ctx context.Context, f
 				return ec.fieldContext_Workspace_slack_webhook_channel(ctx, field)
 			case "slack_channels":
 				return ec.fieldContext_Workspace_slack_channels(ctx, field)
-			case "secret":
-				return ec.fieldContext_Workspace_secret(ctx, field)
 			case "projects":
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
@@ -55571,8 +55564,6 @@ func (ec *executionContext) fieldContext_Query_joinable_workspaces(ctx context.C
 				return ec.fieldContext_Workspace_slack_webhook_channel(ctx, field)
 			case "slack_channels":
 				return ec.fieldContext_Workspace_slack_channels(ctx, field)
-			case "secret":
-				return ec.fieldContext_Workspace_secret(ctx, field)
 			case "projects":
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
@@ -58095,8 +58086,6 @@ func (ec *executionContext) fieldContext_Query_workspace(ctx context.Context, fi
 				return ec.fieldContext_Workspace_slack_webhook_channel(ctx, field)
 			case "slack_channels":
 				return ec.fieldContext_Workspace_slack_channels(ctx, field)
-			case "secret":
-				return ec.fieldContext_Workspace_secret(ctx, field)
 			case "projects":
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
@@ -58474,8 +58463,6 @@ func (ec *executionContext) fieldContext_Query_workspace_for_project(ctx context
 				return ec.fieldContext_Workspace_slack_webhook_channel(ctx, field)
 			case "slack_channels":
 				return ec.fieldContext_Workspace_slack_channels(ctx, field)
-			case "secret":
-				return ec.fieldContext_Workspace_secret(ctx, field)
 			case "projects":
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
@@ -76258,47 +76245,6 @@ func (ec *executionContext) _Workspace_slack_channels(ctx context.Context, field
 }
 
 func (ec *executionContext) fieldContext_Workspace_slack_channels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Workspace",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Workspace_secret(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Workspace_secret(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Secret, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Workspace_secret(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Workspace",
 		Field:      field,
@@ -95250,8 +95196,6 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = ec._Workspace_slack_webhook_channel(ctx, field, obj)
 		case "slack_channels":
 			out.Values[i] = ec._Workspace_slack_channels(ctx, field, obj)
-		case "secret":
-			out.Values[i] = ec._Workspace_secret(ctx, field, obj)
 		case "projects":
 			out.Values[i] = ec._Workspace_projects(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

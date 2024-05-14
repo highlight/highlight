@@ -43,7 +43,7 @@ type Option = {
 const ALL_KEY = 'All'
 const ALL_OPTION = { key: ALL_KEY, render: ALL_KEY }
 
-const PopoverCell = <T extends string[] | string>({
+export const PopoverCell = <T extends string[] | string>({
 	options,
 	initialSelection,
 	onChange,
@@ -102,86 +102,83 @@ const PopoverCell = <T extends string[] | string>({
 		selectedOptions.length > 1 ? ` +${selectedOptions.length - 1}` : ''
 	}`
 	const isDisabled = disabledReason !== undefined
-	const inner = (
-		<Table.Cell padding="0">
-			<ComboboxSelect
-				label={label}
-				value={selection}
-				valueRender={
-					<Stack
-						direction="row"
-						width="full"
-						gap="4"
-						alignItems="center"
-						cssClass={clsx(style.comboboxText, {
-							[style.disabled]: isDisabled,
-						})}
-					>
-						<Text lines="1">{selectedText}</Text>
-						<IconSolidCheveronDown size={12} />
-					</Stack>
-				}
-				options={filteredOptions}
-				onChange={(value) => {
-					setChanged(true)
-					if (value instanceof Array) {
-						if (selection.includes(ALL_KEY) && value.length > 1) {
-							// @ts-ignore
-							value = value.filter((v) => v !== ALL_KEY)
-						} else if (
-							value.length === 0 ||
-							value.includes(ALL_KEY)
-						) {
-							// @ts-ignore
-							value = [ALL_KEY]
-						}
+	let inner = (
+		<ComboboxSelect
+			label={label}
+			value={selection}
+			valueRender={
+				<Stack
+					direction="row"
+					width="full"
+					gap="4"
+					alignItems="center"
+					cssClass={clsx(style.comboboxText, {
+						[style.disabled]: isDisabled,
+					})}
+				>
+					<Text lines="1">{selectedText}</Text>
+					<IconSolidCheveronDown size={12} />
+				</Stack>
+			}
+			options={filteredOptions}
+			onChange={(value) => {
+				setChanged(true)
+				if (value instanceof Array) {
+					if (selection.includes(ALL_KEY) && value.length > 1) {
+						// @ts-ignore
+						value = value.filter((v) => v !== ALL_KEY)
+					} else if (value.length === 0 || value.includes(ALL_KEY)) {
+						// @ts-ignore
+						value = [ALL_KEY]
 					}
-					setSelection(value)
-					if (!isMultiSelect) {
-						onChange(value)
-					}
-				}}
-				onChangeQuery={isMultiSelect ? setQuery : undefined}
-				onClose={
-					isMultiSelect && changed
-						? () => {
-								let value: string[] = selection
-								if (value.includes(ALL_KEY)) {
-									value = value.filter((v) => v !== ALL_KEY)
-								}
-								if (isMultiSelect) {
-									// @ts-ignore
-									onChange(value)
-								}
-								setChanged(false)
-						  }
-						: undefined
 				}
-				cssClass={style.combobox}
-				wrapperCssClass={style.comboboxWrapper}
-				queryPlaceholder={`Search ${label}`}
-				disabled={isDisabled}
-			/>
-		</Table.Cell>
+				setSelection(value)
+				if (!isMultiSelect) {
+					onChange(value)
+				}
+			}}
+			onChangeQuery={isMultiSelect ? setQuery : undefined}
+			onClose={
+				isMultiSelect && changed
+					? () => {
+							let value: string[] = selection
+							if (value.includes(ALL_KEY)) {
+								value = value.filter((v) => v !== ALL_KEY)
+							}
+							if (isMultiSelect) {
+								// @ts-ignore
+								onChange(value)
+							}
+							setChanged(false)
+					  }
+					: undefined
+			}
+			cssClass={style.combobox}
+			wrapperCssClass={style.comboboxWrapper}
+			queryPlaceholder={`Search ${label}`}
+			disabled={isDisabled}
+		/>
 	)
-	// if (disabledReason) {
-	// 	inner = (
-	// 		<Tooltip delayed trigger={inner}>
-	// 			{disabledReason}
-	// 		</Tooltip>
-	// 	)
-	// }
+
+	if (isDisabled) {
+		inner = (
+			<Tooltip delayed trigger={inner}>
+				{disabledReason}
+			</Tooltip>
+		)
+	}
+
 	return inner
 }
 
-const RoleOptions: Option[] = [
-	{
-		key: AdminRole.Admin,
-		render: 'Admin',
-	},
+export const RoleOptions: Option[] = [
 	{
 		key: AdminRole.Member,
 		render: 'Member',
+	},
+	{
+		key: AdminRole.Admin,
+		render: 'Admin',
 	},
 ]
 
@@ -190,7 +187,7 @@ const GRID_COLUMNS = ['3fr', '2fr', '1fr', '30px']
 const DISABLED_REASON_NOT_ADMIN =
 	'You must have Admin role to update user access.'
 const DISABLED_REASON_IS_SELF = 'You cannot update your own access.'
-const DISABLED_REASON_IS_ADMIN = 'Admins have access to all projects.'
+export const DISABLED_REASON_IS_ADMIN = 'Admins have access to all projects.'
 const DISABLED_REASON_NOT_ENTERPRISE =
 	'Manage project access with an enterprise plan.'
 
@@ -325,73 +322,77 @@ const AllMembers = ({
 									</Stack>
 								</Stack>
 							</Table.Cell>
-							<PopoverCell
-								label="projects"
-								options={projectOptions}
-								initialSelection={projectIds}
-								filter
-								disabledReason={disabledProject}
-								onChange={(projectIds) => {
-									changeProjectMembership({
-										variables: {
-											workspace_id: workspaceId!,
-											admin_id: admin.id,
-											project_ids: projectIds,
-										},
-										optimisticResponse: {
-											changeProjectMembership:
-												getOptimisticResponse(
-													admin.id,
-													role,
-													projectIds,
+							<Table.Cell padding="0">
+								<PopoverCell
+									label="projects"
+									options={projectOptions}
+									initialSelection={projectIds}
+									filter
+									disabledReason={disabledProject}
+									onChange={(projectIds) => {
+										changeProjectMembership({
+											variables: {
+												workspace_id: workspaceId!,
+												admin_id: admin.id,
+												project_ids: projectIds,
+											},
+											optimisticResponse: {
+												changeProjectMembership:
+													getOptimisticResponse(
+														admin.id,
+														role,
+														projectIds,
+													),
+											},
+										})
+											.then(() =>
+												message.success(
+													'Updated user projects',
 												),
-										},
-									})
-										.then(() =>
-											message.success(
-												'Updated user projects',
-											),
-										)
-										.catch(() =>
-											message.error(
-												'Error updating user projects',
-											),
-										)
-								}}
-							/>
-							<PopoverCell
-								label="roles"
-								options={RoleOptions}
-								initialSelection={role}
-								disabledReason={disabledRole}
-								onChange={(role) => {
-									changeAdminRole({
-										variables: {
-											workspace_id: workspaceId!,
-											admin_id: admin.id,
-											new_role: role,
-										},
-										optimisticResponse: {
-											changeAdminRole:
-												getOptimisticResponse(
-													admin.id,
-													role,
-													projectIds,
+											)
+											.catch(() =>
+												message.error(
+													'Error updating user projects',
 												),
-										},
-									})
-										.then(() =>
-											message.success(
-												'Updated user role',
-											),
-										)
-										.catch(() =>
-											message.error(
-												'Error updating user role',
-											),
-										)
-								}}
-							/>
+											)
+									}}
+								/>
+							</Table.Cell>
+							<Table.Cell padding="0">
+								<PopoverCell
+									label="roles"
+									options={RoleOptions}
+									initialSelection={role}
+									disabledReason={disabledRole}
+									onChange={(role) => {
+										changeAdminRole({
+											variables: {
+												workspace_id: workspaceId!,
+												admin_id: admin.id,
+												new_role: role,
+											},
+											optimisticResponse: {
+												changeAdminRole:
+													getOptimisticResponse(
+														admin.id,
+														role,
+														projectIds,
+													),
+											},
+										})
+											.then(() =>
+												message.success(
+													'Updated user role',
+												),
+											)
+											.catch(() =>
+												message.error(
+													'Error updating user role',
+												),
+											)
+									}}
+								/>
+							</Table.Cell>
 							<Table.Cell padding="0">
 								<Menu>
 									<Menu.Button

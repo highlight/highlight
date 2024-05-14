@@ -6344,7 +6344,6 @@ export const GetWorkspaceAdminsDocument = gql`
 		workspace(id: $workspace_id) {
 			id
 			name
-			secret
 			allowed_auto_join_email_origins
 		}
 		workspace_invite_links(workspace_id: $workspace_id) {
@@ -7088,12 +7087,14 @@ export const SendAdminWorkspaceInviteDocument = gql`
 		$email: String!
 		$base_url: String!
 		$role: String!
+		$projectIds: [ID!]!
 	) {
 		sendAdminWorkspaceInvite(
 			workspace_id: $workspace_id
 			email: $email
 			base_url: $base_url
 			role: $role
+			projectIds: $projectIds
 		)
 	}
 `
@@ -7119,6 +7120,7 @@ export type SendAdminWorkspaceInviteMutationFn = Apollo.MutationFunction<
  *      email: // value for 'email'
  *      base_url: // value for 'base_url'
  *      role: // value for 'role'
+ *      projectIds: // value for 'projectIds'
  *   },
  * });
  */
@@ -7793,7 +7795,6 @@ export const GetWorkspaceDocument = gql`
 		workspace(id: $id) {
 			id
 			name
-			secret
 			plan_tier
 			unlimited_members
 			clearbit_enabled

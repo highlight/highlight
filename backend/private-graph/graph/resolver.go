@@ -416,6 +416,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 		AdminID:     admin.ID,
 		WorkspaceID: workspace.ID,
 		Role:        inviteLink.InviteeRole,
+		ProjectIds:  inviteLink.ProjectIds,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "500: error adding admin to association")
 	}
@@ -477,6 +478,7 @@ func (r *Resolver) isUserInWorkspaceReadOnly(ctx context.Context, workspaceID in
 		ErrorsMaxCents:              workspace.ErrorsMaxCents,
 		LogsMaxCents:                workspace.LogsMaxCents,
 		TracesMaxCents:              workspace.TracesMaxCents,
+		ClearbitEnabled:             workspace.ClearbitEnabled,
 	}, nil
 }
 
@@ -1866,12 +1868,19 @@ func (r *Resolver) AWSMPCallback(ctx context.Context) func(http.ResponseWriter, 
 	}
 }
 
-func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string, shouldExpire bool) *model.WorkspaceInviteLink {
+func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string, shouldExpire bool, projectIds []int) *model.WorkspaceInviteLink {
 	// Unit is days.
 	EXPIRATION_DATE := 30
 	expirationDate := time.Now().UTC().AddDate(0, 0, EXPIRATION_DATE)
 
 	secret, _ := r.GenerateRandomStringURLSafe(16)
+
+	idsToSave := lo.Map(projectIds, func(p int, _ int) int32 {
+		return int32(p)
+	})
+	if len(idsToSave) == 0 {
+		idsToSave = nil
+	}
 
 	newInviteLink := &model.WorkspaceInviteLink{
 		WorkspaceID:    &workspaceID,
@@ -1879,6 +1888,7 @@ func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string,
 		InviteeRole:    &role,
 		ExpirationDate: &expirationDate,
 		Secret:         &secret,
+		ProjectIds:     idsToSave,
 	}
 
 	if !shouldExpire {

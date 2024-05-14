@@ -16,6 +16,7 @@ export const [useAuthContext, AuthContextProvider] = createContext<{
 	isAuthLoading: boolean
 	isLoggedIn: boolean
 	isHighlightAdmin: boolean
+	isProjectLevelMember: boolean
 	signIn: (user: typeof auth.currentUser) => Promise<void>
 	signOut: () => void
 	fetchAdmin: () => Promise<void>
