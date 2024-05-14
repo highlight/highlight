@@ -24,14 +24,18 @@ import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import TextareaAutosize from 'react-autosize-textarea'
 import { useNavigate } from 'react-router-dom'
-import { StringParam, withDefault } from 'use-query-params'
+import { StringParam, useQueryParam, withDefault } from 'use-query-params'
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
 import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { SearchExpression } from '@/components/Search/Parser/listener'
-import { useSearchContext } from '@/components/Search/SearchContext'
+import {
+	SORT_COLUMN,
+	SORT_DIRECTION,
+	useSearchContext,
+} from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -318,6 +322,8 @@ export const Search: React.FC<{
 		setQuery,
 	} = useSearchContext()
 	const { project_id } = useParams()
+	const [_, setSortColumn] = useQueryParam(SORT_COLUMN, StringParam)
+	const [__, setSortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const defaultInputRef = useRef<HTMLTextAreaElement | null>(null)
 	const inputRef = textAreaRef || defaultInputRef
@@ -727,6 +733,8 @@ export const Search: React.FC<{
 
 								setQuery('')
 								submitQuery('')
+								setSortColumn(undefined)
+								setSortDirection(undefined)
 							}}
 							style={{ cursor: 'pointer' }}
 						/>
