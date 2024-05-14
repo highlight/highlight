@@ -242,16 +242,16 @@ func TestExtractFields_Syslog(t *testing.T) {
 		logRecord:              &lr,
 		herokuProjectExtractor: h.matchHerokuDrain,
 	}
-	lr.Body().SetStr("1jdkoe52 <1>1 2023-07-27T05:43:22.401882Z render render-log-endpoint-test 1 render-log-endpoint-test - Render test log")
+	lr.Body().SetStr("56gl9g91 <3>1 2023-07-27T05:43:22.401882Z render render-log-endpoint-test 1 render-log-endpoint-test - Render test log")
 	fields, err := extractFields(context.Background(), params)
 	assert.NoError(t, err)
-	assert.Equal(t, fields.projectIDInt, 1)
+	assert.Equal(t, fields.projectIDInt, 2)
 	assert.Equal(t, fields.attrs, map[string]string{
 		"app_name": "render-log-endpoint-test",
 		"facility": "0",
 		"hostname": "render",
 		"msg_id":   "render-log-endpoint-test",
-		"priority": "1",
+		"priority": "3",
 		"proc_id":  "1",
 	})
 
