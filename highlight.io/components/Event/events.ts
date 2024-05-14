@@ -1,4 +1,4 @@
-export type Webinar = {
+export type Event = {
 	title: string
 	description: string
 	date: string
@@ -6,7 +6,7 @@ export type Webinar = {
 	image?: string
 }
 
-export const WEBINARS: { [k: string]: Webinar } = {
+export const EVENTS: { [k: string]: Event } = {
 	'tracing-in-next': {
 		title: 'Tracing in Next.js',
 		description:

@@ -24,7 +24,6 @@ import { FeatureCarousel } from '../components/Home/FeatureCarousel/FeatureCarou
 import LandingInfoRow from '../components/Home/LandingInfoRow'
 import { Review } from '../components/Home/Reviews'
 import InfoRow from '../components/Products/InfoRow'
-import { WebinarCarousel } from '../components/Webinar/WebinarCarousel'
 
 export const FeatureItem = ({
 	children,
@@ -305,7 +304,6 @@ const Home: NextPage = () => {
 							Highlight powers forward-thinking companies. Check
 							out our events below.
 						</Typography>
-						<WebinarCarousel />
 					</div>
 				</Section>
 				<BigHeroArt />

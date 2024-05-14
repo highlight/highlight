@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { MdKeyboardReturn } from 'react-icons/md'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
 import { Typography } from '../../components/common/Typography/Typography'
+import { EventForm } from '../../components/Event/EventForm'
+import { Event, EVENTS } from '../../components/Event/events'
 import homeStyles from '../../components/Home/Home.module.scss'
-import { EventForm } from '../../components/Webinar/DemoModal'
-import { Webinar, WEBINARS } from '../../components/Webinar/webinar'
 
 import { GetStaticPaths, GetStaticProps } from 'next'
 
@@ -15,7 +15,7 @@ import Footer from '../../components/common/Footer/Footer'
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	return {
-		paths: Object.keys(WEBINARS).map((k: string) => ({
+		paths: Object.keys(EVENTS).map((k: string) => ({
 			params: { slug: k },
 		})),
 		fallback: 'blocking',
@@ -27,7 +27,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 	const slug = params?.slug as string
 
 	// Handle event slugs which don't exist
-	if (!WEBINARS[slug]) {
+	if (!EVENTS[slug]) {
 		return {
 			notFound: true,
 		}
@@ -35,12 +35,12 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
 	return {
 		props: {
-			webinar: WEBINARS[slug],
+			event: EVENTS[slug],
 		},
 	}
 }
 
-const Webinars = ({ webinar }: { webinar: Webinar }) => {
+const Events = ({ event }: { event: Event }) => {
 	return (
 		<div>
 			<Navbar />
@@ -48,22 +48,22 @@ const Webinars = ({ webinar }: { webinar: Webinar }) => {
 				<Link href="/">
 					<Typography type="copy3" emphasis={true}>
 						<div className="flex items-center justify-start gap-2">
-							<MdKeyboardReturn className="h-5" /> Explore
-							highlight.io
+							<MdKeyboardReturn className="h-5" />
+							Explore highlight.io
 						</div>
 					</Typography>
 				</Link>
 			</div>
 			<main>
-				<div className="flex flex-col xl:flex-row justify-between items-center w-screen px-8 mt-8 mx-auto lg:px-4 lg:py-28 max-w-[1200px] 2xl:max-w-[1400px]">
+				<div className="flex flex-col lg:flex-row justify-between items-center w-screen px-8 mt-8 gap-8 mx-auto lg:px-4 lg:py-28 max-w-[1200px] 2xl:max-w-[1400px]">
 					<div className="flex justify-center lg:w-1/2">
 						<div className="flex flex-col max-w-4xl gap-8 text-center lg:text-left">
-							<h2 className="text-white">{webinar.title}</h2>
+							<h2 className="text-white">{event.title}</h2>
 							<Typography
 								type="copy1"
 								className="text-copy-on-dark"
 							>
-								{webinar.description}
+								{event.description}
 							</Typography>
 							<div className="flex flex-col justify-start w-full gap-4 lg:flex-row lg:w-auto">
 								<PrimaryButton
@@ -80,7 +80,7 @@ const Webinars = ({ webinar }: { webinar: Webinar }) => {
 							</div>
 						</div>
 					</div>
-					<div className="w-1/3">
+					<div className="w-full lg:w-1/3">
 						<EventForm />
 					</div>
 				</div>
@@ -90,4 +90,4 @@ const Webinars = ({ webinar }: { webinar: Webinar }) => {
 	)
 }
 
-export default Webinars
+export default Events
