@@ -19,6 +19,7 @@ import {
 	useNavigate,
 } from 'react-router-dom'
 
+import { useAuthContext } from '@/authentication/AuthContext'
 import { WorkspaceSettingsTab } from '@/hooks/useIsSettingsPath'
 import { EmailOptOutPanel } from '@/pages/EmailOptOut/EmailOptOut'
 import { HaroldAISettings } from '@/pages/HaroldAISettings/HaroldAISettings'
@@ -70,6 +71,7 @@ export const SettingsRouter = () => {
 	const { allProjects, currentProject, currentWorkspace } =
 		useApplicationContext()
 	const { toggleShowBanner } = useGlobalContext()
+	const { isProjectLevelMember } = useAuthContext()
 	const workspaceId = workspace_id || currentWorkspace?.id
 	const projectId = project_id || currentProject?.id
 	// Using useMatch instead of pulling from useParams because :page_id isn't
@@ -215,32 +217,38 @@ export const SettingsRouter = () => {
 							</NavLink>
 						))}
 					</Stack>
-					<Stack gap="0">
-						<Box mt="12" mb="4" ml="8">
-							<Text
-								size="xxSmall"
-								color="secondaryContentText"
-								cssClass={styles.menuTitle}
-							>
-								Workspace Settings
-							</Text>
-						</Box>
-						{workspaceSettingTabs.map((tab) => (
-							<NavLink
-								key={tab.key}
-								to={`/w/${workspaceId}/${tab.key}`}
-								className={({ isActive }) =>
-									clsx(styles.menuItem, {
-										[styles.menuItemActive]: isActive,
-									})
-								}
-							>
-								<Stack direction="row" align="center" gap="4">
-									<Text>{tab.title}</Text>
-								</Stack>
-							</NavLink>
-						))}
-					</Stack>
+					{!isProjectLevelMember && (
+						<Stack gap="0">
+							<Box mt="12" mb="4" ml="8">
+								<Text
+									size="xxSmall"
+									color="secondaryContentText"
+									cssClass={styles.menuTitle}
+								>
+									Workspace Settings
+								</Text>
+							</Box>
+							{workspaceSettingTabs.map((tab) => (
+								<NavLink
+									key={tab.key}
+									to={`/w/${workspaceId}/${tab.key}`}
+									className={({ isActive }) =>
+										clsx(styles.menuItem, {
+											[styles.menuItemActive]: isActive,
+										})
+									}
+								>
+									<Stack
+										direction="row"
+										align="center"
+										gap="4"
+									>
+										<Text>{tab.title}</Text>
+									</Stack>
+								</NavLink>
+							))}
+						</Stack>
+					)}
 					<Stack gap="0">
 						<Box mt="12" mb="4" ml="8">
 							<Text

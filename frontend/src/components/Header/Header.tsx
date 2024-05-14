@@ -142,6 +142,8 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 
 	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
 
+	const { isProjectLevelMember } = useAuthContext()
+
 	const pages = [
 		{
 			key: 'sessions',
@@ -549,31 +551,33 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											}
 										/>
 										<Menu.List>
-											<Link
-												to={`/w/${workspaceId}/team`}
-												className={linkStyle}
-											>
-												<Menu.Item>
-													<Box
-														display="flex"
-														alignItems="center"
-														gap="4"
-													>
-														<IconSolidOfficeBuilding
-															size={14}
-															color={
-																vars.theme
-																	.interactive
-																	.fill
-																	.secondary
-																	.content
-																	.text
-															}
-														/>
-														Workspace settings
-													</Box>
-												</Menu.Item>
-											</Link>
+											{!isProjectLevelMember && (
+												<Link
+													to={`/w/${workspaceId}/team`}
+													className={linkStyle}
+												>
+													<Menu.Item>
+														<Box
+															display="flex"
+															alignItems="center"
+															gap="4"
+														>
+															<IconSolidOfficeBuilding
+																size={14}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.secondary
+																		.content
+																		.text
+																}
+															/>
+															Workspace settings
+														</Box>
+													</Menu.Item>
+												</Link>
+											)}
 											<Link
 												to={`/w/${workspaceId}/account/${
 													auth.googleProvider
@@ -755,33 +759,35 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 																</Box>
 															</Menu.Item>
 														</Link>
-														<Link
-															to={`/${workspaceId}/settings`}
-															className={
-																linkStyle
-															}
-														>
-															<Menu.Item>
-																<Box
-																	display="flex"
-																	alignItems="center"
-																	gap="4"
-																>
-																	<IconSolidCog
-																		size={
-																			14
-																		}
-																		color={
-																			vars
-																				.color
-																				.n9
-																		}
-																	/>
-																	Workspace
-																	settings
-																</Box>
-															</Menu.Item>
-														</Link>
+														{!isProjectLevelMember && (
+															<Link
+																to={`/${workspaceId}/settings`}
+																className={
+																	linkStyle
+																}
+															>
+																<Menu.Item>
+																	<Box
+																		display="flex"
+																		alignItems="center"
+																		gap="4"
+																	>
+																		<IconSolidCog
+																			size={
+																				14
+																			}
+																			color={
+																				vars
+																					.color
+																					.n9
+																			}
+																		/>
+																		Workspace
+																		settings
+																	</Box>
+																</Menu.Item>
+															</Link>
+														)}
 													</Menu.List>
 												</Menu>
 											</Menu.Item>

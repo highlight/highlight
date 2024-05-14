@@ -85,29 +85,6 @@ const ProjectPicker = () => {
 		? DEMO_PROJECT_NAME
 		: currentProject?.name
 
-	let createProjectItem = (
-		<Menu.Item disabled={isProjectLevelMember}>
-			<Box display="flex" alignItems="center" gap="4">
-				<IconSolidPlusSm size={14} color={vars.color.n9} />
-				Create new project
-			</Box>
-		</Menu.Item>
-	)
-
-	if (!isProjectLevelMember) {
-		createProjectItem = (
-			<Link
-				to={`/w/${currentWorkspace?.id}/new`}
-				state={{
-					previousLocation: location,
-				}}
-				className={linkStyle}
-			>
-				{createProjectItem}
-			</Link>
-		)
-	}
-
 	return (
 		<div>
 			<div>
@@ -138,7 +115,29 @@ const ProjectPicker = () => {
 							{projectId && (
 								<>
 									<Menu.Divider />
-									{createProjectItem}
+									{!isProjectLevelMember && (
+										<Link
+											to={`/w/${currentWorkspace?.id}/new`}
+											state={{
+												previousLocation: location,
+											}}
+											className={linkStyle}
+										>
+											<Menu.Item>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconSolidPlusSm
+														size={14}
+														color={vars.color.n9}
+													/>
+													Create new project
+												</Box>
+											</Menu.Item>
+										</Link>
+									)}
 									<Link
 										to={`/${projectId}/settings/sessions`}
 										className={linkStyle}
