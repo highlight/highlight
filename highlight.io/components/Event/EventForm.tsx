@@ -69,6 +69,7 @@ export const EventForm = () => {
 	}
 
 	const track = (event: string, metadata?: Object) => {
+		// @ts-ignore
 		;(window._hsq = window._hsq || []).push([
 			'trackCustomBehavioralEvent',
 			{
@@ -81,6 +82,7 @@ export const EventForm = () => {
 	}
 
 	const identify = (email: string, traits?: Object) => {
+		// @ts-ignore
 		const hsq = (window._hsq = window._hsq || [])
 		hsq.push([
 			'identify',
