@@ -16,7 +16,7 @@ import {
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { isEqual } from 'lodash'
-import React, { Key, useCallback, useEffect, useMemo, useRef } from 'react'
+import React, { Key, useCallback, useMemo, useRef } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import {
@@ -31,10 +31,8 @@ import {
 	RelatedTrace,
 	useRelatedResource,
 } from '@/components/RelatedResources/hooks'
-import {
-	DEFAULT_INPUT_HEIGHT,
-	QueryParam,
-} from '@/components/Search/SearchForm/SearchForm'
+import { SORT_COLUMN, SORT_DIRECTION } from '@/components/Search/SearchContext'
+import { DEFAULT_INPUT_HEIGHT } from '@/components/Search/SearchForm/SearchForm'
 import {
 	ProductType,
 	SortDirection,
@@ -79,15 +77,11 @@ export const TracesList: React.FC<Props> = ({
 		`highlight-traces-table-columns`,
 		DEFAULT_TRACE_COLUMNS,
 	)
-	const [sortColumn, setSortColumn] = useQueryParam(
-		'sort_column',
-		StringParam,
-	)
+	const [sortColumn, setSortColumn] = useQueryParam(SORT_COLUMN, StringParam)
 	const [sortDirection, setSortDirection] = useQueryParam(
-		'sort_direction',
+		SORT_DIRECTION,
 		StringParam,
 	)
-	const [query] = useQueryParam('query', QueryParam)
 
 	const handleSort = useCallback(
 		(column: string, direction?: SortDirection | null) => {
@@ -230,13 +224,6 @@ export const TracesList: React.FC<Props> = ({
 			fetchMoreWhenScrolled(e.target as HTMLDivElement)
 		}, 0)
 	}
-
-	useEffect(() => {
-		if (query.trim() === '') {
-			setSortColumn(undefined)
-			setSortDirection(undefined)
-		}
-	}, [query, setSortColumn, setSortDirection])
 
 	if (!loading && !traceEdges.length) {
 		return (

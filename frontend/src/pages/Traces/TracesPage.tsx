@@ -19,7 +19,11 @@ import {
 	RelatedTrace,
 	useRelatedResource,
 } from '@/components/RelatedResources/hooks'
-import { SearchContext } from '@/components/Search/SearchContext'
+import {
+	SearchContext,
+	SORT_COLUMN,
+	SORT_DIRECTION,
+} from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -61,8 +65,8 @@ export const TracesPage: React.FC = () => {
 	} = useParams<{ trace_id: string; span_id: string; trace_cursor: string }>()
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [query, setQuery] = useQueryParam('query', QueryParam)
-	const [sortColumn] = useQueryParam('sort_column', StringParam)
-	const [sortDirection] = useQueryParam('sort_direction', StringParam)
+	const [sortColumn] = useQueryParam(SORT_COLUMN, StringParam)
+	const [sortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
 	const {
 		startDate,
 		endDate,
