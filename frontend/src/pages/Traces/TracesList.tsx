@@ -213,6 +213,8 @@ export const TracesList: React.FC<Props> = ({
 							iconStart={<IconSolidAcademicCap size="12" />}
 						/>
 					</Box>
+					{/* TODO: Update to only show if traces are not set up */}
+					{/* TODO: Add messaging to remove filters or update time range to see more results */}
 					<Stack gap="12" flexGrow={1} style={{ padding: '5px 0' }}>
 						<Text color="strong" weight="bold" size="small">
 							Set up traces
