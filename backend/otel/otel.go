@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -432,12 +433,13 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				logRecord := logRecords.At(k)
 
 				fields, err := extractFields(extractFieldsParams{
-					resource:  &resource,
-					logRecord: &logRecord,
-					curTime:   curTime,
+					resource:               &resource,
+					logRecord:              &logRecord,
+					curTime:                curTime,
+					herokuProjectExtractor: o.matchHerokuDrain,
 				})
 				if err != nil {
-					lg(ctx, fields).WithError(err).Info("failed to extract fields from log")
+					lg(ctx, fields).WithError(err).WithField("body", logRecord.Body().AsRaw()).Info("failed to extract fields from log")
 					continue
 				}
 
@@ -685,6 +687,22 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 	}
 
 	return nil
+}
+
+func (o *Handler) matchHerokuDrain(herokuDrainToken string) (string, int) {
+	projectMapping := &model2.IntegrationProjectMapping{
+		IntegrationType: privateModel.IntegrationTypeHeroku,
+		ExternalID:      herokuDrainToken,
+	}
+	if err := o.resolver.DB.
+		Model(&projectMapping).
+		Where(&projectMapping).
+		Take(&projectMapping).Error; err != nil {
+		log.WithContext(context.TODO()).WithError(err).WithField("token", herokuDrainToken).Error("failed to find heroku drain token")
+		return herokuDrainToken, 0
+	}
+
+	return strconv.Itoa(projectMapping.ProjectID), projectMapping.ProjectID
 }
 
 func (o *Handler) Listen(r *chi.Mux) {
