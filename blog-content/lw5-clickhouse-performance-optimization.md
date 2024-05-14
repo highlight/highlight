@@ -1,5 +1,5 @@
 ---
-title: "Optimizing Clickhouse: 5 Tactics That Worked"
+title: "Optimizing Clickhouse: The Tactics That Worked for Us"
 createdAt: 2024-04-30T09:00:00Z
 readingTime: 17
 authorFirstName: Vadim
