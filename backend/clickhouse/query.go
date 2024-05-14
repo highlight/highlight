@@ -34,17 +34,18 @@ type sampleableTableConfig[TReservedKey ~string] struct {
 	useSampling         func(time.Duration) bool
 }
 
-func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, client *Client, config model.TableConfig[TReservedKey], projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
+func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, client *Client, config model.TableConfig[TReservedKey], samplingConfig model.TableConfig[TReservedKey], projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
 
-	orderForward := OrderForwardNatural
-	orderBackward := OrderBackwardNatural
-	if pagination.Direction == modelInputs.SortDirectionAsc {
-		orderForward = OrderForwardInverted
-		orderBackward = OrderBackwardInverted
+	innerTableConfig := config
+	// If we have a non-default sort column use the sampling table for inner query
+	if params.Sort != nil && strings.ToLower(params.Sort.Column) != "timestamp" {
+		innerTableConfig = samplingConfig
 	}
+
+	orderForward, _ := getSortOrders[TReservedKey](sb, pagination.Direction, config, params)
 
 	outerSelect := strings.Join(config.SelectColumns, ", ")
 	innerSelect := []string{"Timestamp", "UUID"}
@@ -52,45 +53,39 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		// Create a "window" around the cursor
 		// https://stackoverflow.com/a/71738696
 		beforeSb, err := makeSelectBuilder(
-			config,
+			innerTableConfig,
 			innerSelect,
 			[]int{projectID},
 			params,
 			Pagination{
 				Before: pagination.At,
-			},
-			orderBackward,
-			orderForward)
+			})
 		if err != nil {
 			return nil, err
 		}
 		beforeSb.Distinct().Limit(LogsLimit/2 + 1)
 
 		atSb, err := makeSelectBuilder(
-			config,
+			innerTableConfig,
 			innerSelect,
 			[]int{projectID},
 			params,
 			Pagination{
 				At: pagination.At,
-			},
-			orderBackward,
-			orderForward)
+			})
 		if err != nil {
 			return nil, err
 		}
 		atSb.Distinct()
 
 		afterSb, err := makeSelectBuilder(
-			config,
+			innerTableConfig,
 			innerSelect,
 			[]int{projectID},
 			params,
 			Pagination{
 				After: pagination.At,
-			},
-			orderBackward,
-			orderForward)
+			})
 		if err != nil {
 			return nil, err
 		}
@@ -105,13 +100,11 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			OrderBy(orderForward)
 	} else {
 		fromSb, err := makeSelectBuilder(
-			config,
+			innerTableConfig,
 			innerSelect,
 			[]int{projectID},
 			params,
-			pagination,
-			orderBackward,
-			orderForward)
+			pagination)
 		if err != nil {
 			return nil, err
 		}
@@ -129,7 +122,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	span, _ := util.StartSpanFromContext(ctx, "clickhouse.Query")
-	span.SetAttribute("Table", config.TableName)
+	span.SetAttribute("Table", innerTableConfig.TableName)
 	span.SetAttribute("Query", sql)
 	span.SetAttribute("Params", params)
 	span.SetAttribute("db.system", "clickhouse")
@@ -163,10 +156,10 @@ func makeSelectBuilder[T ~string](
 	projectIDs []int,
 	params modelInputs.QueryInput,
 	pagination Pagination,
-	orderBackward string,
-	orderForward string,
 ) (*sqlbuilder.SelectBuilder, error) {
 	sb := sqlbuilder.NewSelectBuilder()
+
+	orderForward, orderBackward := getSortOrders[T](sb, pagination.Direction, config, params)
 
 	sb.Select(selectCols...)
 	sb.From(config.TableName)
@@ -612,8 +605,6 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 		projectIDs,
 		params,
 		Pagination{CountOnly: true},
-		OrderBackwardNatural,
-		OrderForwardNatural,
 	)
 
 	var col string
@@ -895,8 +886,6 @@ func logLines[T ~string](ctx context.Context, client *Client, tableConfig model.
 		[]int{projectID},
 		params,
 		Pagination{CountOnly: true},
-		OrderBackwardNatural,
-		OrderForwardNatural,
 	)
 	if err != nil {
 		return nil, err
@@ -958,4 +947,37 @@ func repr(val reflect.Value) string {
 	default:
 		return val.String()
 	}
+}
+
+func getSortOrders[TReservedKey ~string](
+	sb *sqlbuilder.SelectBuilder,
+	paginationDirection modelInputs.SortDirection,
+	config model.TableConfig[TReservedKey],
+	params modelInputs.QueryInput,
+) (string, string) {
+	sortColumn := "timestamp"
+	sortDirection := modelInputs.SortDirectionDesc
+	if params.Sort != nil {
+		sortColumn = params.Sort.Column
+		sortDirection = params.Sort.Direction
+	}
+
+	if col, found := config.KeysToColumns[TReservedKey(sortColumn)]; found {
+		sortColumn = col
+	} else {
+		sortColumn = fmt.Sprintf("%s[%s]", config.AttributesColumn, sb.Var(sortColumn))
+	}
+
+	forwardDirection := "DESC"
+	backwardDirection := "ASC"
+	if paginationDirection == modelInputs.SortDirectionAsc || sortDirection == modelInputs.SortDirectionAsc {
+		forwardDirection = "ASC"
+	} else {
+		backwardDirection = "DESC"
+	}
+
+	orderForward := fmt.Sprintf("%s %s, UUID %s", sortColumn, forwardDirection, forwardDirection)
+	orderBackward := fmt.Sprintf("%s %s, UUID %s", sortColumn, backwardDirection, backwardDirection)
+
+	return orderForward, orderBackward
 }

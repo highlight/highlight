@@ -12,6 +12,9 @@ import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
 import { DateHistogramBucketSize } from '@/graph/generated/schemas'
 import { useSearchTime } from '@/hooks/useSearchTime'
 
+export const SORT_COLUMN = 'sort_column'
+export const SORT_DIRECTION = 'sort_direction'
+
 interface SearchContext extends Partial<ReturnType<typeof useSearchTime>> {
 	disabled: boolean
 	loading: boolean
