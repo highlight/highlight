@@ -116,13 +116,11 @@ const PerformancePage = React.memo(({}: Props) => {
 						helpLink:
 							'https://developer.mozilla.org/en-US/docs/Glossary/Jank',
 					},
-				].map(({ key, strokeColor, yAxisLabel, chartLabel }, idx) => {
+				].map(({ key, strokeColor, yAxisLabel }, idx) => {
 					const data = performanceData.map((b) => ({
 						[TIMESTAMP_KEY]: b.timestamp,
 						[key]: b[key],
 					}))
-
-					console.log('vadim', { key, yAxisLabel, chartLabel })
 
 					const hasData = data.some((data: any) => !isNaN(data[key]))
 					if (data.length === 0 || !hasData) {
