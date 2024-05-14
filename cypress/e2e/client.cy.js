@@ -34,6 +34,21 @@ describe('client recording spec', () => {
 						'responseEndAbs',
 						'startTimeAbs',
 						'transferSize',
+
+						'connectStartAbs',
+						'connectEndAbs',
+						'domainLookupStartAbs',
+						'domainLookupEndAbs',
+						'fetchStartAbs',
+						'redirectStartAbs',
+						'redirectEndAbs',
+						'requestStartAbs',
+						'responseStartAbs',
+						'responseEndAbs',
+						'secureConnectionStartAbs',
+						'workerStartAbs',
+						'decodedBodySize',
+						'nextHopProtocol',
 					])
 
 					win.eval(
