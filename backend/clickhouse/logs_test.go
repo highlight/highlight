@@ -43,6 +43,9 @@ func setupTest(tb testing.TB) (*Client, func(tb testing.TB)) {
 
 		err = client.conn.Exec(context.Background(), fmt.Sprintf("TRUNCATE TABLE %s", TracesTable))
 		assert.NoError(tb, err)
+
+		err = client.conn.Exec(context.Background(), fmt.Sprintf("TRUNCATE TABLE %s", TracesSamplingTable))
+		assert.NoError(tb, err)
 	}
 }
 

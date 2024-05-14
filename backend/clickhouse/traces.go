@@ -46,6 +46,8 @@ var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeyMetricValue:     "MetricValue",
 	modelInputs.ReservedTraceKeyEnvironment:     "Environment",
 	modelInputs.ReservedTraceKeyHasErrors:       "HasErrors",
+	modelInputs.ReservedTraceKeyTimestamp:       "Timestamp",
+	modelInputs.ReservedTraceKeyHighlightType:   "HighlightType",
 }
 
 var traceColumns = []string{
@@ -95,7 +97,7 @@ var TracesTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
 	BodyColumn:       TracesTableNoDefaultConfig.BodyColumn,
 	AttributesColumn: TracesTableNoDefaultConfig.AttributesColumn,
 	SelectColumns:    TracesTableNoDefaultConfig.SelectColumns,
-	DefaultFilter:    fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
+	DefaultFilter:    fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, modelInputs.ReservedTraceKeyHighlightType, highlight.TraceTypeHighlightInternal),
 }
 
 var tracesSamplingTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
@@ -105,7 +107,7 @@ var tracesSamplingTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
 	ReservedKeys:     modelInputs.AllReservedTraceKey,
 	AttributesColumn: "TraceAttributes",
 	SelectColumns:    traceColumns,
-	DefaultFilter:    fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
+	DefaultFilter:    fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, modelInputs.ReservedTraceKeyHighlightType, highlight.TraceTypeHighlightInternal),
 }
 
 var tracesSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedTraceKey]{
@@ -268,7 +270,7 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 		}, nil
 	}
 
-	conn, err := readObjects(ctx, client, TracesTableConfig, projectID, params, pagination, scanTrace)
+	conn, err := readObjects(ctx, client, TracesTableConfig, tracesSamplingTableConfig, projectID, params, pagination, scanTrace)
 	if err != nil {
 		return nil, err
 	}
