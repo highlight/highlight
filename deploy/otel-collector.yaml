@@ -9,8 +9,7 @@ receivers:
         tcp:
             listen_address: '0.0.0.0:6514'
         protocol: 'rfc5424'
-        enable_octet_counting: false
-        allow_skip_pri_header: true
+        enable_octet_counting: true
     otlp:
         protocols:
             grpc:
