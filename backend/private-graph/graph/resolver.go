@@ -2003,10 +2003,6 @@ func (r *Resolver) AddHerokuToProject(ctx context.Context, project *model.Projec
 
 	if err := r.DB.WithContext(ctx).
 		Model(&projectMapping).
-		Clauses(clause.OnConflict{
-			OnConstraint: "idx_integration_project_mapping_project_id_integration_type",
-			DoUpdates:    clause.AssignmentColumns([]string{"external_id"}),
-		}).
 		Create(&projectMapping).Error; err != nil {
 		return err
 	}
