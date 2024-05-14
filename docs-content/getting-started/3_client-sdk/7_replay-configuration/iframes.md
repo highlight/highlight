@@ -34,3 +34,12 @@ H.init('<YOUR_PROJECT_ID>', {
 ```
 
 Ensure that you add the `H.init` call to both the parent page and the iframe page, and that you've set `recordCrossOriginIframe` **in both H.init calls**.
+
+## Recording cross-origin `iframe` contents with no access to parent window
+
+If you are running an application that is deployed into a cross-origin iframe of a parent application that
+you do not control, you can record the session by setting the `recordCrossOriginIframe` option to `false`
+in the `H.init` call in the iframe. By default without that option, the SDK will assume that the iframe
+is waiting for an initialization method from highlight in the parent window, but setting the option
+to `false` will start recording for the iframe in standalone mode. You will find a session with just
+the contents of the iframe in highlight.

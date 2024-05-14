@@ -1,9 +1,8 @@
-import Navbar from '../components/common/Navbar/Navbar'
+import React from 'react'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
 import Footer from '../components/common/Footer/Footer'
-import React from 'react'
+import Navbar from '../components/common/Navbar/Navbar'
 import { Typography } from '../components/common/Typography/Typography'
-import { Button } from 'antd'
 
 export default function HighlightDemo() {
 	const [query, setQuery] = React.useState<string>()
@@ -27,10 +26,8 @@ export default function HighlightDemo() {
 								setQuery(e.target.value)
 							}}
 						/>
-						<Button
-							loading={loading}
+						<button
 							className="bg-blue-cta text-black px-3 py-1 rounded-lg"
-							size={'small'}
 							onClick={async () => {
 								setLoading(true)
 								try {
@@ -49,7 +46,7 @@ export default function HighlightDemo() {
 							<Typography type="copy3" emphasis={true}>
 								Query Docs
 							</Typography>
-						</Button>
+						</button>
 						{result && (
 							<div>
 								<Typography type="copy1">{result}</Typography>

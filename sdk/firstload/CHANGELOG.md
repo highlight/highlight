@@ -1,5 +1,30 @@
 # highlight.run
 
+## 8.12.3
+
+### Patch Changes
+
+-   2ea916328: Fix duplicate network requests when performance.clearResourceTimings has been monkeypatched by external libraries
+-   11fe2921b: export highlight state on sdk
+
+## 8.12.2
+
+### Patch Changes
+
+-   8899ee039: report additional metadata on error boundary exceptions
+
+## 8.12.1
+
+### Patch Changes
+
+-   926c3a1d7: fix rrweb merge conflict breaking canvas recording
+
+## 8.12.0
+
+### Minor Changes
+
+-   b27a0bcd2: update rrweb version to 729361e
+
 ## 8.11.1
 
 ### Patch Changes

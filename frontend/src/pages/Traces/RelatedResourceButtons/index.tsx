@@ -132,7 +132,7 @@ const getErrorsLink = ({
 	if (!traceId) return ''
 
 	const params = createSearchParams({
-		query: `and||error-field_trace_id,is,${traceId}`,
+		query: `trace_id=${traceId}`,
 		start_date: moment(startDate).subtract(5, 'minutes').toISOString(),
 		end_date: moment(endDate).add(5, 'minutes').toISOString(),
 	})

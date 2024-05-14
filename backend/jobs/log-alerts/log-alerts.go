@@ -30,6 +30,9 @@ import (
 const maxWorkers = 40
 const alertEvalFreq = 15 * time.Second
 
+// ingestDelay is an offset to make sure we look at ingested data
+const ingestDelay = -time.Minute
+
 func WatchLogAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) {
 	log.WithContext(ctx).Info("Starting to watch log alerts")
 
@@ -99,8 +102,13 @@ func getLogAlerts(ctx context.Context, DB *gorm.DB) []*model.LogAlert {
 }
 
 func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, alert *model.LogAlert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) error {
-	end := time.Now().Add(-time.Minute)
-	start := end.Add(-time.Duration(alert.Frequency) * time.Second)
+	thresholdWindow := alert.Frequency
+	if alert.ThresholdWindow != nil {
+		thresholdWindow = *alert.ThresholdWindow
+	}
+
+	end := time.Now().Add(ingestDelay)
+	start := end.Add(-time.Duration(thresholdWindow) * time.Second)
 
 	count64, err := ccClient.ReadLogsTotalCount(ctx, alert.ProjectID, modelInputs.QueryInput{Query: alert.Query, DateRange: &modelInputs.DateRangeRequiredInput{
 		StartDate: start,
@@ -117,14 +125,15 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Clie
 	}
 
 	log.WithContext(ctx).WithFields(log.Fields{
-		"id":        alert.ID,
-		"query":     alert.Query,
-		"frequency": alert.Frequency,
-		"start":     start.Format(time.RFC3339),
-		"end":       end.Format(time.RFC3339),
-		"count":     count,
-		"threshold": alert.CountThreshold,
-		"alerting":  alertCondition,
+		"id":              alert.ID,
+		"query":           alert.Query,
+		"frequency":       alert.Frequency,
+		"start":           start.Format(time.RFC3339),
+		"end":             end.Format(time.RFC3339),
+		"count":           count,
+		"threshold":       alert.CountThreshold,
+		"thresholdWindow": thresholdWindow,
+		"alerting":        alertCondition,
 	}).Info("evaluated log alert")
 
 	if alertCondition {

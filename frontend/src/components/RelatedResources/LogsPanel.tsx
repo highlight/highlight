@@ -1,21 +1,29 @@
-import { Box } from '@highlight-run/ui/components'
+import { Box, Callout, Text } from '@highlight-run/ui/components'
 import { stringify } from 'query-string'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
-import { RelatedLogs } from '@/components/RelatedResources/hooks'
+import { LinkButton } from '@/components/LinkButton'
+import {
+	RelatedLogs,
+	useRelatedResource,
+} from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
+import { SearchContext } from '@/components/Search/SearchContext'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
+import { parseSearch } from '@/components/Search/utils'
 import { ProductType } from '@/graph/generated/schemas'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
-import { NoLogsFound } from '@/pages/Traces/TraceLogs'
 
 export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 	resource,
 }) => {
+	const { set } = useRelatedResource()
 	const [query, setQuery] = useState(resource.query ?? '')
+	const { queryParts } = parseSearch(query)
+	const handleSubmit = (query: string) => set({ ...resource, query })
 	const { projectId } = useNumericProjectId()
 
 	/* eslint-disable react-hooks/exhaustive-deps */
@@ -77,8 +85,11 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 	}, [resource.query])
 
 	return (
-		<>
-			<Panel.Header path={path}></Panel.Header>
+		<SearchContext initialQuery={query} onSubmit={handleSubmit} disabled>
+			<Panel.Header path={path}>
+				<Panel.HeaderCopyLinkButton path={path} />
+				<Panel.HeaderDivider />
+			</Panel.Header>
 
 			<Box
 				flex="stretch"
@@ -88,8 +99,6 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 			>
 				<Box flexDirection="column" display="flex" flexGrow={1}>
 					<SearchForm
-						initialQuery={query}
-						onFormSubmit={setQuery}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={() => null}
@@ -111,12 +120,13 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 							</Box>
 						) : (
 							<LogsTable
+								query={query}
+								queryParts={queryParts}
 								logEdges={logEdges}
 								loading={loading}
 								error={error}
 								refetch={refetch}
 								loadingAfter={loadingAfter}
-								query={query}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 								bodyHeight="100%"
@@ -125,6 +135,35 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 					</Box>
 				</Box>
 			</Box>
-		</>
+		</SearchContext>
+	)
+}
+
+const NoLogsFound = () => {
+	return (
+		<Box mx="auto" style={{ maxWidth: 300 }}>
+			<Callout title="No associated logs found">
+				<Box
+					display="flex"
+					flexDirection="column"
+					gap="16"
+					alignItems="flex-start"
+				>
+					<Text color="moderate">
+						To match backend logs to traces, make sure to enable
+						"full stack mapping."
+					</Text>
+
+					<LinkButton
+						trackingId="logs-empty-state_specification-docs"
+						kind="secondary"
+						to="https://www.highlight.io/docs/getting-started/frontend-backend-mapping"
+						target="_blank"
+					>
+						Learn more
+					</LinkButton>
+				</Box>
+			</Callout>
+		</Box>
 	)
 }

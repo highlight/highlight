@@ -1,9 +1,5 @@
+import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
-
-export const searchPanelContainer = style({
-	position: 'relative',
-	zIndex: 98,
-})
 
 export const detailsContainer = style({
 	backgroundColor: '#f9f8f9',
@@ -12,18 +8,22 @@ export const detailsContainer = style({
 	padding: '8px',
 })
 
-export const errorMetrics = style({
-	display: 'flex',
-	gap: 'var(--size-medium)',
-	marginTop: 'var(--size-medium)',
-	width: '100%',
-})
+export const panelDragHandle = style({
+	cursor: 'col-resize',
+	position: 'absolute',
+	right: -2,
+	top: 0,
+	bottom: 0,
+	transition: 'background-color 0.3s',
+	width: 4,
+	zIndex: 1,
 
-export const moveDetailsRight = style({
-	marginLeft: '340px',
-})
-
-export const sessionSwitchButton = style({
-	border: '0 !important',
-	borderRadius: '0',
+	selectors: {
+		'&:hover': {
+			backgroundColor: vars.theme.interactive.outline.primary.pressed,
+		},
+		'&:focus': {
+			backgroundColor: vars.theme.interactive.outline.primary.pressed,
+		},
+	},
 })

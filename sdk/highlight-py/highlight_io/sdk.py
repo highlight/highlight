@@ -2,13 +2,14 @@ import contextlib
 import http
 import json
 import logging
+import sys
 import traceback
 import typing
 
-from opentelemetry import trace, _logs
+from opentelemetry import trace as otel_trace, _logs
 from opentelemetry._logs.severity import std_to_otel
 from opentelemetry.baggage import set_baggage, get_baggage
-from opentelemetry.context import Context, attach
+from opentelemetry.context import Context, attach, get_current
 from opentelemetry.exporter.otlp.proto.http import Compression
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -16,8 +17,6 @@ from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.sdk._logs import (
     LoggerProvider,
     LogRecord,
-    LogRecordProcessor,
-    LogData,
 )
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.resources import Resource
@@ -25,41 +24,45 @@ from opentelemetry.sdk.trace import TracerProvider, Span, SpanProcessor
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.semconv.resource import ResourceAttributes
 from opentelemetry.semconv.trace import SpanAttributes
-from opentelemetry.trace import INVALID_SPAN, get_current_span
+from opentelemetry.trace import INVALID_SPAN
 
 from highlight_io.integrations import Integration
-from highlight_io.integrations.boto import BotoIntegration
-from highlight_io.integrations.boto3sqs import Boto3SQSIntegration
-from highlight_io.integrations.celery import CeleryIntegration
-from highlight_io.integrations.redis import RedisIntegration
-from highlight_io.integrations.requests import RequestsIntegration
-from highlight_io.integrations.sqlalchemy import SQLAlchemyIntegration
+from highlight_io.integrations.all import DEFAULT_INTEGRATIONS
 from highlight_io.utils.lru_cache import LRUCache
-
-DEFAULT_INTEGRATIONS = [
-    BotoIntegration,
-    Boto3SQSIntegration,
-    CeleryIntegration,
-    RedisIntegration,
-    RequestsIntegration,
-    SQLAlchemyIntegration,
-]
 
 
 class LogHandler(logging.Handler):
     def __init__(self, highlight: "H", level=logging.NOTSET):
+        """Create a `logging.Handler` that ships data to highlight.
+        :param highlight: Highlight object
+        :param level: Log level
+
+        Example:
+            # define the formatting for logs sent to highlight
+            formatter = logging.Formatter(' %(name)s :: %(levelname)-8s :: %(message)s')
+            handler = LogHandler(H)
+            handler.setFormatter(formatter)
+            # create the logger object with a custom logger module name
+            lg = logging.getLogger("my.logger")
+            lg.addHandler(handler)
+
+            lg.warning("oh, no!")
+        """
         self.highlight = highlight
         super(LogHandler, self).__init__(level=level)
 
     def emit(self, record: logging.LogRecord):
         ctx = contextlib.nullcontext
-        span = trace.get_current_span()
+        span = otel_trace.get_current_span()
 
         if span is None or not span.is_recording():
             ctx = self.highlight.trace
 
         with ctx():
-            self.highlight.log_hook(trace.get_current_span(), record)
+            if self.filter(record):
+                self.highlight.log_hook(
+                    otel_trace.get_current_span(), record, formatted=self.format(record)
+                )
 
 
 class H(object):
@@ -91,6 +94,8 @@ class H(object):
         service_name: str = "",
         service_version: str = "",
         environment: str = "",
+        debug: bool = False,
+        **kwargs,
     ):
         """
         Setup Highlight backend instrumentation.
@@ -108,13 +113,42 @@ class H(object):
         :param service_name: a string to name this app
         :param service_version: a string to set this app's version (typically a Git deploy sha).
         :param environment: a string to set this app's environment (e.g. 'production', 'development').
+        :param debug: a boolean to turn on debug logging.
+        :param **kwargs: optional kwargs passed to the BatchLogRecordProcessor and BatchSpanProcessor.
         :return: a configured H instance
         """
+        kwargs.update(
+            {
+                "schedule_delay_millis": 1000,
+                "max_export_batch_size": 128 * 1024,
+                "max_queue_size": 1024 * 1024,
+            }
+        )
+
+        if debug:
+            root = logging.getLogger()
+            root.setLevel(logging.DEBUG)
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setLevel(logging.DEBUG)
+            formatter = logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            )
+            handler.setFormatter(formatter)
+            root.addHandler(handler)
+
+        logger = logging.getLogger("highlight_io")
+
         H._instance = self
         self._project_id = project_id
         self._integrations = integrations or []
         self._disabled_integrations = disabled_integrations or []
         self._otlp_endpoint = otlp_endpoint or H.OTLP_HTTP
+        logger.debug(
+            "Highlight initializing: %s %s %s",
+            self._otlp_endpoint,
+            self._project_id,
+            kwargs,
+        )
         self._log_handler = LogHandler(self, level=log_level)
         if instrument_logging:
             self._instrument_logging()
@@ -161,15 +195,15 @@ class H(object):
         self._trace_provider.add_span_processor(
             BatchSpanProcessor(
                 OTLPSpanExporter(
-                    f"{self._otlp_endpoint}/v1/traces", compression=Compression.Gzip
+                    f"{self._otlp_endpoint}/v1/traces",
+                    compression=Compression.Gzip,
+                    timeout=30,
                 ),
-                schedule_delay_millis=1000,
-                max_export_batch_size=128,
-                max_queue_size=1024,
+                **kwargs,
             )
         )
-        trace.set_tracer_provider(self._trace_provider)
-        self.tracer = trace.get_tracer(__name__)
+        otel_trace.set_tracer_provider(self._trace_provider)
+        self.tracer = otel_trace.get_tracer(__name__)
 
         self._log_provider = LoggerProvider(
             resource=resource,
@@ -177,11 +211,11 @@ class H(object):
         self._log_provider.add_log_record_processor(
             BatchLogRecordProcessor(
                 OTLPLogExporter(
-                    f"{self._otlp_endpoint}/v1/logs", compression=Compression.Gzip
+                    f"{self._otlp_endpoint}/v1/logs",
+                    compression=Compression.Gzip,
+                    timeout=30,
                 ),
-                schedule_delay_millis=1000,
-                max_export_batch_size=128,
-                max_queue_size=1024,
+                **kwargs,
             )
         )
         _logs.set_logger_provider(self._log_provider)
@@ -204,10 +238,11 @@ class H(object):
     @contextlib.contextmanager
     def trace(
         self,
+        span_name: typing.Optional[str] = "highlight.trace",
         session_id: typing.Optional[str] = "",
         request_id: typing.Optional[str] = "",
-        span_name: typing.Optional[str] = "highlight-ctx",
         attributes: typing.Optional[typing.Dict[str, any]] = None,
+        context: typing.Optional[Context] = None,
     ) -> Span:
         """
         Catch exceptions raised by your app using this context manager.
@@ -225,8 +260,9 @@ class H(object):
 
         :param session_id: the highlight session that initiated this network request.
         :param request_id: the identifier of the current network request.
-        :param attributes: additional attributes to attribute to this error.
         :param span_name: span name to record.
+        :param attributes: additional attributes to attribute to this error.
+        :param context: `opentelemetry.Context` for multithreaded trace context propagation.
         :return: Span
         """
         # in case the otel library is in a non-recording context, do nothing
@@ -235,7 +271,10 @@ class H(object):
             return
 
         with self.tracer.start_as_current_span(
-            span_name, record_exception=False, set_status_on_exception=False
+            span_name,
+            record_exception=False,
+            set_status_on_exception=False,
+            context=context,
         ) as span:
             span.set_attributes({"highlight.project_id": self._project_id})
             span.set_attributes({"highlight.session_id": session_id})
@@ -272,7 +311,7 @@ class H(object):
 
             @router.get("/health")
             def health_check():
-                with H.trace(session_id, request_id):
+                with H.trace("health_check", session_id, request_id):
                     logging.info('hello, world!')
                     H.record_http_error(status_code=404)
                     raise HTTPException(status_code=404, detail="Item not found")
@@ -283,7 +322,7 @@ class H(object):
         :param attributes: additional metadata to attribute to this error.
         :return: None
         """
-        span = trace.get_current_span()
+        span = otel_trace.get_current_span()
         if not span:
             raise RuntimeError("H.record_http_error called without a span context")
 
@@ -343,7 +382,7 @@ class H(object):
         :param attributes: additional metadata to attribute to this error.
         :return: None
         """
-        span = trace.get_current_span()
+        span = otel_trace.get_current_span()
         if not span:
             raise RuntimeError("H.record_exception called without a span context")
         span.record_exception(e, attributes)
@@ -368,7 +407,7 @@ class H(object):
         """
         return self._log_handler
 
-    def log_hook(self, span: Span, record: logging.LogRecord):
+    def log_hook(self, span: Span, record: logging.LogRecord, formatted: str = ""):
         if span and span.is_recording():
             ctx = span.get_span_context()
             session_id, request_id = H._instance.get_highlight_context(
@@ -383,9 +422,14 @@ class H(object):
             attributes[SpanAttributes.CODE_LINENO] = record.lineno
             attributes["highlight.trace_id"] = request_id
             attributes["highlight.session_id"] = session_id
-            attributes.update(record.args or {})
+            if isinstance(record.args, dict):
+                attributes.update(record.args)
+            elif isinstance(record.args, list):
+                attributes["args"] = record.args
+            elif record.args:
+                attributes["args"] = str(record.args)
 
-            message = record.getMessage()
+            message = formatted or record.getMessage()
             try:
                 # Handle loguru's serialize=True format
                 # See: https://loguru.readthedocs.io/en/stable/api/logger.html#record
@@ -425,11 +469,11 @@ class H(object):
         otel_factory = logging.getLogRecordFactory()
 
         def factory(*args, **kwargs) -> LogRecord:
-            span = trace.get_current_span()
+            span = otel_trace.get_current_span()
             if span != INVALID_SPAN:
                 manager = contextlib.nullcontext(enter_result=span)
             else:
-                manager = self.trace()
+                manager = self.trace("highlight.log")
 
             try:
                 with manager:
@@ -450,6 +494,21 @@ class H(object):
         :return: a tuple of (session_id, request_id)
         """
         return self._context_map.get(trace_id, ("", ""))
+
+    @property
+    def context(self) -> Context:
+        """
+        Get the opentelemetry context of the current trace.
+        """
+        return get_current()
+
+
+def trace(func):
+    def wrapper(*args, **kwargs):
+        with H.get_instance().trace(span_name=func.__name__):
+            return func(*args, **kwargs)
+
+    return wrapper
 
 
 def _build_resource(

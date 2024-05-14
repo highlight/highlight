@@ -5,14 +5,13 @@ import { Box, ButtonLink } from '@highlight-run/ui/components'
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils'
 import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils'
 import { bytesToPrettyString } from '@util/string'
-import { buildQueryStateString } from '@util/url/params'
 import { message } from 'antd'
 import _, { capitalize } from 'lodash'
 
 import CollapsibleSection from '@/components/CollapsibleSection'
+import { useSearchContext } from '@/components/Search/SearchContext'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
-import { useSearchContext } from '../../Sessions/SearchContext/SearchContext'
 import { useReplayerContext } from '../ReplayerContext'
 import { formatSize } from '../Toolbar/DevToolsWindowV2/utils'
 import * as style from './MetadataPanel.css'
@@ -32,7 +31,7 @@ type Field = {
 
 const MetadataPanel = () => {
 	const { session, browserExtensionScriptURLs } = useReplayerContext()
-	const { setSearchQuery, removeSelectedSegment } = useSearchContext()
+	const { onSubmit } = useSearchContext()
 	const { isHighlightAdmin } = useAuthContext()
 
 	const sessionData: TableListItem[] = [
@@ -227,13 +226,7 @@ const MetadataPanel = () => {
 						message.success(
 							`Showing sessions created by device #${session.fingerprint}`,
 						)
-						removeSelectedSegment()
-						setSearchQuery(
-							buildQueryStateString({
-								session_device_id:
-									session.fingerprint?.toString(),
-							}),
-						)
+						onSubmit(`device_id=${session.fingerprint}`)
 					}}
 				>
 					#{session?.fingerprint}

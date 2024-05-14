@@ -1,8 +1,22 @@
+import logging
+import random
+
+import functions_framework
 import pytest
 from flask import Request
 
-from e2e.highlight_gcp.hello_http import hello_http
 from highlight_io import H
+from highlight_io.integrations.gcp import observe_handler
+
+
+@observe_handler
+@functions_framework.http
+def hello_http(request):
+    logging.info("Python HTTP trigger function processed a request.")
+
+    if random.random() < 0.2:
+        raise ValueError("oh no!")
+    return "Hello!"
 
 
 def test_gcp(mocker):
@@ -17,4 +31,6 @@ def test_gcp(mocker):
     with pytest.raises(expected_exception=ValueError):
         hello_http(request)
 
-    mock_trace.assert_called_with(H.get_instance(), "a1b2c3", "1234")
+    mock_trace.assert_called_with(
+        H.get_instance(), "observe_serverless", "a1b2c3", "1234"
+    )

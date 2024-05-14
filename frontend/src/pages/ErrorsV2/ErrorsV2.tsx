@@ -23,46 +23,99 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
-import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { CompleteSetup } from '@pages/ErrorsV2/CompleteSetup/CompleteSetup'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
 import ErrorTabContent from '@pages/ErrorsV2/ErrorTabContent/ErrorTabContent'
 import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import { IntegrationCta } from '@pages/ErrorsV2/IntegrationCta'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
-import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
+import { SearchPanel } from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
 import {
 	PlayerSearchParameters,
 	useShowSearchParam,
 } from '@pages/Player/PlayerHook/utils'
+import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import clsx from 'clsx'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { apiObject } from 'rudder-sdk-js'
-import { StringParam, useQueryParams } from 'use-query-params'
+import {
+	NumberParam,
+	StringParam,
+	useQueryParam,
+	useQueryParams,
+	withDefault,
+} from 'use-query-params'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { SearchContext } from '@/components/Search/SearchContext'
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
+import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
+import {
+	ErrorState as ErrorStateEnum,
+	ProductType,
+} from '@/graph/generated/schemas'
+import { useSearchTime } from '@/hooks/useSearchTime'
 import ErrorIssueButton from '@/pages/ErrorsV2/ErrorIssueButton/ErrorIssueButton'
 import ErrorShareButton from '@/pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
 import { ErrorStateSelect } from '@/pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
+import { useGetErrors } from '@/pages/ErrorsV2/useGetErrors'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
+import {
+	DEFAULT_PANEL_WIDTH,
+	LOCAL_STORAGE_PANEL_WIDTH_KEY,
+	MAX_PANEL_WIDTH,
+	MIN_PANEL_WIDTH,
+} from './constants'
 import * as styles from './styles.css'
 
 type Params = { project_id: string; error_secure_id: string; referrer?: string }
+
+const PAGE_PARAM = withDefault(NumberParam, START_PAGE)
+const ERROR_QUERY_PARAM = withDefault(
+	StringParam,
+	`status=${ErrorStateEnum.Open} `,
+)
 
 export default function ErrorsV2() {
 	const { project_id, error_secure_id } = useParams<Params>()
 	const { isLoggedIn } = useAuthContext()
 	const [{ integrated }] = useIntegratedLocalStorage(project_id!, 'server')
+
+	const [query, setQuery] = useQueryParam('query', ERROR_QUERY_PARAM)
+	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
+
+	const { presets } = useRetentionPresets(ProductType.Errors)
+
+	const searchTimeContext = useSearchTime({
+		presets: presets,
+		initialPreset: presets[5],
+	})
+
+	const handleSubmit = useCallback(
+		(newQuery: string) => {
+			setQuery(newQuery)
+			setPage(START_PAGE)
+		},
+		[setPage, setQuery],
+	)
+
+	const getErrorsData = useGetErrors({
+		query,
+		project_id,
+		startDate: searchTimeContext.startDate,
+		endDate: searchTimeContext.endDate,
+		page,
+		disablePolling: !searchTimeContext.selectedPreset,
+	})
 
 	const { data, loading, errorQueryingErrorGroup } =
 		useErrorGroup(error_secure_id)
@@ -76,7 +129,45 @@ export default function ErrorsV2() {
 	const location = useLocation()
 	const { showSearch } = useShowSearchParam()
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
-	const navigation = useErrorPageNavigation()
+	const navigation = useErrorPageNavigation(getErrorsData.errorGroupSecureIds)
+
+	const dragHandleRef = useRef<HTMLDivElement>(null)
+	const [dragging, setDragging] = useState(false)
+
+	const handleMouseMove = useCallback(
+		(e: MouseEvent) => {
+			if (!dragging) {
+				return
+			}
+
+			e.stopPropagation()
+			e.preventDefault()
+
+			navigation.setLeftPanelWidth(
+				Math.min(Math.max(e.clientX, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH),
+			)
+		},
+		[dragging, navigation],
+	)
+
+	const handleMouseUp = useCallback(() => {
+		setDragging(false)
+	}, [])
+
+	useEffect(() => {
+		if (dragging) {
+			window.addEventListener('mousemove', handleMouseMove, true)
+			window.addEventListener('mouseup', handleMouseUp, true)
+		} else {
+			window.removeEventListener('mousemove', handleMouseMove, true)
+			window.removeEventListener('mouseup', handleMouseUp, true)
+		}
+
+		return () => {
+			window.removeEventListener('mousemove', handleMouseMove, true)
+			window.removeEventListener('mouseup', handleMouseUp, true)
+		}
+	}, [dragging, handleMouseMove, handleMouseUp])
 
 	useAllHotKeys(navigation)
 
@@ -118,7 +209,10 @@ export default function ErrorsV2() {
 			}).then(() => {
 				const searchParams = new URLSearchParams(location.search)
 				searchParams.delete(PlayerSearchParameters.muted)
-				navigate(`${location.pathname}?${searchParams.toString()}`)
+				navigate({
+					pathname: location.pathname,
+					search: searchParams.toString(),
+				})
 
 				message.success('Muted notifications for this comment thread.')
 			})
@@ -136,22 +230,51 @@ export default function ErrorsV2() {
 	}, [error_secure_id])
 
 	return (
-		<>
+		<SearchContext
+			initialQuery={query}
+			onSubmit={handleSubmit}
+			loading={getErrorsData.loading}
+			results={getErrorsData.errorGroups}
+			totalCount={getErrorsData.totalCount}
+			moreResults={getErrorsData.moreErrors}
+			resetMoreResults={getErrorsData.resetMoreErrors}
+			histogramBucketSize={getErrorsData.histogramBucketSize}
+			page={page}
+			setPage={setPage}
+			{...searchTimeContext}
+		>
 			<Helmet>
 				<title>Errors</title>
 			</Helmet>
 
 			{!isBlocked && (
-				<Box cssClass={styles.searchPanelContainer}>
+				<Box
+					display={navigation.showLeftPanel ? 'block' : 'none'}
+					position="relative"
+					style={{
+						width: `${navigation.leftPanelWidth}px`,
+					}}
+				>
+					<Box
+						ref={dragHandleRef}
+						cssClass={styles.panelDragHandle}
+						onMouseDown={(e) => {
+							e.preventDefault()
+							setDragging(true)
+						}}
+					/>
 					<SearchPanel />
 				</Box>
 			)}
 
 			<div
-				className={clsx(styles.detailsContainer, {
-					[styles.moveDetailsRight]:
-						!isBlocked && navigation.showLeftPanel,
-				})}
+				className={styles.detailsContainer}
+				style={{
+					width:
+						!isBlocked && navigation.showLeftPanel
+							? `calc(100% - ${navigation.leftPanelWidth}px)`
+							: '100%',
+				}}
 			>
 				<Box
 					background="white"
@@ -182,7 +305,7 @@ export default function ErrorsV2() {
 					/>
 				</Box>
 			</div>
-		</>
+		</SearchContext>
 	)
 }
 
@@ -447,31 +570,42 @@ export function useErrorGroup(errorSecureId?: string) {
 	return { data, loading, errorQueryingErrorGroup }
 }
 
-export function useErrorPageNavigation() {
+export function useErrorPageNavigation(secureIds: string[] = []) {
 	const navigate = useNavigate()
+	const location = useLocation()
 	const { project_id, error_secure_id } = useParams<Params>()
-	const { searchResultSecureIds } = useErrorSearchContext()
 	const { showLeftPanel, setShowLeftPanel } = usePlayerConfiguration()
 	const goToErrorGroup = useCallback(
 		(secureId: string) => {
-			navigate(`/${project_id}/errors/${secureId}${location.search}`, {
-				replace: true,
-			})
+			navigate(
+				{
+					pathname: `/${project_id}/errors/${secureId}`,
+					search: location.search,
+				},
+				{
+					replace: true,
+				},
+			)
 		},
-		[navigate, project_id],
+		[navigate, project_id, location.search],
 	)
-	const currentSearchResultIndex = searchResultSecureIds.findIndex(
+	const currentSearchResultIndex = secureIds.findIndex(
 		(secureId) => secureId === error_secure_id,
 	)
 	const canMoveForward =
-		!!searchResultSecureIds.length &&
-		currentSearchResultIndex < searchResultSecureIds.length - 1
-	const canMoveBackward =
-		!!searchResultSecureIds.length && currentSearchResultIndex > 0
-	const nextSecureId = searchResultSecureIds[currentSearchResultIndex + 1]
-	const previousSecureId = searchResultSecureIds[currentSearchResultIndex - 1]
+		!!secureIds.length && currentSearchResultIndex < secureIds.length - 1
+	const canMoveBackward = !!secureIds.length && currentSearchResultIndex > 0
+	const nextSecureId = secureIds[currentSearchResultIndex + 1]
+	const previousSecureId = secureIds[currentSearchResultIndex - 1]
+
+	const [leftPanelWidth, setLeftPanelWidth] = useLocalStorage(
+		LOCAL_STORAGE_PANEL_WIDTH_KEY,
+		DEFAULT_PANEL_WIDTH,
+	)
 
 	return {
+		leftPanelWidth,
+		setLeftPanelWidth,
 		showLeftPanel,
 		setShowLeftPanel,
 		canMoveBackward,

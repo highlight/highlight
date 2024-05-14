@@ -1,26 +1,49 @@
 import {
+	closestCenter,
+	DndContext,
+	KeyboardSensor,
+	PointerSensor,
+	useSensor,
+	useSensors,
+} from '@dnd-kit/core'
+import {
+	arrayMove,
+	rectSortingStrategy,
+	SortableContext,
+	sortableKeyboardCoordinates,
+} from '@dnd-kit/sortable'
+import {
 	Box,
 	Button,
+	DateRangePicker,
+	DEFAULT_TIME_PRESETS,
+	Form,
 	IconSolidChartBar,
 	IconSolidCheveronRight,
 	IconSolidPlus,
+	IconSolidTemplate,
+	presetStartDate,
 	Stack,
 	Tag,
 	Text,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { message } from 'antd'
+import clsx from 'clsx'
+import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
-import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
 import {
 	useDeleteGraphMutation,
 	useGetVisualizationQuery,
+	useUpsertVisualizationMutation,
 } from '@/graph/generated/hooks'
-import { namedOperations } from '@/graph/generated/operations'
-import useDataTimeRange from '@/hooks/useDataTimeRange'
+import { GetVisualizationQuery } from '@/graph/generated/operations'
 import { useProjectId } from '@/hooks/useProjectId'
+import { useSearchTime } from '@/hooks/useSearchTime'
+import { DashboardCard } from '@/pages/Graphing/components/DashboardCard'
+import { EmptyDashboardCallout } from '@/pages/Graphing/components/EmptyDashboardCallout'
 import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
 import { useParams } from '@/util/react-router/useParams'
 
@@ -33,24 +56,64 @@ export const Dashboard = () => {
 		dashboard_id: string
 	}>()
 
+	const sensors = useSensors(
+		useSensor(PointerSensor),
+		useSensor(KeyboardSensor, {
+			coordinateGetter: sortableKeyboardCoordinates,
+		}),
+	)
+
+	const [editing, setEditing] = useState(false)
+	const [name, setName] = useState('')
+	const [graphs, setGraphs] =
+		useState<GetVisualizationQuery['visualization']['graphs']>()
+	const handleDragEnd = (event: any) => {
+		const { active, over } = event
+
+		if (active.id !== over.id) {
+			setGraphs((graphs) => {
+				if (graphs === undefined) {
+					return undefined
+				}
+
+				const oldIndex = graphs.findIndex((g) => g.id === active.id)
+				const newIndex = graphs.findIndex((g) => g.id === over.id)
+
+				return arrayMove(graphs, oldIndex, newIndex)
+			})
+		}
+	}
+
 	const { projectId } = useProjectId()
 	const { data } = useGetVisualizationQuery({
 		variables: { id: dashboard_id! },
-		fetchPolicy: 'cache-and-network',
 	})
 
-	const { timeRange } = useDataTimeRange()
+	useEffect(() => {
+		if (data !== undefined) {
+			setName(data.visualization.name)
+			setGraphs(data.visualization.graphs)
+		}
+	}, [data])
+
+	const [upsertViz] = useUpsertVisualizationMutation()
+
+	const { startDate, endDate, selectedPreset, updateSearchTime } =
+		useSearchTime({
+			presets: DEFAULT_TIME_PRESETS,
+			initialPreset: DEFAULT_TIME_PRESETS[2],
+		})
 
 	const navigate = useNavigate()
 
-	const [deleteGraph] = useDeleteGraphMutation({
-		refetchQueries: [namedOperations.Query.GetVisualization],
-	})
+	const [deleteGraph] = useDeleteGraphMutation()
+
+	const noGraphs = graphs?.length === 0
 
 	return (
 		<>
 			<Helmet>
-				<title>{data?.visualization.name}</title>
+				<title>Dashboard</title>
 			</Helmet>
 			<Box
 				background="n2"
@@ -88,116 +151,369 @@ export const Dashboard = () => {
 										kind="secondary"
 										iconLeft={<IconSolidChartBar />}
 									>
-										Dashboards
+										Metrics
 									</Tag>
 								</Stack>
 							</Link>
 							<IconSolidCheveronRight
 								color={vars.theme.static.content.weak}
 							/>
-							<Text size="small" weight="medium" color="default">
-								{data?.visualization.name}
-							</Text>
+							{editing ? (
+								<Form autoComplete="off">
+									<Form.Input
+										name="name"
+										value={name}
+										onChange={(e) => {
+											setName(e.target.value)
+										}}
+										placeholder="Untitled dashboard"
+									></Form.Input>
+								</Form>
+							) : (
+								<Text
+									size="small"
+									weight="medium"
+									color="default"
+								>
+									{name}
+								</Text>
+							)}
 						</Stack>
 						<Box display="flex" gap="4">
-							<Button emphasis="low" kind="secondary">
-								Share
-							</Button>
-							<TimeRangePicker emphasis="low" kind="secondary" />
-							<HeaderDivider />
-							<Button
-								emphasis="low"
-								kind="secondary"
-								iconLeft={<IconSolidPlus />}
-								onClick={() => {
-									navigate('new')
-								}}
-							>
-								Add graph
-							</Button>
+							{editing ? (
+								<>
+									<Button
+										emphasis="low"
+										kind="secondary"
+										onClick={() => {
+											if (data !== undefined) {
+												setName(
+													data?.visualization.name,
+												)
+												setGraphs(
+													data?.visualization.graphs,
+												)
+											}
+											setEditing(false)
+											message.success(
+												'Canceled dashboard changes',
+											)
+										}}
+									>
+										Cancel
+									</Button>
+									<Button
+										emphasis="high"
+										kind="primary"
+										onClick={() => {
+											const graphIds = graphs?.map(
+												(g) => g.id,
+											)
+											upsertViz({
+												variables: {
+													visualization: {
+														projectId,
+														id: dashboard_id,
+														name,
+														graphIds: graphIds,
+													},
+												},
+												optimisticResponse: {
+													upsertVisualization:
+														dashboard_id!,
+												},
+												update(cache) {
+													const vizId =
+														cache.identify({
+															id: dashboard_id,
+															__typename:
+																'Visualization',
+														})
+													const graphs =
+														graphIds?.map(
+															(gId) => ({
+																__ref: cache.identify(
+																	{
+																		id: gId,
+																		__typename:
+																			'Graph',
+																	},
+																),
+															}),
+														)
+													cache.modify({
+														id: vizId,
+														fields: {
+															name() {
+																return name
+															},
+															graphs() {
+																return graphs
+															},
+														},
+													})
+												},
+											})
+												.then(() => {
+													message.success(
+														'Dashboard updated',
+													)
+												})
+												.catch(() =>
+													message.error(
+														'Failed to update dashboard',
+													),
+												)
+											setEditing(false)
+										}}
+									>
+										Save
+									</Button>
+								</>
+							) : (
+								<>
+									<DateRangePicker
+										emphasis="low"
+										kind="secondary"
+										selectedValue={{
+											startDate,
+											endDate,
+											selectedPreset,
+										}}
+										onDatesChange={updateSearchTime}
+										presets={DEFAULT_TIME_PRESETS}
+										minDate={presetStartDate(
+											DEFAULT_TIME_PRESETS[5],
+										)}
+									/>
+									<HeaderDivider />
+									<Button
+										emphasis="low"
+										kind="secondary"
+										iconLeft={<IconSolidTemplate />}
+										onClick={() => {
+											setEditing(true)
+										}}
+									>
+										Edit dashboard
+									</Button>
+									<Button
+										emphasis="low"
+										kind="secondary"
+										iconLeft={<IconSolidPlus />}
+										onClick={() => {
+											navigate({
+												pathname: 'new',
+												search: location.search,
+											})
+										}}
+									>
+										Add graph
+									</Button>
+								</>
+							)}
 						</Box>
 					</Box>
-					<Box
-						display="flex"
-						flexDirection="row"
-						justifyContent="space-between"
-						height="full"
-						cssClass={style.dashboardContent}
-					>
+					{noGraphs ? (
+						<EmptyDashboardCallout />
+					) : (
 						<Box
 							display="flex"
-							position="relative"
-							width="full"
+							flexDirection="row"
+							justifyContent="space-between"
 							height="full"
+							cssClass={style.dashboardContent}
 						>
-							<Box cssClass={style.graphGrid}>
-								{data?.visualization.graphs.map((g) => {
-									return (
-										<Box
-											key={g.id}
-											px="16"
-											py="12"
-											cssClass={style.graphDivider}
+							<Box
+								display="flex"
+								position="relative"
+								width="full"
+								height="full"
+							>
+								<Box
+									cssClass={clsx(style.graphGrid, {
+										[style.gridEditing]: editing,
+									})}
+								>
+									<DndContext
+										sensors={sensors}
+										collisionDetection={closestCenter}
+										onDragEnd={handleDragEnd}
+									>
+										<SortableContext
+											items={graphs ?? []}
+											strategy={rectSortingStrategy}
+											disabled={!editing}
 										>
-											<Graph
-												title={g.title}
-												viewConfig={getViewConfig(
-													g.type,
-													g.display ?? undefined,
-													g.nullHandling ?? undefined,
-												)}
-												productType={g.productType}
-												projectId={projectId}
-												startDate={timeRange.start_date}
-												endDate={timeRange.end_date}
-												query={g.query}
-												metric={g.metric}
-												functionType={g.functionType}
-												bucketByKey={
-													g.bucketByKey ?? undefined
-												}
-												bucketCount={
-													g.bucketCount ?? undefined
-												}
-												groupByKey={
-													g.groupByKey ?? undefined
-												}
-												limit={g.limit ?? undefined}
-												limitFunctionType={
-													g.limitFunctionType ??
-													undefined
-												}
-												limitMetric={
-													g.limitMetric ?? undefined
-												}
-												onDelete={() => {
-													deleteGraph({
-														variables: { id: g.id },
-													})
-														.then(() =>
-															message.success(
-																'Metric view deleted',
-															),
-														)
-														.catch(() =>
-															message.error(
-																'Failed to delete metric view',
-															),
-														)
-												}}
-												onExpand={() => {
-													navigate(`view/${g.id}`)
-												}}
-												onEdit={() => {
-													navigate(`edit/${g.id}`)
-												}}
-											/>
-										</Box>
-									)
-								})}
+											{graphs?.map((g) => {
+												const isTemp =
+													g.id.startsWith('temp-')
+												return (
+													<DashboardCard
+														id={g.id}
+														key={g.id}
+														editing={editing}
+													>
+														<Graph
+															title={g.title}
+															viewConfig={getViewConfig(
+																g.type,
+																g.display ??
+																	undefined,
+																g.nullHandling ??
+																	undefined,
+															)}
+															productType={
+																g.productType
+															}
+															projectId={
+																projectId
+															}
+															selectedPreset={
+																selectedPreset
+															}
+															startDate={
+																startDate
+															}
+															endDate={endDate}
+															query={g.query}
+															metric={g.metric}
+															functionType={
+																g.functionType
+															}
+															bucketByKey={
+																g.bucketByKey ??
+																undefined
+															}
+															bucketCount={
+																g.bucketCount ??
+																undefined
+															}
+															groupByKey={
+																g.groupByKey ??
+																undefined
+															}
+															limit={
+																g.limit ??
+																undefined
+															}
+															limitFunctionType={
+																g.limitFunctionType ??
+																undefined
+															}
+															limitMetric={
+																g.limitMetric ??
+																undefined
+															}
+															onDelete={
+																isTemp
+																	? undefined
+																	: () => {
+																			deleteGraph(
+																				{
+																					variables:
+																						{
+																							id: g.id,
+																						},
+																					optimisticResponse:
+																						{
+																							deleteGraph:
+																								true,
+																						},
+																					update(
+																						cache,
+																					) {
+																						const vizId =
+																							cache.identify(
+																								{
+																									id: dashboard_id,
+																									__typename:
+																										'Visualization',
+																								},
+																							)
+																						const graphId =
+																							cache.identify(
+																								{
+																									id: g.id,
+																									__typename:
+																										'Graph',
+																								},
+																							)
+																						cache.modify(
+																							{
+																								id: vizId,
+																								fields: {
+																									graphs(
+																										existing: any[] = [],
+																									) {
+																										const filtered =
+																											existing.filter(
+																												(
+																													e: any,
+																												) =>
+																													e.__ref !==
+																													graphId,
+																											)
+																										return filtered
+																									},
+																								},
+																							},
+																						)
+																					},
+																				},
+																			)
+																				.then(
+																					() =>
+																						message.success(
+																							'Metric view deleted',
+																						),
+																				)
+																				.catch(
+																					() =>
+																						message.error(
+																							'Failed to delete metric view',
+																						),
+																				)
+																	  }
+															}
+															onExpand={
+																isTemp
+																	? undefined
+																	: () => {
+																			navigate(
+																				{
+																					pathname: `view/${g.id}`,
+																					search: location.search,
+																				},
+																			)
+																	  }
+															}
+															onEdit={
+																isTemp
+																	? undefined
+																	: () => {
+																			navigate(
+																				{
+																					pathname: `edit/${g.id}`,
+																					search: location.search,
+																				},
+																			)
+																	  }
+															}
+															disabled={editing}
+															setTimeRange={
+																updateSearchTime
+															}
+														/>
+													</DashboardCard>
+												)
+											})}
+										</SortableContext>
+									</DndContext>
+								</Box>
 							</Box>
 						</Box>
-					</Box>
+					)}
 				</Box>
 			</Box>
 		</>

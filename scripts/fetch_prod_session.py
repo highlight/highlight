@@ -56,7 +56,7 @@ def fetch(
     secure_id: str,
     copy_errors: bool = False,
     store: bool = False,
-    fs_root: str = '/tmp/highlight-data'
+    fs_root: str = "/tmp/highlight-data",
 ):
     s3 = boto3.Session().resource("s3")
     b = s3.Bucket(bucket)
@@ -162,7 +162,9 @@ def fetch(
 
     versionPrefix = "v2/" if useNewBucket else ""
     prefix = f'{versionPrefix}{session["project_id"]}/{session["id"]}'
-    logger.info(f"Copying session files from prod S3 prefix {prefix} to local fs and dev/1...")
+    logger.info(
+        f"Copying session files from prod S3 prefix {prefix} to local fs and dev/1..."
+    )
     for file in b.objects.filter(Prefix=prefix).all():
         file_name = file.key.split("/")[-1]
         new_name = f'{versionPrefix}dev/1/{new_session["id"]}/{file_name}'
@@ -178,7 +180,7 @@ def fetch(
             with open(decompressed_file, "wb") as f:
                 f.write(decompressed)
 
-        local_dir = os.path.join(fs_root, '1', str(session["id"]))
+        local_dir = os.path.join(fs_root, "1", str(session["id"]))
         os.makedirs(local_dir, exist_ok=True)
         local_path = os.path.join(local_dir, file_name)
         logger.info(f"Downloading session file {prefix}/{file_name} to {local_path}...")
@@ -319,7 +321,7 @@ def main():
         "--fs-root",
         type=str,
         help="where the local session files are stored",
-        default='/tmp/highlight-data',
+        default="/tmp/highlight-data",
     )
 
     args = vars(parser.parse_args())

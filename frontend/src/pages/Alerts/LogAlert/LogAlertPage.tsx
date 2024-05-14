@@ -13,15 +13,15 @@ import {
 	Box,
 	Column,
 	Container,
-	defaultPresets,
+	DateRangePicker,
+	DEFAULT_TIME_PRESETS,
 	Form,
-	getNow,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidCheveronUp,
 	IconSolidSpeakerphone,
 	Menu,
-	PreviousDateRangePicker,
+	presetStartDate,
 	Stack,
 	Tag,
 	Text,
@@ -41,14 +41,16 @@ import { capitalize } from 'lodash'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { DateTimeParam, StringParam, useQueryParam } from 'use-query-params'
+import { StringParam, useQueryParam } from 'use-query-params'
 
 import { getSlackUrl } from '@/components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LoadingBox from '@/components/LoadingBox'
+import { SearchContext } from '@/components/Search/SearchContext'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import { namedOperations } from '@/graph/generated/operations'
 import { ProductType } from '@/graph/generated/schemas'
+import { useSearchTime } from '@/hooks/useSearchTime'
 import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
 import analytics from '@/util/analytics'
@@ -58,18 +60,11 @@ import * as styles from './styles.css'
 const LOG_ALERT_MINIMUM_FREQUENCY = 15
 
 export const LogAlertPage = () => {
-	const [startDateParam] = useQueryParam('start_date', DateTimeParam)
-	const [endDateParam] = useQueryParam('end_date', DateTimeParam)
-
-	const [startDate, setStartDate] = useState(
-		startDateParam ?? defaultPresets[0].startDate,
-	)
-
-	const [endDate, setEndDate] = useState(endDateParam ?? getNow().toDate())
-	const [selectedDates, setSelectedDates] = useState<Date[]>([
-		startDate,
-		endDate,
-	])
+	const { startDate, endDate, selectedPreset, updateSearchTime } =
+		useSearchTime({
+			presets: DEFAULT_TIME_PRESETS,
+			initialPreset: DEFAULT_TIME_PRESETS[0],
+		})
 
 	const { projectId } = useProjectId()
 
@@ -83,13 +78,6 @@ export const LogAlertPage = () => {
 
 	const isCreate = alert_id === undefined
 	const createStr = isCreate ? 'create' : 'update'
-
-	useEffect(() => {
-		if (selectedDates.length === 2) {
-			setStartDate(selectedDates[0])
-			setEndDate(selectedDates[1])
-		}
-	}, [selectedDates])
 
 	const { data, loading } = useGetLogAlertQuery({
 		variables: {
@@ -114,16 +102,15 @@ export const LogAlertPage = () => {
 			loaded: false,
 		},
 	})
-	const formValues = formStore.useState().values
+	const formValues = formStore.useState('values')
 
-	const [query, setQuery] = useState(initialQuery)
 	const handleUpdateInputQuery = (query: string) => {
 		setSubmittedQuery(query)
 		formStore.setValue(formStore.names.query, query)
 	}
 
 	formStore.useSubmit(() => {
-		setSubmittedQuery(query)
+		setSubmittedQuery(formValues.query)
 	})
 
 	useEffect(() => {
@@ -449,16 +436,18 @@ export const LogAlertPage = () => {
 													Log monitor
 												</Text>
 											</Box>
-											<PreviousDateRangePicker
-												selectedDates={selectedDates}
-												onDatesChange={setSelectedDates}
-												presets={defaultPresets}
-												minDate={
-													defaultPresets[5].startDate
-												}
-												kind="secondary"
-												size="medium"
-												emphasis="low"
+											<DateRangePicker
+												emphasis="medium"
+												selectedValue={{
+													startDate,
+													endDate,
+													selectedPreset,
+												}}
+												onDatesChange={updateSearchTime}
+												presets={DEFAULT_TIME_PRESETS}
+												minDate={presetStartDate(
+													DEFAULT_TIME_PRESETS[5],
+												)}
 											/>
 										</Box>
 										<AlertTitleField />
@@ -472,32 +461,27 @@ export const LogAlertPage = () => {
 													: undefined,
 											}}
 										>
-											<Search
+											<SearchContext
 												initialQuery={initialQuery}
-												startDate={startDate}
-												endDate={endDate}
-												hideIcon
-												placeholder="Define query..."
-												query={query}
-												setQuery={setQuery}
-												onFormSubmit={
+												onSubmit={
 													handleUpdateInputQuery
 												}
-												productType={ProductType.Logs}
-											/>
+											>
+												<Search
+													startDate={startDate}
+													endDate={endDate}
+													hideIcon
+													placeholder="Define query..."
+													productType={
+														ProductType.Logs
+													}
+												/>
+											</SearchContext>
 										</Box>
 										<LogsHistogram
 											startDate={startDate}
 											endDate={endDate}
-											onDatesChange={(
-												startDate,
-												endDate,
-											) => {
-												setSelectedDates([
-													startDate,
-													endDate,
-												])
-											}}
+											onDatesChange={updateSearchTime}
 											onLevelChange={() => {}}
 											outline
 											threshold={threshold}

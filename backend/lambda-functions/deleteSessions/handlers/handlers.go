@@ -175,8 +175,7 @@ func (h *handlers) GetSessionIdsByQuery(ctx context.Context, event utils.QuerySe
 		batchId := uuid.New().String()
 		toDelete := []model.DeleteSessionsTask{}
 
-		// TODO(spenny): update to new QuerySessionIds when verified
-		ids, _, _, err := h.clickhouseClient.QuerySessionIdsDeprecated(ctx, nil, event.ProjectId, 10000, event.Query, "CreatedAt DESC, ID DESC", pointy.Int(page), time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC))
+		ids, _, _, err := h.clickhouseClient.QuerySessionIds(ctx, nil, event.ProjectId, 10000, event.Params, "CreatedAt DESC, ID DESC", pointy.Int(page), time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC))
 		if err != nil {
 			return nil, err
 		}

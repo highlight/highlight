@@ -1,5 +1,16 @@
 # @highlight-run/node
 
+## 3.9.0
+
+### Minor Changes
+
+-   ec466b8b2: refactor highlight-run-with-headers to highlight-ctx
+-   ec466b8b2: fix nestjs trace context propagation and update node sdk span names
+
+### Patch Changes
+
+-   ec466b8b2: update node sdk to export in larger batches
+
 ## 3.8.3
 
 ### Patch Changes

@@ -3,6 +3,8 @@ package stacktraces
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -20,6 +22,7 @@ type Testcase struct {
 	expectedStackTrace []modelInput.ErrorTrace
 	fetcher            fetcher
 	version            string
+	projectID          int
 	err                error
 }
 
@@ -105,7 +108,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 					FunctionName: ptr.String("arrayIncludesWith"),
 				},
 			},
-			fetcher: NetworkFetcher{},
+			fetcher: NetworkFetcher{redis: redis.NewClient()},
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:no related source map": {
@@ -155,7 +158,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 					},
 				},
 			},
-			fetcher: NetworkFetcher{},
+			fetcher: NetworkFetcher{redis: redis.NewClient()},
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:filename is not a url": {
@@ -180,7 +183,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 					},
 				},
 			},
-			fetcher: NetworkFetcher{},
+			fetcher: NetworkFetcher{redis: redis.NewClient()},
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:trace is nil": {
@@ -217,6 +220,29 @@ func TestEnhanceStackTrace(t *testing.T) {
 			fetcher: DiskFetcher{},
 			err:     e.New(""),
 		},
+		"test map file resolution mapping": {
+			stackFrameInput: []*publicModelInput.StackFrameInput{
+				{
+					FileName:     ptr.String("/_next/server/app/(route-group-test)/[slug]/page-router-edge-test.js"),
+					LineNumber:   ptr.Int(1),
+					ColumnNumber: ptr.Int(422367),
+				},
+			},
+			expectedStackTrace: []modelInput.ErrorTrace{
+				{
+					FileName:     ptr.String("webpack://_N_E/./node_modules/next/dist/compiled/cookie/index.js"),
+					LineNumber:   ptr.Int(2),
+					ColumnNumber: ptr.Int(0),
+					FunctionName: ptr.String(""),
+					LineContent:  ptr.String("/*!\n"),
+					LinesBefore:  ptr.String("(()=>{\"use strict\";if(typeof __nccwpck_require__!==\"undefined\")__nccwpck_require__.ab=__dirname+\"/\";var e={};(()=>{var r=e;\n"),
+					LinesAfter:   ptr.String(" * cookie\n * Copyright(c) 2012-2014 Roman Shtylman\n * Copyright(c) 2015 Douglas Christopher Wilson\n * MIT Licensed\n */r.parse=parse;r.serialize=serialize;var i=decodeURIComponent;var t=encodeURIComponent;var a=/; */;var n=/^[\\u0009\\u0020-\\u007e\\u0080-\\u00ff]+$/;function parse(e,r){if(typeof e!==\"string\"){throw new TypeError(\"argument str must be a string\")}var t={};var n=r||{};var o=e.split(a);var s=n.decode||i;for(var p=0;p<o.length;p++){var f=o[p];var u=f.indexOf(\"=\");if(u<0){continue}var v=f.substr(0,u).trim();var c=f.substr(++u,f.length).trim();if('\"'==c[0]){c=c.slice(1,-1)}if(undefined==t[v]){t[v]=tryDecode(c,s)}}return t}function serialize(e,r,i){var a=i||{};var o=a.encode||t;if(typeof o!==\"function\"){throw new TypeError(\"option encode is invalid\")}if(!n.test(e)){throw new TypeError(\"argument name is invalid\")}var s=o(r);if(s&&!n.test(s)){throw new TypeError(\"argument val is invalid\")}var p=e+\"=\"+s;if(null!=a.maxAge){var f=a.maxAge-0;if(isNaN(f)||!isFinite(f)){throw new TypeError"),
+				},
+			},
+			version:   "version-a1b2c3",
+			projectID: 29954,
+			fetcher:   DiskFetcher{},
+		},
 		"test reflame": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
@@ -233,7 +259,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 					FunctionName: ptr.String("Error"),
 				},
 			},
-			fetcher: NetworkFetcher{},
+			fetcher: NetworkFetcher{redis: redis.NewClient()},
 			err:     e.New(""),
 		},
 	}
@@ -243,21 +269,28 @@ func TestEnhanceStackTrace(t *testing.T) {
 		t.Fatalf("error creating storage client: %v", err)
 	}
 
-	fsClient, err := storage.NewFSClient(ctx, "http://localhost:8082/public", "")
+	fsClient, err := storage.NewFSClient(ctx, "http://localhost:8082/public", "./test-files")
 	if err != nil {
 		t.Fatalf("error creating storage client: %v", err)
 	}
 
 	// run tests
+	redisClient := redis.NewClient()
 	for _, client := range []storage.Client{s3Client, fsClient} {
 		for name, tc := range tests {
-			t.Run(name, func(t *testing.T) {
+			t.Run(fmt.Sprintf("%s/%v", name, client), func(t *testing.T) {
+				_ = redisClient.FlushDB(ctx)
+				if tc.projectID == 0 {
+					tc.projectID = 1
+				} else if client == s3Client {
+					t.Skip("skipping project-specific test for s3 client")
+				}
 				var v *string
 				if tc.version != "" {
 					v = &tc.version
 				}
 				fetch = tc.fetcher
-				mappedStackTrace, err := EnhanceStackTrace(ctx, tc.stackFrameInput, 1, v, client)
+				mappedStackTrace, err := EnhanceStackTrace(ctx, tc.stackFrameInput, tc.projectID, v, client)
 				if err != nil {
 					if err.Error() == tc.err.Error() {
 						return
@@ -283,7 +316,7 @@ func TestEnhanceBackendNextServerlessTrace(t *testing.T) {
 		t.Fatalf("error creating storage client: %v", err)
 	}
 
-	fetch = NetworkFetcher{}
+	fetch = NetworkFetcher{redis: redis.NewClient()}
 
 	var stackFrameInput []*publicModelInput.StackFrameInput
 	err = json.Unmarshal([]byte(`[{"fileName":"/var/task/apps/magicsky/.next/server/app/(route-group-test)/[slug]/page-router-edge-test.js","lineNumber":1,"functionName":"s","columnNumber":3344,"error":"Error: 🎉 SSR Error with use-server: src/app-router/ssr/page.tsx"}]`), &stackFrameInput)
@@ -321,7 +354,7 @@ func TestEnhanceStackTraceProd(t *testing.T) {
 		t.Fatalf("error creating storage client: %v", err)
 	}
 
-	fetch = NetworkFetcher{}
+	fetch = NetworkFetcher{redis: redis.NewClient()}
 	mappedStackTrace, err := EnhanceStackTrace(ctx, []*publicModelInput.StackFrameInput{
 		{
 			FunctionName: nil,

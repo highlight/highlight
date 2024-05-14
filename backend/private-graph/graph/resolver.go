@@ -64,9 +64,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
-	"github.com/stripe/stripe-go/v76"
-	"github.com/stripe/stripe-go/v76/client"
-	"github.com/stripe/stripe-go/v76/webhook"
+	"github.com/stripe/stripe-go/v78"
+	"github.com/stripe/stripe-go/v78/client"
+	"github.com/stripe/stripe-go/v78/webhook"
 
 	"github.com/highlight-run/workerpool"
 
@@ -706,20 +706,6 @@ func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*mo
 	segment := &model.Segment{}
 	if err := r.DB.WithContext(ctx).Where("id = ?", segment_id).Take(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying segment")
-	}
-	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
-	if err != nil {
-		return nil, err
-	}
-	return segment, nil
-}
-
-func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_id int) (*model.ErrorSegment, error) {
-	authSpan, ctx := util.StartSpanFromContext(ctx, "isAdminErrorSegmentOwner", util.ResourceName("resolver.internal.auth"))
-	defer authSpan.Finish()
-	segment := &model.ErrorSegment{}
-	if err := r.DB.WithContext(ctx).Where("id = ?", error_segment_id).Take(&segment).Error; err != nil {
-		return nil, e.Wrap(err, "error querying error segment")
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
@@ -1428,6 +1414,11 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, workspace *model.Wo
 		return e.Wrapf(err, "BILLING_ERROR error updating BillingEmailHistory objects for workspace %d", workspace.ID)
 	}
 
+	// clear redis cache for stripe customer data
+	if err := r.Redis.Cache.Delete(ctx, redis.GetSubscriptionDetailsKey(workspace.ID)); err != nil {
+		log.WithContext(ctx).WithError(err).Error("BILLING_ERROR failed to clear workspace billing cache key")
+	}
+
 	return nil
 }
 
@@ -1752,8 +1743,8 @@ func (r *Resolver) StripeWebhook(ctx context.Context, endpointSecret string) fun
 			return
 		}
 
-		event, err := webhook.ConstructEvent(payload, req.Header.Get("Stripe-Signature"),
-			endpointSecret)
+		event, err := webhook.ConstructEventWithOptions(payload, req.Header.Get("Stripe-Signature"),
+			endpointSecret, webhook.ConstructEventOptions{IgnoreAPIVersionMismatch: true})
 		if err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error verifying webhook signature"))
 			w.WriteHeader(http.StatusBadRequest)
@@ -1997,6 +1988,26 @@ func (r *Resolver) AddMicrosoftTeamsToWorkspace(ctx context.Context, workspace *
 	}
 
 	if err := r.DB.Where(&workspace).Select("microsoft_teams_tenant_id").Updates(updates).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Resolver) AddHerokuToProject(ctx context.Context, project *model.Project, token string) error {
+	projectMapping := &model.IntegrationProjectMapping{
+		IntegrationType: modelInputs.IntegrationTypeHeroku,
+		ProjectID:       project.ID,
+		ExternalID:      token,
+	}
+
+	if err := r.DB.WithContext(ctx).
+		Model(&projectMapping).
+		Clauses(clause.OnConflict{
+			OnConstraint: "idx_integration_project_mapping_project_id_integration_type",
+			DoUpdates:    clause.AssignmentColumns([]string{"external_id"}),
+		}).
+		Create(&projectMapping).Error; err != nil {
 		return err
 	}
 
@@ -3044,10 +3055,10 @@ func (r *Resolver) SearchGitHubIssues(
 }
 
 type LinearAccessTokenResponse struct {
-	AccessToken string `json:"access_token"`
-	TokenType   string `json:"token_type"`
-	ExpiresIn   int64  `json:"expires_in"`
-	Scope       string `json:"scope"`
+	AccessToken string   `json:"access_token"`
+	TokenType   string   `json:"token_type"`
+	ExpiresIn   int64    `json:"expires_in"`
+	Scope       []string `json:"scope"`
 }
 
 func (r *Resolver) GetLinearAccessToken(code string, redirectURL string, clientID string, clientSecret string) (LinearAccessTokenResponse, error) {
@@ -3558,7 +3569,7 @@ func (r *Resolver) UpsertDiscordChannel(workspaceId int, name string) (*model.Di
 func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
 	const numBuckets = 48
 	agg := params.Aggregator
-	parts := []string{string(modelInputs.ReservedTraceKeyMetric) + ":" + metricName}
+	parts := []string{string(modelInputs.ReservedTraceKeyMetricName) + "=" + metricName}
 	for _, filter := range params.Filters {
 		switch filter.Op {
 		case modelInputs.MetricTagFilterOpEquals:
@@ -3567,10 +3578,10 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 			parts = append(parts, fmt.Sprintf("%s:%%%v%%", filter.Tag, filter.Value))
 		}
 	}
-	metrics, err := ccClient.ReadTracesMetrics(ctx, projectID, modelInputs.QueryInput{
+	metrics, err := ccClient.ReadEventMetrics(ctx, projectID, modelInputs.QueryInput{
 		Query:     strings.Join(parts, " "),
 		DateRange: params.DateRange,
-	}, string(modelInputs.MetricColumnMetricValue), []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
+	}, metricName, []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -3773,4 +3784,167 @@ func (r *Resolver) GetGitlabProjects(
 	}
 
 	return gitlab.GetGitlabProjects(workspace, *accessToken)
+}
+
+func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*model.VisualizationsResponse, error) {
+	viz := model.Visualization{
+		ProjectID: projectID,
+		Name:      "Insights",
+	}
+
+	countAggregator := modelInputs.MetricAggregatorCount
+
+	graphs := []*model.Graph{
+		{
+			Type:         "Bar chart",
+			Title:        "Active users",
+			ProductType:  "Sessions",
+			Query:        "email exists",
+			FunctionType: "Count",
+			BucketByKey:  pointy.String("Timestamp"),
+			BucketCount:  pointy.Int(24),
+			Display:      pointy.String("Stacked"),
+		},
+		{
+			Type:              "Bar chart",
+			Title:             "Most visited pages",
+			ProductType:       "Sessions",
+			FunctionType:      "Count",
+			GroupByKey:        pointy.String("visited-url"),
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Limit:             pointy.Int(5),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Stacked"),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "H.track events",
+			ProductType:       "Sessions",
+			Query:             "event exists",
+			Metric:            "active_length",
+			FunctionType:      "Avg",
+			GroupByKey:        pointy.String("event"),
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Stacked area"),
+			NullHandling:      pointy.String("Hidden"),
+		},
+		{
+			Type:         "Line chart",
+			Title:        "Sessions with user frustration",
+			ProductType:  "Sessions",
+			Query:        "has_rage_clicks=true",
+			FunctionType: "Count",
+			BucketByKey:  pointy.String("Timestamp"),
+			BucketCount:  pointy.Int(24),
+			Display:      pointy.String("Line"),
+			NullHandling: pointy.String("Hidden"),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "Slowest APIs",
+			ProductType:       "Traces",
+			Query:             "http.method exists http.url exists http.url=*api*",
+			FunctionType:      "P95",
+			Metric:            "duration",
+			GroupByKey:        pointy.String("span_name"),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+		},
+		{
+			Type:              "Table",
+			Title:             "Errors by browser",
+			ProductType:       "Errors",
+			FunctionType:      "Count",
+			Query:             "browser exists",
+			GroupByKey:        pointy.String("browser"),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			NullHandling:      pointy.String("Hide row"),
+		},
+	}
+
+	for vital, desc := range map[string]string{"CLS": "Cumulative Layout Shift", "INP": "Interaction to Next Paint", "LCP": "Longest Contentful Paint"} {
+		graphs = append(graphs, &model.Graph{
+			Type:              "Line chart",
+			Title:             "Web Vitals: " + desc,
+			ProductType:       "Metrics",
+			FunctionType:      "P95",
+			Metric:            vital,
+			GroupByKey:        pointy.String("browser"),
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Stacked area"),
+			NullHandling:      pointy.String("Hidden"),
+		})
+	}
+
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&viz).Error; err != nil {
+			return err
+		}
+
+		var count int64
+		if err := tx.WithContext(ctx).Model(&model.Visualization{}).
+			Where("project_id = ?", projectID).Count(&count).Error; err != nil {
+			return err
+		}
+
+		for _, g := range graphs {
+			g.VisualizationID = viz.ID
+		}
+
+		if count > 1 {
+			return errors.New("default dashboard already created")
+		}
+
+		if err := tx.Create(&graphs).Error; err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	for _, g := range graphs {
+		viz.Graphs = append(viz.Graphs, *g)
+	}
+
+	return &model.VisualizationsResponse{
+		Count:   1,
+		Results: []model.Visualization{viz},
+	}, nil
+}
+
+func reorderGraphs(viz *model.Visualization) {
+	// Reorder the graphs according to the ordering in viz.GraphIds.
+	// If the ordering includes ids not present in viz.Graphs, disregard those.
+	// If the ordering does not include ids present in viz.Graphs, append those at the end in order.
+	graphsById := lo.SliceToMap(viz.Graphs, func(g model.Graph) (int32, model.Graph) { return int32(g.ID), g })
+	orderedGraphs := []model.Graph{}
+	for _, id := range viz.GraphIds {
+		graph, found := graphsById[id]
+		if !found {
+			continue
+		}
+		orderedGraphs = append(orderedGraphs, graph)
+	}
+	graphIds := lo.SliceToMap(viz.GraphIds, func(id int32) (int32, struct{}) { return id, struct{}{} })
+	for _, graph := range viz.Graphs {
+		_, found := graphIds[int32(graph.ID)]
+		if !found {
+			orderedGraphs = append(orderedGraphs, graph)
+		}
+	}
+	viz.Graphs = orderedGraphs
 }

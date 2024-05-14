@@ -46,8 +46,15 @@ function InviteMemberModal({
 
 	const [
 		sendInviteEmail,
-		{ loading: sendLoading, data: sendInviteEmailData },
-	] = useSendAdminWorkspaceInviteMutation()
+		{
+			loading: sendLoading,
+			data: sendData,
+			error: sendError,
+			reset: sendReset,
+		},
+	] = useSendAdminWorkspaceInviteMutation({
+		fetchPolicy: 'no-cache',
+	})
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
@@ -64,6 +71,7 @@ function InviteMemberModal({
 				role: newAdminRole,
 			},
 		}).then(() => {
+			setEmail('')
 			message.success(`Invite email sent to ${email}!`, 5)
 			emailRef.current?.focus()
 		})
@@ -76,7 +84,11 @@ function InviteMemberModal({
 			title="Invite Member"
 			visible={showModal}
 			width={600}
-			onCancel={() => toggleShowModal(false)}
+			onCancel={() => {
+				toggleShowModal(false)
+				setEmail('')
+				sendReset()
+			}}
 		>
 			<form onSubmit={onSubmit}>
 				<p className={styles.boxSubTitle}>
@@ -85,9 +97,11 @@ function InviteMemberModal({
 				</p>
 				<div className={styles.buttonRow}>
 					<Input
+						ref={emailRef}
 						className={styles.emailInput}
 						placeholder="Email"
 						type="email"
+						required
 						name="invitedEmail"
 						autoFocus
 						value={email}
@@ -137,7 +151,7 @@ function InviteMemberModal({
 					</Button>
 				</div>
 			</form>
-			{sendInviteEmailData?.sendAdminWorkspaceInvite && (
+			{sendData?.sendAdminWorkspaceInvite && (
 				<Alert
 					shouldAlwaysShow
 					trackingId="InviteAdminToWorkspaceConfirmation"
@@ -148,15 +162,22 @@ function InviteMemberModal({
 							You can also share with them this link:{' '}
 							<span>
 								<CopyText
-									text={
-										sendInviteEmailData.sendAdminWorkspaceInvite
-									}
+									text={sendData.sendAdminWorkspaceInvite}
 									onCopyTooltipText="Copied invite link to clipboard!"
 									inline
 								/>
 							</span>
 						</>
 					}
+				/>
+			)}
+			{sendError && (
+				<Alert
+					shouldAlwaysShow
+					trackingId="InviteAdminToWorkspaceError"
+					message="Couldn't send workspace invite"
+					type="error"
+					description={sendError.message}
 				/>
 			)}
 			<hr className={styles.hr} />

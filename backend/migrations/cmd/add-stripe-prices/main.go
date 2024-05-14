@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/stripe/stripe-go/v78"
 	"math"
 	"os"
 
@@ -10,8 +11,7 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
-	"github.com/stripe/stripe-go/v76"
-	"github.com/stripe/stripe-go/v76/price"
+	"github.com/stripe/stripe-go/v78/price"
 )
 
 var (

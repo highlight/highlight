@@ -20,7 +20,7 @@ export function HeadlessTooltip(props: { tooltip: string; styling?: string }) {
 	const [isShowing, setIsShowing] = useState(false)
 
 	return (
-		<Popover className="relative mr-2 flex items-center">
+		<Popover className="relative flex items-center">
 			{({ open }) => (
 				<>
 					<Popover.Button

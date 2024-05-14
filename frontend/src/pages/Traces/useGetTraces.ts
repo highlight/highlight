@@ -15,6 +15,8 @@ const initialWindowInfo: PageInfo = {
 	endCursor: '', // unused but needed for typedef
 }
 
+export const MAX_TRACES = 50
+
 export const useGetTraces = ({
 	query,
 	projectId,
@@ -102,6 +104,7 @@ export const useGetTraces = ({
 		GetTracesQuery,
 		GetTracesQueryVariables
 	>({
+		maxResults: MAX_TRACES,
 		skip: skipPolling,
 		variableFn: useCallback(
 			() => ({

@@ -15,10 +15,13 @@ export const loadingText = style({
 
 export const legendWrapper = style({
 	left: -6,
-	maxHeight: 72,
+	maxHeight: 40,
 	paddingTop: 2,
 	paddingBottom: 2,
 	overflowY: 'auto',
+	display: 'flex',
+	flexWrap: 'wrap',
+	rowGap: 4,
 })
 
 export const legendDot = style({
@@ -27,20 +30,24 @@ export const legendDot = style({
 	marginRight: '4px',
 	width: 8,
 	height: 8,
+	flexShrink: 0,
 })
 
 export const legendTextWrapper = style({
-	maxWidth: 145,
 	textAlign: 'left',
 })
 
 export const legendTextButton = style({
 	height: 16,
+	flex: '1 0 calc(100% / 3)',
+	maxWidth: 'fit-content',
 })
 
 export const titleText = style({
 	lineHeight: '24px',
 	height: '24px',
+	alignItems: 'center',
+	display: 'flex',
 })
 
 export const hiddenMenu = style({
@@ -56,6 +63,8 @@ export const tooltipWrapper = style({
 	flexDirection: 'column',
 	gap: '6px',
 	padding: '8px',
+	maxHeight: '180px',
+	overflowY: 'auto',
 })
 
 export const tooltipText = style({
@@ -67,4 +76,16 @@ export const tooltipDot = style({
 	marginRight: '4px',
 	width: 8,
 	height: 8,
+})
+
+export const disabled = style({
+	pointerEvents: 'none',
+})
+
+export const hoverCard = style({
+	width: 'min-content',
+})
+
+export const tickText = style({
+	userSelect: 'none',
 })

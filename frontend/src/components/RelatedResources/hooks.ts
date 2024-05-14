@@ -1,34 +1,43 @@
 import { makeVar, useReactiveVar } from '@apollo/client'
 import useLocalStorage from '@rehooks/local-storage'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 
-export type RelatedError = {
+type RelatedResourceCommon = {
+	type: 'error' | 'session' | 'trace' | 'logs'
+	canGoBack?: boolean
+}
+
+export type RelatedError = RelatedResourceCommon & {
 	type: 'error'
 	secureId: string
 	instanceId: string
 }
-export type RelatedSession = {
+
+export type RelatedSession = RelatedResourceCommon & {
 	type: 'session'
 	secureId: string
 	[PlayerSearchParameters.errorId]?: string
 	[PlayerSearchParameters.log]?: string
 	[PlayerSearchParameters.tsAbs]?: string
 }
-export type RelatedTrace = {
+
+export type RelatedTrace = RelatedResourceCommon & {
 	type: 'trace'
 	id: string
 	spanID?: string
 }
-export type RelatedLogs = {
+
+export type RelatedLogs = RelatedResourceCommon & {
 	type: 'logs'
 	query: string
 	startDate: string
 	endDate: string
 	logCursor?: string
 }
+
 export type RelatedResource =
 	| RelatedError
 	| RelatedSession
@@ -75,43 +84,62 @@ export const useRelatedResource = () => {
 		}
 	}, [searchParams])
 
-	const set = (
-		resource: RelatedResource,
-		pagination: PanelPagination | null = null,
-	) => {
-		searchParams.set(
-			RELATED_RESOURCE_PARAM,
-			encodeURIComponent(JSON.stringify(resource)),
-		)
-
-		setSearchParams(Object.fromEntries(searchParams.entries()))
-		setResource(resource)
-		panelPaginationVar(pagination)
-	}
-
-	const remove = () => {
-		searchParams.delete(RELATED_RESOURCE_PARAM)
-		setSearchParams(Object.fromEntries(searchParams.entries()))
-		setResource(null)
-		panelPaginationVar(null)
-	}
-
-	const setPanelWidth = (width: number) => {
-		panelWidthVar(width)
-		setLocalStorageWidth(width)
-	}
+	const setPanelWidth = useCallback(
+		(width: number) => {
+			panelWidthVar(width)
+			setLocalStorageWidth(width)
+		},
+		[setLocalStorageWidth],
+	)
 
 	const setPanelPagination = (pagination: PanelPagination) => {
 		panelPaginationVar(pagination)
 	}
 
+	const set = useCallback(
+		(
+			newResource: RelatedResource,
+			pagination: PanelPagination | null = null,
+		) => {
+			// Enable back button on nested related resources
+			if (
+				!!resource &&
+				resource.type !== newResource.type &&
+				newResource.canGoBack === undefined
+			) {
+				newResource.canGoBack = true
+			}
+
+			searchParams.set(
+				RELATED_RESOURCE_PARAM,
+				encodeURI(JSON.stringify(newResource)),
+			)
+
+			setSearchParams(Object.fromEntries(searchParams.entries()))
+			setResource(newResource)
+
+			if (pagination !== null) {
+				panelPaginationVar(pagination)
+			}
+		},
+		[resource, searchParams, setSearchParams],
+	)
+
+	const remove = useCallback(() => {
+		searchParams.delete(RELATED_RESOURCE_PARAM)
+		setSearchParams(Object.fromEntries(searchParams.entries()))
+
+		setResource(null)
+		panelPaginationVar(null)
+	}, [searchParams, setSearchParams])
+
 	return {
 		resource,
+		panelPagination,
+		panelWidth,
 		set,
 		remove,
-		panelWidth,
 		setPanelWidth,
-		panelPagination,
 		setPanelPagination,
 	}
 }

@@ -3,12 +3,8 @@ import {
 	CreateAlertButton,
 	Divider,
 } from '@components/CreateAlertButton/CreateAlertButton'
-import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
-import {
-	useGetAlertsPagePayloadQuery,
-	useGetSessionsClickhouseQuery,
-} from '@graph/hooks'
+import { useGetAlertsPagePayloadQuery } from '@graph/hooks'
 import { colors } from '@highlight-run/ui/colors'
 import {
 	Badge,
@@ -32,11 +28,10 @@ import {
 import { changeSession } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import analytics from '@util/analytics'
 import { message } from 'antd'
 import { delay } from 'lodash'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
@@ -56,8 +51,8 @@ export const SessionLevelBarV2: React.FC<
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const { sessionSecureId } = useSessionParams()
-	const { sessionResults, setSessionResults, session } = useReplayerContext()
-	const { page, searchQuery } = useSearchContext()
+	const { sessionResults, session } = useReplayerContext()
+
 	const { isLoggedIn } = useAuthContext()
 	const {
 		showLeftPanel,
@@ -66,17 +61,7 @@ export const SessionLevelBarV2: React.FC<
 		setShowRightPanel,
 	} = usePlayerConfiguration()
 	const { rightPanelView, setRightPanelView } = usePlayerUIContext()
-	const { data } = useGetSessionsClickhouseQuery({
-		variables: {
-			query: JSON.parse(searchQuery),
-			count: DEFAULT_PAGE_SIZE,
-			page: page && page > 0 ? page : 1,
-			project_id: projectId!,
-			sort_desc: true,
-		},
-		fetchPolicy: 'cache-first',
-		skip: !projectId,
-	})
+
 	const { data: alertsData } = useGetAlertsPagePayloadQuery({
 		variables: {
 			project_id: projectId!,
@@ -91,25 +76,6 @@ export const SessionLevelBarV2: React.FC<
 		(s) => s.secure_id === sessionSecureId,
 	)
 	const [prev, next] = [sessionIdx - 1, sessionIdx + 1]
-
-	useEffect(() => {
-		if (
-			!sessionResults.sessions.length &&
-			data?.sessions_clickhouse.sessions.length
-		) {
-			setSessionResults({
-				...data.sessions_clickhouse,
-				sessions: data.sessions_clickhouse.sessions.map((s) => ({
-					...s,
-					payload_updated_at: new Date().toISOString(),
-				})),
-			})
-		}
-	}, [
-		data?.sessions_clickhouse,
-		sessionResults.sessions.length,
-		setSessionResults,
-	])
 
 	const canMoveForward = !!projectId && sessionResults.sessions[next]
 	const canMoveBackward = !!projectId && sessionResults.sessions[prev]

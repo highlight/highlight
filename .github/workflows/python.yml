@@ -19,7 +19,7 @@ jobs:
             run:
                 working-directory: ./sdk/highlight-py
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
             - name: Install poetry
               run: pipx install poetry
             - uses: actions/setup-python@v4
@@ -40,7 +40,7 @@ jobs:
             - name: Build
               run: poetry build
             - name: Validate PyProject
-              working-directory: ./e2e/python
+              working-directory: ./e2e/python/setuptools
               run: |
                   python -m pip install -U pip-tools;
                   python -m piptools compile --upgrade pyproject.toml;
@@ -59,7 +59,7 @@ jobs:
                 working-directory: ./e2e/tests
 
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
             - name: Install poetry
               run: pipx install poetry
             - uses: actions/setup-python@v4

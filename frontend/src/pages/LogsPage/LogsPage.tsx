@@ -1,4 +1,4 @@
-import { LogLevel, ProductType } from '@graph/schemas'
+import { LogLevel, ProductType, SavedSegmentEntityType } from '@graph/schemas'
 import {
 	Box,
 	DateRangePreset,
@@ -17,6 +17,7 @@ import React, { useEffect, useMemo, useRef } from 'react'
 import { Helmet } from 'react-helmet'
 import { useQueryParam } from 'use-query-params'
 
+import { SearchContext } from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -28,6 +29,7 @@ import {
 	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
+import { parseSearch } from '@/components/Search/utils'
 import { useGetLogsHistogramQuery } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
@@ -67,6 +69,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		project_id: string
 	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
+	const { queryParts } = parseSearch(query)
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 
 	const [selectedColumns, setSelectedColumns] = useLocalStorage(
@@ -157,7 +160,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	}, [])
 
 	return (
-		<>
+		<SearchContext initialQuery={query} onSubmit={setQuery}>
 			<Helmet>
 				<title>Logs</title>
 			</Helmet>
@@ -178,8 +181,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 					shadow="medium"
 				>
 					<SearchForm
-						initialQuery={query}
-						onFormSubmit={setQuery}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={updateSearchTime}
@@ -188,7 +189,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						selectedPreset={selectedPreset}
 						productType={ProductType.Logs}
 						timeMode={timeMode}
-						savedSegmentType="Log"
+						savedSegmentType={SavedSegmentEntityType.Log}
 						textAreaRef={textAreaRef}
 					/>
 					<LogsCount
@@ -211,12 +212,13 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						<LogsOverageCard />
 						<IntegrationCta />
 						<LogsTable
+							query={query}
+							queryParts={queryParts}
 							logEdges={logEdges}
 							loading={loading}
 							error={error}
 							refetch={refetch}
 							loadingAfter={loadingAfter}
-							query={query}
 							selectedCursor={logCursor}
 							moreLogs={moreLogs}
 							clearMoreLogs={clearMoreLogs}
@@ -229,7 +231,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 					</Box>
 				</Box>
 			</Box>
-		</>
+		</SearchContext>
 	)
 }
 

@@ -157,6 +157,10 @@ type BillingDetails {
 	tracesBillingLimit: Int64
 }
 
+type UsageHistory {
+	usage: MetricsBuckets!
+}
+
 type Invoice {
 	amountDue: Int64
 	amountPaid: Int64
@@ -221,6 +225,7 @@ enum ProductType {
 	Errors
 	Logs
 	Traces
+	Metrics
 }
 
 enum IngestReason {
@@ -434,6 +439,7 @@ enum IntegrationType {
 	Jira
 	MicrosoftTeams
 	GitLab
+	Heroku
 }
 
 enum ErrorState {
@@ -482,6 +488,7 @@ enum LogLevel {
 	warn
 	error
 	fatal
+	panic
 }
 
 enum SortDirection {
@@ -493,6 +500,7 @@ enum SavedSegmentEntityType {
 	Log
 	Trace
 	Error
+	Session
 }
 
 type Project {
@@ -612,13 +620,6 @@ type SearchParams {
 }
 
 type Segment {
-	id: ID!
-	name: String!
-	params: SearchParams!
-	project_id: ID!
-}
-
-type ErrorSegment {
 	id: ID!
 	name: String!
 	params: SearchParams!
@@ -900,16 +901,6 @@ type ErrorObjectNode {
 	serviceName: String!
 }
 
-type ErrorObjectEdge implements Edge {
-	cursor: String!
-	node: ErrorObjectNode!
-}
-
-type ErrorObjectConnection implements Connection {
-	edges: [ErrorObjectEdge!]!
-	pageInfo: PageInfo!
-}
-
 enum ServiceStatus {
 	healthy
 	error
@@ -968,7 +959,8 @@ enum ReservedTraceKey {
 	has_errors
 	level
 	message
-	metric
+	metric_name
+	metric_value
 	secure_session_id
 	span_id
 	trace_id
@@ -997,6 +989,7 @@ enum ReservedErrorObjectKey {
 
 enum ReservedErrorGroupKey {
 	event
+	secure_id
 	status
 	tag
 	type
@@ -1006,6 +999,7 @@ enum ReservedErrorsJoinedKey {
 	"""
 	ReservedErrorObjectKey
 	"""
+	id
 	browser
 	client_id
 	environment
@@ -1021,36 +1015,46 @@ enum ReservedErrorsJoinedKey {
 	ReservedErrorGroupKey
 	"""
 	event
+	secure_id
 	status
 	tag
 	type
 }
 
 enum ReservedSessionKey {
-	environment
-	service_name
-	app_version
-	secure_session_id
-	identified
-	fingerprint
-	identifier
-	city
-	state
-	country
-	os_name
-	os_version
+	active_length
 	browser_name
 	browser_version
-	processed
-	has_comments
-	has_rage_clicks
-	has_errors
-	length
-	active_length
+	city
+	completed
+	country
+	device_id
+	environment
+	excluded
 	first_time
-	viewed
-	pages_visited
+	has_comments
+	has_errors
+	has_rage_clicks
+	identified
+	identifier
+	ip
+	length
 	normalness
+	os_name
+	os_version
+	pages_visited
+	sample
+	secure_id
+	service_version
+	state
+	viewed_by_anyone
+	viewed_by_me
+	within_billing_quota
+
+	# deprecated but kept in for backwards compatibility of search
+	loc_state
+	processed
+	viewed
 }
 
 enum LogSource {
@@ -1059,8 +1063,10 @@ enum LogSource {
 }
 
 enum KeyType {
-	String
+	Boolean
+	Creatable
 	Numeric
+	String
 }
 
 type LogsHistogramBucketCount {
@@ -1097,7 +1103,6 @@ enum MetricAggregator {
 
 enum MetricColumn {
 	Duration
-	MetricValue
 }
 
 enum MetricBucketBy {
@@ -1394,6 +1399,11 @@ type ErrorResults {
 	totalCount: Int64!
 }
 
+type ErrorObjectResults {
+	error_objects: [ErrorObjectNode!]!
+	totalCount: Int64!
+}
+
 # 2 way connector type between highlight objects and external integration objects
 # should be used to update information from/to platforms
 type ExternalAttachment {
@@ -1574,7 +1584,7 @@ type ErrorAlert {
 	MicrosoftTeamsChannelsToNotify: [MicrosoftTeamsChannel!]!
 	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String]!
-	ExcludedEnvironments: [String]!
+	Query: String!
 	CountThreshold: Int!
 	ThresholdWindow: Int
 	LastAdminToEditID: ID
@@ -1911,6 +1921,7 @@ input VisualizationInput {
 	id: ID
 	projectId: ID!
 	name: String!
+	graphIds: [ID!]
 }
 
 scalar Upload
@@ -1958,14 +1969,15 @@ type Query {
 	error_object(id: ID!): ErrorObject
 	error_objects(
 		error_group_secure_id: String!
-		after: String
-		before: String
-		query: String!
-	): ErrorObjectConnection!
+		count: Int!
+		params: QueryInput!
+		page: Int
+	): ErrorObjectResults!
 	error_object_for_log(log_cursor: String!): ErrorObject
 	error_instance(
 		error_group_secure_id: String!
 		error_object_id: ID
+		params: QueryInput
 	): ErrorInstance
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
@@ -2063,31 +2075,13 @@ type Query {
 		project_id: ID!
 		params: QueryInput!
 	): [SessionsReportRow!]!
-	field_types_clickhouse(
-		project_id: ID!
-		start_date: Timestamp!
-		end_date: Timestamp!
-	): [Field!]!
-	fields_clickhouse(
-		project_id: ID!
-		count: Int!
-		field_type: String!
-		field_name: String!
-		query: String!
-		start_date: Timestamp!
-		end_date: Timestamp!
-	): [String!]!
-	error_fields_clickhouse(
-		project_id: ID!
-		count: Int!
-		field_type: String!
-		field_name: String!
-		query: String!
-		start_date: Timestamp!
-		end_date: Timestamp!
-	): [String!]!
 	billingDetailsForProject(project_id: ID!): BillingDetails
 	billingDetails(workspace_id: ID!): BillingDetails!
+	usageHistory(
+		workspace_id: ID!
+		product_type: ProductType!
+		date_range: DateRangeRequiredInput
+	): UsageHistory!
 	# gets all the projects of a user
 	field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
 	property_suggestion(project_id: ID!, query: String!, type: String!): [Field]
@@ -2110,7 +2104,6 @@ type Query {
 	log_alert(id: ID!): LogAlert!
 	projectSuggestion(query: String!): [Project]!
 	environment_suggestion(project_id: ID!): [Field]
-	app_version_suggestion(project_id: ID!): [String]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
 	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel!]!
 	microsoft_teams_channel_suggestions(
@@ -2164,7 +2157,6 @@ type Query {
 	admin_role(workspace_id: ID!): WorkspaceAdminRole
 	admin_role_by_project(project_id: ID!): WorkspaceAdminRole
 	segments(project_id: ID!): [Segment]
-	error_segments(project_id: ID!): [ErrorSegment]
 	saved_segments(
 		project_id: ID!
 		entity_type: SavedSegmentEntityType!
@@ -2174,7 +2166,6 @@ type Query {
 	customer_portal_url(workspace_id: ID!): String!
 	subscription_details(workspace_id: ID!): SubscriptionDetails!
 	dashboard_definitions(project_id: ID!): [DashboardDefinition]!
-	suggested_metrics(project_id: ID!, prefix: String!): [String!]!
 	metric_tags(
 		project_id: ID!
 		metric_name: String!
@@ -2463,18 +2454,6 @@ type Mutation {
 		name: String!
 	): Boolean
 	deleteSegment(segment_id: ID!): Boolean
-	createErrorSegment(
-		project_id: ID!
-		name: String!
-		query: String!
-	): ErrorSegment
-	editErrorSegment(
-		id: ID!
-		project_id: ID!
-		query: String!
-		name: String!
-	): Boolean
-	deleteErrorSegment(segment_id: ID!): Boolean
 	createSavedSegment(
 		project_id: ID!
 		name: String!
@@ -2706,7 +2685,7 @@ type Mutation {
 		microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]!
-		environments: [String]!
+		query: String!
 		regex_groups: [String]!
 		frequency: Int!
 		default: Boolean
@@ -2722,7 +2701,7 @@ type Mutation {
 		microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]
-		environments: [String]
+		query: String!
 		regex_groups: [String]
 		frequency: Int
 		disabled: Boolean
@@ -2787,10 +2766,9 @@ type Mutation {
 		is_default: Boolean
 	): ID!
 	deleteDashboard(id: ID!): Boolean!
-	# TODO(spenny): swap over to using new language
 	deleteSessions(
 		project_id: ID!
-		query: ClickhouseQuery!
+		params: QueryInput!
 		sessionCount: Int!
 	): Boolean!
 	updateVercelProjectMappings(
@@ -2834,7 +2812,7 @@ type Mutation {
 	): ErrorObject
 	upsertVisualization(visualization: VisualizationInput!): ID!
 	deleteVisualization(id: ID!): Boolean!
-	upsertGraph(graph: GraphInput!): ID!
+	upsertGraph(graph: GraphInput!): Graph!
 	deleteGraph(id: ID!): Boolean!
 }
 

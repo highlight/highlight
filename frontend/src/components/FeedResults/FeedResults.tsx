@@ -9,13 +9,22 @@ import { AnimatePresence, motion } from 'framer-motion'
 import * as style from './FeedResults.css'
 
 interface Props {
+	maxResults: number
 	more: number
 	type: 'sessions' | 'errors' | 'logs' | 'traces'
 	onClick: () => void
 }
 
-export const AdditionalFeedResults = function ({ more, type, onClick }: Props) {
+export const AdditionalFeedResults = function ({
+	maxResults,
+	more,
+	type,
+	onClick,
+}: Props) {
 	const rounded = ['sessions', 'errors'].includes(type)
+
+	const countText = more >= maxResults ? `${maxResults}+` : more
+	const resourceText = more === 1 ? type.slice(0, type.length - 1) : type
 
 	return (
 		<AnimatePresence>
@@ -48,11 +57,7 @@ export const AdditionalFeedResults = function ({ more, type, onClick }: Props) {
 							<Box display="flex" alignItems="center" gap="8">
 								<IconOutlineArrowNarrowUp />
 								<Text>
-									{more}
-									{more >= 50 ? '+' : ''} new{' '}
-									{more === 1
-										? type.slice(0, type.length - 1)
-										: type}
+									{countText} new {resourceText}
 								</Text>
 							</Box>
 						</Button>

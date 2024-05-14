@@ -1,4 +1,5 @@
 import { colors } from '@highlight-run/ui/colors'
+import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 
@@ -19,7 +20,7 @@ export const messageRowVariants = recipe({
 	variants: {
 		current: {
 			true: {
-				backgroundColor: colors.n4,
+				borderBottom: `2px solid ${vars.theme.interactive.fill.primary.enabled}`,
 			},
 			false: {},
 		},

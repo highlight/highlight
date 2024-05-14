@@ -71,15 +71,6 @@ export function formatTimeAsAlphanum(
 		.trim()
 }
 
-export const serializeAbsoluteTimeRange = (
-	start: Date | undefined,
-	end: Date | undefined,
-) => {
-	const startIso = moment(start).toISOString()
-	const endIso = moment(end).toISOString()
-	return `${startIso}_${endIso}`
-}
-
 export const roundFeedDate = function (date: string | null) {
 	// nearest 15 seconds
 	const factor = 15

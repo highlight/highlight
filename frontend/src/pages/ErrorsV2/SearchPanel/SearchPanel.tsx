@@ -7,110 +7,42 @@ import LoadingBox from '@components/LoadingBox'
 import SearchPagination, {
 	PAGE_SIZE,
 } from '@components/SearchPagination/SearchPagination'
-import {
-	useGetErrorGroupsClickhouseLazyQuery,
-	useGetErrorGroupsClickhouseQuery,
-} from '@graph/hooks'
-import {
-	GetErrorGroupsClickhouseQuery,
-	GetErrorGroupsClickhouseQueryVariables,
-} from '@graph/operations'
-import { ClickhouseQuery, ErrorGroup, Maybe, ProductType } from '@graph/schemas'
-import { Box } from '@highlight-run/ui/components'
-import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import { ErrorFeedCard } from '@pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
-import ErrorFeedHistogram from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
-import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
+import { ProductType, SavedSegmentEntityType } from '@graph/schemas'
+import { Box, ButtonIcon, IconSolidLogout } from '@highlight-run/ui/components'
+import { ErrorFeedHistogram } from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
-import { gqlSanitize } from '@util/gql'
-import { useParams } from '@util/react-router/useParams'
-import { usePollQuery } from '@util/search'
 import clsx from 'clsx'
-import moment from 'moment/moment'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
+import { useSearchContext } from '@/components/Search/SearchContext'
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
+import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
+import { ErrorFeedCard } from '@/pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import { useErrorPageNavigation } from '@/pages/ErrorsV2/ErrorsV2'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import * as style from './SearchPanel.css'
 
-const SearchPanel = () => {
-	const { showLeftPanel } = useErrorPageNavigation()
+export const SearchPanel = () => {
+	const { setShowLeftPanel } = useErrorPageNavigation()
 	const { showBanner } = useGlobalContext()
 	const {
-		searchQuery,
-		endDate,
-		selectedPreset,
+		results: errorGroups,
+		totalCount,
+		moreResults: moreErrors,
+		resetMoreResults: resetMoreErrors,
+		loading,
 		page,
 		setPage,
-		setSearchResultsLoading,
-		searchResultsCount,
-		setSearchResultsCount,
-		setSearchResultSecureIds,
-		rebaseTime,
-	} = useErrorSearchContext()
-	const { project_id: projectId } = useParams<{ project_id: string }>()
+		startDate,
+		endDate,
+		selectedPreset,
+		rebaseSearchTime,
+		updateSearchTime,
+	} = useSearchContext()
 
-	const { data: fetchedData, loading } = useGetErrorGroupsClickhouseQuery({
-		variables: {
-			query: JSON.parse(searchQuery),
-			count: PAGE_SIZE,
-			page: page && page > 0 ? page : 1,
-			project_id: projectId!,
-		},
-		onError: () => {
-			setSearchResultsLoading(false)
-			setSearchResultsCount(0)
-			setSearchResultSecureIds([])
-		},
-		onCompleted: (r) => {
-			setSearchResultsLoading(false)
-			const results = r?.error_groups_clickhouse
-			setSearchResultsCount(results.totalCount)
-			setSearchResultSecureIds(
-				results.error_groups.map((eg) => eg.secure_id),
-			)
-		},
-		skip: !projectId,
-		fetchPolicy: 'network-only',
-	})
-
-	const [moreDataQuery] = useGetErrorGroupsClickhouseLazyQuery({
-		fetchPolicy: 'network-only',
-	})
-
-	const { numMore: moreErrors, reset: resetMoreErrors } = usePollQuery<
-		GetErrorGroupsClickhouseQuery,
-		GetErrorGroupsClickhouseQueryVariables
-	>({
-		variableFn: useCallback(() => {
-			const clickhouseQuery: ClickhouseQuery = JSON.parse(searchQuery)
-			clickhouseQuery.dateRange = {
-				start_date: endDate.toISOString(),
-				end_date: moment().toISOString(),
-			}
-
-			return {
-				query: clickhouseQuery,
-				count: PAGE_SIZE,
-				page: 1,
-				project_id: projectId!,
-			}
-		}, [endDate, projectId, searchQuery]),
-		moreDataQuery,
-		getResultCount: useCallback(
-			(result) => result?.data?.error_groups_clickhouse.totalCount,
-			[],
-		),
-		skip: !selectedPreset,
-	})
-
-	useEffect(() => {
-		setSearchResultsLoading(loading)
-	}, [loading, setSearchResultsLoading])
-
-	const showHistogram = searchResultsCount !== 0
+	const showHistogram = totalCount >= 0
 
 	const [, setSyncButtonDisabled] = useState<boolean>(false)
 
@@ -127,7 +59,23 @@ const SearchPanel = () => {
 		}
 	}, [loading])
 
-	const errorGroups = fetchedData?.error_groups_clickhouse
+	const actions = () => {
+		return (
+			<Box marginLeft="auto" display="flex" gap="0">
+				<ButtonIcon
+					kind="secondary"
+					size="small"
+					shape="square"
+					emphasis="low"
+					icon={<IconSolidLogout size={14} />}
+					onClick={() => setShowLeftPanel(false)}
+				/>
+			</Box>
+		)
+	}
+
+	const { presets, minDate } = useRetentionPresets(ProductType.Errors)
+
 	return (
 		<Box
 			display="flex"
@@ -136,47 +84,64 @@ const SearchPanel = () => {
 			borderRight="secondary"
 			position="relative"
 			cssClass={clsx(style.searchPanel, {
-				[style.searchPanelHidden]: !showLeftPanel,
 				[style.searchPanelWithBanner]: showBanner,
 			})}
 			background="n2"
 		>
-			<ErrorQueryBuilder />
+			<SearchForm
+				startDate={startDate!}
+				endDate={endDate!}
+				onDatesChange={updateSearchTime!}
+				presets={presets}
+				minDate={minDate}
+				selectedPreset={selectedPreset}
+				productType={ProductType.Errors}
+				timeMode="fixed-range"
+				savedSegmentType={SavedSegmentEntityType.Error}
+				actions={actions}
+				resultCount={totalCount}
+				loading={loading}
+				hideCreateAlert
+				isPanelView
+			/>
 			{showHistogram && (
 				<Box borderBottom="secondary" paddingBottom="8" px="8">
 					<ErrorFeedHistogram />
 				</Box>
 			)}
 			<AdditionalFeedResults
+				maxResults={PAGE_SIZE}
 				more={moreErrors}
 				type="errors"
 				onClick={() => {
 					resetMoreErrors()
-					rebaseTime()
+					setPage(1)
+					rebaseSearchTime!()
 				}}
 			/>
 			<Box
-				paddingTop="4"
 				padding="8"
 				overflowX="hidden"
 				overflowY="auto"
-				cssClass={[style.content, styledVerticalScrollbar]}
+				height="full"
+				cssClass={styledVerticalScrollbar}
 			>
 				{loading ? (
 					<LoadingBox />
 				) : (
 					<>
 						<OverageCard productType={ProductType.Errors} />
-						{searchResultsCount === 0 || !errorGroups ? (
+						{totalCount === 0 || !errorGroups ? (
 							<EmptySearchResults
 								kind={SearchResultsKind.Errors}
 							/>
 						) : (
-							gqlSanitize(errorGroups).error_groups.map(
-								(eg: Maybe<ErrorGroup>, ind: number) => (
-									<ErrorFeedCard key={ind} errorGroup={eg} />
-								),
-							)
+							errorGroups.map((eg) => (
+								<ErrorFeedCard
+									key={eg.secure_id}
+									errorGroup={eg}
+								/>
+							))
 						)}
 					</>
 				)}
@@ -184,11 +149,10 @@ const SearchPanel = () => {
 			<SearchPagination
 				page={page}
 				setPage={setPage}
-				totalCount={searchResultsCount ?? 0}
+				totalCount={totalCount ?? 0}
 				pageSize={PAGE_SIZE}
+				loading={loading}
 			/>
 		</Box>
 	)
 }
-
-export default SearchPanel

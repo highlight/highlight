@@ -1,3 +1,4 @@
+import { H } from '@highlight-run/next/client'
 import Cookies from 'js-cookie'
 
 const GenerateSecureID = (): string => {
@@ -41,7 +42,11 @@ export const setAttributionData = () => {
 	}
 	const prevRef = Cookies.get('referrer')
 	if (prevRef) {
-		referrer = { ...referrer, ...(JSON.parse(prevRef) as Referrer) }
+		try {
+			referrer = { ...referrer, ...(JSON.parse(prevRef) as Referrer) }
+		} catch (e) {
+			referrer = { ...referrer, pathReferrer: prevRef }
+		}
 	}
 	referrer.documentReferrer = document.referrer
 
@@ -70,9 +75,17 @@ export const setAttributionData = () => {
 		referrer = { ...referrer, pathReferrer: pathRef }
 	}
 
+	const domain = window.location.hostname.replace('www.', '')
+	console.debug('highlight.io', { domain, clientID, referrer })
+	identify(clientID, referrer)
 	Cookies.set('referrer', JSON.stringify(referrer), {
-		domain: 'highlight.io',
+		domain,
 	})
 
 	return referrer
+}
+
+const identify = (identifier: string, metadata: any) => {
+	H.identify(identifier, metadata)
+	window.rudderanalytics?.identify(identifier, metadata)
 }

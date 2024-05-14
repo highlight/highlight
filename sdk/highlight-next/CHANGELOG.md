@@ -1,5 +1,54 @@
 # @highlight-run/next
 
+## 7.5.4
+
+### Patch Changes
+
+-   Updated dependencies [2ea916328]
+-   Updated dependencies [11fe2921b]
+    -   highlight.run@8.12.3
+    -   @highlight-run/node@3.9.0
+
+## 7.5.3
+
+### Patch Changes
+
+-   Updated dependencies [8899ee039]
+    -   @highlight-run/react@3.2.2
+    -   highlight.run@8.12.2
+    -   @highlight-run/node@3.9.0
+
+## 7.5.2
+
+### Patch Changes
+
+-   Updated dependencies [926c3a1d7]
+    -   highlight.run@8.12.1
+    -   @highlight-run/node@3.9.0
+
+## 7.5.1
+
+### Patch Changes
+
+-   Updated dependencies [ec466b8b2]
+-   Updated dependencies [ec466b8b2]
+-   Updated dependencies [ec466b8b2]
+    -   @highlight-run/node@3.9.0
+
+## 7.5.0
+
+### Minor Changes
+
+-   83b8e75c0: generate server sourcemaps for next.js code
+
+### Patch Changes
+
+-   Updated dependencies [b27a0bcd2]
+-   Updated dependencies [83b8e75c0]
+    -   highlight.run@8.12.0
+    -   @highlight-run/sourcemap-uploader@0.6.3
+    -   @highlight-run/node@3.8.3
+
 ## 7.4.13
 
 ### Patch Changes

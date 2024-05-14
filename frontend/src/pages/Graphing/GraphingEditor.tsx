@@ -1,9 +1,13 @@
 import {
-	Badge,
 	Box,
 	Button,
+	ComboboxSelect,
+	DateRangePicker,
+	DEFAULT_TIME_PRESETS,
 	Form,
 	IconSolidCheveronDown,
+	IconSolidDatabase,
+	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
@@ -11,40 +15,45 @@ import {
 	Input,
 	Label,
 	Menu,
+	presetStartDate,
 	Stack,
 	TagSwitchGroup,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
 import { Divider, message } from 'antd'
-import { PropsWithChildren, useEffect, useMemo, useState } from 'react'
+import moment from 'moment'
+import React, { PropsWithChildren, useId, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
-import { cmdKey } from '@/components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
+import { SearchContext } from '@/components/Search/SearchContext'
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import Switch from '@/components/Switch/Switch'
-import TimeRangePicker from '@/components/TimeRangePicker/TimeRangePicker'
 import {
 	useGetKeysQuery,
 	useGetVisualizationQuery,
 	useUpsertGraphMutation,
 } from '@/graph/generated/hooks'
-import { namedOperations } from '@/graph/generated/operations'
 import {
 	GraphInput,
+	KeyType,
 	MetricAggregator,
 	ProductType,
 } from '@/graph/generated/schemas'
-import useDataTimeRange from '@/hooks/useDataTimeRange'
 import { useProjectId } from '@/hooks/useProjectId'
+import { useSearchTime } from '@/hooks/useSearchTime'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
 import Graph, {
 	getViewConfig,
 	TIMESTAMP_KEY,
 	View,
 	VIEW_ICONS,
+	VIEW_LABELS,
 	VIEWS,
 } from '@/pages/Graphing/components/Graph'
 import {
@@ -68,6 +77,7 @@ const PRODUCTS: ProductType[] = [
 	ProductType.Traces,
 	ProductType.Sessions,
 	ProductType.Errors,
+	ProductType.Metrics,
 ]
 
 const PRODUCT_ICONS = [
@@ -75,11 +85,10 @@ const PRODUCT_ICONS = [
 	<IconSolidSparkles key="traces" />,
 	<IconSolidPlayCircle key="sessions" />,
 	<IconSolidLightningBolt key="errors" />,
+	<IconSolidDatabase key="metrics" />,
 ]
 
-const FUNCTION_TYPES: MetricAggregator[] = [
-	MetricAggregator.Count,
-	MetricAggregator.CountDistinct,
+const NUMERIC_FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.Min,
 	MetricAggregator.Avg,
 	MetricAggregator.P50,
@@ -90,11 +99,40 @@ const FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.Sum,
 ]
 
+const FUNCTION_TYPES: MetricAggregator[] = [
+	MetricAggregator.Count,
+	MetricAggregator.CountDistinct,
+	...NUMERIC_FUNCTION_TYPES,
+]
+
 const SidebarSection = (props: PropsWithChildren) => {
 	return (
 		<Box p="12" width="full" display="flex" flexDirection="column" gap="12">
 			{props.children}
 		</Box>
+	)
+}
+
+const GRAPHING_FIELD_DOCS_LINK =
+	'https://www.highlight.io/docs/general/product-features/metrics/graphing#graphing-fields'
+
+const InfoTooltip = ({ text }: { text: string }) => {
+	return (
+		<Tooltip
+			trigger={
+				<IconSolidInformationCircle
+					color={
+						vars.theme.interactive.fill.secondary.content.onDisabled
+					}
+					size={13}
+				/>
+			}
+		>
+			{text}{' '}
+			<a href={GRAPHING_FIELD_DOCS_LINK} target="_blank" rel="noreferrer">
+				Read more
+			</a>
+		</Tooltip>
 	)
 }
 
@@ -104,16 +142,19 @@ const LabeledRow = ({
 	enabled,
 	setEnabled,
 	children,
+	tooltip,
 }: PropsWithChildren<{
 	label: string
 	name: string
 	enabled?: boolean
 	setEnabled?: (value: boolean) => void
+	tooltip?: string
 }>) => {
 	return (
 		<Box width="full" display="flex" flexDirection="column" gap="4">
 			<Box display="flex" flexDirection="row" gap="6">
 				<Label label={label} name={name} />
+				{tooltip !== undefined && <InfoTooltip text={tooltip} />}
 				{setEnabled !== undefined && (
 					<Switch
 						trackingId={`${label}-switch`}
@@ -134,19 +175,59 @@ const LabeledRow = ({
 	)
 }
 
+const Combobox = ({
+	options,
+	selection,
+	setSelection,
+	setQuery,
+	label,
+}: {
+	options: string[]
+	selection: string
+	setSelection: (selection: string) => void
+	setQuery: (query: string) => void
+	label: string
+}) => {
+	return (
+		<ComboboxSelect
+			label={label}
+			value={selection}
+			valueRender={<Text cssClass={style.comboboxText}>{selection}</Text>}
+			options={options.map((o) => ({
+				key: o,
+				render: o,
+			}))}
+			onChange={(val: string) => {
+				setSelection(val)
+			}}
+			onChangeQuery={(val: string) => {
+				setQuery(val)
+			}}
+			cssClass={style.combobox}
+			wrapperCssClass={style.comboboxWrapper}
+			queryPlaceholder="Filter..."
+		/>
+	)
+}
+
 const OptionDropdown = <T extends string>({
 	options,
 	selection,
 	setSelection,
 	icons,
+	labels,
+	tooltips,
 }: {
 	options: T[]
 	selection: T
 	setSelection: (option: T) => void
 	icons?: JSX.Element[]
+	labels?: string[]
+	tooltips?: React.ReactNode[]
 }) => {
 	const selectedIndex = options.indexOf(selection)
 	const selectedIcon = icons?.at(selectedIndex)
+	const selectedLabel = labels?.at(selectedIndex)
 	return (
 		<Menu>
 			<Menu.Button
@@ -164,25 +245,42 @@ const OptionDropdown = <T extends string>({
 				>
 					<Stack direction="row" alignItems="center" gap="4">
 						{selectedIcon}
-						{selection}
+						{selectedLabel ?? selection}
 					</Stack>
 					<IconSolidCheveronDown />
 				</Box>
 			</Menu.Button>
 			<Menu.List>
-				{options.map((p, idx) => (
-					<Menu.Item
-						key={p}
-						onClick={() => {
-							setSelection(p as T)
-						}}
-					>
-						<Stack direction="row" alignItems="center" gap="4">
+				{options.map((p, idx) => {
+					let innerContent: React.ReactNode = (
+						<Stack
+							direction="row"
+							alignItems="center"
+							gap="4"
+							width="full"
+						>
 							{icons?.at(idx)}
-							{p}
+							{labels?.at(idx) ?? p}
 						</Stack>
-					</Menu.Item>
-				))}
+					)
+					if (tooltips !== undefined) {
+						innerContent = (
+							<Tooltip placement="left" trigger={innerContent}>
+								{tooltips[idx]}
+							</Tooltip>
+						)
+					}
+					return (
+						<Menu.Item
+							key={p}
+							onClick={() => {
+								setSelection(p as T)
+							}}
+						>
+							{innerContent}
+						</Menu.Item>
+					)
+				})}
 			</Menu.List>
 		</Menu>
 	)
@@ -227,7 +325,11 @@ const LineChartSettings = ({
 	setLineDisplay: (option: LineDisplay) => void
 }) => (
 	<>
-		<LabeledRow label="Line display" name="lineDisplay">
+		<LabeledRow
+			label="Line display"
+			name="lineDisplay"
+			tooltip="Lines in charts with multiple series can be stacked."
+		>
 			<TagSwitchGroup
 				options={LINE_DISPLAY}
 				defaultValue={lineDisplay}
@@ -237,12 +339,15 @@ const LineChartSettings = ({
 				cssClass={style.tagSwitch}
 			/>
 		</LabeledRow>
-		<LabeledRow label="Nulls" name="lineNullHandling">
+		<LabeledRow
+			label="Nulls"
+			name="lineNullHandling"
+			tooltip="Determines how null / empty values are handled."
+		>
 			<TagSwitchGroup
 				options={LINE_NULL_HANDLING}
 				defaultValue={nullHandling}
 				onChange={(o: string | number) => {
-					console.log('setNullHandling', o)
 					setNullHandling(o as LineNullHandling)
 				}}
 				cssClass={style.tagSwitch}
@@ -259,7 +364,11 @@ const BarChartSettings = ({
 	setBarDisplay: (option: BarDisplay) => void
 }) => (
 	<>
-		<LabeledRow label="Bar display" name="barDisplay">
+		<LabeledRow
+			label="Bar display"
+			name="barDisplay"
+			tooltip="Bars in charts with multiple series can be stacked or displayed next to each other."
+		>
 			<TagSwitchGroup
 				options={BAR_DISPLAY}
 				defaultValue={barDisplay}
@@ -280,7 +389,11 @@ const TableSettings = ({
 	setNullHandling: (option: TableNullHandling) => void
 }) => (
 	<>
-		<LabeledRow label="Nulls" name="tableNullHandling">
+		<LabeledRow
+			label="Nulls"
+			name="tableNullHandling"
+			tooltip="Determines how null / empty values are handled."
+		>
 			<TagSwitchGroup
 				options={TABLE_NULL_HANDLING}
 				defaultValue={nullHandling}
@@ -301,11 +414,15 @@ export const GraphingEditor = () => {
 
 	const isEdit = graph_id !== undefined
 
-	const { timeRange } = useDataTimeRange()
+	const { startDate, endDate, selectedPreset, updateSearchTime } =
+		useSearchTime({
+			presets: DEFAULT_TIME_PRESETS,
+			initialPreset: DEFAULT_TIME_PRESETS[2],
+		})
 
-	const [upsertGraph, upsertGraphContext] = useUpsertGraphMutation({
-		refetchQueries: [namedOperations.Query.GetVisualization],
-	})
+	const [upsertGraph, upsertGraphContext] = useUpsertGraphMutation()
+
+	const tempId = useId()
 
 	const navigate = useNavigate()
 
@@ -352,14 +469,46 @@ export const GraphingEditor = () => {
 			variables: {
 				graph: graphInput,
 			},
+			optimisticResponse: {
+				upsertGraph: {
+					...graphInput,
+					id: graphInput.id ?? `temp-${tempId}`,
+					__typename: 'Graph',
+				},
+			},
+			update(cache, result) {
+				if (isEdit) {
+					return
+				}
+				const vizId = cache.identify({
+					id: dashboard_id,
+					__typename: 'Visualization',
+				})
+				const graphId = cache.identify({
+					id: result.data?.upsertGraph.id,
+					__typename: 'Graph',
+				})
+				cache.modify({
+					id: vizId,
+					fields: {
+						graphs(existing: any[] = []) {
+							return existing.concat([{ __ref: graphId }])
+						},
+					},
+				})
+			},
 		})
 			.then(() => {
-				navigate(`../${dashboard_id}`)
 				message.success(`Metric view ${isEdit ? 'updated' : 'created'}`)
 			})
 			.catch(() => {
 				message.error('Failed to create metric view')
 			})
+
+		navigate({
+			pathname: `../${dashboard_id}`,
+			search: location.search,
+		})
 	}
 
 	const { loading: metaLoading } = useGetVisualizationQuery({
@@ -387,6 +536,8 @@ export const GraphingEditor = () => {
 				setTableNullHandling(g.nullHandling as TableNullHandling)
 			}
 
+			setQuery(g.query)
+			setDebouncedQuery(g.query)
 			setMetric(g.metric)
 			setMetricViewTitle(g.title)
 			setGroupByEnabled(g.groupByKey !== null)
@@ -436,47 +587,46 @@ export const GraphingEditor = () => {
 	const [limitMetric, setLimitMetric] = useState('')
 
 	const [bucketByEnabled, setBucketByEnabled] = useState(true)
-	const [bucketByKey, setBucketByKey] = useState('')
+	const [bucketByKey, setBucketByKey] = useState(TIMESTAMP_KEY)
 	const [bucketCount, setBucketCount] = useState(DEFAULT_BUCKET_COUNT)
 
-	const startDate = timeRange.start_date
-	const endDate = timeRange.end_date
+	const [keysQuery, setKeysQuery] = useState('')
 
 	const { data: keys } = useGetKeysQuery({
 		variables: {
 			product_type: productType,
 			project_id: projectId,
 			date_range: {
-				start_date: startDate,
-				end_date: endDate,
+				start_date: moment(startDate).format(TIME_FORMAT),
+				end_date: moment(endDate).format(TIME_FORMAT),
 			},
-			query: '',
+			query: keysQuery,
+			type: NUMERIC_FUNCTION_TYPES.includes(functionType)
+				? KeyType.Numeric
+				: undefined,
 		},
 	})
 
 	const allKeys = useMemo(
-		() => keys?.keys.map((k) => k.name).slice(0, 10) ?? [],
-		[keys],
+		() => keys?.keys.map((k) => k.name).slice(0, 8) ?? [],
+		[keys?.keys],
 	)
 	const numericKeys = useMemo(
 		() =>
 			keys?.keys
-				.filter((k) => k.type === 'Numeric')
+				.filter((k) => k.type === KeyType.Numeric)
 				.map((k) => k.name)
-				.slice(0, 10) ?? [],
-		[keys],
-	)
-	const bucketByKeys = useMemo(
-		() => [TIMESTAMP_KEY].concat(numericKeys).slice(0, 10),
-		[numericKeys],
+				.slice(0, 8) ?? [],
+		[keys?.keys],
 	)
 
-	useEffect(() => {
-		setGroupByKey(allKeys[0] ?? '')
-		setMetric(numericKeys[0] ?? '')
-		setLimitMetric(numericKeys[0] ?? '')
-		setBucketByKey(bucketByKeys[0] ?? '')
-	}, [allKeys, bucketByKeys, numericKeys])
+	const bucketByKeys = useMemo(() => {
+		const baseArray = []
+		if (TIMESTAMP_KEY.toLowerCase().includes(keysQuery.toLowerCase())) {
+			baseArray.push(TIMESTAMP_KEY)
+		}
+		return baseArray.concat(numericKeys).slice(0, 8)
+	}, [numericKeys, keysQuery])
 
 	let display: string | undefined
 	let nullHandling: string | undefined
@@ -497,7 +647,7 @@ export const GraphingEditor = () => {
 	return (
 		<>
 			<Helmet>
-				<title>Edit Metric View</title>
+				<title>{isEdit ? 'Edit' : 'Create'} Metric View</title>
 			</Helmet>
 			<Box
 				background="n2"
@@ -531,13 +681,29 @@ export const GraphingEditor = () => {
 							{isEdit ? 'Edit' : 'Create'} metric view
 						</Text>
 						<Box display="flex" gap="4">
-							<TimeRangePicker emphasis="low" kind="secondary" />
+							<DateRangePicker
+								emphasis="low"
+								kind="secondary"
+								selectedValue={{
+									startDate,
+									endDate,
+									selectedPreset,
+								}}
+								onDatesChange={updateSearchTime}
+								presets={DEFAULT_TIME_PRESETS}
+								minDate={presetStartDate(
+									DEFAULT_TIME_PRESETS[5],
+								)}
+							/>
 							<HeaderDivider />
 							<Button
 								emphasis="low"
 								kind="secondary"
 								onClick={() => {
-									navigate(`../${dashboard_id}`)
+									navigate({
+										pathname: `../${dashboard_id}`,
+										search: location.search,
+									})
 								}}
 							>
 								Cancel
@@ -547,12 +713,6 @@ export const GraphingEditor = () => {
 								onClick={onSave}
 							>
 								Save&nbsp;
-								<Badge
-									variant="outlinePurple"
-									shape="basic"
-									size="small"
-									label={[cmdKey, 'S'].join('+')}
-								/>
 							</Button>
 						</Box>
 					</Box>
@@ -592,6 +752,7 @@ export const GraphingEditor = () => {
 										productType={productType}
 										projectId={projectId}
 										startDate={startDate}
+										selectedPreset={selectedPreset}
 										endDate={endDate}
 										query={debouncedQuery}
 										metric={metric}
@@ -624,6 +785,7 @@ export const GraphingEditor = () => {
 												? limitMetric
 												: undefined
 										}
+										setTimeRange={updateSearchTime}
 									/>
 								</Box>
 							</Box>
@@ -658,7 +820,11 @@ export const GraphingEditor = () => {
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
-									<LabeledRow label="Source" name="source">
+									<LabeledRow
+										label="Source"
+										name="source"
+										tooltip="The resource being queried, one of the four highlight.io resources."
+									>
 										<OptionDropdown<ProductType>
 											options={PRODUCTS}
 											selection={productType}
@@ -678,6 +844,7 @@ export const GraphingEditor = () => {
 											selection={viewType}
 											setSelection={setViewType}
 											icons={VIEW_ICONS}
+											labels={VIEW_LABELS}
 										/>
 									</LabeledRow>
 									{viewType === 'Line chart' && (
@@ -710,6 +877,7 @@ export const GraphingEditor = () => {
 									<LabeledRow
 										label="Function"
 										name="function"
+										tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
 									>
 										<OptionDropdown<MetricAggregator>
 											options={FUNCTION_TYPES}
@@ -718,7 +886,7 @@ export const GraphingEditor = () => {
 										/>
 										{functionType !==
 											MetricAggregator.Count && (
-											<OptionDropdown<string>
+											<Combobox
 												options={
 													functionType ===
 													MetricAggregator.CountDistinct
@@ -727,25 +895,34 @@ export const GraphingEditor = () => {
 												}
 												selection={metric}
 												setSelection={setMetric}
+												setQuery={setKeysQuery}
+												label="metric"
 											/>
 										)}
 									</LabeledRow>
-									<LabeledRow label="Filters" name="query">
+									<LabeledRow
+										label="Filters"
+										name="query"
+										tooltip="The search query used to filter which data points are included before aggregating."
+									>
 										<Box
 											border="divider"
 											width="full"
 											borderRadius="6"
 										>
-											<Search
+											<SearchContext
 												initialQuery={query}
-												query={query}
-												setQuery={setQuery}
-												startDate={new Date(startDate)}
-												endDate={new Date(endDate)}
-												productType={productType}
-												onFormSubmit={setQuery}
-												hideIcon
-											/>
+												onSubmit={setQuery}
+											>
+												<Search
+													startDate={
+														new Date(startDate)
+													}
+													endDate={new Date(endDate)}
+													productType={productType}
+													hideIcon
+												/>
+											</SearchContext>
 										</Box>
 									</LabeledRow>
 								</SidebarSection>
@@ -756,11 +933,14 @@ export const GraphingEditor = () => {
 										name="groupBy"
 										enabled={groupByEnabled}
 										setEnabled={setGroupByEnabled}
+										tooltip="A categorical field for grouping results into separate series."
 									>
-										<OptionDropdown<string>
+										<Combobox
 											options={allKeys}
 											selection={groupByKey}
 											setSelection={setGroupByKey}
+											setQuery={setKeysQuery}
+											label="groupBy"
 										/>
 									</LabeledRow>
 									{groupByEnabled && (
@@ -772,6 +952,7 @@ export const GraphingEditor = () => {
 											<LabeledRow
 												label="Limit"
 												name="limit"
+												tooltip="The maximum number of groups to include."
 											>
 												<Input
 													type="number"
@@ -791,6 +972,7 @@ export const GraphingEditor = () => {
 											<LabeledRow
 												label="By"
 												name="limitBy"
+												tooltip="The function used to determine which groups are included."
 											>
 												<OptionDropdown<MetricAggregator>
 													options={FUNCTION_TYPES}
@@ -803,12 +985,14 @@ export const GraphingEditor = () => {
 												/>
 												{limitFunctionType !==
 													MetricAggregator.Count && (
-													<OptionDropdown<string>
+													<Combobox
 														options={numericKeys}
 														selection={limitMetric}
 														setSelection={
 															setLimitMetric
 														}
+														setQuery={setKeysQuery}
+														label="limitMetric"
 													/>
 												)}
 											</LabeledRow>
@@ -822,17 +1006,21 @@ export const GraphingEditor = () => {
 										name="bucketBy"
 										enabled={bucketByEnabled}
 										setEnabled={setBucketByEnabled}
+										tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
 									>
-										<OptionDropdown<string>
+										<Combobox
 											options={bucketByKeys}
 											selection={bucketByKey}
 											setSelection={setBucketByKey}
+											setQuery={setKeysQuery}
+											label="bucketBy"
 										/>
 									</LabeledRow>
 									{bucketByEnabled && (
 										<LabeledRow
 											label="Buckets"
 											name="bucketCount"
+											tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
 										>
 											<Input
 												type="number"

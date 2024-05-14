@@ -19,14 +19,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Add public IP to AWS security group
               uses: sohelamin/aws-security-group-add-ip-action@master
               with:
@@ -50,14 +50,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -83,15 +83,15 @@ jobs:
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
               run: |
                   aws lambda update-function-configuration --function-name getSessionIdsByQuery \
-                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromPostgres \
-                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromOpenSearch \
-                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromS3 \
-                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
                   aws lambda update-function-configuration --function-name sendEmail \
-                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy getSessionIdsByQuery
               uses: appleboy/lambda-action@v0.1.9
               with:
@@ -138,14 +138,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -165,9 +165,9 @@ jobs:
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
               run: |
                   aws lambda update-function-configuration --function-name saveSessionExport \
-                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
                   aws lambda update-function-configuration --function-name sendSessionExportEmail \
-                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy saveSessionExport
               uses: appleboy/lambda-action@v0.1.9
               with:
@@ -190,14 +190,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -219,11 +219,11 @@ jobs:
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
               run: |
                   aws lambda update-function-configuration --function-name getProjectIds \
-                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
                   aws lambda update-function-configuration --function-name getDigestData \
-                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
                   aws lambda update-function-configuration --function-name sendDigestEmails \
-                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy getProjectIds
               uses: appleboy/lambda-action@v0.1.9
               with:
@@ -254,14 +254,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -281,9 +281,9 @@ jobs:
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
               run: |
                   aws lambda update-function-configuration --function-name getSessionInsightsData \
-                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
                   aws lambda update-function-configuration --function-name sendSessionInsightsEmails \
-                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy getSessionInsightsData
               uses: appleboy/lambda-action@v0.1.9
               with:
@@ -306,14 +306,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -331,7 +331,7 @@ jobs:
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
               run: |
                   aws lambda update-function-configuration --function-name awsMarketplaceListener \
-                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy awsMarketplaceListener
               uses: appleboy/lambda-action@v0.1.9
               with:
@@ -346,14 +346,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
+              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -371,7 +371,7 @@ jobs:
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
               run: |
                   aws lambda update-function-configuration --function-name updateNormalnessScores \
-                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy updateNormalnessScores
               uses: appleboy/lambda-action@v0.1.9
               with:
@@ -386,7 +386,7 @@ jobs:
         runs-on: buildjet-2vcpu-ubuntu-2204-arm
         steps:
             - name: Check out the repo
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
 
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v4
@@ -555,7 +555,7 @@ jobs:
               uses: aws-actions/amazon-ecr-login@v2
 
             - name: Check out the repo
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - uses: dorny/paths-filter@v2
               id: filter
               with:

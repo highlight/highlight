@@ -43,8 +43,8 @@ import {
 } from '@/components/CustomColumnHeader'
 import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { SearchExpression } from '@/components/Search/Parser/listener'
-import { parseSearch } from '@/components/Search/utils'
 import { LogEdge, ProductType } from '@/graph/generated/schemas'
+import { MAX_LOGS } from '@/pages/LogsPage/useGetLogs'
 import analytics from '@/util/analytics'
 
 import { LogDetails } from './LogDetails'
@@ -117,8 +117,9 @@ export const LogsTable = (props: Props) => {
 type LogsTableInnerProps = {
 	loadingAfter: boolean
 	logEdges: LogEdgeWithResources[]
-	query: string
 	selectedCursor: string | undefined
+	query: string
+	queryParts: SearchExpression[]
 	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
 	// necessary for loading most recent loads
 	moreLogs?: number
@@ -134,8 +135,9 @@ const LOADING_AFTER_HEIGHT = 28
 const LogsTableInner = ({
 	logEdges,
 	loadingAfter,
-	query,
 	selectedCursor,
+	query,
+	queryParts,
 	moreLogs,
 	bodyHeight,
 	clearMoreLogs,
@@ -148,7 +150,6 @@ const LogsTableInner = ({
 	const enableFetchMoreLogs =
 		!!moreLogs && !!clearMoreLogs && !!handleAdditionalLogsDateChange
 
-	const { queryParts } = parseSearch(query)
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const columnHelper = createColumnHelper<LogEdge>()
@@ -330,6 +331,7 @@ const LogsTableInner = ({
 					<Table.Row>
 						<Box width="full">
 							<AdditionalFeedResults
+								maxResults={MAX_LOGS}
 								more={moreLogs}
 								type="logs"
 								onClick={() => {

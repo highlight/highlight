@@ -1,6 +1,8 @@
+import { useId } from 'react'
 import {
 	Bar,
 	BarChart as RechartsBarChart,
+	BarProps,
 	CartesianGrid,
 	ResponsiveContainer,
 	Tooltip,
@@ -29,20 +31,32 @@ export type BarChartConfig = {
 	display?: BarDisplay
 }
 
-const RoundedBar = (props: any) => {
+const RoundedBar = (id: string, isLast: boolean) => (props: BarProps) => {
 	const { fill, x, y, width, height } = props
 	return (
-		<g>
+		<>
 			<rect
-				rx={5}
 				x={x}
 				y={y}
 				width={width}
-				height={Math.max(height - 1, 0)}
+				height={Math.max((height ?? 0) - 1.5, 0)}
 				stroke="none"
 				fill={fill}
+				clipPath={`url(#barmask-${id}-${x})`}
 			/>
-		</g>
+			{isLast && (
+				<clipPath id={`barmask-${id}-${x}`}>
+					<rect
+						rx={Math.min((width ?? 0) / 3, 5)}
+						x={x}
+						y={y}
+						width={width}
+						height="10000"
+						fill="white"
+					/>
+				</clipPath>
+			)}
+		</>
 	)
 }
 
@@ -52,14 +66,29 @@ export const BarChart = ({
 	yAxisMetric,
 	series,
 	spotlight,
+	strokeColors,
 	viewConfig,
-}: InnerChartProps<BarChartConfig> & SeriesInfo) => {
-	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data?.length)
-	const yAxisTickFormatter = getTickFormatter(yAxisMetric)
+	onMouseDown,
+	onMouseMove,
+	onMouseUp,
+	children,
+}: React.PropsWithChildren<InnerChartProps<BarChartConfig> & SeriesInfo>) => {
+	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
+	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
+
+	// used to give svg masks an id unique to the page
+	const id = useId()
 
 	return (
 		<ResponsiveContainer>
-			<RechartsBarChart data={data} barCategoryGap={1}>
+			<RechartsBarChart
+				data={data}
+				barCategoryGap={1}
+				onMouseDown={onMouseDown}
+				onMouseMove={onMouseMove}
+				onMouseUp={onMouseUp}
+			>
+				{children}
 				<XAxis
 					dataKey={xAxisMetric}
 					fontSize={10}
@@ -76,7 +105,7 @@ export const BarChart = ({
 					axisLine={{ visibility: 'hidden' }}
 					height={12}
 					type={xAxisMetric === GROUP_KEY ? 'category' : 'number'}
-					domain={['auto', 'auto']}
+					domain={['dataMin', 'dataMax']}
 				/>
 
 				<Tooltip
@@ -114,17 +143,22 @@ export const BarChart = ({
 							return null
 						}
 
+						const isLastBar =
+							viewConfig.display !== 'Stacked' ||
+							spotlight === idx ||
+							idx === series.length - 1
+
 						return (
 							<Bar
 								key={key}
 								dataKey={key}
-								fill={getColor(idx)}
+								fill={strokeColors?.at(idx) ?? getColor(idx)}
 								maxBarSize={30}
 								isAnimationActive={false}
 								stackId={
 									viewConfig.display === 'Stacked' ? 1 : idx
 								}
-								shape={RoundedBar}
+								shape={RoundedBar(id, isLastBar)}
 							/>
 						)
 					})}

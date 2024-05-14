@@ -23,8 +23,8 @@ import { useLocation } from 'react-router-dom'
 
 import {
 	useGetAlertsPagePayloadQuery,
-	useGetErrorGroupsClickhouseQuery,
-	useGetSessionsClickhouseQuery,
+	useGetErrorGroupsQuery,
+	useGetSessionsQuery,
 } from '@/graph/generated/hooks'
 
 import * as styles from './IntegrationBar.css'
@@ -75,13 +75,12 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 		data: sessionData,
 		startPolling: startSessionPolling,
 		stopPolling: stopSessionPolling,
-	} = useGetSessionsClickhouseQuery({
+	} = useGetSessionsQuery({
 		variables: {
 			project_id: projectId,
-			query: {
-				isAnd: true,
-				rules: [],
-				dateRange: {
+			params: {
+				query: '',
+				date_range: {
 					start_date: start,
 					end_date: end,
 				},
@@ -91,7 +90,7 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 			sort_desc: true,
 		},
 		onCompleted: (data) => {
-			if (data.sessions_clickhouse.sessions.length) {
+			if (data.sessions.sessions.length) {
 				stopSessionPolling()
 			}
 		},
@@ -103,13 +102,12 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 		data: errorGroupData,
 		startPolling: startErrorPolling,
 		stopPolling: stopErrorPolling,
-	} = useGetErrorGroupsClickhouseQuery({
+	} = useGetErrorGroupsQuery({
 		variables: {
 			project_id: projectId,
-			query: {
-				isAnd: true,
-				rules: [],
-				dateRange: {
+			params: {
+				query: '',
+				date_range: {
 					start_date: start,
 					end_date: end,
 				},
@@ -117,7 +115,7 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 			count: 1,
 		},
 		onCompleted: (data) => {
-			if (data.error_groups_clickhouse.error_groups.length) {
+			if (data.error_groups.error_groups.length) {
 				stopErrorPolling()
 			}
 		},
@@ -133,9 +131,9 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 
 	const resource =
 		area === 'client'
-			? sessionData?.sessions_clickhouse.sessions[0]
+			? sessionData?.sessions.sessions[0]
 			: area === 'backend'
-			? errorGroupData?.error_groups_clickhouse.error_groups[0]
+			? errorGroupData?.error_groups.error_groups[0]
 			: undefined
 	const alert =
 		area === 'alerts'
@@ -149,14 +147,11 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 
 	useEffect(() => {
 		if (integrated) {
-			if (
-				area === 'client' &&
-				!sessionData?.sessions_clickhouse.sessions.length
-			) {
+			if (area === 'client' && !sessionData?.sessions.sessions.length) {
 				startSessionPolling(POLLING_INTERVAL)
 			} else if (
 				area === 'backend' &&
-				!errorGroupData?.error_groups_clickhouse.error_groups.length
+				!errorGroupData?.error_groups.error_groups.length
 			) {
 				startErrorPolling(POLLING_INTERVAL)
 			}
@@ -166,9 +161,9 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 		}
 	}, [
 		area,
-		errorGroupData?.error_groups_clickhouse.error_groups.length,
+		errorGroupData?.error_groups.error_groups.length,
 		integrated,
-		sessionData?.sessions_clickhouse.sessions.length,
+		sessionData?.sessions.sessions.length,
 		startErrorPolling,
 		startSessionPolling,
 		stopErrorPolling,

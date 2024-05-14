@@ -1,0 +1,5 @@
+ALTER TABLE traces DROP COLUMN IF EXISTS MetricName;
+ALTER TABLE traces DROP COLUMN IF EXISTS MetricValue;
+
+ALTER TABLE traces_sampling DROP COLUMN IF EXISTS MetricName;
+ALTER TABLE traces_sampling DROP COLUMN IF EXISTS MetricValue;

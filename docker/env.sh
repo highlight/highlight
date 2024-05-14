@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 
@@ -9,6 +9,13 @@ export IN_DOCKER=true
 export OBJECT_STORAGE_FS=/tmp/highlight-data
 export REACT_APP_AUTH_MODE=password
 export BACKEND_HEALTH_URI=$(echo "$REACT_APP_PUBLIC_GRAPH_URI" | sed -e 's/\/public/\/health/')
+
+# if doppler is configured, use the doppler SSL value
+DOPPLER_SSL=$(DOPPLER_CONFIG="" doppler secrets get SSL --plain || true)
+if [[ "$DOPPLER_SSL" =~ ^(true|false)$ ]]; then
+    export SSL=${DOPPLER_SSL}
+    echo "Using doppler-set SSL value ${SSL}."
+fi
 
 if [[ "$*" == *"--go-docker"* ]]; then
     export KAFKA_ADVERTISED_LISTENERS="PLAINTEXT://kafka:9092"

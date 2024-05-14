@@ -1,4 +1,5 @@
 import { Box, Table, Text } from '@highlight-run/ui/components'
+import clsx from 'clsx'
 
 import {
 	getTickFormatter,
@@ -36,6 +37,7 @@ export const MetricTable = ({
 	yAxisFunction,
 	series,
 	viewConfig,
+	disabled,
 }: InnerChartProps<TableConfig> & SeriesInfo) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric)
 	const valueFormatter = getTickFormatter(yAxisMetric)
@@ -49,23 +51,34 @@ export const MetricTable = ({
 		<Box height="full" cssClass={style.tableWrapper}>
 			<Table noBorder className={style.fullHeight}>
 				<Table.Head>
-					<Table.Row>
+					<Table.Row className={style.tableRow}>
 						{showXAxisColumn && (
-							<Table.Header>{xAxisMetric}</Table.Header>
+							<Table.Header>
+								<Text lines="1" cssClass={style.firstCell}>
+									{xAxisMetric}
+								</Text>
+							</Table.Header>
 						)}
 						{series.map((s, i) => (
 							<Table.Header key={i}>
-								{showMetricFn
-									? getMetricDisplay(
-											yAxisMetric,
-											yAxisFunction,
-									  )
-									: s}
+								<Text lines="1">
+									{showMetricFn
+										? getMetricDisplay(
+												yAxisMetric,
+												yAxisFunction,
+										  )
+										: s}
+								</Text>
 							</Table.Header>
 						))}
 					</Table.Row>
 				</Table.Head>
-				<Box height="full" cssClass={style.scrollableBody}>
+				<Box
+					height="full"
+					cssClass={clsx(style.scrollableBody, {
+						[style.preventScroll]: disabled,
+					})}
+				>
 					<Table.Body>
 						{data?.map((d, i) => {
 							// If every value for the bucket is null, skip this row
@@ -79,10 +92,15 @@ export const MetricTable = ({
 							}
 
 							return (
-								<Table.Row key={i}>
+								<Table.Row key={i} className={style.tableRow}>
 									{showXAxisColumn && (
 										<Table.Cell key={i}>
-											<Text size="small" color="default">
+											<Text
+												size="small"
+												color="default"
+												lines="1"
+												cssClass={style.firstCell}
+											>
 												{xAxisTickFormatter(
 													d[xAxisMetric],
 												)}
@@ -116,6 +134,7 @@ export const MetricTable = ({
 												<Text
 													size="small"
 													color="default"
+													lines="1"
 												>
 													{value}
 												</Text>
