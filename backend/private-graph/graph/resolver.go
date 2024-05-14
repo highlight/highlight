@@ -1994,6 +1994,26 @@ func (r *Resolver) AddMicrosoftTeamsToWorkspace(ctx context.Context, workspace *
 	return nil
 }
 
+func (r *Resolver) AddHerokuToProject(ctx context.Context, project *model.Project, token string) error {
+	projectMapping := &model.IntegrationProjectMapping{
+		IntegrationType: modelInputs.IntegrationTypeHeroku,
+		ProjectID:       project.ID,
+		ExternalID:      token,
+	}
+
+	if err := r.DB.WithContext(ctx).
+		Model(&projectMapping).
+		Clauses(clause.OnConflict{
+			OnConstraint: "idx_integration_project_mapping_project_id_integration_type",
+			DoUpdates:    clause.AssignmentColumns([]string{"external_id"}),
+		}).
+		Create(&projectMapping).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	var (
 		SLACK_CLIENT_ID     string

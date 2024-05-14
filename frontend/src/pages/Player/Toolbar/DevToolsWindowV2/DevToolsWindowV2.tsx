@@ -16,6 +16,7 @@ import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
+import PerformancePage from '@pages/Player/Toolbar/DevToolsWindowV2/PerformancePage/PerformancePage'
 import {
 	DEV_TOOLS_MIN_HEIGHT,
 	ResizePanel,
@@ -190,6 +191,9 @@ const DevToolsWindowV2: React.FC<
 								</Tabs.Tab>
 								<Tabs.Tab id={Tab.Errors}>Errors</Tabs.Tab>
 								<Tabs.Tab id={Tab.Network}>Network</Tabs.Tab>
+								<Tabs.Tab id={Tab.Performance}>
+									Performance
+								</Tabs.Tab>
 
 								<Box
 									display="flex"
@@ -375,6 +379,9 @@ const DevToolsWindowV2: React.FC<
 									filter={filter}
 									time={time}
 								/>
+							</Tabs.Panel>
+							<Tabs.Panel id={Tab.Performance}>
+								<PerformancePage time={time} />
 							</Tabs.Panel>
 						</Tabs>
 					)}

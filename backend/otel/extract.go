@@ -129,7 +129,10 @@ func extractFields(params extractFieldsParams) (*extractedFields, error) {
 		fields.logSeverity = params.logRecord.SeverityText()
 		logAttributes = params.logRecord.Attributes().AsRaw()
 		// this could be a log record from syslog, with a projectID token prefix. ie:
+		// render
 		// 1jdkoe52 <1>1 2023-07-27T05:43:22.401882Z render render-log-endpoint-test 1 render-log-endpoint-test - Render test log
+		// heroku
+		// 2013-01-01T01:01:01.000000+00:00 d.9173ea1f-6f14-4976-9cf0-7cd0dafdcdbc app[web.1] Your message here.
 		fields.logBody = params.logRecord.Body().Str()
 		if len(fields.logBody) > 0 {
 			if fields.logBody[0] != '<' {

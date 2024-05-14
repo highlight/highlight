@@ -191,7 +191,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					curTime:  curTime,
 				})
 				if err != nil {
-					lg(ctx, fields).WithError(err).Info("failed to extract fields from span")
+					lg(ctx, fields).WithError(err).WithField("fields", fields).Info("failed to extract fields from span")
 					continue
 				}
 				traceID := cast(fields.requestID, span.TraceID().String())
@@ -210,7 +210,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						curTime:  curTime,
 					})
 					if err != nil {
-						lg(ctx, fields).WithError(err).Info("failed to extract fields from trace")
+						lg(ctx, fields).WithError(err).WithField("fields", fields).Info("failed to extract fields from trace")
 						continue
 					}
 
@@ -436,7 +436,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					curTime:   curTime,
 				})
 				if err != nil {
-					lg(ctx, fields).WithError(err).Info("failed to extract fields from log")
+					lg(ctx, fields).WithError(err).WithField("fields", fields).Info("failed to extract fields from log")
 					continue
 				}
 
