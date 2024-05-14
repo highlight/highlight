@@ -12379,6 +12379,9 @@ enum NetworkRequestAttribute {
 	response_size
 	status
 	latency
+	connect_latency
+	dns_latency
+	redirect_latency
 	request_id
 	graphql_operation
 }

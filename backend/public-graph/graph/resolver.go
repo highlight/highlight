@@ -159,14 +159,28 @@ type NetworkResource struct {
 	// Deprecated, use the absolute version `StartTimeAbs` instead
 	StartTime float64 `json:"startTime"`
 	// Deprecated, use the absolute version `ResponseEndAbs` instead
-	ResponseEnd          float64              `json:"responseEnd"`
-	StartTimeAbs         float64              `json:"startTimeAbs"`
-	ResponseEndAbs       float64              `json:"responseEndAbs"`
-	InitiatorType        string               `json:"initiatorType"`
-	TransferSize         float64              `json:"transferSize"`
-	EncodedBodySize      float64              `json:"encodedBodySize"`
-	Name                 string               `json:"name"`
-	RequestResponsePairs RequestResponsePairs `json:"requestResponsePairs"`
+	ResponseEnd float64 `json:"responseEnd"`
+
+	StartTimeAbs             float64              `json:"startTimeAbs"`
+	ResponseEndAbs           float64              `json:"responseEndAbs"`
+	ConnectStartAbs          float64              `json:"connectStartAbs"`
+	ConnectEndAbs            float64              `json:"connectEndAbs"`
+	DomainLookupStartAbs     float64              `json:"domainLookupStartAbs"`
+	DomainLookupEndAbs       float64              `json:"domainLookupEndAbs"`
+	FetchStartAbs            float64              `json:"fetchStartAbs"`
+	RedirectStartAbs         float64              `json:"redirectStartAbs"`
+	RedirectEndAbs           float64              `json:"redirectEndAbs"`
+	RequestStartAbs          float64              `json:"requestStartAbs"`
+	ResponseStartAbs         float64              `json:"responseStartAbs"`
+	SecureConnectionStartAbs float64              `json:"secureConnectionStartAbs"`
+	WorkerStartAbs           float64              `json:"workerStartAbs"`
+	DecodedBodySize          int64                `json:"decodedBodySize"`
+	TransferSize             int64                `json:"transferSize"`
+	EncodedBodySize          int64                `json:"encodedBodySize"`
+	NextHopProtocol          string               `json:"nextHopProtocol"`
+	InitiatorType            string               `json:"initiatorType"`
+	Name                     string               `json:"name"`
+	RequestResponsePairs     RequestResponsePairs `json:"requestResponsePairs"`
 }
 
 func (re *NetworkResource) Start(sessionStart time.Time) time.Time {
@@ -3215,6 +3229,9 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			semconv.HTTPURL(re.Name),
 			attribute.String("http.request.body", requestBody),
 			attribute.String("http.response.body", responseBody),
+			attribute.Int64("http.response.encoded.size", re.EncodedBodySize),
+			attribute.Int64("http.response.decoded.size", re.DecodedBodySize),
+			attribute.Int64("http.response.transfer.size", re.TransferSize),
 			semconv.HTTPRequestContentLength(len(requestBody)),
 			semconv.HTTPResponseContentLength(int(re.RequestResponsePairs.Response.Size)),
 			semconv.HTTPStatusCode(int(re.RequestResponsePairs.Response.Status)),
@@ -3223,6 +3240,9 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			semconv.UserAgentOriginal(re.RequestResponsePairs.Request.Headers["User-Agent"]),
 			attribute.String(privateModel.NetworkRequestAttributeInitiatorType.String(), re.InitiatorType),
 			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64(end.Sub(start).Nanoseconds())),
+			attribute.Float64(privateModel.NetworkRequestAttributeConnectLatency.String(), (re.ConnectEndAbs-re.ConnectStartAbs)*1e6),
+			attribute.Float64(privateModel.NetworkRequestAttributeDNSLatency.String(), (re.DomainLookupEndAbs-re.DomainLookupStartAbs)*1e6),
+			attribute.Float64(privateModel.NetworkRequestAttributeRedirectLatency.String(), (re.RedirectEndAbs-re.RedirectStartAbs)*1e6),
 		)
 		if u, err := url2.Parse(re.Name); err == nil {
 			attributes = append(attributes, semconv.HTTPScheme(u.Scheme), semconv.HTTPTarget(u.Path))
