@@ -243,7 +243,7 @@ func TestExtractFields_Syslog(t *testing.T) {
 		herokuProjectExtractor: h.matchHerokuDrain,
 	}
 	lr.Body().SetStr("1jdkoe52 <1>1 2023-07-27T05:43:22.401882Z render render-log-endpoint-test 1 render-log-endpoint-test - Render test log")
-	fields, err := extractFields(params)
+	fields, err := extractFields(context.Background(), params)
 	assert.NoError(t, err)
 	assert.Equal(t, fields.projectIDInt, 1)
 	assert.Equal(t, fields.attrs, map[string]string{
@@ -256,7 +256,7 @@ func TestExtractFields_Syslog(t *testing.T) {
 	})
 
 	lr.Body().SetStr("119 <40>1 2012-11-30T06:45:26+00:00 d.xxxxxxxx-yyyy-abcd-1234-deadbeef1234 heroku 1 web.3 - Starting process with command `bundle exec rackup config.ru -p 24405`")
-	fields, err = extractFields(params)
+	fields, err = extractFields(context.Background(), params)
 	assert.NoError(t, err)
 	assert.Equal(t, "123", fields.projectID)
 	assert.Equal(t, 123, fields.projectIDInt)

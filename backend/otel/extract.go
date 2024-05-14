@@ -1,6 +1,7 @@
 package otel
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -76,10 +77,10 @@ type extractFieldsParams struct {
 	logRecord *plog.LogRecord
 	curTime   time.Time
 
-	herokuProjectExtractor func(string) (string, int)
+	herokuProjectExtractor func(context.Context, string) (string, int)
 }
 
-func extractFields(params extractFieldsParams) (*extractedFields, error) {
+func extractFields(ctx context.Context, params extractFieldsParams) (*extractedFields, error) {
 	fields := newExtractedFields()
 
 	var resourceAttributes, spanAttributes, eventAttributes, scopeAttributes, logAttributes map[string]any
@@ -149,7 +150,7 @@ func extractFields(params extractFieldsParams) (*extractedFields, error) {
 			extractSyslog(fields)
 			if fields.attrs["app_name"] == "heroku" {
 				if params.herokuProjectExtractor != nil {
-					fields.projectID, fields.projectIDInt = params.herokuProjectExtractor(fields.attrs["hostname"])
+					fields.projectID, fields.projectIDInt = params.herokuProjectExtractor(ctx, fields.attrs["hostname"])
 				}
 			}
 		}

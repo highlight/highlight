@@ -5,6 +5,8 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/highlight-run/highlight/backend/redis"
 	"io"
 	"net/http"
 	"strconv"
@@ -187,7 +189,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 
-				fields, err := extractFields(extractFieldsParams{
+				fields, err := extractFields(r.Context(), extractFieldsParams{
 					resource: &resource,
 					span:     &span,
 					curTime:  curTime,
@@ -205,7 +207,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						break
 					}
 					event := events.At(l)
-					fields, err := extractFields(extractFieldsParams{
+					fields, err := extractFields(r.Context(), extractFieldsParams{
 						resource: &resource,
 						span:     &span,
 						event:    &event,
@@ -432,7 +434,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 			for k := 0; k < logRecords.Len(); k++ {
 				logRecord := logRecords.At(k)
 
-				fields, err := extractFields(extractFieldsParams{
+				fields, err := extractFields(r.Context(), extractFieldsParams{
 					resource:               &resource,
 					logRecord:              &logRecord,
 					curTime:                curTime,
@@ -689,20 +691,26 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 	return nil
 }
 
-func (o *Handler) matchHerokuDrain(herokuDrainToken string) (string, int) {
-	projectMapping := &model2.IntegrationProjectMapping{
-		IntegrationType: privateModel.IntegrationTypeHeroku,
-		ExternalID:      herokuDrainToken,
-	}
-	if err := o.resolver.DB.
-		Model(&projectMapping).
-		Where(&projectMapping).
-		Take(&projectMapping).Error; err != nil {
-		log.WithContext(context.TODO()).WithError(err).WithField("token", herokuDrainToken).Error("failed to find heroku drain token")
+func (o *Handler) matchHerokuDrain(ctx context.Context, herokuDrainToken string) (string, int) {
+	data, err := redis.CachedEval(ctx, o.resolver.Redis, fmt.Sprintf("matchHerokuDrain-%s", herokuDrainToken), time.Minute, time.Second, func() (*int, error) {
+		projectMapping := &model2.IntegrationProjectMapping{
+			IntegrationType: privateModel.IntegrationTypeHeroku,
+			ExternalID:      herokuDrainToken,
+		}
+		if err := o.resolver.DB.
+			Model(&projectMapping).
+			Where(&projectMapping).
+			Take(&projectMapping).Error; err != nil {
+			return nil, err
+		}
+		return &projectMapping.ProjectID, nil
+	})
+	if data == nil || err != nil {
+		log.WithContext(ctx).WithError(err).WithField("token", herokuDrainToken).Error("failed to find heroku drain token")
 		return herokuDrainToken, 0
 	}
 
-	return strconv.Itoa(projectMapping.ProjectID), projectMapping.ProjectID
+	return strconv.Itoa(*data), *data
 }
 
 func (o *Handler) Listen(r *chi.Mux) {
