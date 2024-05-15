@@ -1,6 +1,7 @@
 package otel
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -75,9 +76,11 @@ type extractFieldsParams struct {
 	scopeLogs *plog.ScopeLogs
 	logRecord *plog.LogRecord
 	curTime   time.Time
+
+	herokuProjectExtractor func(context.Context, string) (string, int)
 }
 
-func extractFields(params extractFieldsParams) (*extractedFields, error) {
+func extractFields(ctx context.Context, params extractFieldsParams) (*extractedFields, error) {
 	fields := newExtractedFields()
 
 	var resourceAttributes, spanAttributes, eventAttributes, scopeAttributes, logAttributes map[string]any
@@ -128,18 +131,26 @@ func extractFields(params extractFieldsParams) (*extractedFields, error) {
 		fields.timestamp = params.logRecord.Timestamp().AsTime()
 		fields.logSeverity = params.logRecord.SeverityText()
 		logAttributes = params.logRecord.Attributes().AsRaw()
-		// this could be a log record from syslog, with a projectID token prefix. ie:
-		// render
-		// 1jdkoe52 <1>1 2023-07-27T05:43:22.401882Z render render-log-endpoint-test 1 render-log-endpoint-test - Render test log
-		// heroku
-		// 2013-01-01T01:01:01.000000+00:00 d.9173ea1f-6f14-4976-9cf0-7cd0dafdcdbc app[web.1] Your message here.
 		fields.logBody = params.logRecord.Body().Str()
 		if len(fields.logBody) > 0 {
+			// this could be a log record from syslog, with a projectID token prefix. ie:
+			// render
+			// 1jdkoe52 <1>1 2023-07-27T05:43:22.401882Z render render-log-endpoint-test 1 render-log-endpoint-test - Render test log
+			// heroku
+			// 119 <40>1 2012-11-30T06:45:26+00:00 d.XXXXXX heroku 1 web.3 - test message
 			if fields.logBody[0] != '<' {
 				parts := strings.SplitN(fields.logBody, " <", 2)
 				if len(parts) == 2 {
 					fields.projectID = parts[0]
 					fields.logBody = "<" + parts[1]
+				}
+			}
+
+			// process potential syslog message
+			extractSyslog(fields)
+			if fields.attrs["app_name"] == "heroku" {
+				if params.herokuProjectExtractor != nil {
+					fields.projectID, fields.projectIDInt = params.herokuProjectExtractor(ctx, fields.attrs["hostname"])
 				}
 			}
 		}
@@ -175,10 +186,6 @@ func extractFields(params extractFieldsParams) (*extractedFields, error) {
 		}
 	}
 
-	// process potential syslog message
-	if len(fields.logBody) > 0 && fields.logBody[0] == '<' {
-		extractSyslog(fields)
-	}
 	// process potential systemd message
 	if params.logRecord != nil && params.logRecord.Body().Type().String() == "Map" {
 		if m := params.logRecord.Body().Map().AsRaw(); len(m) > 0 {

@@ -3030,47 +3030,56 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 	}
 
 	if *integrationType == modelInputs.IntegrationTypeLinear {
-		if err := r.RemoveLinearFromWorkspace(workspace); err != nil {
+		if err := r.RemoveLinearFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeJira {
-		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
+		if err := r.RemoveJiraFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeSlack {
-		if err := r.RemoveSlackFromWorkspace(workspace, projectID); err != nil {
+		if err := r.RemoveSlackFromWorkspace(ctx, workspace, projectID); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeZapier {
-		if err := r.RemoveZapierFromWorkspace(project); err != nil {
+		if err := r.RemoveZapierFromWorkspace(ctx, project); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeFront {
-		if err := r.RemoveFrontFromProject(project); err != nil {
+		if err := r.RemoveFrontFromProject(ctx, project); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeVercel {
-		if err := r.RemoveVercelFromWorkspace(workspace); err != nil {
+		if err := r.RemoveVercelFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeDiscord {
-		if err := r.RemoveDiscordFromWorkspace(workspace); err != nil {
+		if err := r.RemoveDiscordFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeGitHub {
-		if err := r.RemoveDiscordFromWorkspace(workspace); err != nil {
+		if err := r.RemoveGitHubFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
-		if err := r.RemoveMicrosoftTeamsFromWorkspace(workspace, projectID); err != nil {
+		if err := r.RemoveMicrosoftTeamsFromWorkspace(ctx, workspace, projectID); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeGitLab {
-		if err := r.RemoveGitlabFromWorkspace(workspace); err != nil {
+		if err := r.RemoveGitlabFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else {
-		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
+		tx := r.DB.WithContext(ctx).Where(&model.IntegrationProjectMapping{
+			ProjectID:       project.ID,
+			IntegrationType: *integrationType,
+		}).Delete(&model.IntegrationProjectMapping{})
+		if err := tx.Error; err != nil {
+			return false, e.Wrap(err, "failed to remove project integration")
+		}
+		if tx.RowsAffected == 0 {
+			return false, e.New("project does not have a integration")
+		}
 	}
 
 	return true, nil
@@ -3118,7 +3127,7 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 	}
 
 	if integrationType == modelInputs.IntegrationTypeClickUp {
-		if err := r.RemoveClickUpFromWorkspace(workspace); err != nil {
+		if err := r.RemoveClickUpFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if integrationType == modelInputs.IntegrationTypeGitHub {
@@ -3126,18 +3135,17 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 			return false, err
 		}
 	} else if integrationType == modelInputs.IntegrationTypeJira {
-		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
+		if err := r.RemoveJiraFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if integrationType == modelInputs.IntegrationTypeGitLab {
-		if err := r.RemoveGitlabFromWorkspace(workspace); err != nil {
+		if err := r.RemoveGitlabFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else {
 		if err := r.RemoveIntegrationFromWorkspaceAndProjects(ctx, workspace, integrationType); err != nil {
 			return false, err
 		}
-
 	}
 
 	return true, nil
