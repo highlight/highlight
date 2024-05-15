@@ -57,8 +57,6 @@ issue a single `INSERT` command with many values. Though this worked to ensure i
 atomic
 resulting in duplicate data being inserted during worker reboots.
 
-We opted to use the ClickHouse Kafka Connect Sink that implements batched writes and exactly-once semantics achieved through ClickHouse Keeper. 
-
 We opted to use the [ClickHouse Kafka Connect Sink](https://clickhouse.com/docs/en/integrations/kafka/clickhouse-kafka-connect-sink) that implements batched writes and exactly-once semantics achieved through ClickHouse Keeper.
 
 To ensure our changes had the right effect, we monitored the Max Parts graph in ClickHouse for the number of parts waiting to be merged. Read more on how this works from ClickHouse [here](https://clickhouse.com/docs/knowledgebase/maximum_number_of_tables_and_databases).
