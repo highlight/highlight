@@ -112,11 +112,15 @@ const H: HighlightPublicInterface = {
 			}
 			init_called = true
 
+			initializeFetchListener()
+			initializeWebSocketListener()
 			import('@highlight-run/client').then(async ({ Highlight }) => {
 				highlight_obj = new Highlight(
 					client_options,
 					first_load_listeners,
 				)
+				initializeFetchListener()
+				initializeWebSocketListener()
 				if (!options?.manualStart) {
 					await highlight_obj.initialize()
 				}

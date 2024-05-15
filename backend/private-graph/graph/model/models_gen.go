@@ -1681,6 +1681,9 @@ const (
 	NetworkRequestAttributeResponseSize     NetworkRequestAttribute = "response_size"
 	NetworkRequestAttributeStatus           NetworkRequestAttribute = "status"
 	NetworkRequestAttributeLatency          NetworkRequestAttribute = "latency"
+	NetworkRequestAttributeConnectLatency   NetworkRequestAttribute = "connect_latency"
+	NetworkRequestAttributeDNSLatency       NetworkRequestAttribute = "dns_latency"
+	NetworkRequestAttributeRedirectLatency  NetworkRequestAttribute = "redirect_latency"
 	NetworkRequestAttributeRequestID        NetworkRequestAttribute = "request_id"
 	NetworkRequestAttributeGraphqlOperation NetworkRequestAttribute = "graphql_operation"
 )
@@ -1693,13 +1696,16 @@ var AllNetworkRequestAttribute = []NetworkRequestAttribute{
 	NetworkRequestAttributeResponseSize,
 	NetworkRequestAttributeStatus,
 	NetworkRequestAttributeLatency,
+	NetworkRequestAttributeConnectLatency,
+	NetworkRequestAttributeDNSLatency,
+	NetworkRequestAttributeRedirectLatency,
 	NetworkRequestAttributeRequestID,
 	NetworkRequestAttributeGraphqlOperation,
 }
 
 func (e NetworkRequestAttribute) IsValid() bool {
 	switch e {
-	case NetworkRequestAttributeMethod, NetworkRequestAttributeInitiatorType, NetworkRequestAttributeURL, NetworkRequestAttributeBodySize, NetworkRequestAttributeResponseSize, NetworkRequestAttributeStatus, NetworkRequestAttributeLatency, NetworkRequestAttributeRequestID, NetworkRequestAttributeGraphqlOperation:
+	case NetworkRequestAttributeMethod, NetworkRequestAttributeInitiatorType, NetworkRequestAttributeURL, NetworkRequestAttributeBodySize, NetworkRequestAttributeResponseSize, NetworkRequestAttributeStatus, NetworkRequestAttributeLatency, NetworkRequestAttributeConnectLatency, NetworkRequestAttributeDNSLatency, NetworkRequestAttributeRedirectLatency, NetworkRequestAttributeRequestID, NetworkRequestAttributeGraphqlOperation:
 		return true
 	}
 	return false
