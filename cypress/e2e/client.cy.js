@@ -28,27 +28,25 @@ describe('client recording spec', () => {
 					).sort()
 
 					expect(firstResourceKeys).to.eql([
+						'connectEndAbs',
+						'connectStartAbs',
+						'decodedBodySize',
+						'domainLookupEndAbs',
+						'domainLookupStartAbs',
 						'encodedBodySize',
+						'fetchStartAbs',
 						'initiatorType',
 						'name',
+						'nextHopProtocol',
+						'redirectEndAbs',
+						'redirectStartAbs',
+						'requestStartAbs',
 						'responseEndAbs',
+						'responseStartAbs',
+						'secureConnectionStartAbs',
 						'startTimeAbs',
 						'transferSize',
-
-						'connectStartAbs',
-						'connectEndAbs',
-						'domainLookupStartAbs',
-						'domainLookupEndAbs',
-						'fetchStartAbs',
-						'redirectStartAbs',
-						'redirectEndAbs',
-						'requestStartAbs',
-						'responseStartAbs',
-						'responseEndAbs',
-						'secureConnectionStartAbs',
 						'workerStartAbs',
-						'decodedBodySize',
-						'nextHopProtocol',
 					])
 
 					win.eval(
