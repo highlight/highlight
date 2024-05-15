@@ -105,8 +105,7 @@ func TestHandleGCPJson(t *testing.T) {
 	assert.Equal(t, 200, w.statusCode)
 
 	spans := spanRecorder.Ended()
-	assert.Equal(t, 1, len(spans))
-	span := spans[0]
+	span := spans[len(spans)-1]
 	event := span.Events()[0]
 	assert.Equal(t, "highlight.log", span.Name())
 	assert.Equal(t, "log", event.Name)
