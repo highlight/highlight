@@ -201,10 +201,12 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 				timeMetrics[metric as keyof typeof timeMetrics] ?? 'ns'
 			let lastUnit = startUnit
 			for (const entry of durationUnitMap) {
-				if (startUnit !== '' && startUnit !== entry[1]) {
+				if (startUnit !== '') {
+					if (startUnit === entry[1]) {
+						startUnit = ''
+					}
 					continue
 				}
-				startUnit = ''
 				if (value / entry[0] < 1) {
 					break
 				}
