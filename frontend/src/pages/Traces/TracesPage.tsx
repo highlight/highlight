@@ -42,7 +42,7 @@ import {
 	SortDirection,
 	Trace,
 } from '@/graph/generated/schemas'
-import { useProjectId } from '@/hooks/useProjectId'
+import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LatencyChart } from '@/pages/Traces/LatencyChart'
@@ -56,7 +56,7 @@ import * as styles from './TracesPage.css'
 export type TracesOutletContext = Partial<Trace>[]
 
 export const TracesPage: React.FC = () => {
-	const { projectId } = useProjectId()
+	const { projectId } = useNumericProjectId()
 	const navigate = useNavigate()
 	const {
 		trace_id,
