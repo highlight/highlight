@@ -45,3 +45,11 @@ This documentation provides solutions and guidance for common issues encountered
 **Answer:** Highlight.io has updated its asset delivery to accommodate strict CORS policies by setting the `Cross-Origin-Resource-Policy: cross-origin` header. If you continue to experience CORS issues, ensure that your application's CORS settings allow requests from Highlight.io domains. If specific headers like `Cross-Origin-Embedder-Policy` are required for your application, Highlight.io can adjust its headers to comply with these requirements.
 
 For further assistance with any of these issues or other inquiries, please refer to the [Highlight.io Support](https://www.highlight.io/support) or consult the detailed documentation available on the [Highlight.io Docs](https://www.highlight.io/docs) page.
+
+## Handling Private Windows and Session Tracking
+
+**Question:** Why does session tracking not work when the site is loaded in a Private window?
+
+**Answer:** Incognito/Private windows are recorded. By default, Highlight filters session results to only show 'completed' ones,
+where the tab has been closed, rather than 'live' ones, where data is still flowing. As a result, you might not see the
+session that is still live. As soon as the tab is closed, the session should show up.
