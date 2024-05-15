@@ -21,7 +21,7 @@ export const findMatchingAttributes = (
 			(term): term is SearchExpression =>
 				'key' in term && term.key === bodyKey,
 		)
-		.map((term) => term.value.replace(/^"|"$/g, ''))
+		.map((term) => term.value?.replace(/^"|"$/g, ''))
 
 	Object.entries(attributes).forEach(([key, value]) => {
 		const isString = typeof value === 'string'
