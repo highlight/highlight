@@ -112,7 +112,8 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 						id="playerCenterPanel"
 						ref={playerCenterPanelRef}
 					>
-						{showSession ? (
+						{showSession ||
+						replayerState === ReplayerState.Loading ? (
 							<Box height="full" cssClass={styles.playerBody}>
 								<div className={styles.playerCenterColumn}>
 									{centerColumnResizeListener}

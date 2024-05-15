@@ -106,7 +106,7 @@ export const SessionView: React.FC<SessionViewProps> = ({
 		})
 	}, [setSessionResults, totalCount, results])
 
-	if (!showSession) {
+	if (!showSession && replayerState !== ReplayerState.Loading) {
 		return (
 			<SessionFiller
 				sessionViewability={sessionViewability}

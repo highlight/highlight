@@ -298,7 +298,7 @@ export const PlayerInitialState = {
 	project_id: '',
 	rageClicks: [],
 	replayer: undefined,
-	replayerState: ReplayerState.Empty,
+	replayerState: ReplayerState.Loading,
 	scale: 1,
 	session: undefined,
 	sessionComments: [],

@@ -104,10 +104,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 		variables: {
 			session_secure_id: sessionSecureId!,
 		},
+		fetchPolicy: 'cache-and-network',
 		skip: !sessionSecureId,
 	})
 	const { data: eventChunksData } = useGetEventChunksQuery({
 		variables: { secure_id: sessionSecureId! },
+		fetchPolicy: 'cache-and-network',
 		skip:
 			!sessionSecureId ||
 			!projectId ||
