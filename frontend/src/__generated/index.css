@@ -7178,7 +7178,7 @@ body {
 }
 .dg2vg60 {
   z-index: 2;
-  backdrop-filter: grayscale(50%);
+  pointer-events: none;
 }
 .dg2vg61 {
   border: var(--_1pyqka9j) solid 1px;
