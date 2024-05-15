@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
-	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"net/http"
 	"os"
 	"strings"
@@ -40,8 +43,12 @@ func (m *MockResponseWriter) WriteHeader(statusCode int) {
 	m.statusCode = statusCode
 }
 
+var spanRecorder = tracetest.NewSpanRecorder()
+
 func TestMain(m *testing.M) {
-	tracer = otel.GetTracerProvider().Tracer("test")
+	tracer = sdktrace.NewTracerProvider(
+		sdktrace.WithSpanProcessor(spanRecorder),
+	).Tracer("test")
 
 	code := m.Run()
 	os.Exit(code)
@@ -91,9 +98,36 @@ func TestHandleFlyJSONGZIPLog(t *testing.T) {
 }
 
 func TestHandleGCPJson(t *testing.T) {
-	r, _ := http.NewRequest("POST", "/v1/logs/json?project=1", strings.NewReader(GCPJson))
+	r, _ := http.NewRequest("POST", "/v1/logs/json?project=1jdkoe52&service=backend-service", strings.NewReader(GCPJson))
 	r.Header.Set("Content-Type", "application/json")
 	w := &MockResponseWriter{}
 	HandleJSONLog(w, r)
 	assert.Equal(t, 200, w.statusCode)
+
+	spans := spanRecorder.Ended()
+	assert.Equal(t, 1, len(spans))
+	span := spans[0]
+	event := span.Events()[0]
+	assert.Equal(t, "highlight.log", span.Name())
+	assert.Equal(t, "log", event.Name)
+
+	proj, _ := lo.Find(span.Attributes(), func(item attribute.KeyValue) bool {
+		return item.Key == "highlight.project_id"
+	})
+	assert.Equal(t, "1", proj.Value.AsString())
+
+	serv, _ := lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "service.name"
+	})
+	assert.Equal(t, "backend-service", serv.Value.AsString())
+
+	sev, _ := lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "severity"
+	})
+	assert.Equal(t, "INFO", sev.Value.AsString())
+
+	msg, _ := lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "jsonPayload.msg"
+	})
+	assert.Equal(t, "processing task", msg.Value.AsString())
 }

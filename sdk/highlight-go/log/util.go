@@ -84,7 +84,7 @@ func submitVercelLog(ctx context.Context, tracer trace.Tracer, projectID int, se
 	ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, log.RequestId)
 	ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, log.RequestId)
 	span, _ := highlight.StartTraceWithoutResourceAttributes(
-		ctx, tracer, highlight.UtilitySpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
+		ctx, tracer, highlight.LogSpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)), semconv.ServiceNameKey.String(serviceName),
 	)
 	defer highlight.EndTrace(span)
@@ -151,7 +151,7 @@ func SubmitVercelLogs(ctx context.Context, tracer trace.Tracer, projectID int, s
 
 func SubmitHTTPLog(ctx context.Context, tracer trace.Tracer, projectID int, lg Log) error {
 	span, _ := highlight.StartTraceWithoutResourceAttributes(
-		ctx, tracer, highlight.UtilitySpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
+		ctx, tracer, highlight.LogSpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 	)
 	defer highlight.EndTrace(span)
