@@ -104,14 +104,14 @@ By default, Highlight's SDKs will autoinject attributes to provide additional co
 | `identifier`        | The idenifier passed to `H.init`                   | `1`                                                                                                                                                 |
 | `ip`                | The IP address of the user                         | `127.0.0.1`                                                                                                                                         |
 | `length`            | The total length of the session                    | `60000` (1 minute)                                                                                                                                  |
-| `os_name`           | The user's operating system                        | `Mac OS X`                                                                                                                                              |
-| `os_version`        | The user's operating system version                | `10.15.7`                                                                                                                                              |
-| `pages_visited`     | The number of pages visited in the session         | `10`                                                                                                                                              |
-| `sample`            | A unique order by to sample sessions               | `c1c9b1137183cbb1`                                                                                                                                              |
+| `os_name`           | The user's operating system                        | `Mac OS X`                                                                                                                                          |
+| `os_version`        | The user's operating system version                | `10.15.7`                                                                                                                                           |
+| `pages_visited`     | The number of pages visited in the session         | `10`                                                                                                                                                |
+| `sample`            | A unique order by to sample sessions               | `c1c9b1137183cbb1`                                                                                                                                  |
 | `service_version`   | Version of the service specified in the SDK        | `e1845285cb360410aee05c61dd0cc57f85afe6da`                                                                                                          |
-| `state`             | State the user was in                              | `Virginia`                                                                                                                                              |
+| `state`             | State the user was in                              | `Virginia`                                                                                                                                          |
 | `viewed_by_anyone`  | If the session has been viewed by anyone           | `true`                                                                                                                                              |
-| `viewed_by_me`      | If your account has viewed the session             | `false`                                                                                                                                              |
+| `viewed_by_me`      | If your account has viewed the session             | `false`                                                                                                                                             |
 
 ## Helpful tips
 
