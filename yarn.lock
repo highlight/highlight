@@ -42907,6 +42907,7 @@ __metadata:
     "@headlessui/react": "npm:^1.7.4"
     "@heroicons/react": "npm:^2.0.13"
     "@highlight-run/next": "workspace:*"
+    "@highlight-run/ui": "workspace:*"
     "@radix-ui/react-slider": "npm:^1.1.0"
     "@supabase/supabase-js": "npm:^2.7.1"
     "@svgr/webpack": "npm:^6.5.1"
