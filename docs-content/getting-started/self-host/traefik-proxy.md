@@ -6,94 +6,122 @@ quickstart: true
 
 # Highlight Deployment with Traefik on Docker
 
-## Q1: How to deploy Highlight with Traefik on Docker?
+This documentation provides guidance on deploying Highlight with Traefik as a reverse proxy on a Docker environment. It
+includes detailed steps for configuring Docker Compose files and environment settings to ensure successful deployment
+and operation.
 
-### Question:
+## Table of Contents
 
-Has anyone successfully deployed Highlight with Traefik in front on a Docker machine? I need some ideas on how to change
-the `compose.yml` and what ports I need to route over Traefik.
+- [Highlight Deployment with Traefik on Docker](#highlight-deployment-with-traefik-on-docker)
+    - [Table of Contents](#table-of-contents)
+        - [1. Overview](#1-overview)
+        - [2. Docker Compose Configuration](#2-docker-compose-configuration)
+        - [3. Environment Configuration](#3-environment-configuration)
+        - [4. Traefik Configuration](#4-traefik-configuration)
+        - [5. Testing and Validation](#5-testing-and-validation)
 
-### Answer:
+## 1. Overview
 
-To deploy Highlight with Traefik on Docker, you can follow these steps:
+Deploying Highlight with Traefik involves setting up Docker containers for Highlight's frontend and backend services,
+configuring Traefik to route traffic appropriately, and ensuring SSL termination is handled by Traefik instead of the
+internal services.
 
-1. **Modify `docker/compose.hobby.yml`**: Update the file for port forwarding and set environment variables
-   like `REACT_APP_PRIVATE_GRAPH_URI`, `REACT_APP_PUBLIC_GRAPH_URI`, and `REACT_APP_FRONTEND_URI` with the backend IP
-   address and desired ports.
+## 2. Docker Compose Configuration
 
-2. **Enable SSL**: Update certificates in `backend/localhostssl` and set the `SSL` environment variable to `true`
-   in `docker/.env`. If using Traefik for TLS termination, set `SSL=false`.
+Below is an example `docker-compose.yml` configuration for setting up Highlight services with Traefik labels for
+routing:
 
-3. **Traefik Configuration**:
-    - Create a network called `proxy` or `web` and add all containers to this network.
-    - Configure Traefik container to listen on ports 443 and 80.
-    - Use labels in your Docker configuration to set Traefik rules, services, and middlewares.
+```yaml
+version: '3.7'
 
-4. **Example Configuration**:
-   ```yaml
-   services:
-     backend:
-       labels:
-         - \"traefik.enable=true\"
-         - \"traefik.http.routers.backend.rule=Host(`yourdomain.com`)\"
-         - \"traefik.http.services.backend-service.loadbalancer.server.port=8082\"
-   ```
+services:
+  backend:
+    image: ghcr.io/highlight/highlight-backend:latest
+    container_name: backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.highlight-backend.rule=Host(`highlight.example.com`)"
+      - "traefik.http.services.highlight-backend.loadbalancer.server.port=8082"
 
-5. **Let's Encrypt**: Configure Traefik to use Let's Encrypt for SSL certificate generation.
+    expose:
+      - "8082"
 
-6. **Testing**: Ensure that your setup routes requests correctly to the Highlight container. If there are issues, check
-   if the HTTP request reaches the Highlight backend from Traefik on the specified port.
+    networks:
+      - proxy
+      - highlight
 
-For detailed guidance, refer to
-the [Highlight documentation on self-hosting](https://www.highlight.io/docs/getting-started/self-host/self-hosted-hobby-guide)
-and explore Traefik's documentation for additional configurations.
+  frontend:
+    image: ghcr.io/highlight/highlight-frontend:latest
+    container_name: frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.highlight-frontend.rule=Host(`highlight.example.com`)"
+      - "traefik.http.services.highlight-frontend.loadbalancer.server.port=3000"
+    expose:
+      - "3000"
 
-## Q2: How to integrate error monitoring for a React frontend and Flask backend using Highlight?
+    networks:
+      - proxy
+      - highlight
 
-### Question:
+networks:
+  proxy:
+    external: true
+  highlight:
+    external: true
+```
 
-I'm setting up full-stack monitoring for a React frontend and Flask backend using Highlight. How can I ensure that
-errors from the backend are captured and linked to the frontend sessions?
+## 3. Environment Configuration
 
-### Answer:
+Ensure the `.env` file contains the necessary environment variables for Highlight and Traefik:
 
-To integrate error monitoring for your React frontend and Flask backend with Highlight, follow these steps:
+```plaintext
 
-1. **Frontend Initialization**:
-   ```javascript
-   
-   H.init('<YOUR_PROJECT_ID>', {
-           tracingOrigins: true,
-           networkRecording: {
-               enabled: true,
-               recordHeadersAndBody: true,
-           },
-   });
-   ```
+SSL=false  # Disable SSL in Highlight services, let Traefik handle SSL termination
 
-2. **Backend Initialization**:
-   ```python
-   import highlight_io
-   from highlight_io.integrations.flask import FlaskIntegration as HighlightFlaskIntegration
-   
-   highlight_io.H('<YOUR_PROJECT_ID>', integrations=[HighlightFlaskIntegration()]);
-   ```
+REACT_APP_PRIVATE_GRAPH_URI=http://backend:8082
 
-3. **Error Simulation**: Introduce a deliberate error (e.g., divide by zero) in your backend endpoint. Ensure the
-   frontend can trigger this endpoint.
+REACT_APP_PUBLIC_GRAPH_URI=http://frontend:3000
 
-4. **Check Integration**:
-    - Confirm that the frontend is connected and can record sessions in the Highlight UI.
-    - Verify that when the backend error occurs, it appears in the Highlight frontend sessions.
+```
 
-5. **Troubleshooting**:
-    - If the backend setup process does not complete or errors are not reported, check for any conflicts with other
-      integrations (e.g., Sentry).
-    - Ensure that the Flask integration is correctly capturing and forwarding errors to Highlight.
+## 4. Traefik Configuration
 
-6. **Advanced Configuration**:
-    - Consider using the `H.trace` context manager in Flask to ensure that manual errors are recorded correctly.
-    - Upgrade your Highlight SDK if using an outdated version to benefit from the latest features and fixes.
+Configure Traefik to handle SSL termination and route requests based on the hostname. Here is an example snippet from
+Traefik's configuration:
 
-By following these steps, you should be able to monitor both frontend interactions and backend errors within Highlight,
-providing a comprehensive view of your application's health and performance.
+```yaml
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+certificatesResolvers:
+  myresolver:
+    acme:
+      email: your-email@example.com
+    storage: acme.json
+    httpChallenge:
+      entryPoint: web
+    providers:
+      docker:
+        exposedByDefault: false
+```
+
+## 5. Testing and Validation
+
+After configuring and starting your Docker containers, validate the setup by accessing `https://highlight.example.com`
+in your browser. Ensure that both frontend and backend services are reachable and that SSL certificates are correctly
+applied by Traefik.
+
+For more detailed information on setting up Highlight and integrating with Docker and Traefik, refer to the official
+documentation:
+
+- [Highlight Documentation](https://www.highlight.io/docs/)
+
+- [Traefik Documentation](https://doc.traefik.io/traefik/)
+
+This setup ensures that Highlight runs smoothly with Traefik handling routing and SSL, providing a robust solution for
+monitoring applications in a Docker environment.
