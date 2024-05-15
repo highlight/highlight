@@ -36,6 +36,7 @@ import FrontLogo from '@/static/integrations/front.png'
 import GitHubLogo from '@/static/integrations/github.svg'
 import GitlabLogo from '@/static/integrations/gitlab.png'
 import HeightLogo from '@/static/integrations/height.svg'
+import HerokuLogo from '@/static/integrations/heroku.svg'
 import JiraLogo from '@/static/integrations/jira.png'
 import LinearLogo from '@/static/integrations/linear.png'
 import MicrosoftTeamsLogo from '@/static/integrations/microsoft-teams.jpeg'
@@ -45,6 +46,7 @@ import ZapierLogo from '@/static/integrations/zapier.png'
 
 import GitHubIntegrationConfig from './components/GitHubIntegration/GitHubIntegrationConfig'
 import GitHubRepoSelector from './components/GitHubIntegration/GitHubRepoSelector'
+import HerokuIntegrationConfig from './components/HerokuIntegration/HerokuIntegration'
 
 export type NewIntegrationIssueMode = 'create_issue' | 'link_issue'
 export enum NewIntegrationIssueType {
@@ -91,6 +93,16 @@ export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
 	description: 'Receive highlight.io alerts via Microsoft Teams messages.',
 	icon: MicrosoftTeamsLogo,
 	configurationPage: (opts) => <MicrosoftTeamsIntegrationConfig {...opts} />,
+	hasSettings: false,
+}
+
+export const HEROKU_INTEGRATION: Integration = {
+	key: 'heroku',
+	name: 'Heroku',
+	configurationPath: 'heroku',
+	description: 'Setup a Heroku Log Drain.',
+	icon: HerokuLogo,
+	configurationPage: (opts) => <HerokuIntegrationConfig {...opts} />,
 	hasSettings: false,
 }
 
@@ -259,6 +271,7 @@ const INTEGRATIONS: Integration[] = [
 	JIRA_INTEGRATION,
 	MICROSOFT_TEAMS_INTEGRATION,
 	GITLAB_INTEGRATION,
+	HEROKU_INTEGRATION,
 ]
 
 export default INTEGRATIONS

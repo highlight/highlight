@@ -29,7 +29,6 @@ const TracesTable = "traces"
 const TracesSamplingTable = "traces_sampling"
 const TraceKeysTable = "trace_keys"
 const TraceKeyValuesTable = "trace_key_values"
-const TraceMetricsTable = "trace_metrics"
 const TracesByIdTable = "traces_by_id"
 
 var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
@@ -43,9 +42,12 @@ var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeyDuration:        "Duration",
 	modelInputs.ReservedTraceKeyServiceName:     "ServiceName",
 	modelInputs.ReservedTraceKeyServiceVersion:  "ServiceVersion",
-	modelInputs.ReservedTraceKeyMetric:          "Events.Attributes[1]['metric.name']",
+	modelInputs.ReservedTraceKeyMetricName:      "MetricName",
+	modelInputs.ReservedTraceKeyMetricValue:     "MetricValue",
 	modelInputs.ReservedTraceKeyEnvironment:     "Environment",
 	modelInputs.ReservedTraceKeyHasErrors:       "HasErrors",
+	modelInputs.ReservedTraceKeyTimestamp:       "Timestamp",
+	modelInputs.ReservedTraceKeyHighlightType:   "HighlightType",
 }
 
 var traceColumns = []string{
@@ -95,7 +97,7 @@ var TracesTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
 	BodyColumn:       TracesTableNoDefaultConfig.BodyColumn,
 	AttributesColumn: TracesTableNoDefaultConfig.AttributesColumn,
 	SelectColumns:    TracesTableNoDefaultConfig.SelectColumns,
-	DefaultFilter:    fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
+	DefaultFilter:    fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, modelInputs.ReservedTraceKeyHighlightType, highlight.TraceTypeHighlightInternal),
 }
 
 var tracesSamplingTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
@@ -105,7 +107,7 @@ var tracesSamplingTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
 	ReservedKeys:     modelInputs.AllReservedTraceKey,
 	AttributesColumn: "TraceAttributes",
 	SelectColumns:    traceColumns,
-	DefaultFilter:    fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
+	DefaultFilter:    fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, modelInputs.ReservedTraceKeyHighlightType, highlight.TraceTypeHighlightInternal),
 }
 
 var tracesSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedTraceKey]{
@@ -268,7 +270,7 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 		}, nil
 	}
 
-	conn, err := readObjects(ctx, client, TracesTableConfig, projectID, params, pagination, scanTrace)
+	conn, err := readObjects(ctx, client, TracesTableConfig, tracesSamplingTableConfig, projectID, params, pagination, scanTrace)
 	if err != nil {
 		return nil, err
 	}
@@ -463,10 +465,6 @@ func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate t
 
 func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
 	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate)
-}
-
-func (client *Client) TracesMetrics(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, TraceMetricsTable, projectID, startDate, endDate, query, nil)
 }
 
 func TraceMatchesQuery(trace *TraceRow, filters listener.Filters) bool {

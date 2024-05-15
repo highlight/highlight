@@ -3006,6 +3006,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddMicrosoftTeamsToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeHeroku {
+		if err := r.AddHerokuToProject(ctx, project, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -3026,47 +3030,56 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 	}
 
 	if *integrationType == modelInputs.IntegrationTypeLinear {
-		if err := r.RemoveLinearFromWorkspace(workspace); err != nil {
+		if err := r.RemoveLinearFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeJira {
-		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
+		if err := r.RemoveJiraFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeSlack {
-		if err := r.RemoveSlackFromWorkspace(workspace, projectID); err != nil {
+		if err := r.RemoveSlackFromWorkspace(ctx, workspace, projectID); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeZapier {
-		if err := r.RemoveZapierFromWorkspace(project); err != nil {
+		if err := r.RemoveZapierFromWorkspace(ctx, project); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeFront {
-		if err := r.RemoveFrontFromProject(project); err != nil {
+		if err := r.RemoveFrontFromProject(ctx, project); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeVercel {
-		if err := r.RemoveVercelFromWorkspace(workspace); err != nil {
+		if err := r.RemoveVercelFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeDiscord {
-		if err := r.RemoveDiscordFromWorkspace(workspace); err != nil {
+		if err := r.RemoveDiscordFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeGitHub {
-		if err := r.RemoveDiscordFromWorkspace(workspace); err != nil {
+		if err := r.RemoveGitHubFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
-		if err := r.RemoveMicrosoftTeamsFromWorkspace(workspace, projectID); err != nil {
+		if err := r.RemoveMicrosoftTeamsFromWorkspace(ctx, workspace, projectID); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeGitLab {
-		if err := r.RemoveGitlabFromWorkspace(workspace); err != nil {
+		if err := r.RemoveGitlabFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else {
-		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
+		tx := r.DB.WithContext(ctx).Where(&model.IntegrationProjectMapping{
+			ProjectID:       project.ID,
+			IntegrationType: *integrationType,
+		}).Delete(&model.IntegrationProjectMapping{})
+		if err := tx.Error; err != nil {
+			return false, e.Wrap(err, "failed to remove project integration")
+		}
+		if tx.RowsAffected == 0 {
+			return false, e.New("project does not have a integration")
+		}
 	}
 
 	return true, nil
@@ -3114,7 +3127,7 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 	}
 
 	if integrationType == modelInputs.IntegrationTypeClickUp {
-		if err := r.RemoveClickUpFromWorkspace(workspace); err != nil {
+		if err := r.RemoveClickUpFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if integrationType == modelInputs.IntegrationTypeGitHub {
@@ -3122,18 +3135,17 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 			return false, err
 		}
 	} else if integrationType == modelInputs.IntegrationTypeJira {
-		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
+		if err := r.RemoveJiraFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if integrationType == modelInputs.IntegrationTypeGitLab {
-		if err := r.RemoveGitlabFromWorkspace(workspace); err != nil {
+		if err := r.RemoveGitlabFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else {
 		if err := r.RemoveIntegrationFromWorkspaceAndProjects(ctx, workspace, integrationType); err != nil {
 			return false, err
 		}
-
 	}
 
 	return true, nil
@@ -6829,7 +6841,7 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, produ
 	switch productType {
 	case modelInputs.ProductTypeSessions:
 		meter, err = r.ClickhouseClient.ReadWorkspaceSessionCounts(ctx, projectIds, modelInputs.QueryInput{
-			Query:     "processed=true AND excluded=false AND active_length > 1000",
+			Query:     "completed=true AND excluded=false AND active_length > 1000",
 			DateRange: dateRange,
 		})
 	case modelInputs.ProductTypeErrors:
@@ -6844,6 +6856,11 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, produ
 		})
 	case modelInputs.ProductTypeTraces:
 		meter, err = r.ClickhouseClient.ReadWorkspaceTraceCounts(ctx, projectIds, modelInputs.QueryInput{
+			Query:     "",
+			DateRange: dateRange,
+		})
+	case modelInputs.ProductTypeMetrics:
+		meter, err = r.ClickhouseClient.ReadWorkspaceMetricCounts(ctx, projectIds, modelInputs.QueryInput{
 			Query:     "",
 			DateRange: dateRange,
 		})
@@ -7391,9 +7408,16 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return workspace.VercelAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeDiscord {
 		return workspace.DiscordGuildId != nil, nil
+	} else {
+		projectMapping := &model.IntegrationProjectMapping{}
+		if err := r.DB.WithContext(ctx).Where(&model.IntegrationProjectMapping{
+			ProjectID:       projectID,
+			IntegrationType: integrationType,
+		}).Take(&projectMapping).Error; err != nil {
+			return false, nil
+		}
+		return projectMapping != nil, nil
 	}
-
-	return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 }
 
 // IsWorkspaceIntegratedWith is the resolver for the is_workspace_integrated_with field.
@@ -8312,24 +8336,6 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 	return results, nil
 }
 
-// SuggestedMetrics is the resolver for the suggested_metrics field.
-func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, prefix string) ([]string, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-
-	keys, err := r.ClickhouseClient.TracesMetrics(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now(), &prefix)
-	if err != nil {
-		return nil, err
-	}
-
-	return lo.Filter(lo.Map(keys, func(item *modelInputs.QueryKey, index int) string {
-		return item.Name
-	}), func(item string, index int) bool {
-		return strings.HasPrefix(item, prefix)
-	}), nil
-}
-
 // MetricTags is the resolver for the metric_tags field.
 func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricName string, query *string) ([]string, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
@@ -9001,6 +9007,12 @@ func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, para
 // Metrics is the resolver for the metrics field.
 func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	switch productType {
+	case modelInputs.ProductTypeMetrics:
+		project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+		if err != nil {
+			return nil, err
+		}
+		return r.ClickhouseClient.ReadEventMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, limit, limitAggregator, limitColumn)
 	case modelInputs.ProductTypeTraces:
 		return r.TracesMetrics(ctx, projectID, params, column, metricTypes, groupBy, &bucketBy, bucketCount, limit, limitAggregator, limitColumn)
 	case modelInputs.ProductTypeLogs:
@@ -9017,6 +9029,12 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 // Keys is the resolver for the keys field.
 func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	switch productType {
+	case modelInputs.ProductTypeMetrics:
+		project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+		if err != nil {
+			return nil, err
+		}
+		return r.ClickhouseClient.MetricsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
 	case modelInputs.ProductTypeTraces:
 		return r.TracesKeys(ctx, projectID, dateRange, query, typeArg)
 	case modelInputs.ProductTypeLogs:
@@ -9033,6 +9051,12 @@ func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.Produc
 // KeyValues is the resolver for the key_values field.
 func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.ProductType, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
 	switch productType {
+	case modelInputs.ProductTypeMetrics:
+		project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+		if err != nil {
+			return nil, err
+		}
+		return r.ClickhouseClient.MetricsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 	case modelInputs.ProductTypeTraces:
 		return r.TracesKeyValues(ctx, projectID, keyName, dateRange)
 	case modelInputs.ProductTypeLogs:
@@ -9135,6 +9159,8 @@ func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.Pr
 	}
 
 	switch productType {
+	case modelInputs.ProductTypeMetrics:
+		return r.ClickhouseClient.MetricsLogLines(ctx, project.ID, params)
 	case modelInputs.ProductTypeTraces:
 		return r.ClickhouseClient.TracesLogLines(ctx, project.ID, params)
 	case modelInputs.ProductTypeLogs:

@@ -273,7 +273,7 @@ func (s *SearchListener[T]) appendRules(value string) {
 	}
 	// Quotes are sometimes escaped on the client and need to be unescaped before
 	// being used in the query or they will be double escaped.
-	value = unquote(value)
+	value = Unquote(value)
 
 	// Body column filters
 	if s.currentKey == s.tableConfig.BodyColumn {
@@ -456,20 +456,19 @@ func wildcardValue(value string) string {
 	return value
 }
 
-func unquote(s string) string {
-	if strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") {
+func Unquote(s string) string {
+	if strings.HasPrefix(s, "\"") && strings.HasSuffix(s, "\"") {
+		s = strings.Trim(s, "\"")
+		s = strings.ReplaceAll(s, "\\\"", "\"")
+	} else if strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") {
 		s = strings.Trim(s, "'")
 		s = strings.ReplaceAll(s, "\\'", "'")
-		return s
+	} else if strings.HasPrefix(s, "`") && strings.HasSuffix(s, "`") {
+		s = strings.Trim(s, "`")
+		s = strings.ReplaceAll(s, "\\`", "`")
 	}
 
-	unquotedString, err := strconv.Unquote(s)
-	if err != nil {
-		// Will error if string is not quoted, so return original string
-		return s
-	}
-
-	return unquotedString
+	return s
 }
 
 var suffixToNumeric = map[string]int64{

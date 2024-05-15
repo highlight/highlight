@@ -75,7 +75,7 @@ INSERT INTO sessions (created_at, updated_at, deleted_at, secure_id, client_id, 
                       enable_strict_privacy, privacy_setting, enable_recording_network_contents, client_version,
                       firstload_version, within_billing_quota, is_public, pages_visited,
                       object_storage_enabled, direct_download_enabled, all_objects_compressed, payload_size, verbose_id,
-                      excluded, excluded_reason, lock, retry_count, chunked, process_with_redis, avoid_postgres_storage,
+                      excluded, excluded_reason, lock, retry_count, chunked, process_with_redis,
                       normalness)
 VALUES (now(), now(), null,
         'abc123', 'T0kuxw2zpGbtE96A1x0Qxg1ivs48', true, 1334974370, '6', 1,
@@ -85,7 +85,7 @@ VALUES (now(), now(), null,
         false, '2023-11-23 00:34:12.909101 +00:00', '2023-11-23 00:34:12.766000 +00:00',
         '2023-11-23 00:34:12.909101 +00:00', false, null, null, false, 'none', true, '8.2.3', '8.2.3',
         true, false,
-        5, true, true, true, 1716704, '1', false, null, null, 0, true, true, true, 0);
+        5, true, true, true, 1716704, '1', false, null, null, 0, true, true, 0);
 
 -- Set up oauth for testing
 INSERT INTO o_auth_client_stores (id, created_at, secret, domains, app_name, admin_id)

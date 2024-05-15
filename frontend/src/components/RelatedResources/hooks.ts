@@ -45,7 +45,7 @@ export type RelatedResource =
 	| RelatedLogs
 
 const LOCAL_STORAGE_WIDTH_KEY = 'related-resource-panel-width'
-const RELATED_RESOURCE_PARAM = 'related_resource'
+export const RELATED_RESOURCE_PARAM = 'related_resource'
 
 const localStorageWidth = localStorage.getItem(LOCAL_STORAGE_WIDTH_KEY)
 const panelWidthVar = makeVar<number>(
@@ -112,7 +112,7 @@ export const useRelatedResource = () => {
 
 			searchParams.set(
 				RELATED_RESOURCE_PARAM,
-				encodeURI(JSON.stringify(newResource)),
+				JSON.stringify(newResource), // setSearchParams encodes the string
 			)
 
 			setSearchParams(Object.fromEntries(searchParams.entries()))

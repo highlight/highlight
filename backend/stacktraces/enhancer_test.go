@@ -24,6 +24,7 @@ type Testcase struct {
 	version            string
 	projectID          int
 	err                error
+	fsOnly             bool
 }
 
 var proper = Testcase{
@@ -69,6 +70,12 @@ var proper = Testcase{
 	},
 	fetcher: DiskFetcher{},
 	err:     e.New(""),
+}
+
+type mockInvalidNetworkFetcher struct{}
+
+func (n mockInvalidNetworkFetcher) fetchFile(ctx context.Context, href string) ([]byte, error) {
+	return []byte("<not valid>"), nil
 }
 
 func TestEnhanceStackTrace(t *testing.T) {
@@ -243,6 +250,30 @@ func TestEnhanceStackTrace(t *testing.T) {
 			projectID: 29954,
 			fetcher:   DiskFetcher{},
 		},
+		"test version matching first": {
+			stackFrameInput: []*publicModelInput.StackFrameInput{
+				{
+					FileName:     ptr.String("https://app.highlight.io/main.8344d167.chunk.js"),
+					LineNumber:   ptr.Int(1),
+					ColumnNumber: ptr.Int(422367),
+				},
+			},
+			expectedStackTrace: []modelInput.ErrorTrace{
+				{
+					FileName:     ptr.String("https://app.highlight.io/pages/Buttons/Buttons.tsx"),
+					LineNumber:   ptr.Int(13),
+					ColumnNumber: ptr.Int(30),
+					FunctionName: ptr.String(""),
+					LineContent:  ptr.String("                        throw new Error('errors page');\n"),
+					LinesBefore:  ptr.String("        <div className={styles.buttonBody}>\n            <div>\n                <button\n                    className={commonStyles.submitButton}\n                    onClick={() => {\n"),
+					LinesAfter:   ptr.String("                    }}\n                >\n                    Throw an Error\n                </button>\n                <button\n"),
+				},
+			},
+			version:   "version-a1b2c3",
+			projectID: 1,
+			fetcher:   mockInvalidNetworkFetcher{},
+			fsOnly:    true,
+		},
 		"test reflame": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
@@ -279,6 +310,9 @@ func TestEnhanceStackTrace(t *testing.T) {
 	for _, client := range []storage.Client{s3Client, fsClient} {
 		for name, tc := range tests {
 			t.Run(fmt.Sprintf("%s/%v", name, client), func(t *testing.T) {
+				if _, ok := client.(*storage.S3Client); ok && tc.fsOnly {
+					t.Skip("test case only for file system client, skipping for s3 client")
+				}
 				_ = redisClient.FlushDB(ctx)
 				if tc.projectID == 0 {
 					tc.projectID = 1
@@ -345,6 +379,7 @@ func TestGetURLSourcemap(t *testing.T) {
 
 func TestEnhanceStackTraceProd(t *testing.T) {
 	// local only for troubleshooting stacktrace enhancement
+	// only works if AWS credentials are set up
 	t.Skip()
 	storage.S3SourceMapBucketNameNew = "highlight-source-maps"
 	ctx := context.TODO()
@@ -358,16 +393,16 @@ func TestEnhanceStackTraceProd(t *testing.T) {
 	mappedStackTrace, err := EnhanceStackTrace(ctx, []*publicModelInput.StackFrameInput{
 		{
 			FunctionName: nil,
-			FileName:     pointy.String("https://lifeat.io/bundle.js"),
-			LineNumber:   pointy.Int(3540),
-			ColumnNumber: pointy.Int(5784),
-			Source:       pointy.String("    at https://lifeat.io/bundle.js:3540:5784"),
+			FileName:     pointy.String("https://app.serial.io/assets/index-CvE3e0ij.js"),
+			LineNumber:   pointy.Int(2777),
+			ColumnNumber: pointy.Int(129781),
+			Source:       pointy.String("    at https://app.serial.io/assets/index-CvE3e0ij.js:2777:129781"),
 		},
-	}, 1703, pointy.String("dev"), s3Client)
+	}, 6849, pointy.String("v1.1.232"), s3Client)
 	if err != nil {
 		t.Fatal(e.Wrap(err, "error enhancing source map"))
 	}
 	assert.Equal(t, 1, len(mappedStackTrace))
-	assert.Equal(t, "normal", *mappedStackTrace[0].FunctionName)
-	assert.Equal(t, "    font-size: ${FontSize.normal};\n", *mappedStackTrace[0].LineContent)
+	assert.Equal(t, "", *mappedStackTrace[0].FunctionName)
+	assert.Equal(t, "      console.error(`Supplementary data not found for identifier ${identifier}`);\n", *mappedStackTrace[0].LineContent)
 }

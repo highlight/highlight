@@ -1071,7 +1071,6 @@ type ComplexityRoot struct {
 		SourcemapFiles                   func(childComplexity int, projectID int, version *string) int
 		SourcemapVersions                func(childComplexity int, projectID int) int
 		SubscriptionDetails              func(childComplexity int, workspaceID int) int
-		SuggestedMetrics                 func(childComplexity int, projectID int, prefix string) int
 		SystemConfiguration              func(childComplexity int) int
 		TimelineIndicatorEvents          func(childComplexity int, sessionSecureID string) int
 		TopUsers                         func(childComplexity int, projectID int, lookbackDays float64) int
@@ -1890,7 +1889,6 @@ type QueryResolver interface {
 	CustomerPortalURL(ctx context.Context, workspaceID int) (string, error)
 	SubscriptionDetails(ctx context.Context, workspaceID int) (*model.SubscriptionDetails, error)
 	DashboardDefinitions(ctx context.Context, projectID int) ([]*model.DashboardDefinition, error)
-	SuggestedMetrics(ctx context.Context, projectID int, prefix string) ([]string, error)
 	MetricTags(ctx context.Context, projectID int, metricName string, query *string) ([]string, error)
 	MetricTagValues(ctx context.Context, projectID int, metricName string, tagName string) ([]string, error)
 	MetricsTimeline(ctx context.Context, projectID int, metricName string, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
@@ -8224,18 +8222,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SubscriptionDetails(childComplexity, args["workspace_id"].(int)), true
 
-	case "Query.suggested_metrics":
-		if e.complexity.Query.SuggestedMetrics == nil {
-			break
-		}
-
-		args, err := ec.field_Query_suggested_metrics_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.SuggestedMetrics(childComplexity, args["project_id"].(int), args["prefix"].(string)), true
-
 	case "Query.system_configuration":
 		if e.complexity.Query.SystemConfiguration == nil {
 			break
@@ -11034,6 +11020,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSanitizedSlackChannelInput,
 		ec.unmarshalInputSessionAlertInput,
 		ec.unmarshalInputSessionCommentTagInput,
+		ec.unmarshalInputSortInput,
 		ec.unmarshalInputTrackPropertyInput,
 		ec.unmarshalInputUserPropertyInput,
 		ec.unmarshalInputVercelProjectMappingInput,
@@ -11380,6 +11367,7 @@ enum ProductType {
 	Errors
 	Logs
 	Traces
+	Metrics
 }
 
 enum IngestReason {
@@ -11593,6 +11581,7 @@ enum IntegrationType {
 	Jira
 	MicrosoftTeams
 	GitLab
+	Heroku
 }
 
 enum ErrorState {
@@ -12105,6 +12094,7 @@ enum ReservedLogKey {
 	source
 	service_name
 	service_version
+	timestamp
 }
 
 enum ReservedTraceKey {
@@ -12112,7 +12102,8 @@ enum ReservedTraceKey {
 	has_errors
 	level
 	message
-	metric
+	metric_name
+	metric_value
 	secure_session_id
 	span_id
 	trace_id
@@ -12123,6 +12114,8 @@ enum ReservedTraceKey {
 	duration
 	service_name
 	service_version
+	timestamp
+	highlight_type
 }
 
 enum ReservedErrorObjectKey {
@@ -12178,6 +12171,7 @@ enum ReservedSessionKey {
 	browser_name
 	browser_version
 	city
+	completed
 	country
 	device_id
 	environment
@@ -12190,18 +12184,22 @@ enum ReservedSessionKey {
 	identifier
 	ip
 	length
-	loc_state
 	normalness
 	os_name
 	os_version
 	pages_visited
-	processed
 	sample
 	secure_id
 	service_version
-	viewed
+	state
+	viewed_by_anyone
 	viewed_by_me
 	within_billing_quota
+
+	# deprecated but kept in for backwards compatibility of search
+	loc_state
+	processed
+	viewed
 }
 
 enum LogSource {
@@ -12250,7 +12248,6 @@ enum MetricAggregator {
 
 enum MetricColumn {
 	Duration
-	MetricValue
 }
 
 enum MetricBucketBy {
@@ -12328,9 +12325,15 @@ input ErrorGroupFrequenciesParamsInput {
 	resolution_minutes: Int!
 }
 
+input SortInput {
+	column: String!
+	direction: SortDirection!
+}
+
 input QueryInput {
 	query: String!
 	date_range: DateRangeRequiredInput!
+	sort: SortInput
 }
 
 enum MetricTagFilterOp {
@@ -13314,7 +13317,6 @@ type Query {
 	customer_portal_url(workspace_id: ID!): String!
 	subscription_details(workspace_id: ID!): SubscriptionDetails!
 	dashboard_definitions(project_id: ID!): [DashboardDefinition]!
-	suggested_metrics(project_id: ID!, prefix: String!): [String!]!
 	metric_tags(
 		project_id: ID!
 		metric_name: String!
@@ -21035,30 +21037,6 @@ func (ec *executionContext) field_Query_subscription_details_args(ctx context.Co
 		}
 	}
 	args["workspace_id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_suggested_metrics_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["prefix"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("prefix"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["prefix"] = arg1
 	return args, nil
 }
 
@@ -59078,61 +59056,6 @@ func (ec *executionContext) fieldContext_Query_dashboard_definitions(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_suggested_metrics(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_suggested_metrics(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SuggestedMetrics(rctx, fc.Args["project_id"].(int), fc.Args["prefix"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_suggested_metrics(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_suggested_metrics_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_metric_tags(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_metric_tags(ctx, field)
 	if err != nil {
@@ -80525,7 +80448,7 @@ func (ec *executionContext) unmarshalInputQueryInput(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"query", "date_range"}
+	fieldsInOrder := [...]string{"query", "date_range", "sort"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -80546,6 +80469,13 @@ func (ec *executionContext) unmarshalInputQueryInput(ctx context.Context, obj in
 				return it, err
 			}
 			it.DateRange = data
+		case "sort":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
+			data, err := ec.unmarshalOSortInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSortInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Sort = data
 		}
 	}
 
@@ -80891,6 +80821,40 @@ func (ec *executionContext) unmarshalInputSessionCommentTagInput(ctx context.Con
 				return it, err
 			}
 			it.Name = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSortInput(ctx context.Context, obj interface{}) (model.SortInput, error) {
+	var it model.SortInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"column", "direction"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "column":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("column"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Column = data
+		case "direction":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			data, err := ec.unmarshalNSortDirection2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSortDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Direction = data
 		}
 	}
 
@@ -90081,28 +90045,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_dashboard_definitions(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "suggested_metrics":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_suggested_metrics(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -102825,6 +102767,14 @@ func (ec *executionContext) marshalOSocialLink2ᚖgithubᚗcomᚋhighlightᚑrun
 		return graphql.Null
 	}
 	return ec._SocialLink(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOSortInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSortInput(ctx context.Context, v interface{}) (*model.SortInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputSortInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOSourceMappingError2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingError(ctx context.Context, sel ast.SelectionSet, v *model.SourceMappingError) graphql.Marshaler {

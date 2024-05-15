@@ -3772,6 +3772,14 @@ export type GetWorkspaceIsIntegratedWithMicrosoftTeamsQuery = {
 	__typename?: 'Query'
 } & { is_integrated_with_microsoft_teams: Types.Query['is_integrated_with'] }
 
+export type GetWorkspaceIsIntegratedWithHerokuQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetWorkspaceIsIntegratedWithHerokuQuery = {
+	__typename?: 'Query'
+} & { is_integrated_with_heroku: Types.Query['is_integrated_with'] }
+
 export type GetWorkspaceIsIntegratedWithLinearQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -4412,16 +4420,6 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetSuggestedMetricsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	prefix: Types.Scalars['String']
-}>
-
-export type GetSuggestedMetricsQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'suggested_metrics'
->
-
 export type GetMetricTagsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	metric_name: Types.Scalars['String']
@@ -4998,6 +4996,7 @@ export type GetKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeRequiredInput
 	query?: Types.Maybe<Types.Scalars['String']>
+	type?: Types.Maybe<Types.KeyType>
 }>
 
 export type GetKeysQuery = { __typename?: 'Query' } & {
@@ -5218,6 +5217,8 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithSlack' as const,
 		GetWorkspaceIsIntegratedWithMicrosoftTeams:
 			'GetWorkspaceIsIntegratedWithMicrosoftTeams' as const,
+		GetWorkspaceIsIntegratedWithHeroku:
+			'GetWorkspaceIsIntegratedWithHeroku' as const,
 		GetWorkspaceIsIntegratedWithLinear:
 			'GetWorkspaceIsIntegratedWithLinear' as const,
 		GetWorkspaceIsIntegratedWithZapier:
@@ -5248,7 +5249,6 @@ export const namedOperations = {
 		GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
 		GetWebVitals: 'GetWebVitals' as const,
 		GetDashboardDefinitions: 'GetDashboardDefinitions' as const,
-		GetSuggestedMetrics: 'GetSuggestedMetrics' as const,
 		GetMetricTags: 'GetMetricTags' as const,
 		GetMetricTagValues: 'GetMetricTagValues' as const,
 		GetSourcemapFiles: 'GetSourcemapFiles' as const,

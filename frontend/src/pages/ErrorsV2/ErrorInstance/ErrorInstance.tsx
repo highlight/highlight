@@ -28,7 +28,6 @@ import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { GitHubEnhancementSettings } from '@pages/ErrorsV2/GitHubEnhancementSettings/GitHubEnhancementSettings'
 import {
-	getDisplayName,
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
 	getUserProperties,
@@ -36,7 +35,7 @@ import {
 import analytics from '@util/analytics'
 import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
-import { copyToClipboard, validateEmail } from '@util/string'
+import { copyToClipboard } from '@util/string'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -376,15 +375,22 @@ const User: React.FC<{
 	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
 	const [truncated, setTruncated] = useState(true)
+	const [displayName, field] = getDisplayNameAndField(errorObject?.session)
 
 	const searchQuery = useMemo(() => {
-		if (!errorObject?.session) return
+		if (errorObject?.session?.identifier && field !== null) {
+			return `${field}=${displayName}`
+		} else if (errorObject?.session?.fingerprint) {
+			return `device_id=${errorObject?.session.fingerprint}`
+		}
 
-		const displayName = getDisplayName(errorObject?.session)
-		const userParam = validateEmail(displayName) ? 'email' : 'identifier'
-
-		return `query=${userParam}=${displayName}`
-	}, [errorObject?.session])
+		return ''
+	}, [
+		displayName,
+		errorObject?.session?.fingerprint,
+		errorObject?.session?.identifier,
+		field,
+	])
 
 	const userDetailsBox = (
 		<Box pb="12">
@@ -406,7 +412,6 @@ const User: React.FC<{
 	const userProperties = getUserProperties(
 		errorObject?.session?.user_properties,
 	)
-	const [displayName, field] = getDisplayNameAndField(errorObject?.session)
 	const avatarImage = getIdentifiedUserProfileImage(errorObject?.session)
 	const userDisplayPropertyKeys = Object.keys(userProperties)
 		.filter((k) => k !== 'avatar')
@@ -460,21 +465,9 @@ const User: React.FC<{
 									return
 								}
 
-								const searchParams: any = {}
-								if (
-									errorObject?.session?.identifier &&
-									field !== null
-								) {
-									searchParams[`user_${field}`] = displayName
-								} else if (errorObject?.session?.fingerprint) {
-									searchParams.device_id = String(
-										errorObject?.session.fingerprint,
-									)
-								}
-
 								navigate({
 									pathname: `/${projectId}/sessions`,
-									search: searchQuery,
+									search: `query=${searchQuery}`,
 								})
 							}}
 							trackingId="error_all-sessions-for-user_click"
