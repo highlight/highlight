@@ -8,6 +8,7 @@ import {
 	IconSolidChartSquareLine,
 	IconSolidDocumentReport,
 	IconSolidDotsHorizontal,
+	IconSolidLoading,
 	IconSolidPencil,
 	IconSolidTable,
 	IconSolidTrash,
@@ -25,6 +26,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ReferenceArea } from 'recharts'
 import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart'
 
+import { loadingIcon } from '@/components/Button/style.css'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useGetMetricsLazyQuery } from '@/graph/generated/hooks'
 import { Maybe, MetricAggregator, ProductType } from '@/graph/generated/schemas'
@@ -44,7 +46,6 @@ import {
 	TableConfig,
 	TableNullHandling,
 } from '@/pages/Graphing/components/Table'
-import { HistogramLoading } from '@/pages/Traces/TracesPage'
 
 import * as style from './Graph.css'
 
@@ -399,7 +400,12 @@ const Graph = ({
 	const [fetchStart, setFetchStart] = useState<Date>()
 	const [fetchEnd, setFetchEnd] = useState<Date>()
 
-	const [getMetrics, { data: metrics, called }] = useGetMetricsLazyQuery()
+	const [
+		getMetrics,
+		{ data: newMetrics, called, loading, previousData: previousMetrics },
+	] = useGetMetricsLazyQuery()
+
+	const metrics = loading ? previousMetrics : newMetrics
 
 	const rebaseFetchTime = useCallback(() => {
 		if (!selectedPreset) {
@@ -604,13 +610,15 @@ const Graph = ({
 				alignItems="center"
 				justifyContent="center"
 			>
-				<Badge
-					size="medium"
-					shape="basic"
-					variant="gray"
-					label="No data found"
-					iconStart={<IconSolidDocumentReport />}
-				/>
+				{!loading && (
+					<Badge
+						size="medium"
+						shape="basic"
+						variant="gray"
+						label="No data found"
+						iconStart={<IconSolidDocumentReport />}
+					/>
+				)}
 			</Stack>
 		)
 	} else {
@@ -684,19 +692,6 @@ const Graph = ({
 				setGraphHover(false)
 			}}
 		>
-			{!called && (
-				<Box
-					position="absolute"
-					width="full"
-					height="full"
-					display="flex"
-					alignItems="center"
-					justifyContent="center"
-					cssClass={style.loadingOverlay}
-				>
-					<HistogramLoading cssClass={style.loadingText} />
-				</Box>
-			)}
 			<Box display="flex" flexDirection="column">
 				<Box
 					display="flex"
@@ -838,7 +833,31 @@ const Graph = ({
 					maxHeight="screen"
 					key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
 					cssClass={clsx({ [style.disabled]: disabled })}
+					position="relative"
 				>
+					{loading && (
+						<Stack
+							position="absolute"
+							width="full"
+							height="full"
+							alignItems="center"
+							justifyContent="center"
+							cssClass={style.loadingOverlay}
+						>
+							<Badge
+								size="medium"
+								shape="basic"
+								variant="gray"
+								label="Loading"
+								iconStart={
+									<IconSolidLoading
+										className={loadingIcon}
+										color={vars.theme.static.content.weak}
+									/>
+								}
+							/>
+						</Stack>
+					)}
 					{innerChart}
 				</Box>
 			)}

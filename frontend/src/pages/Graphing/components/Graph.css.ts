@@ -3,7 +3,7 @@ import { style } from '@vanilla-extract/css'
 
 export const loadingOverlay = style({
 	zIndex: 2,
-	backdropFilter: 'grayscale(50%)',
+	pointerEvents: 'none',
 })
 
 export const loadingText = style({
