@@ -685,7 +685,7 @@ const Graph = ({
 			height="full"
 			display="flex"
 			flexDirection="column"
-			gap="4"
+			gap="8"
 			justifyContent="space-between"
 			onMouseEnter={() => {
 				setGraphHover(true)
@@ -694,138 +694,68 @@ const Graph = ({
 				setGraphHover(false)
 			}}
 		>
-			<Box display="flex" flexDirection="column">
-				<Box
-					display="flex"
-					flexDirection="row"
-					justifyContent="space-between"
-				>
-					<Text
-						size="small"
-						color="default"
-						cssClass={style.titleText}
-					>
-						{title || 'Untitled metric view'}
-					</Text>
-					{showMenu && graphHover && !disabled && called && (
-						<Box
-							cssClass={clsx(style.titleText, {
-								[style.hiddenMenu]: !graphHover,
-							})}
-						>
-							{onExpand !== undefined && (
-								<Button
-									size="xSmall"
-									emphasis="low"
-									kind="secondary"
-									iconLeft={<IconSolidArrowsExpand />}
-									onClick={onExpand}
-								/>
-							)}
-							{onEdit !== undefined && (
-								<Button
-									size="xSmall"
-									emphasis="low"
-									kind="secondary"
-									iconLeft={<IconSolidPencil />}
-									onClick={onEdit}
-								/>
-							)}
-							{onDelete !== undefined && (
-								<Menu>
-									<Menu.Button
-										size="medium"
-										emphasis="low"
-										kind="secondary"
-										iconLeft={<IconSolidDotsHorizontal />}
-										onClick={(e: any) => {
-											e.stopPropagation()
-										}}
-									/>
-									<Menu.List>
-										<Menu.Item
-											onClick={(e) => {
-												e.stopPropagation()
-												onDelete()
-											}}
-										>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
-											>
-												<IconSolidTrash />
-												Delete metric view
-											</Box>
-										</Menu.Item>
-									</Menu.List>
-								</Menu>
-							)}
-						</Box>
-					)}
-				</Box>
-				{showLegend && (
-					<Box position="relative" cssClass={style.legendWrapper}>
-						{series.map((key, idx) => {
-							return (
-								<Button
-									kind="secondary"
-									emphasis="low"
-									size="xSmall"
-									key={key}
-									onClick={() => {
-										if (spotlight === idx) {
-											setSpotlight(undefined)
-										} else {
-											setSpotlight(idx)
-										}
-									}}
-									cssClass={style.legendTextButton}
-								>
-									<Tooltip
-										delayed
-										trigger={
-											<>
-												<Box
-													style={{
-														backgroundColor:
-															isActive(
-																spotlight,
-																idx,
-															)
-																? getColor(idx)
-																: undefined,
-													}}
-													cssClass={style.legendDot}
-												></Box>
-												<Box
-													cssClass={
-														style.legendTextWrapper
-													}
-												>
-													<Text
-														lines="1"
-														color={
-															isActive(
-																spotlight,
-																idx,
-															)
-																? undefined
-																: 'n8'
-														}
-														align="left"
-													>
-														{key || '<empty>'}
-													</Text>
-												</Box>
-											</>
-										}
-									>
-										{key || '<empty>'}
-									</Tooltip>
-								</Button>
-							)
+			<Box
+				display="flex"
+				flexDirection="row"
+				justifyContent="space-between"
+			>
+				<Text size="small" color="default" cssClass={style.titleText}>
+					{title || 'Untitled metric view'}
+				</Text>
+				{showMenu && graphHover && !disabled && called && (
+					<Box
+						cssClass={clsx(style.titleText, {
+							[style.hiddenMenu]: !graphHover,
 						})}
+					>
+						{onExpand !== undefined && (
+							<Button
+								size="xSmall"
+								emphasis="low"
+								kind="secondary"
+								iconLeft={<IconSolidArrowsExpand />}
+								onClick={onExpand}
+							/>
+						)}
+						{onEdit !== undefined && (
+							<Button
+								size="xSmall"
+								emphasis="low"
+								kind="secondary"
+								iconLeft={<IconSolidPencil />}
+								onClick={onEdit}
+							/>
+						)}
+						{onDelete !== undefined && (
+							<Menu>
+								<Menu.Button
+									size="medium"
+									emphasis="low"
+									kind="secondary"
+									iconLeft={<IconSolidDotsHorizontal />}
+									onClick={(e: any) => {
+										e.stopPropagation()
+									}}
+								/>
+								<Menu.List>
+									<Menu.Item
+										onClick={(e) => {
+											e.stopPropagation()
+											onDelete()
+										}}
+									>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+										>
+											<IconSolidTrash />
+											Delete metric view
+										</Box>
+									</Menu.Item>
+								</Menu.List>
+							</Menu>
+						)}
 					</Box>
 				)}
 			</Box>
@@ -861,6 +791,66 @@ const Graph = ({
 						</Stack>
 					)}
 					{innerChart}
+				</Box>
+			)}
+			{showLegend && (
+				<Box position="relative" cssClass={style.legendWrapper}>
+					{series.map((key, idx) => {
+						return (
+							<Button
+								kind="secondary"
+								emphasis="low"
+								size="xSmall"
+								key={key}
+								onClick={() => {
+									if (spotlight === idx) {
+										setSpotlight(undefined)
+									} else {
+										setSpotlight(idx)
+									}
+								}}
+								cssClass={style.legendTextButton}
+							>
+								<Tooltip
+									delayed
+									trigger={
+										<>
+											<Box
+												style={{
+													backgroundColor: isActive(
+														spotlight,
+														idx,
+													)
+														? getColor(idx)
+														: undefined,
+												}}
+												cssClass={style.legendDot}
+											></Box>
+											<Box
+												cssClass={
+													style.legendTextWrapper
+												}
+											>
+												<Text
+													lines="1"
+													color={
+														isActive(spotlight, idx)
+															? undefined
+															: 'n8'
+													}
+													align="left"
+												>
+													{key || '<empty>'}
+												</Text>
+											</Box>
+										</>
+									}
+								>
+									{key || '<empty>'}
+								</Tooltip>
+							</Button>
+						)
+					})}
 				</Box>
 			)}
 		</Box>

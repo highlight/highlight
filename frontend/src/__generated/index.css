@@ -7188,6 +7188,7 @@ body {
 }
 .dg2vg62 {
   left: -6px;
+  flex-shrink: 0;
   max-height: 40px;
   padding-top: 2px;
   padding-bottom: 2px;
