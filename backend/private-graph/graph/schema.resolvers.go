@@ -3070,15 +3070,15 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 			return false, err
 		}
 	} else {
-		tx := r.DB.WithContext(ctx).Delete(&model.IntegrationProjectMapping{
+		tx := r.DB.WithContext(ctx).Where(&model.IntegrationProjectMapping{
 			ProjectID:       project.ID,
 			IntegrationType: *integrationType,
-		})
+		}).Delete(&model.IntegrationProjectMapping{})
 		if err := tx.Error; err != nil {
-			return false, e.Wrap(err, "failed to remove project Heroku integration")
+			return false, e.Wrap(err, "failed to remove project integration")
 		}
 		if tx.RowsAffected == 0 {
-			return false, e.New("project does not have a Heroku integration")
+			return false, e.New("project does not have a integration")
 		}
 	}
 
