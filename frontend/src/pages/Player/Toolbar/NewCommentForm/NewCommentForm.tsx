@@ -72,7 +72,6 @@ interface Props {
 	commentTime: number
 	onCloseHandler: () => void
 	commentPosition: Coordinates2D | undefined
-	parentRef?: React.RefObject<HTMLDivElement>
 	session?: Session
 	session_secure_id?: string
 	error_secure_id?: string
@@ -90,7 +89,6 @@ export const NewCommentForm = ({
 	commentTime,
 	onCloseHandler,
 	commentPosition,
-	parentRef,
 	session,
 	session_secure_id,
 	error_secure_id,
@@ -101,14 +99,14 @@ export const NewCommentForm = ({
 	const [createComment] = useCreateSessionCommentMutation({
 		refetchQueries: [
 			namedOperations.Query.GetSessionComments,
-			namedOperations.Query.GetSessionsClickhouse,
+			namedOperations.Query.GetSessions,
 		],
 	})
 	const [createCommentWithExistingIssue] =
 		useCreateSessionCommentWithExistingIssueMutation({
 			refetchQueries: [
 				namedOperations.Query.GetSessionComments,
-				namedOperations.Query.GetSessionsClickhouse,
+				namedOperations.Query.GetSessions,
 			],
 		})
 	const [createErrorComment] = useCreateErrorCommentMutation()
@@ -702,9 +700,6 @@ export const NewCommentForm = ({
 								placeholder={placeholder}
 								suggestions={adminSuggestions}
 								onDisplayTransformHandler={onDisplayTransform}
-								suggestionsPortalHost={
-									parentRef?.current as Element
-								}
 							/>
 						</Box>
 						<Stack

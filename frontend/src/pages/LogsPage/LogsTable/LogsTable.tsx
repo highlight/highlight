@@ -43,8 +43,8 @@ import {
 } from '@/components/CustomColumnHeader'
 import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { SearchExpression } from '@/components/Search/Parser/listener'
-import { useSearchContext } from '@/components/Search/SearchContext'
 import { LogEdge, ProductType } from '@/graph/generated/schemas'
+import { MAX_LOGS } from '@/pages/LogsPage/useGetLogs'
 import analytics from '@/util/analytics'
 
 import { LogDetails } from './LogDetails'
@@ -118,6 +118,8 @@ type LogsTableInnerProps = {
 	loadingAfter: boolean
 	logEdges: LogEdgeWithResources[]
 	selectedCursor: string | undefined
+	query: string
+	queryParts: SearchExpression[]
 	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
 	// necessary for loading most recent loads
 	moreLogs?: number
@@ -134,6 +136,8 @@ const LogsTableInner = ({
 	logEdges,
 	loadingAfter,
 	selectedCursor,
+	query,
+	queryParts,
 	moreLogs,
 	bodyHeight,
 	clearMoreLogs,
@@ -142,7 +146,6 @@ const LogsTableInner = ({
 	selectedColumns = DEFAULT_LOG_COLUMNS,
 	setSelectedColumns,
 }: LogsTableInnerProps) => {
-	const { query, queryParts } = useSearchContext()
 	const bodyRef = useRef<HTMLDivElement>(null)
 	const enableFetchMoreLogs =
 		!!moreLogs && !!clearMoreLogs && !!handleAdditionalLogsDateChange
@@ -328,6 +331,7 @@ const LogsTableInner = ({
 					<Table.Row>
 						<Box width="full">
 							<AdditionalFeedResults
+								maxResults={MAX_LOGS}
 								more={moreLogs}
 								type="logs"
 								onClick={() => {

@@ -21,8 +21,8 @@ import { Link } from 'react-router-dom'
 import TextTransition from 'react-text-transition'
 
 import ActivityGraph from '../ActivityGraph/ActivityGraph'
-import { formatDatetime } from '../SessionQueryBuilder/components/SessionFeedConfiguration/SessionFeedConfiguration'
-import { SessionFeedConfigurationContext } from '../SessionQueryBuilder/context/SessionFeedConfigurationContext'
+import { SessionFeedConfigurationContext } from '../context/SessionFeedConfigurationContext'
+import { formatDatetime } from '../SessionFeedConfigDropdown/helpers'
 import styles from './MinimalSessionCard.module.css'
 import { getDisplayName, getIdentifiedUserProfileImage } from './utils/utils'
 

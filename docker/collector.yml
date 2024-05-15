@@ -1,14 +1,29 @@
 receivers:
+    fluentforward:
+        endpoint: '0.0.0.0:24224'
+    tcplog:
+        listen_address: '0.0.0.0:34302'
+    syslog:
+        udp:
+            listen_address: '0.0.0.0:6513'
+        tcp:
+            listen_address: '0.0.0.0:6514'
+        protocol: 'rfc5424'
+        enable_octet_counting: true
     otlp:
         protocols:
             grpc:
                 endpoint: '0.0.0.0:4317'
             http:
                 endpoint: '0.0.0.0:4318'
-    fluentforward:
-        endpoint: '0.0.0.0:24224'
-    tcplog:
-        listen_address: '0.0.0.0:34302'
+                max_request_body_size: 0
+                include_metadata: true
+                cors:
+                    allowed_origins:
+                        - '*'
+                    allowed_headers:
+                        - 'X-Highlight-Request'
+                    max_age: 7200
 exporters:
     logging:
         sampling_initial: 60
@@ -52,7 +67,7 @@ service:
             processors: [batch]
             exporters: [otlphttp, logging]
         logs:
-            receivers: [otlp, fluentforward, tcplog]
+            receivers: [otlp, fluentforward, tcplog, syslog]
             processors: [batch]
             exporters: [otlphttp, logging]
 extensions:

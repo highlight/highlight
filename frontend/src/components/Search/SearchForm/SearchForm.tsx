@@ -24,14 +24,18 @@ import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import TextareaAutosize from 'react-autosize-textarea'
 import { useNavigate } from 'react-router-dom'
-import { StringParam, withDefault } from 'use-query-params'
+import { StringParam, useQueryParam, withDefault } from 'use-query-params'
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
 import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { SearchExpression } from '@/components/Search/Parser/listener'
-import { useSearchContext } from '@/components/Search/SearchContext'
+import {
+	SORT_COLUMN,
+	SORT_DIRECTION,
+	useSearchContext,
+} from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -47,7 +51,7 @@ import {
 	useGetKeysLazyQuery,
 	useGetKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
-import { ProductType } from '@/graph/generated/schemas'
+import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatNumber } from '@/util/numbers'
 
@@ -66,9 +70,10 @@ const MAX_ITEMS = 25
 
 const EXISTS_OPERATORS = ['EXISTS', 'NOT EXISTS'] as const
 const NUMERIC_OPERATORS = ['>', '>=', '<', '<='] as const
+const EQUAL_OPERATOR = ['='] as const
 const BOOLEAN_OPERATORS = ['=', '!='] as const
-const CONTAINS_OPERATOR = ['=**', '!=**'] as const
-const MATCHES_OPERATOR = ['=//', '!=//'] as const
+const CONTAINS_OPERATOR = ['="**"', '!="**"'] as const
+const MATCHES_OPERATOR = ['="//"', '!="//"'] as const
 export const SEARCH_OPERATORS = [
 	...BOOLEAN_OPERATORS,
 	...NUMERIC_OPERATORS,
@@ -77,6 +82,11 @@ export const SEARCH_OPERATORS = [
 	...MATCHES_OPERATOR,
 ] as const
 export type SearchOperator = typeof SEARCH_OPERATORS[number]
+
+type Creatable = {
+	label: string
+	value: string
+}
 
 export type SearchFormProps = {
 	startDate: Date
@@ -98,11 +108,12 @@ export type SearchFormProps = {
 	}>
 	hideDatePicker?: boolean
 	hideCreateAlert?: boolean
-	savedSegmentType?: 'Trace' | 'Log' | 'Error'
+	savedSegmentType?: SavedSegmentEntityType
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	isPanelView?: boolean
 	resultCount?: number
 	loading?: boolean
+	creatables?: { [key: string]: Creatable }
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({
@@ -122,6 +133,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	isPanelView,
 	resultCount,
 	loading,
+	creatables,
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
@@ -167,6 +179,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			textAreaRef={textAreaRef}
 			productType={productType}
 			hideIcon={isPanelView}
+			hasAdditonalActions={!hideCreateAlert || !hideDatePicker}
+			creatables={creatables}
 		/>
 	)
 
@@ -286,6 +300,8 @@ export const Search: React.FC<{
 	placeholder?: string
 	productType: ProductType
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
+	hasAdditonalActions?: boolean
+	creatables?: { [key: string]: Creatable }
 }> = ({
 	startDate,
 	endDate,
@@ -293,6 +309,8 @@ export const Search: React.FC<{
 	placeholder,
 	textAreaRef,
 	productType,
+	hasAdditonalActions,
+	creatables,
 }) => {
 	const {
 		disabled,
@@ -304,6 +322,8 @@ export const Search: React.FC<{
 		setQuery,
 	} = useSearchContext()
 	const { project_id } = useParams()
+	const [_, setSortColumn] = useQueryParam(SORT_COLUMN, StringParam)
+	const [__, setSortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const defaultInputRef = useRef<HTMLTextAreaElement | null>(null)
 	const inputRef = textAreaRef || defaultInputRef
@@ -315,7 +335,7 @@ export const Search: React.FC<{
 	const [getKeys, { loading: keysLoading }] = useGetKeysLazyQuery()
 	const [getKeyValues, { loading: valuesLoading }] =
 		useGetKeyValuesLazyQuery()
-	const [cursorIndex, setCursorIndex] = useState(0)
+	const [cursorIndex, setCursorIndex] = useState(query.length)
 	const [isPending, startTransition] = React.useTransition()
 
 	const activePart = getActivePart(cursorIndex, queryParts)
@@ -336,31 +356,43 @@ export const Search: React.FC<{
 	let visibleItems: SearchResult[] = showValues
 		? getVisibleValues(activePart, values)
 		: getVisibleKeys(query, activePart, keys)
-	const comboboxItems = comboboxStore.useState('items')
 
 	// Show operators when we have an exact match for a key
 	const keyMatch = visibleItems.find((item) => item.name === activePart.text)
 	const showOperators = !!keyMatch
 
 	if (showOperators) {
-		const operators =
-			keyMatch.type === 'Numeric'
-				? [
-						...BOOLEAN_OPERATORS,
-						...NUMERIC_OPERATORS,
-						...EXISTS_OPERATORS,
-				  ]
-				: [
-						...BOOLEAN_OPERATORS,
-						...EXISTS_OPERATORS,
-						...CONTAINS_OPERATOR,
-						...MATCHES_OPERATOR,
-				  ]
+		let operators = [] as string[]
+		switch (keyMatch.type) {
+			case 'Numeric':
+				operators = [
+					...BOOLEAN_OPERATORS,
+					...NUMERIC_OPERATORS,
+					...EXISTS_OPERATORS,
+				]
+				break
+			case 'String':
+				operators = [
+					...BOOLEAN_OPERATORS,
+					...EXISTS_OPERATORS,
+					...CONTAINS_OPERATOR,
+					...MATCHES_OPERATOR,
+				]
+				break
+			case 'Boolean':
+				operators = [...BOOLEAN_OPERATORS]
+				break
+			case 'Creatable':
+				operators = [...EQUAL_OPERATOR]
+		}
 
-		visibleItems = operators.map((operator) => ({
-			name: operator,
-			type: 'Operator',
-		}))
+		visibleItems = operators.map(
+			(operator) =>
+				({
+					name: operator,
+					type: 'Operator',
+				} as SearchResult),
+		)
 	}
 
 	// Limit number of items shown.
@@ -422,6 +454,12 @@ export const Search: React.FC<{
 			return
 		}
 
+		const creatableType = creatables?.[activePart.key]
+		if (!!creatableType) {
+			setValues([creatableType.label])
+			return
+		}
+
 		getKeyValues({
 			variables: {
 				product_type: productType,
@@ -439,6 +477,7 @@ export const Search: React.FC<{
 		})
 	}, [
 		activePart.key,
+		creatables,
 		endDate,
 		getKeyValues,
 		productType,
@@ -460,21 +499,30 @@ export const Search: React.FC<{
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [query])
 
-	useEffect(() => {
-		// Logic for selecting a default item from the results. We don't want to
-		// select a value by default, but if there is a query, an item isn't
-		// currently selected, and there are items, select the first item.
-		const { activeId, items } = comboboxStore.getState()
-		// Give preference to the "Show all results for..." item if it exists.
-		const firstItem = items.find((i) => i.value === undefined) ?? items[0]
-		const noActiveId = !activeId || !items.find((i) => i.id === activeId)
+	const comboboxItems = comboboxStore.useState('items')
+	const comboboxOpen = comboboxStore.useState('open')
 
-		if (activePart.text.trim() !== '' && noActiveId && firstItem) {
+	useEffect(() => {
+		if (!comboboxOpen) {
+			return
+		}
+
+		const { activeId } = comboboxStore.getState()
+		const activeElement =
+			activeId && comboboxItems.find((i) => i.id === activeId)
+		if (activeElement) {
+			return
+		}
+
+		// Give preference to the first item with a value
+		const firstItem =
+			comboboxItems.find((i) => !!i.value) ?? comboboxItems[0]
+		if (firstItem) {
 			comboboxStore.setActiveId(firstItem.id)
 			comboboxStore.setState('moves', 0)
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [comboboxItems, query])
+	}, [comboboxItems, comboboxOpen, query])
 
 	useEffect(() => {
 		if (!showValues) {
@@ -495,7 +543,7 @@ export const Search: React.FC<{
 				...MATCHES_OPERATOR,
 			].find((o) => o === item.name)
 			if (isContainsOrMatches) {
-				cursorShift = -1
+				cursorShift = -2
 			}
 
 			const key =
@@ -505,7 +553,12 @@ export const Search: React.FC<{
 			activePart.text = `${key}${space}${activePart.operator}`
 			activePart.stop = activePart.start + activePart.text.length
 		} else if (isValueSelect) {
-			activePart.value = quoteQueryValue(item.name)
+			const creatableType = creatables?.[activePart.key]
+			if (!!creatableType) {
+				activePart.value = quoteQueryValue(creatableType.value)
+			} else {
+				activePart.value = quoteQueryValue(item.name)
+			}
 			activePart.text = `${activePart.key}${activePart.operator}${activePart.value}`
 			activePart.stop = activePart.start + activePart.text.length
 		} else {
@@ -572,7 +625,11 @@ export const Search: React.FC<{
 			position="relative"
 		>
 			{!hideIcon ? (
-				<IconSolidSearch className={styles.searchIcon} />
+				<IconSolidSearch
+					className={clsx(styles.searchIcon, {
+						[styles.searchIconWithActions]: hasAdditonalActions,
+					})}
+				/>
 			) : null}
 
 			<Box
@@ -676,6 +733,8 @@ export const Search: React.FC<{
 
 								setQuery('')
 								submitQuery('')
+								setSortColumn(undefined)
+								setSortDirection(undefined)
 							}}
 							style={{ cursor: 'pointer' }}
 						/>
@@ -965,13 +1024,13 @@ const getSearchResultBadgeText = (key: SearchResult) => {
 				return 'exists'
 			case 'NOT EXISTS':
 				return 'does not exist'
-			case '=**':
+			case '="**"':
 				return 'contains'
-			case '!=**':
+			case '!="**"':
 				return 'does not contain'
-			case '=//':
+			case '="//"':
 				return 'matches'
-			case '!=//':
+			case '!="//"':
 				return 'does not match'
 		}
 	} else if (key.type === 'Value') {

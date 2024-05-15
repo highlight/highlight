@@ -2,7 +2,6 @@ import { borders } from '@highlight-run/ui/borders'
 import { colors } from '@highlight-run/ui/colors'
 import { vars } from '@highlight-run/ui/vars'
 import { RIGHT_PANEL_WIDTH } from '@pages/Player/RightPlayerPanel/style.css'
-import { SESSION_FEED_LEFT_PANEL_WIDTH } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
 import { globalStyle, style } from '@vanilla-extract/css'
 
 export const PLAYER_PADDING = 8
@@ -71,16 +70,6 @@ export const playerCenterColumn = style({
 	zIndex: 0,
 })
 
-export const playerLeftPanel = style({
-	position: 'relative',
-	zIndex: 98,
-})
-
-export const playerLeftPanelHidden = style({
-	position: 'fixed',
-	transform: `translateX(-${SESSION_FEED_LEFT_PANEL_WIDTH}px)`,
-})
-
 export const draggable = style({
 	alignItems: 'center',
 	color: colors.black,
@@ -109,14 +98,30 @@ export const playerBody = style({
 	gridTemplateColumns: '1fr',
 })
 
-export const withLeftPanel = style({
-	gridTemplateColumns: `${SESSION_FEED_LEFT_PANEL_WIDTH}px 1fr`,
-})
-
 export const withRightPanel = style({
 	gridTemplateColumns: `1fr ${RIGHT_PANEL_WIDTH}px`,
 })
 
 export const blurBackground = style({
 	filter: 'blur(4px)',
+})
+
+export const panelDragHandle = style({
+	cursor: 'col-resize',
+	position: 'absolute',
+	right: -2,
+	top: 0,
+	bottom: 0,
+	transition: 'background-color 0.3s',
+	width: 4,
+	zIndex: 1,
+
+	selectors: {
+		'&:hover': {
+			backgroundColor: vars.theme.interactive.outline.primary.pressed,
+		},
+		'&:focus': {
+			backgroundColor: vars.theme.interactive.outline.primary.pressed,
+		},
+	},
 })

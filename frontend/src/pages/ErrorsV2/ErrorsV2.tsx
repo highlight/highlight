@@ -18,7 +18,6 @@ import {
 	Box,
 	ButtonIcon,
 	Callout,
-	DEFAULT_TIME_PRESETS,
 	IconSolidExitRight,
 	Text,
 	Tooltip,
@@ -54,9 +53,14 @@ import {
 } from 'use-query-params'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { SearchContext } from '@/components/Search/SearchContext'
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
-import { ErrorState as ErrorStateEnum } from '@/graph/generated/schemas'
+import {
+	ErrorState as ErrorStateEnum,
+	ProductType,
+} from '@/graph/generated/schemas'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import ErrorIssueButton from '@/pages/ErrorsV2/ErrorIssueButton/ErrorIssueButton'
 import ErrorShareButton from '@/pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
@@ -89,7 +93,14 @@ export default function ErrorsV2() {
 	const [query, setQuery] = useQueryParam('query', ERROR_QUERY_PARAM)
 	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
 
-	const updateQuery = useCallback(
+	const { presets } = useRetentionPresets(ProductType.Errors)
+
+	const searchTimeContext = useSearchTime({
+		presets: presets,
+		initialPreset: presets[5],
+	})
+
+	const handleSubmit = useCallback(
 		(newQuery: string) => {
 			setQuery(newQuery)
 			setPage(START_PAGE)
@@ -97,24 +108,13 @@ export default function ErrorsV2() {
 		[setPage, setQuery],
 	)
 
-	const {
-		startDate,
-		endDate,
-		selectedPreset,
-		rebaseSearchTime,
-		updateSearchTime,
-	} = useSearchTime({
-		presets: DEFAULT_TIME_PRESETS,
-		initialPreset: DEFAULT_TIME_PRESETS[5],
-	})
-
 	const getErrorsData = useGetErrors({
 		query,
 		project_id,
-		startDate,
-		endDate,
+		startDate: searchTimeContext.startDate,
+		endDate: searchTimeContext.endDate,
 		page,
-		disablePolling: !selectedPreset,
+		disablePolling: !searchTimeContext.selectedPreset,
 	})
 
 	const { data, loading, errorQueryingErrorGroup } =
@@ -230,7 +230,19 @@ export default function ErrorsV2() {
 	}, [error_secure_id])
 
 	return (
-		<>
+		<SearchContext
+			initialQuery={query}
+			onSubmit={handleSubmit}
+			loading={getErrorsData.loading}
+			results={getErrorsData.errorGroups}
+			totalCount={getErrorsData.totalCount}
+			moreResults={getErrorsData.moreErrors}
+			resetMoreResults={getErrorsData.resetMoreErrors}
+			histogramBucketSize={getErrorsData.histogramBucketSize}
+			page={page}
+			setPage={setPage}
+			{...searchTimeContext}
+		>
 			<Helmet>
 				<title>Errors</title>
 			</Helmet>
@@ -251,23 +263,7 @@ export default function ErrorsV2() {
 							setDragging(true)
 						}}
 					/>
-					<SearchPanel
-						query={query}
-						setQuery={updateQuery}
-						page={page}
-						setPage={setPage}
-						loading={getErrorsData.loading}
-						errorGroups={getErrorsData.errorGroups}
-						moreErrors={getErrorsData.moreErrors}
-						totalCount={getErrorsData.totalCount}
-						histogramBucketSize={getErrorsData.histogramBucketSize}
-						resetMoreErrors={getErrorsData.resetMoreErrors}
-						updateSearchTime={updateSearchTime}
-						rebaseSearchTime={rebaseSearchTime}
-						startDate={startDate}
-						endDate={endDate}
-						selectedPreset={selectedPreset}
-					/>
+					<SearchPanel />
 				</Box>
 			)}
 
@@ -309,7 +305,7 @@ export default function ErrorsV2() {
 					/>
 				</Box>
 			</div>
-		</>
+		</SearchContext>
 	)
 }
 

@@ -3,7 +3,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
-import { PanelHeader } from '@/components/RelatedResources/PanelHeader'
+import {
+	PanelHeader,
+	PanelHeaderCopyLinkButton,
+	PanelHeaderDivider,
+} from '@/components/RelatedResources/PanelHeader'
 
 import * as styles from './Panel.css'
 
@@ -17,6 +21,8 @@ type Props = React.PropsWithChildren<{
 
 type PanelComponent = React.FC<Props> & {
 	Header: typeof PanelHeader
+	HeaderDivider: typeof PanelHeaderDivider
+	HeaderCopyLinkButton: typeof PanelHeaderCopyLinkButton
 }
 
 export const Panel: PanelComponent = ({ children, open }) => {
@@ -106,3 +112,5 @@ export const Panel: PanelComponent = ({ children, open }) => {
 }
 
 Panel.Header = PanelHeader
+Panel.HeaderDivider = PanelHeaderDivider
+Panel.HeaderCopyLinkButton = PanelHeaderCopyLinkButton

@@ -20,6 +20,7 @@ import (
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stacktraces"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 const GITHUB_ERROR_CONTEXT_LINES = 5
@@ -195,6 +196,9 @@ func (store *Store) EnhanceTrace(ctx context.Context, trace *privateModel.ErrorT
 }
 
 func (store *Store) GitHubEnhancedStackTrace(ctx context.Context, stackTrace []*privateModel.ErrorTrace, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject, validateService *model.Service) ([]*privateModel.ErrorTrace, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "GitHubEnhancedStackTrace")
+	defer span.Finish()
+
 	if errorObj.ServiceName == "" {
 		return nil, nil
 	}
@@ -267,6 +271,9 @@ func (store *Store) StructuredStackTrace(ctx context.Context, stackTrace string)
 
 // should always return error stacktrace, returned error will be logged, return enhanced stacktrace string when successfully enhanced
 func (store *Store) EnhancedStackTrace(ctx context.Context, stackTrace string, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject, validateService *model.Service) (*string, []*privateModel.ErrorTrace, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "EnhancedStackTrace", util.Tag("projectID", project.ID))
+	defer span.Finish()
+
 	structuredStackTrace, err := store.StructuredStackTrace(ctx, stackTrace)
 	if err != nil {
 		return nil, structuredStackTrace, errors.Wrap(err, "Error parsing stacktrace to enhance")

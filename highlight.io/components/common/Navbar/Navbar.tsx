@@ -21,17 +21,12 @@ import Banner from '../Banner/Banner'
 import FeatureDropdown from './FeatureDropdown'
 
 const LaunchWeekBanner = () => {
-	const day = moment().diff(moment('2023-07-17T16:00:00Z'), 'days') + 1
-	if (day < 1 || day > 5) {
-		return null
-	}
-
 	const bannerMessage = (
 		<div className={styles.launchWeekText}>
-			Launch Week 2 is here.{' '}
+			Launch Week 5 is here.{' '}
 			<a
 				target="_blank"
-				href="https://www.highlight.io/launch-week-2"
+				href="https://www.highlight.io/blog/tag/launch-week-5"
 				rel="noreferrer"
 			>
 				Follow along
@@ -46,15 +41,28 @@ const LaunchWeekBanner = () => {
 const LivestreamBanner = () => {
 	return (
 		<Link
-			href="https://lu.ma/b0uz0fiz"
+			href="https://lu.ma/7116dpav"
 			target="_blank"
 			rel="noreferrer"
 			className="hidden md:flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
 		>
 			<Typography type="copy3">
-				Join our livestream: April 11 at 2pm PDT on Distributed Tracing
-				in NextJS. Register
+				Join our livestream: May 16 at 11am PDT on Native OpenTelemetry
+				for Next.js. Register{' '}
 				<span className="font-semibold"> here</span>.
+			</Typography>
+		</Link>
+	)
+}
+
+const HFSBanner = () => {
+	return (
+		<Link
+			href="/startups"
+			className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+		>
+			<Typography type="copy3">
+				Got a startup? Apply for free Highlight credits!
 			</Typography>
 		</Link>
 	)
@@ -101,9 +109,9 @@ const Navbar = ({
 		setPrevY(currentScrollPos)
 	}
 
-	const isLivestreamWeek = moment().isBetween(
-		'2024-03-28T00:00:00Z',
-		'2024-04-12T00:00:00Z',
+	const isLaunchWeek = moment().isBetween(
+		'2024-04-29T16:00:00Z',
+		'2024-05-04T16:00:00Z',
 	)
 
 	useEffect(() => {
@@ -115,17 +123,10 @@ const Navbar = ({
 		<>
 			{!hideGitHubPopup && <GithubPopup />}
 			{!hideBanner ? (
-				isLivestreamWeek ? (
-					<LivestreamBanner />
+				isLaunchWeek ? (
+					<LaunchWeekBanner />
 				) : (
-					<Link
-						href="/startups"
-						className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
-					>
-						<Typography type="copy3">
-							Got a startup? Apply for free Highlight credits!
-						</Typography>
-					</Link>
+					<LivestreamBanner />
 				)
 			) : null}
 			<div

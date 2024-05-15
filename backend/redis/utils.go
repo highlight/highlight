@@ -77,7 +77,7 @@ func NewClient() *Client {
 	var lfu cache.LocalCache
 	// disable lfu cache locally to allow flushing cache between test-cases
 	if !util.IsTestEnv() {
-		lfu = cache.NewTinyLFU(100_000, time.Second)
+		lfu = cache.NewTinyLFU(10_000, time.Second)
 	}
 	if util.IsDevOrTestEnv() {
 		client := redis.NewClient(&redis.Options{
@@ -185,6 +185,10 @@ func GetKey(sessionId int, payloadType model.RawPayloadType) string {
 	default:
 		return ""
 	}
+}
+
+func GetSubscriptionDetailsKey(workspaceID int) string {
+	return fmt.Sprintf(`workspace-subscription-details-%d`, workspaceID)
 }
 
 func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType model.RawPayloadType, objects map[int]string) ([]string, error) {

@@ -15,6 +15,8 @@ const initialWindowInfo: PageInfo = {
 	endCursor: '', // unused but needed for typedef
 }
 
+export const MAX_TRACES = 50
+
 export const useGetTraces = ({
 	query,
 	projectId,
@@ -22,6 +24,8 @@ export const useGetTraces = ({
 	startDate,
 	endDate,
 	skipPolling,
+	sortColumn,
+	sortDirection,
 }: {
 	query: string
 	projectId: string | undefined
@@ -29,6 +33,8 @@ export const useGetTraces = ({
 	startDate: Date
 	endDate: Date
 	skipPolling?: boolean
+	sortColumn?: string | null | undefined
+	sortDirection?: Types.SortDirection | null | undefined
 }) => {
 	// The backend can only tell us page info about a single page.
 	// It has no idea what pages have already been loaded.
@@ -56,6 +62,10 @@ export const useGetTraces = ({
 				date_range: {
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
+				},
+				sort: {
+					column: sortColumn ?? 'timestamp',
+					direction: sortDirection ?? Types.SortDirection.Desc,
 				},
 			},
 		},
@@ -102,6 +112,7 @@ export const useGetTraces = ({
 		GetTracesQuery,
 		GetTracesQueryVariables
 	>({
+		maxResults: MAX_TRACES,
 		skip: skipPolling,
 		variableFn: useCallback(
 			() => ({
@@ -116,9 +127,20 @@ export const useGetTraces = ({
 							.format(TIME_FORMAT),
 						end_date: moment().format(TIME_FORMAT),
 					},
+					sort: {
+						column: sortColumn ?? 'timestamp',
+						direction: sortDirection ?? Types.SortDirection.Desc,
+					},
 				},
 			}),
-			[projectId, traceCursor, query, traceResultMetadata.endDate],
+			[
+				projectId,
+				traceCursor,
+				query,
+				traceResultMetadata.endDate,
+				sortColumn,
+				sortDirection,
+			],
 		),
 		moreDataQuery,
 		getResultCount: useCallback((result) => {

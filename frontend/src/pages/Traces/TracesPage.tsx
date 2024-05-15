@@ -7,15 +7,23 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
-import _ from 'lodash'
+import { sumBy } from 'lodash'
 import moment from 'moment'
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Helmet } from 'react-helmet'
-import { Outlet } from 'react-router-dom'
-import { useQueryParam } from 'use-query-params'
+import { useNavigate } from 'react-router-dom'
+import { StringParam, useQueryParam } from 'use-query-params'
 
 import { loadingIcon } from '@/components/Button/style.css'
-import { SearchContext } from '@/components/Search/SearchContext'
+import {
+	RelatedTrace,
+	useRelatedResource,
+} from '@/components/RelatedResources/hooks'
+import {
+	SearchContext,
+	SORT_COLUMN,
+	SORT_DIRECTION,
+} from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -30,9 +38,11 @@ import {
 	MetricAggregator,
 	MetricColumn,
 	ProductType,
+	SavedSegmentEntityType,
+	SortDirection,
 	Trace,
 } from '@/graph/generated/schemas'
-import { useProjectId } from '@/hooks/useProjectId'
+import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LatencyChart } from '@/pages/Traces/LatencyChart'
@@ -46,12 +56,17 @@ import * as styles from './TracesPage.css'
 export type TracesOutletContext = Partial<Trace>[]
 
 export const TracesPage: React.FC = () => {
-	const { projectId } = useProjectId()
-	const { trace_cursor: traceCursor } = useParams<{
-		trace_cursor: string
-	}>()
+	const { projectId } = useNumericProjectId()
+	const navigate = useNavigate()
+	const {
+		trace_id,
+		span_id,
+		trace_cursor: traceCursor,
+	} = useParams<{ trace_id: string; span_id: string; trace_cursor: string }>()
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [query, setQuery] = useQueryParam('query', QueryParam)
+	const [sortColumn] = useQueryParam(SORT_COLUMN, StringParam)
+	const [sortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
 	const {
 		startDate,
 		endDate,
@@ -79,6 +94,8 @@ export const TracesPage: React.FC = () => {
 		startDate,
 		endDate,
 		skipPolling: !selectedPreset,
+		sortColumn,
+		sortDirection: sortDirection as SortDirection,
 	})
 
 	const { data: metricsData, loading: metricsLoading } =
@@ -131,7 +148,7 @@ export const TracesPage: React.FC = () => {
 			counts: [{ level: 'traces', count: b.metric_value! }],
 		}))
 
-	const totalCount = _.sumBy(
+	const totalCount = sumBy(
 		metricsData?.traces_metrics.buckets.filter(
 			(b) => b.metric_type === MetricAggregator.Count,
 		),
@@ -164,15 +181,52 @@ export const TracesPage: React.FC = () => {
 		}
 	})
 
-	const outletContext = useMemo<TracesOutletContext>(() => {
-		if (!traceEdges) {
-			return []
+	useEffect(() => analytics.page('Traces'), [])
+
+	const { resource, panelPagination, set, setPanelPagination } =
+		useRelatedResource()
+	useEffect(() => {
+		if (!resource || !!panelPagination || !traceEdges.length) {
+			return
 		}
 
-		return traceEdges.map((edge) => edge.node)
-	}, [traceEdges])
+		const trace = resource as RelatedTrace
 
-	useEffect(() => analytics.page('Traces'), [])
+		const currentInded = traceEdges.findIndex(
+			(edge) => edge.node.spanID === trace.spanID,
+		)
+
+		setPanelPagination({
+			currentIndex: currentInded,
+			resources: traceEdges.map((edge) => ({
+				type: 'trace',
+				id: edge.node.traceID,
+				spanID: edge.node.spanID,
+			})),
+		})
+	}, [panelPagination, resource, setPanelPagination, traceEdges])
+
+	// Temporary workaround to preserve functionality for linking to a trace.
+	// Eventually we can delete both of these useEffects + params in the router.
+	useEffect(() => {
+		if (trace_id) {
+			set({
+				type: 'trace',
+				id: trace_id,
+				spanID: span_id,
+			})
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
+	useEffect(() => {
+		if (!resource) {
+			navigate({
+				pathname: `/${projectId}/traces`,
+				search: location.search,
+			})
+		}
+	}, [navigate, projectId, resource])
 
 	return (
 		<SearchContext initialQuery={query} onSubmit={setQuery}>
@@ -208,7 +262,7 @@ export const TracesPage: React.FC = () => {
 						hideCreateAlert
 						onDatesChange={updateSearchTime}
 						productType={ProductType.Traces}
-						savedSegmentType="Trace"
+						savedSegmentType={SavedSegmentEntityType.Trace}
 						textAreaRef={textAreaRef}
 					/>
 					<Box
@@ -320,8 +374,6 @@ export const TracesPage: React.FC = () => {
 					/>
 				</Box>
 			</Box>
-
-			<Outlet context={outletContext} />
 		</SearchContext>
 	)
 }

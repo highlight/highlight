@@ -1,4 +1,3 @@
-import { ExclamationCircleFilled } from '@ant-design/icons'
 import classNames from 'classnames'
 import useEmblaCarousel from 'embla-carousel-react'
 import { StaticImageData } from 'next/image'
@@ -6,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { isMobile } from 'react-device-detect'
 import {
 	HiBell,
+	HiChartBar,
 	HiChevronDown,
 	HiCloudDownload,
 	HiCode,
@@ -20,12 +20,14 @@ import {
 	HiTemplate,
 	HiTerminal,
 	HiUserGroup,
+	HiUsers,
 	HiViewBoards,
 } from 'react-icons/hi'
 import errorMonitoring from '../../../public/images/error-monitoring.webp'
 import fullstackLogging from '../../../public/images/fullstack-logging.webp'
 import githubscreenshot from '../../../public/images/githubscreenshot.png'
 import loggingscreenshot from '../../../public/images/loggingscreenshot.png'
+import metrics from '../../../public/images/metrics.webp'
 import monitoringscreenshot from '../../../public/images/monitoringscreenshot.png'
 import openSource from '../../../public/images/open-source.webp'
 import sessionReplay from '../../../public/images/session-replay.webp'
@@ -68,7 +70,7 @@ const features: Feature[] = [
 		title: 'Session Replay',
 		description:
 			'Understand the real reason why bugs are happening in your web application.',
-		thumbnail: <HiFilm className="h-[35px] w-[35px]" />,
+		thumbnail: <HiFilm className="h-[25px] w-[25px]" />,
 		desktopImage: sessionReplay,
 		mobileImage: sessionscreenshot,
 		right: true,
@@ -85,7 +87,7 @@ const features: Feature[] = [
 		title: 'Error Monitoring',
 		description:
 			'Get notified of the exceptions across your app before they become problematic.',
-		thumbnail: <HiTerminal className="h-[35px] w-[35px]" />,
+		thumbnail: <HiTerminal className="h-[25px] w-[25px]" />,
 		desktopImage: errorMonitoring,
 		mobileImage: monitoringscreenshot,
 		right: true,
@@ -94,9 +96,7 @@ const features: Feature[] = [
 		feature2: 'Customizable Alerting Rules',
 		featureImage2: <HiViewBoards className="h-[20px] w-[20px]" />,
 		feature3: 'Powered by Open Telemetry',
-		featureImage3: (
-			<ExclamationCircleFilled className="h-[20px] w-[20px]" />
-		),
+		featureImage3: <HiExclamationCircle className="h-[20px] w-[20px]" />,
 		link: '/error-monitoring',
 	},
 	{
@@ -104,7 +104,7 @@ const features: Feature[] = [
 		title: 'Logging',
 		description:
 			'Search for and set alerts for logs being written throughout your stack.',
-		thumbnail: <HiLightningBolt className="h-[35px] w-[35px]" />,
+		thumbnail: <HiLightningBolt className="h-[25px] w-[25px]" />,
 		desktopImage: fullstackLogging,
 		mobileImage: loggingscreenshot,
 		right: true,
@@ -121,7 +121,7 @@ const features: Feature[] = [
 		title: 'Traces',
 		description:
 			'Get performance insights on requests and transactions throughout your web application stack.',
-		thumbnail: <HiSparkles className="h-[35px] w-[35px]" />,
+		thumbnail: <HiSparkles className="h-[25px] w-[25px]" />,
 		desktopImage: traces,
 		mobileImage: tracesscreenshot,
 		right: true,
@@ -134,13 +134,30 @@ const features: Feature[] = [
 		featureImage3: <HiExclamationCircle className="h-[20px] w-[20px]" />,
 		link: '/traces',
 	},
-
+	{
+		name: 'Metrics',
+		title: 'Metrics & APM',
+		description:
+			'Visualize and analyze your observability data on a single pane.',
+		thumbnail: <HiChartBar className="h-[25px] w-[25px]" />,
+		desktopImage: metrics,
+		mobileImage: tracesscreenshot,
+		right: true,
+		feature1: 'Customizable dashboards',
+		featureImage1: <HiTemplate className="h-[20px] w-[20px]" />,
+		feature2: 'Performance visualizations',
+		featureImage2: <HiChartBar className="h-[20px] w-[20px]" />,
+		feature3: 'User analytics',
+		featureImage3: <HiUsers className="h-[20px] w-[20px]" />,
+		link: '/metrics',
+		beta: true,
+	},
 	{
 		name: 'Self-Hosting',
 		title: 'Self-Hosting highlight.io',
 		description:
 			'Interested in self-hosting highlight? Spin up highlight.io in docker with just a few commands.',
-		thumbnail: <HiCloudDownload className="h-[35px] w-[35px]" />,
+		thumbnail: <HiCloudDownload className="h-[25px] w-[25px]" />,
 		desktopImage: openSource,
 		mobileImage: githubscreenshot,
 		right: true,
@@ -149,7 +166,7 @@ const features: Feature[] = [
 			`cd docker;`,
 			`./run-hobby.sh;`,
 		],
-		link: '/docs/general/company/open-source/hosting/self-host-hobby',
+		link: '/docs/general/product-features/metrics/overview',
 	},
 ]
 
@@ -180,7 +197,7 @@ export const FeatureCarousel = () => {
 
 	return (
 		<div className="flex flex-col overflow-x-hidden xl:rounded-lg max-w-[100vw] xl:max-w-[1000px] xl:rounded-tr-lg xl:rounded-tl-lg">
-			<div className={`hidden md:grid grid-cols-5`}>
+			<div className={`hidden md:grid grid-cols-6`}>
 				{features.map((feature, index) => (
 					<div
 						key={index}
@@ -206,9 +223,9 @@ export const FeatureCarousel = () => {
 									{feature.thumbnail}
 								</div>
 								<Typography
-									type="copy3"
+									type="copy4"
 									className="text-center"
-									emphasis={true}
+									emphasis
 								>
 									{feature.name}
 								</Typography>

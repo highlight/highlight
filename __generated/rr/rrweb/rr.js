@@ -4648,7 +4648,7 @@ var CanvasManager = class {
         return hadLoadingTime;
       };
       const promises = [];
-      promises.push(...getCanvas(timestamp).filter(filterElementStartTime).map(this.snapshot));
+      promises.push(...getCanvas(timestamp).filter(filterElementStartTime).map((canvas) => this.snapshot(canvas)));
       promises.push(...getVideos(timestamp).filter(filterElementStartTime).map((video) => __awaiter(this, void 0, void 0, function* () {
         this.debug(video, "starting video snapshotting");
         const id = this.mirror.getId(video);

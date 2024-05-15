@@ -5,33 +5,33 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/highlight-run/highlight/backend/redis"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
-	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
-
-	model2 "github.com/highlight-run/highlight/backend/model"
-	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-
-	"github.com/samber/lo"
-
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 
 	"github.com/go-chi/chi"
-	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
+	model2 "github.com/highlight-run/highlight/backend/model"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight/highlight/sdk/highlight-go"
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
 )
 
 type Handler struct {
@@ -49,7 +49,8 @@ func lg(ctx context.Context, fields *extractedFields) *log.Entry {
 		WithField("session_id", fields.sessionID).
 		WithField("request_id", fields.requestID).
 		WithField("source", fields.source).
-		WithField("attrs", fields.attrs)
+		WithField("attrs", fields.attrs).
+		WithField("fields", fields)
 }
 
 func cast[T string | int64 | float64](v interface{}, fallback T) T {
@@ -188,7 +189,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 
-				fields, err := extractFields(extractFieldsParams{
+				fields, err := extractFields(r.Context(), extractFieldsParams{
 					resource: &resource,
 					span:     &span,
 					curTime:  curTime,
@@ -206,7 +207,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						break
 					}
 					event := events.At(l)
-					fields, err := extractFields(extractFieldsParams{
+					fields, err := extractFields(r.Context(), extractFieldsParams{
 						resource: &resource,
 						span:     &span,
 						event:    &event,
@@ -433,13 +434,14 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 			for k := 0; k < logRecords.Len(); k++ {
 				logRecord := logRecords.At(k)
 
-				fields, err := extractFields(extractFieldsParams{
-					resource:  &resource,
-					logRecord: &logRecord,
-					curTime:   curTime,
+				fields, err := extractFields(r.Context(), extractFieldsParams{
+					resource:               &resource,
+					logRecord:              &logRecord,
+					curTime:                curTime,
+					herokuProjectExtractor: o.matchHerokuDrain,
 				})
 				if err != nil {
-					lg(ctx, fields).WithError(err).Info("failed to extract fields from log")
+					lg(ctx, fields).WithError(err).WithField("body", logRecord.Body().AsRaw()).Info("failed to extract fields from log")
 					continue
 				}
 
@@ -475,6 +477,45 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return
 	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("invalid metric body")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	gz, err := gzip.NewReader(bytes.NewReader(body))
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("invalid gzip format for metric")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	output, err := io.ReadAll(gz)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("invalid gzip stream for metric")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	req := pmetricotlp.NewExportRequest()
+	err = req.UnmarshalProto(output)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("invalid metric protobuf")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	log.WithContext(ctx).
+		WithField("count", req.Metrics().MetricCount()).
+		WithField("dp_count", req.Metrics().DataPointCount()).
+		Info("received otel metrics")
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -629,8 +670,8 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 				continue
 			}
 			messages = append(messages, &kafkaqueue.TraceRowMessage{
-				Type:     kafkaqueue.PushTracesFlattened,
-				TraceRow: traceRow,
+				Type:               kafkaqueue.PushTracesFlattened,
+				ClickhouseTraceRow: clickhouse.ConvertTraceRow(traceRow),
 			})
 		}
 
@@ -650,11 +691,34 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 	return nil
 }
 
+func (o *Handler) matchHerokuDrain(ctx context.Context, herokuDrainToken string) (string, int) {
+	data, err := redis.CachedEval(ctx, o.resolver.Redis, fmt.Sprintf("matchHerokuDrain-%s", herokuDrainToken), time.Minute, time.Second, func() (*int, error) {
+		projectMapping := &model2.IntegrationProjectMapping{
+			IntegrationType: privateModel.IntegrationTypeHeroku,
+			ExternalID:      herokuDrainToken,
+		}
+		if err := o.resolver.DB.
+			Model(&projectMapping).
+			Where(&projectMapping).
+			Take(&projectMapping).Error; err != nil {
+			return nil, err
+		}
+		return &projectMapping.ProjectID, nil
+	})
+	if data == nil || err != nil {
+		log.WithContext(ctx).WithError(err).WithField("token", herokuDrainToken).Error("failed to find heroku drain token")
+		return herokuDrainToken, 0
+	}
+
+	return strconv.Itoa(*data), *data
+}
+
 func (o *Handler) Listen(r *chi.Mux) {
 	r.Route("/otel/v1", func(r chi.Router) {
 		r.Use(highlightChi.Middleware)
 		r.HandleFunc("/traces", o.HandleTrace)
 		r.HandleFunc("/logs", o.HandleLog)
+		r.HandleFunc("/metrics", o.HandleMetric)
 	})
 }
 

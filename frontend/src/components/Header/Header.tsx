@@ -1,10 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { Button } from '@components/Button'
-import CommandBar from '@components/CommandBar/CommandBar'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
-import { linkStyle } from '@components/Header/styles.css'
-import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
+import { betaTag, linkStyle } from '@components/Header/styles.css'
 import { LinkButton } from '@components/LinkButton'
 import {
 	useGetBillingDetailsForProjectQuery,
@@ -35,7 +32,6 @@ import {
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidPlusSm,
-	IconSolidSearch,
 	IconSolidSparkles,
 	IconSolidSpeakerphone,
 	IconSolidSwitchHorizontal,
@@ -123,6 +119,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId: localStorageProjectId } = useLocalStorageProjectId()
 	const { isLoggedIn, signOut } = useAuthContext()
 	const showAnalytics = useFeatureFlag(Feature.Analytics)
+	const showMetrics = useFeatureFlag(Feature.Metrics)
 	const { allProjects, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 	const localStorageProject = allProjects?.find(
@@ -143,8 +140,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const enableGrafanaDashboard =
 		workspaceSettingsData?.workspaceSettings?.enable_grafana_dashboard
 
-	const { toggleShowKeyboardShortcutsGuide, commandBarDialog } =
-		useGlobalContext()
+	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
 
 	const pages = [
 		{
@@ -162,6 +158,12 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		{
 			key: 'traces',
 			icon: IconSolidSparkles,
+		},
+		{
+			key: 'metrics',
+			icon: IconSolidChartBar,
+			isBeta: true,
+			hidden: !showMetrics,
 		},
 		{
 			key: 'alerts',
@@ -213,7 +215,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 
 	return (
 		<>
-			<CommandBar />
 			<CommandBarV1 />
 			<Box background="n2" borderBottom="secondary">
 				{!!projectId && !isSettings && getBanner(projectId, isSetup)}
@@ -257,6 +258,9 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							{projectId && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
 									{pages.map((p) => {
+										if (p.hidden) {
+											return null
+										}
 										return (
 											<LinkButton
 												iconLeft={
@@ -290,6 +294,11 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												trackingId={`header-link-click-${p.key}`}
 											>
 												{titleCaseString(p.key)}
+												{p.isBeta ? (
+													<Box cssClass={betaTag}>
+														Beta
+													</Box>
+												) : null}
 											</LinkButton>
 										)
 									})}
@@ -476,25 +485,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 								)}
 							{!isSetup && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
-									{!!projectId && (
-										<Button
-											trackingId="quickSearchClicked"
-											kind="secondary"
-											size="small"
-											emphasis="high"
-											iconLeft={<IconSolidSearch />}
-											onClick={commandBarDialog.toggle}
-										>
-											<Badge
-												variant="outlineGray"
-												shape="basic"
-												size="small"
-												label={OpenCommandBarShortcut.shortcut.join(
-													'+',
-												)}
-											/>
-										</Button>
-									)}
 									<Box>
 										<ButtonIcon
 											cssClass={styles.button}
@@ -1007,8 +997,8 @@ const BillingBanner: React.FC = () => {
 
 	if (!bannerMessage && !hasTrial) {
 		const isLaunchWeek = moment().isBetween(
-			'2024-01-29T16:00:00Z', // 9AM PST
-			'2024-02-03T16:00:00Z',
+			'2024-04-29T16:00:00Z', // 9AM PST
+			'2024-05-04T16:00:00Z',
 		)
 		if (isLaunchWeek) {
 			return <LaunchWeekBanner />
@@ -1116,10 +1106,10 @@ const LaunchWeekBanner = () => {
 
 	const bannerMessage = (
 		<span>
-			Launch Week 4 is here.{' '}
+			Launch Week 5 is here.{' '}
 			<a
 				target="_blank"
-				href="https://www.highlight.io/launch/week-4"
+				href="https://www.highlight.io/blog/tag/launch-week-5"
 				className={styles.trialLink}
 				rel="noreferrer"
 			>

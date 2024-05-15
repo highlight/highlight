@@ -35,6 +35,10 @@ export const combobox = style({
 	borderRadius: 6,
 })
 
+export const comboboxWrapper = style({
+	flex: 1,
+})
+
 export const comboboxText = style({
 	lineHeight: '24px',
 })

@@ -516,73 +516,18 @@ query GetWebSocketEvents($session_secure_id: String!) {
 	websocket_events(session_secure_id: $session_secure_id)
 }
 
-query GetFieldTypesClickhouse(
-	$project_id: ID!
-	$start_date: Timestamp!
-	$end_date: Timestamp!
-) {
-	field_types: field_types_clickhouse(
-		project_id: $project_id
-		start_date: $start_date
-		end_date: $end_date
-	) {
-		type
-		name
-	}
-}
-
-query GetFieldsClickhouse(
+query GetSessions(
 	$project_id: ID!
 	$count: Int!
-	$field_type: String!
-	$field_name: String!
-	$query: String!
-	$start_date: Timestamp!
-	$end_date: Timestamp!
-) {
-	fields_clickhouse(
-		project_id: $project_id
-		count: $count
-		field_type: $field_type
-		field_name: $field_name
-		query: $query
-		start_date: $start_date
-		end_date: $end_date
-	)
-}
-
-query GetErrorFieldsClickhouse(
-	$project_id: ID!
-	$count: Int!
-	$field_type: String!
-	$field_name: String!
-	$query: String!
-	$start_date: Timestamp!
-	$end_date: Timestamp!
-) {
-	error_fields_clickhouse(
-		project_id: $project_id
-		count: $count
-		field_type: $field_type
-		field_name: $field_name
-		query: $query
-		start_date: $start_date
-		end_date: $end_date
-	)
-}
-
-query GetSessionsClickhouse(
-	$project_id: ID!
-	$count: Int!
-	$query: ClickhouseQuery!
+	$params: QueryInput!
 	$sort_desc: Boolean!
 	$sort_field: String
 	$page: Int
 ) {
-	sessions_clickhouse(
+	sessions(
 		project_id: $project_id
 		count: $count
-		query: $query
+		params: $params
 		sort_field: $sort_field
 		sort_desc: $sort_desc
 		page: $page
@@ -630,14 +575,14 @@ query GetSessionsClickhouse(
 	}
 }
 
-query GetSessionsHistogramClickhouse(
+query GetSessionsHistogram(
 	$project_id: ID!
-	$query: ClickhouseQuery!
+	$params: QueryInput!
 	$histogram_options: DateHistogramOptions!
 ) {
-	sessions_histogram_clickhouse(
+	sessions_histogram(
 		project_id: $project_id
-		query: $query
+		params: $params
 		histogram_options: $histogram_options
 	) {
 		bucket_times
@@ -647,8 +592,8 @@ query GetSessionsHistogramClickhouse(
 	}
 }
 
-query GetSessionsReport($project_id: ID!, $query: ClickhouseQuery!) {
-	sessions_report(project_id: $project_id, query: $query) {
+query GetSessionUsersReports($project_id: ID!, $params: QueryInput!) {
+	session_users_report(project_id: $project_id, params: $params) {
 		key
 		num_sessions
 		num_days_visited
@@ -939,6 +884,8 @@ query GetProject($id: ID!) {
 	workspace: workspace_for_project(project_id: $id) {
 		id
 		slack_webhook_channel
+		retention_period
+		errors_retention_period
 	}
 }
 
@@ -980,6 +927,32 @@ query GetBillingDetailsForProject($project_id: ID!) {
 		allow_meter_overage
 		eligible_for_trial_extension
 		trial_extension_enabled
+	}
+}
+
+query GetWorkspaceUsageHistory(
+	$workspace_id: ID!
+	$product_type: ProductType!
+	$date_range: DateRangeRequiredInput
+) {
+	usageHistory(
+		workspace_id: $workspace_id
+		product_type: $product_type
+		date_range: $date_range
+	) {
+		usage {
+			buckets {
+				bucket_id
+				bucket_min
+				bucket_max
+				column
+				group
+				metric_type
+				metric_value
+			}
+			bucket_count
+			sample_factor
+		}
 	}
 }
 
@@ -1211,10 +1184,15 @@ query GetErrorObject($id: ID!) {
 	}
 }
 
-query GetErrorInstance($error_group_secure_id: String!, $error_object_id: ID) {
+query GetErrorInstance(
+	$error_group_secure_id: String!
+	$error_object_id: ID
+	$params: QueryInput
+) {
 	error_instance(
 		error_group_secure_id: $error_group_secure_id
 		error_object_id: $error_object_id
+		params: $params
 	) {
 		error_object {
 			...ErrorObject
@@ -1240,10 +1218,6 @@ query GetEnvironments($project_id: ID!) {
 		name
 		value
 	}
-}
-
-query GetAppVersions($project_id: ID!) {
-	app_version_suggestion(project_id: $project_id)
 }
 
 query GetProjectSuggestion($query: String!) {
@@ -1340,16 +1314,6 @@ query GetUserSuggestion($project_id: ID!, $query: String!) {
 		id
 		name
 		value
-	}
-}
-
-query GetSegments($project_id: ID!) {
-	segments(project_id: $project_id) {
-		id
-		name
-		params {
-			query
-		}
 	}
 }
 
@@ -1512,6 +1476,13 @@ query GetWorkspaceIsIntegratedWithSlack($project_id: ID!) {
 query GetWorkspaceIsIntegratedWithMicrosoftTeams($project_id: ID!) {
 	is_integrated_with_microsoft_teams: is_integrated_with(
 		integration_type: MicrosoftTeams
+		project_id: $project_id
+	)
+}
+
+query GetWorkspaceIsIntegratedWithHeroku($project_id: ID!) {
+	is_integrated_with_heroku: is_integrated_with(
+		integration_type: Heroku
 		project_id: $project_id
 	)
 }
@@ -1803,7 +1774,6 @@ query GetAlertsPagePayload($project_id: ID!) {
 			authorization
 		}
 		EmailsToNotify
-		ExcludedEnvironments
 		updated_at
 		CountThreshold
 		LastAdminToEditID
@@ -1816,6 +1786,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 		DailyFrequency
 		disabled
 		default
+		Query
 	}
 	new_session_alerts(project_id: $project_id) {
 		...SessionAlertFragment
@@ -1967,10 +1938,6 @@ query GetDashboardDefinitions($project_id: ID!) {
 		last_admin_to_edit_id
 		layout
 	}
-}
-
-query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
-	suggested_metrics(project_id: $project_id, prefix: $prefix)
 }
 
 query GetMetricTags($project_id: ID!, $metric_name: String!, $query: String) {
@@ -2226,40 +2193,32 @@ query GetSystemConfiguration {
 
 query GetErrorObjects(
 	$errorGroupSecureID: String!
-	$after: String
-	$before: String
-	$query: String!
+	$count: Int!
+	$params: QueryInput!
+	$page: Int
 ) {
 	error_objects(
 		error_group_secure_id: $errorGroupSecureID
-		after: $after
-		before: $before
-		query: $query
+		count: $count
+		params: $params
+		page: $page
 	) {
-		edges {
-			cursor
-			node {
-				id
-				createdAt
-				event
-				timestamp
-				errorGroupSecureID
-				serviceVersion
-				serviceName
-				session {
-					secureID
-					email
-					fingerprint
-					excluded
-				}
+		error_objects {
+			id
+			createdAt
+			event
+			timestamp
+			errorGroupSecureID
+			serviceVersion
+			serviceName
+			session {
+				secureID
+				email
+				fingerprint
+				excluded
 			}
 		}
-		pageInfo {
-			hasNextPage
-			hasPreviousPage
-			startCursor
-			endCursor
-		}
+		totalCount
 	}
 }
 
@@ -2462,12 +2421,14 @@ query GetKeys(
 	$project_id: ID!
 	$date_range: DateRangeRequiredInput!
 	$query: String
+	$type: KeyType
 ) {
 	keys(
 		product_type: $product_type
 		project_id: $project_id
 		date_range: $date_range
 		query: $query
+		type: $type
 	) {
 		name
 		type

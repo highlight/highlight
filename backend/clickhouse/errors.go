@@ -598,6 +598,7 @@ var ErrorObjectsTableConfig = model.TableConfig[modelInputs.ReservedErrorObjectK
 var ErrorsJoinedTableConfig = model.TableConfig[modelInputs.ReservedErrorsJoinedKey]{
 	TableName: "errors_joined_vw",
 	KeysToColumns: map[modelInputs.ReservedErrorsJoinedKey]string{
+		modelInputs.ReservedErrorsJoinedKeyID:              "ID",
 		modelInputs.ReservedErrorsJoinedKeyBrowser:         "Browser",
 		modelInputs.ReservedErrorsJoinedKeyClientID:        "ClientID",
 		modelInputs.ReservedErrorsJoinedKeyEnvironment:     "Environment",
@@ -649,6 +650,11 @@ func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, para
 	return readMetrics(ctx, client, errorsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
 }
 
+func (client *Client) ReadWorkspaceErrorCounts(ctx context.Context, projectIDs []int, params modelInputs.QueryInput) (*modelInputs.MetricsBuckets, error) {
+	// 12 buckets - 12 months in a year, or 12 weeks in a quarter
+	return readWorkspaceMetrics(ctx, client, errorsSampleableTableConfig, projectIDs, params, "id", []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, nil, pointy.Int(12), modelInputs.MetricBucketByTimestamp.String(), nil, nil, nil)
+}
+
 func (client *Client) ErrorsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
 	return client.QueryErrorFieldValues(ctx, projectID, 10, keyName, "", startDate, endDate)
 }
@@ -690,6 +696,43 @@ func (client *Client) QueryErrorObjectsHistogram(ctx context.Context, projectId 
 	}
 
 	return bucketTimes, totals, nil
+}
+
+func (client *Client) QueryErrorObjects(ctx context.Context, projectId int, errorGroupId int, count int, params modelInputs.QueryInput, page *int) ([]int64, int64, error) {
+	pageInt := 1
+	if page != nil {
+		pageInt = *page
+	}
+	offset := (pageInt - 1) * count
+
+	sb, err := readErrorsObjects(params, projectId)
+	if err != nil {
+		return nil, 0, err
+	}
+	sb.Where(sb.Equal("ErrorGroupID", errorGroupId))
+
+	sb.Select("ID, count() OVER() AS total")
+	sb.OrderBy("Timestamp DESC")
+	sb.Limit(count)
+	sb.Offset(offset)
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	ids := []int64{}
+	var total uint64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id, &total); err != nil {
+			return nil, 0, err
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, int64(total), nil
 }
 
 func (client *Client) QueryErrorGroups(ctx context.Context, projectId int, count int, params modelInputs.QueryInput, page *int) ([]int64, int64, error) {

@@ -5,6 +5,7 @@ import {
 	NetworkRecordingOptions,
 	SessionShortcutOptions,
 } from './client.js'
+import { ErrorMessageType } from './shared-types'
 
 export declare interface Metadata {
 	[key: string]: string | boolean | number
@@ -258,6 +259,20 @@ export declare interface HighlightPublicInterface {
 		message?: string,
 		payload?: { [key: string]: string },
 	) => void
+	/**
+	 * Calling this method will report an error in Highlight
+	 * while allowing additional attributes to be sent over as metadata.
+	 * @see {consumeError} for more information.
+	 */
+	consume: (
+		error: Error,
+		opts: {
+			message?: string
+			payload?: object
+			source?: string
+			type?: ErrorMessageType
+		},
+	) => void
 	getSessionURL: () => Promise<string>
 	getSessionDetails: () => Promise<SessionDetails>
 	start: (options?: StartOptions) => void
@@ -267,6 +282,7 @@ export declare interface HighlightPublicInterface {
 		func: () => void | Promise<void>,
 		options?: OnHighlightReadyOptions,
 	) => Promise<void>
+	getRecordingState: () => 'NotRecording' | 'Recording'
 	options: HighlightOptions | undefined
 	/**
 	 * Calling this will add a feedback comment to the session.

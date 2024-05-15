@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@components/SearchPagination/SearchPagination'
 import {
 	useGetErrorGroupsLazyQuery,
 	useGetErrorGroupsQuery,
@@ -12,8 +13,6 @@ import {
 	GetErrorGroupsQuery,
 	GetErrorGroupsQueryVariables,
 } from '@/graph/generated/operations'
-
-const PAGE_SIZE = 10
 
 export const useGetErrors = ({
 	query,
@@ -74,6 +73,7 @@ export const useGetErrors = ({
 			[],
 		),
 		skip: disablePolling,
+		maxResults: PAGE_SIZE,
 	})
 
 	return {

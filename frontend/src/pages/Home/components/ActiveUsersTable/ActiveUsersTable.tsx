@@ -12,10 +12,8 @@ import { useGetTopUsersQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgClockIcon from '@icons/ClockIcon'
 import { getUserDisplayName } from '@pages/Home/utils/HomePageUtils'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { validateEmail } from '@util/string'
-import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
 import { ColumnsType } from 'antd/es/table'
 import clsx from 'clsx'
@@ -45,7 +43,6 @@ const ActiveUsersTable = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	const { removeSelectedSegment } = useSearchContext()
 	const { timeRange } = useDataTimeRange()
 	const navigate = useNavigate()
 
@@ -101,8 +98,6 @@ const ActiveUsersTable = ({
 					columns={Columns}
 					data={filteredTableData}
 					onClickHandler={(record) => {
-						removeSelectedSegment()
-
 						const displayName = getUserDisplayName(record)
 						const userParam = validateEmail(displayName)
 							? 'email'
@@ -110,9 +105,7 @@ const ActiveUsersTable = ({
 
 						navigate({
 							pathname: `/${projectIdRemapped}/sessions`,
-							search: buildQueryURLString({
-								[`user_${userParam}`]: displayName,
-							}),
+							search: `query=${userParam}=${displayName}`,
 						})
 
 						message.success(`Showing sessions for ${displayName}`)

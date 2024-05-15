@@ -139,7 +139,6 @@ var Models = []interface{}{
 	&ErrorGroup{},
 	&ErrorGroupEmbeddings{},
 	&ErrorField{},
-	&ErrorSegment{},
 	&SavedSegment{},
 	&Organization{},
 	&Segment{},
@@ -328,6 +327,7 @@ func (w *Workspace) AdminEmailAddresses(db *gorm.DB) ([]struct {
 			INNER JOIN admins a
 			ON wa.admin_id = a.id
 			WHERE wa.workspace_id = ?
+			AND wa.role = 'ADMIN'
 			AND NOT EXISTS (
 				SELECT *
 				FROM email_opt_outs eoo
@@ -697,8 +697,8 @@ type Session struct {
 	Fingerprint int  `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
 	Identifier string  `json:"identifier"`
-	ProjectID  int     `json:"project_id" gorm:"index:idx_project_id_email"`
-	Email      *string `json:"email" gorm:"index:idx_project_id_email"`
+	ProjectID  int     `json:"project_id"`
+	Email      *string `json:"email"`
 	// Location data based off user ip (see InitializeSession)
 	IP        string  `json:"ip"`
 	City      string  `json:"city"`
@@ -1019,12 +1019,7 @@ type ErrorSearchParams struct {
 	State      *modelInputs.ErrorState `json:"state"`
 	Query      *string                 `json:"query"`
 }
-type ErrorSegment struct {
-	Model
-	Name      *string
-	Params    *string `json:"params"`
-	ProjectID int     `json:"project_id"`
-}
+
 type ErrorGroupingMethod string
 
 const (
@@ -1334,9 +1329,10 @@ type IntegrationWorkspaceMapping struct {
 }
 
 type IntegrationProjectMapping struct {
-	IntegrationType modelInputs.IntegrationType `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type"`
+	// idx_integration_project_mapping_integration_type_external_id is used to find a project for a given integration by its external id
+	IntegrationType modelInputs.IntegrationType `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type;index:idx_integration_project_mapping_integration_type_external_id"`
 	ProjectID       int                         `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type"`
-	ExternalID      string
+	ExternalID      string                      `gorm:"index:idx_integration_project_mapping_integration_type_external_id"`
 }
 
 type OAuthClientStore struct {
@@ -2012,6 +2008,7 @@ type ErrorAlert struct {
 	Model
 	Alert
 	RegexGroups *string
+	Query       string
 	AlertIntegrations
 }
 
@@ -2473,4 +2470,5 @@ type TableConfig[TReservedKey ~string] struct {
 	ReservedKeys     []TReservedKey
 	SelectColumns    []string
 	DefaultFilter    string
+	IgnoredFilters   map[string]bool
 }

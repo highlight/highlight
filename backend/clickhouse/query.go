@@ -34,17 +34,18 @@ type sampleableTableConfig[TReservedKey ~string] struct {
 	useSampling         func(time.Duration) bool
 }
 
-func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, client *Client, config model.TableConfig[TReservedKey], projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
+func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, client *Client, config model.TableConfig[TReservedKey], samplingConfig model.TableConfig[TReservedKey], projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
 
-	orderForward := OrderForwardNatural
-	orderBackward := OrderBackwardNatural
-	if pagination.Direction == modelInputs.SortDirectionAsc {
-		orderForward = OrderForwardInverted
-		orderBackward = OrderBackwardInverted
+	innerTableConfig := config
+	// If we have a non-default sort column use the sampling table for inner query
+	if params.Sort != nil && strings.ToLower(params.Sort.Column) != "timestamp" {
+		innerTableConfig = samplingConfig
 	}
+
+	orderForward, _ := getSortOrders[TReservedKey](sb, pagination.Direction, config, params)
 
 	outerSelect := strings.Join(config.SelectColumns, ", ")
 	innerSelect := []string{"Timestamp", "UUID"}
@@ -52,45 +53,39 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		// Create a "window" around the cursor
 		// https://stackoverflow.com/a/71738696
 		beforeSb, err := makeSelectBuilder(
-			config,
+			innerTableConfig,
 			innerSelect,
-			projectID,
+			[]int{projectID},
 			params,
 			Pagination{
 				Before: pagination.At,
-			},
-			orderBackward,
-			orderForward)
+			})
 		if err != nil {
 			return nil, err
 		}
 		beforeSb.Distinct().Limit(LogsLimit/2 + 1)
 
 		atSb, err := makeSelectBuilder(
-			config,
+			innerTableConfig,
 			innerSelect,
-			projectID,
+			[]int{projectID},
 			params,
 			Pagination{
 				At: pagination.At,
-			},
-			orderBackward,
-			orderForward)
+			})
 		if err != nil {
 			return nil, err
 		}
 		atSb.Distinct()
 
 		afterSb, err := makeSelectBuilder(
-			config,
+			innerTableConfig,
 			innerSelect,
-			projectID,
+			[]int{projectID},
 			params,
 			Pagination{
 				After: pagination.At,
-			},
-			orderBackward,
-			orderForward)
+			})
 		if err != nil {
 			return nil, err
 		}
@@ -105,13 +100,11 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			OrderBy(orderForward)
 	} else {
 		fromSb, err := makeSelectBuilder(
-			config,
+			innerTableConfig,
 			innerSelect,
-			projectID,
+			[]int{projectID},
 			params,
-			pagination,
-			orderBackward,
-			orderForward)
+			pagination)
 		if err != nil {
 			return nil, err
 		}
@@ -129,7 +122,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	span, _ := util.StartSpanFromContext(ctx, "clickhouse.Query")
-	span.SetAttribute("Table", config.TableName)
+	span.SetAttribute("Table", innerTableConfig.TableName)
 	span.SetAttribute("Query", sql)
 	span.SetAttribute("Params", params)
 	span.SetAttribute("db.system", "clickhouse")
@@ -160,17 +153,17 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 func makeSelectBuilder[T ~string](
 	config model.TableConfig[T],
 	selectCols []string,
-	projectID int,
+	projectIDs []int,
 	params modelInputs.QueryInput,
 	pagination Pagination,
-	orderBackward string,
-	orderForward string,
 ) (*sqlbuilder.SelectBuilder, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 
+	orderForward, orderBackward := getSortOrders[T](sb, pagination.Direction, config, params)
+
 	sb.Select(selectCols...)
 	sb.From(config.TableName)
-	sb.Where(sb.Equal("ProjectId", projectID))
+	sb.Where(sb.In("ProjectId", projectIDs))
 
 	if pagination.After != nil && len(*pagination.After) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.After)
@@ -549,6 +542,15 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSamplin
 }
 
 func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfig sampleableTableConfig[T], projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketCount *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	return readWorkspaceMetrics(ctx, client, sampleableConfig, []int{projectID}, params, column, metricTypes, groupBy, bucketCount, bucketBy, limit, limitAggregator, limitColumn)
+}
+
+func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sampleableConfig sampleableTableConfig[T], projectIDs []int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketCount *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "clickhouse.readMetrics")
+	span.SetAttribute("project_ids", projectIDs)
+	span.SetAttribute("table", sampleableConfig.tableConfig.TableName)
+	defer span.Finish()
+
 	if len(metricTypes) == 0 {
 		return nil, errors.New("no metric types provided")
 	}
@@ -566,8 +568,14 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		nBuckets = 1
 	}
 
-	startTimestamp := int64(params.DateRange.StartDate.Unix())
-	endTimestamp := int64(params.DateRange.EndDate.Unix())
+	if params.DateRange == nil {
+		params.DateRange = &modelInputs.DateRangeRequiredInput{
+			StartDate: time.Now().Add(-time.Hour * 24 * 30),
+			EndDate:   time.Now(),
+		}
+	}
+	startTimestamp := params.DateRange.StartDate.Unix()
+	endTimestamp := params.DateRange.EndDate.Unix()
 	useSampling := sampleableConfig.useSampling(params.DateRange.EndDate.Sub(params.DateRange.StartDate))
 
 	keysToColumns := sampleableConfig.tableConfig.KeysToColumns
@@ -581,31 +589,38 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	} else {
 		config = sampleableConfig.tableConfig
 	}
+	var isCountDistinct bool
 	for _, metricType := range metricTypes {
+		if metricType == modelInputs.MetricAggregatorCountDistinct {
+			isCountDistinct = true
+		}
 		if metricType == modelInputs.MetricAggregatorCountDistinctKey {
+			isCountDistinct = true
 			config.DefaultFilter = ""
 		}
 	}
 	fromSb, err = makeSelectBuilder(
 		config,
 		nil,
-		projectID,
+		projectIDs,
 		params,
 		Pagination{CountOnly: true},
-		OrderBackwardNatural,
-		OrderForwardNatural,
 	)
 
-	var metricExpr string
-	if col, found := keysToColumns[T(strings.ToLower(column))]; found {
-		metricExpr = fmt.Sprintf("toFloat64(%s)", col)
-	} else {
-		metricExpr = fmt.Sprintf("toFloat64OrNull(%s[%s])", attributesColumn, fromSb.Var(column))
+	var col string
+	if col = keysToColumns[T(strings.ToLower(column))]; col == "" {
+		col = fmt.Sprintf("%s[%s]", attributesColumn, fromSb.Var(column))
+	}
+	var metricExpr = col
+	if !isCountDistinct {
+		if reservedCol, found := keysToColumns[T(strings.ToLower(column))]; found {
+			metricExpr = fmt.Sprintf("toFloat64(%s)", reservedCol)
+		} else {
+			metricExpr = fmt.Sprintf("toFloat64OrNull(%s)", col)
+		}
 	}
 
 	switch column {
-	case string(modelInputs.MetricColumnMetricValue):
-		metricExpr = "toFloat64OrZero(Events.Attributes[1]['metric.value'])"
 	case "":
 		metricExpr = "1.0"
 	}
@@ -658,7 +673,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	for idx, group := range groupBy {
 		groupCol := ""
 		if col, found := keysToColumns[T(group)]; found {
-			groupCol = col
+			groupCol = fmt.Sprintf("toString(%s)", col)
 		} else {
 			groupCol = fmt.Sprintf("toString(%s[%s])", attributesColumn, fromSb.Var(group))
 		}
@@ -699,7 +714,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		innerSb.
 			From(config.TableName).
 			Select(strings.Join(colStrs, ", ")).
-			Where(innerSb.Equal("ProjectId", projectID)).
+			Where(innerSb.In("ProjectId", projectIDs)).
 			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
 			Where(innerSb.LessEqualThan("Timestamp", endTimestamp))
 
@@ -758,11 +773,15 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		Buckets: []*modelInputs.MetricBucket{},
 	}
 
+	span, ctx = util.StartSpanFromContext(ctx, "readMetrics.query")
+	span.SetAttribute("sql", sql)
+	span.SetAttribute("args", args)
 	rows, err := client.conn.Query(
 		ctx,
 		sql,
 		args...,
 	)
+	span.Finish(err)
 
 	if err != nil {
 		return nil, err
@@ -864,11 +883,9 @@ func logLines[T ~string](ctx context.Context, client *Client, tableConfig model.
 	fromSb, err := makeSelectBuilder(
 		tableConfig,
 		[]string{"Timestamp", body, severity, attributes},
-		projectID,
+		[]int{projectID},
 		params,
 		Pagination{CountOnly: true},
-		OrderBackwardNatural,
-		OrderForwardNatural,
 	)
 	if err != nil {
 		return nil, err
@@ -930,4 +947,37 @@ func repr(val reflect.Value) string {
 	default:
 		return val.String()
 	}
+}
+
+func getSortOrders[TReservedKey ~string](
+	sb *sqlbuilder.SelectBuilder,
+	paginationDirection modelInputs.SortDirection,
+	config model.TableConfig[TReservedKey],
+	params modelInputs.QueryInput,
+) (string, string) {
+	sortColumn := "timestamp"
+	sortDirection := modelInputs.SortDirectionDesc
+	if params.Sort != nil {
+		sortColumn = params.Sort.Column
+		sortDirection = params.Sort.Direction
+	}
+
+	if col, found := config.KeysToColumns[TReservedKey(sortColumn)]; found {
+		sortColumn = col
+	} else {
+		sortColumn = fmt.Sprintf("%s[%s]", config.AttributesColumn, sb.Var(sortColumn))
+	}
+
+	forwardDirection := "DESC"
+	backwardDirection := "ASC"
+	if paginationDirection == modelInputs.SortDirectionAsc || sortDirection == modelInputs.SortDirectionAsc {
+		forwardDirection = "ASC"
+	} else {
+		backwardDirection = "DESC"
+	}
+
+	orderForward := fmt.Sprintf("%s %s, UUID %s", sortColumn, forwardDirection, forwardDirection)
+	orderBackward := fmt.Sprintf("%s %s, UUID %s", sortColumn, backwardDirection, backwardDirection)
+
+	return orderForward, orderBackward
 }

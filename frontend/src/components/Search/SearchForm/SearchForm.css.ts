@@ -8,9 +8,13 @@ import { styledVerticalScrollbar } from '@/style/common.css'
 
 export const searchIcon = style({
 	position: 'absolute',
-	top: 12,
+	top: 10,
 	left: 14,
 	color: vars.theme.interactive.fill.secondary.content.text,
+})
+
+export const searchIconWithActions = style({
+	top: 12,
 })
 
 const WORD_SPACING = 4
@@ -96,26 +100,26 @@ export const comboboxTagError = style({})
 export const comboboxTagClose = style({
 	backgroundColor: vars.color.white,
 	borderRadius: vars.borderRadius.round,
+	bottom: 8,
 	color: themeVars.static.content.default,
 	cursor: 'pointer',
+	marginLeft: -6,
 	position: 'absolute',
 	pointerEvents: 'auto',
 	opacity: 0,
-	right: -8,
-	top: -8,
 	zIndex: 1,
 })
 
 export const comboboxTagErrorIndicator = style({
 	backgroundColor: vars.color.white,
 	borderRadius: vars.borderRadius.round,
+	bottom: 8,
 	color: themeVars.static.content.sentiment.bad,
 	fontWeight: 'bold',
+	marginLeft: -6,
 	opacity: 1,
 	position: 'absolute',
 	pointerEvents: 'auto',
-	right: -8,
-	top: -8,
 	zIndex: 1,
 })
 
@@ -145,7 +149,7 @@ export const comboboxPopover = style({
 	flexGrow: 1,
 	maxWidth: 600,
 	maxHeight: 'min(var(--popover-available-height,300px),300px)',
-	minWidth: 350,
+	minWidth: 'min(var(--popover-available-width,350px),350px)',
 	paddingBottom: 33,
 	zIndex: 10,
 })

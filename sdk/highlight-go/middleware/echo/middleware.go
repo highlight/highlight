@@ -31,6 +31,7 @@ func Middleware() echo.MiddlewareFunc {
 
 			span, hCtx := highlight.StartTrace(ctx, "highlight.echo")
 			defer highlight.EndTrace(span)
+			defer middleware.Recoverer(span, c.Response(), c.Request())
 
 			c.SetRequest(c.Request().WithContext(hCtx))
 			err := next(c)

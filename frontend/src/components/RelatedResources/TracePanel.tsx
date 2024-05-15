@@ -4,10 +4,10 @@ import LoadingBox from '@/components/LoadingBox'
 import { RelatedTrace } from '@/components/RelatedResources/hooks'
 import { Panel } from '@/components/RelatedResources/Panel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
-import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
 import { TraceHeader } from '@/pages/Traces/TraceHeader'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
+import { TraceVisualizer } from '@/pages/Traces/TraceVisualizer'
 
 export const TracePanel: React.FC<{ resource: RelatedTrace }> = ({
 	resource,
@@ -19,7 +19,10 @@ export const TracePanel: React.FC<{ resource: RelatedTrace }> = ({
 
 	return (
 		<>
-			<Panel.Header path={path} />
+			<Panel.Header path={path}>
+				<Panel.HeaderCopyLinkButton path={path} />
+				<Panel.HeaderDivider />
+			</Panel.Header>
 
 			<Box overflowY="scroll" px="36" pt="28" pb="20">
 				{!traces?.length && loading ? (
@@ -31,7 +34,7 @@ export const TracePanel: React.FC<{ resource: RelatedTrace }> = ({
 				) : (
 					<Box>
 						<TraceHeader />
-						<TraceFlameGraph />
+						<TraceVisualizer />
 
 						<Box mt="40">
 							<Text size="large" weight="bold">
@@ -39,7 +42,7 @@ export const TracePanel: React.FC<{ resource: RelatedTrace }> = ({
 							</Text>
 							<Box bb="dividerWeak" mt="12" mb="8" />
 
-							<TraceSpanAttributes span={span!} />
+							{span && <TraceSpanAttributes span={span} />}
 						</Box>
 					</Box>
 				)}

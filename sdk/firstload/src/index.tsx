@@ -30,6 +30,7 @@ import { initializeFetchListener } from './listeners/fetch'
 import { initializeWebSocketListener } from './listeners/web-socket'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
 import { setItem } from '@highlight-run/client/src/utils/storage.js'
+import { ErrorMessageType } from '@highlight-run/client/src/types/shared-types'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -222,6 +223,21 @@ const H: HighlightPublicInterface = {
 			HighlightWarning('error', e)
 		}
 	},
+	consume: (
+		error: Error,
+		opts: {
+			message?: string
+			payload?: object
+			source?: string
+			type?: ErrorMessageType
+		},
+	) => {
+		try {
+			H.onHighlightReady(() => highlight_obj.consumeError(error, opts))
+		} catch (e) {
+			HighlightWarning('error', e)
+		}
+	},
 	error: (message: string, payload?: { [key: string]: string }) => {
 		try {
 			H.onHighlightReady(() =>
@@ -386,6 +402,9 @@ const H: HighlightPublicInterface = {
 				}
 			})
 		})
+	},
+	getRecordingState: () => {
+		return highlight_obj.state
 	},
 	onHighlightReady: async (func, options) => {
 		onHighlightReadyQueue.push({ options, func })

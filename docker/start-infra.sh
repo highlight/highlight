@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 source env.sh
 
@@ -7,6 +7,7 @@ source env.sh
 SERVICES="clickhouse kafka postgres redis zookeeper collector"
 
 docker compose pull $SERVICES
+docker compose build --pull $SERVICES
 docker compose up --detach --wait --remove-orphans --build $SERVICES
 
 if [[ "$*" != *"--go-docker"* ]]; then

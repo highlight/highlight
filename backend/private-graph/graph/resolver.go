@@ -64,9 +64,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
-	"github.com/stripe/stripe-go/v76"
-	"github.com/stripe/stripe-go/v76/client"
-	"github.com/stripe/stripe-go/v76/webhook"
+	"github.com/stripe/stripe-go/v78"
+	"github.com/stripe/stripe-go/v78/client"
+	"github.com/stripe/stripe-go/v78/webhook"
 
 	"github.com/highlight-run/workerpool"
 
@@ -706,20 +706,6 @@ func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*mo
 	segment := &model.Segment{}
 	if err := r.DB.WithContext(ctx).Where("id = ?", segment_id).Take(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying segment")
-	}
-	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
-	if err != nil {
-		return nil, err
-	}
-	return segment, nil
-}
-
-func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_id int) (*model.ErrorSegment, error) {
-	authSpan, ctx := util.StartSpanFromContext(ctx, "isAdminErrorSegmentOwner", util.ResourceName("resolver.internal.auth"))
-	defer authSpan.Finish()
-	segment := &model.ErrorSegment{}
-	if err := r.DB.WithContext(ctx).Where("id = ?", error_segment_id).Take(&segment).Error; err != nil {
-		return nil, e.Wrap(err, "error querying error segment")
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
@@ -1428,6 +1414,11 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, workspace *model.Wo
 		return e.Wrapf(err, "BILLING_ERROR error updating BillingEmailHistory objects for workspace %d", workspace.ID)
 	}
 
+	// clear redis cache for stripe customer data
+	if err := r.Redis.Cache.Delete(ctx, redis.GetSubscriptionDetailsKey(workspace.ID)); err != nil {
+		log.WithContext(ctx).WithError(err).Error("BILLING_ERROR failed to clear workspace billing cache key")
+	}
+
 	return nil
 }
 
@@ -1752,8 +1743,8 @@ func (r *Resolver) StripeWebhook(ctx context.Context, endpointSecret string) fun
 			return
 		}
 
-		event, err := webhook.ConstructEvent(payload, req.Header.Get("Stripe-Signature"),
-			endpointSecret)
+		event, err := webhook.ConstructEventWithOptions(payload, req.Header.Get("Stripe-Signature"),
+			endpointSecret, webhook.ConstructEventOptions{IgnoreAPIVersionMismatch: true})
 		if err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error verifying webhook signature"))
 			w.WriteHeader(http.StatusBadRequest)
@@ -2003,6 +1994,22 @@ func (r *Resolver) AddMicrosoftTeamsToWorkspace(ctx context.Context, workspace *
 	return nil
 }
 
+func (r *Resolver) AddHerokuToProject(ctx context.Context, project *model.Project, token string) error {
+	projectMapping := &model.IntegrationProjectMapping{
+		IntegrationType: modelInputs.IntegrationTypeHeroku,
+		ProjectID:       project.ID,
+		ExternalID:      token,
+	}
+
+	if err := r.DB.WithContext(ctx).
+		Model(&projectMapping).
+		Create(&projectMapping).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	var (
 		SLACK_CLIENT_ID     string
@@ -2051,9 +2058,8 @@ func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Wor
 	return nil
 }
 
-func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(workspace *model.Workspace, projectID int) error {
-
-	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(ctx context.Context, workspace *model.Workspace, projectID int) error {
+	if err := r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		update := model.Workspace{
 			MicrosoftTeamsTenantId: nil,
 		}
@@ -2093,8 +2099,8 @@ func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(workspace *model.Workspace,
 	return nil
 }
 
-func (r *Resolver) RemoveSlackFromWorkspace(workspace *model.Workspace, projectID int) error {
-	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+func (r *Resolver) RemoveSlackFromWorkspace(ctx context.Context, workspace *model.Workspace, projectID int) error {
+	if err := r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// remove slack integration from workspace
 		if err := tx.Where(&workspace).Select("slack_access_token", "slack_channels").Updates(&model.Workspace{SlackAccessToken: nil, SlackChannels: nil}).Error; err != nil {
 			return e.Wrap(err, "error removing slack access token and channels in workspace")
@@ -2131,32 +2137,32 @@ func (r *Resolver) RemoveSlackFromWorkspace(workspace *model.Workspace, projectI
 	return nil
 }
 
-func (r *Resolver) RemoveZapierFromWorkspace(project *model.Project) error {
-	if err := r.DB.WithContext(context.TODO()).Where(&project).Select("zapier_access_token").Updates(&model.Project{ZapierAccessToken: nil}).Error; err != nil {
+func (r *Resolver) RemoveZapierFromWorkspace(ctx context.Context, project *model.Project) error {
+	if err := r.DB.WithContext(ctx).Where(&project).Select("zapier_access_token").Updates(&model.Project{ZapierAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing zapier access token in project model")
 	}
 
 	return nil
 }
 
-func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
-	if err := r.DB.WithContext(context.TODO()).Where(&project).Select("front_access_token").Updates(&model.Project{FrontAccessToken: nil}).Error; err != nil {
+func (r *Resolver) RemoveFrontFromProject(ctx context.Context, project *model.Project) error {
+	if err := r.DB.WithContext(ctx).Where(&project).Select("front_access_token").Updates(&model.Project{FrontAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing front access token in project model")
 	}
 
 	return nil
 }
 
-func (r *Resolver) RemoveJiraFromWorkspace(workspace *model.Workspace) error {
+func (r *Resolver) RemoveJiraFromWorkspace(ctx context.Context, workspace *model.Workspace) error {
 	workspaceMapping := &model.IntegrationWorkspaceMapping{}
-	if err := r.DB.WithContext(context.TODO()).Where(&model.IntegrationWorkspaceMapping{
+	if err := r.DB.WithContext(ctx).Where(&model.IntegrationWorkspaceMapping{
 		WorkspaceID:     workspace.ID,
 		IntegrationType: modelInputs.IntegrationTypeJira,
 	}).Take(&workspaceMapping).Error; err != nil {
 		return e.Wrap(err, "workspace does not have a Jira integration")
 	}
 
-	if err := r.DB.Delete(workspaceMapping).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Delete(workspaceMapping).Error; err != nil {
 		return e.Wrap(err, "error deleting workspace Jira integration")
 	}
 
@@ -2165,15 +2171,14 @@ func (r *Resolver) RemoveJiraFromWorkspace(workspace *model.Workspace) error {
 		JiraCloudID: nil,
 	}
 
-	if err := r.DB.WithContext(context.TODO()).Where(&workspace).Select("jira_domain", "jira_cloud_id").Updates(updates).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&workspace).Select("jira_domain", "jira_cloud_id").Updates(updates).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r *Resolver) RemoveGitlabFromWorkspace(workspace *model.Workspace) error {
-	ctx := context.TODO()
+func (r *Resolver) RemoveGitlabFromWorkspace(ctx context.Context, workspace *model.Workspace) error {
 	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitLab)
 	if err == nil {
 		err := gitlab.RevokeGitlabAccessToken(*accessToken)
@@ -2189,7 +2194,7 @@ func (r *Resolver) RemoveGitlabFromWorkspace(workspace *model.Workspace) error {
 	return nil
 }
 
-func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
+func (r *Resolver) RemoveVercelFromWorkspace(ctx context.Context, workspace *model.Workspace) error {
 	if workspace.VercelAccessToken == nil {
 		return e.New("workspace does not have a Vercel access token")
 	}
@@ -2217,7 +2222,7 @@ func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
 		}
 	}
 
-	if err := r.DB.WithContext(context.TODO()).Where(workspace).
+	if err := r.DB.WithContext(ctx).Where(workspace).
 		Select("vercel_access_token", "vercel_team_id").
 		Updates(&model.Workspace{VercelAccessToken: nil, VercelTeamID: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing Vercel access token and team id")
@@ -2226,12 +2231,12 @@ func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
 	return nil
 }
 
-func (r *Resolver) RemoveClickUpFromWorkspace(workspace *model.Workspace) error {
+func (r *Resolver) RemoveClickUpFromWorkspace(ctx context.Context, workspace *model.Workspace) error {
 	if workspace.ClickupAccessToken == nil {
 		return e.New("workspace does not have a ClickUp access token")
 	}
 
-	if err := r.DB.WithContext(context.TODO()).Raw(`
+	if err := r.DB.WithContext(ctx).Raw(`
 		DELETE FROM integration_project_mappings ipm
 		WHERE ipm.integration_type = ?
 		AND EXISTS (
@@ -2244,7 +2249,7 @@ func (r *Resolver) RemoveClickUpFromWorkspace(workspace *model.Workspace) error 
 		return err
 	}
 
-	if err := r.DB.WithContext(context.TODO()).Where(workspace).
+	if err := r.DB.WithContext(ctx).Where(workspace).
 		Select("clickup_access_token").
 		Updates(&model.Workspace{ClickupAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing ClickUp access token")
@@ -2271,7 +2276,7 @@ func (r *Resolver) RemoveGitHubFromWorkspace(ctx context.Context, workspace *mod
 		return e.Wrap(err, "failed to create github client")
 	}
 
-	if err := r.DB.Exec(`
+	if err := r.DB.WithContext(ctx).Exec(`
 		UPDATE services
 		SET github_repo_path = NULL, github_prefix = NULL, build_prefix = NULL, status = 'created', error_details = ARRAY[]::text[]
 		FROM projects
@@ -2281,7 +2286,7 @@ func (r *Resolver) RemoveGitHubFromWorkspace(ctx context.Context, workspace *mod
 		return e.Wrap(err, "failed to remove GitHub repo from associated project services")
 	}
 
-	if err := r.DB.Delete(workspaceMapping).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Delete(workspaceMapping).Error; err != nil {
 		return e.Wrap(err, "error deleting workspace GitHub integration")
 	}
 
@@ -2310,15 +2315,15 @@ func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(ctx context.Context
 		return err
 	}
 
-	if err := r.DB.Delete(workspaceMapping).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Delete(workspaceMapping).Error; err != nil {
 		return e.Wrap(err, fmt.Sprintf("error deleting workspace %s integration", integrationType))
 	}
 
 	return nil
 }
 
-func (r *Resolver) RemoveDiscordFromWorkspace(workspace *model.Workspace) error {
-	if err := r.DB.WithContext(context.TODO()).Where(&workspace).Select("discord_guild_id").Updates(&model.Workspace{DiscordGuildId: nil}).Error; err != nil {
+func (r *Resolver) RemoveDiscordFromWorkspace(ctx context.Context, workspace *model.Workspace) error {
+	if err := r.DB.WithContext(ctx).Where(&workspace).Select("discord_guild_id").Updates(&model.Workspace{DiscordGuildId: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing discord guild id from workspace model")
 	}
 
@@ -2352,12 +2357,12 @@ func (r *Resolver) AddLinearToWorkspace(workspace *model.Workspace, code string)
 	return nil
 }
 
-func (r *Resolver) RemoveLinearFromWorkspace(workspace *model.Workspace) error {
+func (r *Resolver) RemoveLinearFromWorkspace(ctx context.Context, workspace *model.Workspace) error {
 	if err := r.RevokeLinearAccessToken(*workspace.LinearAccessToken); err != nil {
 		return err
 	}
 
-	if err := r.DB.WithContext(context.TODO()).Where(&workspace).Select("linear_access_token").Updates(&model.Workspace{LinearAccessToken: nil}).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&workspace).Select("linear_access_token").Updates(&model.Workspace{LinearAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing linear access token in workspace")
 	}
 
@@ -3044,10 +3049,10 @@ func (r *Resolver) SearchGitHubIssues(
 }
 
 type LinearAccessTokenResponse struct {
-	AccessToken string `json:"access_token"`
-	TokenType   string `json:"token_type"`
-	ExpiresIn   int64  `json:"expires_in"`
-	Scope       string `json:"scope"`
+	AccessToken string   `json:"access_token"`
+	TokenType   string   `json:"token_type"`
+	ExpiresIn   int64    `json:"expires_in"`
+	Scope       []string `json:"scope"`
 }
 
 func (r *Resolver) GetLinearAccessToken(code string, redirectURL string, clientID string, clientSecret string) (LinearAccessTokenResponse, error) {
@@ -3558,7 +3563,7 @@ func (r *Resolver) UpsertDiscordChannel(workspaceId int, name string) (*model.Di
 func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
 	const numBuckets = 48
 	agg := params.Aggregator
-	parts := []string{string(modelInputs.ReservedTraceKeyMetric) + ":" + metricName}
+	parts := []string{string(modelInputs.ReservedTraceKeyMetricName) + "=" + metricName}
 	for _, filter := range params.Filters {
 		switch filter.Op {
 		case modelInputs.MetricTagFilterOpEquals:
@@ -3567,10 +3572,10 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 			parts = append(parts, fmt.Sprintf("%s:%%%v%%", filter.Tag, filter.Value))
 		}
 	}
-	metrics, err := ccClient.ReadTracesMetrics(ctx, projectID, modelInputs.QueryInput{
+	metrics, err := ccClient.ReadEventMetrics(ctx, projectID, modelInputs.QueryInput{
 		Query:     strings.Join(parts, " "),
 		DateRange: params.DateRange,
-	}, string(modelInputs.MetricColumnMetricValue), []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
+	}, metricName, []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -3773,4 +3778,167 @@ func (r *Resolver) GetGitlabProjects(
 	}
 
 	return gitlab.GetGitlabProjects(workspace, *accessToken)
+}
+
+func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*model.VisualizationsResponse, error) {
+	viz := model.Visualization{
+		ProjectID: projectID,
+		Name:      "Insights",
+	}
+
+	countAggregator := modelInputs.MetricAggregatorCount
+
+	graphs := []*model.Graph{
+		{
+			Type:         "Bar chart",
+			Title:        "Active users",
+			ProductType:  "Sessions",
+			Query:        "email exists",
+			FunctionType: "Count",
+			BucketByKey:  pointy.String("Timestamp"),
+			BucketCount:  pointy.Int(24),
+			Display:      pointy.String("Stacked"),
+		},
+		{
+			Type:              "Bar chart",
+			Title:             "Most visited pages",
+			ProductType:       "Sessions",
+			FunctionType:      "Count",
+			GroupByKey:        pointy.String("visited-url"),
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Limit:             pointy.Int(5),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Stacked"),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "H.track events",
+			ProductType:       "Sessions",
+			Query:             "event exists",
+			Metric:            "active_length",
+			FunctionType:      "Avg",
+			GroupByKey:        pointy.String("event"),
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Stacked area"),
+			NullHandling:      pointy.String("Hidden"),
+		},
+		{
+			Type:         "Line chart",
+			Title:        "Sessions with user frustration",
+			ProductType:  "Sessions",
+			Query:        "has_rage_clicks=true",
+			FunctionType: "Count",
+			BucketByKey:  pointy.String("Timestamp"),
+			BucketCount:  pointy.Int(24),
+			Display:      pointy.String("Line"),
+			NullHandling: pointy.String("Hidden"),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "Slowest APIs",
+			ProductType:       "Traces",
+			Query:             "http.method exists http.url exists http.url=*api*",
+			FunctionType:      "P95",
+			Metric:            "duration",
+			GroupByKey:        pointy.String("span_name"),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+		},
+		{
+			Type:              "Table",
+			Title:             "Errors by browser",
+			ProductType:       "Errors",
+			FunctionType:      "Count",
+			Query:             "browser exists",
+			GroupByKey:        pointy.String("browser"),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			NullHandling:      pointy.String("Hide row"),
+		},
+	}
+
+	for vital, desc := range map[string]string{"CLS": "Cumulative Layout Shift", "INP": "Interaction to Next Paint", "LCP": "Longest Contentful Paint"} {
+		graphs = append(graphs, &model.Graph{
+			Type:              "Line chart",
+			Title:             "Web Vitals: " + desc,
+			ProductType:       "Metrics",
+			FunctionType:      "P95",
+			Metric:            vital,
+			GroupByKey:        pointy.String("browser"),
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Stacked area"),
+			NullHandling:      pointy.String("Hidden"),
+		})
+	}
+
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&viz).Error; err != nil {
+			return err
+		}
+
+		var count int64
+		if err := tx.WithContext(ctx).Model(&model.Visualization{}).
+			Where("project_id = ?", projectID).Count(&count).Error; err != nil {
+			return err
+		}
+
+		for _, g := range graphs {
+			g.VisualizationID = viz.ID
+		}
+
+		if count > 1 {
+			return errors.New("default dashboard already created")
+		}
+
+		if err := tx.Create(&graphs).Error; err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	for _, g := range graphs {
+		viz.Graphs = append(viz.Graphs, *g)
+	}
+
+	return &model.VisualizationsResponse{
+		Count:   1,
+		Results: []model.Visualization{viz},
+	}, nil
+}
+
+func reorderGraphs(viz *model.Visualization) {
+	// Reorder the graphs according to the ordering in viz.GraphIds.
+	// If the ordering includes ids not present in viz.Graphs, disregard those.
+	// If the ordering does not include ids present in viz.Graphs, append those at the end in order.
+	graphsById := lo.SliceToMap(viz.Graphs, func(g model.Graph) (int32, model.Graph) { return int32(g.ID), g })
+	orderedGraphs := []model.Graph{}
+	for _, id := range viz.GraphIds {
+		graph, found := graphsById[id]
+		if !found {
+			continue
+		}
+		orderedGraphs = append(orderedGraphs, graph)
+	}
+	graphIds := lo.SliceToMap(viz.GraphIds, func(id int32) (int32, struct{}) { return id, struct{}{} })
+	for _, graph := range viz.Graphs {
+		_, found := graphIds[int32(graph.ID)]
+		if !found {
+			orderedGraphs = append(orderedGraphs, graph)
+		}
+	}
+	viz.Graphs = orderedGraphs
 }

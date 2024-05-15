@@ -63,6 +63,12 @@ Highlight.io also supports reporting errors from your backend and mapping these 
     <DocsCard title="Rust" href="./4_backend-sdk/rust/1_overview.md">
         {"Get started with error monitoring in Rust"}
     </DocsCard>
+    <DocsCard title="C# .NET" href="./4_backend-sdk/dotnet.md">
+        {"Get started with error monitoring in C# .NET"}
+    </DocsCard>
+    <DocsCard title="PHP" href="./4_backend-sdk/php/1_overview.md">
+        {"Get started with error monitoring in PHP"}
+    </DocsCard>
     <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/2_error-monitoring.md">
         {"Get started with OpenTelemetry"}
     </DocsCard>
@@ -92,6 +98,12 @@ Highlight.io also supports logging from your backend and mapping these to corres
     </DocsCard>
     <DocsCard title="Rust" href="./backend-logging/06_rust/1_overview.md">
         {"Get started with logging in Rust"}
+    </DocsCard>
+    <DocsCard title="C# .NET" href="./backend-logging/14_dotnet.md">
+        {"Get started with logging in C# .NET"}
+    </DocsCard>
+    <DocsCard title="PHP" href="./backend-logging/15_php.md">
+        {"Get started with logging in PHP"}
     </DocsCard>
     <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/3_logging.md">
         {"Get started with OpenTelemetry"}
@@ -136,6 +148,12 @@ Highlight.io also supports tracing from your backend and mapping these to corres
     </DocsCard>
     <DocsCard title="Rust" href="./backend-tracing/4_rust/1_overview.md">
         {"Get started with tracing in Rust"}
+    </DocsCard>
+    <DocsCard title="C# .NET" href="./backend-tracing/5_dotnet.md">
+        {"Get started with tracing in C# .NET"}
+    </DocsCard>
+    <DocsCard title="PHP" href="./backend-tracing/6_php.md">
+        {"Get started with tracing in PHP"}
     </DocsCard>
     <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/4_tracing.md">
         {"Get started with tracing in OpenTelemetry"}

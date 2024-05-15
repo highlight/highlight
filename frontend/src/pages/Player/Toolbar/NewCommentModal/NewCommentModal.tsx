@@ -8,7 +8,6 @@ import React from 'react'
 import * as styles from './styles.css'
 
 interface Props {
-	newCommentModalRef: React.RefObject<HTMLDivElement>
 	commentTime: number
 	onCancel: () => void
 	commentModalPosition?: Coordinates2D
@@ -22,7 +21,6 @@ interface Props {
 	currentUrl?: string
 }
 export function NewCommentModal({
-	newCommentModalRef,
 	commentModalPosition,
 	commentPosition,
 	commentTime,
@@ -35,10 +33,14 @@ export function NewCommentModal({
 	errorTitle,
 	currentUrl,
 }: Props) {
+	if (commentModalPosition == undefined) {
+		return null
+	}
+
 	return (
 		<Modal
 			mask={!!mask}
-			visible={commentModalPosition !== undefined}
+			visible
 			onCancel={onCancel}
 			// Sets the Modal's mount node as the player center panel.
 			// The default is document.body
@@ -70,20 +72,17 @@ export function NewCommentModal({
 				<div className={styles.modalContainer}>{node}</div>
 			)}
 		>
-			<div ref={newCommentModalRef}>
-				<NewCommentForm
-					commentTime={Math.floor(commentTime)}
-					onCloseHandler={onCancel}
-					commentPosition={commentPosition}
-					parentRef={newCommentModalRef}
-					session={session}
-					error_secure_id={error_secure_id}
-					session_secure_id={session_secure_id}
-					errorTitle={errorTitle}
-					modalHeader={title}
-					currentUrl={currentUrl}
-				/>
-			</div>
+			<NewCommentForm
+				commentTime={Math.floor(commentTime)}
+				onCloseHandler={onCancel}
+				commentPosition={commentPosition}
+				session={session}
+				error_secure_id={error_secure_id}
+				session_secure_id={session_secure_id}
+				errorTitle={errorTitle}
+				modalHeader={title}
+				currentUrl={currentUrl}
+			/>
 		</Modal>
 	)
 }

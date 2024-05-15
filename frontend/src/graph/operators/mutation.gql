@@ -319,26 +319,6 @@ mutation EditWorkspaceSettings(
 	}
 }
 
-mutation DeleteSegment($segment_id: ID!) {
-	deleteSegment(segment_id: $segment_id)
-}
-
-mutation EditSegment(
-	$project_id: ID!
-	$id: ID!
-	$query: String!
-	$name: String!
-) {
-	editSegment(project_id: $project_id, id: $id, query: $query, name: $name)
-}
-
-mutation CreateSegment($project_id: ID!, $name: String!, $query: String!) {
-	createSegment(project_id: $project_id, name: $name, query: $query) {
-		name
-		id
-	}
-}
-
 mutation CreateSessionComment(
 	$project_id: ID!
 	$session_secure_id: String!
@@ -809,10 +789,10 @@ mutation CreateErrorAlert(
 	$webhook_destinations: [WebhookDestinationInput!]!
 	$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	$emails: [String]!
-	$environments: [String]!
 	$regex_groups: [String]!
 	$frequency: Int!
 	$default: Boolean
+	$query: String!
 ) {
 	createErrorAlert(
 		project_id: $project_id
@@ -823,11 +803,11 @@ mutation CreateErrorAlert(
 		microsoft_teams_channels: $microsoft_teams_channels
 		webhook_destinations: $webhook_destinations
 		emails: $emails
-		environments: $environments
 		threshold_window: $threshold_window
 		regex_groups: $regex_groups
 		frequency: $frequency
 		default: $default
+		query: $query
 	) {
 		id
 		ChannelsToNotify {
@@ -836,13 +816,13 @@ mutation CreateErrorAlert(
 		}
 		EmailsToNotify
 		Name
-		ExcludedEnvironments
 		CountThreshold
 		ThresholdWindow
 		LastAdminToEditID
 		RegexGroups
 		Frequency
 		disabled
+		Query
 	}
 }
 
@@ -985,10 +965,10 @@ mutation UpdateErrorAlert(
 	$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	$webhook_destinations: [WebhookDestinationInput!]!
 	$emails: [String]
-	$environments: [String]
 	$regex_groups: [String]
 	$frequency: Int
 	$disabled: Boolean
+	$query: String!
 ) {
 	updateErrorAlert(
 		project_id: $project_id
@@ -1000,11 +980,11 @@ mutation UpdateErrorAlert(
 		microsoft_teams_channels: $microsoft_teams_channels
 		webhook_destinations: $webhook_destinations
 		emails: $emails
-		environments: $environments
 		threshold_window: $threshold_window
 		regex_groups: $regex_groups
 		frequency: $frequency
 		disabled: $disabled
+		query: $query
 	) {
 		Name
 		ChannelsToNotify {
@@ -1020,13 +1000,12 @@ mutation UpdateErrorAlert(
 			name
 		}
 		EmailsToNotify
-		ExcludedEnvironments
 		CountThreshold
 		ThresholdWindow
 		LastAdminToEditID
-		RegexGroups
 		Frequency
 		disabled
+		Query
 	}
 }
 
@@ -1234,12 +1213,12 @@ mutation DeleteDashboard($id: ID!) {
 
 mutation DeleteSessions(
 	$project_id: ID!
-	$query: ClickhouseQuery!
+	$params: QueryInput!
 	$sessionCount: Int!
 ) {
 	deleteSessions(
 		project_id: $project_id
-		query: $query
+		params: $params
 		sessionCount: $sessionCount
 	)
 }
@@ -1437,7 +1416,23 @@ mutation DeleteVisualization($id: ID!) {
 }
 
 mutation UpsertGraph($graph: GraphInput!) {
-	upsertGraph(graph: $graph)
+	upsertGraph(graph: $graph) {
+		id
+		type
+		title
+		productType
+		query
+		metric
+		functionType
+		groupByKey
+		bucketByKey
+		bucketCount
+		limit
+		limitFunctionType
+		limitMetric
+		display
+		nullHandling
+	}
 }
 
 mutation DeleteGraph($id: ID!) {
