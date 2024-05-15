@@ -22,6 +22,8 @@ const FlyNDJson = `{"event":{"provider":"app"},"fly":{"app":{"instance":"4d891d7
 {"event":{"provider":"app"},"fly":{"app":{"instance":"6e82d4e6a37548","name":"fly-builder-autumn-violet-9735"},"region":"lax"},"host":"971e","log":{"level":"info"},"message":"time=\"2023-06-27T01:19:12.541516209Z\" level=debug msg=\"checking docker activity\"","timestamp":"2023-06-27T01:19:12.541906845Z"}
 {"event":{"provider":"app"},"fly":{"app":{"instance":"6e82d4e6a37548","name":"fly-builder-autumn-violet-9735"},"region":"lax"},"host":"971e","log":{"level":"info"},"message":"time=\"2023-06-27T01:19:12.541802849Z\" level=debug msg=\"Calling GET /v1.41/containers/json?filters=%7B%22status%22%3A%7B%22running%22%3Atrue%7D%7D&limit=0\"","timestamp":"2023-06-27T01:19:12.542083756Z"}`
 
+const GCPJson = `{"insertId":"o9knqgrvve37m18j","jsonPayload":{"job":"work.email.recurring_queue_new_review_notifications","job-id":"ff0bfe05-d764-4885-adbf-be5c3fd6fa57","job-queue":"qa:kvasir","level":"info","max-retry":5,"msg":"processing task","retry":0,"worker":"asynq"},"labels":{"compute.googleapis.com/resource_name":"gke-staging-spot-pool-4741f477-ts57","k8s-pod/app":"worker","k8s-pod/app_kubernetes_io/managed-by":"shelob","k8s-pod/pod-template-hash":"6cc89b447c","k8s-pod/security_istio_io/tlsMode":"istio","k8s-pod/service_istio_io/canonical-name":"worker","k8s-pod/service_istio_io/canonical-revision":"latest"},"logName":"projects/precisely-staging/logs/stdout","receiveTimestamp":"2024-04-18T11:15:04.985600039Z","resource":{"labels":{"cluster_name":"staging","container_name":"worker","location":"europe-west3-a","namespace_name":"qa","pod_name":"worker-deployment-6cc89b447c-wbksh","project_id":"precisely-staging"},"type":"k8s_container"},"severity":"INFO","timestamp":"2024-04-18T11:15:00Z"}`
+
 type MockResponseWriter struct {
 	statusCode int
 }
@@ -83,6 +85,14 @@ func TestHandleFlyJSONGZIPLog(t *testing.T) {
 	r.Header.Set("Content-Encoding", "gzip")
 	r.Header.Set(LogDrainProjectHeader, "1")
 	r.Header.Set(LogDrainServiceHeader, "foo")
+	w := &MockResponseWriter{}
+	HandleJSONLog(w, r)
+	assert.Equal(t, 200, w.statusCode)
+}
+
+func TestHandleGCPJson(t *testing.T) {
+	r, _ := http.NewRequest("POST", "/v1/logs/json?project=1", strings.NewReader(GCPJson))
+	r.Header.Set("Content-Type", "application/json")
 	w := &MockResponseWriter{}
 	HandleJSONLog(w, r)
 	assert.Equal(t, 200, w.statusCode)

@@ -261,11 +261,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							projectSessionErrors[fields.projectID][fields.sessionID] = append(projectSessionErrors[fields.projectID][fields.sessionID], backendError)
 						}
 					} else if event.Name() == highlight.LogEvent {
-						if fields.logMessage == "" {
-							lg(ctx, fields).Warn("otel received log with no message")
-							continue
-						}
-
 						if fields.logSeverity == "" {
 							fields.logSeverity = "unknown"
 						}
