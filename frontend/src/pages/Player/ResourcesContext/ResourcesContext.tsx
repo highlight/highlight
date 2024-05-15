@@ -113,15 +113,15 @@ export const useResources = (
 		variables: {
 			session_secure_id: sessionSecureId ?? '',
 		},
-		fetchPolicy: 'no-cache',
+		fetchPolicy: 'cache-and-network',
 		skip: skipQuery,
 	})
 
 	useEffect(() => {
 		if (!skipQuery) {
-			setResourcesLoading(queryLoading)
+			setResourcesLoading(queryLoading && data === undefined)
 		}
-	}, [queryLoading, skipQuery])
+	}, [data, queryLoading, skipQuery])
 
 	const [resources, setResources] = useState<NetworkResourceWithID[]>([])
 	useEffect(() => {

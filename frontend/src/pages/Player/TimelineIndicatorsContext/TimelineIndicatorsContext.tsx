@@ -33,9 +33,9 @@ export const useTimelineIndicators = (
 
 	useEffect(() => {
 		if (!skipQuery) {
-			setLoading(queryLoading)
+			setLoading(queryLoading && data === undefined)
 		}
-	}, [queryLoading, skipQuery])
+	}, [data, queryLoading, skipQuery])
 
 	const [timelineIndicatorEvents, setTimelineIndicatorEvents] = useState<
 		Pick<TimelineIndicatorEvent, 'timestamp' | 'data' | 'type' | 'sid'>[]

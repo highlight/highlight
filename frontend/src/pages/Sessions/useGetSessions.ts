@@ -28,6 +28,14 @@ export const useGetSessions = ({
 	disablePolling?: boolean
 	sortDesc: boolean
 }) => {
+	const roundedStartDate = moment(startDate)
+		.startOf('minute')
+		.subtract(moment(startDate).minute() % 5, 'minutes')
+
+	const roudnedEndDate = moment(endDate)
+		.startOf('minute')
+		.subtract(moment(endDate).minute() % 5, 'minutes')
+
 	const { data, loading, error, refetch } = useGetSessionsQuery({
 		variables: {
 			project_id: project_id!,
@@ -36,8 +44,8 @@ export const useGetSessions = ({
 			params: {
 				query,
 				date_range: {
-					start_date: moment(startDate).format(TIME_FORMAT),
-					end_date: moment(endDate).format(TIME_FORMAT),
+					start_date: roundedStartDate.format(TIME_FORMAT),
+					end_date: roudnedEndDate.format(TIME_FORMAT),
 				},
 			},
 			sort_desc: sortDesc,
@@ -82,7 +90,7 @@ export const useGetSessions = ({
 		sessionSes: data?.sessions?.sessions.map((eg) => eg.secure_id) || [],
 		moreSessions,
 		resetMoreSessions,
-		loading,
+		loading: loading && data === undefined,
 		error,
 		refetch,
 		totalCount: data?.sessions?.totalCount || 0,
