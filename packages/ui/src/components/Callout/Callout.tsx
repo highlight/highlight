@@ -14,7 +14,6 @@ import * as styles from './styles.css'
 
 export type Props = React.PropsWithChildren &
 	styles.Variants & {
-		layout?: 'default' | 'centered'
 		title?: string
 		width?: number
 		style?: React.CSSProperties
@@ -36,7 +35,6 @@ const TEXT_COLOR_MAP = {
 
 export const Callout: React.FC<Props> = ({
 	children,
-	layout = 'default',
 	kind = 'info',
 	title,
 	icon,
