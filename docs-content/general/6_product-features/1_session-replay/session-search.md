@@ -123,4 +123,8 @@ Currently, length and active length are not supported by time suffixes, but this
 
 ## Demo
 
-Add video here
+<EmbeddedVideo 
+  src="https://www.youtube.com/embed/U4nA0XjOqIQ?si=4Vy64J9J2JxEGAqY"
+  title="Youtube Video Player"
+  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+/>

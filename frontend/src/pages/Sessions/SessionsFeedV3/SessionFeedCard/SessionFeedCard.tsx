@@ -279,7 +279,7 @@ export const SessionFeedCard = React.memo(
 														/>
 													}
 													onClick={handleIconClick(
-														'viewed',
+														'viewed_by_anyone',
 														false,
 													)}
 												/>
