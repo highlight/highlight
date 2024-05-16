@@ -235,46 +235,42 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 
 export const getCustomTooltip =
 	(xAxisMetric: any, yAxisMetric: any) =>
-	({ active, payload, label }: any) => {
-		if (active && payload && payload.length) {
-			return (
-				<Box cssClass={style.tooltipWrapper}>
-					<Text
-						size="xxSmall"
-						weight="medium"
-						color="default"
-						cssClass={style.tooltipText}
+	({ payload, label }: any) => {
+		return (
+			<Box cssClass={style.tooltipWrapper}>
+				<Text
+					size="xxSmall"
+					weight="medium"
+					color="default"
+					cssClass={style.tooltipText}
+				>
+					{getTickFormatter(xAxisMetric)(label)}
+				</Text>
+				{payload.map((p: any, idx: number) => (
+					<Box
+						display="flex"
+						flexDirection="row"
+						alignItems="center"
+						key={idx}
 					>
-						{getTickFormatter(xAxisMetric)(label)}
-					</Text>
-					{payload.map((p: any, idx: number) => (
 						<Box
-							display="flex"
-							flexDirection="row"
-							alignItems="center"
-							key={idx}
+							style={{
+								backgroundColor: p.color,
+							}}
+							cssClass={style.tooltipDot}
+						></Box>
+						<Text
+							size="xxSmall"
+							weight="medium"
+							color="default"
+							cssClass={style.tooltipText}
 						>
-							<Box
-								style={{
-									backgroundColor: p.color,
-								}}
-								cssClass={style.tooltipDot}
-							></Box>
-							<Text
-								size="xxSmall"
-								weight="medium"
-								color="default"
-								cssClass={style.tooltipText}
-							>
-								{getTickFormatter(yAxisMetric)(p.value)}
-							</Text>
-						</Box>
-					))}
-				</Box>
-			)
-		}
-
-		return null
+							{getTickFormatter(yAxisMetric)(p.value)}
+						</Text>
+					</Box>
+				))}
+			</Box>
+		)
 	}
 
 export const CustomYAxisTick = ({
