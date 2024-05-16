@@ -64,9 +64,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
-	"github.com/stripe/stripe-go/v76"
-	"github.com/stripe/stripe-go/v76/client"
-	"github.com/stripe/stripe-go/v76/webhook"
+	"github.com/stripe/stripe-go/v78"
+	"github.com/stripe/stripe-go/v78/client"
+	"github.com/stripe/stripe-go/v78/webhook"
 
 	"github.com/highlight-run/workerpool"
 
@@ -1447,6 +1447,11 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, workspace *model.Wo
 		return e.Wrapf(err, "BILLING_ERROR error updating BillingEmailHistory objects for workspace %d", workspace.ID)
 	}
 
+	// clear redis cache for stripe customer data
+	if err := r.Redis.Cache.Delete(ctx, redis.GetSubscriptionDetailsKey(workspace.ID)); err != nil {
+		log.WithContext(ctx).WithError(err).Error("BILLING_ERROR failed to clear workspace billing cache key")
+	}
+
 	return nil
 }
 
@@ -1771,8 +1776,8 @@ func (r *Resolver) StripeWebhook(ctx context.Context, endpointSecret string) fun
 			return
 		}
 
-		event, err := webhook.ConstructEvent(payload, req.Header.Get("Stripe-Signature"),
-			endpointSecret)
+		event, err := webhook.ConstructEventWithOptions(payload, req.Header.Get("Stripe-Signature"),
+			endpointSecret, webhook.ConstructEventOptions{IgnoreAPIVersionMismatch: true})
 		if err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error verifying webhook signature"))
 			w.WriteHeader(http.StatusBadRequest)
@@ -2030,6 +2035,22 @@ func (r *Resolver) AddMicrosoftTeamsToWorkspace(ctx context.Context, workspace *
 	return nil
 }
 
+func (r *Resolver) AddHerokuToProject(ctx context.Context, project *model.Project, token string) error {
+	projectMapping := &model.IntegrationProjectMapping{
+		IntegrationType: modelInputs.IntegrationTypeHeroku,
+		ProjectID:       project.ID,
+		ExternalID:      token,
+	}
+
+	if err := r.DB.WithContext(ctx).
+		Model(&projectMapping).
+		Create(&projectMapping).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	var (
 		SLACK_CLIENT_ID     string
@@ -2078,9 +2099,8 @@ func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Wor
 	return nil
 }
 
-func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(workspace *model.Workspace, projectID int) error {
-
-	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(ctx context.Context, workspace *model.Workspace, projectID int) error {
+	if err := r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		update := model.Workspace{
 			MicrosoftTeamsTenantId: nil,
 		}
@@ -2120,8 +2140,8 @@ func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(workspace *model.Workspace,
 	return nil
 }
 
-func (r *Resolver) RemoveSlackFromWorkspace(workspace *model.Workspace, projectID int) error {
-	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+func (r *Resolver) RemoveSlackFromWorkspace(ctx context.Context, workspace *model.Workspace, projectID int) error {
+	if err := r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// remove slack integration from workspace
 		if err := tx.Where(&workspace).Select("slack_access_token", "slack_channels").Updates(&model.Workspace{SlackAccessToken: nil, SlackChannels: nil}).Error; err != nil {
 			return e.Wrap(err, "error removing slack access token and channels in workspace")
@@ -2158,32 +2178,32 @@ func (r *Resolver) RemoveSlackFromWorkspace(workspace *model.Workspace, projectI
 	return nil
 }
 
-func (r *Resolver) RemoveZapierFromWorkspace(project *model.Project) error {
-	if err := r.DB.WithContext(context.TODO()).Where(&project).Select("zapier_access_token").Updates(&model.Project{ZapierAccessToken: nil}).Error; err != nil {
+func (r *Resolver) RemoveZapierFromWorkspace(ctx context.Context, project *model.Project) error {
+	if err := r.DB.WithContext(ctx).Where(&project).Select("zapier_access_token").Updates(&model.Project{ZapierAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing zapier access token in project model")
 	}
 
 	return nil
 }
 
-func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
-	if err := r.DB.WithContext(context.TODO()).Where(&project).Select("front_access_token").Updates(&model.Project{FrontAccessToken: nil}).Error; err != nil {
+func (r *Resolver) RemoveFrontFromProject(ctx context.Context, project *model.Project) error {
+	if err := r.DB.WithContext(ctx).Where(&project).Select("front_access_token").Updates(&model.Project{FrontAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing front access token in project model")
 	}
 
 	return nil
 }
 
-func (r *Resolver) RemoveJiraFromWorkspace(workspace *model.Workspace) error {
+func (r *Resolver) RemoveJiraFromWorkspace(ctx context.Context, workspace *model.Workspace) error {
 	workspaceMapping := &model.IntegrationWorkspaceMapping{}
-	if err := r.DB.WithContext(context.TODO()).Where(&model.IntegrationWorkspaceMapping{
+	if err := r.DB.WithContext(ctx).Where(&model.IntegrationWorkspaceMapping{
 		WorkspaceID:     workspace.ID,
 		IntegrationType: modelInputs.IntegrationTypeJira,
 	}).Take(&workspaceMapping).Error; err != nil {
 		return e.Wrap(err, "workspace does not have a Jira integration")
 	}
 
-	if err := r.DB.Delete(workspaceMapping).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Delete(workspaceMapping).Error; err != nil {
 		return e.Wrap(err, "error deleting workspace Jira integration")
 	}
 
@@ -2192,15 +2212,14 @@ func (r *Resolver) RemoveJiraFromWorkspace(workspace *model.Workspace) error {
 		JiraCloudID: nil,
 	}
 
-	if err := r.DB.WithContext(context.TODO()).Where(&workspace).Select("jira_domain", "jira_cloud_id").Updates(updates).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&workspace).Select("jira_domain", "jira_cloud_id").Updates(updates).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r *Resolver) RemoveGitlabFromWorkspace(workspace *model.Workspace) error {
-	ctx := context.TODO()
+func (r *Resolver) RemoveGitlabFromWorkspace(ctx context.Context, workspace *model.Workspace) error {
 	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitLab)
 	if err == nil {
 		err := gitlab.RevokeGitlabAccessToken(*accessToken)
@@ -2216,7 +2235,7 @@ func (r *Resolver) RemoveGitlabFromWorkspace(workspace *model.Workspace) error {
 	return nil
 }
 
-func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
+func (r *Resolver) RemoveVercelFromWorkspace(ctx context.Context, workspace *model.Workspace) error {
 	if workspace.VercelAccessToken == nil {
 		return e.New("workspace does not have a Vercel access token")
 	}
@@ -2244,7 +2263,7 @@ func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
 		}
 	}
 
-	if err := r.DB.WithContext(context.TODO()).Where(workspace).
+	if err := r.DB.WithContext(ctx).Where(workspace).
 		Select("vercel_access_token", "vercel_team_id").
 		Updates(&model.Workspace{VercelAccessToken: nil, VercelTeamID: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing Vercel access token and team id")
@@ -2253,12 +2272,12 @@ func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
 	return nil
 }
 
-func (r *Resolver) RemoveClickUpFromWorkspace(workspace *model.Workspace) error {
+func (r *Resolver) RemoveClickUpFromWorkspace(ctx context.Context, workspace *model.Workspace) error {
 	if workspace.ClickupAccessToken == nil {
 		return e.New("workspace does not have a ClickUp access token")
 	}
 
-	if err := r.DB.WithContext(context.TODO()).Raw(`
+	if err := r.DB.WithContext(ctx).Raw(`
 		DELETE FROM integration_project_mappings ipm
 		WHERE ipm.integration_type = ?
 		AND EXISTS (
@@ -2271,7 +2290,7 @@ func (r *Resolver) RemoveClickUpFromWorkspace(workspace *model.Workspace) error 
 		return err
 	}
 
-	if err := r.DB.WithContext(context.TODO()).Where(workspace).
+	if err := r.DB.WithContext(ctx).Where(workspace).
 		Select("clickup_access_token").
 		Updates(&model.Workspace{ClickupAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing ClickUp access token")
@@ -2298,7 +2317,7 @@ func (r *Resolver) RemoveGitHubFromWorkspace(ctx context.Context, workspace *mod
 		return e.Wrap(err, "failed to create github client")
 	}
 
-	if err := r.DB.Exec(`
+	if err := r.DB.WithContext(ctx).Exec(`
 		UPDATE services
 		SET github_repo_path = NULL, github_prefix = NULL, build_prefix = NULL, status = 'created', error_details = ARRAY[]::text[]
 		FROM projects
@@ -2308,7 +2327,7 @@ func (r *Resolver) RemoveGitHubFromWorkspace(ctx context.Context, workspace *mod
 		return e.Wrap(err, "failed to remove GitHub repo from associated project services")
 	}
 
-	if err := r.DB.Delete(workspaceMapping).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Delete(workspaceMapping).Error; err != nil {
 		return e.Wrap(err, "error deleting workspace GitHub integration")
 	}
 
@@ -2337,15 +2356,15 @@ func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(ctx context.Context
 		return err
 	}
 
-	if err := r.DB.Delete(workspaceMapping).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Delete(workspaceMapping).Error; err != nil {
 		return e.Wrap(err, fmt.Sprintf("error deleting workspace %s integration", integrationType))
 	}
 
 	return nil
 }
 
-func (r *Resolver) RemoveDiscordFromWorkspace(workspace *model.Workspace) error {
-	if err := r.DB.WithContext(context.TODO()).Where(&workspace).Select("discord_guild_id").Updates(&model.Workspace{DiscordGuildId: nil}).Error; err != nil {
+func (r *Resolver) RemoveDiscordFromWorkspace(ctx context.Context, workspace *model.Workspace) error {
+	if err := r.DB.WithContext(ctx).Where(&workspace).Select("discord_guild_id").Updates(&model.Workspace{DiscordGuildId: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing discord guild id from workspace model")
 	}
 
@@ -2379,12 +2398,12 @@ func (r *Resolver) AddLinearToWorkspace(workspace *model.Workspace, code string)
 	return nil
 }
 
-func (r *Resolver) RemoveLinearFromWorkspace(workspace *model.Workspace) error {
+func (r *Resolver) RemoveLinearFromWorkspace(ctx context.Context, workspace *model.Workspace) error {
 	if err := r.RevokeLinearAccessToken(*workspace.LinearAccessToken); err != nil {
 		return err
 	}
 
-	if err := r.DB.WithContext(context.TODO()).Where(&workspace).Select("linear_access_token").Updates(&model.Workspace{LinearAccessToken: nil}).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&workspace).Select("linear_access_token").Updates(&model.Workspace{LinearAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing linear access token in workspace")
 	}
 
@@ -3585,7 +3604,7 @@ func (r *Resolver) UpsertDiscordChannel(workspaceId int, name string) (*model.Di
 func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
 	const numBuckets = 48
 	agg := params.Aggregator
-	parts := []string{string(modelInputs.ReservedTraceKeyMetric) + ":" + metricName}
+	parts := []string{string(modelInputs.ReservedTraceKeyMetricName) + "=" + metricName}
 	for _, filter := range params.Filters {
 		switch filter.Op {
 		case modelInputs.MetricTagFilterOpEquals:
@@ -3594,10 +3613,10 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 			parts = append(parts, fmt.Sprintf("%s:%%%v%%", filter.Tag, filter.Value))
 		}
 	}
-	metrics, err := ccClient.ReadTracesMetrics(ctx, projectID, modelInputs.QueryInput{
+	metrics, err := ccClient.ReadEventMetrics(ctx, projectID, modelInputs.QueryInput{
 		Query:     strings.Join(parts, " "),
 		DateRange: params.DateRange,
-	}, string(modelInputs.MetricColumnMetricValue), []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
+	}, metricName, []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -3885,6 +3904,23 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			LimitFunctionType: &countAggregator,
 			NullHandling:      pointy.String("Hide row"),
 		},
+	}
+
+	for vital, desc := range map[string]string{"CLS": "Cumulative Layout Shift", "INP": "Interaction to Next Paint", "LCP": "Longest Contentful Paint"} {
+		graphs = append(graphs, &model.Graph{
+			Type:              "Line chart",
+			Title:             "Web Vitals: " + desc,
+			ProductType:       "Metrics",
+			FunctionType:      "P95",
+			Metric:            vital,
+			GroupByKey:        pointy.String("browser"),
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketCount:       pointy.Int(24),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Stacked area"),
+			NullHandling:      pointy.String("Hidden"),
+		})
 	}
 
 	if err := r.DB.Transaction(func(tx *gorm.DB) error {

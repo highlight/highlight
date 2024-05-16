@@ -2,15 +2,19 @@ import {
 	Badge,
 	Box,
 	Button,
+	DateRangePreset,
 	IconSolidArrowsExpand,
 	IconSolidChartSquareBar,
 	IconSolidChartSquareLine,
 	IconSolidDocumentReport,
 	IconSolidDotsHorizontal,
+	IconSolidDuplicate,
+	IconSolidLoading,
 	IconSolidPencil,
 	IconSolidTable,
 	IconSolidTrash,
 	Menu,
+	presetStartDate,
 	Stack,
 	Text,
 	Tooltip,
@@ -19,12 +23,13 @@ import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ReferenceArea } from 'recharts'
 import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart'
 
+import { loadingIcon } from '@/components/Button/style.css'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
-import { useGetMetricsQuery } from '@/graph/generated/hooks'
+import { useGetMetricsLazyQuery } from '@/graph/generated/hooks'
 import { Maybe, MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import {
 	BarChart,
@@ -42,7 +47,6 @@ import {
 	TableConfig,
 	TableNullHandling,
 } from '@/pages/Graphing/components/Table'
-import { HistogramLoading } from '@/pages/Traces/TracesPage'
 
 import * as style from './Graph.css'
 
@@ -82,6 +86,7 @@ export interface ChartProps<TConfig> {
 	projectId: string
 	startDate: Date
 	endDate: Date
+	selectedPreset?: DateRangePreset
 	query: string
 	metric: string
 	functionType: MetricAggregator
@@ -93,6 +98,7 @@ export interface ChartProps<TConfig> {
 	limitMetric?: string
 	viewConfig: TConfig
 	disabled?: boolean
+	onClone?: () => void
 	onDelete?: () => void
 	onExpand?: () => void
 	onEdit?: () => void
@@ -163,6 +169,18 @@ const durationUnitMap: [number, string][] = [
 	[24, 'd'],
 ]
 
+const timeMetrics = {
+	active_length: 'ms',
+	length: 'ms',
+	duration: 'ns',
+	Jank: 'ms',
+	FCP: 'ms',
+	FID: 'ms',
+	LCP: 'ms',
+	TTFB: 'ms',
+	INP: 'ms',
+}
+
 export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 	if (metric === 'Timestamp') {
 		if (data === undefined) {
@@ -179,10 +197,18 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 		} else {
 			return (value: any) => moment(value * 1000).format('MM/DD')
 		}
-	} else if (metric === 'duration') {
+	} else if (Object.hasOwn(timeMetrics, metric)) {
 		return (value: any) => {
-			let lastUnit = 'ns'
+			let startUnit =
+				timeMetrics[metric as keyof typeof timeMetrics] ?? 'ns'
+			let lastUnit = startUnit
 			for (const entry of durationUnitMap) {
+				if (startUnit !== '') {
+					if (startUnit === entry[1]) {
+						startUnit = ''
+					}
+					continue
+				}
 				if (value / entry[0] < 1) {
 					break
 				}
@@ -211,46 +237,42 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 
 export const getCustomTooltip =
 	(xAxisMetric: any, yAxisMetric: any) =>
-	({ active, payload, label }: any) => {
-		if (active && payload && payload.length) {
-			return (
-				<Box cssClass={style.tooltipWrapper}>
-					<Text
-						size="xxSmall"
-						weight="medium"
-						color="default"
-						cssClass={style.tooltipText}
+	({ payload, label }: any) => {
+		return (
+			<Box cssClass={style.tooltipWrapper}>
+				<Text
+					size="xxSmall"
+					weight="medium"
+					color="default"
+					cssClass={style.tooltipText}
+				>
+					{getTickFormatter(xAxisMetric)(label)}
+				</Text>
+				{payload.map((p: any, idx: number) => (
+					<Box
+						display="flex"
+						flexDirection="row"
+						alignItems="center"
+						key={idx}
 					>
-						{getTickFormatter(xAxisMetric)(label)}
-					</Text>
-					{payload.map((p: any, idx: number) => (
 						<Box
-							display="flex"
-							flexDirection="row"
-							alignItems="center"
-							key={idx}
+							style={{
+								backgroundColor: p.color,
+							}}
+							cssClass={style.tooltipDot}
+						></Box>
+						<Text
+							size="xxSmall"
+							weight="medium"
+							color="default"
+							cssClass={style.tooltipText}
 						>
-							<Box
-								style={{
-									backgroundColor: p.color,
-								}}
-								cssClass={style.tooltipDot}
-							></Box>
-							<Text
-								size="xxSmall"
-								weight="medium"
-								color="default"
-								cssClass={style.tooltipText}
-							>
-								{getTickFormatter(yAxisMetric)(p.value)}
-							</Text>
-						</Box>
-					))}
-				</Box>
-			)
-		}
-
-		return null
+							{getTickFormatter(yAxisMetric)(p.value)}
+						</Text>
+					</Box>
+				))}
+			</Box>
+		)
 	}
 
 export const CustomYAxisTick = ({
@@ -342,6 +364,9 @@ export const getViewConfig = (
 	return viewConfig
 }
 
+const POLL_INTERVAL_VALUE = 1000 * 60
+const LONGER_POLL_INTERVAL_VALUE = 1000 * 60 * 5
+
 const Graph = ({
 	productType,
 	projectId,
@@ -359,41 +384,118 @@ const Graph = ({
 	title,
 	viewConfig,
 	disabled,
+	onClone,
 	onDelete,
 	onExpand,
 	onEdit,
 	setTimeRange,
+	selectedPreset,
 }: ChartProps<ViewConfig>) => {
 	const [graphHover, setGraphHover] = useState(false)
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
 	const showMenu =
 		onDelete !== undefined || onExpand !== undefined || onEdit !== undefined
 
-	const { data: metrics, loading: metricsLoading } = useGetMetricsQuery({
-		variables: {
-			product_type: productType,
-			project_id: projectId,
-			params: {
-				date_range: {
-					start_date: moment(startDate)
-						.startOf('minute')
-						.format(TIME_FORMAT),
-					end_date: moment(endDate)
-						.startOf('minute')
-						.format(TIME_FORMAT),
+	const pollTimeout = useRef<number>()
+	const [pollInterval, setPollInterval] = useState<number>(0)
+	const [fetchStart, setFetchStart] = useState<Date>()
+	const [fetchEnd, setFetchEnd] = useState<Date>()
+
+	const [
+		getMetrics,
+		{ data: newMetrics, called, loading, previousData: previousMetrics },
+	] = useGetMetricsLazyQuery()
+
+	const metrics = loading ? previousMetrics : newMetrics
+
+	const rebaseFetchTime = useCallback(() => {
+		if (!selectedPreset) {
+			setPollInterval(0)
+			setFetchStart(startDate)
+			setFetchEnd(endDate)
+			return
+		}
+
+		const newStartFetch = presetStartDate(selectedPreset)
+		const newPollInterval =
+			moment().diff(newStartFetch, 'hours') > 5
+				? LONGER_POLL_INTERVAL_VALUE
+				: POLL_INTERVAL_VALUE
+
+		setPollInterval(newPollInterval)
+		setFetchStart(newStartFetch)
+		setFetchEnd(moment().toDate())
+	}, [selectedPreset, startDate, endDate])
+
+	// set the fetch dates and poll interval when selected date changes
+	useEffect(() => {
+		rebaseFetchTime()
+	}, [rebaseFetchTime])
+
+	// fetch new metrics when varaibles change (including polled fetch time)
+	useEffect(() => {
+		if (!fetchStart || !fetchEnd) {
+			return
+		}
+
+		getMetrics({
+			variables: {
+				product_type: productType,
+				project_id: projectId,
+				params: {
+					date_range: {
+						start_date: moment(fetchStart)
+							.startOf('minute')
+							.format(TIME_FORMAT),
+						end_date: moment(fetchEnd)
+							.startOf('minute')
+							.format(TIME_FORMAT),
+					},
+					query: query,
 				},
-				query: query,
+				column: metric,
+				metric_types: [functionType],
+				group_by: groupByKey !== undefined ? [groupByKey] : [],
+				bucket_by:
+					bucketByKey !== undefined ? bucketByKey : TIMESTAMP_KEY,
+				bucket_count: queriedBucketCount,
+				limit: limit,
+				limit_aggregator: limitFunctionType,
+				limit_column: limitMetric,
 			},
-			column: metric,
-			metric_types: [functionType],
-			group_by: groupByKey !== undefined ? [groupByKey] : [],
-			bucket_by: bucketByKey !== undefined ? bucketByKey : TIMESTAMP_KEY,
-			bucket_count: queriedBucketCount,
-			limit: limit,
-			limit_aggregator: limitFunctionType,
-			limit_column: limitMetric,
-		},
-	})
+		}).then(() => {
+			// create another poll timeout if pollInterval is set
+			if (pollInterval) {
+				pollTimeout.current = setTimeout(
+					rebaseFetchTime,
+					pollInterval,
+				) as unknown as number
+			}
+		})
+
+		return () => {
+			if (!!pollTimeout.current) {
+				clearTimeout(pollTimeout.current)
+				pollTimeout.current = undefined
+			}
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		bucketByKey,
+		fetchEnd,
+		fetchStart,
+		functionType,
+		getMetrics,
+		groupByKey,
+		limit,
+		limitFunctionType,
+		limitMetric,
+		metric,
+		productType,
+		projectId,
+		queriedBucketCount,
+		query,
+	])
 
 	const xAxisMetric = bucketByKey !== undefined ? bucketByKey : GROUP_KEY
 	const yAxisMetric = functionType === MetricAggregator.Count ? '' : metric
@@ -509,13 +611,15 @@ const Graph = ({
 				alignItems="center"
 				justifyContent="center"
 			>
-				<Badge
-					size="medium"
-					shape="basic"
-					variant="gray"
-					label="No data found"
-					iconStart={<IconSolidDocumentReport />}
-				/>
+				{!loading && (
+					<Badge
+						size="medium"
+						shape="basic"
+						variant="gray"
+						label="No data found"
+						iconStart={<IconSolidDocumentReport />}
+					/>
+				)}
 			</Stack>
 		)
 	} else {
@@ -580,7 +684,7 @@ const Graph = ({
 			height="full"
 			display="flex"
 			flexDirection="column"
-			gap="4"
+			gap="8"
 			justifyContent="space-between"
 			onMouseEnter={() => {
 				setGraphHover(true)
@@ -589,68 +693,68 @@ const Graph = ({
 				setGraphHover(false)
 			}}
 		>
-			{metricsLoading && (
-				<Box
-					position="absolute"
-					width="full"
-					height="full"
-					display="flex"
-					alignItems="center"
-					justifyContent="center"
-					cssClass={style.loadingOverlay}
-				>
-					<HistogramLoading cssClass={style.loadingText} />
-				</Box>
-			)}
-			<Box display="flex" flexDirection="column">
-				<Box
-					display="flex"
-					flexDirection="row"
-					justifyContent="space-between"
-				>
-					<Text
-						size="small"
-						color="default"
-						cssClass={style.titleText}
+			<Box
+				display="flex"
+				flexDirection="row"
+				justifyContent="space-between"
+			>
+				<Text size="small" color="default" cssClass={style.titleText}>
+					{title || 'Untitled metric view'}
+				</Text>
+				{showMenu && graphHover && !disabled && called && (
+					<Box
+						cssClass={clsx(style.titleText, {
+							[style.hiddenMenu]: !graphHover,
+						})}
 					>
-						{title || 'Untitled metric view'}
-					</Text>
-					{showMenu && graphHover && !disabled && !metricsLoading && (
-						<Box
-							cssClass={clsx(style.titleText, {
-								[style.hiddenMenu]: !graphHover,
-							})}
-						>
-							{onExpand !== undefined && (
-								<Button
-									size="xSmall"
+						{onExpand !== undefined && (
+							<Button
+								size="xSmall"
+								emphasis="low"
+								kind="secondary"
+								iconLeft={<IconSolidArrowsExpand />}
+								onClick={onExpand}
+							/>
+						)}
+						{onEdit !== undefined && (
+							<Button
+								size="xSmall"
+								emphasis="low"
+								kind="secondary"
+								iconLeft={<IconSolidPencil />}
+								onClick={onEdit}
+							/>
+						)}
+						{(onDelete || onClone) && (
+							<Menu>
+								<Menu.Button
+									size="medium"
 									emphasis="low"
 									kind="secondary"
-									iconLeft={<IconSolidArrowsExpand />}
-									onClick={onExpand}
+									iconLeft={<IconSolidDotsHorizontal />}
+									onClick={(e: any) => {
+										e.stopPropagation()
+									}}
 								/>
-							)}
-							{onEdit !== undefined && (
-								<Button
-									size="xSmall"
-									emphasis="low"
-									kind="secondary"
-									iconLeft={<IconSolidPencil />}
-									onClick={onEdit}
-								/>
-							)}
-							{onDelete !== undefined && (
-								<Menu>
-									<Menu.Button
-										size="medium"
-										emphasis="low"
-										kind="secondary"
-										iconLeft={<IconSolidDotsHorizontal />}
-										onClick={(e: any) => {
-											e.stopPropagation()
-										}}
-									/>
-									<Menu.List>
+								<Menu.List>
+									{onClone && (
+										<Menu.Item
+											onClick={(e) => {
+												e.stopPropagation()
+												onClone()
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconSolidDuplicate />
+												Clone metric view
+											</Box>
+										</Menu.Item>
+									)}
+									{onDelete && (
 										<Menu.Item
 											onClick={(e) => {
 												e.stopPropagation()
@@ -666,85 +770,105 @@ const Graph = ({
 												Delete metric view
 											</Box>
 										</Menu.Item>
-									</Menu.List>
-								</Menu>
-							)}
-						</Box>
-					)}
-				</Box>
-				{showLegend && (
-					<Box position="relative" cssClass={style.legendWrapper}>
-						{series.map((key, idx) => {
-							return (
-								<Button
-									kind="secondary"
-									emphasis="low"
-									size="xSmall"
-									key={key}
-									onClick={() => {
-										if (spotlight === idx) {
-											setSpotlight(undefined)
-										} else {
-											setSpotlight(idx)
-										}
-									}}
-									cssClass={style.legendTextButton}
-								>
-									<Tooltip
-										delayed
-										trigger={
-											<>
-												<Box
-													style={{
-														backgroundColor:
-															isActive(
-																spotlight,
-																idx,
-															)
-																? getColor(idx)
-																: undefined,
-													}}
-													cssClass={style.legendDot}
-												></Box>
-												<Box
-													cssClass={
-														style.legendTextWrapper
-													}
-												>
-													<Text
-														lines="1"
-														color={
-															isActive(
-																spotlight,
-																idx,
-															)
-																? undefined
-																: 'n8'
-														}
-														align="left"
-													>
-														{key || '<empty>'}
-													</Text>
-												</Box>
-											</>
-										}
-									>
-										{key || '<empty>'}
-									</Tooltip>
-								</Button>
-							)
-						})}
+									)}
+								</Menu.List>
+							</Menu>
+						)}
 					</Box>
 				)}
 			</Box>
-			{!metricsLoading && (
+			{called && (
 				<Box
 					height="full"
 					maxHeight="screen"
 					key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
 					cssClass={clsx({ [style.disabled]: disabled })}
+					position="relative"
 				>
+					{loading && (
+						<Stack
+							position="absolute"
+							width="full"
+							height="full"
+							alignItems="center"
+							justifyContent="center"
+							cssClass={style.loadingOverlay}
+						>
+							<Badge
+								size="medium"
+								shape="basic"
+								variant="gray"
+								label="Loading"
+								iconStart={
+									<IconSolidLoading
+										className={loadingIcon}
+										color={vars.theme.static.content.weak}
+									/>
+								}
+							/>
+						</Stack>
+					)}
 					{innerChart}
+				</Box>
+			)}
+			{showLegend && (
+				<Box position="relative" cssClass={style.legendWrapper}>
+					{series.map((key, idx) => {
+						return (
+							<Button
+								kind="secondary"
+								emphasis="low"
+								size="xSmall"
+								key={key}
+								onClick={() => {
+									if (spotlight === idx) {
+										setSpotlight(undefined)
+									} else {
+										setSpotlight(idx)
+									}
+								}}
+								cssClass={style.legendTextButton}
+							>
+								<Tooltip
+									delayed
+									trigger={
+										<>
+											<Box
+												style={{
+													backgroundColor: isActive(
+														spotlight,
+														idx,
+													)
+														? getColor(idx)
+														: undefined,
+												}}
+												cssClass={style.legendDot}
+											></Box>
+											<Box
+												cssClass={
+													style.legendTextWrapper
+												}
+											>
+												<Text
+													lines="1"
+													color={
+														isActive(spotlight, idx)
+															? undefined
+															: 'n8'
+													}
+													align="left"
+												>
+													{key || '<empty>'}
+												</Text>
+											</Box>
+										</>
+									}
+								>
+									{key || '<empty>'}
+								</Tooltip>
+							</Button>
+						)
+					})}
 				</Box>
 			)}
 		</Box>

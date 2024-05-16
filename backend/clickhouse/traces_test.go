@@ -2,9 +2,11 @@ package clickhouse
 
 import (
 	"context"
-	"github.com/highlight-run/highlight/backend/parser"
+	"fmt"
 	"testing"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/parser"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 
@@ -18,8 +20,8 @@ func TestBatchWriteTraceRows(t *testing.T) {
 
 	now := time.Now()
 
-	rows := []*TraceRow{
-		NewTraceRow(now, 1).WithServiceName("gqlgen"),
+	rows := []*ClickhouseTraceRow{
+		NewTraceRow(now, 1).WithServiceName("gqlgen").AsClickhouseTraceRow(),
 	}
 
 	assert.NoError(t, client.BatchWriteTraceRows(ctx, rows))
@@ -159,10 +161,10 @@ func TestReadTracesWithEnvironmentFilter(t *testing.T) {
 	defer teardown(t)
 
 	now := time.Now()
-	rows := []*TraceRow{
-		NewTraceRow(now, 1),
-		NewTraceRow(now, 1).WithEnvironment("production"),
-		NewTraceRow(now, 1).WithEnvironment("development"),
+	rows := []*ClickhouseTraceRow{
+		NewTraceRow(now, 1).AsClickhouseTraceRow(),
+		NewTraceRow(now, 1).WithEnvironment("production").AsClickhouseTraceRow(),
+		NewTraceRow(now, 1).WithEnvironment("development").AsClickhouseTraceRow(),
 	}
 
 	assert.NoError(t, client.BatchWriteTraceRows(ctx, rows))
@@ -189,4 +191,52 @@ func TestReadTracesWithEnvironmentFilter(t *testing.T) {
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)
+}
+
+func TestReadTracesWithSorting(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
+	now := time.Now()
+	rows := []*ClickhouseTraceRow{
+		NewTraceRow(now, 1).WithSpanName("Span A").WithDuration(now, now.Add(100*time.Nanosecond)).WithTraceAttributes(map[string]string{"host.name": "b"}).AsClickhouseTraceRow(),
+		NewTraceRow(now, 1).WithSpanName("Span B").WithDuration(now, now.Add(300*time.Nanosecond)).WithTraceAttributes(map[string]string{"host.name": "c"}).AsClickhouseTraceRow(),
+		NewTraceRow(now, 1).WithSpanName("Span C").WithDuration(now, now.Add(200*time.Nanosecond)).WithTraceAttributes(map[string]string{"host.name": "a"}).AsClickhouseTraceRow(),
+	}
+
+	assert.NoError(t, client.BatchWriteTraceRows(ctx, rows))
+
+	payload, err := client.ReadTraces(ctx, 1, modelInputs.QueryInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "",
+		Sort: &modelInputs.SortInput{
+			Column:    "duration",
+			Direction: "DESC",
+		},
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 3)
+
+	assert.Equal(t, "Span B", payload.Edges[0].Node.SpanName)
+	assert.Equal(t, "Span C", payload.Edges[1].Node.SpanName)
+	assert.Equal(t, "Span A", payload.Edges[2].Node.SpanName)
+
+	payload, err = client.ReadTraces(ctx, 1, modelInputs.QueryInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "",
+		Sort: &modelInputs.SortInput{
+			Column:    "host.name",
+			Direction: "DESC",
+		},
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 3)
+
+	for i, edge := range payload.Edges {
+		fmt.Printf("Edge %d: %v\n", i, edge.Node)
+	}
+	assert.Equal(t, "Span B", payload.Edges[0].Node.SpanName)
+	assert.Equal(t, "Span A", payload.Edges[1].Node.SpanName)
+	assert.Equal(t, "Span C", payload.Edges[2].Node.SpanName)
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/samber/lo"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"gorm.io/gorm/clause"
 )
 

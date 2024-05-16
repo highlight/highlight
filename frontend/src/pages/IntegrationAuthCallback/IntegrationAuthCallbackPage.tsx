@@ -235,7 +235,7 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 	}
 
 	// If there are no projects, redirect to create one
-	if (data?.projects?.length === 0) {
+	if ((data?.projects?.length ?? 0) === 0) {
 		const callbackPath = `/callback/vercel${search}`
 
 		if (!isLoggedIn) {
@@ -636,6 +636,10 @@ const IntegrationAuthCallbackPage = () => {
 	})
 	const currentWorkspaceId = workspacesData?.workspaces?.at(0)?.id ?? ''
 
+	if (name === 'vercel') {
+		return <VercelIntegrationCallback code={code} />
+	}
+
 	log('IntegrationAuthCallback.tsx', { workspaceId, currentWorkspaceId })
 	if (!workspaceId && !currentWorkspaceId) {
 		return null
@@ -740,8 +744,6 @@ const IntegrationAuthCallbackPage = () => {
 			return (
 				<FrontIntegrationCallback code={code} projectId={projectId} />
 			)
-		case 'vercel':
-			return <VercelIntegrationCallback code={code} />
 		case 'discord':
 			return (
 				<DiscordIntegrationCallback

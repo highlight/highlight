@@ -15,7 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering/types"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
-	"github.com/stripe/stripe-go/v76"
+	"github.com/stripe/stripe-go/v78"
 
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/store"
@@ -25,7 +25,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
-	"github.com/stripe/stripe-go/v76/client"
+	"github.com/stripe/stripe-go/v78/client"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -1007,7 +1007,7 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 
 	// For non-monthly subscriptions, set PendingInvoiceItemInterval to 'month' if not set
 	// so that overage is reported via monthly invoice items.
-	if interval != model.PricingSubscriptionIntervalMonthly {
+	if interval != model.PricingSubscriptionIntervalMonthly && (subscription.PendingInvoiceItemInterval == nil || subscription.PendingInvoiceItemInterval.Interval != stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth) {
 		log.WithContext(ctx).WithField("workspaceID", workspaceID).Info("configuring monthly invoices for non-monthly subscription")
 		updated, err := w.stripeClient.Subscriptions.Update(subscription.ID, &stripe.SubscriptionParams{
 			PendingInvoiceItemInterval: &stripe.SubscriptionPendingInvoiceItemIntervalParams{
@@ -1043,13 +1043,8 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 	// Cancelled subscriptions have no upcoming invoice - we can skip these since we won't
 	// be charging any overage for their next billing period.
 	if err != nil {
-		if err.Error() == string(stripe.ErrorCodeInvoiceUpcomingNone) {
-			log.WithContext(ctx).WithField("workspaceID", workspaceID).Warn("workspace has no invoice upcoming, will not report overage")
-			return nil
-		} else {
-			log.WithContext(ctx).Error(err)
-			return e.Wrap(err, "BILLING_ERROR cannot report usage - failed to retrieve upcoming invoice for customer "+c.ID)
-		}
+		log.WithContext(ctx).WithField("workspaceID", workspaceID).WithError(err).Warn("workspace has no invoice upcoming, will not report overage")
+		return nil
 	}
 
 	invoiceLinesParams := &stripe.InvoiceUpcomingLinesParams{

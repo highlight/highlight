@@ -12,14 +12,18 @@ import moment from 'moment'
 import React, { useEffect, useRef } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
-import { useQueryParam } from 'use-query-params'
+import { StringParam, useQueryParam } from 'use-query-params'
 
 import { loadingIcon } from '@/components/Button/style.css'
 import {
 	RelatedTrace,
 	useRelatedResource,
 } from '@/components/RelatedResources/hooks'
-import { SearchContext } from '@/components/Search/SearchContext'
+import {
+	SearchContext,
+	SORT_COLUMN,
+	SORT_DIRECTION,
+} from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -35,9 +39,10 @@ import {
 	MetricColumn,
 	ProductType,
 	SavedSegmentEntityType,
+	SortDirection,
 	Trace,
 } from '@/graph/generated/schemas'
-import { useProjectId } from '@/hooks/useProjectId'
+import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LatencyChart } from '@/pages/Traces/LatencyChart'
@@ -51,7 +56,7 @@ import * as styles from './TracesPage.css'
 export type TracesOutletContext = Partial<Trace>[]
 
 export const TracesPage: React.FC = () => {
-	const { projectId } = useProjectId()
+	const { projectId } = useNumericProjectId()
 	const navigate = useNavigate()
 	const {
 		trace_id,
@@ -60,6 +65,8 @@ export const TracesPage: React.FC = () => {
 	} = useParams<{ trace_id: string; span_id: string; trace_cursor: string }>()
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [query, setQuery] = useQueryParam('query', QueryParam)
+	const [sortColumn] = useQueryParam(SORT_COLUMN, StringParam)
+	const [sortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
 	const {
 		startDate,
 		endDate,
@@ -87,6 +94,8 @@ export const TracesPage: React.FC = () => {
 		startDate,
 		endDate,
 		skipPolling: !selectedPreset,
+		sortColumn,
+		sortDirection: sortDirection as SortDirection,
 	})
 
 	const { data: metricsData, loading: metricsLoading } =

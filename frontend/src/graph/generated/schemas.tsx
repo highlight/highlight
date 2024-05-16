@@ -773,6 +773,7 @@ export enum IntegrationType {
 	GitHub = 'GitHub',
 	GitLab = 'GitLab',
 	Height = 'Height',
+	Heroku = 'Heroku',
 	Jira = 'Jira',
 	Linear = 'Linear',
 	MicrosoftTeams = 'MicrosoftTeams',
@@ -1027,7 +1028,6 @@ export enum MetricBucketBy {
 
 export enum MetricColumn {
 	Duration = 'Duration',
-	MetricValue = 'MetricValue',
 }
 
 export type MetricMonitor = {
@@ -1846,10 +1846,13 @@ export type NetworkHistogramParamsInput = {
 
 export enum NetworkRequestAttribute {
 	BodySize = 'body_size',
+	ConnectLatency = 'connect_latency',
+	DnsLatency = 'dns_latency',
 	GraphqlOperation = 'graphql_operation',
 	InitiatorType = 'initiator_type',
 	Latency = 'latency',
 	Method = 'method',
+	RedirectLatency = 'redirect_latency',
 	RequestId = 'request_id',
 	ResponseSize = 'response_size',
 	Status = 'status',
@@ -1916,6 +1919,7 @@ export enum PlanType {
 export enum ProductType {
 	Errors = 'Errors',
 	Logs = 'Logs',
+	Metrics = 'Metrics',
 	Sessions = 'Sessions',
 	Traces = 'Traces',
 }
@@ -2073,7 +2077,6 @@ export type Query = {
 	sourcemap_files: Array<S3File>
 	sourcemap_versions: Array<Scalars['String']>
 	subscription_details: SubscriptionDetails
-	suggested_metrics: Array<Scalars['String']>
 	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
 	topUsers: Array<Maybe<TopUsersPayload>>
@@ -2761,11 +2764,6 @@ export type QuerySubscription_DetailsArgs = {
 	workspace_id: Scalars['ID']
 }
 
-export type QuerySuggested_MetricsArgs = {
-	prefix: Scalars['String']
-	project_id: Scalars['ID']
-}
-
 export type QueryTimeline_Indicator_EventsArgs = {
 	session_secure_id: Scalars['String']
 }
@@ -2905,6 +2903,7 @@ export type QueryWorkspace_Invite_LinksArgs = {
 export type QueryInput = {
 	date_range: DateRangeRequiredInput
 	query: Scalars['String']
+	sort?: InputMaybe<SortInput>
 }
 
 export type QueryKey = {
@@ -2992,6 +2991,7 @@ export enum ReservedLogKey {
 	ServiceVersion = 'service_version',
 	Source = 'source',
 	SpanId = 'span_id',
+	Timestamp = 'timestamp',
 	TraceId = 'trace_id',
 }
 
@@ -3000,6 +3000,7 @@ export enum ReservedSessionKey {
 	BrowserName = 'browser_name',
 	BrowserVersion = 'browser_version',
 	City = 'city',
+	Completed = 'completed',
 	Country = 'country',
 	DeviceId = 'device_id',
 	Environment = 'environment',
@@ -3021,7 +3022,9 @@ export enum ReservedSessionKey {
 	Sample = 'sample',
 	SecureId = 'secure_id',
 	ServiceVersion = 'service_version',
+	State = 'state',
 	Viewed = 'viewed',
+	ViewedByAnyone = 'viewed_by_anyone',
 	ViewedByMe = 'viewed_by_me',
 	WithinBillingQuota = 'within_billing_quota',
 }
@@ -3030,9 +3033,11 @@ export enum ReservedTraceKey {
 	Duration = 'duration',
 	Environment = 'environment',
 	HasErrors = 'has_errors',
+	HighlightType = 'highlight_type',
 	Level = 'level',
 	Message = 'message',
-	Metric = 'metric',
+	MetricName = 'metric_name',
+	MetricValue = 'metric_value',
 	ParentSpanId = 'parent_span_id',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
@@ -3040,6 +3045,7 @@ export enum ReservedTraceKey {
 	SpanId = 'span_id',
 	SpanKind = 'span_kind',
 	SpanName = 'span_name',
+	Timestamp = 'timestamp',
 	TraceId = 'trace_id',
 	TraceState = 'trace_state',
 }
@@ -3444,6 +3450,11 @@ export enum SocialType {
 export enum SortDirection {
 	Asc = 'ASC',
 	Desc = 'DESC',
+}
+
+export type SortInput = {
+	column: Scalars['String']
+	direction: SortDirection
 }
 
 export type SourceMappingError = {

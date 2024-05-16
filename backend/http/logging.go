@@ -14,7 +14,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.opentelemetry.io/otel/trace"
 
 	model2 "github.com/highlight-run/highlight/backend/model"

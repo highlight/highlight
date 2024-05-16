@@ -2,6 +2,11 @@ package worker
 
 import (
 	"context"
+	"io"
+	"os"
+	"testing"
+	"time"
+
 	"github.com/go-test/deep"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -17,10 +22,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"io"
-	"os"
-	"testing"
-	"time"
 )
 
 var DB *gorm.DB
@@ -966,8 +967,8 @@ func TestCalculateOverages(t *testing.T) {
 			}
 
 			for idx := 0; idx < 13; idx++ {
-				var traces []*clickhouse.TraceRow
-				traces = append(traces, clickhouse.NewTraceRow(time.Now(), p.ID))
+				var traces []*clickhouse.ClickhouseTraceRow
+				traces = append(traces, clickhouse.NewTraceRow(time.Now(), p.ID).AsClickhouseTraceRow())
 				if err := chClient.BatchWriteTraceRows(ctx, traces); err != nil {
 					t.Error(e.Wrap(err, "error inserting traces"))
 					return

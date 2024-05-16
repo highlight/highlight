@@ -17,13 +17,11 @@ export const searchIconWithActions = style({
 	top: 12,
 })
 
-const WORD_SPACING = 4
-
 export const combobox = style([
 	sprinkles({
 		p: '6',
 	}),
-	typographyStyles.family.body,
+	typographyStyles.family.monospace,
 	typographyStyles.size.small,
 	{
 		background: 'transparent',
@@ -34,7 +32,6 @@ export const combobox = style([
 		fontWeight: '500 !important',
 		pointerEvents: 'auto',
 		width: '100%',
-		wordSpacing: WORD_SPACING,
 		selectors: {
 			'&:focus': {
 				outline: 0,
@@ -54,7 +51,7 @@ export const comboboxNotEmpty = style({
 })
 
 export const comboboxTagsContainer = style([
-	typographyStyles.family.body,
+	typographyStyles.family.monospace,
 	typographyStyles.size.small,
 	{
 		display: 'block',
@@ -79,16 +76,12 @@ export const comboboxTag = style({
 	height: 20,
 })
 
-export const token = style({
-	height: 20,
-	letterSpacing: 0,
-	wordSpacing: WORD_SPACING,
-})
-
-export const whitespaceToken = style({
-	letterSpacing: WORD_SPACING,
-	wordSpacing: 0,
-})
+export const token = style([
+	typographyStyles.family.monospace,
+	{
+		height: 20,
+	},
+])
 
 export const errorToken = style({
 	backgroundColor: 'rgba(255, 9, 87, 0.1)',
@@ -100,26 +93,26 @@ export const comboboxTagError = style({})
 export const comboboxTagClose = style({
 	backgroundColor: vars.color.white,
 	borderRadius: vars.borderRadius.round,
+	bottom: 8,
 	color: themeVars.static.content.default,
 	cursor: 'pointer',
+	marginLeft: -6,
 	position: 'absolute',
 	pointerEvents: 'auto',
 	opacity: 0,
-	right: -8,
-	top: -8,
 	zIndex: 1,
 })
 
 export const comboboxTagErrorIndicator = style({
 	backgroundColor: vars.color.white,
 	borderRadius: vars.borderRadius.round,
+	bottom: 8,
 	color: themeVars.static.content.sentiment.bad,
 	fontWeight: 'bold',
+	marginLeft: -6,
 	opacity: 1,
 	position: 'absolute',
 	pointerEvents: 'auto',
-	right: -8,
-	top: -8,
 	zIndex: 1,
 })
 

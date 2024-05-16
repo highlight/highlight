@@ -58,9 +58,9 @@ import (
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
-	stripe "github.com/stripe/stripe-go/v76"
+	stripe "github.com/stripe/stripe-go/v78"
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -3031,6 +3031,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddMicrosoftTeamsToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeHeroku {
+		if err := r.AddHerokuToProject(ctx, project, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -3051,47 +3055,56 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 	}
 
 	if *integrationType == modelInputs.IntegrationTypeLinear {
-		if err := r.RemoveLinearFromWorkspace(workspace); err != nil {
+		if err := r.RemoveLinearFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeJira {
-		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
+		if err := r.RemoveJiraFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeSlack {
-		if err := r.RemoveSlackFromWorkspace(workspace, projectID); err != nil {
+		if err := r.RemoveSlackFromWorkspace(ctx, workspace, projectID); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeZapier {
-		if err := r.RemoveZapierFromWorkspace(project); err != nil {
+		if err := r.RemoveZapierFromWorkspace(ctx, project); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeFront {
-		if err := r.RemoveFrontFromProject(project); err != nil {
+		if err := r.RemoveFrontFromProject(ctx, project); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeVercel {
-		if err := r.RemoveVercelFromWorkspace(workspace); err != nil {
+		if err := r.RemoveVercelFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeDiscord {
-		if err := r.RemoveDiscordFromWorkspace(workspace); err != nil {
+		if err := r.RemoveDiscordFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeGitHub {
-		if err := r.RemoveDiscordFromWorkspace(workspace); err != nil {
+		if err := r.RemoveGitHubFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
-		if err := r.RemoveMicrosoftTeamsFromWorkspace(workspace, projectID); err != nil {
+		if err := r.RemoveMicrosoftTeamsFromWorkspace(ctx, workspace, projectID); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeGitLab {
-		if err := r.RemoveGitlabFromWorkspace(workspace); err != nil {
+		if err := r.RemoveGitlabFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else {
-		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
+		tx := r.DB.WithContext(ctx).Where(&model.IntegrationProjectMapping{
+			ProjectID:       project.ID,
+			IntegrationType: *integrationType,
+		}).Delete(&model.IntegrationProjectMapping{})
+		if err := tx.Error; err != nil {
+			return false, e.Wrap(err, "failed to remove project integration")
+		}
+		if tx.RowsAffected == 0 {
+			return false, e.New("project does not have a integration")
+		}
 	}
 
 	return true, nil
@@ -3139,7 +3152,7 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 	}
 
 	if integrationType == modelInputs.IntegrationTypeClickUp {
-		if err := r.RemoveClickUpFromWorkspace(workspace); err != nil {
+		if err := r.RemoveClickUpFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if integrationType == modelInputs.IntegrationTypeGitHub {
@@ -3147,18 +3160,17 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 			return false, err
 		}
 	} else if integrationType == modelInputs.IntegrationTypeJira {
-		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
+		if err := r.RemoveJiraFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else if integrationType == modelInputs.IntegrationTypeGitLab {
-		if err := r.RemoveGitlabFromWorkspace(workspace); err != nil {
+		if err := r.RemoveGitlabFromWorkspace(ctx, workspace); err != nil {
 			return false, err
 		}
 	} else {
 		if err := r.RemoveIntegrationFromWorkspaceAndProjects(ctx, workspace, integrationType); err != nil {
 			return false, err
 		}
-
 	}
 
 	return true, nil
@@ -6862,7 +6874,7 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, produ
 	switch productType {
 	case modelInputs.ProductTypeSessions:
 		meter, err = r.ClickhouseClient.ReadWorkspaceSessionCounts(ctx, projectIds, modelInputs.QueryInput{
-			Query:     "processed=true AND excluded=false AND active_length > 1000",
+			Query:     "completed=true AND excluded=false AND active_length > 1000",
 			DateRange: dateRange,
 		})
 	case modelInputs.ProductTypeErrors:
@@ -6877,6 +6889,11 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, produ
 		})
 	case modelInputs.ProductTypeTraces:
 		meter, err = r.ClickhouseClient.ReadWorkspaceTraceCounts(ctx, projectIds, modelInputs.QueryInput{
+			Query:     "",
+			DateRange: dateRange,
+		})
+	case modelInputs.ProductTypeMetrics:
+		meter, err = r.ClickhouseClient.ReadWorkspaceMetricCounts(ctx, projectIds, modelInputs.QueryInput{
 			Query:     "",
 			DateRange: dateRange,
 		})
@@ -7416,9 +7433,16 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return workspace.VercelAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeDiscord {
 		return workspace.DiscordGuildId != nil, nil
+	} else {
+		projectMapping := &model.IntegrationProjectMapping{}
+		if err := r.DB.WithContext(ctx).Where(&model.IntegrationProjectMapping{
+			ProjectID:       projectID,
+			IntegrationType: integrationType,
+		}).Take(&projectMapping).Error; err != nil {
+			return false, nil
+		}
+		return projectMapping != nil, nil
 	}
-
-	return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 }
 
 // IsWorkspaceIntegratedWith is the resolver for the is_workspace_integrated_with field.
@@ -8247,6 +8271,9 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 
 // SubscriptionDetails is the resolver for the subscription_details field.
 func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int) (*modelInputs.SubscriptionDetails, error) {
+	span, _ := util.StartSpanFromContext(ctx, "SubscriptionDetails", util.Tag("workspaceID", workspaceID))
+	defer span.Finish()
+
 	workspace, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
@@ -8255,64 +8282,66 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		return nil, e.New("workspace has no stripe customer ID")
 	}
 
-	customerParams := &stripe.CustomerParams{}
-	customerParams.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying stripe customer")
-	}
-
-	if len(c.Subscriptions.Data) == 0 {
-		return &modelInputs.SubscriptionDetails{}, nil
-	}
-
-	amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
-	details := &modelInputs.SubscriptionDetails{BaseAmount: amount}
-
-	discount := c.Subscriptions.Data[0].Discount
-	if discount != nil && discount.Coupon != nil {
-		details.Discount = &modelInputs.SubscriptionDiscount{
-			Name:    discount.Coupon.Name,
-			Percent: discount.Coupon.PercentOff,
-			Amount:  discount.Coupon.AmountOff,
-		}
-		if discount.Coupon.Duration != stripe.CouponDurationForever {
-			t := time.Unix(discount.Start, 0).AddDate(0, int(discount.Coupon.DurationInMonths), 0)
-			details.Discount.Until = &t
-		}
-	}
-
-	invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID
-	invoiceParams := &stripe.InvoiceParams{}
-	customerParams.AddExpand("invoice_items")
-	invoice, err := r.StripeClient.Invoices.Get(invoiceID, invoiceParams)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying stripe invoice")
-	}
-
-	if invoice != nil {
-		invoiceDue := time.Unix(invoice.Created, 0)
-		status := string(invoice.Status)
-		details.LastInvoice = &modelInputs.Invoice{
-			Date:         &invoiceDue,
-			AmountDue:    &invoice.AmountDue,
-			AmountPaid:   &invoice.AmountPaid,
-			AttemptCount: &invoice.AttemptCount,
-			Status:       &status,
-			URL:          &invoice.HostedInvoiceURL,
-		}
-		warningSent, err := r.Redis.GetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID))
+	return redis.CachedEval(ctx, r.Redis, redis.GetSubscriptionDetailsKey(workspaceID), time.Minute, time.Minute, func() (*modelInputs.SubscriptionDetails, error) {
+		customerParams := &stripe.CustomerParams{}
+		customerParams.AddExpand("subscriptions")
+		c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
 		if err != nil {
+			return nil, e.Wrap(err, "error querying stripe customer")
+		}
+
+		if len(c.Subscriptions.Data) == 0 {
+			return &modelInputs.SubscriptionDetails{}, nil
+		}
+
+		amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
+		details := &modelInputs.SubscriptionDetails{BaseAmount: amount}
+
+		discount := c.Subscriptions.Data[0].Discount
+		if discount != nil && discount.Coupon != nil {
+			details.Discount = &modelInputs.SubscriptionDiscount{
+				Name:    discount.Coupon.Name,
+				Percent: discount.Coupon.PercentOff,
+				Amount:  discount.Coupon.AmountOff,
+			}
+			if discount.Coupon.Duration != stripe.CouponDurationForever {
+				t := time.Unix(discount.Start, 0).AddDate(0, int(discount.Coupon.DurationInMonths), 0)
+				details.Discount.Until = &t
+			}
+		}
+
+		invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID
+		invoiceParams := &stripe.InvoiceParams{}
+		customerParams.AddExpand("invoice_items")
+		invoice, err := r.StripeClient.Invoices.Get(invoiceID, invoiceParams)
+		if err != nil {
+			return nil, e.Wrap(err, "error querying stripe invoice")
+		}
+
+		if invoice != nil {
+			invoiceDue := time.Unix(invoice.Created, 0)
+			status := string(invoice.Status)
+			details.LastInvoice = &modelInputs.Invoice{
+				Date:         &invoiceDue,
+				AmountDue:    &invoice.AmountDue,
+				AmountPaid:   &invoice.AmountPaid,
+				AttemptCount: &invoice.AttemptCount,
+				Status:       &status,
+				URL:          &invoice.HostedInvoiceURL,
+			}
+			warningSent, err := r.Redis.GetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID))
+			if err != nil {
+				return nil, err
+			}
+			details.BillingIssue = !warningSent.IsZero()
+		}
+
+		if details.BillingIngestBlocked, err = r.Redis.GetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID)); err != nil {
 			return nil, err
 		}
-		details.BillingIssue = !warningSent.IsZero()
-	}
 
-	if details.BillingIngestBlocked, err = r.Redis.GetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID)); err != nil {
-		return nil, err
-	}
-
-	return details, nil
+		return details, nil
+	})
 }
 
 // DashboardDefinitions is the resolver for the dashboard_definitions field.
@@ -8372,24 +8401,6 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 		})
 	}
 	return results, nil
-}
-
-// SuggestedMetrics is the resolver for the suggested_metrics field.
-func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, prefix string) ([]string, error) {
-	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-
-	keys, err := r.ClickhouseClient.TracesMetrics(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now(), &prefix)
-	if err != nil {
-		return nil, err
-	}
-
-	return lo.Filter(lo.Map(keys, func(item *modelInputs.QueryKey, index int) string {
-		return item.Name
-	}), func(item string, index int) bool {
-		return strings.HasPrefix(item, prefix)
-	}), nil
 }
 
 // MetricTags is the resolver for the metric_tags field.
@@ -9063,6 +9074,12 @@ func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, para
 // Metrics is the resolver for the metrics field.
 func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	switch productType {
+	case modelInputs.ProductTypeMetrics:
+		project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+		if err != nil {
+			return nil, err
+		}
+		return r.ClickhouseClient.ReadEventMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, limit, limitAggregator, limitColumn)
 	case modelInputs.ProductTypeTraces:
 		return r.TracesMetrics(ctx, projectID, params, column, metricTypes, groupBy, &bucketBy, bucketCount, limit, limitAggregator, limitColumn)
 	case modelInputs.ProductTypeLogs:
@@ -9079,6 +9096,12 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 // Keys is the resolver for the keys field.
 func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	switch productType {
+	case modelInputs.ProductTypeMetrics:
+		project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+		if err != nil {
+			return nil, err
+		}
+		return r.ClickhouseClient.MetricsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
 	case modelInputs.ProductTypeTraces:
 		return r.TracesKeys(ctx, projectID, dateRange, query, typeArg)
 	case modelInputs.ProductTypeLogs:
@@ -9095,6 +9118,12 @@ func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.Produc
 // KeyValues is the resolver for the key_values field.
 func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.ProductType, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
 	switch productType {
+	case modelInputs.ProductTypeMetrics:
+		project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+		if err != nil {
+			return nil, err
+		}
+		return r.ClickhouseClient.MetricsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 	case modelInputs.ProductTypeTraces:
 		return r.TracesKeyValues(ctx, projectID, keyName, dateRange)
 	case modelInputs.ProductTypeLogs:
@@ -9197,6 +9226,8 @@ func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.Pr
 	}
 
 	switch productType {
+	case modelInputs.ProductTypeMetrics:
+		return r.ClickhouseClient.MetricsLogLines(ctx, project.ID, params)
 	case modelInputs.ProductTypeTraces:
 		return r.ClickhouseClient.TracesLogLines(ctx, project.ID, params)
 	case modelInputs.ProductTypeLogs:

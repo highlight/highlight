@@ -102,6 +102,7 @@ export enum Tab {
 	Errors = 'Errors',
 	Console = 'Console Logs',
 	Network = 'Network',
+	Performance = 'Performance',
 	Events = 'Events',
 }
 

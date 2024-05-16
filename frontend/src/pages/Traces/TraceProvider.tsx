@@ -10,6 +10,7 @@ import {
 	getTraceTimes,
 	organizeSpansForFlameGraph,
 	organizeSpansWithChildren,
+	traceSortFn,
 } from '@/pages/Traces/utils'
 
 type TraceContext = {
@@ -127,7 +128,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 			return []
 		}
 
-		const spans = data.trace.trace //.sort(traceSortFn)
+		const spans = [...data.trace.trace].sort(traceSortFn)
 		return organizeSpansWithChildren(spans)
 	}, [data?.trace?.trace])
 

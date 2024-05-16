@@ -18,7 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.opentelemetry.io/otel/trace"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
@@ -38,7 +38,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
-	"github.com/stripe/stripe-go/v76/client"
+	"github.com/stripe/stripe-go/v78/client"
 	"gorm.io/gorm"
 
 	dd "github.com/highlight-run/highlight/backend/datadog"
@@ -475,7 +475,7 @@ func main() {
 			})
 			privateServer.Use(private.NewGraphqlOAuthValidator(privateResolver.Store))
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
-			privateServer.Use(htrace.NewGraphqlTracer(string(util.PrivateGraph), trace.WithSpanKind(trace.SpanKindServer)).WithRequestFieldLogging())
+			privateServer.Use(htrace.NewGraphqlTracer(string(util.PrivateGraph), trace.WithSpanKind(trace.SpanKindConsumer)).WithRequestFieldLogging())
 			privateServer.SetErrorPresenter(htrace.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			privateServer.SetRecoverFunc(htrace.GraphQLRecoverFunc())
 			r.Handle("/",

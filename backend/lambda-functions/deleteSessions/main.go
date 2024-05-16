@@ -38,7 +38,7 @@ func main() {
 		Email:     "zane@highlight.io",
 		FirstName: "Zane",
 		Params: model.QueryInput{
-			Query: "processed=true",
+			Query: "completed=true",
 			DateRange: &model.DateRangeRequiredInput{
 				StartDate: start,
 				EndDate:   end,

@@ -10952,6 +10952,63 @@ export type GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryResult =
 		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQuery,
 		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryVariables
 	>
+export const GetWorkspaceIsIntegratedWithHerokuDocument = gql`
+	query GetWorkspaceIsIntegratedWithHeroku($project_id: ID!) {
+		is_integrated_with_heroku: is_integrated_with(
+			integration_type: Heroku
+			project_id: $project_id
+		)
+	}
+`
+
+/**
+ * __useGetWorkspaceIsIntegratedWithHerokuQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithHerokuQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithHerokuQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithHerokuQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithHerokuQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithHerokuQuery,
+		Types.GetWorkspaceIsIntegratedWithHerokuQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceIsIntegratedWithHerokuQuery,
+		Types.GetWorkspaceIsIntegratedWithHerokuQueryVariables
+	>(GetWorkspaceIsIntegratedWithHerokuDocument, baseOptions)
+}
+export function useGetWorkspaceIsIntegratedWithHerokuLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithHerokuQuery,
+		Types.GetWorkspaceIsIntegratedWithHerokuQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceIsIntegratedWithHerokuQuery,
+		Types.GetWorkspaceIsIntegratedWithHerokuQueryVariables
+	>(GetWorkspaceIsIntegratedWithHerokuDocument, baseOptions)
+}
+export type GetWorkspaceIsIntegratedWithHerokuQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithHerokuQuery
+>
+export type GetWorkspaceIsIntegratedWithHerokuLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithHerokuLazyQuery
+>
+export type GetWorkspaceIsIntegratedWithHerokuQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceIsIntegratedWithHerokuQuery,
+	Types.GetWorkspaceIsIntegratedWithHerokuQueryVariables
+>
 export const GetWorkspaceIsIntegratedWithLinearDocument = gql`
 	query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
 		is_integrated_with_linear: is_integrated_with(
@@ -12656,61 +12713,6 @@ export type GetDashboardDefinitionsLazyQueryHookResult = ReturnType<
 export type GetDashboardDefinitionsQueryResult = Apollo.QueryResult<
 	Types.GetDashboardDefinitionsQuery,
 	Types.GetDashboardDefinitionsQueryVariables
->
-export const GetSuggestedMetricsDocument = gql`
-	query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
-		suggested_metrics(project_id: $project_id, prefix: $prefix)
-	}
-`
-
-/**
- * __useGetSuggestedMetricsQuery__
- *
- * To run a query within a React component, call `useGetSuggestedMetricsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSuggestedMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSuggestedMetricsQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      prefix: // value for 'prefix'
- *   },
- * });
- */
-export function useGetSuggestedMetricsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetSuggestedMetricsQuery,
-		Types.GetSuggestedMetricsQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetSuggestedMetricsQuery,
-		Types.GetSuggestedMetricsQueryVariables
-	>(GetSuggestedMetricsDocument, baseOptions)
-}
-export function useGetSuggestedMetricsLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetSuggestedMetricsQuery,
-		Types.GetSuggestedMetricsQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetSuggestedMetricsQuery,
-		Types.GetSuggestedMetricsQueryVariables
-	>(GetSuggestedMetricsDocument, baseOptions)
-}
-export type GetSuggestedMetricsQueryHookResult = ReturnType<
-	typeof useGetSuggestedMetricsQuery
->
-export type GetSuggestedMetricsLazyQueryHookResult = ReturnType<
-	typeof useGetSuggestedMetricsLazyQuery
->
-export type GetSuggestedMetricsQueryResult = Apollo.QueryResult<
-	Types.GetSuggestedMetricsQuery,
-	Types.GetSuggestedMetricsQueryVariables
 >
 export const GetMetricTagsDocument = gql`
 	query GetMetricTags(
@@ -14577,12 +14579,14 @@ export const GetKeysDocument = gql`
 		$project_id: ID!
 		$date_range: DateRangeRequiredInput!
 		$query: String
+		$type: KeyType
 	) {
 		keys(
 			product_type: $product_type
 			project_id: $project_id
 			date_range: $date_range
 			query: $query
+			type: $type
 		) {
 			name
 			type
@@ -14606,6 +14610,7 @@ export const GetKeysDocument = gql`
  *      project_id: // value for 'project_id'
  *      date_range: // value for 'date_range'
  *      query: // value for 'query'
+ *      type: // value for 'type'
  *   },
  * });
  */

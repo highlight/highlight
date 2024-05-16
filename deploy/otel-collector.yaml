@@ -3,6 +3,13 @@ receivers:
         endpoint: '0.0.0.0:24224'
     tcplog:
         listen_address: '0.0.0.0:34302'
+    syslog:
+        udp:
+            listen_address: '0.0.0.0:6513'
+        tcp:
+            listen_address: '0.0.0.0:6514'
+        protocol: 'rfc5424'
+        enable_octet_counting: true
     otlp:
         protocols:
             grpc:
@@ -59,7 +66,7 @@ service:
             processors: [memory_limiter, batch]
             exporters: [otlphttp]
         logs:
-            receivers: [otlp, fluentforward, tcplog]
+            receivers: [otlp, fluentforward, tcplog, syslog]
             processors: [memory_limiter, batch]
             exporters: [otlphttp]
 extensions:

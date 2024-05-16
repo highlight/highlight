@@ -28,7 +28,7 @@ import * as styles from './JsonViewerObject.css'
 
 export type Props = {
 	allExpanded: boolean
-	attribute: string | object | number
+	attribute: string | object | number | null | undefined
 	label: string
 	queryBaseKeys: string[]
 	queryParts: SearchExpression[]
@@ -78,7 +78,7 @@ export const JsonViewerObject: React.FC<Props> = ({
 			</AttributeLine>
 
 			{open &&
-				Object.entries(attribute).map(([key, value], index) => (
+				Object.entries(attribute ?? {}).map(([key, value], index) => (
 					<JsonViewerObject
 						key={index}
 						allExpanded={allExpanded}

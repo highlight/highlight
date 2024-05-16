@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel/codes"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -139,7 +139,7 @@ type Request struct {
 	URL     string            `json:"url"`
 	Method  string            `json:"verb"`
 	Headers map[string]string `json:"headers"`
-	Body    string            `json:"body"`
+	Body    any               `json:"body"`
 }
 
 type Response struct {
@@ -159,14 +159,28 @@ type NetworkResource struct {
 	// Deprecated, use the absolute version `StartTimeAbs` instead
 	StartTime float64 `json:"startTime"`
 	// Deprecated, use the absolute version `ResponseEndAbs` instead
-	ResponseEnd          float64              `json:"responseEnd"`
-	StartTimeAbs         float64              `json:"startTimeAbs"`
-	ResponseEndAbs       float64              `json:"responseEndAbs"`
-	InitiatorType        string               `json:"initiatorType"`
-	TransferSize         float64              `json:"transferSize"`
-	EncodedBodySize      float64              `json:"encodedBodySize"`
-	Name                 string               `json:"name"`
-	RequestResponsePairs RequestResponsePairs `json:"requestResponsePairs"`
+	ResponseEnd float64 `json:"responseEnd"`
+
+	StartTimeAbs             float64              `json:"startTimeAbs"`
+	ResponseEndAbs           float64              `json:"responseEndAbs"`
+	ConnectStartAbs          float64              `json:"connectStartAbs"`
+	ConnectEndAbs            float64              `json:"connectEndAbs"`
+	DomainLookupStartAbs     float64              `json:"domainLookupStartAbs"`
+	DomainLookupEndAbs       float64              `json:"domainLookupEndAbs"`
+	FetchStartAbs            float64              `json:"fetchStartAbs"`
+	RedirectStartAbs         float64              `json:"redirectStartAbs"`
+	RedirectEndAbs           float64              `json:"redirectEndAbs"`
+	RequestStartAbs          float64              `json:"requestStartAbs"`
+	ResponseStartAbs         float64              `json:"responseStartAbs"`
+	SecureConnectionStartAbs float64              `json:"secureConnectionStartAbs"`
+	WorkerStartAbs           float64              `json:"workerStartAbs"`
+	DecodedBodySize          int64                `json:"decodedBodySize"`
+	TransferSize             int64                `json:"transferSize"`
+	EncodedBodySize          int64                `json:"encodedBodySize"`
+	NextHopProtocol          string               `json:"nextHopProtocol"`
+	InitiatorType            string               `json:"initiatorType"`
+	Name                     string               `json:"name"`
+	RequestResponsePairs     RequestResponsePairs `json:"requestResponsePairs"`
 }
 
 func (re *NetworkResource) Start(sessionStart time.Time) time.Time {
@@ -979,7 +993,7 @@ func (r *Resolver) IndexSessionClickhouse(ctx context.Context, session *model.Se
 		"environment":     session.Environment,
 		"device_id":       strconv.Itoa(session.Fingerprint),
 		"city":            session.City,
-		"loc_state":       session.State,
+		"state":           session.State,
 		"country":         session.Country,
 		"ip":              session.IP,
 		"service_name":    session.ServiceName,
@@ -2047,8 +2061,8 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 			continue
 		}
 		messages = append(messages, &kafka_queue.TraceRowMessage{
-			Type:     kafka_queue.PushTracesFlattened,
-			TraceRow: traceRow,
+			Type:               kafka_queue.PushTracesFlattened,
+			ClickhouseTraceRow: clickhouse.ConvertTraceRow(traceRow),
 		})
 	}
 	return r.TracesQueue.Submit(ctx, "", messages...)
@@ -2722,7 +2736,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 				return e.Wrap(err, "failed to unmarshal network resources")
 			}
-			if err := r.submitFrontendNetworkMetric(sessionObj, resourcesParsed["resources"]); err != nil {
+			if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
 				return err
 			}
 		}
@@ -3173,7 +3187,7 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 	return nil
 }
 
-func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resources []NetworkResource) error {
+func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
 	for _, re := range resources {
 		method := re.RequestResponsePairs.Request.Method
 		if method == "" {
@@ -3184,29 +3198,66 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		if url, err := url2.Parse(re.Name); err == nil && url.Host == "pub.highlight.io" {
 			continue
 		}
-		attributes := []attribute.KeyValue{}
+		requestBody, ok := re.RequestResponsePairs.Request.Body.(string)
+		if !ok {
+			bdBytes, err := json.Marshal(requestBody)
+			if err != nil {
+				log.WithContext(ctx).WithError(err).WithField("sessionID", sessionObj.ID).Error("failed to serialize network request body as json")
+			} else {
+				requestBody = string(bdBytes)
+			}
+		}
+		responseBody, ok := re.RequestResponsePairs.Response.Body.(string)
+		if !ok {
+			bdBytes, err := json.Marshal(responseBody)
+			if err != nil {
+				log.WithContext(ctx).WithError(err).WithField("sessionID", sessionObj.ID).Error("failed to serialize network response body as json")
+			} else {
+				responseBody = string(bdBytes)
+			}
+		}
+		var attributes []attribute.KeyValue
 		attributes = append(attributes, highlight.EmptyResourceAttributes...)
 		attributes = append(attributes, attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
 			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
 			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
 			attribute.String(highlight.TraceKeyAttribute, re.Name),
-			semconv.DeploymentEnvironmentKey.String(sessionObj.Environment),
-			semconv.ServiceNameKey.String(sessionObj.ServiceName),
-			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
-			semconv.HTTPURLKey.String(re.Name),
-			semconv.HTTPRequestContentLengthKey.Int(len(re.RequestResponsePairs.Request.Body)),
-			semconv.HTTPResponseContentLengthKey.Float64(re.RequestResponsePairs.Response.Size),
-			semconv.HTTPStatusCodeKey.Float64(re.RequestResponsePairs.Response.Status),
-			semconv.HTTPMethodKey.String(method),
+			semconv.DeploymentEnvironment(sessionObj.Environment),
+			semconv.ServiceName(sessionObj.ServiceName),
+			semconv.ServiceVersion(ptr.ToString(sessionObj.AppVersion)),
+			semconv.HTTPURL(re.Name),
+			attribute.String("http.request.body", requestBody),
+			attribute.String("http.response.body", responseBody),
+			attribute.Int64("http.response.encoded.size", re.EncodedBodySize),
+			attribute.Int64("http.response.decoded.size", re.DecodedBodySize),
+			attribute.Int64("http.response.transfer.size", re.TransferSize),
+			semconv.HTTPRequestContentLength(len(requestBody)),
+			semconv.HTTPResponseContentLength(int(re.RequestResponsePairs.Response.Size)),
+			semconv.HTTPStatusCode(int(re.RequestResponsePairs.Response.Status)),
+			semconv.HTTPMethod(method),
+			semconv.HTTPUserAgent(re.RequestResponsePairs.Request.Headers["User-Agent"]),
+			semconv.UserAgentOriginal(re.RequestResponsePairs.Request.Headers["User-Agent"]),
 			attribute.String(privateModel.NetworkRequestAttributeInitiatorType.String(), re.InitiatorType),
 			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64(end.Sub(start).Nanoseconds())),
+			attribute.Float64(privateModel.NetworkRequestAttributeConnectLatency.String(), (re.ConnectEndAbs-re.ConnectStartAbs)*1e6),
+			attribute.Float64(privateModel.NetworkRequestAttributeDNSLatency.String(), (re.DomainLookupEndAbs-re.DomainLookupStartAbs)*1e6),
+			attribute.Float64(privateModel.NetworkRequestAttributeRedirectLatency.String(), (re.RedirectEndAbs-re.RedirectStartAbs)*1e6),
 		)
-		requestBody := make(map[string]interface{})
+		if u, err := url2.Parse(re.Name); err == nil {
+			attributes = append(attributes, semconv.HTTPScheme(u.Scheme), semconv.HTTPTarget(u.Path))
+		}
+		for requestHeader, requestHeaderValue := range re.RequestResponsePairs.Request.Headers {
+			attributes = append(attributes, attribute.String(fmt.Sprintf("http.request.header.%s", requestHeader), requestHeaderValue))
+		}
+		for responseHeader, responseHeaderValue := range re.RequestResponsePairs.Response.Headers {
+			attributes = append(attributes, attribute.String(fmt.Sprintf("http.response.header.%s", responseHeader), responseHeaderValue))
+		}
+		requestBodyJson := make(map[string]interface{})
 		// if the request body is json and contains the graphql key operationName, treat it as an operation
-		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
-			if _, ok := requestBody["operationName"]; ok {
-				if opName, ok := requestBody["operationName"].(string); ok {
+		if err := json.Unmarshal([]byte(requestBody), &requestBodyJson); err == nil {
+			if _, ok := requestBodyJson["operationName"]; ok {
+				if opName, ok := requestBodyJson["operationName"].(string); ok {
 					attributes = append(attributes, semconv.GraphqlOperationName(opName))
 				}
 			}

@@ -8,7 +8,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	log "github.com/sirupsen/logrus"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 )
 
 type Tracer struct {
