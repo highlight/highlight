@@ -76,9 +76,12 @@ export const comboboxTag = style({
 	height: 20,
 })
 
-export const token = style({
-	height: 20,
-})
+export const token = style([
+	typographyStyles.family.monospace,
+	{
+		height: 20,
+	},
+])
 
 export const errorToken = style({
 	backgroundColor: 'rgba(255, 9, 87, 0.1)',

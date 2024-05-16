@@ -666,7 +666,7 @@ export const Search: React.FC<{
 						return (
 							<QueryPart
 								key={index}
-								comboboxStore={comboboxStore}
+								typeaheadOpen={comboboxOpen}
 								cursorIndex={cursorIndex}
 								index={index}
 								tokenGroup={tokenGroup}
@@ -777,26 +777,61 @@ export const Search: React.FC<{
 									onClick={submitAndBlur}
 									store={comboboxStore}
 								>
-									<Stack direction="row" gap="4">
+									<Stack
+										direction="row"
+										gap="6"
+										align="center"
+									>
 										<Text
 											lines="1"
 											color="weak"
 											size="small"
 										>
 											Show all results for
-										</Text>{' '}
-										<Text
-											color="secondaryContentText"
-											size="small"
-										>
-											<>
-												&lsquo;
-												{activePart.key === BODY_KEY
-													? activePart.value
-													: activePart.text}
-												&rsquo;
-											</>
 										</Text>
+										<QueryPart
+											tokenGroup={{
+												tokens: [
+													{
+														text: activePart.key,
+														type: SearchGrammarParser.RULE_search_key,
+														start: 0,
+														stop: activePart.value
+															.length,
+													},
+													{
+														text: activePart.operator,
+														type: SearchGrammarParser.RULE_bin_op,
+														start: activePart.key
+															.length,
+														stop:
+															activePart.key
+																.length + 1,
+													},
+													{
+														text: activePart.value,
+														type: SearchGrammarParser.RULE_search_value,
+														start:
+															activePart.key
+																.length + 1,
+														stop:
+															activePart.key
+																.length +
+															1 +
+															activePart.value
+																.length,
+													},
+												],
+												start: 0,
+												stop: activePart.value.length,
+												type: 'expression',
+											}}
+											index={0}
+											typeaheadOpen={false}
+											cursorIndex={cursorIndex}
+											showValues={showValues}
+											showErrors={false}
+										/>
 									</Stack>
 								</Combobox.Item>
 							</Combobox.Group>
@@ -853,6 +888,7 @@ export const Search: React.FC<{
 											<Text
 												color="secondaryContentText"
 												lines="1"
+												family="monospace"
 											>
 												{key.name}
 											</Text>
