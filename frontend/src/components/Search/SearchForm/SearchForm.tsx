@@ -779,7 +779,7 @@ export const Search: React.FC<{
 								>
 									<Stack
 										direction="row"
-										gap="6"
+										gap="4"
 										align="center"
 									>
 										<Text
@@ -789,49 +789,18 @@ export const Search: React.FC<{
 										>
 											Show all results for
 										</Text>
-										<QueryPart
-											tokenGroup={{
-												tokens: [
-													{
-														text: activePart.key,
-														type: SearchGrammarParser.RULE_search_key,
-														start: 0,
-														stop: activePart.value
-															.length,
-													},
-													{
-														text: activePart.operator,
-														type: SearchGrammarParser.RULE_bin_op,
-														start: activePart.key
-															.length,
-														stop:
-															activePart.key
-																.length + 1,
-													},
-													{
-														text: activePart.value,
-														type: SearchGrammarParser.RULE_search_value,
-														start:
-															activePart.key
-																.length + 1,
-														stop:
-															activePart.key
-																.length +
-															1 +
-															activePart.value
-																.length,
-													},
-												],
-												start: 0,
-												stop: activePart.value.length,
-												type: 'expression',
-											}}
-											index={0}
-											typeaheadOpen={false}
-											cursorIndex={cursorIndex}
-											showValues={showValues}
-											showErrors={false}
-										/>
+
+										<Text
+											size="small"
+											family="monospace"
+											color="secondaryContentText"
+										>
+											&lsquo;
+											{activePart.key === BODY_KEY
+												? activePart.value
+												: activePart.text}
+											&rsquo;
+										</Text>
 									</Stack>
 								</Combobox.Item>
 							</Combobox.Group>
