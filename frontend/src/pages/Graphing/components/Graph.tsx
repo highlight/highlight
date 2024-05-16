@@ -8,6 +8,7 @@ import {
 	IconSolidChartSquareLine,
 	IconSolidDocumentReport,
 	IconSolidDotsHorizontal,
+	IconSolidDuplicate,
 	IconSolidLoading,
 	IconSolidPencil,
 	IconSolidTable,
@@ -97,6 +98,7 @@ export interface ChartProps<TConfig> {
 	limitMetric?: string
 	viewConfig: TConfig
 	disabled?: boolean
+	onClone?: () => void
 	onDelete?: () => void
 	onExpand?: () => void
 	onEdit?: () => void
@@ -382,6 +384,7 @@ const Graph = ({
 	title,
 	viewConfig,
 	disabled,
+	onClone,
 	onDelete,
 	onExpand,
 	onEdit,
@@ -722,7 +725,7 @@ const Graph = ({
 								onClick={onEdit}
 							/>
 						)}
-						{onDelete !== undefined && (
+						{(onDelete || onClone) && (
 							<Menu>
 								<Menu.Button
 									size="medium"
@@ -734,21 +737,40 @@ const Graph = ({
 									}}
 								/>
 								<Menu.List>
-									<Menu.Item
-										onClick={(e) => {
-											e.stopPropagation()
-											onDelete()
-										}}
-									>
-										<Box
-											display="flex"
-											alignItems="center"
-											gap="4"
+									{onClone && (
+										<Menu.Item
+											onClick={(e) => {
+												e.stopPropagation()
+												onClone()
+											}}
 										>
-											<IconSolidTrash />
-											Delete metric view
-										</Box>
-									</Menu.Item>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconSolidDuplicate />
+												Clone metric view
+											</Box>
+										</Menu.Item>
+									)}
+									{onDelete && (
+										<Menu.Item
+											onClick={(e) => {
+												e.stopPropagation()
+												onDelete()
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconSolidTrash />
+												Delete metric view
+											</Box>
+										</Menu.Item>
+									)}
 								</Menu.List>
 							</Menu>
 						)}
