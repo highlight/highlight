@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { vars } from '../../css/vars'
-import { Box } from '../Box/Box'
+import { Box, BoxProps } from '../Box/Box'
 import { ButtonIcon } from '../ButtonIcon/ButtonIcon'
 import {
 	IconSolidExclamation,
@@ -14,6 +14,9 @@ import * as styles from './styles.css'
 
 export type Props = React.PropsWithChildren &
 	styles.Variants & {
+		alignItems?: BoxProps['alignItems']
+		flexDirection?: BoxProps['flexDirection']
+		justifyContent?: BoxProps['justifyContent']
 		title?: string
 		width?: number
 		style?: React.CSSProperties
@@ -23,6 +26,8 @@ export type Props = React.PropsWithChildren &
 
 export const Callout: React.FC<Props> = ({
 	children,
+	alignItems = 'flex-start',
+	flexDirection = 'column',
 	kind = 'info',
 	title,
 	icon,
@@ -38,7 +43,8 @@ export const Callout: React.FC<Props> = ({
 			p="8"
 			gap="8"
 			display="flex"
-			alignItems="flex-start"
+			flexDirection={flexDirection}
+			alignItems={alignItems}
 			borderRadius="8"
 			border="secondary"
 			cssClass={styles.variants({ kind, border })}
