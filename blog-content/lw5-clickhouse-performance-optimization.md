@@ -1,5 +1,5 @@
 ---
-title: "Optimizing Clickhouse: 5 Tactics That Worked"
+title: "Optimizing Clickhouse: The Tactics That Worked for Us"
 createdAt: 2024-04-30T09:00:00Z
 readingTime: 17
 authorFirstName: Vadim
@@ -56,8 +56,6 @@ Our first approach used a custom Golang worker that would read messages from Kaf
 issue a single `INSERT` command with many values. Though this worked to ensure inserts were large, inserts were not
 atomic
 resulting in duplicate data being inserted during worker reboots.
-
-We opted to use the ClickHouse Kafka Connect Sink that implements batched writes and exactly-once semantics achieved through ClickHouse Keeper. 
 
 We opted to use the [ClickHouse Kafka Connect Sink](https://clickhouse.com/docs/en/integrations/kafka/clickhouse-kafka-connect-sink) that implements batched writes and exactly-once semantics achieved through ClickHouse Keeper.
 

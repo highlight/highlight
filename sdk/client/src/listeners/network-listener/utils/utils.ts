@@ -204,16 +204,29 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 				}
 
 				performanceTiming.toJSON = function () {
+					// offset by `window.performance.timeOrigin` to get absolute timestamps
+					const o = window.performance.timeOrigin
 					return {
 						initiatorType: this.initiatorType,
-						// offset by `window.performance.timeOrigin` to get absolute timestamps
-						startTimeAbs:
-							window.performance.timeOrigin + this.startTime,
-						responseEndAbs:
-							window.performance.timeOrigin + this.responseEnd,
+						startTimeAbs: o + this.startTime,
+						connectStartAbs: o + this.connectStart,
+						connectEndAbs: o + this.connectEnd,
+						domainLookupStartAbs: o + this.domainLookupStart,
+						domainLookupEndAbs: o + this.domainLookupEnd,
+						fetchStartAbs: o + this.fetchStart,
+						redirectStartAbs: o + this.redirectStart,
+						redirectEndAbs: o + this.redirectEnd,
+						requestStartAbs: o + this.requestStart,
+						responseStartAbs: o + this.responseStart,
+						responseEndAbs: o + this.responseEnd,
+						secureConnectionStartAbs:
+							o + this.secureConnectionStart,
+						workerStartAbs: o + this.workerStart,
 						name: this.name,
 						transferSize: this.transferSize,
 						encodedBodySize: this.encodedBodySize,
+						decodedBodySize: this.decodedBodySize,
+						nextHopProtocol: this.nextHopProtocol,
 						requestResponsePairs: requestResponsePair,
 					}
 				}

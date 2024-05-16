@@ -6,7 +6,7 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.opentelemetry.io/otel/trace"
 	"net/http"
 	"runtime/debug"
@@ -42,7 +42,7 @@ func GetIPAddress(r *http.Request) string {
 func GetRequestAttributes(r *http.Request) []attribute.KeyValue {
 	attrs := []attribute.KeyValue{
 		attribute.String(string(semconv.HTTPMethodKey), r.Method),
-		attribute.String(string(semconv.HTTPClientIPKey), GetIPAddress(r)),
+		attribute.String(string(semconv.ClientAddressKey), GetIPAddress(r)),
 	}
 	if r.URL != nil {
 		attrs = append(attrs,

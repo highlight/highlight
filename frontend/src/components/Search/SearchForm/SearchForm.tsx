@@ -24,14 +24,18 @@ import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import TextareaAutosize from 'react-autosize-textarea'
 import { useNavigate } from 'react-router-dom'
-import { StringParam, withDefault } from 'use-query-params'
+import { StringParam, useQueryParam, withDefault } from 'use-query-params'
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
 import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { SearchExpression } from '@/components/Search/Parser/listener'
-import { useSearchContext } from '@/components/Search/SearchContext'
+import {
+	SORT_COLUMN,
+	SORT_DIRECTION,
+	useSearchContext,
+} from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -318,11 +322,17 @@ export const Search: React.FC<{
 		setQuery,
 	} = useSearchContext()
 	const { project_id } = useParams()
+	const [_, setSortColumn] = useQueryParam(SORT_COLUMN, StringParam)
+	const [__, setSortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const defaultInputRef = useRef<HTMLTextAreaElement | null>(null)
 	const inputRef = textAreaRef || defaultInputRef
 	const [keys, setKeys] = useState<Keys | undefined>()
 	const [values, setValues] = useState<string[] | undefined>()
+	const [showErrors, setShowErrors] = useState(false)
+	const hasErrors = tokenGroups.some((group) =>
+		group.tokens.some((token) => (token as any).errorMessage !== undefined),
+	)
 	const comboboxStore = useComboboxStore({
 		defaultValue: query ?? '',
 	})
@@ -336,6 +346,12 @@ export const Search: React.FC<{
 	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
 		activePart.value,
 	)
+
+	useEffect(() => {
+		if (showErrors && !hasErrors) {
+			setShowErrors(false)
+		}
+	}, [hasErrors, setShowErrors, showErrors])
 
 	// TODO: code smell, user is not able to use "message" as a search key
 	// because we are reserving it for the body implicitly
@@ -526,10 +542,10 @@ export const Search: React.FC<{
 
 	const handleItemSelect = (item: SearchResult) => {
 		const isValueSelect = item.type === 'Value'
+		const isExists = !!EXISTS_OPERATORS.find((eo) => eo === item.name)
 		let cursorShift = 0
 
 		if (item.type === 'Operator') {
-			const isExists = !!EXISTS_OPERATORS.find((eo) => eo === item.name)
 			const space = isExists ? ' ' : ''
 
 			const isContainsOrMatches = !![
@@ -569,7 +585,7 @@ export const Search: React.FC<{
 			setQuery(newQuery)
 			setCursorIndex(newCursorPosition)
 
-			if (isValueSelect) {
+			if (isValueSelect || isExists) {
 				submitQuery(newQuery)
 				comboboxStore.setOpen(false)
 			}
@@ -650,11 +666,12 @@ export const Search: React.FC<{
 						return (
 							<QueryPart
 								key={index}
-								comboboxStore={comboboxStore}
+								typeaheadOpen={comboboxOpen}
 								cursorIndex={cursorIndex}
 								index={index}
 								tokenGroup={tokenGroup}
 								showValues={showValues}
+								showErrors={showErrors}
 								onRemoveItem={handleRemoveItem}
 							/>
 						)
@@ -683,14 +700,17 @@ export const Search: React.FC<{
 
 						// Need to set this bit of React state to force a re-render of the
 						// component. For some reason the combobox value isn't updated until
-						// after a delay or blurring the input. We also trim any leading
-						// space characters since this produces some UI jank.
-						setQuery(e.target.value.replace(/^\s+/, ''))
+						// after a delay or blurring the input.
+						setQuery(e.target.value)
 					}}
 					onBlur={() => {
 						submitQuery(query)
 						handleSetCursorIndex()
 						inputRef.current?.blur()
+
+						if (hasErrors && !showErrors) {
+							setShowErrors(true)
+						}
 					}}
 					onKeyDown={(e) => {
 						if (e.key === 'Escape') {
@@ -727,6 +747,8 @@ export const Search: React.FC<{
 
 								setQuery('')
 								submitQuery('')
+								setSortColumn(undefined)
+								setSortDirection(undefined)
 							}}
 							style={{ cursor: 'pointer' }}
 						/>
@@ -755,25 +777,29 @@ export const Search: React.FC<{
 									onClick={submitAndBlur}
 									store={comboboxStore}
 								>
-									<Stack direction="row" gap="4">
+									<Stack
+										direction="row"
+										gap="4"
+										align="center"
+									>
 										<Text
 											lines="1"
 											color="weak"
 											size="small"
 										>
 											Show all results for
-										</Text>{' '}
+										</Text>
+
 										<Text
-											color="secondaryContentText"
 											size="small"
+											family="monospace"
+											color="secondaryContentText"
 										>
-											<>
-												&lsquo;
-												{activePart.key === BODY_KEY
-													? activePart.value
-													: activePart.text}
-												&rsquo;
-											</>
+											&lsquo;
+											{activePart.key === BODY_KEY
+												? activePart.value
+												: activePart.text}
+											&rsquo;
 										</Text>
 									</Stack>
 								</Combobox.Item>
@@ -831,6 +857,7 @@ export const Search: React.FC<{
 											<Text
 												color="secondaryContentText"
 												lines="1"
+												family="monospace"
 											>
 												{key.name}
 											</Text>
