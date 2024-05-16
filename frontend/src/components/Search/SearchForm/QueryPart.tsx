@@ -131,7 +131,7 @@ export const Token = ({
 	showErrors,
 	token,
 }: {
-	showErrors: boolean
+	showErrors?: boolean
 	token: SearchToken
 }): JSX.Element => {
 	const { errorMessage, text } = token
