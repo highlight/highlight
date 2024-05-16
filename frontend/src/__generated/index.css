@@ -7152,18 +7152,20 @@ body {
   height: calc(100% - 50px);
 }
 ._1s4anja2 {
-  overflow-y: scroll;
-}
-._1s4anja2::-webkit-scrollbar {
-  display: none;
+  overflow-y: hidden;
+  scrollbar-gutter: stable;
 }
 ._1s4anja3 {
-  overflow-y: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 ._1s4anja4 {
-  min-width: 106px;
+  overflow-y: hidden;
 }
 ._1s4anja5 {
+  min-width: 106px;
+}
+._1s4anja6 {
   overflow: hidden;
 }
 .dg2vg60 {
@@ -7178,6 +7180,7 @@ body {
 }
 .dg2vg62 {
   left: -6px;
+  flex-shrink: 0;
   max-height: 40px;
   padding-top: 2px;
   padding-bottom: 2px;

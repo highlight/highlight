@@ -52,7 +52,7 @@ export const Modal: React.FC<
 			style={{
 				top: 0,
 				left: 0,
-				zIndex: '90',
+				zIndex: '20001', // +1 more than the header z-index
 				overflow: 'hidden',
 				backgroundColor: '#6F6E777A',
 			}}

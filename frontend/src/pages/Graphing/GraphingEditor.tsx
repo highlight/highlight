@@ -298,7 +298,7 @@ const EditorBackground = () => {
 					height="14"
 					patternUnits="userSpaceOnUse"
 				>
-					<circle fill="#c8c7cb" cx="7" cy="7" r="1" />
+					<circle fill="#e4e2e4" cx="7" cy="7" r="1" />
 				</pattern>
 			</defs>
 
