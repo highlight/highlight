@@ -415,6 +415,9 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 		} else {
 			sourceMapURL, sourceMapFileBytes, err = getURLSourcemap(ctx, projectId, v, stackTraceFileURL, stackTraceFilePath, stackFileNameIndex, storageClient, &stackTraceError)
 		}
+		if err == nil {
+			break
+		}
 	}
 	if err != nil {
 		return nil, err, stackTraceError

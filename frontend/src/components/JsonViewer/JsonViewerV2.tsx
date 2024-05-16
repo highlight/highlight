@@ -23,7 +23,7 @@ export const JsonViewerV2: React.FC<Props> = ({
 }) => {
 	return (
 		<Stack py="0" gap="1">
-			{Object.entries(attribute).map(([key, value], index) => {
+			{Object.entries(attribute ?? {}).map(([key, value], index) => {
 				const isObject = typeof value === 'object'
 
 				return (

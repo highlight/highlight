@@ -10,7 +10,7 @@ import (
 	"github.com/shirou/gopsutil/mem"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/highlight-run/highlight/backend/model"

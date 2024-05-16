@@ -1844,10 +1844,13 @@ export type NetworkHistogramParamsInput = {
 
 export enum NetworkRequestAttribute {
 	BodySize = 'body_size',
+	ConnectLatency = 'connect_latency',
+	DnsLatency = 'dns_latency',
 	GraphqlOperation = 'graphql_operation',
 	InitiatorType = 'initiator_type',
 	Latency = 'latency',
 	Method = 'method',
+	RedirectLatency = 'redirect_latency',
 	RequestId = 'request_id',
 	ResponseSize = 'response_size',
 	Status = 'status',
