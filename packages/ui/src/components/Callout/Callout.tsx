@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { vars } from '../../css/vars'
-import { Box, BoxProps } from '../Box/Box'
+import { Box } from '../Box/Box'
 import { ButtonIcon } from '../ButtonIcon/ButtonIcon'
 import {
 	IconSolidExclamation,
@@ -14,20 +14,29 @@ import * as styles from './styles.css'
 
 export type Props = React.PropsWithChildren &
 	styles.Variants & {
-		alignItems?: BoxProps['alignItems']
-		flexDirection?: BoxProps['flexDirection']
-		justifyContent?: BoxProps['justifyContent']
+		layout?: 'default' | 'centered'
 		title?: string
 		width?: number
 		style?: React.CSSProperties
 		handleCloseClick?: () => void
-		icon?: false | (() => JSX.Element)
+		icon?: false | React.ComponentType<{ size: number; color: string }>
 	}
+
+const BACKGROUND_COLOR_MAP = {
+	error: vars.theme.static.surface.sentiment.bad,
+	info: vars.theme.static.surface.sentiment.neutral,
+	warning: vars.theme.static.surface.sentiment.caution,
+} as const
+
+const TEXT_COLOR_MAP = {
+	error: vars.theme.static.content.sentiment.bad,
+	info: vars.theme.static.content.weak,
+	warning: vars.theme.static.content.sentiment.caution,
+} as const
 
 export const Callout: React.FC<Props> = ({
 	children,
-	alignItems = 'flex-start',
-	flexDirection = 'column',
+	layout = 'default',
 	kind = 'info',
 	title,
 	icon,
@@ -43,17 +52,31 @@ export const Callout: React.FC<Props> = ({
 			p="8"
 			gap="8"
 			display="flex"
-			flexDirection={flexDirection}
-			alignItems={alignItems}
+			alignItems="flex-start"
 			borderRadius="8"
 			border="secondary"
 			cssClass={styles.variants({ kind, border })}
+			justifyContent="space-between"
 			style={{
 				...style,
 				width: width || 'auto',
 			}}
 		>
-			{icon !== false ? <Icon /> : null}
+			<Box
+				alignItems="center"
+				alignSelf="flex-start"
+				borderRadius="5"
+				display="flex"
+				justifyContent="center"
+				textAlign="center"
+				style={{
+					backgroundColor: BACKGROUND_COLOR_MAP[kind],
+					height: 22,
+					width: 22,
+				}}
+			>
+				<Icon size={14} color={TEXT_COLOR_MAP[kind]} />
+			</Box>
 
 			<Box gap="16" display="flex" flexDirection="column" width="full">
 				{title && (
@@ -88,69 +111,8 @@ export const Callout: React.FC<Props> = ({
 	)
 }
 
-// These are temporary until we componentize icon badges.
-const InfoIcon = () => (
-	<Box
-		borderRadius="5"
-		style={{
-			alignItems: 'center',
-			backgroundColor: vars.theme.static.surface.sentiment.neutral,
-			display: 'flex',
-			height: 22,
-			justifyContent: 'center',
-			textAlign: 'center',
-			width: 22,
-		}}
-	>
-		<IconSolidInformationCircle
-			size={14}
-			color={vars.theme.static.content.weak}
-		/>
-	</Box>
-)
-
-const WarningIcon = () => (
-	<Box
-		borderRadius="5"
-		style={{
-			alignItems: 'center',
-			backgroundColor: vars.theme.static.surface.sentiment.caution,
-			display: 'flex',
-			height: 22,
-			justifyContent: 'center',
-			textAlign: 'center',
-			width: 22,
-		}}
-	>
-		<IconSolidExclamation
-			size={14}
-			color={vars.theme.static.content.sentiment.caution}
-		/>
-	</Box>
-)
-
-const ErrorIcon = () => (
-	<Box
-		borderRadius="5"
-		style={{
-			alignItems: 'center',
-			backgroundColor: vars.theme.static.surface.sentiment.bad,
-			display: 'flex',
-			height: 22,
-			justifyContent: 'center',
-			textAlign: 'center',
-			width: 22,
-		}}
-	>
-		<IconSolidXCircle
-			size={14}
-			color={vars.theme.static.content.sentiment.bad}
-		/>
-	</Box>
-)
-
 const kindIconLookup = {
-	error: ErrorIcon,
-	info: InfoIcon,
-	warning: WarningIcon,
+	error: IconSolidXCircle,
+	info: IconSolidInformationCircle,
+	warning: IconSolidExclamation,
 } as const

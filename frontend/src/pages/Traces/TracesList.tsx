@@ -1,4 +1,4 @@
-import { Box, Callout, Table, Text } from '@highlight-run/ui/components'
+import { Box, Callout, Stack, Table, Text } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
 import {
 	ColumnDef,
@@ -230,61 +230,74 @@ export const TracesList: React.FC<Props> = ({
 	if (!loading && !traceEdges.length) {
 		return (
 			<Box m="8">
-				{true ? (
-					<Callout
-						title="Set up traces"
-						alignItems="center"
-						flexDirection="row"
-						justifyContent="space-between"
+				<Callout>
+					<Stack
+						direction={{ desktop: 'row', mobile: 'column' }}
+						justifyContent={{
+							desktop: 'space-between',
+							mobile: 'flex-start',
+						}}
+						align={{ desktop: 'center', mobile: 'flex-start' }}
 					>
-						<Text color="moderate">
-							No traces found. Have you finished setting up
-							tracing in your app yet?
-						</Text>
+						{!integrated ? (
+							<>
+								<Stack gap="12" my="6">
+									<Text weight="bold" size="medium">
+										Set up traces
+									</Text>
+									<Text color="moderate">
+										No traces found. Have you finished
+										setting up tracing in your app yet?
+									</Text>
+								</Stack>
 
-						<LinkButton
-							to="https://www.highlight.io/docs/getting-started/native-opentelemetry/tracing"
-							kind="primary"
-							size="small"
-							trackingId="tracing-empty-state_learn-more-setup"
-							target="_blank"
-						>
-							Learn more
-						</LinkButton>
-					</Callout>
-				) : (
-					<Callout
-						title="No traces found"
-						alignItems="center"
-						flexDirection="row"
-						justifyContent="space-between"
-					>
-						<Text color="moderate">
-							{hasQuery ? (
-								<>
-									No traces found for the current search
-									query. Try using a more generic search
-									query, removing filters, or updating the
-									time range to see more traces.
-								</>
-							) : (
-								<>
-									No traces found. Try updating your time
-									range to see more traces.
-								</>
-							)}
-						</Text>
+								<LinkButton
+									to="https://www.highlight.io/docs/getting-started/native-opentelemetry/tracing"
+									kind="primary"
+									size="small"
+									trackingId="tracing-empty-state_learn-more-setup"
+									target="_blank"
+								>
+									Learn more
+								</LinkButton>
+							</>
+						) : (
+							<>
+								<Stack gap="12" my="6">
+									<Text weight="bold" size="medium">
+										No traces found
+									</Text>
+									<Text color="moderate">
+										{hasQuery ? (
+											<>
+												No traces found for the current
+												search query. Try using a more
+												generic search query, removing
+												filters, or updating the time
+												range to see more traces.
+											</>
+										) : (
+											<>
+												No traces found. Try updating
+												your time range to see more
+												traces.
+											</>
+										)}
+									</Text>
+								</Stack>
 
-						<LinkButton
-							trackingId="traces-empty-state_specification-docs"
-							kind="secondary"
-							to="https://www.highlight.io/docs/general/product-features/general-features/search"
-							target="_blank"
-						>
-							Search docs
-						</LinkButton>
-					</Callout>
-				)}
+								<LinkButton
+									trackingId="traces-empty-state_specification-docs"
+									kind="secondary"
+									to="https://www.highlight.io/docs/general/product-features/general-features/search"
+									target="_blank"
+								>
+									View search docs
+								</LinkButton>
+							</>
+						)}
+					</Stack>
+				</Callout>
 			</Box>
 		)
 	}
