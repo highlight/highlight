@@ -62,21 +62,23 @@ export const Callout: React.FC<Props> = ({
 				width: width || 'auto',
 			}}
 		>
-			<Box
-				alignItems="center"
-				alignSelf="flex-start"
-				borderRadius="5"
-				display="flex"
-				justifyContent="center"
-				textAlign="center"
-				style={{
-					backgroundColor: BACKGROUND_COLOR_MAP[kind],
-					height: 22,
-					width: 22,
-				}}
-			>
-				<Icon size={14} color={TEXT_COLOR_MAP[kind]} />
-			</Box>
+			{icon !== false && (
+				<Box
+					alignItems="center"
+					alignSelf="flex-start"
+					borderRadius="5"
+					display="flex"
+					justifyContent="center"
+					textAlign="center"
+					style={{
+						backgroundColor: BACKGROUND_COLOR_MAP[kind],
+						height: 22,
+						width: 22,
+					}}
+				>
+					<Icon size={14} color={TEXT_COLOR_MAP[kind]} />
+				</Box>
+			)}
 
 			<Box gap="16" display="flex" flexDirection="column" width="full">
 				{title && (
