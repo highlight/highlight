@@ -1,12 +1,12 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { CalendlyModal } from '@components/CalendlyModal/CalendlyModal'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
 import { betaTag, linkStyle } from '@components/Header/styles.css'
+import { useBillingHook } from '@components/Header/useBillingHook'
 import { LinkButton } from '@components/LinkButton'
 import {
 	useGetBillingDetailsForProjectQuery,
-	useGetProjectQuery,
-	useGetSubscriptionDetailsQuery,
 	useGetSystemConfigurationQuery,
 	useGetWorkspacesQuery,
 } from '@graph/hooks'
@@ -78,106 +78,72 @@ type Props = {
 	fullyIntegrated?: boolean
 }
 
-export const useBillingHook = ({
-	workspace_id,
-	project_id,
-}: {
-	workspace_id?: string
-	project_id?: string
-}) => {
-	const { isAuthLoading, isLoggedIn } = useAuthContext()
-	const { data: projectData } = useGetProjectQuery({
-		variables: { id: project_id || '' },
-		skip: !project_id?.length || !!workspace_id?.length,
-	})
-
-	const {
-		loading: subscriptionLoading,
-		data: subscriptionData,
-		refetch: refetchSubscription,
-	} = useGetSubscriptionDetailsQuery({
-		variables: {
-			workspace_id: workspace_id || projectData?.workspace?.id || '',
-		},
-		skip:
-			isAuthLoading ||
-			!isLoggedIn ||
-			(!workspace_id?.length && !projectData?.workspace?.id),
-	})
-
-	return {
-		loading: subscriptionLoading,
-		subscriptionData: subscriptionData,
-		refetchSubscription: refetchSubscription,
-	}
-}
-
 const useProjectRedirectLink = () => {
-	const location = useLocation()
-	const { projectId } = useProjectId()
-	const { projectId: localStorageProjectId } = useLocalStorageProjectId()
-	const { allProjects, currentWorkspace } = useApplicationContext()
-	const workspaceId = currentWorkspace?.id
-	const localStorageProject = allProjects?.find(
-		(p) => String(p?.id) === String(localStorageProjectId),
-	)
-	const verificationPaths = [
-		{ path: '/:project_id/setup/*' },
-		{ path: '/:project_id/setup/backend/*' },
-		{ path: '/:project_id/setup/backend-logging/*' },
-		{ path: '/:project_id/setup/traces/*' },
-		{ path: '/:project_id/setup/alerts/*' },
-	]
-	const updateBackToPath = (projectId: string | number) => {
-		const match = matchRoutes(verificationPaths, location)?.at(0)
-		const routePath = match?.route?.path
+    const location = useLocation()
+    const { projectId } = useProjectId()
+    const { projectId: localStorageProjectId } = useLocalStorageProjectId()
+    const { allProjects, currentWorkspace } = useApplicationContext()
+    const workspaceId = currentWorkspace?.id
+    const localStorageProject = allProjects?.find(
+        (p) => String(p?.id) === String(localStorageProjectId),
+    )
+    const verificationPaths = [
+        { path: '/:project_id/setup/*' },
+        { path: '/:project_id/setup/backend/*' },
+        { path: '/:project_id/setup/backend-logging/*' },
+        { path: '/:project_id/setup/traces/*' },
+        { path: '/:project_id/setup/alerts/*' },
+    ]
+    const updateBackToPath = (projectId: string | number) => {
+        const match = matchRoutes(verificationPaths, location)?.at(0)
+        const routePath = match?.route?.path
 
-		switch (routePath) {
-			case '/:project_id/setup/backend/*':
-				return `/${projectId}/errors`
-			case '/:project_id/setup/backend-logging/*':
-				return `/${projectId}/logs`
-			case '/:project_id/setup/traces/*':
-				return `/${projectId}/traces`
-			case '/:project_id/setup/alerts/*':
-				return `/${projectId}/alerts`
-			default:
-				return `/${projectId}/sessions`
-		}
-	}
+        switch (routePath) {
+            case '/:project_id/setup/backend/*':
+                return `/${projectId}/errors`
+            case '/:project_id/setup/backend-logging/*':
+                return `/${projectId}/logs`
+            case '/:project_id/setup/traces/*':
+                return `/${projectId}/traces`
+            case '/:project_id/setup/alerts/*':
+                return `/${projectId}/alerts`
+            default:
+                return `/${projectId}/sessions`
+        }
+    }
 
-	const getProjectRedirectLink = () => {
-		const isWorkspaceTab =
-			workspaceId &&
-			matchRoutes([{ path: '/w/:workspace_id/*' }], location)?.at(0)
-				?.params?.workspace_id === workspaceId
+    const getProjectRedirectLink = () => {
+        const isWorkspaceTab =
+            workspaceId &&
+            matchRoutes([{ path: '/w/:workspace_id/*' }], location)?.at(0)
+                ?.params?.workspace_id === workspaceId
 
-		if (!localStorageProject) {
-			if (allProjects && allProjects.length === 0 && isWorkspaceTab) {
-				return `/w/${workspaceId}/new`
-			}
-			if (isWorkspaceTab && allProjects) {
-				return `/${allProjects[0]?.id}/sessions`
-			}
+        if (!localStorageProject) {
+            if (allProjects && allProjects.length === 0 && isWorkspaceTab) {
+                return `/w/${workspaceId}/new`
+            }
+            if (isWorkspaceTab && allProjects) {
+                return `/${allProjects[0]?.id}/sessions`
+            }
 
-			if (projectId && projectId !== 'demo') {
-				return updateBackToPath(projectId)
-			}
-		}
-		//if user in workspace tab and have not slected any of the projects. setting default to first project.
-		//if user does not have any projects. ideally we need to force the user to create atleast one project if they are trying to click on go back to project.
-		if (
-			isWorkspaceTab &&
-			(!projectId || projectId == 'demo') &&
-			allProjects?.length
-		) {
-			return `/${allProjects[0]?.id}/sessions`
-		}
-		return updateBackToPath(localStorageProjectId || projectId)
-	}
-	const goBackPath = getProjectRedirectLink()
+            if (projectId && projectId !== 'demo') {
+                return updateBackToPath(projectId)
+            }
+        }
+        //if user in workspace tab and have not slected any of the projects. setting default to first project.
+        //if user does not have any projects. ideally we need to force the user to create atleast one project if they are trying to click on go back to project.
+        if (
+            isWorkspaceTab &&
+            (!projectId || projectId == 'demo') &&
+            allProjects?.length
+        ) {
+            return `/${allProjects[0]?.id}/sessions`
+        }
+        return updateBackToPath(localStorageProjectId || projectId)
+    }
+    const goBackPath = getProjectRedirectLink()
 
-	return goBackPath
+    return goBackPath
 }
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
@@ -552,6 +518,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 								)}
 							{!isSetup && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
+									<CalendlyModal />
 									<Box>
 										<ButtonIcon
 											cssClass={styles.button}
