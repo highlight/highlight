@@ -1,4 +1,9 @@
-import { LogLevel, ProductType, SavedSegmentEntityType } from '@graph/schemas'
+import {
+	LogLevel,
+	MetricAggregator,
+	ProductType,
+	SavedSegmentEntityType,
+} from '@graph/schemas'
 import {
 	Box,
 	DateRangePreset,
@@ -30,7 +35,7 @@ import {
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
 import { parseSearch } from '@/components/Search/utils'
-import { useGetLogsHistogramQuery } from '@/graph/generated/hooks'
+import { useGetMetricsQuery } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { LogsOverageCard } from '@/pages/LogsPage/LogsOverageCard/LogsOverageCard'
@@ -126,8 +131,9 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 
 	const { projectId } = useNumericProjectId()
 	const { data: histogramData, loading: histogramLoading } =
-		useGetLogsHistogramQuery({
+		useGetMetricsQuery({
 			variables: {
+				product_type: ProductType.Logs,
 				project_id: project_id!,
 				params: {
 					query,
@@ -136,6 +142,11 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						end_date: moment(endDate).format(TIME_FORMAT),
 					},
 				},
+				column: '',
+				metric_types: MetricAggregator.Count,
+				group_by: 'level',
+				bucket_by: 'Timestamp',
+				bucket_count: 48,
 			},
 			skip: !projectId,
 		})

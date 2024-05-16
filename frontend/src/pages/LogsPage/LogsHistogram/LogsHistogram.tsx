@@ -2,12 +2,12 @@ import { LogLevel as Level } from '@graph/schemas'
 import { Box, BoxProps, Popover, Text } from '@highlight-run/ui/components'
 import { COLOR_MAPPING } from '@pages/LogsPage/constants'
 import { formatDate, isSignificantDateRange } from '@pages/LogsPage/utils'
-import { clamp, formatNumber } from '@util/numbers'
 import clsx from 'clsx'
 import { memo, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import LoadingBox from '@/components/LoadingBox'
+import { BarChart } from '@/pages/Graphing/components/BarChart'
 
 import * as styles from './LogsHistogram.css'
 
@@ -135,73 +135,6 @@ const LogsHistogram = ({
 		})
 	}, [histogramBuckets, endDate, startDate, bucketCount, maxBucketCount])
 
-	const tickValues = useMemo(() => {
-		// return the axis with up to 5 ticks based on maxBucketCount
-		const count = Math.min(5, maxBucketCount)
-		return [
-			...new Set(
-				[...Array(count + 1)].map((_, idx) => {
-					return Math.ceil(maxBucketCount / count) * idx
-				}),
-			),
-		]
-	}, [maxBucketCount])
-
-	const axis = useMemo(() => {
-		if (!outline) {
-			return null
-		}
-
-		const ticks = (tickValues.length > 1 ? tickValues : []).map((tick) => {
-			return (
-				<Text
-					key={tick}
-					color="weak"
-					size="xxSmall"
-					weight="regular"
-					userSelect="none"
-				>
-					{formatNumber(tick)}
-				</Text>
-			)
-		})
-		return (
-			<Box
-				position="relative"
-				height="full"
-				display="flex"
-				flexDirection="column-reverse"
-				justifyContent="space-between"
-				alignItems="flex-start"
-				p="2"
-				style={{
-					width: formatNumber(maxBucketCount).length * 8,
-				}}
-			>
-				{loading ? null : ticks}
-			</Box>
-		)
-	}, [loading, maxBucketCount, outline, tickValues])
-
-	const maxValue = tickValues[tickValues.length - 1] ?? 0
-	const referenceValue = belowThreshold ? 0 : maxValue
-	const timeSeconds = (endDate.getTime() - startDate.getTime()) / 1000
-	const adjThreshold =
-		((threshold ?? 0) * timeSeconds) /
-		(frequencySeconds ?? timeSeconds) /
-		buckets.length
-	const clampedThreshold = clamp(
-		Math.abs(adjThreshold ?? referenceValue),
-		0,
-		maxValue,
-	)
-	const thresholdAreaHeight =
-		clamp(
-			Math.abs(referenceValue - clampedThreshold) / maxValue,
-			0,
-			1 - (2 * styles.OUTLINE_PADDING) / styles.OUTLINE_HISTOGRAM_HEIGHT,
-		) * 100
-
 	const showLoadingState =
 		loading ||
 		(!outline && (histogramBuckets === undefined || !maxBucketCount))
@@ -269,7 +202,7 @@ const LogsHistogram = ({
 								}}
 							/>
 						) : null}
-						<LogsHistogramChart
+						<LogsHistogramChartV2
 							buckets={buckets}
 							startDate={startDate}
 							endDate={endDate}
@@ -298,6 +231,36 @@ const LogsHistogram = ({
 			</Box>
 			{axis}
 		</Box>
+	)
+}
+
+const LogsHistogramChartV2 = ({
+	buckets,
+	startDate,
+	endDate,
+	onDatesChange,
+	onLevelChange,
+	loadingState,
+	totalCount,
+	maxBucketCount,
+	barColor,
+	noPadding,
+	legend,
+}: LogsHistogramChartProps) => {
+	console.log('buckets', buckets)
+	return (
+		<BarChart
+			data={buckets}
+			xAxisMetric="Timestamp"
+			yAxisMetric=""
+			yAxisFunction="Count"
+			viewConfig={{
+				type: 'Bar chart',
+				showLegend: true,
+				display: 'Stacked',
+			}}
+			series={[]}
+		/>
 	)
 }
 
