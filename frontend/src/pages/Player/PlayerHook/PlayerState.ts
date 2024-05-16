@@ -52,7 +52,7 @@ import { timedCall } from '@util/perf/instrument'
 import { H } from 'highlight.run'
 import { throttle } from 'lodash'
 import moment from 'moment/moment'
-import { MutableRefObject, SetStateAction } from 'react'
+import { MutableRefObject, RefObject, SetStateAction } from 'react'
 import { EventType, Replayer } from 'rrweb'
 
 const EMPTY_SESSION_METADATA = {
@@ -242,6 +242,7 @@ interface onChunksLoad {
 	type: PlayerActionType.onChunksLoad
 	showPlayerMouseTail: boolean
 	time: number
+	playerRef: RefObject<HTMLDivElement>
 	action: ReplayerState
 }
 
@@ -272,6 +273,7 @@ interface setSessionResults {
 interface setIsLiveMode {
 	type: PlayerActionType.setIsLiveMode
 	isLiveMode: SetStateAction<boolean>
+	playerRef: RefObject<HTMLDivElement>
 }
 
 interface setCurrentEvent {
@@ -464,7 +466,12 @@ export const PlayerReducer = (
 				break
 			}
 			if (s.replayer === undefined) {
-				s = initReplayer(s, events, action.showPlayerMouseTail)
+				s = initReplayer(
+					s,
+					events,
+					action.showPlayerMouseTail,
+					action.playerRef,
+				)
 				if (s.onSessionPayloadLoadedPayload) {
 					s = processSessionMetadata(s, events)
 				}
@@ -518,7 +525,12 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.setIsLiveMode:
 			s.isLiveMode = handleSetStateAction(s.isLiveMode, action.isLiveMode)
-			s = initReplayer(s, events, !!s.replayer?.config.mouseTail)
+			s = initReplayer(
+				s,
+				events,
+				!!s.replayer?.config.mouseTail,
+				action.playerRef,
+			)
 			analytics.track('Session live mode toggled', {
 				isLiveMode: s.isLiveMode,
 			})
@@ -569,9 +581,10 @@ const initReplayer = (
 	s: PlayerState,
 	events: HighlightEvent[],
 	showPlayerMouseTail: boolean,
+	playerRef: RefObject<HTMLDivElement>,
 ) => {
 	// Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
-	const playerMountingRoot = document.getElementById('player') as HTMLElement
+	const playerMountingRoot = playerRef.current
 	if (!playerMountingRoot) {
 		s.replayerState = ReplayerState.Empty
 		return s

@@ -37,7 +37,9 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 	resource,
 }) => {
 	const { projectId } = useNumericProjectId()
-	const playerContext = usePlayer()
+	const playerRef = useRef<HTMLDivElement>(null)
+	const playerWrapperRef = useRef<HTMLDivElement>(null)
+	const playerContext = usePlayer(playerRef)
 	const {
 		session,
 		state: replayerState,
@@ -50,7 +52,6 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 	} = playerContext
 	const resourcesContext = useResources(session)
 	const toolbarContext = useToolbarItems()
-	const playerWrapperRef = useRef<HTMLDivElement>(null)
 	const replayerWrapperBbox = replayer?.wrapper.getBoundingClientRect()
 	const { playerCenterPanelRef } = usePlayerUIContext()
 
@@ -159,6 +160,7 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 												}}
 												className="highlight-block"
 												id="player"
+												ref={playerRef}
 											/>
 											{!isPlayerReady && <LoadingBox />}
 										</div>

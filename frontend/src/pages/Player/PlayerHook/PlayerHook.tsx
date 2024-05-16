@@ -34,7 +34,14 @@ import { timerEnd, timerStart } from '@util/timer/timer'
 import useMapRef from '@util/useMapRef'
 import { H } from 'highlight.run'
 import _ from 'lodash'
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
+import {
+	RefObject,
+	useCallback,
+	useEffect,
+	useMemo,
+	useReducer,
+	useRef,
+} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { EventType } from 'rrweb'
 import { BooleanParam, useQueryParam } from 'use-query-params'
@@ -50,7 +57,9 @@ import {
 } from './utils'
 import usePlayerConfiguration from './utils/usePlayerConfiguration'
 
-export const usePlayer = (): ReplayerContextInterface => {
+export const usePlayer = (
+	playerRef: RefObject<HTMLDivElement>,
+): ReplayerContextInterface => {
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const { sessionSecureId, projectId } = useSessionParams()
 	const navigate = useNavigate()
@@ -301,9 +310,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 				showPlayerMouseTail,
 				time,
 				action: action,
+				playerRef,
 			})
 		},
-		[showPlayerMouseTail],
+		[playerRef, showPlayerMouseTail],
 	)
 
 	const loadEventChunk = useCallback(
@@ -687,6 +697,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						showPlayerMouseTail,
 						time: 0,
 						action: ReplayerState.Paused,
+						playerRef,
 					})
 					log('PlayerHook.tsx', 'initial chunk complete')
 				})
@@ -713,6 +724,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		eventChunksData?.event_chunks,
 		showPlayerMouseTail,
 		chunkEventsSet,
+		playerRef,
 	])
 
 	useEffect(() => {
@@ -1053,9 +1065,18 @@ export const usePlayer = (): ReplayerContextInterface => {
 						firstNewTimestamp: events[events.length - 1].timestamp,
 					})
 				}
-				dispatch({ type: PlayerActionType.setIsLiveMode, isLiveMode })
+				dispatch({
+					type: PlayerActionType.setIsLiveMode,
+					isLiveMode,
+					playerRef,
+				})
 			},
-			[chunkEventsRef, state.isLiveMode, state.lastActiveTimestamp],
+			[
+				chunkEventsRef,
+				playerRef,
+				state.isLiveMode,
+				state.lastActiveTimestamp,
+			],
 		),
 		playerProgress: state.replayer
 			? state.time / state.sessionMetadata.totalTime
