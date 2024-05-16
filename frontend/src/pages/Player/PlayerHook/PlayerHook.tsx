@@ -1027,6 +1027,13 @@ export const usePlayer = (
 		}
 	}, [play, loopSession, state.replayerState])
 
+	useEffect(() => {
+		return () => {
+			state.replayer?.destroy()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
 	return {
 		...state,
 		setScale: useCallback(
