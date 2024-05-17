@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "highlight.fullname" . }}-backend
+  labels:
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+    {{- include "highlight.labels" . | nindent 4 }}
+data:
+  CLICKHOUSE_ADDRESS: {{ include "highlight.fullname" . }}-clickhouse:9000
+  CLICKHOUSE_DATABASE: default
+  CLICKHOUSE_PASSWORD: ""
+  CLICKHOUSE_USERNAME: default
+  DOPPLER_CONFIG: docker
+  ENVIRONMENT: dev
+  FRONTEND_URI: {{ .Values.frontend.config.frontendUri | quote }}
+  INFLUXDB_BUCKET: dev-bucket
+  INFLUXDB_ORG: dev-org
+  INFLUXDB_SERVER: {{ include "highlight.fullname" . }}-influxdb:8086
+  INFLUXDB_TOKEN: not-a-secure-token
+  KAFKA_SERVERS: {{ include "highlight.fullname" . }}-kafka:{{ .Values.kafka.config.port }}
+  KAFKA_TOPIC: dev
+  OPENSEARCH_INDEX_PREFIX: docker
+  OPENSEARCH_DOMAIN: http://{{ include "highlight.fullname" . }}-opensearch:9200
+  OPENSEARCH_DOMAIN_READ: http://{{ include "highlight.fullname" . }}-opensearch:9200
+  OPENSEARCH_PASSWORD: admin
+  OPENSEARCH_USERNAME: admin
+  OTLP_ENDPOINT: {{ include "highlight.fullname" . }}-collector:4319
+  TZ: America/Los_Angeles
+  PSQL_DB: postgres
+  PSQL_HOST: {{ include "highlight.fullname" . }}-postgres
+  PSQL_PASSWORD: ""
+  PSQL_PORT: "5432"
+  PSQL_USER: postgres
+  PRIVATE_GRAPH_URI: {{ .Values.frontend.config.privateGraphUri | quote }}
+  PUBLIC_GRAPH_URI: {{ .Values.frontend.config.publicGraphUri | quote }}
+  REACT_APP_FRONTEND_ORG: "1"
+  REACT_APP_FRONTEND_URI: {{ .Values.frontend.config.frontendUri | quote }}
+  REACT_APP_IN_DOCKER: "true"
+  REACT_APP_PRIVATE_GRAPH_URI: {{ .Values.frontend.config.privateGraphUri | quote }}
+  REACT_APP_PUBLIC_GRAPH_URI: {{ .Values.frontend.config.publicGraphUri | quote }}
+  REDIS_EVENTS_STAGING_ENDPOINT: {{ include "highlight.fullname" . }}-redis:6379
+  RENDER_PREVIEW: "true"
+  SESSION_FILE_PATH_PREFIX: /tmp/
+  REACT_APP_AUTH_MODE: simple
+  IN_DOCKER: "true"
+  IN_DOCKER_GO: "true"
+  ENABLE_OBJECT_STORAGE: "true"
+  OBJECT_STORAGE_FS: "true"

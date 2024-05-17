@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "highlight.fullname" . }}-clickhouse
+  labels:
+    app.kubernetes.io/component: clickhouse
+    app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+    {{- include "highlight.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/component: clickhouse
+    app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+    {{- include "highlight.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http-api
+      port: 8123
+      protocol: TCP
+    - name: native-protocol
+      port: 9000
+      protocol: TCP
