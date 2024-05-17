@@ -16,7 +16,7 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     migrate-database:
-        runs-on: ubuntu-latest
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -27,17 +27,6 @@ jobs:
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v3
-            - name: Add public IP to AWS security group
-              uses: sohelamin/aws-security-group-add-ip-action@master
-              with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws-region: 'us-east-2'
-                  aws-security-group-id: ${{ secrets.AWS_RDS_SECURITY_GROUP_ID }}
-                  port: '5432'
-                  to-port: ''
-                  protocol: 'tcp'
-                  description: 'GitHub Action for migrate-database'
             - name: Migrate database
               run: |
                   cd backend/
@@ -47,7 +36,7 @@ jobs:
 
     deploy-session-delete-lambdas:
         needs: migrate-database
-        runs-on: ubuntu-latest
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -135,7 +124,7 @@ jobs:
 
     deploy-session-export-lambdas:
         needs: migrate-database
-        runs-on: ubuntu-latest
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -187,7 +176,7 @@ jobs:
 
     deploy-digest-lambdas:
         needs: migrate-database
-        runs-on: ubuntu-latest
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -251,7 +240,7 @@ jobs:
 
     deploy-session-insights-lambdas:
         needs: migrate-database
-        runs-on: ubuntu-latest
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -303,7 +292,7 @@ jobs:
 
     deploy-metering-lambdas:
         needs: migrate-database
-        runs-on: ubuntu-latest
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -343,7 +332,7 @@ jobs:
 
     deploy-user-journey-lambdas:
         needs: migrate-database
-        runs-on: ubuntu-latest
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
