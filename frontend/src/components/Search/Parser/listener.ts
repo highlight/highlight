@@ -98,6 +98,7 @@ export class SearchListener extends SearchGrammarListener {
 
 	enterExists_op = (ctx: Exists_opContext) => {
 		this.currentExpression.operator = ctx.getText() as SearchOperator
+		this.currentExpression.value = ''
 	}
 
 	enterBin_op = (ctx: Bin_opContext) => {
