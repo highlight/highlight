@@ -17,7 +17,7 @@ with others to deep link to search results, or even create them programatically.
   - `/sessions?query={key1}={value1}%20AND%20{key2}={value2}`
   - `/sessions?query={key1}={value1}%20OR%20{key2}={value2}`
 
-- Implicitly, `and` is used. They two queries are equal:
+- Implicitly, `and` is used, so the following two queries are equivalent:
   - `/sessions?query={key1}={value1}%20AND%20{key2}={value2}`
   - `/sessions?query={key1}={value1}%20{key2}={value2}`
 
