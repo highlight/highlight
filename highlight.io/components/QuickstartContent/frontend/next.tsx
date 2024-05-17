@@ -3,7 +3,9 @@ import { verifySnippet } from './shared-snippets'
 import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
 
-const GUIDE_URL = siteUrl('/docs/getting-started/fullstack-frameworks/next-js')
+const GUIDE_URL = siteUrl(
+	'/docs/getting-started/5_fullstack-frameworks/next-js',
+)
 
 export const NextContent: QuickStartContent = {
 	title: 'Next.js',

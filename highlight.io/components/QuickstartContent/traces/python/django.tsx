@@ -1,8 +1,6 @@
 import { siteUrl } from '../../../../utils/urls'
-import {
-	downloadSnippet,
-	setupFrontendSnippet,
-} from '../../backend/python/shared-snippets'
+import { downloadSnippet } from '../../backend/python/shared-snippets'
+import { previousInstallSnippet } from '../../logging/shared-snippets'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets'
 
@@ -11,7 +9,7 @@ export const PythonDjangoTracesContent: QuickStartContent = {
 	subtitle: 'Learn how to set up highlight.io tracing for your Django app.',
 	logoUrl: siteUrl('/images/quickstart/django.svg'),
 	entries: [
-		setupFrontendSnippet,
+		previousInstallSnippet('python'),
 		downloadSnippet('Django'),
 		{
 			title: 'Initialize the Highlight SDK.',

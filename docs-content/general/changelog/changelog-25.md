@@ -13,7 +13,7 @@ We recently released GitHub-enhanced stack traces, and now we've surfaced your e
 
 We've got errors, logs and sessions working on Vercel's Edge runtime with both Page and App Router!
 
-The docs are a work-in-progress, but they're all available on our [Next.js Walkthrough](https://www.highlight.io/docs/getting-started/fullstack-frameworks/next-js) page.
+The docs are a work-in-progress, but they're all available on our [Next.js Walkthrough](https://www.highlight.io/docs/getting-started/5_fullstack-frameworks/next-js) page.
 
 We've got new API endpoint wrappers that work with Vercel's serverless Node.js functions. And we've got a new Edge-specific API endpoint wrapper that's compatible with Edge's stripped-down API.
 

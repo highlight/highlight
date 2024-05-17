@@ -15,14 +15,14 @@ Welcome to the repo we use to maintain our main landing page (https://highlight.
 
 If you want to explicitly order items in the left panel (e.g. to make the `overview` section at the top of a subdirectory), rather than naming a file or directory in the format `{{content}}` you can use the syntax `{{number}}_{{content}}`.
 
-- For example, for [`http://localhost:3000/docs/getting-started/fullstack-frameworks/next-js/metrics-overview`](http://localhost:3000/docs/getting-started/fullstack-frameworks/next-js/metrics-overview), the file path of the doc is `docs/general-docs/2_getting-started/fullstack-frameworks/next-js/metrics-overview.md`
+- For example, for [`http://localhost:3000/docs/getting-started/5_fullstack-frameworks/next-js/metrics-overview`](http://localhost:3000/docs/getting-started/5_fullstack-frameworks/next-js/metrics-overview), the file path of the doc is `docs/general-docs/2_getting-started/5_fullstack-frameworks/next-js/metrics-overview.md`
 - Notice `2_getting-started` because we want it second in the list of subfiles.
 
 ### How are slugs defined?
 
 - For files in `general-docs`, the base path is `docs/` and for files in `sdk-docs`, the base path is `docs/sdk`.
 - The rest of the slug is defined based on the file name / directory structure of the file. For files/folders in the form `{{number}}_{{content}}`\*, only the content is included in the slug.
-  - For example, for [`http://localhost:3000/docs/getting-started/fullstack-frameworks/next-js/metrics-overview`](http://localhost:3000/docs/getting-started/fullstack-frameworks/next-js/metrics-overview), the file path of the doc is `docs/general-docs/2_getting-started/fullstack-frameworks/next-js/metrics-overview.md`
+  - For example, for [`http://localhost:3000/docs/getting-started/5_fullstack-frameworks/next-js/metrics-overview`](http://localhost:3000/docs/getting-started/5_fullstack-frameworks/next-js/metrics-overview), the file path of the doc is `docs/general-docs/2_getting-started/5_fullstack-frameworks/next-js/metrics-overview.md`
 
 ## Running the site locally
 

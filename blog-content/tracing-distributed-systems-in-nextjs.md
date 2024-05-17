@@ -99,7 +99,7 @@ See the full [list of monkey patches](https://www.highlight.io/docs/getting-star
 
 First, create a wrapper function. The Next.js SDK wrapper functions capture incoming headers and wrap the handler in a custom span named `highlight-run-with-headers`.
 
-In this case, we're using the App Router, so we'll follow the [Next.js App Router Guide](https://www.highlight.io/docs/getting-started/fullstack-frameworks/next-js/app-router).
+In this case, we're using the App Router, so we'll follow the [Next.js App Router Guide](https://www.highlight.io/docs/getting-started/5_fullstack-frameworks/next-js/app-router).
 
 ```typescript
 // utils/app-router-highlight.config.ts:

@@ -18,7 +18,7 @@ This documentation provides solutions and guidance for common issues encountered
 
 **Question:** Why are my settings for `excludedHostnames` not working in my Next.js project?
 
-**Answer:** Ensure that the hostnames listed in `excludedHostnames` match your local environment settings exactly, including any ports. Typos or discrepancies can prevent the settings from working correctly. Additionally, check for any middleware that might interfere with the `HighlightInit` settings. For more detailed instructions, refer to the [Highlight.io Documentation](https://www.highlight.io/docs/getting-started/fullstack-frameworks/next-js/page-router#skip-localhost-tracking).
+**Answer:** Ensure that the hostnames listed in `excludedHostnames` match your local environment settings exactly, including any ports. Typos or discrepancies can prevent the settings from working correctly. Additionally, check for any middleware that might interfere with the `HighlightInit` settings. For more detailed instructions, refer to the [Highlight.io Documentation](https://www.highlight.io/docs/getting-started/5_fullstack-frameworks/next-js/page-router#skip-localhost-tracking).
 
 ## Custom Function for Redacting Sensitive Data
 

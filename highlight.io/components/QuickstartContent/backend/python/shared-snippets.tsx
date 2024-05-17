@@ -1,10 +1,12 @@
-import { siteUrl } from '../../../../utils/urls'
 import { fullstackMappingLink } from '../../frontend/shared-snippets'
 import { QuickStartStep } from '../../QuickstartContent'
 
 export const setupFrontendSnippet: QuickStartStep = {
 	title: 'Setup your frontend Highlight snippet with tracingOrigins.',
-	content: `Make sure that you followed the [fullstack mapping guide](${fullstackMappingLink}#How-can-I-start-using-this).`,
+	content: `This step is recommended to link errors, logs, and traces to a session. 
+		If you are not interested in session replay, you can skip this step.
+		Make sure that you followed the
+		[fullstack mapping guide](${fullstackMappingLink}#How-can-I-start-using-this).`,
 	code: [
 		{
 			text: `H.init("<YOUR_PROJECT_ID>", {
@@ -45,10 +47,8 @@ pip install highlight-io${variant ? '[' + variant + ']' : ''}`,
 }
 
 export const setupLogging: (slug: string) => QuickStartStep = (slug) => ({
-	title: 'Set up logging.',
-	content: `With the Python SDK, your logs are reported automatically from builtin logging methods. See the Python [logging setup guide](${siteUrl(
-		'/docs/getting-started/backend-logging/python/overview',
-	)}) for more details.`,
+	title: 'Set up logging and tracing.',
+	content: '',
 })
 
 export const init = `# \`instrument_logging=True\` sets up logging instrumentation.

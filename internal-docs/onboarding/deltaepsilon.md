@@ -36,7 +36,7 @@ Your onboarding buddy will help you through the following tasks over your first 
 ### Day one
 
 * Have informal 1-1s with everyone on the team (or have them scheduled)
-* Get your [development environment](https://www.highlight.io/docs/getting-started/self-host/self-hosted-hobby-guide) set up
+* Get your [development environment](https://www.highlight.io/docs/getting-started/7_self-host/self-hosted-hobby-guide) set up
 * Pick up one of the tasks above.
 
 ### Day two (dogfooding exercise)

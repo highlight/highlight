@@ -7,7 +7,7 @@ slug: changelog-22
 
 Remix works great with Highlight. It was surprisingly easy to instrument.
 
-Check out our [@highlight-run/remix docs](https://www.highlight.io/docs/getting-started/fullstack-frameworks/remix) for an easy walkthrough.
+Check out our [@highlight-run/remix docs](https://www.highlight.io/docs/getting-started/5_fullstack-frameworks/remix) for an easy walkthrough.
 
 ![Remix to Highlight](/images/changelog/22/remix-to-highlight.jpg)
 

@@ -7,7 +7,7 @@ import {
 import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
 
-const GUIDE_URL = siteUrl('/docs/getting-started/fullstack-frameworks/remix')
+const GUIDE_URL = siteUrl('/docs/getting-started/5_fullstack-frameworks/remix')
 
 export const RemixContent: QuickStartContent = {
 	title: 'Remix',

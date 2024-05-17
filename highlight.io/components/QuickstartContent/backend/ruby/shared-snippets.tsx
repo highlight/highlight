@@ -50,7 +50,7 @@ export const verifyErrors: QuickStartStep = {
 }
 
 export const setUpLogging: (slug: string) => QuickStartStep = (slug) => ({
-	title: 'Set up logging.',
+	title: 'Set up logging and tracing.',
 	content: `Start sending logs to Highlight! Follow the [logging setup guide](${siteUrl(
 		`/docs/getting-started/backend-logging/ruby/${slug}`,
 	)}) to get started.`,

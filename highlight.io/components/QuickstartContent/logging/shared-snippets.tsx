@@ -5,9 +5,12 @@ export const previousInstallSnippet: (slug: string) => QuickStartStep = (
 	slug,
 ) => ({
 	title: 'Set up your frontend highlight.io integration.',
-	content: `First, make sure you've followed the [frontend getting started](${siteUrl(
+	content: `This step is recommended to link errors, logs, and traces to a session. 
+  If you are not interested in session replay, you can skip this step.
+  Make sure you've followed the [frontend getting started](${siteUrl(
 		'/docs/getting-started/overview',
-	)}) guide.`,
+  )})
+  guide.`,
 })
 
 export const verifyLogs: QuickStartStep = {

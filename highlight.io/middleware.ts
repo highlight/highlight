@@ -32,7 +32,7 @@ export const DOCS_REDIRECTS = {
 	'api/networkrecordingoptions': '/docs/sdk/client#Hinit',
 	'api/nodejs/h-init': '/docs/sdk/nodejs#Hinit',
 	'api/withhighlightconfig': '/docs/sdk/nextjs#withHighlightConfig',
-	'backend-sdk': '/docs/getting-started/4_backend-sdk',
+	'backend-sdk': '/docs/getting-started/8_backend-sdk',
 	'clearbit-integration': '/docs/integrations/clearbit-integration',
 	'client-sdk': '/docs/getting-started/client-sdk',
 	'console-messages': '/docs/session-replay/console-messages',
@@ -40,7 +40,7 @@ export const DOCS_REDIRECTS = {
 	'electron-integration': '/docs/integrations/electron-integration',
 	'error-monitoring/sourcemaps':
 		'/docs/general/product-features/error-monitoring/sourcemaps',
-	'express-backend': '/docs/getting-started/4_backend-sdk/nextjs',
+	'express-backend': '/docs/getting-started/8_backend-sdk/nextjs',
 	'front-plugin': '/docs/integrations/front-plugin',
 	'frontend-observability':
 		'/docs/getting-started/overview#For-your-Frontend',
@@ -50,7 +50,7 @@ export const DOCS_REDIRECTS = {
 		'/docs/getting-started/overview#For-your-Frontend',
 	'general/product-features/session-replay/canvas':
 		'/docs/getting-started/client-sdk/replay-configuration/canvas',
-	'go-backend': '/docs/getting-started/4_backend-sdk/go',
+	'go-backend': '/docs/getting-started/8_backend-sdk/go',
 	'grouping-errors': '/docs/error-monitoring/grouping-errors',
 	'html-iframe-recording': '/docs/session-replay/html-iframe-recording',
 	'identifying-users': '/docs/session-replay/identifying-sessions',
@@ -70,9 +70,9 @@ export const DOCS_REDIRECTS = {
 	'mixpanel-integration': '/docs/general/integrations/mixpanel-integration',
 	'monkey-patches': '/docs/tips/monkey-patches',
 	'network-devtools': '/docs/session-replay/network-devtools',
-	'nextjs-backend': '/docs/getting-started/4_backend-sdk/express',
-	'nextjs-sdk': '/docs/getting-started/4_backend-sdk/nextjs',
-	'nodejs-backend': '/docs/getting-started/4_backend-sdk/nodejs',
+	'nextjs-backend': '/docs/getting-started/8_backend-sdk/express',
+	'nextjs-sdk': '/docs/getting-started/8_backend-sdk/nextjs',
+	'nodejs-backend': '/docs/getting-started/8_backend-sdk/nodejs',
 	'performance-data': '/docs/product-features/performance-data',
 	'performance-impact': '/docs/tips/performance-impact',
 	'product-features/canvas':
@@ -138,7 +138,7 @@ export const DOCS_REDIRECTS = {
 	gatsbyjs: '/docs/getting-started/client-sdk/gatsbyjs',
 	html: '/docs/getting-started/client-sdk/html',
 	metrics:
-		'/docs/getting-started/fullstack-frameworks/next-js/metrics-overview',
+		'/docs/getting-started/5_fullstack-frameworks/next-js/metrics-overview',
 	nextjs: '/docs/getting-started/client-sdk/nextjs',
 	other: '/docs/getting-started/client-sdk/other',
 	privacy: '/docs/session-replay/privacy',

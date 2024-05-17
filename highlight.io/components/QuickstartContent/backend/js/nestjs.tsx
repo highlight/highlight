@@ -60,10 +60,8 @@ export class AppService {
 `,
 		),
 		{
-			title: 'Set up logging.',
-			content: `Start sending logs to Highlight! Follow the [logging setup guide](${siteUrl(
-				'/docs/getting-started/backend-logging/js/nestjs',
-			)}) to get started.`,
+			title: 'Set up logging and tracing.',
+			content: '',
 		},
 	],
 }

@@ -6,7 +6,7 @@ There are no requirements or dependencies to test the highlight.io data source i
 
 To use this data source for your cloud-managed project, you must be an enterprise customer. If you're interested in getting this set up, please reach out to us at [support@highlight.io](mailto:support@highlight.io).
 
-If you're already self-hosting highlight.io with a [hobby](https://www.highlight.io/docs/general/company/open-source/hosting/self-host-hobby) or [enterprise](https://www.highlight.io/docs/general/company/open-source/hosting/self-host-enterprise) deployment, you're good to go. If you'd like to set up your own self-hosted instance, you can follow the [getting started guide](https://www.highlight.io/docs/getting-started/self-host/self-hosted-hobby-guide).
+If you're already self-hosting highlight.io with a [hobby](https://www.highlight.io/docs/general/company/open-source/hosting/self-host-hobby) or [enterprise](https://www.highlight.io/docs/general/company/open-source/hosting/self-host-enterprise) deployment, you're good to go. If you'd like to set up your own self-hosted instance, you can follow the [getting started guide](https://www.highlight.io/docs/getting-started/7_self-host/self-hosted-hobby-guide).
 
 ## Getting Started with the highlight.io data source
 ### Configuration

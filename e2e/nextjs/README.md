@@ -10,4 +10,4 @@ Open [http://localhost:3005](http://localhost:3005) with your browser to see the
 
 # Highlight Installation
 
-See the [Next.js Walkthrough](https://www.highlight.io/docs/getting-started/fullstack-frameworks/next-js)
+See the [Next.js Walkthrough](https://www.highlight.io/docs/getting-started/5_fullstack-frameworks/next-js)

@@ -16,7 +16,7 @@ Please try your best to describe a clear and realistic impact for your report.
 ## Vulnerabilities we care about 🫣
 
 > Note: Please use
-> a [self-hosted instance](https://www.highlight.io/docs/getting-started/self-host/self-hosted-hobby-guide) to perform any
+> a [self-hosted instance](https://www.highlight.io/docs/getting-started/7_self-host/self-hosted-hobby-guide) to perform any
 > tests. Do not use the production app.highlight.io product for security testing.
 
 - Remote command execution

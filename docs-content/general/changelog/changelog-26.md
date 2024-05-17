@@ -31,7 +31,7 @@ Check out the latest two features:
 
 We continue to roll out improvements to our popular Next.js SDK, prioritizing Vercel support.
 
-Highlight can now consume Next.js's [built-in OpenTelemetry instrumentation](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry). This means free request/response spans for Next's Node runtime. We've also re-worked our [Next.js SDK docs](https://www.highlight.io/docs/getting-started/fullstack-frameworks/next-js/overview) to streamline your integrations.
+Highlight can now consume Next.js's [built-in OpenTelemetry instrumentation](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry). This means free request/response spans for Next's Node runtime. We've also re-worked our [Next.js SDK docs](https://www.highlight.io/docs/getting-started/5_fullstack-frameworks/next-js/overview) to streamline your integrations.
 
 We have walkthroughs for both the Page and App Routers, as well as details on our Edge Runtime support.
 

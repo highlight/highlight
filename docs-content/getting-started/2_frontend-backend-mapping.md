@@ -1,6 +1,6 @@
 ---
 title: Fullstack Mapping
-slug: 4_backend-sdk
+slug: 8_backend-sdk
 createdAt: 2022-03-28T20:05:46.000Z
 updatedAt: 2022-04-01T20:40:53.000Z
 ---
@@ -53,13 +53,13 @@ Backend changes are dependent on the underlying language/framework used on the s
 
 Below are solutions for what we support today. If you'd like us to support a new framework, feel free to shoot us a message at [support@highlight.io](mailto:support@highlight.io) or drop us a note in our [discord](https://discord.gg/yxaXEAqgwN).
 
-- [Go Backend Integration](4_backend-sdk/go)
+- [Go Backend Integration](8_backend-sdk/go)
 
-- [JS Backend Integration](4_backend-sdk/js)
+- [JS Backend Integration](8_backend-sdk/js)
 
-- [Python Backend Integration](4_backend-sdk/python)
+- [Python Backend Integration](8_backend-sdk/python)
 
-- [Java Backend Integration](4_backend-sdk/java)
+- [Java Backend Integration](8_backend-sdk/java)
 
 ## Distributed Tracing
 
