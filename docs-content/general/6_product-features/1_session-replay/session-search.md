@@ -23,9 +23,9 @@ For general information on searching sessions, check out our [Search docs](../..
 
 ## Default search
 
-By default, Highlight will show completed sessions that have been fully processed, `processed=true`. For newer
+By default, Highlight will show completed sessions that have been fully processed, `completed=true`. For newer
 projects with less sessions, Highlight will show all sessions, and provide an example of how to use the search
-query, `processed=(true or false)`.
+query, `completed=(true or false)`.
 
 ## Default key
 

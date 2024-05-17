@@ -318,7 +318,7 @@ export const SessionFeedCard = React.memo(
 														<IconSolidVideoCamera />
 													}
 													onClick={handleIconClick(
-														'processed',
+														'completed',
 														false,
 													)}
 												>
