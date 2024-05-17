@@ -1009,6 +1009,14 @@ func (r *mutationResolver) ChangeProjectMembership(ctx context.Context, workspac
 		return nil, err
 	}
 
+	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	if !settings.EnableProjectLevelAccess {
+		return nil, e.New("Workspace does not have the project-level access feature.")
+	}
+
 	if admin.ID == adminID {
 		return nil, e.New("User cannot change their own access.")
 	}
