@@ -630,14 +630,15 @@ export const GraphingEditor = () => {
 	}, [numericKeys, keysQuery])
 
 	tempMetricViewTitle.current = useMemo(()=>{
-		let newValue = ''
+		let newViewTitle = ''
 		const stringifiedFunctionType = functionType?.toString() ?? ''; 
-		newValue =  (metricViewTitle || stringifiedFunctionType || '');
-		if(newValue === stringifiedFunctionType && stringifiedFunctionType) {
-			newValue+= metric ? `(${metric})` : '';
+		newViewTitle =  (metricViewTitle || stringifiedFunctionType || '');
+		if(newViewTitle === stringifiedFunctionType && stringifiedFunctionType) {
+			newViewTitle+= metric ? `(${metric})` : '';
 		}
-		return newValue;	
-	}, [functionType, metric, metricViewTitle])
+		newViewTitle = newViewTitle ? `${newViewTitle} Of ${productType?.toString() ?? ''}` : newViewTitle;
+		return newViewTitle;	
+	}, [functionType, metric, metricViewTitle, productType])
 
 	let display: string | undefined
 	let nullHandling: string | undefined
