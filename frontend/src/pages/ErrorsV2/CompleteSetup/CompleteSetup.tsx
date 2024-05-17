@@ -6,7 +6,6 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui/components'
-import { vars } from '@highlight-run/ui/vars'
 import { useProjectId } from '@hooks/useProjectId'
 
 export const CompleteSetup = () => {
@@ -16,27 +15,7 @@ export const CompleteSetup = () => {
 		<Box margin="auto" style={{ maxWidth: 300 }}>
 			<Callout
 				title="Finish installing Highlight"
-				icon={() => (
-					<Box
-						alignItems="center"
-						borderRadius="5"
-						display="flex"
-						flexShrink={0}
-						justifyContent="center"
-						style={{
-							backgroundColor:
-								vars.theme.static.surface.sentiment.informative,
-							height: 22,
-							width: 22,
-						}}
-					>
-						<IconSolidSparkles
-							color={
-								vars.theme.static.content.sentiment.informative
-							}
-						/>
-					</Box>
-				)}
+				icon={IconSolidSparkles}
 			>
 				<Box display="flex" flexDirection="column" gap="16">
 					<Text color="moderate">

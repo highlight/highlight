@@ -1,11 +1,4 @@
-import {
-	Badge,
-	Box,
-	IconSolidAcademicCap,
-	Stack,
-	Table,
-	Text,
-} from '@highlight-run/ui/components'
+import { Box, Callout, Stack, Table, Text } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
 import {
 	ColumnDef,
@@ -31,7 +24,11 @@ import {
 	RelatedTrace,
 	useRelatedResource,
 } from '@/components/RelatedResources/hooks'
-import { SORT_COLUMN, SORT_DIRECTION } from '@/components/Search/SearchContext'
+import {
+	SORT_COLUMN,
+	SORT_DIRECTION,
+	useSearchContext,
+} from '@/components/Search/SearchContext'
 import { DEFAULT_INPUT_HEIGHT } from '@/components/Search/SearchForm/SearchForm'
 import {
 	ProductType,
@@ -39,6 +36,7 @@ import {
 	TraceEdge,
 } from '@/graph/generated/schemas'
 import { MAX_TRACES } from '@/pages/Traces/useGetTraces'
+import { useTracesIntegration } from '@/util/integrated'
 
 import {
 	DEFAULT_TRACE_COLUMNS,
@@ -71,6 +69,8 @@ export const TracesList: React.FC<Props> = ({
 	loadingAfter,
 	textAreaRef,
 }) => {
+	const { query } = useSearchContext()
+	const { integrated } = useTracesIntegration()
 	const { resource } = useRelatedResource()
 	const trace = resource as RelatedTrace
 	const [selectedColumns, setSelectedColumns] = useLocalStorage(
@@ -225,49 +225,79 @@ export const TracesList: React.FC<Props> = ({
 		}, 0)
 	}
 
+	const hasQuery = query.trim() !== ''
+
 	if (!loading && !traceEdges.length) {
 		return (
 			<Box m="8">
-				<Box
-					border="secondary"
-					borderRadius="6"
-					display="flex"
-					flexDirection="row"
-					gap="6"
-					p="8"
-					alignItems="center"
-					width="full"
-				>
-					<Box alignSelf="flex-start">
-						<Badge
-							size="medium"
-							shape="basic"
-							variant="gray"
-							iconStart={<IconSolidAcademicCap size="12" />}
-						/>
-					</Box>
-					<Stack gap="12" flexGrow={1} style={{ padding: '5px 0' }}>
-						<Text color="strong" weight="bold" size="small">
-							Set up traces
-						</Text>
-						<Text color="moderate">
-							No traces found. Have you finished setting up
-							tracing in your app yet?
-						</Text>
-					</Stack>
+				<Callout>
+					<Stack
+						direction={{ desktop: 'row', mobile: 'column' }}
+						justifyContent={{
+							desktop: 'space-between',
+							mobile: 'flex-start',
+						}}
+						align={{ desktop: 'center', mobile: 'flex-start' }}
+					>
+						{!integrated ? (
+							<>
+								<Stack gap="12" my="6">
+									<Text weight="bold" size="medium">
+										Set up traces
+									</Text>
+									<Text color="moderate">
+										No traces found. Have you finished
+										setting up tracing in your app yet?
+									</Text>
+								</Stack>
 
-					<Box alignSelf="center" display="flex">
-						<LinkButton
-							to="https://www.highlight.io/docs/getting-started/native-opentelemetry/tracing"
-							kind="primary"
-							size="small"
-							trackingId="tracing-empty-state_learn-more-setup"
-							target="_blank"
-						>
-							Learn more
-						</LinkButton>
-					</Box>
-				</Box>
+								<LinkButton
+									to="https://www.highlight.io/docs/getting-started/native-opentelemetry/tracing"
+									kind="primary"
+									size="small"
+									trackingId="tracing-empty-state_learn-more-setup"
+									target="_blank"
+								>
+									Learn more
+								</LinkButton>
+							</>
+						) : (
+							<>
+								<Stack gap="12" my="6">
+									<Text weight="bold" size="medium">
+										No traces found
+									</Text>
+									<Text color="moderate">
+										{hasQuery ? (
+											<>
+												No traces found for the current
+												search query. Try using a more
+												generic search query, removing
+												filters, or updating the time
+												range to see more traces.
+											</>
+										) : (
+											<>
+												No traces found. Try updating
+												your time range to see more
+												traces.
+											</>
+										)}
+									</Text>
+								</Stack>
+
+								<LinkButton
+									trackingId="traces-empty-state_specification-docs"
+									kind="secondary"
+									to="https://www.highlight.io/docs/general/product-features/general-features/search"
+									target="_blank"
+								>
+									View search docs
+								</LinkButton>
+							</>
+						)}
+					</Stack>
+				</Callout>
 			</Box>
 		)
 	}
