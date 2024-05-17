@@ -27,6 +27,17 @@ By default, Highlight will show completed sessions that have been fully processe
 projects with less sessions, Highlight will show all sessions, and provide an example of how to use the search
 query, `processed=(true or false)`.
 
+## Default key
+
+The default key for session search searches across multiple attributes. These columns include the user's identifier and
+location. This could be the user's `email`, `device_id`, or given `identifier`,  as well as their `city` or `country`.
+
+For example, if you enter an expression without a key (`highlight`) it will be used as the key for the following expression.
+
+```
+email=*highlight* OR city=*highlight*
+```
+
 ## Track Searching
 For track calls, you can search for sessions based on the properties that you gave to the track method. For example,
 if you want to filter sessions out by the value of a tracked feature toggle, `FeatureFlag-Analytics`, then you can

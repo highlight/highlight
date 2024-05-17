@@ -21,9 +21,12 @@ The log message is `Queried table` and the attributes are `table:users` and `que
 
 For general information on searching logs, check out our [Search docs](../../6_product-features/3_general-features/search.md).
 
-### Message Search
+## Default Key
 
-To search for a log message, simply type the text of the message. Given the following log:
+The default key for log search is `message`. If you enter an expression without a key (`graphql request`) it will be used as the
+key for the expression (`message="*graphql request*"`).
+
+For example given the following log:
 
 ```
 log.info("excluding session due to no user interaction events")

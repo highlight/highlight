@@ -6,14 +6,17 @@ updatedAt: 2024-05-15T00:00:00.000Z
 ---
 
 In [highlight.io](https://highlight.io), you can search for a errors using different attributes on the error group and error
-instance. The instance is specific occurance of an error that occurred. Based on the error event, stacktrace, and other attributes,
-the instance is organized into a group. These groups are returned by the overall search on the [Errors search page](https://app.highlight.io/errors).
+instance. The instance is a specific occurance of an error that occurred. Based on the error event, stacktrace, and other attributes,
+instances are organized into groups. These groups are returned by the search on the [Errors search page](https://app.highlight.io/errors).
 
 ## Searching for errors
 
 For general information on searching errors, check out our [Search docs](../../6_product-features/3_general-features/search.md).
 
-### Event Search
+## Default key
+
+The default key for error search is `event`. If you enter an expression without a key (`undefined variable`) it will be used as the
+key for the expression (`event="*undefined variable*"`).
 
 To search for a error event, simply type the text of the message. Given the following error:
 
@@ -21,7 +24,7 @@ To search for a error event, simply type the text of the message. Given the foll
 sql: statement is closed
 ```
 
-We can find this error by typing `statement is closed`.
+We can find this error by typing `sql: statement is closed`.
 
 ### Error Instance Search
 

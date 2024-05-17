@@ -20,8 +20,8 @@ For general information on searching traces, check out our [Search docs](../../6
 
 ## Default Key
 
-The default key for traces search is `span_name`. If you enter an expression without a key (`gorm.Query`) it will be used as the
-key for the expression (`span_name=gorm.Query`).
+The default key for trace search is `span_name`. If you enter an expression without a key (`gorm.Query`) it will be used as the
+key for the expression (`span_name=*gorm.Query*`).
 
 ## Searchable Attributes
 
