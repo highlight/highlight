@@ -3330,7 +3330,7 @@ func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
 			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
 		}
-		span, _ := highlight.StartTraceWithoutResourceAttributes(ctx, r.Tracer, highlight.UtilitySpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
+		span, _ := highlight.StartTraceWithoutResourceAttributes(ctx, r.Tracer, highlight.LogSpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
 		message := strings.Join(row.Value, " ")
 		attrs := []attribute.KeyValue{
 			hlog.LogSeverityKey.String(row.Type),

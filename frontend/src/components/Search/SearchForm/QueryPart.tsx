@@ -1,5 +1,4 @@
 import {
-	Ariakit,
 	Box,
 	IconSolidExclamationCircle,
 	IconSolidXCircle,
@@ -15,21 +14,22 @@ import { SearchToken } from '@/components/Search/utils'
 import * as styles from './SearchForm.css'
 
 export const QueryPart: React.FC<{
-	comboboxStore: Ariakit.ComboboxStore
+	typeaheadOpen: boolean
 	cursorIndex: number
 	index: number
 	tokenGroup: TokenGroup
 	showValues: boolean
-	onRemoveItem: (index: number) => void
+	showErrors: boolean
+	onRemoveItem?: (index: number) => void
 }> = ({
-	comboboxStore,
+	typeaheadOpen,
 	cursorIndex,
 	index,
 	tokenGroup,
 	showValues,
+	showErrors,
 	onRemoveItem,
 }) => {
-	const typeaheadOpen = comboboxStore.useState('open')
 	const active =
 		typeaheadOpen &&
 		cursorIndex >= tokenGroup.start &&
@@ -40,6 +40,7 @@ export const QueryPart: React.FC<{
 	const error = errorToken
 		? errorMessageForToken(errorToken, showValues)
 		: undefined
+	const showError = showErrors && error
 	const isExpression = tokenGroup.type === 'expression'
 
 	if (
@@ -54,7 +55,11 @@ export const QueryPart: React.FC<{
 			<>
 				{tokenGroup.tokens.map((token, index) => {
 					return (
-						<Token key={`${token.text}-${index}`} token={token} />
+						<Token
+							key={`${token.text}-${index}`}
+							token={token}
+							showErrors={showErrors}
+						/>
 					)
 				})}
 			</>
@@ -65,7 +70,7 @@ export const QueryPart: React.FC<{
 		<>
 			<Tooltip
 				placement="top-start"
-				open={active && !!error}
+				open={active && !!showError}
 				style={{ display: 'inline', wordBreak: 'break-word' }}
 				maxWidth={600}
 				shift={-3}
@@ -75,7 +80,7 @@ export const QueryPart: React.FC<{
 						cssClass={clsx({
 							[styles.comboboxTag]: isExpression,
 							[styles.comboboxTagActive]: active && isExpression,
-							[styles.comboboxTagError]: !!error,
+							[styles.comboboxTagError]: !!showError,
 						})}
 						position="relative"
 						display="inline-flex"
@@ -89,17 +94,20 @@ export const QueryPart: React.FC<{
 								<Token
 									key={`${token.text}-${index}`}
 									token={token}
+									showErrors={showErrors}
 								/>
 							)
 						})}
-						<IconSolidXCircle
-							className={styles.comboboxTagClose}
-							size={13}
-							onClick={() => onRemoveItem(index)}
-							style={{ cursor: 'pointer' }}
-						/>
+						{onRemoveItem && (
+							<IconSolidXCircle
+								className={styles.comboboxTagClose}
+								size={13}
+								onClick={() => onRemoveItem(index)}
+								style={{ cursor: 'pointer' }}
+							/>
+						)}
 
-						{error && (
+						{showError && (
 							<IconSolidExclamationCircle
 								className={styles.comboboxTagErrorIndicator}
 								size={13}
@@ -109,7 +117,7 @@ export const QueryPart: React.FC<{
 					</Box>
 				}
 			>
-				{error ? <ErrorRenderer error={error} /> : null}
+				{showError ? <ErrorRenderer error={error} /> : null}
 			</Tooltip>
 		</>
 	)
@@ -119,15 +127,22 @@ export const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
 	name?.replaceAll("'", ''),
 )
 
-export const Token = ({ token }: { token: SearchToken }): JSX.Element => {
+export const Token = ({
+	showErrors,
+	token,
+}: {
+	showErrors?: boolean
+	token: SearchToken
+}): JSX.Element => {
 	const { errorMessage, text } = token
+	const showError = showErrors && errorMessage
 
 	if (SEPARATORS.includes(text.toUpperCase())) {
 		return (
 			<Box
 				as="span"
 				cssClass={clsx(styles.token, {
-					[styles.errorToken]: !!errorMessage,
+					[styles.errorToken]: !!showError,
 				})}
 				style={{ color: '#E93D82', zIndex: 1 }}
 			>
@@ -136,13 +151,7 @@ export const Token = ({ token }: { token: SearchToken }): JSX.Element => {
 		)
 	} else {
 		return (
-			<Box
-				as="span"
-				style={{ zIndex: 1 }}
-				cssClass={clsx(styles.token, {
-					[styles.whitespaceToken]: text.trim() === '',
-				})}
-			>
+			<Box as="span" style={{ zIndex: 1 }} cssClass={clsx(styles.token)}>
 				{text.split('').map((char, index) =>
 					char === '*' ? (
 						<span key={index} style={{ color: '#E93D82' }}>
