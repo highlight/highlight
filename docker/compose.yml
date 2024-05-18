@@ -83,7 +83,8 @@ services:
             - '0.0.0.0:8123:8123'
             - '0.0.0.0:9000:9000'
         volumes:
-            - ./backup_disk.xml:/etc/clickhouse-server/config.d/backup_disk.xml
+            - ./config.xml:/etc/clickhouse-server/config.d/highlight.xml
+            - ./users.xml:/etc/clickhouse-server/users.d/highlight.xml
             - clickhouse-data:/var/lib/clickhouse
             - clickhouse-logs:/var/log/clickhouse-server
 
