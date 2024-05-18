@@ -308,7 +308,7 @@ jobs:
 
     deploy_backend:
         needs: migrate-database
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Check out the repo
               uses: actions/checkout@v4
@@ -460,7 +460,7 @@ jobs:
                   cluster: highlight-ec2-prod
 
     deploy_opentelemetry_collector:
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Login to Amazon ECR
               id: login-ecr
