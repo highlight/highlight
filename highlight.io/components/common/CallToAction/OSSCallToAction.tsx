@@ -18,21 +18,21 @@ export const OSSCallToAction = () => {
 				<h3 className="text-center leading-normal">
 					Join our{' '}
 					<span className={styles.highlightedText}>
-						OpenTelemetry for Next.js
+						Observability on Vercel
 					</span>{' '}
 					livestream.
 				</h3>
 				<div className="text-center px-2 md:px-16 mt-6">
 					<Typography type="copy1" className="leading-relaxed">
-						Highlight works with native OpenTelemetry! If you’re
-						curious about a native example in Next.js, join us on
-						Thursday, May 16th at 11am PDT for a full walkthrough.
+						If you’re curious about Observability in the Vercel
+						ecosystem, join us on Thursday, June 20th at 1pm PDT for
+						a full walkthrough.
 					</Typography>
 				</div>
 				<div className="flex justify-center mt-8">
 					<div className="flex flex-col lg:flex-row justify-center gap-4 w-full px-5 md:w-auto">
 						<PrimaryButton
-							href="https://lu.ma/7116dpav"
+							href="https://lu.ma/mgoy70k1"
 							target="_blank"
 							rel="noreferrer"
 							className="md:max-w-[180px]"
