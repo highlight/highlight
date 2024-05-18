@@ -308,7 +308,7 @@ jobs:
 
     deploy_backend:
         needs: migrate-database
-        runs-on: buildjet-2vcpu-ubuntu-2204-arm
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Check out the repo
               uses: actions/checkout@v4
@@ -460,7 +460,7 @@ jobs:
                   cluster: highlight-ec2-prod
 
     deploy_opentelemetry_collector:
-        runs-on: buildjet-2vcpu-ubuntu-2204-arm
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Login to Amazon ECR
               id: login-ecr
