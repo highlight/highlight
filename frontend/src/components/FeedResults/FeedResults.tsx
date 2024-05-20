@@ -23,7 +23,6 @@ export const AdditionalFeedResults = function ({
 	pollingExpired,
 	onClick,
 }: Props) {
-	console.log('pollingExpired', pollingExpired)
 	const rounded = ['sessions', 'errors'].includes(type)
 
 	const countText = more >= maxResults ? `${maxResults}+` : more
