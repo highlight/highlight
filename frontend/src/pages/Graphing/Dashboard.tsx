@@ -53,10 +53,13 @@ import * as style from './Dashboard.css'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
-export const Dashboard = () => {
+export const Dashboard = ({data}) => {
 	const { dashboard_id } = useParams<{
 		dashboard_id: string
 	}>()
+	const uniqueGroupByKey = data.groupByKey.filter((key, index, self) =>
+    		index === self.findIndex((k) => k === key)
+  	);
 
 	const sensors = useSensors(
 		useSensor(PointerSensor),
@@ -359,6 +362,7 @@ export const Dashboard = () => {
 														editing={editing}
 													>
 														<Graph
+															groupByKey={uniqueGroupByKey ?? undefined}
 															title={g.title}
 															viewConfig={getViewConfig(
 																g.type,
