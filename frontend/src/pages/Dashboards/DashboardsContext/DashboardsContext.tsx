@@ -1,5 +1,5 @@
 import { FetchResult } from '@apollo/client'
-import { UpsertDashboardMutation } from '@graph/operations'
+import { UpsertDashboardMutation, useUpsertDashboardMutation } from '@graph/operations'
 import * as Types from '@graph/schemas'
 import {
 	DashboardDefinition,
@@ -33,8 +33,9 @@ interface DashboardsContext {
 export const [useDashboardsContext, DashboardsContextProvider] =
 	createContext<DashboardsContext>('Dashboards')
 
-const DashboardsContextProvider = ({ children }) => {
+const DashboardsProvider = ({ children }) => { // Renamed to avoid conflict
 	const [dashboards, setDashboards] = useState<Maybe<DashboardDefinition>[]>([])
+	const [upsertDashboardMutation] = useUpsertDashboardMutation() 
 
 	const updateDashboard = async ({
 		id,
@@ -54,7 +55,7 @@ const DashboardsContextProvider = ({ children }) => {
 		const newDashboard = result.data?.upsertDashboard
 		if (newDashboard) {
 			const uniqueDashboards = dashboards.filter((dashboard, index, self) =>
-				index === self.findIndex((d) => d.id === dashboard.id)
+				index === self.findIndex((d) => d.id === newDashboard.id)
 			)
 			setDashboards([...uniqueDashboards, newDashboard])
 		}
@@ -69,4 +70,4 @@ const DashboardsContextProvider = ({ children }) => {
 	)
 }
 
-export { useDashboardsContext, DashboardsContextProvider }
+export { useDashboardsContext, DashboardsProvider as DashboardsContextProvider } 
