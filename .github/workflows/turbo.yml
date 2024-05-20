@@ -56,48 +56,15 @@ jobs:
             - name: Check formatting
               run: yarn format-check
 
-            - name: Configure AWS credentials
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
-              uses: aws-actions/configure-aws-credentials@v4
-              with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws-region: us-east-2
-
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v3
 
-            # setting REACT_APP_COMMIT_SHA to a dummy value in CI to allow consistent turborepo remote caching
-
-            - name: Build & test (with render environment)
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
-              run: doppler run -- bash -c 'RENDER_PREVIEW=false yarn test:all'
-              env:
-                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
-                  GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
-                  NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
-                  REACT_APP_COMMIT_SHA: abcdef1234567890a1b2c3d4e5f6fedcba098765
-
             - name: Build & test (in a fork without doppler)
-              if: github.event.pull_request.head.repo.full_name != 'highlight/highlight' && github.ref != 'refs/heads/main'
               run: yarn test:all
               env:
                   GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
                   NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
-                  REACT_APP_COMMIT_SHA: abcdef1234567890a1b2c3d4e5f6fedcba098765
-
-            - name: Add public IP to AWS security group
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
-              uses: sohelamin/aws-security-group-add-ip-action@master
-              with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws-region: 'us-east-2'
-                  aws-security-group-id: ${{ secrets.AWS_RDS_SECURITY_GROUP_ID }}
-                  port: '5432'
-                  to-port: ''
-                  protocol: 'tcp'
-                  description: 'GitHub Action for Monorepo'
+                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
 
             - name: Test session screenshot lambda
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
@@ -189,14 +156,6 @@ jobs:
               with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-            - name: Configure AWS credentials
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
-              uses: aws-actions/configure-aws-credentials@v4
-              with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws-region: us-east-2
 
             - name: Start docker containers & run cypress
               env:
