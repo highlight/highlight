@@ -27,7 +27,6 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
 
 	"github.com/pkg/errors"
@@ -867,20 +866,6 @@ type DailyErrorCount struct {
 	Count     int64      `json:"count"`
 	ProjectID int        `json:"project_id"`
 	ErrorType string     `gorm:"default:FRONTEND"`
-}
-
-func (s *SearchParams) GormDataType() string {
-	out, err := json.Marshal(s)
-	if err != nil {
-		return ""
-	}
-	return string(out)
-}
-
-func (s *SearchParams) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
-	return clause.Expr{
-		SQL: fmt.Sprintf("ST_PointFromText(%v)", s.GormDataType()),
-	}
 }
 
 type DateRange struct {
