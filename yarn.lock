@@ -14644,8 +14644,8 @@ __metadata:
     diary: "npm:^0.4.3"
     lodash-es: "npm:^4.17.21"
     long: "npm:^5.2.1"
-    protobufjs: "npm:^7.2.1"
-    protobufjs-cli: "npm:^1.1.1"
+    protobufjs: "npm:^7.2.6"
+    protobufjs-cli: "npm:^1.1.2"
     tsup: "npm:^7.2.0"
   languageName: unknown
   linkType: soft
@@ -55987,7 +55987,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"protobufjs-cli@npm:^1.1.1":
+"protobufjs-cli@npm:^1.1.2":
   version: 1.1.2
   resolution: "protobufjs-cli@npm:1.1.2"
   dependencies:
