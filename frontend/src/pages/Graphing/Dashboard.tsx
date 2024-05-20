@@ -57,9 +57,7 @@ export const Dashboard = ({data}) => {
 	const { dashboard_id } = useParams<{
 		dashboard_id: string
 	}>()
-	const uniqueGroupByKey = data.groupByKey.filter((key, index, self) =>
-    		index === self.findIndex((k) => k === key)
-  	);
+	const uniqueGroupByKey = Array.from(new Set(data.groupByKey));
 
 	const sensors = useSensors(
 		useSensor(PointerSensor),
