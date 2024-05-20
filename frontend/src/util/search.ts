@@ -3,7 +3,7 @@ import log from '@util/log'
 import moment from 'moment'
 import { useEffect, useRef, useState } from 'react'
 
-import { ClickhouseQuery, QueryInput } from '@/graph/generated/schemas'
+import { QueryInput } from '@/graph/generated/schemas'
 
 export const POLL_INTERVAL = 5000
 const POLL_EXPIRY_MINUTES = 15
@@ -11,13 +11,9 @@ const POLL_EXPIRY_MINUTES = 15
 // usePollQuery polls a lazy query function and returns a 'more' count
 export function usePollQuery<
 	T,
-	U extends
-		| {
-				params: QueryInput
-		  }
-		| {
-				query: ClickhouseQuery
-		  },
+	U extends {
+		params: QueryInput
+	},
 >({
 	variableFn,
 	moreDataQuery,
@@ -59,15 +55,8 @@ export function usePollQuery<
 				return
 			}
 
-			let startDate: string
-			let endDate: string
-			if ('params' in variables) {
-				startDate = variables.params.date_range.start_date
-				endDate = variables.params.date_range.end_date
-			} else {
-				startDate = variables.query.dateRange.start_date
-				endDate = variables.query.dateRange.end_date
-			}
+			const startDate = variables.params.date_range.start_date
+			const endDate = variables.params.date_range.end_date
 
 			const isExpired =
 				moment(endDate).diff(startDate, 'minutes') >=
