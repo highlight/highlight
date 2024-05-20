@@ -56,7 +56,7 @@ opentelemetry-instrumentation-vertexai = "0.17.2"
 opentelemetry-instrumentation-watsonx = "0.17.2"
 opentelemetry-instrumentation-weaviate = "0.17.2"
 urllib3 = "2.2.1"
-requests = "2.31.0"
+requests = "2.32.0"
 
 [tool.poetry.group.dev.dependencies]
 azure-functions = "^1.19.0"
