@@ -48,7 +48,7 @@ const LivestreamBanner = () => {
 		>
 			<Typography type="copy3">
 				Join our livestream: June 20 at 1pm PDT on Observability in
-				Vercel. Register <span className="font-semibold"> here</span>.
+				Next.js. Register <span className="font-semibold"> here</span>.
 			</Typography>
 		</Link>
 	)

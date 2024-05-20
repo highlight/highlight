@@ -18,13 +18,13 @@ export const OSSCallToAction = () => {
 				<h3 className="text-center leading-normal">
 					Join our{' '}
 					<span className={styles.highlightedText}>
-						Observability on Vercel
+						Observability in Next.js
 					</span>{' '}
 					livestream.
 				</h3>
 				<div className="text-center px-2 md:px-16 mt-6">
 					<Typography type="copy1" className="leading-relaxed">
-						If you’re curious about Observability in the Vercel
+						If you’re curious about Observability in the Next.js
 						ecosystem, join us on Thursday, June 20th at 1pm PDT for
 						a full walkthrough.
 					</Typography>
