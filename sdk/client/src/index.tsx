@@ -80,6 +80,13 @@ import {
 	IFRAME_PARENT_RESPONSE,
 } from './types/iframe'
 import { getItem, removeItem, setItem, setStorageMode } from './utils/storage'
+import {
+	FIRST_SEND_FREQUENCY,
+	MAX_SESSION_LENGTH,
+	SEND_FREQUENCY,
+	SNAPSHOT_SETTINGS,
+	VISIBILITY_DEBOUNCE_MS,
+} from './constants/sessions'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -128,41 +135,7 @@ type HighlightClassOptionsInternal = Omit<
 	'firstloadVersion'
 >
 
-/**
- *  The amount of time to wait until sending the first payload.
- */
-const FIRST_SEND_FREQUENCY = 1000
-/**
- * The amount of time between sending the client-side payload to Highlight backend client.
- * In milliseconds.
- */
-const SEND_FREQUENCY = 1000 * 2
-
-/**
- * Maximum length of a session
- */
-const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000
-
 const HIGHLIGHT_URL = 'app.highlight.run'
-
-/*
- * Don't take another full snapshot unless it's been at least
- * 4 minutes AND the cumulative payload size since the last
- * snapshot is > 10MB.
- */
-const SNAPSHOT_SETTINGS = {
-	normal: {
-		bytes: 10e6,
-		time: 4 * 60 * 1000,
-	},
-	canvas: {
-		bytes: 16e6,
-		time: 5000,
-	},
-} as const
-
-// Debounce duplicate visibility events
-const VISIBILITY_DEBOUNCE_MS = 100
 
 export class Highlight {
 	options!: HighlightClassOptions
@@ -833,33 +806,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this.addCustomEvent('TabHidden', false)
 		} else {
 			this.addCustomEvent('TabHidden', true)
-			if ('sendBeacon' in navigator) {
-				try {
-					await this._sendPayload({
-						isBeacon: true,
-						sendFn: (payload) => {
-							let blob = new Blob(
-								[
-									JSON.stringify({
-										query: print(PushPayloadDocument),
-										variables: payload,
-									}),
-								],
-								{
-									type: 'application/json',
-								},
-							)
-							navigator.sendBeacon(`${this._backendUrl}`, blob)
-							return Promise.resolve(0)
-						},
-					})
-				} catch (e) {
-					if (this._isOnLocalHost) {
-						console.error(e)
-						HighlightWarning('_sendPayload', e)
-					}
-				}
-			}
 			if (this.options.disableBackgroundRecording) {
 				this.stopRecording()
 			}
@@ -1303,7 +1249,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					return 0
 				}
 			}
-			await this._sendPayload({ isBeacon: false, sendFn })
+			await this._sendPayload({ sendFn })
 			this.hasPushedData = true
 			this.sessionData.lastPushTime = Date.now()
 		} catch (e) {
@@ -1348,10 +1294,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	}
 
 	async _sendPayload({
-		isBeacon,
 		sendFn,
 	}: {
-		isBeacon: boolean
 		sendFn?: (payload: PushPayloadMutationVariables) => Promise<number>
 	}) {
 		const resources = FirstLoadListeners.getRecordedNetworkResources(
@@ -1367,18 +1311,16 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 
 		// if it is time to take a full snapshot,
 		// ensure the snapshot is at the beginning of the next payload
-		if (!isBeacon) {
-			// After snapshot thresholds have been met,
-			// take a full snapshot and reset the counters
-			const { bytes, time } = this.enableCanvasRecording
-				? SNAPSHOT_SETTINGS.canvas
-				: SNAPSHOT_SETTINGS.normal
-			if (
-				this._eventBytesSinceSnapshot >= bytes &&
-				new Date().getTime() - this._lastSnapshotTime >= time
-			) {
-				this.takeFullSnapshot()
-			}
+		// After snapshot thresholds have been met,
+		// take a full snapshot and reset the counters
+		const { bytes, time } = this.enableCanvasRecording
+			? SNAPSHOT_SETTINGS.canvas
+			: SNAPSHOT_SETTINGS.normal
+		if (
+			this._eventBytesSinceSnapshot >= bytes &&
+			new Date().getTime() - this._lastSnapshotTime >= time
+		) {
+			this.takeFullSnapshot()
 		}
 
 		this.logger.log(
@@ -1388,6 +1330,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		if (sendFn) {
 			await sendFn({
 				session_secure_id: this.sessionData.sessionSecureID,
+				payload_id: this._payloadId.toString(),
 				events: { events } as ReplayEventsInput,
 				messages: stringify({ messages: messages }),
 				resources: JSON.stringify({ resources: resources }),
@@ -1395,9 +1338,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					webSocketEvents: webSocketEvents,
 				}),
 				errors,
-				is_beacon: isBeacon,
+				is_beacon: false,
 				has_session_unloaded: this.hasSessionUnloaded,
-				payload_id: this._payloadId.toString(),
 			})
 		} else {
 			this._worker.postMessage({
@@ -1411,7 +1353,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					webSocketEventsString: JSON.stringify({
 						webSocketEvents: webSocketEvents,
 					}),
-					isBeacon,
 					hasSessionUnloaded: this.hasSessionUnloaded,
 					highlightLogs: highlightLogs,
 				},
@@ -1421,26 +1362,24 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		setItem(SESSION_STORAGE_KEYS.PAYLOAD_ID, this._payloadId.toString())
 
 		// If sendFn throws an exception, the data below will not be cleared, and it will be re-uploaded on the next PushPayload.
-		// SendBeacon is not guaranteed to succeed, so we will treat it the same way.
-		if (!isBeacon) {
-			FirstLoadListeners.clearRecordedNetworkResources(
-				this._firstLoadListeners,
-			)
-			// We are creating a weak copy of the events. rrweb could have pushed more events to this.events while we send the request with the events as a payload.
-			// Originally, we would clear this.events but this could lead to a race condition.
-			// Example Scenario:
-			// 1. Create the events payload from this.events (with N events)
-			// 2. rrweb pushes to this.events (with M events)
-			// 3. Network request made to push payload (Only includes N events)
-			// 4. this.events is cleared (we lose M events)
-			this.events = this.events.slice(events.length)
+		FirstLoadListeners.clearRecordedNetworkResources(
+			this._firstLoadListeners,
+		)
+		// We are creating a weak copy of the events. rrweb could have pushed more events to this.events while we send the request with the events as a payload.
+		// Originally, we would clear this.events but this could lead to a race condition.
+		// Example Scenario:
+		// 1. Create the events payload from this.events (with N events)
+		// 2. rrweb pushes to this.events (with M events)
+		// 3. Network request made to push payload (Only includes N events)
+		// 4. this.events is cleared (we lose M events)
+		this.events = this.events.slice(events.length)
 
-			this._firstLoadListeners.messages =
-				this._firstLoadListeners.messages.slice(messages.length)
-			this._firstLoadListeners.errors =
-				this._firstLoadListeners.errors.slice(errors.length)
-			clearHighlightLogs(highlightLogs)
-		}
+		this._firstLoadListeners.messages =
+			this._firstLoadListeners.messages.slice(messages.length)
+		this._firstLoadListeners.errors = this._firstLoadListeners.errors.slice(
+			errors.length,
+		)
+		clearHighlightLogs(highlightLogs)
 	}
 
 	private takeFullSnapshot() {

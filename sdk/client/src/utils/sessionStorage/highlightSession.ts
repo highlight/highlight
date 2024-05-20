@@ -1,11 +1,6 @@
 import { SESSION_STORAGE_KEYS } from './sessionStorageKeys'
 import { getItem } from '../storage'
-
-/**
- * The amount of time allowed after the last push before creating a new session.
- * In milliseconds.
- */
-const SESSION_PUSH_THRESHOLD = 15 * 60 * 1000
+import { SESSION_PUSH_THRESHOLD } from '../../constants/sessions'
 
 export type SessionData = {
 	sessionSecureID: string

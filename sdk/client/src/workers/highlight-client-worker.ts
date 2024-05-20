@@ -147,7 +147,6 @@ function stringifyProperties(
 			errors,
 			resourcesString,
 			webSocketEventsString,
-			isBeacon,
 			hasSessionUnloaded,
 			highlightLogs,
 		} = msg
@@ -161,7 +160,7 @@ function stringifyProperties(
 			resources: resourcesString,
 			web_socket_events: webSocketEventsString,
 			errors,
-			is_beacon: isBeacon,
+			is_beacon: false,
 			has_session_unloaded: hasSessionUnloaded,
 		}
 		if (highlightLogs) {
