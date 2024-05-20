@@ -81,15 +81,15 @@ jobs:
                   aws lambda update-function-configuration --function-name sendEmail \
                     --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy getSessionIdsByQuery
-              run: aws lambda update-function-code --function-name getSessionIdsByQuery --zip-file fileb://backend/getSessionIdsByQuery.zip
+              run: aws lambda update-function-code --function-name getSessionIdsByQuery --zip-file fileb://backend/getSessionIdsByQuery.zip 2>&1 >/dev/null
             - name: Deploy deleteSessionBatchFromPostgres
-              run: aws lambda update-function-code --function-name deleteSessionBatchFromPostgres --zip-file fileb://backend/deleteSessionBatchFromPostgres.zip
+              run: aws lambda update-function-code --function-name deleteSessionBatchFromPostgres --zip-file fileb://backend/deleteSessionBatchFromPostgres.zip 2>&1 >/dev/null
             - name: Deploy deleteSessionBatchFromOpenSearch
-              run: aws lambda update-function-code --function-name deleteSessionBatchFromOpenSearch --zip-file fileb://backend/deleteSessionBatchFromOpenSearch.zip
+              run: aws lambda update-function-code --function-name deleteSessionBatchFromOpenSearch --zip-file fileb://backend/deleteSessionBatchFromOpenSearch.zip 2>&1 >/dev/null
             - name: Deploy deleteSessionBatchFromS3
-              run: aws lambda update-function-code --function-name deleteSessionBatchFromS3 --zip-file fileb://backend/deleteSessionBatchFromS3.zip
+              run: aws lambda update-function-code --function-name deleteSessionBatchFromS3 --zip-file fileb://backend/deleteSessionBatchFromS3.zip 2>&1 >/dev/null
             - name: Deploy sendEmail
-              run: aws lambda update-function-code --function-name sendEmail --zip-file fileb://backend/sendEmail.zip
+              run: aws lambda update-function-code --function-name sendEmail --zip-file fileb://backend/sendEmail.zip 2>&1 >/dev/null
 
     deploy-session-export-lambdas:
         needs: migrate-database
@@ -126,9 +126,9 @@ jobs:
                   aws lambda update-function-configuration --function-name sendSessionExportEmail \
                     --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy saveSessionExport
-              run: aws lambda update-function-code --function-name saveSessionExport --zip-file fileb://backend/saveSessionExport.zip
+              run: aws lambda update-function-code --function-name saveSessionExport --zip-file fileb://backend/saveSessionExport.zip 2>&1 >/dev/null
             - name: Deploy sendSessionExportEmail
-              run: aws lambda update-function-code --function-name sendSessionExportEmail --zip-file fileb://backend/sendEmail.zip
+              run: aws lambda update-function-code --function-name sendSessionExportEmail --zip-file fileb://backend/sendEmail.zip 2>&1 >/dev/null
 
     deploy-digest-lambdas:
         needs: migrate-database
@@ -169,11 +169,11 @@ jobs:
                   aws lambda update-function-configuration --function-name sendDigestEmails \
                     --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy getProjectIds
-              run: aws lambda update-function-code --function-name getProjectIds --zip-file fileb://backend/getProjectIds.zip
+              run: aws lambda update-function-code --function-name getProjectIds --zip-file fileb://backend/getProjectIds.zip 2>&1 >/dev/null
             - name: Deploy getDigestData
-              run: aws lambda update-function-code --function-name getDigestData --zip-file fileb://backend/getDigestData.zip
+              run: aws lambda update-function-code --function-name getDigestData --zip-file fileb://backend/getDigestData.zip 2>&1 >/dev/null
             - name: Deploy sendDigestEmails
-              run: aws lambda update-function-code --function-name sendDigestEmails --zip-file fileb://backend/sendDigestEmails.zip
+              run: aws lambda update-function-code --function-name sendDigestEmails --zip-file fileb://backend/sendDigestEmails.zip 2>&1 >/dev/null
 
     deploy-session-insights-lambdas:
         needs: migrate-database
@@ -210,9 +210,9 @@ jobs:
                   aws lambda update-function-configuration --function-name sendSessionInsightsEmails \
                     --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy getSessionInsightsData
-              run: aws lambda update-function-code --function-name getSessionInsightsData --zip-file fileb://backend/getSessionInsightsData.zip
+              run: aws lambda update-function-code --function-name getSessionInsightsData --zip-file fileb://backend/getSessionInsightsData.zip 2>&1 >/dev/null
             - name: Deploy sendSessionInsightsEmails
-              run: aws lambda update-function-code --function-name sendSessionInsightsEmails --zip-file fileb://backend/sendSessionInsightsEmails.zip
+              run: aws lambda update-function-code --function-name sendSessionInsightsEmails --zip-file fileb://backend/sendSessionInsightsEmails.zip 2>&1 >/dev/null
 
     deploy-metering-lambdas:
         needs: migrate-database
@@ -245,7 +245,7 @@ jobs:
                   aws lambda update-function-configuration --function-name awsMarketplaceListener \
                     --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy awsMarketplaceListener
-              run: aws lambda update-function-code --function-name awsMarketplaceListener --zip-file fileb://backend/awsMarketplaceListener.zip
+              run: aws lambda update-function-code --function-name awsMarketplaceListener --zip-file fileb://backend/awsMarketplaceListener.zip 2>&1 >/dev/null
 
     deploy-user-journey-lambdas:
         needs: migrate-database
@@ -278,7 +278,7 @@ jobs:
                   aws lambda update-function-configuration --function-name updateNormalnessScores \
                     --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy updateNormalnessScores
-              run: aws lambda update-function-code --function-name updateNormalnessScores --zip-file fileb://backend/updateNormalnessScores.zip
+              run: aws lambda update-function-code --function-name updateNormalnessScores --zip-file fileb://backend/updateNormalnessScores.zip 2>&1 >/dev/null
 
     deploy_backend:
         needs: migrate-database
