@@ -700,20 +700,6 @@ func (r *Resolver) canAdminModifySession(ctx context.Context, session_secure_id 
 	return nil, err
 }
 
-func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*model.Segment, error) {
-	authSpan, ctx := util.StartSpanFromContext(ctx, "isAdminSegmentOwner", util.ResourceName("resolver.internal.auth"))
-	defer authSpan.Finish()
-	segment := &model.Segment{}
-	if err := r.DB.WithContext(ctx).Where("id = ?", segment_id).Take(&segment).Error; err != nil {
-		return nil, e.Wrap(err, "error querying segment")
-	}
-	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
-	if err != nil {
-		return nil, err
-	}
-	return segment, nil
-}
-
 func (r *Resolver) isAdminSavedSegmentOwner(ctx context.Context, segment_id int) (*model.SavedSegment, error) {
 	authSpan, ctx := util.StartSpanFromContext(ctx, "isAdminSavedSegmentOwner", util.ResourceName("resolver.internal.auth"))
 	defer authSpan.Finish()

@@ -141,7 +141,6 @@ var Models = []interface{}{
 	&ErrorField{},
 	&SavedSegment{},
 	&Organization{},
-	&Segment{},
 	&Admin{},
 	&Session{},
 	&SessionInterval{},
@@ -846,30 +845,7 @@ func (r *ResourcesObject) Contents() string {
 }
 
 type SearchParams struct {
-	UserProperties          []*UserProperty `json:"user_properties"`
-	ExcludedProperties      []*UserProperty `json:"excluded_properties"`
-	TrackProperties         []*UserProperty `json:"track_properties"`
-	ExcludedTrackProperties []*UserProperty `json:"excluded_track_properties"`
-	DateRange               *DateRange      `json:"date_range"`
-	LengthRange             *LengthRange    `json:"length_range"`
-	Browser                 *string         `json:"browser"`
-	OS                      *string         `json:"os"`
-	Environments            []*string       `json:"environments"`
-	AppVersions             []*string       `json:"app_versions"`
-	DeviceID                *string         `json:"device_id"`
-	VisitedURL              *string         `json:"visited_url"`
-	Referrer                *string         `json:"referrer"`
-	Identified              bool            `json:"identified"`
-	HideViewed              bool            `json:"hide_viewed"`
-	FirstTime               bool            `json:"first_time"`
-	ShowLiveSessions        bool            `json:"show_live_sessions"`
-	Query                   *string         `json:"query"`
-}
-type Segment struct {
-	Model
-	Name      *string
-	Params    *string `json:"params"`
-	ProjectID int     `json:"project_id"`
+	Query *string `json:"query"`
 }
 
 type DailySessionCount struct {
@@ -1008,16 +984,6 @@ type ErrorsHistogram struct {
 type ErrorResults struct {
 	ErrorGroups []ErrorGroup
 	TotalCount  int64
-}
-
-type ErrorSearchParams struct {
-	DateRange  *DateRange              `json:"date_range"`
-	Browser    *string                 `json:"browser"`
-	OS         *string                 `json:"os"`
-	VisitedURL *string                 `json:"visited_url"`
-	Event      *string                 `json:"event"`
-	State      *modelInputs.ErrorState `json:"state"`
-	Query      *string                 `json:"query"`
 }
 
 type ErrorGroupingMethod string
