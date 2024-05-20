@@ -1,5 +1,12 @@
 # highlight.run
 
+## 8.12.4
+
+### Patch Changes
+
+-   2a90db809: improve dev reliability of browser fetch patch
+-   2a90db809: record more attributes as part of captured frontend network requests
+
 ## 8.12.3
 
 ### Patch Changes
