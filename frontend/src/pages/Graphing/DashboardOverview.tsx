@@ -14,7 +14,7 @@ import {
 } from '@highlight-run/ui/components'
 import { message } from 'antd'
 import moment from 'moment'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
@@ -61,7 +61,18 @@ export default function DashboardOverview() {
 		},
 	})
 
-	const count = data?.visualizations.count ?? 0
+	const [visualizations, setVisualizations] = useState([])
+
+	useEffect(() => {
+		if (data) {
+			const uniqueVisualizations = data.visualizations.results.filter((viz, index, self) =>
+				index === self.findIndex((v) => v.id === viz.id)
+			)
+			setVisualizations(uniqueVisualizations)
+		}
+	}, [data])
+
+	const count = visualizations.length
 	const hasPrev = page > 0
 	const hasNext = (page + 1) * ITEMS_PER_PAGE < count
 
@@ -144,7 +155,7 @@ export default function DashboardOverview() {
 										/>
 										<Table.Body>
 											<DashboardRows
-												data={data}
+												data={visualizations}
 												loading={loading}
 											/>
 										</Table.Body>
@@ -292,10 +303,10 @@ const DashboardRows = ({
 	data,
 	loading,
 }: {
-	data: GetVisualizationsQuery | undefined
+	data: GetVisualizationsQuery['visualizations']['results'] | undefined
 	loading: boolean
 }) => {
-	const rows = data?.visualizations?.results
+	const rows = data
 
 	if (loading) {
 		return (
