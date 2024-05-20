@@ -34,6 +34,10 @@ const CreateDashboardModal = () => {
 		})
 	}
 
+	const uniqueOptions = options.filter((option, index, self) =>
+		index === self.findIndex((o) => o.value === option.value)
+	)
+
 	return (
 		<>
 			<Modal
