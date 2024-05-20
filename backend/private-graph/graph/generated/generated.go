@@ -53,7 +53,6 @@ type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
 	SavedSegment() SavedSegmentResolver
-	Segment() SegmentResolver
 	Service() ServiceResolver
 	Session() SessionResolver
 	SessionAlert() SessionAlertResolver
@@ -804,7 +803,6 @@ type ComplexityRoot struct {
 		CreateOrUpdateStripeSubscription      func(childComplexity int, workspaceID int) int
 		CreateProject                         func(childComplexity int, name string, workspaceID int) int
 		CreateSavedSegment                    func(childComplexity int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) int
-		CreateSegment                         func(childComplexity int, projectID int, name string, query string) int
 		CreateSessionAlert                    func(childComplexity int, input model.SessionAlertInput) int
 		CreateSessionComment                  func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) int
 		CreateSessionCommentWithExistingIssue func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, tags []*model.SessionCommentTagInput, integrations []*model.IntegrationType, issueTitle *string, issueURL string, issueID string, additionalContext *string) int
@@ -820,7 +818,6 @@ type ComplexityRoot struct {
 		DeleteMetricMonitor                   func(childComplexity int, projectID int, metricMonitorID int) int
 		DeleteProject                         func(childComplexity int, id int) int
 		DeleteSavedSegment                    func(childComplexity int, segmentID int) int
-		DeleteSegment                         func(childComplexity int, segmentID int) int
 		DeleteSessionAlert                    func(childComplexity int, projectID int, sessionAlertID int) int
 		DeleteSessionComment                  func(childComplexity int, id int) int
 		DeleteSessions                        func(childComplexity int, projectID int, params model.QueryInput, sessionCount int) int
@@ -828,7 +825,6 @@ type ComplexityRoot struct {
 		EditProject                           func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) int
 		EditProjectSettings                   func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) int
 		EditSavedSegment                      func(childComplexity int, id int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) int
-		EditSegment                           func(childComplexity int, id int, projectID int, query string, name string) int
 		EditServiceGithubSettings             func(childComplexity int, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) int
 		EditWorkspace                         func(childComplexity int, id int, name *string) int
 		EditWorkspaceSettings                 func(childComplexity int, workspaceID int, aiApplication *bool, aiInsights *bool) int
@@ -1045,7 +1041,6 @@ type ComplexityRoot struct {
 		Resources                        func(childComplexity int, sessionSecureID string) int
 		SavedSegments                    func(childComplexity int, projectID int, entityType model.SavedSegmentEntityType) int
 		SearchIssues                     func(childComplexity int, integrationType model.IntegrationType, projectID int, query string) int
-		Segments                         func(childComplexity int, projectID int) int
 		ServerIntegration                func(childComplexity int, projectID int) int
 		ServiceByName                    func(childComplexity int, projectID int, name string) int
 		Services                         func(childComplexity int, projectID int, after *string, before *string, query *string) int
@@ -1171,13 +1166,6 @@ type ComplexityRoot struct {
 
 	SearchParams struct {
 		Query func(childComplexity int) int
-	}
-
-	Segment struct {
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		Params    func(childComplexity int) int
-		ProjectID func(childComplexity int) int
 	}
 
 	Service struct {
@@ -1699,10 +1687,7 @@ type MutationResolver interface {
 	ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (bool, error)
 	DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error)
 	DeleteAdminFromWorkspace(ctx context.Context, workspaceID int, adminID int) (*int, error)
-	CreateSegment(ctx context.Context, projectID int, name string, query string) (*model1.Segment, error)
 	EmailSignup(ctx context.Context, email string) (string, error)
-	EditSegment(ctx context.Context, id int, projectID int, query string, name string) (*bool, error)
-	DeleteSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateSavedSegment(ctx context.Context, projectID int, name string, entityType model.SavedSegmentEntityType, query string) (*model1.SavedSegment, error)
 	EditSavedSegment(ctx context.Context, id int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) (*bool, error)
 	DeleteSavedSegment(ctx context.Context, segmentID int) (*bool, error)
@@ -1882,7 +1867,6 @@ type QueryResolver interface {
 	Admin(ctx context.Context) (*model1.Admin, error)
 	AdminRole(ctx context.Context, workspaceID int) (*model1.WorkspaceAdminRole, error)
 	AdminRoleByProject(ctx context.Context, projectID int) (*model1.WorkspaceAdminRole, error)
-	Segments(ctx context.Context, projectID int) ([]*model1.Segment, error)
 	SavedSegments(ctx context.Context, projectID int, entityType model.SavedSegmentEntityType) ([]*model1.SavedSegment, error)
 	APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error)
 	GetSourceMapUploadUrls(ctx context.Context, apiKey string, paths []string) ([]string, error)
@@ -1938,9 +1922,6 @@ type QueryResolver interface {
 }
 type SavedSegmentResolver interface {
 	Params(ctx context.Context, obj *model1.SavedSegment) (*model1.SearchParams, error)
-}
-type SegmentResolver interface {
-	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
 }
 type ServiceResolver interface {
 	ErrorDetails(ctx context.Context, obj *model1.Service) ([]string, error)
@@ -5490,18 +5471,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateSavedSegment(childComplexity, args["project_id"].(int), args["name"].(string), args["entity_type"].(model.SavedSegmentEntityType), args["query"].(string)), true
 
-	case "Mutation.createSegment":
-		if e.complexity.Mutation.CreateSegment == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createSegment_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateSegment(childComplexity, args["project_id"].(int), args["name"].(string), args["query"].(string)), true
-
 	case "Mutation.createSessionAlert":
 		if e.complexity.Mutation.CreateSessionAlert == nil {
 			break
@@ -5682,18 +5651,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteSavedSegment(childComplexity, args["segment_id"].(int)), true
 
-	case "Mutation.deleteSegment":
-		if e.complexity.Mutation.DeleteSegment == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_deleteSegment_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeleteSegment(childComplexity, args["segment_id"].(int)), true
-
 	case "Mutation.deleteSessionAlert":
 		if e.complexity.Mutation.DeleteSessionAlert == nil {
 			break
@@ -5777,18 +5734,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EditSavedSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["name"].(string), args["entity_type"].(model.SavedSegmentEntityType), args["query"].(string)), true
-
-	case "Mutation.editSegment":
-		if e.complexity.Mutation.EditSegment == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_editSegment_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.EditSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["query"].(string), args["name"].(string)), true
 
 	case "Mutation.editServiceGithubSettings":
 		if e.complexity.Mutation.EditServiceGithubSettings == nil {
@@ -7915,18 +7860,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SearchIssues(childComplexity, args["integration_type"].(model.IntegrationType), args["project_id"].(int), args["query"].(string)), true
 
-	case "Query.segments":
-		if e.complexity.Query.Segments == nil {
-			break
-		}
-
-		args, err := ec.field_Query_segments_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Segments(childComplexity, args["project_id"].(int)), true
-
 	case "Query.serverIntegration":
 		if e.complexity.Query.ServerIntegration == nil {
 			break
@@ -8846,34 +8779,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SearchParams.Query(childComplexity), true
-
-	case "Segment.id":
-		if e.complexity.Segment.ID == nil {
-			break
-		}
-
-		return e.complexity.Segment.ID(childComplexity), true
-
-	case "Segment.name":
-		if e.complexity.Segment.Name == nil {
-			break
-		}
-
-		return e.complexity.Segment.Name(childComplexity), true
-
-	case "Segment.params":
-		if e.complexity.Segment.Params == nil {
-			break
-		}
-
-		return e.complexity.Segment.Params(childComplexity), true
-
-	case "Segment.project_id":
-		if e.complexity.Segment.ProjectID == nil {
-			break
-		}
-
-		return e.complexity.Segment.ProjectID(childComplexity), true
 
 	case "Service.buildPrefix":
 		if e.complexity.Service.BuildPrefix == nil {
@@ -11761,13 +11666,6 @@ type SearchParams {
 	query: String
 }
 
-type Segment {
-	id: ID!
-	name: String!
-	params: SearchParams!
-	project_id: ID!
-}
-
 type SavedSegment {
 	id: ID!
 	name: String!
@@ -13310,7 +13208,6 @@ type Query {
 	admin: Admin
 	admin_role(workspace_id: ID!): WorkspaceAdminRole
 	admin_role_by_project(project_id: ID!): WorkspaceAdminRole
-	segments(project_id: ID!): [Segment]
 	saved_segments(
 		project_id: ID!
 		entity_type: SavedSegmentEntityType!
@@ -13599,15 +13496,7 @@ type Mutation {
 	): Boolean!
 	deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
 	deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
-	createSegment(project_id: ID!, name: String!, query: String!): Segment
 	emailSignup(email: String!): String!
-	editSegment(
-		id: ID!
-		project_id: ID!
-		query: String!
-		name: String!
-	): Boolean
-	deleteSegment(segment_id: ID!): Boolean
 	createSavedSegment(
 		project_id: ID!
 		name: String!
@@ -14902,39 +14791,6 @@ func (ec *executionContext) field_Mutation_createSavedSegment_args(ctx context.C
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createSegment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["name"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg2
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_createSessionAlert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -15556,21 +15412,6 @@ func (ec *executionContext) field_Mutation_deleteSavedSegment_args(ctx context.C
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_deleteSegment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["segment_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("segment_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["segment_id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_deleteSessionAlert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -15925,48 +15766,6 @@ func (ec *executionContext) field_Mutation_editSavedSegment_args(ctx context.Con
 		}
 	}
 	args["query"] = arg4
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_editSegment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg1, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg2
-	var arg3 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg3, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["name"] = arg3
 	return args, nil
 }
 
@@ -20341,21 +20140,6 @@ func (ec *executionContext) field_Query_search_issues_args(ctx context.Context, 
 		}
 	}
 	args["query"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_segments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -44391,68 +44175,6 @@ func (ec *executionContext) fieldContext_Mutation_deleteAdminFromWorkspace(ctx c
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_createSegment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_createSegment(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSegment(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["query"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.Segment)
-	fc.Result = res
-	return ec.marshalOSegment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSegment(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_createSegment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Segment_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Segment_name(ctx, field)
-			case "params":
-				return ec.fieldContext_Segment_params(ctx, field)
-			case "project_id":
-				return ec.fieldContext_Segment_project_id(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Segment", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createSegment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Mutation_emailSignup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_emailSignup(ctx, field)
 	if err != nil {
@@ -44502,110 +44224,6 @@ func (ec *executionContext) fieldContext_Mutation_emailSignup(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_emailSignup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_editSegment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_editSegment(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["query"].(string), fc.Args["name"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*bool)
-	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_editSegment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_editSegment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_deleteSegment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_deleteSegment(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteSegment(rctx, fc.Args["segment_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*bool)
-	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_deleteSegment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteSegment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -58631,68 +58249,6 @@ func (ec *executionContext) fieldContext_Query_admin_role_by_project(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_segments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_segments(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Segments(rctx, fc.Args["project_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.Segment)
-	fc.Result = res
-	return ec.marshalOSegment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSegment(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_segments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Segment_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Segment_name(ctx, field)
-			case "params":
-				return ec.fieldContext_Segment_params(ctx, field)
-			case "project_id":
-				return ec.fieldContext_Segment_project_id(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Segment", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_segments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_saved_segments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_saved_segments(ctx, field)
 	if err != nil {
@@ -63749,186 +63305,6 @@ func (ec *executionContext) fieldContext_SearchParams_query(ctx context.Context,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Segment_id(ctx context.Context, field graphql.CollectedField, obj *model1.Segment) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Segment_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Segment_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Segment",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Segment_name(ctx context.Context, field graphql.CollectedField, obj *model1.Segment) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Segment_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Segment_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Segment",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Segment_params(ctx context.Context, field graphql.CollectedField, obj *model1.Segment) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Segment_params(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Segment().Params(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model1.SearchParams)
-	fc.Result = res
-	return ec.marshalNSearchParams2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSearchParams(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Segment_params(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Segment",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "query":
-				return ec.fieldContext_SearchParams_query(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type SearchParams", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Segment_project_id(ctx context.Context, field graphql.CollectedField, obj *model1.Segment) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Segment_project_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ProjectID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Segment_project_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Segment",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -86857,10 +86233,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteAdminFromWorkspace(ctx, field)
 			})
-		case "createSegment":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createSegment(ctx, field)
-			})
 		case "emailSignup":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_emailSignup(ctx, field)
@@ -86868,14 +86240,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "editSegment":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_editSegment(ctx, field)
-			})
-		case "deleteSegment":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteSegment(ctx, field)
-			})
 		case "createSavedSegment":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createSavedSegment(ctx, field)
@@ -89915,25 +89279,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "segments":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_segments(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "saved_segments":
 			field := field
 
@@ -91585,91 +90930,6 @@ func (ec *executionContext) _SearchParams(ctx context.Context, sel ast.Selection
 			out.Values[i] = graphql.MarshalString("SearchParams")
 		case "query":
 			out.Values[i] = ec._SearchParams_query(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var segmentImplementors = []string{"Segment"}
-
-func (ec *executionContext) _Segment(ctx context.Context, sel ast.SelectionSet, obj *model1.Segment) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, segmentImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Segment")
-		case "id":
-			out.Values[i] = ec._Segment_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "name":
-			out.Values[i] = ec._Segment_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "params":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Segment_params(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "project_id":
-			out.Values[i] = ec._Segment_project_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -102502,54 +101762,6 @@ func (ec *executionContext) marshalOSavedSegment2ᚖgithubᚗcomᚋhighlightᚑr
 		return graphql.Null
 	}
 	return ec._SavedSegment(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOSegment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSegment(ctx context.Context, sel ast.SelectionSet, v []*model1.Segment) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOSegment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSegment(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
-func (ec *executionContext) marshalOSegment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSegment(ctx context.Context, sel ast.SelectionSet, v *model1.Segment) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Segment(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOService2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐService(ctx context.Context, sel ast.SelectionSet, v *model1.Service) graphql.Marshaler {
