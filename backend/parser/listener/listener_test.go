@@ -6,26 +6,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type UnquoteTest struct {
+	input          string
+	expectedOutput string
+}
+
 func TestUnquote(t *testing.T) {
-	var testCases = []struct {
-		input          string
-		expectedOutput string
-	}{
+	var testCases = []UnquoteTest{
 		{
-			"test",
-			"test",
+			input:          "test",
+			expectedOutput: "test",
 		},
 		{
-			`"test"`,
-			"test",
+			input:          `"test"`,
+			expectedOutput: "test",
 		},
 		{
-			`"\w\w"`,
-			"\\w\\w",
+			input:          `"\w\w"`,
+			expectedOutput: "\\w\\w",
 		},
 		{
-			`'\w\w'`,
-			"\\w\\w",
+			input:          `'\w\w'`,
+			expectedOutput: "\\w\\w",
 		},
 	}
 
@@ -36,56 +38,58 @@ func TestUnquote(t *testing.T) {
 	}
 }
 
+type NumericValueTest struct {
+	value          string
+	key            string
+	expectedOutput string
+}
+
 func TestNumericValue(t *testing.T) {
-	var testCases = []struct {
-		value          string
-		key            string
-		expectedOutput string
-	}{
+	var testCases = []NumericValueTest{
 		{
-			"10",
-			"",
-			"10",
+			value:          "10",
+			key:            "",
+			expectedOutput: "10",
 		},
 		{
-			"10",
-			"Duration",
-			"10",
+			value:          "10",
+			key:            "Duration",
+			expectedOutput: "10",
 		},
 		{
-			"other",
-			"Duration",
-			"other",
+			value:          "other",
+			key:            "Duration",
+			expectedOutput: "other",
 		},
 		{
-			"10s",
-			"Duration",
-			"10000000000",
+			value:          "10s",
+			key:            "Duration",
+			expectedOutput: "10000000000",
 		},
 		{
-			"10s",
-			"Length",
-			"10000",
+			value:          "10s",
+			key:            "Length",
+			expectedOutput: "10000",
 		},
 		{
-			"10s",
-			"ActiveLength",
-			"10000",
+			value:          "10s",
+			key:            "ActiveLength",
+			expectedOutput: "10000",
 		},
 		{
-			"10s",
-			"OtherKey",
-			"10000000000",
+			value:          "10s",
+			key:            "OtherKey",
+			expectedOutput: "10000000000",
 		},
 		{
-			"10s",
-			"",
-			"10000000000",
+			value:          "10s",
+			key:            "",
+			expectedOutput: "10000000000",
 		},
 		{
-			"10ns",
-			"Length",
-			"0",
+			value:          "10ns",
+			key:            "Length",
+			expectedOutput: "0",
 		},
 	}
 
