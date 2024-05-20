@@ -5,7 +5,7 @@ import { getItem } from '../storage'
  * The amount of time allowed after the last push before creating a new session.
  * In milliseconds.
  */
-const SESSION_PUSH_THRESHOLD = 1000 * 55
+const SESSION_PUSH_THRESHOLD = 15 * 60 * 1000
 
 export type SessionData = {
 	sessionSecureID: string

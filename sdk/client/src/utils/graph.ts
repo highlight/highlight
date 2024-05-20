@@ -1,7 +1,7 @@
 import { ClientError } from 'graphql-request'
 import { PublicGraphError } from '../graph/generated/schemas'
 
-export const MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS = 5
+export const MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS = 10
 
 // Initial backoff for retrying graphql requests.
 export const BASE_DELAY_MS = 1000
@@ -23,6 +23,7 @@ export const getGraphQLRequestWrapper = (sessionSecureID: string) => {
 		requestFn: () => Promise<T>,
 		operationName: string,
 		operationType?: string,
+		variables?: any,
 		retries: number = 0,
 	): Promise<T> => {
 		try {
@@ -43,6 +44,7 @@ export const getGraphQLRequestWrapper = (sessionSecureID: string) => {
 					requestFn,
 					operationName,
 					operationType,
+					variables,
 					retries + 1,
 				)
 			}

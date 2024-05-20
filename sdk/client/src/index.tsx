@@ -142,7 +142,6 @@ const SEND_FREQUENCY = 1000 * 2
  * Maximum length of a session
  */
 const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000
-const EXTENDED_MAX_SESSION_LENGTH = 12 * 60 * 60 * 1000
 
 const HIGHLIGHT_URL = 'app.highlight.run'
 
@@ -341,7 +340,7 @@ export class Highlight {
 		this._firstLoadListeners = new FirstLoadListeners(this.options)
 		await this.initialize()
 		if (user_identifier && user_object) {
-			await this.identify(user_identifier, user_object)
+			this.identify(user_identifier, user_object)
 		}
 	}
 
@@ -538,14 +537,6 @@ export class Highlight {
 		}
 
 		try {
-			// disable recording for filtered projects while allowing for reloaded sessions
-			if (!this.reloaded && this.organizationID === '6glrjqg9') {
-				if (Math.random() >= 0.02) {
-					this._firstLoadListeners?.stopListening()
-					return
-				}
-			}
-
 			if (options?.forceNew) {
 				await this._reset(options)
 				// effectively 'restart' recording by starting the new payload with a full snapshot
@@ -1279,16 +1270,16 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	// Reset the events array and push to a backend.
 	async _save() {
 		try {
-			let maxLength = MAX_SESSION_LENGTH
-			if (this.organizationID === 'odzl0xep') {
-				maxLength = EXTENDED_MAX_SESSION_LENGTH
-			}
 			if (
 				this.state === 'Recording' &&
 				this.listeners &&
 				this.sessionData.sessionStartTime &&
-				Date.now() - this.sessionData.sessionStartTime > maxLength
+				Date.now() - this.sessionData.sessionStartTime >
+					MAX_SESSION_LENGTH
 			) {
+				this.logger.log(`Resetting session`, {
+					start: this.sessionData.sessionStartTime,
+				})
 				await this._reset({})
 			}
 			let sendFn = undefined
