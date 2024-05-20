@@ -9,7 +9,7 @@ import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/Dashbo
 import { DEFAULT_METRICS_LAYOUT } from '@pages/Dashboards/Metrics'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import { Form } from 'antd'
+import { Form, Select } from 'antd'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -33,6 +33,17 @@ const CreateDashboardModal = () => {
 			navigate(`/${project_id}/dashboards/${newId}`)
 		})
 	}
+	
+	// For testing purpose
+	const options = [
+		{ value: 'option1', label: 'Option 1' },
+		{ value: 'option2', label: 'Option 2' },
+		{ value: 'option3', label: 'Option 3' }, 
+		{ value: 'option1', label: 'Option 1' },
+		{ value: 'option2', label: 'Option 2' },
+		{ value: 'option1', label: 'Option 1' },
+
+	]
 
 	const uniqueOptions = options.filter((option, index, self) =>
 		index === self.findIndex((o) => o.value === option.value)
@@ -65,6 +76,15 @@ const CreateDashboardModal = () => {
 									setNewDashboard(e.target.value)
 								}}
 								autoFocus
+							/>
+						</section>
+
+						<section className={styles.section}>
+							<h3>Group By Options</h3>
+							<Select
+								mode="multiple"
+								placeholder="Select options"
+								options={uniqueOptions}
 							/>
 						</section>
 
