@@ -71,4 +71,6 @@ group :test do
   gem "webdrivers"
 end
 
+gem "opentelemetry-sdk"
+gem "opentelemetry-instrumentation-all"
 gem "highlight_io", path: "../../../highlight"

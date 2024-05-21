@@ -14,6 +14,7 @@ bundle install`,
 	],
 }
 
+// TODO: Add a note about where to put this config. Maybe an initializer?
 export const initializeSdk: QuickStartStep = {
 	title: 'Initialize the Highlight Ruby SDK.',
 	content:
