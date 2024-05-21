@@ -1,9 +1,11 @@
 import { makeVar, useReactiveVar } from '@apollo/client'
 import {
 	Box,
+	ButtonIcon,
 	IconSolidCheckCircle,
 	IconSolidExclamationCircle,
 	IconSolidInformationCircle,
+	IconSolidX,
 	IconSolidXCircle,
 	Stack,
 	Text,
@@ -24,12 +26,13 @@ type Toast = {
 	message: string
 	type: ToastType
 	duration: number
-	content?: React.ReactNode
+	href?: string
 }
 
 type Options = {
 	id?: string
 	duration?: number
+	href?: string
 }
 
 const DEFAULT_DURATION = 1500
@@ -39,7 +42,7 @@ const toastVar = makeVar<Toast[]>([])
 const makeToast = (message: string, type: Toast['type'], options?: Options) => {
 	const duration = options?.duration || DEFAULT_DURATION
 	const id = options?.id || Math.random().toString(36).substring(2, 9)
-	return { id, message, type, duration }
+	return { id, message, type, duration, href: options?.href }
 }
 
 const addToast = (toast: Toast) => {
@@ -100,25 +103,25 @@ export const Toaster: React.FC = () => {
 
 const ICON_TYPE_MAPPINGS = {
 	[ToastType.error]: {
-		icon: <IconSolidXCircle color="#CD2B31" />,
+		icon: <IconSolidXCircle size={16} color="#CD2B31" />,
 		color: '#CD2B31',
 		backgroundColor: '#FFEFEF',
 		borderColor: '#F9C6C6',
 	},
 	[ToastType.info]: {
-		icon: <IconSolidInformationCircle color="#6F6E77" />,
+		icon: <IconSolidInformationCircle size={16} color="#6F6E77" />,
 		color: '#1A1523',
 		backgroundColor: '#F4F2F4',
 		borderColor: '#6F6E77',
 	},
 	[ToastType.success]: {
-		icon: <IconSolidCheckCircle color="#18794E" />,
+		icon: <IconSolidCheckCircle size={16} color="#18794E" />,
 		color: '#18794E',
 		backgroundColor: '#E9F6E9',
 		borderColor: '#B2DDB5',
 	},
 	[ToastType.warning]: {
-		icon: <IconSolidExclamationCircle color="#AD5700" />,
+		icon: <IconSolidExclamationCircle size={16} color="#AD5700" />,
 		color: '#AD5700',
 		backgroundColor: '#FFFAB8',
 		borderColor: '#F3D768',
@@ -132,25 +135,55 @@ type ToastItemProps = {
 const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
 	const typeInfo = ICON_TYPE_MAPPINGS[toast.type]
 
-	// TODO(spenny): add X button
-	// TODO(spenny): add custom content
+	const handleClick = () => {
+		if (toast.href) {
+			window.open(toast.href, '_blank')
+		}
+	}
+
+	const handleClose = (e: React.MouseEvent) => {
+		e.stopPropagation()
+		destroy(toast.id)
+	}
+
+	// TODO(spenny): align buttons and text at top
 	return (
 		<Stack
-			p="8"
+			borderRadius="6"
 			direction="row"
 			gap="6"
-			borderRadius="6"
+			justifyContent="space-between"
+			onClick={handleClick}
+			p="8"
 			style={{
 				backgroundColor: typeInfo.backgroundColor,
 				border: `1px solid ${typeInfo.borderColor}`,
 				color: typeInfo.color,
+				cursor: toast.href ? 'pointer' : 'default',
+				width: '280px',
 			}}
 		>
-			<Box display="flex" alignItems="center">
-				{typeInfo.icon}
-			</Box>
-			<Box display="flex" alignItems="center">
-				<Text weight="medium">{toast.message}</Text>
+			<Stack direction="row" gap="6">
+				<Box display="flex" alignItems="flex-start">
+					{typeInfo.icon}
+				</Box>
+				<Box display="flex" alignItems="center">
+					<Text weight="bold">{toast.message}</Text>
+				</Box>
+			</Stack>
+			<Box display="flex" alignItems="flex-start">
+				<ButtonIcon
+					icon={
+						<IconSolidX
+							size={16}
+							style={{ color: typeInfo.color }}
+						/>
+					}
+					kind="secondary"
+					size="minimal"
+					emphasis="low"
+					onClick={handleClose}
+				/>
 			</Box>
 		</Stack>
 	)

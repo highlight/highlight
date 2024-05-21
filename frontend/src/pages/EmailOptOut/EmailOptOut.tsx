@@ -18,7 +18,6 @@ import BorderBox from '@/components/BorderBox/BorderBox'
 import { Header } from '@/components/Header/Header'
 import LeadAlignLayout from '@/components/layout/LeadAlignLayout'
 import { ToggleRow } from '@/components/ToggleRow/ToggleRow'
-import { showSupportBubble } from '@/util/window'
 
 type Props = {
 	token?: string | null
@@ -170,13 +169,6 @@ export const EmailOptOutPage = () => {
 		admin_id: StringParam,
 		token: StringParam,
 	})
-
-	useEffect(() => {
-		// Show the Intercom message after 5 seconds in case the user needs help.
-		setTimeout(() => {
-			showSupportBubble()
-		}, 5000)
-	}, [])
 
 	return (
 		<GlobalContextProvider

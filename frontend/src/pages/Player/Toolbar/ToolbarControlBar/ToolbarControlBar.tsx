@@ -459,35 +459,12 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 					},
 					refetchQueries: [namedOperations.Query.GetSessionExports],
 				})
-				// TODO(spenny): test this
-				/*
-				<Box
-						display="flex"
-						alignItems="center"
-						justifyContent="center"
-						gap="2"
-						cssClass={style.toast}
-					>
-						<Box
-							display="flex"
-							alignItems="center"
-							width="full"
-							height="full"
-							onClick={() =>
-								navigate(
-									`/${projectId}/settings/sessions#exports`,
-								)
-							}
-						>
-							<Text color="white">
-								
-							</Text>
-						</Box>
-					</Box>,
-					*/
 				toast.info(
 					'You will receive an email once the session is ready. Click here to check progress.',
-					{ duration: 10000 },
+					{
+						duration: 10000,
+						href: `/${projectId}/settings/sessions#exports`,
+					},
 				)
 			} catch (e) {
 				toast.error(`An error occurred exporting the session: ${e}`)

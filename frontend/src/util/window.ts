@@ -7,17 +7,12 @@ export function GetBaseURL(): string {
 	return FRONTEND_URI
 }
 
-export const showSupportBubble = () => {
-	analytics.track('showSupportBubble')
-}
-
 export const showSupportMessage = async (msg = '') => {
 	analytics.track('showSupportMessage', { msg })
 	await toast.info(
 		msg.length
 			? `Please send the following on our discord: ${msg}`
 			: `Please reach out for help on our Discord!`,
-		{ duration: 3000 },
+		{ duration: 5000, href: 'https://highlight.io/community' },
 	)
-	showSupportBubble()
 }
