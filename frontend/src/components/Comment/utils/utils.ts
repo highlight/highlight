@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import * as Types from '@graph/schemas'
 import {
 	Maybe,
@@ -6,7 +7,6 @@ import {
 } from '@graph/schemas'
 import { MentionItem, SuggestionDataItem } from '@highlight-run/react-mentions'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { useDeleteSessionCommentMutation } from '@/graph/generated/hooks'
 import { namedOperations } from '@/graph/generated/operations'

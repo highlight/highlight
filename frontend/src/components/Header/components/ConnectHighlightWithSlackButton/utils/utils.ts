@@ -1,9 +1,9 @@
+import { toast } from '@components/Toaster'
 import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import { useCallback, useEffect, useState } from 'react'
-import { toast } from 'sonner'
 
 import {
 	useAddIntegrationToProjectMutation,

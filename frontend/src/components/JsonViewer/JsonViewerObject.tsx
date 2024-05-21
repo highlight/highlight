@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	Box,
 	IconSolidClipboardCopy,
@@ -6,7 +7,6 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
 
 import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { SearchExpression } from '@/components/Search/Parser/listener'

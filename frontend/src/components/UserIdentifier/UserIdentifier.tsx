@@ -1,8 +1,8 @@
+import { toast } from '@components/Toaster'
 import Tooltip from '@components/Tooltip/Tooltip'
 import SvgCopyIcon from '@icons/CopyIcon'
 import clsx from 'clsx'
 import React from 'react'
-import { toast } from 'sonner'
 
 import Button from '../Button/Button/Button'
 import styles from './UserIdentifier.module.css'

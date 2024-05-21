@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -11,7 +12,6 @@ import { EmailOptOutCategory } from '@graph/schemas'
 import { Heading, Stack, Text } from '@highlight-run/ui/components'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { useEffect } from 'react'
-import { toast } from 'sonner'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 import BorderBox from '@/components/BorderBox/BorderBox'

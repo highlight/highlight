@@ -2,13 +2,13 @@ import {
 	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { toast } from '@components/Toaster'
 import { useGetKeyPerformanceIndicatorsQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect } from 'react'
-import { toast } from 'sonner'
 
 import KeyPerformanceIndicator from './KeyPerformanceIndicator/KeyPerformanceIndicator'
 import { formatLongNumber, formatShortTime } from './utils/utils'

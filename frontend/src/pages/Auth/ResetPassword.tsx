@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import { toast } from '@components/Toaster'
 import {
 	Box,
 	ButtonIcon,
@@ -15,7 +16,6 @@ import { auth } from '@util/auth'
 import { validateEmail } from '@util/string'
 import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 export const ResetPassword: React.FC = () => {
 	const navigate = useNavigate()

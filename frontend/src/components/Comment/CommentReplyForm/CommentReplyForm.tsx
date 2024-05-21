@@ -5,6 +5,7 @@ import {
 	filterMentionedSlackUsers,
 	parseAdminSuggestions,
 } from '@components/Comment/utils/utils'
+import { toast } from '@components/Toaster'
 import {
 	useGetCommentMentionSuggestionsQuery,
 	useGetWorkspaceAdminsByProjectIdQuery,
@@ -26,7 +27,6 @@ import { getCommentMentionSuggestions } from '@util/comment/util'
 import { useParams } from '@util/react-router/useParams'
 import React, { useMemo, useState } from 'react'
 import { OnChangeHandlerFunc } from 'react-mentions'
-import { toast } from 'sonner'
 
 import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
 

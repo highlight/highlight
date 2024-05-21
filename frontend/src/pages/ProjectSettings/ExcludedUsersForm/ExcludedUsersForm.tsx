@@ -1,11 +1,11 @@
 import { LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
+import { toast } from '@components/Toaster'
 import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
 import { Form, Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { useState } from 'react'
-import { toast } from 'sonner'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'

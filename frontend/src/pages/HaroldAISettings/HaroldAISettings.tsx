@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	Box,
 	Heading,
@@ -7,7 +8,6 @@ import {
 } from '@highlight-run/ui/components'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
-import { toast } from 'sonner'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
 import { Button } from '@/components/Button'

@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import SvgCopyIcon from '@icons/CopyIcon'
 import useLocalStorage from '@rehooks/local-storage'
 import clsx from 'clsx'
@@ -9,7 +10,6 @@ import {
 	atomDark as darkTheme,
 	coy as lightTheme,
 } from 'react-syntax-highlighter/dist/esm/styles/prism'
-import { toast } from 'sonner'
 
 import styles from './CodeBlock.module.css'
 

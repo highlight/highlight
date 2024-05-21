@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	RightPanelView,
 	usePlayerUIContext,
@@ -14,7 +15,6 @@ import analytics from '@util/analytics'
 import { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSessionParams } from '@/pages/Sessions/utils'
@@ -75,12 +75,6 @@ export const usePlayerKeyboardShortcuts = () => {
 	const { projectId } = useProjectId()
 	const { sessionSecureId } = useSessionParams()
 	const navigate = useNavigate()
-	// TODO(spenny): toast config
-	// message.config({
-	// 	maxCount: 1,
-	// 	rtl: false,
-	// 	getContainer: getFullScreenPopoverGetPopupContainer,
-	// })
 
 	/**
 	 * This function needs to be called before each hot key.

@@ -1,6 +1,7 @@
 import { Avatar } from '@components/Avatar/Avatar'
 import { useSearchContext } from '@components/Search/SearchContext'
 import { TableList, TableListItem } from '@components/TableList/TableList'
+import { toast } from '@components/Toaster'
 import { useGetEnhancedUserDetailsQuery } from '@graph/hooks'
 import { GetEnhancedUserDetailsQuery } from '@graph/operations'
 import { Maybe, Session, SocialLink, SocialType } from '@graph/schemas'
@@ -32,7 +33,6 @@ import {
 	FaLinkedin,
 	FaTwitterSquare,
 } from 'react-icons/fa'
-import { toast } from 'sonner'
 
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { stringifyExpression } from '@/components/Search/utils'

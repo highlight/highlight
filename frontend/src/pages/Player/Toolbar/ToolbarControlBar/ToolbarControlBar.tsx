@@ -8,6 +8,7 @@ import {
 import Popover from '@components/Popover/Popover'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
+import { toast } from '@components/Toaster'
 import {
 	useExportSessionMutation,
 	useGetWorkspaceSettingsQuery,
@@ -66,7 +67,6 @@ import { showSupportMessage } from '@util/window'
 import clsx from 'clsx'
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/TimelinePopover.module.css'
 import style from './ToolbarControlBar.module.css'
@@ -439,8 +439,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				sessionSecureId: session?.secure_id,
 				workspaceId: currentWorkspace?.id,
 			})
-			// TODO(spenny): await
-			toast.warning(
+			await toast.warning(
 				'Downloading sessions is only available on enterprise plans.',
 			)
 			showSupportMessage(

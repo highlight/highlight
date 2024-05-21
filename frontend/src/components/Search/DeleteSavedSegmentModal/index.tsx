@@ -1,8 +1,8 @@
 import { DeleteSegmentModal } from '@components/SegmentModals/DeleteSegmentModal'
+import { toast } from '@components/Toaster'
 import { namedOperations } from '@graph/operations'
 import { Maybe, SavedSegment, SavedSegmentEntityType } from '@graph/schemas'
 import React from 'react'
-import { toast } from 'sonner'
 
 import { useDeleteSavedSegmentMutation } from '@/graph/generated/hooks'
 

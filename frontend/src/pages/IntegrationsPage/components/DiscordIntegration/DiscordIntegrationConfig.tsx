@@ -1,4 +1,5 @@
 import Button from '@components/Button/Button/Button'
+import { toast } from '@components/Toaster'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
@@ -9,7 +10,6 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import React, { useEffect } from 'react'
-import { toast } from 'sonner'
 
 import styles from './DiscordIntegrationConfig.module.css'
 

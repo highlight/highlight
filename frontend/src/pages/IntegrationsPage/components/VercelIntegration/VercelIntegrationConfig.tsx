@@ -3,6 +3,7 @@ import Card from '@components/Card/Card'
 import Input from '@components/Input/Input'
 import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
+import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -22,7 +23,6 @@ import { useApplicationContext } from '@routers/AppRouter/context/ApplicationCon
 import useMap from '@util/useMap'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
-import { toast } from 'sonner'
 
 import styles from './VercelIntegrationConfig.module.css'
 

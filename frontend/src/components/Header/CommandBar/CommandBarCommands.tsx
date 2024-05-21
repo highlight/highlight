@@ -1,7 +1,7 @@
+import { toast } from '@components/Toaster'
 import { useProjectId } from '@hooks/useProjectId'
 import { Command } from 'react-command-palette'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import usePlayerConfiguration from '../../../pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { onGetLinkWithTimestamp } from '../../../pages/Player/SessionShareButton/utils/utils'

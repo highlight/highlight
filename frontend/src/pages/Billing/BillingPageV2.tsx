@@ -1,4 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
+import { toast } from '@components/Toaster'
 import { USD } from '@dinero.js/currencies'
 import {
 	Badge,
@@ -30,7 +31,6 @@ import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React, { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { Button } from '@/components/Button'
 import { LoadingRightPanel } from '@/components/Loading/Loading'

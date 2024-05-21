@@ -1,5 +1,6 @@
 import { useApolloClient } from '@apollo/client'
 import { Button } from '@components/Button'
+import { toast } from '@components/Toaster'
 import { GetErrorResolutionSuggestionDocument } from '@graph/hooks'
 import {
 	Box,
@@ -14,7 +15,6 @@ import {
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { toast } from 'sonner'
 
 import AiErrorSuggestionCard from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestionCard'
 import analytics from '@/util/analytics'

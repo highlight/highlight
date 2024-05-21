@@ -1,5 +1,6 @@
 import { Button } from '@components/Button'
 import Select from '@components/Select/Select'
+import { toast } from '@components/Toaster'
 import {
 	useCreateErrorAlertMutation,
 	useDeleteErrorAlertMutation,
@@ -34,7 +35,6 @@ import { useParams } from '@util/react-router/useParams'
 import { capitalize } from 'lodash'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import LoadingBox from '@/components/LoadingBox'

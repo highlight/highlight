@@ -1,5 +1,6 @@
 import { Button } from '@components/Button'
 import Select from '@components/Select/Select'
+import { toast } from '@components/Toaster'
 import {
 	useCreateSessionAlertMutation,
 	useDeleteSessionAlertMutation,
@@ -40,7 +41,6 @@ import { useParams } from '@util/react-router/useParams'
 import { capitalize } from 'lodash'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import LoadingBox from '@/components/LoadingBox'
 import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'

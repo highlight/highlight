@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import { Box, Heading, Stack, Tabs, Text } from '@highlight-run/ui/components'
 import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm'
 import { ErrorFiltersForm } from '@pages/ProjectSettings/ErrorFiltersForm/ErrorFiltersForm'
@@ -14,7 +15,6 @@ import { useParams } from '@util/react-router/useParams'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
 import { Button } from '@/components/Button'

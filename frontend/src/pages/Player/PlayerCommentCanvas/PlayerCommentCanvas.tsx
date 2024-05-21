@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	useGetSessionCommentsQuery,
 	useMuteSessionCommentThreadMutation,
@@ -10,7 +11,6 @@ import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import clsx from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { CommentIndicator } from '@/components/Comment/CommentIndicator'

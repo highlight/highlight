@@ -1,4 +1,5 @@
 import Input from '@components/Input/Input'
+import { toast } from '@components/Toaster'
 import {
 	useEditProjectMutation,
 	useEditWorkspaceMutation,
@@ -8,7 +9,6 @@ import { namedOperations } from '@graph/operations'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
 
 import commonStyles from '../../../Common.module.css'
 import Button from '../../../components/Button/Button/Button'

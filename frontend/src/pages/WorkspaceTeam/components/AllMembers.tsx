@@ -3,6 +3,7 @@ import { AdminAvatar } from '@components/Avatar/Avatar'
 import Card from '@components/Card/Card'
 import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
+import { toast } from '@components/Toaster'
 import {
 	useChangeAdminRoleMutation,
 	useDeleteAdminFromWorkspaceMutation,
@@ -14,7 +15,6 @@ import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { getDisplayNameFromEmail, titleCaseString } from '@util/string'
 import clsx from 'clsx'
-import { toast } from 'sonner'
 
 import Button from '../../../components/Button/Button/Button'
 import PopConfirm from '../../../components/PopConfirm/PopConfirm'

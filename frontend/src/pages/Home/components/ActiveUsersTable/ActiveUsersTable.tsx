@@ -8,6 +8,7 @@ import {
 	ProgressBarTableRowGroup,
 	ProgressBarTableUserAvatar,
 } from '@components/ProgressBarTable/components/ProgressBarTableColumns'
+import { toast } from '@components/Toaster'
 import { useGetTopUsersQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgClockIcon from '@icons/ClockIcon'
@@ -19,7 +20,6 @@ import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
 import Tooltip from '../../../../components/Tooltip/Tooltip'

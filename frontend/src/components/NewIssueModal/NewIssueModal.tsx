@@ -3,6 +3,7 @@ import { Button } from '@components/Button'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import { RadioGroup } from '@components/RadioGroup/RadioGroup'
+import { toast } from '@components/Toaster'
 import {
 	useCreateErrorCommentForExistingIssueMutation,
 	useCreateErrorCommentMutation,
@@ -38,7 +39,6 @@ import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import { H } from 'highlight.run'
 import React, { useMemo, useState } from 'react'
-import { toast } from 'sonner'
 
 import { SearchIssues } from '@/components/SearchIssues/SearchIssues'
 

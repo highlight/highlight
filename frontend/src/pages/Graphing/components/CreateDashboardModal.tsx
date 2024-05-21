@@ -1,10 +1,10 @@
 import { Button } from '@components/Button'
 import { Modal } from '@components/Modal/ModalV2'
+import { toast } from '@components/Toaster'
 import { useUpsertVisualizationMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Box, Form, Stack } from '@highlight-run/ui/components'
 import React from 'react'
-import { toast } from 'sonner'
 
 import { useProjectId } from '@/hooks/useProjectId'
 

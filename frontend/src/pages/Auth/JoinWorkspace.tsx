@@ -1,8 +1,8 @@
+import { toast } from '@components/Toaster'
 import { Form, Stack, Text } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { getEmailDomain } from '@/components/AutoJoinEmailsInput'
 import { Button } from '@/components/Button'

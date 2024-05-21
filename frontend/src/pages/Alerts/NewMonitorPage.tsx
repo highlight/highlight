@@ -1,4 +1,5 @@
 import Card from '@components/Card/Card'
+import { toast } from '@components/Toaster'
 import { useCreateMetricMonitorMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
@@ -22,7 +23,6 @@ import { useParams } from '@util/react-router/useParams'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import analytics from '@/util/analytics'
 

@@ -1,5 +1,6 @@
 import { ApolloError } from '@apollo/client'
 import { Button } from '@components/Button'
+import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -16,7 +17,6 @@ import useLocalStorage from '@rehooks/local-storage'
 import { H } from 'highlight.run'
 import { useEffect } from 'react'
 import { Navigate, useMatch, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { showSupportMessage } from '@/util/window'
 

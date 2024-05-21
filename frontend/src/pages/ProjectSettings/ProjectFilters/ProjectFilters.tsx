@@ -2,6 +2,7 @@ import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
 import { TIME_FORMAT } from '@components/Search/SearchForm/constants'
 import { SearchForm } from '@components/Search/SearchForm/SearchForm'
+import { toast } from '@components/Toaster'
 import {
 	useEditProjectSettingsMutation,
 	useGetBillingDetailsForProjectQuery,
@@ -45,7 +46,6 @@ import { groupBy, upperFirst } from 'lodash'
 import moment from 'moment'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { SearchContext } from '@/components/Search/SearchContext'
 
@@ -179,8 +179,7 @@ export const ProjectProductFilters: React.FC<{
 			product,
 			workspaceId: currentWorkspace?.id,
 		})
-		// TODO(spenny): await
-		toast.warning(
+		await toast.warning(
 			'Setting up ingest sampling is only available on enterprise plans.',
 		)
 		await showSupportMessage(
@@ -514,8 +513,7 @@ const FilterPaywall: React.FC<
 			product,
 			workspaceId: currentWorkspace?.id,
 		})
-		// TODO(spenny): await
-		toast.warning(
+		await toast.warning(
 			'Setting up ingest filters is only available on paying plans.',
 			{ duration: 3000 },
 		)

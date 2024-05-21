@@ -1,8 +1,8 @@
 import { LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
+import { toast } from '@components/Toaster'
 import { Stack } from '@highlight-run/ui/components'
 import { Text } from 'recharts'
-import { toast } from 'sonner'
 
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'

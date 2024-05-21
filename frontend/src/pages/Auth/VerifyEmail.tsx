@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -10,7 +11,6 @@ import { Landing } from '@pages/Landing/Landing'
 import { auth } from '@util/auth'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { ABOUT_YOU_ROUTE } from '@/routers/AppRouter/AppRouter'
 import { showSupportBubble } from '@/util/window'

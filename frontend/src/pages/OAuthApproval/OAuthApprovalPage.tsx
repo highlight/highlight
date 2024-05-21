@@ -1,4 +1,5 @@
 import { ErrorState } from '@components/ErrorState/ErrorState'
+import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -9,7 +10,6 @@ import { GenerateSecureRandomString } from '@util/random'
 import { GetBaseURL } from '@util/window'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { toast } from 'sonner'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 import Button from '../../components/Button/Button/Button'
@@ -151,16 +151,16 @@ const OAuthApprovalPage = () => {
 								block
 								danger
 								onClick={() => {
-									// TODO(spenny): await promise
-									toast.warning(
-										`Rejecting authorization! Please close this window.`,
-									)
-									// .then(() => {
-									// 	if (oauthParams.redirect_uri) {
-									// 		window.location.href =
-									// 			oauthParams.redirect_uri
-									// 	}
-									// })
+									toast
+										.warning(
+											`Rejecting authorization! Please close this window.`,
+										)
+										.then(() => {
+											if (oauthParams.redirect_uri) {
+												window.location.href =
+													oauthParams.redirect_uri
+											}
+										})
 								}}
 							>
 								Reject

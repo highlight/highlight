@@ -1,5 +1,6 @@
 import { Button } from '@components/Button'
 import Select from '@components/Select/Select'
+import { toast } from '@components/Toaster'
 import {
 	useCreateLogAlertMutation,
 	useDeleteLogAlertMutation,
@@ -40,7 +41,6 @@ import { capitalize } from 'lodash'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import { getSlackUrl } from '@/components/Header/components/ConnectHighlightWithSlackButton/utils/utils'

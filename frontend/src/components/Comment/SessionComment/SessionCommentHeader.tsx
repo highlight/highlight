@@ -1,4 +1,5 @@
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
+import { toast } from '@components/Toaster'
 import { IntegrationType, SessionCommentType } from '@graph/schemas'
 import {
 	Box,
@@ -31,7 +32,6 @@ import { onGetLinkWithTimestamp } from '@pages/Player/SessionShareButton/utils/u
 import analytics from '@util/analytics'
 import moment from 'moment'
 import React, { useMemo, useState } from 'react'
-import { toast } from 'sonner'
 
 import { AdminAvatar, Avatar } from '@/components/Avatar/Avatar'
 import { getAttachmentUrl } from '@/components/Comment/AttachmentList/AttachmentList'

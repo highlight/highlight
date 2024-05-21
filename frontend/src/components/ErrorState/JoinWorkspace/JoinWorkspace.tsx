@@ -1,8 +1,8 @@
 import Button from '@components/Button/Button/Button'
+import { toast } from '@components/Toaster'
 import { useJoinWorkspaceMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Maybe } from '@graph/schemas'
-import { toast } from 'sonner'
 
 import { showSupportMessage } from '@/util/window'
 

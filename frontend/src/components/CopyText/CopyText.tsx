@@ -1,7 +1,7 @@
+import { toast } from '@components/Toaster'
 import SvgCopyIcon from '@icons/CopyIcon'
 import clsx from 'clsx'
 import React, { ReactNode } from 'react'
-import { toast } from 'sonner'
 
 import Button from '../Button/Button/Button'
 import styles from './CopyText.module.css'

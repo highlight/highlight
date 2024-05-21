@@ -1,4 +1,4 @@
-import { toast } from 'sonner'
+import { toast } from '@components/Toaster'
 
 export const snakeCaseString = (string: string) => {
 	return string

@@ -3,6 +3,7 @@ import {
 	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { toast } from '@components/Toaster'
 import {
 	useGetDailyErrorsCountQuery,
 	useGetDailySessionsCountQuery,
@@ -17,7 +18,6 @@ import moment from 'moment/moment'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ResponsiveContainer } from 'recharts'
-import { toast } from 'sonner'
 
 import { useSearchTime } from '@/hooks/useSearchTime'
 

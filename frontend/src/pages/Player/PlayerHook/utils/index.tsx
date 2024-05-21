@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import { useGetErrorObjectQuery } from '@graph/hooks'
 import { ErrorObject, Session, SessionComment } from '@graph/schemas'
 import { mui4Synder } from '@pages/Player/PlayerHook/utils/mui'
@@ -8,7 +9,6 @@ import moment from 'moment'
 import { useCallback, useState } from 'react'
 import { NavigateFunction, useLocation } from 'react-router-dom'
 import { EventType, Replayer } from 'rrweb'
-import { toast } from 'sonner'
 
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 

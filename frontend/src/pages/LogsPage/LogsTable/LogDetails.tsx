@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import { toast } from '@components/Toaster'
 import { LogEdge, LogLevel, Maybe, ReservedLogKey } from '@graph/schemas'
 import {
 	Box,
@@ -17,7 +18,6 @@ import { LogEdgeWithResources } from '@pages/LogsPage/useGetLogs'
 import { Row } from '@tanstack/react-table'
 import React, { useState } from 'react'
 import { generatePath, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import {
 	JsonViewerObject,

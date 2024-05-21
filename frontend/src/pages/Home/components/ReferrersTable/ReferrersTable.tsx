@@ -7,6 +7,7 @@ import {
 	ProgressBarTablePill,
 	ProgressBarTableRowGroup,
 } from '@components/ProgressBarTable/components/ProgressBarTableColumns'
+import { toast } from '@components/Toaster'
 import { useGetReferrersCountQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgReferrer from '@icons/Referrer'
@@ -16,7 +17,6 @@ import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
 import { DashboardInnerTable } from '../DashboardInnerTable/DashboardInnerTable'

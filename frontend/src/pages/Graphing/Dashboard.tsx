@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	closestCenter,
 	DndContext,
@@ -32,7 +33,6 @@ import clsx from 'clsx'
 import { useEffect, useId, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import {
 	useDeleteGraphMutation,

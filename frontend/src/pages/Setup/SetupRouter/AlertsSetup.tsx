@@ -3,6 +3,7 @@ import { useSlackBot } from '@components/Header/components/ConnectHighlightWithS
 import LoadingBox from '@components/LoadingBox'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
+import { toast } from '@components/Toaster'
 import {
 	useCreateErrorAlertMutation,
 	useCreateLogAlertMutation,
@@ -40,7 +41,6 @@ import { client } from '@util/graph'
 import * as React from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useMatch, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import Switch from '@/components/Switch/Switch'
 import { getMicrosoftTeamsUrl } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'

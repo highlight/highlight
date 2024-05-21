@@ -3,6 +3,7 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import { CircularSpinner, LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
 import Tag from '@components/Tag/Tag'
+import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -11,7 +12,6 @@ import { useGetWorkspacesQuery, useJoinWorkspaceMutation } from '@graph/hooks'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Navigate, useLocation } from 'react-router-dom'
-import { toast } from 'sonner'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import styles from './SwitchWorkspace.module.css'

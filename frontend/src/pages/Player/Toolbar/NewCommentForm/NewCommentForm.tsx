@@ -6,6 +6,7 @@ import {
 	parseAdminSuggestions,
 } from '@components/Comment/utils/utils'
 import { RadioGroup } from '@components/RadioGroup/RadioGroup'
+import { toast } from '@components/Toaster'
 import {
 	useCreateErrorCommentForExistingIssueMutation,
 	useCreateErrorCommentMutation,
@@ -53,7 +54,6 @@ import { useParams } from '@util/react-router/useParams'
 import React, { useEffect, useMemo, useState } from 'react'
 import { OnChangeHandlerFunc } from 'react-mentions'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { Button } from '@/components/Button'
 import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'

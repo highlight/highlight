@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import { colors } from '@highlight-run/ui/colors'
 import {
 	Badge,
@@ -13,7 +14,6 @@ import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { EventType } from 'rrweb'
-import { toast } from 'sonner'
 
 import * as styles from './StreamEventV2.css'
 

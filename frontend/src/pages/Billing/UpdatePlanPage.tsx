@@ -1,5 +1,6 @@
 import { Modal } from '@components/Modal/ModalV2'
 import Switch from '@components/Switch/Switch'
+import { toast } from '@components/Toaster'
 import { USD } from '@dinero.js/currencies'
 import {
 	Badge,
@@ -40,7 +41,6 @@ import moment from 'moment'
 import React from 'react'
 import ReactCollapsible from 'react-collapsible'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { Button } from '@/components/Button'
 import {

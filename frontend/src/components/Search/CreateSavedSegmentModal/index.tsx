@@ -1,4 +1,5 @@
 import { SavedSegmentModal } from '@components/SegmentModals/SavedSegmentModal'
+import { toast } from '@components/Toaster'
 import {
 	useCreateSavedSegmentMutation,
 	useEditSavedSegmentMutation,
@@ -7,7 +8,6 @@ import { namedOperations } from '@graph/operations'
 import { Maybe, SavedSegment, SavedSegmentEntityType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
-import { toast } from 'sonner'
 
 import { SavedSegmentQueryDisplay } from '../SavedSegmentQueryDisplay'
 

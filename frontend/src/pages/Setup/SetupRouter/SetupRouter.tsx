@@ -1,4 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
+import { toast } from '@components/Toaster'
 import { useGetProjectQuery } from '@graph/hooks'
 import {
 	Box,
@@ -34,7 +35,6 @@ import {
 	useLocation,
 	useMatch,
 } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { IntegrationBar } from '@/pages/Setup/IntegrationBar'
 import {

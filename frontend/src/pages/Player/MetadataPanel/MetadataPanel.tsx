@@ -1,12 +1,12 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import LoadingBox from '@components/LoadingBox'
 import { TableList, TableListItem } from '@components/TableList/TableList'
+import { toast } from '@components/Toaster'
 import { Box, ButtonLink } from '@highlight-run/ui/components'
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils'
 import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils'
 import { bytesToPrettyString } from '@util/string'
 import _, { capitalize } from 'lodash'
-import { toast } from 'sonner'
 
 import CollapsibleSection from '@/components/CollapsibleSection'
 import { useSearchContext } from '@/components/Search/SearchContext'

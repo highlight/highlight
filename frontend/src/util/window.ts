@@ -1,5 +1,5 @@
+import { toast } from '@components/Toaster'
 import analytics from '@util/analytics'
-import { toast } from 'sonner'
 
 import { FRONTEND_URI } from '@/constants'
 
@@ -13,8 +13,7 @@ export const showSupportBubble = () => {
 
 export const showSupportMessage = async (msg = '') => {
 	analytics.track('showSupportMessage', { msg })
-	// TODO(spenny): await
-	toast.info(
+	await toast.info(
 		msg.length
 			? `Please send the following on our discord: ${msg}`
 			: `Please reach out for help on our Discord!`,

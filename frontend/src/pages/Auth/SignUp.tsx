@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import { toast } from '@components/Toaster'
 import {
 	useCreateAdminMutation,
 	useGetWorkspaceForInviteLinkQuery,
@@ -23,7 +24,6 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import firebase from 'firebase/compat/app'
 import React, { useCallback, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { VERIFY_EMAIL_ROUTE } from '@/routers/AppRouter/AppRouter'

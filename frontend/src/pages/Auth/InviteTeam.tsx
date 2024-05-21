@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { getEmailDomain } from '@components/AutoJoinEmailsInput'
 import { Button } from '@components/Button'
+import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -27,7 +28,6 @@ import { SETUP_ROUTE } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { AdminRole } from '@/graph/generated/schemas'
 import { authRedirect } from '@/pages/Auth/utils'

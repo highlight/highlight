@@ -3,6 +3,7 @@ import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
 import PopConfirm from '@components/PopConfirm/PopConfirm'
 import Table from '@components/Table/Table'
+import { toast } from '@components/Toaster'
 import {
 	useDeleteInviteLinkFromWorkspaceMutation,
 	useGetWorkspacePendingInvitesQuery,
@@ -16,7 +17,6 @@ import { titleCaseString } from '@util/string'
 import clsx from 'clsx'
 import moment from 'moment'
 import React from 'react'
-import { toast } from 'sonner'
 
 import styles from './PendingInvites.module.css'
 

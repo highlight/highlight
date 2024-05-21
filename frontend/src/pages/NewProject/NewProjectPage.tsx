@@ -2,6 +2,7 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import { CardForm } from '@components/Card/Card'
 import Input from '@components/Input/Input'
 import { CircularSpinner } from '@components/Loading/Loading'
+import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -22,7 +23,6 @@ import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Navigate, useLocation } from 'react-router-dom'
-import { toast } from 'sonner'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 import { authRedirect } from '@/pages/Auth/utils'

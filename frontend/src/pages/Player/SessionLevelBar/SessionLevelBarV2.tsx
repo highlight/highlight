@@ -4,6 +4,7 @@ import {
 	Divider,
 } from '@components/CreateAlertButton/CreateAlertButton'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
+import { toast } from '@components/Toaster'
 import { useGetAlertsPagePayloadQuery } from '@graph/hooks'
 import { colors } from '@highlight-run/ui/colors'
 import {
@@ -33,7 +34,6 @@ import { delay } from 'lodash'
 import React, { useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { PlayerModeSwitch } from '@/pages/Player/SessionLevelBar/PlayerModeSwitch/PlayerModeSwitch'
 import { useSessionParams } from '@/pages/Sessions/utils'

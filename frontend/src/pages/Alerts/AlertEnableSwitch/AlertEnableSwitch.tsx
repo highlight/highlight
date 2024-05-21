@@ -1,4 +1,5 @@
 import Switch from '@components/Switch/Switch'
+import { toast } from '@components/Toaster'
 import {
 	useUpdateErrorAlertIsDisabledMutation,
 	useUpdateLogAlertIsDisabledMutation,
@@ -9,7 +10,6 @@ import { namedOperations } from '@graph/operations'
 import { ALERT_TYPE } from '@pages/Alerts/Alerts'
 import { useParams } from '@util/react-router/useParams'
 import React, { useState } from 'react'
-import { toast } from 'sonner'
 
 export const AlertEnableSwitch: React.FC<
 	React.PropsWithChildren<{ record: any }>

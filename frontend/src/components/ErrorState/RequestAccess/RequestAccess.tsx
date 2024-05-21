@@ -1,8 +1,8 @@
 import Button from '@components/Button/Button/Button'
+import { toast } from '@components/Toaster'
 import { useRequestAccessMutation } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
 import { useState } from 'react'
-import { toast } from 'sonner'
 
 const RequestAccess = () => {
 	const { project_id } = useParams<{

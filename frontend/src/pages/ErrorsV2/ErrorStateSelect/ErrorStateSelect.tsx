@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { toast } from '@components/Toaster'
 import { useUpdateErrorGroupStateMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { ErrorState, Maybe } from '@graph/schemas'
@@ -17,7 +18,6 @@ import moment from 'moment'
 import React, { useCallback, useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import * as styles from './style.css'
 
@@ -95,7 +95,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 					},
 				},
 				onError: async () => {
-					// TODO(spenny): message.destroy(MESSAGE_KEY)
+					toast.destroy(MESSAGE_KEY)
 					toast.error(
 						'There was an issue updating the state of this error. Please try again.',
 					)
@@ -356,6 +356,5 @@ const showStateUpdateMessage = (
 		}
 	}
 
-	// TODO(spenny): message.success({ content: displayMessage, key: MESSAGE_KEY }, 10)
-	toast.success(displayMessage, { duration: 10000 })
+	toast.success(displayMessage, { duration: 10000, id: MESSAGE_KEY })
 }

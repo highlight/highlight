@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import { SavedSegmentEntityType } from '@graph/schemas'
 import { colors } from '@highlight-run/ui/colors'
 import {
@@ -16,7 +17,6 @@ import {
 import { vars } from '@highlight-run/ui/vars'
 import { forEach } from 'lodash'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { toast } from 'sonner'
 
 import {
 	useEditSavedSegmentMutation,

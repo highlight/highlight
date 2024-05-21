@@ -3,6 +3,7 @@ import Button from '@components/Button/Button/Button'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import Input from '@components/Input/Input'
 import Space from '@components/Space/Space'
+import { toast } from '@components/Toaster'
 import { auth } from '@util/auth'
 import firebase from 'firebase/compat/app'
 import moment from 'moment'
@@ -13,7 +14,6 @@ import React, {
 	useRef,
 	useState,
 } from 'react'
-import { toast } from 'sonner'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { formatPhoneNumber } from '@/pages/UserSettings/Auth/utils'

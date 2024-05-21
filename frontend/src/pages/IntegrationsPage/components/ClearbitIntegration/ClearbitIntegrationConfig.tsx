@@ -1,4 +1,5 @@
 import Button from '@components/Button/Button/Button'
+import { toast } from '@components/Toaster'
 import { PlanType } from '@graph/schemas'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
@@ -9,7 +10,6 @@ import {
 } from '@pages/IntegrationsPage/components/Integration'
 import React, { useEffect } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import styles from './ClearbitIntegrationConfig.module.css'
 

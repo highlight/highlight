@@ -7,6 +7,7 @@ import { ErrorState } from '@components/ErrorState/ErrorState'
 import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
+import { toast } from '@components/Toaster'
 import {
 	useGetAlertsPagePayloadQuery,
 	useGetErrorGroupQuery,
@@ -43,7 +44,6 @@ import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { apiObject } from 'rudder-sdk-js'
-import { toast } from 'sonner'
 import {
 	NumberParam,
 	StringParam,

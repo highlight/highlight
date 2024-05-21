@@ -1,4 +1,5 @@
 import Switch from '@components/Switch/Switch'
+import { toast } from '@components/Toaster'
 import { useGetWorkspaceSettingsQuery } from '@graph/hooks'
 import {
 	Box,
@@ -21,7 +22,6 @@ import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { useGenerateSessionsReportCSV } from '@util/session/report'
 import { H } from 'highlight.run'
 import React, { useState } from 'react'
-import { toast } from 'sonner'
 
 import { useSearchContext } from '@/components/Search/SearchContext'
 import {

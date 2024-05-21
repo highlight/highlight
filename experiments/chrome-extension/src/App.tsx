@@ -6,7 +6,7 @@ import { FaCopy } from 'react-icons/fa'
 import { useChromeStorageLocal } from 'use-chrome-storage'
 import { InputNumber, Checkbox } from 'antd'
 import { useClipboard } from 'use-clipboard-copy'
-import { toast } from 'sonner'
+import { toast } from '@components/Toaster'
 
 // TODO(spenny): what is this?
 const Core = () => {

@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	Box,
 	ButtonIcon,
@@ -12,7 +13,6 @@ import {
 import { useCallback } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Link, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { Button } from '@/components/Button'
 import { PreviousNextGroup } from '@/components/PreviousNextGroup/PreviousNextGroup'

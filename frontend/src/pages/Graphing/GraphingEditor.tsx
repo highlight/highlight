@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	Box,
 	Button,
@@ -35,7 +36,6 @@ import React, {
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
-import { toast } from 'sonner'
 
 import { SearchContext } from '@/components/Search/SearchContext'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'

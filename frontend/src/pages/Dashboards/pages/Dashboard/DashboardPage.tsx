@@ -6,6 +6,7 @@ import Button from '@components/Button/Button/Button'
 import ConfirmModal from '@components/ConfirmModal/ConfirmModal'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
+import { toast } from '@components/Toaster'
 import {
 	GetDashboardDefinitionsDocument,
 	useDeleteDashboardMutation,
@@ -37,7 +38,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout'
 import { VscEllipsis } from 'react-icons/vsc'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import styles from './DashboardPage.module.css'
 

@@ -1,5 +1,6 @@
 import { Button } from '@components/Button'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
+import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -29,7 +30,6 @@ import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import { useCallback, useEffect, useMemo } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 import { useAuthContext } from '@/authentication/AuthContext'
@@ -58,8 +58,9 @@ const WorkspaceIntegrations = new Set<string>([
 
 const logError = (e: any) => {
 	H.consumeError(e)
-	// TODO(spenny): await then `?.then(console.error)`
-	toast.error('Failed to add integration to project. Please try again.')
+	toast
+		.error('Failed to add integration to project. Please try again.')
+		?.then(console.error)
 }
 
 const SlackIntegrationCallback = ({ code, projectId, next }: Props) => {

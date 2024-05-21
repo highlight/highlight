@@ -1,4 +1,5 @@
 import Button from '@components/Button/Button/Button'
+import { toast } from '@components/Toaster'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
 import {
@@ -9,7 +10,6 @@ import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierI
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import React, { useEffect } from 'react'
 import { coy as lightTheme } from 'react-syntax-highlighter/dist/esm/styles/prism'
-import { toast } from 'sonner'
 
 import styles from './ZapierIntegrationConfig.module.css'
 

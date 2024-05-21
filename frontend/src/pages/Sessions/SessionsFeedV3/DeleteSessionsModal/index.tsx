@@ -2,12 +2,12 @@ import Button from '@components/Button/Button/Button'
 import Input from '@components/Input/Input'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
+import { toast } from '@components/Toaster'
 import { useDeleteSessionsMutation } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import moment from 'moment'
 import { useState } from 'react'
-import { toast } from 'sonner'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 

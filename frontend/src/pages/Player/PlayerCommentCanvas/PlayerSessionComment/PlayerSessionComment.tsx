@@ -1,9 +1,9 @@
 import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment'
+import { toast } from '@components/Toaster'
 import { Box } from '@highlight-run/ui/components'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import clsx from 'clsx'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { toast } from 'sonner'
 
 import { CommentIndicator } from '@/components/Comment/CommentIndicator'
 import { getDeepLinkedCommentId } from '@/components/Comment/utils/utils'

@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	Box,
 	IconSolidArrowCircleRight,
@@ -27,7 +28,6 @@ import clsx from 'clsx'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
-import { toast } from 'sonner'
 
 import {
 	RelatedError,
