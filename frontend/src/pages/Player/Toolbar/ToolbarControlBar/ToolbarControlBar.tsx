@@ -460,8 +460,8 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 					refetchQueries: [namedOperations.Query.GetSessionExports],
 				})
 				// TODO(spenny): test this
-				toast.info(
-					<Box
+				/*
+				<Box
 						display="flex"
 						alignItems="center"
 						justifyContent="center"
@@ -480,17 +480,20 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 							}
 						>
 							<Text color="white">
-								You will receive an email once the session is
-								ready. Click here to check progress.
+								
 							</Text>
 						</Box>
 					</Box>,
+					*/
+				toast.info(
+					'You will receive an email once the session is ready. Click here to check progress.',
 					{ duration: 10000 },
 				)
 			} catch (e) {
 				toast.error(`An error occurred exporting the session: ${e}`)
 			}
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		currentWorkspace?.id,
 		exportSessionMutation,

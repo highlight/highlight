@@ -24,10 +24,7 @@ const RequestAccess = () => {
 				} catch (_e) {
 				} finally {
 					toast.success(
-						<>
-							If the workspace exists, we've sent an email to the
-							owner to share access with you!
-						</>,
+						"If the workspace exists, we've sent an email to the owner to share access with you!",
 					)
 					setSentAccessRequest(true)
 				}

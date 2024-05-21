@@ -1,13 +1,3 @@
-.hhlnpm0 {
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: 0;
-  z-index: 100;
-  padding: 1rem;
-  display: flex;
-  justify-content: center;
-}
 .highlight-light-theme {
   --_1pyqka90: #fdfcfd;
   --_1pyqka91: #ffffff;
@@ -5750,6 +5740,12 @@ body {
 }
 .hqr513:active {
   color: #6f6e77;
+}
+.hhlnpm0 {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 100;
 }
 @keyframes _1wdh3sj0 {
   0% {

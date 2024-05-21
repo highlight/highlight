@@ -64,7 +64,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 	useEffect(() => {
 		if (projectError || workspaceError) {
 			const err = projectError?.message ?? workspaceError?.message
-			toast.error(err)
+			toast.error(err!)
 		}
 	}, [projectError, workspaceError])
 
