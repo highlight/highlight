@@ -169,6 +169,8 @@ const durationUnitMap: [number, string][] = [
 	[24, 'd'],
 ]
 
+const DEFAULT_TIME_METRIC = 'ns'
+
 const timeMetrics = {
 	active_length: 'ms',
 	length: 'ms',
@@ -200,7 +202,8 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 	} else if (Object.hasOwn(timeMetrics, metric)) {
 		return (value: any) => {
 			let startUnit =
-				timeMetrics[metric as keyof typeof timeMetrics] ?? 'ns'
+				timeMetrics[metric as keyof typeof timeMetrics] ??
+				DEFAULT_TIME_METRIC
 			let lastUnit = startUnit
 			for (const entry of durationUnitMap) {
 				if (startUnit !== '') {
