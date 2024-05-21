@@ -30,10 +30,10 @@ interface DashboardsContext {
 	}) => Promise<FetchResult<UpsertDashboardMutation>>
 }
 
-export const [useDashboardsContext, DashboardsContextProvider] =
+const [useDashboardsContext, DashboardsContextProvider] =
 	createContext<DashboardsContext>('Dashboards')
 
-const DashboardsProvider = ({ children }) => { // Renamed to avoid conflict
+const DashboardsProvider = ({ children }) => {
 	const [dashboards, setDashboards] = useState<Maybe<DashboardDefinition>[]>([])
 	const [upsertDashboardMutation] = useUpsertDashboardMutation() 
 
