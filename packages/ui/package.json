@@ -113,7 +113,7 @@
 		"storybook": "^8.0.4",
 		"svgo": "^3.0.2",
 		"typescript": "^4.8.4",
-		"vite": "^5.2.11",
+		"vite": "^4.3.9",
 		"vite-plugin-dts": "^2.3.0",
 		"vitest": "^0.32.0"
 	}

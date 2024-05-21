@@ -65,7 +65,7 @@
 		"size-limit": "^11.1.2",
 		"tslib": "^2.6.2",
 		"typescript": "^5.4.3",
-		"vite": "^5.2.11",
+		"vite": "^5.2.7",
 		"vitest": "^1.4.0"
 	},
 	"size-limit": [
