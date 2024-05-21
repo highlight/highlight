@@ -104,7 +104,9 @@ const TabApp = ({ id }: { id: number }) => {
 						<FaCopy
 							onClick={() => {
 								clipboard.copy(recordingDetails.url)
-								toast.info('Copied to clipboard!')
+								toast.info('Copied to clipboard!', {
+									duration: 1000,
+								})
 							}}
 							style={{
 								cursor: 'pointer',

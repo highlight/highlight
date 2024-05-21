@@ -110,7 +110,7 @@ function CommentReplyForm<T extends CommentReplyAction>({
 		} catch (_e) {
 			const e = _e as Error
 			analytics.track('Reply to Comment Failed', { error: e.toString() })
-			toast.error('Failed to reply to the comment, please try again.')
+			toast.error(<>Failed to reply to the comment, please try again.</>)
 		}
 		setIsReplying(false)
 	}

@@ -439,7 +439,8 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				sessionSecureId: session?.secure_id,
 				workspaceId: currentWorkspace?.id,
 			})
-			await toast.warning(
+			// TODO(spenny): await
+			toast.warning(
 				'Downloading sessions is only available on enterprise plans.',
 			)
 			showSupportMessage(

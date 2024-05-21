@@ -76,6 +76,11 @@ export const usePlayerKeyboardShortcuts = () => {
 	const { sessionSecureId } = useSessionParams()
 	const navigate = useNavigate()
 	// TODO(spenny): toast config
+	// message.config({
+	// 	maxCount: 1,
+	// 	rtl: false,
+	// 	getContainer: getFullScreenPopoverGetPopupContainer,
+	// })
 
 	/**
 	 * This function needs to be called before each hot key.

@@ -179,7 +179,8 @@ export const ProjectProductFilters: React.FC<{
 			product,
 			workspaceId: currentWorkspace?.id,
 		})
-		await toast.warning(
+		// TODO(spenny): await
+		toast.warning(
 			'Setting up ingest sampling is only available on enterprise plans.',
 		)
 		await showSupportMessage(

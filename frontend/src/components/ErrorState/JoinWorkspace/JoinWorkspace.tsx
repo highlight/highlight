@@ -42,7 +42,7 @@ const JoinWorkspace = ({
 					)
 				} finally {
 					toast.success(
-						`Successfully joined workspace ${workspace?.name}!`,
+						<>Successfully joined workspace '{workspace?.name}'!</>,
 					)
 				}
 			}}

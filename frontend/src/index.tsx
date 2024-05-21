@@ -176,6 +176,7 @@ const App = () => {
 						}}
 					>
 						<LoadingPage />
+						{/* give icons and style */}
 						<Toaster position="top-center" />
 						<BrowserRouter>
 							<QueryParamProvider

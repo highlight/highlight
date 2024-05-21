@@ -95,7 +95,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 					},
 				},
 				onError: async () => {
-					// TODO(spenny): destroy message
+					// TODO(spenny): message.destroy(MESSAGE_KEY)
 					toast.error(
 						'There was an issue updating the state of this error. Please try again.',
 					)
@@ -356,5 +356,6 @@ const showStateUpdateMessage = (
 		}
 	}
 
+	// TODO(spenny): message.success({ content: displayMessage, key: MESSAGE_KEY }, 10)
 	toast.success(displayMessage, { duration: 10000 })
 }
