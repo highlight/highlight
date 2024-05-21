@@ -1,5 +1,5 @@
 import { FetchResult } from '@apollo/client'
-import { UpsertDashboardMutation, useUpsertDashboardMutation } from '@graph/operations'
+import { UpsertDashboardMutation, useUpsertVisualizationMutation } from '@graph/operations'
 import * as Types from '@graph/schemas'
 import {
 	DashboardDefinition,
@@ -27,7 +27,7 @@ interface DashboardsContext {
 		name: string
 		metrics: DashboardMetricConfigInput[]
 		layout?: string
-	}) => Promise<FetchResult<UpsertDashboardMutation>>
+	}) => Promise<FetchResult<UpsertDashboardMutatio>>
 }
 
 const [useDashboardsContext, DashboardsContextProvider] =
@@ -35,7 +35,7 @@ const [useDashboardsContext, DashboardsContextProvider] =
 
 const DashboardsProvider = ({ children }) => {
 	const [dashboards, setDashboards] = useState<Maybe<DashboardDefinition>[]>([])
-	const [upsertDashboardMutation] = useUpsertDashboardMutation() 
+        const [upsertVisualizationMutation] = useUpsertVisualizationMutation();
 
 	const updateDashboard = async ({
 		id,
