@@ -53,7 +53,7 @@ import * as style from './Dashboard.css'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
-export const Dashboard = ({data}) => {
+export const Dashboard = ({data:initialData}) => {
 	const { dashboard_id } = useParams<{
 		dashboard_id: string
 	}>()
