@@ -53,6 +53,7 @@ type Props = {
 	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
 	loadingAfter: boolean
 	textAreaRef: React.RefObject<HTMLTextAreaElement>
+	pollingExpired: boolean
 }
 
 const LOADING_AFTER_HEIGHT = 28
@@ -62,6 +63,7 @@ const LOAD_BEFORE_HEIGHT = 28
 export const TracesList: React.FC<Props> = ({
 	loading,
 	numMoreTraces,
+	pollingExpired,
 	traceEdges,
 	handleAdditionalTracesDateChange,
 	resetMoreTraces,
@@ -108,7 +110,7 @@ export const TracesList: React.FC<Props> = ({
 
 	const bodyRef = useRef<HTMLDivElement>(null)
 	const enableFetchMoreTraces =
-		!!numMoreTraces &&
+		(!!numMoreTraces || pollingExpired) &&
 		!!resetMoreTraces &&
 		!!handleAdditionalTracesDateChange
 
@@ -324,12 +326,13 @@ export const TracesList: React.FC<Props> = ({
 						<Box width="full">
 							<AdditionalFeedResults
 								maxResults={MAX_TRACES}
-								more={numMoreTraces}
+								more={numMoreTraces ?? 0}
 								type="traces"
 								onClick={() => {
 									resetMoreTraces()
 									handleAdditionalTracesDateChange()
 								}}
+								pollingExpired={pollingExpired}
 							/>
 						</Box>
 					</Table.Row>

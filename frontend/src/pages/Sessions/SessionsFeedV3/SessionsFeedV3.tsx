@@ -138,6 +138,7 @@ export const SessionFeedV3 = React.memo(() => {
 		setPage,
 		rebaseSearchTime,
 		updateSearchTime,
+		pollingExpired,
 	} = useSearchContext()
 
 	const { showBanner } = useGlobalContext()
@@ -219,6 +220,7 @@ export const SessionFeedV3 = React.memo(() => {
 						resetMoreResults()
 						rebaseSearchTime!()
 					}}
+					pollingExpired={pollingExpired}
 				/>
 				<Box
 					padding="8"
