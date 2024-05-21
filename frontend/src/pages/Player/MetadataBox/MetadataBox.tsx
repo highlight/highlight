@@ -22,7 +22,6 @@ import {
 } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard, validateEmail } from '@util/string'
-import { message } from 'antd'
 import clsx from 'clsx'
 import { capitalize } from 'lodash'
 import React, { useCallback, useEffect, useMemo } from 'react'
@@ -33,6 +32,7 @@ import {
 	FaLinkedin,
 	FaTwitterSquare,
 } from 'react-icons/fa'
+import { toast } from 'sonner'
 
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { stringifyExpression } from '@/components/Search/utils'
@@ -244,7 +244,9 @@ export const MetadataBox = React.memo(() => {
 					gap="8"
 					onClick={() => {
 						copyToClipboard(displayValue)
-						message.success(`Copied identifier ${displayValue}`, 3)
+						toast.success(`Copied identifier ${displayValue}`, {
+							duration: 3000,
+						})
 					}}
 				>
 					<Avatar

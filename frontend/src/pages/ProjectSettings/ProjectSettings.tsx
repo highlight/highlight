@@ -11,10 +11,10 @@ import { SessionExportForm } from '@pages/ProjectSettings/SessionExportForm/Sess
 import SourcemapSettings from '@pages/WorkspaceSettings/SourcemapSettings/SourcemapSettings'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
 import { Button } from '@/components/Button'
@@ -90,7 +90,9 @@ const ProjectSettings = () => {
 					...allProjectSettings?.projectSettings,
 				},
 			}).then(() => {
-				message.success(`Updated ${tabTitle} settings!`, 5)
+				toast.success(`Updated ${tabTitle} settings!`, {
+					duration: 5000,
+				})
 			})
 		}
 

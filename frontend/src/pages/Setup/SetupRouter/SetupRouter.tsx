@@ -23,7 +23,6 @@ import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
-import { message } from 'antd'
 import clsx from 'clsx'
 import { useEffect } from 'react'
 import {
@@ -35,6 +34,7 @@ import {
 	useLocation,
 	useMatch,
 } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { IntegrationBar } from '@/pages/Setup/IntegrationBar'
 import {
@@ -88,7 +88,7 @@ export const SetupRouter = () => {
 
 	const copyProjectId = () => {
 		window.navigator.clipboard.writeText(projectVerboseId!)
-		message.success('Project ID copied to your clipboard!')
+		toast.success('Project ID copied to your clipboard!')
 	}
 
 	return (

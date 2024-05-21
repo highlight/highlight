@@ -29,11 +29,11 @@ import { changeSession } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import analytics from '@util/analytics'
-import { message } from 'antd'
 import { delay } from 'lodash'
 import React, { useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { PlayerModeSwitch } from '@/pages/Player/SessionLevelBar/PlayerModeSwitch/PlayerModeSwitch'
 import { useSessionParams } from '@/pages/Sessions/utils'
@@ -288,7 +288,7 @@ export const SessionCurrentUrl = () => {
 					onClick={() => {
 						if (currentUrl?.length) {
 							navigator.clipboard.writeText(currentUrl)
-							message.success('Copied url to clipboard')
+							toast.success('Copied url to clipboard')
 						}
 					}}
 				>

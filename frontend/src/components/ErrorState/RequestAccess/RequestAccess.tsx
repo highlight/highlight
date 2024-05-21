@@ -1,8 +1,8 @@
 import Button from '@components/Button/Button/Button'
 import { useRequestAccessMutation } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 const RequestAccess = () => {
 	const { project_id } = useParams<{
@@ -23,7 +23,7 @@ const RequestAccess = () => {
 					})
 				} catch (_e) {
 				} finally {
-					message.success(
+					toast.success(
 						<>
 							If the workspace exists, we've sent an email to the
 							owner to share access with you!

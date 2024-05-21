@@ -8,9 +8,9 @@ import {
 import { namedOperations } from '@graph/operations'
 import { Box, Text } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
 import React, { useState } from 'react'
+import { toast } from 'sonner'
 
 import styles from './AutoJoinForm.module.css'
 
@@ -53,7 +53,7 @@ export const AutoJoinForm: React.FC = () => {
 				},
 				refetchQueries: [namedOperations.Query.GetWorkspaceAdmins],
 			}).then(() => {
-				message.success(msg)
+				toast.success(msg)
 			})
 		}
 	}

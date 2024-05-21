@@ -23,11 +23,11 @@ import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
 import { deserializeErrorIdentifier } from '@util/error'
 import { formatTimeAsHMS, MillisToMinutesAndSeconds } from '@util/time'
-import { message } from 'antd'
 import clsx from 'clsx'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
+import { toast } from 'sonner'
 
 import {
 	RelatedError,
@@ -140,7 +140,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 			setActiveEvent(event)
 			setRightPanelView(RightPanelView.Event)
 		}
-		message.success(
+		toast.success(
 			`Changed player time to show you ${type} at ${MillisToMinutesAndSeconds(
 				timestamp,
 			)}`,

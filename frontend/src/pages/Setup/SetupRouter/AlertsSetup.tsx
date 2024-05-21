@@ -37,10 +37,10 @@ import { Header } from '@pages/Setup/Header'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { client } from '@util/graph'
-import { message } from 'antd'
 import * as React from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useMatch, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import Switch from '@/components/Switch/Switch'
 import { getMicrosoftTeamsUrl } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
@@ -542,7 +542,7 @@ const AlertPicker = function ({
 			createLoading.current = true
 			await createAlerts()
 		} catch (e) {
-			message.error(`An error occurred creating alerts.`)
+			toast.error(`An error occurred creating alerts.`)
 		} finally {
 			createLoading.current = false
 		}

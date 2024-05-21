@@ -11,12 +11,12 @@ import { useGetReferrersCountQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgReferrer from '@icons/Referrer'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { ColumnsType } from 'antd/es/table'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
 import { DashboardInnerTable } from '../DashboardInnerTable/DashboardInnerTable'
@@ -81,7 +81,7 @@ const ReferrersTable = ({
 						navigate(
 							`/${projectIdRemapped}/sessions?query=referrer=${record.host}`,
 						)
-						message.success(
+						toast.success(
 							`Showing sessions that were referred by ${record.host}`,
 						)
 					}}

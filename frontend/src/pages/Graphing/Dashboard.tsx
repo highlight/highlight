@@ -28,11 +28,11 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { message } from 'antd'
 import clsx from 'clsx'
 import { useEffect, useId, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import {
 	useDeleteGraphMutation,
@@ -199,7 +199,7 @@ export const Dashboard = () => {
 												)
 											}
 											setEditing(false)
-											message.success(
+											toast.success(
 												'Canceled dashboard changes',
 											)
 										}}
@@ -259,12 +259,12 @@ export const Dashboard = () => {
 												},
 											})
 												.then(() => {
-													message.success(
+													toast.success(
 														'Dashboard updated',
 													)
 												})
 												.catch(() =>
-													message.error(
+													toast.error(
 														'Failed to update dashboard',
 													),
 												)
@@ -504,14 +504,14 @@ export const Dashboard = () => {
 																			)
 																				.then(
 																					() => {
-																						message.success(
+																						toast.success(
 																							`Metric view cloned`,
 																						)
 																					},
 																				)
 																				.catch(
 																					() => {
-																						message.error(
+																						toast.error(
 																							'Failed to clone metric view',
 																						)
 																					},
@@ -577,13 +577,13 @@ export const Dashboard = () => {
 																			)
 																				.then(
 																					() =>
-																						message.success(
+																						toast.success(
 																							'Metric view deleted',
 																						),
 																				)
 																				.catch(
 																					() =>
-																						message.error(
+																						toast.error(
 																							'Failed to delete metric view',
 																						),
 																				)

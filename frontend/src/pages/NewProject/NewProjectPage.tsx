@@ -17,11 +17,12 @@ import { namedOperations } from '@graph/operations'
 import { Box, Callout, Stack, Text } from '@highlight-run/ui/components'
 import analytics from '@util/analytics'
 import { client } from '@util/graph'
-import { Divider, message } from 'antd'
+import { Divider } from 'antd'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Navigate, useLocation } from 'react-router-dom'
+import { toast } from 'sonner'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 import { authRedirect } from '@/pages/Auth/utils'
@@ -63,7 +64,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 	useEffect(() => {
 		if (projectError || workspaceError) {
 			const err = projectError?.message ?? workspaceError?.message
-			message.error(err)
+			toast.error(err)
 		}
 	}, [projectError, workspaceError])
 

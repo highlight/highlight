@@ -7,9 +7,9 @@ import { useGetOAuthClientMetadataQuery } from '@graph/hooks'
 import { auth } from '@util/auth'
 import { GenerateSecureRandomString } from '@util/random'
 import { GetBaseURL } from '@util/window'
-import { message } from 'antd'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
+import { toast } from 'sonner'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 import Button from '../../components/Button/Button/Button'
@@ -74,12 +74,12 @@ const OAuthApprovalPage = () => {
 			},
 		) as { code?: string; state?: string }
 		if (!code) {
-			return message.error(
+			return toast.error(
 				`Something went wrong. Please restart the authorization.`,
 			)
 		}
 		if (state !== returnedState) {
-			return message.error(
+			return toast.error(
 				`Something went wrong while processing your authorization request. Please try again.`,
 			)
 		}
@@ -89,18 +89,18 @@ const OAuthApprovalPage = () => {
 			{ method: 'POST', headers: { token: userToken } },
 		)
 		if (!token.ok) {
-			return message.error(`Something went wrong. Please try again.`)
+			return toast.error(`Something went wrong. Please try again.`)
 		}
 		const data = (await token.json()) as OAuthToken
 		setLocalStorageOAuth(data)
 
 		if (!(await validate(data.access_token))) {
-			return message.error(
+			return toast.error(
 				`Validation failed after completing authorization flow! Please try again.`,
 			)
 		}
 
-		await message.success(`Successfully authorized!`)
+		await toast.success(`Successfully authorized!`)
 		if (oauthParams.redirect_uri) {
 			window.location.href = oauthParams.redirect_uri
 		}
@@ -151,16 +151,16 @@ const OAuthApprovalPage = () => {
 								block
 								danger
 								onClick={() => {
-									message
-										.warning(
-											`Rejecting authorization! Please close this window.`,
-										)
-										.then(() => {
-											if (oauthParams.redirect_uri) {
-												window.location.href =
-													oauthParams.redirect_uri
-											}
-										})
+									// TODO(spenny): await promise
+									toast.warning(
+										`Rejecting authorization! Please close this window.`,
+									)
+									// .then(() => {
+									// 	if (oauthParams.redirect_uri) {
+									// 		window.location.href =
+									// 			oauthParams.redirect_uri
+									// 	}
+									// })
 								}}
 							>
 								Reject

@@ -5,8 +5,8 @@ import { Box, ButtonLink } from '@highlight-run/ui/components'
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils'
 import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils'
 import { bytesToPrettyString } from '@util/string'
-import { message } from 'antd'
 import _, { capitalize } from 'lodash'
+import { toast } from 'sonner'
 
 import CollapsibleSection from '@/components/CollapsibleSection'
 import { useSearchContext } from '@/components/Search/SearchContext'
@@ -223,7 +223,7 @@ const MetadataPanel = () => {
 					onClick={(e) => {
 						e.stopPropagation()
 
-						message.success(
+						toast.success(
 							`Showing sessions created by device #${session.fingerprint}`,
 						)
 						onSubmit(`device_id=${session.fingerprint}`)

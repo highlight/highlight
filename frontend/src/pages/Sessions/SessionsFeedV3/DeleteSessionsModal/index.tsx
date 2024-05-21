@@ -4,10 +4,10 @@ import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import { useDeleteSessionsMutation } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { H } from 'highlight.run'
 import moment from 'moment'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
@@ -54,11 +54,11 @@ const DeleteSessionsModal = ({
 				},
 			})
 			setVisible(false)
-			message.success('Session deletion request sent.')
+			toast.success('Session deletion request sent.')
 		} catch (e: any) {
 			H.consumeError(e)
 			console.error(e)
-			message.error(
+			toast.error(
 				'Failed to create a session deletion request. Please try again.',
 			)
 		}

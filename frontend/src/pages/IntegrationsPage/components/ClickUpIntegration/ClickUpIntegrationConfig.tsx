@@ -15,9 +15,9 @@ import { useApplicationContext } from '@routers/AppRouter/context/ApplicationCon
 import { useParams } from '@util/react-router/useParams'
 import useMap from '@util/useMap'
 import { GetBaseURL } from '@util/window'
-import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
+import { toast } from 'sonner'
 
 import styles from './ClickUpIntegrationConfig.module.css'
 
@@ -138,14 +138,14 @@ const ClickUpIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 					onClick={() => {
 						removeIntegration()
 							.then(() => {
-								message.success(
+								toast.success(
 									'Disconnected the ClickUp integration!',
 								)
 								setModalOpen(false)
 								setIntegrationEnabled(false)
 							})
 							.catch((reason: any) => {
-								message.error(String(reason))
+								toast.error(String(reason))
 							})
 					}}
 				>
@@ -285,11 +285,11 @@ export const ClickUpIntegrationSettings: React.FC<
 		})
 			.then(() => {
 				onSuccess && onSuccess()
-				message.success('ClickUp settings saved!')
+				toast.success('ClickUp settings saved!')
 				setModalOpen(false)
 			})
 			.catch((reason: any) => {
-				message.error(String(reason))
+				toast.error(String(reason))
 			})
 	}
 

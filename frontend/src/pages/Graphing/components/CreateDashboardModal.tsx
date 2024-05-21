@@ -3,8 +3,8 @@ import { Modal } from '@components/Modal/ModalV2'
 import { useUpsertVisualizationMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Box, Form, Stack } from '@highlight-run/ui/components'
-import { message } from 'antd'
 import React from 'react'
+import { toast } from 'sonner'
 
 import { useProjectId } from '@/hooks/useProjectId'
 
@@ -40,7 +40,7 @@ export const CreateDashboardModal: React.FC<Props> = ({
 				onHideModal()
 			},
 			onError: (e) => {
-				message.error(`Error creating dashboard: ${e.message}`)
+				toast.error(`Error creating dashboard: ${e.message}`)
 			},
 		})
 	}

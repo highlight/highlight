@@ -20,9 +20,9 @@ import {
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import useMap from '@util/useMap'
-import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 import styles from './VercelIntegrationConfig.module.css'
 
@@ -133,14 +133,14 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 					onClick={() => {
 						removeVercelIntegrationFromProject()
 							.then(() => {
-								message.success(
+								toast.success(
 									'Disconnected the Vercel integration!',
 								)
 								setModalOpen(false)
 								setIntegrationEnabled(false)
 							})
 							.catch((reason: any) => {
-								message.error(String(reason))
+								toast.error(String(reason))
 							})
 					}}
 				>
@@ -399,11 +399,11 @@ export const VercelIntegrationSettings: React.FC<
 		})
 			.then(() => {
 				onSuccess && onSuccess()
-				message.success('Vercel projects linked!')
+				toast.success('Vercel projects linked!')
 				setModalOpen(false)
 			})
 			.catch((reason: any) => {
-				message.error(String(reason))
+				toast.error(String(reason))
 			})
 	}
 

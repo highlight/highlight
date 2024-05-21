@@ -4,7 +4,6 @@ import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import Input from '@components/Input/Input'
 import Space from '@components/Space/Space'
 import { auth } from '@util/auth'
-import { message } from 'antd'
 import firebase from 'firebase/compat/app'
 import moment from 'moment'
 import React, {
@@ -14,6 +13,7 @@ import React, {
 	useRef,
 	useState,
 } from 'react'
+import { toast } from 'sonner'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { formatPhoneNumber } from '@/pages/UserSettings/Auth/utils'
@@ -240,7 +240,7 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 					`***-***-${phoneNumber.slice(-4)}`,
 				)
 
-				message.success('Successfully enrolled in two-factor auth')
+				toast.success('Successfully enrolled in two-factor auth')
 				onSuccess()
 			} catch (e: any) {
 				setError(e.message)
@@ -320,7 +320,7 @@ const Enrolled: React.FC<Props> = ({ setError, setStatus }) => {
 							)
 
 							setStatus(AuthState.Enroll)
-							message.success('2FA removed successfully')
+							toast.success('2FA removed successfully')
 						} catch (e: any) {
 							if (e.code === 'auth/requires-recent-login') {
 								setStatus(AuthState.Login)

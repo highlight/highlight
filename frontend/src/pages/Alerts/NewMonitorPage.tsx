@@ -19,10 +19,10 @@ import {
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration'
 import { useParams } from '@util/react-router/useParams'
-import message from 'antd/es/message'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import analytics from '@/util/analytics'
 
@@ -97,7 +97,7 @@ const NewMonitorPage = ({
 	const onFinish = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
 		createMonitor()
-		message.success(`Created ${monitorName} monitor!`)
+		toast.success(`Created ${monitorName} monitor!`)
 		navigate(`/${project_id}/alerts`)
 	}
 

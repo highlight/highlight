@@ -12,12 +12,12 @@ import useDataTimeRange from '@hooks/useDataTimeRange'
 import { SessionPageSearchParams } from '@pages/Player/utils/utils'
 import { dailyCountData } from '@util/dashboardCalculations'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment/moment'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ResponsiveContainer } from 'recharts'
+import { toast } from 'sonner'
 
 import { useSearchTime } from '@/hooks/useSearchTime'
 
@@ -114,7 +114,7 @@ export const SessionCountGraph = ({
 						date.endOf('day').toDate(),
 					)
 
-					message.success(
+					toast.success(
 						`Showing sessions that were recorded on ${payload.activeLabel}`,
 					)
 					navigate(`/${projectIdRemapped}/sessions`)

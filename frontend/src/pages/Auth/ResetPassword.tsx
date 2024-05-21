@@ -13,9 +13,9 @@ import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { validateEmail } from '@util/string'
-import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 export const ResetPassword: React.FC = () => {
 	const navigate = useNavigate()
@@ -39,7 +39,7 @@ export const ResetPassword: React.FC = () => {
 				analytics.track('Reset password submission')
 
 				if (!validateEmail(email)) {
-					message.warning('Please enter a valid email.')
+					toast.warning('Please enter a valid email.')
 					analytics.track('Reset password submission error')
 					setLoading(false)
 					return
@@ -53,7 +53,7 @@ export const ResetPassword: React.FC = () => {
 						setLoading(false)
 					})
 					.finally(() => {
-						message.success(
+						toast.success(
 							'Password reset email sent (if a user exists)!',
 						)
 

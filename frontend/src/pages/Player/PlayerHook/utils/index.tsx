@@ -4,11 +4,11 @@ import { mui4Synder } from '@pages/Player/PlayerHook/utils/mui'
 import { playerMetaData, SessionInterval } from '@rrweb/types'
 import { clamp } from '@util/numbers'
 import { MillisToMinutesAndSeconds } from '@util/time'
-import { message } from 'antd'
 import moment from 'moment'
 import { useCallback, useState } from 'react'
 import { NavigateFunction, useLocation } from 'react-router-dom'
 import { EventType, Replayer } from 'rrweb'
+import { toast } from 'sonner'
 
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 
@@ -272,7 +272,7 @@ export const useSetPlayerTimestampFromSearchParam = (
 						// If requestId is defined, time will be set based on the network request instead
 						if (!error.request_id) {
 							setTime(sessionTime)
-							message.success(
+							toast.success(
 								`Changed player time to where error was thrown at ${MillisToMinutesAndSeconds(
 									sessionTime,
 								)}.`,
@@ -652,13 +652,13 @@ export const changeSession = (
 	successMessageText?: string,
 ) => {
 	if (!session) {
-		message.success('No more sessions to play.')
+		toast.success('No more sessions to play.')
 		return
 	}
 
 	navigate(`/${projectId}/sessions/${session.secure_id}`)
 	if (successMessageText?.length) {
-		message.success(successMessageText)
+		toast.success(successMessageText)
 	}
 }
 

@@ -12,12 +12,12 @@ import {
 	Table,
 	Text,
 } from '@highlight-run/ui/components'
-import { message } from 'antd'
 import moment from 'moment'
 import React, { useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
+import { toast } from 'sonner'
 
 import LoadingBox from '@/components/LoadingBox'
 import { SearchEmptyState } from '@/components/SearchEmptyState/SearchEmptyState'
@@ -265,12 +265,12 @@ const DashboardRow = ({
 										e.stopPropagation()
 										deleteViz()
 											.then(() =>
-												message.success(
+												toast.success(
 													'Dashboard deleted',
 												),
 											)
 											.catch(() =>
-												message.error(
+												toast.error(
 													'Failed to delete dashboard',
 												),
 											)

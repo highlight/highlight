@@ -20,10 +20,10 @@ import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { message } from 'antd'
 import firebase from 'firebase/compat/app'
 import React, { useCallback, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { VERIFY_EMAIL_ROUTE } from '@/routers/AppRouter/AppRouter'
@@ -92,7 +92,7 @@ export const SignUp: React.FC = () => {
 				}
 
 				await createAdmin()
-				message.success('Account created succesfully!')
+				toast.success('Account created succesfully!')
 			}
 
 			await fetchAdmin()

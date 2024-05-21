@@ -5,10 +5,10 @@ import {
 import { useGetKeyPerformanceIndicatorsQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect } from 'react'
+import { toast } from 'sonner'
 
 import KeyPerformanceIndicator from './KeyPerformanceIndicator/KeyPerformanceIndicator'
 import { formatLongNumber, formatShortTime } from './utils/utils'
@@ -52,7 +52,7 @@ const KeyPerformanceIndicators = ({
 				title="New Users"
 				route={`/${projectIdRemapped}/sessions?query=first_time=true`}
 				onClick={() => {
-					message.success('Showing sessions for new users')
+					toast.success('Showing sessions for new users')
 				}}
 				tooltipText={
 					<>

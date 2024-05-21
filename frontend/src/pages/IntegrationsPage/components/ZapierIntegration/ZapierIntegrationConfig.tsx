@@ -7,9 +7,9 @@ import {
 } from '@pages/IntegrationsPage/components/Integration'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
-import { message } from 'antd'
 import React, { useEffect } from 'react'
 import { coy as lightTheme } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { toast } from 'sonner'
 
 import styles from './ZapierIntegrationConfig.module.css'
 
@@ -26,7 +26,7 @@ const ZapierIntegrationConfig: React.FC<
 		if (isZapierIntegratedWithProject) {
 			setIntegrationEnabled(true)
 			setModalOpen(false)
-			message.success('Zapier integration enabled')
+			toast.success('Zapier integration enabled')
 		}
 	}, [isZapierIntegratedWithProject, setIntegrationEnabled, setModalOpen])
 

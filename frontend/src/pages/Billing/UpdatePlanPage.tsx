@@ -35,12 +35,12 @@ import { loadStripe } from '@stripe/stripe-js'
 import { getPlanChangeEmail } from '@util/billing/billing'
 import { formatNumber, formatNumberWithDelimiters } from '@util/numbers'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React from 'react'
 import ReactCollapsible from 'react-collapsible'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/Button'
 import {
@@ -1148,14 +1148,14 @@ const UpdatePlanPage = ({
 													},
 												)
 											} else {
-												message.success(
+												toast.success(
 													'Billing plan saved!',
 												)
 												setHasChanges(false)
 											}
 										})
 										.catch(() => {
-											message.error(
+											toast.error(
 												'Failed to save billing plan details',
 											)
 										})

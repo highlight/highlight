@@ -24,9 +24,9 @@ import { CommentTextBody } from '@pages/Player/Toolbar/NewCommentForm/CommentTex
 import analytics from '@util/analytics'
 import { getCommentMentionSuggestions } from '@util/comment/util'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import React, { useMemo, useState } from 'react'
 import { OnChangeHandlerFunc } from 'react-mentions'
+import { toast } from 'sonner'
 
 import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
 
@@ -110,9 +110,7 @@ function CommentReplyForm<T extends CommentReplyAction>({
 		} catch (_e) {
 			const e = _e as Error
 			analytics.track('Reply to Comment Failed', { error: e.toString() })
-			message.error(
-				<>Failed to reply to the comment, please try again.</>,
-			)
+			toast.error('Failed to reply to the comment, please try again.')
 		}
 		setIsReplying(false)
 	}

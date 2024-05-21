@@ -176,7 +176,7 @@ const App = () => {
 						}}
 					>
 						<LoadingPage />
-						<Toaster />
+						<Toaster position="top-center" />
 						<BrowserRouter>
 							<QueryParamProvider
 								adapter={ReactRouter6Adapter}

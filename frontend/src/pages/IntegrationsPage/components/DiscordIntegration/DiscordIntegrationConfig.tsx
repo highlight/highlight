@@ -8,8 +8,8 @@ import {
 } from '@pages/IntegrationsPage/components/Integration'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
-import { message } from 'antd'
 import React, { useEffect } from 'react'
+import { toast } from 'sonner'
 
 import styles from './DiscordIntegrationConfig.module.css'
 
@@ -61,7 +61,7 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 		) {
 			setIntegrationEnabled(true)
 			setModalOpen(false)
-			message.success('Discord integration enabled')
+			toast.success('Discord integration enabled')
 		}
 	}, [
 		isDiscordIntegratedWithProject,

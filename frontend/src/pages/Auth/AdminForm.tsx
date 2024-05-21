@@ -26,9 +26,9 @@ import { INVITE_TEAM_ROUTE } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
 import { getAttributionData } from '@util/attribution'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { namedOperations } from '@/graph/generated/operations'
 import { DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY } from '@/pages/Auth/JoinWorkspace'
@@ -165,7 +165,7 @@ export const AdminForm: React.FC = () => {
 				})
 			}
 
-			message.success(
+			toast.success(
 				`Nice to meet you ${formState.values.firstName}, let's get started!`,
 			)
 

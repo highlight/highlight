@@ -10,8 +10,8 @@ import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
 import { Heading, Stack, Text } from '@highlight-run/ui/components'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
-import { message } from 'antd'
 import { useEffect } from 'react'
+import { toast } from 'sonner'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
@@ -110,14 +110,14 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 										},
 									})
 										.then(() => {
-											message.success(
+											toast.success(
 												`Opted ${
 													isOptIn ? 'in to' : 'out of'
 												} ${c.type} emails.`,
 											)
 										})
 										.catch((reason: any) => {
-											message.error(String(reason))
+											toast.error(String(reason))
 										})
 								},
 								optOutAll,
@@ -145,14 +145,14 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 										},
 									})
 										.then(() => {
-											message.success(
+											toast.success(
 												`Opted ${
 													isOptIn ? 'in to' : 'out of'
 												} ${c.type} emails.`,
 											)
 										})
 										.catch((reason: any) => {
-											message.error(String(reason))
+											toast.error(String(reason))
 										})
 								},
 								optOutAll,

@@ -8,8 +8,8 @@ import {
 } from '@pages/IntegrationsPage/components/Integration'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
-import { message } from 'antd'
 import React, { useEffect } from 'react'
+import { toast } from 'sonner'
 
 import styles from './FrontIntegrationConfig.module.css'
 
@@ -33,7 +33,7 @@ const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 		) {
 			setIntegrationEnabled(true)
 			setModalOpen(false)
-			message.success('Front integration enabled')
+			toast.success('Front integration enabled')
 		}
 	}, [
 		isFrontIntegratedWithProject,

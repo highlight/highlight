@@ -1,8 +1,8 @@
 import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 import {
 	useAddIntegrationToProjectMutation,
@@ -72,7 +72,9 @@ export const useHerokuIntegration = () => {
 			setLoading(true)
 			await addHerokuIntegrationToProject(token, projectId)
 			setIsHerokuConnectedToProject(true)
-			message.success('Highlight is now synced with Heroku!', 5)
+			toast.success('Highlight is now synced with Heroku!', {
+				duration: 5000,
+			})
 			setLoading(false)
 		},
 		[

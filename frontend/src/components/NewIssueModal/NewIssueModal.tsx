@@ -36,9 +36,9 @@ import {
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
-import { message } from 'antd'
 import { H } from 'highlight.run'
 import React, { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 import { SearchIssues } from '@/components/SearchIssues/SearchIssues'
 
@@ -262,11 +262,11 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 				mode === NewIntegrationIssueType.CreateIssue
 					? 'New Issue Created!'
 					: 'Issue Linked!'
-			message.success(toastMessage)
+			toast.success(toastMessage)
 		} catch (e: any) {
 			H.consumeError(e)
 			console.error(e)
-			message.error('Failed to create an issue. Please try again.')
+			toast.error('Failed to create an issue. Please try again.')
 		} finally {
 			setLoading(false)
 		}

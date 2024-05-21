@@ -1,7 +1,7 @@
 import SvgCopyIcon from '@icons/CopyIcon'
-import { message } from 'antd'
 import clsx from 'clsx'
 import React, { ReactNode } from 'react'
+import { toast } from 'sonner'
 
 import Button from '../Button/Button/Button'
 import styles from './CopyText.module.css'
@@ -23,7 +23,7 @@ const CopyText: React.FC<React.PropsWithChildren<Props>> = ({
 }) => {
 	const onCopyHandler = () => {
 		navigator.clipboard.writeText(text)
-		message.success(onCopyTooltipText)
+		toast.success(onCopyTooltipText)
 	}
 
 	if (inline) {

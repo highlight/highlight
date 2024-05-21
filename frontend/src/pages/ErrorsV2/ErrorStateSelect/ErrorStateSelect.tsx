@@ -12,11 +12,12 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui/components'
-import { DatePicker, message } from 'antd'
+import { DatePicker } from 'antd'
 import moment from 'moment'
 import React, { useCallback, useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import * as styles from './style.css'
 
@@ -94,8 +95,8 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 					},
 				},
 				onError: async () => {
-					message.destroy(MESSAGE_KEY)
-					message.error(
+					// TODO(spenny): destroy message
+					toast.error(
 						'There was an issue updating the state of this error. Please try again.',
 					)
 				},
@@ -355,5 +356,5 @@ const showStateUpdateMessage = (
 		}
 	}
 
-	message.success({ content: displayMessage, key: MESSAGE_KEY }, 10)
+	toast.success(displayMessage, { duration: 10000 })
 }

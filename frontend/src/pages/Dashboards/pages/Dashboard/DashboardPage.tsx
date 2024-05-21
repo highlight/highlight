@@ -31,12 +31,13 @@ import {
 } from '@pages/Dashboards/Metrics'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import { Dropdown, Menu, message } from 'antd'
+import { Dropdown, Menu } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout'
 import { VscEllipsis } from 'react-icons/vsc'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import styles from './DashboardPage.module.css'
 
@@ -204,9 +205,9 @@ const DashboardPage = ({
 
 											setPersistedLayout(layout)
 
-											message.success(
+											toast.success(
 												'Dashboard layout updated!',
-												5,
+												{ duration: 5000 },
 											)
 										}}
 									>

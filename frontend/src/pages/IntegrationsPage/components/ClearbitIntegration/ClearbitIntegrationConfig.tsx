@@ -7,9 +7,9 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
-import { message } from 'antd'
 import React, { useEffect } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import styles from './ClearbitIntegrationConfig.module.css'
 
@@ -33,7 +33,7 @@ const ClearbitIntegrationConfig: React.FC<
 		) {
 			setIntegrationEnabled(true)
 			setModalOpen(false)
-			message.success('Clearbit integration enabled')
+			toast.success('Clearbit integration enabled')
 		}
 	}, [
 		isClearbitIntegratedWithWorkspace,

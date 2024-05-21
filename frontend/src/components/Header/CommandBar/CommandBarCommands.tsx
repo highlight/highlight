@@ -1,7 +1,7 @@
 import { useProjectId } from '@hooks/useProjectId'
-import { message } from 'antd'
 import { Command } from 'react-command-palette'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import usePlayerConfiguration from '../../../pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { onGetLinkWithTimestamp } from '../../../pages/Player/SessionShareButton/utils/utils'
@@ -105,7 +105,7 @@ export const usePlayerCommands = (
 		{
 			command: () => {
 				const url = window.location.href
-				message.success('Copied link!')
+				toast.success('Copied link!')
 				navigator.clipboard.writeText(url)
 			},
 			name: 'Copy URL',
@@ -113,7 +113,7 @@ export const usePlayerCommands = (
 		{
 			command: () => {
 				const url = onGetLinkWithTimestamp(playerTime)
-				message.success('Copied link!')
+				toast.success('Copied link!')
 				navigator.clipboard.writeText(url.href)
 			},
 			name: 'Copy URL at current timestamp',

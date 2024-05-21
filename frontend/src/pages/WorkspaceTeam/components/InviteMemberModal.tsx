@@ -8,10 +8,10 @@ import { useSendAdminWorkspaceInviteMutation } from '@graph/hooks'
 import { AdminRole } from '@graph/schemas'
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils'
 import { titleCaseString } from '@util/string'
-import { message } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
 import { useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import commonStyles from '../../../Common.module.css'
@@ -72,7 +72,7 @@ function InviteMemberModal({
 			},
 		}).then(() => {
 			setEmail('')
-			message.success(`Invite email sent to ${email}!`, 5)
+			toast.success(`Invite email sent to ${email}!`, { duration: 5000 })
 			emailRef.current?.focus()
 		})
 	}

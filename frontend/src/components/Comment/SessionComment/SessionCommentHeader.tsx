@@ -29,9 +29,9 @@ import {
 } from '@pages/Player/ReplayerContext'
 import { onGetLinkWithTimestamp } from '@pages/Player/SessionShareButton/utils/utils'
 import analytics from '@util/analytics'
-import { message } from 'antd'
 import moment from 'moment'
 import React, { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 import { AdminAvatar, Avatar } from '@/components/Avatar/Avatar'
 import { getAttachmentUrl } from '@/components/Comment/AttachmentList/AttachmentList'
@@ -214,7 +214,7 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 								<Menu.Item
 									onClick={() => {
 										const url = getCommentLink()
-										message.success('Copied link!')
+										toast.success('Copied link!')
 										navigator.clipboard.writeText(url.href)
 									}}
 								>

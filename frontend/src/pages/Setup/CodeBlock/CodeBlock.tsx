@@ -1,6 +1,5 @@
 import SvgCopyIcon from '@icons/CopyIcon'
 import useLocalStorage from '@rehooks/local-storage'
-import { message } from 'antd'
 import clsx from 'clsx'
 import { useEffect } from 'react'
 import CopyToClipboard from 'react-copy-to-clipboard'
@@ -10,6 +9,7 @@ import {
 	atomDark as darkTheme,
 	coy as lightTheme,
 } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { toast } from 'sonner'
 
 import styles from './CodeBlock.module.css'
 
@@ -57,7 +57,7 @@ export const CodeBlock = ({
 					<CopyToClipboard
 						text={text}
 						onCopy={() => {
-							message.success('Copied Snippet', 5)
+							toast.success('Copied Snippet', { duration: 5000 })
 							onCopy && onCopy()
 						}}
 					>

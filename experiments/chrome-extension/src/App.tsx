@@ -4,9 +4,11 @@ import 'antd/dist/antd.css' // or 'antd/dist/antd.less'
 import { FaCopy } from 'react-icons/fa'
 
 import { useChromeStorageLocal } from 'use-chrome-storage'
-import { InputNumber, Checkbox, message } from 'antd'
+import { InputNumber, Checkbox } from 'antd'
 import { useClipboard } from 'use-clipboard-copy'
+import { toast } from 'sonner'
 
+// TODO(spenny): what is this?
 const Core = () => {
 	const [tabId, setTabId] = useState(-1)
 
@@ -102,7 +104,7 @@ const TabApp = ({ id }: { id: number }) => {
 						<FaCopy
 							onClick={() => {
 								clipboard.copy(recordingDetails.url)
-								message.info('Copied to clipboard!', 1)
+								toast.info('Copied to clipboard!')
 							}}
 							style={{
 								cursor: 'pointer',

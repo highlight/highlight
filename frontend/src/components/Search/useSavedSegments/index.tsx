@@ -14,9 +14,9 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { message } from 'antd'
 import { forEach } from 'lodash'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 import {
 	useEditSavedSegmentMutation,
@@ -123,7 +123,9 @@ export const useSavedSegments = ({
 				},
 			})
 				.then(() => {
-					message.success(`Updated '${selectedSegment!.name}'`, 5)
+					toast.success(`Updated '${selectedSegment!.name}'`, {
+						duration: 5000,
+					})
 					selectSegment({
 						id: selectedSegment.id,
 						name: selectedSegment.name,
@@ -131,7 +133,7 @@ export const useSavedSegments = ({
 					})
 				})
 				.catch(() => {
-					message.error('Error updating segment!', 5)
+					toast.error('Error updating segment!', { duration: 5000 })
 				})
 		}
 	}, [

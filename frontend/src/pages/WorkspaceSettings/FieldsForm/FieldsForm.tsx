@@ -6,9 +6,9 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 import commonStyles from '../../../Common.module.css'
 import Button from '../../../components/Button/Button/Button'
@@ -55,7 +55,7 @@ export const FieldsForm = () => {
 					name,
 				},
 			}).then(() => {
-				message.success('Updated workspace fields!', 5)
+				toast.success('Updated workspace fields!', { duration: 5000 })
 			})
 		} else {
 			editProject({
@@ -65,7 +65,7 @@ export const FieldsForm = () => {
 					billing_email: email,
 				},
 			}).then(() => {
-				message.success('Updated project fields!', 5)
+				toast.success('Updated project fields!', { duration: 5000 })
 			})
 		}
 	}

@@ -7,10 +7,10 @@ import PlayerSessionComment from '@pages/Player/PlayerCommentCanvas/PlayerSessio
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { CommentIndicator } from '@/components/Comment/CommentIndicator'
@@ -89,7 +89,7 @@ const PlayerCommentCanvas = ({
 					replace: true,
 				})
 
-				message.success('Muted notifications for the comment thread.')
+				toast.success('Muted notifications for the comment thread.')
 			})
 		}
 

@@ -22,10 +22,10 @@ import {
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import analytics from '@/util/analytics'
 
@@ -103,7 +103,7 @@ const EditMonitorPage = ({
 	const onFinish = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
 		updateMonitor()
-		message.success('Monitor updated!')
+		toast.success('Monitor updated!')
 	}
 
 	useEffect(() => {
@@ -146,7 +146,7 @@ const EditMonitorPage = ({
 			existingMonitor === undefined &&
 			alertsPayload !== undefined
 		) {
-			message.error("The monitor you tried viewing doesn't exist")
+			toast.error("The monitor you tried viewing doesn't exist")
 			navigate(`/${project_id}/alerts`)
 		}
 	}, [alertsPayload, existingMonitor, loading, navigate, project_id])
@@ -248,7 +248,7 @@ const EditMonitorPage = ({
 									formSubmitButtonLabel="Save"
 									onFormDestructiveAction={async () => {
 										await deleteMonitor()
-										message.success('Monitor deleted!')
+										toast.success('Monitor deleted!')
 										navigate(`/${project_id}/alerts`)
 									}}
 									formDestructiveButtonLabel="Delete"

@@ -2,8 +2,8 @@ import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
-import { message } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 import {
 	useAddIntegrationToProjectMutation,
@@ -81,7 +81,9 @@ export const useMicrosoftTeamsBot = (next?: string) => {
 			setLoading(true)
 			await addMicrosoftTeamsBotIntegrationToProject(code, projectId)
 			setIsMicrosoftTeamsConnectedToWorkspace(true)
-			message.success('Highlight is now synced with Microsoft Teams!', 5)
+			toast.success('Highlight is now synced with Microsoft Teams!', {
+				duration: 5000,
+			})
 			setLoading(false)
 		},
 		[

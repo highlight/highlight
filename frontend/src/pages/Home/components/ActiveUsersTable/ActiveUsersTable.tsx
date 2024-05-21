@@ -14,12 +14,12 @@ import SvgClockIcon from '@icons/ClockIcon'
 import { getUserDisplayName } from '@pages/Home/utils/HomePageUtils'
 import { useParams } from '@util/react-router/useParams'
 import { validateEmail } from '@util/string'
-import { message } from 'antd'
 import { ColumnsType } from 'antd/es/table'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
 import Tooltip from '../../../../components/Tooltip/Tooltip'
@@ -108,7 +108,7 @@ const ActiveUsersTable = ({
 							search: `query=${userParam}=${displayName}`,
 						})
 
-						message.success(`Showing sessions for ${displayName}`)
+						toast.success(`Showing sessions for ${displayName}`)
 					}}
 					noDataMessage={
 						filteredTableData.length === 0 &&

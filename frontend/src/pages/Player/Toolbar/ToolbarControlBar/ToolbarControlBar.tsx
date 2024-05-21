@@ -63,10 +63,10 @@ import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { showSupportMessage } from '@util/window'
-import { message } from 'antd'
 import clsx from 'clsx'
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/TimelinePopover.module.css'
 import style from './ToolbarControlBar.module.css'
@@ -439,7 +439,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				sessionSecureId: session?.secure_id,
 				workspaceId: currentWorkspace?.id,
 			})
-			await message.warn(
+			await toast.warning(
 				'Downloading sessions is only available on enterprise plans.',
 			)
 			showSupportMessage(
@@ -459,37 +459,36 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 					},
 					refetchQueries: [namedOperations.Query.GetSessionExports],
 				})
-				message.open({
-					content: (
+				// TODO(spenny): test this
+				toast(
+					<Box
+						display="flex"
+						alignItems="center"
+						justifyContent="center"
+						gap="2"
+						cssClass={style.toast}
+					>
 						<Box
 							display="flex"
 							alignItems="center"
-							justifyContent="center"
-							gap="2"
-							cssClass={style.toast}
+							width="full"
+							height="full"
+							onClick={() =>
+								navigate(
+									`/${projectId}/settings/sessions#exports`,
+								)
+							}
 						>
-							<Box
-								display="flex"
-								alignItems="center"
-								width="full"
-								height="full"
-								onClick={() =>
-									navigate(
-										`/${projectId}/settings/sessions#exports`,
-									)
-								}
-							>
-								<Text color="white">
-									You will receive an email once the session
-									is ready. Click here to check progress.
-								</Text>
-							</Box>
+							<Text color="white">
+								You will receive an email once the session is
+								ready. Click here to check progress.
+							</Text>
 						</Box>
-					),
-					duration: 10,
-				})
+					</Box>,
+					{ duration: 10000 },
+				)
 			} catch (e) {
-				message.error(`An error occurred exporting the session: ${e}`)
+				toast.error(`An error occurred exporting the session: ${e}`)
 			}
 		}
 	}, [

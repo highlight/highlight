@@ -5,8 +5,8 @@ import {
 	SanitizedSlackChannelInput,
 } from '@graph/schemas'
 import { MentionItem, SuggestionDataItem } from '@highlight-run/react-mentions'
-import { message } from 'antd'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { useDeleteSessionCommentMutation } from '@/graph/generated/hooks'
 import { namedOperations } from '@/graph/generated/operations'
@@ -118,7 +118,7 @@ export const useDeleteComment = (comment: ParsedSessionComment) => {
 			urlSearchParams.delete(PlayerSearchParameters.commentId)
 		}
 
-		message.success('Comment deleted.')
+		toast.success('Comment deleted.')
 	}
 }
 

@@ -26,10 +26,10 @@ import { Landing } from '@pages/Landing/Landing'
 import { ApplicationContextProvider } from '@routers/AppRouter/context/ApplicationContext'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { H } from 'highlight.run'
 import { useCallback, useEffect, useMemo } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 import { useAuthContext } from '@/authentication/AuthContext'
@@ -58,9 +58,8 @@ const WorkspaceIntegrations = new Set<string>([
 
 const logError = (e: any) => {
 	H.consumeError(e)
-	message
-		.error('Failed to add integration to project. Please try again.')
-		?.then(console.error)
+	// TODO(spenny): await then `?.then(console.error)`
+	toast.error('Failed to add integration to project. Please try again.')
 }
 
 const SlackIntegrationCallback = ({ code, projectId, next }: Props) => {
@@ -152,7 +151,9 @@ const LinearIntegrationCallback = ({ code, projectId, next }: Props) => {
 				}
 
 				await addLinearIntegrationToProject(code, projectId)
-				message.success('Highlight is now synced with Linear!', 5)
+				toast.success('Highlight is now synced with Linear!', {
+					duration: 5000,
+				})
 			} catch (e: any) {
 				logError(e)
 			} finally {
@@ -181,11 +182,13 @@ const FrontIntegrationCallback = ({ code, projectId }: Props) => {
 		;(async () => {
 			try {
 				await addFrontIntegrationToProject(code, projectId)
-				message.success('Highlight is now synced with Front!', 5)
+				toast.success('Highlight is now synced with Front!', {
+					duration: 5000,
+				})
 			} catch (e: any) {
 				H.consumeError(e)
 				console.error(e)
-				message.error(
+				toast.error(
 					'Failed to add integration to project. Please try again.',
 				)
 			} finally {
@@ -305,11 +308,13 @@ const DiscordIntegrationCallback = ({ code, projectId, next }: Props) => {
 		;(async () => {
 			try {
 				await addDiscordIntegrationToProject(code, projectId)
-				message.success('Highlight is now synced with Discord!', 5)
+				toast.success('Highlight is now synced with Discord!', {
+					duration: 5000,
+				})
 			} catch (e: any) {
 				H.consumeError(e)
 				console.error(e)
-				message.error(
+				toast.error(
 					'Failed to add integration to project. Please try again.',
 				)
 			} finally {
@@ -370,11 +375,13 @@ const WorkspaceIntegrationCallback = ({
 			sessionStorage.setItem(codeSessionStorageKey, code)
 			log('IntegrationAuthCallback.tsx', 'calling addIntegration')
 			await addIntegration(code)
-			message.success(`Highlight is now synced with ${name}!`, 5)
+			toast.success(`Highlight is now synced with ${name}!`, {
+				duration: 5000,
+			})
 		} catch (e: any) {
 			H.consumeError(e)
 			console.error(e)
-			message.error(
+			toast.error(
 				'Failed to add integration to project. Please try again.',
 			)
 		} finally {
@@ -474,9 +481,9 @@ const AWSMPIntegrationCallback = ({ code }: { code: string }) => {
 					navigate(`/w/${workspaceId}/current-plan/success`)
 				})
 				.catch((e) => {
-					message.error(
+					toast.error(
 						`Error connecting AWS Marketplace Subscription: ${e.message}`,
-						5,
+						{ duration: 5000 },
 					)
 				})
 		}

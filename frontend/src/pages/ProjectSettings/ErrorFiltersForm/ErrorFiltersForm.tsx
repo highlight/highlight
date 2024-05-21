@@ -1,8 +1,8 @@
 import { LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
 import { Stack } from '@highlight-run/ui/components'
-import { message } from 'antd'
 import { Text } from 'recharts'
+import { toast } from 'sonner'
 
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
@@ -13,7 +13,7 @@ const isValidRegex = function (p: string) {
 	try {
 		new RegExp(p)
 	} catch (e: any) {
-		message.error(`Pattern \`${p}\` is not valid regex.`)
+		toast.error(`Pattern \`${p}\` is not valid regex.`)
 		return false
 	}
 	return true

@@ -140,6 +140,11 @@
 						"name": "react-use",
 						"importNames": ["useLocalStorage"],
 						"message": "Please use @rehooks/local-storage instead."
+					},
+					{
+						"name": "antd",
+						"importNames": ["message"],
+						"message": "Please use [something else] instead."
 					}
 				],
 				"patterns": [

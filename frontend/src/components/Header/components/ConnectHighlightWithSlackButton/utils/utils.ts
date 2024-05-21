@@ -2,8 +2,8 @@ import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
-import { message } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 import {
 	useAddIntegrationToProjectMutation,
@@ -77,7 +77,9 @@ export const useSlackBot = (next?: string) => {
 			setLoading(true)
 			await addSlackBotIntegrationToProject(code, projectId)
 			setIsSlackConnectedToWorkspace(true)
-			message.success('Highlight is now synced with Slack!', 5)
+			toast.success('Highlight is now synced with Slack!', {
+				duration: 5000,
+			})
 			setLoading(false)
 		},
 		[

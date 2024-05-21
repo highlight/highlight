@@ -25,9 +25,9 @@ import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
 import { SETUP_ROUTE } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
-import { message } from 'antd'
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { AdminRole } from '@/graph/generated/schemas'
 import { authRedirect } from '@/pages/Auth/utils'
@@ -144,16 +144,16 @@ export const InviteTeamForm: React.FC = () => {
 				try {
 					await Promise.all(promises)
 				} catch (e) {
-					message.error(
+					toast.error(
 						`An error occurred inviting your team. Please try again later.`,
 					)
 					return navigate(redirectRoute)
 				}
 
 				if (emails.length) {
-					message.success(`Thanks for inviting your team!`)
+					toast.success(`Thanks for inviting your team!`)
 				} else {
-					message.info(`You can always invite your team later.`)
+					toast.info(`You can always invite your team later.`)
 				}
 			}
 

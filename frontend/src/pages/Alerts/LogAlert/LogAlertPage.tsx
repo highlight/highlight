@@ -36,11 +36,11 @@ import { useLogAlertsContext } from '@pages/Alerts/LogAlert/context'
 import { AlertForm } from '@pages/Alerts/utils/AlertsUtils'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { capitalize } from 'lodash'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import { getSlackUrl } from '@/components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
@@ -222,11 +222,11 @@ export const LogAlertPage = () => {
 								},
 							})
 								.then(() => {
-									message.success(`Log alert deleted!`)
+									toast.success(`Log alert deleted!`)
 									navigate(`/${project_id}/alerts`)
 								})
 								.catch(() => {
-									message.error(`Failed to delete log alert!`)
+									toast.error(`Failed to delete log alert!`)
 								})
 						}}
 					>
@@ -301,7 +301,7 @@ export const LogAlertPage = () => {
 								errs.push('query')
 							}
 
-							message.error(
+							toast.error(
 								`Missing required field(s): ${errs.join(
 									', ',
 								)}.`,
@@ -317,11 +317,11 @@ export const LogAlertPage = () => {
 								},
 							})
 								.then(() => {
-									message.success(`Log alert ${createStr}d!`)
+									toast.success(`Log alert ${createStr}d!`)
 									navigate(`/${project_id}/alerts`)
 								})
 								.catch(() => {
-									message.error(
+									toast.error(
 										`Failed to ${createStr} log alert!`,
 									)
 								})
@@ -333,11 +333,11 @@ export const LogAlertPage = () => {
 								},
 							})
 								.then(() => {
-									message.success(`Log alert ${createStr}d!`)
+									toast.success(`Log alert ${createStr}d!`)
 									navigate(`/${project_id}/alerts`)
 								})
 								.catch(() => {
-									message.error(
+									toast.error(
 										`Failed to ${createStr} log alert!`,
 									)
 								})

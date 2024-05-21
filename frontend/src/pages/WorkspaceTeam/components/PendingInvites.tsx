@@ -13,10 +13,10 @@ import SvgTrashIconSolid from '@icons/TrashIconSolid'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { titleCaseString } from '@util/string'
-import { message } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
 import React from 'react'
+import { toast } from 'sonner'
 
 import styles from './PendingInvites.module.css'
 
@@ -41,10 +41,10 @@ const PendingInvites = ({ workspaceId, active, shouldRefetchData }: Props) => {
 					fields: {
 						workspace_pending_invites(existingInvites, { DELETE }) {
 							if (data?.deleteInviteLinkFromWorkspace) {
-								message.success('Deleted invite')
+								toast.success('Deleted invite')
 								return DELETE
 							}
-							message.success('Failed to delete invite')
+							toast.success('Failed to delete invite')
 							return existingInvites
 						},
 					},
