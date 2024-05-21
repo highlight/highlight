@@ -53,11 +53,11 @@ import * as style from './Dashboard.css'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
-export const Dashboard = ({data:initialData}) => {
+export const Dashboard = ({data:propData}) => {
 	const { dashboard_id } = useParams<{
 		dashboard_id: string
 	}>()
-	const uniqueGroupByKey = Array.from(new Set(data.groupByKey));
+	const uniqueGroupByKey = Array.from(new Set(propData.groupByKey));
 
 	const sensors = useSensors(
 		useSensor(PointerSensor),
@@ -88,16 +88,16 @@ export const Dashboard = ({data:initialData}) => {
 	}
 
 	const { projectId } = useProjectId()
-	const { data } = useGetVisualizationQuery({
+	const { data: queryData } = useGetVisualizationQuery({
 		variables: { id: dashboard_id! },
 	})
 
 	useEffect(() => {
-		if (data !== undefined) {
-			setName(data.visualization.name)
-			setGraphs(data.visualization.graphs)
+		if (queryData !== undefined) {
+			setName(queryData.visualization.name)
+			setGraphs(queryData.visualization.graphs)
 		}
-	}, [data])
+	}, [queryData])
 
 	const [upsertViz] = useUpsertVisualizationMutation()
 
@@ -191,12 +191,12 @@ export const Dashboard = ({data:initialData}) => {
 										emphasis="low"
 										kind="secondary"
 										onClick={() => {
-											if (data !== undefined) {
+											if (queryData !== undefined) {
 												setName(
-													data?.visualization.name,
+													queryData?.visualization.name,
 												)
 												setGraphs(
-													data?.visualization.graphs,
+													queryData?.visualization.graphs,
 												)
 											}
 											setEditing(false)
