@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/assets"
 	"html/template"
 	"io"
 	"math/rand"
@@ -14,6 +13,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/assets"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
@@ -195,7 +196,7 @@ var PRIVATE_GRAPH_CORS_OPTIONS = cors.Options{
 	AllowedHeaders:         []string{"*"},
 }
 
-func validateOrigin(r *http.Request, origin string) bool {
+func validateOrigin(_ *http.Request, origin string) bool {
 	// From the highlight frontend, only the url is whitelisted.
 	isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
 	// Is this an AWS Amplify environment?
