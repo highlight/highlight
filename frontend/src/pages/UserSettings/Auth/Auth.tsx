@@ -295,6 +295,8 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 }
 
 const Enrolled: React.FC<Props> = ({ setError, setStatus }) => {
+	const { signOut } = useAuthContext()
+
 	return (
 		<Space direction="vertical" size="medium">
 			<p>
@@ -319,8 +321,11 @@ const Enrolled: React.FC<Props> = ({ setError, setStatus }) => {
 								currentFactor,
 							)
 
-							setStatus(AuthState.Enroll)
-							message.success('2FA removed successfully')
+							signOut()
+
+							message.success(
+								'2FA removed successfully. Please re-authenticate.',
+							)
 						} catch (e: any) {
 							if (e.code === 'auth/requires-recent-login') {
 								setStatus(AuthState.Login)
