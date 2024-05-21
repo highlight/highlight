@@ -460,7 +460,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 					refetchQueries: [namedOperations.Query.GetSessionExports],
 				})
 				// TODO(spenny): test this
-				toast(
+				toast.info(
 					<Box
 						display="flex"
 						alignItems="center"
