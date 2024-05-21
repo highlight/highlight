@@ -336,7 +336,7 @@ const LogsTableInner = ({
 						<Box width="full">
 							<AdditionalFeedResults
 								maxResults={MAX_LOGS}
-								more={moreLogs}
+								more={moreLogs ?? 0}
 								type="logs"
 								onClick={() => {
 									clearMoreLogs()

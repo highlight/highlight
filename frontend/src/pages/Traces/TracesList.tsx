@@ -326,7 +326,7 @@ export const TracesList: React.FC<Props> = ({
 						<Box width="full">
 							<AdditionalFeedResults
 								maxResults={MAX_TRACES}
-								more={numMoreTraces}
+								more={numMoreTraces ?? 0}
 								type="traces"
 								onClick={() => {
 									resetMoreTraces()
