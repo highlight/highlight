@@ -59,6 +59,9 @@ jobs:
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v3
 
+            - name: Install Playwright Browsers
+              run: npx playwright install --with-deps
+
             - name: Build & test (in a fork without doppler)
               run: yarn test:all
               env:
