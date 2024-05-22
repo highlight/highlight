@@ -62,10 +62,11 @@ jobs:
             - name: Install Playwright Browsers
               run: npx playwright install --with-deps
 
-            - uses: browser-actions/setup-chrome@v1
-              id: setup-chrome
-              with:
-                  install-dependencies: true
+            - name: install chrome
+              run: |
+                  wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+                  apt-get update -y
+                  apt-get install -y ./google-chrome*.deb
 
             - name: Build & test (in a fork without doppler)
               run: yarn test:all
@@ -76,7 +77,7 @@ jobs:
 
             - name: Test session screenshot lambda
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
-              run: PUPPETEER_EXECUTABLE_PATH=${{ steps.setup-chrome.outputs.chrome-path }} doppler run -- yarn test:render
+              run: doppler run -- yarn test:render
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
 
