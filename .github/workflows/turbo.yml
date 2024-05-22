@@ -68,18 +68,18 @@ jobs:
                   apt-get update -y
                   apt-get install -y ./google-chrome*.deb
 
+            - name: Test session screenshot lambda
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              run: doppler run -- yarn test:render
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
+
             - name: Build & test (in a fork without doppler)
               run: yarn test:all
               env:
                   GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
                   NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
-
-            - name: Test session screenshot lambda
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
-              run: doppler run -- yarn test:render
-              env:
-                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
 
             - name: Validate session screenshot lambda size
               # this can only run after `yarn test:render` runs
