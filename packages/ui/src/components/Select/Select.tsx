@@ -3,6 +3,7 @@ import * as Ariakit from '@ariakit/react'
 import { Stack } from '@/components/Stack/Stack'
 
 import { Box } from '../Box/Box'
+import * as menuStyles from '../Menu/styles.css'
 import * as styles from './styles.css'
 
 export type SelectProps = React.PropsWithChildren<Ariakit.SelectProviderProps>
@@ -54,18 +55,14 @@ export const Item: React.FC<ItemProps> = ({ children, ...props }) => {
 		<Ariakit.SelectItem
 			focusOnHover
 			render={
-				<Stack
-					cursor="pointer"
-					direction="row"
-					align="center"
-					gap="8"
-					cssClass={styles.item}
+				<Box
+					cssClass={menuStyles.menuItemVariants({ selected: false })}
 				/>
 			}
 			value={value}
 			{...props}
 		>
-			<ItemCheck />
+			<ItemCheck style={{ marginRight: 6 }} />
 			{value}
 		</Ariakit.SelectItem>
 	)
