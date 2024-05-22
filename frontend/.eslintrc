@@ -144,7 +144,7 @@
 					{
 						"name": "antd",
 						"importNames": ["message"],
-						"message": "Please use [something else] instead."
+						"message": "Please use the toast function from @components/Toaster instead."
 					}
 				],
 				"patterns": [
