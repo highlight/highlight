@@ -51,7 +51,7 @@ const addToast = (toast: Toast) => {
 
 	return new Promise<void>((resolve) => {
 		setTimeout(() => {
-			// destroy(toast.id)
+			destroy(toast.id)
 			resolve()
 		}, toast.duration)
 	})
