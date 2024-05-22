@@ -12,6 +12,8 @@ import { CustomColumnActions } from '@/components/CustomColumnActions'
 import { ValidCustomColumn } from '@/components/CustomColumnPopover'
 import { SortDirection } from '@/graph/generated/schemas'
 
+import * as styles from './style.css'
+
 export type ColumnHeader = {
 	id: string
 	component: React.ReactNode
@@ -118,8 +120,8 @@ export const CustomColumnHeader: React.FC<Props> = ({
 						))}
 				</Stack>
 
-				<Stack align="center" direction="row" gap="6">
-					{header.showActions && (
+				{header.showActions && (
+					<Box cssClass={styles.actionContainer}>
 						<CustomColumnActions
 							columnId={header.id}
 							selectedColumns={selectedColumns}
@@ -130,8 +132,8 @@ export const CustomColumnHeader: React.FC<Props> = ({
 							sortColumn={sortColumn}
 							sortDirection={sortDirection}
 						/>
-					)}
-				</Stack>
+					</Box>
+				)}
 			</Box>
 			{resizeable && (
 				<Box
