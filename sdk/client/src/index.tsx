@@ -21,10 +21,10 @@ import {
 	Integration,
 	Metadata,
 	Metric,
+	PrivacySettingOption,
 	SamplingStrategy,
 	SessionDetails,
 	StartOptions,
-	PrivacySettingOption,
 } from './types/types'
 import { PathListener } from './listeners/path-listener'
 import { GraphQLClient } from 'graphql-request'
@@ -35,7 +35,6 @@ import {
 	PushPayloadMutationVariables,
 	Sdk,
 } from './graph/generated/operations'
-import StackTrace from 'stacktrace-js'
 import stringify from 'json-stringify-safe'
 import { print } from 'graphql'
 import { determineMaskInputOptions } from './utils/privacy'
@@ -59,6 +58,7 @@ import { getSimpleSelector } from './utils/dom'
 import {
 	getPreviousSessionData,
 	SessionData,
+	setSessionData,
 } from './utils/sessionStorage/highlightSession'
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker'
 import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
@@ -538,7 +538,7 @@ export class Highlight {
 			}
 
 			// To handle the 'Duplicate Tab' function, remove id from storage until page unload
-			removeItem(SESSION_STORAGE_KEYS.SESSION_DATA)
+			setSessionData(null)
 
 			// Duplicate of logic inside FirstLoadListeners.setupNetworkListener,
 			// needed for initializeSession
@@ -626,10 +626,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					recordingStartTime: this._recordingStartTime,
 				},
 			})
-			setItem(
-				SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
-				this.sessionData.sessionSecureID,
-			)
+			setSessionData(this.sessionData)
 
 			if (this.sessionData.userIdentifier) {
 				this.identify(
@@ -1059,10 +1056,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 
 		const unloadListener = () => {
 			this.addCustomEvent('Page Unload', '')
-			setItem(
-				SESSION_STORAGE_KEYS.SESSION_DATA,
-				JSON.stringify(this.sessionData),
-			)
+			setSessionData(this.sessionData)
 		}
 		window.addEventListener('beforeunload', unloadListener)
 		this.listeners.push(() =>
@@ -1076,10 +1070,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		if (isOnIOS) {
 			const unloadListener = () => {
 				this.addCustomEvent('Page Unload', '')
-				setItem(
-					SESSION_STORAGE_KEYS.SESSION_DATA,
-					JSON.stringify(this.sessionData),
-				)
+				setSessionData(this.sessionData)
 			}
 			window.addEventListener('pagehide', unloadListener)
 			this.listeners.push(() =>

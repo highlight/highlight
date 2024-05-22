@@ -1,5 +1,6 @@
 import { RequestResponsePair } from './models'
 import { sanitizeResource } from './network-sanitizer'
+import { getSessionSecureID } from '../../../utils/sessionStorage/highlightSession'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
 
@@ -300,7 +301,7 @@ function makeId(length: number) {
 
 export const createNetworkRequestId = () => {
 	// Long enough to avoid collisions, not long enough to be unguessable
-	return makeId(10)
+	return [getSessionSecureID(), makeId(10)]
 }
 
 export const getHighlightRequestHeader = (
