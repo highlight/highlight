@@ -32,6 +32,7 @@ export const SearchPanel = () => {
 		totalCount,
 		moreResults: moreErrors,
 		resetMoreResults: resetMoreErrors,
+		pollingExpired,
 		loading,
 		page,
 		setPage,
@@ -118,6 +119,7 @@ export const SearchPanel = () => {
 					setPage(1)
 					rebaseSearchTime!()
 				}}
+				pollingExpired={pollingExpired}
 			/>
 			<Box
 				padding="8"

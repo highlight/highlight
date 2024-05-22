@@ -83,6 +83,7 @@ export const TracesPage: React.FC = () => {
 	const {
 		traceEdges,
 		moreTraces,
+		pollingExpired,
 		clearMoreTraces,
 		loading,
 		loadingAfter,
@@ -371,6 +372,7 @@ export const TracesPage: React.FC = () => {
 						fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 						loadingAfter={loadingAfter}
 						textAreaRef={textAreaRef}
+						pollingExpired={pollingExpired}
 					/>
 				</Box>
 			</Box>

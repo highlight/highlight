@@ -128,6 +128,7 @@ type LogsTableInnerProps = {
 	handleAdditionalLogsDateChange?: () => void
 	selectedColumns?: LogCustomColumn[]
 	setSelectedColumns?: (columns: LogCustomColumn[]) => void
+	pollingExpired?: boolean
 }
 
 const LOADING_AFTER_HEIGHT = 28
@@ -139,6 +140,7 @@ const LogsTableInner = ({
 	query,
 	queryParts,
 	moreLogs,
+	pollingExpired,
 	bodyHeight,
 	clearMoreLogs,
 	handleAdditionalLogsDateChange,
@@ -148,7 +150,9 @@ const LogsTableInner = ({
 }: LogsTableInnerProps) => {
 	const bodyRef = useRef<HTMLDivElement>(null)
 	const enableFetchMoreLogs =
-		!!moreLogs && !!clearMoreLogs && !!handleAdditionalLogsDateChange
+		(!!moreLogs || pollingExpired) &&
+		!!clearMoreLogs &&
+		!!handleAdditionalLogsDateChange
 
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
@@ -332,12 +336,13 @@ const LogsTableInner = ({
 						<Box width="full">
 							<AdditionalFeedResults
 								maxResults={MAX_LOGS}
-								more={moreLogs}
+								more={moreLogs ?? 0}
 								type="logs"
 								onClick={() => {
 									clearMoreLogs()
 									handleAdditionalLogsDateChange()
 								}}
+								pollingExpired={pollingExpired ?? false}
 							/>
 						</Box>
 					</Table.Row>

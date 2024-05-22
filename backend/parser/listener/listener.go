@@ -299,21 +299,21 @@ func (s *SearchListener[T]) appendRules(value string) {
 		return
 	}
 
-	traceAttributeKey := false
+	extendedAttributeKey := false
 	filterKey, ok := s.tableConfig.KeysToColumns[T(s.currentKey)]
 	if !ok {
-		traceAttributeKey = true
+		extendedAttributeKey = true
 	}
 
 	// Special case for non-string columns
-	if value == "" && !traceAttributeKey {
+	if value == "" && !extendedAttributeKey {
 		filterKey = fmt.Sprintf("toString(%s)", filterKey)
 	}
 
 	if s.currentOp == ":" || s.currentOp == "=" || s.currentOp == "!=" {
 		if strings.HasPrefix(value, "/") && strings.HasSuffix(value, "/") {
 			value = strings.Trim(value, "/")
-			if traceAttributeKey {
+			if extendedAttributeKey {
 				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] REGEXP %s", s.currentKey, value)))
 				s.ops = append(s.ops, &FilterOperation{
 					Key:      s.currentKey,
@@ -332,7 +332,7 @@ func (s *SearchListener[T]) appendRules(value string) {
 		} else if strings.Contains(value, "*") {
 			value = wildcardValue(value)
 
-			if traceAttributeKey {
+			if extendedAttributeKey {
 				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] ILIKE %s", s.currentKey, value)))
 				s.ops = append(s.ops, &FilterOperation{
 					Key:      s.currentKey,
@@ -349,7 +349,7 @@ func (s *SearchListener[T]) appendRules(value string) {
 				})
 			}
 		} else {
-			if traceAttributeKey {
+			if extendedAttributeKey {
 				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] = %s", s.currentKey, value)))
 				s.ops = append(s.ops, &FilterOperation{
 					Key:      s.currentKey,
@@ -367,8 +367,8 @@ func (s *SearchListener[T]) appendRules(value string) {
 			}
 		}
 	} else if s.currentOp == ">" {
-		numValue := numericValue(value)
-		if traceAttributeKey {
+		numValue := NumericValue(value, filterKey)
+		if extendedAttributeKey {
 			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) > %s", s.currentKey, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
@@ -385,8 +385,8 @@ func (s *SearchListener[T]) appendRules(value string) {
 			})
 		}
 	} else if s.currentOp == ">=" {
-		numValue := numericValue(value)
-		if traceAttributeKey {
+		numValue := NumericValue(value, filterKey)
+		if extendedAttributeKey {
 			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) >= %s", s.currentKey, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
@@ -403,8 +403,8 @@ func (s *SearchListener[T]) appendRules(value string) {
 			})
 		}
 	} else if s.currentOp == "<" {
-		numValue := numericValue(value)
-		if traceAttributeKey {
+		numValue := NumericValue(value, filterKey)
+		if extendedAttributeKey {
 			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) < %s", s.currentKey, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
@@ -421,8 +421,8 @@ func (s *SearchListener[T]) appendRules(value string) {
 			})
 		}
 	} else if s.currentOp == "<=" {
-		numValue := numericValue(value)
-		if traceAttributeKey {
+		numValue := NumericValue(value, filterKey)
+		if extendedAttributeKey {
 			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) <= %s", s.currentKey, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
@@ -471,7 +471,7 @@ func Unquote(s string) string {
 	return s
 }
 
-var suffixToNumeric = map[string]int64{
+var suffixNanosecondFactor = map[string]int64{
 	"h":  1e9 * 60 * 60,
 	"m":  1e9 * 60,
 	"s":  1e9,
@@ -480,7 +480,15 @@ var suffixToNumeric = map[string]int64{
 	"ns": 1,
 }
 
-func numericValue(value string) string {
+var timeMetrics = map[string]string{
+	"ActiveLength": "ms",
+	"Length":       "ms",
+	"Duration":     "ns",
+}
+
+// multiplies number by nanosecond factor and divide by base unit factor
+// if key is not in nanoseconds
+func NumericValue(value string, tableKey string) string {
 	re := regexp.MustCompile(`^(\d+)([a-zA-Z]+)$`)
 	matches := re.FindStringSubmatch(value)
 	if len(matches) != 3 {
@@ -490,7 +498,7 @@ func numericValue(value string) string {
 	numString := matches[1]
 	unit := matches[2]
 
-	nanoMultiplier := suffixToNumeric[strings.ToLower(unit)]
+	nanoMultiplier := suffixNanosecondFactor[strings.ToLower(unit)]
 	if nanoMultiplier == 0 {
 		return numString
 	}
@@ -500,5 +508,19 @@ func numericValue(value string) string {
 		return numString
 	}
 
-	return strconv.FormatInt(num*nanoMultiplier, 10)
+	keyDivisor := suffixNanosecondFactor[baseUnit(tableKey)]
+	if keyDivisor == 0 {
+		keyDivisor = 1
+	}
+
+	return strconv.FormatInt(num*nanoMultiplier/keyDivisor, 10)
+}
+
+func baseUnit(tableKey string) string {
+	unit := timeMetrics[tableKey]
+	if unit == "" {
+		unit = "ns"
+	}
+
+	return unit
 }

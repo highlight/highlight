@@ -91,6 +91,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	const {
 		logEdges,
 		moreLogs,
+		pollingExpired,
 		clearMoreLogs,
 		loading,
 		error,
@@ -227,6 +228,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 							bodyHeight={`calc(100vh - ${otherElementsHeight}px)`}
 							selectedColumns={selectedColumns}
 							setSelectedColumns={setSelectedColumns}
+							pollingExpired={pollingExpired}
 						/>
 					</Box>
 				</Box>

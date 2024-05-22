@@ -241,6 +241,7 @@ export default function ErrorsV2() {
 			histogramBucketSize={getErrorsData.histogramBucketSize}
 			page={page}
 			setPage={setPage}
+			pollingExpired={getErrorsData.pollingExpired}
 			{...searchTimeContext}
 		>
 			<Helmet>

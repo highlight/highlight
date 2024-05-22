@@ -49,10 +49,11 @@ export const useGetErrors = ({
 		fetchPolicy: 'network-only',
 	})
 
-	const { numMore: moreErrors, reset: resetMoreErrors } = usePollQuery<
-		GetErrorGroupsQuery,
-		GetErrorGroupsQueryVariables
-	>({
+	const {
+		numMore: moreErrors,
+		pollingExpired,
+		reset: resetMoreErrors,
+	} = usePollQuery<GetErrorGroupsQuery, GetErrorGroupsQueryVariables>({
 		variableFn: useCallback(() => {
 			return {
 				params: {
@@ -81,6 +82,7 @@ export const useGetErrors = ({
 		errorGroupSecureIds:
 			data?.error_groups?.error_groups.map((eg) => eg.secure_id) || [],
 		moreErrors,
+		pollingExpired,
 		resetMoreErrors,
 		loading,
 		error,

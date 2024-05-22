@@ -294,6 +294,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 
+				// skip logrus spans
+				if span.Name() == highlight.LogrusSpanName {
+					continue
+				}
+
 				timestamp := graph.ClampTime(span.StartTimestamp().AsTime(), curTime)
 				traceRow := clickhouse.NewTraceRow(timestamp, fields.projectIDInt).
 					WithSecureSessionId(fields.sessionID).

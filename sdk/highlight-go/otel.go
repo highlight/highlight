@@ -52,6 +52,7 @@ const MetricEventValue = "metric.value"
 
 const ErrorSpanName = "highlight.error"
 const LogSpanName = "highlight.log"
+const LogrusSpanName = "highlight.go.log"
 
 type TraceType string
 

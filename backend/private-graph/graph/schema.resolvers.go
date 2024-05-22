@@ -1022,39 +1022,6 @@ func (r *mutationResolver) DeleteAdminFromWorkspace(ctx context.Context, workspa
 	return deletedAdminId, nil
 }
 
-// CreateSegment is the resolver for the createSegment field.
-func (r *mutationResolver) CreateSegment(ctx context.Context, projectID int, name string, query string) (*model.Segment, error) {
-	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-	modelParams := SavedSegmentQueryToParams(query)
-	// Convert to json to store in the db.
-	paramBytes, err := json.Marshal(modelParams)
-	if err != nil {
-		return nil, e.Wrap(err, "error unmarshaling search params")
-	}
-	paramString := string(paramBytes)
-
-	// check if such a segment exists
-	var count int64
-	if err := r.DB.WithContext(ctx).Model(&model.Segment{}).Where("project_id = ? AND name = ?", projectID, name).Count(&count).Error; err != nil {
-		return nil, e.Wrap(err, "error checking if segment exists")
-	}
-	if count > 0 {
-		return nil, e.New("segment with this name already exists")
-	}
-
-	segment := &model.Segment{
-		Name:      &name,
-		Params:    &paramString,
-		ProjectID: projectID,
-	}
-	if err := r.DB.WithContext(ctx).Create(segment).Error; err != nil {
-		return nil, e.Wrap(err, "error creating segment")
-	}
-	return segment, nil
-}
-
 // EmailSignup is the resolver for the emailSignup field.
 func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (string, error) {
 	short, long, err := apolloio.Enrich(email)
@@ -1082,50 +1049,6 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 	})
 
 	return email, nil
-}
-
-// EditSegment is the resolver for the editSegment field.
-func (r *mutationResolver) EditSegment(ctx context.Context, id int, projectID int, query string, name string) (*bool, error) {
-	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-	modelParams := SavedSegmentQueryToParams(query)
-	// Convert to json to store in the db.
-	paramBytes, err := json.Marshal(modelParams)
-	if err != nil {
-		return nil, e.Wrap(err, "error unmarshaling search params")
-	}
-	paramString := string(paramBytes)
-
-	// check if such a segment exists
-	var count int64
-	if err := r.DB.WithContext(ctx).Model(&model.Segment{}).Where("project_id = ? AND name = ? AND id <> ?", projectID, name, id).Count(&count).Error; err != nil {
-		return nil, e.Wrap(err, "error checking if segment exists")
-	}
-	if count > 0 {
-		return nil, e.New("segment with this name already exists")
-	}
-
-	if err := r.DB.WithContext(ctx).Model(&model.Segment{Model: model.Model{ID: id}}).Updates(&model.Segment{
-		Params: &paramString,
-		Name:   &name,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error writing new recording settings")
-	}
-
-	return &model.T, nil
-}
-
-// DeleteSegment is the resolver for the deleteSegment field.
-func (r *mutationResolver) DeleteSegment(ctx context.Context, segmentID int) (*bool, error) {
-	_, err := r.isAdminSegmentOwner(ctx, segmentID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin is not segment owner")
-	}
-	if err := r.DB.Delete(&model.Segment{Model: model.Model{ID: segmentID}}).Error; err != nil {
-		return nil, e.Wrap(err, "error deleting segment")
-	}
-	return &model.T, nil
 }
 
 // CreateSavedSegment is the resolver for the createSavedSegment field.
@@ -8107,19 +8030,6 @@ func (r *queryResolver) AdminRoleByProject(ctx context.Context, projectID int) (
 	}, nil
 }
 
-// Segments is the resolver for the segments field.
-func (r *queryResolver) Segments(ctx context.Context, projectID int) ([]*model.Segment, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-	// list of maps, where each map represents a field query.
-	segments := []*model.Segment{}
-	if err := r.DB.WithContext(ctx).Model(model.Segment{}).Where("project_id = ?", projectID).Find(&segments).Error; err != nil {
-		log.WithContext(ctx).Errorf("error querying segments from project: %v", err)
-	}
-	return segments, nil
-}
-
 // SavedSegments is the resolver for the saved_segments field.
 func (r *queryResolver) SavedSegments(ctx context.Context, projectID int, entityType modelInputs.SavedSegmentEntityType) ([]*model.SavedSegment, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
@@ -9183,18 +9093,6 @@ func (r *savedSegmentResolver) Params(ctx context.Context, obj *model.SavedSegme
 	return params, nil
 }
 
-// Params is the resolver for the params field.
-func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
-	params := &model.SearchParams{}
-	if obj.Params == nil {
-		return params, nil
-	}
-	if err := json.Unmarshal([]byte(*obj.Params), params); err != nil {
-		return nil, e.Wrapf(err, "error unmarshaling segment params")
-	}
-	return params, nil
-}
-
 // ErrorDetails is the resolver for the errorDetails field.
 func (r *serviceResolver) ErrorDetails(ctx context.Context, obj *model.Service) ([]string, error) {
 	return obj.ErrorDetails, nil
@@ -9551,9 +9449,6 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 // SavedSegment returns generated.SavedSegmentResolver implementation.
 func (r *Resolver) SavedSegment() generated.SavedSegmentResolver { return &savedSegmentResolver{r} }
 
-// Segment returns generated.SegmentResolver implementation.
-func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver{r} }
-
 // Service returns generated.ServiceResolver implementation.
 func (r *Resolver) Service() generated.ServiceResolver { return &serviceResolver{r} }
 
@@ -9590,7 +9485,6 @@ type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type savedSegmentResolver struct{ *Resolver }
-type segmentResolver struct{ *Resolver }
 type serviceResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
