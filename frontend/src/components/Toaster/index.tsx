@@ -51,7 +51,7 @@ const addToast = (toast: Toast) => {
 
 	return new Promise<void>((resolve) => {
 		setTimeout(() => {
-			destroy(toast.id)
+			// destroy(toast.id)
 			resolve()
 		}, toast.duration)
 	})
@@ -129,35 +129,37 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
 	}
 
 	return (
-		<Stack
-			direction="row"
+		<Box
 			gap="6"
 			p="8"
 			borderRadius="6"
 			border="divider"
-			justifyContent="space-between"
+			display="flex"
 			style={{ width: '280px' }}
 		>
 			<Box display="flex" alignItems="flex-start" pt="2">
 				{typeInfo.icon}
 			</Box>
+			<Stack direction="row" justifyContent="space-between" width="full">
+				<Stack direction="column" gap="8">
+					<Box display="flex" alignItems="flex-start" pt="4">
+						<Text weight="bold">{toast.message}</Text>
+					</Box>
 
-			<Stack direction="column" gap="8">
-				<Box display="flex" alignItems="flex-start" pt="4">
-					<Text weight="bold">{toast.message}</Text>
+					{!!toast.content && (
+						<Box display="flex">{toast.content}</Box>
+					)}
+				</Stack>
+				<Box display="flex" alignItems="flex-start">
+					<ButtonIcon
+						icon={<IconSolidX size={14} />}
+						kind="secondary"
+						size="minimal"
+						emphasis="low"
+						onClick={handleClose}
+					/>
 				</Box>
-
-				{!!toast.content && <Box display="flex">{toast.content}</Box>}
 			</Stack>
-			<Box display="flex" alignItems="flex-start">
-				<ButtonIcon
-					icon={<IconSolidX size={14} />}
-					kind="secondary"
-					size="minimal"
-					emphasis="low"
-					onClick={handleClose}
-				/>
-			</Box>
-		</Stack>
+		</Box>
 	)
 }
