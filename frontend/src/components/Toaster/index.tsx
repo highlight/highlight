@@ -51,7 +51,7 @@ const addToast = (toast: Toast) => {
 
 	return new Promise<void>((resolve) => {
 		setTimeout(() => {
-			destroy(toast.id)
+			// destroy(toast.id)
 			resolve()
 		}, toast.duration)
 	})
@@ -103,28 +103,16 @@ export const Toaster: React.FC = () => {
 
 const ICON_TYPE_MAPPINGS = {
 	[ToastType.error]: {
-		icon: <IconSolidXCircle size={16} color="#CD2B31" />,
-		color: '#CD2B31',
-		backgroundColor: '#FFEFEF',
-		borderColor: '#F9C6C6',
+		icon: <IconSolidXCircle size={14} color="#CD2B31" />,
 	},
 	[ToastType.info]: {
-		icon: <IconSolidInformationCircle size={16} color="#6F6E77" />,
-		color: '#1A1523',
-		backgroundColor: '#F4F2F4',
-		borderColor: '#6F6E77',
+		icon: <IconSolidInformationCircle size={14} color="#6F6E77" />,
 	},
 	[ToastType.success]: {
-		icon: <IconSolidCheckCircle size={16} color="#18794E" />,
-		color: '#18794E',
-		backgroundColor: '#E9F6E9',
-		borderColor: '#B2DDB5',
+		icon: <IconSolidCheckCircle size={14} color="#18794E" />,
 	},
 	[ToastType.warning]: {
-		icon: <IconSolidExclamationCircle size={16} color="#AD5700" />,
-		color: '#AD5700',
-		backgroundColor: '#FFFAB8',
-		borderColor: '#F3D768',
+		icon: <IconSolidExclamationCircle size={14} color="#AD5700" />,
 	},
 }
 
@@ -146,7 +134,6 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
 		destroy(toast.id)
 	}
 
-	// TODO(spenny): align buttons and text at top
 	return (
 		<Stack
 			borderRadius="6"
@@ -154,31 +141,24 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
 			gap="6"
 			justifyContent="space-between"
 			onClick={handleClick}
+			border="divider"
 			p="8"
 			style={{
-				backgroundColor: typeInfo.backgroundColor,
-				border: `1px solid ${typeInfo.borderColor}`,
-				color: typeInfo.color,
 				cursor: toast.href ? 'pointer' : 'default',
 				width: '280px',
 			}}
 		>
 			<Stack direction="row" gap="6">
-				<Box display="flex" alignItems="flex-start">
+				<Box display="flex" alignItems="flex-start" pt="2">
 					{typeInfo.icon}
 				</Box>
-				<Box display="flex" alignItems="center">
+				<Box display="flex" alignItems="flex-start" pt="4">
 					<Text weight="bold">{toast.message}</Text>
 				</Box>
 			</Stack>
 			<Box display="flex" alignItems="flex-start">
 				<ButtonIcon
-					icon={
-						<IconSolidX
-							size={16}
-							style={{ color: typeInfo.color }}
-						/>
-					}
+					icon={<IconSolidX size={14} />}
 					kind="secondary"
 					size="minimal"
 					emphasis="low"
