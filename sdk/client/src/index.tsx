@@ -687,71 +687,71 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			}
 			emit.bind(this)
 
-			if (!this._recordStop) {
-				let logger = undefined
-				if (
+			// if we were already recording, stop recording to reset rrweb state (eg. reset _sid)
+			if (this._recordStop) {
+				this._recordStop()
+				this._recordStop = undefined
+			}
+
+			const [maskAllInputs, maskInputOptions] = determineMaskInputOptions(
+				this.privacySetting,
+			)
+			this._recordStop = record({
+				ignoreClass: 'highlight-ignore',
+				blockClass: 'highlight-block',
+				emit,
+				recordCrossOriginIframes: this.options.recordCrossOriginIframe,
+				privacySetting: this.privacySetting,
+				maskAllInputs,
+				maskInputOptions: maskInputOptions,
+				recordCanvas: this.enableCanvasRecording,
+				sampling: {
+					canvas: {
+						fps: this.samplingStrategy.canvas,
+						fpsManual: this.samplingStrategy.canvasManualSnapshot,
+						resizeFactor: this.samplingStrategy.canvasFactor,
+						clearWebGLBuffer:
+							this.samplingStrategy.canvasClearWebGLBuffer,
+						initialSnapshotDelay:
+							this.samplingStrategy.canvasInitialSnapshotDelay,
+						dataURLOptions: {
+							type: 'image/webp',
+							quality: 0.9,
+						},
+						maxSnapshotDimension:
+							this.samplingStrategy.canvasMaxSnapshotDimension,
+					},
+				},
+				keepIframeSrcFn: (_src: string) => {
+					return !this.options.recordCrossOriginIframe
+				},
+				inlineImages: this.inlineImages,
+				inlineStylesheet: this.inlineStylesheet,
+				plugins: [getRecordSequentialIdPlugin()],
+				logger:
 					(typeof this.options.debug === 'boolean' &&
 						this.options.debug) ||
 					(typeof this.options.debug === 'object' &&
 						this.options.debug.domRecording)
-				) {
-					logger = {
-						debug: this.logger.log,
-						warn: HighlightWarning,
-					}
-				}
-				const [maskAllInputs, maskInputOptions] =
-					determineMaskInputOptions(this.privacySetting)
+						? {
+								debug: this.logger.log,
+								warn: HighlightWarning,
+						  }
+						: undefined,
+			})
+			// recordStop is not part of listeners because we do not actually want to stop rrweb
+			// rrweb has some bugs that make the stop -> restart workflow broken (eg iframe listeners)
+			const viewport = {
+				height: window.innerHeight,
+				width: window.innerWidth,
+			}
+			this.addCustomEvent('Viewport', viewport)
+			this.submitViewportMetrics(viewport)
 
-				this._recordStop = record({
-					ignoreClass: 'highlight-ignore',
-					blockClass: 'highlight-block',
-					emit,
-					recordCrossOriginIframes:
-						this.options.recordCrossOriginIframe,
-					privacySetting: this.privacySetting,
-					maskAllInputs,
-					maskInputOptions: maskInputOptions,
-					recordCanvas: this.enableCanvasRecording,
-					sampling: {
-						canvas: {
-							fps: this.samplingStrategy.canvas,
-							fpsManual:
-								this.samplingStrategy.canvasManualSnapshot,
-							resizeFactor: this.samplingStrategy.canvasFactor,
-							clearWebGLBuffer:
-								this.samplingStrategy.canvasClearWebGLBuffer,
-							initialSnapshotDelay:
-								this.samplingStrategy
-									.canvasInitialSnapshotDelay,
-							dataURLOptions: {
-								type: 'image/webp',
-								quality: 0.9,
-							},
-							maxSnapshotDimension:
-								this.samplingStrategy
-									.canvasMaxSnapshotDimension,
-						},
-					},
-					keepIframeSrcFn: (_src: string) => {
-						return !this.options.recordCrossOriginIframe
-					},
-					inlineImages: this.inlineImages,
-					inlineStylesheet: this.inlineStylesheet,
-					plugins: [getRecordSequentialIdPlugin()],
-					logger,
-				})
+			if (!this._recordStop) {
 				if (this.options.recordCrossOriginIframe) {
 					this._setupCrossOriginIframeParent()
 				}
-				// recordStop is not part of listeners because we do not actually want to stop rrweb
-				// rrweb has some bugs that make the stop -> restart workflow broken (eg iframe listeners)
-				const viewport = {
-					height: window.innerHeight,
-					width: window.innerWidth,
-				}
-				this.addCustomEvent('Viewport', viewport)
-				this.submitViewportMetrics(viewport)
 			}
 
 			if (document.referrer) {
