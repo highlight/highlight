@@ -293,6 +293,24 @@ export const SetupRouter = () => {
 						<Text>Join community</Text>
 					</Link>
 				</Stack>
+
+				<Stack gap="0">
+					<Box mb="10" ml="8">
+						<Text
+							weight="bold"
+							size="xxSmall"
+							color="secondaryContentText"
+						>
+							Navigation
+						</Text>
+					</Box>
+					<NavLink
+						to="/new-correct-path"
+						className={styles.menuItemSecondary}
+					>
+						<Text>Back to Project</Text>
+					</NavLink>
+				</Stack>
 			</Stack>
 
 			<Box flexGrow={1} display="flex" flexDirection="column">
