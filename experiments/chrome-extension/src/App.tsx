@@ -8,7 +8,6 @@ import { InputNumber, Checkbox } from 'antd'
 import { useClipboard } from 'use-clipboard-copy'
 import { toast } from '@components/Toaster'
 
-// TODO(spenny): what is this?
 const Core = () => {
 	const [tabId, setTabId] = useState(-1)
 
