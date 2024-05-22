@@ -130,6 +130,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
 
 	return (
 		<Box
+			backgroundColor="white"
 			gap="6"
 			p="8"
 			borderRadius="6"
