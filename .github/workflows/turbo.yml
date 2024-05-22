@@ -206,6 +206,13 @@ jobs:
                   # run cypress tests
                   yarn cy:run;
 
+                  # run python functional tests that ensure cypress session is correct
+                  pushd ./e2e/tests
+                  export HIGHLIGHT_OAUTH_CLIENT_ID=abc123
+                  export HIGHLIGHT_OAUTH_CLIENT_SECRET=def456
+                  poetry run pytest -k cypress .
+                  popd
+
                   # look for containers that crashed
                   num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)
                   if [ "$num_crashed" -gt 0 ]; then
