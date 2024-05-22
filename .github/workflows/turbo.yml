@@ -62,6 +62,9 @@ jobs:
             - name: Install Playwright Browsers
               run: npx playwright install --with-deps
 
+            - name: Install Puppeteer Chrome
+              run: npx @puppeteer/browsers install chrome@stable
+
             - name: Build & test (in a fork without doppler)
               run: yarn test:all
               env:
