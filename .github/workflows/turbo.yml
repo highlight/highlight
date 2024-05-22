@@ -63,6 +63,7 @@ jobs:
               run: npx playwright install --with-deps
 
             - uses: browser-actions/setup-chrome@v1
+              id: setup-chrome
               with:
                   install-dependencies: true
 
@@ -75,7 +76,7 @@ jobs:
 
             - name: Test session screenshot lambda
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
-              run: doppler run -- yarn test:render
+              run: PUPPETEER_EXECUTABLE_PATH=${{ steps.setup-chrome.outputs.chrome-path }} doppler run -- yarn test:render
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
 
