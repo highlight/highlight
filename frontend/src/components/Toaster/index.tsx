@@ -143,7 +143,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
 			</Box>
 			<Stack direction="row" justifyContent="space-between" width="full">
 				<Stack direction="column" gap="8">
-					<Box display="flex" alignItems="flex-start" pt="4">
+					<Box display="flex" alignItems="flex-start" py="4">
 						<Text weight="bold">{toast.message}</Text>
 					</Box>
 
