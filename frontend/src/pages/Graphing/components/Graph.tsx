@@ -240,7 +240,8 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 
 export const getCustomTooltip =
 	(xAxisMetric: any, yAxisMetric: any) =>
-	({ payload, label }: any) => {
+	({ active, payload, label }: any) => {
+		const isValid = active && payload && payload.length
 		return (
 			<Box cssClass={style.tooltipWrapper}>
 				<Text
@@ -249,7 +250,7 @@ export const getCustomTooltip =
 					color="default"
 					cssClass={style.tooltipText}
 				>
-					{getTickFormatter(xAxisMetric)(label)}
+					{isValid && getTickFormatter(xAxisMetric)(label)}
 				</Text>
 				{payload.map((p: any, idx: number) => (
 					<Box
@@ -270,7 +271,7 @@ export const getCustomTooltip =
 							color="default"
 							cssClass={style.tooltipText}
 						>
-							{getTickFormatter(yAxisMetric)(p.value)}
+							{isValid && getTickFormatter(yAxisMetric)(p.value)}
 						</Text>
 					</Box>
 				))}
@@ -596,7 +597,7 @@ const Graph = ({
 		  }
 		: undefined
 
-	let isEmpty = data !== undefined
+	let isEmpty = true
 	for (const d of data ?? []) {
 		for (const v of Object.values(d)) {
 			if (!!v) {
