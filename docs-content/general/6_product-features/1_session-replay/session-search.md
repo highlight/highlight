@@ -132,8 +132,8 @@ Create a new `sample` of sessions by clicking "New Random Seed" for the sample's
 
 Currently, length and active length are not supported by time suffixes, but this functionality is coming soon.
 
-Use time suffixes, such as `s`, `m` and `h` to help filter out for length durations. For example, use `length>10m` to find
-all spans that were longer than 1 second.
+Use time suffixes, such as `s`, `m` and `h` to help filter out for length durations. For example, use `length>10m`
+to find all sessions that were longer than 10 minutes.
 
 ## Demo
 
