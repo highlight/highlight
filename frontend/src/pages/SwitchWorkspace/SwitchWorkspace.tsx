@@ -116,7 +116,7 @@ const SwitchWorkspace = () => {
 				variables: { workspace_id: selectedWorkspace },
 			}).then((result) => {
 				if (!!result.data?.joinWorkspace) {
-					toast.success('Successfuly joined workspace!', {
+					toast.success('Successfully joined workspace!', {
 						duration: 1000,
 					})
 					setShouldRedirect(true)

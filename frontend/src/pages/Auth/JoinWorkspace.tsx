@@ -60,7 +60,7 @@ export const JoinWorkspace = () => {
 
 		if (!!response.data?.joinWorkspace) {
 			setDismissedJoinWorkspace(true)
-			toast.success('Successfuly joined workspace!', { duration: 1000 })
+			toast.success('Successfully joined workspace!', { duration: 1000 })
 			navigate(ABOUT_YOU_ROUTE, { replace: true })
 		} else if (response.errors?.length) {
 			const error = response.errors[0].message

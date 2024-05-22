@@ -92,7 +92,7 @@ export const SignUp: React.FC = () => {
 				}
 
 				await createAdmin()
-				toast.success('Account created succesfully!')
+				toast.success('Account created successfully!')
 			}
 
 			await fetchAdmin()
