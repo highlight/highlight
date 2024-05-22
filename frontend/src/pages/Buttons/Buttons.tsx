@@ -261,7 +261,7 @@ export const Buttons = () => {
 					<button
 						className={commonStyles.submitButton}
 						onClick={() => {
-							toast('Event has been created')
+							toast.success('Event has been created')
 						}}
 					>
 						Toast

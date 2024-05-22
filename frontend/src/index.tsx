@@ -176,7 +176,6 @@ const App = () => {
 						}}
 					>
 						<LoadingPage />
-						<Toaster />
 						<BrowserRouter>
 							<QueryParamProvider
 								adapter={ReactRouter6Adapter}
@@ -187,6 +186,7 @@ const App = () => {
 							>
 								<AuthenticationRoleRouter />
 							</QueryParamProvider>
+							<Toaster />
 						</BrowserRouter>
 					</AppLoadingContext>
 				</SkeletonTheme>

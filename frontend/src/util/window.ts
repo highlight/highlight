@@ -13,6 +13,6 @@ export const showSupportMessage = async (msg = '') => {
 		msg.length
 			? `Please send the following on our discord: ${msg}`
 			: `Please reach out for help on our Discord!`,
-		{ duration: 5000, href: 'https://highlight.io/community' },
+		{ duration: 5000 },
 	)
 }

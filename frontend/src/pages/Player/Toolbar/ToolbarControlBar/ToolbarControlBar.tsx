@@ -5,6 +5,7 @@ import {
 	ShortcutTextGuide,
 	TimelineShortcut,
 } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
+import { LinkButton } from '@components/LinkButton'
 import Popover from '@components/Popover/Popover'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
@@ -460,10 +461,19 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 					refetchQueries: [namedOperations.Query.GetSessionExports],
 				})
 				toast.info(
-					'You will receive an email once the session is ready. Click here to check progress.',
+					'You will receive an email once the session is ready.',
 					{
 						duration: 10000,
-						href: `/${projectId}/settings/sessions#exports`,
+						content: (
+							<LinkButton
+								to={`/${projectId}/settings/sessions#exports`}
+								kind="secondary"
+								emphasis="high"
+								trackingId="session-export-check-progress"
+							>
+								Check progress
+							</LinkButton>
+						),
 					},
 				)
 			} catch (e) {

@@ -3,7 +3,7 @@ import {
 	Box,
 	ButtonIcon,
 	IconSolidCheckCircle,
-	IconSolidExclamationCircle,
+	IconSolidExclamation,
 	IconSolidInformationCircle,
 	IconSolidX,
 	IconSolidXCircle,
@@ -26,13 +26,13 @@ type Toast = {
 	message: string
 	type: ToastType
 	duration: number
-	href?: string
+	content?: React.ReactNode
 }
 
 type Options = {
 	id?: string
 	duration?: number
-	href?: string
+	content?: React.ReactNode
 }
 
 const DEFAULT_DURATION = 1500
@@ -42,7 +42,7 @@ const toastVar = makeVar<Toast[]>([])
 const makeToast = (message: string, type: Toast['type'], options?: Options) => {
 	const duration = options?.duration || DEFAULT_DURATION
 	const id = options?.id || Math.random().toString(36).substring(2, 9)
-	return { id, message, type, duration, href: options?.href }
+	return { id, message, type, duration, content: options?.content }
 }
 
 const addToast = (toast: Toast) => {
@@ -51,7 +51,7 @@ const addToast = (toast: Toast) => {
 
 	return new Promise<void>((resolve) => {
 		setTimeout(() => {
-			// destroy(toast.id)
+			destroy(toast.id)
 			resolve()
 		}, toast.duration)
 	})
@@ -112,7 +112,7 @@ const ICON_TYPE_MAPPINGS = {
 		icon: <IconSolidCheckCircle size={14} color="#18794E" />,
 	},
 	[ToastType.warning]: {
-		icon: <IconSolidExclamationCircle size={14} color="#AD5700" />,
+		icon: <IconSolidExclamation size={14} color="#AD5700" />,
 	},
 }
 
@@ -123,12 +123,6 @@ type ToastItemProps = {
 const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
 	const typeInfo = ICON_TYPE_MAPPINGS[toast.type]
 
-	const handleClick = () => {
-		if (toast.href) {
-			window.open(toast.href, '_blank')
-		}
-	}
-
 	const handleClose = (e: React.MouseEvent) => {
 		e.stopPropagation()
 		destroy(toast.id)
@@ -136,25 +130,24 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
 
 	return (
 		<Stack
-			borderRadius="6"
 			direction="row"
 			gap="6"
-			justifyContent="space-between"
-			onClick={handleClick}
-			border="divider"
 			p="8"
-			style={{
-				cursor: toast.href ? 'pointer' : 'default',
-				width: '280px',
-			}}
+			borderRadius="6"
+			border="divider"
+			justifyContent="space-between"
+			style={{ width: '280px' }}
 		>
-			<Stack direction="row" gap="6">
-				<Box display="flex" alignItems="flex-start" pt="2">
-					{typeInfo.icon}
-				</Box>
+			<Box display="flex" alignItems="flex-start" pt="2">
+				{typeInfo.icon}
+			</Box>
+
+			<Stack direction="column" gap="8">
 				<Box display="flex" alignItems="flex-start" pt="4">
 					<Text weight="bold">{toast.message}</Text>
 				</Box>
+
+				{!!toast.content && <Box display="flex">{toast.content}</Box>}
 			</Stack>
 			<Box display="flex" alignItems="flex-start">
 				<ButtonIcon
