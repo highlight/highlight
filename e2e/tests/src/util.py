@@ -31,7 +31,6 @@ def query(
                 json=json,
                 headers={"Authorization": f"Bearer {oauth_token}"},
                 timeout=30,
-                verify=False,
             )
             logging.info(f"POST {r.url} {json} {r.status_code} {r.text}")
             assert r.status_code == 200

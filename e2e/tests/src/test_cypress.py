@@ -106,7 +106,7 @@ def test_cypress_session_attributes(oauth_api):
             event_chunk_url = data["event_chunk_url"]
 
             # note: you must `pip install brotli` to be able to decode the result
-            r = requests.get(event_chunk_url, verify=False)
+            r = requests.get(event_chunk_url)
             assert r.ok, "request to event chunk url failed"
             session_events = r.json()
             assert len(session_events)
