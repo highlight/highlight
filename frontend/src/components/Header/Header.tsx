@@ -126,11 +126,12 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		(p) => String(p?.id) === String(localStorageProjectId),
 	)
 
-	const goBackPath =  location.state?.previousPath ?? `/${localStorageProjectId}/sessions`
+	const goBackPath =
+		location.state?.previousPath ?? `/${localStorageProjectId}/sessions`
 
-	const newGoBackPath = useRef(goBackPath);
+	const newGoBackPath = useRef(goBackPath)
 
-	const finalGoBackPath = newGoBackPath.current;
+	const finalGoBackPath = newGoBackPath.current
 
 	const parts = location.pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
@@ -143,10 +144,11 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	})
 	const enableGrafanaDashboard =
 		workspaceSettingsData?.workspaceSettings?.enable_grafana_dashboard
-	
-	useEffect(()=>{
-		newGoBackPath.current = location.state?.previousPath || newGoBackPath.current;
-	},[location.state])		
+
+	useEffect(() => {
+		newGoBackPath.current =
+			location.state?.previousPath || newGoBackPath.current
+	}, [location.state])
 
 	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
 
@@ -235,7 +237,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 				>
 					{isSetup || (isSettings && localStorageProjectId) ? (
 						<LinkButton
-							to= {finalGoBackPath}
+							to={finalGoBackPath}
 							kind="secondary"
 							emphasis="low"
 							trackingId="setup_back-button"
@@ -249,7 +251,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 								<IconSolidArrowSmLeft />{' '}
 								<Text>
 									Back to{' '}
-									{(localStorageProject?.name ?? 'Project')}
+									{localStorageProject?.name ?? 'Project'}
 								</Text>
 							</Box>
 						</LinkButton>
@@ -300,7 +302,10 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												to={`/${projectId}/${p.key}`}
 												key={p.key}
 												trackingId={`header-link-click-${p.key}`}
-												state={{...(location?.state || {}), previousPath: `/${projectId}/${p.key}`}}
+												state={{
+													...(location?.state || {}),
+													previousPath: `/${projectId}/${p.key}`,
+												}}
 											>
 												{titleCaseString(p.key)}
 												{p.isBeta ? (
