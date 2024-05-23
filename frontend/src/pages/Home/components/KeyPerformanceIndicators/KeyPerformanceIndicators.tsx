@@ -2,10 +2,10 @@ import {
 	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { toast } from '@components/Toaster'
 import { useGetKeyPerformanceIndicatorsQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -52,7 +52,7 @@ const KeyPerformanceIndicators = ({
 				title="New Users"
 				route={`/${projectIdRemapped}/sessions?query=first_time=true`}
 				onClick={() => {
-					message.success('Showing sessions for new users')
+					toast.success('Showing sessions for new users')
 				}}
 				tooltipText={
 					<>

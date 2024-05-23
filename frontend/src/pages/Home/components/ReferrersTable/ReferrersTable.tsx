@@ -7,11 +7,11 @@ import {
 	ProgressBarTablePill,
 	ProgressBarTableRowGroup,
 } from '@components/ProgressBarTable/components/ProgressBarTableColumns'
+import { toast } from '@components/Toaster'
 import { useGetReferrersCountQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgReferrer from '@icons/Referrer'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { ColumnsType } from 'antd/es/table'
 import clsx from 'clsx'
 import moment from 'moment'
@@ -81,7 +81,7 @@ const ReferrersTable = ({
 						navigate(
 							`/${projectIdRemapped}/sessions?query=referrer=${record.host}`,
 						)
-						message.success(
+						toast.success(
 							`Showing sessions that were referred by ${record.host}`,
 						)
 					}}

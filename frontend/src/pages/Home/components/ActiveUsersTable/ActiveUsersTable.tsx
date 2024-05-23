@@ -8,13 +8,13 @@ import {
 	ProgressBarTableRowGroup,
 	ProgressBarTableUserAvatar,
 } from '@components/ProgressBarTable/components/ProgressBarTableColumns'
+import { toast } from '@components/Toaster'
 import { useGetTopUsersQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgClockIcon from '@icons/ClockIcon'
 import { getUserDisplayName } from '@pages/Home/utils/HomePageUtils'
 import { useParams } from '@util/react-router/useParams'
 import { validateEmail } from '@util/string'
-import { message } from 'antd'
 import { ColumnsType } from 'antd/es/table'
 import clsx from 'clsx'
 import moment from 'moment'
@@ -108,7 +108,7 @@ const ActiveUsersTable = ({
 							search: `query=${userParam}=${displayName}`,
 						})
 
-						message.success(`Showing sessions for ${displayName}`)
+						toast.success(`Showing sessions for ${displayName}`)
 					}}
 					noDataMessage={
 						filteredTableData.length === 0 &&

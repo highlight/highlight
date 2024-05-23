@@ -9,6 +9,7 @@ import { ApolloError, ApolloProvider } from '@apollo/client'
 import { AuthContextProvider, AuthRole } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { LoadingPage } from '@components/Loading/Loading'
+import { Toaster } from '@components/Toaster'
 import {
 	AppLoadingContext,
 	AppLoadingState,
@@ -43,7 +44,6 @@ import {
 	useLocation,
 	useNavigate,
 } from 'react-router-dom'
-import { Toaster } from 'sonner'
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
@@ -176,7 +176,6 @@ const App = () => {
 						}}
 					>
 						<LoadingPage />
-						<Toaster />
 						<BrowserRouter>
 							<QueryParamProvider
 								adapter={ReactRouter6Adapter}
@@ -187,6 +186,7 @@ const App = () => {
 							>
 								<AuthenticationRoleRouter />
 							</QueryParamProvider>
+							<Toaster />
 						</BrowserRouter>
 					</AppLoadingContext>
 				</SkeletonTheme>

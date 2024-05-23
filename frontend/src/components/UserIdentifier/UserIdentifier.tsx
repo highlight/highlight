@@ -1,6 +1,6 @@
+import { toast } from '@components/Toaster'
 import Tooltip from '@components/Tooltip/Tooltip'
 import SvgCopyIcon from '@icons/CopyIcon'
-import { message } from 'antd'
 import clsx from 'clsx'
 import React from 'react'
 
@@ -28,7 +28,7 @@ const UserIdentifier = React.memo(({ displayValue, className }: Props) => {
 					type="text"
 					onClick={() => {
 						navigator.clipboard.writeText(displayValue)
-						message.success(
+						toast.success(
 							`Copied identifier ${displayValue} to clipboard!`,
 						)
 					}}

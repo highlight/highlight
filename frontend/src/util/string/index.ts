@@ -1,4 +1,4 @@
-import { message } from 'antd'
+import { toast } from '@components/Toaster'
 
 export const snakeCaseString = (string: string) => {
 	return string
@@ -100,9 +100,9 @@ export function copyToClipboard(
 	navigator.clipboard.writeText(text)
 	const maxWidth = options?.maxWidth ?? 80
 	if (!!options?.onCopyText) {
-		message.success(options.onCopyText)
+		toast.success(options.onCopyText)
 	} else {
-		message.success(
+		toast.success(
 			`'${
 				text.length > maxWidth ? `${text.slice(0, maxWidth)}...` : text
 			}' copied to clipboard.`,

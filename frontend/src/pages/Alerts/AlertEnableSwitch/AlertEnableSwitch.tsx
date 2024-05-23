@@ -1,4 +1,5 @@
 import Switch from '@components/Switch/Switch'
+import { toast } from '@components/Toaster'
 import {
 	useUpdateErrorAlertIsDisabledMutation,
 	useUpdateLogAlertIsDisabledMutation,
@@ -8,7 +9,6 @@ import {
 import { namedOperations } from '@graph/operations'
 import { ALERT_TYPE } from '@pages/Alerts/Alerts'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import React, { useState } from 'react'
 
 export const AlertEnableSwitch: React.FC<
@@ -84,11 +84,11 @@ export const AlertEnableSwitch: React.FC<
 				throw new Error(`Unsupported alert type: ${type}`)
 		}
 
-		message.success(
+		toast.success(
 			isDisabled
 				? `Disabled "${record.Name}"`
 				: `Enabled "${record.Name}"`,
-			5,
+			{ duration: 5000 },
 		)
 
 		setDisabled(isDisabled)

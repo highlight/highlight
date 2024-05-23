@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import { colors } from '@highlight-run/ui/colors'
 import {
 	Badge,
@@ -12,7 +13,6 @@ import { getEventRenderDetails } from '@pages/Player/StreamElement/StreamElement
 import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
-import { message } from 'antd'
 import { EventType } from 'rrweb'
 
 import * as styles from './StreamEventV2.css'
@@ -92,7 +92,7 @@ export const StreamEventV2 = function ({
 					onGoToHandler('')
 					pause(timeSinceStart)
 
-					message.success(
+					toast.success(
 						`Changed player time showing you ${
 							details.title
 						} at ${MillisToMinutesAndSeconds(timeSinceStart)}`,
@@ -133,7 +133,7 @@ export const StreamEventV2 = function ({
 								onClick={(e) => {
 									e.stopPropagation()
 									pause(timeSinceStart)
-									message.success(
+									toast.success(
 										`Changed player time showing you ${
 											details.title
 										} at ${MillisToMinutesAndSeconds(

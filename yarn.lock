@@ -14474,7 +14474,6 @@ __metadata:
     recharts: "npm:^2.12.1"
     rrweb: "workspace:*"
     rudder-sdk-js: "npm:2.20.0"
-    sonner: "npm:^1.4.41"
     source-map-explorer: "npm:^2.5.2"
     stylelint: "npm:^14.9.1"
     subscriptions-transport-ws: "npm:^0.11.0"
@@ -62200,16 +62199,6 @@ __metadata:
   dependencies:
     atomic-sleep: "npm:^1.0.0"
   checksum: 10/6f64a9cf93fd8b7a7044f68597f80522bfacaf978d5e9f226c4e6f1c5dd00f07884a8f7f5fb6f45bb0b6951600629654d2db7a9a20b626b37f8f01d4b9161cfe
-  languageName: node
-  linkType: hard
-
-"sonner@npm:^1.4.41":
-  version: 1.4.41
-  resolution: "sonner@npm:1.4.41"
-  peerDependencies:
-    react: ^18.0.0
-    react-dom: ^18.0.0
-  checksum: 10/f300db8b2603e72fad94d895935c17f13c93b91396333a7f77f028c1d0f605d9929ea0c36ead1df0b4ded66dfaa7a20c58cd9bd31b70f6efcd0fbcce91e4487f
   languageName: node
   linkType: hard
 
