@@ -500,6 +500,13 @@ export class Highlight {
 	}
 
 	async initialize(options?: StartOptions): Promise<undefined> {
+		this.logger.log(
+			`Initializing...`,
+			options,
+			this.sessionData,
+			this.options,
+		)
+
 		if (
 			(navigator?.webdriver && !window.Cypress) ||
 			navigator?.userAgent?.includes('Googlebot') ||
@@ -512,8 +519,6 @@ export class Highlight {
 		try {
 			if (options?.forceNew) {
 				await this._reset(options)
-				// effectively 'restart' recording by starting the new payload with a full snapshot
-				this.takeFullSnapshot()
 				return
 			}
 
@@ -589,7 +594,8 @@ export class Highlight {
 					this.sessionData.sessionSecureID
 				) {
 					this.logger.log(
-						`Unexpected secure id returned by initializeSession: ${gr.initializeSession.secure_id}`,
+						`Unexpected secure id returned by initializeSession: ${gr.initializeSession.secure_id}, ` +
+							`expected ${this.sessionData.sessionSecureID}`,
 					)
 				}
 				this.sessionData.sessionSecureID =
