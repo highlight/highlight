@@ -24,7 +24,6 @@ def validate_session(data: dict[str, any]):
         value = datetime.strptime(
             session[time_key], "%Y-%m-%dT%H:%M:%S.%f%z"
         ).astimezone()
-        # TODO(vkorolik)
         assert (
             datetime.now().astimezone() - timedelta(days=1)
             < value
@@ -49,7 +48,7 @@ def test_cypress_session_attributes(oauth_api):
                     "start_date": (datetime.now() - timedelta(days=1)).strftime(
                         "%Y-%m-%dT%H:%M:%S.%fZ"
                     ),
-                    # TODO(vkorolik) why do i have to put this in the future
+                    # TODO(vkorolik) investigate why the filtering is not precise (time zone issue?)
                     "end_date": (datetime.now() + timedelta(days=1)).strftime(
                         "%Y-%m-%dT%H:%M:%S.%fZ"
                     ),
