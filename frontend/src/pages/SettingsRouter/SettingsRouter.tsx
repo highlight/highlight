@@ -259,7 +259,9 @@ export const SettingsRouter = () => {
 									[styles.menuItemActive]:
 										projectId === project.key,
 								})}
-								state={{previousPath: `/${project.key}/sessions`}}
+								state={{
+									previousPath: `/${project.key}/sessions`,
+								}}
 							>
 								<Stack direction="row" align="center" gap="4">
 									<ProjectColorLabel

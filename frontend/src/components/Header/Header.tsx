@@ -126,25 +126,38 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		(p) => String(p?.id) === String(localStorageProjectId),
 	)
 
-	const getProjectRedirectLink = useCallback(()=>{
-		if(!localStorageProject){
-			const isWorkspaceTab = workspaceId && matchRoutes([{path: '/w/:workspace_id/*'}], location)?.at(0)?.params?.workspace_id == workspaceId;
+	const getProjectRedirectLink = useCallback(() => {
+		if (!localStorageProject) {
+			const isWorkspaceTab =
+				workspaceId &&
+				matchRoutes([{ path: '/w/:workspace_id/*' }], location)?.at(0)
+					?.params?.workspace_id == workspaceId
 
-			if(allProjects?.length === 0 && isWorkspaceTab){
+			if (allProjects?.length === 0 && isWorkspaceTab) {
 				return `/w/${workspaceId}/new`
 			}
 
 			return `/${allProjects?.[0]?.id ?? localStorageProjectId}/sessions`
 		}
-	},[allProjects, localStorageProject, localStorageProjectId, location, workspaceId]);
+	}, [
+		allProjects,
+		localStorageProject,
+		localStorageProjectId,
+		location,
+		workspaceId,
+	])
 
 	const goBackPath = useRef(
-	location.state?.previousPath ?? localStorageProject ? `/${localStorageProjectId}/sessions` : getProjectRedirectLink());
+		location.state?.previousPath ?? localStorageProject
+			? `/${localStorageProjectId}/sessions`
+			: getProjectRedirectLink(),
+	)
 
-	useEffect(()=>{
-		goBackPath.current = location?.state?.previousPath || getProjectRedirectLink();
-	}, [getProjectRedirectLink, location?.state?.previousPath]);
-	
+	useEffect(() => {
+		goBackPath.current =
+			location?.state?.previousPath || getProjectRedirectLink()
+	}, [getProjectRedirectLink, location?.state?.previousPath])
+
 	const parts = location.pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
 	const isSetup = parts.indexOf('setup') !== -1
@@ -156,7 +169,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	})
 	const enableGrafanaDashboard =
 		workspaceSettingsData?.workspaceSettings?.enable_grafana_dashboard
-
 
 	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
 
