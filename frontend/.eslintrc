@@ -140,6 +140,11 @@
 						"name": "react-use",
 						"importNames": ["useLocalStorage"],
 						"message": "Please use @rehooks/local-storage instead."
+					},
+					{
+						"name": "antd",
+						"importNames": ["message"],
+						"message": "Please use the toast function from @components/Toaster instead."
 					}
 				],
 				"patterns": [

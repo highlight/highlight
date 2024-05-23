@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import { toast } from '@components/Toaster'
 import { LogEdge, LogLevel, Maybe, ReservedLogKey } from '@graph/schemas'
 import {
 	Box,
@@ -15,7 +16,6 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import { LogEdgeWithResources } from '@pages/LogsPage/useGetLogs'
 import { Row } from '@tanstack/react-table'
-import { message as antdMessage } from 'antd'
 import React, { useState } from 'react'
 import { generatePath, useNavigate } from 'react-router-dom'
 
@@ -196,7 +196,7 @@ export const LogDetails: React.FC<Props> = ({
 							)
 
 							navigator.clipboard.writeText(JSON.stringify(json))
-							antdMessage.success('Copied logs!')
+							toast.success('Copied logs!')
 						}}
 						trackingId="logs_copy-json_click"
 					>
@@ -218,7 +218,7 @@ export const LogDetails: React.FC<Props> = ({
 							const url = getLogURL(projectId, row)
 							e.stopPropagation()
 							navigator.clipboard.writeText(url.origin + url.path)
-							antdMessage.success('Copied link!')
+							toast.success('Copied link!')
 						}}
 						trackingId="logs_copy-link_click"
 					>

@@ -3,6 +3,7 @@ import {
 	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { toast } from '@components/Toaster'
 import {
 	useGetDailyErrorsCountQuery,
 	useGetDailySessionsCountQuery,
@@ -12,7 +13,6 @@ import useDataTimeRange from '@hooks/useDataTimeRange'
 import { SessionPageSearchParams } from '@pages/Player/utils/utils'
 import { dailyCountData } from '@util/dashboardCalculations'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment/moment'
 import React, { useEffect, useState } from 'react'
@@ -114,7 +114,7 @@ export const SessionCountGraph = ({
 						date.endOf('day').toDate(),
 					)
 
-					message.success(
+					toast.success(
 						`Showing sessions that were recorded on ${payload.activeLabel}`,
 					)
 					navigate(`/${projectIdRemapped}/sessions`)

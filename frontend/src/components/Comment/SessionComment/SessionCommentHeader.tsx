@@ -1,4 +1,5 @@
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
+import { toast } from '@components/Toaster'
 import { IntegrationType, SessionCommentType } from '@graph/schemas'
 import {
 	Box,
@@ -29,7 +30,6 @@ import {
 } from '@pages/Player/ReplayerContext'
 import { onGetLinkWithTimestamp } from '@pages/Player/SessionShareButton/utils/utils'
 import analytics from '@util/analytics'
-import { message } from 'antd'
 import moment from 'moment'
 import React, { useMemo, useState } from 'react'
 
@@ -214,7 +214,7 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 								<Menu.Item
 									onClick={() => {
 										const url = getCommentLink()
-										message.success('Copied link!')
+										toast.success('Copied link!')
 										navigator.clipboard.writeText(url.href)
 									}}
 								>
