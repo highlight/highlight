@@ -62,7 +62,7 @@ import { showSupportMessage } from '@util/window'
 import { Divider } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
@@ -126,8 +126,12 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		(p) => String(p?.id) === String(localStorageProjectId),
 	)
 
-	const goBackPath =
-		location.state?.previousPath ?? `/${localStorageProjectId}/sessions`
+	const goBackPath =  location.state?.previousPath ?? `/${localStorageProjectId}/sessions`
+
+	const newGoBackPath = useRef(goBackPath);
+
+	const finalGoBackPath = newGoBackPath.current;
+
 	const parts = location.pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
 	const isSetup = parts.indexOf('setup') !== -1
@@ -139,6 +143,10 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	})
 	const enableGrafanaDashboard =
 		workspaceSettingsData?.workspaceSettings?.enable_grafana_dashboard
+	
+	useEffect(()=>{
+		newGoBackPath.current = location.state?.previousPath || newGoBackPath.current;
+	},[location.state])		
 
 	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
 
@@ -227,7 +235,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 				>
 					{isSetup || (isSettings && localStorageProjectId) ? (
 						<LinkButton
-							to={goBackPath}
+							to= {finalGoBackPath}
 							kind="secondary"
 							emphasis="low"
 							trackingId="setup_back-button"
@@ -241,7 +249,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 								<IconSolidArrowSmLeft />{' '}
 								<Text>
 									Back to{' '}
-									{localStorageProject?.name ?? 'Project'}
+									{(localStorageProject?.name ?? 'Project')}
 								</Text>
 							</Box>
 						</LinkButton>
@@ -292,6 +300,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												to={`/${projectId}/${p.key}`}
 												key={p.key}
 												trackingId={`header-link-click-${p.key}`}
+												state={{...(location?.state || {}), previousPath: `/${projectId}/${p.key}`}}
 											>
 												{titleCaseString(p.key)}
 												{p.isBeta ? (
