@@ -26,6 +26,7 @@ export const CompleteSetup = () => {
 						<LinkButton
 							to={`/${projectId}/setup/alerts`}
 							trackingId="finish-setup-errors"
+							state={{previousPath: `/${projectId}/alerts`}}
 						>
 							Finish setup
 						</LinkButton>
