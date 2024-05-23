@@ -47,6 +47,7 @@ export const IntegrationCta: React.FC = () => {
 						<LinkButton
 							to={`/${projectId}/setup/backend-logging`}
 							trackingId="logs-page_setup-backend-logging"
+							state={{previousPath:`/${projectId}/logs`}}
 						>
 							Open setup
 						</LinkButton>

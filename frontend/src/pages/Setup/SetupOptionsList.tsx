@@ -113,6 +113,7 @@ export const SetupOptionsList: React.FC = () => {
 								to={option.path}
 								trackingId={`setup-option-${option.key}`}
 								kind="secondary"
+								state={location.state}
 							>
 								Select
 							</LinkButton>

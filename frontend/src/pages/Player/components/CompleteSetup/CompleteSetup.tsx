@@ -26,6 +26,7 @@ export const CompleteSetup = () => {
 						<LinkButton
 							to={`/${projectId}/setup`}
 							trackingId="finish-setup-sessions-empty-state"
+							state={{previousPath: `/${projectId}/sessions`}}
 						>
 							Finish setup
 						</LinkButton>

@@ -141,6 +141,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 				<Navigate
 					replace
 					to={`/${projectData.createProject.id}/setup`}
+					state={{previousPath:`/${projectData.createProject.id}/sessions`}}
 				/>
 			)
 		}
