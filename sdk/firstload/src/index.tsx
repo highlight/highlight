@@ -286,7 +286,7 @@ const H: HighlightPublicInterface = {
 		}
 	},
 	start: (options) => {
-		if (highlight_obj?.state === 'Recording') {
+		if (highlight_obj?.state === 'Recording' && !options?.forceNew) {
 			if (!options?.silent) {
 				console.warn(
 					'Highlight is already recording. Please `H.stop()` the current session before starting a new one.',
