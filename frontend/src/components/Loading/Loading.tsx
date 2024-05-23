@@ -56,14 +56,17 @@ export const LoadingPage = React.memo<{ show?: boolean; className?: string }>(
 	({ show, className }) => {
 		const { loadingState } = useAppLoadingContext()
 		const speedFactor = 0.1
+		const shouldShow =
+			show ||
+			[
+				AppLoadingState.LOADING,
+				AppLoadingState.EXTENDED_LOADING,
+			].includes(loadingState)
+		if (!shouldShow) return null
 
 		return (
 			<AnimatePresence>
-				{(show ||
-					[
-						AppLoadingState.LOADING,
-						AppLoadingState.EXTENDED_LOADING,
-					].includes(loadingState)) && (
+				{shouldShow ? (
 					<motion.div
 						key="loadingWrapper"
 						className={clsx(styles.loadingWrapper, className)}
@@ -109,10 +112,10 @@ export const LoadingPage = React.memo<{ show?: boolean; className?: string }>(
 							initial={{ opacity: 0, scale: 2 }}
 							animate={{ opacity: 1, scale: 1 }}
 							exit={{ opacity: 0, scale: 2 }}
-							transition={{ duration: 1 * speedFactor }}
+							transition={{ duration: speedFactor }}
 						/>
 					</motion.div>
-				)}
+				) : null}
 			</AnimatePresence>
 		)
 	},
