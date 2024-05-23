@@ -2,11 +2,11 @@ import { Button } from '@components/Button'
 import {
 	Box,
 	Form,
-	IconOutlineDotsHorizontal,
 	IconSolidArrowLeft,
 	IconSolidArrowRight,
 	IconSolidClipboardCopy,
 	IconSolidCloudUpload,
+	IconSolidDotsHorizontal,
 	IconSolidRefresh,
 	IconSolidSortAscending,
 	IconSolidSortDescending,
@@ -124,20 +124,15 @@ export const CustomColumnActions: React.FC<Props> = ({
 			<Menu placement="bottom-end">
 				<Table.Discoverable trigger="header">
 					<Menu.Button
-						style={{
-							padding: 0,
-							height: 'fit-content',
-						}}
-						size="small"
+						size="minimal"
 						emphasis="low"
 						kind="secondary"
 						onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
 							e.stopPropagation()
 							trackEvent('open')
 						}}
-					>
-						<IconOutlineDotsHorizontal />
-					</Menu.Button>
+						icon={<IconSolidDotsHorizontal />}
+					/>
 				</Table.Discoverable>
 				<Menu.List>
 					{onSort && (
