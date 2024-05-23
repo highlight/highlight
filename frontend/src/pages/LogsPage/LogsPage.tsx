@@ -81,7 +81,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		DEFAULT_LOG_COLUMNS,
 	)
 	const [windowSize, setWindowSize] = useLocalStorage(
-		'highlight-traces-window-size',
+		'highlight-logs-window-size',
 		window.innerWidth,
 	)
 
