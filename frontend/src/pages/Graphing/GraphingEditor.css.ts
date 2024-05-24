@@ -49,6 +49,10 @@ export const menuButton = style({
 	flex: 1,
 })
 
+export const menuButtonInner = style({
+	height: '24px',
+})
+
 export const input = style({
 	height: 28,
 })

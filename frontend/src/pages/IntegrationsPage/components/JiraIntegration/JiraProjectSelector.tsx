@@ -1,10 +1,10 @@
-import Select, { OptionType } from '@components/Select/Select'
 import { Form } from '@highlight-run/ui/components'
 import { useJiraIntegration } from '@pages/IntegrationsPage/components/JiraIntegration/utils'
-import * as style from '@pages/IntegrationsPage/components/style.css'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import useLocalStorage from '@rehooks/local-storage'
 import { useEffect, useMemo } from 'react'
+
+import { OptionDropdown } from '@/pages/Graphing/GraphingEditor'
 
 const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
@@ -38,13 +38,13 @@ const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 		  )
 		: null
 
-	const jiraIssueTypeOptions: OptionType[] = (
-		selectedJiraProject?.issueTypes || []
-	).map((issueType: any) => ({
-		value: issueType.id,
-		id: issueType.id,
-		displayValue: `${issueType.name} - (${issueType.description})`,
-	}))
+	const jiraIssueTypeOptions = (selectedJiraProject?.issueTypes || []).map(
+		(issueType: any) => ({
+			value: issueType.id,
+			id: issueType.id,
+			displayValue: `${issueType.name} - (${issueType.description})`,
+		}),
+	)
 
 	useEffect(() => {
 		selectedJiraProjectId && setSelectionId(selectedJiraProjectId)
@@ -64,27 +64,21 @@ const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 
 	return (
 		<>
-			<Form.NamedSection label="Jira Project" name="jiraProject">
-				<Select
-					aria-label="Jira Project"
-					placeholder="Choose a project to create the issue in"
-					options={jiraProjectsOptions}
-					onChange={setJiraProjectId}
-					value={selectedJiraProjectId}
-					notFoundContent={<p>No projects found</p>}
-					className={style.selectContainer}
+			<Form.NamedSection label="Project" name="jiraProject">
+				<OptionDropdown
+					options={jiraProjectsOptions.map((o) => o.id)}
+					labels={jiraProjectsOptions.map((o) => o.displayValue)}
+					selection={selectedJiraProjectId}
+					setSelection={setJiraProjectId}
 					disabled={disabled}
 				/>
 			</Form.NamedSection>
-			<Form.NamedSection label="Jira Issue Type" name="jiraIssue">
-				<Select
-					aria-label="Jira Issue Type"
-					placeholder="Choose an issue type"
-					options={jiraIssueTypeOptions}
-					onChange={setJiraIssueTypeId}
-					value={selectedJiraIssueTypeId}
-					notFoundContent={<p>No issue types found</p>}
-					className={style.selectContainer}
+			<Form.NamedSection label="Issue Type" name="jiraIssue">
+				<OptionDropdown
+					options={jiraIssueTypeOptions.map((o) => o.id)}
+					labels={jiraIssueTypeOptions.map((o) => o.displayValue)}
+					selection={selectedJiraIssueTypeId}
+					setSelection={setJiraIssueTypeId}
 					disabled={disabled}
 				/>
 			</Form.NamedSection>

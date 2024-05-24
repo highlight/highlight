@@ -1,12 +1,11 @@
-import Select from '@components/Select/Select'
 import { Form } from '@highlight-run/ui/components'
 import { useGitlabIntegration } from '@pages/IntegrationsPage/components/GitlabIntegration/utils'
-import * as style from '@pages/IntegrationsPage/components/style.css'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import useLocalStorage from '@rehooks/local-storage'
 import { useEffect, useMemo } from 'react'
 
 import { GitlabProject } from '@/graph/generated/schemas'
+import { OptionDropdown } from '@/pages/Graphing/GraphingEditor'
 
 const GitlabProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
@@ -35,15 +34,12 @@ const GitlabProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 
 	return (
 		<>
-			<Form.NamedSection label="GitLab Project" name="gitlabProject">
-				<Select
-					aria-label="GitLab Project"
-					placeholder="Choose a project to create the issue in"
-					options={gitlabProjectOptions}
-					onChange={setGitlabProjectId}
-					value={selectedGitlabProjectId}
-					notFoundContent={<p>No projects found</p>}
-					className={style.selectContainer}
+			<Form.NamedSection label="Project" name="gitlabProject">
+				<OptionDropdown
+					options={gitlabProjectOptions.map((o) => o.id)}
+					labels={gitlabProjectOptions.map((o) => o.displayValue)}
+					selection={selectedGitlabProjectId}
+					setSelection={setGitlabProjectId}
 					disabled={disabled}
 				/>
 			</Form.NamedSection>

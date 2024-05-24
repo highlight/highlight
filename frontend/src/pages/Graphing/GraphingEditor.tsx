@@ -217,13 +217,14 @@ const Combobox = ({
 	)
 }
 
-const OptionDropdown = <T extends string>({
+export const OptionDropdown = <T extends string>({
 	options,
 	selection,
 	setSelection,
 	icons,
 	labels,
 	tooltips,
+	disabled,
 }: {
 	options: T[]
 	selection: T
@@ -231,6 +232,7 @@ const OptionDropdown = <T extends string>({
 	icons?: JSX.Element[]
 	labels?: string[]
 	tooltips?: React.ReactNode[]
+	disabled?: boolean
 }) => {
 	const selectedIndex = options.indexOf(selection)
 	const selectedIcon = icons?.at(selectedIndex)
@@ -242,6 +244,7 @@ const OptionDropdown = <T extends string>({
 				size="small"
 				emphasis="medium"
 				cssClass={style.menuButton}
+				disabled={disabled}
 			>
 				<Box
 					width="full"
@@ -249,6 +252,7 @@ const OptionDropdown = <T extends string>({
 					alignItems="center"
 					gap="4"
 					justifyContent="space-between"
+					cssClass={style.menuButtonInner}
 				>
 					<Stack direction="row" alignItems="center" gap="4">
 						{selectedIcon}
