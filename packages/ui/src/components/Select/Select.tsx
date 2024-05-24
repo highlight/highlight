@@ -27,19 +27,12 @@ type FilterableSelectProps = SelectBaseProps & {
 }
 
 type NonFilterableSelectProps = SelectBaseProps & {
-	children: React.ReactNode
+	children?: React.ReactNode
 	filterable?: false | undefined
+	options?: string[]
 }
 
-type NonFilterableSelectPropsWithOptions = SelectBaseProps & {
-	filterable?: false | undefined
-	options: string[]
-}
-
-type SelectProps =
-	| FilterableSelectProps
-	| NonFilterableSelectProps
-	| NonFilterableSelectPropsWithOptions
+type SelectProps = FilterableSelectProps | NonFilterableSelectProps
 
 type SelectComponent = React.FC<SelectProps> & {
 	Label: typeof Label
