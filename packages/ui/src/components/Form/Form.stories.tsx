@@ -11,21 +11,18 @@ const meta = {
 export default meta
 
 export const Basic = () => {
+	const formStore = Form.useStore({
+		defaultValues: {
+			issueTitle: 'Test Issue',
+			issueDescription: 'This is a test issue',
+		},
+	})
+	const values = formStore.useState('values')
+
 	return (
-		<Box style={{ width: 300 }}>
-			<Form
-				defaultValues={{
-					issueTitle: 'Test Issue',
-					issueDescription: 'This is a test issue',
-				}}
-			>
-				<Box
-					px="12"
-					py="8"
-					gap="12"
-					display="flex"
-					flexDirection="column"
-				>
+		<Box style={{ width: 500 }}>
+			<Form store={formStore}>
+				<Box gap="12" display="flex" flexDirection="column" mb="16">
 					<Form.Input outline name="issueTitle" label="Issue Title" />
 					<Form.Input
 						name="issueDescription"
@@ -48,6 +45,10 @@ export const Basic = () => {
 					/>
 				</Box>
 			</Form>
+
+			<Box p="8" border="dividerWeak" borderRadius="6" overflow="scroll">
+				<pre>{JSON.stringify(values, null, 2)}</pre>
+			</Box>
 		</Box>
 	)
 }
