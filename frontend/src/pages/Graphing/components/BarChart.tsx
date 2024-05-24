@@ -11,6 +11,7 @@ import {
 } from 'recharts'
 
 import {
+	AxisConfig,
 	CustomXAxisTick,
 	CustomYAxisTick,
 	getColor,
@@ -20,6 +21,7 @@ import {
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
+	TooltipConfig,
 } from '@/pages/Graphing/components/Graph'
 
 export type BarDisplay = 'Grouped' | 'Stacked'
@@ -72,7 +74,13 @@ export const BarChart = ({
 	onMouseMove,
 	onMouseUp,
 	children,
-}: React.PropsWithChildren<InnerChartProps<BarChartConfig> & SeriesInfo>) => {
+	showXAxis,
+	showYAxis,
+	showGrid,
+	verboseTooltip,
+}: React.PropsWithChildren<
+	InnerChartProps<BarChartConfig> & SeriesInfo & AxisConfig & TooltipConfig
+>) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
 	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
 
@@ -106,10 +114,15 @@ export const BarChart = ({
 					height={12}
 					type={xAxisMetric === GROUP_KEY ? 'category' : 'number'}
 					domain={['dataMin', 'dataMax']}
+					hide={showXAxis === false}
 				/>
 
 				<Tooltip
-					content={getCustomTooltip(xAxisMetric, yAxisMetric)}
+					content={getCustomTooltip(
+						xAxisMetric,
+						yAxisMetric,
+						verboseTooltip,
+					)}
 					cursor={{ fill: '#C8C7CB', fillOpacity: 0.5 }}
 					isAnimationActive={false}
 				/>
@@ -129,13 +142,16 @@ export const BarChart = ({
 					tickCount={7}
 					width={32}
 					type="number"
+					hide={showYAxis === false}
 				/>
 
-				<CartesianGrid
-					strokeDasharray=""
-					vertical={false}
-					stroke="var(--color-gray-200)"
-				/>
+				{showGrid && (
+					<CartesianGrid
+						strokeDasharray=""
+						vertical={false}
+						stroke="var(--color-gray-200)"
+					/>
+				)}
 
 				{series.length > 0 &&
 					series.map((key, idx) => {

@@ -11,6 +11,7 @@ import {
 } from 'recharts'
 
 import {
+	AxisConfig,
 	CustomXAxisTick,
 	CustomYAxisTick,
 	getColor,
@@ -50,7 +51,13 @@ export const LineChart = ({
 	onMouseMove,
 	onMouseUp,
 	children,
-}: React.PropsWithChildren<InnerChartProps<LineChartConfig> & SeriesInfo>) => {
+	showXAxis,
+	showYAxis,
+	showGrid,
+	verboseTooltip,
+}: React.PropsWithChildren<
+	InnerChartProps<LineChartConfig> & SeriesInfo & AxisConfig
+>) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
 	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
 
@@ -94,10 +101,15 @@ export const LineChart = ({
 					height={12}
 					type={xAxisMetric === GROUP_KEY ? 'category' : 'number'}
 					domain={['dataMin', 'dataMax']}
+					hide={showXAxis === false}
 				/>
 
 				<Tooltip
-					content={getCustomTooltip(xAxisMetric, yAxisMetric)}
+					content={getCustomTooltip(
+						xAxisMetric,
+						yAxisMetric,
+						verboseTooltip,
+					)}
 					cursor={{ stroke: '#C8C7CB', strokeDasharray: 4 }}
 					isAnimationActive={false}
 				/>
@@ -117,13 +129,16 @@ export const LineChart = ({
 					tickCount={7}
 					width={32}
 					type="number"
+					hide={showYAxis === false}
 				/>
 
-				<CartesianGrid
-					strokeDasharray=""
-					vertical={false}
-					stroke={vars.theme.static.divider.weak}
-				/>
+				{showGrid && (
+					<CartesianGrid
+						strokeDasharray=""
+						vertical={false}
+						stroke={vars.theme.static.divider.weak}
+					/>
+				)}
 
 				{series.length > 0 &&
 					series.map((key, idx) => {

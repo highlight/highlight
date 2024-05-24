@@ -37,6 +37,8 @@ import { parseSearch } from '@/components/Search/utils'
 import { useGetMetricsQuery } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
+import { TIMESTAMP_KEY } from '@/pages/Graphing/components/Graph'
+import LogsCount from '@/pages/LogsPage/LogsCount/LogsCount'
 import { LogsOverageCard } from '@/pages/LogsPage/LogsOverageCard/LogsOverageCard'
 import { DEFAULT_LOG_COLUMNS } from '@/pages/LogsPage/LogsTable/CustomColumns/columns'
 import analytics from '@/util/analytics'
@@ -145,11 +147,16 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 				column: '',
 				metric_types: MetricAggregator.Count,
 				group_by: 'level',
-				bucket_by: 'Timestamp',
+				bucket_by: TIMESTAMP_KEY,
 				bucket_count: 48,
 			},
 			skip: !projectId,
 		})
+
+	let totalCount = 0
+	for (const b of histogramData?.metrics.buckets ?? []) {
+		totalCount += b.metric_value ?? 0
+	}
 
 	const otherElementsHeight = useMemo(() => {
 		let height = HEADERS_AND_CHARTS_HEIGHT
@@ -203,21 +210,20 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						savedSegmentType={SavedSegmentEntityType.Log}
 						textAreaRef={textAreaRef}
 					/>
-					{/* <LogsCount
+					<LogsCount
 						startDate={startDate}
 						endDate={endDate}
 						presetSelected={!!selectedPreset}
-						totalCount={histogramData?.logs_histogram.objectCount}
+						totalCount={totalCount}
 						loading={histogramLoading}
-					/> */}
+					/>
 					<LogsHistogram
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={updateSearchTime}
 						onLevelChange={handleLevelChange}
 						loading={histogramLoading}
-						buckets={[]}
-						metrics={undefined}
+						metrics={histogramData}
 					/>
 					<Box borderTop="dividerWeak" height="full">
 						<LogsOverageCard />

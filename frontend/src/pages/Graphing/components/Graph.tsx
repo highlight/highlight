@@ -126,6 +126,16 @@ export interface SeriesInfo {
 	strokeColors?: string[]
 }
 
+export interface AxisConfig {
+	showXAxis?: boolean
+	showYAxis?: boolean
+	showGrid?: boolean
+}
+
+export interface TooltipConfig {
+	verboseTooltip?: boolean
+}
+
 const strokeColors = [
 	'#0090FF',
 	'#D6409F',
@@ -240,7 +250,7 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 }
 
 export const getCustomTooltip =
-	(xAxisMetric: any, yAxisMetric: any) =>
+	(xAxisMetric: any, yAxisMetric: any, verbose?: boolean) =>
 	({ active, payload, label }: any) => {
 		const isValid = active && payload && payload.length
 		return (
@@ -272,6 +282,7 @@ export const getCustomTooltip =
 							color="default"
 							cssClass={style.tooltipText}
 						>
+							{verbose && p.name && p.name + ': '}
 							{isValid && getTickFormatter(yAxisMetric)(p.value)}
 						</Text>
 					</Box>

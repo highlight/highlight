@@ -3,6 +3,7 @@ import { Box, BoxProps } from '@highlight-run/ui/components'
 import { formatDate } from '@pages/LogsPage/utils'
 import { clamp } from '@util/numbers'
 import clsx from 'clsx'
+import { ReferenceArea } from 'recharts'
 
 import { GetMetricsQuery } from '@/graph/generated/operations'
 import { BarChart } from '@/pages/Graphing/components/BarChart'
@@ -87,6 +88,8 @@ const LogsHistogram = ({
 		0,
 		maxValue,
 	)
+	const areaMin = belowThreshold ? 0 : clampedThreshold
+	const areaMax = belowThreshold ? clampedThreshold : maxValue
 
 	const showLoadingState = loading || (!outline && maxValue === 0)
 
@@ -137,22 +140,6 @@ const LogsHistogram = ({
 			>
 				{showLoadingState || !!maxValue ? (
 					<>
-						{/* {outline && threshold && thresholdAreaHeight ? (
-							<Box
-								position="absolute"
-								display="inline-flex"
-								backgroundColor="contentBad"
-								borderRadius="3"
-								cssClass={styles.thresholdArea}
-								style={{
-									height: `${thresholdAreaHeight}%`,
-									left: 2,
-									right: 2,
-									top: belowThreshold ? undefined : 2,
-									bottom: belowThreshold ? 2 : undefined,
-								}}
-							/>
-						) : null} */}
 						<BarChart
 							data={data}
 							xAxisMetric="Timestamp"
@@ -164,7 +151,19 @@ const LogsHistogram = ({
 								display: 'Stacked',
 							}}
 							series={series}
-						></BarChart>
+							showXAxis={false}
+							showYAxis={false}
+							verboseTooltip
+						>
+							{threshold !== undefined && (
+								<ReferenceArea
+									y1={areaMin}
+									y2={areaMax}
+									color="#FFFFFF"
+									isFront
+								/>
+							)}
+						</BarChart>
 					</>
 				) : (
 					<Box
