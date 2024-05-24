@@ -216,8 +216,8 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						onDatesChange={updateSearchTime}
 						onLevelChange={handleLevelChange}
 						loading={histogramLoading}
-						histogramBuckets={histogramData?.logs_histogram.buckets}
-						bucketCount={histogramData?.logs_histogram.totalCount}
+						buckets={[]}
+						metrics={undefined}
 					/>
 					<Box borderTop="dividerWeak" height="full">
 						<LogsOverageCard />

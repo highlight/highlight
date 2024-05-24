@@ -27,7 +27,7 @@ export const BAR_DISPLAY: BarDisplay[] = ['Grouped', 'Stacked']
 
 export type BarChartConfig = {
 	type: 'Bar chart'
-	showLegend: true
+	showLegend: boolean
 	display?: BarDisplay
 }
 

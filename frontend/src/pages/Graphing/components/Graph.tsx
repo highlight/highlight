@@ -30,6 +30,7 @@ import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalCh
 import { loadingIcon } from '@/components/Button/style.css'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useGetMetricsLazyQuery } from '@/graph/generated/hooks'
+import { GetMetricsQuery } from '@/graph/generated/operations'
 import { Maybe, MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import {
 	BarChart,
@@ -368,6 +369,55 @@ export const getViewConfig = (
 	return viewConfig
 }
 
+export const useGraphData = (
+	metrics: GetMetricsQuery | undefined,
+	xAxisMetric: string,
+) => {
+	return useMemo(() => {
+		let data: any[] | undefined
+		if (metrics?.metrics.buckets) {
+			if (xAxisMetric !== GROUP_KEY) {
+				data = []
+				for (let i = 0; i < metrics.metrics.bucket_count; i++) {
+					data.push({})
+				}
+
+				const seriesKeys = new Set<string>()
+				for (const b of metrics.metrics.buckets) {
+					const seriesKey = b.group.join(' ')
+					seriesKeys.add(seriesKey)
+					data[b.bucket_id][xAxisMetric] =
+						(b.bucket_min + b.bucket_max) / 2
+					data[b.bucket_id][seriesKey] = b.metric_value
+				}
+			} else {
+				data = []
+				for (const b of metrics.metrics.buckets) {
+					data.push({
+						[GROUP_KEY]: b.group.join(' '),
+						'': b.metric_value,
+					})
+				}
+			}
+		}
+		return data
+	}, [metrics?.metrics.bucket_count, metrics?.metrics.buckets, xAxisMetric])
+}
+
+export const useGraphSeries = (
+	data: any[] | undefined,
+	xAxisMetric: string,
+) => {
+	const series = useMemo(
+		() =>
+			_.uniq(data?.flatMap((d) => Object.keys(d))).filter(
+				(key) => key !== xAxisMetric,
+			),
+		[data, xAxisMetric],
+	)
+	return series
+}
+
 const POLL_INTERVAL_VALUE = 1000 * 60
 const LONGER_POLL_INTERVAL_VALUE = 1000 * 60 * 5
 
@@ -506,35 +556,7 @@ const Graph = ({
 	const yAxisMetric = functionType === MetricAggregator.Count ? '' : metric
 	const yAxisFunction = functionType
 
-	const data = useMemo(() => {
-		let data: any[] | undefined
-		if (metrics?.metrics.buckets) {
-			if (xAxisMetric !== GROUP_KEY) {
-				data = []
-				for (let i = 0; i < metrics.metrics.bucket_count; i++) {
-					data.push({})
-				}
-
-				const seriesKeys = new Set<string>()
-				for (const b of metrics.metrics.buckets) {
-					const seriesKey = b.group.join(' ')
-					seriesKeys.add(seriesKey)
-					data[b.bucket_id][xAxisMetric] =
-						(b.bucket_min + b.bucket_max) / 2
-					data[b.bucket_id][seriesKey] = b.metric_value
-				}
-			} else {
-				data = []
-				for (const b of metrics.metrics.buckets) {
-					data.push({
-						[GROUP_KEY]: b.group.join(' '),
-						'': b.metric_value,
-					})
-				}
-			}
-		}
-		return data
-	}, [metrics?.metrics.bucket_count, metrics?.metrics.buckets, xAxisMetric])
+	const data = useGraphData(metrics, xAxisMetric)
 
 	const series = useMemo(
 		() =>
