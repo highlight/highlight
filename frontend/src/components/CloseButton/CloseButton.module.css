@@ -1,8 +1,0 @@
-.closeButton {
-	border: 0;
-	display: flex;
-	padding: 6px;
-	&:hover {
-		background-color: var(--color-gray-300);
-	}
-}

@@ -93,7 +93,7 @@ export const toast = {
 export const Toaster: React.FC = () => {
 	const toasts = useReactiveVar(toastVar)
 	return (
-		<Stack cssClass={styles.toast} pr="32" pb="32" gap="16">
+		<Stack cssClass={styles.toastContainer} pr="32" pb="32" gap="16">
 			{toasts.map((toast) => (
 				<ToastItem key={toast.id} toast={toast} />
 			))}
@@ -136,7 +136,8 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
 			borderRadius="6"
 			border="divider"
 			display="flex"
-			style={{ width: '280px' }}
+			boxShadow="medium"
+			cssClass={styles.toastItem}
 		>
 			<Box display="flex" alignItems="flex-start" pt="2">
 				{typeInfo.icon}
@@ -144,7 +145,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
 			<Stack direction="row" justifyContent="space-between" width="full">
 				<Stack direction="column" gap="8">
 					<Box display="flex" alignItems="flex-start" py="4">
-						<Text weight="bold">{toast.message}</Text>
+						<Text weight="medium">{toast.message}</Text>
 					</Box>
 
 					{!!toast.content && (

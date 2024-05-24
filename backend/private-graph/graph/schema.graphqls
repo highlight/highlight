@@ -2429,7 +2429,6 @@ type Mutation {
 	sendAdminWorkspaceInvite(
 		workspace_id: ID!
 		email: String!
-		base_url: String!
 		role: String!
 	): String
 	addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID

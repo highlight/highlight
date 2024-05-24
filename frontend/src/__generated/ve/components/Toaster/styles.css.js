@@ -1,5 +1,7 @@
 // src/components/Toaster/styles.css.ts
-var toast = "hhlnpm0";
+var toastContainer = "hhlnpm0";
+var toastItem = "hhlnpm2";
 export {
-  toast
+  toastContainer,
+  toastItem
 };
