@@ -3,6 +3,7 @@ import { Button } from '@components/Button'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import { RadioGroup } from '@components/RadioGroup/RadioGroup'
+import { toast } from '@components/Toaster'
 import {
 	useCreateErrorCommentForExistingIssueMutation,
 	useCreateErrorCommentMutation,
@@ -36,7 +37,6 @@ import {
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
-import { message } from 'antd'
 import { H } from 'highlight.run'
 import React, { useMemo, useState } from 'react'
 
@@ -262,11 +262,11 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 				mode === NewIntegrationIssueType.CreateIssue
 					? 'New Issue Created!'
 					: 'Issue Linked!'
-			message.success(toastMessage)
+			toast.success(toastMessage)
 		} catch (e: any) {
 			H.consumeError(e)
 			console.error(e)
-			message.error('Failed to create an issue. Please try again.')
+			toast.error('Failed to create an issue. Please try again.')
 		} finally {
 			setLoading(false)
 		}
