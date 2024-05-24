@@ -394,7 +394,8 @@ const Graph = ({
 	onEdit,
 	setTimeRange,
 	selectedPreset,
-}: ChartProps<ViewConfig>) => {
+	children,
+}: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
 	const [graphHover, setGraphHover] = useState(false)
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
 	const showMenu =
@@ -643,6 +644,7 @@ const Graph = ({
 						onMouseUp={onMouseUp}
 					>
 						{referenceArea}
+						{children}
 					</LineChart>
 				)
 				break
@@ -661,6 +663,7 @@ const Graph = ({
 						onMouseUp={onMouseUp}
 					>
 						{referenceArea}
+						{children}
 					</BarChart>
 				)
 				break

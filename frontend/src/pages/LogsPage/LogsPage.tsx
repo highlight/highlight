@@ -11,7 +11,6 @@ import {
 	presetStartDate,
 } from '@highlight-run/ui/components'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
-import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
@@ -204,13 +203,13 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						savedSegmentType={SavedSegmentEntityType.Log}
 						textAreaRef={textAreaRef}
 					/>
-					<LogsCount
+					{/* <LogsCount
 						startDate={startDate}
 						endDate={endDate}
 						presetSelected={!!selectedPreset}
 						totalCount={histogramData?.logs_histogram.objectCount}
 						loading={histogramLoading}
-					/>
+					/> */}
 					<LogsHistogram
 						startDate={startDate}
 						endDate={endDate}

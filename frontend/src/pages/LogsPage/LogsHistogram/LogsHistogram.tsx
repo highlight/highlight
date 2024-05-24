@@ -2,6 +2,7 @@ import { LogLevel as Level } from '@graph/schemas'
 import { Box, BoxProps, Popover, Text } from '@highlight-run/ui/components'
 import { COLOR_MAPPING } from '@pages/LogsPage/constants'
 import { formatDate, isSignificantDateRange } from '@pages/LogsPage/utils'
+import { clamp } from '@util/numbers'
 import clsx from 'clsx'
 import { memo, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -134,6 +135,25 @@ const LogsHistogram = ({
 			} as HistogramBucket
 		})
 	}, [histogramBuckets, endDate, startDate, bucketCount, maxBucketCount])
+
+	const maxValue = tickValues[tickValues.length - 1] ?? 0
+	const referenceValue = belowThreshold ? 0 : maxValue
+	const timeSeconds = (endDate.getTime() - startDate.getTime()) / 1000
+	const adjThreshold =
+		((threshold ?? 0) * timeSeconds) /
+		(frequencySeconds ?? timeSeconds) /
+		buckets.length
+	const clampedThreshold = clamp(
+		Math.abs(adjThreshold ?? referenceValue),
+		0,
+		maxValue,
+	)
+	const thresholdAreaHeight =
+		clamp(
+			Math.abs(referenceValue - clampedThreshold) / maxValue,
+			0,
+			1 - (2 * styles.OUTLINE_PADDING) / styles.OUTLINE_HISTOGRAM_HEIGHT,
+		) * 100
 
 	const showLoadingState =
 		loading ||
