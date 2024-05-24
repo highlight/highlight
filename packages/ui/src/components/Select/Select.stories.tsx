@@ -2,9 +2,8 @@ import * as Ariakit from '@ariakit/react'
 import { Meta } from '@storybook/react'
 import { useState } from 'react'
 
-import { Badge } from '@/components/Badge/Badge'
-import { IconSolidX } from '@/components/icons'
-
+import { Badge } from '../Badge/Badge'
+import { IconSolidX } from '../icons'
 import { FilterableSelect, Select } from './Select'
 
 export default {
