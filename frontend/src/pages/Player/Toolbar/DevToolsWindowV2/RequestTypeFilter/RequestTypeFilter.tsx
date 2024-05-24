@@ -5,7 +5,6 @@ import {
 	MultiSelectButton,
 } from '@highlight-run/ui/components'
 import {
-	getNetworkResourcesDisplayName,
 	ICountPerRequestType,
 	RequestType,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
@@ -92,19 +91,8 @@ const RequestTypeFilter = ({
 		}),
 	)
 
-	const valueRender = () => {
-		if (requestTypes.includes(RequestType.All)) {
-			return FILTER_LABEL
-		}
-
-		if (requestTypes.length === 1) {
-			return `${FILTER_LABEL}: ${getNetworkResourcesDisplayName(
-				requestTypes[0],
-			)}`
-		}
-
-		return `${FILTER_LABEL}: ${requestTypes.length} selected`
-	}
+	const selected =
+		!!requestTypes.length && !requestTypes.includes(RequestType.All)
 
 	return (
 		<MultiSelectButton
@@ -112,7 +100,7 @@ const RequestTypeFilter = ({
 			icon={<IconSolidFilter />}
 			defaultValue={RequestType.All}
 			value={requestTypes}
-			valueRender={valueRender}
+			selected={selected}
 			options={options}
 			onChange={handleRequestTypeChange}
 		/>

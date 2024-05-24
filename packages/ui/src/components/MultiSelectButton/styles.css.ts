@@ -28,6 +28,17 @@ export const selectButton = style({
 	},
 })
 
+export const selected = style({
+	backgroundColor: vars.theme.interactive.fill.primary.enabled,
+	color: colors.white,
+
+	selectors: {
+		'&:hover': {
+			background: vars.theme.interactive.fill.primary.hover,
+		},
+	},
+})
+
 export const selectPopover = style({
 	backgroundColor: colors.white,
 	border: vars.border.secondary,
