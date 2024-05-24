@@ -7,6 +7,7 @@ import {
 	ProgressBarTableRowGroup,
 	ProgressBarTableUserAvatar,
 } from '@components/ProgressBarTable/components/ProgressBarTableColumns'
+import { toast } from '@components/Toaster'
 import { useGetRageClicksForProjectQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgCursorClickIcon from '@icons/CursorClickIcon'
@@ -14,7 +15,6 @@ import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/
 import { getUserDisplayName } from '@pages/Home/utils/HomePageUtils'
 import { useParams } from '@util/react-router/useParams'
 import { validateEmail } from '@util/string'
-import { message } from 'antd'
 import { ColumnsType } from 'antd/es/table'
 import clsx from 'clsx'
 import moment from 'moment'
@@ -112,7 +112,7 @@ const RageClicksForProjectTable = ({
 							search: `query=${userParam}=${displayName}`,
 						})
 
-						message.success(
+						toast.success(
 							`Showing most recent session for ${displayName} with rage clicks.`,
 						)
 					}}

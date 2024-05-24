@@ -69,8 +69,6 @@ export const backgroundColors = {
 
 const staticProperties = defineProperties({
 	properties: {
-		alignItems: ['stretch', 'flex-start', 'center', 'flex-end'],
-		alignSelf: ['stretch', 'flex-start', 'center', 'flex-end'],
 		borderRadius: vars.borderRadius,
 		borderTopLeftRadius: vars.borderRadius,
 		borderTopRightRadius: vars.borderRadius,
@@ -95,22 +93,6 @@ const staticProperties = defineProperties({
 		flexGrow: [0, 1],
 		flexShrink: [0],
 		flexWrap: ['wrap', 'nowrap'],
-		justifyContent: [
-			'stretch',
-			'flex-start',
-			'center',
-			'flex-end',
-			'space-around',
-			'space-between',
-		],
-		justifySelf: [
-			'stretch',
-			'flex-start',
-			'center',
-			'flex-end',
-			'space-around',
-			'space-between',
-		],
 		padding: vars.space,
 		paddingTop: vars.space,
 		paddingBottom: vars.space,
@@ -167,7 +149,6 @@ const staticProperties = defineProperties({
 		wordBreak: ['normal', 'break-all', 'break-word'],
 	},
 	shorthands: {
-		align: ['alignItems'],
 		btr: ['borderTopLeftRadius', 'borderTopRightRadius'],
 		bbr: ['borderBottomLeftRadius', 'borderBottomRightRadius'],
 		brr: ['borderTopRightRadius', 'borderBottomRightRadius'],
@@ -225,8 +206,29 @@ const responsiveProperties = defineProperties({
 	conditions: mediaQueries,
 	defaultCondition: 'mobile',
 	properties: {
+		alignItems: ['stretch', 'flex-start', 'center', 'flex-end'],
+		alignSelf: ['stretch', 'flex-start', 'center', 'flex-end'],
 		flexDirection: ['row', 'column', 'column-reverse'],
 		gap: vars.space,
+		justifyContent: [
+			'stretch',
+			'flex-start',
+			'center',
+			'flex-end',
+			'space-around',
+			'space-between',
+		],
+		justifySelf: [
+			'stretch',
+			'flex-start',
+			'center',
+			'flex-end',
+			'space-around',
+			'space-between',
+		],
+	},
+	shorthands: {
+		align: ['alignItems'],
 	},
 })
 

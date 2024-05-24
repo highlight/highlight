@@ -26,22 +26,7 @@ export const EmptyDashboardCallout = () => {
 					maxWidth: '340px',
 				}}
 				title="No visualizations created"
-				icon={() => (
-					<Box
-						borderRadius="5"
-						style={{
-							alignItems: 'center',
-							backgroundColor: '#E9E9E9',
-							display: 'flex',
-							height: 22,
-							justifyContent: 'center',
-							textAlign: 'center',
-							width: 22,
-						}}
-					>
-						<IconSolidXCircle size={14} color="#777777" />
-					</Box>
-				)}
+				icon={IconSolidXCircle}
 			>
 				<Text color="n11">
 					It seems like this dashboard is empty. Get started by adding

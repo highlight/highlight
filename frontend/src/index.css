@@ -448,5 +448,16 @@ strong {
 
 /* override antd4 global anchor transition */
 a {
-	 transition: none !important;
- }
+	transition: none !important;
+}
+
+span.token.atom-input {
+	font-size: unset;
+	border-radius: unset;
+	border: unset;
+	width: unset;
+	padding: unset;
+	outline: unset;
+	background-color: unset;
+	caret-color: unset;
+}

@@ -619,13 +619,6 @@ type SearchParams {
 	query: String
 }
 
-type Segment {
-	id: ID!
-	name: String!
-	params: SearchParams!
-	project_id: ID!
-}
-
 type SavedSegment {
 	id: ID!
 	name: String!
@@ -2168,7 +2161,6 @@ type Query {
 	admin: Admin
 	admin_role(workspace_id: ID!): WorkspaceAdminRole
 	admin_role_by_project(project_id: ID!): WorkspaceAdminRole
-	segments(project_id: ID!): [Segment]
 	saved_segments(
 		project_id: ID!
 		entity_type: SavedSegmentEntityType!
@@ -2457,15 +2449,7 @@ type Mutation {
 	): Boolean!
 	deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
 	deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
-	createSegment(project_id: ID!, name: String!, query: String!): Segment
 	emailSignup(email: String!): String!
-	editSegment(
-		id: ID!
-		project_id: ID!
-		query: String!
-		name: String!
-	): Boolean
-	deleteSegment(segment_id: ID!): Boolean
 	createSavedSegment(
 		project_id: ID!
 		name: String!

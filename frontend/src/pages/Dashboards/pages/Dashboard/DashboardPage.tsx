@@ -6,6 +6,7 @@ import Button from '@components/Button/Button/Button'
 import ConfirmModal from '@components/ConfirmModal/ConfirmModal'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
+import { toast } from '@components/Toaster'
 import {
 	GetDashboardDefinitionsDocument,
 	useDeleteDashboardMutation,
@@ -31,7 +32,7 @@ import {
 } from '@pages/Dashboards/Metrics'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import { Dropdown, Menu, message } from 'antd'
+import { Dropdown, Menu } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout'
@@ -204,9 +205,9 @@ const DashboardPage = ({
 
 											setPersistedLayout(layout)
 
-											message.success(
+											toast.success(
 												'Dashboard layout updated!',
-												5,
+												{ duration: 5000 },
 											)
 										}}
 									>

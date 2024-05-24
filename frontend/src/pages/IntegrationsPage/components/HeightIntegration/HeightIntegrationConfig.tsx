@@ -2,6 +2,7 @@ import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
 import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
+import { toast } from '@components/Toaster'
 import { IntegrationProjectMappingInput, IntegrationType } from '@graph/schemas'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import PlugIcon from '@icons/PlugIcon'
@@ -15,7 +16,6 @@ import { useApplicationContext } from '@routers/AppRouter/context/ApplicationCon
 import { useParams } from '@util/react-router/useParams'
 import useMap from '@util/useMap'
 import { GetBaseURL } from '@util/window'
-import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 
@@ -138,14 +138,14 @@ const HeightIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 					onClick={() => {
 						removeIntegration()
 							.then(() => {
-								message.success(
+								toast.success(
 									'Disconnected the Height integration!',
 								)
 								setModalOpen(false)
 								setIntegrationEnabled(false)
 							})
 							.catch((reason: any) => {
-								message.error(String(reason))
+								toast.error(String(reason))
 							})
 					}}
 				>
@@ -285,11 +285,11 @@ export const HeightIntegrationSettings: React.FC<
 		})
 			.then(() => {
 				onSuccess && onSuccess()
-				message.success('Height settings saved!')
+				toast.success('Height settings saved!')
 				setModalOpen(false)
 			})
 			.catch((reason: any) => {
-				message.error(String(reason))
+				toast.error(String(reason))
 			})
 	}
 

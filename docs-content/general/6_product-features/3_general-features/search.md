@@ -2,7 +2,7 @@
 title: Search
 slug: search
 createdAt: 2023-01-16T09:00:00.000Z
-updatedAt: 2023-01-16T09:00:00.000Z
+updatedAt: 2024-05-15T00:00:00.000Z
 ---
 
 ## Basic Syntax
@@ -19,7 +19,7 @@ You can also enter a seach value without a key to search on a default key. For l
 gorm.Query
 ```
 
-Any custom attributes you send in logs and traces can be filters on as well.
+Any custom attributes you send in sessions, logs, and traces can be filters on as well.
 
 ```
 user_id=42
@@ -27,9 +27,11 @@ user_id=42
 
 ## Keys and Values
 
-Keys are identifiers, which can include any combination of alphanumeric characters, underscores (`_`), periods (`.`), dashes (`-`), and asterisks (`*`).
+Keys are identifiers, which can include any combination of alphanumeric characters, underscores (`_`),
+periods (`.`), dashes (`-`), and asterisks (`*`).
 
-Values can be strings with any character. In order to use spaces or special characters you must enclose the string in double quotes (`"`).
+Values can be strings with any character. In order to use spaces or special characters, you must enclose
+the string in quotes (`"`, `'`).
 
 ### Wildcards
 
@@ -38,6 +40,29 @@ You can use `*` in values to match on part of a pattern.
 * `span_name=gorm.*` matches all `span_name` values that start with `gorm.`
 * `span_name=*.Query` matches all `span_name` values that end with `.Query`
 * `span_name=*orm*` matches all values that contain `orm`
+
+Note that if you want to use a value with a space or special character, you will need to wrap the value
+in quotations.
+
+```
+tag="*query error*"
+visited-url="https://app.highlight.io/*"
+```
+
+### Regex Expressions
+
+You can search with regex expressions by using the matches query operator `=\[your regex here]\`.
+
+* `clickTextContent=/\w.+\w/` matches all `clickTextContent` that start and end with any word
+* `browser_version=/\d\.\d\.\d/` matches all `browser_versions` in the form `[0-9].[0-9].[0-9]`
+
+Note that if you want to use a regex expression with a space or special character, you will need to
+wrap the value in quotations.
+
+```
+tag="/\w \w/"
+visited-url="/https://app.highlight.io/\d/.+/"
+```
 
 ## Comparisons
 
@@ -114,9 +139,16 @@ Here are some examples of valid search queries:
 
 All of our search pages allow you to save a search and reuse it later. We call these **segments**. Create segments for common sets of filters you want to use across Highlight.
 
+## Special characters
+
+When using special characters in a value, the value should be wrapped in quotations. Special characters include spaces,
+operator characters (`!`, `=`, `:`, `<`, `>`), and parentheses.
+
 ## More Reading
 
 See the links below for more details on searching in specific parts of the product.
 
-* [Logs Search](../../6_product-features/4_logging/log-search.md)
-* [Traces Search](../../6_product-features/5_tracing/trace-search.md)
+* [Session search](../../6_product-features/1_session-replay/session-search.md)
+* [Error search](../../6_product-features/2_error-monitoring/error-search.md)
+* [Log Search](../../6_product-features/4_logging/log-search.md)
+* [Trace Search](../../6_product-features/5_tracing/trace-search.md)

@@ -4,11 +4,11 @@ import Input from '@components/Input/Input'
 import { CircularSpinner } from '@components/Loading/Loading'
 import Modal from '@components/Modal/Modal'
 import Select from '@components/Select/Select'
+import { toast } from '@components/Toaster'
 import { useSendAdminWorkspaceInviteMutation } from '@graph/hooks'
 import { AdminRole } from '@graph/schemas'
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils'
 import { titleCaseString } from '@util/string'
-import { message } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
 import { useEffect, useRef, useState } from 'react'
@@ -72,7 +72,7 @@ function InviteMemberModal({
 			},
 		}).then(() => {
 			setEmail('')
-			message.success(`Invite email sent to ${email}!`, 5)
+			toast.success(`Invite email sent to ${email}!`, { duration: 5000 })
 			emailRef.current?.focus()
 		})
 	}

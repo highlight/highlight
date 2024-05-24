@@ -59,7 +59,7 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 		ctx = context.TODO()
 	}
 
-	span, _ := highlight.StartTraceWithTimestamp(ctx, "highlight.go.log", entry.Time, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)})
+	span, _ := highlight.StartTraceWithTimestamp(ctx, highlight.LogrusSpanName, entry.Time, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)})
 	defer highlight.EndTrace(span)
 
 	msg := entry.Message

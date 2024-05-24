@@ -1119,7 +1119,6 @@ export type Mutation = {
 	createOrUpdateStripeSubscription?: Maybe<Scalars['String']>
 	createProject?: Maybe<Project>
 	createSavedSegment?: Maybe<SavedSegment>
-	createSegment?: Maybe<Segment>
 	createSessionAlert?: Maybe<SessionAlert>
 	createSessionComment?: Maybe<SessionComment>
 	createSessionCommentWithExistingIssue?: Maybe<SessionComment>
@@ -1135,7 +1134,6 @@ export type Mutation = {
 	deleteMetricMonitor?: Maybe<MetricMonitor>
 	deleteProject?: Maybe<Scalars['Boolean']>
 	deleteSavedSegment?: Maybe<Scalars['Boolean']>
-	deleteSegment?: Maybe<Scalars['Boolean']>
 	deleteSessionAlert?: Maybe<SessionAlert>
 	deleteSessionComment?: Maybe<Scalars['Boolean']>
 	deleteSessions: Scalars['Boolean']
@@ -1143,7 +1141,6 @@ export type Mutation = {
 	editProject?: Maybe<Project>
 	editProjectSettings?: Maybe<AllProjectSettings>
 	editSavedSegment?: Maybe<Scalars['Boolean']>
-	editSegment?: Maybe<Scalars['Boolean']>
 	editServiceGithubSettings?: Maybe<Service>
 	editWorkspace?: Maybe<Workspace>
 	editWorkspaceSettings?: Maybe<AllWorkspaceSettings>
@@ -1334,12 +1331,6 @@ export type MutationCreateSavedSegmentArgs = {
 	query: Scalars['String']
 }
 
-export type MutationCreateSegmentArgs = {
-	name: Scalars['String']
-	project_id: Scalars['ID']
-	query: Scalars['String']
-}
-
 export type MutationCreateSessionAlertArgs = {
 	input: SessionAlertInput
 }
@@ -1444,10 +1435,6 @@ export type MutationDeleteSavedSegmentArgs = {
 	segment_id: Scalars['ID']
 }
 
-export type MutationDeleteSegmentArgs = {
-	segment_id: Scalars['ID']
-}
-
 export type MutationDeleteSessionAlertArgs = {
 	project_id: Scalars['ID']
 	session_alert_id: Scalars['ID']
@@ -1498,13 +1485,6 @@ export type MutationEditProjectSettingsArgs = {
 
 export type MutationEditSavedSegmentArgs = {
 	entity_type: SavedSegmentEntityType
-	id: Scalars['ID']
-	name: Scalars['String']
-	project_id: Scalars['ID']
-	query: Scalars['String']
-}
-
-export type MutationEditSegmentArgs = {
 	id: Scalars['ID']
 	name: Scalars['String']
 	project_id: Scalars['ID']
@@ -2049,7 +2029,6 @@ export type Query = {
 	resources?: Maybe<Array<Maybe<Scalars['Any']>>>
 	saved_segments?: Maybe<Array<Maybe<SavedSegment>>>
 	search_issues: Array<IssuesSearchResult>
-	segments?: Maybe<Array<Maybe<Segment>>>
 	serverIntegration: IntegrationStatus
 	serviceByName?: Maybe<Service>
 	services?: Maybe<ServiceConnection>
@@ -2626,10 +2605,6 @@ export type QuerySearch_IssuesArgs = {
 	query: Scalars['String']
 }
 
-export type QuerySegmentsArgs = {
-	project_id: Scalars['ID']
-}
-
 export type QueryServerIntegrationArgs = {
 	project_id: Scalars['ID']
 }
@@ -3137,14 +3112,6 @@ export enum SavedSegmentEntityType {
 export type SearchParams = {
 	__typename?: 'SearchParams'
 	query?: Maybe<Scalars['String']>
-}
-
-export type Segment = {
-	__typename?: 'Segment'
-	id: Scalars['ID']
-	name: Scalars['String']
-	params: SearchParams
-	project_id: Scalars['ID']
 }
 
 export type Service = {

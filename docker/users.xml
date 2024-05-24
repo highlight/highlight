@@ -1,0 +1,13 @@
+<clickhouse>
+    <users>
+        <default>
+            <profile>default</profile>
+        </default>
+    </users>
+    <profiles>
+        <default>
+            <query_profiler_real_time_period_ns>1000000000</query_profiler_real_time_period_ns>
+            <query_profiler_cpu_time_period_ns>1000000000</query_profiler_cpu_time_period_ns>
+        </default>
+    </profiles>
+</clickhouse>

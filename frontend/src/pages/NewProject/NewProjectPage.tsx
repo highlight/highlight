@@ -1,8 +1,8 @@
-import { InfoCircleFilled } from '@ant-design/icons'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import { CardForm } from '@components/Card/Card'
 import Input from '@components/Input/Input'
 import { CircularSpinner } from '@components/Loading/Loading'
+import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -15,10 +15,10 @@ import {
 	useUpdateAllowedEmailOriginsMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { Box, Callout, Text } from '@highlight-run/ui/components'
+import { Box, Callout, Stack, Text } from '@highlight-run/ui/components'
 import analytics from '@util/analytics'
 import { client } from '@util/graph'
-import { Divider, message } from 'antd'
+import { Divider } from 'antd'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -64,7 +64,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 	useEffect(() => {
 		if (projectError || workspaceError) {
 			const err = projectError?.message ?? workspaceError?.message
-			message.error(err)
+			toast.error(err!)
 		}
 	}, [projectError, workspaceError])
 
@@ -223,25 +223,17 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 								className={styles.inputField}
 								placeholder={`${pageTypeCaps} name`}
 							/>
-							<Callout
-								style={{
-									border: 0,
-									padding: 0,
-								}}
-								icon={() => (
-									<InfoCircleFilled
-										style={{
-											color: '#6F6E77CC',
-										}}
-									/>
-								)}
-							>
-								<Text color="n11">
-									{isNewWorkspace
-										? `This is usually your company name (e.g. Pied Piper), and can contain multiple projects.`
-										: `This is usually a single application (e.g. web front end, landing page, etc.).`}
-								</Text>
-							</Callout>
+							<Stack gap="8" justify="flex-start">
+								<Callout style={{ padding: 0, border: 0 }}>
+									<Box mt="6">
+										<Text color="n11">
+											{isNewWorkspace
+												? `This is usually your company name (e.g. Pied Piper), and can contain multiple projects.`
+												: `This is usually a single application (e.g. web front end, landing page, etc.).`}
+										</Text>
+									</Box>
+								</Callout>
+							</Stack>
 						</Box>
 						{isNewWorkspace &&
 							(showPromoCode ? (

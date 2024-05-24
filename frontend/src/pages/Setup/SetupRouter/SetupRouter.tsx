@@ -1,4 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
+import { toast } from '@components/Toaster'
 import { useGetProjectQuery } from '@graph/hooks'
 import {
 	Box,
@@ -23,7 +24,6 @@ import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
-import { message } from 'antd'
 import clsx from 'clsx'
 import { useEffect } from 'react'
 import {
@@ -88,7 +88,7 @@ export const SetupRouter = () => {
 
 	const copyProjectId = () => {
 		window.navigator.clipboard.writeText(projectVerboseId!)
-		message.success('Project ID copied to your clipboard!')
+		toast.success('Project ID copied to your clipboard!')
 	}
 
 	return (
