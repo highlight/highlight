@@ -5063,8 +5063,21 @@ body {
     width: auto;
   }
 }
+._4k88201 {
+  height: 28px;
+}
+._4k88203[data-active-item] {
+  background-color: var(--_1pyqka93);
+}
+._4k88205 {
+  max-width: 320px;
+  min-width: 200px;
+  width: fit-content;
+  z-index: 6;
+}
 .in1xv90 {
   border: none;
+  box-sizing: border-box;
   font-size: 13px;
   font-weight: 500;
   color: var(--_1pyqka9b);

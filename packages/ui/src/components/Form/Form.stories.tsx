@@ -31,6 +31,21 @@ export const Basic = () => {
 						name="issueDescription"
 						label="Issue Description"
 					/>
+					<Form.Select
+						name="issueType"
+						label="Issue Type"
+						defaultValue="2"
+					>
+						<Form.Option>1</Form.Option>
+						<Form.Option>2</Form.Option>
+						<Form.Option>3</Form.Option>
+					</Form.Select>
+
+					<Form.Input
+						type="number"
+						name="issueNumber"
+						label="Issue Number"
+					/>
 				</Box>
 			</Form>
 		</Box>

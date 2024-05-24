@@ -31,10 +31,10 @@ export const Popover: React.FC<
 	return (
 		<Ariakit.ComboboxPopover {...props}>
 			{/*
-			There is a bug in v0.2.17 of Ariakit where you need to have this arrow
-			rendered or else positioning of the popover breaks. We render it, but hide
-			it by setting size={0}. This is an issue with anything using a popover
-			coming from the floating-ui library.
+			There is a bug in Ariakit where you need to have this arrow rendered or
+			else positioning of the popover breaks. We render it, but hide it by
+			setting size={0}. This is an issue with anything using a popover coming
+			from the floating-ui library.
 			*/}
 			<Ariakit.PopoverArrow size={0} />
 			{children}

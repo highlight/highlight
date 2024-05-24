@@ -7,6 +7,7 @@ import { fontWeights, typographyStyles } from '../Text/styles.css'
 export const inputVariants = recipe({
 	base: {
 		border: 'none',
+		boxSizing: 'border-box',
 		fontSize: 13,
 		fontWeight: fontWeights.medium,
 		color: vars.theme.static.content.default,
