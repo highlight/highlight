@@ -4,6 +4,10 @@ const POPOVER_WIDTH = 300
 
 export const selectButton = style({
 	border: 'none',
+	// mimic the minimal style button
+	borderRadius: 4,
+	marginLeft: 2,
+	padding: '0 4px',
 })
 
 export const selectPopover = style({

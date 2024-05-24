@@ -2,9 +2,9 @@ import Button from '@components/Button/Button/Button'
 import Input from '@components/Input/Input'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
+import { toast } from '@components/Toaster'
 import { useDeleteSessionsMutation } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { H } from 'highlight.run'
 import moment from 'moment'
 import { useState } from 'react'
@@ -54,11 +54,11 @@ const DeleteSessionsModal = ({
 				},
 			})
 			setVisible(false)
-			message.success('Session deletion request sent.')
+			toast.success('Session deletion request sent.')
 		} catch (e: any) {
 			H.consumeError(e)
 			console.error(e)
-			message.error(
+			toast.error(
 				'Failed to create a session deletion request. Please try again.',
 			)
 		}

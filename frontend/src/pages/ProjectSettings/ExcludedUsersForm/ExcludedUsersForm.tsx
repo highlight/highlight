@@ -1,10 +1,10 @@
 import { LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
+import { toast } from '@components/Toaster'
 import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
 import { Form, Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { useState } from 'react'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
@@ -104,11 +104,11 @@ export const ExcludedUsersForm = () => {
 											invalidRegexes.length - 1
 										]
 								) {
-									message.error(
+									toast.error(
 										"'" +
 											excluded[excluded.length - 1] +
 											"' is not a valid regular expression",
-										5,
+										{ duration: 5000 },
 									)
 								}
 								setInvalidExcludedUsers(invalidRegexes)

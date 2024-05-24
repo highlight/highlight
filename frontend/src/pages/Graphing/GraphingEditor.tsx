@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	Box,
 	Button,
@@ -23,9 +24,15 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
-import { Divider, message } from 'antd'
+import { Divider } from 'antd'
 import moment from 'moment'
-import React, { PropsWithChildren, useId, useMemo, useState } from 'react'
+import React, {
+	PropsWithChildren,
+	useId,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
@@ -457,7 +464,7 @@ export const GraphingEditor = () => {
 			nullHandling,
 			productType,
 			query: debouncedQuery,
-			title: metricViewTitle,
+			title: metricViewTitle || tempMetricViewTitle?.current,
 			type: viewType,
 		}
 
@@ -499,10 +506,10 @@ export const GraphingEditor = () => {
 			},
 		})
 			.then(() => {
-				message.success(`Metric view ${isEdit ? 'updated' : 'created'}`)
+				toast.success(`Metric view ${isEdit ? 'updated' : 'created'}`)
 			})
 			.catch(() => {
-				message.error('Failed to create metric view')
+				toast.error('Failed to create metric view')
 			})
 
 		navigate({
@@ -577,6 +584,7 @@ export const GraphingEditor = () => {
 
 	const [metric, setMetric] = useState('')
 	const [metricViewTitle, setMetricViewTitle] = useState('')
+	const tempMetricViewTitle = useRef<string>('')
 	const [groupByEnabled, setGroupByEnabled] = useState(false)
 	const [groupByKey, setGroupByKey] = useState('')
 
@@ -627,6 +635,22 @@ export const GraphingEditor = () => {
 		}
 		return baseArray.concat(numericKeys).slice(0, 8)
 	}, [numericKeys, keysQuery])
+
+	tempMetricViewTitle.current = useMemo(() => {
+		let newViewTitle = ''
+		const stringifiedFunctionType = functionType?.toString() ?? ''
+		newViewTitle = metricViewTitle || stringifiedFunctionType || ''
+		if (
+			newViewTitle === stringifiedFunctionType &&
+			stringifiedFunctionType
+		) {
+			newViewTitle += metric ? `(${metric})` : ''
+		}
+		newViewTitle = newViewTitle
+			? `${newViewTitle} Of ${productType?.toString() ?? ''}`
+			: newViewTitle
+		return newViewTitle
+	}, [functionType, metric, metricViewTitle, productType])
 
 	let display: string | undefined
 	let nullHandling: string | undefined
@@ -747,7 +771,10 @@ export const GraphingEditor = () => {
 									borderRadius="8"
 								>
 									<Graph
-										title={metricViewTitle}
+										title={
+											metricViewTitle ||
+											tempMetricViewTitle?.current
+										}
 										viewConfig={viewConfig}
 										productType={productType}
 										projectId={projectId}
@@ -807,7 +834,10 @@ export const GraphingEditor = () => {
 										<Input
 											type="text"
 											name="title"
-											placeholder="Untitled metric view"
+											placeholder={
+												tempMetricViewTitle?.current ||
+												'Untitled metric view'
+											}
 											value={metricViewTitle}
 											onChange={(e) => {
 												setMetricViewTitle(
