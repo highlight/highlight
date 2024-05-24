@@ -416,13 +416,13 @@ export const NewCommentForm = ({
 		setCommentText(e.target.value)
 	}
 
-	// const onFormChangeHandler: React.KeyboardEventHandler<HTMLFormElement> = (
-	// 	e,
-	// ) => {
-	// 	if (e.key === 'Enter' && e.metaKey) {
-	// 		handleSubmit()
-	// 	}
-	// }
+	const onFormChangeHandler: React.KeyboardEventHandler<HTMLFormElement> = (
+		e,
+	) => {
+		if (e.key === 'Enter' && e.metaKey) {
+			handleSubmit()
+		}
+	}
 
 	const placeholder = useMemo(
 		() => getNewCommentPlaceholderText(adminSuggestions, admin),
@@ -550,7 +550,7 @@ export const NewCommentForm = ({
 				name="newComment"
 				onSubmit={handleSubmit}
 				store={formStore}
-				// onKeyDown={onFormChangeHandler}
+				onKeyDown={onFormChangeHandler}
 			>
 				{section === CommentFormSection.NewIssueForm && (
 					<Box backgroundColor="white" borderRadius="8">
@@ -821,7 +821,7 @@ export const NewCommentForm = ({
 										isCreatingComment ||
 										commentText.length === 0
 									}
-									// onClick={handleSubmit}
+									onClick={handleSubmit}
 									icon={<IconSolidPaperAirplane />}
 								/>
 							</Stack>
