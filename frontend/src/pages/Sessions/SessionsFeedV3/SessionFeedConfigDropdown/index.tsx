@@ -1,4 +1,5 @@
 import Switch from '@components/Switch/Switch'
+import { toast } from '@components/Toaster'
 import { useGetWorkspaceSettingsQuery } from '@graph/hooks'
 import {
 	Box,
@@ -19,7 +20,6 @@ import { useApplicationContext } from '@routers/AppRouter/context/ApplicationCon
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { useGenerateSessionsReportCSV } from '@util/session/report'
-import { message } from 'antd'
 import { H } from 'highlight.run'
 import React, { useState } from 'react'
 
@@ -380,16 +380,16 @@ export const SessionFeedConfigDropdown = function () {
 							key="download"
 							className={styles.menuItem}
 							onClick={async () => {
-								message.info(
+								toast.info(
 									'Preparing CSV report, this may take a bit...',
 								)
 								try {
 									await generateSessionsReportCSV()
-									message.success(
+									toast.success(
 										'CSV report prepared, downloading...',
 									)
 								} catch (e) {
-									message.error(
+									toast.error(
 										`Failed to generate the CSV report: ${e}`,
 									)
 									H.consumeError(e as Error)

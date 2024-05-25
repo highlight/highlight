@@ -53,6 +53,7 @@ const svgToPng = async (svg: string) => {
 		browser = await puppeteer.launch({
 			channel: 'chrome',
 			headless: 'new',
+			args: ['--no-sandbox'],
 		})
 	} else {
 		browser = await puppeteer.launch({

@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	Box,
 	IconSolidClipboardCopy,
@@ -5,7 +6,6 @@ import {
 	Text,
 	Tooltip,
 } from '@highlight-run/ui/components'
-import { message as antdMessage } from 'antd'
 import { useEffect, useState } from 'react'
 
 import { findMatchingAttributes } from '@/components/JsonViewer/utils'
@@ -213,7 +213,7 @@ export const JsonViewerValue: React.FC<{
 										navigator.clipboard.writeText(
 											quoteQueryValue(value),
 										)
-										antdMessage.success(
+										toast.success(
 											'Value copied to your clipboard',
 										)
 										analytics.track(

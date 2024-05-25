@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	Box,
 	Button,
@@ -23,7 +24,7 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
-import { Divider, message } from 'antd'
+import { Divider } from 'antd'
 import moment from 'moment'
 import React, {
 	PropsWithChildren,
@@ -505,10 +506,10 @@ export const GraphingEditor = () => {
 			},
 		})
 			.then(() => {
-				message.success(`Metric view ${isEdit ? 'updated' : 'created'}`)
+				toast.success(`Metric view ${isEdit ? 'updated' : 'created'}`)
 			})
 			.catch(() => {
-				message.error('Failed to create metric view')
+				toast.error('Failed to create metric view')
 			})
 
 		navigate({

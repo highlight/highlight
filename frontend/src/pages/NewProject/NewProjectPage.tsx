@@ -2,6 +2,7 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import { CardForm } from '@components/Card/Card'
 import Input from '@components/Input/Input'
 import { CircularSpinner } from '@components/Loading/Loading'
+import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -17,7 +18,7 @@ import { namedOperations } from '@graph/operations'
 import { Box, Callout, Stack, Text } from '@highlight-run/ui/components'
 import analytics from '@util/analytics'
 import { client } from '@util/graph'
-import { Divider, message } from 'antd'
+import { Divider } from 'antd'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -63,7 +64,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 	useEffect(() => {
 		if (projectError || workspaceError) {
 			const err = projectError?.message ?? workspaceError?.message
-			message.error(err)
+			toast.error(err!)
 		}
 	}, [projectError, workspaceError])
 

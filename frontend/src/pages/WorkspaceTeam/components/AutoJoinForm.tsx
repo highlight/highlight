@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import Select from '@components/Select/Select'
+import { toast } from '@components/Toaster'
 import Tooltip from '@components/Tooltip/Tooltip'
 import {
 	useGetWorkspaceAdminsQuery,
@@ -8,7 +9,6 @@ import {
 import { namedOperations } from '@graph/operations'
 import { Box, Text } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
 import React, { useState } from 'react'
 
@@ -53,7 +53,7 @@ export const AutoJoinForm: React.FC = () => {
 				},
 				refetchQueries: [namedOperations.Query.GetWorkspaceAdmins],
 			}).then(() => {
-				message.success(msg)
+				toast.success(msg)
 			})
 		}
 	}

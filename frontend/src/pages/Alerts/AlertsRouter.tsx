@@ -3,8 +3,6 @@ import { useGetAlertsPagePayloadQuery } from '@graph/hooks'
 import { GetAlertsPagePayloadQuery } from '@graph/operations'
 import AlertsPage from '@pages/Alerts/Alerts'
 import { AlertsContextProvider } from '@pages/Alerts/AlertsContext/AlertsContext'
-import EditMonitorPage from '@pages/Alerts/EditMonitorPage'
-import NewMonitorPage from '@pages/Alerts/NewMonitorPage'
 import { useParams } from '@util/react-router/useParams'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -48,50 +46,6 @@ const AlertsRouter = () => {
 				<Route
 					path="monitor"
 					element={<Navigate to={`/${project_id}/alerts`} replace />}
-				/>
-				<Route
-					path="new/monitor"
-					element={
-						<NewMonitorPage
-							channelSuggestions={
-								data?.slack_channel_suggestion ?? []
-							}
-							discordChannelSuggestions={
-								data?.discord_channel_suggestions ?? []
-							}
-							isSlackIntegrated={
-								data?.is_integrated_with_slack ?? false
-							}
-							isDiscordIntegrated={
-								data?.is_integrated_with_discord ?? false
-							}
-							emailSuggestions={(data?.admins ?? []).map(
-								(wa) => wa.admin!.email,
-							)}
-						/>
-					}
-				/>
-				<Route
-					path="monitor/:id"
-					element={
-						<EditMonitorPage
-							channelSuggestions={
-								data?.slack_channel_suggestion ?? []
-							}
-							discordChannelSuggestions={
-								data?.discord_channel_suggestions ?? []
-							}
-							isSlackIntegrated={
-								data?.is_integrated_with_slack ?? false
-							}
-							isDiscordIntegrated={
-								data?.is_integrated_with_discord ?? false
-							}
-							emailSuggestions={(data?.admins ?? []).map(
-								(wa) => wa.admin!.email,
-							)}
-						/>
-					}
 				/>
 				<Route
 					path="new/logs"
