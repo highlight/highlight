@@ -79,6 +79,7 @@ export const TracesPage: React.FC = () => {
 	})
 	const minDate = presetStartDate(DEFAULT_TIME_PRESETS[5])
 	const timeMode: TIME_MODE = 'fixed-range' // TODO: Support permalink mode
+	const skipPolling = !selectedPreset || !!sortColumn
 
 	const {
 		traceEdges,
@@ -94,7 +95,7 @@ export const TracesPage: React.FC = () => {
 		traceCursor,
 		startDate,
 		endDate,
-		skipPolling: !selectedPreset,
+		skipPolling,
 		sortColumn,
 		sortDirection: sortDirection as SortDirection,
 	})

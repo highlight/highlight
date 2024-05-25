@@ -7,6 +7,7 @@ import { ErrorState } from '@components/ErrorState/ErrorState'
 import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
+import { toast } from '@components/Toaster'
 import {
 	useGetAlertsPagePayloadQuery,
 	useGetErrorGroupQuery,
@@ -38,7 +39,6 @@ import {
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -214,7 +214,7 @@ export default function ErrorsV2() {
 					search: searchParams.toString(),
 				})
 
-				message.success('Muted notifications for this comment thread.')
+				toast.success('Muted notifications for this comment thread.')
 			})
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps

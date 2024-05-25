@@ -928,9 +928,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 			if (nextSessionInList) {
 				pause(state.time).then(() => {
 					resetPlayer()
-					navigate(
-						`/${projectId}/sessions/${nextSessionInList.secure_id}`,
-					)
+					navigate({
+						pathname: `/${projectId}/sessions/${nextSessionInList.secure_id}`,
+						search: location.search,
+					})
 				})
 			}
 		}
