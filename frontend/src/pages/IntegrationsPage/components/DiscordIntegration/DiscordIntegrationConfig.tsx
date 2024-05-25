@@ -1,4 +1,5 @@
 import Button from '@components/Button/Button/Button'
+import { toast } from '@components/Toaster'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
@@ -8,7 +9,6 @@ import {
 } from '@pages/IntegrationsPage/components/Integration'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
-import { message } from 'antd'
 import React, { useEffect } from 'react'
 
 import styles from './DiscordIntegrationConfig.module.css'
@@ -61,7 +61,7 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 		) {
 			setIntegrationEnabled(true)
 			setModalOpen(false)
-			message.success('Discord integration enabled')
+			toast.success('Discord integration enabled')
 		}
 	}, [
 		isDiscordIntegratedWithProject,

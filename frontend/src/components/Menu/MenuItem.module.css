@@ -1,6 +1,0 @@
-.menuItem {
-	align-items: center;
-	column-gap: var(--size-xSmall) !important;
-	display: flex;
-	padding: var(--size-xSmall) var(--size-medium) !important;
-}

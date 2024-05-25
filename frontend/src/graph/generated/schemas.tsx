@@ -1627,7 +1627,6 @@ export type MutationSaveBillingPlanArgs = {
 }
 
 export type MutationSendAdminWorkspaceInviteArgs = {
-	base_url: Scalars['String']
 	email: Scalars['String']
 	role: Scalars['String']
 	workspace_id: Scalars['ID']

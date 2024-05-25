@@ -2330,7 +2330,6 @@ export type GetEnhancedUserDetailsQuery = { __typename?: 'Query' } & {
 export type SendAdminWorkspaceInviteMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	email: Types.Scalars['String']
-	base_url: Types.Scalars['String']
 	role: Types.Scalars['String']
 }>
 

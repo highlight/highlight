@@ -1,4 +1,5 @@
 import Button from '@components/Button/Button/Button'
+import { toast } from '@components/Toaster'
 import { PlanType } from '@graph/schemas'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
@@ -7,7 +8,6 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
-import { message } from 'antd'
 import React, { useEffect } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 
@@ -33,7 +33,7 @@ const ClearbitIntegrationConfig: React.FC<
 		) {
 			setIntegrationEnabled(true)
 			setModalOpen(false)
-			message.success('Clearbit integration enabled')
+			toast.success('Clearbit integration enabled')
 		}
 	}, [
 		isClearbitIntegratedWithWorkspace,

@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -8,12 +9,10 @@ import { Box, Stack, Text } from '@highlight-run/ui/components'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
 import { auth } from '@util/auth'
-import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { ABOUT_YOU_ROUTE } from '@/routers/AppRouter/AppRouter'
-import { showSupportBubble } from '@/util/window'
 
 import * as styles from './AuthRouter.css'
 
@@ -39,11 +38,6 @@ export const VerifyEmail: React.FC = () => {
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
-
-		// Show the Intercom message after 5 seconds in case the user needs help.
-		setTimeout(() => {
-			showSupportBubble()
-		}, 5000)
 	}, [setLoadingState])
 
 	return (
@@ -68,7 +62,7 @@ export const VerifyEmail: React.FC = () => {
 								auth.currentUser
 									?.sendEmailVerification()
 									.then(() => {
-										message.success(
+										toast.success(
 											`Sent another email to ${auth.currentUser?.email}!`,
 										)
 									})
@@ -85,7 +79,7 @@ export const VerifyEmail: React.FC = () => {
 													"There was a problem sending another email. Please try again. If you're still having trouble please reach out to us!"
 												break
 										}
-										message.error(msg)
+										toast.error(msg)
 									})
 									.finally(() => setLoading(false))
 							}}
