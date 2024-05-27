@@ -221,7 +221,7 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.2 // indirect
 	github.com/highlight-run/go-resthooks v0.0.0-20220523054100-bf95aa850a20
-	github.com/huandu/go-sqlbuilder v1.25.0
+	github.com/huandu/go-sqlbuilder v1.27.3
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
