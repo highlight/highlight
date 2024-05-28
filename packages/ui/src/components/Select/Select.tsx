@@ -10,26 +10,143 @@ import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
 
-type SelectBaseProps = Ariakit.SelectProps & {
-	trigger?: React.ComponentType
-	renderValue?: (
-		value: Ariakit.SelectStoreState['value'],
-	) => React.ReactElement | string | null
-	store?: Ariakit.SelectProviderProps['store']
-	value?: Ariakit.SelectProviderProps['value']
-	setValue?: Ariakit.SelectProviderProps['setValue']
+type SingleValue = Option | string
+type Value = SingleValue[]
+
+type SelectContext = {
+	selectValue: Ariakit.SelectStoreState['value']
+	checkType?: 'checkmark' | 'checkbox'
+	multi?: boolean
+	value?: SingleValue | Value
+	setValue?: (value: SingleValue | Value) => void
 }
+
+const SelectContext = React.createContext<SelectContext>({
+	selectValue: '',
+	checkType: 'checkmark',
+	multi: false,
+	value: undefined,
+	setValue: undefined,
+})
+
+const useSelectContext = () => {
+	const context = React.useContext(SelectContext)
+	if (!context) {
+		throw new Error(
+			'Select components must be used within a SelectProvider',
+		)
+	}
+	return context
+}
+
+const SelectProvider: React.FC<
+	React.PropsWithChildren<Omit<SelectContext, 'selectValue'>>
+> = ({
+	children,
+	checkType,
+	multi,
+	value: valueProp,
+	setValue: setValueProp,
+}) => {
+	const getOptionValue = (option: Option | string | undefined) => {
+		if (typeof option === 'object') {
+			return String(option.value)
+		}
+
+		return String(option)
+	}
+
+	const getSelectValue = (value: SingleValue | Value | undefined) => {
+		if (Array.isArray(value)) {
+			return value.map(getOptionValue)
+		}
+
+		return getOptionValue(value)
+	}
+
+	const [value, setValue] = useState<SingleValue | Value>(valueProp ?? '')
+	const [selectValue, setSelectValue] = useState<
+		Ariakit.SelectStoreState['value']
+	>(getSelectValue(valueProp))
+	const isMulti = multi ?? Array.isArray(value)
+
+	return (
+		<SelectContext.Provider
+			value={{
+				checkType,
+				multi: isMulti,
+				selectValue,
+				value,
+				setValue: (newValue) => {
+					let newInternalValue = newValue
+					if (Array.isArray(value)) {
+						const inArray = value.find((v) => {
+							typeof v === 'object'
+								? v.value === newValue
+								: v === newValue
+						})
+
+						newInternalValue = inArray
+							? (value.filter((v) =>
+									typeof v === 'object'
+										? v.value !== newValue
+										: v !== newValue,
+							  ) as Value)
+							: ([...value, newValue] as Value)
+					}
+
+					setValue(newInternalValue)
+					setSelectValue(getSelectValue(newValue))
+
+					if (setValueProp) {
+						setValueProp(newInternalValue)
+					}
+				},
+			}}
+		>
+			{children}
+		</SelectContext.Provider>
+	)
+}
+
+type SelectBaseProps = Ariakit.SelectProps & {
+	checkbox?: boolean
+	trigger?: React.ComponentType
+	store?: Ariakit.SelectProviderProps['store']
+	// TODO: Update these to be more generic. Allow assigning any Option value to
+	// the value prop. Also, consider adding a new context that can store some
+	// config for the components.
+	// TODO: Also consider allowing the component to be a multi select by passing
+	// a prop or an array for the value.
+	// TODO: Consider always making it a controlled input, never calling
+	// `setValue`, and manually setting the values in the store, but allowing any
+	// option values to be passed in, they just need to be transformable to string
+	// | string[].
+	renderValue?: (
+		value: Ariakit.SelectStoreState['value'] | Option,
+	) => React.ReactElement | string | null
+	defaultValue?: SelectContext['value']
+	value?: SelectContext['value']
+	setValue?: SelectContext['setValue']
+}
+
+type Option = {
+	name: string
+	value: string | number
+	[key: string]: any // eslint-disable-line @typescript-eslint/no-explicit-any
+}
+
+type OptionsProp = Option[] | string[]
 
 type FilterableSelectProps = SelectBaseProps & {
 	filterable: true
-	options: string[]
-	checkbox?: boolean
+	options: OptionsProp
 }
 
 type NonFilterableSelectProps = SelectBaseProps & {
 	children?: React.ReactNode
 	filterable?: false | undefined
-	options?: string[]
+	options?: OptionsProp
 }
 
 type SelectProps = FilterableSelectProps | NonFilterableSelectProps
@@ -38,7 +155,6 @@ type SelectComponent = React.FC<SelectProps> & {
 	Label: typeof Label
 	Group: typeof Group
 	GroupLabel: typeof GroupLabel
-	Provider: typeof Provider
 	Option: typeof Option
 	Popover: typeof Popover
 	Separator: typeof Separator
@@ -52,13 +168,63 @@ export const Select: SelectComponent = ({
 	filterable,
 	store,
 	value,
-	renderValue,
 	setValue,
 	...props
 }) => {
 	store = store ?? Ariakit.useSelectStore()
-	const selectValue = store.useState('value')
-	const Trigger = props.trigger ?? SelectButton
+	value = value ?? props.defaultValue
+
+	if (filterable) {
+		return (
+			<SelectProvider value={value} setValue={setValue}>
+				<FilterableSelect
+					{...(props as FilterableSelectProps)}
+					store={store}
+				/>
+			</SelectProvider>
+		)
+	}
+
+	return (
+		<SelectProvider value={value} setValue={setValue}>
+			<Provider store={store}>
+				<Trigger {...props} />
+				<Popover>
+					{props.options
+						? props.options.map((option) => {
+								const value =
+									typeof option === 'object'
+										? option.value
+										: option
+								const name =
+									typeof option === 'object'
+										? option.name
+										: option
+
+								return (
+									<Option
+										key={value}
+										value={String(value)}
+										checkbox={props.checkbox}
+									>
+										{name}
+									</Option>
+								)
+						  })
+						: children}
+				</Popover>
+			</Provider>
+		</SelectProvider>
+	)
+}
+
+const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
+	renderValue,
+	trigger,
+	...props
+}) => {
+	const Component = trigger ?? SelectTriggerButton
+	const { selectValue } = useSelectContext()
 
 	const renderSelectValue = (
 		selectValue: Ariakit.SelectStoreState['value'],
@@ -67,28 +233,41 @@ export const Select: SelectComponent = ({
 			return renderValue(selectValue)
 		}
 
+		if (props.options) {
+			const option = props.options.find((o) =>
+				typeof o === 'object'
+					? String(o.value) === selectValue
+					: o === selectValue,
+			)
+
+			if (option) {
+				return typeof option === 'object' ? option.name : option
+			}
+		}
+
 		const isArray = Array.isArray(selectValue)
 		if (isArray) {
-			return selectValue.join(', ')
+			return selectValue.length ? selectValue.join(', ') : 'Select...'
 		}
 
 		return selectValue
 	}
 
-	if (filterable) {
-		return (
-			<FilterableSelect
-				{...(props as FilterableSelectProps)}
-				store={store}
-			/>
-		)
-	}
+	return <Component>{renderSelectValue(selectValue)}</Component>
+}
+
+type ProviderProps = Ariakit.SelectProviderProps
+export const Provider: React.FC<ProviderProps> = ({ children, ...props }) => {
+	const { selectValue, setValue } = useSelectContext()
 
 	return (
-		<Provider value={value} setValue={setValue} store={store}>
-			<Trigger {...props}>{renderSelectValue(selectValue)}</Trigger>
-			<Popover>{children}</Popover>
-		</Provider>
+		<Ariakit.SelectProvider
+			value={selectValue}
+			setValue={setValue}
+			{...props}
+		>
+			{children}
+		</Ariakit.SelectProvider>
 	)
 }
 
@@ -133,13 +312,6 @@ export const SelectTriggerButton: React.FC<SelectTriggerProps> = ({
 	)
 }
 
-type ProviderProps = Ariakit.SelectProviderProps
-export const Provider: React.FC<ProviderProps> = ({ children, ...props }) => {
-	return (
-		<Ariakit.SelectProvider {...props}>{children}</Ariakit.SelectProvider>
-	)
-}
-
 type LableProps = Ariakit.SelectLabelProps
 export const Label: React.FC<LableProps> = ({ children, ...props }) => {
 	return <Ariakit.SelectLabel {...props}>{children}</Ariakit.SelectLabel>
@@ -148,11 +320,7 @@ export const Label: React.FC<LableProps> = ({ children, ...props }) => {
 export type ItemProps = Ariakit.SelectItemProps & {
 	checkbox?: boolean
 }
-export const Option: React.FC<ItemProps> = ({
-	checkbox,
-	children,
-	...props
-}) => {
+export const Option: React.FC<ItemProps> = ({ children, ...props }) => {
 	let value = props.value
 
 	if (!value && typeof children === 'string') {
@@ -172,8 +340,8 @@ export const Option: React.FC<ItemProps> = ({
 			className={styles.item}
 			{...props}
 		>
-			<ItemCheck checked={selected} checkbox={checkbox} />
-			{value ? <Text>{value}</Text> : children}
+			<ItemCheck checked={selected} />
+			{children ? children : <Text>{value}</Text>}
 		</Ariakit.SelectItem>
 	)
 }
@@ -273,14 +441,23 @@ export const FilterableSelect: React.FC<
 				</Box>
 
 				<Ariakit.ComboboxList>
-					{matches.map((value) => (
-						<Option
-							key={value}
-							value={value}
-							render={<Ariakit.ComboboxItem />}
-							checkbox={checkbox}
-						/>
-					))}
+					{matches.map((option) => {
+						const value =
+							typeof option === 'object' ? option.value : option
+						const name =
+							typeof option === 'object' ? option.name : option
+
+						return (
+							<Option
+								key={value}
+								value={String(value)}
+								render={<Ariakit.ComboboxItem />}
+								checkbox={checkbox}
+							>
+								{name}
+							</Option>
+						)
+					})}
 				</Ariakit.ComboboxList>
 			</Select>
 		</Ariakit.ComboboxProvider>
@@ -291,7 +468,6 @@ Select.Label = Label
 Select.Group = Group
 Select.GroupLabel = GroupLabel
 Select.Separator = Separator
-Select.Provider = Provider
 Select.Option = Option
 Select.Popover = Popover
 Select.SelectTriggerButton = SelectTriggerButton

@@ -11,11 +11,20 @@ export default {
 	component: Select,
 } as Meta<typeof Select>
 
-export const Basic = () => {
-	const [value, setValue] = useState<Ariakit.SelectStoreState['value']>('Jay')
+const OPTIONS = [
+	'Jay',
+	'Vadim',
+	'Julian',
+	'Zane',
+	'Spenny',
+	'Esplin',
+	'Mike',
+	'Chris',
+]
 
+export const Basic = () => {
 	return (
-		<Select value={value} setValue={setValue}>
+		<Select defaultValue="Jay">
 			<Options />
 		</Select>
 	)
@@ -85,17 +94,14 @@ export const Filterable = () => {
 }
 
 export const FilterableMultiSelectWithCheckboxes = () => {
-	const [value, setValue] = useState<Ariakit.SelectStoreState['value']>([
-		'Jay',
-		'Vadim',
-	])
+	const [value, setValue] = useState<string[]>(['Jay', 'Vadim'])
 
 	return (
 		<FilterableSelect
 			options={OPTIONS}
 			checkbox
 			value={value}
-			setValue={setValue}
+			setValue={(newValue) => setValue(newValue)}
 			renderValue={(values) => {
 				return <>{Number(values.length)} selected</>
 			}}
@@ -103,16 +109,23 @@ export const FilterableMultiSelectWithCheckboxes = () => {
 	)
 }
 
-const OPTIONS = [
-	'Jay',
-	'Vadim',
-	'Julian',
-	'Zane',
-	'Spenny',
-	'Esplin',
-	'Mike',
-	'Chris',
-]
+type User = {
+	name: string
+	value: number
+}
+const users: User[] = OPTIONS.map((name, i) => ({
+	name,
+	value: i + 1,
+}))
+export const SelectWithObjectValues = () => {
+	return (
+		<Select
+			value={{ name: 'Chris', value: 'test', a: 'b' }}
+			options={users}
+		/>
+	)
+}
+
 const Options = () => (
 	<>
 		{OPTIONS.map((option) => (

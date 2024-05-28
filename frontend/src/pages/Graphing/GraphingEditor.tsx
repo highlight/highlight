@@ -917,16 +917,8 @@ export const GraphingEditor = () => {
 										<Select
 											value={functionType}
 											setValue={setFunctionType}
-										>
-											{FUNCTION_TYPES.map((option) => (
-												<Select.Option
-													key={option}
-													value={option}
-												>
-													{option}
-												</Select.Option>
-											))}
-										</Select>
+											options={FUNCTION_TYPES}
+										/>
 										{functionType !==
 											MetricAggregator.Count && (
 											<Combobox
