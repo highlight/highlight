@@ -66,56 +66,54 @@ export const LoadingPage = React.memo<{ show?: boolean; className?: string }>(
 
 		return (
 			<AnimatePresence>
-				{shouldShow ? (
+				<motion.div
+					key="loadingWrapper"
+					className={clsx(styles.loadingWrapper, className)}
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					exit={{ opacity: 0, display: 'none' }}
+					transition={{
+						duration: 1.5 * speedFactor,
+					}}
+				>
 					<motion.div
-						key="loadingWrapper"
-						className={clsx(styles.loadingWrapper, className)}
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0, display: 'none' }}
+						key="container"
+						className={styles.logoContainer}
 						transition={{
-							duration: 1.5 * speedFactor,
+							duration: 5 * speedFactor,
+							repeat: Infinity,
+							repeatType: 'mirror',
 						}}
+						initial={{ scale: 1 }}
+						animate={{ scale: 0.8 }}
+						exit={{ scale: 1 }}
 					>
 						<motion.div
-							key="container"
-							className={styles.logoContainer}
-							transition={{
-								duration: 5 * speedFactor,
-								repeat: Infinity,
-								repeatType: 'mirror',
-							}}
-							initial={{ scale: 1 }}
-							animate={{ scale: 0.8 }}
-							exit={{ scale: 1 }}
+							key="logo"
+							className={styles.logo}
+							initial={{ scale: 1.5 }}
+							animate={{ scale: 1 }}
+							transition={{ duration: 0.4 * speedFactor }}
 						>
-							<motion.div
-								key="logo"
-								className={styles.logo}
-								initial={{ scale: 1.5 }}
-								animate={{ scale: 1 }}
-								transition={{ duration: 0.4 * speedFactor }}
-							>
-								<SvgHighlightLogoWithNoBackground />
-							</motion.div>
-							<motion.div
-								key="background"
-								className={styles.logoBackground}
-								initial={{ opacity: 0, scale: 0 }}
-								animate={{ opacity: 1, scale: 1 }}
-								transition={{ duration: 0.4 * speedFactor }}
-							/>
+							<SvgHighlightLogoWithNoBackground />
 						</motion.div>
 						<motion.div
-							key="primaryBackground"
-							className={styles.background}
-							initial={{ opacity: 0, scale: 2 }}
+							key="background"
+							className={styles.logoBackground}
+							initial={{ opacity: 0, scale: 0 }}
 							animate={{ opacity: 1, scale: 1 }}
-							exit={{ opacity: 0, scale: 2 }}
-							transition={{ duration: speedFactor }}
+							transition={{ duration: 0.4 * speedFactor }}
 						/>
 					</motion.div>
-				) : null}
+					<motion.div
+						key="primaryBackground"
+						className={styles.background}
+						initial={{ opacity: 0, scale: 2 }}
+						animate={{ opacity: 1, scale: 1 }}
+						exit={{ opacity: 0, scale: 2 }}
+						transition={{ duration: speedFactor }}
+					/>
+				</motion.div>
 			</AnimatePresence>
 		)
 	},
