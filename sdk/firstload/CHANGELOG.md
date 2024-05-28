@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.13.0
+
+### Minor Changes
+
+-   8905154ff: make browser sdk more robust to avoid broken sessions
+
 ## 8.12.4
 
 ### Patch Changes
