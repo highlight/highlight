@@ -87,7 +87,7 @@ jobs:
               run: yarn workspace render zip && yarn workspace render check
 
             - name: Update changesets
-              id: changesets
+              id: changesets-version
               uses: changesets/action@v1
               with:
                   version: yarn changeset version
@@ -125,7 +125,7 @@ jobs:
 
             - name: Publish changesets
               if: github.ref == 'refs/heads/main'
-              id: changesets
+              id: changesets-publish
               uses: changesets/action@v1
               with:
                   publish: yarn publish:turbo
