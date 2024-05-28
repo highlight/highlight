@@ -237,7 +237,7 @@ const DevToolsWindowV2: React.FC<
 										borderTop="dividerWeak"
 										direction="row"
 										gap="4"
-										py="4"
+										py="8"
 									>
 										<Box display="flex" width="full">
 											<Form
