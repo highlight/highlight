@@ -30,7 +30,6 @@ export type InitializeMessage = {
 export type AsyncEventsMessage = {
 	type: MessageType.AsyncEvents
 	id: number
-	isBeacon: boolean
 	hasSessionUnloaded: boolean
 	highlightLogs: string
 	events: eventWithTime[]

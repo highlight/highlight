@@ -286,7 +286,7 @@ const H: HighlightPublicInterface = {
 		}
 	},
 	start: (options) => {
-		if (highlight_obj?.state === 'Recording') {
+		if (highlight_obj?.state === 'Recording' && !options?.forceNew) {
 			if (!options?.silent) {
 				console.warn(
 					'Highlight is already recording. Please `H.stop()` the current session before starting a new one.',
@@ -410,10 +410,10 @@ const H: HighlightPublicInterface = {
 	getRecordingState: () => {
 		return highlight_obj.state
 	},
-	onHighlightReady: async (func, options) => {
+	onHighlightReady: (func, options) => {
 		onHighlightReadyQueue.push({ options, func })
 		if (onHighlightReadyTimeout === undefined) {
-			const fn = async () => {
+			const fn = () => {
 				const newOnHighlightReadyQueue: {
 					options?: OnHighlightReadyOptions
 					func: () => void | Promise<void>
@@ -424,17 +424,13 @@ const H: HighlightPublicInterface = {
 						(f.options?.waitForReady === false ||
 							highlight_obj.ready)
 					) {
-						try {
-							await f.func()
-						} catch (e) {
-							HighlightWarning('onHighlightReady', e)
-						}
+						f.func()
 					} else {
 						newOnHighlightReadyQueue.push(f)
 					}
 				}
-				onHighlightReadyTimeout = undefined
 				onHighlightReadyQueue = newOnHighlightReadyQueue
+				onHighlightReadyTimeout = undefined
 				if (onHighlightReadyQueue.length > 0) {
 					onHighlightReadyTimeout = setTimeout(
 						fn,
@@ -442,7 +438,7 @@ const H: HighlightPublicInterface = {
 					) as unknown as number
 				}
 			}
-			await fn()
+			fn()
 		}
 	},
 }

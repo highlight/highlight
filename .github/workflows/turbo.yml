@@ -152,6 +152,19 @@ jobs:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: '**/go.sum'
 
+            - name: Install poetry
+              run: pipx install poetry
+
+            - name: Install python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: '3.10'
+                  cache: 'poetry'
+
+            - name: Install dependencies
+              working-directory: ./e2e/tests
+              run: poetry install --all-extras
+
             - name: Install ffmpeg
               run: |
                   curl -o ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz
@@ -205,6 +218,13 @@ jobs:
 
                   # run cypress tests
                   yarn cy:run;
+
+                  # run python functional tests that ensure cypress session is correct
+                  pushd ./e2e/tests
+                  export HIGHLIGHT_OAUTH_CLIENT_ID=abc123
+                  export HIGHLIGHT_OAUTH_CLIENT_SECRET=def456
+                  poetry run pytest -k cypress .
+                  popd
 
                   # look for containers that crashed
                   num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)
@@ -320,7 +340,7 @@ jobs:
                   pushd ./e2e/tests
                   export HIGHLIGHT_OAUTH_CLIENT_ID=abc123
                   export HIGHLIGHT_OAUTH_CLIENT_SECRET=def456
-                  poetry run pytest .
+                  poetry run pytest -k "not cypress" .
                   popd
 
                   # look for containers that crashed
