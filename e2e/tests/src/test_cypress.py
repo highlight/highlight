@@ -13,6 +13,11 @@ from query_gql import (
 from util import query
 
 
+def validate_sessions(data: dict[str, any]):
+    sessions = data["sessions_clickhouse"]["sessions"]
+    assert sessions
+
+
 def validate_session(data: dict[str, any]):
     session = data["session"]
     assert session["secure_id"] != session["client_id"]
@@ -59,11 +64,10 @@ def test_cypress_session_attributes(oauth_api):
             "project_id": 1,
             "sort_desc": True,
         },
+        validator=validate_sessions,
     )
-    sessions = data["sessions_clickhouse"]["sessions"]
-    assert sessions
 
-    for session in sessions:
+    for session in data["sessions_clickhouse"]["sessions"]:
         query(
             oauth_api,
             "GetSession",
