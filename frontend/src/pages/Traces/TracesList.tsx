@@ -9,14 +9,17 @@ import {
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { isEqual } from 'lodash'
-import React, { Key, useCallback, useMemo, useRef } from 'react'
+import React, { Key, useCallback, useEffect, useMemo, useRef } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import {
 	ColumnHeader,
 	CustomColumnHeader,
 } from '@/components/CustomColumnHeader'
-import { CustomColumnPopover } from '@/components/CustomColumnPopover'
+import {
+	CustomColumnPopover,
+	DEFAULT_COLUMN_SIZE,
+} from '@/components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
@@ -79,6 +82,42 @@ export const TracesList: React.FC<Props> = ({
 		`highlight-traces-table-columns`,
 		DEFAULT_TRACE_COLUMNS,
 	)
+	const [windowSize, setWindowSize] = useLocalStorage(
+		'highlight-traces-window-size',
+		window.innerWidth,
+	)
+
+	// track the window size
+	useEffect(() => {
+		if (!!setSelectedColumns) {
+			const handleResize = () => {
+				setWindowSize(window.innerWidth)
+			}
+
+			window.addEventListener('resize', handleResize)
+
+			return () => {
+				window.removeEventListener('resize', handleResize)
+			}
+		}
+	}, [setSelectedColumns, setWindowSize])
+
+	// reset columns when window size changes
+	useEffect(() => {
+		if (!!setSelectedColumns) {
+			const newSelectedColumns = selectedColumns.map((column) => ({
+				...column,
+				size:
+					HIGHLIGHT_STANDARD_COLUMNS[column.id]?.size ??
+					DEFAULT_COLUMN_SIZE,
+			}))
+
+			setSelectedColumns(newSelectedColumns)
+		}
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [windowSize])
+
 	const [sortColumn, setSortColumn] = useQueryParam(SORT_COLUMN, StringParam)
 	const [sortDirection, setSortDirection] = useQueryParam(
 		SORT_DIRECTION,

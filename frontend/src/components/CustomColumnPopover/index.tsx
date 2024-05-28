@@ -18,6 +18,8 @@ import { useSearchTime } from '@/hooks/useSearchTime'
 
 import * as styles from './styles.css'
 
+export const DEFAULT_COLUMN_SIZE = '1fr'
+
 type CustomColumn<T> = {
 	id: string
 	label: string
@@ -114,7 +116,7 @@ export const CustomColumnPopover: React.FC<Props> = ({
 				id: key.name,
 				label: key.name,
 				type: 'string',
-				size: '1fr',
+				size: DEFAULT_COLUMN_SIZE,
 				accessKey: `${attributePrefix}.${key.name}`,
 			} as ValidCustomColumn
 		})
