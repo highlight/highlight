@@ -408,7 +408,7 @@ const H: HighlightPublicInterface = {
 		})
 	},
 	getRecordingState: () => {
-		return highlight_obj.state
+		return highlight_obj?.state ?? 'NotRecording'
 	},
 	onHighlightReady: (func, options) => {
 		onHighlightReadyQueue.push({ options, func })
