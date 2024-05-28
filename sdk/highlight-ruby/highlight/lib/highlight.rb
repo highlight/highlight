@@ -86,7 +86,7 @@ module Highlight
         span.status = OpenTelemetry::Trace::Status.error(message) if [Logger::ERROR, Logger::FATAL].include?(level)
         span.add_event(LOG_EVENT, attributes: {
           LOG_SEVERITY_ATTRIBUTE => H.log_level_string(level),
-          LOG_MESSAGE_ATTRIBUTE => message,
+          LOG_MESSAGE_ATTRIBUTE => message.to_s,
           CODE_FILEPATH => caller_info[0],
           CODE_LINENO => caller_info[1],
           CODE_FUNCTION => function
