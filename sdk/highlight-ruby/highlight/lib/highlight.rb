@@ -70,6 +70,7 @@ module Highlight
       span.record_exception(e, attributes: attrs)
     end
 
+    # rubocop:disable Metrics/AbcSize
     def record_log(session_id, request_id, level, message, attrs = {})
       caller_info = caller[0].split(':', 3)
       function = caller_info[2]
@@ -93,6 +94,7 @@ module Highlight
         }.merge(attrs))
       end
     end
+    # rubocop:enable Metrics/AbcSize
 
     HighlightHeaders = Struct.new('HighlightHeaders', :session_id, :request_id)
     def self.parse_headers(headers)
