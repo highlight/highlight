@@ -262,7 +262,7 @@ export const SettingsRouter = () => {
 								state={{
 									previousPath: `/${project.key}/sessions`,
 								}}
-						>
+							>
 								<Stack direction="row" align="center" gap="4">
 									<ProjectColorLabel
 										seed={project.title || ''}
