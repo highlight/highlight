@@ -4,7 +4,6 @@ import {
 	IconSolidFilter,
 	MultiSelectButton,
 } from '@highlight-run/ui/components'
-import { titilize } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 
 type Props = {
 	logSources: LogSource[]
@@ -36,21 +35,13 @@ const LogSourceFilter = ({ logSources, setLogSources }: Props) => {
 		),
 	}))
 
-	const valueRender = () => {
-		if (logSources.length === 1) {
-			return `${FILTER_LABEL}: ${titilize(logSources[0])}`
-		}
-
-		return `${FILTER_LABEL}: ${logSources.length} selected`
-	}
-
 	return (
 		<MultiSelectButton
 			label={FILTER_LABEL}
 			icon={<IconSolidFilter />}
 			defaultValue={options[0].key}
 			value={logSources}
-			valueRender={valueRender}
+			selected={!!logSources.length}
 			options={options}
 			onChange={handleRequestTypeChange}
 		/>
