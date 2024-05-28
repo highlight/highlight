@@ -59,6 +59,7 @@ import {
 	getPreviousSessionData,
 	SessionData,
 	setSessionData,
+	setSessionSecureID,
 } from './utils/sessionStorage/highlightSession'
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker'
 import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
@@ -632,7 +633,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					recordingStartTime: this._recordingStartTime,
 				},
 			})
-			setSessionData(this.sessionData)
+
+			// store the secure ID for network patches without updating full session data until tab close
+			// to make sure new tabs create new sessions
+			setSessionSecureID(this.sessionData.sessionSecureID)
 
 			if (this.sessionData.userIdentifier) {
 				this.identify(

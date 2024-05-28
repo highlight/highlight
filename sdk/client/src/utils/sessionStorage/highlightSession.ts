@@ -31,9 +31,13 @@ export const setSessionData = function (sessionData: SessionData | null) {
 		return
 	}
 	setItem(SESSION_STORAGE_KEYS.SESSION_DATA, JSON.stringify(sessionData))
-	setItem(SESSION_STORAGE_KEYS.SESSION_SECURE_ID, sessionData.sessionSecureID)
+	setSessionSecureID(sessionData.sessionSecureID)
 }
 
 export const getSessionSecureID = function () {
 	return getItem(SESSION_STORAGE_KEYS.SESSION_SECURE_ID) ?? ''
+}
+
+export const setSessionSecureID = function (sessionSecureID: string) {
+	return setItem(SESSION_STORAGE_KEYS.SESSION_SECURE_ID, sessionSecureID)
 }
