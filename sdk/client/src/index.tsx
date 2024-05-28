@@ -21,10 +21,10 @@ import {
 	Integration,
 	Metadata,
 	Metric,
+	PrivacySettingOption,
 	SamplingStrategy,
 	SessionDetails,
 	StartOptions,
-	PrivacySettingOption,
 } from './types/types'
 import { PathListener } from './listeners/path-listener'
 import { GraphQLClient } from 'graphql-request'
@@ -35,7 +35,6 @@ import {
 	PushPayloadMutationVariables,
 	Sdk,
 } from './graph/generated/operations'
-import StackTrace from 'stacktrace-js'
 import stringify from 'json-stringify-safe'
 import { print } from 'graphql'
 import { determineMaskInputOptions } from './utils/privacy'
@@ -59,6 +58,8 @@ import { getSimpleSelector } from './utils/dom'
 import {
 	getPreviousSessionData,
 	SessionData,
+	setSessionData,
+	setSessionSecureID,
 } from './utils/sessionStorage/highlightSession'
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker'
 import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
@@ -80,6 +81,13 @@ import {
 	IFRAME_PARENT_RESPONSE,
 } from './types/iframe'
 import { getItem, removeItem, setItem, setStorageMode } from './utils/storage'
+import {
+	FIRST_SEND_FREQUENCY,
+	MAX_SESSION_LENGTH,
+	SEND_FREQUENCY,
+	SNAPSHOT_SETTINGS,
+	VISIBILITY_DEBOUNCE_MS,
+} from './constants/sessions'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -128,42 +136,7 @@ type HighlightClassOptionsInternal = Omit<
 	'firstloadVersion'
 >
 
-/**
- *  The amount of time to wait until sending the first payload.
- */
-const FIRST_SEND_FREQUENCY = 1000
-/**
- * The amount of time between sending the client-side payload to Highlight backend client.
- * In milliseconds.
- */
-const SEND_FREQUENCY = 1000 * 2
-
-/**
- * Maximum length of a session
- */
-const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000
-const EXTENDED_MAX_SESSION_LENGTH = 12 * 60 * 60 * 1000
-
 const HIGHLIGHT_URL = 'app.highlight.run'
-
-/*
- * Don't take another full snapshot unless it's been at least
- * 4 minutes AND the cumulative payload size since the last
- * snapshot is > 10MB.
- */
-const SNAPSHOT_SETTINGS = {
-	normal: {
-		bytes: 10e6,
-		time: 4 * 60 * 1000,
-	},
-	canvas: {
-		bytes: 16e6,
-		time: 5000,
-	},
-} as const
-
-// Debounce duplicate visibility events
-const VISIBILITY_DEBOUNCE_MS = 100
 
 export class Highlight {
 	options!: HighlightClassOptions
@@ -341,7 +314,7 @@ export class Highlight {
 		this._firstLoadListeners = new FirstLoadListeners(this.options)
 		await this.initialize()
 		if (user_identifier && user_object) {
-			await this.identify(user_identifier, user_object)
+			this.identify(user_identifier, user_object)
 		}
 	}
 
@@ -528,6 +501,13 @@ export class Highlight {
 	}
 
 	async initialize(options?: StartOptions): Promise<undefined> {
+		this.logger.log(
+			`Initializing...`,
+			options,
+			this.sessionData,
+			this.options,
+		)
+
 		if (
 			(navigator?.webdriver && !window.Cypress) ||
 			navigator?.userAgent?.includes('Googlebot') ||
@@ -538,18 +518,8 @@ export class Highlight {
 		}
 
 		try {
-			// disable recording for filtered projects while allowing for reloaded sessions
-			if (!this.reloaded && this.organizationID === '6glrjqg9') {
-				if (Math.random() >= 0.02) {
-					this._firstLoadListeners?.stopListening()
-					return
-				}
-			}
-
 			if (options?.forceNew) {
 				await this._reset(options)
-				// effectively 'restart' recording by starting the new payload with a full snapshot
-				this.takeFullSnapshot()
 				return
 			}
 
@@ -574,7 +544,7 @@ export class Highlight {
 			}
 
 			// To handle the 'Duplicate Tab' function, remove id from storage until page unload
-			removeItem(SESSION_STORAGE_KEYS.SESSION_DATA)
+			setSessionData(null)
 
 			// Duplicate of logic inside FirstLoadListeners.setupNetworkListener,
 			// needed for initializeSession
@@ -625,7 +595,8 @@ export class Highlight {
 					this.sessionData.sessionSecureID
 				) {
 					this.logger.log(
-						`Unexpected secure id returned by initializeSession: ${gr.initializeSession.secure_id}`,
+						`Unexpected secure id returned by initializeSession: ${gr.initializeSession.secure_id}, ` +
+							`expected ${this.sessionData.sessionSecureID}`,
 					)
 				}
 				this.sessionData.sessionSecureID =
@@ -662,10 +633,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					recordingStartTime: this._recordingStartTime,
 				},
 			})
-			setItem(
-				SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
-				this.sessionData.sessionSecureID,
-			)
+
+			// store the secure ID for network patches without updating full session data until tab close
+			// to make sure new tabs create new sessions
+			setSessionSecureID(this.sessionData.sessionSecureID)
 
 			if (this.sessionData.userIdentifier) {
 				this.identify(
@@ -723,71 +694,71 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			}
 			emit.bind(this)
 
-			if (!this._recordStop) {
-				let logger = undefined
-				if (
+			// if we were already recording, stop recording to reset rrweb state (eg. reset _sid)
+			if (this._recordStop) {
+				this._recordStop()
+				this._recordStop = undefined
+			}
+
+			const [maskAllInputs, maskInputOptions] = determineMaskInputOptions(
+				this.privacySetting,
+			)
+			this._recordStop = record({
+				ignoreClass: 'highlight-ignore',
+				blockClass: 'highlight-block',
+				emit,
+				recordCrossOriginIframes: this.options.recordCrossOriginIframe,
+				privacySetting: this.privacySetting,
+				maskAllInputs,
+				maskInputOptions: maskInputOptions,
+				recordCanvas: this.enableCanvasRecording,
+				sampling: {
+					canvas: {
+						fps: this.samplingStrategy.canvas,
+						fpsManual: this.samplingStrategy.canvasManualSnapshot,
+						resizeFactor: this.samplingStrategy.canvasFactor,
+						clearWebGLBuffer:
+							this.samplingStrategy.canvasClearWebGLBuffer,
+						initialSnapshotDelay:
+							this.samplingStrategy.canvasInitialSnapshotDelay,
+						dataURLOptions: {
+							type: 'image/webp',
+							quality: 0.9,
+						},
+						maxSnapshotDimension:
+							this.samplingStrategy.canvasMaxSnapshotDimension,
+					},
+				},
+				keepIframeSrcFn: (_src: string) => {
+					return !this.options.recordCrossOriginIframe
+				},
+				inlineImages: this.inlineImages,
+				inlineStylesheet: this.inlineStylesheet,
+				plugins: [getRecordSequentialIdPlugin()],
+				logger:
 					(typeof this.options.debug === 'boolean' &&
 						this.options.debug) ||
 					(typeof this.options.debug === 'object' &&
 						this.options.debug.domRecording)
-				) {
-					logger = {
-						debug: this.logger.log,
-						warn: HighlightWarning,
-					}
-				}
-				const [maskAllInputs, maskInputOptions] =
-					determineMaskInputOptions(this.privacySetting)
+						? {
+								debug: this.logger.log,
+								warn: HighlightWarning,
+						  }
+						: undefined,
+			})
+			// recordStop is not part of listeners because we do not actually want to stop rrweb
+			// rrweb has some bugs that make the stop -> restart workflow broken (eg iframe listeners)
+			const viewport = {
+				height: window.innerHeight,
+				width: window.innerWidth,
+			}
+			this.addCustomEvent('Viewport', viewport)
+			this.submitViewportMetrics(viewport)
 
-				this._recordStop = record({
-					ignoreClass: 'highlight-ignore',
-					blockClass: 'highlight-block',
-					emit,
-					recordCrossOriginIframes:
-						this.options.recordCrossOriginIframe,
-					privacySetting: this.privacySetting,
-					maskAllInputs,
-					maskInputOptions: maskInputOptions,
-					recordCanvas: this.enableCanvasRecording,
-					sampling: {
-						canvas: {
-							fps: this.samplingStrategy.canvas,
-							fpsManual:
-								this.samplingStrategy.canvasManualSnapshot,
-							resizeFactor: this.samplingStrategy.canvasFactor,
-							clearWebGLBuffer:
-								this.samplingStrategy.canvasClearWebGLBuffer,
-							initialSnapshotDelay:
-								this.samplingStrategy
-									.canvasInitialSnapshotDelay,
-							dataURLOptions: {
-								type: 'image/webp',
-								quality: 0.9,
-							},
-							maxSnapshotDimension:
-								this.samplingStrategy
-									.canvasMaxSnapshotDimension,
-						},
-					},
-					keepIframeSrcFn: (_src: string) => {
-						return !this.options.recordCrossOriginIframe
-					},
-					inlineImages: this.inlineImages,
-					inlineStylesheet: this.inlineStylesheet,
-					plugins: [getRecordSequentialIdPlugin()],
-					logger,
-				})
+			if (!this._recordStop) {
 				if (this.options.recordCrossOriginIframe) {
 					this._setupCrossOriginIframeParent()
 				}
-				// recordStop is not part of listeners because we do not actually want to stop rrweb
-				// rrweb has some bugs that make the stop -> restart workflow broken (eg iframe listeners)
-				const viewport = {
-					height: window.innerHeight,
-					width: window.innerWidth,
-				}
-				this.addCustomEvent('Viewport', viewport)
-				this.submitViewportMetrics(viewport)
 			}
 
 			if (document.referrer) {
@@ -842,33 +813,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this.addCustomEvent('TabHidden', false)
 		} else {
 			this.addCustomEvent('TabHidden', true)
-			if ('sendBeacon' in navigator) {
-				try {
-					await this._sendPayload({
-						isBeacon: true,
-						sendFn: (payload) => {
-							let blob = new Blob(
-								[
-									JSON.stringify({
-										query: print(PushPayloadDocument),
-										variables: payload,
-									}),
-								],
-								{
-									type: 'application/json',
-								},
-							)
-							navigator.sendBeacon(`${this._backendUrl}`, blob)
-							return Promise.resolve(0)
-						},
-					})
-				} catch (e) {
-					if (this._isOnLocalHost) {
-						console.error(e)
-						HighlightWarning('_sendPayload', e)
-					}
-				}
-			}
 			if (this.options.disableBackgroundRecording) {
 				this.stopRecording()
 			}
@@ -1122,10 +1066,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 
 		const unloadListener = () => {
 			this.addCustomEvent('Page Unload', '')
-			setItem(
-				SESSION_STORAGE_KEYS.SESSION_DATA,
-				JSON.stringify(this.sessionData),
-			)
+			setSessionData(this.sessionData)
 		}
 		window.addEventListener('beforeunload', unloadListener)
 		this.listeners.push(() =>
@@ -1139,10 +1080,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		if (isOnIOS) {
 			const unloadListener = () => {
 				this.addCustomEvent('Page Unload', '')
-				setItem(
-					SESSION_STORAGE_KEYS.SESSION_DATA,
-					JSON.stringify(this.sessionData),
-				)
+				setSessionData(this.sessionData)
 			}
 			window.addEventListener('pagehide', unloadListener)
 			this.listeners.push(() =>
@@ -1279,16 +1217,16 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	// Reset the events array and push to a backend.
 	async _save() {
 		try {
-			let maxLength = MAX_SESSION_LENGTH
-			if (this.organizationID === 'odzl0xep') {
-				maxLength = EXTENDED_MAX_SESSION_LENGTH
-			}
 			if (
 				this.state === 'Recording' &&
 				this.listeners &&
 				this.sessionData.sessionStartTime &&
-				Date.now() - this.sessionData.sessionStartTime > maxLength
+				Date.now() - this.sessionData.sessionStartTime >
+					MAX_SESSION_LENGTH
 			) {
+				this.logger.log(`Resetting session`, {
+					start: this.sessionData.sessionStartTime,
+				})
 				await this._reset({})
 			}
 			let sendFn = undefined
@@ -1312,7 +1250,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					return 0
 				}
 			}
-			await this._sendPayload({ isBeacon: false, sendFn })
+			await this._sendPayload({ sendFn })
 			this.hasPushedData = true
 			this.sessionData.lastPushTime = Date.now()
 		} catch (e) {
@@ -1357,10 +1295,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	}
 
 	async _sendPayload({
-		isBeacon,
 		sendFn,
 	}: {
-		isBeacon: boolean
 		sendFn?: (payload: PushPayloadMutationVariables) => Promise<number>
 	}) {
 		const resources = FirstLoadListeners.getRecordedNetworkResources(
@@ -1376,18 +1312,16 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 
 		// if it is time to take a full snapshot,
 		// ensure the snapshot is at the beginning of the next payload
-		if (!isBeacon) {
-			// After snapshot thresholds have been met,
-			// take a full snapshot and reset the counters
-			const { bytes, time } = this.enableCanvasRecording
-				? SNAPSHOT_SETTINGS.canvas
-				: SNAPSHOT_SETTINGS.normal
-			if (
-				this._eventBytesSinceSnapshot >= bytes &&
-				new Date().getTime() - this._lastSnapshotTime >= time
-			) {
-				this.takeFullSnapshot()
-			}
+		// After snapshot thresholds have been met,
+		// take a full snapshot and reset the counters
+		const { bytes, time } = this.enableCanvasRecording
+			? SNAPSHOT_SETTINGS.canvas
+			: SNAPSHOT_SETTINGS.normal
+		if (
+			this._eventBytesSinceSnapshot >= bytes &&
+			new Date().getTime() - this._lastSnapshotTime >= time
+		) {
+			this.takeFullSnapshot()
 		}
 
 		this.logger.log(
@@ -1397,6 +1331,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		if (sendFn) {
 			await sendFn({
 				session_secure_id: this.sessionData.sessionSecureID,
+				payload_id: this._payloadId.toString(),
 				events: { events } as ReplayEventsInput,
 				messages: stringify({ messages: messages }),
 				resources: JSON.stringify({ resources: resources }),
@@ -1404,9 +1339,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					webSocketEvents: webSocketEvents,
 				}),
 				errors,
-				is_beacon: isBeacon,
+				is_beacon: false,
 				has_session_unloaded: this.hasSessionUnloaded,
-				payload_id: this._payloadId.toString(),
 			})
 		} else {
 			this._worker.postMessage({
@@ -1420,7 +1354,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					webSocketEventsString: JSON.stringify({
 						webSocketEvents: webSocketEvents,
 					}),
-					isBeacon,
 					hasSessionUnloaded: this.hasSessionUnloaded,
 					highlightLogs: highlightLogs,
 				},
@@ -1430,26 +1363,24 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		setItem(SESSION_STORAGE_KEYS.PAYLOAD_ID, this._payloadId.toString())
 
 		// If sendFn throws an exception, the data below will not be cleared, and it will be re-uploaded on the next PushPayload.
-		// SendBeacon is not guaranteed to succeed, so we will treat it the same way.
-		if (!isBeacon) {
-			FirstLoadListeners.clearRecordedNetworkResources(
-				this._firstLoadListeners,
-			)
-			// We are creating a weak copy of the events. rrweb could have pushed more events to this.events while we send the request with the events as a payload.
-			// Originally, we would clear this.events but this could lead to a race condition.
-			// Example Scenario:
-			// 1. Create the events payload from this.events (with N events)
-			// 2. rrweb pushes to this.events (with M events)
-			// 3. Network request made to push payload (Only includes N events)
-			// 4. this.events is cleared (we lose M events)
-			this.events = this.events.slice(events.length)
+		FirstLoadListeners.clearRecordedNetworkResources(
+			this._firstLoadListeners,
+		)
+		// We are creating a weak copy of the events. rrweb could have pushed more events to this.events while we send the request with the events as a payload.
+		// Originally, we would clear this.events but this could lead to a race condition.
+		// Example Scenario:
+		// 1. Create the events payload from this.events (with N events)
+		// 2. rrweb pushes to this.events (with M events)
+		// 3. Network request made to push payload (Only includes N events)
+		// 4. this.events is cleared (we lose M events)
+		this.events = this.events.slice(events.length)
 
-			this._firstLoadListeners.messages =
-				this._firstLoadListeners.messages.slice(messages.length)
-			this._firstLoadListeners.errors =
-				this._firstLoadListeners.errors.slice(errors.length)
-			clearHighlightLogs(highlightLogs)
-		}
+		this._firstLoadListeners.messages =
+			this._firstLoadListeners.messages.slice(messages.length)
+		this._firstLoadListeners.errors = this._firstLoadListeners.errors.slice(
+			errors.length,
+		)
+		clearHighlightLogs(highlightLogs)
 	}
 
 	private takeFullSnapshot() {

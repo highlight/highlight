@@ -97,6 +97,12 @@ VALUES (now(), 'abc123', 'sessions');
 INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
 VALUES (now(), 'abc123', 'session');
 INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
+VALUES (now(), 'abc123', 'session_intervals');
+INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
+VALUES (now(), 'abc123', 'event_chunks');
+INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
+VALUES (now(), 'abc123', 'event_chunk_url');
+INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
 VALUES (now(), 'abc123', 'admin');
 INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
 VALUES (now(), 'abc123', 'error_groups_clickhouse');
