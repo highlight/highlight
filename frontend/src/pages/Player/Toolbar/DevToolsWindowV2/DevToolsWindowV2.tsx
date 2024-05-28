@@ -186,7 +186,7 @@ const DevToolsWindowV2: React.FC<
 							}}
 						>
 							<Tabs.List px="8">
-								<Stack gap="8" width="full">
+								<Stack gap="0" width="full">
 									<Stack
 										direction="row"
 										justifyContent="space-between"
@@ -233,25 +233,25 @@ const DevToolsWindowV2: React.FC<
 										</Button>
 									</Stack>
 
-									<Box
-										display="flex"
-										justifyContent="flex-start"
-										gap="6"
-										align="center"
-										flexGrow={1}
-										pb="4"
+									<Stack
+										borderTop="dividerWeak"
+										direction="row"
+										gap="4"
+										py="4"
 									>
-										<Box
-											display="flex"
-											justifyContent="space-between"
-											gap="4"
-											align="center"
-										>
-											<Form store={formStore}>
+										<Box display="flex" width="full">
+											<Form
+												store={formStore}
+												style={{
+													display: 'flex',
+													width: '100%',
+												}}
+											>
 												<Box
 													display="flex"
 													justifyContent="space-between"
 													align="center"
+													width="full"
 													gap="4"
 												>
 													<Box
@@ -283,7 +283,12 @@ const DevToolsWindowV2: React.FC<
 													/>
 												</Box>
 											</Form>
-
+										</Box>
+										<Stack
+											direction="row"
+											gap="4"
+											flexShrink={0}
+										>
 											{selectedDevToolsTab ===
 											Tab.Console ? (
 												<>
@@ -360,11 +365,11 @@ const DevToolsWindowV2: React.FC<
 														})
 													}}
 												>
-													Log Viewer
+													Show in log viewer
 												</Button>
 											) : null}
-										</Box>
-									</Box>
+										</Stack>
+									</Stack>
 								</Stack>
 							</Tabs.List>
 							<Tabs.Panel id={Tab.Console}>
