@@ -5871,11 +5871,6 @@ body {
 .u25ybo0 {
   width: 100%;
 }
-._1ozlps90 {
-  margin-top: auto;
-  margin-bottom: auto;
-  max-width: 1080px;
-}
 ._14ud0dc0::-webkit-scrollbar {
   width: 9px;
   height: 9px;
@@ -5909,6 +5904,15 @@ body {
   border: 1px solid transparent;
   border-radius: 30px;
   border-left-width: 2px;
+}
+._141pqa00 {
+  margin: auto;
+  overflow: clip;
+  width: 90vw;
+  height: 90vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .bsyaa20 {
   text-decoration: none;
@@ -6070,6 +6074,11 @@ body {
 }
 ._1gpgayid:focus {
   background-color: var(--_1pyqka91m);
+}
+._1ozlps90 {
+  margin-top: auto;
+  margin-bottom: auto;
+  max-width: 1080px;
 }
 ._10xh0c20 {
   position: absolute;

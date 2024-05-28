@@ -1,7 +1,9 @@
 import { Button } from '@components/Button'
-import * as style from '@components/Modal/ModalV2.css'
-import { Box, Stack } from '@highlight-run/ui/components'
+import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
+import { Box, IconSolidCalendar, Stack } from '@highlight-run/ui/components'
+import { useProjectId } from '@hooks/useProjectId'
 import { getAttributionData } from '@util/attribution'
+import { isProjectWithinTrial } from '@util/billing/billing'
 import clsx from 'clsx'
 import React, { useState } from 'react'
 import { InlineWidget } from 'react-calendly'
@@ -9,21 +11,34 @@ import { useHotkeys } from 'react-hotkeys-hook'
 
 import { styledVerticalScrollbar } from '@/style/common.css'
 
+import * as style from './styles.css'
+
 export function Calendly() {
 	const { referral } = getAttributionData()
-	const utm = JSON.parse(referral)
+	let utm = {}
+	try {
+		utm = JSON.parse(referral)
+	} catch (e) {}
 	console.log({ utm })
 	return (
 		<InlineWidget
 			url="https://calendly.com/highlight-io/discussion"
-			styles={{ width: 1080, height: 720 }}
+			styles={{ width: '100%', height: '100%' }}
 			utm={utm}
 		/>
 	)
 }
 
 export function CalendlyModal() {
+	const { projectId } = useProjectId()
+	const { data } = useGetBillingDetailsForProjectQuery({
+		variables: {
+			project_id: projectId,
+		},
+	})
 	const [calendlyOpen, setCalendlyOpen] = useState(false)
+	const hasTrial = isProjectWithinTrial(data?.workspace_for_project)
+
 	useHotkeys(
 		'escape',
 		() => {
@@ -35,13 +50,14 @@ export function CalendlyModal() {
 	return (
 		<>
 			<Button
-				kind="primary"
+				kind={hasTrial ? 'primary' : 'secondary'}
 				size="small"
-				emphasis="medium"
+				emphasis="high"
+				iconLeft={<IconSolidCalendar />}
 				onClick={() => setCalendlyOpen(true)}
 				trackingId="ClickCalendlyOpen"
 			>
-				Book a call with Highlight
+				Book a call
 			</Button>
 			{calendlyOpen ? (
 				<Box
