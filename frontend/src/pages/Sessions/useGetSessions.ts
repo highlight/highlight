@@ -49,10 +49,11 @@ export const useGetSessions = ({
 		fetchPolicy: 'network-only',
 	})
 
-	const { numMore: moreSessions, reset: resetMoreSessions } = usePollQuery<
-		GetSessionsQuery,
-		GetSessionsQueryVariables
-	>({
+	const {
+		numMore: moreSessions,
+		reset: resetMoreSessions,
+		pollingExpired,
+	} = usePollQuery<GetSessionsQuery, GetSessionsQueryVariables>({
 		variableFn: useCallback(() => {
 			return {
 				params: {
@@ -87,6 +88,7 @@ export const useGetSessions = ({
 		refetch,
 		totalCount: data?.sessions?.totalCount || 0,
 		histogramBucketSize: determineHistogramBucketSize(startDate, endDate),
+		pollingExpired,
 	}
 }
 

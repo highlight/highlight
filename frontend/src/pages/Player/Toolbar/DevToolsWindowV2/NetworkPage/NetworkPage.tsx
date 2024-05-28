@@ -493,22 +493,7 @@ const ResourceLoadingErrorCallout = function ({
 			<Callout
 				border
 				title={`Failed to load session network resources: ${error}`}
-				icon={() => (
-					<Box
-						borderRadius="5"
-						style={{
-							alignItems: 'center',
-							backgroundColor: '#E9E9E9',
-							display: 'flex',
-							height: 22,
-							justifyContent: 'center',
-							textAlign: 'center',
-							width: 22,
-						}}
-					>
-						<IconSolidExclamation size={14} color="#777777" />
-					</Box>
-				)}
+				icon={IconSolidExclamation}
 			/>
 		</Box>
 	)

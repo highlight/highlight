@@ -19,7 +19,8 @@ Check out the following examples of setting up logs streaming in these services:
 3. Setup a [Log Router Sink](https://console.cloud.google.com/logs/router) in Google Cloud Logging
 ![](/images/gcp/step2.png)
 
-4. Setup a Pub/Sub Subscription to export to highlight.io over HTTPS. Set the delivery to Push on endpoint URL  https://pub.highlight.io/v1/logs/raw?project=YOUR_PROJECT_ID&service=backend-service
+4. Setup a Pub/Sub Subscription to export to highlight.io over HTTPS. Set the delivery type to `Push`. Ensure the `Enable payload unwrapping` option is checked to send the payload deserialized rather than as a base64 encoded string. Set the endpoint URL depending on the structure of your logs. If your logs are structured as `JSON`, set the endpoint to https://pub.highlight.io/v1/logs/json?project=YOUR_PROJECT_ID&service=backend-service. Otherwise, for unstructured text logs, set the endpoint to  https://pub.highlight.io/v1/logs/raw?project=YOUR_PROJECT_ID&service=backend-service
 ![](/images/gcp/step3.png)
+![](/images/gcp/step4.png)
 
 At this point, your infrastructure / service logs should show up in [highlight](https://app.highlight.io/logs)!

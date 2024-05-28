@@ -108,7 +108,7 @@ export const useGetTraces = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.traces.edges])
 
-	const { numMore, reset } = usePollQuery<
+	const { numMore, pollingExpired, reset } = usePollQuery<
 		GetTracesQuery,
 		GetTracesQueryVariables
 	>({
@@ -222,6 +222,7 @@ export const useGetTraces = ({
 	return {
 		traceEdges: (data?.traces.edges || []) as TraceEdge[],
 		moreTraces: numMore,
+		pollingExpired,
 		clearMoreTraces: reset,
 		loading,
 		loadingAfter,

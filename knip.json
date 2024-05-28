@@ -1,0 +1,3 @@
+{
+	"ignore": ["frontend/src/__generated/**", "frontend/src/static/**"]
+}

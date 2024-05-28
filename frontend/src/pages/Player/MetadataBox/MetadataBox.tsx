@@ -1,6 +1,7 @@
 import { Avatar } from '@components/Avatar/Avatar'
 import { useSearchContext } from '@components/Search/SearchContext'
 import { TableList, TableListItem } from '@components/TableList/TableList'
+import { toast } from '@components/Toaster'
 import { useGetEnhancedUserDetailsQuery } from '@graph/hooks'
 import { GetEnhancedUserDetailsQuery } from '@graph/operations'
 import { Maybe, Session, SocialLink, SocialType } from '@graph/schemas'
@@ -22,7 +23,6 @@ import {
 } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard, validateEmail } from '@util/string'
-import { message } from 'antd'
 import clsx from 'clsx'
 import { capitalize } from 'lodash'
 import React, { useCallback, useEffect, useMemo } from 'react'
@@ -244,7 +244,9 @@ export const MetadataBox = React.memo(() => {
 					gap="8"
 					onClick={() => {
 						copyToClipboard(displayValue)
-						message.success(`Copied identifier ${displayValue}`, 3)
+						toast.success(`Copied identifier ${displayValue}`, {
+							duration: 3000,
+						})
 					}}
 				>
 					<Avatar

@@ -8,6 +8,7 @@ import {
 	IconSolidChartSquareLine,
 	IconSolidDocumentReport,
 	IconSolidDotsHorizontal,
+	IconSolidDuplicate,
 	IconSolidLoading,
 	IconSolidPencil,
 	IconSolidTable,
@@ -97,6 +98,7 @@ export interface ChartProps<TConfig> {
 	limitMetric?: string
 	viewConfig: TConfig
 	disabled?: boolean
+	onClone?: () => void
 	onDelete?: () => void
 	onExpand?: () => void
 	onEdit?: () => void
@@ -167,6 +169,8 @@ const durationUnitMap: [number, string][] = [
 	[24, 'd'],
 ]
 
+const DEFAULT_TIME_METRIC = 'ns'
+
 const timeMetrics = {
 	active_length: 'ms',
 	length: 'ms',
@@ -198,13 +202,16 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 	} else if (Object.hasOwn(timeMetrics, metric)) {
 		return (value: any) => {
 			let startUnit =
-				timeMetrics[metric as keyof typeof timeMetrics] ?? 'ns'
+				timeMetrics[metric as keyof typeof timeMetrics] ??
+				DEFAULT_TIME_METRIC
 			let lastUnit = startUnit
 			for (const entry of durationUnitMap) {
-				if (startUnit !== '' && startUnit !== entry[1]) {
+				if (startUnit !== '') {
+					if (startUnit === entry[1]) {
+						startUnit = ''
+					}
 					continue
 				}
-				startUnit = ''
 				if (value / entry[0] < 1) {
 					break
 				}
@@ -234,45 +241,42 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 export const getCustomTooltip =
 	(xAxisMetric: any, yAxisMetric: any) =>
 	({ active, payload, label }: any) => {
-		if (active && payload && payload.length) {
-			return (
-				<Box cssClass={style.tooltipWrapper}>
-					<Text
-						size="xxSmall"
-						weight="medium"
-						color="default"
-						cssClass={style.tooltipText}
+		const isValid = active && payload && payload.length
+		return (
+			<Box cssClass={style.tooltipWrapper}>
+				<Text
+					size="xxSmall"
+					weight="medium"
+					color="default"
+					cssClass={style.tooltipText}
+				>
+					{isValid && getTickFormatter(xAxisMetric)(label)}
+				</Text>
+				{payload.map((p: any, idx: number) => (
+					<Box
+						display="flex"
+						flexDirection="row"
+						alignItems="center"
+						key={idx}
 					>
-						{getTickFormatter(xAxisMetric)(label)}
-					</Text>
-					{payload.map((p: any, idx: number) => (
 						<Box
-							display="flex"
-							flexDirection="row"
-							alignItems="center"
-							key={idx}
+							style={{
+								backgroundColor: p.color,
+							}}
+							cssClass={style.tooltipDot}
+						></Box>
+						<Text
+							size="xxSmall"
+							weight="medium"
+							color="default"
+							cssClass={style.tooltipText}
 						>
-							<Box
-								style={{
-									backgroundColor: p.color,
-								}}
-								cssClass={style.tooltipDot}
-							></Box>
-							<Text
-								size="xxSmall"
-								weight="medium"
-								color="default"
-								cssClass={style.tooltipText}
-							>
-								{getTickFormatter(yAxisMetric)(p.value)}
-							</Text>
-						</Box>
-					))}
-				</Box>
-			)
-		}
-
-		return null
+							{isValid && getTickFormatter(yAxisMetric)(p.value)}
+						</Text>
+					</Box>
+				))}
+			</Box>
+		)
 	}
 
 export const CustomYAxisTick = ({
@@ -384,6 +388,7 @@ const Graph = ({
 	title,
 	viewConfig,
 	disabled,
+	onClone,
 	onDelete,
 	onExpand,
 	onEdit,
@@ -592,7 +597,7 @@ const Graph = ({
 		  }
 		: undefined
 
-	let isEmpty = data !== undefined
+	let isEmpty = true
 	for (const d of data ?? []) {
 		for (const v of Object.values(d)) {
 			if (!!v) {
@@ -683,7 +688,7 @@ const Graph = ({
 			height="full"
 			display="flex"
 			flexDirection="column"
-			gap="4"
+			gap="8"
 			justifyContent="space-between"
 			onMouseEnter={() => {
 				setGraphHover(true)
@@ -692,55 +697,68 @@ const Graph = ({
 				setGraphHover(false)
 			}}
 		>
-			<Box display="flex" flexDirection="column">
-				<Box
-					display="flex"
-					flexDirection="row"
-					justifyContent="space-between"
-				>
-					<Text
-						size="small"
-						color="default"
-						cssClass={style.titleText}
+			<Box
+				display="flex"
+				flexDirection="row"
+				justifyContent="space-between"
+			>
+				<Text size="small" color="default" cssClass={style.titleText}>
+					{title || 'Untitled metric view'}
+				</Text>
+				{showMenu && graphHover && !disabled && called && (
+					<Box
+						cssClass={clsx(style.titleText, {
+							[style.hiddenMenu]: !graphHover,
+						})}
 					>
-						{title || 'Untitled metric view'}
-					</Text>
-					{showMenu && graphHover && !disabled && called && (
-						<Box
-							cssClass={clsx(style.titleText, {
-								[style.hiddenMenu]: !graphHover,
-							})}
-						>
-							{onExpand !== undefined && (
-								<Button
-									size="xSmall"
+						{onExpand !== undefined && (
+							<Button
+								size="xSmall"
+								emphasis="low"
+								kind="secondary"
+								iconLeft={<IconSolidArrowsExpand />}
+								onClick={onExpand}
+							/>
+						)}
+						{onEdit !== undefined && (
+							<Button
+								size="xSmall"
+								emphasis="low"
+								kind="secondary"
+								iconLeft={<IconSolidPencil />}
+								onClick={onEdit}
+							/>
+						)}
+						{(onDelete || onClone) && (
+							<Menu>
+								<Menu.Button
+									size="medium"
 									emphasis="low"
 									kind="secondary"
-									iconLeft={<IconSolidArrowsExpand />}
-									onClick={onExpand}
+									iconLeft={<IconSolidDotsHorizontal />}
+									onClick={(e: any) => {
+										e.stopPropagation()
+									}}
 								/>
-							)}
-							{onEdit !== undefined && (
-								<Button
-									size="xSmall"
-									emphasis="low"
-									kind="secondary"
-									iconLeft={<IconSolidPencil />}
-									onClick={onEdit}
-								/>
-							)}
-							{onDelete !== undefined && (
-								<Menu>
-									<Menu.Button
-										size="medium"
-										emphasis="low"
-										kind="secondary"
-										iconLeft={<IconSolidDotsHorizontal />}
-										onClick={(e: any) => {
-											e.stopPropagation()
-										}}
-									/>
-									<Menu.List>
+								<Menu.List>
+									{onClone && (
+										<Menu.Item
+											onClick={(e) => {
+												e.stopPropagation()
+												onClone()
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconSolidDuplicate />
+												Clone metric view
+											</Box>
+										</Menu.Item>
+									)}
+									{onDelete && (
 										<Menu.Item
 											onClick={(e) => {
 												e.stopPropagation()
@@ -756,74 +774,10 @@ const Graph = ({
 												Delete metric view
 											</Box>
 										</Menu.Item>
-									</Menu.List>
-								</Menu>
-							)}
-						</Box>
-					)}
-				</Box>
-				{showLegend && (
-					<Box position="relative" cssClass={style.legendWrapper}>
-						{series.map((key, idx) => {
-							return (
-								<Button
-									kind="secondary"
-									emphasis="low"
-									size="xSmall"
-									key={key}
-									onClick={() => {
-										if (spotlight === idx) {
-											setSpotlight(undefined)
-										} else {
-											setSpotlight(idx)
-										}
-									}}
-									cssClass={style.legendTextButton}
-								>
-									<Tooltip
-										delayed
-										trigger={
-											<>
-												<Box
-													style={{
-														backgroundColor:
-															isActive(
-																spotlight,
-																idx,
-															)
-																? getColor(idx)
-																: undefined,
-													}}
-													cssClass={style.legendDot}
-												></Box>
-												<Box
-													cssClass={
-														style.legendTextWrapper
-													}
-												>
-													<Text
-														lines="1"
-														color={
-															isActive(
-																spotlight,
-																idx,
-															)
-																? undefined
-																: 'n8'
-														}
-														align="left"
-													>
-														{key || '<empty>'}
-													</Text>
-												</Box>
-											</>
-										}
-									>
-										{key || '<empty>'}
-									</Tooltip>
-								</Button>
-							)
-						})}
+									)}
+								</Menu.List>
+							</Menu>
+						)}
 					</Box>
 				)}
 			</Box>
@@ -859,6 +813,66 @@ const Graph = ({
 						</Stack>
 					)}
 					{innerChart}
+				</Box>
+			)}
+			{showLegend && (
+				<Box position="relative" cssClass={style.legendWrapper}>
+					{series.map((key, idx) => {
+						return (
+							<Button
+								kind="secondary"
+								emphasis="low"
+								size="xSmall"
+								key={key}
+								onClick={() => {
+									if (spotlight === idx) {
+										setSpotlight(undefined)
+									} else {
+										setSpotlight(idx)
+									}
+								}}
+								cssClass={style.legendTextButton}
+							>
+								<Tooltip
+									delayed
+									trigger={
+										<>
+											<Box
+												style={{
+													backgroundColor: isActive(
+														spotlight,
+														idx,
+													)
+														? getColor(idx)
+														: undefined,
+												}}
+												cssClass={style.legendDot}
+											></Box>
+											<Box
+												cssClass={
+													style.legendTextWrapper
+												}
+											>
+												<Text
+													lines="1"
+													color={
+														isActive(spotlight, idx)
+															? undefined
+															: 'n8'
+													}
+													align="left"
+												>
+													{key || '<empty>'}
+												</Text>
+											</Box>
+										</>
+									}
+								>
+									{key || '<empty>'}
+								</Tooltip>
+							</Button>
+						)
+					})}
 				</Box>
 			)}
 		</Box>
