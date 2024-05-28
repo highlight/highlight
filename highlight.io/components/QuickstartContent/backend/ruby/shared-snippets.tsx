@@ -14,11 +14,10 @@ bundle install`,
 	],
 }
 
-// TODO: Add a note about where to put this config. Maybe an initializer?
 export const initializeSdk: QuickStartStep = {
 	title: 'Initialize the Highlight Ruby SDK.',
 	content:
-		"`Highlight::H.new` initializes the SDK and allows you to call the singleton `Highlight::H.instance`. Setting your project id also lets Highlight record errors for background tasks and processes that aren't associated with a frontend session.",
+		"`Highlight::H.new` initializes the SDK and allows you to call the singleton `Highlight::H.instance`. Setting your project ID also lets Highlight record errors for background tasks and processes that aren't associated with a frontend session.",
 	code: [
 		{
 			text: `require "highlight"
