@@ -1985,13 +1985,11 @@ func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *send
 		Active:      true,
 	}
 	if err := db.Create(&history).Error; err != nil {
-		if err != nil {
-			var pgErr *pgconn.PgError
-			// An active BillingEmailHistory may already exist -
-			// in this case, don't send users another email.
-			if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-				return nil
-			}
+		var pgErr *pgconn.PgError
+		// An active BillingEmailHistory may already exist -
+		// in this case, don't send users another email.
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			return nil
 		}
 		return e.Wrap(err, "error creating BillingEmailHistory")
 	}

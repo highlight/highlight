@@ -211,7 +211,7 @@ const SearchFormActions: SearchFormProps['actions'] = ({
 			emphasis="medium"
 			iconLeft={<IconSolidExternalLink />}
 		>
-			View in log viewer
+			Show in log viewer
 		</Button>
 	)
 }
