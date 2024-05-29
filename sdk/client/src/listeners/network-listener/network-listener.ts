@@ -43,7 +43,6 @@ export const NetworkListener = ({
 		backendUrl,
 		tracingOrigins,
 		urlBlocklist,
-		sessionSecureID,
 		bodyKeysToRedact,
 		bodyKeysToRecord,
 	)
@@ -52,7 +51,6 @@ export const NetworkListener = ({
 		backendUrl,
 		tracingOrigins,
 		urlBlocklist,
-		sessionSecureID,
 		bodyKeysToRedact,
 		bodyKeysToRecord,
 	)

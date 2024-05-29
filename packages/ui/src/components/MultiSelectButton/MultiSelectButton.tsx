@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import clsx from 'clsx'
 import React from 'react'
 
 import { Box } from '../Box/Box'
@@ -17,7 +18,7 @@ type Props = {
 	icon?: React.ReactNode
 	defaultValue?: string
 	value: string[]
-	valueRender: () => React.ReactNode
+	selected: boolean
 	options: Option[]
 	onChange: (value: string[]) => void
 }
@@ -27,9 +28,9 @@ export const MultiSelectButton: React.FC<Props> = ({
 	icon,
 	defaultValue,
 	value,
-	valueRender,
 	options,
 	onChange,
+	selected,
 }) => {
 	const selectStore = Ariakit.useSelectStore({
 		defaultValue: defaultValue ? [defaultValue] : [],
@@ -45,11 +46,19 @@ export const MultiSelectButton: React.FC<Props> = ({
 			>
 				{label}
 			</Ariakit.SelectLabel>
-			<Ariakit.Select store={selectStore} className={styles.selectButton}>
+			<Ariakit.Select
+				store={selectStore}
+				className={clsx(styles.selectButton, {
+					[styles.selected]: selected,
+				})}
+			>
 				<>
 					{icon}
-					<Text size="xSmall" color="secondaryContentText">
-						{valueRender()}
+					<Text
+						size="xSmall"
+						color={selected ? 'white' : 'secondaryContentText'}
+					>
+						{label}
 					</Text>
 				</>
 			</Ariakit.Select>

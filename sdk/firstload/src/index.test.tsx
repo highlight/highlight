@@ -14,7 +14,9 @@ describe('should work outside of the browser in unit test', () => {
 	})
 
 	it('should handle init', () => {
-		highlight.init('test')
+		highlight.init('1', {
+			debug: { clientInteractions: true, domRecording: true },
+		})
 	})
 
 	it('should handle consumeError', () => {

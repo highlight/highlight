@@ -1610,82 +1610,6 @@ func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionSecureID
 	return nil
 }
 
-var productTypeToQuotaConfig = map[model.PricingProductType]struct {
-	maxCostCents    func(*model.Workspace) *int
-	meter           func(context.Context, *gorm.DB, *clickhouse.Client, *redis.Client, *model.Workspace) (int64, error)
-	retentionPeriod func(*model.Workspace) privateModel.RetentionPeriod
-	included        func(*model.Workspace) int64
-}{
-	model.PricingProductTypeSessions: {
-		func(w *model.Workspace) *int { return w.SessionsMaxCents },
-		pricing.GetWorkspaceSessionsMeter,
-		func(w *model.Workspace) privateModel.RetentionPeriod {
-			if w.RetentionPeriod == nil {
-				return privateModel.RetentionPeriodThreeMonths
-			}
-			return *w.RetentionPeriod
-		},
-		func(w *model.Workspace) int64 {
-			limit := pricing.IncludedAmount(privateModel.PlanType(w.PlanTier), model.PricingProductTypeSessions)
-			if w.MonthlySessionLimit != nil {
-				limit = int64(*w.MonthlySessionLimit)
-			}
-			return limit
-		},
-	},
-	model.PricingProductTypeErrors: {
-		func(w *model.Workspace) *int { return w.ErrorsMaxCents },
-		pricing.GetWorkspaceErrorsMeter,
-		func(w *model.Workspace) privateModel.RetentionPeriod {
-			if w.ErrorsRetentionPeriod == nil {
-				return privateModel.RetentionPeriodThreeMonths
-			}
-			return *w.ErrorsRetentionPeriod
-		},
-		func(w *model.Workspace) int64 {
-			limit := pricing.IncludedAmount(privateModel.PlanType(w.PlanTier), model.PricingProductTypeErrors)
-			if w.MonthlyErrorsLimit != nil {
-				limit = int64(*w.MonthlyErrorsLimit)
-			}
-			return limit
-		},
-	},
-	model.PricingProductTypeLogs: {
-		func(w *model.Workspace) *int { return w.LogsMaxCents },
-		pricing.GetWorkspaceLogsMeter,
-		func(w *model.Workspace) privateModel.RetentionPeriod {
-			if w.LogsRetentionPeriod == nil {
-				return privateModel.RetentionPeriodThirtyDays
-			}
-			return *w.LogsRetentionPeriod
-		},
-		func(w *model.Workspace) int64 {
-			limit := pricing.IncludedAmount(privateModel.PlanType(w.PlanTier), model.PricingProductTypeLogs)
-			if w.MonthlyLogsLimit != nil {
-				limit = int64(*w.MonthlyLogsLimit)
-			}
-			return limit
-		},
-	},
-	model.PricingProductTypeTraces: {
-		func(w *model.Workspace) *int { return w.TracesMaxCents },
-		pricing.GetWorkspaceTracesMeter,
-		func(w *model.Workspace) privateModel.RetentionPeriod {
-			if w.TracesRetentionPeriod == nil {
-				return privateModel.RetentionPeriodThirtyDays
-			}
-			return *w.TracesRetentionPeriod
-		},
-		func(w *model.Workspace) int64 {
-			limit := pricing.IncludedAmount(privateModel.PlanType(w.PlanTier), model.PricingProductTypeTraces)
-			if w.MonthlyTracesLimit != nil {
-				limit = int64(*w.MonthlyTracesLimit)
-			}
-			return limit
-		},
-	},
-}
-
 func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingProductType, workspace *model.Workspace, now time.Time) (bool, float64) {
 	if workspace == nil {
 		return true, 0
@@ -1696,9 +1620,9 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 
 	stripePlan := privateModel.PlanType(workspace.PlanTier)
 
-	cfg := productTypeToQuotaConfig[productType]
+	cfg := pricing.ProductTypeToQuotaConfig[productType]
 
-	maxCostCents := cfg.maxCostCents(workspace)
+	maxCostCents := cfg.MaxCostCents(workspace)
 	if stripePlan == privateModel.PlanTypeFree {
 		maxCostCents = pointy.Int(0)
 	}
@@ -1712,12 +1636,12 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 		return true, 0
 	}
 
-	meter, err := cfg.meter(ctx, r.DB, r.Clickhouse, r.Redis, workspace)
+	meter, err := cfg.Meter(ctx, r.DB, r.Clickhouse, r.Redis, workspace)
 	if err != nil {
 		log.WithContext(ctx).Warn(fmt.Sprintf("error getting %s meter for workspace %d", productType, workspace.ID))
 	}
 
-	includedQuantity := cfg.included(workspace)
+	includedQuantity := cfg.Included(workspace)
 	if includedQuantity >= meter {
 		return true, 0
 	}
@@ -1738,7 +1662,7 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 	basePriceCents := pricing.ProductToBasePriceCents(productType, stripePlan, meter+pricing.IncludedAmount(stripePlan, productType)-includedQuantity)
 	costCents := float64(overage) *
 		basePriceCents *
-		pricing.RetentionMultiplier(cfg.retentionPeriod(workspace))
+		pricing.RetentionMultiplier(cfg.RetentionPeriod(workspace))
 
 	return costCents <= float64(*maxCostCents), costCents / float64(*maxCostCents)
 }

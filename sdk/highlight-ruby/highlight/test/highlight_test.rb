@@ -8,9 +8,13 @@ class HighlightTest < Minitest::Test
     end
     logger = Highlight::Logger.new($stdout)
     logger.add(Logger::INFO, 'ruby test log add!')
-    logger.info('ruby test log info!')
-    logger.info { 'ruby test log block!' }
-    Highlight::H.instance.flush
+
+    OpenTelemetry.stub(:handle_error, -> { raise 'handle_error was called' }) do
+      logger.info('ruby test log info!')
+      logger.info { 'ruby test log block!' }
+      logger.info({ hash: 'ruby test log hash!' })
+      Highlight::H.instance.flush
+    end
   end
 
   def test_record_log

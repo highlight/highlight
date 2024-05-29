@@ -3,6 +3,7 @@ export interface Headers {
 }
 
 export interface Request {
+	sessionSecureID: string
 	id: string
 	url: string
 	verb: string
