@@ -121,12 +121,14 @@ export type InputProps = Omit<Ariakit.FormInputProps, 'size'> &
 	Variants &
 	HasLabel & {
 		cssClass?: ClassValue | ClassValue[]
+		labelTag?: LabelProps['tag']
 	}
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
 	(
 		{
 			label,
+			labelTag,
 			icon,
 			cssClass,
 			size,
@@ -156,8 +158,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 			props.step = props.step ?? 1
 		}
 
+		const emitChange = () => {
+			const event = new Event('change', {
+				bubbles: true,
+			})
+			inputRef.current.dispatchEvent(event)
+		}
+
 		return (
-			<NamedSection label={label} name={name} icon={icon}>
+			<NamedSection label={label} name={name} icon={icon} tag={labelTag}>
 				<Box position="relative">
 					<Ariakit.FormInput
 						ref={inputRef}
@@ -177,7 +186,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 						)}
 						{...props}
 					/>
-					{/* TODO: Consider adding <Error /> here. */}
 
 					{isNumber && (
 						<Box
@@ -188,7 +196,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 						>
 							<button
 								className={styles.inputNumberButton}
-								onClick={() => inputRef.current?.stepUp()}
+								onClick={() => {
+									inputRef.current?.stepUp()
+									emitChange()
+								}}
 							>
 								<IconSolidCheveronUp
 									size="16"
@@ -198,7 +209,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 							<Box cssClass={styles.inputNumberDivider} />
 							<button
 								className={styles.inputNumberButton}
-								onClick={() => inputRef.current?.stepDown()}
+								onClick={() => {
+									inputRef.current?.stepDown()
+									emitChange()
+								}}
 							>
 								<IconSolidCheveronDown
 									size="16"
