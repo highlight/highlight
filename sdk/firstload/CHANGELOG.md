@@ -1,5 +1,18 @@
 # highlight.run
 
+## 8.13.0
+
+### Minor Changes
+
+-   8905154ff: make browser sdk more robust to avoid broken sessions
+
+## 8.12.4
+
+### Patch Changes
+
+-   2a90db809: improve dev reliability of browser fetch patch
+-   2a90db809: record more attributes as part of captured frontend network requests
+
 ## 8.12.3
 
 ### Patch Changes

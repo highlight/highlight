@@ -86,6 +86,16 @@ jobs:
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               run: yarn workspace render zip && yarn workspace render check
 
+            - name: Update changesets
+              id: changesets-version
+              uses: changesets/action@v1
+              with:
+                  version: yarn changeset version
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
             - name: Upload frontend sourcemaps
               if: github.ref == 'refs/heads/main'
               run: yarn sourcemaps:frontend
@@ -115,11 +125,9 @@ jobs:
 
             - name: Publish changesets
               if: github.ref == 'refs/heads/main'
-              id: changesets
+              id: changesets-publish
               uses: changesets/action@v1
               with:
-                  # This expects you to have a script called release which does a build for your packages and calls changeset publish
-                  version: yarn changeset version
                   publish: yarn publish:turbo
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
