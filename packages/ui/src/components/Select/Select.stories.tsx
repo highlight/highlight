@@ -1,10 +1,9 @@
 import * as Ariakit from '@ariakit/react'
 import { Meta } from '@storybook/react'
-import { useState } from 'react'
 
 import { Badge } from '../Badge/Badge'
 import { IconSolidX } from '../icons'
-import { FilterableSelect, Select } from './Select'
+import { Select } from './Select'
 
 export default {
 	title: 'Components/Select',
@@ -31,28 +30,17 @@ export const Basic = () => {
 }
 
 export const MultiSelect = () => {
-	const [value, setValue] = useState<Ariakit.SelectStoreState['value']>([
-		'Jay',
-		'Vadim',
-	])
-
 	return (
-		<Select value={value} setValue={setValue}>
+		<Select defaultValue={['Jay', 'Vadim']}>
 			<Options />
 		</Select>
 	)
 }
 
 export const MultiSelectTags = () => {
-	const [value, setValue] = useState<Ariakit.SelectStoreState['value']>([
-		'Jay',
-		'Vadim',
-	])
-
 	return (
 		<Select
-			value={value}
-			setValue={setValue}
+			defaultValue={['Jay', 'Vadim']}
 			renderValue={(values) => {
 				if (!values.length) {
 					return 'None selected'
@@ -73,58 +61,40 @@ export const MultiSelectTags = () => {
 }
 
 export const MultiSelectWithCheckbox = () => {
-	const [value, setValue] = useState<Ariakit.SelectStoreState['value']>([
-		'Jay',
-		'Vadim',
-	])
-
-	return (
-		<Select value={value} setValue={setValue}>
-			{OPTIONS.map((option) => (
-				<Select.Option key={option} checkbox>
-					{option}
-				</Select.Option>
-			))}
-		</Select>
-	)
+	return <Select checkbox options={OPTIONS} />
 }
 
-export const Filterable = () => {
-	return <FilterableSelect options={OPTIONS} />
-}
+// export const Filterable = () => {
+// 	return <Select options={OPTIONS} />
+// }
 
-export const FilterableMultiSelectWithCheckboxes = () => {
-	const [value, setValue] = useState<string[]>(['Jay', 'Vadim'])
+// export const FilterableMultiSelectWithCheckboxes = () => {
+// 	const [value, setValue] = useState(['Jay', 'Vadim'])
 
-	return (
-		<FilterableSelect
-			options={OPTIONS}
-			checkbox
-			value={value}
-			setValue={(newValue) => setValue(newValue)}
-			renderValue={(values) => {
-				return <>{Number(values.length)} selected</>
-			}}
-		/>
-	)
-}
+// 	return (
+// 		<Select
+// 			options={OPTIONS}
+// 			checkbox
+// 			value={value}
+// 			setValue={(newValue) => setValue(newValue)}
+// 			renderValue={(values) => {
+// 				return <>{Number(values.length)} selected</>
+// 			}}
+// 		/>
+// 	)
+// }
 
-type User = {
-	name: string
-	value: number
-}
-const users: User[] = OPTIONS.map((name, i) => ({
-	name,
-	value: i + 1,
-}))
-export const SelectWithObjectValues = () => {
-	return (
-		<Select
-			value={{ name: 'Chris', value: 'test', a: 'b' }}
-			options={users}
-		/>
-	)
-}
+// type User = {
+// 	name: string
+// 	value: number
+// }
+// const users: User[] = OPTIONS.map((name, i) => ({
+// 	name,
+// 	value: i + 1,
+// }))
+// export const SelectWithObjectValues = () => {
+// 	return <Select value={users[0]} options={users} />
+// }
 
 const Options = () => (
 	<>
