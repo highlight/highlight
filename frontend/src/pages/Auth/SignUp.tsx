@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import { toast } from '@components/Toaster'
 import {
 	useCreateAdminMutation,
 	useGetWorkspaceForInviteLinkQuery,
@@ -20,7 +21,6 @@ import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { message } from 'antd'
 import firebase from 'firebase/compat/app'
 import React, { useCallback, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -92,7 +92,7 @@ export const SignUp: React.FC = () => {
 				}
 
 				await createAdmin()
-				message.success('Account created succesfully!')
+				toast.success('Account created successfully!')
 			}
 
 			await fetchAdmin()

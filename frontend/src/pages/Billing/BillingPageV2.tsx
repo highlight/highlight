@@ -1,4 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
+import { toast } from '@components/Toaster'
 import { USD } from '@dinero.js/currencies'
 import {
 	Badge,
@@ -26,7 +27,6 @@ import { vars } from '@highlight-run/ui/vars'
 import { BarChart } from '@pages/Graphing/components/BarChart'
 import { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
 import { getPlanChangeEmail } from '@util/billing/billing'
-import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -446,7 +446,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		if (response === 'success') {
 			updateBillingDetails().then(() => {
 				refetch()
-				message.success('Billing plan saved!')
+				toast.success('Billing plan saved!')
 			})
 		}
 	}, [location.pathname, refetch, updateBillingDetails])

@@ -56,6 +56,7 @@ export async function render(
 		browser = await puppeteer.launch({
 			channel: 'chrome',
 			headless: 'new',
+			args: ['--no-sandbox'],
 		})
 	} else {
 		console.log(`starting puppeteer for lambda`)

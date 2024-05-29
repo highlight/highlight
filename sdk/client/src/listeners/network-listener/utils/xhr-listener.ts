@@ -26,7 +26,6 @@ export const XHRListener = (
 	backendUrl: string,
 	tracingOrigins: boolean | (string | RegExp)[],
 	urlBlocklist: string[],
-	sessionSecureID: string,
 	bodyKeysToRedact?: string[],
 	bodyKeysToRecord?: string[],
 ) => {
@@ -78,7 +77,7 @@ export const XHRListener = (
 			return originalSend.apply(this, arguments)
 		}
 
-		const requestId = createNetworkRequestId()
+		const [sessionSecureID, requestId] = createNetworkRequestId()
 		if (shouldNetworkRequestBeTraced(this._url, tracingOrigins)) {
 			this.setRequestHeader(
 				HIGHLIGHT_REQUEST_HEADER,
@@ -88,6 +87,7 @@ export const XHRListener = (
 
 		const shouldRecordHeaderAndBody = this._shouldRecordHeaderAndBody
 		const requestModel: Request = {
+			sessionSecureID,
 			id: requestId,
 			url: this._url,
 			verb: this._method,

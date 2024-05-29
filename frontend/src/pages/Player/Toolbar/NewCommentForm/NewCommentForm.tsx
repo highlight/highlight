@@ -6,6 +6,7 @@ import {
 	parseAdminSuggestions,
 } from '@components/Comment/utils/utils'
 import { RadioGroup } from '@components/RadioGroup/RadioGroup'
+import { toast } from '@components/Toaster'
 import {
 	useCreateErrorCommentForExistingIssueMutation,
 	useCreateErrorCommentMutation,
@@ -50,7 +51,6 @@ import { CommentTextBody } from '@pages/Player/Toolbar/NewCommentForm/CommentTex
 import analytics from '@util/analytics'
 import { getCommentMentionSuggestions } from '@util/comment/util'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 import { OnChangeHandlerFunc } from 'react-mentions'
 import { useNavigate } from 'react-router-dom'
@@ -260,7 +260,7 @@ export const NewCommentForm = ({
 			analytics.track('Create Error Comment Failed', {
 				error: e.toString(),
 			})
-			message.error('Failed to post a comment, please try again.')
+			toast.error('Failed to post a comment, please try again.')
 		}
 		setIsCreatingComment(false)
 	}
@@ -347,7 +347,7 @@ export const NewCommentForm = ({
 			const e = _e as Error
 
 			analytics.track('Create Comment Failed', { error: e.toString() })
-			message.error(
+			toast.error(
 				'Failed to post a comment, please try again. If this keeps failing please reach out to us!',
 			)
 		}

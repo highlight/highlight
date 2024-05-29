@@ -23,6 +23,6 @@ export const FullExample = () => (
 		options={OPTIONS}
 		onChange={(values) => console.log(values.join('/'))}
 		value={[]}
-		valueRender={() => <div>Value</div>}
+		selected={false}
 	/>
 )

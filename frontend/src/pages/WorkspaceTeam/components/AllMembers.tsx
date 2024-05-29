@@ -3,6 +3,7 @@ import { AdminAvatar } from '@components/Avatar/Avatar'
 import Card from '@components/Card/Card'
 import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
+import { toast } from '@components/Toaster'
 import {
 	useChangeAdminRoleMutation,
 	useDeleteAdminFromWorkspaceMutation,
@@ -13,7 +14,6 @@ import SvgTrashIconSolid from '@icons/TrashIconSolid'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { getDisplayNameFromEmail, titleCaseString } from '@util/string'
-import { message } from 'antd'
 import clsx from 'clsx'
 
 import Button from '../../../components/Button/Button/Button'
@@ -38,10 +38,10 @@ const AllMembers = ({
 				fields: {
 					workspace_admins(existingAdmins, { DELETE }) {
 						if (data?.deleteAdminFromWorkspace !== undefined) {
-							message.success('Removed member')
+							toast.success('Removed member')
 							return DELETE
 						}
-						message.success('Failed to remove member')
+						toast.success('Failed to remove member')
 						return existingAdmins
 					},
 				},
@@ -104,7 +104,7 @@ const AllMembers = ({
 									messageText = `${displayName} no longer has admin access.`
 									break
 							}
-							message.success(messageText)
+							toast.success(messageText)
 						},
 						canUpdateAdminRole: checkPolicyAccess({
 							policyName: POLICY_NAMES.RolesUpdate,

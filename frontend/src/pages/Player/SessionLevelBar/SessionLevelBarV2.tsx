@@ -4,6 +4,7 @@ import {
 	Divider,
 } from '@components/CreateAlertButton/CreateAlertButton'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
+import { toast } from '@components/Toaster'
 import { useGetAlertsPagePayloadQuery } from '@graph/hooks'
 import { colors } from '@highlight-run/ui/colors'
 import {
@@ -29,7 +30,6 @@ import { changeSession } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import analytics from '@util/analytics'
-import { message } from 'antd'
 import { delay } from 'lodash'
 import React, { useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -288,7 +288,7 @@ export const SessionCurrentUrl = () => {
 					onClick={() => {
 						if (currentUrl?.length) {
 							navigator.clipboard.writeText(currentUrl)
-							message.success('Copied url to clipboard')
+							toast.success('Copied url to clipboard')
 						}
 					}}
 				>

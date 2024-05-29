@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
+import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -26,7 +27,6 @@ import { INVITE_TEAM_ROUTE } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
 import { getAttributionData } from '@util/attribution'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -165,7 +165,7 @@ export const AdminForm: React.FC = () => {
 				})
 			}
 
-			message.success(
+			toast.success(
 				`Nice to meet you ${formState.values.firstName}, let's get started!`,
 			)
 

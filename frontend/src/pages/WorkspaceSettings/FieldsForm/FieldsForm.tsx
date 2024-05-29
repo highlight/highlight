@@ -1,4 +1,5 @@
 import Input from '@components/Input/Input'
+import { toast } from '@components/Toaster'
 import {
 	useEditProjectMutation,
 	useEditWorkspaceMutation,
@@ -6,7 +7,6 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
@@ -55,7 +55,7 @@ export const FieldsForm = () => {
 					name,
 				},
 			}).then(() => {
-				message.success('Updated workspace fields!', 5)
+				toast.success('Updated workspace fields!', { duration: 5000 })
 			})
 		} else {
 			editProject({
@@ -65,7 +65,7 @@ export const FieldsForm = () => {
 					billing_email: email,
 				},
 			}).then(() => {
-				message.success('Updated project fields!', 5)
+				toast.success('Updated project fields!', { duration: 5000 })
 			})
 		}
 	}

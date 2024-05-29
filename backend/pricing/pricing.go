@@ -314,7 +314,7 @@ func GetSessions7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhou
 }
 
 func GetWorkspaceSessionsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, redisClient *redis.Client, workspace *model.Workspace) (int64, error) {
-	meterSpan, _ := util.StartSpanFromContext(ctx, "pricing.GetWorkspaceSessionsMeter",
+	meterSpan, _ := util.StartSpanFromContext(ctx, "GetWorkspaceSessionsMeter",
 		util.ResourceName("GetWorkspaceSessionsMeter"),
 		util.Tag("workspace_id", workspace.ID))
 	defer meterSpan.Finish()
@@ -375,7 +375,7 @@ func GetErrors7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse
 }
 
 func GetWorkspaceErrorsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, redisClient *redis.Client, workspace *model.Workspace) (int64, error) {
-	meterSpan, _ := util.StartSpanFromContext(ctx, "pricing.GetWorkspaceErrorsMeter",
+	meterSpan, _ := util.StartSpanFromContext(ctx, "GetWorkspaceErrorsMeter",
 		util.ResourceName("GetWorkspaceErrorsMeter"),
 		util.Tag("workspace_id", workspace.ID))
 	defer meterSpan.Finish()
@@ -846,6 +846,89 @@ func (w *Worker) ReportAWSMPUsages(ctx context.Context, usages AWSCustomerUsages
 	}
 }
 
+type overageConfig struct {
+	MaxCostCents    func(*model.Workspace) *int
+	Meter           func(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, redisClient *redis.Client, workspace *model.Workspace) (int64, error)
+	RetentionPeriod func(*model.Workspace) backend.RetentionPeriod
+	Included        func(*model.Workspace) int64
+	OverageEmail    email.EmailType
+}
+
+var ProductTypeToQuotaConfig = map[model.PricingProductType]overageConfig{
+	model.PricingProductTypeSessions: {
+		func(w *model.Workspace) *int { return w.SessionsMaxCents },
+		GetWorkspaceSessionsMeter,
+		func(w *model.Workspace) backend.RetentionPeriod {
+			if w.RetentionPeriod == nil {
+				return backend.RetentionPeriodThreeMonths
+			}
+			return *w.RetentionPeriod
+		},
+		func(w *model.Workspace) int64 {
+			limit := IncludedAmount(backend.PlanType(w.PlanTier), model.PricingProductTypeSessions)
+			if w.MonthlySessionLimit != nil {
+				limit = int64(*w.MonthlySessionLimit)
+			}
+			return limit
+		},
+		email.BillingSessionOverage,
+	},
+	model.PricingProductTypeErrors: {
+		func(w *model.Workspace) *int { return w.ErrorsMaxCents },
+		GetWorkspaceErrorsMeter,
+		func(w *model.Workspace) backend.RetentionPeriod {
+			if w.ErrorsRetentionPeriod == nil {
+				return backend.RetentionPeriodThreeMonths
+			}
+			return *w.ErrorsRetentionPeriod
+		},
+		func(w *model.Workspace) int64 {
+			limit := IncludedAmount(backend.PlanType(w.PlanTier), model.PricingProductTypeErrors)
+			if w.MonthlyErrorsLimit != nil {
+				limit = int64(*w.MonthlyErrorsLimit)
+			}
+			return limit
+		},
+		email.BillingErrorsOverage,
+	},
+	model.PricingProductTypeLogs: {
+		func(w *model.Workspace) *int { return w.LogsMaxCents },
+		GetWorkspaceLogsMeter,
+		func(w *model.Workspace) backend.RetentionPeriod {
+			if w.LogsRetentionPeriod == nil {
+				return backend.RetentionPeriodThirtyDays
+			}
+			return *w.LogsRetentionPeriod
+		},
+		func(w *model.Workspace) int64 {
+			limit := IncludedAmount(backend.PlanType(w.PlanTier), model.PricingProductTypeLogs)
+			if w.MonthlyLogsLimit != nil {
+				limit = int64(*w.MonthlyLogsLimit)
+			}
+			return limit
+		},
+		email.BillingLogsOverage,
+	},
+	model.PricingProductTypeTraces: {
+		func(w *model.Workspace) *int { return w.TracesMaxCents },
+		GetWorkspaceTracesMeter,
+		func(w *model.Workspace) backend.RetentionPeriod {
+			if w.TracesRetentionPeriod == nil {
+				return backend.RetentionPeriodThirtyDays
+			}
+			return *w.TracesRetentionPeriod
+		},
+		func(w *model.Workspace) int64 {
+			limit := IncludedAmount(backend.PlanType(w.PlanTier), model.PricingProductTypeTraces)
+			if w.MonthlyTracesLimit != nil {
+				limit = int64(*w.MonthlyTracesLimit)
+			}
+			return limit
+		},
+		email.BillingTracesOverage,
+	},
+}
+
 func (w *Worker) CalculateOverages(ctx context.Context, workspaceID int) (WorkspaceOverages, error) {
 	var workspace *model.Workspace
 	var err error
@@ -865,50 +948,19 @@ func (w *Worker) CalculateOverages(ctx context.Context, workspaceID int) (Worksp
 	}
 	usage[model.PricingProductTypeMembers] = calculateOverage(workspace, membersLimit, membersMeter)
 
-	// Update sessions overage
-	sessionsMeter, err := GetWorkspaceSessionsMeter(ctx, w.db, w.ccClient, w.redis, workspace)
-	if err != nil {
-		return nil, e.Wrap(err, "BILLING_ERROR error getting sessions meter")
+	for product, cfg := range ProductTypeToQuotaConfig {
+		meter, err := cfg.Meter(ctx, w.db, w.ccClient, w.redis, workspace)
+		if err != nil {
+			return nil, e.Wrapf(err, "BILLING_ERROR error getting %s meter", product)
+		}
+		included := cfg.Included(workspace)
+		usage[product] = calculateOverage(workspace, &included, meter)
+		if meter > included {
+			if err := model.SendBillingNotifications(ctx, w.db, w.mailClient, cfg.OverageEmail, workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+			}
+		}
 	}
-	sessionsLimit := IncludedAmount(backend.PlanType(workspace.PlanTier), model.PricingProductTypeSessions)
-	if workspace.MonthlySessionLimit != nil {
-		sessionsLimit = int64(*workspace.MonthlySessionLimit)
-	}
-	usage[model.PricingProductTypeSessions] = calculateOverage(workspace, &sessionsLimit, sessionsMeter)
-
-	// Update errors overage
-	errorsMeter, err := GetWorkspaceErrorsMeter(ctx, w.db, w.ccClient, w.redis, workspace)
-	if err != nil {
-		return nil, e.Wrap(err, "BILLING_ERROR error getting errors meter")
-	}
-	errorsLimit := IncludedAmount(backend.PlanType(workspace.PlanTier), model.PricingProductTypeErrors)
-	if workspace.MonthlyErrorsLimit != nil {
-		errorsLimit = int64(*workspace.MonthlyErrorsLimit)
-	}
-	usage[model.PricingProductTypeErrors] = calculateOverage(workspace, &errorsLimit, errorsMeter)
-
-	// Update logs overage
-	logsMeter, err := GetWorkspaceLogsMeter(ctx, w.db, w.ccClient, w.redis, workspace)
-	if err != nil {
-		return nil, e.Wrap(err, "BILLING_ERROR error getting errors meter")
-	}
-	logsLimit := IncludedAmount(backend.PlanType(workspace.PlanTier), model.PricingProductTypeLogs)
-	if workspace.MonthlyLogsLimit != nil {
-		logsLimit = int64(*workspace.MonthlyLogsLimit)
-	}
-	usage[model.PricingProductTypeLogs] = calculateOverage(workspace, &logsLimit, logsMeter)
-
-	// Update traces overage
-	tracesMeter, err := GetWorkspaceTracesMeter(ctx, w.db, w.ccClient, w.redis, workspace)
-	if err != nil {
-		return nil, e.Wrap(err, "BILLING_ERROR error getting traces meter")
-	}
-	tracesLimit := IncludedAmount(backend.PlanType(workspace.PlanTier), model.PricingProductTypeTraces)
-	if workspace.MonthlyTracesLimit != nil {
-		tracesLimit = int64(*workspace.MonthlyTracesLimit)
-	}
-	usage[model.PricingProductTypeTraces] = calculateOverage(workspace, &tracesLimit, tracesMeter)
-
 	return usage, nil
 }
 

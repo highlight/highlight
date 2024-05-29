@@ -99,7 +99,7 @@ By default, Highlight's SDKs will autoinject attributes to provide additional co
 
 | Attribute           | Description                                        | Example                                                                                                                                             |
 |---------------------|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `active_length`     | Time the user was active in milliseconds           | `60000` (1 minute)                                                                                                                                  |
+| `active_length`     | Time the user was active in milliseconds           | `10m`                                                                                                                                               |
 | `browser_name`      | Browser the user was on                            | `Chrome`                                                                                                                                            |
 | `browser_version`   | Browser version the user was on                    | `124.0.0.0`                                                                                                                                         |
 | `city`              | City the user was in                               | `San Francisco`                                                                                                                                     |
@@ -114,7 +114,7 @@ By default, Highlight's SDKs will autoinject attributes to provide additional co
 | `identified`        | If the session successfully identified the user    | `false`                                                                                                                                             |
 | `identifier`        | The idenifier passed to `H.init`                   | `1`                                                                                                                                                 |
 | `ip`                | The IP address of the user                         | `127.0.0.1`                                                                                                                                         |
-| `length`            | The total length of the session                    | `60000` (1 minute)                                                                                                                                  |
+| `length`            | The total length of the session                    | `10m`                                                                                                                                               |
 | `os_name`           | The user's operating system                        | `Mac OS X`                                                                                                                                          |
 | `os_version`        | The user's operating system version                | `10.15.7`                                                                                                                                           |
 | `pages_visited`     | The number of pages visited in the session         | `10`                                                                                                                                                |
@@ -132,10 +132,13 @@ Create a new `sample` of sessions by clicking "New Random Seed" for the sample's
 
 Currently, length and active length are not supported by time suffixes, but this functionality is coming soon.
 
+Use time suffixes, such as `s`, `m` and `h` to help filter out for length durations. For example, use `length>10m`
+to find all sessions that were longer than 10 minutes.
+
 ## Demo
 
 <EmbeddedVideo 
-  src="https://www.youtube.com/embed/U4nA0XjOqIQ?si=4Vy64J9J2JxEGAqY"
+  src="https://www.youtube.com/embed/NisdkBvT8AA?si=KrnWCUxIEqiW1WeN"
   title="Youtube Video Player"
   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 />

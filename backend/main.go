@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/assets"
 	"html/template"
 	"io"
 	"math/rand"
@@ -14,6 +13,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/assets"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
@@ -469,7 +470,6 @@ func main() {
 			privateServer.AddTransport(transport.POST{})
 			privateServer.AddTransport(transport.MultipartForm{})
 			privateServer.SetQueryCache(lru.New(1000))
-			privateServer.Use(extension.Introspection{})
 			privateServer.Use(extension.AutomaticPersistedQuery{
 				Cache: lru.New(10000),
 			})

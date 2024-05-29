@@ -1,5 +1,6 @@
 import { ApolloError } from '@apollo/client'
 import { Button } from '@components/Button'
+import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -13,7 +14,6 @@ import { Box, Callout, Stack, Text } from '@highlight-run/ui/components'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
 import useLocalStorage from '@rehooks/local-storage'
-import { message } from 'antd'
 import { H } from 'highlight.run'
 import { useEffect } from 'react'
 import { Navigate, useMatch, useNavigate } from 'react-router-dom'
@@ -59,17 +59,17 @@ export const WorkspaceInvitation = () => {
 			clearInviteAndRedirect()
 
 			if (error.message.indexOf('expired') > -1) {
-				message.error(
+				toast.error(
 					'This invite link has expired. Please ask your admin for a new one.',
 				)
 			} else {
-				message.error('Invalid invite code.')
+				toast.error('Invalid invite code.')
 			}
 		}
 
 		if (alreadyInWorkspace) {
 			clearInviteAndRedirect(data?.workspace_for_invite_link.project_id)
-			message.success('You are already a member of this workspace.')
+			toast.success('You are already a member of this workspace.')
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [alreadyInWorkspace, error])
@@ -119,7 +119,7 @@ export const WorkspaceInvitation = () => {
 										},
 									})
 
-									message.success(
+									toast.success(
 										`Successfully joined workspace "${workspaceName}"!`,
 									)
 
@@ -128,7 +128,7 @@ export const WorkspaceInvitation = () => {
 											.project_id,
 									)
 								} catch (_e) {
-									message.error(
+									toast.error(
 										'Failed to join the workspace. Please try again.',
 									)
 									showSupportMessage(

@@ -11,7 +11,7 @@ jobs:
     yarn-monorepo:
         name: Build Yarn Turborepo
         timeout-minutes: 30
-        runs-on: buildjet-4vcpu-ubuntu-2204
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         # configures turborepo Remote Caching
         env:
             TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -59,12 +59,14 @@ jobs:
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v3
 
-            - name: Build & test (in a fork without doppler)
-              run: yarn test:all
-              env:
-                  GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
-                  NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
-                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+            - name: Install Playwright Browsers
+              run: npx playwright install --with-deps
+
+            - name: install chrome
+              run: |
+                  wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+                  apt-get update -y
+                  apt-get install -y ./google-chrome*.deb
 
             - name: Test session screenshot lambda
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
@@ -72,10 +74,27 @@ jobs:
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
 
+            - name: Build & test (in a fork without doppler)
+              run: yarn test:all
+              env:
+                  GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
+                  NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
+                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+
             - name: Validate session screenshot lambda size
               # this can only run after `yarn test:render` runs
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               run: yarn workspace render zip && yarn workspace render check
+
+            - name: Update changesets
+              id: changesets-version
+              uses: changesets/action@v1
+              with:
+                  version: yarn changeset version
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Upload frontend sourcemaps
               if: github.ref == 'refs/heads/main'
@@ -106,11 +125,9 @@ jobs:
 
             - name: Publish changesets
               if: github.ref == 'refs/heads/main'
-              id: changesets
+              id: changesets-publish
               uses: changesets/action@v1
               with:
-                  # This expects you to have a script called release which does a build for your packages and calls changeset publish
-                  version: yarn changeset version
                   publish: yarn publish:turbo
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -142,6 +159,19 @@ jobs:
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: '**/go.sum'
+
+            - name: Install poetry
+              run: pipx install poetry
+
+            - name: Install python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: '3.10'
+                  cache: 'poetry'
+
+            - name: Install dependencies
+              working-directory: ./e2e/tests
+              run: poetry install --all-extras
 
             - name: Install ffmpeg
               run: |
@@ -196,6 +226,13 @@ jobs:
 
                   # run cypress tests
                   yarn cy:run;
+
+                  # run python functional tests that ensure cypress session is correct
+                  pushd ./e2e/tests
+                  export HIGHLIGHT_OAUTH_CLIENT_ID=abc123
+                  export HIGHLIGHT_OAUTH_CLIENT_SECRET=def456
+                  poetry run pytest -k cypress .
+                  popd
 
                   # look for containers that crashed
                   num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)
@@ -311,7 +348,7 @@ jobs:
                   pushd ./e2e/tests
                   export HIGHLIGHT_OAUTH_CLIENT_ID=abc123
                   export HIGHLIGHT_OAUTH_CLIENT_SECRET=def456
-                  poetry run pytest .
+                  poetry run pytest -k "not cypress" .
                   popd
 
                   # look for containers that crashed
