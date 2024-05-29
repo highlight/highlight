@@ -17,7 +17,7 @@ export const RubyRailsContent: QuickStartContent = {
 		installSdk,
 		initializeSdk,
 		{
-			title: 'Add the Highlight middleware.',
+			title: 'Add the Highlight controller action.',
 			content:
 				'`with_highlight_context` can be used as a Rails `around_action` to wrap any controller actions to automatically record errors.',
 			code: [
