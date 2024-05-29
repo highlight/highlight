@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"github.com/sendgrid/sendgrid-go"
 	"io"
 	"os"
 	"testing"
@@ -884,7 +885,7 @@ func TestCalculateOverages(t *testing.T) {
 
 	ctx := context.TODO()
 	s := store.NewStore(DB, redisClient, nil, nil, nil, chClient)
-	pWorker := pricing.NewWorker(DB, redisClient, s, chClient, nil, nil, nil)
+	pWorker := pricing.NewWorker(DB, redisClient, s, chClient, nil, nil, sendgrid.NewSendClient(""))
 	worker := Worker{
 		Resolver: &graph.Resolver{
 			DB:               DB,

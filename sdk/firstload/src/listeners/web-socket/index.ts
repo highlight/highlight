@@ -20,7 +20,7 @@ export const initializeWebSocketListener = () => {
 				target,
 				args: [url: string, protocols?: string | string[]],
 			) {
-				const socketId = createNetworkRequestId()
+				const [, socketId] = createNetworkRequestId()
 				const webSocket = new target(...args)
 
 				const openHandler = (event: Event) => {

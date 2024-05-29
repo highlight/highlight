@@ -27,7 +27,6 @@ export const FetchListener = (
 	backendUrl: string,
 	tracingOrigins: boolean | (string | RegExp)[],
 	urlBlocklist: string[],
-	sessionSecureID: string,
 	bodyKeysToRedact?: string[],
 	bodyKeysToRecord?: string[],
 ) => {
@@ -39,7 +38,7 @@ export const FetchListener = (
 			return originalFetch.call(this, input, init)
 		}
 
-		const requestId = createNetworkRequestId()
+		const [sessionSecureID, requestId] = createNetworkRequestId()
 		if (shouldNetworkRequestBeTraced(url, tracingOrigins)) {
 			init = init || {}
 			// Pre-existing headers could be one of three different formats; this reads all of them.
@@ -60,6 +59,7 @@ export const FetchListener = (
 		}
 
 		const request: HighlightRequest = {
+			sessionSecureID,
 			id: requestId,
 			headers: {},
 			body: undefined,

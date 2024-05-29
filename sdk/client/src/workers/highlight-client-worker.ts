@@ -147,7 +147,6 @@ function stringifyProperties(
 			errors,
 			resourcesString,
 			webSocketEventsString,
-			isBeacon,
 			hasSessionUnloaded,
 			highlightLogs,
 		} = msg
@@ -161,7 +160,7 @@ function stringifyProperties(
 			resources: resourcesString,
 			web_socket_events: webSocketEventsString,
 			errors,
-			is_beacon: isBeacon,
+			is_beacon: false,
 			has_session_unloaded: hasSessionUnloaded,
 		}
 		if (highlightLogs) {
@@ -171,6 +170,30 @@ function stringifyProperties(
 		const buf = strToU8(JSON.stringify(payload))
 		const compressed = compressSync(buf)
 		const compressedBase64 = await bufferToBase64(compressed)
+
+		logger.log(
+			`Pushing payload: ${JSON.stringify(
+				{
+					sessionSecureID,
+					id,
+					firstSID: Math.min(
+						...(payload.events.events
+							.map((e) => e?._sid)
+							.filter((sid) => !!sid) as number[]),
+					),
+					eventsLength: payload.events.events.length,
+					messagesLength: messages.length,
+					resourcesLength: resourcesString.length,
+					webSocketLength: webSocketEventsString.length,
+					errorsLength: errors.length,
+					bufLength: buf.length,
+					compressedLength: compressed.length,
+					compressedBase64Length: compressedBase64.length,
+				},
+				undefined,
+				2,
+			)}`,
+		)
 
 		const pushPayload = graphqlSDK.PushPayloadCompressed({
 			session_secure_id: sessionSecureID,

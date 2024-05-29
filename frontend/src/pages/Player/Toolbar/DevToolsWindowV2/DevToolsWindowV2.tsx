@@ -7,6 +7,7 @@ import {
 	IconSolidLogs,
 	IconSolidSearch,
 	IconSolidSwitchHorizontal,
+	Stack,
 	Tabs,
 	Text,
 } from '@highlight-run/ui/components'
@@ -68,7 +69,6 @@ const DevToolsWindowV2: React.FC<
 		RequestStatus[]
 	>([RequestStatus.All])
 
-	const [searchShown, setSearchShown] = React.useState<boolean>(false)
 	const [levels, setLevels] = React.useState<LogLevelValue[]>([
 		LogLevelValue.All,
 	])
@@ -186,147 +186,26 @@ const DevToolsWindowV2: React.FC<
 							}}
 						>
 							<Tabs.List px="8">
-								<Tabs.Tab id={Tab.Console}>
-									Console Logs
-								</Tabs.Tab>
-								<Tabs.Tab id={Tab.Errors}>Errors</Tabs.Tab>
-								<Tabs.Tab id={Tab.Network}>Network</Tabs.Tab>
-								<Tabs.Tab id={Tab.Performance}>
-									Performance
-								</Tabs.Tab>
-
-								<Box
-									display="flex"
-									justifyContent="flex-end"
-									gap="6"
-									align="center"
-									flexGrow={1}
-								>
-									<Box
-										display="flex"
+								<Stack gap="0" width="full">
+									<Stack
+										direction="row"
 										justifyContent="space-between"
-										gap="4"
-										align="center"
+										width="full"
 									>
-										<Form store={formStore}>
-											<Box
-												display="flex"
-												justifyContent="space-between"
-												align="center"
-												gap={searchShown ? '4' : '0'}
-											>
-												<Box
-													cursor="pointer"
-													display="flex"
-													align="center"
-													onClick={() => {
-														setSearchShown(
-															(s) => !s,
-														)
-													}}
-													color="weak"
-												>
-													<IconSolidSearch
-														size={16}
-													/>
-												</Box>
-												<Form.Input
-													name={
-														formStore.names.search
-													}
-													placeholder="Search"
-													size="xSmall"
-													outline={false}
-													collapsed={!searchShown}
-													onKeyDown={(e: any) => {
-														if (
-															e.code === 'Escape'
-														) {
-															e.target?.blur()
-														}
-													}}
-													onBlur={() => {
-														setSearchShown(false)
-													}}
-													onFocus={() => {
-														setSearchShown(true)
-													}}
-												/>
-											</Box>
-										</Form>
-
-										{selectedDevToolsTab === Tab.Console ? (
-											<>
-												<LogLevelFilter
-													logLevels={levels}
-													setLogLevels={setLevels}
-												/>
-												<LogSourceFilter
-													logSources={sources}
-													setLogSources={setSources}
-												/>
-											</>
-										) : selectedDevToolsTab ===
-										  Tab.Network ? (
-											<>
-												<RequestTypeFilter
-													requestTypes={requestTypes}
-													setRequestTypes={
-														setRequestTypes
-													}
-													parsedResources={
-														parsedResources
-													}
-												/>
-												<RequestStatusFilter
-													requestStatuses={
-														requestStatuses
-													}
-													setRequestStatuses={
-														setRequestStatuses
-													}
-													parsedResources={
-														parsedResources
-													}
-													requestTypes={requestTypes}
-												/>
-											</>
-										) : null}
-
-										{selectedDevToolsTab === Tab.Console &&
-										session ? (
-											<Button
-												size="xSmall"
-												kind="secondary"
-												trackingId="session_show-in-log-viewer_click"
-												cssClass={styles.autoScroll}
-												iconLeft={
-													<IconSolidLogs
-														width={12}
-														height={12}
-													/>
-												}
-												onClick={() => {
-													const params =
-														buildSessionParams({
-															session,
-															levels: relevantLevelsForRequest,
-															sources,
-														})
-
-													set({
-														type: 'logs',
-														query: params.query,
-														startDate:
-															params.date_range.start_date.toISOString(),
-														endDate:
-															params.date_range.end_date.toISOString(),
-													})
-												}}
-											>
-												Show in Log Viewer
-											</Button>
-										) : null}
+										<Stack direction="row">
+											<Tabs.Tab id={Tab.Console}>
+												Console Logs
+											</Tabs.Tab>
+											<Tabs.Tab id={Tab.Errors}>
+												Errors
+											</Tabs.Tab>
+											<Tabs.Tab id={Tab.Network}>
+												Network
+											</Tabs.Tab>
+											<Tabs.Tab id={Tab.Performance}>
+												Performance
+											</Tabs.Tab>
+										</Stack>
 
 										<Button
 											size="xSmall"
@@ -350,10 +229,148 @@ const DevToolsWindowV2: React.FC<
 											}}
 											trackingId="devToolsAutoScroll"
 										>
-											Auto scroll
+											<Text lines="1">Auto scroll</Text>
 										</Button>
-									</Box>
-								</Box>
+									</Stack>
+
+									<Stack
+										borderTop="dividerWeak"
+										direction="row"
+										gap="4"
+										py="8"
+									>
+										<Box display="flex" width="full">
+											<Form
+												store={formStore}
+												style={{
+													display: 'flex',
+													width: '100%',
+												}}
+											>
+												<Box
+													display="flex"
+													justifyContent="space-between"
+													align="center"
+													width="full"
+													gap="4"
+												>
+													<Box
+														cursor="pointer"
+														display="flex"
+														align="center"
+														color="weak"
+													>
+														<IconSolidSearch
+															size={16}
+														/>
+													</Box>
+													<Form.Input
+														name={
+															formStore.names
+																.search
+														}
+														placeholder="Search"
+														size="xSmall"
+														outline={false}
+														onKeyDown={(e: any) => {
+															if (
+																e.code ===
+																'Escape'
+															) {
+																e.target?.blur()
+															}
+														}}
+													/>
+												</Box>
+											</Form>
+										</Box>
+										<Stack
+											direction="row"
+											gap="4"
+											flexShrink={0}
+										>
+											{selectedDevToolsTab ===
+											Tab.Console ? (
+												<>
+													<LogLevelFilter
+														logLevels={levels}
+														setLogLevels={setLevels}
+													/>
+													<LogSourceFilter
+														logSources={sources}
+														setLogSources={
+															setSources
+														}
+													/>
+												</>
+											) : selectedDevToolsTab ===
+											  Tab.Network ? (
+												<>
+													<RequestTypeFilter
+														requestTypes={
+															requestTypes
+														}
+														setRequestTypes={
+															setRequestTypes
+														}
+														parsedResources={
+															parsedResources
+														}
+													/>
+													<RequestStatusFilter
+														requestStatuses={
+															requestStatuses
+														}
+														setRequestStatuses={
+															setRequestStatuses
+														}
+														parsedResources={
+															parsedResources
+														}
+														requestTypes={
+															requestTypes
+														}
+													/>
+												</>
+											) : null}
+
+											{selectedDevToolsTab ===
+												Tab.Console && session ? (
+												<Button
+													size="xSmall"
+													kind="secondary"
+													trackingId="session_show-in-log-viewer_click"
+													cssClass={styles.autoScroll}
+													iconLeft={
+														<IconSolidLogs
+															width={12}
+															height={12}
+														/>
+													}
+													onClick={() => {
+														const params =
+															buildSessionParams({
+																session,
+																levels: relevantLevelsForRequest,
+																sources,
+															})
+
+														set({
+															type: 'logs',
+															query: params.query,
+															startDate:
+																params.date_range.start_date.toISOString(),
+															endDate:
+																params.date_range.end_date.toISOString(),
+														})
+													}}
+												>
+													Show in log viewer
+												</Button>
+											) : null}
+										</Stack>
+									</Stack>
+								</Stack>
 							</Tabs.List>
 							<Tabs.Panel id={Tab.Console}>
 								<ConsolePage
