@@ -5908,11 +5908,21 @@ body {
 ._141pqa00 {
   margin: auto;
   overflow: clip;
-  width: 90vw;
-  height: 90vh;
+  min-width: 320px;
+  min-height: 700px;
+  width: 1000px;
+  height: 900px;
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
+  pointer-events: auto;
+  transition: all;
+}
+._141pqa01 {
+  position: absolute;
+  top: 32px;
+  right: 32px;
 }
 .bsyaa20 {
   text-decoration: none;
