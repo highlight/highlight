@@ -4588,7 +4588,18 @@ export type GetSessionLogsQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'LogEdge' } & Pick<Types.LogEdge, 'cursor'> & {
 				node: { __typename?: 'Log' } & Pick<
 					Types.Log,
-					'timestamp' | 'level' | 'message'
+					| 'timestamp'
+					| 'level'
+					| 'message'
+					| 'logAttributes'
+					| 'traceID'
+					| 'spanID'
+					| 'secureSessionID'
+					| 'source'
+					| 'serviceName'
+					| 'serviceVersion'
+					| 'environment'
+					| 'projectID'
 				>
 			}
 	>

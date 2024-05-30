@@ -13341,6 +13341,15 @@ export const GetSessionLogsDocument = gql`
 				timestamp
 				level
 				message
+				logAttributes
+				traceID
+				spanID
+				secureSessionID
+				source
+				serviceName
+				serviceVersion
+				environment
+				projectID
 			}
 		}
 	}

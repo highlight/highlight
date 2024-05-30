@@ -2083,6 +2083,15 @@ query GetSessionLogs($project_id: ID!, $params: QueryInput!) {
 			timestamp
 			level
 			message
+			logAttributes
+			traceID
+			spanID
+			secureSessionID
+			source
+			serviceName
+			serviceVersion
+			environment
+			projectID
 		}
 	}
 }
