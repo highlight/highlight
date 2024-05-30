@@ -1,6 +1,7 @@
 import { Metadata } from '@highlight-run/client'
 import { H } from 'highlight.run'
 import * as rudderanalytics from 'rudder-sdk-js'
+import { DISABLE_ANALYTICS } from '../constants'
 import { omit } from 'lodash'
 
 // from https://www.rudderstack.com/docs/archive/javascript-sdk/1.1/faq/#what-is-the-reserved-keyword-error
@@ -15,8 +16,13 @@ const rudderstackReserved = [
 	'event',
 ]
 let rudderstackInitialized = false
+const isDisabled = DISABLE_ANALYTICS || false
 
 const initialize = () => {
+	if (isDisabled) {
+		return
+	}
+
 	if (rudderstackInitialized) {
 		console.warn('Rudderstack already initialized.')
 		return
@@ -32,6 +38,10 @@ const initialize = () => {
 }
 
 const track = (event: string, metadata?: rudderanalytics.apiObject) => {
+	if (isDisabled) {
+		return
+	}
+
 	;(window._hsq = window._hsq || []).push([
 		'trackCustomBehavioralEvent',
 		{
@@ -45,6 +55,10 @@ const track = (event: string, metadata?: rudderanalytics.apiObject) => {
 }
 
 const identify = (email: string, traits?: rudderanalytics.apiObject) => {
+	if (isDisabled) {
+		return
+	}
+
 	const hsq = (window._hsq = window._hsq || [])
 	hsq.push([
 		'identify',
@@ -63,6 +77,10 @@ const identify = (email: string, traits?: rudderanalytics.apiObject) => {
 }
 
 const page = (name: string, properties?: rudderanalytics.apiObject) => {
+	if (isDisabled) {
+		return
+	}
+
 	rudderanalytics.page(name, omit(properties, rudderstackReserved))
 }
 
