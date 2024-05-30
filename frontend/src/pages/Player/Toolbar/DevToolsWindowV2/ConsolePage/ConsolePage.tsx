@@ -1,58 +1,36 @@
-import LoadingBox from '@components/LoadingBox'
-import { Log, LogLevel, LogSource } from '@graph/schemas'
-import {
-	Box,
-	IconSolidArrowCircleRight,
-	Stack,
-	Tag,
-	Text,
-} from '@highlight-run/ui/components'
+import { LogLevel, LogSource } from '@graph/schemas'
+import { Box } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
-import { COLOR_MAPPING } from '@pages/LogsPage/constants'
-import { THROTTLED_UPDATE_MS } from '@pages/Player/PlayerHook/PlayerState'
-import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
-import {
-	findLastActiveEventIndex,
-	Tab,
-} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import clsx from 'clsx'
-import _ from 'lodash'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
+import React, { useEffect, useMemo } from 'react'
 
+import { LogCustomColumn } from '@/components/CustomColumnPopover'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
+import { parseSearch } from '@/components/Search/utils'
 import { useGetSessionLogsQuery } from '@/graph/generated/hooks'
 import { buildSessionParams } from '@/pages/LogsPage/utils'
-import { styledVerticalScrollbar } from '@/style/common.css'
+import { findLastActiveEventIndex } from '@/pages/Player/Toolbar/DevToolsWindowV2/utils'
 import analytics from '@/util/analytics'
 
 import { useReplayerContext } from '../../../ReplayerContext'
+import { ConsoleTable } from './ConsoleTable'
 import * as styles from './style.css'
 
-type SessionLog = Pick<Log, 'timestamp' | 'message' | 'level'>
-type SessionLogEdge = { cursor: string; node: SessionLog }
-
 export const ConsolePage = ({
-	logCursor,
 	autoScroll,
-	filter,
 	sources,
 	levels,
 }: {
 	autoScroll: boolean
-	logCursor: string | null
-	filter: string
 	sources: LogSource[]
 	levels: LogLevel[]
 }) => {
 	const { projectId } = useProjectId()
-	const [, setSelectedCursor] = useState(logCursor)
-	const { session, time, setTime, sessionMetadata, isPlayerReady } =
-		useReplayerContext()
+	const { session, time, setTime, sessionMetadata } = useReplayerContext()
 
 	const params = buildSessionParams({ session, levels, sources })
+	const { queryParts } = parseSearch(params.query)
 
-	const { data, loading } = useGetSessionLogsQuery({
+	const { data, loading, error, refetch } = useGetSessionLogsQuery({
 		variables: {
 			params: {
 				query: params.query,
@@ -67,85 +45,68 @@ export const ConsolePage = ({
 		skip: !session,
 	})
 
-	const messagesToRender = useMemo(() => {
-		if (!data?.sessionLogs) {
-			return []
-		}
-
-		if (filter !== '') {
-			return data.sessionLogs.filter((logEdge) => {
-				if (!logEdge.node.message) {
-					return false
-				}
-
-				return logEdge.node.message
-					.toLocaleLowerCase()
-					.includes(filter.toLocaleLowerCase())
-			})
-		}
-
-		return data.sessionLogs
-	}, [filter, data?.sessionLogs])
-
-	const messageNodes = messagesToRender.map((message) => {
-		return message.node
-	})
+	const selectedColumns = useMemo(() => {
+		return [
+			{
+				id: 'level',
+				label: 'Level',
+				type: 'level',
+				size: '75px',
+				accessKey: 'level',
+			},
+			{
+				id: 'message',
+				label: 'Body',
+				type: 'body',
+				size: '5fr',
+				accessKey: 'message',
+			},
+			{
+				id: 'go-to-log',
+				label: '',
+				type: 'go-to-log',
+				size: '75px',
+				accessKey: 'timestamp',
+				onClick: (logEdge: any) => {
+					const timestamp =
+						new Date(logEdge.node.timestamp).getTime() -
+						sessionMetadata.startTime
+					setTime(timestamp)
+					analytics.track('session_go-to-log_click')
+				},
+			},
+		] as LogCustomColumn[]
+	}, [sessionMetadata.startTime, setTime])
 
 	const lastActiveLogIndex = useMemo(() => {
+		const messageNodes = data?.sessionLogs
+			? data.sessionLogs.map((message) => message.node)
+			: []
+
 		return findLastActiveEventIndex(
 			time,
 			sessionMetadata.startTime,
 			messageNodes,
 		)
-	}, [time, sessionMetadata.startTime, messageNodes])
+	}, [time, sessionMetadata.startTime, data?.sessionLogs])
 
 	useEffect(() => {
 		analytics.track('session_view-console-logs')
 	}, [])
 
-	const virtuoso = useRef<VirtuosoHandle>(null)
-
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const scrollFunction = useCallback(
-		_.debounce((index: number) => {
-			requestAnimationFrame(() => {
-				if (virtuoso.current) {
-					virtuoso.current.scrollToIndex({
-						index,
-						align: 'center',
-					})
-				}
-			})
-		}, THROTTLED_UPDATE_MS),
-		[],
-	)
-
-	useEffect(() => {
-		if (
-			isPlayerReady && // ensure Virtuoso component is actually rendered
-			virtuoso.current &&
-			messagesToRender
-		) {
-			if (autoScroll) {
-				if (lastActiveLogIndex >= 0) {
-					scrollFunction(lastActiveLogIndex)
-				}
-			}
-		}
-	}, [
-		lastActiveLogIndex,
-		isPlayerReady,
-		messagesToRender,
-		scrollFunction,
-		autoScroll,
-	])
-
 	return (
 		<Box cssClass={styles.consoleBox}>
-			{loading || !isPlayerReady ? (
-				<LoadingBox />
-			) : messagesToRender?.length ? (
-				<Virtuoso
+			<ConsoleTable
+				logEdges={data?.sessionLogs || []}
+				loading={loading}
+				error={error}
+				refetch={refetch}
+				selectedColumns={selectedColumns}
+				queryParts={queryParts}
+				lastActiveLogIndex={lastActiveLogIndex}
+				autoScroll={autoScroll}
+			/>
+			{/* <Virtuoso
 					ref={virtuoso}
 					overscan={1024}
 					increaseViewportBy={1024}
@@ -153,86 +114,11 @@ export const ConsolePage = ({
 					className={styledVerticalScrollbar}
 					itemContent={(_index, logEdge: SessionLogEdge) => (
 						<MessageRow
-							key={logEdge.cursor}
-							logEdge={logEdge}
 							current={_index === lastActiveLogIndex}
 							past={_index <= lastActiveLogIndex}
-							onSelect={() => {
-								setSelectedCursor(logEdge.cursor)
-								const timestamp =
-									new Date(logEdge.node.timestamp).getTime() -
-									sessionMetadata.startTime
-								setTime(timestamp)
-								analytics.track('session_go-to-log_click')
-							}}
 						/>
 					)}
-				/>
-			) : (
-				<EmptyDevToolsCallout kind={Tab.Console} filter={filter} />
-			)}
+				/> */}
 		</Box>
 	)
 }
-
-const MessageRow = React.memo(function ({
-	logEdge,
-	onSelect,
-	current,
-	past,
-}: {
-	logEdge: SessionLogEdge
-	onSelect: () => void
-	current?: boolean
-	past: boolean
-}) {
-	return (
-		<Box
-			cssClass={clsx(
-				styles.consoleRow,
-				styles.messageRowVariants({
-					current,
-				}),
-			)}
-			borderBottom="dividerWeak"
-			py="8"
-			style={{
-				opacity: past ? 1 : 0.4,
-			}}
-		>
-			<Stack direction="row">
-				<Box flexGrow={1}>
-					<Text
-						family="monospace"
-						color="secondaryContentOnEnabled"
-						break="word"
-					>
-						<Box
-							style={{
-								color: COLOR_MAPPING[logEdge.node.level],
-								marginRight: '2px',
-							}}
-							as="span"
-						>
-							[{logEdge.node.level.toUpperCase()}]
-						</Box>
-						{logEdge.node.message}
-					</Text>
-				</Box>
-
-				<Box style={{ minWidth: '70px' }}>
-					<Tag
-						shape="basic"
-						emphasis="low"
-						kind="secondary"
-						size="small"
-						iconRight={<IconSolidArrowCircleRight />}
-						onClick={onSelect}
-					>
-						Go to
-					</Tag>
-				</Box>
-			</Stack>
-		</Box>
-	)
-})

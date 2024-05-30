@@ -375,10 +375,8 @@ const DevToolsWindowV2: React.FC<
 							<Tabs.Panel id={Tab.Console}>
 								<ConsolePage
 									autoScroll={autoScroll}
-									logCursor={logCursor}
 									levels={relevantLevelsForRequest}
 									sources={sources}
-									filter={filter}
 								/>
 							</Tabs.Panel>
 							<Tabs.Panel id={Tab.Errors}>

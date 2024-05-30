@@ -7554,17 +7554,23 @@ body {
   -webkit-line-clamp: 1;
   line-clamp: 1;
 }
+.qdoqt0 {
+  border-bottom: none !important;
+  opacity: 0.4;
+}
+.qdoqt1 {
+  opacity: 1;
+}
+.qdoqt2 {
+  border-bottom: 1px solid var(--_1pyqka9k) !important;
+  background-color: var(--_1pyqka92);
+}
+.qdoqt3 {
+  border-bottom: 2px solid var(--_1pyqka9l) !important;
+}
 .izessr0 {
   padding-left: 8px;
   height: 100%;
-}
-.izessr1:focus,
-.izessr1:active,
-.izessr1:hover {
-  background-color: #e9e8ea;
-}
-.izessr3 {
-  border-bottom: 2px solid var(--_1pyqka9l);
 }
 ._1eq64x70 {
   align-items: center;
