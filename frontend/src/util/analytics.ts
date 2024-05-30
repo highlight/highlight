@@ -1,10 +1,16 @@
 import { Metadata } from '@highlight-run/client'
 import { H } from 'highlight.run'
 import * as rudderanalytics from 'rudder-sdk-js'
+import { DISABLE_ANALYTICS } from '../constants'
 
 let rudderstackInitialized = false
+let isDisabled = DISABLE_ANALYTICS || false
 
 const initialize = () => {
+	if (isDisabled) {
+		return
+	}
+
 	if (rudderstackInitialized) {
 		console.warn('Rudderstack already initialized.')
 		return
@@ -20,6 +26,10 @@ const initialize = () => {
 }
 
 const track = (event: string, metadata?: rudderanalytics.apiObject) => {
+	if (isDisabled) {
+		return
+	}
+
 	;(window._hsq = window._hsq || []).push([
 		'trackCustomBehavioralEvent',
 		{
@@ -33,6 +43,10 @@ const track = (event: string, metadata?: rudderanalytics.apiObject) => {
 }
 
 const identify = (email: string, traits?: rudderanalytics.apiObject) => {
+	if (isDisabled) {
+		return
+	}
+
 	const hsq = (window._hsq = window._hsq || [])
 	hsq.push([
 		'identify',
@@ -48,6 +62,10 @@ const identify = (email: string, traits?: rudderanalytics.apiObject) => {
 }
 
 const page = (name: string, properties?: rudderanalytics.apiObject) => {
+	if (isDisabled) {
+		return
+	}
+	
 	rudderanalytics.page(name, properties)
 }
 
