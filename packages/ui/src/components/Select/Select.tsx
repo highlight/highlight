@@ -49,10 +49,6 @@ const SelectProvider: React.FC<
 	const [options, setOptions] = useState<Option[]>(opts)
 	const isMulti = useMemo(() => multi ?? Array.isArray(value), [multi])
 
-	// useEffect(() => {
-	// 	setValue(valueProp)
-	// }, [valueProp])
-
 	return (
 		<SelectContext.Provider
 			value={{
@@ -87,13 +83,13 @@ const SelectProvider: React.FC<
 	)
 }
 
-type SelectProps = Ariakit.SelectProps & {
+export type SelectProps = Ariakit.SelectProps & {
 	checkbox?: boolean
 	defaultValue?: Value
 	value?: Value
 	filterable?: boolean
 	trigger?: React.ComponentType
-	options?: Option[] | string[]
+	options?: Option[] | string[] // TODO: Don't allow string[]...
 	store?: Ariakit.SelectProviderProps['store']
 	renderValue?: (
 		value: Ariakit.SelectStoreState['value'] | Option,
@@ -189,7 +185,11 @@ export const Select: SelectComponent = ({
 	if (filterable) {
 		if (options) {
 			return (
-				<SelectProvider value={options} onValueChange={onValueChange}>
+				<SelectProvider
+					value={valueToOptions(value)}
+					options={options}
+					onValueChange={onValueChange}
+				>
 					<FilterableSelect
 						{...props}
 						options={options}
@@ -203,6 +203,7 @@ export const Select: SelectComponent = ({
 	return (
 		<SelectProvider
 			value={valueToOptions(value)}
+			options={options}
 			onValueChange={onValueChange}
 		>
 			<Provider store={store} options={options}>
