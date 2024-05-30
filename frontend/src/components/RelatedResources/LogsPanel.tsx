@@ -129,7 +129,7 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 								loadingAfter={loadingAfter}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-								bodyHeight="100%"
+								bodyHeight="calc(100% - 56px)"
 							/>
 						)}
 					</Box>

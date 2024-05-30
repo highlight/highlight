@@ -10,11 +10,15 @@ const meta = {
 
 export default meta
 
+const ISSUE_TYPES = ['Bug', 'Feature Request', 'Other']
+
 export const Basic = () => {
 	const formStore = Form.useStore({
 		defaultValues: {
 			issueTitle: 'Test Issue',
 			issueDescription: 'This is a test issue',
+			issueType: ISSUE_TYPES[1],
+			issueNumber: 10,
 		},
 	})
 	const values = formStore.useState('values')
@@ -31,17 +35,25 @@ export const Basic = () => {
 					<Form.Select
 						name="issueType"
 						label="Issue Type"
-						defaultValue="2"
-					>
-						<Form.Option>1</Form.Option>
-						<Form.Option>2</Form.Option>
-						<Form.Option>3</Form.Option>
-					</Form.Select>
+						options={ISSUE_TYPES}
+						onChange={(value) => {
+							formStore.setValue(
+								'issueType',
+								Array.isArray(value)
+									? value[0].value
+									: value.value,
+							)
+						}}
+					/>
 
 					<Form.Input
 						type="number"
 						name="issueNumber"
 						label="Issue Number"
+						step="5"
+						defaultValue="10"
+						min={0}
+						max={50}
 					/>
 				</Box>
 			</Form>

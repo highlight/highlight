@@ -5,7 +5,8 @@ import React, { forwardRef, ReactNode, useRef } from 'react'
 import { Badge } from '../Badge/Badge'
 import { Box } from '../Box/Box'
 import { Button, ButtonProps } from '../Button/Button'
-import { Select as UISelect } from '../Select/Select'
+import { IconSolidCheveronDown, IconSolidCheveronUp } from '../icons'
+import { Select as UISelect, SelectProps } from '../Select/Select'
 import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
@@ -121,12 +122,14 @@ export type InputProps = Omit<Ariakit.FormInputProps, 'size'> &
 	Variants &
 	HasLabel & {
 		cssClass?: ClassValue | ClassValue[]
+		labelTag?: LabelProps['tag']
 	}
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
 	(
 		{
 			label,
+			labelTag,
 			icon,
 			cssClass,
 			size,
@@ -150,31 +153,86 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 		if (inputRef.current && inputRef.current.value) {
 			collapsed = false
 		}
+
+		const isNumber = props.type === 'number'
+		if (isNumber) {
+			props.step = props.step ?? 1
+		}
+
+		const emitChange = () => {
+			const event = new Event('change', {
+				bubbles: true,
+			})
+			inputRef.current.dispatchEvent(event)
+		}
+
 		return (
-			<NamedSection label={label} name={name} icon={icon}>
-				<Ariakit.FormInput
-					ref={ref}
-					name={name}
-					className={clsx(
-						styles.inputVariants({
-							size,
-							collapsed,
-							outline,
-							truncate,
-							rounded,
-						}),
-						cssClass,
+			<NamedSection label={label} name={name} icon={icon} tag={labelTag}>
+				<Box position="relative">
+					<Ariakit.FormInput
+						ref={inputRef}
+						name={name}
+						className={clsx(
+							styles.inputVariants({
+								size,
+								collapsed,
+								outline,
+								truncate,
+								rounded,
+							}),
+							cssClass,
+							{
+								[styles.inputNumber]: isNumber,
+							},
+						)}
+						{...props}
+					/>
+
+					{isNumber && (
+						<Box
+							display="flex"
+							position="absolute"
+							flexDirection="column"
+							style={{ top: 0, right: 0, bottom: 0 }}
+						>
+							<button
+								className={styles.inputNumberButton}
+								onClick={() => {
+									inputRef.current?.stepUp()
+									emitChange()
+								}}
+							>
+								<IconSolidCheveronUp
+									size="16"
+									className={styles.inputNumberIcon}
+								/>
+							</button>
+							<Box cssClass={styles.inputNumberDivider} />
+							<button
+								className={styles.inputNumberButton}
+								onClick={() => {
+									inputRef.current?.stepDown()
+									emitChange()
+								}}
+							>
+								<IconSolidCheveronDown
+									size="16"
+									className={styles.inputNumberIcon}
+								/>
+							</button>
+						</Box>
 					)}
-					{...props}
-				/>
-				{/* TODO: Consider adding <Error /> here. */}
+				</Box>
 			</NamedSection>
 		)
 	},
 )
 
 type FormSelectProps = Ariakit.FormInputProps &
-	React.PropsWithChildren<HasLabel>
+	React.PropsWithChildren<HasLabel> &
+	Pick<SelectProps, 'options' | 'filterable'> & {
+		onChange?: SelectProps['onValueChange']
+	}
 
 export const Select = ({
 	children,
@@ -182,6 +240,9 @@ export const Select = ({
 	tag,
 	optional,
 	name,
+	options,
+	filterable,
+	onChange,
 	...props
 }: FormSelectProps) => {
 	const form = Ariakit.useFormContext()!
@@ -201,8 +262,16 @@ export const Select = ({
 				name={name}
 				render={
 					<UISelect
-						value={value}
-						setValue={(value) => form.setValue(name, value)}
+						defaultValue={value}
+						onValueChange={(value) => {
+							form.setValue(name, value)
+
+							if (onChange) {
+								onChange(value)
+							}
+						}}
+						options={options}
+						filterable={filterable}
 					/>
 				}
 				{...props}
