@@ -416,19 +416,6 @@ const LogsTableRow: React.FC<LogsTableRowProps> = ({
 		const log = row.original.node
 		const rowExpanded = row.getIsExpanded()
 
-		const matchedAttributes = findMatchingAttributes(queryParts, {
-			...log.logAttributes,
-			environment: log.environment,
-			level: log.level,
-			message: log.message,
-			secure_session_id: log.secureSessionID,
-			service_name: log.serviceName,
-			service_version: log.serviceVersion,
-			source: log.source,
-			span_id: log.spanID,
-			trace_id: log.traceID,
-		})
-
 		return (
 			<Table.Row
 				selected={expanded}
@@ -440,7 +427,21 @@ const LogsTableRow: React.FC<LogsTableRowProps> = ({
 						<Table.Cell py="4" />
 						<Table.Cell py="4" borderTop="dividerWeak">
 							<LogDetails
-								matchedAttributes={matchedAttributes}
+								matchedAttributes={findMatchingAttributes(
+									queryParts,
+									{
+										...log.logAttributes,
+										environment: log.environment,
+										level: log.level,
+										message: log.message,
+										secure_session_id: log.secureSessionID,
+										service_name: log.serviceName,
+										service_version: log.serviceVersion,
+										source: log.source,
+										span_id: log.spanID,
+										trace_id: log.traceID,
+									},
+								)}
 								row={row}
 								queryParts={queryParts}
 							/>
