@@ -92,9 +92,10 @@ services:
         logging: *local-logging
         restart: on-failure
         build:
-            dockerfile: collector.Dockerfile
+            dockerfile: ./docker/collector.Dockerfile
             pull: true
             target: collector
+            context: ..
             args:
                 - IN_DOCKER_GO
                 - SSL

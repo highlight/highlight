@@ -19,7 +19,7 @@ fi
 
 if [[ "$*" == *"--go-docker"* ]]; then
     export KAFKA_ADVERTISED_LISTENERS="PLAINTEXT://kafka:9092"
-    export OTLP_ENDPOINT=http://collector:4318
+    export OTLP_ENDPOINT=https://collector:4318
     export OTLP_DOGFOOD_ENDPOINT=https://otel.highlight.io:4318
     export IN_DOCKER_GO=true
     export ON_PREM=true

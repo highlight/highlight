@@ -31,6 +31,7 @@ import { initializeWebSocketListener } from './listeners/web-socket'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
 import { setItem } from '@highlight-run/client/src/utils/storage.js'
 import { ErrorMessageType } from '@highlight-run/client/src/types/shared-types'
+import { installOtel } from './otel.js'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -112,6 +113,7 @@ const H: HighlightPublicInterface = {
 			}
 			init_called = true
 
+			installOtel()
 			initializeFetchListener()
 			initializeWebSocketListener()
 			import('@highlight-run/client').then(async ({ Highlight }) => {
