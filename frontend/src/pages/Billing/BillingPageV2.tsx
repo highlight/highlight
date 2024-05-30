@@ -82,6 +82,10 @@ type UsageCardProps = {
 
 const UsageRangeOptions = ['Monthly', 'Weekly', 'Daily'] as const
 
+const BucketCount = 12
+const DaysInWeek = 7
+const WeeksInMonth = 4
+
 const UsageCard = ({
 	productIcon,
 	productType,
@@ -114,10 +118,10 @@ const UsageCard = ({
 		setRange({
 			start: moment().subtract(
 				option === 'Monthly'
-					? 4 * 12 * 7
+					? BucketCount * DaysInWeek * WeeksInMonth
 					: option === 'Weekly'
-					? 12 * 7
-					: 12,
+					? BucketCount * DaysInWeek
+					: BucketCount,
 				'days',
 			),
 			end: moment(),
