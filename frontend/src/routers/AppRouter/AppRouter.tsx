@@ -11,6 +11,7 @@ import {
 	SIGN_IN_ROUTE,
 	SIGN_UP_ROUTE,
 } from '@pages/Auth/AuthRouter'
+import { Firebase } from '@pages/Auth/Firebase'
 import { InviteTeamForm } from '@pages/Auth/InviteTeam'
 import { VerifyEmail } from '@pages/Auth/VerifyEmail'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
@@ -64,6 +65,7 @@ import {
 	ErrorTagsSearch,
 } from '@/pages/ErrorTags'
 
+export const FIREBASE_CALLBACK_ROUTE = '/auth/action'
 export const VERIFY_EMAIL_ROUTE = '/verify_email'
 export const ABOUT_YOU_ROUTE = '/about_you'
 export const INVITE_TEAM_ROUTE = '/invite_team'
@@ -292,6 +294,11 @@ export const AppRouter = () => {
 						<Route
 							path={VERIFY_EMAIL_ROUTE}
 							element={<VerifyEmail />}
+						/>
+
+						<Route
+							path={FIREBASE_CALLBACK_ROUTE}
+							element={<Firebase />}
 						/>
 
 						{/* used by google ads for conversion tracking */}
