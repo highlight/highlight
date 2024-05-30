@@ -62,7 +62,7 @@ import { showSupportMessage } from '@util/window'
 import { Divider } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
-import React, { useCallback, useEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, matchRoutes, useLocation, useNavigate } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
@@ -112,6 +112,74 @@ export const useBillingHook = ({
 	}
 }
 
+const useProjectRedirectLink = () => {
+	const location = useLocation()
+	const { projectId } = useProjectId()
+	const { projectId: localStorageProjectId } = useLocalStorageProjectId()
+	const { allProjects, currentWorkspace } = useApplicationContext()
+	const workspaceId = currentWorkspace?.id
+	const localStorageProject = allProjects?.find(
+		(p) => String(p?.id) === String(localStorageProjectId),
+	)
+	const verificationPaths = [
+		{ path: '/:project_id/setup/*' },
+		{ path: '/:project_id/setup/backend/*' },
+		{ path: '/:project_id/setup/backend-logging/*' },
+		{ path: '/:project_id/setup/traces/*' },
+		{ path: '/:project_id/setup/alerts/*' },
+	]
+	const updateBackToPath = (projectId: string | number) => {
+		const match = matchRoutes(verificationPaths, location)?.at(0)
+		const routePath = match?.route?.path
+
+		switch (routePath) {
+			case '/:project_id/setup/backend/*':
+				return `/${projectId}/errors`
+			case '/:project_id/setup/backend-logging/*':
+				return `/${projectId}/logs`
+			case '/:project_id/setup/traces/*':
+				return `/${projectId}/traces`
+			case '/:project_id/setup/alerts/*':
+				return `/${projectId}/alerts`
+			default:
+				return `/${projectId}/sessions`
+		}
+	}
+
+	const getProjectRedirectLink = () => {
+		const isWorkspaceTab =
+			workspaceId &&
+			matchRoutes([{ path: '/w/:workspace_id/*' }], location)?.at(0)
+				?.params?.workspace_id === workspaceId
+
+		if (!localStorageProject) {
+			if (allProjects && allProjects.length === 0 && isWorkspaceTab) {
+				return `/w/${workspaceId}/new`
+			}
+			if (isWorkspaceTab && allProjects) {
+				return `/${allProjects[0]?.id}/sessions`
+			}
+
+			if (projectId && projectId !== 'demo') {
+				return updateBackToPath(projectId)
+			}
+		}
+		//if user in workspace tab and have not slected any of the projects. setting default to first project.
+		//if user does not have any projects. ideally we need to force the user to create atleast one project if they are trying to click on go back to project.
+		if (
+			isWorkspaceTab &&
+			(!projectId || projectId == 'demo') &&
+			allProjects?.length
+		) {
+			return `/${allProjects[0]?.id}/sessions`
+		}
+		return updateBackToPath(localStorageProjectId || projectId)
+	}
+	const goBackPath = getProjectRedirectLink()
+
+	return goBackPath
+}
+
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const navigate = useNavigate()
 	const location = useLocation()
@@ -126,38 +194,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		(p) => String(p?.id) === String(localStorageProjectId),
 	)
 
-	const getProjectRedirectLink = useCallback(() => {
-		if (!localStorageProject) {
-			const isWorkspaceTab =
-				workspaceId &&
-				matchRoutes([{ path: '/w/:workspace_id/*' }], location)?.at(0)
-					?.params?.workspace_id == workspaceId
-
-			if (allProjects?.length === 0 && isWorkspaceTab) {
-				return `/w/${workspaceId}/new`
-			}
-
-			return `/${allProjects?.[0]?.id ?? localStorageProjectId}/sessions`
-		}
-	}, [
-		allProjects,
-		localStorageProject,
-		localStorageProjectId,
-		location,
-		workspaceId,
-	])
-
-	const goBackPath = useRef(
-		location.state?.previousPath ?? localStorageProject
-			? `/${localStorageProjectId}/sessions`
-			: getProjectRedirectLink(),
-	)
-
-	useEffect(() => {
-		goBackPath.current =
-			location?.state?.previousPath || getProjectRedirectLink()
-	}, [getProjectRedirectLink, location?.state?.previousPath])
-
+	const goBackPath = useProjectRedirectLink()
 	const parts = location.pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
 	const isSetup = parts.indexOf('setup') !== -1
@@ -257,7 +294,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 				>
 					{isSetup || (isSettings && localStorageProjectId) ? (
 						<LinkButton
-							to={goBackPath.current || '/'}
+							to={goBackPath || '/'}
 							kind="secondary"
 							emphasis="low"
 							trackingId="setup_back-button"
@@ -322,9 +359,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												to={`/${projectId}/${p.key}`}
 												key={p.key}
 												trackingId={`header-link-click-${p.key}`}
-												state={{
-													previousPath: `/${projectId}/${p.key}`,
-												}}
 											>
 												{titleCaseString(p.key)}
 												{p.isBeta ? (
