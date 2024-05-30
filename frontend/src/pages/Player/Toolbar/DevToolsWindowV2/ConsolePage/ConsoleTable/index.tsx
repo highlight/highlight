@@ -118,6 +118,7 @@ type ConsoleTableInnerProps = {
 	queryParts: SearchExpression[]
 	lastActiveLogIndex: number
 	autoScroll: boolean
+	bodyHeight: string
 }
 
 const ConsoleTableInner = ({
@@ -126,6 +127,7 @@ const ConsoleTableInner = ({
 	queryParts,
 	lastActiveLogIndex,
 	autoScroll,
+	bodyHeight,
 }: ConsoleTableInnerProps) => {
 	const bodyRef = useRef<HTMLDivElement>(null)
 	const [expanded, setExpanded] = useState<ExpandedState>({})
@@ -217,7 +219,7 @@ const ConsoleTableInner = ({
 		count: rows.length,
 		estimateSize: () => 29,
 		getScrollElement: () => bodyRef.current,
-		overscan: 50,
+		overscan: 250,
 	})
 
 	const totalSize = rowVirtualizer.getTotalSize()
@@ -278,7 +280,7 @@ const ConsoleTableInner = ({
 			<Table.Body
 				ref={bodyRef}
 				overflowY="auto"
-				style={{ height: '350px' }}
+				style={{ height: bodyHeight }}
 				hiddenScroll
 			>
 				{paddingTop > 0 && <Box style={{ height: paddingTop }} />}

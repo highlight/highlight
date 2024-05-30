@@ -19,10 +19,12 @@ export const ConsolePage = ({
 	autoScroll,
 	sources,
 	levels,
+	panelHeight,
 }: {
 	autoScroll: boolean
 	sources: LogSource[]
 	levels: LogLevel[]
+	panelHeight: number
 }) => {
 	const { projectId } = useProjectId()
 	const { session, time, setTime, sessionMetadata } = useReplayerContext()
@@ -105,20 +107,8 @@ export const ConsolePage = ({
 				queryParts={queryParts}
 				lastActiveLogIndex={lastActiveLogIndex}
 				autoScroll={autoScroll}
+				bodyHeight={`${panelHeight - 104}px`}
 			/>
-			{/* <Virtuoso
-					ref={virtuoso}
-					overscan={1024}
-					increaseViewportBy={1024}
-					data={messagesToRender}
-					className={styledVerticalScrollbar}
-					itemContent={(_index, logEdge: SessionLogEdge) => (
-						<MessageRow
-							current={_index === lastActiveLogIndex}
-							past={_index <= lastActiveLogIndex}
-						/>
-					)}
-				/> */}
 		</Box>
 	)
 }

@@ -46,6 +46,8 @@ import { styledVerticalScrollbar } from '@/style/common.css'
 import { ConsolePage } from './ConsolePage/ConsolePage'
 import * as styles from './style.css'
 
+const HEIGHT_PERSISTANCE_KEY = 'highlight-devToolsPanelHeight'
+
 const DevToolsWindowV2: React.FC<
 	React.PropsWithChildren & {
 		width: number
@@ -94,6 +96,10 @@ const DevToolsWindowV2: React.FC<
 	const { height } = useWindowSize()
 	const maxHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, height / 2)
 	const defaultHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, maxHeight / 2)
+	const [currentPanelHeight] = useLocalStorage(
+		HEIGHT_PERSISTANCE_KEY,
+		String(defaultHeight),
+	)
 
 	const { resources: parsedResources } = useResourcesContext()
 
@@ -106,7 +112,7 @@ const DevToolsWindowV2: React.FC<
 			defaultHeight={defaultHeight}
 			minHeight={DEV_TOOLS_MIN_HEIGHT}
 			maxHeight={maxHeight}
-			heightPersistenceKey="highlight-devToolsPanelHeight"
+			heightPersistenceKey={HEIGHT_PERSISTANCE_KEY}
 		>
 			{({ panelRef, handleRef }) => (
 				<Box
@@ -377,6 +383,7 @@ const DevToolsWindowV2: React.FC<
 									autoScroll={autoScroll}
 									levels={relevantLevelsForRequest}
 									sources={sources}
+									panelHeight={Number(currentPanelHeight)}
 								/>
 							</Tabs.Panel>
 							<Tabs.Panel id={Tab.Errors}>
