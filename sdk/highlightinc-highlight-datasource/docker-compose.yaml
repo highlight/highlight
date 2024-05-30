@@ -4,7 +4,7 @@ services:
   grafana:
     container_name: 'highlightinc-highlight-datasource'
     extra_hosts:
-            - 'host.docker.internal:host-gateway'
+      - 'host.docker.internal:host-gateway'
     platform: 'linux/amd64'
     build:
       context: ./.config
