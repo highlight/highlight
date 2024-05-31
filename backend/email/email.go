@@ -133,8 +133,8 @@ func getExceededLimitMessage(productType string, workspaceId int) string {
 }
 
 func getOverageMessage(productType string, workspaceId int) string {
-	return fmt.Sprintf(`Your %s usage has exceeded the included amount - extra %s are now incurring a charge for the rest of the month.<br>
-		If you'd like to check the exact charge for the month',
+	return fmt.Sprintf(`Your %s usage has exceeded the included amount - extra %s are now incurring a charge.<br>
+		If you'd like to check the exact charge for the month,
 		please visit the subscription details page <a href="%s/w/%d/current-plan">here</a>.`,
 		productType, productType, frontendUri, workspaceId)
 }
