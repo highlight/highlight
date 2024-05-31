@@ -3,6 +3,7 @@ import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
 import {
 	Box,
 	ButtonIcon,
+	ButtonProps,
 	IconSolidCalendar,
 	IconSolidXCircle,
 	Stack,
@@ -35,7 +36,10 @@ export function Calendly() {
 	)
 }
 
-export function CalendlyModal() {
+export function CalendlyButton({
+	text,
+	...props
+}: { text?: string } & ButtonProps) {
 	const { projectId } = useProjectId()
 	const { data } = useGetBillingDetailsForProjectQuery({
 		variables: {
@@ -62,8 +66,9 @@ export function CalendlyModal() {
 				iconLeft={<IconSolidCalendar />}
 				onClick={() => setCalendlyOpen(true)}
 				trackingId="ClickCalendlyOpen"
+				{...props}
 			>
-				Book a call
+				{text ?? 'Book a call'}
 			</Button>
 			<AnimatePresence>
 				{calendlyOpen ? (
@@ -73,7 +78,10 @@ export function CalendlyModal() {
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0, display: 'none' }}
 						transition={{
-							duration: 3,
+							duration: 2,
+						}}
+						style={{
+							position: 'absolute',
 						}}
 					>
 						<Box

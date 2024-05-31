@@ -33,7 +33,6 @@ import {
 import { vars } from '@highlight-run/ui/vars'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { loadStripe } from '@stripe/stripe-js'
-import { getPlanChangeEmail } from '@util/billing/billing'
 import { formatNumber, formatNumberWithDelimiters } from '@util/numbers'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { dinero, toDecimal } from 'dinero.js'
@@ -61,6 +60,7 @@ import {
 } from '@/pages/Billing/utils/utils'
 import { useParams } from '@/util/react-router/useParams'
 
+import { CalendlyButton } from '../../components/CalendlyModal/CalendlyButton'
 import * as style from './UpdatePlanPage.css'
 
 // TODO(vkorolik) billing for metrics ingest
@@ -1272,9 +1272,6 @@ const PlanCard = ({
 	setStep: (step: PlanSelectStep) => void
 	currentPlanType?: PlanType
 }) => {
-	const { workspace_id } = useParams<{
-		workspace_id: string
-	}>()
 	const current = plan.type === currentPlanType
 	const enterprise = plan.type === PlanType.Enterprise
 	const free = plan.type === PlanType.Free
@@ -1299,37 +1296,41 @@ const PlanCard = ({
 			<Text size="xxSmall" color="weak" cssClass={style.priceSubtitle}>
 				per month
 			</Text>
-			<Button
-				trackingId={`planSelect-${plan.name}`}
-				kind="secondary"
-				size="small"
-				emphasis="high"
-				disabled={current}
-				iconLeft={enterprise ? <IconSolidChatAlt /> : undefined}
-				onClick={() => {
-					if (free || enterprise) {
-						window.open(
-							getPlanChangeEmail({
-								workspaceID: workspace_id,
-								planType: plan.type,
-							}),
-						)
-					} else if (isOnPrem) {
-						window.open(
-							'https://app.highlight.io/sign_up?ref=hobby',
-						)
-					} else {
-						setSelectedPlanType(plan.type)
-						setStep('Configure plan')
-					}
-				}}
-			>
-				{enterprise
-					? 'Talk to sales'
-					: current
-					? 'Current plan'
-					: 'Select plan'}
-			</Button>
+			{free || enterprise ? (
+				<CalendlyButton
+					text="Talk to sales"
+					kind="secondary"
+					size="small"
+					emphasis="high"
+					disabled={current}
+					iconLeft={enterprise ? <IconSolidChatAlt /> : undefined}
+				/>
+			) : (
+				<Button
+					trackingId={`planSelect-${plan.name}`}
+					kind="secondary"
+					size="small"
+					emphasis="high"
+					disabled={current}
+					iconLeft={enterprise ? <IconSolidChatAlt /> : undefined}
+					onClick={() => {
+						if (isOnPrem) {
+							window.open(
+								'https://app.highlight.io/sign_up?ref=hobby',
+							)
+						} else {
+							setSelectedPlanType(plan.type)
+							setStep('Configure plan')
+						}
+					}}
+				>
+					{enterprise
+						? 'Talk to sales'
+						: current
+						? 'Current plan'
+						: 'Select plan'}
+				</Button>
+			)}
 			<Stack>
 				{plan.descriptions.map((d) => (
 					<Box
@@ -1354,7 +1355,9 @@ const PlanCard = ({
 export const PlanComparisonPage: React.FC<{
 	setSelectedPlanType: (plan: PlanType) => void
 	setStep: (step: PlanSelectStep) => void
-}> = ({ setSelectedPlanType, setStep }) => {
+	title?: string
+	enterprise?: true
+}> = ({ setSelectedPlanType, setStep, title, enterprise }) => {
 	const { workspace_id } = useParams<{
 		workspace_id: string
 	}>()
@@ -1370,7 +1373,12 @@ export const PlanComparisonPage: React.FC<{
 
 	return (
 		<Box height="full" margin="auto" p="32">
-			<Stack gap="48">
+			<Stack gap="24">
+				<Box px="12">
+					<Text weight="medium" size="small">
+						{title}
+					</Text>
+				</Box>
 				<Box
 					display="flex"
 					gap="12"
@@ -1383,6 +1391,11 @@ export const PlanComparisonPage: React.FC<{
 				>
 					{Object.entries(PLANS)
 						.filter(([name]) => !isOnPrem || name !== 'Free')
+						.filter(
+							([, plan]) =>
+								!enterprise ||
+								plan.type === PlanType.Enterprise,
+						)
 						.map(([, plan]) => (
 							<PlanCard
 								currentPlanType={data?.billingDetails.plan.type}
