@@ -5209,15 +5209,15 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string, useClic
 	if err != nil {
 		return nil, err
 	}
-	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, eg); err != nil {
-		return nil, err
-	}
 	retentionDate, err := r.GetProjectRetentionDate(eg.ProjectID)
 	if err != nil {
 		return nil, err
 	}
 	if eg.UpdatedAt.Before(retentionDate) {
 		return nil, e.New("no new error instances after the workspace's retention date")
+	}
+	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
+		return nil, err
 	}
 	return eg, err
 }

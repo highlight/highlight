@@ -255,7 +255,7 @@ const DevToolsWindowV2: React.FC<
 											>
 												<Box
 													display="flex"
-													justifyContent="space-between"
+													justifyContent="flex-start"
 													align="center"
 													width="full"
 													gap="4"
@@ -278,14 +278,7 @@ const DevToolsWindowV2: React.FC<
 														placeholder="Search"
 														size="xSmall"
 														outline={false}
-														onKeyDown={(e: any) => {
-															if (
-																e.code ===
-																'Escape'
-															) {
-																e.target?.blur()
-															}
-														}}
+														width="100%"
 													/>
 												</Box>
 											</Form>
