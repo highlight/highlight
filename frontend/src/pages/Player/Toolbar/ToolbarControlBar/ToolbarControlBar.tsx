@@ -597,9 +597,9 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 					!!workspaceSettingsData?.workspaceSettings
 						?.enable_session_export
 				}
-				name="Downloading Sessions"
+				name="Session Download"
 				fn={exportSession}
-				cssClass={clsx(style.settingsButton, style.downloadButton)}
+				className={clsx(style.settingsButton, style.downloadButton)}
 			>
 				<IconSolidDownload size={16} />
 				<Box

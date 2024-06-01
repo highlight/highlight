@@ -33,6 +33,7 @@ import {
 import { vars } from '@highlight-run/ui/vars'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { loadStripe } from '@stripe/stripe-js'
+import { getPlanChangeEmail } from '@util/billing/billing'
 import { formatNumber, formatNumberWithDelimiters } from '@util/numbers'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { dinero, toDecimal } from 'dinero.js'
@@ -1266,12 +1267,17 @@ const PlanCard = ({
 	setSelectedPlanType,
 	setStep,
 	currentPlanType,
+	howCanWeHelp,
 }: {
 	plan: Plan
 	setSelectedPlanType: (step: PlanType) => void
 	setStep: (step: PlanSelectStep) => void
 	currentPlanType?: PlanType
+	howCanWeHelp?: string
 }) => {
+	const { workspace_id } = useParams<{
+		workspace_id: string
+	}>()
 	const current = plan.type === currentPlanType
 	const enterprise = plan.type === PlanType.Enterprise
 	const free = plan.type === PlanType.Free
@@ -1296,9 +1302,13 @@ const PlanCard = ({
 			<Text size="xxSmall" color="weak" cssClass={style.priceSubtitle}>
 				per month
 			</Text>
-			{free || enterprise ? (
+			{enterprise ? (
 				<CalendlyButton
 					text="Talk to sales"
+					howCanWeHelp={
+						howCanWeHelp ??
+						`I'd like to explore an enterprise plan.`
+					}
 					kind="secondary"
 					size="small"
 					emphasis="high"
@@ -1314,7 +1324,14 @@ const PlanCard = ({
 					disabled={current}
 					iconLeft={enterprise ? <IconSolidChatAlt /> : undefined}
 					onClick={() => {
-						if (isOnPrem) {
+						if (free) {
+							window.open(
+								getPlanChangeEmail({
+									workspaceID: workspace_id,
+									planType: plan.type,
+								}),
+							)
+						} else if (isOnPrem) {
 							window.open(
 								'https://app.highlight.io/sign_up?ref=hobby',
 							)
@@ -1357,7 +1374,8 @@ export const PlanComparisonPage: React.FC<{
 	setStep: (step: PlanSelectStep) => void
 	title?: string
 	enterprise?: true
-}> = ({ setSelectedPlanType, setStep, title, enterprise }) => {
+	howCanWeHelp?: string
+}> = ({ setSelectedPlanType, setStep, title, enterprise, howCanWeHelp }) => {
 	const { workspace_id } = useParams<{
 		workspace_id: string
 	}>()
@@ -1375,7 +1393,7 @@ export const PlanComparisonPage: React.FC<{
 		<Box height="full" margin="auto" p="32">
 			<Stack gap="24">
 				<Box px="12">
-					<Text weight="medium" size="small">
+					<Text weight="medium" size="medium">
 						{title}
 					</Text>
 				</Box>
@@ -1403,6 +1421,7 @@ export const PlanComparisonPage: React.FC<{
 								setSelectedPlanType={setSelectedPlanType}
 								setStep={setStep}
 								key={plan.name}
+								howCanWeHelp={howCanWeHelp}
 							/>
 						))}
 				</Box>

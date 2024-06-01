@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
 import {
@@ -21,7 +22,8 @@ import { styledVerticalScrollbar } from '@/style/common.css'
 
 import * as style from './styles.css'
 
-export function Calendly() {
+export function Calendly({ howCanWeHelp }: { howCanWeHelp?: string }) {
+	const { admin } = useAuthContext()
 	const { referral } = getAttributionData()
 	let utm = {}
 	try {
@@ -29,17 +31,27 @@ export function Calendly() {
 	} catch (e) {}
 	return (
 		<InlineWidget
-			url="https://calendly.com/highlight-io/discussion"
+			url="https://calendly.com/highlight-io/application-support-sales"
 			styles={{ width: '100%', height: '100%' }}
 			utm={utm}
+			prefill={{
+				name: admin?.name,
+				email: admin?.email,
+				customAnswers: {
+					a1: howCanWeHelp,
+				},
+			}}
+			LoadingSpinner={() => null}
+			pageSettings={{}}
 		/>
 	)
 }
 
 export function CalendlyButton({
 	text,
+	howCanWeHelp,
 	...props
-}: { text?: string } & ButtonProps) {
+}: { text?: string; howCanWeHelp?: string } & ButtonProps) {
 	const { projectId } = useProjectId()
 	const { data } = useGetBillingDetailsForProjectQuery({
 		variables: {
@@ -107,7 +119,7 @@ export function CalendlyButton({
 								)}
 								onClick={() => setCalendlyOpen(false)}
 							>
-								<Calendly />
+								<Calendly howCanWeHelp={howCanWeHelp} />
 								<ButtonIcon
 									shape="square"
 									emphasis="low"

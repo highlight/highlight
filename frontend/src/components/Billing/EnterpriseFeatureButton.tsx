@@ -2,15 +2,16 @@ import { Modal } from '@components/Modal/ModalV2'
 import { Box } from '@highlight-run/ui/components'
 import PlanComparisonPage from '@pages/Billing/PlanComparisonPage'
 import analytics from '@util/analytics'
-import React, { PropsWithChildren, useCallback, useState } from 'react'
+import { PropsWithChildren, useCallback, useState } from 'react'
 
-type Feature = 'Downloading Sessions'
+type Feature = 'Session Download' | 'Session CSV Report'
 
 interface Props {
-	enabled: boolean
+	enabled: boolean | 'force'
 	name: Feature
 	fn: () => Promise<any>
-	cssClass: string
+	className?: string
+	variant?: 'basic'
 }
 
 export default function EnterpriseFeatureButton({
@@ -18,7 +19,8 @@ export default function EnterpriseFeatureButton({
 	name,
 	fn,
 	children,
-	cssClass,
+	className,
+	variant,
 }: PropsWithChildren<Props>) {
 	const [showPlanModal, setShowPlanModal] = useState<boolean>(false)
 
@@ -29,31 +31,46 @@ export default function EnterpriseFeatureButton({
 			return
 		}
 		await fn()
-	}, [enabled, name, fn])
+	}, [enabled, fn, name])
+
+	let action: JSX.Element
+	if (variant === 'basic') {
+		action = (
+			<div className={className} onClick={checkFeature}>
+				{children}
+			</div>
+		)
+	} else {
+		action = (
+			<button className={className} onClick={checkFeature}>
+				{children}
+			</button>
+		)
+	}
 
 	if (showPlanModal) {
 		return (
-			<Modal onClose={() => setShowPlanModal(false)}>
-				<Box
-					width="full"
-					display="flex"
-					justifyContent="center"
-					flexDirection="column"
-					style={{ maxWidth: 900 }}
-				>
-					<PlanComparisonPage
-						setSelectedPlanType={() => {}}
-						setStep={() => {}}
-						title={`${name} is only available on enterprise plans.`}
-						enterprise
-					/>
-				</Box>
-			</Modal>
+			<>
+				{action}
+				<Modal onClose={() => setShowPlanModal(false)}>
+					<Box
+						width="full"
+						display="flex"
+						justifyContent="center"
+						flexDirection="column"
+						style={{ maxWidth: 900 }}
+					>
+						<PlanComparisonPage
+							setSelectedPlanType={() => {}}
+							setStep={() => {}}
+							title={`${name} is only available on enterprise plans.`}
+							howCanWeHelp={`I would like to use the ${name} feature.`}
+							enterprise
+						/>
+					</Box>
+				</Modal>
+			</>
 		)
 	}
-	return (
-		<button className={cssClass} onClick={checkFeature}>
-			{children}
-		</button>
-	)
+	return action
 }
