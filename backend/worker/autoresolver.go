@@ -67,7 +67,7 @@ func (autoResolver *AutoResolver) resolveStaleErrorsForProject(ctx context.Conte
 			ProjectID: project.ID,
 		})
 
-	err := db.Debug().
+	err := db.
 		Select("DISTINCT(error_groups.id), error_groups.project_id").
 		Where(model.ErrorGroup{
 			State:     privateModel.ErrorStateOpen,
