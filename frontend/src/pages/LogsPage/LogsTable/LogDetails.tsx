@@ -32,6 +32,7 @@ type Props = {
 	row: Row<LogEdgeWithResources>
 	queryParts: SearchExpression[]
 	matchedAttributes: ReturnType<typeof findMatchingAttributes>
+	hideRelatedResources?: boolean
 }
 
 export const getLogURL = (projectId: string, row: Row<LogEdge>) => {
@@ -47,6 +48,7 @@ export const LogDetails: React.FC<Props> = ({
 	matchedAttributes,
 	row,
 	queryParts,
+	hideRelatedResources,
 }) => {
 	const { disabled, onSubmit } = useSearchContext()
 	const setQuery = disabled ? undefined : onSubmit
@@ -232,116 +234,119 @@ export const LogDetails: React.FC<Props> = ({
 							Copy link
 						</Box>
 					</Button>
-					<Button
-						kind="secondary"
-						emphasis="low"
-						onClick={(e) => {
-							e.stopPropagation()
-							const url = getLogURL(projectId, row)
-							navigate(url.path)
-						}}
-						trackingId="logs_view-in-context_click"
+					{!hideRelatedResources && (
+						<Button
+							kind="secondary"
+							emphasis="low"
+							onClick={(e) => {
+								e.stopPropagation()
+								const url = getLogURL(projectId, row)
+								navigate(url.path)
+							}}
+							trackingId="logs_view-in-context_click"
+						>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidLocationMarker />
+								View in Context
+							</Box>
+						</Button>
+					)}
+				</Box>
+
+				{!hideRelatedResources && (
+					<Box
+						display="flex"
+						alignItems="center"
+						flexDirection="row"
+						gap="4"
+						borderLeft="secondary"
+						ml="4"
+						pl="4"
 					>
-						<Box
-							display="flex"
-							alignItems="center"
-							flexDirection="row"
-							gap="4"
-						>
-							<IconSolidLocationMarker />
-							View in Context
-						</Box>
-					</Button>
-				</Box>
+						{row.original.error_object && (
+							<Button
+								kind="secondary"
+								emphasis="low"
+								onClick={() => {
+									const { error_object } = row.original
 
-				<Box
-					display="flex"
-					alignItems="center"
-					flexDirection="row"
-					gap="4"
-					borderLeft="secondary"
-					ml="4"
-					pl="4"
-				>
-					{row.original.error_object && (
-						<Button
-							kind="secondary"
-							emphasis="low"
-							onClick={() => {
-								const { error_object } = row.original
-
-								if (error_object) {
+									if (error_object) {
+										set({
+											type: 'error',
+											secureId:
+												error_object.error_group_secure_id,
+											instanceId: error_object.id,
+										})
+									}
+								}}
+								trackingId="logs_related-error_click"
+							>
+								<Box
+									display="flex"
+									alignItems="center"
+									flexDirection="row"
+									gap="4"
+								>
+									<IconSolidLightningBolt />
+									Related Error
+								</Box>
+							</Button>
+						)}
+						{secureSessionID && (
+							<Button
+								kind="secondary"
+								emphasis="low"
+								onClick={() => {
 									set({
-										type: 'error',
-										secureId:
-											error_object.error_group_secure_id,
-										instanceId: error_object.id,
+										type: 'session',
+										secureId: secureSessionID,
+										log: row.original.cursor,
 									})
-								}
-							}}
-							trackingId="logs_related-error_click"
-						>
-							<Box
-								display="flex"
-								alignItems="center"
-								flexDirection="row"
-								gap="4"
+								}}
+								trackingId="logs_related-session_click"
 							>
-								<IconSolidLightningBolt />
-								Related Error
-							</Box>
-						</Button>
-					)}
+								<Box
+									display="flex"
+									alignItems="center"
+									flexDirection="row"
+									gap="4"
+								>
+									<IconSolidPlayCircle />
+									Related Session
+								</Box>
+							</Button>
+						)}
+						{row.original.traceExist && (
+							<Button
+								kind="secondary"
+								emphasis="low"
+								trackingId="logs_related-trace_click"
+								onClick={() => {
+									if (!traceID) {
+										return
+									}
 
-					{secureSessionID && (
-						<Button
-							kind="secondary"
-							emphasis="low"
-							onClick={() => {
-								set({
-									type: 'session',
-									secureId: secureSessionID,
-									log: row.original.cursor,
-								})
-							}}
-							trackingId="logs_related-session_click"
-						>
-							<Box
-								display="flex"
-								alignItems="center"
-								flexDirection="row"
-								gap="4"
+									set({ type: 'trace', id: traceID })
+								}}
 							>
-								<IconSolidPlayCircle />
-								Related Session
-							</Box>
-						</Button>
-					)}
-					{row.original.traceExist && (
-						<Button
-							kind="secondary"
-							emphasis="low"
-							trackingId="logs_related-trace_click"
-							onClick={() => {
-								if (!traceID) {
-									return
-								}
-
-								set({ type: 'trace', id: traceID })
-							}}
-						>
-							<Box
-								display="flex"
-								alignItems="center"
-								flexDirection="row"
-								gap="4"
-							>
-								<IconSolidSparkles />
-								Related Trace
-							</Box>
-						</Button>
-					)}
-				</Box>
+								<Box
+									display="flex"
+									alignItems="center"
+									flexDirection="row"
+									gap="4"
+								>
+									<IconSolidSparkles />
+									Related Trace
+								</Box>
+							</Button>
+						)}
+					</Box>
+				)}
 			</Box>
 		</Stack>
 	)

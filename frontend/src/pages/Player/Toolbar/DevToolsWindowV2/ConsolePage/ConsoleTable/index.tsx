@@ -367,6 +367,7 @@ const ConsoleTableRow: React.FC<ConsoleTableRowProps> = ({
 								)}
 								row={row}
 								queryParts={queryParts}
+								hideRelatedResources
 							/>
 						</Table.Cell>
 					</>

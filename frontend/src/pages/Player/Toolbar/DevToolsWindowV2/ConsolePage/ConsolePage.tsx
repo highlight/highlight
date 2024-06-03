@@ -1,4 +1,3 @@
-import { LogLevel, LogSource } from '@graph/schemas'
 import { Box } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import React, { useEffect, useMemo } from 'react'
@@ -17,19 +16,17 @@ import * as styles from './style.css'
 
 export const ConsolePage = ({
 	autoScroll,
-	sources,
-	levels,
 	panelHeight,
+	query,
 }: {
 	autoScroll: boolean
-	sources: LogSource[]
-	levels: LogLevel[]
 	panelHeight: number
+	query: string
 }) => {
 	const { projectId } = useProjectId()
 	const { session, time, setTime, sessionMetadata } = useReplayerContext()
 
-	const params = buildSessionParams({ session, levels, sources })
+	const params = buildSessionParams({ session, query })
 	const { queryParts } = parseSearch(params.query)
 
 	const { data, loading, error, refetch } = useGetSessionLogsQuery({
