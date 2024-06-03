@@ -396,6 +396,7 @@
     },
     "firebase": {
       "entryPoints": [
+        "/auth",
         "/compat/auth",
         "/compat/app"
       ],
