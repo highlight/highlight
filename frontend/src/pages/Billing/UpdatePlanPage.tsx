@@ -1408,11 +1408,13 @@ export const PlanComparisonPage: React.FC<{
 	return (
 		<Box height="full" margin="auto" p="12">
 			<Stack gap="12">
-				<Callout title={title}>
-					<Box mb="6">
-						<Text color="moderate">{description}</Text>
-					</Box>
-				</Callout>
+				{title ? (
+					<Callout title={title}>
+						<Box mb="6">
+							<Text color="moderate">{description}</Text>
+						</Box>
+					</Callout>
+				) : null}
 				<Box
 					display="flex"
 					gap="12"
