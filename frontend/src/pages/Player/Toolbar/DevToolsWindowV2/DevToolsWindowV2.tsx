@@ -45,8 +45,6 @@ import { styledVerticalScrollbar } from '@/style/common.css'
 import { ConsolePage } from './ConsolePage/ConsolePage'
 import * as styles from './style.css'
 
-const HEIGHT_PERSISTANCE_KEY = 'highlight-devToolsPanelHeight'
-
 const DEFAULT_LOG_SEARCH = `source=${LogSource.Frontend} `
 const LOG_CURSOR_LOG_SEARCH = `source=(${LogSource.Frontend} OR ${LogSource.Backend})`
 
@@ -89,10 +87,6 @@ const DevToolsWindowV2: React.FC<
 	const { height } = useWindowSize()
 	const maxHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, height / 2)
 	const defaultHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, maxHeight / 2)
-	const [currentPanelHeight] = useLocalStorage(
-		HEIGHT_PERSISTANCE_KEY,
-		String(defaultHeight),
-	)
 
 	const { resources: parsedResources } = useResourcesContext()
 
@@ -112,9 +106,9 @@ const DevToolsWindowV2: React.FC<
 			defaultHeight={defaultHeight}
 			minHeight={DEV_TOOLS_MIN_HEIGHT}
 			maxHeight={maxHeight}
-			heightPersistenceKey={HEIGHT_PERSISTANCE_KEY}
+			heightPersistenceKey="highlight-devToolsPanelHeight"
 		>
-			{({ panelRef, handleRef }) => (
+			{({ panelRef, handleRef, panelHeight }) => (
 				<Box
 					bt={showHistogram ? undefined : 'dividerWeak'}
 					cssClass={clsx(
@@ -377,7 +371,7 @@ const DevToolsWindowV2: React.FC<
 							<Tabs.Panel id={Tab.Console}>
 								<ConsolePage
 									autoScroll={autoScroll}
-									panelHeight={Number(currentPanelHeight)}
+									panelHeight={panelHeight}
 									query={logQuery}
 								/>
 							</Tabs.Panel>
