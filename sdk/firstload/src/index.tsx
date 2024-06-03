@@ -113,10 +113,21 @@ const H: HighlightPublicInterface = {
 			}
 			init_called = true
 
+			console.log(
+				'::: initializeOtel',
+				projectID,
+				sessionSecureID,
+				options,
+			)
 			initializeOtel({
 				projectId: projectID,
 				sessionSecureId: sessionSecureID,
 				environment: options?.environment ?? 'production',
+				networkRecordingOptions:
+					typeof options?.networkRecording === 'object'
+						? options.networkRecording
+						: undefined,
+				tracingOrigins: options?.tracingOrigins,
 				serviceName: options?.serviceName ?? 'highlight-browser',
 			})
 
