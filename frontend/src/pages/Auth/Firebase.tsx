@@ -59,7 +59,7 @@ function ResetPassword({
 		}
 	})
 	return (
-		<Stack gap="12" py="12">
+		<Stack gap="12">
 			<Stack direction="column" gap="4">
 				<Form.Label
 					label="Current Email"
@@ -227,21 +227,25 @@ export const Firebase: React.FC = () => {
 	return (
 		<Landing>
 			<Box cssClass={styles.container}>
-				<Form store={formStore} resetOnSubmit={false}>
+				<Form store={formStore} resetOnSubmit={false} validateOnBlur>
 					<AuthHeader>
 						<Text color="moderate">
 							{titles[params.mode as keyof typeof titles]}
 						</Text>
 					</AuthHeader>
 					<AuthBody>
-						{params.mode === 'resetEmail' ? (
+						{params.mode === 'resetPassword' ? (
 							<ResetPassword formStore={formStore} />
 						) : null}
 						{params.mode === 'recoverEmail' ||
 						params.mode === 'verifyEmail' ? (
 							<ConfirmEmail formStore={formStore} />
 						) : null}
-						{error && <Callout kind="error">{error}</Callout>}
+						{error && (
+							<Box py="12">
+								<Callout kind="error">{error}</Callout>
+							</Box>
+						)}
 					</AuthBody>
 					<AuthFooter>
 						<Button
