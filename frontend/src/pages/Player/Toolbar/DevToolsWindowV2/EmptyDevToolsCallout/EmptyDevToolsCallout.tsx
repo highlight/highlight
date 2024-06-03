@@ -61,22 +61,7 @@ export const EmptyDevToolsCallout = ({
 									: kind.toLocaleLowerCase()
 						  }.`
 				}
-				icon={() => (
-					<Box
-						borderRadius="5"
-						style={{
-							alignItems: 'center',
-							backgroundColor: '#E9E9E9',
-							display: 'flex',
-							height: 22,
-							justifyContent: 'center',
-							textAlign: 'center',
-							width: 22,
-						}}
-					>
-						<IconSolidInformationCircle size={14} color="#777777" />
-					</Box>
-				)}
+				icon={IconSolidInformationCircle}
 			>
 				{requestTypes.length ? (
 					<>

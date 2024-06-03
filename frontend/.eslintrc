@@ -115,7 +115,7 @@
 					{
 						"name": "antd",
 						"importNames": ["InputNumber"],
-						"message": "Please use InputNumber from /src/components/InputNumber instead."
+						"message": "Please use Form.Input with type='number' from @highlight-run/ui/components instead."
 					},
 					{
 						"name": "react-router",
@@ -140,6 +140,11 @@
 						"name": "react-use",
 						"importNames": ["useLocalStorage"],
 						"message": "Please use @rehooks/local-storage instead."
+					},
+					{
+						"name": "antd",
+						"importNames": ["message"],
+						"message": "Please use the toast function from @components/Toaster instead."
 					}
 				],
 				"patterns": [

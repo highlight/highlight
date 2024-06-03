@@ -1,0 +1,8 @@
+<clickhouse>
+    <backups>
+        <allowed_path>/backups/</allowed_path>
+        <remove_backup_files_after_failure>true</remove_backup_files_after_failure>
+    </backups>
+    <global_profiler_cpu_time_period_ns>1000000000</global_profiler_cpu_time_period_ns>
+    <global_profiler_real_time_period_ns>1000000000</global_profiler_real_time_period_ns>
+</clickhouse>

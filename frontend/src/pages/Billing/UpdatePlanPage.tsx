@@ -1,5 +1,6 @@
 import { Modal } from '@components/Modal/ModalV2'
 import Switch from '@components/Switch/Switch'
+import { toast } from '@components/Toaster'
 import { USD } from '@dinero.js/currencies'
 import {
 	Badge,
@@ -35,7 +36,6 @@ import { loadStripe } from '@stripe/stripe-js'
 import { getPlanChangeEmail } from '@util/billing/billing'
 import { formatNumber, formatNumberWithDelimiters } from '@util/numbers'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React from 'react'
@@ -1148,14 +1148,14 @@ const UpdatePlanPage = ({
 													},
 												)
 											} else {
-												message.success(
+												toast.success(
 													'Billing plan saved!',
 												)
 												setHasChanges(false)
 											}
 										})
 										.catch(() => {
-											message.error(
+											toast.error(
 												'Failed to save billing plan details',
 											)
 										})

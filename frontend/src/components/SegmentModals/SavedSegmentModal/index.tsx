@@ -10,13 +10,13 @@ import {
 import { Maybe } from 'graphql/jsutils/Maybe'
 import React from 'react'
 
-import { Segment } from '@/graph/generated/schemas'
+import { SavedSegment } from '@/graph/generated/schemas'
 
 import { ContextType } from '../utils'
 
 interface Props {
 	context: ContextType
-	currentSegment?: Maybe<Pick<Segment, 'id' | 'name'>>
+	currentSegment?: Maybe<Pick<SavedSegment, 'id' | 'name'>>
 	loading: boolean
 	onHideModal: () => void
 	onSubmit: (name: string) => void

@@ -1,7 +1,7 @@
 import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment'
+import { toast } from '@components/Toaster'
 import { Box } from '@highlight-run/ui/components'
 import { MillisToMinutesAndSeconds } from '@util/time'
-import { message } from 'antd'
 import clsx from 'clsx'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
@@ -174,7 +174,7 @@ const PlayerSessionComment = ({ comment }: Props) => {
 				<button
 					onClick={() => {
 						pause(comment.timestamp as number)
-						message.success(
+						toast.success(
 							`Changed player time to where comment was created at ${MillisToMinutesAndSeconds(
 								comment.timestamp as number,
 							)}.`,

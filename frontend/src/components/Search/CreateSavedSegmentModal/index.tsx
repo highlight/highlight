@@ -1,4 +1,5 @@
 import { SavedSegmentModal } from '@components/SegmentModals/SavedSegmentModal'
+import { toast } from '@components/Toaster'
 import {
 	useCreateSavedSegmentMutation,
 	useEditSavedSegmentMutation,
@@ -6,7 +7,6 @@ import {
 import { namedOperations } from '@graph/operations'
 import { Maybe, SavedSegment, SavedSegmentEntityType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import React from 'react'
 
 import { SavedSegmentQueryDisplay } from '../SavedSegmentQueryDisplay'
@@ -53,9 +53,9 @@ export const CreateSavedSegmentModal: React.FC<Props> = ({
 					query: query,
 				},
 				onCompleted: () => {
-					message.success(
+					toast.success(
 						`Changed '${currentSegment.name}' name to '${newSegmentName}'`,
-						5,
+						{ duration: 5000 },
 					)
 					if (afterCreateHandler) {
 						afterCreateHandler(
@@ -66,7 +66,9 @@ export const CreateSavedSegmentModal: React.FC<Props> = ({
 					onHideModal()
 				},
 				onError: (e) => {
-					message.error(`Error updating segment: ${e.message}`, 5)
+					toast.error(`Error updating segment: ${e.message}`, {
+						duration: 5000,
+					})
 				},
 			})
 		} else {
@@ -86,13 +88,15 @@ export const CreateSavedSegmentModal: React.FC<Props> = ({
 						)
 					}
 					onHideModal()
-					message.success(
+					toast.success(
 						`Created '${r.createSavedSegment?.name}' segment`,
-						5,
+						{ duration: 5000 },
 					)
 				},
 				onError: (e) => {
-					message.error(`Error updating segment: ${e.message}`, 5)
+					toast.error(`Error updating segment: ${e.message}`, {
+						duration: 5000,
+					})
 				},
 			})
 		}

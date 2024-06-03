@@ -1,5 +1,6 @@
 import { Button } from '@components/Button'
 import Select from '@components/Select/Select'
+import { toast } from '@components/Toaster'
 import {
 	useCreateErrorAlertMutation,
 	useDeleteErrorAlertMutation,
@@ -31,7 +32,6 @@ import {
 	getFrequencyOption,
 } from '@pages/Alerts/utils/AlertsUtils'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { capitalize } from 'lodash'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -189,13 +189,11 @@ export const ErrorAlertPage = () => {
 								},
 							})
 								.then(() => {
-									message.success(`Error alert deleted!`)
+									toast.success(`Error alert deleted!`)
 									navigate(`/${project_id}/alerts`)
 								})
 								.catch(() => {
-									message.error(
-										`Failed to delete error alert!`,
-									)
+									toast.error(`Failed to delete error alert!`)
 								})
 						}}
 					>
@@ -270,7 +268,7 @@ export const ErrorAlertPage = () => {
 								errs.push('threshold')
 							}
 
-							message.error(
+							toast.error(
 								`Missing required field(s): ${errs.join(
 									', ',
 								)}.`,
@@ -284,13 +282,11 @@ export const ErrorAlertPage = () => {
 								variables: input,
 							})
 								.then(() => {
-									message.success(
-										`Error alert ${createStr}d!`,
-									)
+									toast.success(`Error alert ${createStr}d!`)
 									navigate(`/${project_id}/alerts`)
 								})
 								.catch(() => {
-									message.error(
+									toast.error(
 										`Failed to ${createStr} error alert!`,
 									)
 								})
@@ -302,13 +298,11 @@ export const ErrorAlertPage = () => {
 								},
 							})
 								.then(() => {
-									message.success(
-										`Error alert ${createStr}d!`,
-									)
+									toast.success(`Error alert ${createStr}d!`)
 									navigate(`/${project_id}/alerts`)
 								})
 								.catch(() => {
-									message.error(
+									toast.error(
 										`Failed to ${createStr} error alert!`,
 									)
 								})

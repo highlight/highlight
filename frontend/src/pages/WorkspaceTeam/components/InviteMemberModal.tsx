@@ -3,11 +3,11 @@ import CopyText from '@components/CopyText/CopyText'
 import Input from '@components/Input/Input'
 import { CircularSpinner } from '@components/Loading/Loading'
 import Modal from '@components/Modal/Modal'
+import { toast } from '@components/Toaster'
 import { useSendAdminWorkspaceInviteMutation } from '@graph/hooks'
 import { AdminRole } from '@graph/schemas'
 import { Box, Stack, Text } from '@highlight-run/ui/components'
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils'
-import { message } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
 import { useEffect, useRef, useState } from 'react'
@@ -77,13 +77,12 @@ function InviteMemberModal({
 			variables: {
 				workspace_id: workspaceId!,
 				email,
-				base_url: window.location.origin,
 				role: newAdminRole,
 				projectIds: newProjectIds,
 			},
 		}).then(() => {
 			setEmail('')
-			message.success(`Invite email sent to ${email}!`, 5)
+			toast.success(`Invite email sent to ${email}!`, { duration: 5000 })
 			emailRef.current?.focus()
 		})
 	}

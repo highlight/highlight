@@ -1,6 +1,6 @@
+import { toast } from '@components/Toaster'
 import { Form, Stack, Text } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
-import { message } from 'antd'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -60,11 +60,11 @@ export const JoinWorkspace = () => {
 
 		if (!!response.data?.joinWorkspace) {
 			setDismissedJoinWorkspace(true)
-			message.success('Successfuly joined workspace!', 1)
+			toast.success('Successfully joined workspace!', { duration: 1000 })
 			navigate(ABOUT_YOU_ROUTE, { replace: true })
 		} else if (response.errors?.length) {
 			const error = response.errors[0].message
-			message.error(response.errors[0].message, 1)
+			toast.error(response.errors[0].message, { duration: 1000 })
 
 			showSupportMessage(
 				`I can't join a workspace. This is the error I'm getting: "${error}"`,

@@ -1,8 +1,8 @@
 import Button from '@components/Button/Button/Button'
+import { toast } from '@components/Toaster'
 import { useJoinWorkspaceMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Maybe } from '@graph/schemas'
-import { message } from 'antd'
 
 import { showSupportMessage } from '@/util/window'
 
@@ -33,7 +33,7 @@ const JoinWorkspace = ({
 						],
 					})
 				} catch (_e) {
-					message.error(
+					toast.error(
 						'Failed to join the workspace. Please try again or',
 					)
 
@@ -41,8 +41,8 @@ const JoinWorkspace = ({
 						`I can't reply to a comment. This is the error I'm getting: "${_e}"`,
 					)
 				} finally {
-					message.success(
-						<>Successfully joined workspace '{workspace?.name}'!</>,
+					toast.success(
+						`Successfully joined workspace '${workspace?.name}'!`,
 					)
 				}
 			}}

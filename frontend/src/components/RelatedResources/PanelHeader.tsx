@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	Box,
 	ButtonIcon,
@@ -9,7 +10,6 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui/components'
-import { message } from 'antd'
 import { useCallback } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Link, useNavigate } from 'react-router-dom'
@@ -100,7 +100,7 @@ export const PanelHeaderCopyLinkButton: React.FC<{ path: string }> = ({
 		trackingId="related-resource_back-button"
 		onClick={() => {
 			navigator.clipboard.writeText(window.location.origin + path)
-			message.success('Link copied to clipboard!')
+			toast.success('Link copied to clipboard!')
 		}}
 	>
 		Copy link

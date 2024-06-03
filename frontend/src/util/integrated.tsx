@@ -18,7 +18,7 @@ import { IntegrationStatus } from '@/graph/generated/schemas'
 const POLL_INTERVAL_MS = 5000
 
 export const useIntegratedLocalStorage = (
-	projectId: string,
+	projectId: string | number,
 	area: 'client' | 'server' | 'logs' | 'alerts' | 'team' | 'traces',
 ) => {
 	return useLocalStorage<LocalStorageIntegrationData>(

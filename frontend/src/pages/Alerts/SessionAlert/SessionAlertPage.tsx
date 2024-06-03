@@ -1,5 +1,6 @@
 import { Button } from '@components/Button'
 import Select from '@components/Select/Select'
+import { toast } from '@components/Toaster'
 import {
 	useCreateSessionAlertMutation,
 	useDeleteSessionAlertMutation,
@@ -37,7 +38,6 @@ import {
 	getFrequencyOption,
 } from '@pages/Alerts/utils/AlertsUtils'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { capitalize } from 'lodash'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -228,13 +228,11 @@ export const SessionAlertPage = () => {
 								},
 							})
 								.then(() => {
-									message.success(`Error alert deleted!`)
+									toast.success(`Error alert deleted!`)
 									navigate(`/${project_id}/alerts`)
 								})
 								.catch(() => {
-									message.error(
-										`Failed to delete error alert!`,
-									)
+									toast.error(`Failed to delete error alert!`)
 								})
 						}}
 					>
@@ -349,7 +347,7 @@ export const SessionAlertPage = () => {
 								errs.push('threshold')
 							}
 
-							message.error(
+							toast.error(
 								`Missing required field(s): ${errs.join(
 									', ',
 								)}.`,
@@ -369,13 +367,13 @@ export const SessionAlertPage = () => {
 								},
 							})
 								.then(() => {
-									message.success(
+									toast.success(
 										`Session alert ${createStr}d!`,
 									)
 									navigate(`/${project_id}/alerts`)
 								})
 								.catch(() => {
-									message.error(
+									toast.error(
 										`Failed to ${createStr} session alert!`,
 									)
 								})
@@ -391,13 +389,13 @@ export const SessionAlertPage = () => {
 								},
 							})
 								.then(() => {
-									message.success(
+									toast.success(
 										`Session alert ${createStr}d!`,
 									)
 									navigate(`/${project_id}/alerts`)
 								})
 								.catch(() => {
-									message.error(
+									toast.error(
 										`Failed to ${createStr} session alert!`,
 									)
 								})

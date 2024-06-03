@@ -16,7 +16,7 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     migrate-database:
-        runs-on: ubuntu-latest
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -27,17 +27,6 @@ jobs:
                   cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v3
-            - name: Add public IP to AWS security group
-              uses: sohelamin/aws-security-group-add-ip-action@master
-              with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws-region: 'us-east-2'
-                  aws-security-group-id: ${{ secrets.AWS_RDS_SECURITY_GROUP_ID }}
-                  port: '5432'
-                  to-port: ''
-                  protocol: 'tcp'
-                  description: 'GitHub Action for migrate-database'
             - name: Migrate database
               run: |
                   cd backend/
@@ -47,7 +36,7 @@ jobs:
 
     deploy-session-delete-lambdas:
         needs: migrate-database
-        runs-on: ubuntu-latest
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -71,12 +60,11 @@ jobs:
                   zip deleteSessionBatchFromS3.zip deleteSessionBatchFromS3
                   CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/sendEmail
                   zip sendEmail.zip sendEmail
-            - name: Configure AWS credentials
+            - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws-region: us-east-2
+                  role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
             - name: Update Lambda secrets
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
@@ -93,49 +81,19 @@ jobs:
                   aws lambda update-function-configuration --function-name sendEmail \
                     --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy getSessionIdsByQuery
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: getSessionIdsByQuery
-                  zip_file: backend/getSessionIdsByQuery.zip
+              run: aws lambda update-function-code --function-name getSessionIdsByQuery --zip-file fileb://backend/getSessionIdsByQuery.zip 2>&1 >/dev/null
             - name: Deploy deleteSessionBatchFromPostgres
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: deleteSessionBatchFromPostgres
-                  zip_file: backend/deleteSessionBatchFromPostgres.zip
+              run: aws lambda update-function-code --function-name deleteSessionBatchFromPostgres --zip-file fileb://backend/deleteSessionBatchFromPostgres.zip 2>&1 >/dev/null
             - name: Deploy deleteSessionBatchFromOpenSearch
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: deleteSessionBatchFromOpenSearch
-                  zip_file: backend/deleteSessionBatchFromOpenSearch.zip
+              run: aws lambda update-function-code --function-name deleteSessionBatchFromOpenSearch --zip-file fileb://backend/deleteSessionBatchFromOpenSearch.zip 2>&1 >/dev/null
             - name: Deploy deleteSessionBatchFromS3
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: deleteSessionBatchFromS3
-                  zip_file: backend/deleteSessionBatchFromS3.zip
+              run: aws lambda update-function-code --function-name deleteSessionBatchFromS3 --zip-file fileb://backend/deleteSessionBatchFromS3.zip 2>&1 >/dev/null
             - name: Deploy sendEmail
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: sendEmail
-                  zip_file: backend/sendEmail.zip
+              run: aws lambda update-function-code --function-name sendEmail --zip-file fileb://backend/sendEmail.zip 2>&1 >/dev/null
 
     deploy-session-export-lambdas:
         needs: migrate-database
-        runs-on: ubuntu-latest
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -153,12 +111,11 @@ jobs:
                   zip saveSessionExport.zip saveSessionExport
                   CGO_ENABLED=0 go build ./lambda-functions/sessionExport/sendEmail
                   zip sendEmail.zip sendEmail
-            - name: Configure AWS credentials
+            - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws-region: us-east-2
+                  role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
             - name: Update Lambda secrets
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
@@ -169,25 +126,13 @@ jobs:
                   aws lambda update-function-configuration --function-name sendSessionExportEmail \
                     --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy saveSessionExport
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: saveSessionExport
-                  zip_file: backend/saveSessionExport.zip
+              run: aws lambda update-function-code --function-name saveSessionExport --zip-file fileb://backend/saveSessionExport.zip 2>&1 >/dev/null
             - name: Deploy sendSessionExportEmail
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: sendSessionExportEmail
-                  zip_file: backend/sendEmail.zip
+              run: aws lambda update-function-code --function-name sendSessionExportEmail --zip-file fileb://backend/sendEmail.zip 2>&1 >/dev/null
 
     deploy-digest-lambdas:
         needs: migrate-database
-        runs-on: ubuntu-latest
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -207,12 +152,11 @@ jobs:
                   zip getDigestData.zip getDigestData
                   CGO_ENABLED=0 go build ./lambda-functions/digests/sendDigestEmails
                   zip sendDigestEmails.zip sendDigestEmails
-            - name: Configure AWS credentials
+            - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws-region: us-east-2
+                  role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
             - name: Update Lambda secrets
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
@@ -225,33 +169,15 @@ jobs:
                   aws lambda update-function-configuration --function-name sendDigestEmails \
                     --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy getProjectIds
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: getProjectIds
-                  zip_file: backend/getProjectIds.zip
+              run: aws lambda update-function-code --function-name getProjectIds --zip-file fileb://backend/getProjectIds.zip 2>&1 >/dev/null
             - name: Deploy getDigestData
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: getDigestData
-                  zip_file: backend/getDigestData.zip
+              run: aws lambda update-function-code --function-name getDigestData --zip-file fileb://backend/getDigestData.zip 2>&1 >/dev/null
             - name: Deploy sendDigestEmails
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: sendDigestEmails
-                  zip_file: backend/sendDigestEmails.zip
+              run: aws lambda update-function-code --function-name sendDigestEmails --zip-file fileb://backend/sendDigestEmails.zip 2>&1 >/dev/null
 
     deploy-session-insights-lambdas:
         needs: migrate-database
-        runs-on: ubuntu-latest
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -269,12 +195,11 @@ jobs:
                   zip getSessionInsightsData.zip getSessionInsightsData
                   CGO_ENABLED=0 go build ./lambda-functions/sessionInsights/sendSessionInsightsEmails
                   zip sendSessionInsightsEmails.zip sendSessionInsightsEmails
-            - name: Configure AWS credentials
+            - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws-region: us-east-2
+                  role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
             - name: Update Lambda secrets
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
@@ -285,25 +210,13 @@ jobs:
                   aws lambda update-function-configuration --function-name sendSessionInsightsEmails \
                     --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy getSessionInsightsData
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: getSessionInsightsData
-                  zip_file: backend/getSessionInsightsData.zip
+              run: aws lambda update-function-code --function-name getSessionInsightsData --zip-file fileb://backend/getSessionInsightsData.zip 2>&1 >/dev/null
             - name: Deploy sendSessionInsightsEmails
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: sendSessionInsightsEmails
-                  zip_file: backend/sendSessionInsightsEmails.zip
+              run: aws lambda update-function-code --function-name sendSessionInsightsEmails --zip-file fileb://backend/sendSessionInsightsEmails.zip 2>&1 >/dev/null
 
     deploy-metering-lambdas:
         needs: migrate-database
-        runs-on: ubuntu-latest
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -319,12 +232,11 @@ jobs:
                   cd backend/
                   GOARCH=arm64 GOOS=linux CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/metering/awsMarketplaceListener
                   zip awsMarketplaceListener.zip bootstrap
-            - name: Configure AWS credentials
+            - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws-region: us-east-2
+                  role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
             - name: Update Lambda secrets
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
@@ -333,17 +245,11 @@ jobs:
                   aws lambda update-function-configuration --function-name awsMarketplaceListener \
                     --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy awsMarketplaceListener
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: awsMarketplaceListener
-                  zip_file: backend/awsMarketplaceListener.zip
+              run: aws lambda update-function-code --function-name awsMarketplaceListener --zip-file fileb://backend/awsMarketplaceListener.zip 2>&1 >/dev/null
 
     deploy-user-journey-lambdas:
         needs: migrate-database
-        runs-on: ubuntu-latest
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -359,12 +265,11 @@ jobs:
                   cd backend/
                   CGO_ENABLED=0 go build ./lambda-functions/journeys/updateNormalnessScores
                   zip updateNormalnessScores.zip updateNormalnessScores
-            - name: Configure AWS credentials
+            - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws-region: us-east-2
+                  role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
             - name: Update Lambda secrets
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
@@ -373,27 +278,14 @@ jobs:
                   aws lambda update-function-configuration --function-name updateNormalnessScores \
                     --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')" 2>&1 >/dev/null
             - name: Deploy updateNormalnessScores
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: updateNormalnessScores
-                  zip_file: backend/updateNormalnessScores.zip
+              run: aws lambda update-function-code --function-name updateNormalnessScores --zip-file fileb://backend/updateNormalnessScores.zip 2>&1 >/dev/null
 
     deploy_backend:
         needs: migrate-database
-        runs-on: buildjet-2vcpu-ubuntu-2204-arm
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Check out the repo
               uses: actions/checkout@v4
-
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v4
-              with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws-region: us-east-2
 
             - name: Login to Docker Hub
               uses: docker/login-action@v3
@@ -401,6 +293,11 @@ jobs:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  aws-region: us-east-2
+                  role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
             - name: Login to Amazon ECR
               id: login-ecr
               uses: aws-actions/amazon-ecr-login@v2
@@ -542,14 +439,13 @@ jobs:
                   cluster: highlight-ec2-prod
 
     deploy_opentelemetry_collector:
-        runs-on: buildjet-2vcpu-ubuntu-2204-arm
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
-            - name: Configure AWS credentials
+            - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws-region: us-east-2
+                  role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
             - name: Login to Amazon ECR
               id: login-ecr
               uses: aws-actions/amazon-ecr-login@v2
@@ -561,6 +457,7 @@ jobs:
               with:
                   filters: |
                       otel-changed:
+                        - '.github/workflows/deploy.yml'
                         - 'deploy/opentelemetry-collector.Dockerfile'
                         - 'deploy/otel-collector.yaml'
 

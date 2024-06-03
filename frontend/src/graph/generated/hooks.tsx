@@ -7085,14 +7085,12 @@ export const SendAdminWorkspaceInviteDocument = gql`
 	mutation SendAdminWorkspaceInvite(
 		$workspace_id: ID!
 		$email: String!
-		$base_url: String!
 		$role: String!
 		$projectIds: [ID!]!
 	) {
 		sendAdminWorkspaceInvite(
 			workspace_id: $workspace_id
 			email: $email
-			base_url: $base_url
 			role: $role
 			projectIds: $projectIds
 		)
@@ -7118,7 +7116,6 @@ export type SendAdminWorkspaceInviteMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      workspace_id: // value for 'workspace_id'
  *      email: // value for 'email'
- *      base_url: // value for 'base_url'
  *      role: // value for 'role'
  *      projectIds: // value for 'projectIds'
  *   },

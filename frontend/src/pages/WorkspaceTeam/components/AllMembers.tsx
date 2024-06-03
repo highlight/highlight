@@ -20,11 +20,11 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { getDisplayNameFromEmail } from '@util/string'
-import { message } from 'antd'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
+import { toast } from '@/components/Toaster'
 import {
 	ChangeAdminRoleMutation,
 	ChangeProjectMembershipMutation,
@@ -346,12 +346,12 @@ const AllMembers = ({
 											},
 										})
 											.then(() =>
-												message.success(
+												toast.success(
 													'Updated user projects',
 												),
 											)
 											.catch(() =>
-												message.error(
+												toast.error(
 													'Error updating user projects',
 												),
 											)
@@ -381,12 +381,12 @@ const AllMembers = ({
 											},
 										})
 											.then(() =>
-												message.success(
+												toast.success(
 													'Updated user role',
 												),
 											)
 											.catch(() =>
-												message.error(
+												toast.error(
 													'Error updating user role',
 												),
 											)

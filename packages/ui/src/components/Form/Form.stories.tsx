@@ -31,6 +31,16 @@ export const Basic = () => {
 						name="issueDescription"
 						label="Issue Description"
 					/>
+
+					<Form.Input
+						type="number"
+						name="issueNumber"
+						label="Issue Number"
+						step="5"
+						defaultValue="10"
+						min={0}
+						max={50}
+					/>
 				</Box>
 			</Form>
 		</Box>

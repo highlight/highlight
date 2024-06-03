@@ -31,6 +31,7 @@ interface SearchContext extends Partial<ReturnType<typeof useSearchTime>> {
 	moreResults: number
 	resetMoreResults: () => void
 	histogramBucketSize?: DateHistogramBucketSize
+	pollingExpired: boolean
 }
 
 export const [useSearchContext, SearchContextProvider] =
@@ -49,6 +50,7 @@ interface Props extends Partial<ReturnType<typeof useSearchTime>> {
 	histogramBucketSize?: SearchContext['histogramBucketSize']
 	moreResults?: SearchContext['moreResults']
 	resetMoreResults?: SearchContext['resetMoreResults']
+	pollingExpired?: SearchContext['pollingExpired']
 }
 
 export const SearchContext: React.FC<Props> = ({
@@ -64,6 +66,7 @@ export const SearchContext: React.FC<Props> = ({
 	onSubmit,
 	resetMoreResults = () => null,
 	setPage = () => null,
+	pollingExpired = false,
 	...searchTimeContext
 }) => {
 	const [queryParam] = useQueryParam('query', StringParam)
@@ -89,6 +92,7 @@ export const SearchContext: React.FC<Props> = ({
 				onSubmit,
 				setPage,
 				resetMoreResults,
+				pollingExpired,
 				...searchTimeContext,
 			}}
 		>

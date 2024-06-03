@@ -1,7 +1,7 @@
 import { DeleteSegmentModal } from '@components/SegmentModals/DeleteSegmentModal'
+import { toast } from '@components/Toaster'
 import { namedOperations } from '@graph/operations'
 import { Maybe, SavedSegment, SavedSegmentEntityType } from '@graph/schemas'
-import { message } from 'antd'
 import React from 'react'
 
 import { useDeleteSavedSegmentMutation } from '@/graph/generated/hooks'
@@ -35,14 +35,14 @@ export const DeleteSavedSegmentModal: React.FC<Props> = ({
 			},
 		})
 			.then(() => {
-				message.success('Deleted Segment!', 5)
+				toast.success('Deleted Segment!', { duration: 5000 })
 				onHideModal()
 				if (afterDeleteHandler) {
 					afterDeleteHandler()
 				}
 			})
 			.catch(() => {
-				message.error('Error deleting segment!', 5)
+				toast.error('Error deleting segment!', { duration: 5000 })
 			})
 	}
 

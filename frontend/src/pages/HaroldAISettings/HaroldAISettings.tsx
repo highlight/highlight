@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	Box,
 	Heading,
@@ -7,7 +8,6 @@ import {
 } from '@highlight-run/ui/components'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
-import { message } from 'antd'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
 import { Button } from '@/components/Button'
@@ -69,14 +69,14 @@ export const HaroldAISettings = () => {
 			},
 		})
 			.then(() => {
-				message.success(
+				toast.success(
 					`${isOptIn ? 'Enabled' : 'Disabled'} Harold for your ${
 						setting.feature
 					}.`,
 				)
 			})
 			.catch((reason: any) => {
-				message.error(String(reason))
+				toast.error(String(reason))
 			})
 	}
 

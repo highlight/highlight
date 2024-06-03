@@ -1,5 +1,5 @@
+import { toast } from '@components/Toaster'
 import { useProjectId } from '@hooks/useProjectId'
-import { message } from 'antd'
 import { Command } from 'react-command-palette'
 import { useNavigate } from 'react-router-dom'
 
@@ -105,7 +105,7 @@ export const usePlayerCommands = (
 		{
 			command: () => {
 				const url = window.location.href
-				message.success('Copied link!')
+				toast.success('Copied link!')
 				navigator.clipboard.writeText(url)
 			},
 			name: 'Copy URL',
@@ -113,7 +113,7 @@ export const usePlayerCommands = (
 		{
 			command: () => {
 				const url = onGetLinkWithTimestamp(playerTime)
-				message.success('Copied link!')
+				toast.success('Copied link!')
 				navigator.clipboard.writeText(url.href)
 			},
 			name: 'Copy URL at current timestamp',

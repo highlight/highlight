@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/assets"
 	"html/template"
 	"io"
 	"math/rand"
@@ -14,6 +13,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/assets"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
@@ -183,20 +184,29 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, rClient *redis.Client
 	}
 }
 
-func validateOrigin(_ *http.Request, origin string) bool {
-	if runtimeParsed == util.PrivateGraph {
-		// From the highlight frontend, only the url is whitelisted.
-		isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
-		// Is this an AWS Amplify environment?
-		isAWSEnv := strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d25bj3loqvp3nx.amplifyapp.com")
-		isReflamePreview := origin == "https://preview.highlight.io"
+var PUBLIC_GRAPH_CORS_OPTIONS = cors.Options{
+	AllowedOrigins:   []string{"*"},
+	AllowCredentials: false,
+	AllowedHeaders:   []string{"*"},
+}
 
-		if origin == frontendURL || origin == "https://app.highlight.run" || origin == "https://app.highlight.io" || origin == landingStagingURL || isRenderPreviewEnv || isAWSEnv || isReflamePreview {
-			return true
-		}
-	} else if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
+var PRIVATE_GRAPH_CORS_OPTIONS = cors.Options{
+	AllowOriginRequestFunc: validateOrigin,
+	AllowCredentials:       true,
+	AllowedHeaders:         []string{"*"},
+}
+
+func validateOrigin(_ *http.Request, origin string) bool {
+	// From the highlight frontend, only the url is whitelisted.
+	isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
+	// Is this an AWS Amplify environment?
+	isAWSEnv := strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d25bj3loqvp3nx.amplifyapp.com")
+	isReflamePreview := origin == "https://preview.highlight.io"
+
+	if origin == frontendURL || origin == "https://app.highlight.run" || origin == "https://app.highlight.io" || origin == landingStagingURL || isRenderPreviewEnv || isAWSEnv || isReflamePreview {
 		return true
 	}
+
 	return false
 }
 
@@ -390,11 +400,6 @@ func main() {
 		return brotli.NewWriterLevel(w, level)
 	})
 	r.Use(compressor.Handler)
-	r.Use(cors.New(cors.Options{
-		AllowOriginRequestFunc: validateOrigin,
-		AllowCredentials:       true,
-		AllowedHeaders:         []string{"*"},
-	}).Handler)
 	r.HandleFunc("/health", healthRouter(runtimeParsed, db, redisClient, clickhouseClient, kafkaProducer, kafkaBatchedProducer))
 
 	zapierStore := zapier.ZapierResthookStore{
@@ -435,6 +440,7 @@ func main() {
 		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "login"), privateResolver.Login)
 
 		r.Route(privateEndpoint, func(r chi.Router) {
+			r.Use(cors.New(PRIVATE_GRAPH_CORS_OPTIONS).Handler)
 			r.Use(highlightChi.Middleware)
 			r.Use(private.PrivateMiddleware)
 			if fsClient, ok := storageClient.(*storage.FilesystemClient); ok {
@@ -469,7 +475,6 @@ func main() {
 			privateServer.AddTransport(transport.POST{})
 			privateServer.AddTransport(transport.MultipartForm{})
 			privateServer.SetQueryCache(lru.New(1000))
-			privateServer.Use(extension.Introspection{})
 			privateServer.Use(extension.AutomaticPersistedQuery{
 				Cache: lru.New(10000),
 			})
@@ -510,6 +515,7 @@ func main() {
 			publicEndpoint = "/"
 		}
 		r.Route(publicEndpoint, func(r chi.Router) {
+			r.Use(cors.New(PUBLIC_GRAPH_CORS_OPTIONS).Handler)
 			r.Use(highlightChi.Middleware)
 			r.Use(public.PublicMiddleware)
 

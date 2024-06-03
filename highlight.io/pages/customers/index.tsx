@@ -37,7 +37,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
 	const QUERY = gql`
       query GetCustomers() {
-          customers(where: { hidden: false }) {
+          customers(where: { hidden: false }, orderBy: createdAt_DESC) {
               slug
               image {
                   url
