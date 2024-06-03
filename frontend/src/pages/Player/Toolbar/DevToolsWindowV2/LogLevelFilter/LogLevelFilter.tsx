@@ -3,10 +3,7 @@ import {
 	IconSolidFilter,
 	MultiSelectButton,
 } from '@highlight-run/ui/components'
-import {
-	LogLevelValue,
-	titilize,
-} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import { LogLevelValue } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 
 type Props = {
 	logLevels: LogLevelValue[]
@@ -49,17 +46,8 @@ const LogLevelFilter = ({ logLevels, setLogLevels }: Props) => {
 		),
 	}))
 
-	const valueRender = () => {
-		if (logLevels.includes(LogLevelValue.All)) {
-			return FILTER_LABEL
-		}
-
-		if (logLevels.length === 1) {
-			return `${FILTER_LABEL}: ${titilize(logLevels[0])}`
-		}
-
-		return `${FILTER_LABEL}: ${logLevels.length} selected`
-	}
+	const selected =
+		!!logLevels.length && !logLevels.includes(LogLevelValue.All)
 
 	return (
 		<MultiSelectButton
@@ -67,7 +55,7 @@ const LogLevelFilter = ({ logLevels, setLogLevels }: Props) => {
 			icon={<IconSolidFilter />}
 			defaultValue={options[0].key}
 			value={logLevels}
-			valueRender={valueRender}
+			selected={selected}
 			options={options}
 			onChange={handleRequestTypeChange}
 		/>

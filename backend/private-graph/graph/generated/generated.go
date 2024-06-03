@@ -846,7 +846,7 @@ type ComplexityRoot struct {
 		ReplyToSessionComment                 func(childComplexity int, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		RequestAccess                         func(childComplexity int, projectID int) int
 		SaveBillingPlan                       func(childComplexity int, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod) int
-		SendAdminWorkspaceInvite              func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
+		SendAdminWorkspaceInvite              func(childComplexity int, workspaceID int, email string, role string) int
 		SubmitRegistrationForm                func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
 		SyncSlackIntegration                  func(childComplexity int, projectID int) int
 		TestErrorEnhancement                  func(childComplexity int, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) int
@@ -1679,7 +1679,7 @@ type MutationResolver interface {
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
 	UpdateErrorGroupState(ctx context.Context, secureID string, state model.ErrorState, snoozedUntil *time.Time) (*model1.ErrorGroup, error)
 	DeleteProject(ctx context.Context, id int) (*bool, error)
-	SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error)
+	SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, role string) (*string, error)
 	AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error)
 	DeleteInviteLinkFromWorkspace(ctx context.Context, workspaceID int, workspaceInviteLinkID int) (bool, error)
 	JoinWorkspace(ctx context.Context, workspaceID int) (*int, error)
@@ -5997,7 +5997,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SendAdminWorkspaceInvite(childComplexity, args["workspace_id"].(int), args["email"].(string), args["base_url"].(string), args["role"].(string)), true
+		return e.complexity.Mutation.SendAdminWorkspaceInvite(childComplexity, args["workspace_id"].(int), args["email"].(string), args["role"].(string)), true
 
 	case "Mutation.submitRegistrationForm":
 		if e.complexity.Mutation.SubmitRegistrationForm == nil {
@@ -13476,7 +13476,6 @@ type Mutation {
 	sendAdminWorkspaceInvite(
 		workspace_id: ID!
 		email: String!
-		base_url: String!
 		role: String!
 	): String
 	addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
@@ -16565,23 +16564,14 @@ func (ec *executionContext) field_Mutation_sendAdminWorkspaceInvite_args(ctx con
 	}
 	args["email"] = arg1
 	var arg2 string
-	if tmp, ok := rawArgs["base_url"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("base_url"))
+	if tmp, ok := rawArgs["role"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
 		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["base_url"] = arg2
-	var arg3 string
-	if tmp, ok := rawArgs["role"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
-		arg3, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["role"] = arg3
+	args["role"] = arg2
 	return args, nil
 }
 
@@ -43767,7 +43757,7 @@ func (ec *executionContext) _Mutation_sendAdminWorkspaceInvite(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SendAdminWorkspaceInvite(rctx, fc.Args["workspace_id"].(int), fc.Args["email"].(string), fc.Args["base_url"].(string), fc.Args["role"].(string))
+		return ec.resolvers.Mutation().SendAdminWorkspaceInvite(rctx, fc.Args["workspace_id"].(int), fc.Args["email"].(string), fc.Args["role"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

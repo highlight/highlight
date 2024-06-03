@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { PathButtons } from '@/app/components/path-buttons'
 import { TrpcQueries } from '@/app/components/trpc-queries'
 import { Canvas } from '@/app/components/canvas'
+import { Random } from '@/app/components/random'
 import logger from '@/highlight.logger'
 
 export default function Home() {
@@ -62,6 +63,9 @@ export default function Home() {
 				width={200}
 				src="https://i.travelapi.com/lodging/11000000/10140000/10130300/10130300/c9095011_z.jpg"
 			/>
+
+			<h3 style={{ paddingTop: '1em' }}>Random</h3>
+			<Random />
 
 			<h3>Canvas</h3>
 			<Canvas engineOptions={{ preserveDrawingBuffer: true }} />

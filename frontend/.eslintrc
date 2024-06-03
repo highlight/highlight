@@ -115,7 +115,7 @@
 					{
 						"name": "antd",
 						"importNames": ["InputNumber"],
-						"message": "Please use InputNumber from /src/components/InputNumber instead."
+						"message": "Please use Form.Input with type='number' from @highlight-run/ui/components instead."
 					},
 					{
 						"name": "react-router",

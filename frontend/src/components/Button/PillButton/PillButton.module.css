@@ -1,9 +1,0 @@
-.buttonBase {
-	border-radius: 30px;
-	font-size: 16px;
-	height: auto;
-	padding-bottom: var(--size-small);
-	padding-left: var(--size-large);
-	padding-right: var(--size-large);
-	padding-top: var(--size-small);
-}

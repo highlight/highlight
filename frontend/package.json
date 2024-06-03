@@ -44,6 +44,7 @@
 		"react": "^18.2.0",
 		"react-autosize-textarea": "^7.1.0",
 		"react-awesome-query-builder": "^4.8.0",
+		"react-calendly": "^4.3.0",
 		"react-collapsible": "^2.8.1",
 		"react-command-palette": "0.16.0",
 		"react-copy-to-clipboard": "^5.0.2",

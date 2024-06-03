@@ -647,10 +647,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	userInteractionEvents := accumulator.UserInteractionEvents
-	if len(userInteractionEvents) == 0 {
-		return w.excludeSession(ctx, s, backend.SessionExcludedReasonNoUserInteractionEvents)
-	}
-
 	userInteractionEvents = append(userInteractionEvents, []*parse.ReplayEvent{{
 		Timestamp: accumulator.FirstFullSnapshotTimestamp,
 	}, {

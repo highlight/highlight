@@ -70,6 +70,7 @@ module Highlight
       span.record_exception(e, attributes: attrs)
     end
 
+    # rubocop:disable Metrics/AbcSize
     def record_log(session_id, request_id, level, message, attrs = {})
       caller_info = caller[0].split(':', 3)
       function = caller_info[2]
@@ -86,13 +87,14 @@ module Highlight
         span.status = OpenTelemetry::Trace::Status.error(message) if [Logger::ERROR, Logger::FATAL].include?(level)
         span.add_event(LOG_EVENT, attributes: {
           LOG_SEVERITY_ATTRIBUTE => H.log_level_string(level),
-          LOG_MESSAGE_ATTRIBUTE => message,
+          LOG_MESSAGE_ATTRIBUTE => message.to_s,
           CODE_FILEPATH => caller_info[0],
           CODE_LINENO => caller_info[1],
           CODE_FUNCTION => function
         }.merge(attrs))
       end
     end
+    # rubocop:enable Metrics/AbcSize
 
     HighlightHeaders = Struct.new('HighlightHeaders', :session_id, :request_id)
     def self.parse_headers(headers)
