@@ -1,9 +1,7 @@
 import {
 	BatchSpanProcessor,
 	BufferConfig,
-	ConsoleSpanExporter,
 	ReadableSpan,
-	SimpleSpanProcessor,
 	SpanExporter,
 	WebTracerProvider,
 } from '@opentelemetry/sdk-trace-web'
@@ -64,11 +62,11 @@ export const initializeOtel = (config: OtelConfig) => {
 	})
 
 	// Export spans to console for debugging
-	if (isDev) {
-		provider.addSpanProcessor(
-			new SimpleSpanProcessor(new ConsoleSpanExporter()),
-		)
-	}
+	// if (isDev) {
+	// 	provider.addSpanProcessor(
+	// 		new SimpleSpanProcessor(new ConsoleSpanExporter()),
+	// 	)
+	// }
 
 	const exporter = new OTLPTraceExporter({
 		url: endpoint + '/v1/traces',
@@ -162,9 +160,8 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<CustomSpanProcessorConf
 				this.tracingOrigins,
 			)
 
-			console.log('::: should record', url, shouldRecordNetworkRequest)
 			if (!shouldRecordNetworkRequest) {
-				span.spanContext().traceFlags = 0
+				span.spanContext().traceFlags = 0 // prevents span from being recorded
 			}
 		}
 	}
