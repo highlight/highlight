@@ -432,7 +432,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 }
 
 func (r *Resolver) isUserInWorkspaceReadOnly(ctx context.Context, workspaceID int) (*model.Workspace, error) {
-	span, ctx := util.StartSpanFromContext(ctx, "isAdminInWorkspace", util.ResourceName("resolver.internal.auth"))
+	span, ctx := util.StartSpanFromContext(ctx, "isUserInWorkspaceReadOnly", util.ResourceName("resolver.internal.auth"))
 	defer span.Finish()
 
 	span.SetAttribute("WorkspaceID", workspaceID)
@@ -496,7 +496,7 @@ func (r *Resolver) isUserWorkspaceAdmin(ctx context.Context, workspaceID int) (*
 }
 
 func (r *Resolver) isUserInWorkspace(ctx context.Context, workspaceID int) (*model.Workspace, error) {
-	span, ctx := util.StartSpanFromContext(ctx, "isAdminInWorkspace", util.ResourceName("resolver.internal.auth"))
+	span, ctx := util.StartSpanFromContext(ctx, "isUserInWorkspace", util.ResourceName("resolver.internal.auth"))
 	defer span.Finish()
 
 	span.SetAttribute("WorkspaceID", workspaceID)

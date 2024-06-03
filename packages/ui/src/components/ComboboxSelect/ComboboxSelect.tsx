@@ -226,6 +226,7 @@ export const ComboboxSelect_test = () => {
 			onChange={(valueNext: string) => {
 				setValue(valueNext)
 			}}
+			onChangeQuery={() => undefined}
 			queryPlaceholder="Filter..."
 		/>
 	)
