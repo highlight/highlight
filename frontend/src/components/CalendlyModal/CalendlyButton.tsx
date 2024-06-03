@@ -22,13 +22,37 @@ import { styledVerticalScrollbar } from '@/style/common.css'
 
 import * as style from './styles.css'
 
+interface Referrer {
+	utm_source?: string | null
+	utm_medium?: string | null
+	utm_campaign?: string | null
+	utm_content?: string | null
+	utm_term?: string | null
+}
+
+function getCalendlyUtm() {
+	const urlParams = new URLSearchParams(window.location.search)
+	const { referral } = getAttributionData()
+	let referrer: Referrer = {}
+	try {
+		referrer = JSON.parse(referral)
+	} catch (e) {}
+	const utm = {
+		utmCampaign:
+			referrer.utm_campaign ?? urlParams?.get('utm_campaign') ?? '',
+		utmSource: referrer.utm_source ?? urlParams?.get('utm_source') ?? '',
+		utmMedium: referrer.utm_medium ?? urlParams?.get('utm_medium') ?? '',
+		utmContent: referrer.utm_content ?? urlParams?.get('utm_content') ?? '',
+		utmTerm: referrer.utm_term ?? urlParams?.get('utm_term') ?? '',
+	}
+	return {
+		...utm,
+		url: `https://calendly.com/highlight-io/application-support-sales?utm_campaign=${utm.utmCampaign}&utm_source=${utm.utmSource}&utm_medium=${utm.utmMedium}&utm_content=${utm.utmContent}&utm_term=${utm.utmTerm}`,
+	}
+}
 export function Calendly({ howCanWeHelp }: { howCanWeHelp?: string }) {
 	const { admin } = useAuthContext()
-	const { referral } = getAttributionData()
-	let utm = {}
-	try {
-		utm = JSON.parse(referral)
-	} catch (e) {}
+	const { url: _, ...utm } = getCalendlyUtm()
 	return (
 		<InlineWidget
 			url="https://calendly.com/highlight-io/application-support-sales"
@@ -47,11 +71,76 @@ export function Calendly({ howCanWeHelp }: { howCanWeHelp?: string }) {
 	)
 }
 
+export function CalendlyModal({
+	onClose,
+	howCanWeHelp,
+}: {
+	onClose: () => void
+	howCanWeHelp?: string
+}) {
+	return (
+		<AnimatePresence>
+			<motion.div
+				key="calendlyWrapper"
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				exit={{ opacity: 0, display: 'none' }}
+				transition={{
+					duration: 2,
+				}}
+				style={{
+					position: 'absolute',
+					zIndex: '20001', // +1 more than the header z-index
+				}}
+			>
+				<Box
+					display="flex"
+					height="screen"
+					width="screen"
+					position="fixed"
+					alignItems="flex-start"
+					justifyContent="center"
+					style={{
+						top: 0,
+						left: 0,
+						overflow: 'hidden',
+						backgroundColor: '#6F6E777A',
+					}}
+					onClick={onClose}
+				>
+					<Stack
+						cssClass={clsx(
+							styledVerticalScrollbar,
+							style.modalInner,
+						)}
+						onClick={onClose}
+					>
+						<Calendly howCanWeHelp={howCanWeHelp} />
+						<ButtonIcon
+							shape="square"
+							emphasis="low"
+							kind="secondary"
+							onClick={onClose}
+							icon={<IconSolidXCircle size="32" />}
+							cssClass={style.closeIcon}
+						/>
+					</Stack>
+				</Box>
+			</motion.div>
+		</AnimatePresence>
+	)
+}
+
 export function CalendlyButton({
 	text,
 	howCanWeHelp,
+	onClick,
 	...props
-}: { text?: string; howCanWeHelp?: string } & ButtonProps) {
+}: {
+	text?: string
+	howCanWeHelp?: string
+	onClick?: () => void
+} & ButtonProps) {
 	const { projectId } = useProjectId()
 	const { data } = useGetBillingDetailsForProjectQuery({
 		variables: {
@@ -76,63 +165,24 @@ export function CalendlyButton({
 				size="small"
 				emphasis="high"
 				iconLeft={<IconSolidCalendar />}
-				onClick={() => setCalendlyOpen(true)}
+				onClick={() => {
+					if (onClick) {
+						onClick()
+					} else {
+						setCalendlyOpen(true)
+					}
+				}}
 				trackingId="ClickCalendlyOpen"
 				{...props}
 			>
 				{text ?? 'Book a call'}
 			</Button>
-			<AnimatePresence>
-				{calendlyOpen ? (
-					<motion.div
-						key="calendlyWrapper"
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0, display: 'none' }}
-						transition={{
-							duration: 2,
-						}}
-						style={{
-							position: 'absolute',
-						}}
-					>
-						<Box
-							display="flex"
-							height="screen"
-							width="screen"
-							position="fixed"
-							alignItems="flex-start"
-							justifyContent="center"
-							style={{
-								top: 0,
-								left: 0,
-								zIndex: '90',
-								overflow: 'hidden',
-								backgroundColor: '#6F6E777A',
-							}}
-							onClick={() => setCalendlyOpen(false)}
-						>
-							<Stack
-								cssClass={clsx(
-									styledVerticalScrollbar,
-									style.modalInner,
-								)}
-								onClick={() => setCalendlyOpen(false)}
-							>
-								<Calendly howCanWeHelp={howCanWeHelp} />
-								<ButtonIcon
-									shape="square"
-									emphasis="low"
-									kind="secondary"
-									onClick={() => setCalendlyOpen(false)}
-									icon={<IconSolidXCircle size="32" />}
-									cssClass={style.closeIcon}
-								/>
-							</Stack>
-						</Box>
-					</motion.div>
-				) : null}
-			</AnimatePresence>
+			{calendlyOpen ? (
+				<CalendlyModal
+					howCanWeHelp={howCanWeHelp}
+					onClose={() => setCalendlyOpen(false)}
+				/>
+			) : null}
 		</>
 	)
 }

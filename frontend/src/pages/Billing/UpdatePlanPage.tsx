@@ -5,6 +5,7 @@ import { USD } from '@dinero.js/currencies'
 import {
 	Badge,
 	Box,
+	Callout,
 	Form,
 	IconProps,
 	IconSolidChatAlt,
@@ -1180,7 +1181,7 @@ type Plan = {
 	name: string
 	descriptions: string[]
 	icon: React.ReactNode
-	price: number
+	price: number | 'Custom'
 }
 
 const PLAN_BASE_FEES = {
@@ -1219,18 +1220,21 @@ const PLANS = {
 		type: PlanType.Enterprise,
 		name: 'Enterprise (Cloud)',
 		descriptions: [
-			'Robust availability for large-scale demanding teams',
+			'MP4 video export for sessions',
+			'Reporting and analysis for sessions and more',
+			'Robust availability for large-scale teams',
 			'Support for SSO, RBAC, and other organizational requirements',
 		],
 		icon: <IconSolidServer size="24" color="#E93D82" />,
-		price: 1000,
+		price: 'Custom',
 	},
 	'Self-host': {
 		type: PlanType.Enterprise,
 		name: 'Enterprise (Self-hosted)',
 		descriptions: [
-			'Highly-available on-prem / cloud-prem deployments',
+			'Highly-available on-prem deployments',
 			'Bring your own infrastructure',
+			'Customized data storage and retention',
 			'Govern data in your environment',
 		],
 		icon: (
@@ -1239,7 +1243,7 @@ const PLANS = {
 				color={vars.theme.static.content.default}
 			/>
 		),
-		price: 3000,
+		price: 'Custom',
 	},
 } as { [plan in PlanType | 'Self-host']: Plan }
 
@@ -1268,12 +1272,14 @@ const PlanCard = ({
 	setStep,
 	currentPlanType,
 	howCanWeHelp,
+	onClick,
 }: {
 	plan: Plan
 	setSelectedPlanType: (step: PlanType) => void
 	setStep: (step: PlanSelectStep) => void
 	currentPlanType?: PlanType
 	howCanWeHelp?: string
+	onClick?: () => void
 }) => {
 	const { workspace_id } = useParams<{
 		workspace_id: string
@@ -1296,12 +1302,17 @@ const PlanCard = ({
 				{plan.name}
 			</Text>
 			<h3 style={{ fontWeight: 700 }}>
-				${plan.price}
-				{plan.price >= 1000 ? '+' : ''}
+				{plan.price === 'Custom' ? plan.price : `${plan.price}`}
 			</h3>
-			<Text size="xxSmall" color="weak" cssClass={style.priceSubtitle}>
-				per month
-			</Text>
+			{plan.price === 'Custom' ? null : (
+				<Text
+					size="xxSmall"
+					color="weak"
+					cssClass={style.priceSubtitle}
+				>
+					per month
+				</Text>
+			)}
 			{enterprise ? (
 				<CalendlyButton
 					text="Talk to sales"
@@ -1314,6 +1325,7 @@ const PlanCard = ({
 					emphasis="high"
 					disabled={current}
 					iconLeft={enterprise ? <IconSolidChatAlt /> : undefined}
+					onClick={onClick}
 				/>
 			) : (
 				<Button
@@ -1322,8 +1334,10 @@ const PlanCard = ({
 					size="small"
 					emphasis="high"
 					disabled={current}
-					iconLeft={enterprise ? <IconSolidChatAlt /> : undefined}
 					onClick={() => {
+						if (onClick) {
+							onClick()
+						}
 						if (free) {
 							window.open(
 								getPlanChangeEmail({
@@ -1341,11 +1355,7 @@ const PlanCard = ({
 						}
 					}}
 				>
-					{enterprise
-						? 'Talk to sales'
-						: current
-						? 'Current plan'
-						: 'Select plan'}
+					{current ? 'Current plan' : 'Select plan'}
 				</Button>
 			)}
 			<Stack>
@@ -1373,9 +1383,19 @@ export const PlanComparisonPage: React.FC<{
 	setSelectedPlanType: (plan: PlanType) => void
 	setStep: (step: PlanSelectStep) => void
 	title?: string
+	description?: string
 	enterprise?: true
+	onClick?: () => void
 	howCanWeHelp?: string
-}> = ({ setSelectedPlanType, setStep, title, enterprise, howCanWeHelp }) => {
+}> = ({
+	setSelectedPlanType,
+	setStep,
+	title,
+	description,
+	enterprise,
+	onClick,
+	howCanWeHelp,
+}) => {
 	const { workspace_id } = useParams<{
 		workspace_id: string
 	}>()
@@ -1385,18 +1405,14 @@ export const PlanComparisonPage: React.FC<{
 		},
 	})
 
-	if (loading) {
-		return null
-	}
-
 	return (
-		<Box height="full" margin="auto" p="32">
-			<Stack gap="24">
-				<Box px="12">
-					<Text weight="medium" size="medium">
-						{title}
-					</Text>
-				</Box>
+		<Box height="full" margin="auto" p="12">
+			<Stack gap="12">
+				<Callout title={title}>
+					<Box mb="6">
+						<Text color="moderate">{description}</Text>
+					</Box>
+				</Callout>
 				<Box
 					display="flex"
 					gap="12"
@@ -1422,6 +1438,7 @@ export const PlanComparisonPage: React.FC<{
 								setStep={setStep}
 								key={plan.name}
 								howCanWeHelp={howCanWeHelp}
+								onClick={onClick}
 							/>
 						))}
 				</Box>
@@ -1429,6 +1446,7 @@ export const PlanComparisonPage: React.FC<{
 					display="flex"
 					flexDirection="column"
 					gap="12"
+					mt="16"
 					alignItems="stretch"
 					justifyContent="space-between"
 					m="auto"
