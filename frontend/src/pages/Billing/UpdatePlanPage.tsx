@@ -1399,7 +1399,7 @@ export const PlanComparisonPage: React.FC<{
 	const { workspace_id } = useParams<{
 		workspace_id: string
 	}>()
-	const { data, loading } = useGetBillingDetailsQuery({
+	const { data } = useGetBillingDetailsQuery({
 		variables: {
 			workspace_id: workspace_id!,
 		},
