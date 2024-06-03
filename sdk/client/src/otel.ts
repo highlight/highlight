@@ -53,7 +53,8 @@ export const initializeOtel = (config: OtelConfig) => {
 
 	provider = new WebTracerProvider({
 		resource: new Resource({
-			[SEMRESATTRS_SERVICE_NAME]: 'highlight-browser', // config.serviceName ?? 'highlight-browser',
+			[SEMRESATTRS_SERVICE_NAME]:
+				config.serviceName ?? 'highlight-browser',
 			[SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: environment,
 			'highlight.project_id': config.projectId,
 			'highlight.session_id': config.sessionSecureId,
@@ -172,10 +173,8 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<CustomSpanProcessorConf
 		this.tracingOrigins = config.tracingOrigins ?? false
 	}
 
-	onStart(span: Span, _parentContext: Context): void {
-		span.setAttributes({
-			custom: true,
-		})
+	onStart(_span: Span, _parentContext: Context): void {
+		// Do nothing. Types required us to implement this method.
 	}
 
 	onEnd(span: ReadableSpan): void {
@@ -195,9 +194,7 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<CustomSpanProcessorConf
 	}
 
 	onShutdown(): void {
-		// TODO: Figure out if we need to do anything here. Types required us to
-		// implement the method.
-		console.log('::: shutdown')
+		// Do nothing. Types required us to implement this method.
 	}
 }
 
