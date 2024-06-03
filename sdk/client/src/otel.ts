@@ -28,7 +28,6 @@ export type OtelConfig = {
 	sessionSecureId: string
 	endpoint?: string
 	environment?: string
-	ignoreUrls?: Array<string | RegExp>
 	networkRecordingOptions?: NetworkRecordingOptions
 	serviceName?: string
 	tracingOrigins?: boolean | (string | RegExp)[]
@@ -93,7 +92,6 @@ export const initializeOtel = (config: OtelConfig) => {
 			new FetchInstrumentation({
 				applyCustomAttributesOnSpan: (span, request, response) => {
 					const url = new URL((response as Response).url)
-
 					let spanName =
 						(request.method ? `${request.method} - ` : '') +
 						url.pathname
@@ -121,9 +119,39 @@ export const initializeOtel = (config: OtelConfig) => {
 					)
 				},
 			}),
+			// TODO: Add similar instrumentation for XHR requests
 			new XMLHttpRequestInstrumentation({
-				// applyCustomAttributesOnSpan,
-				ignoreUrls: config.ignoreUrls,
+				applyCustomAttributesOnSpan: (
+					span: Span,
+					xhr: XMLHttpRequest,
+				) => {
+					const url = new URL(xhr.responseURL)
+					// TODO: See if we have types for our overrides
+					const method = (xhr as any)._method
+					let spanName = (method ? `${method} - ` : '') + url.pathname
+
+					// try {
+					// 	const body = JSON.parse(xhr.body)
+					// 	if (body.operationName) {
+					// 		spanName = body.operationName
+					// 	}
+					// } catch {
+					// 	// Ignore
+					// }
+
+					span.updateName(spanName)
+
+					// enhanceSpanWithHttpRequestAttributes(
+					// 	span,
+					// 	xhr,
+					// 	config.networkRecordingOptions,
+					// )
+					// enhanceSpanWithHttpResponseAttributes(
+					// 	span,
+					// 	response as Response,
+					// 	config.networkRecordingOptions,
+					// )
+				},
 			}),
 		],
 	})
@@ -186,15 +214,37 @@ const enhanceSpanWithHttpRequestAttributes = (
 	request: Request | RequestInit,
 	networkRecordingOptions?: NetworkRecordingOptions,
 ) => {
+	if (request.body) {
+		try {
+			setObjectAttributes(
+				span,
+				JSON.parse(String(request.body)),
+				'http.request.body',
+			)
+		} catch {
+			// Ignore
+		}
+	}
+
 	const headers = sanitizeHeaders(
 		networkRecordingOptions?.networkHeadersToRedact ?? [''],
 		request.headers,
 		networkRecordingOptions?.headerKeysToRecord,
 	)
 
-	span.setAttributes({
-		'http.request.headers': JSON.stringify(headers),
-	})
+	span.setAttribute('http.request.headers', JSON.stringify(headers))
+}
+
+function setObjectAttributes(span: Span, body: any, prefix: string) {
+	for (const key in body) {
+		if (typeof body[key] === 'object' && body[key] !== null) {
+			// If the property is an object, recursively set attributes
+			setObjectAttributes(span, body[key], `${prefix}.${key}`)
+		} else {
+			// If the property is not an object, set the attribute
+			span.setAttribute(`${prefix}.${key}`, JSON.stringify(body[key]))
+		}
+	}
 }
 
 const enhanceSpanWithHttpResponseAttributes = (
