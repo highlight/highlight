@@ -74,16 +74,5 @@
 			"limit": "256 kB",
 			"brotli": true
 		}
-	],
-	"dependencies": {
-		"@opentelemetry/api": "^1.8.0",
-		"@opentelemetry/context-zone": "^1.24.1",
-		"@opentelemetry/exporter-trace-otlp-http": "^0.51.1",
-		"@opentelemetry/instrumentation": "^0.51.1",
-		"@opentelemetry/instrumentation-document-load": "^0.38.0",
-		"@opentelemetry/instrumentation-user-interaction": "^0.38.0",
-		"@opentelemetry/instrumentation-xml-http-request": "^0.51.1",
-		"@opentelemetry/resources": "^1.24.1",
-		"@opentelemetry/sdk-trace-web": "^1.24.1"
-	}
+	]
 }

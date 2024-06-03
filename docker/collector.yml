@@ -26,6 +26,13 @@ receivers:
                         - 'http://*'
                     allowed_headers:
                         - 'X-Highlight-Request'
+                        - 'Origin'
+                        - 'Content-Type'
+                        - 'Accept'
+                        - 'Access-Control-Request-Headers'
+                        - 'Access-Control-Request-Method'
+                        - 'Access-Control-Allow-Origin'
+                        - 'Referer'
                     max_age: 7200
                 tls:
                     cert_file: '/server.crt'

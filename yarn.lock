@@ -14322,6 +14322,18 @@ __metadata:
     "@graphql-codegen/typescript": "npm:^4.0.1"
     "@graphql-codegen/typescript-graphql-request": "npm:^6.0.1"
     "@graphql-codegen/typescript-operations": "npm:^4.0.1"
+    "@opentelemetry/api": "npm:^1.8.0"
+    "@opentelemetry/context-zone": "npm:^1.24.1"
+    "@opentelemetry/exporter-trace-otlp-http": "npm:^0.51.1"
+    "@opentelemetry/instrumentation": "npm:^0.51.1"
+    "@opentelemetry/instrumentation-document-load": "npm:^0.38.0"
+    "@opentelemetry/instrumentation-fetch": "npm:^0.51.1"
+    "@opentelemetry/instrumentation-user-interaction": "npm:^0.38.0"
+    "@opentelemetry/instrumentation-xml-http-request": "npm:^0.51.1"
+    "@opentelemetry/otlp-exporter-base": "npm:^0.49.1"
+    "@opentelemetry/resources": "npm:^1.24.1"
+    "@opentelemetry/sdk-trace-web": "npm:^1.24.1"
+    "@opentelemetry/semantic-conventions": "npm:^1.24.1"
     "@rrweb/types": "workspace:*"
     "@size-limit/file": "npm:^8.1.0"
     "@types/json-stringify-safe": "npm:^5.0.0"
@@ -17745,6 +17757,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@opentelemetry/instrumentation-fetch@npm:^0.51.1":
+  version: 0.51.1
+  resolution: "@opentelemetry/instrumentation-fetch@npm:0.51.1"
+  dependencies:
+    "@opentelemetry/core": "npm:1.24.1"
+    "@opentelemetry/instrumentation": "npm:0.51.1"
+    "@opentelemetry/sdk-trace-web": "npm:1.24.1"
+    "@opentelemetry/semantic-conventions": "npm:1.24.1"
+  peerDependencies:
+    "@opentelemetry/api": ^1.0.0
+  checksum: 10/710b5027fa39cf9ba39a52c0cefb416249338309d2599ba4078908499d181140b116ffc99106086585ced8eb0f07b4cfdfe0c097eb2afac14d1b52bd00f85aaa
+  languageName: node
+  linkType: hard
+
 "@opentelemetry/instrumentation-fs@npm:^0.10.0":
   version: 0.10.0
   resolution: "@opentelemetry/instrumentation-fs@npm:0.10.0"
@@ -18472,7 +18498,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/semantic-conventions@npm:1.24.1":
+"@opentelemetry/semantic-conventions@npm:1.24.1, @opentelemetry/semantic-conventions@npm:^1.24.1":
   version: 1.24.1
   resolution: "@opentelemetry/semantic-conventions@npm:1.24.1"
   checksum: 10/f09fa2ecd1994c3601c108922fb1c175618b14acc0f2a2436ca1506f6c48f2e51c505c6490fc5aeac9b94fbd372dd2081a8b7c0e83d96c57fedd360af13d68a5
@@ -43148,15 +43174,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "highlight.run@workspace:sdk/firstload"
   dependencies:
-    "@opentelemetry/api": "npm:^1.8.0"
-    "@opentelemetry/context-zone": "npm:^1.24.1"
-    "@opentelemetry/exporter-trace-otlp-http": "npm:^0.51.1"
-    "@opentelemetry/instrumentation": "npm:^0.51.1"
-    "@opentelemetry/instrumentation-document-load": "npm:^0.38.0"
-    "@opentelemetry/instrumentation-user-interaction": "npm:^0.38.0"
-    "@opentelemetry/instrumentation-xml-http-request": "npm:^0.51.1"
-    "@opentelemetry/resources": "npm:^1.24.1"
-    "@opentelemetry/sdk-trace-web": "npm:^1.24.1"
     "@rollup/plugin-commonjs": "npm:^25.0.7"
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-node-resolve": "npm:^15.2.3"

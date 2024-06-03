@@ -8,8 +8,6 @@ import { HighlightClassOptions } from '../index'
 import stringify from 'json-stringify-safe'
 import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitizer'
 import {
-	Request,
-	Response,
 	RequestResponsePair,
 	WebSocketEvent,
 	WebSocketRequest,
@@ -19,6 +17,7 @@ import {
 	matchPerformanceTimingsWithRequestResponsePair,
 	shouldNetworkRequestBeRecorded,
 } from './network-listener/utils/utils'
+import { getOtelProvider } from '../otel'
 
 // Note: This class is used by both firstload and client. When constructed in client, it will match the current
 // codebase. When constructed in firstload, it will match the codebase at the time the npm package was published.
@@ -139,6 +138,14 @@ export class FirstLoadListeners {
 				{ enablePromisePatch: this.enablePromisePatch },
 			),
 		)
+		if (this.options.enableOtelTracing) {
+			const provider = getOtelProvider()
+
+			this.listeners.push(async () => {
+				await provider.forceFlush()
+				provider.shutdown()
+			})
+		}
 		FirstLoadListeners.setupNetworkListener(this, this.options)
 	}
 
