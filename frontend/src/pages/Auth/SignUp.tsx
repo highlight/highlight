@@ -156,6 +156,7 @@ export const SignUp: React.FC = () => {
 						name={formStore.names.password}
 						label="Password"
 						type="password"
+						minLength={8}
 						autoComplete="new-password"
 					/>
 					{error && <Callout kind="error">{error}</Callout>}
