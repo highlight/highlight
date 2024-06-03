@@ -86,7 +86,12 @@ export default function EnterpriseFeatureButton({
 			</>
 		)
 	} else if (showPlanModal === 'calendly') {
-		return <CalendlyModal onClose={() => setShowPlanModal(undefined)} />
+		return (
+			<CalendlyModal
+				onClose={() => setShowPlanModal(undefined)}
+				howCanWeHelp={`I would like to use the ${name} feature.`}
+			/>
+		)
 	}
 	return action
 }

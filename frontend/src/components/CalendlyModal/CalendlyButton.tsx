@@ -115,7 +115,7 @@ export function CalendlyModal({
 						)}
 						onClick={onClose}
 					>
-						<Calendly howCanWeHelp={howCanWeHelp} />
+						<Calendly howCanWeHelp={howCanWeHelp ?? ''} />
 						<ButtonIcon
 							shape="square"
 							emphasis="low"
