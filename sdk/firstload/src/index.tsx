@@ -31,7 +31,6 @@ import { initializeWebSocketListener } from './listeners/web-socket'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
 import { setItem } from '@highlight-run/client/src/utils/storage.js'
 import { ErrorMessageType } from '@highlight-run/client/src/types/shared-types'
-import { initializeOtel } from '@highlight-run/client/src/otel.js'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -113,23 +112,23 @@ const H: HighlightPublicInterface = {
 			}
 			init_called = true
 
-			console.log(
-				'::: initializeOtel',
-				projectID,
-				sessionSecureID,
-				options,
+			// Use dynamic import to avoid bundling the opentelemetry dependencies
+			import('@highlight-run/client/src/otel').then(
+				({ initializeOtel }) => {
+					initializeOtel({
+						projectId: projectID,
+						sessionSecureId: sessionSecureID,
+						environment: options?.environment ?? 'production',
+						networkRecordingOptions:
+							typeof options?.networkRecording === 'object'
+								? options.networkRecording
+								: undefined,
+						tracingOrigins: options?.tracingOrigins,
+						serviceName:
+							options?.serviceName ?? 'highlight-browser',
+					})
+				},
 			)
-			initializeOtel({
-				projectId: projectID,
-				sessionSecureId: sessionSecureID,
-				environment: options?.environment ?? 'production',
-				networkRecordingOptions:
-					typeof options?.networkRecording === 'object'
-						? options.networkRecording
-						: undefined,
-				tracingOrigins: options?.tracingOrigins,
-				serviceName: options?.serviceName ?? 'highlight-browser',
-			})
 
 			initializeFetchListener()
 			initializeWebSocketListener()
