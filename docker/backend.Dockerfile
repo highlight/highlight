@@ -5,11 +5,23 @@ RUN apk update && apk add --no-cache build-base
 WORKDIR /highlight
 COPY ../go.work .
 COPY ../go.work.sum .
+
+COPY ../backend/go.mod ./backend/go.mod
+COPY ../backend/go.sum ./backend/go.sum
+COPY ../sdk/highlight-go/go.mod ./sdk/highlight-go/go.mod
+COPY ../sdk/highlight-go/go.sum ./sdk/highlight-go/go.sum
+COPY ../sdk/highlightinc-highlight-datasource/go.mod ./sdk/highlightinc-highlight-datasource/go.mod
+COPY ../sdk/highlightinc-highlight-datasource/go.sum ./sdk/highlightinc-highlight-datasource/go.sum
+COPY ../e2e/go/go.mod ./e2e/go/go.mod
+COPY ../e2e/go/go.sum ./e2e/go/go.sum
+
+RUN go work sync
+RUN go mod download
+
 COPY ../backend ./backend
 COPY ../sdk/highlight-go ./sdk/highlight-go
 COPY ../sdk/highlightinc-highlight-datasource ./sdk/highlightinc-highlight-datasource
 COPY ../e2e/go ./e2e/go
-RUN go work sync
 
 WORKDIR /highlight/backend
 ARG TARGETARCH

@@ -60,8 +60,13 @@ func HasUpdates(client *retryablehttp.Client) (bool, error) {
 		return false, e.New("failed to unmarshall json response from releases api")
 	}
 
-	latestVersion := strings.TrimPrefix(response.Name, "docker-")
-	currentVersion := strings.TrimPrefix(util.Config.Release, "docker-")
+	latestVersion := strings.TrimPrefix(response.Name, "docker-v")
+	currentVersion := strings.TrimPrefix(util.Config.Release, "docker-v")
+
+	log.WithContext(context.Background()).
+		WithField("latestVersion", latestVersion).
+		WithField("currentVersion", currentVersion).
+		Debug("checking highlight semvers")
 
 	if semver.Compare(currentVersion, latestVersion) > 0 {
 		log.WithContext(context.Background()).
