@@ -1,6 +1,7 @@
 package util
 
 import (
+	"flag"
 	"os"
 	"strconv"
 	"strings"
@@ -8,19 +9,50 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 )
 
+type Configuration struct {
+	Environment         string `mapstructure:"ENVIRONMENT"`
+	OnPrem              string `mapstructure:"ON_PREM"`
+	Doppler             string `mapstructure:"DOPPLER_CONFIG"`
+	InDocker            string `mapstructure:"IN_DOCKER"`
+	Version             string `mapstructure:"REACT_APP_COMMIT_SHA"`
+	FrontendUri         string `mapstructure:"REACT_APP_FRONTEND_URI"`
+	PrivateGraphUri     string `mapstructure:"REACT_APP_PRIVATE_GRAPH_URI"`
+	PublicGraphUri      string `mapstructure:"REACT_APP_PUBLIC_GRAPH_URI"`
+	LicenseKey          string `mapstructure:"LICENSE_KEY"`
+	SSL                 string `mapstructure:"SSL"`
+	ConsumerFraction    string `mapstructure:"CONSUMER_SPAN_SAMPLING_FRACTION"`
+	LandingStagingURL   string `mapstructure:"LANDING_PAGE_STAGING_URI"`
+	OTLPEndpoint        string `mapstructure:"OTLP_ENDPOINT"`
+	OTLPDogfoodEndpoint string `mapstructure:"OTLP_DOGFOOD_ENDPOINT"`
+	SendgridKey         string `mapstructure:"SENDGRID_API_KEY"`
+	StripeApiKey        string `mapstructure:"STRIPE_API_KEY"`
+	StripeWebhookSecret string `mapstructure:"STRIPE_WEBHOOK_SECRET"`
+	SlackSigningSecret  string `mapstructure:"SLACK_SIGNING_SECRET"`
+}
+
 var (
-	environment      = os.Getenv("ENVIRONMENT")
-	OnPrem           = os.Getenv("ON_PREM")
-	DopplerConfig    = os.Getenv("DOPPLER_CONFIG")
-	InDocker         = os.Getenv("IN_DOCKER")
-	InDockerGo       = os.Getenv("IN_DOCKER_GO")
-	Version          = os.Getenv("REACT_APP_COMMIT_SHA")
-	FrontendUri      = os.Getenv("REACT_APP_FRONTEND_URI")
-	PrivateGraphUri  = os.Getenv("REACT_APP_PRIVATE_GRAPH_URI")
-	PublicGraphUri   = os.Getenv("REACT_APP_PUBLIC_GRAPH_URI")
-	LicenseKey       = os.Getenv("LICENSE_KEY")
-	SSL              = os.Getenv("SSL")
-	consumerFraction = os.Getenv("CONSUMER_SPAN_SAMPLING_FRACTION")
+	Config = Configuration{
+		os.Getenv("ENVIRONMENT"),
+		os.Getenv("ON_PREM"),
+		os.Getenv("DOPPLER_CONFIG"),
+		os.Getenv("IN_DOCKER"),
+		os.Getenv("REACT_APP_COMMIT_SHA"),
+		os.Getenv("REACT_APP_FRONTEND_URI"),
+		os.Getenv("REACT_APP_PRIVATE_GRAPH_URI"),
+		os.Getenv("REACT_APP_PUBLIC_GRAPH_URI"),
+		os.Getenv("LICENSE_KEY"),
+		os.Getenv("SSL"),
+		os.Getenv("CONSUMER_SPAN_SAMPLING_FRACTION"),
+		os.Getenv("LANDING_PAGE_STAGING_URI"),
+		os.Getenv("OTLP_ENDPOINT"),
+		os.Getenv("OTLP_DOGFOOD_ENDPOINT"),
+		os.Getenv("SENDGRID_API_KEY"),
+		os.Getenv("STRIPE_API_KEY"),
+		os.Getenv("STRIPE_WEBHOOK_SECRET"),
+		os.Getenv("SLACK_SIGNING_SECRET"),
+	}
+	runtimeFlag = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
+	handlerFlag = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
 )
 
 func IsDevEnv() bool {
@@ -35,32 +67,24 @@ func IsDevOrTestEnv() bool {
 	return model.IsDevOrTestEnv()
 }
 
-func IsHubspotEnabled() bool {
-	return !IsDevOrTestEnv()
-}
-
 func IsOnPrem() bool {
-	return OnPrem == "true"
+	return Config.OnPrem == "true"
 }
 
 func IsInDocker() bool {
-	return InDocker == "true"
-}
-
-func IsBackendInDocker() bool {
-	return InDockerGo == "true"
+	return Config.InDocker == "true"
 }
 
 func IsProduction() bool {
-	return strings.HasPrefix(DopplerConfig, "prod")
+	return strings.HasPrefix(Config.Doppler, "prod")
 }
 
 func UseSSL() bool {
-	return SSL != "false"
+	return Config.SSL != "false"
 }
 
 func EnvironmentName() string {
-	envName := environment
+	envName := Config.Environment
 
 	if IsOnPrem() {
 		envName = "on-prem"
@@ -70,7 +94,7 @@ func EnvironmentName() string {
 }
 
 func ConsumerSpanSamplingRate() float64 {
-	i, err := strconv.ParseInt(consumerFraction, 10, 64)
+	i, err := strconv.ParseInt(Config.ConsumerFraction, 10, 64)
 	if err != nil {
 		i = 1_000
 	}

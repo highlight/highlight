@@ -81,7 +81,7 @@ const (
 	ScriptPlaceholder = "SCRIPT_PLACEHOLDER"
 )
 
-var ProxyURL = fmt.Sprintf("%s/cors", util.PublicGraphUri)
+var ProxyURL = fmt.Sprintf("%s/cors", util.Config.PublicGraphUri)
 
 var DisallowedTagPrefixes = []string{
 	"onchange",

@@ -78,14 +78,14 @@ func GetDefaultAttributes() ([]attribute.KeyValue, error) {
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypePhoneHome)),
 		attribute.String(highlight.ProjectIDAttribute, HighlightProjectID),
 		attribute.String(SpanDeployment, cfg.PhoneHomeDeploymentID),
-		attribute.String(SpanDopplerConfig, util.DopplerConfig),
-		attribute.String(SpanHighlightVersion, util.Version),
-		attribute.String(SpanOnPrem, util.OnPrem),
-		attribute.String(SpanLicenseKey, util.LicenseKey),
+		attribute.String(SpanDopplerConfig, util.Config.Doppler),
+		attribute.String(SpanHighlightVersion, util.Config.Version),
+		attribute.String(SpanOnPrem, util.Config.OnPrem),
+		attribute.String(SpanLicenseKey, util.Config.LicenseKey),
 		attribute.Bool(SpanSSL, util.UseSSL()),
-		attribute.String(SpanPublicGraphUri, util.PublicGraphUri),
-		attribute.String(SpanPrivateGraphUri, util.PrivateGraphUri),
-		attribute.String(SpanFrontendUri, util.FrontendUri),
+		attribute.String(SpanPublicGraphUri, util.Config.PublicGraphUri),
+		attribute.String(SpanPrivateGraphUri, util.Config.PrivateGraphUri),
+		attribute.String(SpanFrontendUri, util.Config.FrontendUri),
 	}, nil
 }
 

@@ -1330,29 +1330,29 @@ func (w *Worker) BackfillStackFrames(ctx context.Context) {
 	}
 }
 
-func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx context.Context) {
+func (w *Worker) GetHandler(ctx context.Context, handlerFlag util.Handler) func(ctx context.Context) {
 	switch handlerFlag {
-	case "report-stripe-usage":
+	case util.ReportStripeUsage:
 		return w.ReportStripeUsage
-	case "migrate-db":
+	case util.MigrateDB:
 		return w.MigrateDB
-	case "metric-monitors":
+	case util.MetricMonitors:
 		return w.StartMetricMonitorWatcher
-	case "log-alerts":
+	case util.LogAlerts:
 		return w.StartLogAlertWatcher
-	case "backfill-stack-frames":
+	case util.BackfillStackFrames:
 		return w.BackfillStackFrames
-	case "refresh-materialized-views":
+	case util.RefreshMaterializedViews:
 		return w.RefreshMaterializedViews
-	case "public-worker-main":
+	case util.PublicWorkerMain:
 		return w.GetPublicWorker(kafkaqueue.TopicTypeDefault)
-	case "public-worker-batched":
+	case util.PublicWorkerBatched:
 		return w.GetPublicWorker(kafkaqueue.TopicTypeBatched)
-	case "public-worker-datasync":
+	case util.PublicWorkerDataSync:
 		return w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)
-	case "public-worker-traces":
+	case util.PublicWorkerTraces:
 		return w.GetPublicWorker(kafkaqueue.TopicTypeTraces)
-	case "auto-resolve-stale-errors":
+	case util.AutoResolveStaleErrors:
 		return w.AutoResolveStaleErrors
 	default:
 		log.WithContext(ctx).Fatalf("unrecognized worker-handler [%s]", handlerFlag)

@@ -6,6 +6,7 @@ WORKDIR /highlight
 COPY ../go.work .
 COPY ../go.work.sum .
 COPY ../backend ./backend
+COPY ../docker ./docker
 COPY ../sdk/highlight-go ./sdk/highlight-go
 COPY ../sdk/highlightinc-highlight-datasource ./sdk/highlightinc-highlight-datasource
 COPY ../e2e/go ./e2e/go
@@ -14,7 +15,8 @@ RUN go work sync
 WORKDIR /highlight/backend
 ARG TARGETARCH
 ARG TARGETOS
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /build/backend
+ARG ENVIRONMENT_SALT
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags "-X enterprise.EnvironmentSalt=${ENVIRONMENT_SALT}" -o /build/backend
 
 # reduce the image size by keeping just the built code
 FROM golang:alpine as backend-prod
@@ -32,5 +34,6 @@ WORKDIR /build
 COPY --from=backend-build /build/backend /build
 COPY --from=backend-build /highlight/backend/localhostssl/ /build/localhostssl
 COPY --from=backend-build /highlight/backend/clickhouse/migrations/ /build/clickhouse/migrations
+COPY --from=backend-build /highlight/docker/.env.enterprise /.env
 
 CMD ["/build/backend", "-runtime=all"]
