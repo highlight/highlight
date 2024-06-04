@@ -360,7 +360,7 @@ jobs:
                   fi
 
             - name: Dump setup logs on failure
-              if: ${{ failure() || cancelled() }}
+              if: failure()
               run: cat /tmp/highlight.log
 
             - name: Dump docker container logs on failure
