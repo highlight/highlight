@@ -94,6 +94,8 @@ type QueryKey struct {
 	Type string
 }
 
+type QueryKeyValue string
+
 type KeyType string
 
 const (
@@ -101,8 +103,29 @@ const (
 	KeyTypeNumeric KeyType = "Numeric"
 )
 
+func getValidKeyQueries() map[string]bool {
+	return map[string]bool{
+		"traces-keys":   true,
+		"logs-keys":     true,
+		"errors-keys":   true,
+		"sessions-keys": true,
+	}
+}
+
+func getValidKeyValueQueries() map[string]bool {
+	return map[string]bool{
+		"traces-key-values":   true,
+		"logs-key-values":     true,
+		"errors-key-values":   true,
+		"sessions-key-values": true,
+	}
+}
+
 func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
-	if req.Path != "traces-keys" && req.Path != "logs-keys" && req.Path != "errors-keys" && req.Path != "sessions-keys" {
+	var validKeyQueries = getValidKeyQueries()
+	var validKeyValueQueries = getValidKeyValueQueries()
+
+	if !validKeyQueries[req.Path] && !validKeyValueQueries[req.Path] {
 		return sender.Send(&backend.CallResourceResponse{
 			Status: http.StatusNotFound,
 		})
@@ -120,9 +143,7 @@ func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResource
 	}
 
 	queryParams := u.Query()
-
 	query := queryParams.Get("query")
-	keyType := KeyType(queryParams.Get("type"))
 
 	vars := map[string]interface{}{
 		"project_id": ID(strconv.Itoa(dataSourceSettings.ProjectId)),
@@ -130,8 +151,14 @@ func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResource
 			StartDate: time.Now().AddDate(0, -1, 0),
 			EndDate:   time.Now(),
 		},
-		"query": &query,
-		"type":  &keyType,
+	}
+
+	if validKeyQueries[req.Path] {
+		keyType := KeyType(queryParams.Get("type"))
+		vars["type"] = &keyType
+		vars["query"] = &query
+	} else if validKeyValueQueries[req.Path] {
+		vars["query"] = query
 	}
 
 	var body []byte
@@ -193,6 +220,66 @@ func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResource
 		}
 
 		body, err = json.Marshal(q.SessionsKeys)
+		if err != nil {
+			return err
+		}
+
+	case "traces-key-values":
+		var q struct {
+			TracesKeyValues []QueryKeyValue `graphql:"traces_key_values(project_id: $project_id, date_range: $date_range, key_name: $query)"`
+		}
+
+		err = d.Client.Query(ctx, &q, vars)
+		if err != nil {
+			return err
+		}
+
+		body, err = json.Marshal(q.TracesKeyValues)
+		if err != nil {
+			return err
+		}
+
+	case "logs-key-values":
+		var q struct {
+			LogsKeyValues []QueryKeyValue `graphql:"logs_key_values(project_id: $project_id, date_range: $date_range, key_name: $query)"`
+		}
+
+		err = d.Client.Query(ctx, &q, vars)
+		if err != nil {
+			return err
+		}
+
+		body, err = json.Marshal(q.LogsKeyValues)
+		if err != nil {
+			return err
+		}
+
+	case "errors-key-values":
+		var q struct {
+			ErrorsKeyValues []QueryKeyValue `graphql:"errors_key_values(project_id: $project_id, date_range: $date_range, key_name: $query)"`
+		}
+
+		err = d.Client.Query(ctx, &q, vars)
+		if err != nil {
+			return err
+		}
+
+		body, err = json.Marshal(q.ErrorsKeyValues)
+		if err != nil {
+			return err
+		}
+
+	case "sessions-key-values":
+		var q struct {
+			SessionsKeyValues []QueryKeyValue `graphql:"sessions_key_values(project_id: $project_id, date_range: $date_range, key_name: $query)"`
+		}
+
+		err = d.Client.Query(ctx, &q, vars)
+		if err != nil {
+			return err
+		}
+
+		body, err = json.Marshal(q.SessionsKeyValues)
 		if err != nil {
 			return err
 		}
