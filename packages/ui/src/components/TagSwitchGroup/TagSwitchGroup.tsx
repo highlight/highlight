@@ -58,7 +58,6 @@ export const TagSwitchGroup: React.FC<Props> = ({
 								key={index}
 								name={name}
 								value={option}
-								type="button"
 								render={
 									<Tag
 										key={option}
@@ -76,6 +75,7 @@ export const TagSwitchGroup: React.FC<Props> = ({
 											textAlign: 'center',
 										}}
 										data-testid="radio-option"
+										type="button"
 									>
 										{option}
 									</Tag>
