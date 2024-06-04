@@ -12,3 +12,8 @@ export const moreOptionsTag = style({
 export const switchGroup = style({
 	width: '100%',
 })
+
+export const modalBody = style({
+	minWidth: '324px',
+	maxWidth: '500px',
+})

@@ -307,7 +307,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			}
 			onClose={onClose}
 		>
-			<Box style={{ minWidth: 324, maxWidth: 500 }}>
+			<Box cssClass={style.modalBody}>
 				{/* ClickUp doesn't support searching issues, so we don't need to show this section. */}
 				{selectedIntegration.name !== 'ClickUp' && (
 					<Box

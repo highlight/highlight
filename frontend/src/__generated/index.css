@@ -6991,6 +6991,10 @@ body {
 ._18a6pep2 {
   width: 100%;
 }
+._18a6pep3 {
+  min-width: 324px;
+  max-width: 500px;
+}
 ._1tn5c580 {
   color: var(--_1pyqka9y);
 }
