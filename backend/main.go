@@ -437,7 +437,6 @@ func main() {
 		})
 		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(ctx, slackSigningSecret))
 		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "microsoft-teams/bot"), privateResolver.MicrosoftTeamsBotEndpoint)
-		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "login"), privateResolver.Login)
 
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(cors.New(PRIVATE_GRAPH_CORS_OPTIONS).Handler)
@@ -450,6 +449,7 @@ func main() {
 			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
 
 			r.Get("/validate-token", privateResolver.ValidateAuthToken)
+			r.Post("/login", privateResolver.Login)
 
 			privateServer := ghandler.New(privategen.NewExecutableSchema(
 				privategen.Config{
