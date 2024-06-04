@@ -183,9 +183,7 @@ func TestReadSessionLogs(t *testing.T) {
 	assert.Equal(t, edges[0].Node.Message, "Body")
 	assert.Equal(t, edges[0].Node.Level, modelInputs.LogLevelInfo)
 
-	// assert we aren't loading log attributes which is a large column
-	// see: https://github.com/ClickHouse/ClickHouse/issues/7187
-	assert.Empty(t, edges[0].Node.LogAttributes)
+	assert.Equal(t, edges[0].Node.LogAttributes["service"], "foo")
 }
 
 func TestReadLogsTotalCount(t *testing.T) {

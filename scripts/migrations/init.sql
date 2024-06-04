@@ -110,3 +110,7 @@ INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operat
 VALUES (now(), 'abc123', 'logs');
 INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
 VALUES (now(), 'abc123', 'traces');
+INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
+VALUES (now(), 'abc123', 'metrics');
+INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
+VALUES (now(), 'abc123', 'traces_metrics');
