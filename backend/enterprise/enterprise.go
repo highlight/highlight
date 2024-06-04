@@ -6,11 +6,14 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/highlight-run/highlight/backend/projectpath"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/mitchellh/mapstructure"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,6 +21,7 @@ import (
 )
 
 const UpdateInterval = time.Minute
+const UpdateErrorsAbort = 10
 
 var EarliestAllowedEnvironment = time.Now().AddDate(-1, 0, 0)
 
@@ -30,12 +34,46 @@ func Start(ctx context.Context) {
 		log.WithContext(ctx).Infof("welcome %s", env.LicenseKey)
 	}
 
-	go CheckForUpdates(context.Background())
+	go CheckForUpdatesLoop(context.Background())
 }
 
-func CheckForUpdates(ctx context.Context) {
+func CheckForUpdates(client *retryablehttp.Client) error {
+	resp, err := client.Get("https://api.github.com/repos/highlight/highlight/releases/latest")
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return e.New("bad status code from releases api")
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	var response struct {
+		Name string `json:"name"`
+	}
+	if err := json.Unmarshal(data, &response); err != nil {
+		return e.New("failed to unmarshall json response from releases api")
+	}
+
+	return nil
+}
+
+func CheckForUpdatesLoop(ctx context.Context) {
+	client := retryablehttp.NewClient()
+	var errors int
 	for range time.Tick(UpdateInterval) {
-		// TODO(vkorolik) check for updates
+		if errors > UpdateErrorsAbort {
+			log.WithContext(ctx).Warn("shutting down enterprise upgrade checker")
+			return
+		}
+		if err := CheckForUpdates(client); err != nil {
+			log.WithContext(ctx).WithError(err).Warn("failed to check for upgrades")
+			errors++
+		}
 	}
 }
 

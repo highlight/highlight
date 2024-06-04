@@ -51,9 +51,10 @@ jobs:
             - name: Build and push docker container.
               shell: bash
               working-directory: ./docker
-              with:
+              env:
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
                   TARGET: ${{ matrix.container }}
+                  RELEASE: ${{ github.ref }}
               run: |
                   IMAGE_TAG=$(echo ${{ github.ref_name }} | sed 's/\//-/g')
 
@@ -66,4 +67,4 @@ jobs:
                   export PLATFORM="--platform linux/arm64,linux/amd64"
 
                   # build docker image with common environment
-                  ./build-docker.sh
+                  ./build.sh

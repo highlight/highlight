@@ -20,6 +20,8 @@ RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /build/backend
 FROM golang:alpine as backend-prod
 ARG REACT_APP_COMMIT_SHA
 ENV REACT_APP_COMMIT_SHA=$REACT_APP_COMMIT_SHA
+ARG RELEASE
+ENV RELEASE=$RELEASE
 LABEL org.opencontainers.image.source=https://github.com/highlight/highlight
 LABEL org.opencontainers.image.description="highlight.io Production Backend Image"
 LABEL org.opencontainers.image.licenses="Apache 2.0"

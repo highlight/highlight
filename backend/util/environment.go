@@ -14,6 +14,7 @@ type Configuration struct {
 	OnPrem              string `mapstructure:"ON_PREM"`
 	Doppler             string `mapstructure:"DOPPLER_CONFIG"`
 	InDocker            string `mapstructure:"IN_DOCKER"`
+	Release             string `mapstructure:"RELEASE"`
 	Version             string `mapstructure:"REACT_APP_COMMIT_SHA"`
 	FrontendUri         string `mapstructure:"REACT_APP_FRONTEND_URI"`
 	PrivateGraphUri     string `mapstructure:"REACT_APP_PRIVATE_GRAPH_URI"`
@@ -36,6 +37,7 @@ var (
 		os.Getenv("ON_PREM"),
 		os.Getenv("DOPPLER_CONFIG"),
 		os.Getenv("IN_DOCKER"),
+		os.Getenv("RELEASE"),
 		os.Getenv("REACT_APP_COMMIT_SHA"),
 		os.Getenv("REACT_APP_FRONTEND_URI"),
 		os.Getenv("REACT_APP_PRIVATE_GRAPH_URI"),

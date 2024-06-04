@@ -225,7 +225,7 @@ func main() {
 
 	// setup highlight logrus hook
 	hlog.Init()
-	log.WithContext(ctx).WithField("hello", "world").Info("welcome to highlight.io")
+	log.WithContext(ctx).WithField("release", util.Config.Release).WithField("commit", util.Config.Version).Info("welcome to highlight.io")
 	if err := phonehome.Start(ctx); err != nil {
 		log.WithContext(ctx).Warn("Failed to start highlight phone-home service.")
 	}
