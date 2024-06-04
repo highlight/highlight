@@ -296,10 +296,8 @@ const enhanceSpanWithHttpResponseAttributes = (
 function setObjectAttributes(span: Span, body: any, prefix: string) {
 	for (const key in body) {
 		if (typeof body[key] === 'object' && body[key] !== null) {
-			// If the property is an object, recursively set attributes
 			setObjectAttributes(span, body[key], `${prefix}.${key}`)
 		} else {
-			// If the property is not an object, set the attribute
 			span.setAttribute(`${prefix}.${key}`, JSON.stringify(body[key]))
 		}
 	}
