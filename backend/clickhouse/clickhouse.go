@@ -80,7 +80,10 @@ func RunMigrations(ctx context.Context, dbName string) {
 	)
 
 	if err != nil {
-		log.WithContext(ctx).Fatalf("Error creating clickhouse db instance for migrations: %v", err)
+		log.WithContext(ctx).
+			WithField("dbName", dbName).
+			WithField("migrationsPath", migrationsPath).
+			Fatalf("Error creating clickhouse db instance for migrations: %v", err)
 	}
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {

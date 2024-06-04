@@ -50,25 +50,20 @@ jobs:
 
             - name: Build and push docker container.
               shell: bash
+              working-directory: ./docker
+              with:
+                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+                  TARGET: ${{ matrix.container }}
               run: |
-                  ANNOTATIONS="annotation-index.org.opencontainers.image.description=highlight.io production ${{ matrix.container }} image"
-                  ANNOTATIONS="$ANNOTATIONS,annotation-index.org.opencontainers.image.source=https://github.com/highlight/highlight"
-                  ANNOTATIONS="$ANNOTATIONS,annotation-index.org.opencontainers.image.licenses=Apache 2.0"
                   IMAGE_TAG=$(echo ${{ github.ref_name }} | sed 's/\//-/g')
 
-                  push="--push -t ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG"
+                  PUSH="--push -t ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG"
                   if [[ ${{ github.event_name }} == 'release' ]]; then
-                    push="${push} -t ghcr.io/highlight/$IMAGE_NAME:latest"
+                    PUSH="${PUSH} -t ghcr.io/highlight/$IMAGE_NAME:latest"
                   fi
 
+                  export PUSH
+                  export PLATFORM="--platform linux/arm64,linux/amd64"
+
                   # build docker image with common environment
-                  pushd docker
-                  source env.sh --go-docker
-                  popd
-                  docker buildx build $BUILD_ARGS \
-                    --build-arg REACT_APP_COMMIT_SHA=${{ github.sha }} \
-                    $push \
-                    --platform linux/arm64,linux/amd64 \
-                    -f docker/${{ matrix.container }}.Dockerfile \
-                    --target ${{ matrix.container }}-prod \
-                    --output "type=image,name=target,$ANNOTATIONS" .
+                  ./build-docker.sh

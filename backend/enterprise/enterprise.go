@@ -6,11 +6,13 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/hex"
+	"github.com/highlight-run/highlight/backend/projectpath"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/mitchellh/mapstructure"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -19,12 +21,8 @@ const UpdateInterval = time.Minute
 
 var EarliestAllowedEnvironment = time.Now().AddDate(-1, 0, 0)
 
-// TODO(vkorolik)
-// const EnvironmentFile = "/.env"
-const EnvironmentFile = "/home/vkorolik/work/highlight/docker/env.enc"
-
 func Start(ctx context.Context) {
-	env, err := GetEnvironment()
+	env, err := GetEnvironment(GetEncryptedEnvironmentFilePath())
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Info("enterprise service not configured")
 		return
@@ -41,19 +39,24 @@ func CheckForUpdates(ctx context.Context) {
 	}
 }
 
-func GetEnvironment() (*util.Configuration, error) {
+func GetEncryptedEnvironmentFilePath() string {
+	root := projectpath.GetRoot()
+	return filepath.Join(root, "env.enc")
+}
+
+func GetEnvironment(file string) (*util.Configuration, error) {
 	if util.Config.LicenseKey == "" {
 		return nil, e.New("no license key set")
 	}
 
 	key := sha256.Sum256([]byte(util.Config.LicenseKey))
 
-	_, err := os.Stat(EnvironmentFile)
+	_, err := os.Stat(file)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := os.ReadFile(EnvironmentFile)
+	data, err := os.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}

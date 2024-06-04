@@ -10,7 +10,10 @@ fi
 
 ./start-infra.sh --go-docker --hobby
 
-docker compose -f compose.hobby.yml pull
+if [[ "$*" != *"--no-pull"* ]]; then
+  docker compose -f compose.hobby.yml pull
+fi
+
 if ! docker compose -f compose.hobby.yml up --detach backend frontend >>/tmp/highlightSetup.log 2>&1; then
   echo 'Failed to start highlight infrastructure.'
   cat /tmp/highlightSetup.log
