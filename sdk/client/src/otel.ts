@@ -25,6 +25,7 @@ import {
 import type { NetworkRecordingOptions } from './types/client'
 import { sanitizeHeaders } from './listeners/network-listener/utils/network-sanitizer'
 import { shouldNetworkRequestBeTraced } from './listeners/network-listener/utils/utils'
+import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 
 export type OtelConfig = {
 	projectId: string | number
@@ -74,9 +75,9 @@ export const initializeOtel = (config: OtelConfig) => {
 	const exporter = new OTLPTraceExporter({
 		url: endpoint + '/v1/traces',
 		concurrencyLimit: 3,
-		// TODO: Was getting an error importing CompressionAlgorithm from
-		// @opentelemetry/otlp-exporter-base, so leaving out for now.
-		// compression: CompressionAlgorithm.GZIP,
+		// Using any because we were getting an error importing CompressionAlgorithm
+		// from @opentelemetry/otlp-exporter-base.
+		compression: 'gzip' as any,
 	})
 
 	const spanProcessor = new CustomSpanProcessor(exporter, {
