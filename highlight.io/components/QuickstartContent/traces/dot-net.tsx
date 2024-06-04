@@ -44,7 +44,6 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Serilog.Context;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.OpenTelemetry;
@@ -95,8 +94,8 @@ public class HighlightLogEnricher : ILogEventEnricher
 
 public class HighlightConfig
 {
-    // Replace with the highlight endpoint. For highlight.io cloud, use https://otel.highlight.io:4318
-    public static readonly String OtlpEndpoint = "http://localhost:4318";
+    // Replace with the highlight endpoint.
+    private static readonly String OtlpEndpoint = "https://otel.highlight.io:4318";
 
     // Replace with your project ID and service name.
     public static readonly String ProjectId = "<YOUR_PROJECT_ID>";
@@ -121,6 +120,7 @@ public class HighlightConfig
         var ctx = new Dictionary<string, string>
         {
             { "highlight.project_id", ProjectId },
+            { "service.name", ServiceName },
         };
 
         var headerValue = Baggage.GetBaggage(HighlightHeader);
@@ -134,20 +134,49 @@ public class HighlightConfig
         return ctx;
     }
 
-    public static void EnrichWithHttpRequest(Activity activity, HttpRequest httpRequest)
+    private static void EnrichWithHttpRequest(Activity activity, HttpRequest httpRequest)
     {
+        activity.SetTag("http.client_ip", httpRequest.HttpContext.Connection.RemoteIpAddress?.ToString());
+        activity.SetTag("http.flavor", httpRequest.HttpContext.Request.Protocol);
+        activity.SetTag("http.host", httpRequest.Host);
+        activity.SetTag("http.method", httpRequest.Method);
+        activity.SetTag("http.request_content_length", httpRequest.ContentLength);
+        activity.SetTag("http.route", httpRequest.RouteValues["action"]);
+        activity.SetTag("http.scheme", httpRequest.Scheme);
+        activity.SetTag("http.server_name", httpRequest.HttpContext.Request.Host.Host);
+        activity.SetTag("http.url", httpRequest.Path);
+        activity.SetTag("http.user_agent", httpRequest.Headers["User-Agent"]);
+        
+        for (var i = 0; i < httpRequest.Headers.Count; i++)
+        {
+            var header = httpRequest.Headers.ElementAt(i);
+            activity.SetTag($"http.request.header.{header.Key}", header.Value);
+        }
+        
         var headerValues = httpRequest.Headers[HighlightHeader];
         if (headerValues.Count < 1) return;
         var headerValue = headerValues[0];
         if (headerValue == null) return;
         var parts = headerValue.Split("/");
-        if (parts?.Length < 2) return;
+        if (parts.Length < 2) return;
         activity.SetTag("highlight.session_id", parts?[0]);
         activity.SetTag("highlight.trace_id", parts?[1]);
         Baggage.SetBaggage(new KeyValuePair<string, string>[]
         {
             new(HighlightHeader, headerValue)
         });
+    }
+
+    private static void EnrichWithHttpResponse(Activity activity, HttpResponse httpResponse)
+    {
+        activity.SetTag("http.status_code", httpResponse.StatusCode);
+        activity.SetTag("http.response_content_length", httpResponse.ContentLength);
+        
+        for (var i = 0; i < httpResponse.Headers.Count; i++)
+        {
+            var header = httpResponse.Headers.ElementAt(i);
+            activity.SetTag($"http.response.header.{header.Key}", header.Value);
+        }
     }
 
     public static void Configure(WebApplicationBuilder builder)
@@ -173,6 +202,7 @@ public class HighlightConfig
                 {
                     options.RecordException = true;
                     options.EnrichWithHttpRequest = EnrichWithHttpRequest;
+                    options.EnrichWithHttpResponse = EnrichWithHttpResponse;
                 })
                 .AddOtlpExporter(options =>
                 {
@@ -196,7 +226,7 @@ public class HighlightConfig
 		{
 			title: 'Bootstrap Highlight with your ASP application object.',
 			content:
-				'Copy the following code into a `HighlightConfig.cs` file in your project.',
+				'Update your `Program.cs` application entrypoint to initialize highlight.',
 			code: [
 				{
 					text: `using System.Diagnostics;
