@@ -12,6 +12,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/mitchellh/mapstructure"
 	e "github.com/pkg/errors"
+	"github.com/rogpeppe/go-internal/semver"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
@@ -37,29 +38,40 @@ func Start(ctx context.Context) {
 	go CheckForUpdatesLoop(context.Background())
 }
 
-func CheckForUpdates(client *retryablehttp.Client) error {
+func HasUpdates(client *retryablehttp.Client) (bool, error) {
 	resp, err := client.Get("https://api.github.com/repos/highlight/highlight/releases/latest")
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if resp.StatusCode != 200 {
-		return e.New("bad status code from releases api")
+		return false, e.New("bad status code from releases api")
 	}
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	var response struct {
 		Name string `json:"name"`
 	}
 	if err := json.Unmarshal(data, &response); err != nil {
-		return e.New("failed to unmarshall json response from releases api")
+		return false, e.New("failed to unmarshall json response from releases api")
 	}
 
-	return nil
+	latestVersion := strings.TrimPrefix(response.Name, "docker-")
+	currentVersion := strings.TrimPrefix(util.Config.Release, "docker-")
+
+	if semver.Compare(currentVersion, latestVersion) > 0 {
+		log.WithContext(context.Background()).
+			WithField("latestVersion", latestVersion).
+			WithField("currentVersion", currentVersion).
+			Info("current highlight version is out of date")
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func CheckForUpdatesLoop(ctx context.Context) {
@@ -70,7 +82,8 @@ func CheckForUpdatesLoop(ctx context.Context) {
 			log.WithContext(ctx).Warn("shutting down enterprise upgrade checker")
 			return
 		}
-		if err := CheckForUpdates(client); err != nil {
+		// in the future, we should trigger an automated update if one exists
+		if _, err := HasUpdates(client); err != nil {
 			log.WithContext(ctx).WithError(err).Warn("failed to check for upgrades")
 			errors++
 		}
