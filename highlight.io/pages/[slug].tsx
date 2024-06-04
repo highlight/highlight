@@ -156,7 +156,7 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 								</PrimaryButton>
 							</div>
 							<div className="-ml-3 justify-self-start">
-								<CalendlyModal />
+								<CalendlyModal className="px-3 hover:bg-white/10" />
 							</div>
 						</div>
 					</div>
