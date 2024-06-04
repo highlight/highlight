@@ -21,6 +21,8 @@ services:
         container_name: kafka
         volumes:
             - kafka-data:/var/lib/kafka/data
+        ports:
+            - '0.0.0.0:9092:9092'
         restart: on-failure
         depends_on:
             - zookeeper
@@ -46,6 +48,8 @@ services:
         restart: on-failure
         volumes:
             - redis-data:/data
+        ports:
+            - '0.0.0.0:6379:6379'
         command:
             - redis-server
             - --save 60 1
@@ -57,6 +61,8 @@ services:
         # a postgres image with pgvector installed
         image: ankane/pgvector
         restart: on-failure
+        ports:
+            - '0.0.0.0:5432:5432'
         environment:
             POSTGRES_HOST_AUTH_METHOD: trust
         volumes:
@@ -73,6 +79,9 @@ services:
         container_name: clickhouse
         image: clickhouse/clickhouse-server
         restart: on-failure
+        ports:
+            - '0.0.0.0:8123:8123'
+            - '0.0.0.0:9000:9000'
         volumes:
             - ./config.xml:/etc/clickhouse-server/config.d/highlight.xml
             - ./users.xml:/etc/clickhouse-server/users.d/highlight.xml
