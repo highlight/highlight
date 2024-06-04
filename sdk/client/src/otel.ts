@@ -177,12 +177,9 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<CustomSpanProcessorConf
 	}
 
 	onEnd(span: ReadableSpan): void {
-		const isRequestSpan = span.attributes['http.method'] !== undefined
-
-		if (isRequestSpan) {
-			const url = span.attributes['http.url']?.toString() ?? ''
+		if (typeof span.attributes['http.url'] === 'string') {
 			const shouldRecordNetworkRequest = shouldNetworkRequestBeTraced(
-				url,
+				span.attributes['http.url'],
 				this.tracingOrigins,
 			)
 
