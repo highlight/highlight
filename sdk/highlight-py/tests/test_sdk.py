@@ -98,16 +98,18 @@ def test_test_decorator(mock_trace):
     assert mock_trace.call_args_list[0].args[1:] == ("highlight.log",)
 
 
-@pytest.mark.parametrize('debug', [False, True])
-@pytest.mark.parametrize('disable_export_error_logging', [False, True])
+@pytest.mark.parametrize("debug", [False, True])
+@pytest.mark.parametrize("disable_export_error_logging", [False, True])
 def test_no_errors(mock_trace, debug, disable_export_error_logging):
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
-    h = highlight_io.H("1",
-                       debug=debug,
-                       disable_export_error_logging=disable_export_error_logging,
-                       otlp_endpoint='http://foo:4318')
+    h = highlight_io.H(
+        "1",
+        debug=debug,
+        disable_export_error_logging=disable_export_error_logging,
+        otlp_endpoint="http://foo:4318",
+    )
     logger.info(f"hey there!")
     h.flush()
 
-    time.sleep(1)
+    assert mock_trace.call_args_list[0].args[1:] == ("highlight.log",)
