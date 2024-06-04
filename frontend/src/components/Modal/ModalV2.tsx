@@ -99,7 +99,7 @@ export const Modal: React.FC<
 							<ButtonIcon
 								kind="secondary"
 								emphasis="none"
-								size="xSmall"
+								size="minimal"
 								onClick={onClose}
 								icon={
 									<IconSolidX
