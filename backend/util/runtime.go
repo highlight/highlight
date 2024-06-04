@@ -1,6 +1,7 @@
 package util
 
 import (
+	"context"
 	"flag"
 	log "github.com/sirupsen/logrus"
 )
@@ -49,11 +50,11 @@ func (lt Handler) IsValid() bool {
 func GetRuntime() (Runtime, *Handler) {
 	flag.Parse()
 	if runtimeFlag == nil {
-		log.Fatal("runtime is nil, provide a value")
+		log.WithContext(context.TODO()).Fatal("runtime is nil, provide a value")
 	}
 	runtime := Runtime(*runtimeFlag)
 	if !runtime.IsValid() {
-		log.Fatalf("invalid runtime: %v", *runtimeFlag)
+		log.WithContext(context.TODO()).Fatalf("invalid runtime: %v", *runtimeFlag)
 	}
 	if handlerFlag != nil {
 		h := Handler(*handlerFlag)
