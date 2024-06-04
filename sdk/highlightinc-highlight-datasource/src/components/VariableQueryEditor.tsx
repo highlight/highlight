@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SelectableValue } from '@grafana/data';
-import { Select } from '@grafana/ui';
+import { InlineField, InlineFieldRow, Input, Select } from '@grafana/ui';
 
 import { tableOptions } from '../datasource';
 import { HighlightVariableQuery, Table } from '../types';
@@ -29,14 +29,28 @@ export const VariableQueryEditor = ({ onChange, query }: VariableQueryProps) => 
 
   return (
     <>
-      <div className="gf-form">
-        <span className="gf-form-label width-10">Table</span>
-        <Select value={table} onChange={handleTableChange} options={tableOptions} />
-      </div>
-      <div className="gf-form">
-        <span className="gf-form-label width-10">Key</span>
-        <input name="key" className="gf-form-input" onChange={handleKeyChange} onBlur={handleKeyBlur} value={keyText} />
-      </div>
+      <InlineFieldRow>
+        <InlineField label="Table" labelWidth={10}>
+          <Select
+            value={table}
+            onChange={handleTableChange}
+            options={tableOptions}
+            placeholder="Select table"
+            width={40}
+          />
+        </InlineField>
+      </InlineFieldRow>
+      <InlineFieldRow>
+        <InlineField label="Key" labelWidth={10}>
+          <Input
+            value={keyText}
+            onChange={handleKeyChange}
+            onBlur={handleKeyBlur}
+            placeholder="Enter key from table"
+            width={40}
+          />
+        </InlineField>
+      </InlineFieldRow>
     </>
   );
 };
