@@ -10,7 +10,7 @@ import {
 	shouldNetworkRequestBeTraced,
 } from './utils'
 
-interface BrowserXHR extends XMLHttpRequest {
+export interface BrowserXHR extends XMLHttpRequest {
 	_method: string
 	_url: string
 	_requestHeaders: Headers

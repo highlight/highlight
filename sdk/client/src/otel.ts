@@ -18,7 +18,10 @@ import {
 } from '@opentelemetry/semantic-conventions'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
 import { Context, Span } from '@opentelemetry/api'
-import { getBodyThatShouldBeRecorded } from './listeners/network-listener/utils/xhr-listener'
+import {
+	BrowserXHR,
+	getBodyThatShouldBeRecorded,
+} from './listeners/network-listener/utils/xhr-listener'
 import type { NetworkRecordingOptions } from './types/client'
 import { sanitizeHeaders } from './listeners/network-listener/utils/network-sanitizer'
 import { shouldNetworkRequestBeTraced } from './listeners/network-listener/utils/utils'
@@ -92,66 +95,61 @@ export const initializeOtel = (config: OtelConfig) => {
 			// Try to capture GraphQL data in requests
 			new FetchInstrumentation({
 				applyCustomAttributesOnSpan: (span, request, response) => {
-					const url = new URL((response as Response).url)
-					let spanName =
-						(request.method ? `${request.method} - ` : '') +
-						url.pathname
-
-					try {
-						const body = JSON.parse(String(request.body))
-						if (body.operationName) {
-							spanName = body.operationName
-						}
-					} catch {
-						// Ignore
+					if (!(response instanceof Response)) {
+						span.setAttributes({
+							'http.response.error': response.message,
+							'http.response.status': response.status,
+						})
+						return
 					}
 
-					span.updateName(spanName)
+					span.updateName(
+						getSpanName(
+							response.url,
+							request.method ?? 'GET',
+							response.body,
+						),
+					)
 
 					enhanceSpanWithHttpRequestAttributes(
 						span,
-						request,
+						request.body,
+						request.headers,
 						config.networkRecordingOptions,
 					)
 					enhanceSpanWithHttpResponseAttributes(
 						span,
-						response as Response,
+						response.body,
+						response.headers,
 						config.networkRecordingOptions,
 					)
 				},
 			}),
-			// TODO: Add similar instrumentation for XHR requests
 			new XMLHttpRequestInstrumentation({
 				applyCustomAttributesOnSpan: (
 					span: Span,
 					xhr: XMLHttpRequest,
 				) => {
-					const url = new URL(xhr.responseURL)
-					// TODO: See if we have types for our overrides
-					const method = (xhr as any)._method
-					let spanName = (method ? `${method} - ` : '') + url.pathname
-
-					// try {
-					// 	const body = JSON.parse(xhr.body)
-					// 	if (body.operationName) {
-					// 		spanName = body.operationName
-					// 	}
-					// } catch {
-					// 	// Ignore
-					// }
-
+					const browserXhr = xhr as BrowserXHR
+					const spanName = getSpanName(
+						browserXhr._url,
+						browserXhr._method,
+						xhr.responseText,
+					)
 					span.updateName(spanName)
 
-					// enhanceSpanWithHttpRequestAttributes(
-					// 	span,
-					// 	xhr,
-					// 	config.networkRecordingOptions,
-					// )
-					// enhanceSpanWithHttpResponseAttributes(
-					// 	span,
-					// 	response as Response,
-					// 	config.networkRecordingOptions,
-					// )
+					enhanceSpanWithHttpRequestAttributes(
+						span,
+						xhr.response,
+						browserXhr._requestHeaders as Headers,
+						config.networkRecordingOptions,
+					)
+					enhanceSpanWithHttpResponseAttributes(
+						span,
+						xhr.response,
+						xhr.getAllResponseHeaders(),
+						config.networkRecordingOptions,
+					)
 				},
 			}),
 		],
@@ -173,7 +171,7 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<CustomSpanProcessorConf
 		this.tracingOrigins = config.tracingOrigins ?? false
 	}
 
-	onStart(_span: Span, _parentContext: Context): void {
+	onStart(): void {
 		// Do nothing. Types required us to implement this method.
 	}
 
@@ -206,30 +204,95 @@ export const getOtelProvider = (): WebTracerProvider => {
 	return provider
 }
 
+const getSpanName = (
+	url: string,
+	method: string,
+	body: Request['body'] | Response['body'] | XMLHttpRequest['responseText'],
+) => {
+	let parsedBody
+	let spanName = `${method} - ${new URL(url).pathname}`
+
+	try {
+		parsedBody = typeof body === 'string' ? JSON.parse(body) : body
+		if (parsedBody && parsedBody.operationName) {
+			spanName = parsedBody.operationName
+		}
+	} catch {
+		// Ignore
+	}
+
+	return spanName
+}
+
 const enhanceSpanWithHttpRequestAttributes = (
 	span: Span,
-	request: Request | RequestInit,
+	body:
+		| Request['body']
+		| XMLHttpRequest['responseText']
+		| RequestInit['body'],
+	headers:
+		| Headers
+		| string
+		| Request['headers']
+		| RequestInit['headers']
+		| ReturnType<XMLHttpRequest['getAllResponseHeaders']>,
 	networkRecordingOptions?: NetworkRecordingOptions,
 ) => {
-	if (request.body) {
+	let parsedBody
+	let parsedHeaders
+
+	try {
+		parsedBody = body ? JSON.parse(String(body)) : undefined
+		parsedHeaders =
+			typeof headers === 'string' ? headers : new Headers(headers)
+	} catch {
+		// Ignore
+	}
+
+	if (parsedBody) {
 		try {
-			setObjectAttributes(
-				span,
-				JSON.parse(String(request.body)),
-				'http.request.body',
-			)
+			setObjectAttributes(span, parsedBody, 'http.request.body')
 		} catch {
 			// Ignore
 		}
 	}
 
-	const headers = sanitizeHeaders(
+	const sanitizedHeaders = sanitizeHeaders(
 		networkRecordingOptions?.networkHeadersToRedact ?? [''],
-		request.headers,
+		parsedHeaders as Headers,
 		networkRecordingOptions?.headerKeysToRecord,
 	)
 
-	span.setAttribute('http.request.headers', JSON.stringify(headers))
+	span.setAttribute('http.request.headers', JSON.stringify(sanitizedHeaders))
+}
+
+const enhanceSpanWithHttpResponseAttributes = (
+	span: Span,
+	body: Request['body'] | Response['body'] | XMLHttpRequest['responseText'],
+	headers: Headers | string,
+	networkRecordingOptions?: NetworkRecordingOptions,
+) => {
+	let parsedBody
+	let parsedHeaders
+
+	try {
+		parsedBody = typeof body === 'string' ? JSON.parse(body) : body
+		parsedHeaders =
+			typeof headers === 'string' ? headers : new Headers(headers)
+	} catch {
+		// Ignore
+	}
+
+	const recordedBody = getBodyThatShouldBeRecorded(
+		parsedBody,
+		networkRecordingOptions?.networkBodyKeysToRedact,
+		networkRecordingOptions?.bodyKeysToRecord,
+		parsedHeaders as Headers,
+	)
+
+	span.setAttributes({
+		'http.response.body': recordedBody,
+	})
 }
 
 function setObjectAttributes(span: Span, body: any, prefix: string) {
@@ -242,25 +305,4 @@ function setObjectAttributes(span: Span, body: any, prefix: string) {
 			span.setAttribute(`${prefix}.${key}`, JSON.stringify(body[key]))
 		}
 	}
-}
-
-const enhanceSpanWithHttpResponseAttributes = (
-	span: Span,
-	response: Response,
-	networkRecordingOptions?: NetworkRecordingOptions,
-) => {
-	if (response === undefined) {
-		return
-	}
-
-	const body = getBodyThatShouldBeRecorded(
-		response.body,
-		networkRecordingOptions?.networkBodyKeysToRedact,
-		networkRecordingOptions?.bodyKeysToRecord,
-		response.headers,
-	)
-
-	span.setAttributes({
-		'http.response.body': body,
-	})
 }
