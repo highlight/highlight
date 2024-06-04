@@ -58,6 +58,7 @@ export const TagSwitchGroup: React.FC<Props> = ({
 								key={index}
 								name={name}
 								value={option}
+								type="button"
 								render={
 									<Tag
 										key={option}
