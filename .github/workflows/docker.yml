@@ -54,7 +54,7 @@ jobs:
               env:
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
                   TARGET: ${{ matrix.container }}
-                  RELEASE: ${{ github.ref }}
+                  RELEASE: ${{ github.ref_name }}
               run: |
                   IMAGE_TAG=$(echo ${{ github.ref_name }} | sed 's/\//-/g')
 
