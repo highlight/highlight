@@ -167,7 +167,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
 		return (
 			<NamedSection label={label} name={name} icon={icon} tag={labelTag}>
-				<Box position="relative">
+				<Box position="relative" flex="stretch">
 					<Ariakit.FormInput
 						ref={inputRef}
 						name={name}
