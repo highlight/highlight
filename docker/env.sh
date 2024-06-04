@@ -2,6 +2,12 @@
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 
+# check for license key in env, override .env
+if [[ "$LICENSE_KEY" != "" ]]; then
+    echo "Using LICENSE_KEY from env."
+    LICENSE_KEY_OVERRIDE=$LICENSE_KEY
+fi
+
 # setup env
 $(cat .env | grep -vE '^#' | grep -E '\S+' | sed -e 's/^/export /')
 export ENABLE_OBJECT_STORAGE=true
@@ -9,6 +15,7 @@ export IN_DOCKER=true
 export OBJECT_STORAGE_FS=/tmp/highlight-data
 export REACT_APP_AUTH_MODE=password
 export BACKEND_HEALTH_URI=$(echo "$REACT_APP_PUBLIC_GRAPH_URI" | sed -e 's/\/public/\/health/')
+export LICENSE_KEY=$LICENSE_KEY_OVERRIDE
 
 # if doppler is configured, use the doppler SSL value
 DOPPLER_SSL=$(DOPPLER_CONFIG="" doppler secrets get SSL --plain || true)
