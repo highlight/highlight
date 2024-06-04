@@ -12,7 +12,6 @@ source env.sh --go-docker
 
 pushd ..
 docker buildx build $BUILD_ARGS \
-  --build-arg LICENSE_KEY=${LICENSE_KEY} \
   --build-arg REACT_APP_COMMIT_SHA=${REACT_APP_COMMIT_SHA} \
   $PUSH \
   $PLATFORM \

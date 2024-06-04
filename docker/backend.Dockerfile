@@ -34,7 +34,4 @@ COPY --from=backend-build /highlight/backend/env.enc /build
 COPY --from=backend-build /highlight/backend/localhostssl/ /build/localhostssl
 COPY --from=backend-build /highlight/backend/clickhouse/migrations/ /build/clickhouse/migrations
 
-ARG LICENSE_KEY
-ENV LICENSE_KEY=$LICENSE_KEY
-
 CMD ["/build/backend", "-runtime=all"]
