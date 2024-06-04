@@ -182,9 +182,9 @@ func TestHandler_HandleTrace(t *testing.T) {
 		},
 	} {
 		if tc.external {
-			util.DopplerConfig = "prod_aws"
+			util.Config.Doppler = "prod_aws"
 		} else {
-			util.DopplerConfig = ""
+			util.Config.Doppler = ""
 		}
 
 		inputBytes, err := os.ReadFile(file)
