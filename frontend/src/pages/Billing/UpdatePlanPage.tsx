@@ -1371,6 +1371,19 @@ export const PlanComparisonPage: React.FC<{
 	return (
 		<Box height="full" margin="auto" p="32">
 			<Stack gap="48">
+				<Box display="flex" justifyContent="space-around">
+					<Button
+						size="xSmall"
+						iconRight={<Badge label="-20%" />}
+						trackingId="billed-annual"
+						style={{ width: 140 }}
+					>
+						Billed annually
+					</Button>
+					<Button py="6" px="4" trackingId="billed-monthly">
+						Billed monthly
+					</Button>
+				</Box>
 				<Box
 					display="flex"
 					gap="12"
