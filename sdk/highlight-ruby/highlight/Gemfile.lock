@@ -12,10 +12,10 @@ GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.2)
-    google-protobuf (3.24.1-arm64-darwin)
+    google-protobuf (3.23.4-x86_64-linux)
     googleapis-common-protos-types (1.8.0)
       google-protobuf (~> 3.18)
-    grpc (1.57.0)
+    grpc (1.57.0-x86_64-linux)
       google-protobuf (~> 3.23)
       googleapis-common-protos-types (~> 1.0)
     json (2.6.3)
@@ -214,7 +214,8 @@ GEM
     rainbow (3.1.1)
     rake (12.3.3)
     regexp_parser (2.8.1)
-    rexml (3.2.6)
+    rexml (3.2.8)
+      strscan (>= 3.0.9)
     rubocop (1.55.1)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
@@ -230,10 +231,11 @@ GEM
       parser (>= 3.2.1.0)
     ruby-progressbar (1.13.0)
     ruby2_keywords (0.0.5)
+    strscan (3.1.0)
     unicode-display_width (2.4.2)
 
 PLATFORMS
-  ruby
+  x86_64-linux
 
 DEPENDENCIES
   highlight_io!
