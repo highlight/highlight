@@ -23,7 +23,6 @@ receivers:
                         # Can't use '*' with credentials because it fails CORS
                         # validation on the preflight request.
                         - 'https://*'
-                        - 'http://*'
                     allowed_headers:
                         - 'X-Highlight-Request'
                         - 'Origin'
