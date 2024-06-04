@@ -229,7 +229,9 @@ func main() {
 	if err := phonehome.Start(ctx); err != nil {
 		log.WithContext(ctx).Warn("Failed to start highlight phone-home service.")
 	}
-	enterprise.Start(ctx)
+	if err := enterprise.Start(ctx); err != nil {
+		log.WithContext(ctx).WithError(err).Fatal("Failed to start highlight enterprise license checker.")
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -398,7 +400,7 @@ func main() {
 		If type is 'public-graph', we run public-graph on /
 		If type is 'private-graph', we run private-graph on /
 	*/
-	if runtimeParsed == util.PrivateGraph || runtimeParsed == util.All {
+	if runtimeParsed.IsPrivateGraph() {
 		privateEndpoint := "/private"
 		if runtimeParsed == util.PrivateGraph {
 			privateEndpoint = "/"
@@ -470,7 +472,7 @@ func main() {
 			)
 		})
 	}
-	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
+	if runtimeParsed.IsPublicGraph() {
 		sessionCache, err := golang_lru.New[string, *model.Session](100_000)
 		if err != nil {
 			log.Fatalf("error initializing lru cache: %v", err)
@@ -541,7 +543,7 @@ func main() {
 	*/
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running....")
-	if runtimeParsed == util.Worker || runtimeParsed == util.All {
+	if runtimeParsed.IsWorker() {
 		sessionCache, err := golang_lru.New[string, *model.Session](100_000)
 		if err != nil {
 			log.Fatalf("error initializing lru cache: %v", err)

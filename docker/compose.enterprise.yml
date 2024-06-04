@@ -1,0 +1,90 @@
+# Highlight.io services for the hobby deployment.
+services:
+    backend-api:
+        extends:
+            file: compose.hobby.yml
+            service: backend
+        container_name: backend-api
+        image: ghcr.io/highlight/highlight-backend:latest
+        command:
+            - /build/backend
+            - -runtime=graph
+
+    backend-session-worker:
+        extends:
+            file: compose.hobby.yml
+            service: backend
+        container_name: backend-session-worker
+        image: ghcr.io/highlight/highlight-backend:latest
+        ports: !override []
+        command:
+            - /build/backend
+            - -runtime=worker
+
+    backend-public-worker-main:
+        extends:
+            file: compose.hobby.yml
+            service: backend
+        container_name: backend-public-worker-main
+        image: ghcr.io/highlight/highlight-backend:latest
+        ports: !override []
+        command:
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=public-worker-main
+
+    backend-public-worker-batched:
+        extends:
+            file: compose.hobby.yml
+            service: backend
+        container_name: backend-public-worker-batched
+        image: ghcr.io/highlight/highlight-backend:latest
+        ports: !override []
+        command:
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=public-worker-batched
+
+    backend-public-worker-datasync:
+        extends:
+            file: compose.hobby.yml
+            service: backend
+        container_name: backend-public-worker-datasync
+        image: ghcr.io/highlight/highlight-backend:latest
+        ports: !override []
+        command:
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=public-worker-datasync
+
+    backend-public-worker-traces:
+        extends:
+            file: compose.hobby.yml
+            service: backend
+        container_name: backend-public-worker-traces
+        image: ghcr.io/highlight/highlight-backend:latest
+        ports: !override []
+        command:
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=public-worker-traces
+
+    frontend:
+        container_name: frontend
+        image: ghcr.io/highlight/highlight-frontend:latest
+        restart: on-failure
+        volumes:
+            - ../backend/localhostssl/server.key:/etc/ssl/private/ssl-cert.key
+            - ../backend/localhostssl/server.pem:/etc/ssl/certs/ssl-cert.pem
+        ports:
+            - '0.0.0.0:3000:3000'
+            - '0.0.0.0:6006:6006'
+            - '0.0.0.0:8080:8080'
+        environment:
+            - REACT_APP_PRIVATE_GRAPH_URI
+            - REACT_APP_PUBLIC_GRAPH_URI
+            - REACT_APP_FRONTEND_URI
+            - SSL
+
+volumes:
+    highlight-data:

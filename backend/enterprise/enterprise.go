@@ -26,16 +26,19 @@ const UpdateErrorsAbort = 10
 
 var EarliestAllowedEnvironment = time.Now().AddDate(-1, 0, 0)
 
-func Start(ctx context.Context) {
+func Start(ctx context.Context) error {
 	env, err := GetEnvironment(GetEncryptedEnvironmentFilePath())
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Info("enterprise service not configured")
-		return
+		if util.IsEnterpriseDeploy() {
+			return err
+		}
 	} else {
 		log.WithContext(ctx).Infof("welcome %s", env.LicenseKey)
 	}
 
 	go CheckForUpdatesLoop(context.Background())
+	return nil
 }
 
 func HasUpdates(client *retryablehttp.Client) (bool, error) {

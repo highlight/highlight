@@ -10,6 +10,7 @@ type Runtime string
 
 const (
 	All          Runtime = "all"
+	AllGraph     Runtime = "graph"
 	Worker       Runtime = "worker"
 	PublicGraph  Runtime = "public-graph"
 	PrivateGraph Runtime = "private-graph"
@@ -17,10 +18,22 @@ const (
 
 func (lt Runtime) IsValid() bool {
 	switch lt {
-	case All, Worker, PublicGraph, PrivateGraph:
+	case All, Worker, PublicGraph, PrivateGraph, AllGraph:
 		return true
 	}
 	return false
+}
+
+func (lt Runtime) IsPublicGraph() bool {
+	return lt == PublicGraph || lt == AllGraph || lt == All
+}
+
+func (lt Runtime) IsPrivateGraph() bool {
+	return lt == PrivateGraph || lt == AllGraph || lt == All
+}
+
+func (lt Runtime) IsWorker() bool {
+	return lt == Worker || lt == All
 }
 
 type Handler string

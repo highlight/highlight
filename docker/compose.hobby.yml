@@ -72,6 +72,7 @@ services:
             - '0.0.0.0:8082:8082'
         volumes:
             - highlight-data:/highlight-data
+            - ../backend/env.enc:/build/env.enc
             - ../backend/localhostssl/server.key:/build/localhostssl/server.key
             - ../backend/localhostssl/server.crt:/build/localhostssl/server.crt
         <<: *backend-env

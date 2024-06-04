@@ -81,6 +81,10 @@ func IsProduction() bool {
 	return strings.HasPrefix(Config.Doppler, "prod")
 }
 
+func IsEnterpriseDeploy() bool {
+	return runtimeFlag != nil && *runtimeFlag != "all"
+}
+
 func UseSSL() bool {
 	return Config.SSL != "false"
 }
