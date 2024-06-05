@@ -122,7 +122,7 @@ func getValidGraphQLQuery() map[string]bool {
 }
 
 func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
-	reqPathParts := strings.Split(req.Path, "/")
+	reqPathParts := strings.Split(req.Path, "-")
 	if len(reqPathParts) != 2 {
 		return sender.Send(&backend.CallResourceResponse{
 			Status: http.StatusNotFound,

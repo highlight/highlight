@@ -11,12 +11,12 @@ interface VariableQueryProps {
 }
 
 export const VariableQueryEditor = ({ onChange, query }: VariableQueryProps) => {
-  const { key, resource } = query;
+  const { key, table } = query;
   const [keyText, setKeytext] = useState<string | undefined>(key);
 
-  const handleResourceChange = (option: SelectableValue<Table>) => {
-    const newResource = option.value;
-    onChange({ ...query, resource: newResource });
+  const handleTableChange = (option: SelectableValue<Table>) => {
+    const newTable = option.value;
+    onChange({ ...query, table: newTable });
   };
 
   const handleKeyChange = (option: SelectableValue<string>) => {
@@ -32,8 +32,8 @@ export const VariableQueryEditor = ({ onChange, query }: VariableQueryProps) => 
       <InlineFieldRow>
         <InlineField label="Resource" labelWidth={10}>
           <Select
-            value={resource}
-            onChange={handleResourceChange}
+            value={table}
+            onChange={handleTableChange}
             options={tableOptions}
             placeholder="Select resource"
             width={40}
