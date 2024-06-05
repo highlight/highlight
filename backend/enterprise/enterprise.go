@@ -12,8 +12,8 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/mitchellh/mapstructure"
 	e "github.com/pkg/errors"
-	"github.com/rogpeppe/go-internal/semver"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/mod/semver"
 	"io"
 	"os"
 	"path/filepath"
@@ -84,8 +84,12 @@ func HasUpdates(client *retryablehttp.Client) (bool, error) {
 
 func CheckForUpdatesLoop(ctx context.Context) {
 	client := retryablehttp.NewClient()
+
+	timer := time.NewTicker(UpdateInterval)
+	defer timer.Stop()
+
 	var errors int
-	for range time.Tick(UpdateInterval) {
+	for range timer.C {
 		if errors > UpdateErrorsAbort {
 			log.WithContext(ctx).Warn("shutting down enterprise upgrade checker")
 			return
