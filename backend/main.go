@@ -197,13 +197,8 @@ var PRIVATE_GRAPH_CORS_OPTIONS = cors.Options{
 }
 
 func validateOrigin(_ *http.Request, origin string) bool {
-	// From the highlight frontend, only the url is whitelisted.
-	isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
-	// Is this an AWS Amplify environment?
-	isAWSEnv := strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d25bj3loqvp3nx.amplifyapp.com")
-	isReflamePreview := origin == "https://preview.highlight.io"
-
-	if origin == frontendURL || origin == "https://app.highlight.run" || origin == "https://app.highlight.io" || origin == landingStagingURL || isRenderPreviewEnv || isAWSEnv || isReflamePreview {
+	isHighlightSubdomain := strings.HasSuffix(origin, ".highlight.io")
+	if origin == frontendURL || origin == landingStagingURL || isHighlightSubdomain {
 		return true
 	}
 
