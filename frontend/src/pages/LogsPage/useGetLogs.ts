@@ -60,7 +60,6 @@ export const useGetLogs = ({
 	// Hence, we track the initial information (where "window" is effectively multiple pages) to ensure we aren't making requests unnecessarily.
 	const [windowInfo, setWindowInfo] = useState<PageInfo>(initialWindowInfo)
 	const [loadingAfter, setLoadingAfter] = useState(false)
-	const [loadingBefore, setLoadingBefore] = useState(false)
 
 	useEffect(() => {
 		setWindowInfo(initialWindowInfo)
@@ -184,8 +183,19 @@ export const useGetLogs = ({
 
 		setLoadingAfter(true)
 
+		const variables =
+			sortDirection == Types.SortDirection.Asc
+				? {
+						after: '',
+						before: lastCursor,
+				  }
+				: {
+						after: lastCursor,
+						before: '',
+				  }
+
 		await fetchMore({
-			variables: { after: lastCursor },
+			variables,
 			updateQuery: (prevResult, { fetchMoreResult }) => {
 				const newData = fetchMoreResult.logs.edges
 				setWindowInfo({
@@ -203,41 +213,6 @@ export const useGetLogs = ({
 			},
 		})
 	}, [data, fetchMore, loadingAfter, windowInfo])
-
-	const fetchMoreBackward = useCallback(async () => {
-		if (!windowInfo.hasPreviousPage || loadingBefore) {
-			return
-		}
-
-		const firstItem = data && data.logs.edges[0]
-		const firstCursor = firstItem?.cursor
-
-		if (!firstCursor) {
-			return
-		}
-
-		setLoadingBefore(true)
-
-		await fetchMore({
-			variables: { before: firstCursor },
-			updateQuery: (prevResult, { fetchMoreResult }) => {
-				const newData = fetchMoreResult.logs.edges
-				setWindowInfo({
-					...windowInfo,
-					hasPreviousPage:
-						fetchMoreResult.logs.pageInfo.hasPreviousPage,
-				})
-				setLoadingBefore(false)
-				return {
-					logs: {
-						...prevResult.logs,
-						edges: [...prevResult.logs.edges, ...newData],
-						pageInfo: fetchMoreResult.logs.pageInfo,
-					},
-				}
-			},
-		})
-	}, [data, fetchMore, loadingBefore, windowInfo])
 
 	const existingTraceSet = new Set(logRelatedResources?.existing_logs_traces)
 
@@ -263,10 +238,8 @@ export const useGetLogs = ({
 		pollingExpired,
 		loading,
 		loadingAfter,
-		loadingBefore,
 		error,
 		fetchMoreForward,
-		fetchMoreBackward,
 		refetch,
 	}
 }

@@ -46,7 +46,6 @@ export const useGetTraces = ({
 	// Hence, we track the initial information (where "window" is effectively multiple pages) to ensure we aren't making requests unnecessarily.
 	const [windowInfo, setWindowInfo] = useState<PageInfo>(initialWindowInfo)
 	const [loadingAfter, setLoadingAfter] = useState(false)
-	const [loadingBefore, setLoadingBefore] = useState(false)
 
 	useEffect(() => {
 		setWindowInfo(initialWindowInfo)
@@ -164,8 +163,19 @@ export const useGetTraces = ({
 
 		setLoadingAfter(true)
 
+		const variables =
+			sortDirection == Types.SortDirection.Asc
+				? {
+						after: '',
+						before: lastCursor,
+				  }
+				: {
+						after: lastCursor,
+						before: '',
+				  }
+
 		await fetchMore({
-			variables: { after: lastCursor },
+			variables,
 			updateQuery: (prevResult, { fetchMoreResult }) => {
 				const newData = fetchMoreResult.traces.edges
 				setWindowInfo({
@@ -182,42 +192,7 @@ export const useGetTraces = ({
 				}
 			},
 		})
-	}, [data, fetchMore, loadingAfter, windowInfo])
-
-	const fetchMoreBackward = useCallback(async () => {
-		if (!windowInfo.hasPreviousPage || loadingBefore) {
-			return
-		}
-
-		const firstItem = data && data.traces.edges[0]
-		const firstCursor = firstItem?.cursor
-
-		if (!firstCursor) {
-			return
-		}
-
-		setLoadingBefore(true)
-
-		await fetchMore({
-			variables: { before: firstCursor },
-			updateQuery: (prevResult, { fetchMoreResult }) => {
-				const newData = fetchMoreResult.traces.edges
-				setWindowInfo({
-					...windowInfo,
-					hasPreviousPage:
-						fetchMoreResult.traces.pageInfo.hasPreviousPage,
-				})
-				setLoadingBefore(false)
-				return {
-					traces: {
-						...prevResult.traces,
-						edges: [...prevResult.traces.edges, ...newData],
-						pageInfo: fetchMoreResult.traces.pageInfo,
-					},
-				}
-			},
-		})
-	}, [data, fetchMore, loadingBefore, windowInfo])
+	}, [data, fetchMore, loadingAfter, sortDirection, windowInfo])
 
 	return {
 		traceEdges: (data?.traces.edges || []) as TraceEdge[],
@@ -226,10 +201,8 @@ export const useGetTraces = ({
 		clearMoreTraces: reset,
 		loading,
 		loadingAfter,
-		loadingBefore,
 		error,
 		fetchMoreForward,
-		fetchMoreBackward,
 		refetch,
 	}
 }
