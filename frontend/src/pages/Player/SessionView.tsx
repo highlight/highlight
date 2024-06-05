@@ -76,8 +76,7 @@ export const SessionView: React.FC<SessionViewProps> = ({
 		Coordinates2D | undefined
 	>(undefined)
 
-	const showSession =
-		sessionViewability === SessionViewability.VIEWABLE && !!session
+	const showSession = sessionViewability === SessionViewability.VIEWABLE
 
 	const { showRightPanel: showRightPanelPreference } =
 		usePlayerConfiguration()
@@ -108,7 +107,7 @@ export const SessionView: React.FC<SessionViewProps> = ({
 		})
 	}, [setSessionResults, totalCount, results])
 
-	if (!showSession && replayerState !== ReplayerState.Loading) {
+	if (!showSession) {
 		return (
 			<SessionFiller
 				sessionViewability={sessionViewability}

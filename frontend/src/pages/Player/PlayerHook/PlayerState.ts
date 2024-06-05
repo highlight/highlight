@@ -369,7 +369,7 @@ export const PlayerReducer = (
 		case PlayerActionType.loadSession:
 			s.session_secure_id = action.data!.session?.secure_id ?? ''
 			if (action.data.session) {
-				s.session = action.data?.session as Session
+				s.session = action.data.session as Session
 				s.isLiveMode = false
 			}
 			if (!action.data.session || action.data.session.excluded) {
@@ -583,7 +583,6 @@ const initReplayer = (
 	showPlayerMouseTail: boolean,
 	playerRef: RefObject<HTMLDivElement>,
 ) => {
-	// Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
 	const playerMountingRoot = playerRef.current
 	if (!playerMountingRoot) {
 		s.replayerState = ReplayerState.Empty

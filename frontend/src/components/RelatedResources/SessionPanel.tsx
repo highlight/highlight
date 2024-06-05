@@ -74,8 +74,7 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 		return `/${projectId}/sessions/${resource.secureId}?${paramsString}`
 	}
 
-	const showSession =
-		sessionViewability === SessionViewability.VIEWABLE && !!session
+	const showSession = sessionViewability === SessionViewability.VIEWABLE
 
 	return (
 		<ReplayerContextProvider value={playerContext}>
@@ -113,8 +112,7 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 						id="playerCenterPanel"
 						ref={playerCenterPanelRef}
 					>
-						{showSession ||
-						replayerState === ReplayerState.Loading ? (
+						{showSession ? (
 							<Box height="full" cssClass={styles.playerBody}>
 								<div className={styles.playerCenterColumn}>
 									{centerColumnResizeListener}
