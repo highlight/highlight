@@ -12,7 +12,7 @@ import { Panel } from '@/components/RelatedResources/Panel'
 import { SearchContext } from '@/components/Search/SearchContext'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import { parseSearch } from '@/components/Search/utils'
-import { ProductType } from '@/graph/generated/schemas'
+import { ProductType, SortDirection } from '@/graph/generated/schemas'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
@@ -39,6 +39,8 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 			startDate,
 			endDate,
 			disablePolling: true,
+			sortDirection: SortDirection.Desc,
+			sortColumn: 'timestamp',
 		})
 
 	const fetchMoreWhenScrolled = useCallback(

@@ -18,7 +18,7 @@ import {
 } from '@/components/Search/SearchForm/SearchForm'
 import { DEFAULT_OPERATOR } from '@/components/Search/SearchForm/utils'
 import { parseSearch } from '@/components/Search/utils'
-import { ProductType } from '@/graph/generated/schemas'
+import { ProductType, SortDirection } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { FullScreenContainer } from '@/pages/LogsPage/LogsTable/FullScreenContainer'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
@@ -72,6 +72,8 @@ export const NetworkResourceLogs: React.FC<{
 		startDate,
 		endDate,
 		disablePolling: true,
+		sortDirection: SortDirection.Desc,
+		sortColumn: 'timestamp',
 	})
 
 	const fetchMoreWhenScrolled = React.useCallback(

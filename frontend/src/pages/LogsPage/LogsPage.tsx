@@ -1,4 +1,9 @@
-import { LogLevel, ProductType, SavedSegmentEntityType } from '@graph/schemas'
+import {
+	LogLevel,
+	ProductType,
+	SavedSegmentEntityType,
+	SortDirection,
+} from '@graph/schemas'
 import {
 	Box,
 	DateRangePreset,
@@ -144,6 +149,8 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		startDate,
 		endDate,
 		disablePolling: !selectedPreset,
+		sortDirection: SortDirection.Desc,
+		sortColumn: 'timestamp',
 	})
 
 	const handleLevelChange = (level: LogLevel) => {

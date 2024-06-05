@@ -119,7 +119,11 @@ type ConsoleTableInnerProps = {
 	lastActiveLogIndex: number
 	autoScroll: boolean
 	bodyHeight: string
+	loadingAfter: boolean
+	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
 }
+
+const LOADING_AFTER_HEIGHT = 28
 
 const ConsoleTableInner = ({
 	logEdges,
@@ -128,9 +132,28 @@ const ConsoleTableInner = ({
 	lastActiveLogIndex,
 	autoScroll,
 	bodyHeight,
+	loadingAfter,
+	fetchMoreWhenScrolled,
 }: ConsoleTableInnerProps) => {
 	const bodyRef = useRef<HTMLDivElement>(null)
 	const [expanded, setExpanded] = useState<ExpandedState>({})
+
+	useEffect(() => {
+		setTimeout(() => {
+			if (!loadingAfter && bodyRef?.current) {
+				fetchMoreWhenScrolled(bodyRef.current)
+			}
+		}, 0)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [loadingAfter])
+
+	const handleFetchMoreWhenScrolled = (
+		e: React.UIEvent<HTMLDivElement, UIEvent>,
+	) => {
+		setTimeout(() => {
+			fetchMoreWhenScrolled(e.target as HTMLDivElement)
+		}, 0)
+	}
 
 	const columnHelper = createColumnHelper<LogEdge>()
 
@@ -219,16 +242,20 @@ const ConsoleTableInner = ({
 		count: rows.length,
 		estimateSize: () => 29,
 		getScrollElement: () => bodyRef.current,
-		overscan: 250,
+		overscan: 50,
 	})
 
 	const totalSize = rowVirtualizer.getTotalSize()
 	const virtualRows = rowVirtualizer.getVirtualItems()
 	const paddingTop = virtualRows.length > 0 ? virtualRows[0]?.start || 0 : 0
-	const paddingBottom =
+	let paddingBottom =
 		virtualRows.length > 0
 			? totalSize - (virtualRows[virtualRows.length - 1]?.end || 0)
 			: 0
+
+	if (!loadingAfter) {
+		paddingBottom += LOADING_AFTER_HEIGHT
+	}
 
 	useEffect(() => {
 		table.toggleAllRowsExpanded(false)
@@ -248,10 +275,8 @@ const ConsoleTableInner = ({
 	)
 
 	useEffect(() => {
-		if (logEdges) {
-			if (autoScroll && lastActiveLogIndex >= 0) {
-				scrollFunction(lastActiveLogIndex)
-			}
+		if (autoScroll && lastActiveLogIndex >= 0 && !!logEdges.length) {
+			scrollFunction(lastActiveLogIndex)
 		}
 	}, [lastActiveLogIndex, logEdges, scrollFunction, autoScroll])
 
@@ -281,6 +306,7 @@ const ConsoleTableInner = ({
 				ref={bodyRef}
 				overflowY="auto"
 				style={{ height: bodyHeight }}
+				onScroll={handleFetchMoreWhenScrolled}
 				hiddenScroll
 			>
 				{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
@@ -301,6 +327,16 @@ const ConsoleTableInner = ({
 					)
 				})}
 				{paddingBottom > 0 && <Box style={{ height: paddingBottom }} />}
+
+				{loadingAfter && (
+					<Box
+						style={{
+							height: `${LOADING_AFTER_HEIGHT}px`,
+						}}
+					>
+						<LoadingBox />
+					</Box>
+				)}
 			</Table.Body>
 		</Table>
 	)
@@ -367,7 +403,6 @@ const ConsoleTableRow: React.FC<ConsoleTableRowProps> = ({
 								)}
 								row={row}
 								queryParts={queryParts}
-								hideRelatedResources
 							/>
 						</Table.Cell>
 					</>

@@ -36,6 +36,9 @@ export const useGetLogs = ({
 	startDate,
 	endDate,
 	disablePolling,
+	sortColumn,
+	sortDirection,
+	disableRelatedResources,
 }: {
 	query: string
 	project_id: string | undefined
@@ -43,6 +46,9 @@ export const useGetLogs = ({
 	startDate: Date
 	endDate: Date
 	disablePolling?: boolean
+	sortColumn?: string | null | undefined
+	sortDirection?: Types.SortDirection | null | undefined
+	disableRelatedResources?: boolean
 }) => {
 	// The backend can only tell us page info about a single page.
 	// It has no idea what pages have already been loaded.
@@ -70,6 +76,10 @@ export const useGetLogs = ({
 				date_range: {
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
+				},
+				sort: {
+					column: sortColumn ?? 'timestamp',
+					direction: sortDirection ?? Types.SortDirection.Desc,
 				},
 			},
 		},
@@ -157,7 +167,7 @@ export const useGetLogs = ({
 					.format(TIME_FORMAT),
 			},
 		},
-		skip: !data?.logs.edges.length,
+		skip: disableRelatedResources || !data?.logs.edges.length,
 	})
 
 	const fetchMoreForward = useCallback(async () => {

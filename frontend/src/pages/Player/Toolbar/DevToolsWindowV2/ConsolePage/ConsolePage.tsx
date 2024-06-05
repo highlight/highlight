@@ -1,11 +1,11 @@
 import { Box } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
-import React, { useEffect, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 
 import { LogCustomColumn } from '@/components/CustomColumnPopover'
-import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { parseSearch } from '@/components/Search/utils'
-import { useGetSessionLogsQuery } from '@/graph/generated/hooks'
+import { SortDirection } from '@/graph/generated/schemas'
+import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
 import { buildSessionParams } from '@/pages/LogsPage/utils'
 import { findLastActiveEventIndex } from '@/pages/Player/Toolbar/DevToolsWindowV2/utils'
 import analytics from '@/util/analytics'
@@ -29,20 +29,38 @@ export const ConsolePage = ({
 	const params = buildSessionParams({ session, query })
 	const { queryParts } = parseSearch(params.query)
 
-	const { data, loading, error, refetch } = useGetSessionLogsQuery({
-		variables: {
-			params: {
-				query: params.query,
-				date_range: {
-					start_date:
-						params.date_range.start_date.format(TIME_FORMAT),
-					end_date: params.date_range.end_date.format(TIME_FORMAT),
-				},
-			},
-			project_id: projectId,
-		},
-		skip: !session,
+	const {
+		logEdges,
+		loading,
+		error,
+		loadingAfter,
+		fetchMoreForward,
+		refetch,
+	} = useGetLogs({
+		query: params.query,
+		project_id: projectId,
+		startDate: params.date_range.start_date.toDate(),
+		endDate: params.date_range.end_date.toDate(),
+		disablePolling: true,
+		disableRelatedResources: true,
+		logCursor: undefined,
+		sortDirection: SortDirection.Asc,
+		sortColumn: 'timestamp',
 	})
+
+	const fetchMoreWhenScrolled = useCallback(
+		(containerRefElement?: HTMLDivElement | null) => {
+			if (containerRefElement) {
+				const { scrollHeight, scrollTop, clientHeight } =
+					containerRefElement
+
+				if (scrollHeight - scrollTop - clientHeight < 100) {
+					fetchMoreForward()
+				}
+			}
+		},
+		[fetchMoreForward],
+	)
 
 	const selectedColumns = useMemo(() => {
 		return [
@@ -78,16 +96,14 @@ export const ConsolePage = ({
 	}, [sessionMetadata.startTime, setTime])
 
 	const lastActiveLogIndex = useMemo(() => {
-		const messageNodes = data?.sessionLogs
-			? data.sessionLogs.map((message) => message.node)
-			: []
+		const messageNodes = logEdges.map((message) => message.node)
 
 		return findLastActiveEventIndex(
 			time,
 			sessionMetadata.startTime,
 			messageNodes,
 		)
-	}, [time, sessionMetadata.startTime, data?.sessionLogs])
+	}, [time, sessionMetadata.startTime, logEdges])
 
 	useEffect(() => {
 		analytics.track('session_view-console-logs')
@@ -96,7 +112,7 @@ export const ConsolePage = ({
 	return (
 		<Box cssClass={styles.consoleBox}>
 			<ConsoleTable
-				logEdges={data?.sessionLogs || []}
+				logEdges={logEdges}
 				loading={loading}
 				error={error}
 				refetch={refetch}
@@ -105,6 +121,8 @@ export const ConsolePage = ({
 				lastActiveLogIndex={lastActiveLogIndex}
 				autoScroll={autoScroll}
 				bodyHeight={`${panelHeight - 104}px`}
+				loadingAfter={loadingAfter}
+				fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 			/>
 		</Box>
 	)
