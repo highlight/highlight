@@ -1224,6 +1224,7 @@ type CommentSlackThread struct {
 
 type SessionInterval struct {
 	Model
+	ID              int64  `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
 	SessionSecureID string `gorm:"index" json:"secure_id"`
 	StartTime       time.Time
 	EndTime         time.Time
