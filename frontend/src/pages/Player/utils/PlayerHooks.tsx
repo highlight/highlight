@@ -1,5 +1,5 @@
+import { toast } from '@components/Toaster'
 import {
-	getFullScreenPopoverGetPopupContainer,
 	RightPanelView,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
@@ -12,7 +12,6 @@ import usePlayerConfiguration, {
 	PLAYBACK_SPEED_OPTIONS,
 } from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import analytics from '@util/analytics'
-import { message } from 'antd'
 import { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
@@ -76,11 +75,6 @@ export const usePlayerKeyboardShortcuts = () => {
 	const { projectId } = useProjectId()
 	const { sessionSecureId } = useSessionParams()
 	const navigate = useNavigate()
-	message.config({
-		maxCount: 1,
-		rtl: false,
-		getContainer: getFullScreenPopoverGetPopupContainer,
-	})
 
 	/**
 	 * This function needs to be called before each hot key.
@@ -280,7 +274,7 @@ export const usePlayerKeyboardShortcuts = () => {
 
 		setEnableInspectElement(false)
 		setRightPanelView(RightPanelView.Comments)
-		message.success(
+		toast.success(
 			'Commenting enabled, click anywhere on the video to create a comment.',
 		)
 	})
@@ -292,7 +286,7 @@ export const usePlayerKeyboardShortcuts = () => {
 		setEnableInspectElement(true)
 		setShowRightPanel(false)
 		setRightPanelView(RightPanelView.Event)
-		message.success(
+		toast.success(
 			"Inspect element enabled, you can open up your browser's DevTools and inspect the DOM now.",
 		)
 	})

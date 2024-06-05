@@ -37,4 +37,7 @@ Error monitoring in [highlight.io](https://highlight.io) is different than most 
     <DocsCard title="Managing Errors"  href="./managing-errors.md">
         {"Features for managing errors"}
     </DocsCard>
+    <DocsCard title="Error Search."  href="./error-search.md">
+        {"Features that allow you to search for errors in your app."}
+    </DocsCard>
 </DocsCardGroup>

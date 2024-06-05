@@ -15,6 +15,7 @@ export const loadingText = style({
 
 export const legendWrapper = style({
 	left: -6,
+	flexShrink: 0,
 	maxHeight: 40,
 	paddingTop: 2,
 	paddingBottom: 2,

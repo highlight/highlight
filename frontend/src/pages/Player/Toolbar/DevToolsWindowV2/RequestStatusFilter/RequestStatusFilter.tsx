@@ -131,17 +131,8 @@ const RequestStatusFilter = ({
 		}),
 	)
 
-	const valueRender = () => {
-		if (requestStatuses.includes(RequestStatus.All)) {
-			return FILTER_LABEL
-		}
-
-		if (requestStatuses.length === 1) {
-			return `${FILTER_LABEL}: ${requestStatuses[0]}`
-		}
-
-		return `${FILTER_LABEL}: ${requestStatuses.length} selected`
-	}
+	const selected =
+		!!requestStatuses.length && !requestStatuses.includes(RequestStatus.All)
 
 	return (
 		<MultiSelectButton
@@ -149,7 +140,7 @@ const RequestStatusFilter = ({
 			icon={<IconSolidFilter />}
 			defaultValue={options[0].key}
 			value={requestStatuses}
-			valueRender={valueRender}
+			selected={selected}
 			options={options}
 			onChange={handleRequestTypeChange}
 		/>

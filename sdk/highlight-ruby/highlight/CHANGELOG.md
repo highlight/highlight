@@ -11,3 +11,7 @@
 
 - Support setting `environment` attribute to SDK initialization.
 - `otlp_endpoint` updated to keyword parameter when initializing.
+
+## 0.2.1
+
+- Ensure `message` on logs is always a string.

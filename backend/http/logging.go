@@ -300,21 +300,22 @@ func HandleJSONLog(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		attributes := make(map[string]string)
-		for _, k := range []string{
-			LogDrainProjectHeader,
-			LogDrainServiceHeader,
-		} {
-			value := r.Header.Get(k)
-			attributes[k] = value
-		}
-		projectID, err := model2.FromVerboseID(attributes[LogDrainProjectHeader])
+		var projectID int
+		var serviceName string
+
+		projectID, serviceName, err = getQueryStringParams(r)
 		if err != nil {
-			log.WithContext(r.Context()).WithError(err).WithField("projectVerboseID", attributes[LogDrainProjectHeader]).Error("failed to parse highlight project id from http logs request")
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
+			if projectID, err = model2.FromVerboseID(r.Header.Get(LogDrainProjectHeader)); err != nil {
+				log.WithContext(r.Context()).WithError(err).WithField("projectVerboseID", r.Header.Get(LogDrainProjectHeader)).Error("failed to parse highlight project id from http logs request")
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			if svc := r.Header.Get(LogDrainServiceHeader); svc != "" {
+				serviceName = svc
+			}
 		}
-		lg.Attributes[string(semconv.ServiceNameKey)] = attributes[LogDrainServiceHeader]
+
+		lg.Attributes[string(semconv.ServiceNameKey)] = serviceName
 		if err := hlog.SubmitHTTPLog(r.Context(), tracer, projectID, lg); err != nil {
 			log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
 			http.Error(w, err.Error(), http.StatusBadRequest)

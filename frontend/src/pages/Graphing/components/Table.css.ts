@@ -9,13 +9,14 @@ export const fullHeight = style({
 	height: 'calc(100% - 50px)',
 })
 
+export const tableHeader = style({
+	overflowY: 'hidden',
+	scrollbarGutter: 'stable',
+})
+
 export const scrollableBody = style({
-	overflowY: 'scroll',
-	selectors: {
-		'&::-webkit-scrollbar': {
-			display: 'none',
-		},
-	},
+	overflowY: 'auto',
+	scrollbarGutter: 'stable',
 })
 
 export const preventScroll = style({

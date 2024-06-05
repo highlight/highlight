@@ -3,6 +3,7 @@ import Card from '@components/Card/Card'
 import Input from '@components/Input/Input'
 import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
+import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -20,7 +21,6 @@ import {
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import useMap from '@util/useMap'
-import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
@@ -133,14 +133,14 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 					onClick={() => {
 						removeVercelIntegrationFromProject()
 							.then(() => {
-								message.success(
+								toast.success(
 									'Disconnected the Vercel integration!',
 								)
 								setModalOpen(false)
 								setIntegrationEnabled(false)
 							})
 							.catch((reason: any) => {
-								message.error(String(reason))
+								toast.error(String(reason))
 							})
 					}}
 				>
@@ -399,11 +399,11 @@ export const VercelIntegrationSettings: React.FC<
 		})
 			.then(() => {
 				onSuccess && onSuccess()
-				message.success('Vercel projects linked!')
+				toast.success('Vercel projects linked!')
 				setModalOpen(false)
 			})
 			.catch((reason: any) => {
-				message.error(String(reason))
+				toast.error(String(reason))
 			})
 	}
 

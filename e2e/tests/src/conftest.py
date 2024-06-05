@@ -34,7 +34,7 @@ def run_and_poll(
         pre()
     proc = run(node_bin, args, cwd=cwd)
     try:
-        for _ in range(15):
+        for _ in range(60):
             try:
                 r = request()
                 if r.ok:

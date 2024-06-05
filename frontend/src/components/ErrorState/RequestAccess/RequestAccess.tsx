@@ -1,7 +1,7 @@
 import Button from '@components/Button/Button/Button'
+import { toast } from '@components/Toaster'
 import { useRequestAccessMutation } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { useState } from 'react'
 
 const RequestAccess = () => {
@@ -23,11 +23,8 @@ const RequestAccess = () => {
 					})
 				} catch (_e) {
 				} finally {
-					message.success(
-						<>
-							If the workspace exists, we've sent an email to the
-							owner to share access with you!
-						</>,
+					toast.success(
+						"If the workspace exists, we've sent an email to the owner to share access with you!",
 					)
 					setSentAccessRequest(true)
 				}

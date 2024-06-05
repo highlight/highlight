@@ -287,6 +287,7 @@ export const PlayerPage = () => {
 						}
 						page={page}
 						setPage={setPage}
+						pollingExpired={getSessionsData.pollingExpired}
 						{...searchTimeContext}
 					>
 						<Helmet>

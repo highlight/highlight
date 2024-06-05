@@ -127,7 +127,7 @@ func TestHandleLog(t *testing.T) {
 	assert.Equal(t, 1, len(spans))
 	span := spans[0]
 	event := span.Events()[0]
-	assert.Equal(t, "highlight-ctx", span.Name())
+	assert.Equal(t, "highlight.log", span.Name())
 	assert.Equal(t, "log", event.Name)
 
 	msg, found := lo.Find(event.Attributes, func(attr attribute.KeyValue) bool {

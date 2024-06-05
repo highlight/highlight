@@ -1,8 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
-import Modal from '@components/Modal/Modal'
-import ModalBody from '@components/ModalBody/ModalBody'
-import { RadioGroup } from '@components/RadioGroup/RadioGroup'
+import { toast } from '@components/Toaster'
 import {
 	useCreateErrorCommentForExistingIssueMutation,
 	useCreateErrorCommentMutation,
@@ -15,17 +13,18 @@ import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
 import {
 	Box,
-	ButtonIcon,
 	Form,
+	IconSolidCheveronDown,
+	IconSolidCheveronUp,
 	IconSolidClickUp,
 	IconSolidGitlab,
 	IconSolidJira,
 	IconSolidLinear,
-	IconSolidX,
 	Stack,
+	Tag,
+	TagSwitchGroup,
 	Text,
 } from '@highlight-run/ui/components'
-import { vars } from '@highlight-run/ui/vars'
 import {
 	CLICKUP_INTEGRATION,
 	GITLAB_INTEGRATION,
@@ -36,11 +35,13 @@ import {
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
-import { message } from 'antd'
 import { H } from 'highlight.run'
 import React, { useMemo, useState } from 'react'
 
+import { Modal } from '@/components/Modal/ModalV2'
 import { SearchIssues } from '@/components/SearchIssues/SearchIssues'
+
+import * as style from './NewIssueModal.css'
 
 interface NewIssueModalProps {
 	visible: boolean
@@ -79,6 +80,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	const { admin } = useAuthContext()
 
 	const [loading, setLoading] = useState(false)
+	const [moreOptions, setMoreOptions] = useState(false)
 
 	const [createIssueForErrorComment] = useCreateIssueForErrorCommentMutation({
 		refetchQueries: [namedOperations.Query.GetErrorIssues],
@@ -262,11 +264,11 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 				mode === NewIntegrationIssueType.CreateIssue
 					? 'New Issue Created!'
 					: 'Issue Linked!'
-			message.success(toastMessage)
+			toast.success(toastMessage)
 		} catch (e: any) {
 			H.consumeError(e)
 			console.error(e)
-			message.error('Failed to create an issue. Please try again.')
+			toast.error('Failed to create an issue. Please try again.')
 		} finally {
 			setLoading(false)
 		}
@@ -288,68 +290,49 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	}, [selectedIntegration.key])
 
 	form.useSubmit(onFinish)
+
+	if (!visible) {
+		return null
+	}
+
 	return (
 		<Modal
 			title={
-				<Box
-					display="flex"
-					alignItems="center"
-					userSelect="none"
-					px="8"
-					py="4"
-					bb="secondary"
-					justifyContent="space-between"
-				>
-					<Stack direction="row" align="center" gap="4">
-						{integrationLogo}
-						<Text size="xxSmall" color="n11" weight="medium">
-							Create a new {selectedIntegration.name} issue
-						</Text>
-					</Stack>
-					<ButtonIcon
-						kind="secondary"
-						emphasis="none"
-						size="xSmall"
-						onClick={onClose}
-						icon={
-							<IconSolidX
-								size={14}
-								color={
-									vars.theme.interactive.fill.secondary
-										.content.text
-								}
-							/>
-						}
-						disabled={loading}
-					/>
-				</Box>
+				<Stack direction="row" align="center" gap="4">
+					{integrationLogo}
+					<Text size="xxSmall" color="n11" weight="medium">
+						Create a new {selectedIntegration.name} issue
+					</Text>
+				</Stack>
 			}
-			visible={visible}
-			onCancel={onClose}
-			minimal
-			minimalPaddingSize="0"
-			width="324px"
+			onClose={onClose}
 		>
-			<ModalBody>
+			<Box cssClass={style.modalBody}>
 				{/* ClickUp doesn't support searching issues, so we don't need to show this section. */}
 				{selectedIntegration.name !== 'ClickUp' && (
-					<Box px="12" py="8" gap="12" display="flex" align="center">
-						<RadioGroup
-							labels={['Create Issue', 'Link Issue']}
-							selectedLabel={
+					<Box
+						px="12"
+						pt="8"
+						pb="4"
+						gap="12"
+						display="flex"
+						align="center"
+					>
+						<TagSwitchGroup
+							cssClass={style.switchGroup}
+							options={['Create Issue', 'Link Issue']}
+							defaultValue={
 								mode === NewIntegrationIssueType.CreateIssue
 									? 'Create Issue'
 									: 'Link Issue'
 							}
-							onSelect={(label: string) =>
+							onChange={(label: string | number) => {
 								setMode(
 									label === 'Create Issue'
 										? NewIntegrationIssueType.CreateIssue
 										: NewIntegrationIssueType.LinkIssue,
 								)
-							}
-							labelStyle={{ width: '100%' }}
-							wrapperStyle={{ width: '100%' }}
+							}}
 						/>
 					</Box>
 				)}
@@ -382,25 +365,45 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 
 								<Form.Input
 									name={form.names.issueTitle}
-									label="Issue Title"
+									label="Title"
 									placeholder="Add a concise summary of the issue"
 									outline
 									truncate
 									required
 									disabled={loading}
+									cssClass={style.textInput}
 								/>
 
-								<Form.Input
-									name={form.names.issueDescription}
-									label="Issue Description"
-									placeholder="Hey, check this out!"
-									// @ts-expect-error
-									as="textarea"
-									outline
-									aria-multiline
-									rows={5}
-									disabled={loading}
-								/>
+								<Tag
+									onClick={() => setMoreOptions(!moreOptions)}
+									kind="primary"
+									emphasis="low"
+									shape="basic"
+									iconRight={
+										moreOptions ? (
+											<IconSolidCheveronUp />
+										) : (
+											<IconSolidCheveronDown />
+										)
+									}
+									className={style.moreOptionsTag}
+								>
+									Additional options
+								</Tag>
+
+								{moreOptions && (
+									<Form.Input
+										name={form.names.issueDescription}
+										label="Description"
+										placeholder="Hey, check this out!"
+										// @ts-expect-error
+										as="textarea"
+										outline
+										aria-multiline
+										rows={5}
+										disabled={loading}
+									/>
+								)}
 							</>
 						)}
 					</Box>
@@ -412,6 +415,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 						gap="6"
 						justifyContent="flex-end"
 						bt="secondary"
+						background="n2"
 					>
 						<Button
 							trackingId="CreateIssueCancel"
@@ -436,7 +440,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 						</Button>
 					</Box>
 				</Form>
-			</ModalBody>
+			</Box>
 		</Modal>
 	)
 }

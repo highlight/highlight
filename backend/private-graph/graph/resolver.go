@@ -608,7 +608,7 @@ func (r *Resolver) loadErrorGroupFrequenciesClickhouse(ctx context.Context, eg *
 	if eg.FirstOccurrence, eg.LastOccurrence, err = r.ClickhouseClient.QueryErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID); err != nil {
 		return e.Wrap(err, "error querying error group occurrences")
 	}
-	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, 30); err != nil {
+	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, 7); err != nil {
 		return e.Wrap(err, "error querying error group frequencies")
 	}
 	return nil
@@ -698,20 +698,6 @@ func (r *Resolver) canAdminModifySession(ctx context.Context, session_secure_id 
 		return session, nil
 	}
 	return nil, err
-}
-
-func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*model.Segment, error) {
-	authSpan, ctx := util.StartSpanFromContext(ctx, "isAdminSegmentOwner", util.ResourceName("resolver.internal.auth"))
-	defer authSpan.Finish()
-	segment := &model.Segment{}
-	if err := r.DB.WithContext(ctx).Where("id = ?", segment_id).Take(&segment).Error; err != nil {
-		return nil, e.Wrap(err, "error querying segment")
-	}
-	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
-	if err != nil {
-		return nil, err
-	}
-	return segment, nil
 }
 
 func (r *Resolver) isAdminSavedSegmentOwner(ctx context.Context, segment_id int) (*model.SavedSegment, error) {

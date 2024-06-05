@@ -50,7 +50,7 @@ export const MetricTable = ({
 	return (
 		<Box height="full" cssClass={style.tableWrapper}>
 			<Table noBorder className={style.fullHeight}>
-				<Table.Head>
+				<Table.Head className={style.tableHeader}>
 					<Table.Row className={style.tableRow}>
 						{showXAxisColumn && (
 							<Table.Header>

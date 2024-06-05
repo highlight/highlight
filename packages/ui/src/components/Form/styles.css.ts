@@ -7,6 +7,7 @@ import { fontWeights, typographyStyles } from '../Text/styles.css'
 export const inputVariants = recipe({
 	base: {
 		border: 'none',
+		boxSizing: 'border-box',
 		fontSize: 13,
 		fontWeight: fontWeights.medium,
 		color: vars.theme.static.content.default,
@@ -118,4 +119,57 @@ export const select = style({
 			border: vars.border.secondaryPressed,
 		},
 	},
+})
+
+export const inputNumber = style({
+	appearance: 'textfield',
+	selectors: {
+		'&::-webkit-inner-spin-button, &::-webkit-outer-spin-button': {
+			WebkitAppearance: 'none',
+		},
+		'&::-moz-range-thumb': {
+			visibility: 'hidden',
+		},
+	},
+})
+
+export const inputNumberDivider = style({
+	background: vars.theme.interactive.outline.secondary.enabled,
+	border: 0,
+	height: 1,
+	width: '100%',
+})
+
+export const inputNumberButton = style({
+	background: 'none',
+	border: vars.border.secondary,
+	cursor: 'pointer',
+	height: '50%',
+	padding: 0,
+	position: 'relative',
+	width: 21,
+	selectors: {
+		'&:first-of-type': {
+			borderBottom: 0,
+			borderTopRightRadius: 6,
+		},
+		'&:last-of-type': {
+			borderTop: 0,
+			borderBottomRightRadius: 6,
+		},
+		'&:hover': {
+			background: vars.theme.interactive.overlay.secondary.hover,
+		},
+		'&:active': {
+			background: vars.theme.interactive.overlay.secondary.pressed,
+		},
+	},
+})
+
+export const inputNumberIcon = style({
+	position: 'absolute',
+	// center the icon vertically and horizontally
+	top: '50%',
+	left: '50%',
+	transform: 'translate(-50%, -50%)',
 })

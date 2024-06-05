@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { toast } from '@components/Toaster'
 import { useUpdateErrorGroupStateMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { ErrorState, Maybe } from '@graph/schemas'
@@ -12,7 +13,7 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui/components'
-import { DatePicker, message } from 'antd'
+import { DatePicker } from 'antd'
 import moment from 'moment'
 import React, { useCallback, useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -94,8 +95,8 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 					},
 				},
 				onError: async () => {
-					message.destroy(MESSAGE_KEY)
-					message.error(
+					toast.destroy(MESSAGE_KEY)
+					toast.error(
 						'There was an issue updating the state of this error. Please try again.',
 					)
 				},
@@ -355,5 +356,5 @@ const showStateUpdateMessage = (
 		}
 	}
 
-	message.success({ content: displayMessage, key: MESSAGE_KEY }, 10)
+	toast.success(displayMessage, { duration: 10000, id: MESSAGE_KEY })
 }

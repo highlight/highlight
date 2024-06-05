@@ -26,7 +26,7 @@ export const Modal: React.FC<
 		innerWidth?: Pick<Parameters<typeof sprinkles>[0], 'width'>['width']
 		innerHeight?: Pick<Parameters<typeof sprinkles>[0], 'height'>['height']
 		maxHeight?: string
-		title?: string
+		title?: React.ReactNode
 		footer?: React.ReactNode
 	}>
 > = ({
@@ -52,7 +52,7 @@ export const Modal: React.FC<
 			style={{
 				top: 0,
 				left: 0,
-				zIndex: '90',
+				zIndex: '20001', // +1 more than the header z-index
 				overflow: 'hidden',
 				backgroundColor: '#6F6E777A',
 			}}
@@ -99,7 +99,7 @@ export const Modal: React.FC<
 							<ButtonIcon
 								kind="secondary"
 								emphasis="none"
-								size="xSmall"
+								size="minimal"
 								onClick={onClose}
 								icon={
 									<IconSolidX

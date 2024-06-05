@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	Badge,
 	Box,
@@ -12,7 +13,6 @@ import {
 	Table,
 	Text,
 } from '@highlight-run/ui/components'
-import { message } from 'antd'
 import moment from 'moment'
 import React, { useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -265,12 +265,12 @@ const DashboardRow = ({
 										e.stopPropagation()
 										deleteViz()
 											.then(() =>
-												message.success(
+												toast.success(
 													'Dashboard deleted',
 												),
 											)
 											.catch(() =>
-												message.error(
+												toast.error(
 													'Failed to delete dashboard',
 												),
 											)

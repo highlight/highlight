@@ -3,6 +3,7 @@ import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
 import PopConfirm from '@components/PopConfirm/PopConfirm'
 import Table from '@components/Table/Table'
+import { toast } from '@components/Toaster'
 import {
 	useDeleteInviteLinkFromWorkspaceMutation,
 	useGetWorkspacePendingInvitesQuery,
@@ -13,7 +14,6 @@ import SvgTrashIconSolid from '@icons/TrashIconSolid'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { titleCaseString } from '@util/string'
-import { message } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
 import React from 'react'
@@ -41,10 +41,10 @@ const PendingInvites = ({ workspaceId, active, shouldRefetchData }: Props) => {
 					fields: {
 						workspace_pending_invites(existingInvites, { DELETE }) {
 							if (data?.deleteInviteLinkFromWorkspace) {
-								message.success('Deleted invite')
+								toast.success('Deleted invite')
 								return DELETE
 							}
-							message.success('Failed to delete invite')
+							toast.success('Failed to delete invite')
 							return existingInvites
 						},
 					},

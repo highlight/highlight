@@ -18,6 +18,7 @@ import {
 	Stack,
 } from '@highlight-run/ui/components'
 import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/SessionFeedCard'
+import { SessionReport } from '@pages/Sessions/SessionsFeedV3/SessionReport'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate } from '@util/time'
@@ -138,6 +139,7 @@ export const SessionFeedV3 = React.memo(() => {
 		setPage,
 		rebaseSearchTime,
 		updateSearchTime,
+		pollingExpired,
 	} = useSearchContext()
 
 	const { showBanner } = useGlobalContext()
@@ -158,6 +160,7 @@ export const SessionFeedV3 = React.memo(() => {
 						onClick={() => setShowLeftPanel(false)}
 					/>
 				</Box>
+				<SessionReport />
 				<SessionFeedConfigDropdown />
 			</Stack>
 		)
@@ -219,6 +222,7 @@ export const SessionFeedV3 = React.memo(() => {
 						resetMoreResults()
 						rebaseSearchTime!()
 					}}
+					pollingExpired={pollingExpired}
 				/>
 				<Box
 					padding="8"

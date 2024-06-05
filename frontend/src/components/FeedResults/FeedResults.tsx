@@ -11,6 +11,7 @@ import * as style from './FeedResults.css'
 interface Props {
 	maxResults: number
 	more: number
+	pollingExpired: boolean
 	type: 'sessions' | 'errors' | 'logs' | 'traces'
 	onClick: () => void
 }
@@ -19,6 +20,7 @@ export const AdditionalFeedResults = function ({
 	maxResults,
 	more,
 	type,
+	pollingExpired,
 	onClick,
 }: Props) {
 	const rounded = ['sessions', 'errors'].includes(type)
@@ -28,7 +30,7 @@ export const AdditionalFeedResults = function ({
 
 	return (
 		<AnimatePresence>
-			{more > 0 ? (
+			{more > 0 || pollingExpired ? (
 				<motion.div
 					key="AdditionalFeedResultsWrapper"
 					initial={{ opacity: 0 }}
@@ -57,7 +59,9 @@ export const AdditionalFeedResults = function ({
 							<Box display="flex" alignItems="center" gap="8">
 								<IconOutlineArrowNarrowUp />
 								<Text>
-									{countText} new {resourceText}
+									{pollingExpired
+										? 'Load new results'
+										: `${countText} new ${resourceText}`}
 								</Text>
 							</Box>
 						</Button>

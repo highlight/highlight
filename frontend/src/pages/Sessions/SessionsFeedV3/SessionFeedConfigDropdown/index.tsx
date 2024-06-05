@@ -6,7 +6,6 @@ import {
 	IconSolidAdjustments,
 	IconSolidCheck,
 	IconSolidClipboardList,
-	IconSolidDocumentDownload,
 	IconSolidFastForward,
 	IconSolidSortDescending,
 	IconSolidTrash,
@@ -18,9 +17,6 @@ import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConf
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
-import { useGenerateSessionsReportCSV } from '@util/session/report'
-import { message } from 'antd'
-import { H } from 'highlight.run'
 import React, { useState } from 'react'
 
 import { useSearchContext } from '@/components/Search/SearchContext'
@@ -96,14 +92,10 @@ export const SessionFeedConfigDropdown = function () {
 		variables: { workspace_id: String(currentWorkspace?.id) },
 		skip: !currentWorkspace?.id,
 	})
-	const { generateSessionsReportCSV } = useGenerateSessionsReportCSV()
 
 	const showDeleteButton =
 		canDelete &&
 		workspaceSettingsData?.workspaceSettings?.enable_data_deletion === true
-	const showReportButton =
-		workspaceSettingsData?.workspaceSettings?.enable_session_export ===
-			true || true
 
 	const { autoPlaySessions, setAutoPlaySessions, setAutoPlayVideo } =
 		usePlayerConfiguration()
@@ -374,45 +366,6 @@ export const SessionFeedConfigDropdown = function () {
 						</SectionRow>
 					</Menu.Item>
 				</Section>
-				{showReportButton ? (
-					<Section clickable>
-						<Menu.Item
-							key="download"
-							className={styles.menuItem}
-							onClick={async () => {
-								message.info(
-									'Preparing CSV report, this may take a bit...',
-								)
-								try {
-									await generateSessionsReportCSV()
-									message.success(
-										'CSV report prepared, downloading...',
-									)
-								} catch (e) {
-									message.error(
-										`Failed to generate the CSV report: ${e}`,
-									)
-									H.consumeError(e as Error)
-								}
-							}}
-						>
-							<SectionRow>
-								<IconGroup
-									icon={
-										<IconSolidDocumentDownload
-											size={16}
-											color={
-												vars.theme.interactive.fill
-													.secondary.content.text
-											}
-										/>
-									}
-									text="Download CSV session report"
-								/>
-							</SectionRow>
-						</Menu.Item>
-					</Section>
-				) : null}
 				{showDeleteButton ? (
 					<Section clickable>
 						<Menu.Item

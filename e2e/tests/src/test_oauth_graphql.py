@@ -23,7 +23,6 @@ def test_make_request_with_oauth(oauth_api):
         try:
             r = requests.post(
                 api_url,
-                verify=False,
                 json={
                     "operationName": "GetAdmin",
                     "variables": {},

@@ -462,7 +462,7 @@ export const TraceFlameGraph: React.FC = () => {
 						style={{
 							right: tooltipCoordinates.x,
 							bottom: tooltipCoordinates.y + 8,
-							width: 224,
+							minWidth: 224,
 							zIndex: 1000,
 						}}
 						shadow="small"

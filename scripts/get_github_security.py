@@ -2,8 +2,6 @@
 
 import json
 import subprocess
-import time
-
 from io import StringIO
 
 import pandas as pd
@@ -81,10 +79,52 @@ def get_code_scanning():
         }
 
 
+def dismiss_dependabot(alert_id):
+    subprocess.check_call(
+        [
+            "gh",
+            "api",
+            "--method",
+            "PATCH",
+            "-H",
+            "Accept: application/vnd.github+json",
+            "-H",
+            "X-GitHub-Api-Version: 2022-11-28",
+            f"/repos/{REPO}/dependabot/alerts/{alert_id}",
+            "-f", "state=dismissed",
+            "-f", "dismissed_reason=tolerable_risk",
+            "-f", "dismissed_comment=Not used in production; end-to-end test."
+        ]
+    )
+
+
+def process_e2e_dependabot():
+    stdout = subprocess.check_output(
+        [
+            "gh",
+            "api",
+            "-H",
+            "Accept: application/vnd.github+json",
+            "-H",
+            "X-GitHub-Api-Version: 2022-11-28",
+            f"/repos/{REPO}/dependabot/alerts?per_page=100&state=open",
+            "--paginate",
+        ],
+        text=True,
+    )
+    for alert in json.loads(stdout):
+        path = alert["dependency"]["manifest_path"]
+        if path.startswith("e2e/") or path.startswith("sdk/highlight-ruby/e2e"):
+            print(path, alert)
+            dismiss_dependabot(alert["number"])
+
+
 def main():
+    process_e2e_dependabot()
+
     for k, fn in {
         # 'dependabot': get_dependabot,
-        "code_scanning": get_code_scanning
+        # "code_scanning": get_code_scanning
     }.items():
         js = json.dumps(list(fn()))
         df = pd.read_json(StringIO(js))

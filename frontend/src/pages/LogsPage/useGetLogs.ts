@@ -112,7 +112,7 @@ export const useGetLogs = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.logs.edges])
 
-	const { numMore, reset } = usePollQuery<
+	const { numMore, pollingExpired, reset } = usePollQuery<
 		GetLogsQuery,
 		GetLogsQueryVariables
 	>({
@@ -250,6 +250,7 @@ export const useGetLogs = ({
 		logEdges: logEdgesWithResources,
 		moreLogs: numMore,
 		clearMoreLogs: reset,
+		pollingExpired,
 		loading,
 		loadingAfter,
 		loadingBefore,

@@ -1,3 +1,4 @@
+import { toast } from '@components/Toaster'
 import {
 	closestCenter,
 	DndContext,
@@ -28,18 +29,19 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { message } from 'antd'
 import clsx from 'clsx'
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
 import {
 	useDeleteGraphMutation,
 	useGetVisualizationQuery,
+	useUpsertGraphMutation,
 	useUpsertVisualizationMutation,
 } from '@/graph/generated/hooks'
 import { GetVisualizationQuery } from '@/graph/generated/operations'
+import { GraphInput } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { DashboardCard } from '@/pages/Graphing/components/DashboardCard'
@@ -107,6 +109,8 @@ export const Dashboard = () => {
 	const navigate = useNavigate()
 
 	const [deleteGraph] = useDeleteGraphMutation()
+	const [upsertGraph] = useUpsertGraphMutation()
+	const tempId = useId()
 
 	const noGraphs = graphs?.length === 0
 
@@ -195,7 +199,7 @@ export const Dashboard = () => {
 												)
 											}
 											setEditing(false)
-											message.success(
+											toast.success(
 												'Canceled dashboard changes',
 											)
 										}}
@@ -255,12 +259,12 @@ export const Dashboard = () => {
 												},
 											})
 												.then(() => {
-													message.success(
+													toast.success(
 														'Dashboard updated',
 													)
 												})
 												.catch(() =>
-													message.error(
+													toast.error(
 														'Failed to update dashboard',
 													),
 												)
@@ -405,6 +409,115 @@ export const Dashboard = () => {
 																g.limitMetric ??
 																undefined
 															}
+															onClone={
+																isTemp
+																	? undefined
+																	: () => {
+																			const graphInput: GraphInput =
+																				{
+																					visualizationId:
+																						dashboard_id!,
+																					bucketByKey:
+																						g.bucketByKey,
+																					bucketCount:
+																						g.bucketCount,
+																					display:
+																						g.display,
+																					functionType:
+																						g.functionType,
+																					groupByKey:
+																						g.groupByKey,
+																					limit: g.limit,
+																					limitFunctionType:
+																						g.limitFunctionType,
+																					limitMetric:
+																						g.limitMetric,
+																					metric: g.metric,
+																					nullHandling:
+																						g.nullHandling,
+																					productType:
+																						g.productType,
+																					query: g.query,
+																					title: g.title,
+																					type: g.type,
+																				}
+
+																			upsertGraph(
+																				{
+																					variables:
+																						{
+																							graph: graphInput,
+																						},
+																					optimisticResponse:
+																						{
+																							upsertGraph:
+																								{
+																									...graphInput,
+																									id: `temp-${tempId}`,
+																									__typename:
+																										'Graph',
+																								},
+																						},
+																					update(
+																						cache,
+																						result,
+																					) {
+																						const vizId =
+																							cache.identify(
+																								{
+																									id: dashboard_id,
+																									__typename:
+																										'Visualization',
+																								},
+																							)
+																						const graphId =
+																							cache.identify(
+																								{
+																									id: result
+																										.data
+																										?.upsertGraph
+																										.id,
+																									__typename:
+																										'Graph',
+																								},
+																							)
+																						cache.modify(
+																							{
+																								id: vizId,
+																								fields: {
+																									graphs(
+																										existing: any[] = [],
+																									) {
+																										return existing.concat(
+																											[
+																												{
+																													__ref: graphId,
+																												},
+																											],
+																										)
+																									},
+																								},
+																							},
+																						)
+																					},
+																				},
+																			)
+																				.then(
+																					() => {
+																						toast.success(
+																							`Metric view cloned`,
+																						)
+																					},
+																				)
+																				.catch(
+																					() => {
+																						toast.error(
+																							'Failed to clone metric view',
+																						)
+																					},
+																				)
+																	  }
+															}
 															onDelete={
 																isTemp
 																	? undefined
@@ -464,13 +577,13 @@ export const Dashboard = () => {
 																			)
 																				.then(
 																					() =>
-																						message.success(
+																						toast.success(
 																							'Metric view deleted',
 																						),
 																				)
 																				.catch(
 																					() =>
-																						message.error(
+																						toast.error(
 																							'Failed to delete metric view',
 																						),
 																				)
