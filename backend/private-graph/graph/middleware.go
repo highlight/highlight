@@ -5,15 +5,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"net/http"
 	"strings"
 
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/go-oauth2/oauth2/v4"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/oauth"
+	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/util"
 	log "github.com/sirupsen/logrus"
 )
@@ -34,8 +35,7 @@ const (
 	Simple   AuthMode = "Simple"
 	Firebase AuthMode = "Firebase"
 	Password AuthMode = "Password"
-	LDAP     AuthMode = "LDAP"
-	SAML     AuthMode = "SAML"
+	OAuth    AuthMode = "OAuth 2.0"
 )
 
 func GetEnvAuthMode() AuthMode {
@@ -48,7 +48,7 @@ func GetEnvAuthMode() AuthMode {
 	return Firebase
 }
 
-func SetupAuthClient(ctx context.Context, authMode AuthMode, oauthServer *oauth.Server, wsTokenHandler APITokenHandler) {
+func SetupAuthClient(ctx context.Context, store *store.Store, authMode AuthMode, oauthServer *oauth.Server, wsTokenHandler APITokenHandler) {
 	OAuthServer = oauthServer
 	workspaceTokenHandler = wsTokenHandler
 	if authMode == Firebase {
@@ -57,10 +57,8 @@ func SetupAuthClient(ctx context.Context, authMode AuthMode, oauthServer *oauth.
 		AuthClient = &SimpleAuthClient{}
 	} else if authMode == Password {
 		AuthClient = &PasswordAuthClient{}
-	} else if authMode == LDAP {
-		AuthClient = NewLDAPClient(ctx)
-	} else if authMode == SAML {
-		AuthClient = NewSAMLClient(ctx)
+	} else if authMode == OAuth {
+		AuthClient = NewOAuthClient(ctx, store)
 	} else {
 		log.WithContext(ctx).Fatalf("private graph auth client configured with unknown auth mode")
 	}
