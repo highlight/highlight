@@ -292,10 +292,6 @@ func (r *Resolver) isDemoProject(ctx context.Context, project_id int) bool {
 	return project_id == r.demoProjectID(ctx)
 }
 
-func (r *Resolver) isDemoWorkspace(workspace_id int) bool {
-	return workspace_id == 0
-}
-
 func (r *Resolver) demoProjectID(ctx context.Context) int {
 	demoProjectString := os.Getenv("DEMO_PROJECT_ID")
 
@@ -315,9 +311,9 @@ func (r *Resolver) demoProjectID(ctx context.Context) int {
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
 
-// isAdminInProjectOrDemoProject should be used for actions that you want admins in all projects
+// isUserInProjectOrDemoProject should be used for actions that you want admins in all projects
 // and laymen in the demo project to have access to.
-func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id int) (*model.Project, error) {
+func (r *Resolver) isUserInProjectOrDemoProject(ctx context.Context, project_id int) (*model.Project, error) {
 	authSpan, ctx := util.StartSpanFromContext(ctx, "isAdminInProjectOrDemoProject", util.ResourceName("resolver.internal.auth"))
 	log.WithContext(ctx).WithField("project_id", project_id).Info("checking if admin is in project or demo workspace")
 	defer authSpan.Finish()
@@ -334,37 +330,12 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 			return nil, e.Wrap(err, "error querying demo project")
 		}
 	} else {
-		project, err = r.isAdminInProject(ctx, project_id)
+		project, err = r.isUserInProject(ctx, project_id)
 		if err != nil {
 			return nil, err
 		}
 	}
 	return project, nil
-}
-
-func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, workspace_id int) (*model.Workspace, error) {
-	authSpan, ctx := util.StartSpanFromContext(ctx, "isAdminInWorkspaceOrDemoWorkspace", util.ResourceName("resolver.internal.auth"))
-	log.WithContext(ctx).WithField("workspace_id", workspace_id).Info("checking if admin is in workspace or demo workspace")
-	defer authSpan.Finish()
-	start := time.Now()
-	defer func() {
-		highlight.RecordMetric(
-			ctx, "resolver.internal.auth.isAdminInWorkspaceOrDemoWorkspace", time.Since(start).Seconds(),
-		)
-	}()
-	var workspace *model.Workspace
-	var err error
-	if r.isDemoWorkspace(workspace_id) {
-		if err = r.DB.WithContext(ctx).Model(&model.Workspace{}).Where("id = ?", 0).Take(&workspace).Error; err != nil {
-			return nil, e.Wrap(err, "error querying demo workspace")
-		}
-	} else {
-		workspace, err = r.isAdminInWorkspace(ctx, workspace_id)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return workspace, nil
 }
 
 func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
@@ -388,17 +359,21 @@ func (r *Resolver) GetAWSMarketPlaceWorkspace(ctx context.Context, workspaceID i
 	return &workspace, nil
 }
 
-func (r *Resolver) GetAdminRole(ctx context.Context, adminID int, workspaceID int) (string, error) {
+func (r *Resolver) getAdminRole(ctx context.Context, adminID int, workspaceID int) (string, []int, error) {
 	var workspaceAdmin model.WorkspaceAdmin
 	if err := r.DB.WithContext(ctx).Where(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).Take(&workspaceAdmin).Error; err != nil {
-		return "", e.Wrap(err, "error querying workspace_admin")
+		return "", nil, e.Wrap(err, "error querying workspace_admin")
 	}
 	if workspaceAdmin.Role == nil || *workspaceAdmin.Role == "" {
 		log.WithContext(ctx).Errorf("workspace_admin admin_id:%d,workspace_id:%d has invalid role", adminID, workspaceID)
-		return "", e.New("workspace_admin has invalid role")
-
+		return "", nil, e.New("workspace_admin has invalid role")
 	}
-	return *workspaceAdmin.Role, nil
+
+	projectIds := lo.Map(workspaceAdmin.ProjectIds, func(in int32, _ int) int {
+		return int(in)
+	})
+
+	return *workspaceAdmin.Role, projectIds, nil
 }
 
 func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, inviteID string) (*int, error) {
@@ -441,6 +416,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 		AdminID:     admin.ID,
 		WorkspaceID: workspace.ID,
 		Role:        inviteLink.InviteeRole,
+		ProjectIds:  inviteLink.ProjectIds,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "500: error adding admin to association")
 	}
@@ -455,24 +431,8 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 	return &admin.ID, nil
 }
 
-func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, adminID int) (*int, error) {
-	admin, err := r.getCurrentAdmin(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if admin.ID == adminID {
-		return nil, e.New("Admin tried deleting their own association")
-	}
-
-	if err := r.DB.WithContext(ctx).Model(obj).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
-		return nil, e.Wrap(err, "error deleting admin association")
-	}
-
-	return &adminID, nil
-}
-
-func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*model.Workspace, error) {
-	span, ctx := util.StartSpanFromContext(ctx, "isAdminInWorkspace", util.ResourceName("resolver.internal.auth"))
+func (r *Resolver) isUserInWorkspaceReadOnly(ctx context.Context, workspaceID int) (*model.Workspace, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "isUserInWorkspaceReadOnly", util.ResourceName("resolver.internal.auth"))
 	defer span.Finish()
 
 	span.SetAttribute("WorkspaceID", workspaceID)
@@ -489,10 +449,83 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 	span.SetAttribute("AdminID", admin.ID)
 
 	workspace := model.Workspace{}
-	if err := r.DB.Order("name asc").
-		Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).
-		Model(&admin).Association("Workspaces").Find(&workspace); err != nil {
-		return nil, e.Wrap(err, "error getting associated workspaces")
+	if err := r.DB.WithContext(ctx).Model(&model.Workspace{}).Where(`
+		id = ?
+		AND	id IN (
+			SELECT workspace_id
+			FROM workspace_admins wa
+			WHERE wa.admin_id = ?
+		)
+	`, workspaceID, admin.ID).Find(&workspace).Error; err != nil {
+		return nil, e.Wrap(err, "error getting associated projects")
+	}
+
+	if workspaceID != workspace.ID {
+		return nil, AuthorizationError
+	}
+
+	return &model.Workspace{
+		Model: model.Model{
+			ID: workspace.ID,
+		},
+		Name:                        workspace.Name,
+		PlanTier:                    workspace.PlanTier,
+		AllowedAutoJoinEmailOrigins: workspace.AllowedAutoJoinEmailOrigins,
+		SlackWebhookChannel:         workspace.SlackWebhookChannel,
+		RetentionPeriod:             workspace.RetentionPeriod,
+		ErrorsRetentionPeriod:       workspace.ErrorsRetentionPeriod,
+		SessionsMaxCents:            workspace.SessionsMaxCents,
+		ErrorsMaxCents:              workspace.ErrorsMaxCents,
+		LogsMaxCents:                workspace.LogsMaxCents,
+		TracesMaxCents:              workspace.TracesMaxCents,
+		ClearbitEnabled:             workspace.ClearbitEnabled,
+	}, nil
+}
+
+func (r *Resolver) isUserWorkspaceAdmin(ctx context.Context, workspaceID int) (*model.Workspace, error) {
+	workspace, err := r.isUserInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
+		return nil, err
+	}
+
+	return workspace, nil
+}
+
+func (r *Resolver) isUserInWorkspace(ctx context.Context, workspaceID int) (*model.Workspace, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "isUserInWorkspace", util.ResourceName("resolver.internal.auth"))
+	defer span.Finish()
+
+	span.SetAttribute("WorkspaceID", workspaceID)
+
+	if r.isWhitelistedAccount(ctx) {
+		return r.GetWorkspace(workspaceID)
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	span.SetAttribute("AdminID", admin.ID)
+
+	workspace := model.Workspace{}
+	if err := r.DB.WithContext(ctx).Model(&model.Workspace{}).Where(`
+		id = ?
+		AND id IN (
+			SELECT workspace_id
+			FROM workspace_admins wa
+			WHERE wa.admin_id = ?
+			AND (
+				wa.role = 'ADMIN' 
+				OR wa.project_ids IS NULL
+			)
+		)
+	`, workspaceID, admin.ID).Find(&workspace).Error; err != nil {
+		return nil, e.Wrap(err, "error getting associated projects")
 	}
 
 	if workspaceID != workspace.ID {
@@ -502,9 +535,9 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 	return &workspace, nil
 }
 
-// isAdminInProject should be used for actions that you only want admins in all projects to have access to.
+// isUserInProject should be used for actions that you only want admins in all projects to have access to.
 // Use this on actions that you don't want laymen in the demo project to have access to.
-func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model.Project, error) {
+func (r *Resolver) isUserInProject(ctx context.Context, project_id int) (*model.Project, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "isAdminInProject", util.ResourceName("resolver.internal.auth"))
 	defer span.Finish()
 
@@ -595,7 +628,7 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 		return nil, false, e.Wrap(err, "error querying error group by secureID: "+errorGroupSecureID)
 	}
 
-	_, err := r.isAdminInProjectOrDemoProject(ctx, eg.ProjectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, eg.ProjectID)
 	if err != nil {
 		return eg, false, err
 	}
@@ -659,7 +692,7 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, sessionSecureId str
 	if session, err = r.Store.GetSessionFromSecureID(ctx, sessionSecureId); err != nil {
 		return nil, false, AuthorizationError
 	}
-	_, err = r.isAdminInProjectOrDemoProject(ctx, session.ProjectID)
+	_, err = r.isUserInProjectOrDemoProject(ctx, session.ProjectID)
 	if err != nil {
 		return session, false, err
 	}
@@ -707,7 +740,7 @@ func (r *Resolver) isAdminSavedSegmentOwner(ctx context.Context, segment_id int)
 	if err := r.DB.WithContext(ctx).Where("id = ?", segment_id).Take(&segment).Error; err != nil {
 		return nil, err
 	}
-	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -1229,7 +1262,7 @@ func (r *Resolver) validateAdminRole(ctx context.Context, workspaceID int) error
 		return err
 	}
 
-	role, err := r.GetAdminRole(ctx, admin.ID, workspaceID)
+	role, _, err := r.getAdminRole(ctx, admin.ID, workspaceID)
 	if err != nil || role != model.AdminRole.ADMIN {
 		return AuthorizationError
 	}
@@ -1644,7 +1677,7 @@ func (r *Resolver) ProjectJWTHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	_, err = r.isAdminInProjectOrDemoProject(ctx, projectId)
+	_, err = r.isUserInProjectOrDemoProject(ctx, projectId)
 	if err != nil {
 		log.WithContext(ctx).Error(err)
 		http.Error(w, "", http.StatusForbidden)
@@ -1826,12 +1859,19 @@ func (r *Resolver) AWSMPCallback(ctx context.Context) func(http.ResponseWriter, 
 	}
 }
 
-func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string, shouldExpire bool) *model.WorkspaceInviteLink {
+func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string, shouldExpire bool, projectIds []int) *model.WorkspaceInviteLink {
 	// Unit is days.
 	EXPIRATION_DATE := 30
 	expirationDate := time.Now().UTC().AddDate(0, 0, EXPIRATION_DATE)
 
 	secret, _ := r.GenerateRandomStringURLSafe(16)
+
+	idsToSave := lo.Map(projectIds, func(p int, _ int) int32 {
+		return int32(p)
+	})
+	if len(idsToSave) == 0 {
+		idsToSave = nil
+	}
 
 	newInviteLink := &model.WorkspaceInviteLink{
 		WorkspaceID:    &workspaceID,
@@ -1839,6 +1879,7 @@ func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string,
 		InviteeRole:    &role,
 		ExpirationDate: &expirationDate,
 		Secret:         &secret,
+		ProjectIds:     idsToSave,
 	}
 
 	if !shouldExpire {

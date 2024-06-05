@@ -524,7 +524,6 @@ type AllProjectSettings {
 	verbose_id: String!
 	name: String!
 	billing_email: String
-	secret: String
 	workspace_id: ID!
 	excluded_users: StringArray
 	error_filters: StringArray
@@ -547,6 +546,7 @@ type AllWorkspaceSettings {
 	enable_ingest_sampling: Boolean!
 	enable_data_deletion: Boolean!
 	enable_grafana_dashboard: Boolean!
+	enable_project_level_access: Boolean!
 }
 
 type Account {
@@ -595,7 +595,6 @@ type Workspace {
 	name: String!
 	slack_webhook_channel: String
 	slack_channels: String
-	secret: String
 	projects: [Project]!
 	plan_tier: String!
 	unlimited_members: Boolean!
@@ -1364,8 +1363,10 @@ type Admin {
 }
 
 type WorkspaceAdminRole {
+	workspaceId: ID!
 	admin: Admin!
 	role: String!
+	projectIds: [ID!]!
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
@@ -2430,6 +2431,7 @@ type Mutation {
 		workspace_id: ID!
 		email: String!
 		role: String!
+		projectIds: [ID!]!
 	): String
 	addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
 	deleteInviteLinkFromWorkspace(
@@ -2445,8 +2447,12 @@ type Mutation {
 		workspace_id: ID!
 		admin_id: ID!
 		new_role: String!
-	): Boolean!
-	deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
+	): WorkspaceAdminRole!
+	changeProjectMembership(
+		workspace_id: ID!
+		admin_id: ID!
+		project_ids: [ID!]!
+	): WorkspaceAdminRole!
 	deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
 	emailSignup(email: String!): String!
 	createSavedSegment(

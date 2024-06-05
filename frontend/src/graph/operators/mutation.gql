@@ -89,11 +89,33 @@ mutation ChangeAdminRole(
 		workspace_id: $workspace_id
 		admin_id: $admin_id
 		new_role: $new_role
-	)
+	) {
+		workspaceId
+		admin {
+			id
+		}
+		role
+		projectIds
+	}
 }
 
-mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
-	deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
+mutation ChangeProjectMembership(
+	$workspace_id: ID!
+	$admin_id: ID!
+	$project_ids: [ID!]!
+) {
+	changeProjectMembership(
+		workspace_id: $workspace_id
+		admin_id: $admin_id
+		project_ids: $project_ids
+	) {
+		workspaceId
+		admin {
+			id
+		}
+		role
+		projectIds
+	}
 }
 
 mutation DeleteAdminFromWorkspace($workspace_id: ID!, $admin_id: ID!) {
