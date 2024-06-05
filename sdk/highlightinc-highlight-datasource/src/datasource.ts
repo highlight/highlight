@@ -1,6 +1,6 @@
 import { CoreApp, DataSourceInstanceSettings, ScopedVars } from '@grafana/data';
 
-import { HighlightDataSourceOptions, HighlightQuery, Table } from './types';
+import { HighlightDataSourceOptions, HighlightQuery, HighlightVariableQuery, Table } from './types';
 import { DataSourceWithBackend, getTemplateSrv } from '@grafana/runtime';
 
 export const tableOptions: { value: Table; label: string }[] = [
@@ -31,6 +31,21 @@ export const metricOptions: { value: string; label: string; tables: Table[] }[] 
   { value: 'None', label: 'None', tables: ['traces', 'logs', 'errors', 'sessions'] },
 ];
 
+const variableFormatter = (value: string | string[]): string => {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (value.length < 2) {
+    return value[0];
+  }
+
+  const values = value.reduce((acc, v) => {
+    return acc + (acc.length > 0 ? ' OR ' : '') + v;
+  }, '');
+  return `(${values})`;
+};
+
 export class DataSource extends DataSourceWithBackend<HighlightQuery, HighlightDataSourceOptions> {
   url?: string;
   projectID?: number;
@@ -44,7 +59,7 @@ export class DataSource extends DataSourceWithBackend<HighlightQuery, HighlightD
   applyTemplateVariables(query: HighlightQuery, scopedVars: ScopedVars): HighlightQuery {
     const interpolatedQuery: HighlightQuery = {
       ...query,
-      queryText: getTemplateSrv().replace(query.queryText, scopedVars),
+      queryText: getTemplateSrv().replace(query.queryText, scopedVars, variableFormatter),
     };
 
     return interpolatedQuery;
@@ -62,5 +77,14 @@ export class DataSource extends DataSourceWithBackend<HighlightQuery, HighlightD
       limitAggregator: metricOptions[0].value,
       limitColumn: columnOptions[0].value,
     };
+  }
+
+  async metricFindQuery(query: HighlightVariableQuery, options?: any) {
+    if (!query.table || !query.key) {
+      return [];
+    }
+
+    const result: string[] = await this.getResource(`${query.table}-values`, { query: query.key });
+    return result.map((r) => ({ text: r }));
   }
 }

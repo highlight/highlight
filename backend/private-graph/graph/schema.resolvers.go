@@ -843,7 +843,7 @@ func (r *mutationResolver) DeleteProject(ctx context.Context, id int) (*bool, er
 }
 
 // SendAdminWorkspaceInvite is the resolver for the sendAdminWorkspaceInvite field.
-func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error) {
+func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, role string) (*string, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, err
@@ -894,6 +894,8 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 	if err := r.DB.WithContext(ctx).Create(inviteLink).Error; err != nil {
 		return nil, e.Wrap(err, "error creating new invite link")
 	}
+
+	baseURL := os.Getenv("REACT_APP_FRONTEND_URI")
 
 	inviteLinkUrl := baseURL + "/w/" + strconv.Itoa(workspaceID) + "/invite/" + *inviteLink.Secret
 	return r.SendAdminInviteImpl(*admin.Name, *workspace.Name, inviteLinkUrl, email)
@@ -5207,15 +5209,15 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string, useClic
 	if err != nil {
 		return nil, err
 	}
-	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, eg); err != nil {
-		return nil, err
-	}
 	retentionDate, err := r.GetProjectRetentionDate(eg.ProjectID)
 	if err != nil {
 		return nil, err
 	}
 	if eg.UpdatedAt.Before(retentionDate) {
 		return nil, e.New("no new error instances after the workspace's retention date")
+	}
+	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
+		return nil, err
 	}
 	return eg, err
 }

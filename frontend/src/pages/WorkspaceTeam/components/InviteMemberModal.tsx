@@ -67,7 +67,6 @@ function InviteMemberModal({
 			variables: {
 				workspace_id: workspaceId!,
 				email,
-				base_url: window.location.origin,
 				role: newAdminRole,
 			},
 		}).then(() => {

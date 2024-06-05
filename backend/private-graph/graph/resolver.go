@@ -608,7 +608,7 @@ func (r *Resolver) loadErrorGroupFrequenciesClickhouse(ctx context.Context, eg *
 	if eg.FirstOccurrence, eg.LastOccurrence, err = r.ClickhouseClient.QueryErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID); err != nil {
 		return e.Wrap(err, "error querying error group occurrences")
 	}
-	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, 30); err != nil {
+	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, 7); err != nil {
 		return e.Wrap(err, "error querying error group frequencies")
 	}
 	return nil

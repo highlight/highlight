@@ -21,6 +21,7 @@ import React, { useEffect, useMemo, useRef } from 'react'
 import { Helmet } from 'react-helmet'
 import { useQueryParam } from 'use-query-params'
 
+import { DEFAULT_COLUMN_SIZE } from '@/components/CustomColumnPopover'
 import { SearchContext } from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
@@ -40,7 +41,10 @@ import { useSearchTime } from '@/hooks/useSearchTime'
 import { TIMESTAMP_KEY } from '@/pages/Graphing/components/Graph'
 import LogsCount from '@/pages/LogsPage/LogsCount/LogsCount'
 import { LogsOverageCard } from '@/pages/LogsPage/LogsOverageCard/LogsOverageCard'
-import { DEFAULT_LOG_COLUMNS } from '@/pages/LogsPage/LogsTable/CustomColumns/columns'
+import {
+	DEFAULT_LOG_COLUMNS,
+	HIGHLIGHT_STANDARD_COLUMNS,
+} from '@/pages/LogsPage/LogsTable/CustomColumns/columns'
 import analytics from '@/util/analytics'
 
 const LogsPage = () => {
@@ -82,6 +86,41 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		`highlight-logs-table-columns`,
 		DEFAULT_LOG_COLUMNS,
 	)
+	const [windowSize, setWindowSize] = useLocalStorage(
+		'highlight-logs-window-size',
+		window.innerWidth,
+	)
+
+	// track the window size
+	useEffect(() => {
+		if (!!setSelectedColumns) {
+			const handleResize = () => {
+				setWindowSize(window.innerWidth)
+			}
+
+			window.addEventListener('resize', handleResize)
+
+			return () => {
+				window.removeEventListener('resize', handleResize)
+			}
+		}
+	}, [setSelectedColumns, setWindowSize])
+
+	// reset columns when window size changes
+	useEffect(() => {
+		if (!!setSelectedColumns) {
+			const newSelectedColumns = selectedColumns.map((column) => ({
+				...column,
+				size:
+					HIGHLIGHT_STANDARD_COLUMNS[column.id]?.size ??
+					DEFAULT_COLUMN_SIZE,
+			}))
+
+			setSelectedColumns(newSelectedColumns)
+		}
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [windowSize])
 
 	const {
 		startDate,

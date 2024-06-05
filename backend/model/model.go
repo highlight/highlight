@@ -1224,6 +1224,7 @@ type CommentSlackThread struct {
 
 type SessionInterval struct {
 	Model
+	ID              int64  `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
 	SessionSecureID string `gorm:"index" json:"secure_id"`
 	StartTime       time.Time
 	EndTime         time.Time
@@ -1985,13 +1986,11 @@ func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *send
 		Active:      true,
 	}
 	if err := db.Create(&history).Error; err != nil {
-		if err != nil {
-			var pgErr *pgconn.PgError
-			// An active BillingEmailHistory may already exist -
-			// in this case, don't send users another email.
-			if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-				return nil
-			}
+		var pgErr *pgconn.PgError
+		// An active BillingEmailHistory may already exist -
+		// in this case, don't send users another email.
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			return nil
 		}
 		return e.Wrap(err, "error creating BillingEmailHistory")
 	}
