@@ -29,7 +29,6 @@ import (
 
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 )
@@ -453,7 +452,7 @@ type assetValue struct {
 
 // If a url was already created for this resource in the past day, return that
 // Else, fetch the resource, generate a new url for it, and save to S3
-func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, store *store.Store, retentionPeriod modelInputs.RetentionPeriod) (map[string]string, error) {
+func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, store *store.Store, retentionPeriod modelInputs.RetentionPeriod) (map[string]string, error) {
 	// maps a long url to the minimal version of the url. ie https://foo.com/example?key=value&signature=bar -> https://foo.com/example?key=value
 	urlMap := make(map[string]assetValue)
 	for _, u := range lo.Uniq(originalUrls) {
@@ -573,7 +572,7 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 					hashVal = strings.ReplaceAll(hashVal, "+", "_")
 					hashVal = strings.ReplaceAll(hashVal, "=", "~")
 					contentType := response.Header.Get("Content-Type")
-					err = s.UploadAsset(ctx, strconv.Itoa(projectId)+"/"+hashVal, contentType, file, retentionPeriod)
+					err = store.StorageClient.UploadAsset(ctx, strconv.Itoa(projectId)+"/"+hashVal, contentType, file, retentionPeriod)
 					if err != nil {
 						return errors.Wrap(err, "error uploading asset")
 					}
@@ -692,9 +691,9 @@ lexerLoop:
 	return
 }
 
-func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, s3 storage.Client, store *store.Store, retentionPeriod modelInputs.RetentionPeriod) error {
+func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, store *store.Store, retentionPeriod modelInputs.RetentionPeriod) error {
 	urls := getAssetUrlsFromTree(ctx, projectId, s.data, map[string]string{})
-	replacements, err := getOrCreateUrls(ctx, projectId, urls, s3, store, retentionPeriod)
+	replacements, err := getOrCreateUrls(ctx, projectId, urls, store, retentionPeriod)
 	if err != nil {
 		return errors.Wrap(err, "error creating replacement urls")
 	}

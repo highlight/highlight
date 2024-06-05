@@ -3,6 +3,7 @@ package parse
 import (
 	"context"
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/store"
 	"os"
 	"strings"
 	"testing"
@@ -240,7 +241,7 @@ func TestSnapshot_ReplaceAssets(t *testing.T) {
 		if storageClient, err = storage.NewFSClient(ctx, "https://test.highlight.io", "/tmp/test"); err != nil {
 			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
 		}
-		if err := snapshot.ReplaceAssets(ctx, 1, storageClient, DB, redis.NewClient(), modelInputs.RetentionPeriodThreeMonths); err != nil {
+		if err := snapshot.ReplaceAssets(ctx, 1, store.NewStore(DB, redis.NewClient(), nil, storageClient, nil, nil), modelInputs.RetentionPeriodThreeMonths); err != nil {
 			t.Fatalf("failed to replace assets %+v", err)
 		}
 
@@ -314,7 +315,7 @@ func TestSnapshot_ReplaceAssets_Capacitor(t *testing.T) {
 		if storageClient, err = storage.NewFSClient(ctx, "https://test.highlight.io", "/tmp/test"); err != nil {
 			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
 		}
-		if err := snapshot.ReplaceAssets(ctx, 33914, storageClient, DB, redis.NewClient(), modelInputs.RetentionPeriodThreeMonths); err != nil {
+		if err := snapshot.ReplaceAssets(ctx, 33914, store.NewStore(DB, redis.NewClient(), nil, storageClient, nil, nil), modelInputs.RetentionPeriodThreeMonths); err != nil {
 			t.Fatalf("failed to replace assets %+v", err)
 		}
 
