@@ -864,7 +864,11 @@ export const usePlayer = (
 			sessionIntervals,
 			timelineIndicatorEvents,
 		})
-		if (state.replayerState <= ReplayerState.Loading) {
+		if (
+			[ReplayerState.Empty, ReplayerState.Loading].includes(
+				state.replayerState,
+			)
+		) {
 			pause(0).then()
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
