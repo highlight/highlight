@@ -80,13 +80,11 @@ export class DataSource extends DataSourceWithBackend<HighlightQuery, HighlightD
   }
 
   async metricFindQuery(query: HighlightVariableQuery, options?: any) {
-    if (!query.table || !query.key) {
+    if (!query.resource || !query.key) {
       return [];
     }
 
-    console.log('metricFindQuery', query);
-
-    const result: string[] = await this.getResource(`${query.table}-key-values`, { query: query.key });
+    const result: string[] = await this.getResource(`${query.resource}-key-values`, { query: query.key });
     return result.map((r) => ({ text: r }));
   }
 }

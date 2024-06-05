@@ -34,6 +34,6 @@ export interface HighlightSecureJsonData {
 }
 
 export interface HighlightVariableQuery {
-  table?: Table;
+  resource?: Table;
   key?: string;
 }
