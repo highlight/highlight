@@ -59,8 +59,6 @@ export const PanelHeader: React.FC<Props> = ({ children, path }) => {
 				overflow="hidden"
 				justifyContent="flex-end"
 			>
-				<Pagination />
-
 				{children}
 			</Stack>
 
