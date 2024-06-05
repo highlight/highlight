@@ -28,13 +28,14 @@ export const useGetSessions = ({
 	disablePolling?: boolean
 	sortDesc: boolean
 }) => {
+	// Using these rounded dates to ensure the cache is hit on initial load. The
+	// query will still be sent and the data in the cache will be updated.
 	const roundedStartDate = moment(startDate)
 		.startOf('minute')
-		.subtract(moment(startDate).minute() % 5, 'minutes')
-
+		.subtract(moment(startDate).minute() % 15, 'minutes')
 	const roudnedEndDate = moment(endDate)
 		.startOf('minute')
-		.subtract(moment(endDate).minute() % 5, 'minutes')
+		.subtract(moment(endDate).minute() % 15, 'minutes')
 
 	const { data, loading, error, refetch } = useGetSessionsQuery({
 		variables: {
