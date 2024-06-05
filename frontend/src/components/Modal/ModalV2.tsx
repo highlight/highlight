@@ -26,7 +26,7 @@ export const Modal: React.FC<
 		innerWidth?: Pick<Parameters<typeof sprinkles>[0], 'width'>['width']
 		innerHeight?: Pick<Parameters<typeof sprinkles>[0], 'height'>['height']
 		maxHeight?: string
-		title?: string
+		title?: React.ReactNode
 		footer?: React.ReactNode
 	}>
 > = ({
