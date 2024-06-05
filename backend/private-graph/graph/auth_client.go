@@ -5,19 +5,26 @@ import (
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 	"fmt"
-	"github.com/go-ldap/ldap/v3"
+	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/go-redis/cache/v9"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/store"
+	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
-	saml2 "github.com/russellhaering/gosaml2"
 	"github.com/samber/lo"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
+	"net/http"
 	"strings"
 	"time"
 )
+
+const stateCookieName = "state"
 
 type Client interface {
 	updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error)
@@ -30,16 +37,14 @@ type SimpleAuthClient struct{}
 type PasswordAuthClient struct{}
 
 type FirebaseAuthClient struct {
-	AuthClient *auth.Client
+	authClient *auth.Client
 }
 
-type LDAPAuthClient struct {
-	LDAPClient ldap.Client
-}
-
-// TODO(vkorolik) use oauth2 instead
-type SAMLAuthClient struct {
-	SAMClient *saml2.SAMLServiceProvider
+type OAuthAuthClient struct {
+	store        *store.Store
+	clientID     string
+	oidcProvider *oidc.Provider
+	oauthConfig  *oauth2.Config
 }
 
 func (c *PasswordAuthClient) GetUser(_ context.Context, uid string) (*auth.UserRecord, error) {
@@ -49,19 +54,24 @@ func (c *PasswordAuthClient) GetUser(_ context.Context, uid string) (*auth.UserR
 	}, nil
 }
 
-func (c *PasswordAuthClient) PerformLogin(ctx context.Context, credentials LoginCredentials) (map[string]interface{}, error) {
-	if AdminPassword == "" {
-		return nil, e.New("Password auth mode not properly configured.")
+func (c *PasswordAuthClient) PerformLogin(_ context.Context, credentials LoginCredentials) (map[string]interface{}, error) {
+	if adminPassword == "" {
+		return nil, e.New(passwordLoginConfigurationError)
 	}
-	if AdminPassword != credentials.Password {
-		return nil, e.New(LoginError)
+	if adminPassword != credentials.Password {
+		return nil, e.New(loginError)
+	}
+
+	_, err := mail.ParseEmail(credentials.Email)
+	if err != nil {
+		return nil, err
 	}
 
 	user := GetPasswordAuthUser(credentials.Email)
 
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true
-	atClaims["exp"] = time.Now().Add(AdminPasswordTokenDuration).Unix()
+	atClaims["exp"] = time.Now().Add(adminPasswordTokenDuration).Unix()
 	atClaims["email"] = user.Email
 	atClaims["uid"] = user.Email
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
@@ -90,7 +100,7 @@ func (c *SimpleAuthClient) GetUser(_ context.Context, uid string) (*auth.UserRec
 
 func (c *SimpleAuthClient) PerformLogin(_ context.Context, _ LoginCredentials) (map[string]interface{}, error) {
 	// SimpleAuthClient does not support login
-	return nil, e.New(LoginFlowError)
+	return nil, e.New(loginFlowError)
 }
 
 func (c *SimpleAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
@@ -100,24 +110,24 @@ func (c *SimpleAuthClient) updateContextWithAuthenticatedUser(ctx context.Contex
 }
 
 func (c *FirebaseAuthClient) GetUser(ctx context.Context, uid string) (*auth.UserRecord, error) {
-	return c.AuthClient.GetUser(ctx, uid)
+	return c.authClient.GetUser(ctx, uid)
 }
 
 func (c *FirebaseAuthClient) PerformLogin(_ context.Context, _ LoginCredentials) (map[string]interface{}, error) {
 	// FirebaseAuthClient does not support login as the login flow happens client-side
-	return nil, e.New(LoginFlowError)
+	return nil, e.New(loginFlowError)
 }
 
 func (c *FirebaseAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
 	var uid string
 	email := ""
 	if token != "" {
-		t, err := c.AuthClient.VerifyIDToken(context.Background(), token)
+		t, err := c.authClient.VerifyIDToken(context.Background(), token)
 		if err != nil {
 			return ctx, e.Wrap(err, "invalid id token")
 		}
 		uid = t.UID
-		if userRecord, err := c.AuthClient.GetUser(context.Background(), uid); err == nil {
+		if userRecord, err := c.authClient.GetUser(context.Background(), uid); err == nil {
 			email = userRecord.Email
 
 			// This is to prevent attackers from impersonating Highlight staff.
@@ -132,63 +142,140 @@ func (c *FirebaseAuthClient) updateContextWithAuthenticatedUser(ctx context.Cont
 	return ctx, nil
 }
 
-func (c *LDAPAuthClient) GetUser(_ context.Context, uid string) (*auth.UserRecord, error) {
-	searchRequest := ldap.NewSearchRequest(
-		"dc=example,dc=com", // The base dn to search
-		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		"(&(objectClass=organizationalPerson))", // The filter to apply
-		[]string{"dn", "cn"},                    // A list attributes to retrieve
-		nil,
-	)
-
-	sr, err := c.LDAPClient.Search(searchRequest)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, entry := range sr.Entries {
-		fmt.Printf("%s: %v\n", entry.DN, entry.GetAttributeValue("cn"))
-	}
-
-	// TODO(vkorolik)
-
-	atClaims := jwt.MapClaims{}
-	atClaims["authorized"] = true
-	atClaims["exp"] = time.Now().Add(AdminPasswordTokenDuration).Unix()
-	atClaims["email"] = user.Email
-	atClaims["uid"] = user.Email
-	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
-
-	token, err := at.SignedString([]byte(JwtAccessSecret))
+func (c *OAuthAuthClient) GetUser(ctx context.Context, uid string) (*auth.UserRecord, error) {
+	userInfo, err := c.getUser(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
 
-	response := make(map[string]interface{})
-	response["token"] = token
-	response["user"] = user
-	return response, nil
-}
+	user := auth.UserInfo{
+		DisplayName: userInfo.Email,
+		UID:         userInfo.Email,
+		Email:       userInfo.Email,
+		PhoneNumber: "+14081234567",
+		PhotoURL:    "https://picsum.photos/200",
+		ProviderID:  c.oidcProvider.UserInfoEndpoint(),
+	}
+	if err := userInfo.Claims(&user); err != nil {
+		return nil, err
+	}
 
-func (c *LDAPAuthClient) PerformLogin(_ context.Context, _ LoginCredentials) (map[string]interface{}, error) {
-	// FirebaseAuthClient does not support login as the login flow happens client-side
-	return nil, e.New(LoginFlowError)
-}
-
-func (c *LDAPAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
-	return updateContextWithJWTToken(ctx, token)
-}
-
-func (c *SAMLAuthClient) GetUser(_ context.Context, uid string) (*auth.UserRecord, error) {
-	// TODO(vkorolik)
 	return &auth.UserRecord{
-		UserInfo:      GetPasswordAuthUser(uid),
-		EmailVerified: true,
+		UserInfo:      &user,
+		EmailVerified: userInfo.EmailVerified,
 	}, nil
 }
 
-func (c *SAMLAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
-	return updateContextWithJWTToken(ctx, token)
+func (c *OAuthAuthClient) PerformLogin(_ context.Context, _ LoginCredentials) (map[string]interface{}, error) {
+	return nil, e.New(loginFlowError)
+}
+
+func (c *OAuthAuthClient) setCallbackCookie(w http.ResponseWriter, r *http.Request, name, value string) {
+	cookie := &http.Cookie{
+		Name:     name,
+		Value:    value,
+		MaxAge:   int(time.Hour.Seconds()),
+		Secure:   r.TLS != nil,
+		HttpOnly: true,
+	}
+	http.SetCookie(w, cookie)
+}
+
+func (c *OAuthAuthClient) handleRedirect(w http.ResponseWriter, r *http.Request) {
+	state := util.GenerateRandomString(32)
+	c.setCallbackCookie(w, r, stateCookieName, state)
+	http.Redirect(w, r, c.oauthConfig.AuthCodeURL(state), http.StatusFound)
+}
+
+func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	// validate state cookie
+	state, err := r.Cookie(stateCookieName)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to retrieve state cookie")
+		http.Error(w, "state not found", http.StatusBadRequest)
+		return
+	}
+	if r.URL.Query().Get("state") != state.Value {
+		log.WithContext(ctx).WithError(err).Error("failed to validate oauth state")
+		http.Error(w, "state did not match", http.StatusBadRequest)
+		return
+	}
+
+	// Verify state and errors.
+	oauth2Token, err := c.oauthConfig.Exchange(ctx, r.URL.Query().Get("code"))
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to exchange oauth code")
+		http.Error(w, oauthCallbackError, http.StatusBadRequest)
+		return
+	}
+
+	userInfo, err := c.oidcProvider.UserInfo(ctx, oauth2.StaticTokenSource(oauth2Token))
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to get user info")
+		http.Error(w, oauthCallbackError, http.StatusBadRequest)
+		return
+	}
+
+	if err := c.storeUser(ctx, userInfo); err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to store user")
+		http.Error(w, oauthCallbackError, http.StatusBadRequest)
+		return
+	}
+
+	// Extract the ID Token from OAuth2 token.
+	rawIDToken, ok := oauth2Token.Extra("id_token").(string)
+	if !ok {
+		log.WithContext(ctx).WithError(err).Error("failed to extract id_token")
+		http.Error(w, oauthCallbackError, http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte(rawIDToken))
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to write back token response")
+	}
+
+}
+
+func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
+	// Parse and verify ID Token payload.
+	verifier := c.oidcProvider.Verifier(&oidc.Config{ClientID: c.clientID})
+	idToken, err := verifier.Verify(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	// Extract claims
+	var claims oidc.UserInfo
+	if err := idToken.Claims(&claims); err != nil {
+		return nil, err
+	}
+
+	ctx = context.WithValue(ctx, model.ContextKeys.UID, claims.Email)
+	ctx = context.WithValue(ctx, model.ContextKeys.Email, claims.Email)
+	return ctx, nil
+}
+
+func (c *OAuthAuthClient) storeUser(ctx context.Context, userInfo *oidc.UserInfo) error {
+	if err := c.store.Redis.Cache.Set(&cache.Item{
+		Ctx:   ctx,
+		Key:   fmt.Sprintf(`user-email-%s`, userInfo.Email),
+		Value: userInfo,
+		TTL:   time.Hour,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *OAuthAuthClient) getUser(ctx context.Context, email string) (*oidc.UserInfo, error) {
+	var userInfo oidc.UserInfo
+	if err := c.store.Redis.Cache.Get(ctx, email, userInfo); err != nil {
+		return nil, err
+	}
+	return &userInfo, nil
 }
 
 func NewFirebaseClient(ctx context.Context) *FirebaseAuthClient {
@@ -212,23 +299,34 @@ func NewFirebaseClient(ctx context.Context) *FirebaseAuthClient {
 		log.WithContext(ctx).Errorf("error creating firebase client: %v", err)
 		return nil
 	}
-	return &FirebaseAuthClient{AuthClient: client}
+	return &FirebaseAuthClient{authClient: client}
 }
 
-func NewLDAPClient(ctx context.Context) *LDAPAuthClient {
-	l, err := ldap.DialURL(fmt.Sprintf("%s:%d", "ldap.example.com", 389))
+func NewOAuthClient(ctx context.Context, store *store.Store) *OAuthAuthClient {
+	providerUrl := env.Config.OAuthProviderUrl
+	clientID := env.Config.OAuthClientID
+	clientSecret := env.Config.OAuthClientSecret
+	redirectURL := env.Config.OAuthRedirectUrl
+
+	provider, err := oidc.NewProvider(ctx, providerUrl)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Fatalf("failed to connect to ldap server")
+		log.WithContext(ctx).WithError(err).Fatalf("failed to connect to oauth oidc provider")
 	}
-	defer l.Close()
 
-	return &LDAPAuthClient{
-		LDAPClient: l,
+	// Configure an OpenID Connect aware OAuth2 client.
+	oauth2Config := oauth2.Config{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		RedirectURL:  redirectURL,
+
+		// Discovery returns the OAuth2 endpoints.
+		Endpoint: provider.Endpoint(),
+
+		// "openid" is a required scope for OpenID Connect flows.
+		Scopes: []string{oidc.ScopeOpenID, "profile", "email"},
 	}
-}
 
-func NewSAMLClient(ctx context.Context) *SAMLAuthClient {
-	return &SAMLAuthClient{}
+	return &OAuthAuthClient{store, clientID, provider, &oauth2Config}
 }
 
 func authenticateToken(tokenString string) (jwt.MapClaims, error) {
