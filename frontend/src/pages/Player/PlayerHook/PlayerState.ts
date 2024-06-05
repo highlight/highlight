@@ -748,9 +748,6 @@ const processSessionMetadata = (
 		return s
 	}
 
-	if (s.replayerState < ReplayerState.Playing) {
-		s.replayerState = ReplayerState.Paused
-	}
 	if (s.onSessionPayloadLoadedPayload.sessionPayload?.errors) {
 		s.errors = s.onSessionPayloadLoadedPayload.sessionPayload
 			.errors as ErrorObject[]

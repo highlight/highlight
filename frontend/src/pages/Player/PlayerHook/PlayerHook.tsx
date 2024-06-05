@@ -59,6 +59,7 @@ import usePlayerConfiguration from './utils/usePlayerConfiguration'
 
 export const usePlayer = (
 	playerRef: RefObject<HTMLDivElement>,
+	autoPlay = false,
 ): ReplayerContextInterface => {
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const { sessionSecureId, projectId } = useSessionParams()
@@ -1007,7 +1008,7 @@ export const usePlayer = (
 	useEffect(() => {
 		if (
 			state.eventsLoaded &&
-			autoPlayVideo &&
+			(autoPlayVideo || autoPlay) &&
 			state.replayerState !== ReplayerState.Playing
 		) {
 			log('PlayerHook.tsx', 'Auto Playing')
