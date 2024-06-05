@@ -40,6 +40,7 @@ require (
 	github.com/dchest/uniuri v1.2.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/go-chi/chi v4.1.2+incompatible
+	github.com/go-ldap/ldap/v3 v3.4.8
 	github.com/go-oauth2/oauth2/v4 v4.5.2
 	github.com/go-redis/cache/v9 v9.0.0
 	github.com/go-redsync/redsync/v4 v4.12.1
@@ -73,6 +74,7 @@ require (
 	github.com/redis/go-redis/v9 v9.5.1
 	github.com/rs/cors v1.10.1
 	github.com/rs/xid v1.5.0
+	github.com/russellhaering/gosaml2 v0.9.1
 	github.com/samber/lo v1.39.0
 	github.com/sashabaranov/go-openai v1.25.0
 	github.com/segmentio/kafka-go v0.4.47
@@ -104,6 +106,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/iam v1.1.8 // indirect
 	cloud.google.com/go/longrunning v0.5.7 // indirect
+	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
 	github.com/ClickHouse/ch-go v0.61.5 // indirect
 	github.com/DataDog/datadog-go/v5 v5.5.0 // indirect
 	github.com/DataDog/gostackparse v0.7.0 // indirect
@@ -116,6 +119,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.4 // indirect
+	github.com/beevik/etree v1.1.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
@@ -124,6 +128,7 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gammazero/deque v0.1.0 // indirect
+	github.com/go-asn1-ber/asn1-ber v1.5.5 // indirect
 	github.com/go-chi/chi/v5 v5.0.12 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.7.1 // indirect
@@ -143,6 +148,7 @@ require (
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
+	github.com/jonboulle/clockwork v0.3.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.2 // indirect
@@ -151,6 +157,7 @@ require (
 	github.com/lestrrat-go/jwx v1.2.29 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/marconi/go-resthooks v0.0.0-20190225103922-ad217f832acb // indirect
+	github.com/mattermost/xml-roundtrip-validator v0.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -160,6 +167,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052 // indirect
 	github.com/rs/zerolog v1.32.0 // indirect
+	github.com/russellhaering/goxmldsig v1.3.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sosodev/duration v1.2.0 // indirect
