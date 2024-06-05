@@ -84,7 +84,7 @@ export class DataSource extends DataSourceWithBackend<HighlightQuery, HighlightD
       return [];
     }
 
-    const result: string[] = await this.getResource(`${query.resource}-key-values`, { query: query.key });
+    const result: string[] = await this.getResource(`${query.resource}/values`, { query: query.key });
     return result.map((r) => ({ text: r }));
   }
 }

@@ -56,12 +56,12 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
   };
 
   const loadColumnOptions = async (table: Table | undefined, query: string) => {
-    let keys: TraceKey[] = await datasource.getResource(`${table}-keys`, { query, type: 'Numeric' });
+    let keys: TraceKey[] = await datasource.getResource(`${table}/keys`, { query, type: 'Numeric' });
     return (table === 'traces' ? columnOptions : []).concat(keys.map((k) => ({ value: k.Name, label: k.Name })));
   };
 
   const loadGroupByOptions = async (table: Table | undefined, query: string) => {
-    let keys: TraceKey[] = await datasource.getResource(`${table}-keys`, { query, type: 'String' });
+    let keys: TraceKey[] = await datasource.getResource(`${table}/keys`, { query, type: 'String' });
     return keys.map((k) => ({ value: k.Name, label: k.Name }));
   };
 

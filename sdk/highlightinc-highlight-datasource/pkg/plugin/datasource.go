@@ -16,6 +16,8 @@ import (
 	"github.com/samber/lo"
 	"go.openly.dev/pointy"
 	"golang.org/x/oauth2/clientcredentials"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // Make sure Datasource implements required interfaces. This is important to do
@@ -103,29 +105,37 @@ const (
 	KeyTypeNumeric KeyType = "Numeric"
 )
 
-func getValidKeyQueries() map[string]bool {
+func getValidResources() map[string]bool {
 	return map[string]bool{
-		"traces-keys":   true,
-		"logs-keys":     true,
-		"errors-keys":   true,
-		"sessions-keys": true,
+		"traces":   true,
+		"logs":     true,
+		"errors":   true,
+		"sessions": true,
 	}
 }
 
-func getValidKeyValueQueries() map[string]bool {
+func getValidGraphQLQuery() map[string]bool {
 	return map[string]bool{
-		"traces-key-values":   true,
-		"logs-key-values":     true,
-		"errors-key-values":   true,
-		"sessions-key-values": true,
+		"values": true,
+		"keys":   true,
 	}
 }
 
 func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
-	var validKeyQueries = getValidKeyQueries()
-	var validKeyValueQueries = getValidKeyValueQueries()
+	reqPathParts := strings.Split(req.Path, "/")
+	if len(reqPathParts) != 2 {
+		return sender.Send(&backend.CallResourceResponse{
+			Status: http.StatusNotFound,
+		})
+	}
 
-	if !validKeyQueries[req.Path] && !validKeyValueQueries[req.Path] {
+	resource := reqPathParts[0]
+	graphQLQuery := reqPathParts[1]
+
+	validResources := getValidResources()
+	validGraphQLQuery := getValidGraphQLQuery()
+
+	if !validResources[resource] || !validGraphQLQuery[graphQLQuery] {
 		return sender.Send(&backend.CallResourceResponse{
 			Status: http.StatusNotFound,
 		})
@@ -145,28 +155,32 @@ func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResource
 	queryParams := u.Query()
 	query := queryParams.Get("query")
 
+	caser := cases.Title(language.AmericanEnglish)
+	productType := caser.String(resource)
+
 	vars := map[string]interface{}{
-		"project_id": ID(strconv.Itoa(dataSourceSettings.ProjectId)),
+		"product_type": ProductType(productType),
+		"project_id":   ID(strconv.Itoa(dataSourceSettings.ProjectId)),
 		"date_range": DateRangeRequiredInput{
 			StartDate: time.Now().AddDate(0, -1, 0),
 			EndDate:   time.Now(),
 		},
 	}
 
-	if validKeyQueries[req.Path] {
+	if graphQLQuery == "keys" {
 		keyType := KeyType(queryParams.Get("type"))
 		vars["type"] = &keyType
 		vars["query"] = &query
-	} else if validKeyValueQueries[req.Path] {
+	} else if graphQLQuery == "values" {
 		vars["query"] = query
 	}
 
 	var body []byte
 
-	switch req.Path {
-	case "traces-keys":
+	switch graphQLQuery {
+	case "keys":
 		var q struct {
-			TracesKeys []QueryKey `graphql:"traces_keys(project_id: $project_id, date_range: $date_range, query: $query, type: $type)"`
+			Keys []QueryKey `graphql:"keys(project_id: $project_id, date_range: $date_range, product_type: $product_type, query: $query, type: $type)"`
 		}
 
 		err = d.Client.Query(ctx, &q, vars)
@@ -174,14 +188,13 @@ func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResource
 			return err
 		}
 
-		body, err = json.Marshal(q.TracesKeys)
+		body, err = json.Marshal(q.Keys)
 		if err != nil {
 			return err
 		}
-
-	case "logs-keys":
+	case "values":
 		var q struct {
-			LogsKeys []QueryKey `graphql:"logs_keys(project_id: $project_id, date_range: $date_range, query: $query, type: $type)"`
+			Values []QueryKeyValue `graphql:"key_values(project_id: $project_id, date_range: $date_range, product_type: $product_type, key_name: $query)"`
 		}
 
 		err = d.Client.Query(ctx, &q, vars)
@@ -189,97 +202,7 @@ func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResource
 			return err
 		}
 
-		body, err = json.Marshal(q.LogsKeys)
-		if err != nil {
-			return err
-		}
-
-	case "errors-keys":
-		var q struct {
-			ErrorsKeys []QueryKey `graphql:"errors_keys(project_id: $project_id, date_range: $date_range, query: $query, type: $type)"`
-		}
-
-		err = d.Client.Query(ctx, &q, vars)
-		if err != nil {
-			return err
-		}
-
-		body, err = json.Marshal(q.ErrorsKeys)
-		if err != nil {
-			return err
-		}
-
-	case "sessions-keys":
-		var q struct {
-			SessionsKeys []QueryKey `graphql:"sessions_keys(project_id: $project_id, date_range: $date_range, query: $query, type: $type)"`
-		}
-
-		err = d.Client.Query(ctx, &q, vars)
-		if err != nil {
-			return err
-		}
-
-		body, err = json.Marshal(q.SessionsKeys)
-		if err != nil {
-			return err
-		}
-
-	case "traces-key-values":
-		var q struct {
-			TracesKeyValues []QueryKeyValue `graphql:"traces_key_values(project_id: $project_id, date_range: $date_range, key_name: $query)"`
-		}
-
-		err = d.Client.Query(ctx, &q, vars)
-		if err != nil {
-			return err
-		}
-
-		body, err = json.Marshal(q.TracesKeyValues)
-		if err != nil {
-			return err
-		}
-
-	case "logs-key-values":
-		var q struct {
-			LogsKeyValues []QueryKeyValue `graphql:"logs_key_values(project_id: $project_id, date_range: $date_range, key_name: $query)"`
-		}
-
-		err = d.Client.Query(ctx, &q, vars)
-		if err != nil {
-			return err
-		}
-
-		body, err = json.Marshal(q.LogsKeyValues)
-		if err != nil {
-			return err
-		}
-
-	case "errors-key-values":
-		var q struct {
-			ErrorsKeyValues []QueryKeyValue `graphql:"errors_key_values(project_id: $project_id, date_range: $date_range, key_name: $query)"`
-		}
-
-		err = d.Client.Query(ctx, &q, vars)
-		if err != nil {
-			return err
-		}
-
-		body, err = json.Marshal(q.ErrorsKeyValues)
-		if err != nil {
-			return err
-		}
-
-	case "sessions-key-values":
-		var q struct {
-			SessionsKeyValues []QueryKeyValue `graphql:"sessions_key_values(project_id: $project_id, date_range: $date_range, key_name: $query)"`
-		}
-
-		err = d.Client.Query(ctx, &q, vars)
-		if err != nil {
-			return err
-		}
-
-		body, err = json.Marshal(q.SessionsKeyValues)
+		body, err = json.Marshal(q.Values)
 		if err != nil {
 			return err
 		}
