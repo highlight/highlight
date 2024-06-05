@@ -1,7 +1,7 @@
 import { Box, Stack } from '@highlight-run/ui/components'
 import clsx from 'clsx'
 import { stringify } from 'query-string'
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
 import { RelatedSession } from '@/components/RelatedResources/hooks'
@@ -39,7 +39,7 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 	const { projectId } = useNumericProjectId()
 	const playerRef = useRef<HTMLDivElement>(null)
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
-	const playerContext = usePlayer(playerRef)
+	const playerContext = usePlayer(playerRef, true)
 	const {
 		session,
 		state: replayerState,
@@ -48,7 +48,6 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 		replayer,
 		sessionViewability,
 		setScale,
-		time,
 	} = playerContext
 	const resourcesContext = useResources(session)
 	const toolbarContext = useToolbarItems()
@@ -58,11 +57,10 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 	const { resizeListener, centerColumnResizeListener, controllerWidth } =
 		useResizePlayer(replayer, playerWrapperRef, setScale)
 
-	const path = () => {
+	const path = useMemo(() => {
 		const params = {
 			[PlayerSearchParameters.errorId]: resource.errorId,
 			[PlayerSearchParameters.log]: resource.log,
-			[PlayerSearchParameters.tsAbs]: time,
 		}
 
 		const filteredParams = Object.fromEntries(
@@ -72,7 +70,7 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 		const paramsString = stringify(filteredParams)
 
 		return `/${projectId}/sessions/${resource.secureId}?${paramsString}`
-	}
+	}, [projectId, resource.errorId, resource.log, resource.secureId])
 
 	const showSession = sessionViewability === SessionViewability.VIEWABLE
 
