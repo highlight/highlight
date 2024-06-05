@@ -90,6 +90,8 @@ func TestUpsertServiceWithAttributes(t *testing.T) {
 }
 
 func TestListServicesTraversing(t *testing.T) {
+	ctx := context.TODO()
+
 	defer teardown(t)
 	project := model.Project{}
 	store.DB.Create(&project)
@@ -110,7 +112,7 @@ func TestListServicesTraversing(t *testing.T) {
 	}
 
 	// Get first page
-	connection, err := store.ListServices(project, ListServicesParams{})
+	connection, err := store.ListServices(ctx, project, ListServicesParams{})
 	assert.NoError(t, err)
 
 	assert.Len(t, connection.Edges, 10)
@@ -126,7 +128,7 @@ func TestListServicesTraversing(t *testing.T) {
 	}, connection.PageInfo)
 
 	// Get second page using `After` cursor
-	connection, err = store.ListServices(project, ListServicesParams{After: ptr.String(servicesIds[11])})
+	connection, err = store.ListServices(ctx, project, ListServicesParams{After: ptr.String(servicesIds[11])})
 	assert.NoError(t, err)
 
 	assert.Len(t, connection.Edges, 10)
@@ -142,7 +144,7 @@ func TestListServicesTraversing(t *testing.T) {
 	}, connection.PageInfo)
 
 	// Get last page using `After` cursor
-	connection, err = store.ListServices(project, ListServicesParams{After: ptr.String(servicesIds[1])})
+	connection, err = store.ListServices(ctx, project, ListServicesParams{After: ptr.String(servicesIds[1])})
 	assert.NoError(t, err)
 
 	assert.Len(t, connection.Edges, 1)
@@ -158,7 +160,7 @@ func TestListServicesTraversing(t *testing.T) {
 	}, connection.PageInfo)
 
 	// Go back to second page using `Before` cursor
-	connection, err = store.ListServices(project, ListServicesParams{Before: ptr.String(servicesIds[0])})
+	connection, err = store.ListServices(ctx, project, ListServicesParams{Before: ptr.String(servicesIds[0])})
 	assert.NoError(t, err)
 
 	assert.Len(t, connection.Edges, 10)
@@ -174,7 +176,7 @@ func TestListServicesTraversing(t *testing.T) {
 	}, connection.PageInfo)
 
 	// Go back to first page using `Before` cursor
-	connection, err = store.ListServices(project, ListServicesParams{Before: ptr.String(servicesIds[10])})
+	connection, err = store.ListServices(ctx, project, ListServicesParams{Before: ptr.String(servicesIds[10])})
 	assert.NoError(t, err)
 
 	assert.Len(t, connection.Edges, 10)

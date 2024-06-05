@@ -87,7 +87,7 @@ func TestFindProjectsWithAutoResolveSetting(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	projectFilterSettings, _ := store.FindProjectsWithAutoResolveSetting()
+	projectFilterSettings, _ := store.FindProjectsWithAutoResolveSetting(ctx)
 
 	assert.Len(t, projectFilterSettings, 1)
 	assert.Equal(t, projectFilterSettings[0].ID, projectWithAutoResolveSetting.ID)

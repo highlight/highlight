@@ -89,11 +89,11 @@ type ListServicesParams struct {
 	Query  *string
 }
 
-func (store *Store) ListServices(project model.Project, params ListServicesParams) (privateModel.ServiceConnection, error) {
+func (store *Store) ListServices(ctx context.Context, project model.Project, params ListServicesParams) (privateModel.ServiceConnection, error) {
 
 	var services []model.Service
 
-	query := store.DB.WithContext(context.TODO()).Where(&model.Service{ProjectID: project.ID}).Limit(SERVICE_LIMIT + 1)
+	query := store.DB.WithContext(ctx).Where(&model.Service{ProjectID: project.ID}).Limit(SERVICE_LIMIT + 1)
 
 	if params.Query != nil {
 		filters := queryparser.Parse(*params.Query)

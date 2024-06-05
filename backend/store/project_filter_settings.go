@@ -99,9 +99,9 @@ func (store *Store) UpdateProjectFilterSettings(ctx context.Context, projectID i
 	return projectFilterSettings, store.Redis.Del(ctx, getKey(projectID))
 }
 
-func (store *Store) FindProjectsWithAutoResolveSetting() ([]*model.ProjectFilterSettings, error) {
+func (store *Store) FindProjectsWithAutoResolveSetting(ctx context.Context) ([]*model.ProjectFilterSettings, error) {
 	var projectFilterSettings []*model.ProjectFilterSettings
-	if err := store.DB.WithContext(context.TODO()).Where("auto_resolve_stale_errors_day_interval > ?", 0).Find(&projectFilterSettings).Error; err != nil {
+	if err := store.DB.WithContext(ctx).Where("auto_resolve_stale_errors_day_interval > ?", 0).Find(&projectFilterSettings).Error; err != nil {
 		return nil, err
 	}
 	return projectFilterSettings, nil

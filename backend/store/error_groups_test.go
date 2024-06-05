@@ -21,7 +21,7 @@ func TestListErrorObjectsNoData(t *testing.T) {
 	store.DB.Create(&errorGroup)
 
 	// No error objects
-	results, err := store.ListErrorObjects(errorGroup, make([]int64, 0), 0)
+	results, err := store.ListErrorObjects(context.TODO(), errorGroup, make([]int64, 0), 0)
 	assert.NoError(t, err)
 
 	assert.Equal(t, privateModel.ErrorObjectResults{
@@ -44,7 +44,7 @@ func TestListErrorObjectsOneObjectNoSession(t *testing.T) {
 	}
 	store.DB.Create(&errorObject)
 	ids := []int64{int64(errorObject.ID)}
-	results, err := store.ListErrorObjects(errorGroup, ids, 71)
+	results, err := store.ListErrorObjects(context.TODO(), errorGroup, ids, 71)
 	assert.NoError(t, err)
 
 	assert.Len(t, results.ErrorObjects, 1)
@@ -85,7 +85,7 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 	}
 	store.DB.Create(&errorObject)
 	ids := []int64{int64(errorObject.ID)}
-	results, err := store.ListErrorObjects(errorGroup, ids, 1)
+	results, err := store.ListErrorObjects(context.TODO(), errorGroup, ids, 1)
 	assert.NoError(t, err)
 
 	assert.Len(t, results.ErrorObjects, 1)
@@ -138,7 +138,7 @@ func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 	assert.Equal(t, params.State, updatedErrorGroup.State)
 	assert.Equal(t, params.SnoozedUntil.Format(time.RFC3339), updatedErrorGroup.SnoozedUntil.Format(time.RFC3339))
 
-	activityLogs, err := store.GetErrorGroupActivityLogs(errorGroup.ID)
+	activityLogs, err := store.GetErrorGroupActivityLogs(context.TODO(), errorGroup.ID)
 	assert.NoError(t, err)
 
 	assert.Len(t, activityLogs, 1)
@@ -177,7 +177,7 @@ func TestUpdateErrorGroupStateBySystem(t *testing.T) {
 	assert.Equal(t, params.State, updatedErrorGroup.State)
 	assert.Equal(t, params.SnoozedUntil.Format(time.RFC3339), updatedErrorGroup.SnoozedUntil.Format(time.RFC3339))
 
-	activityLogs, err := store.GetErrorGroupActivityLogs(errorGroup.ID)
+	activityLogs, err := store.GetErrorGroupActivityLogs(context.TODO(), errorGroup.ID)
 	assert.NoError(t, err)
 
 	assert.Len(t, activityLogs, 1)

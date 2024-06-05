@@ -15,11 +15,11 @@ import (
 // Number of results per page
 const LIMIT = 10
 
-func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, ids []int64, totalCount int64) (privateModel.ErrorObjectResults, error) {
+func (store *Store) ListErrorObjects(ctx context.Context, errorGroup model.ErrorGroup, ids []int64, totalCount int64) (privateModel.ErrorObjectResults, error) {
 
 	var errorObjects []model.ErrorObject
 
-	query := store.DB.WithContext(context.TODO()).
+	query := store.DB.WithContext(ctx).
 		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
 		Where("id IN (?)", ids).
 		Limit(LIMIT + 1).
@@ -49,7 +49,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, ids []int64, t
 
 	// Preload sessions for non-null session IDs
 	var sessions []model.Session
-	err := store.DB.WithContext(context.TODO()).Where("id IN (?)", sessionIDs).Find(&sessions).Error
+	err := store.DB.WithContext(ctx).Where("id IN (?)", sessionIDs).Find(&sessions).Error
 	if err != nil {
 		return privateModel.ErrorObjectResults{}, errors.New("Failed to preload sessions for error objects")
 	}
