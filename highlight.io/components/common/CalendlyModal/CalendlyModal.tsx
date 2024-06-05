@@ -42,11 +42,8 @@ export function CalendlyModal({
 				type="button"
 				onClick={() => setCalendlyOpen(true)}
 				className={classNames(
-					'flex items-center gap-1 px-3 transition-colors rounded active:brightness-50',
+					'flex items-center gap-1 transition-colors rounded active:brightness-50',
 					className,
-					calendlyOpen
-						? 'bg-blue-cta text-dark-background'
-						: 'hover:bg-white/10',
 				)}
 			>
 				{children ?? (

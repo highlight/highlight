@@ -437,7 +437,6 @@ func main() {
 		})
 		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(ctx, slackSigningSecret))
 		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "microsoft-teams/bot"), privateResolver.MicrosoftTeamsBotEndpoint)
-		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "login"), privateResolver.Login)
 
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(cors.New(PRIVATE_GRAPH_CORS_OPTIONS).Handler)
@@ -450,6 +449,7 @@ func main() {
 			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
 
 			r.Get("/validate-token", privateResolver.ValidateAuthToken)
+			r.Post("/login", privateResolver.Login)
 
 			privateServer := ghandler.New(privategen.NewExecutableSchema(
 				privategen.Config{
@@ -647,21 +647,24 @@ func main() {
 			go w.GetPublicWorker(kafkaqueue.TopicTypeBatched)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeTraces)(ctx)
-			// for the 'All' worker, run alert / metric watchers
 			go w.StartLogAlertWatcher(ctx)
 			go w.StartMetricMonitorWatcher(ctx)
-			// in `all` mode, report stripe usage every hour
 			go func() {
 				w.ReportStripeUsage(ctx)
 				for range time.Tick(time.Hour) {
 					w.ReportStripeUsage(ctx)
 				}
 			}()
-			// in `all` mode, refresh materialized views every hour
 			go func() {
 				w.RefreshMaterializedViews(ctx)
 				for range time.Tick(time.Hour) {
 					w.RefreshMaterializedViews(ctx)
+				}
+			}()
+			go func() {
+				w.AutoResolveStaleErrors(ctx)
+				for range time.Tick(time.Minute) {
+					w.AutoResolveStaleErrors(ctx)
 				}
 			}()
 			if util.IsDevEnv() && util.UseSSL() {
