@@ -16,7 +16,7 @@ Here are the policies you'll need to set to use Highlight:
 #### `connect-src`: `https://pub.highlight.io`
 This policy allows connecting with Highlight servers to send recorded session data.
 
-#### `worker-src`: `data:`
+#### `worker-src`: `data: blob:`
 This policy allows creating an inlined web worker initialized by our npm package `highlight.run`.
 
 Your [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) definition may look something like this:
@@ -24,7 +24,7 @@ Your [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) definition may
 ```html
 <meta
   http-equiv="Content-Security-Policy"
-  content="default-src 'self'; worker-src 'data:'; connect-src https://pub.highlight.io;"
+  content="connect-src https://pub.highlight.io; worker-src data: blob:;"
 />
 ```
 
