@@ -1269,6 +1269,13 @@ type SavedAsset struct {
 	HashVal     string `gorm:"index:idx_project_id_hash_val"`
 }
 
+type ProjectAssetTransform struct {
+	ProjectID         int    `gorm:"uniqueIndex:idx_project_asset_transform_project_id_source_scheme"`
+	SourceScheme      string `gorm:"uniqueIndex:idx_project_asset_transform_project_id_source_scheme"`
+	DestinationScheme string
+	DestinationHost   string
+}
+
 type VercelIntegrationConfig struct {
 	WorkspaceID     int `gorm:"uniqueIndex:idx_workspace_id_vercel_project_id;index"`
 	ProjectID       int

@@ -18,7 +18,7 @@ func TestUpsertService(t *testing.T) {
 	defer teardown(t)
 	ctx := context.Background()
 	project := model.Project{}
-	store.db.Create(&project)
+	store.DB.Create(&project)
 
 	service, err := store.UpsertService(ctx, project, "public-graph", map[string]string{})
 	assert.NoError(t, err)
@@ -33,13 +33,13 @@ func TestUpsertService(t *testing.T) {
 func TestUpsertServiceWithAttributes(t *testing.T) {
 	ctx := context.Background()
 
-	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, store.DB, func(t *testing.T) {
 		serviceName := "public-graph"
 		project := model.Project{}
-		store.db.Create(&project)
+		store.DB.Create(&project)
 
 		cacheKey := fmt.Sprintf("service-public-graph-%d", project.ID)
-		err := store.redis.Del(context.TODO(), cacheKey)
+		err := store.Redis.Del(context.TODO(), cacheKey)
 		assert.NoError(t, err)
 
 		createdService, err := store.UpsertService(ctx, project, serviceName, map[string]string{
@@ -54,10 +54,10 @@ func TestUpsertServiceWithAttributes(t *testing.T) {
 		assert.Equal(t, "go version go1.20.5 darwin/arm64", *createdService.ProcessDescription)
 		assert.Nil(t, createdService.GithubRepoPath)
 
-		err = store.redis.Del(context.TODO(), cacheKey)
+		err = store.Redis.Del(context.TODO(), cacheKey)
 		assert.NoError(t, err)
 
-		err = store.db.Model(&createdService).Update("GithubRepoPath", "highlight/highlight").Error
+		err = store.DB.Model(&createdService).Update("GithubRepoPath", "highlight/highlight").Error
 		assert.NoError(t, err)
 
 		updatedService, err := store.UpsertService(ctx, project, serviceName, map[string]string{
@@ -92,7 +92,7 @@ func TestUpsertServiceWithAttributes(t *testing.T) {
 func TestListServicesTraversing(t *testing.T) {
 	defer teardown(t)
 	project := model.Project{}
-	store.db.Create(&project)
+	store.DB.Create(&project)
 
 	// Create three pages
 	// The first page has 10 items (hasPreviousPage = false, hasNextPage = true)
@@ -105,7 +105,7 @@ func TestListServicesTraversing(t *testing.T) {
 			ProjectID: project.ID,
 			Status:    "healthy",
 		}
-		store.db.Create(&newService)
+		store.DB.Create(&newService)
 		servicesIds = append(servicesIds, strconv.Itoa(newService.ID))
 	}
 
