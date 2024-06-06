@@ -16,13 +16,13 @@ export const loadingText = style({
 export const legendWrapper = style({
 	left: -6,
 	flexShrink: 0,
-	maxHeight: 40,
+	maxHeight: 42,
 	paddingTop: 2,
 	paddingBottom: 2,
 	overflowY: 'auto',
 	display: 'flex',
 	flexWrap: 'wrap',
-	rowGap: 4,
+	rowGap: 6,
 })
 
 export const legendDot = style({
@@ -64,8 +64,6 @@ export const tooltipWrapper = style({
 	flexDirection: 'column',
 	gap: '6px',
 	padding: '8px',
-	maxHeight: '180px',
-	overflowY: 'auto',
 })
 
 export const tooltipText = style({
