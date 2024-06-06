@@ -121,7 +121,7 @@ export const TracesPage: React.FC = () => {
 				MetricAggregator.P90,
 			],
 			bucket_by: TIMESTAMP_KEY,
-			bucket_count: 48,
+			bucket_count: 45,
 		},
 		skip: !projectId,
 		fetchPolicy: 'cache-and-network',
