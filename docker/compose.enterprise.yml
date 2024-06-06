@@ -6,7 +6,8 @@ services:
             service: backend
         container_name: backend-api
         image: ${BACKEND_IMAGE_NAME-ghcr.io/highlight/highlight-backend:latest}
-        environment: DOPPLER_CONFIG=enterprise
+        environment:
+            - DOPPLER_CONFIG=enterprise
         command:
             - /build/backend
             - -runtime=graph
@@ -17,7 +18,8 @@ services:
             service: backend
         container_name: backend-session-worker
         image: ${BACKEND_IMAGE_NAME-ghcr.io/highlight/highlight-backend:latest}
-        environment: DOPPLER_CONFIG=enterprise
+        environment:
+            - DOPPLER_CONFIG=enterprise
         ports: !override []
         command:
             - /build/backend
@@ -29,7 +31,8 @@ services:
             service: backend
         container_name: backend-public-worker-main
         image: ${BACKEND_IMAGE_NAME-ghcr.io/highlight/highlight-backend:latest}
-        environment: DOPPLER_CONFIG=enterprise
+        environment:
+            - DOPPLER_CONFIG=enterprise
         ports: !override []
         command:
             - /build/backend
@@ -42,7 +45,8 @@ services:
             service: backend
         container_name: backend-public-worker-batched
         image: ${BACKEND_IMAGE_NAME-ghcr.io/highlight/highlight-backend:latest}
-        environment: DOPPLER_CONFIG=enterprise
+        environment:
+            - DOPPLER_CONFIG=enterprise
         ports: !override []
         command:
             - /build/backend
@@ -55,7 +59,8 @@ services:
             service: backend
         container_name: backend-public-worker-datasync
         image: ${BACKEND_IMAGE_NAME-ghcr.io/highlight/highlight-backend:latest}
-        environment: DOPPLER_CONFIG=enterprise
+        environment:
+            - DOPPLER_CONFIG=enterprise
         ports: !override []
         command:
             - /build/backend
@@ -68,7 +73,8 @@ services:
             service: backend
         container_name: backend-public-worker-traces
         image: ${BACKEND_IMAGE_NAME-ghcr.io/highlight/highlight-backend:latest}
-        environment: DOPPLER_CONFIG=enterprise
+        environment:
+            - DOPPLER_CONFIG=enterprise
         ports: !override []
         command:
             - /build/backend

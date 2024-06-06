@@ -10,6 +10,9 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 )
 
+// EnterpriseEnvPublicKey is set by the go build process via `-ldflags="-X util.EnterpriseEnvPublicKey=value"`
+var EnterpriseEnvPublicKey string
+
 type Configuration struct {
 	Environment             string `mapstructure:"ENVIRONMENT"`
 	OnPrem                  string `mapstructure:"ON_PREM"`

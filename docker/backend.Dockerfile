@@ -8,6 +8,7 @@ COPY ../go.work.sum .
 
 COPY ../backend/go.mod ./backend/go.mod
 COPY ../backend/go.sum ./backend/go.sum
+COPY ../docker/enterprise-public.pem ./enterprise-public.pem
 COPY ../sdk/highlight-go/go.mod ./sdk/highlight-go/go.mod
 COPY ../sdk/highlight-go/go.sum ./sdk/highlight-go/go.sum
 COPY ../sdk/highlightinc-highlight-datasource/go.mod ./sdk/highlightinc-highlight-datasource/go.mod
@@ -26,10 +27,11 @@ COPY ../e2e/go ./e2e/go
 WORKDIR /highlight/backend
 ARG TARGETARCH
 ARG TARGETOS
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /build/backend
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH PUBKEY=$(cat /highlight/enterprise-public.pem) \
+    go build -ldflags="-X util.EnterpriseEnvPublicKey=$PUBKEY" -o /build/backend
 
 # reduce the image size by keeping just the built code
-FROM golang:alpine as backend-prod
+FROM alpine:latest as backend-prod
 ARG REACT_APP_COMMIT_SHA
 ENV REACT_APP_COMMIT_SHA=$REACT_APP_COMMIT_SHA
 ARG RELEASE
@@ -48,7 +50,5 @@ COPY --from=backend-build /highlight/backend/env.enc /build
 COPY --from=backend-build /highlight/backend/env.enc.sha512 /build
 COPY --from=backend-build /highlight/backend/localhostssl/ /build/localhostssl
 COPY --from=backend-build /highlight/backend/clickhouse/migrations/ /build/clickhouse/migrations
-
-RUN export ENTERPRISE_ENV_PUBLIC_KEY=$(cat /highlight/docker/enterprise-public.pem)
 
 CMD ["/build/backend", "-runtime=all"]
