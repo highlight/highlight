@@ -28,6 +28,10 @@ Your [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) definition may
 />
 ```
 
+Alternatively, Content Security Policy may be set by the HTML document response header `Content-Security-Policy`.
+Check your initial app HTML document load for the header to make sure you are setting it to the desired value.
+
+
 ```hint
 highlight.run version 8.11 changes how we bundle the client so that we no longer require a `script-src` definition. Make sure you are using the latest version of the SDK to use the above CSP policy.
 ```
