@@ -218,29 +218,6 @@ func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (t
 	return StartTraceWithTimestamp(ctx, name, time.Now(), nil, tags...)
 }
 
-var EmptyResourceAttributes = []attribute.KeyValue{
-	semconv.ServiceNameKey.String(""),
-	semconv.ServiceVersionKey.String(""),
-	semconv.ContainerIDKey.String(""),
-	semconv.HostNameKey.String(""),
-	semconv.OSDescriptionKey.String(""),
-	semconv.OSTypeKey.String(""),
-	semconv.ProcessExecutableNameKey.String(""),
-	semconv.ProcessExecutablePathKey.String(""),
-	semconv.ProcessOwnerKey.String(""),
-	semconv.ProcessPIDKey.String(""),
-	semconv.ProcessRuntimeDescriptionKey.String(""),
-	semconv.ProcessRuntimeNameKey.String(""),
-	semconv.ProcessRuntimeVersionKey.String(""),
-}
-
-func StartTraceWithoutResourceAttributes(ctx context.Context, tracer trace.Tracer, name string, opts []trace.SpanStartOption, tags ...attribute.KeyValue) (trace.Span, context.Context) {
-	resourceAttributes := []attribute.KeyValue{}
-	attrs := append(append(resourceAttributes, EmptyResourceAttributes...), tags...)
-
-	return StartTraceWithTracer(ctx, tracer, name, time.Now(), opts, attrs...)
-}
-
 func EndTrace(span trace.Span) {
 	span.End(trace.WithStackTrace(true))
 }
