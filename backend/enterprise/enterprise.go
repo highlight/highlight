@@ -2,11 +2,16 @@ package enterprise
 
 import (
 	"context"
+	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/sha512"
+	"crypto/x509"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/highlight-run/highlight/backend/projectpath"
@@ -26,7 +31,7 @@ const UpdateInterval = time.Minute
 const UpdateErrorsAbort = 10
 
 func Start(ctx context.Context) error {
-	env, err := GetEnvironment(GetEncryptedEnvironmentFilePath())
+	env, err := GetEnvironment(GetEncryptedEnvironmentFilePath(), GetEncryptedEnvironmentDigestFilePath())
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Info("enterprise service not configured")
 		if util.IsEnterpriseDeploy() {
@@ -108,7 +113,12 @@ func GetEncryptedEnvironmentFilePath() string {
 	return filepath.Join(root, "env.enc")
 }
 
-func GetEnvironment(file string) (*util.Configuration, error) {
+func GetEncryptedEnvironmentDigestFilePath() string {
+	root := projectpath.GetRoot()
+	return filepath.Join(root, "env.enc.sha512")
+}
+
+func GetEnvironment(file, digest string) (*util.Configuration, error) {
 	if util.Config.LicenseKey == "" {
 		return nil, e.New("no license key set")
 	}
@@ -119,7 +129,15 @@ func GetEnvironment(file string) (*util.Configuration, error) {
 	if err != nil {
 		return nil, err
 	}
+	_, err = os.Stat(digest)
+	if err != nil {
+		return nil, err
+	}
 
+	digestData, err := os.ReadFile(digest)
+	if err != nil {
+		return nil, err
+	}
 	data, err := os.ReadFile(file)
 	if err != nil {
 		return nil, err
@@ -130,9 +148,19 @@ func GetEnvironment(file string) (*util.Configuration, error) {
 		return nil, err
 	}
 
+	spkiBlock, _ := pem.Decode([]byte(util.Config.EnterpriseEnvPublicKey))
+	var spkiKey *rsa.PublicKey
+	pubInterface, _ := x509.ParsePKIXPublicKey(spkiBlock.Bytes)
+	spkiKey = pubInterface.(*rsa.PublicKey)
+
+	hashed := sha512.Sum512(data)
+	if err := rsa.VerifyPKCS1v15(spkiKey, crypto.SHA512, hashed[:], digestData); err != nil {
+		return nil, err
+	}
+
 	// CBC mode always works in whole blocks.
 	if len(ciphertext)%aes.BlockSize != 0 {
-		panic("ciphertext is not a multiple of the block size")
+		return nil, e.New("ciphertext is not a multiple of the block size")
 	}
 
 	// Creating block of algorithm

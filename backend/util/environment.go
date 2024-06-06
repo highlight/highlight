@@ -10,25 +10,26 @@ import (
 )
 
 type Configuration struct {
-	Environment         string `mapstructure:"ENVIRONMENT"`
-	OnPrem              string `mapstructure:"ON_PREM"`
-	Doppler             string `mapstructure:"DOPPLER_CONFIG"`
-	InDocker            string `mapstructure:"IN_DOCKER"`
-	Release             string `mapstructure:"RELEASE"`
-	Version             string `mapstructure:"REACT_APP_COMMIT_SHA"`
-	FrontendUri         string `mapstructure:"REACT_APP_FRONTEND_URI"`
-	PrivateGraphUri     string `mapstructure:"REACT_APP_PRIVATE_GRAPH_URI"`
-	PublicGraphUri      string `mapstructure:"REACT_APP_PUBLIC_GRAPH_URI"`
-	LicenseKey          string `mapstructure:"LICENSE_KEY"`
-	SSL                 string `mapstructure:"SSL"`
-	ConsumerFraction    string `mapstructure:"CONSUMER_SPAN_SAMPLING_FRACTION"`
-	LandingStagingURL   string `mapstructure:"LANDING_PAGE_STAGING_URI"`
-	OTLPEndpoint        string `mapstructure:"OTLP_ENDPOINT"`
-	OTLPDogfoodEndpoint string `mapstructure:"OTLP_DOGFOOD_ENDPOINT"`
-	SendgridKey         string `mapstructure:"SENDGRID_API_KEY"`
-	StripeApiKey        string `mapstructure:"STRIPE_API_KEY"`
-	StripeWebhookSecret string `mapstructure:"STRIPE_WEBHOOK_SECRET"`
-	SlackSigningSecret  string `mapstructure:"SLACK_SIGNING_SECRET"`
+	Environment            string `mapstructure:"ENVIRONMENT"`
+	OnPrem                 string `mapstructure:"ON_PREM"`
+	Doppler                string `mapstructure:"DOPPLER_CONFIG"`
+	InDocker               string `mapstructure:"IN_DOCKER"`
+	Release                string `mapstructure:"RELEASE"`
+	Version                string `mapstructure:"REACT_APP_COMMIT_SHA"`
+	FrontendUri            string `mapstructure:"REACT_APP_FRONTEND_URI"`
+	PrivateGraphUri        string `mapstructure:"REACT_APP_PRIVATE_GRAPH_URI"`
+	PublicGraphUri         string `mapstructure:"REACT_APP_PUBLIC_GRAPH_URI"`
+	LicenseKey             string `mapstructure:"LICENSE_KEY"`
+	EnterpriseEnvPublicKey string `mapstructure:"ENTERPRISE_ENV_PUBLIC_KEY"`
+	SSL                    string `mapstructure:"SSL"`
+	ConsumerFraction       string `mapstructure:"CONSUMER_SPAN_SAMPLING_FRACTION"`
+	LandingStagingURL      string `mapstructure:"LANDING_PAGE_STAGING_URI"`
+	OTLPEndpoint           string `mapstructure:"OTLP_ENDPOINT"`
+	OTLPDogfoodEndpoint    string `mapstructure:"OTLP_DOGFOOD_ENDPOINT"`
+	SendgridKey            string `mapstructure:"SENDGRID_API_KEY"`
+	StripeApiKey           string `mapstructure:"STRIPE_API_KEY"`
+	StripeWebhookSecret    string `mapstructure:"STRIPE_WEBHOOK_SECRET"`
+	SlackSigningSecret     string `mapstructure:"SLACK_SIGNING_SECRET"`
 }
 
 var (
@@ -43,6 +44,7 @@ var (
 		os.Getenv("REACT_APP_PRIVATE_GRAPH_URI"),
 		os.Getenv("REACT_APP_PUBLIC_GRAPH_URI"),
 		os.Getenv("LICENSE_KEY"),
+		os.Getenv("ENTERPRISE_ENV_PUBLIC_KEY"),
 		os.Getenv("SSL"),
 		os.Getenv("CONSUMER_SPAN_SAMPLING_FRACTION"),
 		os.Getenv("LANDING_PAGE_STAGING_URI"),

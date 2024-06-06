@@ -14,6 +14,7 @@ x-backend-env: &backend-env
         - DISCORD_CLIENT_SECRET
         - DOPPLER_CONFIG
         - ENABLE_OBJECT_STORAGE
+        - ENTERPRISE_ENV_PUBLIC_KEY
         - ENVIRONMENT
         - FIREBASE_SECRET
         - FRONT_CLIENT_ID

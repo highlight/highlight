@@ -48,4 +48,6 @@ COPY --from=backend-build /highlight/backend/env.enc /build
 COPY --from=backend-build /highlight/backend/localhostssl/ /build/localhostssl
 COPY --from=backend-build /highlight/backend/clickhouse/migrations/ /build/clickhouse/migrations
 
+RUN export ENTERPRISE_ENV_PUBLIC_KEY=$(cat /highlight/docker/enterprise-public.pem)
+
 CMD ["/build/backend", "-runtime=all"]

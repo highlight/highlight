@@ -17,3 +17,7 @@ NOW=$(date -d "+1 year" -Iseconds)
 OUTPUT="../backend/env.enc"
 env | (echo "$NOW" && cat) | openssl enc -aes-256-cbc -nosalt -k $LICENSE_KEY -p -out $OUTPUT \
     | grep 'iv =' | sed -e 's/iv =/\n/' >> $OUTPUT
+
+doppler secrets get --plain ENTERPRISE_ENV_PRIVATE_KEY > enterprise-private.pem
+openssl dgst -sha512 -sign enterprise-private.pem -out $OUTPUT.sha512 $OUTPUT
+rm enterprise-private.pem
