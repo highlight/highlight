@@ -2,6 +2,8 @@ package store
 
 import (
 	"context"
+	"errors"
+	"gorm.io/gorm"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -10,8 +12,15 @@ import (
 
 func (store *Store) GetProjectAssetTransform(ctx context.Context, projectID int, scheme string) (*model.ProjectAssetTransform, error) {
 	return redis.CachedEval(ctx, store.Redis, "project-asset-transform", 250*time.Millisecond, time.Minute, func() (*model.ProjectAssetTransform, error) {
-		config := model.ProjectAssetTransform{ProjectID: projectID, SourceScheme: scheme}
-		if err := store.DB.WithContext(ctx).Model(&config).Where(&config).Find(&config).Error; err != nil {
+		var config model.ProjectAssetTransform
+		if err := store.DB.
+			WithContext(ctx).
+			Model(&config).
+			Where(&model.ProjectAssetTransform{ProjectID: projectID, SourceScheme: scheme}).
+			Take(&config).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, nil
+			}
 			return nil, err
 		}
 		return &config, nil

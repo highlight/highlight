@@ -1271,8 +1271,8 @@ type SavedAsset struct {
 }
 
 type ProjectAssetTransform struct {
-	ProjectID         int    `gorm:"uniqueIndex:idx_project_asset_transform_project_id_source_scheme"`
-	SourceScheme      string `gorm:"uniqueIndex:idx_project_asset_transform_project_id_source_scheme"`
+	ProjectID         int    `gorm:"primary_key:not null"`
+	SourceScheme      string `gorm:"primary_key:not null"`
 	DestinationScheme string
 	DestinationHost   string
 }
