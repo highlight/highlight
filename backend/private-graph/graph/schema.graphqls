@@ -1907,6 +1907,7 @@ type VisualizationsResponse {
 input GraphInput {
 	id: ID
 	visualizationId: ID!
+	afterGraphId: ID
 	type: String!
 	title: String!
 	productType: ProductType!

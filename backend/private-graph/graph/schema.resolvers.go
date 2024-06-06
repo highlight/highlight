@@ -4702,10 +4702,32 @@ func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.Gr
 				return err
 			}
 		}
+
+		updates := map[string]interface{}{"UpdatedByAdminId": admin.ID}
+		if graph.AfterGraphID != nil {
+			var viz model.Visualization
+			if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", graph.VisualizationID).Preload("Graphs").Find(&viz).Error; err != nil {
+				return err
+			}
+			reorderGraphs(&viz)
+			newGraphIds := pq.Int32Array{}
+			for _, g := range viz.Graphs {
+				if g.ID == toSave.ID {
+					continue
+				}
+				newGraphIds = append(newGraphIds, int32(g.ID))
+				if g.ID == *graph.AfterGraphID {
+					newGraphIds = append(newGraphIds, int32(toSave.ID))
+				}
+			}
+			updates["GraphIds"] = newGraphIds
+		}
+
 		if err := tx.WithContext(ctx).Model(&model.Visualization{}).Where("id = ?", graph.VisualizationID).
-			Update("UpdatedByAdminId", admin.ID).Error; err != nil {
+			Updates(updates).Error; err != nil {
 			return err
 		}
+
 		return nil
 	}); err != nil {
 		return nil, err
@@ -5263,7 +5285,7 @@ func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID str
 
 	ids, total, err := r.ClickhouseClient.QueryErrorObjects(ctx, errorGroup.ProjectID, errorGroup.ID, count, params, page)
 
-	results, err := r.Store.ListErrorObjects(*errorGroup, ids, total)
+	results, err := r.Store.ListErrorObjects(ctx, *errorGroup, ids, total)
 	return &results, err
 }
 
@@ -8797,7 +8819,7 @@ func (r *queryResolver) Services(ctx context.Context, projectID int, after *stri
 		return nil, err
 	}
 
-	connection, err := r.Store.ListServices(*project, store.ListServicesParams{
+	connection, err := r.Store.ListServices(ctx, *project, store.ListServicesParams{
 		After:  after,
 		Before: before,
 		Query:  query,

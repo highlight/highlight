@@ -175,6 +175,7 @@ var Models = []interface{}{
 	&ErrorFingerprint{},
 	&EventChunk{},
 	&SavedAsset{},
+	&ProjectAssetTransform{},
 	&Dashboard{},
 	&DashboardMetric{},
 	&DashboardMetricFilter{},
@@ -1267,6 +1268,13 @@ type SavedAsset struct {
 	OriginalUrl string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
 	Date        string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
 	HashVal     string `gorm:"index:idx_project_id_hash_val"`
+}
+
+type ProjectAssetTransform struct {
+	ProjectID         int    `gorm:"primary_key:not null"`
+	SourceScheme      string `gorm:"primary_key:not null"`
+	DestinationScheme string
+	DestinationHost   string
 }
 
 type VercelIntegrationConfig struct {

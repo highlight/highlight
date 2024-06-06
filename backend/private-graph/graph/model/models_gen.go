@@ -380,6 +380,7 @@ type GitlabProject struct {
 type GraphInput struct {
 	ID                *int              `json:"id,omitempty"`
 	VisualizationID   int               `json:"visualizationId"`
+	AfterGraphID      *int              `json:"afterGraphId,omitempty"`
 	Type              string            `json:"type"`
 	Title             string            `json:"title"`
 	ProductType       ProductType       `json:"productType"`

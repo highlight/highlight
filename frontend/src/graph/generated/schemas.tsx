@@ -695,6 +695,7 @@ export type Graph = {
 }
 
 export type GraphInput = {
+	afterGraphId?: InputMaybe<Scalars['ID']>
 	bucketByKey?: InputMaybe<Scalars['String']>
 	bucketCount?: InputMaybe<Scalars['Int']>
 	display?: InputMaybe<Scalars['String']>
