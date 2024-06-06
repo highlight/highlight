@@ -25199,6 +25199,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tweenjs/tween.js@npm:~23.1.1":
+  version: 23.1.2
+  resolution: "@tweenjs/tween.js@npm:23.1.2"
+  checksum: 10/ca7f62b1059917ebddf1e7e9d7361b87e945bfc21b3c840dd34b1ebfe7d90d87d0dd10ebfa88e2233fe4887cf260b9e1a45134573b599c905af45853b39ae0b8
+  languageName: node
+  linkType: hard
+
 "@types/accepts@npm:*":
   version: 1.3.5
   resolution: "@types/accepts@npm:1.3.5"
@@ -27328,15 +27335,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/three@npm:0.158.3":
-  version: 0.158.3
-  resolution: "@types/three@npm:0.158.3"
+"@types/three@npm:0.165.0":
+  version: 0.165.0
+  resolution: "@types/three@npm:0.165.0"
   dependencies:
+    "@tweenjs/tween.js": "npm:~23.1.1"
     "@types/stats.js": "npm:*"
     "@types/webxr": "npm:*"
-    fflate: "npm:~0.6.10"
+    fflate: "npm:~0.8.2"
     meshoptimizer: "npm:~0.18.1"
-  checksum: 10/ee714f3e3727c4c9f9f48c611f5cb91bc5775b41158e2f3a518eff3119543579c333ae0cbd00e68ac43c659b593de5ee7256ce0399405601f37a1596b0e7169b
+  checksum: 10/c9374ceed25ba6b26953ba935a937fa57f5de564c6afc61d528760246c0aeed939a74b8b973670d3e879f8df2936ff02fa6b81f412d22edfa1ba1085b8b3d2d8
   languageName: node
   linkType: hard
 
@@ -40167,7 +40175,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fflate@npm:^0.6.9, fflate@npm:~0.6.10":
+"fflate@npm:^0.6.9":
   version: 0.6.10
   resolution: "fflate@npm:0.6.10"
   checksum: 10/9f2fd7224bccdb28102adc7c55c262b584571426eb9e0b91b13088884f45700232b51e034e300b74abf64e5449596d5c37d0a802673e25edb17c6742e4a4a0bd
@@ -40185,6 +40193,13 @@ __metadata:
   version: 0.8.1
   resolution: "fflate@npm:0.8.1"
   checksum: 10/bb66551c98799caaeae678fd0772f725f45cdbd1e2d1ec1027eb916f6f8547668b68aced6684bcdbd9f92766b23245da8a227bf387d2c87f74befc58fbdca13b
+  languageName: node
+  linkType: hard
+
+"fflate@npm:~0.8.2":
+  version: 0.8.2
+  resolution: "fflate@npm:0.8.2"
+  checksum: 10/2bd26ba6d235d428de793c6a0cd1aaa96a06269ebd4e21b46c8fd1bd136abc631acf27e188d47c3936db090bf3e1ede11d15ce9eae9bffdc4bfe1b9dc66ca9cb
   languageName: node
   linkType: hard
 
@@ -57774,7 +57789,7 @@ __metadata:
     "@react-three/postprocessing": "npm:2.16.2"
     "@types/react": "npm:^18.2.56"
     "@types/react-dom": "npm:^18.2.19"
-    "@types/three": "npm:0.158.3"
+    "@types/three": "npm:0.165.0"
     "@vitejs/plugin-react": "npm:^4.3.0"
     eslint: "npm:^8.56.0"
     eslint-plugin-react: "npm:^7.33.2"
@@ -57784,7 +57799,7 @@ __metadata:
     random-words: "npm:2.0.0"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
-    three: "npm:0.159.0"
+    three: "npm:0.165.0"
     vite: "npm:^5.2.12"
   languageName: unknown
   linkType: soft
@@ -63183,10 +63198,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"three@npm:0.159.0":
-  version: 0.159.0
-  resolution: "three@npm:0.159.0"
-  checksum: 10/ef1d94f8c1b66d35fa4e3836f40cbd85d23a598e40d9e9e2af2f31c7ad790422dd843ff7a9baab28df0494cbb7bc46e6016499ce2de2665c49099c7753412c34
+"three@npm:0.165.0":
+  version: 0.165.0
+  resolution: "three@npm:0.165.0"
+  checksum: 10/43e39b55fdacdf64f68cf305ca199dc94b2d00c301e0acefe611ead35ba85521f05725a7a71cf790d2dd39816f59cfeb0b00245c62037bc7cb5c383dba280364
   languageName: node
   linkType: hard
 
