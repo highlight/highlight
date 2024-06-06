@@ -2562,7 +2562,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 							return err
 						}
 
-						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB, r.Redis, workspace.GetRetentionPeriod())
+						err = snapshot.ReplaceAssets(ctx, projectID, r.Store, workspace.GetRetentionPeriod())
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
 						}

@@ -5285,7 +5285,7 @@ func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID str
 
 	ids, total, err := r.ClickhouseClient.QueryErrorObjects(ctx, errorGroup.ProjectID, errorGroup.ID, count, params, page)
 
-	results, err := r.Store.ListErrorObjects(*errorGroup, ids, total)
+	results, err := r.Store.ListErrorObjects(ctx, *errorGroup, ids, total)
 	return &results, err
 }
 
@@ -8819,7 +8819,7 @@ func (r *queryResolver) Services(ctx context.Context, projectID int, after *stri
 		return nil, err
 	}
 
-	connection, err := r.Store.ListServices(*project, store.ListServicesParams{
+	connection, err := r.Store.ListServices(ctx, *project, store.ListServicesParams{
 		After:  after,
 		Before: before,
 		Query:  query,

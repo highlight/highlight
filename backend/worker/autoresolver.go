@@ -24,7 +24,7 @@ func NewAutoResolver(store *store.Store, db *gorm.DB) *AutoResolver {
 }
 
 func (autoResolver *AutoResolver) AutoResolveStaleErrors(ctx context.Context) {
-	projectFilterSettings, err := autoResolver.store.FindProjectsWithAutoResolveSetting()
+	projectFilterSettings, err := autoResolver.store.FindProjectsWithAutoResolveSetting(ctx)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to query auto resolve settings")
 		return
