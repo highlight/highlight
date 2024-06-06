@@ -6644,13 +6644,13 @@ body {
 .dg2vg62 {
   left: -6px;
   flex-shrink: 0;
-  max-height: 40px;
+  max-height: 42px;
   padding-top: 2px;
   padding-bottom: 2px;
   overflow-y: auto;
   display: flex;
   flex-wrap: wrap;
-  row-gap: 4px;
+  row-gap: 6px;
 }
 .dg2vg63 {
   border-radius: 50%;
@@ -6686,8 +6686,6 @@ body {
   flex-direction: column;
   gap: 6px;
   padding: 8px;
-  max-height: 180px;
-  overflow-y: auto;
 }
 .dg2vg69 {
   line-height: 16px;

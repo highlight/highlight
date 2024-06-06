@@ -4702,10 +4702,32 @@ func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.Gr
 				return err
 			}
 		}
+
+		updates := map[string]interface{}{"UpdatedByAdminId": admin.ID}
+		if graph.AfterGraphID != nil {
+			var viz model.Visualization
+			if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", graph.VisualizationID).Preload("Graphs").Find(&viz).Error; err != nil {
+				return err
+			}
+			reorderGraphs(&viz)
+			newGraphIds := pq.Int32Array{}
+			for _, g := range viz.Graphs {
+				if g.ID == toSave.ID {
+					continue
+				}
+				newGraphIds = append(newGraphIds, int32(g.ID))
+				if g.ID == *graph.AfterGraphID {
+					newGraphIds = append(newGraphIds, int32(toSave.ID))
+				}
+			}
+			updates["GraphIds"] = newGraphIds
+		}
+
 		if err := tx.WithContext(ctx).Model(&model.Visualization{}).Where("id = ?", graph.VisualizationID).
-			Update("UpdatedByAdminId", admin.ID).Error; err != nil {
+			Updates(updates).Error; err != nil {
 			return err
 		}
+
 		return nil
 	}); err != nil {
 		return nil, err

@@ -417,6 +417,8 @@ export const Dashboard = () => {
 																				{
 																					visualizationId:
 																						dashboard_id!,
+																					afterGraphId:
+																						g.id,
 																					bucketByKey:
 																						g.bucketByKey,
 																					bucketCount:
@@ -470,6 +472,14 @@ export const Dashboard = () => {
 																										'Visualization',
 																								},
 																							)
+																						const afterGraphId =
+																							cache.identify(
+																								{
+																									id: g.id,
+																									__typename:
+																										'Graph',
+																								},
+																							)
 																						const graphId =
 																							cache.identify(
 																								{
@@ -488,13 +498,26 @@ export const Dashboard = () => {
 																									graphs(
 																										existing: any[] = [],
 																									) {
-																										return existing.concat(
+																										const idx =
+																											existing.findIndex(
+																												(
+																													e,
+																												) =>
+																													e.__ref ===
+																													afterGraphId,
+																											)
+																										const clone =
 																											[
-																												{
-																													__ref: graphId,
-																												},
-																											],
+																												...existing,
+																											]
+																										clone.splice(
+																											idx,
+																											0,
+																											{
+																												__ref: graphId,
+																											},
 																										)
+																										return clone
 																									},
 																								},
 																							},
