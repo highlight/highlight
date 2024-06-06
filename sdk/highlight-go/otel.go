@@ -120,7 +120,7 @@ func getSampler() highlightSampler {
 	}
 }
 
-func CreateTracerProvider(endpoint string) (*sdktrace.TracerProvider, error) {
+func CreateTracerProvider(endpoint string, opts ...sdktrace.TracerProviderOption) (*sdktrace.TracerProvider, error) {
 	var options []otlptracehttp.Option
 	if strings.HasPrefix(endpoint, "http://") {
 		options = append(options, otlptracehttp.WithEndpoint(endpoint[7:]), otlptracehttp.WithInsecure())
@@ -146,7 +146,7 @@ func CreateTracerProvider(endpoint string) (*sdktrace.TracerProvider, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating OTLP resource context: %w", err)
 	}
-	return sdktrace.NewTracerProvider(
+	opts = append([]sdktrace.TracerProviderOption{
 		sdktrace.WithSampler(getSampler()),
 		sdktrace.WithBatcher(exporter,
 			sdktrace.WithBatchTimeout(time.Second),
@@ -155,7 +155,8 @@ func CreateTracerProvider(endpoint string) (*sdktrace.TracerProvider, error) {
 			sdktrace.WithMaxQueueSize(1024*1024),
 		),
 		sdktrace.WithResource(resources),
-	), nil
+	}, opts...)
+	return sdktrace.NewTracerProvider(opts...), nil
 }
 
 // default tracer is a noop tracer
