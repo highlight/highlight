@@ -127,20 +127,25 @@ export type ChangeAdminRoleMutationVariables = Types.Exact<{
 	new_role: Types.Scalars['String']
 }>
 
-export type ChangeAdminRoleMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'changeAdminRole'
->
+export type ChangeAdminRoleMutation = { __typename?: 'Mutation' } & {
+	changeAdminRole: { __typename?: 'WorkspaceAdminRole' } & Pick<
+		Types.WorkspaceAdminRole,
+		'workspaceId' | 'role' | 'projectIds'
+	> & { admin: { __typename?: 'Admin' } & Pick<Types.Admin, 'id'> }
+}
 
-export type DeleteAdminFromProjectMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
+export type ChangeProjectMembershipMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
 	admin_id: Types.Scalars['ID']
+	project_ids: Array<Types.Scalars['ID']> | Types.Scalars['ID']
 }>
 
-export type DeleteAdminFromProjectMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'deleteAdminFromProject'
->
+export type ChangeProjectMembershipMutation = { __typename?: 'Mutation' } & {
+	changeProjectMembership: { __typename?: 'WorkspaceAdminRole' } & Pick<
+		Types.WorkspaceAdminRole,
+		'workspaceId' | 'role' | 'projectIds'
+	> & { admin: { __typename?: 'Admin' } & Pick<Types.Admin, 'id'> }
+}
 
 export type DeleteAdminFromWorkspaceMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
@@ -2011,7 +2016,7 @@ export type GetWorkspaceAdminsByProjectIdQuery = { __typename?: 'Query' } & {
 	admins: Array<
 		{ __typename?: 'WorkspaceAdminRole' } & Pick<
 			Types.WorkspaceAdminRole,
-			'role'
+			'workspaceId' | 'role' | 'projectIds'
 		> & {
 				admin: { __typename?: 'Admin' } & Pick<
 					Types.Admin,
@@ -2029,7 +2034,7 @@ export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
 	admins: Array<
 		{ __typename?: 'WorkspaceAdminRole' } & Pick<
 			Types.WorkspaceAdminRole,
-			'role'
+			'workspaceId' | 'role' | 'projectIds'
 		> & {
 				admin: { __typename?: 'Admin' } & Pick<
 					Types.Admin,
@@ -2040,7 +2045,7 @@ export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
 	workspace?: Types.Maybe<
 		{ __typename?: 'Workspace' } & Pick<
 			Types.Workspace,
-			'id' | 'name' | 'secret' | 'allowed_auto_join_email_origins'
+			'id' | 'name' | 'allowed_auto_join_email_origins'
 		>
 	>
 	workspace_invite_links: { __typename?: 'WorkspaceInviteLink' } & Pick<
@@ -2331,6 +2336,7 @@ export type SendAdminWorkspaceInviteMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	email: Types.Scalars['String']
 	role: Types.Scalars['String']
+	projectIds: Array<Types.Scalars['ID']> | Types.Scalars['ID']
 }>
 
 export type SendAdminWorkspaceInviteMutation = {
@@ -2571,7 +2577,6 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
 			Types.Workspace,
 			| 'id'
 			| 'name'
-			| 'secret'
 			| 'plan_tier'
 			| 'unlimited_members'
 			| 'clearbit_enabled'
@@ -2826,7 +2831,7 @@ export type GetAdminRoleQuery = { __typename?: 'Query' } & {
 	admin_role?: Types.Maybe<
 		{ __typename?: 'WorkspaceAdminRole' } & Pick<
 			Types.WorkspaceAdminRole,
-			'role'
+			'workspaceId' | 'role' | 'projectIds'
 		> & {
 				admin: { __typename?: 'Admin' } & Pick<
 					Types.Admin,
@@ -2853,7 +2858,7 @@ export type GetAdminRoleByProjectQuery = { __typename?: 'Query' } & {
 	admin_role_by_project?: Types.Maybe<
 		{ __typename?: 'WorkspaceAdminRole' } & Pick<
 			Types.WorkspaceAdminRole,
-			'role'
+			'workspaceId' | 'role' | 'projectIds'
 		> & {
 				admin: { __typename?: 'Admin' } & Pick<
 					Types.Admin,
@@ -4092,12 +4097,15 @@ export type GetLogAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'DiscordChannel' } & DiscordChannelFragmentFragment
 	>
 	admins: Array<
-		{ __typename?: 'WorkspaceAdminRole' } & {
-			admin: { __typename?: 'Admin' } & Pick<
-				Types.Admin,
-				'id' | 'name' | 'email' | 'photo_url'
-			>
-		}
+		{ __typename?: 'WorkspaceAdminRole' } & Pick<
+			Types.WorkspaceAdminRole,
+			'workspaceId'
+		> & {
+				admin: { __typename?: 'Admin' } & Pick<
+					Types.Admin,
+					'id' | 'name' | 'email' | 'photo_url'
+				>
+			}
 	>
 }
 
@@ -4125,12 +4133,15 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 		} & MicrosoftTeamsChannelFragmentFragment
 	>
 	admins: Array<
-		{ __typename?: 'WorkspaceAdminRole' } & {
-			admin: { __typename?: 'Admin' } & Pick<
-				Types.Admin,
-				'id' | 'name' | 'email' | 'photo_url'
-			>
-		}
+		{ __typename?: 'WorkspaceAdminRole' } & Pick<
+			Types.WorkspaceAdminRole,
+			'workspaceId'
+		> & {
+				admin: { __typename?: 'Admin' } & Pick<
+					Types.Admin,
+					'id' | 'name' | 'email' | 'photo_url'
+				>
+			}
 	>
 	environment_suggestion?: Types.Maybe<
 		Array<
@@ -4730,6 +4741,7 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			| 'enable_ingest_sampling'
 			| 'enable_data_deletion'
 			| 'enable_grafana_dashboard'
+			| 'enable_project_level_access'
 		>
 	>
 }
@@ -5295,7 +5307,7 @@ export const namedOperations = {
 		AddAdminToWorkspace: 'AddAdminToWorkspace' as const,
 		JoinWorkspace: 'JoinWorkspace' as const,
 		ChangeAdminRole: 'ChangeAdminRole' as const,
-		DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
+		ChangeProjectMembership: 'ChangeProjectMembership' as const,
 		DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,
 		AddIntegrationToProject: 'AddIntegrationToProject' as const,
 		RemoveIntegrationFromProject: 'RemoveIntegrationFromProject' as const,
