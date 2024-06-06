@@ -109,7 +109,7 @@ slug: client
         </aside>
         <aside className="parameter">
           <h5>inlineStylesheet <code>boolean</code> <code>optional</code></h5>
-          <p>Specifies whether to inline CSS style tags into the recording. When not set, defaults to `true` which will inline stylesheets to make sure apps recorded from `localhost` or other non-public network endpoints can be replayed. Setting to `false` may help with CORS issues caused by fetching the stylesheet contents, as well as with performance issues caused by the inlining process.</p>
+          <p>Specifies whether to inline CSS style tags into the recording. When not set, defaults to true which will inline stylesheets to make sure apps recorded from localhost or other non-public network endpoints can be replayed. Setting to false may help with CORS issues caused by fetching the stylesheet contents, as well as with performance issues caused by the inlining process.</p>
         </aside>
       </article>
     </aside>
