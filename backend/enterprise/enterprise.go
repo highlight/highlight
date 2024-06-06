@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/highlight-run/highlight/backend/projectpath"
 	"github.com/highlight-run/highlight/backend/util"
@@ -23,8 +24,6 @@ import (
 
 const UpdateInterval = time.Minute
 const UpdateErrorsAbort = 10
-
-var EarliestAllowedEnvironment = time.Now().AddDate(-1, 0, 0)
 
 func Start(ctx context.Context) error {
 	env, err := GetEnvironment(GetEncryptedEnvironmentFilePath())
@@ -98,6 +97,8 @@ func CheckForUpdatesLoop(ctx context.Context) {
 		if _, err := HasUpdates(client); err != nil {
 			log.WithContext(ctx).WithError(err).Warn("failed to check for upgrades")
 			errors++
+		} else {
+			errors = 0
 		}
 	}
 }
@@ -144,18 +145,18 @@ func GetEnvironment(file string) (*util.Configuration, error) {
 	cbc := cipher.NewCBCDecrypter(block, iv)
 	cbc.CryptBlocks(ciphertext, ciphertext)
 	lines := strings.Split(string(ciphertext), "\n")
-	envCreateStr := lines[0]
-	if envCreateStr[0] != '2' {
-		return nil, e.New("failed to decrypt environment file - is the build and LICENSE_KEY valid?")
+	envExpireStr := lines[0]
+	if envExpireStr[0] != '2' {
+		return nil, e.New("failed to decrypt environment file - is the LICENSE_KEY valid?")
 	}
 
-	envCreate, err := time.Parse(time.RFC3339, envCreateStr)
+	envExpire, err := time.Parse(time.RFC3339, envExpireStr)
 	if err != nil {
 		return nil, err
 	}
 
-	if EarliestAllowedEnvironment.After(envCreate) {
-		return nil, e.New("environment expired")
+	if time.Now().After(envExpire) {
+		return nil, e.New(fmt.Sprintf("environment expired as of %s", envExpireStr))
 	}
 
 	cfg := map[string]string{}

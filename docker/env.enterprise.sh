@@ -13,7 +13,7 @@ if [[ "$LICENSE_KEY" == "" ]]; then
 fi
 
 echo "Encrypting using license key ${LICENSE_KEY}"
-NOW=$(date -Iseconds)
+NOW=$(date -d "+1 year" -Iseconds)
 OUTPUT="../backend/env.enc"
 env | (echo "$NOW" && cat) | openssl enc -aes-256-cbc -nosalt -k $LICENSE_KEY -p -out $OUTPUT \
     | grep 'iv =' | sed -e 's/iv =/\n/' >> $OUTPUT
