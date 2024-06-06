@@ -55,16 +55,82 @@ jobs:
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
                   TARGET: ${{ matrix.container }}
                   RELEASE: ${{ github.ref_name }}
+                  REPO: ${{ github.event.pull_request.head.repo.full_name }}
+                  REF: ${{ github.ref }}
               run: |
                   IMAGE_TAG=$(echo ${{ github.ref_name }} | sed 's/\//-/g')
 
-                  PUSH="--push -t ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG"
+                  IMAGE_TAG=ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG
                   if [[ ${{ github.event_name }} == 'release' ]]; then
-                    PUSH="${PUSH} -t ghcr.io/highlight/$IMAGE_NAME:latest"
+                    IMAGE_TAG=ghcr.io/highlight/$IMAGE_NAME:latest
                   fi
+
+                  if [[ ${REF} == 'refs/heads/main' || ${REPO} == 'highlight/highlight' ]]; then
+                    PUSH="--push"
+                  else
+                    PUSH=""
+                  fi
+                  PUSH="$PUSH -t $IMAGE_TAG"
 
                   export PUSH
                   export PLATFORM="--platform linux/arm64,linux/amd64"
 
                   # build docker image with common environment
                   ./build.sh
+
+                  echo "$IMAGE_NAME=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    test-docker-enterprise:
+        name: Test Docker Image
+        needs:
+            - publish-docker
+        runs-on: buildjet-4vcpu-ubuntu-2204
+        timeout-minutes: 30
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+
+            - name: Login to Docker Hub
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Login to GitHub Docker
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: Vadman97
+                  password: ${{ secrets.GH_DOCKER_TOKEN }}
+
+            - name: Run docker enterprise
+              env:
+                  BACKEND_IMAGE_NAME: ${{ steps.publish-docker.outputs.highlight-backend }}
+                  FRONTEND_IMAGE_NAME: ${{ steps.publish-docker.outputs.highlight-frontend }}
+              run: |
+                  echo "Using images $BACKEND_IMAGE_NAME and $FRONTEND_IMAGE_NAME"
+
+                  # start highlight
+                  pushd docker;
+                  ./run-enterprise.sh
+                  popd;
+
+                  # run python backend functional tests
+                  pushd ./e2e/tests
+                  export HIGHLIGHT_OAUTH_CLIENT_ID=abc123
+                  export HIGHLIGHT_OAUTH_CLIENT_SECRET=def456
+                  poetry run pytest -k "not cypress" .
+                  popd
+
+                  # look for containers that crashed
+                  num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)
+                  if [ "$num_crashed" -gt 0 ]; then
+                    echo "$num_crashed containers crashed"
+                    docker ps -a -f status=exited
+                    exit 1
+                  fi

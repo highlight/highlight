@@ -40,7 +40,12 @@ func Start(ctx context.Context) error {
 	} else {
 		log.WithContext(ctx).
 			WithField("environment_valid_until", env.EnterpriseEnvExpiration).
-			Info("welcome to highlight.io enterprise, environment configured")
+			Info("welcome to highlight.io enterprise")
+		if util.IsEnterpriseDeploy() {
+			util.Config = *env
+			log.WithContext(ctx).
+				Info("applied enterprise environment file")
+		}
 	}
 
 	go CheckForUpdatesLoop(context.Background())

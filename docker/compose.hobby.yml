@@ -67,7 +67,7 @@ x-backend-env: &backend-env
 services:
     backend:
         container_name: backend
-        image: ghcr.io/highlight/highlight-backend:latest
+        image: ${BACKEND_IMAGE_NAME-ghcr.io/highlight/highlight-backend:latest}
         restart: on-failure
         ports:
             - '0.0.0.0:8082:8082'
@@ -81,7 +81,7 @@ services:
 
     frontend:
         container_name: frontend
-        image: ghcr.io/highlight/highlight-frontend:latest
+        image: ${FRONTEND_IMAGE_NAME-ghcr.io/highlight/highlight-frontend:latest}
         restart: on-failure
         volumes:
             - ../backend/localhostssl/server.key:/etc/ssl/private/ssl-cert.key
