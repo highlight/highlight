@@ -197,13 +197,8 @@ var PRIVATE_GRAPH_CORS_OPTIONS = cors.Options{
 }
 
 func validateOrigin(_ *http.Request, origin string) bool {
-	// From the highlight frontend, only the url is whitelisted.
-	isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
-	// Is this an AWS Amplify environment?
-	isAWSEnv := strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d25bj3loqvp3nx.amplifyapp.com")
-	isReflamePreview := origin == "https://preview.highlight.io"
-
-	if origin == frontendURL || origin == "https://app.highlight.run" || origin == "https://app.highlight.io" || origin == landingStagingURL || isRenderPreviewEnv || isAWSEnv || isReflamePreview {
+	isHighlightSubdomain := strings.HasSuffix(origin, ".highlight.io")
+	if origin == frontendURL || origin == landingStagingURL || isHighlightSubdomain {
 		return true
 	}
 
@@ -647,21 +642,24 @@ func main() {
 			go w.GetPublicWorker(kafkaqueue.TopicTypeBatched)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeTraces)(ctx)
-			// for the 'All' worker, run alert / metric watchers
 			go w.StartLogAlertWatcher(ctx)
 			go w.StartMetricMonitorWatcher(ctx)
-			// in `all` mode, report stripe usage every hour
 			go func() {
 				w.ReportStripeUsage(ctx)
 				for range time.Tick(time.Hour) {
 					w.ReportStripeUsage(ctx)
 				}
 			}()
-			// in `all` mode, refresh materialized views every hour
 			go func() {
 				w.RefreshMaterializedViews(ctx)
 				for range time.Tick(time.Hour) {
 					w.RefreshMaterializedViews(ctx)
+				}
+			}()
+			go func() {
+				w.AutoResolveStaleErrors(ctx)
+				for range time.Tick(time.Minute) {
+					w.AutoResolveStaleErrors(ctx)
 				}
 			}()
 			if util.IsDevEnv() && util.UseSSL() {

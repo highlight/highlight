@@ -143,7 +143,6 @@ export type AllProjectSettings = {
 	rage_click_radius_pixels?: Maybe<Scalars['Int']>
 	rage_click_window_seconds?: Maybe<Scalars['Int']>
 	sampling: Sampling
-	secret?: Maybe<Scalars['String']>
 	verbose_id: Scalars['String']
 	workspace_id: Scalars['ID']
 }
@@ -155,6 +154,7 @@ export type AllWorkspaceSettings = {
 	enable_data_deletion: Scalars['Boolean']
 	enable_grafana_dashboard: Scalars['Boolean']
 	enable_ingest_sampling: Scalars['Boolean']
+	enable_project_level_access: Scalars['Boolean']
 	enable_session_export: Scalars['Boolean']
 	enable_unlisted_sharing: Scalars['Boolean']
 	workspace_id: Scalars['ID']
@@ -1107,7 +1107,8 @@ export type Mutation = {
 	addAdminToWorkspace?: Maybe<Scalars['ID']>
 	addIntegrationToProject: Scalars['Boolean']
 	addIntegrationToWorkspace: Scalars['Boolean']
-	changeAdminRole: Scalars['Boolean']
+	changeAdminRole: WorkspaceAdminRole
+	changeProjectMembership: WorkspaceAdminRole
 	createAdmin: Admin
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
@@ -1124,7 +1125,6 @@ export type Mutation = {
 	createSessionComment?: Maybe<SessionComment>
 	createSessionCommentWithExistingIssue?: Maybe<SessionComment>
 	createWorkspace?: Maybe<Workspace>
-	deleteAdminFromProject?: Maybe<Scalars['ID']>
 	deleteAdminFromWorkspace?: Maybe<Scalars['ID']>
 	deleteDashboard: Scalars['Boolean']
 	deleteErrorAlert?: Maybe<ErrorAlert>
@@ -1215,6 +1215,12 @@ export type MutationAddIntegrationToWorkspaceArgs = {
 export type MutationChangeAdminRoleArgs = {
 	admin_id: Scalars['ID']
 	new_role: Scalars['String']
+	workspace_id: Scalars['ID']
+}
+
+export type MutationChangeProjectMembershipArgs = {
+	admin_id: Scalars['ID']
+	project_ids: Array<Scalars['ID']>
 	workspace_id: Scalars['ID']
 }
 
@@ -1384,11 +1390,6 @@ export type MutationCreateSessionCommentWithExistingIssueArgs = {
 export type MutationCreateWorkspaceArgs = {
 	name: Scalars['String']
 	promo_code?: InputMaybe<Scalars['String']>
-}
-
-export type MutationDeleteAdminFromProjectArgs = {
-	admin_id: Scalars['ID']
-	project_id: Scalars['ID']
 }
 
 export type MutationDeleteAdminFromWorkspaceArgs = {
@@ -1629,6 +1630,7 @@ export type MutationSaveBillingPlanArgs = {
 
 export type MutationSendAdminWorkspaceInviteArgs = {
 	email: Scalars['String']
+	projectIds: Array<Scalars['ID']>
 	role: Scalars['String']
 	workspace_id: Scalars['ID']
 }
@@ -3707,7 +3709,6 @@ export type Workspace = {
 	plan_tier: Scalars['String']
 	projects: Array<Maybe<Project>>
 	retention_period?: Maybe<RetentionPeriod>
-	secret?: Maybe<Scalars['String']>
 	sessions_max_cents?: Maybe<Scalars['Int']>
 	slack_channels?: Maybe<Scalars['String']>
 	slack_webhook_channel?: Maybe<Scalars['String']>
@@ -3720,7 +3721,9 @@ export type Workspace = {
 export type WorkspaceAdminRole = {
 	__typename?: 'WorkspaceAdminRole'
 	admin: Admin
+	projectIds: Array<Scalars['ID']>
 	role: Scalars['String']
+	workspaceId: Scalars['ID']
 }
 
 export type WorkspaceForInviteLink = {
