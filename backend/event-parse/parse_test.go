@@ -301,6 +301,14 @@ func TestSnapshot_ReplaceAssets(t *testing.T) {
 func TestSnapshot_ReplaceAssets_Capacitor(t *testing.T) {
 	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 		ctx := context.TODO()
+
+		DB.Model(&model.ProjectAssetTransform{}).Create(&model.ProjectAssetTransform{
+			ProjectID:         33914,
+			SourceScheme:      "capacitor",
+			DestinationScheme: "https",
+			DestinationHost:   "app.priceworx.co.uk",
+		})
+
 		inputBytes, err := os.ReadFile("./sample-events/capacitor.json")
 		if err != nil {
 			t.Fatalf("error reading: %v", err)

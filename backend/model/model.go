@@ -175,6 +175,7 @@ var Models = []interface{}{
 	&ErrorFingerprint{},
 	&EventChunk{},
 	&SavedAsset{},
+	&ProjectAssetTransform{},
 	&Dashboard{},
 	&DashboardMetric{},
 	&DashboardMetricFilter{},
