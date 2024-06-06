@@ -151,7 +151,6 @@ const LogsHistogram = ({
 								display: 'Stacked',
 							}}
 							series={series}
-							showXAxis={false}
 							showYAxis={false}
 							verboseTooltip
 						>

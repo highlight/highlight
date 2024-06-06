@@ -21,6 +21,7 @@ import {
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
+	TooltipConfig,
 } from '@/pages/Graphing/components/Graph'
 
 export type LineNullHandling = 'Hidden' | 'Connected' | 'Zero'
@@ -56,7 +57,7 @@ export const LineChart = ({
 	showGrid,
 	verboseTooltip,
 }: React.PropsWithChildren<
-	InnerChartProps<LineChartConfig> & SeriesInfo & AxisConfig
+	InnerChartProps<LineChartConfig> & SeriesInfo & AxisConfig & TooltipConfig
 >) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
 	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
