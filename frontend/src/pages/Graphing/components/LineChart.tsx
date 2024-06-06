@@ -1,9 +1,10 @@
 import { vars } from '@highlight-run/ui/vars'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
 	Area,
 	AreaChart,
 	CartesianGrid,
+	ReferenceArea,
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
@@ -21,8 +22,10 @@ import {
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
+	TIMESTAMP_KEY,
 	TooltipConfig,
 } from '@/pages/Graphing/components/Graph'
+import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart'
 
 export type LineNullHandling = 'Hidden' | 'Connected' | 'Zero'
 export const LINE_NULL_HANDLING: LineNullHandling[] = [
@@ -36,7 +39,7 @@ export const LINE_DISPLAY: LineDisplay[] = ['Line', 'Stacked area']
 
 export type LineChartConfig = {
 	type: 'Line chart'
-	showLegend: true
+	showLegend: boolean
 	display?: LineDisplay
 	nullHandling?: LineNullHandling
 }
@@ -45,17 +48,17 @@ export const LineChart = ({
 	data,
 	xAxisMetric,
 	yAxisMetric,
+	yAxisFunction,
 	series,
 	spotlight,
 	viewConfig,
-	onMouseDown,
-	onMouseMove,
-	onMouseUp,
+	setTimeRange,
 	children,
 	showXAxis,
 	showYAxis,
 	showGrid,
 	verboseTooltip,
+	strokeColors,
 }: React.PropsWithChildren<
 	InnerChartProps<LineChartConfig> & SeriesInfo & AxisConfig & TooltipConfig
 >) => {
@@ -76,6 +79,53 @@ export const LineChart = ({
 		return filled
 	}, [data, viewConfig.nullHandling, series])
 
+	const [refAreaStart, setRefAreaStart] = useState<number | undefined>()
+	const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>()
+
+	const referenceArea =
+		refAreaStart && refAreaEnd ? (
+			<ReferenceArea
+				x1={refAreaStart}
+				x2={refAreaEnd}
+				strokeOpacity={0.3}
+			/>
+		) : null
+
+	const allowDrag =
+		setTimeRange !== undefined && xAxisMetric === TIMESTAMP_KEY
+
+	const onMouseDown: CategoricalChartFunc | undefined = allowDrag
+		? (e) => {
+				if (e.activeLabel !== undefined) {
+					setRefAreaStart(Number(e.activeLabel))
+				}
+		  }
+		: undefined
+
+	const onMouseMove: CategoricalChartFunc | undefined = allowDrag
+		? (e) => {
+				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
+					setRefAreaEnd(Number(e.activeLabel))
+				}
+		  }
+		: undefined
+
+	const onMouseUp: CategoricalChartFunc | undefined = allowDrag
+		? () => {
+				if (refAreaStart !== undefined && refAreaEnd !== undefined) {
+					const startDate = Math.min(refAreaStart, refAreaEnd)
+					const endDate = Math.max(refAreaStart, refAreaEnd)
+
+					setTimeRange(
+						new Date(startDate * 1000),
+						new Date(endDate * 1000),
+					)
+				}
+				setRefAreaStart(undefined)
+				setRefAreaEnd(undefined)
+		  }
+		: undefined
+
 	return (
 		<ResponsiveContainer height="100%" width="100%">
 			<AreaChart
@@ -84,6 +134,7 @@ export const LineChart = ({
 				onMouseMove={onMouseMove}
 				onMouseUp={onMouseUp}
 			>
+				{referenceArea}
 				{children}
 				<XAxis
 					dataKey={xAxisMetric}
@@ -100,7 +151,6 @@ export const LineChart = ({
 					tickLine={{ visibility: 'hidden' }}
 					axisLine={{ visibility: 'hidden' }}
 					height={12}
-					type={xAxisMetric === GROUP_KEY ? 'category' : 'number'}
 					domain={['dataMin', 'dataMax']}
 					hide={showXAxis === false}
 				/>
@@ -109,10 +159,12 @@ export const LineChart = ({
 					content={getCustomTooltip(
 						xAxisMetric,
 						yAxisMetric,
+						yAxisFunction,
 						verboseTooltip,
 					)}
 					cursor={{ stroke: '#C8C7CB', strokeDasharray: 4 }}
 					isAnimationActive={false}
+					wrapperStyle={{ zIndex: 100 }}
 				/>
 
 				<YAxis
@@ -197,8 +249,8 @@ export const LineChart = ({
 										: idx
 								}
 								strokeWidth="2px"
-								fill={getColor(idx)}
-								stroke={getColor(idx)}
+								fill={getColor(idx, key, strokeColors)}
+								stroke={getColor(idx, key, strokeColors)}
 								fillOpacity={
 									viewConfig.display === 'Stacked area'
 										? 0.1

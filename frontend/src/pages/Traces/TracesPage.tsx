@@ -262,7 +262,6 @@ export const TracesPage: React.FC = () => {
 						display="flex"
 						borderBottom="dividerWeak"
 						justifyContent="space-between"
-						style={{ height: 85 }}
 					>
 						<Box
 							width="full"
@@ -319,35 +318,53 @@ export const TracesPage: React.FC = () => {
 								onDatesChange={updateSearchTime}
 								metrics={metricsData}
 								loading={metricsLoading}
-								barColor="#6F6E77"
+								series={[MetricAggregator.Count]}
 							/>
 						</Box>
 						<Box
 							width="full"
-							px="10"
-							py="4"
 							cssClass={styles.chart}
 							position="relative"
 						>
-							{metricsLoading ? (
-								<HistogramLoading
-									cssClass={styles.chartText}
-									style={{
-										top: 6,
-									}}
-								/>
-							) : (
-								<Text
-									cssClass={styles.chartText}
-									size="xSmall"
-									color="weak"
-								>
-									Latency
-								</Text>
-							)}
-							<LatencyChart
+							<Box
+								alignItems="center"
+								display="flex"
+								flexDirection="row"
+								px="10"
+								mb="4"
+								gap="10"
+								style={{ height: 28 }}
+							>
+								{metricsLoading ? (
+									<HistogramLoading
+										cssClass={styles.chartText}
+										style={{
+											top: 6,
+										}}
+									/>
+								) : (
+									<Text
+										cssClass={styles.chartText}
+										size="xSmall"
+										color="weak"
+									>
+										Latency
+									</Text>
+								)}
+							</Box>
+
+							<LogsHistogram
+								startDate={startDate}
+								endDate={endDate}
+								onDatesChange={updateSearchTime}
+								metrics={metricsData}
 								loading={metricsLoading}
-								metricsBuckets={metricsBuckets}
+								series={[
+									MetricAggregator.P90,
+									MetricAggregator.P50,
+									MetricAggregator.Avg,
+								]}
+								lineChart
 							/>
 						</Box>
 					</Box>

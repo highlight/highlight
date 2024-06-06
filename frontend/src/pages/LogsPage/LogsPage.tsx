@@ -187,7 +187,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 				metric_types: MetricAggregator.Count,
 				group_by: 'level',
 				bucket_by: TIMESTAMP_KEY,
-				bucket_count: 48,
+				bucket_count: 45,
 			},
 			skip: !projectId,
 		})
@@ -260,7 +260,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={updateSearchTime}
-						onLevelChange={handleLevelChange}
 						loading={histogramLoading}
 						metrics={histogramData}
 					/>

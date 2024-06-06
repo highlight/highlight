@@ -14,6 +14,8 @@ import {
 } from '@/pages/Graphing/components/Graph'
 
 import * as styles from './LogsHistogram.css'
+import { LEVEL_COLOR_MAPPING } from '@/pages/LogsPage/constants'
+import { LineChart } from '@/pages/Graphing/components/LineChart'
 
 type LogsHistogramProps = Omit<
 	LogsHistogramChartProps,
@@ -28,6 +30,7 @@ type LogsHistogramProps = Omit<
 	frequencySeconds?: number
 	barColor?: string
 	noPadding?: boolean
+	lineChart?: boolean
 } & BoxProps
 
 type LoadingState = 'skeleton' | 'spinner'
@@ -37,32 +40,30 @@ interface LogsHistogramChartProps {
 	endDate: Date
 	loadingState: LoadingState | undefined
 	metrics: GetMetricsQuery | undefined
+	series?: string[]
 	onDatesChange?: (startDate: Date, endDate: Date) => void
-	onLevelChange?: (level: Level) => void
-	barColor?: string
 	noPadding?: boolean
-	legend?: boolean
 }
 
 const LogsHistogram = ({
 	outline,
-	legend,
 	startDate,
 	endDate,
 	metrics,
-	// onDatesChange,
-	// onLevelChange,
+	onDatesChange,
 	threshold,
 	belowThreshold,
 	frequencySeconds,
 	loading,
 	loadingState,
-	// barColor,
-	// noPadding,
+	series,
+	lineChart,
 	...props
 }: LogsHistogramProps) => {
 	const data = useGraphData(metrics, TIMESTAMP_KEY)
-	const series = useGraphSeries(data, TIMESTAMP_KEY)
+	if (series === undefined) {
+		series = useGraphSeries(data, TIMESTAMP_KEY)
+	}
 	let maxValue = 0
 	for (const d of data ?? []) {
 		let curValue = 0
@@ -117,9 +118,8 @@ const LogsHistogram = ({
 	}
 
 	const heightClass = clsx({
-		[styles.regularHeight]: !legend && !outline,
-		[styles.outlineHeight]: !legend && outline,
-		[styles.legendHeight]: legend,
+		[styles.regularHeight]: !outline,
+		[styles.outlineHeight]: outline,
 	})
 
 	return (
@@ -138,13 +138,13 @@ const LogsHistogram = ({
 				width="full"
 				cssClass={heightClass}
 			>
-				{showLoadingState || !!maxValue ? (
+				{!!maxValue && !lineChart && (
 					<>
 						<BarChart
 							data={data}
 							xAxisMetric="Timestamp"
 							yAxisMetric=""
-							yAxisFunction="Count"
+							yAxisFunction=""
 							viewConfig={{
 								type: 'Bar chart',
 								showLegend: false,
@@ -153,6 +153,44 @@ const LogsHistogram = ({
 							series={series}
 							showYAxis={false}
 							verboseTooltip
+							strokeColors={LEVEL_COLOR_MAPPING}
+							setTimeRange={onDatesChange}
+						>
+							{threshold !== undefined && !belowThreshold && (
+								<ReferenceArea
+									y1={areaMin}
+									isFront
+									fill="#cd2b31"
+									opacity={0.5}
+								/>
+							)}
+							{threshold !== undefined && belowThreshold && (
+								<ReferenceArea
+									y2={areaMax}
+									isFront
+									fill="#cd2b31"
+									opacity={0.5}
+								/>
+							)}
+						</BarChart>
+					</>
+				)}
+				{!!maxValue && lineChart && (
+					<>
+						<LineChart
+							data={data}
+							xAxisMetric="Timestamp"
+							yAxisMetric="duration"
+							yAxisFunction=""
+							viewConfig={{
+								type: 'Line chart',
+								showLegend: false,
+							}}
+							series={series}
+							showYAxis={false}
+							verboseTooltip
+							strokeColors={LEVEL_COLOR_MAPPING}
+							setTimeRange={onDatesChange}
 						>
 							{threshold !== undefined && (
 								<ReferenceArea
@@ -162,19 +200,8 @@ const LogsHistogram = ({
 									isFront
 								/>
 							)}
-						</BarChart>
+						</LineChart>
 					</>
-				) : (
-					<Box
-						width="full"
-						height="full"
-						display="flex"
-						alignItems="center"
-						justifyContent="center"
-					>
-						No logs from {formatDate(startDate)} to{' '}
-						{formatDate(endDate)}.
-					</Box>
 				)}
 			</Box>
 		</Box>

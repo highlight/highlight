@@ -115,15 +115,13 @@ export interface InnerChartProps<TConfig> {
 	loading?: boolean
 	viewConfig: TConfig
 	disabled?: boolean
-	onMouseDown?: CategoricalChartFunc
-	onMouseMove?: CategoricalChartFunc
-	onMouseUp?: CategoricalChartFunc
+	setTimeRange?: (startDate: Date, endDate: Date) => void
 }
 
 export interface SeriesInfo {
 	series: string[]
 	spotlight?: number | undefined
-	strokeColors?: string[]
+	strokeColors?: string[] | Map<string, string>
 }
 
 export interface AxisConfig {
@@ -149,8 +147,19 @@ const strokeColors = [
 	'#3E63DD',
 ]
 
-export const getColor = (idx: number): string => {
-	return strokeColors[idx % strokeColors.length]
+export const getColor = (
+	idx: number,
+	key: string,
+	colorOverride?: string[] | Map<string, string>,
+): string => {
+	const defaultColor = strokeColors[idx % strokeColors.length]
+	if (colorOverride === undefined) {
+		return defaultColor
+	}
+	if ('at' in colorOverride) {
+		return colorOverride.at(idx) ?? defaultColor
+	}
+	return colorOverride.get(key) ?? defaultColor
 }
 
 const formatNumber = (n: number | null) => {
@@ -197,14 +206,14 @@ const timeMetrics = {
 export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 	if (metric === 'Timestamp') {
 		if (data === undefined) {
-			return (value: any) => moment(value * 1000).format('MM/DD HH:mm:SS')
+			return (value: any) => moment(value * 1000).format('MM/DD HH:mm:ss')
 		}
 
 		const start = data.at(0).Timestamp * 1000
 		const end = data.at(data.length - 1).Timestamp * 1000
 		const diffMinutes = moment(end).diff(start, 'minutes')
 		if (diffMinutes < 15) {
-			return (value: any) => moment(value * 1000).format('HH:mm:SS')
+			return (value: any) => moment(value * 1000).format('HH:mm:ss')
 		} else if (diffMinutes < 12 * 60) {
 			return (value: any) => moment(value * 1000).format('HH:mm')
 		} else {
@@ -250,7 +259,12 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 }
 
 export const getCustomTooltip =
-	(xAxisMetric: any, yAxisMetric: any, verbose?: boolean) =>
+	(
+		xAxisMetric: string,
+		yAxisMetric: string,
+		yAxisFunction: string,
+		verbose?: boolean,
+	) =>
 	({ active, payload, label }: any) => {
 		const isValid = active && payload && payload.length
 		return (
@@ -282,7 +296,8 @@ export const getCustomTooltip =
 							color="default"
 							cssClass={style.tooltipText}
 						>
-							{verbose && p.name && p.name + ': '}
+							{verbose &&
+								(p.name ? p.name + ': ' : yAxisFunction + ': ')}
 							{isValid && getTickFormatter(yAxisMetric)(p.value)}
 						</Text>
 					</Box>
@@ -395,7 +410,7 @@ export const useGraphData = (
 
 				const seriesKeys = new Set<string>()
 				for (const b of metrics.metrics.buckets) {
-					const seriesKey = b.group.join(' ')
+					const seriesKey = b.group.join(' ') || b.metric_type
 					seriesKeys.add(seriesKey)
 					data[b.bucket_id][xAxisMetric] =
 						(b.bucket_min + b.bucket_max) / 2
@@ -584,53 +599,6 @@ const Graph = ({
 		setSpotlight(undefined)
 	}, [series])
 
-	const [refAreaStart, setRefAreaStart] = useState<number | undefined>()
-	const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>()
-
-	const referenceArea =
-		refAreaStart && refAreaEnd ? (
-			<ReferenceArea
-				x1={refAreaStart}
-				x2={refAreaEnd}
-				strokeOpacity={0.3}
-			/>
-		) : null
-
-	const allowDrag =
-		setTimeRange !== undefined && xAxisMetric === TIMESTAMP_KEY
-
-	const onMouseDown: CategoricalChartFunc | undefined = allowDrag
-		? (e) => {
-				if (e.activeLabel !== undefined) {
-					setRefAreaStart(Number(e.activeLabel))
-				}
-		  }
-		: undefined
-
-	const onMouseMove: CategoricalChartFunc | undefined = allowDrag
-		? (e) => {
-				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
-					setRefAreaEnd(Number(e.activeLabel))
-				}
-		  }
-		: undefined
-
-	const onMouseUp: CategoricalChartFunc | undefined = allowDrag
-		? () => {
-				if (refAreaStart !== undefined && refAreaEnd !== undefined) {
-					const startDate = Math.min(refAreaStart, refAreaEnd)
-					const endDate = Math.max(refAreaStart, refAreaEnd)
-
-					setTimeRange(
-						new Date(startDate * 1000),
-						new Date(endDate * 1000),
-					)
-				}
-				setRefAreaStart(undefined)
-				setRefAreaEnd(undefined)
-		  }
-		: undefined
-
 	let isEmpty = true
 	for (const d of data ?? []) {
 		for (const v of Object.values(d)) {
@@ -672,11 +640,7 @@ const Graph = ({
 						viewConfig={viewConfig}
 						series={series}
 						spotlight={spotlight}
-						onMouseDown={onMouseDown}
-						onMouseMove={onMouseMove}
-						onMouseUp={onMouseUp}
 					>
-						{referenceArea}
 						{children}
 					</LineChart>
 				)
@@ -691,11 +655,7 @@ const Graph = ({
 						viewConfig={viewConfig}
 						series={series}
 						spotlight={spotlight}
-						onMouseDown={onMouseDown}
-						onMouseMove={onMouseMove}
-						onMouseUp={onMouseUp}
 					>
-						{referenceArea}
 						{children}
 					</BarChart>
 				)
@@ -716,7 +676,8 @@ const Graph = ({
 		}
 	}
 
-	const showLegend = viewConfig.showLegend && series.join('') !== ''
+	const showLegend =
+		viewConfig.showLegend && series.join('') !== yAxisFunction
 	return (
 		<Box
 			position="relative"
@@ -879,7 +840,11 @@ const Graph = ({
 														spotlight,
 														idx,
 													)
-														? getColor(idx)
+														? getColor(
+																idx,
+																key,
+																strokeColors,
+														  )
 														: undefined,
 												}}
 												cssClass={style.legendDot}

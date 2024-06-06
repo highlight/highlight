@@ -66,6 +66,7 @@ export const tooltipWrapper = style({
 	padding: '8px',
 	maxHeight: '180px',
 	overflowY: 'auto',
+	zIndex: 20000000000,
 })
 
 export const tooltipText = style({

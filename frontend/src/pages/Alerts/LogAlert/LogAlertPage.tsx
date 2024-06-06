@@ -489,7 +489,6 @@ export const LogAlertPage = () => {
 											startDate={startDate}
 											endDate={endDate}
 											onDatesChange={updateSearchTime}
-											onLevelChange={() => {}}
 											outline
 											threshold={threshold}
 											belowThreshold={belowThreshold}
