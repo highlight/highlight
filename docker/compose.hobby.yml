@@ -74,6 +74,7 @@ services:
         volumes:
             - highlight-data:/highlight-data
             - ../backend/env.enc:/build/env.enc
+            - ../backend/env.enc.sha512:/build/env.enc.sha512
             - ../backend/localhostssl/server.key:/build/localhostssl/server.key
             - ../backend/localhostssl/server.crt:/build/localhostssl/server.crt
         <<: *backend-env

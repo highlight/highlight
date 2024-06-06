@@ -38,7 +38,9 @@ func Start(ctx context.Context) error {
 			return err
 		}
 	} else {
-		log.WithContext(ctx).Infof("welcome %s", env.LicenseKey)
+		log.WithContext(ctx).
+			WithField("environment_valid_until", env.EnterpriseEnvExpiration).
+			Info("welcome to highlight.io enterprise, environment configured")
 	}
 
 	go CheckForUpdatesLoop(context.Background())
@@ -196,7 +198,7 @@ func GetEnvironment(file, digest string) (*util.Configuration, error) {
 		cfg[data[0]] = data[1]
 	}
 
-	var config util.Configuration
+	config := util.Configuration{EnterpriseEnvExpiration: envExpire}
 	if err = mapstructure.Decode(cfg, &config); err != nil {
 		return nil, err
 	}
