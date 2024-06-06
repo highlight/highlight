@@ -12,13 +12,13 @@ import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import EventDetails from '@pages/Player/RightPlayerPanel/components/EventDetails/EventDetails'
 import RightPanelTabs from '@pages/Player/RightPlayerPanel/components/Tabs'
 import clsx from 'clsx'
-import React, { useEffect, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 
 import SessionFullCommentList from '@/pages/Player/SessionFullCommentList/SessionFullCommentList'
 
 import * as style from './style.css'
 
-export const RightPlayerPanel: React.FC = React.memo(() => {
+const RightPlayerPanel = () => {
 	const { showRightPanel: showRightPanelPreference, setShowRightPanel } =
 		usePlayerConfiguration()
 	const { canViewSession, session } = useReplayerContext()
@@ -88,6 +88,6 @@ export const RightPlayerPanel: React.FC = React.memo(() => {
 			{content}
 		</Box>
 	)
-})
+}
 
 export default RightPlayerPanel
