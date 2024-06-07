@@ -7918,6 +7918,8 @@ export const GetWorkspacesDocument = gql`
 		workspaces {
 			id
 			name
+			retention_period
+			errors_retention_period
 		}
 		joinable_workspaces {
 			id
@@ -8175,6 +8177,8 @@ export const GetProjectDropdownOptionsDocument = gql`
 				id
 				name
 			}
+			retention_period
+			errors_retention_period
 		}
 		workspaces {
 			id
@@ -8247,6 +8251,8 @@ export const GetWorkspaceDropdownOptionsDocument = gql`
 				id
 				name
 			}
+			retention_period
+			errors_retention_period
 		}
 		workspaces {
 			id

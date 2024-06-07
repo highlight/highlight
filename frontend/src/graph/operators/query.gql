@@ -714,6 +714,8 @@ query GetWorkspaces {
 	workspaces {
 		id
 		name
+		retention_period
+		errors_retention_period
 	}
 	joinable_workspaces {
 		id
@@ -772,6 +774,8 @@ query GetProjectDropdownOptions($project_id: ID!) {
 			id
 			name
 		}
+		retention_period
+		errors_retention_period
 	}
 	workspaces {
 		id
@@ -794,6 +798,8 @@ query GetWorkspaceDropdownOptions($workspace_id: ID!) {
 			id
 			name
 		}
+		retention_period
+		errors_retention_period
 	}
 	workspaces {
 		id

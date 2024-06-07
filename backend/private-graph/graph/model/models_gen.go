@@ -2293,6 +2293,7 @@ func (e ReservedTraceKey) MarshalGQL(w io.Writer) {
 type RetentionPeriod string
 
 const (
+	RetentionPeriodSevenDays    RetentionPeriod = "SevenDays"
 	RetentionPeriodThirtyDays   RetentionPeriod = "ThirtyDays"
 	RetentionPeriodThreeMonths  RetentionPeriod = "ThreeMonths"
 	RetentionPeriodSixMonths    RetentionPeriod = "SixMonths"
@@ -2302,6 +2303,7 @@ const (
 )
 
 var AllRetentionPeriod = []RetentionPeriod{
+	RetentionPeriodSevenDays,
 	RetentionPeriodThirtyDays,
 	RetentionPeriodThreeMonths,
 	RetentionPeriodSixMonths,
@@ -2312,7 +2314,7 @@ var AllRetentionPeriod = []RetentionPeriod{
 
 func (e RetentionPeriod) IsValid() bool {
 	switch e {
-	case RetentionPeriodThirtyDays, RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears, RetentionPeriodThreeYears:
+	case RetentionPeriodSevenDays, RetentionPeriodThirtyDays, RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears, RetentionPeriodThreeYears:
 		return true
 	}
 	return false

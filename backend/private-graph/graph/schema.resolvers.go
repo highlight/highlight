@@ -6955,6 +6955,10 @@ func (r *queryResolver) Workspaces(ctx context.Context) ([]*model.Workspace, err
 		return nil, e.Wrap(err, "error getting associated workspaces")
 	}
 
+	for _, w := range workspaces {
+		r.SetDefaultRetention(w)
+	}
+
 	return workspaces, nil
 }
 
@@ -7866,6 +7870,8 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 
 		return *p, p.WorkspaceID == id
 	})
+
+	r.SetDefaultRetention(workspace)
 
 	return workspace, nil
 }

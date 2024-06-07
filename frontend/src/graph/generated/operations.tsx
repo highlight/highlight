@@ -2618,7 +2618,10 @@ export type GetWorkspacesQuery = { __typename?: 'Query' } & {
 			Types.Maybe<
 				{ __typename?: 'Workspace' } & Pick<
 					Types.Workspace,
-					'id' | 'name'
+					| 'id'
+					| 'name'
+					| 'retention_period'
+					| 'errors_retention_period'
 				>
 			>
 		>
@@ -2713,7 +2716,10 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
 		>
 	>
 	workspace?: Types.Maybe<
-		{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'> & {
+		{ __typename?: 'Workspace' } & Pick<
+			Types.Workspace,
+			'id' | 'name' | 'retention_period' | 'errors_retention_period'
+		> & {
 				projects: Array<
 					Types.Maybe<
 						{ __typename?: 'Project' } & Pick<
@@ -2761,7 +2767,10 @@ export type GetWorkspaceDropdownOptionsQueryVariables = Types.Exact<{
 
 export type GetWorkspaceDropdownOptionsQuery = { __typename?: 'Query' } & {
 	workspace?: Types.Maybe<
-		{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'> & {
+		{ __typename?: 'Workspace' } & Pick<
+			Types.Workspace,
+			'id' | 'name' | 'retention_period' | 'errors_retention_period'
+		> & {
 				projects: Array<
 					Types.Maybe<
 						{ __typename?: 'Project' } & Pick<

@@ -15,7 +15,10 @@ interface ApplicationContext {
 		>[]
 	>
 	currentWorkspace?: Maybe<
-		{ __typename?: 'Workspace' } & Pick<Workspace, 'id' | 'name'>
+		{ __typename?: 'Workspace' } & Pick<
+			Workspace,
+			'id' | 'name' | 'retention_period' | 'errors_retention_period'
+		>
 	>
 	workspaces: Maybe<
 		{ __typename?: 'Workspace' } & Pick<Workspace, 'id' | 'name'>

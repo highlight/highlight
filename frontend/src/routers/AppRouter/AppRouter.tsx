@@ -127,7 +127,7 @@ export const AppRouter = () => {
 
 	const { data: workspacesData } = useGetWorkspacesQuery({
 		variables: {},
-		skip: !isLoggedIn || !!workspaceId,
+		skip: !isLoggedIn || !!workspaceId || isValidProjectId,
 	})
 
 	const { data: projectDropdownData, loading: projectDropdownDataLoading } =
@@ -230,7 +230,14 @@ export const AppRouter = () => {
 		}
 	}, [admin])
 
-	if (isAuthLoading) {
+	const currentWorkspace =
+		(projectListData?.workspace ||
+			workspaceListData?.workspace ||
+			workspacesData?.workspaces?.at(0)) ??
+		undefined
+
+	// Ensure auth and current workspace data has loaded
+	if (isAuthLoading || !currentWorkspace) {
 		return null
 	}
 
@@ -246,11 +253,7 @@ export const AppRouter = () => {
 						(projectListData?.workspace?.projects ||
 							workspaceListData?.workspace?.projects) ??
 						[],
-					currentWorkspace:
-						(projectListData?.workspace ||
-							workspaceListData?.workspace ||
-							workspacesData?.workspaces?.at(0)) ??
-						undefined,
+					currentWorkspace: currentWorkspace,
 					workspaces:
 						(projectListData?.workspaces ||
 							workspaceListData?.workspaces) ??
