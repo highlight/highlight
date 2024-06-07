@@ -1,5 +1,4 @@
 import {
-	LogLevel,
 	MetricAggregator,
 	ProductType,
 	SavedSegmentEntityType,
@@ -151,10 +150,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		endDate,
 		disablePolling: !selectedPreset,
 	})
-
-	const handleLevelChange = (level: LogLevel) => {
-		setQuery(`${query} level:${level}`)
-	}
 
 	const fetchMoreWhenScrolled = React.useCallback(
 		(containerRefElement?: HTMLDivElement | null) => {

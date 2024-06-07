@@ -24,8 +24,6 @@ import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ReferenceArea } from 'recharts'
-import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart'
 
 import { loadingIcon } from '@/components/Button/style.css'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
@@ -640,6 +638,7 @@ const Graph = ({
 						viewConfig={viewConfig}
 						series={series}
 						spotlight={spotlight}
+						setTimeRange={setTimeRange}
 					>
 						{children}
 					</LineChart>
@@ -655,6 +654,7 @@ const Graph = ({
 						viewConfig={viewConfig}
 						series={series}
 						spotlight={spotlight}
+						setTimeRange={setTimeRange}
 					>
 						{children}
 					</BarChart>

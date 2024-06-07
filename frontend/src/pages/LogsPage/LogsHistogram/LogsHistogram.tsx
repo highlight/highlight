@@ -1,6 +1,4 @@
-import { LogLevel as Level } from '@graph/schemas'
 import { Box, BoxProps } from '@highlight-run/ui/components'
-import { formatDate } from '@pages/LogsPage/utils'
 import { clamp } from '@util/numbers'
 import clsx from 'clsx'
 import { ReferenceArea } from 'recharts'
@@ -12,10 +10,10 @@ import {
 	useGraphData,
 	useGraphSeries,
 } from '@/pages/Graphing/components/Graph'
+import { LineChart } from '@/pages/Graphing/components/LineChart'
+import { LEVEL_COLOR_MAPPING } from '@/pages/LogsPage/constants'
 
 import * as styles from './LogsHistogram.css'
-import { LEVEL_COLOR_MAPPING } from '@/pages/LogsPage/constants'
-import { LineChart } from '@/pages/Graphing/components/LineChart'
 
 type LogsHistogramProps = Omit<
 	LogsHistogramChartProps,
@@ -61,8 +59,9 @@ const LogsHistogram = ({
 	...props
 }: LogsHistogramProps) => {
 	const data = useGraphData(metrics, TIMESTAMP_KEY)
+	const fallbackSeries = useGraphSeries(data, TIMESTAMP_KEY)
 	if (series === undefined) {
-		series = useGraphSeries(data, TIMESTAMP_KEY)
+		series = fallbackSeries
 	}
 	let maxValue = 0
 	for (const d of data ?? []) {

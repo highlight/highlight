@@ -4,12 +4,13 @@ import {
 	BarChart as RechartsBarChart,
 	BarProps,
 	CartesianGrid,
+	ReferenceArea,
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
 	YAxis,
-	ReferenceArea,
 } from 'recharts'
+import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart'
 
 import {
 	AxisConfig,
@@ -18,14 +19,12 @@ import {
 	getColor,
 	getCustomTooltip,
 	getTickFormatter,
-	GROUP_KEY,
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
 	TIMESTAMP_KEY,
 	TooltipConfig,
 } from '@/pages/Graphing/components/Graph'
-import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart'
 
 export type BarDisplay = 'Grouped' | 'Stacked'
 export const BAR_DISPLAY: BarDisplay[] = ['Grouped', 'Stacked']
