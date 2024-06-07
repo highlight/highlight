@@ -56,7 +56,6 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { formatNumber } from '@/util/numbers'
 
 import * as styles from './SearchForm.css'
-import _ from 'lodash'
 
 export const QueryParam = withDefault(StringParam, '')
 export const FixedRangePreset = DEFAULT_TIME_PRESETS[0]
