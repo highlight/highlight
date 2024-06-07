@@ -60,7 +60,6 @@ jobs:
                   REF: ${{ github.ref }}
               run: |
                   IMAGE_TAG=$(echo ${{ github.ref_name }} | sed 's/\//-/g')
-
                   IMAGE_TAG=ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG
                   if [[ ${{ github.event_name }} == 'release' ]]; then
                     IMAGE_TAG=ghcr.io/highlight/$IMAGE_NAME:latest
@@ -79,8 +78,7 @@ jobs:
                   # build docker image with common environment
                   ./build.sh
 
-                  echo "Setting $IMAGE_NAME in $GITHUB_OUTPUT"
-                  echo "$IMAGE_NAME=$IMAGE_TAG" >> $GITHUB_OUTPUT
+                  echo "Built $IMAGE_NAME"
 
     test-docker-enterprise:
         name: Test Docker Image
@@ -111,10 +109,14 @@ jobs:
                   password: ${{ secrets.GH_DOCKER_TOKEN }}
 
             - name: Run docker enterprise
-              env:
-                  BACKEND_IMAGE_NAME: ${{ steps.image-build.outputs.highlight-backend }}
-                  FRONTEND_IMAGE_NAME: ${{ steps.image-build.outputs.highlight-frontend }}
               run: |
+                  IMAGE_TAG=$(echo ${{ github.ref_name }} | sed 's/\//-/g')
+                  if [[ ${{ github.event_name }} == 'release' ]]; then
+                    IMAGE_TAG=latest
+                  fi
+                  BACKEND_IMAGE_NAME=ghcr.io/highlight/highlight-backend:$IMAGE_TAG
+                  FRONTEND_IMAGE_NAME=ghcr.io/highlight/highlight-frontend:$IMAGE_TAG
+
                   echo "Using images $BACKEND_IMAGE_NAME and $FRONTEND_IMAGE_NAME"
 
                   # start highlight
