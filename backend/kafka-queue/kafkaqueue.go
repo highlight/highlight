@@ -26,7 +26,7 @@ const KafkaOperationTimeout = 25 * time.Second
 const ConsumerGroupName = "group-default"
 
 const (
-	TaskRetries           = 2
+	TaskRetries           = 0
 	prefetchQueueCapacity = 100
 	MaxMessageSizeBytes   = 256 * 1024 * 1024 // MiB
 )
