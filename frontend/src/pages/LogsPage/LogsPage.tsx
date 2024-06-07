@@ -182,7 +182,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 				metric_types: MetricAggregator.Count,
 				group_by: 'level',
 				bucket_by: TIMESTAMP_KEY,
-				bucket_count: 45,
+				bucket_count: 90,
 			},
 			skip: !projectId,
 		})
