@@ -54,19 +54,25 @@ func TestQueue_Submit(t *testing.T) {
 				log.WithContext(ctx).Error(err)
 			}
 			for j := 0; j < submitsPerWorker; j++ {
-				err = writer.Submit(ctx, fmt.Sprintf("worker-%d", w%partitions), &Message{
-					Type: PushPayload,
-					PushPayload: &PushPayloadArgs{
-						SessionSecureID: "",
-						Events: model.ReplayEventsInput{
-							Events: []*model.ReplayEventInput{{
-								Type:      j,
-								Timestamp: float64(time.Now().UnixMicro()),
-								Data:      dataBytes,
-							}},
+				msgs := []RetryableMessage{
+					&Message{
+						Type: PushPayload,
+						PushPayload: &PushPayloadArgs{
+							SessionSecureID: "",
+							Events: model.ReplayEventsInput{
+								Events: []*model.ReplayEventInput{{
+									Type:      j,
+									Timestamp: float64(time.Now().UnixMicro()),
+									Data:      dataBytes,
+								}},
+							},
 						},
 					},
-				})
+				}
+				for k := 0; k < submitsPerWorker; k++ {
+					msgs = append(msgs, &Message{Type: HealthCheck})
+				}
+				err = writer.Submit(ctx, fmt.Sprintf("worker-%d", w%partitions), msgs...)
 				if err != nil {
 					log.WithContext(ctx).Error(err)
 				}
@@ -101,6 +107,11 @@ func TestQueue_Submit(t *testing.T) {
 					errors++
 					continue
 				}
+
+				if msg.GetType() == HealthCheck {
+					continue
+				}
+
 				assert.Equal(t, PushPayload, msg.GetType(), "expected to consume dummy payload of PushPayload")
 
 				if _, ok := sids[string(msg.GetKafkaMessage().Key)]; !ok {

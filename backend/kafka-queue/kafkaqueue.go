@@ -187,9 +187,10 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
 			Async:        false,
-			BatchSize:    prefetchQueueCapacity,
+			// keep a large BatchSize and BatchBytes to be limited by BatchTimeout
+			BatchSize:    1_000_000,
 			BatchBytes:   MaxMessageSizeBytes,
-			BatchTimeout: 100 * time.Millisecond,
+			BatchTimeout: time.Second,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
 			Logger:       getLogger("producer", topic, log.InfoLevel),
