@@ -4,6 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"html/template"
 	"io"
 	"math/rand"
@@ -354,6 +356,16 @@ func main() {
 		trace.WithSchemaURL(semconv.SchemaURL),
 	)
 
+	tpNoResources, err := highlight.CreateTracerProvider(otlpEndpoint, sdktrace.WithResource(resource.Empty()))
+	if err != nil {
+		log.WithContext(ctx).Fatalf("error creating collector tracer provider: %v", err)
+	}
+	tracerNoResources := tpNoResources.Tracer(
+		"github.com/highlight/highlight",
+		trace.WithInstrumentationVersion("v0.1.0"),
+		trace.WithSchemaURL(semconv.SchemaURL),
+	)
+
 	integrationsClient := integrations.NewIntegrationsClient(db)
 
 	privateWorkerpool := workerpool.New(10000)
@@ -489,21 +501,22 @@ func main() {
 			log.Fatalf("error initializing lru cache: %v", err)
 		}
 		publicResolver := &public.Resolver{
-			DB:               db,
-			Tracer:           tracer,
-			ProducerQueue:    kafkaProducer,
-			BatchedQueue:     kafkaBatchedProducer,
-			DataSyncQueue:    kafkaDataSyncProducer,
-			TracesQueue:      kafkaTracesProducer,
-			MailClient:       sendgrid.NewSendClient(sendgridKey),
-			EmbeddingsClient: embeddings.New(),
-			StorageClient:    storageClient,
-			Redis:            redisClient,
-			Clickhouse:       clickhouseClient,
-			RH:               &rh,
-			Store:            store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
-			LambdaClient:     lambda,
-			SessionCache:     sessionCache,
+			DB:                db,
+			Tracer:            tracer,
+			TracerNoResources: tracerNoResources,
+			ProducerQueue:     kafkaProducer,
+			BatchedQueue:      kafkaBatchedProducer,
+			DataSyncQueue:     kafkaDataSyncProducer,
+			TracesQueue:       kafkaTracesProducer,
+			MailClient:        sendgrid.NewSendClient(sendgridKey),
+			EmbeddingsClient:  embeddings.New(),
+			StorageClient:     storageClient,
+			Redis:             redisClient,
+			Clickhouse:        clickhouseClient,
+			RH:                &rh,
+			Store:             store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
+			LambdaClient:      lambda,
+			SessionCache:      sessionCache,
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -528,8 +541,8 @@ func main() {
 		})
 		otelHandler := otel.New(publicResolver)
 		otelHandler.Listen(r)
-		vercel.Listen(r, tracer)
-		highlightHttp.Listen(r, tracer)
+		vercel.Listen(r, tracerNoResources)
+		highlightHttp.Listen(r, tracerNoResources)
 	}
 
 	/*
@@ -587,21 +600,22 @@ func main() {
 			log.Fatalf("error initializing lru cache: %v", err)
 		}
 		publicResolver := &public.Resolver{
-			DB:               db,
-			Tracer:           tracer,
-			ProducerQueue:    kafkaProducer,
-			BatchedQueue:     kafkaBatchedProducer,
-			DataSyncQueue:    kafkaDataSyncProducer,
-			TracesQueue:      kafkaTracesProducer,
-			MailClient:       sendgrid.NewSendClient(sendgridKey),
-			EmbeddingsClient: embeddings.New(),
-			StorageClient:    storageClient,
-			Redis:            redisClient,
-			Clickhouse:       clickhouseClient,
-			RH:               &rh,
-			Store:            store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
-			LambdaClient:     lambda,
-			SessionCache:     sessionCache,
+			DB:                db,
+			Tracer:            tracer,
+			TracerNoResources: tracerNoResources,
+			ProducerQueue:     kafkaProducer,
+			BatchedQueue:      kafkaBatchedProducer,
+			DataSyncQueue:     kafkaDataSyncProducer,
+			TracesQueue:       kafkaTracesProducer,
+			MailClient:        sendgrid.NewSendClient(sendgridKey),
+			EmbeddingsClient:  embeddings.New(),
+			StorageClient:     storageClient,
+			Redis:             redisClient,
+			Clickhouse:        clickhouseClient,
+			RH:                &rh,
+			Store:             store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
+			LambdaClient:      lambda,
+			SessionCache:      sessionCache,
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
