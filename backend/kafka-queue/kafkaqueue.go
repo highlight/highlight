@@ -26,7 +26,7 @@ const KafkaOperationTimeout = 25 * time.Second
 const ConsumerGroupName = "group-default"
 
 const (
-	TaskRetries           = 0
+	TaskRetries           = 2
 	prefetchQueueCapacity = 100
 	MaxMessageSizeBytes   = 256 * 1024 * 1024 // MiB
 )
@@ -187,10 +187,9 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
 			Async:        false,
-			// keep a large BatchSize and BatchBytes to be limited by BatchTimeout
-			BatchSize:    1_000_000,
+			BatchSize:    10_000,
 			BatchBytes:   MaxMessageSizeBytes,
-			BatchTimeout: time.Second,
+			BatchTimeout: 100 * time.Millisecond,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
 			Logger:       getLogger("producer", topic, log.InfoLevel),
