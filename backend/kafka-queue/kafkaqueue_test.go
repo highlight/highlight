@@ -18,8 +18,9 @@ import (
 )
 
 const (
-	writeWorkers     = 7
-	readWorkers      = 5
+	partitions       = 8
+	writeWorkers     = 64
+	readWorkers      = 7
 	submitsPerWorker = 1024
 	msgSizeBytes     = 1 * 1024 * 1024 // 1 MiB
 )
@@ -44,19 +45,16 @@ func TestQueue_Submit(t *testing.T) {
 	writer := New(ctx, topic, Producer, nil)
 	// wait for topic creation to complete
 	time.Sleep(time.Second)
-	writer.Stop(ctx)
 
 	for i := 0; i < writeWorkers; i++ {
 		go func(w int) {
-			writer := New(ctx, topic, Producer, nil)
-
 			dataBytes := make([]byte, msgSizeBytes)
 			_, err := cryptorand.Read(dataBytes)
 			if err != nil {
 				log.WithContext(ctx).Error(err)
 			}
 			for j := 0; j < submitsPerWorker; j++ {
-				err = writer.Submit(ctx, fmt.Sprintf("worker-%d", w), &Message{
+				err = writer.Submit(ctx, fmt.Sprintf("worker-%d", w%partitions), &Message{
 					Type: PushPayload,
 					PushPayload: &PushPayloadArgs{
 						SessionSecureID: "",
