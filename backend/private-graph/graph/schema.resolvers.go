@@ -7859,6 +7859,15 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 		return nil, nil
 	}
 
+	if r.isWhitelistedAccount(ctx) {
+		projects := []model.Project{}
+		if err := r.DB.WithContext(ctx).Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
+			return nil, nil
+		}
+		workspace.Projects = projects
+		return workspace, nil
+	}
+
 	workspace.Projects = lo.FilterMap(projects, func(p *model.Project, _ int) (model.Project, bool) {
 		if p == nil {
 			return model.Project{}, false
