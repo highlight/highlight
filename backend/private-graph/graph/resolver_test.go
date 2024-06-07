@@ -726,6 +726,10 @@ func TestResolver_AccessLevels(t *testing.T) {
 	}
 	for _, v := range tests {
 		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+			if err := os.Setenv("DEMO_PROJECT_ID", "0"); err != nil {
+				t.Fatal(e.Wrap(err, "error resetting demo project id"))
+			}
+
 			r.Resolver = &Resolver{DB: DB}
 			if err := DB.Create(&model.Workspace{Model: model.Model{ID: 1}}).Error; err != nil {
 				t.Fatal(e.Wrap(err, "error creating workspace 1"))
