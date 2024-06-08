@@ -26,6 +26,8 @@ const (
 )
 
 func TestQueue_Submit(t *testing.T) {
+	// disabled - uncomment to run locally
+	t.Skip("Kafka test does not run in CI because kafka cluster is not configured.")
 	util.InDocker = "true"
 
 	ctx := context.TODO()
