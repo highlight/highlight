@@ -51,6 +51,7 @@ import {
 	KeyType,
 	MetricAggregator,
 	ProductType,
+	QueryKey,
 } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
@@ -78,6 +79,10 @@ import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import * as style from './GraphingEditor.css'
 
 const DEFAULT_BUCKET_COUNT = 50
+
+type QueryKeyTypes = {
+	__typename?: 'QueryKey' | undefined
+} & Pick<QueryKey, 'name' | 'type'>
 
 const PRODUCTS: ProductType[] = [
 	ProductType.Logs,
@@ -619,16 +624,30 @@ export const GraphingEditor = () => {
 		},
 	})
 
+	// This function returns an object with unique keys based on the 'name' property.
+	function getUniqueKeys(data: QueryKeyTypes[]): QueryKeyTypes[] {
+		return Object.values(
+			data.reduce((obj, key: QueryKeyTypes) => {
+				if (!obj[key.name]) {
+					obj[key.name] = key
+				}
+				return obj
+			}, {} as { [key: QueryKeyTypes['name']]: QueryKeyTypes }),
+		) as QueryKeyTypes[]
+	}
+
+	// Get all unique keys.
 	const allKeys = useMemo(
-		() => keys?.keys.map((k) => k.name).slice(0, 8) ?? [],
+		() => getUniqueKeys(keys?.keys || []).map((k) => k.name) ?? [],
 		[keys?.keys],
 	)
+
+	// Get all unique numeric keys.
 	const numericKeys = useMemo(
 		() =>
-			keys?.keys
+			getUniqueKeys(keys?.keys || [])
 				.filter((k) => k.type === KeyType.Numeric)
-				.map((k) => k.name)
-				.slice(0, 8) ?? [],
+				.map((k) => k.name) ?? [],
 		[keys?.keys],
 	)
 
