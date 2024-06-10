@@ -5,6 +5,7 @@ export const formTitle = style({
 	fontSize: 36,
 	fontWeight: '700 !important',
 	color: vars.theme.static.content.default,
+	width: '100%',
 	selectors: {
 		'&:focus': {
 			outline: 0,

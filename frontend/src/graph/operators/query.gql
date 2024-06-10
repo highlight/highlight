@@ -263,6 +263,7 @@ query GetSession($secure_id: String!) {
 
 query GetWorkspaceAdminsByProjectId($project_id: ID!) {
 	admins: workspace_admins_by_project_id(project_id: $project_id) {
+		workspaceId
 		admin {
 			id
 			name
@@ -270,11 +271,13 @@ query GetWorkspaceAdminsByProjectId($project_id: ID!) {
 			photo_url
 		}
 		role
+		projectIds
 	}
 }
 
 query GetWorkspaceAdmins($workspace_id: ID!) {
 	admins: workspace_admins(workspace_id: $workspace_id) {
+		workspaceId
 		admin {
 			id
 			name
@@ -282,11 +285,11 @@ query GetWorkspaceAdmins($workspace_id: ID!) {
 			photo_url
 		}
 		role
+		projectIds
 	}
 	workspace(id: $workspace_id) {
 		id
 		name
-		secret
 		allowed_auto_join_email_origins
 	}
 	workspace_invite_links(workspace_id: $workspace_id) {
@@ -484,11 +487,13 @@ mutation SendAdminWorkspaceInvite(
 	$workspace_id: ID!
 	$email: String!
 	$role: String!
+	$projectIds: [ID!]!
 ) {
 	sendAdminWorkspaceInvite(
 		workspace_id: $workspace_id
 		email: $email
 		role: $role
+		projectIds: $projectIds
 	)
 }
 
@@ -683,7 +688,6 @@ query GetWorkspace($id: ID!) {
 	workspace(id: $id) {
 		id
 		name
-		secret
 		plan_tier
 		unlimited_members
 		clearbit_enabled
@@ -821,6 +825,7 @@ query GetAdmin {
 
 query GetAdminRole($workspace_id: ID!) {
 	admin_role(workspace_id: $workspace_id) {
+		workspaceId
 		admin {
 			id
 			uid
@@ -834,11 +839,13 @@ query GetAdminRole($workspace_id: ID!) {
 			about_you_details_filled
 		}
 		role
+		projectIds
 	}
 }
 
 query GetAdminRoleByProject($project_id: ID!) {
 	admin_role_by_project(project_id: $project_id) {
+		workspaceId
 		admin {
 			id
 			uid
@@ -852,6 +859,7 @@ query GetAdminRoleByProject($project_id: ID!) {
 			about_you_details_filled
 		}
 		role
+		projectIds
 	}
 }
 
@@ -1712,6 +1720,7 @@ query GetLogAlertsPagePayload($project_id: ID!) {
 		...DiscordChannelFragment
 	}
 	admins: workspace_admins_by_project_id(project_id: $project_id) {
+		workspaceId
 		admin {
 			id
 			name
@@ -1745,6 +1754,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 		...MicrosoftTeamsChannelFragment
 	}
 	admins: workspace_admins_by_project_id(project_id: $project_id) {
+		workspaceId
 		admin {
 			id
 			name
@@ -2179,6 +2189,7 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 		enable_ingest_sampling
 		enable_data_deletion
 		enable_grafana_dashboard
+		enable_project_level_access
 	}
 }
 

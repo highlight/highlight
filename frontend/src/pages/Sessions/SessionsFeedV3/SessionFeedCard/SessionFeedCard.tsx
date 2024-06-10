@@ -193,11 +193,11 @@ export const SessionFeedCard = React.memo(
 												/>
 											}
 										>
-											<Box
-												style={{ maxWidth: 250 }}
-												p="8"
-											>
-												<Text>
+											<Box padding="4">
+												<Text
+													size="xSmall"
+													color="moderate"
+												>
 													Filter by sessions with
 													errors
 												</Text>
@@ -224,11 +224,11 @@ export const SessionFeedCard = React.memo(
 												/>
 											}
 										>
-											<Box
-												style={{ maxWidth: 250 }}
-												p="8"
-											>
-												<Text>
+											<Box padding="4">
+												<Text
+													size="xSmall"
+													color="moderate"
+												>
 													Filter by first time users
 												</Text>
 											</Box>
@@ -254,11 +254,11 @@ export const SessionFeedCard = React.memo(
 												/>
 											}
 										>
-											<Box
-												style={{ maxWidth: 250 }}
-												p="8"
-											>
-												<Text>
+											<Box padding="4">
+												<Text
+													size="xSmall"
+													color="moderate"
+												>
 													Filter by sessions with rage
 													clicks
 												</Text>
@@ -267,6 +267,8 @@ export const SessionFeedCard = React.memo(
 									)}
 									{!viewed && (
 										<Tooltip
+											maxWidth={177}
+											delayed
 											trigger={
 												<Tag
 													shape="basic"
@@ -285,11 +287,11 @@ export const SessionFeedCard = React.memo(
 												/>
 											}
 										>
-											<Box
-												style={{ maxWidth: 250 }}
-												p="8"
-											>
-												<Text>
+											<Box padding="4">
+												<Text
+													size="xSmall"
+													color="moderate"
+												>
 													Filter by unviewed sessions
 												</Text>
 											</Box>
@@ -326,11 +328,11 @@ export const SessionFeedCard = React.memo(
 												</Tag>
 											}
 										>
-											<Box
-												style={{ maxWidth: 250 }}
-												p="8"
-											>
-												<Text>
+											<Box padding="4">
+												<Text
+													size="xSmall"
+													color="moderate"
+												>
 													Filter by live sessions
 												</Text>
 											</Box>

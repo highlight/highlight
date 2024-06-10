@@ -80,6 +80,9 @@ const authLink = setContext((_, { headers }) => {
 
 const cache = new InMemoryCache({
 	typePolicies: {
+		WorkspaceAdminRole: {
+			keyFields: ['workspaceId', 'admin', ['id']],
+		},
 		Query: {
 			fields: {
 				logs: relayStylePagination([

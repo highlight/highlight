@@ -7,9 +7,10 @@ var editGraphPanel = "gw96js1";
 var editGraphSidebar = "gw96js5";
 var editorLabel = "gw96js6";
 var graphBackground = "gw96js4";
-var graphWrapper = "gw96jsc";
-var input = "gw96jsb";
+var graphWrapper = "gw96jsd";
+var input = "gw96jsc";
 var menuButton = "gw96jsa";
+var menuButtonInner = "gw96jsb";
 var previewWindow = "gw96js2";
 var tagSwitch = "gw96js3";
 export {
@@ -24,6 +25,7 @@ export {
   graphWrapper,
   input,
   menuButton,
+  menuButtonInner,
   previewWindow,
   tagSwitch
 };

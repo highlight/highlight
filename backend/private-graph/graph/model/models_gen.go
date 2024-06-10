@@ -101,7 +101,6 @@ type AllProjectSettings struct {
 	VerboseID                         string         `json:"verbose_id"`
 	Name                              string         `json:"name"`
 	BillingEmail                      *string        `json:"billing_email,omitempty"`
-	Secret                            *string        `json:"secret,omitempty"`
 	WorkspaceID                       int            `json:"workspace_id"`
 	ExcludedUsers                     pq.StringArray `json:"excluded_users,omitempty"`
 	ErrorFilters                      pq.StringArray `json:"error_filters,omitempty"`
@@ -381,6 +380,7 @@ type GitlabProject struct {
 type GraphInput struct {
 	ID                *int              `json:"id,omitempty"`
 	VisualizationID   int               `json:"visualizationId"`
+	AfterGraphID      *int              `json:"afterGraphId,omitempty"`
 	Type              string            `json:"type"`
 	Title             string            `json:"title"`
 	ProductType       ProductType       `json:"productType"`

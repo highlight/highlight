@@ -83,9 +83,13 @@ var reservedVercelLogAttributes = map[string]bool{
 func submitVercelLog(ctx context.Context, tracer trace.Tracer, projectID int, serviceName string, log VercelLog) {
 	ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, log.RequestId)
 	ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, log.RequestId)
-	span, _ := highlight.StartTraceWithoutResourceAttributes(
-		ctx, tracer, highlight.LogSpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
-		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)), semconv.ServiceNameKey.String(serviceName),
+
+	t := time.UnixMilli(log.Timestamp)
+	span, _ := highlight.StartTraceWithTracer(
+		ctx, tracer, highlight.LogSpanName, t,
+		[]trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
+		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
+		semconv.ServiceNameKey.String(serviceName),
 	)
 	defer highlight.EndTrace(span)
 
@@ -133,7 +137,7 @@ func submitVercelLog(ctx context.Context, tracer trace.Tracer, projectID int, se
 		}
 	}
 
-	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(log.Timestamp)))
+	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(t))
 	if log.Type == "error" {
 		span.SetStatus(codes.Error, log.Message)
 	}
@@ -150,12 +154,6 @@ func SubmitVercelLogs(ctx context.Context, tracer trace.Tracer, projectID int, s
 }
 
 func SubmitHTTPLog(ctx context.Context, tracer trace.Tracer, projectID int, lg Log) error {
-	span, _ := highlight.StartTraceWithoutResourceAttributes(
-		ctx, tracer, highlight.LogSpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
-		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
-	)
-	defer highlight.EndTrace(span)
-
 	attrs := []attribute.KeyValue{
 		LogSeverityKey.String(lg.Level),
 		LogMessageKey.String(lg.Message),
@@ -173,6 +171,13 @@ func SubmitHTTPLog(ctx context.Context, tracer trace.Tracer, projectID int, lg L
 			return err
 		}
 	}
+
+	span, _ := highlight.StartTraceWithTracer(
+		ctx, tracer, highlight.LogSpanName, t,
+		[]trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
+		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
+	)
+	defer highlight.EndTrace(span)
 	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(t))
 	if lg.Level == "error" {
 		span.SetStatus(codes.Error, lg.Message)

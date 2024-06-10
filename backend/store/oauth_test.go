@@ -19,13 +19,13 @@ func TestGetOAuth(t *testing.T) {
 	client := model.OAuthClientStore{
 		Domains: []string{"example.com"},
 	}
-	store.db.Create(&client)
+	store.DB.Create(&client)
 
 	op := model.OAuthOperation{
 		ClientID:                   client.ID,
 		AuthorizedGraphQLOperation: "test",
 	}
-	store.db.Create(&op)
+	store.DB.Create(&op)
 
 	foundClient, err := store.GetOAuth(ctx, client.ID)
 	assert.NoError(t, err)

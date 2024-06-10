@@ -11,21 +11,33 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/aws/smithy-go/ptr"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
-
+	"github.com/go-test/deep"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/util"
-
-	"github.com/go-test/deep"
 	"github.com/kylelemons/godebug/pretty"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 var DB *gorm.DB
+var redisClient *redis.Client
+
+func teardown(t *testing.T) {
+	err := util.ClearTablesInDB(DB)
+	if err != nil {
+		t.Fatal(e.Wrap(err, "error clearing database"))
+	}
+
+	err = redisClient.FlushDB(context.TODO())
+	if err != nil {
+		t.Fatal(e.Wrap(err, "error clearing database"))
+	}
+}
 
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
@@ -36,6 +48,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
+	redisClient = redis.NewClient()
 	code := m.Run()
 	os.Exit(code)
 }
@@ -224,123 +237,129 @@ func TestEscapeJavascript(t *testing.T) {
 }
 
 func TestSnapshot_ReplaceAssets(t *testing.T) {
-	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
-		ctx := context.TODO()
-		inputBytes, err := os.ReadFile("./sample-events/input.json")
-		if err != nil {
-			t.Fatalf("error reading: %v", err)
-		}
+	defer teardown(t)
+	ctx := context.TODO()
+	inputBytes, err := os.ReadFile("./sample-events/input.json")
+	if err != nil {
+		t.Fatalf("error reading: %v", err)
+	}
 
-		snapshot, err := NewSnapshot(inputBytes, nil)
-		if err != nil {
-			t.Fatalf("error parsing: %v", err)
-		}
+	snapshot, err := NewSnapshot(inputBytes, nil)
+	if err != nil {
+		t.Fatalf("error parsing: %v", err)
+	}
 
-		var storageClient storage.Client
-		if storageClient, err = storage.NewFSClient(ctx, "https://test.highlight.io", "/tmp/test"); err != nil {
-			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
-		}
-		if err := snapshot.ReplaceAssets(ctx, 1, storageClient, DB, redis.NewClient(), modelInputs.RetentionPeriodThreeMonths); err != nil {
-			t.Fatalf("failed to replace assets %+v", err)
-		}
+	var storageClient storage.Client
+	if storageClient, err = storage.NewFSClient(ctx, "https://test.highlight.io", "/tmp/test"); err != nil {
+		log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
+	}
+	if err := snapshot.ReplaceAssets(ctx, 1, store.NewStore(DB, redis.NewClient(), nil, storageClient, nil, nil), modelInputs.RetentionPeriodThreeMonths); err != nil {
+		t.Fatalf("failed to replace assets %+v", err)
+	}
 
-		var assets []*model.SavedAsset
-		if err := DB.Model(&model.SavedAsset{}).Find(&assets).Error; err != nil {
-			t.Fatalf("failed to fetch assets %+v", err)
-		}
+	var assets []*model.SavedAsset
+	if err := DB.Model(&model.SavedAsset{}).Find(&assets).Error; err != nil {
+		t.Fatalf("failed to fetch assets %+v", err)
+	}
 
-		// broken asset "https://static.highlight.io/dev/test.mp4?AWSAccessKeyId=asdffdsa1234"
-		// should not be stored
-		assert.Equal(t, 3, len(assets))
-		for _, exp := range []string{
-			// check that we store <link> tags with an href
-			"https://unpkg.com/@highlight-run/rrweb@0.9.27/dist/index.css",
-			"https://static.highlight.io/dev/BigBuckBunny.mp4?AWSAccessKeyId=asdffdsa1234",
-			"https://static.highlight.io/v6.2.0/index.js",
-		} {
-			matched := false
-			for _, asset := range assets {
-				if asset.OriginalUrl == exp {
-					matched = true
-					break
-				}
+	// broken asset "https://static.highlight.io/dev/test.mp4?AWSAccessKeyId=asdffdsa1234"
+	// should not be stored
+	assert.Equal(t, 3, len(assets))
+	for _, exp := range []string{
+		// check that we store <link> tags with an href
+		"https://unpkg.com/@highlight-run/rrweb@0.9.27/dist/index.css",
+		"https://static.highlight.io/dev/BigBuckBunny.mp4?AWSAccessKeyId=asdffdsa1234",
+		"https://static.highlight.io/v6.2.0/index.js",
+	} {
+		matched := false
+		for _, asset := range assets {
+			if asset.OriginalUrl == exp {
+				matched = true
+				break
 			}
-			assert.True(t, matched, "no asset matched %s", exp)
 		}
+		assert.True(t, matched, "no asset matched %s", exp)
+	}
 
-		gotMsg, err := snapshot.Encode()
-		if err != nil {
-			t.Fatalf("error marshalling: %v", err)
-		}
+	gotMsg, err := snapshot.Encode()
+	if err != nil {
+		t.Fatalf("error marshalling: %v", err)
+	}
 
-		var gotInterface struct {
-			Node struct {
+	var gotInterface struct {
+		Node struct {
+			ChildNodes []struct {
 				ChildNodes []struct {
 					ChildNodes []struct {
-						ChildNodes []struct {
-							Id         int                    `json:"id"`
-							Attributes map[string]interface{} `json:"attributes"`
-						} `json:"childNodes"`
+						Id         int                    `json:"id"`
+						Attributes map[string]interface{} `json:"attributes"`
 					} `json:"childNodes"`
 				} `json:"childNodes"`
-			} `json:"node"`
-		}
-		err = json.Unmarshal(gotMsg, &gotInterface)
-		if err != nil {
-			t.Fatalf("error getting interface: %v", err)
-		}
+			} `json:"childNodes"`
+		} `json:"node"`
+	}
+	err = json.Unmarshal(gotMsg, &gotInterface)
+	if err != nil {
+		t.Fatalf("error getting interface: %v", err)
+	}
 
-		assert.Equal(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[30].Id, 36)
-		assert.Equal(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[31].Id, 37)
+	assert.Equal(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[30].Id, 36)
+	assert.Equal(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[31].Id, 37)
 
-		assert.Nil(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[30].Attributes["rel"])
-		assert.Nil(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[31].Attributes["rel"])
-	})
+	assert.Nil(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[30].Attributes["rel"])
+	assert.Nil(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[31].Attributes["rel"])
 }
 func TestSnapshot_ReplaceAssets_Capacitor(t *testing.T) {
-	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
-		ctx := context.TODO()
-		inputBytes, err := os.ReadFile("./sample-events/capacitor.json")
-		if err != nil {
-			t.Fatalf("error reading: %v", err)
-		}
+	defer teardown(t)
+	ctx := context.TODO()
 
-		snapshot, err := NewSnapshot(inputBytes, nil)
-		if err != nil {
-			t.Fatalf("error parsing: %v", err)
-		}
-
-		var storageClient storage.Client
-		if storageClient, err = storage.NewFSClient(ctx, "https://test.highlight.io", "/tmp/test"); err != nil {
-			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
-		}
-		if err := snapshot.ReplaceAssets(ctx, 33914, storageClient, DB, redis.NewClient(), modelInputs.RetentionPeriodThreeMonths); err != nil {
-			t.Fatalf("failed to replace assets %+v", err)
-		}
-
-		var assets []*model.SavedAsset
-		if err := DB.Model(&model.SavedAsset{}).Find(&assets).Error; err != nil {
-			t.Fatalf("failed to fetch assets %+v", err)
-		}
-
-		assert.Equal(t, 21, len(assets))
-		for _, exp := range []string{
-			"capacitor://localhost/fonts/KFOmCnqEu92Fr1Mu4mxM.f1e2a767.woff",
-			"capacitor://localhost/icons/favicon-128x128.png",
-		} {
-			var savedAsset *model.SavedAsset
-			for _, asset := range assets {
-				if asset.OriginalUrl == exp {
-					savedAsset = asset
-					break
-				}
-			}
-			assert.NotNilf(t, savedAsset, "no asset matched %s", exp)
-			if savedAsset != nil {
-				assert.Falsef(t, strings.HasPrefix(savedAsset.HashVal, "Err"), "asset fetch errored %s", exp)
-			}
-		}
+	DB.Model(&model.ProjectAssetTransform{}).Create(&model.ProjectAssetTransform{
+		ProjectID:         33914,
+		SourceScheme:      "capacitor",
+		DestinationScheme: "https",
+		DestinationHost:   "app.priceworx.co.uk",
 	})
+
+	inputBytes, err := os.ReadFile("./sample-events/capacitor.json")
+	if err != nil {
+		t.Fatalf("error reading: %v", err)
+	}
+
+	snapshot, err := NewSnapshot(inputBytes, nil)
+	if err != nil {
+		t.Fatalf("error parsing: %v", err)
+	}
+
+	var storageClient storage.Client
+	if storageClient, err = storage.NewFSClient(ctx, "https://test.highlight.io", "/tmp/test"); err != nil {
+		log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
+	}
+	if err := snapshot.ReplaceAssets(ctx, 33914, store.NewStore(DB, redis.NewClient(), nil, storageClient, nil, nil), modelInputs.RetentionPeriodThreeMonths); err != nil {
+		t.Fatalf("failed to replace assets %+v", err)
+	}
+
+	var assets []*model.SavedAsset
+	if err := DB.Model(&model.SavedAsset{}).Find(&assets).Error; err != nil {
+		t.Fatalf("failed to fetch assets %+v", err)
+	}
+
+	assert.Equal(t, 21, len(assets))
+	for _, exp := range []string{
+		"capacitor://localhost/fonts/KFOmCnqEu92Fr1Mu4mxM.f1e2a767.woff",
+		"capacitor://localhost/icons/favicon-128x128.png",
+	} {
+		var savedAsset *model.SavedAsset
+		for _, asset := range assets {
+			if asset.OriginalUrl == exp {
+				savedAsset = asset
+				break
+			}
+		}
+		assert.NotNilf(t, savedAsset, "no asset matched %s", exp)
+		if savedAsset != nil {
+			assert.Falsef(t, strings.HasPrefix(savedAsset.HashVal, "Err"), "asset fetch errored %s", exp)
+		}
+	}
 }
 
 func TestGetHostUrlFromEvents(t *testing.T) {

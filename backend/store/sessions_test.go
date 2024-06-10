@@ -14,7 +14,7 @@ func TestGetSession(t *testing.T) {
 	assert.Error(t, err)
 
 	session := model.Session{}
-	store.db.Create(&session)
+	store.DB.Create(&session)
 
 	foundSession, err := store.GetSession(context.Background(), session.ID)
 	assert.NoError(t, err)

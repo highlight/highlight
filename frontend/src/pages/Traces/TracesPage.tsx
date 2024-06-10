@@ -33,7 +33,7 @@ import {
 	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
-import { useGetTracesMetricsQuery } from '@/graph/generated/hooks'
+import { useGetMetricsQuery } from '@/graph/generated/hooks'
 import {
 	MetricAggregator,
 	MetricColumn,
@@ -44,8 +44,8 @@ import {
 } from '@/graph/generated/schemas'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
+import { TIMESTAMP_KEY } from '@/pages/Graphing/components/Graph'
 import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
-import { LatencyChart } from '@/pages/Traces/LatencyChart'
 import { TracesList } from '@/pages/Traces/TracesList'
 import { useGetTraces } from '@/pages/Traces/useGetTraces'
 import analytics from '@/util/analytics'
@@ -100,29 +100,31 @@ export const TracesPage: React.FC = () => {
 		sortDirection: sortDirection as SortDirection,
 	})
 
-	const { data: metricsData, loading: metricsLoading } =
-		useGetTracesMetricsQuery({
-			variables: {
-				project_id: projectId!,
-				column: MetricColumn.Duration,
-				group_by: [],
-				params: {
-					query,
-					date_range: {
-						start_date: moment(startDate).format(TIME_FORMAT),
-						end_date: moment(endDate).format(TIME_FORMAT),
-					},
+	const { data: metricsData, loading: metricsLoading } = useGetMetricsQuery({
+		variables: {
+			product_type: ProductType.Traces,
+			project_id: projectId!,
+			column: MetricColumn.Duration,
+			group_by: [],
+			params: {
+				query,
+				date_range: {
+					start_date: moment(startDate).format(TIME_FORMAT),
+					end_date: moment(endDate).format(TIME_FORMAT),
 				},
-				metric_types: [
-					MetricAggregator.Count,
-					MetricAggregator.Avg,
-					MetricAggregator.P50,
-					MetricAggregator.P90,
-				],
 			},
-			skip: !projectId,
-			fetchPolicy: 'cache-and-network',
-		})
+			metric_types: [
+				MetricAggregator.Count,
+				MetricAggregator.Avg,
+				MetricAggregator.P50,
+				MetricAggregator.P90,
+			],
+			bucket_by: TIMESTAMP_KEY,
+			bucket_count: 45,
+		},
+		skip: !projectId,
+		fetchPolicy: 'cache-and-network',
+	})
 
 	const fetchMoreWhenScrolled = React.useCallback(
 		(containerRefElement?: HTMLDivElement | null) => {
@@ -138,20 +140,8 @@ export const TracesPage: React.FC = () => {
 		[fetchMoreForward],
 	)
 
-	const histogramBuckets = metricsData?.traces_metrics.buckets
-		.filter(
-			(b) =>
-				b.metric_type === MetricAggregator.Count &&
-				b.metric_value !== undefined &&
-				b.metric_value !== null,
-		)
-		.map((b) => ({
-			bucketId: b.bucket_id,
-			counts: [{ level: 'traces', count: b.metric_value! }],
-		}))
-
 	const totalCount = sumBy(
-		metricsData?.traces_metrics.buckets.filter(
+		metricsData?.metrics.buckets.filter(
 			(b) => b.metric_type === MetricAggregator.Count,
 		),
 		(b) => b.metric_value ?? 0,
@@ -162,11 +152,11 @@ export const TracesPage: React.FC = () => {
 		p50: number | undefined
 		p90: number | undefined
 	}[] = []
-	for (let i = 0; i < metricsData?.traces_metrics.bucket_count; i++) {
+	for (let i = 0; i < metricsData?.metrics.bucket_count; i++) {
 		metricsBuckets.push({ avg: undefined, p50: undefined, p90: undefined })
 	}
 
-	metricsData?.traces_metrics.buckets.forEach((b) => {
+	metricsData?.metrics.buckets.forEach((b) => {
 		if (b.metric_value === undefined || b.metric_value === null) {
 			return
 		}
@@ -271,7 +261,6 @@ export const TracesPage: React.FC = () => {
 						display="flex"
 						borderBottom="dividerWeak"
 						justifyContent="space-between"
-						style={{ height: 85 }}
 					>
 						<Box
 							width="full"
@@ -326,40 +315,55 @@ export const TracesPage: React.FC = () => {
 								startDate={startDate}
 								endDate={endDate}
 								onDatesChange={updateSearchTime}
-								histogramBuckets={histogramBuckets}
-								bucketCount={
-									metricsData?.traces_metrics.bucket_count
-								}
+								metrics={metricsData}
 								loading={metricsLoading}
-								barColor="#6F6E77"
+								series={[MetricAggregator.Count]}
 							/>
 						</Box>
 						<Box
 							width="full"
-							px="10"
-							py="4"
 							cssClass={styles.chart}
 							position="relative"
 						>
-							{metricsLoading ? (
-								<HistogramLoading
-									cssClass={styles.chartText}
-									style={{
-										top: 6,
-									}}
-								/>
-							) : (
-								<Text
-									cssClass={styles.chartText}
-									size="xSmall"
-									color="weak"
-								>
-									Latency
-								</Text>
-							)}
-							<LatencyChart
+							<Box
+								alignItems="center"
+								display="flex"
+								flexDirection="row"
+								px="10"
+								mb="4"
+								gap="10"
+								style={{ height: 28 }}
+							>
+								{metricsLoading ? (
+									<HistogramLoading
+										cssClass={styles.chartText}
+										style={{
+											top: 6,
+										}}
+									/>
+								) : (
+									<Text
+										cssClass={styles.chartText}
+										size="xSmall"
+										color="weak"
+									>
+										Latency
+									</Text>
+								)}
+							</Box>
+
+							<LogsHistogram
+								startDate={startDate}
+								endDate={endDate}
+								onDatesChange={updateSearchTime}
+								metrics={metricsData}
 								loading={metricsLoading}
-								metricsBuckets={metricsBuckets}
+								series={[
+									MetricAggregator.P90,
+									MetricAggregator.P50,
+									MetricAggregator.Avg,
+								]}
+								lineChart
 							/>
 						</Box>
 					</Box>

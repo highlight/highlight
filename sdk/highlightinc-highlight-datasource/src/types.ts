@@ -32,3 +32,8 @@ export interface HighlightDataSourceOptions extends DataSourceJsonData {
 export interface HighlightSecureJsonData {
   clientSecret?: string;
 }
+
+export interface HighlightVariableQuery {
+  table?: Table;
+  key?: string;
+}

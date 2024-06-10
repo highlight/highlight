@@ -57,6 +57,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 					shape,
 				}),
 			])}
+			type="button"
 			{...buttonProps}
 		>
 			{icon && (

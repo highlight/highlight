@@ -15,11 +15,11 @@ import (
 // Number of results per page
 const LIMIT = 10
 
-func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, ids []int64, totalCount int64) (privateModel.ErrorObjectResults, error) {
+func (store *Store) ListErrorObjects(ctx context.Context, errorGroup model.ErrorGroup, ids []int64, totalCount int64) (privateModel.ErrorObjectResults, error) {
 
 	var errorObjects []model.ErrorObject
 
-	query := store.db.WithContext(context.TODO()).
+	query := store.DB.WithContext(ctx).
 		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
 		Where("id IN (?)", ids).
 		Limit(LIMIT + 1).
@@ -49,7 +49,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, ids []int64, t
 
 	// Preload sessions for non-null session IDs
 	var sessions []model.Session
-	err := store.db.WithContext(context.TODO()).Where("id IN (?)", sessionIDs).Find(&sessions).Error
+	err := store.DB.WithContext(ctx).Where("id IN (?)", sessionIDs).Find(&sessions).Error
 	if err != nil {
 		return privateModel.ErrorObjectResults{}, errors.New("Failed to preload sessions for error objects")
 	}
@@ -111,11 +111,11 @@ func (store *Store) UpdateErrorGroupStateByAdmin(ctx context.Context,
 	// For user-driven state updates, write the error group directly to Clickhouse.
 	// Write to the data sync queue as well to guarantee eventual consistency.
 	var errorGroup model.ErrorGroup
-	if err = store.db.WithContext(ctx).Where(&model.ErrorGroup{Model: model.Model{ID: params.ID}}).First(&errorGroup).Error; err != nil {
+	if err = store.DB.WithContext(ctx).Where(&model.ErrorGroup{Model: model.Model{ID: params.ID}}).First(&errorGroup).Error; err != nil {
 		return nil, err
 	}
 
-	err = store.clickhouseClient.WriteErrorGroups(ctx, []*model.ErrorGroup{&errorGroup})
+	err = store.ClickhouseClient.WriteErrorGroups(ctx, []*model.ErrorGroup{&errorGroup})
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func (store *Store) UpdateErrorGroupStateBySystem(ctx context.Context,
 func (store *Store) updateErrorGroupState(ctx context.Context,
 	admin *model.Admin, params UpdateErrorGroupParams) error {
 
-	if err := AssertRecordFound(store.db.WithContext(ctx).Where(&model.ErrorGroup{
+	if err := AssertRecordFound(store.DB.WithContext(ctx).Where(&model.ErrorGroup{
 		Model: model.Model{
 			ID: params.ID,
 		},
@@ -164,7 +164,7 @@ func (store *Store) updateErrorGroupState(ctx context.Context,
 		return err
 	}
 
-	if err := store.dataSyncQueue.Submit(ctx, strconv.Itoa(params.ID), &kafka_queue.Message{Type: kafka_queue.ErrorGroupDataSync, ErrorGroupDataSync: &kafka_queue.ErrorGroupDataSyncArgs{ErrorGroupID: params.ID}}); err != nil {
+	if err := store.DataSyncQueue.Submit(ctx, strconv.Itoa(params.ID), &kafka_queue.Message{Type: kafka_queue.ErrorGroupDataSync, ErrorGroupDataSync: &kafka_queue.ErrorGroupDataSyncArgs{ErrorGroupID: params.ID}}); err != nil {
 		return err
 	}
 

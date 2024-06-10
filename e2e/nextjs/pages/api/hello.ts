@@ -1,7 +1,8 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { logger, withHighlight } from './winston.config'
+import { NextApiRequest, NextApiResponse } from 'next'
 
-function handler() {
+function handler(req: NextApiRequest, res: NextApiResponse) {
 	const user = {
 		name: 'vadim',
 	} as any
@@ -20,6 +21,8 @@ function handler() {
 	}
 	console.error(`whoa there! ${Math.random()}`)
 	logger.error(`whoa there! ${Math.random()}`, { val: Math.random() })
+
+	res.status(200).json({ message: 'Hello from Next.js!' })
 }
 
 export default withHighlight(handler)

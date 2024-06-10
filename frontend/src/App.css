@@ -123,7 +123,6 @@ input[name='option-input'] {
 }
 
 iframe {
-	background-color: var(--color-primary-background);
 	border: 0;
 	z-index: -10;
 }

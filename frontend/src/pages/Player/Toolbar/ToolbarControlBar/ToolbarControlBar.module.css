@@ -117,6 +117,9 @@
 }
 
 .settingsPopoverOverlay {
+	/*1 more than the value from Header.tsx buttons*/
+	z-index: 20001;
+
 	:global(.ant-popover-inner-content) {
 		padding: 0 !important;
 

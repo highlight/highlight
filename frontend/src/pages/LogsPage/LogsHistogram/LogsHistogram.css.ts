@@ -9,15 +9,11 @@ export const OUTLINE_PADDING = 2
 export const LEGEND_HISTOGRAM_HEIGHT = 98
 
 export const regularHeight = style({
-	height: 52,
+	height: 62,
 })
 
 export const outlineHeight = style({
 	height: OUTLINE_HISTOGRAM_HEIGHT,
-})
-
-export const legendHeight = style({
-	height: LEGEND_HISTOGRAM_HEIGHT,
 })
 
 export const hover = style({

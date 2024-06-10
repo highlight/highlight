@@ -4,6 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"html/template"
 	"io"
 	"math/rand"
@@ -184,20 +186,24 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, rClient *redis.Client
 	}
 }
 
-func validateOrigin(_ *http.Request, origin string) bool {
-	if runtimeParsed == util.PrivateGraph {
-		// From the highlight frontend, only the url is whitelisted.
-		isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
-		// Is this an AWS Amplify environment?
-		isAWSEnv := strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d25bj3loqvp3nx.amplifyapp.com")
-		isReflamePreview := origin == "https://preview.highlight.io"
+var PUBLIC_GRAPH_CORS_OPTIONS = cors.Options{
+	AllowedOrigins:   []string{"*"},
+	AllowCredentials: false,
+	AllowedHeaders:   []string{"*"},
+}
 
-		if origin == frontendURL || origin == "https://app.highlight.run" || origin == "https://app.highlight.io" || origin == landingStagingURL || isRenderPreviewEnv || isAWSEnv || isReflamePreview {
-			return true
-		}
-	} else if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
+var PRIVATE_GRAPH_CORS_OPTIONS = cors.Options{
+	AllowOriginRequestFunc: validateOrigin,
+	AllowCredentials:       true,
+	AllowedHeaders:         []string{"*"},
+}
+
+func validateOrigin(_ *http.Request, origin string) bool {
+	isHighlightSubdomain := strings.HasSuffix(origin, ".highlight.io")
+	if origin == frontendURL || origin == landingStagingURL || isHighlightSubdomain {
 		return true
 	}
+
 	return false
 }
 
@@ -350,6 +356,16 @@ func main() {
 		trace.WithSchemaURL(semconv.SchemaURL),
 	)
 
+	tpNoResources, err := highlight.CreateTracerProvider(otlpEndpoint, sdktrace.WithResource(resource.Empty()))
+	if err != nil {
+		log.WithContext(ctx).Fatalf("error creating collector tracer provider: %v", err)
+	}
+	tracerNoResources := tpNoResources.Tracer(
+		"github.com/highlight/highlight",
+		trace.WithInstrumentationVersion("v0.1.0"),
+		trace.WithSchemaURL(semconv.SchemaURL),
+	)
+
 	integrationsClient := integrations.NewIntegrationsClient(db)
 
 	privateWorkerpool := workerpool.New(10000)
@@ -391,11 +407,6 @@ func main() {
 		return brotli.NewWriterLevel(w, level)
 	})
 	r.Use(compressor.Handler)
-	r.Use(cors.New(cors.Options{
-		AllowOriginRequestFunc: validateOrigin,
-		AllowCredentials:       true,
-		AllowedHeaders:         []string{"*"},
-	}).Handler)
 	r.HandleFunc("/health", healthRouter(runtimeParsed, db, redisClient, clickhouseClient, kafkaProducer, kafkaBatchedProducer))
 
 	zapierStore := zapier.ZapierResthookStore{
@@ -433,9 +444,9 @@ func main() {
 		})
 		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(ctx, slackSigningSecret))
 		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "microsoft-teams/bot"), privateResolver.MicrosoftTeamsBotEndpoint)
-		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "login"), privateResolver.Login)
 
 		r.Route(privateEndpoint, func(r chi.Router) {
+			r.Use(cors.New(PRIVATE_GRAPH_CORS_OPTIONS).Handler)
 			r.Use(highlightChi.Middleware)
 			r.Use(private.PrivateMiddleware)
 			if fsClient, ok := storageClient.(*storage.FilesystemClient); ok {
@@ -445,6 +456,7 @@ func main() {
 			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
 
 			r.Get("/validate-token", privateResolver.ValidateAuthToken)
+			r.Post("/login", privateResolver.Login)
 
 			privateServer := ghandler.New(privategen.NewExecutableSchema(
 				privategen.Config{
@@ -489,27 +501,29 @@ func main() {
 			log.Fatalf("error initializing lru cache: %v", err)
 		}
 		publicResolver := &public.Resolver{
-			DB:               db,
-			Tracer:           tracer,
-			ProducerQueue:    kafkaProducer,
-			BatchedQueue:     kafkaBatchedProducer,
-			DataSyncQueue:    kafkaDataSyncProducer,
-			TracesQueue:      kafkaTracesProducer,
-			MailClient:       sendgrid.NewSendClient(sendgridKey),
-			EmbeddingsClient: embeddings.New(),
-			StorageClient:    storageClient,
-			Redis:            redisClient,
-			Clickhouse:       clickhouseClient,
-			RH:               &rh,
-			Store:            store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
-			LambdaClient:     lambda,
-			SessionCache:     sessionCache,
+			DB:                db,
+			Tracer:            tracer,
+			TracerNoResources: tracerNoResources,
+			ProducerQueue:     kafkaProducer,
+			BatchedQueue:      kafkaBatchedProducer,
+			DataSyncQueue:     kafkaDataSyncProducer,
+			TracesQueue:       kafkaTracesProducer,
+			MailClient:        sendgrid.NewSendClient(sendgridKey),
+			EmbeddingsClient:  embeddings.New(),
+			StorageClient:     storageClient,
+			Redis:             redisClient,
+			Clickhouse:        clickhouseClient,
+			RH:                &rh,
+			Store:             store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
+			LambdaClient:      lambda,
+			SessionCache:      sessionCache,
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
 			publicEndpoint = "/"
 		}
 		r.Route(publicEndpoint, func(r chi.Router) {
+			r.Use(cors.New(PUBLIC_GRAPH_CORS_OPTIONS).Handler)
 			r.Use(highlightChi.Middleware)
 			r.Use(public.PublicMiddleware)
 
@@ -527,8 +541,8 @@ func main() {
 		})
 		otelHandler := otel.New(publicResolver)
 		otelHandler.Listen(r)
-		vercel.Listen(r, tracer)
-		highlightHttp.Listen(r, tracer)
+		vercel.Listen(r, tracerNoResources)
+		highlightHttp.Listen(r, tracerNoResources)
 	}
 
 	/*
@@ -586,21 +600,22 @@ func main() {
 			log.Fatalf("error initializing lru cache: %v", err)
 		}
 		publicResolver := &public.Resolver{
-			DB:               db,
-			Tracer:           tracer,
-			ProducerQueue:    kafkaProducer,
-			BatchedQueue:     kafkaBatchedProducer,
-			DataSyncQueue:    kafkaDataSyncProducer,
-			TracesQueue:      kafkaTracesProducer,
-			MailClient:       sendgrid.NewSendClient(sendgridKey),
-			EmbeddingsClient: embeddings.New(),
-			StorageClient:    storageClient,
-			Redis:            redisClient,
-			Clickhouse:       clickhouseClient,
-			RH:               &rh,
-			Store:            store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
-			LambdaClient:     lambda,
-			SessionCache:     sessionCache,
+			DB:                db,
+			Tracer:            tracer,
+			TracerNoResources: tracerNoResources,
+			ProducerQueue:     kafkaProducer,
+			BatchedQueue:      kafkaBatchedProducer,
+			DataSyncQueue:     kafkaDataSyncProducer,
+			TracesQueue:       kafkaTracesProducer,
+			MailClient:        sendgrid.NewSendClient(sendgridKey),
+			EmbeddingsClient:  embeddings.New(),
+			StorageClient:     storageClient,
+			Redis:             redisClient,
+			Clickhouse:        clickhouseClient,
+			RH:                &rh,
+			Store:             store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
+			LambdaClient:      lambda,
+			SessionCache:      sessionCache,
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
@@ -641,21 +656,24 @@ func main() {
 			go w.GetPublicWorker(kafkaqueue.TopicTypeBatched)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeTraces)(ctx)
-			// for the 'All' worker, run alert / metric watchers
 			go w.StartLogAlertWatcher(ctx)
 			go w.StartMetricMonitorWatcher(ctx)
-			// in `all` mode, report stripe usage every hour
 			go func() {
 				w.ReportStripeUsage(ctx)
 				for range time.Tick(time.Hour) {
 					w.ReportStripeUsage(ctx)
 				}
 			}()
-			// in `all` mode, refresh materialized views every hour
 			go func() {
 				w.RefreshMaterializedViews(ctx)
 				for range time.Tick(time.Hour) {
 					w.RefreshMaterializedViews(ctx)
+				}
+			}()
+			go func() {
+				w.AutoResolveStaleErrors(ctx)
+				for range time.Tick(time.Minute) {
+					w.AutoResolveStaleErrors(ctx)
 				}
 			}()
 			if util.IsDevEnv() && util.UseSSL() {

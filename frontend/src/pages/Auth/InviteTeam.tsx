@@ -79,6 +79,13 @@ export const InviteTeamForm: React.FC = () => {
 			skip: !inWorkspace,
 		})
 	const adminRole = adminRoleData?.admin_role?.role ?? AdminRole.Member
+	const adminProjects = adminRoleData?.admin_role?.projectIds ?? []
+
+	useEffect(() => {
+		if (adminProjects.length > 0) {
+			navigate(redirectRoute)
+		}
+	}, [adminProjects.length, navigate, redirectRoute])
 
 	const formStore = Form.useStore({
 		defaultValues: {
@@ -121,7 +128,8 @@ export const InviteTeamForm: React.FC = () => {
 						variables: {
 							workspace_id: workspace.id,
 							email,
-							role: adminRole,
+							role: AdminRole.Member,
+							projectIds: [],
 						},
 					}),
 				)

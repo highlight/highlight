@@ -17,7 +17,7 @@ func TestGetProject(t *testing.T) {
 	assert.Error(t, err)
 
 	project := model.Project{}
-	store.db.Create(&project)
+	store.DB.Create(&project)
 
 	foundProject, err := store.GetProject(ctx, project.ID)
 	assert.NoError(t, err)

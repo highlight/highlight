@@ -193,11 +193,9 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 
 // This is a lighter weight version of the previous function for loading the minimal about of data for a session
 func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogEdge, error) {
-	selectCols := []string{"Timestamp", "UUID", "SeverityText", "Body"}
-
 	sb, err := makeSelectBuilder(
 		LogsTableConfig,
-		selectCols,
+		LogsTableConfig.SelectColumns,
 		[]int{projectID},
 		params,
 		Pagination{Direction: modelInputs.SortDirectionAsc},
@@ -223,10 +221,19 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 
 	for rows.Next() {
 		var result struct {
-			Timestamp    time.Time
-			UUID         string
-			SeverityText string
-			Body         string
+			Timestamp       time.Time
+			UUID            string
+			SeverityText    string
+			Body            string
+			LogAttributes   map[string]string
+			TraceId         string
+			SpanId          string
+			SecureSessionId string
+			Source          string
+			ServiceName     string
+			ServiceVersion  string
+			Environment     string
+			ProjectId       uint32
 		}
 		if err := rows.ScanStruct(&result); err != nil {
 			return nil, err
@@ -235,9 +242,18 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 		edges = append(edges, &modelInputs.LogEdge{
 			Cursor: encodeCursor(result.Timestamp, result.UUID),
 			Node: &modelInputs.Log{
-				Timestamp: result.Timestamp,
-				Level:     makeLogLevel(result.SeverityText),
-				Message:   result.Body,
+				Timestamp:       result.Timestamp,
+				Level:           makeLogLevel(result.SeverityText),
+				Message:         result.Body,
+				LogAttributes:   expandJSON(result.LogAttributes),
+				TraceID:         &result.TraceId,
+				SpanID:          &result.SpanId,
+				SecureSessionID: &result.SecureSessionId,
+				Source:          &result.Source,
+				ServiceName:     &result.ServiceName,
+				ServiceVersion:  &result.ServiceVersion,
+				Environment:     &result.Environment,
+				ProjectID:       int(result.ProjectId),
 			},
 		})
 	}

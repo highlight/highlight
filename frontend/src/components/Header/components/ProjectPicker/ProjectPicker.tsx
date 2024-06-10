@@ -16,6 +16,7 @@ import { DEMO_PROJECT_NAME } from '@util/constants/constants'
 import { useParams } from '@util/react-router/useParams'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
+import { useAuthContext } from '@/authentication/AuthContext'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
@@ -25,6 +26,8 @@ const ProjectPicker = () => {
 		useApplicationContext()
 	const { workspace_id } = useParams<{ workspace_id: string }>()
 	const { projectId } = useProjectId()
+
+	const { isProjectLevelMember } = useAuthContext()
 
 	const isWorkspaceLevel = workspace_id !== undefined
 	const navigate = useNavigate()
@@ -112,27 +115,29 @@ const ProjectPicker = () => {
 							{projectId && (
 								<>
 									<Menu.Divider />
-									<Link
-										to={`/w/${currentWorkspace?.id}/new`}
-										state={{
-											previousLocation: location,
-										}}
-										className={linkStyle}
-									>
-										<Menu.Item>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
-											>
-												<IconSolidPlusSm
-													size={14}
-													color={vars.color.n9}
-												/>
-												Create new project
-											</Box>
-										</Menu.Item>
-									</Link>
+									{!isProjectLevelMember && (
+										<Link
+											to={`/w/${currentWorkspace?.id}/new`}
+											state={{
+												previousLocation: location,
+											}}
+											className={linkStyle}
+										>
+											<Menu.Item>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconSolidPlusSm
+														size={14}
+														color={vars.color.n9}
+													/>
+													Create new project
+												</Box>
+											</Menu.Item>
+										</Link>
+									)}
 									<Link
 										to={`/${projectId}/settings/sessions`}
 										className={linkStyle}

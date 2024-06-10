@@ -3,16 +3,23 @@ import CopyText from '@components/CopyText/CopyText'
 import Input from '@components/Input/Input'
 import { CircularSpinner } from '@components/Loading/Loading'
 import Modal from '@components/Modal/Modal'
-import Select from '@components/Select/Select'
 import { toast } from '@components/Toaster'
 import { useSendAdminWorkspaceInviteMutation } from '@graph/hooks'
 import { AdminRole } from '@graph/schemas'
+import { Box, Stack, Text } from '@highlight-run/ui/components'
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils'
-import { titleCaseString } from '@util/string'
 import clsx from 'clsx'
 import moment from 'moment'
 import { useEffect, useRef, useState } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
+
+import { useAuthContext } from '@/authentication/AuthContext'
+import {
+	DISABLED_REASON_IS_ADMIN,
+	PopoverCell,
+	RoleOptions,
+} from '@/pages/WorkspaceTeam/components/AllMembers'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 import commonStyles from '../../../Common.module.css'
 import Button from '../../../components/Button/Button/Button'
@@ -32,7 +39,10 @@ function InviteMemberModal({
 	workspaceInviteLinks?: any
 }) {
 	const [email, setEmail] = useState('')
-	const [newAdminRole, setNewAdminRole] = useState<AdminRole>(AdminRole.Admin)
+	const [newAdminRole, setNewAdminRole] = useState<AdminRole>(
+		AdminRole.Member,
+	)
+	const [newProjectIds, setNewProjectIds] = useState<string[]>([])
 	const [autoinvite_email] = useQueryParam('autoinvite_email', StringParam)
 	const emailRef = useRef<null | HTMLInputElement>(null)
 
@@ -68,6 +78,7 @@ function InviteMemberModal({
 				workspace_id: workspaceId!,
 				email,
 				role: newAdminRole,
+				projectIds: newProjectIds,
 			},
 		}).then(() => {
 			setEmail('')
@@ -75,6 +86,16 @@ function InviteMemberModal({
 			emailRef.current?.focus()
 		})
 	}
+
+	const { allProjects } = useApplicationContext()
+
+	const { workspaceRole } = useAuthContext()
+
+	const roleOptions =
+		workspaceRole === AdminRole.Admin ? RoleOptions : [RoleOptions[0]]
+
+	const disabledReason =
+		newAdminRole === AdminRole.Admin ? DISABLED_REASON_IS_ADMIN : undefined
 
 	return (
 		<Modal
@@ -94,6 +115,38 @@ function InviteMemberModal({
 					Invite a team member to '{`${workspaceName}`}' by entering
 					an email below.
 				</p>
+				<Stack direction="row" alignItems="center">
+					<Stack direction="row" alignItems="center">
+						<Text lines="1">Role</Text>
+						<Box borderRadius="4" p="4" cssClass={styles.popover}>
+							<PopoverCell
+								label="roles"
+								options={roleOptions}
+								initialSelection={newAdminRole}
+								onChange={(role) => {
+									setNewAdminRole(role)
+									setNewProjectIds([])
+								}}
+							/>
+						</Box>
+					</Stack>
+					<Stack direction="row" alignItems="center">
+						<Text lines="1">Project Access</Text>
+						<Box borderRadius="4" p="4" cssClass={styles.popover}>
+							<PopoverCell
+								label="projects"
+								options={allProjects?.map((p) => ({
+									key: p?.id ?? '0',
+									render: p?.name ?? '',
+								}))}
+								initialSelection={newProjectIds}
+								filter
+								onChange={setNewProjectIds}
+								disabledReason={disabledReason}
+							/>
+						</Box>
+					</Stack>
+				</Stack>
 				<div className={styles.buttonRow}>
 					<Input
 						ref={emailRef}
@@ -107,26 +160,6 @@ function InviteMemberModal({
 						onChange={(e) => {
 							setEmail(e.target.value)
 						}}
-						addonAfter={
-							<Select
-								bordered={false}
-								value={newAdminRole}
-								options={(
-									Object.keys(
-										AdminRole,
-									) as (keyof typeof AdminRole)[]
-								).map((key) => {
-									const role = AdminRole[key]
-
-									return {
-										displayValue: titleCaseString(role),
-										id: role,
-										value: role,
-									}
-								})}
-								onChange={setNewAdminRole}
-							/>
-						}
 					/>
 					<Button
 						trackingId="WorkspaceInviteMember"

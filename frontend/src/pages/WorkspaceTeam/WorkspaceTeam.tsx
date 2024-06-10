@@ -1,6 +1,6 @@
 import { Button } from '@components/Button'
 import { useGetWorkspaceAdminsQuery } from '@graph/hooks'
-import { AdminRole, WorkspaceAdminRole } from '@graph/schemas'
+import { AdminRole, Project, WorkspaceAdminRole } from '@graph/schemas'
 import {
 	Box,
 	IconSolidUserAdd,
@@ -17,6 +17,8 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
+
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import styles from './WorkspaceTeam.module.css'
 
@@ -30,10 +32,15 @@ const WorkspaceTeam = () => {
 		workspace_id: string
 		member_tab_key?: MemberKeyType
 	}>()
-	const { data, error, loading } = useGetWorkspaceAdminsQuery({
+	const {
+		data,
+		error,
+		loading: adminsLoading,
+	} = useGetWorkspaceAdminsQuery({
 		variables: { workspace_id: workspace_id! },
 		skip: !workspace_id,
 	})
+	const { allProjects, loading: appLoading } = useApplicationContext()
 	const navigate = useNavigate()
 	const [showModal, toggleShowModal] = useToggle(false)
 
@@ -82,7 +89,8 @@ const WorkspaceTeam = () => {
 							<AllMembers
 								workspaceId={workspace_id}
 								admins={data?.admins as WorkspaceAdminRole[]}
-								loading={loading}
+								projects={allProjects as Project[]}
+								loading={adminsLoading || appLoading}
 							/>
 						</TabContentContainer>
 					</Tabs.Panel>

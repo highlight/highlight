@@ -264,16 +264,18 @@ const DevToolsWindowV2: React.FC<
 															size={16}
 														/>
 													</Box>
-													<Form.Input
-														name={
-															formStore.names
-																.search
-														}
-														placeholder="Search"
-														size="xSmall"
-														outline={false}
-														width="100%"
-													/>
+													<Box width="full">
+														<Form.Input
+															name={
+																formStore.names
+																	.search
+															}
+															placeholder="Search"
+															size="xSmall"
+															outline={false}
+															width="100%"
+														/>
+													</Box>
 												</Box>
 											</Form>
 										</Box>

@@ -16,9 +16,9 @@ func getKey(projectID int) string {
 }
 
 func (store *Store) GetProjectFilterSettings(ctx context.Context, projectID int, opts ...redis.Option) (*model.ProjectFilterSettings, error) {
-	return redis.CachedEval(ctx, store.redis, getKey(projectID), 250*time.Millisecond, time.Minute, func() (*model.ProjectFilterSettings, error) {
+	return redis.CachedEval(ctx, store.Redis, getKey(projectID), 250*time.Millisecond, time.Minute, func() (*model.ProjectFilterSettings, error) {
 		var projectFilterSettings model.ProjectFilterSettings
-		if err := store.db.WithContext(ctx).Where(&model.ProjectFilterSettings{ProjectID: projectID}).FirstOrCreate(&projectFilterSettings).Error; err != nil {
+		if err := store.DB.WithContext(ctx).Where(&model.ProjectFilterSettings{ProjectID: projectID}).FirstOrCreate(&projectFilterSettings).Error; err != nil {
 			return nil, err
 		}
 		return &projectFilterSettings, nil
@@ -91,17 +91,17 @@ func (store *Store) UpdateProjectFilterSettings(ctx context.Context, projectID i
 		}
 	}
 
-	result := store.db.Save(&projectFilterSettings)
+	result := store.DB.Save(&projectFilterSettings)
 	if result.Error != nil {
 		return nil, err
 	}
 
-	return projectFilterSettings, store.redis.Del(ctx, getKey(projectID))
+	return projectFilterSettings, store.Redis.Del(ctx, getKey(projectID))
 }
 
-func (store *Store) FindProjectsWithAutoResolveSetting() ([]*model.ProjectFilterSettings, error) {
+func (store *Store) FindProjectsWithAutoResolveSetting(ctx context.Context) ([]*model.ProjectFilterSettings, error) {
 	var projectFilterSettings []*model.ProjectFilterSettings
-	if err := store.db.WithContext(context.TODO()).Where("auto_resolve_stale_errors_day_interval > ?", 0).Find(&projectFilterSettings).Error; err != nil {
+	if err := store.DB.WithContext(ctx).Where("auto_resolve_stale_errors_day_interval > ?", 0).Find(&projectFilterSettings).Error; err != nil {
 		return nil, err
 	}
 	return projectFilterSettings, nil

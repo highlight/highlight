@@ -76,6 +76,7 @@ export const TooltipContent: React.FC<
 			p="4"
 			borderRadius="6"
 			shadow="small"
+			wordBreak="break-word"
 			style={{ maxWidth }}
 		>
 			{children}

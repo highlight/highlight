@@ -5,10 +5,10 @@ description = ""
 authors = ["Vadim Korolik <vkorolik@gmail.com>"]
 license = "Apache 2.0"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.10"
-highlight-io = {path = "../../sdk/highlight-py"}
 azure-functions = "^1.19.0"
 blinker = "^1.8.1"
 boto = "^2.49.0"
@@ -24,6 +24,7 @@ redis = "^5.0.4"
 sqlalchemy = "^2.0.29"
 orjson = "3.9.15"
 uvicorn = {extras = ["standard"], version = "^0.29.0"}
+highlight-io = {path = "../../sdk/highlight-py", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"

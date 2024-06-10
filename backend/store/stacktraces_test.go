@@ -249,10 +249,10 @@ func TestFetchFileFromGitHub(t *testing.T) {
 
 		if tt.ExpectExceededCache {
 			cacheKey := fmt.Sprintf("github-rate-limit-exceeded-%s", *tt.Service.GithubRepoPath)
-			time := store.redis.TTL(ctx, cacheKey)
+			time := store.Redis.TTL(ctx, cacheKey)
 			assert.True(t, time.Minutes() > 0)
 
-			err := store.redis.Del(context.TODO(), cacheKey)
+			err := store.Redis.Del(context.TODO(), cacheKey)
 			assert.NoError(t, err)
 		}
 	}

@@ -23,3 +23,10 @@
 	border-top: 1px solid var(--color-gray-300);
 	margin: var(--size-large) 0;
 }
+
+.popover {
+	&:hover {
+		/* stylelint-disable-next-line color-no-hex */
+		background-color: #EEEDEF;
+	}
+}

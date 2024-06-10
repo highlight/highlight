@@ -2,11 +2,10 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
 import { betaTag, linkStyle } from '@components/Header/styles.css'
+import { useBillingHook } from '@components/Header/useBillingHook'
 import { LinkButton } from '@components/LinkButton'
 import {
 	useGetBillingDetailsForProjectQuery,
-	useGetProjectQuery,
-	useGetSubscriptionDetailsQuery,
 	useGetSystemConfigurationQuery,
 	useGetWorkspacesQuery,
 } from '@graph/hooks'
@@ -71,45 +70,12 @@ import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
 import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
 import { generateRandomColor } from '@/util/color'
 
+import { CalendlyButton } from '../CalendlyModal/CalendlyButton'
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.css'
 
 type Props = {
 	fullyIntegrated?: boolean
-}
-
-export const useBillingHook = ({
-	workspace_id,
-	project_id,
-}: {
-	workspace_id?: string
-	project_id?: string
-}) => {
-	const { isAuthLoading, isLoggedIn } = useAuthContext()
-	const { data: projectData } = useGetProjectQuery({
-		variables: { id: project_id || '' },
-		skip: !project_id?.length || !!workspace_id?.length,
-	})
-
-	const {
-		loading: subscriptionLoading,
-		data: subscriptionData,
-		refetch: refetchSubscription,
-	} = useGetSubscriptionDetailsQuery({
-		variables: {
-			workspace_id: workspace_id || projectData?.workspace?.id || '',
-		},
-		skip:
-			isAuthLoading ||
-			!isLoggedIn ||
-			(!workspace_id?.length && !projectData?.workspace?.id),
-	})
-
-	return {
-		loading: subscriptionLoading,
-		subscriptionData: subscriptionData,
-		refetchSubscription: refetchSubscription,
-	}
 }
 
 const useProjectRedirectLink = () => {
@@ -208,6 +174,8 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		workspaceSettingsData?.workspaceSettings?.enable_grafana_dashboard
 
 	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
+
+	const { isProjectLevelMember } = useAuthContext()
 
 	const pages = [
 		{
@@ -552,6 +520,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 								)}
 							{!isSetup && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
+									<CalendlyButton />
 									<Box>
 										<ButtonIcon
 											cssClass={styles.button}
@@ -616,31 +585,33 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											}
 										/>
 										<Menu.List>
-											<Link
-												to={`/w/${workspaceId}/team`}
-												className={linkStyle}
-											>
-												<Menu.Item>
-													<Box
-														display="flex"
-														alignItems="center"
-														gap="4"
-													>
-														<IconSolidOfficeBuilding
-															size={14}
-															color={
-																vars.theme
-																	.interactive
-																	.fill
-																	.secondary
-																	.content
-																	.text
-															}
-														/>
-														Workspace settings
-													</Box>
-												</Menu.Item>
-											</Link>
+											{!isProjectLevelMember && (
+												<Link
+													to={`/w/${workspaceId}/team`}
+													className={linkStyle}
+												>
+													<Menu.Item>
+														<Box
+															display="flex"
+															alignItems="center"
+															gap="4"
+														>
+															<IconSolidOfficeBuilding
+																size={14}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.secondary
+																		.content
+																		.text
+																}
+															/>
+															Workspace settings
+														</Box>
+													</Menu.Item>
+												</Link>
+											)}
 											<Link
 												to={`/w/${workspaceId}/account/${
 													auth.googleProvider
@@ -822,33 +793,35 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 																</Box>
 															</Menu.Item>
 														</Link>
-														<Link
-															to={`/${workspaceId}/settings`}
-															className={
-																linkStyle
-															}
-														>
-															<Menu.Item>
-																<Box
-																	display="flex"
-																	alignItems="center"
-																	gap="4"
-																>
-																	<IconSolidCog
-																		size={
-																			14
-																		}
-																		color={
-																			vars
-																				.color
-																				.n9
-																		}
-																	/>
-																	Workspace
-																	settings
-																</Box>
-															</Menu.Item>
-														</Link>
+														{!isProjectLevelMember && (
+															<Link
+																to={`/${workspaceId}/settings`}
+																className={
+																	linkStyle
+																}
+															>
+																<Menu.Item>
+																	<Box
+																		display="flex"
+																		alignItems="center"
+																		gap="4"
+																	>
+																		<IconSolidCog
+																			size={
+																				14
+																			}
+																			color={
+																				vars
+																					.color
+																					.n9
+																			}
+																		/>
+																		Workspace
+																		settings
+																	</Box>
+																</Menu.Item>
+															</Link>
+														)}
 													</Menu.List>
 												</Menu>
 											</Menu.Item>

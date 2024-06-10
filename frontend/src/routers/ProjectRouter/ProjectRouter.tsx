@@ -23,7 +23,6 @@ import {
 } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks'
-import useLocalStorage from '@rehooks/local-storage'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { auth } from '@util/auth'
 import { setIndexedDBEnabled } from '@util/db'
@@ -110,8 +109,7 @@ export const ProjectRouter = () => {
 		?.filter((w) => w?.projects.map((p) => p?.id).includes(projectId))
 		?.pop()
 
-	const [rightPanelView, setRightPanelView] = useLocalStorage<RightPanelView>(
-		'active-right-panel-view',
+	const [rightPanelView, setRightPanelView] = useState<RightPanelView>(
 		RightPanelView.Session,
 	)
 
@@ -124,10 +122,7 @@ export const ProjectRouter = () => {
 	const [searchItem, setSearchItem] = useState<string | undefined>('')
 
 	const [selectedRightPanelTab, setSelectedRightPanelTab] =
-		useLocalStorage<RightPlayerTab>(
-			'tabs-PlayerRightPanel-active-tab',
-			RightPlayerTab.Events,
-		)
+		useState<RightPlayerTab>(RightPlayerTab.Events)
 
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()

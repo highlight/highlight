@@ -847,11 +847,12 @@ func (w *Worker) ReportAWSMPUsages(ctx context.Context, usages AWSCustomerUsages
 }
 
 type overageConfig struct {
-	MaxCostCents    func(*model.Workspace) *int
-	Meter           func(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, redisClient *redis.Client, workspace *model.Workspace) (int64, error)
-	RetentionPeriod func(*model.Workspace) backend.RetentionPeriod
-	Included        func(*model.Workspace) int64
-	OverageEmail    email.EmailType
+	MaxCostCents          func(*model.Workspace) *int
+	Meter                 func(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, redisClient *redis.Client, workspace *model.Workspace) (int64, error)
+	RetentionPeriod       func(*model.Workspace) backend.RetentionPeriod
+	Included              func(*model.Workspace) int64
+	OverageEmail          email.EmailType
+	OverageEmailThreshold int64
 }
 
 var ProductTypeToQuotaConfig = map[model.PricingProductType]overageConfig{
@@ -872,6 +873,7 @@ var ProductTypeToQuotaConfig = map[model.PricingProductType]overageConfig{
 			return limit
 		},
 		email.BillingSessionOverage,
+		1000,
 	},
 	model.PricingProductTypeErrors: {
 		func(w *model.Workspace) *int { return w.ErrorsMaxCents },
@@ -890,6 +892,7 @@ var ProductTypeToQuotaConfig = map[model.PricingProductType]overageConfig{
 			return limit
 		},
 		email.BillingErrorsOverage,
+		1000,
 	},
 	model.PricingProductTypeLogs: {
 		func(w *model.Workspace) *int { return w.LogsMaxCents },
@@ -908,6 +911,7 @@ var ProductTypeToQuotaConfig = map[model.PricingProductType]overageConfig{
 			return limit
 		},
 		email.BillingLogsOverage,
+		1_000_000,
 	},
 	model.PricingProductTypeTraces: {
 		func(w *model.Workspace) *int { return w.TracesMaxCents },
@@ -926,6 +930,7 @@ var ProductTypeToQuotaConfig = map[model.PricingProductType]overageConfig{
 			return limit
 		},
 		email.BillingTracesOverage,
+		1_000_000,
 	},
 }
 
@@ -955,7 +960,7 @@ func (w *Worker) CalculateOverages(ctx context.Context, workspaceID int) (Worksp
 		}
 		included := cfg.Included(workspace)
 		usage[product] = calculateOverage(workspace, &included, meter)
-		if meter > included {
+		if meter > included+cfg.OverageEmailThreshold {
 			if err := model.SendBillingNotifications(ctx, w.db, w.mailClient, cfg.OverageEmail, workspace); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}

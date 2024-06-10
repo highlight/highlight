@@ -22,6 +22,7 @@ H = highlight_io.H(
     service_version="1.0.0",
     environment="e2e-test",
     debug=True,
+    disable_export_error_logging=True,
 )
 
 app = FastAPI()
@@ -77,7 +78,7 @@ async def root(request: Request):
 @app.get("/celery")
 @app.post("/celery")
 async def celery(request: Request):
-    task = add.delay(1, 2)
+    task = add.delay(random.randint(0, 100), random.randint(0, 100))
     value = task.get()
     return {"message": f"Celery job - {value}"}
 
