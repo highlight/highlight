@@ -19,7 +19,7 @@ with no impact on performance..
 
 <section className="section">
   <div className="left">
-    <h3>H.init</h3> 
+    <h3>H.init</h3>
     <p>H.init() configures the highlight SDK and records console log methods. The session is inferred based on the incoming network request headers.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
@@ -52,7 +52,7 @@ with no impact on performance..
 
 <section className="section">
   <div className="left">
-    <h3>H.consumeError</h3> 
+    <h3>H.consumeError</h3>
     <p>H.consumeError() reports an error and its corresponding stack trace to Highlight. The session is inferred based on the incoming network request headers.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
@@ -81,7 +81,7 @@ with no impact on performance..
 
 <section className="section">
   <div className="left">
-    <h3>H.sendResponse</h3> 
+    <h3>H.sendResponse</h3>
     <p>H.sendResponse() traces a response from your backend. This allows tracking incoming and outgoing headers and bodies.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
@@ -95,8 +95,8 @@ with no impact on performance..
       export default {
           async fetch(request: Request, env: {}, ctx: ExecutionContext) {
               H.init(request, { HIGHLIGHT_PROJECT_ID: '<YOUR_PROJECT_ID>' }, ctx)
-              const response = return new Response('hello!')
-              H.sendResponse(request, { HIGHLIGHT_PROJECT_ID: '<YOUR_PROJECT_ID>' }, ctx, response)
+              const response = new Response('hello!')
+              H.sendResponse(response)
               return response
           },
       }
@@ -106,7 +106,7 @@ with no impact on performance..
 
 <section className="section">
   <div className="left">
-    <h3>H.setAttributes</h3> 
+    <h3>H.setAttributes</h3>
     <p>H.setAttributes() attached structured log attributes to all subsequent console methods. Repeat calls with the same key update the value.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
