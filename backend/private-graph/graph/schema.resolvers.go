@@ -8560,21 +8560,73 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 }
 
 // AiQuerySuggestion is the resolver for the ai_query_suggestion field.
-func (r *queryResolver) AiQuerySuggestion(ctx context.Context, projectID int, query string) (*modelInputs.QueryOutput, error) {
+func (r *queryResolver) AiQuerySuggestion(ctx context.Context, projectID int, productType modelInputs.ProductType, query string) (*modelInputs.QueryOutput, error) {
 	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		return nil, e.New("OPENAI_API_KEY is not set")
+	}
+
+	client := openai.NewClient(apiKey)
+
+	systemPrompt := fmt.Sprintf(`
+					You are a simple system used by an observabiliity product which, 
+					given a %s query, you output a structured query that the system 
+					can then use to parse (which ultimately queries an internal database).
+
+					Here is a sample input/output pair to help you understand the task: 
+				
+					"
+					%s
+					"
+
+					In terms of the keys and values you can use, you cannot use a key-value pair that doesn't exist. 
+					
+					You have the following key-value pairs to work with:
+
+					"
+					%s
+					"
+
+	`, productType, "", "")
+
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT3Dot5Turbo,
+			ResponseFormat: &openai.ChatCompletionResponseFormat{
+				Type: openai.ChatCompletionResponseFormatTypeJSONObject,
+			},
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: systemPrompt,
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		log.WithContext(ctx).Error(err, "ChatCompletion error")
+		return nil, err
+	}
+
+	if resp.Choices[0].Message.Content == "" {
+		log.WithContext(ctx).Error(err, "Empty openai response")
+		return nil, e.New("Empty openai response")
+	}
+
+	log.WithContext(ctx).
+		WithField("system_prompt", systemPrompt).
+		WithField("response", resp.Choices[0].Message.Content).
+		Info("AI suggestion generated.")
+
 	toSave := modelInputs.QueryOutput{
 		Query: query,
 	}
-	// toSave := model.Visualization{
-	// 	Model:            model.Model{ID: id},
-	// 	ProjectID:        visualization.ProjectID,
-	// 	Name:             visualization.Name,
-	// 	UpdatedByAdminId: &admin.ID,
-	// 	GraphIds:         graphIds,
-	// }
 	return &toSave, nil
 }
 
