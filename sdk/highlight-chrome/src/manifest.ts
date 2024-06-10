@@ -22,5 +22,5 @@ export default defineManifest({
       js: ['src/contentScript/index.ts'],
     },
   ],
-  permissions: ['sidePanel', 'storage', 'worker'],
+  permissions: ['sidePanel', 'storage'],
 })

@@ -1,5 +1,3 @@
-let isRunning = false
-
 let getCurrentTab = async () => {
   let queryOptions = { active: true, lastFocusedWindow: true }
   // `tab` will either be a `tabs.Tab` instance or `undefined`.
@@ -8,11 +6,8 @@ let getCurrentTab = async () => {
   return tab
 }
 
-let disableCSP = async (id: number) => {
-  if (isRunning) return
-  isRunning = true
-
-  let addRules: any[] = [],
+let disableCSP = async (id) => {
+  let addRules = [],
     { url } = await getCurrentTab()
 
   addRules.push({
@@ -27,18 +22,18 @@ let disableCSP = async (id: number) => {
   chrome.browsingData.remove({}, { serviceWorkers: true }, () => {})
 
   await chrome.declarativeNetRequest.updateSessionRules({ addRules })
-
-  isRunning = false
+  await chrome.declarativeNetRequest.updateDynamicRules({ addRules })
 }
 
 let init = () => {
   chrome.action.onClicked.addListener((tab) => {
-    console.log('toggle highlight recording active')
+    disableCSP(tab.id)
   })
-
-  chrome.tabs.onActivated.addListener(async (tab) => {
-    await disableCSP(tab.tabId)
+  chrome.tabs.onActivated.addListener((tab) => {
+    disableCSP(tab.tabId)
   })
 }
 
 init()
+
+export {}
