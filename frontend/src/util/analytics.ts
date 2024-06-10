@@ -1,10 +1,11 @@
 import { Metadata } from '@highlight-run/client'
 import { H } from 'highlight.run'
 import * as rudderanalytics from 'rudder-sdk-js'
+
 import { DISABLE_ANALYTICS } from '../constants'
 
 let rudderstackInitialized = false
-let isDisabled = DISABLE_ANALYTICS || false
+const isDisabled = DISABLE_ANALYTICS || false
 
 const initialize = () => {
 	if (isDisabled) {
@@ -65,7 +66,7 @@ const page = (name: string, properties?: rudderanalytics.apiObject) => {
 	if (isDisabled) {
 		return
 	}
-	
+
 	rudderanalytics.page(name, properties)
 }
 
