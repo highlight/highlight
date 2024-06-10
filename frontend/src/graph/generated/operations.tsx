@@ -2724,7 +2724,13 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
 					Types.Maybe<
 						{ __typename?: 'Project' } & Pick<
 							Types.Project,
-							'id' | 'name'
+							| 'id'
+							| 'name'
+							| 'verbose_id'
+							| 'billing_email'
+							| 'secret'
+							| 'workspace_id'
+							| 'error_filters'
 						>
 					>
 				>

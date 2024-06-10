@@ -8176,6 +8176,13 @@ export const GetProjectDropdownOptionsDocument = gql`
 			projects {
 				id
 				name
+				id
+				name
+				verbose_id
+				billing_email
+				secret
+				workspace_id
+				error_filters
 			}
 			retention_period
 			errors_retention_period

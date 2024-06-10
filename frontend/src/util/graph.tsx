@@ -107,6 +107,41 @@ const cache = new InMemoryCache({
 						})
 					},
 				},
+				project: {
+					read(_, { args, toReference }) {
+						return toReference({
+							__typename: 'Project',
+							id: args?.id,
+						})
+					},
+				},
+				workspace_for_project: {
+					read(_, { args, cache, toReference }) {
+						const projectId = cache.identify({
+							id: args?.id,
+							__typename: 'Project',
+						})
+						return toReference({
+							__typename: 'Workspace',
+							id: '1',
+						})
+					},
+				},
+				// workspaces: {
+				// 	read(_, { toReference }) {
+				// 		return [
+				// 			toReference({
+				// 				__typename: 'Workspace',
+				// 				id: '1',
+				// 			}),
+				// 		]
+				// 	},
+				// },
+				// joinable_workspaces: {
+				// 	read(_, { toReference }) {
+				// 		return []
+				// 	},
+				// },
 			},
 		},
 	},

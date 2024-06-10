@@ -1918,6 +1918,7 @@ export type Project = {
 	rage_click_window_seconds?: Maybe<Scalars['Int']>
 	secret?: Maybe<Scalars['String']>
 	verbose_id: Scalars['String']
+	workspace?: Maybe<Workspace>
 	workspace_id: Scalars['ID']
 }
 
