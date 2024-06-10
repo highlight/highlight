@@ -8559,6 +8559,11 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 	return results, nil
 }
 
+// AiQuerySuggestion is the resolver for the ai_query_suggestion field.
+func (r *queryResolver) AiQuerySuggestion(ctx context.Context, projectID int, query string, productType modelInputs.ProductType) (*modelInputs.QueryOutput, error) {
+	panic(fmt.Errorf("not implemented: AiQuerySuggestion - ai_query_suggestion"))
+}
+
 // Logs is the resolver for the logs field.
 func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.LogConnection, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
