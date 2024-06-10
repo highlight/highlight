@@ -8129,8 +8129,13 @@ func (r *queryResolver) AdminRoleByProject(ctx context.Context, projectID int) (
 		}
 	}
 
+	var workspaceId int
+	if project != nil {
+		workspaceId = project.WorkspaceID
+	}
+
 	return &model.WorkspaceAdminRole{
-		WorkspaceId: project.WorkspaceID,
+		WorkspaceId: workspaceId,
 		Admin:       admin,
 		Role:        role,
 		ProjectIds:  projectIds,
