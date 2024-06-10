@@ -76,7 +76,8 @@ export const SessionView: React.FC<SessionViewProps> = ({
 		Coordinates2D | undefined
 	>(undefined)
 
-	const showSession = sessionViewability === SessionViewability.VIEWABLE
+	const showSession =
+		sessionViewability === SessionViewability.VIEWABLE && !!sessionSecureId
 
 	const { showRightPanel: showRightPanelPreference } =
 		usePlayerConfiguration()
