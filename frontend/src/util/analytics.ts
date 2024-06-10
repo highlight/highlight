@@ -1,6 +1,7 @@
 import { Metadata } from '@highlight-run/client'
 import { H } from 'highlight.run'
 import * as rudderanalytics from 'rudder-sdk-js'
+
 import { DISABLE_ANALYTICS } from '../constants'
 import { omit } from 'lodash'
 
