@@ -110,6 +110,8 @@
 	},
 	"packageManager": "yarn@4.3.1",
 	"resolutions": {
+		"@opentelemetry/resources": "1.22.0",
+		"@types/dom-webcodecs": "0.1.5",
 		"ansi-color@^0.2.1": "patch:ansi-color@npm%3A0.2.1#./.yarn/patches/ansi-color-npm-0.2.1-f7243d10a4.patch",
 		"graphql@^16": "16.8.1",
 		"json5<2": "1.0.2",
