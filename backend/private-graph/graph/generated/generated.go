@@ -945,7 +945,7 @@ type ComplexityRoot struct {
 		AdminHasCreatedComment           func(childComplexity int, adminID int) int
 		AdminRole                        func(childComplexity int, workspaceID int) int
 		AdminRoleByProject               func(childComplexity int, projectID int) int
-		AiQuerySuggestion                func(childComplexity int, projectID int, query string, productType model.ProductType) int
+		AiQuerySuggestion                func(childComplexity int, projectID int, query string) int
 		AverageSessionLength             func(childComplexity int, projectID int, lookbackDays float64) int
 		BillingDetails                   func(childComplexity int, workspaceID int) int
 		BillingDetailsForProject         func(childComplexity int, projectID int) int
@@ -1902,7 +1902,7 @@ type QueryResolver interface {
 	SourcemapVersions(ctx context.Context, projectID int) ([]string, error)
 	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
 	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
-	AiQuerySuggestion(ctx context.Context, projectID int, query string, productType model.ProductType) (*model.QueryOutput, error)
+	AiQuerySuggestion(ctx context.Context, projectID int, query string) (*model.QueryOutput, error)
 	Logs(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.LogConnection, error)
 	SessionLogs(ctx context.Context, projectID int, params model.QueryInput) ([]*model.LogEdge, error)
 	LogsTotalCount(ctx context.Context, projectID int, params model.QueryInput) (uint64, error)
@@ -6711,7 +6711,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AiQuerySuggestion(childComplexity, args["project_id"].(int), args["query"].(string), args["product_type"].(model.ProductType)), true
+		return e.complexity.Query.AiQuerySuggestion(childComplexity, args["project_id"].(int), args["query"].(string)), true
 
 	case "Query.averageSessionLength":
 		if e.complexity.Query.AverageSessionLength == nil {
@@ -13348,11 +13348,7 @@ type Query {
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
-	ai_query_suggestion(
-		project_id: ID!
-		query: String!
-		product_type: ProductType!
-	): QueryOutput!
+	ai_query_suggestion(project_id: ID!, query: String!): QueryOutput!
 	logs(
 		project_id: ID!
 		params: QueryInput!
@@ -17818,15 +17814,6 @@ func (ec *executionContext) field_Query_ai_query_suggestion_args(ctx context.Con
 		}
 	}
 	args["query"] = arg1
-	var arg2 model.ProductType
-	if tmp, ok := rawArgs["product_type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("product_type"))
-		arg2, err = ec.unmarshalNProductType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["product_type"] = arg2
 	return args, nil
 }
 
@@ -59566,7 +59553,7 @@ func (ec *executionContext) _Query_ai_query_suggestion(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AiQuerySuggestion(rctx, fc.Args["project_id"].(int), fc.Args["query"].(string), fc.Args["product_type"].(model.ProductType))
+		return ec.resolvers.Query().AiQuerySuggestion(rctx, fc.Args["project_id"].(int), fc.Args["query"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

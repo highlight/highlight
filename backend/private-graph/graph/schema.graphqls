@@ -2214,11 +2214,7 @@ type Query {
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
-	ai_query_suggestion(
-		project_id: ID!
-		query: String!
-		product_type: ProductType!
-	): QueryOutput!
+	ai_query_suggestion(project_id: ID!, query: String!): QueryOutput!
 	logs(
 		project_id: ID!
 		params: QueryInput!
