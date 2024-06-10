@@ -97,11 +97,11 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 				{
 					attributes: {
 						['event.type']: eventName,
-						['element.tag']: element.tagName,
-						['element.xpath']: xpath,
-						['element.id']: element.id,
-						['element.text']: element.textContent ?? '',
-						['http.url']: window.location.href,
+						['event.tag']: element.tagName,
+						['event.xpath']: xpath,
+						['event.id']: element.id,
+						['event.text']: element.textContent ?? '',
+						['event.url']: window.location.href,
 					},
 				},
 				parentSpan
@@ -110,8 +110,8 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 			)
 
 			if (event instanceof MouseEvent) {
-				span.setAttribute('cursor.x', event.clientX)
-				span.setAttribute('cursor.y', event.clientY)
+				span.setAttribute('event.x', event.clientX)
+				span.setAttribute('event.y', event.clientY)
 			}
 
 			if (
