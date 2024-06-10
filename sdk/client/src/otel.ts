@@ -1,15 +1,21 @@
 import {
 	BatchSpanProcessor,
 	BufferConfig,
+	ConsoleSpanExporter,
+	getElementXPath,
 	ReadableSpan,
+	SimpleSpanProcessor,
 	SpanExporter,
 	WebTracerProvider,
 } from '@opentelemetry/sdk-trace-web'
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load'
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch'
-import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import {
+	InstrumentationBase,
+	InstrumentationConfig,
+	registerInstrumentations,
+} from '@opentelemetry/instrumentation'
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request'
-import { UserInteractionInstrumentation } from '@opentelemetry/instrumentation-user-interaction'
 import { Resource } from '@opentelemetry/resources'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import {
@@ -17,7 +23,7 @@ import {
 	SEMRESATTRS_SERVICE_NAME,
 } from '@opentelemetry/semantic-conventions'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
-import { Context, Span } from '@opentelemetry/api'
+import * as api from '@opentelemetry/api'
 import {
 	BrowserXHR,
 	getBodyThatShouldBeRecorded,
@@ -25,7 +31,6 @@ import {
 import type { NetworkRecordingOptions } from './types/client'
 import { sanitizeHeaders } from './listeners/network-listener/utils/network-sanitizer'
 import { shouldNetworkRequestBeTraced } from './listeners/network-listener/utils/utils'
-import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 
 export type OtelConfig = {
 	projectId: string | number
@@ -91,9 +96,7 @@ export const initializeOtel = (config: OtelConfig) => {
 	registerInstrumentations({
 		instrumentations: [
 			new DocumentLoadInstrumentation(),
-			// See if we can capture element details, like innerHTML
-			new UserInteractionInstrumentation(),
-			// Try to capture GraphQL data in requests
+			new EventInstrumentation(),
 			new FetchInstrumentation({
 				applyCustomAttributesOnSpan: (span, request, response) => {
 					if (!(response instanceof Response)) {
@@ -128,7 +131,7 @@ export const initializeOtel = (config: OtelConfig) => {
 			}),
 			new XMLHttpRequestInstrumentation({
 				applyCustomAttributesOnSpan: (
-					span: Span,
+					span: api.Span,
 					xhr: XMLHttpRequest,
 				) => {
 					const browserXhr = xhr as BrowserXHR
@@ -265,7 +268,7 @@ const enhanceSpanWithHttpRequestAttributes = (
 }
 
 const enhanceSpanWithHttpResponseAttributes = (
-	span: Span,
+	span: api.Span,
 	body: Request['body'] | Response['body'] | XMLHttpRequest['responseText'],
 	headers: Headers | string,
 	networkRecordingOptions?: NetworkRecordingOptions,
@@ -293,12 +296,73 @@ const enhanceSpanWithHttpResponseAttributes = (
 	})
 }
 
-function setObjectAttributes(span: Span, body: any, prefix: string) {
+function setObjectAttributes(span: api.Span, body: any, prefix: string) {
 	for (const key in body) {
 		if (typeof body[key] === 'object' && body[key] !== null) {
 			setObjectAttributes(span, body[key], `${prefix}.${key}`)
 		} else {
 			span.setAttribute(`${prefix}.${key}`, JSON.stringify(body[key]))
 		}
+	}
+}
+
+const EVENT_TYPES = ['click', 'mousemove', 'input', 'submit']
+
+class EventInstrumentation extends InstrumentationBase {
+	constructor(config?: InstrumentationConfig) {
+		super('EventInstrumentation', '1.0.0', config)
+	}
+
+	// Required by InstrumentationBase
+	init() {}
+
+	enable() {
+		if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+			EVENT_TYPES.forEach((eventType) => {
+				document.addEventListener(
+					eventType,
+					this.handleEvent.bind(this),
+				)
+			})
+		}
+	}
+
+	disable() {
+		if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+			EVENT_TYPES.forEach((eventType) => {
+				document.removeEventListener(
+					eventType,
+					this.handleEvent.bind(this),
+				)
+			})
+		}
+	}
+
+	private handleEvent(event: Event) {
+		const element = event.target as HTMLElement
+		const parentSpan = api.trace.getSpan(api.context.active())
+
+		const span = this.tracer.startSpan(
+			event.type,
+			{
+				attributes: {
+					'event.target': element.tagName,
+					'event.text': element.innerText,
+					'event.type': event.type,
+					'event.url': window.location.href,
+					'event.xpath': getElementXPath(element),
+				},
+			},
+			parentSpan
+				? api.trace.setSpan(api.context.active(), parentSpan)
+				: undefined,
+		)
+
+		if (event instanceof MouseEvent) {
+			span.setAttribute('event.x', event.clientX)
+			span.setAttribute('event.y', event.clientY)
+		}
+
+		span.end()
 	}
 }
