@@ -113,7 +113,7 @@ const H: HighlightPublicInterface = {
 			init_called = true
 
 			// Use dynamic import to avoid bundling the opentelemetry dependencies
-			import('@highlight-run/client/src/otel').then(
+			import('@highlight-run/client/src/otel/index').then(
 				({ initializeOtel }) => {
 					initializeOtel({
 						projectId: projectID,
