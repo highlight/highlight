@@ -111,7 +111,7 @@ export const initializeOtel = (config: OtelConfig) => {
 						getSpanName(
 							response.url,
 							request.method ?? 'GET',
-							response.body,
+							request.body,
 						),
 					)
 
@@ -144,13 +144,13 @@ export const initializeOtel = (config: OtelConfig) => {
 
 					enhanceSpanWithHttpRequestAttributes(
 						span,
-						xhr.response,
+						browserXhr._body,
 						browserXhr._requestHeaders as Headers,
 						config.networkRecordingOptions,
 					)
 					enhanceSpanWithHttpResponseAttributes(
 						span,
-						xhr.response,
+						browserXhr._body,
 						xhr.getAllResponseHeaders(),
 						config.networkRecordingOptions,
 					)
@@ -208,7 +208,7 @@ export const getOtelProvider = (): WebTracerProvider => {
 const getSpanName = (
 	url: string,
 	method: string,
-	body: Request['body'] | Response['body'] | XMLHttpRequest['responseText'],
+	body: Request['body'] | BrowserXHR['_body'],
 ) => {
 	let parsedBody
 	let spanName = `${method} - ${new URL(url).pathname}`
@@ -226,11 +226,8 @@ const getSpanName = (
 }
 
 const enhanceSpanWithHttpRequestAttributes = (
-	span: Span,
-	body:
-		| Request['body']
-		| XMLHttpRequest['responseText']
-		| RequestInit['body'],
+	span: api.Span,
+	body: Request['body'] | RequestInit['body'] | BrowserXHR['_body'],
 	headers:
 		| Headers
 		| string
