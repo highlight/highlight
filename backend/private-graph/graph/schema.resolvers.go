@@ -8572,26 +8572,93 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, projectID int, pr
 
 	client := openai.NewClient(apiKey)
 
+	// create a list of key:value strings
+	keyVals := []string{}
+	keys := []string{}
+	// switch on the product type to get the keys and values
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		keys = append(keys, lo.Map(lo.Keys(clickhouse.TracesTableConfig.KeysToColumns),
+			func(key modelInputs.ReservedTraceKey, _ int) string {
+				return key.String()
+			})...)
+	case modelInputs.ProductTypeLogs:
+		keys = append(keys, lo.Map(lo.Keys(clickhouse.LogsTableConfig.KeysToColumns),
+			func(key modelInputs.ReservedLogKey, _ int) string {
+				return key.String()
+			})...)
+	case modelInputs.ProductTypeSessions:
+		keys = append(keys, lo.Keys(clickhouse.SessionsTableConfig.KeysToColumns)...)
+	case modelInputs.ProductTypeErrors:
+		keys = append(keys, lo.Map(lo.Keys(clickhouse.ErrorGroupsTableConfig.KeysToColumns),
+			func(key modelInputs.ReservedErrorGroupKey, _ int) string {
+				return key.String()
+			})...)
+	}
+
+	var sevenDaysAgo time.Time = time.Now().Add(-7 * 24 * time.Hour)
+	for _, key := range keys {
+		if key == "HighlightType" {
+			continue
+		}
+		keys = append(keys, key)
+		vals, err := r.KeyValues(
+			ctx,
+			productType,
+			projectID,
+			key,
+			modelInputs.DateRangeRequiredInput{
+				StartDate: sevenDaysAgo,
+				EndDate:   time.Now(),
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+		for _, val := range vals {
+			keyVals = append(keyVals, fmt.Sprintf("%s:%s", key, val))
+		}
+	}
+
 	systemPrompt := fmt.Sprintf(`
-					You are a simple system used by an observabiliity product which, 
-					given a %s query, you output a structured query that the system 
-					can then use to parse (which ultimately queries an internal database).
+You are a simple system used by an observabiliity product in which, 
+given a %s query, you output a structured query that the system 
+can use to parse (which ultimately queries an internal database).
 
-					Here is a sample input/output pair to help you understand the task: 
-				
-					"
-					%s
-					"
+The input query will be a string which describes what the user wants to query in plain English.	
 
-					In terms of the keys and values you can use, you cannot use a key-value pair that doesn't exist. 
-					
-					You have the following key-value pairs to work with:
+The output query should be in a json format with two keys: "query" and "date_range". 
 
-					"
-					%s
-					"
+Below are descriptions of the keys:
+"query": A string that represents the query that the system should use to query the internal database, which must use the key-value pairs provided below.
+"date_range.start_date": A datetime string that represents the start date of the date range for the query.  If the date range is not specified, this key should be empty.
+"date_range.end_date": A datetime string that represents the end date of the date range for the query. If the date range is not specified, this key should be empty.
 
-	`, productType, "", "")
+Here is a sample input/output pair to help you understand the task: 
+
+Use today's date/time for any relative times provided: %s
+
+Input: Show me all the 500 errors in the last 7 days
+Output: 
+{
+	"query": "status_code:500",
+	"date_range": {
+		"start_date": "2022-01-01T00:00:00Z",
+		"end_date": "2022-01-08T00:00:00Z"
+	}
+}
+
+In terms of the keys and values you can use, try not to use a key-value pair that doesn't exist. 
+
+You have the following keys to work with:
+
+%s
+
+And here are the key/values that you can use for each respective key. If the below section is empty, be creative:
+
+%s
+
+	`, productType, time.Now().UTC().Format("2006-01-02T15:04:05Z"), strings.Join(keys, ", "), strings.Join(keyVals, ", "))
 
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
@@ -8604,6 +8671,10 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, projectID int, pr
 				{
 					Role:    openai.ChatMessageRoleSystem,
 					Content: systemPrompt,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: query,
 				},
 			},
 		},
@@ -8620,12 +8691,14 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, projectID int, pr
 	}
 
 	log.WithContext(ctx).
-		WithField("system_prompt", systemPrompt).
 		WithField("response", resp.Choices[0].Message.Content).
 		Info("AI suggestion generated.")
 
+	log.WithContext(ctx).
+		Info(fmt.Sprintf(systemPrompt))
+
 	toSave := modelInputs.QueryOutput{
-		Query: query,
+		Query: resp.Choices[0].Message.Content,
 	}
 	return &toSave, nil
 }
@@ -8739,7 +8812,6 @@ func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyNam
 	if err != nil {
 		return nil, err
 	}
-
 	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
