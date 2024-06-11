@@ -454,9 +454,10 @@ type ProjectFilterSettings struct {
 
 type AllWorkspaceSettings struct {
 	Model
-	WorkspaceID   int  `gorm:"uniqueIndex"`
-	AIApplication bool `gorm:"default:true"`
-	AIInsights    bool `gorm:"default:false"`
+	WorkspaceID    int  `gorm:"uniqueIndex"`
+	AIApplication  bool `gorm:"default:true"`
+	AIInsights     bool `gorm:"default:false"`
+	AIQueryBuilder bool `gorm:"default:false"`
 
 	// use embeddings to group errors in this workspace
 	ErrorEmbeddingsGroup bool `gorm:"default:true"`

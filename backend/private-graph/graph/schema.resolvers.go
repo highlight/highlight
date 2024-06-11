@@ -608,7 +608,7 @@ func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *stri
 }
 
 // EditWorkspaceSettings is the resolver for the editWorkspaceSettings field.
-func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceID int, aiApplication *bool, aiInsights *bool) (*model.AllWorkspaceSettings, error) {
+func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceID int, aiApplication *bool, aiInsights *bool, aiQueryBuilder *bool) (*model.AllWorkspaceSettings, error) {
 	_, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
 		return nil, err
@@ -616,13 +616,23 @@ func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceI
 
 	workspaceSettings := &model.AllWorkspaceSettings{}
 	workspaceSettingsUpdates := map[string]interface{}{
-		"AIApplication": *aiApplication,
-		"AIInsights":    *aiInsights,
+		"AIApplication":  *aiApplication,
+		"AIInsights":     *aiInsights,
+		"AIQueryBuilder": *aiQueryBuilder,
 	}
 
-	if err := store.AssertRecordFound(r.DB.WithContext(ctx).Where(&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).Model(&workspaceSettings).Clauses(clause.Returning{}).Updates(&workspaceSettingsUpdates)); err != nil {
+	log.WithContext(ctx).Infof("Updated workspace settings for workspace %v", workspaceSettingsUpdates)
+
+	if err := store.AssertRecordFound(
+		r.DB.
+			WithContext(ctx).
+			Where(
+				&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).
+			Model(&workspaceSettings).Clauses(clause.Returning{}).Updates(&workspaceSettingsUpdates)); err != nil {
 		return nil, err
 	}
+
+	log.WithContext(ctx).Infof("Updated workspace settings for workspace %v", workspaceSettings)
 	return workspaceSettings, nil
 }
 
