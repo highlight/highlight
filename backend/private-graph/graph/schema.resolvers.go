@@ -8646,16 +8646,6 @@ Here is a sample input/output pair to help you understand the task:
 
 Use today's date/time in the user's time zone for any relative times provided: %s
 
-Input: Show me all the 500 errors in the last 7 days
-Output: 
-{
-	"query": "status_code:500",
-	"date_range": {
-		"start_date": "%s",
-		"end_date": "%s"
-	}
-}
-
 In terms of the keys and values you can use, try not to use a key-value pair that doesn't exist. 
 
 You have the following keys to work with:
@@ -8666,7 +8656,29 @@ And here are the key/values that you can use for each respective key. If the bel
 
 %s
 
-	`, productType, now, now, now, strings.Join(keys, ", "), strings.Join(keyVals, ", "))
+	`, productType, now, strings.Join(keys, ", "), strings.Join(keyVals, ", "))
+
+	yesterday := time.Now().In(loc).AddDate(0, 0, -1)
+	yesterdayAt2PM := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 14, 0, 0, 0, yesterday.Location()).Format(time.RFC3339)
+	sevenDaysBack := time.Now().Add(-7 * 24 * time.Hour).In(loc).Format(time.RFC3339)
+
+	examples := []struct {
+		request  string
+		response string
+	}{
+		{
+			request:  "Show me all the 500 errors in the last 7 days",
+			response: fmt.Sprintf(`{"query":"status_code:500","date_range":{"start_date":"%s","end_date":""}}`, sevenDaysBack),
+		},
+		{
+			request:  "Show me all the error logs from last week to yesterday at 2pm",
+			response: fmt.Sprintf(`{"query":"level:error","date_range":{"start_date":"%s","end_date":"%s"}}`, sevenDaysBack, yesterdayAt2PM),
+		},
+		{
+			request:  "All the traces from the private graph service",
+			response: `{"query":"service_name:private-graph","date_range":{"start_date":"","end_date":""}}`,
+		},
+	}
 
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
@@ -8679,6 +8691,30 @@ And here are the key/values that you can use for each respective key. If the bel
 				{
 					Role:    openai.ChatMessageRoleSystem,
 					Content: systemPrompt,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[0].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[0].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[1].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[1].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[2].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[2].response,
 				},
 				{
 					Role:    openai.ChatMessageRoleUser,
@@ -8705,10 +8741,36 @@ And here are the key/values that you can use for each respective key. If the bel
 	log.WithContext(ctx).
 		Info(fmt.Sprintf(systemPrompt))
 
-	toSave := modelInputs.QueryOutput{}
-	err = json.Unmarshal([]byte(resp.Choices[0].Message.Content), &toSave)
+	// Define the structs inline
+	var toSaveString struct {
+		Query     string `json:"query"`
+		DateRange struct {
+			StartDate string `json:"start_date,omitempty"`
+			EndDate   string `json:"end_date,omitempty"`
+		} `json:"date_range"`
+	}
+
+	err = json.Unmarshal([]byte(resp.Choices[0].Message.Content), &toSaveString)
 	if err != nil {
 		return nil, e.Errorf("error unmarshalling response from openai: %v", err)
+	}
+
+	toSave := modelInputs.QueryOutput{}
+	toSave.DateRange = &modelInputs.DateRangeRequiredOutput{}
+	toSave.Query = toSaveString.Query
+	startDate, err := time.Parse(time.RFC3339, toSaveString.DateRange.StartDate)
+	if err != nil {
+		log.Errorf("Error parsing start_date: %v\n", err)
+		toSave.DateRange.StartDate = nil
+	} else {
+		toSave.DateRange.StartDate = &startDate
+	}
+	endDate, err := time.Parse(time.RFC3339, toSaveString.DateRange.EndDate)
+	if err != nil {
+		log.Errorf("Error parsing end_date: %v\n", err)
+		toSave.DateRange.EndDate = nil
+	} else {
+		toSave.DateRange.EndDate = &endDate
 	}
 
 	return &toSave, nil

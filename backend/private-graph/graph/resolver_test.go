@@ -367,7 +367,6 @@ func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
 	}
 }
 func TestResolver_GetAIQuerySuggestion(t *testing.T) {
-	t.Skip("skipping test")
 	tests := map[string]struct {
 		productType modelInputs.ProductType
 		query       string

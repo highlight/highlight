@@ -383,8 +383,8 @@ export type DateRangeRequiredInput = {
 
 export type DateRangeRequiredOutput = {
 	__typename?: 'DateRangeRequiredOutput'
-	end_date: Scalars['Timestamp']
-	start_date: Scalars['Timestamp']
+	end_date?: Maybe<Scalars['Timestamp']>
+	start_date?: Maybe<Scalars['Timestamp']>
 }
 
 export type DiscordChannel = {

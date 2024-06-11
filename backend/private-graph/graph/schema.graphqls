@@ -1331,8 +1331,8 @@ input DateRangeRequiredInput {
 }
 
 type DateRangeRequiredOutput {
-	start_date: Timestamp!
-	end_date: Timestamp!
+	start_date: Timestamp
+	end_date: Timestamp
 }
 
 type LengthRange {

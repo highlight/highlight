@@ -12465,8 +12465,8 @@ input DateRangeRequiredInput {
 }
 
 type DateRangeRequiredOutput {
-	start_date: Timestamp!
-	end_date: Timestamp!
+	start_date: Timestamp
+	end_date: Timestamp
 }
 
 type LengthRange {
@@ -28379,14 +28379,11 @@ func (ec *executionContext) _DateRangeRequiredOutput_start_date(ctx context.Cont
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(time.Time)
+	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DateRangeRequiredOutput_start_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -28423,14 +28420,11 @@ func (ec *executionContext) _DateRangeRequiredOutput_end_date(ctx context.Contex
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(time.Time)
+	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DateRangeRequiredOutput_end_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -82680,14 +82674,8 @@ func (ec *executionContext) _DateRangeRequiredOutput(ctx context.Context, sel as
 			out.Values[i] = graphql.MarshalString("DateRangeRequiredOutput")
 		case "start_date":
 			out.Values[i] = ec._DateRangeRequiredOutput_start_date(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "end_date":
 			out.Values[i] = ec._DateRangeRequiredOutput_end_date(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

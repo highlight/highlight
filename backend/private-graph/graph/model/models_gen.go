@@ -275,8 +275,8 @@ type DateRangeRequiredInput struct {
 }
 
 type DateRangeRequiredOutput struct {
-	StartDate time.Time `json:"start_date"`
-	EndDate   time.Time `json:"end_date"`
+	StartDate *time.Time `json:"start_date,omitempty"`
+	EndDate   *time.Time `json:"end_date,omitempty"`
 }
 
 type DiscordChannelInput struct {
