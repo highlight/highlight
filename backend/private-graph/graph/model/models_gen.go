@@ -1267,6 +1267,7 @@ const (
 	IntegrationTypeMicrosoftTeams IntegrationType = "MicrosoftTeams"
 	IntegrationTypeGitLab         IntegrationType = "GitLab"
 	IntegrationTypeHeroku         IntegrationType = "Heroku"
+	IntegrationTypeCloudflare     IntegrationType = "Cloudflare"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -1283,11 +1284,12 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeMicrosoftTeams,
 	IntegrationTypeGitLab,
 	IntegrationTypeHeroku,
+	IntegrationTypeCloudflare,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeMicrosoftTeams, IntegrationTypeGitLab, IntegrationTypeHeroku:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeMicrosoftTeams, IntegrationTypeGitLab, IntegrationTypeHeroku, IntegrationTypeCloudflare:
 		return true
 	}
 	return false

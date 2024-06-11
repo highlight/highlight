@@ -36,6 +36,7 @@ require (
 	github.com/aws/smithy-go v1.20.2
 	github.com/bradleyfalzon/ghinstallation/v2 v2.10.0
 	github.com/clearbit/clearbit-go v1.1.0
+	github.com/cloudflare/cloudflare-go v0.97.0
 	github.com/dchest/uniuri v1.2.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/go-chi/chi v4.1.2+incompatible
@@ -115,7 +116,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
-	github.com/cloudflare/cloudflare-go v0.97.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect

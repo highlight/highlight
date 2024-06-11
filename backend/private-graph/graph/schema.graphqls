@@ -440,6 +440,7 @@ enum IntegrationType {
 	MicrosoftTeams
 	GitLab
 	Heroku
+	Cloudflare
 }
 
 enum ErrorState {
@@ -2796,6 +2797,7 @@ type Mutation {
 		params: QueryInput!
 		sessionCount: Int!
 	): Boolean!
+	createCloudflareProxy(project_id: ID!, proxy_subdomain: String!): String!
 	updateVercelProjectMappings(
 		project_id: ID!
 		project_mappings: [VercelProjectMappingInput!]!

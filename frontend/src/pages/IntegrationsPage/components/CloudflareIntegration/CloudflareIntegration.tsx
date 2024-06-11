@@ -6,18 +6,16 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
-import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 
-import styles from './HerokuIntegration.module.css'
-import { useHerokuIntegration } from './utils'
+import * as styles from './style.css'
+import { useCloudflareIntegration } from './utils'
 
-const HerokuIntegration: React.FC<
+const CloudflareIntegration: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
 > = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action }) => {
-	const { project_id } = useParams<{ project_id: string }>()
-	const { addHerokuToProject, removeHerokuIntegrationFromProject } =
-		useHerokuIntegration()
+	const { addCloudflareToProject, removeCloudflareIntegrationFromProject } =
+		useCloudflareIntegration()
 	const formStore = Form.useStore({
 		defaultValues: {
 			token: '',
@@ -29,13 +27,12 @@ const HerokuIntegration: React.FC<
 		return (
 			<>
 				<p className={styles.modalSubTitle}>
-					Disconnecting your Heroku workspace from Highlight will
-					break your Heroku log drains that may currently be sending
-					data!
+					Disconnecting your Cloudflare workspace from Highlight will
+					disable highlight's access to your proxy workers!
 				</p>
 				<footer>
 					<Button
-						trackingId="IntegrationDisconnectCancel-Heroku"
+						trackingId="IntegrationDisconnectCancel-Cloudflare"
 						className={styles.modalBtn}
 						onClick={() => {
 							setModalOpen(false)
@@ -45,18 +42,18 @@ const HerokuIntegration: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId="IntegrationDisconnectSave-Heroku"
+						trackingId="IntegrationDisconnectSave-Cloudflare"
 						className={styles.modalBtn}
 						type="primary"
 						danger
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
-							removeHerokuIntegrationFromProject(project_id)
+							removeCloudflareIntegrationFromProject()
 						}}
 					>
 						<PlugIcon className={styles.modalBtnIcon} />
-						Disconnect Heroku
+						Disconnect Cloudflare
 					</Button>
 				</footer>
 			</>
@@ -66,29 +63,25 @@ const HerokuIntegration: React.FC<
 	return (
 		<>
 			<p className={styles.modalSubTitle}>
-				Connect a Heroku Syslog drain pointed to{' '}
-				<code>syslog+tls://syslog.highlight.io:34302</code> to start
-				shipping your logs to highlight.{' '}
-				<a
-					className={styles.description}
-					href="https://devcenter.heroku.com/articles/log-drains#syslog-drains"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Add the drain token to highlight.
-				</a>
+				A highlight data proxy via Cloudflare can avoid ad-blockers
+				detecting highlight tracking and blocking recording. Create a
+				Cloudflare API token with minimal permissions of{' '}
+				<code>
+					account.workers_scripts.edit, zone.workers_routes.edit
+				</code>
+				. Add your API token below:
 			</p>
 			<Form store={formStore} resetOnSubmit={false}>
 				<Form.Input
 					name={formStore.names.token}
-					label="Log Drain Token"
+					label="API Token"
 					type="text"
 					autoFocus
 				/>
 			</Form>
 			<footer>
 				<Button
-					trackingId="IntegrationConfigurationCancel-Heroku"
+					trackingId="IntegrationConfigurationCancel-Cloudflare"
 					className={styles.modalBtn}
 					onClick={() => {
 						setModalOpen(false)
@@ -98,21 +91,21 @@ const HerokuIntegration: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-Heroku"
+					trackingId="IntegrationConfigurationSave-Cloudflare"
 					className={styles.modalBtn}
 					type="primary"
 					disabled={token.length < 38}
 					onClick={async () => {
 						setModalOpen(false)
-						await addHerokuToProject(token, project_id)
+						await addCloudflareToProject(token)
 					}}
 				>
 					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Heroku
+					Highlight with Cloudflare
 				</Button>
 			</footer>
 		</>
 	)
 }
 
-export default HerokuIntegration
+export default CloudflareIntegration

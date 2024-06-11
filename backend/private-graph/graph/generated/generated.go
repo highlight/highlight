@@ -799,6 +799,7 @@ type ComplexityRoot struct {
 		ChangeAdminRole                       func(childComplexity int, workspaceID int, adminID int, newRole string) int
 		ChangeProjectMembership               func(childComplexity int, workspaceID int, adminID int, projectIds []int) int
 		CreateAdmin                           func(childComplexity int) int
+		CreateCloudflareProxy                 func(childComplexity int, projectID int, proxySubdomain string) int
 		CreateErrorAlert                      func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency int, defaultArg *bool) int
 		CreateErrorComment                    func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
 		CreateErrorCommentForExistingIssue    func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueURL string, issueTitle string, issueID string, integrations []*model.IntegrationType) int
@@ -1758,6 +1759,7 @@ type MutationResolver interface {
 	UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*model.DashboardMetricConfigInput, layout *string, isDefault *bool) (int, error)
 	DeleteDashboard(ctx context.Context, id int) (bool, error)
 	DeleteSessions(ctx context.Context, projectID int, params model.QueryInput, sessionCount int) (bool, error)
+	CreateCloudflareProxy(ctx context.Context, projectID int, proxySubdomain string) (string, error)
 	UpdateVercelProjectMappings(ctx context.Context, projectID int, projectMappings []*model.VercelProjectMappingInput) (bool, error)
 	UpdateClickUpProjectMappings(ctx context.Context, workspaceID int, projectMappings []*model.ClickUpProjectMappingInput) (bool, error)
 	UpdateIntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType model.IntegrationType, projectMappings []*model.IntegrationProjectMappingInput) (bool, error)
@@ -5390,6 +5392,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateAdmin(childComplexity), true
+
+	case "Mutation.createCloudflareProxy":
+		if e.complexity.Mutation.CreateCloudflareProxy == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createCloudflareProxy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateCloudflareProxy(childComplexity, args["project_id"].(int), args["proxy_subdomain"].(string)), true
 
 	case "Mutation.createErrorAlert":
 		if e.complexity.Mutation.CreateErrorAlert == nil {
@@ -11574,6 +11588,7 @@ enum IntegrationType {
 	MicrosoftTeams
 	GitLab
 	Heroku
+	Cloudflare
 }
 
 enum ErrorState {
@@ -13930,6 +13945,10 @@ type Mutation {
 		params: QueryInput!
 		sessionCount: Int!
 	): Boolean!
+	createCloudflareProxy(
+		project_id: ID!
+		proxy_subdomain: String!
+	): String!
 	updateVercelProjectMappings(
 		project_id: ID!
 		project_mappings: [VercelProjectMappingInput!]!
@@ -14142,6 +14161,30 @@ func (ec *executionContext) field_Mutation_changeProjectMembership_args(ctx cont
 		}
 	}
 	args["project_ids"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createCloudflareProxy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["proxy_subdomain"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("proxy_subdomain"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["proxy_subdomain"] = arg1
 	return args, nil
 }
 
@@ -48328,6 +48371,61 @@ func (ec *executionContext) fieldContext_Mutation_deleteSessions(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteSessions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createCloudflareProxy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createCloudflareProxy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateCloudflareProxy(rctx, fc.Args["project_id"].(int), fc.Args["proxy_subdomain"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createCloudflareProxy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createCloudflareProxy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -87148,6 +87246,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "deleteSessions":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteSessions(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createCloudflareProxy":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createCloudflareProxy(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

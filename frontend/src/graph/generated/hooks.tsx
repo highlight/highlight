@@ -11010,6 +11010,63 @@ export type GetWorkspaceIsIntegratedWithHerokuQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithHerokuQuery,
 	Types.GetWorkspaceIsIntegratedWithHerokuQueryVariables
 >
+export const GetWorkspaceIsIntegratedWithCloudflareDocument = gql`
+	query GetWorkspaceIsIntegratedWithCloudflare($workspace_id: ID!) {
+		is_integrated_with_cloudflare: is_workspace_integrated_with(
+			integration_type: Cloudflare
+			workspace_id: $workspace_id
+		)
+	}
+`
+
+/**
+ * __useGetWorkspaceIsIntegratedWithCloudflareQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithCloudflareQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithCloudflareQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithCloudflareQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithCloudflareQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithCloudflareQuery,
+		Types.GetWorkspaceIsIntegratedWithCloudflareQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceIsIntegratedWithCloudflareQuery,
+		Types.GetWorkspaceIsIntegratedWithCloudflareQueryVariables
+	>(GetWorkspaceIsIntegratedWithCloudflareDocument, baseOptions)
+}
+export function useGetWorkspaceIsIntegratedWithCloudflareLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithCloudflareQuery,
+		Types.GetWorkspaceIsIntegratedWithCloudflareQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceIsIntegratedWithCloudflareQuery,
+		Types.GetWorkspaceIsIntegratedWithCloudflareQueryVariables
+	>(GetWorkspaceIsIntegratedWithCloudflareDocument, baseOptions)
+}
+export type GetWorkspaceIsIntegratedWithCloudflareQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithCloudflareQuery
+>
+export type GetWorkspaceIsIntegratedWithCloudflareLazyQueryHookResult =
+	ReturnType<typeof useGetWorkspaceIsIntegratedWithCloudflareLazyQuery>
+export type GetWorkspaceIsIntegratedWithCloudflareQueryResult =
+	Apollo.QueryResult<
+		Types.GetWorkspaceIsIntegratedWithCloudflareQuery,
+		Types.GetWorkspaceIsIntegratedWithCloudflareQueryVariables
+	>
 export const GetWorkspaceIsIntegratedWithLinearDocument = gql`
 	query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
 		is_integrated_with_linear: is_integrated_with(

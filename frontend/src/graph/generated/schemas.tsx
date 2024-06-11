@@ -776,6 +776,7 @@ export type IntegrationStatus = {
 
 export enum IntegrationType {
 	ClickUp = 'ClickUp',
+	Cloudflare = 'Cloudflare',
 	Discord = 'Discord',
 	Front = 'Front',
 	GitHub = 'GitHub',
@@ -1117,6 +1118,7 @@ export type Mutation = {
 	changeAdminRole: WorkspaceAdminRole
 	changeProjectMembership: WorkspaceAdminRole
 	createAdmin: Admin
+	createCloudflareProxy: Scalars['String']
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
 	createErrorCommentForExistingIssue?: Maybe<ErrorComment>
@@ -1229,6 +1231,11 @@ export type MutationChangeProjectMembershipArgs = {
 	admin_id: Scalars['ID']
 	project_ids: Array<Scalars['ID']>
 	workspace_id: Scalars['ID']
+}
+
+export type MutationCreateCloudflareProxyArgs = {
+	project_id: Scalars['ID']
+	proxy_subdomain: Scalars['String']
 }
 
 export type MutationCreateErrorAlertArgs = {

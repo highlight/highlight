@@ -2,9 +2,9 @@ package cloudflare
 
 import (
 	"context"
+	"fmt"
 	"github.com/cloudflare/cloudflare-go"
 	log "github.com/sirupsen/logrus"
-	"os"
 )
 
 const ScriptName = "highlight-proxy"
@@ -30,42 +30,39 @@ export default {
 };
 `
 
-var (
-	ApiToken = os.Getenv("CLOUDFLARE_API_TOKEN")
-)
-
 type Client struct {
-	api               *cloudflare.API
-	accountID, zoneID string
+	api                         *cloudflare.API
+	accountID, zoneID, zoneName string
 }
 
-func (c *Client) CreateWorker(ctx context.Context) {
+func (c *Client) CreateWorker(ctx context.Context, proxySubdomain string) (string, error) {
 	r1, err := c.api.UploadWorker(ctx, cloudflare.AccountIdentifier(c.accountID), cloudflare.CreateWorkerParams{
 		ScriptName: ScriptName,
 		Script:     Script,
 		Module:     true,
 	})
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	log.WithField("response", r1).Info("UploadWorker")
 
+	route := fmt.Sprintf("%s.%s", proxySubdomain, c.zoneName)
 	r2, err := c.api.CreateWorkerRoute(ctx, cloudflare.ZoneIdentifier(c.zoneID), cloudflare.CreateWorkerRouteParams{
-		Pattern: "proxy.runhighlight.com/*",
+		Pattern: fmt.Sprintf("%s/*", route),
 		Script:  ScriptName,
 	})
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	log.WithField("response", r2).Info("CreateWorkerRoute")
 
+	return route, nil
 }
 
-func New() *Client {
-	ctx := context.Background()
-
-	// Construct a new API object a scoped API token
-	api, err := cloudflare.NewWithAPIToken(ApiToken)
+func New(ctx context.Context, apiToken string) *Client {
+	// requires apiToken to have
+	//account.workers_scripts.edit, zone.workers_routes.edit
+	api, err := cloudflare.NewWithAPIToken(apiToken)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -86,5 +83,6 @@ func New() *Client {
 		api:       api,
 		accountID: accounts[0].ID,
 		zoneID:    zones[0].ID,
+		zoneName:  zones[0].Name,
 	}
 }
