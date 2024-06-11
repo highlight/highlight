@@ -31,6 +31,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useSearchContext } from '@/components/Search/SearchContext'
 import { useNumericProjectId } from '@/hooks/useProjectId'
+import { PlayerHeatmapCanvas } from '@/pages/Player/PlayerHeatmapCanvas/PlayerHeatmapCanvas'
 import { NetworkResourcePanel } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourcePanel'
 import DevToolsWindowV2 from '@/pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
 import { NewCommentModal } from '@/pages/Player/Toolbar/NewCommentModal/NewCommentModal'
@@ -185,6 +186,9 @@ export const SessionView: React.FC<SessionViewProps> = ({
 										className="highlight-block"
 										id="player"
 									/>
+									{replayerState === ReplayerState.Paused && (
+										<PlayerHeatmapCanvas />
+									)}
 									<PlayerCommentCanvas
 										setModalPosition={
 											setCommentModalPosition

@@ -14415,6 +14415,7 @@ __metadata:
     "@testing-library/jest-dom": "npm:^5.1.0"
     "@testing-library/react-hooks": "npm:^8.0.1"
     "@types/color-hash": "npm:^1.0.1"
+    "@types/heatmap.js": "npm:^2.0.41"
     "@types/jest": "npm:^27.0.1"
     "@types/js-cookie": "npm:^3.0.2"
     "@types/lodash": "npm:^4.17.0"
@@ -14463,6 +14464,7 @@ __metadata:
     framer-motion: "npm:^6.3.15"
     graphql: "npm:^15.7.2"
     happy-dom: "npm:^14.7.1"
+    heatmap.js: "https://github.com/ionata/heatmap.js.git"
     highlight.io: "workspace:*"
     highlight.run: "workspace:*"
     js-cookie: "npm:^3.0.1"
@@ -25899,6 +25901,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/geojson@npm:*":
+  version: 7946.0.14
+  resolution: "@types/geojson@npm:7946.0.14"
+  checksum: 10/ae511bee6488ae3bd5a3a3347aedb0371e997b14225b8983679284e22fa4ebd88627c6e3ff8b08bf4cc35068cb29310c89427311ffc9322c255615821a922e71
+  languageName: node
+  linkType: hard
+
 "@types/glob@npm:*":
   version: 8.0.0
   resolution: "@types/glob@npm:8.0.0"
@@ -25991,6 +26000,15 @@ __metadata:
   dependencies:
     "@types/unist": "npm:*"
   checksum: 10/732920d81bb7605895776841b7658b4d8cc74a43a8fa176017cc0fb0ecc1a4c82a2b75a4fe6b71aa262b649d3fb62858c6789efa3793ea1d40269953af96ecb5
+  languageName: node
+  linkType: hard
+
+"@types/heatmap.js@npm:^2.0.41":
+  version: 2.0.41
+  resolution: "@types/heatmap.js@npm:2.0.41"
+  dependencies:
+    "@types/leaflet": "npm:^0"
+  checksum: 10/f9b3f13a0825f467af56c06a24d9135a2baa1fb5830c25e0aae34cf42fbc27735f2e9d4cbd6f81594601ca6f16e4b5b200d9a41c87910e45953c708650a90a19
   languageName: node
   linkType: hard
 
@@ -26335,6 +26353,15 @@ __metadata:
   dependencies:
     "@types/koa": "npm:*"
   checksum: 10/4608eb48867aabcd5cf3049b8115b3df9dc32cf4f5b950245dc9ab9d26055162a7deaae0f2a819f583aa21f57a66326c532a8763f82dceaf03a7e1f8cc08977d
+  languageName: node
+  linkType: hard
+
+"@types/leaflet@npm:^0":
+  version: 0.7.40
+  resolution: "@types/leaflet@npm:0.7.40"
+  dependencies:
+    "@types/geojson": "npm:*"
+  checksum: 10/e558b412c212b59feb7eb24669a236aed85ceee5a1180878e717b0cf4c9c7ffec65d1f87c07bd217a772bfa83271379648598336680a60610e299135d1c87fa4
   languageName: node
   linkType: hard
 
@@ -43028,6 +43055,13 @@ __metadata:
     capital-case: "npm:^1.0.4"
     tslib: "npm:^2.0.3"
   checksum: 10/571c83eeb25e8130d172218712f807c0b96d62b020981400bccc1503a7cf14b09b8b10498a962d2739eccf231d950e3848ba7d420b58a6acd2f9283439546cd9
+  languageName: node
+  linkType: hard
+
+"heatmap.js@https://github.com/ionata/heatmap.js.git":
+  version: 2.0.5
+  resolution: "heatmap.js@https://github.com/ionata/heatmap.js.git#commit=1452fc74fb3442f5f74b43394fddd06057fc387b"
+  checksum: 10/85b1eed7ccdd50e334942330b0e846aa05d161b1d829e5c36bcc8f391eb7b5cc561eceff42ff5937a24e6e5924a0630e0cb462ccf12a1f25f24fca6c6b66cd18
   languageName: node
   linkType: hard
 
