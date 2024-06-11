@@ -102,6 +102,8 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 						['event.id']: element.id,
 						['event.text']: element.textContent ?? '',
 						['event.url']: window.location.href,
+						['viewport.width']: window.innerWidth,
+						['viewport.height']: window.innerHeight,
 					},
 				},
 				parentSpan
@@ -112,6 +114,15 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 			if (event instanceof MouseEvent) {
 				span.setAttribute('event.x', event.clientX)
 				span.setAttribute('event.y', event.clientY)
+
+				span.setAttribute(
+					'event.relativeX',
+					event.clientX / window.innerWidth,
+				)
+				span.setAttribute(
+					'event.relativeY',
+					event.clientY / window.innerHeight,
+				)
 			}
 
 			if (
@@ -209,6 +220,8 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 	 */
 	private _patchAddEventListener() {
 		const plugin = this
+		let lastEventTimestamp = 0
+
 		return (original: EventTarget['addEventListener']) => {
 			return function addEventListenerPatched(
 				this: HTMLElement,
@@ -232,6 +245,17 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 				) {
 					let parentSpan: api.Span | undefined
 					const event: Event | undefined = args[0]
+
+					// Don't capture mousemove events too frequently
+					if (
+						event?.type === 'mousemove' &&
+						Date.now() - lastEventTimestamp < 100
+					) {
+						return
+					}
+
+					lastEventTimestamp = Date.now()
+
 					if (event) {
 						parentSpan = plugin._eventsSpanMap.get(event)
 					}
