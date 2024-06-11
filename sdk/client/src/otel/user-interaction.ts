@@ -20,7 +20,7 @@ enum AttributeNames {
 	HTTP_URL = 'http.url',
 }
 
-const DEFAULT_EVENT_NAMES = ['click', 'mousemove', 'input', 'submit']
+const DEFAULT_EVENT_NAMES = ['click', 'input', 'submit', 'scroll']
 
 function defaultShouldPreventSpanCreation() {
 	return false
@@ -123,6 +123,11 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 					'event.relativeY',
 					event.clientY / window.innerHeight,
 				)
+
+				if (eventName === 'scroll') {
+					span.setAttribute('event.scrollX', window.scrollX)
+					span.setAttribute('event.scrollY', window.scrollY)
+				}
 			}
 
 			if (
