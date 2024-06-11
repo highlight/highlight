@@ -7853,7 +7853,6 @@ export const GetWorkspaceDocument = gql`
 			plan_tier
 			unlimited_members
 			clearbit_enabled
-			cloudflare_proxy
 			projects {
 				id
 				name
@@ -8230,6 +8229,7 @@ export const GetProjectDropdownOptionsDocument = gql`
 		workspace: workspace_for_project(project_id: $project_id) {
 			id
 			name
+			cloudflare_proxy
 			projects {
 				id
 				name

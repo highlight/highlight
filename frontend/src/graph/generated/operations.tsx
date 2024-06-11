@@ -2594,7 +2594,6 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
 			| 'plan_tier'
 			| 'unlimited_members'
 			| 'clearbit_enabled'
-			| 'cloudflare_proxy'
 		> & {
 				projects: Array<
 					Types.Maybe<
@@ -2728,7 +2727,10 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
 		>
 	>
 	workspace?: Types.Maybe<
-		{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'> & {
+		{ __typename?: 'Workspace' } & Pick<
+			Types.Workspace,
+			'id' | 'name' | 'cloudflare_proxy'
+		> & {
 				projects: Array<
 					Types.Maybe<
 						{ __typename?: 'Project' } & Pick<

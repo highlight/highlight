@@ -1,5 +1,4 @@
 import Button from '@components/Button/Button/Button'
-import { useGetWorkspaceQuery } from '@graph/hooks'
 import { Form, Stack } from '@highlight-run/ui/components'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
@@ -19,11 +18,6 @@ const CloudflareIntegration: React.FC<
 	const { addCloudflareToProject, removeCloudflareIntegrationFromProject } =
 		useCloudflareIntegration()
 	const { currentWorkspace } = useApplicationContext()
-	const { data } = useGetWorkspaceQuery({
-		variables: {
-			id: currentWorkspace?.id ?? '',
-		},
-	})
 	const formStore = Form.useStore<{ token: string; proxySubdomain: string }>({
 		defaultValues: {
 			token: '',
@@ -36,7 +30,7 @@ const CloudflareIntegration: React.FC<
 	if (action === IntegrationAction.Settings) {
 		return (
 			<p className={styles.modalSubTitle}>
-				Current proxy endpoint: {data?.workspace?.cloudflare_proxy}
+				Current proxy endpoint: {currentWorkspace?.cloudflare_proxy}
 			</p>
 		)
 	} else if (action === IntegrationAction.Disconnect) {
