@@ -8627,6 +8627,7 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 		}
 	}
 
+	now := time.Now().In(loc).Format(time.RFC3339)
 	systemPrompt := fmt.Sprintf(`
 You are a simple system used by an observabiliity product in which, 
 given a %s query, you output a structured query that the system 
@@ -8650,8 +8651,8 @@ Output:
 {
 	"query": "status_code:500",
 	"date_range": {
-		"start_date": "2022-01-01T00:00:00Z",
-		"end_date": "2022-01-08T00:00:00Z"
+		"start_date": "%s",
+		"end_date": "%s"
 	}
 }
 
@@ -8665,7 +8666,7 @@ And here are the key/values that you can use for each respective key. If the bel
 
 %s
 
-	`, productType, time.Now().In(loc).Format(time.RFC3339), strings.Join(keys, ", "), strings.Join(keyVals, ", "))
+	`, productType, now, now, now, strings.Join(keys, ", "), strings.Join(keyVals, ", "))
 
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
