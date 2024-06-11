@@ -1180,10 +1180,20 @@ input SortInput {
 	direction: SortDirection!
 }
 
+type SortOutput {
+	column: String!
+	direction: SortDirection!
+}
+
 input QueryInput {
 	query: String!
 	date_range: DateRangeRequiredInput!
 	sort: SortInput
+}
+
+type QueryOutput {
+	query: String!
+	date_range: DateRangeRequiredOutput!
 }
 
 enum MetricTagFilterOp {
@@ -1317,6 +1327,11 @@ input DateRangeInput {
 input DateRangeRequiredInput {
 	start_date: Timestamp!
 	end_date: Timestamp!
+}
+
+type DateRangeRequiredOutput {
+	start_date: Timestamp
+	end_date: Timestamp
 }
 
 type LengthRange {
@@ -2198,6 +2213,12 @@ type Query {
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
+	ai_query_suggestion(
+		time_zone: String!
+		project_id: ID!
+		product_type: ProductType!
+		query: String!
+	): QueryOutput!
 	logs(
 		project_id: ID!
 		params: QueryInput!

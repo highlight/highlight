@@ -274,6 +274,11 @@ type DateRangeRequiredInput struct {
 	EndDate   time.Time `json:"end_date"`
 }
 
+type DateRangeRequiredOutput struct {
+	StartDate *time.Time `json:"start_date,omitempty"`
+	EndDate   *time.Time `json:"end_date,omitempty"`
+}
+
 type DiscordChannelInput struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`
@@ -666,6 +671,11 @@ type QueryKey struct {
 	Type KeyType `json:"type"`
 }
 
+type QueryOutput struct {
+	Query     string                   `json:"query"`
+	DateRange *DateRangeRequiredOutput `json:"date_range"`
+}
+
 type RageClickEventForProject struct {
 	Identifier      string `json:"identifier"`
 	SessionSecureID string `json:"session_secure_id"`
@@ -827,6 +837,11 @@ type SocialLink struct {
 }
 
 type SortInput struct {
+	Column    string        `json:"column"`
+	Direction SortDirection `json:"direction"`
+}
+
+type SortOutput struct {
 	Column    string        `json:"column"`
 	Direction SortDirection `json:"direction"`
 }

@@ -295,6 +295,11 @@ type ComplexityRoot struct {
 		StartDate func(childComplexity int) int
 	}
 
+	DateRangeRequiredOutput struct {
+		EndDate   func(childComplexity int) int
+		StartDate func(childComplexity int) int
+	}
+
 	DiscordChannel struct {
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
@@ -940,6 +945,7 @@ type ComplexityRoot struct {
 		AdminHasCreatedComment           func(childComplexity int, adminID int) int
 		AdminRole                        func(childComplexity int, workspaceID int) int
 		AdminRoleByProject               func(childComplexity int, projectID int) int
+		AiQuerySuggestion                func(childComplexity int, timeZone string, projectID int, productType model.ProductType, query string) int
 		AverageSessionLength             func(childComplexity int, projectID int, lookbackDays float64) int
 		BillingDetails                   func(childComplexity int, workspaceID int) int
 		BillingDetailsForProject         func(childComplexity int, projectID int) int
@@ -1101,6 +1107,11 @@ type ComplexityRoot struct {
 	QueryKey struct {
 		Name func(childComplexity int) int
 		Type func(childComplexity int) int
+	}
+
+	QueryOutput struct {
+		DateRange func(childComplexity int) int
+		Query     func(childComplexity int) int
 	}
 
 	RageClickEvent struct {
@@ -1373,6 +1384,11 @@ type ComplexityRoot struct {
 	SocialLink struct {
 		Link func(childComplexity int) int
 		Type func(childComplexity int) int
+	}
+
+	SortOutput struct {
+		Column    func(childComplexity int) int
+		Direction func(childComplexity int) int
 	}
 
 	SourceMappingError struct {
@@ -1885,6 +1901,7 @@ type QueryResolver interface {
 	SourcemapVersions(ctx context.Context, projectID int) ([]string, error)
 	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
 	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
+	AiQuerySuggestion(ctx context.Context, timeZone string, projectID int, productType model.ProductType, query string) (*model.QueryOutput, error)
 	Logs(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.LogConnection, error)
 	SessionLogs(ctx context.Context, projectID int, params model.QueryInput) ([]*model.LogEdge, error)
 	LogsTotalCount(ctx context.Context, projectID int, params model.QueryInput) (uint64, error)
@@ -3044,6 +3061,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DateRange.StartDate(childComplexity), true
+
+	case "DateRangeRequiredOutput.end_date":
+		if e.complexity.DateRangeRequiredOutput.EndDate == nil {
+			break
+		}
+
+		return e.complexity.DateRangeRequiredOutput.EndDate(childComplexity), true
+
+	case "DateRangeRequiredOutput.start_date":
+		if e.complexity.DateRangeRequiredOutput.StartDate == nil {
+			break
+		}
+
+		return e.complexity.DateRangeRequiredOutput.StartDate(childComplexity), true
 
 	case "DiscordChannel.id":
 		if e.complexity.DiscordChannel.ID == nil {
@@ -6669,6 +6700,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.AdminRoleByProject(childComplexity, args["project_id"].(int)), true
 
+	case "Query.ai_query_suggestion":
+		if e.complexity.Query.AiQuerySuggestion == nil {
+			break
+		}
+
+		args, err := ec.field_Query_ai_query_suggestion_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.AiQuerySuggestion(childComplexity, args["time_zone"].(string), args["project_id"].(int), args["product_type"].(model.ProductType), args["query"].(string)), true
+
 	case "Query.averageSessionLength":
 		if e.complexity.Query.AverageSessionLength == nil {
 			break
@@ -8515,6 +8558,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.QueryKey.Type(childComplexity), true
 
+	case "QueryOutput.date_range":
+		if e.complexity.QueryOutput.DateRange == nil {
+			break
+		}
+
+		return e.complexity.QueryOutput.DateRange(childComplexity), true
+
+	case "QueryOutput.query":
+		if e.complexity.QueryOutput.Query == nil {
+			break
+		}
+
+		return e.complexity.QueryOutput.Query(childComplexity), true
+
 	case "RageClickEvent.end_timestamp":
 		if e.complexity.RageClickEvent.EndTimestamp == nil {
 			break
@@ -9851,6 +9908,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SocialLink.Type(childComplexity), true
+
+	case "SortOutput.column":
+		if e.complexity.SortOutput.Column == nil {
+			break
+		}
+
+		return e.complexity.SortOutput.Column(childComplexity), true
+
+	case "SortOutput.direction":
+		if e.complexity.SortOutput.Direction == nil {
+			break
+		}
+
+		return e.complexity.SortOutput.Direction(childComplexity), true
 
 	case "SourceMappingError.actualMinifiedFetchedPath":
 		if e.complexity.SourceMappingError.ActualMinifiedFetchedPath == nil {
@@ -12235,10 +12306,20 @@ input SortInput {
 	direction: SortDirection!
 }
 
+type SortOutput {
+	column: String!
+	direction: SortDirection!
+}
+
 input QueryInput {
 	query: String!
 	date_range: DateRangeRequiredInput!
 	sort: SortInput
+}
+
+type QueryOutput {
+	query: String!
+	date_range: DateRangeRequiredOutput!
 }
 
 enum MetricTagFilterOp {
@@ -12372,6 +12453,11 @@ input DateRangeInput {
 input DateRangeRequiredInput {
 	start_date: Timestamp!
 	end_date: Timestamp!
+}
+
+type DateRangeRequiredOutput {
+	start_date: Timestamp
+	end_date: Timestamp
 }
 
 type LengthRange {
@@ -13253,6 +13339,12 @@ type Query {
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
+	ai_query_suggestion(
+		time_zone: String!
+		project_id: ID!
+		product_type: ProductType!
+		query: String!
+	): QueryOutput!
 	logs(
 		project_id: ID!
 		params: QueryInput!
@@ -17694,6 +17786,48 @@ func (ec *executionContext) field_Query_admin_role_by_project_args(ctx context.C
 		}
 	}
 	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ai_query_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["time_zone"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time_zone"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["time_zone"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg1
+	var arg2 model.ProductType
+	if tmp, ok := rawArgs["product_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("product_type"))
+		arg2, err = ec.unmarshalNProductType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["product_type"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg3
 	return args, nil
 }
 
@@ -28205,6 +28339,88 @@ func (ec *executionContext) _DateRange_end_date(ctx context.Context, field graph
 func (ec *executionContext) fieldContext_DateRange_end_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "DateRange",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DateRangeRequiredOutput_start_date(ctx context.Context, field graphql.CollectedField, obj *model.DateRangeRequiredOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DateRangeRequiredOutput_start_date(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DateRangeRequiredOutput_start_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DateRangeRequiredOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DateRangeRequiredOutput_end_date(ctx context.Context, field graphql.CollectedField, obj *model.DateRangeRequiredOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DateRangeRequiredOutput_end_date(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EndDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DateRangeRequiredOutput_end_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DateRangeRequiredOutput",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -59331,6 +59547,67 @@ func (ec *executionContext) fieldContext_Query_email_opt_outs(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_ai_query_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_ai_query_suggestion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AiQuerySuggestion(rctx, fc.Args["time_zone"].(string), fc.Args["project_id"].(int), fc.Args["product_type"].(model.ProductType), fc.Args["query"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.QueryOutput)
+	fc.Result = res
+	return ec.marshalNQueryOutput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_ai_query_suggestion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "query":
+				return ec.fieldContext_QueryOutput_query(ctx, field)
+			case "date_range":
+				return ec.fieldContext_QueryOutput_date_range(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type QueryOutput", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_ai_query_suggestion_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_logs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_logs(ctx, field)
 	if err != nil {
@@ -61722,6 +61999,100 @@ func (ec *executionContext) fieldContext_QueryKey_type(ctx context.Context, fiel
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type KeyType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _QueryOutput_query(ctx context.Context, field graphql.CollectedField, obj *model.QueryOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_QueryOutput_query(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Query, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_QueryOutput_query(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "QueryOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _QueryOutput_date_range(ctx context.Context, field graphql.CollectedField, obj *model.QueryOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_QueryOutput_date_range(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DateRange, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.DateRangeRequiredOutput)
+	fc.Result = res
+	return ec.marshalNDateRangeRequiredOutput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_QueryOutput_date_range(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "QueryOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "start_date":
+				return ec.fieldContext_DateRangeRequiredOutput_start_date(ctx, field)
+			case "end_date":
+				return ec.fieldContext_DateRangeRequiredOutput_end_date(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DateRangeRequiredOutput", field.Name)
 		},
 	}
 	return fc, nil
@@ -70299,6 +70670,94 @@ func (ec *executionContext) fieldContext_SocialLink_link(ctx context.Context, fi
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SortOutput_column(ctx context.Context, field graphql.CollectedField, obj *model.SortOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SortOutput_column(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Column, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SortOutput_column(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SortOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SortOutput_direction(ctx context.Context, field graphql.CollectedField, obj *model.SortOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SortOutput_direction(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Direction, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.SortDirection)
+	fc.Result = res
+	return ec.marshalNSortDirection2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSortDirection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SortOutput_direction(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SortOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type SortDirection does not have child fields")
 		},
 	}
 	return fc, nil
@@ -82144,6 +82603,44 @@ func (ec *executionContext) _DateRange(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
+var dateRangeRequiredOutputImplementors = []string{"DateRangeRequiredOutput"}
+
+func (ec *executionContext) _DateRangeRequiredOutput(ctx context.Context, sel ast.SelectionSet, obj *model.DateRangeRequiredOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, dateRangeRequiredOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DateRangeRequiredOutput")
+		case "start_date":
+			out.Values[i] = ec._DateRangeRequiredOutput_start_date(ctx, field, obj)
+		case "end_date":
+			out.Values[i] = ec._DateRangeRequiredOutput_end_date(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var discordChannelImplementors = []string{"DiscordChannel"}
 
 func (ec *executionContext) _DiscordChannel(ctx context.Context, sel ast.SelectionSet, obj *model1.DiscordChannel) graphql.Marshaler {
@@ -89752,6 +90249,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "ai_query_suggestion":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ai_query_suggestion(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "logs":
 			field := field
 
@@ -90553,6 +91072,50 @@ func (ec *executionContext) _QueryKey(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "type":
 			out.Values[i] = ec._QueryKey_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var queryOutputImplementors = []string{"QueryOutput"}
+
+func (ec *executionContext) _QueryOutput(ctx context.Context, sel ast.SelectionSet, obj *model.QueryOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, queryOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("QueryOutput")
+		case "query":
+			out.Values[i] = ec._QueryOutput_query(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "date_range":
+			out.Values[i] = ec._QueryOutput_date_range(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -92947,6 +93510,50 @@ func (ec *executionContext) _SocialLink(ctx context.Context, sel ast.SelectionSe
 			}
 		case "link":
 			out.Values[i] = ec._SocialLink_link(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var sortOutputImplementors = []string{"SortOutput"}
+
+func (ec *executionContext) _SortOutput(ctx context.Context, sel ast.SelectionSet, obj *model.SortOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sortOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SortOutput")
+		case "column":
+			out.Values[i] = ec._SortOutput_column(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "direction":
+			out.Values[i] = ec._SortOutput_direction(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -95801,6 +96408,16 @@ func (ec *executionContext) unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋh
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNDateRangeRequiredOutput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredOutput(ctx context.Context, sel ast.SelectionSet, v *model.DateRangeRequiredOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DateRangeRequiredOutput(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNDiscordChannel2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDiscordChannel(ctx context.Context, sel ast.SelectionSet, v model1.DiscordChannel) graphql.Marshaler {
 	return ec._DiscordChannel(ctx, sel, &v)
 }
@@ -98159,6 +98776,20 @@ func (ec *executionContext) marshalNQueryKey2ᚖgithubᚗcomᚋhighlightᚑrun�
 		return graphql.Null
 	}
 	return ec._QueryKey(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNQueryOutput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryOutput(ctx context.Context, sel ast.SelectionSet, v model.QueryOutput) graphql.Marshaler {
+	return ec._QueryOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNQueryOutput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryOutput(ctx context.Context, sel ast.SelectionSet, v *model.QueryOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._QueryOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNRageClickEvent2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐRageClickEvent(ctx context.Context, sel ast.SelectionSet, v model1.RageClickEvent) graphql.Marshaler {

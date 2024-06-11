@@ -8564,6 +8564,223 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 	return results, nil
 }
 
+// AiQuerySuggestion is the resolver for the ai_query_suggestion field.
+func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, projectID int, productType modelInputs.ProductType, query string) (*modelInputs.QueryOutput, error) {
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		return nil, e.New("OPENAI_API_KEY is not set")
+	}
+
+	client := openai.NewClient(apiKey)
+
+	// create a list of key:value strings
+	keyVals := []string{}
+	keys := []string{}
+	// switch on the product type to get the keys and values
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		keys = append(keys, lo.Map(lo.Keys(clickhouse.TracesTableConfig.KeysToColumns),
+			func(key modelInputs.ReservedTraceKey, _ int) string {
+				return key.String()
+			})...)
+	case modelInputs.ProductTypeLogs:
+		keys = append(keys, lo.Map(lo.Keys(clickhouse.LogsTableConfig.KeysToColumns),
+			func(key modelInputs.ReservedLogKey, _ int) string {
+				return key.String()
+			})...)
+	case modelInputs.ProductTypeSessions:
+		keys = append(keys, lo.Keys(clickhouse.SessionsTableConfig.KeysToColumns)...)
+	case modelInputs.ProductTypeErrors:
+		keys = append(keys, lo.Map(lo.Keys(clickhouse.ErrorGroupsTableConfig.KeysToColumns),
+			func(key modelInputs.ReservedErrorGroupKey, _ int) string {
+				return key.String()
+			})...)
+	}
+
+	loc, err := time.LoadLocation(timeZone)
+	if err != nil {
+		loc, err = time.LoadLocation("America/Los_Angeles")
+		if err != nil {
+			return nil, e.Errorf("error loading location twice: %v", err)
+		}
+	}
+	var sevenDaysAgo time.Time = time.Now().Add(-7 * 24 * time.Hour)
+	for _, key := range keys {
+		if key == "HighlightType" {
+			continue
+		}
+		keys = append(keys, key)
+		vals, err := r.KeyValues(
+			ctx,
+			productType,
+			projectID,
+			key,
+			modelInputs.DateRangeRequiredInput{
+				StartDate: sevenDaysAgo,
+				EndDate:   time.Now(),
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+		for _, val := range vals {
+			keyVals = append(keyVals, fmt.Sprintf("%s:%s", key, val))
+		}
+	}
+
+	now := time.Now().In(loc).Format(time.RFC3339)
+	systemPrompt := fmt.Sprintf(`
+You are a simple system used by an observabiliity product in which, 
+given a %s query, you output a structured query that the system 
+can use to parse (which ultimately queries an internal database).
+
+The input query will be a string which describes what the user wants to query in plain English.	
+
+The output query should be in a json format with two keys: "query" and "date_range". 
+
+Below are descriptions of the keys:
+"query": A string that represents the query that the system should use to query the internal database, which must use the key-value pairs provided below.
+"date_range.start_date": A datetime string that represents the start date of the date range for the query.  If the date range is not specified, this key should be empty.
+"date_range.end_date": A datetime string that represents the end date of the date range for the query. If the date range is not specified, this key should be empty.
+
+Here is a sample input/output pair to help you understand the task: 
+
+Use today's date/time in the user's time zone for any relative times provided: %s
+
+In terms of the keys and values you can use, try not to use a key-value pair that doesn't exist. 
+
+You have the following keys to work with:
+
+%s
+
+And here are the key/values that you can use for each respective key. If the below section is empty, be creative:
+
+%s
+
+	`, productType, now, strings.Join(keys, ", "), strings.Join(keyVals, ", "))
+
+	yesterday := time.Now().In(loc).AddDate(0, 0, -1)
+	yesterdayAt2PM := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 14, 0, 0, 0, yesterday.Location()).Format(time.RFC3339)
+	sevenDaysBack := time.Now().Add(-7 * 24 * time.Hour).In(loc).Format(time.RFC3339)
+
+	examples := []struct {
+		request  string
+		response string
+	}{
+		{
+			request:  "Show me all the 500 errors in the last 7 days",
+			response: fmt.Sprintf(`{"query":"status_code:500","date_range":{"start_date":"%s","end_date":""}}`, sevenDaysBack),
+		},
+		{
+			request:  "Show me all the error logs from last week to yesterday at 2pm",
+			response: fmt.Sprintf(`{"query":"level:error","date_range":{"start_date":"%s","end_date":"%s"}}`, sevenDaysBack, yesterdayAt2PM),
+		},
+		{
+			request:  "All the traces from the private graph service",
+			response: `{"query":"service_name:private-graph","date_range":{"start_date":"","end_date":""}}`,
+		},
+	}
+
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT3Dot5Turbo,
+			ResponseFormat: &openai.ChatCompletionResponseFormat{
+				Type: openai.ChatCompletionResponseFormatTypeJSONObject,
+			},
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: systemPrompt,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[0].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[0].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[1].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[1].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[2].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[2].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: query,
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		log.WithContext(ctx).Error(err, "ChatCompletion error")
+		return nil, err
+	}
+
+	if resp.Choices[0].Message.Content == "" {
+		log.WithContext(ctx).Error(err, "Empty openai response")
+		return nil, e.New("Empty openai response")
+	}
+
+	log.WithContext(ctx).
+		WithField("response", resp.Choices[0].Message.Content).
+		Info("AI suggestion generated.")
+
+	log.WithContext(ctx).
+		Info(fmt.Sprintf(systemPrompt))
+
+	// Define the structs inline
+	var toSaveString struct {
+		Query     string `json:"query"`
+		DateRange struct {
+			StartDate string `json:"start_date,omitempty"`
+			EndDate   string `json:"end_date,omitempty"`
+		} `json:"date_range"`
+	}
+
+	err = json.Unmarshal([]byte(resp.Choices[0].Message.Content), &toSaveString)
+	if err != nil {
+		return nil, e.Errorf("error unmarshalling response from openai: %v", err)
+	}
+
+	toSave := modelInputs.QueryOutput{}
+	toSave.DateRange = &modelInputs.DateRangeRequiredOutput{}
+	toSave.Query = toSaveString.Query
+	startDate, err := time.Parse(time.RFC3339, toSaveString.DateRange.StartDate)
+	if err != nil {
+		log.WithContext(ctx).Errorf("Error parsing start_date: %v\n", err)
+		toSave.DateRange.StartDate = nil
+	} else {
+		toSave.DateRange.StartDate = &startDate
+	}
+	endDate, err := time.Parse(time.RFC3339, toSaveString.DateRange.EndDate)
+	if err != nil {
+		log.WithContext(ctx).Errorf("Error parsing end_date: %v\n", err)
+		toSave.DateRange.EndDate = nil
+	} else {
+		toSave.DateRange.EndDate = &endDate
+	}
+
+	return &toSave, nil
+}
+
 // Logs is the resolver for the logs field.
 func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.LogConnection, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
@@ -8673,7 +8890,6 @@ func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyNam
 	if err != nil {
 		return nil, err
 	}
-
 	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 

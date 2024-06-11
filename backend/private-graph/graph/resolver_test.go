@@ -6,8 +6,10 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
@@ -360,6 +362,60 @@ func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
 			}
 			if v.deletionExpected != response {
 				t.Fatalf("deletion result invalid, expected? %t but saw %t", v.deletionExpected, response)
+			}
+		})
+	}
+}
+func TestResolver_GetAIQuerySuggestion(t *testing.T) {
+	t.Skip("skipping test")
+	tests := map[string]struct {
+		productType modelInputs.ProductType
+		query       string
+	}{
+		"error logs with date range": {
+			productType: modelInputs.ProductTypeLogs,
+			query:       "all logs with level error, between 4pm yesterday and just now.",
+		},
+	}
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+			clickhouseClient, err := clickhouse.NewClient(clickhouse.PrimaryDatabase)
+			if err != nil {
+				t.Fatalf("error creating clickhouse client: %v", err)
+			}
+			r := &queryResolver{Resolver: &Resolver{
+				DB:               DB,
+				Redis:            redis.NewClient(),
+				ClickhouseClient: clickhouseClient,
+			},
+			}
+			ctx := context.WithValue(context.Background(), model.ContextKeys.UID, "abc")
+			admin, err := r.getCurrentAdmin(ctx)
+			if err != nil {
+				t.Fatal(e.Wrap(err, "error creating admin"))
+			}
+
+			w := model.Workspace{
+				Name: ptr.String("test1"),
+			}
+			if err := DB.Create(&w).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			if err := DB.Model(&w).Association("Admins").Append(admin); err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			p := model.Project{WorkspaceID: w.ID}
+			if err := DB.Create(&p).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting project"))
+			}
+
+			if out, err := r.AiQuerySuggestion(ctx, "America/New_York", p.ID, v.productType, v.query); err != nil {
+				t.Fatal(e.Wrap(err, "error creating search suggestion"))
+			} else {
+				t.Logf("query output \n %+v", out.Query)
+				t.Logf("date output \n %+v", out.DateRange)
 			}
 		})
 	}
