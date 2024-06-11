@@ -691,6 +691,7 @@ query GetWorkspace($id: ID!) {
 		plan_tier
 		unlimited_members
 		clearbit_enabled
+		cloudflare_proxy
 		projects {
 			id
 			name

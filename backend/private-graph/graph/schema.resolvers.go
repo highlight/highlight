@@ -12,7 +12,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/integrations/cloudflare"
 	"math"
 	"math/rand"
 	"net/url"
@@ -37,6 +36,7 @@ import (
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/front"
+	"github.com/highlight-run/highlight/backend/integrations/cloudflare"
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
@@ -4208,14 +4208,8 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, pa
 }
 
 // CreateCloudflareProxy is the resolver for the createCloudflareProxy field.
-func (r *mutationResolver) CreateCloudflareProxy(ctx context.Context, projectID int, proxySubdomain string) (string, error) {
-	project, err := r.isUserInProject(ctx, projectID)
-	if err != nil {
-		return "", err
-	}
-
-	workspaceId := project.WorkspaceID
-	workspace, err := r.GetWorkspace(workspaceId)
+func (r *mutationResolver) CreateCloudflareProxy(ctx context.Context, workspaceID int, proxySubdomain string) (string, error) {
+	workspace, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return "", err
 	}
@@ -4229,7 +4223,17 @@ func (r *mutationResolver) CreateCloudflareProxy(ctx context.Context, projectID 
 	}
 
 	c := cloudflare.New(ctx, workspaceMapping.AccessToken)
-	return c.CreateWorker(ctx, proxySubdomain)
+	proxy, err := c.CreateWorker(ctx, proxySubdomain)
+	if err != nil {
+		return "", err
+	}
+
+	updates := &model.Workspace{CloudflareProxy: ptr.String(proxy)}
+	if err := r.DB.WithContext(ctx).Model(&workspace).Where(&workspace).Select("cloudflare_proxy").Updates(updates).Error; err != nil {
+		return "", err
+	}
+
+	return proxy, nil
 }
 
 // UpdateVercelProjectMappings is the resolver for the updateVercelProjectMappings field.

@@ -115,7 +115,8 @@ export const CLOUDFLARE_INTEGRATION: Integration = {
 	description: 'Setup a Cloudflare Proxy.',
 	icon: CloudflareLogo,
 	configurationPage: (opts) => <CloudflareIntegrationConfig {...opts} />,
-	hasSettings: false,
+	hasSettings: true,
+	modalWidth: VercelSettingsModalWidth,
 }
 
 export const LINEAR_INTEGRATION: IssueTrackerIntegration = {

@@ -614,6 +614,7 @@ type Workspace {
 	errors_max_cents: Int
 	logs_max_cents: Int
 	traces_max_cents: Int
+	cloudflare_proxy: String
 }
 
 type SearchParams {
@@ -2797,7 +2798,7 @@ type Mutation {
 		params: QueryInput!
 		sessionCount: Int!
 	): Boolean!
-	createCloudflareProxy(project_id: ID!, proxy_subdomain: String!): String!
+	createCloudflareProxy(workspace_id: ID!, proxy_subdomain: String!): String!
 	updateVercelProjectMappings(
 		project_id: ID!
 		project_mappings: [VercelProjectMappingInput!]!

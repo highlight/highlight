@@ -1234,8 +1234,8 @@ export type MutationChangeProjectMembershipArgs = {
 }
 
 export type MutationCreateCloudflareProxyArgs = {
-	project_id: Scalars['ID']
 	proxy_subdomain: Scalars['String']
+	workspace_id: Scalars['ID']
 }
 
 export type MutationCreateErrorAlertArgs = {
@@ -3734,6 +3734,7 @@ export type Workspace = {
 	allowed_auto_join_email_origins?: Maybe<Scalars['String']>
 	billing_period_end?: Maybe<Scalars['Timestamp']>
 	clearbit_enabled: Scalars['Boolean']
+	cloudflare_proxy?: Maybe<Scalars['String']>
 	eligible_for_trial_extension: Scalars['Boolean']
 	errors_max_cents?: Maybe<Scalars['Int']>
 	errors_retention_period?: Maybe<RetentionPeriod>

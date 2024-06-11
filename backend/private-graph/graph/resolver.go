@@ -479,6 +479,7 @@ func (r *Resolver) isUserInWorkspaceReadOnly(ctx context.Context, workspaceID in
 		LogsMaxCents:                workspace.LogsMaxCents,
 		TracesMaxCents:              workspace.TracesMaxCents,
 		ClearbitEnabled:             workspace.ClearbitEnabled,
+		CloudflareProxy:             workspace.CloudflareProxy,
 	}, nil
 }
 

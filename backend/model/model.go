@@ -266,6 +266,7 @@ type Workspace struct {
 	LinearAccessToken           *string
 	VercelAccessToken           *string
 	VercelTeamID                *string
+	CloudflareProxy             *string
 	Projects                    []Project
 	MigratedFromProjectID       *int // Column can be removed after migration is done
 	HubspotCompanyID            *int

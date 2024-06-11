@@ -1645,6 +1645,16 @@ export type DeleteGraphMutation = { __typename?: 'Mutation' } & Pick<
 	'deleteGraph'
 >
 
+export type CreateCloudflareProxyMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	proxy_subdomain: Types.Scalars['String']
+}>
+
+export type CreateCloudflareProxyMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'createCloudflareProxy'
+>
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -2584,6 +2594,7 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
 			| 'plan_tier'
 			| 'unlimited_members'
 			| 'clearbit_enabled'
+			| 'cloudflare_proxy'
 		> & {
 				projects: Array<
 					Types.Maybe<
@@ -5404,6 +5415,7 @@ export const namedOperations = {
 		DeleteVisualization: 'DeleteVisualization' as const,
 		UpsertGraph: 'UpsertGraph' as const,
 		DeleteGraph: 'DeleteGraph' as const,
+		CreateCloudflareProxy: 'CreateCloudflareProxy' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

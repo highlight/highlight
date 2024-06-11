@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import {
 	useAddIntegrationToProjectMutation,
+	useCreateCloudflareProxyMutation,
 	useGetWorkspaceIsIntegratedWithCloudflareQuery,
 	useRemoveIntegrationFromProjectMutation,
 } from '@/graph/generated/hooks'
@@ -18,6 +19,7 @@ export const useCloudflareIntegration = () => {
 			namedOperations.Query.GetWorkspaceIsIntegratedWithCloudflare,
 		],
 	})
+	const [createCloudflareProxy] = useCreateCloudflareProxyMutation({})
 	const addCloudflareIntegrationToProject = useCallback(
 		(code: string) =>
 			addIntegrationToProject({
@@ -28,6 +30,16 @@ export const useCloudflareIntegration = () => {
 				},
 			}),
 		[addIntegrationToProject, workspaceIdStr],
+	)
+	const createCloudflareProxyInWorkspace = useCallback(
+		(proxySubdomain: string) =>
+			createCloudflareProxy({
+				variables: {
+					workspace_id: workspaceIdStr,
+					proxy_subdomain: proxySubdomain,
+				},
+			}),
+		[createCloudflareProxy, workspaceIdStr],
 	)
 	const [removeIntegrationFromProject] =
 		useRemoveIntegrationFromProjectMutation({
@@ -68,20 +80,17 @@ export const useCloudflareIntegration = () => {
 	}, [CloudflareIntegResponse, setIsCloudflareConnectedToProject])
 
 	const addCloudflareToProject = useCallback(
-		async (token: string) => {
+		async (token: string, proxySubdomain: string) => {
 			setLoading(true)
 			await addCloudflareIntegrationToProject(token)
+			await createCloudflareProxyInWorkspace(proxySubdomain)
 			setIsCloudflareConnectedToProject(true)
 			toast.success('Highlight is now synced with Cloudflare!', {
 				duration: 5000,
 			})
 			setLoading(false)
 		},
-		[
-			setLoading,
-			addCloudflareIntegrationToProject,
-			setIsCloudflareConnectedToProject,
-		],
+		[addCloudflareIntegrationToProject, createCloudflareProxyInWorkspace],
 	)
 
 	return {
