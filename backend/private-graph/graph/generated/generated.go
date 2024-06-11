@@ -1112,7 +1112,6 @@ type ComplexityRoot struct {
 	QueryOutput struct {
 		DateRange func(childComplexity int) int
 		Query     func(childComplexity int) int
-		Sort      func(childComplexity int) int
 	}
 
 	RageClickEvent struct {
@@ -8573,13 +8572,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.QueryOutput.Query(childComplexity), true
 
-	case "QueryOutput.sort":
-		if e.complexity.QueryOutput.Sort == nil {
-			break
-		}
-
-		return e.complexity.QueryOutput.Sort(childComplexity), true
-
 	case "RageClickEvent.end_timestamp":
 		if e.complexity.RageClickEvent.EndTimestamp == nil {
 			break
@@ -12328,7 +12320,6 @@ input QueryInput {
 type QueryOutput {
 	query: String!
 	date_range: DateRangeRequiredOutput!
-	sort: SortOutput
 }
 
 enum MetricTagFilterOp {
@@ -59599,8 +59590,6 @@ func (ec *executionContext) fieldContext_Query_ai_query_suggestion(ctx context.C
 				return ec.fieldContext_QueryOutput_query(ctx, field)
 			case "date_range":
 				return ec.fieldContext_QueryOutput_date_range(ctx, field)
-			case "sort":
-				return ec.fieldContext_QueryOutput_sort(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type QueryOutput", field.Name)
 		},
@@ -62104,53 +62093,6 @@ func (ec *executionContext) fieldContext_QueryOutput_date_range(ctx context.Cont
 				return ec.fieldContext_DateRangeRequiredOutput_end_date(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DateRangeRequiredOutput", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _QueryOutput_sort(ctx context.Context, field graphql.CollectedField, obj *model.QueryOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_QueryOutput_sort(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Sort, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.SortOutput)
-	fc.Result = res
-	return ec.marshalOSortOutput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSortOutput(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_QueryOutput_sort(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "QueryOutput",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "column":
-				return ec.fieldContext_SortOutput_column(ctx, field)
-			case "direction":
-				return ec.fieldContext_SortOutput_direction(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type SortOutput", field.Name)
 		},
 	}
 	return fc, nil
@@ -91177,8 +91119,6 @@ func (ec *executionContext) _QueryOutput(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "sort":
-			out.Values[i] = ec._QueryOutput_sort(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -102836,13 +102776,6 @@ func (ec *executionContext) unmarshalOSortInput2ᚖgithubᚗcomᚋhighlightᚑru
 	}
 	res, err := ec.unmarshalInputSortInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOSortOutput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSortOutput(ctx context.Context, sel ast.SelectionSet, v *model.SortOutput) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._SortOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOSourceMappingError2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingError(ctx context.Context, sel ast.SelectionSet, v *model.SourceMappingError) graphql.Marshaler {

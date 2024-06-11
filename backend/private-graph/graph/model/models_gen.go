@@ -674,7 +674,6 @@ type QueryKey struct {
 type QueryOutput struct {
 	Query     string                   `json:"query"`
 	DateRange *DateRangeRequiredOutput `json:"date_range"`
-	Sort      *SortOutput              `json:"sort,omitempty"`
 }
 
 type RageClickEventForProject struct {
