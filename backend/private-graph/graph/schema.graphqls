@@ -2215,6 +2215,7 @@ type Query {
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
 	ai_query_suggestion(
+		time_zone: String!
 		project_id: ID!
 		product_type: ProductType!
 		query: String!

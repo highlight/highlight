@@ -945,7 +945,7 @@ type ComplexityRoot struct {
 		AdminHasCreatedComment           func(childComplexity int, adminID int) int
 		AdminRole                        func(childComplexity int, workspaceID int) int
 		AdminRoleByProject               func(childComplexity int, projectID int) int
-		AiQuerySuggestion                func(childComplexity int, projectID int, productType model.ProductType, query string) int
+		AiQuerySuggestion                func(childComplexity int, timeZone string, projectID int, productType model.ProductType, query string) int
 		AverageSessionLength             func(childComplexity int, projectID int, lookbackDays float64) int
 		BillingDetails                   func(childComplexity int, workspaceID int) int
 		BillingDetailsForProject         func(childComplexity int, projectID int) int
@@ -1902,7 +1902,7 @@ type QueryResolver interface {
 	SourcemapVersions(ctx context.Context, projectID int) ([]string, error)
 	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
 	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
-	AiQuerySuggestion(ctx context.Context, projectID int, productType model.ProductType, query string) (*model.QueryOutput, error)
+	AiQuerySuggestion(ctx context.Context, timeZone string, projectID int, productType model.ProductType, query string) (*model.QueryOutput, error)
 	Logs(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.LogConnection, error)
 	SessionLogs(ctx context.Context, projectID int, params model.QueryInput) ([]*model.LogEdge, error)
 	LogsTotalCount(ctx context.Context, projectID int, params model.QueryInput) (uint64, error)
@@ -6711,7 +6711,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AiQuerySuggestion(childComplexity, args["project_id"].(int), args["product_type"].(model.ProductType), args["query"].(string)), true
+		return e.complexity.Query.AiQuerySuggestion(childComplexity, args["time_zone"].(string), args["project_id"].(int), args["product_type"].(model.ProductType), args["query"].(string)), true
 
 	case "Query.averageSessionLength":
 		if e.complexity.Query.AverageSessionLength == nil {
@@ -13349,6 +13349,7 @@ type Query {
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
 	ai_query_suggestion(
+		time_zone: String!
 		project_id: ID!
 		product_type: ProductType!
 		query: String!
@@ -17800,33 +17801,42 @@ func (ec *executionContext) field_Query_admin_role_by_project_args(ctx context.C
 func (ec *executionContext) field_Query_ai_query_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
+	var arg0 string
+	if tmp, ok := rawArgs["time_zone"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time_zone"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["time_zone"] = arg0
+	var arg1 int
 	if tmp, ok := rawArgs["project_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["project_id"] = arg0
-	var arg1 model.ProductType
+	args["project_id"] = arg1
+	var arg2 model.ProductType
 	if tmp, ok := rawArgs["product_type"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("product_type"))
-		arg1, err = ec.unmarshalNProductType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, tmp)
+		arg2, err = ec.unmarshalNProductType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["product_type"] = arg1
-	var arg2 string
+	args["product_type"] = arg2
+	var arg3 string
 	if tmp, ok := rawArgs["query"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["query"] = arg2
+	args["query"] = arg3
 	return args, nil
 }
 
@@ -59566,7 +59576,7 @@ func (ec *executionContext) _Query_ai_query_suggestion(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AiQuerySuggestion(rctx, fc.Args["project_id"].(int), fc.Args["product_type"].(model.ProductType), fc.Args["query"].(string))
+		return ec.resolvers.Query().AiQuerySuggestion(rctx, fc.Args["time_zone"].(string), fc.Args["project_id"].(int), fc.Args["product_type"].(model.ProductType), fc.Args["query"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

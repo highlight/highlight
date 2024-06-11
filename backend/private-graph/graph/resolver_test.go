@@ -411,10 +411,11 @@ func TestResolver_GetAIQuerySuggestion(t *testing.T) {
 				t.Fatal(e.Wrap(err, "error inserting project"))
 			}
 
-			if out, err := r.AiQuerySuggestion(ctx, p.ID, v.productType, v.query); err != nil {
+			if out, err := r.AiQuerySuggestion(ctx, "America/New_York", p.ID, v.productType, v.query); err != nil {
 				t.Fatal(e.Wrap(err, "error creating search suggestion"))
 			} else {
-				t.Logf("output of test \n %v", out)
+				t.Logf("query output \n %+v", out.Query)
+				t.Logf("date output \n %+v", out.DateRange)
 			}
 		})
 	}

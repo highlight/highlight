@@ -2115,6 +2115,7 @@ export type QueryAi_Query_SuggestionArgs = {
 	product_type: ProductType
 	project_id: Scalars['ID']
 	query: Scalars['String']
+	time_zone: Scalars['String']
 }
 
 export type QueryApi_Key_To_Org_IdArgs = {

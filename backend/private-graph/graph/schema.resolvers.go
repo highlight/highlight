@@ -8560,7 +8560,7 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 }
 
 // AiQuerySuggestion is the resolver for the ai_query_suggestion field.
-func (r *queryResolver) AiQuerySuggestion(ctx context.Context, projectID int, productType modelInputs.ProductType, query string) (*modelInputs.QueryOutput, error) {
+func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, projectID int, productType modelInputs.ProductType, query string) (*modelInputs.QueryOutput, error) {
 	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -8596,6 +8596,13 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, projectID int, pr
 			})...)
 	}
 
+	loc, err := time.LoadLocation(timeZone)
+	if err != nil {
+		loc, err = time.LoadLocation("America/Los_Angeles")
+		if err != nil {
+			return nil, e.Errorf("error loading location twice: %v", err)
+		}
+	}
 	var sevenDaysAgo time.Time = time.Now().Add(-7 * 24 * time.Hour)
 	for _, key := range keys {
 		if key == "HighlightType" {
@@ -8636,7 +8643,7 @@ Below are descriptions of the keys:
 
 Here is a sample input/output pair to help you understand the task: 
 
-Use today's date/time for any relative times provided: %s
+Use today's date/time in the user's time zone for any relative times provided: %s
 
 Input: Show me all the 500 errors in the last 7 days
 Output: 
@@ -8658,7 +8665,7 @@ And here are the key/values that you can use for each respective key. If the bel
 
 %s
 
-	`, productType, time.Now().UTC().Format("2006-01-02T15:04:05Z"), strings.Join(keys, ", "), strings.Join(keyVals, ", "))
+	`, productType, time.Now().In(loc).Format(time.RFC3339), strings.Join(keys, ", "), strings.Join(keyVals, ", "))
 
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
@@ -8697,9 +8704,12 @@ And here are the key/values that you can use for each respective key. If the bel
 	log.WithContext(ctx).
 		Info(fmt.Sprintf(systemPrompt))
 
-	toSave := modelInputs.QueryOutput{
-		Query: resp.Choices[0].Message.Content,
+	toSave := modelInputs.QueryOutput{}
+	err = json.Unmarshal([]byte(resp.Choices[0].Message.Content), &toSave)
+	if err != nil {
+		return nil, e.Errorf("error unmarshalling response from openai: %v", err)
 	}
+
 	return &toSave, nil
 }
 
