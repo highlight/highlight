@@ -3,6 +3,7 @@ package integrations
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/integrations/cloudflare"
 
 	log "github.com/sirupsen/logrus"
 
@@ -17,14 +18,16 @@ import (
 )
 
 type Client struct {
-	db     *gorm.DB
-	height *height.HeightClient
+	cloudflare *cloudflare.Client
+	db         *gorm.DB
+	height     *height.HeightClient
 }
 
 func NewIntegrationsClient(db *gorm.DB) *Client {
 	client := &Client{
-		db:     db,
-		height: height.NewHeightClient(),
+		cloudflare: cloudflare.New(),
+		db:         db,
+		height:     height.NewHeightClient(),
 	}
 
 	return client

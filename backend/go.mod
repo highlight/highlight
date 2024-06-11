@@ -51,7 +51,7 @@ require (
 	github.com/google/go-github/v50 v50.2.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.1
-	github.com/hashicorp/go-retryablehttp v0.7.5
+	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/highlight/go-oauth2-redis/v4 v4.1.4
@@ -80,7 +80,7 @@ require (
 	github.com/slack-go/slack v0.12.5
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/stripe/stripe-go/v78 v78.5.0
-	github.com/urfave/cli/v2 v2.27.1
+	github.com/urfave/cli/v2 v2.27.2
 	github.com/vektah/gqlparser/v2 v2.5.11
 	go.opentelemetry.io/collector/pdata v1.7.0
 	go.opentelemetry.io/otel v1.26.0
@@ -115,6 +115,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
+	github.com/cloudflare/cloudflare-go v0.97.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
@@ -126,7 +127,7 @@ require (
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
-	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/go-github/v60 v60.0.0 // indirect
 	github.com/google/pprof v0.0.0-20240227163752-401108e1b7e7 // indirect
@@ -211,7 +212,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.20.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.6 // indirect
 	github.com/bwmarrin/discordgo v0.27.1
-	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/dghubble/sling v1.4.2 // indirect
 	github.com/go-chi/httplog v0.3.2
 	github.com/golang-migrate/migrate/v4 v4.17.0
