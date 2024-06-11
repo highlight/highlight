@@ -1194,7 +1194,6 @@ input QueryInput {
 type QueryOutput {
 	query: String!
 	date_range: DateRangeRequiredOutput!
-	sort: SortOutput
 }
 
 enum MetricTagFilterOp {

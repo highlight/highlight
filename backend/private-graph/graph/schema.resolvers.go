@@ -8760,14 +8760,14 @@ And here are the key/values that you can use for each respective key. If the bel
 	toSave.Query = toSaveString.Query
 	startDate, err := time.Parse(time.RFC3339, toSaveString.DateRange.StartDate)
 	if err != nil {
-		log.Errorf("Error parsing start_date: %v\n", err)
+		log.WithContext(ctx).Errorf("Error parsing start_date: %v\n", err)
 		toSave.DateRange.StartDate = nil
 	} else {
 		toSave.DateRange.StartDate = &startDate
 	}
 	endDate, err := time.Parse(time.RFC3339, toSaveString.DateRange.EndDate)
 	if err != nil {
-		log.Errorf("Error parsing end_date: %v\n", err)
+		log.WithContext(ctx).Errorf("Error parsing end_date: %v\n", err)
 		toSave.DateRange.EndDate = nil
 	} else {
 		toSave.DateRange.EndDate = &endDate

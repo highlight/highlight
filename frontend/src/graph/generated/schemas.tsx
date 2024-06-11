@@ -2905,7 +2905,6 @@ export type QueryOutput = {
 	__typename?: 'QueryOutput'
 	date_range: DateRangeRequiredOutput
 	query: Scalars['String']
-	sort?: Maybe<SortOutput>
 }
 
 export type RageClickEvent = {
