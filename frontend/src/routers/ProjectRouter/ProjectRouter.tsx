@@ -54,6 +54,7 @@ export const ProjectRouter = () => {
 
 	const { data, error } = useGetProjectDropdownOptionsQuery({
 		variables: { project_id: projectId! },
+		errorPolicy: 'all',
 		skip: !isLoggedIn || !projectId, // Higher level routers decide when guests are allowed to hit this router
 	})
 
