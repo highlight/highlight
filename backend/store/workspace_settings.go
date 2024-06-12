@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"gorm.io/gorm/clause"
@@ -32,7 +33,9 @@ func (store *Store) UpdateAllWorkspaceSettings(ctx context.Context, workspaceID 
 		return nil, err
 	}
 
-	store.Redis.Cache.Delete(ctx, fmt.Sprintf("all-workspace-settings-workspace-%d", workspaceID))
+	if err := store.Redis.Cache.Delete(ctx, fmt.Sprintf("all-workspace-settings-workspace-%d", workspaceID)); err != nil {
+		log.Errorf("Failed to delete cache: %v", err)
+	}
 
 	return workspaceSettings, nil
 }
