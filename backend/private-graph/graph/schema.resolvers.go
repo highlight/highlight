@@ -8673,15 +8673,19 @@ And here are the key/values that you can use for each respective key. If the bel
 	}{
 		{
 			request:  "Show me all the 500 errors in the last 7 days",
-			response: fmt.Sprintf(`{"query":"status_code:500","date_range":{"start_date":"%s","end_date":""}}`, sevenDaysBack),
+			response: fmt.Sprintf(`{"query":"status_code=500","date_range":{"start_date":"%s","end_date":""}}`, sevenDaysBack),
 		},
 		{
 			request:  "Show me all the error logs from last week to yesterday at 2pm",
-			response: fmt.Sprintf(`{"query":"level:error","date_range":{"start_date":"%s","end_date":"%s"}}`, sevenDaysBack, yesterdayAt2PM),
+			response: fmt.Sprintf(`{"query":"level=error","date_range":{"start_date":"%s","end_date":"%s"}}`, sevenDaysBack, yesterdayAt2PM),
 		},
 		{
 			request:  "All the traces from the private graph service",
-			response: `{"query":"service_name:private-graph","date_range":{"start_date":"","end_date":""}}`,
+			response: `{"query":"service_name=private-graph","date_range":{"start_date":"","end_date":""}}`,
+		},
+		{
+			request:  "Give me all the logs from the private-graph or public-graph service, where the environment is production, and is tied to a session",
+			response: `{"query":"(service_name=private-graph OR service_name=public-graph) AND environment=production AND secure_session_id EXISTS","date_range":{"start_date":"","end_date":""}}`,
 		},
 	}
 

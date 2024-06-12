@@ -16,7 +16,7 @@ import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useQueryParam } from 'use-query-params'
 
@@ -34,7 +34,10 @@ import {
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
 import { parseSearch } from '@/components/Search/utils'
-import { useGetMetricsQuery } from '@/graph/generated/hooks'
+import {
+	useGetAiQuerySuggestionLazyQuery,
+	useGetMetricsQuery,
+} from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { TIMESTAMP_KEY } from '@/pages/Graphing/components/Graph'
@@ -79,7 +82,12 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const { queryParts } = parseSearch(query)
+	const [aiMode, setAiMode] = useState(false)
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
+	const [
+		getAiQuerySuggestion,
+		{ data: aiData, error: aiError, loading: aiLoading },
+	] = useGetAiQuerySuggestionLazyQuery()
 
 	const [selectedColumns, setSelectedColumns] = useLocalStorage(
 		`highlight-logs-table-columns`,
@@ -120,6 +128,19 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [windowSize])
+
+	const onAiSubmit = (aiQuery: string) => {
+		if (project_id && aiQuery.length) {
+			getAiQuerySuggestion({
+				variables: {
+					query: aiQuery,
+					project_id: project_id!,
+					product_type: ProductType.Logs,
+					time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+				},
+			})
+		}
+	}
 
 	const {
 		startDate,
@@ -212,7 +233,16 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	}, [])
 
 	return (
-		<SearchContext initialQuery={query} onSubmit={setQuery}>
+		<SearchContext
+			initialQuery={query}
+			onSubmit={setQuery}
+			aiMode={aiMode}
+			setAiMode={setAiMode}
+			onAiSubmit={onAiSubmit}
+			aiSuggestion={aiData?.ai_query_suggestion.query}
+			aiSuggestionLoading={aiLoading}
+			aiSuggestionError={aiError}
+		>
 			<Helmet>
 				<title>Logs</title>
 			</Helmet>
@@ -243,6 +273,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						timeMode={timeMode}
 						savedSegmentType={SavedSegmentEntityType.Log}
 						textAreaRef={textAreaRef}
+						enableAIMode
 					/>
 					<LogsCount
 						startDate={startDate}
