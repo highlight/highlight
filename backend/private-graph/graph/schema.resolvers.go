@@ -8716,15 +8716,15 @@ And specifically, for the %s product, you can refer to the following documentati
 	}{
 		{
 			request:  "Show me all the 500 errors in the last 7 days",
-			response: fmt.Sprintf(`{"query":"status_code:500","date_range":{"start_date":"%s","end_date":""}}`, sevenDaysBack),
+			response: fmt.Sprintf(`{"query":"status_code=500","date_range":{"start_date":"%s","end_date":""}}`, sevenDaysBack),
 		},
 		{
 			request:  "Show me all the error logs from last week to yesterday at 2pm",
-			response: fmt.Sprintf(`{"query":"level:error","date_range":{"start_date":"%s","end_date":"%s"}}`, sevenDaysBack, yesterdayAt2PM),
+			response: fmt.Sprintf(`{"query":"level=error","date_range":{"start_date":"%s","end_date":"%s"}}`, sevenDaysBack, yesterdayAt2PM),
 		},
 		{
 			request:  "All the traces from the private graph service",
-			response: `{"query":"service_name:private-graph","date_range":{"start_date":"","end_date":""}}`,
+			response: `{"query":"service_name=private-graph","date_range":{"start_date":"","end_date":""}}`,
 		},
 	}
 
