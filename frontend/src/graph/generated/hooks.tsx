@@ -15044,6 +15044,82 @@ export type GetMetricsQueryResult = Apollo.QueryResult<
 	Types.GetMetricsQuery,
 	Types.GetMetricsQueryVariables
 >
+export const GetFunnelDocument = gql`
+	query GetFunnel(
+		$product_type: ProductType!
+		$project_id: ID!
+		$params: FunnelQueryInput!
+		$group_by: [String!]!
+	) {
+		funnel(
+			product_type: $product_type
+			project_id: $project_id
+			params: $params
+			group_by: $group_by
+		) {
+			buckets {
+				bucket_id
+				bucket_min
+				bucket_max
+				group
+				metric_type
+				metric_value
+			}
+			bucket_count
+			sample_factor
+		}
+	}
+`
+
+/**
+ * __useGetFunnelQuery__
+ *
+ * To run a query within a React component, call `useGetFunnelQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFunnelQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFunnelQuery({
+ *   variables: {
+ *      product_type: // value for 'product_type'
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *      group_by: // value for 'group_by'
+ *   },
+ * });
+ */
+export function useGetFunnelQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetFunnelQuery,
+		Types.GetFunnelQueryVariables
+	>,
+) {
+	return Apollo.useQuery<Types.GetFunnelQuery, Types.GetFunnelQueryVariables>(
+		GetFunnelDocument,
+		baseOptions,
+	)
+}
+export function useGetFunnelLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetFunnelQuery,
+		Types.GetFunnelQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetFunnelQuery,
+		Types.GetFunnelQueryVariables
+	>(GetFunnelDocument, baseOptions)
+}
+export type GetFunnelQueryHookResult = ReturnType<typeof useGetFunnelQuery>
+export type GetFunnelLazyQueryHookResult = ReturnType<
+	typeof useGetFunnelLazyQuery
+>
+export type GetFunnelQueryResult = Apollo.QueryResult<
+	Types.GetFunnelQuery,
+	Types.GetFunnelQueryVariables
+>
 export const GetVisualizationDocument = gql`
 	query GetVisualization($id: ID!) {
 		visualization(id: $id) {

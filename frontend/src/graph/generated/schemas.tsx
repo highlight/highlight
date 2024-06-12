@@ -738,6 +738,18 @@ export type Field = {
 	value: Scalars['String']
 }
 
+export type FunnelQueryInput = {
+	date_range: DateRangeRequiredInput
+	sort?: InputMaybe<SortInput>
+	steps: Array<FunnelStep>
+}
+
+export type FunnelStep = {
+	column: Scalars['String']
+	metric_type: MetricAggregator
+	step: Scalars['String']
+}
+
 export type GitHubRepo = {
 	__typename?: 'GitHubRepo'
 	key: Scalars['String']
@@ -2092,6 +2104,7 @@ export type Query = {
 	events_metrics: MetricsBuckets
 	existing_logs_traces: Array<Scalars['String']>
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
+	funnel: MetricsBuckets
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
 	github_issue_labels: Array<Scalars['String']>
@@ -2494,6 +2507,13 @@ export type QueryField_SuggestionArgs = {
 	name: Scalars['String']
 	project_id: Scalars['ID']
 	query: Scalars['String']
+}
+
+export type QueryFunnelArgs = {
+	group_by: Array<Scalars['String']>
+	params: FunnelQueryInput
+	product_type: ProductType
+	project_id: Scalars['ID']
 }
 
 export type QueryGenerate_Zapier_Access_TokenArgs = {

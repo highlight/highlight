@@ -9492,6 +9492,16 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 	}
 }
 
+// Funnel is the resolver for the funnel field.
+func (r *queryResolver) Funnel(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.FunnelQueryInput, groupBy []string) (*modelInputs.MetricsBuckets, error) {
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return clickhouse.ReadFunnels(ctx, r.ClickhouseClient, clickhouse.SessionsSampleableTableConfig, []int{project.ID}, params, groupBy)
+}
+
 // Keys is the resolver for the keys field.
 func (r *queryResolver) Keys(ctx context.Context, productType *modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType, event *string) ([]*modelInputs.QueryKey, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
