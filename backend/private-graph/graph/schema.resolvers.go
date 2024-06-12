@@ -8568,7 +8568,6 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 
 // AiQuerySuggestion is the resolver for the ai_query_suggestion field.
 func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, projectID int, productType modelInputs.ProductType, query string) (*modelInputs.QueryOutput, error) {
-	fmt.Println(errorSearch)
 	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -8689,7 +8688,7 @@ The 'query' syntax documentation is as follows:
 
 And specifically, for the %s product, you can refer to the following documentation:
 %s
-`, productType, now, strings.Join(keys, ", "), strings.Join(keyVals, ", "), searchSyntaxDocs, productType, searchSpecificDoc)
+`, productType, now, strings.Join(keys, ", "), strings.Join(keyVals, ", "), prompts.SearchSyntaxDocs, productType, searchSpecificDoc)
 
 	yesterday := time.Now().In(loc).AddDate(0, 0, -1)
 	yesterdayAt2PM := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 14, 0, 0, 0, yesterday.Location()).Format(time.RFC3339)
