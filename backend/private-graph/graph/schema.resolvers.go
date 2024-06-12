@@ -614,26 +614,13 @@ func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceI
 		return nil, err
 	}
 
-	workspaceSettings := &model.AllWorkspaceSettings{}
 	workspaceSettingsUpdates := map[string]interface{}{
 		"AIApplication":  *aiApplication,
 		"AIInsights":     *aiInsights,
 		"AIQueryBuilder": *aiQueryBuilder,
 	}
 
-	log.WithContext(ctx).Infof("Updated workspace settings for workspace %v", workspaceSettingsUpdates)
-
-	if err := store.AssertRecordFound(
-		r.DB.
-			WithContext(ctx).
-			Where(
-				&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).
-			Model(&workspaceSettings).Clauses(clause.Returning{}).Updates(&workspaceSettingsUpdates)); err != nil {
-		return nil, err
-	}
-
-	log.WithContext(ctx).Infof("Updated workspace settings for workspace %v", workspaceSettings)
-	return workspaceSettings, nil
+	return r.Store.UpdateAllWorkspaceSettings(ctx, workspaceID, workspaceSettingsUpdates)
 }
 
 // ExportSession is the resolver for the exportSession field.

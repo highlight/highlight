@@ -7,6 +7,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/redis"
+	"gorm.io/gorm/clause"
 )
 
 func (store *Store) GetAllWorkspaceSettings(ctx context.Context, workspaceID int) (*model.AllWorkspaceSettings, error) {
@@ -17,6 +18,23 @@ func (store *Store) GetAllWorkspaceSettings(ctx context.Context, workspaceID int
 		}
 		return &workspaceSettings, nil
 	})
+}
+
+func (store *Store) UpdateAllWorkspaceSettings(ctx context.Context, workspaceID int, workspaceSettingsUpdates map[string]interface{}) (*model.AllWorkspaceSettings, error) {
+	workspaceSettings := &model.AllWorkspaceSettings{}
+
+	if err := AssertRecordFound(
+		store.DB.
+			WithContext(ctx).
+			Where(
+				&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).
+			Model(&workspaceSettings).Clauses(clause.Returning{}).Updates(&workspaceSettingsUpdates)); err != nil {
+		return nil, err
+	}
+
+	store.Redis.Cache.Delete(ctx, fmt.Sprintf("all-workspace-settings-workspace-%d", workspaceID))
+
+	return workspaceSettings, nil
 }
 
 func (store *Store) GetAllWorkspaceSettingsByProject(ctx context.Context, projectID int) (*model.AllWorkspaceSettings, error) {
