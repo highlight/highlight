@@ -69,6 +69,21 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+//go:embed prompts/search_cleaned.md
+var SearchSyntaxDocs string
+
+//go:embed prompts/error-search_cleaned.md
+var ErrorSearch string
+
+//go:embed prompts/log-search_cleaned.md
+var LogSearch string
+
+//go:embed prompts/session-search_cleaned.md
+var SessionSearch string
+
+//go:embed prompts/trace-search_cleaned.md
+var TraceSearch string
+
 // Author is the resolver for the author field.
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
@@ -8569,6 +8584,7 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 
 // AiQuerySuggestion is the resolver for the ai_query_suggestion field.
 func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, projectID int, productType modelInputs.ProductType, query string) (*modelInputs.QueryOutput, error) {
+	fmt.Println(errorSearch)
 	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
