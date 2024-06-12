@@ -80,7 +80,7 @@ require (
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/stripe/stripe-go/v78 v78.5.0
 	github.com/urfave/cli/v2 v2.27.1
-	github.com/vektah/gqlparser/v2 v2.5.11
+	github.com/vektah/gqlparser/v2 v2.5.14
 	go.opentelemetry.io/collector/pdata v1.7.0
 	go.opentelemetry.io/otel v1.26.0
 	go.opentelemetry.io/otel/sdk v1.26.0
