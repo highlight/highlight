@@ -16,6 +16,14 @@ import { useSearchTime } from '@/hooks/useSearchTime'
 export const SORT_COLUMN = 'sort_column'
 export const SORT_DIRECTION = 'sort_direction'
 
+export type AiSuggestion = {
+	query: string
+	dateRange: {
+		startDate?: Date
+		endDate?: Date
+	}
+}
+
 interface SearchContext extends Partial<ReturnType<typeof useSearchTime>> {
 	disabled: boolean
 	loading: boolean
@@ -38,7 +46,7 @@ interface SearchContext extends Partial<ReturnType<typeof useSearchTime>> {
 	aiQuery: string
 	setAiQuery: (aiQuery: string) => void
 	onAiSubmit: (aiQuery: string) => void
-	aiSuggestion?: string
+	aiSuggestion?: AiSuggestion
 	aiSuggestionLoading?: boolean
 	aiSuggestionError?: ApolloError
 }

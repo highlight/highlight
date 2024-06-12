@@ -1,24 +1,34 @@
 import {
-	Badge,
 	Box,
 	Combobox,
+	DateRangePicker,
+	DateRangePreset,
+	DEFAULT_TIME_PRESETS,
 	IconSolidCheck,
-	IconSolidExclamationCircle,
-	IconSolidInformationCircle,
+	IconSolidClock,
 	IconSolidPencil,
 	IconSolidRefresh,
 	IconSolidSparkles,
+	IconSolidX,
 	Stack,
 	Text,
 	useComboboxStore,
 } from '@highlight-run/ui/components'
-import React, { useRef, useState } from 'react'
+import moment from 'moment'
+import React, { useMemo, useRef, useState } from 'react'
 import TextareaAutosize from 'react-autosize-textarea'
 
 import { Button } from '@/components/Button'
+import LoadingBox from '@/components/LoadingBox'
 import { useSearchContext } from '@/components/Search/SearchContext'
 
 import * as styles from './style.css'
+
+type DateSuggestion = {
+	startDate: Date
+	endDate: Date
+	selectedPreset?: DateRangePreset
+}
 
 export const AiSearch: React.FC<any> = ({}) => {
 	const {
@@ -30,11 +40,15 @@ export const AiSearch: React.FC<any> = ({}) => {
 		aiSuggestionLoading,
 		aiSuggestionError,
 		onSubmit,
+		startDate,
+		endDate,
+		selectedPreset,
+		updateSearchTime,
 	} = useSearchContext()
 	const [submitted, setSubmitted] = useState(false)
 	const inputRef = useRef<HTMLTextAreaElement | null>(null)
 	const comboboxStore = useComboboxStore({
-		defaultValue: aiQuery ?? '',
+		defaultValue: aiQuery,
 	})
 
 	const submitQuery = (query: string) => {
@@ -44,10 +58,58 @@ export const AiSearch: React.FC<any> = ({}) => {
 
 	const searchSubmittedQuery = () => {
 		if (aiSuggestion) {
-			onSubmit(aiSuggestion)
+			onSubmit(aiSuggestion.query)
+			updateSearchTime!(
+				dateSuggestion.startDate,
+				dateSuggestion.endDate,
+				dateSuggestion.selectedPreset,
+			)
 			setAiMode(false)
 		}
 	}
+
+	const getValue = () => {
+		if (aiSuggestionLoading) {
+			return 'Harold AI is thinking...'
+		}
+
+		if (aiSuggestionError) {
+			return 'Oops... Harold AI is having issues.'
+		}
+
+		if (submitted) {
+			return aiSuggestion?.query
+		}
+
+		return aiQuery
+	}
+
+	const dateSuggestion = useMemo(() => {
+		if (aiSuggestion) {
+			const { dateRange } = aiSuggestion
+
+			const suggestedStartDate = dateRange.startDate
+				? new Date(dateRange.startDate)
+				: new Date(startDate!)
+
+			const suggestedEndDate = dateRange.endDate
+				? new Date(dateRange.endDate)
+				: new Date(endDate!)
+
+			const suggestedDates = {
+				startDate: suggestedStartDate,
+				endDate: suggestedEndDate,
+			} as DateSuggestion
+
+			if (!dateRange.startDate && !dateRange.endDate) {
+				suggestedDates.selectedPreset = selectedPreset
+			}
+
+			return suggestedDates
+		}
+
+		return {} as DateSuggestion
+	}, [aiSuggestion, endDate, selectedPreset, startDate])
 
 	return (
 		<Box
@@ -83,7 +145,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 							spellCheck={false}
 						/>
 					}
-					value={submitted ? aiSuggestion : aiQuery}
+					value={getValue()}
 					onChange={(e) => {
 						setAiQuery(e.target.value)
 					}}
@@ -100,7 +162,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 					data-hl-record
 				/>
 
-				{submitted && (
+				{!aiSuggestionLoading && submitted && (
 					<Combobox.Popover
 						className={styles.comboboxPopover}
 						style={{
@@ -168,28 +230,40 @@ export const AiSearch: React.FC<any> = ({}) => {
 										</Text>
 									</Stack>
 								</Combobox.Item>
+								<Combobox.Item
+									className={styles.comboboxItem}
+									onClick={() => setAiMode(false)}
+									store={comboboxStore}
+								>
+									<Stack
+										direction="row"
+										gap="4"
+										align="center"
+									>
+										<IconSolidX />
+										<Text color="weak" size="small">
+											Cancel
+										</Text>
+									</Stack>
+								</Combobox.Item>
 							</Combobox.Group>
 						</Box>
 					</Combobox.Popover>
 				)}
 
 				<Box display="flex" pr="8" py="6" gap="6">
-					{submitted ? (
-						!!aiSuggestionError ? (
-							<Badge
-								variant="red"
-								size="medium"
-								label={aiSuggestionError.message}
-								iconStart={<IconSolidExclamationCircle />}
-							/>
-						) : (
-							<Badge
-								variant="gray"
-								size="medium"
-								label="AI responses can be inaccurate or misleading."
-								iconStart={<IconSolidInformationCircle />}
-							/>
-						)
+					{aiSuggestionLoading ? (
+						<LoadingBox />
+					) : submitted && aiSuggestion ? (
+						<DateRangePicker
+							emphasis="medium"
+							iconLeft={<IconSolidClock />}
+							selectedValue={dateSuggestion}
+							onDatesChange={() => null}
+							presets={DEFAULT_TIME_PRESETS}
+							minDate={moment().subtract(1, 'year').toDate()}
+							disabled
+						/>
 					) : (
 						<>
 							<Button

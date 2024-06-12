@@ -21,7 +21,7 @@ import { Helmet } from 'react-helmet'
 import { useQueryParam } from 'use-query-params'
 
 import { DEFAULT_COLUMN_SIZE } from '@/components/CustomColumnPopover'
-import { SearchContext } from '@/components/Search/SearchContext'
+import { AiSuggestion, SearchContext } from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -142,13 +142,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		}
 	}
 
-	const {
-		startDate,
-		endDate,
-		selectedPreset,
-		rebaseSearchTime,
-		updateSearchTime,
-	} = useSearchTime({
+	const searchTimeContext = useSearchTime({
 		presets: DEFAULT_TIME_PRESETS,
 		initialPreset: presetDefault,
 	})
@@ -167,9 +161,9 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		query,
 		project_id,
 		logCursor,
-		startDate,
-		endDate,
-		disablePolling: !selectedPreset,
+		startDate: searchTimeContext.startDate,
+		endDate: searchTimeContext.endDate,
+		disablePolling: !searchTimeContext.selectedPreset,
 	})
 
 	const fetchMoreWhenScrolled = React.useCallback(
@@ -195,8 +189,12 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 				params: {
 					query,
 					date_range: {
-						start_date: moment(startDate).format(TIME_FORMAT),
-						end_date: moment(endDate).format(TIME_FORMAT),
+						start_date: moment(searchTimeContext.startDate).format(
+							TIME_FORMAT,
+						),
+						end_date: moment(searchTimeContext.endDate).format(
+							TIME_FORMAT,
+						),
 					},
 				},
 				column: '',
@@ -232,6 +230,22 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		analytics.page('Logs')
 	}, [])
 
+	const aiSuggestion = useMemo(() => {
+		const { query, date_range = {} } = aiData?.ai_query_suggestion ?? {}
+
+		return {
+			query,
+			dateRange: {
+				startDate: date_range.start_date
+					? new Date(date_range.start_date)
+					: undefined,
+				endDate: date_range.end_date
+					? new Date(date_range.end_date)
+					: undefined,
+			},
+		} as AiSuggestion
+	}, [aiData])
+
 	return (
 		<SearchContext
 			initialQuery={query}
@@ -239,9 +253,10 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 			aiMode={aiMode}
 			setAiMode={setAiMode}
 			onAiSubmit={onAiSubmit}
-			aiSuggestion={aiData?.ai_query_suggestion.query}
+			aiSuggestion={aiSuggestion}
 			aiSuggestionLoading={aiLoading}
 			aiSuggestionError={aiError}
+			{...searchTimeContext}
 		>
 			<Helmet>
 				<title>Logs</title>
@@ -263,12 +278,12 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 					shadow="medium"
 				>
 					<SearchForm
-						startDate={startDate}
-						endDate={endDate}
-						onDatesChange={updateSearchTime}
+						startDate={searchTimeContext.startDate}
+						endDate={searchTimeContext.endDate}
+						onDatesChange={searchTimeContext.updateSearchTime}
 						presets={DEFAULT_TIME_PRESETS}
 						minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
-						selectedPreset={selectedPreset}
+						selectedPreset={searchTimeContext.selectedPreset}
 						productType={ProductType.Logs}
 						timeMode={timeMode}
 						savedSegmentType={SavedSegmentEntityType.Log}
@@ -276,16 +291,16 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						enableAIMode
 					/>
 					<LogsCount
-						startDate={startDate}
-						endDate={endDate}
-						presetSelected={!!selectedPreset}
+						startDate={searchTimeContext.startDate}
+						endDate={searchTimeContext.endDate}
+						presetSelected={!!searchTimeContext.selectedPreset}
 						totalCount={totalCount}
 						loading={histogramLoading}
 					/>
 					<LogsHistogram
-						startDate={startDate}
-						endDate={endDate}
-						onDatesChange={updateSearchTime}
+						startDate={searchTimeContext.startDate}
+						endDate={searchTimeContext.endDate}
+						onDatesChange={searchTimeContext.updateSearchTime}
 						loading={histogramLoading}
 						metrics={histogramData}
 					/>
@@ -303,7 +318,9 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 							selectedCursor={logCursor}
 							moreLogs={moreLogs}
 							clearMoreLogs={clearMoreLogs}
-							handleAdditionalLogsDateChange={rebaseSearchTime}
+							handleAdditionalLogsDateChange={
+								searchTimeContext.rebaseSearchTime
+							}
 							fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 							bodyHeight={`calc(100vh - ${otherElementsHeight}px)`}
 							selectedColumns={selectedColumns}

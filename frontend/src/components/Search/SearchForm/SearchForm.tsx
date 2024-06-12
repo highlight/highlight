@@ -141,7 +141,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
-	const { query, setQuery, onSubmit, aiMode, setAiMode } = useSearchContext()
+	const { query, setQuery, onSubmit, aiMode } = useSearchContext()
 
 	const handleQueryChange = (query?: string) => {
 		const updatedQuery = query ?? ''
@@ -185,20 +185,9 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			hideIcon={isPanelView}
 			hasAdditonalActions={!hideCreateAlert || !hideDatePicker}
 			creatables={creatables}
+			enableAIMode={enableAIMode}
 		/>
 	)
-
-	const HaroldAISearchButton = enableAIMode ? (
-		<Button
-			kind="secondary"
-			trackingId="ai-search_click"
-			onClick={() => setAiMode(true)}
-			emphasis="medium"
-			iconLeft={<IconSolidSparkles />}
-		>
-			Harold AI
-		</Button>
-	) : null
 
 	// TODO: only supported for logs
 	const AlertComponent = hideCreateAlert ? null : (
@@ -291,7 +280,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					<>
 						{SearchComponent}
 						<Box display="flex" pr="8" py="6" gap="6">
-							{HaroldAISearchButton}
 							{SegmentMenu}
 							{displaySeparator && (
 								<Box
@@ -325,6 +313,7 @@ export const Search: React.FC<{
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	hasAdditonalActions?: boolean
 	creatables?: { [key: string]: Creatable }
+	enableAIMode?: boolean
 }> = ({
 	startDate,
 	endDate,
@@ -334,6 +323,7 @@ export const Search: React.FC<{
 	productType,
 	hasAdditonalActions,
 	creatables,
+	enableAIMode,
 }) => {
 	const {
 		disabled,
@@ -343,6 +333,7 @@ export const Search: React.FC<{
 		tokenGroups,
 		onSubmit,
 		setQuery,
+		setAiMode,
 	} = useSearchContext()
 	const { project_id } = useParams()
 	const [_, setSortColumn] = useQueryParam(SORT_COLUMN, StringParam)
@@ -788,6 +779,29 @@ export const Search: React.FC<{
 					sameWidth
 				>
 					<Box cssClass={styles.comboboxResults}>
+						{enableAIMode && activePart.text === '' && (
+							<Combobox.Group
+								className={styles.comboboxGroup}
+								store={comboboxStore}
+							>
+								<Combobox.Item
+									className={styles.comboboxItem}
+									onClick={() => setAiMode(true)}
+									store={comboboxStore}
+								>
+									<Stack
+										direction="row"
+										gap="4"
+										align="center"
+									>
+										<IconSolidSparkles />
+										<Text color="weak" size="small">
+											Query with Harold AI
+										</Text>
+									</Stack>
+								</Combobox.Item>
+							</Combobox.Group>
+						)}
 						{activePart.value?.length > 0 && (
 							<Combobox.Group
 								className={styles.comboboxGroup}
