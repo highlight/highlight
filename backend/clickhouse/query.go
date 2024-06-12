@@ -14,6 +14,7 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/parser"
 	"github.com/highlight-run/highlight/backend/parser/listener"
@@ -1328,6 +1329,83 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	metrics.SampleFactor = sampleFactor
 	metrics.BucketCount = uint64(nBuckets)
+
+	return metrics, err
+}
+
+func ReadFunnels(ctx context.Context, client *Client, sampleableConfig SampleableTableConfig, projectIDs []int, params modelInputs.FunnelQueryInput, groupBy []string) (*modelInputs.MetricsBuckets, error) {
+	useSampling := sampleableConfig.useSampling(params.DateRange.EndDate.Sub(params.DateRange.StartDate))
+
+	var config model.TableConfig
+	if useSampling {
+		config = sampleableConfig.samplingTableConfig
+	} else {
+		config = sampleableConfig.tableConfig
+	}
+
+	startTimestamp := params.DateRange.StartDate.Unix()
+	endTimestamp := params.DateRange.EndDate.Unix()
+
+	span, ctx := util.StartSpanFromContext(ctx, "clickhouse.readFunnels")
+	span.SetAttribute("project_ids", projectIDs)
+	span.SetAttribute("table", sampleableConfig.tableConfig.TableName)
+	defer span.Finish()
+
+	var steps []sqlbuilder.Builder
+	for idx, step := range params.Steps {
+		// TODO(vkorolik) step.Column escaping
+		innerSb := sqlbuilder.NewSelectBuilder()
+		innerSb.
+			From(sampleableConfig.tableConfig.TableName).
+			Select(strings.Join([]string{step.Column, `min(CreatedAt)`}, ", ")).
+			Where(innerSb.In("ProjectId", projectIDs)).
+			Where(innerSb.GreaterEqualThan("CreatedAt", startTimestamp)).
+			Where(innerSb.LessEqualThan("CreatedAt", endTimestamp))
+		parser.AssignSearchFilters(innerSb, step.Step, config)
+		innerSb.GroupBy(step.Column)
+
+		inner := sqlbuilder.NewSelectBuilder()
+		inner.Select(fmt.Sprintf("%d as step_num", idx), "count() as count")
+		inner.From(inner.BuilderAs(innerSb, fmt.Sprintf("S%d", idx)))
+		steps = append(steps, inner)
+	}
+
+	first := sqlbuilder.NewSelectBuilder()
+	first.Select("step_num", "count")
+	first.From(first.BuilderAs(steps[0], "wrapper"))
+	ub := sqlbuilder.UnionAll(append([]sqlbuilder.Builder{first}, steps[1:]...)...)
+
+	outer := sqlbuilder.NewSelectBuilder()
+	outer.Select("step_num", "count")
+	outer.From(outer.BuilderAs(ub, "full"))
+	outer.OrderBy("step_num")
+
+	sql, args := outer.BuildWithFlavor(sqlbuilder.ClickHouse)
+	rows, err := client.conn.Query(ctx, sql, args...)
+	span.Finish(err)
+
+	if err != nil {
+		return nil, err
+	}
+
+	row := struct {
+		stepNum uint8
+		count   uint64
+	}{}
+
+	metrics := &modelInputs.MetricsBuckets{
+		Buckets: []*modelInputs.MetricBucket{},
+	}
+	for rows.Next() {
+		if err := rows.Scan(&row.stepNum, &row.count); err != nil {
+			return nil, err
+		}
+		s := params.Steps[row.stepNum]
+		metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
+			Group:       append(make([]string, 0), s.Step),
+			MetricValue: ptr.Float64(float64(row.count)),
+		})
+	}
 
 	return metrics, err
 }
