@@ -46,7 +46,6 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/prompts"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
@@ -70,19 +69,19 @@ import (
 )
 
 //go:embed prompts/search_cleaned.md
-var SearchSyntaxDocs string
+var searchSyntaxDocs string
 
 //go:embed prompts/error-search_cleaned.md
-var ErrorSearch string
+var errorSearch string
 
 //go:embed prompts/log-search_cleaned.md
-var LogSearch string
+var logSearch string
 
 //go:embed prompts/session-search_cleaned.md
-var SessionSearch string
+var sessionSearch string
 
 //go:embed prompts/trace-search_cleaned.md
-var TraceSearch string
+var traceSearch string
 
 // Author is the resolver for the author field.
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
@@ -8656,13 +8655,13 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 	var searchSpecificDoc string
 	switch productType {
 	case modelInputs.ProductTypeTraces:
-		searchSpecificDoc = prompts.TraceSearch
+		searchSpecificDoc = traceSearch
 	case modelInputs.ProductTypeLogs:
-		searchSpecificDoc = prompts.LogSearch
+		searchSpecificDoc = logSearch
 	case modelInputs.ProductTypeSessions:
-		searchSpecificDoc = prompts.SessionSearch
+		searchSpecificDoc = sessionSearch
 	case modelInputs.ProductTypeErrors:
-		searchSpecificDoc = prompts.ErrorSearch
+		searchSpecificDoc = errorSearch
 	}
 
 	log.WithContext(ctx).Infof("search generic doc: %s", prompts.SearchSyntaxDocs)
