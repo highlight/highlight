@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/aws/smithy-go/ptr"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"html/template"
@@ -320,11 +321,11 @@ func main() {
 	}
 
 	kafkaProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Producer, nil)
-	kafkaBatchedProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Producer, nil)
-	kafkaTracesProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}), kafkaqueue.Producer, nil)
-	kafkaDataSyncProducer := kafkaqueue.New(ctx,
-		kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}),
-		kafkaqueue.Producer, nil)
+	// async writes for workers (where order of write between workers does not matter)
+	kCfg := &kafkaqueue.ConfigOverride{Async: ptr.Bool(true)}
+	kafkaBatchedProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Producer, kCfg)
+	kafkaTracesProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}), kafkaqueue.Producer, kCfg)
+	kafkaDataSyncProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Producer, kCfg)
 
 	lambda, err := lambda.NewLambdaClient()
 	if err != nil {
@@ -496,7 +497,7 @@ func main() {
 		})
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
-		sessionCache, err := golang_lru.New[string, *model.Session](10000)
+		sessionCache, err := golang_lru.New[string, *model.Session](100_000)
 		if err != nil {
 			log.Fatalf("error initializing lru cache: %v", err)
 		}
@@ -595,7 +596,7 @@ func main() {
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running....")
 	if runtimeParsed == util.Worker || runtimeParsed == util.All {
-		sessionCache, err := golang_lru.New[string, *model.Session](10000)
+		sessionCache, err := golang_lru.New[string, *model.Session](100_000)
 		if err != nil {
 			log.Fatalf("error initializing lru cache: %v", err)
 		}
