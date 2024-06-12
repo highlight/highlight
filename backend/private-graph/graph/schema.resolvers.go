@@ -8664,7 +8664,7 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 		searchSpecificDoc = errorSearch
 	}
 
-	log.WithContext(ctx).Infof("search generic doc: %s", prompts.SearchSyntaxDocs)
+	log.WithContext(ctx).Infof("search generic doc: %s", searchSyntaxDocs)
 	log.WithContext(ctx).Infof("search specific doc: %s", searchSpecificDoc)
 
 	systemPrompt := fmt.Sprintf(`
