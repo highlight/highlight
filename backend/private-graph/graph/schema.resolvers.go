@@ -7,6 +7,7 @@ package graph
 import (
 	"context"
 	"database/sql"
+	_ "embed"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -20,8 +21,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	_ "embed"
 
 	"github.com/PaesslerAG/jsonpath"
 	mpeTypes "github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice/types"
@@ -46,6 +45,7 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/prompts"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
@@ -67,21 +67,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
-
-//go:embed prompts/search_cleaned.md
-var searchSyntaxDocs string
-
-//go:embed prompts/error-search_cleaned.md
-var errorSearch string
-
-//go:embed prompts/log-search_cleaned.md
-var logSearch string
-
-//go:embed prompts/session-search_cleaned.md
-var sessionSearch string
-
-//go:embed prompts/trace-search_cleaned.md
-var traceSearch string
 
 // Author is the resolver for the author field.
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
@@ -8655,16 +8640,16 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 	var searchSpecificDoc string
 	switch productType {
 	case modelInputs.ProductTypeTraces:
-		searchSpecificDoc = traceSearch
+		searchSpecificDoc = prompts.TraceSearch
 	case modelInputs.ProductTypeLogs:
-		searchSpecificDoc = logSearch
+		searchSpecificDoc = prompts.LogSearch
 	case modelInputs.ProductTypeSessions:
-		searchSpecificDoc = sessionSearch
+		searchSpecificDoc = prompts.SessionSearch
 	case modelInputs.ProductTypeErrors:
-		searchSpecificDoc = errorSearch
+		searchSpecificDoc = prompts.ErrorSearch
 	}
 
-	log.WithContext(ctx).Infof("search generic doc: %s", searchSyntaxDocs)
+	log.WithContext(ctx).Infof("search generic doc: %s", prompts.SearchSyntaxDocs)
 	log.WithContext(ctx).Infof("search specific doc: %s", searchSpecificDoc)
 
 	systemPrompt := fmt.Sprintf(`
