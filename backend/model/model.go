@@ -2427,9 +2427,11 @@ type TableConfig[TReservedKey ~string] struct {
 	BodyColumn       string
 	SeverityColumn   string
 	AttributesColumn string
-	KeysToColumns    map[TReservedKey]string
-	ReservedKeys     []TReservedKey
-	SelectColumns    []string
-	DefaultFilter    string
-	IgnoredFilters   map[string]bool
+	// AttributesList set when AttributesColumn is an array of k,v pairs of attributes
+	AttributesList bool
+	KeysToColumns  map[TReservedKey]string
+	ReservedKeys   []TReservedKey
+	SelectColumns  []string
+	DefaultFilter  string
+	IgnoredFilters map[string]bool
 }
