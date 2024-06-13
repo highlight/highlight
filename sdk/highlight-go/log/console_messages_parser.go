@@ -3,6 +3,7 @@ package hlog
 import (
 	"encoding/json"
 	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 )
 
@@ -15,12 +16,12 @@ type MessageTrace struct {
 }
 
 type Message struct {
-	Type             string         `json:"type"`
-	Trace            []MessageTrace `json:"trace"`
-	Value            []string       `json:"value"`
-	AttributesString string         `json:"attributes"`
-	Time             int64          `json:"time"`
-	Attributes       map[string]any
+	Type          string         `json:"type"`
+	Trace         []MessageTrace `json:"trace"`
+	Value         []string       `json:"value"`
+	AttributesRaw any            `json:"attributes"`
+	Time          int64          `json:"time"`
+	Attributes    map[string]any
 }
 
 type Messages struct {
@@ -36,16 +37,20 @@ func ParseConsoleMessages(messages string) ([]*Message, error) {
 	var rows []*Message
 	for _, message := range messagesParsed.Messages {
 		msg := &Message{
-			Type:             message.Type,
-			Trace:            message.Trace,
-			Time:             message.Time,
-			AttributesString: message.AttributesString,
-			Attributes:       map[string]any{},
+			Type:          message.Type,
+			Trace:         message.Trace,
+			Time:          message.Time,
+			AttributesRaw: message.AttributesRaw,
+			Attributes:    map[string]any{},
 		}
-		if message.AttributesString != "" {
-			if err := json.Unmarshal([]byte(msg.AttributesString), &msg.Attributes); err != nil {
-				return nil, e.Wrap(err, "error decoding message attributes")
+		if attrString, ok := message.AttributesRaw.(string); ok && attrString != "" {
+			if err := json.Unmarshal([]byte(attrString), &msg.Attributes); err != nil {
+				log.WithField("attributes.raw", message.AttributesRaw).WithError(err).Warn("error decoding message attributes")
+				message.Attributes["attributes.raw"] = message.AttributesRaw
 			}
+		} else {
+			log.WithField("attributes.raw", message.AttributesRaw).Warn("unknown console message attribute format")
+			message.Attributes["attributes.raw"] = message.AttributesRaw
 		}
 		var messageValue []string
 		for _, v := range message.Value {

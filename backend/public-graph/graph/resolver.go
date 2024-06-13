@@ -175,9 +175,9 @@ type NetworkResource struct {
 	ResponseStartAbs         float64              `json:"responseStartAbs"`
 	SecureConnectionStartAbs float64              `json:"secureConnectionStartAbs"`
 	WorkerStartAbs           float64              `json:"workerStartAbs"`
-	DecodedBodySize          int64                `json:"decodedBodySize"`
-	TransferSize             int64                `json:"transferSize"`
-	EncodedBodySize          int64                `json:"encodedBodySize"`
+	DecodedBodySize          float64              `json:"decodedBodySize"`
+	TransferSize             float64              `json:"transferSize"`
+	EncodedBodySize          float64              `json:"encodedBodySize"`
 	NextHopProtocol          string               `json:"nextHopProtocol"`
 	InitiatorType            string               `json:"initiatorType"`
 	Name                     string               `json:"name"`
@@ -3153,9 +3153,9 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			semconv.HTTPURL(re.Name),
 			attribute.String("http.request.body", requestBody),
 			attribute.String("http.response.body", responseBody),
-			attribute.Int64("http.response.encoded.size", re.EncodedBodySize),
-			attribute.Int64("http.response.decoded.size", re.DecodedBodySize),
-			attribute.Int64("http.response.transfer.size", re.TransferSize),
+			attribute.Float64("http.response.encoded.size", re.EncodedBodySize),
+			attribute.Float64("http.response.decoded.size", re.DecodedBodySize),
+			attribute.Float64("http.response.transfer.size", re.TransferSize),
 			semconv.HTTPRequestContentLength(len(requestBody)),
 			semconv.HTTPResponseContentLength(int(re.RequestResponsePairs.Response.Size)),
 			semconv.HTTPStatusCode(int(re.RequestResponsePairs.Response.Status)),
