@@ -29,7 +29,7 @@ export const searchIcon = style({
 	position: 'absolute',
 	top: 12,
 	left: 14,
-	color: vars.theme.interactive.fill.secondary.content.text,
+	color: vars.theme.interactive.fill.primary.enabled,
 })
 
 export const combobox = style([

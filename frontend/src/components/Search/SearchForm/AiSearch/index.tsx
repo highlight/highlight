@@ -14,7 +14,6 @@ import {
 	Text,
 	useComboboxStore,
 } from '@highlight-run/ui/components'
-import { vars } from '@highlight-run/ui/vars'
 import moment from 'moment'
 import React, { useMemo, useRef, useState } from 'react'
 import TextareaAutosize from 'react-autosize-textarea'
@@ -120,10 +119,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 			position="relative"
 			cssClass={styles.container}
 		>
-			<IconSolidSparkles
-				className={styles.searchIcon}
-				color={vars.theme.interactive.fill.primary.enabled}
-			/>
+			<IconSolidSparkles className={styles.searchIcon} />
 			<Box
 				display="flex"
 				alignItems="center"
