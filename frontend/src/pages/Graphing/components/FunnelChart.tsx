@@ -17,8 +17,8 @@ import {
 	TooltipConfig,
 } from '@/pages/Graphing/components/Graph'
 
-export type FunnelDisplay = 'TODO'
-export const FUNNEL_DISPLAY: FunnelDisplay[] = ['TODO']
+export type FunnelDisplay = 'Funnel Steps'
+export const FUNNEL_DISPLAY: FunnelDisplay[] = ['Funnel Steps']
 
 const getCustomLabel = () => (props: LabelProps) => {
 	return (
@@ -36,40 +36,37 @@ const getCustomLabel = () => (props: LabelProps) => {
 }
 
 const getCustomTooltip =
-	() =>
-	({ active, payload, label }: any) => {
-		const isValid = active && payload && payload.length
+	(data: any[]) =>
+	({ payload }: any) => {
+		const initialValue = data[0][data[0].Group]
 		return (
 			<Box cssClass={style.tooltipWrapper}>
-				<Text
-					size="xxSmall"
-					weight="medium"
-					color="default"
-					cssClass={style.tooltipText}
-				>
-					{isValid && label}
-				</Text>
 				{payload.map((p: any, idx: number) => (
 					<Box
 						display="flex"
-						flexDirection="row"
+						flexDirection="column"
+						justifyContent="center"
 						alignItems="center"
+						gap="16"
+						padding="8"
 						key={idx}
 					>
-						<Box
-							style={{
-								backgroundColor: p.color,
-							}}
-							cssClass={style.tooltipDot}
-						></Box>
 						<Text
-							size="xxSmall"
+							size="small"
 							weight="medium"
 							color="default"
 							cssClass={style.tooltipText}
 						>
-							{p.name + ': '}
-							{isValid && p.value}
+							{p.name}
+						</Text>
+						<Text
+							size="small"
+							weight="bold"
+							color="default"
+							cssClass={style.tooltipText}
+						>
+							{p.value + ' sessions: '}
+							{((100 * p.value) / initialValue).toFixed(1)}%
 						</Text>
 					</Box>
 				))}
@@ -94,7 +91,7 @@ export const FunnelChart = ({
 			<RechartsFunnelChart width={500} height={500}>
 				{children}
 				<Tooltip
-					content={getCustomTooltip()}
+					content={getCustomTooltip(data)}
 					wrapperStyle={{ zIndex: 100 }}
 					cursor={{ fill: '#C8C7CB', fillOpacity: 0.5 }}
 					isAnimationActive={false}
