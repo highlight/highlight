@@ -87,7 +87,9 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	const [
 		getAiQuerySuggestion,
 		{ data: aiData, error: aiError, loading: aiLoading },
-	] = useGetAiQuerySuggestionLazyQuery()
+	] = useGetAiQuerySuggestionLazyQuery({
+		fetchPolicy: 'network-only',
+	})
 
 	const [selectedColumns, setSelectedColumns] = useLocalStorage(
 		`highlight-logs-table-columns`,
