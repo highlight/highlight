@@ -25,11 +25,18 @@ export const container = style({
 	},
 })
 
+export const containerError = style({
+	selectors: {
+		'&:after': {
+			background: vars.theme.interactive.fill.bad.enabled,
+		},
+	},
+})
+
 export const searchIcon = style({
 	position: 'absolute',
 	top: 12,
 	left: 14,
-	color: vars.theme.interactive.fill.primary.enabled,
 })
 
 export const combobox = style([
@@ -60,6 +67,10 @@ export const combobox = style([
 		},
 	},
 ])
+
+export const comboboxError = style({
+	color: vars.theme.interactive.fill.bad.enabled,
+})
 
 export const comboboxPopover = style({
 	background: vars.theme.static.surface.default,

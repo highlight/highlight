@@ -6,6 +6,7 @@ import {
 	DEFAULT_TIME_PRESETS,
 	IconSolidCheck,
 	IconSolidClock,
+	IconSolidExclamation,
 	IconSolidPencil,
 	IconSolidRefresh,
 	IconSolidSparkles,
@@ -14,6 +15,8 @@ import {
 	Text,
 	useComboboxStore,
 } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
+import clsx from 'clsx'
 import moment from 'moment'
 import React, { useMemo, useRef, useState } from 'react'
 import TextareaAutosize from 'react-autosize-textarea'
@@ -73,7 +76,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 			return 'Harold AI is thinking...'
 		}
 
-		if (aiSuggestionError) {
+		if (displayError) {
 			return 'Oops... Harold AI is having issues.'
 		}
 
@@ -111,15 +114,29 @@ export const AiSearch: React.FC<any> = ({}) => {
 		return {} as DateSuggestion
 	}, [aiSuggestion, endDate, selectedPreset, startDate])
 
+	const displayError = !!aiSuggestionError && submitted
+
 	return (
 		<Box
 			alignItems="stretch"
 			display="flex"
 			flexGrow={1}
 			position="relative"
-			cssClass={styles.container}
+			cssClass={clsx(styles.container, {
+				[styles.containerError]: !!displayError,
+			})}
 		>
-			<IconSolidSparkles className={styles.searchIcon} />
+			{!!displayError ? (
+				<IconSolidExclamation
+					className={styles.searchIcon}
+					color={vars.theme.interactive.fill.bad.enabled}
+				/>
+			) : (
+				<IconSolidSparkles
+					className={styles.searchIcon}
+					color={vars.theme.interactive.fill.primary.enabled}
+				/>
+			)}
 			<Box
 				display="flex"
 				alignItems="center"
@@ -134,7 +151,9 @@ export const AiSearch: React.FC<any> = ({}) => {
 					disabled={submitted}
 					name="aiSearch"
 					placeholder="Generate a query using AI..."
-					className={styles.combobox}
+					className={clsx(styles.combobox, {
+						[styles.comboboxError]: !!displayError,
+					})}
 					render={
 						<TextareaAutosize
 							ref={inputRef}
@@ -174,27 +193,29 @@ export const AiSearch: React.FC<any> = ({}) => {
 						sameWidth
 					>
 						<Box cssClass={styles.comboboxResults}>
-							<Combobox.Group
-								className={styles.comboboxGroup}
-								store={comboboxStore}
-							>
-								<Combobox.Item
-									className={styles.comboboxItem}
-									onClick={() => searchSubmittedQuery()}
+							{!displayError && (
+								<Combobox.Group
+									className={styles.comboboxGroup}
 									store={comboboxStore}
 								>
-									<Stack
-										direction="row"
-										gap="4"
-										align="center"
+									<Combobox.Item
+										className={styles.comboboxItem}
+										onClick={() => searchSubmittedQuery()}
+										store={comboboxStore}
 									>
-										<IconSolidCheck />
-										<Text color="weak" size="small">
-											Done
-										</Text>
-									</Stack>
-								</Combobox.Item>
-							</Combobox.Group>
+										<Stack
+											direction="row"
+											gap="4"
+											align="center"
+										>
+											<IconSolidCheck />
+											<Text color="weak" size="small">
+												Done
+											</Text>
+										</Stack>
+									</Combobox.Item>
+								</Combobox.Group>
+							)}
 							<Combobox.Group
 								className={styles.comboboxGroup}
 								store={comboboxStore}
@@ -255,7 +276,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 				<Box display="flex" pr="8" py="6" gap="6">
 					{aiSuggestionLoading ? (
 						<LoadingBox />
-					) : submitted && aiSuggestion ? (
+					) : submitted && aiSuggestion && !aiSuggestionError ? (
 						<DateRangePicker
 							emphasis="medium"
 							iconLeft={<IconSolidClock />}
