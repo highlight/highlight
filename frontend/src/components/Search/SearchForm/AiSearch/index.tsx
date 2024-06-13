@@ -131,7 +131,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 			>
 				<Combobox
 					store={comboboxStore}
-					// disabled={submitted}
+					disabled={submitted}
 					name="aiSearch"
 					placeholder="Generate a query using AI..."
 					className={styles.combobox}
@@ -170,6 +170,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 						}}
 						store={comboboxStore}
 						gutter={10}
+						open
 						sameWidth
 					>
 						<Box cssClass={styles.comboboxResults}>
