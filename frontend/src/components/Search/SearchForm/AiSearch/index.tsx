@@ -25,6 +25,9 @@ import TextareaAutosize from 'react-autosize-textarea'
 import { Button } from '@/components/Button'
 import { loadingIcon } from '@/components/Button/style.css'
 import { useSearchContext } from '@/components/Search/SearchContext'
+import { QueryPart } from '@/components/Search/SearchForm/QueryPart'
+import { buildTokenGroups } from '@/components/Search/SearchForm/utils'
+import { parseSearch } from '@/components/Search/utils'
 
 import * as styles from './style.css'
 
@@ -88,7 +91,18 @@ export const AiSearch: React.FC<any> = ({}) => {
 		return aiQuery
 	}
 
-	const icon = () => {
+	const aiSuggestionTokenGroups = useMemo(() => {
+		if (!aiSuggestion?.query) {
+			return []
+		}
+
+		const { tokens } = parseSearch(aiSuggestion.query)
+		const tokenGroups = buildTokenGroups(tokens)
+
+		return tokenGroups
+	}, [aiSuggestion])
+
+	const Icon = () => {
 		if (aiSuggestionLoading) {
 			return (
 				<IconSolidLoading
@@ -153,7 +167,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 				[styles.containerError]: !!displayError,
 			})}
 		>
-			{icon()}
+			<Icon />
 			<Box
 				display="flex"
 				alignItems="center"
@@ -163,6 +177,33 @@ export const AiSearch: React.FC<any> = ({}) => {
 				position="relative"
 				margin="auto"
 			>
+				{!aiSuggestionLoading && submitted && (
+					<Box
+						cssClass={styles.comboboxTagsContainer}
+						style={{
+							left: 2,
+							paddingLeft: 38,
+						}}
+					>
+						{aiSuggestionTokenGroups.map((tokenGroup, index) => {
+							if (tokenGroup.tokens.length === 0) {
+								return null
+							}
+
+							return (
+								<QueryPart
+									key={index}
+									typeaheadOpen={false}
+									cursorIndex={0}
+									index={index}
+									tokenGroup={tokenGroup}
+									showValues={false}
+									showErrors={false}
+								/>
+							)
+						})}
+					</Box>
+				)}
 				<Combobox
 					store={comboboxStore}
 					disabled={submitted}
@@ -170,6 +211,8 @@ export const AiSearch: React.FC<any> = ({}) => {
 					placeholder="Generate a query using AI..."
 					className={clsx(styles.combobox, {
 						[styles.comboboxError]: !!displayError,
+						[styles.comboboxWithTags]:
+							!aiSuggestionLoading && submitted,
 					})}
 					render={
 						<TextareaAutosize
@@ -197,7 +240,9 @@ export const AiSearch: React.FC<any> = ({}) => {
 					}}
 					data-hl-record
 				/>
+			</Box>
 
+			<Box>
 				{!aiSuggestionLoading && submitted && (
 					<Combobox.Popover
 						className={styles.comboboxPopover}

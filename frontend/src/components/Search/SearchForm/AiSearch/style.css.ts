@@ -72,6 +72,10 @@ export const comboboxError = style({
 	color: vars.theme.interactive.fill.bad.enabled,
 })
 
+export const comboboxWithTags = style({
+	color: 'transparent',
+})
+
 export const comboboxPopover = style({
 	background: vars.theme.static.surface.default,
 	border: vars.border.dividerWeak,
@@ -121,3 +125,19 @@ export const comboboxGroup = style([
 export const toggle = style({
 	paddingLeft: '8px',
 })
+
+export const comboboxTagsContainer = style([
+	typographyStyles.family.monospace,
+	typographyStyles.size.small,
+	{
+		display: 'block',
+		fontWeight: '500 !important',
+		maxWidth: '100%',
+		paddingBottom: 12,
+		paddingRight: 6,
+		paddingTop: 12,
+		pointerEvents: 'none',
+		position: 'absolute',
+		whiteSpace: 'pre-wrap',
+	},
+])
