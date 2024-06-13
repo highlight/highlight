@@ -13,6 +13,7 @@ import {
 	ButtonIcon,
 	IconSolidDocumentDuplicate,
 	IconSolidExitRight,
+	IconSolidFire,
 	IconSolidLockClosed,
 	IconSolidLockOpen,
 	IconSolidMenuAlt_3,
@@ -28,12 +29,16 @@ import {
 } from '@pages/Player/context/PlayerUIContext'
 import { changeSession } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import { useReplayerContext } from '@pages/Player/ReplayerContext'
+import {
+	ReplayerState,
+	useReplayerContext,
+} from '@pages/Player/ReplayerContext'
 import analytics from '@util/analytics'
 import { delay } from 'lodash'
 import React, { useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
+import { BooleanParam, useQueryParam } from 'use-query-params'
 
 import { PlayerModeSwitch } from '@/pages/Player/SessionLevelBar/PlayerModeSwitch/PlayerModeSwitch'
 import { useSessionParams } from '@/pages/Sessions/utils'
@@ -205,14 +210,22 @@ export const SessionLevelBarV2: React.FC<
 export default SessionLevelBarV2
 
 export const SessionViewportMetadata = () => {
-	const { session, viewport } = useReplayerContext()
+	const [_, setShowHeatmap] = useQueryParam('heatmap', BooleanParam)
+	const { session, viewport, state } = useReplayerContext()
 
-	if (!session) {
+	if (!session || state !== ReplayerState.Paused) {
 		return null
 	}
 
 	return (
 		<Stack direction="row" gap="4" align="center">
+			<Badge
+				iconStart={<IconSolidFire color={colors.n9} />}
+				size="medium"
+				variant="gray"
+				shape="basic"
+				onClick={() => setShowHeatmap(true)}
+			/>
 			{viewport?.width && viewport?.height && (
 				<Badge
 					iconStart={<IconSolidTemplate color={colors.n9} />}

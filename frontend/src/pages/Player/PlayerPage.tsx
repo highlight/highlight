@@ -44,6 +44,7 @@ import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
 import { useGetBillingDetailsForProjectQuery } from '@/graph/generated/hooks'
 import { PlanType, ProductType } from '@/graph/generated/schemas'
 import { useSearchTime } from '@/hooks/useSearchTime'
+import { PlayerHeatmapCanvas } from '@/pages/Player/PlayerHeatmapCanvas/PlayerHeatmapCanvas'
 import { useSessionFeedConfiguration } from '@/pages/Sessions/SessionsFeedV3/hooks/useSessionFeedConfiguration'
 import { useGetSessions } from '@/pages/Sessions/useGetSessions'
 import { useSessionParams } from '@/pages/Sessions/utils'
@@ -282,6 +283,7 @@ export const PlayerPage = () => {
 						<Helmet>
 							<title>{tabTitle}</title>
 						</Helmet>
+						<PlayerHeatmapCanvas />
 						<PlayerPageBase />
 					</SearchContext>
 				</ToolbarItemsContextProvider>

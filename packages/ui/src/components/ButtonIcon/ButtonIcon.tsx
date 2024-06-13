@@ -9,6 +9,7 @@ export type Props = React.ButtonHTMLAttributes<HTMLButtonElement> &
 	styles.Variants & {
 		icon: React.ReactElement<IconProps>
 		cssClass?: ClassValue | ClassValue[]
+		style?: React.CSSProperties
 	}
 
 export const ButtonIcon = forwardRef<HTMLButtonElement, Props>(
@@ -23,6 +24,7 @@ export const ButtonIcon = forwardRef<HTMLButtonElement, Props>(
 			disabled,
 			cssClass,
 			className,
+			style,
 			type = 'button',
 		},
 		ref,
@@ -40,6 +42,7 @@ export const ButtonIcon = forwardRef<HTMLButtonElement, Props>(
 				disabled={disabled}
 				type={type}
 				ref={ref}
+				style={style}
 			>
 				{icon}
 			</Box>
