@@ -7,6 +7,7 @@ import {
 	IconSolidCheck,
 	IconSolidClock,
 	IconSolidExclamation,
+	IconSolidLoading,
 	IconSolidPencil,
 	IconSolidRefresh,
 	IconSolidSparkles,
@@ -22,7 +23,7 @@ import React, { useMemo, useRef, useState } from 'react'
 import TextareaAutosize from 'react-autosize-textarea'
 
 import { Button } from '@/components/Button'
-import LoadingBox from '@/components/LoadingBox'
+import { loadingIcon } from '@/components/Button/style.css'
 import { useSearchContext } from '@/components/Search/SearchContext'
 
 import * as styles from './style.css'
@@ -87,6 +88,32 @@ export const AiSearch: React.FC<any> = ({}) => {
 		return aiQuery
 	}
 
+	const icon = () => {
+		if (aiSuggestionLoading) {
+			return (
+				<IconSolidLoading
+					className={clsx(styles.searchIcon, loadingIcon)}
+				/>
+			)
+		}
+
+		if (displayError) {
+			return (
+				<IconSolidExclamation
+					className={styles.searchIcon}
+					color={vars.theme.interactive.fill.bad.enabled}
+				/>
+			)
+		}
+
+		return (
+			<IconSolidSparkles
+				className={styles.searchIcon}
+				color={vars.theme.interactive.fill.primary.enabled}
+			/>
+		)
+	}
+
 	const dateSuggestion = useMemo(() => {
 		if (aiSuggestion) {
 			const { dateRange } = aiSuggestion
@@ -126,17 +153,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 				[styles.containerError]: !!displayError,
 			})}
 		>
-			{!!displayError ? (
-				<IconSolidExclamation
-					className={styles.searchIcon}
-					color={vars.theme.interactive.fill.bad.enabled}
-				/>
-			) : (
-				<IconSolidSparkles
-					className={styles.searchIcon}
-					color={vars.theme.interactive.fill.primary.enabled}
-				/>
-			)}
+			{icon()}
 			<Box
 				display="flex"
 				alignItems="center"
@@ -274,9 +291,10 @@ export const AiSearch: React.FC<any> = ({}) => {
 				)}
 
 				<Box display="flex" pr="8" py="6" gap="6">
-					{aiSuggestionLoading ? (
-						<LoadingBox />
-					) : submitted && aiSuggestion && !aiSuggestionError ? (
+					{submitted &&
+					aiSuggestion &&
+					!aiSuggestionLoading &&
+					!aiSuggestionError ? (
 						<DateRangePicker
 							emphasis="medium"
 							iconLeft={<IconSolidClock />}
@@ -299,7 +317,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 							<Button
 								trackingId="generate-query-ai-search"
 								onClick={() => submitQuery(aiQuery)}
-								disabled={!aiQuery}
+								disabled={!aiQuery || aiSuggestionLoading}
 								loading={aiSuggestionLoading}
 							>
 								Generate&nbsp;Query
