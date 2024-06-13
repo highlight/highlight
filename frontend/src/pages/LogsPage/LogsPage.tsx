@@ -288,7 +288,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						timeMode={timeMode}
 						savedSegmentType={SavedSegmentEntityType.Log}
 						textAreaRef={textAreaRef}
-						enableAIMode
+						enableAIMode={projectId === '1'}
 					/>
 					<LogsCount
 						startDate={searchTimeContext.startDate}

@@ -6,7 +6,23 @@ import { style } from '@vanilla-extract/css'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 export const container = style({
-	// TODO(spenny): put in the Harold "border"
+	position: 'relative',
+	zIndex: 1,
+
+	selectors: {
+		'&:after': {
+			background:
+				'linear-gradient(45deg, rgba(162, 138, 220) 0%, rgba(216, 165, 216) 50%, rgba(233, 192, 186) 100%)',
+			border: '2px solid transparent',
+			content: '',
+			borderRadius: 5,
+			inset: 0,
+			mask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
+			maskComposite: 'exclude',
+			position: 'absolute',
+			zIndex: -1,
+		},
+	},
 })
 
 export const searchIcon = style({
