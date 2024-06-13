@@ -4928,6 +4928,7 @@ export type GetTracesQueryVariables = Types.Exact<{
 	after?: Types.Maybe<Types.Scalars['String']>
 	before?: Types.Maybe<Types.Scalars['String']>
 	at?: Types.Maybe<Types.Scalars['String']>
+	limit?: Types.Maybe<Types.Scalars['Int']>
 	direction: Types.SortDirection
 }>
 

@@ -14351,6 +14351,7 @@ export const GetTracesDocument = gql`
 		$after: String
 		$before: String
 		$at: String
+		$limit: Int
 		$direction: SortDirection!
 	) {
 		traces(
@@ -14359,6 +14360,7 @@ export const GetTracesDocument = gql`
 			after: $after
 			before: $before
 			at: $at
+			limit: $limit
 			direction: $direction
 		) {
 			edges {
@@ -14410,6 +14412,7 @@ export const GetTracesDocument = gql`
  *      after: // value for 'after'
  *      before: // value for 'before'
  *      at: // value for 'at'
+ *      limit: // value for 'limit'
  *      direction: // value for 'direction'
  *   },
  * });

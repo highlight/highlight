@@ -52,6 +52,7 @@ export const PlayerHeatmapCanvas: React.FC = () => {
 			variables: {
 				project_id: projectId!,
 				direction: SortDirection.Desc,
+				limit: 1000,
 				params: {
 					query: `event.url="*${url}*" event.type=click event.relativeX EXISTS`,
 					date_range: {

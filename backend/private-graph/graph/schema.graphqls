@@ -2262,6 +2262,7 @@ type Query {
 		before: String
 		at: String
 		direction: SortDirection!
+		limit: Int
 	): TraceConnection!
 	traces_metrics(
 		project_id: ID!

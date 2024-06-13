@@ -2340,6 +2340,7 @@ query GetTraces(
 	$after: String
 	$before: String
 	$at: String
+	$limit: Int
 	$direction: SortDirection!
 ) {
 	traces(
@@ -2348,6 +2349,7 @@ query GetTraces(
 		after: $after
 		before: $before
 		at: $at
+		limit: $limit
 		direction: $direction
 	) {
 		edges {

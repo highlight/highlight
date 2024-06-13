@@ -129,6 +129,7 @@ type Pagination struct {
 	Before    *string
 	At        *string
 	Direction modelInputs.SortDirection
+	Limit     *int
 	CountOnly bool
 }
 

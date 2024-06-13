@@ -213,19 +213,21 @@ export const SessionViewportMetadata = () => {
 	const [_, setShowHeatmap] = useQueryParam('heatmap', BooleanParam)
 	const { session, viewport, state } = useReplayerContext()
 
-	if (!session || state !== ReplayerState.Paused) {
+	if (!session) {
 		return null
 	}
 
 	return (
 		<Stack direction="row" gap="4" align="center">
-			<Badge
-				iconStart={<IconSolidFire color={colors.n9} />}
-				size="medium"
-				variant="gray"
-				shape="basic"
-				onClick={() => setShowHeatmap(true)}
-			/>
+			{state === ReplayerState.Paused && (
+				<Badge
+					iconStart={<IconSolidFire color={colors.n9} />}
+					size="medium"
+					variant="gray"
+					shape="basic"
+					onClick={() => setShowHeatmap(true)}
+				/>
+			)}
 			{viewport?.width && viewport?.height && (
 				<Badge
 					iconStart={<IconSolidTemplate color={colors.n9} />}

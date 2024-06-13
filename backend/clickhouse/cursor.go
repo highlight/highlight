@@ -30,6 +30,11 @@ func getConnection[T interface{}](edges []*Edge[T], pagination Pagination) *Conn
 		hasPreviousPage bool
 	)
 
+	limit := LogsLimit
+	if pagination.Limit != nil {
+		limit = *pagination.Limit
+	}
+
 	if pagination.At != nil && len(*pagination.At) > 1 {
 		idx := getCursorIdx(edges, *pagination.At)
 
@@ -58,9 +63,9 @@ func getConnection[T interface{}](edges []*Edge[T], pagination Pagination) *Conn
 			edges = edges[1 : len(edges)-1]
 		}
 	} else {
-		if len(edges) >= LogsLimit+1 { // has forward page
-			hasNextPage = len(edges) == LogsLimit+1
-			edges = edges[:LogsLimit]
+		if len(edges) >= limit+1 { // has forward page
+			hasNextPage = len(edges) == limit+1
+			edges = edges[:limit]
 		}
 	}
 
