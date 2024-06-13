@@ -967,22 +967,23 @@ const Graph = ({
 						// TODO(vkorolik)
 						{
 							step: '',
-							column: metric || "SessionAttributes['clientID']",
+							column: metric || 'SecureID',
 							metric_type: functionType,
 						},
 						{
 							step: "email != ''",
-							column: metric || "SessionAttributes['email']",
+							// column: metric || "SessionAttributes['email']",
+							column: metric || 'SecureID',
 							metric_type: functionType,
 						},
 						{
-							step: "event = 'Viewed session'",
-							column: metric || "SessionAttributes['email']",
+							step: "email != '' event = 'header-link-click-alerts'",
+							column: metric || 'SecureID',
 							metric_type: functionType,
 						},
 						{
-							step: "event = 'Viewed error'",
-							column: metric || "SessionAttributes['email']",
+							step: "email != '' event = 'header-link-click-alerts' event = 'Session pause'",
+							column: metric || 'SecureID',
 							metric_type: functionType,
 						},
 					],
