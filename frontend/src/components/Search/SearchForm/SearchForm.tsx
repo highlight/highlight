@@ -796,7 +796,8 @@ export const Search: React.FC<{
 									>
 										<IconSolidSparkles />
 										<Text color="weak" size="small">
-											Query with Harold AI
+											Generate SQL from plain English
+											(Harold AI)
 										</Text>
 									</Stack>
 								</Combobox.Item>

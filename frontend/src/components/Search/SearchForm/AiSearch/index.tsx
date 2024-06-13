@@ -9,6 +9,7 @@ import {
 	IconSolidExclamation,
 	IconSolidLoading,
 	IconSolidPencil,
+	IconSolidPencilAlt,
 	IconSolidRefresh,
 	IconSolidSparkles,
 	IconSolidX,
@@ -272,7 +273,25 @@ export const AiSearch: React.FC<any> = ({}) => {
 										>
 											<IconSolidCheck />
 											<Text color="weak" size="small">
-												Done
+												Accept query
+											</Text>
+										</Stack>
+									</Combobox.Item>
+									<Combobox.Item
+										className={styles.comboboxItem}
+										// TODO: be able to just copy query and dates over
+										// without running query
+										onClick={() => searchSubmittedQuery()}
+										store={comboboxStore}
+									>
+										<Stack
+											direction="row"
+											gap="4"
+											align="center"
+										>
+											<IconSolidPencilAlt />
+											<Text color="weak" size="small">
+												Edit query
 											</Text>
 										</Stack>
 									</Combobox.Item>
