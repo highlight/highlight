@@ -7,6 +7,7 @@ package graph
 import (
 	"context"
 	"database/sql"
+	_ "embed"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -44,6 +45,7 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/prompts"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
@@ -8633,25 +8635,43 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 	}
 
 	now := time.Now().In(loc).Format(time.RFC3339)
+
+	var searchSpecificDoc string
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		searchSpecificDoc = prompts.TraceSearch
+	case modelInputs.ProductTypeLogs:
+		searchSpecificDoc = prompts.LogSearch
+	case modelInputs.ProductTypeSessions:
+		searchSpecificDoc = prompts.SessionSearch
+	case modelInputs.ProductTypeErrors:
+		searchSpecificDoc = prompts.ErrorSearch
+	}
+
+	log.WithContext(ctx).Infof("search generic doc: %s", prompts.SearchSyntaxDocs)
+	log.WithContext(ctx).Infof("search specific doc: %s", searchSpecificDoc)
+
 	systemPrompt := fmt.Sprintf(`
 You are a simple system used by an observabiliity product in which, 
-given a %s query, you output a structured query that the system 
+given a %s query in english, you output a structured query that the system 
 can use to parse (which ultimately queries an internal database).
 
-The input query will be a string which describes what the user wants to query in plain English.	
+The input query will be a string which describes what the user wants in plain English.	
+
+## Output Overview:
 
 The output query should be in a json format with two keys: "query" and "date_range". 
 
 Below are descriptions of the keys:
-"query": A string that represents the query that the system should use to query the internal database, which must use the key-value pairs provided below.
+"query": A string that represents the query that the system should use to query the internal database, which must use the key-value pairs provided below. See below for the syntax rules of the language.
 "date_range.start_date": A datetime string that represents the start date of the date range for the query.  If the date range is not specified, this key should be empty.
 "date_range.end_date": A datetime string that represents the end date of the date range for the query. If the date range is not specified, this key should be empty.
 
-Here is a sample input/output pair to help you understand the task: 
-
+## Rules for 'date_range' key:
 Use today's date/time in the user's time zone for any relative times provided: %s
 
-In terms of the keys and values you can use, try not to use a key-value pair that doesn't exist. 
+## Rules for 'query' key:
+In terms of the keys and values you can use in the 'query' field, try not to use a key-value pairs that don't exist. 
 
 You have the following keys to work with:
 
@@ -8661,7 +8681,14 @@ And here are the key/values that you can use for each respective key. If the bel
 
 %s
 
-	`, productType, now, strings.Join(keys, ", "), strings.Join(keyVals, ", "))
+### Documentation for query syntax:
+
+The 'query' syntax documentation is as follows:
+%s
+
+And specifically, for the %s product, you can refer to the following documentation:
+%s
+`, productType, now, strings.Join(keys, ", "), strings.Join(keyVals, ", "), prompts.SearchSyntaxDocs, productType, searchSpecificDoc)
 
 	yesterday := time.Now().In(loc).AddDate(0, 0, -1)
 	yesterdayAt2PM := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 14, 0, 0, 0, yesterday.Location()).Format(time.RFC3339)
@@ -8673,15 +8700,15 @@ And here are the key/values that you can use for each respective key. If the bel
 	}{
 		{
 			request:  "Show me all the 500 errors in the last 7 days",
-			response: fmt.Sprintf(`{"query":"status_code:500","date_range":{"start_date":"%s","end_date":""}}`, sevenDaysBack),
+			response: fmt.Sprintf(`{"query":"status_code=500","date_range":{"start_date":"%s","end_date":""}}`, sevenDaysBack),
 		},
 		{
 			request:  "Show me all the error logs from last week to yesterday at 2pm",
-			response: fmt.Sprintf(`{"query":"level:error","date_range":{"start_date":"%s","end_date":"%s"}}`, sevenDaysBack, yesterdayAt2PM),
+			response: fmt.Sprintf(`{"query":"level=error","date_range":{"start_date":"%s","end_date":"%s"}}`, sevenDaysBack, yesterdayAt2PM),
 		},
 		{
 			request:  "All the traces from the private graph service",
-			response: `{"query":"service_name:private-graph","date_range":{"start_date":"","end_date":""}}`,
+			response: `{"query":"service_name=private-graph","date_range":{"start_date":"","end_date":""}}`,
 		},
 	}
 
