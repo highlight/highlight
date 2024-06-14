@@ -154,6 +154,7 @@ type ComplexityRoot struct {
 	AllWorkspaceSettings struct {
 		AIApplication            func(childComplexity int) int
 		AIInsights               func(childComplexity int) int
+		AIQueryBuilder           func(childComplexity int) int
 		EnableDataDeletion       func(childComplexity int) int
 		EnableGrafanaDashboard   func(childComplexity int) int
 		EnableIngestSampling     func(childComplexity int) int
@@ -832,7 +833,7 @@ type ComplexityRoot struct {
 		EditSavedSegment                      func(childComplexity int, id int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) int
 		EditServiceGithubSettings             func(childComplexity int, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) int
 		EditWorkspace                         func(childComplexity int, id int, name *string) int
-		EditWorkspaceSettings                 func(childComplexity int, workspaceID int, aiApplication *bool, aiInsights *bool) int
+		EditWorkspaceSettings                 func(childComplexity int, workspaceID int, aiApplication *bool, aiInsights *bool, aiQueryBuilder *bool) int
 		EmailSignup                           func(childComplexity int, email string) int
 		ExportSession                         func(childComplexity int, sessionSecureID string) int
 		HandleAWSMarketplace                  func(childComplexity int, workspaceID int, code string) int
@@ -1690,7 +1691,7 @@ type MutationResolver interface {
 	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) (*model1.Project, error)
 	EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) (*model.AllProjectSettings, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
-	EditWorkspaceSettings(ctx context.Context, workspaceID int, aiApplication *bool, aiInsights *bool) (*model1.AllWorkspaceSettings, error)
+	EditWorkspaceSettings(ctx context.Context, workspaceID int, aiApplication *bool, aiInsights *bool, aiQueryBuilder *bool) (*model1.AllWorkspaceSettings, error)
 	ExportSession(ctx context.Context, sessionSecureID string) (bool, error)
 	MarkErrorGroupAsViewed(ctx context.Context, errorSecureID string, viewed *bool) (*model1.ErrorGroup, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
@@ -2466,6 +2467,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AllWorkspaceSettings.AIInsights(childComplexity), true
+
+	case "AllWorkspaceSettings.ai_query_builder":
+		if e.complexity.AllWorkspaceSettings.AIQueryBuilder == nil {
+			break
+		}
+
+		return e.complexity.AllWorkspaceSettings.AIQueryBuilder(childComplexity), true
 
 	case "AllWorkspaceSettings.enable_data_deletion":
 		if e.complexity.AllWorkspaceSettings.EnableDataDeletion == nil {
@@ -5801,7 +5809,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditWorkspaceSettings(childComplexity, args["workspace_id"].(int), args["ai_application"].(*bool), args["ai_insights"].(*bool)), true
+		return e.complexity.Mutation.EditWorkspaceSettings(childComplexity, args["workspace_id"].(int), args["ai_application"].(*bool), args["ai_insights"].(*bool), args["ai_query_builder"].(*bool)), true
 
 	case "Mutation.emailSignup":
 		if e.complexity.Mutation.EmailSignup == nil {
@@ -11666,6 +11674,7 @@ type AllProjectSettings {
 type AllWorkspaceSettings {
 	workspace_id: ID!
 	ai_application: Boolean!
+	ai_query_builder: Boolean!
 	ai_insights: Boolean!
 	enable_session_export: Boolean!
 	enable_unlisted_sharing: Boolean!
@@ -13562,6 +13571,7 @@ type Mutation {
 		workspace_id: ID!
 		ai_application: Boolean
 		ai_insights: Boolean
+		ai_query_builder: Boolean
 	): AllWorkspaceSettings
 	exportSession(session_secure_id: String!): Boolean!
 	markErrorGroupAsViewed(
@@ -15965,6 +15975,15 @@ func (ec *executionContext) field_Mutation_editWorkspaceSettings_args(ctx contex
 		}
 	}
 	args["ai_insights"] = arg2
+	var arg3 *bool
+	if tmp, ok := rawArgs["ai_query_builder"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ai_query_builder"))
+		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["ai_query_builder"] = arg3
 	return args, nil
 }
 
@@ -24571,6 +24590,50 @@ func (ec *executionContext) _AllWorkspaceSettings_ai_application(ctx context.Con
 }
 
 func (ec *executionContext) fieldContext_AllWorkspaceSettings_ai_application(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllWorkspaceSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllWorkspaceSettings_ai_query_builder(ctx context.Context, field graphql.CollectedField, obj *model1.AllWorkspaceSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AllWorkspaceSettings_ai_query_builder(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AIQueryBuilder, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AllWorkspaceSettings_ai_query_builder(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AllWorkspaceSettings",
 		Field:      field,
@@ -43466,7 +43529,7 @@ func (ec *executionContext) _Mutation_editWorkspaceSettings(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditWorkspaceSettings(rctx, fc.Args["workspace_id"].(int), fc.Args["ai_application"].(*bool), fc.Args["ai_insights"].(*bool))
+		return ec.resolvers.Mutation().EditWorkspaceSettings(rctx, fc.Args["workspace_id"].(int), fc.Args["ai_application"].(*bool), fc.Args["ai_insights"].(*bool), fc.Args["ai_query_builder"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -43492,6 +43555,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspaceSettings(ctx cont
 				return ec.fieldContext_AllWorkspaceSettings_workspace_id(ctx, field)
 			case "ai_application":
 				return ec.fieldContext_AllWorkspaceSettings_ai_application(ctx, field)
+			case "ai_query_builder":
+				return ec.fieldContext_AllWorkspaceSettings_ai_query_builder(ctx, field)
 			case "ai_insights":
 				return ec.fieldContext_AllWorkspaceSettings_ai_insights(ctx, field)
 			case "enable_session_export":
@@ -58193,6 +58258,8 @@ func (ec *executionContext) fieldContext_Query_workspaceSettings(ctx context.Con
 				return ec.fieldContext_AllWorkspaceSettings_workspace_id(ctx, field)
 			case "ai_application":
 				return ec.fieldContext_AllWorkspaceSettings_ai_application(ctx, field)
+			case "ai_query_builder":
+				return ec.fieldContext_AllWorkspaceSettings_ai_query_builder(ctx, field)
 			case "ai_insights":
 				return ec.fieldContext_AllWorkspaceSettings_ai_insights(ctx, field)
 			case "enable_session_export":
@@ -81581,6 +81648,11 @@ func (ec *executionContext) _AllWorkspaceSettings(ctx context.Context, sel ast.S
 			}
 		case "ai_application":
 			out.Values[i] = ec._AllWorkspaceSettings_ai_application(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ai_query_builder":
+			out.Values[i] = ec._AllWorkspaceSettings_ai_query_builder(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

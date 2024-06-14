@@ -329,15 +329,18 @@ mutation EditWorkspaceSettings(
 	$workspace_id: ID!
 	$ai_application: Boolean
 	$ai_insights: Boolean
+	$ai_query_builder: Boolean
 ) {
 	editWorkspaceSettings(
 		workspace_id: $workspace_id
 		ai_application: $ai_application
 		ai_insights: $ai_insights
+		ai_query_builder: $ai_query_builder
 	) {
 		workspace_id
 		ai_application
 		ai_insights
+		ai_query_builder
 	}
 }
 

@@ -1760,15 +1760,18 @@ export const EditWorkspaceSettingsDocument = gql`
 		$workspace_id: ID!
 		$ai_application: Boolean
 		$ai_insights: Boolean
+		$ai_query_builder: Boolean
 	) {
 		editWorkspaceSettings(
 			workspace_id: $workspace_id
 			ai_application: $ai_application
 			ai_insights: $ai_insights
+			ai_query_builder: $ai_query_builder
 		) {
 			workspace_id
 			ai_application
 			ai_insights
+			ai_query_builder
 		}
 	}
 `
@@ -1793,6 +1796,7 @@ export type EditWorkspaceSettingsMutationFn = Apollo.MutationFunction<
  *      workspace_id: // value for 'workspace_id'
  *      ai_application: // value for 'ai_application'
  *      ai_insights: // value for 'ai_insights'
+ *      ai_query_builder: // value for 'ai_query_builder'
  *   },
  * });
  */
@@ -13821,6 +13825,7 @@ export const GetWorkspaceSettingsDocument = gql`
 		workspaceSettings(workspace_id: $workspace_id) {
 			workspace_id
 			ai_application
+			ai_query_builder
 			ai_insights
 			enable_session_export
 			enable_unlisted_sharing
