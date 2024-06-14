@@ -540,6 +540,7 @@ type AllProjectSettings {
 type AllWorkspaceSettings {
 	workspace_id: ID!
 	ai_application: Boolean!
+	ai_query_builder: Boolean!
 	ai_insights: Boolean!
 	enable_session_export: Boolean!
 	enable_unlisted_sharing: Boolean!
@@ -2436,6 +2437,7 @@ type Mutation {
 		workspace_id: ID!
 		ai_application: Boolean
 		ai_insights: Boolean
+		ai_query_builder: Boolean
 	): AllWorkspaceSettings
 	exportSession(session_secure_id: String!): Boolean!
 	markErrorGroupAsViewed(

@@ -454,9 +454,10 @@ type ProjectFilterSettings struct {
 
 type AllWorkspaceSettings struct {
 	Model
-	WorkspaceID   int  `gorm:"uniqueIndex"`
-	AIApplication bool `gorm:"default:true"`
-	AIInsights    bool `gorm:"default:false"`
+	WorkspaceID    int  `gorm:"uniqueIndex"`
+	AIApplication  bool `gorm:"default:true"`
+	AIInsights     bool `gorm:"default:false"`
+	AIQueryBuilder bool `gorm:"default:false"`
 
 	// use embeddings to group errors in this workspace
 	ErrorEmbeddingsGroup bool `gorm:"default:true"`
@@ -2427,9 +2428,11 @@ type TableConfig[TReservedKey ~string] struct {
 	BodyColumn       string
 	SeverityColumn   string
 	AttributesColumn string
-	KeysToColumns    map[TReservedKey]string
-	ReservedKeys     []TReservedKey
-	SelectColumns    []string
-	DefaultFilter    string
-	IgnoredFilters   map[string]bool
+	// AttributesList set when AttributesColumn is an array of k,v pairs of attributes
+	AttributesList bool
+	KeysToColumns  map[TReservedKey]string
+	ReservedKeys   []TReservedKey
+	SelectColumns  []string
+	DefaultFilter  string
+	IgnoredFilters map[string]bool
 }

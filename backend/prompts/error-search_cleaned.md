@@ -1,17 +1,6 @@
----
-title: Error Search
-slug: error-search
-createdAt: 2024-05-15T00:00:00.000Z
-updatedAt: 2024-05-15T00:00:00.000Z
----
-
-In [highlight.io](https://highlight.io), you can search for a errors using different attributes on the error group and error
+In highlight.io, you can search for a errors using different attributes on the error group and error
 instance. The instance is a specific occurance of an error that occurred. Based on the error event, stacktrace, and other attributes,
-instances are organized into groups. These groups are returned by the search on the [Errors search page](https://app.highlight.io/errors).
-
-## Searching for errors
-
-For general information on searching errors, check out our [Search docs](../../6_product-features/3_general-features/search.md).
+instances are organized into groups. These groups are returned by the search on the Errors search page.
 
 ## Default key
 
@@ -25,13 +14,6 @@ sql: statement is closed
 ```
 
 We can find this error by typing `sql: statement is closed`.
-
-### Error Instance Search
-
-The error instances of a specific group and be searched as well. By clicking the "See all instances" button, you can search across
-instances to get more information on different occurrences of the error group.
-
-![](/images/error_instance_search.png)
 
 ## Autoinjected attributes
 
@@ -56,4 +38,4 @@ Errors can be searched by the following attributes:
 ## Helpful Tips
 
 Use contains, `=**`, and matches `=//` operators when searching by `visited_url` to avoid being too limited by query params.
-See [Searching by Visited URL](../1_session-replay/session-search.md#searching-by-visited-url) for more information.
+See Searching by Visited URL for more information.
