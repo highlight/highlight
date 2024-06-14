@@ -376,7 +376,7 @@ const AuthenticationRoleRouter = () => {
 		true,
 	)
 
-	const isProjectLevelMember = roleData?.projectIds?.length !== 0
+	const isProjectLevelMember = !!roleData?.projectIds?.length
 
 	return (
 		<AuthContextProvider

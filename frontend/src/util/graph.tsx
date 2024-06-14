@@ -115,33 +115,14 @@ const cache = new InMemoryCache({
 						})
 					},
 				},
-				workspace_for_project: {
-					read(_, { args, cache, toReference }) {
-						const projectId = cache.identify({
-							id: args?.id,
-							__typename: 'Project',
-						})
+				workspace: {
+					read(_, { args, toReference }) {
 						return toReference({
 							__typename: 'Workspace',
-							id: '1',
+							id: args?.id,
 						})
 					},
 				},
-				// workspaces: {
-				// 	read(_, { toReference }) {
-				// 		return [
-				// 			toReference({
-				// 				__typename: 'Workspace',
-				// 				id: '1',
-				// 			}),
-				// 		]
-				// 	},
-				// },
-				// joinable_workspaces: {
-				// 	read(_, { toReference }) {
-				// 		return []
-				// 	},
-				// },
 			},
 		},
 	},

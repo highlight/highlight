@@ -223,7 +223,7 @@ export const AppRouter = () => {
 		workspacesDataLoading
 
 	const currentWorkspace =
-		projectDropdownData?.workspace ||
+		projectDropdownData?.project?.workspace ||
 		workspaceDropdownData?.workspace ||
 		workspacesData?.workspaces?.at(0)
 
@@ -241,11 +241,11 @@ export const AppRouter = () => {
 					loading: false,
 					currentProject: projectDropdownData?.project ?? undefined,
 					allProjects:
-						(projectDropdownData?.workspace?.projects ||
+						(projectDropdownData?.project?.workspace?.projects ||
 							workspaceDropdownData?.workspace?.projects) ??
 						[],
 					currentWorkspace:
-						(projectDropdownData?.workspace ||
+						(projectDropdownData?.project?.workspace ||
 							workspaceDropdownData?.workspace ||
 							workspacesData?.workspaces?.at(0)) ??
 						undefined,

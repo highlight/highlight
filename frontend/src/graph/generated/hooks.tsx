@@ -187,6 +187,26 @@ export const ErrorObjectFragmentDoc = gql`
 		serviceName
 	}
 `
+export const ProjectFragmentDoc = gql`
+	fragment Project on Project {
+		id
+		name
+		verbose_id
+		billing_email
+		secret
+		workspace_id
+		error_filters
+		workspace {
+			id
+		}
+		excluded_users
+		error_json_paths
+		filter_chrome_extension
+		rage_click_window_seconds
+		rage_click_radius_pixels
+		rage_click_count
+	}
+`
 export const ErrorTagFragmentDoc = gql`
 	fragment ErrorTag on ErrorTag {
 		id
@@ -7735,11 +7755,10 @@ export type GetErrorsHistogramQueryResult = Apollo.QueryResult<
 export const GetProjectsDocument = gql`
 	query GetProjects {
 		projects {
-			id
-			name
-			workspace_id
+			...Project
 		}
 	}
+	${ProjectFragmentDoc}
 `
 
 /**
@@ -7796,11 +7815,11 @@ export const GetWorkspaceDocument = gql`
 			unlimited_members
 			clearbit_enabled
 			projects {
-				id
-				name
+				...Project
 			}
 		}
 	}
+	${ProjectFragmentDoc}
 `
 
 /**
@@ -7925,10 +7944,11 @@ export const GetWorkspacesDocument = gql`
 			id
 			name
 			projects {
-				id
+				...Project
 			}
 		}
 	}
+	${ProjectFragmentDoc}
 `
 
 /**
@@ -8034,14 +8054,14 @@ export type GetWorkspacesCountQueryResult = Apollo.QueryResult<
 export const GetProjectsAndWorkspacesDocument = gql`
 	query GetProjectsAndWorkspaces {
 		projects {
-			id
-			name
+			...Project
 		}
 		workspaces {
 			id
 			name
 		}
 	}
+	${ProjectFragmentDoc}
 `
 
 /**
@@ -8098,15 +8118,14 @@ export const GetProjectOrWorkspaceDocument = gql`
 		$is_workspace: Boolean!
 	) {
 		project(id: $project_id) @skip(if: $is_workspace) {
-			id
-			name
-			billing_email
+			...Project
 		}
 		workspace(id: $workspace_id) @include(if: $is_workspace) {
 			id
 			name
 		}
 	}
+	${ProjectFragmentDoc}
 `
 
 /**
@@ -8162,30 +8181,16 @@ export type GetProjectOrWorkspaceQueryResult = Apollo.QueryResult<
 export const GetProjectDropdownOptionsDocument = gql`
 	query GetProjectDropdownOptions($project_id: ID!) {
 		project(id: $project_id) {
-			id
-			name
-			verbose_id
-			billing_email
-			secret
-			workspace_id
-			error_filters
-		}
-		workspace: workspace_for_project(project_id: $project_id) {
-			id
-			name
-			projects {
+			...Project
+			workspace {
 				id
 				name
-				id
-				name
-				verbose_id
-				billing_email
-				secret
-				workspace_id
-				error_filters
+				projects {
+					...Project
+				}
+				retention_period
+				errors_retention_period
 			}
-			retention_period
-			errors_retention_period
 		}
 		workspaces {
 			id
@@ -8195,10 +8200,11 @@ export const GetProjectDropdownOptionsDocument = gql`
 			id
 			name
 			projects {
-				id
+				...Project
 			}
 		}
 	}
+	${ProjectFragmentDoc}
 `
 
 /**
@@ -8255,8 +8261,7 @@ export const GetWorkspaceDropdownOptionsDocument = gql`
 			id
 			name
 			projects {
-				id
-				name
+				...Project
 			}
 			retention_period
 			errors_retention_period
@@ -8269,10 +8274,11 @@ export const GetWorkspaceDropdownOptionsDocument = gql`
 			id
 			name
 			projects {
-				id
+				...Project
 			}
 		}
 	}
+	${ProjectFragmentDoc}
 `
 
 /**
@@ -8586,26 +8592,16 @@ export type GetAdminAboutYouQueryResult = Apollo.QueryResult<
 export const GetProjectDocument = gql`
 	query GetProject($id: ID!) {
 		project(id: $id) {
-			id
-			name
-			verbose_id
-			billing_email
-			excluded_users
-			error_filters
-			error_json_paths
-			filter_chrome_extension
-			rage_click_window_seconds
-			rage_click_radius_pixels
-			rage_click_count
-			secret
-		}
-		workspace: workspace_for_project(project_id: $id) {
-			id
-			slack_webhook_channel
-			retention_period
-			errors_retention_period
+			...Project
+			workspace {
+				id
+				slack_webhook_channel
+				retention_period
+				errors_retention_period
+			}
 		}
 	}
+	${ProjectFragmentDoc}
 `
 
 /**
@@ -8685,14 +8681,16 @@ export const GetBillingDetailsForProjectDocument = gql`
 			logsBillingLimit
 			tracesBillingLimit
 		}
-		workspace_for_project(project_id: $project_id) {
-			id
-			trial_end_date
-			billing_period_end
-			next_invoice_date
-			allow_meter_overage
-			eligible_for_trial_extension
-			trial_extension_enabled
+		project(id: $project_id) {
+			workspace {
+				id
+				trial_end_date
+				billing_period_end
+				next_invoice_date
+				allow_meter_overage
+				eligible_for_trial_extension
+				trial_extension_enabled
+			}
 		}
 	}
 `
