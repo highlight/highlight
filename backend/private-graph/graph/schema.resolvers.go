@@ -36,6 +36,7 @@ import (
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/front"
+	"github.com/highlight-run/highlight/backend/integrations/cloudflare"
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
@@ -2967,6 +2968,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddHerokuToProject(ctx, project, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeCloudflare {
+		if err := r.AddCloudflareToWorkspace(ctx, project, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -3027,15 +3032,8 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 			return false, err
 		}
 	} else {
-		tx := r.DB.WithContext(ctx).Where(&model.IntegrationProjectMapping{
-			ProjectID:       project.ID,
-			IntegrationType: *integrationType,
-		}).Delete(&model.IntegrationProjectMapping{})
-		if err := tx.Error; err != nil {
-			return false, e.Wrap(err, "failed to remove project integration")
-		}
-		if tx.RowsAffected == 0 {
-			return false, e.New("project does not have a integration")
+		if err := r.RemoveIntegrationFromWorkspaceAndProjects(ctx, workspace, *integrationType); err != nil {
+			return false, err
 		}
 	}
 
@@ -4207,6 +4205,38 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, pa
 		return false, err
 	}
 	return true, nil
+}
+
+// CreateCloudflareProxy is the resolver for the createCloudflareProxy field.
+func (r *mutationResolver) CreateCloudflareProxy(ctx context.Context, workspaceID int, proxySubdomain string) (string, error) {
+	workspace, err := r.isUserInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return "", err
+	}
+
+	workspaceMapping := &model.IntegrationWorkspaceMapping{}
+	if err := r.DB.WithContext(ctx).Where(&model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspace.ID,
+		IntegrationType: modelInputs.IntegrationTypeCloudflare,
+	}).Take(&workspaceMapping).Error; err != nil {
+		return "", err
+	}
+
+	c, err := cloudflare.New(ctx, workspaceMapping.AccessToken)
+	if err != nil {
+		return "", err
+	}
+	proxy, err := c.CreateWorker(ctx, proxySubdomain)
+	if err != nil {
+		return "", err
+	}
+
+	updates := &model.Workspace{CloudflareProxy: ptr.String(proxy)}
+	if err := r.DB.WithContext(ctx).Model(&workspace).Where(&workspace).Select("cloudflare_proxy").Updates(updates).Error; err != nil {
+		return "", err
+	}
+
+	return proxy, nil
 }
 
 // UpdateVercelProjectMappings is the resolver for the updateVercelProjectMappings field.
@@ -7388,6 +7418,17 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 	} else if integrationType == modelInputs.IntegrationTypeDiscord {
 		return workspace.DiscordGuildId != nil, nil
 	} else {
+		workspaceMapping := &model.IntegrationWorkspaceMapping{}
+		if err := r.DB.WithContext(ctx).Where(&model.IntegrationWorkspaceMapping{
+			WorkspaceID:     workspace.ID,
+			IntegrationType: integrationType,
+		}).First(&workspaceMapping).Error; err != nil {
+			return false, err
+		}
+		if workspaceMapping.WorkspaceID == 0 {
+			return true, nil
+		}
+
 		projectMapping := &model.IntegrationProjectMapping{}
 		if err := r.DB.WithContext(ctx).Where(&model.IntegrationProjectMapping{
 			ProjectID:       projectID,

@@ -31,6 +31,7 @@ import JiraIntegrationConfig from '@/pages/IntegrationsPage/components/JiraInteg
 import JiraProjectAndIssueTypeSelector from '@/pages/IntegrationsPage/components/JiraIntegration/JiraProjectSelector'
 import ClearbitLogo from '@/static/integrations/clearbit.svg'
 import ClickupLogo from '@/static/integrations/clickup.svg'
+import CloudflareLogo from '@/static/integrations/cloudflare.svg'
 import DiscordLogo from '@/static/integrations/discord.svg'
 import FrontLogo from '@/static/integrations/front.png'
 import GitHubLogo from '@/static/integrations/github.svg'
@@ -44,6 +45,7 @@ import SlackLogo from '@/static/integrations/slack.png'
 import VercelLogo from '@/static/integrations/vercel-icon-dark.svg'
 import ZapierLogo from '@/static/integrations/zapier.png'
 
+import CloudflareIntegrationConfig from './components/CloudflareIntegration/CloudflareIntegration'
 import GitHubIntegrationConfig from './components/GitHubIntegration/GitHubIntegrationConfig'
 import GitHubRepoSelector from './components/GitHubIntegration/GitHubRepoSelector'
 import HerokuIntegrationConfig from './components/HerokuIntegration/HerokuIntegration'
@@ -104,6 +106,17 @@ export const HEROKU_INTEGRATION: Integration = {
 	icon: HerokuLogo,
 	configurationPage: (opts) => <HerokuIntegrationConfig {...opts} />,
 	hasSettings: false,
+}
+
+export const CLOUDFLARE_INTEGRATION: Integration = {
+	key: 'cloudflare',
+	name: 'Cloudflare',
+	configurationPath: 'cloudflare',
+	description: 'Setup a Cloudflare Proxy.',
+	icon: CloudflareLogo,
+	configurationPage: (opts) => <CloudflareIntegrationConfig {...opts} />,
+	hasSettings: true,
+	modalWidth: VercelSettingsModalWidth,
 }
 
 export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
@@ -272,6 +285,7 @@ const INTEGRATIONS: Integration[] = [
 	MICROSOFT_TEAMS_INTEGRATION,
 	GITLAB_INTEGRATION,
 	HEROKU_INTEGRATION,
+	CLOUDFLARE_INTEGRATION,
 ]
 
 export default INTEGRATIONS

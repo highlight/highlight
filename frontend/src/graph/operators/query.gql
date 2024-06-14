@@ -768,6 +768,7 @@ query GetProjectDropdownOptions($project_id: ID!) {
 	workspace: workspace_for_project(project_id: $project_id) {
 		id
 		name
+		cloudflare_proxy
 		projects {
 			id
 			name
@@ -1490,6 +1491,13 @@ query GetWorkspaceIsIntegratedWithHeroku($project_id: ID!) {
 	is_integrated_with_heroku: is_integrated_with(
 		integration_type: Heroku
 		project_id: $project_id
+	)
+}
+
+query GetWorkspaceIsIntegratedWithCloudflare($workspace_id: ID!) {
+	is_integrated_with_cloudflare: is_workspace_integrated_with(
+		integration_type: Cloudflare
+		workspace_id: $workspace_id
 	)
 }
 

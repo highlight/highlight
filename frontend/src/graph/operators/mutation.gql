@@ -1463,3 +1463,10 @@ mutation UpsertGraph($graph: GraphInput!) {
 mutation DeleteGraph($id: ID!) {
 	deleteGraph(id: $id)
 }
+
+mutation CreateCloudflareProxy($workspace_id: ID!, $proxy_subdomain: String!) {
+	createCloudflareProxy(
+		workspace_id: $workspace_id
+		proxy_subdomain: $proxy_subdomain
+	)
+}
