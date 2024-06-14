@@ -72,8 +72,15 @@ const CloudflareIntegration: React.FC<
 		<>
 			<p className={styles.modalSubTitle}>
 				A highlight data proxy via Cloudflare can avoid ad-blockers
-				detecting highlight tracking and blocking recording. Create a
-				Cloudflare API token with minimal permissions of{' '}
+				detecting highlight tracking and blocking recording. Create{' '}
+				<a
+					href="https://dash.cloudflare.com/profile/api-tokens"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					a Cloudflare API token
+				</a>{' '}
+				with minimal permissions of{' '}
 				<code>
 					account.workers_scripts.edit, zone.workers_routes.edit
 				</code>
