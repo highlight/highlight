@@ -30,6 +30,9 @@ type LogRow struct {
 	Body            string
 	LogAttributes   map[string]string
 	Environment     string
+	Embedding       []float32
+	EmbeddingModel  string
+	LogGroupId      int64
 }
 
 func NewLogRow(timestamp time.Time, projectID uint32, opts ...LogRowOption) *LogRow {

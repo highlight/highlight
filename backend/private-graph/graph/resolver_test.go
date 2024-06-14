@@ -2,12 +2,17 @@ package graph
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
 	"testing"
 
+	"github.com/highlight-run/highlight/backend/clickhouse"
+	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
@@ -360,6 +365,60 @@ func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
 			}
 			if v.deletionExpected != response {
 				t.Fatalf("deletion result invalid, expected? %t but saw %t", v.deletionExpected, response)
+			}
+		})
+	}
+}
+func TestResolver_GetAIQuerySuggestion(t *testing.T) {
+	t.Skip("skipping test")
+	tests := map[string]struct {
+		productType modelInputs.ProductType
+		query       string
+	}{
+		"error logs with date range": {
+			productType: modelInputs.ProductTypeLogs,
+			query:       "all logs with level error, between 4pm yesterday and just now.",
+		},
+	}
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+			clickhouseClient, err := clickhouse.NewClient(clickhouse.PrimaryDatabase)
+			if err != nil {
+				t.Fatalf("error creating clickhouse client: %v", err)
+			}
+			r := &queryResolver{Resolver: &Resolver{
+				DB:               DB,
+				Redis:            redis.NewClient(),
+				ClickhouseClient: clickhouseClient,
+			},
+			}
+			ctx := context.WithValue(context.Background(), model.ContextKeys.UID, "abc")
+			admin, err := r.getCurrentAdmin(ctx)
+			if err != nil {
+				t.Fatal(e.Wrap(err, "error creating admin"))
+			}
+
+			w := model.Workspace{
+				Name: ptr.String("test1"),
+			}
+			if err := DB.Create(&w).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			if err := DB.Model(&w).Association("Admins").Append(admin); err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			p := model.Project{WorkspaceID: w.ID}
+			if err := DB.Create(&p).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting project"))
+			}
+
+			if out, err := r.AiQuerySuggestion(ctx, "America/New_York", p.ID, v.productType, v.query); err != nil {
+				t.Fatal(e.Wrap(err, "error creating search suggestion"))
+			} else {
+				t.Logf("query output \n %+v", out.Query)
+				t.Logf("date output \n %+v", out.DateRange)
 			}
 		})
 	}
@@ -726,6 +785,10 @@ func TestResolver_AccessLevels(t *testing.T) {
 	}
 	for _, v := range tests {
 		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+			if err := os.Setenv("DEMO_PROJECT_ID", "0"); err != nil {
+				t.Fatal(e.Wrap(err, "error resetting demo project id"))
+			}
+
 			r.Resolver = &Resolver{DB: DB}
 			if err := DB.Create(&model.Workspace{Model: model.Model{ID: 1}}).Error; err != nil {
 				t.Fatal(e.Wrap(err, "error creating workspace 1"))
@@ -954,4 +1017,86 @@ func TestAdminEmailAddresses(t *testing.T) {
 			assert.Equal(t, addrs[0].Email, "admin2@example.com")
 		}
 	})
+}
+
+func getSentences(count int) []string {
+	adjectives := []string{
+		"crazy",
+		"orange",
+		"hungry",
+		"lazy",
+		"tired",
+		"overworked",
+		"studious",
+		"attentive",
+		"green",
+		"happy",
+	}
+	subjects := []string{
+		"dog",
+		"person",
+		"human",
+		"monster",
+		"AI",
+		"alien",
+		"werewolf",
+		"vampire",
+		"cat",
+		"bat",
+		"dinosaur",
+	}
+	verbs := []string{
+		"sang to",
+		"ran past",
+		"challenged",
+		"thought about",
+		"bought",
+		"saw",
+		"detected",
+		"called",
+		"paid",
+		"ran with",
+		"ate dinner with",
+		"ate",
+	}
+
+	output := []string{}
+	for i := 0; i < count; i++ {
+		adj1 := adjectives[rand.Intn(len(adjectives))]
+		adj2 := adjectives[rand.Intn(len(adjectives))]
+		sub := subjects[rand.Intn(len(subjects))]
+		obj := subjects[rand.Intn(len(subjects))]
+		verb := verbs[rand.Intn(len(verbs))]
+		output = append(output, fmt.Sprintf("The %s %s %s the %s %s.", adj1, sub, verb, adj2, obj))
+	}
+	return output
+}
+
+func TestTestZane(t *testing.T) {
+	embedder := embeddings.New()
+	// for i := 1; i < 10_000; i *= 2 {
+	// inputs := getSentences(i)
+	inputs := []string{
+		"This is a cool log!",
+		"This is a cool log!",
+		"This is a cool log!",
+		"This is a cool log!",
+		"This is a cool log!",
+		"This is a cool log!",
+	}
+	// -0.021105194 0.017141117 -0.018723615
+	// -0.021121372 0.01712586 -0.018708395
+	// -0.021121023 0.017125577 -0.018708088
+	// log.Info("starting: ", i)
+	// start := time.Now()
+	embeddings, err := embedder.GetStringEmbeddingBatch(context.TODO(), inputs)
+	// elapsed := time.Since(start)
+	assert.NoError(t, err)
+	for _, e := range embeddings {
+		log.Info(e[0], e[100], e[200])
+	}
+	// assert.Equal(t, i, len(embeddings))
+	// log.Info("done: ", i, ", elapsed ms: ", elapsed.Milliseconds())
+
+	// }
 }

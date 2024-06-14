@@ -6,12 +6,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/redis"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/redis"
 
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
@@ -613,6 +614,10 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 				continue
 			}
 
+			if !o.resolver.IsLogIngested(ctx, logRow) {
+				continue
+			}
+
 			filteredRows = append(filteredRows, logRow)
 		}
 	}
@@ -624,20 +629,100 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 		}
 	}
 
-	var messages []kafkaqueue.RetryableMessage
+	var logBodies []string
 	for _, logRow := range filteredRows {
-		if !o.resolver.IsLogIngested(ctx, logRow) {
-			continue
+		logBodies = append(logBodies, logRow.Body)
+	}
+
+	embeddings, embeddingErr := o.resolver.EmbeddingsClient.GetStringEmbeddingBatch(ctx, logBodies)
+	if embeddingErr != nil {
+		log.WithContext(ctx).WithError(embeddingErr).Error("failed to retrieve embeddings")
+	}
+
+	var logRows []*clickhouse.LogRow
+	for _, row := range lo.Zip2(filteredRows, embeddings) {
+		logRow := row.A
+		if embeddingErr == nil {
+			logRow.Embedding = row.B
+			logRow.EmbeddingModel = "Supabase/gte-small"
 		}
+		logRows = append(logRows, logRow)
+	}
+
+	if err := o.groupLogRows(ctx, logRows); err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to group log rows")
+	}
+
+	var messages []kafkaqueue.RetryableMessage
+	for _, row := range logRows {
 		messages = append(messages, &kafkaqueue.LogRowMessage{
 			Type:   kafkaqueue.PushLogsFlattened,
-			LogRow: logRow,
+			LogRow: row,
 		})
 	}
+
 	err = o.resolver.BatchedQueue.Submit(ctx, "", messages...)
 	if err != nil {
 		return e.Wrap(err, "failed to submit otel project logs to public worker queue")
 	}
+	return nil
+}
+
+func (o *Handler) groupLogRows(ctx context.Context, logRows []*clickhouse.LogRow) error {
+	for _, row := range logRows {
+		if len(row.Embedding) == 0 {
+			continue
+		}
+
+		result := struct {
+			Score float64 `json:"score"`
+			Id    int64   `json:"id"`
+		}{}
+
+		if err := o.resolver.DB.WithContext(ctx).Raw(`
+			select (embedding <=> @embedding) as score,
+				id
+			from log_groups
+			where project_id = @project_id
+				and service_name = @service_name
+				and severity_text = @severity_text
+			order by 1
+			limit 1`,
+			map[string]interface{}{
+				"embedding":     model2.Vector(row.Embedding),
+				"project_id":    row.ProjectId,
+				"service_name":  row.ServiceName,
+				"severity_text": row.SeverityText,
+			}).Scan(&result).Error; err != nil {
+			return e.Wrap(err, "error querying top log group match")
+		}
+
+		if result.Id != 0 && result.Score < .1 {
+			row.LogGroupId = result.Id
+			if err := o.resolver.DB.WithContext(ctx).Exec(`
+				update log_groups
+				set embedding = embedding * array_fill(count::numeric / (count + 1), '{384}')::vector
+					+ @embedding * array_fill(1::numeric / (count + 1), '{384}')::vector,
+					count = count + 1
+				where id = @log_group_id`,
+				map[string]interface{}{
+					"log_group_id": row.LogGroupId,
+					"embedding":    model2.Vector(row.Embedding),
+				}).Error; err != nil {
+				return e.Wrap(err, "error updating embedding")
+			}
+		} else {
+			o.resolver.DB.Create(&model2.LogGroup{
+				ProjectID:    int(row.ProjectId),
+				ServiceName:  row.ServiceName,
+				SeverityText: row.SeverityText,
+				Embedding:    row.Embedding,
+				Message:      row.Body,
+				Count:        1,
+			})
+		}
+	}
+
 	return nil
 }
 

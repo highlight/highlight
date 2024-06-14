@@ -202,6 +202,7 @@ var Models = []interface{}{
 	&ErrorTag{},
 	&Graph{},
 	&Visualization{},
+	&LogGroup{},
 }
 
 func init() {
@@ -1425,6 +1426,16 @@ type Visualization struct {
 type VisualizationsResponse struct {
 	Count   int
 	Results []Visualization
+}
+
+type LogGroup struct {
+	Model
+	ProjectID    int    `gorm:"index:idx_log_group"`
+	ServiceName  string `gorm:"index:idx_log_group"`
+	SeverityText string `gorm:"index:idx_log_group"`
+	Embedding    Vector `gorm:"type:vector(384)"`
+	Message      string
+	Count        int
 }
 
 func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {

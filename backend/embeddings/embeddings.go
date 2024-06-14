@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"go.openly.dev/pointy"
 	"gorm.io/gorm"
 
 	e "github.com/pkg/errors"
@@ -38,6 +39,7 @@ type Client interface {
 	GetEmbeddings(ctx context.Context, errors []*model.ErrorObject) ([]*model.ErrorObjectEmbeddings, error)
 	GetErrorTagEmbedding(ctx context.Context, title string, description string) (*model.ErrorTag, error)
 	GetStringEmbedding(ctx context.Context, text string) ([]float32, error)
+	GetStringEmbeddingBatch(ctx context.Context, text []string) ([][]float32, error)
 }
 
 type OpenAIClient struct {
@@ -128,7 +130,7 @@ func (c *HuggingfaceModelClient) GetStringEmbedding(ctx context.Context, input s
 		return nil, err
 	}
 
-	body, err := c.makeRequest(ctx, b)
+	body, err := c.makeRequest(ctx, b, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -141,6 +143,55 @@ func (c *HuggingfaceModelClient) GetStringEmbedding(ctx context.Context, input s
 	return resp.Embeddings, nil
 }
 
+func (c *HuggingfaceModelClient) GetStringEmbeddingBatch(ctx context.Context, input []string) ([][]float32, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	// hacky, should truncate in inference endpoint
+	for i := range input {
+		if len(input[i]) > 512 {
+			input[i] = input[i][:512]
+		}
+	}
+
+	type HuggingfaceModelInput struct {
+		Inputs []string `json:"inputs"`
+	}
+	b, err := json.Marshal(HuggingfaceModelInput{Inputs: input})
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.makeRequest(ctx, b, pointy.String("https://vqflzuam8s8cfj84.us-east-1.aws.endpoints.huggingface.cloud"))
+	if err != nil {
+		return nil, err
+	}
+
+	type HuggingfaceModelOutput struct {
+		Embeddings [][]float64 `json:"embeddings"`
+	}
+	var output HuggingfaceModelOutput
+	if err := json.Unmarshal(body, &output); err != nil {
+		return nil, err
+	}
+
+	var resp [][]float32
+	for _, o := range output.Embeddings {
+		cur := make([]float32, 384)
+		for i, f := range o {
+			cur[i] = float32(f)
+		}
+		resp = append(resp, cur)
+	}
+
+	if len(input) != len(resp) {
+		return nil, e.Errorf("input/output lengths not equal; input: %d, output: %d", len(input), len(resp))
+	}
+
+	return resp, nil
+}
+
 type HuggingfaceModelClient struct {
 	client *http.Client
 	url    string
@@ -151,8 +202,13 @@ type HuggingfaceModelInputs struct {
 	Inputs string `json:"inputs"`
 }
 
-func (c *HuggingfaceModelClient) makeRequest(ctx context.Context, b []byte) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url, bytes.NewReader(b))
+func (c *HuggingfaceModelClient) makeRequest(ctx context.Context, b []byte, endpointUrl *string) ([]byte, error) {
+	url := c.url
+	if endpointUrl != nil {
+		url = *endpointUrl
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(b))
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +262,7 @@ func (c *HuggingfaceModelClient) GetEmbeddings(ctx context.Context, errors []*mo
 		if err != nil {
 			return nil, err
 		}
-		body, err := c.makeRequest(ctx, b)
+		body, err := c.makeRequest(ctx, b, nil)
 		if err != nil {
 			return nil, err
 		}

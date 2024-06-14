@@ -27,7 +27,7 @@ require (
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/andybalholm/brotli v1.1.0
 	github.com/antlr4-go/antlr/v4 v4.13.0
-	github.com/aws/aws-sdk-go-v2 v1.26.1
+	github.com/aws/aws-sdk-go-v2 v1.27.2
 	github.com/aws/aws-sdk-go-v2/config v1.27.11
 	github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign v1.7.1
 	github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice v1.20.2
@@ -79,8 +79,10 @@ require (
 	github.com/slack-go/slack v0.12.5
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/stripe/stripe-go/v78 v78.5.0
+	github.com/unknwon/log v0.0.0-20200308114134-929b1006e34a
 	github.com/urfave/cli/v2 v2.27.1
 	github.com/vektah/gqlparser/v2 v2.5.11
+	go.openly.dev/pointy v1.3.0
 	go.opentelemetry.io/collector/pdata v1.7.0
 	go.opentelemetry.io/otel v1.26.0
 	go.opentelemetry.io/otel/sdk v1.26.0
@@ -106,8 +108,8 @@ require (
 	github.com/PaesslerAG/gval v1.2.2 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.2 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.5 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.9 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.9 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.4 // indirect
@@ -205,6 +207,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sagemakerruntime v1.27.10
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.26.2
 	github.com/aws/aws-sdk-go-v2/service/sso v1.20.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.6 // indirect

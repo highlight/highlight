@@ -1,0 +1,212 @@
+otel received unknown event Creating new TCP worker pair
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session update
+otel received unknown event Initializing ockam worker '0#d38253ff2320bba6766b1dced49457c2' with access control in:AllowAll out:DenyAll
+workspace outside session quota, dropping frontend session update
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session update
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session events
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+otel received unknown event Stopping sender due to closed connection 172.16.29.243:33064
+workspace outside session quota, dropping frontend session events
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+otel received unknown event Creating new TCP worker pair
+workspace outside session quota, dropping frontend session events
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session update
+otel received unknown event Initializing ockam worker '0#96b6cdd86e1897cc89dae602a21fdef5' with access control in:AllowAll out:DenyAll
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session update
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session update
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session events
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session update
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+otel received unknown event Creating new TCP worker pair
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session update
+otel received unknown event Initializing ockam worker '0#d38253ff2320bba6766b1dced49457c2' with access control in:AllowAll out:DenyAll
+workspace outside session quota, dropping frontend session update
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session update
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session events
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+otel received unknown event Stopping sender due to closed connection 172.16.29.243:33064
+workspace outside session quota, dropping frontend session events
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+otel received unknown event Creating new TCP worker pair
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+Failed to join group config_group-default_config_dev: [25] Unknown Member ID: the member id is not in the current generation
+[25] Unknown Member ID: the member id is not in the current generation
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+[25] Unknown Member ID: the member id is not in the current generation
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+Failed to join group config_group-default_config_dev: [25] Unknown Member ID: the member id is not in the current generation
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+[25] Unknown Member ID: the member id is not in the current generation
+[25] Unknown Member ID: the member id is not in the current generation
+[25] Unknown Member ID: the member id is not in the current generation
+Failed to join group config_group-default_config_dev: [25] Unknown Member ID: the member id is not in the current generation
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+Failed to join group config_group-default_config_dev: [25] Unknown Member ID: the member id is not in the current generation
+Failed to join group config_group-default_config_dev: [25] Unknown Member ID: the member id is not in the current generation
+[25] Unknown Member ID: the member id is not in the current generation
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+[25] Unknown Member ID: the member id is not in the current generation
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+Failed to join group config_group-default_config_dev: [25] Unknown Member ID: the member id is not in the current generation
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+Failed to join group config_group-default_config_dev: [25] Unknown Member ID: the member id is not in the current generation
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+Failed to join group config_group-default_config_dev: [25] Unknown Member ID: the member id is not in the current generation
+[25] Unknown Member ID: the member id is not in the current generation
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+error initializing the kafka reader for partition 7 of config_dev_batched: [1] Offset Out Of Range: the requested offset is outside the range of offsets maintained by the server for the given topic/partition
+[25] Unknown Member ID: the member id is not in the current generation
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session update
+otel received unknown event Shutting down worker 0#9ae89e0f595285f54461d592111cd576
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session events
+otel received unknown event Shutting down worker 0#44e34e0d91a7ef1e7027ce8c41e48237
+starting processing0
+workspace outside session quota, dropping frontend session events
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session events
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session events
+committed
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session update
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session events
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session update
+otel received unknown event Waiting for incoming TCP connection...
+workspace outside session quota, dropping frontend session events
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session events
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session update
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session update
+error reading from session ezFblQ8N5E5VrkA1WDfLp5KhDlSe: record not found
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session update
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session update
+otel received unknown event Shutting down worker 0#9ae89e0f595285f54461d592111cd576
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session events
+otel received unknown event Shutting down worker 0#44e34e0d91a7ef1e7027ce8c41e48237
+starting processing0
+workspace outside session quota, dropping frontend session events
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session events
+workspace outside error quota, dropping frontend errors
+workspace outside error quota, dropping frontend errors
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session events
+workspace outside session quota, dropping frontend session events
+committed
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session update
+workspace outside session quota, dropping frontend session events

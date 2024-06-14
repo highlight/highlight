@@ -799,6 +799,7 @@ type Log {
 	serviceName: String
 	serviceVersion: String
 	environment: String
+	logGroupId: Int64
 }
 
 type LogEdge implements Edge {
@@ -937,6 +938,7 @@ enum ReservedLogKey {
 	"""
 	environment
 	level
+	log_group_id
 	message
 	secure_session_id
 	span_id
@@ -1180,10 +1182,20 @@ input SortInput {
 	direction: SortDirection!
 }
 
+type SortOutput {
+	column: String!
+	direction: SortDirection!
+}
+
 input QueryInput {
 	query: String!
 	date_range: DateRangeRequiredInput!
 	sort: SortInput
+}
+
+type QueryOutput {
+	query: String!
+	date_range: DateRangeRequiredOutput!
 }
 
 enum MetricTagFilterOp {
@@ -1317,6 +1329,11 @@ input DateRangeInput {
 input DateRangeRequiredInput {
 	start_date: Timestamp!
 	end_date: Timestamp!
+}
+
+type DateRangeRequiredOutput {
+	start_date: Timestamp
+	end_date: Timestamp
 }
 
 type LengthRange {
@@ -2198,6 +2215,12 @@ type Query {
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
+	ai_query_suggestion(
+		time_zone: String!
+		project_id: ID!
+		product_type: ProductType!
+		query: String!
+	): QueryOutput!
 	logs(
 		project_id: ID!
 		params: QueryInput!
@@ -2205,6 +2228,7 @@ type Query {
 		before: String
 		at: String
 		direction: SortDirection!
+		aggregate: Boolean
 	): LogConnection!
 	sessionLogs(project_id: ID!, params: QueryInput!): [LogEdge!]!
 	logs_total_count(project_id: ID!, params: QueryInput!): UInt64!

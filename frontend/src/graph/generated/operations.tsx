@@ -4559,6 +4559,7 @@ export type GetLogsQueryVariables = Types.Exact<{
 	before?: Types.Maybe<Types.Scalars['String']>
 	at?: Types.Maybe<Types.Scalars['String']>
 	direction: Types.SortDirection
+	aggregate?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
@@ -4579,6 +4580,7 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 						| 'serviceVersion'
 						| 'environment'
 						| 'projectID'
+						| 'logGroupId'
 					>
 				}
 		>

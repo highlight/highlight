@@ -72,21 +72,22 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB               *gorm.DB
-	Tracer           trace.Tracer
-	ProducerQueue    kafka_queue.MessageQueue
-	BatchedQueue     kafka_queue.MessageQueue
-	DataSyncQueue    kafka_queue.MessageQueue
-	TracesQueue      kafka_queue.MessageQueue
-	MailClient       *sendgrid.Client
-	StorageClient    storage.Client
-	EmbeddingsClient embeddings.Client
-	Redis            *redis.Client
-	Clickhouse       *clickhouse.Client
-	RH               *resthooks.Resthook
-	Store            *store.Store
-	LambdaClient     *lambda.Client
-	SessionCache     *lru.Cache[string, *model.Session]
+	DB                *gorm.DB
+	Tracer            trace.Tracer
+	TracerNoResources trace.Tracer
+	ProducerQueue     kafka_queue.MessageQueue
+	BatchedQueue      kafka_queue.MessageQueue
+	DataSyncQueue     kafka_queue.MessageQueue
+	TracesQueue       kafka_queue.MessageQueue
+	MailClient        *sendgrid.Client
+	StorageClient     storage.Client
+	EmbeddingsClient  embeddings.Client
+	Redis             *redis.Client
+	Clickhouse        *clickhouse.Client
+	RH                *resthooks.Resthook
+	Store             *store.Store
+	LambdaClient      *lambda.Client
+	SessionCache      *lru.Cache[string, *model.Session]
 }
 
 type Location struct {
@@ -519,9 +520,8 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, project
 	defer span.Finish()
 
 	result := struct {
-		Score         float64 `json:"score"`
-		CombinedScore float64 `json:"combined_score"`
-		ErrorGroupID  int     `json:"error_group_id"`
+		Score        float64 `json:"score"`
+		ErrorGroupID int     `json:"error_group_id"`
 	}{}
 
 	if method == model.ErrorGroupingMethodGteLargeEmbeddingV3 {
@@ -542,7 +542,7 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, project
 	}
 
 	if result.ErrorGroupID > 0 {
-		lg := log.WithContext(ctx).WithField("combined_score", result.CombinedScore).WithField("score", result.Score).WithField("matched_error_group_id", result.ErrorGroupID).WithField("threshold", threshold)
+		lg := log.WithContext(ctx).WithField("score", result.Score).WithField("matched_error_group_id", result.ErrorGroupID).WithField("threshold", threshold)
 		if result.Score < threshold {
 			lg.Info("matched error group by embeddings")
 
@@ -3141,7 +3141,6 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			}
 		}
 		var attributes []attribute.KeyValue
-		attributes = append(attributes, highlight.EmptyResourceAttributes...)
 		attributes = append(attributes, attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
 			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
@@ -3190,7 +3189,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionObj.SecureID)
 		ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, re.RequestResponsePairs.Request.ID)
-		span, _ := highlight.StartTraceWithTracer(ctx, r.Tracer, strings.Join([]string{method, re.Name}, " "), start, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
+		span, _ := highlight.StartTraceWithTracer(ctx, r.TracerNoResources, strings.Join([]string{method, re.Name}, " "), start, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
 		span.End(trace.WithTimestamp(end))
 	}
 	return nil
@@ -3200,7 +3199,6 @@ func (r *Resolver) submitFrontendWebsocketMetric(sessionObj *model.Session, even
 	for _, event := range events {
 		ts := time.UnixMicro(int64(1000. * event.TimeStamp))
 		var attributes []attribute.KeyValue
-		attributes = append(attributes, highlight.EmptyResourceAttributes...)
 		attributes = append(attributes, attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeWebSocketRequest)),
 			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
@@ -3231,7 +3229,7 @@ func (r *Resolver) submitFrontendWebsocketMetric(sessionObj *model.Session, even
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionObj.SecureID)
 		ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, event.SocketID)
-		span, _ := highlight.StartTraceWithTracer(ctx, r.Tracer, strings.Join([]string{"WS", event.Name}, " "), ts, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
+		span, _ := highlight.StartTraceWithTracer(ctx, r.TracerNoResources, strings.Join([]string{"WS", event.Name}, " "), ts, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
 		// ws messsages don't have a duration, but record them with some duration so they are rendered correctly
 		span.End(trace.WithTimestamp(ts.Add(time.Microsecond)))
 	}
@@ -3245,6 +3243,7 @@ func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj
 	}
 
 	for _, row := range logRows {
+		t := time.UnixMilli(row.Time)
 		attributes := []attribute.KeyValue{
 			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeFrontendConsole)),
 			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
@@ -3254,7 +3253,10 @@ func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
 			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
 		}
-		span, _ := highlight.StartTraceWithoutResourceAttributes(ctx, r.Tracer, highlight.LogSpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
+		span, _ := highlight.StartTraceWithTracer(
+			ctx, r.TracerNoResources, highlight.LogSpanName, t,
+			[]trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...,
+		)
 		message := strings.Join(row.Value, " ")
 		attrs := []attribute.KeyValue{
 			hlog.LogSeverityKey.String(row.Type),
@@ -3310,7 +3312,7 @@ func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj
 			attrs = append(attrs, semconv.ExceptionStacktraceKey.String(stackTrace))
 		}
 
-		span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(row.Time)))
+		span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(t))
 		if row.Type == "error" {
 			span.SetStatus(codes.Error, message)
 		}

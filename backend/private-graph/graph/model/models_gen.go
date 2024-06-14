@@ -274,6 +274,11 @@ type DateRangeRequiredInput struct {
 	EndDate   time.Time `json:"end_date"`
 }
 
+type DateRangeRequiredOutput struct {
+	StartDate *time.Time `json:"start_date,omitempty"`
+	EndDate   *time.Time `json:"end_date,omitempty"`
+}
+
 type DiscordChannelInput struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`
@@ -506,6 +511,7 @@ type Log struct {
 	ServiceName     *string                `json:"serviceName,omitempty"`
 	ServiceVersion  *string                `json:"serviceVersion,omitempty"`
 	Environment     *string                `json:"environment,omitempty"`
+	LogGroupID      *int64                 `json:"logGroupId,omitempty"`
 }
 
 type LogAlertInput struct {
@@ -664,6 +670,11 @@ type QueryInput struct {
 type QueryKey struct {
 	Name string  `json:"name"`
 	Type KeyType `json:"type"`
+}
+
+type QueryOutput struct {
+	Query     string                   `json:"query"`
+	DateRange *DateRangeRequiredOutput `json:"date_range"`
 }
 
 type RageClickEventForProject struct {
@@ -827,6 +838,11 @@ type SocialLink struct {
 }
 
 type SortInput struct {
+	Column    string        `json:"column"`
+	Direction SortDirection `json:"direction"`
+}
+
+type SortOutput struct {
 	Column    string        `json:"column"`
 	Direction SortDirection `json:"direction"`
 }
@@ -2066,6 +2082,7 @@ const (
 	// Keep this in alpha order
 	ReservedLogKeyEnvironment     ReservedLogKey = "environment"
 	ReservedLogKeyLevel           ReservedLogKey = "level"
+	ReservedLogKeyLogGroupID      ReservedLogKey = "log_group_id"
 	ReservedLogKeyMessage         ReservedLogKey = "message"
 	ReservedLogKeySecureSessionID ReservedLogKey = "secure_session_id"
 	ReservedLogKeySpanID          ReservedLogKey = "span_id"
@@ -2079,6 +2096,7 @@ const (
 var AllReservedLogKey = []ReservedLogKey{
 	ReservedLogKeyEnvironment,
 	ReservedLogKeyLevel,
+	ReservedLogKeyLogGroupID,
 	ReservedLogKeyMessage,
 	ReservedLogKeySecureSessionID,
 	ReservedLogKeySpanID,
@@ -2091,7 +2109,7 @@ var AllReservedLogKey = []ReservedLogKey{
 
 func (e ReservedLogKey) IsValid() bool {
 	switch e {
-	case ReservedLogKeyEnvironment, ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName, ReservedLogKeyServiceVersion, ReservedLogKeyTimestamp:
+	case ReservedLogKeyEnvironment, ReservedLogKeyLevel, ReservedLogKeyLogGroupID, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName, ReservedLogKeyServiceVersion, ReservedLogKeyTimestamp:
 		return true
 	}
 	return false

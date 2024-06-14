@@ -381,6 +381,12 @@ export type DateRangeRequiredInput = {
 	start_date: Scalars['Timestamp']
 }
 
+export type DateRangeRequiredOutput = {
+	__typename?: 'DateRangeRequiredOutput'
+	end_date?: Maybe<Scalars['Timestamp']>
+	start_date?: Maybe<Scalars['Timestamp']>
+}
+
 export type DiscordChannel = {
 	__typename?: 'DiscordChannel'
 	id: Scalars['String']
@@ -869,6 +875,7 @@ export type Log = {
 	environment?: Maybe<Scalars['String']>
 	level: LogLevel
 	logAttributes: Scalars['Map']
+	logGroupId?: Maybe<Scalars['Int64']>
 	message: Scalars['String']
 	projectID: Scalars['Int']
 	secureSessionID?: Maybe<Scalars['String']>
@@ -1929,6 +1936,7 @@ export type Query = {
 	adminHasCreatedComment?: Maybe<Scalars['Boolean']>
 	admin_role?: Maybe<WorkspaceAdminRole>
 	admin_role_by_project?: Maybe<WorkspaceAdminRole>
+	ai_query_suggestion: QueryOutput
 	api_key_to_org_id?: Maybe<Scalars['ID']>
 	averageSessionLength?: Maybe<AverageSessionLength>
 	billingDetails: BillingDetails
@@ -2102,6 +2110,13 @@ export type QueryAdmin_RoleArgs = {
 
 export type QueryAdmin_Role_By_ProjectArgs = {
 	project_id: Scalars['ID']
+}
+
+export type QueryAi_Query_SuggestionArgs = {
+	product_type: ProductType
+	project_id: Scalars['ID']
+	query: Scalars['String']
+	time_zone: Scalars['String']
 }
 
 export type QueryApi_Key_To_Org_IdArgs = {
@@ -2434,6 +2449,7 @@ export type QueryLog_LinesArgs = {
 
 export type QueryLogsArgs = {
 	after?: InputMaybe<Scalars['String']>
+	aggregate?: InputMaybe<Scalars['Boolean']>
 	at?: InputMaybe<Scalars['String']>
 	before?: InputMaybe<Scalars['String']>
 	direction: SortDirection
@@ -2887,6 +2903,12 @@ export type QueryKey = {
 	type: KeyType
 }
 
+export type QueryOutput = {
+	__typename?: 'QueryOutput'
+	date_range: DateRangeRequiredOutput
+	query: Scalars['String']
+}
+
 export type RageClickEvent = {
 	__typename?: 'RageClickEvent'
 	end_timestamp: Scalars['Timestamp']
@@ -2960,6 +2982,7 @@ export enum ReservedLogKey {
 	/** Keep this in alpha order */
 	Environment = 'environment',
 	Level = 'level',
+	LogGroupId = 'log_group_id',
 	Message = 'message',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
@@ -3420,6 +3443,12 @@ export enum SortDirection {
 }
 
 export type SortInput = {
+	column: Scalars['String']
+	direction: SortDirection
+}
+
+export type SortOutput = {
+	__typename?: 'SortOutput'
 	column: Scalars['String']
 	direction: SortDirection
 }

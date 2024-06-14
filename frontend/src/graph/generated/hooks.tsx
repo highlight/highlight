@@ -13282,6 +13282,7 @@ export const GetLogsDocument = gql`
 		$before: String
 		$at: String
 		$direction: SortDirection!
+		$aggregate: Boolean
 	) {
 		logs(
 			project_id: $project_id
@@ -13290,6 +13291,7 @@ export const GetLogsDocument = gql`
 			before: $before
 			at: $at
 			direction: $direction
+			aggregate: $aggregate
 		) {
 			edges {
 				cursor
@@ -13306,6 +13308,7 @@ export const GetLogsDocument = gql`
 					serviceVersion
 					environment
 					projectID
+					logGroupId
 				}
 			}
 			pageInfo {
@@ -13336,6 +13339,7 @@ export const GetLogsDocument = gql`
  *      before: // value for 'before'
  *      at: // value for 'at'
  *      direction: // value for 'direction'
+ *      aggregate: // value for 'aggregate'
  *   },
  * });
  */

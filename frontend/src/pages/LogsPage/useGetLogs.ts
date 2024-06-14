@@ -36,6 +36,7 @@ export const useGetLogs = ({
 	startDate,
 	endDate,
 	disablePolling,
+	aggregate,
 }: {
 	query: string
 	project_id: string | undefined
@@ -43,6 +44,7 @@ export const useGetLogs = ({
 	startDate: Date
 	endDate: Date
 	disablePolling?: boolean
+	aggregate?: boolean
 }) => {
 	// The backend can only tell us page info about a single page.
 	// It has no idea what pages have already been loaded.
@@ -72,6 +74,7 @@ export const useGetLogs = ({
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 			},
+			aggregate,
 		},
 		fetchPolicy: 'cache-and-network',
 	})

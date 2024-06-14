@@ -38,6 +38,7 @@ var logKeysToColumns = map[modelInputs.ReservedLogKey]string{
 	modelInputs.ReservedLogKeyEnvironment:     "Environment",
 	modelInputs.ReservedLogKeyMessage:         "Body",
 	modelInputs.ReservedLogKeyTimestamp:       "Timestamp",
+	modelInputs.ReservedLogKeyLogGroupID:      "LogGroupId",
 }
 
 // These keys show up as recommendations, but with no recommended values due to high cardinality
@@ -88,6 +89,23 @@ var logsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedLogKey
 	},
 }
 
+var logsAggregateTableConfig = model.TableConfig[modelInputs.ReservedLogKey]{
+	TableName:        LogsTable,
+	KeysToColumns:    logKeysToColumns,
+	ReservedKeys:     modelInputs.AllReservedLogKey,
+	BodyColumn:       "Body",
+	SeverityColumn:   "SeverityText",
+	AttributesColumn: "LogAttributes",
+	SelectColumns: []string{
+		"ProjectId",
+		"count() as Count",
+		"SeverityText",
+		"ServiceName",
+		"any(Body) as Body",
+		"LogGroupId",
+	},
+}
+
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
 	if len(logRows) == 0 {
 		return nil
@@ -130,6 +148,7 @@ type Pagination struct {
 	At        *string
 	Direction modelInputs.SortDirection
 	CountOnly bool
+	Aggregate bool
 }
 
 func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.QueryInput, pagination Pagination) (*modelInputs.LogConnection, error) {
@@ -172,7 +191,48 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 		}, nil
 	}
 
-	conn, err := readObjects(ctx, client, LogsTableConfig, logsSamplingTableConfig, projectID, params, pagination, scanLog)
+	scanLogAgg := func(rows driver.Rows) (*Edge[modelInputs.Log], error) {
+		var result struct {
+			Count        uint64
+			SeverityText string
+			ServiceName  string
+			Body         string
+			ProjectId    uint32
+			LogGroupId   int64
+		}
+		if err := rows.ScanStruct(&result); err != nil {
+			return nil, err
+		}
+
+		return &Edge[modelInputs.Log]{
+			// Cursor: encodeCursor(result.Timestamp, result.UUID),
+			Node: &modelInputs.Log{
+				Level:           makeLogLevel(result.SeverityText),
+				Message:         result.Body,
+				Timestamp:       time.Date(1337, time.April, 20, 7, 57, 18, 0, time.UTC),
+				LogAttributes:   map[string]interface{}{"Count": result.Count},
+				TraceID:         pointy.String(""),
+				SpanID:          pointy.String(""),
+				SecureSessionID: pointy.String(""),
+				Source:          pointy.String(""),
+				ServiceName:     &result.ServiceName,
+				ServiceVersion:  pointy.String(""),
+				Environment:     pointy.String(""),
+				ProjectID:       int(result.ProjectId),
+				LogGroupID:      pointy.Int64(result.LogGroupId),
+			},
+		}, nil
+	}
+
+	var conn *Connection[modelInputs.Log]
+	var err error
+
+	if pagination.Aggregate {
+		conn, err = readObjects(ctx, client, logsAggregateTableConfig, logsSamplingTableConfig, projectID, params, pagination, scanLogAgg)
+	} else {
+		conn, err = readObjects(ctx, client, LogsTableConfig, logsSamplingTableConfig, projectID, params, pagination, scanLog)
+	}
+
 	if err != nil {
 		return nil, err
 	}

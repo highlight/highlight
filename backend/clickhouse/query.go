@@ -22,6 +22,7 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/nqd/flat"
 	e "github.com/pkg/errors"
+	"github.com/unknwon/log"
 )
 
 const SamplingRows = 20_000_000
@@ -49,7 +50,20 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 
 	outerSelect := strings.Join(config.SelectColumns, ", ")
 	innerSelect := []string{"Timestamp", "UUID"}
-	if pagination.At != nil && len(*pagination.At) > 1 {
+
+	if pagination.Aggregate {
+		fromSb, err := makeSelectBuilder(
+			innerTableConfig,
+			config.SelectColumns,
+			[]int{projectID},
+			params,
+			pagination)
+		if err != nil {
+			return nil, err
+		}
+		sb = fromSb
+		sb.GroupBy("ProjectId", "SeverityText", "ServiceName", "LogGroupId").OrderBy("count() desc").Limit(100)
+	} else if pagination.At != nil && len(*pagination.At) > 1 {
 		// Create a "window" around the cursor
 		// https://stackoverflow.com/a/71738696
 		beforeSb, err := makeSelectBuilder(
@@ -120,6 +134,8 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	}
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+	str, _ := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	log.Info(str)
 
 	span, _ := util.StartSpanFromContext(ctx, "clickhouse.Query")
 	span.SetAttribute("Table", innerTableConfig.TableName)
@@ -179,7 +195,11 @@ func makeSelectBuilder[T ~string](
 					sb.LessThan("Timestamp", timestamp),
 					sb.LessThan("UUID", uuid),
 				),
-			).OrderBy(orderForward)
+			)
+
+		if !pagination.Aggregate {
+			sb.OrderBy(orderForward)
+		}
 	} else if pagination.At != nil && len(*pagination.At) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.At)
 		if err != nil {
@@ -200,13 +220,16 @@ func makeSelectBuilder[T ~string](
 					sb.GreaterThan("Timestamp", timestamp),
 					sb.GreaterThan("UUID", uuid),
 				),
-			).
-			OrderBy(orderBackward)
+			)
+
+		if !pagination.Aggregate {
+			sb.OrderBy(orderBackward)
+		}
 	} else {
 		sb.Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
 			Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
 
-		if !pagination.CountOnly { // count queries can't be ordered because we don't include Timestamp in the select
+		if !pagination.CountOnly && !pagination.Aggregate { // count queries can't be ordered because we don't include Timestamp in the select
 			sb.OrderBy(orderForward)
 		}
 	}

@@ -65,6 +65,7 @@ export const LogDetails: React.FC<Props> = ({
 		source,
 		serviceName,
 		serviceVersion,
+		logGroupId,
 	} = row.original.node
 	const expanded = row.getIsExpanded()
 	const expandable = Object.values(logAttributes).some(
@@ -85,6 +86,7 @@ export const LogDetails: React.FC<Props> = ({
 		source,
 		service_name: serviceName,
 		service_version: serviceVersion,
+		log_group_id: '' + logGroupId,
 	}
 
 	if (!expanded) {

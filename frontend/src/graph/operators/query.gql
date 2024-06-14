@@ -2051,6 +2051,7 @@ query GetLogs(
 	$before: String
 	$at: String
 	$direction: SortDirection!
+	$aggregate: Boolean
 ) {
 	logs(
 		project_id: $project_id
@@ -2059,6 +2060,7 @@ query GetLogs(
 		before: $before
 		at: $at
 		direction: $direction
+		aggregate: $aggregate
 	) {
 		edges {
 			cursor
@@ -2075,6 +2077,7 @@ query GetLogs(
 				serviceVersion
 				environment
 				projectID
+				logGroupId
 			}
 		}
 		pageInfo {

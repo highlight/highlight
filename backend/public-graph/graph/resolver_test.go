@@ -74,6 +74,13 @@ func (c *mockEmbeddingsClient) GetStringEmbedding(ctx context.Context, input str
 	return vec, nil
 }
 
+func (c *mockEmbeddingsClient) GetStringEmbeddingBatch(ctx context.Context, input []string) ([][]float32, error) {
+	var vec [][]float32
+	vec = append(vec, vector)
+
+	return vec, nil
+}
+
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"

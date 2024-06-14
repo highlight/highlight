@@ -1,19 +1,24 @@
-import { LogLevel, ProductType, SavedSegmentEntityType } from '@graph/schemas'
+import {
+	MetricAggregator,
+	ProductType,
+	SavedSegmentEntityType,
+} from '@graph/schemas'
 import {
 	Box,
+	Button,
 	DateRangePreset,
 	DEFAULT_TIME_PRESETS,
 	presetStartDate,
+	Stack,
 } from '@highlight-run/ui/components'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
-import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useQueryParam } from 'use-query-params'
 
@@ -31,9 +36,11 @@ import {
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
 import { parseSearch } from '@/components/Search/utils'
-import { useGetLogsHistogramQuery } from '@/graph/generated/hooks'
+import { useGetMetricsQuery } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
+import { TIMESTAMP_KEY } from '@/pages/Graphing/components/Graph'
+import LogsCount from '@/pages/LogsPage/LogsCount/LogsCount'
 import { LogsOverageCard } from '@/pages/LogsPage/LogsOverageCard/LogsOverageCard'
 import {
 	DEFAULT_LOG_COLUMNS,
@@ -127,6 +134,8 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		initialPreset: presetDefault,
 	})
 
+	const [isAggregate, setIsAggregate] = useState(false)
+
 	const {
 		logEdges,
 		moreLogs,
@@ -144,11 +153,8 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		startDate,
 		endDate,
 		disablePolling: !selectedPreset,
+		aggregate: isAggregate,
 	})
-
-	const handleLevelChange = (level: LogLevel) => {
-		setQuery(`${query} level:${level}`)
-	}
 
 	const fetchMoreWhenScrolled = React.useCallback(
 		(containerRefElement?: HTMLDivElement | null) => {
@@ -166,8 +172,9 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 
 	const { projectId } = useNumericProjectId()
 	const { data: histogramData, loading: histogramLoading } =
-		useGetLogsHistogramQuery({
+		useGetMetricsQuery({
 			variables: {
+				product_type: ProductType.Logs,
 				project_id: project_id!,
 				params: {
 					query,
@@ -176,9 +183,21 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						end_date: moment(endDate).format(TIME_FORMAT),
 					},
 				},
+				column: '',
+				metric_types: MetricAggregator.Count,
+				group_by: isAggregate ? 'log_group_id' : 'level',
+				limit: 10,
+				limit_aggregator: MetricAggregator.Count,
+				bucket_by: TIMESTAMP_KEY,
+				bucket_count: 90,
 			},
 			skip: !projectId,
 		})
+
+	let totalCount = 0
+	for (const b of histogramData?.metrics.buckets ?? []) {
+		totalCount += b.metric_value ?? 0
+	}
 
 	const otherElementsHeight = useMemo(() => {
 		let height = HEADERS_AND_CHARTS_HEIGHT
@@ -220,33 +239,51 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 					border="dividerWeak"
 					shadow="medium"
 				>
-					<SearchForm
-						startDate={startDate}
-						endDate={endDate}
-						onDatesChange={updateSearchTime}
-						presets={DEFAULT_TIME_PRESETS}
-						minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
-						selectedPreset={selectedPreset}
-						productType={ProductType.Logs}
-						timeMode={timeMode}
-						savedSegmentType={SavedSegmentEntityType.Log}
-						textAreaRef={textAreaRef}
-					/>
+					<Stack direction="row" gap="0">
+						<SearchForm
+							startDate={startDate}
+							endDate={endDate}
+							onDatesChange={updateSearchTime}
+							presets={DEFAULT_TIME_PRESETS}
+							minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
+							selectedPreset={selectedPreset}
+							productType={ProductType.Logs}
+							timeMode={timeMode}
+							savedSegmentType={SavedSegmentEntityType.Log}
+							textAreaRef={textAreaRef}
+						/>
+						<span style={{ height: '18px' }}></span>
+						<Box
+							padding="6"
+							style={{
+								height: '41px',
+								borderBottom: '#ebe9eb solid 1px',
+							}}
+						>
+							<Button
+								kind="secondary"
+								emphasis="medium"
+								onClick={() => {
+									setIsAggregate(!isAggregate)
+								}}
+							>
+								{isAggregate ? 'Grouped' : 'List'}
+							</Button>
+						</Box>
+					</Stack>
 					<LogsCount
 						startDate={startDate}
 						endDate={endDate}
 						presetSelected={!!selectedPreset}
-						totalCount={histogramData?.logs_histogram.objectCount}
+						totalCount={totalCount}
 						loading={histogramLoading}
 					/>
 					<LogsHistogram
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={updateSearchTime}
-						onLevelChange={handleLevelChange}
 						loading={histogramLoading}
-						histogramBuckets={histogramData?.logs_histogram.buckets}
-						bucketCount={histogramData?.logs_histogram.totalCount}
+						metrics={histogramData}
 					/>
 					<Box borderTop="dividerWeak" height="full">
 						<LogsOverageCard />
