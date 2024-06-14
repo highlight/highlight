@@ -136,18 +136,18 @@ type FieldData struct {
 }
 
 type Request struct {
-	ID      string            `json:"id"`
-	URL     string            `json:"url"`
-	Method  string            `json:"verb"`
-	Headers map[string]string `json:"headers"`
-	Body    any               `json:"body"`
+	ID         string `json:"id"`
+	URL        string `json:"url"`
+	Method     string `json:"verb"`
+	HeadersRaw any    `json:"headers"`
+	Body       any    `json:"body"`
 }
 
 type Response struct {
-	Status  float64           `json:"status"`
-	Size    float64           `json:"size"`
-	Headers map[string]string `json:"headers"`
-	Body    any               `json:"body"`
+	Status     float64 `json:"status"`
+	Size       float64 `json:"size"`
+	HeadersRaw any     `json:"headers"`
+	Body       any     `json:"body"`
 }
 
 type RequestResponsePairs struct {
@@ -3123,6 +3123,9 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		if url, err := url2.Parse(re.Name); err == nil && url.Host == "pub.highlight.io" {
 			continue
 		}
+		requestHeaders, ok := re.RequestResponsePairs.Request.HeadersRaw.(map[string]interface{})
+		responseHeaders, ok := re.RequestResponsePairs.Response.HeadersRaw.(map[string]interface{})
+		userAgent, ok := requestHeaders["User-Agent"].(string)
 		requestBody, ok := re.RequestResponsePairs.Request.Body.(string)
 		if !ok {
 			bdBytes, err := json.Marshal(requestBody)
@@ -3160,8 +3163,8 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			semconv.HTTPResponseContentLength(int(re.RequestResponsePairs.Response.Size)),
 			semconv.HTTPStatusCode(int(re.RequestResponsePairs.Response.Status)),
 			semconv.HTTPMethod(method),
-			semconv.HTTPUserAgent(re.RequestResponsePairs.Request.Headers["User-Agent"]),
-			semconv.UserAgentOriginal(re.RequestResponsePairs.Request.Headers["User-Agent"]),
+			semconv.HTTPUserAgent(userAgent),
+			semconv.UserAgentOriginal(userAgent),
 			attribute.String(privateModel.NetworkRequestAttributeInitiatorType.String(), re.InitiatorType),
 			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64(end.Sub(start).Nanoseconds())),
 			attribute.Float64(privateModel.NetworkRequestAttributeConnectLatency.String(), (re.ConnectEndAbs-re.ConnectStartAbs)*1e6),
@@ -3171,11 +3174,17 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		if u, err := url2.Parse(re.Name); err == nil {
 			attributes = append(attributes, semconv.HTTPScheme(u.Scheme), semconv.HTTPTarget(u.Path))
 		}
-		for requestHeader, requestHeaderValue := range re.RequestResponsePairs.Request.Headers {
-			attributes = append(attributes, attribute.String(fmt.Sprintf("http.request.header.%s", requestHeader), requestHeaderValue))
+		for requestHeader, requestHeaderValue := range requestHeaders {
+			str, ok := requestHeaderValue.(string)
+			if ok {
+				attributes = append(attributes, attribute.String(fmt.Sprintf("http.request.header.%s", requestHeader), str))
+			}
 		}
-		for responseHeader, responseHeaderValue := range re.RequestResponsePairs.Response.Headers {
-			attributes = append(attributes, attribute.String(fmt.Sprintf("http.response.header.%s", responseHeader), responseHeaderValue))
+		for responseHeader, responseHeaderValue := range responseHeaders {
+			str, ok := responseHeaderValue.(string)
+			if ok {
+				attributes = append(attributes, attribute.String(fmt.Sprintf("http.response.header.%s", responseHeader), str))
+			}
 		}
 		requestBodyJson := make(map[string]interface{})
 		// if the request body is json and contains the graphql key operationName, treat it as an operation
