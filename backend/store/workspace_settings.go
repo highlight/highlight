@@ -34,7 +34,7 @@ func (store *Store) UpdateAllWorkspaceSettings(ctx context.Context, workspaceID 
 	}
 
 	if err := store.Redis.Cache.Delete(ctx, fmt.Sprintf("all-workspace-settings-workspace-%d", workspaceID)); err != nil {
-		log.Errorf("Failed to delete cache: %v", err)
+		log.WithContext(ctx).Errorf("Failed to delete cache: %v", err)
 	}
 
 	return workspaceSettings, nil
