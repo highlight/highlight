@@ -234,7 +234,8 @@ const LogsTableInner = ({
 			columnHeaders,
 			columns,
 		}
-	}, [columnHelper, queryParts, selectedColumns, setSelectedColumns])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [queryParts, selectedColumns, setSelectedColumns])
 
 	const table = useReactTable({
 		data: logEdges,

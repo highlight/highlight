@@ -151,6 +151,7 @@ export type AllWorkspaceSettings = {
 	__typename?: 'AllWorkspaceSettings'
 	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
+	ai_query_builder: Scalars['Boolean']
 	enable_data_deletion: Scalars['Boolean']
 	enable_grafana_dashboard: Scalars['Boolean']
 	enable_ingest_sampling: Scalars['Boolean']
@@ -1515,6 +1516,7 @@ export type MutationEditWorkspaceArgs = {
 export type MutationEditWorkspaceSettingsArgs = {
 	ai_application?: InputMaybe<Scalars['Boolean']>
 	ai_insights?: InputMaybe<Scalars['Boolean']>
+	ai_query_builder?: InputMaybe<Scalars['Boolean']>
 	workspace_id: Scalars['ID']
 }
 

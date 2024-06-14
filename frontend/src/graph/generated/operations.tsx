@@ -355,13 +355,17 @@ export type EditWorkspaceSettingsMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	ai_application?: Types.Maybe<Types.Scalars['Boolean']>
 	ai_insights?: Types.Maybe<Types.Scalars['Boolean']>
+	ai_query_builder?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type EditWorkspaceSettingsMutation = { __typename?: 'Mutation' } & {
 	editWorkspaceSettings?: Types.Maybe<
 		{ __typename?: 'AllWorkspaceSettings' } & Pick<
 			Types.AllWorkspaceSettings,
-			'workspace_id' | 'ai_application' | 'ai_insights'
+			| 'workspace_id'
+			| 'ai_application'
+			| 'ai_insights'
+			| 'ai_query_builder'
 		>
 	>
 }
@@ -4746,6 +4750,7 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			Types.AllWorkspaceSettings,
 			| 'workspace_id'
 			| 'ai_application'
+			| 'ai_query_builder'
 			| 'ai_insights'
 			| 'enable_session_export'
 			| 'enable_unlisted_sharing'
