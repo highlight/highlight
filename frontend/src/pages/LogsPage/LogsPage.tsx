@@ -37,6 +37,7 @@ import { parseSearch } from '@/components/Search/utils'
 import {
 	useGetAiQuerySuggestionLazyQuery,
 	useGetMetricsQuery,
+	useGetWorkspaceSettingsQuery,
 } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
@@ -47,6 +48,7 @@ import {
 	DEFAULT_LOG_COLUMNS,
 	HIGHLIGHT_STANDARD_COLUMNS,
 } from '@/pages/LogsPage/LogsTable/CustomColumns/columns'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import analytics from '@/util/analytics'
 
 const LogsPage = () => {
@@ -80,6 +82,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
+	const { currentWorkspace } = useApplicationContext()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const { queryParts } = parseSearch(query)
 	const [aiMode, setAiMode] = useState(false)
@@ -143,6 +146,11 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 			})
 		}
 	}
+
+	const { data: workspaceSettings } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
 
 	const searchTimeContext = useSearchTime({
 		presets: DEFAULT_TIME_PRESETS,
@@ -290,7 +298,11 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						timeMode={timeMode}
 						savedSegmentType={SavedSegmentEntityType.Log}
 						textAreaRef={textAreaRef}
-						enableAIMode={projectId === '1'}
+						enableAIMode={
+							projectId === '1' &&
+							workspaceSettings?.workspaceSettings
+								?.ai_query_builder
+						}
 					/>
 					<LogsCount
 						startDate={searchTimeContext.startDate}
