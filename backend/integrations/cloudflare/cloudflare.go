@@ -59,23 +59,26 @@ func (c *Client) CreateWorker(ctx context.Context, proxySubdomain string) (strin
 	return route, nil
 }
 
-func New(ctx context.Context, apiToken string) *Client {
+func New(ctx context.Context, apiToken string) (*Client, error) {
 	// requires apiToken to have
 	//account.workers_scripts.edit, zone.workers_routes.edit
 	api, err := cloudflare.NewWithAPIToken(apiToken)
 	if err != nil {
-		log.Fatal(err)
+		log.WithContext(ctx).Error(err)
+		return nil, err
 	}
 
 	accounts, r1, err := api.Accounts(ctx, cloudflare.AccountsListParams{})
 	if err != nil {
-		log.Fatal(err)
+		log.WithContext(ctx).Error(err)
+		return nil, err
 	}
 	log.WithField("response", r1).Info("Accounts")
 
 	zones, err := api.ListZones(ctx)
 	if err != nil {
-		log.Fatal(err)
+		log.WithContext(ctx).Error(err)
+		return nil, err
 	}
 	log.WithField("response", zones).Info("ListZones")
 
@@ -84,5 +87,5 @@ func New(ctx context.Context, apiToken string) *Client {
 		accountID: accounts[0].ID,
 		zoneID:    zones[0].ID,
 		zoneName:  zones[0].Name,
-	}
+	}, nil
 }

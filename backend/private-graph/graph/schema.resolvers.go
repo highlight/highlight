@@ -4222,7 +4222,10 @@ func (r *mutationResolver) CreateCloudflareProxy(ctx context.Context, workspaceI
 		return "", err
 	}
 
-	c := cloudflare.New(ctx, workspaceMapping.AccessToken)
+	c, err := cloudflare.New(ctx, workspaceMapping.AccessToken)
+	if err != nil {
+		return "", err
+	}
 	proxy, err := c.CreateWorker(ctx, proxySubdomain)
 	if err != nil {
 		return "", err

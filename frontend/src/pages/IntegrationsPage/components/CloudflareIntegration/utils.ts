@@ -19,7 +19,9 @@ export const useCloudflareIntegration = () => {
 			namedOperations.Query.GetWorkspaceIsIntegratedWithCloudflare,
 		],
 	})
-	const [createCloudflareProxy] = useCreateCloudflareProxyMutation({})
+	const [createCloudflareProxy] = useCreateCloudflareProxyMutation({
+		refetchQueries: [namedOperations.Query.GetProjectDropdownOptions],
+	})
 	const addCloudflareIntegrationToProject = useCallback(
 		(code: string) =>
 			addIntegrationToProject({

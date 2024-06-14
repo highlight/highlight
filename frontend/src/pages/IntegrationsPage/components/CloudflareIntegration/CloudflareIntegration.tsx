@@ -90,7 +90,8 @@ const CloudflareIntegration: React.FC<
 					<Form.Input
 						name={formStore.names.token}
 						label="API Token"
-						type="text"
+						type="password"
+						minLength={40}
 						autoFocus
 					/>
 					<Form.Input
