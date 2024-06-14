@@ -3123,9 +3123,9 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		if url, err := url2.Parse(re.Name); err == nil && url.Host == "pub.highlight.io" {
 			continue
 		}
-		requestHeaders, ok := re.RequestResponsePairs.Request.HeadersRaw.(map[string]interface{})
-		responseHeaders, ok := re.RequestResponsePairs.Response.HeadersRaw.(map[string]interface{})
-		userAgent, ok := requestHeaders["User-Agent"].(string)
+		requestHeaders, _ := re.RequestResponsePairs.Request.HeadersRaw.(map[string]interface{})
+		responseHeaders, _ := re.RequestResponsePairs.Response.HeadersRaw.(map[string]interface{})
+		userAgent, _ := requestHeaders["User-Agent"].(string)
 		requestBody, ok := re.RequestResponsePairs.Request.Body.(string)
 		if !ok {
 			bdBytes, err := json.Marshal(requestBody)
