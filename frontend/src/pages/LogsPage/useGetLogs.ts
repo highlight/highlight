@@ -212,7 +212,7 @@ export const useGetLogs = ({
 				}
 			},
 		})
-	}, [data, fetchMore, loadingAfter, windowInfo])
+	}, [data, fetchMore, loadingAfter, sortDirection, windowInfo])
 
 	const existingTraceSet = new Set(logRelatedResources?.existing_logs_traces)
 
