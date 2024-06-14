@@ -149,12 +149,14 @@ const EventStreamV2 = function () {
 								color="secondaryContentText"
 							>
 								<IconSolidSearch size={16} />
-								<Form.Input
-									name={formStore.names.search}
-									placeholder="Search"
-									size="xSmall"
-									outline={false}
-								/>
+								<Box width="full">
+									<Form.Input
+										name={formStore.names.search}
+										placeholder="Search"
+										size="xSmall"
+										outline={false}
+									/>
+								</Box>
 							</Box>
 						</Form>
 					</Box>

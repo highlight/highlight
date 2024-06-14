@@ -17,7 +17,7 @@ func TestGetWorkspace(t *testing.T) {
 	assert.Error(t, err)
 
 	workspace := model.Workspace{}
-	store.db.Create(&workspace)
+	store.DB.Create(&workspace)
 
 	foundWorkspace, err := store.GetWorkspace(ctx, workspace.ID)
 	assert.NoError(t, err)

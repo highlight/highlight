@@ -18,10 +18,10 @@ func TestListErrorObjectsNoData(t *testing.T) {
 		State: privateModel.ErrorStateOpen,
 		Event: "something broke!",
 	}
-	store.db.Create(&errorGroup)
+	store.DB.Create(&errorGroup)
 
 	// No error objects
-	results, err := store.ListErrorObjects(errorGroup, make([]int64, 0), 0)
+	results, err := store.ListErrorObjects(context.TODO(), errorGroup, make([]int64, 0), 0)
 	assert.NoError(t, err)
 
 	assert.Equal(t, privateModel.ErrorObjectResults{
@@ -36,15 +36,15 @@ func TestListErrorObjectsOneObjectNoSession(t *testing.T) {
 		State: privateModel.ErrorStateOpen,
 		Event: "something broke!",
 	}
-	store.db.Create(&errorGroup)
+	store.DB.Create(&errorGroup)
 
 	// One error object, no session
 	errorObject := model.ErrorObject{
 		ErrorGroupID: errorGroup.ID,
 	}
-	store.db.Create(&errorObject)
+	store.DB.Create(&errorObject)
 	ids := []int64{int64(errorObject.ID)}
-	results, err := store.ListErrorObjects(errorGroup, ids, 71)
+	results, err := store.ListErrorObjects(context.TODO(), errorGroup, ids, 71)
 	assert.NoError(t, err)
 
 	assert.Len(t, results.ErrorObjects, 1)
@@ -68,7 +68,7 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 		State: privateModel.ErrorStateOpen,
 		Event: "something broke!",
 	}
-	store.db.Create(&errorGroup)
+	store.DB.Create(&errorGroup)
 
 	session := model.Session{
 		AppVersion:  ptr.String("123"),
@@ -76,16 +76,16 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 		Fingerprint: 1234,
 	}
 
-	store.db.Create(&session)
+	store.DB.Create(&session)
 
 	errorObject := model.ErrorObject{
 		ErrorGroupID:   errorGroup.ID,
 		SessionID:      &session.ID,
 		ServiceVersion: "1.0.0",
 	}
-	store.db.Create(&errorObject)
+	store.DB.Create(&errorObject)
 	ids := []int64{int64(errorObject.ID)}
-	results, err := store.ListErrorObjects(errorGroup, ids, 1)
+	results, err := store.ListErrorObjects(context.TODO(), errorGroup, ids, 1)
 	assert.NoError(t, err)
 
 	assert.Len(t, results.ErrorObjects, 1)
@@ -115,7 +115,7 @@ func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 	}
 
 	admin := model.Admin{}
-	store.db.Create(&admin)
+	store.DB.Create(&admin)
 
 	now := time.Now()
 	params := UpdateErrorGroupParams{
@@ -128,7 +128,7 @@ func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 	assert.EqualError(t, err, "record not found")
 	assert.Nil(t, unchangedErrorGroup)
 
-	store.db.Create(&errorGroup)
+	store.DB.Create(&errorGroup)
 
 	params.ID = errorGroup.ID
 
@@ -138,7 +138,7 @@ func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 	assert.Equal(t, params.State, updatedErrorGroup.State)
 	assert.Equal(t, params.SnoozedUntil.Format(time.RFC3339), updatedErrorGroup.SnoozedUntil.Format(time.RFC3339))
 
-	activityLogs, err := store.GetErrorGroupActivityLogs(errorGroup.ID)
+	activityLogs, err := store.GetErrorGroupActivityLogs(context.TODO(), errorGroup.ID)
 	assert.NoError(t, err)
 
 	assert.Len(t, activityLogs, 1)
@@ -164,7 +164,7 @@ func TestUpdateErrorGroupStateBySystem(t *testing.T) {
 	err := store.UpdateErrorGroupStateBySystem(context.TODO(), params)
 	assert.EqualError(t, err, "record not found")
 
-	store.db.Create(&errorGroup)
+	store.DB.Create(&errorGroup)
 
 	params.ID = errorGroup.ID
 
@@ -172,12 +172,12 @@ func TestUpdateErrorGroupStateBySystem(t *testing.T) {
 	assert.NoError(t, err)
 
 	var updatedErrorGroup *model.ErrorGroup
-	store.db.Model(model.ErrorGroup{}).Where("id = ?", params.ID).First(&updatedErrorGroup)
+	store.DB.Model(model.ErrorGroup{}).Where("id = ?", params.ID).First(&updatedErrorGroup)
 
 	assert.Equal(t, params.State, updatedErrorGroup.State)
 	assert.Equal(t, params.SnoozedUntil.Format(time.RFC3339), updatedErrorGroup.SnoozedUntil.Format(time.RFC3339))
 
-	activityLogs, err := store.GetErrorGroupActivityLogs(errorGroup.ID)
+	activityLogs, err := store.GetErrorGroupActivityLogs(context.TODO(), errorGroup.ID)
 	assert.NoError(t, err)
 
 	assert.Len(t, activityLogs, 1)

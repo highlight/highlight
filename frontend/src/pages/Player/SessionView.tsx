@@ -27,7 +27,7 @@ import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import clsx from 'clsx'
 import Lottie from 'lottie-react'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { RefObject, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useSearchContext } from '@/components/Search/SearchContext'
 import { useNumericProjectId } from '@/hooks/useProjectId'
@@ -44,11 +44,13 @@ import * as style from './styles.css'
 type SessionViewProps = {
 	showLeftPanel: boolean
 	leftPanelWidth: number
+	playerRef: RefObject<HTMLDivElement>
 }
 
 export const SessionView: React.FC<SessionViewProps> = ({
 	showLeftPanel,
 	leftPanelWidth,
+	playerRef,
 }) => {
 	const { sessionSecureId } = useSessionParams()
 	const { width } = useWindowSize()
@@ -75,7 +77,7 @@ export const SessionView: React.FC<SessionViewProps> = ({
 	>(undefined)
 
 	const showSession =
-		sessionViewability === SessionViewability.VIEWABLE && !!session
+		sessionViewability === SessionViewability.VIEWABLE && !!sessionSecureId
 
 	const { showRightPanel: showRightPanelPreference } =
 		usePlayerConfiguration()
@@ -184,6 +186,7 @@ export const SessionView: React.FC<SessionViewProps> = ({
 										}}
 										className="highlight-block"
 										id="player"
+										ref={playerRef}
 									/>
 									<PlayerCommentCanvas
 										setModalPosition={

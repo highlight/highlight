@@ -417,7 +417,7 @@ func (r *mutationResolver) CreateAdmin(ctx context.Context) (*model.Admin, error
 
 // CreateProject is the resolver for the createProject field.
 func (r *mutationResolver) CreateProject(ctx context.Context, name string, workspaceID int) (*model.Project, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
 	}
@@ -500,7 +500,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 
 // EditProject is the resolver for the editProject field.
 func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) (*model.Project, error) {
-	project, err := r.isAdminInProject(ctx, id)
+	project, err := r.isUserInProject(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -595,7 +595,7 @@ func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID in
 
 // EditWorkspace is the resolver for the editWorkspace field.
 func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *string) (*model.Workspace, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, id)
+	workspace, err := r.isUserInWorkspace(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying workspace")
 	}
@@ -609,12 +609,8 @@ func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *stri
 
 // EditWorkspaceSettings is the resolver for the editWorkspaceSettings field.
 func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceID int, aiApplication *bool, aiInsights *bool) (*model.AllWorkspaceSettings, error) {
-	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
-		return nil, err
-	}
-
-	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
 		return nil, err
 	}
 
@@ -694,7 +690,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		ctx := context.Background()
 		// Check if this admin has already viewed
-		if _, err := r.isAdminInProject(ctx, eg.ProjectID); err != nil {
+		if _, err := r.isUserInProject(ctx, eg.ProjectID); err != nil {
 			log.WithContext(ctx).Infof("not adding error groups count to admin in hubspot; this is probably a demo project, with id [%v]", eg.ProjectID)
 			return
 		}
@@ -760,7 +756,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		ctx := context.Background()
 		// Check if this admin has already viewed
-		if _, err := r.isAdminInProject(ctx, s.ProjectID); err != nil {
+		if _, err := r.isUserInProject(ctx, s.ProjectID); err != nil {
 			log.WithContext(ctx).Infof("not adding session count to admin in hubspot; this is probably a demo project, with id [%v]", s.ProjectID)
 			return
 		}
@@ -832,8 +828,11 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 
 // DeleteProject is the resolver for the deleteProject field.
 func (r *mutationResolver) DeleteProject(ctx context.Context, id int) (*bool, error) {
-	_, err := r.isAdminInProject(ctx, id)
+	project, err := r.isUserInProject(ctx, id)
 	if err != nil {
+		return nil, err
+	}
+	if err := r.validateAdminRole(ctx, project.WorkspaceID); err != nil {
 		return nil, err
 	}
 	if err := r.DB.WithContext(ctx).Model(&model.Project{}).Delete("id = ?", id).Error; err != nil {
@@ -843,8 +842,8 @@ func (r *mutationResolver) DeleteProject(ctx context.Context, id int) (*bool, er
 }
 
 // SendAdminWorkspaceInvite is the resolver for the sendAdminWorkspaceInvite field.
-func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, role string) (*string, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, role string, projectIds []int) (*string, error) {
+	workspace, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -889,7 +888,7 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		}
 	}
 
-	inviteLink := r.CreateInviteLink(workspaceID, &email, role, false)
+	inviteLink := r.CreateInviteLink(workspaceID, &email, role, false, projectIds)
 
 	if err := r.DB.WithContext(ctx).Create(inviteLink).Error; err != nil {
 		return nil, e.Wrap(err, "error creating new invite link")
@@ -908,13 +907,9 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 
 // DeleteInviteLinkFromWorkspace is the resolver for the deleteInviteLinkFromWorkspace field.
 func (r *mutationResolver) DeleteInviteLinkFromWorkspace(ctx context.Context, workspaceID int, workspaceInviteLinkID int) (bool, error) {
-	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
 		return false, err
-	}
-
-	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
-		return false, e.Wrap(err, "a non-Admin role Admin tried deleting an invite.")
 	}
 
 	result := r.DB.WithContext(ctx).Where("id = ?", workspaceInviteLinkID).Where("workspace_id = ?", workspaceID).Delete(&model.WorkspaceInviteLink{})
@@ -950,14 +945,9 @@ func (r *mutationResolver) JoinWorkspace(ctx context.Context, workspaceID int) (
 
 // UpdateAllowedEmailOrigins is the resolver for the updateAllowedEmailOrigins field.
 func (r *mutationResolver) UpdateAllowedEmailOrigins(ctx context.Context, workspaceID int, allowedAutoJoinEmailOrigins string) (*int, error) {
-	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
 		return nil, err
-	}
-
-	err = r.validateAdminRole(ctx, workspaceID)
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving admin user")
 	}
 
 	if !json.Valid([]byte(allowedAutoJoinEmailOrigins)) {
@@ -973,55 +963,110 @@ func (r *mutationResolver) UpdateAllowedEmailOrigins(ctx context.Context, worksp
 }
 
 // ChangeAdminRole is the resolver for the changeAdminRole field.
-func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (bool, error) {
-	_, err := r.isAdminInWorkspace(ctx, workspaceID)
-	if err != nil {
-		return false, err
-	}
-
-	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
-		return false, e.Wrap(err, "A non-Admin role Admin tried changing an admin role.")
-	}
-
-	admin, err := r.getCurrentAdmin(ctx)
-	if err != nil {
-		return false, err
-	}
-
-	if admin.ID == adminID {
-		return false, e.New("A admin tried changing their own role.")
-	}
-
-	if err := r.DB.WithContext(ctx).Model(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).Update("Role", newRole).Error; err != nil {
-		return false, e.Wrap(err, "error updating workspace_admin role")
-	}
-
-	return true, nil
-}
-
-// DeleteAdminFromProject is the resolver for the deleteAdminFromProject field.
-func (r *mutationResolver) DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (*model.WorkspaceAdminRole, error) {
+	_, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.DeleteAdminAssociation(ctx, project, adminID)
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if admin.ID == adminID {
+		return nil, e.New("User cannot change their own access.")
+	}
+
+	if newRole != model.AdminRole.ADMIN && newRole != model.AdminRole.MEMBER {
+		return nil, e.Errorf("Invalid role %s", newRole)
+	}
+
+	wa := model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}
+	if err := r.DB.WithContext(ctx).Model(&wa).
+		Clauses(clause.Returning{}).
+		Updates(map[string]interface{}{"Role": newRole, "ProjectIds": nil}).Error; err != nil {
+		return nil, e.Wrap(err, "Error updating workspace_admin role")
+	}
+
+	return &model.WorkspaceAdminRole{
+		WorkspaceId: wa.WorkspaceID,
+		Admin:       &model.Admin{Model: model.Model{ID: adminID}},
+		Role:        *wa.Role,
+		ProjectIds: lo.Map(wa.ProjectIds, func(in int32, _ int) int {
+			return int(in)
+		}),
+	}, nil
+}
+
+// ChangeProjectMembership is the resolver for the changeProjectMembership field.
+func (r *mutationResolver) ChangeProjectMembership(ctx context.Context, workspaceID int, adminID int, projectIds []int) (*model.WorkspaceAdminRole, error) {
+	_, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	if !settings.EnableProjectLevelAccess {
+		return nil, e.New("Workspace does not have the project-level access feature.")
+	}
+
+	if admin.ID == adminID {
+		return nil, e.New("User cannot change their own access.")
+	}
+
+	var newProjectIds pq.Int32Array = lo.Map(projectIds, func(in int, _ int) int32 {
+		return int32(in)
+	})
+
+	if len(newProjectIds) == 0 {
+		newProjectIds = nil
+	}
+
+	wa := model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}
+	if err := r.DB.WithContext(ctx).Model(&wa).
+		Clauses(clause.Returning{}).Update("ProjectIds", newProjectIds).Error; err != nil {
+		return nil, e.Wrap(err, "error updating workspace_admin role")
+	}
+
+	return &model.WorkspaceAdminRole{
+		WorkspaceId: wa.WorkspaceID,
+		Admin:       &model.Admin{Model: model.Model{ID: adminID}},
+		Role:        *wa.Role,
+		ProjectIds: lo.Map(wa.ProjectIds, func(in int32, _ int) int {
+			return int(in)
+		}),
+	}, nil
 }
 
 // DeleteAdminFromWorkspace is the resolver for the deleteAdminFromWorkspace field.
 func (r *mutationResolver) DeleteAdminFromWorkspace(ctx context.Context, workspaceID int, adminID int) (*int, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "current admin is not in workspace")
 	}
 
-	deletedAdminId, err := r.DeleteAdminAssociation(ctx, workspace, adminID)
+	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
+		return nil, err
+	}
+	if admin.ID == adminID {
+		return nil, e.New("Admin tried deleting their own association")
+	}
+
+	if err := r.DB.WithContext(ctx).Model(workspace).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
 		return nil, e.Wrap(err, "error deleting admin association")
 	}
 
-	return deletedAdminId, nil
+	return &adminID, nil
 }
 
 // EmailSignup is the resolver for the emailSignup field.
@@ -1055,7 +1100,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 
 // CreateSavedSegment is the resolver for the createSavedSegment field.
 func (r *mutationResolver) CreateSavedSegment(ctx context.Context, projectID int, name string, entityType modelInputs.SavedSegmentEntityType, query string) (*model.SavedSegment, error) {
-	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 	modelParams := SavedSegmentQueryToParams(query)
@@ -1089,7 +1134,7 @@ func (r *mutationResolver) CreateSavedSegment(ctx context.Context, projectID int
 
 // EditSavedSegment is the resolver for the editSavedSegment field.
 func (r *mutationResolver) EditSavedSegment(ctx context.Context, id int, projectID int, name string, entityType modelInputs.SavedSegmentEntityType, query string) (*bool, error) {
-	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 	modelParams := SavedSegmentQueryToParams(query)
@@ -1131,13 +1176,9 @@ func (r *mutationResolver) DeleteSavedSegment(ctx context.Context, segmentID int
 
 // CreateOrUpdateStripeSubscription is the resolver for the createOrUpdateStripeSubscription field.
 func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int) (*string, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
-	}
-
-	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
-		return nil, e.Wrap(err, "must have ADMIN role to create/update stripe subscription")
 	}
 
 	// For older projects, if there's no customer ID, we create a StripeCustomer obj.
@@ -1246,12 +1287,8 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 // HandleAWSMarketplace is the resolver for the handleAWSMarketplace field.
 func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID int, code string) (*bool, error) {
-	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
-		return nil, err
-	}
-
-	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
 		return nil, err
 	}
 
@@ -1350,13 +1387,9 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 
 // UpdateBillingDetails is the resolver for the updateBillingDetails field.
 func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error) {
-	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
-	}
-
-	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
-		return nil, e.Wrap(err, "must have ADMIN role to update billing details")
 	}
 
 	workspace, err := r.GetAWSMarketPlaceWorkspace(ctx, workspaceID)
@@ -1375,9 +1408,9 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 
 // SaveBillingPlan is the resolver for the saveBillingPlan field.
 func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention modelInputs.RetentionPeriod, errorsLimitCents *int, errorsRetention modelInputs.RetentionPeriod, logsLimitCents *int, logsRetention modelInputs.RetentionPeriod, tracesLimitCents *int, tracesRetention modelInputs.RetentionPeriod) (*bool, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in workspace")
+		return nil, err
 	}
 
 	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
@@ -2889,7 +2922,7 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 
 // AddIntegrationToProject is the resolver for the addIntegrationToProject field.
 func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrationType *modelInputs.IntegrationType, projectID int, code string) (bool, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return false, err
 	}
@@ -2944,7 +2977,7 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 
 // RemoveIntegrationFromProject is the resolver for the removeIntegrationFromProject field.
 func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, integrationType *modelInputs.IntegrationType, projectID int) (bool, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return false, err
 	}
@@ -3012,7 +3045,7 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 
 // AddIntegrationToWorkspace is the resolver for the addIntegrationToWorkspace field.
 func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integrationType *modelInputs.IntegrationType, workspaceID int, code string) (bool, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return false, err
 	}
@@ -3046,7 +3079,7 @@ func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integr
 
 // RemoveIntegrationFromWorkspace is the resolver for the removeIntegrationFromWorkspace field.
 func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, integrationType modelInputs.IntegrationType, workspaceID int) (bool, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return false, err
 	}
@@ -3078,7 +3111,7 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 
 // SyncSlackIntegration is the resolver for the syncSlackIntegration field.
 func (r *mutationResolver) SyncSlackIntegration(ctx context.Context, projectID int) (*modelInputs.SlackSyncResponse, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	response := modelInputs.SlackSyncResponse{
 		Success:               true,
 		NewChannelsAddedCount: 0,
@@ -3115,7 +3148,7 @@ func (r *mutationResolver) SyncSlackIntegration(ctx context.Context, projectID i
 
 // CreateMetricMonitor is the resolver for the createMetricMonitor field.
 func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator modelInputs.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
@@ -3180,7 +3213,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 
 // UpdateMetricMonitor is the resolver for the updateMetricMonitor field.
 func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *modelInputs.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, disabled *bool, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
@@ -3276,7 +3309,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 
 // CreateErrorAlert is the resolver for the createErrorAlert field.
 func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, microsoftTeamsChannels []*modelInputs.MicrosoftTeamsChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency int, defaultArg *bool) (*model.ErrorAlert, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
@@ -3346,7 +3379,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 
 // UpdateErrorAlert is the resolver for the updateErrorAlert field.
 func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, microsoftTeamsChannels []*modelInputs.MicrosoftTeamsChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency *int, disabled *bool) (*model.ErrorAlert, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
@@ -3437,7 +3470,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 
 // DeleteErrorAlert is the resolver for the deleteErrorAlert field.
 func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, errorAlertID int) (*model.ErrorAlert, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
@@ -3471,7 +3504,7 @@ func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, 
 
 // DeleteMetricMonitor is the resolver for the deleteMetricMonitor field.
 func (r *mutationResolver) DeleteMetricMonitor(ctx context.Context, projectID int, metricMonitorID int) (*model.MetricMonitor, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
@@ -3505,7 +3538,7 @@ func (r *mutationResolver) DeleteMetricMonitor(ctx context.Context, projectID in
 
 // UpdateSessionAlertIsDisabled is the resolver for the updateSessionAlertIsDisabled field.
 func (r *mutationResolver) UpdateSessionAlertIsDisabled(ctx context.Context, id int, projectID int, disabled bool) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProject(ctx, projectID)
+	_, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -3529,7 +3562,7 @@ func (r *mutationResolver) UpdateSessionAlertIsDisabled(ctx context.Context, id 
 
 // UpdateErrorAlertIsDisabled is the resolver for the updateErrorAlertIsDisabled field.
 func (r *mutationResolver) UpdateErrorAlertIsDisabled(ctx context.Context, id int, projectID int, disabled bool) (*model.ErrorAlert, error) {
-	_, err := r.isAdminInProject(ctx, projectID)
+	_, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -3553,7 +3586,7 @@ func (r *mutationResolver) UpdateErrorAlertIsDisabled(ctx context.Context, id in
 
 // UpdateMetricMonitorIsDisabled is the resolver for the updateMetricMonitorIsDisabled field.
 func (r *mutationResolver) UpdateMetricMonitorIsDisabled(ctx context.Context, id int, projectID int, disabled bool) (*model.MetricMonitor, error) {
-	_, err := r.isAdminInProject(ctx, projectID)
+	_, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -3575,7 +3608,7 @@ func (r *mutationResolver) UpdateMetricMonitorIsDisabled(ctx context.Context, id
 
 // UpdateSessionAlert is the resolver for the updateSessionAlert field.
 func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, id int, input modelInputs.SessionAlertInput) (*model.SessionAlert, error) {
-	project, err := r.isAdminInProject(ctx, input.ProjectID)
+	project, err := r.isUserInProject(ctx, input.ProjectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
@@ -3613,7 +3646,7 @@ func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, id int, input
 
 // CreateSessionAlert is the resolver for the createSessionAlert field.
 func (r *mutationResolver) CreateSessionAlert(ctx context.Context, input modelInputs.SessionAlertInput) (*model.SessionAlert, error) {
-	project, err := r.isAdminInProject(ctx, input.ProjectID)
+	project, err := r.isUserInProject(ctx, input.ProjectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
@@ -3647,7 +3680,7 @@ func (r *mutationResolver) CreateSessionAlert(ctx context.Context, input modelIn
 
 // DeleteSessionAlert is the resolver for the deleteSessionAlert field.
 func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int, sessionAlertID int) (*model.SessionAlert, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
@@ -3681,7 +3714,7 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 
 // UpdateLogAlert is the resolver for the updateLogAlert field.
 func (r *mutationResolver) UpdateLogAlert(ctx context.Context, id int, input modelInputs.LogAlertInput) (*model.LogAlert, error) {
-	project, err := r.isAdminInProject(ctx, input.ProjectID)
+	project, err := r.isUserInProject(ctx, input.ProjectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
@@ -3728,7 +3761,7 @@ func (r *mutationResolver) UpdateLogAlert(ctx context.Context, id int, input mod
 
 // CreateLogAlert is the resolver for the createLogAlert field.
 func (r *mutationResolver) CreateLogAlert(ctx context.Context, input modelInputs.LogAlertInput) (*model.LogAlert, error) {
-	project, err := r.isAdminInProject(ctx, input.ProjectID)
+	project, err := r.isUserInProject(ctx, input.ProjectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
@@ -3773,7 +3806,7 @@ func (r *mutationResolver) CreateLogAlert(ctx context.Context, input modelInputs
 
 // DeleteLogAlert is the resolver for the deleteLogAlert field.
 func (r *mutationResolver) DeleteLogAlert(ctx context.Context, projectID int, id int) (*model.LogAlert, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -3817,7 +3850,7 @@ func (r *mutationResolver) DeleteLogAlert(ctx context.Context, projectID int, id
 
 // UpdateLogAlertIsDisabled is the resolver for the updateLogAlertIsDisabled field.
 func (r *mutationResolver) UpdateLogAlertIsDisabled(ctx context.Context, id int, projectID int, disabled bool) (*model.LogAlert, error) {
-	_, err := r.isAdminInProject(ctx, projectID)
+	_, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -3876,14 +3909,9 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 
 // UpdateAllowMeterOverage is the resolver for the updateAllowMeterOverage field.
 func (r *mutationResolver) UpdateAllowMeterOverage(ctx context.Context, workspaceID int, allowMeterOverage bool) (*model.Workspace, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in workspace")
-	}
-
-	err = r.validateAdminRole(ctx, workspaceID)
-	if err != nil {
-		return nil, e.Wrap(err, "must have ADMIN role to modify meter overage settings")
+		return nil, err
 	}
 
 	if err := r.DB.WithContext(ctx).Model(&workspace).Updates(map[string]interface{}{
@@ -3897,7 +3925,7 @@ func (r *mutationResolver) UpdateAllowMeterOverage(ctx context.Context, workspac
 
 // SubmitRegistrationForm is the resolver for the submitRegistrationForm field.
 func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) (*bool, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isUserInWorkspaceReadOnly(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
@@ -4011,7 +4039,7 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 
 // ModifyClearbitIntegration is the resolver for the modifyClearbitIntegration field.
 func (r *mutationResolver) ModifyClearbitIntegration(ctx context.Context, workspaceID int, enabled bool) (*bool, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return &enabled, e.Wrap(err, "admin does not have access to this workspace")
 	}
@@ -4032,7 +4060,7 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 		return -1, err
 	}
 
-	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProject(ctx, projectID); err != nil {
 		return -1, err
 	}
 
@@ -4109,7 +4137,7 @@ func (r *mutationResolver) DeleteDashboard(ctx context.Context, id int) (bool, e
 		return false, result.Error
 	}
 
-	if _, err := r.isAdminInProject(ctx, dashboard.ProjectID); err != nil {
+	if _, err := r.isUserInProject(ctx, dashboard.ProjectID); err != nil {
 		return false, err
 	}
 
@@ -4134,7 +4162,7 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, pa
 		return false, nil
 	}
 
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return false, err
 	}
@@ -4163,13 +4191,8 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, pa
 		firstName = *admin.FirstName
 	}
 
-	role, err := r.GetAdminRole(ctx, admin.ID, project.WorkspaceID)
-	if err != nil {
+	if err := r.validateAdminRole(ctx, project.WorkspaceID); err != nil {
 		return false, err
-	}
-
-	if role != model.AdminRole.ADMIN {
-		return false, e.New("Must be admin role to delete sessions")
 	}
 
 	_, err = r.StepFunctions.DeleteSessionsByQuery(ctx, utils.QuerySessionsInput{
@@ -4189,7 +4212,7 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, pa
 
 // UpdateVercelProjectMappings is the resolver for the updateVercelProjectMappings field.
 func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, projectID int, projectMappings []*modelInputs.VercelProjectMappingInput) (bool, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return false, err
 	}
@@ -4228,7 +4251,7 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 			project = p
 		} else {
 			// for projects that already exist.
-			p, err := r.isAdminInProject(ctx, *m.ProjectID)
+			p, err := r.isUserInProject(ctx, *m.ProjectID)
 			if err != nil {
 				return false, err
 			}
@@ -4306,7 +4329,7 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 
 // UpdateClickUpProjectMappings is the resolver for the updateClickUpProjectMappings field.
 func (r *mutationResolver) UpdateClickUpProjectMappings(ctx context.Context, workspaceID int, projectMappings []*modelInputs.ClickUpProjectMappingInput) (bool, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return false, err
 	}
@@ -4350,7 +4373,7 @@ func (r *mutationResolver) UpdateClickUpProjectMappings(ctx context.Context, wor
 
 // UpdateIntegrationProjectMappings is the resolver for the updateIntegrationProjectMappings field.
 func (r *mutationResolver) UpdateIntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType modelInputs.IntegrationType, projectMappings []*modelInputs.IntegrationProjectMappingInput) (bool, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return false, err
 	}
@@ -4432,7 +4455,7 @@ func (r *mutationResolver) UpdateEmailOptOut(ctx context.Context, token *string,
 
 // EditServiceGithubSettings is the resolver for the editServiceGithubSettings field.
 func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) (*model.Service, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -4476,7 +4499,7 @@ func (r *mutationResolver) UpdateErrorTags(ctx context.Context) (bool, error) {
 
 // UpsertSlackChannel is the resolver for the upsertSlackChannel field.
 func (r *mutationResolver) UpsertSlackChannel(ctx context.Context, projectID int, name string) (*modelInputs.SanitizedSlackChannel, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -4512,7 +4535,7 @@ func (r *mutationResolver) UpsertSlackChannel(ctx context.Context, projectID int
 
 // UpsertDiscordChannel is the resolver for the upsertDiscordChannel field.
 func (r *mutationResolver) UpsertDiscordChannel(ctx context.Context, projectID int, name string) (*model.DiscordChannel, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -4581,7 +4604,7 @@ func (r *mutationResolver) UpsertVisualization(ctx context.Context, visualizatio
 		}
 	}
 
-	if _, err := r.isAdminInProject(ctx, visualization.ProjectID); err != nil {
+	if _, err := r.isUserInProject(ctx, visualization.ProjectID); err != nil {
 		return 0, err
 	}
 
@@ -4615,7 +4638,7 @@ func (r *mutationResolver) DeleteVisualization(ctx context.Context, id int) (boo
 		return false, err
 	}
 
-	if _, err := r.isAdminInProject(ctx, viz.ProjectID); err != nil {
+	if _, err := r.isUserInProject(ctx, viz.ProjectID); err != nil {
 		return false, err
 	}
 
@@ -4633,7 +4656,7 @@ func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.Gr
 		return nil, err
 	}
 
-	_, err := r.isAdminInProject(ctx, viz.ProjectID)
+	_, err := r.isUserInProject(ctx, viz.ProjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -4679,10 +4702,32 @@ func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.Gr
 				return err
 			}
 		}
+
+		updates := map[string]interface{}{"UpdatedByAdminId": admin.ID}
+		if graph.AfterGraphID != nil {
+			var viz model.Visualization
+			if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", graph.VisualizationID).Preload("Graphs").Find(&viz).Error; err != nil {
+				return err
+			}
+			reorderGraphs(&viz)
+			newGraphIds := pq.Int32Array{}
+			for _, g := range viz.Graphs {
+				if g.ID == toSave.ID {
+					continue
+				}
+				newGraphIds = append(newGraphIds, int32(g.ID))
+				if g.ID == *graph.AfterGraphID {
+					newGraphIds = append(newGraphIds, int32(toSave.ID))
+				}
+			}
+			updates["GraphIds"] = newGraphIds
+		}
+
 		if err := tx.WithContext(ctx).Model(&model.Visualization{}).Where("id = ?", graph.VisualizationID).
-			Update("UpdatedByAdminId", admin.ID).Error; err != nil {
+			Updates(updates).Error; err != nil {
 			return err
 		}
+
 		return nil
 	}); err != nil {
 		return nil, err
@@ -4698,7 +4743,7 @@ func (r *mutationResolver) DeleteGraph(ctx context.Context, id int) (bool, error
 		return false, err
 	}
 
-	if _, err := r.isAdminInProject(ctx, viz.ProjectID); err != nil {
+	if _, err := r.isUserInProject(ctx, viz.ProjectID); err != nil {
 		return false, err
 	}
 
@@ -5050,7 +5095,7 @@ func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) 
 
 // RageClicksForProject is the resolver for the rageClicksForProject field.
 func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int, lookbackDays float64) ([]*modelInputs.RageClickEventForProject, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
@@ -5091,7 +5136,7 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 
 // ErrorGroupsClickhouse is the resolver for the error_groups_clickhouse field.
 func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int, count int, query modelInputs.ClickhouseQuery, page *int) (*model.ErrorResults, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -5125,7 +5170,7 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 
 // ErrorGroups is the resolver for the error_groups field.
 func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count int, params modelInputs.QueryInput, page *int) (*model.ErrorResults, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -5159,7 +5204,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 
 // ErrorsHistogramClickhouse is the resolver for the errors_histogram_clickhouse field.
 func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -5182,7 +5227,7 @@ func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID
 
 // ErrorsHistogram is the resolver for the errors_histogram field.
 func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -5240,7 +5285,7 @@ func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID str
 
 	ids, total, err := r.ClickhouseClient.QueryErrorObjects(ctx, errorGroup.ProjectID, errorGroup.ID, count, params, page)
 
-	results, err := r.Store.ListErrorObjects(*errorGroup, ids, total)
+	results, err := r.Store.ListErrorObjects(ctx, *errorGroup, ids, total)
 	return &results, err
 }
 
@@ -5337,11 +5382,11 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	if err != nil {
 		return nil, err
 	}
-	p, err := r.isAdminInProjectOrDemoProject(ctx, s.ProjectID)
+	p, err := r.isUserInProjectOrDemoProject(ctx, s.ProjectID)
 	if err != nil {
 		return nil, err
 	}
-	w, err := r.isAdminInWorkspace(ctx, p.WorkspaceID)
+	w, err := r.isUserInWorkspaceReadOnly(ctx, p.WorkspaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -5533,7 +5578,7 @@ func (r *queryResolver) SessionComments(ctx context.Context, sessionSecureID str
 
 // SessionCommentTagsForProject is the resolver for the session_comment_tags_for_project field.
 func (r *queryResolver) SessionCommentTagsForProject(ctx context.Context, projectID int) ([]*model.SessionCommentTag, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org for session comment tags")
 	}
 
@@ -5563,7 +5608,7 @@ func (r *queryResolver) SessionCommentsForAdmin(ctx context.Context) ([]*model.S
 // SessionCommentsForProject is the resolver for the session_comments_for_project field.
 func (r *queryResolver) SessionCommentsForProject(ctx context.Context, projectID int) ([]*model.SessionComment, error) {
 	var sessionComments []*model.SessionComment
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return sessionComments, nil
 	}
 	admin, err := r.getCurrentAdmin(ctx)
@@ -5650,7 +5695,7 @@ func (r *queryResolver) ErrorCommentsForAdmin(ctx context.Context) ([]*model.Err
 // ErrorCommentsForProject is the resolver for the error_comments_for_project field.
 func (r *queryResolver) ErrorCommentsForProject(ctx context.Context, projectID int) ([]*model.ErrorComment, error) {
 	var errorComments []*model.ErrorComment
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return errorComments, nil
 	}
 
@@ -5667,7 +5712,7 @@ func (r *queryResolver) ErrorCommentsForProject(ctx context.Context, projectID i
 
 // WorkspaceAdmins is the resolver for the workspace_admins field.
 func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([]*model.WorkspaceAdminRole, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
 	}
@@ -5679,13 +5724,15 @@ func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([
 
 	var roles []*model.WorkspaceAdminRole
 	for _, admin := range admins {
-		role, err := r.GetAdminRole(ctx, admin.ID, workspace.ID)
+		role, projectIds, err := r.getAdminRole(ctx, admin.ID, workspace.ID)
 		if err != nil {
 			return nil, e.Wrap(err, "failed to retrieve admin role")
 		}
 		roles = append(roles, &model.WorkspaceAdminRole{
-			Admin: admin,
-			Role:  role,
+			WorkspaceId: workspace.ID,
+			Admin:       admin,
+			Role:        role,
+			ProjectIds:  projectIds,
 		})
 	}
 
@@ -5694,7 +5741,7 @@ func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([
 
 // WorkspaceAdminsByProjectID is the resolver for the workspace_admins_by_project_id field.
 func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model.WorkspaceAdminRole, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -5704,7 +5751,23 @@ func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectI
 		return nil, err
 	}
 
-	return r.WorkspaceAdmins(ctx, workspace.ID)
+	admins, err := r.WorkspaceAdmins(ctx, workspace.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Only return admins with project-level access
+	return lo.Filter(admins, func(wa *model.WorkspaceAdminRole, _ int) bool {
+		if len(wa.ProjectIds) == 0 {
+			return true
+		}
+		for _, id := range wa.ProjectIds {
+			if projectID == id {
+				return true
+			}
+		}
+		return false
+	}), nil
 }
 
 // ClientIntegration is the resolver for the clientIntegration field.
@@ -5713,7 +5776,7 @@ func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*
 		Integrated:   false,
 		ResourceType: "Session",
 	}
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return integration, nil
 	}
 
@@ -5738,7 +5801,7 @@ func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*
 		Integrated:   false,
 		ResourceType: "ErrorGroup",
 	}
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return integration, nil
 	}
 
@@ -5763,7 +5826,7 @@ func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*mo
 		Integrated:   false,
 		ResourceType: "Log",
 	}
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -5790,7 +5853,7 @@ func (r *queryResolver) TracesIntegration(ctx context.Context, projectID int) (*
 		Integrated:   false,
 		ResourceType: "Trace",
 	}
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -5813,7 +5876,7 @@ func (r *queryResolver) TracesIntegration(ctx context.Context, projectID int) (*
 
 // UnprocessedSessionsCount is the resolver for the unprocessedSessionsCount field.
 func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
@@ -5840,7 +5903,7 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID 
 
 // LiveUsersCount is the resolver for the liveUsersCount field.
 func (r *queryResolver) LiveUsersCount(ctx context.Context, projectID int) (*int64, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
@@ -5877,7 +5940,7 @@ func (r *queryResolver) AdminHasCreatedComment(ctx context.Context, adminID int)
 
 // ProjectHasViewedASession is the resolver for the projectHasViewedASession field.
 func (r *queryResolver) ProjectHasViewedASession(ctx context.Context, projectID int) (*model.Session, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
@@ -5890,7 +5953,7 @@ func (r *queryResolver) ProjectHasViewedASession(ctx context.Context, projectID 
 
 // DailySessionsCount is the resolver for the dailySessionsCount field.
 func (r *queryResolver) DailySessionsCount(ctx context.Context, projectID int, dateRange modelInputs.DateRangeInput) ([]*model.DailySessionCount, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
@@ -5913,7 +5976,7 @@ func (r *queryResolver) DailySessionsCount(ctx context.Context, projectID int, d
 
 // DailyErrorsCount is the resolver for the dailyErrorsCount field.
 func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dateRange modelInputs.DateRangeInput) ([]*model.DailyErrorCount, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
@@ -5993,7 +6056,7 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID s
 
 // Referrers is the resolver for the referrers field.
 func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookbackDays float64) ([]*modelInputs.ReferrerTablePayload, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
@@ -6023,7 +6086,7 @@ LIMIT 200`, projectID, lookbackDays, `(?:.*://)?(?:www\.)?([^/]*)`, projectID, l
 
 // NewUsersCount is the resolver for the newUsersCount field.
 func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookbackDays float64) (*modelInputs.NewUsersCount, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
@@ -6046,7 +6109,7 @@ WHERE project_id = ?
 
 // TopUsers is the resolver for the topUsers field.
 func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookbackDays float64) ([]*modelInputs.TopUsersPayload, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
@@ -6124,7 +6187,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookbackDay
 
 // AverageSessionLength is the resolver for the averageSessionLength field.
 func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int, lookbackDays float64) (*modelInputs.AverageSessionLength, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
@@ -6152,7 +6215,7 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 
 // UserFingerprintCount is the resolver for the userFingerprintCount field.
 func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int, lookbackDays float64) (*modelInputs.UserFingerprintCount, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
@@ -6184,7 +6247,7 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 
 // SessionsClickhouse is the resolver for the sessions_clickhouse field.
 func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, count int, query modelInputs.ClickhouseQuery, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -6245,7 +6308,7 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 
 // Sessions is the resolver for the sessions field.
 func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, params modelInputs.QueryInput, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -6306,7 +6369,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 
 // SessionsHistogramClickhouse is the resolver for the sessions_histogram_clickhouse field.
 func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -6345,7 +6408,7 @@ func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, project
 
 // SessionsHistogram is the resolver for the sessions_histogram field.
 func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -6384,7 +6447,7 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, pa
 
 // SessionsReport is the resolver for the sessions_report field.
 func (r *queryResolver) SessionsReport(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery) ([]*modelInputs.SessionsReportRow, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -6460,7 +6523,7 @@ group by 1 order by num_sessions desc;
 
 // SessionUsersReport is the resolver for the session_users_report field.
 func (r *queryResolver) SessionUsersReport(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.SessionsReportRow, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -6536,7 +6599,7 @@ group by 1 order by num_sessions desc;
 
 // BillingDetailsForProject is the resolver for the billingDetailsForProject field.
 func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -6546,7 +6609,7 @@ func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID 
 
 // BillingDetails is the resolver for the billingDetails field.
 func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*modelInputs.BillingDetails, error) {
-	_, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
+	_, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
 	}
@@ -6748,7 +6811,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 
 // UsageHistory is the resolver for the usageHistory field.
 func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, productType modelInputs.ProductType, dateRange *modelInputs.DateRangeRequiredInput) (*modelInputs.UsageHistory, error) {
-	_, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
+	_, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
 	}
@@ -6803,7 +6866,7 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, produ
 // FieldSuggestion is the resolver for the field_suggestion field.
 func (r *queryResolver) FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model.Field, error) {
 	fields := []*model.Field{}
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return fields, nil
 	}
 	res := r.DB.WithContext(ctx).Where(&model.Field{Name: name}).
@@ -6821,7 +6884,7 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, projectID int, name
 
 // PropertySuggestion is the resolver for the property_suggestion field.
 func (r *queryResolver) PropertySuggestion(ctx context.Context, projectID int, query string, typeArg string) ([]*model.Field, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 	fields := []*model.Field{}
@@ -6838,7 +6901,7 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, projectID int, q
 
 // ErrorFieldSuggestion is the resolver for the error_field_suggestion field.
 func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model.ErrorField, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 	fields := []*model.ErrorField{}
@@ -6864,17 +6927,16 @@ func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) 
 	projects := []*model.Project{}
 	if err := r.DB.WithContext(ctx).Order("id ASC").Model(&model.Project{}).Where(`
 		id IN (
-			SELECT project_id
-			FROM project_admins
-			WHERE admin_id = ?
-			UNION
 			SELECT id
 			FROM projects p
 			INNER JOIN workspace_admins wa
 			ON p.workspace_id = wa.workspace_id
 			AND wa.admin_id = ?
+			AND (
+				wa.project_ids IS NULL 
+				OR p.id = ANY(wa.project_ids))
 		)
-	`, admin.ID, admin.ID).Scan(&projects).Error; err != nil {
+	`, admin.ID).Scan(&projects).Error; err != nil {
 		return nil, e.Wrap(err, "error getting associated projects")
 	}
 
@@ -6961,7 +7023,7 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 
 // ErrorAlerts is the resolver for the error_alerts field.
 func (r *queryResolver) ErrorAlerts(ctx context.Context, projectID int) ([]*model.ErrorAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -6974,7 +7036,7 @@ func (r *queryResolver) ErrorAlerts(ctx context.Context, projectID int) ([]*mode
 
 // NewUserAlerts is the resolver for the new_user_alerts field.
 func (r *queryResolver) NewUserAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -6988,7 +7050,7 @@ func (r *queryResolver) NewUserAlerts(ctx context.Context, projectID int) ([]*mo
 
 // TrackPropertiesAlerts is the resolver for the track_properties_alerts field.
 func (r *queryResolver) TrackPropertiesAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -7002,7 +7064,7 @@ func (r *queryResolver) TrackPropertiesAlerts(ctx context.Context, projectID int
 
 // UserPropertiesAlerts is the resolver for the user_properties_alerts field.
 func (r *queryResolver) UserPropertiesAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -7016,7 +7078,7 @@ func (r *queryResolver) UserPropertiesAlerts(ctx context.Context, projectID int)
 
 // NewSessionAlerts is the resolver for the new_session_alerts field.
 func (r *queryResolver) NewSessionAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -7030,7 +7092,7 @@ func (r *queryResolver) NewSessionAlerts(ctx context.Context, projectID int) ([]
 
 // RageClickAlerts is the resolver for the rage_click_alerts field.
 func (r *queryResolver) RageClickAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -7044,7 +7106,7 @@ func (r *queryResolver) RageClickAlerts(ctx context.Context, projectID int) ([]*
 
 // LogAlerts is the resolver for the log_alerts field.
 func (r *queryResolver) LogAlerts(ctx context.Context, projectID int) ([]*model.LogAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -7061,7 +7123,7 @@ func (r *queryResolver) LogAlert(ctx context.Context, id int) (*model.LogAlert, 
 	if err := r.DB.WithContext(ctx).Model(&model.LogAlert{}).Where("id = ?", id).Find(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying log alert")
 	}
-	_, err := r.isAdminInProjectOrDemoProject(ctx, alert.ProjectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, alert.ProjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -7081,7 +7143,7 @@ func (r *queryResolver) ProjectSuggestion(ctx context.Context, query string) ([]
 
 // EnvironmentSuggestion is the resolver for the environment_suggestion field.
 func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model.Field, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 	fields := []*model.Field{}
@@ -7098,7 +7160,7 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int
 
 // IdentifierSuggestion is the resolver for the identifier_suggestion field.
 func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int, query string) ([]string, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
@@ -7109,7 +7171,7 @@ func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int,
 // SlackChannelSuggestion is the resolver for the slack_channel_suggestion field.
 func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, projectID int) ([]*modelInputs.SanitizedSlackChannel, error) {
 	// We intentionally don't allow access to this in demo to not leak our Slack channels.
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -7139,7 +7201,7 @@ func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, projectID in
 func (r *queryResolver) MicrosoftTeamsChannelSuggestions(ctx context.Context, projectID int) ([]*model.MicrosoftTeamsChannel, error) {
 	ret := []*model.MicrosoftTeamsChannel{}
 
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return ret, err
 	}
@@ -7168,7 +7230,7 @@ func (r *queryResolver) MicrosoftTeamsChannelSuggestions(ctx context.Context, pr
 func (r *queryResolver) DiscordChannelSuggestions(ctx context.Context, projectID int) ([]*model.DiscordChannel, error) {
 	ret := []*model.DiscordChannel{}
 
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return ret, err
 	}
@@ -7208,7 +7270,7 @@ func (r *queryResolver) DiscordChannelSuggestions(ctx context.Context, projectID
 
 // GenerateZapierAccessToken is the resolver for the generate_zapier_access_token field.
 func (r *queryResolver) GenerateZapierAccessToken(ctx context.Context, projectID int) (string, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return "", err
 	}
@@ -7229,8 +7291,7 @@ func (r *queryResolver) GenerateZapierAccessToken(ctx context.Context, projectID
 func (r *queryResolver) SearchIssues(ctx context.Context, integrationType modelInputs.IntegrationType, projectID int, query string) ([]*modelInputs.IssuesSearchResult, error) {
 	ret := []*modelInputs.IssuesSearchResult{}
 
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return ret, err
 	}
@@ -7238,11 +7299,6 @@ func (r *queryResolver) SearchIssues(ctx context.Context, integrationType modelI
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return ret, err
-	}
-
-	workspace, err = r.isAdminInWorkspace(ctx, project.WorkspaceID)
-	if err != nil {
-		return ret, e.Wrap(err, "error querying workspace")
 	}
 
 	if integrationType == modelInputs.IntegrationTypeJira {
@@ -7289,8 +7345,7 @@ func (r *queryResolver) SearchIssues(ctx context.Context, integrationType modelI
 
 // IsIntegratedWith is the resolver for the is_integrated_with field.
 func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType modelInputs.IntegrationType, projectID int) (bool, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return false, err
 	}
@@ -7347,9 +7402,14 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 
 // IsWorkspaceIntegratedWith is the resolver for the is_workspace_integrated_with field.
 func (r *queryResolver) IsWorkspaceIntegratedWith(ctx context.Context, integrationType modelInputs.IntegrationType, workspaceID int) (bool, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserInWorkspaceReadOnly(ctx, workspaceID)
 	if err != nil {
-		return false, e.Wrap(err, "error querying workspace")
+		return false, err
+	}
+
+	workspace, err := r.GetWorkspace(workspaceID)
+	if err != nil {
+		return false, err
 	}
 
 	if integrationType == modelInputs.IntegrationTypeClickUp {
@@ -7375,7 +7435,7 @@ func (r *queryResolver) IsWorkspaceIntegratedWith(ctx context.Context, integrati
 
 // IsProjectIntegratedWith is the resolver for the is_project_integrated_with field.
 func (r *queryResolver) IsProjectIntegratedWith(ctx context.Context, integrationType modelInputs.IntegrationType, projectID int) (bool, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 
 	if err != nil {
 		return false, err
@@ -7386,7 +7446,7 @@ func (r *queryResolver) IsProjectIntegratedWith(ctx context.Context, integration
 
 // VercelProjects is the resolver for the vercel_projects field.
 func (r *queryResolver) VercelProjects(ctx context.Context, projectID int) ([]*modelInputs.VercelProject, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	ret := []*modelInputs.VercelProject{}
 	if err != nil {
 		return ret, err
@@ -7412,7 +7472,7 @@ func (r *queryResolver) VercelProjects(ctx context.Context, projectID int) ([]*m
 
 // VercelProjectMappings is the resolver for the vercel_project_mappings field.
 func (r *queryResolver) VercelProjectMappings(ctx context.Context, projectID int) ([]*modelInputs.VercelProjectMapping, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -7434,7 +7494,12 @@ func (r *queryResolver) VercelProjectMappings(ctx context.Context, projectID int
 
 // ClickupTeams is the resolver for the clickup_teams field.
 func (r *queryResolver) ClickupTeams(ctx context.Context, workspaceID int) ([]*modelInputs.ClickUpTeam, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserInWorkspaceReadOnly(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(workspaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -7460,7 +7525,7 @@ func (r *queryResolver) ClickupTeams(ctx context.Context, workspaceID int) ([]*m
 
 // ClickupProjectMappings is the resolver for the clickup_project_mappings field.
 func (r *queryResolver) ClickupProjectMappings(ctx context.Context, workspaceID int) ([]*modelInputs.ClickUpProjectMapping, error) {
-	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -7491,7 +7556,7 @@ func (r *queryResolver) ClickupProjectMappings(ctx context.Context, workspaceID 
 
 // ClickupFolders is the resolver for the clickup_folders field.
 func (r *queryResolver) ClickupFolders(ctx context.Context, projectID int) ([]*modelInputs.ClickUpFolder, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -7521,7 +7586,7 @@ func (r *queryResolver) ClickupFolders(ctx context.Context, projectID int) ([]*m
 
 // ClickupFolderlessLists is the resolver for the clickup_folderless_lists field.
 func (r *queryResolver) ClickupFolderlessLists(ctx context.Context, projectID int) ([]*modelInputs.ClickUpList, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -7551,7 +7616,7 @@ func (r *queryResolver) ClickupFolderlessLists(ctx context.Context, projectID in
 
 // HeightLists is the resolver for the height_lists field.
 func (r *queryResolver) HeightLists(ctx context.Context, projectID int) ([]*modelInputs.HeightList, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -7574,7 +7639,12 @@ func (r *queryResolver) HeightLists(ctx context.Context, projectID int) ([]*mode
 
 // HeightWorkspaces is the resolver for the height_workspaces field.
 func (r *queryResolver) HeightWorkspaces(ctx context.Context, workspaceID int) ([]*modelInputs.HeightWorkspace, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserInWorkspaceReadOnly(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(workspaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -7596,7 +7666,7 @@ func (r *queryResolver) HeightWorkspaces(ctx context.Context, workspaceID int) (
 
 // IntegrationProjectMappings is the resolver for the integration_project_mappings field.
 func (r *queryResolver) IntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType *modelInputs.IntegrationType) ([]*model.IntegrationProjectMapping, error) {
-	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -7620,7 +7690,7 @@ func (r *queryResolver) IntegrationProjectMappings(ctx context.Context, workspac
 
 // LinearTeams is the resolver for the linear_teams field.
 func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*modelInputs.LinearTeam, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	ret := []*modelInputs.LinearTeam{}
 
 	if err != nil {
@@ -7658,9 +7728,14 @@ func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*mode
 
 // JiraProjects is the resolver for the jira_projects field.
 func (r *queryResolver) JiraProjects(ctx context.Context, workspaceID int) ([]*modelInputs.JiraProject, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserInWorkspaceReadOnly(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying workspace")
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(workspaceID)
+	if err != nil {
+		return nil, err
 	}
 
 	return r.GetJiraProjects(ctx, workspace)
@@ -7668,9 +7743,14 @@ func (r *queryResolver) JiraProjects(ctx context.Context, workspaceID int) ([]*m
 
 // GitlabProjects is the resolver for the gitlab_projects field.
 func (r *queryResolver) GitlabProjects(ctx context.Context, workspaceID int) ([]*modelInputs.GitlabProject, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserInWorkspaceReadOnly(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying workspace")
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(workspaceID)
+	if err != nil {
+		return nil, err
 	}
 
 	return r.GetGitlabProjects(ctx, workspace)
@@ -7678,9 +7758,14 @@ func (r *queryResolver) GitlabProjects(ctx context.Context, workspaceID int) ([]
 
 // GithubRepos is the resolver for the github_repos field.
 func (r *queryResolver) GithubRepos(ctx context.Context, workspaceID int) ([]*modelInputs.GitHubRepo, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserInWorkspaceReadOnly(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying workspace")
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(workspaceID)
+	if err != nil {
+		return nil, err
 	}
 
 	return r.GetGitHubRepos(ctx, workspace)
@@ -7688,9 +7773,14 @@ func (r *queryResolver) GithubRepos(ctx context.Context, workspaceID int) ([]*mo
 
 // GithubIssueLabels is the resolver for the github_issue_labels field.
 func (r *queryResolver) GithubIssueLabels(ctx context.Context, workspaceID int, repository string) ([]string, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserInWorkspaceReadOnly(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying workspace")
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(workspaceID)
+	if err != nil {
+		return nil, err
 	}
 
 	return r.GetGitHubIssueLabels(ctx, workspace, repository)
@@ -7698,7 +7788,7 @@ func (r *queryResolver) GithubIssueLabels(ctx context.Context, workspaceID int, 
 
 // Project is the resolver for the project field.
 func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, id)
+	project, err := r.isUserInProjectOrDemoProject(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -7759,17 +7849,33 @@ func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*mo
 
 // Workspace is the resolver for the workspace field.
 func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, id)
+	workspace, err := r.isUserInWorkspaceReadOnly(ctx, id)
 	if err != nil {
 		return nil, nil
 	}
 
-	projects := []model.Project{}
-	if err := r.DB.Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
-		return nil, e.Wrap(err, "error querying associated projects")
+	projects, err := r.Projects(ctx)
+	if err != nil {
+		return nil, nil
 	}
 
-	workspace.Projects = projects
+	if r.isWhitelistedAccount(ctx) {
+		projects := []model.Project{}
+		if err := r.DB.WithContext(ctx).Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
+			return nil, nil
+		}
+		workspace.Projects = projects
+		return workspace, nil
+	}
+
+	workspace.Projects = lo.FilterMap(projects, func(p *model.Project, _ int) (model.Project, bool) {
+		if p == nil {
+			return model.Project{}, false
+		}
+
+		return *p, p.WorkspaceID == id
+	})
+
 	return workspace, nil
 }
 
@@ -7816,7 +7922,7 @@ func (r *queryResolver) WorkspaceForInviteLink(ctx context.Context, secret strin
 
 // WorkspaceInviteLinks is the resolver for the workspace_invite_links field.
 func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID int) (*model.WorkspaceInviteLink, error) {
-	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
 	}
@@ -7846,7 +7952,7 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 	}
 
 	if shouldCreateNewInviteLink {
-		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil, model.AdminRole.ADMIN, true)
+		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil, model.AdminRole.MEMBER, true, nil)
 
 		if err := r.DB.WithContext(ctx).Create(&workspaceInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "failed to create new invite link to replace expired one.")
@@ -7858,7 +7964,7 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 
 // WorkspacePendingInvites is the resolver for the workspacePendingInvites field.
 func (r *queryResolver) WorkspacePendingInvites(ctx context.Context, workspaceID int) ([]*model.WorkspaceInviteLink, error) {
-	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
 	}
@@ -7880,7 +7986,7 @@ func (r *queryResolver) WorkspacePendingInvites(ctx context.Context, workspaceID
 
 // WorkspaceSettings is the resolver for the workspaceSettings field.
 func (r *queryResolver) WorkspaceSettings(ctx context.Context, workspaceID int) (*model.AllWorkspaceSettings, error) {
-	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isUserInWorkspaceReadOnly(ctx, workspaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -7890,17 +7996,17 @@ func (r *queryResolver) WorkspaceSettings(ctx context.Context, workspaceID int) 
 
 // WorkspaceForProject is the resolver for the workspace_for_project field.
 func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) (*model.Workspace, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying workspace")
-	}
-
 	if r.isDemoProject(ctx, projectID) {
+		workspace, err := r.GetWorkspace(project.WorkspaceID)
+		if err != nil {
+			return nil, e.Wrap(err, "error querying workspace")
+		}
+
 		threeMonth := modelInputs.RetentionPeriodThreeMonths
 		return &model.Workspace{
 			Model:                 workspace.Model,
@@ -7914,16 +8020,7 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 		}, nil
 	}
 
-	// workspace secret should not be visible unless the admin has workspace access
-	workspace.Secret = new(string)
-
-	projects := []model.Project{}
-	if err := r.DB.Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
-		return nil, e.Wrap(err, "error querying associated projects")
-	}
-
-	workspace.Projects = projects
-	return workspace, nil
+	return r.Workspace(ctx, project.WorkspaceID)
 }
 
 // Admin is the resolver for the admin field.
@@ -7990,16 +8087,20 @@ func (r *queryResolver) AdminRole(ctx context.Context, workspaceID int) (*model.
 
 	if r.isWhitelistedAccount(ctx) {
 		return &model.WorkspaceAdminRole{
-			Admin: admin,
-			Role:  model.AdminRole.ADMIN,
+			WorkspaceId: workspaceID,
+			Admin:       admin,
+			Role:        model.AdminRole.ADMIN,
+			ProjectIds:  nil,
 		}, nil
 	}
 
 	// ok to have empty string role, treated as unauthenticated user
-	role, _ := r.GetAdminRole(ctx, admin.ID, workspaceID)
+	role, projectIds, _ := r.getAdminRole(ctx, admin.ID, workspaceID)
 	return &model.WorkspaceAdminRole{
-		Admin: admin,
-		Role:  role,
+		WorkspaceId: workspaceID,
+		Admin:       admin,
+		Role:        role,
+		ProjectIds:  projectIds,
 	}, nil
 }
 
@@ -8011,30 +8112,48 @@ func (r *queryResolver) AdminRoleByProject(ctx context.Context, projectID int) (
 	}
 
 	if r.isWhitelistedAccount(ctx) {
+		project, err := r.Query().Project(ctx, projectID)
+		if err != nil {
+			return nil, err
+		}
+		workspace, err := r.GetWorkspace(project.WorkspaceID)
+		if err != nil {
+			return nil, err
+		}
 		return &model.WorkspaceAdminRole{
-			Admin: admin,
-			Role:  model.AdminRole.ADMIN,
+			WorkspaceId: workspace.ID,
+			Admin:       admin,
+			Role:        model.AdminRole.ADMIN,
+			ProjectIds:  nil,
 		}, nil
 	}
 
 	var role string
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	var projectIds []int
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err == nil {
 		if workspace, err := r.GetWorkspace(project.WorkspaceID); err == nil {
 			// ok to have empty string role, treated as unauthenticated user
-			role, _ = r.GetAdminRole(ctx, admin.ID, workspace.ID)
+			role, projectIds, _ = r.getAdminRole(ctx, admin.ID, workspace.ID)
 		}
 	}
 
+	var workspaceId int
+	if project != nil {
+		workspaceId = project.WorkspaceID
+	}
+
 	return &model.WorkspaceAdminRole{
-		Admin: admin,
-		Role:  role,
+		WorkspaceId: workspaceId,
+		Admin:       admin,
+		Role:        role,
+		ProjectIds:  projectIds,
 	}, nil
 }
 
 // SavedSegments is the resolver for the saved_segments field.
 func (r *queryResolver) SavedSegments(ctx context.Context, projectID int, entityType modelInputs.SavedSegmentEntityType) ([]*model.SavedSegment, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 	// list of maps, where each map represents a field query.
@@ -8086,13 +8205,9 @@ func (r *queryResolver) GetSourceMapUploadUrls(ctx context.Context, apiKey strin
 func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) (string, error) {
 	frontendUri := os.Getenv("REACT_APP_FRONTEND_URI")
 
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
-		return "", e.Wrap(err, "admin does not have workspace access")
-	}
-
-	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
-		return "", e.Wrap(err, "must have ADMIN role to access the Stripe customer portal")
+		return "", err
 	}
 
 	returnUrl := fmt.Sprintf("%s/w/%d/current-plan", frontendUri, workspaceID)
@@ -8115,16 +8230,12 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	span, _ := util.StartSpanFromContext(ctx, "SubscriptionDetails", util.Tag("workspaceID", workspaceID))
 	defer span.Finish()
 
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
 	}
 	if workspace.StripeCustomerID == nil {
 		return nil, e.New("workspace has no stripe customer ID")
-	}
-
-	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
-		return nil, err
 	}
 
 	return redis.CachedEval(ctx, r.Redis, redis.GetSubscriptionDetailsKey(workspaceID), time.Minute, time.Minute, func() (*modelInputs.SubscriptionDetails, error) {
@@ -8191,7 +8302,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 
 // DashboardDefinitions is the resolver for the dashboard_definitions field.
 func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int) ([]*modelInputs.DashboardDefinition, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
@@ -8250,7 +8361,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 
 // MetricTags is the resolver for the metric_tags field.
 func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricName string, query *string) ([]string, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
@@ -8266,7 +8377,7 @@ func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricNam
 
 // MetricTagValues is the resolver for the metric_tag_values field.
 func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metricName string, tagName string) ([]string, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
@@ -8275,7 +8386,7 @@ func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metr
 
 // MetricsTimeline is the resolver for the metrics_timeline field.
 func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 	return GetMetricTimeline(ctx, r.ClickhouseClient, projectID, metricName, params)
@@ -8283,7 +8394,7 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 
 // NetworkHistogram is the resolver for the network_histogram field.
 func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, params modelInputs.NetworkHistogramParamsInput) (*modelInputs.CategoryHistogramPayload, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8331,7 +8442,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int, metricName *string) ([]*model.MetricMonitor, error) {
 	metricMonitors := []*model.MetricMonitor{}
 
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return metricMonitors, nil
 	}
@@ -8453,9 +8564,226 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 	return results, nil
 }
 
+// AiQuerySuggestion is the resolver for the ai_query_suggestion field.
+func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, projectID int, productType modelInputs.ProductType, query string) (*modelInputs.QueryOutput, error) {
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		return nil, e.New("OPENAI_API_KEY is not set")
+	}
+
+	client := openai.NewClient(apiKey)
+
+	// create a list of key:value strings
+	keyVals := []string{}
+	keys := []string{}
+	// switch on the product type to get the keys and values
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		keys = append(keys, lo.Map(lo.Keys(clickhouse.TracesTableConfig.KeysToColumns),
+			func(key modelInputs.ReservedTraceKey, _ int) string {
+				return key.String()
+			})...)
+	case modelInputs.ProductTypeLogs:
+		keys = append(keys, lo.Map(lo.Keys(clickhouse.LogsTableConfig.KeysToColumns),
+			func(key modelInputs.ReservedLogKey, _ int) string {
+				return key.String()
+			})...)
+	case modelInputs.ProductTypeSessions:
+		keys = append(keys, lo.Keys(clickhouse.SessionsTableConfig.KeysToColumns)...)
+	case modelInputs.ProductTypeErrors:
+		keys = append(keys, lo.Map(lo.Keys(clickhouse.ErrorGroupsTableConfig.KeysToColumns),
+			func(key modelInputs.ReservedErrorGroupKey, _ int) string {
+				return key.String()
+			})...)
+	}
+
+	loc, err := time.LoadLocation(timeZone)
+	if err != nil {
+		loc, err = time.LoadLocation("America/Los_Angeles")
+		if err != nil {
+			return nil, e.Errorf("error loading location twice: %v", err)
+		}
+	}
+	var sevenDaysAgo time.Time = time.Now().Add(-7 * 24 * time.Hour)
+	for _, key := range keys {
+		if key == "HighlightType" {
+			continue
+		}
+		keys = append(keys, key)
+		vals, err := r.KeyValues(
+			ctx,
+			productType,
+			projectID,
+			key,
+			modelInputs.DateRangeRequiredInput{
+				StartDate: sevenDaysAgo,
+				EndDate:   time.Now(),
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+		for _, val := range vals {
+			keyVals = append(keyVals, fmt.Sprintf("%s:%s", key, val))
+		}
+	}
+
+	now := time.Now().In(loc).Format(time.RFC3339)
+	systemPrompt := fmt.Sprintf(`
+You are a simple system used by an observabiliity product in which, 
+given a %s query, you output a structured query that the system 
+can use to parse (which ultimately queries an internal database).
+
+The input query will be a string which describes what the user wants to query in plain English.	
+
+The output query should be in a json format with two keys: "query" and "date_range". 
+
+Below are descriptions of the keys:
+"query": A string that represents the query that the system should use to query the internal database, which must use the key-value pairs provided below.
+"date_range.start_date": A datetime string that represents the start date of the date range for the query.  If the date range is not specified, this key should be empty.
+"date_range.end_date": A datetime string that represents the end date of the date range for the query. If the date range is not specified, this key should be empty.
+
+Here is a sample input/output pair to help you understand the task: 
+
+Use today's date/time in the user's time zone for any relative times provided: %s
+
+In terms of the keys and values you can use, try not to use a key-value pair that doesn't exist. 
+
+You have the following keys to work with:
+
+%s
+
+And here are the key/values that you can use for each respective key. If the below section is empty, be creative:
+
+%s
+
+	`, productType, now, strings.Join(keys, ", "), strings.Join(keyVals, ", "))
+
+	yesterday := time.Now().In(loc).AddDate(0, 0, -1)
+	yesterdayAt2PM := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 14, 0, 0, 0, yesterday.Location()).Format(time.RFC3339)
+	sevenDaysBack := time.Now().Add(-7 * 24 * time.Hour).In(loc).Format(time.RFC3339)
+
+	examples := []struct {
+		request  string
+		response string
+	}{
+		{
+			request:  "Show me all the 500 errors in the last 7 days",
+			response: fmt.Sprintf(`{"query":"status_code:500","date_range":{"start_date":"%s","end_date":""}}`, sevenDaysBack),
+		},
+		{
+			request:  "Show me all the error logs from last week to yesterday at 2pm",
+			response: fmt.Sprintf(`{"query":"level:error","date_range":{"start_date":"%s","end_date":"%s"}}`, sevenDaysBack, yesterdayAt2PM),
+		},
+		{
+			request:  "All the traces from the private graph service",
+			response: `{"query":"service_name:private-graph","date_range":{"start_date":"","end_date":""}}`,
+		},
+	}
+
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT3Dot5Turbo,
+			ResponseFormat: &openai.ChatCompletionResponseFormat{
+				Type: openai.ChatCompletionResponseFormatTypeJSONObject,
+			},
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: systemPrompt,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[0].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[0].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[1].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[1].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[2].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[2].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: query,
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		log.WithContext(ctx).Error(err, "ChatCompletion error")
+		return nil, err
+	}
+
+	if resp.Choices[0].Message.Content == "" {
+		log.WithContext(ctx).Error(err, "Empty openai response")
+		return nil, e.New("Empty openai response")
+	}
+
+	log.WithContext(ctx).
+		WithField("response", resp.Choices[0].Message.Content).
+		Info("AI suggestion generated.")
+
+	log.WithContext(ctx).
+		Info(fmt.Sprintf(systemPrompt))
+
+	// Define the structs inline
+	var toSaveString struct {
+		Query     string `json:"query"`
+		DateRange struct {
+			StartDate string `json:"start_date,omitempty"`
+			EndDate   string `json:"end_date,omitempty"`
+		} `json:"date_range"`
+	}
+
+	err = json.Unmarshal([]byte(resp.Choices[0].Message.Content), &toSaveString)
+	if err != nil {
+		return nil, e.Errorf("error unmarshalling response from openai: %v", err)
+	}
+
+	toSave := modelInputs.QueryOutput{}
+	toSave.DateRange = &modelInputs.DateRangeRequiredOutput{}
+	toSave.Query = toSaveString.Query
+	startDate, err := time.Parse(time.RFC3339, toSaveString.DateRange.StartDate)
+	if err != nil {
+		log.WithContext(ctx).Errorf("Error parsing start_date: %v\n", err)
+		toSave.DateRange.StartDate = nil
+	} else {
+		toSave.DateRange.StartDate = &startDate
+	}
+	endDate, err := time.Parse(time.RFC3339, toSaveString.DateRange.EndDate)
+	if err != nil {
+		log.WithContext(ctx).Errorf("Error parsing end_date: %v\n", err)
+		toSave.DateRange.EndDate = nil
+	} else {
+		toSave.DateRange.EndDate = &endDate
+	}
+
+	return &toSave, nil
+}
+
 // Logs is the resolver for the logs field.
 func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.LogConnection, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8508,7 +8836,7 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 
 // SessionLogs is the resolver for the sessionLogs field.
 func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogEdge, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8518,7 +8846,7 @@ func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params m
 
 // LogsTotalCount is the resolver for the logs_total_count field.
 func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.QueryInput) (uint64, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return 0, err
 	}
@@ -8528,7 +8856,7 @@ func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, param
 
 // LogsHistogram is the resolver for the logs_histogram field.
 func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput) (*modelInputs.LogsHistogram, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8538,7 +8866,7 @@ func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params
 
 // LogsMetrics is the resolver for the logs_metrics field.
 func (r *queryResolver) LogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8548,7 +8876,7 @@ func (r *queryResolver) LogsMetrics(ctx context.Context, projectID int, params m
 
 // LogsKeys is the resolver for the logs_keys field.
 func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8558,11 +8886,10 @@ func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange m
 
 // LogsKeyValues is the resolver for the logs_key_values field.
 func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
-
 	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
@@ -8581,7 +8908,7 @@ func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []strin
 
 // ExistingLogsTraces is the resolver for the existing_logs_traces field.
 func (r *queryResolver) ExistingLogsTraces(ctx context.Context, projectID int, traceIds []string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8687,7 +9014,7 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 
 // SessionExports is the resolver for the session_exports field.
 func (r *queryResolver) SessionExports(ctx context.Context, projectID int) ([]*modelInputs.SessionExportWithSession, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8712,7 +9039,7 @@ func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemC
 
 // Services is the resolver for the services field.
 func (r *queryResolver) Services(ctx context.Context, projectID int, after *string, before *string, query *string) (*modelInputs.ServiceConnection, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8722,7 +9049,7 @@ func (r *queryResolver) Services(ctx context.Context, projectID int, after *stri
 		return nil, err
 	}
 
-	connection, err := r.Store.ListServices(*project, store.ListServicesParams{
+	connection, err := r.Store.ListServices(ctx, *project, store.ListServicesParams{
 		After:  after,
 		Before: before,
 		Query:  query,
@@ -8733,7 +9060,7 @@ func (r *queryResolver) Services(ctx context.Context, projectID int, after *stri
 
 // ServiceByName is the resolver for the serviceByName field.
 func (r *queryResolver) ServiceByName(ctx context.Context, projectID int, name string) (*model.Service, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8754,7 +9081,7 @@ func (r *queryResolver) MatchErrorTag(ctx context.Context, query string) ([]*mod
 // Trace is the resolver for the trace field.
 func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string, sessionSecureID *string) (*modelInputs.TracePayload, error) {
 	if _, err := r.canAdminViewSession(ctx, pointy.StringValue(sessionSecureID, "")); err != nil {
-		_, err = r.isAdminInProjectOrDemoProject(ctx, projectID)
+		_, err = r.isUserInProjectOrDemoProject(ctx, projectID)
 		if err != nil {
 			return nil, err
 		}
@@ -8797,7 +9124,7 @@ func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string
 
 // Traces is the resolver for the traces field.
 func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.TraceConnection, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8812,7 +9139,7 @@ func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelI
 
 // TracesMetrics is the resolver for the traces_metrics field.
 func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy *string, bucketCount *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8827,7 +9154,7 @@ func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params
 
 // TracesKeys is the resolver for the traces_keys field.
 func (r *queryResolver) TracesKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8837,7 +9164,7 @@ func (r *queryResolver) TracesKeys(ctx context.Context, projectID int, dateRange
 
 // TracesKeyValues is the resolver for the traces_key_values field.
 func (r *queryResolver) TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8847,7 +9174,7 @@ func (r *queryResolver) TracesKeyValues(ctx context.Context, projectID int, keyN
 
 // ErrorsKeys is the resolver for the errors_keys field.
 func (r *queryResolver) ErrorsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8868,7 +9195,7 @@ func (r *queryResolver) ErrorsKeys(ctx context.Context, projectID int, dateRange
 
 // ErrorsKeyValues is the resolver for the errors_key_values field.
 func (r *queryResolver) ErrorsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8878,7 +9205,7 @@ func (r *queryResolver) ErrorsKeyValues(ctx context.Context, projectID int, keyN
 
 // ErrorsMetrics is the resolver for the errors_metrics field.
 func (r *queryResolver) ErrorsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8888,7 +9215,7 @@ func (r *queryResolver) ErrorsMetrics(ctx context.Context, projectID int, params
 
 // SessionsKeys is the resolver for the sessions_keys field.
 func (r *queryResolver) SessionsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8898,7 +9225,7 @@ func (r *queryResolver) SessionsKeys(ctx context.Context, projectID int, dateRan
 
 // SessionsKeyValues is the resolver for the sessions_key_values field.
 func (r *queryResolver) SessionsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8908,7 +9235,7 @@ func (r *queryResolver) SessionsKeyValues(ctx context.Context, projectID int, ke
 
 // SessionsMetrics is the resolver for the sessions_metrics field.
 func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -8920,7 +9247,7 @@ func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, para
 func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	switch productType {
 	case modelInputs.ProductTypeMetrics:
-		project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+		project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 		if err != nil {
 			return nil, err
 		}
@@ -8942,7 +9269,7 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	switch productType {
 	case modelInputs.ProductTypeMetrics:
-		project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+		project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 		if err != nil {
 			return nil, err
 		}
@@ -8964,7 +9291,7 @@ func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.Produc
 func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.ProductType, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
 	switch productType {
 	case modelInputs.ProductTypeMetrics:
-		project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+		project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 		if err != nil {
 			return nil, err
 		}
@@ -8991,7 +9318,7 @@ func (r *queryResolver) Visualization(ctx context.Context, id int) (*model.Visua
 
 	reorderGraphs(&viz)
 
-	_, err := r.isAdminInProjectOrDemoProject(ctx, viz.ProjectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, viz.ProjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -9001,7 +9328,7 @@ func (r *queryResolver) Visualization(ctx context.Context, id int) (*model.Visua
 
 // Visualizations is the resolver for the visualizations field.
 func (r *queryResolver) Visualizations(ctx context.Context, projectID int, input string, count int, offset int) (*model.VisualizationsResponse, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -9055,7 +9382,7 @@ func (r *queryResolver) Graph(ctx context.Context, id int) (*model.Graph, error)
 		return nil, err
 	}
 
-	_, err := r.isAdminInProjectOrDemoProject(ctx, viz.ProjectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, viz.ProjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -9065,7 +9392,7 @@ func (r *queryResolver) Graph(ctx context.Context, id int) (*model.Graph, error)
 
 // LogLines is the resolver for the log_lines field.
 func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
