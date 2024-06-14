@@ -138,8 +138,6 @@ export const AppRouter = () => {
 		skip: !isLoggedIn || !isValidWorkspaceId,
 	})
 
-	console.log('projectDropdownData', projectDropdownData)
-
 	useEffect(() => {
 		if (workspaceInviteMatch?.params.invite) {
 			setInviteCode(workspaceInviteMatch.params.invite)
@@ -226,8 +224,6 @@ export const AppRouter = () => {
 		projectDropdownData?.project?.workspace ||
 		workspaceDropdownData?.workspace ||
 		workspacesData?.workspaces?.at(0)
-
-	console.log('currentWorkspace', currentWorkspace)
 
 	// Ensure auth and current workspace data has loaded
 	if (isAuthLoading || (!currentWorkspace && anyLoading)) {

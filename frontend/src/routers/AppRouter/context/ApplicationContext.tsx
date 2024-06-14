@@ -6,7 +6,7 @@ import { createContext } from '@util/context/context'
  */
 interface ApplicationContext {
 	loading: boolean
-	currentProject?: Project
+	currentProject?: Omit<Project, 'workspace'>
 	allProjects: Maybe<
 		Maybe<
 			{
