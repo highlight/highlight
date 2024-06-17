@@ -202,6 +202,8 @@ var Models = []interface{}{
 	&ErrorTag{},
 	&Graph{},
 	&Visualization{},
+	&Alert{},
+	&AlertDestination{},
 }
 
 func init() {
@@ -1951,6 +1953,34 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 		return nil, e.Wrapf(err, "[project_id: %d] error unmarshalling user properties map into bytes", s.ProjectID)
 	}
 	return userProperties, nil
+}
+
+type Alert struct {
+	Model
+	Name              string
+	ProductType       modelInputs.ProductType
+	FunctionType      modelInputs.MetricAggregator
+	Query             *string
+	GroupByKey        *string
+	Disabled          bool `gorm:"default:false"`
+	Default           bool `gorm:"default:false"` // alert created during setup flow
+	LastAdminToEditID int  `gorm:"last_admin_to_edit_id"`
+	State             modelInputs.AlertState
+
+	// fields for threshold alert
+	BelowThreshold    *bool
+	ThresholdCount    *int
+	ThresholdWindow   *int
+	ThresholdCooldown *int
+}
+
+type AlertDestination struct {
+	Model
+	AlertID         int
+	DestinationType modelInputs.AlertDestinationType
+	TypeID          string
+	TypeName        string
+	Authorization   *string // webhooks may have this
 }
 
 type AlertDeprecated struct {

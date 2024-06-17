@@ -12685,6 +12685,20 @@ type Dashboard {
 	last_admin_to_edit_id: ID!
 }
 
+enum AlertState {
+	Normal # no alerts are pending or firing
+	Pending # at least one alert is pending
+	Firing # at least one alert is firing
+}
+
+enum AlertDestinationType {
+	Slack
+	Discord
+	MicrosoftTeams
+	Webhook
+	Email
+}
+
 type SanitizedSlackChannel {
 	webhook_channel: String
 	webhook_channel_id: String
