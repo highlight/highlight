@@ -1953,7 +1953,7 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 	return userProperties, nil
 }
 
-type Alert struct {
+type AlertDeprecated struct {
 	ProjectID            int
 	ExcludedEnvironments *string
 	CountThreshold       int
@@ -1970,7 +1970,7 @@ type Alert struct {
 
 type ErrorAlert struct {
 	Model
-	Alert
+	AlertDeprecated
 	RegexGroups *string
 	Query       string
 	AlertIntegrations
@@ -2041,7 +2041,7 @@ func (obj *ErrorAlert) GetRegexGroups() ([]*string, error) {
 
 type SessionAlert struct {
 	Model
-	Alert
+	AlertDeprecated
 	TrackProperties *string
 	UserProperties  *string
 	ExcludeRules    *string
@@ -2071,7 +2071,7 @@ type Service struct {
 
 type LogAlert struct {
 	Model
-	Alert
+	AlertDeprecated
 	Query          string
 	BelowThreshold bool
 	AlertIntegrations
@@ -2094,7 +2094,7 @@ type SavedSegment struct {
 	ProjectID  int                                `gorm:"index:idx_saved_segment,priority:1" json:"project_id"`
 }
 
-func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
+func (obj *AlertDeprecated) GetExcludedEnvironments() ([]*string, error) {
 	if obj == nil {
 		return nil, e.New("empty session alert object for excluded environments")
 	}
@@ -2109,7 +2109,7 @@ func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
 	return sanitizedExcludedEnvironments, nil
 }
 
-func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {
+func (obj *AlertDeprecated) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {
 	if obj == nil {
 		return nil, e.New("empty session alert object for channels to notify")
 	}
@@ -2124,11 +2124,11 @@ func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, e
 	return sanitizedChannels, nil
 }
 
-func (obj *Alert) GetName() string {
+func (obj *AlertDeprecated) GetName() string {
 	return obj.Name
 }
 
-func (obj *Alert) GetEmailsToNotify() ([]*string, error) {
+func (obj *AlertDeprecated) GetEmailsToNotify() ([]*string, error) {
 	if obj == nil {
 		return nil, e.New("empty session alert object for emails to notify")
 	}
@@ -2138,7 +2138,7 @@ func (obj *Alert) GetEmailsToNotify() ([]*string, error) {
 	return emailsToNotify, err
 }
 
-func (obj *Alert) GetDailyErrorEventFrequency(db *gorm.DB, id int) ([]*int64, error) {
+func (obj *AlertDeprecated) GetDailyErrorEventFrequency(db *gorm.DB, id int) ([]*int64, error) {
 	var dailyAlerts []*int64
 	if err := db.Raw(`
 		SELECT COUNT(e.id)
@@ -2159,7 +2159,7 @@ func (obj *Alert) GetDailyErrorEventFrequency(db *gorm.DB, id int) ([]*int64, er
 	return dailyAlerts, nil
 }
 
-func (obj *Alert) GetDailySessionEventFrequency(db *gorm.DB, id int) ([]*int64, error) {
+func (obj *AlertDeprecated) GetDailySessionEventFrequency(db *gorm.DB, id int) ([]*int64, error) {
 	var dailyAlerts []*int64
 	if err := db.Raw(`
 		SELECT COUNT(e.id)
@@ -2180,7 +2180,7 @@ func (obj *Alert) GetDailySessionEventFrequency(db *gorm.DB, id int) ([]*int64, 
 	return dailyAlerts, nil
 }
 
-func (obj *Alert) GetDailyLogEventFrequency(db *gorm.DB, id int) ([]*int64, error) {
+func (obj *AlertDeprecated) GetDailyLogEventFrequency(db *gorm.DB, id int) ([]*int64, error) {
 	var dailyAlerts []*int64
 	if err := db.Raw(`
 		SELECT COUNT(e.id)

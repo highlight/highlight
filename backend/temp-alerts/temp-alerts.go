@@ -78,7 +78,7 @@ type SendSlackAlertInput struct {
 
 func SendAlertFeedback(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, obj *model.ErrorAlert, input *SendSlackAlertInput) {
 	obj.Type = ptr.String(model.AlertType.ERROR_FEEDBACK)
-	if err := sendSlackAlert(ctx, db, &obj.Alert, input); err != nil {
+	if err := sendSlackAlert(ctx, db, &obj.AlertDeprecated, input); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 }
@@ -92,7 +92,7 @@ func SendErrorAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Clie
 		})
 	}()
 
-	if err := sendSlackAlert(ctx, db, &obj.Alert, input); err != nil {
+	if err := sendSlackAlert(ctx, db, &obj.AlertDeprecated, input); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 	emailsToNotify, err := model.GetEmailsToNotify(obj.EmailsToNotify)
@@ -149,7 +149,7 @@ func SendSessionAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Cl
 		})
 	}()
 
-	if err := sendSlackAlert(ctx, db, &obj.Alert, input); err != nil {
+	if err := sendSlackAlert(ctx, db, &obj.AlertDeprecated, input); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
@@ -300,7 +300,7 @@ func getPreviewText(alertType string) string {
 	}
 }
 
-func sendSlackAlert(ctx context.Context, db *gorm.DB, obj *model.Alert, input *SendSlackAlertInput) error {
+func sendSlackAlert(ctx context.Context, db *gorm.DB, obj *model.AlertDeprecated, input *SendSlackAlertInput) error {
 	// TODO: combine `error_alerts` and `session_alerts` tables and create composite index on (project_id, type)
 	if obj == nil {
 		return errors.New("alert is nil")
