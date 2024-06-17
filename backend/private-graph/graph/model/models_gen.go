@@ -1086,20 +1086,24 @@ func (e AlertDestinationType) MarshalGQL(w io.Writer) {
 type AlertState string
 
 const (
-	AlertStateNormal  AlertState = "Normal"
-	AlertStatePending AlertState = "Pending"
-	AlertStateFiring  AlertState = "Firing"
+	AlertStateNormal   AlertState = "Normal"
+	AlertStatePending  AlertState = "Pending"
+	AlertStateAlerting AlertState = "Alerting"
+	AlertStateNoData   AlertState = "NoData"
+	AlertStateError    AlertState = "Error"
 )
 
 var AllAlertState = []AlertState{
 	AlertStateNormal,
 	AlertStatePending,
-	AlertStateFiring,
+	AlertStateAlerting,
+	AlertStateNoData,
+	AlertStateError,
 }
 
 func (e AlertState) IsValid() bool {
 	switch e {
-	case AlertStateNormal, AlertStatePending, AlertStateFiring:
+	case AlertStateNormal, AlertStatePending, AlertStateAlerting, AlertStateNoData, AlertStateError:
 		return true
 	}
 	return false

@@ -137,7 +137,9 @@ export enum AlertDestinationType {
 }
 
 export enum AlertState {
-	Firing = 'Firing',
+	Alerting = 'Alerting',
+	Error = 'Error',
+	NoData = 'NoData',
 	Normal = 'Normal',
 	Pending = 'Pending',
 }

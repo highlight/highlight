@@ -12686,9 +12686,11 @@ type Dashboard {
 }
 
 enum AlertState {
-	Normal # no alerts are pending or firing
-	Pending # at least one alert is pending
-	Firing # at least one alert is firing
+	Normal
+	Pending
+	Alerting
+	NoData
+	Error
 }
 
 enum AlertDestinationType {

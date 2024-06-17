@@ -1963,9 +1963,7 @@ type Alert struct {
 	Query             *string
 	GroupByKey        *string
 	Disabled          bool `gorm:"default:false"`
-	Default           bool `gorm:"default:false"` // alert created during setup flow
 	LastAdminToEditID int  `gorm:"last_admin_to_edit_id"`
-	State             modelInputs.AlertState
 
 	// fields for threshold alert
 	BelowThreshold    *bool
