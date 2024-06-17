@@ -324,7 +324,7 @@ func main() {
 		trace.WithSchemaURL(semconv.SchemaURL),
 	)
 
-	tpNoResources, err := highlight.CreateTracerProvider(otlpEndpoint, sdktrace.WithResource(resource.Empty()))
+	tpNoResources, err := highlight.CreateTracerProvider(util.Config.OTLPEndpoint, sdktrace.WithResource(resource.Empty()))
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating collector tracer provider: %v", err)
 	}
