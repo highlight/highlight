@@ -107,6 +107,10 @@ slug: client
           <h5>inlineImages <code>boolean</code> <code>optional</code></h5>
           <p>Specifies whether to record image content. We default inlineImages to true on localhost and false on other domains. Inlined images that are otherwise only available on localhost can be sent to Highlight's servers and used in session replay; however, this can cause CORS errors. Explicitly set inlineImages to false to resolve CORS errors.</p>
         </aside>
+        <aside className="parameter">
+          <h5>inlineStylesheet <code>boolean</code> <code>optional</code></h5>
+          <p>Specifies whether to inline CSS style tags into the recording. When not set, defaults to true which will inline stylesheets to make sure apps recorded from localhost or other non-public network endpoints can be replayed. Setting to false may help with CORS issues caused by fetching the stylesheet contents, as well as with performance issues caused by the inlining process.</p>
+        </aside>
       </article>
     </aside>
   </div>

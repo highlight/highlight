@@ -355,13 +355,17 @@ export type EditWorkspaceSettingsMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	ai_application?: Types.Maybe<Types.Scalars['Boolean']>
 	ai_insights?: Types.Maybe<Types.Scalars['Boolean']>
+	ai_query_builder?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type EditWorkspaceSettingsMutation = { __typename?: 'Mutation' } & {
 	editWorkspaceSettings?: Types.Maybe<
 		{ __typename?: 'AllWorkspaceSettings' } & Pick<
 			Types.AllWorkspaceSettings,
-			'workspace_id' | 'ai_application' | 'ai_insights'
+			| 'workspace_id'
+			| 'ai_application'
+			| 'ai_insights'
+			| 'ai_query_builder'
 		>
 	>
 }
@@ -1641,6 +1645,16 @@ export type DeleteGraphMutation = { __typename?: 'Mutation' } & Pick<
 	'deleteGraph'
 >
 
+export type CreateCloudflareProxyMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	proxy_subdomain: Types.Scalars['String']
+}>
+
+export type CreateCloudflareProxyMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'createCloudflareProxy'
+>
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -2686,6 +2700,7 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
 					Types.Workspace,
 					| 'id'
 					| 'name'
+					| 'cloudflare_proxy'
 					| 'retention_period'
 					| 'errors_retention_period'
 				> & {
@@ -3762,6 +3777,16 @@ export type GetWorkspaceIsIntegratedWithHerokuQuery = {
 	__typename?: 'Query'
 } & { is_integrated_with_heroku: Types.Query['is_integrated_with'] }
 
+export type GetWorkspaceIsIntegratedWithCloudflareQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetWorkspaceIsIntegratedWithCloudflareQuery = {
+	__typename?: 'Query'
+} & {
+	is_integrated_with_cloudflare: Types.Query['is_workspace_integrated_with']
+}
+
 export type GetWorkspaceIsIntegratedWithLinearQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -4713,6 +4738,7 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			Types.AllWorkspaceSettings,
 			| 'workspace_id'
 			| 'ai_application'
+			| 'ai_query_builder'
 			| 'ai_insights'
 			| 'enable_session_export'
 			| 'enable_unlisted_sharing'
@@ -5208,6 +5234,8 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithMicrosoftTeams' as const,
 		GetWorkspaceIsIntegratedWithHeroku:
 			'GetWorkspaceIsIntegratedWithHeroku' as const,
+		GetWorkspaceIsIntegratedWithCloudflare:
+			'GetWorkspaceIsIntegratedWithCloudflare' as const,
 		GetWorkspaceIsIntegratedWithLinear:
 			'GetWorkspaceIsIntegratedWithLinear' as const,
 		GetWorkspaceIsIntegratedWithZapier:
@@ -5365,6 +5393,7 @@ export const namedOperations = {
 		DeleteVisualization: 'DeleteVisualization' as const,
 		UpsertGraph: 'UpsertGraph' as const,
 		DeleteGraph: 'DeleteGraph' as const,
+		CreateCloudflareProxy: 'CreateCloudflareProxy' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

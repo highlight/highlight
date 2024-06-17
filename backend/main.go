@@ -14,19 +14,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/assets"
-
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
-	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
-	"go.opentelemetry.io/otel/trace"
-
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/andybalholm/brotli"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
+	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -34,18 +29,10 @@ import (
 	"github.com/gorilla/websocket"
 	golang_lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/highlight-run/go-resthooks"
-	"github.com/highlight-run/workerpool"
-	e "github.com/pkg/errors"
-	"github.com/rs/cors"
-	"github.com/sendgrid/sendgrid-go"
-	log "github.com/sirupsen/logrus"
-	"github.com/stripe/stripe-go/v78/client"
-	"gorm.io/gorm"
-
+	"github.com/highlight-run/highlight/backend/assets"
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/highlight-run/highlight/backend/embeddings"
-
-	"github.com/highlight-run/highlight/backend/clickhouse"
 	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -66,10 +53,22 @@ import (
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/worker"
 	"github.com/highlight-run/highlight/backend/zapier"
+	"github.com/highlight-run/workerpool"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	htrace "github.com/highlight/highlight/sdk/highlight-go/trace"
+	e "github.com/pkg/errors"
+	"github.com/rs/cors"
+	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
+	"github.com/stripe/stripe-go/v78/client"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
+	"go.opentelemetry.io/otel/trace"
+	"gorm.io/gorm"
 
 	_ "github.com/urfave/cli/v2"
 	_ "gorm.io/gorm"
@@ -318,11 +317,11 @@ func main() {
 	}
 
 	kafkaProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Producer, nil)
-	kafkaBatchedProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Producer, nil)
-	kafkaTracesProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}), kafkaqueue.Producer, nil)
-	kafkaDataSyncProducer := kafkaqueue.New(ctx,
-		kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}),
-		kafkaqueue.Producer, nil)
+	// async writes for workers (where order of write between workers does not matter)
+	kCfg := &kafkaqueue.ConfigOverride{Async: ptr.Bool(true)}
+	kafkaBatchedProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Producer, kCfg)
+	kafkaTracesProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}), kafkaqueue.Producer, kCfg)
+	kafkaDataSyncProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Producer, kCfg)
 
 	lambda, err := lambda.NewLambdaClient()
 	if err != nil {
@@ -349,6 +348,16 @@ func main() {
 		log.WithContext(ctx).Fatalf("error creating collector tracer provider: %v", err)
 	}
 	tracer := tp.Tracer(
+		"github.com/highlight/highlight",
+		trace.WithInstrumentationVersion("v0.1.0"),
+		trace.WithSchemaURL(semconv.SchemaURL),
+	)
+
+	tpNoResources, err := highlight.CreateTracerProvider(otlpEndpoint, sdktrace.WithResource(resource.Empty()))
+	if err != nil {
+		log.WithContext(ctx).Fatalf("error creating collector tracer provider: %v", err)
+	}
+	tracerNoResources := tpNoResources.Tracer(
 		"github.com/highlight/highlight",
 		trace.WithInstrumentationVersion("v0.1.0"),
 		trace.WithSchemaURL(semconv.SchemaURL),
@@ -484,26 +493,27 @@ func main() {
 		})
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
-		sessionCache, err := golang_lru.New[string, *model.Session](10000)
+		sessionCache, err := golang_lru.New[string, *model.Session](100_000)
 		if err != nil {
 			log.Fatalf("error initializing lru cache: %v", err)
 		}
 		publicResolver := &public.Resolver{
-			DB:               db,
-			Tracer:           tracer,
-			ProducerQueue:    kafkaProducer,
-			BatchedQueue:     kafkaBatchedProducer,
-			DataSyncQueue:    kafkaDataSyncProducer,
-			TracesQueue:      kafkaTracesProducer,
-			MailClient:       sendgrid.NewSendClient(sendgridKey),
-			EmbeddingsClient: embeddings.New(),
-			StorageClient:    storageClient,
-			Redis:            redisClient,
-			Clickhouse:       clickhouseClient,
-			RH:               &rh,
-			Store:            store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
-			LambdaClient:     lambda,
-			SessionCache:     sessionCache,
+			DB:                db,
+			Tracer:            tracer,
+			TracerNoResources: tracerNoResources,
+			ProducerQueue:     kafkaProducer,
+			BatchedQueue:      kafkaBatchedProducer,
+			DataSyncQueue:     kafkaDataSyncProducer,
+			TracesQueue:       kafkaTracesProducer,
+			MailClient:        sendgrid.NewSendClient(sendgridKey),
+			EmbeddingsClient:  embeddings.New(),
+			StorageClient:     storageClient,
+			Redis:             redisClient,
+			Clickhouse:        clickhouseClient,
+			RH:                &rh,
+			Store:             store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
+			LambdaClient:      lambda,
+			SessionCache:      sessionCache,
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -528,8 +538,8 @@ func main() {
 		})
 		otelHandler := otel.New(publicResolver)
 		otelHandler.Listen(r)
-		vercel.Listen(r, tracer)
-		highlightHttp.Listen(r, tracer)
+		vercel.Listen(r, tracerNoResources)
+		highlightHttp.Listen(r, tracerNoResources)
 	}
 
 	/*
@@ -582,26 +592,27 @@ func main() {
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running....")
 	if runtimeParsed == util.Worker || runtimeParsed == util.All {
-		sessionCache, err := golang_lru.New[string, *model.Session](10000)
+		sessionCache, err := golang_lru.New[string, *model.Session](100_000)
 		if err != nil {
 			log.Fatalf("error initializing lru cache: %v", err)
 		}
 		publicResolver := &public.Resolver{
-			DB:               db,
-			Tracer:           tracer,
-			ProducerQueue:    kafkaProducer,
-			BatchedQueue:     kafkaBatchedProducer,
-			DataSyncQueue:    kafkaDataSyncProducer,
-			TracesQueue:      kafkaTracesProducer,
-			MailClient:       sendgrid.NewSendClient(sendgridKey),
-			EmbeddingsClient: embeddings.New(),
-			StorageClient:    storageClient,
-			Redis:            redisClient,
-			Clickhouse:       clickhouseClient,
-			RH:               &rh,
-			Store:            store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
-			LambdaClient:     lambda,
-			SessionCache:     sessionCache,
+			DB:                db,
+			Tracer:            tracer,
+			TracerNoResources: tracerNoResources,
+			ProducerQueue:     kafkaProducer,
+			BatchedQueue:      kafkaBatchedProducer,
+			DataSyncQueue:     kafkaDataSyncProducer,
+			TracesQueue:       kafkaTracesProducer,
+			MailClient:        sendgrid.NewSendClient(sendgridKey),
+			EmbeddingsClient:  embeddings.New(),
+			StorageClient:     storageClient,
+			Redis:             redisClient,
+			Clickhouse:        clickhouseClient,
+			RH:                &rh,
+			Store:             store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
+			LambdaClient:      lambda,
+			SessionCache:      sessionCache,
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {

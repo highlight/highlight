@@ -17,7 +17,11 @@ interface ApplicationContext {
 	currentWorkspace?: Maybe<
 		{ __typename?: 'Workspace' } & Pick<
 			Workspace,
-			'id' | 'name' | 'retention_period' | 'errors_retention_period'
+			| 'id'
+			| 'name'
+			| 'retention_period'
+			| 'errors_retention_period'
+			| 'cloudflare_proxy'
 		>
 	>
 	workspaces: Maybe<

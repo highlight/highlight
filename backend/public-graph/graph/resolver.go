@@ -72,21 +72,22 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB               *gorm.DB
-	Tracer           trace.Tracer
-	ProducerQueue    kafka_queue.MessageQueue
-	BatchedQueue     kafka_queue.MessageQueue
-	DataSyncQueue    kafka_queue.MessageQueue
-	TracesQueue      kafka_queue.MessageQueue
-	MailClient       *sendgrid.Client
-	StorageClient    storage.Client
-	EmbeddingsClient embeddings.Client
-	Redis            *redis.Client
-	Clickhouse       *clickhouse.Client
-	RH               *resthooks.Resthook
-	Store            *store.Store
-	LambdaClient     *lambda.Client
-	SessionCache     *lru.Cache[string, *model.Session]
+	DB                *gorm.DB
+	Tracer            trace.Tracer
+	TracerNoResources trace.Tracer
+	ProducerQueue     kafka_queue.MessageQueue
+	BatchedQueue      kafka_queue.MessageQueue
+	DataSyncQueue     kafka_queue.MessageQueue
+	TracesQueue       kafka_queue.MessageQueue
+	MailClient        *sendgrid.Client
+	StorageClient     storage.Client
+	EmbeddingsClient  embeddings.Client
+	Redis             *redis.Client
+	Clickhouse        *clickhouse.Client
+	RH                *resthooks.Resthook
+	Store             *store.Store
+	LambdaClient      *lambda.Client
+	SessionCache      *lru.Cache[string, *model.Session]
 }
 
 type Location struct {
@@ -135,18 +136,18 @@ type FieldData struct {
 }
 
 type Request struct {
-	ID      string            `json:"id"`
-	URL     string            `json:"url"`
-	Method  string            `json:"verb"`
-	Headers map[string]string `json:"headers"`
-	Body    any               `json:"body"`
+	ID         string `json:"id"`
+	URL        string `json:"url"`
+	Method     string `json:"verb"`
+	HeadersRaw any    `json:"headers"`
+	Body       any    `json:"body"`
 }
 
 type Response struct {
-	Status  float64           `json:"status"`
-	Size    float64           `json:"size"`
-	Headers map[string]string `json:"headers"`
-	Body    any               `json:"body"`
+	Status     float64 `json:"status"`
+	Size       float64 `json:"size"`
+	HeadersRaw any     `json:"headers"`
+	Body       any     `json:"body"`
 }
 
 type RequestResponsePairs struct {
@@ -174,9 +175,9 @@ type NetworkResource struct {
 	ResponseStartAbs         float64              `json:"responseStartAbs"`
 	SecureConnectionStartAbs float64              `json:"secureConnectionStartAbs"`
 	WorkerStartAbs           float64              `json:"workerStartAbs"`
-	DecodedBodySize          int64                `json:"decodedBodySize"`
-	TransferSize             int64                `json:"transferSize"`
-	EncodedBodySize          int64                `json:"encodedBodySize"`
+	DecodedBodySize          float64              `json:"decodedBodySize"`
+	TransferSize             float64              `json:"transferSize"`
+	EncodedBodySize          float64              `json:"encodedBodySize"`
 	NextHopProtocol          string               `json:"nextHopProtocol"`
 	InitiatorType            string               `json:"initiatorType"`
 	Name                     string               `json:"name"`
@@ -3122,6 +3123,9 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		if url, err := url2.Parse(re.Name); err == nil && url.Host == "pub.highlight.io" {
 			continue
 		}
+		requestHeaders, _ := re.RequestResponsePairs.Request.HeadersRaw.(map[string]interface{})
+		responseHeaders, _ := re.RequestResponsePairs.Response.HeadersRaw.(map[string]interface{})
+		userAgent, _ := requestHeaders["User-Agent"].(string)
 		requestBody, ok := re.RequestResponsePairs.Request.Body.(string)
 		if !ok {
 			bdBytes, err := json.Marshal(requestBody)
@@ -3141,7 +3145,6 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			}
 		}
 		var attributes []attribute.KeyValue
-		attributes = append(attributes, highlight.EmptyResourceAttributes...)
 		attributes = append(attributes, attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
 			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
@@ -3153,15 +3156,15 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			semconv.HTTPURL(re.Name),
 			attribute.String("http.request.body", requestBody),
 			attribute.String("http.response.body", responseBody),
-			attribute.Int64("http.response.encoded.size", re.EncodedBodySize),
-			attribute.Int64("http.response.decoded.size", re.DecodedBodySize),
-			attribute.Int64("http.response.transfer.size", re.TransferSize),
+			attribute.Float64("http.response.encoded.size", re.EncodedBodySize),
+			attribute.Float64("http.response.decoded.size", re.DecodedBodySize),
+			attribute.Float64("http.response.transfer.size", re.TransferSize),
 			semconv.HTTPRequestContentLength(len(requestBody)),
 			semconv.HTTPResponseContentLength(int(re.RequestResponsePairs.Response.Size)),
 			semconv.HTTPStatusCode(int(re.RequestResponsePairs.Response.Status)),
 			semconv.HTTPMethod(method),
-			semconv.HTTPUserAgent(re.RequestResponsePairs.Request.Headers["User-Agent"]),
-			semconv.UserAgentOriginal(re.RequestResponsePairs.Request.Headers["User-Agent"]),
+			semconv.HTTPUserAgent(userAgent),
+			semconv.UserAgentOriginal(userAgent),
 			attribute.String(privateModel.NetworkRequestAttributeInitiatorType.String(), re.InitiatorType),
 			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64(end.Sub(start).Nanoseconds())),
 			attribute.Float64(privateModel.NetworkRequestAttributeConnectLatency.String(), (re.ConnectEndAbs-re.ConnectStartAbs)*1e6),
@@ -3171,11 +3174,17 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		if u, err := url2.Parse(re.Name); err == nil {
 			attributes = append(attributes, semconv.HTTPScheme(u.Scheme), semconv.HTTPTarget(u.Path))
 		}
-		for requestHeader, requestHeaderValue := range re.RequestResponsePairs.Request.Headers {
-			attributes = append(attributes, attribute.String(fmt.Sprintf("http.request.header.%s", requestHeader), requestHeaderValue))
+		for requestHeader, requestHeaderValue := range requestHeaders {
+			str, ok := requestHeaderValue.(string)
+			if ok {
+				attributes = append(attributes, attribute.String(fmt.Sprintf("http.request.header.%s", requestHeader), str))
+			}
 		}
-		for responseHeader, responseHeaderValue := range re.RequestResponsePairs.Response.Headers {
-			attributes = append(attributes, attribute.String(fmt.Sprintf("http.response.header.%s", responseHeader), responseHeaderValue))
+		for responseHeader, responseHeaderValue := range responseHeaders {
+			str, ok := responseHeaderValue.(string)
+			if ok {
+				attributes = append(attributes, attribute.String(fmt.Sprintf("http.response.header.%s", responseHeader), str))
+			}
 		}
 		requestBodyJson := make(map[string]interface{})
 		// if the request body is json and contains the graphql key operationName, treat it as an operation
@@ -3190,7 +3199,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionObj.SecureID)
 		ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, re.RequestResponsePairs.Request.ID)
-		span, _ := highlight.StartTraceWithTracer(ctx, r.Tracer, strings.Join([]string{method, re.Name}, " "), start, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
+		span, _ := highlight.StartTraceWithTracer(ctx, r.TracerNoResources, strings.Join([]string{method, re.Name}, " "), start, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
 		span.End(trace.WithTimestamp(end))
 	}
 	return nil
@@ -3200,7 +3209,6 @@ func (r *Resolver) submitFrontendWebsocketMetric(sessionObj *model.Session, even
 	for _, event := range events {
 		ts := time.UnixMicro(int64(1000. * event.TimeStamp))
 		var attributes []attribute.KeyValue
-		attributes = append(attributes, highlight.EmptyResourceAttributes...)
 		attributes = append(attributes, attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeWebSocketRequest)),
 			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
@@ -3231,7 +3239,7 @@ func (r *Resolver) submitFrontendWebsocketMetric(sessionObj *model.Session, even
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionObj.SecureID)
 		ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, event.SocketID)
-		span, _ := highlight.StartTraceWithTracer(ctx, r.Tracer, strings.Join([]string{"WS", event.Name}, " "), ts, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
+		span, _ := highlight.StartTraceWithTracer(ctx, r.TracerNoResources, strings.Join([]string{"WS", event.Name}, " "), ts, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
 		// ws messsages don't have a duration, but record them with some duration so they are rendered correctly
 		span.End(trace.WithTimestamp(ts.Add(time.Microsecond)))
 	}
@@ -3245,6 +3253,7 @@ func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj
 	}
 
 	for _, row := range logRows {
+		t := time.UnixMilli(row.Time)
 		attributes := []attribute.KeyValue{
 			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeFrontendConsole)),
 			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
@@ -3254,7 +3263,10 @@ func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
 			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
 		}
-		span, _ := highlight.StartTraceWithoutResourceAttributes(ctx, r.Tracer, highlight.LogSpanName, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...)
+		span, _ := highlight.StartTraceWithTracer(
+			ctx, r.TracerNoResources, highlight.LogSpanName, t,
+			[]trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, attributes...,
+		)
 		message := strings.Join(row.Value, " ")
 		attrs := []attribute.KeyValue{
 			hlog.LogSeverityKey.String(row.Type),
@@ -3310,7 +3322,7 @@ func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj
 			attrs = append(attrs, semconv.ExceptionStacktraceKey.String(stackTrace))
 		}
 
-		span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(row.Time)))
+		span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(t))
 		if row.Type == "error" {
 			span.SetStatus(codes.Error, message)
 		}

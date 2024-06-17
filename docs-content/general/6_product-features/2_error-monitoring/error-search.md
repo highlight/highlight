@@ -29,7 +29,7 @@ We can find this error by typing `sql: statement is closed`.
 ### Error Instance Search
 
 The error instances of a specific group and be searched as well. By clicking the "See all instances" button, you can search across
-instances to get more information on different occurances of the error group.
+instances to get more information on different occurrences of the error group.
 
 ![](/images/error_instance_search.png)
 

@@ -17,12 +17,16 @@ const highlightTransport = new winston.transports.Http({
 		'x-highlight-project': highlightConfig.projectID,
 		'x-highlight-service': 'e2e-nextjs',
 	},
-	level: 'success',
+	level: 'debug',
 	format: winston.format.combine(
 		winston.format.json(),
 		winston.format.errors({ stack: true }),
 		winston.format.timestamp(),
 		winston.format.prettyPrint(),
+		winston.format((info) => {
+			info.environment = 'custom-env'
+			return info
+		})(),
 	),
 })
 

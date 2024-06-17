@@ -490,6 +490,7 @@ func (r *Resolver) isUserInWorkspaceReadOnly(ctx context.Context, workspaceID in
 		LogsMaxCents:                workspace.LogsMaxCents,
 		TracesMaxCents:              workspace.TracesMaxCents,
 		ClearbitEnabled:             workspace.ClearbitEnabled,
+		CloudflareProxy:             workspace.CloudflareProxy,
 	}, nil
 }
 
@@ -2042,6 +2043,22 @@ func (r *Resolver) AddHerokuToProject(ctx context.Context, project *model.Projec
 	if err := r.DB.WithContext(ctx).
 		Model(&projectMapping).
 		Create(&projectMapping).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Resolver) AddCloudflareToWorkspace(ctx context.Context, project *model.Project, token string) error {
+	workspaceMapping := &model.IntegrationWorkspaceMapping{
+		IntegrationType: modelInputs.IntegrationTypeCloudflare,
+		WorkspaceID:     project.ID,
+		AccessToken:     token,
+	}
+
+	if err := r.DB.WithContext(ctx).
+		Model(&workspaceMapping).
+		Create(&workspaceMapping).Error; err != nil {
 		return err
 	}
 

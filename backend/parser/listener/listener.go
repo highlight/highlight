@@ -48,6 +48,7 @@ type SearchListener[T ~string] struct {
 	ops              Filters
 	sb               *sqlbuilder.SelectBuilder
 	attributesColumn string
+	attributesList   bool
 	tableConfig      model.TableConfig[T]
 	IgnoredFilters   map[string]string
 }
@@ -64,9 +65,23 @@ func NewSearchListener[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, tableCon
 		ops:              []*FilterOperation{},
 		sb:               sqlBuilder,
 		attributesColumn: tableConfig.AttributesColumn,
+		attributesList:   tableConfig.AttributesList,
 		tableConfig:      tableConfig,
 		IgnoredFilters:   map[string]string{},
 	}
+}
+
+func (s *SearchListener[T]) getAttributeFilterExpr(op Operator, value any) sqlbuilder.Builder {
+	var prefix, postfix string
+	if op == OperatorGreaterThan || op == OperatorGreaterThanOrEqualTo ||
+		op == OperatorLessThan || op == OperatorLessThanOrEqualTo {
+		prefix = "toFloat64OrNull("
+		postfix = ")"
+	}
+	if s.attributesList {
+		return sqlbuilder.Buildf(fmt.Sprintf("notEmpty(arrayFilter((k, v) -> k = %%s AND %sv%s %s %%s, SessionAttributePairs))", prefix, postfix, op), s.currentKey, value)
+	}
+	return sqlbuilder.Buildf(prefix+s.attributesColumn+fmt.Sprintf("[%%s]%s %s %%s", postfix, op), s.currentKey, value)
 }
 
 func (s *SearchListener[T]) EnterSearch_query(ctx *parser.Search_queryContext) {}
@@ -314,7 +329,7 @@ func (s *SearchListener[T]) appendRules(value string) {
 		if strings.HasPrefix(value, "/") && strings.HasSuffix(value, "/") {
 			value = strings.Trim(value, "/")
 			if extendedAttributeKey {
-				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] REGEXP %s", s.currentKey, value)))
+				s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorRegExp, value)))
 				s.ops = append(s.ops, &FilterOperation{
 					Key:      s.currentKey,
 					Column:   s.attributesColumn,
@@ -333,7 +348,7 @@ func (s *SearchListener[T]) appendRules(value string) {
 			value = wildcardValue(value)
 
 			if extendedAttributeKey {
-				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] ILIKE %s", s.currentKey, value)))
+				s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorILike, value)))
 				s.ops = append(s.ops, &FilterOperation{
 					Key:      s.currentKey,
 					Column:   s.attributesColumn,
@@ -350,7 +365,7 @@ func (s *SearchListener[T]) appendRules(value string) {
 			}
 		} else {
 			if extendedAttributeKey {
-				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] = %s", s.currentKey, value)))
+				s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorEqual, value)))
 				s.ops = append(s.ops, &FilterOperation{
 					Key:      s.currentKey,
 					Column:   s.attributesColumn,
@@ -369,7 +384,7 @@ func (s *SearchListener[T]) appendRules(value string) {
 	} else if s.currentOp == ">" {
 		numValue := NumericValue(value, filterKey)
 		if extendedAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) > %s", s.currentKey, numValue)))
+			s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorGreaterThan, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   s.attributesColumn,
@@ -387,7 +402,7 @@ func (s *SearchListener[T]) appendRules(value string) {
 	} else if s.currentOp == ">=" {
 		numValue := NumericValue(value, filterKey)
 		if extendedAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) >= %s", s.currentKey, numValue)))
+			s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorGreaterThanOrEqualTo, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   s.attributesColumn,
@@ -405,7 +420,7 @@ func (s *SearchListener[T]) appendRules(value string) {
 	} else if s.currentOp == "<" {
 		numValue := NumericValue(value, filterKey)
 		if extendedAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) < %s", s.currentKey, numValue)))
+			s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorLessThan, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   s.attributesColumn,
@@ -423,7 +438,7 @@ func (s *SearchListener[T]) appendRules(value string) {
 	} else if s.currentOp == "<=" {
 		numValue := NumericValue(value, filterKey)
 		if extendedAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) <= %s", s.currentKey, numValue)))
+			s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorLessThanOrEqualTo, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   s.attributesColumn,
