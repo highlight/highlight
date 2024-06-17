@@ -2,7 +2,6 @@ import {
 	BatchSpanProcessor,
 	BufferConfig,
 	ConsoleSpanExporter,
-	getElementXPath,
 	ReadableSpan,
 	SimpleSpanProcessor,
 	SpanExporter,
@@ -234,12 +233,9 @@ const enhanceSpanWithHttpRequestAttributes = (
 	networkRecordingOptions?: NetworkRecordingOptions,
 ) => {
 	let parsedBody
-	let parsedHeaders
 
 	try {
 		parsedBody = body ? JSON.parse(String(body)) : undefined
-		parsedHeaders =
-			typeof headers === 'string' ? headers : new Headers(headers)
 	} catch {
 		// Ignore
 	}
@@ -247,6 +243,12 @@ const enhanceSpanWithHttpRequestAttributes = (
 	if (parsedBody) {
 		try {
 			setObjectAttributes(span, parsedBody, 'http.request.body')
+
+			if (parsedBody.operationName) {
+				span.setAttributes({
+					'graphql.operation.name': parsedBody.operationName,
+				})
+			}
 		} catch {
 			// Ignore
 		}
@@ -254,10 +256,11 @@ const enhanceSpanWithHttpRequestAttributes = (
 
 	const sanitizedHeaders = sanitizeHeaders(
 		networkRecordingOptions?.networkHeadersToRedact ?? [''],
-		parsedHeaders as Headers,
+		headers as Headers,
 		networkRecordingOptions?.headerKeysToRecord,
 	)
 
+	span.setAttribute('highlight.type', 'http.request')
 	span.setAttribute('http.request.headers', JSON.stringify(sanitizedHeaders))
 }
 
@@ -268,12 +271,9 @@ const enhanceSpanWithHttpResponseAttributes = (
 	networkRecordingOptions?: NetworkRecordingOptions,
 ) => {
 	let parsedBody
-	let parsedHeaders
 
 	try {
 		parsedBody = typeof body === 'string' ? JSON.parse(body) : body
-		parsedHeaders =
-			typeof headers === 'string' ? headers : new Headers(headers)
 	} catch {
 		// Ignore
 	}
@@ -282,9 +282,10 @@ const enhanceSpanWithHttpResponseAttributes = (
 		parsedBody,
 		networkRecordingOptions?.networkBodyKeysToRedact,
 		networkRecordingOptions?.bodyKeysToRecord,
-		parsedHeaders as Headers,
+		headers as Headers,
 	)
 
+	// TODO: We don't seem to be able to access this sometimes. Figure out why.
 	span.setAttributes({
 		'http.response.body': recordedBody,
 	})
