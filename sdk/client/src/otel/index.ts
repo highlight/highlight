@@ -1,4 +1,9 @@
 import {
+	CompositePropagator,
+	W3CBaggagePropagator,
+	W3CTraceContextPropagator,
+} from '@opentelemetry/core'
+import {
 	BatchSpanProcessor,
 	BufferConfig,
 	ConsoleSpanExporter,
@@ -66,6 +71,15 @@ export const initializeOtel = (config: OtelConfig) => {
 		}),
 	})
 
+	provider.register({
+		propagator: new CompositePropagator({
+			propagators: [
+				new W3CBaggagePropagator(),
+				new W3CTraceContextPropagator(),
+			],
+		}),
+	})
+
 	// Export spans to console for debugging
 	if (isDev) {
 		provider.addSpanProcessor(
@@ -94,6 +108,7 @@ export const initializeOtel = (config: OtelConfig) => {
 			new DocumentLoadInstrumentation(),
 			new UserInteractionInstrumentation(),
 			new FetchInstrumentation({
+				propagateTraceHeaderCorsUrls: /.*/,
 				applyCustomAttributesOnSpan: (span, request, response) => {
 					if (!(response instanceof Response)) {
 						span.setAttributes({
@@ -126,6 +141,7 @@ export const initializeOtel = (config: OtelConfig) => {
 				},
 			}),
 			new XMLHttpRequestInstrumentation({
+				propagateTraceHeaderCorsUrls: /.*/,
 				applyCustomAttributesOnSpan: (
 					span: api.Span,
 					xhr: XMLHttpRequest,

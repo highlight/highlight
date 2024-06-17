@@ -32,6 +32,8 @@ receivers:
                         - 'Access-Control-Request-Method'
                         - 'Access-Control-Allow-Origin'
                         - 'Referer'
+                        - 'Traceparent'
+                        - 'Tracestate'
                     max_age: 7200
                 tls:
                     cert_file: '/server.crt'
