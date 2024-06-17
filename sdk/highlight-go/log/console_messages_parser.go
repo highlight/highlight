@@ -2,9 +2,10 @@ package hlog
 
 import (
 	"encoding/json"
+	"strconv"
+
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"strconv"
 )
 
 type MessageTrace struct {
@@ -46,11 +47,11 @@ func ParseConsoleMessages(messages string) ([]*Message, error) {
 		if attrString, ok := message.AttributesRaw.(string); ok && attrString != "" {
 			if err := json.Unmarshal([]byte(attrString), &msg.Attributes); err != nil {
 				log.WithField("attributes.raw", message.AttributesRaw).WithError(err).Warn("error decoding message attributes")
-				message.Attributes["attributes.raw"] = message.AttributesRaw
+				msg.Attributes["attributes.raw"] = message.AttributesRaw
 			}
 		} else {
 			log.WithField("attributes.raw", message.AttributesRaw).Warn("unknown console message attribute format")
-			message.Attributes["attributes.raw"] = message.AttributesRaw
+			msg.Attributes["attributes.raw"] = message.AttributesRaw
 		}
 		var messageValue []string
 		for _, v := range message.Value {
