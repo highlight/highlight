@@ -96,6 +96,16 @@ type AdminAndWorkspaceDetails struct {
 	PromoCode                   *string `json:"promo_code,omitempty"`
 }
 
+type AlertStateChange struct {
+	ID            int        `json:"id"`
+	Timestamp     time.Time  `json:"timestamp"`
+	AlertID       int        `json:"AlertID"`
+	State         AlertState `json:"State"`
+	PreviousState AlertState `json:"PreviousState"`
+	Title         string     `json:"Title"`
+	GroupByKey    *string    `json:"GroupByKey,omitempty"`
+}
+
 type AllProjectSettings struct {
 	ID                                int            `json:"id"`
 	VerboseID                         string         `json:"verbose_id"`
