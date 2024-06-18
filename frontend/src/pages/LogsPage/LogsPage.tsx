@@ -21,10 +21,7 @@ import { Helmet } from 'react-helmet'
 import { useQueryParam } from 'use-query-params'
 
 import { DEFAULT_COLUMN_SIZE } from '@/components/CustomColumnPopover'
-import {
-	SearchContext,
-	useSearchContext,
-} from '@/components/Search/SearchContext'
+import { SearchContext } from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -36,6 +33,7 @@ import {
 	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
+import { parseSearch } from '@/components/Search/utils'
 import { useGetMetricsQuery } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
@@ -56,16 +54,13 @@ const LogsPage = () => {
 	const timeMode = log_cursor !== undefined ? 'permalink' : 'fixed-range'
 	const presetDefault =
 		timeMode === 'permalink' ? PermalinkPreset : FixedRangePreset
-	const [query, setQuery] = useQueryParam('query', QueryParam)
 
 	return (
-		<SearchContext initialQuery={query} onSubmit={setQuery}>
-			<LogsPageInner
-				logCursor={log_cursor}
-				timeMode={timeMode}
-				presetDefault={presetDefault}
-			/>
-		</SearchContext>
+		<LogsPageInner
+			logCursor={log_cursor}
+			timeMode={timeMode}
+			presetDefault={presetDefault}
+		/>
 	)
 }
 
@@ -82,7 +77,11 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const { query, queryParts } = useSearchContext()
+	const [query, setQuery] = useQueryParam('query', QueryParam)
+	const queryParts = useMemo(() => {
+		return parseSearch(query).queryParts
+	}, [query])
+
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 
 	const [selectedColumns, setSelectedColumns] = useLocalStorage(
@@ -216,7 +215,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	}, [])
 
 	return (
-		<>
+		<SearchContext initialQuery={query} onSubmit={setQuery}>
 			<Helmet>
 				<title>Logs</title>
 			</Helmet>
@@ -286,7 +285,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 					</Box>
 				</Box>
 			</Box>
-		</>
+		</SearchContext>
 	)
 }
 
