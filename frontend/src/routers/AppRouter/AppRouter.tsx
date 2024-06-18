@@ -31,7 +31,7 @@ import { WorkspaceRouter } from '@routers/ProjectRouter/WorkspaceRouter'
 import analytics from '@util/analytics'
 import log from '@util/log'
 import { omit } from 'lodash'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import {
 	Navigate,
 	Route,
@@ -52,10 +52,6 @@ import {
 	useGetWorkspaceDropdownOptionsQuery,
 	useGetWorkspacesQuery,
 } from '@/graph/generated/hooks'
-import {
-	GetProjectDropdownOptionsQuery,
-	GetWorkspaceDropdownOptionsQuery,
-} from '@/graph/generated/operations'
 import { JoinWorkspace } from '@/pages/Auth/JoinWorkspace'
 import { WorkspaceInvitation } from '@/pages/Auth/WorkspaceInvitation'
 import {
@@ -119,16 +115,14 @@ export const AppRouter = () => {
 	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
 	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
 	const navigate = useNavigate()
-	const [workspaceListData, setWorkspaceListData] =
-		useState<GetWorkspaceDropdownOptionsQuery>()
-	const [projectListData, setProjectListData] =
-		useState<GetProjectDropdownOptionsQuery>()
 	const isValidProjectId = Number.isInteger(Number(projectId))
+	const isValidWorkspaceId = Number.isInteger(Number(workspaceId))
 
-	const { data: workspacesData } = useGetWorkspacesQuery({
-		variables: {},
-		skip: !isLoggedIn || !!workspaceId,
-	})
+	const { data: workspacesData, loading: workspacesDataLoading } =
+		useGetWorkspacesQuery({
+			variables: {},
+			skip: !isLoggedIn || isValidWorkspaceId || isValidProjectId,
+		})
 
 	const { data: projectDropdownData, loading: projectDropdownDataLoading } =
 		useGetProjectDropdownOptionsQuery({
@@ -140,18 +134,9 @@ export const AppRouter = () => {
 		data: workspaceDropdownData,
 		loading: workspaceDropdownDataLoading,
 	} = useGetWorkspaceDropdownOptionsQuery({
-		variables: { workspace_id: workspaceId ?? '' },
-		skip: !isLoggedIn,
+		variables: { workspace_id: workspaceId! },
+		skip: !isLoggedIn || !isValidWorkspaceId,
 	})
-
-	useEffect(() => {
-		if (projectDropdownData) {
-			setProjectListData(projectDropdownData)
-		} else if (workspaceDropdownData) {
-			setWorkspaceListData(workspaceDropdownData)
-			setProjectListData(undefined)
-		}
-	}, [workspaceDropdownData, projectDropdownData])
 
 	useEffect(() => {
 		if (workspaceInviteMatch?.params.invite) {
@@ -230,7 +215,18 @@ export const AppRouter = () => {
 		}
 	}, [admin])
 
-	if (isAuthLoading) {
+	const anyLoading =
+		projectDropdownDataLoading ||
+		workspaceDropdownDataLoading ||
+		workspacesDataLoading
+
+	const currentWorkspace =
+		projectDropdownData?.project?.workspace ||
+		workspaceDropdownData?.workspace ||
+		workspacesData?.workspaces?.at(0)
+
+	// Ensure auth and current workspace data has loaded
+	if (isAuthLoading || (!currentWorkspace && anyLoading)) {
 		return null
 	}
 
@@ -238,22 +234,20 @@ export const AppRouter = () => {
 		<Box height="screen" width="screen">
 			<ApplicationContextProvider
 				value={{
-					loading:
-						projectDropdownDataLoading ||
-						workspaceDropdownDataLoading,
-					currentProject: projectListData?.project ?? undefined,
+					loading: false,
+					currentProject: projectDropdownData?.project ?? undefined,
 					allProjects:
-						(projectListData?.workspace?.projects ||
-							workspaceListData?.workspace?.projects) ??
+						(projectDropdownData?.project?.workspace?.projects ||
+							workspaceDropdownData?.workspace?.projects) ??
 						[],
 					currentWorkspace:
-						(projectListData?.workspace ||
-							workspaceListData?.workspace ||
+						(projectDropdownData?.project?.workspace ||
+							workspaceDropdownData?.workspace ||
 							workspacesData?.workspaces?.at(0)) ??
 						undefined,
 					workspaces:
-						(projectListData?.workspaces ||
-							workspaceListData?.workspaces) ??
+						(projectDropdownData?.workspaces ||
+							workspaceDropdownData?.workspaces) ??
 						[],
 				}}
 			>

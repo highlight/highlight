@@ -6984,6 +6984,10 @@ func (r *queryResolver) Workspaces(ctx context.Context) ([]*model.Workspace, err
 		return nil, e.Wrap(err, "error getting associated workspaces")
 	}
 
+	for _, w := range workspaces {
+		r.SetDefaultRetention(w)
+	}
+
 	return workspaces, nil
 }
 
@@ -7834,11 +7838,33 @@ func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, er
 	}
 
 	if r.isDemoProject(ctx, id) {
+		workspace, err := r.GetWorkspace(project.WorkspaceID)
+		if err != nil {
+			return nil, e.Wrap(err, "error querying workspace")
+		}
+
+		threeMonth := modelInputs.RetentionPeriodThreeMonths
 		return &model.Project{
 			Model: project.Model,
 			Name:  project.Name,
+			Workspace: &model.Workspace{
+				Model:                 workspace.Model,
+				Name:                  workspace.Name,
+				RetentionPeriod:       &threeMonth,
+				ErrorsRetentionPeriod: &threeMonth,
+				Projects: []model.Project{{
+					Model: project.Model,
+					Name:  project.Name,
+				}},
+			},
 		}, nil
 	}
+
+	workspace, err := r.Workspace(ctx, project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	project.Workspace = workspace
 
 	return project, nil
 }
@@ -7913,8 +7939,12 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 			return model.Project{}, false
 		}
 
+		p.Workspace = workspace
+
 		return *p, p.WorkspaceID == id
 	})
+
+	r.SetDefaultRetention(workspace)
 
 	return workspace, nil
 }
@@ -8032,35 +8062,6 @@ func (r *queryResolver) WorkspaceSettings(ctx context.Context, workspaceID int) 
 	}
 
 	return r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
-}
-
-// WorkspaceForProject is the resolver for the workspace_for_project field.
-func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) (*model.Workspace, error) {
-	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	if r.isDemoProject(ctx, projectID) {
-		workspace, err := r.GetWorkspace(project.WorkspaceID)
-		if err != nil {
-			return nil, e.Wrap(err, "error querying workspace")
-		}
-
-		threeMonth := modelInputs.RetentionPeriodThreeMonths
-		return &model.Workspace{
-			Model:                 workspace.Model,
-			Name:                  workspace.Name,
-			RetentionPeriod:       &threeMonth,
-			ErrorsRetentionPeriod: &threeMonth,
-			Projects: []model.Project{{
-				Model: project.Model,
-				Name:  project.Name,
-			}},
-		}, nil
-	}
-
-	return r.Workspace(ctx, project.WorkspaceID)
 }
 
 // Admin is the resolver for the admin field.

@@ -6,7 +6,7 @@ import { createContext } from '@util/context/context'
  */
 interface ApplicationContext {
 	loading: boolean
-	currentProject?: Project
+	currentProject?: Omit<Project, 'workspace'>
 	allProjects: Maybe<
 		Maybe<
 			{
@@ -17,7 +17,11 @@ interface ApplicationContext {
 	currentWorkspace?: Maybe<
 		{ __typename?: 'Workspace' } & Pick<
 			Workspace,
-			'id' | 'name' | 'cloudflare_proxy'
+			| 'id'
+			| 'name'
+			| 'retention_period'
+			| 'errors_retention_period'
+			| 'cloudflare_proxy'
 		>
 	>
 	workspaces: Maybe<
