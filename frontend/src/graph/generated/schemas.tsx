@@ -128,6 +128,22 @@ export enum AdminRole {
 	Member = 'MEMBER',
 }
 
+export enum AlertDestinationType {
+	Discord = 'Discord',
+	Email = 'Email',
+	MicrosoftTeams = 'MicrosoftTeams',
+	Slack = 'Slack',
+	Webhook = 'Webhook',
+}
+
+export enum AlertState {
+	Alerting = 'Alerting',
+	Error = 'Error',
+	NoData = 'NoData',
+	Normal = 'Normal',
+	Pending = 'Pending',
+}
+
 export type AllProjectSettings = {
 	__typename?: 'AllProjectSettings'
 	autoResolveStaleErrorsDayInterval: Scalars['Int']

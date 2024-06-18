@@ -1036,6 +1036,100 @@ type WorkspaceForInviteLink struct {
 	ProjectID       int        `json:"project_id"`
 }
 
+type AlertDestinationType string
+
+const (
+	AlertDestinationTypeSlack          AlertDestinationType = "Slack"
+	AlertDestinationTypeDiscord        AlertDestinationType = "Discord"
+	AlertDestinationTypeMicrosoftTeams AlertDestinationType = "MicrosoftTeams"
+	AlertDestinationTypeWebhook        AlertDestinationType = "Webhook"
+	AlertDestinationTypeEmail          AlertDestinationType = "Email"
+)
+
+var AllAlertDestinationType = []AlertDestinationType{
+	AlertDestinationTypeSlack,
+	AlertDestinationTypeDiscord,
+	AlertDestinationTypeMicrosoftTeams,
+	AlertDestinationTypeWebhook,
+	AlertDestinationTypeEmail,
+}
+
+func (e AlertDestinationType) IsValid() bool {
+	switch e {
+	case AlertDestinationTypeSlack, AlertDestinationTypeDiscord, AlertDestinationTypeMicrosoftTeams, AlertDestinationTypeWebhook, AlertDestinationTypeEmail:
+		return true
+	}
+	return false
+}
+
+func (e AlertDestinationType) String() string {
+	return string(e)
+}
+
+func (e *AlertDestinationType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AlertDestinationType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AlertDestinationType", str)
+	}
+	return nil
+}
+
+func (e AlertDestinationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type AlertState string
+
+const (
+	AlertStateNormal   AlertState = "Normal"
+	AlertStatePending  AlertState = "Pending"
+	AlertStateAlerting AlertState = "Alerting"
+	AlertStateNoData   AlertState = "NoData"
+	AlertStateError    AlertState = "Error"
+)
+
+var AllAlertState = []AlertState{
+	AlertStateNormal,
+	AlertStatePending,
+	AlertStateAlerting,
+	AlertStateNoData,
+	AlertStateError,
+}
+
+func (e AlertState) IsValid() bool {
+	switch e {
+	case AlertStateNormal, AlertStatePending, AlertStateAlerting, AlertStateNoData, AlertStateError:
+		return true
+	}
+	return false
+}
+
+func (e AlertState) String() string {
+	return string(e)
+}
+
+func (e *AlertState) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AlertState(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AlertState", str)
+	}
+	return nil
+}
+
+func (e AlertState) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type DashboardChartType string
 
 const (

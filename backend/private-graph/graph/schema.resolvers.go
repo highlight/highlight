@@ -3334,7 +3334,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	}
 
 	newAlert := &model.ErrorAlert{
-		Alert: model.Alert{
+		AlertDeprecated: model.AlertDeprecated{
 			ProjectID:         projectID,
 			CountThreshold:    countThreshold,
 			ThresholdWindow:   &thresholdWindow,
@@ -3475,7 +3475,7 @@ func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, 
 	}
 
 	projectAlert := &model.ErrorAlert{}
-	if err := r.DB.WithContext(ctx).Where(&model.ErrorAlert{Model: model.Model{ID: errorAlertID}, Alert: model.Alert{ProjectID: projectID}}).Find(&projectAlert).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&model.ErrorAlert{Model: model.Model{ID: errorAlertID}, AlertDeprecated: model.AlertDeprecated{ProjectID: projectID}}).Find(&projectAlert).Error; err != nil {
 		return nil, e.Wrap(err, "this error alert does not exist in this project.")
 	}
 
@@ -3541,7 +3541,7 @@ func (r *mutationResolver) UpdateSessionAlertIsDisabled(ctx context.Context, id 
 	}
 
 	sessionAlert := &model.SessionAlert{
-		Alert: model.Alert{
+		AlertDeprecated: model.AlertDeprecated{
 			Disabled: &disabled,
 		},
 	}
@@ -3565,7 +3565,7 @@ func (r *mutationResolver) UpdateErrorAlertIsDisabled(ctx context.Context, id in
 	}
 
 	errorAlert := &model.ErrorAlert{
-		Alert: model.Alert{
+		AlertDeprecated: model.AlertDeprecated{
 			Disabled: &disabled,
 		},
 	}
@@ -3685,7 +3685,7 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 	}
 
 	projectAlert := &model.SessionAlert{}
-	if err := r.DB.WithContext(ctx).Where(&model.ErrorAlert{Model: model.Model{ID: sessionAlertID}, Alert: model.Alert{ProjectID: projectID}}).Find(&projectAlert).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&model.ErrorAlert{Model: model.Model{ID: sessionAlertID}, AlertDeprecated: model.AlertDeprecated{ProjectID: projectID}}).Find(&projectAlert).Error; err != nil {
 		return nil, e.Wrap(err, "this session alert does not exist in this project.")
 	}
 
@@ -3853,7 +3853,7 @@ func (r *mutationResolver) UpdateLogAlertIsDisabled(ctx context.Context, id int,
 	}
 
 	alert := &model.LogAlert{
-		Alert: model.Alert{
+		AlertDeprecated: model.AlertDeprecated{
 			Disabled: &disabled,
 		},
 	}
@@ -7084,7 +7084,7 @@ func (r *queryResolver) TrackPropertiesAlerts(ctx context.Context, projectID int
 		return nil, err
 	}
 	var alerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.TRACK_PROPERTIES}}).
+	if err := r.DB.WithContext(ctx).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{Type: &model.AlertType.TRACK_PROPERTIES}}).
 		Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying track properties alerts")
 	}
@@ -7098,7 +7098,7 @@ func (r *queryResolver) UserPropertiesAlerts(ctx context.Context, projectID int)
 		return nil, err
 	}
 	var alerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.USER_PROPERTIES}}).
+	if err := r.DB.WithContext(ctx).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{Type: &model.AlertType.USER_PROPERTIES}}).
 		Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying user properties alerts")
 	}
@@ -7112,7 +7112,7 @@ func (r *queryResolver) NewSessionAlerts(ctx context.Context, projectID int) ([]
 		return nil, err
 	}
 	var alerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.NEW_SESSION}}).
+	if err := r.DB.WithContext(ctx).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{Type: &model.AlertType.NEW_SESSION}}).
 		Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying new session alerts")
 	}
@@ -9886,3 +9886,76 @@ type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
 type visualizationResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *errorAlertResolver) Name(ctx context.Context, obj *model.ErrorAlert) (*string, error) {
+	panic(fmt.Errorf("not implemented: Name - Name"))
+}
+func (r *errorAlertResolver) CountThreshold(ctx context.Context, obj *model.ErrorAlert) (int, error) {
+	panic(fmt.Errorf("not implemented: CountThreshold - CountThreshold"))
+}
+func (r *errorAlertResolver) ThresholdWindow(ctx context.Context, obj *model.ErrorAlert) (*int, error) {
+	panic(fmt.Errorf("not implemented: ThresholdWindow - ThresholdWindow"))
+}
+func (r *errorAlertResolver) LastAdminToEditID(ctx context.Context, obj *model.ErrorAlert) (*int, error) {
+	panic(fmt.Errorf("not implemented: LastAdminToEditID - LastAdminToEditID"))
+}
+func (r *errorAlertResolver) Type(ctx context.Context, obj *model.ErrorAlert) (string, error) {
+	panic(fmt.Errorf("not implemented: Type - Type"))
+}
+func (r *errorAlertResolver) Frequency(ctx context.Context, obj *model.ErrorAlert) (int, error) {
+	panic(fmt.Errorf("not implemented: Frequency - Frequency"))
+}
+func (r *errorAlertResolver) Disabled(ctx context.Context, obj *model.ErrorAlert) (bool, error) {
+	panic(fmt.Errorf("not implemented: Disabled - disabled"))
+}
+func (r *errorAlertResolver) Default(ctx context.Context, obj *model.ErrorAlert) (bool, error) {
+	panic(fmt.Errorf("not implemented: Default - default"))
+}
+func (r *logAlertResolver) Name(ctx context.Context, obj *model.LogAlert) (string, error) {
+	panic(fmt.Errorf("not implemented: Name - Name"))
+}
+func (r *logAlertResolver) CountThreshold(ctx context.Context, obj *model.LogAlert) (int, error) {
+	panic(fmt.Errorf("not implemented: CountThreshold - CountThreshold"))
+}
+func (r *logAlertResolver) ThresholdWindow(ctx context.Context, obj *model.LogAlert) (int, error) {
+	panic(fmt.Errorf("not implemented: ThresholdWindow - ThresholdWindow"))
+}
+func (r *logAlertResolver) LastAdminToEditID(ctx context.Context, obj *model.LogAlert) (*int, error) {
+	panic(fmt.Errorf("not implemented: LastAdminToEditID - LastAdminToEditID"))
+}
+func (r *logAlertResolver) Type(ctx context.Context, obj *model.LogAlert) (string, error) {
+	panic(fmt.Errorf("not implemented: Type - Type"))
+}
+func (r *logAlertResolver) Disabled(ctx context.Context, obj *model.LogAlert) (bool, error) {
+	panic(fmt.Errorf("not implemented: Disabled - disabled"))
+}
+func (r *logAlertResolver) Default(ctx context.Context, obj *model.LogAlert) (bool, error) {
+	panic(fmt.Errorf("not implemented: Default - default"))
+}
+func (r *sessionAlertResolver) Name(ctx context.Context, obj *model.SessionAlert) (*string, error) {
+	panic(fmt.Errorf("not implemented: Name - Name"))
+}
+func (r *sessionAlertResolver) CountThreshold(ctx context.Context, obj *model.SessionAlert) (int, error) {
+	panic(fmt.Errorf("not implemented: CountThreshold - CountThreshold"))
+}
+func (r *sessionAlertResolver) ThresholdWindow(ctx context.Context, obj *model.SessionAlert) (*int, error) {
+	panic(fmt.Errorf("not implemented: ThresholdWindow - ThresholdWindow"))
+}
+func (r *sessionAlertResolver) LastAdminToEditID(ctx context.Context, obj *model.SessionAlert) (*int, error) {
+	panic(fmt.Errorf("not implemented: LastAdminToEditID - LastAdminToEditID"))
+}
+func (r *sessionAlertResolver) Type(ctx context.Context, obj *model.SessionAlert) (string, error) {
+	panic(fmt.Errorf("not implemented: Type - Type"))
+}
+func (r *sessionAlertResolver) Disabled(ctx context.Context, obj *model.SessionAlert) (bool, error) {
+	panic(fmt.Errorf("not implemented: Disabled - disabled"))
+}
+func (r *sessionAlertResolver) Default(ctx context.Context, obj *model.SessionAlert) (bool, error) {
+	panic(fmt.Errorf("not implemented: Default - default"))
+}
