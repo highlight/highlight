@@ -7,26 +7,31 @@ import {
 import _ from 'lodash'
 import moment from 'moment'
 
+import { useGetProjectQuery } from '@/graph/generated/hooks'
 import { ProductType, RetentionPeriod } from '@/graph/generated/schemas'
-import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
+import { useProjectId } from '@/hooks/useProjectId'
 
 export const useRetentionPresets = (productType: ProductType) => {
-	const { currentWorkspace } = useApplicationContext()
-
-	if (!currentWorkspace) {
-		throw new Error('currentWorkspace must be initialized')
-	}
+	const { projectId } = useProjectId()
+	const { data } = useGetProjectQuery({
+		variables: {
+			id: projectId,
+		},
+	})
 
 	let defaultPresets = DEFAULT_TIME_PRESETS
 	let retentionPeriod: RetentionPeriod | undefined =
 		RetentionPeriod.ThirtyDays
 	switch (productType) {
 		case ProductType.Errors:
-			retentionPeriod = currentWorkspace.errors_retention_period
+			retentionPeriod =
+				data?.workspace?.errors_retention_period ??
+				RetentionPeriod.ThreeYears
 			defaultPresets = EXTENDED_TIME_PRESETS
 			break
 		case ProductType.Sessions:
-			retentionPeriod = currentWorkspace.retention_period
+			retentionPeriod =
+				data?.workspace?.retention_period ?? RetentionPeriod.ThreeYears
 			defaultPresets = EXTENDED_TIME_PRESETS
 			break
 	}

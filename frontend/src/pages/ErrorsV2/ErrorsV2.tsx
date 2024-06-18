@@ -94,11 +94,10 @@ export default function ErrorsV2() {
 	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
 
 	const { presets } = useRetentionPresets(ProductType.Errors)
-	const initialPreset = presets[5] ?? presets.at(-1)
 
 	const searchTimeContext = useSearchTime({
 		presets: presets,
-		initialPreset: initialPreset,
+		initialPreset: presets[5],
 	})
 
 	const handleSubmit = useCallback(

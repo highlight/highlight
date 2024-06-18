@@ -161,7 +161,7 @@ export const getQuotaPercents = (
 	data: GetBillingDetailsForProjectQuery,
 ): [ProductType, number][] => {
 	const amts = getMeterAmounts({
-		workspace: data.project?.workspace,
+		workspace: data.workspace_for_project,
 		details: data.billingDetailsForProject,
 	})
 	const sessionAmts = amts[ProductType.Sessions]

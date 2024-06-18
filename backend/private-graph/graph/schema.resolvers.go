@@ -8064,6 +8064,35 @@ func (r *queryResolver) WorkspaceSettings(ctx context.Context, workspaceID int) 
 	return r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
 }
 
+// WorkspaceForProject is the resolver for the workspace_for_project field.
+func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) (*model.Workspace, error) {
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	if r.isDemoProject(ctx, projectID) {
+		workspace, err := r.GetWorkspace(project.WorkspaceID)
+		if err != nil {
+			return nil, e.Wrap(err, "error querying workspace")
+		}
+
+		threeMonth := modelInputs.RetentionPeriodThreeMonths
+		return &model.Workspace{
+			Model:                 workspace.Model,
+			Name:                  workspace.Name,
+			RetentionPeriod:       &threeMonth,
+			ErrorsRetentionPeriod: &threeMonth,
+			Projects: []model.Project{{
+				Model: project.Model,
+				Name:  project.Name,
+			}},
+		}, nil
+	}
+
+	return r.Workspace(ctx, project.WorkspaceID)
+}
+
 // Admin is the resolver for the admin field.
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	uid := ctx.Value(model.ContextKeys.UID)

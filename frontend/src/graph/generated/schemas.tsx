@@ -2099,6 +2099,7 @@ export type Query = {
 	workspace_admins: Array<WorkspaceAdminRole>
 	workspace_admins_by_project_id: Array<WorkspaceAdminRole>
 	workspace_for_invite_link: WorkspaceForInviteLink
+	workspace_for_project?: Maybe<Workspace>
 	workspace_invite_links: WorkspaceInviteLink
 	workspaces?: Maybe<Array<Maybe<Workspace>>>
 	workspaces_count: Scalars['Int64']
@@ -2888,6 +2889,10 @@ export type QueryWorkspace_Admins_By_Project_IdArgs = {
 
 export type QueryWorkspace_For_Invite_LinkArgs = {
 	secret: Scalars['String']
+}
+
+export type QueryWorkspace_For_ProjectArgs = {
+	project_id: Scalars['ID']
 }
 
 export type QueryWorkspace_Invite_LinksArgs = {
