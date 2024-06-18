@@ -107,6 +107,22 @@ const cache = new InMemoryCache({
 						})
 					},
 				},
+				project: {
+					read(_, { args, toReference }) {
+						return toReference({
+							__typename: 'Project',
+							id: args?.id,
+						})
+					},
+				},
+				workspace: {
+					read(_, { args, toReference }) {
+						return toReference({
+							__typename: 'Workspace',
+							id: args?.id,
+						})
+					},
+				},
 			},
 		},
 	},

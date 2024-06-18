@@ -364,7 +364,7 @@ const AuthenticationRoleRouter = () => {
 
 				analytics.identify(adminData.id, {
 					'Project ID': data.project?.id,
-					'Workspace ID': data.workspace?.id,
+					'Workspace ID': data.project?.workspace?.id,
 				})
 			},
 		})
@@ -376,7 +376,7 @@ const AuthenticationRoleRouter = () => {
 		true,
 	)
 
-	const isProjectLevelMember = roleData?.projectIds?.length !== 0
+	const isProjectLevelMember = !!roleData?.projectIds?.length
 
 	return (
 		<AuthContextProvider

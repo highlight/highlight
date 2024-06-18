@@ -2570,14 +2570,7 @@ export type GetProjectsQueryVariables = Types.Exact<{ [key: string]: never }>
 
 export type GetProjectsQuery = { __typename?: 'Query' } & {
 	projects?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Project' } & Pick<
-					Types.Project,
-					'id' | 'name' | 'workspace_id'
-				>
-			>
-		>
+		Array<Types.Maybe<{ __typename?: 'Project' } & ProjectFragment>>
 	>
 }
 
@@ -2596,12 +2589,7 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
 			| 'clearbit_enabled'
 		> & {
 				projects: Array<
-					Types.Maybe<
-						{ __typename?: 'Project' } & Pick<
-							Types.Project,
-							'id' | 'name'
-						>
-					>
+					Types.Maybe<{ __typename?: 'Project' } & ProjectFragment>
 				>
 			}
 	>
@@ -2632,7 +2620,10 @@ export type GetWorkspacesQuery = { __typename?: 'Query' } & {
 			Types.Maybe<
 				{ __typename?: 'Workspace' } & Pick<
 					Types.Workspace,
-					'id' | 'name'
+					| 'id'
+					| 'name'
+					| 'retention_period'
+					| 'errors_retention_period'
 				>
 			>
 		>
@@ -2646,10 +2637,7 @@ export type GetWorkspacesQuery = { __typename?: 'Query' } & {
 				> & {
 						projects: Array<
 							Types.Maybe<
-								{ __typename?: 'Project' } & Pick<
-									Types.Project,
-									'id'
-								>
+								{ __typename?: 'Project' } & ProjectFragment
 							>
 						>
 					}
@@ -2673,11 +2661,7 @@ export type GetProjectsAndWorkspacesQueryVariables = Types.Exact<{
 
 export type GetProjectsAndWorkspacesQuery = { __typename?: 'Query' } & {
 	projects?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Project' } & Pick<Types.Project, 'id' | 'name'>
-			>
-		>
+		Array<Types.Maybe<{ __typename?: 'Project' } & ProjectFragment>>
 	>
 	workspaces?: Types.Maybe<
 		Array<
@@ -2698,12 +2682,7 @@ export type GetProjectOrWorkspaceQueryVariables = Types.Exact<{
 }>
 
 export type GetProjectOrWorkspaceQuery = { __typename?: 'Query' } & {
-	project?: Types.Maybe<
-		{ __typename?: 'Project' } & Pick<
-			Types.Project,
-			'id' | 'name' | 'billing_email'
-		>
-	>
+	project?: Types.Maybe<{ __typename?: 'Project' } & ProjectFragment>
 	workspace?: Types.Maybe<
 		{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
 	>
@@ -2715,31 +2694,24 @@ export type GetProjectDropdownOptionsQueryVariables = Types.Exact<{
 
 export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
 	project?: Types.Maybe<
-		{ __typename?: 'Project' } & Pick<
-			Types.Project,
-			| 'id'
-			| 'name'
-			| 'verbose_id'
-			| 'billing_email'
-			| 'secret'
-			| 'workspace_id'
-			| 'error_filters'
-		>
-	>
-	workspace?: Types.Maybe<
-		{ __typename?: 'Workspace' } & Pick<
-			Types.Workspace,
-			'id' | 'name' | 'cloudflare_proxy'
-		> & {
-				projects: Array<
-					Types.Maybe<
-						{ __typename?: 'Project' } & Pick<
-							Types.Project,
-							'id' | 'name'
+		{ __typename?: 'Project' } & {
+			workspace?: Types.Maybe<
+				{ __typename?: 'Workspace' } & Pick<
+					Types.Workspace,
+					| 'id'
+					| 'name'
+					| 'cloudflare_proxy'
+					| 'retention_period'
+					| 'errors_retention_period'
+				> & {
+						projects: Array<
+							Types.Maybe<
+								{ __typename?: 'Project' } & ProjectFragment
+							>
 						>
-					>
-				>
-			}
+					}
+			>
+		} & ProjectFragment
 	>
 	workspaces?: Types.Maybe<
 		Array<
@@ -2760,10 +2732,7 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
 				> & {
 						projects: Array<
 							Types.Maybe<
-								{ __typename?: 'Project' } & Pick<
-									Types.Project,
-									'id'
-								>
+								{ __typename?: 'Project' } & ProjectFragment
 							>
 						>
 					}
@@ -2778,14 +2747,12 @@ export type GetWorkspaceDropdownOptionsQueryVariables = Types.Exact<{
 
 export type GetWorkspaceDropdownOptionsQuery = { __typename?: 'Query' } & {
 	workspace?: Types.Maybe<
-		{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'> & {
+		{ __typename?: 'Workspace' } & Pick<
+			Types.Workspace,
+			'id' | 'name' | 'retention_period' | 'errors_retention_period'
+		> & {
 				projects: Array<
-					Types.Maybe<
-						{ __typename?: 'Project' } & Pick<
-							Types.Project,
-							'id' | 'name'
-						>
-					>
+					Types.Maybe<{ __typename?: 'Project' } & ProjectFragment>
 				>
 			}
 	>
@@ -2808,10 +2775,7 @@ export type GetWorkspaceDropdownOptionsQuery = { __typename?: 'Query' } & {
 				> & {
 						projects: Array<
 							Types.Maybe<
-								{ __typename?: 'Project' } & Pick<
-									Types.Project,
-									'id'
-								>
+								{ __typename?: 'Project' } & ProjectFragment
 							>
 						>
 					}
@@ -2913,30 +2877,17 @@ export type GetProjectQueryVariables = Types.Exact<{
 
 export type GetProjectQuery = { __typename?: 'Query' } & {
 	project?: Types.Maybe<
-		{ __typename?: 'Project' } & Pick<
-			Types.Project,
-			| 'id'
-			| 'name'
-			| 'verbose_id'
-			| 'billing_email'
-			| 'excluded_users'
-			| 'error_filters'
-			| 'error_json_paths'
-			| 'filter_chrome_extension'
-			| 'rage_click_window_seconds'
-			| 'rage_click_radius_pixels'
-			| 'rage_click_count'
-			| 'secret'
-		>
-	>
-	workspace?: Types.Maybe<
-		{ __typename?: 'Workspace' } & Pick<
-			Types.Workspace,
-			| 'id'
-			| 'slack_webhook_channel'
-			| 'retention_period'
-			| 'errors_retention_period'
-		>
+		{ __typename?: 'Project' } & {
+			workspace?: Types.Maybe<
+				{ __typename?: 'Workspace' } & Pick<
+					Types.Workspace,
+					| 'id'
+					| 'slack_webhook_channel'
+					| 'retention_period'
+					| 'errors_retention_period'
+				>
+			>
+		} & ProjectFragment
 	>
 }
 
@@ -2985,17 +2936,21 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 					}
 			}
 	>
-	workspace_for_project?: Types.Maybe<
-		{ __typename?: 'Workspace' } & Pick<
-			Types.Workspace,
-			| 'id'
-			| 'trial_end_date'
-			| 'billing_period_end'
-			| 'next_invoice_date'
-			| 'allow_meter_overage'
-			| 'eligible_for_trial_extension'
-			| 'trial_extension_enabled'
-		>
+	project?: Types.Maybe<
+		{ __typename?: 'Project' } & {
+			workspace?: Types.Maybe<
+				{ __typename?: 'Workspace' } & Pick<
+					Types.Workspace,
+					| 'id'
+					| 'trial_end_date'
+					| 'billing_period_end'
+					| 'next_invoice_date'
+					| 'allow_meter_overage'
+					| 'eligible_for_trial_extension'
+					| 'trial_extension_enabled'
+				>
+			>
+		}
 	>
 }
 
@@ -3315,6 +3270,27 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 						>
 					}
 			>
+		>
+	}
+
+export type ProjectFragment = { __typename?: 'Project' } & Pick<
+	Types.Project,
+	| 'id'
+	| 'name'
+	| 'verbose_id'
+	| 'billing_email'
+	| 'secret'
+	| 'workspace_id'
+	| 'error_filters'
+	| 'excluded_users'
+	| 'error_json_paths'
+	| 'filter_chrome_extension'
+	| 'rage_click_window_seconds'
+	| 'rage_click_radius_pixels'
+	| 'rage_click_count'
+> & {
+		workspace?: Types.Maybe<
+			{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id'>
 		>
 	}
 
@@ -5429,6 +5405,7 @@ export const namedOperations = {
 		DiscordChannelFragment: 'DiscordChannelFragment' as const,
 		MicrosoftTeamsChannelFragment: 'MicrosoftTeamsChannelFragment' as const,
 		ErrorObject: 'ErrorObject' as const,
+		Project: 'Project' as const,
 		ErrorTag: 'ErrorTag' as const,
 	},
 }
