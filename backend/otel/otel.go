@@ -6,13 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/redis"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/highlight-run/highlight/backend/redis"
 
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
