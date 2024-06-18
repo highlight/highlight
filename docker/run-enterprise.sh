@@ -15,7 +15,8 @@ if [[ "$*" != *"--no-pull"* ]]; then
 fi
 
 if ! docker compose -f compose.enterprise.yml up --detach >>/tmp/highlightSetup.log 2>&1; then
-  echo 'Failed to start highlight infrastructure.'
+  echo 'Failed to start highlight enterprise edition.'
+  docker ps -a
   cat /tmp/highlightSetup.log
   exit 1
 fi

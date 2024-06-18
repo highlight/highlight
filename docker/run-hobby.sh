@@ -15,7 +15,8 @@ if [[ "$*" != *"--no-pull"* ]]; then
 fi
 
 if ! docker compose -f compose.hobby.yml up --detach backend frontend >>/tmp/highlightSetup.log 2>&1; then
-  echo 'Failed to start highlight infrastructure.'
+  echo 'Failed to start highlight hobby edition.'
+  docker ps -a
   cat /tmp/highlightSetup.log
   exit 1
 fi
