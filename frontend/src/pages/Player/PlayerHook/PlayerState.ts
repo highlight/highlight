@@ -52,7 +52,7 @@ import { timedCall } from '@util/perf/instrument'
 import { H } from 'highlight.run'
 import { throttle } from 'lodash'
 import moment from 'moment/moment'
-import { MutableRefObject, SetStateAction } from 'react'
+import { MutableRefObject, RefObject, SetStateAction } from 'react'
 import { EventType, Replayer } from 'rrweb'
 
 const EMPTY_SESSION_METADATA = {
@@ -242,6 +242,7 @@ interface onChunksLoad {
 	type: PlayerActionType.onChunksLoad
 	showPlayerMouseTail: boolean
 	time: number
+	playerRef: RefObject<HTMLDivElement>
 	action: ReplayerState
 }
 
@@ -272,6 +273,7 @@ interface setSessionResults {
 interface setIsLiveMode {
 	type: PlayerActionType.setIsLiveMode
 	isLiveMode: SetStateAction<boolean>
+	playerRef: RefObject<HTMLDivElement>
 }
 
 interface setCurrentEvent {
@@ -298,7 +300,7 @@ export const PlayerInitialState = {
 	project_id: '',
 	rageClicks: [],
 	replayer: undefined,
-	replayerState: ReplayerState.Empty,
+	replayerState: ReplayerState.Loading,
 	scale: 1,
 	session: undefined,
 	sessionComments: [],
@@ -367,7 +369,7 @@ export const PlayerReducer = (
 		case PlayerActionType.loadSession:
 			s.session_secure_id = action.data!.session?.secure_id ?? ''
 			if (action.data.session) {
-				s.session = action.data?.session as Session
+				s.session = action.data.session as Session
 				s.isLiveMode = false
 			}
 			if (!action.data.session || action.data.session.excluded) {
@@ -464,7 +466,12 @@ export const PlayerReducer = (
 				break
 			}
 			if (s.replayer === undefined) {
-				s = initReplayer(s, events, action.showPlayerMouseTail)
+				s = initReplayer(
+					s,
+					events,
+					action.showPlayerMouseTail,
+					action.playerRef,
+				)
 				if (s.onSessionPayloadLoadedPayload) {
 					s = processSessionMetadata(s, events)
 				}
@@ -518,7 +525,12 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.setIsLiveMode:
 			s.isLiveMode = handleSetStateAction(s.isLiveMode, action.isLiveMode)
-			s = initReplayer(s, events, !!s.replayer?.config.mouseTail)
+			s = initReplayer(
+				s,
+				events,
+				!!s.replayer?.config.mouseTail,
+				action.playerRef,
+			)
 			analytics.track('Session live mode toggled', {
 				isLiveMode: s.isLiveMode,
 			})
@@ -569,9 +581,9 @@ const initReplayer = (
 	s: PlayerState,
 	events: HighlightEvent[],
 	showPlayerMouseTail: boolean,
+	playerRef: RefObject<HTMLDivElement>,
 ) => {
-	// Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
-	const playerMountingRoot = document.getElementById('player') as HTMLElement
+	const playerMountingRoot = playerRef.current
 	if (!playerMountingRoot) {
 		s.replayerState = ReplayerState.Empty
 		return s
@@ -736,9 +748,6 @@ const processSessionMetadata = (
 		return s
 	}
 
-	if (s.replayerState < ReplayerState.Playing) {
-		s.replayerState = ReplayerState.Paused
-	}
 	if (s.onSessionPayloadLoadedPayload.sessionPayload?.errors) {
 		s.errors = s.onSessionPayloadLoadedPayload.sessionPayload
 			.errors as ErrorObject[]

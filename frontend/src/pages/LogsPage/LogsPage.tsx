@@ -1,4 +1,8 @@
-import { LogLevel, ProductType, SavedSegmentEntityType } from '@graph/schemas'
+import {
+	MetricAggregator,
+	ProductType,
+	SavedSegmentEntityType,
+} from '@graph/schemas'
 import {
 	Box,
 	DateRangePreset,
@@ -6,7 +10,6 @@ import {
 	presetStartDate,
 } from '@highlight-run/ui/components'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
-import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
@@ -18,7 +21,10 @@ import { Helmet } from 'react-helmet'
 import { useQueryParam } from 'use-query-params'
 
 import { DEFAULT_COLUMN_SIZE } from '@/components/CustomColumnPopover'
-import { SearchContext } from '@/components/Search/SearchContext'
+import {
+	SearchContext,
+	useSearchContext,
+} from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -30,10 +36,11 @@ import {
 	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
-import { parseSearch } from '@/components/Search/utils'
-import { useGetLogsHistogramQuery } from '@/graph/generated/hooks'
+import { useGetMetricsQuery } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
+import { TIMESTAMP_KEY } from '@/pages/Graphing/components/Graph'
+import LogsCount from '@/pages/LogsPage/LogsCount/LogsCount'
 import { LogsOverageCard } from '@/pages/LogsPage/LogsOverageCard/LogsOverageCard'
 import {
 	DEFAULT_LOG_COLUMNS,
@@ -49,13 +56,16 @@ const LogsPage = () => {
 	const timeMode = log_cursor !== undefined ? 'permalink' : 'fixed-range'
 	const presetDefault =
 		timeMode === 'permalink' ? PermalinkPreset : FixedRangePreset
+	const [query, setQuery] = useQueryParam('query', QueryParam)
 
 	return (
-		<LogsPageInner
-			logCursor={log_cursor}
-			timeMode={timeMode}
-			presetDefault={presetDefault}
-		/>
+		<SearchContext initialQuery={query} onSubmit={setQuery}>
+			<LogsPageInner
+				logCursor={log_cursor}
+				timeMode={timeMode}
+				presetDefault={presetDefault}
+			/>
+		</SearchContext>
 	)
 }
 
@@ -72,8 +82,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const [query, setQuery] = useQueryParam('query', QueryParam)
-	const { queryParts } = parseSearch(query)
+	const { query, queryParts } = useSearchContext()
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 
 	const [selectedColumns, setSelectedColumns] = useLocalStorage(
@@ -146,10 +155,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		disablePolling: !selectedPreset,
 	})
 
-	const handleLevelChange = (level: LogLevel) => {
-		setQuery(`${query} level:${level}`)
-	}
-
 	const fetchMoreWhenScrolled = React.useCallback(
 		(containerRefElement?: HTMLDivElement | null) => {
 			if (containerRefElement) {
@@ -166,8 +171,9 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 
 	const { projectId } = useNumericProjectId()
 	const { data: histogramData, loading: histogramLoading } =
-		useGetLogsHistogramQuery({
+		useGetMetricsQuery({
 			variables: {
+				product_type: ProductType.Logs,
 				project_id: project_id!,
 				params: {
 					query,
@@ -176,9 +182,19 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						end_date: moment(endDate).format(TIME_FORMAT),
 					},
 				},
+				column: '',
+				metric_types: MetricAggregator.Count,
+				group_by: 'level',
+				bucket_by: TIMESTAMP_KEY,
+				bucket_count: 90,
 			},
 			skip: !projectId,
 		})
+
+	let totalCount = 0
+	for (const b of histogramData?.metrics.buckets ?? []) {
+		totalCount += b.metric_value ?? 0
+	}
 
 	const otherElementsHeight = useMemo(() => {
 		let height = HEADERS_AND_CHARTS_HEIGHT
@@ -200,7 +216,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	}, [])
 
 	return (
-		<SearchContext initialQuery={query} onSubmit={setQuery}>
+		<>
 			<Helmet>
 				<title>Logs</title>
 			</Helmet>
@@ -236,17 +252,15 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						startDate={startDate}
 						endDate={endDate}
 						presetSelected={!!selectedPreset}
-						totalCount={histogramData?.logs_histogram.objectCount}
+						totalCount={totalCount}
 						loading={histogramLoading}
 					/>
 					<LogsHistogram
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={updateSearchTime}
-						onLevelChange={handleLevelChange}
 						loading={histogramLoading}
-						histogramBuckets={histogramData?.logs_histogram.buckets}
-						bucketCount={histogramData?.logs_histogram.totalCount}
+						metrics={histogramData}
 					/>
 					<Box borderTop="dividerWeak" height="full">
 						<LogsOverageCard />
@@ -272,7 +286,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 					</Box>
 				</Box>
 			</Box>
-		</SearchContext>
+		</>
 	)
 }
 

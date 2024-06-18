@@ -319,7 +319,7 @@ func GetWorkspaceSessionsMeter(ctx context.Context, DB *gorm.DB, ccClient *click
 		util.Tag("workspace_id", workspace.ID))
 	defer meterSpan.Finish()
 
-	res, err := redis.CachedEval(ctx, redisClient, fmt.Sprintf(`workspace-sessions-meter-%d`, workspace.ID), 5*time.Second, time.Minute, func() (*int64, error) {
+	res, err := redis.CachedEval(ctx, redisClient, fmt.Sprintf(`workspace-sessions-meter-%d`, workspace.ID), time.Minute, time.Hour, func() (*int64, error) {
 		var meter int64
 		if err := DB.WithContext(ctx).Raw(`
 		WITH billing_start AS (
@@ -380,7 +380,7 @@ func GetWorkspaceErrorsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickho
 		util.Tag("workspace_id", workspace.ID))
 	defer meterSpan.Finish()
 
-	res, err := redis.CachedEval(ctx, redisClient, fmt.Sprintf(`workspace-errors-meter-%d`, workspace.ID), 5*time.Second, time.Minute, func() (*int64, error) {
+	res, err := redis.CachedEval(ctx, redisClient, fmt.Sprintf(`workspace-errors-meter-%d`, workspace.ID), time.Minute, time.Hour, func() (*int64, error) {
 		var meter int64
 		if err := DB.WithContext(ctx).Raw(`
 		WITH billing_start AS (

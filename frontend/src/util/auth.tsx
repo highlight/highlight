@@ -82,6 +82,19 @@ class SimpleAuth {
 		return await getFakeFirebaseCredentials()
 	}
 
+	isSignInWithEmailLink(emailLink: string): boolean {
+		console.warn('simple auth does not support email sign in')
+		return false
+	}
+
+	async applyActionCode(
+		actionCode: string,
+		continueUrl: string,
+	): Promise<any> {
+		console.warn('simple auth does not support email verification')
+		return false
+	}
+
 	signOut(): Promise<void> {
 		return Promise.resolve(undefined)
 	}
@@ -221,6 +234,19 @@ class PasswordAuth {
 	): Promise<Firebase.auth.UserCredential> {
 		const { token } = this.retrieve()
 		return await getFakeFirebaseCredentials(undefined, token)
+	}
+
+	isSignInWithEmailLink(emailLink: string): boolean {
+		console.warn('password auth does not support email sign in')
+		return false
+	}
+
+	async applyActionCode(
+		actionCode: string,
+		continueUrl: string,
+	): Promise<any> {
+		console.warn('password auth does not support email verification')
+		return false
 	}
 
 	async signOut() {

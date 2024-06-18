@@ -89,11 +89,33 @@ mutation ChangeAdminRole(
 		workspace_id: $workspace_id
 		admin_id: $admin_id
 		new_role: $new_role
-	)
+	) {
+		workspaceId
+		admin {
+			id
+		}
+		role
+		projectIds
+	}
 }
 
-mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
-	deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
+mutation ChangeProjectMembership(
+	$workspace_id: ID!
+	$admin_id: ID!
+	$project_ids: [ID!]!
+) {
+	changeProjectMembership(
+		workspace_id: $workspace_id
+		admin_id: $admin_id
+		project_ids: $project_ids
+	) {
+		workspaceId
+		admin {
+			id
+		}
+		role
+		projectIds
+	}
 }
 
 mutation DeleteAdminFromWorkspace($workspace_id: ID!, $admin_id: ID!) {
@@ -307,15 +329,18 @@ mutation EditWorkspaceSettings(
 	$workspace_id: ID!
 	$ai_application: Boolean
 	$ai_insights: Boolean
+	$ai_query_builder: Boolean
 ) {
 	editWorkspaceSettings(
 		workspace_id: $workspace_id
 		ai_application: $ai_application
 		ai_insights: $ai_insights
+		ai_query_builder: $ai_query_builder
 	) {
 		workspace_id
 		ai_application
 		ai_insights
+		ai_query_builder
 	}
 }
 
@@ -1437,4 +1462,11 @@ mutation UpsertGraph($graph: GraphInput!) {
 
 mutation DeleteGraph($id: ID!) {
 	deleteGraph(id: $id)
+}
+
+mutation CreateCloudflareProxy($workspace_id: ID!, $proxy_subdomain: String!) {
+	createCloudflareProxy(
+		workspace_id: $workspace_id
+		proxy_subdomain: $proxy_subdomain
+	)
 }

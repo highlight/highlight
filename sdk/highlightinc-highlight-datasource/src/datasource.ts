@@ -1,6 +1,6 @@
 import { CoreApp, DataSourceInstanceSettings, ScopedVars } from '@grafana/data';
 
-import { HighlightDataSourceOptions, HighlightQuery, Table } from './types';
+import { HighlightDataSourceOptions, HighlightQuery, HighlightVariableQuery, Table } from './types';
 import { DataSourceWithBackend, getTemplateSrv } from '@grafana/runtime';
 
 export const tableOptions: { value: Table; label: string }[] = [
@@ -77,5 +77,14 @@ export class DataSource extends DataSourceWithBackend<HighlightQuery, HighlightD
       limitAggregator: metricOptions[0].value,
       limitColumn: columnOptions[0].value,
     };
+  }
+
+  async metricFindQuery(query: HighlightVariableQuery, options?: any) {
+    if (!query.table || !query.key) {
+      return [];
+    }
+
+    const result: string[] = await this.getResource(`${query.table}-values`, { query: query.key });
+    return result.map((r) => ({ text: r }));
   }
 }

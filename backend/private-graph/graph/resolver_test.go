@@ -6,12 +6,15 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/lib/pq"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 
 	pointy "github.com/openlyinc/pointy"
@@ -363,6 +366,60 @@ func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
 		})
 	}
 }
+func TestResolver_GetAIQuerySuggestion(t *testing.T) {
+	t.Skip("skipping test")
+	tests := map[string]struct {
+		productType modelInputs.ProductType
+		query       string
+	}{
+		"error logs with date range": {
+			productType: modelInputs.ProductTypeLogs,
+			query:       "all logs with level error, between 4pm yesterday and just now.",
+		},
+	}
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+			clickhouseClient, err := clickhouse.NewClient(clickhouse.PrimaryDatabase)
+			if err != nil {
+				t.Fatalf("error creating clickhouse client: %v", err)
+			}
+			r := &queryResolver{Resolver: &Resolver{
+				DB:               DB,
+				Redis:            redis.NewClient(),
+				ClickhouseClient: clickhouseClient,
+			},
+			}
+			ctx := context.WithValue(context.Background(), model.ContextKeys.UID, "abc")
+			admin, err := r.getCurrentAdmin(ctx)
+			if err != nil {
+				t.Fatal(e.Wrap(err, "error creating admin"))
+			}
+
+			w := model.Workspace{
+				Name: ptr.String("test1"),
+			}
+			if err := DB.Create(&w).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			if err := DB.Model(&w).Association("Admins").Append(admin); err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			p := model.Project{WorkspaceID: w.ID}
+			if err := DB.Create(&p).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting project"))
+			}
+
+			if out, err := r.AiQuerySuggestion(ctx, "America/New_York", p.ID, v.productType, v.query); err != nil {
+				t.Fatal(e.Wrap(err, "error creating search suggestion"))
+			} else {
+				t.Logf("query output \n %+v", out.Query)
+				t.Logf("date output \n %+v", out.DateRange)
+			}
+		})
+	}
+}
 
 func TestResolver_GetSlackChannelsFromSlack(t *testing.T) {
 	tests := map[string]struct {
@@ -518,7 +575,7 @@ func TestResolver_isAdminInProjectOrDemoProject(t *testing.T) {
 			if v.expError {
 				id += 1
 			}
-			pr, err := r.isAdminInProjectOrDemoProject(ctx, id)
+			pr, err := r.isUserInProjectOrDemoProject(ctx, id)
 			if v.expError {
 				if err == nil {
 					t.Fatalf("error result invalid, saw %s", err)
@@ -528,6 +585,339 @@ func TestResolver_isAdminInProjectOrDemoProject(t *testing.T) {
 			} else if pr.ID != id {
 				t.Fatalf("received invalid project %d, expected %d", pr.ID, id)
 			}
+		})
+	}
+}
+
+func TestResolver_AccessLevels(t *testing.T) {
+	ctx := context.WithValue(context.Background(), model.ContextKeys.UID, "a1b2c3")
+	r := &queryResolver{}
+
+	tests := map[string]struct {
+		role       string
+		projectIds pq.Int32Array
+		passing    [](func() error)
+		erroring   [](func() error)
+	}{
+		"admin": {
+			role:       "ADMIN",
+			projectIds: nil,
+			passing: []func() error{
+				func() error {
+					_, err := r.isUserInProjectOrDemoProject(ctx, 0)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProjectOrDemoProject(ctx, 1)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProjectOrDemoProject(ctx, 2)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProject(ctx, 1)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProject(ctx, 2)
+					return err
+				},
+				func() error {
+					_, err := r.isUserWorkspaceAdmin(ctx, 1)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInWorkspace(ctx, 1)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInWorkspaceReadOnly(ctx, 1)
+					return err
+				},
+			},
+			erroring: []func() error{
+				func() error {
+					_, err := r.isUserInProjectOrDemoProject(ctx, 3)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProject(ctx, 3)
+					return err
+				},
+				func() error {
+					_, err := r.isUserWorkspaceAdmin(ctx, 2)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInWorkspace(ctx, 2)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInWorkspaceReadOnly(ctx, 2)
+					return err
+				},
+			},
+		},
+		"workspace member": {
+			role:       "MEMBER",
+			projectIds: nil,
+			passing: []func() error{
+				func() error {
+					_, err := r.isUserInProjectOrDemoProject(ctx, 0)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProjectOrDemoProject(ctx, 1)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProjectOrDemoProject(ctx, 2)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProject(ctx, 1)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProject(ctx, 2)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInWorkspace(ctx, 1)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInWorkspaceReadOnly(ctx, 1)
+					return err
+				},
+			},
+			erroring: []func() error{
+				func() error {
+					_, err := r.isUserWorkspaceAdmin(ctx, 1)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProjectOrDemoProject(ctx, 3)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProject(ctx, 3)
+					return err
+				},
+				func() error {
+					_, err := r.isUserWorkspaceAdmin(ctx, 2)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInWorkspace(ctx, 2)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInWorkspaceReadOnly(ctx, 2)
+					return err
+				},
+			},
+		},
+		"project member": {
+			role:       "MEMBER",
+			projectIds: pq.Int32Array{1},
+			passing: []func() error{
+				func() error {
+					_, err := r.isUserInProjectOrDemoProject(ctx, 0)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProjectOrDemoProject(ctx, 1)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProject(ctx, 1)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInWorkspaceReadOnly(ctx, 1)
+					return err
+				},
+			},
+			erroring: []func() error{
+				func() error {
+					_, err := r.isUserInProjectOrDemoProject(ctx, 2)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProject(ctx, 2)
+					return err
+				},
+				func() error {
+					_, err := r.isUserWorkspaceAdmin(ctx, 1)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInWorkspace(ctx, 1)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProjectOrDemoProject(ctx, 3)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInProject(ctx, 3)
+					return err
+				},
+				func() error {
+					_, err := r.isUserWorkspaceAdmin(ctx, 2)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInWorkspace(ctx, 2)
+					return err
+				},
+				func() error {
+					_, err := r.isUserInWorkspaceReadOnly(ctx, 2)
+					return err
+				},
+			},
+		},
+	}
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+			if err := os.Setenv("DEMO_PROJECT_ID", "0"); err != nil {
+				t.Fatal(e.Wrap(err, "error resetting demo project id"))
+			}
+
+			r.Resolver = &Resolver{DB: DB}
+			if err := DB.Create(&model.Workspace{Model: model.Model{ID: 1}}).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating workspace 1"))
+			}
+
+			if err := DB.Create(&model.Workspace{Model: model.Model{ID: 2}}).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating workspace 2"))
+			}
+
+			if err := DB.Exec(`insert into projects (id, workspace_id) values (0, 0)`).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating project 0"))
+			}
+
+			if err := DB.Create(&model.Project{Model: model.Model{ID: 1}, WorkspaceID: 1}).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating project 1"))
+			}
+
+			if err := DB.Create(&model.Project{Model: model.Model{ID: 2}, WorkspaceID: 1}).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating project 2"))
+			}
+
+			if err := DB.Create(&model.Project{Model: model.Model{ID: 3}, WorkspaceID: 2}).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating project 2"))
+			}
+
+			admin := model.Admin{
+				Model:         model.Model{ID: 1},
+				UID:           ptr.String("a1b2c3"),
+				EmailVerified: ptr.Bool(true),
+			}
+			if err := DB.Create(&admin).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating admin"))
+			}
+
+			workspaceAdmin := model.WorkspaceAdmin{
+				AdminID:     admin.ID,
+				WorkspaceID: 1,
+				Role:        &v.role,
+				ProjectIds:  v.projectIds,
+			}
+			if err := DB.Create(&workspaceAdmin).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating workspace admin"))
+			}
+
+			for _, p := range v.passing {
+				assert.NoError(t, p())
+			}
+
+			for _, p := range v.erroring {
+				assert.Error(t, p())
+			}
+		})
+	}
+}
+
+func TestResolver_ProjectAccess(t *testing.T) {
+	ctx := context.WithValue(context.Background(), model.ContextKeys.UID, "a1b2c3")
+	r := &queryResolver{}
+
+	tests := map[string]struct {
+		role               string
+		projectIds         pq.Int32Array
+		expectedProjectIds []int
+	}{
+		"admin": {
+			role:               "ADMIN",
+			projectIds:         nil,
+			expectedProjectIds: []int{1, 2},
+		},
+		"workspace member": {
+			role:               "MEMBER",
+			projectIds:         nil,
+			expectedProjectIds: []int{1, 2},
+		},
+		"project member": {
+			role:               "MEMBER",
+			projectIds:         pq.Int32Array{1},
+			expectedProjectIds: []int{1},
+		},
+	}
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+			r.Resolver = &Resolver{DB: DB}
+			if err := DB.Create(&model.Workspace{Model: model.Model{ID: 1}}).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating workspace 1"))
+			}
+
+			if err := DB.Create(&model.Workspace{Model: model.Model{ID: 2}}).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating workspace 2"))
+			}
+
+			if err := DB.Exec(`insert into projects (id, workspace_id) values (0, 0)`).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating project 0"))
+			}
+
+			if err := DB.Create(&model.Project{Model: model.Model{ID: 1}, WorkspaceID: 1}).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating project 1"))
+			}
+
+			if err := DB.Create(&model.Project{Model: model.Model{ID: 2}, WorkspaceID: 1}).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating project 2"))
+			}
+
+			if err := DB.Create(&model.Project{Model: model.Model{ID: 3}, WorkspaceID: 2}).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating project 2"))
+			}
+
+			admin := model.Admin{
+				Model:         model.Model{ID: 1},
+				UID:           ptr.String("a1b2c3"),
+				EmailVerified: ptr.Bool(true),
+			}
+			if err := DB.Create(&admin).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating admin"))
+			}
+
+			workspaceAdmin := model.WorkspaceAdmin{
+				AdminID:     admin.ID,
+				WorkspaceID: 1,
+				Role:        &v.role,
+				ProjectIds:  v.projectIds,
+			}
+			if err := DB.Create(&workspaceAdmin).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating workspace admin"))
+			}
+
+			projects, err := r.Projects(ctx)
+			assert.NoError(t, err)
+			ids := lo.Map(projects, func(p *model.Project, _ int) int {
+				return p.ID
+			})
+			assert.Equal(t, v.expectedProjectIds, ids)
 		})
 	}
 }

@@ -123,7 +123,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 
 	Enterprise: {
 		label: 'Enterprise',
-		subText: 'Starts at',
+		subText: 'Contact sales for pricing',
 		prices: enterprisePrices,
 		icon: (
 			<HiOfficeBuilding className="text-white w-8 h-8 -translate-x-1" />
@@ -179,6 +179,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 		buttonLabel: 'Learn More',
 		buttonLink:
 			'/docs/general/company/open-source/hosting/self-host-enterprise',
+		contactUs: true,
 		hidden: true,
 	},
 }
@@ -312,26 +313,34 @@ const PlanTier = ({
 					<Typography className="my-2" type="copy1" emphasis>
 						{tier.label}
 					</Typography>
-					<Typography
-						className="text-darker-copy-on-dark"
-						type="copy4"
-					>
-						{tier.subText}
-					</Typography>
-					<div className="flex items-end">
-						<h4 className="mt-0">${tier.prices.monthlyPrice}</h4>
-
+					<div className="flex flex-col justify-end h-[60px] md:h-[72px]">
 						<Typography
-							className="text-darker-copy-on-dark mb-2 ml-1"
+							className={`${
+								tier.contactUs ? 'mb-2' : ''
+							} text-darker-copy-on-dark`}
 							type="copy4"
 						>
-							/ month
+							{tier.subText}
 						</Typography>
+						{!tier.contactUs && (
+							<div className="flex items-end">
+								<h4 className="mt-0">
+									${tier.prices.monthlyPrice}
+								</h4>
+
+								<Typography
+									className="text-darker-copy-on-dark mb-2 ml-1"
+									type="copy4"
+								>
+									/ month
+								</Typography>
+							</div>
+						)}
 					</div>
 				</div>
 			</div>
 			{tier.contactUs && (
-				<CalendlyModal className="w-full">
+				<CalendlyModal className="w-full !px-0">
 					<PrimaryButton className="w-full bg-white text-dark-background rounded-md text-center py-1 hover:bg-copy-on-dark transition-colors">
 						Contact us
 					</PrimaryButton>
@@ -515,6 +524,7 @@ const PriceCalculator = ({
 								<CalculatorPriceRow
 									title="Plan base fee"
 									cost={base}
+									contact={pricingTier.contactUs}
 								/>
 								<CalculatorPriceRow
 									title="Session usage fee"
@@ -561,21 +571,34 @@ const PriceCalculator = ({
 								>
 									Monthly Total
 								</Typography>
-								<Typography
-									type="copy3"
-									className="text-white"
-									emphasis
-								>
-									{formatPrice(
-										(base +
-											sessionsCost +
-											tracesCost +
-											loggingCost +
-											errorsCost) *
-											(annualPricing ? 0.85 : 1),
-										'never',
-									)}
-								</Typography>
+								{!pricingTier.contactUs && (
+									<Typography
+										type="copy3"
+										className="text-white"
+										emphasis
+									>
+										{formatPrice(
+											(base +
+												sessionsCost +
+												tracesCost +
+												loggingCost +
+												errorsCost) *
+												(annualPricing ? 0.85 : 1),
+											'never',
+										)}
+									</Typography>
+								)}
+								{pricingTier.contactUs && (
+									<CalendlyModal>
+										<Typography
+											type="copy3"
+											className="underline"
+											emphasis
+										>
+											Contact Sales
+										</Typography>
+									</CalendlyModal>
+								)}
 							</div>
 						</div>
 					</div>
@@ -629,22 +652,37 @@ const PriceCalculator = ({
 const CalculatorPriceRow = ({
 	title,
 	cost,
+	contact,
 }: {
 	title: String
 	cost: Number
+	contact?: boolean
 }) => {
 	return (
 		<div className="flex justify-between">
 			<Typography type="copy3" className="text-darker-copy-on-dark">
 				{title}
 			</Typography>
-			<Typography
-				type="copy3"
-				className="text-darker-copy-on-dark"
-				emphasis
-			>
-				{`$${cost.toFixed(2)}`}
-			</Typography>
+			{!contact && (
+				<Typography
+					type="copy3"
+					className="text-darker-copy-on-dark"
+					emphasis
+				>
+					{`$${cost.toFixed(2)}`}
+				</Typography>
+			)}
+			{contact && (
+				<CalendlyModal>
+					<Typography
+						type="copy3"
+						className="text-darker-copy-on-dark underline"
+						emphasis
+					>
+						Contact Sales
+					</Typography>
+				</CalendlyModal>
+			)}
 		</div>
 	)
 }

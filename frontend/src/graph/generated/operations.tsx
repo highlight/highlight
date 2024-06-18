@@ -127,20 +127,25 @@ export type ChangeAdminRoleMutationVariables = Types.Exact<{
 	new_role: Types.Scalars['String']
 }>
 
-export type ChangeAdminRoleMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'changeAdminRole'
->
+export type ChangeAdminRoleMutation = { __typename?: 'Mutation' } & {
+	changeAdminRole: { __typename?: 'WorkspaceAdminRole' } & Pick<
+		Types.WorkspaceAdminRole,
+		'workspaceId' | 'role' | 'projectIds'
+	> & { admin: { __typename?: 'Admin' } & Pick<Types.Admin, 'id'> }
+}
 
-export type DeleteAdminFromProjectMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
+export type ChangeProjectMembershipMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
 	admin_id: Types.Scalars['ID']
+	project_ids: Array<Types.Scalars['ID']> | Types.Scalars['ID']
 }>
 
-export type DeleteAdminFromProjectMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'deleteAdminFromProject'
->
+export type ChangeProjectMembershipMutation = { __typename?: 'Mutation' } & {
+	changeProjectMembership: { __typename?: 'WorkspaceAdminRole' } & Pick<
+		Types.WorkspaceAdminRole,
+		'workspaceId' | 'role' | 'projectIds'
+	> & { admin: { __typename?: 'Admin' } & Pick<Types.Admin, 'id'> }
+}
 
 export type DeleteAdminFromWorkspaceMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
@@ -350,13 +355,17 @@ export type EditWorkspaceSettingsMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	ai_application?: Types.Maybe<Types.Scalars['Boolean']>
 	ai_insights?: Types.Maybe<Types.Scalars['Boolean']>
+	ai_query_builder?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type EditWorkspaceSettingsMutation = { __typename?: 'Mutation' } & {
 	editWorkspaceSettings?: Types.Maybe<
 		{ __typename?: 'AllWorkspaceSettings' } & Pick<
 			Types.AllWorkspaceSettings,
-			'workspace_id' | 'ai_application' | 'ai_insights'
+			| 'workspace_id'
+			| 'ai_application'
+			| 'ai_insights'
+			| 'ai_query_builder'
 		>
 	>
 }
@@ -1636,6 +1645,16 @@ export type DeleteGraphMutation = { __typename?: 'Mutation' } & Pick<
 	'deleteGraph'
 >
 
+export type CreateCloudflareProxyMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	proxy_subdomain: Types.Scalars['String']
+}>
+
+export type CreateCloudflareProxyMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'createCloudflareProxy'
+>
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -2011,7 +2030,7 @@ export type GetWorkspaceAdminsByProjectIdQuery = { __typename?: 'Query' } & {
 	admins: Array<
 		{ __typename?: 'WorkspaceAdminRole' } & Pick<
 			Types.WorkspaceAdminRole,
-			'role'
+			'workspaceId' | 'role' | 'projectIds'
 		> & {
 				admin: { __typename?: 'Admin' } & Pick<
 					Types.Admin,
@@ -2029,7 +2048,7 @@ export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
 	admins: Array<
 		{ __typename?: 'WorkspaceAdminRole' } & Pick<
 			Types.WorkspaceAdminRole,
-			'role'
+			'workspaceId' | 'role' | 'projectIds'
 		> & {
 				admin: { __typename?: 'Admin' } & Pick<
 					Types.Admin,
@@ -2040,7 +2059,7 @@ export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
 	workspace?: Types.Maybe<
 		{ __typename?: 'Workspace' } & Pick<
 			Types.Workspace,
-			'id' | 'name' | 'secret' | 'allowed_auto_join_email_origins'
+			'id' | 'name' | 'allowed_auto_join_email_origins'
 		>
 	>
 	workspace_invite_links: { __typename?: 'WorkspaceInviteLink' } & Pick<
@@ -2331,6 +2350,7 @@ export type SendAdminWorkspaceInviteMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	email: Types.Scalars['String']
 	role: Types.Scalars['String']
+	projectIds: Array<Types.Scalars['ID']> | Types.Scalars['ID']
 }>
 
 export type SendAdminWorkspaceInviteMutation = {
@@ -2571,7 +2591,6 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
 			Types.Workspace,
 			| 'id'
 			| 'name'
-			| 'secret'
 			| 'plan_tier'
 			| 'unlimited_members'
 			| 'clearbit_enabled'
@@ -2708,7 +2727,10 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
 		>
 	>
 	workspace?: Types.Maybe<
-		{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'> & {
+		{ __typename?: 'Workspace' } & Pick<
+			Types.Workspace,
+			'id' | 'name' | 'cloudflare_proxy'
+		> & {
 				projects: Array<
 					Types.Maybe<
 						{ __typename?: 'Project' } & Pick<
@@ -2826,7 +2848,7 @@ export type GetAdminRoleQuery = { __typename?: 'Query' } & {
 	admin_role?: Types.Maybe<
 		{ __typename?: 'WorkspaceAdminRole' } & Pick<
 			Types.WorkspaceAdminRole,
-			'role'
+			'workspaceId' | 'role' | 'projectIds'
 		> & {
 				admin: { __typename?: 'Admin' } & Pick<
 					Types.Admin,
@@ -2853,7 +2875,7 @@ export type GetAdminRoleByProjectQuery = { __typename?: 'Query' } & {
 	admin_role_by_project?: Types.Maybe<
 		{ __typename?: 'WorkspaceAdminRole' } & Pick<
 			Types.WorkspaceAdminRole,
-			'role'
+			'workspaceId' | 'role' | 'projectIds'
 		> & {
 				admin: { __typename?: 'Admin' } & Pick<
 					Types.Admin,
@@ -3779,6 +3801,16 @@ export type GetWorkspaceIsIntegratedWithHerokuQuery = {
 	__typename?: 'Query'
 } & { is_integrated_with_heroku: Types.Query['is_integrated_with'] }
 
+export type GetWorkspaceIsIntegratedWithCloudflareQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetWorkspaceIsIntegratedWithCloudflareQuery = {
+	__typename?: 'Query'
+} & {
+	is_integrated_with_cloudflare: Types.Query['is_workspace_integrated_with']
+}
+
 export type GetWorkspaceIsIntegratedWithLinearQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -4092,12 +4124,15 @@ export type GetLogAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'DiscordChannel' } & DiscordChannelFragmentFragment
 	>
 	admins: Array<
-		{ __typename?: 'WorkspaceAdminRole' } & {
-			admin: { __typename?: 'Admin' } & Pick<
-				Types.Admin,
-				'id' | 'name' | 'email' | 'photo_url'
-			>
-		}
+		{ __typename?: 'WorkspaceAdminRole' } & Pick<
+			Types.WorkspaceAdminRole,
+			'workspaceId'
+		> & {
+				admin: { __typename?: 'Admin' } & Pick<
+					Types.Admin,
+					'id' | 'name' | 'email' | 'photo_url'
+				>
+			}
 	>
 }
 
@@ -4125,12 +4160,15 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 		} & MicrosoftTeamsChannelFragmentFragment
 	>
 	admins: Array<
-		{ __typename?: 'WorkspaceAdminRole' } & {
-			admin: { __typename?: 'Admin' } & Pick<
-				Types.Admin,
-				'id' | 'name' | 'email' | 'photo_url'
-			>
-		}
+		{ __typename?: 'WorkspaceAdminRole' } & Pick<
+			Types.WorkspaceAdminRole,
+			'workspaceId'
+		> & {
+				admin: { __typename?: 'Admin' } & Pick<
+					Types.Admin,
+					'id' | 'name' | 'email' | 'photo_url'
+				>
+			}
 	>
 	environment_suggestion?: Types.Maybe<
 		Array<
@@ -4724,12 +4762,14 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			Types.AllWorkspaceSettings,
 			| 'workspace_id'
 			| 'ai_application'
+			| 'ai_query_builder'
 			| 'ai_insights'
 			| 'enable_session_export'
 			| 'enable_unlisted_sharing'
 			| 'enable_ingest_sampling'
 			| 'enable_data_deletion'
 			| 'enable_grafana_dashboard'
+			| 'enable_project_level_access'
 		>
 	>
 }
@@ -5218,6 +5258,8 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithMicrosoftTeams' as const,
 		GetWorkspaceIsIntegratedWithHeroku:
 			'GetWorkspaceIsIntegratedWithHeroku' as const,
+		GetWorkspaceIsIntegratedWithCloudflare:
+			'GetWorkspaceIsIntegratedWithCloudflare' as const,
 		GetWorkspaceIsIntegratedWithLinear:
 			'GetWorkspaceIsIntegratedWithLinear' as const,
 		GetWorkspaceIsIntegratedWithZapier:
@@ -5295,7 +5337,7 @@ export const namedOperations = {
 		AddAdminToWorkspace: 'AddAdminToWorkspace' as const,
 		JoinWorkspace: 'JoinWorkspace' as const,
 		ChangeAdminRole: 'ChangeAdminRole' as const,
-		DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
+		ChangeProjectMembership: 'ChangeProjectMembership' as const,
 		DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,
 		AddIntegrationToProject: 'AddIntegrationToProject' as const,
 		RemoveIntegrationFromProject: 'RemoveIntegrationFromProject' as const,
@@ -5375,6 +5417,7 @@ export const namedOperations = {
 		DeleteVisualization: 'DeleteVisualization' as const,
 		UpsertGraph: 'UpsertGraph' as const,
 		DeleteGraph: 'DeleteGraph' as const,
+		CreateCloudflareProxy: 'CreateCloudflareProxy' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

@@ -315,7 +315,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
 			task.PushPayload.HighlightLogs,
 			task.PushPayload.PayloadID); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.PushCompressedPayload:
@@ -328,7 +328,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			task.PushCompressedPayload.PayloadID,
 			task.PushCompressedPayload.Data,
 		); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.InitializeSession:
@@ -344,7 +344,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		}
 		hmetric.Incr(ctx, "worker.initializeSession.count", tags, 1)
 		if err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.IdentifySession:
@@ -352,7 +352,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionSecureID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.AddTrackProperties:
@@ -360,7 +360,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, task.AddTrackProperties.SessionSecureID, task.AddTrackProperties.PropertiesObject); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.AddSessionProperties:
@@ -368,7 +368,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, task.AddSessionProperties.SessionSecureID, task.AddSessionProperties.PropertiesObject); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.PushBackendPayload:
@@ -381,7 +381,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.ProjectVerboseID, task.PushMetrics.SessionSecureID, task.PushMetrics.Metrics); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.AddSessionFeedback:
@@ -389,7 +389,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.AddSessionFeedbackImpl(ctx, task.AddSessionFeedback); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.HealthCheck:
@@ -871,7 +871,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 		// Sending Rage Click Alert
 		var sessionAlerts []*model.SessionAlert
-		if err := w.Resolver.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).Where("type=?", model.AlertType.RAGE_CLICK).Find(&sessionAlerts).Error; err != nil {
+		if err := w.Resolver.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: projectID, Disabled: &model.F}}).Where("type=?", model.AlertType.RAGE_CLICK).Find(&sessionAlerts).Error; err != nil {
 			return e.Wrapf(err, "[project_id: %d] error fetching rage click alert", projectID)
 		}
 

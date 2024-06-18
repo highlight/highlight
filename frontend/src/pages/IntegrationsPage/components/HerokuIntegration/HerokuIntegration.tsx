@@ -30,7 +30,8 @@ const HerokuIntegration: React.FC<
 			<>
 				<p className={styles.modalSubTitle}>
 					Disconnecting your Heroku workspace from Highlight will
-					require you to reconfigure any alerts you have made!
+					break your Heroku log drains that may currently be sending
+					data!
 				</p>
 				<footer>
 					<Button

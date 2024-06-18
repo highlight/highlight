@@ -21,7 +21,7 @@ import {
 	useGetAdminRoleLazyQuery,
 	useGetProjectLazyQuery,
 } from '@graph/hooks'
-import { Admin } from '@graph/schemas'
+import { Admin, WorkspaceAdminRole } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
@@ -242,6 +242,7 @@ const AuthenticationRoleRouter = () => {
 		adminError: ApolloError | undefined,
 		adminData: Admin | undefined | null,
 		adminRole: string | undefined,
+		roleData: WorkspaceAdminRole | undefined,
 		called: boolean,
 		loading: boolean,
 		refetch: typeof wRefetch | typeof pRefetch | typeof sRefetch
@@ -250,6 +251,7 @@ const AuthenticationRoleRouter = () => {
 		adminError = adminWError
 		adminData = adminWData?.admin_role?.admin
 		adminRole = adminWData?.admin_role?.role
+		roleData = adminWData?.admin_role ?? undefined
 		called = wCalled
 		loading = wLoading
 		refetch = wRefetch
@@ -258,6 +260,7 @@ const AuthenticationRoleRouter = () => {
 		adminError = adminPError
 		adminData = adminPData?.admin_role_by_project?.admin
 		adminRole = adminPData?.admin_role_by_project?.role
+		roleData = adminPData?.admin_role_by_project ?? undefined
 		called = pCalled
 		loading = pLoading
 		refetch = pRefetch
@@ -374,6 +377,8 @@ const AuthenticationRoleRouter = () => {
 		true,
 	)
 
+	const isProjectLevelMember = roleData?.projectIds?.length !== 0
+
 	return (
 		<AuthContextProvider
 			value={{
@@ -384,6 +389,7 @@ const AuthenticationRoleRouter = () => {
 				isLoggedIn,
 				isHighlightAdmin:
 					onlyAllowHighlightStaff(adminData) && enableStaffView,
+				isProjectLevelMember,
 				fetchAdmin,
 				signIn: async (user: typeof auth.currentUser) => {
 					analytics.track('Authenticated')

@@ -101,7 +101,6 @@ type AllProjectSettings struct {
 	VerboseID                         string         `json:"verbose_id"`
 	Name                              string         `json:"name"`
 	BillingEmail                      *string        `json:"billing_email,omitempty"`
-	Secret                            *string        `json:"secret,omitempty"`
 	WorkspaceID                       int            `json:"workspace_id"`
 	ExcludedUsers                     pq.StringArray `json:"excluded_users,omitempty"`
 	ErrorFilters                      pq.StringArray `json:"error_filters,omitempty"`
@@ -275,6 +274,11 @@ type DateRangeRequiredInput struct {
 	EndDate   time.Time `json:"end_date"`
 }
 
+type DateRangeRequiredOutput struct {
+	StartDate *time.Time `json:"start_date,omitempty"`
+	EndDate   *time.Time `json:"end_date,omitempty"`
+}
+
 type DiscordChannelInput struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`
@@ -381,6 +385,7 @@ type GitlabProject struct {
 type GraphInput struct {
 	ID                *int              `json:"id,omitempty"`
 	VisualizationID   int               `json:"visualizationId"`
+	AfterGraphID      *int              `json:"afterGraphId,omitempty"`
 	Type              string            `json:"type"`
 	Title             string            `json:"title"`
 	ProductType       ProductType       `json:"productType"`
@@ -666,6 +671,11 @@ type QueryKey struct {
 	Type KeyType `json:"type"`
 }
 
+type QueryOutput struct {
+	Query     string                   `json:"query"`
+	DateRange *DateRangeRequiredOutput `json:"date_range"`
+}
+
 type RageClickEventForProject struct {
 	Identifier      string `json:"identifier"`
 	SessionSecureID string `json:"session_secure_id"`
@@ -827,6 +837,11 @@ type SocialLink struct {
 }
 
 type SortInput struct {
+	Column    string        `json:"column"`
+	Direction SortDirection `json:"direction"`
+}
+
+type SortOutput struct {
 	Column    string        `json:"column"`
 	Direction SortDirection `json:"direction"`
 }
@@ -1019,6 +1034,100 @@ type WorkspaceForInviteLink struct {
 	WorkspaceName   string     `json:"workspace_name"`
 	ExistingAccount bool       `json:"existing_account"`
 	ProjectID       int        `json:"project_id"`
+}
+
+type AlertDestinationType string
+
+const (
+	AlertDestinationTypeSlack          AlertDestinationType = "Slack"
+	AlertDestinationTypeDiscord        AlertDestinationType = "Discord"
+	AlertDestinationTypeMicrosoftTeams AlertDestinationType = "MicrosoftTeams"
+	AlertDestinationTypeWebhook        AlertDestinationType = "Webhook"
+	AlertDestinationTypeEmail          AlertDestinationType = "Email"
+)
+
+var AllAlertDestinationType = []AlertDestinationType{
+	AlertDestinationTypeSlack,
+	AlertDestinationTypeDiscord,
+	AlertDestinationTypeMicrosoftTeams,
+	AlertDestinationTypeWebhook,
+	AlertDestinationTypeEmail,
+}
+
+func (e AlertDestinationType) IsValid() bool {
+	switch e {
+	case AlertDestinationTypeSlack, AlertDestinationTypeDiscord, AlertDestinationTypeMicrosoftTeams, AlertDestinationTypeWebhook, AlertDestinationTypeEmail:
+		return true
+	}
+	return false
+}
+
+func (e AlertDestinationType) String() string {
+	return string(e)
+}
+
+func (e *AlertDestinationType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AlertDestinationType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AlertDestinationType", str)
+	}
+	return nil
+}
+
+func (e AlertDestinationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type AlertState string
+
+const (
+	AlertStateNormal   AlertState = "Normal"
+	AlertStatePending  AlertState = "Pending"
+	AlertStateAlerting AlertState = "Alerting"
+	AlertStateNoData   AlertState = "NoData"
+	AlertStateError    AlertState = "Error"
+)
+
+var AllAlertState = []AlertState{
+	AlertStateNormal,
+	AlertStatePending,
+	AlertStateAlerting,
+	AlertStateNoData,
+	AlertStateError,
+}
+
+func (e AlertState) IsValid() bool {
+	switch e {
+	case AlertStateNormal, AlertStatePending, AlertStateAlerting, AlertStateNoData, AlertStateError:
+		return true
+	}
+	return false
+}
+
+func (e AlertState) String() string {
+	return string(e)
+}
+
+func (e *AlertState) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AlertState(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AlertState", str)
+	}
+	return nil
+}
+
+func (e AlertState) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type DashboardChartType string
@@ -1252,6 +1361,7 @@ const (
 	IntegrationTypeMicrosoftTeams IntegrationType = "MicrosoftTeams"
 	IntegrationTypeGitLab         IntegrationType = "GitLab"
 	IntegrationTypeHeroku         IntegrationType = "Heroku"
+	IntegrationTypeCloudflare     IntegrationType = "Cloudflare"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -1268,11 +1378,12 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeMicrosoftTeams,
 	IntegrationTypeGitLab,
 	IntegrationTypeHeroku,
+	IntegrationTypeCloudflare,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeMicrosoftTeams, IntegrationTypeGitLab, IntegrationTypeHeroku:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeMicrosoftTeams, IntegrationTypeGitLab, IntegrationTypeHeroku, IntegrationTypeCloudflare:
 		return true
 	}
 	return false

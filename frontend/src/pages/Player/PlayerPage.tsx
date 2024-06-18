@@ -24,7 +24,14 @@ import { getDisplayName } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCar
 import { SessionFeedV3 } from '@pages/Sessions/SessionsFeedV3/SessionsFeedV3'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+	RefObject,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -60,7 +67,9 @@ import * as style from './styles.css'
 
 const PAGE_PARAM = withDefault(NumberParam, START_PAGE)
 
-const PlayerPageBase: React.FC = () => {
+const PlayerPageBase: React.FC<{ playerRef: RefObject<HTMLDivElement> }> = ({
+	playerRef,
+}) => {
 	const { isLoggedIn } = useAuthContext()
 	const { projectId, sessionSecureId } = useSessionParams()
 	const { sessionViewability, session } = useReplayerContext()
@@ -190,6 +199,7 @@ const PlayerPageBase: React.FC = () => {
 				<SessionView
 					showLeftPanel={showLeftPanel}
 					leftPanelWidth={leftPanelWidth}
+					playerRef={playerRef}
 				/>
 			</div>
 		</Box>
@@ -199,7 +209,8 @@ const PlayerPageBase: React.FC = () => {
 export const PlayerPage = () => {
 	const { projectId } = useSessionParams()
 	const toolbarContext = useToolbarItems()
-	const playerContext = usePlayer()
+	const playerRef = useRef<HTMLDivElement>(null)
+	const playerContext = usePlayer(playerRef)
 	const { session } = playerContext
 	const resourcesContext = useResources(session)
 
@@ -282,7 +293,7 @@ export const PlayerPage = () => {
 						<Helmet>
 							<title>{tabTitle}</title>
 						</Helmet>
-						<PlayerPageBase />
+						<PlayerPageBase playerRef={playerRef} />
 					</SearchContext>
 				</ToolbarItemsContextProvider>
 			</ResourcesContextProvider>
