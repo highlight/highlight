@@ -497,7 +497,7 @@ const Graph = ({
 
 		const newStartFetch = presetStartDate(selectedPreset)
 		const newPollInterval =
-			moment().diff(newStartFetch, 'hours') > 5
+			moment().diff(newStartFetch, 'hours') >= 4
 				? LONGER_POLL_INTERVAL_VALUE
 				: POLL_INTERVAL_VALUE
 
@@ -517,18 +517,25 @@ const Graph = ({
 			return
 		}
 
+		const useLongerRounding =
+			moment(fetchEnd).diff(fetchStart, 'hours') >= 4
+
+		const overage = useLongerRounding ? moment(fetchStart).minute() % 5 : 0
+		const start = moment(fetchStart)
+			.startOf('minute')
+			.subtract(overage, 'minute')
+		const end = moment(fetchEnd)
+			.startOf('minute')
+			.subtract(overage, 'minute')
+
 		getMetrics({
 			variables: {
 				product_type: productType,
 				project_id: projectId,
 				params: {
 					date_range: {
-						start_date: moment(fetchStart)
-							.startOf('minute')
-							.format(TIME_FORMAT),
-						end_date: moment(fetchEnd)
-							.startOf('minute')
-							.format(TIME_FORMAT),
+						start_date: start.format(TIME_FORMAT),
+						end_date: end.format(TIME_FORMAT),
 					},
 					query: query,
 				},
