@@ -535,7 +535,7 @@ var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey
 	},
 }
 
-var sessionsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedSessionKey]{
+var SessionsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedSessionKey]{
 	tableConfig: SessionsJoinedTableConfig,
 	useSampling: func(time.Duration) bool {
 		return false
@@ -543,12 +543,12 @@ var sessionsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedSe
 }
 
 func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
-	return readMetrics(ctx, client, sessionsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
+	return readMetrics(ctx, client, SessionsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
 }
 
 func (client *Client) ReadWorkspaceSessionCounts(ctx context.Context, projectIDs []int, params modelInputs.QueryInput) (*modelInputs.MetricsBuckets, error) {
 	// 12 buckets - 12 months in a year, or 12 weeks in a quarter
-	return readWorkspaceMetrics(ctx, client, sessionsSampleableTableConfig, projectIDs, params, "", []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, nil, pointy.Int(12), modelInputs.MetricBucketByTimestamp.String(), nil, nil, nil)
+	return readWorkspaceMetrics(ctx, client, SessionsSampleableTableConfig, projectIDs, params, "", []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, nil, pointy.Int(12), modelInputs.MetricBucketByTimestamp.String(), nil, nil, nil)
 }
 
 func (client *Client) SessionsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {

@@ -70,6 +70,22 @@ export const tooltipText = style({
 	lineHeight: '16px',
 })
 
+export const labelWrapper = style({
+	position: 'absolute',
+	backgroundColor: 'white',
+	border: vars.border.divider,
+	borderRadius: '6px',
+	minWidth: '100px',
+	display: 'flex',
+	flexDirection: 'column',
+	gap: '6px',
+	padding: '8px',
+})
+
+export const labelText = style({
+	lineHeight: '16px',
+})
+
 export const tooltipDot = style({
 	borderRadius: '50%',
 	marginRight: '4px',

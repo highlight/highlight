@@ -23,6 +23,10 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
+import {
+	FUNNEL_DISPLAY,
+	FunnelDisplay,
+} from '@pages/Graphing/components/FunnelChart'
 import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
 import moment from 'moment'
@@ -392,6 +396,31 @@ const BarChartSettings = ({
 	</>
 )
 
+const FunnelChartSettings = ({
+	funnelDisplay,
+	setFunnelDisplay,
+}: {
+	funnelDisplay: FunnelDisplay
+	setFunnelDisplay: (option: FunnelDisplay) => void
+}) => (
+	<>
+		<LabeledRow
+			label="Funnel display"
+			name="funnelDisplay"
+			tooltip="Funnel charts display how a single series is broken down into multiple steps."
+		>
+			<TagSwitchGroup
+				options={FUNNEL_DISPLAY}
+				defaultValue={funnelDisplay}
+				onChange={(o: string | number) => {
+					setFunnelDisplay(o as FunnelDisplay)
+				}}
+				cssClass={style.tagSwitch}
+			/>
+		</LabeledRow>
+	</>
+)
+
 const TableSettings = ({
 	nullHandling,
 	setNullHandling,
@@ -448,6 +477,9 @@ export const GraphingEditor = () => {
 				break
 			case 'Bar chart':
 				display = barDisplay
+				break
+			case 'Funnel chart':
+				display = funnelDisplay
 				break
 			case 'Table':
 				nullHandling = tableNullHandling
@@ -543,6 +575,8 @@ export const GraphingEditor = () => {
 				setLineDisplay(g.display as LineDisplay)
 			} else if (viewType === 'Bar chart') {
 				setBarDisplay(g.display as BarDisplay)
+			} else if (viewType === 'Funnel chart') {
+				setFunnelDisplay(g.display as FunnelDisplay)
 			} else if (viewType === 'Table') {
 				setTableNullHandling(g.nullHandling as TableNullHandling)
 			}
@@ -575,6 +609,7 @@ export const GraphingEditor = () => {
 	)
 	const [lineDisplay, setLineDisplay] = useState(LINE_DISPLAY[0])
 	const [barDisplay, setBarDisplay] = useState(BAR_DISPLAY[0])
+	const [funnelDisplay, setFunnelDisplay] = useState(FUNNEL_DISPLAY[0])
 
 	const [query, setQuery] = useState('')
 	const [debouncedQuery, setDebouncedQuery] = useState('')
@@ -663,6 +698,8 @@ export const GraphingEditor = () => {
 		nullHandling = lineNullHandling
 	} else if (viewType === 'Bar chart') {
 		display = barDisplay
+	} else if (viewType === 'Funnel chart') {
+		display = funnelDisplay
 	} else if (viewType === 'Table') {
 		nullHandling = tableNullHandling
 	}
@@ -895,6 +932,12 @@ export const GraphingEditor = () => {
 										<BarChartSettings
 											barDisplay={barDisplay}
 											setBarDisplay={setBarDisplay}
+										/>
+									)}
+									{viewType === 'Funnel chart' && (
+										<FunnelChartSettings
+											funnelDisplay={funnelDisplay}
+											setFunnelDisplay={setFunnelDisplay}
 										/>
 									)}
 									{viewType === 'Table' && (

@@ -5089,6 +5089,32 @@ export type GetMetricsQuery = { __typename?: 'Query' } & {
 		}
 }
 
+export type GetFunnelQueryVariables = Types.Exact<{
+	product_type: Types.ProductType
+	project_id: Types.Scalars['ID']
+	params: Types.FunnelQueryInput
+	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
+}>
+
+export type GetFunnelQuery = { __typename?: 'Query' } & {
+	funnel: { __typename?: 'MetricsBuckets' } & Pick<
+		Types.MetricsBuckets,
+		'bucket_count' | 'sample_factor'
+	> & {
+			buckets: Array<
+				{ __typename?: 'MetricBucket' } & Pick<
+					Types.MetricBucket,
+					| 'bucket_id'
+					| 'bucket_min'
+					| 'bucket_max'
+					| 'group'
+					| 'metric_type'
+					| 'metric_value'
+				>
+			>
+		}
+}
+
 export type GetVisualizationQueryVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 }>
@@ -5320,6 +5346,7 @@ export const namedOperations = {
 		GetKeys: 'GetKeys' as const,
 		GetKeyValues: 'GetKeyValues' as const,
 		GetMetrics: 'GetMetrics' as const,
+		GetFunnel: 'GetFunnel' as const,
 		GetVisualization: 'GetVisualization' as const,
 		GetVisualizations: 'GetVisualizations' as const,
 	},

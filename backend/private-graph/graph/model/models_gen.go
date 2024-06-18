@@ -370,6 +370,18 @@ type ErrorTrace struct {
 	EnhancementVersion         *string             `json:"enhancementVersion,omitempty"`
 }
 
+type FunnelQueryInput struct {
+	Steps     []*FunnelStep           `json:"steps"`
+	DateRange *DateRangeRequiredInput `json:"date_range"`
+	Sort      *SortInput              `json:"sort,omitempty"`
+}
+
+type FunnelStep struct {
+	Step       string           `json:"step"`
+	Column     string           `json:"column"`
+	MetricType MetricAggregator `json:"metric_type"`
+}
+
 type GitHubRepo struct {
 	RepoID string `json:"repo_id"`
 	Name   string `json:"name"`
