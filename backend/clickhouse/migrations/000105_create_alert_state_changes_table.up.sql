@@ -7,11 +7,9 @@ CREATE TABLE IF NOT EXISTS alert_state_changes
     PreviousState LowCardinality(String),
     Title String,
     GroupByKey String,
-    INDEX idx_alert_id          AlertID TYPE bloom_filter(0.001) GRANULARITY 1,
 )   ENGINE = MergeTree
-PARTITION BY toDate(Timestamp)
 ORDER BY (
     ProjectID,
+    AlertID,
     toUnixTimestamp(Timestamp),
-    AlertID
 )
