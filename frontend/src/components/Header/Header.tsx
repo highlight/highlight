@@ -967,17 +967,17 @@ const BillingBanner: React.FC = () => {
 	useEffect(() => {
 		if (
 			!hasReportedTrialExtension &&
-			data?.project?.workspace?.trial_extension_enabled
+			data?.workspace_for_project?.trial_extension_enabled
 		) {
 			analytics.track('TrialExtensionEnabled', {
 				projectId,
-				workspace_id: data?.project?.workspace.id,
+				workspace_id: data?.workspace_for_project.id,
 			})
 			setHasReportedTrialExtension(true)
 		}
 	}, [
-		data?.project?.workspace?.id,
-		data?.project?.workspace?.trial_extension_enabled,
+		data?.workspace_for_project?.id,
+		data?.workspace_for_project?.trial_extension_enabled,
 		hasReportedTrialExtension,
 		projectId,
 		setHasReportedTrialExtension,
@@ -1012,7 +1012,7 @@ const BillingBanner: React.FC = () => {
 	}
 
 	let bannerMessage: string | React.ReactNode = ''
-	const hasTrial = isProjectWithinTrial(data?.project?.workspace)
+	const hasTrial = isProjectWithinTrial(data?.workspace_for_project)
 
 	const records = getQuotaPercents(data)
 
@@ -1050,7 +1050,7 @@ const BillingBanner: React.FC = () => {
 
 	if (hasTrial) {
 		bannerMessage = getTrialEndDateMessage(
-			data?.project?.workspace?.trial_end_date,
+			data?.workspace_for_project?.trial_end_date,
 		)
 	}
 

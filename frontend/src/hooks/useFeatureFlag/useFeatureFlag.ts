@@ -128,7 +128,7 @@ const useFeatureFlag = (feature: Feature, override?: boolean) => {
 		isFeatureOn(
 			feature,
 			project?.project?.id,
-			project?.project?.workspace?.id,
+			project?.workspace?.id,
 			admin?.id,
 		).then((_isOn) => {
 			const on = override ?? _isOn
@@ -142,7 +142,7 @@ const useFeatureFlag = (feature: Feature, override?: boolean) => {
 		feature,
 		override,
 		project?.project?.id,
-		project?.project?.workspace?.id,
+		project?.workspace?.id,
 	])
 
 	return isOn

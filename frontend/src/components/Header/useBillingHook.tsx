@@ -23,13 +23,12 @@ export const useBillingHook = ({
 		refetch: refetchSubscription,
 	} = useGetSubscriptionDetailsQuery({
 		variables: {
-			workspace_id:
-				workspace_id || projectData?.project?.workspace?.id || '',
+			workspace_id: workspace_id || projectData?.workspace?.id || '',
 		},
 		skip:
 			isAuthLoading ||
 			!isLoggedIn ||
-			(!workspace_id?.length && !projectData?.project?.workspace?.id),
+			(!workspace_id?.length && !projectData?.workspace?.id),
 	})
 
 	return {

@@ -346,17 +346,6 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
-func (r *Resolver) SetDefaultRetention(workspace *model.Workspace) {
-	// Workspaces with a `null` retention period are grandfathered onto a six month plan.
-	sixMonths := modelInputs.RetentionPeriodSixMonths
-	if workspace.RetentionPeriod == nil {
-		workspace.RetentionPeriod = &sixMonths
-	}
-	if workspace.ErrorsRetentionPeriod == nil {
-		workspace.ErrorsRetentionPeriod = &sixMonths
-	}
-}
-
 func (r *Resolver) GetAWSMarketPlaceWorkspace(ctx context.Context, workspaceID int) (*model.Workspace, error) {
 	var workspace model.Workspace
 	if err := r.DB.WithContext(ctx).
@@ -3672,8 +3661,6 @@ func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time
 		retentionPeriod = *retentionPeriodPtr
 	}
 	switch retentionPeriod {
-	case modelInputs.RetentionPeriodSevenDays:
-		return time.Now().AddDate(0, 0, -7)
 	case modelInputs.RetentionPeriodThreeMonths:
 		return time.Now().AddDate(0, -3, 0)
 	case modelInputs.RetentionPeriodSixMonths:
@@ -3998,32 +3985,4 @@ func reorderGraphs(viz *model.Visualization) {
 		}
 	}
 	viz.Graphs = orderedGraphs
-}
-
-func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) (*model.Workspace, error) {
-	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	if r.isDemoProject(ctx, projectID) {
-		workspace, err := r.GetWorkspace(project.WorkspaceID)
-		if err != nil {
-			return nil, e.Wrap(err, "error querying workspace")
-		}
-
-		threeMonth := modelInputs.RetentionPeriodThreeMonths
-		return &model.Workspace{
-			Model:                 workspace.Model,
-			Name:                  workspace.Name,
-			RetentionPeriod:       &threeMonth,
-			ErrorsRetentionPeriod: &threeMonth,
-			Projects: []model.Project{{
-				Model: project.Model,
-				Name:  project.Name,
-			}},
-		}, nil
-	}
-
-	return r.Workspace(ctx, project.WorkspaceID)
 }

@@ -148,7 +148,7 @@ export function CalendlyButton({
 		},
 	})
 	const [calendlyOpen, setCalendlyOpen] = useState(false)
-	const hasTrial = isProjectWithinTrial(data?.project?.workspace)
+	const hasTrial = isProjectWithinTrial(data?.workspace_for_project)
 
 	useHotkeys(
 		'escape',
