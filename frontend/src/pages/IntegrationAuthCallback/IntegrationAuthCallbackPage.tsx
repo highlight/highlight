@@ -33,7 +33,6 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 import { useAuthContext } from '@/authentication/AuthContext'
-import { RetentionPeriod } from '@/graph/generated/schemas'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
 import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
@@ -709,12 +708,12 @@ const IntegrationAuthCallbackPage = () => {
 					loading: false,
 					currentProject: undefined,
 					allProjects: [],
-					currentWorkspace: {
-						id: workspaceId ? workspaceId : currentWorkspaceId,
-						name: '',
-						retention_period: RetentionPeriod.SixMonths,
-						errors_retention_period: RetentionPeriod.SixMonths,
-					},
+					currentWorkspace: workspaceId
+						? { id: workspaceId, name: '' }
+						: {
+								id: currentWorkspaceId,
+								name: '',
+						  },
 					workspaces: [],
 				}}
 			>

@@ -418,11 +418,10 @@ const ErrorAlertForm = ({ hideRegexExpression }: ErrorAlertFormProps) => {
 	const errors = formStore.useState('errors')
 
 	const { presets } = useRetentionPresets(ProductType.Errors)
-	const initialPreset = presets?.at(5) ?? presets?.at(-1)
 
 	const { startDate, endDate } = useSearchTime({
 		presets: presets,
-		initialPreset: initialPreset,
+		initialPreset: presets[5],
 	})
 
 	return (

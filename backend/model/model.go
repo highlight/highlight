@@ -396,7 +396,6 @@ type Project struct {
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 	WorkspaceID         int
-	Workspace           *Workspace
 	FreeTier            bool           `gorm:"default:false"`
 	ExcludedUsers       pq.StringArray `json:"excluded_users" gorm:"type:text[]"`
 	ErrorFilters        pq.StringArray `gorm:"type:text[]"`

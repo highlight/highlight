@@ -85,7 +85,6 @@ const RETENTION_OPTIONS = {
 } as const
 
 const RETENTION_MULTIPLIER = {
-	[RetentionPeriod.SevenDays]: 1,
 	[RetentionPeriod.ThirtyDays]: 1,
 	[RetentionPeriod.ThreeMonths]: 1,
 	[RetentionPeriod.SixMonths]: 1.5,
