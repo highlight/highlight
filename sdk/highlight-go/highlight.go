@@ -248,18 +248,14 @@ func InterceptRequest(r *http.Request) context.Context {
 // InterceptRequestWithContext captures the highlight session and request ID
 // for a particular request from the request headers, adding the values to the provided context.
 func InterceptRequestWithContext(ctx context.Context, r *http.Request) context.Context {
-	ctx = otel.GetTextMapPropagator().Extract(ctx, propagation.HeaderCarrier(r.Header))
+	highlightReqDetails := r.Header.Get("X-Highlight-Request")
 
-	// If we weren't able to extract a span from the headers, look for the
-	// highlight header.
-	if !trace.SpanFromContext(ctx).SpanContext().IsValid() {
-		highlightReqDetails := r.Header.Get("X-Highlight-Request")
-
-		ids := strings.Split(highlightReqDetails, "/")
-		if len(ids) >= 2 {
-			ctx = context.WithValue(ctx, ContextKeys.SessionSecureID, ids[0])
-			ctx = context.WithValue(ctx, ContextKeys.RequestID, ids[1])
-		}
+	ids := strings.Split(highlightReqDetails, "/")
+	if len(ids) >= 2 {
+		ctx = context.WithValue(ctx, ContextKeys.SessionSecureID, ids[0])
+		ctx = context.WithValue(ctx, ContextKeys.RequestID, ids[1])
+	} else {
+		ctx = otel.GetTextMapPropagator().Extract(ctx, propagation.HeaderCarrier(r.Header))
 	}
 
 	return ctx

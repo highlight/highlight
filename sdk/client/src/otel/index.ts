@@ -223,12 +223,13 @@ const getSpanName = (
 	body: Request['body'] | BrowserXHR['_body'],
 ) => {
 	let parsedBody
-	let spanName = `${method} - ${new URL(url).pathname}`
+	const pathname = new URL(url).pathname
+	let spanName = `${method} - ${pathname}`
 
 	try {
 		parsedBody = typeof body === 'string' ? JSON.parse(body) : body
 		if (parsedBody && parsedBody.operationName) {
-			spanName = parsedBody.operationName
+			spanName = `${parsedBody.operationName} (GraphQL: ${pathname})`
 		}
 	} catch {
 		// Ignore

@@ -112,23 +112,25 @@ const H: HighlightPublicInterface = {
 			}
 			init_called = true
 
-			// Use dynamic import to avoid bundling the opentelemetry dependencies
-			import('@highlight-run/client/src/otel/index').then(
-				({ initializeOtel }) => {
-					initializeOtel({
-						projectId: projectID,
-						sessionSecureId: sessionSecureID,
-						environment: options?.environment ?? 'production',
-						networkRecordingOptions:
-							typeof options?.networkRecording === 'object'
-								? options.networkRecording
-								: undefined,
-						tracingOrigins: options?.tracingOrigins,
-						serviceName:
-							options?.serviceName ?? 'highlight-browser',
-					})
-				},
-			)
+			if (options?.enableOtelTracing) {
+				// Use dynamic import to avoid bundling the opentelemetry dependencies
+				import('@highlight-run/client/src/otel/index').then(
+					({ initializeOtel }) => {
+						initializeOtel({
+							projectId: projectID,
+							sessionSecureId: sessionSecureID,
+							environment: options?.environment ?? 'production',
+							networkRecordingOptions:
+								typeof options?.networkRecording === 'object'
+									? options.networkRecording
+									: undefined,
+							tracingOrigins: options?.tracingOrigins,
+							serviceName:
+								options?.serviceName ?? 'highlight-browser',
+						})
+					},
+				)
+			}
 
 			initializeFetchListener()
 			initializeWebSocketListener()
