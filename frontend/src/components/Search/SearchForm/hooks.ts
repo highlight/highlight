@@ -5,6 +5,7 @@ import {
 	presetStartDate,
 } from '@highlight-run/ui/components'
 import _ from 'lodash'
+import moment from 'moment'
 
 import { useGetProjectQuery } from '@/graph/generated/hooks'
 import { ProductType, RetentionPeriod } from '@/graph/generated/schemas'
@@ -19,7 +20,8 @@ export const useRetentionPresets = (productType: ProductType) => {
 	})
 
 	let defaultPresets = DEFAULT_TIME_PRESETS
-	let retentionPeriod = RetentionPeriod.ThirtyDays
+	let retentionPeriod: RetentionPeriod | undefined =
+		RetentionPeriod.ThirtyDays
 	switch (productType) {
 		case ProductType.Errors:
 			retentionPeriod =
@@ -36,6 +38,12 @@ export const useRetentionPresets = (productType: ProductType) => {
 
 	let retentionPreset: DateRangePreset
 	switch (retentionPeriod) {
+		case RetentionPeriod.SevenDays:
+			retentionPreset = {
+				unit: 'days',
+				quantity: 7,
+			}
+			break
 		case RetentionPeriod.ThirtyDays:
 			retentionPreset = {
 				unit: 'days',
@@ -74,15 +82,22 @@ export const useRetentionPresets = (productType: ProductType) => {
 			break
 	}
 
+	// Add the retention preset as a selectable preset
+	// Filter out any presets larger than the retention duration
 	const presets = _.uniqWith(
 		defaultPresets.concat([retentionPreset]),
 		_.isEqual,
-	)
+	).filter((p) => {
+		return (
+			moment.duration(p.quantity, p.unit) <=
+			moment.duration(retentionPreset.quantity, retentionPreset.unit)
+		)
+	})
+
 	const minDate = presetStartDate(presets[presets.length - 1])
 
 	return {
 		presets,
 		minDate,
-		loading: data === undefined,
 	}
 }

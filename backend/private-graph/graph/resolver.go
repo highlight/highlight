@@ -346,6 +346,17 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
+func (r *Resolver) SetDefaultRetention(workspace *model.Workspace) {
+	// Workspaces with a `null` retention period are grandfathered onto a six month plan.
+	sixMonths := modelInputs.RetentionPeriodSixMonths
+	if workspace.RetentionPeriod == nil {
+		workspace.RetentionPeriod = &sixMonths
+	}
+	if workspace.ErrorsRetentionPeriod == nil {
+		workspace.ErrorsRetentionPeriod = &sixMonths
+	}
+}
+
 func (r *Resolver) GetAWSMarketPlaceWorkspace(ctx context.Context, workspaceID int) (*model.Workspace, error) {
 	var workspace model.Workspace
 	if err := r.DB.WithContext(ctx).
@@ -3661,6 +3672,8 @@ func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time
 		retentionPeriod = *retentionPeriodPtr
 	}
 	switch retentionPeriod {
+	case modelInputs.RetentionPeriodSevenDays:
+		return time.Now().AddDate(0, 0, -7)
 	case modelInputs.RetentionPeriodThreeMonths:
 		return time.Now().AddDate(0, -3, 0)
 	case modelInputs.RetentionPeriodSixMonths:

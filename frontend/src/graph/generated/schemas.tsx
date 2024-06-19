@@ -1949,6 +1949,7 @@ export type Project = {
 	rage_click_window_seconds?: Maybe<Scalars['Int']>
 	secret?: Maybe<Scalars['String']>
 	verbose_id: Scalars['String']
+	workspace?: Maybe<Workspace>
 	workspace_id: Scalars['ID']
 }
 
@@ -3071,6 +3072,7 @@ export enum ReservedTraceKey {
 }
 
 export enum RetentionPeriod {
+	SevenDays = 'SevenDays',
 	SixMonths = 'SixMonths',
 	ThirtyDays = 'ThirtyDays',
 	ThreeMonths = 'ThreeMonths',
@@ -3753,14 +3755,14 @@ export type Workspace = {
 	cloudflare_proxy?: Maybe<Scalars['String']>
 	eligible_for_trial_extension: Scalars['Boolean']
 	errors_max_cents?: Maybe<Scalars['Int']>
-	errors_retention_period?: Maybe<RetentionPeriod>
+	errors_retention_period: RetentionPeriod
 	id: Scalars['ID']
 	logs_max_cents?: Maybe<Scalars['Int']>
 	name: Scalars['String']
 	next_invoice_date?: Maybe<Scalars['Timestamp']>
 	plan_tier: Scalars['String']
 	projects: Array<Maybe<Project>>
-	retention_period?: Maybe<RetentionPeriod>
+	retention_period: RetentionPeriod
 	sessions_max_cents?: Maybe<Scalars['Int']>
 	slack_channels?: Maybe<Scalars['String']>
 	slack_webhook_channel?: Maybe<Scalars['String']>

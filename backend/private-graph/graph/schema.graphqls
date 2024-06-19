@@ -240,6 +240,7 @@ enum SubscriptionInterval {
 }
 
 enum RetentionPeriod {
+	SevenDays
 	ThirtyDays
 	ThreeMonths
 	SixMonths
@@ -511,6 +512,7 @@ type Project {
 	billing_email: String
 	secret: String
 	workspace_id: ID!
+	workspace: Workspace
 	excluded_users: StringArray
 	error_filters: StringArray
 	error_json_paths: StringArray
@@ -608,8 +610,8 @@ type Workspace {
 	eligible_for_trial_extension: Boolean!
 	trial_extension_enabled: Boolean!
 	clearbit_enabled: Boolean!
-	retention_period: RetentionPeriod
-	errors_retention_period: RetentionPeriod
+	retention_period: RetentionPeriod!
+	errors_retention_period: RetentionPeriod!
 	sessions_max_cents: Int
 	errors_max_cents: Int
 	logs_max_cents: Int
