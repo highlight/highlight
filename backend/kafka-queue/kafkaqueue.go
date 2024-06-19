@@ -27,8 +27,8 @@ const ConsumerGroupName = "group-default"
 
 const (
 	TaskRetries           = 0
-	prefetchQueueCapacity = 10_000
-	MaxMessageSizeBytes   = 256 * 1024 * 1024 // MiB
+	prefetchQueueCapacity = 100
+	MaxMessageSizeBytes   = 128 * 1024 * 1024 // MiB
 )
 
 var (
@@ -187,9 +187,9 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
 			Async:        false,
-			BatchSize:    prefetchQueueCapacity,
+			BatchSize:    10_000,
 			BatchBytes:   MaxMessageSizeBytes,
-			BatchTimeout: 500 * time.Millisecond,
+			BatchTimeout: 100 * time.Millisecond,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
 			Logger:       getLogger("producer", topic, log.InfoLevel),
