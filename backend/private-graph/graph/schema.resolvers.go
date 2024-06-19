@@ -3413,7 +3413,6 @@ func (r *mutationResolver) UpdateAlertDisabled(ctx context.Context, projectID in
 	}
 
 	return true, err
-
 }
 
 // DeleteAlert is the resolver for the deleteAlert field.
