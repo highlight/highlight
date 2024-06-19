@@ -710,7 +710,7 @@ const IntegrationAuthCallbackPage = () => {
 					currentProject: undefined,
 					allProjects: [],
 					currentWorkspace: {
-						id: workspaceId ? workspaceId : currentWorkspaceId,
+						id: workspaceId ?? currentWorkspaceId,
 						name: '',
 						retention_period: RetentionPeriod.SixMonths,
 						errors_retention_period: RetentionPeriod.SixMonths,
