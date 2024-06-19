@@ -5220,7 +5220,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 	}
 
 	if len(results) > 0 {
-		if err := r.SetErrorFrequenciesClickhouse(ctx, project.ID, results, ErrorGroupLookbackDays); err != nil {
+		if err := r.loadErrorGroupFrequenciesClickhouse(ctx, project.ID, results); err != nil {
 			return nil, err
 		}
 	}
@@ -5290,7 +5290,7 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string, useClic
 	if eg.UpdatedAt.Before(retentionDate) {
 		return nil, e.New("no new error instances after the workspace's retention date")
 	}
-	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
+	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}); err != nil {
 		return nil, err
 	}
 	return eg, err
@@ -6032,7 +6032,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 	if err != nil {
 		return nil, err
 	}
-	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, errGroup); err != nil {
+	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, projectID, []*model.ErrorGroup{errGroup}); err != nil {
 		return nil, err
 	}
 
@@ -6047,9 +6047,6 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 		return dists, nil
 	}
 
-	if err := r.SetErrorFrequenciesClickhouse(ctx, projectID, []*model.ErrorGroup{errGroup}, dateOffset); err != nil {
-		return nil, e.Wrap(err, "error setting error frequencies")
-	}
 	return errGroup.ErrorFrequency, nil
 }
 
