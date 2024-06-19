@@ -3356,7 +3356,7 @@ func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alert
 	}
 
 	if name != nil {
-		alertUpdates["CountThreshold"] = *name
+		alertUpdates["Name"] = *name
 	}
 	if productType != nil {
 		alertUpdates["ProductType"] = *productType
@@ -3406,12 +3406,14 @@ func (r *mutationResolver) UpdateAlertDisabled(ctx context.Context, projectID in
 		return false, err
 	}
 
-	updateErr := store.AssertRecordFound(r.DB.WithContext(ctx).Where(&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID}).Updates(map[string]interface{}{"Disabled": disabled}))
-	if updateErr != nil {
-		return false, updateErr
+	if err := r.DB.WithContext(ctx).Model(
+		&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID},
+	).Updates(map[string]interface{}{"Disabled": disabled}).Error; err != nil {
+		return false, err
 	}
 
-	return true, nil
+	return true, err
+
 }
 
 // DeleteAlert is the resolver for the deleteAlert field.
@@ -3421,13 +3423,17 @@ func (r *mutationResolver) DeleteAlert(ctx context.Context, projectID int, alert
 		return false, err
 	}
 
-	if err := r.DB.Delete(&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID}).Error; err != nil {
+	if err := r.DB.Where(
+		&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID},
+	).Delete(&model.Alert{}).Error; err != nil {
 		return false, err
 	}
 
 	// TODO(spenny): send deletion message to destinations?
 
-	if err := r.DB.Delete(&model.AlertDestination{AlertID: alertID}).Error; err != nil {
+	if err := r.DB.Where(
+		&model.AlertDestination{AlertID: alertID},
+	).Delete(&model.AlertDestination{}).Error; err != nil {
 		return false, err
 	}
 
