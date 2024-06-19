@@ -15,8 +15,9 @@ export function ResizePanel({
 	children: (props: {
 		panelRef: (element: HTMLElement | null) => void
 		handleRef: (element: HTMLElement | null) => void
+		panelHeight: number
 	}) => React.ReactNode
-	defaultHeight?: number
+	defaultHeight: number
 	minHeight?: number
 	maxHeight: number
 	heightPersistenceKey?: string
@@ -24,6 +25,7 @@ export function ResizePanel({
 	const [panel, setPanel] = React.useState<HTMLElement | null>()
 	const [handle, handleRef] = React.useState<HTMLElement | null>()
 	const [dragging, setDragging] = React.useState(false)
+	const [panelHeight, setPanelHeight] = React.useState(defaultHeight)
 
 	const panelRef = useCallback(
 		(element: HTMLElement | null) => {
@@ -43,6 +45,7 @@ export function ResizePanel({
 			initialHeight = clamp(initialHeight, minHeight ?? 0, maxHeight)
 			if (initialHeight) {
 				element.style.height = `${initialHeight}px`
+				setPanelHeight(initialHeight)
 			}
 		},
 		[defaultHeight, heightPersistenceKey, minHeight, maxHeight],
@@ -65,6 +68,7 @@ export function ResizePanel({
 			)
 
 			panel.style.height = `${newHeight}px`
+			setPanelHeight(newHeight)
 			if (heightPersistenceKey) {
 				localStorage.setItem(heightPersistenceKey, String(newHeight))
 			}
@@ -80,5 +84,5 @@ export function ResizePanel({
 		event.stopPropagation()
 	})
 
-	return <>{children({ panelRef, handleRef })}</>
+	return <>{children({ panelRef, handleRef, panelHeight })}</>
 }

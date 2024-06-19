@@ -2,6 +2,7 @@ import {
 	MetricAggregator,
 	ProductType,
 	SavedSegmentEntityType,
+	SortDirection,
 } from '@graph/schemas'
 import {
 	Box,
@@ -152,6 +153,8 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		startDate,
 		endDate,
 		disablePolling: !selectedPreset,
+		sortDirection: SortDirection.Desc,
+		sortColumn: 'timestamp',
 	})
 
 	const fetchMoreWhenScrolled = React.useCallback(

@@ -26,9 +26,16 @@ type CustomColumn<T> = {
 	type: T
 	size: string
 	accessKey: string
+	onClick?: (edge: any) => void
 }
 
-type LogColumnType = 'string' | 'datetime' | 'session' | 'level' | 'body'
+type LogColumnType =
+	| 'string'
+	| 'datetime'
+	| 'session'
+	| 'level'
+	| 'body'
+	| 'go-to-log'
 export type LogCustomColumn = CustomColumn<LogColumnType>
 
 type TraceColumnType =
