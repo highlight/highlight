@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	hredis "github.com/highlight-run/highlight/backend/redis"
 	"io"
 	"net/http"
 	"os"
@@ -16,6 +15,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	hredis "github.com/highlight-run/highlight/backend/redis"
 
 	"github.com/go-chi/chi"
 	"github.com/rs/cors"
@@ -100,6 +101,7 @@ type Client interface {
 	UploadAsset(ctx context.Context, uuid string, contentType string, reader io.Reader, retentionPeriod privateModel.RetentionPeriod) error
 	ReadGitHubFile(ctx context.Context, repoPath string, fileName string, version string) ([]byte, error)
 	PushGitHubFile(ctx context.Context, repoPath string, fileName string, version string, fileBytes []byte) (*int64, error)
+	DeleteSessionData(ctx context.Context, projectId int, sessionId int) error
 }
 
 type FilesystemClient struct {
@@ -471,6 +473,52 @@ func (f *FilesystemClient) SetupHTTPSListener(r chi.Router) {
 			w.WriteHeader(http.StatusOK)
 		}
 	})
+}
+
+func (f *FilesystemClient) DeleteSessionData(ctx context.Context, projectId int, sessionId int) error {
+	if f.fsRoot == "" {
+		return errors.New("f.fsRoot cannot be empty")
+	}
+	if err := os.RemoveAll(fmt.Sprintf("%s/%d/%d", f.fsRoot, projectId, sessionId)); err != nil {
+		return err
+	}
+	if err := os.RemoveAll(fmt.Sprintf("%s/raw-events/%d/%d", f.fsRoot, projectId, sessionId)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *S3Client) DeleteSessionData(ctx context.Context, projectId int, sessionId int) error {
+	client, bucket := s.getSessionClientAndBucket(sessionId)
+
+	versionPart := "v2/"
+	devStr := ""
+	if util.IsDevOrTestEnv() {
+		devStr = "dev/"
+	}
+
+	prefix := fmt.Sprintf("%s%s%d/%d/", versionPart, devStr, projectId, sessionId)
+	options := s3.ListObjectsV2Input{
+		Bucket: bucket,
+		Prefix: &prefix,
+	}
+	output, err := client.ListObjectsV2(ctx, &options)
+	if err != nil {
+		return errors.Wrap(err, "error listing objects in S3")
+	}
+
+	for _, object := range output.Contents {
+		options := s3.DeleteObjectInput{
+			Bucket: bucket,
+			Key:    object.Key,
+		}
+		_, err := client.DeleteObject(ctx, &options)
+		if err != nil {
+			return errors.Wrap(err, "error deleting objects from S3")
+		}
+	}
+
+	return nil
 }
 
 func NewFSClient(_ context.Context, origin, fsRoot string) (*FilesystemClient, error) {

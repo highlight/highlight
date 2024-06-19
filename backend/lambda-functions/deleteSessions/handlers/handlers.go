@@ -9,15 +9,12 @@ import (
 	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/storage"
-	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -25,9 +22,9 @@ import (
 )
 
 type Handlers interface {
-	DeleteSessionBatchFromOpenSearch(context.Context, utils.BatchIdResponse) (*utils.BatchIdResponse, error)
+	DeleteSessionBatchFromClickhouse(context.Context, utils.BatchIdResponse) (*utils.BatchIdResponse, error)
 	DeleteSessionBatchFromPostgres(context.Context, utils.BatchIdResponse) (*utils.BatchIdResponse, error)
-	DeleteSessionBatchFromS3(context.Context, utils.BatchIdResponse) (*utils.BatchIdResponse, error)
+	DeleteSessionBatchFromObjectStorage(context.Context, utils.BatchIdResponse) (*utils.BatchIdResponse, error)
 	GetSessionIdsByQuery(context.Context, utils.QuerySessionsInput) ([]utils.BatchIdResponse, error)
 	SendEmail(context.Context, utils.QuerySessionsInput) error
 }
@@ -35,16 +32,16 @@ type Handlers interface {
 type handlers struct {
 	db               *gorm.DB
 	clickhouseClient *clickhouse.Client
-	s3ClientEast2    *s3.Client
 	sendgridClient   *sendgrid.Client
+	storageClient    storage.Client
 }
 
-func InitHandlers(db *gorm.DB, clickhouseClient *clickhouse.Client, s3ClientEast2 *s3.Client, sendgridClient *sendgrid.Client) *handlers {
+func InitHandlers(db *gorm.DB, clickhouseClient *clickhouse.Client, sendgridClient *sendgrid.Client, storageClient storage.Client) *handlers {
 	return &handlers{
 		db:               db,
 		clickhouseClient: clickhouseClient,
-		s3ClientEast2:    s3ClientEast2,
 		sendgridClient:   sendgridClient,
+		storageClient:    storageClient,
 	}
 }
 
@@ -60,27 +57,17 @@ func NewHandlers() *handlers {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error creating clickhouse client"))
 	}
 
-	cfgEast2, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-2"))
+	s3Client, err := storage.NewS3Client(ctx)
 	if err != nil {
-		log.WithContext(ctx).Fatal(errors.Wrap(err, "error loading default from config"))
+		log.WithContext(ctx).Fatal(errors.Wrap(err, "error creating s3 storage client"))
 	}
-	s3ClientEast2 := s3.NewFromConfig(cfgEast2, func(o *s3.Options) {
-		o.UsePathStyle = true
-	})
 
 	sendgridClient := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 
-	return InitHandlers(db, clickhouseClient, s3ClientEast2, sendgridClient)
+	return InitHandlers(db, clickhouseClient, sendgridClient, s3Client)
 }
 
-func (h *handlers) getSessionClientAndBucket(sessionId int) (*s3.Client, *string) {
-	client := h.s3ClientEast2
-	bucket := pointy.String(storage.S3SessionsPayloadBucketNameNew)
-
-	return client, bucket
-}
-
-func (h *handlers) DeleteSessionBatchFromOpenSearch(ctx context.Context, event utils.BatchIdResponse) (*utils.BatchIdResponse, error) {
+func (h *handlers) DeleteSessionBatchFromClickhouse(ctx context.Context, event utils.BatchIdResponse) (*utils.BatchIdResponse, error) {
 	sessionIds, err := utils.GetSessionIdsInBatch(h.db, event.TaskId, event.BatchId)
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting session ids to delete")
@@ -125,41 +112,16 @@ func (h *handlers) DeleteSessionBatchFromPostgres(ctx context.Context, event uti
 	return &event, nil
 }
 
-func (h *handlers) DeleteSessionBatchFromS3(ctx context.Context, event utils.BatchIdResponse) (*utils.BatchIdResponse, error) {
+func (h *handlers) DeleteSessionBatchFromObjectStorage(ctx context.Context, event utils.BatchIdResponse) (*utils.BatchIdResponse, error) {
 	sessionIds, err := utils.GetSessionIdsInBatch(h.db, event.TaskId, event.BatchId)
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting session ids to delete")
 	}
 
 	for _, sessionId := range sessionIds {
-		client, bucket := h.getSessionClientAndBucket(sessionId)
-
-		versionPart := "v2/"
-		devStr := ""
-		if util.IsDevOrTestEnv() {
-			devStr = "dev/"
-		}
-
-		prefix := fmt.Sprintf("%s%s%d/%d/", versionPart, devStr, event.ProjectId, sessionId)
-		options := s3.ListObjectsV2Input{
-			Bucket: bucket,
-			Prefix: &prefix,
-		}
-		output, err := client.ListObjectsV2(ctx, &options)
-		if err != nil {
-			return nil, errors.Wrap(err, "error listing objects in S3")
-		}
-
-		for _, object := range output.Contents {
-			options := s3.DeleteObjectInput{
-				Bucket: bucket,
-				Key:    object.Key,
-			}
-			if !event.DryRun {
-				_, err := client.DeleteObject(ctx, &options)
-				if err != nil {
-					return nil, errors.Wrap(err, "error deleting objects from S3")
-				}
+		if !event.DryRun {
+			if err := h.storageClient.DeleteSessionData(ctx, event.ProjectId, sessionId); err != nil {
+				return nil, err
 			}
 		}
 	}
