@@ -621,6 +621,27 @@ func (r *Resolver) SetErrorFrequenciesClickhouse(ctx context.Context, projectID 
 	return nil
 }
 
+func (r *Resolver) SetErrorGroupOccurrences(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup) error {
+	errorGroupIDs := make([]int, len(errorGroups))
+	for i, eg := range errorGroups {
+		errorGroupIDs[i] = eg.ID
+	}
+
+	occurencesByErrorGroup, err := r.ClickhouseClient.QueryErrorGroupOccurrences(ctx, projectID, errorGroupIDs)
+	if err != nil {
+		return err
+	}
+
+	for _, eg := range errorGroups {
+		if occurences, ok := occurencesByErrorGroup[eg.ID]; ok {
+			eg.FirstOccurrence = &occurences.FirstOccurrence
+			eg.LastOccurrence = &occurences.LastOccurrence
+		}
+	}
+
+	return nil
+}
+
 type SavedSegmentParams struct {
 	Query string
 }
@@ -648,12 +669,12 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 	return eg, true, nil
 }
 
-func (r *Resolver) loadErrorGroupFrequenciesClickhouse(ctx context.Context, eg *model.ErrorGroup) error {
+func (r *Resolver) loadErrorGroupFrequenciesClickhouse(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup) error {
 	var err error
-	if eg.FirstOccurrence, eg.LastOccurrence, err = r.ClickhouseClient.QueryErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID); err != nil {
+	if err = r.SetErrorGroupOccurrences(ctx, projectID, errorGroups); err != nil {
 		return e.Wrap(err, "error querying error group occurrences")
 	}
-	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, 7); err != nil {
+	if err := r.SetErrorFrequenciesClickhouse(ctx, projectID, errorGroups, ErrorGroupLookbackDays); err != nil {
 		return e.Wrap(err, "error querying error group frequencies")
 	}
 	return nil
