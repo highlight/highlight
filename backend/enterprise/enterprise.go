@@ -155,7 +155,7 @@ func GetEnvironment(file, digest string) (*util.Configuration, error) {
 		return nil, err
 	}
 
-	spkiBlock, _ := pem.Decode([]byte(util.Config.EnterpriseEnvPublicKey))
+	spkiBlock, _ := pem.Decode([]byte(util.GetEnterpriseEnvPublicKey()))
 	var spkiKey *rsa.PublicKey
 	pubInterface, _ := x509.ParsePKIXPublicKey(spkiBlock.Bytes)
 	spkiKey = pubInterface.(*rsa.PublicKey)

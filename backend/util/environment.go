@@ -24,7 +24,6 @@ type Configuration struct {
 	PrivateGraphUri         string `mapstructure:"REACT_APP_PRIVATE_GRAPH_URI"`
 	PublicGraphUri          string `mapstructure:"REACT_APP_PUBLIC_GRAPH_URI"`
 	LicenseKey              string `mapstructure:"LICENSE_KEY"`
-	EnterpriseEnvPublicKey  string `mapstructure:"ENTERPRISE_ENV_PUBLIC_KEY"`
 	EnterpriseEnvExpiration time.Time
 	SSL                     string `mapstructure:"SSL"`
 	ConsumerFraction        string `mapstructure:"CONSUMER_SPAN_SAMPLING_FRACTION"`
@@ -49,7 +48,6 @@ var (
 		os.Getenv("REACT_APP_PRIVATE_GRAPH_URI"),
 		os.Getenv("REACT_APP_PUBLIC_GRAPH_URI"),
 		os.Getenv("LICENSE_KEY"),
-		EnterpriseEnvPublicKey,
 		time.Time{},
 		os.Getenv("SSL"),
 		os.Getenv("CONSUMER_SPAN_SAMPLING_FRACTION"),
@@ -64,6 +62,13 @@ var (
 	runtimeFlag = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 	handlerFlag = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
 )
+
+func GetEnterpriseEnvPublicKey() string {
+	if EnterpriseEnvPublicKey != "" {
+		return EnterpriseEnvPublicKey
+	}
+	return os.Getenv("ENTERPRISE_ENV_PUBLIC_KEY")
+}
 
 func IsDevEnv() bool {
 	return model.IsDevEnv()
