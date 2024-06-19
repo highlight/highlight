@@ -5,8 +5,8 @@
 			"name": "highlight-backend",
 			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-production-ecr-repo:9e93e3b2b90d93bbe4ceb059fb080bf00e66534c.arm64",
 			"cpu": 4096,
-			"memory": 16384,
-			"memoryReservation": 16384,
+			"memory": 32768,
+			"memoryReservation": 32768,
 			"portMappings": [],
 			"essential": true,
 			"command": [
@@ -80,7 +80,7 @@
 	"compatibilities": ["EXTERNAL", "EC2"],
 	"requiresCompatibilities": ["EC2"],
 	"cpu": "4096",
-	"memory": "16384",
+	"memory": "32768",
 	"runtimePlatform": {
 		"cpuArchitecture": "ARM64",
 		"operatingSystemFamily": "LINUX"

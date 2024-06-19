@@ -27,8 +27,8 @@ const ConsumerGroupName = "group-default"
 
 const (
 	TaskRetries           = 0
-	prefetchQueueCapacity = 100
-	MaxMessageSizeBytes   = 128 * 1024 * 1024 // MiB
+	prefetchQueueCapacity = 1_000
+	MaxMessageSizeBytes   = 256 * 1024 * 1024 // MiB
 )
 
 var (
