@@ -184,3 +184,7 @@ export const comboboxGroup = style([
 		},
 	},
 ])
+
+export const toggle = style({
+	paddingLeft: '8px',
+})

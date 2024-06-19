@@ -524,10 +524,23 @@ func main() {
 			r.Use(highlightChi.Middleware)
 			r.Use(public.PublicMiddleware)
 
-			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
+			publicServer := ghandler.New(publicgen.NewExecutableSchema(
 				publicgen.Config{
 					Resolvers: publicResolver,
 				}))
+
+			publicServer.AddTransport(transport.Websocket{
+				KeepAlivePingInterval: 10 * time.Second,
+			})
+			publicServer.AddTransport(transport.Options{})
+			publicServer.AddTransport(transport.GET{})
+			publicServer.AddTransport(transport.POST{})
+			publicServer.AddTransport(transport.MultipartForm{})
+			publicServer.SetQueryCache(lru.New(1000))
+			publicServer.Use(extension.AutomaticPersistedQuery{
+				Cache: lru.New(100),
+			})
+
 			publicServer.Use(htrace.NewGraphqlTracer(string(util.PublicGraph)))
 			publicServer.SetErrorPresenter(htrace.GraphQLErrorPresenter(string(util.PublicGraph)))
 			publicServer.SetRecoverFunc(htrace.GraphQLRecoverFunc())

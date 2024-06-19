@@ -1348,7 +1348,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	}
 
 	var errorAlerts []*model.ErrorAlert
-	if err := r.DB.WithContext(ctx).Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: session.ProjectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
 		return e.Wrapf(err, "[project_id: %d] error fetching session feedback alerts", session.ProjectID)
 	}
 
@@ -1676,7 +1676,7 @@ type AlertCountsGroupedByRecent struct {
 func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorObject *model.ErrorObject, visitedUrl string) {
 	func() {
 		var errorAlerts []*model.ErrorAlert
-		if err := r.DB.WithContext(ctx).Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
+		if err := r.DB.WithContext(ctx).Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: projectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error fetching ErrorAlerts object"))
 			return
 		}
@@ -3006,7 +3006,7 @@ func (r *Resolver) HandleSessionViewable(ctx context.Context, projectID int, ses
 func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Workspace, project *model.Project, sessionID int) error {
 	// Sending session init alert
 	var sessionAlerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, Disabled: &model.F}}).
+	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: project.ID, Disabled: &model.F}}).
 		Where("type=?", model.AlertType.NEW_SESSION).Find(&sessionAlerts).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching new session alert", project.ID))
 		return err
@@ -3338,7 +3338,7 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 	defer alertWorkerSpan.Finish()
 	// Sending Track Properties Alert
 	var sessionAlerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching track properties alert", session.ProjectID))
 		return err
 	}
@@ -3448,7 +3448,7 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *model.Workspace, project *model.Project, session *model.Session) error {
 	// Sending New User Alert
 	var sessionAlerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching new user alert", session.ProjectID))
 		return err
 	}
@@ -3528,7 +3528,7 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 	defer alertSpan.Finish()
 	// Sending User Properties Alert
 	var sessionAlerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching user properties alert", session.ProjectID))
 		return err
 	}

@@ -91,7 +91,7 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 	}
 
 	return &model.SessionAlert{
-		Alert: model.Alert{
+		AlertDeprecated: model.AlertDeprecated{
 			ProjectID:            input.ProjectID,
 			ExcludedEnvironments: envString,
 			CountThreshold:       input.CountThreshold,

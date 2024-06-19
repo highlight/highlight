@@ -79,7 +79,7 @@ func (s *SearchListener[T]) getAttributeFilterExpr(op Operator, value any) sqlbu
 		postfix = ")"
 	}
 	if s.attributesList {
-		return sqlbuilder.Buildf(fmt.Sprintf("notEmpty(arrayFilter((k, v) -> k = %%s AND %sv%s %s %%s, SessionAttributePairs))", prefix, postfix, op), s.currentKey, value)
+		return sqlbuilder.Buildf(fmt.Sprintf("notEmpty(arrayFilter((k, v) -> k = %%s AND %sv%s %s %%s, %s))", prefix, postfix, op, s.attributesColumn), s.currentKey, value)
 	}
 	return sqlbuilder.Buildf(prefix+s.attributesColumn+fmt.Sprintf("[%%s]%s %s %%s", postfix, op), s.currentKey, value)
 }
