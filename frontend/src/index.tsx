@@ -123,6 +123,7 @@ const options: HighlightOptions = {
 	version: import.meta.env.REACT_APP_COMMIT_SHA ?? '1.0.0',
 	serviceName: 'frontend',
 	enableOtelTracing: true,
+	otlpEndpoint: 'https://localhost:4318',
 }
 const favicon = document.querySelector("link[rel~='icon']") as any
 if (dev) {

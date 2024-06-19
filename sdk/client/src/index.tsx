@@ -88,6 +88,7 @@ import {
 	SNAPSHOT_SETTINGS,
 	VISIBILITY_DEBOUNCE_MS,
 } from './constants/sessions'
+import { setupBrowserTracing } from './otel'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -127,6 +128,7 @@ export type HighlightClassOptions = {
 	storageMode?: 'sessionStorage' | 'localStorage'
 	sendMode?: 'webworker' | 'local'
 	enableOtelTracing?: HighlightOptions['enableOtelTracing']
+	otlpEndpoint?: HighlightOptions['otlpEndpoint']
 }
 
 /**
@@ -1417,6 +1419,7 @@ export {
 	GenerateSecureID,
 	MetricCategory,
 	getPreviousSessionData,
+	setupBrowserTracing,
 }
 export type {
 	AmplitudeIntegrationOptions,

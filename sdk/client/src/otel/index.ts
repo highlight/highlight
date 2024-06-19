@@ -32,8 +32,9 @@ import type { NetworkRecordingOptions } from '../types/client'
 import { sanitizeHeaders } from '../listeners/network-listener/utils/network-sanitizer'
 import { shouldNetworkRequestBeTraced } from '../listeners/network-listener/utils/utils'
 import { UserInteractionInstrumentation } from './user-interaction'
+import { parse } from 'graphql'
 
-export type OtelConfig = {
+export type BrowserTracingConfig = {
 	projectId: string | number
 	sessionSecureId: string
 	endpoint?: string
@@ -45,20 +46,14 @@ export type OtelConfig = {
 
 let provider: WebTracerProvider
 
-export const initializeOtel = (config: OtelConfig) => {
+export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	if (provider !== undefined) {
 		console.warn('OTEL already initialized. Skipping...')
 		return
 	}
 
-	// TODO: Is there a better way to determine if we're in dev mode? Seems
-	// import.meta.env.DEV is set to dev when building with dev:frontend.
-	const isDev = window.location.hostname === 'localhost'
-	const fallbackEndpoint = isDev
-		? 'https://localhost:4318'
-		: 'https://otel.highlight.io:4318'
-
-	const endpoint = config.endpoint ?? fallbackEndpoint
+	const isDebug = import.meta.env.DEBUG === 'true'
+	const endpoint = config.endpoint ?? 'https://otel.highlight.io:4318'
 	const environment = config.environment ?? 'production'
 
 	provider = new WebTracerProvider({
@@ -81,7 +76,7 @@ export const initializeOtel = (config: OtelConfig) => {
 	})
 
 	// Export spans to console for debugging
-	if (isDev) {
+	if (isDebug) {
 		provider.addSpanProcessor(
 			new SimpleSpanProcessor(new ConsoleSpanExporter()),
 		)
@@ -109,7 +104,11 @@ export const initializeOtel = (config: OtelConfig) => {
 			new UserInteractionInstrumentation(),
 			new FetchInstrumentation({
 				propagateTraceHeaderCorsUrls: /.*/,
-				applyCustomAttributesOnSpan: (span, request, response) => {
+				applyCustomAttributesOnSpan: async (
+					span,
+					request,
+					response,
+				) => {
 					if (!(response instanceof Response)) {
 						span.setAttributes({
 							'http.response.error': response.message,
@@ -132,9 +131,11 @@ export const initializeOtel = (config: OtelConfig) => {
 						request.headers,
 						config.networkRecordingOptions,
 					)
+
+					const body = await response.clone().json()
 					enhanceSpanWithHttpResponseAttributes(
 						span,
-						response.body,
+						body,
 						response.headers,
 						config.networkRecordingOptions,
 					)
@@ -228,11 +229,20 @@ const getSpanName = (
 
 	try {
 		parsedBody = typeof body === 'string' ? JSON.parse(body) : body
-		if (parsedBody && parsedBody.operationName) {
-			spanName = `${parsedBody.operationName} (GraphQL: ${pathname})`
+
+		if (parsedBody && parsedBody.query) {
+			const query = parse(parsedBody.query)
+			const queryName =
+				query.definitions[0]?.kind === 'OperationDefinition'
+					? query.definitions[0]?.name?.value
+					: undefined
+
+			if (queryName) {
+				spanName = `${queryName} (GraphQL: ${pathname})`
+			}
 		}
 	} catch {
-		// Ignore
+		// Ignore errors from JSON parsing
 	}
 
 	return spanName
@@ -288,6 +298,7 @@ const enhanceSpanWithHttpResponseAttributes = (
 	networkRecordingOptions?: NetworkRecordingOptions,
 ) => {
 	let parsedBody
+	span.setAttribute('highlight.response', 'true')
 
 	try {
 		parsedBody = typeof body === 'string' ? JSON.parse(body) : body
