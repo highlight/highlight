@@ -134,7 +134,7 @@ jobs:
 
                   # start highlight
                   pushd docker;
-                  ./run-enterprise.sh
+                  ./run-enterprise.sh >> /tmp/highlight.log 2>&1;
                   popd;
 
                   # run python backend functional tests
@@ -160,7 +160,7 @@ jobs:
               if: failure()
               run: |
                   cd docker;
-                  docker compose logs;
+                  docker compose -f compose.yml -f compose.enterprise.yml logs;
 
             - name: Dump databases on failure
               if: failure()

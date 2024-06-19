@@ -363,7 +363,7 @@ jobs:
               if: failure()
               run: |
                   cd docker;
-                  docker compose logs;
+                  docker compose -f compose.yml -f compose.hobby.yml logs;
 
             - name: Dump databases on failure
               if: failure()
