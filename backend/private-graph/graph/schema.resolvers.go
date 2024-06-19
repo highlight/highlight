@@ -8775,8 +8775,12 @@ And specifically, for the %s product, you can refer to the following documentati
 			response: fmt.Sprintf(`{"query":"level=error","date_range":{"start_date":"%s","end_date":"%s"}}`, sevenDaysBack, yesterdayAt2PM),
 		},
 		{
-			request:  "All the traces from the private graph service",
-			response: `{"query":"service_name=private-graph","date_range":{"start_date":"","end_date":""}}`,
+			request:  "All the traces from the private graph or public graph service",
+			response: `{"query":"service_name=private-graph OR service_name=public-graph","date_range":{"start_date":"","end_date":""}}`,
+		},
+		{
+			request:  "Give me all the logs where the environment is production and the session is not null",
+			response: `{"query":"environment=production AND secure_session_id EXISTS","date_range":{"start_date":"","end_date":""}}`,
 		},
 	}
 

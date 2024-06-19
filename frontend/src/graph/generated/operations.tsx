@@ -5175,6 +5175,25 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 		}
 }
 
+export type GetAiQuerySuggestionQueryVariables = Types.Exact<{
+	time_zone: Types.Scalars['String']
+	project_id: Types.Scalars['ID']
+	product_type: Types.ProductType
+	query: Types.Scalars['String']
+}>
+
+export type GetAiQuerySuggestionQuery = { __typename?: 'Query' } & {
+	ai_query_suggestion: { __typename?: 'QueryOutput' } & Pick<
+		Types.QueryOutput,
+		'query'
+	> & {
+			date_range: { __typename?: 'DateRangeRequiredOutput' } & Pick<
+				Types.DateRangeRequiredOutput,
+				'start_date' | 'end_date'
+			>
+		}
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -5322,6 +5341,7 @@ export const namedOperations = {
 		GetMetrics: 'GetMetrics' as const,
 		GetVisualization: 'GetVisualization' as const,
 		GetVisualizations: 'GetVisualizations' as const,
+		GetAIQuerySuggestion: 'GetAIQuerySuggestion' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,

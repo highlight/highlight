@@ -15100,3 +15100,76 @@ export type GetVisualizationsQueryResult = Apollo.QueryResult<
 	Types.GetVisualizationsQuery,
 	Types.GetVisualizationsQueryVariables
 >
+export const GetAiQuerySuggestionDocument = gql`
+	query GetAIQuerySuggestion(
+		$time_zone: String!
+		$project_id: ID!
+		$product_type: ProductType!
+		$query: String!
+	) {
+		ai_query_suggestion(
+			time_zone: $time_zone
+			project_id: $project_id
+			product_type: $product_type
+			query: $query
+		) {
+			query
+			date_range {
+				start_date
+				end_date
+			}
+		}
+	}
+`
+
+/**
+ * __useGetAiQuerySuggestionQuery__
+ *
+ * To run a query within a React component, call `useGetAiQuerySuggestionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAiQuerySuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAiQuerySuggestionQuery({
+ *   variables: {
+ *      time_zone: // value for 'time_zone'
+ *      project_id: // value for 'project_id'
+ *      product_type: // value for 'product_type'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetAiQuerySuggestionQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetAiQuerySuggestionQuery,
+		Types.GetAiQuerySuggestionQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetAiQuerySuggestionQuery,
+		Types.GetAiQuerySuggestionQueryVariables
+	>(GetAiQuerySuggestionDocument, baseOptions)
+}
+export function useGetAiQuerySuggestionLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetAiQuerySuggestionQuery,
+		Types.GetAiQuerySuggestionQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetAiQuerySuggestionQuery,
+		Types.GetAiQuerySuggestionQueryVariables
+	>(GetAiQuerySuggestionDocument, baseOptions)
+}
+export type GetAiQuerySuggestionQueryHookResult = ReturnType<
+	typeof useGetAiQuerySuggestionQuery
+>
+export type GetAiQuerySuggestionLazyQueryHookResult = ReturnType<
+	typeof useGetAiQuerySuggestionLazyQuery
+>
+export type GetAiQuerySuggestionQueryResult = Apollo.QueryResult<
+	Types.GetAiQuerySuggestionQuery,
+	Types.GetAiQuerySuggestionQueryVariables
+>
