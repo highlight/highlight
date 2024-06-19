@@ -130,29 +130,29 @@ export enum AdminRole {
 
 export type Alert = {
 	__typename?: 'Alert'
-	BelowThreshold?: Maybe<Scalars['Boolean']>
-	Destinations: Array<Maybe<AlertDestination>>
-	Disabled: Scalars['Boolean']
-	FunctionType: MetricAggregator
-	GroupByKey?: Maybe<Scalars['String']>
-	LastAdminToEditID?: Maybe<Scalars['ID']>
-	Name: Scalars['String']
-	ProductType: ProductType
-	Query?: Maybe<Scalars['String']>
-	ThresholdCooldown?: Maybe<Scalars['Int']>
-	ThresholdCount?: Maybe<Scalars['Int']>
-	ThresholdWindow?: Maybe<Scalars['Int']>
+	below_threshold?: Maybe<Scalars['Boolean']>
+	destinations: Array<Maybe<AlertDestination>>
+	disabled: Scalars['Boolean']
+	function_type: MetricAggregator
+	group_by_key?: Maybe<Scalars['String']>
 	id: Scalars['ID']
+	last_admin_to_edit_id?: Maybe<Scalars['ID']>
+	name: Scalars['String']
+	product_type: ProductType
+	query?: Maybe<Scalars['String']>
+	threshold_cooldown?: Maybe<Scalars['Int']>
+	threshold_count?: Maybe<Scalars['Int']>
+	threshold_window?: Maybe<Scalars['Int']>
 	updated_at: Scalars['Timestamp']
 }
 
 export type AlertDestination = {
 	__typename?: 'AlertDestination'
-	AlertID: Scalars['ID']
-	DestinationType: AlertDestinationType
-	TypeID: Scalars['String']
-	TypeName: Scalars['String']
+	alert_id: Scalars['ID']
+	destination_type: AlertDestinationType
 	id: Scalars['ID']
+	type_id: Scalars['String']
+	type_name: Scalars['String']
 }
 
 export enum AlertDestinationType {

@@ -2401,35 +2401,35 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Admin.UserDefinedTeamSize(childComplexity), true
 
-	case "Alert.BelowThreshold":
+	case "Alert.below_threshold":
 		if e.complexity.Alert.BelowThreshold == nil {
 			break
 		}
 
 		return e.complexity.Alert.BelowThreshold(childComplexity), true
 
-	case "Alert.Destinations":
+	case "Alert.destinations":
 		if e.complexity.Alert.Destinations == nil {
 			break
 		}
 
 		return e.complexity.Alert.Destinations(childComplexity), true
 
-	case "Alert.Disabled":
+	case "Alert.disabled":
 		if e.complexity.Alert.Disabled == nil {
 			break
 		}
 
 		return e.complexity.Alert.Disabled(childComplexity), true
 
-	case "Alert.FunctionType":
+	case "Alert.function_type":
 		if e.complexity.Alert.FunctionType == nil {
 			break
 		}
 
 		return e.complexity.Alert.FunctionType(childComplexity), true
 
-	case "Alert.GroupByKey":
+	case "Alert.group_by_key":
 		if e.complexity.Alert.GroupByKey == nil {
 			break
 		}
@@ -2443,49 +2443,49 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Alert.ID(childComplexity), true
 
-	case "Alert.LastAdminToEditID":
+	case "Alert.last_admin_to_edit_id":
 		if e.complexity.Alert.LastAdminToEditID == nil {
 			break
 		}
 
 		return e.complexity.Alert.LastAdminToEditID(childComplexity), true
 
-	case "Alert.Name":
+	case "Alert.name":
 		if e.complexity.Alert.Name == nil {
 			break
 		}
 
 		return e.complexity.Alert.Name(childComplexity), true
 
-	case "Alert.ProductType":
+	case "Alert.product_type":
 		if e.complexity.Alert.ProductType == nil {
 			break
 		}
 
 		return e.complexity.Alert.ProductType(childComplexity), true
 
-	case "Alert.Query":
+	case "Alert.query":
 		if e.complexity.Alert.Query == nil {
 			break
 		}
 
 		return e.complexity.Alert.Query(childComplexity), true
 
-	case "Alert.ThresholdCooldown":
+	case "Alert.threshold_cooldown":
 		if e.complexity.Alert.ThresholdCooldown == nil {
 			break
 		}
 
 		return e.complexity.Alert.ThresholdCooldown(childComplexity), true
 
-	case "Alert.ThresholdCount":
+	case "Alert.threshold_count":
 		if e.complexity.Alert.ThresholdCount == nil {
 			break
 		}
 
 		return e.complexity.Alert.ThresholdCount(childComplexity), true
 
-	case "Alert.ThresholdWindow":
+	case "Alert.threshold_window":
 		if e.complexity.Alert.ThresholdWindow == nil {
 			break
 		}
@@ -2499,14 +2499,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Alert.UpdatedAt(childComplexity), true
 
-	case "AlertDestination.AlertID":
+	case "AlertDestination.alert_id":
 		if e.complexity.AlertDestination.AlertID == nil {
 			break
 		}
 
 		return e.complexity.AlertDestination.AlertID(childComplexity), true
 
-	case "AlertDestination.DestinationType":
+	case "AlertDestination.destination_type":
 		if e.complexity.AlertDestination.DestinationType == nil {
 			break
 		}
@@ -2520,14 +2520,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AlertDestination.ID(childComplexity), true
 
-	case "AlertDestination.TypeID":
+	case "AlertDestination.type_id":
 		if e.complexity.AlertDestination.TypeID == nil {
 			break
 		}
 
 		return e.complexity.AlertDestination.TypeID(childComplexity), true
 
-	case "AlertDestination.TypeName":
+	case "AlertDestination.type_name":
 		if e.complexity.AlertDestination.TypeName == nil {
 			break
 		}
@@ -13042,29 +13042,29 @@ enum AlertDestinationType {
 
 type AlertDestination {
 	id: ID!
-	AlertID: ID!
-	DestinationType: AlertDestinationType!
-	TypeID: String!
-	TypeName: String!
+	alert_id: ID!
+	destination_type: AlertDestinationType!
+	type_id: String!
+	type_name: String!
 }
 
 type Alert {
 	id: ID!
 	updated_at: Timestamp!
-	Name: String!
-	ProductType: ProductType!
-	FunctionType: MetricAggregator!
-	Query: String
-	GroupByKey: String
-	Disabled: Boolean!
-	LastAdminToEditID: ID
-	Destinations: [AlertDestination]!
+	name: String!
+	product_type: ProductType!
+	function_type: MetricAggregator!
+	query: String
+	group_by_key: String
+	disabled: Boolean!
+	last_admin_to_edit_id: ID
+	destinations: [AlertDestination]!
 
 	# threshold alerts
-	BelowThreshold: Boolean
-	ThresholdCount: Int
-	ThresholdWindow: Int
-	ThresholdCooldown: Int
+	below_threshold: Boolean
+	threshold_count: Int
+	threshold_window: Int
+	threshold_cooldown: Int
 }
 
 type AlertStateChange {
@@ -24714,8 +24714,8 @@ func (ec *executionContext) fieldContext_Alert_updated_at(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Alert_Name(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Alert_Name(ctx, field)
+func (ec *executionContext) _Alert_name(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_name(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -24745,7 +24745,7 @@ func (ec *executionContext) _Alert_Name(ctx context.Context, field graphql.Colle
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Alert_Name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Alert_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Alert",
 		Field:      field,
@@ -24758,8 +24758,8 @@ func (ec *executionContext) fieldContext_Alert_Name(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Alert_ProductType(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Alert_ProductType(ctx, field)
+func (ec *executionContext) _Alert_product_type(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_product_type(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -24789,7 +24789,7 @@ func (ec *executionContext) _Alert_ProductType(ctx context.Context, field graphq
 	return ec.marshalNProductType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Alert_ProductType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Alert_product_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Alert",
 		Field:      field,
@@ -24802,8 +24802,8 @@ func (ec *executionContext) fieldContext_Alert_ProductType(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _Alert_FunctionType(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Alert_FunctionType(ctx, field)
+func (ec *executionContext) _Alert_function_type(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_function_type(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -24833,7 +24833,7 @@ func (ec *executionContext) _Alert_FunctionType(ctx context.Context, field graph
 	return ec.marshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Alert_FunctionType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Alert_function_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Alert",
 		Field:      field,
@@ -24846,8 +24846,8 @@ func (ec *executionContext) fieldContext_Alert_FunctionType(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _Alert_Query(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Alert_Query(ctx, field)
+func (ec *executionContext) _Alert_query(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_query(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -24874,7 +24874,7 @@ func (ec *executionContext) _Alert_Query(ctx context.Context, field graphql.Coll
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Alert_Query(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Alert_query(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Alert",
 		Field:      field,
@@ -24887,8 +24887,8 @@ func (ec *executionContext) fieldContext_Alert_Query(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Alert_GroupByKey(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Alert_GroupByKey(ctx, field)
+func (ec *executionContext) _Alert_group_by_key(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_group_by_key(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -24915,7 +24915,7 @@ func (ec *executionContext) _Alert_GroupByKey(ctx context.Context, field graphql
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Alert_GroupByKey(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Alert_group_by_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Alert",
 		Field:      field,
@@ -24928,8 +24928,8 @@ func (ec *executionContext) fieldContext_Alert_GroupByKey(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Alert_Disabled(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Alert_Disabled(ctx, field)
+func (ec *executionContext) _Alert_disabled(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_disabled(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -24959,7 +24959,7 @@ func (ec *executionContext) _Alert_Disabled(ctx context.Context, field graphql.C
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Alert_Disabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Alert_disabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Alert",
 		Field:      field,
@@ -24972,8 +24972,8 @@ func (ec *executionContext) fieldContext_Alert_Disabled(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Alert_LastAdminToEditID(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Alert_LastAdminToEditID(ctx, field)
+func (ec *executionContext) _Alert_last_admin_to_edit_id(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_last_admin_to_edit_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -25000,7 +25000,7 @@ func (ec *executionContext) _Alert_LastAdminToEditID(ctx context.Context, field 
 	return ec.marshalOID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Alert_LastAdminToEditID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Alert_last_admin_to_edit_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Alert",
 		Field:      field,
@@ -25013,8 +25013,8 @@ func (ec *executionContext) fieldContext_Alert_LastAdminToEditID(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _Alert_Destinations(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Alert_Destinations(ctx, field)
+func (ec *executionContext) _Alert_destinations(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_destinations(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -25044,7 +25044,7 @@ func (ec *executionContext) _Alert_Destinations(ctx context.Context, field graph
 	return ec.marshalNAlertDestination2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAlertDestination(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Alert_Destinations(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Alert_destinations(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Alert",
 		Field:      field,
@@ -25054,14 +25054,14 @@ func (ec *executionContext) fieldContext_Alert_Destinations(ctx context.Context,
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_AlertDestination_id(ctx, field)
-			case "AlertID":
-				return ec.fieldContext_AlertDestination_AlertID(ctx, field)
-			case "DestinationType":
-				return ec.fieldContext_AlertDestination_DestinationType(ctx, field)
-			case "TypeID":
-				return ec.fieldContext_AlertDestination_TypeID(ctx, field)
-			case "TypeName":
-				return ec.fieldContext_AlertDestination_TypeName(ctx, field)
+			case "alert_id":
+				return ec.fieldContext_AlertDestination_alert_id(ctx, field)
+			case "destination_type":
+				return ec.fieldContext_AlertDestination_destination_type(ctx, field)
+			case "type_id":
+				return ec.fieldContext_AlertDestination_type_id(ctx, field)
+			case "type_name":
+				return ec.fieldContext_AlertDestination_type_name(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AlertDestination", field.Name)
 		},
@@ -25069,8 +25069,8 @@ func (ec *executionContext) fieldContext_Alert_Destinations(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _Alert_BelowThreshold(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Alert_BelowThreshold(ctx, field)
+func (ec *executionContext) _Alert_below_threshold(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_below_threshold(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -25097,7 +25097,7 @@ func (ec *executionContext) _Alert_BelowThreshold(ctx context.Context, field gra
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Alert_BelowThreshold(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Alert_below_threshold(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Alert",
 		Field:      field,
@@ -25110,8 +25110,8 @@ func (ec *executionContext) fieldContext_Alert_BelowThreshold(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Alert_ThresholdCount(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Alert_ThresholdCount(ctx, field)
+func (ec *executionContext) _Alert_threshold_count(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_threshold_count(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -25138,7 +25138,7 @@ func (ec *executionContext) _Alert_ThresholdCount(ctx context.Context, field gra
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Alert_ThresholdCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Alert_threshold_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Alert",
 		Field:      field,
@@ -25151,8 +25151,8 @@ func (ec *executionContext) fieldContext_Alert_ThresholdCount(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Alert_ThresholdWindow(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Alert_ThresholdWindow(ctx, field)
+func (ec *executionContext) _Alert_threshold_window(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_threshold_window(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -25179,7 +25179,7 @@ func (ec *executionContext) _Alert_ThresholdWindow(ctx context.Context, field gr
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Alert_ThresholdWindow(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Alert_threshold_window(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Alert",
 		Field:      field,
@@ -25192,8 +25192,8 @@ func (ec *executionContext) fieldContext_Alert_ThresholdWindow(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Alert_ThresholdCooldown(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Alert_ThresholdCooldown(ctx, field)
+func (ec *executionContext) _Alert_threshold_cooldown(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_threshold_cooldown(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -25220,7 +25220,7 @@ func (ec *executionContext) _Alert_ThresholdCooldown(ctx context.Context, field 
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Alert_ThresholdCooldown(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Alert_threshold_cooldown(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Alert",
 		Field:      field,
@@ -25277,8 +25277,8 @@ func (ec *executionContext) fieldContext_AlertDestination_id(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _AlertDestination_AlertID(ctx context.Context, field graphql.CollectedField, obj *model1.AlertDestination) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AlertDestination_AlertID(ctx, field)
+func (ec *executionContext) _AlertDestination_alert_id(ctx context.Context, field graphql.CollectedField, obj *model1.AlertDestination) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertDestination_alert_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -25308,7 +25308,7 @@ func (ec *executionContext) _AlertDestination_AlertID(ctx context.Context, field
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AlertDestination_AlertID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AlertDestination_alert_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AlertDestination",
 		Field:      field,
@@ -25321,8 +25321,8 @@ func (ec *executionContext) fieldContext_AlertDestination_AlertID(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _AlertDestination_DestinationType(ctx context.Context, field graphql.CollectedField, obj *model1.AlertDestination) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AlertDestination_DestinationType(ctx, field)
+func (ec *executionContext) _AlertDestination_destination_type(ctx context.Context, field graphql.CollectedField, obj *model1.AlertDestination) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertDestination_destination_type(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -25352,7 +25352,7 @@ func (ec *executionContext) _AlertDestination_DestinationType(ctx context.Contex
 	return ec.marshalNAlertDestinationType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertDestinationType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AlertDestination_DestinationType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AlertDestination_destination_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AlertDestination",
 		Field:      field,
@@ -25365,8 +25365,8 @@ func (ec *executionContext) fieldContext_AlertDestination_DestinationType(ctx co
 	return fc, nil
 }
 
-func (ec *executionContext) _AlertDestination_TypeID(ctx context.Context, field graphql.CollectedField, obj *model1.AlertDestination) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AlertDestination_TypeID(ctx, field)
+func (ec *executionContext) _AlertDestination_type_id(ctx context.Context, field graphql.CollectedField, obj *model1.AlertDestination) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertDestination_type_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -25396,7 +25396,7 @@ func (ec *executionContext) _AlertDestination_TypeID(ctx context.Context, field 
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AlertDestination_TypeID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AlertDestination_type_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AlertDestination",
 		Field:      field,
@@ -25409,8 +25409,8 @@ func (ec *executionContext) fieldContext_AlertDestination_TypeID(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _AlertDestination_TypeName(ctx context.Context, field graphql.CollectedField, obj *model1.AlertDestination) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AlertDestination_TypeName(ctx, field)
+func (ec *executionContext) _AlertDestination_type_name(ctx context.Context, field graphql.CollectedField, obj *model1.AlertDestination) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertDestination_type_name(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -25440,7 +25440,7 @@ func (ec *executionContext) _AlertDestination_TypeName(ctx context.Context, fiel
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AlertDestination_TypeName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AlertDestination_type_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AlertDestination",
 		Field:      field,
@@ -48359,30 +48359,30 @@ func (ec *executionContext) fieldContext_Mutation_createAlert(ctx context.Contex
 				return ec.fieldContext_Alert_id(ctx, field)
 			case "updated_at":
 				return ec.fieldContext_Alert_updated_at(ctx, field)
-			case "Name":
-				return ec.fieldContext_Alert_Name(ctx, field)
-			case "ProductType":
-				return ec.fieldContext_Alert_ProductType(ctx, field)
-			case "FunctionType":
-				return ec.fieldContext_Alert_FunctionType(ctx, field)
-			case "Query":
-				return ec.fieldContext_Alert_Query(ctx, field)
-			case "GroupByKey":
-				return ec.fieldContext_Alert_GroupByKey(ctx, field)
-			case "Disabled":
-				return ec.fieldContext_Alert_Disabled(ctx, field)
-			case "LastAdminToEditID":
-				return ec.fieldContext_Alert_LastAdminToEditID(ctx, field)
-			case "Destinations":
-				return ec.fieldContext_Alert_Destinations(ctx, field)
-			case "BelowThreshold":
-				return ec.fieldContext_Alert_BelowThreshold(ctx, field)
-			case "ThresholdCount":
-				return ec.fieldContext_Alert_ThresholdCount(ctx, field)
-			case "ThresholdWindow":
-				return ec.fieldContext_Alert_ThresholdWindow(ctx, field)
-			case "ThresholdCooldown":
-				return ec.fieldContext_Alert_ThresholdCooldown(ctx, field)
+			case "name":
+				return ec.fieldContext_Alert_name(ctx, field)
+			case "product_type":
+				return ec.fieldContext_Alert_product_type(ctx, field)
+			case "function_type":
+				return ec.fieldContext_Alert_function_type(ctx, field)
+			case "query":
+				return ec.fieldContext_Alert_query(ctx, field)
+			case "group_by_key":
+				return ec.fieldContext_Alert_group_by_key(ctx, field)
+			case "disabled":
+				return ec.fieldContext_Alert_disabled(ctx, field)
+			case "last_admin_to_edit_id":
+				return ec.fieldContext_Alert_last_admin_to_edit_id(ctx, field)
+			case "destinations":
+				return ec.fieldContext_Alert_destinations(ctx, field)
+			case "below_threshold":
+				return ec.fieldContext_Alert_below_threshold(ctx, field)
+			case "threshold_count":
+				return ec.fieldContext_Alert_threshold_count(ctx, field)
+			case "threshold_window":
+				return ec.fieldContext_Alert_threshold_window(ctx, field)
+			case "threshold_cooldown":
+				return ec.fieldContext_Alert_threshold_cooldown(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -48441,30 +48441,30 @@ func (ec *executionContext) fieldContext_Mutation_updateAlert(ctx context.Contex
 				return ec.fieldContext_Alert_id(ctx, field)
 			case "updated_at":
 				return ec.fieldContext_Alert_updated_at(ctx, field)
-			case "Name":
-				return ec.fieldContext_Alert_Name(ctx, field)
-			case "ProductType":
-				return ec.fieldContext_Alert_ProductType(ctx, field)
-			case "FunctionType":
-				return ec.fieldContext_Alert_FunctionType(ctx, field)
-			case "Query":
-				return ec.fieldContext_Alert_Query(ctx, field)
-			case "GroupByKey":
-				return ec.fieldContext_Alert_GroupByKey(ctx, field)
-			case "Disabled":
-				return ec.fieldContext_Alert_Disabled(ctx, field)
-			case "LastAdminToEditID":
-				return ec.fieldContext_Alert_LastAdminToEditID(ctx, field)
-			case "Destinations":
-				return ec.fieldContext_Alert_Destinations(ctx, field)
-			case "BelowThreshold":
-				return ec.fieldContext_Alert_BelowThreshold(ctx, field)
-			case "ThresholdCount":
-				return ec.fieldContext_Alert_ThresholdCount(ctx, field)
-			case "ThresholdWindow":
-				return ec.fieldContext_Alert_ThresholdWindow(ctx, field)
-			case "ThresholdCooldown":
-				return ec.fieldContext_Alert_ThresholdCooldown(ctx, field)
+			case "name":
+				return ec.fieldContext_Alert_name(ctx, field)
+			case "product_type":
+				return ec.fieldContext_Alert_product_type(ctx, field)
+			case "function_type":
+				return ec.fieldContext_Alert_function_type(ctx, field)
+			case "query":
+				return ec.fieldContext_Alert_query(ctx, field)
+			case "group_by_key":
+				return ec.fieldContext_Alert_group_by_key(ctx, field)
+			case "disabled":
+				return ec.fieldContext_Alert_disabled(ctx, field)
+			case "last_admin_to_edit_id":
+				return ec.fieldContext_Alert_last_admin_to_edit_id(ctx, field)
+			case "destinations":
+				return ec.fieldContext_Alert_destinations(ctx, field)
+			case "below_threshold":
+				return ec.fieldContext_Alert_below_threshold(ctx, field)
+			case "threshold_count":
+				return ec.fieldContext_Alert_threshold_count(ctx, field)
+			case "threshold_window":
+				return ec.fieldContext_Alert_threshold_window(ctx, field)
+			case "threshold_cooldown":
+				return ec.fieldContext_Alert_threshold_cooldown(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -57764,30 +57764,30 @@ func (ec *executionContext) fieldContext_Query_alerts(ctx context.Context, field
 				return ec.fieldContext_Alert_id(ctx, field)
 			case "updated_at":
 				return ec.fieldContext_Alert_updated_at(ctx, field)
-			case "Name":
-				return ec.fieldContext_Alert_Name(ctx, field)
-			case "ProductType":
-				return ec.fieldContext_Alert_ProductType(ctx, field)
-			case "FunctionType":
-				return ec.fieldContext_Alert_FunctionType(ctx, field)
-			case "Query":
-				return ec.fieldContext_Alert_Query(ctx, field)
-			case "GroupByKey":
-				return ec.fieldContext_Alert_GroupByKey(ctx, field)
-			case "Disabled":
-				return ec.fieldContext_Alert_Disabled(ctx, field)
-			case "LastAdminToEditID":
-				return ec.fieldContext_Alert_LastAdminToEditID(ctx, field)
-			case "Destinations":
-				return ec.fieldContext_Alert_Destinations(ctx, field)
-			case "BelowThreshold":
-				return ec.fieldContext_Alert_BelowThreshold(ctx, field)
-			case "ThresholdCount":
-				return ec.fieldContext_Alert_ThresholdCount(ctx, field)
-			case "ThresholdWindow":
-				return ec.fieldContext_Alert_ThresholdWindow(ctx, field)
-			case "ThresholdCooldown":
-				return ec.fieldContext_Alert_ThresholdCooldown(ctx, field)
+			case "name":
+				return ec.fieldContext_Alert_name(ctx, field)
+			case "product_type":
+				return ec.fieldContext_Alert_product_type(ctx, field)
+			case "function_type":
+				return ec.fieldContext_Alert_function_type(ctx, field)
+			case "query":
+				return ec.fieldContext_Alert_query(ctx, field)
+			case "group_by_key":
+				return ec.fieldContext_Alert_group_by_key(ctx, field)
+			case "disabled":
+				return ec.fieldContext_Alert_disabled(ctx, field)
+			case "last_admin_to_edit_id":
+				return ec.fieldContext_Alert_last_admin_to_edit_id(ctx, field)
+			case "destinations":
+				return ec.fieldContext_Alert_destinations(ctx, field)
+			case "below_threshold":
+				return ec.fieldContext_Alert_below_threshold(ctx, field)
+			case "threshold_count":
+				return ec.fieldContext_Alert_threshold_count(ctx, field)
+			case "threshold_window":
+				return ec.fieldContext_Alert_threshold_window(ctx, field)
+			case "threshold_cooldown":
+				return ec.fieldContext_Alert_threshold_cooldown(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -57849,30 +57849,30 @@ func (ec *executionContext) fieldContext_Query_alert(ctx context.Context, field 
 				return ec.fieldContext_Alert_id(ctx, field)
 			case "updated_at":
 				return ec.fieldContext_Alert_updated_at(ctx, field)
-			case "Name":
-				return ec.fieldContext_Alert_Name(ctx, field)
-			case "ProductType":
-				return ec.fieldContext_Alert_ProductType(ctx, field)
-			case "FunctionType":
-				return ec.fieldContext_Alert_FunctionType(ctx, field)
-			case "Query":
-				return ec.fieldContext_Alert_Query(ctx, field)
-			case "GroupByKey":
-				return ec.fieldContext_Alert_GroupByKey(ctx, field)
-			case "Disabled":
-				return ec.fieldContext_Alert_Disabled(ctx, field)
-			case "LastAdminToEditID":
-				return ec.fieldContext_Alert_LastAdminToEditID(ctx, field)
-			case "Destinations":
-				return ec.fieldContext_Alert_Destinations(ctx, field)
-			case "BelowThreshold":
-				return ec.fieldContext_Alert_BelowThreshold(ctx, field)
-			case "ThresholdCount":
-				return ec.fieldContext_Alert_ThresholdCount(ctx, field)
-			case "ThresholdWindow":
-				return ec.fieldContext_Alert_ThresholdWindow(ctx, field)
-			case "ThresholdCooldown":
-				return ec.fieldContext_Alert_ThresholdCooldown(ctx, field)
+			case "name":
+				return ec.fieldContext_Alert_name(ctx, field)
+			case "product_type":
+				return ec.fieldContext_Alert_product_type(ctx, field)
+			case "function_type":
+				return ec.fieldContext_Alert_function_type(ctx, field)
+			case "query":
+				return ec.fieldContext_Alert_query(ctx, field)
+			case "group_by_key":
+				return ec.fieldContext_Alert_group_by_key(ctx, field)
+			case "disabled":
+				return ec.fieldContext_Alert_disabled(ctx, field)
+			case "last_admin_to_edit_id":
+				return ec.fieldContext_Alert_last_admin_to_edit_id(ctx, field)
+			case "destinations":
+				return ec.fieldContext_Alert_destinations(ctx, field)
+			case "below_threshold":
+				return ec.fieldContext_Alert_below_threshold(ctx, field)
+			case "threshold_count":
+				return ec.fieldContext_Alert_threshold_count(ctx, field)
+			case "threshold_window":
+				return ec.fieldContext_Alert_threshold_window(ctx, field)
+			case "threshold_cooldown":
+				return ec.fieldContext_Alert_threshold_cooldown(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -84097,45 +84097,45 @@ func (ec *executionContext) _Alert(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "Name":
-			out.Values[i] = ec._Alert_Name(ctx, field, obj)
+		case "name":
+			out.Values[i] = ec._Alert_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "ProductType":
-			out.Values[i] = ec._Alert_ProductType(ctx, field, obj)
+		case "product_type":
+			out.Values[i] = ec._Alert_product_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "FunctionType":
-			out.Values[i] = ec._Alert_FunctionType(ctx, field, obj)
+		case "function_type":
+			out.Values[i] = ec._Alert_function_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "Query":
-			out.Values[i] = ec._Alert_Query(ctx, field, obj)
-		case "GroupByKey":
-			out.Values[i] = ec._Alert_GroupByKey(ctx, field, obj)
-		case "Disabled":
-			out.Values[i] = ec._Alert_Disabled(ctx, field, obj)
+		case "query":
+			out.Values[i] = ec._Alert_query(ctx, field, obj)
+		case "group_by_key":
+			out.Values[i] = ec._Alert_group_by_key(ctx, field, obj)
+		case "disabled":
+			out.Values[i] = ec._Alert_disabled(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "LastAdminToEditID":
-			out.Values[i] = ec._Alert_LastAdminToEditID(ctx, field, obj)
-		case "Destinations":
-			out.Values[i] = ec._Alert_Destinations(ctx, field, obj)
+		case "last_admin_to_edit_id":
+			out.Values[i] = ec._Alert_last_admin_to_edit_id(ctx, field, obj)
+		case "destinations":
+			out.Values[i] = ec._Alert_destinations(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "BelowThreshold":
-			out.Values[i] = ec._Alert_BelowThreshold(ctx, field, obj)
-		case "ThresholdCount":
-			out.Values[i] = ec._Alert_ThresholdCount(ctx, field, obj)
-		case "ThresholdWindow":
-			out.Values[i] = ec._Alert_ThresholdWindow(ctx, field, obj)
-		case "ThresholdCooldown":
-			out.Values[i] = ec._Alert_ThresholdCooldown(ctx, field, obj)
+		case "below_threshold":
+			out.Values[i] = ec._Alert_below_threshold(ctx, field, obj)
+		case "threshold_count":
+			out.Values[i] = ec._Alert_threshold_count(ctx, field, obj)
+		case "threshold_window":
+			out.Values[i] = ec._Alert_threshold_window(ctx, field, obj)
+		case "threshold_cooldown":
+			out.Values[i] = ec._Alert_threshold_cooldown(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -84175,23 +84175,23 @@ func (ec *executionContext) _AlertDestination(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "AlertID":
-			out.Values[i] = ec._AlertDestination_AlertID(ctx, field, obj)
+		case "alert_id":
+			out.Values[i] = ec._AlertDestination_alert_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "DestinationType":
-			out.Values[i] = ec._AlertDestination_DestinationType(ctx, field, obj)
+		case "destination_type":
+			out.Values[i] = ec._AlertDestination_destination_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "TypeID":
-			out.Values[i] = ec._AlertDestination_TypeID(ctx, field, obj)
+		case "type_id":
+			out.Values[i] = ec._AlertDestination_type_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "TypeName":
-			out.Values[i] = ec._AlertDestination_TypeName(ctx, field, obj)
+		case "type_name":
+			out.Values[i] = ec._AlertDestination_type_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

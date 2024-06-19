@@ -1571,29 +1571,29 @@ enum AlertDestinationType {
 
 type AlertDestination {
 	id: ID!
-	AlertID: ID!
-	DestinationType: AlertDestinationType!
-	TypeID: String!
-	TypeName: String!
+	alert_id: ID!
+	destination_type: AlertDestinationType!
+	type_id: String!
+	type_name: String!
 }
 
 type Alert {
 	id: ID!
 	updated_at: Timestamp!
-	Name: String!
-	ProductType: ProductType!
-	FunctionType: MetricAggregator!
-	Query: String
-	GroupByKey: String
-	Disabled: Boolean!
-	LastAdminToEditID: ID
-	Destinations: [AlertDestination]!
+	name: String!
+	product_type: ProductType!
+	function_type: MetricAggregator!
+	query: String
+	group_by_key: String
+	disabled: Boolean!
+	last_admin_to_edit_id: ID
+	destinations: [AlertDestination]!
 
 	# threshold alerts
-	BelowThreshold: Boolean
-	ThresholdCount: Int
-	ThresholdWindow: Int
-	ThresholdCooldown: Int
+	below_threshold: Boolean
+	threshold_count: Int
+	threshold_window: Int
+	threshold_cooldown: Int
 }
 
 type AlertStateChange {
