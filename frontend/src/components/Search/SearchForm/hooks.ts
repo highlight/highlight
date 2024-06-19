@@ -13,20 +13,20 @@ import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationCo
 export const useRetentionPresets = (productType: ProductType) => {
 	const { currentWorkspace } = useApplicationContext()
 
-	if (!currentWorkspace) {
-		throw new Error('currentWorkspace must be initialized')
-	}
-
 	let defaultPresets = DEFAULT_TIME_PRESETS
 	let retentionPeriod: RetentionPeriod | undefined =
 		RetentionPeriod.ThirtyDays
 	switch (productType) {
 		case ProductType.Errors:
-			retentionPeriod = currentWorkspace.errors_retention_period
+			retentionPeriod =
+				currentWorkspace?.errors_retention_period ??
+				RetentionPeriod.ThreeMonths
 			defaultPresets = EXTENDED_TIME_PRESETS
 			break
 		case ProductType.Sessions:
-			retentionPeriod = currentWorkspace.retention_period
+			retentionPeriod =
+				currentWorkspace?.retention_period ??
+				RetentionPeriod.ThreeMonths
 			defaultPresets = EXTENDED_TIME_PRESETS
 			break
 	}
