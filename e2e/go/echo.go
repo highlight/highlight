@@ -3,19 +3,20 @@ package main
 import (
 	"math/rand"
 
+	"net/http"
+
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightEcho "github.com/highlight/highlight/sdk/highlight-go/middleware/echo"
-	e "github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"net/http"
+	e "github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	highlight.SetProjectID("1jdkoe52")
-	highlight.SetOTLPEndpoint("http://localhost:4318")
+	highlight.SetOTLPEndpoint("https://localhost:4318")
 	highlight.Start(
 		highlight.WithServiceName("go-echo-app"),
 		highlight.WithServiceVersion("abc123"),

@@ -17,7 +17,7 @@ from highlight_io.sdk import LogHandler
 H = highlight_io.H(
     "1",
     instrument_logging=True,
-    otlp_endpoint="http://localhost:4318",
+    otlp_endpoint="https://localhost:4318",
     service_name="my-fastapi-app",
     service_version="1.0.0",
     environment="e2e-test",
