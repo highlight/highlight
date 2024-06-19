@@ -15,7 +15,10 @@ interface ApplicationContext {
 		>[]
 	>
 	currentWorkspace?: Maybe<
-		{ __typename?: 'Workspace' } & Pick<Workspace, 'id' | 'name'>
+		{ __typename?: 'Workspace' } & Pick<
+			Workspace,
+			'id' | 'name' | 'cloudflare_proxy'
+		>
 	>
 	workspaces: Maybe<
 		{ __typename?: 'Workspace' } & Pick<Workspace, 'id' | 'name'>

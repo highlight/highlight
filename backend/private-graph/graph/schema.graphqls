@@ -240,6 +240,7 @@ enum SubscriptionInterval {
 }
 
 enum RetentionPeriod {
+	SevenDays
 	ThirtyDays
 	ThreeMonths
 	SixMonths
@@ -440,6 +441,7 @@ enum IntegrationType {
 	MicrosoftTeams
 	GitLab
 	Heroku
+	Cloudflare
 }
 
 enum ErrorState {
@@ -510,6 +512,7 @@ type Project {
 	billing_email: String
 	secret: String
 	workspace_id: ID!
+	workspace: Workspace
 	excluded_users: StringArray
 	error_filters: StringArray
 	error_json_paths: StringArray
@@ -607,12 +610,13 @@ type Workspace {
 	eligible_for_trial_extension: Boolean!
 	trial_extension_enabled: Boolean!
 	clearbit_enabled: Boolean!
-	retention_period: RetentionPeriod
-	errors_retention_period: RetentionPeriod
+	retention_period: RetentionPeriod!
+	errors_retention_period: RetentionPeriod!
 	sessions_max_cents: Int
 	errors_max_cents: Int
 	logs_max_cents: Int
 	traces_max_cents: Int
+	cloudflare_proxy: String
 }
 
 type SearchParams {
@@ -1549,6 +1553,22 @@ type Dashboard {
 	layout: String!
 	name: String!
 	last_admin_to_edit_id: ID!
+}
+
+enum AlertState {
+	Normal
+	Pending
+	Alerting
+	NoData
+	Error
+}
+
+enum AlertDestinationType {
+	Slack
+	Discord
+	MicrosoftTeams
+	Webhook
+	Email
 }
 
 type SanitizedSlackChannel {
@@ -2796,6 +2816,7 @@ type Mutation {
 		params: QueryInput!
 		sessionCount: Int!
 	): Boolean!
+	createCloudflareProxy(workspace_id: ID!, proxy_subdomain: String!): String!
 	updateVercelProjectMappings(
 		project_id: ID!
 		project_mappings: [VercelProjectMappingInput!]!

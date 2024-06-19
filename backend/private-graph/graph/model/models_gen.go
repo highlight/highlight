@@ -1036,6 +1036,100 @@ type WorkspaceForInviteLink struct {
 	ProjectID       int        `json:"project_id"`
 }
 
+type AlertDestinationType string
+
+const (
+	AlertDestinationTypeSlack          AlertDestinationType = "Slack"
+	AlertDestinationTypeDiscord        AlertDestinationType = "Discord"
+	AlertDestinationTypeMicrosoftTeams AlertDestinationType = "MicrosoftTeams"
+	AlertDestinationTypeWebhook        AlertDestinationType = "Webhook"
+	AlertDestinationTypeEmail          AlertDestinationType = "Email"
+)
+
+var AllAlertDestinationType = []AlertDestinationType{
+	AlertDestinationTypeSlack,
+	AlertDestinationTypeDiscord,
+	AlertDestinationTypeMicrosoftTeams,
+	AlertDestinationTypeWebhook,
+	AlertDestinationTypeEmail,
+}
+
+func (e AlertDestinationType) IsValid() bool {
+	switch e {
+	case AlertDestinationTypeSlack, AlertDestinationTypeDiscord, AlertDestinationTypeMicrosoftTeams, AlertDestinationTypeWebhook, AlertDestinationTypeEmail:
+		return true
+	}
+	return false
+}
+
+func (e AlertDestinationType) String() string {
+	return string(e)
+}
+
+func (e *AlertDestinationType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AlertDestinationType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AlertDestinationType", str)
+	}
+	return nil
+}
+
+func (e AlertDestinationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type AlertState string
+
+const (
+	AlertStateNormal   AlertState = "Normal"
+	AlertStatePending  AlertState = "Pending"
+	AlertStateAlerting AlertState = "Alerting"
+	AlertStateNoData   AlertState = "NoData"
+	AlertStateError    AlertState = "Error"
+)
+
+var AllAlertState = []AlertState{
+	AlertStateNormal,
+	AlertStatePending,
+	AlertStateAlerting,
+	AlertStateNoData,
+	AlertStateError,
+}
+
+func (e AlertState) IsValid() bool {
+	switch e {
+	case AlertStateNormal, AlertStatePending, AlertStateAlerting, AlertStateNoData, AlertStateError:
+		return true
+	}
+	return false
+}
+
+func (e AlertState) String() string {
+	return string(e)
+}
+
+func (e *AlertState) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AlertState(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AlertState", str)
+	}
+	return nil
+}
+
+func (e AlertState) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type DashboardChartType string
 
 const (
@@ -1267,6 +1361,7 @@ const (
 	IntegrationTypeMicrosoftTeams IntegrationType = "MicrosoftTeams"
 	IntegrationTypeGitLab         IntegrationType = "GitLab"
 	IntegrationTypeHeroku         IntegrationType = "Heroku"
+	IntegrationTypeCloudflare     IntegrationType = "Cloudflare"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -1283,11 +1378,12 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeMicrosoftTeams,
 	IntegrationTypeGitLab,
 	IntegrationTypeHeroku,
+	IntegrationTypeCloudflare,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeMicrosoftTeams, IntegrationTypeGitLab, IntegrationTypeHeroku:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeMicrosoftTeams, IntegrationTypeGitLab, IntegrationTypeHeroku, IntegrationTypeCloudflare:
 		return true
 	}
 	return false
@@ -2308,6 +2404,7 @@ func (e ReservedTraceKey) MarshalGQL(w io.Writer) {
 type RetentionPeriod string
 
 const (
+	RetentionPeriodSevenDays    RetentionPeriod = "SevenDays"
 	RetentionPeriodThirtyDays   RetentionPeriod = "ThirtyDays"
 	RetentionPeriodThreeMonths  RetentionPeriod = "ThreeMonths"
 	RetentionPeriodSixMonths    RetentionPeriod = "SixMonths"
@@ -2317,6 +2414,7 @@ const (
 )
 
 var AllRetentionPeriod = []RetentionPeriod{
+	RetentionPeriodSevenDays,
 	RetentionPeriodThirtyDays,
 	RetentionPeriodThreeMonths,
 	RetentionPeriodSixMonths,
@@ -2327,7 +2425,7 @@ var AllRetentionPeriod = []RetentionPeriod{
 
 func (e RetentionPeriod) IsValid() bool {
 	switch e {
-	case RetentionPeriodThirtyDays, RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears, RetentionPeriodThreeYears:
+	case RetentionPeriodSevenDays, RetentionPeriodThirtyDays, RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears, RetentionPeriodThreeYears:
 		return true
 	}
 	return false

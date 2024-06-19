@@ -128,6 +128,22 @@ export enum AdminRole {
 	Member = 'MEMBER',
 }
 
+export enum AlertDestinationType {
+	Discord = 'Discord',
+	Email = 'Email',
+	MicrosoftTeams = 'MicrosoftTeams',
+	Slack = 'Slack',
+	Webhook = 'Webhook',
+}
+
+export enum AlertState {
+	Alerting = 'Alerting',
+	Error = 'Error',
+	NoData = 'NoData',
+	Normal = 'Normal',
+	Pending = 'Pending',
+}
+
 export type AllProjectSettings = {
 	__typename?: 'AllProjectSettings'
 	autoResolveStaleErrorsDayInterval: Scalars['Int']
@@ -776,6 +792,7 @@ export type IntegrationStatus = {
 
 export enum IntegrationType {
 	ClickUp = 'ClickUp',
+	Cloudflare = 'Cloudflare',
 	Discord = 'Discord',
 	Front = 'Front',
 	GitHub = 'GitHub',
@@ -1117,6 +1134,7 @@ export type Mutation = {
 	changeAdminRole: WorkspaceAdminRole
 	changeProjectMembership: WorkspaceAdminRole
 	createAdmin: Admin
+	createCloudflareProxy: Scalars['String']
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
 	createErrorCommentForExistingIssue?: Maybe<ErrorComment>
@@ -1228,6 +1246,11 @@ export type MutationChangeAdminRoleArgs = {
 export type MutationChangeProjectMembershipArgs = {
 	admin_id: Scalars['ID']
 	project_ids: Array<Scalars['ID']>
+	workspace_id: Scalars['ID']
+}
+
+export type MutationCreateCloudflareProxyArgs = {
+	proxy_subdomain: Scalars['String']
 	workspace_id: Scalars['ID']
 }
 
@@ -1926,6 +1949,7 @@ export type Project = {
 	rage_click_window_seconds?: Maybe<Scalars['Int']>
 	secret?: Maybe<Scalars['String']>
 	verbose_id: Scalars['String']
+	workspace?: Maybe<Workspace>
 	workspace_id: Scalars['ID']
 }
 
@@ -3048,6 +3072,7 @@ export enum ReservedTraceKey {
 }
 
 export enum RetentionPeriod {
+	SevenDays = 'SevenDays',
 	SixMonths = 'SixMonths',
 	ThirtyDays = 'ThirtyDays',
 	ThreeMonths = 'ThreeMonths',
@@ -3727,16 +3752,17 @@ export type Workspace = {
 	allowed_auto_join_email_origins?: Maybe<Scalars['String']>
 	billing_period_end?: Maybe<Scalars['Timestamp']>
 	clearbit_enabled: Scalars['Boolean']
+	cloudflare_proxy?: Maybe<Scalars['String']>
 	eligible_for_trial_extension: Scalars['Boolean']
 	errors_max_cents?: Maybe<Scalars['Int']>
-	errors_retention_period?: Maybe<RetentionPeriod>
+	errors_retention_period: RetentionPeriod
 	id: Scalars['ID']
 	logs_max_cents?: Maybe<Scalars['Int']>
 	name: Scalars['String']
 	next_invoice_date?: Maybe<Scalars['Timestamp']>
 	plan_tier: Scalars['String']
 	projects: Array<Maybe<Project>>
-	retention_period?: Maybe<RetentionPeriod>
+	retention_period: RetentionPeriod
 	sessions_max_cents?: Maybe<Scalars['Int']>
 	slack_channels?: Maybe<Scalars['String']>
 	slack_webhook_channel?: Maybe<Scalars['String']>

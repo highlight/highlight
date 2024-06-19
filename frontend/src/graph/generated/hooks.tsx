@@ -5752,6 +5752,60 @@ export type DeleteGraphMutationOptions = Apollo.BaseMutationOptions<
 	Types.DeleteGraphMutation,
 	Types.DeleteGraphMutationVariables
 >
+export const CreateCloudflareProxyDocument = gql`
+	mutation CreateCloudflareProxy(
+		$workspace_id: ID!
+		$proxy_subdomain: String!
+	) {
+		createCloudflareProxy(
+			workspace_id: $workspace_id
+			proxy_subdomain: $proxy_subdomain
+		)
+	}
+`
+export type CreateCloudflareProxyMutationFn = Apollo.MutationFunction<
+	Types.CreateCloudflareProxyMutation,
+	Types.CreateCloudflareProxyMutationVariables
+>
+
+/**
+ * __useCreateCloudflareProxyMutation__
+ *
+ * To run a mutation, you first call `useCreateCloudflareProxyMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateCloudflareProxyMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createCloudflareProxyMutation, { data, loading, error }] = useCreateCloudflareProxyMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      proxy_subdomain: // value for 'proxy_subdomain'
+ *   },
+ * });
+ */
+export function useCreateCloudflareProxyMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.CreateCloudflareProxyMutation,
+		Types.CreateCloudflareProxyMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.CreateCloudflareProxyMutation,
+		Types.CreateCloudflareProxyMutationVariables
+	>(CreateCloudflareProxyDocument, baseOptions)
+}
+export type CreateCloudflareProxyMutationHookResult = ReturnType<
+	typeof useCreateCloudflareProxyMutation
+>
+export type CreateCloudflareProxyMutationResult =
+	Apollo.MutationResult<Types.CreateCloudflareProxyMutation>
+export type CreateCloudflareProxyMutationOptions = Apollo.BaseMutationOptions<
+	Types.CreateCloudflareProxyMutation,
+	Types.CreateCloudflareProxyMutationVariables
+>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -8175,6 +8229,7 @@ export const GetProjectDropdownOptionsDocument = gql`
 		workspace: workspace_for_project(project_id: $project_id) {
 			id
 			name
+			cloudflare_proxy
 			projects {
 				id
 				name
@@ -11010,6 +11065,63 @@ export type GetWorkspaceIsIntegratedWithHerokuQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithHerokuQuery,
 	Types.GetWorkspaceIsIntegratedWithHerokuQueryVariables
 >
+export const GetWorkspaceIsIntegratedWithCloudflareDocument = gql`
+	query GetWorkspaceIsIntegratedWithCloudflare($workspace_id: ID!) {
+		is_integrated_with_cloudflare: is_workspace_integrated_with(
+			integration_type: Cloudflare
+			workspace_id: $workspace_id
+		)
+	}
+`
+
+/**
+ * __useGetWorkspaceIsIntegratedWithCloudflareQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithCloudflareQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithCloudflareQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithCloudflareQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithCloudflareQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithCloudflareQuery,
+		Types.GetWorkspaceIsIntegratedWithCloudflareQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceIsIntegratedWithCloudflareQuery,
+		Types.GetWorkspaceIsIntegratedWithCloudflareQueryVariables
+	>(GetWorkspaceIsIntegratedWithCloudflareDocument, baseOptions)
+}
+export function useGetWorkspaceIsIntegratedWithCloudflareLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithCloudflareQuery,
+		Types.GetWorkspaceIsIntegratedWithCloudflareQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceIsIntegratedWithCloudflareQuery,
+		Types.GetWorkspaceIsIntegratedWithCloudflareQueryVariables
+	>(GetWorkspaceIsIntegratedWithCloudflareDocument, baseOptions)
+}
+export type GetWorkspaceIsIntegratedWithCloudflareQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithCloudflareQuery
+>
+export type GetWorkspaceIsIntegratedWithCloudflareLazyQueryHookResult =
+	ReturnType<typeof useGetWorkspaceIsIntegratedWithCloudflareLazyQuery>
+export type GetWorkspaceIsIntegratedWithCloudflareQueryResult =
+	Apollo.QueryResult<
+		Types.GetWorkspaceIsIntegratedWithCloudflareQuery,
+		Types.GetWorkspaceIsIntegratedWithCloudflareQueryVariables
+	>
 export const GetWorkspaceIsIntegratedWithLinearDocument = gql`
 	query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
 		is_integrated_with_linear: is_integrated_with(

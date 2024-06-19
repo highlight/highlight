@@ -40,7 +40,7 @@ func main() {
 		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}
 	var sessionAlerts []model.SessionAlert
-	db.Model(model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.USER_PROPERTIES}}).Or(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.TRACK_PROPERTIES}}).Scan(&sessionAlerts)
+	db.Model(model.SessionAlert{}).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{Type: &model.AlertType.USER_PROPERTIES}}).Or(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{Type: &model.AlertType.TRACK_PROPERTIES}}).Scan(&sessionAlerts)
 	for _, alert := range sessionAlerts {
 		if alert.TrackProperties != nil {
 			trackProperties, err := GetPropertiesOld(&alert)

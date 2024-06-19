@@ -799,6 +799,7 @@ type ComplexityRoot struct {
 		ChangeAdminRole                       func(childComplexity int, workspaceID int, adminID int, newRole string) int
 		ChangeProjectMembership               func(childComplexity int, workspaceID int, adminID int, projectIds []int) int
 		CreateAdmin                           func(childComplexity int) int
+		CreateCloudflareProxy                 func(childComplexity int, workspaceID int, proxySubdomain string) int
 		CreateErrorAlert                      func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency int, defaultArg *bool) int
 		CreateErrorComment                    func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
 		CreateErrorCommentForExistingIssue    func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueURL string, issueTitle string, issueID string, integrations []*model.IntegrationType) int
@@ -935,6 +936,7 @@ type ComplexityRoot struct {
 		RageClickWindowSeconds func(childComplexity int) int
 		Secret                 func(childComplexity int) int
 		VerboseID              func(childComplexity int) int
+		Workspace              func(childComplexity int) int
 		WorkspaceID            func(childComplexity int) int
 	}
 
@@ -1586,6 +1588,7 @@ type ComplexityRoot struct {
 		AllowedAutoJoinEmailOrigins func(childComplexity int) int
 		BillingPeriodEnd            func(childComplexity int) int
 		ClearbitEnabled             func(childComplexity int) int
+		CloudflareProxy             func(childComplexity int) int
 		EligibleForTrialExtension   func(childComplexity int) int
 		ErrorsMaxCents              func(childComplexity int) int
 		ErrorsRetentionPeriod       func(childComplexity int) int
@@ -1758,6 +1761,7 @@ type MutationResolver interface {
 	UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*model.DashboardMetricConfigInput, layout *string, isDefault *bool) (int, error)
 	DeleteDashboard(ctx context.Context, id int) (bool, error)
 	DeleteSessions(ctx context.Context, projectID int, params model.QueryInput, sessionCount int) (bool, error)
+	CreateCloudflareProxy(ctx context.Context, workspaceID int, proxySubdomain string) (string, error)
 	UpdateVercelProjectMappings(ctx context.Context, projectID int, projectMappings []*model.VercelProjectMappingInput) (bool, error)
 	UpdateClickUpProjectMappings(ctx context.Context, workspaceID int, projectMappings []*model.ClickUpProjectMappingInput) (bool, error)
 	UpdateIntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType model.IntegrationType, projectMappings []*model.IntegrationProjectMappingInput) (bool, error)
@@ -5391,6 +5395,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateAdmin(childComplexity), true
 
+	case "Mutation.createCloudflareProxy":
+		if e.complexity.Mutation.CreateCloudflareProxy == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createCloudflareProxy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateCloudflareProxy(childComplexity, args["workspace_id"].(int), args["proxy_subdomain"].(string)), true
+
 	case "Mutation.createErrorAlert":
 		if e.complexity.Mutation.CreateErrorAlert == nil {
 			break
@@ -6626,6 +6642,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Project.VerboseID(childComplexity), true
+
+	case "Project.workspace":
+		if e.complexity.Project.Workspace == nil {
+			break
+		}
+
+		return e.complexity.Project.Workspace(childComplexity), true
 
 	case "Project.workspace_id":
 		if e.complexity.Project.WorkspaceID == nil {
@@ -10741,6 +10764,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Workspace.ClearbitEnabled(childComplexity), true
 
+	case "Workspace.cloudflare_proxy":
+		if e.complexity.Workspace.CloudflareProxy == nil {
+			break
+		}
+
+		return e.complexity.Workspace.CloudflareProxy(childComplexity), true
+
 	case "Workspace.eligible_for_trial_extension":
 		if e.complexity.Workspace.EligibleForTrialExtension == nil {
 			break
@@ -11374,6 +11404,7 @@ enum SubscriptionInterval {
 }
 
 enum RetentionPeriod {
+	SevenDays
 	ThirtyDays
 	ThreeMonths
 	SixMonths
@@ -11574,6 +11605,7 @@ enum IntegrationType {
 	MicrosoftTeams
 	GitLab
 	Heroku
+	Cloudflare
 }
 
 enum ErrorState {
@@ -11644,6 +11676,7 @@ type Project {
 	billing_email: String
 	secret: String
 	workspace_id: ID!
+	workspace: Workspace
 	excluded_users: StringArray
 	error_filters: StringArray
 	error_json_paths: StringArray
@@ -11741,12 +11774,13 @@ type Workspace {
 	eligible_for_trial_extension: Boolean!
 	trial_extension_enabled: Boolean!
 	clearbit_enabled: Boolean!
-	retention_period: RetentionPeriod
-	errors_retention_period: RetentionPeriod
+	retention_period: RetentionPeriod!
+	errors_retention_period: RetentionPeriod!
 	sessions_max_cents: Int
 	errors_max_cents: Int
 	logs_max_cents: Int
 	traces_max_cents: Int
+	cloudflare_proxy: String
 }
 
 type SearchParams {
@@ -12683,6 +12717,22 @@ type Dashboard {
 	layout: String!
 	name: String!
 	last_admin_to_edit_id: ID!
+}
+
+enum AlertState {
+	Normal
+	Pending
+	Alerting
+	NoData
+	Error
+}
+
+enum AlertDestinationType {
+	Slack
+	Discord
+	MicrosoftTeams
+	Webhook
+	Email
 }
 
 type SanitizedSlackChannel {
@@ -13930,6 +13980,7 @@ type Mutation {
 		params: QueryInput!
 		sessionCount: Int!
 	): Boolean!
+	createCloudflareProxy(workspace_id: ID!, proxy_subdomain: String!): String!
 	updateVercelProjectMappings(
 		project_id: ID!
 		project_mappings: [VercelProjectMappingInput!]!
@@ -14142,6 +14193,30 @@ func (ec *executionContext) field_Mutation_changeProjectMembership_args(ctx cont
 		}
 	}
 	args["project_ids"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createCloudflareProxy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["proxy_subdomain"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("proxy_subdomain"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["proxy_subdomain"] = arg1
 	return args, nil
 }
 
@@ -42918,6 +42993,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAdminAndCreateWorkspace(
 				return ec.fieldContext_Project_secret(ctx, field)
 			case "workspace_id":
 				return ec.fieldContext_Project_workspace_id(ctx, field)
+			case "workspace":
+				return ec.fieldContext_Project_workspace(ctx, field)
 			case "excluded_users":
 				return ec.fieldContext_Project_excluded_users(ctx, field)
 			case "error_filters":
@@ -43127,6 +43204,8 @@ func (ec *executionContext) fieldContext_Mutation_createProject(ctx context.Cont
 				return ec.fieldContext_Project_secret(ctx, field)
 			case "workspace_id":
 				return ec.fieldContext_Project_workspace_id(ctx, field)
+			case "workspace":
+				return ec.fieldContext_Project_workspace(ctx, field)
 			case "excluded_users":
 				return ec.fieldContext_Project_excluded_users(ctx, field)
 			case "error_filters":
@@ -43237,6 +43316,8 @@ func (ec *executionContext) fieldContext_Mutation_createWorkspace(ctx context.Co
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			case "traces_max_cents":
 				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "cloudflare_proxy":
+				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -43303,6 +43384,8 @@ func (ec *executionContext) fieldContext_Mutation_editProject(ctx context.Contex
 				return ec.fieldContext_Project_secret(ctx, field)
 			case "workspace_id":
 				return ec.fieldContext_Project_workspace_id(ctx, field)
+			case "workspace":
+				return ec.fieldContext_Project_workspace(ctx, field)
 			case "excluded_users":
 				return ec.fieldContext_Project_excluded_users(ctx, field)
 			case "error_filters":
@@ -43497,6 +43580,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspace(ctx context.Cont
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			case "traces_max_cents":
 				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "cloudflare_proxy":
+				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -47995,6 +48080,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAllowMeterOverage(ctx co
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			case "traces_max_cents":
 				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "cloudflare_proxy":
+				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -48328,6 +48415,61 @@ func (ec *executionContext) fieldContext_Mutation_deleteSessions(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteSessions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createCloudflareProxy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createCloudflareProxy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateCloudflareProxy(rctx, fc.Args["workspace_id"].(int), fc.Args["proxy_subdomain"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createCloudflareProxy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createCloudflareProxy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -50480,6 +50622,93 @@ func (ec *executionContext) fieldContext_Project_workspace_id(ctx context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Project_workspace(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Project_workspace(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Workspace, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.Workspace)
+	fc.Result = res
+	return ec.marshalOWorkspace2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Project_workspace(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Workspace_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Workspace_name(ctx, field)
+			case "slack_webhook_channel":
+				return ec.fieldContext_Workspace_slack_webhook_channel(ctx, field)
+			case "slack_channels":
+				return ec.fieldContext_Workspace_slack_channels(ctx, field)
+			case "projects":
+				return ec.fieldContext_Workspace_projects(ctx, field)
+			case "plan_tier":
+				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
+			case "trial_end_date":
+				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
+			case "billing_period_end":
+				return ec.fieldContext_Workspace_billing_period_end(ctx, field)
+			case "next_invoice_date":
+				return ec.fieldContext_Workspace_next_invoice_date(ctx, field)
+			case "allow_meter_overage":
+				return ec.fieldContext_Workspace_allow_meter_overage(ctx, field)
+			case "allowed_auto_join_email_origins":
+				return ec.fieldContext_Workspace_allowed_auto_join_email_origins(ctx, field)
+			case "eligible_for_trial_extension":
+				return ec.fieldContext_Workspace_eligible_for_trial_extension(ctx, field)
+			case "trial_extension_enabled":
+				return ec.fieldContext_Workspace_trial_extension_enabled(ctx, field)
+			case "clearbit_enabled":
+				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
+			case "retention_period":
+				return ec.fieldContext_Workspace_retention_period(ctx, field)
+			case "errors_retention_period":
+				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "sessions_max_cents":
+				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
+			case "errors_max_cents":
+				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
+			case "logs_max_cents":
+				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+			case "traces_max_cents":
+				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "cloudflare_proxy":
+				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
 	}
 	return fc, nil
@@ -55241,6 +55470,8 @@ func (ec *executionContext) fieldContext_Query_projects(ctx context.Context, fie
 				return ec.fieldContext_Project_secret(ctx, field)
 			case "workspace_id":
 				return ec.fieldContext_Project_workspace_id(ctx, field)
+			case "workspace":
+				return ec.fieldContext_Project_workspace(ctx, field)
 			case "excluded_users":
 				return ec.fieldContext_Project_excluded_users(ctx, field)
 			case "error_filters":
@@ -55340,6 +55571,8 @@ func (ec *executionContext) fieldContext_Query_workspaces(ctx context.Context, f
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			case "traces_max_cents":
 				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "cloudflare_proxy":
+				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -55469,6 +55702,8 @@ func (ec *executionContext) fieldContext_Query_joinable_workspaces(ctx context.C
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			case "traces_max_cents":
 				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "cloudflare_proxy":
+				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -56274,6 +56509,8 @@ func (ec *executionContext) fieldContext_Query_projectSuggestion(ctx context.Con
 				return ec.fieldContext_Project_secret(ctx, field)
 			case "workspace_id":
 				return ec.fieldContext_Project_workspace_id(ctx, field)
+			case "workspace":
+				return ec.fieldContext_Project_workspace(ctx, field)
 			case "excluded_users":
 				return ec.fieldContext_Project_excluded_users(ctx, field)
 			case "error_filters":
@@ -57797,6 +58034,8 @@ func (ec *executionContext) fieldContext_Query_project(ctx context.Context, fiel
 				return ec.fieldContext_Project_secret(ctx, field)
 			case "workspace_id":
 				return ec.fieldContext_Project_workspace_id(ctx, field)
+			case "workspace":
+				return ec.fieldContext_Project_workspace(ctx, field)
 			case "excluded_users":
 				return ec.fieldContext_Project_excluded_users(ctx, field)
 			case "error_filters":
@@ -57991,6 +58230,8 @@ func (ec *executionContext) fieldContext_Query_workspace(ctx context.Context, fi
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			case "traces_max_cents":
 				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "cloudflare_proxy":
+				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -58370,6 +58611,8 @@ func (ec *executionContext) fieldContext_Query_workspace_for_project(ctx context
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			case "traces_max_cents":
 				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "cloudflare_proxy":
+				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -76127,6 +76370,8 @@ func (ec *executionContext) fieldContext_Workspace_projects(ctx context.Context,
 				return ec.fieldContext_Project_secret(ctx, field)
 			case "workspace_id":
 				return ec.fieldContext_Project_workspace_id(ctx, field)
+			case "workspace":
+				return ec.fieldContext_Project_workspace(ctx, field)
 			case "excluded_users":
 				return ec.fieldContext_Project_excluded_users(ctx, field)
 			case "error_filters":
@@ -76597,11 +76842,14 @@ func (ec *executionContext) _Workspace_retention_period(ctx context.Context, fie
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.RetentionPeriod)
 	fc.Result = res
-	return ec.marshalORetentionPeriod2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, field.Selections, res)
+	return ec.marshalNRetentionPeriod2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Workspace_retention_period(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -76638,11 +76886,14 @@ func (ec *executionContext) _Workspace_errors_retention_period(ctx context.Conte
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.RetentionPeriod)
 	fc.Result = res
-	return ec.marshalORetentionPeriod2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, field.Selections, res)
+	return ec.marshalNRetentionPeriod2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Workspace_errors_retention_period(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -76817,6 +77068,47 @@ func (ec *executionContext) fieldContext_Workspace_traces_max_cents(ctx context.
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Workspace_cloudflare_proxy(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CloudflareProxy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Workspace_cloudflare_proxy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -87152,6 +87444,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "createCloudflareProxy":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createCloudflareProxy(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "updateVercelProjectMappings":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateVercelProjectMappings(ctx, field)
@@ -87581,6 +87880,8 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "workspace":
+			out.Values[i] = ec._Project_workspace(ctx, field, obj)
 		case "excluded_users":
 			out.Values[i] = ec._Project_excluded_users(ctx, field, obj)
 		case "error_filters":
@@ -95123,8 +95424,14 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 			}
 		case "retention_period":
 			out.Values[i] = ec._Workspace_retention_period(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "errors_retention_period":
 			out.Values[i] = ec._Workspace_errors_retention_period(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "sessions_max_cents":
 			out.Values[i] = ec._Workspace_sessions_max_cents(ctx, field, obj)
 		case "errors_max_cents":
@@ -95133,6 +95440,8 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = ec._Workspace_logs_max_cents(ctx, field, obj)
 		case "traces_max_cents":
 			out.Values[i] = ec._Workspace_traces_max_cents(ctx, field, obj)
+		case "cloudflare_proxy":
+			out.Values[i] = ec._Workspace_cloudflare_proxy(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -99068,6 +99377,22 @@ func (ec *executionContext) marshalNRetentionPeriod2githubᚗcomᚋhighlightᚑr
 	return v
 }
 
+func (ec *executionContext) unmarshalNRetentionPeriod2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx context.Context, v interface{}) (*model.RetentionPeriod, error) {
+	var res = new(model.RetentionPeriod)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRetentionPeriod2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx context.Context, sel ast.SelectionSet, v *model.RetentionPeriod) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) marshalNS3File2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐS3Fileᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.S3File) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -102498,22 +102823,6 @@ func (ec *executionContext) marshalOReferrerTablePayload2ᚖgithubᚗcomᚋhighl
 		return graphql.Null
 	}
 	return ec._ReferrerTablePayload(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalORetentionPeriod2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx context.Context, v interface{}) (*model.RetentionPeriod, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(model.RetentionPeriod)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalORetentionPeriod2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx context.Context, sel ast.SelectionSet, v *model.RetentionPeriod) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) unmarshalOSamplingInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSamplingInput(ctx context.Context, v interface{}) (*model.SamplingInput, error) {

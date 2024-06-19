@@ -346,6 +346,17 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
+func (r *Resolver) SetDefaultRetention(workspace *model.Workspace) {
+	// Workspaces with a `null` retention period are grandfathered onto a six month plan.
+	sixMonths := modelInputs.RetentionPeriodSixMonths
+	if workspace.RetentionPeriod == nil {
+		workspace.RetentionPeriod = &sixMonths
+	}
+	if workspace.ErrorsRetentionPeriod == nil {
+		workspace.ErrorsRetentionPeriod = &sixMonths
+	}
+}
+
 func (r *Resolver) GetAWSMarketPlaceWorkspace(ctx context.Context, workspaceID int) (*model.Workspace, error) {
 	var workspace model.Workspace
 	if err := r.DB.WithContext(ctx).
@@ -479,6 +490,7 @@ func (r *Resolver) isUserInWorkspaceReadOnly(ctx context.Context, workspaceID in
 		LogsMaxCents:                workspace.LogsMaxCents,
 		TracesMaxCents:              workspace.TracesMaxCents,
 		ClearbitEnabled:             workspace.ClearbitEnabled,
+		CloudflareProxy:             workspace.CloudflareProxy,
 	}, nil
 }
 
@@ -2037,6 +2049,22 @@ func (r *Resolver) AddHerokuToProject(ctx context.Context, project *model.Projec
 	return nil
 }
 
+func (r *Resolver) AddCloudflareToWorkspace(ctx context.Context, project *model.Project, token string) error {
+	workspaceMapping := &model.IntegrationWorkspaceMapping{
+		IntegrationType: modelInputs.IntegrationTypeCloudflare,
+		WorkspaceID:     project.ID,
+		AccessToken:     token,
+	}
+
+	if err := r.DB.WithContext(ctx).
+		Model(&workspaceMapping).
+		Create(&workspaceMapping).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	var (
 		SLACK_CLIENT_ID     string
@@ -2096,7 +2124,7 @@ func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(ctx context.Context, worksp
 
 		microsoftTeamsChannelsToNotify := make(model.MicrosoftTeamsChannels, 0)
 
-		projectAlert := model.Alert{ProjectID: projectID}
+		projectAlert := model.AlertDeprecated{ProjectID: projectID}
 		emptyMicrosoftTeamsChannels := model.AlertIntegrations{
 			MicrosoftTeamsChannelsToNotify: microsoftTeamsChannelsToNotify,
 		}
@@ -2105,7 +2133,7 @@ func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(ctx context.Context, worksp
 			return e.Wrap(err, "error removing microsoft_teams channels from created SessionAlert's")
 		}
 
-		if err := tx.Where(&model.ErrorAlert{Alert: projectAlert}).Updates(model.ErrorAlert{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
+		if err := tx.Where(&model.ErrorAlert{AlertDeprecated: projectAlert}).Updates(model.ErrorAlert{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
 			return e.Wrap(err, "error removing microsoft_teams channels from created ErrorAlert's")
 		}
 
@@ -2114,7 +2142,7 @@ func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(ctx context.Context, worksp
 			return e.Wrap(err, "error removing microsoft_teams channels from created MetricMonitor's")
 		}
 
-		if err := tx.Where(&model.LogAlert{Alert: projectAlert}).Updates(model.LogAlert{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
+		if err := tx.Where(&model.LogAlert{AlertDeprecated: projectAlert}).Updates(model.LogAlert{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
 			return e.Wrap(err, "error removing microsoft_teams channels from created LogAlert's")
 		}
 
@@ -2134,15 +2162,15 @@ func (r *Resolver) RemoveSlackFromWorkspace(ctx context.Context, workspace *mode
 		}
 
 		empty := "[]"
-		projectAlert := model.Alert{ProjectID: projectID}
-		clearedChannelsAlert := model.Alert{ChannelsToNotify: &empty}
+		projectAlert := model.AlertDeprecated{ProjectID: projectID}
+		clearedChannelsAlert := model.AlertDeprecated{ChannelsToNotify: &empty}
 
 		// set existing alerts to have empty slack channels to notify
-		if err := tx.Where(&model.SessionAlert{Alert: projectAlert}).Updates(model.SessionAlert{Alert: clearedChannelsAlert}).Error; err != nil {
+		if err := tx.Where(&model.SessionAlert{AlertDeprecated: projectAlert}).Updates(model.SessionAlert{AlertDeprecated: clearedChannelsAlert}).Error; err != nil {
 			return e.Wrap(err, "error removing slack channels from created SessionAlert's")
 		}
 
-		if err := tx.Where(&model.ErrorAlert{Alert: projectAlert}).Updates(model.ErrorAlert{Alert: clearedChannelsAlert}).Error; err != nil {
+		if err := tx.Where(&model.ErrorAlert{AlertDeprecated: projectAlert}).Updates(model.ErrorAlert{AlertDeprecated: clearedChannelsAlert}).Error; err != nil {
 			return e.Wrap(err, "error removing slack channels from created ErrorAlert's")
 		}
 
@@ -2151,7 +2179,7 @@ func (r *Resolver) RemoveSlackFromWorkspace(ctx context.Context, workspace *mode
 			return e.Wrap(err, "error removing slack channels from created MetricMonitor's")
 		}
 
-		if err := tx.Where(&model.LogAlert{Alert: projectAlert}).Updates(model.LogAlert{Alert: clearedChannelsAlert}).Error; err != nil {
+		if err := tx.Where(&model.LogAlert{AlertDeprecated: projectAlert}).Updates(model.LogAlert{AlertDeprecated: clearedChannelsAlert}).Error; err != nil {
 			return e.Wrap(err, "error removing slack channels from created LogAlert's")
 		}
 
@@ -3644,6 +3672,8 @@ func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time
 		retentionPeriod = *retentionPeriodPtr
 	}
 	switch retentionPeriod {
+	case modelInputs.RetentionPeriodSevenDays:
+		return time.Now().AddDate(0, 0, -7)
 	case modelInputs.RetentionPeriodThreeMonths:
 		return time.Now().AddDate(0, -3, 0)
 	case modelInputs.RetentionPeriodSixMonths:

@@ -83,9 +83,12 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		project_id: string
 	}>()
 	const { currentWorkspace } = useApplicationContext()
-	const [query, setQuery] = useQueryParam('query', QueryParam)
-	const { queryParts } = parseSearch(query)
 	const [aiMode, setAiMode] = useState(false)
+	const [query, setQuery] = useQueryParam('query', QueryParam)
+	const queryParts = useMemo(() => {
+		return parseSearch(query).queryParts
+	}, [query])
+
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [
 		getAiQuerySuggestion,
