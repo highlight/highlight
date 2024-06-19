@@ -49,7 +49,7 @@ var (
 		os.Getenv("REACT_APP_PRIVATE_GRAPH_URI"),
 		os.Getenv("REACT_APP_PUBLIC_GRAPH_URI"),
 		os.Getenv("LICENSE_KEY"),
-		os.Getenv("ENTERPRISE_ENV_PUBLIC_KEY"),
+		EnterpriseEnvPublicKey,
 		time.Time{},
 		os.Getenv("SSL"),
 		os.Getenv("CONSUMER_SPAN_SAMPLING_FRACTION"),
