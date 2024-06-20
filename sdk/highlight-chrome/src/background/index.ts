@@ -6,8 +6,8 @@ let getCurrentTab = async () => {
   return tab
 }
 
-let disableCSP = async (id) => {
-  let addRules = [],
+let disableCSP = async (id?: number) => {
+  let addRules: any[] = [],
     { url } = await getCurrentTab()
 
   addRules.push({
@@ -26,11 +26,11 @@ let disableCSP = async (id) => {
 }
 
 let init = () => {
-  chrome.action.onClicked.addListener((tab) => {
-    disableCSP(tab.id)
+  chrome.action.onClicked.addListener(async (tab) => {
+    await disableCSP(tab.id)
   })
-  chrome.tabs.onActivated.addListener((tab) => {
-    disableCSP(tab.tabId)
+  chrome.tabs.onActivated.addListener(async (tab) => {
+    await disableCSP(tab.tabId)
   })
 }
 

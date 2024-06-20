@@ -3,7 +3,7 @@ import { crx } from '@crxjs/vite-plugin'
 import manifest from './src/manifest'
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(() => {
   return {
     build: {
       emptyOutDir: true,
@@ -14,7 +14,6 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-
     plugins: [crx({ manifest })],
   }
 })

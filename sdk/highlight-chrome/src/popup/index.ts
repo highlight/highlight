@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Increment the count
   projectIdInput.addEventListener('change', async (event) => {
-    projectId = event.target?.value
+    projectId = (event.target as any)?.value
     project.textContent = projectId
     await chrome.storage.sync.set({ projectId })
     await chrome.runtime.sendMessage({ type: 'projectId', projectId })
