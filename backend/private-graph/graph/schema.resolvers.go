@@ -5220,7 +5220,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 	}
 
 	if len(results) > 0 {
-		if err := r.SetErrorFrequenciesClickhouse(ctx, project.ID, results, ErrorGroupLookbackDays); err != nil {
+		if err := r.loadErrorGroupFrequenciesClickhouse(ctx, project.ID, results); err != nil {
 			return nil, err
 		}
 	}
@@ -5290,7 +5290,7 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string, useClic
 	if eg.UpdatedAt.Before(retentionDate) {
 		return nil, e.New("no new error instances after the workspace's retention date")
 	}
-	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
+	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}); err != nil {
 		return nil, err
 	}
 	return eg, err
@@ -6032,7 +6032,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 	if err != nil {
 		return nil, err
 	}
-	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, errGroup); err != nil {
+	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, projectID, []*model.ErrorGroup{errGroup}); err != nil {
 		return nil, err
 	}
 
@@ -6047,9 +6047,6 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 		return dists, nil
 	}
 
-	if err := r.SetErrorFrequenciesClickhouse(ctx, projectID, []*model.ErrorGroup{errGroup}, dateOffset); err != nil {
-		return nil, e.Wrap(err, "error setting error frequencies")
-	}
 	return errGroup.ErrorFrequency, nil
 }
 
@@ -8751,7 +8748,7 @@ Below are descriptions of the keys:
 Use today's date/time in the user's time zone for any relative times provided: %s
 
 ## Rules for 'query' key:
-In terms of the keys and values you can use in the 'query' field, try not to use a key-value pairs that don't exist. 
+In terms of the keys and values you can use in the 'query' field, try not to use a key-value pairs that don't exist. If the user asks to search for a log that has a specific string in it, use the "*text*" option.
 
 You have the following keys to work with:
 
@@ -8793,6 +8790,10 @@ And specifically, for the %s product, you can refer to the following documentati
 		{
 			request:  "Give me all the logs where the environment is production and the session is not null",
 			response: `{"query":"environment=production AND secure_session_id EXISTS","date_range":{"start_date":"","end_date":""}}`,
+		},
+		{
+			request:  "logs that have 'panic' in the message",
+			response: `{"query":"message=*panic*","date_range":{"start_date":"","end_date":""}}`,
 		},
 	}
 

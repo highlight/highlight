@@ -2518,6 +2518,8 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
 					| 'type'
 					| 'event'
 					| 'state'
+					| 'first_occurrence'
+					| 'last_occurrence'
 					| 'snoozed_until'
 					| 'environments'
 					| 'stack_trace'

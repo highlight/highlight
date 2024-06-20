@@ -7661,7 +7661,8 @@ export const GetErrorGroupsDocument = gql`
 				type
 				event
 				state
-				state
+				first_occurrence
+				last_occurrence
 				snoozed_until
 				environments
 				stack_trace
