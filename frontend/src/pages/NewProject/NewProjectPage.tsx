@@ -111,7 +111,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 				},
 				refetchQueries: [
 					namedOperations.Query.GetProjects,
-					namedOperations.Query.GetProjectDropdownOptions,
+					namedOperations.Query.GetDropdownOptions,
 					namedOperations.Query.GetProjectsAndWorkspaces,
 				],
 			})
