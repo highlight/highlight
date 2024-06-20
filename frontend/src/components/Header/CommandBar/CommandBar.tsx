@@ -35,6 +35,7 @@ export const CommandBar: React.FC<React.PropsWithChildren> = () => {
 	const { isHighlightAdmin } = useAuthContext()
 	const { data } = useGetProjectSuggestionQuery({
 		skip: !isHighlightAdmin,
+		fetchPolicy: 'no-cache',
 		variables: { query: '' },
 	})
 	const playerCommands = usePlayerCommands(isHighlightAdmin)
