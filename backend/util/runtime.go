@@ -63,11 +63,11 @@ func (lt Handler) IsValid() bool {
 func GetRuntime() (Runtime, *Handler) {
 	flag.Parse()
 	if runtimeFlag == nil {
-		log.WithContext(context.TODO()).Fatal("runtime is nil, provide a value")
+		log.WithContext(context.Background()).Fatal("runtime is nil, provide a value")
 	}
 	runtime := Runtime(*runtimeFlag)
 	if !runtime.IsValid() {
-		log.WithContext(context.TODO()).Fatalf("invalid runtime: %v", *runtimeFlag)
+		log.WithContext(context.Background()).Fatalf("invalid runtime: %v", *runtimeFlag)
 	}
 	if handlerFlag != nil {
 		h := Handler(*handlerFlag)
