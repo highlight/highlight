@@ -7922,6 +7922,8 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 		return nil, nil
 	}
 
+	r.SetDefaultRetention(workspace)
+
 	if r.isWhitelistedAccount(ctx) {
 		projects := []model.Project{}
 		if err := r.DB.WithContext(ctx).Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
@@ -7940,8 +7942,6 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 
 		return *p, p.WorkspaceID == id
 	})
-
-	r.SetDefaultRetention(workspace)
 
 	return workspace, nil
 }
