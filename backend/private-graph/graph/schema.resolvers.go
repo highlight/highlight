@@ -8736,7 +8736,7 @@ Below are descriptions of the keys:
 Use today's date/time in the user's time zone for any relative times provided: %s
 
 ## Rules for 'query' key:
-In terms of the keys and values you can use in the 'query' field, try not to use a key-value pairs that don't exist. 
+In terms of the keys and values you can use in the 'query' field, try not to use a key-value pairs that don't exist. If the user asks to search for a log that has a specific string in it, use the "*text*" option.
 
 You have the following keys to work with:
 
@@ -8778,6 +8778,10 @@ And specifically, for the %s product, you can refer to the following documentati
 		{
 			request:  "Give me all the logs where the environment is production and the session is not null",
 			response: `{"query":"environment=production AND secure_session_id EXISTS","date_range":{"start_date":"","end_date":""}}`,
+		},
+		{
+			request:  "logs that have 'panic' in the message",
+			response: `{"query":"message=*panic*","date_range":{"start_date":"","end_date":""}}`,
 		},
 	}
 
