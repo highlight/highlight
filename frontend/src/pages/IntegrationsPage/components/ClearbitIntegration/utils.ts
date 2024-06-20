@@ -17,7 +17,7 @@ export const useClearbitIntegration = () => {
 	const { loading: loadingWorkspace, data: workspace } = useGetWorkspaceQuery(
 		{
 			variables: { id: project?.project?.workspace?.id || '' },
-			skip: !project?.project?.workspace?.id,
+			skip: true,
 		},
 	)
 	const loading = loadingProject || loadingWorkspace
