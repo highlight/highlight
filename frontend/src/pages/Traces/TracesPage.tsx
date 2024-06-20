@@ -302,7 +302,7 @@ export const TracesPage: React.FC = () => {
 																sorting is
 																applied, so
 																results are
-																sampled.
+																approximate.
 															</Text>
 														</Box>
 													</Tooltip>
