@@ -1,9 +1,12 @@
 import {
 	Box,
 	DEFAULT_TIME_PRESETS,
+	IconSolidInformationCircle,
 	IconSolidLoading,
 	presetStartDate,
+	Tag,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
@@ -89,6 +92,7 @@ export const TracesPage: React.FC = () => {
 		loading,
 		loadingAfter,
 		fetchMoreForward,
+		sampled,
 	} = useGetTraces({
 		query,
 		projectId,
@@ -271,23 +275,47 @@ export const TracesPage: React.FC = () => {
 								alignItems="center"
 								display="flex"
 								flexDirection="row"
-								px="10"
-								mb="4"
-								gap="10"
-								style={{ height: 28 }}
+								px="8"
+								pt="4"
+								pb="6"
+								gap="8"
 							>
 								{metricsLoading ? (
-									<HistogramLoading />
+									<Box py="4">
+										<HistogramLoading />
+									</Box>
 								) : (
 									<>
-										<Text size="xSmall" color="weak">
+										<Tag
+											size="medium"
+											iconRight={
+												sampled ? (
+													<Tooltip
+														trigger={
+															<IconSolidInformationCircle />
+														}
+													>
+														<Box p="4">
+															<Text color="weak">
+																Data is sampled
+																when custom
+																sorting is
+																applied, so
+																results are
+																sampled.
+															</Text>
+														</Box>
+													</Tooltip>
+												) : undefined
+											}
+											shape="basic"
+											kind="secondary"
+											emphasis="medium"
+										>
+											{sampled ? '~' : ''}
 											{formatNumber(totalCount)} Trace
 											{totalCount !== 1 ? 's' : ''}
-										</Text>
-										<Box
-											borderRight="dividerWeak"
-											style={{ width: 0, height: 20 }}
-										/>
+										</Tag>
 										<Text size="xSmall" color="weak">
 											{selectedPreset ? (
 												<>

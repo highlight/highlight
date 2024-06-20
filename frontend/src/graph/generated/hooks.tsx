@@ -14542,6 +14542,7 @@ export const GetTracesDocument = gql`
 				startCursor
 				endCursor
 			}
+			sampled
 		}
 	}
 `

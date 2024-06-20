@@ -286,6 +286,7 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 	return &modelInputs.TraceConnection{
 		Edges:    mappedEdges,
 		PageInfo: conn.PageInfo,
+		Sampled:  useSamplingTable(params),
 	}, nil
 }
 
