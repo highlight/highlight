@@ -1,6 +1,8 @@
 import { Maybe, Project, Workspace } from '@graph/schemas'
 import { createContext } from '@util/context/context'
 
+import { ProjectFragment } from '@/graph/generated/operations'
+
 /**
  * Provides data about the current application and all applications the admin has access to.
  */
@@ -26,6 +28,13 @@ interface ApplicationContext {
 	>
 	workspaces: Maybe<
 		{ __typename?: 'Workspace' } & Pick<Workspace, 'id' | 'name'>
+	>[]
+	joinableWorkspaces: Maybe<
+		{ __typename?: 'Workspace' } & Pick<Workspace, 'id' | 'name'> & {
+				projects: Array<
+					Maybe<{ __typename?: 'Project' } & ProjectFragment>
+				>
+			}
 	>[]
 }
 

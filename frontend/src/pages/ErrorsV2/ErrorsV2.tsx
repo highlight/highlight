@@ -11,7 +11,6 @@ import { toast } from '@components/Toaster'
 import {
 	useGetAlertsPagePayloadQuery,
 	useGetErrorGroupQuery,
-	useGetProjectDropdownOptionsQuery,
 	useMarkErrorGroupAsViewedMutation,
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
@@ -67,6 +66,7 @@ import ErrorShareButton from '@/pages/ErrorsV2/ErrorShareButton/ErrorShareButton
 import { ErrorStateSelect } from '@/pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
 import { useGetErrors } from '@/pages/ErrorsV2/useGetErrors'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import {
@@ -625,13 +625,11 @@ function useIsBlocked({
 	isPublic: boolean
 	projectId?: string
 }) {
-	const { data, loading } = useGetProjectDropdownOptionsQuery({
-		variables: { project_id: projectId! },
-		skip: !projectId,
-	})
+	const { loading, currentProject, joinableWorkspaces } =
+		useApplicationContext()
+
 	const isBlocked = useMemo(() => {
-		const currentProjectId = data?.project?.id
-		const canJoin = data?.joinable_workspaces?.some((w) =>
+		const canJoin = joinableWorkspaces?.some((w) =>
 			w?.projects.map((p) => p?.id).includes(projectId),
 		)
 		const isDemo = projectId === DEMO_PROJECT_ID
@@ -641,9 +639,9 @@ function useIsBlocked({
 			!isDemo &&
 			!loading &&
 			!canJoin &&
-			currentProjectId !== projectId
+			currentProject?.id !== projectId
 		)
-	}, [data, isPublic, loading, projectId])
+	}, [currentProject?.id, isPublic, joinableWorkspaces, loading, projectId])
 
 	return { isBlocked, loading }
 }

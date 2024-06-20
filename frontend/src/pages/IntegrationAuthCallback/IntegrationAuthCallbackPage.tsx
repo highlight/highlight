@@ -263,6 +263,7 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 				currentProject: undefined,
 				allProjects: data?.projects || [],
 				currentWorkspace: undefined,
+				joinableWorkspaces: [],
 				workspaces: [],
 			}}
 		>
@@ -716,6 +717,7 @@ const IntegrationAuthCallbackPage = () => {
 						errors_retention_period: RetentionPeriod.SixMonths,
 					},
 					workspaces: [],
+					joinableWorkspaces: [],
 				}}
 			>
 				{' '}

@@ -9,7 +9,6 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
 import { Maybe, Project, Workspace } from '@graph/schemas'
 import {
 	useLocalStorageProjectId,
@@ -32,6 +31,7 @@ import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import { PRIVATE_GRAPH_URI } from '@/constants'
+import { useGetDropdownOptionsQuery } from '@/graph/generated/hooks'
 import {
 	useClientIntegration,
 	useLogsIntegration,
@@ -52,8 +52,7 @@ export const ProjectRouter = () => {
 	const { setProjectId: setLocalStorageProjectId } =
 		useLocalStorageProjectId()
 
-	const { data, error } = useGetProjectDropdownOptionsQuery({
-		variables: { project_id: projectId! },
+	const { data, error } = useGetDropdownOptionsQuery({
 		errorPolicy: 'all',
 		skip: !isLoggedIn || !projectId, // Higher level routers decide when guests are allowed to hit this router
 	})

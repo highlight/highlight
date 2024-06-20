@@ -8237,99 +8237,21 @@ export type GetProjectOrWorkspaceQueryResult = Apollo.QueryResult<
 	Types.GetProjectOrWorkspaceQuery,
 	Types.GetProjectOrWorkspaceQueryVariables
 >
-export const GetProjectDropdownOptionsDocument = gql`
-	query GetProjectDropdownOptions($project_id: ID!) {
-		project(id: $project_id) {
+export const GetDropdownOptionsDocument = gql`
+	query GetDropdownOptions {
+		projects {
 			...Project
-			workspace {
-				id
-				name
-				cloudflare_proxy
-				projects {
-					...Project
-				}
-				retention_period
-				errors_retention_period
-			}
 		}
 		workspaces {
 			id
 			name
-		}
-		joinable_workspaces {
-			id
-			name
+			cloudflare_proxy
 			projects {
-				...Project
-			}
-		}
-	}
-	${ProjectFragmentDoc}
-`
-
-/**
- * __useGetProjectDropdownOptionsQuery__
- *
- * To run a query within a React component, call `useGetProjectDropdownOptionsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetProjectDropdownOptionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetProjectDropdownOptionsQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *   },
- * });
- */
-export function useGetProjectDropdownOptionsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetProjectDropdownOptionsQuery,
-		Types.GetProjectDropdownOptionsQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetProjectDropdownOptionsQuery,
-		Types.GetProjectDropdownOptionsQueryVariables
-	>(GetProjectDropdownOptionsDocument, baseOptions)
-}
-export function useGetProjectDropdownOptionsLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetProjectDropdownOptionsQuery,
-		Types.GetProjectDropdownOptionsQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetProjectDropdownOptionsQuery,
-		Types.GetProjectDropdownOptionsQueryVariables
-	>(GetProjectDropdownOptionsDocument, baseOptions)
-}
-export type GetProjectDropdownOptionsQueryHookResult = ReturnType<
-	typeof useGetProjectDropdownOptionsQuery
->
-export type GetProjectDropdownOptionsLazyQueryHookResult = ReturnType<
-	typeof useGetProjectDropdownOptionsLazyQuery
->
-export type GetProjectDropdownOptionsQueryResult = Apollo.QueryResult<
-	Types.GetProjectDropdownOptionsQuery,
-	Types.GetProjectDropdownOptionsQueryVariables
->
-export const GetWorkspaceDropdownOptionsDocument = gql`
-	query GetWorkspaceDropdownOptions($workspace_id: ID!) {
-		workspace(id: $workspace_id) {
-			id
-			name
-			projects {
-				...Project
+				id
 			}
 			retention_period
 			errors_retention_period
 		}
-		workspaces {
-			id
-			name
-		}
 		joinable_workspaces {
 			id
 			name
@@ -8342,52 +8264,51 @@ export const GetWorkspaceDropdownOptionsDocument = gql`
 `
 
 /**
- * __useGetWorkspaceDropdownOptionsQuery__
+ * __useGetDropdownOptionsQuery__
  *
- * To run a query within a React component, call `useGetWorkspaceDropdownOptionsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetWorkspaceDropdownOptionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetDropdownOptionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDropdownOptionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetWorkspaceDropdownOptionsQuery({
+ * const { data, loading, error } = useGetDropdownOptionsQuery({
  *   variables: {
- *      workspace_id: // value for 'workspace_id'
  *   },
  * });
  */
-export function useGetWorkspaceDropdownOptionsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetWorkspaceDropdownOptionsQuery,
-		Types.GetWorkspaceDropdownOptionsQueryVariables
+export function useGetDropdownOptionsQuery(
+	baseOptions?: Apollo.QueryHookOptions<
+		Types.GetDropdownOptionsQuery,
+		Types.GetDropdownOptionsQueryVariables
 	>,
 ) {
 	return Apollo.useQuery<
-		Types.GetWorkspaceDropdownOptionsQuery,
-		Types.GetWorkspaceDropdownOptionsQueryVariables
-	>(GetWorkspaceDropdownOptionsDocument, baseOptions)
+		Types.GetDropdownOptionsQuery,
+		Types.GetDropdownOptionsQueryVariables
+	>(GetDropdownOptionsDocument, baseOptions)
 }
-export function useGetWorkspaceDropdownOptionsLazyQuery(
+export function useGetDropdownOptionsLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetWorkspaceDropdownOptionsQuery,
-		Types.GetWorkspaceDropdownOptionsQueryVariables
+		Types.GetDropdownOptionsQuery,
+		Types.GetDropdownOptionsQueryVariables
 	>,
 ) {
 	return Apollo.useLazyQuery<
-		Types.GetWorkspaceDropdownOptionsQuery,
-		Types.GetWorkspaceDropdownOptionsQueryVariables
-	>(GetWorkspaceDropdownOptionsDocument, baseOptions)
+		Types.GetDropdownOptionsQuery,
+		Types.GetDropdownOptionsQueryVariables
+	>(GetDropdownOptionsDocument, baseOptions)
 }
-export type GetWorkspaceDropdownOptionsQueryHookResult = ReturnType<
-	typeof useGetWorkspaceDropdownOptionsQuery
+export type GetDropdownOptionsQueryHookResult = ReturnType<
+	typeof useGetDropdownOptionsQuery
 >
-export type GetWorkspaceDropdownOptionsLazyQueryHookResult = ReturnType<
-	typeof useGetWorkspaceDropdownOptionsLazyQuery
+export type GetDropdownOptionsLazyQueryHookResult = ReturnType<
+	typeof useGetDropdownOptionsLazyQuery
 >
-export type GetWorkspaceDropdownOptionsQueryResult = Apollo.QueryResult<
-	Types.GetWorkspaceDropdownOptionsQuery,
-	Types.GetWorkspaceDropdownOptionsQueryVariables
+export type GetDropdownOptionsQueryResult = Apollo.QueryResult<
+	Types.GetDropdownOptionsQuery,
+	Types.GetDropdownOptionsQueryVariables
 >
 export const GetAdminDocument = gql`
 	query GetAdmin {

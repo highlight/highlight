@@ -2690,14 +2690,17 @@ export type GetProjectOrWorkspaceQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetProjectDropdownOptionsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
+export type GetDropdownOptionsQueryVariables = Types.Exact<{
+	[key: string]: never
 }>
 
-export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
-	project?: Types.Maybe<
-		{ __typename?: 'Project' } & {
-			workspace?: Types.Maybe<
+export type GetDropdownOptionsQuery = { __typename?: 'Query' } & {
+	projects?: Types.Maybe<
+		Array<Types.Maybe<{ __typename?: 'Project' } & ProjectFragment>>
+	>
+	workspaces?: Types.Maybe<
+		Array<
+			Types.Maybe<
 				{ __typename?: 'Workspace' } & Pick<
 					Types.Workspace,
 					| 'id'
@@ -2708,63 +2711,13 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
 				> & {
 						projects: Array<
 							Types.Maybe<
-								{ __typename?: 'Project' } & ProjectFragment
+								{ __typename?: 'Project' } & Pick<
+									Types.Project,
+									'id'
+								>
 							>
 						>
 					}
-			>
-		} & ProjectFragment
-	>
-	workspaces?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Workspace' } & Pick<
-					Types.Workspace,
-					'id' | 'name'
-				>
-			>
-		>
-	>
-	joinable_workspaces?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Workspace' } & Pick<
-					Types.Workspace,
-					'id' | 'name'
-				> & {
-						projects: Array<
-							Types.Maybe<
-								{ __typename?: 'Project' } & ProjectFragment
-							>
-						>
-					}
-			>
-		>
-	>
-}
-
-export type GetWorkspaceDropdownOptionsQueryVariables = Types.Exact<{
-	workspace_id: Types.Scalars['ID']
-}>
-
-export type GetWorkspaceDropdownOptionsQuery = { __typename?: 'Query' } & {
-	workspace?: Types.Maybe<
-		{ __typename?: 'Workspace' } & Pick<
-			Types.Workspace,
-			'id' | 'name' | 'retention_period' | 'errors_retention_period'
-		> & {
-				projects: Array<
-					Types.Maybe<{ __typename?: 'Project' } & ProjectFragment>
-				>
-			}
-	>
-	workspaces?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Workspace' } & Pick<
-					Types.Workspace,
-					'id' | 'name'
-				>
 			>
 		>
 	>
@@ -2879,17 +2832,20 @@ export type GetProjectQueryVariables = Types.Exact<{
 
 export type GetProjectQuery = { __typename?: 'Query' } & {
 	project?: Types.Maybe<
-		{ __typename?: 'Project' } & {
-			workspace?: Types.Maybe<
-				{ __typename?: 'Workspace' } & Pick<
-					Types.Workspace,
-					| 'id'
-					| 'slack_webhook_channel'
-					| 'retention_period'
-					| 'errors_retention_period'
+		{ __typename?: 'Project' } & Pick<
+			Types.Project,
+			'filter_chrome_extension'
+		> & {
+				workspace?: Types.Maybe<
+					{ __typename?: 'Workspace' } & Pick<
+						Types.Workspace,
+						| 'id'
+						| 'slack_webhook_channel'
+						| 'retention_period'
+						| 'errors_retention_period'
+					>
 				>
-			>
-		} & ProjectFragment
+			} & ProjectFragment
 	>
 }
 
@@ -5208,8 +5164,7 @@ export const namedOperations = {
 		GetWorkspacesCount: 'GetWorkspacesCount' as const,
 		GetProjectsAndWorkspaces: 'GetProjectsAndWorkspaces' as const,
 		GetProjectOrWorkspace: 'GetProjectOrWorkspace' as const,
-		GetProjectDropdownOptions: 'GetProjectDropdownOptions' as const,
-		GetWorkspaceDropdownOptions: 'GetWorkspaceDropdownOptions' as const,
+		GetDropdownOptions: 'GetDropdownOptions' as const,
 		GetAdmin: 'GetAdmin' as const,
 		GetAdminRole: 'GetAdminRole' as const,
 		GetAdminRoleByProject: 'GetAdminRoleByProject' as const,

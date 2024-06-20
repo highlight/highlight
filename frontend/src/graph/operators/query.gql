@@ -752,46 +752,19 @@ query GetProjectOrWorkspace(
 	}
 }
 
-query GetProjectDropdownOptions($project_id: ID!) {
-	project(id: $project_id) {
+query GetDropdownOptions {
+	projects {
 		...Project
-		workspace {
-			id
-			name
-			cloudflare_proxy
-			projects {
-				...Project
-			}
-			retention_period
-			errors_retention_period
-		}
 	}
 	workspaces {
 		id
 		name
-	}
-	joinable_workspaces {
-		id
-		name
+		cloudflare_proxy
 		projects {
-			...Project
-		}
-	}
-}
-
-query GetWorkspaceDropdownOptions($workspace_id: ID!) {
-	workspace(id: $workspace_id) {
-		id
-		name
-		projects {
-			...Project
+			id
 		}
 		retention_period
 		errors_retention_period
-	}
-	workspaces {
-		id
-		name
 	}
 	joinable_workspaces {
 		id

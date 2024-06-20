@@ -47,11 +47,7 @@ import {
 	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
-import {
-	useGetProjectDropdownOptionsQuery,
-	useGetWorkspaceDropdownOptionsQuery,
-	useGetWorkspacesQuery,
-} from '@/graph/generated/hooks'
+import { useGetDropdownOptionsQuery } from '@/graph/generated/hooks'
 import { JoinWorkspace } from '@/pages/Auth/JoinWorkspace'
 import { WorkspaceInvitation } from '@/pages/Auth/WorkspaceInvitation'
 import {
@@ -116,26 +112,9 @@ export const AppRouter = () => {
 	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
 	const navigate = useNavigate()
 	const isValidProjectId = Number.isInteger(Number(projectId))
-	const isValidWorkspaceId = Number.isInteger(Number(workspaceId))
 
-	const { data: workspacesData, loading: workspacesDataLoading } =
-		useGetWorkspacesQuery({
-			variables: {},
-			skip: !isLoggedIn || isValidWorkspaceId || isValidProjectId,
-		})
-
-	const { data: projectDropdownData, loading: projectDropdownDataLoading } =
-		useGetProjectDropdownOptionsQuery({
-			variables: { project_id: projectId! },
-			skip: !isLoggedIn || !isValidProjectId,
-		})
-
-	const {
-		data: workspaceDropdownData,
-		loading: workspaceDropdownDataLoading,
-	} = useGetWorkspaceDropdownOptionsQuery({
-		variables: { workspace_id: workspaceId! },
-		skip: !isLoggedIn || !isValidWorkspaceId,
+	const { data, loading } = useGetDropdownOptionsQuery({
+		skip: !isLoggedIn,
 	})
 
 	useEffect(() => {
@@ -215,18 +194,19 @@ export const AppRouter = () => {
 		}
 	}, [admin])
 
-	const anyLoading =
-		projectDropdownDataLoading ||
-		workspaceDropdownDataLoading ||
-		workspacesDataLoading
-
+	const currentProject =
+		data?.projects?.find((p) => p?.id === projectId) ?? undefined
+	const currentWorkspaceId = currentProject?.workspace_id ?? workspaceId
+	const projectsInWorkspace =
+		data?.projects?.filter((p) => p?.workspace_id === currentWorkspaceId) ??
+		[]
 	const currentWorkspace =
-		projectDropdownData?.project?.workspace ||
-		workspaceDropdownData?.workspace ||
-		workspacesData?.workspaces?.at(0)
+		data?.workspaces?.find((w) => w?.id === currentWorkspaceId) ??
+		data?.workspaces?.at(0) ??
+		undefined
 
 	// Ensure auth and current workspace data has loaded
-	if (isAuthLoading || (!currentWorkspace && anyLoading)) {
+	if (isAuthLoading || loading) {
 		return null
 	}
 
@@ -235,20 +215,11 @@ export const AppRouter = () => {
 			<ApplicationContextProvider
 				value={{
 					loading: false,
-					currentProject: projectDropdownData?.project ?? undefined,
-					allProjects:
-						(projectDropdownData?.project?.workspace?.projects ||
-							workspaceDropdownData?.workspace?.projects) ??
-						[],
-					currentWorkspace:
-						(projectDropdownData?.project?.workspace ||
-							workspaceDropdownData?.workspace ||
-							workspacesData?.workspaces?.at(0)) ??
-						undefined,
-					workspaces:
-						(projectDropdownData?.workspaces ||
-							workspaceDropdownData?.workspaces) ??
-						[],
+					currentProject: currentProject,
+					allProjects: projectsInWorkspace,
+					currentWorkspace: currentWorkspace,
+					workspaces: data?.workspaces ?? [],
+					joinableWorkspaces: data?.joinable_workspaces ?? [],
 				}}
 			>
 				{(isNewWorkspacePage || isNewProjectPage) && isLoggedIn ? (
