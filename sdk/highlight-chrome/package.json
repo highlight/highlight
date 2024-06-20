@@ -1,17 +1,28 @@
 {
-  "name": "highlight-chrome",
-  "displayName": "highlight-chrome",
-  "version": "0.0.0",
-  "author": "**",
-  "description": "",
+  "name": "@highlight-run/chrome",
+  "displayName": "@highlight-run/chrome",
+  "version": "0.0.1",
+  "author": "Highlight.io",
+  "description": "Open source, fullstack monitoring. Capture frontend errors, record server side logs, and visualize what broke with session replay.",
   "type": "module",
-  "license": "MIT",
   "keywords": [
     "chrome-extension",
     "vanilla",
     "vite",
     "create-chrome-ext"
   ],
+  "homepage": "https://github.com/highlight/highlight#readme",
+  "bugs": {
+    "url": "https://github.com/highlight/highlight/issues",
+    "email": "support@highlight.io"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/highlight/highlight.git"
+    }
+  },
   "engines": {
     "node": ">=14.18.0"
   },
