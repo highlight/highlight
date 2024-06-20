@@ -79,7 +79,7 @@ export const WorkspaceRouter = () => {
 						shownWithHeader
 						joinableWorkspace={joinableWorkspace}
 					/>
-				) : isLoggedIn && currentWorkspace === null ? (
+				) : isLoggedIn && !currentWorkspace ? (
 					<ErrorState
 						title="Enter this Workspace?"
 						message={

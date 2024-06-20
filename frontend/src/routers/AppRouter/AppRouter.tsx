@@ -47,7 +47,10 @@ import {
 	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
-import { useGetDropdownOptionsQuery } from '@/graph/generated/hooks'
+import {
+	useGetDropdownOptionsQuery,
+	useGetProjectOrWorkspaceQuery,
+} from '@/graph/generated/hooks'
 import { JoinWorkspace } from '@/pages/Auth/JoinWorkspace'
 import { WorkspaceInvitation } from '@/pages/Auth/WorkspaceInvitation'
 import {
@@ -116,6 +119,16 @@ export const AppRouter = () => {
 	const { data, loading } = useGetDropdownOptionsQuery({
 		skip: !isLoggedIn,
 	})
+
+	const { data: projectOrWorkspaceData, loading: projectOrWorkspaceLoading } =
+		useGetProjectOrWorkspaceQuery({
+			variables: {
+				project_id: projectId ?? '',
+				workspace_id: workspaceId ?? '',
+				is_workspace: !isValidProjectId,
+			},
+			skip: !isLoggedIn,
+		})
 
 	useEffect(() => {
 		if (workspaceInviteMatch?.params.invite) {
@@ -195,18 +208,34 @@ export const AppRouter = () => {
 	}, [admin])
 
 	const currentProject =
-		data?.projects?.find((p) => p?.id === projectId) ?? undefined
-	const currentWorkspaceId = currentProject?.workspace_id ?? workspaceId
-	const projectsInWorkspace =
-		data?.projects?.filter((p) => p?.workspace_id === currentWorkspaceId) ??
+		data?.projects?.find((p) => p?.id === projectId) ||
+		projectOrWorkspaceData?.project ||
+		undefined
+	const currentWorkspaceId = currentProject?.workspace_id || workspaceId
+	let projectsInWorkspace =
+		data?.projects?.filter((p) => p?.workspace_id === currentWorkspaceId) ||
 		[]
+	if (projectsInWorkspace.length === 0) {
+		projectsInWorkspace = projectOrWorkspaceData?.workspace?.projects || []
+	}
+	if (projectsInWorkspace.length === 0) {
+		projectsInWorkspace =
+			projectOrWorkspaceData?.project?.workspace?.projects || []
+	}
+
 	const currentWorkspace =
-		data?.workspaces?.find((w) => w?.id === currentWorkspaceId) ??
-		data?.workspaces?.at(0) ??
+		data?.workspaces?.find((w) => w?.id === currentWorkspaceId) ||
+		(currentWorkspaceId === undefined && data?.workspaces?.at(0)) ||
+		projectOrWorkspaceData?.workspace ||
+		projectOrWorkspaceData?.project?.workspace ||
 		undefined
 
 	// Ensure auth and current workspace data has loaded
-	if (isAuthLoading || loading) {
+	if (
+		isAuthLoading ||
+		loading ||
+		(!currentWorkspace && projectOrWorkspaceLoading)
+	) {
 		return null
 	}
 

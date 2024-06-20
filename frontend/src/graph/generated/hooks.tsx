@@ -8178,10 +8178,25 @@ export const GetProjectOrWorkspaceDocument = gql`
 	) {
 		project(id: $project_id) @skip(if: $is_workspace) {
 			...Project
+			workspace {
+				id
+				name
+				retention_period
+				errors_retention_period
+				projects {
+					...Project
+				}
+			}
 		}
 		workspace(id: $workspace_id) @include(if: $is_workspace) {
 			id
 			name
+			cloudflare_proxy
+			projects {
+				...Project
+			}
+			retention_period
+			errors_retention_period
 		}
 	}
 	${ProjectFragmentDoc}

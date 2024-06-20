@@ -2684,9 +2684,38 @@ export type GetProjectOrWorkspaceQueryVariables = Types.Exact<{
 }>
 
 export type GetProjectOrWorkspaceQuery = { __typename?: 'Query' } & {
-	project?: Types.Maybe<{ __typename?: 'Project' } & ProjectFragment>
+	project?: Types.Maybe<
+		{ __typename?: 'Project' } & {
+			workspace?: Types.Maybe<
+				{ __typename?: 'Workspace' } & Pick<
+					Types.Workspace,
+					| 'id'
+					| 'name'
+					| 'retention_period'
+					| 'errors_retention_period'
+				> & {
+						projects: Array<
+							Types.Maybe<
+								{ __typename?: 'Project' } & ProjectFragment
+							>
+						>
+					}
+			>
+		} & ProjectFragment
+	>
 	workspace?: Types.Maybe<
-		{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
+		{ __typename?: 'Workspace' } & Pick<
+			Types.Workspace,
+			| 'id'
+			| 'name'
+			| 'cloudflare_proxy'
+			| 'retention_period'
+			| 'errors_retention_period'
+		> & {
+				projects: Array<
+					Types.Maybe<{ __typename?: 'Project' } & ProjectFragment>
+				>
+			}
 	>
 }
 
@@ -2832,20 +2861,17 @@ export type GetProjectQueryVariables = Types.Exact<{
 
 export type GetProjectQuery = { __typename?: 'Query' } & {
 	project?: Types.Maybe<
-		{ __typename?: 'Project' } & Pick<
-			Types.Project,
-			'filter_chrome_extension'
-		> & {
-				workspace?: Types.Maybe<
-					{ __typename?: 'Workspace' } & Pick<
-						Types.Workspace,
-						| 'id'
-						| 'slack_webhook_channel'
-						| 'retention_period'
-						| 'errors_retention_period'
-					>
+		{ __typename?: 'Project' } & {
+			workspace?: Types.Maybe<
+				{ __typename?: 'Workspace' } & Pick<
+					Types.Workspace,
+					| 'id'
+					| 'slack_webhook_channel'
+					| 'retention_period'
+					| 'errors_retention_period'
 				>
-			} & ProjectFragment
+			>
+		} & ProjectFragment
 	>
 }
 
