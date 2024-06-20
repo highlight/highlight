@@ -129,6 +129,7 @@ jobs:
                   fi
                   BACKEND_IMAGE_NAME=ghcr.io/highlight/highlight-backend:$IMAGE_TAG
                   FRONTEND_IMAGE_NAME=ghcr.io/highlight/highlight-frontend:$IMAGE_TAG
+                  export RELEASE=$IMAGE_TAG
 
                   echo "Using images $BACKEND_IMAGE_NAME and $FRONTEND_IMAGE_NAME"
 
