@@ -1,10 +1,10 @@
 import { H } from 'highlight.run'
 
-function startHighlight(projectId: string) {
+async function startHighlight(projectId: string) {
   if (H.getRecordingState() === 'Recording') {
     H.stop()
   }
-  H.init(projectId, {
+  const { sessionSecureID } = H.init(projectId, {
     debug: { clientInteractions: true, domRecording: true },
     networkRecording: {
       enabled: true,
@@ -23,17 +23,19 @@ function startHighlight(projectId: string) {
     serviceName: 'chrome-extension',
     sendMode: 'local',
   })
+  await chrome.storage.sync.set({ sessionSecureID })
 }
 
 const init = async () => {
+  console.log('initializing highlight')
   chrome.storage.sync.get(['projectId'], async ({ projectId }) => {
-    startHighlight(projectId)
+    console.log('fetched projectId', { projectId })
+    await startHighlight(projectId)
   })
-
   chrome.runtime.onMessage.addListener(
     async ({ type, projectId }: { type: 'projectId'; projectId: string }, sender, sendResponse) => {
       console.log('updated projectId', { projectId })
-      startHighlight(projectId)
+      await startHighlight(projectId)
     },
   )
 }
