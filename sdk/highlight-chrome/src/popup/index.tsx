@@ -42,7 +42,9 @@ const ChromeExtensionPopup = () => {
   })
 
   React.useEffect(() => {
-    H.getSessionURL().then((url) => formStore.setValue(formStore.names.session, url))
+    chrome.storage.sync.get(['sessionSecureID'], async ({ sessionSecureID }) => {
+      formStore.setValue(formStore.names.session, sessionSecureID)
+    })
   }, [])
 
   React.useEffect(() => {
@@ -86,6 +88,7 @@ const ChromeExtensionPopup = () => {
             kind="secondary"
             emphasis="none"
             size="minimal"
+            onClick={() => window.close()}
             icon={
               <IconSolidX size={14} color={vars.theme.interactive.fill.secondary.content.text} />
             }
@@ -94,14 +97,10 @@ const ChromeExtensionPopup = () => {
         <Form store={formStore}>
           <Box display="flex" justifyContent="center" flexDirection="column" p="12">
             {editingConfig ? (
-              <Stack>
+              <Box width="full" display="flex" flexDirection="column" gap="4">
                 <Form.Label label={'Project ID'} name={formStore.names.projectId} />
-                <Form.Input
-                  name={formStore.names.projectId}
-                  placeholder="Project ID"
-                  size="xSmall"
-                />
-              </Stack>
+                <Form.Input name={formStore.names.projectId} placeholder="Project ID" />
+              </Box>
             ) : (
               <RecordingState formStore={formStore} />
             )}
@@ -137,7 +136,12 @@ const ChromeExtensionPopup = () => {
   )
 }
 
-const RecordingState = ({ formStore }: { formStore: FormState<{ session: string }> }) => {
+const RecordingState = ({
+  formStore,
+}: {
+  formStore: FormState<{ projectId: string; session: string }>
+}) => {
+  const projectId = formStore.useValue(formStore.names.projectId)
   const session = formStore.useValue(formStore.names.session)
   return (
     <Badge
@@ -145,7 +149,11 @@ const RecordingState = ({ formStore }: { formStore: FormState<{ session: string 
       variant={session ? 'purple' : 'gray'}
       label={session ? 'Recording' : 'Not recording'}
       iconStart={<IconSolidPlayCircle />}
-      onClick={() => (session ? window.open(session, '_blank') : null)}
+      onClick={() =>
+        session
+          ? window.open(`https://app.highlight.io/${projectId}/sessions/${session}`, '_blank')
+          : null
+      }
     />
   )
 }
