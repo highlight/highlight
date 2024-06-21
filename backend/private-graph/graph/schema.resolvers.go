@@ -7101,6 +7101,18 @@ func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) 
 		return nil, e.Wrap(err, "error getting associated projects")
 	}
 
+	workspaces, err := r.Workspaces(ctx)
+	if err != nil {
+		return nil, err
+	}
+	workspacesById := lo.KeyBy(workspaces, func(workspace *model.Workspace) int {
+		return workspace.ID
+	})
+
+	for _, project := range projects {
+		project.Workspace = workspacesById[project.WorkspaceID]
+	}
+
 	return projects, nil
 }
 
