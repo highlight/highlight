@@ -545,6 +545,8 @@ func ProductToBasePriceCents(productType model.PricingProductType, planType back
 
 func RetentionMultiplier(retentionPeriod backend.RetentionPeriod) float64 {
 	switch retentionPeriod {
+	case backend.RetentionPeriodSevenDays:
+		return 1
 	case backend.RetentionPeriodThirtyDays:
 		return 1
 	case backend.RetentionPeriodThreeMonths:
@@ -731,19 +733,6 @@ func GetStripePrices(stripeClient *client.API, workspace *model.Workspace, produ
 	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey, &logsLookupKey, &tracesLookupKey}
 	prices := stripeClient.Prices.List(&priceListParams).PriceList().Data
 
-	// Validate that we received exactly 1 response for each lookup key
-	expected := len(priceListParams.LookupKeys)
-	actual := len(prices)
-	if expected != actual {
-		searchedKeys := lo.Map(priceListParams.LookupKeys, func(key *string, _ int) string {
-			return *key
-		})
-		foundKeys := lo.Map(prices, func(price *stripe.Price, _ int) string {
-			return price.LookupKey
-		})
-		return nil, e.Errorf("expected %d prices, received %d; searched %#v, found %#v", expected, actual, searchedKeys, foundKeys)
-	}
-
 	priceMap := map[model.PricingProductType]*stripe.Price{}
 	for _, price := range prices {
 		switch price.LookupKey {
@@ -778,8 +767,14 @@ func GetStripePrices(stripeClient *client.API, workspace *model.Workspace, produ
 		}
 	}
 
-	if len(priceMap) != expected {
-		return nil, e.New("one or more prices was not found")
+	expected := len(priceListParams.LookupKeys)
+	actual := len(priceMap)
+	if actual != expected {
+		searchedKeys := lo.Map(priceListParams.LookupKeys, func(key *string, _ int) string {
+			return *key
+		})
+		foundProducts := lo.Keys(priceMap)
+		return nil, e.Errorf("expected %d prices, received %d; searched %#v, found %#v", expected, actual, searchedKeys, foundProducts)
 	}
 
 	return priceMap, nil

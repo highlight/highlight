@@ -545,6 +545,23 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	return readWorkspaceMetrics(ctx, client, sampleableConfig, []int{projectID}, params, column, metricTypes, groupBy, bucketCount, bucketBy, limit, limitAggregator, limitColumn)
 }
 
+func getAttributeFilterCol[T ~string](sampleableConfig sampleableTableConfig[T], value, op string) (column string) {
+	column = fmt.Sprintf("%s[%s]", sampleableConfig.tableConfig.AttributesColumn, value)
+	if sampleableConfig.tableConfig.AttributesList {
+		transform := "v"
+		if op != "" {
+			transform = fmt.Sprintf("%s(%s)", op, transform)
+		}
+		// use the first value from the resulting array, if more than one value provided
+		column = fmt.Sprintf("(arrayMap((k, v) -> %s, arrayFilter((k, v) -> k = %s, %s)))[1]", transform, value, sampleableConfig.tableConfig.AttributesColumn)
+	} else {
+		if op != "" {
+			column = fmt.Sprintf("%s(%s)", op, column)
+		}
+	}
+	return
+}
+
 func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sampleableConfig sampleableTableConfig[T], projectIDs []int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketCount *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "clickhouse.readMetrics")
 	span.SetAttribute("project_ids", projectIDs)
@@ -579,7 +596,6 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 	useSampling := sampleableConfig.useSampling(params.DateRange.EndDate.Sub(params.DateRange.StartDate))
 
 	keysToColumns := sampleableConfig.tableConfig.KeysToColumns
-	attributesColumn := sampleableConfig.tableConfig.AttributesColumn
 
 	var fromSb *sqlbuilder.SelectBuilder
 	var err error
@@ -606,10 +622,13 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 		params,
 		Pagination{CountOnly: true},
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	var col string
 	if col = keysToColumns[T(strings.ToLower(column))]; col == "" {
-		col = fmt.Sprintf("%s[%s]", attributesColumn, fromSb.Var(column))
+		col = getAttributeFilterCol(sampleableConfig, fromSb.Var(column), "")
 	}
 	var metricExpr = col
 	if !isCountDistinct {
@@ -631,7 +650,7 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 			needsValue = true
 		}
 		if metricType == modelInputs.MetricAggregatorCountDistinctKey {
-			metricExpr = fmt.Sprintf("TraceAttributes['%s']", highlight.TraceKeyAttribute)
+			metricExpr = getAttributeFilterCol(sampleableConfig, highlight.TraceKeyAttribute, "")
 			config.DefaultFilter = ""
 		}
 	}
@@ -644,7 +663,7 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 		if col, found := keysToColumns[T(strings.ToLower(bucketBy))]; found {
 			bucketExpr = fmt.Sprintf("toFloat64(%s)", col)
 		} else {
-			bucketExpr = fmt.Sprintf("toFloat64OrNull(%s[%s])", attributesColumn, fromSb.Var(bucketBy))
+			bucketExpr = getAttributeFilterCol(sampleableConfig, fromSb.Var(bucketBy), "toFloat64OrNull")
 		}
 	}
 
@@ -675,16 +694,12 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 		if col, found := keysToColumns[T(group)]; found {
 			groupCol = fmt.Sprintf("toString(%s)", col)
 		} else {
-			groupCol = fmt.Sprintf("toString(%s[%s])", attributesColumn, fromSb.Var(group))
+			groupCol = getAttributeFilterCol(sampleableConfig, fromSb.Var(group), "toString")
 		}
 		selectCols = append(selectCols, fromSb.As(groupCol, fmt.Sprintf("g%d", idx)))
 	}
 
 	fromSb.Select(selectCols...)
-
-	if err != nil {
-		return nil, err
-	}
 
 	limitCount := 10
 	if limit != nil {
@@ -706,7 +721,7 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 			if col, found := keysToColumns[T(group)]; found {
 				colStrs = append(colStrs, col)
 			} else {
-				colStrs = append(colStrs, fmt.Sprintf("toString(%s[%s])", attributesColumn, innerSb.Var(group)))
+				colStrs = append(colStrs, getAttributeFilterCol(sampleableConfig, innerSb.Var(group), "toString"))
 			}
 			groupByIndexes = append(groupByIndexes, strconv.Itoa(idx+1))
 		}
@@ -728,7 +743,7 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 		if topCol, found := keysToColumns[T(col)]; found {
 			col = topCol
 		} else {
-			col = fmt.Sprintf("toFloat64OrNull(%s[%s])", attributesColumn, innerSb.Var(col))
+			col = getAttributeFilterCol(sampleableConfig, innerSb.Var(col), "toFloat64OrNull")
 		}
 		limitFn = getFnStr(*limitAggregator, col, false)
 

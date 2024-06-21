@@ -346,6 +346,17 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
+func (r *Resolver) SetDefaultRetention(workspace *model.Workspace) {
+	// Workspaces with a `null` retention period are grandfathered onto a six month plan.
+	sixMonths := modelInputs.RetentionPeriodSixMonths
+	if workspace.RetentionPeriod == nil {
+		workspace.RetentionPeriod = &sixMonths
+	}
+	if workspace.ErrorsRetentionPeriod == nil {
+		workspace.ErrorsRetentionPeriod = &sixMonths
+	}
+}
+
 func (r *Resolver) GetAWSMarketPlaceWorkspace(ctx context.Context, workspaceID int) (*model.Workspace, error) {
 	var workspace model.Workspace
 	if err := r.DB.WithContext(ctx).
@@ -610,6 +621,27 @@ func (r *Resolver) SetErrorFrequenciesClickhouse(ctx context.Context, projectID 
 	return nil
 }
 
+func (r *Resolver) SetErrorGroupOccurrences(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup) error {
+	errorGroupIDs := make([]int, len(errorGroups))
+	for i, eg := range errorGroups {
+		errorGroupIDs[i] = eg.ID
+	}
+
+	occurencesByErrorGroup, err := r.ClickhouseClient.QueryErrorGroupOccurrences(ctx, projectID, errorGroupIDs)
+	if err != nil {
+		return err
+	}
+
+	for _, eg := range errorGroups {
+		if occurences, ok := occurencesByErrorGroup[eg.ID]; ok {
+			eg.FirstOccurrence = &occurences.FirstOccurrence
+			eg.LastOccurrence = &occurences.LastOccurrence
+		}
+	}
+
+	return nil
+}
+
 type SavedSegmentParams struct {
 	Query string
 }
@@ -637,12 +669,12 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 	return eg, true, nil
 }
 
-func (r *Resolver) loadErrorGroupFrequenciesClickhouse(ctx context.Context, eg *model.ErrorGroup) error {
+func (r *Resolver) loadErrorGroupFrequenciesClickhouse(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup) error {
 	var err error
-	if eg.FirstOccurrence, eg.LastOccurrence, err = r.ClickhouseClient.QueryErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID); err != nil {
+	if err = r.SetErrorGroupOccurrences(ctx, projectID, errorGroups); err != nil {
 		return e.Wrap(err, "error querying error group occurrences")
 	}
-	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, 7); err != nil {
+	if err := r.SetErrorFrequenciesClickhouse(ctx, projectID, errorGroups, ErrorGroupLookbackDays); err != nil {
 		return e.Wrap(err, "error querying error group frequencies")
 	}
 	return nil
@@ -3661,6 +3693,8 @@ func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time
 		retentionPeriod = *retentionPeriodPtr
 	}
 	switch retentionPeriod {
+	case modelInputs.RetentionPeriodSevenDays:
+		return time.Now().AddDate(0, 0, -7)
 	case modelInputs.RetentionPeriodThreeMonths:
 		return time.Now().AddDate(0, -3, 0)
 	case modelInputs.RetentionPeriodSixMonths:

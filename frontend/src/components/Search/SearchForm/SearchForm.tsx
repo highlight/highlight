@@ -11,6 +11,7 @@ import {
 	IconSolidExternalLink,
 	IconSolidPlus,
 	IconSolidSearch,
+	IconSolidSparkles,
 	IconSolidSwitchVertical,
 	IconSolidXCircle,
 	Stack,
@@ -55,6 +56,7 @@ import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatNumber } from '@/util/numbers'
 
+import { AiSearch } from './AiSearch'
 import * as styles from './SearchForm.css'
 
 export const QueryParam = withDefault(StringParam, '')
@@ -114,6 +116,7 @@ export type SearchFormProps = {
 	resultCount?: number
 	loading?: boolean
 	creatables?: { [key: string]: Creatable }
+	enableAIMode?: boolean
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({
@@ -134,10 +137,11 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	resultCount,
 	loading,
 	creatables,
+	enableAIMode,
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
-	const { query, setQuery, onSubmit } = useSearchContext()
+	const { query, setQuery, onSubmit, aiMode } = useSearchContext()
 
 	const handleQueryChange = (query?: string) => {
 		const updatedQuery = query ?? ''
@@ -181,6 +185,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			hideIcon={isPanelView}
 			hasAdditonalActions={!hideCreateAlert || !hideDatePicker}
 			creatables={creatables}
+			enableAIMode={enableAIMode}
 		/>
 	)
 
@@ -269,21 +274,27 @@ const SearchForm: React.FC<SearchFormProps> = ({
 				width="full"
 				borderBottom="dividerWeak"
 			>
-				{SearchComponent}
-				<Box display="flex" pr="8" py="6" gap="6">
-					{SegmentMenu}
-					{displaySeparator && (
-						<Box
-							as="span"
-							borderRight="dividerWeak"
-							mt="4"
-							style={{ height: 18 }}
-						/>
-					)}
-					{AlertComponent}
-					{ActionsComponent}
-					{DatePickerComponent}
-				</Box>
+				{aiMode ? (
+					<AiSearch />
+				) : (
+					<>
+						{SearchComponent}
+						<Box display="flex" pr="8" py="6" gap="6">
+							{SegmentMenu}
+							{displaySeparator && (
+								<Box
+									as="span"
+									borderRight="dividerWeak"
+									mt="4"
+									style={{ height: 18 }}
+								/>
+							)}
+							{AlertComponent}
+							{ActionsComponent}
+							{DatePickerComponent}
+						</Box>
+					</>
+				)}
 			</Box>
 		</>
 	)
@@ -302,6 +313,7 @@ export const Search: React.FC<{
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	hasAdditonalActions?: boolean
 	creatables?: { [key: string]: Creatable }
+	enableAIMode?: boolean
 }> = ({
 	startDate,
 	endDate,
@@ -311,6 +323,7 @@ export const Search: React.FC<{
 	productType,
 	hasAdditonalActions,
 	creatables,
+	enableAIMode,
 }) => {
 	const {
 		disabled,
@@ -320,11 +333,11 @@ export const Search: React.FC<{
 		tokenGroups,
 		onSubmit,
 		setQuery,
+		setAiMode,
 	} = useSearchContext()
 	const { project_id } = useParams()
 	const [_, setSortColumn] = useQueryParam(SORT_COLUMN, StringParam)
 	const [__, setSortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
-	const containerRef = useRef<HTMLDivElement | null>(null)
 	const defaultInputRef = useRef<HTMLTextAreaElement | null>(null)
 	const inputRef = textAreaRef || defaultInputRef
 	const [keys, setKeys] = useState<Keys | undefined>()
@@ -631,7 +644,6 @@ export const Search: React.FC<{
 			alignItems="stretch"
 			display="flex"
 			flexGrow={1}
-			ref={containerRef}
 			position="relative"
 		>
 			{!hideIcon ? (
@@ -767,6 +779,30 @@ export const Search: React.FC<{
 					sameWidth
 				>
 					<Box cssClass={styles.comboboxResults}>
+						{enableAIMode && activePart.text === '' && (
+							<Combobox.Group
+								className={styles.comboboxGroup}
+								store={comboboxStore}
+							>
+								<Combobox.Item
+									className={styles.comboboxItem}
+									onClick={() => setAiMode(true)}
+									store={comboboxStore}
+								>
+									<Stack
+										direction="row"
+										gap="4"
+										align="center"
+									>
+										<IconSolidSparkles />
+										<Text color="weak" size="small">
+											Generate SQL from plain English
+											(Harold AI)
+										</Text>
+									</Stack>
+								</Combobox.Item>
+							</Combobox.Group>
+						)}
 						{activePart.value?.length > 0 && (
 							<Combobox.Group
 								className={styles.comboboxGroup}

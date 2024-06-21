@@ -3304,6 +3304,141 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 	return metricMonitor, nil
 }
 
+// CreateAlert is the resolver for the createAlert field.
+func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+	_, err := r.isUserInProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	disabledVar := disabled
+	if disabledVar == nil {
+		disabledVar = pointy.Bool(false)
+	}
+
+	newAlert := &model.Alert{
+		ProjectID:         projectID,
+		Name:              name,
+		ProductType:       productType,
+		FunctionType:      functionType,
+		Query:             query,
+		GroupByKey:        groupByKey,
+		Disabled:          *disabledVar,
+		BelowThreshold:    belowThreshold,
+		ThresholdCount:    thresholdCount,
+		ThresholdWindow:   thresholdWindow,
+		ThresholdCooldown: thresholdCooldown,
+		LastAdminToEditID: admin.ID,
+	}
+
+	if err := r.DB.WithContext(ctx).Create(newAlert).Error; err != nil {
+		return nil, err
+	}
+
+	// TODO(spenny): create destinations
+
+	// TODO(spenny): send new message to destinations
+
+	return newAlert, nil
+}
+
+// UpdateAlert is the resolver for the updateAlert field.
+func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+	project, err := r.isUserInProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	alertUpdates := map[string]interface{}{
+		"LastAdminToEditID": admin.ID,
+	}
+
+	if name != nil {
+		alertUpdates["Name"] = *name
+	}
+	if productType != nil {
+		alertUpdates["ProductType"] = *productType
+	}
+	if functionType != nil {
+		alertUpdates["FunctionType"] = *functionType
+	}
+	if query != nil {
+		alertUpdates["Query"] = *query
+	}
+	if groupByKey != nil {
+		alertUpdates["GroupByKey"] = *groupByKey
+	}
+	if disabled != nil {
+		alertUpdates["Disabled"] = *disabled
+	}
+	if belowThreshold != nil {
+		alertUpdates["BelowThreshold"] = *belowThreshold
+	}
+	if thresholdCount != nil {
+		alertUpdates["ThresholdCount"] = *thresholdCount
+	}
+	if thresholdWindow != nil {
+		alertUpdates["ThresholdWindow"] = *thresholdWindow
+	}
+	if thresholdCooldown != nil {
+		alertUpdates["ThresholdCooldown"] = *thresholdCooldown
+	}
+
+	alert := &model.Alert{}
+	updateErr := store.AssertRecordFound(r.DB.WithContext(ctx).Where(&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID}).Model(&alert).Clauses(clause.Returning{}).Updates(&alertUpdates))
+	if updateErr != nil {
+		return nil, updateErr
+	}
+
+	// TODO(spenny): create/delete destinations
+
+	// TODO(spenny): send edit message to destinations
+
+	return alert, nil
+}
+
+// UpdateAlertDisabled is the resolver for the updateAlertDisabled field.
+func (r *mutationResolver) UpdateAlertDisabled(ctx context.Context, projectID int, alertID int, disabled bool) (bool, error) {
+	project, err := r.isUserInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	if err := r.DB.WithContext(ctx).Model(
+		&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID},
+	).Updates(map[string]interface{}{"Disabled": disabled}).Error; err != nil {
+		return false, err
+	}
+
+	return true, err
+}
+
+// DeleteAlert is the resolver for the deleteAlert field.
+func (r *mutationResolver) DeleteAlert(ctx context.Context, projectID int, alertID int) (bool, error) {
+	project, err := r.isUserInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	if err := r.DB.Where(
+		&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID},
+	).Delete(&model.Alert{}).Error; err != nil {
+		return false, err
+	}
+
+	// TODO(spenny): send deletion message to destinations?
+
+	if err := r.DB.Where(
+		&model.AlertDestination{AlertID: alertID},
+	).Delete(&model.AlertDestination{}).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 // CreateErrorAlert is the resolver for the createErrorAlert field.
 func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, microsoftTeamsChannels []*modelInputs.MicrosoftTeamsChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency int, defaultArg *bool) (*model.ErrorAlert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
@@ -5220,7 +5355,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 	}
 
 	if len(results) > 0 {
-		if err := r.SetErrorFrequenciesClickhouse(ctx, project.ID, results, ErrorGroupLookbackDays); err != nil {
+		if err := r.loadErrorGroupFrequenciesClickhouse(ctx, project.ID, results); err != nil {
 			return nil, err
 		}
 	}
@@ -5290,7 +5425,7 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string, useClic
 	if eg.UpdatedAt.Before(retentionDate) {
 		return nil, e.New("no new error instances after the workspace's retention date")
 	}
-	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
+	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}); err != nil {
 		return nil, err
 	}
 	return eg, err
@@ -6032,7 +6167,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 	if err != nil {
 		return nil, err
 	}
-	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, errGroup); err != nil {
+	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, projectID, []*model.ErrorGroup{errGroup}); err != nil {
 		return nil, err
 	}
 
@@ -6047,9 +6182,6 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 		return dists, nil
 	}
 
-	if err := r.SetErrorFrequenciesClickhouse(ctx, projectID, []*model.ErrorGroup{errGroup}, dateOffset); err != nil {
-		return nil, e.Wrap(err, "error setting error frequencies")
-	}
 	return errGroup.ErrorFrequency, nil
 }
 
@@ -6984,6 +7116,10 @@ func (r *queryResolver) Workspaces(ctx context.Context) ([]*model.Workspace, err
 		return nil, e.Wrap(err, "error getting associated workspaces")
 	}
 
+	for _, w := range workspaces {
+		r.SetDefaultRetention(w)
+	}
+
 	return workspaces, nil
 }
 
@@ -7048,6 +7184,40 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 	}
 
 	return joinableWorkspaces, nil
+}
+
+// Alerts is the resolver for the alerts field.
+func (r *queryResolver) Alerts(ctx context.Context, projectID int) ([]*model.Alert, error) {
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	alerts := []*model.Alert{}
+	if err := r.DB.Order("created_at asc").Model(&model.Alert{}).Preload("Destinations").Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
+		return nil, err
+	}
+	return alerts, nil
+}
+
+// Alert is the resolver for the alert field.
+func (r *queryResolver) Alert(ctx context.Context, id int) (*model.Alert, error) {
+	var alert *model.Alert
+	if err := r.DB.WithContext(ctx).Model(&model.Alert{}).Preload("Destinations").Where("id = ?", id).Find(&alert).Error; err != nil {
+		return nil, err
+	}
+
+	_, err := r.isUserInProjectOrDemoProject(ctx, alert.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return alert, nil
+}
+
+// AlertStateChanges is the resolver for the alert_state_changes field.
+func (r *queryResolver) AlertStateChanges(ctx context.Context, alertID int) ([]*modelInputs.AlertStateChange, error) {
+	// TODO(spenny): fetch alert state changes from clickhouse
+	return []*modelInputs.AlertStateChange{}, nil
 }
 
 // ErrorAlerts is the resolver for the error_alerts field.
@@ -7834,11 +8004,33 @@ func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, er
 	}
 
 	if r.isDemoProject(ctx, id) {
+		workspace, err := r.GetWorkspace(project.WorkspaceID)
+		if err != nil {
+			return nil, e.Wrap(err, "error querying workspace")
+		}
+
+		threeMonth := modelInputs.RetentionPeriodThreeMonths
 		return &model.Project{
 			Model: project.Model,
 			Name:  project.Name,
+			Workspace: &model.Workspace{
+				Model:                 workspace.Model,
+				Name:                  workspace.Name,
+				RetentionPeriod:       &threeMonth,
+				ErrorsRetentionPeriod: &threeMonth,
+				Projects: []model.Project{{
+					Model: project.Model,
+					Name:  project.Name,
+				}},
+			},
 		}, nil
 	}
+
+	workspace, err := r.Workspace(ctx, project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	project.Workspace = workspace
 
 	return project, nil
 }
@@ -7899,6 +8091,8 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 		return nil, nil
 	}
 
+	r.SetDefaultRetention(workspace)
+
 	if r.isWhitelistedAccount(ctx) {
 		projects := []model.Project{}
 		if err := r.DB.WithContext(ctx).Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
@@ -7912,6 +8106,8 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 		if p == nil {
 			return model.Project{}, false
 		}
+
+		p.Workspace = workspace
 
 		return *p, p.WorkspaceID == id
 	})
@@ -8709,7 +8905,7 @@ Below are descriptions of the keys:
 Use today's date/time in the user's time zone for any relative times provided: %s
 
 ## Rules for 'query' key:
-In terms of the keys and values you can use in the 'query' field, try not to use a key-value pairs that don't exist. 
+In terms of the keys and values you can use in the 'query' field, try not to use a key-value pairs that don't exist. If the user asks to search for a log that has a specific string in it, use the "*text*" option.
 
 You have the following keys to work with:
 
@@ -8745,8 +8941,16 @@ And specifically, for the %s product, you can refer to the following documentati
 			response: fmt.Sprintf(`{"query":"level=error","date_range":{"start_date":"%s","end_date":"%s"}}`, sevenDaysBack, yesterdayAt2PM),
 		},
 		{
-			request:  "All the traces from the private graph service",
-			response: `{"query":"service_name=private-graph","date_range":{"start_date":"","end_date":""}}`,
+			request:  "All the traces from the private graph or public graph service",
+			response: `{"query":"service_name=private-graph OR service_name=public-graph","date_range":{"start_date":"","end_date":""}}`,
+		},
+		{
+			request:  "Give me all the logs where the environment is production and the session is not null",
+			response: `{"query":"environment=production AND secure_session_id EXISTS","date_range":{"start_date":"","end_date":""}}`,
+		},
+		{
+			request:  "logs that have 'panic' in the message",
+			response: `{"query":"message=*panic*","date_range":{"start_date":"","end_date":""}}`,
 		},
 	}
 

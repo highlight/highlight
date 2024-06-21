@@ -631,7 +631,8 @@ query GetErrorGroups(
 			type
 			event
 			state
-			state
+			first_occurrence
+			last_occurrence
 			snoozed_until
 			environments
 			stack_trace
@@ -2579,6 +2580,26 @@ query GetVisualizations(
 				email
 				photo_url
 			}
+		}
+	}
+}
+
+query GetAIQuerySuggestion(
+	$time_zone: String!
+	$project_id: ID!
+	$product_type: ProductType!
+	$query: String!
+) {
+	ai_query_suggestion(
+		time_zone: $time_zone
+		project_id: $project_id
+		product_type: $product_type
+		query: $query
+	) {
+		query
+		date_range {
+			start_date
+			end_date
 		}
 	}
 }
