@@ -45,8 +45,6 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - language: csharp
-                      build-mode: autobuild
                     - language: go
                       build-mode: autobuild
                     - language: javascript-typescript

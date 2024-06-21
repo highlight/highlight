@@ -4,8 +4,8 @@ import { QuickStartContent } from '../QuickstartContent'
 import { verifyTraces } from './shared-snippets'
 
 export const DotNetOTLPTracingContent: QuickStartContent = {
-	title: 'Error Monitoring / Logging / Tracing in .NET via the OpenTelemetry Protocol (OTLP)',
-	subtitle: `Error Monitoring / Logging / Tracing in .NET via the OpenTelemetry Protocol (OTLP).`,
+	title: 'Error Monitoring / Logging / Tracing in .NET 6.x / 8.x via the OpenTelemetry Protocol (OTLP)',
+	subtitle: `Error Monitoring / Logging / Tracing in .NET 6.x / 8.x via the OpenTelemetry Protocol (OTLP).`,
 	entries: [
 		{
 			title: '.NET supports OpenTelemetry instrumentation out of the box.',
@@ -18,9 +18,7 @@ export const DotNetOTLPTracingContent: QuickStartContent = {
 				'Run the following in your .NET project to install dependencies.',
 			code: [
 				{
-					text: `dotnet add package OpenTelemetry.Exporter.Console
-dotnet add package OpenTelemetry.Exporter.OpenTelemetryProtocol
-dotnet add package OpenTelemetry.Extensions.Hosting
+					text: `dotnet add package OpenTelemetry.Exporter.OpenTelemetryProtocol
 dotnet add package OpenTelemetry.Extensions.Hosting
 dotnet add package OpenTelemetry.Instrumentation.AspNetCore
 dotnet add package Serilog.Enrichers.Environment
@@ -34,7 +32,8 @@ dotnet add package Serilog.Sinks.OpenTelemetry
 		{
 			title: 'Define the Highlight configuration class.',
 			content:
-				'Copy the following code into a `HighlightConfig.cs` file in your project.',
+				'Copy the following code into a `HighlightConfig.cs` file in your project. ' +
+				'Make sure to update the `ProjectId` and `ServiceName` values.',
 			code: [
 				{
 					text: `using System.Diagnostics;
@@ -94,7 +93,7 @@ public class HighlightLogEnricher : ILogEventEnricher
 
 public class HighlightConfig
 {
-    // Replace with the highlight endpoint.
+    // For highlight.io self-hosted, update to your collector endpoint
     private static readonly String OtlpEndpoint = "https://otel.highlight.io:4318";
 
     // Replace with your project ID and service name.
