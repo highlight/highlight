@@ -29,19 +29,31 @@ import {
 	getBodyThatShouldBeRecorded,
 } from '../listeners/network-listener/utils/xhr-listener'
 import type { NetworkRecordingOptions } from '../types/client'
-import { sanitizeHeaders } from '../listeners/network-listener/utils/network-sanitizer'
-import { shouldNetworkRequestBeTraced } from '../listeners/network-listener/utils/utils'
+import {
+	DEFAULT_URL_BLOCKLIST,
+	sanitizeHeaders,
+} from '../listeners/network-listener/utils/network-sanitizer'
+import {
+	shouldNetworkRequestBeRecorded,
+	shouldNetworkRequestBeTraced,
+} from '../listeners/network-listener/utils/utils'
 import { UserInteractionInstrumentation } from './user-interaction'
 import { parse } from 'graphql'
+import {
+	getFetchRequestProperties,
+	getResponseBody,
+} from '../listeners/network-listener/utils/fetch-listener'
 
 export type BrowserTracingConfig = {
 	projectId: string | number
 	sessionSecureId: string
+	backendUrl?: string
 	endpoint?: string
 	environment?: string
 	networkRecordingOptions?: NetworkRecordingOptions
 	serviceName?: string
 	tracingOrigins?: boolean | (string | RegExp)[]
+	urlBlocklist?: string[]
 }
 
 let provider: WebTracerProvider
@@ -52,6 +64,15 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 		return
 	}
 
+	const backendUrl =
+		config.backendUrl ||
+		import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ||
+		'https://pub.highlight.run'
+
+	const urlBlocklist = [
+		...(config.urlBlocklist ?? []),
+		...DEFAULT_URL_BLOCKLIST,
+	]
 	const isDebug = import.meta.env.DEBUG === 'true'
 	const endpoint = config.endpoint ?? 'https://otel.highlight.io:4318'
 	const environment = config.environment ?? 'production'
@@ -91,6 +112,8 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	})
 
 	const spanProcessor = new CustomSpanProcessor(exporter, {
+		backendUrl,
+		urlBlocklist,
 		tracingOrigins: config.tracingOrigins,
 	})
 	provider.addSpanProcessor(spanProcessor)
@@ -109,6 +132,14 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 					request,
 					response,
 				) => {
+					const { method, url } = getFetchRequestProperties(
+						request as Request,
+						request,
+					)
+
+					span.updateName(getSpanName(url, method, request.body))
+					debugger
+
 					if (!(response instanceof Response)) {
 						span.setAttributes({
 							'http.response.error': response.message,
@@ -117,14 +148,6 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 						return
 					}
 
-					span.updateName(
-						getSpanName(
-							response.url,
-							request.method ?? 'GET',
-							request.body,
-						),
-					)
-
 					enhanceSpanWithHttpRequestAttributes(
 						span,
 						request.body,
@@ -132,7 +155,7 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 						config.networkRecordingOptions,
 					)
 
-					const body = await response.clone().json()
+					const body = await getResponseBody(response)
 					enhanceSpanWithHttpResponseAttributes(
 						span,
 						body,
@@ -176,15 +199,21 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 }
 
 type CustomSpanProcessorConfig = BufferConfig & {
+	backendUrl?: string
+	urlBlocklist?: string[]
 	tracingOrigins?: boolean | (string | RegExp)[]
 }
 
 class CustomSpanProcessor extends BatchSpanProcessorBase<CustomSpanProcessorConfig> {
+	private backendUrl: string
+	private urlBlocklist: string[]
 	private tracingOrigins: boolean | (string | RegExp)[]
 
 	constructor(exporter: SpanExporter, config: CustomSpanProcessorConfig) {
 		super(exporter)
 
+		this.backendUrl = config.backendUrl ?? ''
+		this.urlBlocklist = config.urlBlocklist ?? DEFAULT_URL_BLOCKLIST
 		this.tracingOrigins = config.tracingOrigins ?? false
 	}
 
@@ -193,13 +222,29 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<CustomSpanProcessorConf
 	}
 
 	onEnd(span: ReadableSpan): void {
-		if (typeof span.attributes['http.url'] === 'string') {
-			const shouldRecordNetworkRequest = shouldNetworkRequestBeTraced(
-				span.attributes['http.url'],
+		const url = span.attributes['http.url']
+
+		if (typeof url === 'string') {
+			const shouldRecordHeaderAndBody = !this.urlBlocklist.some(
+				(blockedUrl) => url.toLowerCase().includes(blockedUrl),
+			)
+
+			const shouldRecord = shouldNetworkRequestBeRecorded(
+				url,
+				this.backendUrl,
 				this.tracingOrigins,
 			)
 
-			if (!shouldRecordNetworkRequest) {
+			const shouldRecordNetworkRequest = shouldNetworkRequestBeTraced(
+				url,
+				this.tracingOrigins,
+			)
+
+			if (
+				!shouldRecordHeaderAndBody ||
+				!shouldRecord ||
+				!shouldRecordNetworkRequest
+			) {
 				span.spanContext().traceFlags = 0 // prevents span from being recorded
 			}
 		}
