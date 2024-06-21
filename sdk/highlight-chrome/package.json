@@ -36,6 +36,7 @@
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0-beta.23",
     "@types/chrome": "^0.0.268",
+    "@vitejs/plugin-react-swc": "^3.7.0",
     "gulp": "^5.0.0",
     "gulp-zip": "^6.0.0",
     "prettier": "^3.3.2",
@@ -43,6 +44,8 @@
     "vite": "^5.3.1"
   },
   "dependencies": {
+    "@highlight-run/react": "workspace:*",
+    "@highlight-run/ui": "workspace:*",
     "highlight.run": "workspace:*"
   }
 }

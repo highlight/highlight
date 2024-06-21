@@ -14173,13 +14173,18 @@ __metadata:
   resolution: "@highlight-run/chrome@workspace:sdk/highlight-chrome"
   dependencies:
     "@crxjs/vite-plugin": "npm:^2.0.0-beta.23"
+    "@highlight-run/react": "workspace:*"
+    "@highlight-run/ui": "workspace:*"
     "@types/chrome": "npm:^0.0.268"
+    "@vanilla-extract/vite-plugin": "npm:^4.0.11"
+    "@vitejs/plugin-react-swc": "npm:^3.7.0"
     gulp: "npm:^5.0.0"
     gulp-zip: "npm:^6.0.0"
     highlight.run: "workspace:*"
     prettier: "npm:^3.3.2"
     typescript: "npm:^5.4.5"
     vite: "npm:^5.3.1"
+    vite-tsconfig-paths: "npm:^4.3.2"
   languageName: unknown
   linkType: soft
 
@@ -28649,6 +28654,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vanilla-extract/css@npm:^1.15.3":
+  version: 1.15.3
+  resolution: "@vanilla-extract/css@npm:1.15.3"
+  dependencies:
+    "@emotion/hash": "npm:^0.9.0"
+    "@vanilla-extract/private": "npm:^1.0.5"
+    css-what: "npm:^6.1.0"
+    cssesc: "npm:^3.0.0"
+    csstype: "npm:^3.0.7"
+    dedent: "npm:^1.5.3"
+    deep-object-diff: "npm:^1.1.9"
+    deepmerge: "npm:^4.2.2"
+    media-query-parser: "npm:^2.0.2"
+    modern-ahocorasick: "npm:^1.0.0"
+    picocolors: "npm:^1.0.0"
+  checksum: 10/3fde92f6582567d05b5f4d7bd914bac1f468056ecc154a489e39b70b0fba7039d96a14b8a6c7417b8c6533210aefed158043514b4d5d41cc3c6d50bff206410b
+  languageName: node
+  linkType: hard
+
 "@vanilla-extract/esbuild-plugin@npm:^2.3.5":
   version: 2.3.5
   resolution: "@vanilla-extract/esbuild-plugin@npm:2.3.5"
@@ -28725,6 +28749,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vanilla-extract/integration@npm:^7.1.6":
+  version: 7.1.6
+  resolution: "@vanilla-extract/integration@npm:7.1.6"
+  dependencies:
+    "@babel/core": "npm:^7.23.9"
+    "@babel/plugin-syntax-typescript": "npm:^7.23.3"
+    "@vanilla-extract/babel-plugin-debug-ids": "npm:^1.0.6"
+    "@vanilla-extract/css": "npm:^1.15.3"
+    dedent: "npm:^1.5.3"
+    esbuild: "npm:esbuild@~0.17.6 || ~0.18.0 || ~0.19.0"
+    eval: "npm:0.1.8"
+    find-up: "npm:^5.0.0"
+    javascript-stringify: "npm:^2.0.1"
+    mlly: "npm:^1.4.2"
+    vite: "npm:^5.0.11"
+    vite-node: "npm:^1.2.0"
+  checksum: 10/52976b2caabd7e90a0cc3a95798ff3668ac71a6bd83c970e4016a4fb9f752881227f6814905f2df5d834942933dfdc363c9f18aa11217848e97df7ca36ddb687
+  languageName: node
+  linkType: hard
+
 "@vanilla-extract/private@npm:^1.0.3":
   version: 1.0.3
   resolution: "@vanilla-extract/private@npm:1.0.3"
@@ -28774,6 +28818,17 @@ __metadata:
   peerDependencies:
     vite: ^4.0.3 || ^5.0.0
   checksum: 10/808c3ebb7fe5ad7b6355318497809242d43baafe3d0d0fb72aceff0fd8084c66cca1345ba683ccfce75e826febc11b55cbbba716afd1d74ff682549e9aff3c13
+  languageName: node
+  linkType: hard
+
+"@vanilla-extract/vite-plugin@npm:^4.0.11":
+  version: 4.0.11
+  resolution: "@vanilla-extract/vite-plugin@npm:4.0.11"
+  dependencies:
+    "@vanilla-extract/integration": "npm:^7.1.6"
+  peerDependencies:
+    vite: ^4.0.3 || ^5.0.0
+  checksum: 10/bfc1198600f113fb0d29337d22d4a57cc3bd08a91eddd789c01f81c29d8fcdea43e85453a20152a84897da0715c230c2d285da62831fd5371d99d7f9705917fa
   languageName: node
   linkType: hard
 
