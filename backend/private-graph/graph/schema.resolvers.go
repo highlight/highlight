@@ -3304,6 +3304,141 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 	return metricMonitor, nil
 }
 
+// CreateAlert is the resolver for the createAlert field.
+func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+	_, err := r.isUserInProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	disabledVar := disabled
+	if disabledVar == nil {
+		disabledVar = pointy.Bool(false)
+	}
+
+	newAlert := &model.Alert{
+		ProjectID:         projectID,
+		Name:              name,
+		ProductType:       productType,
+		FunctionType:      functionType,
+		Query:             query,
+		GroupByKey:        groupByKey,
+		Disabled:          *disabledVar,
+		BelowThreshold:    belowThreshold,
+		ThresholdCount:    thresholdCount,
+		ThresholdWindow:   thresholdWindow,
+		ThresholdCooldown: thresholdCooldown,
+		LastAdminToEditID: admin.ID,
+	}
+
+	if err := r.DB.WithContext(ctx).Create(newAlert).Error; err != nil {
+		return nil, err
+	}
+
+	// TODO(spenny): create destinations
+
+	// TODO(spenny): send new message to destinations
+
+	return newAlert, nil
+}
+
+// UpdateAlert is the resolver for the updateAlert field.
+func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+	project, err := r.isUserInProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	alertUpdates := map[string]interface{}{
+		"LastAdminToEditID": admin.ID,
+	}
+
+	if name != nil {
+		alertUpdates["Name"] = *name
+	}
+	if productType != nil {
+		alertUpdates["ProductType"] = *productType
+	}
+	if functionType != nil {
+		alertUpdates["FunctionType"] = *functionType
+	}
+	if query != nil {
+		alertUpdates["Query"] = *query
+	}
+	if groupByKey != nil {
+		alertUpdates["GroupByKey"] = *groupByKey
+	}
+	if disabled != nil {
+		alertUpdates["Disabled"] = *disabled
+	}
+	if belowThreshold != nil {
+		alertUpdates["BelowThreshold"] = *belowThreshold
+	}
+	if thresholdCount != nil {
+		alertUpdates["ThresholdCount"] = *thresholdCount
+	}
+	if thresholdWindow != nil {
+		alertUpdates["ThresholdWindow"] = *thresholdWindow
+	}
+	if thresholdCooldown != nil {
+		alertUpdates["ThresholdCooldown"] = *thresholdCooldown
+	}
+
+	alert := &model.Alert{}
+	updateErr := store.AssertRecordFound(r.DB.WithContext(ctx).Where(&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID}).Model(&alert).Clauses(clause.Returning{}).Updates(&alertUpdates))
+	if updateErr != nil {
+		return nil, updateErr
+	}
+
+	// TODO(spenny): create/delete destinations
+
+	// TODO(spenny): send edit message to destinations
+
+	return alert, nil
+}
+
+// UpdateAlertDisabled is the resolver for the updateAlertDisabled field.
+func (r *mutationResolver) UpdateAlertDisabled(ctx context.Context, projectID int, alertID int, disabled bool) (bool, error) {
+	project, err := r.isUserInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	if err := r.DB.WithContext(ctx).Model(
+		&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID},
+	).Updates(map[string]interface{}{"Disabled": disabled}).Error; err != nil {
+		return false, err
+	}
+
+	return true, err
+}
+
+// DeleteAlert is the resolver for the deleteAlert field.
+func (r *mutationResolver) DeleteAlert(ctx context.Context, projectID int, alertID int) (bool, error) {
+	project, err := r.isUserInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	if err := r.DB.Where(
+		&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID},
+	).Delete(&model.Alert{}).Error; err != nil {
+		return false, err
+	}
+
+	// TODO(spenny): send deletion message to destinations?
+
+	if err := r.DB.Where(
+		&model.AlertDestination{AlertID: alertID},
+	).Delete(&model.AlertDestination{}).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 // CreateErrorAlert is the resolver for the createErrorAlert field.
 func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, microsoftTeamsChannels []*modelInputs.MicrosoftTeamsChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency int, defaultArg *bool) (*model.ErrorAlert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
@@ -7049,6 +7184,40 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 	}
 
 	return joinableWorkspaces, nil
+}
+
+// Alerts is the resolver for the alerts field.
+func (r *queryResolver) Alerts(ctx context.Context, projectID int) ([]*model.Alert, error) {
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	alerts := []*model.Alert{}
+	if err := r.DB.Order("created_at asc").Model(&model.Alert{}).Preload("Destinations").Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
+		return nil, err
+	}
+	return alerts, nil
+}
+
+// Alert is the resolver for the alert field.
+func (r *queryResolver) Alert(ctx context.Context, id int) (*model.Alert, error) {
+	var alert *model.Alert
+	if err := r.DB.WithContext(ctx).Model(&model.Alert{}).Preload("Destinations").Where("id = ?", id).Find(&alert).Error; err != nil {
+		return nil, err
+	}
+
+	_, err := r.isUserInProjectOrDemoProject(ctx, alert.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return alert, nil
+}
+
+// AlertStateChanges is the resolver for the alert_state_changes field.
+func (r *queryResolver) AlertStateChanges(ctx context.Context, alertID int) ([]*modelInputs.AlertStateChange, error) {
+	// TODO(spenny): fetch alert state changes from clickhouse
+	return []*modelInputs.AlertStateChange{}, nil
 }
 
 // ErrorAlerts is the resolver for the error_alerts field.
