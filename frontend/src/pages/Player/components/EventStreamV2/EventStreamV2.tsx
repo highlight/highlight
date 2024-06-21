@@ -135,7 +135,8 @@ const EventStreamV2 = function () {
 		if (!isInteractingWithStreamEvents) {
 			scrollFunction(lastEventIndex)
 		}
-	}, [isInteractingWithStreamEvents, scrollFunction, lastEventIndex])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [lastEventIndex])
 
 	const isLoading =
 		!replayer || state === ReplayerState.Loading || events.length === 0
