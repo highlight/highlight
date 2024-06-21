@@ -9,6 +9,7 @@ import (
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/openai_interface"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
@@ -366,6 +367,7 @@ func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
 		})
 	}
 }
+
 func TestResolver_GetAIQuerySuggestion(t *testing.T) {
 	t.Skip("skipping test")
 	tests := map[string]struct {
@@ -387,6 +389,7 @@ func TestResolver_GetAIQuerySuggestion(t *testing.T) {
 				DB:               DB,
 				Redis:            redis.NewClient(),
 				ClickhouseClient: clickhouseClient,
+				OpenAiInterface:  &openai_interface.OpenAiTestImpl{},
 			},
 			}
 			ctx := context.WithValue(context.Background(), model.ContextKeys.UID, "abc")

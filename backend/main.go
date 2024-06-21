@@ -39,6 +39,7 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/oauth"
+	"github.com/highlight-run/highlight/backend/openai_interface"
 	"github.com/highlight-run/highlight/backend/otel"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
@@ -385,6 +386,7 @@ func main() {
 		StepFunctions:          sfnClient,
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
+		OpenAiInterface:        &openai_interface.OpenAiImpl{},
 		ClickhouseClient:       clickhouseClient,
 		Store:                  store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
 		DataSyncQueue:          kafkaDataSyncProducer,

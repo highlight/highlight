@@ -42,6 +42,7 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/openai_interface"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -8738,6 +8739,10 @@ Use today's date/time in the user's time zone for any relative times provided: %
 ## Rules for 'query' key:
 In terms of the keys and values you can use in the 'query' field, try not to use a key-value pairs that don't exist. 
 
+If the input query has nothing to do with this prompt, return an empty string.
+
+%s
+
 You have the following keys to work with:
 
 %s
@@ -8753,7 +8758,7 @@ The 'query' syntax documentation is as follows:
 
 And specifically, for the %s product, you can refer to the following documentation:
 %s
-`, productType, now, strings.Join(keys, ", "), strings.Join(keyVals, ", "), prompts.SearchSyntaxDocs, productType, searchSpecificDoc)
+`, productType, now, openai_interface.IrrelevantQueryFunctionalityIndicator, strings.Join(keys, ", "), strings.Join(keyVals, ", "), prompts.SearchSyntaxDocs, productType, searchSpecificDoc)
 
 	yesterday := time.Now().In(loc).AddDate(0, 0, -1)
 	yesterdayAt2PM := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 14, 0, 0, 0, yesterday.Location()).Format(time.RFC3339)
@@ -8779,10 +8784,14 @@ And specifically, for the %s product, you can refer to the following documentati
 			request:  "Give me all the logs where the environment is production and the session is not null",
 			response: `{"query":"environment=production AND secure_session_id EXISTS","date_range":{"start_date":"","end_date":""}}`,
 		},
+		{
+			request:  openai_interface.IrrelevantQuery,
+			response: `{"query":"","date_range":{"start_date":"","end_date":""}}`,
+		},
 	}
 
-	resp, err := client.CreateChatCompletion(
-		context.Background(),
+	resp, err := r.OpenAiInterface.CreateChatCompletion(
+		client,
 		openai.ChatCompletionRequest{
 			Model: openai.GPT3Dot5Turbo,
 			ResponseFormat: &openai.ChatCompletionResponseFormat{
@@ -9051,8 +9060,8 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 	`, errorObject.Event, *stackTrace)
 
 	client := openai.NewClient(apiKey)
-	resp, err := client.CreateChatCompletion(
-		context.Background(),
+	resp, err := r.OpenAiInterface.CreateChatCompletion(
+		client,
 		openai.ChatCompletionRequest{
 			Model:       openai.GPT3Dot5Turbo,
 			Temperature: 0.7,
