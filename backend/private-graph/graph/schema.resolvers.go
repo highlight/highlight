@@ -8739,7 +8739,7 @@ Use today's date/time in the user's time zone for any relative times provided: %
 ## Rules for 'query' key:
 In terms of the keys and values you can use in the 'query' field, try not to use a key-value pairs that don't exist. If the user asks to search for a log that has a specific string in it, use the "*text*" option.
 
-If the input query has nothing to do with this prompt, return an empty string.
+%s
 
 You have the following keys to work with:
 
