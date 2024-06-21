@@ -210,12 +210,13 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<CustomSpanProcessorConf
 	}
 }
 
-export const getOtelProvider = (): WebTracerProvider => {
+export const shutdown = async () => {
 	if (provider === undefined) {
-		throw new Error('OTEL provider not initialized')
+		return
 	}
 
-	return provider
+	await provider.forceFlush()
+	provider.shutdown()
 }
 
 const getSpanName = (

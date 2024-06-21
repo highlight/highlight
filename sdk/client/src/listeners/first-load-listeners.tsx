@@ -17,7 +17,6 @@ import {
 	matchPerformanceTimingsWithRequestResponsePair,
 	shouldNetworkRequestBeRecorded,
 } from './network-listener/utils/utils'
-import { getOtelProvider } from '../otel'
 
 // Note: This class is used by both firstload and client. When constructed in client, it will match the current
 // codebase. When constructed in firstload, it will match the codebase at the time the npm package was published.
@@ -139,11 +138,8 @@ export class FirstLoadListeners {
 			),
 		)
 		if (this.options.enableOtelTracing) {
-			const provider = getOtelProvider()
-
-			this.listeners.push(async () => {
-				await provider.forceFlush()
-				provider.shutdown()
+			import('@highlight-run/client/src/otel').then(({ shutdown }) => {
+				this.listeners.push(shutdown)
 			})
 		}
 		FirstLoadListeners.setupNetworkListener(this, this.options)
