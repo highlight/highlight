@@ -112,11 +112,9 @@ const H: HighlightPublicInterface = {
 			}
 			init_called = true
 
-			initializeFetchListener()
-			initializeWebSocketListener()
-			import('@highlight-run/client').then(
-				async ({ Highlight, setupBrowserTracing }) => {
-					if (options?.enableOtelTracing) {
+			if (options?.enableOtelTracing) {
+				import('@highlight-run/client/src/otel').then(
+					({ setupBrowserTracing }) => {
 						setupBrowserTracing({
 							endpoint: options?.otlpEndpoint,
 							projectId: projectID,
@@ -130,19 +128,23 @@ const H: HighlightPublicInterface = {
 							serviceName:
 								options?.serviceName ?? 'highlight-browser',
 						})
-					}
+					},
+				)
+			}
 
-					highlight_obj = new Highlight(
-						client_options,
-						first_load_listeners,
-					)
-					initializeFetchListener()
-					initializeWebSocketListener()
-					if (!options?.manualStart) {
-						await highlight_obj.initialize()
-					}
-				},
-			)
+			initializeFetchListener()
+			initializeWebSocketListener()
+			import('@highlight-run/client').then(async ({ Highlight }) => {
+				highlight_obj = new Highlight(
+					client_options,
+					first_load_listeners,
+				)
+				initializeFetchListener()
+				initializeWebSocketListener()
+				if (!options?.manualStart) {
+					await highlight_obj.initialize()
+				}
+			})
 
 			const client_options: HighlightClassOptions = {
 				organizationID: projectID,
