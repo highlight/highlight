@@ -129,9 +129,10 @@ jobs:
                   if [[ ${{ github.event_name }} == 'release' ]]; then
                     IMAGE_TAG=latest
                   fi
-                  BACKEND_IMAGE_NAME=ghcr.io/highlight/highlight-backend:$IMAGE_TAG
-                  FRONTEND_IMAGE_NAME=ghcr.io/highlight/highlight-frontend:$IMAGE_TAG
+                  export BACKEND_IMAGE_NAME=ghcr.io/highlight/highlight-backend:$IMAGE_TAG
+                  export FRONTEND_IMAGE_NAME=ghcr.io/highlight/highlight-frontend:$IMAGE_TAG
                   export RELEASE=$IMAGE_TAG
+                  export LICENSE_KEY
 
                   # start highlight
                   pushd docker;
