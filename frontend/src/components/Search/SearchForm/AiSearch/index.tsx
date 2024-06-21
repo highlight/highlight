@@ -179,7 +179,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 				position="relative"
 				margin="auto"
 			>
-				{!aiSuggestionLoading && submitted && (
+				{displayTags && (
 					<Box
 						cssClass={styles.comboboxTagsContainer}
 						style={{
@@ -355,10 +355,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 				)}
 
 				<Box display="flex" pr="8" py="6" gap="6">
-					{submitted &&
-					aiSuggestion &&
-					!aiSuggestionLoading &&
-					!aiSuggestionError ? (
+					{displayTags ? (
 						<DateRangePicker
 							emphasis="medium"
 							iconLeft={<IconSolidClock />}
