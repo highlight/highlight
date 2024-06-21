@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"testing"
@@ -369,6 +370,7 @@ func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
 }
 
 func TestResolver_GetAIQuerySuggestion(t *testing.T) {
+	log.SetOutput(ioutil.Discard)
 	tests := map[string]struct {
 		productType modelInputs.ProductType
 		query       string
@@ -423,13 +425,15 @@ func TestResolver_GetAIQuerySuggestion(t *testing.T) {
 
 			out, err := r.AiQuerySuggestion(ctx, "America/New_York", p.ID, v.productType, v.query)
 
-			if (v.query == openai_interface.IrrelevantQuery || v.query == "") && err == openai_interface.MalformedPromptError {
-				t.Logf("successful malformed handling of output \n %+v", out.Query)
-			} else if err == nil {
-				t.Logf("query output \n %+v", out.Query)
-				t.Logf("date output \n %+v", out.DateRange)
+			if err != nil {
+				if (v.query == openai_interface.IrrelevantQuery || v.query == "") && err.Error() == openai_interface.MalformedPromptError.Error() {
+					t.Logf("successful malformed handling of output \n %+v", err.Error())
+				} else {
+					t.Fatalf("error in query suggestion %+v", err)
+				}
 			} else {
-				t.Fatalf("error in query suggestion %+v", err)
+				t.Logf("query output \n %+v", out.Query)
+				t.Logf("date output \n %+v %+v", out.DateRange.StartDate, out.DateRange.EndDate)
 			}
 		})
 	}

@@ -51,7 +51,13 @@ func (o *OpenAiTestImpl) CreateChatCompletion(client *openai.Client, request ope
 			break
 		}
 	}
-	// if a bad query is inputted, return an empty response in the 'query' field
+
+	// if an empty query is inputted, return an empty response in the 'query' field
+	if request.Messages[len(request.Messages)-1].Content == "" {
+		respMessage.Choices[0].Message.Content = `{"query":"","date_range":{"start_date":"","end_date":""}}`
+	}
+
+	// if a bad query is inputted, and the prompt handles these inputs, return an empty response in the 'query' field
 	if request.Messages[len(request.Messages)-1].Content == IrrelevantQuery && strings.Contains(systemPrompt, IrrelevantQueryFunctionalityIndicator) {
 		respMessage.Choices[0].Message.Content = `{"query":"","date_range":{"start_date":"","end_date":""}}`
 	}
