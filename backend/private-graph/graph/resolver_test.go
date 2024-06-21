@@ -2,7 +2,6 @@ package graph
 
 import (
 	"context"
-	"io"
 	"os"
 	"strconv"
 	"testing"
@@ -370,7 +369,6 @@ func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
 }
 
 func TestResolver_GetAIQuerySuggestion(t *testing.T) {
-	log.SetOutput(io.Discard)
 	tests := map[string]struct {
 		productType modelInputs.ProductType
 		query       string
