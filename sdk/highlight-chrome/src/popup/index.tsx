@@ -7,12 +7,15 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { H } from 'highlight.run'
 import {
+  Badge,
   Box,
   Button,
   ButtonIcon,
   Form,
+  FormState,
   IconSolidCog,
   IconSolidHighlight,
+  IconSolidPlayCircle,
   IconSolidX,
   Stack,
   Text,
@@ -30,16 +33,16 @@ const App = () => {
 }
 
 const ChromeExtensionPopup = () => {
-  const [session, setSession] = React.useState<string>()
-
+  const [editingConfig, setEditingConfig] = React.useState<boolean>(false)
   const formStore = Form.useStore({
     defaultValues: {
       projectId: '',
+      session: '',
     },
   })
 
   React.useEffect(() => {
-    H.getSessionURL().then((url) => setSession(url))
+    H.getSessionURL().then((url) => formStore.setValue(formStore.names.session, url))
   }, [])
 
   React.useEffect(() => {
@@ -52,7 +55,7 @@ const ChromeExtensionPopup = () => {
     await chrome.storage.sync.set({ projectId: formState.values.projectId })
     await chrome.runtime.sendMessage({ type: 'projectId', projectId: formState.values.projectId })
   })
-
+  const session = formStore.useValue(formStore.names.session)
   return (
     <Stack
       justifyContent={'center'}
@@ -63,16 +66,7 @@ const ChromeExtensionPopup = () => {
         width: 360,
       }}
     >
-      <Box
-        width={'full'}
-        height={'full'}
-        display="flex"
-        flexDirection="column"
-        borderRadius="8"
-        border="secondary"
-        shadow="medium"
-        backgroundColor="white"
-      >
+      <Box width={'full'} height={'full'} display="flex" flexDirection="column">
         <Box
           display="flex"
           alignItems="center"
@@ -97,25 +91,62 @@ const ChromeExtensionPopup = () => {
             }
           />
         </Box>
-        <Box width="full" display="flex" justifyContent="center" flexDirection="column">
-          <Form store={formStore}>
-            <Stack p="12">
-              <Text weight="medium" size="small" color="moderate">
-                TODO(vkorolik) {session}
-              </Text>
-              <Form.Input name={formStore.names.projectId} placeholder="Project ID" size="xSmall" />
-            </Stack>
-            <Box borderBottom="divider" />
-            <Box display="flex" justifyContent="flex-start" alignItems="center" p={'12'} gap="6">
-              <Button kind="secondary" size="small" emphasis={'medium'} style={{ flexGrow: 1 }}>
-                Open Highlight
-              </Button>
-              <ButtonIcon icon={<IconSolidCog />} />
+        <Form store={formStore}>
+          <Box display="flex" justifyContent="center" flexDirection="column" p="12">
+            {editingConfig ? (
+              <Stack>
+                <Form.Label label={'Project ID'} name={formStore.names.projectId} />
+                <Form.Input
+                  name={formStore.names.projectId}
+                  placeholder="Project ID"
+                  size="xSmall"
+                />
+              </Stack>
+            ) : (
+              <RecordingState formStore={formStore} />
+            )}
+            <Box my={'12'} borderBottom="divider" />
+            <Box display="flex" justifyContent="flex-start" alignItems="center" gap="6">
+              {editingConfig ? (
+                <RecordingState formStore={formStore} />
+              ) : (
+                <>
+                  <Button
+                    kind="secondary"
+                    size="small"
+                    emphasis={'medium'}
+                    style={{ flexGrow: 1 }}
+                    onClick={() => window.open('https://app.highlight.io', '_blank')}
+                  >
+                    Open Highlight
+                  </Button>
+                  <ButtonIcon
+                    kind="secondary"
+                    size="small"
+                    shape="square"
+                    icon={<IconSolidCog width={14} height={14} />}
+                    onClick={() => setEditingConfig(true)}
+                  />
+                </>
+              )}
             </Box>
-          </Form>
-        </Box>
+          </Box>
+        </Form>
       </Box>
     </Stack>
+  )
+}
+
+const RecordingState = ({ formStore }: { formStore: FormState<{ session: string }> }) => {
+  const session = formStore.useValue(formStore.names.session)
+  return (
+    <Badge
+      shape={'basic'}
+      variant={session ? 'purple' : 'gray'}
+      label={session ? 'Recording' : 'Not recording'}
+      iconStart={<IconSolidPlayCircle />}
+      onClick={() => (session ? window.open(session, '_blank') : null)}
+    />
   )
 }
 
