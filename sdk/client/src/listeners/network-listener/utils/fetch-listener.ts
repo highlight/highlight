@@ -158,8 +158,6 @@ const logRequest = (
 			}
 
 			if (shouldRecordHeaderAndBody) {
-				let text: string
-				try {
 				responsePayload.body = await getResponseBody(
 					response,
 					bodyKeysToRecord,
