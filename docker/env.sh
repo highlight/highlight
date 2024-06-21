@@ -49,7 +49,6 @@ export BUILD_ARGS="--build-arg GOARCH=${GOARCH}
 --build-arg RELEASE=${RELEASE}
 --build-arg TURBO_TOKEN=${TURBO_TOKEN}
 --build-arg TURBO_TEAM=${TURBO_TEAM}
---build-arg LICENSE_KEY=${LICENSE_KEY}
 --build-arg ADMIN_PASSWORD=${ADMIN_PASSWORD}"
 
 mkdir -p ${OBJECT_STORAGE_FS}

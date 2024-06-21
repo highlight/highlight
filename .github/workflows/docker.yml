@@ -122,6 +122,8 @@ jobs:
                   password: ${{ secrets.GH_DOCKER_TOKEN }}
 
             - name: Run docker enterprise
+              env:
+                  LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
               run: |
                   IMAGE_TAG=$(echo ${{ github.ref_name }} | sed 's/\//-/g')-${{ github.sha }}
                   if [[ ${{ github.event_name }} == 'release' ]]; then
@@ -131,11 +133,9 @@ jobs:
                   FRONTEND_IMAGE_NAME=ghcr.io/highlight/highlight-frontend:$IMAGE_TAG
                   export RELEASE=$IMAGE_TAG
 
-                  echo "Using images $BACKEND_IMAGE_NAME and $FRONTEND_IMAGE_NAME"
-
                   # start highlight
                   pushd docker;
-                  ./run-enterprise.sh >> /tmp/highlight.log 2>&1;
+                  ./run-enterprise.sh --no-pull >> /tmp/highlight.log 2>&1;
                   popd;
 
                   # run python backend functional tests

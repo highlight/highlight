@@ -10,10 +10,10 @@ fi
 
 ./start-infra.sh --go-docker
 
+echo "Using images $BACKEND_IMAGE_NAME and $FRONTEND_IMAGE_NAME"
 if [[ "$*" != *"--no-pull"* ]]; then
   docker compose -f compose.enterprise.yml pull
 fi
-
 if ! docker compose -f compose.enterprise.yml up --detach >>/tmp/highlightSetup.log 2>&1; then
   echo 'Failed to start highlight enterprise edition.'
   docker ps -a
