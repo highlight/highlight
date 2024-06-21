@@ -184,7 +184,7 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Clic
 		return nil
 	}
 
-	span, _ := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName("worker.kafka.batched.flushTraces.prepareRows"))
+	span, _ := util.StartSpanFromContext(ctx, "worker.kafka.batched.flushTraces.prepareRows")
 	span.SetAttribute("BatchSize", len(traceRows))
 
 	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", TracesTable))
