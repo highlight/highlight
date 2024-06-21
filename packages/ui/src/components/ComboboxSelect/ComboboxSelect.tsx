@@ -10,6 +10,7 @@ import {
 	useComboboxStore,
 	useSelectStore,
 } from '@ariakit/react'
+import type { ComponentTest } from '@reflame/testing'
 import clsx, { ClassValue } from 'clsx'
 import React, { useState } from 'react'
 
@@ -17,7 +18,6 @@ import { vars } from '../../css/vars'
 import { IconSolidCheckCircle, IconSolidSearch } from '../icons'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
-import type { ComponentTest } from '@reflame/testing'
 
 type Option = {
 	key: string
