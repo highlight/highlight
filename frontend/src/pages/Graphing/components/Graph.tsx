@@ -407,10 +407,14 @@ export const useGraphData = (
 					data.push({})
 				}
 
-				const seriesKeys = new Set<string>()
+				const hasGroups =
+					metrics.metrics.buckets.find((b) => b.group.length) !==
+					undefined
+
 				for (const b of metrics.metrics.buckets) {
-					const seriesKey = b.group.join(' ') || b.metric_type
-					seriesKeys.add(seriesKey)
+					const seriesKey = hasGroups
+						? b.group.join(' ') || '<empty>'
+						: b.metric_type
 					data[b.bucket_id][xAxisMetric] =
 						(b.bucket_min + b.bucket_max) / 2
 					data[b.bucket_id][seriesKey] = b.metric_value
