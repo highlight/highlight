@@ -8883,6 +8883,10 @@ And specifically, for the %s product, you can refer to the following documentati
 		toSave.DateRange.EndDate = &endDate
 	}
 
+	if toSave.Query == "" {
+		return nil, openai_interface.MalformedPromptError
+	}
+
 	return &toSave, nil
 }
 

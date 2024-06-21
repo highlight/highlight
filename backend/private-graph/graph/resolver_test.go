@@ -369,7 +369,6 @@ func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
 }
 
 func TestResolver_GetAIQuerySuggestion(t *testing.T) {
-	t.Skip("skipping test")
 	tests := map[string]struct {
 		productType modelInputs.ProductType
 		query       string
@@ -377,6 +376,14 @@ func TestResolver_GetAIQuerySuggestion(t *testing.T) {
 		"error logs with date range": {
 			productType: modelInputs.ProductTypeLogs,
 			query:       "all logs with level error, between 4pm yesterday and just now.",
+		},
+		"irrelevant query": {
+			productType: modelInputs.ProductTypeLogs,
+			query:       openai_interface.IrrelevantQuery,
+		},
+		"empty query": {
+			productType: modelInputs.ProductTypeLogs,
+			query:       "",
 		},
 	}
 	for _, v := range tests {
@@ -414,11 +421,15 @@ func TestResolver_GetAIQuerySuggestion(t *testing.T) {
 				t.Fatal(e.Wrap(err, "error inserting project"))
 			}
 
-			if out, err := r.AiQuerySuggestion(ctx, "America/New_York", p.ID, v.productType, v.query); err != nil {
-				t.Fatal(e.Wrap(err, "error creating search suggestion"))
-			} else {
+			out, err := r.AiQuerySuggestion(ctx, "America/New_York", p.ID, v.productType, v.query)
+
+			if (v.query == openai_interface.IrrelevantQuery || v.query == "") && err == openai_interface.MalformedPromptError {
+				t.Logf("successful malformed handling of output \n %+v", out.Query)
+			} else if err == nil {
 				t.Logf("query output \n %+v", out.Query)
 				t.Logf("date output \n %+v", out.DateRange)
+			} else {
+				t.Fatalf("error in query suggestion %+v", err)
 			}
 		})
 	}

@@ -12,6 +12,8 @@ const IrrelevantQuery = "who is kim kardashian's husband?"
 const IrrelevantQueryFunctionalityIndicator = "If the input query has nothing to do with this prompt, return an empty string."
 const defaultQueryResponse = `{"query":"environment=production AND secure_session_id EXISTS","date_range":{"start_date":"","end_date":""}}`
 
+var MalformedPromptError = errors.New("empty or incorrect input query")
+
 type OpenAiInterface interface {
 	CreateChatCompletion(client *openai.Client, request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error)
 }
