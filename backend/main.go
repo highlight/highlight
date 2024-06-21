@@ -81,7 +81,7 @@ const (
 )
 
 func init() {
-	log.WithContext(ctx).WithField("release", util.Config.Release).WithField("commit", util.Config.Version).Info("welcome to highlight.io")
+	log.WithContext(context.Background()).WithField("release", util.Config.Release).WithField("commit", util.Config.Version).Info("welcome to highlight.io")
 	runtimeParsed, handlerParsed = util.GetRuntime()
 }
 
