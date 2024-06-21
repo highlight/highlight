@@ -8643,8 +8643,6 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 		return nil, e.New("OPENAI_API_KEY is not set")
 	}
 
-	client := openai.NewClient(apiKey)
-
 	// create a list of key:value strings
 	keyVals := []string{}
 	keys := []string{}
@@ -8793,7 +8791,6 @@ And specifically, for the %s product, you can refer to the following documentati
 	}
 
 	resp, err := r.OpenAiInterface.CreateChatCompletion(
-		client,
 		openai.ChatCompletionRequest{
 			Model: openai.GPT3Dot5Turbo,
 			ResponseFormat: &openai.ChatCompletionResponseFormat{
@@ -9063,9 +9060,7 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 	Here's the stack trace information: %v
 	`, errorObject.Event, *stackTrace)
 
-	client := openai.NewClient(apiKey)
 	resp, err := r.OpenAiInterface.CreateChatCompletion(
-		client,
 		openai.ChatCompletionRequest{
 			Model:       openai.GPT3Dot5Turbo,
 			Temperature: 0.7,

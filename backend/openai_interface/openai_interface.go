@@ -15,23 +15,32 @@ const defaultQueryResponse = `{"query":"environment=production AND secure_sessio
 var MalformedPromptError = errors.New("empty or incorrect input query")
 
 type OpenAiInterface interface {
-	CreateChatCompletion(client *openai.Client, request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error)
+	InitClient(string)
+	CreateChatCompletion(request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error)
 }
 
 type OpenAiImpl struct {
+	client *openai.Client
 }
 
-func (o *OpenAiImpl) CreateChatCompletion(client *openai.Client, request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error) {
-	if client == nil {
+func (o *OpenAiImpl) InitClient(apiKey string) {
+	o.client = openai.NewClient(apiKey)
+}
+
+func (o *OpenAiImpl) CreateChatCompletion(request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error) {
+	if o.client == nil {
 		return openai.ChatCompletionResponse{}, errors.New("openai client is nil")
 	}
-	return client.CreateChatCompletion(context.Background(), request)
+	return o.client.CreateChatCompletion(context.Background(), request)
 }
 
 type OpenAiTestImpl struct {
 }
 
-func (o *OpenAiTestImpl) CreateChatCompletion(client *openai.Client, request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error) {
+func (o *OpenAiTestImpl) InitClient(apiKey string) {
+}
+
+func (o *OpenAiTestImpl) CreateChatCompletion(request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error) {
 	respMessage := openai.ChatCompletionResponse{
 		Choices: []openai.ChatCompletionChoice{
 			{
