@@ -51532,7 +51532,7 @@ __metadata:
     eslint: "npm:8.50.0"
     eslint-config-next: "npm:13.5.4"
     ky: "npm:^1.2.3"
-    next: "npm:13.5.4"
+    next: "npm:14.1.1"
     next-build-id: "npm:^3.0.0"
     pg: "npm:^8.11.3"
     pino: "npm:^8.19.0"
