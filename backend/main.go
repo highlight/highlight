@@ -369,9 +369,11 @@ func main() {
 	oai := &openai_client.OpenAiImpl{}
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
-		log.WithContext(ctx).Fatalf("error creating openai client client: %v", e.New("OPENAI_API_KEY is not set"))
+		log.WithContext(ctx).Fatalf("error creating openai client: %v", e.New("OPENAI_API_KEY is not set"))
 	}
-	oai.InitClient(apiKey)
+	if err := oai.InitClient(apiKey); err != nil {
+		log.WithContext(ctx).Fatalf("error creating openai client: %v", err)
+	}
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
 	subscriptionWorkerPool := workerpool.New(1000)
