@@ -1075,11 +1075,6 @@ func (r *Resolver) getSessionInsightPrompt(ctx context.Context, events []interfa
 }
 
 func (r *Resolver) getSessionInsight(ctx context.Context, session *model.Session) (*model.SessionInsight, error) {
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return nil, e.New("OPENAI_API_KEY is not set")
-	}
-
 	systemPrompt := `
 	Given array of events performed by a user from a session recording for a web application, make inferences and justifications and summarize interesting things about the session in 3 insights.
 	Rules:

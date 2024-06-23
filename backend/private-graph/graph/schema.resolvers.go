@@ -8638,11 +8638,6 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 	if err != nil {
 		return nil, err
 	}
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return nil, e.New("OPENAI_API_KEY is not set")
-	}
-
 	// create a list of key:value strings
 	keyVals := []string{}
 	keys := []string{}
@@ -9025,11 +9020,6 @@ func (r *queryResolver) ExistingLogsTraces(ctx context.Context, projectID int, t
 
 // ErrorResolutionSuggestion is the resolver for the error_resolution_suggestion field.
 func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObjectID int) (string, error) {
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return "", e.New("OPENAI_API_KEY is not set")
-	}
-
 	errorObject := &model.ErrorObject{}
 	if err := r.DB.WithContext(ctx).Model(&model.ErrorObject{}).Where("id = ?", errorObjectID).Find(&errorObject).Error; err != nil {
 		return "", e.Wrap(err, "failed to find error object")
