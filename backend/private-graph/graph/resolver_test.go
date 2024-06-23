@@ -433,7 +433,7 @@ func TestResolver_GetAIQuerySuggestion(t *testing.T) {
 	}
 	for _, v := range tests {
 		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
-			clickhouseClient, err := clickhouse.NewClient(clickhouse.PrimaryDatabase)
+			clickhouseClient, err := clickhouse.NewClient(clickhouse.TestDatabase)
 			if err != nil {
 				t.Fatalf("error creating clickhouse client: %v", err)
 			}
