@@ -28,7 +28,7 @@ import (
 	"github.com/highlight-run/highlight/backend/integrations/github"
 	"github.com/highlight-run/highlight/backend/integrations/gitlab"
 	"github.com/highlight-run/highlight/backend/integrations/jira"
-	"github.com/highlight-run/highlight/backend/openai_interface"
+	"github.com/highlight-run/highlight/backend/openai_client"
 
 	"gorm.io/gorm/clause"
 
@@ -156,7 +156,7 @@ type Resolver struct {
 	DataSyncQueue          kafka_queue.MessageQueue
 	TracesQueue            kafka_queue.MessageQueue
 	EmbeddingsClient       embeddings.Client
-	OpenAiInterface        openai_interface.OpenAiInterface
+	OpenAiClient           openai_client.OpenAiInterface
 }
 
 func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) error {

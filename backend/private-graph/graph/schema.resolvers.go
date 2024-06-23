@@ -42,7 +42,7 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/openai_interface"
+	"github.com/highlight-run/highlight/backend/openai_client"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -8754,7 +8754,7 @@ The 'query' syntax documentation is as follows:
 
 And specifically, for the %s product, you can refer to the following documentation:
 %s
-`, productType, now, openai_interface.IrrelevantQueryFunctionalityIndicator, strings.Join(keys, ", "), strings.Join(keyVals, ", "), prompts.SearchSyntaxDocs, productType, searchSpecificDoc)
+`, productType, now, openai_client.IrrelevantQueryFunctionalityIndicator, strings.Join(keys, ", "), strings.Join(keyVals, ", "), prompts.SearchSyntaxDocs, productType, searchSpecificDoc)
 
 	yesterday := time.Now().In(loc).AddDate(0, 0, -1)
 	yesterdayAt2PM := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 14, 0, 0, 0, yesterday.Location()).Format(time.RFC3339)
@@ -8785,12 +8785,12 @@ And specifically, for the %s product, you can refer to the following documentati
 			response: `{"query":"message=*panic*","date_range":{"start_date":"","end_date":""}}`,
 		},
 		{
-			request:  openai_interface.IrrelevantQuery,
+			request:  openai_client.IrrelevantQuery,
 			response: `{"query":"","date_range":{"start_date":"","end_date":""}}`,
 		},
 	}
 
-	resp, err := r.OpenAiInterface.CreateChatCompletion(
+	resp, err := r.OpenAiClient.CreateChatCompletion(
 		openai.ChatCompletionRequest{
 			Model: openai.GPT3Dot5Turbo,
 			ResponseFormat: &openai.ChatCompletionResponseFormat{
@@ -8881,7 +8881,7 @@ And specifically, for the %s product, you can refer to the following documentati
 	}
 
 	if toSave.Query == "" {
-		return nil, openai_interface.MalformedPromptError
+		return nil, openai_client.MalformedPromptError
 	}
 
 	return &toSave, nil
@@ -9060,7 +9060,7 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 	Here's the stack trace information: %v
 	`, errorObject.Event, *stackTrace)
 
-	resp, err := r.OpenAiInterface.CreateChatCompletion(
+	resp, err := r.OpenAiClient.CreateChatCompletion(
 		openai.ChatCompletionRequest{
 			Model:       openai.GPT3Dot5Turbo,
 			Temperature: 0.7,
