@@ -8791,6 +8791,7 @@ And specifically, for the %s product, you can refer to the following documentati
 	}
 
 	resp, err := r.OpenAiClient.CreateChatCompletion(
+		ctx,
 		openai.ChatCompletionRequest{
 			Model: openai.GPT3Dot5Turbo,
 			ResponseFormat: &openai.ChatCompletionResponseFormat{
@@ -9061,6 +9062,7 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 	`, errorObject.Event, *stackTrace)
 
 	resp, err := r.OpenAiClient.CreateChatCompletion(
+		ctx,
 		openai.ChatCompletionRequest{
 			Model:       openai.GPT3Dot5Turbo,
 			Temperature: 0.7,

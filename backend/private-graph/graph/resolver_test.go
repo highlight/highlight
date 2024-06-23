@@ -378,7 +378,7 @@ type OpenAiTestImpl struct {
 func (o *OpenAiTestImpl) InitClient(apiKey string) {
 }
 
-func (o *OpenAiTestImpl) CreateChatCompletion(request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error) {
+func (o *OpenAiTestImpl) CreateChatCompletion(ctx context.Context, request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error) {
 	respMessage := openai.ChatCompletionResponse{
 		Choices: []openai.ChatCompletionChoice{
 			{
@@ -410,7 +410,6 @@ func (o *OpenAiTestImpl) CreateChatCompletion(request openai.ChatCompletionReque
 	}
 
 	return respMessage, nil
-
 }
 
 func TestResolver_GetAIQuerySuggestion(t *testing.T) {

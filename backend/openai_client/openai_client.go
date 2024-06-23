@@ -14,7 +14,7 @@ var MalformedPromptError = errors.New("empty or incorrect input query")
 
 type OpenAiInterface interface {
 	InitClient(string)
-	CreateChatCompletion(request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error)
+	CreateChatCompletion(context context.Context, request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error)
 }
 
 type OpenAiImpl struct {
@@ -25,9 +25,9 @@ func (o *OpenAiImpl) InitClient(apiKey string) {
 	o.client = openai.NewClient(apiKey)
 }
 
-func (o *OpenAiImpl) CreateChatCompletion(request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error) {
+func (o *OpenAiImpl) CreateChatCompletion(context context.Context, r openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error) {
 	if o.client == nil {
 		return openai.ChatCompletionResponse{}, errors.New("openai client is nil")
 	}
-	return o.client.CreateChatCompletion(context.Background(), request)
+	return o.client.CreateChatCompletion(context, r)
 }

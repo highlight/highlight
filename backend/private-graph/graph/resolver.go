@@ -1128,8 +1128,7 @@ func (r *Resolver) getSessionInsight(ctx context.Context, session *model.Session
 		userPrompt = userPrompt[:MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH]
 	}
 
-	client := openai.NewClient(apiKey)
-	resp, err := client.CreateChatCompletion(
+	resp, err := r.OpenAiClient.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
 			Model:       openai.GPT3Dot5Turbo16K,
