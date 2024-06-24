@@ -142,10 +142,7 @@ func (k *KafkaBatchWorker) log(ctx context.Context, fields log.Fields, msg ...in
 }
 
 func (k *KafkaBatchWorker) flush(ctx context.Context) error {
-	k.log(ctx, nil,
-		log.Fields{"message_length": len(k.messages)},
-		"KafkaBatchWorker flushing messages",
-	)
+	k.log(ctx, log.Fields{"message_length": len(k.messages)}, "KafkaBatchWorker flushing messages")
 
 	s, _ := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush", k.Name))
 	s.SetAttribute("BatchSize", len(k.messages))
