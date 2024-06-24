@@ -156,8 +156,14 @@ func GetEnvironment(file, digest string) (*util.Configuration, error) {
 	}
 
 	spkiBlock, _ := pem.Decode([]byte(util.GetEnterpriseEnvPublicKey()))
+	if spkiBlock == nil {
+		return nil, e.New("failed to read environment public key")
+	}
 	var spkiKey *rsa.PublicKey
-	pubInterface, _ := x509.ParsePKIXPublicKey(spkiBlock.Bytes)
+	pubInterface, err := x509.ParsePKIXPublicKey(spkiBlock.Bytes)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to parse environment public key")
+	}
 	spkiKey = pubInterface.(*rsa.PublicKey)
 
 	hashed := sha512.Sum512(data)

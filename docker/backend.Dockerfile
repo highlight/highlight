@@ -27,7 +27,7 @@ COPY ../e2e/go ./e2e/go
 WORKDIR /highlight/backend
 ARG TARGETARCH
 ARG TARGETOS
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH PUBKEY=$(cat /highlight/enterprise-public.pem) \
+RUN export PUBKEY=`cat /highlight/enterprise-public.pem | base64 -w0` GOOS=$TARGETOS GOARCH=$TARGETARCH && \
     go build -ldflags="-X util.EnterpriseEnvPublicKey=$PUBKEY" -o /build/backend
 
 # reduce the image size by keeping just the built code

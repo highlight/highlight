@@ -1,7 +1,11 @@
 package util
 
 import (
+	"context"
+	"encoding/base64"
 	"flag"
+	log "github.com/sirupsen/logrus"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -65,7 +69,12 @@ var (
 
 func GetEnterpriseEnvPublicKey() string {
 	if EnterpriseEnvPublicKey != "" {
-		return EnterpriseEnvPublicKey
+		dec := base64.NewDecoder(base64.StdEncoding, strings.NewReader(EnterpriseEnvPublicKey))
+		data, err := io.ReadAll(dec)
+		if err != nil {
+			log.WithContext(context.Background()).WithError(err).Fatal("failed to read public key data")
+		}
+		return string(data)
 	}
 	return os.Getenv("ENTERPRISE_ENV_PUBLIC_KEY")
 }
