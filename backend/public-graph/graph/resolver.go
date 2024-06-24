@@ -3196,8 +3196,6 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			}
 		}
 
-		// TODO: Don't create these spans if we are creating network resource spans
-		// via the OTEL client instrumentation.
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionObj.SecureID)
 		ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, re.RequestResponsePairs.Request.ID)
