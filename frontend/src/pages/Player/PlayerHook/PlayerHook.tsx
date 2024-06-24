@@ -9,7 +9,6 @@ import {
 	useMarkSessionAsViewedMutation,
 } from '@graph/hooks'
 import { GetSessionQuery } from '@graph/operations'
-import { usefulEvent } from '@pages/Player/components/EventStreamV2/utils'
 import {
 	CHUNKING_DISABLED_PROJECTS,
 	FRAME_MS,
@@ -620,30 +619,10 @@ export const usePlayer = (
 		],
 	)
 
-	const onFrameOrEvent = useMemo(
+	const onFrame = useMemo(
 		() =>
 			_.throttle(
-				(event?: HighlightEvent) => {
-					if (event) {
-						dispatch({
-							type: PlayerActionType.onEvent,
-							event: event,
-						})
-						return
-					}
-					const lastLoadedEventTimestamp =
-						getLastLoadedEventTimestamp()
-					if (state.time > lastLoadedEventTimestamp) {
-						log(
-							'PlayerHook.tsx::onFrame',
-							'playing outside loaded data',
-							{
-								time: state.time,
-								lastLoadedEventTimestamp,
-							},
-						)
-						play(state.time).then()
-					}
+				() => {
 					dispatch({
 						type: PlayerActionType.onFrame,
 					})
@@ -656,24 +635,19 @@ export const usePlayer = (
 		[],
 	)
 
-	const onEvent = useCallback(
-		(event: HighlightEvent) => {
-			if (
-				(event.type === EventType.Custom &&
-					(event.data.tag === 'Navigate' ||
-						event.data.tag === 'Reload')) ||
-				(event as customEvent)?.data?.tag === 'Stop'
-			) {
-				dispatch({
-					type: PlayerActionType.onEvent,
-					event: event,
-				})
-			} else if (usefulEvent(event)) {
-				onFrameOrEvent(event)
-			}
-		},
-		[onFrameOrEvent],
-	)
+	const onEvent = useCallback((event: any) => {
+		if (
+			(event.type === EventType.Custom &&
+				(event.data.tag === 'Navigate' ||
+					event.data.tag === 'Reload')) ||
+			(event as customEvent)?.data?.tag === 'Stop'
+		) {
+			dispatch({
+				type: PlayerActionType.onEvent,
+				event: event,
+			})
+		}
+	}, [])
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const onViewportChange = useCallback(
@@ -812,9 +786,7 @@ export const usePlayer = (
 		if (!state.replayer) {
 			return
 		}
-		state.replayer.on('event-cast', (e: any) =>
-			onEvent(e as HighlightEvent),
-		)
+		state.replayer.on('event-cast', onEvent)
 		state.replayer.on('resize', onViewportChange)
 	}, [state.replayer, projectId, onEvent, onViewportChange])
 
@@ -896,8 +868,8 @@ export const usePlayer = (
 
 	const frameAction = useCallback(() => {
 		animationFrameID.current = requestAnimationFrame(frameAction)
-		onFrameOrEvent()
-	}, [onFrameOrEvent])
+		onFrame()
+	}, [onFrame])
 
 	// "Subscribes" the time with the Replayer when the Player is playing.
 	useEffect(() => {
@@ -1095,13 +1067,5 @@ export const usePlayer = (
 			? state.time / state.sessionMetadata.totalTime
 			: null,
 		sessionStartDateTime: state.sessionMetadata.startTime,
-		setCurrentEvent: useCallback(
-			(currentEvent) =>
-				dispatch({
-					type: PlayerActionType.setCurrentEvent,
-					currentEvent,
-				}),
-			[],
-		),
 	}
 }

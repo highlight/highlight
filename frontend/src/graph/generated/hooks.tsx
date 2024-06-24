@@ -187,6 +187,26 @@ export const ErrorObjectFragmentDoc = gql`
 		serviceName
 	}
 `
+export const ProjectFragmentDoc = gql`
+	fragment Project on Project {
+		id
+		name
+		verbose_id
+		billing_email
+		secret
+		workspace_id
+		error_filters
+		workspace {
+			id
+		}
+		excluded_users
+		error_json_paths
+		filter_chrome_extension
+		rage_click_window_seconds
+		rage_click_radius_pixels
+		rage_click_count
+	}
+`
 export const ErrorTagFragmentDoc = gql`
 	fragment ErrorTag on ErrorTag {
 		id
@@ -7794,11 +7814,10 @@ export type GetErrorsHistogramQueryResult = Apollo.QueryResult<
 export const GetProjectsDocument = gql`
 	query GetProjects {
 		projects {
-			id
-			name
-			workspace_id
+			...Project
 		}
 	}
+	${ProjectFragmentDoc}
 `
 
 /**
@@ -7855,11 +7874,11 @@ export const GetWorkspaceDocument = gql`
 			unlimited_members
 			clearbit_enabled
 			projects {
-				id
-				name
+				...Project
 			}
 		}
 	}
+	${ProjectFragmentDoc}
 `
 
 /**
@@ -7977,15 +7996,18 @@ export const GetWorkspacesDocument = gql`
 		workspaces {
 			id
 			name
+			retention_period
+			errors_retention_period
 		}
 		joinable_workspaces {
 			id
 			name
 			projects {
-				id
+				...Project
 			}
 		}
 	}
+	${ProjectFragmentDoc}
 `
 
 /**
@@ -8091,14 +8113,14 @@ export type GetWorkspacesCountQueryResult = Apollo.QueryResult<
 export const GetProjectsAndWorkspacesDocument = gql`
 	query GetProjectsAndWorkspaces {
 		projects {
-			id
-			name
+			...Project
 		}
 		workspaces {
 			id
 			name
 		}
 	}
+	${ProjectFragmentDoc}
 `
 
 /**
@@ -8155,15 +8177,29 @@ export const GetProjectOrWorkspaceDocument = gql`
 		$is_workspace: Boolean!
 	) {
 		project(id: $project_id) @skip(if: $is_workspace) {
-			id
-			name
-			billing_email
+			...Project
+			workspace {
+				id
+				name
+				retention_period
+				errors_retention_period
+				projects {
+					...Project
+				}
+			}
 		}
 		workspace(id: $workspace_id) @include(if: $is_workspace) {
 			id
 			name
+			cloudflare_proxy
+			projects {
+				...Project
+			}
+			retention_period
+			errors_retention_period
 		}
 	}
+	${ProjectFragmentDoc}
 `
 
 /**
@@ -8216,159 +8252,78 @@ export type GetProjectOrWorkspaceQueryResult = Apollo.QueryResult<
 	Types.GetProjectOrWorkspaceQuery,
 	Types.GetProjectOrWorkspaceQueryVariables
 >
-export const GetProjectDropdownOptionsDocument = gql`
-	query GetProjectDropdownOptions($project_id: ID!) {
-		project(id: $project_id) {
-			id
-			name
-			verbose_id
-			billing_email
-			secret
-			workspace_id
-			error_filters
+export const GetDropdownOptionsDocument = gql`
+	query GetDropdownOptions {
+		projects {
+			...Project
 		}
-		workspace: workspace_for_project(project_id: $project_id) {
+		workspaces {
 			id
 			name
 			cloudflare_proxy
 			projects {
 				id
-				name
 			}
-		}
-		workspaces {
-			id
-			name
+			retention_period
+			errors_retention_period
 		}
 		joinable_workspaces {
 			id
 			name
 			projects {
-				id
+				...Project
 			}
 		}
 	}
+	${ProjectFragmentDoc}
 `
 
 /**
- * __useGetProjectDropdownOptionsQuery__
+ * __useGetDropdownOptionsQuery__
  *
- * To run a query within a React component, call `useGetProjectDropdownOptionsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetProjectDropdownOptionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetDropdownOptionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDropdownOptionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetProjectDropdownOptionsQuery({
+ * const { data, loading, error } = useGetDropdownOptionsQuery({
  *   variables: {
- *      project_id: // value for 'project_id'
  *   },
  * });
  */
-export function useGetProjectDropdownOptionsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetProjectDropdownOptionsQuery,
-		Types.GetProjectDropdownOptionsQueryVariables
+export function useGetDropdownOptionsQuery(
+	baseOptions?: Apollo.QueryHookOptions<
+		Types.GetDropdownOptionsQuery,
+		Types.GetDropdownOptionsQueryVariables
 	>,
 ) {
 	return Apollo.useQuery<
-		Types.GetProjectDropdownOptionsQuery,
-		Types.GetProjectDropdownOptionsQueryVariables
-	>(GetProjectDropdownOptionsDocument, baseOptions)
+		Types.GetDropdownOptionsQuery,
+		Types.GetDropdownOptionsQueryVariables
+	>(GetDropdownOptionsDocument, baseOptions)
 }
-export function useGetProjectDropdownOptionsLazyQuery(
+export function useGetDropdownOptionsLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetProjectDropdownOptionsQuery,
-		Types.GetProjectDropdownOptionsQueryVariables
+		Types.GetDropdownOptionsQuery,
+		Types.GetDropdownOptionsQueryVariables
 	>,
 ) {
 	return Apollo.useLazyQuery<
-		Types.GetProjectDropdownOptionsQuery,
-		Types.GetProjectDropdownOptionsQueryVariables
-	>(GetProjectDropdownOptionsDocument, baseOptions)
+		Types.GetDropdownOptionsQuery,
+		Types.GetDropdownOptionsQueryVariables
+	>(GetDropdownOptionsDocument, baseOptions)
 }
-export type GetProjectDropdownOptionsQueryHookResult = ReturnType<
-	typeof useGetProjectDropdownOptionsQuery
+export type GetDropdownOptionsQueryHookResult = ReturnType<
+	typeof useGetDropdownOptionsQuery
 >
-export type GetProjectDropdownOptionsLazyQueryHookResult = ReturnType<
-	typeof useGetProjectDropdownOptionsLazyQuery
+export type GetDropdownOptionsLazyQueryHookResult = ReturnType<
+	typeof useGetDropdownOptionsLazyQuery
 >
-export type GetProjectDropdownOptionsQueryResult = Apollo.QueryResult<
-	Types.GetProjectDropdownOptionsQuery,
-	Types.GetProjectDropdownOptionsQueryVariables
->
-export const GetWorkspaceDropdownOptionsDocument = gql`
-	query GetWorkspaceDropdownOptions($workspace_id: ID!) {
-		workspace(id: $workspace_id) {
-			id
-			name
-			projects {
-				id
-				name
-			}
-		}
-		workspaces {
-			id
-			name
-		}
-		joinable_workspaces {
-			id
-			name
-			projects {
-				id
-			}
-		}
-	}
-`
-
-/**
- * __useGetWorkspaceDropdownOptionsQuery__
- *
- * To run a query within a React component, call `useGetWorkspaceDropdownOptionsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetWorkspaceDropdownOptionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetWorkspaceDropdownOptionsQuery({
- *   variables: {
- *      workspace_id: // value for 'workspace_id'
- *   },
- * });
- */
-export function useGetWorkspaceDropdownOptionsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetWorkspaceDropdownOptionsQuery,
-		Types.GetWorkspaceDropdownOptionsQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetWorkspaceDropdownOptionsQuery,
-		Types.GetWorkspaceDropdownOptionsQueryVariables
-	>(GetWorkspaceDropdownOptionsDocument, baseOptions)
-}
-export function useGetWorkspaceDropdownOptionsLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetWorkspaceDropdownOptionsQuery,
-		Types.GetWorkspaceDropdownOptionsQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetWorkspaceDropdownOptionsQuery,
-		Types.GetWorkspaceDropdownOptionsQueryVariables
-	>(GetWorkspaceDropdownOptionsDocument, baseOptions)
-}
-export type GetWorkspaceDropdownOptionsQueryHookResult = ReturnType<
-	typeof useGetWorkspaceDropdownOptionsQuery
->
-export type GetWorkspaceDropdownOptionsLazyQueryHookResult = ReturnType<
-	typeof useGetWorkspaceDropdownOptionsLazyQuery
->
-export type GetWorkspaceDropdownOptionsQueryResult = Apollo.QueryResult<
-	Types.GetWorkspaceDropdownOptionsQuery,
-	Types.GetWorkspaceDropdownOptionsQueryVariables
+export type GetDropdownOptionsQueryResult = Apollo.QueryResult<
+	Types.GetDropdownOptionsQuery,
+	Types.GetDropdownOptionsQueryVariables
 >
 export const GetAdminDocument = gql`
 	query GetAdmin {
@@ -8633,26 +8588,16 @@ export type GetAdminAboutYouQueryResult = Apollo.QueryResult<
 export const GetProjectDocument = gql`
 	query GetProject($id: ID!) {
 		project(id: $id) {
-			id
-			name
-			verbose_id
-			billing_email
-			excluded_users
-			error_filters
-			error_json_paths
-			filter_chrome_extension
-			rage_click_window_seconds
-			rage_click_radius_pixels
-			rage_click_count
-			secret
-		}
-		workspace: workspace_for_project(project_id: $id) {
-			id
-			slack_webhook_channel
-			retention_period
-			errors_retention_period
+			...Project
+			workspace {
+				id
+				slack_webhook_channel
+				retention_period
+				errors_retention_period
+			}
 		}
 	}
+	${ProjectFragmentDoc}
 `
 
 /**
@@ -8732,14 +8677,16 @@ export const GetBillingDetailsForProjectDocument = gql`
 			logsBillingLimit
 			tracesBillingLimit
 		}
-		workspace_for_project(project_id: $project_id) {
-			id
-			trial_end_date
-			billing_period_end
-			next_invoice_date
-			allow_meter_overage
-			eligible_for_trial_extension
-			trial_extension_enabled
+		project(id: $project_id) {
+			workspace {
+				id
+				trial_end_date
+				billing_period_end
+				next_invoice_date
+				allow_meter_overage
+				eligible_for_trial_extension
+				trial_extension_enabled
+			}
 		}
 	}
 `
