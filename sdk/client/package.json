@@ -46,6 +46,7 @@
 		"vitest": "^1.6.0"
 	},
 	"dependencies": {
+		"@rrweb/rrweb-plugin-sequential-id-record": "workspace:*",
 		"error-stack-parser": "2.0.6",
 		"fflate": "^0.8.1",
 		"graphql": "^16.8.1",
