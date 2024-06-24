@@ -85,6 +85,7 @@ var defaultTraceKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedTraceKeyParentSpanID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedTraceKeySecureSessionID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedTraceKeyMetricName), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedTraceKeyMetricValue), Type: modelInputs.KeyTypeNumeric},
 }
 
 var TracesTableNoDefaultConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
