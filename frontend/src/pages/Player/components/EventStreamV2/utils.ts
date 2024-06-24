@@ -2,6 +2,25 @@ import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import { eventWithTime } from '@rrweb/types'
 import { EventType } from 'rrweb'
 
+export type NavigationEvent = {
+	'visited-url': string
+	url: string
+	reload: boolean
+}
+export type ClickEvent = {
+	clickTextContent: string
+	clickSelector: string
+	clickTarget: string
+}
+export type ReferrerEvent = {
+	referrer: string
+}
+export type CustomEventPayload =
+	| string
+	| NavigationEvent
+	| ClickEvent
+	| ReferrerEvent
+
 // used in filter() type methods to fetch events we want
 export const usefulEvent = (e: eventWithTime): boolean => {
 	if (e.type === EventType.Custom) {
@@ -120,18 +139,37 @@ export const getFilteredEvents = (
 					})
 				case 'Navigate':
 					return searchTokens.some((searchToken) => {
+						if (typeof event.data.payload === 'object') {
+							return (event.data.payload as NavigationEvent).url
+								.toLowerCase()
+								.includes(searchToken)
+						}
 						return (event.data.payload as string)
 							.toLowerCase()
 							.includes(searchToken)
 					})
 				case 'Referrer':
 					return searchTokens.some((searchToken) => {
+						if (typeof event.data.payload === 'object') {
+							return (
+								event.data.payload as ReferrerEvent
+							).referrer
+								.toLowerCase()
+								.includes(searchToken)
+						}
 						return (event.data.payload as string)
 							.toLowerCase()
 							.includes(searchToken)
 					})
 				case 'Click':
 					return searchTokens.some((searchToken) => {
+						if (typeof event.data.payload === 'object') {
+							return (
+								event.data.payload as ClickEvent
+							).clickTextContent
+								.toLowerCase()
+								.includes(searchToken)
+						}
 						return (event.data.payload as string)
 							.toLowerCase()
 							.includes(searchToken)

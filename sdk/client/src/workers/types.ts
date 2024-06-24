@@ -7,6 +7,21 @@ export type Source = 'segment' | undefined
 export type PropertyType = {
 	type?: 'track' | 'session'
 	source?: Source
+	eventName?:
+		| 'Click'
+		| 'Focus'
+		| 'Reload'
+		| 'Navigate'
+		| 'Segment'
+		| 'Track'
+		| 'Comments'
+		| 'Viewport'
+		| 'Identify'
+		| 'Web Vitals'
+		| 'Referrer'
+		| 'RageClicks'
+		| 'TabHidden'
+		| 'Custom'
 }
 
 export enum MessageType {
