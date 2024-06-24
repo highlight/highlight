@@ -30,7 +30,8 @@ import (
 
 	"github.com/highlight-run/highlight/backend/alerts"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
-	delete_sessions "github.com/highlight-run/highlight/backend/jobs/delete-sessions"
+	delete_handlers "github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/handlers"
+
 	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
 	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -1125,7 +1126,14 @@ func (w *Worker) StartSessionDeleteJob(ctx context.Context) {
 		log.WithContext(ctx).Error("sessionRetentionDays <= 0, skipping SessionDeleteJob")
 		return
 	}
-	delete_sessions.StartSessionDeleteJob(ctx, w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.StorageClient, sessionRetentionDays)
+
+	log.WithContext(ctx).Info("Starting SessionDeleteJob")
+	deleteHandlers := delete_handlers.InitHandlers(w.Resolver.DB, w.Resolver.ClickhouseClient, nil, w.Resolver.StorageClient)
+
+	deleteHandlers.ProcessRetentionDeletions(ctx, sessionRetentionDays)
+	for range time.Tick(time.Hour * 24) {
+		deleteHandlers.ProcessRetentionDeletions(ctx, sessionRetentionDays)
+	}
 }
 
 func (w *Worker) RefreshMaterializedViews(ctx context.Context) {

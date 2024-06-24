@@ -14,6 +14,7 @@ import (
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	storage "github.com/highlight-run/highlight/backend/storage"
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
@@ -195,4 +196,64 @@ func (h *handlers) SendEmail(ctx context.Context, event utils.QuerySessionsInput
 	}
 
 	return nil
+}
+
+func (h *handlers) DeleteSessions(ctx context.Context, projectId int, startDate time.Time, endDate time.Time, query string) {
+	batches, err := h.GetSessionIdsByQuery(ctx, utils.QuerySessionsInput{
+		ProjectId: projectId,
+		Params: modelInputs.QueryInput{
+			DateRange: &modelInputs.DateRangeRequiredInput{
+				StartDate: startDate,
+				EndDate:   endDate,
+			},
+			Query: query,
+		},
+	})
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+		return
+	}
+
+	if len(batches) == 0 {
+		log.WithContext(ctx).Warnf("SessionDeleteJob - no sessions to delete for projectId %d, continuing", projectId)
+		return
+	}
+
+	log.WithContext(ctx).Infof("SessionDeleteJob - %d batches to delete for projectId %d", len(batches), projectId)
+
+	for _, batch := range batches {
+		log.WithContext(ctx).Infof("SessionDeleteJob - deleting sessions in batch %s for projectId %d", batch.BatchId, batch.ProjectId)
+
+		if _, err := h.DeleteSessionBatchFromPostgres(ctx, batch); err != nil {
+			log.WithContext(ctx).Error(err)
+			return
+		}
+		if _, err := h.DeleteSessionBatchFromObjectStorage(ctx, batch); err != nil {
+			log.WithContext(ctx).Error(err)
+			return
+		}
+		if _, err := h.DeleteSessionBatchFromClickhouse(ctx, batch); err != nil {
+			log.WithContext(ctx).Error(err)
+			return
+		}
+
+		log.WithContext(ctx).Infof("SessionDeleteJob - finished deleting sessions in batch %s for projectId %d", batch.BatchId, batch.ProjectId)
+	}
+}
+
+func (h *handlers) ProcessRetentionDeletions(ctx context.Context, retentionDays int) {
+	var projectIds []int
+	if err := h.db.Model(&model.Project{}).Select("id").Find(&projectIds).Error; err != nil {
+		log.WithContext(ctx).Error(err)
+		return
+	}
+
+	now := time.Now()
+	endDate := now.AddDate(0, 0, -1*retentionDays)
+	startDate := endDate.AddDate(-10, 0, 0)
+
+	for _, id := range projectIds {
+		projectId := id
+		go h.DeleteSessions(ctx, projectId, startDate, endDate, "viewed_by_anyone=false")
+	}
 }
