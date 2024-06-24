@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/samber/lo"
 	"strings"
 	"time"
 
@@ -30,6 +31,7 @@ const TracesSamplingTable = "traces_sampling"
 const TraceKeysTable = "trace_keys"
 const TraceKeyValuesTable = "trace_key_values"
 const TracesByIdTable = "traces_by_id"
+const SelectTraceColumns = "Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, Environment, HasErrors, TraceAttributes, StatusCode, StatusMessage, Events.Timestamp, Events.Name, Events.Attributes"
 
 var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeySecureSessionID: "SecureSessionId",
@@ -69,6 +71,9 @@ var traceColumns = []string{
 	"StatusMessage",
 	"Environment",
 	"HasErrors",
+	"Events.Timestamp",
+	"Events.Name",
+	"Events.Attributes",
 }
 
 // These keys show up as recommendations, but with no recommended values due to high cardinality
@@ -79,6 +84,7 @@ var defaultTraceKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedTraceKeyDuration), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedTraceKeyParentSpanID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedTraceKeySecureSessionID), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedTraceKeyMetricName), Type: modelInputs.KeyTypeString},
 }
 
 var TracesTableNoDefaultConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
@@ -266,6 +272,7 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 				TraceAttributes: expandJSON(result.TraceAttributes),
 				StatusCode:      result.StatusCode,
 				StatusMessage:   result.StatusMessage,
+				Events:          extractEvents(result),
 			},
 		}, nil
 	}
@@ -359,6 +366,7 @@ func getTracesFromRows(rows driver.Rows) ([]*modelInputs.Trace, error) {
 			TraceAttributes: expandJSON(result.TraceAttributes),
 			StatusCode:      result.StatusCode,
 			StatusMessage:   result.StatusMessage,
+			Events:          extractEvents(result),
 		})
 	}
 
@@ -375,19 +383,32 @@ func getTracesFromRows(rows driver.Rows) ([]*modelInputs.Trace, error) {
 	return traces, nil
 }
 
+func extractEvents(result ClickhouseTraceRow) []*modelInputs.TraceEvent {
+	return lo.Map(result.EventsTimestamp, func(t time.Time, idx int) *modelInputs.TraceEvent {
+		return &modelInputs.TraceEvent{
+			Timestamp: t,
+			Name:      result.EventsName[idx],
+			Attributes: lo.MapEntries(result.EventsAttributes[idx], func(k string, v string) (string, interface{}) {
+				return k, v
+			}),
+		}
+	})
+}
+
 func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID string) ([]*modelInputs.Trace, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "clickhouse.ReadTrace", util.Tag("projectID", projectID), util.Tag("traceID", traceID))
+	defer span.Finish()
+
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
 
 	sb.From(TracesByIdTable).
-		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, Environment, HasErrors, TraceAttributes, StatusCode, StatusMessage").
+		Select(SelectTraceColumns).
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(sb.Equal("TraceId", traceID))
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	span, _ := util.StartSpanFromContext(ctx, "traces", util.ResourceName("ReadTrace"))
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 	if err != nil {
@@ -401,16 +422,14 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 		return nil, err
 	}
 
-	span.Finish()
-
 	if len(traces) > 0 {
 		return traces, nil
 	}
 
-	span, _ = util.StartSpanFromContext(ctx, "traces", util.ResourceName("ReadTraceFallback"))
+	span.SetAttribute("mode", "fallback")
 
 	sb.From(TracesTable).
-		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, Environment, HasErrors, TraceAttributes, StatusCode, StatusMessage").
+		Select(SelectTraceColumns).
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(sb.Equal("TraceId", traceID)).
 		Where(sb.GE("Timestamp", time.Now().Add(-5*time.Minute))).
@@ -430,7 +449,6 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 		return nil, err
 	}
 
-	span.Finish()
 	return traces, nil
 }
 

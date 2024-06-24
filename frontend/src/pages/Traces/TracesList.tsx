@@ -158,7 +158,7 @@ export const TracesList: React.FC<Props> = ({
 	const columnData = useMemo(() => {
 		const gridColumns: string[] = []
 		const columnHeaders: ColumnHeader[] = []
-		const columns: ColumnDef<TraceEdge, any>[] = []
+		const columns: ColumnDef<TraceEdge, string>[] = []
 
 		selectedColumns.forEach((column, index) => {
 			const first = index === 0
@@ -173,24 +173,32 @@ export const TracesList: React.FC<Props> = ({
 				},
 			})
 
-			// @ts-ignore
-			const accessor = columnHelper.accessor(`node.${column.accessKey}`, {
-				cell: ({ row, getValue }) => {
-					const ColumnRenderer =
-						ColumnRenderers[column.type] || ColumnRenderers.string
+			columns.push(
+				columnHelper.accessor(
+					column.id === 'metric_name'
+						? (row) => row.node.events[0].attributes['metric.name']
+						: column.id === 'metric_value'
+						? (row) => row.node.events[0].attributes['metric.value']
+						: `node.${column.accessKey}`,
+					{
+						id: column.id,
+						cell: ({ row, getValue }) => {
+							const ColumnRenderer =
+								ColumnRenderers[column.type] ||
+								ColumnRenderers.string
 
-					return (
-						<ColumnRenderer
-							key={column.id}
-							row={row}
-							getValue={getValue}
-							first={first}
-						/>
-					)
-				},
-			})
-
-			columns.push(accessor)
+							return (
+								<ColumnRenderer
+									key={column.id}
+									row={row}
+									getValue={getValue}
+									first={first}
+								/>
+							)
+						},
+					},
+				),
+			)
 		})
 
 		// add custom column

@@ -289,9 +289,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							projectTraceMetrics[fields.projectID] = make(map[string][]*model.MetricInput)
 						}
 						projectTraceMetrics[fields.projectID][fields.sessionID] = append(projectTraceMetrics[fields.projectID][fields.sessionID], metric)
-					} else {
-						lg(ctx, fields).Warnf("otel received unknown event %s", event.Name())
 					}
+					// process unknown events as trace events
 				}
 
 				// skip logrus spans

@@ -4901,7 +4901,18 @@ export type GetTraceQuery = { __typename?: 'Query' } & {
 					| 'startTime'
 					| 'statusCode'
 					| 'statusMessage'
-				>
+				> & {
+						events?: Types.Maybe<
+							Array<
+								Types.Maybe<
+									{ __typename?: 'TraceEvent' } & Pick<
+										Types.TraceEvent,
+										'timestamp' | 'name' | 'attributes'
+									>
+								>
+							>
+						>
+					}
 			>
 			errors: Array<
 				{ __typename?: 'TraceError' } & Pick<
@@ -4954,7 +4965,18 @@ export type GetTracesQuery = { __typename?: 'Query' } & {
 						| 'traceAttributes'
 						| 'statusCode'
 						| 'statusMessage'
-					>
+					> & {
+							events?: Types.Maybe<
+								Array<
+									Types.Maybe<
+										{ __typename?: 'TraceEvent' } & Pick<
+											Types.TraceEvent,
+											'timestamp' | 'name' | 'attributes'
+										>
+									>
+								>
+							>
+						}
 				}
 		>
 		pageInfo: { __typename?: 'PageInfo' } & Pick<
