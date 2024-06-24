@@ -1,4 +1,5 @@
 import { Box, Callout, Stack, Table, Text } from '@highlight-run/ui/components'
+import { ColumnRenderers } from '@pages/Traces/CustomColumns/renderers'
 import useLocalStorage from '@rehooks/local-storage'
 import {
 	ColumnDef,
@@ -45,7 +46,6 @@ import {
 	DEFAULT_TRACE_COLUMNS,
 	HIGHLIGHT_STANDARD_COLUMNS,
 } from './CustomColumns/columns'
-import { ColumnRenderers } from './CustomColumns/renderers'
 
 type Props = {
 	loading: boolean
@@ -173,32 +173,34 @@ export const TracesList: React.FC<Props> = ({
 				},
 			})
 
-			columns.push(
-				columnHelper.accessor(
-					column.id === 'metric_name'
-						? (row) => row.node.events[0].attributes['metric.name']
-						: column.id === 'metric_value'
-						? (row) => row.node.events[0].attributes['metric.value']
-						: `node.${column.accessKey}`,
-					{
-						id: column.id,
-						cell: ({ row, getValue }) => {
-							const ColumnRenderer =
-								ColumnRenderers[column.type] ||
-								ColumnRenderers.string
+			const accessorFn =
+				column.id === 'metric_name'
+					? (row: TraceEdge) =>
+							row.node.events?.at(0)?.attributes['metric.name']
+					: column.id === 'metric_value'
+					? (row: TraceEdge) =>
+							row.node.events?.at(0)?.attributes['metric.value']
+					: `node.${column.accessKey}`
 
-							return (
-								<ColumnRenderer
-									key={column.id}
-									row={row}
-									getValue={getValue}
-									first={first}
-								/>
-							)
-						},
-					},
-				),
-			)
+			// @ts-ignore
+			const accessor = columnHelper.accessor(accessorFn, {
+				id: column.id,
+				cell: ({ row, getValue }) => {
+					const ColumnRenderer =
+						ColumnRenderers[column.type] || ColumnRenderers.string
+
+					return (
+						<ColumnRenderer
+							key={column.id}
+							row={row}
+							getValue={getValue}
+							first={first}
+						/>
+					)
+				},
+			})
+
+			columns.push(accessor)
 		})
 
 		// add custom column

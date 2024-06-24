@@ -106,8 +106,8 @@ const METRIC_NAME_COLUMN: TraceCustomColumn = {
 
 const METRIC_VALUE_COLUMN: TraceCustomColumn = {
 	id: 'metric_value',
-	label: 'Metric',
-	type: 'number',
+	label: 'Metric Value',
+	type: 'string',
 	size: '1fr',
 	accessKey: 'metric_value',
 }
