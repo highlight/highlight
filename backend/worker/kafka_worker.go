@@ -126,12 +126,26 @@ type KafkaWorker struct {
 	WorkerThread int
 }
 
+func (k *KafkaBatchWorker) log(ctx context.Context, fields log.Fields, msg ...interface{}) {
+	if k.lastPartitionId != nil {
+		return
+	}
+
+	partitionId := *k.lastPartitionId
+	if partitionId == 408 || partitionId == 58 || partitionId == 289 {
+		log.WithContext(ctx).
+			WithField("worker_name", k.Name).
+			WithField("partition", partitionId).
+			WithFields(fields).
+			Info(msg...)
+	}
+}
+
 func (k *KafkaBatchWorker) flush(ctx context.Context) error {
-	log.WithContext(ctx).WithFields(
-		log.Fields{
-			"worker_name":    k.Name,
-			"message_length": len(k.messages)},
-	).Info("KafkaBatchWorker flushing messages")
+	k.log(ctx, nil,
+		log.Fields{"message_length": len(k.messages)},
+		"KafkaBatchWorker flushing messages",
+	)
 
 	s, _ := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush", k.Name))
 	s.SetAttribute("BatchSize", len(k.messages))
@@ -196,16 +210,18 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 			log.WithContext(ctx).Errorf("unknown message type received by batch worker %+v", lastMsg.GetType())
 		}
 	}
-	log.WithContext(ctx).WithFields(
+
+	k.log(
+		ctx,
 		log.Fields{
-			"worker_name":       k.Name,
 			"session_ids":       syncSessionIds,
 			"error_group_ids":   syncErrorGroupIds,
 			"error_object_ids":  syncErrorObjectIds,
 			"log_rows_length":   len(logRows),
 			"trace_rows_length": len(traceRows),
 		},
-	).Info("KafkaBatchWorker organized messages")
+		"KafkaBatchWorker organized messages",
+	)
 
 	k.messages = []kafka_queue.RetryableMessage{}
 
@@ -443,21 +459,11 @@ func (k *KafkaBatchWorker) flushTraces(ctx context.Context, traceRows []*clickho
 func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, errorGroupIds []int, errorObjectIds []int) error {
 	sessionIdChunks := lo.Chunk(lo.Uniq(sessionIds), SessionsMaxRowsPostgres)
 	if len(sessionIdChunks) > 0 {
-		log.WithContext(ctx).WithFields(
-			log.Fields{
-				"worker_name": k.Name,
-				"session_ids": sessionIds,
-			},
-		).Info("KafkaBatchWorker flushing sessions")
+		k.log(ctx, log.Fields{"session_ids": sessionIds}, "KafkaBatchWorker flushing sessions")
 
 		allSessionObjs := []*model.Session{}
 		for _, chunk := range sessionIdChunks {
-			log.WithContext(ctx).WithFields(
-				log.Fields{
-					"worker_name": k.Name,
-					"session_ids": chunk,
-				},
-			).Info("KafkaBatchWorker flushing session chunk")
+			k.log(ctx, log.Fields{"session_ids": chunk}, "KafkaBatchWorker flushing session chunk")
 
 			sessionObjs := []*model.Session{}
 			sessionSpan, _ := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.readSessions", k.Name))
@@ -523,12 +529,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 
 		chSpan, _ := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.clickhouse", k.Name))
 
-		log.WithContext(ctx).WithFields(
-			log.Fields{
-				"worker_name":     k.Name,
-				"sessions_length": len(allSessionObjs),
-			},
-		).Info("KafkaBatchWorker writing sessions")
+		k.log(ctx, log.Fields{"sessions_length": len(allSessionObjs)}, "KafkaBatchWorker writing sessions")
 
 		err := k.Worker.PublicResolver.Clickhouse.WriteSessions(ctx, allSessionObjs)
 		defer chSpan.Finish(err)
@@ -540,21 +541,11 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 
 	errorGroupIdChunks := lo.Chunk(lo.Uniq(errorGroupIds), ErrorGroupsMaxRowsPostgres)
 	if len(errorGroupIdChunks) > 0 {
-		log.WithContext(ctx).WithFields(
-			log.Fields{
-				"worker_name":     k.Name,
-				"error_group_ids": errorGroupIds,
-			},
-		).Info("KafkaBatchWorker flushing error groups")
+		k.log(ctx, log.Fields{"error_group_ids": errorGroupIds}, "KafkaBatchWorker flushing error groups")
 
 		allErrorGroups := []*model.ErrorGroup{}
 		for _, chunk := range errorGroupIdChunks {
-			log.WithContext(ctx).WithFields(
-				log.Fields{
-					"worker_name":     k.Name,
-					"error_group_ids": chunk,
-				},
-			).Info("KafkaBatchWorker flushing error groups chunk")
+			k.log(ctx, log.Fields{"error_group_ids": chunk}, "KafkaBatchWorker flushing error groups chunk")
 
 			errorGroups := []*model.ErrorGroup{}
 			errorGroupSpan, _ := util.StartSpanFromContext(ctx, "worker.kafka.datasync.readErrorGroups")
@@ -568,12 +559,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 		}
 
 		chSpan, _ := util.StartSpanFromContext(ctx, "worker.kafka.datasync.writeClickhouse.errorGroups")
-		log.WithContext(ctx).WithFields(
-			log.Fields{
-				"worker_name":         k.Name,
-				"error_groups_length": len(allErrorGroups),
-			},
-		).Info("KafkaBatchWorker writing error groups")
+		k.log(ctx, log.Fields{"error_groups_length": len(allErrorGroups)}, "KafkaBatchWorker writing error groups")
 
 		if err := k.Worker.PublicResolver.Clickhouse.WriteErrorGroups(ctx, allErrorGroups); err != nil {
 			log.WithContext(ctx).Error(err)
@@ -584,21 +570,11 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 
 	errorObjectIdChunks := lo.Chunk(lo.Uniq(errorObjectIds), ErrorObjectsMaxRowsPostgres)
 	if len(errorObjectIdChunks) > 0 {
-		log.WithContext(ctx).WithFields(
-			log.Fields{
-				"worker_name":       k.Name,
-				"error_objects_ids": errorObjectIds,
-			},
-		).Info("KafkaBatchWorker flushing error objects")
+		k.log(ctx, log.Fields{"error_objects_ids": errorObjectIds}, "KafkaBatchWorker flushing error objects")
 
 		allErrorObjects := []*model.ErrorObject{}
 		for _, chunk := range errorObjectIdChunks {
-			log.WithContext(ctx).WithFields(
-				log.Fields{
-					"worker_name":       k.Name,
-					"error_objects_ids": chunk,
-				},
-			).Info("KafkaBatchWorker flushing error objects chunk")
+			k.log(ctx, log.Fields{"error_objects_ids": chunk}, "KafkaBatchWorker flushing error objects chunk")
 
 			errorObjects := []*model.ErrorObject{}
 			errorObjectSpan, _ := util.StartSpanFromContext(ctx, "worker.kafka.datasync.readErrorObjects")
@@ -632,13 +608,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 
 		chSpan, _ := util.StartSpanFromContext(ctx, "worker.kafka.datasync.writeClickhouse.errorObjects")
 
-		log.WithContext(ctx).WithFields(
-			log.Fields{
-				"worker_name":         k.Name,
-				"error_object_length": len(allErrorObjects),
-				"sessions_length":     len(allSessions),
-			},
-		).Info("KafkaBatchWorker writing error objects")
+		k.log(ctx, log.Fields{"error_object_length": len(allErrorObjects), "sessions_length": len(allSessions)}, "KafkaBatchWorker writing error objects")
 
 		if err := k.Worker.PublicResolver.Clickhouse.WriteErrorObjects(ctx, allErrorObjects, allSessions); err != nil {
 			log.WithContext(ctx).Error(err)
@@ -677,13 +647,9 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 				k.messages = append(k.messages, task)
 			}
 
-			log.WithContext(ctx).WithFields(
-				log.Fields{
-					"worker_name":    k.Name,
-					"last_flush":     k.lastFlush,
-					"message_length": len(k.messages),
-				},
-			).Info("KafkaBatchWorker received messages")
+			k.lastPartitionId = &task.GetKafkaMessage().Partition
+
+			k.log(ctx, log.Fields{"last_flush": k.lastFlush, "message_length": len(k.messages)}, "KafkaBatchWorker received messages")
 
 			if time.Since(k.lastFlush) > k.BatchedFlushTimeout || len(k.messages) >= k.BatchFlushSize {
 				s.SetAttribute("FlushDelay", time.Since(k.lastFlush).Seconds())
@@ -710,6 +676,7 @@ type KafkaBatchWorker struct {
 	Name                string
 	TracingDisabled     bool
 
-	lastFlush time.Time
-	messages  []kafkaqueue.RetryableMessage
+	lastFlush       time.Time
+	messages        []kafkaqueue.RetryableMessage
+	lastPartitionId *int
 }
