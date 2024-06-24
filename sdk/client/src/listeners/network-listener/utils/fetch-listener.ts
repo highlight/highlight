@@ -200,8 +200,8 @@ const logRequest = (
 
 export const getResponseBody = async (
 	response: Response,
-	bodyKeysToRecord: string[] = [],
-	bodyKeysToRedact: string[] = [],
+	bodyKeysToRecord: string[] | undefined,
+	bodyKeysToRedact: string[] | undefined,
 ) => {
 	let text: string
 	try {

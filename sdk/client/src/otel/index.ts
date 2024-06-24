@@ -39,10 +39,7 @@ import {
 } from '../listeners/network-listener/utils/utils'
 import { UserInteractionInstrumentation } from './user-interaction'
 import { parse } from 'graphql'
-import {
-	getFetchRequestProperties,
-	getResponseBody,
-} from '../listeners/network-listener/utils/fetch-listener'
+import { getResponseBody } from '../listeners/network-listener/utils/fetch-listener'
 
 export type BrowserTracingConfig = {
 	projectId: string | number
@@ -132,13 +129,10 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 					request,
 					response,
 				) => {
-					const { method, url } = getFetchRequestProperties(
-						request as Request,
-						request,
-					)
+					const url = (span as any).attributes['http.url']
+					const method = request.method ?? 'GET'
 
 					span.updateName(getSpanName(url, method, request.body))
-					debugger
 
 					if (!(response instanceof Response)) {
 						span.setAttributes({
@@ -155,13 +149,12 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 						config.networkRecordingOptions,
 					)
 
-					const body = await getResponseBody(response)
-					enhanceSpanWithHttpResponseAttributes(
-						span,
-						body,
-						response.headers,
-						config.networkRecordingOptions,
+					const body = await getResponseBody(
+						response,
+						config.networkRecordingOptions?.bodyKeysToRecord,
+						config.networkRecordingOptions?.networkBodyKeysToRedact,
 					)
+					span.setAttribute('http.response.body', body)
 				},
 			}),
 			new XMLHttpRequestInstrumentation({
@@ -184,12 +177,14 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 						browserXhr._requestHeaders as Headers,
 						config.networkRecordingOptions,
 					)
-					enhanceSpanWithHttpResponseAttributes(
-						span,
+
+					const recordedBody = getBodyThatShouldBeRecorded(
 						browserXhr._body,
-						xhr.getAllResponseHeaders(),
-						config.networkRecordingOptions,
+						config.networkRecordingOptions?.networkBodyKeysToRedact,
+						config.networkRecordingOptions?.bodyKeysToRecord,
+						browserXhr._requestHeaders as Headers,
 					)
+					span.setAttribute('http.request.body', recordedBody)
 				},
 			}),
 		],
@@ -305,72 +300,31 @@ const enhanceSpanWithHttpRequestAttributes = (
 		| ReturnType<XMLHttpRequest['getAllResponseHeaders']>,
 	networkRecordingOptions?: NetworkRecordingOptions,
 ) => {
-	let parsedBody
+	const stringBody = typeof body === 'string' ? body : String(body)
 
+	let parsedBody
 	try {
-		parsedBody = body ? JSON.parse(String(body)) : undefined
+		parsedBody = body ? JSON.parse(stringBody) : undefined
+
+		if (parsedBody.operationName) {
+			span.setAttribute(
+				'graphql.operation.name',
+				parsedBody.operationName,
+			)
+		}
 	} catch {
 		// Ignore
 	}
 
-	if (parsedBody) {
-		try {
-			setObjectAttributes(span, parsedBody, 'http.request.body')
-
-			if (parsedBody.operationName) {
-				span.setAttributes({
-					'graphql.operation.name': parsedBody.operationName,
-				})
-			}
-		} catch {
-			// Ignore
-		}
-	}
-
 	const sanitizedHeaders = sanitizeHeaders(
-		networkRecordingOptions?.networkHeadersToRedact ?? [''],
+		networkRecordingOptions?.networkHeadersToRedact ?? [],
 		headers as Headers,
 		networkRecordingOptions?.headerKeysToRecord,
 	)
 
-	span.setAttribute('highlight.type', 'http.request')
-	span.setAttribute('http.request.headers', JSON.stringify(sanitizedHeaders))
-}
-
-const enhanceSpanWithHttpResponseAttributes = (
-	span: api.Span,
-	body: Request['body'] | Response['body'] | XMLHttpRequest['responseText'],
-	headers: Headers | string,
-	networkRecordingOptions?: NetworkRecordingOptions,
-) => {
-	let parsedBody
-	span.setAttribute('highlight.response', 'true')
-
-	try {
-		parsedBody = typeof body === 'string' ? JSON.parse(body) : body
-	} catch {
-		// Ignore
-	}
-
-	const recordedBody = getBodyThatShouldBeRecorded(
-		parsedBody,
-		networkRecordingOptions?.networkBodyKeysToRedact,
-		networkRecordingOptions?.bodyKeysToRecord,
-		headers as Headers,
-	)
-
-	// TODO: We don't seem to be able to access this sometimes. Figure out why.
 	span.setAttributes({
-		'http.response.body': recordedBody,
+		'highlight.type': 'http.request',
+		'http.request.headers': JSON.stringify(sanitizedHeaders),
+		'http.request.body': stringBody,
 	})
-}
-
-function setObjectAttributes(span: api.Span, body: any, prefix: string) {
-	for (const key in body) {
-		if (typeof body[key] === 'object' && body[key] !== null) {
-			setObjectAttributes(span, body[key], `${prefix}.${key}`)
-		} else {
-			span.setAttribute(`${prefix}.${key}`, JSON.stringify(body[key]))
-		}
-	}
 }
