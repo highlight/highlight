@@ -41,7 +41,6 @@ import (
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	delete_handlers "github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/handlers"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
-
 	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/phonehome"
