@@ -33,7 +33,7 @@
 	"scripts": {
 		"build:all": "yarn turbo run build",
 		"build:backend": "cd backend && go build",
-		"build:frontend": "yarn turbo run build --filter frontend...",
+		"build:frontend": "yarn turbo run build --filter @highlight-run/frontend...",
 		"build:sdk": "yarn turbo run build --filter highlight.run --filter @highlight-run/client --filter @highlight-run/cloudflare --filter @highlight-run/react --filter @highlight-run/apollo... --filter @highlight-run/next... --filter @highlight-run/nest... --filter @highlight-run/pino... --filter @highlight-run/remix...",
 		"cy:run": "cypress run",
 		"cy:run:chrome": "cypress run --headed --browser chrome",
@@ -41,7 +41,7 @@
 		"dev": "run-p --print-label --race 'dev:*'",
 		"dev:backend": "cd backend && make start",
 		"dev:components": "yarn turbo run dev --filter @highlight-run/component-preview...",
-		"dev:frontend": "doppler run -- yarn turbo run dev --concurrency 32 --filter frontend... --filter=!rrweb... --filter=!@highlight-run/ui...",
+		"dev:frontend": "doppler run -- yarn turbo run dev --concurrency 32 --filter @highlight-run/frontend... --filter=!rrweb... --filter=!@highlight-run/ui...",
 		"dev:highlight.io": "doppler run -- yarn turbo run dev --filter highlight.io",
 		"dev:ui": "yarn turbo run dev --filter @highlight-run/ui...",
 		"dev:watch": "yarn turbo run dev:watch --concurrency=30",
@@ -52,13 +52,13 @@
 		"reflame-build": "cd frontend && yarn reflame-build",
 		"reflame-check": "./scripts/reflame-check.sh",
 		"dev:redis": "redis-server",
-		"docker:frontend": "yarn turbo run dev --filter frontend --filter highlight.run --filter @highlight-run/client",
+		"docker:frontend": "yarn turbo run dev --filter @highlight-run/frontend --filter highlight.run --filter @highlight-run/client",
 		"e2e:cloudflare": "yarn turbo run dev --filter cloudflare-worker...",
 		"e2e:express": "yarn turbo run dev --filter express...",
 		"e2e:nestjs": "yarn turbo run dev --filter nestjs",
 		"e2e:nextjs": "yarn turbo run dev --filter nextjs... --filter=!@highlight-run/client --filter=!highlight.run --filter=!@highlight-run/opentelemetry-sdk-workers",
 		"e2e:remix": "yarn turbo run dev --filter remix...",
-		"enforce-size": "yarn turbo run enforce-size --filter frontend...",
+		"enforce-size": "yarn turbo run enforce-size --filter @highlight-run/frontend...",
 		"format-check": "prettier --check --ignore-unknown .",
 		"format:all": "prettier --write --ignore-unknown .",
 		"frontend:start": "yarn dev:frontend",
@@ -78,7 +78,7 @@
 		"test:all": "yarn turbo run test --filter=!render --filter=!rrweb --filter=!@rrweb/types --filter=!rrweb-snapshot --filter=!rrweb-player --filter=!rrdom --filter=!rrdom-nodejs --filter=!nextjs",
 		"test:render": "yarn turbo run test --filter=render",
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps",
-		"knip:frontend": "knip --workspace frontend"
+		"knip:frontend": "knip --workspace @highlight-run/frontend"
 	},
 	"dependencies": {
 		"@changesets/cli": "^2.26.2",
