@@ -127,12 +127,12 @@ type KafkaWorker struct {
 }
 
 func (k *KafkaBatchWorker) log(ctx context.Context, fields log.Fields, msg ...interface{}) {
-	if k.lastPartitionId != nil {
+	if k.lastPartitionId == nil {
 		return
 	}
 
 	partitionId := *k.lastPartitionId
-	if partitionId == 408 || partitionId == 58 || partitionId == 289 {
+	if partitionId%25 == 0 {
 		log.WithContext(ctx).
 			WithField("worker_name", k.Name).
 			WithField("partition", partitionId).
