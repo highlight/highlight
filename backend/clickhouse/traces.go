@@ -3,27 +3,20 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"github.com/samber/lo"
 	"strings"
 	"time"
 
-	"github.com/openlyinc/pointy"
-
-	"github.com/highlight-run/highlight/backend/parser/listener"
-
-	"github.com/highlight/highlight/sdk/highlight-go"
-
-	"golang.org/x/exp/slices"
-
-	"github.com/highlight-run/highlight/backend/model"
-
-	"github.com/huandu/go-sqlbuilder"
-	e "github.com/pkg/errors"
-
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
-
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/parser/listener"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/huandu/go-sqlbuilder"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	"github.com/samber/lo"
+	"golang.org/x/exp/slices"
 )
 
 const TracesTable = "traces"
