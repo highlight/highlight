@@ -424,11 +424,7 @@ func TestResolver_GetAIQuerySuggestion(t *testing.T) {
 		},
 		"irrelevant query": {
 			productType: modelInputs.ProductTypeLogs,
-<<<<<<< HEAD
-			query:       openai_interface.IrrelevantQuery,
-=======
 			query:       openai_client.IrrelevantQuery,
->>>>>>> main
 		},
 		"empty query": {
 			productType: modelInputs.ProductTypeLogs,
@@ -445,11 +441,7 @@ func TestResolver_GetAIQuerySuggestion(t *testing.T) {
 				DB:               DB,
 				Redis:            redis.NewClient(),
 				ClickhouseClient: clickhouseClient,
-<<<<<<< HEAD
-				OpenAiInterface:  &openai_interface.OpenAiTestImpl{},
-=======
 				OpenAiClient:     &OpenAiTestImpl{},
->>>>>>> main
 			},
 			}
 			ctx := context.WithValue(context.Background(), model.ContextKeys.UID, "abc")
@@ -477,11 +469,7 @@ func TestResolver_GetAIQuerySuggestion(t *testing.T) {
 			out, err := r.AiQuerySuggestion(ctx, "America/New_York", p.ID, v.productType, v.query)
 
 			if err != nil {
-<<<<<<< HEAD
-				if (v.query == openai_interface.IrrelevantQuery || v.query == "") && err.Error() == openai_interface.MalformedPromptError.Error() {
-=======
 				if (v.query == openai_client.IrrelevantQuery || v.query == "") && err.Error() == openai_client.MalformedPromptError.Error() {
->>>>>>> main
 					t.Logf("successful malformed handling of output \n %+v", err.Error())
 				} else {
 					t.Fatalf("error in query suggestion %+v", err)
