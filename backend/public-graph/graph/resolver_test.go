@@ -465,7 +465,7 @@ func TestUpdatingErrorState(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, errorGroup.State, privateModel.ErrorStateOpen)
 
-		err = resolver.Store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
+		_, err = resolver.Store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
 			ID:    errorGroup.ID,
 			State: privateModel.ErrorStateResolved,
 		})
@@ -481,7 +481,7 @@ func TestUpdatingErrorState(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, errorGroup.State, privateModel.ErrorStateOpen)
 
-		err = resolver.Store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
+		_, err = resolver.Store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
 			ID:    errorGroup.ID,
 			State: privateModel.ErrorStateIgnored,
 		})
