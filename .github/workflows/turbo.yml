@@ -16,7 +16,21 @@ jobs:
         env:
             TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
             TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
-
+        services:
+            # used by the render lambda test
+            postgres:
+                image: ankane/pgvector
+                env:
+                    POSTGRES_PASSWORD: default
+                    POSTGRES_USER: postgres
+                    POSTGRES_DB: postgres
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5432:5432
         steps:
             - name: Checkout
               uses: actions/checkout@v4

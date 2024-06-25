@@ -80,7 +80,7 @@
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps",
 		"knip:frontend": "knip --workspace @highlight-run/frontend"
 	},
-	"dependencies": {
+	"devDependencies": {
 		"@changesets/cli": "^2.26.2",
 		"@types/node": "^20.12.12",
 		"@typescript-eslint/eslint-plugin": "^6.1.0",
