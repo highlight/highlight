@@ -14379,6 +14379,11 @@ export const GetTraceDocument = gql`
 				startTime
 				statusCode
 				statusMessage
+				events {
+					timestamp
+					name
+					attributes
+				}
 			}
 			errors {
 				created_at
@@ -14481,6 +14486,11 @@ export const GetTracesDocument = gql`
 					traceAttributes
 					statusCode
 					statusMessage
+					events {
+						timestamp
+						name
+						attributes
+					}
 				}
 			}
 			pageInfo {
