@@ -21,15 +21,118 @@ var NodeType$2 = /* @__PURE__ */ ((NodeType2) => {
   NodeType2[NodeType2["Comment"] = 5] = "Comment";
   return NodeType2;
 })(NodeType$2 || {});
+var testableAccessors$1 = {
+  Node: ["childNodes", "parentNode", "parentElement", "textContent"],
+  ShadowRoot: ["host", "styleSheets"],
+  Element: ["shadowRoot", "querySelector", "querySelectorAll"],
+  MutationObserver: []
+};
+var testableMethods$1 = {
+  Node: ["contains", "getRootNode"],
+  ShadowRoot: ["getSelection"],
+  Element: [],
+  MutationObserver: ["constructor"]
+};
+var untaintedBasePrototype$1 = {};
+function getUntaintedPrototype$1(key) {
+  if (untaintedBasePrototype$1[key])
+    return untaintedBasePrototype$1[key];
+  const defaultObj = globalThis[key];
+  const defaultPrototype = defaultObj.prototype;
+  const accessorNames = key in testableAccessors$1 ? testableAccessors$1[key] : void 0;
+  const isUntaintedAccessors = Boolean(
+    accessorNames && // @ts-expect-error 2345
+    accessorNames.every(
+      (accessor) => {
+        var _a2, _b;
+        return Boolean(
+          (_b = (_a2 = Object.getOwnPropertyDescriptor(defaultPrototype, accessor)) == null ? void 0 : _a2.get) == null ? void 0 : _b.toString().includes("[native code]")
+        );
+      }
+    )
+  );
+  const methodNames = key in testableMethods$1 ? testableMethods$1[key] : void 0;
+  const isUntaintedMethods = Boolean(
+    methodNames && methodNames.every(
+      // @ts-expect-error 2345
+      (method) => {
+        var _a2;
+        return typeof defaultPrototype[method] === "function" && ((_a2 = defaultPrototype[method]) == null ? void 0 : _a2.toString().includes("[native code]"));
+      }
+    )
+  );
+  if (isUntaintedAccessors && isUntaintedMethods) {
+    untaintedBasePrototype$1[key] = defaultObj.prototype;
+    return defaultObj.prototype;
+  }
+  try {
+    const iframeEl = document.createElement("iframe");
+    document.body.appendChild(iframeEl);
+    const win = iframeEl.contentWindow;
+    if (!win)
+      return defaultObj.prototype;
+    const untaintedObject = win[key].prototype;
+    document.body.removeChild(iframeEl);
+    if (!untaintedObject)
+      return defaultPrototype;
+    return untaintedBasePrototype$1[key] = untaintedObject;
+  } catch {
+    return defaultPrototype;
+  }
+}
+var untaintedAccessorCache$1 = {};
+function getUntaintedAccessor$1(key, instance, accessor) {
+  var _a2;
+  const cacheKey = `${key}.${String(accessor)}`;
+  if (untaintedAccessorCache$1[cacheKey])
+    return untaintedAccessorCache$1[cacheKey].call(
+      instance
+    );
+  const untaintedPrototype = getUntaintedPrototype$1(key);
+  const untaintedAccessor = (_a2 = Object.getOwnPropertyDescriptor(
+    untaintedPrototype,
+    accessor
+  )) == null ? void 0 : _a2.get;
+  if (!untaintedAccessor)
+    return instance[accessor];
+  untaintedAccessorCache$1[cacheKey] = untaintedAccessor;
+  return untaintedAccessor.call(instance);
+}
+function childNodes$1(n2) {
+  return getUntaintedAccessor$1("Node", n2, "childNodes");
+}
+function parentNode$1(n2) {
+  return getUntaintedAccessor$1("Node", n2, "parentNode");
+}
+function parentElement$1(n2) {
+  return getUntaintedAccessor$1("Node", n2, "parentElement");
+}
+function textContent$1(n2) {
+  return getUntaintedAccessor$1("Node", n2, "textContent");
+}
+function host$1(n2) {
+  if (!n2 || !("host" in n2))
+    return null;
+  return getUntaintedAccessor$1("ShadowRoot", n2, "host");
+}
+function shadowRoot$1(n2) {
+  if (!n2 || !("shadowRoot" in n2))
+    return null;
+  return getUntaintedAccessor$1("Element", n2, "shadowRoot");
+}
 function isElement(n2) {
   return n2.nodeType === n2.ELEMENT_NODE;
 }
 function isShadowRoot(n2) {
-  const host = n2 == null ? void 0 : n2.host;
-  return Boolean((host == null ? void 0 : host.shadowRoot) === n2);
+  const hostEl = (
+    // anchor and textarea elements also have a `host` property
+    // but only shadow roots have a `mode` property
+    n2 && "host" in n2 && "mode" in n2 && host$1(n2) || null
+  );
+  return Boolean(hostEl && "shadowRoot" in hostEl && shadowRoot$1(hostEl) === n2);
 }
-function isNativeShadowDom(shadowRoot) {
-  return Object.prototype.toString.call(shadowRoot) === "[object ShadowRoot]";
+function isNativeShadowDom(shadowRoot2) {
+  return Object.prototype.toString.call(shadowRoot2) === "[object ShadowRoot]";
 }
 function fixBrowserCompatibilityIssuesInCSS(cssText) {
   if (cssText.includes(" background-clip: text;") && !cssText.includes(" -webkit-background-clip: text;")) {
@@ -476,7 +579,7 @@ function classMatchesRegex(node, regex, checkAncestors) {
   if (node.nodeType !== node.ELEMENT_NODE) {
     if (!checkAncestors)
       return false;
-    return classMatchesRegex(node.parentNode, regex, checkAncestors);
+    return classMatchesRegex(parentNode$1(node), regex, checkAncestors);
   }
   for (let eIndex = node.classList.length; eIndex--; ) {
     const className = node.classList[eIndex];
@@ -486,19 +589,19 @@ function classMatchesRegex(node, regex, checkAncestors) {
   }
   if (!checkAncestors)
     return false;
-  return classMatchesRegex(node.parentNode, regex, checkAncestors);
+  return classMatchesRegex(parentNode$1(node), regex, checkAncestors);
 }
 function needMaskingText(node, maskTextClass, maskTextSelector, checkAncestors) {
   let el;
   if (isElement(node)) {
     el = node;
-    if (!el.childNodes.length) {
+    if (!childNodes$1(el).length) {
       return false;
     }
-  } else if (node.parentElement === null) {
+  } else if (parentElement$1(node) === null) {
     return false;
   } else {
-    el = node.parentElement;
+    el = parentElement$1(node);
   }
   try {
     if (typeof maskTextClass === "string") {
@@ -658,7 +761,7 @@ function serializeNode(n2, options) {
     case n2.COMMENT_NODE:
       return {
         type: NodeType$2.Comment,
-        textContent: n2.textContent || "",
+        textContent: textContent$1(n2) || "",
         rootId
       };
     default:
@@ -679,18 +782,17 @@ function serializeTextNode(n2, options) {
     privacySetting,
     rootId
   } = options;
-  const parentTagName = n2.parentNode && n2.parentNode.tagName;
-  let textContent = n2.textContent;
+  const parent = parentNode$1(n2);
+  const parentTagName = parent && parent.tagName;
+  let text = textContent$1(n2);
   const isStyle = parentTagName === "STYLE" ? true : void 0;
   const isScript = parentTagName === "SCRIPT" ? true : void 0;
   let textContentHandled = false;
-  if (isStyle && textContent) {
+  if (isStyle && text) {
     try {
       if (n2.nextSibling || n2.previousSibling) {
-      } else if ((_a2 = n2.parentNode.sheet) == null ? void 0 : _a2.cssRules) {
-        textContent = stringifyStylesheet(
-          n2.parentNode.sheet
-        );
+      } else if ((_a2 = parent.sheet) == null ? void 0 : _a2.cssRules) {
+        text = stringifyStylesheet(parent.sheet);
       }
     } catch (err) {
       console.warn(
@@ -698,22 +800,22 @@ function serializeTextNode(n2, options) {
         n2
       );
     }
-    textContent = absoluteToStylesheet(textContent, getHref(options.doc));
+    text = absoluteToStylesheet(text, getHref(options.doc));
     textContentHandled = true;
   }
   if (isScript) {
-    textContent = "SCRIPT_PLACEHOLDER";
+    text = "SCRIPT_PLACEHOLDER";
     textContentHandled = true;
   } else if (parentTagName === "NOSCRIPT") {
-    textContent = "";
+    text = "";
     textContentHandled = true;
   }
-  if (!isStyle && !isScript && textContent && needsMask) {
-    textContent = maskTextFn ? maskTextFn(textContent, n2.parentElement) : textContent.replace(/[\S]/g, "*");
+  if (!isStyle && !isScript && text && needsMask) {
+    text = maskTextFn ? maskTextFn(text, parentElement$1(n2)) : text.replace(/[\S]/g, "*");
   }
   const enableStrictPrivacy = privacySetting === "strict";
   const highlightOverwriteRecord = (_b = n2.parentElement) == null ? void 0 : _b.getAttribute("data-hl-record");
-  const obfuscateDefaultPrivacy = privacySetting === "default" && shouldObfuscateTextByDefault(textContent);
+  const obfuscateDefaultPrivacy = privacySetting === "default" && shouldObfuscateTextByDefault(text);
   if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && !highlightOverwriteRecord && !textContentHandled && parentTagName) {
     const IGNORE_TAG_NAMES = /* @__PURE__ */ new Set([
       "HEAD",
@@ -724,13 +826,13 @@ function serializeTextNode(n2, options) {
       "BODY",
       "NOSCRIPT"
     ]);
-    if (!IGNORE_TAG_NAMES.has(parentTagName) && textContent) {
-      textContent = obfuscateText(textContent);
+    if (!IGNORE_TAG_NAMES.has(parentTagName) && text) {
+      text = obfuscateText(text);
     }
   }
   return {
     type: NodeType$2.Text,
-    textContent: textContent || "",
+    textContent: text || "",
     isStyle,
     rootId
   };
@@ -784,7 +886,7 @@ function serializeElementNode(n2, options) {
     }
   }
   if (tagName === "style" && n2.sheet && // TODO: Currently we only try to get dynamic stylesheet when it is an empty style element
-  !(n2.innerText || n2.textContent || "").trim().length) {
+  !(n2.innerText || textContent$1(n2) || "").trim().length) {
     const cssText = stringifyStylesheet(
       n2.sheet
     );
@@ -1074,8 +1176,8 @@ function serializeNodeWithId(n2, options) {
     }
     delete serializedNode.needBlock;
     delete serializedNode.needMask;
-    const shadowRoot = n2.shadowRoot;
-    if (shadowRoot && isNativeShadowDom(shadowRoot))
+    const shadowRootEl = shadowRoot$1(n2);
+    if (shadowRootEl && isNativeShadowDom(shadowRootEl))
       serializedNode.isShadowHost = true;
   }
   if ((serializedNode.type === NodeType$2.Document || serializedNode.type === NodeType$2.Element) && recordChild) {
@@ -1111,24 +1213,26 @@ function serializeNodeWithId(n2, options) {
     if (serializedNode.type === NodeType$2.Element && serializedNode.tagName === "textarea" && serializedNode.attributes.value !== void 0)
       ;
     else {
-      for (const childN of Array.from(n2.childNodes)) {
+      for (const childN of Array.from(childNodes$1(n2))) {
         const serializedChildNode = serializeNodeWithId(childN, bypassOptions);
         if (serializedChildNode) {
           serializedNode.childNodes.push(serializedChildNode);
         }
       }
     }
-    if (isElement(n2) && n2.shadowRoot) {
-      for (const childN of Array.from(n2.shadowRoot.childNodes)) {
+    let shadowRootEl = null;
+    if (isElement(n2) && (shadowRootEl = shadowRoot$1(n2))) {
+      for (const childN of Array.from(childNodes$1(shadowRootEl))) {
         const serializedChildNode = serializeNodeWithId(childN, bypassOptions);
         if (serializedChildNode) {
-          isNativeShadowDom(n2.shadowRoot) && (serializedChildNode.isShadow = true);
+          isNativeShadowDom(shadowRootEl) && (serializedChildNode.isShadow = true);
           serializedNode.childNodes.push(serializedChildNode);
         }
       }
     }
   }
-  if (n2.parentNode && isShadowRoot(n2.parentNode) && isNativeShadowDom(n2.parentNode)) {
+  const parent = parentNode$1(n2);
+  if (parent && isShadowRoot(parent) && isNativeShadowDom(parent)) {
     serializedNode.isShadow = true;
   }
   if (serializedNode.type === NodeType$2.Element && serializedNode.tagName === "iframe") {
@@ -2197,6 +2301,1452 @@ function rebuild(n2, options) {
   });
   return node;
 }
+var __defProp2 = Object.defineProperty;
+var __defNormalProp2 = (obj, key, value) => key in obj ? __defProp2(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField2 = (obj, key, value) => {
+  __defNormalProp2(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
+var __defProp22 = Object.defineProperty;
+var __defNormalProp22 = (obj, key, value) => key in obj ? __defProp22(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField22 = (obj, key, value) => {
+  __defNormalProp22(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
+var NodeType$1 = /* @__PURE__ */ ((NodeType2) => {
+  NodeType2[NodeType2["Document"] = 0] = "Document";
+  NodeType2[NodeType2["DocumentType"] = 1] = "DocumentType";
+  NodeType2[NodeType2["Element"] = 2] = "Element";
+  NodeType2[NodeType2["Text"] = 3] = "Text";
+  NodeType2[NodeType2["CDATA"] = 4] = "CDATA";
+  NodeType2[NodeType2["Comment"] = 5] = "Comment";
+  return NodeType2;
+})(NodeType$1 || {});
+var Mirror$1 = class Mirror2 {
+  constructor() {
+    __publicField22(this, "idNodeMap", /* @__PURE__ */ new Map());
+    __publicField22(this, "nodeMetaMap", /* @__PURE__ */ new WeakMap());
+  }
+  getId(n2) {
+    var _a2;
+    if (!n2)
+      return -1;
+    const id = (_a2 = this.getMeta(n2)) == null ? void 0 : _a2.id;
+    return id ?? -1;
+  }
+  getNode(id) {
+    return this.idNodeMap.get(id) || null;
+  }
+  getIds() {
+    return Array.from(this.idNodeMap.keys());
+  }
+  getMeta(n2) {
+    return this.nodeMetaMap.get(n2) || null;
+  }
+  // removes the node from idNodeMap
+  // doesn't remove the node from nodeMetaMap
+  removeNodeFromMap(n2) {
+    const id = this.getId(n2);
+    this.idNodeMap.delete(id);
+    if (n2.childNodes) {
+      n2.childNodes.forEach(
+        (childNode) => this.removeNodeFromMap(childNode)
+      );
+    }
+  }
+  has(id) {
+    return this.idNodeMap.has(id);
+  }
+  hasNode(node) {
+    return this.nodeMetaMap.has(node);
+  }
+  add(n2, meta) {
+    const id = meta.id;
+    this.idNodeMap.set(id, n2);
+    this.nodeMetaMap.set(n2, meta);
+  }
+  replace(id, n2) {
+    const oldNode = this.getNode(id);
+    if (oldNode) {
+      const meta = this.nodeMetaMap.get(oldNode);
+      if (meta)
+        this.nodeMetaMap.set(n2, meta);
+    }
+    this.idNodeMap.set(id, n2);
+  }
+  reset() {
+    this.idNodeMap = /* @__PURE__ */ new Map();
+    this.nodeMetaMap = /* @__PURE__ */ new WeakMap();
+  }
+};
+function createMirror$1() {
+  return new Mirror$1();
+}
+function parseCSSText(cssText) {
+  const res = {};
+  const listDelimiter = /;(?![^(]*\))/g;
+  const propertyDelimiter = /:(.+)/;
+  const comment = /\/\*.*?\*\//g;
+  cssText.replace(comment, "").split(listDelimiter).forEach(function(item) {
+    if (item) {
+      const tmp = item.split(propertyDelimiter);
+      tmp.length > 1 && (res[camelize(tmp[0].trim())] = tmp[1].trim());
+    }
+  });
+  return res;
+}
+function toCSSText(style) {
+  const properties = [];
+  for (const name in style) {
+    const value = style[name];
+    if (typeof value !== "string")
+      continue;
+    const normalizedName = hyphenate(name);
+    properties.push(`${normalizedName}: ${value};`);
+  }
+  return properties.join(" ");
+}
+var camelizeRE = /-([a-z])/g;
+var CUSTOM_PROPERTY_REGEX = /^--[a-zA-Z0-9-]+$/;
+var camelize = (str) => {
+  if (CUSTOM_PROPERTY_REGEX.test(str))
+    return str;
+  return str.replace(camelizeRE, (_, c2) => c2 ? c2.toUpperCase() : "");
+};
+var hyphenateRE = /\B([A-Z])/g;
+var hyphenate = (str) => {
+  return str.replace(hyphenateRE, "-$1").toLowerCase();
+};
+var BaseRRNode = class _BaseRRNode {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+  constructor(..._args) {
+    __publicField2(this, "parentElement", null);
+    __publicField2(this, "parentNode", null);
+    __publicField2(this, "ownerDocument");
+    __publicField2(this, "firstChild", null);
+    __publicField2(this, "lastChild", null);
+    __publicField2(this, "previousSibling", null);
+    __publicField2(this, "nextSibling", null);
+    __publicField2(this, "ELEMENT_NODE", 1);
+    __publicField2(this, "TEXT_NODE", 3);
+    __publicField2(this, "nodeType");
+    __publicField2(this, "nodeName");
+    __publicField2(this, "RRNodeType");
+  }
+  get childNodes() {
+    const childNodes2 = [];
+    let childIterator = this.firstChild;
+    while (childIterator) {
+      childNodes2.push(childIterator);
+      childIterator = childIterator.nextSibling;
+    }
+    return childNodes2;
+  }
+  contains(node) {
+    if (!(node instanceof _BaseRRNode))
+      return false;
+    else if (node.ownerDocument !== this.ownerDocument)
+      return false;
+    else if (node === this)
+      return true;
+    while (node.parentNode) {
+      if (node.parentNode === this)
+        return true;
+      node = node.parentNode;
+    }
+    return false;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  appendChild(_newChild) {
+    throw new Error(
+      `RRDomException: Failed to execute 'appendChild' on 'RRNode': This RRNode type does not support this method.`
+    );
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  insertBefore(_newChild, _refChild) {
+    throw new Error(
+      `RRDomException: Failed to execute 'insertBefore' on 'RRNode': This RRNode type does not support this method.`
+    );
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  removeChild(_node) {
+    throw new Error(
+      `RRDomException: Failed to execute 'removeChild' on 'RRNode': This RRNode type does not support this method.`
+    );
+  }
+  toString() {
+    return "RRNode";
+  }
+};
+var BaseRRDocument = class _BaseRRDocument extends BaseRRNode {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(...args) {
+    super(args);
+    __publicField2(this, "nodeType", 9);
+    __publicField2(this, "nodeName", "#document");
+    __publicField2(this, "compatMode", "CSS1Compat");
+    __publicField2(this, "RRNodeType", NodeType$1.Document);
+    __publicField2(this, "textContent", null);
+    this.ownerDocument = this;
+  }
+  get documentElement() {
+    return this.childNodes.find(
+      (node) => node.RRNodeType === NodeType$1.Element && node.tagName === "HTML"
+    ) || null;
+  }
+  get body() {
+    var _a2;
+    return ((_a2 = this.documentElement) == null ? void 0 : _a2.childNodes.find(
+      (node) => node.RRNodeType === NodeType$1.Element && node.tagName === "BODY"
+    )) || null;
+  }
+  get head() {
+    var _a2;
+    return ((_a2 = this.documentElement) == null ? void 0 : _a2.childNodes.find(
+      (node) => node.RRNodeType === NodeType$1.Element && node.tagName === "HEAD"
+    )) || null;
+  }
+  get implementation() {
+    return this;
+  }
+  get firstElementChild() {
+    return this.documentElement;
+  }
+  appendChild(newChild) {
+    const nodeType = newChild.RRNodeType;
+    if (nodeType === NodeType$1.Element || nodeType === NodeType$1.DocumentType) {
+      if (this.childNodes.some((s2) => s2.RRNodeType === nodeType)) {
+        throw new Error(
+          `RRDomException: Failed to execute 'appendChild' on 'RRNode': Only one ${nodeType === NodeType$1.Element ? "RRElement" : "RRDoctype"} on RRDocument allowed.`
+        );
+      }
+    }
+    const child = appendChild(this, newChild);
+    child.parentElement = null;
+    return child;
+  }
+  insertBefore(newChild, refChild) {
+    const nodeType = newChild.RRNodeType;
+    if (nodeType === NodeType$1.Element || nodeType === NodeType$1.DocumentType) {
+      if (this.childNodes.some((s2) => s2.RRNodeType === nodeType)) {
+        throw new Error(
+          `RRDomException: Failed to execute 'insertBefore' on 'RRNode': Only one ${nodeType === NodeType$1.Element ? "RRElement" : "RRDoctype"} on RRDocument allowed.`
+        );
+      }
+    }
+    const child = insertBefore(this, newChild, refChild);
+    child.parentElement = null;
+    return child;
+  }
+  removeChild(node) {
+    return removeChild(this, node);
+  }
+  open() {
+    this.firstChild = null;
+    this.lastChild = null;
+  }
+  close() {
+  }
+  /**
+   * Adhoc implementation for setting xhtml namespace in rebuilt.ts (rrweb-snapshot).
+   * There are two lines used this function:
+   * 1. doc.write('\<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ""\>')
+   * 2. doc.write('\<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" ""\>')
+   */
+  write(content) {
+    let publicId;
+    if (content === '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "">')
+      publicId = "-//W3C//DTD XHTML 1.0 Transitional//EN";
+    else if (content === '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "">')
+      publicId = "-//W3C//DTD HTML 4.0 Transitional//EN";
+    if (publicId) {
+      const doctype = this.createDocumentType("html", publicId, "");
+      this.open();
+      this.appendChild(doctype);
+    }
+  }
+  createDocument(_namespace, _qualifiedName, _doctype) {
+    return new _BaseRRDocument();
+  }
+  createDocumentType(qualifiedName, publicId, systemId) {
+    const doctype = new BaseRRDocumentType(qualifiedName, publicId, systemId);
+    doctype.ownerDocument = this;
+    return doctype;
+  }
+  createElement(tagName) {
+    const element = new BaseRRElement(tagName);
+    element.ownerDocument = this;
+    return element;
+  }
+  createElementNS(_namespaceURI, qualifiedName) {
+    return this.createElement(qualifiedName);
+  }
+  createTextNode(data) {
+    const text = new BaseRRText(data);
+    text.ownerDocument = this;
+    return text;
+  }
+  createComment(data) {
+    const comment = new BaseRRComment(data);
+    comment.ownerDocument = this;
+    return comment;
+  }
+  createCDATASection(data) {
+    const CDATASection = new BaseRRCDATASection(data);
+    CDATASection.ownerDocument = this;
+    return CDATASection;
+  }
+  toString() {
+    return "RRDocument";
+  }
+};
+var BaseRRDocumentType = class extends BaseRRNode {
+  constructor(qualifiedName, publicId, systemId) {
+    super();
+    __publicField2(this, "nodeType", 10);
+    __publicField2(this, "RRNodeType", NodeType$1.DocumentType);
+    __publicField2(this, "name");
+    __publicField2(this, "publicId");
+    __publicField2(this, "systemId");
+    __publicField2(this, "textContent", null);
+    this.name = qualifiedName;
+    this.publicId = publicId;
+    this.systemId = systemId;
+    this.nodeName = qualifiedName;
+  }
+  toString() {
+    return "RRDocumentType";
+  }
+};
+var BaseRRElement = class extends BaseRRNode {
+  constructor(tagName) {
+    super();
+    __publicField2(this, "nodeType", 1);
+    __publicField2(this, "RRNodeType", NodeType$1.Element);
+    __publicField2(this, "tagName");
+    __publicField2(this, "attributes", {});
+    __publicField2(this, "shadowRoot", null);
+    __publicField2(this, "scrollLeft");
+    __publicField2(this, "scrollTop");
+    this.tagName = tagName.toUpperCase();
+    this.nodeName = tagName.toUpperCase();
+  }
+  get textContent() {
+    let result = "";
+    this.childNodes.forEach((node) => result += node.textContent);
+    return result;
+  }
+  set textContent(textContent2) {
+    this.firstChild = null;
+    this.lastChild = null;
+    this.appendChild(this.ownerDocument.createTextNode(textContent2));
+  }
+  get classList() {
+    return new ClassList(
+      this.attributes.class,
+      (newClassName) => {
+        this.attributes.class = newClassName;
+      }
+    );
+  }
+  get id() {
+    return this.attributes.id || "";
+  }
+  get className() {
+    return this.attributes.class || "";
+  }
+  get style() {
+    const style = this.attributes.style ? parseCSSText(this.attributes.style) : {};
+    const hyphenateRE2 = /\B([A-Z])/g;
+    style.setProperty = (name, value, priority) => {
+      if (hyphenateRE2.test(name))
+        return;
+      const normalizedName = camelize(name);
+      if (!value)
+        delete style[normalizedName];
+      else
+        style[normalizedName] = value;
+      if (priority === "important")
+        style[normalizedName] += " !important";
+      this.attributes.style = toCSSText(style);
+    };
+    style.removeProperty = (name) => {
+      if (hyphenateRE2.test(name))
+        return "";
+      const normalizedName = camelize(name);
+      const value = style[normalizedName] || "";
+      delete style[normalizedName];
+      this.attributes.style = toCSSText(style);
+      return value;
+    };
+    return style;
+  }
+  getAttribute(name) {
+    return this.attributes[name] || null;
+  }
+  setAttribute(name, attribute) {
+    this.attributes[name] = attribute;
+  }
+  setAttributeNS(_namespace, qualifiedName, value) {
+    this.setAttribute(qualifiedName, value);
+  }
+  removeAttribute(name) {
+    delete this.attributes[name];
+  }
+  appendChild(newChild) {
+    return appendChild(this, newChild);
+  }
+  insertBefore(newChild, refChild) {
+    return insertBefore(this, newChild, refChild);
+  }
+  removeChild(node) {
+    return removeChild(this, node);
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  attachShadow(_init) {
+    const shadowRoot2 = this.ownerDocument.createElement("SHADOWROOT");
+    this.shadowRoot = shadowRoot2;
+    return shadowRoot2;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  dispatchEvent(_event) {
+    return true;
+  }
+  toString() {
+    let attributeString = "";
+    for (const attribute in this.attributes) {
+      attributeString += `${attribute}="${this.attributes[attribute]}" `;
+    }
+    return `${this.tagName} ${attributeString}`;
+  }
+};
+var BaseRRMediaElement = class extends BaseRRElement {
+  constructor() {
+    super(...arguments);
+    __publicField2(this, "currentTime");
+    __publicField2(this, "volume");
+    __publicField2(this, "paused");
+    __publicField2(this, "muted");
+    __publicField2(this, "playbackRate");
+    __publicField2(this, "loop");
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  attachShadow(_init) {
+    throw new Error(
+      `RRDomException: Failed to execute 'attachShadow' on 'RRElement': This RRElement does not support attachShadow`
+    );
+  }
+  play() {
+    this.paused = false;
+  }
+  pause() {
+    this.paused = true;
+  }
+};
+var BaseRRText = class extends BaseRRNode {
+  constructor(data) {
+    super();
+    __publicField2(this, "nodeType", 3);
+    __publicField2(this, "nodeName", "#text");
+    __publicField2(this, "RRNodeType", NodeType$1.Text);
+    __publicField2(this, "data");
+    this.data = data;
+  }
+  get textContent() {
+    return this.data;
+  }
+  set textContent(textContent2) {
+    this.data = textContent2;
+  }
+  toString() {
+    return `RRText text=${JSON.stringify(this.data)}`;
+  }
+};
+var BaseRRComment = class extends BaseRRNode {
+  constructor(data) {
+    super();
+    __publicField2(this, "nodeType", 8);
+    __publicField2(this, "nodeName", "#comment");
+    __publicField2(this, "RRNodeType", NodeType$1.Comment);
+    __publicField2(this, "data");
+    this.data = data;
+  }
+  get textContent() {
+    return this.data;
+  }
+  set textContent(textContent2) {
+    this.data = textContent2;
+  }
+  toString() {
+    return `RRComment text=${JSON.stringify(this.data)}`;
+  }
+};
+var BaseRRCDATASection = class extends BaseRRNode {
+  constructor(data) {
+    super();
+    __publicField2(this, "nodeName", "#cdata-section");
+    __publicField2(this, "nodeType", 4);
+    __publicField2(this, "RRNodeType", NodeType$1.CDATA);
+    __publicField2(this, "data");
+    this.data = data;
+  }
+  get textContent() {
+    return this.data;
+  }
+  set textContent(textContent2) {
+    this.data = textContent2;
+  }
+  toString() {
+    return `RRCDATASection data=${JSON.stringify(this.data)}`;
+  }
+};
+var ClassList = class {
+  constructor(classText, onChange) {
+    __publicField2(this, "onChange");
+    __publicField2(this, "classes", []);
+    __publicField2(this, "add", (...classNames) => {
+      for (const item of classNames) {
+        const className = String(item);
+        if (this.classes.indexOf(className) >= 0)
+          continue;
+        this.classes.push(className);
+      }
+      this.onChange && this.onChange(this.classes.join(" "));
+    });
+    __publicField2(this, "remove", (...classNames) => {
+      this.classes = this.classes.filter(
+        (item) => classNames.indexOf(item) === -1
+      );
+      this.onChange && this.onChange(this.classes.join(" "));
+    });
+    if (classText) {
+      const classes = classText.trim().split(/\s+/);
+      this.classes.push(...classes);
+    }
+    this.onChange = onChange;
+  }
+};
+function appendChild(parent, newChild) {
+  if (newChild.parentNode)
+    newChild.parentNode.removeChild(newChild);
+  if (parent.lastChild) {
+    parent.lastChild.nextSibling = newChild;
+    newChild.previousSibling = parent.lastChild;
+  } else {
+    parent.firstChild = newChild;
+    newChild.previousSibling = null;
+  }
+  parent.lastChild = newChild;
+  newChild.nextSibling = null;
+  newChild.parentNode = parent;
+  newChild.parentElement = parent;
+  newChild.ownerDocument = parent.ownerDocument;
+  return newChild;
+}
+function insertBefore(parent, newChild, refChild) {
+  if (!refChild)
+    return appendChild(parent, newChild);
+  if (refChild.parentNode !== parent)
+    throw new Error(
+      "Failed to execute 'insertBefore' on 'RRNode': The RRNode before which the new node is to be inserted is not a child of this RRNode."
+    );
+  if (newChild === refChild)
+    return newChild;
+  if (newChild.parentNode)
+    newChild.parentNode.removeChild(newChild);
+  newChild.previousSibling = refChild.previousSibling;
+  refChild.previousSibling = newChild;
+  newChild.nextSibling = refChild;
+  if (newChild.previousSibling)
+    newChild.previousSibling.nextSibling = newChild;
+  else
+    parent.firstChild = newChild;
+  newChild.parentElement = parent;
+  newChild.parentNode = parent;
+  newChild.ownerDocument = parent.ownerDocument;
+  return newChild;
+}
+function removeChild(parent, child) {
+  if (child.parentNode !== parent)
+    throw new Error(
+      "Failed to execute 'removeChild' on 'RRNode': The RRNode to be removed is not a child of this RRNode."
+    );
+  if (child.previousSibling)
+    child.previousSibling.nextSibling = child.nextSibling;
+  else
+    parent.firstChild = child.nextSibling;
+  if (child.nextSibling)
+    child.nextSibling.previousSibling = child.previousSibling;
+  else
+    parent.lastChild = child.previousSibling;
+  child.previousSibling = null;
+  child.nextSibling = null;
+  child.parentElement = null;
+  child.parentNode = null;
+  return child;
+}
+var NodeType = /* @__PURE__ */ ((NodeType2) => {
+  NodeType2[NodeType2["PLACEHOLDER"] = 0] = "PLACEHOLDER";
+  NodeType2[NodeType2["ELEMENT_NODE"] = 1] = "ELEMENT_NODE";
+  NodeType2[NodeType2["ATTRIBUTE_NODE"] = 2] = "ATTRIBUTE_NODE";
+  NodeType2[NodeType2["TEXT_NODE"] = 3] = "TEXT_NODE";
+  NodeType2[NodeType2["CDATA_SECTION_NODE"] = 4] = "CDATA_SECTION_NODE";
+  NodeType2[NodeType2["ENTITY_REFERENCE_NODE"] = 5] = "ENTITY_REFERENCE_NODE";
+  NodeType2[NodeType2["ENTITY_NODE"] = 6] = "ENTITY_NODE";
+  NodeType2[NodeType2["PROCESSING_INSTRUCTION_NODE"] = 7] = "PROCESSING_INSTRUCTION_NODE";
+  NodeType2[NodeType2["COMMENT_NODE"] = 8] = "COMMENT_NODE";
+  NodeType2[NodeType2["DOCUMENT_NODE"] = 9] = "DOCUMENT_NODE";
+  NodeType2[NodeType2["DOCUMENT_TYPE_NODE"] = 10] = "DOCUMENT_TYPE_NODE";
+  NodeType2[NodeType2["DOCUMENT_FRAGMENT_NODE"] = 11] = "DOCUMENT_FRAGMENT_NODE";
+  return NodeType2;
+})(NodeType || {});
+var NAMESPACES = {
+  svg: "http://www.w3.org/2000/svg",
+  "xlink:href": "http://www.w3.org/1999/xlink",
+  xmlns: "http://www.w3.org/2000/xmlns/"
+};
+var SVGTagMap = {
+  altglyph: "altGlyph",
+  altglyphdef: "altGlyphDef",
+  altglyphitem: "altGlyphItem",
+  animatecolor: "animateColor",
+  animatemotion: "animateMotion",
+  animatetransform: "animateTransform",
+  clippath: "clipPath",
+  feblend: "feBlend",
+  fecolormatrix: "feColorMatrix",
+  fecomponenttransfer: "feComponentTransfer",
+  fecomposite: "feComposite",
+  feconvolvematrix: "feConvolveMatrix",
+  fediffuselighting: "feDiffuseLighting",
+  fedisplacementmap: "feDisplacementMap",
+  fedistantlight: "feDistantLight",
+  fedropshadow: "feDropShadow",
+  feflood: "feFlood",
+  fefunca: "feFuncA",
+  fefuncb: "feFuncB",
+  fefuncg: "feFuncG",
+  fefuncr: "feFuncR",
+  fegaussianblur: "feGaussianBlur",
+  feimage: "feImage",
+  femerge: "feMerge",
+  femergenode: "feMergeNode",
+  femorphology: "feMorphology",
+  feoffset: "feOffset",
+  fepointlight: "fePointLight",
+  fespecularlighting: "feSpecularLighting",
+  fespotlight: "feSpotLight",
+  fetile: "feTile",
+  feturbulence: "feTurbulence",
+  foreignobject: "foreignObject",
+  glyphref: "glyphRef",
+  lineargradient: "linearGradient",
+  radialgradient: "radialGradient"
+};
+var createdNodeSet = null;
+function diff(oldTree, newTree, replayer, rrnodeMirror = newTree.mirror || newTree.ownerDocument.mirror) {
+  oldTree = diffBeforeUpdatingChildren(
+    oldTree,
+    newTree,
+    replayer,
+    rrnodeMirror
+  );
+  diffChildren(oldTree, newTree, replayer, rrnodeMirror);
+  diffAfterUpdatingChildren(oldTree, newTree, replayer);
+}
+function diffBeforeUpdatingChildren(oldTree, newTree, replayer, rrnodeMirror) {
+  var _a2;
+  if (replayer.afterAppend && !createdNodeSet) {
+    createdNodeSet = /* @__PURE__ */ new WeakSet();
+    setTimeout(() => {
+      createdNodeSet = null;
+    }, 0);
+  }
+  if (!sameNodeType(oldTree, newTree)) {
+    const calibratedOldTree = createOrGetNode(
+      newTree,
+      replayer.mirror,
+      rrnodeMirror
+    );
+    (_a2 = oldTree.parentNode) == null ? void 0 : _a2.replaceChild(calibratedOldTree, oldTree);
+    oldTree = calibratedOldTree;
+  }
+  switch (newTree.RRNodeType) {
+    case NodeType$1.Document: {
+      if (!nodeMatching(oldTree, newTree, replayer.mirror, rrnodeMirror)) {
+        const newMeta = rrnodeMirror.getMeta(newTree);
+        if (newMeta) {
+          replayer.mirror.removeNodeFromMap(oldTree);
+          oldTree.close();
+          oldTree.open();
+          replayer.mirror.add(oldTree, newMeta);
+          createdNodeSet == null ? void 0 : createdNodeSet.add(oldTree);
+        }
+      }
+      break;
+    }
+    case NodeType$1.Element: {
+      const oldElement = oldTree;
+      const newRRElement = newTree;
+      switch (newRRElement.tagName) {
+        case "IFRAME": {
+          const oldContentDocument = oldTree.contentDocument;
+          if (!oldContentDocument)
+            break;
+          diff(
+            oldContentDocument,
+            newTree.contentDocument,
+            replayer,
+            rrnodeMirror
+          );
+          break;
+        }
+      }
+      if (newRRElement.shadowRoot) {
+        if (!oldElement.shadowRoot)
+          oldElement.attachShadow({ mode: "open" });
+        diffChildren(
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          oldElement.shadowRoot,
+          newRRElement.shadowRoot,
+          replayer,
+          rrnodeMirror
+        );
+      }
+      diffProps(oldElement, newRRElement, rrnodeMirror);
+      break;
+    }
+  }
+  return oldTree;
+}
+function diffAfterUpdatingChildren(oldTree, newTree, replayer) {
+  var _a2;
+  switch (newTree.RRNodeType) {
+    case NodeType$1.Document: {
+      const scrollData = newTree.scrollData;
+      scrollData && replayer.applyScroll(scrollData, true);
+      break;
+    }
+    case NodeType$1.Element: {
+      const oldElement = oldTree;
+      const newRRElement = newTree;
+      newRRElement.scrollData && replayer.applyScroll(newRRElement.scrollData, true);
+      newRRElement.inputData && replayer.applyInput(newRRElement.inputData);
+      switch (newRRElement.tagName) {
+        case "AUDIO":
+        case "VIDEO": {
+          const oldMediaElement = oldTree;
+          const newMediaRRElement = newRRElement;
+          if (newMediaRRElement.paused !== void 0)
+            newMediaRRElement.paused ? void oldMediaElement.pause() : void oldMediaElement.play();
+          if (newMediaRRElement.muted !== void 0)
+            oldMediaElement.muted = newMediaRRElement.muted;
+          if (newMediaRRElement.volume !== void 0)
+            oldMediaElement.volume = newMediaRRElement.volume;
+          if (newMediaRRElement.currentTime !== void 0)
+            oldMediaElement.currentTime = newMediaRRElement.currentTime;
+          if (newMediaRRElement.playbackRate !== void 0)
+            oldMediaElement.playbackRate = newMediaRRElement.playbackRate;
+          if (newMediaRRElement.loop !== void 0)
+            oldMediaElement.loop = newMediaRRElement.loop;
+          break;
+        }
+        case "CANVAS": {
+          const rrCanvasElement = newTree;
+          if (rrCanvasElement.rr_dataURL !== null) {
+            const image = document.createElement("img");
+            image.onload = () => {
+              const ctx = oldElement.getContext("2d");
+              if (ctx) {
+                ctx.drawImage(image, 0, 0, image.width, image.height);
+              }
+            };
+            image.src = rrCanvasElement.rr_dataURL;
+          }
+          rrCanvasElement.canvasMutations.forEach(
+            (canvasMutation2) => replayer.applyCanvas(
+              canvasMutation2.event,
+              canvasMutation2.mutation,
+              oldTree
+            )
+          );
+          break;
+        }
+        case "STYLE": {
+          const styleSheet = oldElement.sheet;
+          styleSheet && newTree.rules.forEach(
+            (data) => replayer.applyStyleSheetMutation(data, styleSheet)
+          );
+          break;
+        }
+      }
+      break;
+    }
+    case NodeType$1.Text:
+    case NodeType$1.Comment:
+    case NodeType$1.CDATA: {
+      if (oldTree.textContent !== newTree.data)
+        oldTree.textContent = newTree.data;
+      break;
+    }
+  }
+  if (createdNodeSet == null ? void 0 : createdNodeSet.has(oldTree)) {
+    createdNodeSet.delete(oldTree);
+    (_a2 = replayer.afterAppend) == null ? void 0 : _a2.call(replayer, oldTree, replayer.mirror.getId(oldTree));
+  }
+}
+function diffProps(oldTree, newTree, rrnodeMirror) {
+  const oldAttributes = oldTree.attributes;
+  const newAttributes = newTree.attributes;
+  for (const name in newAttributes) {
+    const newValue = newAttributes[name];
+    const sn = rrnodeMirror.getMeta(newTree);
+    if ((sn == null ? void 0 : sn.isSVG) && NAMESPACES[name])
+      oldTree.setAttributeNS(NAMESPACES[name], name, newValue);
+    else if (newTree.tagName === "CANVAS" && name === "rr_dataURL") {
+      const image = document.createElement("img");
+      image.src = newValue;
+      image.onload = () => {
+        const ctx = oldTree.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(image, 0, 0, image.width, image.height);
+        }
+      };
+    } else if (newTree.tagName === "IFRAME" && name === "srcdoc")
+      continue;
+    else
+      oldTree.setAttribute(name, newValue);
+  }
+  for (const { name } of Array.from(oldAttributes))
+    if (!(name in newAttributes))
+      oldTree.removeAttribute(name);
+  newTree.scrollLeft && (oldTree.scrollLeft = newTree.scrollLeft);
+  newTree.scrollTop && (oldTree.scrollTop = newTree.scrollTop);
+}
+function diffChildren(oldTree, newTree, replayer, rrnodeMirror) {
+  const oldChildren = Array.from(oldTree.childNodes);
+  const newChildren = newTree.childNodes;
+  if (oldChildren.length === 0 && newChildren.length === 0)
+    return;
+  let oldStartIndex = 0, oldEndIndex = oldChildren.length - 1, newStartIndex = 0, newEndIndex = newChildren.length - 1;
+  let oldStartNode = oldChildren[oldStartIndex], oldEndNode = oldChildren[oldEndIndex], newStartNode = newChildren[newStartIndex], newEndNode = newChildren[newEndIndex];
+  let oldIdToIndex = void 0, indexInOld = void 0;
+  while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {
+    if (oldStartNode === void 0) {
+      oldStartNode = oldChildren[++oldStartIndex];
+    } else if (oldEndNode === void 0) {
+      oldEndNode = oldChildren[--oldEndIndex];
+    } else if (
+      // same first node?
+      nodeMatching(oldStartNode, newStartNode, replayer.mirror, rrnodeMirror)
+    ) {
+      oldStartNode = oldChildren[++oldStartIndex];
+      newStartNode = newChildren[++newStartIndex];
+    } else if (
+      // same last node?
+      nodeMatching(oldEndNode, newEndNode, replayer.mirror, rrnodeMirror)
+    ) {
+      oldEndNode = oldChildren[--oldEndIndex];
+      newEndNode = newChildren[--newEndIndex];
+    } else if (
+      // is the first old node the same as the last new node?
+      nodeMatching(oldStartNode, newEndNode, replayer.mirror, rrnodeMirror)
+    ) {
+      try {
+        oldTree.insertBefore(oldStartNode, oldEndNode.nextSibling);
+      } catch (e2) {
+        console.warn(e2);
+      }
+      oldStartNode = oldChildren[++oldStartIndex];
+      newEndNode = newChildren[--newEndIndex];
+    } else if (
+      // is the last old node the same as the first new node?
+      nodeMatching(oldEndNode, newStartNode, replayer.mirror, rrnodeMirror)
+    ) {
+      try {
+        oldTree.insertBefore(oldEndNode, oldStartNode);
+      } catch (e2) {
+        console.warn(e2);
+      }
+      oldEndNode = oldChildren[--oldEndIndex];
+      newStartNode = newChildren[++newStartIndex];
+    } else {
+      if (!oldIdToIndex) {
+        oldIdToIndex = {};
+        for (let i2 = oldStartIndex; i2 <= oldEndIndex; i2++) {
+          const oldChild2 = oldChildren[i2];
+          if (oldChild2 && replayer.mirror.hasNode(oldChild2))
+            oldIdToIndex[replayer.mirror.getId(oldChild2)] = i2;
+        }
+      }
+      indexInOld = oldIdToIndex[rrnodeMirror.getId(newStartNode)];
+      const nodeToMove = oldChildren[indexInOld];
+      if (indexInOld !== void 0 && nodeToMove && nodeMatching(nodeToMove, newStartNode, replayer.mirror, rrnodeMirror)) {
+        try {
+          oldTree.insertBefore(nodeToMove, oldStartNode);
+        } catch (e2) {
+          console.warn(e2);
+        }
+        oldChildren[indexInOld] = void 0;
+      } else {
+        const newNode = createOrGetNode(
+          newStartNode,
+          replayer.mirror,
+          rrnodeMirror
+        );
+        if (oldTree.nodeName === "#document" && oldStartNode && /**
+        * Special case 1: one document isn't allowed to have two doctype nodes at the same time, so we need to remove the old one first before inserting the new one.
+        * How this case happens: A parent document in the old tree already has a doctype node with an id e.g. #1. A new full snapshot rebuilds the replayer with a new doctype node with another id #2. According to the algorithm, the new doctype node will be inserted before the old one, which is not allowed by the Document standard.
+        */
+        (newNode.nodeType === newNode.DOCUMENT_TYPE_NODE && oldStartNode.nodeType === oldStartNode.DOCUMENT_TYPE_NODE || /**
+        * Special case 2: one document isn't allowed to have two HTMLElements at the same time, so we need to remove the old one first before inserting the new one.
+        * How this case happens: A mounted iframe element has an automatically created HTML element. We should delete it before inserting a serialized one. Otherwise, an error 'Only one element on document allowed' will be thrown.
+        */
+        newNode.nodeType === newNode.ELEMENT_NODE && oldStartNode.nodeType === oldStartNode.ELEMENT_NODE)) {
+          oldTree.removeChild(oldStartNode);
+          replayer.mirror.removeNodeFromMap(oldStartNode);
+          oldStartNode = oldChildren[++oldStartIndex];
+        }
+        try {
+          oldTree.insertBefore(newNode, oldStartNode || null);
+        } catch (e2) {
+          console.warn(e2);
+        }
+      }
+      newStartNode = newChildren[++newStartIndex];
+    }
+  }
+  if (oldStartIndex > oldEndIndex) {
+    const referenceRRNode = newChildren[newEndIndex + 1];
+    let referenceNode = null;
+    if (referenceRRNode)
+      referenceNode = replayer.mirror.getNode(
+        rrnodeMirror.getId(referenceRRNode)
+      );
+    for (; newStartIndex <= newEndIndex; ++newStartIndex) {
+      const newNode = createOrGetNode(
+        newChildren[newStartIndex],
+        replayer.mirror,
+        rrnodeMirror
+      );
+      try {
+        oldTree.insertBefore(newNode, referenceNode);
+      } catch (e2) {
+        console.warn(e2);
+      }
+    }
+  } else if (newStartIndex > newEndIndex) {
+    for (; oldStartIndex <= oldEndIndex; oldStartIndex++) {
+      const node = oldChildren[oldStartIndex];
+      if (!node || node.parentNode !== oldTree)
+        continue;
+      try {
+        oldTree.removeChild(node);
+        replayer.mirror.removeNodeFromMap(node);
+      } catch (e2) {
+        console.warn(e2);
+      }
+    }
+  }
+  let oldChild = oldTree.firstChild;
+  let newChild = newTree.firstChild;
+  while (oldChild !== null && newChild !== null) {
+    diff(oldChild, newChild, replayer, rrnodeMirror);
+    oldChild = oldChild.nextSibling;
+    newChild = newChild.nextSibling;
+  }
+}
+function createOrGetNode(rrNode, domMirror, rrnodeMirror) {
+  const nodeId = rrnodeMirror.getId(rrNode);
+  const sn = rrnodeMirror.getMeta(rrNode);
+  let node = null;
+  if (nodeId > -1)
+    node = domMirror.getNode(nodeId);
+  if (node !== null && sameNodeType(node, rrNode))
+    return node;
+  switch (rrNode.RRNodeType) {
+    case NodeType$1.Document:
+      node = new Document();
+      break;
+    case NodeType$1.DocumentType:
+      node = document.implementation.createDocumentType(
+        rrNode.name,
+        rrNode.publicId,
+        rrNode.systemId
+      );
+      break;
+    case NodeType$1.Element: {
+      let tagName = rrNode.tagName.toLowerCase();
+      tagName = SVGTagMap[tagName] || tagName;
+      if (sn && "isSVG" in sn && (sn == null ? void 0 : sn.isSVG)) {
+        node = document.createElementNS(NAMESPACES["svg"], tagName);
+      } else
+        node = document.createElement(rrNode.tagName);
+      break;
+    }
+    case NodeType$1.Text:
+      node = document.createTextNode(rrNode.data);
+      break;
+    case NodeType$1.Comment:
+      node = document.createComment(rrNode.data);
+      break;
+    case NodeType$1.CDATA:
+      node = document.createCDATASection(rrNode.data);
+      break;
+  }
+  if (sn)
+    domMirror.add(node, { ...sn });
+  try {
+    createdNodeSet == null ? void 0 : createdNodeSet.add(node);
+  } catch (e2) {
+  }
+  return node;
+}
+function sameNodeType(node1, node2) {
+  if (node1.nodeType !== node2.nodeType)
+    return false;
+  return node1.nodeType !== node1.ELEMENT_NODE || node1.tagName.toUpperCase() === node2.tagName;
+}
+function nodeMatching(node1, node2, domMirror, rrdomMirror) {
+  const node1Id = domMirror.getId(node1);
+  const node2Id = rrdomMirror.getId(node2);
+  if (node1Id === -1 || node1Id !== node2Id)
+    return false;
+  return sameNodeType(node1, node2);
+}
+var RRDocument = class _RRDocument extends BaseRRDocument {
+  constructor(mirror2) {
+    super();
+    __publicField2(this, "UNSERIALIZED_STARTING_ID", -2);
+    __publicField2(this, "_unserializedId", this.UNSERIALIZED_STARTING_ID);
+    __publicField2(this, "mirror", createMirror());
+    __publicField2(this, "scrollData", null);
+    if (mirror2) {
+      this.mirror = mirror2;
+    }
+  }
+  /**
+   * Every time the id is used, it will minus 1 automatically to avoid collisions.
+   */
+  get unserializedId() {
+    return this._unserializedId--;
+  }
+  createDocument(_namespace, _qualifiedName, _doctype) {
+    return new _RRDocument();
+  }
+  createDocumentType(qualifiedName, publicId, systemId) {
+    const documentTypeNode = new RRDocumentType(
+      qualifiedName,
+      publicId,
+      systemId
+    );
+    documentTypeNode.ownerDocument = this;
+    return documentTypeNode;
+  }
+  createElement(tagName) {
+    const upperTagName = tagName.toUpperCase();
+    let element;
+    switch (upperTagName) {
+      case "AUDIO":
+      case "VIDEO":
+        element = new RRMediaElement(upperTagName);
+        break;
+      case "IFRAME":
+        element = new RRIFrameElement(upperTagName, this.mirror);
+        break;
+      case "CANVAS":
+        element = new RRCanvasElement(upperTagName);
+        break;
+      case "STYLE":
+        element = new RRStyleElement(upperTagName);
+        break;
+      default:
+        element = new RRElement(upperTagName);
+        break;
+    }
+    element.ownerDocument = this;
+    return element;
+  }
+  createComment(data) {
+    const commentNode = new RRComment(data);
+    commentNode.ownerDocument = this;
+    return commentNode;
+  }
+  createCDATASection(data) {
+    const sectionNode = new RRCDATASection(data);
+    sectionNode.ownerDocument = this;
+    return sectionNode;
+  }
+  createTextNode(data) {
+    const textNode = new RRText(data);
+    textNode.ownerDocument = this;
+    return textNode;
+  }
+  destroyTree() {
+    this.firstChild = null;
+    this.lastChild = null;
+    this.mirror.reset();
+  }
+  open() {
+    super.open();
+    this._unserializedId = this.UNSERIALIZED_STARTING_ID;
+  }
+};
+var RRDocumentType = BaseRRDocumentType;
+var RRElement = class extends BaseRRElement {
+  constructor() {
+    super(...arguments);
+    __publicField2(this, "inputData", null);
+    __publicField2(this, "scrollData", null);
+  }
+};
+var RRMediaElement = class extends BaseRRMediaElement {
+};
+var RRCanvasElement = class extends RRElement {
+  constructor() {
+    super(...arguments);
+    __publicField2(this, "rr_dataURL", null);
+    __publicField2(this, "canvasMutations", []);
+  }
+  /**
+   * This is a dummy implementation to distinguish RRCanvasElement from real HTMLCanvasElement.
+   */
+  getContext() {
+    return null;
+  }
+};
+var RRStyleElement = class extends RRElement {
+  constructor() {
+    super(...arguments);
+    __publicField2(this, "rules", []);
+  }
+};
+var RRIFrameElement = class extends RRElement {
+  constructor(upperTagName, mirror2) {
+    super(upperTagName);
+    __publicField2(this, "contentDocument", new RRDocument());
+    this.contentDocument.mirror = mirror2;
+  }
+};
+var RRText = BaseRRText;
+var RRComment = BaseRRComment;
+var RRCDATASection = BaseRRCDATASection;
+function getValidTagName(element) {
+  if (element instanceof HTMLFormElement) {
+    return "FORM";
+  }
+  return element.tagName.toUpperCase();
+}
+function buildFromNode(node, rrdom, domMirror, parentRRNode) {
+  let rrNode;
+  switch (node.nodeType) {
+    case NodeType.DOCUMENT_NODE:
+      if (parentRRNode && parentRRNode.nodeName === "IFRAME")
+        rrNode = parentRRNode.contentDocument;
+      else {
+        rrNode = rrdom;
+        rrNode.compatMode = node.compatMode;
+      }
+      break;
+    case NodeType.DOCUMENT_TYPE_NODE: {
+      const documentType = node;
+      rrNode = rrdom.createDocumentType(
+        documentType.name,
+        documentType.publicId,
+        documentType.systemId
+      );
+      break;
+    }
+    case NodeType.ELEMENT_NODE: {
+      const elementNode = node;
+      const tagName = getValidTagName(elementNode);
+      rrNode = rrdom.createElement(tagName);
+      const rrElement = rrNode;
+      for (const { name, value } of Array.from(elementNode.attributes)) {
+        rrElement.attributes[name] = value;
+      }
+      elementNode.scrollLeft && (rrElement.scrollLeft = elementNode.scrollLeft);
+      elementNode.scrollTop && (rrElement.scrollTop = elementNode.scrollTop);
+      break;
+    }
+    case NodeType.TEXT_NODE:
+      rrNode = rrdom.createTextNode(node.textContent || "");
+      break;
+    case NodeType.CDATA_SECTION_NODE:
+      rrNode = rrdom.createCDATASection(node.data);
+      break;
+    case NodeType.COMMENT_NODE:
+      rrNode = rrdom.createComment(node.textContent || "");
+      break;
+    case NodeType.DOCUMENT_FRAGMENT_NODE:
+      rrNode = parentRRNode.attachShadow({ mode: "open" });
+      break;
+    default:
+      return null;
+  }
+  let sn = domMirror.getMeta(node);
+  if (rrdom instanceof RRDocument) {
+    if (!sn) {
+      sn = getDefaultSN(rrNode, rrdom.unserializedId);
+      domMirror.add(node, sn);
+    }
+    rrdom.mirror.add(rrNode, { ...sn });
+  }
+  return rrNode;
+}
+function buildFromDom(dom, domMirror = createMirror$1(), rrdom = new RRDocument()) {
+  function walk2(node, parentRRNode) {
+    const rrNode = buildFromNode(node, rrdom, domMirror, parentRRNode);
+    if (rrNode === null)
+      return;
+    if (
+      // if the parentRRNode isn't a RRIFrameElement
+      (parentRRNode == null ? void 0 : parentRRNode.nodeName) !== "IFRAME" && // if node isn't a shadow root
+      node.nodeType !== NodeType.DOCUMENT_FRAGMENT_NODE
+    ) {
+      parentRRNode == null ? void 0 : parentRRNode.appendChild(rrNode);
+      rrNode.parentNode = parentRRNode;
+      rrNode.parentElement = parentRRNode;
+    }
+    if (node.nodeName === "IFRAME") {
+      const iframeDoc = node.contentDocument;
+      iframeDoc && walk2(iframeDoc, rrNode);
+    } else if (node.nodeType === NodeType.DOCUMENT_NODE || node.nodeType === NodeType.ELEMENT_NODE || node.nodeType === NodeType.DOCUMENT_FRAGMENT_NODE) {
+      if (node.nodeType === NodeType.ELEMENT_NODE && node.shadowRoot)
+        walk2(node.shadowRoot, rrNode);
+      node.childNodes.forEach((childNode) => walk2(childNode, rrNode));
+    }
+  }
+  walk2(dom, null);
+  return rrdom;
+}
+function createMirror() {
+  return new Mirror22();
+}
+var Mirror22 = class {
+  constructor() {
+    __publicField2(this, "idNodeMap", /* @__PURE__ */ new Map());
+    __publicField2(this, "nodeMetaMap", /* @__PURE__ */ new WeakMap());
+  }
+  getId(n2) {
+    var _a2;
+    if (!n2)
+      return -1;
+    const id = (_a2 = this.getMeta(n2)) == null ? void 0 : _a2.id;
+    return id ?? -1;
+  }
+  getNode(id) {
+    return this.idNodeMap.get(id) || null;
+  }
+  getIds() {
+    return Array.from(this.idNodeMap.keys());
+  }
+  getMeta(n2) {
+    return this.nodeMetaMap.get(n2) || null;
+  }
+  // removes the node from idNodeMap
+  // doesn't remove the node from nodeMetaMap
+  removeNodeFromMap(n2) {
+    const id = this.getId(n2);
+    this.idNodeMap.delete(id);
+    if (n2.childNodes) {
+      n2.childNodes.forEach((childNode) => this.removeNodeFromMap(childNode));
+    }
+  }
+  has(id) {
+    return this.idNodeMap.has(id);
+  }
+  hasNode(node) {
+    return this.nodeMetaMap.has(node);
+  }
+  add(n2, meta) {
+    const id = meta.id;
+    this.idNodeMap.set(id, n2);
+    this.nodeMetaMap.set(n2, meta);
+  }
+  replace(id, n2) {
+    const oldNode = this.getNode(id);
+    if (oldNode) {
+      const meta = this.nodeMetaMap.get(oldNode);
+      if (meta)
+        this.nodeMetaMap.set(n2, meta);
+    }
+    this.idNodeMap.set(id, n2);
+  }
+  reset() {
+    this.idNodeMap = /* @__PURE__ */ new Map();
+    this.nodeMetaMap = /* @__PURE__ */ new WeakMap();
+  }
+};
+function getDefaultSN(node, id) {
+  switch (node.RRNodeType) {
+    case NodeType$1.Document:
+      return {
+        id,
+        type: node.RRNodeType,
+        childNodes: []
+      };
+    case NodeType$1.DocumentType: {
+      const doctype = node;
+      return {
+        id,
+        type: node.RRNodeType,
+        name: doctype.name,
+        publicId: doctype.publicId,
+        systemId: doctype.systemId
+      };
+    }
+    case NodeType$1.Element:
+      return {
+        id,
+        type: node.RRNodeType,
+        tagName: node.tagName.toLowerCase(),
+        // In rrweb data, all tagNames are lowercase.
+        attributes: {},
+        childNodes: []
+      };
+    case NodeType$1.Text:
+      return {
+        id,
+        type: node.RRNodeType,
+        textContent: node.textContent || ""
+      };
+    case NodeType$1.Comment:
+      return {
+        id,
+        type: node.RRNodeType,
+        textContent: node.textContent || ""
+      };
+    case NodeType$1.CDATA:
+      return {
+        id,
+        type: node.RRNodeType,
+        textContent: ""
+      };
+  }
+}
+var testableAccessors = {
+  Node: ["childNodes", "parentNode", "parentElement", "textContent"],
+  ShadowRoot: ["host", "styleSheets"],
+  Element: ["shadowRoot", "querySelector", "querySelectorAll"],
+  MutationObserver: []
+};
+var testableMethods = {
+  Node: ["contains", "getRootNode"],
+  ShadowRoot: ["getSelection"],
+  Element: [],
+  MutationObserver: ["constructor"]
+};
+var untaintedBasePrototype = {};
+function getUntaintedPrototype(key) {
+  if (untaintedBasePrototype[key])
+    return untaintedBasePrototype[key];
+  const defaultObj = globalThis[key];
+  const defaultPrototype = defaultObj.prototype;
+  const accessorNames = key in testableAccessors ? testableAccessors[key] : void 0;
+  const isUntaintedAccessors = Boolean(
+    accessorNames && // @ts-expect-error 2345
+    accessorNames.every(
+      (accessor) => {
+        var _a2, _b;
+        return Boolean(
+          (_b = (_a2 = Object.getOwnPropertyDescriptor(defaultPrototype, accessor)) == null ? void 0 : _a2.get) == null ? void 0 : _b.toString().includes("[native code]")
+        );
+      }
+    )
+  );
+  const methodNames = key in testableMethods ? testableMethods[key] : void 0;
+  const isUntaintedMethods = Boolean(
+    methodNames && methodNames.every(
+      // @ts-expect-error 2345
+      (method) => {
+        var _a2;
+        return typeof defaultPrototype[method] === "function" && ((_a2 = defaultPrototype[method]) == null ? void 0 : _a2.toString().includes("[native code]"));
+      }
+    )
+  );
+  if (isUntaintedAccessors && isUntaintedMethods) {
+    untaintedBasePrototype[key] = defaultObj.prototype;
+    return defaultObj.prototype;
+  }
+  try {
+    const iframeEl = document.createElement("iframe");
+    document.body.appendChild(iframeEl);
+    const win = iframeEl.contentWindow;
+    if (!win)
+      return defaultObj.prototype;
+    const untaintedObject = win[key].prototype;
+    document.body.removeChild(iframeEl);
+    if (!untaintedObject)
+      return defaultPrototype;
+    return untaintedBasePrototype[key] = untaintedObject;
+  } catch {
+    return defaultPrototype;
+  }
+}
+var untaintedAccessorCache = {};
+function getUntaintedAccessor(key, instance, accessor) {
+  var _a2;
+  const cacheKey = `${key}.${String(accessor)}`;
+  if (untaintedAccessorCache[cacheKey])
+    return untaintedAccessorCache[cacheKey].call(
+      instance
+    );
+  const untaintedPrototype = getUntaintedPrototype(key);
+  const untaintedAccessor = (_a2 = Object.getOwnPropertyDescriptor(
+    untaintedPrototype,
+    accessor
+  )) == null ? void 0 : _a2.get;
+  if (!untaintedAccessor)
+    return instance[accessor];
+  untaintedAccessorCache[cacheKey] = untaintedAccessor;
+  return untaintedAccessor.call(instance);
+}
+var untaintedMethodCache = {};
+function getUntaintedMethod(key, instance, method) {
+  const cacheKey = `${key}.${String(method)}`;
+  if (untaintedMethodCache[cacheKey])
+    return untaintedMethodCache[cacheKey].bind(
+      instance
+    );
+  const untaintedPrototype = getUntaintedPrototype(key);
+  const untaintedMethod = untaintedPrototype[method];
+  if (typeof untaintedMethod !== "function")
+    return instance[method];
+  untaintedMethodCache[cacheKey] = untaintedMethod;
+  return untaintedMethod.bind(instance);
+}
+function childNodes(n2) {
+  return getUntaintedAccessor("Node", n2, "childNodes");
+}
+function parentNode(n2) {
+  return getUntaintedAccessor("Node", n2, "parentNode");
+}
+function parentElement(n2) {
+  return getUntaintedAccessor("Node", n2, "parentElement");
+}
+function textContent(n2) {
+  return getUntaintedAccessor("Node", n2, "textContent");
+}
+function contains(n2, other) {
+  return getUntaintedMethod("Node", n2, "contains")(other);
+}
+function getRootNode(n2) {
+  return getUntaintedMethod("Node", n2, "getRootNode")();
+}
+function host(n2) {
+  if (!n2 || !("host" in n2))
+    return null;
+  return getUntaintedAccessor("ShadowRoot", n2, "host");
+}
+function shadowRoot(n2) {
+  if (!n2 || !("shadowRoot" in n2))
+    return null;
+  return getUntaintedAccessor("Element", n2, "shadowRoot");
+}
+function mutationObserverCtor() {
+  return getUntaintedPrototype("MutationObserver").constructor;
+}
 function on(type, fn, target = document) {
   const options = { capture: true };
   target.addEventListener(type, fn, options);
@@ -2309,11 +3859,11 @@ if (!/* @__PURE__ */ /[1-9][0-9]{12}/.test(Date.now().toString())) {
   nowTimestamp = () => (/* @__PURE__ */ new Date()).getTime();
 }
 function getWindowScroll(win) {
-  var _a2, _b, _c, _d, _e, _f;
+  var _a2, _b, _c, _d;
   const doc = win.document;
   return {
-    left: doc.scrollingElement ? doc.scrollingElement.scrollLeft : win.pageXOffset !== void 0 ? win.pageXOffset : (doc == null ? void 0 : doc.documentElement.scrollLeft) || ((_b = (_a2 = doc == null ? void 0 : doc.body) == null ? void 0 : _a2.parentElement) == null ? void 0 : _b.scrollLeft) || ((_c = doc == null ? void 0 : doc.body) == null ? void 0 : _c.scrollLeft) || 0,
-    top: doc.scrollingElement ? doc.scrollingElement.scrollTop : win.pageYOffset !== void 0 ? win.pageYOffset : (doc == null ? void 0 : doc.documentElement.scrollTop) || ((_e = (_d = doc == null ? void 0 : doc.body) == null ? void 0 : _d.parentElement) == null ? void 0 : _e.scrollTop) || ((_f = doc == null ? void 0 : doc.body) == null ? void 0 : _f.scrollTop) || 0
+    left: doc.scrollingElement ? doc.scrollingElement.scrollLeft : win.pageXOffset !== void 0 ? win.pageXOffset : doc.documentElement.scrollLeft || (doc == null ? void 0 : doc.body) && ((_a2 = parentElement(doc.body)) == null ? void 0 : _a2.scrollLeft) || ((_b = doc == null ? void 0 : doc.body) == null ? void 0 : _b.scrollLeft) || 0,
+    top: doc.scrollingElement ? doc.scrollingElement.scrollTop : win.pageYOffset !== void 0 ? win.pageYOffset : (doc == null ? void 0 : doc.documentElement.scrollTop) || (doc == null ? void 0 : doc.body) && ((_c = parentElement(doc.body)) == null ? void 0 : _c.scrollTop) || ((_d = doc == null ? void 0 : doc.body) == null ? void 0 : _d.scrollTop) || 0
   };
 }
 function getWindowHeight() {
@@ -2326,7 +3876,7 @@ function closestElementOfNode(node) {
   if (!node) {
     return null;
   }
-  const el = node.nodeType === node.ELEMENT_NODE ? node : node.parentElement;
+  const el = node.nodeType === node.ELEMENT_NODE ? node : parentElement(node);
   return el;
 }
 var isCanvasNode = (node) => {
@@ -2384,13 +3934,14 @@ function isAncestorRemoved(target, mirror2) {
   if (!mirror2.has(id)) {
     return true;
   }
-  if (target.parentNode && target.parentNode.nodeType === target.DOCUMENT_NODE) {
+  const parent = parentNode(target);
+  if (parent && parent.nodeType === target.DOCUMENT_NODE) {
     return false;
   }
-  if (!target.parentNode) {
+  if (!parent) {
     return true;
   }
-  return isAncestorRemoved(target.parentNode, mirror2);
+  return isAncestorRemoved(parent, mirror2);
 }
 function legacy_isTouchEvent(event) {
   return Boolean(event.changedTouches);
@@ -2401,20 +3952,6 @@ function polyfill$1(win = window) {
   }
   if ("DOMTokenList" in win && !win.DOMTokenList.prototype.forEach) {
     win.DOMTokenList.prototype.forEach = Array.prototype.forEach;
-  }
-  if (!Node.prototype.contains) {
-    Node.prototype.contains = (...args) => {
-      let node = args[0];
-      if (!(0 in args)) {
-        throw new TypeError("1 argument is required");
-      }
-      do {
-        if (this === node) {
-          return true;
-        }
-      } while (node = node && node.parentNode);
-      return false;
-    };
   }
 }
 function queueToResolveTrees(queue) {
@@ -2491,7 +4028,12 @@ function getBaseDimension(node, rootIframe) {
   };
 }
 function hasShadowRoot(n2) {
-  return Boolean(n2 == null ? void 0 : n2.shadowRoot);
+  if (!n2)
+    return false;
+  if (n2 instanceof BaseRRNode && "shadowRoot" in n2) {
+    return Boolean(n2.shadowRoot);
+  }
+  return Boolean(shadowRoot(n2));
 }
 function getNestedRule(rules2, position) {
   const rule = rules2[position[0]];
@@ -2561,10 +4103,10 @@ var StyleSheetMirror = class {
   }
 };
 function getShadowHost(n2) {
-  var _a2, _b;
+  var _a2;
   let shadowHost = null;
-  if (((_b = (_a2 = n2.getRootNode) == null ? void 0 : _a2.call(n2)) == null ? void 0 : _b.nodeType) === Node.DOCUMENT_FRAGMENT_NODE && n2.getRootNode().host)
-    shadowHost = n2.getRootNode().host;
+  if ("getRootNode" in n2 && ((_a2 = getRootNode(n2)) == null ? void 0 : _a2.nodeType) === Node.DOCUMENT_FRAGMENT_NODE && host(getRootNode(n2)))
+    shadowHost = host(getRootNode(n2));
   return shadowHost;
 }
 function getRootShadowHost(n2) {
@@ -2579,13 +4121,13 @@ function shadowHostInDom(n2) {
   if (!doc)
     return false;
   const shadowHost = getRootShadowHost(n2);
-  return doc.contains(shadowHost);
+  return contains(doc, shadowHost);
 }
 function inDom(n2) {
   const doc = n2.ownerDocument;
   if (!doc)
     return false;
-  return doc.contains(n2) || shadowHostInDom(n2);
+  return contains(doc, n2) || shadowHostInDom(n2);
 }
 var utils = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
@@ -2847,10 +4389,11 @@ var MutationBuffer = class {
         return nextId;
       };
       const pushAdd = (n2) => {
-        if (!n2.parentNode || !inDom(n2) || n2.parentNode.tagName === "TEXTAREA") {
+        const parent = parentNode(n2);
+        if (!parent || !inDom(n2) || parent.tagName === "TEXTAREA") {
           return;
         }
-        const parentId = isShadowRoot(n2.parentNode) ? this.mirror.getId(getShadowHost(n2)) : this.mirror.getId(n2.parentNode);
+        const parentId = isShadowRoot(parent) ? this.mirror.getId(getShadowHost(n2)) : this.mirror.getId(parent);
         const nextId = getNextId(n2);
         if (parentId === -1 || nextId === -1) {
           return addList.addNode(n2);
@@ -2883,7 +4426,7 @@ var MutationBuffer = class {
               );
             }
             if (hasShadowRoot(n2)) {
-              this.shadowDomManager.addShadowRoot(n2.shadowRoot, this.doc);
+              this.shadowDomManager.addShadowRoot(shadowRoot(n2), this.doc);
             }
           },
           onIframeLoad: (iframe, childSn) => {
@@ -2907,7 +4450,7 @@ var MutationBuffer = class {
         this.mirror.removeNodeFromMap(this.mapRemoves.shift());
       }
       for (const n2 of this.movedSet) {
-        if (isParentRemoved(this.removes, n2, this.mirror) && !this.movedSet.has(n2.parentNode)) {
+        if (isParentRemoved(this.removes, n2, this.mirror) && !this.movedSet.has(parentNode(n2))) {
           continue;
         }
         pushAdd(n2);
@@ -2925,7 +4468,7 @@ var MutationBuffer = class {
       while (addList.length) {
         let node = null;
         if (candidate) {
-          const parentId = this.mirror.getId(candidate.value.parentNode);
+          const parentId = this.mirror.getId(parentNode(candidate.value));
           const nextId = getNextId(candidate.value);
           if (parentId !== -1 && nextId !== -1) {
             node = candidate;
@@ -2937,7 +4480,7 @@ var MutationBuffer = class {
             const _node = tailNode;
             tailNode = tailNode.previous;
             if (_node) {
-              const parentId = this.mirror.getId(_node.value.parentNode);
+              const parentId = this.mirror.getId(parentNode(_node.value));
               const nextId = getNextId(_node.value);
               if (nextId === -1)
                 continue;
@@ -2946,8 +4489,9 @@ var MutationBuffer = class {
                 break;
               } else {
                 const unhandledNode = _node.value;
-                if (unhandledNode.parentNode && unhandledNode.parentNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-                  const shadowHost = unhandledNode.parentNode.host;
+                const parent = parentNode(unhandledNode);
+                if (parent && parent.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+                  const shadowHost = host(parent);
                   const parentId2 = this.mirror.getId(shadowHost);
                   if (parentId2 !== -1) {
                     node = _node;
@@ -2972,8 +4516,9 @@ var MutationBuffer = class {
         texts: this.texts.map((text) => {
           var _a2, _b;
           const n2 = text.node;
-          if (n2.parentNode && n2.parentNode.tagName === "TEXTAREA") {
-            this.genTextAreaValueMutation(n2.parentNode);
+          const parent = parentNode(n2);
+          if (parent && parent.tagName === "TEXTAREA") {
+            this.genTextAreaValueMutation(parent);
           }
           let value = text.value;
           const enableStrictPrivacy = this.privacySetting === "strict";
@@ -3032,8 +4577,8 @@ var MutationBuffer = class {
         this.attributeMap.set(textarea, item);
       }
       item.attributes.value = Array.from(
-        textarea.childNodes,
-        (cn) => cn.textContent || ""
+        childNodes(textarea),
+        (cn) => textContent(cn) || ""
       ).join("");
     });
     __publicField(this, "processMutation", (m) => {
@@ -3042,7 +4587,7 @@ var MutationBuffer = class {
       }
       switch (m.type) {
         case "characterData": {
-          const value = m.target.textContent;
+          const value = textContent(m.target);
           if (!isBlocked(m.target, this.blockClass, this.blockSelector, false) && value !== m.oldValue) {
             this.texts.push({
               value: needMaskingText(
@@ -3156,7 +4701,7 @@ var MutationBuffer = class {
           m.addedNodes.forEach((n2) => this.genAdds(n2, m.target));
           m.removedNodes.forEach((n2) => {
             const nodeId = this.mirror.getId(n2);
-            const parentId = isShadowRoot(m.target) ? this.mirror.getId(m.target.host) : this.mirror.getId(m.target);
+            const parentId = isShadowRoot(m.target) ? this.mirror.getId(host(m.target)) : this.mirror.getId(m.target);
             if (isBlocked(m.target, this.blockClass, this.blockSelector, false) || isIgnored(n2, this.mirror, this.slimDOMOptions) || !isSerialized(n2, this.mirror)) {
               return;
             }
@@ -3204,9 +4749,9 @@ var MutationBuffer = class {
         this.droppedSet.delete(n2);
       }
       if (!isBlocked(n2, this.blockClass, this.blockSelector, false)) {
-        n2.childNodes.forEach((childN) => this.genAdds(childN));
+        childNodes(n2).forEach((childN) => this.genAdds(childN));
         if (hasShadowRoot(n2)) {
-          n2.shadowRoot.childNodes.forEach((childN) => {
+          childNodes(shadowRoot(n2)).forEach((childN) => {
             this.processedNodeManager.add(childN, this);
             this.genAdds(childN, n2);
           });
@@ -3270,7 +4815,7 @@ var MutationBuffer = class {
 };
 function deepDelete(addsSet, n2) {
   addsSet.delete(n2);
-  n2.childNodes.forEach((childN) => deepDelete(addsSet, childN));
+  childNodes(n2).forEach((childN) => deepDelete(addsSet, childN));
 }
 function isParentRemoved(removes, n2, mirror2) {
   if (removes.length === 0)
@@ -3278,13 +4823,13 @@ function isParentRemoved(removes, n2, mirror2) {
   return _isParentRemoved(removes, n2, mirror2);
 }
 function _isParentRemoved(removes, n2, mirror2) {
-  let node = n2.parentNode;
+  let node = parentNode(n2);
   while (node) {
     const parentId = mirror2.getId(node);
     if (removes.some((r2) => r2.id === parentId)) {
       return true;
     }
-    node = node.parentNode;
+    node = parentNode(node);
   }
   return false;
 }
@@ -3294,14 +4839,14 @@ function isAncestorInSet(set, n2) {
   return _isAncestorInSet(set, n2);
 }
 function _isAncestorInSet(set, n2) {
-  const { parentNode } = n2;
-  if (!parentNode) {
+  const parent = parentNode(n2);
+  if (!parent) {
     return false;
   }
-  if (set.has(parentNode)) {
+  if (set.has(parent)) {
     return true;
   }
-  return _isAncestorInSet(set, parentNode);
+  return _isAncestorInSet(set, parent);
 }
 var errorHandler;
 function registerErrorHandler(handler) {
@@ -3342,24 +4887,10 @@ function getEventTarget(event) {
   return event && event.target;
 }
 function initMutationObserver(options, rootEl) {
-  var _a2, _b;
   const mutationBuffer = new MutationBuffer();
   mutationBuffers.push(mutationBuffer);
   mutationBuffer.init(options);
-  let mutationObserverCtor = window.MutationObserver || /**
-  * Some websites may disable MutationObserver by removing it from the window object.
-  * If someone is using rrweb to build a browser extention or things like it, they
-  * could not change the website's code but can have an opportunity to inject some
-  * code before the website executing its JS logic.
-  * Then they can do this to store the native MutationObserver:
-  * window.__rrMutationObserver = MutationObserver
-  */
-  window.__rrMutationObserver;
-  const angularZoneSymbol = (_b = (_a2 = window == null ? void 0 : window.Zone) == null ? void 0 : _a2.__symbol__) == null ? void 0 : _b.call(_a2, "MutationObserver");
-  if (angularZoneSymbol && window[angularZoneSymbol]) {
-    mutationObserverCtor = window[angularZoneSymbol];
-  }
-  const observer = new mutationObserverCtor(
+  const observer = new (mutationObserverCtor())(
     callbackWrapper(mutationBuffer.processMutations.bind(mutationBuffer))
   );
   observer.observe(rootEl, {
@@ -3610,7 +5141,7 @@ function initInputObserver({
     const userTriggered = event.isTrusted;
     const tagName = target && target.tagName;
     if (target && tagName === "OPTION") {
-      target = target.parentElement;
+      target = parentElement(target);
     }
     if (!target || !tagName || INPUT_TAGS.indexOf(tagName) < 0 || isBlocked(target, blockClass, blockSelector, true)) {
       return;
@@ -3936,14 +5467,14 @@ function initStyleSheetObserver({ styleSheetRuleCb, mirror: mirror2, stylesheetM
 function initAdoptedStyleSheetObserver({
   mirror: mirror2,
   stylesheetManager
-}, host) {
+}, host$12) {
   var _a2, _b, _c;
   let hostId = null;
-  if (host.nodeName === "#document")
-    hostId = mirror2.getId(host);
+  if (host$12.nodeName === "#document")
+    hostId = mirror2.getId(host$12);
   else
-    hostId = mirror2.getId(host.host);
-  const patchTarget = host.nodeName === "#document" ? (_a2 = host.defaultView) == null ? void 0 : _a2.Document : (_c = (_b = host.ownerDocument) == null ? void 0 : _b.defaultView) == null ? void 0 : _c.ShadowRoot;
+    hostId = mirror2.getId(host(host$12));
+  const patchTarget = host$12.nodeName === "#document" ? (_a2 = host$12.defaultView) == null ? void 0 : _a2.Document : (_c = (_b = host$12.ownerDocument) == null ? void 0 : _b.defaultView) == null ? void 0 : _c.ShadowRoot;
   const originalPropertyDescriptor = (patchTarget == null ? void 0 : patchTarget.prototype) ? Object.getOwnPropertyDescriptor(
     patchTarget == null ? void 0 : patchTarget.prototype,
     "adoptedStyleSheets"
@@ -3951,7 +5482,7 @@ function initAdoptedStyleSheetObserver({
   if (hostId === null || hostId === -1 || !patchTarget || !originalPropertyDescriptor)
     return () => {
     };
-  Object.defineProperty(host, "adoptedStyleSheets", {
+  Object.defineProperty(host$12, "adoptedStyleSheets", {
     configurable: originalPropertyDescriptor.configurable,
     enumerable: originalPropertyDescriptor.enumerable,
     get() {
@@ -3971,7 +5502,7 @@ function initAdoptedStyleSheetObserver({
     }
   });
   return callbackWrapper(() => {
-    Object.defineProperty(host, "adoptedStyleSheets", {
+    Object.defineProperty(host$12, "adoptedStyleSheets", {
       configurable: originalPropertyDescriptor.configurable,
       enumerable: originalPropertyDescriptor.enumerable,
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -4681,12 +6212,12 @@ var ShadowDomManager = class {
     this.reset();
     this.patchAttachShadow(Element, document);
   }
-  addShadowRoot(shadowRoot, doc) {
-    if (!isNativeShadowDom(shadowRoot))
+  addShadowRoot(shadowRoot2, doc) {
+    if (!isNativeShadowDom(shadowRoot2))
       return;
-    if (this.shadowDoms.has(shadowRoot))
+    if (this.shadowDoms.has(shadowRoot2))
       return;
-    this.shadowDoms.add(shadowRoot);
+    this.shadowDoms.add(shadowRoot2);
     const observer = initMutationObserver(
       {
         ...this.bypassOptions,
@@ -4695,7 +6226,7 @@ var ShadowDomManager = class {
         mirror: this.mirror,
         shadowDomManager: this
       },
-      shadowRoot
+      shadowRoot2
     );
     this.restoreHandlers.push(() => observer.disconnect());
     this.restoreHandlers.push(
@@ -4704,15 +6235,15 @@ var ShadowDomManager = class {
         scrollCb: this.scrollCb,
         // https://gist.github.com/praveenpuglia/0832da687ed5a5d7a0907046c9ef1813
         // scroll is not allowed to pass the boundary, so we need to listen the shadow document
-        doc: shadowRoot,
+        doc: shadowRoot2,
         mirror: this.mirror
       })
     );
     setTimeout(() => {
-      if (shadowRoot.adoptedStyleSheets && shadowRoot.adoptedStyleSheets.length > 0)
+      if (shadowRoot2.adoptedStyleSheets && shadowRoot2.adoptedStyleSheets.length > 0)
         this.bypassOptions.stylesheetManager.adoptStyleSheets(
-          shadowRoot.adoptedStyleSheets,
-          this.mirror.getId(shadowRoot.host)
+          shadowRoot2.adoptedStyleSheets,
+          this.mirror.getId(host(shadowRoot2))
         );
       this.restoreHandlers.push(
         initAdoptedStyleSheetObserver(
@@ -4720,7 +6251,7 @@ var ShadowDomManager = class {
             mirror: this.mirror,
             stylesheetManager: this.bypassOptions.stylesheetManager
           },
-          shadowRoot
+          shadowRoot2
         )
       );
     }, 0);
@@ -4747,10 +6278,11 @@ var ShadowDomManager = class {
         "attachShadow",
         function(original) {
           return function(option) {
-            const shadowRoot = original.call(this, option);
-            if (this.shadowRoot && inDom(this))
-              manager.addShadowRoot(this.shadowRoot, doc);
-            return shadowRoot;
+            const sRoot = original.call(this, option);
+            const shadowRootEl = shadowRoot(this);
+            if (shadowRootEl && inDom(this))
+              manager.addShadowRoot(shadowRootEl, doc);
+            return sRoot;
           };
         }
       )
@@ -5924,7 +7456,7 @@ function record(options = {}) {
           stylesheetManager.trackLinkElement(n2);
         }
         if (hasShadowRoot(n2)) {
-          shadowDomManager.addShadowRoot(n2.shadowRoot, document);
+          shadowDomManager.addShadowRoot(shadowRoot(n2), document);
         }
       },
       onIframeLoad: (iframe, childSn) => {
@@ -6160,1330 +7692,6 @@ record.snapshotCanvas = async (element) => {
   await canvasManager.snapshot(element);
 };
 record.mirror = mirror;
-var __defProp2 = Object.defineProperty;
-var __defNormalProp2 = (obj, key, value) => key in obj ? __defProp2(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField2 = (obj, key, value) => {
-  __defNormalProp2(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
-var __defProp22 = Object.defineProperty;
-var __defNormalProp22 = (obj, key, value) => key in obj ? __defProp22(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField22 = (obj, key, value) => {
-  __defNormalProp22(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
-var NodeType$1 = /* @__PURE__ */ ((NodeType2) => {
-  NodeType2[NodeType2["Document"] = 0] = "Document";
-  NodeType2[NodeType2["DocumentType"] = 1] = "DocumentType";
-  NodeType2[NodeType2["Element"] = 2] = "Element";
-  NodeType2[NodeType2["Text"] = 3] = "Text";
-  NodeType2[NodeType2["CDATA"] = 4] = "CDATA";
-  NodeType2[NodeType2["Comment"] = 5] = "Comment";
-  return NodeType2;
-})(NodeType$1 || {});
-var Mirror$1 = class Mirror2 {
-  constructor() {
-    __publicField22(this, "idNodeMap", /* @__PURE__ */ new Map());
-    __publicField22(this, "nodeMetaMap", /* @__PURE__ */ new WeakMap());
-  }
-  getId(n2) {
-    var _a2;
-    if (!n2)
-      return -1;
-    const id = (_a2 = this.getMeta(n2)) == null ? void 0 : _a2.id;
-    return id ?? -1;
-  }
-  getNode(id) {
-    return this.idNodeMap.get(id) || null;
-  }
-  getIds() {
-    return Array.from(this.idNodeMap.keys());
-  }
-  getMeta(n2) {
-    return this.nodeMetaMap.get(n2) || null;
-  }
-  // removes the node from idNodeMap
-  // doesn't remove the node from nodeMetaMap
-  removeNodeFromMap(n2) {
-    const id = this.getId(n2);
-    this.idNodeMap.delete(id);
-    if (n2.childNodes) {
-      n2.childNodes.forEach(
-        (childNode) => this.removeNodeFromMap(childNode)
-      );
-    }
-  }
-  has(id) {
-    return this.idNodeMap.has(id);
-  }
-  hasNode(node) {
-    return this.nodeMetaMap.has(node);
-  }
-  add(n2, meta) {
-    const id = meta.id;
-    this.idNodeMap.set(id, n2);
-    this.nodeMetaMap.set(n2, meta);
-  }
-  replace(id, n2) {
-    const oldNode = this.getNode(id);
-    if (oldNode) {
-      const meta = this.nodeMetaMap.get(oldNode);
-      if (meta)
-        this.nodeMetaMap.set(n2, meta);
-    }
-    this.idNodeMap.set(id, n2);
-  }
-  reset() {
-    this.idNodeMap = /* @__PURE__ */ new Map();
-    this.nodeMetaMap = /* @__PURE__ */ new WeakMap();
-  }
-};
-function createMirror$1() {
-  return new Mirror$1();
-}
-function parseCSSText(cssText) {
-  const res = {};
-  const listDelimiter = /;(?![^(]*\))/g;
-  const propertyDelimiter = /:(.+)/;
-  const comment = /\/\*.*?\*\//g;
-  cssText.replace(comment, "").split(listDelimiter).forEach(function(item) {
-    if (item) {
-      const tmp = item.split(propertyDelimiter);
-      tmp.length > 1 && (res[camelize(tmp[0].trim())] = tmp[1].trim());
-    }
-  });
-  return res;
-}
-function toCSSText(style) {
-  const properties = [];
-  for (const name in style) {
-    const value = style[name];
-    if (typeof value !== "string")
-      continue;
-    const normalizedName = hyphenate(name);
-    properties.push(`${normalizedName}: ${value};`);
-  }
-  return properties.join(" ");
-}
-var camelizeRE = /-([a-z])/g;
-var CUSTOM_PROPERTY_REGEX = /^--[a-zA-Z0-9-]+$/;
-var camelize = (str) => {
-  if (CUSTOM_PROPERTY_REGEX.test(str))
-    return str;
-  return str.replace(camelizeRE, (_, c2) => c2 ? c2.toUpperCase() : "");
-};
-var hyphenateRE = /\B([A-Z])/g;
-var hyphenate = (str) => {
-  return str.replace(hyphenateRE, "-$1").toLowerCase();
-};
-var BaseRRNode = class _BaseRRNode {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-  constructor(..._args) {
-    __publicField2(this, "parentElement", null);
-    __publicField2(this, "parentNode", null);
-    __publicField2(this, "ownerDocument");
-    __publicField2(this, "firstChild", null);
-    __publicField2(this, "lastChild", null);
-    __publicField2(this, "previousSibling", null);
-    __publicField2(this, "nextSibling", null);
-    __publicField2(this, "ELEMENT_NODE", 1);
-    __publicField2(this, "TEXT_NODE", 3);
-    __publicField2(this, "nodeType");
-    __publicField2(this, "nodeName");
-    __publicField2(this, "RRNodeType");
-  }
-  get childNodes() {
-    const childNodes = [];
-    let childIterator = this.firstChild;
-    while (childIterator) {
-      childNodes.push(childIterator);
-      childIterator = childIterator.nextSibling;
-    }
-    return childNodes;
-  }
-  contains(node) {
-    if (!(node instanceof _BaseRRNode))
-      return false;
-    else if (node.ownerDocument !== this.ownerDocument)
-      return false;
-    else if (node === this)
-      return true;
-    while (node.parentNode) {
-      if (node.parentNode === this)
-        return true;
-      node = node.parentNode;
-    }
-    return false;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  appendChild(_newChild) {
-    throw new Error(
-      `RRDomException: Failed to execute 'appendChild' on 'RRNode': This RRNode type does not support this method.`
-    );
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  insertBefore(_newChild, _refChild) {
-    throw new Error(
-      `RRDomException: Failed to execute 'insertBefore' on 'RRNode': This RRNode type does not support this method.`
-    );
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  removeChild(_node) {
-    throw new Error(
-      `RRDomException: Failed to execute 'removeChild' on 'RRNode': This RRNode type does not support this method.`
-    );
-  }
-  toString() {
-    return "RRNode";
-  }
-};
-var BaseRRDocument = class _BaseRRDocument extends BaseRRNode {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(...args) {
-    super(args);
-    __publicField2(this, "nodeType", 9);
-    __publicField2(this, "nodeName", "#document");
-    __publicField2(this, "compatMode", "CSS1Compat");
-    __publicField2(this, "RRNodeType", NodeType$1.Document);
-    __publicField2(this, "textContent", null);
-    this.ownerDocument = this;
-  }
-  get documentElement() {
-    return this.childNodes.find(
-      (node) => node.RRNodeType === NodeType$1.Element && node.tagName === "HTML"
-    ) || null;
-  }
-  get body() {
-    var _a2;
-    return ((_a2 = this.documentElement) == null ? void 0 : _a2.childNodes.find(
-      (node) => node.RRNodeType === NodeType$1.Element && node.tagName === "BODY"
-    )) || null;
-  }
-  get head() {
-    var _a2;
-    return ((_a2 = this.documentElement) == null ? void 0 : _a2.childNodes.find(
-      (node) => node.RRNodeType === NodeType$1.Element && node.tagName === "HEAD"
-    )) || null;
-  }
-  get implementation() {
-    return this;
-  }
-  get firstElementChild() {
-    return this.documentElement;
-  }
-  appendChild(newChild) {
-    const nodeType = newChild.RRNodeType;
-    if (nodeType === NodeType$1.Element || nodeType === NodeType$1.DocumentType) {
-      if (this.childNodes.some((s2) => s2.RRNodeType === nodeType)) {
-        throw new Error(
-          `RRDomException: Failed to execute 'appendChild' on 'RRNode': Only one ${nodeType === NodeType$1.Element ? "RRElement" : "RRDoctype"} on RRDocument allowed.`
-        );
-      }
-    }
-    const child = appendChild(this, newChild);
-    child.parentElement = null;
-    return child;
-  }
-  insertBefore(newChild, refChild) {
-    const nodeType = newChild.RRNodeType;
-    if (nodeType === NodeType$1.Element || nodeType === NodeType$1.DocumentType) {
-      if (this.childNodes.some((s2) => s2.RRNodeType === nodeType)) {
-        throw new Error(
-          `RRDomException: Failed to execute 'insertBefore' on 'RRNode': Only one ${nodeType === NodeType$1.Element ? "RRElement" : "RRDoctype"} on RRDocument allowed.`
-        );
-      }
-    }
-    const child = insertBefore(this, newChild, refChild);
-    child.parentElement = null;
-    return child;
-  }
-  removeChild(node) {
-    return removeChild(this, node);
-  }
-  open() {
-    this.firstChild = null;
-    this.lastChild = null;
-  }
-  close() {
-  }
-  /**
-   * Adhoc implementation for setting xhtml namespace in rebuilt.ts (rrweb-snapshot).
-   * There are two lines used this function:
-   * 1. doc.write('\<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ""\>')
-   * 2. doc.write('\<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" ""\>')
-   */
-  write(content) {
-    let publicId;
-    if (content === '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "">')
-      publicId = "-//W3C//DTD XHTML 1.0 Transitional//EN";
-    else if (content === '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "">')
-      publicId = "-//W3C//DTD HTML 4.0 Transitional//EN";
-    if (publicId) {
-      const doctype = this.createDocumentType("html", publicId, "");
-      this.open();
-      this.appendChild(doctype);
-    }
-  }
-  createDocument(_namespace, _qualifiedName, _doctype) {
-    return new _BaseRRDocument();
-  }
-  createDocumentType(qualifiedName, publicId, systemId) {
-    const doctype = new BaseRRDocumentType(qualifiedName, publicId, systemId);
-    doctype.ownerDocument = this;
-    return doctype;
-  }
-  createElement(tagName) {
-    const element = new BaseRRElement(tagName);
-    element.ownerDocument = this;
-    return element;
-  }
-  createElementNS(_namespaceURI, qualifiedName) {
-    return this.createElement(qualifiedName);
-  }
-  createTextNode(data) {
-    const text = new BaseRRText(data);
-    text.ownerDocument = this;
-    return text;
-  }
-  createComment(data) {
-    const comment = new BaseRRComment(data);
-    comment.ownerDocument = this;
-    return comment;
-  }
-  createCDATASection(data) {
-    const CDATASection = new BaseRRCDATASection(data);
-    CDATASection.ownerDocument = this;
-    return CDATASection;
-  }
-  toString() {
-    return "RRDocument";
-  }
-};
-var BaseRRDocumentType = class extends BaseRRNode {
-  constructor(qualifiedName, publicId, systemId) {
-    super();
-    __publicField2(this, "nodeType", 10);
-    __publicField2(this, "RRNodeType", NodeType$1.DocumentType);
-    __publicField2(this, "name");
-    __publicField2(this, "publicId");
-    __publicField2(this, "systemId");
-    __publicField2(this, "textContent", null);
-    this.name = qualifiedName;
-    this.publicId = publicId;
-    this.systemId = systemId;
-    this.nodeName = qualifiedName;
-  }
-  toString() {
-    return "RRDocumentType";
-  }
-};
-var BaseRRElement = class extends BaseRRNode {
-  constructor(tagName) {
-    super();
-    __publicField2(this, "nodeType", 1);
-    __publicField2(this, "RRNodeType", NodeType$1.Element);
-    __publicField2(this, "tagName");
-    __publicField2(this, "attributes", {});
-    __publicField2(this, "shadowRoot", null);
-    __publicField2(this, "scrollLeft");
-    __publicField2(this, "scrollTop");
-    this.tagName = tagName.toUpperCase();
-    this.nodeName = tagName.toUpperCase();
-  }
-  get textContent() {
-    let result = "";
-    this.childNodes.forEach((node) => result += node.textContent);
-    return result;
-  }
-  set textContent(textContent) {
-    this.firstChild = null;
-    this.lastChild = null;
-    this.appendChild(this.ownerDocument.createTextNode(textContent));
-  }
-  get classList() {
-    return new ClassList(
-      this.attributes.class,
-      (newClassName) => {
-        this.attributes.class = newClassName;
-      }
-    );
-  }
-  get id() {
-    return this.attributes.id || "";
-  }
-  get className() {
-    return this.attributes.class || "";
-  }
-  get style() {
-    const style = this.attributes.style ? parseCSSText(this.attributes.style) : {};
-    const hyphenateRE2 = /\B([A-Z])/g;
-    style.setProperty = (name, value, priority) => {
-      if (hyphenateRE2.test(name))
-        return;
-      const normalizedName = camelize(name);
-      if (!value)
-        delete style[normalizedName];
-      else
-        style[normalizedName] = value;
-      if (priority === "important")
-        style[normalizedName] += " !important";
-      this.attributes.style = toCSSText(style);
-    };
-    style.removeProperty = (name) => {
-      if (hyphenateRE2.test(name))
-        return "";
-      const normalizedName = camelize(name);
-      const value = style[normalizedName] || "";
-      delete style[normalizedName];
-      this.attributes.style = toCSSText(style);
-      return value;
-    };
-    return style;
-  }
-  getAttribute(name) {
-    return this.attributes[name] || null;
-  }
-  setAttribute(name, attribute) {
-    this.attributes[name] = attribute;
-  }
-  setAttributeNS(_namespace, qualifiedName, value) {
-    this.setAttribute(qualifiedName, value);
-  }
-  removeAttribute(name) {
-    delete this.attributes[name];
-  }
-  appendChild(newChild) {
-    return appendChild(this, newChild);
-  }
-  insertBefore(newChild, refChild) {
-    return insertBefore(this, newChild, refChild);
-  }
-  removeChild(node) {
-    return removeChild(this, node);
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  attachShadow(_init) {
-    const shadowRoot = this.ownerDocument.createElement("SHADOWROOT");
-    this.shadowRoot = shadowRoot;
-    return shadowRoot;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  dispatchEvent(_event) {
-    return true;
-  }
-  toString() {
-    let attributeString = "";
-    for (const attribute in this.attributes) {
-      attributeString += `${attribute}="${this.attributes[attribute]}" `;
-    }
-    return `${this.tagName} ${attributeString}`;
-  }
-};
-var BaseRRMediaElement = class extends BaseRRElement {
-  constructor() {
-    super(...arguments);
-    __publicField2(this, "currentTime");
-    __publicField2(this, "volume");
-    __publicField2(this, "paused");
-    __publicField2(this, "muted");
-    __publicField2(this, "playbackRate");
-    __publicField2(this, "loop");
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  attachShadow(_init) {
-    throw new Error(
-      `RRDomException: Failed to execute 'attachShadow' on 'RRElement': This RRElement does not support attachShadow`
-    );
-  }
-  play() {
-    this.paused = false;
-  }
-  pause() {
-    this.paused = true;
-  }
-};
-var BaseRRText = class extends BaseRRNode {
-  constructor(data) {
-    super();
-    __publicField2(this, "nodeType", 3);
-    __publicField2(this, "nodeName", "#text");
-    __publicField2(this, "RRNodeType", NodeType$1.Text);
-    __publicField2(this, "data");
-    this.data = data;
-  }
-  get textContent() {
-    return this.data;
-  }
-  set textContent(textContent) {
-    this.data = textContent;
-  }
-  toString() {
-    return `RRText text=${JSON.stringify(this.data)}`;
-  }
-};
-var BaseRRComment = class extends BaseRRNode {
-  constructor(data) {
-    super();
-    __publicField2(this, "nodeType", 8);
-    __publicField2(this, "nodeName", "#comment");
-    __publicField2(this, "RRNodeType", NodeType$1.Comment);
-    __publicField2(this, "data");
-    this.data = data;
-  }
-  get textContent() {
-    return this.data;
-  }
-  set textContent(textContent) {
-    this.data = textContent;
-  }
-  toString() {
-    return `RRComment text=${JSON.stringify(this.data)}`;
-  }
-};
-var BaseRRCDATASection = class extends BaseRRNode {
-  constructor(data) {
-    super();
-    __publicField2(this, "nodeName", "#cdata-section");
-    __publicField2(this, "nodeType", 4);
-    __publicField2(this, "RRNodeType", NodeType$1.CDATA);
-    __publicField2(this, "data");
-    this.data = data;
-  }
-  get textContent() {
-    return this.data;
-  }
-  set textContent(textContent) {
-    this.data = textContent;
-  }
-  toString() {
-    return `RRCDATASection data=${JSON.stringify(this.data)}`;
-  }
-};
-var ClassList = class {
-  constructor(classText, onChange) {
-    __publicField2(this, "onChange");
-    __publicField2(this, "classes", []);
-    __publicField2(this, "add", (...classNames) => {
-      for (const item of classNames) {
-        const className = String(item);
-        if (this.classes.indexOf(className) >= 0)
-          continue;
-        this.classes.push(className);
-      }
-      this.onChange && this.onChange(this.classes.join(" "));
-    });
-    __publicField2(this, "remove", (...classNames) => {
-      this.classes = this.classes.filter(
-        (item) => classNames.indexOf(item) === -1
-      );
-      this.onChange && this.onChange(this.classes.join(" "));
-    });
-    if (classText) {
-      const classes = classText.trim().split(/\s+/);
-      this.classes.push(...classes);
-    }
-    this.onChange = onChange;
-  }
-};
-function appendChild(parent, newChild) {
-  if (newChild.parentNode)
-    newChild.parentNode.removeChild(newChild);
-  if (parent.lastChild) {
-    parent.lastChild.nextSibling = newChild;
-    newChild.previousSibling = parent.lastChild;
-  } else {
-    parent.firstChild = newChild;
-    newChild.previousSibling = null;
-  }
-  parent.lastChild = newChild;
-  newChild.nextSibling = null;
-  newChild.parentNode = parent;
-  newChild.parentElement = parent;
-  newChild.ownerDocument = parent.ownerDocument;
-  return newChild;
-}
-function insertBefore(parent, newChild, refChild) {
-  if (!refChild)
-    return appendChild(parent, newChild);
-  if (refChild.parentNode !== parent)
-    throw new Error(
-      "Failed to execute 'insertBefore' on 'RRNode': The RRNode before which the new node is to be inserted is not a child of this RRNode."
-    );
-  if (newChild === refChild)
-    return newChild;
-  if (newChild.parentNode)
-    newChild.parentNode.removeChild(newChild);
-  newChild.previousSibling = refChild.previousSibling;
-  refChild.previousSibling = newChild;
-  newChild.nextSibling = refChild;
-  if (newChild.previousSibling)
-    newChild.previousSibling.nextSibling = newChild;
-  else
-    parent.firstChild = newChild;
-  newChild.parentElement = parent;
-  newChild.parentNode = parent;
-  newChild.ownerDocument = parent.ownerDocument;
-  return newChild;
-}
-function removeChild(parent, child) {
-  if (child.parentNode !== parent)
-    throw new Error(
-      "Failed to execute 'removeChild' on 'RRNode': The RRNode to be removed is not a child of this RRNode."
-    );
-  if (child.previousSibling)
-    child.previousSibling.nextSibling = child.nextSibling;
-  else
-    parent.firstChild = child.nextSibling;
-  if (child.nextSibling)
-    child.nextSibling.previousSibling = child.previousSibling;
-  else
-    parent.lastChild = child.previousSibling;
-  child.previousSibling = null;
-  child.nextSibling = null;
-  child.parentElement = null;
-  child.parentNode = null;
-  return child;
-}
-var NodeType = /* @__PURE__ */ ((NodeType2) => {
-  NodeType2[NodeType2["PLACEHOLDER"] = 0] = "PLACEHOLDER";
-  NodeType2[NodeType2["ELEMENT_NODE"] = 1] = "ELEMENT_NODE";
-  NodeType2[NodeType2["ATTRIBUTE_NODE"] = 2] = "ATTRIBUTE_NODE";
-  NodeType2[NodeType2["TEXT_NODE"] = 3] = "TEXT_NODE";
-  NodeType2[NodeType2["CDATA_SECTION_NODE"] = 4] = "CDATA_SECTION_NODE";
-  NodeType2[NodeType2["ENTITY_REFERENCE_NODE"] = 5] = "ENTITY_REFERENCE_NODE";
-  NodeType2[NodeType2["ENTITY_NODE"] = 6] = "ENTITY_NODE";
-  NodeType2[NodeType2["PROCESSING_INSTRUCTION_NODE"] = 7] = "PROCESSING_INSTRUCTION_NODE";
-  NodeType2[NodeType2["COMMENT_NODE"] = 8] = "COMMENT_NODE";
-  NodeType2[NodeType2["DOCUMENT_NODE"] = 9] = "DOCUMENT_NODE";
-  NodeType2[NodeType2["DOCUMENT_TYPE_NODE"] = 10] = "DOCUMENT_TYPE_NODE";
-  NodeType2[NodeType2["DOCUMENT_FRAGMENT_NODE"] = 11] = "DOCUMENT_FRAGMENT_NODE";
-  return NodeType2;
-})(NodeType || {});
-var NAMESPACES = {
-  svg: "http://www.w3.org/2000/svg",
-  "xlink:href": "http://www.w3.org/1999/xlink",
-  xmlns: "http://www.w3.org/2000/xmlns/"
-};
-var SVGTagMap = {
-  altglyph: "altGlyph",
-  altglyphdef: "altGlyphDef",
-  altglyphitem: "altGlyphItem",
-  animatecolor: "animateColor",
-  animatemotion: "animateMotion",
-  animatetransform: "animateTransform",
-  clippath: "clipPath",
-  feblend: "feBlend",
-  fecolormatrix: "feColorMatrix",
-  fecomponenttransfer: "feComponentTransfer",
-  fecomposite: "feComposite",
-  feconvolvematrix: "feConvolveMatrix",
-  fediffuselighting: "feDiffuseLighting",
-  fedisplacementmap: "feDisplacementMap",
-  fedistantlight: "feDistantLight",
-  fedropshadow: "feDropShadow",
-  feflood: "feFlood",
-  fefunca: "feFuncA",
-  fefuncb: "feFuncB",
-  fefuncg: "feFuncG",
-  fefuncr: "feFuncR",
-  fegaussianblur: "feGaussianBlur",
-  feimage: "feImage",
-  femerge: "feMerge",
-  femergenode: "feMergeNode",
-  femorphology: "feMorphology",
-  feoffset: "feOffset",
-  fepointlight: "fePointLight",
-  fespecularlighting: "feSpecularLighting",
-  fespotlight: "feSpotLight",
-  fetile: "feTile",
-  feturbulence: "feTurbulence",
-  foreignobject: "foreignObject",
-  glyphref: "glyphRef",
-  lineargradient: "linearGradient",
-  radialgradient: "radialGradient"
-};
-var createdNodeSet = null;
-function diff(oldTree, newTree, replayer, rrnodeMirror = newTree.mirror || newTree.ownerDocument.mirror) {
-  oldTree = diffBeforeUpdatingChildren(
-    oldTree,
-    newTree,
-    replayer,
-    rrnodeMirror
-  );
-  diffChildren(oldTree, newTree, replayer, rrnodeMirror);
-  diffAfterUpdatingChildren(oldTree, newTree, replayer);
-}
-function diffBeforeUpdatingChildren(oldTree, newTree, replayer, rrnodeMirror) {
-  var _a2;
-  if (replayer.afterAppend && !createdNodeSet) {
-    createdNodeSet = /* @__PURE__ */ new WeakSet();
-    setTimeout(() => {
-      createdNodeSet = null;
-    }, 0);
-  }
-  if (!sameNodeType(oldTree, newTree)) {
-    const calibratedOldTree = createOrGetNode(
-      newTree,
-      replayer.mirror,
-      rrnodeMirror
-    );
-    (_a2 = oldTree.parentNode) == null ? void 0 : _a2.replaceChild(calibratedOldTree, oldTree);
-    oldTree = calibratedOldTree;
-  }
-  switch (newTree.RRNodeType) {
-    case NodeType$1.Document: {
-      if (!nodeMatching(oldTree, newTree, replayer.mirror, rrnodeMirror)) {
-        const newMeta = rrnodeMirror.getMeta(newTree);
-        if (newMeta) {
-          replayer.mirror.removeNodeFromMap(oldTree);
-          oldTree.close();
-          oldTree.open();
-          replayer.mirror.add(oldTree, newMeta);
-          createdNodeSet == null ? void 0 : createdNodeSet.add(oldTree);
-        }
-      }
-      break;
-    }
-    case NodeType$1.Element: {
-      const oldElement = oldTree;
-      const newRRElement = newTree;
-      switch (newRRElement.tagName) {
-        case "IFRAME": {
-          const oldContentDocument = oldTree.contentDocument;
-          if (!oldContentDocument)
-            break;
-          diff(
-            oldContentDocument,
-            newTree.contentDocument,
-            replayer,
-            rrnodeMirror
-          );
-          break;
-        }
-      }
-      if (newRRElement.shadowRoot) {
-        if (!oldElement.shadowRoot)
-          oldElement.attachShadow({ mode: "open" });
-        diffChildren(
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          oldElement.shadowRoot,
-          newRRElement.shadowRoot,
-          replayer,
-          rrnodeMirror
-        );
-      }
-      diffProps(oldElement, newRRElement, rrnodeMirror);
-      break;
-    }
-  }
-  return oldTree;
-}
-function diffAfterUpdatingChildren(oldTree, newTree, replayer) {
-  var _a2;
-  switch (newTree.RRNodeType) {
-    case NodeType$1.Document: {
-      const scrollData = newTree.scrollData;
-      scrollData && replayer.applyScroll(scrollData, true);
-      break;
-    }
-    case NodeType$1.Element: {
-      const oldElement = oldTree;
-      const newRRElement = newTree;
-      newRRElement.scrollData && replayer.applyScroll(newRRElement.scrollData, true);
-      newRRElement.inputData && replayer.applyInput(newRRElement.inputData);
-      switch (newRRElement.tagName) {
-        case "AUDIO":
-        case "VIDEO": {
-          const oldMediaElement = oldTree;
-          const newMediaRRElement = newRRElement;
-          if (newMediaRRElement.paused !== void 0)
-            newMediaRRElement.paused ? void oldMediaElement.pause() : void oldMediaElement.play();
-          if (newMediaRRElement.muted !== void 0)
-            oldMediaElement.muted = newMediaRRElement.muted;
-          if (newMediaRRElement.volume !== void 0)
-            oldMediaElement.volume = newMediaRRElement.volume;
-          if (newMediaRRElement.currentTime !== void 0)
-            oldMediaElement.currentTime = newMediaRRElement.currentTime;
-          if (newMediaRRElement.playbackRate !== void 0)
-            oldMediaElement.playbackRate = newMediaRRElement.playbackRate;
-          if (newMediaRRElement.loop !== void 0)
-            oldMediaElement.loop = newMediaRRElement.loop;
-          break;
-        }
-        case "CANVAS": {
-          const rrCanvasElement = newTree;
-          if (rrCanvasElement.rr_dataURL !== null) {
-            const image = document.createElement("img");
-            image.onload = () => {
-              const ctx = oldElement.getContext("2d");
-              if (ctx) {
-                ctx.drawImage(image, 0, 0, image.width, image.height);
-              }
-            };
-            image.src = rrCanvasElement.rr_dataURL;
-          }
-          rrCanvasElement.canvasMutations.forEach(
-            (canvasMutation2) => replayer.applyCanvas(
-              canvasMutation2.event,
-              canvasMutation2.mutation,
-              oldTree
-            )
-          );
-          break;
-        }
-        case "STYLE": {
-          const styleSheet = oldElement.sheet;
-          styleSheet && newTree.rules.forEach(
-            (data) => replayer.applyStyleSheetMutation(data, styleSheet)
-          );
-          break;
-        }
-      }
-      break;
-    }
-    case NodeType$1.Text:
-    case NodeType$1.Comment:
-    case NodeType$1.CDATA: {
-      if (oldTree.textContent !== newTree.data)
-        oldTree.textContent = newTree.data;
-      break;
-    }
-  }
-  if (createdNodeSet == null ? void 0 : createdNodeSet.has(oldTree)) {
-    createdNodeSet.delete(oldTree);
-    (_a2 = replayer.afterAppend) == null ? void 0 : _a2.call(replayer, oldTree, replayer.mirror.getId(oldTree));
-  }
-}
-function diffProps(oldTree, newTree, rrnodeMirror) {
-  const oldAttributes = oldTree.attributes;
-  const newAttributes = newTree.attributes;
-  for (const name in newAttributes) {
-    const newValue = newAttributes[name];
-    const sn = rrnodeMirror.getMeta(newTree);
-    if ((sn == null ? void 0 : sn.isSVG) && NAMESPACES[name])
-      oldTree.setAttributeNS(NAMESPACES[name], name, newValue);
-    else if (newTree.tagName === "CANVAS" && name === "rr_dataURL") {
-      const image = document.createElement("img");
-      image.src = newValue;
-      image.onload = () => {
-        const ctx = oldTree.getContext("2d");
-        if (ctx) {
-          ctx.drawImage(image, 0, 0, image.width, image.height);
-        }
-      };
-    } else if (newTree.tagName === "IFRAME" && name === "srcdoc")
-      continue;
-    else
-      oldTree.setAttribute(name, newValue);
-  }
-  for (const { name } of Array.from(oldAttributes))
-    if (!(name in newAttributes))
-      oldTree.removeAttribute(name);
-  newTree.scrollLeft && (oldTree.scrollLeft = newTree.scrollLeft);
-  newTree.scrollTop && (oldTree.scrollTop = newTree.scrollTop);
-}
-function diffChildren(oldTree, newTree, replayer, rrnodeMirror) {
-  const oldChildren = Array.from(oldTree.childNodes);
-  const newChildren = newTree.childNodes;
-  if (oldChildren.length === 0 && newChildren.length === 0)
-    return;
-  let oldStartIndex = 0, oldEndIndex = oldChildren.length - 1, newStartIndex = 0, newEndIndex = newChildren.length - 1;
-  let oldStartNode = oldChildren[oldStartIndex], oldEndNode = oldChildren[oldEndIndex], newStartNode = newChildren[newStartIndex], newEndNode = newChildren[newEndIndex];
-  let oldIdToIndex = void 0, indexInOld = void 0;
-  while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {
-    if (oldStartNode === void 0) {
-      oldStartNode = oldChildren[++oldStartIndex];
-    } else if (oldEndNode === void 0) {
-      oldEndNode = oldChildren[--oldEndIndex];
-    } else if (
-      // same first node?
-      nodeMatching(oldStartNode, newStartNode, replayer.mirror, rrnodeMirror)
-    ) {
-      oldStartNode = oldChildren[++oldStartIndex];
-      newStartNode = newChildren[++newStartIndex];
-    } else if (
-      // same last node?
-      nodeMatching(oldEndNode, newEndNode, replayer.mirror, rrnodeMirror)
-    ) {
-      oldEndNode = oldChildren[--oldEndIndex];
-      newEndNode = newChildren[--newEndIndex];
-    } else if (
-      // is the first old node the same as the last new node?
-      nodeMatching(oldStartNode, newEndNode, replayer.mirror, rrnodeMirror)
-    ) {
-      try {
-        oldTree.insertBefore(oldStartNode, oldEndNode.nextSibling);
-      } catch (e2) {
-        console.warn(e2);
-      }
-      oldStartNode = oldChildren[++oldStartIndex];
-      newEndNode = newChildren[--newEndIndex];
-    } else if (
-      // is the last old node the same as the first new node?
-      nodeMatching(oldEndNode, newStartNode, replayer.mirror, rrnodeMirror)
-    ) {
-      try {
-        oldTree.insertBefore(oldEndNode, oldStartNode);
-      } catch (e2) {
-        console.warn(e2);
-      }
-      oldEndNode = oldChildren[--oldEndIndex];
-      newStartNode = newChildren[++newStartIndex];
-    } else {
-      if (!oldIdToIndex) {
-        oldIdToIndex = {};
-        for (let i2 = oldStartIndex; i2 <= oldEndIndex; i2++) {
-          const oldChild2 = oldChildren[i2];
-          if (oldChild2 && replayer.mirror.hasNode(oldChild2))
-            oldIdToIndex[replayer.mirror.getId(oldChild2)] = i2;
-        }
-      }
-      indexInOld = oldIdToIndex[rrnodeMirror.getId(newStartNode)];
-      const nodeToMove = oldChildren[indexInOld];
-      if (indexInOld !== void 0 && nodeToMove && nodeMatching(nodeToMove, newStartNode, replayer.mirror, rrnodeMirror)) {
-        try {
-          oldTree.insertBefore(nodeToMove, oldStartNode);
-        } catch (e2) {
-          console.warn(e2);
-        }
-        oldChildren[indexInOld] = void 0;
-      } else {
-        const newNode = createOrGetNode(
-          newStartNode,
-          replayer.mirror,
-          rrnodeMirror
-        );
-        if (oldTree.nodeName === "#document" && oldStartNode && /**
-        * Special case 1: one document isn't allowed to have two doctype nodes at the same time, so we need to remove the old one first before inserting the new one.
-        * How this case happens: A parent document in the old tree already has a doctype node with an id e.g. #1. A new full snapshot rebuilds the replayer with a new doctype node with another id #2. According to the algorithm, the new doctype node will be inserted before the old one, which is not allowed by the Document standard.
-        */
-        (newNode.nodeType === newNode.DOCUMENT_TYPE_NODE && oldStartNode.nodeType === oldStartNode.DOCUMENT_TYPE_NODE || /**
-        * Special case 2: one document isn't allowed to have two HTMLElements at the same time, so we need to remove the old one first before inserting the new one.
-        * How this case happens: A mounted iframe element has an automatically created HTML element. We should delete it before inserting a serialized one. Otherwise, an error 'Only one element on document allowed' will be thrown.
-        */
-        newNode.nodeType === newNode.ELEMENT_NODE && oldStartNode.nodeType === oldStartNode.ELEMENT_NODE)) {
-          oldTree.removeChild(oldStartNode);
-          replayer.mirror.removeNodeFromMap(oldStartNode);
-          oldStartNode = oldChildren[++oldStartIndex];
-        }
-        try {
-          oldTree.insertBefore(newNode, oldStartNode || null);
-        } catch (e2) {
-          console.warn(e2);
-        }
-      }
-      newStartNode = newChildren[++newStartIndex];
-    }
-  }
-  if (oldStartIndex > oldEndIndex) {
-    const referenceRRNode = newChildren[newEndIndex + 1];
-    let referenceNode = null;
-    if (referenceRRNode)
-      referenceNode = replayer.mirror.getNode(
-        rrnodeMirror.getId(referenceRRNode)
-      );
-    for (; newStartIndex <= newEndIndex; ++newStartIndex) {
-      const newNode = createOrGetNode(
-        newChildren[newStartIndex],
-        replayer.mirror,
-        rrnodeMirror
-      );
-      try {
-        oldTree.insertBefore(newNode, referenceNode);
-      } catch (e2) {
-        console.warn(e2);
-      }
-    }
-  } else if (newStartIndex > newEndIndex) {
-    for (; oldStartIndex <= oldEndIndex; oldStartIndex++) {
-      const node = oldChildren[oldStartIndex];
-      if (!node || node.parentNode !== oldTree)
-        continue;
-      try {
-        oldTree.removeChild(node);
-        replayer.mirror.removeNodeFromMap(node);
-      } catch (e2) {
-        console.warn(e2);
-      }
-    }
-  }
-  let oldChild = oldTree.firstChild;
-  let newChild = newTree.firstChild;
-  while (oldChild !== null && newChild !== null) {
-    diff(oldChild, newChild, replayer, rrnodeMirror);
-    oldChild = oldChild.nextSibling;
-    newChild = newChild.nextSibling;
-  }
-}
-function createOrGetNode(rrNode, domMirror, rrnodeMirror) {
-  const nodeId = rrnodeMirror.getId(rrNode);
-  const sn = rrnodeMirror.getMeta(rrNode);
-  let node = null;
-  if (nodeId > -1)
-    node = domMirror.getNode(nodeId);
-  if (node !== null && sameNodeType(node, rrNode))
-    return node;
-  switch (rrNode.RRNodeType) {
-    case NodeType$1.Document:
-      node = new Document();
-      break;
-    case NodeType$1.DocumentType:
-      node = document.implementation.createDocumentType(
-        rrNode.name,
-        rrNode.publicId,
-        rrNode.systemId
-      );
-      break;
-    case NodeType$1.Element: {
-      let tagName = rrNode.tagName.toLowerCase();
-      tagName = SVGTagMap[tagName] || tagName;
-      if (sn && "isSVG" in sn && (sn == null ? void 0 : sn.isSVG)) {
-        node = document.createElementNS(NAMESPACES["svg"], tagName);
-      } else
-        node = document.createElement(rrNode.tagName);
-      break;
-    }
-    case NodeType$1.Text:
-      node = document.createTextNode(rrNode.data);
-      break;
-    case NodeType$1.Comment:
-      node = document.createComment(rrNode.data);
-      break;
-    case NodeType$1.CDATA:
-      node = document.createCDATASection(rrNode.data);
-      break;
-  }
-  if (sn)
-    domMirror.add(node, { ...sn });
-  try {
-    createdNodeSet == null ? void 0 : createdNodeSet.add(node);
-  } catch (e2) {
-  }
-  return node;
-}
-function sameNodeType(node1, node2) {
-  if (node1.nodeType !== node2.nodeType)
-    return false;
-  return node1.nodeType !== node1.ELEMENT_NODE || node1.tagName.toUpperCase() === node2.tagName;
-}
-function nodeMatching(node1, node2, domMirror, rrdomMirror) {
-  const node1Id = domMirror.getId(node1);
-  const node2Id = rrdomMirror.getId(node2);
-  if (node1Id === -1 || node1Id !== node2Id)
-    return false;
-  return sameNodeType(node1, node2);
-}
-var RRDocument = class _RRDocument extends BaseRRDocument {
-  constructor(mirror2) {
-    super();
-    __publicField2(this, "UNSERIALIZED_STARTING_ID", -2);
-    __publicField2(this, "_unserializedId", this.UNSERIALIZED_STARTING_ID);
-    __publicField2(this, "mirror", createMirror());
-    __publicField2(this, "scrollData", null);
-    if (mirror2) {
-      this.mirror = mirror2;
-    }
-  }
-  /**
-   * Every time the id is used, it will minus 1 automatically to avoid collisions.
-   */
-  get unserializedId() {
-    return this._unserializedId--;
-  }
-  createDocument(_namespace, _qualifiedName, _doctype) {
-    return new _RRDocument();
-  }
-  createDocumentType(qualifiedName, publicId, systemId) {
-    const documentTypeNode = new RRDocumentType(
-      qualifiedName,
-      publicId,
-      systemId
-    );
-    documentTypeNode.ownerDocument = this;
-    return documentTypeNode;
-  }
-  createElement(tagName) {
-    const upperTagName = tagName.toUpperCase();
-    let element;
-    switch (upperTagName) {
-      case "AUDIO":
-      case "VIDEO":
-        element = new RRMediaElement(upperTagName);
-        break;
-      case "IFRAME":
-        element = new RRIFrameElement(upperTagName, this.mirror);
-        break;
-      case "CANVAS":
-        element = new RRCanvasElement(upperTagName);
-        break;
-      case "STYLE":
-        element = new RRStyleElement(upperTagName);
-        break;
-      default:
-        element = new RRElement(upperTagName);
-        break;
-    }
-    element.ownerDocument = this;
-    return element;
-  }
-  createComment(data) {
-    const commentNode = new RRComment(data);
-    commentNode.ownerDocument = this;
-    return commentNode;
-  }
-  createCDATASection(data) {
-    const sectionNode = new RRCDATASection(data);
-    sectionNode.ownerDocument = this;
-    return sectionNode;
-  }
-  createTextNode(data) {
-    const textNode = new RRText(data);
-    textNode.ownerDocument = this;
-    return textNode;
-  }
-  destroyTree() {
-    this.firstChild = null;
-    this.lastChild = null;
-    this.mirror.reset();
-  }
-  open() {
-    super.open();
-    this._unserializedId = this.UNSERIALIZED_STARTING_ID;
-  }
-};
-var RRDocumentType = BaseRRDocumentType;
-var RRElement = class extends BaseRRElement {
-  constructor() {
-    super(...arguments);
-    __publicField2(this, "inputData", null);
-    __publicField2(this, "scrollData", null);
-  }
-};
-var RRMediaElement = class extends BaseRRMediaElement {
-};
-var RRCanvasElement = class extends RRElement {
-  constructor() {
-    super(...arguments);
-    __publicField2(this, "rr_dataURL", null);
-    __publicField2(this, "canvasMutations", []);
-  }
-  /**
-   * This is a dummy implementation to distinguish RRCanvasElement from real HTMLCanvasElement.
-   */
-  getContext() {
-    return null;
-  }
-};
-var RRStyleElement = class extends RRElement {
-  constructor() {
-    super(...arguments);
-    __publicField2(this, "rules", []);
-  }
-};
-var RRIFrameElement = class extends RRElement {
-  constructor(upperTagName, mirror2) {
-    super(upperTagName);
-    __publicField2(this, "contentDocument", new RRDocument());
-    this.contentDocument.mirror = mirror2;
-  }
-};
-var RRText = BaseRRText;
-var RRComment = BaseRRComment;
-var RRCDATASection = BaseRRCDATASection;
-function getValidTagName(element) {
-  if (element instanceof HTMLFormElement) {
-    return "FORM";
-  }
-  return element.tagName.toUpperCase();
-}
-function buildFromNode(node, rrdom, domMirror, parentRRNode) {
-  let rrNode;
-  switch (node.nodeType) {
-    case NodeType.DOCUMENT_NODE:
-      if (parentRRNode && parentRRNode.nodeName === "IFRAME")
-        rrNode = parentRRNode.contentDocument;
-      else {
-        rrNode = rrdom;
-        rrNode.compatMode = node.compatMode;
-      }
-      break;
-    case NodeType.DOCUMENT_TYPE_NODE: {
-      const documentType = node;
-      rrNode = rrdom.createDocumentType(
-        documentType.name,
-        documentType.publicId,
-        documentType.systemId
-      );
-      break;
-    }
-    case NodeType.ELEMENT_NODE: {
-      const elementNode = node;
-      const tagName = getValidTagName(elementNode);
-      rrNode = rrdom.createElement(tagName);
-      const rrElement = rrNode;
-      for (const { name, value } of Array.from(elementNode.attributes)) {
-        rrElement.attributes[name] = value;
-      }
-      elementNode.scrollLeft && (rrElement.scrollLeft = elementNode.scrollLeft);
-      elementNode.scrollTop && (rrElement.scrollTop = elementNode.scrollTop);
-      break;
-    }
-    case NodeType.TEXT_NODE:
-      rrNode = rrdom.createTextNode(node.textContent || "");
-      break;
-    case NodeType.CDATA_SECTION_NODE:
-      rrNode = rrdom.createCDATASection(node.data);
-      break;
-    case NodeType.COMMENT_NODE:
-      rrNode = rrdom.createComment(node.textContent || "");
-      break;
-    case NodeType.DOCUMENT_FRAGMENT_NODE:
-      rrNode = parentRRNode.attachShadow({ mode: "open" });
-      break;
-    default:
-      return null;
-  }
-  let sn = domMirror.getMeta(node);
-  if (rrdom instanceof RRDocument) {
-    if (!sn) {
-      sn = getDefaultSN(rrNode, rrdom.unserializedId);
-      domMirror.add(node, sn);
-    }
-    rrdom.mirror.add(rrNode, { ...sn });
-  }
-  return rrNode;
-}
-function buildFromDom(dom, domMirror = createMirror$1(), rrdom = new RRDocument()) {
-  function walk2(node, parentRRNode) {
-    const rrNode = buildFromNode(node, rrdom, domMirror, parentRRNode);
-    if (rrNode === null)
-      return;
-    if (
-      // if the parentRRNode isn't a RRIFrameElement
-      (parentRRNode == null ? void 0 : parentRRNode.nodeName) !== "IFRAME" && // if node isn't a shadow root
-      node.nodeType !== NodeType.DOCUMENT_FRAGMENT_NODE
-    ) {
-      parentRRNode == null ? void 0 : parentRRNode.appendChild(rrNode);
-      rrNode.parentNode = parentRRNode;
-      rrNode.parentElement = parentRRNode;
-    }
-    if (node.nodeName === "IFRAME") {
-      const iframeDoc = node.contentDocument;
-      iframeDoc && walk2(iframeDoc, rrNode);
-    } else if (node.nodeType === NodeType.DOCUMENT_NODE || node.nodeType === NodeType.ELEMENT_NODE || node.nodeType === NodeType.DOCUMENT_FRAGMENT_NODE) {
-      if (node.nodeType === NodeType.ELEMENT_NODE && node.shadowRoot)
-        walk2(node.shadowRoot, rrNode);
-      node.childNodes.forEach((childNode) => walk2(childNode, rrNode));
-    }
-  }
-  walk2(dom, null);
-  return rrdom;
-}
-function createMirror() {
-  return new Mirror22();
-}
-var Mirror22 = class {
-  constructor() {
-    __publicField2(this, "idNodeMap", /* @__PURE__ */ new Map());
-    __publicField2(this, "nodeMetaMap", /* @__PURE__ */ new WeakMap());
-  }
-  getId(n2) {
-    var _a2;
-    if (!n2)
-      return -1;
-    const id = (_a2 = this.getMeta(n2)) == null ? void 0 : _a2.id;
-    return id ?? -1;
-  }
-  getNode(id) {
-    return this.idNodeMap.get(id) || null;
-  }
-  getIds() {
-    return Array.from(this.idNodeMap.keys());
-  }
-  getMeta(n2) {
-    return this.nodeMetaMap.get(n2) || null;
-  }
-  // removes the node from idNodeMap
-  // doesn't remove the node from nodeMetaMap
-  removeNodeFromMap(n2) {
-    const id = this.getId(n2);
-    this.idNodeMap.delete(id);
-    if (n2.childNodes) {
-      n2.childNodes.forEach((childNode) => this.removeNodeFromMap(childNode));
-    }
-  }
-  has(id) {
-    return this.idNodeMap.has(id);
-  }
-  hasNode(node) {
-    return this.nodeMetaMap.has(node);
-  }
-  add(n2, meta) {
-    const id = meta.id;
-    this.idNodeMap.set(id, n2);
-    this.nodeMetaMap.set(n2, meta);
-  }
-  replace(id, n2) {
-    const oldNode = this.getNode(id);
-    if (oldNode) {
-      const meta = this.nodeMetaMap.get(oldNode);
-      if (meta)
-        this.nodeMetaMap.set(n2, meta);
-    }
-    this.idNodeMap.set(id, n2);
-  }
-  reset() {
-    this.idNodeMap = /* @__PURE__ */ new Map();
-    this.nodeMetaMap = /* @__PURE__ */ new WeakMap();
-  }
-};
-function getDefaultSN(node, id) {
-  switch (node.RRNodeType) {
-    case NodeType$1.Document:
-      return {
-        id,
-        type: node.RRNodeType,
-        childNodes: []
-      };
-    case NodeType$1.DocumentType: {
-      const doctype = node;
-      return {
-        id,
-        type: node.RRNodeType,
-        name: doctype.name,
-        publicId: doctype.publicId,
-        systemId: doctype.systemId
-      };
-    }
-    case NodeType$1.Element:
-      return {
-        id,
-        type: node.RRNodeType,
-        tagName: node.tagName.toLowerCase(),
-        // In rrweb data, all tagNames are lowercase.
-        attributes: {},
-        childNodes: []
-      };
-    case NodeType$1.Text:
-      return {
-        id,
-        type: node.RRNodeType,
-        textContent: node.textContent || ""
-      };
-    case NodeType$1.Comment:
-      return {
-        id,
-        type: node.RRNodeType,
-        textContent: node.textContent || ""
-      };
-    case NodeType$1.CDATA:
-      return {
-        id,
-        type: node.RRNodeType,
-        textContent: ""
-      };
-  }
-}
 function mitt$1(n2) {
   return { all: n2 = n2 || /* @__PURE__ */ new Map(), on: function(t2, e2) {
     var i2 = n2.get(t2);
@@ -10113,10 +10321,10 @@ var Replayer = class {
                     cache: this.cache
                   });
                   const siblingNode = target.nextSibling;
-                  const parentNode = target.parentNode;
-                  if (newNode && parentNode) {
-                    parentNode.removeChild(target);
-                    parentNode.insertBefore(
+                  const parentNode2 = target.parentNode;
+                  if (newNode && parentNode2) {
+                    parentNode2.removeChild(target);
+                    parentNode2.insertBefore(
                       newNode,
                       siblingNode
                     );

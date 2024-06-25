@@ -16854,6 +16854,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mdn/browser-compat-data@npm:^5.5.19":
+  version: 5.5.34
+  resolution: "@mdn/browser-compat-data@npm:5.5.34"
+  checksum: 10/ea108f6ace6ed3de20234fa524305b97db9aa3517723ee6afa736d8ba971c782ad286f378005e8d15953b56c08164b8be0ee4e053f58e080a270ad3363a729ff
+  languageName: node
+  linkType: hard
+
 "@mdx-js/mdx@npm:^2.2.1":
   version: 2.3.0
   resolution: "@mdx-js/mdx@npm:2.3.0"
@@ -22277,7 +22284,7 @@ __metadata:
     cross-env: "npm:^7.0.3"
     esbuild-plugin-umd-wrapper: "npm:^2.0.0"
     eslint: "npm:^8.53.0"
-    eslint-plugin-compat: "npm:^4.2.0"
+    eslint-plugin-compat: "npm:^5.0.0"
     eslint-plugin-jest: "npm:^27.6.0"
     eslint-plugin-tsdoc: "npm:^0.2.17"
     markdownlint: "npm:^0.25.1"
@@ -22444,6 +22451,15 @@ __metadata:
     turbo: "npm:^2.0.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
+  languageName: unknown
+  linkType: soft
+
+"@rrweb/utils@npm:^2.0.0-alpha.15, @rrweb/utils@workspace:rrweb/packages/utils":
+  version: 0.0.0-use.local
+  resolution: "@rrweb/utils@workspace:rrweb/packages/utils"
+  dependencies:
+    vite: "npm:^5.2.8"
+    vite-plugin-dts: "npm:^3.8.1"
   languageName: unknown
   linkType: soft
 
@@ -33683,7 +33699,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.30001629":
+"caniuse-lite@npm:^1.0.30001605, caniuse-lite@npm:^1.0.30001629":
   version: 1.0.30001636
   resolution: "caniuse-lite@npm:1.0.30001636"
   checksum: 10/9e6c5ab4c20df31df36720dda77cf6a781549ac2ad844bc0a416b327a793da21486358a1f85fdd6c39e22d336f70aac3b0e232f5f228cdff0ceb6e3e1c5e98fd
@@ -38965,6 +38981,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-plugin-compat@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "eslint-plugin-compat@npm:5.0.0"
+  dependencies:
+    "@mdn/browser-compat-data": "npm:^5.5.19"
+    ast-metadata-inferer: "npm:^0.8.0"
+    browserslist: "npm:^4.23.0"
+    caniuse-lite: "npm:^1.0.30001605"
+    find-up: "npm:^5.0.0"
+    globals: "npm:^13.24.0"
+    lodash.memoize: "npm:^4.1.2"
+    semver: "npm:^7.6.0"
+  peerDependencies:
+    eslint: ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
+  checksum: 10/e211daeb41d99b580c01bba9aaeb81dd6a42b41c172cbdcc1f8eb16b843a8b9a1b79905113f41aa8806e6ca606bb463f6431f4e9cc34ba37fd5eaadeca680a81
+  languageName: node
+  linkType: hard
+
 "eslint-plugin-deprecation@npm:^2.0.0":
   version: 2.0.0
   resolution: "eslint-plugin-deprecation@npm:2.0.0"
@@ -42618,6 +42652,15 @@ __metadata:
   dependencies:
     type-fest: "npm:^0.20.2"
   checksum: 10/f365fc2a4eb21a264d0f2a6355ddf4ee32983e0817ec48a517a56d7d1944124c763e81cae13ae26fa9a7d6c7ab826b2e796f87b022a674336275da0e6249366e
+  languageName: node
+  linkType: hard
+
+"globals@npm:^13.24.0":
+  version: 13.24.0
+  resolution: "globals@npm:13.24.0"
+  dependencies:
+    type-fest: "npm:^0.20.2"
+  checksum: 10/62c5b1997d06674fc7191d3e01e324d3eda4d65ac9cc4e78329fa3b5c4fd42a0e1c8722822497a6964eee075255ce21ccf1eec2d83f92ef3f06653af4d0ee28e
   languageName: node
   linkType: hard
 
@@ -60470,6 +60513,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "rrweb-snapshot@workspace:rrweb/packages/rrweb-snapshot"
   dependencies:
+    "@rrweb/utils": "npm:^2.0.0-alpha.15"
     "@types/jsdom": "npm:^20.0.0"
     "@types/node": "npm:^18.15.11"
     "@types/puppeteer": "npm:^5.4.4"
@@ -67167,7 +67211,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite-plugin-dts@npm:^3.9.1":
+"vite-plugin-dts@npm:^3.8.1, vite-plugin-dts@npm:^3.9.1":
   version: 3.9.1
   resolution: "vite-plugin-dts@npm:3.9.1"
   dependencies:
@@ -67356,7 +67400,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^5.0.0 || ^4.1.4, vite@npm:^5.3.1":
+"vite@npm:^5.0.0 || ^4.1.4, vite@npm:^5.2.8, vite@npm:^5.3.1":
   version: 5.3.1
   resolution: "vite@npm:5.3.1"
   dependencies:
