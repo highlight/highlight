@@ -26,13 +26,12 @@ const DEV_ENVVAR_ALLOWLIST = js.tasks.dev.env
 const validateSafeAllowList = (env: Record<string, string>) => {
 	const devEnv = new Set<string>(DEV_ENVVAR_ALLOWLIST)
 	ENVVAR_ALLOWLIST.forEach((allowListEnvVar) => {
+		if (!devEnv.has(allowListEnvVar)) {
+			throw new Error(
+				`ENVVAR_ALLOWLIST should ensure ${allowListEnvVar} is also in the DEV_ENVVAR_ALLOWLIST`,
+			)
+		}
 		Object.keys(env).forEach((key) => {
-			if (!devEnv.has(key)) {
-				throw new Error(
-					`ENVVAR_ALLOWLIST should ensure ${key} is also in the DEV_ENVVAR_ALLOWLIST`,
-				)
-			}
-
 			if (key === allowListEnvVar) {
 				return
 			}
