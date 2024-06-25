@@ -4,18 +4,20 @@ import (
 	"context"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
-	"github.com/highlight-run/highlight/backend/openai_interface"
+	"github.com/highlight-run/highlight/backend/openai_client"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/lib/pq"
 	"github.com/samber/lo"
+	"github.com/sashabaranov/go-openai"
 	"github.com/stretchr/testify/assert"
 
 	pointy "github.com/openlyinc/pointy"
@@ -368,6 +370,49 @@ func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
 	}
 }
 
+const defaultQueryResponse = `{"query":"environment=production AND secure_session_id EXISTS","date_range":{"start_date":"","end_date":""}}`
+
+type OpenAiTestImpl struct {
+}
+
+func (o *OpenAiTestImpl) InitClient(apiKey string) error {
+	return nil
+}
+
+func (o *OpenAiTestImpl) CreateChatCompletion(ctx context.Context, request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error) {
+	respMessage := openai.ChatCompletionResponse{
+		Choices: []openai.ChatCompletionChoice{
+			{
+				Index: 0,
+				Message: openai.ChatCompletionMessage{
+					Content: defaultQueryResponse,
+				},
+			},
+		},
+	}
+
+	// find the system prompt
+	systemPrompt := ""
+	for _, message := range request.Messages {
+		if message.Role == "system" {
+			systemPrompt = message.Content
+			break
+		}
+	}
+
+	// if an empty query is inputted, return an empty response in the 'query' field
+	if request.Messages[len(request.Messages)-1].Content == "" {
+		respMessage.Choices[0].Message.Content = `{"query":"","date_range":{"start_date":"","end_date":""}}`
+	}
+
+	// if a bad query is inputted, and the prompt handles these inputs, return an empty response in the 'query' field
+	if request.Messages[len(request.Messages)-1].Content == openai_client.IrrelevantQuery && strings.Contains(systemPrompt, openai_client.IrrelevantQueryFunctionalityIndicator) {
+		respMessage.Choices[0].Message.Content = `{"query":"","date_range":{"start_date":"","end_date":""}}`
+	}
+
+	return respMessage, nil
+}
+
 func TestResolver_GetAIQuerySuggestion(t *testing.T) {
 	tests := map[string]struct {
 		productType modelInputs.ProductType
@@ -379,7 +424,11 @@ func TestResolver_GetAIQuerySuggestion(t *testing.T) {
 		},
 		"irrelevant query": {
 			productType: modelInputs.ProductTypeLogs,
+<<<<<<< HEAD
 			query:       openai_interface.IrrelevantQuery,
+=======
+			query:       openai_client.IrrelevantQuery,
+>>>>>>> main
 		},
 		"empty query": {
 			productType: modelInputs.ProductTypeLogs,
@@ -388,7 +437,7 @@ func TestResolver_GetAIQuerySuggestion(t *testing.T) {
 	}
 	for _, v := range tests {
 		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
-			clickhouseClient, err := clickhouse.NewClient(clickhouse.PrimaryDatabase)
+			clickhouseClient, err := clickhouse.NewClient(clickhouse.TestDatabase)
 			if err != nil {
 				t.Fatalf("error creating clickhouse client: %v", err)
 			}
@@ -396,7 +445,11 @@ func TestResolver_GetAIQuerySuggestion(t *testing.T) {
 				DB:               DB,
 				Redis:            redis.NewClient(),
 				ClickhouseClient: clickhouseClient,
+<<<<<<< HEAD
 				OpenAiInterface:  &openai_interface.OpenAiTestImpl{},
+=======
+				OpenAiClient:     &OpenAiTestImpl{},
+>>>>>>> main
 			},
 			}
 			ctx := context.WithValue(context.Background(), model.ContextKeys.UID, "abc")
@@ -424,7 +477,11 @@ func TestResolver_GetAIQuerySuggestion(t *testing.T) {
 			out, err := r.AiQuerySuggestion(ctx, "America/New_York", p.ID, v.productType, v.query)
 
 			if err != nil {
+<<<<<<< HEAD
 				if (v.query == openai_interface.IrrelevantQuery || v.query == "") && err.Error() == openai_interface.MalformedPromptError.Error() {
+=======
+				if (v.query == openai_client.IrrelevantQuery || v.query == "") && err.Error() == openai_client.MalformedPromptError.Error() {
+>>>>>>> main
 					t.Logf("successful malformed handling of output \n %+v", err.Error())
 				} else {
 					t.Fatalf("error in query suggestion %+v", err)

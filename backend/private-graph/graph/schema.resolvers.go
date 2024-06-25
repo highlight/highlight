@@ -42,7 +42,7 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/openai_interface"
+	"github.com/highlight-run/highlight/backend/openai_client"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -3303,6 +3303,141 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 		log.WithContext(ctx).Error(err)
 	}
 	return metricMonitor, nil
+}
+
+// CreateAlert is the resolver for the createAlert field.
+func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+	_, err := r.isUserInProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	disabledVar := disabled
+	if disabledVar == nil {
+		disabledVar = pointy.Bool(false)
+	}
+
+	newAlert := &model.Alert{
+		ProjectID:         projectID,
+		Name:              name,
+		ProductType:       productType,
+		FunctionType:      functionType,
+		Query:             query,
+		GroupByKey:        groupByKey,
+		Disabled:          *disabledVar,
+		BelowThreshold:    belowThreshold,
+		ThresholdCount:    thresholdCount,
+		ThresholdWindow:   thresholdWindow,
+		ThresholdCooldown: thresholdCooldown,
+		LastAdminToEditID: admin.ID,
+	}
+
+	if err := r.DB.WithContext(ctx).Create(newAlert).Error; err != nil {
+		return nil, err
+	}
+
+	// TODO(spenny): create destinations
+
+	// TODO(spenny): send new message to destinations
+
+	return newAlert, nil
+}
+
+// UpdateAlert is the resolver for the updateAlert field.
+func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+	project, err := r.isUserInProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	alertUpdates := map[string]interface{}{
+		"LastAdminToEditID": admin.ID,
+	}
+
+	if name != nil {
+		alertUpdates["Name"] = *name
+	}
+	if productType != nil {
+		alertUpdates["ProductType"] = *productType
+	}
+	if functionType != nil {
+		alertUpdates["FunctionType"] = *functionType
+	}
+	if query != nil {
+		alertUpdates["Query"] = *query
+	}
+	if groupByKey != nil {
+		alertUpdates["GroupByKey"] = *groupByKey
+	}
+	if disabled != nil {
+		alertUpdates["Disabled"] = *disabled
+	}
+	if belowThreshold != nil {
+		alertUpdates["BelowThreshold"] = *belowThreshold
+	}
+	if thresholdCount != nil {
+		alertUpdates["ThresholdCount"] = *thresholdCount
+	}
+	if thresholdWindow != nil {
+		alertUpdates["ThresholdWindow"] = *thresholdWindow
+	}
+	if thresholdCooldown != nil {
+		alertUpdates["ThresholdCooldown"] = *thresholdCooldown
+	}
+
+	alert := &model.Alert{}
+	updateErr := store.AssertRecordFound(r.DB.WithContext(ctx).Where(&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID}).Model(&alert).Clauses(clause.Returning{}).Updates(&alertUpdates))
+	if updateErr != nil {
+		return nil, updateErr
+	}
+
+	// TODO(spenny): create/delete destinations
+
+	// TODO(spenny): send edit message to destinations
+
+	return alert, nil
+}
+
+// UpdateAlertDisabled is the resolver for the updateAlertDisabled field.
+func (r *mutationResolver) UpdateAlertDisabled(ctx context.Context, projectID int, alertID int, disabled bool) (bool, error) {
+	project, err := r.isUserInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	if err := r.DB.WithContext(ctx).Model(
+		&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID},
+	).Updates(map[string]interface{}{"Disabled": disabled}).Error; err != nil {
+		return false, err
+	}
+
+	return true, err
+}
+
+// DeleteAlert is the resolver for the deleteAlert field.
+func (r *mutationResolver) DeleteAlert(ctx context.Context, projectID int, alertID int) (bool, error) {
+	project, err := r.isUserInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	if err := r.DB.Where(
+		&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID},
+	).Delete(&model.Alert{}).Error; err != nil {
+		return false, err
+	}
+
+	// TODO(spenny): send deletion message to destinations?
+
+	if err := r.DB.Where(
+		&model.AlertDestination{AlertID: alertID},
+	).Delete(&model.AlertDestination{}).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // CreateErrorAlert is the resolver for the createErrorAlert field.
@@ -6967,6 +7102,18 @@ func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) 
 		return nil, e.Wrap(err, "error getting associated projects")
 	}
 
+	workspaces, err := r.Workspaces(ctx)
+	if err != nil {
+		return nil, err
+	}
+	workspacesById := lo.KeyBy(workspaces, func(workspace *model.Workspace) int {
+		return workspace.ID
+	})
+
+	for _, project := range projects {
+		project.Workspace = workspacesById[project.WorkspaceID]
+	}
+
 	return projects, nil
 }
 
@@ -7050,6 +7197,40 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 	}
 
 	return joinableWorkspaces, nil
+}
+
+// Alerts is the resolver for the alerts field.
+func (r *queryResolver) Alerts(ctx context.Context, projectID int) ([]*model.Alert, error) {
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	alerts := []*model.Alert{}
+	if err := r.DB.Order("created_at asc").Model(&model.Alert{}).Preload("Destinations").Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
+		return nil, err
+	}
+	return alerts, nil
+}
+
+// Alert is the resolver for the alert field.
+func (r *queryResolver) Alert(ctx context.Context, id int) (*model.Alert, error) {
+	var alert *model.Alert
+	if err := r.DB.WithContext(ctx).Model(&model.Alert{}).Preload("Destinations").Where("id = ?", id).Find(&alert).Error; err != nil {
+		return nil, err
+	}
+
+	_, err := r.isUserInProjectOrDemoProject(ctx, alert.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return alert, nil
+}
+
+// AlertStateChanges is the resolver for the alert_state_changes field.
+func (r *queryResolver) AlertStateChanges(ctx context.Context, alertID int) ([]*modelInputs.AlertStateChange, error) {
+	// TODO(spenny): fetch alert state changes from clickhouse
+	return []*modelInputs.AlertStateChange{}, nil
 }
 
 // ErrorAlerts is the resolver for the error_alerts field.
@@ -7923,6 +8104,8 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 		return nil, nil
 	}
 
+	r.SetDefaultRetention(workspace)
+
 	if r.isWhitelistedAccount(ctx) {
 		projects := []model.Project{}
 		if err := r.DB.WithContext(ctx).Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
@@ -7941,8 +8124,6 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 
 		return *p, p.WorkspaceID == id
 	})
-
-	r.SetDefaultRetention(workspace)
 
 	return workspace, nil
 }
@@ -8638,11 +8819,6 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 	if err != nil {
 		return nil, err
 	}
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return nil, e.New("OPENAI_API_KEY is not set")
-	}
-
 	// create a list of key:value strings
 	keyVals := []string{}
 	keys := []string{}
@@ -8754,7 +8930,7 @@ The 'query' syntax documentation is as follows:
 
 And specifically, for the %s product, you can refer to the following documentation:
 %s
-`, productType, now, openai_interface.IrrelevantQueryFunctionalityIndicator, strings.Join(keys, ", "), strings.Join(keyVals, ", "), prompts.SearchSyntaxDocs, productType, searchSpecificDoc)
+`, productType, now, openai_client.IrrelevantQueryFunctionalityIndicator, strings.Join(keys, ", "), strings.Join(keyVals, ", "), prompts.SearchSyntaxDocs, productType, searchSpecificDoc)
 
 	yesterday := time.Now().In(loc).AddDate(0, 0, -1)
 	yesterdayAt2PM := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 14, 0, 0, 0, yesterday.Location()).Format(time.RFC3339)
@@ -8785,12 +8961,13 @@ And specifically, for the %s product, you can refer to the following documentati
 			response: `{"query":"message=*panic*","date_range":{"start_date":"","end_date":""}}`,
 		},
 		{
-			request:  openai_interface.IrrelevantQuery,
+			request:  openai_client.IrrelevantQuery,
 			response: `{"query":"","date_range":{"start_date":"","end_date":""}}`,
 		},
 	}
 
-	resp, err := r.OpenAiInterface.CreateChatCompletion(
+	resp, err := r.OpenAiClient.CreateChatCompletion(
+		ctx,
 		openai.ChatCompletionRequest{
 			Model: openai.GPT3Dot5Turbo,
 			ResponseFormat: &openai.ChatCompletionResponseFormat{
@@ -8881,7 +9058,7 @@ And specifically, for the %s product, you can refer to the following documentati
 	}
 
 	if toSave.Query == "" {
-		return nil, openai_interface.MalformedPromptError
+		return nil, openai_client.MalformedPromptError
 	}
 
 	return &toSave, nil
@@ -9024,11 +9201,6 @@ func (r *queryResolver) ExistingLogsTraces(ctx context.Context, projectID int, t
 
 // ErrorResolutionSuggestion is the resolver for the error_resolution_suggestion field.
 func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObjectID int) (string, error) {
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return "", e.New("OPENAI_API_KEY is not set")
-	}
-
 	errorObject := &model.ErrorObject{}
 	if err := r.DB.WithContext(ctx).Model(&model.ErrorObject{}).Where("id = ?", errorObjectID).Find(&errorObject).Error; err != nil {
 		return "", e.Wrap(err, "failed to find error object")
@@ -9060,7 +9232,8 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 	Here's the stack trace information: %v
 	`, errorObject.Event, *stackTrace)
 
-	resp, err := r.OpenAiInterface.CreateChatCompletion(
+	resp, err := r.OpenAiClient.CreateChatCompletion(
+		ctx,
 		openai.ChatCompletionRequest{
 			Model:       openai.GPT3Dot5Turbo,
 			Temperature: 0.7,

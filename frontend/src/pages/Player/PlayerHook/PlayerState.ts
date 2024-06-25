@@ -11,7 +11,6 @@ import {
 	SessionResults,
 	TimelineIndicatorEvent,
 } from '@graph/schemas'
-import { usefulEvent } from '@pages/Player/components/EventStreamV2/utils'
 import {
 	HighlightEvent,
 	HighlightJankPayload,
@@ -87,7 +86,6 @@ interface PlayerState {
 	chunkEventsRef: MutableRefObject<
 		Omit<Map<number, HighlightEvent[]>, 'clear' | 'set' | 'delete'>
 	>
-	currentEvent: string
 	currentUrl: string | undefined
 	errors: ErrorObject[]
 	eventsForTimelineIndicator: ParsedHighlightEvent[]
@@ -145,7 +143,6 @@ export enum PlayerActionType {
 	play,
 	reset,
 	seek,
-	setCurrentEvent,
 	setIsLiveMode,
 	setScale,
 	setSessionResults,
@@ -167,7 +164,6 @@ type PlayerAction =
 	| play
 	| reset
 	| seek
-	| setCurrentEvent
 	| setIsLiveMode
 	| setScale
 	| setSessionResults
@@ -276,14 +272,8 @@ interface setIsLiveMode {
 	playerRef: RefObject<HTMLDivElement>
 }
 
-interface setCurrentEvent {
-	type: PlayerActionType.setCurrentEvent
-	currentEvent: SetStateAction<string>
-}
-
 export const PlayerInitialState = {
 	browserExtensionScriptURLs: [],
-	currentEvent: '',
 	currentUrl: undefined,
 	errors: [],
 	eventsDataLoaded: false,
@@ -405,7 +395,6 @@ export const PlayerReducer = (
 		case PlayerActionType.reset:
 			s = {
 				...s,
-				currentEvent: '',
 				currentUrl: undefined,
 				errors: [],
 				eventsLoaded: false,
@@ -492,10 +481,6 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.onEvent:
 			if (!s.replayer) break
-			s = updatePlayerTime(s)
-			if (usefulEvent(action.event)) {
-				s.currentEvent = action.event.identifier
-			}
 			if ((action.event as customEvent)?.data?.tag === 'Stop') {
 				s.replayerState = ReplayerState.SessionRecordingStopped
 			}
@@ -535,12 +520,6 @@ export const PlayerReducer = (
 				isLiveMode: s.isLiveMode,
 			})
 			break
-		case PlayerActionType.setCurrentEvent:
-			s.currentEvent = handleSetStateAction(
-				s.currentEvent,
-				action.currentEvent,
-			)
-			break
 		case PlayerActionType.setSessionResults:
 			s.sessionResults = handleSetStateAction(
 				s.sessionResults,
@@ -548,24 +527,6 @@ export const PlayerReducer = (
 			)
 			break
 	}
-	log(
-		'PlayerState.ts',
-		new Set<PlayerActionType>([
-			PlayerActionType.onFrame,
-			PlayerActionType.onEvent,
-			PlayerActionType.updateCurrentUrl,
-		]).has(action.type)
-			? 'PlayerStateUpdate'
-			: 'PlayerStateTransition',
-		PlayerActionType[action.type],
-		s.time,
-		{
-			numEvents: events.length,
-			initialState: state,
-			finalState: s,
-			action,
-		},
-	)
 	return s
 }
 

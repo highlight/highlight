@@ -39,7 +39,7 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/oauth"
-	"github.com/highlight-run/highlight/backend/openai_interface"
+	"github.com/highlight-run/highlight/backend/openai_client"
 	"github.com/highlight-run/highlight/backend/otel"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
@@ -366,12 +366,14 @@ func main() {
 
 	integrationsClient := integrations.NewIntegrationsClient(db)
 
-	oai := &openai_interface.OpenAiImpl{}
+	oai := &openai_client.OpenAiImpl{}
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
-		log.WithContext(ctx).Fatalf("error creating openai client client: %v", e.New("OPENAI_API_KEY is not set"))
+		log.WithContext(ctx).Fatalf("error creating openai client: %v", e.New("OPENAI_API_KEY is not set"))
 	}
-	oai.InitClient(apiKey)
+	if err := oai.InitClient(apiKey); err != nil {
+		log.WithContext(ctx).Fatalf("error creating openai client: %v", err)
+	}
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
 	subscriptionWorkerPool := workerpool.New(1000)
@@ -392,7 +394,7 @@ func main() {
 		StepFunctions:          sfnClient,
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
-		OpenAiInterface:        &openai_interface.OpenAiImpl{},
+		OpenAiClient:           &openai_client.OpenAiImpl{},
 		ClickhouseClient:       clickhouseClient,
 		Store:                  store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
 		DataSyncQueue:          kafkaDataSyncProducer,

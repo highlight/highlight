@@ -111,8 +111,6 @@ export interface ReplayerContextInterface {
 	browserExtensionScriptURLs: string[]
 	isLoadingEvents: boolean
 	sessionMetadata: playerMetaData
-	currentEvent: string
-	setCurrentEvent: React.Dispatch<React.SetStateAction<string>>
 }
 
 export const [useReplayerContext, ReplayerContextProvider] =
