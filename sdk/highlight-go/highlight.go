@@ -2,6 +2,7 @@ package highlight
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -248,14 +249,20 @@ func InterceptRequest(r *http.Request) context.Context {
 // InterceptRequestWithContext captures the highlight session and request ID
 // for a particular request from the request headers, adding the values to the provided context.
 func InterceptRequestWithContext(ctx context.Context, r *http.Request) context.Context {
-	highlightReqDetails := r.Header.Get("X-Highlight-Request")
+	ctx = otel.GetTextMapPropagator().Extract(ctx, propagation.HeaderCarrier(r.Header))
 
-	ids := strings.Split(highlightReqDetails, "/")
-	if len(ids) >= 2 {
-		ctx = context.WithValue(ctx, ContextKeys.SessionSecureID, ids[0])
-		ctx = context.WithValue(ctx, ContextKeys.RequestID, ids[1])
+	// The trace will be considered remote if we were able to extract a span
+	// context from the request headers. Ignore the header on remote spans.
+	if !trace.SpanFromContext(ctx).SpanContext().IsRemote() {
+		highlightReqDetails := r.Header.Get("X-Highlight-Request")
+		ids := strings.Split(highlightReqDetails, "/")
+		if len(ids) >= 2 {
+			ctx = context.WithValue(ctx, ContextKeys.SessionSecureID, ids[0])
+			ctx = context.WithValue(ctx, ContextKeys.RequestID, ids[1])
+		}
 	} else {
-		ctx = otel.GetTextMapPropagator().Extract(ctx, propagation.HeaderCarrier(r.Header))
+
+		fmt.Printf("::: URL: %v\n", r.URL)
 	}
 
 	return ctx
