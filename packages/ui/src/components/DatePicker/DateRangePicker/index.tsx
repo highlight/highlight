@@ -3,14 +3,12 @@ import { DatePickerStateProvider } from '@rehookify/datepicker'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 
-import { colors } from '../../../css/colors'
 import { Box } from '../../Box/Box'
 import { Form } from '../../Form/Form'
 import {
 	IconSolidCheck,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
-	IconSolidClock,
 } from '../../icons'
 import { Menu, MenuButtonProps } from '../../Menu/Menu'
 import { Stack } from '../../Stack/Stack'
@@ -142,7 +140,6 @@ const DateRangePickerImpl = ({
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
 	)
-	const [showingTime, setShowingTime] = useState<boolean>(false)
 	const [startTimeIsValid, setStartTimeIsValid] = useState<boolean>(true)
 	const [endTimeIsValid, setEndTimeIsValid] = useState<boolean>(true)
 	const useAbsoluteTime = !selectedValue.selectedPreset
@@ -158,20 +155,6 @@ const DateRangePickerImpl = ({
 			setMenuState(MenuState.Default)
 		}
 	}, [open])
-
-	// Close the time picker when the menu is closed
-	useEffect(() => {
-		if (menuState === MenuState.Default) {
-			setShowingTime(false)
-		}
-	}, [menuState])
-
-	useEffect(() => {
-		if (showingTime === false) {
-			setStartTimeIsValid(true)
-			setEndTimeIsValid(true)
-		}
-	}, [showingTime])
 
 	const startDatePlaceholder = useMemo(
 		() => formatDisplayedDate(selectedValue.startDate),
@@ -193,18 +176,9 @@ const DateRangePickerImpl = ({
 		[selectedValue.endDate],
 	)
 
-	const isTimepickerDisabled = useMemo(
-		() => absoluteDateRange.length != 2,
-		[absoluteDateRange],
-	)
-
 	const [buttonLabel, setButtonLabel] = useState<string>(
 		getInputLabel({ selectedValue, presets }),
 	)
-
-	const handleShowingTimeToggle = () => {
-		setShowingTime((prevShowingTime) => !prevShowingTime)
-	}
 
 	const handleDatesChange = ({
 		startDate,
@@ -449,12 +423,6 @@ const DateRangePickerImpl = ({
 									border={'secondary'}
 									borderTopLeftRadius={'6'}
 									borderTopRightRadius={'6'}
-									borderBottomLeftRadius={
-										showingTime ? undefined : '6'
-									}
-									borderBottomRightRadius={
-										showingTime ? undefined : '6'
-									}
 									style={{
 										height: 28,
 									}}
@@ -469,43 +437,33 @@ const DateRangePickerImpl = ({
 										}}
 									/>
 								</Box>
-								{showingTime ? (
-									<Box
-										border={
-											startTimeIsValid
-												? 'secondary'
-												: 'error'
-										}
-										borderTop={
-											startTimeIsValid ? 'none' : 'error'
-										}
-										borderBottomLeftRadius={'6'}
-										borderBottomRightRadius={'6'}
-										style={{
-											height: 28,
+								<Box
+									border={
+										startTimeIsValid ? 'secondary' : 'error'
+									}
+									borderTop={
+										startTimeIsValid ? 'none' : 'error'
+									}
+									borderBottomLeftRadius={'6'}
+									borderBottomRightRadius={'6'}
+									style={{
+										height: 28,
+									}}
+								>
+									<TimeInput
+										name="startTime"
+										placeholder={startTimePlaceholder}
+										onTimeChange={function (value) {
+											handleTimeChange(value, 'start')
 										}}
-									>
-										<TimeInput
-											name="startTime"
-											placeholder={startTimePlaceholder}
-											onTimeChange={function (value) {
-												handleTimeChange(value, 'start')
-											}}
-										/>
-									</Box>
-								) : null}
+									/>
+								</Box>
 							</Box>
 							<Box style={{ width: 116 }}>
 								<Box
 									border={'secondary'}
 									borderTopLeftRadius={'6'}
 									borderTopRightRadius={'6'}
-									borderBottomLeftRadius={
-										showingTime ? undefined : '6'
-									}
-									borderBottomRightRadius={
-										showingTime ? undefined : '6'
-									}
 									style={{
 										height: 28,
 									}}
@@ -520,67 +478,28 @@ const DateRangePickerImpl = ({
 										}}
 									/>
 								</Box>
-								{showingTime ? (
-									<Box
-										border={
-											endTimeIsValid
-												? 'secondary'
-												: 'error'
-										}
-										borderTop={
-											endTimeIsValid ? 'none' : 'error'
-										}
-										borderBottomLeftRadius={'6'}
-										borderBottomRightRadius={'6'}
-										py="0"
-										style={{
-											height: 28,
-										}}
-									>
-										<TimeInput
-											name="endTime"
-											placeholder={endTimePlaceholder}
-											onTimeChange={function (value) {
-												handleTimeChange(value, 'end')
-											}}
-										/>
-									</Box>
-								) : null}
-							</Box>
-							<Box
-								border={showingTime ? 'none' : 'divider'}
-								borderRadius={'6'}
-								as="button"
-								p={'7'}
-								display={'flex'}
-								justifyContent={'center'}
-								cursor={
-									isTimepickerDisabled
-										? 'not-allowed'
-										: 'pointer'
-								}
-								background={'n4'}
-								alignItems={'center'}
-								style={{
-									width: 28,
-									height: 28,
-									background: showingTime
-										? colors.p9
-										: colors.n4,
-									boxShadow: showingTime
-										? '0px -1px 0px rgba(0, 0, 0, 0.32) inset'
-										: undefined,
-								}}
-								disabled={isTimepickerDisabled}
-								onClick={handleShowingTimeToggle}
-							>
-								<IconSolidClock
+								<Box
+									border={
+										endTimeIsValid ? 'secondary' : 'error'
+									}
+									borderTop={
+										endTimeIsValid ? 'none' : 'error'
+									}
+									borderBottomLeftRadius={'6'}
+									borderBottomRightRadius={'6'}
+									py="0"
 									style={{
-										color: showingTime
-											? colors.white
-											: colors.n11,
+										height: 28,
 									}}
-								/>
+								>
+									<TimeInput
+										name="endTime"
+										placeholder={endTimePlaceholder}
+										onTimeChange={function (value) {
+											handleTimeChange(value, 'end')
+										}}
+									/>
+								</Box>
 							</Box>
 						</Box>
 

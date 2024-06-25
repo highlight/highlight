@@ -646,8 +646,6 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 
 			k.lastPartitionId = &task.GetKafkaMessage().Partition
 
-			k.log(ctx, log.Fields{"last_flush": k.lastFlush, "message_length": len(k.messages)}, "KafkaBatchWorker received messages")
-
 			if time.Since(k.lastFlush) > k.BatchedFlushTimeout || len(k.messages) >= k.BatchFlushSize {
 				s.SetAttribute("FlushDelay", time.Since(k.lastFlush).Seconds())
 
