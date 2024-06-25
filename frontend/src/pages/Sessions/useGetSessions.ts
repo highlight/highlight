@@ -32,10 +32,14 @@ export const useGetSessions = ({
 	// query will still be sent and the data in the cache will be updated.
 	const roundedStartDate = moment(startDate)
 		.startOf('minute')
-		.subtract(moment(startDate).minute() % 15, 'minutes')
-	const roudnedEndDate = moment(endDate)
+		.subtract(moment(startDate).minute() % 10, 'minutes')
+	const endDateIsNearNow = moment().diff(moment(endDate), 'seconds') < 10
+	const momentEndDate = endDateIsNearNow
+		? moment(endDate).add(10, 'minutes')
+		: moment(endDate)
+	const roudnedEndDate = momentEndDate
 		.startOf('minute')
-		.subtract(moment(endDate).minute() % 15, 'minutes')
+		.subtract(moment(endDate).minute() % 10, 'minutes')
 
 	const { data, loading, error, refetch } = useGetSessionsQuery({
 		variables: {

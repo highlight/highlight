@@ -209,7 +209,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 					store={comboboxStore}
 					disabled={submitted}
 					name="aiSearch"
-					placeholder="Generate a query using AI..."
+					placeholder="e.g. 'logs with level error in the last 24 hours'"
 					className={clsx(styles.combobox, {
 						[styles.comboboxError]: !!displayError,
 						[styles.comboboxWithTags]:

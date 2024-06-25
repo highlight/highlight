@@ -796,7 +796,7 @@ export const Search: React.FC<{
 									>
 										<IconSolidSparkles />
 										<Text color="weak" size="small">
-											Generate SQL from plain English
+											Generate query from plain English
 											(Harold AI)
 										</Text>
 									</Stack>

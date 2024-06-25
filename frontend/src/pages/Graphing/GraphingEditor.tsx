@@ -25,6 +25,7 @@ import {
 import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
+import _ from 'lodash'
 import moment from 'moment'
 import React, {
 	PropsWithChildren,
@@ -620,15 +621,21 @@ export const GraphingEditor = () => {
 	})
 
 	const allKeys = useMemo(
-		() => keys?.keys.map((k) => k.name).slice(0, 8) ?? [],
+		() =>
+			_.chain(keys?.keys || [])
+				.map('name')
+				.uniq()
+				.value() ?? [],
 		[keys?.keys],
 	)
+	// Get all unique numeric keys.
 	const numericKeys = useMemo(
 		() =>
-			keys?.keys
-				.filter((k) => k.type === KeyType.Numeric)
-				.map((k) => k.name)
-				.slice(0, 8) ?? [],
+			_.chain(keys?.keys || [])
+				.filter({ type: KeyType.Numeric })
+				.map('name')
+				.uniq()
+				.value() ?? [],
 		[keys?.keys],
 	)
 

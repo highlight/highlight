@@ -42,6 +42,7 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/openai_client"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -8818,13 +8819,6 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 	if err != nil {
 		return nil, err
 	}
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return nil, e.New("OPENAI_API_KEY is not set")
-	}
-
-	client := openai.NewClient(apiKey)
-
 	// create a list of key:value strings
 	keyVals := []string{}
 	keys := []string{}
@@ -8919,6 +8913,8 @@ Use today's date/time in the user's time zone for any relative times provided: %
 ## Rules for 'query' key:
 In terms of the keys and values you can use in the 'query' field, try not to use a key-value pairs that don't exist. If the user asks to search for a log that has a specific string in it, use the "*text*" option.
 
+%s
+
 You have the following keys to work with:
 
 %s
@@ -8934,7 +8930,7 @@ The 'query' syntax documentation is as follows:
 
 And specifically, for the %s product, you can refer to the following documentation:
 %s
-`, productType, now, strings.Join(keys, ", "), strings.Join(keyVals, ", "), prompts.SearchSyntaxDocs, productType, searchSpecificDoc)
+`, productType, now, openai_client.IrrelevantQueryFunctionalityIndicator, strings.Join(keys, ", "), strings.Join(keyVals, ", "), prompts.SearchSyntaxDocs, productType, searchSpecificDoc)
 
 	yesterday := time.Now().In(loc).AddDate(0, 0, -1)
 	yesterdayAt2PM := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 14, 0, 0, 0, yesterday.Location()).Format(time.RFC3339)
@@ -8964,10 +8960,14 @@ And specifically, for the %s product, you can refer to the following documentati
 			request:  "logs that have 'panic' in the message",
 			response: `{"query":"message=*panic*","date_range":{"start_date":"","end_date":""}}`,
 		},
+		{
+			request:  openai_client.IrrelevantQuery,
+			response: `{"query":"","date_range":{"start_date":"","end_date":""}}`,
+		},
 	}
 
-	resp, err := client.CreateChatCompletion(
-		context.Background(),
+	resp, err := r.OpenAiClient.CreateChatCompletion(
+		ctx,
 		openai.ChatCompletionRequest{
 			Model: openai.GPT3Dot5Turbo,
 			ResponseFormat: &openai.ChatCompletionResponseFormat{
@@ -9046,17 +9046,19 @@ And specifically, for the %s product, you can refer to the following documentati
 	toSave.Query = toSaveString.Query
 	startDate, err := time.Parse(time.RFC3339, toSaveString.DateRange.StartDate)
 	if err != nil {
-		log.WithContext(ctx).Errorf("Error parsing start_date: %v\n", err)
 		toSave.DateRange.StartDate = nil
 	} else {
 		toSave.DateRange.StartDate = &startDate
 	}
 	endDate, err := time.Parse(time.RFC3339, toSaveString.DateRange.EndDate)
 	if err != nil {
-		log.WithContext(ctx).Errorf("Error parsing end_date: %v\n", err)
 		toSave.DateRange.EndDate = nil
 	} else {
 		toSave.DateRange.EndDate = &endDate
+	}
+
+	if toSave.Query == "" {
+		return nil, openai_client.MalformedPromptError
 	}
 
 	return &toSave, nil
@@ -9199,11 +9201,6 @@ func (r *queryResolver) ExistingLogsTraces(ctx context.Context, projectID int, t
 
 // ErrorResolutionSuggestion is the resolver for the error_resolution_suggestion field.
 func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObjectID int) (string, error) {
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return "", e.New("OPENAI_API_KEY is not set")
-	}
-
 	errorObject := &model.ErrorObject{}
 	if err := r.DB.WithContext(ctx).Model(&model.ErrorObject{}).Where("id = ?", errorObjectID).Find(&errorObject).Error; err != nil {
 		return "", e.Wrap(err, "failed to find error object")
@@ -9235,9 +9232,8 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 	Here's the stack trace information: %v
 	`, errorObject.Event, *stackTrace)
 
-	client := openai.NewClient(apiKey)
-	resp, err := client.CreateChatCompletion(
-		context.Background(),
+	resp, err := r.OpenAiClient.CreateChatCompletion(
+		ctx,
 		openai.ChatCompletionRequest{
 			Model:       openai.GPT3Dot5Turbo,
 			Temperature: 0.7,
