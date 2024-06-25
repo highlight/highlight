@@ -15,7 +15,7 @@ const __dirname = dirname(__filename)
 // Frontend env vars live in `turbo.json` to ensure the build is not cached.
 // Adding something here? Please update `.env.d.ts` to update our Typescript definitions.
 // *DO NOT* put something in here unless you're positive it's safe to expose this to the world.
-const ENVVAR_ALLOWLIST = js.pipeline.build.env
+const ENVVAR_ALLOWLIST = js.tasks.build.env
 
 // In order to prevent accidentally env var leakage, Vite only allows the configuration of defining
 // the environment variable prefix (see: https://vitejs.dev/guide/env-and-mode.html#env-variables-and-modes)
