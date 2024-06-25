@@ -156,6 +156,13 @@
 		},
 		"test": {
 			"dependsOn": ["lint", "build", "enforce-size"],
+			"env": [
+				"PSQL_DB",
+				"PSQL_HOST",
+				"PSQL_PASSWORD",
+				"PSQL_PORT",
+				"PSQL_USER"
+			],
 			"outputs": [],
 			"inputs": [
 				"src/**/*.tsx",
