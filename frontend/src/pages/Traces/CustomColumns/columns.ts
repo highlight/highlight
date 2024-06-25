@@ -99,7 +99,7 @@ const SPAN_KIND_COLUMN: TraceCustomColumn = {
 const METRIC_NAME_COLUMN: TraceCustomColumn = {
 	id: 'metric_name',
 	label: 'Metric',
-	type: 'string',
+	type: 'metric_name',
 	size: '1fr',
 	accessKey: 'metric_name',
 }
@@ -107,7 +107,7 @@ const METRIC_NAME_COLUMN: TraceCustomColumn = {
 const METRIC_VALUE_COLUMN: TraceCustomColumn = {
 	id: 'metric_value',
 	label: 'Metric Value',
-	type: 'string',
+	type: 'metric_value',
 	size: '1fr',
 	accessKey: 'metric_value',
 }

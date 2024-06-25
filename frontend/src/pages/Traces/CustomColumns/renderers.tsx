@@ -231,4 +231,6 @@ export const ColumnRenderers = {
 	duration: DurationRenderer,
 	session: SessionColumnRenderer,
 	string: StringColumnRenderer,
+	metric_name: StringColumnRenderer,
+	metric_value: StringColumnRenderer,
 }

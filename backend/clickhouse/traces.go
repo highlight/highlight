@@ -31,7 +31,6 @@ const TracesSamplingTable = "traces_sampling"
 const TraceKeysTable = "trace_keys"
 const TraceKeyValuesTable = "trace_key_values"
 const TracesByIdTable = "traces_by_id"
-const SelectTraceColumns = "Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, Environment, HasErrors, TraceAttributes, StatusCode, StatusMessage, Events.Timestamp, Events.Name, Events.Attributes"
 
 var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeySecureSessionID: "SecureSessionId",
@@ -75,6 +74,8 @@ var traceColumns = []string{
 	"Events.Name",
 	"Events.Attributes",
 }
+
+var selectTraceColumns = strings.Join(traceColumns, ", ")
 
 // These keys show up as recommendations, but with no recommended values due to high cardinality
 var defaultTraceKeys = []*modelInputs.QueryKey{
@@ -405,7 +406,7 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 	var args []interface{}
 
 	sb.From(TracesByIdTable).
-		Select(SelectTraceColumns).
+		Select(selectTraceColumns).
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(sb.Equal("TraceId", traceID))
 
@@ -430,7 +431,7 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 	span.SetAttribute("mode", "fallback")
 
 	sb.From(TracesTable).
-		Select(SelectTraceColumns).
+		Select(selectTraceColumns).
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(sb.Equal("TraceId", traceID)).
 		Where(sb.GE("Timestamp", time.Now().Add(-5*time.Minute))).

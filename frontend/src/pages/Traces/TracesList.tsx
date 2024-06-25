@@ -1,4 +1,5 @@
 import { Box, Callout, Stack, Table, Text } from '@highlight-run/ui/components'
+import { ColumnAccessors } from '@pages/Traces/CustomColumns/accessors'
 import { ColumnRenderers } from '@pages/Traces/CustomColumns/renderers'
 import useLocalStorage from '@rehooks/local-storage'
 import {
@@ -173,14 +174,10 @@ export const TracesList: React.FC<Props> = ({
 				},
 			})
 
-			const accessorFn =
-				column.id === 'metric_name'
-					? (row: TraceEdge) =>
-							row.node.events?.at(0)?.attributes['metric.name']
-					: column.id === 'metric_value'
-					? (row: TraceEdge) =>
-							row.node.events?.at(0)?.attributes['metric.value']
-					: `node.${column.accessKey}`
+			const accessorFn = (
+				ColumnAccessors[column.type as keyof typeof ColumnAccessors] ||
+				ColumnAccessors.accessKey
+			)(column.accessKey)
 
 			// @ts-ignore
 			const accessor = columnHelper.accessor(accessorFn, {
