@@ -16,3 +16,30 @@ when using our unpkg.com script.
 To install highlight.io in a Salesforce application, follow the [normal highlight HTML installation instructions](../7_other.md) 
 while performing additional steps to set up the [content security policy](./content-security-policy.md) 
 to allow execution of the highlight script.
+
+### Configure the Head Markup
+
+1. Navigate to Setup -> Digital Experiences -> and select the Builder of your choice
+2. Open the Head Markup editor in Builder | Settings | Advanced
+3. Add the `<script src="https://unpkg.com/highlight.run"></script>` tag.
+4. Add another `<script></script>` with the `H.init` contents as described on our [normal highlight HTML installation instructions](../7_other.md).
+5. Save the contents of the Head Markup.
+
+![](/images/docs/salesforce/step1.png)
+
+### Configure the CSP Policy
+
+1. Open the Security and Privacy menu in Builder | Settings.
+2. Set `Security Level` to `Relaxed`
+3. Under Trusted Sites, click the +Add Trusted Site button, and as necessary.
+
+![](/images/docs/salesforce/step2.png)
+![](/images/docs/salesforce/step3.png)
+
+### Configure Trusted URLs
+
+1. Open the Trusted URLs menu in Builder | Settings | Setup.
+2. Add a New Trusted URL
+
+![](/images/docs/salesforce/step4.png)
+![](/images/docs/salesforce/step5.png)
