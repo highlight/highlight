@@ -17,6 +17,7 @@ import {
 	Label,
 	Menu,
 	presetStartDate,
+	Select,
 	Stack,
 	TagSwitchGroup,
 	Text,
@@ -924,6 +925,11 @@ export const GraphingEditor = () => {
 											options={FUNCTION_TYPES}
 											selection={functionType}
 											setSelection={setFunctionType}
+										/>
+										<Select
+											value={functionType}
+											setValue={setFunctionType}
+											options={FUNCTION_TYPES}
 										/>
 										{functionType !==
 											MetricAggregator.Count && (

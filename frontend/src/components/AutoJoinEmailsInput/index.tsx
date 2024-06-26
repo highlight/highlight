@@ -3,12 +3,12 @@ import Switch from '@components/Switch/Switch'
 import {
 	Box,
 	IconOutlineQuestionMarkCircle,
+	Select,
 	Stack,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { sprinkles } from '@highlight-run/ui/sprinkles'
-import { Select } from 'antd'
 import React, { useEffect, useState } from 'react'
 
 import * as styles from './index.css'
@@ -89,7 +89,22 @@ export const AutoJoinEmailsInput: React.FC<Props> = ({ onChange }) => {
 						}
 					}}
 				/>
+
 				<Select
+					placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
+					value={
+						noEmailDomains
+							? [adminsEmailDomain]
+							: origins.emailOrigins
+					}
+					disabled={noEmailDomains}
+					onChange={handleChange}
+					options={origins.allowedEmailOrigins.map((emailOrigin) => ({
+						name: emailOrigin,
+						value: emailOrigin,
+					}))}
+				/>
+				{/* <Select
 					className={styles.select}
 					placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
 					value={
@@ -105,7 +120,7 @@ export const AutoJoinEmailsInput: React.FC<Props> = ({ onChange }) => {
 						id: emailOrigin,
 						value: emailOrigin,
 					}))}
-				/>
+				/> */}
 			</Box>
 		</>
 	)

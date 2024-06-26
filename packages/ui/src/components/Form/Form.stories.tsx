@@ -10,26 +10,40 @@ const meta = {
 
 export default meta
 
+const ISSUE_TYPES = ['Bug', 'Feature Request', 'Other']
+
 export const Basic = () => {
+	const formStore = Form.useStore({
+		defaultValues: {
+			issueTitle: 'Test Issue',
+			issueDescription: 'This is a test issue',
+			issueType: ISSUE_TYPES[1],
+			issueNumber: 10,
+		},
+	})
+	const values = formStore.useState('values')
+
 	return (
-		<Box style={{ width: 300 }}>
-			<Form
-				defaultValues={{
-					issueTitle: 'Test Issue',
-					issueDescription: 'This is a test issue',
-				}}
-			>
-				<Box
-					px="12"
-					py="8"
-					gap="12"
-					display="flex"
-					flexDirection="column"
-				>
+		<Box style={{ width: 500 }}>
+			<Form store={formStore}>
+				<Box gap="12" display="flex" flexDirection="column" mb="16">
 					<Form.Input outline name="issueTitle" label="Issue Title" />
 					<Form.Input
 						name="issueDescription"
 						label="Issue Description"
+					/>
+					<Form.Select
+						name="issueType"
+						label="Issue Type"
+						options={ISSUE_TYPES}
+						onChange={(value) => {
+							formStore.setValue(
+								'issueType',
+								Array.isArray(value)
+									? value[0].value
+									: value.value,
+							)
+						}}
 					/>
 
 					<Form.Input
@@ -43,6 +57,10 @@ export const Basic = () => {
 					/>
 				</Box>
 			</Form>
+
+			<Box p="8" border="dividerWeak" borderRadius="6" overflow="scroll">
+				<pre>{JSON.stringify(values, null, 2)}</pre>
+			</Box>
 		</Box>
 	)
 }
