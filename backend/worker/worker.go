@@ -1127,7 +1127,12 @@ func (w *Worker) StartSessionDeleteJob(ctx context.Context) {
 		return
 	}
 
+	w.doSessionDeleteLoop(ctx, sessionRetentionDays)
+}
+
+func (w *Worker) doSessionDeleteLoop(ctx context.Context, sessionRetentionDays int) {
 	log.WithContext(ctx).Info("Starting SessionDeleteJob")
+
 	deleteHandlers := delete_handlers.InitHandlers(w.Resolver.DB, w.Resolver.ClickhouseClient, nil, w.Resolver.StorageClient)
 
 	deleteHandlers.ProcessRetentionDeletions(ctx, sessionRetentionDays)
