@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"image/png"
 	"io"
-	"os"
 	"strconv"
 	"time"
 
@@ -50,12 +49,12 @@ func InitHandlers(db *gorm.DB, sendgridClient *sendgrid.Client, lambdaClient *la
 
 func NewHandlers() *handlers {
 	ctx := context.TODO()
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error setting up DB"))
 	}
 
-	sendgridClient := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+	sendgridClient := sendgrid.NewSendClient(env.Config.SendgridKey)
 
 	lambdaClient, err := lambda.NewLambdaClient()
 	if err != nil {

@@ -2,6 +2,7 @@ package phonehome
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/env"
 	"go.opentelemetry.io/otel/trace/noop"
 	"runtime"
 	"time"
@@ -78,14 +79,14 @@ func GetDefaultAttributes() ([]attribute.KeyValue, error) {
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypePhoneHome)),
 		attribute.String(highlight.ProjectIDAttribute, HighlightProjectID),
 		attribute.String(SpanDeployment, cfg.PhoneHomeDeploymentID),
-		attribute.String(SpanDopplerConfig, util.Config.Doppler),
-		attribute.String(SpanHighlightVersion, util.Config.Version),
-		attribute.String(SpanOnPrem, util.Config.OnPrem),
-		attribute.String(SpanLicenseKey, util.Config.LicenseKey),
-		attribute.Bool(SpanSSL, util.UseSSL()),
-		attribute.String(SpanPublicGraphUri, util.Config.PublicGraphUri),
-		attribute.String(SpanPrivateGraphUri, util.Config.PrivateGraphUri),
-		attribute.String(SpanFrontendUri, util.Config.FrontendUri),
+		attribute.String(SpanDopplerConfig, env.Config.Doppler),
+		attribute.String(SpanHighlightVersion, env.Config.Version),
+		attribute.String(SpanOnPrem, env.Config.OnPrem),
+		attribute.String(SpanLicenseKey, env.Config.LicenseKey),
+		attribute.Bool(SpanSSL, env.UseSSL()),
+		attribute.String(SpanPublicGraphUri, env.Config.PublicGraphUri),
+		attribute.String(SpanPrivateGraphUri, env.Config.PrivateGraphUri),
+		attribute.String(SpanFrontendUri, env.Config.FrontendUri),
 	}, nil
 }
 

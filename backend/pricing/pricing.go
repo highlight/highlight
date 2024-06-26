@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"os"
+	"github.com/highlight-run/highlight/backend/env"
 	"strings"
 	"time"
 
@@ -586,11 +586,11 @@ func IncludedAmount(planType backend.PlanType, productType model.PricingProductT
 
 func FromPriceID(priceID string) backend.PlanType {
 	switch priceID {
-	case os.Getenv("BASIC_PLAN_PRICE_ID"):
+	case env.Config.PricingBasicPriceID:
 		return backend.PlanTypeBasic
-	case os.Getenv("STARTUP_PLAN_PRICE_ID"):
+	case env.Config.PricingStartupPriceID:
 		return backend.PlanTypeStartup
-	case os.Getenv("ENTERPRISE_PLAN_PRICE_ID"):
+	case env.Config.PricingEnterprisePriceID:
 		return backend.PlanTypeEnterprise
 	}
 	return backend.PlanTypeFree

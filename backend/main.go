@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/enterprise"
+	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"math/rand"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -30,7 +31,6 @@ import (
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/highlight-run/highlight/backend/embeddings"
-	"github.com/highlight-run/highlight/backend/enterprise"
 	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -173,7 +173,7 @@ var PRIVATE_GRAPH_CORS_OPTIONS = cors.Options{
 
 func validateOrigin(_ *http.Request, origin string) bool {
 	isHighlightSubdomain := strings.HasSuffix(origin, ".highlight.io")
-	if origin == util.Config.FrontendUri || origin == util.Config.LandingStagingURL || isHighlightSubdomain {
+	if origin == env.Config.FrontendUri || origin == env.Config.LandingStagingURL || isHighlightSubdomain {
 		return true
 	}
 
@@ -186,9 +186,9 @@ func main() {
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 	ctx := context.TODO()
 
-	if util.Config.OTLPDogfoodEndpoint != "" {
-		log.WithContext(ctx).WithField("otlpEndpoint", util.Config.OTLPDogfoodEndpoint).Info("overwriting otlp client address for highlight backend logging")
-		highlight.SetOTLPEndpoint(util.Config.OTLPDogfoodEndpoint)
+	if env.Config.OTLPDogfoodEndpoint != "" {
+		log.WithContext(ctx).WithField("otlpEndpoint", env.Config.OTLPDogfoodEndpoint).Info("overwriting otlp client address for highlight backend logging")
+		highlight.SetOTLPEndpoint(env.Config.OTLPDogfoodEndpoint)
 	}
 
 	serviceName := string(runtimeParsed)
@@ -197,11 +197,11 @@ func main() {
 	}
 
 	var samplingMap = map[trace.SpanKind]float64{}
-	if util.IsProduction() {
+	if env.IsProduction() {
 		samplingMap = map[trace.SpanKind]float64{
 			trace.SpanKindUnspecified: 1. / 1_000_000,
 			trace.SpanKindInternal:    1. / 1_000_000,
-			trace.SpanKindConsumer:    util.ConsumerSpanSamplingRate(),
+			trace.SpanKindConsumer:    env.ConsumerSpanSamplingRate(),
 			// report `sampling`
 			trace.SpanKindServer: 1.,
 			// report all customer data
@@ -209,38 +209,36 @@ func main() {
 		}
 	}
 
-	// setup highlight
+	// setup highlight self-instrumentation
 	highlight.Start(
 		highlight.WithProjectID("1jdkoe52"),
-		highlight.WithEnvironment(util.EnvironmentName()),
+		highlight.WithEnvironment(env.EnvironmentName()),
 		highlight.WithMetricSamplingRate(1./1_000_000),
 		highlight.WithSamplingRateMap(samplingMap),
 		highlight.WithServiceName(serviceName),
-		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
+		highlight.WithServiceVersion(env.Config.Version),
 	)
 	defer highlight.Stop()
 	highlight.SetDebugMode(log.StandardLogger())
 
 	// setup highlight logrus hook
 	hlog.Init()
-	log.WithContext(ctx).
-		WithField("release", util.Config.Release).
-		WithField("commit", util.Config.Version).
-		WithField("env_pub", util.GetEnterpriseEnvPublicKey()).
-		Info("welcome to highlight.io")
-	if err := phonehome.Start(ctx); err != nil {
-		log.WithContext(ctx).Warn("Failed to start highlight phone-home service.")
-	}
+
 	if err := enterprise.Start(ctx); err != nil {
 		log.WithContext(ctx).WithError(err).Fatal("Failed to start highlight enterprise license checker.")
 	}
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
+	log.WithContext(ctx).
+		WithField("release", env.Config.Release).
+		WithField("commit", env.Config.Version).
+		WithField("env_pub_length", len(env.GetEnterpriseEnvPublicKey())).
+		Info("welcome to highlight.io")
+
+	if err := phonehome.Start(ctx); err != nil {
+		log.WithContext(ctx).Warn("Failed to start highlight phone-home service.")
 	}
 
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("Error setting up DB: %v", err)
 	}
@@ -249,7 +247,7 @@ func main() {
 		log.WithContext(ctx).Fatalf("Error setting up GORM tracing hooks: %v", err)
 	}
 
-	if util.IsDevEnv() {
+	if env.IsDevEnv() {
 		_, err := model.MigrateDB(ctx, db)
 
 		if err != nil {
@@ -258,7 +256,7 @@ func main() {
 	}
 
 	stripeClient := &client.API{}
-	stripeClient.Init(util.Config.StripeApiKey, nil)
+	stripeClient.Init(env.Config.StripeApiKey, nil)
 
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(model.AWS_REGION_US_EAST_2))
 	if err != nil {
@@ -267,18 +265,18 @@ func main() {
 	mpm := marketplacemetering.NewFromConfig(cfg)
 
 	var storageClient storage.Client
-	if util.IsInDocker() {
+	if env.IsInDocker() {
 		log.WithContext(ctx).Info("in docker: using filesystem for object storage")
 		fsRoot := "/tmp"
-		if os.Getenv("OBJECT_STORAGE_FS") != "" {
-			fsRoot = os.Getenv("OBJECT_STORAGE_FS")
+		if env.Config.ObjectStorageFS != "" {
+			fsRoot = env.Config.ObjectStorageFS
 		}
-		if storageClient, err = storage.NewFSClient(ctx, os.Getenv("REACT_APP_PRIVATE_GRAPH_URI"), fsRoot); err != nil {
+		if storageClient, err = storage.NewFSClient(ctx, env.Config.PrivateGraphUri, fsRoot); err != nil {
 			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
 		}
 	} else {
 		log.WithContext(ctx).Info("using S3 for object storage")
-		if os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_S3_BUCKET_NAME") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
+		if env.Config.AwsAccessKeyID == "" || env.Config.AwsSecretAccessKey == "" {
 			log.WithContext(ctx).Fatalf("please specify object storage env variables in order to proceed")
 		}
 		if storageClient, err = storage.NewS3Client(ctx); err != nil {
@@ -294,7 +292,7 @@ func main() {
 	kafkaDataSyncProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Producer, kCfg)
 
 	var lambdaClient *lambda.Client
-	if !util.IsInDocker() {
+	if !env.IsInDocker() {
 		lambdaClient, err = lambda.NewLambdaClient()
 		if err != nil {
 			log.WithContext(ctx).Errorf("error creating lambda client: %v", err)
@@ -316,7 +314,7 @@ func main() {
 		log.WithContext(ctx).Fatalf("error creating oauth client: %v", err)
 	}
 
-	tp, err := highlight.CreateTracerProvider(util.Config.OTLPEndpoint)
+	tp, err := highlight.CreateTracerProvider(env.Config.OTLPEndpoint)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating collector tracer provider: %v", err)
 	}
@@ -326,7 +324,7 @@ func main() {
 		trace.WithSchemaURL(semconv.SchemaURL),
 	)
 
-	tpNoResources, err := highlight.CreateTracerProvider(util.Config.OTLPEndpoint, sdktrace.WithResource(resource.Empty()))
+	tpNoResources, err := highlight.CreateTracerProvider(env.Config.OTLPEndpoint, sdktrace.WithResource(resource.Empty()))
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating collector tracer provider: %v", err)
 	}
@@ -339,7 +337,7 @@ func main() {
 	integrationsClient := integrations.NewIntegrationsClient(db)
 
 	oai := &openai_client.OpenAiImpl{}
-	if err := oai.InitClient(util.Config.OpenAIApiKey); err != nil {
+	if err := oai.InitClient(env.Config.OpenAIApiKey); err != nil {
 		log.WithContext(ctx).WithError(err).Error("error creating openai client")
 	}
 
@@ -348,10 +346,10 @@ func main() {
 	subscriptionWorkerPool := workerpool.New(1000)
 	subscriptionWorkerPool.SetPanicHandler(util.Recover)
 	privateResolver := &private.Resolver{
-		ClearbitClient:         clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
+		ClearbitClient:         clearbit.NewClient(clearbit.WithAPIKey(env.Config.ClearbitApiKey)),
 		DB:                     db,
 		Tracer:                 tracer,
-		MailClient:             sendgrid.NewSendClient(util.Config.SendgridKey),
+		MailClient:             sendgrid.NewSendClient(env.Config.SendgridKey),
 		StripeClient:           stripeClient,
 		AWSMPClient:            mpm,
 		StorageClient:          storageClient,
@@ -413,12 +411,12 @@ func main() {
 			r.HandleFunc("/validate", oauthSrv.HandleValidate)
 			r.HandleFunc("/revoke", oauthSrv.HandleRevoke)
 		})
-		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(ctx, util.Config.StripeWebhookSecret))
+		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(ctx, env.Config.StripeWebhookSecret))
 		r.HandleFunc("/callback/aws-mp", privateResolver.AWSMPCallback(ctx))
 		r.Route("/zapier", func(r chi.Router) {
 			zapier.CreateZapierRoutes(r, db, &zapierStore, &rh)
 		})
-		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(ctx, util.Config.SlackSigningSecret))
+		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(ctx, env.Config.SlackSigningSecret))
 		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "microsoft-teams/bot"), privateResolver.MicrosoftTeamsBotEndpoint)
 
 		r.Route(privateEndpoint, func(r chi.Router) {
@@ -484,7 +482,7 @@ func main() {
 			BatchedQueue:      kafkaBatchedProducer,
 			DataSyncQueue:     kafkaDataSyncProducer,
 			TracesQueue:       kafkaTracesProducer,
-			MailClient:        sendgrid.NewSendClient(util.Config.SendgridKey),
+			MailClient:        sendgrid.NewSendClient(env.Config.SendgridKey),
 			EmbeddingsClient:  embeddings.New(),
 			StorageClient:     storageClient,
 			Redis:             redisClient,
@@ -555,7 +553,7 @@ func main() {
 			BatchedQueue:      kafkaBatchedProducer,
 			DataSyncQueue:     kafkaDataSyncProducer,
 			TracesQueue:       kafkaTracesProducer,
-			MailClient:        sendgrid.NewSendClient(util.Config.SendgridKey),
+			MailClient:        sendgrid.NewSendClient(env.Config.SendgridKey),
 			EmbeddingsClient:  embeddings.New(),
 			StorageClient:     storageClient,
 			Redis:             redisClient,
@@ -567,7 +565,7 @@ func main() {
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
-			if !util.IsDevOrTestEnv() && !util.IsOnPrem() {
+			if !env.IsDevOrTestEnv() && !env.IsOnPrem() {
 				serviceName := "worker-service"
 				serviceName = string(handlerParsed)
 
@@ -609,17 +607,17 @@ func main() {
 					w.AutoResolveStaleErrors(ctx)
 				}
 			}()
-			if util.IsDevEnv() && util.UseSSL() {
-				log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
+			if env.IsDevEnv() && env.UseSSL() {
+				log.Fatal(http.ListenAndServeTLS(":"+defaultPort, localhostCertPath, localhostKeyPath, r))
 			} else {
-				log.Fatal(http.ListenAndServe(":"+port, r))
+				log.Fatal(http.ListenAndServe(":"+defaultPort, r))
 			}
 		}
 	} else {
-		if util.IsDevEnv() && util.UseSSL() {
-			log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
+		if env.IsDevEnv() && env.UseSSL() {
+			log.Fatal(http.ListenAndServeTLS(":"+defaultPort, localhostCertPath, localhostKeyPath, r))
 		} else {
-			log.Fatal(http.ListenAndServe(":"+port, r))
+			log.Fatal(http.ListenAndServe(":"+defaultPort, r))
 		}
 	}
 }

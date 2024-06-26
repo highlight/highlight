@@ -13,8 +13,8 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/hashicorp/go-retryablehttp"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/projectpath"
-	"github.com/highlight-run/highlight/backend/util"
 	"github.com/mitchellh/mapstructure"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -31,18 +31,20 @@ const UpdateInterval = time.Minute
 const UpdateErrorsAbort = 10
 
 func Start(ctx context.Context) error {
-	env, err := GetEnvironment(GetEncryptedEnvironmentFilePath(), GetEncryptedEnvironmentDigestFilePath())
+	environ, err := GetEnvironment(GetEncryptedEnvironmentFilePath(), GetEncryptedEnvironmentDigestFilePath())
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Info("enterprise service not configured")
-		if util.IsEnterpriseDeploy() {
+		if env.IsEnterpriseDeploy() {
 			return err
 		}
 	} else {
 		log.WithContext(ctx).
-			WithField("environment_valid_until", env.EnterpriseEnvExpiration).
+			WithField("environment_valid_until", environ.EnterpriseEnvExpiration).
 			Info("welcome to highlight.io enterprise")
-		if util.IsEnterpriseDeploy() {
-			util.Config = *env
+		if env.IsEnterpriseDeploy() {
+			// TODO(vkorolik) should this update non-empty values?
+			// TODO(vkorolik) somehow test that all the env vars are properly populated in enterprise docker image
+			env.Config = *environ
 			log.WithContext(ctx).
 				Info("applied enterprise environment file")
 		}
@@ -75,7 +77,7 @@ func HasUpdates(client *retryablehttp.Client) (bool, error) {
 	}
 
 	latestVersion := strings.TrimPrefix(response.Name, "docker-v")
-	currentVersion := strings.TrimPrefix(util.Config.Release, "docker-v")
+	currentVersion := strings.TrimPrefix(env.Config.Release, "docker-v")
 
 	log.WithContext(context.Background()).
 		WithField("latestVersion", latestVersion).
@@ -126,12 +128,12 @@ func GetEncryptedEnvironmentDigestFilePath() string {
 	return filepath.Join(root, "env.enc.dgst")
 }
 
-func GetEnvironment(file, digest string) (*util.Configuration, error) {
-	if util.Config.LicenseKey == "" {
+func GetEnvironment(file, digest string) (*env.Configuration, error) {
+	if env.Config.LicenseKey == "" {
 		return nil, e.New("no license key set")
 	}
 
-	key := pbkdf2.Key([]byte(util.Config.LicenseKey), nil, 1000000, 32, sha512.New)
+	key := pbkdf2.Key([]byte(env.Config.LicenseKey), nil, 1000000, 32, sha512.New)
 
 	_, err := os.Stat(file)
 	if err != nil {
@@ -156,7 +158,7 @@ func GetEnvironment(file, digest string) (*util.Configuration, error) {
 		return nil, err
 	}
 
-	spkiBlock, _ := pem.Decode([]byte(util.GetEnterpriseEnvPublicKey()))
+	spkiBlock, _ := pem.Decode([]byte(env.GetEnterpriseEnvPublicKey()))
 	if spkiBlock == nil {
 		return nil, e.New("failed to read environment public key")
 	}
@@ -210,7 +212,7 @@ func GetEnvironment(file, digest string) (*util.Configuration, error) {
 		cfg[data[0]] = data[1]
 	}
 
-	config := util.Configuration{EnterpriseEnvExpiration: envExpire}
+	config := env.Configuration{EnterpriseEnvExpiration: envExpire}
 	if err = mapstructure.Decode(cfg, &config); err != nil {
 		return nil, err
 	}

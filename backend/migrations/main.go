@@ -11,7 +11,7 @@ import (
 
 func main() {
 	ctx := context.TODO()
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("Srror setting up DB: %v", err)
 	}

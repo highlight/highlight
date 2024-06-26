@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"os"
-
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
@@ -15,7 +13,7 @@ import (
 func main() {
 	ctx := context.TODO()
 	log.WithContext(ctx).Info("setting up db")
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}

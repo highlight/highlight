@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/env"
 	"os"
 	"strconv"
 	"strings"
@@ -38,7 +39,7 @@ var DB *gorm.DB
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"
-	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
+	testLogger := log.WithContext(context.TODO())
 	var err error
 	DB, err = util.CreateAndMigrateTestDB(dbName)
 	SetupAuthClient(context.Background(), Simple, nil, nil)
@@ -984,7 +985,7 @@ func TestResolver_ProjectAccess(t *testing.T) {
 }
 
 func TestGetSlackChannelsFromSlack(t *testing.T) {
-	token := os.Getenv("TEST_SLACK_ACCESS_TOKEN")
+	token := env.Config.SlackTestAccessToken
 	if token == "" {
 		t.Skip("TEST_SLACK_ACCESS_TOKEN is not set")
 	}

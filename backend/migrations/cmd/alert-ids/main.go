@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"os"
 	"strconv"
 
 	e "github.com/pkg/errors"
@@ -35,7 +34,7 @@ func GetPropertiesOld(obj *model.SessionAlert) ([]*UserPropertyOld, error) {
 
 func main() {
 	ctx := context.TODO()
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}

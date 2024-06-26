@@ -3,6 +3,7 @@ package util
 import (
 	"context"
 	"flag"
+	"github.com/highlight-run/highlight/backend/env"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -62,16 +63,16 @@ func (lt Handler) IsValid() bool {
 
 func GetRuntime() (Runtime, Handler) {
 	flag.Parse()
-	if runtimeFlag == nil {
+	if env.RuntimeFlag == nil {
 		log.WithContext(context.Background()).Fatal("runtime is nil, provide a value")
 	}
-	runtime := Runtime(*runtimeFlag)
+	runtime := Runtime(*env.RuntimeFlag)
 	if !runtime.IsValid() {
-		log.WithContext(context.Background()).Fatalf("invalid runtime: %v", *runtimeFlag)
+		log.WithContext(context.Background()).Fatalf("invalid runtime: %v", *env.RuntimeFlag)
 	}
 	var handler Handler
-	if handlerFlag != nil {
-		handler = Handler(*handlerFlag)
+	if env.HandlerFlag != nil {
+		handler = Handler(*env.HandlerFlag)
 	}
 	return runtime, handler
 }

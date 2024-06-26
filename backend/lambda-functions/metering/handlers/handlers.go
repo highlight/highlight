@@ -3,8 +3,6 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"os"
-
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
@@ -32,7 +30,7 @@ func InitHandlers(db *gorm.DB) *handlers {
 
 func NewHandlers() *handlers {
 	ctx := context.TODO()
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error setting up DB"))
 	}

@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"math/big"
 	"net/http"
@@ -93,9 +94,9 @@ var AuthenticationError = errors.New("401 - AuthenticationError")
 var AuthorizationError = errors.New("403 - AuthorizationError")
 
 var (
-	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
-	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
-	FrontendURI     = os.Getenv("REACT_APP_FRONTEND_URI")
+	WhitelistedUID  = env.Config.AuthWhitelistedAccount
+	JwtAccessSecret = env.Config.AuthJWTAccessToken
+	FrontendURI     = env.Config.FrontendUri
 )
 
 var BytesConversion = map[string]int64{
@@ -287,7 +288,7 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	email := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.Email))
 	// Allow access to engineering@highlight.run or any verified @highlight.run / @runhighlight.com email.
 	_, isHighlightAdmin := lo.Find(HighlightAdminEmailDomains, func(domain string) bool { return strings.Contains(email, domain) })
-	return !util.IsInDocker() && isHighlightAdmin || uid == WhitelistedUID
+	return !env.IsInDocker() && isHighlightAdmin || uid == WhitelistedUID
 }
 
 func (r *Resolver) isDemoProject(ctx context.Context, project_id int) bool {
@@ -295,7 +296,7 @@ func (r *Resolver) isDemoProject(ctx context.Context, project_id int) bool {
 }
 
 func (r *Resolver) demoProjectID(ctx context.Context) int {
-	demoProjectString := os.Getenv("DEMO_PROJECT_ID")
+	demoProjectString := env.Config.DemoProjectID
 
 	// Demo project is disabled if the env var is not set.
 	if demoProjectString == "" {
@@ -1884,7 +1885,7 @@ func (r *Resolver) AWSMPCallback(ctx context.Context) func(http.ResponseWriter, 
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		http.Redirect(w, req, fmt.Sprintf("%s/callback/aws-mp?code=%s", os.Getenv("REACT_APP_FRONTEND_URI"), secret), http.StatusFound)
+		http.Redirect(w, req, fmt.Sprintf("%s/callback/aws-mp?code=%s", env.Config.FrontendUri, secret), http.StatusFound)
 	}
 }
 
@@ -2083,25 +2084,13 @@ func (r *Resolver) AddCloudflareToWorkspace(ctx context.Context, project *model.
 }
 
 func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
-	var (
-		SLACK_CLIENT_ID     string
-		SLACK_CLIENT_SECRET string
-	)
-
-	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
-		SLACK_CLIENT_ID = tempSlackClientID
-	}
-	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
-		SLACK_CLIENT_SECRET = tempSlackClientSecret
-	}
-
 	redirect := FrontendURI + "/callback/slack"
 
 	resp, err := slack.
 		GetOAuthV2Response(
 			&http.Client{},
-			SLACK_CLIENT_ID,
-			SLACK_CLIENT_SECRET,
+			env.Config.SlackClientId,
+			env.Config.SlackClientSecret,
 			code,
 			redirect,
 		)
@@ -2403,21 +2392,9 @@ func (r *Resolver) RemoveDiscordFromWorkspace(ctx context.Context, workspace *mo
 }
 
 func (r *Resolver) AddLinearToWorkspace(workspace *model.Workspace, code string) error {
-	var (
-		LINEAR_CLIENT_ID     string
-		LINEAR_CLIENT_SECRET string
-	)
-
-	if tempLinearClientID, ok := os.LookupEnv("LINEAR_CLIENT_ID"); ok && tempLinearClientID != "" {
-		LINEAR_CLIENT_ID = tempLinearClientID
-	}
-	if tempLinearClientSecret, ok := os.LookupEnv("LINEAR_CLIENT_SECRET"); ok && tempLinearClientSecret != "" {
-		LINEAR_CLIENT_SECRET = tempLinearClientSecret
-	}
-
 	redirect := FrontendURI + "/callback/linear"
 
-	res, err := r.GetLinearAccessToken(code, redirect, LINEAR_CLIENT_ID, LINEAR_CLIENT_SECRET)
+	res, err := r.GetLinearAccessToken(code, redirect, env.Config.LinearClientId, env.Config.LinearClientSecret)
 	if err != nil {
 		return e.Wrap(err, "error getting linear oauth access token")
 	}
@@ -2685,7 +2662,7 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 			Title:    title,
 			Subtitle: subtitle,
 			Url:      url,
-			IconUrl:  fmt.Sprintf("%s/logo_with_gradient_bg.png", os.Getenv("REACT_APP_FRONTEND_URI")),
+			IconUrl:  fmt.Sprintf("%s/logo_with_gradient_bg.png", env.Config.FrontendUri),
 		},
 	}
 

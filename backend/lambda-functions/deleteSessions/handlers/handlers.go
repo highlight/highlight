@@ -3,7 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"os"
+	"github.com/highlight-run/highlight/backend/env"
 	"time"
 
 	"github.com/openlyinc/pointy"
@@ -48,7 +48,7 @@ func InitHandlers(db *gorm.DB, clickhouseClient *clickhouse.Client, sendgridClie
 
 func NewHandlers() *handlers {
 	ctx := context.TODO()
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error setting up DB"))
 	}
@@ -63,7 +63,7 @@ func NewHandlers() *handlers {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error creating s3 storage client"))
 	}
 
-	sendgridClient := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+	sendgridClient := sendgrid.NewSendClient(env.Config.SendgridKey)
 
 	return InitHandlers(db, clickhouseClient, sendgridClient, s3Client)
 }

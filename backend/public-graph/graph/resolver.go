@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"hash/fnv"
 	"io"
 	"net/http"
@@ -214,7 +215,7 @@ var ErrUserFilteredError = e.New("User filtered error")
 var SessionProcessDelaySeconds = 120 // a session will be processed after not receiving events for this time
 var SessionProcessLockMinutes = 30   // a session marked as processing can be reprocessed after this time
 func init() {
-	if util.IsDevEnv() {
+	if env.IsDevEnv() {
 		SessionProcessDelaySeconds = 8
 		SessionProcessLockMinutes = 1
 	}
