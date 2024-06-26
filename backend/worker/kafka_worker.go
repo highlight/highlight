@@ -640,11 +640,13 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 			defer receiveCancel()
 			task := k.KafkaQueue.Receive(receiveCtx)
 			s1.Finish()
-			if task != nil && task.GetType() != kafkaqueue.HealthCheck {
-				k.messages = append(k.messages, task)
-			}
 
-			k.lastPartitionId = &task.GetKafkaMessage().Partition
+			if task != nil {
+				k.lastPartitionId = &task.GetKafkaMessage().Partition
+				if task.GetType() != kafkaqueue.HealthCheck {
+					k.messages = append(k.messages, task)
+				}
+			}
 
 			if time.Since(k.lastFlush) > k.BatchedFlushTimeout || len(k.messages) >= k.BatchFlushSize {
 				s.SetAttribute("FlushDelay", time.Since(k.lastFlush).Seconds())

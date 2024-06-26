@@ -115,6 +115,14 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 					"Attributes": link.Attributes().AsRaw(),
 				}
 			}
+		} else {
+			fields.events = []map[string]any{
+				{
+					"Timestamp":  params.event.Timestamp().AsTime(),
+					"Name":       params.event.Name(),
+					"Attributes": params.event.Attributes().AsRaw(),
+				},
+			}
 		}
 	}
 

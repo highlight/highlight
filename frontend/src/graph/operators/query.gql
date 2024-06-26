@@ -2329,6 +2329,11 @@ query GetTrace(
 			startTime
 			statusCode
 			statusMessage
+			events {
+				timestamp
+				name
+				attributes
+			}
 		}
 		errors {
 			created_at
@@ -2381,6 +2386,11 @@ query GetTraces(
 				traceAttributes
 				statusCode
 				statusMessage
+				events {
+					timestamp
+					name
+					attributes
+				}
 			}
 		}
 		pageInfo {

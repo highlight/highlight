@@ -394,7 +394,7 @@ func main() {
 		StepFunctions:          sfnClient,
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
-		OpenAiClient:           &openai_client.OpenAiImpl{},
+		OpenAiClient:           oai,
 		ClickhouseClient:       clickhouseClient,
 		Store:                  store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
 		DataSyncQueue:          kafkaDataSyncProducer,
