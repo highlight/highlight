@@ -80,7 +80,13 @@ export async function render(
 		async (r) => await page.exposeFunction('onReplayFinish', () => r()),
 	)
 	const js = readFileSync(
-		path.join(path.resolve(), 'node_modules', 'rrweb', 'dist', 'rrweb.js'),
+		path.join(
+			path.resolve(),
+			'node_modules',
+			'rrweb',
+			'dist',
+			'rrweb.umd.min.cjs',
+		),
 		'utf8',
 	)
 	const css = readFileSync(
