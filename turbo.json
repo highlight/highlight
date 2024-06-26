@@ -157,6 +157,8 @@
 		"test": {
 			"dependsOn": ["lint", "build", "enforce-size"],
 			"env": [
+				"AWS_ACCESS_KEY_ID",
+				"AWS_SECRET_ACCESS_KEY",
 				"PSQL_DB",
 				"PSQL_HOST",
 				"PSQL_PASSWORD",
