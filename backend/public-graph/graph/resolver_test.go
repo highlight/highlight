@@ -95,7 +95,7 @@ func TestMain(m *testing.M) {
 		Redis:            redisClient,
 		Clickhouse:       chClient,
 		StorageClient:    &storage.FilesystemClient{},
-		Store:            store.NewStore(db, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil),
+		Store:            store.NewStore(db, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, chClient),
 		EmbeddingsClient: &mockEmbeddingsClient{},
 		DataSyncQueue:    &kafka_queue.MockMessageQueue{},
 		TracesQueue:      &kafka_queue.MockMessageQueue{},
