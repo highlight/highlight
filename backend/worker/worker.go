@@ -1331,6 +1331,7 @@ func (w *Worker) BackfillStackFrames(ctx context.Context) {
 }
 
 func (w *Worker) GetHandler(ctx context.Context, handlerFlag util.Handler) func(ctx context.Context) {
+	log.WithContext(ctx).WithField("handlerFlag", handlerFlag).Info("starting worker")
 	switch handlerFlag {
 	case util.ReportStripeUsage:
 		return w.ReportStripeUsage
@@ -1354,6 +1355,9 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag util.Handler) func(
 		return w.GetPublicWorker(kafkaqueue.TopicTypeTraces)
 	case util.AutoResolveStaleErrors:
 		return w.AutoResolveStaleErrors
+	case "":
+		// no handler provided defaults to the session worker
+		return w.Start
 	default:
 		log.WithContext(ctx).Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil

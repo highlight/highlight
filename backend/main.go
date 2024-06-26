@@ -73,7 +73,7 @@ import (
 )
 
 var runtimeParsed util.Runtime
-var handlerParsed *util.Handler
+var handlerParsed util.Handler
 
 const (
 	localhostCertPath = "localhostssl/server.crt"
@@ -193,9 +193,7 @@ func main() {
 
 	serviceName := string(runtimeParsed)
 	if runtimeParsed == util.Worker {
-		if handlerParsed != nil {
-			serviceName = string(*handlerParsed)
-		}
+		serviceName = string(handlerParsed)
 	}
 
 	var samplingMap = map[trace.SpanKind]float64{}
@@ -344,7 +342,7 @@ func main() {
 	if err := oai.InitClient(util.Config.OpenAIApiKey); err != nil {
 		log.WithContext(ctx).WithError(err).Error("error creating openai client")
 	}
-	
+
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
 	subscriptionWorkerPool := workerpool.New(1000)
@@ -571,9 +569,7 @@ func main() {
 		if runtimeParsed == util.Worker {
 			if !util.IsDevOrTestEnv() && !util.IsOnPrem() {
 				serviceName := "worker-service"
-				if handlerParsed != nil {
-					serviceName = string(*handlerParsed)
-				}
+				serviceName = string(handlerParsed)
 
 				log.WithContext(ctx).Info("Running dd client setup process...")
 				if err := dd.Start(serviceName); err != nil {
@@ -582,21 +578,7 @@ func main() {
 					defer dd.Stop()
 				}
 			}
-			if handlerParsed != nil {
-				func() {
-					defer util.RecoverAndCrash()
-					w.GetHandler(ctx, *handlerParsed)(ctx)
-				}()
-			} else {
-				go func() {
-					w.Start(ctx)
-				}()
-				if util.IsDevEnv() && util.UseSSL() {
-					log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
-				} else {
-					log.Fatal(http.ListenAndServe(":"+port, r))
-				}
-			}
+			w.GetHandler(ctx, handlerParsed)(ctx)
 		} else {
 			go func() {
 				w.Start(ctx)
