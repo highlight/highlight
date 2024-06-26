@@ -42,9 +42,7 @@ func Start(ctx context.Context) error {
 			WithField("environment_valid_until", environ.EnterpriseEnvExpiration).
 			Info("welcome to highlight.io enterprise")
 		if env.IsEnterpriseDeploy() {
-			// TODO(vkorolik) should this update non-empty values?
-			// TODO(vkorolik) somehow test that all the env vars are properly populated in enterprise docker image
-			env.Config = *environ
+			environ.CopyTo(&env.Config)
 			log.WithContext(ctx).
 				Info("applied enterprise environment file")
 		}

@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -130,6 +131,19 @@ func (c *Configuration) load() {
 		return pair[0], pair[1]
 	}), c); err != nil {
 		log.WithError(err).Fatal("failed to load environment variables")
+	}
+}
+
+// CopyTo copies non-empty values of the current configuration to the destination configuration.
+func (c *Configuration) CopyTo(destination *Configuration) {
+	dest := reflect.ValueOf(destination).Elem()
+	src := reflect.ValueOf(*c)
+	for i := 0; i < src.NumField(); i++ {
+		field := src.Field(i)
+		key := src.Type().Field(i).Name
+		if field.String() != "" {
+			dest.FieldByName(key).Set(field)
+		}
 	}
 }
 
