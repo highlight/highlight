@@ -139,8 +139,6 @@ jobs:
                   ./run-enterprise.sh --no-pull >> /tmp/highlight.log 2>&1;
                   popd;
 
-                  # TODO(vkorolik) somehow test that all the env vars are properly populated in enterprise docker image
-
                   # run python backend functional tests
                   pushd ./e2e/tests
                   export HIGHLIGHT_OAUTH_CLIENT_ID=abc123
