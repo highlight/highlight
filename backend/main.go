@@ -81,7 +81,6 @@ const (
 )
 
 func init() {
-	log.WithContext(context.Background()).WithField("release", util.Config.Release).WithField("commit", util.Config.Version).Info("welcome to highlight.io")
 	runtimeParsed, handlerParsed = util.GetRuntime()
 }
 
@@ -229,7 +228,7 @@ func main() {
 	log.WithContext(ctx).
 		WithField("release", util.Config.Release).
 		WithField("commit", util.Config.Version).
-		WithField("env_pub", util.EnterpriseEnvPublicKey).
+		WithField("env_pub", util.GetEnterpriseEnvPublicKey()).
 		Info("welcome to highlight.io")
 	if err := phonehome.Start(ctx); err != nil {
 		log.WithContext(ctx).Warn("Failed to start highlight phone-home service.")
