@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/env"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"

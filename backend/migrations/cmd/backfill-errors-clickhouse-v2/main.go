@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/env"
 	"gorm.io/gorm"
 	"strconv"
 	"time"

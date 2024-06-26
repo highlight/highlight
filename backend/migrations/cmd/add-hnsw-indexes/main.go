@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 

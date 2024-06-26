@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/env"
 	"gorm.io/gorm"
 
 	log "github.com/sirupsen/logrus"

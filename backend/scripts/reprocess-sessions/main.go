@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/redis"
 	"time"
 

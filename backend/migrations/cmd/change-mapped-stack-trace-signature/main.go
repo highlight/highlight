@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/env"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/env"
 	"strconv"
 
 	e "github.com/pkg/errors"

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"os"
 
 	"golang.org/x/sync/errgroup"

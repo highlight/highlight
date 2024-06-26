@@ -76,7 +76,6 @@ func (c *mockEmbeddingsClient) GetStringEmbedding(ctx context.Context, input str
 
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
-	dbName := "highlight_testing_db"
 	testLogger := log.WithContext(context.TODO())
 	var err error
 	db, err := util.CreateAndMigrateTestDB("highlight_testing_db")

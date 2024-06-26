@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"

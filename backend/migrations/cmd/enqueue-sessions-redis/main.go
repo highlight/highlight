@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	log "github.com/sirupsen/logrus"
