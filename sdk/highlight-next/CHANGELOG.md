@@ -1,5 +1,14 @@
 # @highlight-run/next
 
+## 7.5.7
+
+### Patch Changes
+
+-   Updated dependencies [e7eb5f581]
+    -   highlight.run@9.0.0
+    -   @highlight-run/cloudflare@2.1.6
+    -   @highlight-run/node@3.9.0
+
 ## 7.5.6
 
 ### Patch Changes

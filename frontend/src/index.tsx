@@ -3,7 +3,7 @@ import '@highlight-run/ui/styles.css'
 import './index.css'
 import './style/tailwind.css'
 import './__generated/antd.css'
-import 'rrweb/dist/rrweb.min.css'
+import 'rrweb/dist/style.css'
 
 import { ApolloError, ApolloProvider } from '@apollo/client'
 import { AuthContextProvider, AuthRole } from '@authentication/AuthContext'
