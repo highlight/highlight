@@ -38,6 +38,7 @@ type Configuration struct {
 	StripeApiKey            string `mapstructure:"STRIPE_API_KEY"`
 	StripeWebhookSecret     string `mapstructure:"STRIPE_WEBHOOK_SECRET"`
 	SlackSigningSecret      string `mapstructure:"SLACK_SIGNING_SECRET"`
+	OpenAIApiKey            string `mapstructure:"OPENAI_API_KEY"`
 }
 
 var (
@@ -62,6 +63,7 @@ var (
 		os.Getenv("STRIPE_API_KEY"),
 		os.Getenv("STRIPE_WEBHOOK_SECRET"),
 		os.Getenv("SLACK_SIGNING_SECRET"),
+		os.Getenv("OPENAI_API_KEY"),
 	}
 	runtimeFlag = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 	handlerFlag = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
