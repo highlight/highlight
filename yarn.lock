@@ -21767,7 +21767,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rrweb/utils@npm:^2.0.0-alpha.15, @rrweb/utils@workspace:rrweb/packages/utils":
+"@rrweb/utils@workspace:*, @rrweb/utils@workspace:rrweb/packages/utils":
   version: 0.0.0-use.local
   resolution: "@rrweb/utils@workspace:rrweb/packages/utils"
   dependencies:
@@ -59578,7 +59578,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "rrweb-snapshot@workspace:rrweb/packages/rrweb-snapshot"
   dependencies:
-    "@rrweb/utils": "npm:^2.0.0-alpha.15"
+    "@rrweb/utils": "workspace:*"
     "@types/jsdom": "npm:^20.0.0"
     "@types/node": "npm:^18.15.11"
     "@types/puppeteer": "npm:^5.4.4"
