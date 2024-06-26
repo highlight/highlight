@@ -566,8 +566,7 @@ func main() {
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
 			if !env.IsDevOrTestEnv() && !env.IsOnPrem() {
-				serviceName := "worker-service"
-				serviceName = string(handlerParsed)
+				serviceName := string(handlerParsed)
 
 				log.WithContext(ctx).Info("Running dd client setup process...")
 				if err := dd.Start(serviceName); err != nil {
