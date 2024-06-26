@@ -79,7 +79,7 @@ func SetupAuthClient(ctx context.Context, authMode AuthMode, oauthServer *oauth.
 	workspaceTokenHandler = wsTokenHandler
 	if authMode == Firebase {
 		secret := env.Config.AuthFirebaseSecret
-		creds, err := google.CredentialsFromJSON(context.Background(), []byte(secret),
+		creds, err := google.CredentialsFromJSON(ctx, []byte(secret),
 			"https://www.googleapis.com/auth/firebase",
 			"https://www.googleapis.com/auth/identitytoolkit",
 			"https://www.googleapis.com/auth/userinfo.email")
