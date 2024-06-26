@@ -10,7 +10,7 @@ readme = "README.md"
 python = "^3.10"
 boto3 = {version = ">=1.23,<2.0", extras = ["crt"]}
 brotli = ">=1.0,<2.0"
-tqdm = "^4.66.1"
+tqdm = "^4.66.3"
 stripe = "^6.7.0"
 clickhouse-connect = "^0.7.8"
 pandas = "^2.2.2"
