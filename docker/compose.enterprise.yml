@@ -67,11 +67,7 @@ services:
             - '0.0.0.0:3000:3000'
             - '0.0.0.0:6006:6006'
             - '0.0.0.0:8080:8080'
-        environment:
-            - REACT_APP_PRIVATE_GRAPH_URI
-            - REACT_APP_PUBLIC_GRAPH_URI
-            - REACT_APP_FRONTEND_URI
-            - SSL
+        env_file: .env
 
 volumes:
     highlight-data:
