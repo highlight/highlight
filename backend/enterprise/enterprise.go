@@ -8,6 +8,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha512"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
@@ -207,7 +208,12 @@ func GetEnvironment(file, digest string) (*env.Configuration, error) {
 			continue
 		}
 		data := strings.SplitN(line, "=", 2)
-		cfg[data[0]] = data[1]
+		dec := base64.NewDecoder(base64.StdEncoding, strings.NewReader(data[1]))
+		envValue, err := io.ReadAll(dec)
+		if err != nil {
+			return nil, err
+		}
+		cfg[data[0]] = string(envValue)
 	}
 
 	config := env.Configuration{EnterpriseEnvExpiration: envExpire}

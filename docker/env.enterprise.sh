@@ -12,8 +12,9 @@ OUTPUT="../backend/env.enc"
 # set env vars from doppler
 export -n DOPPLER_CONFIG
 doppler secrets download --format=env-no-quotes --no-file \
-    | grep -vE '^#' | grep -E '\S+' | sed -e 's/\\n//g' \
-    | grep -f env.enterprise.keys | (echo "$NOW" && cat) \
+    | grep -vE '^#' | grep -E '\S+' | grep -f env.enterprise.keys \
+    | while IFS='=' read -r key value; do echo "$key=$(echo -n "$value" | base64 -w0)"; done \
+    | (echo "$NOW" && cat) \
     | openssl enc -aes-256-cbc -md sha512 -pbkdf2 -iter 1000000 -nosalt -k $LICENSE_KEY -p -out $OUTPUT \
     | grep 'iv =' | sed -e 's/iv =/\n/' >> $OUTPUT
 
