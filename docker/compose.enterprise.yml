@@ -1,7 +1,6 @@
 # Highlight.io services for the hobby deployment.
 services:
-    backend-api:
-        container_name: backend-api
+    backend-session-worker:
         image: ${BACKEND_IMAGE_NAME-ghcr.io/highlight/highlight-backend:latest}
         restart: on-failure
         volumes:
@@ -74,18 +73,19 @@ services:
             - TZ
             - VERCEL_CLIENT_ID
             - VERCEL_CLIENT_SECRET
-        command:
-            - /build/backend
-            - -runtime=graph
-
-    backend-session-worker:
-        depends_on:
-            - backend-api
-        extends: backend-api
         container_name: backend-session-worker
         command:
             - /build/backend
             - -runtime=worker
+
+    backend-api:
+        extends: backend-session-worker
+        ports:
+            - '0.0.0.0:8082:8082'
+        container_name: backend-api
+        command:
+            - /build/backend
+            - -runtime=graph
 
     backend-public-worker-main:
         extends: backend-session-worker

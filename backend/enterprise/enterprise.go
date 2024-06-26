@@ -95,6 +95,7 @@ func HasUpdates(client *retryablehttp.Client) (bool, error) {
 
 func CheckForUpdatesLoop(ctx context.Context) {
 	client := retryablehttp.NewClient()
+	client.Logger = log.WithContext(ctx)
 
 	timer := time.NewTicker(UpdateInterval)
 	defer timer.Stop()
