@@ -640,7 +640,7 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 			defer receiveCancel()
 			task := k.KafkaQueue.Receive(receiveCtx)
 			s1.Finish()
-			
+
 			if task != nil {
 				k.lastPartitionId = &task.GetKafkaMessage().Partition
 				if task.GetType() != kafkaqueue.HealthCheck {
