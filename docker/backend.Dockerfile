@@ -28,7 +28,7 @@ WORKDIR /highlight/backend
 ARG TARGETARCH
 ARG TARGETOS
 RUN export PUBKEY=`cat /highlight/enterprise-public.pem | base64 -w0` GOOS=$TARGETOS GOARCH=$TARGETARCH && \
-    go build -ldflags="-X github.com/highlight-run/highlight/backend/util.EnterpriseEnvPublicKey=$PUBKEY" -o /build/backend
+    go build -ldflags="-X github.com/highlight-run/highlight/backend/env.EnterpriseEnvPublicKey=$PUBKEY" -o /build/backend
 
 # reduce the image size by keeping just the built code
 FROM alpine:latest as backend-prod

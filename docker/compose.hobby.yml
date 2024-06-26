@@ -1,43 +1,3 @@
-x-backend-env: &backend-env
-    environment:
-        - ADMIN_PASSWORD
-        - CLICKHOUSE_ADDRESS
-        - CLICKHOUSE_DATABASE
-        - CLICKHOUSE_PASSWORD
-        - CLICKHOUSE_USERNAME
-        - CONSUMER_SPAN_SAMPLING_FRACTION
-        - DEMO_PROJECT_ID
-        - DOPPLER_CONFIG
-        - ENVIRONMENT
-        - FIREBASE_SECRET
-        - GOMEMLIMIT
-        - IN_DOCKER
-        - IN_DOCKER_GO
-        - KAFKA_ENV_PREFIX
-        - KAFKA_SASL_PASSWORD
-        - KAFKA_SASL_USERNAME
-        - KAFKA_SERVERS
-        - KAFKA_TOPIC
-        - OBJECT_STORAGE_FS
-        - ON_PREM
-        - OTLP_DOGFOOD_ENDPOINT
-        - OTLP_ENDPOINT
-        - PSQL_DB
-        - PSQL_DOCKER_HOST
-        - PSQL_HOST
-        - PSQL_PASSWORD
-        - PSQL_PORT
-        - PSQL_USER
-        - REACT_APP_AUTH_MODE
-        - REACT_APP_COMMIT_SHA
-        - REACT_APP_FRONTEND_URI
-        - REACT_APP_PRIVATE_GRAPH_URI
-        - REDIS_EVENTS_STAGING_ENDPOINT
-        - SESSION_FILE_PATH_PREFIX
-        - SSL
-        - TZ
-        - WORKER_MAX_MEMORY_THRESHOLD
-
 # Highlight.io services for the hobby deployment.
 services:
     backend:
@@ -52,7 +12,7 @@ services:
             - ../backend/env.enc.dgst:/build/env.enc.dgst
             - ../backend/localhostssl/server.key:/build/localhostssl/server.key
             - ../backend/localhostssl/server.crt:/build/localhostssl/server.crt
-        <<: *backend-env
+        env_file: .env
 
     frontend:
         container_name: frontend
