@@ -6,7 +6,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rsa"
-	"crypto/sha256"
 	"crypto/sha512"
 	"crypto/x509"
 	"encoding/hex"
@@ -19,6 +18,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/mod/semver"
 	"io"
 	"os"
@@ -123,7 +123,7 @@ func GetEncryptedEnvironmentFilePath() string {
 
 func GetEncryptedEnvironmentDigestFilePath() string {
 	root := projectpath.GetRoot()
-	return filepath.Join(root, "env.enc.sha512")
+	return filepath.Join(root, "env.enc.dgst")
 }
 
 func GetEnvironment(file, digest string) (*util.Configuration, error) {
@@ -131,7 +131,7 @@ func GetEnvironment(file, digest string) (*util.Configuration, error) {
 		return nil, e.New("no license key set")
 	}
 
-	key := sha256.Sum256([]byte(util.Config.LicenseKey))
+	key := pbkdf2.Key([]byte(util.Config.LicenseKey), nil, 1000000, 32, sha512.New)
 
 	_, err := os.Stat(file)
 	if err != nil {

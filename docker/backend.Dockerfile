@@ -47,7 +47,7 @@ RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.ke
 WORKDIR /build
 COPY --from=backend-build /build/backend /build
 COPY --from=backend-build /highlight/backend/env.enc /build
-COPY --from=backend-build /highlight/backend/env.enc.sha512 /build
+COPY --from=backend-build /highlight/backend/env.enc.dgst /build
 COPY --from=backend-build /highlight/backend/localhostssl/ /build/localhostssl
 COPY --from=backend-build /highlight/backend/clickhouse/migrations/ /build/clickhouse/migrations
 

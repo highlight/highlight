@@ -15,9 +15,10 @@ fi
 echo "Encrypting using license key ${LICENSE_KEY}"
 NOW=$(date -d "+1 year" -Iseconds)
 OUTPUT="../backend/env.enc"
-env | (echo "$NOW" && cat) | openssl enc -aes-256-cbc -nosalt -k $LICENSE_KEY -p -out $OUTPUT \
+env | grep -f env.enterprise.keys | (echo "$NOW" && cat) \
+    | openssl enc -aes-256-cbc -md sha512 -pbkdf2 -iter 1000000 -nosalt -k $LICENSE_KEY -p -out $OUTPUT \
     | grep 'iv =' | sed -e 's/iv =/\n/' >> $OUTPUT
 
 doppler secrets get --plain ENTERPRISE_ENV_PRIVATE_KEY > enterprise-private.pem
-openssl dgst -sha512 -sign enterprise-private.pem -out $OUTPUT.sha512 $OUTPUT
+openssl dgst -sha512 -sign enterprise-private.pem -out $OUTPUT.dgst $OUTPUT
 rm enterprise-private.pem
