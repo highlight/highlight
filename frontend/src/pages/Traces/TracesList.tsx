@@ -1,4 +1,6 @@
 import { Box, Callout, Stack, Table, Text } from '@highlight-run/ui/components'
+import { ColumnAccessors } from '@pages/Traces/CustomColumns/accessors'
+import { ColumnRenderers } from '@pages/Traces/CustomColumns/renderers'
 import useLocalStorage from '@rehooks/local-storage'
 import {
 	ColumnDef,
@@ -45,7 +47,6 @@ import {
 	DEFAULT_TRACE_COLUMNS,
 	HIGHLIGHT_STANDARD_COLUMNS,
 } from './CustomColumns/columns'
-import { ColumnRenderers } from './CustomColumns/renderers'
 
 type Props = {
 	loading: boolean
@@ -158,7 +159,7 @@ export const TracesList: React.FC<Props> = ({
 	const columnData = useMemo(() => {
 		const gridColumns: string[] = []
 		const columnHeaders: ColumnHeader[] = []
-		const columns: ColumnDef<TraceEdge, any>[] = []
+		const columns: ColumnDef<TraceEdge, string>[] = []
 
 		selectedColumns.forEach((column, index) => {
 			const first = index === 0
@@ -173,8 +174,14 @@ export const TracesList: React.FC<Props> = ({
 				},
 			})
 
+			const accessorFn = (
+				ColumnAccessors[column.type as keyof typeof ColumnAccessors] ||
+				ColumnAccessors.accessKey
+			)(column.accessKey)
+
 			// @ts-ignore
-			const accessor = columnHelper.accessor(`node.${column.accessKey}`, {
+			const accessor = columnHelper.accessor(accessorFn, {
+				id: column.id,
 				cell: ({ row, getValue }) => {
 					const ColumnRenderer =
 						ColumnRenderers[column.type] || ColumnRenderers.string

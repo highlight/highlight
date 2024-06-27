@@ -1571,6 +1571,43 @@ enum AlertDestinationType {
 	Email
 }
 
+type AlertDestination {
+	id: ID!
+	alert_id: ID!
+	destination_type: AlertDestinationType!
+	type_id: String!
+	type_name: String!
+}
+
+type Alert {
+	id: ID!
+	updated_at: Timestamp!
+	name: String!
+	product_type: ProductType!
+	function_type: MetricAggregator!
+	query: String
+	group_by_key: String
+	disabled: Boolean!
+	last_admin_to_edit_id: ID
+	destinations: [AlertDestination]!
+
+	# threshold alerts
+	below_threshold: Boolean
+	threshold_count: Int
+	threshold_window: Int
+	threshold_cooldown: Int
+}
+
+type AlertStateChange {
+	id: ID!
+	timestamp: Timestamp!
+	AlertID: ID!
+	State: AlertState!
+	PreviousState: AlertState!
+	Title: String!
+	GroupByKey: String
+}
+
 type SanitizedSlackChannel {
 	webhook_channel: String
 	webhook_channel_id: String
@@ -2137,6 +2174,9 @@ type Query {
 	workspaces: [Workspace]
 	workspaces_count: Int64!
 	joinable_workspaces: [Workspace]
+	alerts(project_id: ID!): [Alert]!
+	alert(id: ID!): Alert!
+	alert_state_changes(alert_id: ID!): [AlertStateChange]!
 	error_alerts(project_id: ID!): [ErrorAlert]!
 	new_user_alerts(project_id: ID!): [SessionAlert]
 	track_properties_alerts(project_id: ID!): [SessionAlert]!
@@ -2720,6 +2760,39 @@ type Mutation {
 		disabled: Boolean
 		filters: [MetricTagFilterInput!]
 	): MetricMonitor
+	createAlert(
+		project_id: ID!
+		name: String!
+		product_type: ProductType!
+		function_type: MetricAggregator!
+		query: String
+		group_by_key: String
+		disabled: Boolean
+		below_threshold: Boolean
+		threshold_count: Int
+		threshold_window: Int
+		threshold_cooldown: Int # TODO(spenny): add destinations
+	): Alert
+	updateAlert(
+		project_id: ID!
+		alert_id: ID!
+		name: String
+		product_type: ProductType
+		function_type: MetricAggregator
+		query: String
+		group_by_key: String
+		disabled: Boolean
+		below_threshold: Boolean
+		threshold_count: Int
+		threshold_window: Int
+		threshold_cooldown: Int # TODO(spenny): add destinations
+	): Alert
+	updateAlertDisabled(
+		project_id: ID!
+		alert_id: ID!
+		disabled: Boolean!
+	): Boolean!
+	deleteAlert(project_id: ID!, alert_id: ID!): Boolean!
 	createErrorAlert(
 		project_id: ID!
 		name: String!

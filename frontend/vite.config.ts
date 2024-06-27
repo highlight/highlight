@@ -15,14 +15,22 @@ const __dirname = dirname(__filename)
 // Frontend env vars live in `turbo.json` to ensure the build is not cached.
 // Adding something here? Please update `.env.d.ts` to update our Typescript definitions.
 // *DO NOT* put something in here unless you're positive it's safe to expose this to the world.
-const ENVVAR_ALLOWLIST = js.pipeline.build.env
+const ENVVAR_ALLOWLIST = js.tasks.build.env
+// required for turbo - ensure consistency with ENVVAR_ALLOWLIST
+const DEV_ENVVAR_ALLOWLIST = js.tasks.dev.env
 
 // In order to prevent accidentally env var leakage, Vite only allows the configuration of defining
 // the environment variable prefix (see: https://vitejs.dev/guide/env-and-mode.html#env-variables-and-modes)
 // This piece of code allows us to define an allowlist (see above) into the prefix system but ensures only
 // the env vars on the allowlist are actually exposed.
 const validateSafeAllowList = (env: Record<string, string>) => {
+	const devEnv = new Set<string>(DEV_ENVVAR_ALLOWLIST)
 	ENVVAR_ALLOWLIST.forEach((allowListEnvVar) => {
+		if (!devEnv.has(allowListEnvVar)) {
+			throw new Error(
+				`ENVVAR_ALLOWLIST should ensure ${allowListEnvVar} is also in the DEV_ENVVAR_ALLOWLIST`,
+			)
+		}
 		Object.keys(env).forEach((key) => {
 			if (key === allowListEnvVar) {
 				return

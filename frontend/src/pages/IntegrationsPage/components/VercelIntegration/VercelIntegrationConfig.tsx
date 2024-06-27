@@ -392,7 +392,7 @@ export const VercelIntegrationSettings: React.FC<
 			},
 			refetchQueries: [
 				namedOperations.Query.GetProjects,
-				namedOperations.Query.GetProjectDropdownOptions,
+				namedOperations.Query.GetDropdownOptions,
 				namedOperations.Query.GetProjectsAndWorkspaces,
 				namedOperations.Query.GetWorkspaceIsIntegratedWithVercel,
 			],

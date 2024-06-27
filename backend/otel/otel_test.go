@@ -5,11 +5,12 @@ import (
 	"compress/gzip"
 	"context"
 	"fmt"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"gorm.io/gorm"
 	"net/http"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -93,10 +94,57 @@ func TestMain(m *testing.M) {
 }
 
 func TestHandler_HandleLog(t *testing.T) {
+	inputBytes, err := os.ReadFile("./samples/log.json")
+	if err != nil {
+		t.Fatalf("error reading: %v", err)
+	}
+
+	req := plogotlp.NewExportRequest()
+	if err := req.UnmarshalJSON(inputBytes); err != nil {
+		t.Fatal(err)
+	}
+
+	body, err := req.MarshalProto()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b := bytes.Buffer{}
+	gz := gzip.NewWriter(&b)
+	if _, err := gz.Write(body); err != nil {
+		t.Fatal(err)
+	}
+	if err := gz.Close(); err != nil {
+		t.Fatal(err)
+	}
+
 	w := &MockResponseWriter{}
-	r, _ := http.NewRequest("POST", "", strings.NewReader(""))
-	h := Handler{}
+	r, _ := http.NewRequest("POST", "", bytes.NewReader(b.Bytes()))
+	r.Header.Set(highlight.ProjectIDHeader, "123")
+
+	producer := MockKafkaProducer{}
+	resolver := &public.Resolver{
+		Redis:         red,
+		Store:         store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
+		ProducerQueue: &producer,
+		BatchedQueue:  &producer,
+		TracesQueue:   &producer,
+		DB:            db,
+		Clickhouse:    chClient,
+	}
+	h := Handler{
+		resolver: resolver,
+	}
 	h.HandleLog(w, r)
+
+	for _, message := range producer.messages {
+		if message.GetType() == kafkaqueue.PushLogsFlattened {
+			logRowMessage := message.(*kafka_queue.LogRowMessage)
+			assert.Equal(t, kafkaqueue.PushLogsFlattened, message.GetType())
+			assert.Equal(t, privateModel.LogSourceBackend, logRowMessage.Source)
+			assert.Equal(t, uint32(123), logRowMessage.ProjectId)
+		}
+	}
 }
 
 func TestHandler_HandleTrace(t *testing.T) {

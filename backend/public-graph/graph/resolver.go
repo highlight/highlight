@@ -694,7 +694,7 @@ func (r *Resolver) isWithinErrorQuota(ctx context.Context, workspace *model.Work
 	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, model.PricingProductTypeErrors, workspace, time.Now())
 	go func() {
 		defer util.Recover()
-		if quotaPercent >= 1 {
+		if !withinBillingQuota || quotaPercent >= 1 {
 			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage100Percent, workspace); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
@@ -2105,9 +2105,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	}
 
 	if !r.isWithinErrorQuota(ctx, workspace) {
-		log.WithContext(ctx).
-			WithField("workspace_id", workspace.ID).
-			Info("workspace outside error quota, dropping backend errors")
 		return
 	}
 
@@ -2504,9 +2501,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 
 		if withinBillingQuota, _ := r.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now()); !withinBillingQuota {
-			log.WithContext(ctx).
-				WithField("workspace_id", workspace.ID).
-				Info("workspace outside session quota, dropping frontend session events")
 			return nil
 		}
 
@@ -2711,9 +2705,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 
 		if !r.isWithinErrorQuota(ctx, workspace) {
-			log.WithContext(ctx).
-				WithField("workspace_id", workspace.ID).
-				Info("workspace outside error quota, dropping frontend errors")
 			return nil
 		}
 
@@ -2843,9 +2834,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	}
 
 	if withinBillingQuota, _ := r.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now()); !withinBillingQuota {
-		log.WithContext(ctx).
-			WithField("workspace_id", workspace.ID).
-			Info("workspace outside session quota, dropping frontend session update")
 		return nil
 	}
 

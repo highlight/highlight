@@ -1,5 +1,11 @@
 # @highlight-run/cloudflare
 
+## 2.1.6
+
+### Patch Changes
+
+-   e7eb5f581: updates rrweb to 2.0.15 with LWC support
+
 ## 2.1.5
 
 ### Patch Changes

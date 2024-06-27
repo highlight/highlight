@@ -80,6 +80,7 @@ import { PythonAITracesContent } from './traces/python/python-ai'
 import { PythonLibrariesTracesContent } from './traces/python/python-libraries'
 import { RustTracesContent } from './traces/rust'
 import { HostingHerokuLogContent } from './logging/hosting/heroku'
+import { DotNet4OTLPTracingContent } from './traces/dot-net-4'
 
 export type QuickStartOptions = {
 	title: string
@@ -171,6 +172,7 @@ export enum QuickStartType {
 	HostingHeroku = 'heroku',
 	OTLP = 'otlp',
 	OTLPDotNet = 'dot-net',
+	OTLPDotNet4 = 'dot-net-4',
 }
 
 export const quickStartContent = {
@@ -271,12 +273,14 @@ export const quickStartContent = {
 			subtitle: 'ASP C# .NET Applications',
 			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 		otlp: {
 			title: 'OpenTelemetry',
 			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPErrorMonitoringContent,
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 	},
 	'backend-logging': {
@@ -366,12 +370,14 @@ export const quickStartContent = {
 			subtitle: 'ASP C# .NET Applications',
 			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 		otlp: {
 			title: 'OpenTelemetry',
 			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPLoggingContent,
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 	},
 	traces: {
@@ -422,12 +428,14 @@ export const quickStartContent = {
 			subtitle: 'ASP C# .NET Applications',
 			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 		otlp: {
 			title: 'OpenTelemetry',
 			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPTracesContent,
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 		rust: {
 			title: 'Rust',

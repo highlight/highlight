@@ -7,17 +7,11 @@ import {
 import _ from 'lodash'
 import moment from 'moment'
 
-import { useGetProjectQuery } from '@/graph/generated/hooks'
 import { ProductType, RetentionPeriod } from '@/graph/generated/schemas'
-import { useProjectId } from '@/hooks/useProjectId'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 export const useRetentionPresets = (productType: ProductType) => {
-	const { projectId } = useProjectId()
-	const { data } = useGetProjectQuery({
-		variables: {
-			id: projectId,
-		},
-	})
+	const { currentWorkspace } = useApplicationContext()
 
 	let defaultPresets = DEFAULT_TIME_PRESETS
 	let retentionPeriod: RetentionPeriod | undefined =
@@ -25,13 +19,14 @@ export const useRetentionPresets = (productType: ProductType) => {
 	switch (productType) {
 		case ProductType.Errors:
 			retentionPeriod =
-				data?.workspace?.errors_retention_period ??
-				RetentionPeriod.ThreeYears
+				currentWorkspace?.errors_retention_period ??
+				RetentionPeriod.ThreeMonths
 			defaultPresets = EXTENDED_TIME_PRESETS
 			break
 		case ProductType.Sessions:
 			retentionPeriod =
-				data?.workspace?.retention_period ?? RetentionPeriod.ThreeYears
+				currentWorkspace?.retention_period ??
+				RetentionPeriod.ThreeMonths
 			defaultPresets = EXTENDED_TIME_PRESETS
 			break
 	}
