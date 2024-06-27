@@ -1,9 +1,9 @@
 package microsoft_teams
 
 import (
-	"github.com/highlight-run/highlight/backend/env"
 	"strings"
 
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/infracloudio/msbotbuilder-go/core"
 	"github.com/infracloudio/msbotbuilder-go/core/activity"
 	"github.com/infracloudio/msbotbuilder-go/schema"

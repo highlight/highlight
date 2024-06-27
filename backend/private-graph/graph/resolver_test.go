@@ -574,9 +574,9 @@ func TestResolver_canAdminViewSession(t *testing.T) {
 				t.Fatal(e.Wrap(err, "error inserting project"))
 			}
 			if v.demo {
-				_ = os.Setenv("DEMO_PROJECT_ID", strconv.Itoa(p.ID))
+				env.Config.DemoProjectID = strconv.Itoa(p.ID)
 			} else {
-				_ = os.Setenv("DEMO_PROJECT_ID", "0")
+				env.Config.DemoProjectID = "0"
 			}
 
 			session := model.Session{
@@ -844,9 +844,7 @@ func TestResolver_AccessLevels(t *testing.T) {
 	}
 	for _, v := range tests {
 		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
-			if err := os.Setenv("DEMO_PROJECT_ID", "0"); err != nil {
-				t.Fatal(e.Wrap(err, "error resetting demo project id"))
-			}
+			env.Config.DemoProjectID = "0"
 
 			r.Resolver = &Resolver{DB: DB}
 			if err := DB.Create(&model.Workspace{Model: model.Model{ID: 1}}).Error; err != nil {

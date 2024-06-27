@@ -53,6 +53,7 @@ jobs:
               shell: bash
               working-directory: ./docker
               env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
                   TARGET: ${{ matrix.container }}
                   RELEASE: ${{ github.ref_name }}
