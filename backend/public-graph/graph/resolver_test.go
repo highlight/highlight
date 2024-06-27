@@ -95,7 +95,7 @@ func TestMain(m *testing.M) {
 		Redis:            redisClient,
 		Clickhouse:       chClient,
 		StorageClient:    &storage.FilesystemClient{},
-		Store:            store.NewStore(db, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, chClient),
+		Store:            store.NewStore(db, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil),
 		EmbeddingsClient: &mockEmbeddingsClient{},
 		DataSyncQueue:    &kafka_queue.MockMessageQueue{},
 		TracesQueue:      &kafka_queue.MockMessageQueue{},
@@ -465,7 +465,7 @@ func TestUpdatingErrorState(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, errorGroup.State, privateModel.ErrorStateOpen)
 
-		_, err = resolver.Store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
+		err = resolver.Store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
 			ID:    errorGroup.ID,
 			State: privateModel.ErrorStateResolved,
 		})
@@ -481,7 +481,7 @@ func TestUpdatingErrorState(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, errorGroup.State, privateModel.ErrorStateOpen)
 
-		_, err = resolver.Store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
+		err = resolver.Store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
 			ID:    errorGroup.ID,
 			State: privateModel.ErrorStateIgnored,
 		})
