@@ -25,7 +25,7 @@ func main() {
 	)
 	hlog.Init()
 	lambda.StartWithOptions(
-		h.DeleteSessionBatchFromS3,
+		h.DeleteSessionBatchFromObjectStorage,
 		lambda.WithEnableSIGTERM(highlight.Stop),
 	)
 }

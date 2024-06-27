@@ -30,6 +30,8 @@ import (
 
 	"github.com/highlight-run/highlight/backend/alerts"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
+	delete_handlers "github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/handlers"
+
 	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
 	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -1107,6 +1109,36 @@ func (w *Worker) StartMetricMonitorWatcher(ctx context.Context) {
 
 func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
 	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient, w.Resolver.LambdaClient)
+}
+
+func (w *Worker) StartSessionDeleteJob(ctx context.Context) {
+	retentionEnv := os.Getenv("SESSION_RETENTION_DAYS")
+	if retentionEnv == "" {
+		log.WithContext(ctx).Info("SESSION_RETENTION_DAYS not set, skipping SessionDeleteJob")
+		return
+	}
+	sessionRetentionDays, err := strconv.Atoi(os.Getenv("SESSION_RETENTION_DAYS"))
+	if err != nil {
+		log.WithContext(ctx).Error("Error parsing SESSION_RETENTION_DAYS, skipping SessionDeleteJob")
+		return
+	}
+	if sessionRetentionDays <= 0 {
+		log.WithContext(ctx).Error("sessionRetentionDays <= 0, skipping SessionDeleteJob")
+		return
+	}
+
+	w.doSessionDeleteLoop(ctx, sessionRetentionDays)
+}
+
+func (w *Worker) doSessionDeleteLoop(ctx context.Context, sessionRetentionDays int) {
+	log.WithContext(ctx).Info("Starting SessionDeleteJob")
+
+	deleteHandlers := delete_handlers.InitHandlers(w.Resolver.DB, w.Resolver.ClickhouseClient, nil, w.Resolver.StorageClient)
+
+	deleteHandlers.ProcessRetentionDeletions(ctx, sessionRetentionDays)
+	for range time.Tick(time.Hour * 24) {
+		deleteHandlers.ProcessRetentionDeletions(ctx, sessionRetentionDays)
+	}
 }
 
 func (w *Worker) RefreshMaterializedViews(ctx context.Context) {

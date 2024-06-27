@@ -678,6 +678,7 @@ func main() {
 			go w.GetPublicWorker(kafkaqueue.TopicTypeTraces)(ctx)
 			go w.StartLogAlertWatcher(ctx)
 			go w.StartMetricMonitorWatcher(ctx)
+			go w.StartSessionDeleteJob(ctx)
 			go func() {
 				w.ReportStripeUsage(ctx)
 				for range time.Tick(time.Hour) {

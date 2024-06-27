@@ -25,7 +25,7 @@ func main() {
 	)
 	hlog.Init()
 	lambda.StartWithOptions(
-		h.DeleteSessionBatchFromOpenSearch,
+		h.DeleteSessionBatchFromClickhouse,
 		lambda.WithEnableSIGTERM(highlight.Stop),
 	)
 }

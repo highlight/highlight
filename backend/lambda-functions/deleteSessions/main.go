@@ -60,10 +60,10 @@ func main() {
 	if _, err := h.DeleteSessionBatchFromPostgres(ctx, out[0]); err != nil {
 		log.WithContext(ctx).Fatal(err)
 	}
-	if _, err := h.DeleteSessionBatchFromS3(ctx, out[0]); err != nil {
+	if _, err := h.DeleteSessionBatchFromObjectStorage(ctx, out[0]); err != nil {
 		log.WithContext(ctx).Fatal(err)
 	}
-	if _, err := h.DeleteSessionBatchFromOpenSearch(ctx, out[0]); err != nil {
+	if _, err := h.DeleteSessionBatchFromClickhouse(ctx, out[0]); err != nil {
 		log.WithContext(ctx).Fatal(err)
 	}
 
