@@ -114,8 +114,8 @@ const options: HighlightOptions = {
 	enableCanvasRecording: true,
 	samplingStrategy: {
 		canvas: 1,
-		canvasMaxSnapshotDimension: 480,
-		canvasFactor: 0.5,
+		canvasFactor: 1,
+		canvasMaxSnapshotDimension: 640,
 	},
 	inlineStylesheet: true,
 	inlineImages: true,
