@@ -26,6 +26,8 @@ services:
             - '0.0.0.0:6006:6006'
             - '0.0.0.0:8080:8080'
         env_file: .env
+        environment:
+            - REACT_APP_AUTH_MODE=password
 
 volumes:
     highlight-data:

@@ -48,6 +48,7 @@ ARG REACT_APP_VERCEL_INTEGRATION_NAME
 ARG SLACK_CLIENT_ID
 ARG TURBO_TEAM
 ARG TURBO_TOKEN
+RUN echo "vadim $REACT_APP_FIREBASE_CONFIG_OBJECT end" && exit 1
 RUN yarn build:frontend
 
 # reduce the image size by keeping just the built code
