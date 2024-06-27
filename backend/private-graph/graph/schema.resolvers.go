@@ -4291,10 +4291,6 @@ func (r *mutationResolver) DeleteDashboard(ctx context.Context, id int) (bool, e
 
 // DeleteSessions is the resolver for the deleteSessions field.
 func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, params modelInputs.QueryInput, sessionCount int) (bool, error) {
-	if util.IsDevOrTestEnv() {
-		return false, nil
-	}
-
 	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return false, err

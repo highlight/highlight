@@ -254,6 +254,8 @@ func (h *handlers) ProcessRetentionDeletions(ctx context.Context, retentionDays 
 
 	for _, id := range projectIds {
 		projectId := id
+		// Only delete sessions which have not been viewed to avoid deleting any useful sessions
+		// Users can manually remove any others with the "delete sessions" button
 		go h.DeleteSessions(ctx, projectId, startDate, endDate, "viewed_by_anyone=false")
 	}
 }
