@@ -1,4 +1,4 @@
-package log_alerts
+package metric_alerts
 
 import (
 	"context"
@@ -15,6 +15,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
 	"github.com/openlyinc/pointy"
+	"github.com/samber/lo"
 
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
@@ -28,9 +29,7 @@ import (
 )
 
 const maxWorkers = 40
-const alertEvalFreq = 1 * time.Minute
-
-// ingestDelay is an offset to make sure we look at ingested data
+const alertEvalFreq = time.Minute
 const ingestDelay = -time.Minute
 
 func WatchMetricAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) {
@@ -39,16 +38,16 @@ func WatchMetricAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Cl
 	alertWorkerpool := workerpool.New(maxWorkers)
 	alertWorkerpool.SetPanicHandler(util.Recover)
 
-	startTime := time.Now().Unix()
 	for range time.NewTicker(alertEvalFreq).C {
+		endDate := time.Now().Add(ingestDelay)
 		alerts := getMetricAlerts(ctx, DB)
-
 		for _, alert := range alerts {
 			alert := alert
 			alertWorkerpool.SubmitRecover(
 				func() {
 					ctx := context.Background()
-					err := processMetricAlert(ctx, DB, MailClient, alert, rh, redis, ccClient, lambdaClient)
+
+					err := processMetricAlert(ctx, DB, MailClient, alert, rh, redis, ccClient, lambdaClient, endDate)
 					if err != nil {
 						log.WithContext(ctx).Error(err)
 					}
@@ -75,7 +74,26 @@ func getMetricAlerts(ctx context.Context, DB *gorm.DB) []*model.Alert {
 	return alerts
 }
 
-func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, alert *model.Alert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) error {
+func pointerizer[V any](v V) *V {
+	return &v
+}
+
+func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, alert *model.Alert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client, endDate time.Time) error {
+	thresholdCooldownMinutes := 1
+	if alert.ThresholdCooldown != nil {
+		thresholdCooldownMinutes = *alert.ThresholdCooldown
+	}
+
+	startDate := endDate.Add(-time.Duration(thresholdCooldownMinutes) * time.Minute)
+	alertStateChanges, err := ccClient.ReadAlertStateChanges(ctx, alert.ProjectID, alert.ID, startDate, endDate)
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+	}
+
+	stateChangesByGroup := lo.KeyBy(alertStateChanges, func(stateChange modelInputs.AlertStateChange) *string {
+		return stateChange.GroupByKey
+	})
+
 	thresholdWindow := alert.Frequency
 	if alert.ThresholdWindow != nil {
 		thresholdWindow = *alert.ThresholdWindow
@@ -89,15 +107,54 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		query = *alert.Query
 	}
 
-	ccClient.ReadTracesMetrics()
-
-	count64, err := ccClient.ReadLogsTotalCount(ctx, alert.ProjectID, modelInputs.QueryInput{Query: query, DateRange: &modelInputs.DateRangeRequiredInput{
-		StartDate: start,
-		EndDate:   end,
-	}})
-	if err != nil {
-		return errors.Wrap(err, "error querying clickhouse for log count")
+	dateRange := &modelInputs.DateRangeRequiredInput{
+		StartDate: startDate,
+		EndDate:   endDate,
 	}
+
+	groupBy := []string{}
+	if alert.GroupByKey != nil {
+		groupBy = []string{*alert.GroupByKey}
+	}
+
+	metricAggregatorCount := modelInputs.MetricAggregatorCount
+
+	readMetricsFn := ccClient.ReadSessionsMetrics
+
+	switch alert.ProductType {
+	case modelInputs.ProductTypeSessions:
+		readMetricsFn = ccClient.ReadSessionsMetrics
+	case modelInputs.ProductTypeErrors:
+		readMetricsFn = ccClient.ReadErrorsMetrics
+	case modelInputs.ProductTypeTraces:
+		readMetricsFn = ccClient.ReadTracesMetrics
+	case modelInputs.ProductTypeLogs:
+		readMetricsFn = ccClient.ReadLogsMetrics
+	case modelInputs.ProductTypeMetrics:
+		readMetricsFn = ccClient.ReadEventMetrics
+	default:
+		return errors.Errorf("unknown product type %s", string(alert.ProductType))
+	}
+
+	buckets, err := readMetricsFn(ctx, alert.ProjectID, modelInputs.QueryInput{
+		Query:     *alert.Query,
+		DateRange: dateRange,
+	}, "", []modelInputs.MetricAggregator{alert.FunctionType}, groupBy, pointy.Int(1), string(modelInputs.MetricBucketByNone), pointy.Int(10), &metricAggregatorCount, pointy.String(""))
+	if err != nil {
+		return errors.Wrap(err, "error querying metrics")
+	}
+
+	var threshold float64
+	if alert.ThresholdCount != nil {
+		threshold = float64(*alert.ThresholdCount)
+	}
+
+	for _, bucket := range buckets.Buckets {
+		if bucket.MetricValue != nil && *bucket.MetricValue >= threshold {
+
+		}
+	}
+
 	count := int(count64)
 
 	alertCondition := count >= alert.CountThreshold
