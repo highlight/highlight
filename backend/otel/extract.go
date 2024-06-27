@@ -3,6 +3,7 @@ package otel
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -70,6 +71,7 @@ func newExtractedFields() *extractedFields {
 }
 
 type extractFieldsParams struct {
+	headers   http.Header
 	resource  *pcommon.Resource
 	span      *ptrace.Span
 	event     *ptrace.SpanEvent
@@ -114,6 +116,14 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 					"TraceState": link.TraceState().AsRaw(),
 					"Attributes": link.Attributes().AsRaw(),
 				}
+			}
+		} else {
+			fields.events = []map[string]any{
+				{
+					"Timestamp":  params.event.Timestamp().AsTime(),
+					"Name":       params.event.Name(),
+					"Attributes": params.event.Attributes().AsRaw(),
+				},
 			}
 		}
 	}
@@ -201,6 +211,10 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	if val, ok := fields.attrs[highlight.ProjectIDAttribute]; ok {
 		fields.projectID = val
 		delete(fields.attrs, highlight.ProjectIDAttribute)
+	}
+
+	if val := params.headers.Get(highlight.ProjectIDHeader); val != "" {
+		fields.projectID = val
 	}
 
 	if val, ok := fields.attrs[highlight.DeprecatedSessionIDAttribute]; ok {

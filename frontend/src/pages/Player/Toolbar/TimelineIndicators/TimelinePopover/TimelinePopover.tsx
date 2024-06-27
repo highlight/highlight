@@ -48,13 +48,8 @@ const TimelinePopover = ({ bucket }: Props) => {
 	const location = useLocation()
 
 	const { setActiveEvent, setRightPanelView } = usePlayerUIContext()
-	const {
-		setCurrentEvent,
-		pause,
-		errors,
-		eventsForTimelineIndicator,
-		isPlayerReady,
-	} = useReplayerContext()
+	const { pause, errors, eventsForTimelineIndicator, isPlayerReady } =
+		useReplayerContext()
 	const {
 		setShowRightPanel,
 		setSelectedDevToolsTab,
@@ -136,7 +131,6 @@ const TimelinePopover = ({ bucket }: Props) => {
 			)
 			setShowRightPanel(true)
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Events)
-			setCurrentEvent(identifier)
 			setActiveEvent(event)
 			setRightPanelView(RightPanelView.Event)
 		}

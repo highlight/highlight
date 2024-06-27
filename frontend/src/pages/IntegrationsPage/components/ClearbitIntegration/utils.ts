@@ -13,11 +13,11 @@ export const useClearbitIntegration = () => {
 		variables: { id: project_id! },
 		skip: !project_id,
 	})
-	const workspaceID = project?.workspace?.id
+	const workspaceID = project?.project?.workspace?.id
 	const { loading: loadingWorkspace, data: workspace } = useGetWorkspaceQuery(
 		{
-			variables: { id: project?.workspace?.id || '' },
-			skip: !project?.workspace?.id,
+			variables: { id: project?.project?.workspace?.id || '' },
+			skip: !project?.project?.workspace?.id,
 		},
 	)
 	const loading = loadingProject || loadingWorkspace

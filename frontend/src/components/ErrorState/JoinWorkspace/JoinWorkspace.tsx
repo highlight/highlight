@@ -28,8 +28,7 @@ const JoinWorkspace = ({
 					await JoinWorkspace({
 						variables: { workspace_id: workspaceID },
 						refetchQueries: [
-							namedOperations.Query.GetProjectDropdownOptions,
-							namedOperations.Query.GetWorkspaceDropdownOptions,
+							namedOperations.Query.GetDropdownOptions,
 						],
 					})
 				} catch (_e) {

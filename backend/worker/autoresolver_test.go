@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -30,7 +31,12 @@ func createAutoResolver() *AutoResolver {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 
-	store := store.NewStore(db, redis.NewClient(), integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil)
+	chClient, err = clickhouse.NewClient(clickhouse.TestDatabase)
+	if err != nil {
+		testLogger.Error(e.Wrap(err, "error creating clickhouse client"))
+	}
+
+	store := store.NewStore(db, redis.NewClient(), integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, chClient)
 	return NewAutoResolver(store, db)
 }
 

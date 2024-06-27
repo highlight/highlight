@@ -96,6 +96,22 @@ const SPAN_KIND_COLUMN: TraceCustomColumn = {
 	accessKey: 'spanKind',
 }
 
+const METRIC_NAME_COLUMN: TraceCustomColumn = {
+	id: 'metric_name',
+	label: 'Metric',
+	type: 'metric_name',
+	size: '1fr',
+	accessKey: 'metric_name',
+}
+
+const METRIC_VALUE_COLUMN: TraceCustomColumn = {
+	id: 'metric_value',
+	label: 'Metric Value',
+	type: 'metric_value',
+	size: '1fr',
+	accessKey: 'metric_value',
+}
+
 export const DEFAULT_TRACE_COLUMNS = [
 	SPAN_NAME_COLUMN,
 	SERVICE_NAME_COLUMN,
@@ -118,4 +134,6 @@ export const HIGHLIGHT_STANDARD_COLUMNS: Record<string, TraceCustomColumn> = {
 	environment: ENVIRONMENT_COLUMN,
 	timestamp: TIMESTAMP_COLUMN,
 	span_kind: SPAN_KIND_COLUMN,
+	metric_name: METRIC_NAME_COLUMN,
+	metric_value: METRIC_VALUE_COLUMN,
 }

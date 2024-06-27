@@ -1,8 +1,5 @@
-import {
-	addCustomEvent as rrwebAddCustomEvent,
-	getRecordSequentialIdPlugin,
-	record,
-} from 'rrweb'
+import { addCustomEvent as rrwebAddCustomEvent, record } from 'rrweb'
+import { getRecordSequentialIdPlugin } from '@rrweb/rrweb-plugin-sequential-id-record'
 import { eventWithTime, listenerHandler } from '@rrweb/types'
 import { FirstLoadListeners } from './listeners/first-load-listeners'
 import {

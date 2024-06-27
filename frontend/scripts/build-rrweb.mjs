@@ -29,7 +29,7 @@ export const run = async ({ rootDirectory }) => {
 				out: 'rrweb-types/rrTypes',
 			},
 			{
-				in: path.join(packageDirectory, 'dist/rrweb.min.css'),
+				in: path.join(packageDirectory, 'dist/style.min.css'),
 				out: 'rrweb/rr.min',
 			},
 		],
