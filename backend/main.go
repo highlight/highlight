@@ -366,13 +366,9 @@ func main() {
 
 	integrationsClient := integrations.NewIntegrationsClient(db)
 
-	oai := &openai_client.OpenAiImpl{}
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		log.WithContext(ctx).Fatalf("error creating openai client: %v", e.New("OPENAI_API_KEY is not set"))
-	}
-	if err := oai.InitClient(apiKey); err != nil {
-		log.WithContext(ctx).Fatalf("error creating openai client: %v", err)
+	oai, err := openai_client.InitClient()
+	if err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
