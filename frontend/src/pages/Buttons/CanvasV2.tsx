@@ -175,20 +175,29 @@ export const CanvasPage = function () {
 								src="https://static.highlight.io/dev/BigBuckBunny.mp4?expires=123&signature=a1b2c3&x-amz-security-token=foo&bar=baz"
 							></video>
 						) : mode === 'canvas' ? (
-							Array(numCanvases)
-								.fill(0)
-								.map((_, i) => (
-									<canvas
-										id={`canvas-${i}`}
-										key={`canvas-${i}`}
-										style={canvasStyle}
-										onMouseMove={onMouseMove}
-										tabIndex={8888}
-										width={640}
-										height={480}
-										className=":hover"
-									/>
-								))
+							<Box>
+								{Array(numCanvases)
+									.fill(0)
+									.map((_, i) => (
+										<canvas
+											id={`canvas-${i}`}
+											key={`canvas-${i}`}
+											style={canvasStyle}
+											onMouseMove={onMouseMove}
+											tabIndex={8888}
+											width={640}
+											height={480}
+											className=":hover"
+										/>
+									))}
+								<img
+									className="sample-image"
+									src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Fiore_con_petali_arancioni_SVG.svg"
+									width={512}
+									height={512}
+									alt="sample-image"
+								/>
+							</Box>
 						) : mode === 'webcam' ? (
 							<video
 								autoPlay
