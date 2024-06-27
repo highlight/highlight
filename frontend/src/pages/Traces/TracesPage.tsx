@@ -1,10 +1,10 @@
 import {
+	Badge,
 	Box,
 	DEFAULT_TIME_PRESETS,
 	IconSolidInformationCircle,
 	IconSolidLoading,
 	presetStartDate,
-	Tag,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui/components'
@@ -286,9 +286,16 @@ export const TracesPage: React.FC = () => {
 									</Box>
 								) : (
 									<>
-										<Tag
+										<Badge
 											size="medium"
-											iconRight={
+											shape="basic"
+											variant="outlineGray"
+											label={`
+												${sampled ? '~' : ''}${formatNumber(totalCount)} Trace${
+												totalCount !== 1 ? 's' : ''
+											}
+											`}
+											iconEnd={
 												sampled ? (
 													<Tooltip
 														trigger={
@@ -308,14 +315,7 @@ export const TracesPage: React.FC = () => {
 													</Tooltip>
 												) : undefined
 											}
-											shape="basic"
-											kind="secondary"
-											emphasis="medium"
-										>
-											{sampled ? '~' : ''}
-											{formatNumber(totalCount)} Trace
-											{totalCount !== 1 ? 's' : ''}
-										</Tag>
+										/>
 										<Text size="xSmall" color="weak">
 											{selectedPreset ? (
 												<>
