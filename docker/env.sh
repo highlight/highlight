@@ -14,9 +14,11 @@ export IN_DOCKER=true
 export OBJECT_STORAGE_FS=/tmp/highlight-data
 export BACKEND_HEALTH_URI=$(echo "$REACT_APP_PUBLIC_GRAPH_URI" | sed -e 's/\/public/\/health/')
 export LICENSE_KEY=$LICENSE_KEY_OVERRIDE
+export BUILD_ARGS="--build-arg DOPPLER_TOKEN=${DOPPLER_TOKEN}"
 
 # if doppler is configured, use the doppler SSL value
-DOPPLER_SSL=$(DOPPLER_CONFIG="" doppler secrets get SSL --plain || true)
+export -n DOPPLER_CONFIG
+DOPPLER_SSL=$(DOPPLER_CONFIG="" DOPPLER_TOKEN="" doppler secrets get SSL --plain || true)
 if [[ "$DOPPLER_SSL" =~ ^(true|false)$ ]]; then
     export SSL=${DOPPLER_SSL}
     echo "Using doppler-set SSL value ${SSL}."
@@ -43,9 +45,7 @@ else
     export REDIS_EVENTS_STAGING_ENDPOINT=localhost:6379
 fi
 
-export -n DOPPLER_CONFIG
-export BUILD_ARGS="--build-arg DOPPLER_TOKEN=${DOPPLER_TOKEN}"
-
+# setup session storage directory
 mkdir -p ${OBJECT_STORAGE_FS}
 
 # setup path to include go installed binaries

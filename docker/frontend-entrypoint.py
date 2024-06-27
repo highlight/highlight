@@ -16,7 +16,8 @@ def main():
 
     with open(CONSTANTS_FILE, 'r') as f:
         data = f.read()
-        data = re.sub('firebase', auth, data)
+        if auth:
+            data = re.sub('firebase', auth, data)
         if private:
             data = re.sub('http://localhost:8082/private', private, data)
         if public:
