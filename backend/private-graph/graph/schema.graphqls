@@ -878,6 +878,7 @@ type TraceEdge implements Edge {
 type TraceConnection implements Connection {
 	edges: [TraceEdge!]!
 	pageInfo: PageInfo!
+	sampled: Boolean!
 }
 
 type ErrorObjectNodeSession {

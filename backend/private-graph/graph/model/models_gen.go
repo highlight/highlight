@@ -924,6 +924,7 @@ type Trace struct {
 type TraceConnection struct {
 	Edges    []*TraceEdge `json:"edges"`
 	PageInfo *PageInfo    `json:"pageInfo"`
+	Sampled  bool         `json:"sampled"`
 }
 
 func (TraceConnection) IsConnection()               {}
