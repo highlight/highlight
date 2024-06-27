@@ -43,21 +43,8 @@ else
     export REDIS_EVENTS_STAGING_ENDPOINT=localhost:6379
 fi
 
-# set all env vars as build args for frontend image building
-# set env vars from doppler, filtering only the env keys that are in env.enterprise.keys.
-# these env vars are not baked into the backend image, but the build-arg ones can be baked into the frontend image
 export -n DOPPLER_CONFIG
-export BUILD_ARGS="--build-arg GOARCH=${GOARCH}
-                   --build-arg REACT_APP_COMMIT_SHA=${REACT_APP_COMMIT_SHA}
-                   --build-arg REACT_APP_FRONTEND_ORG=${REACT_APP_FRONTEND_ORG}
-                   --build-arg REACT_APP_FRONTEND_URI=${REACT_APP_FRONTEND_URI}
-                   --build-arg REACT_APP_IN_DOCKER=${REACT_APP_IN_DOCKER}
-                   --build-arg REACT_APP_PRIVATE_GRAPH_URI=${REACT_APP_PRIVATE_GRAPH_URI}
-                   --build-arg REACT_APP_PUBLIC_GRAPH_URI=${REACT_APP_PUBLIC_GRAPH_URI} \
-  $(doppler secrets download --format=env-no-quotes --no-file \
-      | grep -v '\\n' | grep -vE '^#' | grep -E '\S+' \
-      | grep -f env.enterprise.keys \
-      | while IFS='=' read -r key value; do echo "--build-arg $key=$value"; done)"
+export BUILD_ARGS="--build-arg DOPPLER_TOKEN=${DOPPLER_TOKEN}"
 
 mkdir -p ${OBJECT_STORAGE_FS}
 

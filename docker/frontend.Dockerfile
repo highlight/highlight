@@ -1,16 +1,20 @@
 FROM --platform=$BUILDPLATFORM node:lts-alpine as frontend-build
 
-RUN apk update && apk add --no-cache build-base chromium python3
+RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.key' -O /etc/apk/keys/cli@doppler-8004D9FF50437357.rsa.pub && \
+    echo 'https://packages.doppler.com/public/cli/alpine/any-version/main' | tee -a /etc/apk/repositories && \
+    apk update && apk add --no-cache build-base chromium curl doppler python3
 
 WORKDIR /highlight
 COPY .npmignore .prettierrc .prettierignore graphql.config.js tsconfig.json turbo.json .yarnrc.yml package.json yarn.lock ./
 COPY ../.yarn/releases ./.yarn/releases
 COPY ../.yarn/patches ./.yarn/patches
+COPY ../backend/localhostssl ./backend/localhostssl
 COPY ../backend/private-graph ./backend/private-graph
 COPY ../backend/public-graph ./backend/public-graph
-COPY ../backend/localhostssl ./backend/localhostssl
 COPY ../blog-content ./blog-content
 COPY ../docs-content ./docs-content
+COPY ../e2e ./e2e
+COPY ../experiments ./experiments
 COPY ../frontend ./frontend
 COPY ../highlight.io ./highlight.io
 COPY ../opentelemetry-sdk-workers ./opentelemetry-sdk-workers
@@ -20,36 +24,13 @@ COPY ../rrweb ./rrweb
 COPY ../scripts ./scripts
 COPY ../sdk ./sdk
 COPY ../sourcemap-uploader ./sourcemap-uploader
-RUN yarn
+RUN yarn install --immutable
 
 # These three 'args' need to be here because they're injected at build time
 # all other env variables are provided in environment.yml.
 ARG NODE_OPTIONS="--max-old-space-size=16384 --openssl-legacy-provider"
-ARG CLICKUP_CLIENT_ID
-ARG DEMO_PROJECT_ID
-ARG DISCORD_CLIENT_ID
-ARG GITHUB_CLIENT_ID
-ARG GITLAB_CLIENT_ID
-ARG HEIGHT_CLIENT_ID
-ARG JIRA_CLIENT_ID
-ARG LINEAR_CLIENT_ID
-ARG MICROSOFT_TEAMS_BOT_ID
-ARG REACT_APP_AUTH_MODE
-ARG REACT_APP_COMMIT_SHA
-ARG REACT_APP_FIREBASE_CONFIG_OBJECT
-ARG REACT_APP_FRONTEND_ORG
-ARG REACT_APP_FRONTEND_URI
-ARG REACT_APP_FRONT_INTEGRATION_CLIENT_ID
-ARG REACT_APP_IN_DOCKER
-ARG REACT_APP_PRIVATE_GRAPH_URI
-ARG REACT_APP_PUBLIC_GRAPH_URI
-ARG REACT_APP_STRIPE_API_PK
-ARG REACT_APP_VERCEL_INTEGRATION_NAME
-ARG SLACK_CLIENT_ID
-ARG TURBO_TEAM
-ARG TURBO_TOKEN
-RUN echo "vadim $REACT_APP_FIREBASE_CONFIG_OBJECT end" && exit 1
-RUN yarn build:frontend
+ARG DOPPLER_TOKEN
+RUN doppler run -- yarn build:frontend
 
 # reduce the image size by keeping just the built code
 FROM nginx:stable-alpine as frontend-prod
