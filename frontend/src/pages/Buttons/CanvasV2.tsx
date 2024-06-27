@@ -3,14 +3,6 @@ import { Box, Stack } from '@highlight-run/ui/components'
 import MuxPlayer from '@mux/mux-player-react'
 import { CSSProperties, useEffect, useRef, useState } from 'react'
 
-interface Navigator {
-	getUserMedia(
-		options: { video?: boolean; audio?: boolean },
-		success: (stream: MediaSource) => void,
-		error?: (error: string) => void,
-	): void
-}
-
 export const CanvasPage = function () {
 	const ref = useRef<HTMLDivElement>(null)
 	const [mode, setMode] = useState<
@@ -37,22 +29,25 @@ export const CanvasPage = function () {
 	}
 
 	useEffect(() => {
-		const video = document.querySelector('#webcam')! as HTMLVideoElement
-		const n = navigator as any as Navigator
-		if (n.getUserMedia) {
-			n.getUserMedia(
-				{
-					video: true,
-				},
-				function (stream) {
-					video.srcObject = stream
-				},
-				() => {
-					console.error('denied')
-				},
-			)
-		}
-	}, [])
+		if (mode !== 'webcam') return
+		const video = document.querySelector('#webcam')! as any
+		navigator.mediaDevices
+			?.getUserMedia({ video: true, audio: false })
+			.then((localMediaStream) => {
+				console.log('setting up video localMediaStream')
+				if ('srcObject' in video) {
+					video.srcObject = localMediaStream
+				} else {
+					video.src = window.URL.createObjectURL(
+						localMediaStream as any,
+					)
+				}
+				video.play()
+			})
+			.catch((err) => {
+				console.error(`video available`, err)
+			})
+	}, [mode])
 
 	useEffect(() => {
 		const canvases = ref.current?.getElementsByTagName('canvas')
@@ -201,6 +196,8 @@ export const CanvasPage = function () {
 						) : mode === 'webcam' ? (
 							<video
 								autoPlay
+								muted
+								playsInline
 								id="webcam"
 								width={640}
 								height={480}
