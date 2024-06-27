@@ -94,6 +94,7 @@ const UsageCard = ({
 	billingLimitCents,
 	usageAmount,
 	usageLimitAmount,
+	planType,
 	includedQuantity,
 	isPaying,
 	enableBillingLimits,
@@ -213,7 +214,8 @@ const UsageCard = ({
 										{usageAmount.toLocaleString()}{' '}
 										{productType.toLocaleLowerCase()}
 									</b>{' '}
-									this month. 300000 are included in the free
+									this month. {includedQuantity} are included
+									on the {planType}
 									tier.
 								</Text>
 							</Box>
