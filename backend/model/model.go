@@ -1959,13 +1959,15 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 
 type Alert struct {
 	Model
+	ProjectID         int
 	Name              string
 	ProductType       modelInputs.ProductType
 	FunctionType      modelInputs.MetricAggregator
 	Query             *string
 	GroupByKey        *string
-	Disabled          bool `gorm:"default:false"`
-	LastAdminToEditID int  `gorm:"last_admin_to_edit_id"`
+	Disabled          bool                `gorm:"default:false"`
+	LastAdminToEditID int                 `gorm:"last_admin_to_edit_id"`
+	Destinations      []*AlertDestination `gorm:"foreignKey:AlertID"`
 
 	// fields for threshold alert
 	BelowThreshold    *bool

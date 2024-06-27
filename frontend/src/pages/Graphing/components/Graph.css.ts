@@ -68,6 +68,7 @@ export const tooltipWrapper = style({
 
 export const tooltipText = style({
 	lineHeight: '16px',
+	maxWidth: '300px',
 })
 
 export const tooltipDot = style({

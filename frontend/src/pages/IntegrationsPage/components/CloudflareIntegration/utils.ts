@@ -20,7 +20,7 @@ export const useCloudflareIntegration = () => {
 		],
 	})
 	const [createCloudflareProxy] = useCreateCloudflareProxyMutation({
-		refetchQueries: [namedOperations.Query.GetProjectDropdownOptions],
+		refetchQueries: [namedOperations.Query.GetDropdownOptions],
 	})
 	const addCloudflareIntegrationToProject = useCallback(
 		(code: string) =>

@@ -128,6 +128,33 @@ export enum AdminRole {
 	Member = 'MEMBER',
 }
 
+export type Alert = {
+	__typename?: 'Alert'
+	below_threshold?: Maybe<Scalars['Boolean']>
+	destinations: Array<Maybe<AlertDestination>>
+	disabled: Scalars['Boolean']
+	function_type: MetricAggregator
+	group_by_key?: Maybe<Scalars['String']>
+	id: Scalars['ID']
+	last_admin_to_edit_id?: Maybe<Scalars['ID']>
+	name: Scalars['String']
+	product_type: ProductType
+	query?: Maybe<Scalars['String']>
+	threshold_cooldown?: Maybe<Scalars['Int']>
+	threshold_count?: Maybe<Scalars['Int']>
+	threshold_window?: Maybe<Scalars['Int']>
+	updated_at: Scalars['Timestamp']
+}
+
+export type AlertDestination = {
+	__typename?: 'AlertDestination'
+	alert_id: Scalars['ID']
+	destination_type: AlertDestinationType
+	id: Scalars['ID']
+	type_id: Scalars['String']
+	type_name: Scalars['String']
+}
+
 export enum AlertDestinationType {
 	Discord = 'Discord',
 	Email = 'Email',
@@ -142,6 +169,17 @@ export enum AlertState {
 	NoData = 'NoData',
 	Normal = 'Normal',
 	Pending = 'Pending',
+}
+
+export type AlertStateChange = {
+	__typename?: 'AlertStateChange'
+	AlertID: Scalars['ID']
+	GroupByKey?: Maybe<Scalars['String']>
+	PreviousState: AlertState
+	State: AlertState
+	Title: Scalars['String']
+	id: Scalars['ID']
+	timestamp: Scalars['Timestamp']
 }
 
 export type AllProjectSettings = {
@@ -1134,6 +1172,7 @@ export type Mutation = {
 	changeAdminRole: WorkspaceAdminRole
 	changeProjectMembership: WorkspaceAdminRole
 	createAdmin: Admin
+	createAlert?: Maybe<Alert>
 	createCloudflareProxy: Scalars['String']
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
@@ -1151,6 +1190,7 @@ export type Mutation = {
 	createSessionCommentWithExistingIssue?: Maybe<SessionComment>
 	createWorkspace?: Maybe<Workspace>
 	deleteAdminFromWorkspace?: Maybe<Scalars['ID']>
+	deleteAlert: Scalars['Boolean']
 	deleteDashboard: Scalars['Boolean']
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteErrorComment?: Maybe<Scalars['Boolean']>
@@ -1194,6 +1234,8 @@ export type Mutation = {
 	testErrorEnhancement?: Maybe<ErrorObject>
 	updateAdminAboutYouDetails: Scalars['Boolean']
 	updateAdminAndCreateWorkspace?: Maybe<Project>
+	updateAlert?: Maybe<Alert>
+	updateAlertDisabled: Scalars['Boolean']
 	updateAllowMeterOverage?: Maybe<Workspace>
 	updateAllowedEmailOrigins?: Maybe<Scalars['ID']>
 	updateBillingDetails?: Maybe<Scalars['Boolean']>
@@ -1247,6 +1289,20 @@ export type MutationChangeProjectMembershipArgs = {
 	admin_id: Scalars['ID']
 	project_ids: Array<Scalars['ID']>
 	workspace_id: Scalars['ID']
+}
+
+export type MutationCreateAlertArgs = {
+	below_threshold?: InputMaybe<Scalars['Boolean']>
+	disabled?: InputMaybe<Scalars['Boolean']>
+	function_type: MetricAggregator
+	group_by_key?: InputMaybe<Scalars['String']>
+	name: Scalars['String']
+	product_type: ProductType
+	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
+	threshold_cooldown?: InputMaybe<Scalars['Int']>
+	threshold_count?: InputMaybe<Scalars['Int']>
+	threshold_window?: InputMaybe<Scalars['Int']>
 }
 
 export type MutationCreateCloudflareProxyArgs = {
@@ -1425,6 +1481,11 @@ export type MutationCreateWorkspaceArgs = {
 export type MutationDeleteAdminFromWorkspaceArgs = {
 	admin_id: Scalars['ID']
 	workspace_id: Scalars['ID']
+}
+
+export type MutationDeleteAlertArgs = {
+	alert_id: Scalars['ID']
+	project_id: Scalars['ID']
 }
 
 export type MutationDeleteDashboardArgs = {
@@ -1695,6 +1756,27 @@ export type MutationUpdateAdminAndCreateWorkspaceArgs = {
 	admin_and_workspace_details: AdminAndWorkspaceDetails
 }
 
+export type MutationUpdateAlertArgs = {
+	alert_id: Scalars['ID']
+	below_threshold?: InputMaybe<Scalars['Boolean']>
+	disabled?: InputMaybe<Scalars['Boolean']>
+	function_type?: InputMaybe<MetricAggregator>
+	group_by_key?: InputMaybe<Scalars['String']>
+	name?: InputMaybe<Scalars['String']>
+	product_type?: InputMaybe<ProductType>
+	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
+	threshold_cooldown?: InputMaybe<Scalars['Int']>
+	threshold_count?: InputMaybe<Scalars['Int']>
+	threshold_window?: InputMaybe<Scalars['Int']>
+}
+
+export type MutationUpdateAlertDisabledArgs = {
+	alert_id: Scalars['ID']
+	disabled: Scalars['Boolean']
+	project_id: Scalars['ID']
+}
+
 export type MutationUpdateAllowMeterOverageArgs = {
 	allow_meter_overage: Scalars['Boolean']
 	workspace_id: Scalars['ID']
@@ -1962,6 +2044,9 @@ export type Query = {
 	admin_role?: Maybe<WorkspaceAdminRole>
 	admin_role_by_project?: Maybe<WorkspaceAdminRole>
 	ai_query_suggestion: QueryOutput
+	alert: Alert
+	alert_state_changes: Array<Maybe<AlertStateChange>>
+	alerts: Array<Maybe<Alert>>
 	api_key_to_org_id?: Maybe<Scalars['ID']>
 	averageSessionLength?: Maybe<AverageSessionLength>
 	billingDetails: BillingDetails
@@ -2142,6 +2227,18 @@ export type QueryAi_Query_SuggestionArgs = {
 	project_id: Scalars['ID']
 	query: Scalars['String']
 	time_zone: Scalars['String']
+}
+
+export type QueryAlertArgs = {
+	id: Scalars['ID']
+}
+
+export type QueryAlert_State_ChangesArgs = {
+	alert_id: Scalars['ID']
+}
+
+export type QueryAlertsArgs = {
+	project_id: Scalars['ID']
 }
 
 export type QueryApi_Key_To_Org_IdArgs = {

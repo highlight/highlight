@@ -16,7 +16,6 @@ jobs:
         env:
             TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
             TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
-
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -70,6 +69,7 @@ jobs:
 
             - name: Test session screenshot lambda
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              # uses PSQL_HOST from prod via doppler. has access since this runs on the code runner in prod VPC
               run: doppler run -- yarn test:render
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}

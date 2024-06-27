@@ -242,10 +242,11 @@ export const PlayerPage = () => {
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
 
 	const { presets } = useRetentionPresets(ProductType.Sessions)
+	const initialPreset = presets[5] ?? presets.at(-1)
 
 	const searchTimeContext = useSearchTime({
 		presets: presets,
-		initialPreset: presets[5],
+		initialPreset: initialPreset,
 	})
 
 	const getSessionsData = useGetSessions({

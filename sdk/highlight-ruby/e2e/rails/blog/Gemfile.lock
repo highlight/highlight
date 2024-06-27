@@ -377,7 +377,7 @@ GEM
       thor (~> 1.0)
       zeitwerk (~> 2.5)
     rake (13.1.0)
-    rdoc (6.6.2)
+    rdoc (6.6.3.1)
       psych (>= 4.0.0)
     redis (4.8.1)
     regexp_parser (2.9.0)

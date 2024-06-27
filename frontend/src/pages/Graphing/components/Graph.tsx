@@ -128,10 +128,6 @@ export interface AxisConfig {
 	showGrid?: boolean
 }
 
-export interface TooltipConfig {
-	verboseTooltip?: boolean
-}
-
 const strokeColors = [
 	'#0090FF',
 	'#D6409F',
@@ -257,17 +253,13 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 }
 
 export const getCustomTooltip =
-	(
-		xAxisMetric: string,
-		yAxisMetric: string,
-		yAxisFunction: string,
-		verbose?: boolean,
-	) =>
+	(xAxisMetric: string, yAxisMetric: string, yAxisFunction: string) =>
 	({ active, payload, label }: any) => {
 		const isValid = active && payload && payload.length
 		return (
 			<Box cssClass={style.tooltipWrapper}>
 				<Text
+					lines="1"
 					size="xxSmall"
 					weight="medium"
 					color="default"
@@ -289,13 +281,22 @@ export const getCustomTooltip =
 							cssClass={style.tooltipDot}
 						></Box>
 						<Text
+							lines="1"
 							size="xxSmall"
 							weight="medium"
 							color="default"
 							cssClass={style.tooltipText}
 						>
-							{verbose &&
-								(p.name ? p.name + ': ' : yAxisFunction + ': ')}
+							{p.name ? p.name + ': ' : yAxisFunction + ': '}
+							&nbsp;
+						</Text>
+						<Text
+							lines="1"
+							size="xxSmall"
+							weight="medium"
+							color="default"
+							cssClass={style.tooltipText}
+						>
 							{isValid && getTickFormatter(yAxisMetric)(p.value)}
 						</Text>
 					</Box>
@@ -406,10 +407,14 @@ export const useGraphData = (
 					data.push({})
 				}
 
-				const seriesKeys = new Set<string>()
+				const hasGroups =
+					metrics.metrics.buckets.find((b) => b.group.length) !==
+					undefined
+
 				for (const b of metrics.metrics.buckets) {
-					const seriesKey = b.group.join(' ') || b.metric_type
-					seriesKeys.add(seriesKey)
+					const seriesKey = hasGroups
+						? b.group.join(' ') || '<empty>'
+						: b.metric_type
 					data[b.bucket_id][xAxisMetric] =
 						(b.bucket_min + b.bucket_max) / 2
 					data[b.bucket_id][seriesKey] = b.metric_value

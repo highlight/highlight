@@ -28,6 +28,7 @@ import (
 	"github.com/highlight-run/highlight/backend/integrations/github"
 	"github.com/highlight-run/highlight/backend/integrations/gitlab"
 	"github.com/highlight-run/highlight/backend/integrations/jira"
+	"github.com/highlight-run/highlight/backend/openai_client"
 
 	"gorm.io/gorm/clause"
 
@@ -155,6 +156,7 @@ type Resolver struct {
 	DataSyncQueue          kafka_queue.MessageQueue
 	TracesQueue            kafka_queue.MessageQueue
 	EmbeddingsClient       embeddings.Client
+	OpenAiClient           openai_client.OpenAiInterface
 }
 
 func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) error {
@@ -1073,11 +1075,6 @@ func (r *Resolver) getSessionInsightPrompt(ctx context.Context, events []interfa
 }
 
 func (r *Resolver) getSessionInsight(ctx context.Context, session *model.Session) (*model.SessionInsight, error) {
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return nil, e.New("OPENAI_API_KEY is not set")
-	}
-
 	systemPrompt := `
 	Given array of events performed by a user from a session recording for a web application, make inferences and justifications and summarize interesting things about the session in 3 insights.
 	Rules:
@@ -1126,8 +1123,7 @@ func (r *Resolver) getSessionInsight(ctx context.Context, session *model.Session
 		userPrompt = userPrompt[:MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH]
 	}
 
-	client := openai.NewClient(apiKey)
-	resp, err := client.CreateChatCompletion(
+	resp, err := r.OpenAiClient.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
 			Model:       openai.GPT3Dot5Turbo16K,
