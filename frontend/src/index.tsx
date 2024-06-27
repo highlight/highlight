@@ -47,7 +47,6 @@ import {
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
-import { PUBLIC_GRAPH_URI } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
@@ -77,7 +76,7 @@ const options: HighlightOptions = {
 	debug: shouldDebugLog
 		? { clientInteractions: true, domRecording: true }
 		: undefined,
-	backendUrl: PUBLIC_GRAPH_URI,
+	// backendUrl: PUBLIC_GRAPH_URI,
 	manualStart: true,
 	privacySetting: determinePrivacySetting(),
 	networkRecording: {
@@ -114,8 +113,8 @@ const options: HighlightOptions = {
 	enableCanvasRecording: true,
 	samplingStrategy: {
 		canvas: 1,
-		canvasFactor: 1,
-		canvasMaxSnapshotDimension: 640,
+		canvasFactor: 0.5,
+		canvasMaxSnapshotDimension: 480,
 	},
 	inlineStylesheet: true,
 	inlineImages: true,

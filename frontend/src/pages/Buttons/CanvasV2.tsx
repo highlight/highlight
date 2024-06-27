@@ -1,9 +1,19 @@
 import { Button } from '@components/Button'
+import {
+	AppLoadingState,
+	useAppLoadingContext,
+} from '@context/AppLoadingContext'
 import { Box, Stack } from '@highlight-run/ui/components'
 import MuxPlayer from '@mux/mux-player-react'
 import { CSSProperties, useEffect, useRef, useState } from 'react'
 
-export const CanvasPage = function () {
+const CanvasPage = function () {
+	const { setLoadingState } = useAppLoadingContext()
+
+	useEffect(() => {
+		setLoadingState(AppLoadingState.LOADED)
+	}, [setLoadingState])
+
 	const ref = useRef<HTMLDivElement>(null)
 	const [mode, setMode] = useState<
 		'BigBuckBunny' | 'canvas' | 'webcam' | 'mux'
@@ -219,3 +229,4 @@ export const CanvasPage = function () {
 		</Box>
 	)
 }
+export default CanvasPage

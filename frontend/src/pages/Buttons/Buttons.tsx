@@ -1,5 +1,9 @@
 import { toast } from '@components/Toaster'
 import {
+	AppLoadingState,
+	useAppLoadingContext,
+} from '@context/AppLoadingContext'
+import {
 	useGetCommentTagsForProjectQuery,
 	useGetWorkspaceAdminsByProjectIdLazyQuery,
 	useSendEmailSignupMutation,
@@ -25,6 +29,12 @@ import {
 } from './ButtonsHelper'
 
 export const Buttons = () => {
+	const { setLoadingState } = useAppLoadingContext()
+
+	useEffect(() => {
+		setLoadingState(AppLoadingState.LOADED)
+	}, [setLoadingState])
+
 	const [hasError, setHasError] = useState(false)
 	const [showWebSocket, setShowWebSocket] = useState(false)
 	const [email, setEmail] = useState('')
