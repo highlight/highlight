@@ -626,7 +626,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 				<Stack>
 					<Heading level="h4">Billing plans</Heading>
 					{isAWSMP ? null : (
-						<Box display="inline-flex" gap="6">
+						<Box display="inline-flex" gap="4" alignItems="center">
 							<Text size="small" color="weak">
 								Prices are flexible around your needs. Custom
 								quote?
