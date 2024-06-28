@@ -4,7 +4,7 @@ async function startHighlight(projectId: string) {
   if (H.getRecordingState() === 'Recording') {
     H.stop()
   }
-  const { sessionSecureID } = H.init(projectId, {
+  const data = H.init(projectId, {
     debug: { clientInteractions: true, domRecording: true },
     networkRecording: {
       enabled: true,
@@ -23,7 +23,7 @@ async function startHighlight(projectId: string) {
     serviceName: 'chrome-extension',
     sendMode: 'local',
   })
-  await chrome.storage.sync.set({ sessionSecureID })
+  await chrome.storage.sync.set({ sessionSecureID: data?.sessionSecureID })
 }
 
 const init = async () => {
