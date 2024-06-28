@@ -20,6 +20,24 @@ services:
         ports:
             - '0.0.0.0:8082:8082'
         container_name: backend-api
+        healthcheck:
+            test:
+                [
+                    'CMD-SHELL',
+                    'curl',
+                    '-k',
+                    'https://localhost:8082',
+                    '||',
+                    'curl',
+                    '-k',
+                    'localhost:8082',
+                    '||',
+                    'exit',
+                    '1',
+                ]
+            interval: 5s
+            timeout: 5s
+            retries: 5
         command:
             - /build/backend
             - -runtime=graph

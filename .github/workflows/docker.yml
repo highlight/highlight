@@ -135,8 +135,14 @@ jobs:
                   export RELEASE=$IMAGE_TAG
                   export LICENSE_KEY
 
-                  # start highlight
                   pushd docker;
+
+                  # setup infra / db
+                  source ./env.sh --go-docker;
+                  ./start-infra.sh --go-docker > /tmp/highlight.log 2>&1;
+                  docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
+
+                  # start highlight
                   ./run-enterprise.sh --no-pull >> /tmp/highlight.log 2>&1;
                   popd;
 
