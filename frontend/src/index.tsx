@@ -282,13 +282,27 @@ const AuthenticationRoleRouter = () => {
 	const isAuthLoading = authRole === AuthRole.LOADING
 	const isLoggedIn = authRole === AuthRole.AUTHENTICATED
 
-	useEffect(() => {
-		if (adminData && user) {
-			setAuthRole(AuthRole.AUTHENTICATED)
-		} else if (adminError) {
-			setAuthRole(AuthRole.UNAUTHENTICATED)
-		}
-	}, [adminData, adminError, user])
+	auth.onAuthStateChanged(
+		async (user) => {
+			if (!firebaseInitialized.current) {
+				// Only call this logic when we are initializing Firebase, otherwise,
+				// let the signIn/signOut handlers set it.
+				setUser(user)
+
+				if (!user) {
+					// If Firebase initialized without a user they need to authenticate,
+					// so set them as unauthenticated and disable the loading state.
+					setAuthRole(AuthRole.UNAUTHENTICATED)
+					setLoadingState(AppLoadingState.LOADED)
+				}
+			}
+
+			firebaseInitialized.current = true
+		},
+		(error) => {
+			H.consumeError(error)
+		},
+	)
 
 	const fetchAdmin = useCallback(async () => {
 		if (loading || !user) {
@@ -310,6 +324,14 @@ const AuthenticationRoleRouter = () => {
 	}, [called, getAdminQuery, loading, projectId, refetch, user, workspaceId])
 
 	useEffect(() => {
+		if (adminData && user) {
+			setAuthRole(AuthRole.AUTHENTICATED)
+		} else if (adminError) {
+			setAuthRole(AuthRole.UNAUTHENTICATED)
+		}
+	}, [adminData, adminError, user])
+
+	useEffect(() => {
 		const fetch = async () => {
 			if (user) {
 				await fetchAdmin()
@@ -321,31 +343,6 @@ const AuthenticationRoleRouter = () => {
 		// different parts of the app) or when the Firebase user changes.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [getAdminQuery, user])
-
-	useEffect(() => {
-		return auth.onAuthStateChanged(
-			async (user) => {
-				if (!firebaseInitialized.current) {
-					// Only call this logic when we are initializing Firebase, otherwise,
-					// let the signIn/signOut handlers set it.
-					setUser(user)
-
-					if (!user) {
-						// If Firebase initialized without a user they need to authenticate,
-						// so set them as unauthenticated and disable the loading state.
-						setAuthRole(AuthRole.UNAUTHENTICATED)
-						setLoadingState(AppLoadingState.LOADED)
-					}
-				}
-
-				firebaseInitialized.current = true
-			},
-			(error) => {
-				H.consumeError(error)
-			},
-		)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
 
 	useEffect(() => {
 		// Wait until auth is finished loading otherwise this request can fail.
