@@ -36,7 +36,7 @@ func Start(ctx context.Context) error {
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Info("enterprise service not configured")
 		if env.IsEnterpriseDeploy() {
-			return err
+			return e.Wrap(err, "highlight enterprise mode configured but failed to start license checker")
 		}
 	} else {
 		log.WithContext(ctx).
