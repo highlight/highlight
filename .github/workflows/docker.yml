@@ -140,6 +140,9 @@ jobs:
                   ./run-enterprise.sh --no-pull >> /tmp/highlight.log 2>&1;
                   popd;
 
+                  # wait for backend api to become available
+                  sleep 15
+
                   # run python backend functional tests
                   pushd ./e2e/tests
                   export HIGHLIGHT_OAUTH_CLIENT_ID=abc123
