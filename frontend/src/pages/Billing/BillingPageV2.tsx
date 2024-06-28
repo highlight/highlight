@@ -626,15 +626,17 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 				<Stack>
 					<Heading level="h4">Billing plans</Heading>
 					{isAWSMP ? null : (
-						<Box display="inline-flex">
+						<Box display="inline-flex" gap="6">
 							<Text size="small" color="weak">
 								Prices are flexible around your needs. Custom
-								quote?{' '}
-								<CalendlyButton
-									text="Reach out to sales"
-									howCanWeHelp="Custom quote"
-								/>
+								quote?
 							</Text>
+							<CalendlyButton
+								text="Book a call."
+								size="xSmall"
+								emphasis="low"
+								howCanWeHelp="Custom quote"
+							/>
 						</Box>
 					)}
 					{billingIssue ? (
