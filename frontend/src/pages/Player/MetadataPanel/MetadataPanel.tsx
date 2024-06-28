@@ -83,7 +83,7 @@ const MetadataPanel = () => {
 						session?.enable_strict_privacy,
 					)}{' '}
 					<a
-						href="https://www.highlight.io/docs/getting-staArted/client-sdk/replay-configuration/privacy"
+						href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/privacy"
 						target="_blank"
 						rel="noreferrer"
 					>
