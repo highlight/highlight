@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:alpine as backend-build
+FROM --platform=$BUILDPLATFORM golang:alpine AS backend-build
 
 RUN apk update && apk add --no-cache build-base
 
@@ -31,7 +31,7 @@ RUN export PUBKEY=`cat /highlight/enterprise-public.pem | base64 -w0` GOOS=$TARG
     go build -ldflags="-X github.com/highlight-run/highlight/backend/env.EnterpriseEnvPublicKey=$PUBKEY" -o /build/backend
 
 # reduce the image size by keeping just the built code
-FROM alpine:latest as backend-prod
+FROM alpine:latest AS backend-prod
 ARG REACT_APP_COMMIT_SHA
 ENV REACT_APP_COMMIT_SHA=$REACT_APP_COMMIT_SHA
 ARG RELEASE

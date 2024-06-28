@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM node:lts-alpine as frontend-build
+FROM --platform=$BUILDPLATFORM node:lts-alpine AS frontend-build
 
 RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.key' -O /etc/apk/keys/cli@doppler-8004D9FF50437357.rsa.pub && \
     echo 'https://packages.doppler.com/public/cli/alpine/any-version/main' | tee -a /etc/apk/repositories && \
@@ -33,7 +33,7 @@ ARG DOPPLER_TOKEN
 RUN doppler run -- yarn build:frontend
 
 # reduce the image size by keeping just the built code
-FROM nginx:stable-alpine as frontend-prod
+FROM nginx:stable-alpine AS frontend-prod
 RUN apk update && apk add --no-cache python3
 LABEL org.opencontainers.image.source=https://github.com/highlight/highlight
 LABEL org.opencontainers.image.description="highlight.io Production Frontend Image"
