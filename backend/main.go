@@ -607,15 +607,31 @@ func main() {
 				}
 			}()
 			if env.IsDevEnv() && env.UseSSL() {
+				log.WithContext(ctx).
+					WithField("runtime", runtimeParsed).
+					WithField("port", defaultPort).
+					Info("running HTTPS listener")
 				log.Fatal(http.ListenAndServeTLS(":"+defaultPort, localhostCertPath, localhostKeyPath, r))
 			} else {
+				log.WithContext(ctx).
+					WithField("runtime", runtimeParsed).
+					WithField("port", defaultPort).
+					Info("running HTTP listener")
 				log.Fatal(http.ListenAndServe(":"+defaultPort, r))
 			}
 		}
 	} else {
 		if env.IsDevEnv() && env.UseSSL() {
+			log.WithContext(ctx).
+				WithField("runtime", runtimeParsed).
+				WithField("port", defaultPort).
+				Info("running HTTPS listener")
 			log.Fatal(http.ListenAndServeTLS(":"+defaultPort, localhostCertPath, localhostKeyPath, r))
 		} else {
+			log.WithContext(ctx).
+				WithField("runtime", runtimeParsed).
+				WithField("port", defaultPort).
+				Info("running HTTP listener")
 			log.Fatal(http.ListenAndServe(":"+defaultPort, r))
 		}
 	}
