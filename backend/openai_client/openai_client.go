@@ -3,6 +3,7 @@ package openai_client
 import (
 	"context"
 	"errors"
+	"os"
 
 	"github.com/sashabaranov/go-openai"
 )
@@ -13,7 +14,6 @@ const IrrelevantQueryFunctionalityIndicator = "If the input query has nothing to
 var MalformedPromptError = errors.New("empty or incorrect input query")
 
 type OpenAiInterface interface {
-	InitClient(string) error
 	CreateChatCompletion(context context.Context, request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error)
 }
 
@@ -21,12 +21,20 @@ type OpenAiImpl struct {
 	client *openai.Client
 }
 
-func (o *OpenAiImpl) InitClient(apiKey string) error {
-	o.client = openai.NewClient(apiKey)
-	if o.client == nil {
-		return errors.New("openai client is empty, api key may be incorrect")
+func InitClient() (*OpenAiImpl, error) {
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		return nil, errors.New("OPENAI_API_KEY is not set")
 	}
-	return nil
+
+	client := openai.NewClient(apiKey)
+	if client == nil {
+		return nil, errors.New("openai client is empty")
+	}
+
+	return &OpenAiImpl{
+		client: client,
+	}, nil
 }
 
 func (o *OpenAiImpl) CreateChatCompletion(context context.Context, r openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error) {

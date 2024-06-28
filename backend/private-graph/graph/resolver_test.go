@@ -375,10 +375,6 @@ const defaultQueryResponse = `{"query":"environment=production AND secure_sessio
 type OpenAiTestImpl struct {
 }
 
-func (o *OpenAiTestImpl) InitClient(apiKey string) error {
-	return nil
-}
-
 func (o *OpenAiTestImpl) CreateChatCompletion(ctx context.Context, request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error) {
 	respMessage := openai.ChatCompletionResponse{
 		Choices: []openai.ChatCompletionChoice{
