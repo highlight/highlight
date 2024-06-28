@@ -1,3 +1,4 @@
+import { CalendlyButton } from '@components/CalendlyModal/CalendlyButton'
 import LoadingBox from '@components/LoadingBox'
 import { toast } from '@components/Toaster'
 import { USD } from '@dinero.js/currencies'
@@ -7,7 +8,6 @@ import {
 	Callout,
 	Heading,
 	IconProps,
-	IconSolidArrowSmRight,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidExclamation,
@@ -26,7 +26,6 @@ import {
 import { vars } from '@highlight-run/ui/vars'
 import { BarChart } from '@pages/Graphing/components/BarChart'
 import { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
-import { getPlanChangeEmail } from '@util/billing/billing'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -215,8 +214,7 @@ const UsageCard = ({
 										{productType.toLocaleLowerCase()}
 									</b>{' '}
 									this month. {includedQuantity} are included
-									on the {planType}
-									tier.
+									on the {planType} tier.
 								</Text>
 							</Box>
 						</Tooltip>
@@ -632,20 +630,10 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 							<Text size="small" color="weak">
 								Prices are flexible around your needs. Custom
 								quote?{' '}
-								<a
-									href={getPlanChangeEmail({
-										workspaceID: workspace_id,
-										planType: PlanType.Enterprise,
-									})}
-								>
-									<Box
-										display="inline-flex"
-										alignItems="center"
-									>
-										Reach out to sales{' '}
-										<IconSolidArrowSmRight />
-									</Box>
-								</a>
+								<CalendlyButton
+									text="Reach out to sales"
+									howCanWeHelp="Custom quote"
+								/>
 							</Text>
 						</Box>
 					)}
