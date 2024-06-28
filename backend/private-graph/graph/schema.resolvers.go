@@ -491,7 +491,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 			Email: admin.Email,
 		}
 		params.AddMetadata("Workspace ID", strconv.Itoa(workspace.ID))
-		c, err = r.StripeClient.Customers.New(params)
+		c, err = r.PricingClient.Customers.New(params)
 		if err != nil {
 			log.WithContext(ctx).Error(err, "error creating stripe customer")
 		}
@@ -1187,7 +1187,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	// For older projects, if there's no customer ID, we create a StripeCustomer obj.
 	if workspace.StripeCustomerID == nil {
 		params := &stripe.CustomerParams{}
-		c, err := r.StripeClient.Customers.New(params)
+		c, err := r.PricingClient.Customers.New(params)
 		if err != nil {
 			log.WithContext(ctx).Error(err, "error creating stripe customer")
 		}
@@ -1202,7 +1202,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	params := &stripe.CustomerParams{}
 	params.AddExpand("subscriptions")
 
-	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, params)
+	c, err := r.PricingClient.Customers.Get(*workspace.StripeCustomerID, params)
 	if err != nil {
 		return nil, e.Wrap(err, "BILLING_ERROR cannot update stripe subscription - couldn't retrieve stripe customer data")
 	}
@@ -1213,14 +1213,14 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	}
 
 	subscriptions := c.Subscriptions.Data
-	pricing.FillProducts(r.StripeClient, subscriptions)
+	pricing.FillProducts(r.PricingClient, subscriptions)
 
 	pricingInterval := model.PricingSubscriptionIntervalMonthly
 
 	defaultRetention := modelInputs.RetentionPeriodThreeMonths
 
 	// default to unlimited members pricing
-	prices, err := pricing.GetStripePrices(r.StripeClient, workspace, modelInputs.PlanTypeGraduated, pricingInterval, true, &defaultRetention, &defaultRetention)
+	prices, err := pricing.GetStripePrices(r.PricingClient, workspace, modelInputs.PlanTypeGraduated, pricingInterval, true, &defaultRetention, &defaultRetention)
 	if err != nil {
 		return nil, e.Wrap(err, "BILLING_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}
@@ -1254,7 +1254,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 			},
 		}
 
-		_, err := r.StripeClient.Subscriptions.Update(subscription.ID, subscriptionParams)
+		_, err := r.PricingClient.Subscriptions.Update(subscription.ID, subscriptionParams)
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
@@ -1280,7 +1280,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	}
 	checkoutSessionParams.AddExtra("allow_promotion_codes", "true")
 
-	stripeSession, err := r.StripeClient.CheckoutSessions.New(checkoutSessionParams)
+	stripeSession, err := r.PricingClient.CheckoutSessions.New(checkoutSessionParams)
 	if err != nil {
 		return nil, e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
@@ -4982,7 +4982,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 	var allSubs []*stripe.Subscription
 	for {
 		subListParams.StartingAfter = startingAfter
-		subList := r.StripeClient.Subscriptions.List(&subListParams).SubscriptionList()
+		subList := r.PricingClient.Subscriptions.List(&subListParams).SubscriptionList()
 		allSubs = append(allSubs, subList.Data...)
 
 		if !subList.HasMore {
@@ -5006,7 +5006,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 	startingAfter = nil
 	for {
 		invoiceListParams.StartingAfter = startingAfter
-		invoiceList := r.StripeClient.Invoices.List(&invoiceListParams).InvoiceList()
+		invoiceList := r.PricingClient.Invoices.List(&invoiceListParams).InvoiceList()
 		allInvoices = append(allInvoices, invoiceList.Data...)
 
 		if !invoiceList.HasMore {
@@ -8469,7 +8469,7 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 		ReturnURL: &returnUrl,
 	}
 
-	portalSession, err := r.StripeClient.BillingPortalSessions.New(params)
+	portalSession, err := r.PricingClient.BillingPortalSessions.New(params)
 	if err != nil {
 		return "", e.Wrap(err, "error creating customer portal session")
 	}
@@ -8493,7 +8493,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	return redis.CachedEval(ctx, r.Redis, redis.GetSubscriptionDetailsKey(workspaceID), time.Minute, time.Minute, func() (*modelInputs.SubscriptionDetails, error) {
 		customerParams := &stripe.CustomerParams{}
 		customerParams.AddExpand("subscriptions")
-		c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
+		c, err := r.PricingClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
 		if err != nil {
 			return nil, e.Wrap(err, "error querying stripe customer")
 		}
@@ -8521,7 +8521,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID
 		invoiceParams := &stripe.InvoiceParams{}
 		customerParams.AddExpand("invoice_items")
-		invoice, err := r.StripeClient.Invoices.Get(invoiceID, invoiceParams)
+		invoice, err := r.PricingClient.Invoices.Get(invoiceID, invoiceParams)
 		if err != nil {
 			return nil, e.Wrap(err, "error querying stripe invoice")
 		}

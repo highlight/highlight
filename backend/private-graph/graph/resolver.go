@@ -67,7 +67,6 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/stripe/stripe-go/v78"
-	"github.com/stripe/stripe-go/v78/client"
 	"github.com/stripe/stripe-go/v78/webhook"
 
 	"github.com/highlight-run/workerpool"
@@ -140,7 +139,7 @@ type Resolver struct {
 	DB                     *gorm.DB
 	Tracer                 trace.Tracer
 	MailClient             *sendgrid.Client
-	StripeClient           *client.API
+	PricingClient          *pricing.Client
 	AWSMPClient            *marketplacemetering.Client
 	StorageClient          storage.Client
 	LambdaClient           *lambda.Client
@@ -1362,7 +1361,7 @@ func (r *Resolver) updateAWSMPBillingDetails(ctx context.Context, workspaceID in
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	worker := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.StripeClient, r.AWSMPClient, r.MailClient)
+	worker := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.PricingClient, r.AWSMPClient, r.MailClient)
 	overages, err := worker.CalculateOverages(ctx, workspace.ID)
 	if err != nil {
 		return e.Wrap(err, "BILLING_ERROR aws mp update failed to calculate overages")
@@ -1377,13 +1376,13 @@ func (r *Resolver) updateAWSMPBillingDetails(ctx context.Context, workspaceID in
 func (r *Resolver) updateStripeBillingDetails(ctx context.Context, stripeCustomerID string) error {
 	customerParams := &stripe.CustomerParams{}
 	customerParams.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(stripeCustomerID, customerParams)
+	c, err := r.PricingClient.Customers.Get(stripeCustomerID, customerParams)
 	if err != nil {
 		return e.Wrapf(err, "BILLING_ERROR error retrieving Stripe customer data for customer %s", stripeCustomerID)
 	}
 
 	subscriptions := c.Subscriptions.Data
-	pricing.FillProducts(r.StripeClient, subscriptions)
+	pricing.FillProducts(r.PricingClient, subscriptions)
 
 	// Default to free tier
 	details := planDetails{
@@ -1422,7 +1421,7 @@ func (r *Resolver) updateStripeBillingDetails(ctx context.Context, stripeCustome
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.StripeClient, r.AWSMPClient, r.MailClient).ReportStripeUsageForWorkspace(ctx, workspace.ID); err != nil {
+	if err := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.PricingClient, r.AWSMPClient, r.MailClient).ReportStripeUsageForWorkspace(ctx, workspace.ID); err != nil {
 		return e.Wrap(err, "BILLING_ERROR error reporting usage after updating details")
 	}
 	return nil

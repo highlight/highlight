@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/highlight-run/highlight/backend/enterprise"
 	"github.com/highlight-run/highlight/backend/env"
+	"github.com/highlight-run/highlight/backend/pricing"
 	"io"
 	"math/rand"
 	"net/http"
@@ -255,8 +256,14 @@ func main() {
 		}
 	}
 
-	stripeClient := &client.API{}
-	stripeClient.Init(env.Config.StripeApiKey, nil)
+	var pricingClient *pricing.Client
+	if env.IsInDocker() {
+		pricingClient = pricing.NewNoopClient()
+	} else {
+		stripeClient := &client.API{}
+		stripeClient.Init(env.Config.StripeApiKey, nil)
+		pricingClient = pricing.New(stripeClient)
+	}
 
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(model.AWS_REGION_US_EAST_2))
 	if err != nil {
@@ -350,7 +357,7 @@ func main() {
 		DB:                     db,
 		Tracer:                 tracer,
 		MailClient:             sendgrid.NewSendClient(env.Config.SendgridKey),
-		StripeClient:           stripeClient,
+		PricingClient:          pricingClient,
 		AWSMPClient:            mpm,
 		StorageClient:          storageClient,
 		LambdaClient:           lambdaClient,
