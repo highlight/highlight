@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "composite": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "resolveJsonModule": true
-  },
-  "include": ["vite.config.ts", "src/manifest.ts"]
-}
