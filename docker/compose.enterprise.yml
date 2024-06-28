@@ -15,11 +15,11 @@ services:
             - /build/backend
             - -runtime=worker
 
-    backend-api:
+    backend:
         extends: backend-session-worker
         ports:
             - '0.0.0.0:8082:8082'
-        container_name: backend-api
+        container_name: backend
         healthcheck:
             test:
                 [
@@ -73,7 +73,7 @@ services:
 
     frontend:
         container_name: frontend
-        image: ${BACKEND_IMAGE_NAME-ghcr.io/highlight/highlight-frontend:latest}
+        image: ${FRONTEND_IMAGE_NAME-ghcr.io/highlight/highlight-frontend:latest}
         restart: on-failure
         volumes:
             - ../backend/localhostssl/server.key:/etc/ssl/private/ssl-cert.key
