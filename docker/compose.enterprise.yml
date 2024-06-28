@@ -31,9 +31,6 @@ services:
                     'curl',
                     '-k',
                     'localhost:8082',
-                    '||',
-                    'exit',
-                    '1',
                 ]
             interval: 5s
             timeout: 5s
