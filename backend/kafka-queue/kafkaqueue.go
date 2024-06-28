@@ -91,6 +91,8 @@ func GetTopic(options GetTopicOptions) string {
 
 type ConfigOverride struct {
 	Async            *bool
+	BatchSize        *int
+	BatchTimeout     *time.Duration
 	QueueCapacity    *int
 	MinBytes         *int
 	MaxWait          *time.Duration
@@ -200,6 +202,12 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			deref := *configOverride
 			if deref.Async != nil {
 				pool.kafkaP.Async = *deref.Async
+			}
+			if deref.BatchSize != nil {
+				pool.kafkaP.BatchSize = *deref.BatchSize
+			}
+			if deref.BatchTimeout != nil {
+				pool.kafkaP.BatchTimeout = *deref.BatchTimeout
 			}
 			if deref.MessageSizeBytes != nil {
 				pool.kafkaP.BatchBytes = *deref.MessageSizeBytes

@@ -317,12 +317,17 @@ func main() {
 		}
 	}
 
+	// sync writes with batching per-partition
 	kafkaProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Producer, nil)
+	// sync writes without batching
+	kafkaDataSyncProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Producer, &kafkaqueue.ConfigOverride{BatchSize: ptr.Int(1)})
+
 	// async writes for workers (where order of write between workers does not matter)
 	kCfg := &kafkaqueue.ConfigOverride{Async: ptr.Bool(true)}
 	kafkaBatchedProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Producer, kCfg)
+	defer kafkaBatchedProducer.Stop(ctx)
 	kafkaTracesProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}), kafkaqueue.Producer, kCfg)
-	kafkaDataSyncProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Producer, kCfg)
+	defer kafkaTracesProducer.Stop(ctx)
 
 	lambda, err := lambda.NewLambdaClient()
 	if err != nil {

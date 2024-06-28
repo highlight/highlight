@@ -161,16 +161,18 @@ func TestUpdateErrorGroupStateBySystem(t *testing.T) {
 		SnoozedUntil: &now,
 	}
 
-	unchangedErrorGroup, err := store.UpdateErrorGroupStateBySystem(context.TODO(), params)
+	err := store.UpdateErrorGroupStateBySystem(context.TODO(), params)
 	assert.EqualError(t, err, "record not found")
-	assert.Nil(t, unchangedErrorGroup)
 
 	store.DB.Create(&errorGroup)
 
 	params.ID = errorGroup.ID
 
-	updatedErrorGroup, err := store.UpdateErrorGroupStateBySystem(context.TODO(), params)
+	err = store.UpdateErrorGroupStateBySystem(context.TODO(), params)
 	assert.NoError(t, err)
+
+	var updatedErrorGroup *model.ErrorGroup
+	store.DB.Model(model.ErrorGroup{}).Where("id = ?", params.ID).First(&updatedErrorGroup)
 
 	assert.Equal(t, params.State, updatedErrorGroup.State)
 	assert.Equal(t, params.SnoozedUntil.Format(time.RFC3339), updatedErrorGroup.SnoozedUntil.Format(time.RFC3339))

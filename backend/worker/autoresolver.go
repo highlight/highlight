@@ -89,7 +89,7 @@ func (autoResolver *AutoResolver) resolveStaleErrorsForProject(ctx context.Conte
 
 		log.WithContext(ctx).WithFields(logFields).Info("Autoresolving error group")
 
-		_, err := autoResolver.store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
+		err := autoResolver.store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
 			ID:    errorGroup.ID,
 			State: privateModel.ErrorStateResolved,
 		})
