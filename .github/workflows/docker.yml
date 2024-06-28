@@ -94,6 +94,12 @@ jobs:
               with:
                   submodules: recursive
 
+            - name: Setup Node.js environment
+              uses: buildjet/setup-node@v4
+              with:
+                  node-version: lts/*
+                  cache: 'yarn'
+
             - name: Install poetry
               run: pipx install poetry
 
@@ -147,8 +153,9 @@ jobs:
                   ./run-enterprise.sh --no-pull >> /tmp/highlight.log 2>&1;
                   popd;
 
-                  # wait for backend api to become available
-                  sleep 15
+                  # install dependencies for e2e tests
+                  yarn install >> /tmp/highlight.log 2>&1;
+                  yarn build:sdk >> /tmp/highlight.log 2>&1;
 
                   # run python backend functional tests
                   pushd ./e2e/tests
