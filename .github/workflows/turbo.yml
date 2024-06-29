@@ -86,6 +86,13 @@ jobs:
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               run: yarn workspace render zip && yarn workspace render check
 
+            - name: Validate repo state
+              run: |
+                  git status --porcelain
+                  pushd rrweb
+                  git status --porcelain
+                  popd
+
             - name: Update changesets
               id: changesets-version
               uses: changesets/action@v1
