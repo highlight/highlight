@@ -5,9 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"math"
 	"math/rand"
-	"os"
 	"sort"
 	"strconv"
 	"sync"
@@ -133,7 +133,7 @@ func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.Payload
 			continue
 		}
 		if hadFullSnapshot {
-			sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
+			sessionIdString := env.Config.SessionFilePathPrefix + strconv.FormatInt(int64(s.ID), 10)
 			if manager.EventsChunked != nil {
 				// close the chunk file
 				if err := manager.EventsChunked.Close(); err != nil {
@@ -197,7 +197,7 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 		unmarshalled = &payload.WebSocketEventsUnmarshalled{}
 	}
 
-	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && payloadType == model.PayloadTypeEvents
+	writeChunks := payloadType == model.PayloadTypeEvents
 
 	if err := w.PublicResolver.MoveSessionDataToStorage(ctx, s.ID, nil, s.ProjectID, payloadType); err != nil {
 		return err
@@ -555,7 +555,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	accumulator := MakeEventProcessingAccumulator(s.SecureID, rageClickSettings)
 
-	sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
+	sessionIdString := env.Config.SessionFilePathPrefix + strconv.FormatInt(int64(s.ID), 10)
 
 	payloadManager, err := payload.NewPayloadManager(ctx, sessionIdString)
 	if err != nil {
@@ -959,10 +959,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	// Upload to s3 and wipe from the db.
-	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
-		if err := w.pushToObjectStorage(ctx, s, payloadManager); err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error pushing to object and wiping from db"))
-		}
+	if err := w.pushToObjectStorage(ctx, s, payloadManager); err != nil {
+		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error pushing to object and wiping from db"))
 	}
 
 	return nil
@@ -1032,7 +1030,7 @@ func (w *Worker) Start(ctx context.Context) {
 
 				// If WORKER_MAX_MEMORY_THRESHOLD is defined,
 				// sleep until vmStat.UsedPercent is lower than this value
-				workerMaxMemStr := os.Getenv("WORKER_MAX_MEMORY_THRESHOLD")
+				workerMaxMemStr := env.Config.WorkerMaxMemoryThreshold
 				workerMaxMem := math.Inf(1)
 				if workerMaxMemStr != "" {
 					workerMaxMem, _ = strconv.ParseFloat(workerMaxMemStr, 64)
@@ -1092,7 +1090,7 @@ func (w *Worker) Start(ctx context.Context) {
 }
 
 func (w *Worker) ReportStripeUsage(ctx context.Context) {
-	pricing.NewWorker(w.Resolver.DB, w.Resolver.Redis, w.Resolver.Store, w.Resolver.ClickhouseClient, w.Resolver.StripeClient, w.Resolver.AWSMPClient, w.Resolver.MailClient).ReportAllUsage(ctx)
+	pricing.NewWorker(w.Resolver.DB, w.Resolver.Redis, w.Resolver.Store, w.Resolver.ClickhouseClient, w.Resolver.PricingClient, w.Resolver.AWSMPClient, w.Resolver.MailClient).ReportAllUsage(ctx)
 }
 
 func (w *Worker) MigrateDB(ctx context.Context) {
@@ -1112,12 +1110,12 @@ func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
 }
 
 func (w *Worker) StartSessionDeleteJob(ctx context.Context) {
-	retentionEnv := os.Getenv("SESSION_RETENTION_DAYS")
+	retentionEnv := env.Config.SessionRetentionDays
 	if retentionEnv == "" {
 		log.WithContext(ctx).Info("SESSION_RETENTION_DAYS not set, skipping SessionDeleteJob")
 		return
 	}
-	sessionRetentionDays, err := strconv.Atoi(os.Getenv("SESSION_RETENTION_DAYS"))
+	sessionRetentionDays, err := strconv.Atoi(env.Config.SessionRetentionDays)
 	if err != nil {
 		log.WithContext(ctx).Error("Error parsing SESSION_RETENTION_DAYS, skipping SessionDeleteJob")
 		return
@@ -1330,30 +1328,34 @@ func (w *Worker) BackfillStackFrames(ctx context.Context) {
 	}
 }
 
-func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx context.Context) {
+func (w *Worker) GetHandler(ctx context.Context, handlerFlag util.Handler) func(ctx context.Context) {
+	log.WithContext(ctx).WithField("handlerFlag", handlerFlag).Info("starting worker")
 	switch handlerFlag {
-	case "report-stripe-usage":
+	case util.ReportStripeUsage:
 		return w.ReportStripeUsage
-	case "migrate-db":
+	case util.MigrateDB:
 		return w.MigrateDB
-	case "metric-monitors":
+	case util.MetricMonitors:
 		return w.StartMetricMonitorWatcher
-	case "log-alerts":
+	case util.LogAlerts:
 		return w.StartLogAlertWatcher
-	case "backfill-stack-frames":
+	case util.BackfillStackFrames:
 		return w.BackfillStackFrames
-	case "refresh-materialized-views":
+	case util.RefreshMaterializedViews:
 		return w.RefreshMaterializedViews
-	case "public-worker-main":
+	case util.PublicWorkerMain:
 		return w.GetPublicWorker(kafkaqueue.TopicTypeDefault)
-	case "public-worker-batched":
+	case util.PublicWorkerBatched:
 		return w.GetPublicWorker(kafkaqueue.TopicTypeBatched)
-	case "public-worker-datasync":
+	case util.PublicWorkerDataSync:
 		return w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)
-	case "public-worker-traces":
+	case util.PublicWorkerTraces:
 		return w.GetPublicWorker(kafkaqueue.TopicTypeTraces)
-	case "auto-resolve-stale-errors":
+	case util.AutoResolveStaleErrors:
 		return w.AutoResolveStaleErrors
+	case "":
+		// no handler provided defaults to the session worker
+		return w.Start
 	default:
 		log.WithContext(ctx).Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil

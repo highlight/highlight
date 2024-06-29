@@ -16,18 +16,6 @@ import (
 	"sync"
 	"time"
 
-	hredis "github.com/highlight-run/highlight/backend/redis"
-
-	"github.com/go-chi/chi"
-	"github.com/rs/cors"
-	"github.com/samber/lo"
-
-	"golang.org/x/sync/errgroup"
-
-	"github.com/google/uuid"
-	"github.com/openlyinc/pointy"
-	"github.com/redis/go-redis/v9"
-
 	"github.com/andybalholm/brotli"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -35,24 +23,32 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go/ptr"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-
+	"github.com/go-chi/chi"
+	"github.com/google/uuid"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/payload"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	hredis "github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
+	"github.com/rs/cors"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 )
 
 var (
-	S3SessionsPayloadBucketNameNew = os.Getenv("AWS_S3_BUCKET_NAME_NEW")
-	S3SessionsStagingBucketName    = os.Getenv("AWS_S3_STAGING_BUCKET_NAME")
-	S3SourceMapBucketNameNew       = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME_NEW")
-	S3ResourcesBucketName          = os.Getenv("AWS_S3_RESOURCES_BUCKET")
-	S3GithubBucketName             = os.Getenv("AWS_S3_GITHUB_BUCKET_NAME")
-	CloudfrontDomain               = os.Getenv("AWS_CLOUDFRONT_DOMAIN")
-	CloudfrontPublicKeyID          = os.Getenv("AWS_CLOUDFRONT_PUBLIC_KEY_ID")
-	CloudfrontPrivateKey           = os.Getenv("AWS_CLOUDFRONT_PRIVATE_KEY")
+	S3SessionsPayloadBucketNameNew = env.Config.AwsS3BucketName
+	S3SessionsStagingBucketName    = env.Config.AwsS3StagingBucketName
+	S3SourceMapBucketNameNew       = env.Config.AwsS3SourceMapBucketName
+	S3ResourcesBucketName          = env.Config.AwsS3ResourcesBucketName
+	S3GithubBucketName             = env.Config.AwsS3GithubBucketName
+	CloudfrontDomain               = env.Config.AwsCloudfrontDomain
+	CloudfrontPublicKeyID          = env.Config.AwsCloudfrontPublicKeyID
+	CloudfrontPrivateKey           = env.Config.AwsCloudfrontPrivateKey
 )
 
 const (
@@ -493,7 +489,7 @@ func (s *S3Client) DeleteSessionData(ctx context.Context, projectId int, session
 
 	versionPart := "v2/"
 	devStr := ""
-	if util.IsDevOrTestEnv() {
+	if env.IsDevOrTestEnv() {
 		devStr = "dev/"
 	}
 
@@ -863,7 +859,7 @@ func bucketKey[T ~string](sessionId int, projectId int, key T) *string {
 	if UseNewSessionBucket(sessionId) {
 		versionPart = "v2/"
 	}
-	if util.IsDevEnv() {
+	if env.IsDevEnv() {
 		return pointy.String(fmt.Sprintf("%sdev/%v/%v/%v", versionPart, projectId, sessionId, key))
 	}
 	return pointy.String(fmt.Sprintf("%s%v/%v/%v", versionPart, projectId, sessionId, key))
@@ -871,7 +867,7 @@ func bucketKey[T ~string](sessionId int, projectId int, key T) *string {
 
 func (s *S3Client) sourceMapBucketKey(projectId int, version *string, fileName string) *string {
 	var key string
-	if util.IsDevEnv() {
+	if env.IsDevEnv() {
 		key = "dev/"
 	}
 	if version == nil {
@@ -1044,7 +1040,7 @@ func (s *S3Client) GetSourcemapVersions(ctx context.Context, projectId int) ([]s
 
 func (s *S3Client) githubBucketKey(repoPath string, version string, fileName string) *string {
 	var key string
-	if util.IsDevEnv() {
+	if env.IsDevEnv() {
 		key = "dev/"
 	}
 	key += fmt.Sprintf("%s/%s/%s", repoPath, version, fileName)

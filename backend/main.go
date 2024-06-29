@@ -2,14 +2,13 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
-	"html/template"
+	"github.com/highlight-run/highlight/backend/enterprise"
+	"github.com/highlight-run/highlight/backend/env"
+	"github.com/highlight-run/highlight/backend/pricing"
 	"io"
 	"math/rand"
 	"net/http"
-	"os"
-	"path"
 	"strings"
 	"sync"
 	"time"
@@ -64,35 +63,18 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go/v78/client"
+	_ "github.com/urfave/cli/v2"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
-
-	_ "github.com/urfave/cli/v2"
 	_ "gorm.io/gorm"
 )
 
-var (
-	frontendURL         = os.Getenv("REACT_APP_FRONTEND_URI")
-	staticFrontendPath  = os.Getenv("ONPREM_STATIC_FRONTEND_PATH")
-	landingStagingURL   = os.Getenv("LANDING_PAGE_STAGING_URI")
-	sendgridKey         = os.Getenv("SENDGRID_API_KEY")
-	stripeApiKey        = os.Getenv("STRIPE_API_KEY")
-	stripeWebhookSecret = os.Getenv("STRIPE_WEBHOOK_SECRET")
-	slackSigningSecret  = os.Getenv("SLACK_SIGNING_SECRET")
-	otlpEndpoint        = os.Getenv("OTLP_ENDPOINT")
-	otlpDogfoodEndpoint = os.Getenv("OTLP_DOGFOOD_ENDPOINT")
-	runtimeFlag         = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
-	handlerFlag         = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
-)
-
-// we inject this value at build time for on-prem
-var SENDGRID_API_KEY string
-
 var runtimeParsed util.Runtime
+var handlerParsed util.Handler
 
 const (
 	localhostCertPath = "localhostssl/server.crt"
@@ -100,13 +82,7 @@ const (
 )
 
 func init() {
-	flag.Parse()
-	if runtimeFlag == nil {
-		log.Fatal("runtime is nil, provide a value")
-	} else if !util.Runtime(*runtimeFlag).IsValid() {
-		log.Fatalf("invalid runtime: %v", *runtimeFlag)
-	}
-	runtimeParsed = util.Runtime(*runtimeFlag)
+	runtimeParsed, handlerParsed = util.GetRuntime()
 }
 
 func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, rClient *redis.Client, ccClient *clickhouse.Client, queue *kafkaqueue.Queue, batchedQueue *kafkaqueue.Queue) http.HandlerFunc {
@@ -198,7 +174,7 @@ var PRIVATE_GRAPH_CORS_OPTIONS = cors.Options{
 
 func validateOrigin(_ *http.Request, origin string) bool {
 	isHighlightSubdomain := strings.HasSuffix(origin, ".highlight.io")
-	if origin == frontendURL || origin == landingStagingURL || isHighlightSubdomain {
+	if origin == env.Config.FrontendUri || origin == env.Config.LandingStagingURL || isHighlightSubdomain {
 		return true
 	}
 
@@ -211,24 +187,22 @@ func main() {
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 	ctx := context.TODO()
 
-	if otlpDogfoodEndpoint != "" {
-		log.WithContext(ctx).WithField("otlpEndpoint", otlpDogfoodEndpoint).Info("overwriting otlp client address for highlight backend logging")
-		highlight.SetOTLPEndpoint(otlpDogfoodEndpoint)
+	if env.Config.OTLPDogfoodEndpoint != "" {
+		log.WithContext(ctx).WithField("otlpEndpoint", env.Config.OTLPDogfoodEndpoint).Info("overwriting otlp client address for highlight backend logging")
+		highlight.SetOTLPEndpoint(env.Config.OTLPDogfoodEndpoint)
 	}
 
 	serviceName := string(runtimeParsed)
 	if runtimeParsed == util.Worker {
-		if handlerFlag != nil {
-			serviceName = *handlerFlag
-		}
+		serviceName = string(handlerParsed)
 	}
 
 	var samplingMap = map[trace.SpanKind]float64{}
-	if util.IsProduction() {
+	if env.IsProduction() {
 		samplingMap = map[trace.SpanKind]float64{
 			trace.SpanKindUnspecified: 1. / 1_000_000,
 			trace.SpanKindInternal:    1. / 1_000_000,
-			trace.SpanKindConsumer:    util.ConsumerSpanSamplingRate(),
+			trace.SpanKindConsumer:    env.ConsumerSpanSamplingRate(),
 			// report `sampling`
 			trace.SpanKindServer: 1.,
 			// report all customer data
@@ -236,42 +210,36 @@ func main() {
 		}
 	}
 
-	// setup highlight
+	// setup highlight self-instrumentation
 	highlight.Start(
 		highlight.WithProjectID("1jdkoe52"),
-		highlight.WithEnvironment(util.EnvironmentName()),
+		highlight.WithEnvironment(env.EnvironmentName()),
 		highlight.WithMetricSamplingRate(1./1_000_000),
 		highlight.WithSamplingRateMap(samplingMap),
 		highlight.WithServiceName(serviceName),
-		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
+		highlight.WithServiceVersion(env.Config.Version),
 	)
 	defer highlight.Stop()
 	highlight.SetDebugMode(log.StandardLogger())
 
 	// setup highlight logrus hook
 	hlog.Init()
-	log.WithContext(ctx).WithField("hello", "world").Info("welcome to highlight.io")
+
+	if err := enterprise.Start(ctx); err != nil {
+		log.WithContext(ctx).WithError(err).Fatal("Failed to start highlight enterprise license checker.")
+	}
+
+	log.WithContext(ctx).
+		WithField("release", env.Config.Release).
+		WithField("commit", env.Config.Version).
+		WithField("env_pub_length", len(env.GetEnterpriseEnvPublicKey())).
+		Info("welcome to highlight.io")
+
 	if err := phonehome.Start(ctx); err != nil {
 		log.WithContext(ctx).Warn("Failed to start highlight phone-home service.")
 	}
 
-	if sendgridKey == "" {
-		if SENDGRID_API_KEY == "" {
-			log.WithContext(ctx).Warn("sendgrid api key is missing")
-		} else {
-			log.WithContext(ctx).Info("using sendgrid api key injected from build target!")
-			sendgridKey = SENDGRID_API_KEY
-		}
-	} else {
-		log.WithContext(ctx).Info("sendgrid api key is present!")
-	}
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
-
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("Error setting up DB: %v", err)
 	}
@@ -280,7 +248,7 @@ func main() {
 		log.WithContext(ctx).Fatalf("Error setting up GORM tracing hooks: %v", err)
 	}
 
-	if util.IsDevEnv() {
+	if env.IsDevEnv() {
 		_, err := model.MigrateDB(ctx, db)
 
 		if err != nil {
@@ -288,8 +256,14 @@ func main() {
 		}
 	}
 
-	stripeClient := &client.API{}
-	stripeClient.Init(stripeApiKey, nil)
+	var pricingClient *pricing.Client
+	if env.IsInDocker() {
+		pricingClient = pricing.NewNoopClient()
+	} else {
+		stripeClient := &client.API{}
+		stripeClient.Init(env.Config.StripeApiKey, nil)
+		pricingClient = pricing.New(stripeClient)
+	}
 
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(model.AWS_REGION_US_EAST_2))
 	if err != nil {
@@ -298,18 +272,18 @@ func main() {
 	mpm := marketplacemetering.NewFromConfig(cfg)
 
 	var storageClient storage.Client
-	if util.IsInDocker() {
+	if env.IsInDocker() {
 		log.WithContext(ctx).Info("in docker: using filesystem for object storage")
 		fsRoot := "/tmp"
-		if os.Getenv("OBJECT_STORAGE_FS") != "" {
-			fsRoot = os.Getenv("OBJECT_STORAGE_FS")
+		if env.Config.ObjectStorageFS != "" {
+			fsRoot = env.Config.ObjectStorageFS
 		}
-		if storageClient, err = storage.NewFSClient(ctx, os.Getenv("REACT_APP_PRIVATE_GRAPH_URI"), fsRoot); err != nil {
+		if storageClient, err = storage.NewFSClient(ctx, env.Config.PrivateGraphUri, fsRoot); err != nil {
 			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
 		}
 	} else {
 		log.WithContext(ctx).Info("using S3 for object storage")
-		if os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_S3_BUCKET_NAME") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
+		if env.Config.AwsAccessKeyID == "" || env.Config.AwsSecretAccessKey == "" {
 			log.WithContext(ctx).Fatalf("please specify object storage env variables in order to proceed")
 		}
 		if storageClient, err = storage.NewS3Client(ctx); err != nil {
@@ -329,9 +303,12 @@ func main() {
 	kafkaTracesProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}), kafkaqueue.Producer, kCfg)
 	defer kafkaTracesProducer.Stop(ctx)
 
-	lambda, err := lambda.NewLambdaClient()
-	if err != nil {
-		log.WithContext(ctx).Errorf("error creating lambda client: %v", err)
+	var lambdaClient *lambda.Client
+	if !env.IsInDocker() {
+		lambdaClient, err = lambda.NewLambdaClient()
+		if err != nil {
+			log.WithContext(ctx).Errorf("error creating lambda client: %v", err)
+		}
 	}
 
 	redisClient := redis.NewClient()
@@ -349,7 +326,7 @@ func main() {
 		log.WithContext(ctx).Fatalf("error creating oauth client: %v", err)
 	}
 
-	tp, err := highlight.CreateTracerProvider(otlpEndpoint)
+	tp, err := highlight.CreateTracerProvider(env.Config.OTLPEndpoint)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating collector tracer provider: %v", err)
 	}
@@ -359,7 +336,7 @@ func main() {
 		trace.WithSchemaURL(semconv.SchemaURL),
 	)
 
-	tpNoResources, err := highlight.CreateTracerProvider(otlpEndpoint, sdktrace.WithResource(resource.Empty()))
+	tpNoResources, err := highlight.CreateTracerProvider(env.Config.OTLPEndpoint, sdktrace.WithResource(resource.Empty()))
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating collector tracer provider: %v", err)
 	}
@@ -372,26 +349,23 @@ func main() {
 	integrationsClient := integrations.NewIntegrationsClient(db)
 
 	oai := &openai_client.OpenAiImpl{}
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		log.WithContext(ctx).Fatalf("error creating openai client: %v", e.New("OPENAI_API_KEY is not set"))
+	if err := oai.InitClient(env.Config.OpenAIApiKey); err != nil {
+		log.WithContext(ctx).WithError(err).Error("error creating openai client")
 	}
-	if err := oai.InitClient(apiKey); err != nil {
-		log.WithContext(ctx).Fatalf("error creating openai client: %v", err)
-	}
+
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
 	subscriptionWorkerPool := workerpool.New(1000)
 	subscriptionWorkerPool.SetPanicHandler(util.Recover)
 	privateResolver := &private.Resolver{
-		ClearbitClient:         clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
+		ClearbitClient:         clearbit.NewClient(clearbit.WithAPIKey(env.Config.ClearbitApiKey)),
 		DB:                     db,
 		Tracer:                 tracer,
-		MailClient:             sendgrid.NewSendClient(sendgridKey),
-		StripeClient:           stripeClient,
+		MailClient:             sendgrid.NewSendClient(env.Config.SendgridKey),
+		PricingClient:          pricingClient,
 		AWSMPClient:            mpm,
 		StorageClient:          storageClient,
-		LambdaClient:           lambda,
+		LambdaClient:           lambdaClient,
 		EmbeddingsClient:       embeddings.New(),
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
@@ -435,7 +409,7 @@ func main() {
 		If type is 'public-graph', we run public-graph on /
 		If type is 'private-graph', we run private-graph on /
 	*/
-	if runtimeParsed == util.PrivateGraph || runtimeParsed == util.All {
+	if runtimeParsed.IsPrivateGraph() {
 		privateEndpoint := "/private"
 		if runtimeParsed == util.PrivateGraph {
 			privateEndpoint = "/"
@@ -449,12 +423,12 @@ func main() {
 			r.HandleFunc("/validate", oauthSrv.HandleValidate)
 			r.HandleFunc("/revoke", oauthSrv.HandleRevoke)
 		})
-		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(ctx, stripeWebhookSecret))
+		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(ctx, env.Config.StripeWebhookSecret))
 		r.HandleFunc("/callback/aws-mp", privateResolver.AWSMPCallback(ctx))
 		r.Route("/zapier", func(r chi.Router) {
 			zapier.CreateZapierRoutes(r, db, &zapierStore, &rh)
 		})
-		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(ctx, slackSigningSecret))
+		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(ctx, env.Config.SlackSigningSecret))
 		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "microsoft-teams/bot"), privateResolver.MicrosoftTeamsBotEndpoint)
 
 		r.Route(privateEndpoint, func(r chi.Router) {
@@ -507,7 +481,7 @@ func main() {
 			)
 		})
 	}
-	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
+	if runtimeParsed.IsPublicGraph() {
 		sessionCache, err := golang_lru.New[string, *model.Session](100_000)
 		if err != nil {
 			log.Fatalf("error initializing lru cache: %v", err)
@@ -520,14 +494,14 @@ func main() {
 			BatchedQueue:      kafkaBatchedProducer,
 			DataSyncQueue:     kafkaDataSyncProducer,
 			TracesQueue:       kafkaTracesProducer,
-			MailClient:        sendgrid.NewSendClient(sendgridKey),
+			MailClient:        sendgrid.NewSendClient(env.Config.SendgridKey),
 			EmbeddingsClient:  embeddings.New(),
 			StorageClient:     storageClient,
 			Redis:             redisClient,
 			Clickhouse:        clickhouseClient,
 			RH:                &rh,
 			Store:             store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
-			LambdaClient:      lambda,
+			LambdaClient:      lambdaClient,
 			SessionCache:      sessionCache,
 		}
 		publicEndpoint := "/public"
@@ -571,47 +545,6 @@ func main() {
 	}
 
 	/*
-		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
-	*/
-	if staticFrontendPath != "" && util.IsOnPrem() {
-		log.Printf("static frontend path: %v \n", staticFrontendPath)
-		staticHtmlPath := path.Join(staticFrontendPath, "index.html")
-		t, err := template.ParseFiles(staticHtmlPath)
-		if err != nil {
-			log.Fatalf("error templating html file: %v", err)
-		}
-		log.Printf("static frontend html path: %v \n", staticHtmlPath)
-		f, err := os.Create(staticHtmlPath)
-		if err != nil {
-			log.Fatalf("error creating file: %v \n", err)
-		}
-		c := struct {
-			FirebaseConfigString string
-		}{
-			FirebaseConfigString: os.Getenv("REACT_APP_FIREBASE_CONFIG_OBJECT"),
-		}
-		err = t.Execute(f, c)
-		if err != nil {
-			log.Fatalf("error executing golang template: %v \n", err)
-		}
-
-		log.Printf("running templating script: %v \n", staticFrontendPath)
-		fileHandler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			fileServer := http.FileServer(http.Dir(staticFrontendPath))
-			staticIndex := strings.Index(req.URL.Path, "/static/")
-			if staticIndex == -1 {
-				// If we're not fetching a static file, return the index.html file directly.
-				fsHandler := http.StripPrefix(req.URL.Path, fileServer)
-				fsHandler.ServeHTTP(w, req)
-			} else {
-				// If we are fetching a static file, serve it.
-				fileServer.ServeHTTP(w, req)
-			}
-		})
-		r.Handle("/*", fileHandler)
-	}
-
-	/*
 		Decide what binary to run
 		For the the 'worker' runtime, run only the worker.
 		For the the 'all' runtime, run both the server and worker.
@@ -619,7 +552,7 @@ func main() {
 	*/
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running....")
-	if runtimeParsed == util.Worker || runtimeParsed == util.All {
+	if runtimeParsed.IsWorker() {
 		sessionCache, err := golang_lru.New[string, *model.Session](100_000)
 		if err != nil {
 			log.Fatalf("error initializing lru cache: %v", err)
@@ -632,23 +565,20 @@ func main() {
 			BatchedQueue:      kafkaBatchedProducer,
 			DataSyncQueue:     kafkaDataSyncProducer,
 			TracesQueue:       kafkaTracesProducer,
-			MailClient:        sendgrid.NewSendClient(sendgridKey),
+			MailClient:        sendgrid.NewSendClient(env.Config.SendgridKey),
 			EmbeddingsClient:  embeddings.New(),
 			StorageClient:     storageClient,
 			Redis:             redisClient,
 			Clickhouse:        clickhouseClient,
 			RH:                &rh,
 			Store:             store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
-			LambdaClient:      lambda,
+			LambdaClient:      lambdaClient,
 			SessionCache:      sessionCache,
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
-			if !util.IsDevOrTestEnv() && !util.IsOnPrem() {
-				serviceName := "worker-service"
-				if handlerFlag != nil && *handlerFlag != "" {
-					serviceName = *handlerFlag
-				}
+			if !env.IsDevOrTestEnv() && !env.IsOnPrem() {
+				serviceName := string(handlerParsed)
 
 				log.WithContext(ctx).Info("Running dd client setup process...")
 				if err := dd.Start(serviceName); err != nil {
@@ -657,21 +587,7 @@ func main() {
 					defer dd.Stop()
 				}
 			}
-			if handlerFlag != nil && *handlerFlag != "" {
-				func() {
-					defer util.RecoverAndCrash()
-					w.GetHandler(ctx, *handlerFlag)(ctx)
-				}()
-			} else {
-				go func() {
-					w.Start(ctx)
-				}()
-				if util.IsDevEnv() && util.UseSSL() {
-					log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
-				} else {
-					log.Fatal(http.ListenAndServe(":"+port, r))
-				}
-			}
+			w.GetHandler(ctx, handlerParsed)(ctx)
 		} else {
 			go func() {
 				w.Start(ctx)
@@ -702,17 +618,33 @@ func main() {
 					w.AutoResolveStaleErrors(ctx)
 				}
 			}()
-			if util.IsDevEnv() && util.UseSSL() {
-				log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
+			if env.IsDevEnv() && env.UseSSL() {
+				log.WithContext(ctx).
+					WithField("runtime", runtimeParsed).
+					WithField("port", defaultPort).
+					Info("running HTTPS listener")
+				log.Fatal(http.ListenAndServeTLS(":"+defaultPort, localhostCertPath, localhostKeyPath, r))
 			} else {
-				log.Fatal(http.ListenAndServe(":"+port, r))
+				log.WithContext(ctx).
+					WithField("runtime", runtimeParsed).
+					WithField("port", defaultPort).
+					Info("running HTTP listener")
+				log.Fatal(http.ListenAndServe(":"+defaultPort, r))
 			}
 		}
 	} else {
-		if util.IsDevEnv() && util.UseSSL() {
-			log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
+		if env.IsDevEnv() && env.UseSSL() {
+			log.WithContext(ctx).
+				WithField("runtime", runtimeParsed).
+				WithField("port", defaultPort).
+				Info("running HTTPS listener")
+			log.Fatal(http.ListenAndServeTLS(":"+defaultPort, localhostCertPath, localhostKeyPath, r))
 		} else {
-			log.Fatal(http.ListenAndServe(":"+port, r))
+			log.WithContext(ctx).
+				WithField("runtime", runtimeParsed).
+				WithField("port", defaultPort).
+				Info("running HTTP listener")
+			log.Fatal(http.ListenAndServe(":"+defaultPort, r))
 		}
 	}
 }

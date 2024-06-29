@@ -3,8 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-
+	"github.com/highlight-run/highlight/backend/env"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
@@ -14,7 +13,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatal(err)
 	}

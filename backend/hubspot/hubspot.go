@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -14,12 +14,12 @@ import (
 )
 
 var (
-	OAuthToken = os.Getenv("HUBSPOT_OAUTH_TOKEN")
-	APIKey     = os.Getenv("HUBSPOT_API_KEY")
+	OAuthToken = env.Config.HubspotOAuthToken
+	APIKey     = env.Config.HubspotApiKey
 	// CookieString and CSRFToken are reverse engineered from the frontend request flow.
 	// they only need to be set for the doppelgänger functionality.
-	CookieString = os.Getenv("HUBSPOT_COOKIE_STRING")
-	CSRFToken    = os.Getenv("HUBSPOT_CSRF_TOKEN")
+	CookieString = env.Config.HubspotCookieString
+	CSRFToken    = env.Config.HubspotCsrfToken
 )
 
 type QSParam struct {

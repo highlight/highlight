@@ -193,8 +193,6 @@ jobs:
                   REF: ${{ github.ref }}
                   REPO: ${{ github.event.pull_request.head.repo.full_name }}
               run: |
-                  start_time=$(date -Isecond)
-
                   export RUN_SESSION_SCREENSHOT_LAMBDA=false
                   if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
                     export REACT_APP_COMMIT_SHA="${COMMIT_SHA}"
@@ -332,8 +330,6 @@ jobs:
 
             - name: Start docker containers & run sdk e2e test
               run: |
-                  start_time=$(date -Isecond)
-
                   # start highlight
                   pushd docker;
                   source ./env.sh;
@@ -367,7 +363,7 @@ jobs:
               if: failure()
               run: |
                   cd docker;
-                  docker compose logs;
+                  docker compose -f compose.yml -f compose.hobby.yml logs;
 
             - name: Dump databases on failure
               if: failure()
