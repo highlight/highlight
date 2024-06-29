@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"os"
+	"github.com/highlight-run/highlight/backend/env"
 	"strings"
 	"time"
 
@@ -33,11 +33,11 @@ const (
 
 var (
 	EnvironmentPrefix = func() string {
-		prefix := os.Getenv("KAFKA_ENV_PREFIX")
+		prefix := env.Config.KafkaEnvPrefix
 		if len(prefix) > 0 {
 			return prefix
 		} else {
-			return os.Getenv("DOPPLER_CONFIG")
+			return env.Config.Doppler
 		}
 	}()
 )
@@ -79,8 +79,8 @@ type GetTopicOptions struct {
 }
 
 func GetTopic(options GetTopicOptions) string {
-	topic := os.Getenv("KAFKA_TOPIC")
-	if util.IsDevOrTestEnv() {
+	topic := env.Config.KafkaTopic
+	if env.IsDevOrTestEnv() {
 		topic = fmt.Sprintf("%s_%s", EnvironmentPrefix, topic)
 	}
 	if options.Type != TopicTypeDefault {
@@ -113,7 +113,7 @@ func getLogger(mode, topic string, level log.Level) kafka.LoggerFunc {
 }
 
 func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
-	servers := os.Getenv("KAFKA_SERVERS")
+	servers := env.Config.KafkaServers
 	brokers := strings.Split(servers, ",")
 	groupID := strings.Join([]string{ConsumerGroupName, topic}, "_")
 
@@ -124,7 +124,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 	var dialer *kafka.Dialer
 	var transport *kafka.Transport
 	var client *kafka.Client
-	if util.IsInDocker() {
+	if env.IsInDocker() {
 		dialer = &kafka.Dialer{
 			Timeout:   KafkaOperationTimeout,
 			DualStack: true,
@@ -139,7 +139,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 		}
 	} else {
 		var err error
-		mechanism, err = scram.Mechanism(scram.SHA512, os.Getenv("KAFKA_SASL_USERNAME"), os.Getenv("KAFKA_SASL_PASSWORD"))
+		mechanism, err = scram.Mechanism(scram.SHA512, env.Config.KafkaSASLUsername, env.Config.KafkaSASLPassword)
 		if err != nil {
 			log.WithContext(ctx).Fatal(errors.Wrap(err, "failed to authenticate with kafka"))
 		}
@@ -162,7 +162,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 	}
 
 	rebalanceTimeout := 1 * time.Minute
-	if util.IsDevOrTestEnv() {
+	if env.IsDevOrTestEnv() {
 		// faster rebalance for dev to start processing quicker
 		rebalanceTimeout = time.Second
 		// create per-profile consumer and topic to avoid collisions between dev envs
@@ -215,7 +215,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			}
 		}
 
-		if !util.IsDevOrTestEnv() {
+		if !env.IsDevOrTestEnv() {
 			log.WithContext(ctx).
 				WithField("topic", topic).
 				Infof("initializing kafka producer %+v", pool.kafkaP)
@@ -266,7 +266,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			}
 		}
 
-		if !util.IsDevOrTestEnv() {
+		if !env.IsDevOrTestEnv() {
 			log.WithContext(ctx).
 				WithField("topic", topic).
 				WithField("rack", rack).

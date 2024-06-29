@@ -3,11 +3,10 @@ package stepfunctions
 import (
 	"context"
 	"encoding/json"
-	"os"
-
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/google/uuid"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 
@@ -17,7 +16,7 @@ import (
 )
 
 var (
-	deleteSessionsArn = os.Getenv("DELETE_SESSIONS_ARN")
+	deleteSessionsArn = env.Config.DeleteSessionsArn
 	sessionExportArn  = "arn:aws:states:us-east-2:173971919437:stateMachine:SessionExport"
 )
 

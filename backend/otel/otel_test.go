@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
@@ -66,7 +67,7 @@ var red *redis.Client
 
 func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"
-	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
+	testLogger := log.WithContext(context.TODO())
 	var err error
 	db, err = util.CreateAndMigrateTestDB(dbName)
 	if err != nil {
@@ -182,9 +183,9 @@ func TestHandler_HandleTrace(t *testing.T) {
 		},
 	} {
 		if tc.external {
-			util.DopplerConfig = "prod_aws"
+			env.Config.Doppler = "prod_aws"
 		} else {
-			util.DopplerConfig = ""
+			env.Config.Doppler = ""
 		}
 
 		inputBytes, err := os.ReadFile(file)

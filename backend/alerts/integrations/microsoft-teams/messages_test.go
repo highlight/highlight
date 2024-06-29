@@ -3,7 +3,7 @@ package microsoft_teams
 import (
 	"context"
 	"fmt"
-	"os"
+	"github.com/highlight-run/highlight/backend/env"
 	"testing"
 	"time"
 
@@ -35,8 +35,8 @@ func (suite *MicrosoftTeamsChannelsTestSuite) SetupTest() {
 	teamsBotPassword := "<REPLACE_WITH_DISCORD_BOT_SECRET>"
 	teamsBotID := "<REPLACE_WITH_DISCORD_BOT_ID>"
 
-	os.Setenv("MICROSOFT_TEAMS_BOT_PASSWORD", teamsBotPassword)
-	os.Setenv("MICROSOFT_TEAMS_BOT_ID", teamsBotID)
+	env.Config.MicrosoftTeamsBotPassword = teamsBotPassword
+	env.Config.MicrosoftTeamsBotId = teamsBotID
 
 	bot, err := NewMicrosoftTeamsBot(tenantID)
 	if err != nil {

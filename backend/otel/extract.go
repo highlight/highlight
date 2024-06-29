@@ -3,6 +3,7 @@ package otel
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -12,7 +13,6 @@ import (
 	model "github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
-	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	e "github.com/pkg/errors"
@@ -326,7 +326,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	var err error
 	fields.projectIDInt, err = projectToInt(fields.projectID)
 
-	if fields.projectIDInt == 1 && util.IsProduction() {
+	if fields.projectIDInt == 1 && env.IsProduction() {
 		if fields.serviceName == "all" || fields.serviceName == "" {
 			fields.external = true
 			fields.attrs["service.external"] = "true"
