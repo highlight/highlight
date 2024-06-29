@@ -31,7 +31,7 @@
 		"dinero.js": "2.0.0-alpha.14",
 		"firebase": "^10.12.2",
 		"framer-motion": "^6.3.15",
-		"graphql": "^15.7.2",
+		"graphql": "^16.9.0",
 		"highlight.io": "workspace:*",
 		"highlight.run": "workspace:*",
 		"js-cookie": "^3.0.1",
