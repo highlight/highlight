@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/remix",
-	"version": "2.0.37",
+	"version": "2.0.38",
 	"description": "Client for interfacing with Highlight in Remix",
 	"packageManager": "yarn@4.0.2",
 	"author": "",
@@ -44,7 +44,7 @@
 		"js-cookie": "^3.0.5"
 	},
 	"devDependencies": {
-		"@remix-run/react": "^2.8.1",
+		"@remix-run/react": "^2.10.0",
 		"tsup": "^7.1.0",
 		"typescript": "^5.1.6"
 	}

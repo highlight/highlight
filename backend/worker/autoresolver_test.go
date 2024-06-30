@@ -2,7 +2,6 @@ package worker
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
@@ -23,7 +22,7 @@ import (
 
 func createAutoResolver() *AutoResolver {
 	dbName := "highlight_testing_db"
-	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
+	testLogger := log.WithContext(context.TODO())
 	var err error
 	db, err := util.CreateAndMigrateTestDB(dbName)
 	if err != nil {

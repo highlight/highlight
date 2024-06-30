@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
+	"github.com/highlight-run/highlight/backend/env"
 	"strconv"
 	"strings"
 	"text/template"
@@ -103,7 +103,7 @@ func SendLogAlertsWelcomeMessage(ctx context.Context, alert *model.LogAlert, inp
 
 	description := "Log alerts will now be sent to this channel."
 
-	frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
+	frontendURL := env.Config.FrontendUri
 	alertUrl := fmt.Sprintf("%s/%d/%s/%d", frontendURL, input.Project.Model.ID, "alerts/logs", alert.ID)
 	message := fmt.Sprintf("👋 %s has %s the alert \"%s\". %s %s", *adminName, input.OperationName, alert.GetName(), description, alertUrl)
 

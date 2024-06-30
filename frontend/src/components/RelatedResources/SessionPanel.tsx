@@ -37,7 +37,9 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 	resource,
 }) => {
 	const { projectId } = useNumericProjectId()
-	const playerContext = usePlayer()
+	const playerRef = useRef<HTMLDivElement>(null)
+	const playerWrapperRef = useRef<HTMLDivElement>(null)
+	const playerContext = usePlayer(playerRef, true)
 	const {
 		session,
 		state: replayerState,
@@ -49,7 +51,6 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 	} = playerContext
 	const resourcesContext = useResources(session)
 	const toolbarContext = useToolbarItems()
-	const playerWrapperRef = useRef<HTMLDivElement>(null)
 	const replayerWrapperBbox = replayer?.wrapper.getBoundingClientRect()
 	const { playerCenterPanelRef } = usePlayerUIContext()
 
@@ -60,7 +61,6 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 		const params = {
 			[PlayerSearchParameters.errorId]: resource.errorId,
 			[PlayerSearchParameters.log]: resource.log,
-			[PlayerSearchParameters.tsAbs]: resource.tsAbs,
 		}
 
 		const filteredParams = Object.fromEntries(
@@ -70,16 +70,9 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 		const paramsString = stringify(filteredParams)
 
 		return `/${projectId}/sessions/${resource.secureId}?${paramsString}`
-	}, [
-		projectId,
-		resource.errorId,
-		resource.log,
-		resource.secureId,
-		resource.tsAbs,
-	])
+	}, [projectId, resource.errorId, resource.log, resource.secureId])
 
-	const showSession =
-		sessionViewability === SessionViewability.VIEWABLE && !!session
+	const showSession = sessionViewability === SessionViewability.VIEWABLE
 
 	return (
 		<ReplayerContextProvider value={playerContext}>
@@ -163,6 +156,7 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 												}}
 												className="highlight-block"
 												id="player"
+												ref={playerRef}
 											/>
 											{!isPlayerReady && <LoadingBox />}
 										</div>

@@ -1,3 +1,4 @@
+import { ApolloError } from '@apollo/client'
 import { createContext } from '@util/context/context'
 import { useState } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
@@ -14,6 +15,14 @@ import { useSearchTime } from '@/hooks/useSearchTime'
 
 export const SORT_COLUMN = 'sort_column'
 export const SORT_DIRECTION = 'sort_direction'
+
+export type AiSuggestion = {
+	query: string
+	dateRange: {
+		startDate?: Date
+		endDate?: Date
+	}
+}
 
 interface SearchContext extends Partial<ReturnType<typeof useSearchTime>> {
 	disabled: boolean
@@ -32,6 +41,14 @@ interface SearchContext extends Partial<ReturnType<typeof useSearchTime>> {
 	resetMoreResults: () => void
 	histogramBucketSize?: DateHistogramBucketSize
 	pollingExpired: boolean
+	aiMode: boolean
+	setAiMode: (aiMode: boolean) => void
+	aiQuery: string
+	setAiQuery: (aiQuery: string) => void
+	onAiSubmit: (aiQuery: string) => void
+	aiSuggestion?: AiSuggestion
+	aiSuggestionLoading?: boolean
+	aiSuggestionError?: ApolloError
 }
 
 export const [useSearchContext, SearchContextProvider] =
@@ -51,6 +68,12 @@ interface Props extends Partial<ReturnType<typeof useSearchTime>> {
 	moreResults?: SearchContext['moreResults']
 	resetMoreResults?: SearchContext['resetMoreResults']
 	pollingExpired?: SearchContext['pollingExpired']
+	aiMode?: SearchContext['aiMode']
+	setAiMode?: SearchContext['setAiMode']
+	onAiSubmit?: SearchContext['onAiSubmit']
+	aiSuggestion?: SearchContext['aiSuggestion']
+	aiSuggestionLoading?: SearchContext['aiSuggestionLoading']
+	aiSuggestionError?: SearchContext['aiSuggestionError']
 }
 
 export const SearchContext: React.FC<Props> = ({
@@ -67,10 +90,17 @@ export const SearchContext: React.FC<Props> = ({
 	resetMoreResults = () => null,
 	setPage = () => null,
 	pollingExpired = false,
+	aiMode = false,
+	setAiMode = () => null,
+	onAiSubmit = () => null,
+	aiSuggestion,
+	aiSuggestionLoading,
+	aiSuggestionError,
 	...searchTimeContext
 }) => {
 	const [queryParam] = useQueryParam('query', StringParam)
 	const [query, setQuery] = useState(queryParam ?? initialQuery)
+	const [aiQuery, setAiQuery] = useState('')
 	const { queryParts, tokens } = parseSearch(query)
 	const tokenGroups = buildTokenGroups(tokens)
 
@@ -93,6 +123,14 @@ export const SearchContext: React.FC<Props> = ({
 				setPage,
 				resetMoreResults,
 				pollingExpired,
+				aiMode,
+				aiQuery,
+				setAiQuery,
+				setAiMode,
+				onAiSubmit,
+				aiSuggestion,
+				aiSuggestionLoading,
+				aiSuggestionError,
 				...searchTimeContext,
 			}}
 		>

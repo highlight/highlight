@@ -2,17 +2,23 @@ package graph
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/env"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/openai_client"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/lib/pq"
 	"github.com/samber/lo"
+	"github.com/sashabaranov/go-openai"
 	"github.com/stretchr/testify/assert"
 
 	pointy "github.com/openlyinc/pointy"
@@ -33,7 +39,7 @@ var DB *gorm.DB
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"
-	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
+	testLogger := log.WithContext(context.TODO())
 	var err error
 	DB, err = util.CreateAndMigrateTestDB(dbName)
 	SetupAuthClient(context.Background(), Simple, nil, nil)
@@ -365,6 +371,118 @@ func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
 	}
 }
 
+const defaultQueryResponse = `{"query":"environment=production AND secure_session_id EXISTS","date_range":{"start_date":"","end_date":""}}`
+
+type OpenAiTestImpl struct {
+}
+
+func (o *OpenAiTestImpl) InitClient(apiKey string) error {
+	return nil
+}
+
+func (o *OpenAiTestImpl) CreateChatCompletion(ctx context.Context, request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error) {
+	respMessage := openai.ChatCompletionResponse{
+		Choices: []openai.ChatCompletionChoice{
+			{
+				Index: 0,
+				Message: openai.ChatCompletionMessage{
+					Content: defaultQueryResponse,
+				},
+			},
+		},
+	}
+
+	// find the system prompt
+	systemPrompt := ""
+	for _, message := range request.Messages {
+		if message.Role == "system" {
+			systemPrompt = message.Content
+			break
+		}
+	}
+
+	// if an empty query is inputted, return an empty response in the 'query' field
+	if request.Messages[len(request.Messages)-1].Content == "" {
+		respMessage.Choices[0].Message.Content = `{"query":"","date_range":{"start_date":"","end_date":""}}`
+	}
+
+	// if a bad query is inputted, and the prompt handles these inputs, return an empty response in the 'query' field
+	if request.Messages[len(request.Messages)-1].Content == openai_client.IrrelevantQuery && strings.Contains(systemPrompt, openai_client.IrrelevantQueryFunctionalityIndicator) {
+		respMessage.Choices[0].Message.Content = `{"query":"","date_range":{"start_date":"","end_date":""}}`
+	}
+
+	return respMessage, nil
+}
+
+func TestResolver_GetAIQuerySuggestion(t *testing.T) {
+	tests := map[string]struct {
+		productType modelInputs.ProductType
+		query       string
+	}{
+		"error logs with date range": {
+			productType: modelInputs.ProductTypeLogs,
+			query:       "all logs with level error, between 4pm yesterday and just now.",
+		},
+		"irrelevant query": {
+			productType: modelInputs.ProductTypeLogs,
+			query:       openai_client.IrrelevantQuery,
+		},
+		"empty query": {
+			productType: modelInputs.ProductTypeLogs,
+			query:       "",
+		},
+	}
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+			clickhouseClient, err := clickhouse.NewClient(clickhouse.TestDatabase)
+			if err != nil {
+				t.Fatalf("error creating clickhouse client: %v", err)
+			}
+			r := &queryResolver{Resolver: &Resolver{
+				DB:               DB,
+				Redis:            redis.NewClient(),
+				ClickhouseClient: clickhouseClient,
+				OpenAiClient:     &OpenAiTestImpl{},
+			},
+			}
+			ctx := context.WithValue(context.Background(), model.ContextKeys.UID, "abc")
+			admin, err := r.getCurrentAdmin(ctx)
+			if err != nil {
+				t.Fatal(e.Wrap(err, "error creating admin"))
+			}
+
+			w := model.Workspace{
+				Name: ptr.String("test1"),
+			}
+			if err := DB.Create(&w).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			if err := DB.Model(&w).Association("Admins").Append(admin); err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			p := model.Project{WorkspaceID: w.ID}
+			if err := DB.Create(&p).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting project"))
+			}
+
+			out, err := r.AiQuerySuggestion(ctx, "America/New_York", p.ID, v.productType, v.query)
+
+			if err != nil {
+				if (v.query == openai_client.IrrelevantQuery || v.query == "") && err.Error() == openai_client.MalformedPromptError.Error() {
+					t.Logf("successful malformed handling of output \n %+v", err.Error())
+				} else {
+					t.Fatalf("error in query suggestion %+v", err)
+				}
+			} else {
+				t.Logf("query output \n %+v", out.Query)
+				t.Logf("date output \n %+v %+v", out.DateRange.StartDate, out.DateRange.EndDate)
+			}
+		})
+	}
+}
+
 func TestResolver_GetSlackChannelsFromSlack(t *testing.T) {
 	tests := map[string]struct {
 		accessToken    *string
@@ -456,9 +574,9 @@ func TestResolver_canAdminViewSession(t *testing.T) {
 				t.Fatal(e.Wrap(err, "error inserting project"))
 			}
 			if v.demo {
-				_ = os.Setenv("DEMO_PROJECT_ID", strconv.Itoa(p.ID))
+				env.Config.DemoProjectID = strconv.Itoa(p.ID)
 			} else {
-				_ = os.Setenv("DEMO_PROJECT_ID", "0")
+				env.Config.DemoProjectID = "0"
 			}
 
 			session := model.Session{
@@ -726,9 +844,7 @@ func TestResolver_AccessLevels(t *testing.T) {
 	}
 	for _, v := range tests {
 		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
-			if err := os.Setenv("DEMO_PROJECT_ID", "0"); err != nil {
-				t.Fatal(e.Wrap(err, "error resetting demo project id"))
-			}
+			env.Config.DemoProjectID = "0"
 
 			r.Resolver = &Resolver{DB: DB}
 			if err := DB.Create(&model.Workspace{Model: model.Model{ID: 1}}).Error; err != nil {
@@ -867,7 +983,7 @@ func TestResolver_ProjectAccess(t *testing.T) {
 }
 
 func TestGetSlackChannelsFromSlack(t *testing.T) {
-	token := os.Getenv("TEST_SLACK_ACCESS_TOKEN")
+	token := env.Config.SlackTestAccessToken
 	if token == "" {
 		t.Skip("TEST_SLACK_ACCESS_TOKEN is not set")
 	}

@@ -27,15 +27,15 @@ export const useTimelineIndicators = (
 		variables: {
 			session_secure_id: session?.secure_id ?? '',
 		},
-		fetchPolicy: 'no-cache',
+		fetchPolicy: 'cache-and-network',
 		skip: skipQuery,
 	})
 
 	useEffect(() => {
 		if (!skipQuery) {
-			setLoading(queryLoading)
+			setLoading(queryLoading && data === undefined)
 		}
-	}, [queryLoading, skipQuery])
+	}, [data, queryLoading, skipQuery])
 
 	const [timelineIndicatorEvents, setTimelineIndicatorEvents] = useState<
 		Pick<TimelineIndicatorEvent, 'timestamp' | 'data' | 'type' | 'sid'>[]

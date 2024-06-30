@@ -14,6 +14,7 @@ receivers:
         protocols:
             grpc:
                 endpoint: '0.0.0.0:4317'
+                include_metadata: true
             http:
                 endpoint: '0.0.0.0:4318'
                 max_request_body_size: 0
@@ -27,6 +28,8 @@ receivers:
 exporters:
     otlphttp:
         endpoint: 'http://pub.prod.vpc.highlight.io:8082/otel'
+        auth:
+            authenticator: headers_setter
         timeout: 30s
         read_buffer_size: 32768
         write_buffer_size: 32768
@@ -45,6 +48,9 @@ processors:
         spike_limit_mib: 1024
         check_interval: 0.1s
     batch:
+        metadata_keys:
+            - x-highlight-project
+        metadata_cardinality_limit: 1000
         timeout: 1s
         send_batch_size: 1000
         send_batch_max_size: 10000
@@ -55,7 +61,7 @@ service:
         metrics:
             address: '0.0.0.0:8888'
             level: detailed
-    extensions: [health_check]
+    extensions: [headers_setter, health_check]
     pipelines:
         traces:
             receivers: [otlp]
@@ -70,6 +76,11 @@ service:
             processors: [memory_limiter, batch]
             exporters: [otlphttp]
 extensions:
+    headers_setter:
+        headers:
+            - action: upsert
+              key: x-highlight-project
+              from_context: x-highlight-project
     health_check:
         endpoint: '0.0.0.0:4319'
         path: '/health/status'

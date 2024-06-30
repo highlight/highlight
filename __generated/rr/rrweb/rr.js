@@ -1,73 +1,145 @@
+// ../rrweb/packages/rrweb/dist/rrweb.js
 var __defProp = Object.defineProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField = (obj, key, value) => {
+  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
 };
-
-// ../rrweb/packages/rrweb/es/rrweb/ext/tslib/tslib.es6.js
-function __rest(s2, e2) {
-  var t2 = {};
-  for (var p in s2)
-    if (Object.prototype.hasOwnProperty.call(s2, p) && e2.indexOf(p) < 0)
-      t2[p] = s2[p];
-  if (s2 != null && typeof Object.getOwnPropertySymbols === "function")
-    for (var i2 = 0, p = Object.getOwnPropertySymbols(s2); i2 < p.length; i2++) {
-      if (e2.indexOf(p[i2]) < 0 && Object.prototype.propertyIsEnumerable.call(s2, p[i2]))
-        t2[p[i2]] = s2[p[i2]];
-    }
-  return t2;
-}
-function __awaiter(thisArg, _arguments, P, generator) {
-  function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve) {
-      resolve(value);
-    });
+var _a;
+var __defProp$1 = Object.defineProperty;
+var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField$1 = (obj, key, value) => {
+  __defNormalProp$1(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
+var NodeType$2 = /* @__PURE__ */ ((NodeType2) => {
+  NodeType2[NodeType2["Document"] = 0] = "Document";
+  NodeType2[NodeType2["DocumentType"] = 1] = "DocumentType";
+  NodeType2[NodeType2["Element"] = 2] = "Element";
+  NodeType2[NodeType2["Text"] = 3] = "Text";
+  NodeType2[NodeType2["CDATA"] = 4] = "CDATA";
+  NodeType2[NodeType2["Comment"] = 5] = "Comment";
+  return NodeType2;
+})(NodeType$2 || {});
+var testableAccessors$1 = {
+  Node: ["childNodes", "parentNode", "parentElement", "textContent"],
+  ShadowRoot: ["host", "styleSheets"],
+  Element: ["shadowRoot", "querySelector", "querySelectorAll"],
+  MutationObserver: []
+};
+var testableMethods$1 = {
+  Node: ["contains", "getRootNode"],
+  ShadowRoot: ["getSelection"],
+  Element: [],
+  MutationObserver: ["constructor"]
+};
+var untaintedBasePrototype$1 = {};
+function getUntaintedPrototype$1(key) {
+  if (untaintedBasePrototype$1[key])
+    return untaintedBasePrototype$1[key];
+  const defaultObj = globalThis[key];
+  const defaultPrototype = defaultObj.prototype;
+  const accessorNames = key in testableAccessors$1 ? testableAccessors$1[key] : void 0;
+  const isUntaintedAccessors = Boolean(
+    accessorNames && // @ts-expect-error 2345
+    accessorNames.every(
+      (accessor) => {
+        var _a2, _b;
+        return Boolean(
+          (_b = (_a2 = Object.getOwnPropertyDescriptor(defaultPrototype, accessor)) == null ? void 0 : _a2.get) == null ? void 0 : _b.toString().includes("[native code]")
+        );
+      }
+    )
+  );
+  const methodNames = key in testableMethods$1 ? testableMethods$1[key] : void 0;
+  const isUntaintedMethods = Boolean(
+    methodNames && methodNames.every(
+      // @ts-expect-error 2345
+      (method) => {
+        var _a2;
+        return typeof defaultPrototype[method] === "function" && ((_a2 = defaultPrototype[method]) == null ? void 0 : _a2.toString().includes("[native code]"));
+      }
+    )
+  );
+  if (isUntaintedAccessors && isUntaintedMethods) {
+    untaintedBasePrototype$1[key] = defaultObj.prototype;
+    return defaultObj.prototype;
   }
-  return new (P || (P = Promise))(function(resolve, reject) {
-    function fulfilled(value) {
-      try {
-        step(generator.next(value));
-      } catch (e2) {
-        reject(e2);
-      }
-    }
-    function rejected(value) {
-      try {
-        step(generator["throw"](value));
-      } catch (e2) {
-        reject(e2);
-      }
-    }
-    function step(result) {
-      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-    }
-    step((generator = generator.apply(thisArg, _arguments || [])).next());
-  });
+  try {
+    const iframeEl = document.createElement("iframe");
+    document.body.appendChild(iframeEl);
+    const win = iframeEl.contentWindow;
+    if (!win)
+      return defaultObj.prototype;
+    const untaintedObject = win[key].prototype;
+    document.body.removeChild(iframeEl);
+    if (!untaintedObject)
+      return defaultPrototype;
+    return untaintedBasePrototype$1[key] = untaintedObject;
+  } catch {
+    return defaultPrototype;
+  }
 }
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb-snapshot/es/rrweb-snapshot.js
-var NodeType;
-(function(NodeType3) {
-  NodeType3[NodeType3["Document"] = 0] = "Document";
-  NodeType3[NodeType3["DocumentType"] = 1] = "DocumentType";
-  NodeType3[NodeType3["Element"] = 2] = "Element";
-  NodeType3[NodeType3["Text"] = 3] = "Text";
-  NodeType3[NodeType3["CDATA"] = 4] = "CDATA";
-  NodeType3[NodeType3["Comment"] = 5] = "Comment";
-})(NodeType || (NodeType = {}));
+var untaintedAccessorCache$1 = {};
+function getUntaintedAccessor$1(key, instance, accessor) {
+  var _a2;
+  const cacheKey = `${key}.${String(accessor)}`;
+  if (untaintedAccessorCache$1[cacheKey])
+    return untaintedAccessorCache$1[cacheKey].call(
+      instance
+    );
+  const untaintedPrototype = getUntaintedPrototype$1(key);
+  const untaintedAccessor = (_a2 = Object.getOwnPropertyDescriptor(
+    untaintedPrototype,
+    accessor
+  )) == null ? void 0 : _a2.get;
+  if (!untaintedAccessor)
+    return instance[accessor];
+  untaintedAccessorCache$1[cacheKey] = untaintedAccessor;
+  return untaintedAccessor.call(instance);
+}
+function childNodes$1(n2) {
+  return getUntaintedAccessor$1("Node", n2, "childNodes");
+}
+function parentNode$1(n2) {
+  return getUntaintedAccessor$1("Node", n2, "parentNode");
+}
+function parentElement$1(n2) {
+  return getUntaintedAccessor$1("Node", n2, "parentElement");
+}
+function textContent$1(n2) {
+  return getUntaintedAccessor$1("Node", n2, "textContent");
+}
+function host$1(n2) {
+  if (!n2 || !("host" in n2))
+    return null;
+  return getUntaintedAccessor$1("ShadowRoot", n2, "host");
+}
+function shadowRoot$1(n2) {
+  if (!n2 || !("shadowRoot" in n2))
+    return null;
+  return getUntaintedAccessor$1("Element", n2, "shadowRoot");
+}
 function isElement(n2) {
   return n2.nodeType === n2.ELEMENT_NODE;
 }
 function isShadowRoot(n2) {
-  const host = n2 === null || n2 === void 0 ? void 0 : n2.host;
-  return Boolean((host === null || host === void 0 ? void 0 : host.shadowRoot) === n2);
+  const hostEl = (
+    // anchor and textarea elements also have a `host` property
+    // but only shadow roots have a `mode` property
+    n2 && "host" in n2 && "mode" in n2 && host$1(n2) || null
+  );
+  return Boolean(hostEl && "shadowRoot" in hostEl && shadowRoot$1(hostEl) === n2);
 }
-function isNativeShadowDom(shadowRoot) {
-  return Object.prototype.toString.call(shadowRoot) === "[object ShadowRoot]";
+function isNativeShadowDom(shadowRoot2) {
+  return Object.prototype.toString.call(shadowRoot2) === "[object ShadowRoot]";
 }
 function fixBrowserCompatibilityIssuesInCSS(cssText) {
   if (cssText.includes(" background-clip: text;") && !cssText.includes(" -webkit-background-clip: text;")) {
-    cssText = cssText.replace(" background-clip: text;", " -webkit-background-clip: text; background-clip: text;");
+    cssText = cssText.replace(
+      /\sbackground-clip:\s*text;/g,
+      " -webkit-background-clip: text; background-clip: text;"
+    );
   }
   return cssText;
 }
@@ -92,7 +164,9 @@ function escapeImportStatement(rule) {
 function stringifyStylesheet(s2) {
   try {
     const rules2 = s2.rules || s2.cssRules;
-    return rules2 ? fixBrowserCompatibilityIssuesInCSS(Array.from(rules2, stringifyRule).join("")) : null;
+    return rules2 ? fixBrowserCompatibilityIssuesInCSS(
+      Array.from(rules2, stringifyRule).join("")
+    ) : null;
   } catch (error) {
     return null;
   }
@@ -101,7 +175,10 @@ function stringifyRule(rule) {
   let importStringified;
   if (isCSSImportRule(rule)) {
     try {
-      importStringified = stringifyStylesheet(rule.styleSheet) || escapeImportStatement(rule);
+      importStringified = // for same-origin stylesheets,
+      // we can access the imported stylesheet rules directly
+      stringifyStylesheet(rule.styleSheet) || // work around browser issues with the raw string `@import url(...)` statement
+      escapeImportStatement(rule);
     } catch (error) {
     }
   } else if (isCSSStyleRule(rule) && rule.selectorText.includes(":")) {
@@ -121,15 +198,15 @@ function isCSSStyleRule(rule) {
 }
 var Mirror = class {
   constructor() {
-    this.idNodeMap = /* @__PURE__ */ new Map();
-    this.nodeMetaMap = /* @__PURE__ */ new WeakMap();
+    __publicField$1(this, "idNodeMap", /* @__PURE__ */ new Map());
+    __publicField$1(this, "nodeMetaMap", /* @__PURE__ */ new WeakMap());
   }
   getId(n2) {
     var _a2;
     if (!n2)
       return -1;
-    const id = (_a2 = this.getMeta(n2)) === null || _a2 === void 0 ? void 0 : _a2.id;
-    return id !== null && id !== void 0 ? id : -1;
+    const id = (_a2 = this.getMeta(n2)) == null ? void 0 : _a2.id;
+    return id ?? -1;
   }
   getNode(id) {
     return this.idNodeMap.get(id) || null;
@@ -140,11 +217,15 @@ var Mirror = class {
   getMeta(n2) {
     return this.nodeMetaMap.get(n2) || null;
   }
+  // removes the node from idNodeMap
+  // doesn't remove the node from nodeMetaMap
   removeNodeFromMap(n2) {
     const id = this.getId(n2);
     this.idNodeMap.delete(id);
     if (n2.childNodes) {
-      n2.childNodes.forEach((childNode) => this.removeNodeFromMap(childNode));
+      n2.childNodes.forEach(
+        (childNode) => this.removeNodeFromMap(childNode)
+      );
     }
   }
   has(id) {
@@ -172,92 +253,18 @@ var Mirror = class {
     this.nodeMetaMap = /* @__PURE__ */ new WeakMap();
   }
 };
-function createMirror() {
+function createMirror$2() {
   return new Mirror();
 }
-function toLowerCase(str) {
-  return str.toLowerCase();
-}
-var ORIGINAL_ATTRIBUTE_NAME = "__rrweb_original__";
-function is2DCanvasBlank(canvas) {
-  const ctx = canvas.getContext("2d");
-  if (!ctx)
-    return true;
-  const chunkSize = 50;
-  for (let x = 0; x < canvas.width; x += chunkSize) {
-    for (let y = 0; y < canvas.height; y += chunkSize) {
-      const getImageData = ctx.getImageData;
-      const originalGetImageData = ORIGINAL_ATTRIBUTE_NAME in getImageData ? getImageData[ORIGINAL_ATTRIBUTE_NAME] : getImageData;
-      const pixelBuffer = new Uint32Array(originalGetImageData.call(ctx, x, y, Math.min(chunkSize, canvas.width - x), Math.min(chunkSize, canvas.height - y)).data.buffer);
-      if (pixelBuffer.some((pixel) => pixel !== 0))
-        return false;
-    }
-  }
-  return true;
-}
-function isNodeMetaEqual(a2, b) {
-  if (!a2 || !b || a2.type !== b.type)
-    return false;
-  if (a2.type === NodeType.Document)
-    return a2.compatMode === b.compatMode;
-  else if (a2.type === NodeType.DocumentType)
-    return a2.name === b.name && a2.publicId === b.publicId && a2.systemId === b.systemId;
-  else if (a2.type === NodeType.Comment || a2.type === NodeType.Text || a2.type === NodeType.CDATA)
-    return a2.textContent === b.textContent;
-  else if (a2.type === NodeType.Element)
-    return a2.tagName === b.tagName && JSON.stringify(a2.attributes) === JSON.stringify(b.attributes) && a2.isSVG === b.isSVG && a2.needBlock === b.needBlock;
-  return false;
-}
-function getInputType(element) {
-  const type = element.type;
-  return element.hasAttribute("data-rr-is-password") ? "password" : type ? toLowerCase(type) : null;
-}
-function extractFileExtension(path, baseURL) {
-  var _a2;
-  let url;
-  try {
-    url = new URL(path, baseURL !== null && baseURL !== void 0 ? baseURL : window.location.href);
-  } catch (err) {
-    return null;
-  }
-  const regex = /\.([0-9a-z]+)(?:$)/i;
-  const match = url.pathname.match(regex);
-  return (_a2 = match === null || match === void 0 ? void 0 : match[1]) !== null && _a2 !== void 0 ? _a2 : null;
-}
-function obfuscateText(text) {
-  text = text.replace(/[^ -~]+/g, "");
-  text = (text === null || text === void 0 ? void 0 : text.split(" ").map((word) => Math.random().toString(20).substr(2, word.length)).join(" ")) || "";
-  return text;
-}
-function isElementSrcBlocked(tagName) {
-  return tagName === "img" || tagName === "video" || tagName === "audio" || tagName === "source";
-}
-var EMAIL_REGEX = new RegExp("[a-zA-Z0-9.!#$%&'*+=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*");
-var LONG_NUMBER_REGEX = new RegExp("[0-9]{9,16}");
-var SSN_REGEX = new RegExp("[0-9]{3}-?[0-9]{2}-?[0-9]{4}");
-var PHONE_NUMBER_REGEX = new RegExp("[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}");
-var CREDIT_CARD_REGEX = new RegExp("[0-9]{4}-?[0-9]{4}-?[0-9]{4}-?[0-9]{4}");
-var ADDRESS_REGEX = new RegExp("[0-9]{1,5}.?[0-9]{0,3}s[a-zA-Z]{2,30}s[a-zA-Z]{2,15}");
-var IP_REGEX = new RegExp("(?:[0-9]{1,3}.){3}[0-9]{1,3}");
-var DEFAULT_OBFUSCATE_REGEXES = [
-  EMAIL_REGEX,
-  LONG_NUMBER_REGEX,
-  SSN_REGEX,
-  PHONE_NUMBER_REGEX,
-  CREDIT_CARD_REGEX,
-  ADDRESS_REGEX,
-  IP_REGEX
-];
-function shouldObfuscateTextByDefault(text) {
-  if (!text)
-    return false;
-  return DEFAULT_OBFUSCATE_REGEXES.some((regex) => regex.test(text));
-}
-var maskedInputType = ({ maskInputOptions, tagName, type, overwriteRecord }) => {
-  const actualType = type && type.toLowerCase();
-  return overwriteRecord !== "true" && (!!maskInputOptions[tagName.toLowerCase()] || !!(actualType && maskInputOptions[actualType]));
-};
-function maskInputValue({ element, maskInputOptions, tagName, type, value, overwriteRecord, maskInputFn }) {
+function maskInputValue({
+  element,
+  maskInputOptions,
+  tagName,
+  type,
+  value,
+  overwriteRecord,
+  maskInputFn
+}) {
   let text = value || "";
   if (maskedInputType({
     maskInputOptions,
@@ -273,13 +280,117 @@ function maskInputValue({ element, maskInputOptions, tagName, type, value, overw
   }
   return text;
 }
+function toLowerCase(str) {
+  return str.toLowerCase();
+}
+var ORIGINAL_ATTRIBUTE_NAME = "__rrweb_original__";
+function is2DCanvasBlank(canvas) {
+  const ctx = canvas.getContext("2d");
+  if (!ctx)
+    return true;
+  const chunkSize = 50;
+  for (let x = 0; x < canvas.width; x += chunkSize) {
+    for (let y = 0; y < canvas.height; y += chunkSize) {
+      const getImageData = ctx.getImageData;
+      const originalGetImageData = ORIGINAL_ATTRIBUTE_NAME in getImageData ? getImageData[ORIGINAL_ATTRIBUTE_NAME] : getImageData;
+      const pixelBuffer = new Uint32Array(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+        originalGetImageData.call(
+          ctx,
+          x,
+          y,
+          Math.min(chunkSize, canvas.width - x),
+          Math.min(chunkSize, canvas.height - y)
+        ).data.buffer
+      );
+      if (pixelBuffer.some((pixel) => pixel !== 0))
+        return false;
+    }
+  }
+  return true;
+}
+function isNodeMetaEqual(a2, b) {
+  if (!a2 || !b || a2.type !== b.type)
+    return false;
+  if (a2.type === NodeType$2.Document)
+    return a2.compatMode === b.compatMode;
+  else if (a2.type === NodeType$2.DocumentType)
+    return a2.name === b.name && a2.publicId === b.publicId && a2.systemId === b.systemId;
+  else if (a2.type === NodeType$2.Comment || a2.type === NodeType$2.Text || a2.type === NodeType$2.CDATA)
+    return a2.textContent === b.textContent;
+  else if (a2.type === NodeType$2.Element)
+    return a2.tagName === b.tagName && JSON.stringify(a2.attributes) === JSON.stringify(b.attributes) && a2.isSVG === b.isSVG && a2.needBlock === b.needBlock;
+  return false;
+}
+function getInputType(element) {
+  const type = element.type;
+  return element.hasAttribute("data-rr-is-password") ? "password" : type ? (
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    toLowerCase(type)
+  ) : null;
+}
+function extractFileExtension(path, baseURL) {
+  let url;
+  try {
+    url = new URL(path, baseURL ?? window.location.href);
+  } catch (err) {
+    return null;
+  }
+  const regex = /\.([0-9a-z]+)(?:$)/i;
+  const match = url.pathname.match(regex);
+  return (match == null ? void 0 : match[1]) ?? null;
+}
+function obfuscateText(text) {
+  text = text.replace(/[^ -~]+/g, "");
+  text = (text == null ? void 0 : text.split(" ").map((word) => Math.random().toString(20).substr(2, word.length)).join(" ")) || "";
+  return text;
+}
+function isElementSrcBlocked(tagName) {
+  return tagName === "img" || tagName === "video" || tagName === "audio" || tagName === "source";
+}
+var EMAIL_REGEX = new RegExp(
+  /[a-zA-Z0-9.!#$%&'*+=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*/
+);
+var LONG_NUMBER_REGEX = new RegExp(/[0-9]{9,16}/);
+var SSN_REGEX = new RegExp(/[0-9]{3}-?[0-9]{2}-?[0-9]{4}/);
+var PHONE_NUMBER_REGEX = new RegExp(
+  /[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}/
+);
+var CREDIT_CARD_REGEX = new RegExp(/[0-9]{4}-?[0-9]{4}-?[0-9]{4}-?[0-9]{4}/);
+var ADDRESS_REGEX = new RegExp(
+  /[0-9]{1,5}.?[0-9]{0,3}\s[a-zA-Z]{2,30}\s[a-zA-Z]{2,15}/
+);
+var IP_REGEX = new RegExp(/(?:[0-9]{1,3}.){3}[0-9]{1,3}/);
+var DEFAULT_OBFUSCATE_REGEXES = [
+  EMAIL_REGEX,
+  LONG_NUMBER_REGEX,
+  SSN_REGEX,
+  PHONE_NUMBER_REGEX,
+  CREDIT_CARD_REGEX,
+  ADDRESS_REGEX,
+  IP_REGEX
+];
+function shouldObfuscateTextByDefault(text) {
+  if (!text)
+    return false;
+  return DEFAULT_OBFUSCATE_REGEXES.some((regex) => regex.test(text));
+}
+var maskedInputType = ({
+  maskInputOptions,
+  tagName,
+  type,
+  overwriteRecord
+}) => {
+  const actualType = type && type.toLowerCase();
+  return overwriteRecord !== "true" && (!!maskInputOptions[tagName.toLowerCase()] || !!(actualType && maskInputOptions[actualType]));
+};
 var _id = 1;
 var tagNameRegex = new RegExp("[^a-z0-9-_:]");
 var IGNORED_NODE = -2;
 function genId() {
   return _id++;
 }
-function getValidTagName(element) {
+function getValidTagName$1(element) {
   if (element instanceof HTMLFormElement) {
     return "form";
   }
@@ -306,35 +417,38 @@ var URL_PROTOCOL_MATCH = /^(?:[a-z+]+:)?\/\//i;
 var URL_WWW_MATCH = /^www\..*/i;
 var DATA_URI = /^(data:)([^,]*),(.*)/i;
 function absoluteToStylesheet(cssText, href) {
-  return (cssText || "").replace(URL_IN_CSS_REF, (origin, quote1, path1, quote2, path2, path3) => {
-    const filePath = path1 || path2 || path3;
-    const maybeQuote = quote1 || quote2 || "";
-    if (!filePath) {
-      return origin;
-    }
-    if (URL_PROTOCOL_MATCH.test(filePath) || URL_WWW_MATCH.test(filePath)) {
-      return `url(${maybeQuote}${filePath}${maybeQuote})`;
-    }
-    if (DATA_URI.test(filePath)) {
-      return `url(${maybeQuote}${filePath}${maybeQuote})`;
-    }
-    if (filePath[0] === "/") {
-      return `url(${maybeQuote}${extractOrigin(href) + filePath}${maybeQuote})`;
-    }
-    const stack = href.split("/");
-    const parts = filePath.split("/");
-    stack.pop();
-    for (const part of parts) {
-      if (part === ".") {
-        continue;
-      } else if (part === "..") {
-        stack.pop();
-      } else {
-        stack.push(part);
+  return (cssText || "").replace(
+    URL_IN_CSS_REF,
+    (origin, quote1, path1, quote2, path2, path3) => {
+      const filePath = path1 || path2 || path3;
+      const maybeQuote = quote1 || quote2 || "";
+      if (!filePath) {
+        return origin;
       }
+      if (URL_PROTOCOL_MATCH.test(filePath) || URL_WWW_MATCH.test(filePath)) {
+        return `url(${maybeQuote}${filePath}${maybeQuote})`;
+      }
+      if (DATA_URI.test(filePath)) {
+        return `url(${maybeQuote}${filePath}${maybeQuote})`;
+      }
+      if (filePath[0] === "/") {
+        return `url(${maybeQuote}${extractOrigin(href) + filePath}${maybeQuote})`;
+      }
+      const stack = href.split("/");
+      const parts = filePath.split("/");
+      stack.pop();
+      for (const part of parts) {
+        if (part === ".") {
+          continue;
+        } else if (part === "..") {
+          stack.pop();
+        } else {
+          stack.push(part);
+        }
+      }
+      return `url(${maybeQuote}${stack.join("/")}${maybeQuote})`;
     }
-    return `url(${maybeQuote}${stack.join("/")}${maybeQuote})`;
-  });
+  );
 }
 var SRCSET_NOT_SPACES = /^[^ \t\n\r\u000c]+/;
 var SRCSET_COMMAS_OR_SPACES = /^[, \t\n\r\u000c]+/;
@@ -392,20 +506,28 @@ function getAbsoluteSrcsetString(doc, attributeValue) {
   }
   return output.join(", ");
 }
+var cachedDocument = /* @__PURE__ */ new WeakMap();
 function absoluteToDoc(doc, attributeValue) {
   if (!attributeValue || attributeValue.trim() === "") {
     return attributeValue;
   }
-  const a2 = doc.createElement("a");
-  a2.href = attributeValue;
-  return a2.href;
+  return getHref(doc, attributeValue);
 }
 function isSVGElement(el) {
   return Boolean(el.tagName === "svg" || el.ownerSVGElement);
 }
-function getHref() {
-  const a2 = document.createElement("a");
-  a2.href = "";
+function getHref(doc, customHref) {
+  let a2 = cachedDocument.get(doc);
+  if (!a2) {
+    a2 = doc.createElement("a");
+    cachedDocument.set(doc, a2);
+  }
+  if (!customHref) {
+    customHref = "";
+  } else if (customHref.startsWith("blob:") || customHref.startsWith("data:")) {
+    return customHref;
+  }
+  a2.setAttribute("href", customHref);
   return a2.href;
 }
 function transformAttribute(doc, tagName, name, value) {
@@ -421,7 +543,7 @@ function transformAttribute(doc, tagName, name, value) {
   } else if (name === "srcset") {
     return getAbsoluteSrcsetString(doc, value);
   } else if (name === "style") {
-    return absoluteToStylesheet(value, getHref());
+    return absoluteToStylesheet(value, getHref(doc));
   } else if (tagName === "object" && name === "data") {
     return absoluteToDoc(doc, value);
   }
@@ -457,7 +579,7 @@ function classMatchesRegex(node, regex, checkAncestors) {
   if (node.nodeType !== node.ELEMENT_NODE) {
     if (!checkAncestors)
       return false;
-    return classMatchesRegex(node.parentNode, regex, checkAncestors);
+    return classMatchesRegex(parentNode$1(node), regex, checkAncestors);
   }
   for (let eIndex = node.classList.length; eIndex--; ) {
     const className = node.classList[eIndex];
@@ -467,13 +589,21 @@ function classMatchesRegex(node, regex, checkAncestors) {
   }
   if (!checkAncestors)
     return false;
-  return classMatchesRegex(node.parentNode, regex, checkAncestors);
+  return classMatchesRegex(parentNode$1(node), regex, checkAncestors);
 }
 function needMaskingText(node, maskTextClass, maskTextSelector, checkAncestors) {
-  try {
-    const el = node.nodeType === node.ELEMENT_NODE ? node : node.parentElement;
-    if (el === null)
+  let el;
+  if (isElement(node)) {
+    el = node;
+    if (!childNodes$1(el).length) {
       return false;
+    }
+  } else if (parentElement$1(node) === null) {
+    return false;
+  } else {
+    el = parentElement$1(node);
+  }
+  try {
     if (typeof maskTextClass === "string") {
       if (checkAncestors) {
         if (el.closest(`.${maskTextClass}`))
@@ -555,25 +685,43 @@ function onceStylesheetLoaded(link, listener, styleSheetLoadTimeout) {
   });
 }
 function serializeNode(n2, options) {
-  const { doc, mirror: mirror2, blockClass, blockSelector, needsMask, inlineStylesheet, maskInputOptions = {}, maskTextClass, maskTextFn, maskInputFn, dataURLOptions = {}, inlineImages, recordCanvas, keepIframeSrcFn, newlyAddedElement = false, privacySetting } = options;
+  const {
+    doc,
+    mirror: mirror2,
+    blockClass,
+    blockSelector,
+    needsMask,
+    inlineStylesheet,
+    maskInputOptions = {},
+    maskTextClass,
+    maskTextFn,
+    maskInputFn,
+    dataURLOptions = {},
+    inlineImages,
+    recordCanvas,
+    keepIframeSrcFn,
+    newlyAddedElement = false,
+    privacySetting
+  } = options;
   const rootId = getRootId(doc, mirror2);
   switch (n2.nodeType) {
     case n2.DOCUMENT_NODE:
       if (n2.compatMode !== "CSS1Compat") {
         return {
-          type: NodeType.Document,
+          type: NodeType$2.Document,
           childNodes: [],
           compatMode: n2.compatMode
+          // probably "BackCompat"
         };
       } else {
         return {
-          type: NodeType.Document,
+          type: NodeType$2.Document,
           childNodes: []
         };
       }
     case n2.DOCUMENT_TYPE_NODE:
       return {
-        type: NodeType.DocumentType,
+        type: NodeType$2.DocumentType,
         name: n2.name,
         publicId: n2.publicId,
         systemId: n2.systemId,
@@ -598,6 +746,7 @@ function serializeNode(n2, options) {
       });
     case n2.TEXT_NODE:
       return serializeTextNode(n2, {
+        doc,
         needsMask,
         maskTextFn,
         privacySetting,
@@ -605,14 +754,14 @@ function serializeNode(n2, options) {
       });
     case n2.CDATA_SECTION_NODE:
       return {
-        type: NodeType.CDATA,
+        type: NodeType$2.CDATA,
         textContent: "",
         rootId
       };
     case n2.COMMENT_NODE:
       return {
-        type: NodeType.Comment,
-        textContent: n2.textContent || "",
+        type: NodeType$2.Comment,
+        textContent: textContent$1(n2) || "",
         rootId
       };
     default:
@@ -626,38 +775,47 @@ function getRootId(doc, mirror2) {
   return docId === 1 ? void 0 : docId;
 }
 function serializeTextNode(n2, options) {
-  var _a2, _b2;
-  const { needsMask, maskTextFn, privacySetting, rootId } = options;
-  const parentTagName = n2.parentNode && n2.parentNode.tagName;
-  let textContent = n2.textContent;
+  var _a2, _b;
+  const {
+    needsMask,
+    maskTextFn,
+    privacySetting,
+    rootId
+  } = options;
+  const parent = parentNode$1(n2);
+  const parentTagName = parent && parent.tagName;
+  let text = textContent$1(n2);
   const isStyle = parentTagName === "STYLE" ? true : void 0;
   const isScript = parentTagName === "SCRIPT" ? true : void 0;
   let textContentHandled = false;
-  if (isStyle && textContent) {
+  if (isStyle && text) {
     try {
       if (n2.nextSibling || n2.previousSibling) {
-      } else if ((_a2 = n2.parentNode.sheet) === null || _a2 === void 0 ? void 0 : _a2.cssRules) {
-        textContent = stringifyStylesheet(n2.parentNode.sheet);
+      } else if ((_a2 = parent.sheet) == null ? void 0 : _a2.cssRules) {
+        text = stringifyStylesheet(parent.sheet);
       }
     } catch (err) {
-      console.warn(`Cannot get CSS styles from text's parentNode. Error: ${err}`, n2);
+      console.warn(
+        `Cannot get CSS styles from text's parentNode. Error: ${err}`,
+        n2
+      );
     }
-    textContent = absoluteToStylesheet(textContent, getHref());
+    text = absoluteToStylesheet(text, getHref(options.doc));
     textContentHandled = true;
   }
   if (isScript) {
-    textContent = "SCRIPT_PLACEHOLDER";
+    text = "SCRIPT_PLACEHOLDER";
     textContentHandled = true;
   } else if (parentTagName === "NOSCRIPT") {
-    textContent = "";
+    text = "";
     textContentHandled = true;
   }
-  if (!isStyle && !isScript && textContent && needsMask) {
-    textContent = maskTextFn ? maskTextFn(textContent, n2.parentElement) : textContent.replace(/[\S]/g, "*");
+  if (!isStyle && !isScript && text && needsMask) {
+    text = maskTextFn ? maskTextFn(text, parentElement$1(n2)) : text.replace(/[\S]/g, "*");
   }
   const enableStrictPrivacy = privacySetting === "strict";
-  const highlightOverwriteRecord = (_b2 = n2.parentElement) === null || _b2 === void 0 ? void 0 : _b2.getAttribute("data-hl-record");
-  const obfuscateDefaultPrivacy = privacySetting === "default" && shouldObfuscateTextByDefault(textContent);
+  const highlightOverwriteRecord = (_b = n2.parentElement) == null ? void 0 : _b.getAttribute("data-hl-record");
+  const obfuscateDefaultPrivacy = privacySetting === "default" && shouldObfuscateTextByDefault(text);
   if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && !highlightOverwriteRecord && !textContentHandled && parentTagName) {
     const IGNORE_TAG_NAMES = /* @__PURE__ */ new Set([
       "HEAD",
@@ -668,29 +826,49 @@ function serializeTextNode(n2, options) {
       "BODY",
       "NOSCRIPT"
     ]);
-    if (!IGNORE_TAG_NAMES.has(parentTagName) && textContent) {
-      textContent = obfuscateText(textContent);
+    if (!IGNORE_TAG_NAMES.has(parentTagName) && text) {
+      text = obfuscateText(text);
     }
   }
   return {
-    type: NodeType.Text,
-    textContent: textContent || "",
+    type: NodeType$2.Text,
+    textContent: text || "",
     isStyle,
     rootId
   };
 }
 function serializeElementNode(n2, options) {
-  const { doc, blockClass, blockSelector, inlineStylesheet, maskInputOptions = {}, maskInputFn, maskTextClass, dataURLOptions = {}, inlineImages, recordCanvas, keepIframeSrcFn, newlyAddedElement = false, privacySetting, rootId } = options;
+  const {
+    doc,
+    blockClass,
+    blockSelector,
+    inlineStylesheet,
+    maskInputOptions = {},
+    maskInputFn,
+    maskTextClass,
+    dataURLOptions = {},
+    inlineImages,
+    recordCanvas,
+    keepIframeSrcFn,
+    newlyAddedElement = false,
+    privacySetting,
+    rootId
+  } = options;
   let needBlock = _isBlockedElement(n2, blockClass, blockSelector);
   const needMask = _isBlockedElement(n2, maskTextClass, null);
   const enableStrictPrivacy = privacySetting === "strict";
-  let tagName = getValidTagName(n2);
+  let tagName = getValidTagName$1(n2);
   let attributes = {};
   const len = n2.attributes.length;
   for (let i2 = 0; i2 < len; i2++) {
     const attr = n2.attributes[i2];
     if (!ignoreAttribute(tagName, attr.name, attr.value)) {
-      attributes[attr.name] = transformAttribute(doc, tagName, toLowerCase(attr.name), attr.value);
+      attributes[attr.name] = transformAttribute(
+        doc,
+        tagName,
+        toLowerCase(attr.name),
+        attr.value
+      );
     }
   }
   if (tagName === "link" && inlineStylesheet) {
@@ -707,10 +885,13 @@ function serializeElementNode(n2, options) {
       attributes._cssText = absoluteToStylesheet(cssText, stylesheet.href);
     }
   }
-  if (tagName === "style" && n2.sheet && !(n2.innerText || n2.textContent || "").trim().length) {
-    const cssText = stringifyStylesheet(n2.sheet);
+  if (tagName === "style" && n2.sheet && // TODO: Currently we only try to get dynamic stylesheet when it is an empty style element
+  !(n2.innerText || textContent$1(n2) || "").trim().length) {
+    const cssText = stringifyStylesheet(
+      n2.sheet
+    );
     if (cssText) {
-      attributes._cssText = absoluteToStylesheet(cssText, getHref());
+      attributes._cssText = absoluteToStylesheet(cssText, getHref(doc));
     }
   }
   if (tagName === "input" || tagName === "textarea" || tagName === "select") {
@@ -740,14 +921,23 @@ function serializeElementNode(n2, options) {
   if (tagName === "canvas" && recordCanvas) {
     if (n2.__context === "2d") {
       if (!is2DCanvasBlank(n2)) {
-        attributes.rr_dataURL = n2.toDataURL(dataURLOptions.type, dataURLOptions.quality);
+        attributes.rr_dataURL = n2.toDataURL(
+          dataURLOptions.type,
+          dataURLOptions.quality
+        );
       }
     } else if (!("__context" in n2)) {
-      const canvasDataURL = n2.toDataURL(dataURLOptions.type, dataURLOptions.quality);
-      const blankCanvas = document.createElement("canvas");
+      const canvasDataURL = n2.toDataURL(
+        dataURLOptions.type,
+        dataURLOptions.quality
+      );
+      const blankCanvas = doc.createElement("canvas");
       blankCanvas.width = n2.width;
       blankCanvas.height = n2.height;
-      const blankCanvasDataURL = blankCanvas.toDataURL(dataURLOptions.type, dataURLOptions.quality);
+      const blankCanvasDataURL = blankCanvas.toDataURL(
+        dataURLOptions.type,
+        dataURLOptions.quality
+      );
       if (canvasDataURL !== blankCanvasDataURL) {
         attributes.rr_dataURL = canvasDataURL;
       }
@@ -759,19 +949,35 @@ function serializeElementNode(n2, options) {
       canvasCtx = canvasService.getContext("2d");
     }
     const image = n2;
-    const oldValue = image.crossOrigin;
-    image.crossOrigin = "anonymous";
+    const imageSrc = image.currentSrc || image.getAttribute("src") || "<unknown-src>";
+    const priorCrossOrigin = image.crossOrigin;
     const recordInlineImage = () => {
       image.removeEventListener("load", recordInlineImage);
       try {
         canvasService.width = image.naturalWidth;
         canvasService.height = image.naturalHeight;
         canvasCtx.drawImage(image, 0, 0);
-        attributes.rr_dataURL = canvasService.toDataURL(dataURLOptions.type, dataURLOptions.quality);
+        attributes.rr_dataURL = canvasService.toDataURL(
+          dataURLOptions.type,
+          dataURLOptions.quality
+        );
       } catch (err) {
-        console.warn(`Cannot inline img src=${image.currentSrc}! Error: ${err}`);
+        if (image.crossOrigin !== "anonymous") {
+          image.crossOrigin = "anonymous";
+          if (image.complete && image.naturalWidth !== 0)
+            recordInlineImage();
+          else
+            image.addEventListener("load", recordInlineImage);
+          return;
+        } else {
+          console.warn(
+            `Cannot inline img src=${imageSrc}! Error: ${err}`
+          );
+        }
       }
-      oldValue ? attributes.crossOrigin = oldValue : image.removeAttribute("crossorigin");
+      if (image.crossOrigin === "anonymous") {
+        priorCrossOrigin ? attributes.crossOrigin = priorCrossOrigin : image.removeAttribute("crossorigin");
+      }
     };
     if (image.complete && image.naturalWidth !== 0)
       recordInlineImage();
@@ -779,8 +985,13 @@ function serializeElementNode(n2, options) {
       image.addEventListener("load", recordInlineImage);
   }
   if (tagName === "audio" || tagName === "video") {
-    attributes.rr_mediaState = n2.paused ? "paused" : "played";
-    attributes.rr_mediaCurrentTime = n2.currentTime;
+    const mediaAttributes = attributes;
+    mediaAttributes.rr_mediaState = n2.paused ? "paused" : "played";
+    mediaAttributes.rr_mediaCurrentTime = n2.currentTime;
+    mediaAttributes.rr_mediaPlaybackRate = n2.playbackRate;
+    mediaAttributes.rr_mediaMuted = n2.muted;
+    mediaAttributes.rr_mediaLoop = n2.loop;
+    mediaAttributes.rr_mediaVolume = n2.volume;
   }
   if (!newlyAddedElement) {
     if (n2.scrollLeft) {
@@ -826,7 +1037,7 @@ function serializeElementNode(n2, options) {
     }
   }
   return {
-    type: NodeType.Element,
+    type: NodeType$2.Element,
     tagName,
     attributes,
     childNodes: [],
@@ -845,17 +1056,23 @@ function lowerIfExists(maybeAttr) {
   }
 }
 function slimDOMExcluded(sn, slimDOMOptions) {
-  if (slimDOMOptions.comment && sn.type === NodeType.Comment) {
+  if (slimDOMOptions.comment && sn.type === NodeType$2.Comment) {
     return true;
-  } else if (sn.type === NodeType.Element) {
-    if (slimDOMOptions.script && (sn.tagName === "script" || sn.tagName === "link" && (sn.attributes.rel === "preload" || sn.attributes.rel === "modulepreload") && sn.attributes.as === "script" || sn.tagName === "link" && sn.attributes.rel === "prefetch" && typeof sn.attributes.href === "string" && extractFileExtension(sn.attributes.href) === "js")) {
+  } else if (sn.type === NodeType$2.Element) {
+    if (slimDOMOptions.script && // script tag
+    (sn.tagName === "script" || // (module)preload link
+    sn.tagName === "link" && (sn.attributes.rel === "preload" || sn.attributes.rel === "modulepreload") && sn.attributes.as === "script" || // prefetch link
+    sn.tagName === "link" && sn.attributes.rel === "prefetch" && typeof sn.attributes.href === "string" && extractFileExtension(sn.attributes.href) === "js")) {
       return true;
-    } else if (slimDOMOptions.headFavicon && (sn.tagName === "link" && sn.attributes.rel === "shortcut icon" || sn.tagName === "meta" && (lowerIfExists(sn.attributes.name).match(/^msapplication-tile(image|color)$/) || lowerIfExists(sn.attributes.name) === "application-name" || lowerIfExists(sn.attributes.rel) === "icon" || lowerIfExists(sn.attributes.rel) === "apple-touch-icon" || lowerIfExists(sn.attributes.rel) === "shortcut icon"))) {
+    } else if (slimDOMOptions.headFavicon && (sn.tagName === "link" && sn.attributes.rel === "shortcut icon" || sn.tagName === "meta" && (lowerIfExists(sn.attributes.name).match(
+      /^msapplication-tile(image|color)$/
+    ) || lowerIfExists(sn.attributes.name) === "application-name" || lowerIfExists(sn.attributes.rel) === "icon" || lowerIfExists(sn.attributes.rel) === "apple-touch-icon" || lowerIfExists(sn.attributes.rel) === "shortcut icon"))) {
       return true;
     } else if (sn.tagName === "meta") {
       if (slimDOMOptions.headMetaDescKeywords && lowerIfExists(sn.attributes.name).match(/^description|keywords$/)) {
         return true;
-      } else if (slimDOMOptions.headMetaSocial && (lowerIfExists(sn.attributes.property).match(/^(og|twitter|fb):/) || lowerIfExists(sn.attributes.name).match(/^(og|twitter):/) || lowerIfExists(sn.attributes.name) === "pinterest")) {
+      } else if (slimDOMOptions.headMetaSocial && (lowerIfExists(sn.attributes.property).match(/^(og|twitter|fb):/) || // og = opengraph (facebook)
+      lowerIfExists(sn.attributes.name).match(/^(og|twitter):/) || lowerIfExists(sn.attributes.name) === "pinterest")) {
         return true;
       } else if (slimDOMOptions.headMetaRobots && (lowerIfExists(sn.attributes.name) === "robots" || lowerIfExists(sn.attributes.name) === "googlebot" || lowerIfExists(sn.attributes.name) === "bingbot")) {
         return true;
@@ -871,12 +1088,41 @@ function slimDOMExcluded(sn, slimDOMOptions) {
   return false;
 }
 function serializeNodeWithId(n2, options) {
-  const { doc, mirror: mirror2, blockClass, blockSelector, maskTextClass, maskTextSelector, skipChild = false, inlineStylesheet = true, maskInputOptions = {}, maskTextFn, maskInputFn, slimDOMOptions, dataURLOptions = {}, inlineImages = false, recordCanvas = false, onSerialize, onIframeLoad, iframeLoadTimeout = 5e3, onStylesheetLoad, stylesheetLoadTimeout = 5e3, keepIframeSrcFn = () => false, newlyAddedElement = false, privacySetting } = options;
+  const {
+    doc,
+    mirror: mirror2,
+    blockClass,
+    blockSelector,
+    maskTextClass,
+    maskTextSelector,
+    skipChild = false,
+    inlineStylesheet = true,
+    maskInputOptions = {},
+    maskTextFn,
+    maskInputFn,
+    slimDOMOptions,
+    dataURLOptions = {},
+    inlineImages = false,
+    recordCanvas = false,
+    onSerialize,
+    onIframeLoad,
+    iframeLoadTimeout = 5e3,
+    onStylesheetLoad,
+    stylesheetLoadTimeout = 5e3,
+    keepIframeSrcFn = () => false,
+    newlyAddedElement = false,
+    privacySetting
+  } = options;
   let { needsMask } = options;
   let { preserveWhiteSpace = true } = options;
-  if (!needsMask && n2.childNodes) {
+  if (!needsMask) {
     const checkAncestors = needsMask === void 0;
-    needsMask = needMaskingText(n2, maskTextClass, maskTextSelector, checkAncestors);
+    needsMask = needMaskingText(
+      n2,
+      maskTextClass,
+      maskTextSelector,
+      checkAncestors
+    );
   }
   const _serializedNode = serializeNode(n2, {
     doc,
@@ -903,7 +1149,7 @@ function serializeNodeWithId(n2, options) {
   let id;
   if (mirror2.hasNode(n2)) {
     id = mirror2.getId(n2);
-  } else if (slimDOMExcluded(_serializedNode, slimDOMOptions) || !preserveWhiteSpace && _serializedNode.type === NodeType.Text && !_serializedNode.isStyle && !_serializedNode.textContent.replace(/^\s+|\s+$/gm, "").length) {
+  } else if (slimDOMExcluded(_serializedNode, slimDOMOptions) || !preserveWhiteSpace && _serializedNode.type === NodeType$2.Text && !_serializedNode.isStyle && !_serializedNode.textContent.replace(/^\s+|\s+$/gm, "").length) {
     id = IGNORED_NODE;
   } else {
     id = genId();
@@ -919,7 +1165,7 @@ function serializeNodeWithId(n2, options) {
   let recordChild = !skipChild;
   let overwrittenPrivacySetting = privacySetting;
   let strictPrivacy = privacySetting === "strict";
-  if (serializedNode.type === NodeType.Element) {
+  if (serializedNode.type === NodeType$2.Element) {
     recordChild = recordChild && !serializedNode.needBlock;
     strictPrivacy || (strictPrivacy = !!serializedNode.needBlock || !!serializedNode.needMask);
     overwrittenPrivacySetting = strictPrivacy ? "strict" : overwrittenPrivacySetting;
@@ -930,12 +1176,12 @@ function serializeNodeWithId(n2, options) {
     }
     delete serializedNode.needBlock;
     delete serializedNode.needMask;
-    const shadowRoot = n2.shadowRoot;
-    if (shadowRoot && isNativeShadowDom(shadowRoot))
+    const shadowRootEl = shadowRoot$1(n2);
+    if (shadowRootEl && isNativeShadowDom(shadowRootEl))
       serializedNode.isShadowHost = true;
   }
-  if ((serializedNode.type === NodeType.Document || serializedNode.type === NodeType.Element) && recordChild) {
-    if (slimDOMOptions.headWhitespace && serializedNode.type === NodeType.Element && serializedNode.tagName === "head") {
+  if ((serializedNode.type === NodeType$2.Document || serializedNode.type === NodeType$2.Element) && recordChild) {
+    if (slimDOMOptions.headWhitespace && serializedNode.type === NodeType$2.Element && serializedNode.tagName === "head") {
       preserveWhiteSpace = false;
     }
     const bypassOptions = {
@@ -964,104 +1210,142 @@ function serializeNodeWithId(n2, options) {
       keepIframeSrcFn,
       privacySetting: overwrittenPrivacySetting
     };
-    if (serializedNode.type === NodeType.Element && serializedNode.tagName === "textarea" && serializedNode.attributes.value !== void 0)
+    if (serializedNode.type === NodeType$2.Element && serializedNode.tagName === "textarea" && serializedNode.attributes.value !== void 0)
       ;
     else {
-      for (const childN of Array.from(n2.childNodes)) {
+      for (const childN of Array.from(childNodes$1(n2))) {
         const serializedChildNode = serializeNodeWithId(childN, bypassOptions);
         if (serializedChildNode) {
           serializedNode.childNodes.push(serializedChildNode);
         }
       }
     }
-    if (isElement(n2) && n2.shadowRoot) {
-      for (const childN of Array.from(n2.shadowRoot.childNodes)) {
+    let shadowRootEl = null;
+    if (isElement(n2) && (shadowRootEl = shadowRoot$1(n2))) {
+      for (const childN of Array.from(childNodes$1(shadowRootEl))) {
         const serializedChildNode = serializeNodeWithId(childN, bypassOptions);
         if (serializedChildNode) {
-          isNativeShadowDom(n2.shadowRoot) && (serializedChildNode.isShadow = true);
+          isNativeShadowDom(shadowRootEl) && (serializedChildNode.isShadow = true);
           serializedNode.childNodes.push(serializedChildNode);
         }
       }
     }
   }
-  if (n2.parentNode && isShadowRoot(n2.parentNode) && isNativeShadowDom(n2.parentNode)) {
+  const parent = parentNode$1(n2);
+  if (parent && isShadowRoot(parent) && isNativeShadowDom(parent)) {
     serializedNode.isShadow = true;
   }
-  if (serializedNode.type === NodeType.Element && serializedNode.tagName === "iframe") {
-    onceIframeLoaded(n2, () => {
-      const iframeDoc = n2.contentDocument;
-      if (iframeDoc && onIframeLoad) {
-        const serializedIframeNode = serializeNodeWithId(iframeDoc, {
-          doc: iframeDoc,
-          mirror: mirror2,
-          blockClass,
-          blockSelector,
-          needsMask,
-          maskTextClass,
-          maskTextSelector,
-          skipChild: false,
-          inlineStylesheet,
-          maskInputOptions,
-          maskTextFn,
-          maskInputFn,
-          slimDOMOptions,
-          dataURLOptions,
-          inlineImages,
-          recordCanvas,
-          preserveWhiteSpace,
-          onSerialize,
-          onIframeLoad,
-          iframeLoadTimeout,
-          onStylesheetLoad,
-          stylesheetLoadTimeout,
-          keepIframeSrcFn,
-          privacySetting
-        });
-        if (serializedIframeNode) {
-          onIframeLoad(n2, serializedIframeNode);
+  if (serializedNode.type === NodeType$2.Element && serializedNode.tagName === "iframe") {
+    onceIframeLoaded(
+      n2,
+      () => {
+        const iframeDoc = n2.contentDocument;
+        if (iframeDoc && onIframeLoad) {
+          const serializedIframeNode = serializeNodeWithId(iframeDoc, {
+            doc: iframeDoc,
+            mirror: mirror2,
+            blockClass,
+            blockSelector,
+            needsMask,
+            maskTextClass,
+            maskTextSelector,
+            skipChild: false,
+            inlineStylesheet,
+            maskInputOptions,
+            maskTextFn,
+            maskInputFn,
+            slimDOMOptions,
+            dataURLOptions,
+            inlineImages,
+            recordCanvas,
+            preserveWhiteSpace,
+            onSerialize,
+            onIframeLoad,
+            iframeLoadTimeout,
+            onStylesheetLoad,
+            stylesheetLoadTimeout,
+            keepIframeSrcFn,
+            privacySetting
+          });
+          if (serializedIframeNode) {
+            onIframeLoad(
+              n2,
+              serializedIframeNode
+            );
+          }
         }
-      }
-    }, iframeLoadTimeout);
+      },
+      iframeLoadTimeout
+    );
   }
-  if (serializedNode.type === NodeType.Element && serializedNode.tagName === "link" && typeof serializedNode.attributes.rel === "string" && (serializedNode.attributes.rel === "stylesheet" || serializedNode.attributes.rel === "preload" && typeof serializedNode.attributes.href === "string" && extractFileExtension(serializedNode.attributes.href) === "css")) {
-    onceStylesheetLoaded(n2, () => {
-      if (onStylesheetLoad) {
-        const serializedLinkNode = serializeNodeWithId(n2, {
-          doc,
-          mirror: mirror2,
-          blockClass,
-          blockSelector,
-          needsMask,
-          maskTextClass,
-          maskTextSelector,
-          skipChild: false,
-          inlineStylesheet,
-          maskInputOptions,
-          maskTextFn,
-          maskInputFn,
-          slimDOMOptions,
-          dataURLOptions,
-          inlineImages,
-          recordCanvas,
-          preserveWhiteSpace,
-          onSerialize,
-          onIframeLoad,
-          iframeLoadTimeout,
-          onStylesheetLoad,
-          stylesheetLoadTimeout,
-          keepIframeSrcFn,
-          privacySetting
-        });
-        if (serializedLinkNode) {
-          onStylesheetLoad(n2, serializedLinkNode);
+  if (serializedNode.type === NodeType$2.Element && serializedNode.tagName === "link" && typeof serializedNode.attributes.rel === "string" && (serializedNode.attributes.rel === "stylesheet" || serializedNode.attributes.rel === "preload" && typeof serializedNode.attributes.href === "string" && extractFileExtension(serializedNode.attributes.href) === "css")) {
+    onceStylesheetLoaded(
+      n2,
+      () => {
+        if (onStylesheetLoad) {
+          const serializedLinkNode = serializeNodeWithId(n2, {
+            doc,
+            mirror: mirror2,
+            blockClass,
+            blockSelector,
+            needsMask,
+            maskTextClass,
+            maskTextSelector,
+            skipChild: false,
+            inlineStylesheet,
+            maskInputOptions,
+            maskTextFn,
+            maskInputFn,
+            slimDOMOptions,
+            dataURLOptions,
+            inlineImages,
+            recordCanvas,
+            preserveWhiteSpace,
+            onSerialize,
+            onIframeLoad,
+            iframeLoadTimeout,
+            onStylesheetLoad,
+            stylesheetLoadTimeout,
+            keepIframeSrcFn,
+            privacySetting
+          });
+          if (serializedLinkNode) {
+            onStylesheetLoad(
+              n2,
+              serializedLinkNode
+            );
+          }
         }
-      }
-    }, stylesheetLoadTimeout);
+      },
+      stylesheetLoadTimeout
+    );
   }
   return serializedNode;
 }
 function snapshot(n2, options) {
-  const { mirror: mirror2 = new Mirror(), blockClass = "highlight-block", blockSelector = null, maskTextClass = "highlight-mask", maskTextSelector = null, inlineStylesheet = true, inlineImages = false, recordCanvas = false, maskAllInputs = false, maskTextFn, maskInputFn, slimDOM = false, dataURLOptions, preserveWhiteSpace, onSerialize, onIframeLoad, iframeLoadTimeout, onStylesheetLoad, stylesheetLoadTimeout, keepIframeSrcFn = () => false, privacySetting = "default" } = options || {};
+  const {
+    mirror: mirror2 = new Mirror(),
+    blockClass = "highlight-block",
+    blockSelector = null,
+    maskTextClass = "highlight-mask",
+    maskTextSelector = null,
+    inlineStylesheet = true,
+    inlineImages = false,
+    recordCanvas = false,
+    maskAllInputs = false,
+    maskTextFn,
+    maskInputFn,
+    slimDOM = false,
+    dataURLOptions,
+    preserveWhiteSpace,
+    onSerialize,
+    onIframeLoad,
+    iframeLoadTimeout,
+    onStylesheetLoad,
+    stylesheetLoadTimeout,
+    keepIframeSrcFn = () => false,
+    privacySetting = "default"
+  } = options || {};
   const maskInputOptions = maskAllInputs === true ? {
     color: true,
     date: true,
@@ -1082,18 +1366,22 @@ function snapshot(n2, options) {
   } : maskAllInputs === false ? {
     password: true
   } : maskAllInputs;
-  const slimDOMOptions = slimDOM || slimDOM === "all" ? {
-    script: true,
-    comment: true,
-    headFavicon: true,
-    headWhitespace: true,
-    headMetaDescKeywords: slimDOM === "all",
-    headMetaSocial: true,
-    headMetaRobots: true,
-    headMetaHttpEquiv: true,
-    headMetaAuthorship: true,
-    headMetaVerification: true
-  } : !slimDOM ? {} : slimDOM;
+  const slimDOMOptions = slimDOM || slimDOM === "all" ? (
+    // if true: set of sensible options that should not throw away any information
+    {
+      script: true,
+      comment: true,
+      headFavicon: true,
+      headWhitespace: true,
+      headMetaDescKeywords: slimDOM === "all",
+      // destructive
+      headMetaSocial: true,
+      headMetaRobots: true,
+      headMetaHttpEquiv: true,
+      headMetaAuthorship: true,
+      headMetaVerification: true
+    }
+  ) : !slimDOM ? {} : slimDOM;
   return serializeNodeWithId(n2, {
     doc: n2,
     mirror: mirror2,
@@ -1141,17 +1429,26 @@ function parse(css, options = {}) {
       return node;
     };
   }
-  class Position {
+  const _Position = class _Position2 {
     constructor(start) {
+      __publicField$1(this, "content");
+      __publicField$1(this, "start");
+      __publicField$1(this, "end");
+      __publicField$1(this, "source");
       this.start = start;
       this.end = { line: lineno, column };
       this.source = options.source;
+      this.content = _Position2.content;
     }
-  }
-  Position.prototype.content = css;
+  };
+  __publicField$1(_Position, "content");
+  let Position = _Position;
+  Position.content = css;
   const errorsList = [];
   function error(msg) {
-    const err = new Error(`${options.source || ""}:${lineno}:${column}: ${msg}`);
+    const err = new Error(
+      `${options.source || ""}:${lineno}:${column}: ${msg}`
+    );
     err.reason = msg;
     err.filename = options.source;
     err.line = lineno;
@@ -1182,16 +1479,16 @@ function parse(css, options = {}) {
   }
   function rules2() {
     let node;
-    const rules3 = [];
+    const rules22 = [];
     whitespace();
-    comments(rules3);
+    comments(rules22);
     while (css.length && css.charAt(0) !== "}" && (node = atrule() || rule())) {
       if (node) {
-        rules3.push(node);
-        comments(rules3);
+        rules22.push(node);
+        comments(rules22);
       }
     }
-    return rules3;
+    return rules22;
   }
   function match(re) {
     const m = re.exec(css);
@@ -1206,15 +1503,15 @@ function parse(css, options = {}) {
   function whitespace() {
     match(/^\s*/);
   }
-  function comments(rules3 = []) {
+  function comments(rules22 = []) {
     let c2;
     while (c2 = comment()) {
       if (c2) {
-        rules3.push(c2);
+        rules22.push(c2);
       }
       c2 = comment();
     }
-    return rules3;
+    return rules22;
   }
   function comment() {
     const pos = position();
@@ -1239,16 +1536,67 @@ function parse(css, options = {}) {
       comment: str
     });
   }
+  const selectorMatcher = new RegExp(
+    "^((" + [
+      /[^\\]"(?:\\"|[^"])*"/.source,
+      // consume any quoted parts (checking that the double quote isn't itself escaped)
+      /[^\\]'(?:\\'|[^'])*'/.source,
+      // same but for single quotes
+      "[^{]"
+    ].join("|") + ")+)"
+  );
   function selector() {
-    const m = match(/^([^{]+)/);
+    whitespace();
+    while (css[0] == "}") {
+      error("extra closing bracket");
+      css = css.slice(1);
+      whitespace();
+    }
+    const m = match(selectorMatcher);
     if (!m) {
       return;
     }
-    return trim(m[0]).replace(/\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*\/+/g, "").replace(/"(?:\\"|[^"])*"|'(?:\\'|[^'])*'/g, (m2) => {
+    const cleanedInput = m[0].trim().replace(/\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*\/+/g, "").replace(/"(?:\\"|[^"])*"|'(?:\\'|[^'])*'/g, (m2) => {
       return m2.replace(/,/g, "\u200C");
-    }).split(/\s*(?![^(]*\)),\s*/).map((s2) => {
-      return s2.replace(/\u200C/g, ",");
     });
+    return customSplit(cleanedInput).map(
+      (s2) => s2.replace(/\u200C/g, ",").trim()
+    );
+  }
+  function customSplit(input) {
+    const result = [];
+    let currentSegment = "";
+    let depthParentheses = 0;
+    let depthBrackets = 0;
+    let currentStringChar = null;
+    for (const char of input) {
+      const hasStringEscape = currentSegment.endsWith("\\");
+      if (currentStringChar) {
+        if (currentStringChar === char && !hasStringEscape) {
+          currentStringChar = null;
+        }
+      } else if (char === "(") {
+        depthParentheses++;
+      } else if (char === ")") {
+        depthParentheses--;
+      } else if (char === "[") {
+        depthBrackets++;
+      } else if (char === "]") {
+        depthBrackets--;
+      } else if (`'"`.includes(char)) {
+        currentStringChar = char;
+      }
+      if (char === "," && depthParentheses === 0 && depthBrackets === 0) {
+        result.push(currentSegment);
+        currentSegment = "";
+      } else {
+        currentSegment += char;
+      }
+    }
+    if (currentSegment) {
+      result.push(currentSegment);
+    }
+    return result;
   }
   function declaration() {
     const pos = position();
@@ -1480,7 +1828,15 @@ function parse(css, options = {}) {
   const atcharset = _compileAtrule("charset");
   const atnamespace = _compileAtrule("namespace");
   function _compileAtrule(name) {
-    const re = new RegExp("^@" + name + "\\s*([^;]+);");
+    const re = new RegExp(
+      "^@" + name + "\\s*((?:" + [
+        /[^\\]"(?:\\"|[^"])*"/.source,
+        // consume any quoted parts (checking that the double quote isn't itself escaped)
+        /[^\\]'(?:\\'|[^'])*'/.source,
+        // same but for single quotes
+        "[^;]"
+      ].join("|") + ")+);"
+    );
     return () => {
       const pos = position();
       const m = match(re);
@@ -1541,6 +1897,7 @@ function addParent(obj, parent) {
 }
 var tagMap = {
   script: "noscript",
+  // camel case svg element tag names
   altglyph: "altGlyph",
   altglyphdef: "altGlyphDef",
   altglyphitem: "altGlyphItem",
@@ -1593,7 +1950,7 @@ var MEDIA_SELECTOR_GLOBAL = new RegExp(MEDIA_SELECTOR.source, "g");
 var HOVER_SELECTOR = /([^\\]):hover/;
 var HOVER_SELECTOR_GLOBAL = new RegExp(HOVER_SELECTOR.source, "g");
 function adaptCssForReplay(cssText, cache) {
-  const cachedStyle = cache === null || cache === void 0 ? void 0 : cache.stylesWithHoverClass.get(cssText);
+  const cachedStyle = cache == null ? void 0 : cache.stylesWithHoverClass.get(cssText);
   if (cachedStyle)
     return cachedStyle;
   const ast = parse(cssText, {
@@ -1622,23 +1979,32 @@ function adaptCssForReplay(cssText, cache) {
   getSelectors(ast.stylesheet);
   let result = cssText;
   if (selectors.length > 0) {
-    const selectorMatcher = new RegExp(selectors.filter((selector, index) => selectors.indexOf(selector) === index).sort((a2, b) => b.length - a2.length).map((selector) => {
-      return escapeRegExp(selector);
-    }).join("|"), "g");
+    const selectorMatcher = new RegExp(
+      selectors.filter((selector, index) => selectors.indexOf(selector) === index).sort((a2, b) => b.length - a2.length).map((selector) => {
+        return escapeRegExp(selector);
+      }).join("|"),
+      "g"
+    );
     result = result.replace(selectorMatcher, (selector) => {
-      const newSelector = selector.replace(HOVER_SELECTOR_GLOBAL, "$1.\\:hover");
+      const newSelector = selector.replace(
+        HOVER_SELECTOR_GLOBAL,
+        "$1.\\:hover"
+      );
       return `${selector}, ${newSelector}`;
     });
   }
   if (medias.length > 0) {
-    const mediaMatcher = new RegExp(medias.filter((media, index) => medias.indexOf(media) === index).sort((a2, b) => b.length - a2.length).map((media) => {
-      return escapeRegExp(media);
-    }).join("|"), "g");
+    const mediaMatcher = new RegExp(
+      medias.filter((media, index) => medias.indexOf(media) === index).sort((a2, b) => b.length - a2.length).map((media) => {
+        return escapeRegExp(media);
+      }).join("|"),
+      "g"
+    );
     result = result.replace(mediaMatcher, (media) => {
       return media.replace(MEDIA_SELECTOR_GLOBAL, "$1-$2");
     });
   }
-  cache === null || cache === void 0 ? void 0 : cache.stylesWithHoverClass.set(cssText, result);
+  cache == null ? void 0 : cache.stylesWithHoverClass.set(cssText, result);
   return result;
 }
 function createCache() {
@@ -1651,19 +2017,31 @@ function buildNode(n2, options) {
   var _a2;
   const { doc, hackCss, cache } = options;
   switch (n2.type) {
-    case NodeType.Document:
+    case NodeType$2.Document:
       return doc.implementation.createDocument(null, "", null);
-    case NodeType.DocumentType:
-      return doc.implementation.createDocumentType(n2.name || "html", n2.publicId, n2.systemId);
-    case NodeType.Element: {
+    case NodeType$2.DocumentType:
+      return doc.implementation.createDocumentType(
+        n2.name || "html",
+        n2.publicId,
+        n2.systemId
+      );
+    case NodeType$2.Element: {
       const tagName = getTagName(n2);
       let node;
       if (n2.isSVG) {
         node = doc.createElementNS("http://www.w3.org/2000/svg", tagName);
       } else {
-        if (n2.isCustom && ((_a2 = doc.defaultView) === null || _a2 === void 0 ? void 0 : _a2.customElements) && !doc.defaultView.customElements.get(n2.tagName))
-          doc.defaultView.customElements.define(n2.tagName, class extends doc.defaultView.HTMLElement {
-          });
+        if (
+          // If the tag name is a custom element name
+          n2.isCustom && // If the browser supports custom elements
+          ((_a2 = doc.defaultView) == null ? void 0 : _a2.customElements) && // If the custom element hasn't been defined yet
+          !doc.defaultView.customElements.get(n2.tagName)
+        )
+          doc.defaultView.customElements.define(
+            n2.tagName,
+            class extends doc.defaultView.HTMLElement {
+            }
+          );
         node = doc.createElement(tagName);
       }
       const specialAttributes = {};
@@ -1696,7 +2074,11 @@ function buildNode(n2, options) {
         }
         try {
           if (n2.isSVG && name === "xlink:href") {
-            node.setAttributeNS("http://www.w3.org/1999/xlink", name, value.toString());
+            node.setAttributeNS(
+              "http://www.w3.org/1999/xlink",
+              name,
+              value.toString()
+            );
           } else if (name === "onload" || name === "onclick" || name.substring(0, 7) === "onmouse") {
             node.setAttribute("_" + name, value.toString());
           } else if (tagName === "meta" && n2.attributes["http-equiv"] === "Content-Security-Policy" && name === "content") {
@@ -1705,7 +2087,10 @@ function buildNode(n2, options) {
           } else if (tagName === "link" && (n2.attributes.rel === "preload" || n2.attributes.rel === "modulepreload") && n2.attributes.as === "script") {
           } else if (tagName === "link" && n2.attributes.rel === "prefetch" && typeof n2.attributes.href === "string" && n2.attributes.href.endsWith(".js")) {
           } else if (tagName === "img" && n2.attributes.srcset && n2.attributes.rr_dataURL) {
-            node.setAttribute("rrweb-original-srcset", n2.attributes.srcset);
+            node.setAttribute(
+              "rrweb-original-srcset",
+              n2.attributes.srcset
+            );
           } else {
             node.setAttribute(name, value.toString());
           }
@@ -1715,7 +2100,7 @@ function buildNode(n2, options) {
       for (const name in specialAttributes) {
         const value = specialAttributes[name];
         if (tagName === "canvas" && name === "rr_dataURL") {
-          const image = document.createElement("img");
+          const image = doc.createElement("img");
           image.onload = () => {
             const ctx = node.getContext("2d");
             if (ctx) {
@@ -1728,7 +2113,10 @@ function buildNode(n2, options) {
         } else if (tagName === "img" && name === "rr_dataURL") {
           const image = node;
           if (!image.currentSrc.startsWith("data:")) {
-            image.setAttribute("rrweb-original-src", n2.attributes.src);
+            image.setAttribute(
+              "rrweb-original-src",
+              n2.attributes.src
+            );
             image.src = value.toString();
           }
         }
@@ -1747,6 +2135,14 @@ function buildNode(n2, options) {
               node.pause();
               break;
           }
+        } else if (name === "rr_mediaPlaybackRate" && typeof value === "number") {
+          node.playbackRate = value;
+        } else if (name === "rr_mediaMuted" && typeof value === "boolean") {
+          node.muted = value;
+        } else if (name === "rr_mediaLoop" && typeof value === "boolean") {
+          node.loop = value;
+        } else if (name === "rr_mediaVolume" && typeof value === "number") {
+          node.volume = value;
         }
       }
       if (n2.isShadowHost) {
@@ -1760,18 +2156,27 @@ function buildNode(n2, options) {
       }
       return node;
     }
-    case NodeType.Text:
-      return doc.createTextNode(n2.isStyle && hackCss ? adaptCssForReplay(n2.textContent, cache) : n2.textContent);
-    case NodeType.CDATA:
+    case NodeType$2.Text:
+      return doc.createTextNode(
+        n2.isStyle && hackCss ? adaptCssForReplay(n2.textContent, cache) : n2.textContent
+      );
+    case NodeType$2.CDATA:
       return doc.createCDATASection(n2.textContent);
-    case NodeType.Comment:
+    case NodeType$2.Comment:
       return doc.createComment(n2.textContent);
     default:
       return null;
   }
 }
 function buildNodeWithSN(n2, options) {
-  const { doc, mirror: mirror2, skipChild = false, hackCss = true, afterAppend, cache } = options;
+  const {
+    doc,
+    mirror: mirror2,
+    skipChild = false,
+    hackCss = true,
+    afterAppend,
+    cache
+  } = options;
   if (mirror2.has(n2.id)) {
     const nodeInMirror = mirror2.getNode(n2.id);
     const meta = mirror2.getMeta(nodeInMirror);
@@ -1785,20 +2190,24 @@ function buildNodeWithSN(n2, options) {
   if (n2.rootId && mirror2.getNode(n2.rootId) !== doc) {
     mirror2.replace(n2.rootId, doc);
   }
-  if (n2.type === NodeType.Document) {
+  if (n2.type === NodeType$2.Document) {
     doc.close();
     doc.open();
-    if (n2.compatMode === "BackCompat" && n2.childNodes && n2.childNodes[0].type !== NodeType.DocumentType) {
-      if (n2.childNodes[0].type === NodeType.Element && "xmlns" in n2.childNodes[0].attributes && n2.childNodes[0].attributes.xmlns === "http://www.w3.org/1999/xhtml") {
-        doc.write('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "">');
+    if (n2.compatMode === "BackCompat" && n2.childNodes && n2.childNodes[0].type !== NodeType$2.DocumentType) {
+      if (n2.childNodes[0].type === NodeType$2.Element && "xmlns" in n2.childNodes[0].attributes && n2.childNodes[0].attributes.xmlns === "http://www.w3.org/1999/xhtml") {
+        doc.write(
+          '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "">'
+        );
       } else {
-        doc.write('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "">');
+        doc.write(
+          '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "">'
+        );
       }
     }
     node = doc;
   }
   mirror2.add(node, n2);
-  if ((n2.type === NodeType.Document || n2.type === NodeType.Element) && !skipChild) {
+  if ((n2.type === NodeType$2.Document || n2.type === NodeType$2.Element) && !skipChild) {
     for (const childN of n2.childNodes) {
       const childNode = buildNodeWithSN(childN, {
         doc,
@@ -1814,7 +2223,7 @@ function buildNodeWithSN(n2, options) {
       }
       if (childN.isShadow && isElement(node) && node.shadowRoot) {
         node.shadowRoot.appendChild(childNode);
-      } else if (n2.type === NodeType.Document && childN.type == NodeType.Element) {
+      } else if (n2.type === NodeType$2.Document && childN.type == NodeType$2.Element) {
         const htmlElement = childNode;
         let body = null;
         htmlElement.childNodes.forEach((child) => {
@@ -1850,7 +2259,7 @@ function visit(mirror2, onVisit) {
 }
 function handleScroll(node, mirror2) {
   const n2 = mirror2.getMeta(node);
-  if ((n2 === null || n2 === void 0 ? void 0 : n2.type) !== NodeType.Element) {
+  if ((n2 == null ? void 0 : n2.type) !== NodeType$2.Element) {
     return;
   }
   const el = node;
@@ -1868,7 +2277,14 @@ function handleScroll(node, mirror2) {
   }
 }
 function rebuild(n2, options) {
-  const { doc, onVisit, hackCss = true, afterAppend, cache, mirror: mirror2 = new Mirror() } = options;
+  const {
+    doc,
+    onVisit,
+    hackCss = true,
+    afterAppend,
+    cache,
+    mirror: mirror2 = new Mirror()
+  } = options;
   const node = buildNodeWithSN(n2, {
     doc,
     mirror: mirror2,
@@ -1885,42 +2301,1452 @@ function rebuild(n2, options) {
   });
   return node;
 }
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/utils.js
-var utils_exports = {};
-__export(utils_exports, {
-  StyleSheetMirror: () => StyleSheetMirror,
-  _mirror: () => _mirror,
-  closestElementOfNode: () => closestElementOfNode,
-  getBaseDimension: () => getBaseDimension,
-  getNestedRule: () => getNestedRule,
-  getPositionsAndIndex: () => getPositionsAndIndex,
-  getRootShadowHost: () => getRootShadowHost,
-  getShadowHost: () => getShadowHost,
-  getWindowHeight: () => getWindowHeight,
-  getWindowScroll: () => getWindowScroll,
-  getWindowWidth: () => getWindowWidth,
-  hasShadowRoot: () => hasShadowRoot,
-  hookSetter: () => hookSetter,
-  inDom: () => inDom,
-  isAncestorRemoved: () => isAncestorRemoved,
-  isBlocked: () => isBlocked,
-  isCanvasNode: () => isCanvasNode,
-  isIgnored: () => isIgnored,
-  isSerialized: () => isSerialized,
-  isSerializedIframe: () => isSerializedIframe,
-  isSerializedStylesheet: () => isSerializedStylesheet,
-  iterateResolveTree: () => iterateResolveTree,
-  legacy_isTouchEvent: () => legacy_isTouchEvent,
-  nowTimestamp: () => nowTimestamp,
-  on: () => on,
-  patch: () => patch,
-  polyfill: () => polyfill,
-  queueToResolveTrees: () => queueToResolveTrees,
-  shadowHostInDom: () => shadowHostInDom,
-  throttle: () => throttle,
-  uniqueTextMutations: () => uniqueTextMutations
-});
+var __defProp2 = Object.defineProperty;
+var __defNormalProp2 = (obj, key, value) => key in obj ? __defProp2(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField2 = (obj, key, value) => {
+  __defNormalProp2(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
+var __defProp22 = Object.defineProperty;
+var __defNormalProp22 = (obj, key, value) => key in obj ? __defProp22(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField22 = (obj, key, value) => {
+  __defNormalProp22(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
+var NodeType$1 = /* @__PURE__ */ ((NodeType2) => {
+  NodeType2[NodeType2["Document"] = 0] = "Document";
+  NodeType2[NodeType2["DocumentType"] = 1] = "DocumentType";
+  NodeType2[NodeType2["Element"] = 2] = "Element";
+  NodeType2[NodeType2["Text"] = 3] = "Text";
+  NodeType2[NodeType2["CDATA"] = 4] = "CDATA";
+  NodeType2[NodeType2["Comment"] = 5] = "Comment";
+  return NodeType2;
+})(NodeType$1 || {});
+var Mirror$1 = class Mirror2 {
+  constructor() {
+    __publicField22(this, "idNodeMap", /* @__PURE__ */ new Map());
+    __publicField22(this, "nodeMetaMap", /* @__PURE__ */ new WeakMap());
+  }
+  getId(n2) {
+    var _a2;
+    if (!n2)
+      return -1;
+    const id = (_a2 = this.getMeta(n2)) == null ? void 0 : _a2.id;
+    return id ?? -1;
+  }
+  getNode(id) {
+    return this.idNodeMap.get(id) || null;
+  }
+  getIds() {
+    return Array.from(this.idNodeMap.keys());
+  }
+  getMeta(n2) {
+    return this.nodeMetaMap.get(n2) || null;
+  }
+  // removes the node from idNodeMap
+  // doesn't remove the node from nodeMetaMap
+  removeNodeFromMap(n2) {
+    const id = this.getId(n2);
+    this.idNodeMap.delete(id);
+    if (n2.childNodes) {
+      n2.childNodes.forEach(
+        (childNode) => this.removeNodeFromMap(childNode)
+      );
+    }
+  }
+  has(id) {
+    return this.idNodeMap.has(id);
+  }
+  hasNode(node) {
+    return this.nodeMetaMap.has(node);
+  }
+  add(n2, meta) {
+    const id = meta.id;
+    this.idNodeMap.set(id, n2);
+    this.nodeMetaMap.set(n2, meta);
+  }
+  replace(id, n2) {
+    const oldNode = this.getNode(id);
+    if (oldNode) {
+      const meta = this.nodeMetaMap.get(oldNode);
+      if (meta)
+        this.nodeMetaMap.set(n2, meta);
+    }
+    this.idNodeMap.set(id, n2);
+  }
+  reset() {
+    this.idNodeMap = /* @__PURE__ */ new Map();
+    this.nodeMetaMap = /* @__PURE__ */ new WeakMap();
+  }
+};
+function createMirror$1() {
+  return new Mirror$1();
+}
+function parseCSSText(cssText) {
+  const res = {};
+  const listDelimiter = /;(?![^(]*\))/g;
+  const propertyDelimiter = /:(.+)/;
+  const comment = /\/\*.*?\*\//g;
+  cssText.replace(comment, "").split(listDelimiter).forEach(function(item) {
+    if (item) {
+      const tmp = item.split(propertyDelimiter);
+      tmp.length > 1 && (res[camelize(tmp[0].trim())] = tmp[1].trim());
+    }
+  });
+  return res;
+}
+function toCSSText(style) {
+  const properties = [];
+  for (const name in style) {
+    const value = style[name];
+    if (typeof value !== "string")
+      continue;
+    const normalizedName = hyphenate(name);
+    properties.push(`${normalizedName}: ${value};`);
+  }
+  return properties.join(" ");
+}
+var camelizeRE = /-([a-z])/g;
+var CUSTOM_PROPERTY_REGEX = /^--[a-zA-Z0-9-]+$/;
+var camelize = (str) => {
+  if (CUSTOM_PROPERTY_REGEX.test(str))
+    return str;
+  return str.replace(camelizeRE, (_, c2) => c2 ? c2.toUpperCase() : "");
+};
+var hyphenateRE = /\B([A-Z])/g;
+var hyphenate = (str) => {
+  return str.replace(hyphenateRE, "-$1").toLowerCase();
+};
+var BaseRRNode = class _BaseRRNode {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+  constructor(..._args) {
+    __publicField2(this, "parentElement", null);
+    __publicField2(this, "parentNode", null);
+    __publicField2(this, "ownerDocument");
+    __publicField2(this, "firstChild", null);
+    __publicField2(this, "lastChild", null);
+    __publicField2(this, "previousSibling", null);
+    __publicField2(this, "nextSibling", null);
+    __publicField2(this, "ELEMENT_NODE", 1);
+    __publicField2(this, "TEXT_NODE", 3);
+    __publicField2(this, "nodeType");
+    __publicField2(this, "nodeName");
+    __publicField2(this, "RRNodeType");
+  }
+  get childNodes() {
+    const childNodes2 = [];
+    let childIterator = this.firstChild;
+    while (childIterator) {
+      childNodes2.push(childIterator);
+      childIterator = childIterator.nextSibling;
+    }
+    return childNodes2;
+  }
+  contains(node) {
+    if (!(node instanceof _BaseRRNode))
+      return false;
+    else if (node.ownerDocument !== this.ownerDocument)
+      return false;
+    else if (node === this)
+      return true;
+    while (node.parentNode) {
+      if (node.parentNode === this)
+        return true;
+      node = node.parentNode;
+    }
+    return false;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  appendChild(_newChild) {
+    throw new Error(
+      `RRDomException: Failed to execute 'appendChild' on 'RRNode': This RRNode type does not support this method.`
+    );
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  insertBefore(_newChild, _refChild) {
+    throw new Error(
+      `RRDomException: Failed to execute 'insertBefore' on 'RRNode': This RRNode type does not support this method.`
+    );
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  removeChild(_node) {
+    throw new Error(
+      `RRDomException: Failed to execute 'removeChild' on 'RRNode': This RRNode type does not support this method.`
+    );
+  }
+  toString() {
+    return "RRNode";
+  }
+};
+var BaseRRDocument = class _BaseRRDocument extends BaseRRNode {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(...args) {
+    super(args);
+    __publicField2(this, "nodeType", 9);
+    __publicField2(this, "nodeName", "#document");
+    __publicField2(this, "compatMode", "CSS1Compat");
+    __publicField2(this, "RRNodeType", NodeType$1.Document);
+    __publicField2(this, "textContent", null);
+    this.ownerDocument = this;
+  }
+  get documentElement() {
+    return this.childNodes.find(
+      (node) => node.RRNodeType === NodeType$1.Element && node.tagName === "HTML"
+    ) || null;
+  }
+  get body() {
+    var _a2;
+    return ((_a2 = this.documentElement) == null ? void 0 : _a2.childNodes.find(
+      (node) => node.RRNodeType === NodeType$1.Element && node.tagName === "BODY"
+    )) || null;
+  }
+  get head() {
+    var _a2;
+    return ((_a2 = this.documentElement) == null ? void 0 : _a2.childNodes.find(
+      (node) => node.RRNodeType === NodeType$1.Element && node.tagName === "HEAD"
+    )) || null;
+  }
+  get implementation() {
+    return this;
+  }
+  get firstElementChild() {
+    return this.documentElement;
+  }
+  appendChild(newChild) {
+    const nodeType = newChild.RRNodeType;
+    if (nodeType === NodeType$1.Element || nodeType === NodeType$1.DocumentType) {
+      if (this.childNodes.some((s2) => s2.RRNodeType === nodeType)) {
+        throw new Error(
+          `RRDomException: Failed to execute 'appendChild' on 'RRNode': Only one ${nodeType === NodeType$1.Element ? "RRElement" : "RRDoctype"} on RRDocument allowed.`
+        );
+      }
+    }
+    const child = appendChild(this, newChild);
+    child.parentElement = null;
+    return child;
+  }
+  insertBefore(newChild, refChild) {
+    const nodeType = newChild.RRNodeType;
+    if (nodeType === NodeType$1.Element || nodeType === NodeType$1.DocumentType) {
+      if (this.childNodes.some((s2) => s2.RRNodeType === nodeType)) {
+        throw new Error(
+          `RRDomException: Failed to execute 'insertBefore' on 'RRNode': Only one ${nodeType === NodeType$1.Element ? "RRElement" : "RRDoctype"} on RRDocument allowed.`
+        );
+      }
+    }
+    const child = insertBefore(this, newChild, refChild);
+    child.parentElement = null;
+    return child;
+  }
+  removeChild(node) {
+    return removeChild(this, node);
+  }
+  open() {
+    this.firstChild = null;
+    this.lastChild = null;
+  }
+  close() {
+  }
+  /**
+   * Adhoc implementation for setting xhtml namespace in rebuilt.ts (rrweb-snapshot).
+   * There are two lines used this function:
+   * 1. doc.write('\<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ""\>')
+   * 2. doc.write('\<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" ""\>')
+   */
+  write(content) {
+    let publicId;
+    if (content === '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "">')
+      publicId = "-//W3C//DTD XHTML 1.0 Transitional//EN";
+    else if (content === '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "">')
+      publicId = "-//W3C//DTD HTML 4.0 Transitional//EN";
+    if (publicId) {
+      const doctype = this.createDocumentType("html", publicId, "");
+      this.open();
+      this.appendChild(doctype);
+    }
+  }
+  createDocument(_namespace, _qualifiedName, _doctype) {
+    return new _BaseRRDocument();
+  }
+  createDocumentType(qualifiedName, publicId, systemId) {
+    const doctype = new BaseRRDocumentType(qualifiedName, publicId, systemId);
+    doctype.ownerDocument = this;
+    return doctype;
+  }
+  createElement(tagName) {
+    const element = new BaseRRElement(tagName);
+    element.ownerDocument = this;
+    return element;
+  }
+  createElementNS(_namespaceURI, qualifiedName) {
+    return this.createElement(qualifiedName);
+  }
+  createTextNode(data) {
+    const text = new BaseRRText(data);
+    text.ownerDocument = this;
+    return text;
+  }
+  createComment(data) {
+    const comment = new BaseRRComment(data);
+    comment.ownerDocument = this;
+    return comment;
+  }
+  createCDATASection(data) {
+    const CDATASection = new BaseRRCDATASection(data);
+    CDATASection.ownerDocument = this;
+    return CDATASection;
+  }
+  toString() {
+    return "RRDocument";
+  }
+};
+var BaseRRDocumentType = class extends BaseRRNode {
+  constructor(qualifiedName, publicId, systemId) {
+    super();
+    __publicField2(this, "nodeType", 10);
+    __publicField2(this, "RRNodeType", NodeType$1.DocumentType);
+    __publicField2(this, "name");
+    __publicField2(this, "publicId");
+    __publicField2(this, "systemId");
+    __publicField2(this, "textContent", null);
+    this.name = qualifiedName;
+    this.publicId = publicId;
+    this.systemId = systemId;
+    this.nodeName = qualifiedName;
+  }
+  toString() {
+    return "RRDocumentType";
+  }
+};
+var BaseRRElement = class extends BaseRRNode {
+  constructor(tagName) {
+    super();
+    __publicField2(this, "nodeType", 1);
+    __publicField2(this, "RRNodeType", NodeType$1.Element);
+    __publicField2(this, "tagName");
+    __publicField2(this, "attributes", {});
+    __publicField2(this, "shadowRoot", null);
+    __publicField2(this, "scrollLeft");
+    __publicField2(this, "scrollTop");
+    this.tagName = tagName.toUpperCase();
+    this.nodeName = tagName.toUpperCase();
+  }
+  get textContent() {
+    let result = "";
+    this.childNodes.forEach((node) => result += node.textContent);
+    return result;
+  }
+  set textContent(textContent2) {
+    this.firstChild = null;
+    this.lastChild = null;
+    this.appendChild(this.ownerDocument.createTextNode(textContent2));
+  }
+  get classList() {
+    return new ClassList(
+      this.attributes.class,
+      (newClassName) => {
+        this.attributes.class = newClassName;
+      }
+    );
+  }
+  get id() {
+    return this.attributes.id || "";
+  }
+  get className() {
+    return this.attributes.class || "";
+  }
+  get style() {
+    const style = this.attributes.style ? parseCSSText(this.attributes.style) : {};
+    const hyphenateRE2 = /\B([A-Z])/g;
+    style.setProperty = (name, value, priority) => {
+      if (hyphenateRE2.test(name))
+        return;
+      const normalizedName = camelize(name);
+      if (!value)
+        delete style[normalizedName];
+      else
+        style[normalizedName] = value;
+      if (priority === "important")
+        style[normalizedName] += " !important";
+      this.attributes.style = toCSSText(style);
+    };
+    style.removeProperty = (name) => {
+      if (hyphenateRE2.test(name))
+        return "";
+      const normalizedName = camelize(name);
+      const value = style[normalizedName] || "";
+      delete style[normalizedName];
+      this.attributes.style = toCSSText(style);
+      return value;
+    };
+    return style;
+  }
+  getAttribute(name) {
+    return this.attributes[name] || null;
+  }
+  setAttribute(name, attribute) {
+    this.attributes[name] = attribute;
+  }
+  setAttributeNS(_namespace, qualifiedName, value) {
+    this.setAttribute(qualifiedName, value);
+  }
+  removeAttribute(name) {
+    delete this.attributes[name];
+  }
+  appendChild(newChild) {
+    return appendChild(this, newChild);
+  }
+  insertBefore(newChild, refChild) {
+    return insertBefore(this, newChild, refChild);
+  }
+  removeChild(node) {
+    return removeChild(this, node);
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  attachShadow(_init) {
+    const shadowRoot2 = this.ownerDocument.createElement("SHADOWROOT");
+    this.shadowRoot = shadowRoot2;
+    return shadowRoot2;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  dispatchEvent(_event) {
+    return true;
+  }
+  toString() {
+    let attributeString = "";
+    for (const attribute in this.attributes) {
+      attributeString += `${attribute}="${this.attributes[attribute]}" `;
+    }
+    return `${this.tagName} ${attributeString}`;
+  }
+};
+var BaseRRMediaElement = class extends BaseRRElement {
+  constructor() {
+    super(...arguments);
+    __publicField2(this, "currentTime");
+    __publicField2(this, "volume");
+    __publicField2(this, "paused");
+    __publicField2(this, "muted");
+    __publicField2(this, "playbackRate");
+    __publicField2(this, "loop");
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  attachShadow(_init) {
+    throw new Error(
+      `RRDomException: Failed to execute 'attachShadow' on 'RRElement': This RRElement does not support attachShadow`
+    );
+  }
+  play() {
+    this.paused = false;
+  }
+  pause() {
+    this.paused = true;
+  }
+};
+var BaseRRText = class extends BaseRRNode {
+  constructor(data) {
+    super();
+    __publicField2(this, "nodeType", 3);
+    __publicField2(this, "nodeName", "#text");
+    __publicField2(this, "RRNodeType", NodeType$1.Text);
+    __publicField2(this, "data");
+    this.data = data;
+  }
+  get textContent() {
+    return this.data;
+  }
+  set textContent(textContent2) {
+    this.data = textContent2;
+  }
+  toString() {
+    return `RRText text=${JSON.stringify(this.data)}`;
+  }
+};
+var BaseRRComment = class extends BaseRRNode {
+  constructor(data) {
+    super();
+    __publicField2(this, "nodeType", 8);
+    __publicField2(this, "nodeName", "#comment");
+    __publicField2(this, "RRNodeType", NodeType$1.Comment);
+    __publicField2(this, "data");
+    this.data = data;
+  }
+  get textContent() {
+    return this.data;
+  }
+  set textContent(textContent2) {
+    this.data = textContent2;
+  }
+  toString() {
+    return `RRComment text=${JSON.stringify(this.data)}`;
+  }
+};
+var BaseRRCDATASection = class extends BaseRRNode {
+  constructor(data) {
+    super();
+    __publicField2(this, "nodeName", "#cdata-section");
+    __publicField2(this, "nodeType", 4);
+    __publicField2(this, "RRNodeType", NodeType$1.CDATA);
+    __publicField2(this, "data");
+    this.data = data;
+  }
+  get textContent() {
+    return this.data;
+  }
+  set textContent(textContent2) {
+    this.data = textContent2;
+  }
+  toString() {
+    return `RRCDATASection data=${JSON.stringify(this.data)}`;
+  }
+};
+var ClassList = class {
+  constructor(classText, onChange) {
+    __publicField2(this, "onChange");
+    __publicField2(this, "classes", []);
+    __publicField2(this, "add", (...classNames) => {
+      for (const item of classNames) {
+        const className = String(item);
+        if (this.classes.indexOf(className) >= 0)
+          continue;
+        this.classes.push(className);
+      }
+      this.onChange && this.onChange(this.classes.join(" "));
+    });
+    __publicField2(this, "remove", (...classNames) => {
+      this.classes = this.classes.filter(
+        (item) => classNames.indexOf(item) === -1
+      );
+      this.onChange && this.onChange(this.classes.join(" "));
+    });
+    if (classText) {
+      const classes = classText.trim().split(/\s+/);
+      this.classes.push(...classes);
+    }
+    this.onChange = onChange;
+  }
+};
+function appendChild(parent, newChild) {
+  if (newChild.parentNode)
+    newChild.parentNode.removeChild(newChild);
+  if (parent.lastChild) {
+    parent.lastChild.nextSibling = newChild;
+    newChild.previousSibling = parent.lastChild;
+  } else {
+    parent.firstChild = newChild;
+    newChild.previousSibling = null;
+  }
+  parent.lastChild = newChild;
+  newChild.nextSibling = null;
+  newChild.parentNode = parent;
+  newChild.parentElement = parent;
+  newChild.ownerDocument = parent.ownerDocument;
+  return newChild;
+}
+function insertBefore(parent, newChild, refChild) {
+  if (!refChild)
+    return appendChild(parent, newChild);
+  if (refChild.parentNode !== parent)
+    throw new Error(
+      "Failed to execute 'insertBefore' on 'RRNode': The RRNode before which the new node is to be inserted is not a child of this RRNode."
+    );
+  if (newChild === refChild)
+    return newChild;
+  if (newChild.parentNode)
+    newChild.parentNode.removeChild(newChild);
+  newChild.previousSibling = refChild.previousSibling;
+  refChild.previousSibling = newChild;
+  newChild.nextSibling = refChild;
+  if (newChild.previousSibling)
+    newChild.previousSibling.nextSibling = newChild;
+  else
+    parent.firstChild = newChild;
+  newChild.parentElement = parent;
+  newChild.parentNode = parent;
+  newChild.ownerDocument = parent.ownerDocument;
+  return newChild;
+}
+function removeChild(parent, child) {
+  if (child.parentNode !== parent)
+    throw new Error(
+      "Failed to execute 'removeChild' on 'RRNode': The RRNode to be removed is not a child of this RRNode."
+    );
+  if (child.previousSibling)
+    child.previousSibling.nextSibling = child.nextSibling;
+  else
+    parent.firstChild = child.nextSibling;
+  if (child.nextSibling)
+    child.nextSibling.previousSibling = child.previousSibling;
+  else
+    parent.lastChild = child.previousSibling;
+  child.previousSibling = null;
+  child.nextSibling = null;
+  child.parentElement = null;
+  child.parentNode = null;
+  return child;
+}
+var NodeType = /* @__PURE__ */ ((NodeType2) => {
+  NodeType2[NodeType2["PLACEHOLDER"] = 0] = "PLACEHOLDER";
+  NodeType2[NodeType2["ELEMENT_NODE"] = 1] = "ELEMENT_NODE";
+  NodeType2[NodeType2["ATTRIBUTE_NODE"] = 2] = "ATTRIBUTE_NODE";
+  NodeType2[NodeType2["TEXT_NODE"] = 3] = "TEXT_NODE";
+  NodeType2[NodeType2["CDATA_SECTION_NODE"] = 4] = "CDATA_SECTION_NODE";
+  NodeType2[NodeType2["ENTITY_REFERENCE_NODE"] = 5] = "ENTITY_REFERENCE_NODE";
+  NodeType2[NodeType2["ENTITY_NODE"] = 6] = "ENTITY_NODE";
+  NodeType2[NodeType2["PROCESSING_INSTRUCTION_NODE"] = 7] = "PROCESSING_INSTRUCTION_NODE";
+  NodeType2[NodeType2["COMMENT_NODE"] = 8] = "COMMENT_NODE";
+  NodeType2[NodeType2["DOCUMENT_NODE"] = 9] = "DOCUMENT_NODE";
+  NodeType2[NodeType2["DOCUMENT_TYPE_NODE"] = 10] = "DOCUMENT_TYPE_NODE";
+  NodeType2[NodeType2["DOCUMENT_FRAGMENT_NODE"] = 11] = "DOCUMENT_FRAGMENT_NODE";
+  return NodeType2;
+})(NodeType || {});
+var NAMESPACES = {
+  svg: "http://www.w3.org/2000/svg",
+  "xlink:href": "http://www.w3.org/1999/xlink",
+  xmlns: "http://www.w3.org/2000/xmlns/"
+};
+var SVGTagMap = {
+  altglyph: "altGlyph",
+  altglyphdef: "altGlyphDef",
+  altglyphitem: "altGlyphItem",
+  animatecolor: "animateColor",
+  animatemotion: "animateMotion",
+  animatetransform: "animateTransform",
+  clippath: "clipPath",
+  feblend: "feBlend",
+  fecolormatrix: "feColorMatrix",
+  fecomponenttransfer: "feComponentTransfer",
+  fecomposite: "feComposite",
+  feconvolvematrix: "feConvolveMatrix",
+  fediffuselighting: "feDiffuseLighting",
+  fedisplacementmap: "feDisplacementMap",
+  fedistantlight: "feDistantLight",
+  fedropshadow: "feDropShadow",
+  feflood: "feFlood",
+  fefunca: "feFuncA",
+  fefuncb: "feFuncB",
+  fefuncg: "feFuncG",
+  fefuncr: "feFuncR",
+  fegaussianblur: "feGaussianBlur",
+  feimage: "feImage",
+  femerge: "feMerge",
+  femergenode: "feMergeNode",
+  femorphology: "feMorphology",
+  feoffset: "feOffset",
+  fepointlight: "fePointLight",
+  fespecularlighting: "feSpecularLighting",
+  fespotlight: "feSpotLight",
+  fetile: "feTile",
+  feturbulence: "feTurbulence",
+  foreignobject: "foreignObject",
+  glyphref: "glyphRef",
+  lineargradient: "linearGradient",
+  radialgradient: "radialGradient"
+};
+var createdNodeSet = null;
+function diff(oldTree, newTree, replayer, rrnodeMirror = newTree.mirror || newTree.ownerDocument.mirror) {
+  oldTree = diffBeforeUpdatingChildren(
+    oldTree,
+    newTree,
+    replayer,
+    rrnodeMirror
+  );
+  diffChildren(oldTree, newTree, replayer, rrnodeMirror);
+  diffAfterUpdatingChildren(oldTree, newTree, replayer);
+}
+function diffBeforeUpdatingChildren(oldTree, newTree, replayer, rrnodeMirror) {
+  var _a2;
+  if (replayer.afterAppend && !createdNodeSet) {
+    createdNodeSet = /* @__PURE__ */ new WeakSet();
+    setTimeout(() => {
+      createdNodeSet = null;
+    }, 0);
+  }
+  if (!sameNodeType(oldTree, newTree)) {
+    const calibratedOldTree = createOrGetNode(
+      newTree,
+      replayer.mirror,
+      rrnodeMirror
+    );
+    (_a2 = oldTree.parentNode) == null ? void 0 : _a2.replaceChild(calibratedOldTree, oldTree);
+    oldTree = calibratedOldTree;
+  }
+  switch (newTree.RRNodeType) {
+    case NodeType$1.Document: {
+      if (!nodeMatching(oldTree, newTree, replayer.mirror, rrnodeMirror)) {
+        const newMeta = rrnodeMirror.getMeta(newTree);
+        if (newMeta) {
+          replayer.mirror.removeNodeFromMap(oldTree);
+          oldTree.close();
+          oldTree.open();
+          replayer.mirror.add(oldTree, newMeta);
+          createdNodeSet == null ? void 0 : createdNodeSet.add(oldTree);
+        }
+      }
+      break;
+    }
+    case NodeType$1.Element: {
+      const oldElement = oldTree;
+      const newRRElement = newTree;
+      switch (newRRElement.tagName) {
+        case "IFRAME": {
+          const oldContentDocument = oldTree.contentDocument;
+          if (!oldContentDocument)
+            break;
+          diff(
+            oldContentDocument,
+            newTree.contentDocument,
+            replayer,
+            rrnodeMirror
+          );
+          break;
+        }
+      }
+      if (newRRElement.shadowRoot) {
+        if (!oldElement.shadowRoot)
+          oldElement.attachShadow({ mode: "open" });
+        diffChildren(
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          oldElement.shadowRoot,
+          newRRElement.shadowRoot,
+          replayer,
+          rrnodeMirror
+        );
+      }
+      diffProps(oldElement, newRRElement, rrnodeMirror);
+      break;
+    }
+  }
+  return oldTree;
+}
+function diffAfterUpdatingChildren(oldTree, newTree, replayer) {
+  var _a2;
+  switch (newTree.RRNodeType) {
+    case NodeType$1.Document: {
+      const scrollData = newTree.scrollData;
+      scrollData && replayer.applyScroll(scrollData, true);
+      break;
+    }
+    case NodeType$1.Element: {
+      const oldElement = oldTree;
+      const newRRElement = newTree;
+      newRRElement.scrollData && replayer.applyScroll(newRRElement.scrollData, true);
+      newRRElement.inputData && replayer.applyInput(newRRElement.inputData);
+      switch (newRRElement.tagName) {
+        case "AUDIO":
+        case "VIDEO": {
+          const oldMediaElement = oldTree;
+          const newMediaRRElement = newRRElement;
+          if (newMediaRRElement.paused !== void 0)
+            newMediaRRElement.paused ? void oldMediaElement.pause() : void oldMediaElement.play();
+          if (newMediaRRElement.muted !== void 0)
+            oldMediaElement.muted = newMediaRRElement.muted;
+          if (newMediaRRElement.volume !== void 0)
+            oldMediaElement.volume = newMediaRRElement.volume;
+          if (newMediaRRElement.currentTime !== void 0)
+            oldMediaElement.currentTime = newMediaRRElement.currentTime;
+          if (newMediaRRElement.playbackRate !== void 0)
+            oldMediaElement.playbackRate = newMediaRRElement.playbackRate;
+          if (newMediaRRElement.loop !== void 0)
+            oldMediaElement.loop = newMediaRRElement.loop;
+          break;
+        }
+        case "CANVAS": {
+          const rrCanvasElement = newTree;
+          if (rrCanvasElement.rr_dataURL !== null) {
+            const image = document.createElement("img");
+            image.onload = () => {
+              const ctx = oldElement.getContext("2d");
+              if (ctx) {
+                ctx.drawImage(image, 0, 0, image.width, image.height);
+              }
+            };
+            image.src = rrCanvasElement.rr_dataURL;
+          }
+          rrCanvasElement.canvasMutations.forEach(
+            (canvasMutation2) => replayer.applyCanvas(
+              canvasMutation2.event,
+              canvasMutation2.mutation,
+              oldTree
+            )
+          );
+          break;
+        }
+        case "STYLE": {
+          const styleSheet = oldElement.sheet;
+          styleSheet && newTree.rules.forEach(
+            (data) => replayer.applyStyleSheetMutation(data, styleSheet)
+          );
+          break;
+        }
+      }
+      break;
+    }
+    case NodeType$1.Text:
+    case NodeType$1.Comment:
+    case NodeType$1.CDATA: {
+      if (oldTree.textContent !== newTree.data)
+        oldTree.textContent = newTree.data;
+      break;
+    }
+  }
+  if (createdNodeSet == null ? void 0 : createdNodeSet.has(oldTree)) {
+    createdNodeSet.delete(oldTree);
+    (_a2 = replayer.afterAppend) == null ? void 0 : _a2.call(replayer, oldTree, replayer.mirror.getId(oldTree));
+  }
+}
+function diffProps(oldTree, newTree, rrnodeMirror) {
+  const oldAttributes = oldTree.attributes;
+  const newAttributes = newTree.attributes;
+  for (const name in newAttributes) {
+    const newValue = newAttributes[name];
+    const sn = rrnodeMirror.getMeta(newTree);
+    if ((sn == null ? void 0 : sn.isSVG) && NAMESPACES[name])
+      oldTree.setAttributeNS(NAMESPACES[name], name, newValue);
+    else if (newTree.tagName === "CANVAS" && name === "rr_dataURL") {
+      const image = document.createElement("img");
+      image.src = newValue;
+      image.onload = () => {
+        const ctx = oldTree.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(image, 0, 0, image.width, image.height);
+        }
+      };
+    } else if (newTree.tagName === "IFRAME" && name === "srcdoc")
+      continue;
+    else
+      oldTree.setAttribute(name, newValue);
+  }
+  for (const { name } of Array.from(oldAttributes))
+    if (!(name in newAttributes))
+      oldTree.removeAttribute(name);
+  newTree.scrollLeft && (oldTree.scrollLeft = newTree.scrollLeft);
+  newTree.scrollTop && (oldTree.scrollTop = newTree.scrollTop);
+}
+function diffChildren(oldTree, newTree, replayer, rrnodeMirror) {
+  const oldChildren = Array.from(oldTree.childNodes);
+  const newChildren = newTree.childNodes;
+  if (oldChildren.length === 0 && newChildren.length === 0)
+    return;
+  let oldStartIndex = 0, oldEndIndex = oldChildren.length - 1, newStartIndex = 0, newEndIndex = newChildren.length - 1;
+  let oldStartNode = oldChildren[oldStartIndex], oldEndNode = oldChildren[oldEndIndex], newStartNode = newChildren[newStartIndex], newEndNode = newChildren[newEndIndex];
+  let oldIdToIndex = void 0, indexInOld = void 0;
+  while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {
+    if (oldStartNode === void 0) {
+      oldStartNode = oldChildren[++oldStartIndex];
+    } else if (oldEndNode === void 0) {
+      oldEndNode = oldChildren[--oldEndIndex];
+    } else if (
+      // same first node?
+      nodeMatching(oldStartNode, newStartNode, replayer.mirror, rrnodeMirror)
+    ) {
+      oldStartNode = oldChildren[++oldStartIndex];
+      newStartNode = newChildren[++newStartIndex];
+    } else if (
+      // same last node?
+      nodeMatching(oldEndNode, newEndNode, replayer.mirror, rrnodeMirror)
+    ) {
+      oldEndNode = oldChildren[--oldEndIndex];
+      newEndNode = newChildren[--newEndIndex];
+    } else if (
+      // is the first old node the same as the last new node?
+      nodeMatching(oldStartNode, newEndNode, replayer.mirror, rrnodeMirror)
+    ) {
+      try {
+        oldTree.insertBefore(oldStartNode, oldEndNode.nextSibling);
+      } catch (e2) {
+        console.warn(e2);
+      }
+      oldStartNode = oldChildren[++oldStartIndex];
+      newEndNode = newChildren[--newEndIndex];
+    } else if (
+      // is the last old node the same as the first new node?
+      nodeMatching(oldEndNode, newStartNode, replayer.mirror, rrnodeMirror)
+    ) {
+      try {
+        oldTree.insertBefore(oldEndNode, oldStartNode);
+      } catch (e2) {
+        console.warn(e2);
+      }
+      oldEndNode = oldChildren[--oldEndIndex];
+      newStartNode = newChildren[++newStartIndex];
+    } else {
+      if (!oldIdToIndex) {
+        oldIdToIndex = {};
+        for (let i2 = oldStartIndex; i2 <= oldEndIndex; i2++) {
+          const oldChild2 = oldChildren[i2];
+          if (oldChild2 && replayer.mirror.hasNode(oldChild2))
+            oldIdToIndex[replayer.mirror.getId(oldChild2)] = i2;
+        }
+      }
+      indexInOld = oldIdToIndex[rrnodeMirror.getId(newStartNode)];
+      const nodeToMove = oldChildren[indexInOld];
+      if (indexInOld !== void 0 && nodeToMove && nodeMatching(nodeToMove, newStartNode, replayer.mirror, rrnodeMirror)) {
+        try {
+          oldTree.insertBefore(nodeToMove, oldStartNode);
+        } catch (e2) {
+          console.warn(e2);
+        }
+        oldChildren[indexInOld] = void 0;
+      } else {
+        const newNode = createOrGetNode(
+          newStartNode,
+          replayer.mirror,
+          rrnodeMirror
+        );
+        if (oldTree.nodeName === "#document" && oldStartNode && /**
+        * Special case 1: one document isn't allowed to have two doctype nodes at the same time, so we need to remove the old one first before inserting the new one.
+        * How this case happens: A parent document in the old tree already has a doctype node with an id e.g. #1. A new full snapshot rebuilds the replayer with a new doctype node with another id #2. According to the algorithm, the new doctype node will be inserted before the old one, which is not allowed by the Document standard.
+        */
+        (newNode.nodeType === newNode.DOCUMENT_TYPE_NODE && oldStartNode.nodeType === oldStartNode.DOCUMENT_TYPE_NODE || /**
+        * Special case 2: one document isn't allowed to have two HTMLElements at the same time, so we need to remove the old one first before inserting the new one.
+        * How this case happens: A mounted iframe element has an automatically created HTML element. We should delete it before inserting a serialized one. Otherwise, an error 'Only one element on document allowed' will be thrown.
+        */
+        newNode.nodeType === newNode.ELEMENT_NODE && oldStartNode.nodeType === oldStartNode.ELEMENT_NODE)) {
+          oldTree.removeChild(oldStartNode);
+          replayer.mirror.removeNodeFromMap(oldStartNode);
+          oldStartNode = oldChildren[++oldStartIndex];
+        }
+        try {
+          oldTree.insertBefore(newNode, oldStartNode || null);
+        } catch (e2) {
+          console.warn(e2);
+        }
+      }
+      newStartNode = newChildren[++newStartIndex];
+    }
+  }
+  if (oldStartIndex > oldEndIndex) {
+    const referenceRRNode = newChildren[newEndIndex + 1];
+    let referenceNode = null;
+    if (referenceRRNode)
+      referenceNode = replayer.mirror.getNode(
+        rrnodeMirror.getId(referenceRRNode)
+      );
+    for (; newStartIndex <= newEndIndex; ++newStartIndex) {
+      const newNode = createOrGetNode(
+        newChildren[newStartIndex],
+        replayer.mirror,
+        rrnodeMirror
+      );
+      try {
+        oldTree.insertBefore(newNode, referenceNode);
+      } catch (e2) {
+        console.warn(e2);
+      }
+    }
+  } else if (newStartIndex > newEndIndex) {
+    for (; oldStartIndex <= oldEndIndex; oldStartIndex++) {
+      const node = oldChildren[oldStartIndex];
+      if (!node || node.parentNode !== oldTree)
+        continue;
+      try {
+        oldTree.removeChild(node);
+        replayer.mirror.removeNodeFromMap(node);
+      } catch (e2) {
+        console.warn(e2);
+      }
+    }
+  }
+  let oldChild = oldTree.firstChild;
+  let newChild = newTree.firstChild;
+  while (oldChild !== null && newChild !== null) {
+    diff(oldChild, newChild, replayer, rrnodeMirror);
+    oldChild = oldChild.nextSibling;
+    newChild = newChild.nextSibling;
+  }
+}
+function createOrGetNode(rrNode, domMirror, rrnodeMirror) {
+  const nodeId = rrnodeMirror.getId(rrNode);
+  const sn = rrnodeMirror.getMeta(rrNode);
+  let node = null;
+  if (nodeId > -1)
+    node = domMirror.getNode(nodeId);
+  if (node !== null && sameNodeType(node, rrNode))
+    return node;
+  switch (rrNode.RRNodeType) {
+    case NodeType$1.Document:
+      node = new Document();
+      break;
+    case NodeType$1.DocumentType:
+      node = document.implementation.createDocumentType(
+        rrNode.name,
+        rrNode.publicId,
+        rrNode.systemId
+      );
+      break;
+    case NodeType$1.Element: {
+      let tagName = rrNode.tagName.toLowerCase();
+      tagName = SVGTagMap[tagName] || tagName;
+      if (sn && "isSVG" in sn && (sn == null ? void 0 : sn.isSVG)) {
+        node = document.createElementNS(NAMESPACES["svg"], tagName);
+      } else
+        node = document.createElement(rrNode.tagName);
+      break;
+    }
+    case NodeType$1.Text:
+      node = document.createTextNode(rrNode.data);
+      break;
+    case NodeType$1.Comment:
+      node = document.createComment(rrNode.data);
+      break;
+    case NodeType$1.CDATA:
+      node = document.createCDATASection(rrNode.data);
+      break;
+  }
+  if (sn)
+    domMirror.add(node, { ...sn });
+  try {
+    createdNodeSet == null ? void 0 : createdNodeSet.add(node);
+  } catch (e2) {
+  }
+  return node;
+}
+function sameNodeType(node1, node2) {
+  if (node1.nodeType !== node2.nodeType)
+    return false;
+  return node1.nodeType !== node1.ELEMENT_NODE || node1.tagName.toUpperCase() === node2.tagName;
+}
+function nodeMatching(node1, node2, domMirror, rrdomMirror) {
+  const node1Id = domMirror.getId(node1);
+  const node2Id = rrdomMirror.getId(node2);
+  if (node1Id === -1 || node1Id !== node2Id)
+    return false;
+  return sameNodeType(node1, node2);
+}
+var RRDocument = class _RRDocument extends BaseRRDocument {
+  constructor(mirror2) {
+    super();
+    __publicField2(this, "UNSERIALIZED_STARTING_ID", -2);
+    __publicField2(this, "_unserializedId", this.UNSERIALIZED_STARTING_ID);
+    __publicField2(this, "mirror", createMirror());
+    __publicField2(this, "scrollData", null);
+    if (mirror2) {
+      this.mirror = mirror2;
+    }
+  }
+  /**
+   * Every time the id is used, it will minus 1 automatically to avoid collisions.
+   */
+  get unserializedId() {
+    return this._unserializedId--;
+  }
+  createDocument(_namespace, _qualifiedName, _doctype) {
+    return new _RRDocument();
+  }
+  createDocumentType(qualifiedName, publicId, systemId) {
+    const documentTypeNode = new RRDocumentType(
+      qualifiedName,
+      publicId,
+      systemId
+    );
+    documentTypeNode.ownerDocument = this;
+    return documentTypeNode;
+  }
+  createElement(tagName) {
+    const upperTagName = tagName.toUpperCase();
+    let element;
+    switch (upperTagName) {
+      case "AUDIO":
+      case "VIDEO":
+        element = new RRMediaElement(upperTagName);
+        break;
+      case "IFRAME":
+        element = new RRIFrameElement(upperTagName, this.mirror);
+        break;
+      case "CANVAS":
+        element = new RRCanvasElement(upperTagName);
+        break;
+      case "STYLE":
+        element = new RRStyleElement(upperTagName);
+        break;
+      default:
+        element = new RRElement(upperTagName);
+        break;
+    }
+    element.ownerDocument = this;
+    return element;
+  }
+  createComment(data) {
+    const commentNode = new RRComment(data);
+    commentNode.ownerDocument = this;
+    return commentNode;
+  }
+  createCDATASection(data) {
+    const sectionNode = new RRCDATASection(data);
+    sectionNode.ownerDocument = this;
+    return sectionNode;
+  }
+  createTextNode(data) {
+    const textNode = new RRText(data);
+    textNode.ownerDocument = this;
+    return textNode;
+  }
+  destroyTree() {
+    this.firstChild = null;
+    this.lastChild = null;
+    this.mirror.reset();
+  }
+  open() {
+    super.open();
+    this._unserializedId = this.UNSERIALIZED_STARTING_ID;
+  }
+};
+var RRDocumentType = BaseRRDocumentType;
+var RRElement = class extends BaseRRElement {
+  constructor() {
+    super(...arguments);
+    __publicField2(this, "inputData", null);
+    __publicField2(this, "scrollData", null);
+  }
+};
+var RRMediaElement = class extends BaseRRMediaElement {
+};
+var RRCanvasElement = class extends RRElement {
+  constructor() {
+    super(...arguments);
+    __publicField2(this, "rr_dataURL", null);
+    __publicField2(this, "canvasMutations", []);
+  }
+  /**
+   * This is a dummy implementation to distinguish RRCanvasElement from real HTMLCanvasElement.
+   */
+  getContext() {
+    return null;
+  }
+};
+var RRStyleElement = class extends RRElement {
+  constructor() {
+    super(...arguments);
+    __publicField2(this, "rules", []);
+  }
+};
+var RRIFrameElement = class extends RRElement {
+  constructor(upperTagName, mirror2) {
+    super(upperTagName);
+    __publicField2(this, "contentDocument", new RRDocument());
+    this.contentDocument.mirror = mirror2;
+  }
+};
+var RRText = BaseRRText;
+var RRComment = BaseRRComment;
+var RRCDATASection = BaseRRCDATASection;
+function getValidTagName(element) {
+  if (element instanceof HTMLFormElement) {
+    return "FORM";
+  }
+  return element.tagName.toUpperCase();
+}
+function buildFromNode(node, rrdom, domMirror, parentRRNode) {
+  let rrNode;
+  switch (node.nodeType) {
+    case NodeType.DOCUMENT_NODE:
+      if (parentRRNode && parentRRNode.nodeName === "IFRAME")
+        rrNode = parentRRNode.contentDocument;
+      else {
+        rrNode = rrdom;
+        rrNode.compatMode = node.compatMode;
+      }
+      break;
+    case NodeType.DOCUMENT_TYPE_NODE: {
+      const documentType = node;
+      rrNode = rrdom.createDocumentType(
+        documentType.name,
+        documentType.publicId,
+        documentType.systemId
+      );
+      break;
+    }
+    case NodeType.ELEMENT_NODE: {
+      const elementNode = node;
+      const tagName = getValidTagName(elementNode);
+      rrNode = rrdom.createElement(tagName);
+      const rrElement = rrNode;
+      for (const { name, value } of Array.from(elementNode.attributes)) {
+        rrElement.attributes[name] = value;
+      }
+      elementNode.scrollLeft && (rrElement.scrollLeft = elementNode.scrollLeft);
+      elementNode.scrollTop && (rrElement.scrollTop = elementNode.scrollTop);
+      break;
+    }
+    case NodeType.TEXT_NODE:
+      rrNode = rrdom.createTextNode(node.textContent || "");
+      break;
+    case NodeType.CDATA_SECTION_NODE:
+      rrNode = rrdom.createCDATASection(node.data);
+      break;
+    case NodeType.COMMENT_NODE:
+      rrNode = rrdom.createComment(node.textContent || "");
+      break;
+    case NodeType.DOCUMENT_FRAGMENT_NODE:
+      rrNode = parentRRNode.attachShadow({ mode: "open" });
+      break;
+    default:
+      return null;
+  }
+  let sn = domMirror.getMeta(node);
+  if (rrdom instanceof RRDocument) {
+    if (!sn) {
+      sn = getDefaultSN(rrNode, rrdom.unserializedId);
+      domMirror.add(node, sn);
+    }
+    rrdom.mirror.add(rrNode, { ...sn });
+  }
+  return rrNode;
+}
+function buildFromDom(dom, domMirror = createMirror$1(), rrdom = new RRDocument()) {
+  function walk2(node, parentRRNode) {
+    const rrNode = buildFromNode(node, rrdom, domMirror, parentRRNode);
+    if (rrNode === null)
+      return;
+    if (
+      // if the parentRRNode isn't a RRIFrameElement
+      (parentRRNode == null ? void 0 : parentRRNode.nodeName) !== "IFRAME" && // if node isn't a shadow root
+      node.nodeType !== NodeType.DOCUMENT_FRAGMENT_NODE
+    ) {
+      parentRRNode == null ? void 0 : parentRRNode.appendChild(rrNode);
+      rrNode.parentNode = parentRRNode;
+      rrNode.parentElement = parentRRNode;
+    }
+    if (node.nodeName === "IFRAME") {
+      const iframeDoc = node.contentDocument;
+      iframeDoc && walk2(iframeDoc, rrNode);
+    } else if (node.nodeType === NodeType.DOCUMENT_NODE || node.nodeType === NodeType.ELEMENT_NODE || node.nodeType === NodeType.DOCUMENT_FRAGMENT_NODE) {
+      if (node.nodeType === NodeType.ELEMENT_NODE && node.shadowRoot)
+        walk2(node.shadowRoot, rrNode);
+      node.childNodes.forEach((childNode) => walk2(childNode, rrNode));
+    }
+  }
+  walk2(dom, null);
+  return rrdom;
+}
+function createMirror() {
+  return new Mirror22();
+}
+var Mirror22 = class {
+  constructor() {
+    __publicField2(this, "idNodeMap", /* @__PURE__ */ new Map());
+    __publicField2(this, "nodeMetaMap", /* @__PURE__ */ new WeakMap());
+  }
+  getId(n2) {
+    var _a2;
+    if (!n2)
+      return -1;
+    const id = (_a2 = this.getMeta(n2)) == null ? void 0 : _a2.id;
+    return id ?? -1;
+  }
+  getNode(id) {
+    return this.idNodeMap.get(id) || null;
+  }
+  getIds() {
+    return Array.from(this.idNodeMap.keys());
+  }
+  getMeta(n2) {
+    return this.nodeMetaMap.get(n2) || null;
+  }
+  // removes the node from idNodeMap
+  // doesn't remove the node from nodeMetaMap
+  removeNodeFromMap(n2) {
+    const id = this.getId(n2);
+    this.idNodeMap.delete(id);
+    if (n2.childNodes) {
+      n2.childNodes.forEach((childNode) => this.removeNodeFromMap(childNode));
+    }
+  }
+  has(id) {
+    return this.idNodeMap.has(id);
+  }
+  hasNode(node) {
+    return this.nodeMetaMap.has(node);
+  }
+  add(n2, meta) {
+    const id = meta.id;
+    this.idNodeMap.set(id, n2);
+    this.nodeMetaMap.set(n2, meta);
+  }
+  replace(id, n2) {
+    const oldNode = this.getNode(id);
+    if (oldNode) {
+      const meta = this.nodeMetaMap.get(oldNode);
+      if (meta)
+        this.nodeMetaMap.set(n2, meta);
+    }
+    this.idNodeMap.set(id, n2);
+  }
+  reset() {
+    this.idNodeMap = /* @__PURE__ */ new Map();
+    this.nodeMetaMap = /* @__PURE__ */ new WeakMap();
+  }
+};
+function getDefaultSN(node, id) {
+  switch (node.RRNodeType) {
+    case NodeType$1.Document:
+      return {
+        id,
+        type: node.RRNodeType,
+        childNodes: []
+      };
+    case NodeType$1.DocumentType: {
+      const doctype = node;
+      return {
+        id,
+        type: node.RRNodeType,
+        name: doctype.name,
+        publicId: doctype.publicId,
+        systemId: doctype.systemId
+      };
+    }
+    case NodeType$1.Element:
+      return {
+        id,
+        type: node.RRNodeType,
+        tagName: node.tagName.toLowerCase(),
+        // In rrweb data, all tagNames are lowercase.
+        attributes: {},
+        childNodes: []
+      };
+    case NodeType$1.Text:
+      return {
+        id,
+        type: node.RRNodeType,
+        textContent: node.textContent || ""
+      };
+    case NodeType$1.Comment:
+      return {
+        id,
+        type: node.RRNodeType,
+        textContent: node.textContent || ""
+      };
+    case NodeType$1.CDATA:
+      return {
+        id,
+        type: node.RRNodeType,
+        textContent: ""
+      };
+  }
+}
+var testableAccessors = {
+  Node: ["childNodes", "parentNode", "parentElement", "textContent"],
+  ShadowRoot: ["host", "styleSheets"],
+  Element: ["shadowRoot", "querySelector", "querySelectorAll"],
+  MutationObserver: []
+};
+var testableMethods = {
+  Node: ["contains", "getRootNode"],
+  ShadowRoot: ["getSelection"],
+  Element: [],
+  MutationObserver: ["constructor"]
+};
+var untaintedBasePrototype = {};
+function getUntaintedPrototype(key) {
+  if (untaintedBasePrototype[key])
+    return untaintedBasePrototype[key];
+  const defaultObj = globalThis[key];
+  const defaultPrototype = defaultObj.prototype;
+  const accessorNames = key in testableAccessors ? testableAccessors[key] : void 0;
+  const isUntaintedAccessors = Boolean(
+    accessorNames && // @ts-expect-error 2345
+    accessorNames.every(
+      (accessor) => {
+        var _a2, _b;
+        return Boolean(
+          (_b = (_a2 = Object.getOwnPropertyDescriptor(defaultPrototype, accessor)) == null ? void 0 : _a2.get) == null ? void 0 : _b.toString().includes("[native code]")
+        );
+      }
+    )
+  );
+  const methodNames = key in testableMethods ? testableMethods[key] : void 0;
+  const isUntaintedMethods = Boolean(
+    methodNames && methodNames.every(
+      // @ts-expect-error 2345
+      (method) => {
+        var _a2;
+        return typeof defaultPrototype[method] === "function" && ((_a2 = defaultPrototype[method]) == null ? void 0 : _a2.toString().includes("[native code]"));
+      }
+    )
+  );
+  if (isUntaintedAccessors && isUntaintedMethods) {
+    untaintedBasePrototype[key] = defaultObj.prototype;
+    return defaultObj.prototype;
+  }
+  try {
+    const iframeEl = document.createElement("iframe");
+    document.body.appendChild(iframeEl);
+    const win = iframeEl.contentWindow;
+    if (!win)
+      return defaultObj.prototype;
+    const untaintedObject = win[key].prototype;
+    document.body.removeChild(iframeEl);
+    if (!untaintedObject)
+      return defaultPrototype;
+    return untaintedBasePrototype[key] = untaintedObject;
+  } catch {
+    return defaultPrototype;
+  }
+}
+var untaintedAccessorCache = {};
+function getUntaintedAccessor(key, instance, accessor) {
+  var _a2;
+  const cacheKey = `${key}.${String(accessor)}`;
+  if (untaintedAccessorCache[cacheKey])
+    return untaintedAccessorCache[cacheKey].call(
+      instance
+    );
+  const untaintedPrototype = getUntaintedPrototype(key);
+  const untaintedAccessor = (_a2 = Object.getOwnPropertyDescriptor(
+    untaintedPrototype,
+    accessor
+  )) == null ? void 0 : _a2.get;
+  if (!untaintedAccessor)
+    return instance[accessor];
+  untaintedAccessorCache[cacheKey] = untaintedAccessor;
+  return untaintedAccessor.call(instance);
+}
+var untaintedMethodCache = {};
+function getUntaintedMethod(key, instance, method) {
+  const cacheKey = `${key}.${String(method)}`;
+  if (untaintedMethodCache[cacheKey])
+    return untaintedMethodCache[cacheKey].bind(
+      instance
+    );
+  const untaintedPrototype = getUntaintedPrototype(key);
+  const untaintedMethod = untaintedPrototype[method];
+  if (typeof untaintedMethod !== "function")
+    return instance[method];
+  untaintedMethodCache[cacheKey] = untaintedMethod;
+  return untaintedMethod.bind(instance);
+}
+function childNodes(n2) {
+  return getUntaintedAccessor("Node", n2, "childNodes");
+}
+function parentNode(n2) {
+  return getUntaintedAccessor("Node", n2, "parentNode");
+}
+function parentElement(n2) {
+  return getUntaintedAccessor("Node", n2, "parentElement");
+}
+function textContent(n2) {
+  return getUntaintedAccessor("Node", n2, "textContent");
+}
+function contains(n2, other) {
+  return getUntaintedMethod("Node", n2, "contains")(other);
+}
+function getRootNode(n2) {
+  return getUntaintedMethod("Node", n2, "getRootNode")();
+}
+function host(n2) {
+  if (!n2 || !("host" in n2))
+    return null;
+  return getUntaintedAccessor("ShadowRoot", n2, "host");
+}
+function shadowRoot(n2) {
+  if (!n2 || !("shadowRoot" in n2))
+    return null;
+  return getUntaintedAccessor("Element", n2, "shadowRoot");
+}
+function mutationObserverCtor() {
+  return getUntaintedPrototype("MutationObserver").constructor;
+}
 function on(type, fn, target = document) {
   const options = { capture: true };
   target.addEventListener(type, fn, options);
@@ -1986,16 +3812,20 @@ function throttle(func, wait, options = {}) {
 }
 function hookSetter(target, key, d, isRevoked, win = window) {
   const original = win.Object.getOwnPropertyDescriptor(target, key);
-  win.Object.defineProperty(target, key, isRevoked ? d : {
-    set(value) {
-      setTimeout(() => {
-        d.set.call(this, value);
-      }, 0);
-      if (original && original.set) {
-        original.set.call(this, value);
+  win.Object.defineProperty(
+    target,
+    key,
+    isRevoked ? d : {
+      set(value) {
+        setTimeout(() => {
+          d.set.call(this, value);
+        }, 0);
+        if (original && original.set) {
+          original.set.call(this, value);
+        }
       }
     }
-  });
+  );
   return () => hookSetter(target, key, original || {}, true);
 }
 function patch(source, name, replacement) {
@@ -2019,21 +3849,21 @@ function patch(source, name, replacement) {
     return () => {
       source[name] = original;
     };
-  } catch (_a2) {
+  } catch {
     return () => {
     };
   }
 }
 var nowTimestamp = Date.now;
-if (!/[1-9][0-9]{12}/.test(Date.now().toString())) {
+if (!/* @__PURE__ */ /[1-9][0-9]{12}/.test(Date.now().toString())) {
   nowTimestamp = () => (/* @__PURE__ */ new Date()).getTime();
 }
 function getWindowScroll(win) {
-  var _a2, _b2, _c, _d, _e, _f;
+  var _a2, _b, _c, _d;
   const doc = win.document;
   return {
-    left: doc.scrollingElement ? doc.scrollingElement.scrollLeft : win.pageXOffset !== void 0 ? win.pageXOffset : (doc === null || doc === void 0 ? void 0 : doc.documentElement.scrollLeft) || ((_b2 = (_a2 = doc === null || doc === void 0 ? void 0 : doc.body) === null || _a2 === void 0 ? void 0 : _a2.parentElement) === null || _b2 === void 0 ? void 0 : _b2.scrollLeft) || ((_c = doc === null || doc === void 0 ? void 0 : doc.body) === null || _c === void 0 ? void 0 : _c.scrollLeft) || 0,
-    top: doc.scrollingElement ? doc.scrollingElement.scrollTop : win.pageYOffset !== void 0 ? win.pageYOffset : (doc === null || doc === void 0 ? void 0 : doc.documentElement.scrollTop) || ((_e = (_d = doc === null || doc === void 0 ? void 0 : doc.body) === null || _d === void 0 ? void 0 : _d.parentElement) === null || _e === void 0 ? void 0 : _e.scrollTop) || ((_f = doc === null || doc === void 0 ? void 0 : doc.body) === null || _f === void 0 ? void 0 : _f.scrollTop) || 0
+    left: doc.scrollingElement ? doc.scrollingElement.scrollLeft : win.pageXOffset !== void 0 ? win.pageXOffset : doc.documentElement.scrollLeft || (doc == null ? void 0 : doc.body) && ((_a2 = parentElement(doc.body)) == null ? void 0 : _a2.scrollLeft) || ((_b = doc == null ? void 0 : doc.body) == null ? void 0 : _b.scrollLeft) || 0,
+    top: doc.scrollingElement ? doc.scrollingElement.scrollTop : win.pageYOffset !== void 0 ? win.pageYOffset : (doc == null ? void 0 : doc.documentElement.scrollTop) || (doc == null ? void 0 : doc.body) && ((_c = parentElement(doc.body)) == null ? void 0 : _c.scrollTop) || ((_d = doc == null ? void 0 : doc.body) == null ? void 0 : _d.scrollTop) || 0
   };
 }
 function getWindowHeight() {
@@ -2046,7 +3876,7 @@ function closestElementOfNode(node) {
   if (!node) {
     return null;
   }
-  const el = node.nodeType === node.ELEMENT_NODE ? node : node.parentElement;
+  const el = node.nodeType === node.ELEMENT_NODE ? node : parentElement(node);
   return el;
 }
 var isCanvasNode = (node) => {
@@ -2054,7 +3884,7 @@ var isCanvasNode = (node) => {
     if (node instanceof HTMLElement) {
       return node.tagName === "CANVAS";
     }
-  } catch (_a2) {
+  } catch {
     return false;
   }
   return false;
@@ -2090,7 +3920,10 @@ function isBlocked(node, blockClass, blockSelector, checkAncestors) {
 function isSerialized(n2, mirror2) {
   return mirror2.getId(n2) !== -1;
 }
-function isIgnored(n2, mirror2) {
+function isIgnored(n2, mirror2, slimDOMOptions) {
+  if (n2.tagName === "TITLE" && slimDOMOptions.headTitleMutations) {
+    return true;
+  }
   return mirror2.getId(n2) === IGNORED_NODE;
 }
 function isAncestorRemoved(target, mirror2) {
@@ -2101,37 +3934,24 @@ function isAncestorRemoved(target, mirror2) {
   if (!mirror2.has(id)) {
     return true;
   }
-  if (target.parentNode && target.parentNode.nodeType === target.DOCUMENT_NODE) {
+  const parent = parentNode(target);
+  if (parent && parent.nodeType === target.DOCUMENT_NODE) {
     return false;
   }
-  if (!target.parentNode) {
+  if (!parent) {
     return true;
   }
-  return isAncestorRemoved(target.parentNode, mirror2);
+  return isAncestorRemoved(parent, mirror2);
 }
 function legacy_isTouchEvent(event) {
   return Boolean(event.changedTouches);
 }
-function polyfill(win = window) {
+function polyfill$1(win = window) {
   if ("NodeList" in win && !win.NodeList.prototype.forEach) {
     win.NodeList.prototype.forEach = Array.prototype.forEach;
   }
   if ("DOMTokenList" in win && !win.DOMTokenList.prototype.forEach) {
     win.DOMTokenList.prototype.forEach = Array.prototype.forEach;
-  }
-  if (!Node.prototype.contains) {
-    Node.prototype.contains = (...args) => {
-      let node = args[0];
-      if (!(0 in args)) {
-        throw new TypeError("1 argument is required");
-      }
-      do {
-        if (this === node) {
-          return true;
-        }
-      } while (node = node && node.parentNode);
-      return false;
-    };
   }
 }
 function queueToResolveTrees(queue) {
@@ -2152,7 +3972,11 @@ function queueToResolveTrees(queue) {
       const nextInTree = queueNodeMap[nextId];
       if (nextInTree.parent) {
         const idx = nextInTree.parent.children.indexOf(nextInTree);
-        nextInTree.parent.children.splice(idx, 0, putIntoMap(mutation, nextInTree.parent));
+        nextInTree.parent.children.splice(
+          idx,
+          0,
+          putIntoMap(mutation, nextInTree.parent)
+        );
       } else {
         const idx = queueNodeTrees.indexOf(nextInTree);
         queueNodeTrees.splice(idx, 0, putIntoMap(mutation, null));
@@ -2178,11 +4002,13 @@ function isSerializedIframe(n2, mirror2) {
   return Boolean(n2.nodeName === "IFRAME" && mirror2.getMeta(n2));
 }
 function isSerializedStylesheet(n2, mirror2) {
-  return Boolean(n2.nodeName === "LINK" && n2.nodeType === n2.ELEMENT_NODE && n2.getAttribute && n2.getAttribute("rel") === "stylesheet" && mirror2.getMeta(n2));
+  return Boolean(
+    n2.nodeName === "LINK" && n2.nodeType === n2.ELEMENT_NODE && n2.getAttribute && n2.getAttribute("rel") === "stylesheet" && mirror2.getMeta(n2)
+  );
 }
 function getBaseDimension(node, rootIframe) {
-  var _a2, _b2;
-  const frameElement = (_b2 = (_a2 = node.ownerDocument) === null || _a2 === void 0 ? void 0 : _a2.defaultView) === null || _b2 === void 0 ? void 0 : _b2.frameElement;
+  var _a2, _b;
+  const frameElement = (_b = (_a2 = node.ownerDocument) == null ? void 0 : _a2.defaultView) == null ? void 0 : _b.frameElement;
   if (!frameElement || frameElement === rootIframe) {
     return {
       x: 0,
@@ -2202,14 +4028,22 @@ function getBaseDimension(node, rootIframe) {
   };
 }
 function hasShadowRoot(n2) {
-  return Boolean(n2 === null || n2 === void 0 ? void 0 : n2.shadowRoot);
+  if (!n2)
+    return false;
+  if (n2 instanceof BaseRRNode && "shadowRoot" in n2) {
+    return Boolean(n2.shadowRoot);
+  }
+  return Boolean(shadowRoot(n2));
 }
 function getNestedRule(rules2, position) {
   const rule = rules2[position[0]];
   if (position.length === 1) {
     return rule;
   } else {
-    return getNestedRule(rule.cssRules[position[1]].cssRules, position.slice(2));
+    return getNestedRule(
+      rule.cssRules[position[1]].cssRules,
+      position.slice(2)
+    );
   }
 }
 function getPositionsAndIndex(nestedIndex) {
@@ -2231,17 +4065,19 @@ function uniqueTextMutations(mutations) {
 }
 var StyleSheetMirror = class {
   constructor() {
-    this.id = 1;
-    this.styleIDMap = /* @__PURE__ */ new WeakMap();
-    this.idStyleMap = /* @__PURE__ */ new Map();
+    __publicField(this, "id", 1);
+    __publicField(this, "styleIDMap", /* @__PURE__ */ new WeakMap());
+    __publicField(this, "idStyleMap", /* @__PURE__ */ new Map());
   }
   getId(stylesheet) {
-    var _a2;
-    return (_a2 = this.styleIDMap.get(stylesheet)) !== null && _a2 !== void 0 ? _a2 : -1;
+    return this.styleIDMap.get(stylesheet) ?? -1;
   }
   has(stylesheet) {
     return this.styleIDMap.has(stylesheet);
   }
+  /**
+   * @returns If the stylesheet is in the mirror, returns the id of the stylesheet. If not, return the new assigned id.
+   */
   add(stylesheet, id) {
     if (this.has(stylesheet))
       return this.getId(stylesheet);
@@ -2267,10 +4103,10 @@ var StyleSheetMirror = class {
   }
 };
 function getShadowHost(n2) {
-  var _a2, _b2;
+  var _a2;
   let shadowHost = null;
-  if (((_b2 = (_a2 = n2.getRootNode) === null || _a2 === void 0 ? void 0 : _a2.call(n2)) === null || _b2 === void 0 ? void 0 : _b2.nodeType) === Node.DOCUMENT_FRAGMENT_NODE && n2.getRootNode().host)
-    shadowHost = n2.getRootNode().host;
+  if ("getRootNode" in n2 && ((_a2 = getRootNode(n2)) == null ? void 0 : _a2.nodeType) === Node.DOCUMENT_FRAGMENT_NODE && host(getRootNode(n2)))
+    shadowHost = host(getRootNode(n2));
   return shadowHost;
 }
 function getRootShadowHost(n2) {
@@ -2285,16 +4121,52 @@ function shadowHostInDom(n2) {
   if (!doc)
     return false;
   const shadowHost = getRootShadowHost(n2);
-  return doc.contains(shadowHost);
+  return contains(doc, shadowHost);
 }
 function inDom(n2) {
   const doc = n2.ownerDocument;
   if (!doc)
     return false;
-  return doc.contains(n2) || shadowHostInDom(n2);
+  return contains(doc, n2) || shadowHostInDom(n2);
 }
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/types/dist/types.js
+var utils = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  StyleSheetMirror,
+  get _mirror() {
+    return _mirror;
+  },
+  closestElementOfNode,
+  getBaseDimension,
+  getNestedRule,
+  getPositionsAndIndex,
+  getRootShadowHost,
+  getShadowHost,
+  getWindowHeight,
+  getWindowScroll,
+  getWindowWidth,
+  hasShadowRoot,
+  hookSetter,
+  inDom,
+  isAncestorRemoved,
+  isBlocked,
+  isCanvasNode,
+  isIgnored,
+  isSerialized,
+  isSerializedIframe,
+  isSerializedStylesheet,
+  iterateResolveTree,
+  legacy_isTouchEvent,
+  get nowTimestamp() {
+    return nowTimestamp;
+  },
+  on,
+  patch,
+  polyfill: polyfill$1,
+  queueToResolveTrees,
+  shadowHostInDom,
+  throttle,
+  uniqueTextMutations
+}, Symbol.toStringTag, { value: "Module" }));
 var EventType = /* @__PURE__ */ ((EventType2) => {
   EventType2[EventType2["DomContentLoaded"] = 0] = "DomContentLoaded";
   EventType2[EventType2["Load"] = 1] = "Load";
@@ -2351,6 +4223,14 @@ var CanvasContext = /* @__PURE__ */ ((CanvasContext2) => {
   CanvasContext2[CanvasContext2["WebGL2"] = 2] = "WebGL2";
   return CanvasContext2;
 })(CanvasContext || {});
+var MediaInteractions = /* @__PURE__ */ ((MediaInteractions2) => {
+  MediaInteractions2[MediaInteractions2["Play"] = 0] = "Play";
+  MediaInteractions2[MediaInteractions2["Pause"] = 1] = "Pause";
+  MediaInteractions2[MediaInteractions2["Seeked"] = 2] = "Seeked";
+  MediaInteractions2[MediaInteractions2["VolumeChange"] = 3] = "VolumeChange";
+  MediaInteractions2[MediaInteractions2["RateChange"] = 4] = "RateChange";
+  return MediaInteractions2;
+})(MediaInteractions || {});
 var ReplayerEvents = /* @__PURE__ */ ((ReplayerEvents2) => {
   ReplayerEvents2["Start"] = "start";
   ReplayerEvents2["Pause"] = "pause";
@@ -2371,16 +4251,14 @@ var ReplayerEvents = /* @__PURE__ */ ((ReplayerEvents2) => {
   ReplayerEvents2["Destroy"] = "destroy";
   return ReplayerEvents2;
 })(ReplayerEvents || {});
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/mutation.js
 function isNodeInLinkedList(n2) {
   return "__ln" in n2;
 }
 var DoubleLinkedList = class {
   constructor() {
-    this.length = 0;
-    this.head = null;
-    this.tail = null;
+    __publicField(this, "length", 0);
+    __publicField(this, "head", null);
+    __publicField(this, "tail", null);
   }
   get(position) {
     if (position >= this.length) {
@@ -2388,7 +4266,7 @@ var DoubleLinkedList = class {
     }
     let current = this.head;
     for (let index = 0; index < position; index++) {
-      current = (current === null || current === void 0 ? void 0 : current.next) || null;
+      current = (current == null ? void 0 : current.next) || null;
     }
     return current;
   }
@@ -2456,22 +4334,45 @@ var DoubleLinkedList = class {
 var moveKey = (id, parentId) => `${id}@${parentId}`;
 var MutationBuffer = class {
   constructor() {
-    this.frozen = false;
-    this.locked = false;
-    this.texts = [];
-    this.attributes = [];
-    this.attributeMap = /* @__PURE__ */ new WeakMap();
-    this.removes = [];
-    this.mapRemoves = [];
-    this.movedMap = {};
-    this.addedSet = /* @__PURE__ */ new Set();
-    this.movedSet = /* @__PURE__ */ new Set();
-    this.droppedSet = /* @__PURE__ */ new Set();
-    this.processMutations = (mutations) => {
+    __publicField(this, "frozen", false);
+    __publicField(this, "locked", false);
+    __publicField(this, "texts", []);
+    __publicField(this, "attributes", []);
+    __publicField(this, "attributeMap", /* @__PURE__ */ new WeakMap());
+    __publicField(this, "removes", []);
+    __publicField(this, "mapRemoves", []);
+    __publicField(this, "movedMap", {});
+    __publicField(this, "addedSet", /* @__PURE__ */ new Set());
+    __publicField(this, "movedSet", /* @__PURE__ */ new Set());
+    __publicField(this, "droppedSet", /* @__PURE__ */ new Set());
+    __publicField(this, "mutationCb");
+    __publicField(this, "blockClass");
+    __publicField(this, "blockSelector");
+    __publicField(this, "maskTextClass");
+    __publicField(this, "maskTextSelector");
+    __publicField(this, "inlineStylesheet");
+    __publicField(this, "maskInputOptions");
+    __publicField(this, "maskTextFn");
+    __publicField(this, "maskInputFn");
+    __publicField(this, "keepIframeSrcFn");
+    __publicField(this, "recordCanvas");
+    __publicField(this, "inlineImages");
+    __publicField(this, "privacySetting");
+    __publicField(this, "slimDOMOptions");
+    __publicField(this, "dataURLOptions");
+    __publicField(this, "doc");
+    __publicField(this, "mirror");
+    __publicField(this, "iframeManager");
+    __publicField(this, "stylesheetManager");
+    __publicField(this, "shadowDomManager");
+    __publicField(this, "canvasManager");
+    __publicField(this, "processedNodeManager");
+    __publicField(this, "unattachedDoc");
+    __publicField(this, "processMutations", (mutations) => {
       mutations.forEach(this.processMutation);
       this.emit();
-    };
-    this.emit = () => {
+    });
+    __publicField(this, "emit", () => {
       if (this.frozen || this.locked) {
         return;
       }
@@ -2488,10 +4389,11 @@ var MutationBuffer = class {
         return nextId;
       };
       const pushAdd = (n2) => {
-        if (!n2.parentNode || !inDom(n2) || n2.parentNode.tagName === "TEXTAREA") {
+        const parent = parentNode(n2);
+        if (!parent || !inDom(n2) || parent.tagName === "TEXTAREA") {
           return;
         }
-        const parentId = isShadowRoot(n2.parentNode) ? this.mirror.getId(getShadowHost(n2)) : this.mirror.getId(n2.parentNode);
+        const parentId = isShadowRoot(parent) ? this.mirror.getId(getShadowHost(n2)) : this.mirror.getId(parent);
         const nextId = getNextId(n2);
         if (parentId === -1 || nextId === -1) {
           return addList.addNode(n2);
@@ -2519,10 +4421,12 @@ var MutationBuffer = class {
               this.iframeManager.addIframe(currentN);
             }
             if (isSerializedStylesheet(currentN, this.mirror)) {
-              this.stylesheetManager.trackLinkElement(currentN);
+              this.stylesheetManager.trackLinkElement(
+                currentN
+              );
             }
             if (hasShadowRoot(n2)) {
-              this.shadowDomManager.addShadowRoot(n2.shadowRoot, this.doc);
+              this.shadowDomManager.addShadowRoot(shadowRoot(n2), this.doc);
             }
           },
           onIframeLoad: (iframe, childSn) => {
@@ -2546,7 +4450,7 @@ var MutationBuffer = class {
         this.mirror.removeNodeFromMap(this.mapRemoves.shift());
       }
       for (const n2 of this.movedSet) {
-        if (isParentRemoved(this.removes, n2, this.mirror) && !this.movedSet.has(n2.parentNode)) {
+        if (isParentRemoved(this.removes, n2, this.mirror) && !this.movedSet.has(parentNode(n2))) {
           continue;
         }
         pushAdd(n2);
@@ -2564,7 +4468,7 @@ var MutationBuffer = class {
       while (addList.length) {
         let node = null;
         if (candidate) {
-          const parentId = this.mirror.getId(candidate.value.parentNode);
+          const parentId = this.mirror.getId(parentNode(candidate.value));
           const nextId = getNextId(candidate.value);
           if (parentId !== -1 && nextId !== -1) {
             node = candidate;
@@ -2576,7 +4480,7 @@ var MutationBuffer = class {
             const _node = tailNode;
             tailNode = tailNode.previous;
             if (_node) {
-              const parentId = this.mirror.getId(_node.value.parentNode);
+              const parentId = this.mirror.getId(parentNode(_node.value));
               const nextId = getNextId(_node.value);
               if (nextId === -1)
                 continue;
@@ -2585,8 +4489,9 @@ var MutationBuffer = class {
                 break;
               } else {
                 const unhandledNode = _node.value;
-                if (unhandledNode.parentNode && unhandledNode.parentNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-                  const shadowHost = unhandledNode.parentNode.host;
+                const parent = parentNode(unhandledNode);
+                if (parent && parent.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+                  const shadowHost = host(parent);
                   const parentId2 = this.mirror.getId(shadowHost);
                   if (parentId2 !== -1) {
                     node = _node;
@@ -2609,15 +4514,16 @@ var MutationBuffer = class {
       }
       const payload = {
         texts: this.texts.map((text) => {
-          var _a2, _b2;
+          var _a2, _b;
           const n2 = text.node;
-          if (n2.parentNode && n2.parentNode.tagName === "TEXTAREA") {
-            this.genTextAreaValueMutation(n2.parentNode);
+          const parent = parentNode(n2);
+          if (parent && parent.tagName === "TEXTAREA") {
+            this.genTextAreaValueMutation(parent);
           }
           let value = text.value;
           const enableStrictPrivacy = this.privacySetting === "strict";
           const obfuscateDefaultPrivacy = this.privacySetting === "default" && shouldObfuscateTextByDefault(value);
-          const highlightOverwriteRecord = (_b2 = (_a2 = text.node) === null || _a2 === void 0 ? void 0 : _a2.parentElement) === null || _b2 === void 0 ? void 0 : _b2.getAttribute("data-hl-record");
+          const highlightOverwriteRecord = (_b = (_a2 = text.node) == null ? void 0 : _a2.parentElement) == null ? void 0 : _b.getAttribute("data-hl-record");
           if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && !highlightOverwriteRecord && value) {
             value = obfuscateText(value);
           }
@@ -2657,8 +4563,8 @@ var MutationBuffer = class {
       this.droppedSet = /* @__PURE__ */ new Set();
       this.movedMap = {};
       this.mutationCb(payload);
-    };
-    this.genTextAreaValueMutation = (textarea) => {
+    });
+    __publicField(this, "genTextAreaValueMutation", (textarea) => {
       let item = this.attributeMap.get(textarea);
       if (!item) {
         item = {
@@ -2670,18 +4576,27 @@ var MutationBuffer = class {
         this.attributes.push(item);
         this.attributeMap.set(textarea, item);
       }
-      item.attributes.value = Array.from(textarea.childNodes, (cn) => cn.textContent || "").join("");
-    };
-    this.processMutation = (m) => {
-      if (isIgnored(m.target, this.mirror)) {
+      item.attributes.value = Array.from(
+        childNodes(textarea),
+        (cn) => textContent(cn) || ""
+      ).join("");
+    });
+    __publicField(this, "processMutation", (m) => {
+      if (isIgnored(m.target, this.mirror, this.slimDOMOptions)) {
         return;
       }
       switch (m.type) {
         case "characterData": {
-          const value = m.target.textContent;
+          const value = textContent(m.target);
           if (!isBlocked(m.target, this.blockClass, this.blockSelector, false) && value !== m.oldValue) {
             this.texts.push({
-              value: needMaskingText(m.target, this.maskTextClass, this.maskTextSelector, true) && value ? this.maskTextFn ? this.maskTextFn(value, closestElementOfNode(m.target)) : value.replace(/[\S]/g, "*") : value,
+              value: needMaskingText(
+                m.target,
+                this.maskTextClass,
+                this.maskTextSelector,
+                true
+                // checkAncestors
+              ) && value ? this.maskTextFn ? this.maskTextFn(value, closestElementOfNode(m.target)) : value.replace(/[\S]/g, "*") : value,
               node: m.target
             });
           }
@@ -2736,7 +4651,12 @@ var MutationBuffer = class {
                 break;
               }
             }
-            item.attributes[attributeName] = transformAttribute(this.doc, toLowerCase(target.tagName), toLowerCase(attributeName), value);
+            item.attributes[attributeName] = transformAttribute(
+              this.doc,
+              toLowerCase(target.tagName),
+              toLowerCase(attributeName),
+              value
+            );
             if (attributeName === "style") {
               if (!this.unattachedDoc) {
                 try {
@@ -2781,8 +4701,8 @@ var MutationBuffer = class {
           m.addedNodes.forEach((n2) => this.genAdds(n2, m.target));
           m.removedNodes.forEach((n2) => {
             const nodeId = this.mirror.getId(n2);
-            const parentId = isShadowRoot(m.target) ? this.mirror.getId(m.target.host) : this.mirror.getId(m.target);
-            if (isBlocked(m.target, this.blockClass, this.blockSelector, false) || isIgnored(n2, this.mirror) || !isSerialized(n2, this.mirror)) {
+            const parentId = isShadowRoot(m.target) ? this.mirror.getId(host(m.target)) : this.mirror.getId(m.target);
+            if (isBlocked(m.target, this.blockClass, this.blockSelector, false) || isIgnored(n2, this.mirror, this.slimDOMOptions) || !isSerialized(n2, this.mirror)) {
               return;
             }
             if (this.addedSet.has(n2)) {
@@ -2806,14 +4726,14 @@ var MutationBuffer = class {
           break;
         }
       }
-    };
-    this.genAdds = (n2, target) => {
+    });
+    __publicField(this, "genAdds", (n2, target) => {
       if (this.processedNodeManager.inOtherBuffer(n2, this))
         return;
       if (this.addedSet.has(n2) || this.movedSet.has(n2))
         return;
       if (this.mirror.hasNode(n2)) {
-        if (isIgnored(n2, this.mirror)) {
+        if (isIgnored(n2, this.mirror, this.slimDOMOptions)) {
           return;
         }
         this.movedSet.add(n2);
@@ -2829,15 +4749,15 @@ var MutationBuffer = class {
         this.droppedSet.delete(n2);
       }
       if (!isBlocked(n2, this.blockClass, this.blockSelector, false)) {
-        n2.childNodes.forEach((childN) => this.genAdds(childN));
+        childNodes(n2).forEach((childN) => this.genAdds(childN));
         if (hasShadowRoot(n2)) {
-          n2.shadowRoot.childNodes.forEach((childN) => {
+          childNodes(shadowRoot(n2)).forEach((childN) => {
             this.processedNodeManager.add(childN, this);
             this.genAdds(childN, n2);
           });
         }
       }
-    };
+    });
   }
   init(options) {
     [
@@ -2895,7 +4815,7 @@ var MutationBuffer = class {
 };
 function deepDelete(addsSet, n2) {
   addsSet.delete(n2);
-  n2.childNodes.forEach((childN) => deepDelete(addsSet, childN));
+  childNodes(n2).forEach((childN) => deepDelete(addsSet, childN));
 }
 function isParentRemoved(removes, n2, mirror2) {
   if (removes.length === 0)
@@ -2903,15 +4823,15 @@ function isParentRemoved(removes, n2, mirror2) {
   return _isParentRemoved(removes, n2, mirror2);
 }
 function _isParentRemoved(removes, n2, mirror2) {
-  const { parentNode } = n2;
-  if (!parentNode) {
-    return false;
+  let node = parentNode(n2);
+  while (node) {
+    const parentId = mirror2.getId(node);
+    if (removes.some((r2) => r2.id === parentId)) {
+      return true;
+    }
+    node = parentNode(node);
   }
-  const parentId = mirror2.getId(parentNode);
-  if (removes.some((r2) => r2.id === parentId)) {
-    return true;
-  }
-  return _isParentRemoved(removes, parentNode, mirror2);
+  return false;
 }
 function isAncestorInSet(set, n2) {
   if (set.size === 0)
@@ -2919,17 +4839,15 @@ function isAncestorInSet(set, n2) {
   return _isAncestorInSet(set, n2);
 }
 function _isAncestorInSet(set, n2) {
-  const { parentNode } = n2;
-  if (!parentNode) {
+  const parent = parentNode(n2);
+  if (!parent) {
     return false;
   }
-  if (set.has(parentNode)) {
+  if (set.has(parent)) {
     return true;
   }
-  return _isAncestorInSet(set, parentNode);
+  return _isAncestorInSet(set, parent);
 }
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/error-handler.js
 var errorHandler;
 function registerErrorHandler(handler) {
   errorHandler = handler;
@@ -2953,8 +4871,6 @@ var callbackWrapper = (cb) => {
   };
   return rrwebWrapped;
 };
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/observer.js
 var mutationBuffers = [];
 function getEventTarget(event) {
   try {
@@ -2966,21 +4882,17 @@ function getEventTarget(event) {
     } else if ("path" in event && event.path.length) {
       return event.path[0];
     }
-  } catch (_a2) {
+  } catch {
   }
   return event && event.target;
 }
 function initMutationObserver(options, rootEl) {
-  var _a2, _b2;
   const mutationBuffer = new MutationBuffer();
   mutationBuffers.push(mutationBuffer);
   mutationBuffer.init(options);
-  let mutationObserverCtor = window.MutationObserver || window.__rrMutationObserver;
-  const angularZoneSymbol = (_b2 = (_a2 = window === null || window === void 0 ? void 0 : window.Zone) === null || _a2 === void 0 ? void 0 : _a2.__symbol__) === null || _b2 === void 0 ? void 0 : _b2.call(_a2, "MutationObserver");
-  if (angularZoneSymbol && window[angularZoneSymbol]) {
-    mutationObserverCtor = window[angularZoneSymbol];
-  }
-  const observer = new mutationObserverCtor(callbackWrapper(mutationBuffer.processMutations.bind(mutationBuffer)));
+  const observer = new (mutationObserverCtor())(
+    callbackWrapper(mutationBuffer.processMutations.bind(mutationBuffer))
+  );
   observer.observe(rootEl, {
     attributes: true,
     attributeOldValue: true,
@@ -2991,7 +4903,12 @@ function initMutationObserver(options, rootEl) {
   });
   return observer;
 }
-function initMoveObserver({ mousemoveCb, sampling, doc, mirror: mirror2 }) {
+function initMoveObserver({
+  mousemoveCb,
+  sampling,
+  doc,
+  mirror: mirror2
+}) {
   if (sampling.mousemove === false) {
     return () => {
     };
@@ -3000,31 +4917,47 @@ function initMoveObserver({ mousemoveCb, sampling, doc, mirror: mirror2 }) {
   const callbackThreshold = typeof sampling.mousemoveCallback === "number" ? sampling.mousemoveCallback : 500;
   let positions = [];
   let timeBaseline;
-  const wrappedCb = throttle(callbackWrapper((source) => {
-    const totalOffset = Date.now() - timeBaseline;
-    mousemoveCb(positions.map((p) => {
-      p.timeOffset -= totalOffset;
-      return p;
-    }), source);
-    positions = [];
-    timeBaseline = null;
-  }), callbackThreshold);
-  const updatePosition = callbackWrapper(throttle(callbackWrapper((evt) => {
-    const target = getEventTarget(evt);
-    const { clientX, clientY } = legacy_isTouchEvent(evt) ? evt.changedTouches[0] : evt;
-    if (!timeBaseline) {
-      timeBaseline = nowTimestamp();
-    }
-    positions.push({
-      x: clientX,
-      y: clientY,
-      id: mirror2.getId(target),
-      timeOffset: nowTimestamp() - timeBaseline
-    });
-    wrappedCb(typeof DragEvent !== "undefined" && evt instanceof DragEvent ? IncrementalSource.Drag : evt instanceof MouseEvent ? IncrementalSource.MouseMove : IncrementalSource.TouchMove);
-  }), threshold, {
-    trailing: false
-  }));
+  const wrappedCb = throttle(
+    callbackWrapper(
+      (source) => {
+        const totalOffset = Date.now() - timeBaseline;
+        mousemoveCb(
+          positions.map((p) => {
+            p.timeOffset -= totalOffset;
+            return p;
+          }),
+          source
+        );
+        positions = [];
+        timeBaseline = null;
+      }
+    ),
+    callbackThreshold
+  );
+  const updatePosition = callbackWrapper(
+    throttle(
+      callbackWrapper((evt) => {
+        const target = getEventTarget(evt);
+        const { clientX, clientY } = legacy_isTouchEvent(evt) ? evt.changedTouches[0] : evt;
+        if (!timeBaseline) {
+          timeBaseline = nowTimestamp();
+        }
+        positions.push({
+          x: clientX,
+          y: clientY,
+          id: mirror2.getId(target),
+          timeOffset: nowTimestamp() - timeBaseline
+        });
+        wrappedCb(
+          typeof DragEvent !== "undefined" && evt instanceof DragEvent ? IncrementalSource.Drag : evt instanceof MouseEvent ? IncrementalSource.MouseMove : IncrementalSource.TouchMove
+        );
+      }),
+      threshold,
+      {
+        trailing: false
+      }
+    )
+  );
   const handlers = [
     on("mousemove", updatePosition, doc),
     on("touchmove", updatePosition, doc),
@@ -3034,7 +4967,14 @@ function initMoveObserver({ mousemoveCb, sampling, doc, mirror: mirror2 }) {
     handlers.forEach((h) => h());
   });
 }
-function initMouseInteractionObserver({ mouseInteractionCb, doc, mirror: mirror2, blockClass, blockSelector, sampling }) {
+function initMouseInteractionObserver({
+  mouseInteractionCb,
+  doc,
+  mirror: mirror2,
+  blockClass,
+  blockSelector,
+  sampling
+}) {
   if (sampling.mouseInteraction === false) {
     return () => {
     };
@@ -3045,7 +4985,8 @@ function initMouseInteractionObserver({ mouseInteractionCb, doc, mirror: mirror2
   const getHandler = (eventKey) => {
     return (event) => {
       const target = getEventTarget(event);
-      if (isBlocked(target, blockClass, blockSelector, true) || isCanvasNode(target)) {
+      if (isBlocked(target, blockClass, blockSelector, true) || // We ignore canvas elements for rage click detection because we cannot infer what inside the canvas is getting interacted with.
+      isCanvasNode(target)) {
         return;
       }
       let pointerType = null;
@@ -3088,17 +5029,28 @@ function initMouseInteractionObserver({ mouseInteractionCb, doc, mirror: mirror2
       }
       const id = mirror2.getId(target);
       const { clientX, clientY } = e2;
-      callbackWrapper(mouseInteractionCb)(Object.assign({ type: MouseInteractions[thisEventKey], id, x: clientX, y: clientY }, pointerType !== null && { pointerType }));
+      callbackWrapper(mouseInteractionCb)({
+        type: MouseInteractions[thisEventKey],
+        id,
+        x: clientX,
+        y: clientY,
+        ...pointerType !== null && { pointerType }
+      });
     };
   };
-  Object.keys(MouseInteractions).filter((key) => Number.isNaN(Number(key)) && !key.endsWith("_Departed") && disableMap[key] !== false).forEach((eventKey) => {
+  Object.keys(MouseInteractions).filter(
+    (key) => Number.isNaN(Number(key)) && !key.endsWith("_Departed") && disableMap[key] !== false
+  ).forEach((eventKey) => {
     let eventName = toLowerCase(eventKey);
     const handler = getHandler(eventKey);
     if (window.PointerEvent) {
       switch (MouseInteractions[eventKey]) {
         case MouseInteractions.MouseDown:
         case MouseInteractions.MouseUp:
-          eventName = eventName.replace("mouse", "pointer");
+          eventName = eventName.replace(
+            "mouse",
+            "pointer"
+          );
           break;
         case MouseInteractions.TouchStart:
         case MouseInteractions.TouchEnd:
@@ -3111,56 +5063,85 @@ function initMouseInteractionObserver({ mouseInteractionCb, doc, mirror: mirror2
     handlers.forEach((h) => h());
   });
 }
-function initScrollObserver({ scrollCb, doc, mirror: mirror2, blockClass, blockSelector, sampling }) {
-  const updatePosition = callbackWrapper(throttle(callbackWrapper((evt) => {
-    const target = getEventTarget(evt);
-    if (!target || isBlocked(target, blockClass, blockSelector, true)) {
-      return;
-    }
-    const id = mirror2.getId(target);
-    if (target === doc && doc.defaultView) {
-      const scrollLeftTop = getWindowScroll(doc.defaultView);
-      scrollCb({
-        id,
-        x: scrollLeftTop.left,
-        y: scrollLeftTop.top
-      });
-    } else {
-      scrollCb({
-        id,
-        x: target.scrollLeft,
-        y: target.scrollTop
-      });
-    }
-  }), sampling.scroll || 100));
+function initScrollObserver({
+  scrollCb,
+  doc,
+  mirror: mirror2,
+  blockClass,
+  blockSelector,
+  sampling
+}) {
+  const updatePosition = callbackWrapper(
+    throttle(
+      callbackWrapper((evt) => {
+        const target = getEventTarget(evt);
+        if (!target || isBlocked(target, blockClass, blockSelector, true)) {
+          return;
+        }
+        const id = mirror2.getId(target);
+        if (target === doc && doc.defaultView) {
+          const scrollLeftTop = getWindowScroll(doc.defaultView);
+          scrollCb({
+            id,
+            x: scrollLeftTop.left,
+            y: scrollLeftTop.top
+          });
+        } else {
+          scrollCb({
+            id,
+            x: target.scrollLeft,
+            y: target.scrollTop
+          });
+        }
+      }),
+      sampling.scroll || 100
+    )
+  );
   return on("scroll", updatePosition, doc);
 }
 function initViewportResizeObserver({ viewportResizeCb }, { win }) {
   let lastH = -1;
   let lastW = -1;
-  const updateDimension = callbackWrapper(throttle(callbackWrapper(() => {
-    const height = getWindowHeight();
-    const width = getWindowWidth();
-    if (lastH !== height || lastW !== width) {
-      viewportResizeCb({
-        width: Number(width),
-        height: Number(height)
-      });
-      lastH = height;
-      lastW = width;
-    }
-  }), 200));
+  const updateDimension = callbackWrapper(
+    throttle(
+      callbackWrapper(() => {
+        const height = getWindowHeight();
+        const width = getWindowWidth();
+        if (lastH !== height || lastW !== width) {
+          viewportResizeCb({
+            width: Number(width),
+            height: Number(height)
+          });
+          lastH = height;
+          lastW = width;
+        }
+      }),
+      200
+    )
+  );
   return on("resize", updateDimension, win);
 }
 var INPUT_TAGS = ["INPUT", "TEXTAREA", "SELECT"];
 var lastInputValueMap = /* @__PURE__ */ new WeakMap();
-function initInputObserver({ inputCb, doc, mirror: mirror2, blockClass, blockSelector, ignoreClass, ignoreSelector, maskInputOptions, maskInputFn, sampling, userTriggeredOnInput }) {
+function initInputObserver({
+  inputCb,
+  doc,
+  mirror: mirror2,
+  blockClass,
+  blockSelector,
+  ignoreClass,
+  ignoreSelector,
+  maskInputOptions,
+  maskInputFn,
+  sampling,
+  userTriggeredOnInput
+}) {
   function eventHandler(event) {
     let target = getEventTarget(event);
     const userTriggered = event.isTrusted;
     const tagName = target && target.tagName;
     if (target && tagName === "OPTION") {
-      target = target.parentElement;
+      target = parentElement(target);
     }
     if (!target || !tagName || INPUT_TAGS.indexOf(tagName) < 0 || isBlocked(target, blockClass, blockSelector, true)) {
       return;
@@ -3190,13 +5171,19 @@ function initInputObserver({ inputCb, doc, mirror: mirror2, blockClass, blockSel
         maskInputFn
       });
     }
-    cbWithDedup(target, userTriggeredOnInput ? { text, isChecked, userTriggered } : { text, isChecked });
+    cbWithDedup(
+      target,
+      userTriggeredOnInput ? { text, isChecked, userTriggered } : { text, isChecked }
+    );
     const name = target.name;
     if (type === "radio" && name && isChecked) {
       doc.querySelectorAll(`input[type="radio"][name="${name}"]`).forEach((el) => {
         if (el !== target) {
           const text2 = el.value;
-          cbWithDedup(el, userTriggeredOnInput ? { text: text2, isChecked: !isChecked, userTriggered: false } : { text: text2, isChecked: !isChecked });
+          cbWithDedup(
+            el,
+            userTriggeredOnInput ? { text: text2, isChecked: !isChecked, userTriggered: false } : { text: text2, isChecked: !isChecked }
+          );
         }
       });
     }
@@ -3206,35 +5193,55 @@ function initInputObserver({ inputCb, doc, mirror: mirror2, blockClass, blockSel
     if (!lastInputValue || lastInputValue.text !== v2.text || lastInputValue.isChecked !== v2.isChecked) {
       lastInputValueMap.set(target, v2);
       const id = mirror2.getId(target);
-      callbackWrapper(inputCb)(Object.assign(Object.assign({}, v2), { id }));
+      callbackWrapper(inputCb)({
+        ...v2,
+        id
+      });
     }
   }
   const events = sampling.input === "last" ? ["change"] : ["input", "change"];
-  const handlers = events.map((eventName) => on(eventName, callbackWrapper(eventHandler), doc));
+  const handlers = events.map(
+    (eventName) => on(eventName, callbackWrapper(eventHandler), doc)
+  );
   const currentWindow = doc.defaultView;
   if (!currentWindow) {
     return () => {
       handlers.forEach((h) => h());
     };
   }
-  const propertyDescriptor = currentWindow.Object.getOwnPropertyDescriptor(currentWindow.HTMLInputElement.prototype, "value");
+  const propertyDescriptor = currentWindow.Object.getOwnPropertyDescriptor(
+    currentWindow.HTMLInputElement.prototype,
+    "value"
+  );
   const hookProperties = [
     [currentWindow.HTMLInputElement.prototype, "value"],
     [currentWindow.HTMLInputElement.prototype, "checked"],
     [currentWindow.HTMLSelectElement.prototype, "value"],
     [currentWindow.HTMLTextAreaElement.prototype, "value"],
+    // Some UI library use selectedIndex to set select value
     [currentWindow.HTMLSelectElement.prototype, "selectedIndex"],
     [currentWindow.HTMLOptionElement.prototype, "selected"]
   ];
   if (propertyDescriptor && propertyDescriptor.set) {
-    handlers.push(...hookProperties.map((p) => hookSetter(p[0], p[1], {
-      set() {
-        callbackWrapper(eventHandler)({
-          target: this,
-          isTrusted: false
-        });
-      }
-    }, false, currentWindow)));
+    handlers.push(
+      ...hookProperties.map(
+        (p) => hookSetter(
+          p[0],
+          p[1],
+          {
+            set() {
+              callbackWrapper(eventHandler)({
+                target: this,
+                isTrusted: false
+                // userTriggered to false as this could well be programmatic
+              });
+            }
+          },
+          false,
+          currentWindow
+        )
+      )
+    );
   }
   return callbackWrapper(() => {
     handlers.forEach((h) => h());
@@ -3244,7 +5251,9 @@ function getNestedCSSRulePositions(rule) {
   const positions = [];
   function recurse(childRule, pos) {
     if (hasNestedCSSRule("CSSGroupingRule") && childRule.parentRule instanceof CSSGroupingRule || hasNestedCSSRule("CSSMediaRule") && childRule.parentRule instanceof CSSMediaRule || hasNestedCSSRule("CSSSupportsRule") && childRule.parentRule instanceof CSSSupportsRule || hasNestedCSSRule("CSSConditionRule") && childRule.parentRule instanceof CSSConditionRule) {
-      const rules2 = Array.from(childRule.parentRule.cssRules);
+      const rules2 = Array.from(
+        childRule.parentRule.cssRules
+      );
       const index = rules2.indexOf(childRule);
       pos.unshift(index);
     } else if (childRule.parentStyleSheet) {
@@ -3276,68 +5285,92 @@ function initStyleSheetObserver({ styleSheetRuleCb, mirror: mirror2, stylesheetM
   }
   const insertRule = win.CSSStyleSheet.prototype.insertRule;
   win.CSSStyleSheet.prototype.insertRule = new Proxy(insertRule, {
-    apply: callbackWrapper((target, thisArg, argumentsList) => {
-      const [rule, index] = argumentsList;
-      const { id, styleId } = getIdAndStyleId(thisArg, mirror2, stylesheetManager.styleMirror);
-      if (id && id !== -1 || styleId && styleId !== -1) {
-        styleSheetRuleCb({
-          id,
-          styleId,
-          adds: [{ rule, index }]
-        });
+    apply: callbackWrapper(
+      (target, thisArg, argumentsList) => {
+        const [rule, index] = argumentsList;
+        const { id, styleId } = getIdAndStyleId(
+          thisArg,
+          mirror2,
+          stylesheetManager.styleMirror
+        );
+        if (id && id !== -1 || styleId && styleId !== -1) {
+          styleSheetRuleCb({
+            id,
+            styleId,
+            adds: [{ rule, index }]
+          });
+        }
+        return target.apply(thisArg, argumentsList);
       }
-      return target.apply(thisArg, argumentsList);
-    })
+    )
   });
   const deleteRule = win.CSSStyleSheet.prototype.deleteRule;
   win.CSSStyleSheet.prototype.deleteRule = new Proxy(deleteRule, {
-    apply: callbackWrapper((target, thisArg, argumentsList) => {
-      const [index] = argumentsList;
-      const { id, styleId } = getIdAndStyleId(thisArg, mirror2, stylesheetManager.styleMirror);
-      if (id && id !== -1 || styleId && styleId !== -1) {
-        styleSheetRuleCb({
-          id,
-          styleId,
-          removes: [{ index }]
-        });
+    apply: callbackWrapper(
+      (target, thisArg, argumentsList) => {
+        const [index] = argumentsList;
+        const { id, styleId } = getIdAndStyleId(
+          thisArg,
+          mirror2,
+          stylesheetManager.styleMirror
+        );
+        if (id && id !== -1 || styleId && styleId !== -1) {
+          styleSheetRuleCb({
+            id,
+            styleId,
+            removes: [{ index }]
+          });
+        }
+        return target.apply(thisArg, argumentsList);
       }
-      return target.apply(thisArg, argumentsList);
-    })
+    )
   });
   let replace;
   if (win.CSSStyleSheet.prototype.replace) {
     replace = win.CSSStyleSheet.prototype.replace;
     win.CSSStyleSheet.prototype.replace = new Proxy(replace, {
-      apply: callbackWrapper((target, thisArg, argumentsList) => {
-        const [text] = argumentsList;
-        const { id, styleId } = getIdAndStyleId(thisArg, mirror2, stylesheetManager.styleMirror);
-        if (id && id !== -1 || styleId && styleId !== -1) {
-          styleSheetRuleCb({
-            id,
-            styleId,
-            replace: text
-          });
+      apply: callbackWrapper(
+        (target, thisArg, argumentsList) => {
+          const [text] = argumentsList;
+          const { id, styleId } = getIdAndStyleId(
+            thisArg,
+            mirror2,
+            stylesheetManager.styleMirror
+          );
+          if (id && id !== -1 || styleId && styleId !== -1) {
+            styleSheetRuleCb({
+              id,
+              styleId,
+              replace: text
+            });
+          }
+          return target.apply(thisArg, argumentsList);
         }
-        return target.apply(thisArg, argumentsList);
-      })
+      )
     });
   }
   let replaceSync;
   if (win.CSSStyleSheet.prototype.replaceSync) {
     replaceSync = win.CSSStyleSheet.prototype.replaceSync;
     win.CSSStyleSheet.prototype.replaceSync = new Proxy(replaceSync, {
-      apply: callbackWrapper((target, thisArg, argumentsList) => {
-        const [text] = argumentsList;
-        const { id, styleId } = getIdAndStyleId(thisArg, mirror2, stylesheetManager.styleMirror);
-        if (id && id !== -1 || styleId && styleId !== -1) {
-          styleSheetRuleCb({
-            id,
-            styleId,
-            replaceSync: text
-          });
+      apply: callbackWrapper(
+        (target, thisArg, argumentsList) => {
+          const [text] = argumentsList;
+          const { id, styleId } = getIdAndStyleId(
+            thisArg,
+            mirror2,
+            stylesheetManager.styleMirror
+          );
+          if (id && id !== -1 || styleId && styleId !== -1) {
+            styleSheetRuleCb({
+              id,
+              styleId,
+              replaceSync: text
+            });
+          }
+          return target.apply(thisArg, argumentsList);
         }
-        return target.apply(thisArg, argumentsList);
-      })
+      )
     });
   }
   const supportedNestedCSSRuleTypes = {};
@@ -3357,47 +5390,68 @@ function initStyleSheetObserver({ styleSheetRuleCb, mirror: mirror2, stylesheetM
   const unmodifiedFunctions = {};
   Object.entries(supportedNestedCSSRuleTypes).forEach(([typeKey, type]) => {
     unmodifiedFunctions[typeKey] = {
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       insertRule: type.prototype.insertRule,
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       deleteRule: type.prototype.deleteRule
     };
-    type.prototype.insertRule = new Proxy(unmodifiedFunctions[typeKey].insertRule, {
-      apply: callbackWrapper((target, thisArg, argumentsList) => {
-        const [rule, index] = argumentsList;
-        const { id, styleId } = getIdAndStyleId(thisArg.parentStyleSheet, mirror2, stylesheetManager.styleMirror);
-        if (id && id !== -1 || styleId && styleId !== -1) {
-          styleSheetRuleCb({
-            id,
-            styleId,
-            adds: [
-              {
-                rule,
-                index: [
-                  ...getNestedCSSRulePositions(thisArg),
-                  index || 0
+    type.prototype.insertRule = new Proxy(
+      unmodifiedFunctions[typeKey].insertRule,
+      {
+        apply: callbackWrapper(
+          (target, thisArg, argumentsList) => {
+            const [rule, index] = argumentsList;
+            const { id, styleId } = getIdAndStyleId(
+              thisArg.parentStyleSheet,
+              mirror2,
+              stylesheetManager.styleMirror
+            );
+            if (id && id !== -1 || styleId && styleId !== -1) {
+              styleSheetRuleCb({
+                id,
+                styleId,
+                adds: [
+                  {
+                    rule,
+                    index: [
+                      ...getNestedCSSRulePositions(thisArg),
+                      index || 0
+                      // defaults to 0
+                    ]
+                  }
                 ]
-              }
-            ]
-          });
-        }
-        return target.apply(thisArg, argumentsList);
-      })
-    });
-    type.prototype.deleteRule = new Proxy(unmodifiedFunctions[typeKey].deleteRule, {
-      apply: callbackWrapper((target, thisArg, argumentsList) => {
-        const [index] = argumentsList;
-        const { id, styleId } = getIdAndStyleId(thisArg.parentStyleSheet, mirror2, stylesheetManager.styleMirror);
-        if (id && id !== -1 || styleId && styleId !== -1) {
-          styleSheetRuleCb({
-            id,
-            styleId,
-            removes: [
-              { index: [...getNestedCSSRulePositions(thisArg), index] }
-            ]
-          });
-        }
-        return target.apply(thisArg, argumentsList);
-      })
-    });
+              });
+            }
+            return target.apply(thisArg, argumentsList);
+          }
+        )
+      }
+    );
+    type.prototype.deleteRule = new Proxy(
+      unmodifiedFunctions[typeKey].deleteRule,
+      {
+        apply: callbackWrapper(
+          (target, thisArg, argumentsList) => {
+            const [index] = argumentsList;
+            const { id, styleId } = getIdAndStyleId(
+              thisArg.parentStyleSheet,
+              mirror2,
+              stylesheetManager.styleMirror
+            );
+            if (id && id !== -1 || styleId && styleId !== -1) {
+              styleSheetRuleCb({
+                id,
+                styleId,
+                removes: [
+                  { index: [...getNestedCSSRulePositions(thisArg), index] }
+                ]
+              });
+            }
+            return target.apply(thisArg, argumentsList);
+          }
+        )
+      }
+    );
   });
   return callbackWrapper(() => {
     win.CSSStyleSheet.prototype.insertRule = insertRule;
@@ -3410,28 +5464,34 @@ function initStyleSheetObserver({ styleSheetRuleCb, mirror: mirror2, stylesheetM
     });
   });
 }
-function initAdoptedStyleSheetObserver({ mirror: mirror2, stylesheetManager }, host) {
-  var _a2, _b2, _c;
+function initAdoptedStyleSheetObserver({
+  mirror: mirror2,
+  stylesheetManager
+}, host$12) {
+  var _a2, _b, _c;
   let hostId = null;
-  if (host.nodeName === "#document")
-    hostId = mirror2.getId(host);
+  if (host$12.nodeName === "#document")
+    hostId = mirror2.getId(host$12);
   else
-    hostId = mirror2.getId(host.host);
-  const patchTarget = host.nodeName === "#document" ? (_a2 = host.defaultView) === null || _a2 === void 0 ? void 0 : _a2.Document : (_c = (_b2 = host.ownerDocument) === null || _b2 === void 0 ? void 0 : _b2.defaultView) === null || _c === void 0 ? void 0 : _c.ShadowRoot;
-  const originalPropertyDescriptor = (patchTarget === null || patchTarget === void 0 ? void 0 : patchTarget.prototype) ? Object.getOwnPropertyDescriptor(patchTarget === null || patchTarget === void 0 ? void 0 : patchTarget.prototype, "adoptedStyleSheets") : void 0;
+    hostId = mirror2.getId(host(host$12));
+  const patchTarget = host$12.nodeName === "#document" ? (_a2 = host$12.defaultView) == null ? void 0 : _a2.Document : (_c = (_b = host$12.ownerDocument) == null ? void 0 : _b.defaultView) == null ? void 0 : _c.ShadowRoot;
+  const originalPropertyDescriptor = (patchTarget == null ? void 0 : patchTarget.prototype) ? Object.getOwnPropertyDescriptor(
+    patchTarget == null ? void 0 : patchTarget.prototype,
+    "adoptedStyleSheets"
+  ) : void 0;
   if (hostId === null || hostId === -1 || !patchTarget || !originalPropertyDescriptor)
     return () => {
     };
-  Object.defineProperty(host, "adoptedStyleSheets", {
+  Object.defineProperty(host$12, "adoptedStyleSheets", {
     configurable: originalPropertyDescriptor.configurable,
     enumerable: originalPropertyDescriptor.enumerable,
     get() {
       var _a3;
-      return (_a3 = originalPropertyDescriptor.get) === null || _a3 === void 0 ? void 0 : _a3.call(this);
+      return (_a3 = originalPropertyDescriptor.get) == null ? void 0 : _a3.call(this);
     },
     set(sheets) {
       var _a3;
-      const result = (_a3 = originalPropertyDescriptor.set) === null || _a3 === void 0 ? void 0 : _a3.call(this, sheets);
+      const result = (_a3 = originalPropertyDescriptor.set) == null ? void 0 : _a3.call(this, sheets);
       if (hostId !== null && hostId !== -1) {
         try {
           stylesheetManager.adoptStyleSheets(sheets, hostId);
@@ -3442,88 +5502,122 @@ function initAdoptedStyleSheetObserver({ mirror: mirror2, stylesheetManager }, h
     }
   });
   return callbackWrapper(() => {
-    Object.defineProperty(host, "adoptedStyleSheets", {
+    Object.defineProperty(host$12, "adoptedStyleSheets", {
       configurable: originalPropertyDescriptor.configurable,
       enumerable: originalPropertyDescriptor.enumerable,
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       get: originalPropertyDescriptor.get,
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       set: originalPropertyDescriptor.set
     });
   });
 }
-function initStyleDeclarationObserver({ styleDeclarationCb, mirror: mirror2, ignoreCSSAttributes, stylesheetManager }, { win }) {
+function initStyleDeclarationObserver({
+  styleDeclarationCb,
+  mirror: mirror2,
+  ignoreCSSAttributes,
+  stylesheetManager
+}, { win }) {
   const setProperty = win.CSSStyleDeclaration.prototype.setProperty;
   win.CSSStyleDeclaration.prototype.setProperty = new Proxy(setProperty, {
-    apply: callbackWrapper((target, thisArg, argumentsList) => {
-      var _a2;
-      const [property, value, priority] = argumentsList;
-      if (ignoreCSSAttributes.has(property)) {
-        return setProperty.apply(thisArg, [property, value, priority]);
+    apply: callbackWrapper(
+      (target, thisArg, argumentsList) => {
+        var _a2;
+        const [property, value, priority] = argumentsList;
+        if (ignoreCSSAttributes.has(property)) {
+          return setProperty.apply(thisArg, [property, value, priority]);
+        }
+        const { id, styleId } = getIdAndStyleId(
+          (_a2 = thisArg.parentRule) == null ? void 0 : _a2.parentStyleSheet,
+          mirror2,
+          stylesheetManager.styleMirror
+        );
+        if (id && id !== -1 || styleId && styleId !== -1) {
+          styleDeclarationCb({
+            id,
+            styleId,
+            set: {
+              property,
+              value,
+              priority
+            },
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            index: getNestedCSSRulePositions(thisArg.parentRule)
+          });
+        }
+        return target.apply(thisArg, argumentsList);
       }
-      const { id, styleId } = getIdAndStyleId((_a2 = thisArg.parentRule) === null || _a2 === void 0 ? void 0 : _a2.parentStyleSheet, mirror2, stylesheetManager.styleMirror);
-      if (id && id !== -1 || styleId && styleId !== -1) {
-        styleDeclarationCb({
-          id,
-          styleId,
-          set: {
-            property,
-            value,
-            priority
-          },
-          index: getNestedCSSRulePositions(thisArg.parentRule)
-        });
-      }
-      return target.apply(thisArg, argumentsList);
-    })
+    )
   });
   const removeProperty = win.CSSStyleDeclaration.prototype.removeProperty;
   win.CSSStyleDeclaration.prototype.removeProperty = new Proxy(removeProperty, {
-    apply: callbackWrapper((target, thisArg, argumentsList) => {
-      var _a2;
-      const [property] = argumentsList;
-      if (ignoreCSSAttributes.has(property)) {
-        return removeProperty.apply(thisArg, [property]);
+    apply: callbackWrapper(
+      (target, thisArg, argumentsList) => {
+        var _a2;
+        const [property] = argumentsList;
+        if (ignoreCSSAttributes.has(property)) {
+          return removeProperty.apply(thisArg, [property]);
+        }
+        const { id, styleId } = getIdAndStyleId(
+          (_a2 = thisArg.parentRule) == null ? void 0 : _a2.parentStyleSheet,
+          mirror2,
+          stylesheetManager.styleMirror
+        );
+        if (id && id !== -1 || styleId && styleId !== -1) {
+          styleDeclarationCb({
+            id,
+            styleId,
+            remove: {
+              property
+            },
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            index: getNestedCSSRulePositions(thisArg.parentRule)
+          });
+        }
+        return target.apply(thisArg, argumentsList);
       }
-      const { id, styleId } = getIdAndStyleId((_a2 = thisArg.parentRule) === null || _a2 === void 0 ? void 0 : _a2.parentStyleSheet, mirror2, stylesheetManager.styleMirror);
-      if (id && id !== -1 || styleId && styleId !== -1) {
-        styleDeclarationCb({
-          id,
-          styleId,
-          remove: {
-            property
-          },
-          index: getNestedCSSRulePositions(thisArg.parentRule)
-        });
-      }
-      return target.apply(thisArg, argumentsList);
-    })
+    )
   });
   return callbackWrapper(() => {
     win.CSSStyleDeclaration.prototype.setProperty = setProperty;
     win.CSSStyleDeclaration.prototype.removeProperty = removeProperty;
   });
 }
-function initMediaInteractionObserver({ mediaInteractionCb, blockClass, blockSelector, mirror: mirror2, sampling, doc }) {
-  const handler = callbackWrapper((type) => throttle(callbackWrapper((event) => {
-    const target = getEventTarget(event);
-    if (!target || isBlocked(target, blockClass, blockSelector, true)) {
-      return;
-    }
-    const { currentTime, volume, muted, playbackRate } = target;
-    mediaInteractionCb({
-      type,
-      id: mirror2.getId(target),
-      currentTime,
-      volume,
-      muted,
-      playbackRate
-    });
-  }), sampling.media || 500));
+function initMediaInteractionObserver({
+  mediaInteractionCb,
+  blockClass,
+  blockSelector,
+  mirror: mirror2,
+  sampling,
+  doc
+}) {
+  const handler = callbackWrapper(
+    (type) => throttle(
+      callbackWrapper((event) => {
+        const target = getEventTarget(event);
+        if (!target || isBlocked(target, blockClass, blockSelector, true)) {
+          return;
+        }
+        const { currentTime, volume, muted, playbackRate, loop } = target;
+        mediaInteractionCb({
+          type,
+          id: mirror2.getId(target),
+          currentTime,
+          volume,
+          muted,
+          playbackRate,
+          loop
+        });
+      }),
+      sampling.media || 500
+    )
+  );
   const handlers = [
-    on("play", handler(0), doc),
-    on("pause", handler(1), doc),
-    on("seeked", handler(2), doc),
-    on("volumechange", handler(3), doc),
-    on("ratechange", handler(4), doc)
+    on("play", handler(MediaInteractions.Play), doc),
+    on("pause", handler(MediaInteractions.Pause), doc),
+    on("seeked", handler(MediaInteractions.Seeked), doc),
+    on("volumechange", handler(MediaInteractions.VolumeChange), doc),
+    on("ratechange", handler(MediaInteractions.RateChange), doc)
   ];
   return callbackWrapper(() => {
     handlers.forEach((h) => h());
@@ -3548,18 +5642,25 @@ function initFontObserver({ fontCb, doc }) {
     });
     return fontFace;
   };
-  const restoreHandler = patch(doc.fonts, "add", function(original) {
-    return function(fontFace) {
-      setTimeout(callbackWrapper(() => {
-        const p = fontMap.get(fontFace);
-        if (p) {
-          fontCb(p);
-          fontMap.delete(fontFace);
-        }
-      }), 0);
-      return original.apply(this, [fontFace]);
-    };
-  });
+  const restoreHandler = patch(
+    doc.fonts,
+    "add",
+    function(original) {
+      return function(fontFace) {
+        setTimeout(
+          callbackWrapper(() => {
+            const p = fontMap.get(fontFace);
+            if (p) {
+              fontCb(p);
+              fontMap.delete(fontFace);
+            }
+          }),
+          0
+        );
+        return original.apply(this, [fontFace]);
+      };
+    }
+  );
   handlers.push(() => {
     win.FontFace = originalFontFace;
   });
@@ -3573,7 +5674,7 @@ function initSelectionObserver(param) {
   let collapsed = true;
   const updateSelection = callbackWrapper(() => {
     const selection = doc.getSelection();
-    if (!selection || collapsed && (selection === null || selection === void 0 ? void 0 : selection.isCollapsed))
+    if (!selection || collapsed && (selection == null ? void 0 : selection.isCollapsed))
       return;
     collapsed = selection.isCollapsed || false;
     const ranges = [];
@@ -3596,29 +5697,50 @@ function initSelectionObserver(param) {
   updateSelection();
   return on("selectionchange", updateSelection);
 }
-function initCustomElementObserver({ doc, customElementCb }) {
+function initCustomElementObserver({
+  doc,
+  customElementCb
+}) {
   const win = doc.defaultView;
   if (!win || !win.customElements)
     return () => {
     };
-  const restoreHandler = patch(win.customElements, "define", function(original) {
-    return function(name, constructor, options) {
-      try {
-        customElementCb({
-          define: {
-            name
-          }
-        });
-      } catch (e2) {
-        console.warn(`Custom element callback failed for ${name}`);
-      }
-      return original.apply(this, [name, constructor, options]);
-    };
-  });
+  const restoreHandler = patch(
+    win.customElements,
+    "define",
+    function(original) {
+      return function(name, constructor, options) {
+        try {
+          customElementCb({
+            define: {
+              name
+            }
+          });
+        } catch (e2) {
+          console.warn(`Custom element callback failed for ${name}`);
+        }
+        return original.apply(this, [name, constructor, options]);
+      };
+    }
+  );
   return restoreHandler;
 }
 function mergeHooks(o2, hooks) {
-  const { mutationCb, mousemoveCb, mouseInteractionCb, scrollCb, viewportResizeCb, inputCb, mediaInteractionCb, styleSheetRuleCb, styleDeclarationCb, canvasMutationCb, fontCb, selectionCb, customElementCb } = o2;
+  const {
+    mutationCb,
+    mousemoveCb,
+    mouseInteractionCb,
+    scrollCb,
+    viewportResizeCb,
+    inputCb,
+    mediaInteractionCb,
+    styleSheetRuleCb,
+    styleDeclarationCb,
+    canvasMutationCb,
+    fontCb,
+    selectionCb,
+    customElementCb
+  } = o2;
   o2.mutationCb = (...p) => {
     if (hooks.mutation) {
       hooks.mutation(...p);
@@ -3739,11 +5861,13 @@ function initObservers(o2, hooks = {}) {
   const customElementObserver = initCustomElementObserver(o2);
   const pluginHandlers = [];
   for (const plugin of o2.plugins) {
-    pluginHandlers.push(plugin.observer(plugin.callback, currentWindow, plugin.options));
+    pluginHandlers.push(
+      plugin.observer(plugin.callback, currentWindow, plugin.options)
+    );
   }
   return callbackWrapper(() => {
     mutationBuffers.forEach((b) => b.reset());
-    mutationObserver === null || mutationObserver === void 0 ? void 0 : mutationObserver.disconnect();
+    mutationObserver == null ? void 0 : mutationObserver.disconnect();
     mousemoveHandler();
     mouseInteractionHandler();
     scrollHandler();
@@ -3763,15 +5887,17 @@ function hasNestedCSSRule(prop) {
   return typeof window[prop] !== "undefined";
 }
 function canMonkeyPatchNestedCSSRule(prop) {
-  return Boolean(typeof window[prop] !== "undefined" && window[prop].prototype && "insertRule" in window[prop].prototype && "deleteRule" in window[prop].prototype);
+  return Boolean(
+    typeof window[prop] !== "undefined" && // Note: Generally, this check _shouldn't_ be necessary
+    // However, in some scenarios (e.g. jsdom) this can sometimes fail, so we check for it here
+    window[prop].prototype && "insertRule" in window[prop].prototype && "deleteRule" in window[prop].prototype
+  );
 }
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/cross-origin-iframe-mirror.js
 var CrossOriginIframeMirror = class {
   constructor(generateIdFn) {
+    __publicField(this, "iframeIdToRemoteIdMap", /* @__PURE__ */ new WeakMap());
+    __publicField(this, "iframeRemoteIdToIdMap", /* @__PURE__ */ new WeakMap());
     this.generateIdFn = generateIdFn;
-    this.iframeIdToRemoteIdMap = /* @__PURE__ */ new WeakMap();
-    this.iframeRemoteIdToIdMap = /* @__PURE__ */ new WeakMap();
   }
   getId(iframe, remoteId, idToRemoteMap, remoteToIdMap) {
     const idToRemoteIdMap = idToRemoteMap || this.getIdToRemoteIdMap(iframe);
@@ -3787,7 +5913,9 @@ var CrossOriginIframeMirror = class {
   getIds(iframe, remoteId) {
     const idToRemoteIdMap = this.getIdToRemoteIdMap(iframe);
     const remoteIdToIdMap = this.getRemoteIdToIdMap(iframe);
-    return remoteId.map((id) => this.getId(iframe, id, idToRemoteIdMap, remoteIdToIdMap));
+    return remoteId.map(
+      (id) => this.getId(iframe, id, idToRemoteIdMap, remoteIdToIdMap)
+    );
   }
   getRemoteId(iframe, id, map) {
     const remoteIdToIdMap = map || this.getRemoteIdToIdMap(iframe);
@@ -3828,19 +5956,28 @@ var CrossOriginIframeMirror = class {
     return remoteIdToIdMap;
   }
 };
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/iframe-manager.js
 var IframeManager = class {
   constructor(options) {
-    this.iframes = /* @__PURE__ */ new WeakMap();
-    this.crossOriginIframeMap = /* @__PURE__ */ new WeakMap();
-    this.crossOriginIframeMirror = new CrossOriginIframeMirror(genId);
-    this.crossOriginIframeRootIdMap = /* @__PURE__ */ new WeakMap();
+    __publicField(this, "iframes", /* @__PURE__ */ new WeakMap());
+    __publicField(this, "crossOriginIframeMap", /* @__PURE__ */ new WeakMap());
+    __publicField(this, "crossOriginIframeMirror", new CrossOriginIframeMirror(genId));
+    __publicField(this, "crossOriginIframeStyleMirror");
+    __publicField(this, "crossOriginIframeRootIdMap", /* @__PURE__ */ new WeakMap());
+    __publicField(this, "mirror");
+    __publicField(this, "mutationCb");
+    __publicField(this, "wrappedEmit");
+    __publicField(this, "loadListener");
+    __publicField(this, "stylesheetManager");
+    __publicField(this, "recordCrossOriginIframes");
     this.mutationCb = options.mutationCb;
     this.wrappedEmit = options.wrappedEmit;
     this.stylesheetManager = options.stylesheetManager;
     this.recordCrossOriginIframes = options.recordCrossOriginIframes;
-    this.crossOriginIframeStyleMirror = new CrossOriginIframeMirror(this.stylesheetManager.styleMirror.generateId.bind(this.stylesheetManager.styleMirror));
+    this.crossOriginIframeStyleMirror = new CrossOriginIframeMirror(
+      this.stylesheetManager.styleMirror.generateId.bind(
+        this.stylesheetManager.styleMirror
+      )
+    );
     this.mirror = options.mirror;
     if (this.recordCrossOriginIframes) {
       window.addEventListener("message", this.handleMessage.bind(this));
@@ -3855,7 +5992,7 @@ var IframeManager = class {
     this.loadListener = cb;
   }
   attachIframe(iframeEl, childSn) {
-    var _a2;
+    var _a2, _b;
     this.mutationCb({
       adds: [
         {
@@ -3869,13 +6006,22 @@ var IframeManager = class {
       attributes: [],
       isAttachIframe: true
     });
-    (_a2 = this.loadListener) === null || _a2 === void 0 ? void 0 : _a2.call(this, iframeEl);
+    if (this.recordCrossOriginIframes)
+      (_a2 = iframeEl.contentWindow) == null ? void 0 : _a2.addEventListener(
+        "message",
+        this.handleMessage.bind(this)
+      );
+    (_b = this.loadListener) == null ? void 0 : _b.call(this, iframeEl);
     if (iframeEl.contentDocument && iframeEl.contentDocument.adoptedStyleSheets && iframeEl.contentDocument.adoptedStyleSheets.length > 0)
-      this.stylesheetManager.adoptStyleSheets(iframeEl.contentDocument.adoptedStyleSheets, this.mirror.getId(iframeEl.contentDocument));
+      this.stylesheetManager.adoptStyleSheets(
+        iframeEl.contentDocument.adoptedStyleSheets,
+        this.mirror.getId(iframeEl.contentDocument)
+      );
   }
   handleMessage(message) {
     const crossOriginMessageEvent = message;
-    if (crossOriginMessageEvent.data.type !== "rrweb" || crossOriginMessageEvent.origin !== crossOriginMessageEvent.data.origin)
+    if (crossOriginMessageEvent.data.type !== "rrweb" || // To filter out the rrweb messages which are forwarded by some sites.
+    crossOriginMessageEvent.origin !== crossOriginMessageEvent.data.origin)
       return;
     const iframeSourceWindow = message.source;
     if (!iframeSourceWindow)
@@ -3883,9 +6029,15 @@ var IframeManager = class {
     const iframeEl = this.crossOriginIframeMap.get(iframeSourceWindow);
     if (!iframeEl)
       return;
-    const transformedEvent = this.transformCrossOriginEvent(iframeEl, crossOriginMessageEvent.data.event);
+    const transformedEvent = this.transformCrossOriginEvent(
+      iframeEl,
+      crossOriginMessageEvent.data.event
+    );
     if (transformedEvent)
-      this.wrappedEmit(transformedEvent, crossOriginMessageEvent.data.isCheckout);
+      this.wrappedEmit(
+        transformedEvent,
+        crossOriginMessageEvent.data.isCheckout
+      );
   }
   transformCrossOriginEvent(iframeEl, e2) {
     var _a2;
@@ -3925,7 +6077,11 @@ var IframeManager = class {
         return e2;
       }
       case EventType.Custom: {
-        this.replaceIds(e2.data.payload, iframeEl, ["id", "parentId", "previousId", "nextId"]);
+        this.replaceIds(
+          e2.data.payload,
+          iframeEl,
+          ["id", "parentId", "previousId", "nextId"]
+        );
         return e2;
       }
       case EventType.IncrementalSnapshot: {
@@ -3989,7 +6145,7 @@ var IframeManager = class {
           case IncrementalSource.AdoptedStyleSheet: {
             this.replaceIds(e2.data, iframeEl, ["id"]);
             this.replaceStyleIds(e2.data, iframeEl, ["styleIds"]);
-            (_a2 = e2.data.styles) === null || _a2 === void 0 ? void 0 : _a2.forEach((style) => {
+            (_a2 = e2.data.styles) == null ? void 0 : _a2.forEach((style) => {
               this.replaceStyleIds(style, iframeEl, ["styleId"]);
             });
             return e2;
@@ -4004,7 +6160,10 @@ var IframeManager = class {
       if (!Array.isArray(obj[key]) && typeof obj[key] !== "number")
         continue;
       if (Array.isArray(obj[key])) {
-        obj[key] = iframeMirror.getIds(iframeEl, obj[key]);
+        obj[key] = iframeMirror.getIds(
+          iframeEl,
+          obj[key]
+        );
       } else {
         obj[key] = iframeMirror.getId(iframeEl, obj[key]);
       }
@@ -4026,7 +6185,7 @@ var IframeManager = class {
     }
   }
   patchRootIdOnNode(node, rootId) {
-    if (node.type !== NodeType.Document && !node.rootId)
+    if (node.type !== NodeType$2.Document && !node.rootId)
       node.rootId = rootId;
     if ("childNodes" in node) {
       node.childNodes.forEach((child) => {
@@ -4035,12 +6194,14 @@ var IframeManager = class {
     }
   }
 };
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/shadow-dom-manager.js
 var ShadowDomManager = class {
   constructor(options) {
-    this.shadowDoms = /* @__PURE__ */ new WeakSet();
-    this.restoreHandlers = [];
+    __publicField(this, "shadowDoms", /* @__PURE__ */ new WeakSet());
+    __publicField(this, "mutationCb");
+    __publicField(this, "scrollCb");
+    __publicField(this, "bypassOptions");
+    __publicField(this, "mirror");
+    __publicField(this, "restoreHandlers", []);
     this.mutationCb = options.mutationCb;
     this.scrollCb = options.scrollCb;
     this.bypassOptions = options.bypassOptions;
@@ -4051,39 +6212,81 @@ var ShadowDomManager = class {
     this.reset();
     this.patchAttachShadow(Element, document);
   }
-  addShadowRoot(shadowRoot, doc) {
-    if (!isNativeShadowDom(shadowRoot))
+  addShadowRoot(shadowRoot2, doc) {
+    if (!isNativeShadowDom(shadowRoot2))
       return;
-    if (this.shadowDoms.has(shadowRoot))
+    if (this.shadowDoms.has(shadowRoot2))
       return;
-    this.shadowDoms.add(shadowRoot);
-    const observer = initMutationObserver(Object.assign(Object.assign({}, this.bypassOptions), { doc, mutationCb: this.mutationCb, mirror: this.mirror, shadowDomManager: this }), shadowRoot);
-    this.restoreHandlers.push(() => observer.disconnect());
-    this.restoreHandlers.push(initScrollObserver(Object.assign(Object.assign({}, this.bypassOptions), { scrollCb: this.scrollCb, doc: shadowRoot, mirror: this.mirror })));
-    setTimeout(() => {
-      if (shadowRoot.adoptedStyleSheets && shadowRoot.adoptedStyleSheets.length > 0)
-        this.bypassOptions.stylesheetManager.adoptStyleSheets(shadowRoot.adoptedStyleSheets, this.mirror.getId(shadowRoot.host));
-      this.restoreHandlers.push(initAdoptedStyleSheetObserver({
+    this.shadowDoms.add(shadowRoot2);
+    const observer = initMutationObserver(
+      {
+        ...this.bypassOptions,
+        doc,
+        mutationCb: this.mutationCb,
         mirror: this.mirror,
-        stylesheetManager: this.bypassOptions.stylesheetManager
-      }, shadowRoot));
+        shadowDomManager: this
+      },
+      shadowRoot2
+    );
+    this.restoreHandlers.push(() => observer.disconnect());
+    this.restoreHandlers.push(
+      initScrollObserver({
+        ...this.bypassOptions,
+        scrollCb: this.scrollCb,
+        // https://gist.github.com/praveenpuglia/0832da687ed5a5d7a0907046c9ef1813
+        // scroll is not allowed to pass the boundary, so we need to listen the shadow document
+        doc: shadowRoot2,
+        mirror: this.mirror
+      })
+    );
+    setTimeout(() => {
+      if (shadowRoot2.adoptedStyleSheets && shadowRoot2.adoptedStyleSheets.length > 0)
+        this.bypassOptions.stylesheetManager.adoptStyleSheets(
+          shadowRoot2.adoptedStyleSheets,
+          this.mirror.getId(host(shadowRoot2))
+        );
+      this.restoreHandlers.push(
+        initAdoptedStyleSheetObserver(
+          {
+            mirror: this.mirror,
+            stylesheetManager: this.bypassOptions.stylesheetManager
+          },
+          shadowRoot2
+        )
+      );
     }, 0);
   }
+  /**
+   * Monkey patch 'attachShadow' of an IFrameElement to observe newly added shadow doms.
+   */
   observeAttachShadow(iframeElement) {
     if (!iframeElement.contentWindow || !iframeElement.contentDocument)
       return;
-    this.patchAttachShadow(iframeElement.contentWindow.Element, iframeElement.contentDocument);
+    this.patchAttachShadow(
+      iframeElement.contentWindow.Element,
+      iframeElement.contentDocument
+    );
   }
+  /**
+   * Patch 'attachShadow' to observe newly added shadow doms.
+   */
   patchAttachShadow(element, doc) {
     const manager = this;
-    this.restoreHandlers.push(patch(element.prototype, "attachShadow", function(original) {
-      return function(option) {
-        const shadowRoot = original.call(this, option);
-        if (this.shadowRoot && inDom(this))
-          manager.addShadowRoot(this.shadowRoot, doc);
-        return shadowRoot;
-      };
-    }));
+    this.restoreHandlers.push(
+      patch(
+        element.prototype,
+        "attachShadow",
+        function(original) {
+          return function(option) {
+            const sRoot = original.call(this, option);
+            const shadowRootEl = shadowRoot(this);
+            if (shadowRootEl && inDom(this))
+              manager.addShadowRoot(shadowRootEl, doc);
+            return sRoot;
+          };
+        }
+      )
+    );
   }
   reset() {
     this.restoreHandlers.forEach((handler) => {
@@ -4096,14 +6299,12 @@ var ShadowDomManager = class {
     this.shadowDoms = /* @__PURE__ */ new WeakSet();
   }
 };
-
-// ../rrweb/packages/rrweb/es/rrweb/ext/base64-arraybuffer/dist/base64-arraybuffer.es5.js
 var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 var lookup = typeof Uint8Array === "undefined" ? [] : new Uint8Array(256);
-for (i2 = 0; i2 < chars.length; i2++) {
-  lookup[chars.charCodeAt(i2)] = i2;
+for (i$1 = 0; i$1 < chars.length; i$1++) {
+  lookup[chars.charCodeAt(i$1)] = i$1;
 }
-var i2;
+var i$1;
 var encode = function(arraybuffer) {
   var bytes = new Uint8Array(arraybuffer), i2, len = bytes.length, base64 = "";
   for (i2 = 0; i2 < len; i2 += 3) {
@@ -4139,10 +6340,8 @@ var decode = function(base64) {
   }
   return arraybuffer;
 };
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/observers/canvas/serialize-args.js
 var canvasVarMap = /* @__PURE__ */ new Map();
-function variableListFor(ctx, ctor) {
+function variableListFor$1(ctx, ctor) {
   let contextMap = canvasVarMap.get(ctx);
   if (!contextMap) {
     contextMap = /* @__PURE__ */ new Map();
@@ -4157,7 +6356,7 @@ var saveWebGLVar = (value, win, ctx) => {
   if (!value || !(isInstanceOfWebGLObject(value, win) || typeof value === "object"))
     return;
   const name = value.constructor.name;
-  const list = variableListFor(ctx, name);
+  const list = variableListFor$1(ctx, name);
   let index = list.indexOf(value);
   if (index === -1) {
     index = list.length;
@@ -4176,7 +6375,12 @@ function serializeArg(value, win, ctx) {
       rr_type: name,
       args: [Object.values(value)]
     };
-  } else if (value instanceof ArrayBuffer) {
+  } else if (
+    // SharedArrayBuffer disabled on most browsers due to spectre.
+    // More info: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer/SharedArrayBuffer
+    // value instanceof SharedArrayBuffer ||
+    value instanceof ArrayBuffer
+  ) {
     const name = value.constructor.name;
     const base64 = encode(value);
     return {
@@ -4238,48 +6442,63 @@ var isInstanceOfWebGLObject = (value, win) => {
     "WebGLTexture",
     "WebGLUniformLocation",
     "WebGLVertexArrayObject",
+    // In old Chrome versions, value won't be an instanceof WebGLVertexArrayObject.
     "WebGLVertexArrayObjectOES"
   ];
-  const supportedWebGLConstructorNames = webGLConstructorNames.filter((name) => typeof win[name] === "function");
-  return Boolean(supportedWebGLConstructorNames.find((name) => value instanceof win[name]));
+  const supportedWebGLConstructorNames = webGLConstructorNames.filter(
+    (name) => typeof win[name] === "function"
+  );
+  return Boolean(
+    supportedWebGLConstructorNames.find(
+      (name) => value instanceof win[name]
+    )
+  );
 };
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/observers/canvas/2d.js
 function initCanvas2DMutationObserver(cb, win, blockClass, blockSelector) {
   const handlers = [];
-  const props2D = Object.getOwnPropertyNames(win.CanvasRenderingContext2D.prototype);
+  const props2D = Object.getOwnPropertyNames(
+    win.CanvasRenderingContext2D.prototype
+  );
   for (const prop of props2D) {
     try {
       if (typeof win.CanvasRenderingContext2D.prototype[prop] !== "function") {
         continue;
       }
-      const restoreHandler = patch(win.CanvasRenderingContext2D.prototype, prop, function(original) {
-        return function(...args) {
-          if (!isBlocked(this.canvas, blockClass, blockSelector, true)) {
-            setTimeout(() => {
-              const recordArgs = serializeArgs(args, win, this);
-              cb(this.canvas, {
-                type: CanvasContext["2D"],
-                property: prop,
-                args: recordArgs
-              });
-            }, 0);
-          }
-          return original.apply(this, args);
-        };
-      });
-      handlers.push(restoreHandler);
-    } catch (_a2) {
-      const hookHandler = hookSetter(win.CanvasRenderingContext2D.prototype, prop, {
-        set(v2) {
-          cb(this.canvas, {
-            type: CanvasContext["2D"],
-            property: prop,
-            args: [v2],
-            setter: true
-          });
+      const restoreHandler = patch(
+        win.CanvasRenderingContext2D.prototype,
+        prop,
+        function(original) {
+          return function(...args) {
+            if (!isBlocked(this.canvas, blockClass, blockSelector, true)) {
+              setTimeout(() => {
+                const recordArgs = serializeArgs(args, win, this);
+                cb(this.canvas, {
+                  type: CanvasContext["2D"],
+                  property: prop,
+                  args: recordArgs
+                });
+              }, 0);
+            }
+            return original.apply(this, args);
+          };
         }
-      });
+      );
+      handlers.push(restoreHandler);
+    } catch {
+      const hookHandler = hookSetter(
+        win.CanvasRenderingContext2D.prototype,
+        prop,
+        {
+          set(v2) {
+            cb(this.canvas, {
+              type: CanvasContext["2D"],
+              property: prop,
+              args: [v2],
+              setter: true
+            });
+          }
+        }
+      );
       handlers.push(hookHandler);
     }
   }
@@ -4287,80 +6506,92 @@ function initCanvas2DMutationObserver(cb, win, blockClass, blockSelector) {
     handlers.forEach((h) => h());
   };
 }
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/observers/canvas/canvas.js
 function getNormalizedContextName(contextType) {
   return contextType === "experimental-webgl" ? "webgl" : contextType;
 }
 function initCanvasContextObserver(win, blockClass, blockSelector, setPreserveDrawingBufferToTrue) {
   const handlers = [];
   try {
-    const restoreGetContext = patch(win.HTMLCanvasElement.prototype, "getContext", function(original) {
-      return function(contextType, ...args) {
-        if (!isBlocked(this, blockClass, blockSelector, true)) {
-          const ctxName = getNormalizedContextName(contextType);
-          if (!("__context" in this))
-            this.__context = ctxName;
-          if (setPreserveDrawingBufferToTrue && ["webgl", "webgl2"].includes(ctxName)) {
-            if (args[0] && typeof args[0] === "object") {
-              const contextAttributes = args[0];
-              if (!contextAttributes.preserveDrawingBuffer) {
-                contextAttributes.preserveDrawingBuffer = true;
+    const restoreGetContext = patch(
+      win.HTMLCanvasElement.prototype,
+      "getContext",
+      function(original) {
+        return function(contextType, ...args) {
+          if (!isBlocked(this, blockClass, blockSelector, true)) {
+            const ctxName = getNormalizedContextName(contextType);
+            if (!("__context" in this))
+              this.__context = ctxName;
+            if (setPreserveDrawingBufferToTrue && ["webgl", "webgl2"].includes(ctxName)) {
+              if (args[0] && typeof args[0] === "object") {
+                const contextAttributes = args[0];
+                if (!contextAttributes.preserveDrawingBuffer) {
+                  contextAttributes.preserveDrawingBuffer = true;
+                }
+              } else {
+                args.splice(0, 1, {
+                  preserveDrawingBuffer: true
+                });
               }
-            } else {
-              args.splice(0, 1, {
-                preserveDrawingBuffer: true
-              });
             }
           }
-        }
-        return original.apply(this, [contextType, ...args]);
-      };
-    });
+          return original.apply(this, [contextType, ...args]);
+        };
+      }
+    );
     handlers.push(restoreGetContext);
-  } catch (_a2) {
+  } catch {
     console.error("failed to patch HTMLCanvasElement.prototype.getContext");
   }
   return () => {
     handlers.forEach((h) => h());
   };
 }
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/observers/canvas/webgl.js
-function patchGLPrototype(prototype, type, cb, blockClass, blockSelector, mirror2, win) {
+function patchGLPrototype(prototype, type, cb, blockClass, blockSelector, win) {
   const handlers = [];
   const props = Object.getOwnPropertyNames(prototype);
   for (const prop of props) {
-    if ([
-      "isContextLost",
-      "canvas",
-      "drawingBufferWidth",
-      "drawingBufferHeight"
-    ].includes(prop)) {
+    if (
+      //prop.startsWith('get') ||  // e.g. getProgramParameter, but too risky
+      [
+        "isContextLost",
+        "canvas",
+        "drawingBufferWidth",
+        "drawingBufferHeight"
+      ].includes(prop)
+    ) {
       continue;
     }
     try {
       if (typeof prototype[prop] !== "function") {
         continue;
       }
-      const restoreHandler = patch(prototype, prop, function(original) {
-        return function(...args) {
-          const result = original.apply(this, args);
-          saveWebGLVar(result, win, this);
-          if ("tagName" in this.canvas && !isBlocked(this.canvas, blockClass, blockSelector, true)) {
-            const recordArgs = serializeArgs(args, win, this);
-            const mutation = {
-              type,
-              property: prop,
-              args: recordArgs
-            };
-            cb(this.canvas, mutation);
-          }
-          return result;
-        };
-      });
+      const restoreHandler = patch(
+        prototype,
+        prop,
+        function(original) {
+          return function(...args) {
+            const result = original.apply(this, args);
+            saveWebGLVar(result, win, this);
+            if ("tagName" in this.canvas && !isBlocked(
+              this.canvas,
+              blockClass,
+              blockSelector,
+              true
+            )) {
+              const recordArgs = serializeArgs(args, win, this);
+              const mutation = {
+                type,
+                property: prop,
+                args: recordArgs
+              };
+              cb(this.canvas, mutation);
+            }
+            return result;
+          };
+        }
+      );
       handlers.push(restoreHandler);
-    } catch (_a2) {
+    } catch {
       const hookHandler = hookSetter(prototype, prop, {
         set(v2) {
           cb(this.canvas, {
@@ -4376,75 +6607,76 @@ function patchGLPrototype(prototype, type, cb, blockClass, blockSelector, mirror
   }
   return handlers;
 }
-function initCanvasWebGLMutationObserver(cb, win, blockClass, blockSelector, mirror2) {
+function initCanvasWebGLMutationObserver(cb, win, blockClass, blockSelector) {
   const handlers = [];
-  handlers.push(...patchGLPrototype(win.WebGLRenderingContext.prototype, CanvasContext.WebGL, cb, blockClass, blockSelector, mirror2, win));
+  handlers.push(
+    ...patchGLPrototype(
+      win.WebGLRenderingContext.prototype,
+      CanvasContext.WebGL,
+      cb,
+      blockClass,
+      blockSelector,
+      win
+    )
+  );
   if (typeof win.WebGL2RenderingContext !== "undefined") {
-    handlers.push(...patchGLPrototype(win.WebGL2RenderingContext.prototype, CanvasContext.WebGL2, cb, blockClass, blockSelector, mirror2, win));
+    handlers.push(
+      ...patchGLPrototype(
+        win.WebGL2RenderingContext.prototype,
+        CanvasContext.WebGL2,
+        cb,
+        blockClass,
+        blockSelector,
+        win
+      )
+    );
   }
   return () => {
     handlers.forEach((h) => h());
   };
 }
-
-// ../rrweb/packages/rrweb/es/rrweb/_virtual/_rollup-plugin-web-worker-loader__helper__browser__createBase64WorkerFactory.js
-function decodeBase64(base64, enableUnicode) {
-  var binaryString = atob(base64);
-  if (enableUnicode) {
-    var binaryView = new Uint8Array(binaryString.length);
-    for (var i2 = 0, n2 = binaryString.length; i2 < n2; ++i2) {
-      binaryView[i2] = binaryString.charCodeAt(i2);
-    }
-    return String.fromCharCode.apply(null, new Uint16Array(binaryView.buffer));
+var encodedJs = "KGZ1bmN0aW9uKCkgewogICJ1c2Ugc3RyaWN0IjsKICB2YXIgY2hhcnMgPSAiQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejAxMjM0NTY3ODkrLyI7CiAgdmFyIGxvb2t1cCA9IHR5cGVvZiBVaW50OEFycmF5ID09PSAidW5kZWZpbmVkIiA/IFtdIDogbmV3IFVpbnQ4QXJyYXkoMjU2KTsKICBmb3IgKHZhciBpID0gMDsgaSA8IGNoYXJzLmxlbmd0aDsgaSsrKSB7CiAgICBsb29rdXBbY2hhcnMuY2hhckNvZGVBdChpKV0gPSBpOwogIH0KICB2YXIgZW5jb2RlID0gZnVuY3Rpb24oYXJyYXlidWZmZXIpIHsKICAgIHZhciBieXRlcyA9IG5ldyBVaW50OEFycmF5KGFycmF5YnVmZmVyKSwgaTIsIGxlbiA9IGJ5dGVzLmxlbmd0aCwgYmFzZTY0ID0gIiI7CiAgICBmb3IgKGkyID0gMDsgaTIgPCBsZW47IGkyICs9IDMpIHsKICAgICAgYmFzZTY0ICs9IGNoYXJzW2J5dGVzW2kyXSA+PiAyXTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMl0gJiAzKSA8PCA0IHwgYnl0ZXNbaTIgKyAxXSA+PiA0XTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMiArIDFdICYgMTUpIDw8IDIgfCBieXRlc1tpMiArIDJdID4+IDZdOwogICAgICBiYXNlNjQgKz0gY2hhcnNbYnl0ZXNbaTIgKyAyXSAmIDYzXTsKICAgIH0KICAgIGlmIChsZW4gJSAzID09PSAyKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDEpICsgIj0iOwogICAgfSBlbHNlIGlmIChsZW4gJSAzID09PSAxKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDIpICsgIj09IjsKICAgIH0KICAgIHJldHVybiBiYXNlNjQ7CiAgfTsKICBjb25zdCBsYXN0QmxvYk1hcCA9IC8qIEBfX1BVUkVfXyAqLyBuZXcgTWFwKCk7CiAgY29uc3QgdHJhbnNwYXJlbnRCbG9iTWFwID0gLyogQF9fUFVSRV9fICovIG5ldyBNYXAoKTsKICBhc3luYyBmdW5jdGlvbiBnZXRUcmFuc3BhcmVudEJsb2JGb3Iod2lkdGgsIGhlaWdodCwgZGF0YVVSTE9wdGlvbnMpIHsKICAgIGNvbnN0IGlkID0gYCR7d2lkdGh9LSR7aGVpZ2h0fWA7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBpZiAodHJhbnNwYXJlbnRCbG9iTWFwLmhhcyhpZCkpCiAgICAgICAgcmV0dXJuIHRyYW5zcGFyZW50QmxvYk1hcC5nZXQoaWQpOwogICAgICBjb25zdCBvZmZzY3JlZW4gPSBuZXcgT2Zmc2NyZWVuQ2FudmFzKHdpZHRoLCBoZWlnaHQpOwogICAgICBvZmZzY3JlZW4uZ2V0Q29udGV4dCgiMmQiKTsKICAgICAgY29uc3QgYmxvYiA9IGF3YWl0IG9mZnNjcmVlbi5jb252ZXJ0VG9CbG9iKGRhdGFVUkxPcHRpb25zKTsKICAgICAgY29uc3QgYXJyYXlCdWZmZXIgPSBhd2FpdCBibG9iLmFycmF5QnVmZmVyKCk7CiAgICAgIGNvbnN0IGJhc2U2NCA9IGVuY29kZShhcnJheUJ1ZmZlcik7CiAgICAgIHRyYW5zcGFyZW50QmxvYk1hcC5zZXQoaWQsIGJhc2U2NCk7CiAgICAgIHJldHVybiBiYXNlNjQ7CiAgICB9IGVsc2UgewogICAgICByZXR1cm4gIiI7CiAgICB9CiAgfQogIGNvbnN0IHdvcmtlciA9IHNlbGY7CiAgbGV0IGxvZ0RlYnVnID0gZmFsc2U7CiAgY29uc3QgZGVidWcgPSAoLi4uYXJncykgPT4gewogICAgaWYgKGxvZ0RlYnVnKSB7CiAgICAgIGNvbnNvbGUuZGVidWcoLi4uYXJncyk7CiAgICB9CiAgfTsKICB3b3JrZXIub25tZXNzYWdlID0gYXN5bmMgZnVuY3Rpb24oZSkgewogICAgbG9nRGVidWcgPSAhIWUuZGF0YS5sb2dEZWJ1ZzsKICAgIGlmICgiT2Zmc2NyZWVuQ2FudmFzIiBpbiBnbG9iYWxUaGlzKSB7CiAgICAgIGNvbnN0IHsgaWQsIGJpdG1hcCwgd2lkdGgsIGhlaWdodCwgZHgsIGR5LCBkdywgZGgsIGRhdGFVUkxPcHRpb25zIH0gPSBlLmRhdGE7CiAgICAgIGNvbnN0IHRyYW5zcGFyZW50QmFzZTY0ID0gZ2V0VHJhbnNwYXJlbnRCbG9iRm9yKAogICAgICAgIHdpZHRoLAogICAgICAgIGhlaWdodCwKICAgICAgICBkYXRhVVJMT3B0aW9ucwogICAgICApOwogICAgICBjb25zdCBvZmZzY3JlZW4gPSBuZXcgT2Zmc2NyZWVuQ2FudmFzKHdpZHRoLCBoZWlnaHQpOwogICAgICBjb25zdCBjdHggPSBvZmZzY3JlZW4uZ2V0Q29udGV4dCgiMmQiKTsKICAgICAgY3R4LmRyYXdJbWFnZShiaXRtYXAsIDAsIDAsIHdpZHRoLCBoZWlnaHQpOwogICAgICBiaXRtYXAuY2xvc2UoKTsKICAgICAgY29uc3QgYmxvYiA9IGF3YWl0IG9mZnNjcmVlbi5jb252ZXJ0VG9CbG9iKGRhdGFVUkxPcHRpb25zKTsKICAgICAgY29uc3QgdHlwZSA9IGJsb2IudHlwZTsKICAgICAgY29uc3QgYXJyYXlCdWZmZXIgPSBhd2FpdCBibG9iLmFycmF5QnVmZmVyKCk7CiAgICAgIGNvbnN0IGJhc2U2NCA9IGVuY29kZShhcnJheUJ1ZmZlcik7CiAgICAgIGlmICghbGFzdEJsb2JNYXAuaGFzKGlkKSAmJiBhd2FpdCB0cmFuc3BhcmVudEJhc2U2NCA9PT0gYmFzZTY0KSB7CiAgICAgICAgZGVidWcoIltoaWdobGlnaHQtd29ya2VyXSBjYW52YXMgYml0bWFwIGlzIHRyYW5zcGFyZW50IiwgewogICAgICAgICAgaWQsCiAgICAgICAgICBiYXNlNjQKICAgICAgICB9KTsKICAgICAgICBsYXN0QmxvYk1hcC5zZXQoaWQsIGJhc2U2NCk7CiAgICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkLCBzdGF0dXM6ICJ0cmFuc3BhcmVudCIgfSk7CiAgICAgIH0KICAgICAgaWYgKGxhc3RCbG9iTWFwLmdldChpZCkgPT09IGJhc2U2NCkgewogICAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gY2FudmFzIGJpdG1hcCBpcyB1bmNoYW5nZWQiLCB7CiAgICAgICAgICBpZCwKICAgICAgICAgIGJhc2U2NAogICAgICAgIH0pOwogICAgICAgIHJldHVybiB3b3JrZXIucG9zdE1lc3NhZ2UoeyBpZCwgc3RhdHVzOiAidW5jaGFuZ2VkIiB9KTsKICAgICAgfQogICAgICBkZWJ1ZygiW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgcHJvY2Vzc2VkIiwgewogICAgICAgIGlkLAogICAgICAgIGJhc2U2NAogICAgICB9KTsKICAgICAgd29ya2VyLnBvc3RNZXNzYWdlKHsKICAgICAgICBpZCwKICAgICAgICB0eXBlLAogICAgICAgIGJhc2U2NCwKICAgICAgICB3aWR0aCwKICAgICAgICBoZWlnaHQsCiAgICAgICAgZHgsCiAgICAgICAgZHksCiAgICAgICAgZHcsCiAgICAgICAgZGgKICAgICAgfSk7CiAgICAgIGxhc3RCbG9iTWFwLnNldChpZCwgYmFzZTY0KTsKICAgIH0gZWxzZSB7CiAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gbm8gb2Zmc2NyZWVuY2FudmFzIHN1cHBvcnQiLCB7CiAgICAgICAgaWQ6IGUuZGF0YS5pZAogICAgICB9KTsKICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkOiBlLmRhdGEuaWQsIHN0YXR1czogInVuc3VwcG9ydGVkIiB9KTsKICAgIH0KICB9Owp9KSgpOwovLyMgc291cmNlTWFwcGluZ1VSTD1pbWFnZS1iaXRtYXAtZGF0YS11cmwtd29ya2VyLURaUlNpTFo0LmpzLm1hcAo=";
+var decodeBase64 = (base64) => Uint8Array.from(atob(base64), (c2) => c2.charCodeAt(0));
+var blob = typeof window !== "undefined" && window.Blob && new Blob([decodeBase64(encodedJs)], { type: "text/javascript;charset=utf-8" });
+function WorkerWrapper(options) {
+  let objURL;
+  try {
+    objURL = blob && (window.URL || window.webkitURL).createObjectURL(blob);
+    if (!objURL)
+      throw "";
+    const worker = new Worker(objURL, {
+      name: options == null ? void 0 : options.name
+    });
+    worker.addEventListener("error", () => {
+      (window.URL || window.webkitURL).revokeObjectURL(objURL);
+    });
+    return worker;
+  } catch (e2) {
+    return new Worker(
+      "data:text/javascript;base64," + encodedJs,
+      {
+        name: options == null ? void 0 : options.name
+      }
+    );
+  } finally {
+    objURL && (window.URL || window.webkitURL).revokeObjectURL(objURL);
   }
-  return binaryString;
 }
-function createURL(base64, sourcemapArg, enableUnicodeArg) {
-  var sourcemap = sourcemapArg === void 0 ? null : sourcemapArg;
-  var enableUnicode = enableUnicodeArg === void 0 ? false : enableUnicodeArg;
-  var source = decodeBase64(base64, enableUnicode);
-  var start = source.indexOf("\n", 10) + 1;
-  var body = source.substring(start) + (sourcemap ? "//# sourceMappingURL=" + sourcemap : "");
-  var blob = new Blob([body], { type: "application/javascript" });
-  return URL.createObjectURL(blob);
-}
-function createBase64WorkerFactory(base64, sourcemapArg, enableUnicodeArg) {
-  var url;
-  return function WorkerFactory2(options) {
-    url = url || createURL(base64, sourcemapArg, enableUnicodeArg);
-    return new Worker(url, options);
-  };
-}
-
-// ../rrweb/packages/rrweb/es/rrweb/_virtual/image-bitmap-data-url-worker.js
-var WorkerFactory = createBase64WorkerFactory("Lyogcm9sbHVwLXBsdWdpbi13ZWItd29ya2VyLWxvYWRlciAqLwooZnVuY3Rpb24gKCkgewogICAgJ3VzZSBzdHJpY3QnOwoKICAgIC8qKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioNCiAgICBDb3B5cmlnaHQgKGMpIE1pY3Jvc29mdCBDb3Jwb3JhdGlvbi4NCg0KICAgIFBlcm1pc3Npb24gdG8gdXNlLCBjb3B5LCBtb2RpZnksIGFuZC9vciBkaXN0cmlidXRlIHRoaXMgc29mdHdhcmUgZm9yIGFueQ0KICAgIHB1cnBvc2Ugd2l0aCBvciB3aXRob3V0IGZlZSBpcyBoZXJlYnkgZ3JhbnRlZC4NCg0KICAgIFRIRSBTT0ZUV0FSRSBJUyBQUk9WSURFRCAiQVMgSVMiIEFORCBUSEUgQVVUSE9SIERJU0NMQUlNUyBBTEwgV0FSUkFOVElFUyBXSVRIDQogICAgUkVHQVJEIFRPIFRISVMgU09GVFdBUkUgSU5DTFVESU5HIEFMTCBJTVBMSUVEIFdBUlJBTlRJRVMgT0YgTUVSQ0hBTlRBQklMSVRZDQogICAgQU5EIEZJVE5FU1MuIElOIE5PIEVWRU5UIFNIQUxMIFRIRSBBVVRIT1IgQkUgTElBQkxFIEZPUiBBTlkgU1BFQ0lBTCwgRElSRUNULA0KICAgIElORElSRUNULCBPUiBDT05TRVFVRU5USUFMIERBTUFHRVMgT1IgQU5ZIERBTUFHRVMgV0hBVFNPRVZFUiBSRVNVTFRJTkcgRlJPTQ0KICAgIExPU1MgT0YgVVNFLCBEQVRBIE9SIFBST0ZJVFMsIFdIRVRIRVIgSU4gQU4gQUNUSU9OIE9GIENPTlRSQUNULCBORUdMSUdFTkNFIE9SDQogICAgT1RIRVIgVE9SVElPVVMgQUNUSU9OLCBBUklTSU5HIE9VVCBPRiBPUiBJTiBDT05ORUNUSU9OIFdJVEggVEhFIFVTRSBPUg0KICAgIFBFUkZPUk1BTkNFIE9GIFRISVMgU09GVFdBUkUuDQogICAgKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKiogKi8NCg0KICAgIGZ1bmN0aW9uIF9fYXdhaXRlcih0aGlzQXJnLCBfYXJndW1lbnRzLCBQLCBnZW5lcmF0b3IpIHsNCiAgICAgICAgZnVuY3Rpb24gYWRvcHQodmFsdWUpIHsgcmV0dXJuIHZhbHVlIGluc3RhbmNlb2YgUCA/IHZhbHVlIDogbmV3IFAoZnVuY3Rpb24gKHJlc29sdmUpIHsgcmVzb2x2ZSh2YWx1ZSk7IH0pOyB9DQogICAgICAgIHJldHVybiBuZXcgKFAgfHwgKFAgPSBQcm9taXNlKSkoZnVuY3Rpb24gKHJlc29sdmUsIHJlamVjdCkgew0KICAgICAgICAgICAgZnVuY3Rpb24gZnVsZmlsbGVkKHZhbHVlKSB7IHRyeSB7IHN0ZXAoZ2VuZXJhdG9yLm5leHQodmFsdWUpKTsgfSBjYXRjaCAoZSkgeyByZWplY3QoZSk7IH0gfQ0KICAgICAgICAgICAgZnVuY3Rpb24gcmVqZWN0ZWQodmFsdWUpIHsgdHJ5IHsgc3RlcChnZW5lcmF0b3JbInRocm93Il0odmFsdWUpKTsgfSBjYXRjaCAoZSkgeyByZWplY3QoZSk7IH0gfQ0KICAgICAgICAgICAgZnVuY3Rpb24gc3RlcChyZXN1bHQpIHsgcmVzdWx0LmRvbmUgPyByZXNvbHZlKHJlc3VsdC52YWx1ZSkgOiBhZG9wdChyZXN1bHQudmFsdWUpLnRoZW4oZnVsZmlsbGVkLCByZWplY3RlZCk7IH0NCiAgICAgICAgICAgIHN0ZXAoKGdlbmVyYXRvciA9IGdlbmVyYXRvci5hcHBseSh0aGlzQXJnLCBfYXJndW1lbnRzIHx8IFtdKSkubmV4dCgpKTsNCiAgICAgICAgfSk7DQogICAgfQoKICAgIC8qCiAgICAgKiBiYXNlNjQtYXJyYXlidWZmZXIgMS4wLjEgPGh0dHBzOi8vZ2l0aHViLmNvbS9uaWtsYXN2aC9iYXNlNjQtYXJyYXlidWZmZXI+CiAgICAgKiBDb3B5cmlnaHQgKGMpIDIwMjEgTmlrbGFzIHZvbiBIZXJ0emVuIDxodHRwczovL2hlcnR6ZW4uY29tPgogICAgICogUmVsZWFzZWQgdW5kZXIgTUlUIExpY2Vuc2UKICAgICAqLwogICAgdmFyIGNoYXJzID0gJ0FCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXowMTIzNDU2Nzg5Ky8nOwogICAgLy8gVXNlIGEgbG9va3VwIHRhYmxlIHRvIGZpbmQgdGhlIGluZGV4LgogICAgdmFyIGxvb2t1cCA9IHR5cGVvZiBVaW50OEFycmF5ID09PSAndW5kZWZpbmVkJyA/IFtdIDogbmV3IFVpbnQ4QXJyYXkoMjU2KTsKICAgIGZvciAodmFyIGkgPSAwOyBpIDwgY2hhcnMubGVuZ3RoOyBpKyspIHsKICAgICAgICBsb29rdXBbY2hhcnMuY2hhckNvZGVBdChpKV0gPSBpOwogICAgfQogICAgdmFyIGVuY29kZSA9IGZ1bmN0aW9uIChhcnJheWJ1ZmZlcikgewogICAgICAgIHZhciBieXRlcyA9IG5ldyBVaW50OEFycmF5KGFycmF5YnVmZmVyKSwgaSwgbGVuID0gYnl0ZXMubGVuZ3RoLCBiYXNlNjQgPSAnJzsKICAgICAgICBmb3IgKGkgPSAwOyBpIDwgbGVuOyBpICs9IDMpIHsKICAgICAgICAgICAgYmFzZTY0ICs9IGNoYXJzW2J5dGVzW2ldID4+IDJdOwogICAgICAgICAgICBiYXNlNjQgKz0gY2hhcnNbKChieXRlc1tpXSAmIDMpIDw8IDQpIHwgKGJ5dGVzW2kgKyAxXSA+PiA0KV07CiAgICAgICAgICAgIGJhc2U2NCArPSBjaGFyc1soKGJ5dGVzW2kgKyAxXSAmIDE1KSA8PCAyKSB8IChieXRlc1tpICsgMl0gPj4gNildOwogICAgICAgICAgICBiYXNlNjQgKz0gY2hhcnNbYnl0ZXNbaSArIDJdICYgNjNdOwogICAgICAgIH0KICAgICAgICBpZiAobGVuICUgMyA9PT0gMikgewogICAgICAgICAgICBiYXNlNjQgPSBiYXNlNjQuc3Vic3RyaW5nKDAsIGJhc2U2NC5sZW5ndGggLSAxKSArICc9JzsKICAgICAgICB9CiAgICAgICAgZWxzZSBpZiAobGVuICUgMyA9PT0gMSkgewogICAgICAgICAgICBiYXNlNjQgPSBiYXNlNjQuc3Vic3RyaW5nKDAsIGJhc2U2NC5sZW5ndGggLSAyKSArICc9PSc7CiAgICAgICAgfQogICAgICAgIHJldHVybiBiYXNlNjQ7CiAgICB9OwoKICAgIGNvbnN0IGxhc3RCbG9iTWFwID0gbmV3IE1hcCgpOw0KICAgIGNvbnN0IHRyYW5zcGFyZW50QmxvYk1hcCA9IG5ldyBNYXAoKTsNCiAgICBmdW5jdGlvbiBnZXRUcmFuc3BhcmVudEJsb2JGb3Iod2lkdGgsIGhlaWdodCwgZGF0YVVSTE9wdGlvbnMpIHsNCiAgICAgICAgcmV0dXJuIF9fYXdhaXRlcih0aGlzLCB2b2lkIDAsIHZvaWQgMCwgZnVuY3Rpb24qICgpIHsNCiAgICAgICAgICAgIGNvbnN0IGlkID0gYCR7d2lkdGh9LSR7aGVpZ2h0fWA7DQogICAgICAgICAgICBpZiAoJ09mZnNjcmVlbkNhbnZhcycgaW4gZ2xvYmFsVGhpcykgew0KICAgICAgICAgICAgICAgIGlmICh0cmFuc3BhcmVudEJsb2JNYXAuaGFzKGlkKSkNCiAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHRyYW5zcGFyZW50QmxvYk1hcC5nZXQoaWQpOw0KICAgICAgICAgICAgICAgIGNvbnN0IG9mZnNjcmVlbiA9IG5ldyBPZmZzY3JlZW5DYW52YXMod2lkdGgsIGhlaWdodCk7DQogICAgICAgICAgICAgICAgb2Zmc2NyZWVuLmdldENvbnRleHQoJzJkJyk7DQogICAgICAgICAgICAgICAgY29uc3QgYmxvYiA9IHlpZWxkIG9mZnNjcmVlbi5jb252ZXJ0VG9CbG9iKGRhdGFVUkxPcHRpb25zKTsNCiAgICAgICAgICAgICAgICBjb25zdCBhcnJheUJ1ZmZlciA9IHlpZWxkIGJsb2IuYXJyYXlCdWZmZXIoKTsNCiAgICAgICAgICAgICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOw0KICAgICAgICAgICAgICAgIHRyYW5zcGFyZW50QmxvYk1hcC5zZXQoaWQsIGJhc2U2NCk7DQogICAgICAgICAgICAgICAgcmV0dXJuIGJhc2U2NDsNCiAgICAgICAgICAgIH0NCiAgICAgICAgICAgIGVsc2Ugew0KICAgICAgICAgICAgICAgIHJldHVybiAnJzsNCiAgICAgICAgICAgIH0NCiAgICAgICAgfSk7DQogICAgfQ0KICAgIGNvbnN0IHdvcmtlciA9IHNlbGY7DQogICAgbGV0IGxvZ0RlYnVnID0gZmFsc2U7DQogICAgY29uc3QgZGVidWcgPSAoLi4uYXJncykgPT4gew0KICAgICAgICBpZiAobG9nRGVidWcpIHsNCiAgICAgICAgICAgIGNvbnNvbGUuZGVidWcoLi4uYXJncyk7DQogICAgICAgIH0NCiAgICB9Ow0KICAgIHdvcmtlci5vbm1lc3NhZ2UgPSBmdW5jdGlvbiAoZSkgew0KICAgICAgICByZXR1cm4gX19hd2FpdGVyKHRoaXMsIHZvaWQgMCwgdm9pZCAwLCBmdW5jdGlvbiogKCkgew0KICAgICAgICAgICAgbG9nRGVidWcgPSAhIWUuZGF0YS5sb2dEZWJ1ZzsNCiAgICAgICAgICAgIGlmICgnT2Zmc2NyZWVuQ2FudmFzJyBpbiBnbG9iYWxUaGlzKSB7DQogICAgICAgICAgICAgICAgY29uc3QgeyBpZCwgYml0bWFwLCB3aWR0aCwgaGVpZ2h0LCBkeCwgZHksIGR3LCBkaCwgZGF0YVVSTE9wdGlvbnMgfSA9IGUuZGF0YTsNCiAgICAgICAgICAgICAgICBjb25zdCB0cmFuc3BhcmVudEJhc2U2NCA9IGdldFRyYW5zcGFyZW50QmxvYkZvcih3aWR0aCwgaGVpZ2h0LCBkYXRhVVJMT3B0aW9ucyk7DQogICAgICAgICAgICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsNCiAgICAgICAgICAgICAgICBjb25zdCBjdHggPSBvZmZzY3JlZW4uZ2V0Q29udGV4dCgnMmQnKTsNCiAgICAgICAgICAgICAgICBjdHguZHJhd0ltYWdlKGJpdG1hcCwgMCwgMCwgd2lkdGgsIGhlaWdodCk7DQogICAgICAgICAgICAgICAgYml0bWFwLmNsb3NlKCk7DQogICAgICAgICAgICAgICAgY29uc3QgYmxvYiA9IHlpZWxkIG9mZnNjcmVlbi5jb252ZXJ0VG9CbG9iKGRhdGFVUkxPcHRpb25zKTsNCiAgICAgICAgICAgICAgICBjb25zdCB0eXBlID0gYmxvYi50eXBlOw0KICAgICAgICAgICAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0geWllbGQgYmxvYi5hcnJheUJ1ZmZlcigpOw0KICAgICAgICAgICAgICAgIGNvbnN0IGJhc2U2NCA9IGVuY29kZShhcnJheUJ1ZmZlcik7DQogICAgICAgICAgICAgICAgaWYgKCFsYXN0QmxvYk1hcC5oYXMoaWQpICYmICh5aWVsZCB0cmFuc3BhcmVudEJhc2U2NCkgPT09IGJhc2U2NCkgew0KICAgICAgICAgICAgICAgICAgICBkZWJ1ZygnW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgaXMgdHJhbnNwYXJlbnQnLCB7DQogICAgICAgICAgICAgICAgICAgICAgICBpZCwNCiAgICAgICAgICAgICAgICAgICAgICAgIGJhc2U2NCwNCiAgICAgICAgICAgICAgICAgICAgfSk7DQogICAgICAgICAgICAgICAgICAgIGxhc3RCbG9iTWFwLnNldChpZCwgYmFzZTY0KTsNCiAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkLCBzdGF0dXM6ICd0cmFuc3BhcmVudCcgfSk7DQogICAgICAgICAgICAgICAgfQ0KICAgICAgICAgICAgICAgIGlmIChsYXN0QmxvYk1hcC5nZXQoaWQpID09PSBiYXNlNjQpIHsNCiAgICAgICAgICAgICAgICAgICAgZGVidWcoJ1toaWdobGlnaHQtd29ya2VyXSBjYW52YXMgYml0bWFwIGlzIHVuY2hhbmdlZCcsIHsNCiAgICAgICAgICAgICAgICAgICAgICAgIGlkLA0KICAgICAgICAgICAgICAgICAgICAgICAgYmFzZTY0LA0KICAgICAgICAgICAgICAgICAgICB9KTsNCiAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkLCBzdGF0dXM6ICd1bmNoYW5nZWQnIH0pOw0KICAgICAgICAgICAgICAgIH0NCiAgICAgICAgICAgICAgICBkZWJ1ZygnW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgcHJvY2Vzc2VkJywgew0KICAgICAgICAgICAgICAgICAgICBpZCwNCiAgICAgICAgICAgICAgICAgICAgYmFzZTY0LA0KICAgICAgICAgICAgICAgIH0pOw0KICAgICAgICAgICAgICAgIHdvcmtlci5wb3N0TWVzc2FnZSh7DQogICAgICAgICAgICAgICAgICAgIGlkLA0KICAgICAgICAgICAgICAgICAgICB0eXBlLA0KICAgICAgICAgICAgICAgICAgICBiYXNlNjQsDQogICAgICAgICAgICAgICAgICAgIHdpZHRoLA0KICAgICAgICAgICAgICAgICAgICBoZWlnaHQsDQogICAgICAgICAgICAgICAgICAgIGR4LA0KICAgICAgICAgICAgICAgICAgICBkeSwNCiAgICAgICAgICAgICAgICAgICAgZHcsDQogICAgICAgICAgICAgICAgICAgIGRoLA0KICAgICAgICAgICAgICAgIH0pOw0KICAgICAgICAgICAgICAgIGxhc3RCbG9iTWFwLnNldChpZCwgYmFzZTY0KTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgICAgIGVsc2Ugew0KICAgICAgICAgICAgICAgIGRlYnVnKCdbaGlnaGxpZ2h0LXdvcmtlcl0gbm8gb2Zmc2NyZWVuY2FudmFzIHN1cHBvcnQnLCB7DQogICAgICAgICAgICAgICAgICAgIGlkOiBlLmRhdGEuaWQsDQogICAgICAgICAgICAgICAgfSk7DQogICAgICAgICAgICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkOiBlLmRhdGEuaWQsIHN0YXR1czogJ3Vuc3VwcG9ydGVkJyB9KTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgfSk7DQogICAgfTsKCn0pKCk7Cgo=", null, false);
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/observers/canvas/canvas-manager.js
 var CanvasManager = class {
-  reset() {
-    this.pendingCanvasMutations.clear();
-    this.resetObservers && this.resetObservers();
-  }
-  freeze() {
-    this.frozen = true;
-  }
-  unfreeze() {
-    this.frozen = false;
-  }
-  lock() {
-    this.locked = true;
-  }
-  unlock() {
-    this.locked = false;
-  }
   constructor(options) {
-    this.pendingCanvasMutations = /* @__PURE__ */ new Map();
-    this.rafStamps = { latestId: 0, invokeId: null };
-    this.snapshotInProgressMap = /* @__PURE__ */ new Map();
-    this.lastSnapshotTime = /* @__PURE__ */ new Map();
-    this.frozen = false;
-    this.locked = false;
-    this.processMutation = (target, mutation) => {
+    __publicField(this, "pendingCanvasMutations", /* @__PURE__ */ new Map());
+    __publicField(this, "rafStamps", { latestId: 0, invokeId: null });
+    __publicField(this, "mirror");
+    __publicField(this, "logger");
+    __publicField(this, "worker");
+    __publicField(this, "snapshotInProgressMap", /* @__PURE__ */ new Map());
+    __publicField(this, "lastSnapshotTime", /* @__PURE__ */ new Map());
+    __publicField(this, "options");
+    __publicField(this, "mutationCb");
+    __publicField(this, "resetObservers");
+    __publicField(this, "frozen", false);
+    __publicField(this, "locked", false);
+    __publicField(this, "processMutation", (target, mutation) => {
       const newFrame = this.rafStamps.invokeId && this.rafStamps.latestId !== this.rafStamps.invokeId;
       if (newFrame || !this.rafStamps.invokeId)
         this.rafStamps.invokeId = this.rafStamps.latestId;
@@ -4452,12 +6684,21 @@ var CanvasManager = class {
         this.pendingCanvasMutations.set(target, []);
       }
       this.pendingCanvasMutations.get(target).push(mutation);
-    };
-    const { sampling, win, blockClass, blockSelector, recordCanvas, recordVideos, initialSnapshotDelay, dataURLOptions } = options;
+    });
+    const {
+      sampling,
+      win,
+      blockClass,
+      blockSelector,
+      recordCanvas,
+      recordVideos,
+      initialSnapshotDelay,
+      dataURLOptions
+    } = options;
     this.mutationCb = options.mutationCb;
     this.mirror = options.mirror;
     this.logger = options.logger;
-    this.worker = new WorkerFactory();
+    this.worker = new WorkerWrapper();
     this.worker.onmessage = (e2) => {
       const { id } = e2.data;
       this.snapshotInProgressMap.set(id, false);
@@ -4475,10 +6716,12 @@ var CanvasManager = class {
         commands: [
           {
             property: "clearRect",
+            // wipe canvas
             args: [dx, dy, dw, dh]
           },
           {
             property: "drawImage",
+            // draws (semi-transparent) image
             args: [
               {
                 rr_type: "ImageBitmap",
@@ -4505,11 +6748,36 @@ var CanvasManager = class {
       this.initCanvasMutationObserver(win, blockClass, blockSelector);
     } else if (recordCanvas && typeof sampling === "number") {
       this.debug(null, "initializing canvas fps observer", { sampling });
-      this.initCanvasFPSObserver(recordVideos, sampling, win, blockClass, blockSelector, {
-        initialSnapshotDelay,
-        dataURLOptions
-      }, options.resizeFactor, options.maxSnapshotDimension);
+      this.initCanvasFPSObserver(
+        recordVideos,
+        sampling,
+        win,
+        blockClass,
+        blockSelector,
+        {
+          initialSnapshotDelay,
+          dataURLOptions
+        },
+        options.resizeFactor,
+        options.maxSnapshotDimension
+      );
     }
+  }
+  reset() {
+    this.pendingCanvasMutations.clear();
+    this.resetObservers && this.resetObservers();
+  }
+  freeze() {
+    this.frozen = true;
+  }
+  unfreeze() {
+    this.frozen = false;
+  }
+  lock() {
+    this.locked = true;
+  }
+  unlock() {
+    this.locked = false;
   }
   debug(element, ...args) {
     if (!this.logger)
@@ -4524,14 +6792,37 @@ var CanvasManager = class {
     }
     this.logger.debug(prefix, element, ...args);
   }
-  snapshot(canvas) {
+  async snapshot(canvas) {
     var _a2;
-    return __awaiter(this, void 0, void 0, function* () {
-      this.debug(canvas, "starting snapshotting");
-      const id = this.mirror.getId(canvas);
-      if (this.snapshotInProgressMap.get(id)) {
-        this.debug(canvas, "snapshotting already in progress for", id);
-        return;
+    const id = this.mirror.getId(canvas);
+    if (this.snapshotInProgressMap.get(id)) {
+      this.debug(canvas, "snapshotting already in progress for", id);
+      return;
+    }
+    const timeBetweenSnapshots = 1e3 / (typeof this.options.samplingManual === "number" ? this.options.samplingManual : 1);
+    const lastSnapshotTime = this.lastSnapshotTime.get(id);
+    if (lastSnapshotTime && (/* @__PURE__ */ new Date()).getTime() - lastSnapshotTime < timeBetweenSnapshots) {
+      return;
+    }
+    this.debug(canvas, "starting snapshotting");
+    if (canvas.width === 0 || canvas.height === 0) {
+      this.debug(canvas, "not yet ready", {
+        width: canvas.width,
+        height: canvas.height
+      });
+      return;
+    }
+    this.lastSnapshotTime.set(id, (/* @__PURE__ */ new Date()).getTime());
+    this.snapshotInProgressMap.set(id, true);
+    try {
+      if (this.options.clearWebGLBuffer !== false && ["webgl", "webgl2"].includes(canvas.__context)) {
+        const context = canvas.getContext(canvas.__context);
+        if (((_a2 = context == null ? void 0 : context.getContextAttributes()) == null ? void 0 : _a2.preserveDrawingBuffer) === false) {
+          context.clear(context.COLOR_BUFFER_BIT);
+          this.debug(canvas, "cleared webgl canvas to load it into memory", {
+            attributes: context == null ? void 0 : context.getContextAttributes()
+          });
+        }
       }
       if (canvas.width === 0 || canvas.height === 0) {
         this.debug(canvas, "not yet ready", {
@@ -4540,40 +6831,23 @@ var CanvasManager = class {
         });
         return;
       }
-      this.snapshotInProgressMap.set(id, true);
-      try {
-        if (this.options.clearWebGLBuffer !== false && ["webgl", "webgl2"].includes(canvas.__context)) {
-          const context = canvas.getContext(canvas.__context);
-          if (((_a2 = context === null || context === void 0 ? void 0 : context.getContextAttributes()) === null || _a2 === void 0 ? void 0 : _a2.preserveDrawingBuffer) === false) {
-            context.clear(context.COLOR_BUFFER_BIT);
-            this.debug(canvas, "cleared webgl canvas to load it into memory", {
-              attributes: context === null || context === void 0 ? void 0 : context.getContextAttributes()
-            });
-          }
-        }
-        if (canvas.width === 0 || canvas.height === 0) {
-          this.debug(canvas, "not yet ready", {
-            width: canvas.width,
-            height: canvas.height
-          });
-          return;
-        }
-        let scale = this.options.resizeFactor || 1;
-        if (this.options.maxSnapshotDimension) {
-          const maxDim = Math.max(canvas.width, canvas.height);
-          scale = Math.min(scale, this.options.maxSnapshotDimension / maxDim);
-        }
-        const width = canvas.width * scale;
-        const height = canvas.height * scale;
-        const bitmap = yield createImageBitmap(canvas, {
-          resizeWidth: width,
-          resizeHeight: height
-        });
-        this.debug(canvas, "created image bitmap", {
-          width: bitmap.width,
-          height: bitmap.height
-        });
-        this.worker.postMessage({
+      let scale = this.options.resizeFactor || 1;
+      if (this.options.maxSnapshotDimension) {
+        const maxDim = Math.max(canvas.width, canvas.height);
+        scale = Math.min(scale, this.options.maxSnapshotDimension / maxDim);
+      }
+      const width = canvas.width * scale;
+      const height = canvas.height * scale;
+      const bitmap = await createImageBitmap(canvas, {
+        resizeWidth: width,
+        resizeHeight: height
+      });
+      this.debug(canvas, "created image bitmap", {
+        width: bitmap.width,
+        height: bitmap.height
+      });
+      this.worker.postMessage(
+        {
           id,
           bitmap,
           width,
@@ -4584,17 +6858,23 @@ var CanvasManager = class {
           dh: canvas.height,
           dataURLOptions: this.options.dataURLOptions,
           logDebug: !!this.logger
-        }, [bitmap]);
-        this.debug(canvas, "sent message");
-      } catch (e2) {
-        this.debug(canvas, "failed to snapshot", e2);
-      } finally {
-        this.snapshotInProgressMap.set(id, false);
-      }
-    });
+        },
+        [bitmap]
+      );
+      this.debug(canvas, "sent message");
+    } catch (e2) {
+      this.debug(canvas, "failed to snapshot", e2);
+    } finally {
+      this.snapshotInProgressMap.set(id, false);
+    }
   }
   initCanvasFPSObserver(recordVideos, fps, win, blockClass, blockSelector, options, resizeFactor, maxSnapshotDimension) {
-    const canvasContextReset = initCanvasContextObserver(win, blockClass, blockSelector, true);
+    const canvasContextReset = initCanvasContextObserver(
+      win,
+      blockClass,
+      blockSelector,
+      true
+    );
     const timeBetweenSnapshots = 1e3 / fps;
     let lastSnapshotTime = 0;
     let rafId;
@@ -4630,7 +6910,7 @@ var CanvasManager = class {
       }
       return matchedVideos;
     };
-    const takeSnapshots = (timestamp) => __awaiter(this, void 0, void 0, function* () {
+    const takeSnapshots = async (timestamp) => {
       if (lastSnapshotTime && timestamp - lastSnapshotTime < timeBetweenSnapshots) {
         rafId = requestAnimationFrame(takeSnapshots);
         return;
@@ -4648,73 +6928,84 @@ var CanvasManager = class {
         return hadLoadingTime;
       };
       const promises = [];
-      promises.push(...getCanvas(timestamp).filter(filterElementStartTime).map((canvas) => this.snapshot(canvas)));
-      promises.push(...getVideos(timestamp).filter(filterElementStartTime).map((video) => __awaiter(this, void 0, void 0, function* () {
-        this.debug(video, "starting video snapshotting");
-        const id = this.mirror.getId(video);
-        if (this.snapshotInProgressMap.get(id)) {
-          this.debug(video, "video snapshotting already in progress for", id);
-          return;
-        }
-        this.snapshotInProgressMap.set(id, true);
-        try {
-          const { width: boxWidth, height: boxHeight } = video.getBoundingClientRect();
-          const { actualWidth, actualHeight } = {
-            actualWidth: video.videoWidth,
-            actualHeight: video.videoHeight
-          };
-          const maxDim = Math.max(actualWidth, actualHeight);
-          let scale = resizeFactor || 1;
-          if (maxSnapshotDimension) {
-            scale = Math.min(scale, maxSnapshotDimension / maxDim);
+      promises.push(
+        ...getCanvas(timestamp).filter(filterElementStartTime).map((canvas) => this.snapshot(canvas))
+      );
+      promises.push(
+        ...getVideos(timestamp).filter(filterElementStartTime).map(async (video) => {
+          this.debug(video, "starting video snapshotting");
+          const id = this.mirror.getId(video);
+          if (this.snapshotInProgressMap.get(id)) {
+            this.debug(
+              video,
+              "video snapshotting already in progress for",
+              id
+            );
+            return;
           }
-          const width = actualWidth * scale;
-          const height = actualHeight * scale;
-          const bitmap = yield createImageBitmap(video, {
-            resizeWidth: width,
-            resizeHeight: height
-          });
-          const outputScale = Math.max(boxWidth, boxHeight) / maxDim;
-          const outputWidth = actualWidth * outputScale;
-          const outputHeight = actualHeight * outputScale;
-          const offsetX = (boxWidth - outputWidth) / 2;
-          const offsetY = (boxHeight - outputHeight) / 2;
-          this.debug(video, "created image bitmap", {
-            actualWidth,
-            actualHeight,
-            boxWidth,
-            boxHeight,
-            outputWidth,
-            outputHeight,
-            resizeWidth: width,
-            resizeHeight: height,
-            scale,
-            outputScale,
-            offsetX,
-            offsetY
-          });
-          this.worker.postMessage({
-            id,
-            bitmap,
-            width,
-            height,
-            dx: offsetX,
-            dy: offsetY,
-            dw: outputWidth,
-            dh: outputHeight,
-            dataURLOptions: options.dataURLOptions,
-            logDebug: !!this.logger
-          }, [bitmap]);
-          this.debug(video, "send message");
-        } catch (e2) {
-          this.debug(video, "failed to snapshot", e2);
-        } finally {
-          this.snapshotInProgressMap.set(id, false);
-        }
-      })));
-      yield Promise.all(promises).catch(console.error);
+          this.snapshotInProgressMap.set(id, true);
+          try {
+            const { width: boxWidth, height: boxHeight } = video.getBoundingClientRect();
+            const { actualWidth, actualHeight } = {
+              actualWidth: video.videoWidth,
+              actualHeight: video.videoHeight
+            };
+            const maxDim = Math.max(actualWidth, actualHeight);
+            let scale = resizeFactor || 1;
+            if (maxSnapshotDimension) {
+              scale = Math.min(scale, maxSnapshotDimension / maxDim);
+            }
+            const width = actualWidth * scale;
+            const height = actualHeight * scale;
+            const bitmap = await createImageBitmap(video, {
+              resizeWidth: width,
+              resizeHeight: height
+            });
+            const outputScale = Math.max(boxWidth, boxHeight) / maxDim;
+            const outputWidth = actualWidth * outputScale;
+            const outputHeight = actualHeight * outputScale;
+            const offsetX = (boxWidth - outputWidth) / 2;
+            const offsetY = (boxHeight - outputHeight) / 2;
+            this.debug(video, "created image bitmap", {
+              actualWidth,
+              actualHeight,
+              boxWidth,
+              boxHeight,
+              outputWidth,
+              outputHeight,
+              resizeWidth: width,
+              resizeHeight: height,
+              scale,
+              outputScale,
+              offsetX,
+              offsetY
+            });
+            this.worker.postMessage(
+              {
+                id,
+                bitmap,
+                width,
+                height,
+                dx: offsetX,
+                dy: offsetY,
+                dw: outputWidth,
+                dh: outputHeight,
+                dataURLOptions: options.dataURLOptions,
+                logDebug: !!this.logger
+              },
+              [bitmap]
+            );
+            this.debug(video, "send message");
+          } catch (e2) {
+            this.debug(video, "failed to snapshot", e2);
+          } finally {
+            this.snapshotInProgressMap.set(id, false);
+          }
+        })
+      );
+      await Promise.all(promises).catch(console.error);
       rafId = requestAnimationFrame(takeSnapshots);
-    });
+    };
     rafId = requestAnimationFrame(takeSnapshots);
     this.resetObservers = () => {
       canvasContextReset();
@@ -4726,9 +7017,24 @@ var CanvasManager = class {
   initCanvasMutationObserver(win, blockClass, blockSelector) {
     this.startRAFTimestamping();
     this.startPendingCanvasMutationFlusher();
-    const canvasContextReset = initCanvasContextObserver(win, blockClass, blockSelector, false);
-    const canvas2DReset = initCanvas2DMutationObserver(this.processMutation.bind(this), win, blockClass, blockSelector);
-    const canvasWebGL1and2Reset = initCanvasWebGLMutationObserver(this.processMutation.bind(this), win, blockClass, blockSelector, this.mirror);
+    const canvasContextReset = initCanvasContextObserver(
+      win,
+      blockClass,
+      blockSelector,
+      false
+    );
+    const canvas2DReset = initCanvas2DMutationObserver(
+      this.processMutation.bind(this),
+      win,
+      blockClass,
+      blockSelector
+    );
+    const canvasWebGL1and2Reset = initCanvasWebGLMutationObserver(
+      this.processMutation.bind(this),
+      win,
+      blockClass,
+      blockSelector
+    );
     this.resetObservers = () => {
       canvasContextReset();
       canvas2DReset();
@@ -4746,10 +7052,12 @@ var CanvasManager = class {
     requestAnimationFrame(setLatestRAFTimestamp);
   }
   flushPendingCanvasMutations() {
-    this.pendingCanvasMutations.forEach((values, canvas) => {
-      const id = this.mirror.getId(canvas);
-      this.flushPendingCanvasMutationFor(canvas, id);
-    });
+    this.pendingCanvasMutations.forEach(
+      (_values, canvas) => {
+        const id = this.mirror.getId(canvas);
+        this.flushPendingCanvasMutationFor(canvas, id);
+      }
+    );
     requestAnimationFrame(() => this.flushPendingCanvasMutations());
   }
   flushPendingCanvasMutationFor(canvas, id) {
@@ -4760,7 +7068,7 @@ var CanvasManager = class {
     if (!valuesWithType || id === -1)
       return;
     const values = valuesWithType.map((value) => {
-      const rest = __rest(value, ["type"]);
+      const { type: type2, ...rest } = value;
       return rest;
     });
     const { type } = valuesWithType[0];
@@ -4768,12 +7076,12 @@ var CanvasManager = class {
     this.pendingCanvasMutations.delete(canvas);
   }
 };
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/stylesheet-manager.js
 var StylesheetManager = class {
   constructor(options) {
-    this.trackedLinkElements = /* @__PURE__ */ new WeakSet();
-    this.styleMirror = new StyleSheetMirror();
+    __publicField(this, "trackedLinkElements", /* @__PURE__ */ new WeakSet());
+    __publicField(this, "mutationCb");
+    __publicField(this, "adoptedStyleSheetCb");
+    __publicField(this, "styleMirror", new StyleSheetMirror());
     this.mutationCb = options.mutationCb;
     this.adoptedStyleSheetCb = options.adoptedStyleSheetCb;
   }
@@ -4829,52 +7137,87 @@ var StylesheetManager = class {
     this.styleMirror.reset();
     this.trackedLinkElements = /* @__PURE__ */ new WeakSet();
   }
-  trackStylesheetInLinkElement(linkEl) {
+  // TODO: take snapshot on stylesheet reload by applying event listener
+  trackStylesheetInLinkElement(_linkEl) {
   }
 };
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/processed-node-manager.js
 var ProcessedNodeManager = class {
   constructor() {
-    this.nodeMap = /* @__PURE__ */ new WeakMap();
-    this.loop = true;
-    this.periodicallyClear();
-  }
-  periodicallyClear() {
-    requestAnimationFrame(() => {
-      this.clear();
-      if (this.loop)
-        this.periodicallyClear();
-    });
+    __publicField(this, "nodeMap", /* @__PURE__ */ new WeakMap());
+    __publicField(this, "active", false);
   }
   inOtherBuffer(node, thisBuffer) {
     const buffers = this.nodeMap.get(node);
     return buffers && Array.from(buffers).some((buffer) => buffer !== thisBuffer);
   }
   add(node, buffer) {
+    if (!this.active) {
+      this.active = true;
+      requestAnimationFrame(() => {
+        this.nodeMap = /* @__PURE__ */ new WeakMap();
+        this.active = false;
+      });
+    }
     this.nodeMap.set(node, (this.nodeMap.get(node) || /* @__PURE__ */ new Set()).add(buffer));
   }
-  clear() {
-    this.nodeMap = /* @__PURE__ */ new WeakMap();
-  }
   destroy() {
-    this.loop = false;
   }
 };
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/index.js
-function wrapEvent(e2) {
-  return Object.assign(Object.assign({}, e2), { timestamp: nowTimestamp() });
-}
 var wrappedEmit;
 var takeFullSnapshot;
 var canvasManager;
 var recording = false;
-var mirror = createMirror();
+try {
+  if (Array.from([1], (x) => x * 2)[0] !== 2) {
+    const cleanFrame = document.createElement("iframe");
+    document.body.appendChild(cleanFrame);
+    Array.from = ((_a = cleanFrame.contentWindow) == null ? void 0 : _a.Array.from) || Array.from;
+    document.body.removeChild(cleanFrame);
+  }
+} catch (err) {
+  console.debug("Unable to override Array.from", err);
+}
+var mirror = createMirror$2();
 function record(options = {}) {
-  var _a2, _b2, _c, _d, _e, _f, _g, _h;
-  const { emit, checkoutEveryNms, checkoutEveryNth, blockClass = "highlight-block", blockSelector = null, ignoreClass = "highlight-ignore", ignoreSelector = null, maskTextClass = "highlight-mask", maskTextSelector = null, inlineStylesheet = true, maskAllInputs, maskInputOptions: _maskInputOptions, slimDOMOptions: _slimDOMOptions, maskInputFn, maskTextFn = obfuscateText, hooks, packFn, sampling = {}, mousemoveWait, recordDOM = true, recordCanvas = false, recordCrossOriginIframes = false, recordAfter = options.recordAfter === "DOMContentLoaded" ? options.recordAfter : "load", userTriggeredOnInput = false, collectFonts = false, inlineImages = false, plugins, keepIframeSrcFn = () => false, privacySetting = "default", ignoreCSSAttributes = /* @__PURE__ */ new Set([]), errorHandler: errorHandler2, logger } = options;
-  const dataURLOptions = Object.assign(Object.assign({}, options.dataURLOptions), (_b2 = (_a2 = options.sampling) === null || _a2 === void 0 ? void 0 : _a2.canvas) === null || _b2 === void 0 ? void 0 : _b2.dataURLOptions);
+  var _a2, _b, _c, _d, _e, _f, _g, _h;
+  const {
+    emit,
+    checkoutEveryNms,
+    checkoutEveryNth,
+    blockClass = "highlight-block",
+    blockSelector = null,
+    ignoreClass = "highlight-ignore",
+    ignoreSelector = null,
+    maskTextClass = "highlight-mask",
+    maskTextSelector = null,
+    inlineStylesheet = true,
+    maskAllInputs,
+    maskInputOptions: _maskInputOptions,
+    slimDOMOptions: _slimDOMOptions,
+    maskInputFn,
+    maskTextFn = obfuscateText,
+    hooks,
+    packFn,
+    sampling = {},
+    mousemoveWait,
+    recordDOM = true,
+    recordCanvas = false,
+    recordCrossOriginIframes = false,
+    recordAfter = options.recordAfter === "DOMContentLoaded" ? options.recordAfter : "load",
+    userTriggeredOnInput = false,
+    collectFonts = false,
+    inlineImages = false,
+    plugins,
+    keepIframeSrcFn = () => false,
+    privacySetting = "default",
+    ignoreCSSAttributes = /* @__PURE__ */ new Set([]),
+    errorHandler: errorHandler2,
+    logger
+  } = options;
+  const dataURLOptions = {
+    ...options.dataURLOptions,
+    ...(_b = (_a2 = options.sampling) == null ? void 0 : _a2.canvas) == null ? void 0 : _b.dataURLOptions
+  };
   registerErrorHandler(errorHandler2);
   const inEmittingFrame = recordCrossOriginIframes ? window.parent === window : true;
   let passEmitsToParent = false;
@@ -4889,6 +7232,10 @@ function record(options = {}) {
   }
   if (inEmittingFrame && !emit) {
     throw new Error("emit function is required");
+  }
+  if (!inEmittingFrame && !passEmitsToParent) {
+    return () => {
+    };
   }
   if (mousemoveWait !== void 0 && sampling.mousemove === void 0) {
     sampling.mousemove = mousemoveWait;
@@ -4921,10 +7268,13 @@ function record(options = {}) {
     headMetaRobots: true,
     headMetaHttpEquiv: true,
     headMetaVerification: true,
+    // the following are off for slimDOMOptions === true,
+    // as they destroy some (hidden) info:
     headMetaAuthorship: _slimDOMOptions === "all",
-    headMetaDescKeywords: _slimDOMOptions === "all"
+    headMetaDescKeywords: _slimDOMOptions === "all",
+    headTitleMutations: _slimDOMOptions === "all"
   } : _slimDOMOptions ? _slimDOMOptions : {};
-  polyfill();
+  polyfill$1();
   let lastFullSnapshotEvent;
   let incrementalSnapshotCount = 0;
   const eventProcessor = (e2) => {
@@ -4933,18 +7283,21 @@ function record(options = {}) {
         e2 = plugin.eventProcessor(e2);
       }
     }
-    if (packFn && !passEmitsToParent) {
+    if (packFn && // Disable packing events which will be emitted to parent frames.
+    !passEmitsToParent) {
       e2 = packFn(e2);
     }
     return e2;
   };
-  wrappedEmit = (e2, isCheckout) => {
+  wrappedEmit = (r2, isCheckout) => {
     var _a3;
-    if (((_a3 = mutationBuffers[0]) === null || _a3 === void 0 ? void 0 : _a3.isFrozen()) && e2.type !== EventType.FullSnapshot && !(e2.type === EventType.IncrementalSnapshot && e2.data.source === IncrementalSource.Mutation)) {
+    const e2 = r2;
+    e2.timestamp = nowTimestamp();
+    if (((_a3 = mutationBuffers[0]) == null ? void 0 : _a3.isFrozen()) && e2.type !== EventType.FullSnapshot && !(e2.type === EventType.IncrementalSnapshot && e2.data.source === IncrementalSource.Mutation)) {
       mutationBuffers.forEach((buf) => buf.unfreeze());
     }
     if (inEmittingFrame) {
-      emit === null || emit === void 0 ? void 0 : emit(eventProcessor(e2), isCheckout);
+      emit == null ? void 0 : emit(eventProcessor(e2), isCheckout);
     } else if (passEmitsToParent) {
       const message = {
         type: "rrweb",
@@ -4970,23 +7323,35 @@ function record(options = {}) {
     }
   };
   const wrappedMutationEmit = (m) => {
-    wrappedEmit(wrapEvent({
+    wrappedEmit({
       type: EventType.IncrementalSnapshot,
-      data: Object.assign({ source: IncrementalSource.Mutation }, m)
-    }));
+      data: {
+        source: IncrementalSource.Mutation,
+        ...m
+      }
+    });
   };
-  const wrappedScrollEmit = (p) => wrappedEmit(wrapEvent({
+  const wrappedScrollEmit = (p) => wrappedEmit({
     type: EventType.IncrementalSnapshot,
-    data: Object.assign({ source: IncrementalSource.Scroll }, p)
-  }));
-  const wrappedCanvasMutationEmit = (p) => wrappedEmit(wrapEvent({
+    data: {
+      source: IncrementalSource.Scroll,
+      ...p
+    }
+  });
+  const wrappedCanvasMutationEmit = (p) => wrappedEmit({
     type: EventType.IncrementalSnapshot,
-    data: Object.assign({ source: IncrementalSource.CanvasMutation }, p)
-  }));
-  const wrappedAdoptedStyleSheetEmit = (a2) => wrappedEmit(wrapEvent({
+    data: {
+      source: IncrementalSource.CanvasMutation,
+      ...p
+    }
+  });
+  const wrappedAdoptedStyleSheetEmit = (a2) => wrappedEmit({
     type: EventType.IncrementalSnapshot,
-    data: Object.assign({ source: IncrementalSource.AdoptedStyleSheet }, a2)
-  }));
+    data: {
+      source: IncrementalSource.AdoptedStyleSheet,
+      ...a2
+    }
+  });
   const stylesheetManager = new StylesheetManager({
     mutationCb: wrappedMutationEmit,
     adoptedStyleSheetCb: wrappedAdoptedStyleSheetEmit
@@ -5015,13 +7380,13 @@ function record(options = {}) {
     blockClass,
     blockSelector,
     mirror,
-    sampling: (_c = sampling === null || sampling === void 0 ? void 0 : sampling.canvas) === null || _c === void 0 ? void 0 : _c.fps,
-    samplingManual: (_d = sampling === null || sampling === void 0 ? void 0 : sampling.canvas) === null || _d === void 0 ? void 0 : _d.fpsManual,
-    clearWebGLBuffer: (_e = sampling === null || sampling === void 0 ? void 0 : sampling.canvas) === null || _e === void 0 ? void 0 : _e.clearWebGLBuffer,
-    initialSnapshotDelay: (_f = sampling === null || sampling === void 0 ? void 0 : sampling.canvas) === null || _f === void 0 ? void 0 : _f.initialSnapshotDelay,
+    sampling: (_c = sampling == null ? void 0 : sampling.canvas) == null ? void 0 : _c.fps,
+    samplingManual: (_d = sampling == null ? void 0 : sampling.canvas) == null ? void 0 : _d.fpsManual,
+    clearWebGLBuffer: (_e = sampling == null ? void 0 : sampling.canvas) == null ? void 0 : _e.clearWebGLBuffer,
+    initialSnapshotDelay: (_f = sampling == null ? void 0 : sampling.canvas) == null ? void 0 : _f.initialSnapshotDelay,
     dataURLOptions,
-    resizeFactor: (_g = sampling === null || sampling === void 0 ? void 0 : sampling.canvas) === null || _g === void 0 ? void 0 : _g.resizeFactor,
-    maxSnapshotDimension: (_h = sampling === null || sampling === void 0 ? void 0 : sampling.canvas) === null || _h === void 0 ? void 0 : _h.maxSnapshotDimension,
+    resizeFactor: (_g = sampling == null ? void 0 : sampling.canvas) == null ? void 0 : _g.resizeFactor,
+    maxSnapshotDimension: (_h = sampling == null ? void 0 : sampling.canvas) == null ? void 0 : _h.maxSnapshotDimension,
     logger
   });
   const shadowDomManager = new ShadowDomManager({
@@ -5054,14 +7419,17 @@ function record(options = {}) {
     if (!recordDOM) {
       return;
     }
-    wrappedEmit(wrapEvent({
-      type: EventType.Meta,
-      data: {
-        href: window.location.href,
-        width: getWindowWidth(),
-        height: getWindowHeight()
-      }
-    }), isCheckout);
+    wrappedEmit(
+      {
+        type: EventType.Meta,
+        data: {
+          href: window.location.href,
+          width: getWindowWidth(),
+          height: getWindowHeight()
+        }
+      },
+      isCheckout
+    );
     stylesheetManager.reset();
     shadowDomManager.init();
     mutationBuffers.forEach((buf) => buf.lock());
@@ -5074,6 +7442,7 @@ function record(options = {}) {
       inlineStylesheet,
       maskAllInputs: maskInputOptions,
       maskTextFn,
+      maskInputFn,
       slimDOM: slimDOMOptions,
       dataURLOptions,
       recordCanvas,
@@ -5087,7 +7456,7 @@ function record(options = {}) {
           stylesheetManager.trackLinkElement(n2);
         }
         if (hasShadowRoot(n2)) {
-          shadowDomManager.addShadowRoot(n2.shadowRoot, document);
+          shadowDomManager.addShadowRoot(shadowRoot(n2), document);
         }
       },
       onIframeLoad: (iframe, childSn) => {
@@ -5102,112 +7471,148 @@ function record(options = {}) {
     if (!node) {
       return console.warn("Failed to snapshot the document");
     }
-    wrappedEmit(wrapEvent({
-      type: EventType.FullSnapshot,
-      data: {
-        node,
-        initialOffset: getWindowScroll(window)
-      }
-    }), isCheckout);
+    wrappedEmit(
+      {
+        type: EventType.FullSnapshot,
+        data: {
+          node,
+          initialOffset: getWindowScroll(window)
+        }
+      },
+      isCheckout
+    );
     mutationBuffers.forEach((buf) => buf.unlock());
     if (document.adoptedStyleSheets && document.adoptedStyleSheets.length > 0)
-      stylesheetManager.adoptStyleSheets(document.adoptedStyleSheets, mirror.getId(document));
+      stylesheetManager.adoptStyleSheets(
+        document.adoptedStyleSheets,
+        mirror.getId(document)
+      );
   };
   try {
     const handlers = [];
     const observe = (doc) => {
       var _a3;
-      return callbackWrapper(initObservers)({
-        mutationCb: wrappedMutationEmit,
-        mousemoveCb: (positions, source) => wrappedEmit(wrapEvent({
-          type: EventType.IncrementalSnapshot,
-          data: {
-            source,
-            positions
-          }
-        })),
-        mouseInteractionCb: (d) => wrappedEmit(wrapEvent({
-          type: EventType.IncrementalSnapshot,
-          data: Object.assign({ source: IncrementalSource.MouseInteraction }, d)
-        })),
-        scrollCb: wrappedScrollEmit,
-        viewportResizeCb: (d) => wrappedEmit(wrapEvent({
-          type: EventType.IncrementalSnapshot,
-          data: Object.assign({ source: IncrementalSource.ViewportResize }, d)
-        })),
-        inputCb: (v2) => wrappedEmit(wrapEvent({
-          type: EventType.IncrementalSnapshot,
-          data: Object.assign({ source: IncrementalSource.Input }, v2)
-        })),
-        mediaInteractionCb: (p) => wrappedEmit(wrapEvent({
-          type: EventType.IncrementalSnapshot,
-          data: Object.assign({ source: IncrementalSource.MediaInteraction }, p)
-        })),
-        styleSheetRuleCb: (r2) => wrappedEmit(wrapEvent({
-          type: EventType.IncrementalSnapshot,
-          data: Object.assign({ source: IncrementalSource.StyleSheetRule }, r2)
-        })),
-        styleDeclarationCb: (r2) => wrappedEmit(wrapEvent({
-          type: EventType.IncrementalSnapshot,
-          data: Object.assign({ source: IncrementalSource.StyleDeclaration }, r2)
-        })),
-        canvasMutationCb: wrappedCanvasMutationEmit,
-        fontCb: (p) => wrappedEmit(wrapEvent({
-          type: EventType.IncrementalSnapshot,
-          data: Object.assign({ source: IncrementalSource.Font }, p)
-        })),
-        selectionCb: (p) => {
-          wrappedEmit(wrapEvent({
+      return callbackWrapper(initObservers)(
+        {
+          mutationCb: wrappedMutationEmit,
+          mousemoveCb: (positions, source) => wrappedEmit({
             type: EventType.IncrementalSnapshot,
-            data: Object.assign({ source: IncrementalSource.Selection }, p)
-          }));
-        },
-        customElementCb: (c2) => {
-          wrappedEmit(wrapEvent({
-            type: EventType.IncrementalSnapshot,
-            data: Object.assign({ source: IncrementalSource.CustomElement }, c2)
-          }));
-        },
-        blockClass,
-        ignoreClass,
-        ignoreSelector,
-        maskTextClass,
-        maskTextSelector,
-        maskInputOptions,
-        inlineStylesheet,
-        sampling,
-        recordDOM,
-        recordCanvas,
-        inlineImages,
-        userTriggeredOnInput,
-        collectFonts,
-        doc,
-        maskInputFn,
-        maskTextFn,
-        keepIframeSrcFn,
-        blockSelector,
-        slimDOMOptions,
-        dataURLOptions,
-        mirror,
-        iframeManager,
-        stylesheetManager,
-        shadowDomManager,
-        processedNodeManager,
-        canvasManager,
-        ignoreCSSAttributes,
-        privacySetting,
-        plugins: ((_a3 = plugins === null || plugins === void 0 ? void 0 : plugins.filter((p) => p.observer)) === null || _a3 === void 0 ? void 0 : _a3.map((p) => ({
-          observer: p.observer,
-          options: p.options,
-          callback: (payload) => wrappedEmit(wrapEvent({
-            type: EventType.Plugin,
             data: {
-              plugin: p.name,
-              payload
+              source,
+              positions
             }
-          }))
-        }))) || []
-      }, hooks);
+          }),
+          mouseInteractionCb: (d) => wrappedEmit({
+            type: EventType.IncrementalSnapshot,
+            data: {
+              source: IncrementalSource.MouseInteraction,
+              ...d
+            }
+          }),
+          scrollCb: wrappedScrollEmit,
+          viewportResizeCb: (d) => wrappedEmit({
+            type: EventType.IncrementalSnapshot,
+            data: {
+              source: IncrementalSource.ViewportResize,
+              ...d
+            }
+          }),
+          inputCb: (v2) => wrappedEmit({
+            type: EventType.IncrementalSnapshot,
+            data: {
+              source: IncrementalSource.Input,
+              ...v2
+            }
+          }),
+          mediaInteractionCb: (p) => wrappedEmit({
+            type: EventType.IncrementalSnapshot,
+            data: {
+              source: IncrementalSource.MediaInteraction,
+              ...p
+            }
+          }),
+          styleSheetRuleCb: (r2) => wrappedEmit({
+            type: EventType.IncrementalSnapshot,
+            data: {
+              source: IncrementalSource.StyleSheetRule,
+              ...r2
+            }
+          }),
+          styleDeclarationCb: (r2) => wrappedEmit({
+            type: EventType.IncrementalSnapshot,
+            data: {
+              source: IncrementalSource.StyleDeclaration,
+              ...r2
+            }
+          }),
+          canvasMutationCb: wrappedCanvasMutationEmit,
+          fontCb: (p) => wrappedEmit({
+            type: EventType.IncrementalSnapshot,
+            data: {
+              source: IncrementalSource.Font,
+              ...p
+            }
+          }),
+          selectionCb: (p) => {
+            wrappedEmit({
+              type: EventType.IncrementalSnapshot,
+              data: {
+                source: IncrementalSource.Selection,
+                ...p
+              }
+            });
+          },
+          customElementCb: (c2) => {
+            wrappedEmit({
+              type: EventType.IncrementalSnapshot,
+              data: {
+                source: IncrementalSource.CustomElement,
+                ...c2
+              }
+            });
+          },
+          blockClass,
+          ignoreClass,
+          ignoreSelector,
+          maskTextClass,
+          maskTextSelector,
+          maskInputOptions,
+          inlineStylesheet,
+          sampling,
+          recordDOM,
+          recordCanvas,
+          inlineImages,
+          userTriggeredOnInput,
+          collectFonts,
+          doc,
+          maskInputFn,
+          maskTextFn,
+          keepIframeSrcFn,
+          blockSelector,
+          slimDOMOptions,
+          dataURLOptions,
+          mirror,
+          iframeManager,
+          stylesheetManager,
+          shadowDomManager,
+          processedNodeManager,
+          canvasManager,
+          ignoreCSSAttributes,
+          privacySetting,
+          plugins: ((_a3 = plugins == null ? void 0 : plugins.filter((p) => p.observer)) == null ? void 0 : _a3.map((p) => ({
+            observer: p.observer,
+            options: p.options,
+            callback: (payload) => wrappedEmit({
+              type: EventType.Plugin,
+              data: {
+                plugin: p.name,
+                payload
+              }
+            })
+          }))) || []
+        },
+        hooks
+      );
     };
     iframeManager.addLoadListener((iframeEl) => {
       try {
@@ -5224,22 +7629,30 @@ function record(options = {}) {
     if (document.readyState === "interactive" || document.readyState === "complete") {
       init();
     } else {
-      handlers.push(on("DOMContentLoaded", () => {
-        wrappedEmit(wrapEvent({
-          type: EventType.DomContentLoaded,
-          data: {}
-        }));
-        if (recordAfter === "DOMContentLoaded")
-          init();
-      }));
-      handlers.push(on("load", () => {
-        wrappedEmit(wrapEvent({
-          type: EventType.Load,
-          data: {}
-        }));
-        if (recordAfter === "load")
-          init();
-      }, window));
+      handlers.push(
+        on("DOMContentLoaded", () => {
+          wrappedEmit({
+            type: EventType.DomContentLoaded,
+            data: {}
+          });
+          if (recordAfter === "DOMContentLoaded")
+            init();
+        })
+      );
+      handlers.push(
+        on(
+          "load",
+          () => {
+            wrappedEmit({
+              type: EventType.Load,
+              data: {}
+            });
+            if (recordAfter === "load")
+              init();
+          },
+          window
+        )
+      );
     }
     return () => {
       handlers.forEach((h) => h());
@@ -5255,13 +7668,13 @@ record.addCustomEvent = (tag, payload) => {
   if (!recording) {
     return;
   }
-  wrappedEmit(wrapEvent({
+  wrappedEmit({
     type: EventType.Custom,
     data: {
       tag,
       payload
     }
-  }));
+  });
 };
 record.freezePage = () => {
   mutationBuffers.forEach((buf) => buf.freeze());
@@ -5272,2649 +7685,14 @@ record.takeFullSnapshot = (isCheckout) => {
   }
   takeFullSnapshot(isCheckout);
 };
-record.snapshotCanvas = (element) => __awaiter(void 0, void 0, void 0, function* () {
+record.snapshotCanvas = async (element) => {
   if (!canvasManager) {
     throw new Error("canvas manager is not initialized");
   }
-  yield canvasManager.snapshot(element);
-});
+  await canvasManager.snapshot(element);
+};
 record.mirror = mirror;
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrdom/es/rrdom.js
-var NodeType$1;
-(function(NodeType3) {
-  NodeType3[NodeType3["Document"] = 0] = "Document";
-  NodeType3[NodeType3["DocumentType"] = 1] = "DocumentType";
-  NodeType3[NodeType3["Element"] = 2] = "Element";
-  NodeType3[NodeType3["Text"] = 3] = "Text";
-  NodeType3[NodeType3["CDATA"] = 4] = "CDATA";
-  NodeType3[NodeType3["Comment"] = 5] = "Comment";
-})(NodeType$1 || (NodeType$1 = {}));
-var Mirror$1 = class {
-  constructor() {
-    this.idNodeMap = /* @__PURE__ */ new Map();
-    this.nodeMetaMap = /* @__PURE__ */ new WeakMap();
-  }
-  getId(n2) {
-    var _a2;
-    if (!n2)
-      return -1;
-    const id = (_a2 = this.getMeta(n2)) === null || _a2 === void 0 ? void 0 : _a2.id;
-    return id !== null && id !== void 0 ? id : -1;
-  }
-  getNode(id) {
-    return this.idNodeMap.get(id) || null;
-  }
-  getIds() {
-    return Array.from(this.idNodeMap.keys());
-  }
-  getMeta(n2) {
-    return this.nodeMetaMap.get(n2) || null;
-  }
-  removeNodeFromMap(n2) {
-    const id = this.getId(n2);
-    this.idNodeMap.delete(id);
-    if (n2.childNodes) {
-      n2.childNodes.forEach((childNode) => this.removeNodeFromMap(childNode));
-    }
-  }
-  has(id) {
-    return this.idNodeMap.has(id);
-  }
-  hasNode(node) {
-    return this.nodeMetaMap.has(node);
-  }
-  add(n2, meta) {
-    const id = meta.id;
-    this.idNodeMap.set(id, n2);
-    this.nodeMetaMap.set(n2, meta);
-  }
-  replace(id, n2) {
-    const oldNode = this.getNode(id);
-    if (oldNode) {
-      const meta = this.nodeMetaMap.get(oldNode);
-      if (meta)
-        this.nodeMetaMap.set(n2, meta);
-    }
-    this.idNodeMap.set(id, n2);
-  }
-  reset() {
-    this.idNodeMap = /* @__PURE__ */ new Map();
-    this.nodeMetaMap = /* @__PURE__ */ new WeakMap();
-  }
-};
-function createMirror$1() {
-  return new Mirror$1();
-}
-function parseCSSText(cssText) {
-  const res = {};
-  const listDelimiter = /;(?![^(]*\))/g;
-  const propertyDelimiter = /:(.+)/;
-  const comment = /\/\*.*?\*\//g;
-  cssText.replace(comment, "").split(listDelimiter).forEach(function(item) {
-    if (item) {
-      const tmp = item.split(propertyDelimiter);
-      tmp.length > 1 && (res[camelize(tmp[0].trim())] = tmp[1].trim());
-    }
-  });
-  return res;
-}
-function toCSSText(style) {
-  const properties = [];
-  for (const name in style) {
-    const value = style[name];
-    if (typeof value !== "string")
-      continue;
-    const normalizedName = hyphenate(name);
-    properties.push(`${normalizedName}: ${value};`);
-  }
-  return properties.join(" ");
-}
-var camelizeRE = /-([a-z])/g;
-var CUSTOM_PROPERTY_REGEX = /^--[a-zA-Z0-9-]+$/;
-var camelize = (str) => {
-  if (CUSTOM_PROPERTY_REGEX.test(str))
-    return str;
-  return str.replace(camelizeRE, (_, c2) => c2 ? c2.toUpperCase() : "");
-};
-var hyphenateRE = /\B([A-Z])/g;
-var hyphenate = (str) => {
-  return str.replace(hyphenateRE, "-$1").toLowerCase();
-};
-var BaseRRNode = class _BaseRRNode {
-  constructor(..._args) {
-    this.parentElement = null;
-    this.parentNode = null;
-    this.firstChild = null;
-    this.lastChild = null;
-    this.previousSibling = null;
-    this.nextSibling = null;
-    this.ELEMENT_NODE = NodeType2.ELEMENT_NODE;
-    this.TEXT_NODE = NodeType2.TEXT_NODE;
-  }
-  get childNodes() {
-    const childNodes = [];
-    let childIterator = this.firstChild;
-    while (childIterator) {
-      childNodes.push(childIterator);
-      childIterator = childIterator.nextSibling;
-    }
-    return childNodes;
-  }
-  contains(node) {
-    if (!(node instanceof _BaseRRNode))
-      return false;
-    else if (node.ownerDocument !== this.ownerDocument)
-      return false;
-    else if (node === this)
-      return true;
-    while (node.parentNode) {
-      if (node.parentNode === this)
-        return true;
-      node = node.parentNode;
-    }
-    return false;
-  }
-  appendChild(_newChild) {
-    throw new Error(`RRDomException: Failed to execute 'appendChild' on 'RRNode': This RRNode type does not support this method.`);
-  }
-  insertBefore(_newChild, _refChild) {
-    throw new Error(`RRDomException: Failed to execute 'insertBefore' on 'RRNode': This RRNode type does not support this method.`);
-  }
-  removeChild(_node) {
-    throw new Error(`RRDomException: Failed to execute 'removeChild' on 'RRNode': This RRNode type does not support this method.`);
-  }
-  toString() {
-    return "RRNode";
-  }
-};
-function BaseRRDocumentImpl(RRNodeClass) {
-  return class BaseRRDocument extends RRNodeClass {
-    constructor(...args) {
-      super(args);
-      this.nodeType = NodeType2.DOCUMENT_NODE;
-      this.nodeName = "#document";
-      this.compatMode = "CSS1Compat";
-      this.RRNodeType = NodeType$1.Document;
-      this.textContent = null;
-      this.ownerDocument = this;
-    }
-    get documentElement() {
-      return this.childNodes.find((node) => node.RRNodeType === NodeType$1.Element && node.tagName === "HTML") || null;
-    }
-    get body() {
-      var _a2;
-      return ((_a2 = this.documentElement) === null || _a2 === void 0 ? void 0 : _a2.childNodes.find((node) => node.RRNodeType === NodeType$1.Element && node.tagName === "BODY")) || null;
-    }
-    get head() {
-      var _a2;
-      return ((_a2 = this.documentElement) === null || _a2 === void 0 ? void 0 : _a2.childNodes.find((node) => node.RRNodeType === NodeType$1.Element && node.tagName === "HEAD")) || null;
-    }
-    get implementation() {
-      return this;
-    }
-    get firstElementChild() {
-      return this.documentElement;
-    }
-    appendChild(newChild) {
-      const nodeType = newChild.RRNodeType;
-      if (nodeType === NodeType$1.Element || nodeType === NodeType$1.DocumentType) {
-        if (this.childNodes.some((s2) => s2.RRNodeType === nodeType)) {
-          throw new Error(`RRDomException: Failed to execute 'appendChild' on 'RRNode': Only one ${nodeType === NodeType$1.Element ? "RRElement" : "RRDoctype"} on RRDocument allowed.`);
-        }
-      }
-      const child = appendChild(this, newChild);
-      child.parentElement = null;
-      return child;
-    }
-    insertBefore(newChild, refChild) {
-      const nodeType = newChild.RRNodeType;
-      if (nodeType === NodeType$1.Element || nodeType === NodeType$1.DocumentType) {
-        if (this.childNodes.some((s2) => s2.RRNodeType === nodeType)) {
-          throw new Error(`RRDomException: Failed to execute 'insertBefore' on 'RRNode': Only one ${nodeType === NodeType$1.Element ? "RRElement" : "RRDoctype"} on RRDocument allowed.`);
-        }
-      }
-      const child = insertBefore(this, newChild, refChild);
-      child.parentElement = null;
-      return child;
-    }
-    removeChild(node) {
-      return removeChild(this, node);
-    }
-    open() {
-      this.firstChild = null;
-      this.lastChild = null;
-    }
-    close() {
-    }
-    write(content) {
-      let publicId;
-      if (content === '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "">')
-        publicId = "-//W3C//DTD XHTML 1.0 Transitional//EN";
-      else if (content === '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "">')
-        publicId = "-//W3C//DTD HTML 4.0 Transitional//EN";
-      if (publicId) {
-        const doctype = this.createDocumentType("html", publicId, "");
-        this.open();
-        this.appendChild(doctype);
-      }
-    }
-    createDocument(_namespace, _qualifiedName, _doctype) {
-      return new BaseRRDocument();
-    }
-    createDocumentType(qualifiedName, publicId, systemId) {
-      const doctype = new (BaseRRDocumentTypeImpl(BaseRRNode))(qualifiedName, publicId, systemId);
-      doctype.ownerDocument = this;
-      return doctype;
-    }
-    createElement(tagName) {
-      const element = new (BaseRRElementImpl(BaseRRNode))(tagName);
-      element.ownerDocument = this;
-      return element;
-    }
-    createElementNS(_namespaceURI, qualifiedName) {
-      return this.createElement(qualifiedName);
-    }
-    createTextNode(data) {
-      const text = new (BaseRRTextImpl(BaseRRNode))(data);
-      text.ownerDocument = this;
-      return text;
-    }
-    createComment(data) {
-      const comment = new (BaseRRCommentImpl(BaseRRNode))(data);
-      comment.ownerDocument = this;
-      return comment;
-    }
-    createCDATASection(data) {
-      const CDATASection = new (BaseRRCDATASectionImpl(BaseRRNode))(data);
-      CDATASection.ownerDocument = this;
-      return CDATASection;
-    }
-    toString() {
-      return "RRDocument";
-    }
-  };
-}
-function BaseRRDocumentTypeImpl(RRNodeClass) {
-  return class BaseRRDocumentType extends RRNodeClass {
-    constructor(qualifiedName, publicId, systemId) {
-      super();
-      this.nodeType = NodeType2.DOCUMENT_TYPE_NODE;
-      this.RRNodeType = NodeType$1.DocumentType;
-      this.name = qualifiedName;
-      this.publicId = publicId;
-      this.systemId = systemId;
-      this.nodeName = qualifiedName;
-      this.textContent = null;
-    }
-    toString() {
-      return "RRDocumentType";
-    }
-  };
-}
-function BaseRRElementImpl(RRNodeClass) {
-  return class BaseRRElement extends RRNodeClass {
-    constructor(tagName) {
-      super();
-      this.nodeType = NodeType2.ELEMENT_NODE;
-      this.RRNodeType = NodeType$1.Element;
-      this.attributes = {};
-      this.shadowRoot = null;
-      this.tagName = tagName.toUpperCase();
-      this.nodeName = tagName.toUpperCase();
-    }
-    get textContent() {
-      let result = "";
-      this.childNodes.forEach((node) => result += node.textContent);
-      return result;
-    }
-    set textContent(textContent) {
-      this.firstChild = null;
-      this.lastChild = null;
-      this.appendChild(this.ownerDocument.createTextNode(textContent));
-    }
-    get classList() {
-      return new ClassList(this.attributes.class, (newClassName) => {
-        this.attributes.class = newClassName;
-      });
-    }
-    get id() {
-      return this.attributes.id || "";
-    }
-    get className() {
-      return this.attributes.class || "";
-    }
-    get style() {
-      const style = this.attributes.style ? parseCSSText(this.attributes.style) : {};
-      const hyphenateRE2 = /\B([A-Z])/g;
-      style.setProperty = (name, value, priority) => {
-        if (hyphenateRE2.test(name))
-          return;
-        const normalizedName = camelize(name);
-        if (!value)
-          delete style[normalizedName];
-        else
-          style[normalizedName] = value;
-        if (priority === "important")
-          style[normalizedName] += " !important";
-        this.attributes.style = toCSSText(style);
-      };
-      style.removeProperty = (name) => {
-        if (hyphenateRE2.test(name))
-          return "";
-        const normalizedName = camelize(name);
-        const value = style[normalizedName] || "";
-        delete style[normalizedName];
-        this.attributes.style = toCSSText(style);
-        return value;
-      };
-      return style;
-    }
-    getAttribute(name) {
-      return this.attributes[name] || null;
-    }
-    setAttribute(name, attribute) {
-      this.attributes[name] = attribute;
-    }
-    setAttributeNS(_namespace, qualifiedName, value) {
-      this.setAttribute(qualifiedName, value);
-    }
-    removeAttribute(name) {
-      delete this.attributes[name];
-    }
-    appendChild(newChild) {
-      return appendChild(this, newChild);
-    }
-    insertBefore(newChild, refChild) {
-      return insertBefore(this, newChild, refChild);
-    }
-    removeChild(node) {
-      return removeChild(this, node);
-    }
-    attachShadow(_init) {
-      const shadowRoot = this.ownerDocument.createElement("SHADOWROOT");
-      this.shadowRoot = shadowRoot;
-      return shadowRoot;
-    }
-    dispatchEvent(_event) {
-      return true;
-    }
-    toString() {
-      let attributeString = "";
-      for (const attribute in this.attributes) {
-        attributeString += `${attribute}="${this.attributes[attribute]}" `;
-      }
-      return `${this.tagName} ${attributeString}`;
-    }
-  };
-}
-function BaseRRMediaElementImpl(RRElementClass) {
-  return class BaseRRMediaElement extends RRElementClass {
-    attachShadow(_init) {
-      throw new Error(`RRDomException: Failed to execute 'attachShadow' on 'RRElement': This RRElement does not support attachShadow`);
-    }
-    play() {
-      this.paused = false;
-    }
-    pause() {
-      this.paused = true;
-    }
-  };
-}
-function BaseRRTextImpl(RRNodeClass) {
-  return class BaseRRText extends RRNodeClass {
-    constructor(data) {
-      super();
-      this.nodeType = NodeType2.TEXT_NODE;
-      this.nodeName = "#text";
-      this.RRNodeType = NodeType$1.Text;
-      this.data = data;
-    }
-    get textContent() {
-      return this.data;
-    }
-    set textContent(textContent) {
-      this.data = textContent;
-    }
-    toString() {
-      return `RRText text=${JSON.stringify(this.data)}`;
-    }
-  };
-}
-function BaseRRCommentImpl(RRNodeClass) {
-  return class BaseRRComment extends RRNodeClass {
-    constructor(data) {
-      super();
-      this.nodeType = NodeType2.COMMENT_NODE;
-      this.nodeName = "#comment";
-      this.RRNodeType = NodeType$1.Comment;
-      this.data = data;
-    }
-    get textContent() {
-      return this.data;
-    }
-    set textContent(textContent) {
-      this.data = textContent;
-    }
-    toString() {
-      return `RRComment text=${JSON.stringify(this.data)}`;
-    }
-  };
-}
-function BaseRRCDATASectionImpl(RRNodeClass) {
-  return class BaseRRCDATASection extends RRNodeClass {
-    constructor(data) {
-      super();
-      this.nodeName = "#cdata-section";
-      this.nodeType = NodeType2.CDATA_SECTION_NODE;
-      this.RRNodeType = NodeType$1.CDATA;
-      this.data = data;
-    }
-    get textContent() {
-      return this.data;
-    }
-    set textContent(textContent) {
-      this.data = textContent;
-    }
-    toString() {
-      return `RRCDATASection data=${JSON.stringify(this.data)}`;
-    }
-  };
-}
-var ClassList = class {
-  constructor(classText, onChange) {
-    this.classes = [];
-    this.add = (...classNames) => {
-      for (const item of classNames) {
-        const className = String(item);
-        if (this.classes.indexOf(className) >= 0)
-          continue;
-        this.classes.push(className);
-      }
-      this.onChange && this.onChange(this.classes.join(" "));
-    };
-    this.remove = (...classNames) => {
-      this.classes = this.classes.filter((item) => classNames.indexOf(item) === -1);
-      this.onChange && this.onChange(this.classes.join(" "));
-    };
-    if (classText) {
-      const classes = classText.trim().split(/\s+/);
-      this.classes.push(...classes);
-    }
-    this.onChange = onChange;
-  }
-};
-function appendChild(parent, newChild) {
-  if (newChild.parentNode)
-    newChild.parentNode.removeChild(newChild);
-  if (parent.lastChild) {
-    parent.lastChild.nextSibling = newChild;
-    newChild.previousSibling = parent.lastChild;
-  } else {
-    parent.firstChild = newChild;
-    newChild.previousSibling = null;
-  }
-  parent.lastChild = newChild;
-  newChild.nextSibling = null;
-  newChild.parentNode = parent;
-  newChild.parentElement = parent;
-  newChild.ownerDocument = parent.ownerDocument;
-  return newChild;
-}
-function insertBefore(parent, newChild, refChild) {
-  if (!refChild)
-    return appendChild(parent, newChild);
-  if (refChild.parentNode !== parent)
-    throw new Error("Failed to execute 'insertBefore' on 'RRNode': The RRNode before which the new node is to be inserted is not a child of this RRNode.");
-  if (newChild === refChild)
-    return newChild;
-  if (newChild.parentNode)
-    newChild.parentNode.removeChild(newChild);
-  newChild.previousSibling = refChild.previousSibling;
-  refChild.previousSibling = newChild;
-  newChild.nextSibling = refChild;
-  if (newChild.previousSibling)
-    newChild.previousSibling.nextSibling = newChild;
-  else
-    parent.firstChild = newChild;
-  newChild.parentElement = parent;
-  newChild.parentNode = parent;
-  newChild.ownerDocument = parent.ownerDocument;
-  return newChild;
-}
-function removeChild(parent, child) {
-  if (child.parentNode !== parent)
-    throw new Error("Failed to execute 'removeChild' on 'RRNode': The RRNode to be removed is not a child of this RRNode.");
-  if (child.previousSibling)
-    child.previousSibling.nextSibling = child.nextSibling;
-  else
-    parent.firstChild = child.nextSibling;
-  if (child.nextSibling)
-    child.nextSibling.previousSibling = child.previousSibling;
-  else
-    parent.lastChild = child.previousSibling;
-  child.previousSibling = null;
-  child.nextSibling = null;
-  child.parentElement = null;
-  child.parentNode = null;
-  return child;
-}
-var NodeType2;
-(function(NodeType3) {
-  NodeType3[NodeType3["PLACEHOLDER"] = 0] = "PLACEHOLDER";
-  NodeType3[NodeType3["ELEMENT_NODE"] = 1] = "ELEMENT_NODE";
-  NodeType3[NodeType3["ATTRIBUTE_NODE"] = 2] = "ATTRIBUTE_NODE";
-  NodeType3[NodeType3["TEXT_NODE"] = 3] = "TEXT_NODE";
-  NodeType3[NodeType3["CDATA_SECTION_NODE"] = 4] = "CDATA_SECTION_NODE";
-  NodeType3[NodeType3["ENTITY_REFERENCE_NODE"] = 5] = "ENTITY_REFERENCE_NODE";
-  NodeType3[NodeType3["ENTITY_NODE"] = 6] = "ENTITY_NODE";
-  NodeType3[NodeType3["PROCESSING_INSTRUCTION_NODE"] = 7] = "PROCESSING_INSTRUCTION_NODE";
-  NodeType3[NodeType3["COMMENT_NODE"] = 8] = "COMMENT_NODE";
-  NodeType3[NodeType3["DOCUMENT_NODE"] = 9] = "DOCUMENT_NODE";
-  NodeType3[NodeType3["DOCUMENT_TYPE_NODE"] = 10] = "DOCUMENT_TYPE_NODE";
-  NodeType3[NodeType3["DOCUMENT_FRAGMENT_NODE"] = 11] = "DOCUMENT_FRAGMENT_NODE";
-})(NodeType2 || (NodeType2 = {}));
-var NAMESPACES = {
-  svg: "http://www.w3.org/2000/svg",
-  "xlink:href": "http://www.w3.org/1999/xlink",
-  xmlns: "http://www.w3.org/2000/xmlns/"
-};
-var SVGTagMap = {
-  altglyph: "altGlyph",
-  altglyphdef: "altGlyphDef",
-  altglyphitem: "altGlyphItem",
-  animatecolor: "animateColor",
-  animatemotion: "animateMotion",
-  animatetransform: "animateTransform",
-  clippath: "clipPath",
-  feblend: "feBlend",
-  fecolormatrix: "feColorMatrix",
-  fecomponenttransfer: "feComponentTransfer",
-  fecomposite: "feComposite",
-  feconvolvematrix: "feConvolveMatrix",
-  fediffuselighting: "feDiffuseLighting",
-  fedisplacementmap: "feDisplacementMap",
-  fedistantlight: "feDistantLight",
-  fedropshadow: "feDropShadow",
-  feflood: "feFlood",
-  fefunca: "feFuncA",
-  fefuncb: "feFuncB",
-  fefuncg: "feFuncG",
-  fefuncr: "feFuncR",
-  fegaussianblur: "feGaussianBlur",
-  feimage: "feImage",
-  femerge: "feMerge",
-  femergenode: "feMergeNode",
-  femorphology: "feMorphology",
-  feoffset: "feOffset",
-  fepointlight: "fePointLight",
-  fespecularlighting: "feSpecularLighting",
-  fespotlight: "feSpotLight",
-  fetile: "feTile",
-  feturbulence: "feTurbulence",
-  foreignobject: "foreignObject",
-  glyphref: "glyphRef",
-  lineargradient: "linearGradient",
-  radialgradient: "radialGradient"
-};
-var createdNodeSet = null;
-function diff(oldTree, newTree, replayer, rrnodeMirror = newTree.mirror || newTree.ownerDocument.mirror) {
-  oldTree = diffBeforeUpdatingChildren(oldTree, newTree, replayer, rrnodeMirror);
-  diffChildren(oldTree, newTree, replayer, rrnodeMirror);
-  diffAfterUpdatingChildren(oldTree, newTree, replayer);
-}
-function diffBeforeUpdatingChildren(oldTree, newTree, replayer, rrnodeMirror) {
-  var _a2;
-  if (replayer.afterAppend && !createdNodeSet) {
-    createdNodeSet = /* @__PURE__ */ new WeakSet();
-    setTimeout(() => {
-      createdNodeSet = null;
-    }, 0);
-  }
-  if (!sameNodeType(oldTree, newTree)) {
-    const calibratedOldTree = createOrGetNode(newTree, replayer.mirror, rrnodeMirror);
-    (_a2 = oldTree.parentNode) === null || _a2 === void 0 ? void 0 : _a2.replaceChild(calibratedOldTree, oldTree);
-    oldTree = calibratedOldTree;
-  }
-  switch (newTree.RRNodeType) {
-    case NodeType$1.Document: {
-      if (!nodeMatching(oldTree, newTree, replayer.mirror, rrnodeMirror)) {
-        const newMeta = rrnodeMirror.getMeta(newTree);
-        if (newMeta) {
-          replayer.mirror.removeNodeFromMap(oldTree);
-          oldTree.close();
-          oldTree.open();
-          replayer.mirror.add(oldTree, newMeta);
-          createdNodeSet === null || createdNodeSet === void 0 ? void 0 : createdNodeSet.add(oldTree);
-        }
-      }
-      break;
-    }
-    case NodeType$1.Element: {
-      const oldElement = oldTree;
-      const newRRElement = newTree;
-      switch (newRRElement.tagName) {
-        case "IFRAME": {
-          const oldContentDocument = oldTree.contentDocument;
-          if (!oldContentDocument)
-            break;
-          diff(oldContentDocument, newTree.contentDocument, replayer, rrnodeMirror);
-          break;
-        }
-      }
-      if (newRRElement.shadowRoot) {
-        if (!oldElement.shadowRoot)
-          oldElement.attachShadow({ mode: "open" });
-        diffChildren(oldElement.shadowRoot, newRRElement.shadowRoot, replayer, rrnodeMirror);
-      }
-      diffProps(oldElement, newRRElement, rrnodeMirror);
-      break;
-    }
-  }
-  return oldTree;
-}
-function diffAfterUpdatingChildren(oldTree, newTree, replayer) {
-  var _a2;
-  switch (newTree.RRNodeType) {
-    case NodeType$1.Document: {
-      const scrollData = newTree.scrollData;
-      scrollData && replayer.applyScroll(scrollData, true);
-      break;
-    }
-    case NodeType$1.Element: {
-      const oldElement = oldTree;
-      const newRRElement = newTree;
-      newRRElement.scrollData && replayer.applyScroll(newRRElement.scrollData, true);
-      newRRElement.inputData && replayer.applyInput(newRRElement.inputData);
-      switch (newRRElement.tagName) {
-        case "AUDIO":
-        case "VIDEO": {
-          const oldMediaElement = oldTree;
-          const newMediaRRElement = newRRElement;
-          if (newMediaRRElement.paused !== void 0)
-            newMediaRRElement.paused ? void oldMediaElement.pause() : void oldMediaElement.play();
-          if (newMediaRRElement.muted !== void 0)
-            oldMediaElement.muted = newMediaRRElement.muted;
-          if (newMediaRRElement.volume !== void 0)
-            oldMediaElement.volume = newMediaRRElement.volume;
-          if (newMediaRRElement.currentTime !== void 0)
-            oldMediaElement.currentTime = newMediaRRElement.currentTime;
-          if (newMediaRRElement.playbackRate !== void 0)
-            oldMediaElement.playbackRate = newMediaRRElement.playbackRate;
-          break;
-        }
-        case "CANVAS": {
-          const rrCanvasElement = newTree;
-          if (rrCanvasElement.rr_dataURL !== null) {
-            const image = document.createElement("img");
-            image.onload = () => {
-              const ctx = oldElement.getContext("2d");
-              if (ctx) {
-                ctx.drawImage(image, 0, 0, image.width, image.height);
-              }
-            };
-            image.src = rrCanvasElement.rr_dataURL;
-          }
-          rrCanvasElement.canvasMutations.forEach((canvasMutation3) => replayer.applyCanvas(canvasMutation3.event, canvasMutation3.mutation, oldTree));
-          break;
-        }
-        case "STYLE": {
-          const styleSheet = oldElement.sheet;
-          styleSheet && newTree.rules.forEach((data) => replayer.applyStyleSheetMutation(data, styleSheet));
-          break;
-        }
-      }
-      break;
-    }
-    case NodeType$1.Text:
-    case NodeType$1.Comment:
-    case NodeType$1.CDATA: {
-      if (oldTree.textContent !== newTree.data)
-        oldTree.textContent = newTree.data;
-      break;
-    }
-  }
-  if (createdNodeSet === null || createdNodeSet === void 0 ? void 0 : createdNodeSet.has(oldTree)) {
-    createdNodeSet.delete(oldTree);
-    (_a2 = replayer.afterAppend) === null || _a2 === void 0 ? void 0 : _a2.call(replayer, oldTree, replayer.mirror.getId(oldTree));
-  }
-}
-function diffProps(oldTree, newTree, rrnodeMirror) {
-  const oldAttributes = oldTree.attributes;
-  const newAttributes = newTree.attributes;
-  for (const name in newAttributes) {
-    const newValue = newAttributes[name];
-    const sn = rrnodeMirror.getMeta(newTree);
-    if ((sn === null || sn === void 0 ? void 0 : sn.isSVG) && NAMESPACES[name])
-      oldTree.setAttributeNS(NAMESPACES[name], name, newValue);
-    else if (newTree.tagName === "CANVAS" && name === "rr_dataURL") {
-      const image = document.createElement("img");
-      image.src = newValue;
-      image.onload = () => {
-        const ctx = oldTree.getContext("2d");
-        if (ctx) {
-          ctx.drawImage(image, 0, 0, image.width, image.height);
-        }
-      };
-    } else if (newTree.tagName === "IFRAME" && name === "srcdoc")
-      continue;
-    else
-      oldTree.setAttribute(name, newValue);
-  }
-  for (const { name } of Array.from(oldAttributes))
-    if (!(name in newAttributes))
-      oldTree.removeAttribute(name);
-  newTree.scrollLeft && (oldTree.scrollLeft = newTree.scrollLeft);
-  newTree.scrollTop && (oldTree.scrollTop = newTree.scrollTop);
-}
-function diffChildren(oldTree, newTree, replayer, rrnodeMirror) {
-  const oldChildren = Array.from(oldTree.childNodes);
-  const newChildren = newTree.childNodes;
-  if (oldChildren.length === 0 && newChildren.length === 0)
-    return;
-  let oldStartIndex = 0, oldEndIndex = oldChildren.length - 1, newStartIndex = 0, newEndIndex = newChildren.length - 1;
-  let oldStartNode = oldChildren[oldStartIndex], oldEndNode = oldChildren[oldEndIndex], newStartNode = newChildren[newStartIndex], newEndNode = newChildren[newEndIndex];
-  let oldIdToIndex = void 0, indexInOld = void 0;
-  while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {
-    if (oldStartNode === void 0) {
-      oldStartNode = oldChildren[++oldStartIndex];
-    } else if (oldEndNode === void 0) {
-      oldEndNode = oldChildren[--oldEndIndex];
-    } else if (nodeMatching(oldStartNode, newStartNode, replayer.mirror, rrnodeMirror)) {
-      oldStartNode = oldChildren[++oldStartIndex];
-      newStartNode = newChildren[++newStartIndex];
-    } else if (nodeMatching(oldEndNode, newEndNode, replayer.mirror, rrnodeMirror)) {
-      oldEndNode = oldChildren[--oldEndIndex];
-      newEndNode = newChildren[--newEndIndex];
-    } else if (nodeMatching(oldStartNode, newEndNode, replayer.mirror, rrnodeMirror)) {
-      try {
-        oldTree.insertBefore(oldStartNode, oldEndNode.nextSibling);
-      } catch (e2) {
-        console.warn(e2);
-      }
-      oldStartNode = oldChildren[++oldStartIndex];
-      newEndNode = newChildren[--newEndIndex];
-    } else if (nodeMatching(oldEndNode, newStartNode, replayer.mirror, rrnodeMirror)) {
-      try {
-        oldTree.insertBefore(oldEndNode, oldStartNode);
-      } catch (e2) {
-        console.warn(e2);
-      }
-      oldEndNode = oldChildren[--oldEndIndex];
-      newStartNode = newChildren[++newStartIndex];
-    } else {
-      if (!oldIdToIndex) {
-        oldIdToIndex = {};
-        for (let i2 = oldStartIndex; i2 <= oldEndIndex; i2++) {
-          const oldChild2 = oldChildren[i2];
-          if (oldChild2 && replayer.mirror.hasNode(oldChild2))
-            oldIdToIndex[replayer.mirror.getId(oldChild2)] = i2;
-        }
-      }
-      indexInOld = oldIdToIndex[rrnodeMirror.getId(newStartNode)];
-      const nodeToMove = oldChildren[indexInOld];
-      if (indexInOld !== void 0 && nodeToMove && nodeMatching(nodeToMove, newStartNode, replayer.mirror, rrnodeMirror)) {
-        try {
-          oldTree.insertBefore(nodeToMove, oldStartNode);
-        } catch (e2) {
-          console.warn(e2);
-        }
-        oldChildren[indexInOld] = void 0;
-      } else {
-        const newNode = createOrGetNode(newStartNode, replayer.mirror, rrnodeMirror);
-        if (oldTree.nodeName === "#document" && oldStartNode && (newNode.nodeType === newNode.DOCUMENT_TYPE_NODE && oldStartNode.nodeType === oldStartNode.DOCUMENT_TYPE_NODE || newNode.nodeType === newNode.ELEMENT_NODE && oldStartNode.nodeType === oldStartNode.ELEMENT_NODE)) {
-          oldTree.removeChild(oldStartNode);
-          replayer.mirror.removeNodeFromMap(oldStartNode);
-          oldStartNode = oldChildren[++oldStartIndex];
-        }
-        try {
-          oldTree.insertBefore(newNode, oldStartNode || null);
-        } catch (e2) {
-          console.warn(e2);
-        }
-      }
-      newStartNode = newChildren[++newStartIndex];
-    }
-  }
-  if (oldStartIndex > oldEndIndex) {
-    const referenceRRNode = newChildren[newEndIndex + 1];
-    let referenceNode = null;
-    if (referenceRRNode)
-      referenceNode = replayer.mirror.getNode(rrnodeMirror.getId(referenceRRNode));
-    for (; newStartIndex <= newEndIndex; ++newStartIndex) {
-      const newNode = createOrGetNode(newChildren[newStartIndex], replayer.mirror, rrnodeMirror);
-      try {
-        oldTree.insertBefore(newNode, referenceNode);
-      } catch (e2) {
-        console.warn(e2);
-      }
-    }
-  } else if (newStartIndex > newEndIndex) {
-    for (; oldStartIndex <= oldEndIndex; oldStartIndex++) {
-      const node = oldChildren[oldStartIndex];
-      if (!node || node.parentNode !== oldTree)
-        continue;
-      try {
-        oldTree.removeChild(node);
-        replayer.mirror.removeNodeFromMap(node);
-      } catch (e2) {
-        console.warn(e2);
-      }
-    }
-  }
-  let oldChild = oldTree.firstChild;
-  let newChild = newTree.firstChild;
-  while (oldChild !== null && newChild !== null) {
-    diff(oldChild, newChild, replayer, rrnodeMirror);
-    oldChild = oldChild.nextSibling;
-    newChild = newChild.nextSibling;
-  }
-}
-function createOrGetNode(rrNode, domMirror, rrnodeMirror) {
-  const nodeId = rrnodeMirror.getId(rrNode);
-  const sn = rrnodeMirror.getMeta(rrNode);
-  let node = null;
-  if (nodeId > -1)
-    node = domMirror.getNode(nodeId);
-  if (node !== null && sameNodeType(node, rrNode))
-    return node;
-  switch (rrNode.RRNodeType) {
-    case NodeType$1.Document:
-      node = new Document();
-      break;
-    case NodeType$1.DocumentType:
-      node = document.implementation.createDocumentType(rrNode.name, rrNode.publicId, rrNode.systemId);
-      break;
-    case NodeType$1.Element: {
-      let tagName = rrNode.tagName.toLowerCase();
-      tagName = SVGTagMap[tagName] || tagName;
-      if (sn && "isSVG" in sn && (sn === null || sn === void 0 ? void 0 : sn.isSVG)) {
-        node = document.createElementNS(NAMESPACES["svg"], tagName);
-      } else
-        node = document.createElement(rrNode.tagName);
-      break;
-    }
-    case NodeType$1.Text:
-      node = document.createTextNode(rrNode.data);
-      break;
-    case NodeType$1.Comment:
-      node = document.createComment(rrNode.data);
-      break;
-    case NodeType$1.CDATA:
-      node = document.createCDATASection(rrNode.data);
-      break;
-  }
-  if (sn)
-    domMirror.add(node, Object.assign({}, sn));
-  try {
-    createdNodeSet === null || createdNodeSet === void 0 ? void 0 : createdNodeSet.add(node);
-  } catch (e2) {
-  }
-  return node;
-}
-function sameNodeType(node1, node2) {
-  if (node1.nodeType !== node2.nodeType)
-    return false;
-  return node1.nodeType !== node1.ELEMENT_NODE || node1.tagName.toUpperCase() === node2.tagName;
-}
-function nodeMatching(node1, node2, domMirror, rrdomMirror) {
-  const node1Id = domMirror.getId(node1);
-  const node2Id = rrdomMirror.getId(node2);
-  if (node1Id === -1 || node1Id !== node2Id)
-    return false;
-  return sameNodeType(node1, node2);
-}
-var RRDocument = class _RRDocument extends BaseRRDocumentImpl(BaseRRNode) {
-  get unserializedId() {
-    return this._unserializedId--;
-  }
-  constructor(mirror2) {
-    super();
-    this.UNSERIALIZED_STARTING_ID = -2;
-    this._unserializedId = this.UNSERIALIZED_STARTING_ID;
-    this.mirror = createMirror2();
-    this.scrollData = null;
-    if (mirror2) {
-      this.mirror = mirror2;
-    }
-  }
-  createDocument(_namespace, _qualifiedName, _doctype) {
-    return new _RRDocument();
-  }
-  createDocumentType(qualifiedName, publicId, systemId) {
-    const documentTypeNode = new RRDocumentType(qualifiedName, publicId, systemId);
-    documentTypeNode.ownerDocument = this;
-    return documentTypeNode;
-  }
-  createElement(tagName) {
-    const upperTagName = tagName.toUpperCase();
-    let element;
-    switch (upperTagName) {
-      case "AUDIO":
-      case "VIDEO":
-        element = new RRMediaElement(upperTagName);
-        break;
-      case "IFRAME":
-        element = new RRIFrameElement(upperTagName, this.mirror);
-        break;
-      case "CANVAS":
-        element = new RRCanvasElement(upperTagName);
-        break;
-      case "STYLE":
-        element = new RRStyleElement(upperTagName);
-        break;
-      default:
-        element = new RRElement(upperTagName);
-        break;
-    }
-    element.ownerDocument = this;
-    return element;
-  }
-  createComment(data) {
-    const commentNode = new RRComment(data);
-    commentNode.ownerDocument = this;
-    return commentNode;
-  }
-  createCDATASection(data) {
-    const sectionNode = new RRCDATASection(data);
-    sectionNode.ownerDocument = this;
-    return sectionNode;
-  }
-  createTextNode(data) {
-    const textNode = new RRText(data);
-    textNode.ownerDocument = this;
-    return textNode;
-  }
-  destroyTree() {
-    this.firstChild = null;
-    this.lastChild = null;
-    this.mirror.reset();
-  }
-  open() {
-    super.open();
-    this._unserializedId = this.UNSERIALIZED_STARTING_ID;
-  }
-};
-var RRDocumentType = BaseRRDocumentTypeImpl(BaseRRNode);
-var RRElement = class extends BaseRRElementImpl(BaseRRNode) {
-  constructor() {
-    super(...arguments);
-    this.inputData = null;
-    this.scrollData = null;
-  }
-};
-var RRMediaElement = class extends BaseRRMediaElementImpl(RRElement) {
-};
-var RRCanvasElement = class extends RRElement {
-  constructor() {
-    super(...arguments);
-    this.rr_dataURL = null;
-    this.canvasMutations = [];
-  }
-  getContext() {
-    return null;
-  }
-};
-var RRStyleElement = class extends RRElement {
-  constructor() {
-    super(...arguments);
-    this.rules = [];
-  }
-};
-var RRIFrameElement = class extends RRElement {
-  constructor(upperTagName, mirror2) {
-    super(upperTagName);
-    this.contentDocument = new RRDocument();
-    this.contentDocument.mirror = mirror2;
-  }
-};
-var RRText = BaseRRTextImpl(BaseRRNode);
-var RRComment = BaseRRCommentImpl(BaseRRNode);
-var RRCDATASection = BaseRRCDATASectionImpl(BaseRRNode);
-function getValidTagName2(element) {
-  if (element instanceof HTMLFormElement) {
-    return "FORM";
-  }
-  return element.tagName.toUpperCase();
-}
-function buildFromNode(node, rrdom, domMirror, parentRRNode) {
-  let rrNode;
-  switch (node.nodeType) {
-    case NodeType2.DOCUMENT_NODE:
-      if (parentRRNode && parentRRNode.nodeName === "IFRAME")
-        rrNode = parentRRNode.contentDocument;
-      else {
-        rrNode = rrdom;
-        rrNode.compatMode = node.compatMode;
-      }
-      break;
-    case NodeType2.DOCUMENT_TYPE_NODE: {
-      const documentType = node;
-      rrNode = rrdom.createDocumentType(documentType.name, documentType.publicId, documentType.systemId);
-      break;
-    }
-    case NodeType2.ELEMENT_NODE: {
-      const elementNode = node;
-      const tagName = getValidTagName2(elementNode);
-      rrNode = rrdom.createElement(tagName);
-      const rrElement = rrNode;
-      for (const { name, value } of Array.from(elementNode.attributes)) {
-        rrElement.attributes[name] = value;
-      }
-      elementNode.scrollLeft && (rrElement.scrollLeft = elementNode.scrollLeft);
-      elementNode.scrollTop && (rrElement.scrollTop = elementNode.scrollTop);
-      break;
-    }
-    case NodeType2.TEXT_NODE:
-      rrNode = rrdom.createTextNode(node.textContent || "");
-      break;
-    case NodeType2.CDATA_SECTION_NODE:
-      rrNode = rrdom.createCDATASection(node.data);
-      break;
-    case NodeType2.COMMENT_NODE:
-      rrNode = rrdom.createComment(node.textContent || "");
-      break;
-    case NodeType2.DOCUMENT_FRAGMENT_NODE:
-      rrNode = parentRRNode.attachShadow({ mode: "open" });
-      break;
-    default:
-      return null;
-  }
-  let sn = domMirror.getMeta(node);
-  if (rrdom instanceof RRDocument) {
-    if (!sn) {
-      sn = getDefaultSN(rrNode, rrdom.unserializedId);
-      domMirror.add(node, sn);
-    }
-    rrdom.mirror.add(rrNode, Object.assign({}, sn));
-  }
-  return rrNode;
-}
-function buildFromDom(dom, domMirror = createMirror$1(), rrdom = new RRDocument()) {
-  function walk(node, parentRRNode) {
-    const rrNode = buildFromNode(node, rrdom, domMirror, parentRRNode);
-    if (rrNode === null)
-      return;
-    if ((parentRRNode === null || parentRRNode === void 0 ? void 0 : parentRRNode.nodeName) !== "IFRAME" && node.nodeType !== NodeType2.DOCUMENT_FRAGMENT_NODE) {
-      parentRRNode === null || parentRRNode === void 0 ? void 0 : parentRRNode.appendChild(rrNode);
-      rrNode.parentNode = parentRRNode;
-      rrNode.parentElement = parentRRNode;
-    }
-    if (node.nodeName === "IFRAME") {
-      const iframeDoc = node.contentDocument;
-      iframeDoc && walk(iframeDoc, rrNode);
-    } else if (node.nodeType === NodeType2.DOCUMENT_NODE || node.nodeType === NodeType2.ELEMENT_NODE || node.nodeType === NodeType2.DOCUMENT_FRAGMENT_NODE) {
-      if (node.nodeType === NodeType2.ELEMENT_NODE && node.shadowRoot)
-        walk(node.shadowRoot, rrNode);
-      node.childNodes.forEach((childNode) => walk(childNode, rrNode));
-    }
-  }
-  walk(dom, null);
-  return rrdom;
-}
-function createMirror2() {
-  return new Mirror2();
-}
-var Mirror2 = class {
-  constructor() {
-    this.idNodeMap = /* @__PURE__ */ new Map();
-    this.nodeMetaMap = /* @__PURE__ */ new WeakMap();
-  }
-  getId(n2) {
-    var _a2;
-    if (!n2)
-      return -1;
-    const id = (_a2 = this.getMeta(n2)) === null || _a2 === void 0 ? void 0 : _a2.id;
-    return id !== null && id !== void 0 ? id : -1;
-  }
-  getNode(id) {
-    return this.idNodeMap.get(id) || null;
-  }
-  getIds() {
-    return Array.from(this.idNodeMap.keys());
-  }
-  getMeta(n2) {
-    return this.nodeMetaMap.get(n2) || null;
-  }
-  removeNodeFromMap(n2) {
-    const id = this.getId(n2);
-    this.idNodeMap.delete(id);
-    if (n2.childNodes) {
-      n2.childNodes.forEach((childNode) => this.removeNodeFromMap(childNode));
-    }
-  }
-  has(id) {
-    return this.idNodeMap.has(id);
-  }
-  hasNode(node) {
-    return this.nodeMetaMap.has(node);
-  }
-  add(n2, meta) {
-    const id = meta.id;
-    this.idNodeMap.set(id, n2);
-    this.nodeMetaMap.set(n2, meta);
-  }
-  replace(id, n2) {
-    const oldNode = this.getNode(id);
-    if (oldNode) {
-      const meta = this.nodeMetaMap.get(oldNode);
-      if (meta)
-        this.nodeMetaMap.set(n2, meta);
-    }
-    this.idNodeMap.set(id, n2);
-  }
-  reset() {
-    this.idNodeMap = /* @__PURE__ */ new Map();
-    this.nodeMetaMap = /* @__PURE__ */ new WeakMap();
-  }
-};
-function getDefaultSN(node, id) {
-  switch (node.RRNodeType) {
-    case NodeType$1.Document:
-      return {
-        id,
-        type: node.RRNodeType,
-        childNodes: []
-      };
-    case NodeType$1.DocumentType: {
-      const doctype = node;
-      return {
-        id,
-        type: node.RRNodeType,
-        name: doctype.name,
-        publicId: doctype.publicId,
-        systemId: doctype.systemId
-      };
-    }
-    case NodeType$1.Element:
-      return {
-        id,
-        type: node.RRNodeType,
-        tagName: node.tagName.toLowerCase(),
-        attributes: {},
-        childNodes: []
-      };
-    case NodeType$1.Text:
-      return {
-        id,
-        type: node.RRNodeType,
-        textContent: node.textContent || ""
-      };
-    case NodeType$1.Comment:
-      return {
-        id,
-        type: node.RRNodeType,
-        textContent: node.textContent || ""
-      };
-    case NodeType$1.CDATA:
-      return {
-        id,
-        type: node.RRNodeType,
-        textContent: ""
-      };
-  }
-}
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/index.js
-var { addCustomEvent } = record;
-var { freezePage } = record;
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/ext/fflate/esm/browser.js
-var u8 = Uint8Array;
-var u16 = Uint16Array;
-var u32 = Uint32Array;
-var fleb = new u8([
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  1,
-  1,
-  1,
-  1,
-  2,
-  2,
-  2,
-  2,
-  3,
-  3,
-  3,
-  3,
-  4,
-  4,
-  4,
-  4,
-  5,
-  5,
-  5,
-  5,
-  0,
-  /* unused */
-  0,
-  0,
-  /* impossible */
-  0
-]);
-var fdeb = new u8([
-  0,
-  0,
-  0,
-  0,
-  1,
-  1,
-  2,
-  2,
-  3,
-  3,
-  4,
-  4,
-  5,
-  5,
-  6,
-  6,
-  7,
-  7,
-  8,
-  8,
-  9,
-  9,
-  10,
-  10,
-  11,
-  11,
-  12,
-  12,
-  13,
-  13,
-  /* unused */
-  0,
-  0
-]);
-var clim = new u8([16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]);
-var freb = function(eb, start) {
-  var b = new u16(31);
-  for (var i2 = 0; i2 < 31; ++i2) {
-    b[i2] = start += 1 << eb[i2 - 1];
-  }
-  var r2 = new u32(b[30]);
-  for (var i2 = 1; i2 < 30; ++i2) {
-    for (var j = b[i2]; j < b[i2 + 1]; ++j) {
-      r2[j] = j - b[i2] << 5 | i2;
-    }
-  }
-  return [b, r2];
-};
-var _a = freb(fleb, 2);
-var fl = _a[0];
-var revfl = _a[1];
-fl[28] = 258, revfl[258] = 28;
-var _b = freb(fdeb, 0);
-var fd = _b[0];
-var revfd = _b[1];
-var rev = new u16(32768);
-for (i2 = 0; i2 < 32768; ++i2) {
-  x = (i2 & 43690) >>> 1 | (i2 & 21845) << 1;
-  x = (x & 52428) >>> 2 | (x & 13107) << 2;
-  x = (x & 61680) >>> 4 | (x & 3855) << 4;
-  rev[i2] = ((x & 65280) >>> 8 | (x & 255) << 8) >>> 1;
-}
-var x;
-var i2;
-var hMap = function(cd, mb, r2) {
-  var s2 = cd.length;
-  var i2 = 0;
-  var l2 = new u16(mb);
-  for (; i2 < s2; ++i2)
-    ++l2[cd[i2] - 1];
-  var le = new u16(mb);
-  for (i2 = 0; i2 < mb; ++i2) {
-    le[i2] = le[i2 - 1] + l2[i2 - 1] << 1;
-  }
-  var co;
-  if (r2) {
-    co = new u16(1 << mb);
-    var rvb = 15 - mb;
-    for (i2 = 0; i2 < s2; ++i2) {
-      if (cd[i2]) {
-        var sv = i2 << 4 | cd[i2];
-        var r_1 = mb - cd[i2];
-        var v2 = le[cd[i2] - 1]++ << r_1;
-        for (var m = v2 | (1 << r_1) - 1; v2 <= m; ++v2) {
-          co[rev[v2] >>> rvb] = sv;
-        }
-      }
-    }
-  } else {
-    co = new u16(s2);
-    for (i2 = 0; i2 < s2; ++i2)
-      co[i2] = rev[le[cd[i2] - 1]++] >>> 15 - cd[i2];
-  }
-  return co;
-};
-var flt = new u8(288);
-for (i2 = 0; i2 < 144; ++i2)
-  flt[i2] = 8;
-var i2;
-for (i2 = 144; i2 < 256; ++i2)
-  flt[i2] = 9;
-var i2;
-for (i2 = 256; i2 < 280; ++i2)
-  flt[i2] = 7;
-var i2;
-for (i2 = 280; i2 < 288; ++i2)
-  flt[i2] = 8;
-var i2;
-var fdt = new u8(32);
-for (i2 = 0; i2 < 32; ++i2)
-  fdt[i2] = 5;
-var i2;
-var flm = /* @__PURE__ */ hMap(flt, 9, 0);
-var flrm = /* @__PURE__ */ hMap(flt, 9, 1);
-var fdm = /* @__PURE__ */ hMap(fdt, 5, 0);
-var fdrm = /* @__PURE__ */ hMap(fdt, 5, 1);
-var max = function(a2) {
-  var m = a2[0];
-  for (var i2 = 1; i2 < a2.length; ++i2) {
-    if (a2[i2] > m)
-      m = a2[i2];
-  }
-  return m;
-};
-var bits = function(d, p, m) {
-  var o2 = p / 8 >> 0;
-  return (d[o2] | d[o2 + 1] << 8) >>> (p & 7) & m;
-};
-var bits16 = function(d, p) {
-  var o2 = p / 8 >> 0;
-  return (d[o2] | d[o2 + 1] << 8 | d[o2 + 2] << 16) >>> (p & 7);
-};
-var shft = function(p) {
-  return (p / 8 >> 0) + (p & 7 && 1);
-};
-var slc = function(v2, s2, e2) {
-  if (s2 == null || s2 < 0)
-    s2 = 0;
-  if (e2 == null || e2 > v2.length)
-    e2 = v2.length;
-  var n2 = new (v2 instanceof u16 ? u16 : v2 instanceof u32 ? u32 : u8)(e2 - s2);
-  n2.set(v2.subarray(s2, e2));
-  return n2;
-};
-var inflt = function(dat, buf, st) {
-  var sl = dat.length;
-  var noBuf = !buf || st;
-  var noSt = !st || st.i;
-  if (!st)
-    st = {};
-  if (!buf)
-    buf = new u8(sl * 3);
-  var cbuf = function(l3) {
-    var bl = buf.length;
-    if (l3 > bl) {
-      var nbuf = new u8(Math.max(bl * 2, l3));
-      nbuf.set(buf);
-      buf = nbuf;
-    }
-  };
-  var final = st.f || 0, pos = st.p || 0, bt = st.b || 0, lm = st.l, dm = st.d, lbt = st.m, dbt = st.n;
-  var tbts = sl * 8;
-  do {
-    if (!lm) {
-      st.f = final = bits(dat, pos, 1);
-      var type = bits(dat, pos + 1, 3);
-      pos += 3;
-      if (!type) {
-        var s2 = shft(pos) + 4, l2 = dat[s2 - 4] | dat[s2 - 3] << 8, t2 = s2 + l2;
-        if (t2 > sl) {
-          if (noSt)
-            throw "unexpected EOF";
-          break;
-        }
-        if (noBuf)
-          cbuf(bt + l2);
-        buf.set(dat.subarray(s2, t2), bt);
-        st.b = bt += l2, st.p = pos = t2 * 8;
-        continue;
-      } else if (type == 1)
-        lm = flrm, dm = fdrm, lbt = 9, dbt = 5;
-      else if (type == 2) {
-        var hLit = bits(dat, pos, 31) + 257, hcLen = bits(dat, pos + 10, 15) + 4;
-        var tl = hLit + bits(dat, pos + 5, 31) + 1;
-        pos += 14;
-        var ldt = new u8(tl);
-        var clt = new u8(19);
-        for (var i2 = 0; i2 < hcLen; ++i2) {
-          clt[clim[i2]] = bits(dat, pos + i2 * 3, 7);
-        }
-        pos += hcLen * 3;
-        var clb = max(clt), clbmsk = (1 << clb) - 1;
-        if (!noSt && pos + tl * (clb + 7) > tbts)
-          break;
-        var clm = hMap(clt, clb, 1);
-        for (var i2 = 0; i2 < tl; ) {
-          var r2 = clm[bits(dat, pos, clbmsk)];
-          pos += r2 & 15;
-          var s2 = r2 >>> 4;
-          if (s2 < 16) {
-            ldt[i2++] = s2;
-          } else {
-            var c2 = 0, n2 = 0;
-            if (s2 == 16)
-              n2 = 3 + bits(dat, pos, 3), pos += 2, c2 = ldt[i2 - 1];
-            else if (s2 == 17)
-              n2 = 3 + bits(dat, pos, 7), pos += 3;
-            else if (s2 == 18)
-              n2 = 11 + bits(dat, pos, 127), pos += 7;
-            while (n2--)
-              ldt[i2++] = c2;
-          }
-        }
-        var lt = ldt.subarray(0, hLit), dt = ldt.subarray(hLit);
-        lbt = max(lt);
-        dbt = max(dt);
-        lm = hMap(lt, lbt, 1);
-        dm = hMap(dt, dbt, 1);
-      } else
-        throw "invalid block type";
-      if (pos > tbts)
-        throw "unexpected EOF";
-    }
-    if (noBuf)
-      cbuf(bt + 131072);
-    var lms = (1 << lbt) - 1, dms = (1 << dbt) - 1;
-    var mxa = lbt + dbt + 18;
-    while (noSt || pos + mxa < tbts) {
-      var c2 = lm[bits16(dat, pos) & lms], sym = c2 >>> 4;
-      pos += c2 & 15;
-      if (pos > tbts)
-        throw "unexpected EOF";
-      if (!c2)
-        throw "invalid length/literal";
-      if (sym < 256)
-        buf[bt++] = sym;
-      else if (sym == 256) {
-        lm = null;
-        break;
-      } else {
-        var add = sym - 254;
-        if (sym > 264) {
-          var i2 = sym - 257, b = fleb[i2];
-          add = bits(dat, pos, (1 << b) - 1) + fl[i2];
-          pos += b;
-        }
-        var d = dm[bits16(dat, pos) & dms], dsym = d >>> 4;
-        if (!d)
-          throw "invalid distance";
-        pos += d & 15;
-        var dt = fd[dsym];
-        if (dsym > 3) {
-          var b = fdeb[dsym];
-          dt += bits16(dat, pos) & (1 << b) - 1, pos += b;
-        }
-        if (pos > tbts)
-          throw "unexpected EOF";
-        if (noBuf)
-          cbuf(bt + 131072);
-        var end = bt + add;
-        for (; bt < end; bt += 4) {
-          buf[bt] = buf[bt - dt];
-          buf[bt + 1] = buf[bt + 1 - dt];
-          buf[bt + 2] = buf[bt + 2 - dt];
-          buf[bt + 3] = buf[bt + 3 - dt];
-        }
-        bt = end;
-      }
-    }
-    st.l = lm, st.p = pos, st.b = bt;
-    if (lm)
-      final = 1, st.m = lbt, st.d = dm, st.n = dbt;
-  } while (!final);
-  return bt == buf.length ? buf : slc(buf, 0, bt);
-};
-var wbits = function(d, p, v2) {
-  v2 <<= p & 7;
-  var o2 = p / 8 >> 0;
-  d[o2] |= v2;
-  d[o2 + 1] |= v2 >>> 8;
-};
-var wbits16 = function(d, p, v2) {
-  v2 <<= p & 7;
-  var o2 = p / 8 >> 0;
-  d[o2] |= v2;
-  d[o2 + 1] |= v2 >>> 8;
-  d[o2 + 2] |= v2 >>> 16;
-};
-var hTree = function(d, mb) {
-  var t2 = [];
-  for (var i2 = 0; i2 < d.length; ++i2) {
-    if (d[i2])
-      t2.push({ s: i2, f: d[i2] });
-  }
-  var s2 = t2.length;
-  var t22 = t2.slice();
-  if (!s2)
-    return [new u8(0), 0];
-  if (s2 == 1) {
-    var v2 = new u8(t2[0].s + 1);
-    v2[t2[0].s] = 1;
-    return [v2, 1];
-  }
-  t2.sort(function(a2, b) {
-    return a2.f - b.f;
-  });
-  t2.push({ s: -1, f: 25001 });
-  var l2 = t2[0], r2 = t2[1], i0 = 0, i1 = 1, i22 = 2;
-  t2[0] = { s: -1, f: l2.f + r2.f, l: l2, r: r2 };
-  while (i1 != s2 - 1) {
-    l2 = t2[t2[i0].f < t2[i22].f ? i0++ : i22++];
-    r2 = t2[i0 != i1 && t2[i0].f < t2[i22].f ? i0++ : i22++];
-    t2[i1++] = { s: -1, f: l2.f + r2.f, l: l2, r: r2 };
-  }
-  var maxSym = t22[0].s;
-  for (var i2 = 1; i2 < s2; ++i2) {
-    if (t22[i2].s > maxSym)
-      maxSym = t22[i2].s;
-  }
-  var tr = new u16(maxSym + 1);
-  var mbt = ln(t2[i1 - 1], tr, 0);
-  if (mbt > mb) {
-    var i2 = 0, dt = 0;
-    var lft = mbt - mb, cst = 1 << lft;
-    t22.sort(function(a2, b) {
-      return tr[b.s] - tr[a2.s] || a2.f - b.f;
-    });
-    for (; i2 < s2; ++i2) {
-      var i2_1 = t22[i2].s;
-      if (tr[i2_1] > mb) {
-        dt += cst - (1 << mbt - tr[i2_1]);
-        tr[i2_1] = mb;
-      } else
-        break;
-    }
-    dt >>>= lft;
-    while (dt > 0) {
-      var i2_2 = t22[i2].s;
-      if (tr[i2_2] < mb)
-        dt -= 1 << mb - tr[i2_2]++ - 1;
-      else
-        ++i2;
-    }
-    for (; i2 >= 0 && dt; --i2) {
-      var i2_3 = t22[i2].s;
-      if (tr[i2_3] == mb) {
-        --tr[i2_3];
-        ++dt;
-      }
-    }
-    mbt = mb;
-  }
-  return [new u8(tr), mbt];
-};
-var ln = function(n2, l2, d) {
-  return n2.s == -1 ? Math.max(ln(n2.l, l2, d + 1), ln(n2.r, l2, d + 1)) : l2[n2.s] = d;
-};
-var lc = function(c2) {
-  var s2 = c2.length;
-  while (s2 && !c2[--s2])
-    ;
-  var cl = new u16(++s2);
-  var cli = 0, cln = c2[0], cls = 1;
-  var w = function(v2) {
-    cl[cli++] = v2;
-  };
-  for (var i2 = 1; i2 <= s2; ++i2) {
-    if (c2[i2] == cln && i2 != s2)
-      ++cls;
-    else {
-      if (!cln && cls > 2) {
-        for (; cls > 138; cls -= 138)
-          w(32754);
-        if (cls > 2) {
-          w(cls > 10 ? cls - 11 << 5 | 28690 : cls - 3 << 5 | 12305);
-          cls = 0;
-        }
-      } else if (cls > 3) {
-        w(cln), --cls;
-        for (; cls > 6; cls -= 6)
-          w(8304);
-        if (cls > 2)
-          w(cls - 3 << 5 | 8208), cls = 0;
-      }
-      while (cls--)
-        w(cln);
-      cls = 1;
-      cln = c2[i2];
-    }
-  }
-  return [cl.subarray(0, cli), s2];
-};
-var clen = function(cf, cl) {
-  var l2 = 0;
-  for (var i2 = 0; i2 < cl.length; ++i2)
-    l2 += cf[i2] * cl[i2];
-  return l2;
-};
-var wfblk = function(out, pos, dat) {
-  var s2 = dat.length;
-  var o2 = shft(pos + 2);
-  out[o2] = s2 & 255;
-  out[o2 + 1] = s2 >>> 8;
-  out[o2 + 2] = out[o2] ^ 255;
-  out[o2 + 3] = out[o2 + 1] ^ 255;
-  for (var i2 = 0; i2 < s2; ++i2)
-    out[o2 + i2 + 4] = dat[i2];
-  return (o2 + 4 + s2) * 8;
-};
-var wblk = function(dat, out, final, syms, lf, df, eb, li, bs, bl, p) {
-  wbits(out, p++, final);
-  ++lf[256];
-  var _a2 = hTree(lf, 15), dlt = _a2[0], mlb = _a2[1];
-  var _b2 = hTree(df, 15), ddt = _b2[0], mdb = _b2[1];
-  var _c = lc(dlt), lclt = _c[0], nlc = _c[1];
-  var _d = lc(ddt), lcdt = _d[0], ndc = _d[1];
-  var lcfreq = new u16(19);
-  for (var i2 = 0; i2 < lclt.length; ++i2)
-    lcfreq[lclt[i2] & 31]++;
-  for (var i2 = 0; i2 < lcdt.length; ++i2)
-    lcfreq[lcdt[i2] & 31]++;
-  var _e = hTree(lcfreq, 7), lct = _e[0], mlcb = _e[1];
-  var nlcc = 19;
-  for (; nlcc > 4 && !lct[clim[nlcc - 1]]; --nlcc)
-    ;
-  var flen = bl + 5 << 3;
-  var ftlen = clen(lf, flt) + clen(df, fdt) + eb;
-  var dtlen = clen(lf, dlt) + clen(df, ddt) + eb + 14 + 3 * nlcc + clen(lcfreq, lct) + (2 * lcfreq[16] + 3 * lcfreq[17] + 7 * lcfreq[18]);
-  if (flen <= ftlen && flen <= dtlen)
-    return wfblk(out, p, dat.subarray(bs, bs + bl));
-  var lm, ll, dm, dl;
-  wbits(out, p, 1 + (dtlen < ftlen)), p += 2;
-  if (dtlen < ftlen) {
-    lm = hMap(dlt, mlb, 0), ll = dlt, dm = hMap(ddt, mdb, 0), dl = ddt;
-    var llm = hMap(lct, mlcb, 0);
-    wbits(out, p, nlc - 257);
-    wbits(out, p + 5, ndc - 1);
-    wbits(out, p + 10, nlcc - 4);
-    p += 14;
-    for (var i2 = 0; i2 < nlcc; ++i2)
-      wbits(out, p + 3 * i2, lct[clim[i2]]);
-    p += 3 * nlcc;
-    var lcts = [lclt, lcdt];
-    for (var it = 0; it < 2; ++it) {
-      var clct = lcts[it];
-      for (var i2 = 0; i2 < clct.length; ++i2) {
-        var len = clct[i2] & 31;
-        wbits(out, p, llm[len]), p += lct[len];
-        if (len > 15)
-          wbits(out, p, clct[i2] >>> 5 & 127), p += clct[i2] >>> 12;
-      }
-    }
-  } else {
-    lm = flm, ll = flt, dm = fdm, dl = fdt;
-  }
-  for (var i2 = 0; i2 < li; ++i2) {
-    if (syms[i2] > 255) {
-      var len = syms[i2] >>> 18 & 31;
-      wbits16(out, p, lm[len + 257]), p += ll[len + 257];
-      if (len > 7)
-        wbits(out, p, syms[i2] >>> 23 & 31), p += fleb[len];
-      var dst = syms[i2] & 31;
-      wbits16(out, p, dm[dst]), p += dl[dst];
-      if (dst > 3)
-        wbits16(out, p, syms[i2] >>> 5 & 8191), p += fdeb[dst];
-    } else {
-      wbits16(out, p, lm[syms[i2]]), p += ll[syms[i2]];
-    }
-  }
-  wbits16(out, p, lm[256]);
-  return p + ll[256];
-};
-var deo = /* @__PURE__ */ new u32([65540, 131080, 131088, 131104, 262176, 1048704, 1048832, 2114560, 2117632]);
-var et = /* @__PURE__ */ new u8(0);
-var dflt = function(dat, lvl, plvl, pre, post, lst) {
-  var s2 = dat.length;
-  var o2 = new u8(pre + s2 + 5 * (1 + Math.floor(s2 / 7e3)) + post);
-  var w = o2.subarray(pre, o2.length - post);
-  var pos = 0;
-  if (!lvl || s2 < 8) {
-    for (var i2 = 0; i2 <= s2; i2 += 65535) {
-      var e2 = i2 + 65535;
-      if (e2 < s2) {
-        pos = wfblk(w, pos, dat.subarray(i2, e2));
-      } else {
-        w[i2] = lst;
-        pos = wfblk(w, pos, dat.subarray(i2, s2));
-      }
-    }
-  } else {
-    var opt = deo[lvl - 1];
-    var n2 = opt >>> 13, c2 = opt & 8191;
-    var msk_1 = (1 << plvl) - 1;
-    var prev = new u16(32768), head = new u16(msk_1 + 1);
-    var bs1_1 = Math.ceil(plvl / 3), bs2_1 = 2 * bs1_1;
-    var hsh = function(i3) {
-      return (dat[i3] ^ dat[i3 + 1] << bs1_1 ^ dat[i3 + 2] << bs2_1) & msk_1;
-    };
-    var syms = new u32(25e3);
-    var lf = new u16(288), df = new u16(32);
-    var lc_1 = 0, eb = 0, i2 = 0, li = 0, wi = 0, bs = 0;
-    for (; i2 < s2; ++i2) {
-      var hv = hsh(i2);
-      var imod = i2 & 32767;
-      var pimod = head[hv];
-      prev[imod] = pimod;
-      head[hv] = imod;
-      if (wi <= i2) {
-        var rem = s2 - i2;
-        if ((lc_1 > 7e3 || li > 24576) && rem > 423) {
-          pos = wblk(dat, w, 0, syms, lf, df, eb, li, bs, i2 - bs, pos);
-          li = lc_1 = eb = 0, bs = i2;
-          for (var j = 0; j < 286; ++j)
-            lf[j] = 0;
-          for (var j = 0; j < 30; ++j)
-            df[j] = 0;
-        }
-        var l2 = 2, d = 0, ch_1 = c2, dif = imod - pimod & 32767;
-        if (rem > 2 && hv == hsh(i2 - dif)) {
-          var maxn = Math.min(n2, rem) - 1;
-          var maxd = Math.min(32767, i2);
-          var ml = Math.min(258, rem);
-          while (dif <= maxd && --ch_1 && imod != pimod) {
-            if (dat[i2 + l2] == dat[i2 + l2 - dif]) {
-              var nl = 0;
-              for (; nl < ml && dat[i2 + nl] == dat[i2 + nl - dif]; ++nl)
-                ;
-              if (nl > l2) {
-                l2 = nl, d = dif;
-                if (nl > maxn)
-                  break;
-                var mmd = Math.min(dif, nl - 2);
-                var md = 0;
-                for (var j = 0; j < mmd; ++j) {
-                  var ti = i2 - dif + j + 32768 & 32767;
-                  var pti = prev[ti];
-                  var cd = ti - pti + 32768 & 32767;
-                  if (cd > md)
-                    md = cd, pimod = ti;
-                }
-              }
-            }
-            imod = pimod, pimod = prev[imod];
-            dif += imod - pimod + 32768 & 32767;
-          }
-        }
-        if (d) {
-          syms[li++] = 268435456 | revfl[l2] << 18 | revfd[d];
-          var lin = revfl[l2] & 31, din = revfd[d] & 31;
-          eb += fleb[lin] + fdeb[din];
-          ++lf[257 + lin];
-          ++df[din];
-          wi = i2 + l2;
-          ++lc_1;
-        } else {
-          syms[li++] = dat[i2];
-          ++lf[dat[i2]];
-        }
-      }
-    }
-    pos = wblk(dat, w, lst, syms, lf, df, eb, li, bs, i2 - bs, pos);
-    if (!lst)
-      pos = wfblk(w, pos, et);
-  }
-  return slc(o2, 0, pre + shft(pos) + post);
-};
-var adler = function() {
-  var a2 = 1, b = 0;
-  return {
-    p: function(d) {
-      var n2 = a2, m = b;
-      var l2 = d.length;
-      for (var i2 = 0; i2 != l2; ) {
-        var e2 = Math.min(i2 + 5552, l2);
-        for (; i2 < e2; ++i2)
-          n2 += d[i2], m += n2;
-        n2 %= 65521, m %= 65521;
-      }
-      a2 = n2, b = m;
-    },
-    d: function() {
-      return (a2 >>> 8 << 16 | (b & 255) << 8 | b >>> 8) + ((a2 & 255) << 23) * 2;
-    }
-  };
-};
-var dopt = function(dat, opt, pre, post, st) {
-  return dflt(dat, opt.level == null ? 6 : opt.level, opt.mem == null ? Math.ceil(Math.max(8, Math.min(13, Math.log(dat.length))) * 1.5) : 12 + opt.mem, pre, post, !st);
-};
-var wbytes = function(d, b, v2) {
-  for (; v2; ++b)
-    d[b] = v2, v2 >>>= 8;
-};
-var zlh = function(c2, o2) {
-  var lv = o2.level, fl2 = lv == 0 ? 0 : lv < 6 ? 1 : lv == 9 ? 3 : 2;
-  c2[0] = 120, c2[1] = fl2 << 6 | (fl2 ? 32 - 2 * fl2 : 1);
-};
-var zlv = function(d) {
-  if ((d[0] & 15) != 8 || d[0] >>> 4 > 7 || (d[0] << 8 | d[1]) % 31)
-    throw "invalid zlib data";
-  if (d[1] & 32)
-    throw "invalid zlib data: preset dictionaries not supported";
-};
-function zlibSync(data, opts) {
-  if (opts === void 0) {
-    opts = {};
-  }
-  var a2 = adler();
-  a2.p(data);
-  var d = dopt(data, opts, 2, 4);
-  return zlh(d, opts), wbytes(d, d.length - 4, a2.d()), d;
-}
-function unzlibSync(data, out) {
-  return inflt((zlv(data), data.subarray(2, -4)), out);
-}
-function strToU8(str, latin1) {
-  var l2 = str.length;
-  if (!latin1 && typeof TextEncoder != "undefined")
-    return new TextEncoder().encode(str);
-  var ar = new u8(str.length + (str.length >>> 1));
-  var ai = 0;
-  var w = function(v2) {
-    ar[ai++] = v2;
-  };
-  for (var i2 = 0; i2 < l2; ++i2) {
-    if (ai + 5 > ar.length) {
-      var n2 = new u8(ai + 8 + (l2 - i2 << 1));
-      n2.set(ar);
-      ar = n2;
-    }
-    var c2 = str.charCodeAt(i2);
-    if (c2 < 128 || latin1)
-      w(c2);
-    else if (c2 < 2048)
-      w(192 | c2 >>> 6), w(128 | c2 & 63);
-    else if (c2 > 55295 && c2 < 57344)
-      c2 = 65536 + (c2 & 1023 << 10) | str.charCodeAt(++i2) & 1023, w(240 | c2 >>> 18), w(128 | c2 >>> 12 & 63), w(128 | c2 >>> 6 & 63), w(128 | c2 & 63);
-    else
-      w(224 | c2 >>> 12), w(128 | c2 >>> 6 & 63), w(128 | c2 & 63);
-  }
-  return slc(ar, 0, ai);
-}
-function strFromU8(dat, latin1) {
-  var r2 = "";
-  if (!latin1 && typeof TextDecoder != "undefined")
-    return new TextDecoder().decode(dat);
-  for (var i2 = 0; i2 < dat.length; ) {
-    var c2 = dat[i2++];
-    if (c2 < 128 || latin1)
-      r2 += String.fromCharCode(c2);
-    else if (c2 < 224)
-      r2 += String.fromCharCode((c2 & 31) << 6 | dat[i2++] & 63);
-    else if (c2 < 240)
-      r2 += String.fromCharCode((c2 & 15) << 12 | (dat[i2++] & 63) << 6 | dat[i2++] & 63);
-    else
-      c2 = ((c2 & 15) << 18 | (dat[i2++] & 63) << 12 | (dat[i2++] & 63) << 6 | dat[i2++] & 63) - 65536, r2 += String.fromCharCode(55296 | c2 >> 10, 56320 | c2 & 1023);
-  }
-  return r2;
-}
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/packer/base.js
-var MARK = "v1";
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/packer/pack.js
-var pack = (event) => {
-  const _e = Object.assign(Object.assign({}, event), { v: MARK });
-  return strFromU8(zlibSync(strToU8(JSON.stringify(_e))), true);
-};
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/packer/unpack.js
-var unpack = (raw) => {
-  if (typeof raw !== "string") {
-    return raw;
-  }
-  try {
-    const e2 = JSON.parse(raw);
-    if (e2.timestamp) {
-      return e2;
-    }
-  } catch (error) {
-  }
-  try {
-    const e2 = JSON.parse(strFromU8(unzlibSync(strToU8(raw, true))));
-    if (e2.v === MARK) {
-      return e2;
-    }
-    throw new Error(`These events were packed with packer ${e2.v} which is incompatible with current packer ${MARK}.`);
-  } catch (error) {
-    console.error(error);
-    throw new Error("Unknown data format.");
-  }
-};
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/plugins/console/record/error-stack-parser.js
-var StackFrame = class {
-  constructor(obj) {
-    this.fileName = obj.fileName || "";
-    this.functionName = obj.functionName || "";
-    this.lineNumber = obj.lineNumber;
-    this.columnNumber = obj.columnNumber;
-  }
-  toString() {
-    const lineNumber = this.lineNumber || "";
-    const columnNumber = this.columnNumber || "";
-    if (this.functionName)
-      return `${this.functionName} (${this.fileName}:${lineNumber}:${columnNumber})`;
-    return `${this.fileName}:${lineNumber}:${columnNumber}`;
-  }
-};
-var FIREFOX_SAFARI_STACK_REGEXP = /(^|@)\S+:\d+/;
-var CHROME_IE_STACK_REGEXP = /^\s*at .*(\S+:\d+|\(native\))/m;
-var SAFARI_NATIVE_CODE_REGEXP = /^(eval@)?(\[native code])?$/;
-var ErrorStackParser = {
-  parse: function(error) {
-    if (!error) {
-      return [];
-    }
-    if (typeof error.stacktrace !== "undefined" || typeof error["opera#sourceloc"] !== "undefined") {
-      return this.parseOpera(error);
-    } else if (error.stack && error.stack.match(CHROME_IE_STACK_REGEXP)) {
-      return this.parseV8OrIE(error);
-    } else if (error.stack) {
-      return this.parseFFOrSafari(error);
-    } else {
-      console.warn("[console-record-plugin]: Failed to parse error object:", error);
-      return [];
-    }
-  },
-  extractLocation: function(urlLike) {
-    if (urlLike.indexOf(":") === -1) {
-      return [urlLike];
-    }
-    const regExp = /(.+?)(?::(\d+))?(?::(\d+))?$/;
-    const parts = regExp.exec(urlLike.replace(/[()]/g, ""));
-    if (!parts)
-      throw new Error(`Cannot parse given url: ${urlLike}`);
-    return [parts[1], parts[2] || void 0, parts[3] || void 0];
-  },
-  parseV8OrIE: function(error) {
-    const filtered = error.stack.split("\n").filter(function(line) {
-      return !!line.match(CHROME_IE_STACK_REGEXP);
-    }, this);
-    return filtered.map(function(line) {
-      if (line.indexOf("(eval ") > -1) {
-        line = line.replace(/eval code/g, "eval").replace(/(\(eval at [^()]*)|(\),.*$)/g, "");
-      }
-      let sanitizedLine = line.replace(/^\s+/, "").replace(/\(eval code/g, "(");
-      const location = sanitizedLine.match(/ (\((.+):(\d+):(\d+)\)$)/);
-      sanitizedLine = location ? sanitizedLine.replace(location[0], "") : sanitizedLine;
-      const tokens = sanitizedLine.split(/\s+/).slice(1);
-      const locationParts = this.extractLocation(location ? location[1] : tokens.pop());
-      const functionName = tokens.join(" ") || void 0;
-      const fileName = ["eval", "<anonymous>"].indexOf(locationParts[0]) > -1 ? void 0 : locationParts[0];
-      return new StackFrame({
-        functionName,
-        fileName,
-        lineNumber: locationParts[1],
-        columnNumber: locationParts[2]
-      });
-    }, this);
-  },
-  parseFFOrSafari: function(error) {
-    const filtered = error.stack.split("\n").filter(function(line) {
-      return !line.match(SAFARI_NATIVE_CODE_REGEXP);
-    }, this);
-    return filtered.map(function(line) {
-      if (line.indexOf(" > eval") > -1) {
-        line = line.replace(/ line (\d+)(?: > eval line \d+)* > eval:\d+:\d+/g, ":$1");
-      }
-      if (line.indexOf("@") === -1 && line.indexOf(":") === -1) {
-        return new StackFrame({
-          functionName: line
-        });
-      } else {
-        const functionNameRegex = /((.*".+"[^@]*)?[^@]*)(?:@)/;
-        const matches = line.match(functionNameRegex);
-        const functionName = matches && matches[1] ? matches[1] : void 0;
-        const locationParts = this.extractLocation(line.replace(functionNameRegex, ""));
-        return new StackFrame({
-          functionName,
-          fileName: locationParts[0],
-          lineNumber: locationParts[1],
-          columnNumber: locationParts[2]
-        });
-      }
-    }, this);
-  },
-  parseOpera: function(e2) {
-    if (!e2.stacktrace || e2.message.indexOf("\n") > -1 && e2.message.split("\n").length > e2.stacktrace.split("\n").length) {
-      return this.parseOpera9(e2);
-    } else if (!e2.stack) {
-      return this.parseOpera10(e2);
-    } else {
-      return this.parseOpera11(e2);
-    }
-  },
-  parseOpera9: function(e2) {
-    const lineRE = /Line (\d+).*script (?:in )?(\S+)/i;
-    const lines = e2.message.split("\n");
-    const result = [];
-    for (let i2 = 2, len = lines.length; i2 < len; i2 += 2) {
-      const match = lineRE.exec(lines[i2]);
-      if (match) {
-        result.push(new StackFrame({
-          fileName: match[2],
-          lineNumber: parseFloat(match[1])
-        }));
-      }
-    }
-    return result;
-  },
-  parseOpera10: function(e2) {
-    const lineRE = /Line (\d+).*script (?:in )?(\S+)(?:: In function (\S+))?$/i;
-    const lines = e2.stacktrace.split("\n");
-    const result = [];
-    for (let i2 = 0, len = lines.length; i2 < len; i2 += 2) {
-      const match = lineRE.exec(lines[i2]);
-      if (match) {
-        result.push(new StackFrame({
-          functionName: match[3] || void 0,
-          fileName: match[2],
-          lineNumber: parseFloat(match[1])
-        }));
-      }
-    }
-    return result;
-  },
-  parseOpera11: function(error) {
-    const filtered = error.stack.split("\n").filter(function(line) {
-      return !!line.match(FIREFOX_SAFARI_STACK_REGEXP) && !line.match(/^Error created at/);
-    }, this);
-    return filtered.map(function(line) {
-      const tokens = line.split("@");
-      const locationParts = this.extractLocation(tokens.pop());
-      const functionCall = tokens.shift() || "";
-      const functionName = functionCall.replace(/<anonymous function(: (\w+))?>/, "$2").replace(/\([^)]*\)/g, "") || void 0;
-      return new StackFrame({
-        functionName,
-        fileName: locationParts[0],
-        lineNumber: locationParts[1],
-        columnNumber: locationParts[2]
-      });
-    }, this);
-  }
-};
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/plugins/console/record/stringify.js
-function pathToSelector(node) {
-  if (!node || !node.outerHTML) {
-    return "";
-  }
-  let path = "";
-  while (node.parentElement) {
-    let name = node.localName;
-    if (!name) {
-      break;
-    }
-    name = name.toLowerCase();
-    const parent = node.parentElement;
-    const domSiblings = [];
-    if (parent.children && parent.children.length > 0) {
-      for (let i2 = 0; i2 < parent.children.length; i2++) {
-        const sibling = parent.children[i2];
-        if (sibling.localName && sibling.localName.toLowerCase) {
-          if (sibling.localName.toLowerCase() === name) {
-            domSiblings.push(sibling);
-          }
-        }
-      }
-    }
-    if (domSiblings.length > 1) {
-      name += `:eq(${domSiblings.indexOf(node)})`;
-    }
-    path = name + (path ? ">" + path : "");
-    node = parent;
-  }
-  return path;
-}
-function isObject(obj) {
-  return Object.prototype.toString.call(obj) === "[object Object]";
-}
-function isObjTooDeep(obj, limit) {
-  if (limit === 0) {
-    return true;
-  }
-  const keys = Object.keys(obj);
-  for (const key of keys) {
-    if (isObject(obj[key]) && isObjTooDeep(obj[key], limit - 1)) {
-      return true;
-    }
-  }
-  return false;
-}
-function stringify(obj, stringifyOptions) {
-  const options = {
-    numOfKeysLimit: 50,
-    depthOfLimit: 4
-  };
-  Object.assign(options, stringifyOptions);
-  const stack = [];
-  const keys = [];
-  return JSON.stringify(obj, function(key, value) {
-    if (stack.length > 0) {
-      const thisPos = stack.indexOf(this);
-      ~thisPos ? stack.splice(thisPos + 1) : stack.push(this);
-      ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key);
-      if (~stack.indexOf(value)) {
-        if (stack[0] === value) {
-          value = "[Circular ~]";
-        } else {
-          value = "[Circular ~." + keys.slice(0, stack.indexOf(value)).join(".") + "]";
-        }
-      }
-    } else {
-      stack.push(value);
-    }
-    if (value === null)
-      return value;
-    if (value === void 0)
-      return "undefined";
-    if (shouldIgnore(value)) {
-      return toString(value);
-    }
-    if (typeof value === "bigint") {
-      return value.toString() + "n";
-    }
-    if (value instanceof Event) {
-      const eventResult = {};
-      for (const eventKey in value) {
-        const eventValue = value[eventKey];
-        if (Array.isArray(eventValue)) {
-          eventResult[eventKey] = pathToSelector(eventValue.length ? eventValue[0] : null);
-        } else {
-          eventResult[eventKey] = eventValue;
-        }
-      }
-      return eventResult;
-    } else if (value instanceof Node) {
-      if (value instanceof HTMLElement) {
-        return value ? value.outerHTML : "";
-      }
-      return value.nodeName;
-    } else if (value instanceof Error) {
-      return value.stack ? value.stack + "\nEnd of stack for Error object" : value.name + ": " + value.message;
-    }
-    return value;
-  });
-  function shouldIgnore(_obj) {
-    if (isObject(_obj) && Object.keys(_obj).length > options.numOfKeysLimit) {
-      return true;
-    }
-    if (typeof _obj === "function") {
-      return true;
-    }
-    if (isObject(_obj) && isObjTooDeep(_obj, options.depthOfLimit)) {
-      return true;
-    }
-    return false;
-  }
-  function toString(_obj) {
-    let str = _obj.toString();
-    if (options.stringLengthLimit && str.length > options.stringLengthLimit) {
-      str = `${str.slice(0, options.stringLengthLimit)}...`;
-    }
-    return str;
-  }
-}
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/plugins/console/record/index.js
-var defaultLogOptions = {
-  level: [
-    "assert",
-    "clear",
-    "count",
-    "countReset",
-    "debug",
-    "dir",
-    "dirxml",
-    "error",
-    "group",
-    "groupCollapsed",
-    "groupEnd",
-    "info",
-    "log",
-    "table",
-    "time",
-    "timeEnd",
-    "timeLog",
-    "trace",
-    "warn"
-  ],
-  lengthThreshold: 1e3,
-  logger: "console"
-};
-function initLogObserver(cb, win, options) {
-  const logOptions = options ? Object.assign({}, defaultLogOptions, options) : defaultLogOptions;
-  const loggerType = logOptions.logger;
-  if (!loggerType) {
-    return () => {
-    };
-  }
-  let logger;
-  if (typeof loggerType === "string") {
-    logger = win[loggerType];
-  } else {
-    logger = loggerType;
-  }
-  let logCount = 0;
-  let inStack = false;
-  const cancelHandlers = [];
-  if (logOptions.level.includes("error")) {
-    const errorHandler2 = (event) => {
-      const message = event.message, error = event.error;
-      const trace = ErrorStackParser.parse(error).map((stackFrame) => stackFrame.toString());
-      const payload = [stringify(message, logOptions.stringifyOptions)];
-      cb({
-        level: "error",
-        trace,
-        payload
-      });
-    };
-    win.addEventListener("error", errorHandler2);
-    cancelHandlers.push(() => {
-      win.removeEventListener("error", errorHandler2);
-    });
-    const unhandledrejectionHandler = (event) => {
-      let error;
-      let payload;
-      if (event.reason instanceof Error) {
-        error = event.reason;
-        payload = [
-          stringify(`Uncaught (in promise) ${error.name}: ${error.message}`, logOptions.stringifyOptions)
-        ];
-      } else {
-        error = new Error();
-        payload = [
-          stringify("Uncaught (in promise)", logOptions.stringifyOptions),
-          stringify(event.reason, logOptions.stringifyOptions)
-        ];
-      }
-      const trace = ErrorStackParser.parse(error).map((stackFrame) => stackFrame.toString());
-      cb({
-        level: "error",
-        trace,
-        payload
-      });
-    };
-    win.addEventListener("unhandledrejection", unhandledrejectionHandler);
-    cancelHandlers.push(() => {
-      win.removeEventListener("unhandledrejection", unhandledrejectionHandler);
-    });
-  }
-  for (const levelType of logOptions.level) {
-    cancelHandlers.push(replace(logger, levelType));
-  }
-  return () => {
-    cancelHandlers.forEach((h) => h());
-  };
-  function replace(_logger, level) {
-    if (!_logger[level]) {
-      return () => {
-      };
-    }
-    return patch(_logger, level, (original) => {
-      return (...args) => {
-        original.apply(this, args);
-        if (inStack) {
-          return;
-        }
-        inStack = true;
-        try {
-          const trace = ErrorStackParser.parse(new Error()).map((stackFrame) => stackFrame.toString()).splice(1);
-          const payload = args.map((s2) => stringify(s2, logOptions.stringifyOptions));
-          logCount++;
-          if (logCount < logOptions.lengthThreshold) {
-            cb({
-              level,
-              trace,
-              payload
-            });
-          } else if (logCount === logOptions.lengthThreshold) {
-            cb({
-              level: "warn",
-              trace: [],
-              payload: [
-                stringify("The number of log records reached the threshold.")
-              ]
-            });
-          }
-        } catch (error) {
-          original("rrweb logger error:", error, ...args);
-        } finally {
-          inStack = false;
-        }
-      };
-    });
-  }
-}
-var PLUGIN_NAME = "rrweb/console@1";
-var getRecordConsolePlugin = (options) => ({
-  name: PLUGIN_NAME,
-  observer: initLogObserver,
-  options
-});
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/plugins/console/replay/index.js
-var ORIGINAL_ATTRIBUTE_NAME2 = "__rrweb_original__";
-var defaultLogConfig = {
-  level: [
-    "assert",
-    "clear",
-    "count",
-    "countReset",
-    "debug",
-    "dir",
-    "dirxml",
-    "error",
-    "group",
-    "groupCollapsed",
-    "groupEnd",
-    "info",
-    "log",
-    "table",
-    "time",
-    "timeEnd",
-    "timeLog",
-    "trace",
-    "warn"
-  ],
-  replayLogger: void 0
-};
-var LogReplayPlugin = class {
-  constructor(config) {
-    this.config = Object.assign(defaultLogConfig, config);
-  }
-  getConsoleLogger() {
-    const replayLogger = {};
-    for (const level of this.config.level) {
-      if (level === "trace") {
-        replayLogger[level] = (data) => {
-          const logger = console.log[ORIGINAL_ATTRIBUTE_NAME2] ? console.log[ORIGINAL_ATTRIBUTE_NAME2] : console.log;
-          logger(...data.payload.map((s2) => JSON.parse(s2)), this.formatMessage(data));
-        };
-      } else {
-        replayLogger[level] = (data) => {
-          const logger = console[level][ORIGINAL_ATTRIBUTE_NAME2] ? console[level][ORIGINAL_ATTRIBUTE_NAME2] : console[level];
-          logger(...data.payload.map((s2) => JSON.parse(s2)), this.formatMessage(data));
-        };
-      }
-    }
-    return replayLogger;
-  }
-  formatMessage(data) {
-    if (data.trace.length === 0) {
-      return "";
-    }
-    const stackPrefix = "\n	at ";
-    let result = stackPrefix;
-    result += data.trace.join(stackPrefix);
-    return result;
-  }
-};
-var getReplayConsolePlugin = (options) => {
-  const replayLogger = (options === null || options === void 0 ? void 0 : options.replayLogger) || new LogReplayPlugin(options).getConsoleLogger();
-  return {
-    handler(event, _isSync, context) {
-      let logData = null;
-      if (event.type === EventType.IncrementalSnapshot && event.data.source === IncrementalSource.Log) {
-        logData = event.data;
-      } else if (event.type === EventType.Plugin && event.data.plugin === PLUGIN_NAME) {
-        logData = event.data.payload;
-      }
-      if (logData) {
-        try {
-          if (typeof replayLogger[logData.level] === "function") {
-            replayLogger[logData.level](logData);
-          }
-        } catch (error) {
-          if (context.replayer.config.showWarning) {
-            console.warn(error);
-          }
-        }
-      }
-    }
-  };
-};
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/plugins/sequential-id/record/index.js
-var defaultOptions = {
-  key: "_sid"
-};
-var PLUGIN_NAME2 = "rrweb/sequential-id@1";
-var getRecordSequentialIdPlugin = (options) => {
-  const _options = options ? Object.assign({}, defaultOptions, options) : defaultOptions;
-  let id = 0;
-  return {
-    name: PLUGIN_NAME2,
-    eventProcessor(event) {
-      Object.assign(event, {
-        [_options.key]: ++id
-      });
-      return event;
-    },
-    options: _options
-  };
-};
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/plugins/sequential-id/replay/index.js
-var defaultOptions2 = {
-  key: "_sid",
-  warnOnMissingId: true
-};
-var getReplaySequentialIdPlugin = (options) => {
-  const { key, warnOnMissingId } = options ? Object.assign({}, defaultOptions2, options) : defaultOptions2;
-  let currentId = 1;
-  return {
-    handler(event) {
-      if (key in event) {
-        const id = event[key];
-        if (id !== currentId) {
-          console.error(`[sequential-id-plugin]: expect to get an id with value "${currentId}", but got "${id}"`);
-        } else {
-          currentId++;
-        }
-      } else if (warnOnMissingId) {
-        console.warn(`[sequential-id-plugin]: failed to get id in key: "${key}"`);
-      }
-    }
-  };
-};
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/replay/canvas/deserialize-args.js
-var webGLVarMap = /* @__PURE__ */ new Map();
-function variableListFor2(ctx, ctor) {
-  let contextMap = webGLVarMap.get(ctx);
-  if (!contextMap) {
-    contextMap = /* @__PURE__ */ new Map();
-    webGLVarMap.set(ctx, contextMap);
-  }
-  if (!contextMap.has(ctor)) {
-    contextMap.set(ctor, []);
-  }
-  return contextMap.get(ctor);
-}
-function deserializeArg(imageMap, ctx, preload) {
-  return (arg) => __awaiter(this, void 0, void 0, function* () {
-    if (arg && typeof arg === "object" && "rr_type" in arg) {
-      if (preload)
-        preload.isUnchanged = false;
-      if (arg.rr_type === "ImageBitmap" && "args" in arg) {
-        const args = yield deserializeArg(imageMap, ctx, preload)(arg.args);
-        return yield createImageBitmap.apply(null, args);
-      } else if ("index" in arg) {
-        if (preload || ctx === null)
-          return arg;
-        const { rr_type: name, index } = arg;
-        return variableListFor2(ctx, name)[index];
-      } else if ("args" in arg) {
-        const { rr_type: name, args } = arg;
-        const ctor = window[name];
-        return new ctor(...yield Promise.all(args.map(deserializeArg(imageMap, ctx, preload))));
-      } else if ("base64" in arg) {
-        return decode(arg.base64);
-      } else if ("src" in arg) {
-        const image = imageMap.get(arg.src);
-        if (image) {
-          return image;
-        } else {
-          const image2 = new Image();
-          image2.src = arg.src;
-          imageMap.set(arg.src, image2);
-          return image2;
-        }
-      } else if ("data" in arg && arg.rr_type === "Blob") {
-        const blobContents = yield Promise.all(arg.data.map(deserializeArg(imageMap, ctx, preload)));
-        const blob = new Blob(blobContents, {
-          type: arg.type
-        });
-        return blob;
-      }
-    } else if (Array.isArray(arg)) {
-      const result = yield Promise.all(arg.map(deserializeArg(imageMap, ctx, preload)));
-      return result;
-    }
-    return arg;
-  });
-}
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/replay/canvas/webgl.js
-function getContext(target, type) {
-  try {
-    if (type === CanvasContext.WebGL) {
-      return target.getContext("webgl") || target.getContext("experimental-webgl");
-    }
-    return target.getContext("webgl2");
-  } catch (e2) {
-    return null;
-  }
-}
-var WebGLVariableConstructorsNames = [
-  "WebGLActiveInfo",
-  "WebGLBuffer",
-  "WebGLFramebuffer",
-  "WebGLProgram",
-  "WebGLRenderbuffer",
-  "WebGLShader",
-  "WebGLShaderPrecisionFormat",
-  "WebGLTexture",
-  "WebGLUniformLocation",
-  "WebGLVertexArrayObject"
-];
-function saveToWebGLVarMap(ctx, result) {
-  if (!(result === null || result === void 0 ? void 0 : result.constructor))
-    return;
-  const { name } = result.constructor;
-  if (!WebGLVariableConstructorsNames.includes(name))
-    return;
-  const variables = variableListFor2(ctx, name);
-  if (!variables.includes(result))
-    variables.push(result);
-}
-function webglMutation({ mutation, target, type, imageMap, errorHandler: errorHandler2 }) {
-  return __awaiter(this, void 0, void 0, function* () {
-    try {
-      const ctx = getContext(target, type);
-      if (!ctx)
-        return;
-      if (mutation.setter) {
-        ctx[mutation.property] = mutation.args[0];
-        return;
-      }
-      const original = ctx[mutation.property];
-      const args = yield Promise.all(mutation.args.map(deserializeArg(imageMap, ctx)));
-      const result = original.apply(ctx, args);
-      saveToWebGLVarMap(ctx, result);
-      const debugMode = false;
-      if (debugMode)
-        ;
-    } catch (error) {
-      errorHandler2(mutation, error);
-    }
-  });
-}
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/replay/canvas/2d.js
-function canvasMutation({ event, mutations, target, imageMap, errorHandler: errorHandler2 }) {
-  return __awaiter(this, void 0, void 0, function* () {
-    const ctx = target.getContext("2d");
-    if (!ctx) {
-      errorHandler2(mutations[0], new Error("Canvas context is null"));
-      return;
-    }
-    const mutationArgsPromises = mutations.map((mutation) => __awaiter(this, void 0, void 0, function* () {
-      return Promise.all(mutation.args.map(deserializeArg(imageMap, ctx)));
-    }));
-    const args = yield Promise.all(mutationArgsPromises);
-    args.forEach((args2, index) => {
-      const mutation = mutations[index];
-      try {
-        if (mutation.setter) {
-          ctx[mutation.property] = mutation.args[0];
-          return;
-        }
-        const original = ctx[mutation.property];
-        if (mutation.property === "drawImage" && typeof mutation.args[0] === "string") {
-          imageMap.get(event);
-          original.apply(ctx, mutation.args);
-        } else {
-          original.apply(ctx, args2);
-        }
-      } catch (error) {
-        errorHandler2(mutation, error);
-      }
-      return;
-    });
-  });
-}
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/replay/canvas/index.js
-function canvasMutation2({ event, mutation, target, imageMap, canvasEventMap, errorHandler: errorHandler2 }) {
-  return __awaiter(this, void 0, void 0, function* () {
-    try {
-      const precomputedMutation = canvasEventMap.get(event) || mutation;
-      const commands = "commands" in precomputedMutation ? precomputedMutation.commands : [precomputedMutation];
-      if ([CanvasContext.WebGL, CanvasContext.WebGL2].includes(mutation.type)) {
-        for (let i2 = 0; i2 < commands.length; i2++) {
-          const command = commands[i2];
-          yield webglMutation({
-            mutation: command,
-            type: mutation.type,
-            target,
-            imageMap,
-            errorHandler: errorHandler2
-          });
-        }
-        return;
-      }
-      yield canvasMutation({
-        event,
-        mutations: commands,
-        target,
-        imageMap,
-        errorHandler: errorHandler2
-      });
-    } catch (error) {
-      errorHandler2(mutation, error);
-    }
-  });
-}
-
-// ../rrweb/packages/rrweb/es/rrweb/ext/mitt/dist/mitt.mjs.js
-var mitt_mjs_exports = {};
-__export(mitt_mjs_exports, {
-  default: () => mitt
-});
-function mitt(n2) {
+function mitt$1(n2) {
   return { all: n2 = n2 || /* @__PURE__ */ new Map(), on: function(t2, e2) {
     var i2 = n2.get(t2);
     i2 ? i2.push(e2) : n2.set(t2, [e2]);
@@ -7930,9 +7708,11 @@ function mitt(n2) {
     });
   } };
 }
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/replay/smoothscroll.js
-function polyfill2(w = window, d = document) {
+var mittProxy = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: mitt$1
+}, Symbol.toStringTag, { value: "Module" }));
+function polyfill(w = window, d = document) {
   if ("scrollBehavior" in d.documentElement.style && w.__forceSmoothScrollPolyfill__ !== true) {
     return;
   }
@@ -7964,7 +7744,9 @@ function polyfill2(w = window, d = document) {
     if (typeof firstArg === "object" && firstArg.behavior === "smooth") {
       return false;
     }
-    throw new TypeError("behavior member of ScrollOptions " + firstArg.behavior + " is not a valid value for enumeration ScrollBehavior.");
+    throw new TypeError(
+      "behavior member of ScrollOptions " + firstArg.behavior + " is not a valid value for enumeration ScrollBehavior."
+    );
   }
   function hasScrollableSpace(el, axis) {
     if (axis === "Y") {
@@ -8036,20 +7818,39 @@ function polyfill2(w = window, d = document) {
       return;
     }
     if (shouldBailOut(arguments[0]) === true) {
-      original.scroll.call(w, arguments[0].left !== void 0 ? arguments[0].left : typeof arguments[0] !== "object" ? arguments[0] : w.scrollX || w.pageXOffset, arguments[0].top !== void 0 ? arguments[0].top : arguments[1] !== void 0 ? arguments[1] : w.scrollY || w.pageYOffset);
+      original.scroll.call(
+        w,
+        arguments[0].left !== void 0 ? arguments[0].left : typeof arguments[0] !== "object" ? arguments[0] : w.scrollX || w.pageXOffset,
+        // use top prop, second argument if present or fallback to scrollY
+        arguments[0].top !== void 0 ? arguments[0].top : arguments[1] !== void 0 ? arguments[1] : w.scrollY || w.pageYOffset
+      );
       return;
     }
-    smoothScroll.call(w, d.body, arguments[0].left !== void 0 ? ~~arguments[0].left : w.scrollX || w.pageXOffset, arguments[0].top !== void 0 ? ~~arguments[0].top : w.scrollY || w.pageYOffset);
+    smoothScroll.call(
+      w,
+      d.body,
+      arguments[0].left !== void 0 ? ~~arguments[0].left : w.scrollX || w.pageXOffset,
+      arguments[0].top !== void 0 ? ~~arguments[0].top : w.scrollY || w.pageYOffset
+    );
   };
   w.scrollBy = function() {
     if (arguments[0] === void 0) {
       return;
     }
     if (shouldBailOut(arguments[0])) {
-      original.scrollBy.call(w, arguments[0].left !== void 0 ? arguments[0].left : typeof arguments[0] !== "object" ? arguments[0] : 0, arguments[0].top !== void 0 ? arguments[0].top : arguments[1] !== void 0 ? arguments[1] : 0);
+      original.scrollBy.call(
+        w,
+        arguments[0].left !== void 0 ? arguments[0].left : typeof arguments[0] !== "object" ? arguments[0] : 0,
+        arguments[0].top !== void 0 ? arguments[0].top : arguments[1] !== void 0 ? arguments[1] : 0
+      );
       return;
     }
-    smoothScroll.call(w, d.body, ~~arguments[0].left + (w.scrollX || w.pageXOffset), ~~arguments[0].top + (w.scrollY || w.pageYOffset));
+    smoothScroll.call(
+      w,
+      d.body,
+      ~~arguments[0].left + (w.scrollX || w.pageXOffset),
+      ~~arguments[0].top + (w.scrollY || w.pageYOffset)
+    );
   };
   Element2.prototype.scroll = Element2.prototype.scrollTo = function() {
     if (arguments[0] === void 0) {
@@ -8059,19 +7860,34 @@ function polyfill2(w = window, d = document) {
       if (typeof arguments[0] === "number" && arguments[1] === void 0) {
         throw new SyntaxError("Value could not be converted");
       }
-      original.elementScroll.call(this, arguments[0].left !== void 0 ? ~~arguments[0].left : typeof arguments[0] !== "object" ? ~~arguments[0] : this.scrollLeft, arguments[0].top !== void 0 ? ~~arguments[0].top : arguments[1] !== void 0 ? ~~arguments[1] : this.scrollTop);
+      original.elementScroll.call(
+        this,
+        // use left prop, first number argument or fallback to scrollLeft
+        arguments[0].left !== void 0 ? ~~arguments[0].left : typeof arguments[0] !== "object" ? ~~arguments[0] : this.scrollLeft,
+        // use top prop, second argument or fallback to scrollTop
+        arguments[0].top !== void 0 ? ~~arguments[0].top : arguments[1] !== void 0 ? ~~arguments[1] : this.scrollTop
+      );
       return;
     }
     const left = arguments[0].left;
     const top = arguments[0].top;
-    smoothScroll.call(this, this, typeof left === "undefined" ? this.scrollLeft : ~~left, typeof top === "undefined" ? this.scrollTop : ~~top);
+    smoothScroll.call(
+      this,
+      this,
+      typeof left === "undefined" ? this.scrollLeft : ~~left,
+      typeof top === "undefined" ? this.scrollTop : ~~top
+    );
   };
   Element2.prototype.scrollBy = function() {
     if (arguments[0] === void 0) {
       return;
     }
     if (shouldBailOut(arguments[0]) === true) {
-      original.elementScroll.call(this, arguments[0].left !== void 0 ? ~~arguments[0].left + this.scrollLeft : ~~arguments[0] + this.scrollLeft, arguments[0].top !== void 0 ? ~~arguments[0].top + this.scrollTop : ~~arguments[1] + this.scrollTop);
+      original.elementScroll.call(
+        this,
+        arguments[0].left !== void 0 ? ~~arguments[0].left + this.scrollLeft : ~~arguments[0] + this.scrollLeft,
+        arguments[0].top !== void 0 ? ~~arguments[0].top + this.scrollTop : ~~arguments[1] + this.scrollTop
+      );
       return;
     }
     this.scroll({
@@ -8082,14 +7898,22 @@ function polyfill2(w = window, d = document) {
   };
   Element2.prototype.scrollIntoView = function() {
     if (shouldBailOut(arguments[0]) === true) {
-      original.scrollIntoView.call(this, arguments[0] === void 0 ? true : arguments[0]);
+      original.scrollIntoView.call(
+        this,
+        arguments[0] === void 0 ? true : arguments[0]
+      );
       return;
     }
     const scrollableParent = findScrollableParent(this);
     const parentRects = scrollableParent.getBoundingClientRect();
     const clientRects = this.getBoundingClientRect();
     if (scrollableParent !== d.body) {
-      smoothScroll.call(this, scrollableParent, scrollableParent.scrollLeft + clientRects.left - parentRects.left, scrollableParent.scrollTop + clientRects.top - parentRects.top);
+      smoothScroll.call(
+        this,
+        scrollableParent,
+        scrollableParent.scrollLeft + clientRects.left - parentRects.left,
+        scrollableParent.scrollTop + clientRects.top - parentRects.top
+      );
       if (w.getComputedStyle(scrollableParent).position !== "fixed") {
         w.scrollBy({
           left: parentRects.left,
@@ -8106,15 +7930,19 @@ function polyfill2(w = window, d = document) {
     }
   };
 }
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/replay/timer.js
 var Timer = class {
   constructor(actions = [], config) {
-    this.timeOffset = 0;
-    this.raf = null;
+    __publicField(this, "timeOffset", 0);
+    __publicField(this, "speed");
+    __publicField(this, "actions");
+    __publicField(this, "raf", null);
+    __publicField(this, "lastTimestamp");
     this.actions = actions;
     this.speed = config.speed;
   }
+  /**
+   * Add an action, possibly after the timer starts.
+   */
   addAction(action) {
     const rafWasActive = this.raf === true;
     if (!this.actions.length || this.actions[this.actions.length - 1].delay <= action.delay) {
@@ -8127,6 +7955,10 @@ var Timer = class {
       this.raf = requestAnimationFrame(this.rafCheck.bind(this));
     }
   }
+  /* Begin Highlight Code */
+  /**
+   * Add all actions before the timer starts
+   */
   addActions(actions) {
     this.actions = this.actions.concat(actions);
   }
@@ -8134,6 +7966,7 @@ var Timer = class {
     this.actions.length = 0;
     this.actions.splice(0, 0, ...actions);
   }
+  /* End Highlight Code */
   start() {
     this.timeOffset = 0;
     this.lastTimestamp = performance.now();
@@ -8199,8 +8032,6 @@ function addDelay(event, baselineTime) {
   event.delay = event.timestamp - baselineTime;
   return event.delay;
 }
-
-// ../rrweb/packages/rrweb/es/rrweb/ext/@xstate/fsm/es/index.js
 function t(t2, n2) {
   var e2 = "function" == typeof Symbol && t2[Symbol.iterator];
   if (!e2)
@@ -8338,8 +8169,6 @@ function v(t2) {
   } };
   return c2;
 }
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/replay/machine.js
 function discardPriorSnapshots(events, baselineTime) {
   for (let idx = events.length - 1; idx >= 0; idx--) {
     const event = events[idx];
@@ -8352,152 +8181,120 @@ function discardPriorSnapshots(events, baselineTime) {
   return events;
 }
 function createPlayerService(context, { getCastFn, applyEventsSynchronously, emitter }) {
-  const playerMachine = s({
-    id: "player",
-    context,
-    initial: "paused",
-    states: {
-      playing: {
-        on: {
-          PAUSE: {
-            target: "paused",
-            actions: ["pause"]
-          },
-          CAST_EVENT: {
-            target: "playing",
-            actions: "castEvent"
-          },
-          END: {
-            target: "paused",
-            actions: ["resetLastPlayedEvent", "pause"]
-          },
-          ADD_EVENT: {
-            target: "playing",
-            actions: ["addEvent"]
-          },
-          REPLACE_EVENTS: {
-            target: "playing",
-            actions: ["replaceEvents"]
+  const playerMachine = s(
+    {
+      id: "player",
+      context,
+      initial: "paused",
+      states: {
+        playing: {
+          on: {
+            PAUSE: {
+              target: "paused",
+              actions: ["pause"]
+            },
+            CAST_EVENT: {
+              target: "playing",
+              actions: "castEvent"
+            },
+            END: {
+              target: "paused",
+              actions: ["resetLastPlayedEvent", "pause"]
+            },
+            ADD_EVENT: {
+              target: "playing",
+              actions: ["addEvent"]
+            },
+            REPLACE_EVENTS: {
+              target: "playing",
+              actions: ["replaceEvents"]
+            }
           }
-        }
-      },
-      paused: {
-        on: {
-          PLAY: {
-            target: "playing",
-            actions: ["recordTimeOffset", "play"]
-          },
-          CAST_EVENT: {
-            target: "paused",
-            actions: "castEvent"
-          },
-          TO_LIVE: {
-            target: "live",
-            actions: ["startLive"]
-          },
-          ADD_EVENT: {
-            target: "paused",
-            actions: ["addEvent"]
-          },
-          REPLACE_EVENTS: {
-            target: "paused",
-            actions: ["replaceEvents"]
+        },
+        paused: {
+          on: {
+            PLAY: {
+              target: "playing",
+              actions: ["recordTimeOffset", "play"]
+            },
+            CAST_EVENT: {
+              target: "paused",
+              actions: "castEvent"
+            },
+            TO_LIVE: {
+              target: "live",
+              actions: ["startLive"]
+            },
+            ADD_EVENT: {
+              target: "paused",
+              actions: ["addEvent"]
+            },
+            REPLACE_EVENTS: {
+              target: "paused",
+              actions: ["replaceEvents"]
+            }
           }
-        }
-      },
-      live: {
-        on: {
-          ADD_EVENT: {
-            target: "live",
-            actions: ["addEvent"]
-          },
-          CAST_EVENT: {
-            target: "live",
-            actions: ["castEvent"]
+        },
+        live: {
+          on: {
+            ADD_EVENT: {
+              target: "live",
+              actions: ["addEvent"]
+            },
+            CAST_EVENT: {
+              target: "live",
+              actions: ["castEvent"]
+            }
           }
         }
       }
-    }
-  }, {
-    actions: {
-      castEvent: o({
-        lastPlayedEvent: (ctx, event) => {
-          if (event.type === "CAST_EVENT") {
-            return event.payload.event;
+    },
+    {
+      actions: {
+        castEvent: o({
+          lastPlayedEvent: (ctx, event) => {
+            if (event.type === "CAST_EVENT") {
+              return event.payload.event;
+            }
+            return ctx.lastPlayedEvent;
           }
-          return ctx.lastPlayedEvent;
-        }
-      }),
-      recordTimeOffset: o((ctx, event) => {
-        let timeOffset = ctx.timeOffset;
-        if ("payload" in event && "timeOffset" in event.payload) {
-          timeOffset = event.payload.timeOffset;
-        }
-        return Object.assign(Object.assign({}, ctx), { timeOffset, baselineTime: ctx.events[0].timestamp + timeOffset });
-      }),
-      play(ctx) {
-        var _a2;
-        const { timer, events, baselineTime, lastPlayedEvent } = ctx;
-        timer.clear();
-        for (const event of events) {
-          addDelay(event, baselineTime);
-        }
-        const neededEvents = discardPriorSnapshots(events, baselineTime);
-        let lastPlayedTimestamp = lastPlayedEvent === null || lastPlayedEvent === void 0 ? void 0 : lastPlayedEvent.timestamp;
-        if ((lastPlayedEvent === null || lastPlayedEvent === void 0 ? void 0 : lastPlayedEvent.type) === EventType.IncrementalSnapshot && lastPlayedEvent.data.source === IncrementalSource.MouseMove) {
-          lastPlayedTimestamp = lastPlayedEvent.timestamp + ((_a2 = lastPlayedEvent.data.positions[0]) === null || _a2 === void 0 ? void 0 : _a2.timeOffset);
-        }
-        if (baselineTime < (lastPlayedTimestamp || 0)) {
-          emitter.emit(ReplayerEvents.PlayBack);
-        }
-        const syncEvents = new Array();
-        for (const event of neededEvents) {
-          if (lastPlayedTimestamp && lastPlayedTimestamp < baselineTime && (event.timestamp <= lastPlayedTimestamp || event === lastPlayedEvent)) {
-            continue;
+        }),
+        recordTimeOffset: o((ctx, event) => {
+          let timeOffset = ctx.timeOffset;
+          if ("payload" in event && "timeOffset" in event.payload) {
+            timeOffset = event.payload.timeOffset;
           }
-          if (event.timestamp < baselineTime) {
-            syncEvents.push(event);
-          } else {
-            const castFn = getCastFn(event, false);
-            timer.addAction({
-              doAction: () => {
-                castFn();
-              },
-              delay: event.delay
-            });
-          }
-        }
-        applyEventsSynchronously(syncEvents);
-        emitter.emit(ReplayerEvents.Flush);
-        timer.start();
-      },
-      pause(ctx) {
-        ctx.timer.clear();
-      },
-      resetLastPlayedEvent: o((ctx) => {
-        return Object.assign(Object.assign({}, ctx), { lastPlayedEvent: null });
-      }),
-      startLive: o({
-        baselineTime: (ctx, event) => {
-          ctx.timer.start();
-          if (event.type === "TO_LIVE" && event.payload.baselineTime) {
-            return event.payload.baselineTime;
-          }
-          return Date.now();
-        }
-      }),
-      replaceEvents: o((ctx, machineEvent) => {
-        const { events: curEvents, timer, baselineTime } = ctx;
-        if (machineEvent.type === "REPLACE_EVENTS") {
-          const { events: newEvents } = machineEvent.payload;
-          curEvents.length = 0;
-          const actions = [];
-          for (const event of newEvents) {
+          return {
+            ...ctx,
+            timeOffset,
+            baselineTime: ctx.events[0].timestamp + timeOffset
+          };
+        }),
+        play(ctx) {
+          var _a2;
+          const { timer, events, baselineTime, lastPlayedEvent } = ctx;
+          timer.clear();
+          for (const event of events) {
             addDelay(event, baselineTime);
-            curEvents.push(event);
-            if (event.timestamp >= timer.timeOffset + baselineTime) {
+          }
+          const neededEvents = discardPriorSnapshots(events, baselineTime);
+          let lastPlayedTimestamp = lastPlayedEvent == null ? void 0 : lastPlayedEvent.timestamp;
+          if ((lastPlayedEvent == null ? void 0 : lastPlayedEvent.type) === EventType.IncrementalSnapshot && lastPlayedEvent.data.source === IncrementalSource.MouseMove) {
+            lastPlayedTimestamp = lastPlayedEvent.timestamp + ((_a2 = lastPlayedEvent.data.positions[0]) == null ? void 0 : _a2.timeOffset);
+          }
+          if (baselineTime < (lastPlayedTimestamp || 0)) {
+            emitter.emit(ReplayerEvents.PlayBack);
+          }
+          const syncEvents = new Array();
+          for (const event of neededEvents) {
+            if (lastPlayedTimestamp && lastPlayedTimestamp < baselineTime && (event.timestamp <= lastPlayedTimestamp || event === lastPlayedEvent)) {
+              continue;
+            }
+            if (event.timestamp < baselineTime) {
+              syncEvents.push(event);
+            } else {
               const castFn = getCastFn(event, false);
-              actions.push({
+              timer.addAction({
                 doAction: () => {
                   castFn();
                 },
@@ -8505,116 +8302,562 @@ function createPlayerService(context, { getCastFn, applyEventsSynchronously, emi
               });
             }
           }
-          if (timer.isActive()) {
-            timer.replaceActions(actions);
+          applyEventsSynchronously(syncEvents);
+          emitter.emit(ReplayerEvents.Flush);
+          timer.start();
+        },
+        pause(ctx) {
+          ctx.timer.clear();
+        },
+        resetLastPlayedEvent: o((ctx) => {
+          return {
+            ...ctx,
+            lastPlayedEvent: null
+          };
+        }),
+        startLive: o({
+          baselineTime: (ctx, event) => {
+            ctx.timer.start();
+            if (event.type === "TO_LIVE" && event.payload.baselineTime) {
+              return event.payload.baselineTime;
+            }
+            return Date.now();
           }
-        }
-        return Object.assign(Object.assign({}, ctx), { events: curEvents });
-      }),
-      addEvent: o((ctx, machineEvent) => {
-        const { baselineTime, timer, events } = ctx;
-        if (machineEvent.type === "ADD_EVENT") {
-          const { event } = machineEvent.payload;
-          addDelay(event, baselineTime);
-          let end = events.length - 1;
-          if (!events[end] || events[end].timestamp <= event.timestamp) {
-            events.push(event);
-          } else {
-            let insertionIndex = -1;
-            let start = 0;
-            while (start <= end) {
-              const mid = Math.floor((start + end) / 2);
-              if (events[mid].timestamp <= event.timestamp) {
-                start = mid + 1;
-              } else {
-                end = mid - 1;
+        }),
+        /* Highlight Code Start */
+        replaceEvents: o((ctx, machineEvent) => {
+          const { events: curEvents, timer, baselineTime } = ctx;
+          if (machineEvent.type === "REPLACE_EVENTS") {
+            const { events: newEvents } = machineEvent.payload;
+            curEvents.length = 0;
+            const actions = [];
+            for (const event of newEvents) {
+              addDelay(event, baselineTime);
+              curEvents.push(event);
+              if (event.timestamp >= timer.timeOffset + baselineTime) {
+                const castFn = getCastFn(event, false);
+                actions.push({
+                  doAction: () => {
+                    castFn();
+                  },
+                  delay: event.delay
+                });
               }
             }
-            if (insertionIndex === -1) {
-              insertionIndex = start;
+            if (timer.isActive()) {
+              timer.replaceActions(actions);
             }
-            events.splice(insertionIndex, 0, event);
           }
-          const isSync = event.timestamp < baselineTime;
-          const castFn = getCastFn(event, isSync);
-          if (isSync) {
-            castFn();
-          } else if (timer.isActive()) {
-            timer.addAction({
-              doAction: () => {
-                castFn();
-              },
-              delay: event.delay
-            });
+          return { ...ctx, events: curEvents };
+        }),
+        /* Highlight Code End */
+        addEvent: o((ctx, machineEvent) => {
+          const { baselineTime, timer, events } = ctx;
+          if (machineEvent.type === "ADD_EVENT") {
+            const { event } = machineEvent.payload;
+            addDelay(event, baselineTime);
+            let end = events.length - 1;
+            if (!events[end] || events[end].timestamp <= event.timestamp) {
+              events.push(event);
+            } else {
+              let insertionIndex = -1;
+              let start = 0;
+              while (start <= end) {
+                const mid = Math.floor((start + end) / 2);
+                if (events[mid].timestamp <= event.timestamp) {
+                  start = mid + 1;
+                } else {
+                  end = mid - 1;
+                }
+              }
+              if (insertionIndex === -1) {
+                insertionIndex = start;
+              }
+              events.splice(insertionIndex, 0, event);
+            }
+            const isSync = event.timestamp < baselineTime;
+            const castFn = getCastFn(event, isSync);
+            if (isSync) {
+              castFn();
+            } else if (timer.isActive()) {
+              timer.addAction({
+                doAction: () => {
+                  castFn();
+                },
+                delay: event.delay
+              });
+            }
           }
-        }
-        return Object.assign(Object.assign({}, ctx), { events });
-      })
+          return { ...ctx, events };
+        })
+      }
     }
-  });
+  );
   return v(playerMachine);
 }
 function createSpeedService(context) {
-  const speedMachine = s({
-    id: "speed",
-    context,
-    initial: "normal",
-    states: {
-      normal: {
-        on: {
-          FAST_FORWARD: {
-            target: "skipping",
-            actions: ["recordSpeed", "setSpeed"]
-          },
-          SET_SPEED: {
-            target: "normal",
-            actions: ["setSpeed"]
+  const speedMachine = s(
+    {
+      id: "speed",
+      context,
+      initial: "normal",
+      states: {
+        normal: {
+          on: {
+            FAST_FORWARD: {
+              target: "skipping",
+              actions: ["recordSpeed", "setSpeed"]
+            },
+            SET_SPEED: {
+              target: "normal",
+              actions: ["setSpeed"]
+            }
           }
-        }
-      },
-      skipping: {
-        on: {
-          BACK_TO_NORMAL: {
-            target: "normal",
-            actions: ["restoreSpeed"]
-          },
-          SET_SPEED: {
-            target: "normal",
-            actions: ["setSpeed"]
+        },
+        skipping: {
+          on: {
+            BACK_TO_NORMAL: {
+              target: "normal",
+              actions: ["restoreSpeed"]
+            },
+            SET_SPEED: {
+              target: "normal",
+              actions: ["setSpeed"]
+            }
           }
         }
       }
-    }
-  }, {
-    actions: {
-      setSpeed: (ctx, event) => {
-        if ("payload" in event) {
-          ctx.timer.setSpeed(event.payload.speed);
+    },
+    {
+      actions: {
+        setSpeed: (ctx, event) => {
+          if ("payload" in event) {
+            ctx.timer.setSpeed(event.payload.speed);
+          }
+        },
+        recordSpeed: o({
+          normalSpeed: (ctx) => ctx.timer.speed
+        }),
+        restoreSpeed: (ctx) => {
+          ctx.timer.setSpeed(ctx.normalSpeed);
         }
-      },
-      recordSpeed: o({
-        normalSpeed: (ctx) => ctx.timer.speed
-      }),
-      restoreSpeed: (ctx) => {
-        ctx.timer.setSpeed(ctx.normalSpeed);
       }
     }
-  });
+  );
   return v(speedMachine);
 }
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/replay/styles/inject-style.js
 var rules = (blockClass) => [
   "noscript { display: none !important; }",
   `.${blockClass} { background: currentColor; border-radius: 5px; }`,
   `.${blockClass}:hover::after {content: 'Redacted'; color: white; background: black; text-align: center; width: 100%; display: block;}`
 ];
-
-// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/replay/index.js
+var webGLVarMap = /* @__PURE__ */ new Map();
+function variableListFor(ctx, ctor) {
+  let contextMap = webGLVarMap.get(ctx);
+  if (!contextMap) {
+    contextMap = /* @__PURE__ */ new Map();
+    webGLVarMap.set(ctx, contextMap);
+  }
+  if (!contextMap.has(ctor)) {
+    contextMap.set(ctor, []);
+  }
+  return contextMap.get(ctor);
+}
+function deserializeArg(imageMap, ctx, preload) {
+  return async (arg) => {
+    if (arg && typeof arg === "object" && "rr_type" in arg) {
+      if (preload)
+        preload.isUnchanged = false;
+      if (arg.rr_type === "ImageBitmap" && "args" in arg) {
+        const args = await deserializeArg(imageMap, ctx, preload)(arg.args);
+        return await createImageBitmap.apply(null, args);
+      } else if ("index" in arg) {
+        if (preload || ctx === null)
+          return arg;
+        const { rr_type: name, index } = arg;
+        return variableListFor(ctx, name)[index];
+      } else if ("args" in arg) {
+        const { rr_type: name, args } = arg;
+        const ctor = window[name];
+        return new ctor(
+          ...await Promise.all(
+            args.map(deserializeArg(imageMap, ctx, preload))
+          )
+        );
+      } else if ("base64" in arg) {
+        return decode(arg.base64);
+      } else if ("src" in arg) {
+        const image = imageMap.get(arg.src);
+        if (image) {
+          return image;
+        } else {
+          const image2 = new Image();
+          image2.src = arg.src;
+          imageMap.set(arg.src, image2);
+          return image2;
+        }
+      } else if ("data" in arg && arg.rr_type === "Blob") {
+        const blobContents = await Promise.all(
+          arg.data.map(deserializeArg(imageMap, ctx, preload))
+        );
+        const blob2 = new Blob(blobContents, {
+          type: arg.type
+        });
+        return blob2;
+      }
+    } else if (Array.isArray(arg)) {
+      const result = await Promise.all(
+        arg.map(deserializeArg(imageMap, ctx, preload))
+      );
+      return result;
+    }
+    return arg;
+  };
+}
+function getContext(target, type) {
+  try {
+    if (type === CanvasContext.WebGL) {
+      return target.getContext("webgl") || target.getContext("experimental-webgl");
+    }
+    return target.getContext("webgl2");
+  } catch (e2) {
+    return null;
+  }
+}
+var WebGLVariableConstructorsNames = [
+  "WebGLActiveInfo",
+  "WebGLBuffer",
+  "WebGLFramebuffer",
+  "WebGLProgram",
+  "WebGLRenderbuffer",
+  "WebGLShader",
+  "WebGLShaderPrecisionFormat",
+  "WebGLTexture",
+  "WebGLUniformLocation",
+  "WebGLVertexArrayObject"
+];
+function saveToWebGLVarMap(ctx, result) {
+  if (!(result == null ? void 0 : result.constructor))
+    return;
+  const { name } = result.constructor;
+  if (!WebGLVariableConstructorsNames.includes(name))
+    return;
+  const variables = variableListFor(ctx, name);
+  if (!variables.includes(result))
+    variables.push(result);
+}
+async function webglMutation({
+  mutation,
+  target,
+  type,
+  imageMap,
+  errorHandler: errorHandler2
+}) {
+  try {
+    const ctx = getContext(target, type);
+    if (!ctx)
+      return;
+    if (mutation.setter) {
+      ctx[mutation.property] = mutation.args[0];
+      return;
+    }
+    const original = ctx[mutation.property];
+    const args = await Promise.all(
+      mutation.args.map(deserializeArg(imageMap, ctx))
+    );
+    const result = original.apply(ctx, args);
+    saveToWebGLVarMap(ctx, result);
+    const debugMode = false;
+    if (debugMode)
+      ;
+  } catch (error) {
+    errorHandler2(mutation, error);
+  }
+}
+async function canvasMutation$1({
+  event,
+  mutations,
+  target,
+  imageMap,
+  errorHandler: errorHandler2
+}) {
+  const ctx = target.getContext("2d");
+  if (!ctx) {
+    errorHandler2(mutations[0], new Error("Canvas context is null"));
+    return;
+  }
+  const mutationArgsPromises = mutations.map(
+    async (mutation) => {
+      return Promise.all(mutation.args.map(deserializeArg(imageMap, ctx)));
+    }
+  );
+  const args = await Promise.all(mutationArgsPromises);
+  args.forEach((args2, index) => {
+    const mutation = mutations[index];
+    try {
+      if (mutation.setter) {
+        ctx[mutation.property] = mutation.args[0];
+        return;
+      }
+      const original = ctx[mutation.property];
+      if (mutation.property === "drawImage" && typeof mutation.args[0] === "string") {
+        imageMap.get(event);
+        original.apply(ctx, mutation.args);
+      } else {
+        original.apply(ctx, args2);
+      }
+    } catch (error) {
+      errorHandler2(mutation, error);
+    }
+    return;
+  });
+}
+async function canvasMutation({
+  event,
+  mutation,
+  target,
+  imageMap,
+  canvasEventMap,
+  errorHandler: errorHandler2
+}) {
+  try {
+    const precomputedMutation = canvasEventMap.get(event) || mutation;
+    const commands = "commands" in precomputedMutation ? precomputedMutation.commands : [precomputedMutation];
+    if ([CanvasContext.WebGL, CanvasContext.WebGL2].includes(mutation.type)) {
+      for (let i2 = 0; i2 < commands.length; i2++) {
+        const command = commands[i2];
+        await webglMutation({
+          mutation: command,
+          type: mutation.type,
+          target,
+          imageMap,
+          errorHandler: errorHandler2
+        });
+      }
+      return;
+    }
+    await canvasMutation$1({
+      event,
+      mutations: commands,
+      target,
+      imageMap,
+      errorHandler: errorHandler2
+    });
+  } catch (error) {
+    errorHandler2(mutation, error);
+  }
+}
+var MediaManager = class {
+  constructor(options) {
+    __publicField(this, "mediaMap", /* @__PURE__ */ new Map());
+    __publicField(this, "warn");
+    __publicField(this, "service");
+    __publicField(this, "speedService");
+    __publicField(this, "emitter");
+    __publicField(this, "getCurrentTime");
+    __publicField(this, "metadataCallbackMap", /* @__PURE__ */ new Map());
+    this.warn = options.warn;
+    this.service = options.service;
+    this.speedService = options.speedService;
+    this.emitter = options.emitter;
+    this.getCurrentTime = options.getCurrentTime;
+    this.emitter.on(ReplayerEvents.Start, this.start.bind(this));
+    this.emitter.on(ReplayerEvents.SkipStart, this.start.bind(this));
+    this.emitter.on(ReplayerEvents.Pause, this.pause.bind(this));
+    this.emitter.on(ReplayerEvents.Finish, this.pause.bind(this));
+    this.speedService.subscribe(() => {
+      this.syncAllMediaElements();
+    });
+  }
+  syncAllMediaElements(options = { pause: false }) {
+    this.mediaMap.forEach((_mediaState, target) => {
+      this.syncTargetWithState(target);
+      if (options.pause) {
+        target.pause();
+      }
+    });
+  }
+  start() {
+    this.syncAllMediaElements();
+  }
+  pause() {
+    this.syncAllMediaElements({ pause: true });
+  }
+  seekTo({
+    time,
+    target,
+    mediaState
+  }) {
+    if (mediaState.isPlaying) {
+      const differenceBetweenCurrentTimeAndMediaMutationTimestamp = time - mediaState.lastInteractionTimeOffset;
+      const mediaPlaybackOffset = differenceBetweenCurrentTimeAndMediaMutationTimestamp / 1e3 * mediaState.playbackRate;
+      const duration = "duration" in target && target.duration;
+      if (Number.isNaN(duration)) {
+        this.waitForMetadata(target);
+        return;
+      }
+      let seekToTime = mediaState.currentTimeAtLastInteraction + mediaPlaybackOffset;
+      if (target.loop && // RRMediaElement doesn't have a duration property
+      duration !== false) {
+        seekToTime = seekToTime % duration;
+      }
+      target.currentTime = seekToTime;
+    } else {
+      target.pause();
+      target.currentTime = mediaState.currentTimeAtLastInteraction;
+    }
+  }
+  waitForMetadata(target) {
+    if (this.metadataCallbackMap.has(target))
+      return;
+    if (!("addEventListener" in target))
+      return;
+    const onLoadedMetadata = () => {
+      this.metadataCallbackMap.delete(target);
+      const mediaState = this.mediaMap.get(target);
+      if (!mediaState)
+        return;
+      this.seekTo({
+        time: this.getCurrentTime(),
+        target,
+        mediaState
+      });
+    };
+    this.metadataCallbackMap.set(target, onLoadedMetadata);
+    target.addEventListener("loadedmetadata", onLoadedMetadata, {
+      once: true
+    });
+  }
+  getMediaStateFromMutation({
+    target,
+    timeOffset,
+    mutation
+  }) {
+    const lastState = this.mediaMap.get(target);
+    const { type, playbackRate, currentTime, muted, volume, loop } = mutation;
+    const isPlaying = type === MediaInteractions.Play || type !== MediaInteractions.Pause && ((lastState == null ? void 0 : lastState.isPlaying) || target.getAttribute("autoplay") !== null);
+    const mediaState = {
+      isPlaying,
+      currentTimeAtLastInteraction: currentTime ?? (lastState == null ? void 0 : lastState.currentTimeAtLastInteraction) ?? 0,
+      lastInteractionTimeOffset: timeOffset,
+      playbackRate: playbackRate ?? (lastState == null ? void 0 : lastState.playbackRate) ?? 1,
+      volume: volume ?? (lastState == null ? void 0 : lastState.volume) ?? 1,
+      muted: muted ?? (lastState == null ? void 0 : lastState.muted) ?? target.getAttribute("muted") === null,
+      loop: loop ?? (lastState == null ? void 0 : lastState.loop) ?? target.getAttribute("loop") === null
+    };
+    return mediaState;
+  }
+  syncTargetWithState(target) {
+    const mediaState = this.mediaMap.get(target);
+    if (!mediaState)
+      return;
+    const { muted, loop, volume, isPlaying } = mediaState;
+    const playerIsPaused = this.service.state.matches("paused");
+    const playbackRate = mediaState.playbackRate * this.speedService.state.context.timer.speed;
+    try {
+      this.seekTo({
+        time: this.getCurrentTime(),
+        target,
+        mediaState
+      });
+      if (target.volume !== volume) {
+        target.volume = volume;
+      }
+      target.muted = muted;
+      target.loop = loop;
+      if (target.playbackRate !== playbackRate) {
+        target.playbackRate = playbackRate;
+      }
+      if (isPlaying && !playerIsPaused) {
+        void target.play();
+      } else {
+        target.pause();
+      }
+    } catch (error) {
+      this.warn(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-template-expressions
+        `Failed to replay media interactions: ${error.message || error}`
+      );
+    }
+  }
+  addMediaElements(node, timeOffset, mirror2) {
+    if (!["AUDIO", "VIDEO"].includes(node.nodeName))
+      return;
+    const target = node;
+    const serializedNode = mirror2.getMeta(target);
+    if (!serializedNode || !("attributes" in serializedNode))
+      return;
+    const playerIsPaused = this.service.state.matches("paused");
+    const mediaAttributes = serializedNode.attributes;
+    let isPlaying = false;
+    if (mediaAttributes.rr_mediaState) {
+      isPlaying = mediaAttributes.rr_mediaState === "played";
+    } else {
+      isPlaying = target.getAttribute("autoplay") !== null;
+    }
+    if (isPlaying && playerIsPaused)
+      target.pause();
+    let playbackRate = 1;
+    if (typeof mediaAttributes.rr_mediaPlaybackRate === "number") {
+      playbackRate = mediaAttributes.rr_mediaPlaybackRate;
+    }
+    let muted = false;
+    if (typeof mediaAttributes.rr_mediaMuted === "boolean") {
+      muted = mediaAttributes.rr_mediaMuted;
+    } else {
+      muted = target.getAttribute("muted") !== null;
+    }
+    let loop = false;
+    if (typeof mediaAttributes.rr_mediaLoop === "boolean") {
+      loop = mediaAttributes.rr_mediaLoop;
+    } else {
+      loop = target.getAttribute("loop") !== null;
+    }
+    let volume = 1;
+    if (typeof mediaAttributes.rr_mediaVolume === "number") {
+      volume = mediaAttributes.rr_mediaVolume;
+    }
+    let currentTimeAtLastInteraction = 0;
+    if (typeof mediaAttributes.rr_mediaCurrentTime === "number") {
+      currentTimeAtLastInteraction = mediaAttributes.rr_mediaCurrentTime;
+    }
+    this.mediaMap.set(target, {
+      isPlaying,
+      currentTimeAtLastInteraction,
+      lastInteractionTimeOffset: timeOffset,
+      playbackRate,
+      volume,
+      muted,
+      loop
+    });
+    this.syncTargetWithState(target);
+  }
+  mediaMutation({
+    target,
+    timeOffset,
+    mutation
+  }) {
+    this.mediaMap.set(
+      target,
+      this.getMediaStateFromMutation({
+        target,
+        timeOffset,
+        mutation
+      })
+    );
+    this.syncTargetWithState(target);
+  }
+  isSupportedMediaElement(node) {
+    return ["AUDIO", "VIDEO"].includes(node.nodeName);
+  }
+  reset() {
+    this.mediaMap.clear();
+  }
+};
 var SKIP_TIME_INTERVAL = 5 * 1e3;
 var SKIP_TIME_MIN = 1 * 1e3;
 var SKIP_DURATION_LIMIT = 60 * 60 * 1e3;
-var mitt2 = mitt || mitt_mjs_exports;
+var mitt = mitt$1 || mittProxy;
 var REPLAY_CONSOLE_PREFIX = "[replayer]";
 var defaultMouseTailConfig = {
   duration: 500,
@@ -8626,31 +8869,38 @@ function indicatesTouchDevice(e2) {
   return e2.type == EventType.IncrementalSnapshot && (e2.data.source == IncrementalSource.TouchMove || e2.data.source == IncrementalSource.MouseInteraction && e2.data.type == MouseInteractions.TouchStart);
 }
 var Replayer = class {
-  get timer() {
-    return this.service.state.context.timer;
-  }
   constructor(events, config) {
-    this.usingVirtualDom = false;
-    this.virtualDom = new RRDocument();
-    this.mouseTail = null;
-    this.tailPositions = [];
-    this.emitter = mitt2();
-    this.activityIntervals = [];
-    this.legacy_missingNodeRetryMap = {};
-    this.cache = createCache();
-    this.imageMap = /* @__PURE__ */ new Map();
-    this.canvasEventMap = /* @__PURE__ */ new Map();
-    this.mirror = createMirror();
-    this.styleMirror = new StyleSheetMirror();
-    this.firstFullSnapshot = null;
-    this.newDocumentQueue = [];
-    this.mousePos = null;
-    this.touchActive = null;
-    this.lastMouseDownEvent = null;
-    this.lastSelectionData = null;
-    this.constructedStyleMutations = [];
-    this.adoptedStyleSheets = [];
-    this.handleResize = (dimension) => {
+    __publicField(this, "wrapper");
+    __publicField(this, "iframe");
+    __publicField(this, "service");
+    __publicField(this, "speedService");
+    __publicField(this, "config");
+    __publicField(this, "usingVirtualDom", false);
+    __publicField(this, "virtualDom", new RRDocument());
+    __publicField(this, "mouse");
+    __publicField(this, "mouseTail", null);
+    __publicField(this, "tailPositions", []);
+    __publicField(this, "emitter", mitt());
+    __publicField(this, "nextUserInteractionEvent");
+    __publicField(this, "activityIntervals", []);
+    __publicField(this, "inactiveEndTimestamp");
+    __publicField(this, "legacy_missingNodeRetryMap", {});
+    __publicField(this, "cache", createCache());
+    __publicField(this, "imageMap", /* @__PURE__ */ new Map());
+    __publicField(this, "canvasEventMap", /* @__PURE__ */ new Map());
+    __publicField(this, "mirror", createMirror$2());
+    __publicField(this, "styleMirror", new StyleSheetMirror());
+    __publicField(this, "mediaManager");
+    __publicField(this, "firstFullSnapshot", null);
+    __publicField(this, "newDocumentQueue", []);
+    __publicField(this, "mousePos", null);
+    __publicField(this, "touchActive", null);
+    __publicField(this, "lastMouseDownEvent", null);
+    __publicField(this, "lastHoveredRootNode");
+    __publicField(this, "lastSelectionData", null);
+    __publicField(this, "constructedStyleMutations", []);
+    __publicField(this, "adoptedStyleSheets", []);
+    __publicField(this, "handleResize", (dimension) => {
       this.iframe.style.display = "inherit";
       for (const el of [this.mouseTail, this.iframe]) {
         if (!el) {
@@ -8659,8 +8909,8 @@ var Replayer = class {
         el.setAttribute("width", String(dimension.width));
         el.setAttribute("height", String(dimension.height));
       }
-    };
-    this.applyEventsSynchronously = (events2) => {
+    });
+    __publicField(this, "applyEventsSynchronously", (events2) => {
       for (const event of events2) {
         switch (event.type) {
           case EventType.DomContentLoaded:
@@ -8676,8 +8926,8 @@ var Replayer = class {
         const castFn = this.getCastFn(event, true);
         castFn();
       }
-    };
-    this.getCastFn = (event, isSync = false) => {
+    });
+    __publicField(this, "getCastFn", (event, isSync = false) => {
       let castFn;
       switch (event.type) {
         case EventType.DomContentLoaded:
@@ -8705,9 +8955,10 @@ var Replayer = class {
             } else {
               this.firstFullSnapshot = true;
             }
-            this.rebuildFullSnapshot(event, isSync);
-            (_a2 = this.iframe.contentWindow) === null || _a2 === void 0 ? void 0 : _a2.scrollTo(event.data.initialOffset);
+            this.mediaManager.reset();
             this.styleMirror.reset();
+            this.rebuildFullSnapshot(event, isSync);
+            (_a2 = this.iframe.contentWindow) == null ? void 0 : _a2.scrollTo(event.data.initialOffset);
           };
           break;
         case EventType.IncrementalSnapshot:
@@ -8727,16 +8978,25 @@ var Replayer = class {
                   continue;
                 }
                 if (this.isUserInteraction(_event)) {
-                  if (_event.delay - event.delay > this.config.inactivePeriodThreshold * this.speedService.state.context.timer.speed) {
+                  if (
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    _event.delay - event.delay > this.config.inactivePeriodThreshold * this.speedService.state.context.timer.speed
+                  ) {
                     this.nextUserInteractionEvent = _event;
                   }
                   break;
                 }
               }
               if (this.nextUserInteractionEvent) {
-                const skipTime = this.nextUserInteractionEvent.delay - event.delay;
+                const skipTime = (
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  this.nextUserInteractionEvent.delay - event.delay
+                );
                 const payload = {
-                  speed: Math.min(Math.round(skipTime / SKIP_TIME_INTERVAL), this.config.maxSpeed)
+                  speed: Math.min(
+                    Math.round(skipTime / SKIP_TIME_INTERVAL),
+                    this.config.maxSpeed
+                  )
                 };
                 this.speedService.send({ type: "FAST_FORWARD", payload });
                 this.emitter.emit(ReplayerEvents.SkipStart, payload);
@@ -8773,8 +9033,8 @@ var Replayer = class {
         this.emitter.emit(ReplayerEvents.EventCast, event);
       };
       return wrappedCastFn;
-    };
-    if (!(config === null || config === void 0 ? void 0 : config.liveMode) && events.length < 2) {
+    });
+    if (!(config == null ? void 0 : config.liveMode) && events.length < 2) {
       throw new Error("Replayer need at least 2 events.");
     }
     const defaultConfig = {
@@ -8794,6 +9054,7 @@ var Replayer = class {
       pauseAnimation: true,
       mouseTail: defaultMouseTailConfig,
       useVirtualDom: true,
+      // Virtual-dom optimization is enabled by default.
       logger: console,
       inactiveThreshold: 0.02,
       inactiveSkipTime: SKIP_TIME_INTERVAL
@@ -8813,7 +9074,7 @@ var Replayer = class {
         const replayerHandler = {
           mirror: this.mirror,
           applyCanvas: (canvasEvent, canvasMutationData, target) => {
-            void canvasMutation2({
+            void canvasMutation({
               event: canvasEvent,
               mutation: canvasMutationData,
               target,
@@ -8839,7 +9100,12 @@ var Replayer = class {
         };
         if (this.iframe.contentDocument)
           try {
-            diff(this.iframe.contentDocument, this.virtualDom, replayerHandler, this.virtualDom.mirror);
+            diff(
+              this.iframe.contentDocument,
+              this.virtualDom,
+              replayerHandler,
+              this.virtualDom.mirror
+            );
           } catch (e2) {
             console.warn(e2);
           }
@@ -8849,8 +9115,17 @@ var Replayer = class {
           for (const key in this.legacy_missingNodeRetryMap) {
             try {
               const value = this.legacy_missingNodeRetryMap[key];
-              const realNode = createOrGetNode(value.node, this.mirror, this.virtualDom.mirror);
-              diff(realNode, value.node, replayerHandler, this.virtualDom.mirror);
+              const realNode = createOrGetNode(
+                value.node,
+                this.mirror,
+                this.virtualDom.mirror
+              );
+              diff(
+                realNode,
+                value.node,
+                replayerHandler,
+                this.virtualDom.mirror
+              );
               value.node = realNode;
             } catch (error) {
               this.warn(error);
@@ -8867,7 +9142,13 @@ var Replayer = class {
         this.adoptedStyleSheets = [];
       }
       if (this.mousePos) {
-        this.moveAndHover(this.mousePos.x, this.mousePos.y, this.mousePos.id, true, this.mousePos.debugData);
+        this.moveAndHover(
+          this.mousePos.x,
+          this.mousePos.y,
+          this.mousePos.id,
+          true,
+          this.mousePos.debugData
+        );
         this.mousePos = null;
       }
       if (this.touchActive === true) {
@@ -8890,26 +9171,30 @@ var Replayer = class {
       this.firstFullSnapshot = null;
       this.mirror.reset();
       this.styleMirror.reset();
+      this.mediaManager.reset();
     });
     const timer = new Timer([], {
       speed: this.config.speed
     });
-    this.service = createPlayerService({
-      events: events.map((e2) => {
-        if (config && config.unpackFn) {
-          return config.unpackFn(e2);
-        }
-        return e2;
-      }).sort((a1, a2) => a1.timestamp - a2.timestamp),
-      timer,
-      timeOffset: 0,
-      baselineTime: 0,
-      lastPlayedEvent: null
-    }, {
-      getCastFn: this.getCastFn,
-      applyEventsSynchronously: this.applyEventsSynchronously,
-      emitter: this.emitter
-    });
+    this.service = createPlayerService(
+      {
+        events: events.map((e2) => {
+          if (config && config.unpackFn) {
+            return config.unpackFn(e2);
+          }
+          return e2;
+        }).sort((a1, a2) => a1.timestamp - a2.timestamp),
+        timer,
+        timeOffset: 0,
+        baselineTime: 0,
+        lastPlayedEvent: null
+      },
+      {
+        getCastFn: this.getCastFn,
+        applyEventsSynchronously: this.applyEventsSynchronously,
+        emitter: this.emitter
+      }
+    );
     this.service.start();
     this.service.subscribe((state) => {
       this.emitter.emit(ReplayerEvents.StateChange, {
@@ -8926,8 +9211,19 @@ var Replayer = class {
         speed: state
       });
     });
-    const firstMeta = this.service.state.context.events.find((e2) => e2.type === EventType.Meta);
-    const firstFullsnapshot = this.service.state.context.events.find((e2) => e2.type === EventType.FullSnapshot);
+    this.mediaManager = new MediaManager({
+      warn: this.warn.bind(this),
+      service: this.service,
+      speedService: this.speedService,
+      emitter: this.emitter,
+      getCurrentTime: this.getCurrentTime.bind(this)
+    });
+    const firstMeta = this.service.state.context.events.find(
+      (e2) => e2.type === EventType.Meta
+    );
+    const firstFullsnapshot = this.service.state.context.events.find(
+      (e2) => e2.type === EventType.FullSnapshot
+    );
     if (firstMeta) {
       const { width, height } = firstMeta.data;
       setTimeout(() => {
@@ -8944,13 +9240,20 @@ var Replayer = class {
           return;
         }
         this.firstFullSnapshot = firstFullsnapshot;
-        this.rebuildFullSnapshot(firstFullsnapshot);
-        (_a2 = this.iframe.contentWindow) === null || _a2 === void 0 ? void 0 : _a2.scrollTo(firstFullsnapshot.data.initialOffset);
+        this.rebuildFullSnapshot(
+          firstFullsnapshot
+        );
+        (_a2 = this.iframe.contentWindow) == null ? void 0 : _a2.scrollTo(
+          firstFullsnapshot.data.initialOffset
+        );
       }, 1);
     }
     if (this.service.state.context.events.find(indicatesTouchDevice)) {
       this.mouse.classList.add("touch-device");
     }
+  }
+  get timer() {
+    return this.service.state.context.timer;
   }
   on(event, handler) {
     this.emitter.on(event, handler);
@@ -8993,13 +9296,16 @@ var Replayer = class {
       }
     }
   }
+  /* Start Highlight Code */
   getActivityIntervals() {
     if (this.activityIntervals.length == 0) {
       const allIntervals = [];
       const metadata = this.getMetaData();
       const userInteractionEvents = [
         { timestamp: metadata.startTime },
-        ...this.service.state.context.events.filter((ev) => this.isUserInteraction(ev)),
+        ...this.service.state.context.events.filter(
+          (ev) => this.isUserInteraction(ev)
+        ),
         { timestamp: metadata.endTime }
       ];
       for (let i2 = 1; i2 < userInteractionEvents.length; i2++) {
@@ -9065,6 +9371,7 @@ var Replayer = class {
     }
     return this.activityIntervals;
   }
+  /* End Highlight Code */
   getMetaData() {
     const firstEvent = this.service.state.context.events[0];
     const lastEvent = this.service.state.context.events[this.service.state.context.events.length - 1];
@@ -9074,9 +9381,15 @@ var Replayer = class {
       totalTime: lastEvent.timestamp - firstEvent.timestamp
     };
   }
+  /**
+   * Get the actual time offset the player is at now compared to the first event.
+   */
   getCurrentTime() {
     return this.timer.timeOffset + this.getTimeOffset();
   }
+  /**
+   * Get the time offset the player is at now compared to the first event, but without regard for the timer.
+   */
   getTimeOffset() {
     const { baselineTime, events } = this.service.state.context;
     return baselineTime - events[0].timestamp;
@@ -9084,19 +9397,28 @@ var Replayer = class {
   getMirror() {
     return this.mirror;
   }
+  /**
+   * This API was designed to be used as play at any time offset.
+   * Since we minimized the data collected from recorder, we do not
+   * have the ability of undo an event.
+   * So the implementation of play at any time offset will always iterate
+   * all of the events, cast event before the offset synchronously
+   * and cast event after the offset asynchronously with timer.
+   * @param timeOffset - number
+   */
   play(timeOffset = 0) {
-    var _a2, _b2;
+    var _a2, _b;
     if (this.service.state.matches("paused")) {
       this.service.send({ type: "PLAY", payload: { timeOffset } });
     } else {
       this.service.send({ type: "PAUSE" });
       this.service.send({ type: "PLAY", payload: { timeOffset } });
     }
-    (_b2 = (_a2 = this.iframe.contentDocument) === null || _a2 === void 0 ? void 0 : _a2.getElementsByTagName("html")[0]) === null || _b2 === void 0 ? void 0 : _b2.classList.remove("rrweb-paused");
+    (_b = (_a2 = this.iframe.contentDocument) == null ? void 0 : _a2.getElementsByTagName("html")[0]) == null ? void 0 : _b.classList.remove("rrweb-paused");
     this.emitter.emit(ReplayerEvents.Start);
   }
   pause(timeOffset) {
-    var _a2, _b2;
+    var _a2, _b;
     if (timeOffset === void 0 && this.service.state.matches("playing")) {
       this.service.send({ type: "PAUSE" });
     }
@@ -9104,16 +9426,25 @@ var Replayer = class {
       this.play(timeOffset);
       this.service.send({ type: "PAUSE" });
     }
-    (_b2 = (_a2 = this.iframe.contentDocument) === null || _a2 === void 0 ? void 0 : _a2.getElementsByTagName("html")[0]) === null || _b2 === void 0 ? void 0 : _b2.classList.add("rrweb-paused");
+    (_b = (_a2 = this.iframe.contentDocument) == null ? void 0 : _a2.getElementsByTagName("html")[0]) == null ? void 0 : _b.classList.add("rrweb-paused");
     this.emitter.emit(ReplayerEvents.Pause);
   }
   resume(timeOffset = 0) {
-    this.warn(`The 'resume' was deprecated in 1.0. Please use 'play' method which has the same interface.`);
+    this.warn(
+      `The 'resume' was deprecated in 1.0. Please use 'play' method which has the same interface.`
+    );
     this.play(timeOffset);
     this.emitter.emit(ReplayerEvents.Resume);
   }
+  /**
+   * Totally destroy this replayer and please be careful that this operation is irreversible.
+   * Memory occupation can be released by removing all references to this replayer.
+   */
   destroy() {
     this.pause();
+    this.mirror.reset();
+    this.styleMirror.reset();
+    this.mediaManager.reset();
     this.config.root.removeChild(this.wrapper);
     this.emitter.emit(ReplayerEvents.Destroy);
   }
@@ -9125,7 +9456,9 @@ var Replayer = class {
     if (indicatesTouchDevice(event)) {
       this.mouse.classList.add("touch-device");
     }
-    void Promise.resolve().then(() => this.service.send({ type: "ADD_EVENT", payload: { event } }));
+    void Promise.resolve().then(
+      () => this.service.send({ type: "ADD_EVENT", payload: { event } })
+    );
   }
   replaceEvents(events) {
     for (const event of events) {
@@ -9144,6 +9477,10 @@ var Replayer = class {
     this.iframe.setAttribute("scrolling", "no");
     this.iframe.style.pointerEvents = "none";
   }
+  /**
+   * Empties the replayer's cache and reclaims memory.
+   * The replayer will use this cache to speed up the playback.
+   */
   resetCache() {
     this.cache = createCache();
   }
@@ -9170,10 +9507,14 @@ var Replayer = class {
     this.disableInteract();
     this.wrapper.appendChild(this.iframe);
     if (this.iframe.contentWindow && this.iframe.contentDocument) {
-      polyfill2(this.iframe.contentWindow, this.iframe.contentDocument);
-      polyfill(this.iframe.contentWindow);
+      polyfill(
+        this.iframe.contentWindow,
+        this.iframe.contentDocument
+      );
+      polyfill$1(this.iframe.contentWindow);
     }
   }
+  /* Start of Highlight Code */
   handleInactivity(timestamp, resetNext) {
     if (timestamp === this.inactiveEndTimestamp || resetNext) {
       this.inactiveEndTimestamp = null;
@@ -9189,24 +9530,38 @@ var Replayer = class {
       if (this.inactiveEndTimestamp) {
         const skipTime = this.inactiveEndTimestamp - timestamp;
         const payload = {
-          speed: skipTime / SKIP_DURATION_LIMIT * this.config.inactiveSkipTime < SKIP_TIME_MIN ? skipTime / SKIP_TIME_MIN : Math.round(Math.max(skipTime, SKIP_DURATION_LIMIT) / this.config.inactiveSkipTime)
+          speed: skipTime / SKIP_DURATION_LIMIT * this.config.inactiveSkipTime < SKIP_TIME_MIN ? skipTime / SKIP_TIME_MIN : Math.round(
+            Math.max(skipTime, SKIP_DURATION_LIMIT) / this.config.inactiveSkipTime
+          )
         };
         this.speedService.send({ type: "FAST_FORWARD", payload });
         this.emitter.emit(ReplayerEvents.SkipStart, payload);
       }
     }
   }
+  /* End of Highlight Code */
   rebuildFullSnapshot(event, isSync = false) {
     if (!this.iframe.contentDocument) {
       return this.warn("Looks like your replayer has been destroyed.");
     }
     if (Object.keys(this.legacy_missingNodeRetryMap).length) {
-      this.warn("Found unresolved missing node map", this.legacy_missingNodeRetryMap);
+      this.warn(
+        "Found unresolved missing node map",
+        this.legacy_missingNodeRetryMap
+      );
     }
     this.legacy_missingNodeRetryMap = {};
     const collected = [];
     const afterAppend = (builtNode, id) => {
       this.collectIframeAndAttachDocument(collected, builtNode);
+      if (this.mediaManager.isSupportedMediaElement(builtNode)) {
+        const { events } = this.service.state.context;
+        this.mediaManager.addMediaElements(
+          builtNode,
+          event.timestamp - events[0].timestamp,
+          this.mirror
+        );
+      }
       for (const plugin of this.config.plugins || []) {
         if (plugin.onBuild)
           plugin.onBuild(builtNode, {
@@ -9229,7 +9584,9 @@ var Replayer = class {
     afterAppend(this.iframe.contentDocument, event.data.node.id);
     for (const { mutationInQueue, builtNode } of collected) {
       this.attachDocumentToIframe(mutationInQueue, builtNode);
-      this.newDocumentQueue = this.newDocumentQueue.filter((m) => m !== mutationInQueue);
+      this.newDocumentQueue = this.newDocumentQueue.filter(
+        (m) => m !== mutationInQueue
+      );
     }
     const { documentElement, head } = this.iframe.contentDocument;
     this.insertStyleRules(documentElement, head);
@@ -9246,13 +9603,20 @@ var Replayer = class {
   }
   insertStyleRules(documentElement, head) {
     var _a2;
-    const injectStylesRules = rules(this.config.blockClass).concat(this.config.insertStyleRules);
+    const injectStylesRules = rules(
+      this.config.blockClass
+    ).concat(this.config.insertStyleRules);
     if (this.config.pauseAnimation) {
-      injectStylesRules.push("html.rrweb-paused *, html.rrweb-paused *:before, html.rrweb-paused *:after { animation-play-state: paused !important; }");
+      injectStylesRules.push(
+        "html.rrweb-paused *, html.rrweb-paused *:before, html.rrweb-paused *:after { animation-play-state: paused !important; }"
+      );
     }
     if (this.usingVirtualDom) {
       const styleEl = this.virtualDom.createElement("style");
-      this.virtualDom.mirror.add(styleEl, getDefaultSN(styleEl, this.virtualDom.unserializedId));
+      this.virtualDom.mirror.add(
+        styleEl,
+        getDefaultSN(styleEl, this.virtualDom.unserializedId)
+      );
       documentElement.insertBefore(styleEl, head);
       styleEl.rules.push({
         source: IncrementalSource.StyleSheetRule,
@@ -9263,9 +9627,12 @@ var Replayer = class {
       });
     } else {
       const styleEl = document.createElement("style");
-      documentElement.insertBefore(styleEl, head);
+      documentElement.insertBefore(
+        styleEl,
+        head
+      );
       for (let idx = 0; idx < injectStylesRules.length; idx++) {
-        (_a2 = styleEl.sheet) === null || _a2 === void 0 ? void 0 : _a2.insertRule(injectStylesRules[idx], idx);
+        (_a2 = styleEl.sheet) == null ? void 0 : _a2.insertRule(injectStylesRules[idx], idx);
       }
     }
   }
@@ -9275,9 +9642,12 @@ var Replayer = class {
     const afterAppend = (builtNode, id) => {
       this.collectIframeAndAttachDocument(collected, builtNode);
       const sn = mirror2.getMeta(builtNode);
-      if ((sn === null || sn === void 0 ? void 0 : sn.type) === NodeType.Element && (sn === null || sn === void 0 ? void 0 : sn.tagName.toUpperCase()) === "HTML") {
+      if ((sn == null ? void 0 : sn.type) === NodeType$2.Element && (sn == null ? void 0 : sn.tagName.toUpperCase()) === "HTML") {
         const { documentElement, head } = iframeEl.contentDocument;
-        this.insertStyleRules(documentElement, head);
+        this.insertStyleRules(
+          documentElement,
+          head
+        );
       }
       if (this.usingVirtualDom)
         return;
@@ -9300,12 +9670,16 @@ var Replayer = class {
     afterAppend(iframeEl.contentDocument, mutation.node.id);
     for (const { mutationInQueue, builtNode } of collected) {
       this.attachDocumentToIframe(mutationInQueue, builtNode);
-      this.newDocumentQueue = this.newDocumentQueue.filter((m) => m !== mutationInQueue);
+      this.newDocumentQueue = this.newDocumentQueue.filter(
+        (m) => m !== mutationInQueue
+      );
     }
   }
   collectIframeAndAttachDocument(collected, builtNode) {
     if (isSerializedIframe(builtNode, this.mirror)) {
-      const mutationInQueue = this.newDocumentQueue.find((m) => m.parentId === this.mirror.getId(builtNode));
+      const mutationInQueue = this.newDocumentQueue.find(
+        (m) => m.parentId === this.mirror.getId(builtNode)
+      );
       if (mutationInQueue) {
         collected.push({
           mutationInQueue,
@@ -9314,9 +9688,12 @@ var Replayer = class {
       }
     }
   }
+  /**
+   * pause when loading style sheet, resume when loaded all timeout exceed
+   */
   waitForStylesheetLoad() {
     var _a2;
-    const head = (_a2 = this.iframe.contentDocument) === null || _a2 === void 0 ? void 0 : _a2.head;
+    const head = (_a2 = this.iframe.contentDocument) == null ? void 0 : _a2.head;
     if (head) {
       const unloadSheets = /* @__PURE__ */ new Set();
       let timer;
@@ -9361,60 +9738,59 @@ var Replayer = class {
       }
     }
   }
-  preloadAllImages() {
-    return __awaiter(this, void 0, void 0, function* () {
-      this.service.state;
-      const stateHandler = () => {
-        this.service.state;
-      };
-      this.emitter.on(ReplayerEvents.Start, stateHandler);
-      this.emitter.on(ReplayerEvents.Pause, stateHandler);
-      const promises = [];
-      for (const event of this.service.state.context.events) {
-        if (event.type === EventType.IncrementalSnapshot && event.data.source === IncrementalSource.CanvasMutation) {
-          promises.push(this.deserializeAndPreloadCanvasEvents(event.data, event));
-          const commands = "commands" in event.data ? event.data.commands : [event.data];
-          commands.forEach((c2) => {
-            this.preloadImages(c2, event);
-          });
-        }
+  /**
+   * pause when there are some canvas drawImage args need to be loaded
+   */
+  async preloadAllImages() {
+    const promises = [];
+    for (const event of this.service.state.context.events) {
+      if (event.type === EventType.IncrementalSnapshot && event.data.source === IncrementalSource.CanvasMutation) {
+        promises.push(
+          this.deserializeAndPreloadCanvasEvents(event.data, event)
+        );
+        const commands = "commands" in event.data ? event.data.commands : [event.data];
+        commands.forEach((c2) => {
+          this.preloadImages(c2, event);
+        });
       }
-      return Promise.all(promises);
-    });
+    }
+    return Promise.all(promises);
   }
   preloadImages(data, event) {
     if (data.property === "drawImage" && typeof data.args[0] === "string" && !this.imageMap.has(event)) {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-      const imgd = ctx === null || ctx === void 0 ? void 0 : ctx.createImageData(canvas.width, canvas.height);
-      imgd === null || imgd === void 0 ? void 0 : imgd.data;
-      JSON.parse(data.args[0]);
-      ctx === null || ctx === void 0 ? void 0 : ctx.putImageData(imgd, 0, 0);
+      const imgd = ctx == null ? void 0 : ctx.createImageData(canvas.width, canvas.height);
+      ctx == null ? void 0 : ctx.putImageData(imgd, 0, 0);
     }
   }
-  deserializeAndPreloadCanvasEvents(data, event) {
-    return __awaiter(this, void 0, void 0, function* () {
-      if (!this.canvasEventMap.has(event)) {
-        const status = {
-          isUnchanged: true
-        };
-        if ("commands" in data) {
-          const commands = yield Promise.all(data.commands.map((c2) => __awaiter(this, void 0, void 0, function* () {
-            const args = yield Promise.all(c2.args.map(deserializeArg(this.imageMap, null, status)));
-            return Object.assign(Object.assign({}, c2), { args });
-          })));
-          if (status.isUnchanged === false)
-            this.canvasEventMap.set(event, Object.assign(Object.assign({}, data), { commands }));
-        } else {
-          const args = yield Promise.all(data.args.map(deserializeArg(this.imageMap, null, status)));
-          if (status.isUnchanged === false)
-            this.canvasEventMap.set(event, Object.assign(Object.assign({}, data), { args }));
-        }
+  async deserializeAndPreloadCanvasEvents(data, event) {
+    if (!this.canvasEventMap.has(event)) {
+      const status = {
+        isUnchanged: true
+      };
+      if ("commands" in data) {
+        const commands = await Promise.all(
+          data.commands.map(async (c2) => {
+            const args = await Promise.all(
+              c2.args.map(deserializeArg(this.imageMap, null, status))
+            );
+            return { ...c2, args };
+          })
+        );
+        if (status.isUnchanged === false)
+          this.canvasEventMap.set(event, { ...data, commands });
+      } else {
+        const args = await Promise.all(
+          data.args.map(deserializeArg(this.imageMap, null, status))
+        );
+        if (status.isUnchanged === false)
+          this.canvasEventMap.set(event, { ...data, args });
       }
-    });
+    }
   }
   applyIncremental(e2, isSync) {
-    var _a2, _b2, _c;
+    var _a2, _b, _c;
     const { data: d } = e2;
     switch (d.source) {
       case IncrementalSource.Mutation: {
@@ -9449,7 +9825,8 @@ var Replayer = class {
           this.timer.addAction({
             doAction() {
             },
-            delay: e2.delay - ((_a2 = d.positions[0]) === null || _a2 === void 0 ? void 0 : _a2.timeOffset)
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            delay: e2.delay - ((_a2 = d.positions[0]) == null ? void 0 : _a2.timeOffset)
           });
         }
         break;
@@ -9575,28 +9952,12 @@ var Replayer = class {
           return this.debugNodeNotFound(d, d.id);
         }
         const mediaEl = target;
-        try {
-          if (d.currentTime !== void 0) {
-            mediaEl.currentTime = d.currentTime;
-          }
-          if (d.volume !== void 0) {
-            mediaEl.volume = d.volume;
-          }
-          if (d.muted !== void 0) {
-            mediaEl.muted = d.muted;
-          }
-          if (d.type === 1) {
-            mediaEl.pause();
-          }
-          if (d.type === 0) {
-            void mediaEl.play();
-          }
-          if (d.type === 4) {
-            mediaEl.playbackRate = d.playbackRate;
-          }
-        } catch (error) {
-          this.warn(`Failed to replay media interactions: ${error.message || error}`);
-        }
+        const { events } = this.service.state.context;
+        this.mediaManager.mediaMutation({
+          target: mediaEl,
+          timeOffset: e2.timestamp - events[0].timestamp,
+          mutation: d
+        });
         break;
       }
       case IncrementalSource.StyleSheetRule:
@@ -9605,7 +9966,7 @@ var Replayer = class {
           if (d.styleId)
             this.constructedStyleMutations.push(d);
           else if (d.id)
-            (_b2 = this.virtualDom.mirror.getNode(d.id)) === null || _b2 === void 0 ? void 0 : _b2.rules.push(d);
+            (_b = this.virtualDom.mirror.getNode(d.id)) == null ? void 0 : _b.rules.push(d);
         } else
           this.applyStyleSheetMutation(d);
         break;
@@ -9615,7 +9976,9 @@ var Replayer = class {
           return;
         }
         if (this.usingVirtualDom) {
-          const target = this.virtualDom.mirror.getNode(d.id);
+          const target = this.virtualDom.mirror.getNode(
+            d.id
+          );
           if (!target) {
             return this.debugNodeNotFound(d, d.id);
           }
@@ -9628,7 +9991,7 @@ var Replayer = class {
           if (!target) {
             return this.debugNodeNotFound(d, d.id);
           }
-          void canvasMutation2({
+          void canvasMutation({
             event: e2,
             mutation: d,
             target,
@@ -9641,8 +10004,12 @@ var Replayer = class {
       }
       case IncrementalSource.Font: {
         try {
-          const fontFace = new FontFace(d.family, d.buffer ? new Uint8Array(JSON.parse(d.fontSource)) : d.fontSource, d.descriptors);
-          (_c = this.iframe.contentDocument) === null || _c === void 0 ? void 0 : _c.fonts.add(fontFace);
+          const fontFace = new FontFace(
+            d.family,
+            d.buffer ? new Uint8Array(JSON.parse(d.fontSource)) : d.fontSource,
+            d.descriptors
+          );
+          (_c = this.iframe.contentDocument) == null ? void 0 : _c.fonts.add(fontFace);
         } catch (error) {
           this.warn(error);
         }
@@ -9665,6 +10032,11 @@ var Replayer = class {
       }
     }
   }
+  /**
+   * Apply the mutation to the virtual dom or the real dom.
+   * @param d - The mutation data.
+   * @param isSync - Whether the mutation should be applied synchronously (while fast-forwarding).
+   */
   applyMutation(d, isSync) {
     if (this.config.useVirtualDom && !this.usingVirtualDom && isSync) {
       this.usingVirtualDom = true;
@@ -9673,7 +10045,11 @@ var Replayer = class {
         for (const key in this.legacy_missingNodeRetryMap) {
           try {
             const value = this.legacy_missingNodeRetryMap[key];
-            const virtualNode = buildFromNode(value.node, this.virtualDom, this.mirror);
+            const virtualNode = buildFromNode(
+              value.node,
+              this.virtualDom,
+              this.mirror
+            );
             if (virtualNode)
               value.node = virtualNode;
           } catch (error) {
@@ -9696,7 +10072,9 @@ var Replayer = class {
       if (!target) {
         return;
       }
-      let parent = mirror2.getNode(mutation.parentId);
+      let parent = mirror2.getNode(
+        mutation.parentId
+      );
       if (!parent) {
         return this.warnNodeNotFound(d, mutation.parentId);
       }
@@ -9707,17 +10085,24 @@ var Replayer = class {
       if (parent)
         try {
           parent.removeChild(target);
-          if (this.usingVirtualDom && target.nodeName === "#text" && parent.nodeName === "STYLE" && ((_a2 = parent.rules) === null || _a2 === void 0 ? void 0 : _a2.length) > 0)
+          if (this.usingVirtualDom && target.nodeName === "#text" && parent.nodeName === "STYLE" && ((_a2 = parent.rules) == null ? void 0 : _a2.length) > 0)
             parent.rules = [];
         } catch (error) {
           if (error instanceof DOMException) {
-            this.warn("parent could not remove child in mutation", parent, target, d);
+            this.warn(
+              "parent could not remove child in mutation",
+              parent,
+              target,
+              d
+            );
           } else {
             throw error;
           }
         }
     });
-    const legacy_missingNodeMap = Object.assign({}, this.legacy_missingNodeRetryMap);
+    const legacy_missingNodeMap = {
+      ...this.legacy_missingNodeRetryMap
+    };
     const queue = [];
     const nextNotInDOM = (mutation) => {
       let next = null;
@@ -9730,13 +10115,15 @@ var Replayer = class {
       return false;
     };
     const appendNode = (mutation) => {
-      var _a2, _b2;
+      var _a2, _b;
       if (!this.iframe.contentDocument) {
         return this.warn("Looks like your replayer has been destroyed.");
       }
-      let parent = mirror2.getNode(mutation.parentId);
+      let parent = mirror2.getNode(
+        mutation.parentId
+      );
       if (!parent) {
-        if (mutation.node.type === NodeType.Document) {
+        if (mutation.node.type === NodeType$2.Document) {
           return this.newDocumentQueue.push(mutation);
         }
         return queue.push(mutation);
@@ -9764,7 +10151,10 @@ var Replayer = class {
       }
       const targetDoc = mutation.node.rootId ? mirror2.getNode(mutation.node.rootId) : this.usingVirtualDom ? this.virtualDom : this.iframe.contentDocument;
       if (isSerializedIframe(parent, mirror2)) {
-        this.attachDocumentToIframe(mutation, parent);
+        this.attachDocumentToIframe(
+          mutation,
+          parent
+        );
         return;
       }
       const afterAppend = (node, id) => {
@@ -9777,10 +10167,16 @@ var Replayer = class {
       };
       const target = buildNodeWithSN(mutation.node, {
         doc: targetDoc,
+        // can be Document or RRDocument
         mirror: mirror2,
+        // can be this.mirror or virtualDom.mirror
         skipChild: true,
         hackCss: true,
         cache: this.cache,
+        /**
+         * caveat: `afterAppend` only gets called on child nodes of target
+         * we have to call it again below when this target was added to the DOM
+         */
         afterAppend
       });
       if (mutation.previousId === -1 || mutation.nextId === -1) {
@@ -9791,40 +10187,57 @@ var Replayer = class {
         return;
       }
       const parentSn = mirror2.getMeta(parent);
-      if (parentSn && parentSn.type === NodeType.Element && parentSn.tagName === "textarea" && mutation.node.type === NodeType.Text) {
+      if (parentSn && parentSn.type === NodeType$2.Element && parentSn.tagName === "textarea" && mutation.node.type === NodeType$2.Text) {
         const childNodeArray = Array.isArray(parent.childNodes) ? parent.childNodes : Array.from(parent.childNodes);
         for (const c2 of childNodeArray) {
           if (c2.nodeType === parent.TEXT_NODE) {
             parent.removeChild(c2);
           }
         }
-      } else if ((parentSn === null || parentSn === void 0 ? void 0 : parentSn.type) === NodeType.Document) {
+      } else if ((parentSn == null ? void 0 : parentSn.type) === NodeType$2.Document) {
         const parentDoc = parent;
-        if (mutation.node.type === NodeType.DocumentType && ((_a2 = parentDoc.childNodes[0]) === null || _a2 === void 0 ? void 0 : _a2.nodeType) === Node.DOCUMENT_TYPE_NODE)
+        if (mutation.node.type === NodeType$2.DocumentType && ((_a2 = parentDoc.childNodes[0]) == null ? void 0 : _a2.nodeType) === Node.DOCUMENT_TYPE_NODE)
           parentDoc.removeChild(parentDoc.childNodes[0]);
         if (target.nodeName === "HTML" && parentDoc.documentElement)
-          parentDoc.removeChild(parentDoc.documentElement);
+          parentDoc.removeChild(
+            parentDoc.documentElement
+          );
       }
       if (previous && previous.nextSibling && previous.nextSibling.parentNode) {
-        parent.insertBefore(target, previous.nextSibling);
+        parent.insertBefore(
+          target,
+          previous.nextSibling
+        );
       } else if (next && next.parentNode) {
         parent.contains(next) ? parent.insertBefore(target, next) : parent.insertBefore(target, null);
       } else {
         parent.appendChild(target);
       }
       afterAppend(target, mutation.node.id);
-      if (this.usingVirtualDom && target.nodeName === "#text" && parent.nodeName === "STYLE" && ((_b2 = parent.rules) === null || _b2 === void 0 ? void 0 : _b2.length) > 0)
+      if (this.usingVirtualDom && target.nodeName === "#text" && parent.nodeName === "STYLE" && ((_b = parent.rules) == null ? void 0 : _b.length) > 0)
         parent.rules = [];
       if (isSerializedIframe(target, this.mirror)) {
         const targetId = this.mirror.getId(target);
-        const mutationInQueue = this.newDocumentQueue.find((m) => m.parentId === targetId);
+        const mutationInQueue = this.newDocumentQueue.find(
+          (m) => m.parentId === targetId
+        );
         if (mutationInQueue) {
-          this.attachDocumentToIframe(mutationInQueue, target);
-          this.newDocumentQueue = this.newDocumentQueue.filter((m) => m !== mutationInQueue);
+          this.attachDocumentToIframe(
+            mutationInQueue,
+            target
+          );
+          this.newDocumentQueue = this.newDocumentQueue.filter(
+            (m) => m !== mutationInQueue
+          );
         }
       }
       if (mutation.previousId || mutation.nextId) {
-        this.legacy_resolveMissingNode(legacy_missingNodeMap, parent, target, mutation);
+        this.legacy_resolveMissingNode(
+          legacy_missingNodeMap,
+          parent,
+          target,
+          mutation
+        );
       }
     };
     d.adds.forEach((mutation) => {
@@ -9835,13 +10248,19 @@ var Replayer = class {
       const resolveTrees = queueToResolveTrees(queue);
       queue.length = 0;
       if (Date.now() - startTime > 500) {
-        this.warn("Timeout in the loop, please check the resolve tree data:", resolveTrees);
+        this.warn(
+          "Timeout in the loop, please check the resolve tree data:",
+          resolveTrees
+        );
         break;
       }
       for (const tree of resolveTrees) {
         const parent = mirror2.getNode(tree.value.parentId);
         if (!parent) {
-          this.debug("Drop resolve tree since there is no parent for the root node.", tree);
+          this.debug(
+            "Drop resolve tree since there is no parent for the root node.",
+            tree
+          );
         } else {
           iterateResolveTree(tree, (mutation) => {
             appendNode(mutation);
@@ -9864,7 +10283,7 @@ var Replayer = class {
       target.textContent = mutation.value;
       if (this.usingVirtualDom) {
         const parent = target.parentNode;
-        if (((_a2 = parent === null || parent === void 0 ? void 0 : parent.rules) === null || _a2 === void 0 ? void 0 : _a2.length) > 0)
+        if (((_a2 = parent == null ? void 0 : parent.rules) == null ? void 0 : _a2.length) > 0)
           parent.rules = [];
       }
     });
@@ -9886,20 +10305,29 @@ var Replayer = class {
             try {
               if (attributeName === "_cssText" && (target.nodeName === "LINK" || target.nodeName === "STYLE")) {
                 try {
-                  const newSn = mirror2.getMeta(target);
-                  Object.assign(newSn.attributes, mutation.attributes);
+                  const newSn = mirror2.getMeta(
+                    target
+                  );
+                  Object.assign(
+                    newSn.attributes,
+                    mutation.attributes
+                  );
                   const newNode = buildNodeWithSN(newSn, {
                     doc: target.ownerDocument,
+                    // can be Document or RRDocument
                     mirror: mirror2,
                     skipChild: true,
                     hackCss: true,
                     cache: this.cache
                   });
                   const siblingNode = target.nextSibling;
-                  const parentNode = target.parentNode;
-                  if (newNode && parentNode) {
-                    parentNode.removeChild(target);
-                    parentNode.insertBefore(newNode, siblingNode);
+                  const parentNode2 = target.parentNode;
+                  if (newNode && parentNode2) {
+                    parentNode2.removeChild(target);
+                    parentNode2.insertBefore(
+                      newNode,
+                      siblingNode
+                    );
                     mirror2.replace(mutation.id, newNode);
                     break;
                   }
@@ -9908,16 +10336,24 @@ var Replayer = class {
               }
               if (attributeName === "value" && target.nodeName === "TEXTAREA") {
                 const textarea = target;
-                textarea.childNodes.forEach((c2) => textarea.removeChild(c2));
-                const tn = (_a2 = target.ownerDocument) === null || _a2 === void 0 ? void 0 : _a2.createTextNode(value);
+                textarea.childNodes.forEach(
+                  (c2) => textarea.removeChild(c2)
+                );
+                const tn = (_a2 = target.ownerDocument) == null ? void 0 : _a2.createTextNode(value);
                 if (tn) {
                   textarea.appendChild(tn);
                 }
               } else {
-                target.setAttribute(attributeName, value);
+                target.setAttribute(
+                  attributeName,
+                  value
+                );
               }
             } catch (error) {
-              this.warn("An error occurred may due to the checkout feature.", error);
+              this.warn(
+                "An error occurred may due to the checkout feature.",
+                error
+              );
             }
           } else if (attributeName === "style") {
             const styleValues = value;
@@ -9938,21 +10374,27 @@ var Replayer = class {
       }
     });
   }
+  /**
+   * Apply the scroll data on real elements.
+   * If the replayer is in sync mode, smooth scroll behavior should be disabled.
+   * @param d - the scroll data
+   * @param isSync - whether the replayer is in sync mode(fast-forward)
+   */
   applyScroll(d, isSync) {
-    var _a2, _b2;
+    var _a2, _b;
     const target = this.mirror.getNode(d.id);
     if (!target) {
       return this.debugNodeNotFound(d, d.id);
     }
     const sn = this.mirror.getMeta(target);
     if (target === this.iframe.contentDocument) {
-      (_a2 = this.iframe.contentWindow) === null || _a2 === void 0 ? void 0 : _a2.scrollTo({
+      (_a2 = this.iframe.contentWindow) == null ? void 0 : _a2.scrollTo({
         top: d.y,
         left: d.x,
         behavior: isSync ? "auto" : "smooth"
       });
-    } else if ((sn === null || sn === void 0 ? void 0 : sn.type) === NodeType.Document) {
-      (_b2 = target.defaultView) === null || _b2 === void 0 ? void 0 : _b2.scrollTo({
+    } else if ((sn == null ? void 0 : sn.type) === NodeType$2.Document) {
+      (_b = target.defaultView) == null ? void 0 : _b.scrollTo({
         top: d.y,
         left: d.x,
         behavior: isSync ? "auto" : "smooth"
@@ -9991,7 +10433,7 @@ var Replayer = class {
         result.setStart(startContainer, startOffset);
         result.setEnd(endContainer, endOffset);
         const doc = startContainer.ownerDocument;
-        const selection = doc === null || doc === void 0 ? void 0 : doc.getSelection();
+        const selection = doc == null ? void 0 : doc.getSelection();
         selection && selectionSet.add(selection);
         return {
           range: result,
@@ -10001,7 +10443,7 @@ var Replayer = class {
       selectionSet.forEach((s2) => s2.removeAllRanges());
       ranges.forEach((r2) => {
         var _a2;
-        return r2 && ((_a2 = r2.selection) === null || _a2 === void 0 ? void 0 : _a2.addRange(r2.range));
+        return r2 && ((_a2 = r2.selection) == null ? void 0 : _a2.addRange(r2.range));
       });
     } catch (error) {
     }
@@ -10012,7 +10454,7 @@ var Replayer = class {
     if (data.styleId)
       styleSheet = this.styleMirror.getStyle(data.styleId);
     else if (data.id)
-      styleSheet = ((_a2 = this.mirror.getNode(data.id)) === null || _a2 === void 0 ? void 0 : _a2.sheet) || null;
+      styleSheet = ((_a2 = this.mirror.getNode(data.id)) == null ? void 0 : _a2.sheet) || null;
     if (!styleSheet)
       return;
     if (data.source === IncrementalSource.StyleSheetRule)
@@ -10021,8 +10463,8 @@ var Replayer = class {
       this.applyStyleDeclaration(data, styleSheet);
   }
   applyStyleSheetRule(data, styleSheet) {
-    var _a2, _b2, _c, _d;
-    (_a2 = data.adds) === null || _a2 === void 0 ? void 0 : _a2.forEach(({ rule, index: nestedIndex }) => {
+    var _a2, _b, _c, _d;
+    (_a2 = data.adds) == null ? void 0 : _a2.forEach(({ rule, index: nestedIndex }) => {
       try {
         if (Array.isArray(nestedIndex)) {
           const { positions, index } = getPositionsAndIndex(nestedIndex);
@@ -10030,41 +10472,51 @@ var Replayer = class {
           nestedRule.insertRule(rule, index);
         } else {
           const index = nestedIndex === void 0 ? void 0 : Math.min(nestedIndex, styleSheet.cssRules.length);
-          styleSheet === null || styleSheet === void 0 ? void 0 : styleSheet.insertRule(rule, index);
+          styleSheet == null ? void 0 : styleSheet.insertRule(rule, index);
         }
       } catch (e2) {
       }
     });
-    (_b2 = data.removes) === null || _b2 === void 0 ? void 0 : _b2.forEach(({ index: nestedIndex }) => {
+    (_b = data.removes) == null ? void 0 : _b.forEach(({ index: nestedIndex }) => {
       try {
         if (Array.isArray(nestedIndex)) {
           const { positions, index } = getPositionsAndIndex(nestedIndex);
           const nestedRule = getNestedRule(styleSheet.cssRules, positions);
           nestedRule.deleteRule(index || 0);
         } else {
-          styleSheet === null || styleSheet === void 0 ? void 0 : styleSheet.deleteRule(nestedIndex);
+          styleSheet == null ? void 0 : styleSheet.deleteRule(nestedIndex);
         }
       } catch (e2) {
       }
     });
     if (data.replace)
       try {
-        void ((_c = styleSheet.replace) === null || _c === void 0 ? void 0 : _c.call(styleSheet, data.replace));
+        void ((_c = styleSheet.replace) == null ? void 0 : _c.call(styleSheet, data.replace));
       } catch (e2) {
       }
     if (data.replaceSync)
       try {
-        (_d = styleSheet.replaceSync) === null || _d === void 0 ? void 0 : _d.call(styleSheet, data.replaceSync);
+        (_d = styleSheet.replaceSync) == null ? void 0 : _d.call(styleSheet, data.replaceSync);
       } catch (e2) {
       }
   }
   applyStyleDeclaration(data, styleSheet) {
     if (data.set) {
-      const rule = getNestedRule(styleSheet.rules, data.index);
-      rule.style.setProperty(data.set.property, data.set.value, data.set.priority);
+      const rule = getNestedRule(
+        styleSheet.rules,
+        data.index
+      );
+      rule.style.setProperty(
+        data.set.property,
+        data.set.value,
+        data.set.priority
+      );
     }
     if (data.remove) {
-      const rule = getNestedRule(styleSheet.rules, data.index);
+      const rule = getNestedRule(
+        styleSheet.rules,
+        data.index
+      );
       rule.style.removeProperty(data.remove.property);
     }
   }
@@ -10073,12 +10525,12 @@ var Replayer = class {
     const targetHost = this.mirror.getNode(data.id);
     if (!targetHost)
       return;
-    (_a2 = data.styles) === null || _a2 === void 0 ? void 0 : _a2.forEach((style) => {
+    (_a2 = data.styles) == null ? void 0 : _a2.forEach((style) => {
       var _a3;
       let newStyleSheet = null;
       let hostWindow = null;
       if (hasShadowRoot(targetHost))
-        hostWindow = ((_a3 = targetHost.ownerDocument) === null || _a3 === void 0 ? void 0 : _a3.defaultView) || null;
+        hostWindow = ((_a3 = targetHost.ownerDocument) == null ? void 0 : _a3.defaultView) || null;
       else if (targetHost.nodeName === "#document")
         hostWindow = targetHost.defaultView;
       if (!hostWindow)
@@ -10086,10 +10538,13 @@ var Replayer = class {
       try {
         newStyleSheet = new hostWindow.CSSStyleSheet();
         this.styleMirror.add(newStyleSheet, style.styleId);
-        this.applyStyleSheetRule({
-          source: IncrementalSource.StyleSheetRule,
-          adds: style.rules
-        }, newStyleSheet);
+        this.applyStyleSheetRule(
+          {
+            source: IncrementalSource.StyleSheetRule,
+            adds: style.rules
+          },
+          newStyleSheet
+        );
       } catch (e2) {
       }
     });
@@ -10102,7 +10557,10 @@ var Replayer = class {
       else if (targetHost2.nodeName === "#document")
         targetHost2.adoptedStyleSheets = stylesToAdopt;
       if (stylesToAdopt.length !== styleIds.length && count < MAX_RETRY_TIME) {
-        setTimeout(() => adoptStyleSheets(targetHost2, styleIds), 0 + 100 * count);
+        setTimeout(
+          () => adoptStyleSheets(targetHost2, styleIds),
+          0 + 100 * count
+        );
         count++;
       }
     };
@@ -10123,7 +10581,10 @@ var Replayer = class {
     }
     if (nextInMap) {
       const { node, mutation } = nextInMap;
-      parent.insertBefore(node, target.nextSibling);
+      parent.insertBefore(
+        node,
+        target.nextSibling
+      );
       delete map[mutation.node.id];
       delete this.legacy_missingNodeRetryMap[mutation.node.id];
       if (mutation.previousId || mutation.nextId) {
@@ -10177,7 +10638,7 @@ var Replayer = class {
   }
   hoverElements(el) {
     var _a2;
-    (_a2 = this.lastHoveredRootNode || this.iframe.contentDocument) === null || _a2 === void 0 ? void 0 : _a2.querySelectorAll(".\\:hover").forEach((hoveredEl) => {
+    (_a2 = this.lastHoveredRootNode || this.iframe.contentDocument) == null ? void 0 : _a2.querySelectorAll(".\\:hover").forEach((hoveredEl) => {
       hoveredEl.classList.remove(":hover");
     });
     this.lastHoveredRootNode = el.getRootNode();
@@ -10227,25 +10688,20 @@ var Replayer = class {
     this.config.logger.log(REPLAY_CONSOLE_PREFIX, ...args);
   }
 };
+var { addCustomEvent } = record;
+var { freezePage } = record;
 export {
   EventType,
   IncrementalSource,
   MouseInteractions,
-  PLUGIN_NAME,
   Replayer,
   ReplayerEvents,
   addCustomEvent,
-  canvasMutation2 as canvasMutation,
+  canvasMutation,
   freezePage,
-  getRecordConsolePlugin,
-  getRecordSequentialIdPlugin,
-  getReplayConsolePlugin,
-  getReplaySequentialIdPlugin,
   _mirror as mirror,
-  pack,
   record,
-  unpack,
-  utils_exports as utils
+  utils
 };
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation.

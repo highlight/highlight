@@ -4,8 +4,8 @@ package kafka_queue
 
 import (
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/env"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -27,12 +27,10 @@ func findRack() string {
 	return ""
 }
 
-const ecsContainerMetadataURI = "ECS_CONTAINER_METADATA_URI_V4"
-
 // whereAmI determines which strategy the rack resolver should use.
 func whereAmI() string {
 	// https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint.html
-	if os.Getenv(ecsContainerMetadataURI) != "" {
+	if env.Config.ECSContainerMetadataUri != "" {
 		return "ecs"
 	}
 	return "somewhere"
@@ -49,7 +47,7 @@ func ecsAvailabilityZone() string {
 			DisableKeepAlives:  true,
 		},
 	}
-	r, err := client.Get(os.Getenv(ecsContainerMetadataURI) + "/task")
+	r, err := client.Get(env.Config.ECSContainerMetadataUri + "/task")
 	if err != nil {
 		return ""
 	}

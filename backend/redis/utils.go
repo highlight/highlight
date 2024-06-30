@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
+	"github.com/highlight-run/highlight/backend/env"
 	"sort"
 	"strconv"
 	"time"
@@ -34,7 +34,7 @@ type Client struct {
 const LockPollInterval = 100 * time.Millisecond
 
 var (
-	ServerAddr = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
+	ServerAddr = env.Config.RedisEndpoint
 )
 
 func EventsKey(sessionId int) string {
@@ -76,10 +76,10 @@ func GitHubFileErrorKey(gitHubRepo string, version string, fileName string) stri
 func NewClient() *Client {
 	var lfu cache.LocalCache
 	// disable lfu cache locally to allow flushing cache between test-cases
-	if !util.IsTestEnv() {
+	if !env.IsTestEnv() {
 		lfu = cache.NewTinyLFU(10_000, time.Second)
 	}
-	if util.IsDevOrTestEnv() {
+	if env.IsDevOrTestEnv() {
 		client := redis.NewClient(&redis.Options{
 			Addr:            ServerAddr,
 			Password:        "",
@@ -609,14 +609,14 @@ func (r *Client) AcquireLock(_ context.Context, key string, timeout time.Duratio
 }
 
 func (r *Client) FlushDB(ctx context.Context) error {
-	if util.IsDevOrTestEnv() {
+	if env.IsDevOrTestEnv() {
 		return r.Client.FlushAll(ctx).Err()
 	}
 	return nil
 }
 
 func (r *Client) Del(ctx context.Context, key string) error {
-	if util.IsDevOrTestEnv() {
+	if env.IsDevOrTestEnv() {
 		return r.Client.Del(ctx, key).Err()
 	}
 	return nil

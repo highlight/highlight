@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"math/big"
 	"net/http"
@@ -28,6 +29,7 @@ import (
 	"github.com/highlight-run/highlight/backend/integrations/github"
 	"github.com/highlight-run/highlight/backend/integrations/gitlab"
 	"github.com/highlight-run/highlight/backend/integrations/jira"
+	"github.com/highlight-run/highlight/backend/openai_client"
 
 	"gorm.io/gorm/clause"
 
@@ -65,7 +67,6 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/stripe/stripe-go/v78"
-	"github.com/stripe/stripe-go/v78/client"
 	"github.com/stripe/stripe-go/v78/webhook"
 
 	"github.com/highlight-run/workerpool"
@@ -92,9 +93,9 @@ var AuthenticationError = errors.New("401 - AuthenticationError")
 var AuthorizationError = errors.New("403 - AuthorizationError")
 
 var (
-	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
-	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
-	FrontendURI     = os.Getenv("REACT_APP_FRONTEND_URI")
+	WhitelistedUID  = env.Config.AuthWhitelistedAccount
+	JwtAccessSecret = env.Config.AuthJWTAccessToken
+	FrontendURI     = env.Config.FrontendUri
 )
 
 var BytesConversion = map[string]int64{
@@ -138,7 +139,7 @@ type Resolver struct {
 	DB                     *gorm.DB
 	Tracer                 trace.Tracer
 	MailClient             *sendgrid.Client
-	StripeClient           *client.API
+	PricingClient          *pricing.Client
 	AWSMPClient            *marketplacemetering.Client
 	StorageClient          storage.Client
 	LambdaClient           *lambda.Client
@@ -155,6 +156,7 @@ type Resolver struct {
 	DataSyncQueue          kafka_queue.MessageQueue
 	TracesQueue            kafka_queue.MessageQueue
 	EmbeddingsClient       embeddings.Client
+	OpenAiClient           openai_client.OpenAiInterface
 }
 
 func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) error {
@@ -285,7 +287,7 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	email := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.Email))
 	// Allow access to engineering@highlight.run or any verified @highlight.run / @runhighlight.com email.
 	_, isHighlightAdmin := lo.Find(HighlightAdminEmailDomains, func(domain string) bool { return strings.Contains(email, domain) })
-	return !util.IsInDocker() && isHighlightAdmin || uid == WhitelistedUID
+	return !env.IsInDocker() && isHighlightAdmin || uid == WhitelistedUID
 }
 
 func (r *Resolver) isDemoProject(ctx context.Context, project_id int) bool {
@@ -293,7 +295,7 @@ func (r *Resolver) isDemoProject(ctx context.Context, project_id int) bool {
 }
 
 func (r *Resolver) demoProjectID(ctx context.Context) int {
-	demoProjectString := os.Getenv("DEMO_PROJECT_ID")
+	demoProjectString := env.Config.DemoProjectID
 
 	// Demo project is disabled if the env var is not set.
 	if demoProjectString == "" {
@@ -344,6 +346,17 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 		return nil, e.Wrap(err, "error querying workspace")
 	}
 	return &workspace, nil
+}
+
+func (r *Resolver) SetDefaultRetention(workspace *model.Workspace) {
+	// Workspaces with a `null` retention period are grandfathered onto a six month plan.
+	sixMonths := modelInputs.RetentionPeriodSixMonths
+	if workspace.RetentionPeriod == nil {
+		workspace.RetentionPeriod = &sixMonths
+	}
+	if workspace.ErrorsRetentionPeriod == nil {
+		workspace.ErrorsRetentionPeriod = &sixMonths
+	}
 }
 
 func (r *Resolver) GetAWSMarketPlaceWorkspace(ctx context.Context, workspaceID int) (*model.Workspace, error) {
@@ -479,6 +492,7 @@ func (r *Resolver) isUserInWorkspaceReadOnly(ctx context.Context, workspaceID in
 		LogsMaxCents:                workspace.LogsMaxCents,
 		TracesMaxCents:              workspace.TracesMaxCents,
 		ClearbitEnabled:             workspace.ClearbitEnabled,
+		CloudflareProxy:             workspace.CloudflareProxy,
 	}, nil
 }
 
@@ -609,6 +623,27 @@ func (r *Resolver) SetErrorFrequenciesClickhouse(ctx context.Context, projectID 
 	return nil
 }
 
+func (r *Resolver) SetErrorGroupOccurrences(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup) error {
+	errorGroupIDs := make([]int, len(errorGroups))
+	for i, eg := range errorGroups {
+		errorGroupIDs[i] = eg.ID
+	}
+
+	occurencesByErrorGroup, err := r.ClickhouseClient.QueryErrorGroupOccurrences(ctx, projectID, errorGroupIDs)
+	if err != nil {
+		return err
+	}
+
+	for _, eg := range errorGroups {
+		if occurences, ok := occurencesByErrorGroup[eg.ID]; ok {
+			eg.FirstOccurrence = &occurences.FirstOccurrence
+			eg.LastOccurrence = &occurences.LastOccurrence
+		}
+	}
+
+	return nil
+}
+
 type SavedSegmentParams struct {
 	Query string
 }
@@ -636,12 +671,12 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 	return eg, true, nil
 }
 
-func (r *Resolver) loadErrorGroupFrequenciesClickhouse(ctx context.Context, eg *model.ErrorGroup) error {
+func (r *Resolver) loadErrorGroupFrequenciesClickhouse(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup) error {
 	var err error
-	if eg.FirstOccurrence, eg.LastOccurrence, err = r.ClickhouseClient.QueryErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID); err != nil {
+	if err = r.SetErrorGroupOccurrences(ctx, projectID, errorGroups); err != nil {
 		return e.Wrap(err, "error querying error group occurrences")
 	}
-	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, 7); err != nil {
+	if err := r.SetErrorFrequenciesClickhouse(ctx, projectID, errorGroups, ErrorGroupLookbackDays); err != nil {
 		return e.Wrap(err, "error querying error group frequencies")
 	}
 	return nil
@@ -1040,11 +1075,6 @@ func (r *Resolver) getSessionInsightPrompt(ctx context.Context, events []interfa
 }
 
 func (r *Resolver) getSessionInsight(ctx context.Context, session *model.Session) (*model.SessionInsight, error) {
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return nil, e.New("OPENAI_API_KEY is not set")
-	}
-
 	systemPrompt := `
 	Given array of events performed by a user from a session recording for a web application, make inferences and justifications and summarize interesting things about the session in 3 insights.
 	Rules:
@@ -1093,8 +1123,7 @@ func (r *Resolver) getSessionInsight(ctx context.Context, session *model.Session
 		userPrompt = userPrompt[:MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH]
 	}
 
-	client := openai.NewClient(apiKey)
-	resp, err := client.CreateChatCompletion(
+	resp, err := r.OpenAiClient.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
 			Model:       openai.GPT3Dot5Turbo16K,
@@ -1332,7 +1361,7 @@ func (r *Resolver) updateAWSMPBillingDetails(ctx context.Context, workspaceID in
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	worker := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.StripeClient, r.AWSMPClient, r.MailClient)
+	worker := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.PricingClient, r.AWSMPClient, r.MailClient)
 	overages, err := worker.CalculateOverages(ctx, workspace.ID)
 	if err != nil {
 		return e.Wrap(err, "BILLING_ERROR aws mp update failed to calculate overages")
@@ -1347,13 +1376,13 @@ func (r *Resolver) updateAWSMPBillingDetails(ctx context.Context, workspaceID in
 func (r *Resolver) updateStripeBillingDetails(ctx context.Context, stripeCustomerID string) error {
 	customerParams := &stripe.CustomerParams{}
 	customerParams.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(stripeCustomerID, customerParams)
+	c, err := r.PricingClient.Customers.Get(stripeCustomerID, customerParams)
 	if err != nil {
 		return e.Wrapf(err, "BILLING_ERROR error retrieving Stripe customer data for customer %s", stripeCustomerID)
 	}
 
 	subscriptions := c.Subscriptions.Data
-	pricing.FillProducts(r.StripeClient, subscriptions)
+	pricing.FillProducts(r.PricingClient, subscriptions)
 
 	// Default to free tier
 	details := planDetails{
@@ -1392,7 +1421,7 @@ func (r *Resolver) updateStripeBillingDetails(ctx context.Context, stripeCustome
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.StripeClient, r.AWSMPClient, r.MailClient).ReportStripeUsageForWorkspace(ctx, workspace.ID); err != nil {
+	if err := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.PricingClient, r.AWSMPClient, r.MailClient).ReportStripeUsageForWorkspace(ctx, workspace.ID); err != nil {
 		return e.Wrap(err, "BILLING_ERROR error reporting usage after updating details")
 	}
 	return nil
@@ -1855,7 +1884,7 @@ func (r *Resolver) AWSMPCallback(ctx context.Context) func(http.ResponseWriter, 
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		http.Redirect(w, req, fmt.Sprintf("%s/callback/aws-mp?code=%s", os.Getenv("REACT_APP_FRONTEND_URI"), secret), http.StatusFound)
+		http.Redirect(w, req, fmt.Sprintf("%s/callback/aws-mp?code=%s", env.Config.FrontendUri, secret), http.StatusFound)
 	}
 }
 
@@ -2037,26 +2066,30 @@ func (r *Resolver) AddHerokuToProject(ctx context.Context, project *model.Projec
 	return nil
 }
 
+func (r *Resolver) AddCloudflareToWorkspace(ctx context.Context, project *model.Project, token string) error {
+	workspaceMapping := &model.IntegrationWorkspaceMapping{
+		IntegrationType: modelInputs.IntegrationTypeCloudflare,
+		WorkspaceID:     project.ID,
+		AccessToken:     token,
+	}
+
+	if err := r.DB.WithContext(ctx).
+		Model(&workspaceMapping).
+		Create(&workspaceMapping).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
-	var (
-		SLACK_CLIENT_ID     string
-		SLACK_CLIENT_SECRET string
-	)
-
-	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
-		SLACK_CLIENT_ID = tempSlackClientID
-	}
-	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
-		SLACK_CLIENT_SECRET = tempSlackClientSecret
-	}
-
 	redirect := FrontendURI + "/callback/slack"
 
 	resp, err := slack.
 		GetOAuthV2Response(
 			&http.Client{},
-			SLACK_CLIENT_ID,
-			SLACK_CLIENT_SECRET,
+			env.Config.SlackClientId,
+			env.Config.SlackClientSecret,
 			code,
 			redirect,
 		)
@@ -2096,7 +2129,7 @@ func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(ctx context.Context, worksp
 
 		microsoftTeamsChannelsToNotify := make(model.MicrosoftTeamsChannels, 0)
 
-		projectAlert := model.Alert{ProjectID: projectID}
+		projectAlert := model.AlertDeprecated{ProjectID: projectID}
 		emptyMicrosoftTeamsChannels := model.AlertIntegrations{
 			MicrosoftTeamsChannelsToNotify: microsoftTeamsChannelsToNotify,
 		}
@@ -2105,7 +2138,7 @@ func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(ctx context.Context, worksp
 			return e.Wrap(err, "error removing microsoft_teams channels from created SessionAlert's")
 		}
 
-		if err := tx.Where(&model.ErrorAlert{Alert: projectAlert}).Updates(model.ErrorAlert{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
+		if err := tx.Where(&model.ErrorAlert{AlertDeprecated: projectAlert}).Updates(model.ErrorAlert{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
 			return e.Wrap(err, "error removing microsoft_teams channels from created ErrorAlert's")
 		}
 
@@ -2114,7 +2147,7 @@ func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(ctx context.Context, worksp
 			return e.Wrap(err, "error removing microsoft_teams channels from created MetricMonitor's")
 		}
 
-		if err := tx.Where(&model.LogAlert{Alert: projectAlert}).Updates(model.LogAlert{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
+		if err := tx.Where(&model.LogAlert{AlertDeprecated: projectAlert}).Updates(model.LogAlert{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
 			return e.Wrap(err, "error removing microsoft_teams channels from created LogAlert's")
 		}
 
@@ -2134,15 +2167,15 @@ func (r *Resolver) RemoveSlackFromWorkspace(ctx context.Context, workspace *mode
 		}
 
 		empty := "[]"
-		projectAlert := model.Alert{ProjectID: projectID}
-		clearedChannelsAlert := model.Alert{ChannelsToNotify: &empty}
+		projectAlert := model.AlertDeprecated{ProjectID: projectID}
+		clearedChannelsAlert := model.AlertDeprecated{ChannelsToNotify: &empty}
 
 		// set existing alerts to have empty slack channels to notify
-		if err := tx.Where(&model.SessionAlert{Alert: projectAlert}).Updates(model.SessionAlert{Alert: clearedChannelsAlert}).Error; err != nil {
+		if err := tx.Where(&model.SessionAlert{AlertDeprecated: projectAlert}).Updates(model.SessionAlert{AlertDeprecated: clearedChannelsAlert}).Error; err != nil {
 			return e.Wrap(err, "error removing slack channels from created SessionAlert's")
 		}
 
-		if err := tx.Where(&model.ErrorAlert{Alert: projectAlert}).Updates(model.ErrorAlert{Alert: clearedChannelsAlert}).Error; err != nil {
+		if err := tx.Where(&model.ErrorAlert{AlertDeprecated: projectAlert}).Updates(model.ErrorAlert{AlertDeprecated: clearedChannelsAlert}).Error; err != nil {
 			return e.Wrap(err, "error removing slack channels from created ErrorAlert's")
 		}
 
@@ -2151,7 +2184,7 @@ func (r *Resolver) RemoveSlackFromWorkspace(ctx context.Context, workspace *mode
 			return e.Wrap(err, "error removing slack channels from created MetricMonitor's")
 		}
 
-		if err := tx.Where(&model.LogAlert{Alert: projectAlert}).Updates(model.LogAlert{Alert: clearedChannelsAlert}).Error; err != nil {
+		if err := tx.Where(&model.LogAlert{AlertDeprecated: projectAlert}).Updates(model.LogAlert{AlertDeprecated: clearedChannelsAlert}).Error; err != nil {
 			return e.Wrap(err, "error removing slack channels from created LogAlert's")
 		}
 
@@ -2358,21 +2391,9 @@ func (r *Resolver) RemoveDiscordFromWorkspace(ctx context.Context, workspace *mo
 }
 
 func (r *Resolver) AddLinearToWorkspace(workspace *model.Workspace, code string) error {
-	var (
-		LINEAR_CLIENT_ID     string
-		LINEAR_CLIENT_SECRET string
-	)
-
-	if tempLinearClientID, ok := os.LookupEnv("LINEAR_CLIENT_ID"); ok && tempLinearClientID != "" {
-		LINEAR_CLIENT_ID = tempLinearClientID
-	}
-	if tempLinearClientSecret, ok := os.LookupEnv("LINEAR_CLIENT_SECRET"); ok && tempLinearClientSecret != "" {
-		LINEAR_CLIENT_SECRET = tempLinearClientSecret
-	}
-
 	redirect := FrontendURI + "/callback/linear"
 
-	res, err := r.GetLinearAccessToken(code, redirect, LINEAR_CLIENT_ID, LINEAR_CLIENT_SECRET)
+	res, err := r.GetLinearAccessToken(code, redirect, env.Config.LinearClientId, env.Config.LinearClientSecret)
 	if err != nil {
 		return e.Wrap(err, "error getting linear oauth access token")
 	}
@@ -2640,7 +2661,7 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 			Title:    title,
 			Subtitle: subtitle,
 			Url:      url,
-			IconUrl:  fmt.Sprintf("%s/logo_with_gradient_bg.png", os.Getenv("REACT_APP_FRONTEND_URI")),
+			IconUrl:  fmt.Sprintf("%s/logo_with_gradient_bg.png", env.Config.FrontendUri),
 		},
 	}
 
@@ -3644,6 +3665,8 @@ func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time
 		retentionPeriod = *retentionPeriodPtr
 	}
 	switch retentionPeriod {
+	case modelInputs.RetentionPeriodSevenDays:
+		return time.Now().AddDate(0, 0, -7)
 	case modelInputs.RetentionPeriodThreeMonths:
 		return time.Now().AddDate(0, -3, 0)
 	case modelInputs.RetentionPeriodSixMonths:

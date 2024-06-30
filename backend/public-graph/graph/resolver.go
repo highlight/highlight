@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"hash/fnv"
 	"io"
 	"net/http"
@@ -136,18 +137,18 @@ type FieldData struct {
 }
 
 type Request struct {
-	ID      string            `json:"id"`
-	URL     string            `json:"url"`
-	Method  string            `json:"verb"`
-	Headers map[string]string `json:"headers"`
-	Body    any               `json:"body"`
+	ID         string `json:"id"`
+	URL        string `json:"url"`
+	Method     string `json:"verb"`
+	HeadersRaw any    `json:"headers"`
+	Body       any    `json:"body"`
 }
 
 type Response struct {
-	Status  float64           `json:"status"`
-	Size    float64           `json:"size"`
-	Headers map[string]string `json:"headers"`
-	Body    any               `json:"body"`
+	Status     float64 `json:"status"`
+	Size       float64 `json:"size"`
+	HeadersRaw any     `json:"headers"`
+	Body       any     `json:"body"`
 }
 
 type RequestResponsePairs struct {
@@ -175,9 +176,9 @@ type NetworkResource struct {
 	ResponseStartAbs         float64              `json:"responseStartAbs"`
 	SecureConnectionStartAbs float64              `json:"secureConnectionStartAbs"`
 	WorkerStartAbs           float64              `json:"workerStartAbs"`
-	DecodedBodySize          int64                `json:"decodedBodySize"`
-	TransferSize             int64                `json:"transferSize"`
-	EncodedBodySize          int64                `json:"encodedBodySize"`
+	DecodedBodySize          float64              `json:"decodedBodySize"`
+	TransferSize             float64              `json:"transferSize"`
+	EncodedBodySize          float64              `json:"encodedBodySize"`
 	NextHopProtocol          string               `json:"nextHopProtocol"`
 	InitiatorType            string               `json:"initiatorType"`
 	Name                     string               `json:"name"`
@@ -214,7 +215,7 @@ var ErrUserFilteredError = e.New("User filtered error")
 var SessionProcessDelaySeconds = 120 // a session will be processed after not receiving events for this time
 var SessionProcessLockMinutes = 30   // a session marked as processing can be reprocessed after this time
 func init() {
-	if util.IsDevEnv() {
+	if env.IsDevEnv() {
 		SessionProcessDelaySeconds = 8
 		SessionProcessLockMinutes = 1
 	}
@@ -694,7 +695,7 @@ func (r *Resolver) isWithinErrorQuota(ctx context.Context, workspace *model.Work
 	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, model.PricingProductTypeErrors, workspace, time.Now())
 	go func() {
 		defer util.Recover()
-		if quotaPercent >= 1 {
+		if !withinBillingQuota || quotaPercent >= 1 {
 			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage100Percent, workspace); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
@@ -1348,7 +1349,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	}
 
 	var errorAlerts []*model.ErrorAlert
-	if err := r.DB.WithContext(ctx).Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: session.ProjectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
 		return e.Wrapf(err, "[project_id: %d] error fetching session feedback alerts", session.ProjectID)
 	}
 
@@ -1676,7 +1677,7 @@ type AlertCountsGroupedByRecent struct {
 func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorObject *model.ErrorObject, visitedUrl string) {
 	func() {
 		var errorAlerts []*model.ErrorAlert
-		if err := r.DB.WithContext(ctx).Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
+		if err := r.DB.WithContext(ctx).Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: projectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error fetching ErrorAlerts object"))
 			return
 		}
@@ -2105,9 +2106,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	}
 
 	if !r.isWithinErrorQuota(ctx, workspace) {
-		log.WithContext(ctx).
-			WithField("workspace_id", workspace.ID).
-			Info("workspace outside error quota, dropping backend errors")
 		return
 	}
 
@@ -2504,9 +2502,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 
 		if withinBillingQuota, _ := r.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now()); !withinBillingQuota {
-			log.WithContext(ctx).
-				WithField("workspace_id", workspace.ID).
-				Info("workspace outside session quota, dropping frontend session events")
 			return nil
 		}
 
@@ -2711,9 +2706,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 
 		if !r.isWithinErrorQuota(ctx, workspace) {
-			log.WithContext(ctx).
-				WithField("workspace_id", workspace.ID).
-				Info("workspace outside error quota, dropping frontend errors")
 			return nil
 		}
 
@@ -2843,9 +2835,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	}
 
 	if withinBillingQuota, _ := r.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now()); !withinBillingQuota {
-		log.WithContext(ctx).
-			WithField("workspace_id", workspace.ID).
-			Info("workspace outside session quota, dropping frontend session update")
 		return nil
 	}
 
@@ -3006,7 +2995,7 @@ func (r *Resolver) HandleSessionViewable(ctx context.Context, projectID int, ses
 func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Workspace, project *model.Project, sessionID int) error {
 	// Sending session init alert
 	var sessionAlerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, Disabled: &model.F}}).
+	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: project.ID, Disabled: &model.F}}).
 		Where("type=?", model.AlertType.NEW_SESSION).Find(&sessionAlerts).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching new session alert", project.ID))
 		return err
@@ -3123,6 +3112,9 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		if url, err := url2.Parse(re.Name); err == nil && url.Host == "pub.highlight.io" {
 			continue
 		}
+		requestHeaders, _ := re.RequestResponsePairs.Request.HeadersRaw.(map[string]interface{})
+		responseHeaders, _ := re.RequestResponsePairs.Response.HeadersRaw.(map[string]interface{})
+		userAgent, _ := requestHeaders["User-Agent"].(string)
 		requestBody, ok := re.RequestResponsePairs.Request.Body.(string)
 		if !ok {
 			bdBytes, err := json.Marshal(requestBody)
@@ -3153,15 +3145,15 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			semconv.HTTPURL(re.Name),
 			attribute.String("http.request.body", requestBody),
 			attribute.String("http.response.body", responseBody),
-			attribute.Int64("http.response.encoded.size", re.EncodedBodySize),
-			attribute.Int64("http.response.decoded.size", re.DecodedBodySize),
-			attribute.Int64("http.response.transfer.size", re.TransferSize),
+			attribute.Float64("http.response.encoded.size", re.EncodedBodySize),
+			attribute.Float64("http.response.decoded.size", re.DecodedBodySize),
+			attribute.Float64("http.response.transfer.size", re.TransferSize),
 			semconv.HTTPRequestContentLength(len(requestBody)),
 			semconv.HTTPResponseContentLength(int(re.RequestResponsePairs.Response.Size)),
 			semconv.HTTPStatusCode(int(re.RequestResponsePairs.Response.Status)),
 			semconv.HTTPMethod(method),
-			semconv.HTTPUserAgent(re.RequestResponsePairs.Request.Headers["User-Agent"]),
-			semconv.UserAgentOriginal(re.RequestResponsePairs.Request.Headers["User-Agent"]),
+			semconv.HTTPUserAgent(userAgent),
+			semconv.UserAgentOriginal(userAgent),
 			attribute.String(privateModel.NetworkRequestAttributeInitiatorType.String(), re.InitiatorType),
 			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64(end.Sub(start).Nanoseconds())),
 			attribute.Float64(privateModel.NetworkRequestAttributeConnectLatency.String(), (re.ConnectEndAbs-re.ConnectStartAbs)*1e6),
@@ -3171,11 +3163,17 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		if u, err := url2.Parse(re.Name); err == nil {
 			attributes = append(attributes, semconv.HTTPScheme(u.Scheme), semconv.HTTPTarget(u.Path))
 		}
-		for requestHeader, requestHeaderValue := range re.RequestResponsePairs.Request.Headers {
-			attributes = append(attributes, attribute.String(fmt.Sprintf("http.request.header.%s", requestHeader), requestHeaderValue))
+		for requestHeader, requestHeaderValue := range requestHeaders {
+			str, ok := requestHeaderValue.(string)
+			if ok {
+				attributes = append(attributes, attribute.String(fmt.Sprintf("http.request.header.%s", requestHeader), str))
+			}
 		}
-		for responseHeader, responseHeaderValue := range re.RequestResponsePairs.Response.Headers {
-			attributes = append(attributes, attribute.String(fmt.Sprintf("http.response.header.%s", responseHeader), responseHeaderValue))
+		for responseHeader, responseHeaderValue := range responseHeaders {
+			str, ok := responseHeaderValue.(string)
+			if ok {
+				attributes = append(attributes, attribute.String(fmt.Sprintf("http.response.header.%s", responseHeader), str))
+			}
 		}
 		requestBodyJson := make(map[string]interface{})
 		// if the request body is json and contains the graphql key operationName, treat it as an operation
@@ -3329,7 +3327,7 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 	defer alertWorkerSpan.Finish()
 	// Sending Track Properties Alert
 	var sessionAlerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching track properties alert", session.ProjectID))
 		return err
 	}
@@ -3439,7 +3437,7 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *model.Workspace, project *model.Project, session *model.Session) error {
 	// Sending New User Alert
 	var sessionAlerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching new user alert", session.ProjectID))
 		return err
 	}
@@ -3519,7 +3517,7 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 	defer alertSpan.Finish()
 	// Sending User Properties Alert
 	var sessionAlerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching user properties alert", session.ProjectID))
 		return err
 	}

@@ -27,7 +27,14 @@ import {
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
 import _ from 'lodash'
 import moment from 'moment'
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import { ErrorObject } from '@/graph/generated/schemas'
@@ -168,13 +175,25 @@ export const NetworkPage = ({
 		return current
 	}, [parsedResources, filter, requestTypes, requestStatuses, startTime])
 
-	const currentResourceIdx = useMemo(() => {
-		return findLastActiveEventIndex(
-			Math.round(time),
-			startTime,
-			resourcesToRender,
-		)
-	}, [resourcesToRender, startTime, time])
+	const [currentResourceIdx, setCurrentResourceIdx] = useState(-1)
+
+	useEffect(
+		() =>
+			_.throttle(
+				() => {
+					const activeIndex = findLastActiveEventIndex(
+						Math.round(time),
+						startTime,
+						resourcesToRender,
+					)
+
+					setCurrentResourceIdx(activeIndex)
+				},
+				THROTTLED_UPDATE_MS,
+				{ leading: true, trailing: false },
+			),
+		[resourcesToRender, startTime, time],
+	)
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const scrollFunction = useCallback(

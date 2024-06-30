@@ -3,6 +3,7 @@ import { useSlackBot } from '@components/Header/components/ConnectHighlightWithS
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
+import { useCloudflareIntegration } from '@pages/IntegrationsPage/components/CloudflareIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
@@ -60,6 +61,9 @@ const IntegrationsPage = () => {
 	const { isHerokuConnectedToWorkspace, loading: loadingHeroku } =
 		useHerokuIntegration()
 
+	const { isCloudflareConnectedToWorkspace, loading: loadingCloudflare } =
+		useCloudflareIntegration()
+
 	const {
 		isMicrosoftTeamsConnectedToWorkspace,
 		loading: loadingMicrosoftTeams,
@@ -114,7 +118,8 @@ const IntegrationsPage = () => {
 		loadingJira ||
 		loadingGitlab ||
 		loadingMicrosoftTeams ||
-		loadingHeroku
+		loadingHeroku ||
+		loadingCloudflare
 
 	const integrations = useMemo(() => {
 		return INTEGRATIONS.filter((integration) => {
@@ -157,7 +162,9 @@ const IntegrationsPage = () => {
 				(inter.key === 'microsoft_teams' &&
 					isMicrosoftTeamsConnectedToWorkspace) ||
 				(inter.key === 'gitlab' && isGitlabIntegratedWithProject) ||
-				(inter.key === 'heroku' && isHerokuConnectedToWorkspace),
+				(inter.key === 'heroku' && isHerokuConnectedToWorkspace) ||
+				(inter.key === 'cloudflare' &&
+					isCloudflareConnectedToWorkspace),
 		}))
 	}, [
 		currentWorkspace?.id,
@@ -176,6 +183,7 @@ const IntegrationsPage = () => {
 		isMicrosoftTeamsConnectedToWorkspace,
 		isGitlabIntegratedWithProject,
 		isHerokuConnectedToWorkspace,
+		isCloudflareConnectedToWorkspace,
 	])
 
 	useEffect(() => analytics.page('Integrations'), [])

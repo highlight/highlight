@@ -61,6 +61,7 @@ export const tryCastDate = (date: Maybe<string> | undefined) => {
 }
 
 export const RETENTION_PERIOD_LABELS: { [K in RetentionPeriod]: string } = {
+	[RetentionPeriod.SevenDays]: '7 day retention',
 	[RetentionPeriod.ThirtyDays]: '30 day retention',
 	[RetentionPeriod.ThreeMonths]: '3 month retention',
 	[RetentionPeriod.SixMonths]: '6 month retention',
@@ -160,7 +161,7 @@ export const getQuotaPercents = (
 	data: GetBillingDetailsForProjectQuery,
 ): [ProductType, number][] => {
 	const amts = getMeterAmounts({
-		workspace: data.workspace_for_project,
+		workspace: data.project?.workspace,
 		details: data.billingDetailsForProject,
 	})
 	const sessionAmts = amts[ProductType.Sessions]

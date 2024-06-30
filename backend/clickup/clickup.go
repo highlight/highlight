@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 
 	"golang.org/x/oauth2"
@@ -16,44 +16,34 @@ import (
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
-var (
-	ClickUpClientId     = os.Getenv("CLICKUP_CLIENT_ID")
-	ClickUpClientSecret = os.Getenv("CLICKUP_CLIENT_SECRET")
-	ClickUpApiBaseUrl   = "https://api.clickup.com/api/v2"
-)
+const ApiBaseUrl = "https://api.clickup.com/api/v2"
 
 var clickUpEndpoint = oauth2.Endpoint{
-	AuthURL:   fmt.Sprintf("%s/oauth/authorize", ClickUpApiBaseUrl),
-	TokenURL:  fmt.Sprintf("%s/oauth/token", ClickUpApiBaseUrl),
+	AuthURL:   fmt.Sprintf("%s/oauth/authorize", ApiBaseUrl),
+	TokenURL:  fmt.Sprintf("%s/oauth/token", ApiBaseUrl),
 	AuthStyle: oauth2.AuthStyleInParams,
 }
 
-type ClickUpAccessTokenResponse struct {
+type AccessTokenResponse struct {
 	AccessToken string `json:"access_token"`
 }
 
 func oauthConfig() (*oauth2.Config, error) {
-	var (
-		ok                  bool
-		clickUpClientID     string
-		clickUpClientSecret string
-		frontendUri         string
-	)
-	if clickUpClientID, ok = os.LookupEnv("CLICKUP_CLIENT_ID"); !ok || clickUpClientID == "" {
+	if env.Config.ClickUpClientID == "" {
 		return nil, errors.New("CLICKUP_CLIENT_ID not set")
 	}
-	if clickUpClientSecret, ok = os.LookupEnv("CLICKUP_CLIENT_SECRET"); !ok || clickUpClientSecret == "" {
+	if env.Config.ClickUpClientSecret == "" {
 		return nil, errors.New("CLICKUP_CLIENT_SECRET not set")
 	}
-	if frontendUri, ok = os.LookupEnv("REACT_APP_FRONTEND_URI"); !ok || frontendUri == "" {
+	if env.Config.FrontendUri == "" {
 		return nil, errors.New("REACT_APP_FRONTEND_URI not set")
 	}
 
 	return &oauth2.Config{
-		ClientID:     clickUpClientID,
-		ClientSecret: clickUpClientSecret,
+		ClientID:     env.Config.ClickUpClientID,
+		ClientSecret: env.Config.ClickUpClientSecret,
 		Endpoint:     clickUpEndpoint,
-		RedirectURL:  fmt.Sprintf("%s/callback/clickup", frontendUri),
+		RedirectURL:  fmt.Sprintf("%s/callback/clickup", env.Config.FrontendUri),
 	}, nil
 }
 
@@ -84,7 +74,7 @@ func doClickUpRequest[T any](method string, accessToken string, relativeUrl stri
 	var unmarshalled T
 	client := &http.Client{}
 
-	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", ClickUpApiBaseUrl, relativeUrl), strings.NewReader(body))
+	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", ApiBaseUrl, relativeUrl), strings.NewReader(body))
 	if err != nil {
 		return unmarshalled, errors.Wrap(err, "error creating api request to ClickUp")
 	}

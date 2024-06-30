@@ -23,7 +23,6 @@ import {
 	isActive,
 	SeriesInfo,
 	TIMESTAMP_KEY,
-	TooltipConfig,
 } from '@/pages/Graphing/components/Graph'
 
 export type BarDisplay = 'Grouped' | 'Stacked'
@@ -78,9 +77,8 @@ export const BarChart = ({
 	showXAxis,
 	showYAxis,
 	showGrid,
-	verboseTooltip,
 }: React.PropsWithChildren<
-	InnerChartProps<BarChartConfig> & SeriesInfo & AxisConfig & TooltipConfig
+	InnerChartProps<BarChartConfig> & SeriesInfo & AxisConfig
 >) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
 	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
@@ -170,7 +168,6 @@ export const BarChart = ({
 						xAxisMetric,
 						yAxisMetric,
 						yAxisFunction,
-						verboseTooltip,
 					)}
 					wrapperStyle={{ zIndex: 100 }}
 					cursor={{ fill: '#C8C7CB', fillOpacity: 0.5 }}

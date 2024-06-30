@@ -327,8 +327,10 @@ export const useTeamIntegration = () => {
 		skip: !projectId,
 	})
 	const { data, startPolling, stopPolling } = useGetWorkspaceAdminsQuery({
-		variables: { workspace_id: projectData?.workspace?.id ?? '' },
-		skip: localStorageIntegrated.integrated || !projectData?.workspace?.id,
+		variables: { workspace_id: projectData?.project?.workspace?.id ?? '' },
+		skip:
+			localStorageIntegrated.integrated ||
+			!projectData?.project?.workspace?.id,
 		fetchPolicy: 'cache-and-network',
 	})
 

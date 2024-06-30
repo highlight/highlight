@@ -2,9 +2,8 @@ package main
 
 import (
 	"context"
-	"os"
-
 	"github.com/highlight-run/highlight/backend/clickhouse"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
@@ -15,7 +14,7 @@ const SessionsMaxRowsPostgres = 500
 func main() {
 	ctx := context.Background()
 
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}

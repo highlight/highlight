@@ -3,10 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/openlyinc/pointy"
 	"github.com/samber/lo"
@@ -21,7 +20,7 @@ import (
 func main() {
 	ctx := context.Background()
 	log.WithContext(ctx).Info("setting up db")
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatal(err)
 	}

@@ -74,6 +74,7 @@ export const H: HighlightInterface = {
 			logExporter: new OTLPProtoLogExporter({
 				url: `${endpoints.default}/v1/logs`,
 			}),
+			// @ts-ignore
 			resource: new Resource({
 				['highlight.project_id']: projectID,
 				['highlight.session_id']: secureSessionId,

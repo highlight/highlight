@@ -3,7 +3,6 @@ package integrations
 import (
 	"context"
 	"fmt"
-
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/integrations/gitlab"

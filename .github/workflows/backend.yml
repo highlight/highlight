@@ -34,6 +34,10 @@ jobs:
               run: if [ "$(gofmt -l -d ./backend | wc -l)" -gt 0 ]; then gofmt -l -d ./backend && exit 1; fi
             - name: Check for GORM Debug
               run: if [ "$(grep --exclude-dir migrations -rE 'DB.[\s\n]*Debug\(\)' ./backend | wc -l)" -gt 0 ]; then grep --exclude-dir migrations -rE 'DB.[\s\n]*Debug\(\)' ./backend && exit 1; fi
+            - name: Check for os.Getenv
+              run: if [ "$(grep --exclude-dir migrations -rE 'os\.Getenv\(' ./backend | wc -l)" -gt 0 ]; then grep --exclude-dir migrations -rE 'os\.Getenv\(' ./backend && exit 1; fi
+            - name: Check for os.LookupEnv
+              run: if [ "$(grep --exclude-dir migrations -rE 'os\.LookupEnv\(' ./backend | wc -l)" -gt 0 ]; then grep --exclude-dir migrations -rE 'os\.LookupEnv\(' ./backend && exit 1; fi
             - name: Check for GORM usage without context
               run: if [ "$(grep --exclude="*_test.go" --exclude-dir={integrations,jobs,lambda-functions,migrations,model,oauth,retryables,zapier} -rEI '(?i:db)\.(Where|Model|Raw|Create|Update|Preload)' ./backend | grep -v 'WithContext' | wc -l)" -gt 0 ]; then grep --exclude="*_test.go" --exclude-dir={integrations,jobs,lambda-functions,migrations,model,oauth,retryables,zapier} -rEI '(?i:db)\.(Where|Model|Raw|Create|Update|Preload)' ./backend | grep -v 'WithContext' && exit 1; fi
             - name: Check for logrus without context

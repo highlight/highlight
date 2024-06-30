@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"net/http"
 	"strings"
 	"time"
@@ -48,7 +49,7 @@ type Token struct {
 
 func getTokenStore(rd *hredis.Client) *oredis.TokenStore {
 	// use redis token store
-	if util.IsDevOrTestEnv() {
+	if env.IsDevOrTestEnv() {
 		return oredis.NewRedisStoreWithCli(rd.Client.(*redis.Client))
 	}
 
@@ -273,7 +274,7 @@ func (s *Server) Validate(ctx context.Context, r *http.Request) (context.Context
 		return ctx, nil, nil, err
 	}
 	domain := ".highlight.run"
-	if util.IsDevEnv() {
+	if env.IsDevEnv() {
 		domain = ".highlight.localhost"
 	}
 	cookie := http.Cookie{

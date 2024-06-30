@@ -2,8 +2,7 @@ package discord
 
 import (
 	"context"
-	"os"
-
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/pkg/errors"
 
 	"golang.org/x/oauth2"
@@ -16,27 +15,21 @@ var Endpoint = oauth2.Endpoint{
 }
 
 func oauthConfig() (*oauth2.Config, error) {
-	var (
-		ok                  bool
-		DiscordClientID     string
-		DiscordClientSecret string
-		FrontendUri         string
-	)
-	if DiscordClientID, ok = os.LookupEnv("DISCORD_CLIENT_ID"); !ok || DiscordClientID == "" {
+	if env.Config.DiscordClientId == "" {
 		return nil, errors.New("DISCORD_CLIENT_ID not set")
 	}
-	if DiscordClientSecret, ok = os.LookupEnv("DISCORD_CLIENT_SECRET"); !ok || DiscordClientSecret == "" {
+	if env.Config.DiscordClientSecret == "" {
 		return nil, errors.New("DISCORD_CLIENT_SECRET not set")
 	}
-	if FrontendUri, ok = os.LookupEnv("REACT_APP_FRONTEND_URI"); !ok || FrontendUri == "" {
+	if env.Config.FrontendUri == "" {
 		return nil, errors.New("REACT_APP_FRONTEND_URI not set")
 	}
 
 	return &oauth2.Config{
-		ClientID:     DiscordClientID,
-		ClientSecret: DiscordClientSecret,
+		ClientID:     env.Config.DiscordClientId,
+		ClientSecret: env.Config.DiscordClientSecret,
 		Endpoint:     Endpoint,
-		RedirectURL:  FrontendUri + "/callback/discord",
+		RedirectURL:  env.Config.FrontendUri + "/callback/discord",
 	}, nil
 }
 

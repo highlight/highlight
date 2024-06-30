@@ -2,11 +2,8 @@ package main
 
 import (
 	"context"
-	"os"
-
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/util"
-
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/handlers"
@@ -20,8 +17,8 @@ func main() {
 	highlight.SetProjectID("1jdkoe52")
 	highlight.Start(
 		highlight.WithServiceName("lambda-functions--sessionExport"),
-		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
-		highlight.WithEnvironment(util.EnvironmentName()),
+		highlight.WithServiceVersion(env.Config.Version),
+		highlight.WithEnvironment(env.EnvironmentName()),
 	)
 	defer highlight.Stop()
 	hlog.Init()

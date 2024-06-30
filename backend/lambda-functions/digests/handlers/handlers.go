@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
+	"github.com/highlight-run/highlight/backend/env"
 	"time"
 
 	"golang.org/x/text/language"
@@ -43,12 +43,12 @@ func InitHandlers(db *gorm.DB, sendgridClient *sendgrid.Client) *handlers {
 
 func NewHandlers() *handlers {
 	ctx := context.TODO()
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error setting up DB"))
 	}
 
-	sendgridClient := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+	sendgridClient := sendgrid.NewSendClient(env.Config.SendgridKey)
 
 	return InitHandlers(db, sendgridClient)
 }

@@ -7,6 +7,7 @@ package graph
 import (
 	"context"
 	"database/sql"
+	_ "embed"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -34,16 +35,21 @@ import (
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/front"
+	"github.com/highlight-run/highlight/backend/integrations/cloudflare"
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	delete_handlers "github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/handlers"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/openai_client"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/prompts"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
@@ -469,7 +475,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 		PromoCode:                 promoCode,
 	}
 
-	if util.IsOnPrem() {
+	if env.IsOnPrem() {
 		// unlock self hosted usage
 		workspace.PlanTier = modelInputs.PlanTypeEnterprise.String()
 	}
@@ -479,13 +485,13 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 	}
 
 	c := &stripe.Customer{}
-	if !util.IsOnPrem() {
+	if !env.IsOnPrem() {
 		params := &stripe.CustomerParams{
 			Name:  &name,
 			Email: admin.Email,
 		}
 		params.AddMetadata("Workspace ID", strconv.Itoa(workspace.ID))
-		c, err = r.StripeClient.Customers.New(params)
+		c, err = r.PricingClient.Customers.New(params)
 		if err != nil {
 			log.WithContext(ctx).Error(err, "error creating stripe customer")
 		}
@@ -608,22 +614,19 @@ func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *stri
 }
 
 // EditWorkspaceSettings is the resolver for the editWorkspaceSettings field.
-func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceID int, aiApplication *bool, aiInsights *bool) (*model.AllWorkspaceSettings, error) {
+func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceID int, aiApplication *bool, aiInsights *bool, aiQueryBuilder *bool) (*model.AllWorkspaceSettings, error) {
 	_, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
 		return nil, err
 	}
 
-	workspaceSettings := &model.AllWorkspaceSettings{}
 	workspaceSettingsUpdates := map[string]interface{}{
-		"AIApplication": *aiApplication,
-		"AIInsights":    *aiInsights,
+		"AIApplication":  *aiApplication,
+		"AIInsights":     *aiInsights,
+		"AIQueryBuilder": *aiQueryBuilder,
 	}
 
-	if err := store.AssertRecordFound(r.DB.WithContext(ctx).Where(&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).Model(&workspaceSettings).Clauses(clause.Returning{}).Updates(&workspaceSettingsUpdates)); err != nil {
-		return nil, err
-	}
-	return workspaceSettings, nil
+	return r.Store.UpdateAllWorkspaceSettings(ctx, workspaceID, workspaceSettingsUpdates)
 }
 
 // ExportSession is the resolver for the exportSession field.
@@ -894,7 +897,7 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		return nil, e.Wrap(err, "error creating new invite link")
 	}
 
-	baseURL := os.Getenv("REACT_APP_FRONTEND_URI")
+	baseURL := env.Config.FrontendUri
 
 	inviteLinkUrl := baseURL + "/w/" + strconv.Itoa(workspaceID) + "/invite/" + *inviteLink.Secret
 	return r.SendAdminInviteImpl(*admin.Name, *workspace.Name, inviteLinkUrl, email)
@@ -1184,7 +1187,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	// For older projects, if there's no customer ID, we create a StripeCustomer obj.
 	if workspace.StripeCustomerID == nil {
 		params := &stripe.CustomerParams{}
-		c, err := r.StripeClient.Customers.New(params)
+		c, err := r.PricingClient.Customers.New(params)
 		if err != nil {
 			log.WithContext(ctx).Error(err, "error creating stripe customer")
 		}
@@ -1199,7 +1202,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	params := &stripe.CustomerParams{}
 	params.AddExpand("subscriptions")
 
-	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, params)
+	c, err := r.PricingClient.Customers.Get(*workspace.StripeCustomerID, params)
 	if err != nil {
 		return nil, e.Wrap(err, "BILLING_ERROR cannot update stripe subscription - couldn't retrieve stripe customer data")
 	}
@@ -1210,14 +1213,14 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	}
 
 	subscriptions := c.Subscriptions.Data
-	pricing.FillProducts(r.StripeClient, subscriptions)
+	pricing.FillProducts(r.PricingClient, subscriptions)
 
 	pricingInterval := model.PricingSubscriptionIntervalMonthly
 
 	defaultRetention := modelInputs.RetentionPeriodThreeMonths
 
 	// default to unlimited members pricing
-	prices, err := pricing.GetStripePrices(r.StripeClient, workspace, modelInputs.PlanTypeGraduated, pricingInterval, true, &defaultRetention, &defaultRetention)
+	prices, err := pricing.GetStripePrices(r.PricingClient, workspace, modelInputs.PlanTypeGraduated, pricingInterval, true, &defaultRetention, &defaultRetention)
 	if err != nil {
 		return nil, e.Wrap(err, "BILLING_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}
@@ -1251,7 +1254,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 			},
 		}
 
-		_, err := r.StripeClient.Subscriptions.Update(subscription.ID, subscriptionParams)
+		_, err := r.PricingClient.Subscriptions.Update(subscription.ID, subscriptionParams)
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
@@ -1261,8 +1264,8 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 	// If there's no existing subscription, we create a checkout.
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String(os.Getenv("REACT_APP_FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/success"),
-		CancelURL:  stripe.String(os.Getenv("REACT_APP_FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/update-plan"),
+		SuccessURL: stripe.String(env.Config.FrontendUri + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/success"),
+		CancelURL:  stripe.String(env.Config.FrontendUri + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/update-plan"),
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
@@ -1277,7 +1280,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	}
 	checkoutSessionParams.AddExtra("allow_promotion_codes", "true")
 
-	stripeSession, err := r.StripeClient.CheckoutSessions.New(checkoutSessionParams)
+	stripeSession, err := r.PricingClient.CheckoutSessions.New(checkoutSessionParams)
 	if err != nil {
 		return nil, e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
@@ -1622,7 +1625,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 		title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
 		desc += "See the error page on Highlight:\n"
-		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
+		desc += fmt.Sprintf("%s/%d/sessions/%s", env.Config.FrontendUri, projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear &&
 			workspace.LinearAccessToken != nil &&
@@ -1977,7 +1980,7 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 
 		title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
 		desc += "See the error page on Highlight:\n"
-		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
+		desc += fmt.Sprintf("%s/%d/sessions/%s", env.Config.FrontendUri, projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(ctx, workspace, attachment, *issueTitle, *issueDescription, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
@@ -2349,7 +2352,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 
 		title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
 		desc += "See the error page on Highlight:\n"
-		desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
+		desc += fmt.Sprintf("%s/%d/errors/%s", env.Config.FrontendUri, projectID, errorComment.ErrorSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(
@@ -2666,7 +2669,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 
 	title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
 	desc += "See the error page on Highlight:\n"
-	desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
+	desc += fmt.Sprintf("%s/%d/errors/%s", env.Config.FrontendUri, projectID, errorComment.ErrorSecureId)
 
 	for _, s := range integrations {
 		attachment := &model.ExternalAttachment{
@@ -2968,6 +2971,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddHerokuToProject(ctx, project, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeCloudflare {
+		if err := r.AddCloudflareToWorkspace(ctx, project, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -3028,15 +3035,8 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 			return false, err
 		}
 	} else {
-		tx := r.DB.WithContext(ctx).Where(&model.IntegrationProjectMapping{
-			ProjectID:       project.ID,
-			IntegrationType: *integrationType,
-		}).Delete(&model.IntegrationProjectMapping{})
-		if err := tx.Error; err != nil {
-			return false, e.Wrap(err, "failed to remove project integration")
-		}
-		if tx.RowsAffected == 0 {
-			return false, e.New("project does not have a integration")
+		if err := r.RemoveIntegrationFromWorkspaceAndProjects(ctx, workspace, *integrationType); err != nil {
+			return false, err
 		}
 	}
 
@@ -3307,6 +3307,141 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 	return metricMonitor, nil
 }
 
+// CreateAlert is the resolver for the createAlert field.
+func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+	_, err := r.isUserInProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	disabledVar := disabled
+	if disabledVar == nil {
+		disabledVar = pointy.Bool(false)
+	}
+
+	newAlert := &model.Alert{
+		ProjectID:         projectID,
+		Name:              name,
+		ProductType:       productType,
+		FunctionType:      functionType,
+		Query:             query,
+		GroupByKey:        groupByKey,
+		Disabled:          *disabledVar,
+		BelowThreshold:    belowThreshold,
+		ThresholdCount:    thresholdCount,
+		ThresholdWindow:   thresholdWindow,
+		ThresholdCooldown: thresholdCooldown,
+		LastAdminToEditID: admin.ID,
+	}
+
+	if err := r.DB.WithContext(ctx).Create(newAlert).Error; err != nil {
+		return nil, err
+	}
+
+	// TODO(spenny): create destinations
+
+	// TODO(spenny): send new message to destinations
+
+	return newAlert, nil
+}
+
+// UpdateAlert is the resolver for the updateAlert field.
+func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+	project, err := r.isUserInProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	alertUpdates := map[string]interface{}{
+		"LastAdminToEditID": admin.ID,
+	}
+
+	if name != nil {
+		alertUpdates["Name"] = *name
+	}
+	if productType != nil {
+		alertUpdates["ProductType"] = *productType
+	}
+	if functionType != nil {
+		alertUpdates["FunctionType"] = *functionType
+	}
+	if query != nil {
+		alertUpdates["Query"] = *query
+	}
+	if groupByKey != nil {
+		alertUpdates["GroupByKey"] = *groupByKey
+	}
+	if disabled != nil {
+		alertUpdates["Disabled"] = *disabled
+	}
+	if belowThreshold != nil {
+		alertUpdates["BelowThreshold"] = *belowThreshold
+	}
+	if thresholdCount != nil {
+		alertUpdates["ThresholdCount"] = *thresholdCount
+	}
+	if thresholdWindow != nil {
+		alertUpdates["ThresholdWindow"] = *thresholdWindow
+	}
+	if thresholdCooldown != nil {
+		alertUpdates["ThresholdCooldown"] = *thresholdCooldown
+	}
+
+	alert := &model.Alert{}
+	updateErr := store.AssertRecordFound(r.DB.WithContext(ctx).Where(&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID}).Model(&alert).Clauses(clause.Returning{}).Updates(&alertUpdates))
+	if updateErr != nil {
+		return nil, updateErr
+	}
+
+	// TODO(spenny): create/delete destinations
+
+	// TODO(spenny): send edit message to destinations
+
+	return alert, nil
+}
+
+// UpdateAlertDisabled is the resolver for the updateAlertDisabled field.
+func (r *mutationResolver) UpdateAlertDisabled(ctx context.Context, projectID int, alertID int, disabled bool) (bool, error) {
+	project, err := r.isUserInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	if err := r.DB.WithContext(ctx).Model(
+		&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID},
+	).Updates(map[string]interface{}{"Disabled": disabled}).Error; err != nil {
+		return false, err
+	}
+
+	return true, err
+}
+
+// DeleteAlert is the resolver for the deleteAlert field.
+func (r *mutationResolver) DeleteAlert(ctx context.Context, projectID int, alertID int) (bool, error) {
+	project, err := r.isUserInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	if err := r.DB.Where(
+		&model.Alert{Model: model.Model{ID: alertID}, ProjectID: project.ID},
+	).Delete(&model.Alert{}).Error; err != nil {
+		return false, err
+	}
+
+	// TODO(spenny): send deletion message to destinations?
+
+	if err := r.DB.Where(
+		&model.AlertDestination{AlertID: alertID},
+	).Delete(&model.AlertDestination{}).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 // CreateErrorAlert is the resolver for the createErrorAlert field.
 func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, microsoftTeamsChannels []*modelInputs.MicrosoftTeamsChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency int, defaultArg *bool) (*model.ErrorAlert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
@@ -3337,7 +3472,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	}
 
 	newAlert := &model.ErrorAlert{
-		Alert: model.Alert{
+		AlertDeprecated: model.AlertDeprecated{
 			ProjectID:         projectID,
 			CountThreshold:    countThreshold,
 			ThresholdWindow:   &thresholdWindow,
@@ -3478,7 +3613,7 @@ func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, 
 	}
 
 	projectAlert := &model.ErrorAlert{}
-	if err := r.DB.WithContext(ctx).Where(&model.ErrorAlert{Model: model.Model{ID: errorAlertID}, Alert: model.Alert{ProjectID: projectID}}).Find(&projectAlert).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&model.ErrorAlert{Model: model.Model{ID: errorAlertID}, AlertDeprecated: model.AlertDeprecated{ProjectID: projectID}}).Find(&projectAlert).Error; err != nil {
 		return nil, e.Wrap(err, "this error alert does not exist in this project.")
 	}
 
@@ -3544,7 +3679,7 @@ func (r *mutationResolver) UpdateSessionAlertIsDisabled(ctx context.Context, id 
 	}
 
 	sessionAlert := &model.SessionAlert{
-		Alert: model.Alert{
+		AlertDeprecated: model.AlertDeprecated{
 			Disabled: &disabled,
 		},
 	}
@@ -3568,7 +3703,7 @@ func (r *mutationResolver) UpdateErrorAlertIsDisabled(ctx context.Context, id in
 	}
 
 	errorAlert := &model.ErrorAlert{
-		Alert: model.Alert{
+		AlertDeprecated: model.AlertDeprecated{
 			Disabled: &disabled,
 		},
 	}
@@ -3688,7 +3823,7 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 	}
 
 	projectAlert := &model.SessionAlert{}
-	if err := r.DB.WithContext(ctx).Where(&model.ErrorAlert{Model: model.Model{ID: sessionAlertID}, Alert: model.Alert{ProjectID: projectID}}).Find(&projectAlert).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&model.ErrorAlert{Model: model.Model{ID: sessionAlertID}, AlertDeprecated: model.AlertDeprecated{ProjectID: projectID}}).Find(&projectAlert).Error; err != nil {
 		return nil, e.Wrap(err, "this session alert does not exist in this project.")
 	}
 
@@ -3856,7 +3991,7 @@ func (r *mutationResolver) UpdateLogAlertIsDisabled(ctx context.Context, id int,
 	}
 
 	alert := &model.LogAlert{
-		Alert: model.Alert{
+		AlertDeprecated: model.AlertDeprecated{
 			Disabled: &disabled,
 		},
 	}
@@ -4026,7 +4161,7 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 			queryParams := url.Values{
 				"autoinvite_email": {*admin.Email},
 			}
-			inviteLink := fmt.Sprintf("%s/w/%d/team?%s", os.Getenv("REACT_APP_FRONTEND_URI"), workspace.ID, queryParams.Encode())
+			inviteLink := fmt.Sprintf("%s/w/%d/team?%s", env.Config.FrontendUri, workspace.ID, queryParams.Encode())
 			if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
 				*a.Name, *a.Email, inviteLink); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send request access email"))
@@ -4158,10 +4293,6 @@ func (r *mutationResolver) DeleteDashboard(ctx context.Context, id int) (bool, e
 
 // DeleteSessions is the resolver for the deleteSessions field.
 func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, params modelInputs.QueryInput, sessionCount int) (bool, error) {
-	if util.IsDevOrTestEnv() {
-		return false, nil
-	}
-
 	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return false, err
@@ -4195,19 +4326,56 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, pa
 		return false, err
 	}
 
-	_, err = r.StepFunctions.DeleteSessionsByQuery(ctx, utils.QuerySessionsInput{
-		ProjectId:    projectID,
-		Email:        email,
-		FirstName:    firstName,
-		Params:       params,
-		SessionCount: sessionCount,
-		DryRun:       util.IsDevOrTestEnv(),
-	})
+	if env.IsInDocker() {
+		deleteHandlers := delete_handlers.InitHandlers(r.DB, r.ClickhouseClient, nil, r.StorageClient)
+		deleteHandlers.DeleteSessions(ctx, projectID, params.DateRange.StartDate, params.DateRange.EndDate, params.Query)
+	} else {
+		_, err = r.StepFunctions.DeleteSessionsByQuery(ctx, utils.QuerySessionsInput{
+			ProjectId:    projectID,
+			Email:        email,
+			FirstName:    firstName,
+			Params:       params,
+			SessionCount: sessionCount,
+			DryRun:       env.IsDevOrTestEnv(),
+		})
+	}
 
 	if err != nil {
 		return false, err
 	}
 	return true, nil
+}
+
+// CreateCloudflareProxy is the resolver for the createCloudflareProxy field.
+func (r *mutationResolver) CreateCloudflareProxy(ctx context.Context, workspaceID int, proxySubdomain string) (string, error) {
+	workspace, err := r.isUserInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return "", err
+	}
+
+	workspaceMapping := &model.IntegrationWorkspaceMapping{}
+	if err := r.DB.WithContext(ctx).Where(&model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspace.ID,
+		IntegrationType: modelInputs.IntegrationTypeCloudflare,
+	}).Take(&workspaceMapping).Error; err != nil {
+		return "", err
+	}
+
+	c, err := cloudflare.New(ctx, workspaceMapping.AccessToken)
+	if err != nil {
+		return "", err
+	}
+	proxy, err := c.CreateWorker(ctx, proxySubdomain)
+	if err != nil {
+		return "", err
+	}
+
+	updates := &model.Workspace{CloudflareProxy: ptr.String(proxy)}
+	if err := r.DB.WithContext(ctx).Model(&workspace).Where(&workspace).Select("cloudflare_proxy").Updates(updates).Error; err != nil {
+		return "", err
+	}
+
+	return proxy, nil
 }
 
 // UpdateVercelProjectMappings is the resolver for the updateVercelProjectMappings field.
@@ -4814,7 +4982,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 	var allSubs []*stripe.Subscription
 	for {
 		subListParams.StartingAfter = startingAfter
-		subList := r.StripeClient.Subscriptions.List(&subListParams).SubscriptionList()
+		subList := r.PricingClient.Subscriptions.List(&subListParams).SubscriptionList()
 		allSubs = append(allSubs, subList.Data...)
 
 		if !subList.HasMore {
@@ -4838,7 +5006,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 	startingAfter = nil
 	for {
 		invoiceListParams.StartingAfter = startingAfter
-		invoiceList := r.StripeClient.Invoices.List(&invoiceListParams).InvoiceList()
+		invoiceList := r.PricingClient.Invoices.List(&invoiceListParams).InvoiceList()
 		allInvoices = append(allInvoices, invoiceList.Data...)
 
 		if !invoiceList.HasMore {
@@ -4965,7 +5133,7 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 
 // Session is the resolver for the session field.
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
-	if util.IsDevEnv() && secureID == "repro" {
+	if env.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}
 		if err := r.DB.WithContext(ctx).Preload("Fields").Where(&model.Session{Model: model.Model{ID: 0}}).Take(&sessionObj).Error; err != nil {
 			return nil, e.Wrap(err, "error reading from session")
@@ -5004,7 +5172,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 
 // Events is the resolver for the events field.
 func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
-	if util.IsDevEnv() && sessionSecureID == "repro" {
+	if env.IsDevEnv() && sessionSecureID == "repro" {
 		file, err := os.ReadFile("./tmp/events.json")
 		if err != nil {
 			return nil, e.Wrap(err, "Failed to read temp file")
@@ -5026,7 +5194,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 
 // SessionIntervals is the resolver for the session_intervals field.
 func (r *queryResolver) SessionIntervals(ctx context.Context, sessionSecureID string) ([]*model.SessionInterval, error) {
-	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+	if !(env.IsDevEnv() && sessionSecureID == "repro") {
 		_, err := r.canAdminViewSession(ctx, sessionSecureID)
 		if err != nil {
 			return nil, err
@@ -5044,7 +5212,7 @@ func (r *queryResolver) SessionIntervals(ctx context.Context, sessionSecureID st
 // TimelineIndicatorEvents is the resolver for the timeline_indicator_events field.
 func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecureID string) ([]*model.TimelineIndicatorEvent, error) {
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+	if !(env.IsDevEnv() && sessionSecureID == "repro") {
 		if err != nil {
 			return nil, err
 		}
@@ -5062,7 +5230,7 @@ func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecu
 // WebsocketEvents is the resolver for the websocket_events field.
 func (r *queryResolver) WebsocketEvents(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+	if !(env.IsDevEnv() && sessionSecureID == "repro") {
 		if err != nil {
 			return nil, err
 		}
@@ -5078,7 +5246,7 @@ func (r *queryResolver) WebsocketEvents(ctx context.Context, sessionSecureID str
 
 // RageClicks is the resolver for the rage_clicks field.
 func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) ([]*model.RageClickEvent, error) {
-	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+	if !(env.IsDevEnv() && sessionSecureID == "repro") {
 		_, err := r.canAdminViewSession(ctx, sessionSecureID)
 		if err != nil {
 			return nil, err
@@ -5191,7 +5359,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 	}
 
 	if len(results) > 0 {
-		if err := r.SetErrorFrequenciesClickhouse(ctx, project.ID, results, ErrorGroupLookbackDays); err != nil {
+		if err := r.loadErrorGroupFrequenciesClickhouse(ctx, project.ID, results); err != nil {
 			return nil, err
 		}
 	}
@@ -5261,7 +5429,7 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string, useClic
 	if eg.UpdatedAt.Before(retentionDate) {
 		return nil, e.New("no new error instances after the workspace's retention date")
 	}
-	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
+	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}); err != nil {
 		return nil, err
 	}
 	return eg, err
@@ -5500,7 +5668,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 
 // Errors is the resolver for the errors field.
 func (r *queryResolver) Errors(ctx context.Context, sessionSecureID string) ([]*model.ErrorObject, error) {
-	if util.IsDevEnv() && sessionSecureID == "repro" {
+	if env.IsDevEnv() && sessionSecureID == "repro" {
 		errors := []*model.ErrorObject{}
 		return errors, nil
 	}
@@ -5559,7 +5727,7 @@ func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) (
 
 // SessionComments is the resolver for the session_comments field.
 func (r *queryResolver) SessionComments(ctx context.Context, sessionSecureID string) ([]*model.SessionComment, error) {
-	if util.IsDevEnv() && sessionSecureID == "repro" {
+	if env.IsDevEnv() && sessionSecureID == "repro" {
 		sessionComments := []*model.SessionComment{}
 		return sessionComments, nil
 	}
@@ -6003,7 +6171,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 	if err != nil {
 		return nil, err
 	}
-	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, errGroup); err != nil {
+	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, projectID, []*model.ErrorGroup{errGroup}); err != nil {
 		return nil, err
 	}
 
@@ -6018,9 +6186,6 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 		return dists, nil
 	}
 
-	if err := r.SetErrorFrequenciesClickhouse(ctx, projectID, []*model.ErrorGroup{errGroup}, dateOffset); err != nil {
-		return nil, e.Wrap(err, "error setting error frequencies")
-	}
 	return errGroup.ErrorFrequency, nil
 }
 
@@ -6940,6 +7105,18 @@ func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) 
 		return nil, e.Wrap(err, "error getting associated projects")
 	}
 
+	workspaces, err := r.Workspaces(ctx)
+	if err != nil {
+		return nil, err
+	}
+	workspacesById := lo.KeyBy(workspaces, func(workspace *model.Workspace) int {
+		return workspace.ID
+	})
+
+	for _, project := range projects {
+		project.Workspace = workspacesById[project.WorkspaceID]
+	}
+
 	return projects, nil
 }
 
@@ -6953,6 +7130,10 @@ func (r *queryResolver) Workspaces(ctx context.Context) ([]*model.Workspace, err
 	workspaces := []*model.Workspace{}
 	if err := r.DB.Order("id ASC").Model(&admin).Association("Workspaces").Find(&workspaces); err != nil {
 		return nil, e.Wrap(err, "error getting associated workspaces")
+	}
+
+	for _, w := range workspaces {
+		r.SetDefaultRetention(w)
 	}
 
 	return workspaces, nil
@@ -7021,6 +7202,40 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 	return joinableWorkspaces, nil
 }
 
+// Alerts is the resolver for the alerts field.
+func (r *queryResolver) Alerts(ctx context.Context, projectID int) ([]*model.Alert, error) {
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	alerts := []*model.Alert{}
+	if err := r.DB.Order("created_at asc").Model(&model.Alert{}).Preload("Destinations").Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
+		return nil, err
+	}
+	return alerts, nil
+}
+
+// Alert is the resolver for the alert field.
+func (r *queryResolver) Alert(ctx context.Context, id int) (*model.Alert, error) {
+	var alert *model.Alert
+	if err := r.DB.WithContext(ctx).Model(&model.Alert{}).Preload("Destinations").Where("id = ?", id).Find(&alert).Error; err != nil {
+		return nil, err
+	}
+
+	_, err := r.isUserInProjectOrDemoProject(ctx, alert.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return alert, nil
+}
+
+// AlertStateChanges is the resolver for the alert_state_changes field.
+func (r *queryResolver) AlertStateChanges(ctx context.Context, alertID int) ([]*modelInputs.AlertStateChange, error) {
+	// TODO(spenny): fetch alert state changes from clickhouse
+	return []*modelInputs.AlertStateChange{}, nil
+}
+
 // ErrorAlerts is the resolver for the error_alerts field.
 func (r *queryResolver) ErrorAlerts(ctx context.Context, projectID int) ([]*model.ErrorAlert, error) {
 	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
@@ -7055,7 +7270,7 @@ func (r *queryResolver) TrackPropertiesAlerts(ctx context.Context, projectID int
 		return nil, err
 	}
 	var alerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.TRACK_PROPERTIES}}).
+	if err := r.DB.WithContext(ctx).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{Type: &model.AlertType.TRACK_PROPERTIES}}).
 		Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying track properties alerts")
 	}
@@ -7069,7 +7284,7 @@ func (r *queryResolver) UserPropertiesAlerts(ctx context.Context, projectID int)
 		return nil, err
 	}
 	var alerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.USER_PROPERTIES}}).
+	if err := r.DB.WithContext(ctx).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{Type: &model.AlertType.USER_PROPERTIES}}).
 		Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying user properties alerts")
 	}
@@ -7083,7 +7298,7 @@ func (r *queryResolver) NewSessionAlerts(ctx context.Context, projectID int) ([]
 		return nil, err
 	}
 	var alerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.NEW_SESSION}}).
+	if err := r.DB.WithContext(ctx).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{Type: &model.AlertType.NEW_SESSION}}).
 		Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying new session alerts")
 	}
@@ -7389,6 +7604,17 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 	} else if integrationType == modelInputs.IntegrationTypeDiscord {
 		return workspace.DiscordGuildId != nil, nil
 	} else {
+		workspaceMapping := &model.IntegrationWorkspaceMapping{}
+		if err := r.DB.WithContext(ctx).Where(&model.IntegrationWorkspaceMapping{
+			WorkspaceID:     workspace.ID,
+			IntegrationType: integrationType,
+		}).First(&workspaceMapping).Error; err != nil {
+			return false, err
+		}
+		if workspaceMapping.WorkspaceID == 0 {
+			return true, nil
+		}
+
 		projectMapping := &model.IntegrationProjectMapping{}
 		if err := r.DB.WithContext(ctx).Where(&model.IntegrationProjectMapping{
 			ProjectID:       projectID,
@@ -7794,11 +8020,33 @@ func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, er
 	}
 
 	if r.isDemoProject(ctx, id) {
+		workspace, err := r.GetWorkspace(project.WorkspaceID)
+		if err != nil {
+			return nil, e.Wrap(err, "error querying workspace")
+		}
+
+		threeMonth := modelInputs.RetentionPeriodThreeMonths
 		return &model.Project{
 			Model: project.Model,
 			Name:  project.Name,
+			Workspace: &model.Workspace{
+				Model:                 workspace.Model,
+				Name:                  workspace.Name,
+				RetentionPeriod:       &threeMonth,
+				ErrorsRetentionPeriod: &threeMonth,
+				Projects: []model.Project{{
+					Model: project.Model,
+					Name:  project.Name,
+				}},
+			},
 		}, nil
 	}
+
+	workspace, err := r.Workspace(ctx, project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	project.Workspace = workspace
 
 	return project, nil
 }
@@ -7859,6 +8107,8 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 		return nil, nil
 	}
 
+	r.SetDefaultRetention(workspace)
+
 	if r.isWhitelistedAccount(ctx) {
 		projects := []model.Project{}
 		if err := r.DB.WithContext(ctx).Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
@@ -7872,6 +8122,8 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 		if p == nil {
 			return model.Project{}, false
 		}
+
+		p.Workspace = workspace
 
 		return *p, p.WorkspaceID == id
 	})
@@ -8138,8 +8390,13 @@ func (r *queryResolver) AdminRoleByProject(ctx context.Context, projectID int) (
 		}
 	}
 
+	var workspaceId int
+	if project != nil {
+		workspaceId = project.WorkspaceID
+	}
+
 	return &model.WorkspaceAdminRole{
-		WorkspaceId: project.WorkspaceID,
+		WorkspaceId: workspaceId,
 		Admin:       admin,
 		Role:        role,
 		ProjectIds:  projectIds,
@@ -8198,7 +8455,7 @@ func (r *queryResolver) GetSourceMapUploadUrls(ctx context.Context, apiKey strin
 
 // CustomerPortalURL is the resolver for the customer_portal_url field.
 func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) (string, error) {
-	frontendUri := os.Getenv("REACT_APP_FRONTEND_URI")
+	frontendUri := env.Config.FrontendUri
 
 	workspace, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
@@ -8212,7 +8469,7 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 		ReturnURL: &returnUrl,
 	}
 
-	portalSession, err := r.StripeClient.BillingPortalSessions.New(params)
+	portalSession, err := r.PricingClient.BillingPortalSessions.New(params)
 	if err != nil {
 		return "", e.Wrap(err, "error creating customer portal session")
 	}
@@ -8236,7 +8493,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	return redis.CachedEval(ctx, r.Redis, redis.GetSubscriptionDetailsKey(workspaceID), time.Minute, time.Minute, func() (*modelInputs.SubscriptionDetails, error) {
 		customerParams := &stripe.CustomerParams{}
 		customerParams.AddExpand("subscriptions")
-		c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
+		c, err := r.PricingClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
 		if err != nil {
 			return nil, e.Wrap(err, "error querying stripe customer")
 		}
@@ -8264,7 +8521,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID
 		invoiceParams := &stripe.InvoiceParams{}
 		customerParams.AddExpand("invoice_items")
-		invoice, err := r.StripeClient.Invoices.Get(invoiceID, invoiceParams)
+		invoice, err := r.PricingClient.Invoices.Get(invoiceID, invoiceParams)
 		if err != nil {
 			return nil, e.Wrap(err, "error querying stripe invoice")
 		}
@@ -8559,6 +8816,257 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 	return results, nil
 }
 
+// AiQuerySuggestion is the resolver for the ai_query_suggestion field.
+func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, projectID int, productType modelInputs.ProductType, query string) (*modelInputs.QueryOutput, error) {
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	// create a list of key:value strings
+	keyVals := []string{}
+	keys := []string{}
+	// switch on the product type to get the keys and values
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		keys = append(keys, lo.Map(lo.Keys(clickhouse.TracesTableConfig.KeysToColumns),
+			func(key modelInputs.ReservedTraceKey, _ int) string {
+				return key.String()
+			})...)
+	case modelInputs.ProductTypeLogs:
+		keys = append(keys, lo.Map(lo.Keys(clickhouse.LogsTableConfig.KeysToColumns),
+			func(key modelInputs.ReservedLogKey, _ int) string {
+				return key.String()
+			})...)
+	case modelInputs.ProductTypeSessions:
+		keys = append(keys, lo.Keys(clickhouse.SessionsTableConfig.KeysToColumns)...)
+	case modelInputs.ProductTypeErrors:
+		keys = append(keys, lo.Map(lo.Keys(clickhouse.ErrorGroupsTableConfig.KeysToColumns),
+			func(key modelInputs.ReservedErrorGroupKey, _ int) string {
+				return key.String()
+			})...)
+	}
+
+	loc, err := time.LoadLocation(timeZone)
+	if err != nil {
+		loc, err = time.LoadLocation("America/Los_Angeles")
+		if err != nil {
+			return nil, e.Errorf("error loading location twice: %v", err)
+		}
+	}
+	var sevenDaysAgo time.Time = time.Now().Add(-7 * 24 * time.Hour)
+	for _, key := range keys {
+		if key == "HighlightType" {
+			continue
+		}
+		keys = append(keys, key)
+		vals, err := r.KeyValues(
+			ctx,
+			productType,
+			projectID,
+			key,
+			modelInputs.DateRangeRequiredInput{
+				StartDate: sevenDaysAgo,
+				EndDate:   time.Now(),
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+		for _, val := range vals {
+			keyVals = append(keyVals, fmt.Sprintf("%s:%s", key, val))
+		}
+	}
+
+	now := time.Now().In(loc).Format(time.RFC3339)
+
+	var searchSpecificDoc string
+	switch productType {
+	case modelInputs.ProductTypeTraces:
+		searchSpecificDoc = prompts.TraceSearch
+	case modelInputs.ProductTypeLogs:
+		searchSpecificDoc = prompts.LogSearch
+	case modelInputs.ProductTypeSessions:
+		searchSpecificDoc = prompts.SessionSearch
+	case modelInputs.ProductTypeErrors:
+		searchSpecificDoc = prompts.ErrorSearch
+	}
+
+	log.WithContext(ctx).Infof("search generic doc: %s", prompts.SearchSyntaxDocs)
+	log.WithContext(ctx).Infof("search specific doc: %s", searchSpecificDoc)
+
+	systemPrompt := fmt.Sprintf(`
+You are a simple system used by an observabiliity product in which, 
+given a %s query in english, you output a structured query that the system 
+can use to parse (which ultimately queries an internal database).
+
+The input query will be a string which describes what the user wants in plain English.	
+
+## Output Overview:
+
+The output query should be in a json format with two keys: "query" and "date_range". 
+
+Below are descriptions of the keys:
+"query": A string that represents the query that the system should use to query the internal database, which must use the key-value pairs provided below. See below for the syntax rules of the language.
+"date_range.start_date": A datetime string that represents the start date of the date range for the query.  If the date range is not specified, this key should be empty.
+"date_range.end_date": A datetime string that represents the end date of the date range for the query. If the date range is not specified, this key should be empty.
+
+## Rules for 'date_range' key:
+Use today's date/time in the user's time zone for any relative times provided: %s
+
+## Rules for 'query' key:
+In terms of the keys and values you can use in the 'query' field, try not to use a key-value pairs that don't exist. If the user asks to search for a log that has a specific string in it, use the "*text*" option.
+
+%s
+
+You have the following keys to work with:
+
+%s
+
+And here are the key/values that you can use for each respective key. If the below section is empty, be creative:
+
+%s
+
+### Documentation for query syntax:
+
+The 'query' syntax documentation is as follows:
+%s
+
+And specifically, for the %s product, you can refer to the following documentation:
+%s
+`, productType, now, openai_client.IrrelevantQueryFunctionalityIndicator, strings.Join(keys, ", "), strings.Join(keyVals, ", "), prompts.SearchSyntaxDocs, productType, searchSpecificDoc)
+
+	yesterday := time.Now().In(loc).AddDate(0, 0, -1)
+	yesterdayAt2PM := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 14, 0, 0, 0, yesterday.Location()).Format(time.RFC3339)
+	sevenDaysBack := time.Now().Add(-7 * 24 * time.Hour).In(loc).Format(time.RFC3339)
+
+	examples := []struct {
+		request  string
+		response string
+	}{
+		{
+			request:  "Show me all the 500 errors in the last 7 days",
+			response: fmt.Sprintf(`{"query":"status_code=500","date_range":{"start_date":"%s","end_date":""}}`, sevenDaysBack),
+		},
+		{
+			request:  "Show me all the error logs from last week to yesterday at 2pm",
+			response: fmt.Sprintf(`{"query":"level=error","date_range":{"start_date":"%s","end_date":"%s"}}`, sevenDaysBack, yesterdayAt2PM),
+		},
+		{
+			request:  "All the traces from the private graph or public graph service",
+			response: `{"query":"service_name=private-graph OR service_name=public-graph","date_range":{"start_date":"","end_date":""}}`,
+		},
+		{
+			request:  "Give me all the logs where the environment is production and the session is not null",
+			response: `{"query":"environment=production AND secure_session_id EXISTS","date_range":{"start_date":"","end_date":""}}`,
+		},
+		{
+			request:  "logs that have 'panic' in the message",
+			response: `{"query":"message=*panic*","date_range":{"start_date":"","end_date":""}}`,
+		},
+		{
+			request:  openai_client.IrrelevantQuery,
+			response: `{"query":"","date_range":{"start_date":"","end_date":""}}`,
+		},
+	}
+
+	resp, err := r.OpenAiClient.CreateChatCompletion(
+		ctx,
+		openai.ChatCompletionRequest{
+			Model: openai.GPT3Dot5Turbo,
+			ResponseFormat: &openai.ChatCompletionResponseFormat{
+				Type: openai.ChatCompletionResponseFormatTypeJSONObject,
+			},
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: systemPrompt,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[0].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[0].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[1].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[1].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[2].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[2].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: query,
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		log.WithContext(ctx).Error(err, "ChatCompletion error")
+		return nil, err
+	}
+
+	if resp.Choices[0].Message.Content == "" {
+		log.WithContext(ctx).Error(err, "Empty openai response")
+		return nil, e.New("Empty openai response")
+	}
+
+	log.WithContext(ctx).
+		WithField("response", resp.Choices[0].Message.Content).
+		Info("AI suggestion generated.")
+
+	log.WithContext(ctx).
+		Info(fmt.Sprintf(systemPrompt))
+
+	// Define the structs inline
+	var toSaveString struct {
+		Query     string `json:"query"`
+		DateRange struct {
+			StartDate string `json:"start_date,omitempty"`
+			EndDate   string `json:"end_date,omitempty"`
+		} `json:"date_range"`
+	}
+
+	err = json.Unmarshal([]byte(resp.Choices[0].Message.Content), &toSaveString)
+	if err != nil {
+		return nil, e.Errorf("error unmarshalling response from openai: %v", err)
+	}
+
+	toSave := modelInputs.QueryOutput{}
+	toSave.DateRange = &modelInputs.DateRangeRequiredOutput{}
+	toSave.Query = toSaveString.Query
+	startDate, err := time.Parse(time.RFC3339, toSaveString.DateRange.StartDate)
+	if err != nil {
+		toSave.DateRange.StartDate = nil
+	} else {
+		toSave.DateRange.StartDate = &startDate
+	}
+	endDate, err := time.Parse(time.RFC3339, toSaveString.DateRange.EndDate)
+	if err != nil {
+		toSave.DateRange.EndDate = nil
+	} else {
+		toSave.DateRange.EndDate = &endDate
+	}
+
+	if toSave.Query == "" {
+		return nil, openai_client.MalformedPromptError
+	}
+
+	return &toSave, nil
+}
+
 // Logs is the resolver for the logs field.
 func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.LogConnection, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
@@ -8668,7 +9176,6 @@ func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyNam
 	if err != nil {
 		return nil, err
 	}
-
 	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
@@ -8697,11 +9204,6 @@ func (r *queryResolver) ExistingLogsTraces(ctx context.Context, projectID int, t
 
 // ErrorResolutionSuggestion is the resolver for the error_resolution_suggestion field.
 func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObjectID int) (string, error) {
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return "", e.New("OPENAI_API_KEY is not set")
-	}
-
 	errorObject := &model.ErrorObject{}
 	if err := r.DB.WithContext(ctx).Model(&model.ErrorObject{}).Where("id = ?", errorObjectID).Find(&errorObject).Error; err != nil {
 		return "", e.Wrap(err, "failed to find error object")
@@ -8733,9 +9235,8 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 	Here's the stack trace information: %v
 	`, errorObject.Event, *stackTrace)
 
-	client := openai.NewClient(apiKey)
-	resp, err := client.CreateChatCompletion(
-		context.Background(),
+	resp, err := r.OpenAiClient.CreateChatCompletion(
+		ctx,
 		openai.ChatCompletionRequest{
 			Model:       openai.GPT3Dot5Turbo,
 			Temperature: 0.7,
@@ -9290,7 +9791,7 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 
 // SessionFeedback is the resolver for the session_feedback field.
 func (r *sessionResolver) SessionFeedback(ctx context.Context, obj *model.Session) ([]*model.SessionComment, error) {
-	if util.IsDevEnv() && obj.SecureID == "repro" {
+	if env.IsDevEnv() && obj.SecureID == "repro" {
 		sessionFeedback := []*model.SessionComment{}
 		return sessionFeedback, nil
 	}
@@ -9600,3 +10101,76 @@ type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
 type visualizationResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *errorAlertResolver) Name(ctx context.Context, obj *model.ErrorAlert) (*string, error) {
+	panic(fmt.Errorf("not implemented: Name - Name"))
+}
+func (r *errorAlertResolver) CountThreshold(ctx context.Context, obj *model.ErrorAlert) (int, error) {
+	panic(fmt.Errorf("not implemented: CountThreshold - CountThreshold"))
+}
+func (r *errorAlertResolver) ThresholdWindow(ctx context.Context, obj *model.ErrorAlert) (*int, error) {
+	panic(fmt.Errorf("not implemented: ThresholdWindow - ThresholdWindow"))
+}
+func (r *errorAlertResolver) LastAdminToEditID(ctx context.Context, obj *model.ErrorAlert) (*int, error) {
+	panic(fmt.Errorf("not implemented: LastAdminToEditID - LastAdminToEditID"))
+}
+func (r *errorAlertResolver) Type(ctx context.Context, obj *model.ErrorAlert) (string, error) {
+	panic(fmt.Errorf("not implemented: Type - Type"))
+}
+func (r *errorAlertResolver) Frequency(ctx context.Context, obj *model.ErrorAlert) (int, error) {
+	panic(fmt.Errorf("not implemented: Frequency - Frequency"))
+}
+func (r *errorAlertResolver) Disabled(ctx context.Context, obj *model.ErrorAlert) (bool, error) {
+	panic(fmt.Errorf("not implemented: Disabled - disabled"))
+}
+func (r *errorAlertResolver) Default(ctx context.Context, obj *model.ErrorAlert) (bool, error) {
+	panic(fmt.Errorf("not implemented: Default - default"))
+}
+func (r *logAlertResolver) Name(ctx context.Context, obj *model.LogAlert) (string, error) {
+	panic(fmt.Errorf("not implemented: Name - Name"))
+}
+func (r *logAlertResolver) CountThreshold(ctx context.Context, obj *model.LogAlert) (int, error) {
+	panic(fmt.Errorf("not implemented: CountThreshold - CountThreshold"))
+}
+func (r *logAlertResolver) ThresholdWindow(ctx context.Context, obj *model.LogAlert) (int, error) {
+	panic(fmt.Errorf("not implemented: ThresholdWindow - ThresholdWindow"))
+}
+func (r *logAlertResolver) LastAdminToEditID(ctx context.Context, obj *model.LogAlert) (*int, error) {
+	panic(fmt.Errorf("not implemented: LastAdminToEditID - LastAdminToEditID"))
+}
+func (r *logAlertResolver) Type(ctx context.Context, obj *model.LogAlert) (string, error) {
+	panic(fmt.Errorf("not implemented: Type - Type"))
+}
+func (r *logAlertResolver) Disabled(ctx context.Context, obj *model.LogAlert) (bool, error) {
+	panic(fmt.Errorf("not implemented: Disabled - disabled"))
+}
+func (r *logAlertResolver) Default(ctx context.Context, obj *model.LogAlert) (bool, error) {
+	panic(fmt.Errorf("not implemented: Default - default"))
+}
+func (r *sessionAlertResolver) Name(ctx context.Context, obj *model.SessionAlert) (*string, error) {
+	panic(fmt.Errorf("not implemented: Name - Name"))
+}
+func (r *sessionAlertResolver) CountThreshold(ctx context.Context, obj *model.SessionAlert) (int, error) {
+	panic(fmt.Errorf("not implemented: CountThreshold - CountThreshold"))
+}
+func (r *sessionAlertResolver) ThresholdWindow(ctx context.Context, obj *model.SessionAlert) (*int, error) {
+	panic(fmt.Errorf("not implemented: ThresholdWindow - ThresholdWindow"))
+}
+func (r *sessionAlertResolver) LastAdminToEditID(ctx context.Context, obj *model.SessionAlert) (*int, error) {
+	panic(fmt.Errorf("not implemented: LastAdminToEditID - LastAdminToEditID"))
+}
+func (r *sessionAlertResolver) Type(ctx context.Context, obj *model.SessionAlert) (string, error) {
+	panic(fmt.Errorf("not implemented: Type - Type"))
+}
+func (r *sessionAlertResolver) Disabled(ctx context.Context, obj *model.SessionAlert) (bool, error) {
+	panic(fmt.Errorf("not implemented: Disabled - disabled"))
+}
+func (r *sessionAlertResolver) Default(ctx context.Context, obj *model.SessionAlert) (bool, error) {
+	panic(fmt.Errorf("not implemented: Default - default"))
+}

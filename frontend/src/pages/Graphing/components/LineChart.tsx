@@ -23,7 +23,6 @@ import {
 	isActive,
 	SeriesInfo,
 	TIMESTAMP_KEY,
-	TooltipConfig,
 } from '@/pages/Graphing/components/Graph'
 
 export type LineNullHandling = 'Hidden' | 'Connected' | 'Zero'
@@ -56,10 +55,9 @@ export const LineChart = ({
 	showXAxis,
 	showYAxis,
 	showGrid,
-	verboseTooltip,
 	strokeColors,
 }: React.PropsWithChildren<
-	InnerChartProps<LineChartConfig> & SeriesInfo & AxisConfig & TooltipConfig
+	InnerChartProps<LineChartConfig> & SeriesInfo & AxisConfig
 >) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
 	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
@@ -159,7 +157,6 @@ export const LineChart = ({
 						xAxisMetric,
 						yAxisMetric,
 						yAxisFunction,
-						verboseTooltip,
 					)}
 					cursor={{ stroke: '#C8C7CB', strokeDasharray: 4 }}
 					isAnimationActive={false}

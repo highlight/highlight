@@ -57,6 +57,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 					shape,
 				}),
 			])}
+			style={{ cursor: buttonProps.onClick ? 'pointer' : 'default' }}
 			type="button"
 			{...buttonProps}
 		>

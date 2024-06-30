@@ -492,8 +492,9 @@ func SessionMatchesQuery(session *model.Session, filters listener.Filters) bool 
 
 var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey]{
 	TableName:        SessionsJoinedTable,
-	AttributesColumn: "SessionAttributes",
-	BodyColumn:       `concat(coalesce(nullif(SessionAttributes['email'],''), nullif(Identifier, ''), nullif(toString(Fingerprint), ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
+	AttributesColumn: "SessionAttributePairs",
+	AttributesList:   true,
+	BodyColumn:       `concat(coalesce(nullif(arrayFilter((k, v) -> k = 'email', SessionAttributePairs) [1].2,''), nullif(Identifier, ''), nullif(toString(Fingerprint), ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
 	KeysToColumns: map[modelInputs.ReservedSessionKey]string{
 		modelInputs.ReservedSessionKeyActiveLength:       "ActiveLength",
 		modelInputs.ReservedSessionKeyServiceVersion:     "AppVersion",

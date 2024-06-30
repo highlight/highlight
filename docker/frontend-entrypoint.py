@@ -10,11 +10,14 @@ def main():
     private = os.environ.get('REACT_APP_PRIVATE_GRAPH_URI')
     public = os.environ.get('REACT_APP_PUBLIC_GRAPH_URI')
     frontend = os.environ.get('REACT_APP_FRONTEND_URI')
+    auth = os.environ.get('REACT_APP_AUTH_MODE')
     use_ssl = os.environ.get('SSL') != 'false'
     print("replacing", {"private": private, "public": public, "frontend": frontend})
 
     with open(CONSTANTS_FILE, 'r') as f:
         data = f.read()
+        if auth:
+            data = re.sub('firebase', auth, data)
         if private:
             data = re.sub('http://localhost:8082/private', private, data)
         if public:

@@ -49,26 +49,156 @@ jobs:
               uses: docker/setup-buildx-action@v3
 
             - name: Build and push docker container.
+              id: image-build
               shell: bash
+              working-directory: ./docker
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+                  TARGET: ${{ matrix.container }}
+                  RELEASE: ${{ github.ref_name }}
+                  REPO: ${{ github.event.pull_request.head.repo.full_name }}
+                  REF: ${{ github.ref }}
               run: |
-                  ANNOTATIONS="annotation-index.org.opencontainers.image.description=highlight.io production ${{ matrix.container }} image"
-                  ANNOTATIONS="$ANNOTATIONS,annotation-index.org.opencontainers.image.source=https://github.com/highlight/highlight"
-                  ANNOTATIONS="$ANNOTATIONS,annotation-index.org.opencontainers.image.licenses=Apache 2.0"
-                  IMAGE_TAG=$(echo ${{ github.ref_name }} | sed 's/\//-/g')
-
-                  push="--push -t ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG"
+                  IMAGE_TAG=$(echo ${{ github.ref_name }} | sed 's/\//-/g')-${{ github.sha }}
+                  IMAGE_TAG=ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG
                   if [[ ${{ github.event_name }} == 'release' ]]; then
-                    push="${push} -t ghcr.io/highlight/$IMAGE_NAME:latest"
+                    IMAGE_TAG=ghcr.io/highlight/$IMAGE_NAME:latest
                   fi
 
+                  if [[ ${REF} == 'refs/heads/main' || ${REPO} == 'highlight/highlight' ]]; then
+                    PUSH="--push"
+                  else
+                    PUSH=""
+                  fi
+                  PUSH="$PUSH -t $IMAGE_TAG"
+
+                  export PUSH
+                  export PLATFORM="--platform linux/arm64,linux/amd64"
+
                   # build docker image with common environment
-                  pushd docker
-                  source env.sh --go-docker
+                  ./build.sh
+
+                  echo "Built $IMAGE_NAME"
+
+    test-docker-enterprise:
+        name: Test Docker Image
+        needs:
+            - publish-docker
+        runs-on: buildjet-4vcpu-ubuntu-2204
+        timeout-minutes: 90
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+
+            - name: Setup Node.js environment
+              uses: buildjet/setup-node@v4
+              with:
+                  node-version: lts/*
+                  cache: 'yarn'
+
+            - name: Install poetry
+              run: pipx install poetry
+
+            - name: Install python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: '3.10'
+                  cache: 'poetry'
+
+            - name: Install dependencies
+              working-directory: ./e2e/tests
+              run: poetry install --all-extras
+
+            - name: Login to Docker Hub
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Login to GitHub Docker
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: Vadman97
+                  password: ${{ secrets.GH_DOCKER_TOKEN }}
+
+            - name: Run docker enterprise
+              env:
+                  LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
+              run: |
+                  IMAGE_TAG=$(echo ${{ github.ref_name }} | sed 's/\//-/g')-${{ github.sha }}
+                  if [[ ${{ github.event_name }} == 'release' ]]; then
+                    IMAGE_TAG=latest
+                  fi
+                  export BACKEND_IMAGE_NAME=ghcr.io/highlight/highlight-backend:$IMAGE_TAG
+                  export FRONTEND_IMAGE_NAME=ghcr.io/highlight/highlight-frontend:$IMAGE_TAG
+                  export RELEASE=$IMAGE_TAG
+                  export LICENSE_KEY
+
+                  pushd docker;
+
+                  # setup infra / db
+                  source ./env.sh --go-docker;
+                  # ensure db migrated so we can insert the desired records
+                  ./start-infra.sh > /tmp/highlight.log 2>&1;
+                  docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
+
+                  # start highlight
+                  ./run-enterprise.sh --no-pull >> /tmp/highlight.log 2>&1;
+                  popd;
+
+                  # install dependencies for e2e tests
+                  yarn install >> /tmp/highlight.log 2>&1;
+                  yarn build:sdk >> /tmp/highlight.log 2>&1;
+
+                  # run python backend functional tests
+                  pushd ./e2e/tests
+                  export HIGHLIGHT_OAUTH_CLIENT_ID=abc123
+                  export HIGHLIGHT_OAUTH_CLIENT_SECRET=def456
+                  poetry run pytest -k "not cypress" .
                   popd
-                  docker buildx build $BUILD_ARGS \
-                    --build-arg REACT_APP_COMMIT_SHA=${{ github.sha }} \
-                    $push \
-                    --platform linux/arm64,linux/amd64 \
-                    -f docker/${{ matrix.container }}.Dockerfile \
-                    --target ${{ matrix.container }}-prod \
-                    --output "type=image,name=target,$ANNOTATIONS" .
+
+                  # look for containers that crashed
+                  num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)
+                  if [ "$num_crashed" -gt 0 ]; then
+                    echo "$num_crashed containers crashed"
+                    docker ps -a -f status=exited
+                    exit 1
+                  fi
+
+            - name: Dump setup logs on failure
+              if: failure()
+              run: cat /tmp/highlight.log
+
+            - name: Dump docker container logs on failure
+              if: failure()
+              run: |
+                  cd docker;
+                  docker compose -f compose.yml -f compose.enterprise.yml logs;
+
+            - name: Dump databases on failure
+              if: failure()
+              run: |
+                  cd docker;
+                  mkdir backups
+
+                  docker compose exec postgres bash -c "mkdir /backups";
+                  docker compose exec postgres bash -c "pg_dump -h localhost -U postgres postgres > /backups/postgres.sql";
+                  docker compose exec postgres bash -c "cat /backups/postgres.sql" > ./backups/postgres.sql 2>&1;
+
+                  docker compose exec clickhouse bash -c "mkdir /backups && chmod -R 777 /backups";
+                  docker compose exec clickhouse clickhouse-client --host clickhouse --query "BACKUP DATABASE default TO File('/backups/clickhouse.zip')";
+                  docker compose exec clickhouse bash -c "cat /backups/clickhouse.zip" > ./backups/clickhouse.zip 2>&1;
+
+            - name: Save database artifacts
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: db-dump
+                  path: docker/backups/*

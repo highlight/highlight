@@ -23,6 +23,7 @@ import React, {
 	useLayoutEffect,
 	useMemo,
 	useRef,
+	useState,
 } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
@@ -58,16 +59,27 @@ const ErrorsPage = ({
 	/** Only errors recorded after this feature was released will have the timestamp. */
 
 	const hasTimestamp = !loading && errors?.every((error) => !!error.timestamp)
-	const lastActiveErrorIndex = useMemo(() => {
-		if (hasTimestamp) {
-			return findLastActiveEventIndex(
-				time,
-				sessionMetadata.startTime,
-				errors,
-			)
-		}
-		return -1
-	}, [errors, hasTimestamp, sessionMetadata.startTime, time])
+	const [lastActiveErrorIndex, setLastActiveErrorIndex] = useState(-1)
+
+	useEffect(
+		() =>
+			_.throttle(
+				() => {
+					if (hasTimestamp) {
+						const activeIndex = findLastActiveEventIndex(
+							time,
+							sessionMetadata.startTime,
+							errors,
+						)
+
+						setLastActiveErrorIndex(activeIndex)
+					}
+				},
+				THROTTLED_UPDATE_MS,
+				{ leading: true, trailing: false },
+			),
+		[errors, hasTimestamp, sessionMetadata.startTime, time],
+	)
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const scrollFunction = useCallback(

@@ -26,7 +26,7 @@ func BuildLogAlert(project *model.Project, workspace *model.Workspace, admin *mo
 	}
 
 	return &model.LogAlert{
-		Alert: model.Alert{
+		AlertDeprecated: model.AlertDeprecated{
 			ProjectID:         input.ProjectID,
 			CountThreshold:    input.CountThreshold,
 			ThresholdWindow:   &input.ThresholdWindow,

@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"net/http"
 	"net/url"
@@ -81,7 +82,7 @@ const (
 	ScriptPlaceholder = "SCRIPT_PLACEHOLDER"
 )
 
-var ProxyURL = fmt.Sprintf("%s/cors", util.PublicGraphUri)
+var ProxyURL = fmt.Sprintf("%s/cors", env.Config.PublicGraphUri)
 
 var DisallowedTagPrefixes = []string{
 	"onchange",
@@ -90,9 +91,6 @@ var DisallowedTagPrefixes = []string{
 	"onload",
 	"onmouse",
 }
-
-var ResourcesBasePath = os.Getenv("RESOURCES_BASE_PATH")
-var PrivateGraphBasePath = os.Getenv("REACT_APP_PRIVATE_GRAPH_URI")
 
 const (
 	ErrAssetTooLarge    = "ErrAssetTooLarge"
@@ -591,7 +589,7 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 			if hashVal == ErrAssetTooLarge || hashVal == ErrAssetSizeUnknown || hashVal == ErrFailedToFetch {
 				newUrl = hashVal
 			} else {
-				newUrl = fmt.Sprintf("%s/assets/%d/%s", PrivateGraphBasePath, projectId, hashVal)
+				newUrl = fmt.Sprintf("%s/assets/%d/%s", env.Config.PrivateGraphUri, projectId, hashVal)
 			}
 			assetChan <- struct {
 				OriginalURL string

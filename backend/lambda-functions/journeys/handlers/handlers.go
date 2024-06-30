@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/url"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,15 +14,13 @@ import (
 	"github.com/andybalholm/brotli"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/openlyinc/pointy"
-	log "github.com/sirupsen/logrus"
-
-	"gorm.io/gorm"
-
-	"github.com/pkg/errors"
-
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/lambda-functions/journeys/utils"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 const normalnessTimeout = 10 * 60 * 1000
@@ -49,7 +46,7 @@ func InitHandlers(db *gorm.DB, s3Client *s3.Client) *handlers {
 
 func NewHandlers() *handlers {
 	ctx := context.TODO()
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error setting up DB"))
 	}

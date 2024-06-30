@@ -18,6 +18,7 @@ import ReactMarkdown from 'react-markdown'
 import { useMatch } from 'react-router-dom'
 
 import { PUBLIC_GRAPH_URI } from '@/constants'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 import * as styles from './SetupDocs.css'
 
@@ -35,6 +36,7 @@ type Props = {
 
 export const SetupDocs: React.FC<Props> = ({ projectVerboseId }) => {
 	const match = useMatch('/:project_id/setup/:area/:language/:framework')
+	const { currentWorkspace } = useApplicationContext()
 	const { area, framework, language } = match!.params
 	const guide = (quickStartContent as any)[area!][language!][
 		framework!
@@ -63,11 +65,17 @@ export const SetupDocs: React.FC<Props> = ({ projectVerboseId }) => {
 										'<YOUR_PROJECT_ID>',
 										projectVerboseId,
 									)
-									if (isOnPrem) {
+									if (
+										isOnPrem ||
+										currentWorkspace?.cloudflare_proxy
+									) {
+										const replacement = isOnPrem
+											? PUBLIC_GRAPH_URI
+											: `https://${currentWorkspace?.cloudflare_proxy}`
 										text = text.replace(
 											/(\s*)networkRecording/,
 											(a, b) =>
-												`${b}backendUrl: "${PUBLIC_GRAPH_URI}",` +
+												`${b}backendUrl: "${replacement}",` +
 												`${b}networkRecording`,
 										)
 									}

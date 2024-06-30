@@ -69,7 +69,7 @@ export const useNavigateToComment = (comment: ParsedSessionComment) => {
 	const { pause, sessionMetadata } = useReplayerContext()
 
 	return () => {
-		const urlSearchParams = new URLSearchParams()
+		const urlSearchParams = new URLSearchParams(window.location.search)
 		urlSearchParams.append(PlayerSearchParameters.commentId, comment?.id)
 
 		navigate(`${location.pathname}?${urlSearchParams.toString()}`, {

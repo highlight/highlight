@@ -3,7 +3,7 @@ package discord
 import (
 	"context"
 	"fmt"
-	"os"
+	"github.com/highlight-run/highlight/backend/env"
 	"testing"
 
 	"github.com/aws/smithy-go/ptr"
@@ -33,7 +33,7 @@ func (suite *DiscordChannelsTestSuite) SetupTest() {
 	guildID := "<REPLACE_WITH_GUILD_ID>"
 	discordBotSecret := "<REPLACE_WITH_DISCORD_BOT_SECRET>"
 
-	os.Setenv("DISCORD_BOT_SECRET", discordBotSecret)
+	env.Config.DiscordBotSecret = discordBotSecret
 
 	bot, err := NewDiscordBot(guildID)
 	if err != nil {

@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -21,15 +21,13 @@ import (
 	"golang.org/x/oauth2"
 )
 
-var (
-	HeightClientId     = os.Getenv("HEIGHT_CLIENT_ID")
-	HeightClientSecret = os.Getenv("HEIGHT_CLIENT_SECRET")
-	HeightApiBaseUrl   = "https://api.height.app"
+const (
+	ApiBaseUrl = "https://api.height.app"
 )
 
 var heightEndpoint = oauth2.Endpoint{
-	AuthURL:   fmt.Sprintf("%s/oauth/tokens", HeightApiBaseUrl),
-	TokenURL:  fmt.Sprintf("%s/oauth/tokens", HeightApiBaseUrl),
+	AuthURL:   fmt.Sprintf("%s/oauth/tokens", ApiBaseUrl),
+	TokenURL:  fmt.Sprintf("%s/oauth/tokens", ApiBaseUrl),
 	AuthStyle: oauth2.AuthStyleInParams,
 }
 
@@ -56,7 +54,7 @@ func doRequest[T any](method string, accessToken string, relativeUrl string, bod
 	var unmarshalled T
 	client := &http.Client{}
 
-	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", HeightApiBaseUrl, relativeUrl), strings.NewReader(body))
+	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", ApiBaseUrl, relativeUrl), strings.NewReader(body))
 	if err != nil {
 		return unmarshalled, errors.Wrap(err, "error creating api request to Height")
 	}
@@ -97,19 +95,13 @@ func NewHeightClient() *HeightClient {
 }
 
 func GetOAuthConfig() (*oauth2.Config, []oauth2.AuthCodeOption, error) {
-	var (
-		ok                 bool
-		heightClientID     string
-		heightClientSecret string
-		frontendUri        string
-	)
-	if heightClientID, ok = os.LookupEnv("HEIGHT_CLIENT_ID"); !ok || heightClientID == "" {
+	if env.Config.HeightClientId == "" {
 		return nil, nil, errors.New("HEIGHT_CLIENT_ID not set")
 	}
-	if heightClientSecret, ok = os.LookupEnv("HEIGHT_CLIENT_SECRET"); !ok || heightClientSecret == "" {
+	if env.Config.HeightClientSecret == "" {
 		return nil, nil, errors.New("HEIGHT_CLIENT_SECRET not set")
 	}
-	if frontendUri, ok = os.LookupEnv("REACT_APP_FRONTEND_URI"); !ok || frontendUri == "" {
+	if env.Config.FrontendUri == "" {
 		return nil, nil, errors.New("REACT_APP_FRONTEND_URI not set")
 	}
 
@@ -121,10 +113,10 @@ func GetOAuthConfig() (*oauth2.Config, []oauth2.AuthCodeOption, error) {
 	}
 
 	return &oauth2.Config{
-		ClientID:     heightClientID,
-		ClientSecret: heightClientSecret,
+		ClientID:     env.Config.HeightClientId,
+		ClientSecret: env.Config.HeightClientSecret,
 		Endpoint:     heightEndpoint,
-		RedirectURL:  fmt.Sprintf("%s/callback/height", frontendUri),
+		RedirectURL:  fmt.Sprintf("%s/callback/height", env.Config.FrontendUri),
 	}, options, nil
 }
 

@@ -27,6 +27,7 @@ const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
 
 const ErrorURLAttribute = "URL"
 
+const ProjectIDHeader = "x-highlight-project"
 const DeprecatedProjectIDAttribute = "highlight_project_id"
 const DeprecatedSessionIDAttribute = "highlight_session_id"
 const DeprecatedRequestIDAttribute = "highlight_trace_id"

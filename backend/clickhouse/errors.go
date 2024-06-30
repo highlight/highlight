@@ -378,30 +378,45 @@ func (client *Client) QueryErrorGroupAggregateFrequency(ctx context.Context, pro
 	return items, err
 }
 
-func (client *Client) QueryErrorGroupOccurrences(ctx context.Context, projectId int, errorGroupId int) (*time.Time, *time.Time, error) {
+type ErrorGroupOccurence struct {
+	FirstOccurrence time.Time
+	LastOccurrence  time.Time
+}
+
+func (client *Client) QueryErrorGroupOccurrences(ctx context.Context, projectId int, errorGroupIds []int) (map[int]ErrorGroupOccurence, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sql, args := sb.Select(`
+		ErrorGroupID,
 		min(Timestamp) as firstOccurrence,
 		max(Timestamp) as lastOccurrence`).
 		From("error_objects FINAL").
 		Where(sb.Equal("ProjectID", projectId)).
-		Where(sb.Equal("ErrorGroupID", errorGroupId)).
+		Where(sb.In("ErrorGroupID", errorGroupIds)).
+		GroupBy("ErrorGroupID").
 		BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	var firstOccurrence time.Time
-	var lastOccurrence time.Time
+	occurancesByErrorGroup := map[int]ErrorGroupOccurence{}
 	for rows.Next() {
-		if err := rows.Scan(&firstOccurrence, &lastOccurrence); err != nil {
-			return nil, nil, err
+		var errorGroupId int64
+		var firstOccurrence time.Time
+		var lastOccurrence time.Time
+
+		if err := rows.Scan(&errorGroupId, &firstOccurrence, &lastOccurrence); err != nil {
+			return nil, err
+		}
+
+		occurancesByErrorGroup[int(errorGroupId)] = ErrorGroupOccurence{
+			FirstOccurrence: firstOccurrence,
+			LastOccurrence:  lastOccurrence,
 		}
 	}
 
-	return &firstOccurrence, &lastOccurrence, nil
+	return occurancesByErrorGroup, nil
 }
 
 func (client *Client) QueryErrorGroupTags(ctx context.Context, projectId int, errorGroupId int) ([]*modelInputs.ErrorGroupTagAggregation, error) {

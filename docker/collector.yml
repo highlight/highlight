@@ -14,6 +14,7 @@ receivers:
         protocols:
             grpc:
                 endpoint: '0.0.0.0:4317'
+                include_metadata: true
             http:
                 endpoint: '0.0.0.0:4318'
                 max_request_body_size: 0
@@ -30,6 +31,8 @@ exporters:
         sampling_thereafter: 1000
     otlphttp:
         endpoint: 'https://host.docker.internal:8082/otel'
+        auth:
+            authenticator: headers_setter
         tls:
             insecure_skip_verify: true
         timeout: 30s
@@ -46,6 +49,9 @@ exporters:
             max_elapsed_time: 300s
 processors:
     batch:
+        metadata_keys:
+            - x-highlight-project
+        metadata_cardinality_limit: 1000
         timeout: 1s
         send_batch_size: 1000
         send_batch_max_size: 10000
@@ -56,7 +62,7 @@ service:
         metrics:
             address: '0.0.0.0:8888'
             level: detailed
-    extensions: [health_check]
+    extensions: [headers_setter, health_check]
     pipelines:
         traces:
             receivers: [otlp]
@@ -71,6 +77,11 @@ service:
             processors: [batch]
             exporters: [otlphttp, logging]
 extensions:
+    headers_setter:
+        headers:
+            - action: upsert
+              key: x-highlight-project
+              from_context: x-highlight-project
     health_check:
         endpoint: '0.0.0.0:4319'
         path: '/health/status'

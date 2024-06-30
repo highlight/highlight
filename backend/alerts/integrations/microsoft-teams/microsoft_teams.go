@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"net/http"
 	nUrl "net/url"
-	"os"
 	"strings"
 
 	"github.com/infracloudio/msbotbuilder-go/schema"
@@ -65,11 +65,6 @@ func GetTeamsFromWorkspace(workspace *model.Workspace) ([]TeamResponse, error) {
 		return nil, errors.Errorf("MicrosoftTeamsTenantId is nil: workspace %d", workspace.ID)
 	}
 
-	clientId, ok := os.LookupEnv("MICROSOFT_TEAMS_BOT_ID")
-	if !ok || clientId == "" {
-		return nil, errors.New("MICROSOFT_TEAMS_BOT_ID not set")
-	}
-
 	ctx := context.Background()
 	accessToken, err := GetAccessToken(ctx, *workspace.MicrosoftTeamsTenantId)
 	if err != nil {
@@ -95,7 +90,7 @@ func GetTeamsFromWorkspace(workspace *model.Workspace) ([]TeamResponse, error) {
 				return err
 			}
 			for _, value := range response.Value {
-				if value.TeamsApp.Id == clientId || value.TeamsApp.ExternalId == clientId {
+				if value.TeamsApp.Id == env.Config.MicrosoftTeamsBotId || value.TeamsApp.ExternalId == env.Config.MicrosoftTeamsBotId {
 					found[idx] = true
 				}
 			}
@@ -139,19 +134,13 @@ func GetChannels(tenantID string, teamResponse TeamResponse) ([]*model.Microsoft
 }
 
 func GetOAuthConfigForTenant(tenantID string) (*oauth2.Config, []oauth2.AuthCodeOption, error) {
-	var (
-		ok           bool
-		clientID     string
-		clientSecret string
-		frontendUri  string
-	)
-	if clientID, ok = os.LookupEnv("MICROSOFT_TEAMS_BOT_ID"); !ok || clientID == "" {
+	if env.Config.MicrosoftTeamsBotId == "" {
 		return nil, nil, errors.New("MICROSOFT_TEAMS_BOT_ID not set")
 	}
-	if clientSecret, ok = os.LookupEnv("MICROSOFT_TEAMS_BOT_PASSWORD"); !ok || clientSecret == "" {
+	if env.Config.MicrosoftTeamsBotPassword == "" {
 		return nil, nil, errors.New("MICROSOFT_TEAMS_BOT_PASSWORD not set")
 	}
-	if frontendUri, ok = os.LookupEnv("REACT_APP_FRONTEND_URI"); !ok || frontendUri == "" {
+	if env.Config.FrontendUri == "" {
 		return nil, nil, errors.New("REACT_APP_FRONTEND_URI not set")
 	}
 
@@ -167,10 +156,10 @@ func GetOAuthConfigForTenant(tenantID string) (*oauth2.Config, []oauth2.AuthCode
 	}
 
 	return &oauth2.Config{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
+		ClientID:     env.Config.MicrosoftTeamsBotId,
+		ClientSecret: env.Config.MicrosoftTeamsBotPassword,
 		Endpoint:     oauthEndPoint,
-		RedirectURL:  fmt.Sprintf("%s/callback/microsoft_teams", frontendUri),
+		RedirectURL:  fmt.Sprintf("%s/callback/microsoft_teams", env.Config.FrontendUri),
 	}, options, nil
 }
 

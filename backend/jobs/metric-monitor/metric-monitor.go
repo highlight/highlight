@@ -3,7 +3,7 @@ package metric_monitor
 import (
 	"context"
 	"fmt"
-	"os"
+	"github.com/highlight-run/highlight/backend/env"
 	"strconv"
 	"time"
 
@@ -156,7 +156,7 @@ func processMetricMonitors(ctx context.Context, DB *gorm.DB, ccClient *clickhous
 				log.WithContext(ctx).Error(err)
 			}
 
-			frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
+			frontendURL := env.Config.FrontendUri
 			monitorURL := fmt.Sprintf("%s/%d/alerts/monitor/%d", frontendURL, metricMonitor.ProjectID, metricMonitor.ID)
 
 			for _, email := range emailsToNotify {

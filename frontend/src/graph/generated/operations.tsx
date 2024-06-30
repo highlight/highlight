@@ -355,13 +355,17 @@ export type EditWorkspaceSettingsMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	ai_application?: Types.Maybe<Types.Scalars['Boolean']>
 	ai_insights?: Types.Maybe<Types.Scalars['Boolean']>
+	ai_query_builder?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type EditWorkspaceSettingsMutation = { __typename?: 'Mutation' } & {
 	editWorkspaceSettings?: Types.Maybe<
 		{ __typename?: 'AllWorkspaceSettings' } & Pick<
 			Types.AllWorkspaceSettings,
-			'workspace_id' | 'ai_application' | 'ai_insights'
+			| 'workspace_id'
+			| 'ai_application'
+			| 'ai_insights'
+			| 'ai_query_builder'
 		>
 	>
 }
@@ -1641,6 +1645,16 @@ export type DeleteGraphMutation = { __typename?: 'Mutation' } & Pick<
 	'deleteGraph'
 >
 
+export type CreateCloudflareProxyMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	proxy_subdomain: Types.Scalars['String']
+}>
+
+export type CreateCloudflareProxyMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'createCloudflareProxy'
+>
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -2504,6 +2518,8 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
 					| 'type'
 					| 'event'
 					| 'state'
+					| 'first_occurrence'
+					| 'last_occurrence'
 					| 'snoozed_until'
 					| 'environments'
 					| 'stack_trace'
@@ -2556,14 +2572,7 @@ export type GetProjectsQueryVariables = Types.Exact<{ [key: string]: never }>
 
 export type GetProjectsQuery = { __typename?: 'Query' } & {
 	projects?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Project' } & Pick<
-					Types.Project,
-					'id' | 'name' | 'workspace_id'
-				>
-			>
-		>
+		Array<Types.Maybe<{ __typename?: 'Project' } & ProjectFragment>>
 	>
 }
 
@@ -2582,12 +2591,7 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
 			| 'clearbit_enabled'
 		> & {
 				projects: Array<
-					Types.Maybe<
-						{ __typename?: 'Project' } & Pick<
-							Types.Project,
-							'id' | 'name'
-						>
-					>
+					Types.Maybe<{ __typename?: 'Project' } & ProjectFragment>
 				>
 			}
 	>
@@ -2618,7 +2622,10 @@ export type GetWorkspacesQuery = { __typename?: 'Query' } & {
 			Types.Maybe<
 				{ __typename?: 'Workspace' } & Pick<
 					Types.Workspace,
-					'id' | 'name'
+					| 'id'
+					| 'name'
+					| 'retention_period'
+					| 'errors_retention_period'
 				>
 			>
 		>
@@ -2632,10 +2639,7 @@ export type GetWorkspacesQuery = { __typename?: 'Query' } & {
 				> & {
 						projects: Array<
 							Types.Maybe<
-								{ __typename?: 'Project' } & Pick<
-									Types.Project,
-									'id'
-								>
+								{ __typename?: 'Project' } & ProjectFragment
 							>
 						>
 					}
@@ -2659,11 +2663,7 @@ export type GetProjectsAndWorkspacesQueryVariables = Types.Exact<{
 
 export type GetProjectsAndWorkspacesQuery = { __typename?: 'Query' } & {
 	projects?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Project' } & Pick<Types.Project, 'id' | 'name'>
-			>
-		>
+		Array<Types.Maybe<{ __typename?: 'Project' } & ProjectFragment>>
 	>
 	workspaces?: Types.Maybe<
 		Array<
@@ -2685,61 +2685,58 @@ export type GetProjectOrWorkspaceQueryVariables = Types.Exact<{
 
 export type GetProjectOrWorkspaceQuery = { __typename?: 'Query' } & {
 	project?: Types.Maybe<
-		{ __typename?: 'Project' } & Pick<
-			Types.Project,
-			'id' | 'name' | 'billing_email'
-		>
+		{ __typename?: 'Project' } & {
+			workspace?: Types.Maybe<
+				{ __typename?: 'Workspace' } & Pick<
+					Types.Workspace,
+					| 'id'
+					| 'name'
+					| 'retention_period'
+					| 'errors_retention_period'
+				> & {
+						projects: Array<
+							Types.Maybe<
+								{ __typename?: 'Project' } & ProjectFragment
+							>
+						>
+					}
+			>
+		} & ProjectFragment
 	>
 	workspace?: Types.Maybe<
-		{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
+		{ __typename?: 'Workspace' } & Pick<
+			Types.Workspace,
+			| 'id'
+			| 'name'
+			| 'cloudflare_proxy'
+			| 'retention_period'
+			| 'errors_retention_period'
+		> & {
+				projects: Array<
+					Types.Maybe<{ __typename?: 'Project' } & ProjectFragment>
+				>
+			}
 	>
 }
 
-export type GetProjectDropdownOptionsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
+export type GetDropdownOptionsQueryVariables = Types.Exact<{
+	[key: string]: never
 }>
 
-export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
-	project?: Types.Maybe<
-		{ __typename?: 'Project' } & Pick<
-			Types.Project,
-			| 'id'
-			| 'name'
-			| 'verbose_id'
-			| 'billing_email'
-			| 'secret'
-			| 'workspace_id'
-			| 'error_filters'
-		>
-	>
-	workspace?: Types.Maybe<
-		{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'> & {
-				projects: Array<
-					Types.Maybe<
-						{ __typename?: 'Project' } & Pick<
-							Types.Project,
-							'id' | 'name'
-						>
-					>
-				>
-			}
+export type GetDropdownOptionsQuery = { __typename?: 'Query' } & {
+	projects?: Types.Maybe<
+		Array<Types.Maybe<{ __typename?: 'Project' } & ProjectFragment>>
 	>
 	workspaces?: Types.Maybe<
 		Array<
 			Types.Maybe<
 				{ __typename?: 'Workspace' } & Pick<
 					Types.Workspace,
-					'id' | 'name'
-				>
-			>
-		>
-	>
-	joinable_workspaces?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Workspace' } & Pick<
-					Types.Workspace,
-					'id' | 'name'
+					| 'id'
+					| 'name'
+					| 'cloudflare_proxy'
+					| 'retention_period'
+					| 'errors_retention_period'
 				> & {
 						projects: Array<
 							Types.Maybe<
@@ -2753,35 +2750,6 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
 			>
 		>
 	>
-}
-
-export type GetWorkspaceDropdownOptionsQueryVariables = Types.Exact<{
-	workspace_id: Types.Scalars['ID']
-}>
-
-export type GetWorkspaceDropdownOptionsQuery = { __typename?: 'Query' } & {
-	workspace?: Types.Maybe<
-		{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'> & {
-				projects: Array<
-					Types.Maybe<
-						{ __typename?: 'Project' } & Pick<
-							Types.Project,
-							'id' | 'name'
-						>
-					>
-				>
-			}
-	>
-	workspaces?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Workspace' } & Pick<
-					Types.Workspace,
-					'id' | 'name'
-				>
-			>
-		>
-	>
 	joinable_workspaces?: Types.Maybe<
 		Array<
 			Types.Maybe<
@@ -2791,10 +2759,7 @@ export type GetWorkspaceDropdownOptionsQuery = { __typename?: 'Query' } & {
 				> & {
 						projects: Array<
 							Types.Maybe<
-								{ __typename?: 'Project' } & Pick<
-									Types.Project,
-									'id'
-								>
+								{ __typename?: 'Project' } & ProjectFragment
 							>
 						>
 					}
@@ -2896,30 +2861,17 @@ export type GetProjectQueryVariables = Types.Exact<{
 
 export type GetProjectQuery = { __typename?: 'Query' } & {
 	project?: Types.Maybe<
-		{ __typename?: 'Project' } & Pick<
-			Types.Project,
-			| 'id'
-			| 'name'
-			| 'verbose_id'
-			| 'billing_email'
-			| 'excluded_users'
-			| 'error_filters'
-			| 'error_json_paths'
-			| 'filter_chrome_extension'
-			| 'rage_click_window_seconds'
-			| 'rage_click_radius_pixels'
-			| 'rage_click_count'
-			| 'secret'
-		>
-	>
-	workspace?: Types.Maybe<
-		{ __typename?: 'Workspace' } & Pick<
-			Types.Workspace,
-			| 'id'
-			| 'slack_webhook_channel'
-			| 'retention_period'
-			| 'errors_retention_period'
-		>
+		{ __typename?: 'Project' } & {
+			workspace?: Types.Maybe<
+				{ __typename?: 'Workspace' } & Pick<
+					Types.Workspace,
+					| 'id'
+					| 'slack_webhook_channel'
+					| 'retention_period'
+					| 'errors_retention_period'
+				>
+			>
+		} & ProjectFragment
 	>
 }
 
@@ -2968,17 +2920,21 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 					}
 			}
 	>
-	workspace_for_project?: Types.Maybe<
-		{ __typename?: 'Workspace' } & Pick<
-			Types.Workspace,
-			| 'id'
-			| 'trial_end_date'
-			| 'billing_period_end'
-			| 'next_invoice_date'
-			| 'allow_meter_overage'
-			| 'eligible_for_trial_extension'
-			| 'trial_extension_enabled'
-		>
+	project?: Types.Maybe<
+		{ __typename?: 'Project' } & {
+			workspace?: Types.Maybe<
+				{ __typename?: 'Workspace' } & Pick<
+					Types.Workspace,
+					| 'id'
+					| 'trial_end_date'
+					| 'billing_period_end'
+					| 'next_invoice_date'
+					| 'allow_meter_overage'
+					| 'eligible_for_trial_extension'
+					| 'trial_extension_enabled'
+				>
+			>
+		}
 	>
 }
 
@@ -3298,6 +3254,27 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 						>
 					}
 			>
+		>
+	}
+
+export type ProjectFragment = { __typename?: 'Project' } & Pick<
+	Types.Project,
+	| 'id'
+	| 'name'
+	| 'verbose_id'
+	| 'billing_email'
+	| 'secret'
+	| 'workspace_id'
+	| 'error_filters'
+	| 'excluded_users'
+	| 'error_json_paths'
+	| 'filter_chrome_extension'
+	| 'rage_click_window_seconds'
+	| 'rage_click_radius_pixels'
+	| 'rage_click_count'
+> & {
+		workspace?: Types.Maybe<
+			{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id'>
 		>
 	}
 
@@ -3783,6 +3760,16 @@ export type GetWorkspaceIsIntegratedWithHerokuQueryVariables = Types.Exact<{
 export type GetWorkspaceIsIntegratedWithHerokuQuery = {
 	__typename?: 'Query'
 } & { is_integrated_with_heroku: Types.Query['is_integrated_with'] }
+
+export type GetWorkspaceIsIntegratedWithCloudflareQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetWorkspaceIsIntegratedWithCloudflareQuery = {
+	__typename?: 'Query'
+} & {
+	is_integrated_with_cloudflare: Types.Query['is_workspace_integrated_with']
+}
 
 export type GetWorkspaceIsIntegratedWithLinearQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
@@ -4735,6 +4722,7 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			Types.AllWorkspaceSettings,
 			| 'workspace_id'
 			| 'ai_application'
+			| 'ai_query_builder'
 			| 'ai_insights'
 			| 'enable_session_export'
 			| 'enable_unlisted_sharing'
@@ -4913,7 +4901,18 @@ export type GetTraceQuery = { __typename?: 'Query' } & {
 					| 'startTime'
 					| 'statusCode'
 					| 'statusMessage'
-				>
+				> & {
+						events?: Types.Maybe<
+							Array<
+								Types.Maybe<
+									{ __typename?: 'TraceEvent' } & Pick<
+										Types.TraceEvent,
+										'timestamp' | 'name' | 'attributes'
+									>
+								>
+							>
+						>
+					}
 			>
 			errors: Array<
 				{ __typename?: 'TraceError' } & Pick<
@@ -4944,36 +4943,57 @@ export type GetTracesQueryVariables = Types.Exact<{
 }>
 
 export type GetTracesQuery = { __typename?: 'Query' } & {
-	traces: { __typename?: 'TraceConnection' } & {
-		edges: Array<
-			{ __typename?: 'TraceEdge' } & Pick<Types.TraceEdge, 'cursor'> & {
-					node: { __typename?: 'Trace' } & Pick<
-						Types.Trace,
-						| 'timestamp'
-						| 'traceID'
-						| 'spanID'
-						| 'parentSpanID'
-						| 'projectID'
-						| 'secureSessionID'
-						| 'traceState'
-						| 'spanName'
-						| 'spanKind'
-						| 'duration'
-						| 'serviceName'
-						| 'serviceVersion'
-						| 'environment'
-						| 'hasErrors'
-						| 'traceAttributes'
-						| 'statusCode'
-						| 'statusMessage'
-					>
-				}
-		>
-		pageInfo: { __typename?: 'PageInfo' } & Pick<
-			Types.PageInfo,
-			'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
-		>
-	}
+	traces: { __typename?: 'TraceConnection' } & Pick<
+		Types.TraceConnection,
+		'sampled'
+	> & {
+			edges: Array<
+				{ __typename?: 'TraceEdge' } & Pick<
+					Types.TraceEdge,
+					'cursor'
+				> & {
+						node: { __typename?: 'Trace' } & Pick<
+							Types.Trace,
+							| 'timestamp'
+							| 'traceID'
+							| 'spanID'
+							| 'parentSpanID'
+							| 'projectID'
+							| 'secureSessionID'
+							| 'traceState'
+							| 'spanName'
+							| 'spanKind'
+							| 'duration'
+							| 'serviceName'
+							| 'serviceVersion'
+							| 'environment'
+							| 'hasErrors'
+							| 'traceAttributes'
+							| 'statusCode'
+							| 'statusMessage'
+						> & {
+								events?: Types.Maybe<
+									Array<
+										Types.Maybe<
+											{
+												__typename?: 'TraceEvent'
+											} & Pick<
+												Types.TraceEvent,
+												| 'timestamp'
+												| 'name'
+												| 'attributes'
+											>
+										>
+									>
+								>
+							}
+					}
+			>
+			pageInfo: { __typename?: 'PageInfo' } & Pick<
+				Types.PageInfo,
+				'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
+			>
+		}
 }
 
 export type GetTracesMetricsQueryVariables = Types.Exact<{
@@ -5147,6 +5167,25 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 		}
 }
 
+export type GetAiQuerySuggestionQueryVariables = Types.Exact<{
+	time_zone: Types.Scalars['String']
+	project_id: Types.Scalars['ID']
+	product_type: Types.ProductType
+	query: Types.Scalars['String']
+}>
+
+export type GetAiQuerySuggestionQuery = { __typename?: 'Query' } & {
+	ai_query_suggestion: { __typename?: 'QueryOutput' } & Pick<
+		Types.QueryOutput,
+		'query'
+	> & {
+			date_range: { __typename?: 'DateRangeRequiredOutput' } & Pick<
+				Types.DateRangeRequiredOutput,
+				'start_date' | 'end_date'
+			>
+		}
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -5183,8 +5222,7 @@ export const namedOperations = {
 		GetWorkspacesCount: 'GetWorkspacesCount' as const,
 		GetProjectsAndWorkspaces: 'GetProjectsAndWorkspaces' as const,
 		GetProjectOrWorkspace: 'GetProjectOrWorkspace' as const,
-		GetProjectDropdownOptions: 'GetProjectDropdownOptions' as const,
-		GetWorkspaceDropdownOptions: 'GetWorkspaceDropdownOptions' as const,
+		GetDropdownOptions: 'GetDropdownOptions' as const,
 		GetAdmin: 'GetAdmin' as const,
 		GetAdminRole: 'GetAdminRole' as const,
 		GetAdminRoleByProject: 'GetAdminRoleByProject' as const,
@@ -5230,6 +5268,8 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithMicrosoftTeams' as const,
 		GetWorkspaceIsIntegratedWithHeroku:
 			'GetWorkspaceIsIntegratedWithHeroku' as const,
+		GetWorkspaceIsIntegratedWithCloudflare:
+			'GetWorkspaceIsIntegratedWithCloudflare' as const,
 		GetWorkspaceIsIntegratedWithLinear:
 			'GetWorkspaceIsIntegratedWithLinear' as const,
 		GetWorkspaceIsIntegratedWithZapier:
@@ -5292,6 +5332,7 @@ export const namedOperations = {
 		GetMetrics: 'GetMetrics' as const,
 		GetVisualization: 'GetVisualization' as const,
 		GetVisualizations: 'GetVisualizations' as const,
+		GetAIQuerySuggestion: 'GetAIQuerySuggestion' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -5387,6 +5428,7 @@ export const namedOperations = {
 		DeleteVisualization: 'DeleteVisualization' as const,
 		UpsertGraph: 'UpsertGraph' as const,
 		DeleteGraph: 'DeleteGraph' as const,
+		CreateCloudflareProxy: 'CreateCloudflareProxy' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {
@@ -5398,6 +5440,7 @@ export const namedOperations = {
 		DiscordChannelFragment: 'DiscordChannelFragment' as const,
 		MicrosoftTeamsChannelFragment: 'MicrosoftTeamsChannelFragment' as const,
 		ErrorObject: 'ErrorObject' as const,
+		Project: 'Project' as const,
 		ErrorTag: 'ErrorTag' as const,
 	},
 }

@@ -3,10 +3,10 @@ package front
 import (
 	"context"
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -31,16 +31,10 @@ func RefreshOAuth(ctx context.Context, currentOAuth *OAuthToken) (*OAuthToken, e
 
 // OAuth will return the oauth tokens based on either the code or refresh token provided.
 func OAuth(ctx context.Context, code string, currentOAuth *OAuthToken) (*OAuthToken, error) {
-	var (
-		ok                bool
-		FrontClientID     string
-		FrontClientSecret string
-	)
-
-	if FrontClientID, ok = os.LookupEnv("FRONT_CLIENT_ID"); !ok || FrontClientID == "" {
+	if env.Config.FrontClientId == "" {
 		return nil, e.New("FRONT_CLIENT_ID not set")
 	}
-	if FrontClientSecret, ok = os.LookupEnv("FRONT_CLIENT_SECRET"); !ok || FrontClientSecret == "" {
+	if env.Config.FrontClientSecret == "" {
 		return nil, e.New("FRONT_CLIENT_SECRET not set")
 	}
 
@@ -49,7 +43,7 @@ func OAuth(ctx context.Context, code string, currentOAuth *OAuthToken) (*OAuthTo
 		form.Add("refresh_token", currentOAuth.RefreshToken)
 		form.Add("grant_type", "refresh_token")
 	} else {
-		redirect := os.Getenv("REACT_APP_FRONTEND_URI") + "/callback/front"
+		redirect := env.Config.FrontendUri + "/callback/front"
 		form.Add("code", code)
 		form.Add("redirect_uri", redirect)
 		form.Add("grant_type", "authorization_code")
@@ -59,7 +53,7 @@ func OAuth(ctx context.Context, code string, currentOAuth *OAuthToken) (*OAuthTo
 	if err != nil {
 		return nil, e.Wrap(err, "failed to create front oauth http request")
 	}
-	req.SetBasicAuth(FrontClientID, FrontClientSecret)
+	req.SetBasicAuth(env.Config.FrontClientId, env.Config.FrontClientSecret)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	c := &http.Client{}

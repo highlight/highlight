@@ -128,6 +128,60 @@ export enum AdminRole {
 	Member = 'MEMBER',
 }
 
+export type Alert = {
+	__typename?: 'Alert'
+	below_threshold?: Maybe<Scalars['Boolean']>
+	destinations: Array<Maybe<AlertDestination>>
+	disabled: Scalars['Boolean']
+	function_type: MetricAggregator
+	group_by_key?: Maybe<Scalars['String']>
+	id: Scalars['ID']
+	last_admin_to_edit_id?: Maybe<Scalars['ID']>
+	name: Scalars['String']
+	product_type: ProductType
+	query?: Maybe<Scalars['String']>
+	threshold_cooldown?: Maybe<Scalars['Int']>
+	threshold_count?: Maybe<Scalars['Int']>
+	threshold_window?: Maybe<Scalars['Int']>
+	updated_at: Scalars['Timestamp']
+}
+
+export type AlertDestination = {
+	__typename?: 'AlertDestination'
+	alert_id: Scalars['ID']
+	destination_type: AlertDestinationType
+	id: Scalars['ID']
+	type_id: Scalars['String']
+	type_name: Scalars['String']
+}
+
+export enum AlertDestinationType {
+	Discord = 'Discord',
+	Email = 'Email',
+	MicrosoftTeams = 'MicrosoftTeams',
+	Slack = 'Slack',
+	Webhook = 'Webhook',
+}
+
+export enum AlertState {
+	Alerting = 'Alerting',
+	Error = 'Error',
+	NoData = 'NoData',
+	Normal = 'Normal',
+	Pending = 'Pending',
+}
+
+export type AlertStateChange = {
+	__typename?: 'AlertStateChange'
+	AlertID: Scalars['ID']
+	GroupByKey?: Maybe<Scalars['String']>
+	PreviousState: AlertState
+	State: AlertState
+	Title: Scalars['String']
+	id: Scalars['ID']
+	timestamp: Scalars['Timestamp']
+}
+
 export type AllProjectSettings = {
 	__typename?: 'AllProjectSettings'
 	autoResolveStaleErrorsDayInterval: Scalars['Int']
@@ -151,6 +205,7 @@ export type AllWorkspaceSettings = {
 	__typename?: 'AllWorkspaceSettings'
 	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
+	ai_query_builder: Scalars['Boolean']
 	enable_data_deletion: Scalars['Boolean']
 	enable_grafana_dashboard: Scalars['Boolean']
 	enable_ingest_sampling: Scalars['Boolean']
@@ -379,6 +434,12 @@ export type DateRangeInput = {
 export type DateRangeRequiredInput = {
 	end_date: Scalars['Timestamp']
 	start_date: Scalars['Timestamp']
+}
+
+export type DateRangeRequiredOutput = {
+	__typename?: 'DateRangeRequiredOutput'
+	end_date?: Maybe<Scalars['Timestamp']>
+	start_date?: Maybe<Scalars['Timestamp']>
 }
 
 export type DiscordChannel = {
@@ -769,6 +830,7 @@ export type IntegrationStatus = {
 
 export enum IntegrationType {
 	ClickUp = 'ClickUp',
+	Cloudflare = 'Cloudflare',
 	Discord = 'Discord',
 	Front = 'Front',
 	GitHub = 'GitHub',
@@ -1110,6 +1172,8 @@ export type Mutation = {
 	changeAdminRole: WorkspaceAdminRole
 	changeProjectMembership: WorkspaceAdminRole
 	createAdmin: Admin
+	createAlert?: Maybe<Alert>
+	createCloudflareProxy: Scalars['String']
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
 	createErrorCommentForExistingIssue?: Maybe<ErrorComment>
@@ -1126,6 +1190,7 @@ export type Mutation = {
 	createSessionCommentWithExistingIssue?: Maybe<SessionComment>
 	createWorkspace?: Maybe<Workspace>
 	deleteAdminFromWorkspace?: Maybe<Scalars['ID']>
+	deleteAlert: Scalars['Boolean']
 	deleteDashboard: Scalars['Boolean']
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteErrorComment?: Maybe<Scalars['Boolean']>
@@ -1169,6 +1234,8 @@ export type Mutation = {
 	testErrorEnhancement?: Maybe<ErrorObject>
 	updateAdminAboutYouDetails: Scalars['Boolean']
 	updateAdminAndCreateWorkspace?: Maybe<Project>
+	updateAlert?: Maybe<Alert>
+	updateAlertDisabled: Scalars['Boolean']
 	updateAllowMeterOverage?: Maybe<Workspace>
 	updateAllowedEmailOrigins?: Maybe<Scalars['ID']>
 	updateBillingDetails?: Maybe<Scalars['Boolean']>
@@ -1221,6 +1288,25 @@ export type MutationChangeAdminRoleArgs = {
 export type MutationChangeProjectMembershipArgs = {
 	admin_id: Scalars['ID']
 	project_ids: Array<Scalars['ID']>
+	workspace_id: Scalars['ID']
+}
+
+export type MutationCreateAlertArgs = {
+	below_threshold?: InputMaybe<Scalars['Boolean']>
+	disabled?: InputMaybe<Scalars['Boolean']>
+	function_type: MetricAggregator
+	group_by_key?: InputMaybe<Scalars['String']>
+	name: Scalars['String']
+	product_type: ProductType
+	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
+	threshold_cooldown?: InputMaybe<Scalars['Int']>
+	threshold_count?: InputMaybe<Scalars['Int']>
+	threshold_window?: InputMaybe<Scalars['Int']>
+}
+
+export type MutationCreateCloudflareProxyArgs = {
+	proxy_subdomain: Scalars['String']
 	workspace_id: Scalars['ID']
 }
 
@@ -1397,6 +1483,11 @@ export type MutationDeleteAdminFromWorkspaceArgs = {
 	workspace_id: Scalars['ID']
 }
 
+export type MutationDeleteAlertArgs = {
+	alert_id: Scalars['ID']
+	project_id: Scalars['ID']
+}
+
 export type MutationDeleteDashboardArgs = {
 	id: Scalars['ID']
 }
@@ -1509,6 +1600,7 @@ export type MutationEditWorkspaceArgs = {
 export type MutationEditWorkspaceSettingsArgs = {
 	ai_application?: InputMaybe<Scalars['Boolean']>
 	ai_insights?: InputMaybe<Scalars['Boolean']>
+	ai_query_builder?: InputMaybe<Scalars['Boolean']>
 	workspace_id: Scalars['ID']
 }
 
@@ -1662,6 +1754,27 @@ export type MutationUpdateAdminAboutYouDetailsArgs = {
 
 export type MutationUpdateAdminAndCreateWorkspaceArgs = {
 	admin_and_workspace_details: AdminAndWorkspaceDetails
+}
+
+export type MutationUpdateAlertArgs = {
+	alert_id: Scalars['ID']
+	below_threshold?: InputMaybe<Scalars['Boolean']>
+	disabled?: InputMaybe<Scalars['Boolean']>
+	function_type?: InputMaybe<MetricAggregator>
+	group_by_key?: InputMaybe<Scalars['String']>
+	name?: InputMaybe<Scalars['String']>
+	product_type?: InputMaybe<ProductType>
+	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
+	threshold_cooldown?: InputMaybe<Scalars['Int']>
+	threshold_count?: InputMaybe<Scalars['Int']>
+	threshold_window?: InputMaybe<Scalars['Int']>
+}
+
+export type MutationUpdateAlertDisabledArgs = {
+	alert_id: Scalars['ID']
+	disabled: Scalars['Boolean']
+	project_id: Scalars['ID']
 }
 
 export type MutationUpdateAllowMeterOverageArgs = {
@@ -1918,6 +2031,7 @@ export type Project = {
 	rage_click_window_seconds?: Maybe<Scalars['Int']>
 	secret?: Maybe<Scalars['String']>
 	verbose_id: Scalars['String']
+	workspace?: Maybe<Workspace>
 	workspace_id: Scalars['ID']
 }
 
@@ -1929,6 +2043,10 @@ export type Query = {
 	adminHasCreatedComment?: Maybe<Scalars['Boolean']>
 	admin_role?: Maybe<WorkspaceAdminRole>
 	admin_role_by_project?: Maybe<WorkspaceAdminRole>
+	ai_query_suggestion: QueryOutput
+	alert: Alert
+	alert_state_changes: Array<Maybe<AlertStateChange>>
+	alerts: Array<Maybe<Alert>>
 	api_key_to_org_id?: Maybe<Scalars['ID']>
 	averageSessionLength?: Maybe<AverageSessionLength>
 	billingDetails: BillingDetails
@@ -2101,6 +2219,25 @@ export type QueryAdmin_RoleArgs = {
 }
 
 export type QueryAdmin_Role_By_ProjectArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryAi_Query_SuggestionArgs = {
+	product_type: ProductType
+	project_id: Scalars['ID']
+	query: Scalars['String']
+	time_zone: Scalars['String']
+}
+
+export type QueryAlertArgs = {
+	id: Scalars['ID']
+}
+
+export type QueryAlert_State_ChangesArgs = {
+	alert_id: Scalars['ID']
+}
+
+export type QueryAlertsArgs = {
 	project_id: Scalars['ID']
 }
 
@@ -2887,6 +3024,12 @@ export type QueryKey = {
 	type: KeyType
 }
 
+export type QueryOutput = {
+	__typename?: 'QueryOutput'
+	date_range: DateRangeRequiredOutput
+	query: Scalars['String']
+}
+
 export type RageClickEvent = {
 	__typename?: 'RageClickEvent'
 	end_timestamp: Scalars['Timestamp']
@@ -3026,6 +3169,7 @@ export enum ReservedTraceKey {
 }
 
 export enum RetentionPeriod {
+	SevenDays = 'SevenDays',
 	SixMonths = 'SixMonths',
 	ThirtyDays = 'ThirtyDays',
 	ThreeMonths = 'ThreeMonths',
@@ -3424,6 +3568,12 @@ export type SortInput = {
 	direction: SortDirection
 }
 
+export type SortOutput = {
+	__typename?: 'SortOutput'
+	column: Scalars['String']
+	direction: SortDirection
+}
+
 export type SourceMappingError = {
 	__typename?: 'SourceMappingError'
 	actualMinifiedFetchedPath?: Maybe<Scalars['String']>
@@ -3539,6 +3689,7 @@ export type TraceConnection = Connection & {
 	__typename?: 'TraceConnection'
 	edges: Array<TraceEdge>
 	pageInfo: PageInfo
+	sampled: Scalars['Boolean']
 }
 
 export type TraceEdge = Edge & {
@@ -3699,16 +3850,17 @@ export type Workspace = {
 	allowed_auto_join_email_origins?: Maybe<Scalars['String']>
 	billing_period_end?: Maybe<Scalars['Timestamp']>
 	clearbit_enabled: Scalars['Boolean']
+	cloudflare_proxy?: Maybe<Scalars['String']>
 	eligible_for_trial_extension: Scalars['Boolean']
 	errors_max_cents?: Maybe<Scalars['Int']>
-	errors_retention_period?: Maybe<RetentionPeriod>
+	errors_retention_period: RetentionPeriod
 	id: Scalars['ID']
 	logs_max_cents?: Maybe<Scalars['Int']>
 	name: Scalars['String']
 	next_invoice_date?: Maybe<Scalars['Timestamp']>
 	plan_tier: Scalars['String']
 	projects: Array<Maybe<Project>>
-	retention_period?: Maybe<RetentionPeriod>
+	retention_period: RetentionPeriod
 	sessions_max_cents?: Maybe<Scalars['Int']>
 	slack_channels?: Maybe<Scalars['String']>
 	slack_webhook_channel?: Maybe<Scalars['String']>

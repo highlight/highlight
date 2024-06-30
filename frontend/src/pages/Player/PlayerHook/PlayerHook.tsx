@@ -9,7 +9,6 @@ import {
 	useMarkSessionAsViewedMutation,
 } from '@graph/hooks'
 import { GetSessionQuery } from '@graph/operations'
-import { usefulEvent } from '@pages/Player/components/EventStreamV2/utils'
 import {
 	CHUNKING_DISABLED_PROJECTS,
 	FRAME_MS,
@@ -34,7 +33,14 @@ import { timerEnd, timerStart } from '@util/timer/timer'
 import useMapRef from '@util/useMapRef'
 import { H } from 'highlight.run'
 import _ from 'lodash'
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
+import {
+	RefObject,
+	useCallback,
+	useEffect,
+	useMemo,
+	useReducer,
+	useRef,
+} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { EventType } from 'rrweb'
 import { BooleanParam, useQueryParam } from 'use-query-params'
@@ -50,7 +56,10 @@ import {
 } from './utils'
 import usePlayerConfiguration from './utils/usePlayerConfiguration'
 
-export const usePlayer = (): ReplayerContextInterface => {
+export const usePlayer = (
+	playerRef: RefObject<HTMLDivElement>,
+	autoPlay = false,
+): ReplayerContextInterface => {
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const { sessionSecureId, projectId } = useSessionParams()
 	const navigate = useNavigate()
@@ -70,7 +79,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const [markSessionAsViewed] = useMarkSessionAsViewedMutation()
 	const { refetch: rawFetchEventChunkURL } = useGetEventChunkUrlQuery({
-		fetchPolicy: 'no-cache',
+		fetchPolicy: 'cache-and-network',
 		skip: true,
 	})
 	const fetchEventChunkURL = useCallback(
@@ -104,10 +113,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 		variables: {
 			session_secure_id: sessionSecureId!,
 		},
+		fetchPolicy: 'cache-and-network',
 		skip: !sessionSecureId,
 	})
 	const { data: eventChunksData } = useGetEventChunksQuery({
 		variables: { secure_id: sessionSecureId! },
+		fetchPolicy: 'cache-and-network',
 		skip:
 			!sessionSecureId ||
 			!projectId ||
@@ -130,16 +141,14 @@ export const usePlayer = (): ReplayerContextInterface => {
 			})
 		}, []),
 		skip: !sessionSecureId,
-		fetchPolicy: 'network-only',
+		fetchPolicy: 'cache-and-network',
 	})
 	const { timelineIndicatorEvents } = useTimelineIndicators(
 		sessionData?.session || undefined,
 	)
 	const { data: sessionPayload, subscribeToMore: subscribeToSessionPayload } =
 		useGetSessionPayloadQuery({
-			fetchPolicy: sessionData?.session?.processed
-				? undefined
-				: 'no-cache',
+			fetchPolicy: 'cache-and-network',
 			variables: {
 				session_secure_id: sessionSecureId!,
 				skip_events: sessionData?.session
@@ -301,9 +310,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 				showPlayerMouseTail,
 				time,
 				action: action,
+				playerRef,
 			})
 		},
-		[showPlayerMouseTail],
+		[playerRef, showPlayerMouseTail],
 	)
 
 	const loadEventChunk = useCallback(
@@ -609,30 +619,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 		],
 	)
 
-	const onFrameOrEvent = useMemo(
+	const onFrame = useMemo(
 		() =>
 			_.throttle(
-				(event?: HighlightEvent) => {
-					if (event) {
-						dispatch({
-							type: PlayerActionType.onEvent,
-							event: event,
-						})
-						return
-					}
-					const lastLoadedEventTimestamp =
-						getLastLoadedEventTimestamp()
-					if (state.time > lastLoadedEventTimestamp) {
-						log(
-							'PlayerHook.tsx::onFrame',
-							'playing outside loaded data',
-							{
-								time: state.time,
-								lastLoadedEventTimestamp,
-							},
-						)
-						play(state.time).then()
-					}
+				() => {
 					dispatch({
 						type: PlayerActionType.onFrame,
 					})
@@ -645,24 +635,19 @@ export const usePlayer = (): ReplayerContextInterface => {
 		[],
 	)
 
-	const onEvent = useCallback(
-		(event: HighlightEvent) => {
-			if (
-				(event.type === EventType.Custom &&
-					(event.data.tag === 'Navigate' ||
-						event.data.tag === 'Reload')) ||
-				(event as customEvent)?.data?.tag === 'Stop'
-			) {
-				dispatch({
-					type: PlayerActionType.onEvent,
-					event: event,
-				})
-			} else if (usefulEvent(event)) {
-				onFrameOrEvent(event)
-			}
-		},
-		[onFrameOrEvent],
-	)
+	const onEvent = useCallback((event: any) => {
+		if (
+			(event.type === EventType.Custom &&
+				(event.data.tag === 'Navigate' ||
+					event.data.tag === 'Reload')) ||
+			(event as customEvent)?.data?.tag === 'Stop'
+		) {
+			dispatch({
+				type: PlayerActionType.onEvent,
+				event: event,
+			})
+		}
+	}, [])
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const onViewportChange = useCallback(
@@ -687,6 +672,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						showPlayerMouseTail,
 						time: 0,
 						action: ReplayerState.Paused,
+						playerRef,
 					})
 					log('PlayerHook.tsx', 'initial chunk complete')
 				})
@@ -713,6 +699,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		eventChunksData?.event_chunks,
 		showPlayerMouseTail,
 		chunkEventsSet,
+		playerRef,
 	])
 
 	useEffect(() => {
@@ -799,9 +786,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		if (!state.replayer) {
 			return
 		}
-		state.replayer.on('event-cast', (e: any) =>
-			onEvent(e as HighlightEvent),
-		)
+		state.replayer.on('event-cast', onEvent)
 		state.replayer.on('resize', onViewportChange)
 	}, [state.replayer, projectId, onEvent, onViewportChange])
 
@@ -851,7 +836,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 			sessionIntervals,
 			timelineIndicatorEvents,
 		})
-		if (state.replayerState <= ReplayerState.Loading) {
+		if (
+			[ReplayerState.Empty, ReplayerState.Loading].includes(
+				state.replayerState,
+			)
+		) {
 			pause(0).then()
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -879,8 +868,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const frameAction = useCallback(() => {
 		animationFrameID.current = requestAnimationFrame(frameAction)
-		onFrameOrEvent()
-	}, [onFrameOrEvent])
+		onFrame()
+	}, [onFrame])
 
 	// "Subscribes" the time with the Replayer when the Player is playing.
 	useEffect(() => {
@@ -995,7 +984,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	useEffect(() => {
 		if (
 			state.eventsLoaded &&
-			autoPlayVideo &&
+			(autoPlayVideo || autoPlay) &&
 			state.replayerState !== ReplayerState.Playing
 		) {
 			log('PlayerHook.tsx', 'Auto Playing')
@@ -1015,6 +1004,13 @@ export const usePlayer = (): ReplayerContextInterface => {
 			}, FRAME_MS * 120)
 		}
 	}, [play, loopSession, state.replayerState])
+
+	useEffect(() => {
+		return () => {
+			state.replayer?.destroy()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	return {
 		...state,
@@ -1054,21 +1050,22 @@ export const usePlayer = (): ReplayerContextInterface => {
 						firstNewTimestamp: events[events.length - 1].timestamp,
 					})
 				}
-				dispatch({ type: PlayerActionType.setIsLiveMode, isLiveMode })
+				dispatch({
+					type: PlayerActionType.setIsLiveMode,
+					isLiveMode,
+					playerRef,
+				})
 			},
-			[chunkEventsRef, state.isLiveMode, state.lastActiveTimestamp],
+			[
+				chunkEventsRef,
+				playerRef,
+				state.isLiveMode,
+				state.lastActiveTimestamp,
+			],
 		),
 		playerProgress: state.replayer
 			? state.time / state.sessionMetadata.totalTime
 			: null,
 		sessionStartDateTime: state.sessionMetadata.startTime,
-		setCurrentEvent: useCallback(
-			(currentEvent) =>
-				dispatch({
-					type: PlayerActionType.setCurrentEvent,
-					currentEvent,
-				}),
-			[],
-		),
 	}
 }

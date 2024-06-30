@@ -3,8 +3,8 @@ package github
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -16,34 +16,6 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
-
-type Config struct {
-	githubAppId      string
-	githubPrivateKey string
-	// not used for installation workflow, but kept in case we need an oauth workflow in the future
-	githubClientID string
-	// not used for installation workflow, but kept in case we need an oauth workflow in the future
-	githubClientSecret string
-}
-
-func GetConfig() (*Config, error) {
-	var ok bool
-	var config Config
-	if config.githubAppId, ok = os.LookupEnv("GITHUB_APP_ID"); !ok || config.githubAppId == "" {
-		return nil, errors.New("GITHUB_APP_ID not set")
-	}
-	if config.githubClientID, ok = os.LookupEnv("GITHUB_CLIENT_ID"); !ok || config.githubClientID == "" {
-		return nil, errors.New("GITHUB_CLIENT_ID not set")
-	}
-	if config.githubClientSecret, ok = os.LookupEnv("GITHUB_CLIENT_SECRET"); !ok || config.githubClientSecret == "" {
-		return nil, errors.New("GITHUB_CLIENT_SECRET not set")
-	}
-	if config.githubPrivateKey, ok = os.LookupEnv("GITHUB_PRIVATE_KEY"); !ok || config.githubPrivateKey == "" {
-		return nil, errors.New("GITHUB_PRIVATE_KEY not set")
-	}
-
-	return &config, nil
-}
 
 func parseInstallation(installation string) (int64, error) {
 	installationID, err := strconv.ParseInt(installation, 10, 64)
@@ -85,12 +57,14 @@ func NewClient(ctx context.Context, installation string, redis *redis.Client) (*
 		return nil, err
 	}
 
-	config, err := GetConfig()
-	if err != nil {
-		return nil, err
+	if env.Config.GithubAppId == "" {
+		return nil, errors.New("GITHUB_APP_ID not set")
+	}
+	if env.Config.GithubPrivateKey == "" {
+		return nil, errors.New("GITHUB_PRIVATE_KEY not set")
 	}
 
-	appID, err := strconv.ParseInt(config.githubAppId, 10, 64)
+	appID, err := strconv.ParseInt(env.Config.GithubAppId, 10, 64)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +73,7 @@ func NewClient(ctx context.Context, installation string, redis *redis.Client) (*
 	// an app is installed. if we went with an oauth workflow, we would only have access
 	// to the repositories the installing user owns.
 	// see https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation
-	jwtTransport, err := ghinstallation.NewAppsTransport(http.DefaultTransport, appID, []byte(config.githubPrivateKey))
+	jwtTransport, err := ghinstallation.NewAppsTransport(http.DefaultTransport, appID, []byte(env.Config.GithubPrivateKey))
 	if err != nil {
 		return nil, err
 	}

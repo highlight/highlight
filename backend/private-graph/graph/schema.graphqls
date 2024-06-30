@@ -240,6 +240,7 @@ enum SubscriptionInterval {
 }
 
 enum RetentionPeriod {
+	SevenDays
 	ThirtyDays
 	ThreeMonths
 	SixMonths
@@ -440,6 +441,7 @@ enum IntegrationType {
 	MicrosoftTeams
 	GitLab
 	Heroku
+	Cloudflare
 }
 
 enum ErrorState {
@@ -510,6 +512,7 @@ type Project {
 	billing_email: String
 	secret: String
 	workspace_id: ID!
+	workspace: Workspace
 	excluded_users: StringArray
 	error_filters: StringArray
 	error_json_paths: StringArray
@@ -540,6 +543,7 @@ type AllProjectSettings {
 type AllWorkspaceSettings {
 	workspace_id: ID!
 	ai_application: Boolean!
+	ai_query_builder: Boolean!
 	ai_insights: Boolean!
 	enable_session_export: Boolean!
 	enable_unlisted_sharing: Boolean!
@@ -606,12 +610,13 @@ type Workspace {
 	eligible_for_trial_extension: Boolean!
 	trial_extension_enabled: Boolean!
 	clearbit_enabled: Boolean!
-	retention_period: RetentionPeriod
-	errors_retention_period: RetentionPeriod
+	retention_period: RetentionPeriod!
+	errors_retention_period: RetentionPeriod!
 	sessions_max_cents: Int
 	errors_max_cents: Int
 	logs_max_cents: Int
 	traces_max_cents: Int
+	cloudflare_proxy: String
 }
 
 type SearchParams {
@@ -873,6 +878,7 @@ type TraceEdge implements Edge {
 type TraceConnection implements Connection {
 	edges: [TraceEdge!]!
 	pageInfo: PageInfo!
+	sampled: Boolean!
 }
 
 type ErrorObjectNodeSession {
@@ -1180,10 +1186,20 @@ input SortInput {
 	direction: SortDirection!
 }
 
+type SortOutput {
+	column: String!
+	direction: SortDirection!
+}
+
 input QueryInput {
 	query: String!
 	date_range: DateRangeRequiredInput!
 	sort: SortInput
+}
+
+type QueryOutput {
+	query: String!
+	date_range: DateRangeRequiredOutput!
 }
 
 enum MetricTagFilterOp {
@@ -1317,6 +1333,11 @@ input DateRangeInput {
 input DateRangeRequiredInput {
 	start_date: Timestamp!
 	end_date: Timestamp!
+}
+
+type DateRangeRequiredOutput {
+	start_date: Timestamp
+	end_date: Timestamp
 }
 
 type LengthRange {
@@ -1533,6 +1554,59 @@ type Dashboard {
 	layout: String!
 	name: String!
 	last_admin_to_edit_id: ID!
+}
+
+enum AlertState {
+	Normal
+	Pending
+	Alerting
+	NoData
+	Error
+}
+
+enum AlertDestinationType {
+	Slack
+	Discord
+	MicrosoftTeams
+	Webhook
+	Email
+}
+
+type AlertDestination {
+	id: ID!
+	alert_id: ID!
+	destination_type: AlertDestinationType!
+	type_id: String!
+	type_name: String!
+}
+
+type Alert {
+	id: ID!
+	updated_at: Timestamp!
+	name: String!
+	product_type: ProductType!
+	function_type: MetricAggregator!
+	query: String
+	group_by_key: String
+	disabled: Boolean!
+	last_admin_to_edit_id: ID
+	destinations: [AlertDestination]!
+
+	# threshold alerts
+	below_threshold: Boolean
+	threshold_count: Int
+	threshold_window: Int
+	threshold_cooldown: Int
+}
+
+type AlertStateChange {
+	id: ID!
+	timestamp: Timestamp!
+	AlertID: ID!
+	State: AlertState!
+	PreviousState: AlertState!
+	Title: String!
+	GroupByKey: String
 }
 
 type SanitizedSlackChannel {
@@ -2101,6 +2175,9 @@ type Query {
 	workspaces: [Workspace]
 	workspaces_count: Int64!
 	joinable_workspaces: [Workspace]
+	alerts(project_id: ID!): [Alert]!
+	alert(id: ID!): Alert!
+	alert_state_changes(alert_id: ID!): [AlertStateChange]!
 	error_alerts(project_id: ID!): [ErrorAlert]!
 	new_user_alerts(project_id: ID!): [SessionAlert]
 	track_properties_alerts(project_id: ID!): [SessionAlert]!
@@ -2198,6 +2275,12 @@ type Query {
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
+	ai_query_suggestion(
+		time_zone: String!
+		project_id: ID!
+		product_type: ProductType!
+		query: String!
+	): QueryOutput!
 	logs(
 		project_id: ID!
 		params: QueryInput!
@@ -2415,6 +2498,7 @@ type Mutation {
 		workspace_id: ID!
 		ai_application: Boolean
 		ai_insights: Boolean
+		ai_query_builder: Boolean
 	): AllWorkspaceSettings
 	exportSession(session_secure_id: String!): Boolean!
 	markErrorGroupAsViewed(
@@ -2677,6 +2761,39 @@ type Mutation {
 		disabled: Boolean
 		filters: [MetricTagFilterInput!]
 	): MetricMonitor
+	createAlert(
+		project_id: ID!
+		name: String!
+		product_type: ProductType!
+		function_type: MetricAggregator!
+		query: String
+		group_by_key: String
+		disabled: Boolean
+		below_threshold: Boolean
+		threshold_count: Int
+		threshold_window: Int
+		threshold_cooldown: Int # TODO(spenny): add destinations
+	): Alert
+	updateAlert(
+		project_id: ID!
+		alert_id: ID!
+		name: String
+		product_type: ProductType
+		function_type: MetricAggregator
+		query: String
+		group_by_key: String
+		disabled: Boolean
+		below_threshold: Boolean
+		threshold_count: Int
+		threshold_window: Int
+		threshold_cooldown: Int # TODO(spenny): add destinations
+	): Alert
+	updateAlertDisabled(
+		project_id: ID!
+		alert_id: ID!
+		disabled: Boolean!
+	): Boolean!
+	deleteAlert(project_id: ID!, alert_id: ID!): Boolean!
 	createErrorAlert(
 		project_id: ID!
 		name: String!
@@ -2773,6 +2890,7 @@ type Mutation {
 		params: QueryInput!
 		sessionCount: Int!
 	): Boolean!
+	createCloudflareProxy(workspace_id: ID!, proxy_subdomain: String!): String!
 	updateVercelProjectMappings(
 		project_id: ID!
 		project_mappings: [VercelProjectMappingInput!]!

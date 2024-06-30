@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"os"
+	"github.com/highlight-run/highlight/backend/env"
 	"strconv"
 
 	e "github.com/pkg/errors"
@@ -35,12 +35,12 @@ func GetPropertiesOld(obj *model.SessionAlert) ([]*UserPropertyOld, error) {
 
 func main() {
 	ctx := context.TODO()
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}
 	var sessionAlerts []model.SessionAlert
-	db.Model(model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.USER_PROPERTIES}}).Or(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.TRACK_PROPERTIES}}).Scan(&sessionAlerts)
+	db.Model(model.SessionAlert{}).Where(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{Type: &model.AlertType.USER_PROPERTIES}}).Or(&model.SessionAlert{AlertDeprecated: model.AlertDeprecated{Type: &model.AlertType.TRACK_PROPERTIES}}).Scan(&sessionAlerts)
 	for _, alert := range sessionAlerts {
 		if alert.TrackProperties != nil {
 			trackProperties, err := GetPropertiesOld(&alert)

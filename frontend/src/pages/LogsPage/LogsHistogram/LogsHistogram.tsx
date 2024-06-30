@@ -151,7 +151,6 @@ const LogsHistogram = ({
 							}}
 							series={series}
 							showYAxis={false}
-							verboseTooltip
 							strokeColors={LEVEL_COLOR_MAPPING}
 							setTimeRange={onDatesChange}
 						>
@@ -187,7 +186,6 @@ const LogsHistogram = ({
 							}}
 							series={series}
 							showYAxis={false}
-							verboseTooltip
 							strokeColors={LEVEL_COLOR_MAPPING}
 							setTimeRange={onDatesChange}
 						>

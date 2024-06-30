@@ -1,0 +1,42 @@
+{
+	"resourceLogs": [
+		{
+			"resource": {
+				"attributes": [
+					{
+						"key": "service.name",
+						"value": {
+							"stringValue": "my-service"
+						}
+					}
+				]
+			},
+			"scopeLogs": [
+				{
+					"scope": {},
+					"logRecords": [
+						{
+							"timeUnixNano": "1719358500000000000",
+							"severityNumber": 9,
+							"severityText": "Info",
+							"name": "logA",
+							"body": {
+								"stringValue": "Hello, world! This is sent from a curl command."
+							},
+							"attributes": [
+								{
+									"key": "foo",
+									"value": {
+										"stringValue": "bar"
+									}
+								}
+							],
+							"traceId": "08040201000000000000000000000000",
+							"spanId": "0102040800000000"
+						}
+					]
+				}
+			]
+		}
+	]
+}

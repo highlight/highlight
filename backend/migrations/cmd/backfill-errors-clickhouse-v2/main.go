@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/env"
 	"gorm.io/gorm"
-	"os"
 	"strconv"
 	"time"
 
@@ -16,7 +16,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}

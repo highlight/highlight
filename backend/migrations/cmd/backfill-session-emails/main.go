@@ -3,8 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"os"
-
+	"github.com/highlight-run/highlight/backend/env"
 	"gorm.io/gorm"
 
 	log "github.com/sirupsen/logrus"
@@ -19,7 +18,7 @@ const batchSize = 100
 func main() {
 	ctx := context.Background()
 	log.WithContext(ctx).Info("setting up db")
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}

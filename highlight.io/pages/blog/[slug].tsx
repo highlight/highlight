@@ -6,7 +6,7 @@ import type {
 	GetStaticPathsResult,
 	GetStaticProps,
 } from 'next/types'
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { loadPostsFromGithub } from '.'
 
 import { ElementNode } from '@graphcms/rich-text-types'
@@ -44,10 +44,7 @@ export async function getGithubPostBySlug(slug: string, githubPosts?: Post[]) {
 	return post
 }
 
-const components: Record<
-	string,
-	React.FunctionComponent<{ children: ReactNode; className?: string }>
-> = {
+const components = {
 	BlogCallToAction,
 	p: (props: any) => {
 		return <p className={styles.blogText} {...props}></p>
@@ -155,7 +152,7 @@ const components: Record<
 			</code>
 		)
 	},
-	table: (props) => {
+	table: (props: any) => {
 		return (
 			<div className={styles.blogTable}>
 				<Typography type="copy2">
@@ -164,7 +161,7 @@ const components: Record<
 			</div>
 		)
 	},
-}
+} as const
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	let paths: GetStaticPathsResult['paths'] = []
@@ -205,11 +202,9 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 			params.set('lname', suggestedPost.author?.lastName || '')
 			params.set('role', suggestedPost.author?.title || '')
 
-			const metaImageURL = `https://${
+			suggestedPost.image.url = `https://${
 				process.env.NEXT_PUBLIC_VERCEL_URL || 'www.highlight.io'
 			}/api/og/blog/${suggestedPost.slug}?${params.toString()}`
-
-			suggestedPost.image.url = metaImageURL
 		}
 
 		suggestedPosts.push(suggestedPost)

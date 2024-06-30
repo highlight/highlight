@@ -2,16 +2,15 @@ package main
 
 import (
 	"context"
-	"os"
-
-	log "github.com/sirupsen/logrus"
-
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/model"
+	log "github.com/sirupsen/logrus"
+	"os"
 )
 
 func main() {
 	ctx := context.TODO()
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("Srror setting up DB: %v", err)
 	}

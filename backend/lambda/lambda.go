@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"net/http"
 	"strings"
@@ -15,12 +16,10 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/highlight-run/highlight/backend/lambda-functions/sessionInsights/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/util"
-
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/pkg/errors"
 )
 
@@ -135,7 +134,7 @@ func (s *Client) GetActivityGraph(ctx context.Context, eventCounts string) (*htt
 func (s *Client) GetSessionInsight(ctx context.Context, projectID int, sessionID int) (*http.Response, error) {
 	var req *retryablehttp.Request
 
-	if util.IsDevEnv() {
+	if env.IsDevEnv() {
 		localReq := s.GetSessionInsightRequest(ctx, "http://localhost:8765/session/insight", 1, 232563428)
 		res, localServerErr := s.HTTPClient.Do(localReq.Request)
 		if localServerErr != nil {

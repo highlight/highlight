@@ -19,12 +19,12 @@
 		"random-words": "2.0.0",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
-		"three": "0.159.0"
+		"three": "0.165.0"
 	},
 	"devDependencies": {
 		"@types/react": "^18.2.56",
 		"@types/react-dom": "^18.2.19",
-		"@types/three": "0.158.3",
+		"@types/three": "0.165.0",
 		"@vitejs/plugin-react": "^4.3.0",
 		"eslint": "^8.56.0",
 		"eslint-plugin-react": "^7.33.2",

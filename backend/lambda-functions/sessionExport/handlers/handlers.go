@@ -2,16 +2,15 @@ package handlers
 
 import (
 	"context"
-	log "github.com/sirupsen/logrus"
-	"gorm.io/gorm/clause"
-	"os"
-
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Handlers interface {
@@ -33,12 +32,12 @@ func InitHandlers(db *gorm.DB, sendgridClient *sendgrid.Client) *handlers {
 
 func NewHandlers() *handlers {
 	ctx := context.TODO()
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error setting up DB"))
 	}
 
-	sendgridClient := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+	sendgridClient := sendgrid.NewSendClient(env.Config.SendgridKey)
 
 	return InitHandlers(db, sendgridClient)
 }

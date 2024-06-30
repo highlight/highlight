@@ -236,6 +236,9 @@ export const formatTraceAttributes = (attributes: { [key: string]: any }) => {
 		span_id: attributes.spanID,
 		span_kind: attributes.spanKind,
 		status_code: attributes.statusCode,
+		events: attributes.events?.map(({ __typename, ...other }: any) => ({
+			...other,
+		})),
 		host,
 		os,
 		process,

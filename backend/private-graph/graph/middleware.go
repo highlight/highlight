@@ -5,9 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -48,10 +48,10 @@ const (
 )
 
 func GetEnvAuthMode() AuthMode {
-	if strings.EqualFold(os.Getenv("REACT_APP_AUTH_MODE"), Simple) {
+	if strings.EqualFold(env.Config.AuthMode, Simple) {
 		return Simple
 	}
-	if strings.EqualFold(os.Getenv("REACT_APP_AUTH_MODE"), Password) {
+	if strings.EqualFold(env.Config.AuthMode, Password) {
 		return Password
 	}
 	return Firebase
@@ -78,8 +78,8 @@ func SetupAuthClient(ctx context.Context, authMode AuthMode, oauthServer *oauth.
 	OAuthServer = oauthServer
 	workspaceTokenHandler = wsTokenHandler
 	if authMode == Firebase {
-		secret := os.Getenv("FIREBASE_SECRET")
-		creds, err := google.CredentialsFromJSON(context.Background(), []byte(secret),
+		secret := env.Config.AuthFirebaseSecret
+		creds, err := google.CredentialsFromJSON(ctx, []byte(secret),
 			"https://www.googleapis.com/auth/firebase",
 			"https://www.googleapis.com/auth/identitytoolkit",
 			"https://www.googleapis.com/auth/userinfo.email")

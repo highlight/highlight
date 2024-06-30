@@ -6,7 +6,6 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import { useGetWorkspaceDropdownOptionsQuery } from '@graph/hooks'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { useParams } from '@util/react-router/useParams'
 import { useEffect } from 'react'
@@ -15,6 +14,7 @@ import { useToggle } from 'react-use'
 
 import { useLocalStorageProjectId } from '@/hooks/useProjectId'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 import commonStyles from '../../Common.module.css'
 
@@ -33,10 +33,8 @@ export const WorkspaceRouter = () => {
 	}>()
 	const { setLoadingState } = useAppLoadingContext()
 
-	const { data, loading } = useGetWorkspaceDropdownOptionsQuery({
-		variables: { workspace_id: workspace_id ?? '' },
-		skip: !isLoggedIn || !workspace_id, // Higher level routers decide when guests are allowed to hit this router
-	})
+	const { allProjects, joinableWorkspaces, loading, currentWorkspace } =
+		useApplicationContext()
 
 	useEffect(() => {
 		if (isLoggedIn) {
@@ -45,26 +43,22 @@ export const WorkspaceRouter = () => {
 	}, [isLoggedIn, setLoadingState])
 
 	useEffect(() => {
-		const projectsLoaded = data?.workspace?.projects.length
-		const projectInWorkspace = data?.workspace?.projects?.find(
+		const projectsLoaded = allProjects?.length
+		const projectInWorkspace = allProjects?.find(
 			(p) => String(p?.id) === String(localStorageProjectId),
 		)
 
 		if (projectsLoaded && !projectInWorkspace) {
 			setLocalStorageProjectId('')
 		}
-	}, [
-		data?.workspace?.projects,
-		localStorageProjectId,
-		setLocalStorageProjectId,
-	])
+	}, [allProjects, localStorageProjectId, setLocalStorageProjectId])
 
 	if (loading) {
 		return null
 	}
 
 	// if the user can join this workspace, give them that option via the ErrorState
-	const joinableWorkspace = data?.joinable_workspaces
+	const joinableWorkspace = joinableWorkspaces
 		?.filter((w) => w?.id === workspace_id)
 		?.pop()
 
@@ -85,7 +79,7 @@ export const WorkspaceRouter = () => {
 						shownWithHeader
 						joinableWorkspace={joinableWorkspace}
 					/>
-				) : isLoggedIn && data?.workspace === null ? (
+				) : isLoggedIn && !currentWorkspace ? (
 					<ErrorState
 						title="Enter this Workspace?"
 						message={

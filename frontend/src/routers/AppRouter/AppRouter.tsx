@@ -31,7 +31,7 @@ import { WorkspaceRouter } from '@routers/ProjectRouter/WorkspaceRouter'
 import analytics from '@util/analytics'
 import log from '@util/log'
 import { omit } from 'lodash'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import {
 	Navigate,
 	Route,
@@ -48,14 +48,9 @@ import {
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import {
-	useGetProjectDropdownOptionsQuery,
-	useGetWorkspaceDropdownOptionsQuery,
-	useGetWorkspacesQuery,
+	useGetDropdownOptionsQuery,
+	useGetProjectOrWorkspaceQuery,
 } from '@/graph/generated/hooks'
-import {
-	GetProjectDropdownOptionsQuery,
-	GetWorkspaceDropdownOptionsQuery,
-} from '@/graph/generated/operations'
 import { JoinWorkspace } from '@/pages/Auth/JoinWorkspace'
 import { WorkspaceInvitation } from '@/pages/Auth/WorkspaceInvitation'
 import {
@@ -119,39 +114,21 @@ export const AppRouter = () => {
 	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
 	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
 	const navigate = useNavigate()
-	const [workspaceListData, setWorkspaceListData] =
-		useState<GetWorkspaceDropdownOptionsQuery>()
-	const [projectListData, setProjectListData] =
-		useState<GetProjectDropdownOptionsQuery>()
 	const isValidProjectId = Number.isInteger(Number(projectId))
 
-	const { data: workspacesData } = useGetWorkspacesQuery({
-		variables: {},
-		skip: !isLoggedIn || !!workspaceId,
-	})
-
-	const { data: projectDropdownData, loading: projectDropdownDataLoading } =
-		useGetProjectDropdownOptionsQuery({
-			variables: { project_id: projectId! },
-			skip: !isLoggedIn || !isValidProjectId,
-		})
-
-	const {
-		data: workspaceDropdownData,
-		loading: workspaceDropdownDataLoading,
-	} = useGetWorkspaceDropdownOptionsQuery({
-		variables: { workspace_id: workspaceId ?? '' },
+	const { data, loading } = useGetDropdownOptionsQuery({
 		skip: !isLoggedIn,
 	})
 
-	useEffect(() => {
-		if (projectDropdownData) {
-			setProjectListData(projectDropdownData)
-		} else if (workspaceDropdownData) {
-			setWorkspaceListData(workspaceDropdownData)
-			setProjectListData(undefined)
-		}
-	}, [workspaceDropdownData, projectDropdownData])
+	const { data: projectOrWorkspaceData, loading: projectOrWorkspaceLoading } =
+		useGetProjectOrWorkspaceQuery({
+			variables: {
+				project_id: projectId ?? '',
+				workspace_id: workspaceId ?? '',
+				is_workspace: !isValidProjectId,
+			},
+			skip: !isLoggedIn,
+		})
 
 	useEffect(() => {
 		if (workspaceInviteMatch?.params.invite) {
@@ -230,7 +207,35 @@ export const AppRouter = () => {
 		}
 	}, [admin])
 
-	if (isAuthLoading) {
+	const currentProject =
+		data?.projects?.find((p) => p?.id === projectId) ||
+		projectOrWorkspaceData?.project ||
+		undefined
+	const currentWorkspaceId = currentProject?.workspace_id || workspaceId
+	let projectsInWorkspace =
+		data?.projects?.filter((p) => p?.workspace_id === currentWorkspaceId) ||
+		[]
+	if (projectsInWorkspace.length === 0) {
+		projectsInWorkspace = projectOrWorkspaceData?.workspace?.projects || []
+	}
+	if (projectsInWorkspace.length === 0) {
+		projectsInWorkspace =
+			projectOrWorkspaceData?.project?.workspace?.projects || []
+	}
+
+	const currentWorkspace =
+		data?.workspaces?.find((w) => w?.id === currentWorkspaceId) ||
+		(currentWorkspaceId === undefined && data?.workspaces?.at(0)) ||
+		projectOrWorkspaceData?.workspace ||
+		projectOrWorkspaceData?.project?.workspace ||
+		undefined
+
+	// Ensure auth and current workspace data has loaded
+	if (
+		isAuthLoading ||
+		loading ||
+		(!currentWorkspace && projectOrWorkspaceLoading)
+	) {
 		return null
 	}
 
@@ -238,23 +243,12 @@ export const AppRouter = () => {
 		<Box height="screen" width="screen">
 			<ApplicationContextProvider
 				value={{
-					loading:
-						projectDropdownDataLoading ||
-						workspaceDropdownDataLoading,
-					currentProject: projectListData?.project ?? undefined,
-					allProjects:
-						(projectListData?.workspace?.projects ||
-							workspaceListData?.workspace?.projects) ??
-						[],
-					currentWorkspace:
-						(projectListData?.workspace ||
-							workspaceListData?.workspace ||
-							workspacesData?.workspaces?.at(0)) ??
-						undefined,
-					workspaces:
-						(projectListData?.workspaces ||
-							workspaceListData?.workspaces) ??
-						[],
+					loading: false,
+					currentProject: currentProject,
+					allProjects: projectsInWorkspace,
+					currentWorkspace: currentWorkspace,
+					workspaces: data?.workspaces ?? [],
+					joinableWorkspaces: data?.joinable_workspaces ?? [],
 				}}
 			>
 				{(isNewWorkspacePage || isNewProjectPage) && isLoggedIn ? (

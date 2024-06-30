@@ -17,11 +17,15 @@ import {
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
-import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import {
+	findLastActiveEventIndex,
+	Tab,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import _ from 'lodash'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
+import { THROTTLED_UPDATE_MS } from '@/pages/Player/PlayerHook/PlayerState'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import * as style from './EventStreamV2.css'
@@ -30,11 +34,10 @@ const EventStreamV2 = function () {
 	const {
 		session,
 		sessionMetadata,
+		time,
 		eventsForTimelineIndicator: replayerEvents,
 		state,
 		replayer,
-		currentEvent,
-		setCurrentEvent,
 	} = useReplayerContext()
 	const session_secure_id = session?.secure_id
 	const {
@@ -85,15 +88,33 @@ const EventStreamV2 = function () {
 		}
 	}, [data?.web_vitals, replayerEvents])
 
-	const usefulEvents = useMemo(() => events.filter(usefulEvent), [events])
-	const filteredEvents = useMemo(
+	const filteredEvents = useMemo(() => {
+		const usefulEvents = events.filter(usefulEvent)
+		return getFilteredEvents(
+			searchQuery!,
+			usefulEvents,
+			new Set(selectedTimelineAnnotationTypes),
+		)
+	}, [selectedTimelineAnnotationTypes, searchQuery, events])
+
+	const [lastEventIndex, setLastEventIndex] = useState(-1)
+
+	useEffect(
 		() =>
-			getFilteredEvents(
-				searchQuery!,
-				usefulEvents,
-				new Set(selectedTimelineAnnotationTypes),
+			_.throttle(
+				() => {
+					const activeIndex = findLastActiveEventIndex(
+						time,
+						sessionMetadata.startTime,
+						filteredEvents,
+					)
+
+					setLastEventIndex(activeIndex)
+				},
+				THROTTLED_UPDATE_MS,
+				{ leading: true, trailing: false },
 			),
-		[selectedTimelineAnnotationTypes, searchQuery, usefulEvents],
+		[time, sessionMetadata.startTime, filteredEvents],
 	)
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -112,17 +133,10 @@ const EventStreamV2 = function () {
 
 	useEffect(() => {
 		if (!isInteractingWithStreamEvents) {
-			const currentEventIndex = usefulEvents.findIndex(
-				(event) => event.identifier === currentEvent,
-			)
-			scrollFunction(currentEventIndex)
+			scrollFunction(lastEventIndex)
 		}
-	}, [
-		currentEvent,
-		isInteractingWithStreamEvents,
-		scrollFunction,
-		usefulEvents,
-	])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [lastEventIndex])
 
 	const isLoading =
 		!replayer || state === ReplayerState.Loading || events.length === 0
@@ -175,15 +189,12 @@ const EventStreamV2 = function () {
 							initialTopMostItemIndex={activeEventIndex}
 							itemContent={(index, event) => (
 								<StreamEventV2
-									e={event}
+									event={event}
 									key={index}
 									start={sessionMetadata.startTime}
 									isFirstCard={index === 0}
-									isCurrent={
-										event.identifier === currentEvent
-									}
-									onGoToHandler={(e) => {
-										setCurrentEvent(e)
+									isCurrent={index === lastEventIndex}
+									onGoToHandler={() => {
 										setActiveEvent(event)
 										setRightPanelView(RightPanelView.Event)
 										setActiveEventIndex(index)

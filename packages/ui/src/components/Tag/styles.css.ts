@@ -66,9 +66,6 @@ export const variants = recipe({
 					outline: 'none',
 					border: 0,
 				},
-				'&:hover': {
-					cursor: 'pointer',
-				},
 			},
 		},
 	],
