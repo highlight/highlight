@@ -100,7 +100,7 @@ class SimpleAuth {
 	}
 }
 
-class PasswordAuth {
+class PasswordAuth implements SimpleAuth {
 	static Key = 'XNnrgjSyZjjEANuxFBG4nXw4p8GvMtrK'
 
 	currentUser: User | null = null
@@ -254,6 +254,61 @@ class PasswordAuth {
 	}
 }
 
+class OAuth implements SimpleAuth {
+	currentUser: User | null = null
+	googleProvider?: Firebase.auth.GoogleAuthProvider
+	githubProvider?: Firebase.auth.GithubAuthProvider
+
+	async createUserWithEmailAndPassword(
+		email: string,
+		password: string,
+	): Promise<Firebase.auth.UserCredential> {
+		throw new Error('Not implemented')
+	}
+
+	onAuthStateChanged(
+		onSignedIn: (user: Firebase.User | null) => void,
+		onError: (error: Firebase.auth.Error) => any,
+	): () => void {
+		onSignedIn(this.currentUser as Firebase.User)
+		return function () {}
+	}
+
+	sendPasswordResetEmail(email: string): Promise<void> {
+		return Promise.resolve(undefined)
+	}
+
+	async signInWithEmailAndPassword(
+		email: string,
+		password: string,
+	): Promise<Firebase.auth.UserCredential> {
+		return await this.signInWithPopup()
+	}
+
+	async signInWithPopup(): Promise<Firebase.auth.UserCredential> {
+		// TODO(vkorolik) remove password opts
+		window.location.href = `${PRIVATE_GRAPH_URI}/oauth/login`
+		throw new Error('Not implemented')
+	}
+
+	isSignInWithEmailLink(emailLink: string): boolean {
+		console.warn('oauth does not support email sign in')
+		return false
+	}
+
+	async applyActionCode(
+		actionCode: string,
+		continueUrl: string,
+	): Promise<any> {
+		console.warn('oauth does not support email verification')
+		return false
+	}
+
+	signOut(): Promise<void> {
+		return Promise.resolve(undefined)
+	}
+}
+
 export let auth: SimpleAuth
 switch (AUTH_MODE) {
 	case 'simple':
@@ -261,6 +316,9 @@ switch (AUTH_MODE) {
 		break
 	case 'password':
 		auth = new PasswordAuth()
+		break
+	case 'oauth 2.0':
+		auth = new OAuth()
 		break
 	default:
 		let firebaseConfig: any
