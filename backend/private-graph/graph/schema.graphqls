@@ -52,7 +52,7 @@ type Session {
 	identifier: String!
 	identified: Boolean!
 	created_at: Timestamp!
-	payload_updated_at: Timestamp!
+	payload_updated_at: Timestamp
 	length: Int
 	active_length: Int
 	user_object: Any
