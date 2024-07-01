@@ -3342,7 +3342,7 @@ export type Session = {
 	os_name: Scalars['String']
 	os_version: Scalars['String']
 	payload_size?: Maybe<Scalars['Int64']>
-	payload_updated_at: Scalars['Timestamp']
+	payload_updated_at?: Maybe<Scalars['Timestamp']>
 	postal: Scalars['String']
 	privacy_setting?: Maybe<Scalars['String']>
 	processed?: Maybe<Scalars['Boolean']>

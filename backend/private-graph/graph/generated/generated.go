@@ -11539,7 +11539,7 @@ type Session {
 	identifier: String!
 	identified: Boolean!
 	created_at: Timestamp!
-	payload_updated_at: Timestamp!
+	payload_updated_at: Timestamp
 	length: Int
 	active_length: Int
 	user_object: Any
@@ -68270,14 +68270,11 @@ func (ec *executionContext) _Session_payload_updated_at(ctx context.Context, fie
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalNTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Session_payload_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -95055,9 +95052,6 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "payload_updated_at":
 			out.Values[i] = ec._Session_payload_updated_at(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "length":
 			out.Values[i] = ec._Session_length(ctx, field, obj)
 		case "active_length":
