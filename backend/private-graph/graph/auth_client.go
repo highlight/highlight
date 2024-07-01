@@ -303,21 +303,16 @@ func NewFirebaseClient(ctx context.Context) *FirebaseAuthClient {
 }
 
 func NewOAuthClient(ctx context.Context, store *store.Store) *OAuthAuthClient {
-	providerUrl := env.Config.OAuthProviderUrl
-	clientID := env.Config.OAuthClientID
-	clientSecret := env.Config.OAuthClientSecret
-	redirectURL := env.Config.OAuthRedirectUrl
-
-	provider, err := oidc.NewProvider(ctx, providerUrl)
+	provider, err := oidc.NewProvider(ctx, env.Config.OAuthProviderUrl)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Fatalf("failed to connect to oauth oidc provider")
 	}
 
 	// Configure an OpenID Connect aware OAuth2 client.
 	oauth2Config := oauth2.Config{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		RedirectURL:  redirectURL,
+		ClientID:     env.Config.OAuthClientID,
+		ClientSecret: env.Config.OAuthClientSecret,
+		RedirectURL:  env.Config.OAuthRedirectUrl,
 
 		// Discovery returns the OAuth2 endpoints.
 		Endpoint: provider.Endpoint(),
@@ -326,7 +321,7 @@ func NewOAuthClient(ctx context.Context, store *store.Store) *OAuthAuthClient {
 		Scopes: []string{oidc.ScopeOpenID, "profile", "email"},
 	}
 
-	return &OAuthAuthClient{store, clientID, provider, &oauth2Config}
+	return &OAuthAuthClient{store, env.Config.OAuthClientID, provider, &oauth2Config}
 }
 
 func authenticateToken(tokenString string) (jwt.MapClaims, error) {
