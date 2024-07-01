@@ -178,14 +178,5 @@ public class HighlightConfig
                     options.Endpoint = new Uri(MetricsEndpoint);
                     options.Protocol = ExportProtocol;
                 }));
-
-        if (builder.Environment.IsDevelopment())
-        {
-            builder.Services.AddHttpClient("otel").ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-            {
-                // Allow all ssl certs in development
-                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true
-            });
-        }
     }
 }
