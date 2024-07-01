@@ -1,4 +1,10 @@
-export const ViewportResizeListener = (callback: (args: Screen) => void) => {
+export type ViewportResizeListenerArgs = Omit<Screen, 'orientation'> & {
+	orientation: number
+}
+
+export const ViewportResizeListener = (
+	callback: (args: ViewportResizeListenerArgs) => void,
+) => {
 	let id: ReturnType<typeof setTimeout>
 	const DELAY = 500
 
@@ -6,9 +12,13 @@ export const ViewportResizeListener = (callback: (args: Screen) => void) => {
 		clearTimeout(id)
 		id = setTimeout(() => {
 			callback({
-				...window.screen,
 				height: window.innerHeight,
 				width: window.innerWidth,
+				availHeight: window.screen.availHeight,
+				availWidth: window.screen.availWidth,
+				colorDepth: window.screen.colorDepth,
+				pixelDepth: window.screen.pixelDepth,
+				orientation: window.screen.orientation.angle,
 			})
 		}, DELAY)
 	}

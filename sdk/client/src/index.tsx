@@ -36,7 +36,10 @@ import stringify from 'json-stringify-safe'
 import { print } from 'graphql'
 import { determineMaskInputOptions } from './utils/privacy'
 
-import { ViewportResizeListener } from './listeners/viewport-resize-listener'
+import {
+	ViewportResizeListener,
+	type ViewportResizeListenerArgs,
+} from './listeners/viewport-resize-listener'
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener'
 import { ClickListener } from './listeners/click-listener/click-listener'
 import { FocusListener } from './listeners/focus-listener/focus-listener'
@@ -912,10 +915,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
 
 			this.listeners.push(
-				ViewportResizeListener((viewport) => {
-					this.addCustomEvent('Viewport', viewport)
-					this.submitViewportMetrics(viewport)
-				}),
+				ViewportResizeListener(
+					(viewport: ViewportResizeListenerArgs) => {
+						this.addCustomEvent('Viewport', viewport)
+						this.submitViewportMetrics(viewport)
+					},
+				),
 			)
 			this.listeners.push(
 				ClickListener((clickTarget, event) => {
@@ -1080,7 +1085,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		}
 	}
 
-	submitViewportMetrics({ height, width, availHeight, availWidth }: Screen) {
+	submitViewportMetrics({
+		height,
+		width,
+		availHeight,
+		availWidth,
+	}: ViewportResizeListenerArgs) {
 		this.recordMetric([
 			{
 				name: MetricName.ViewportHeight,
