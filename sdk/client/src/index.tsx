@@ -745,12 +745,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			})
 			// recordStop is not part of listeners because we do not actually want to stop rrweb
 			// rrweb has some bugs that make the stop -> restart workflow broken (eg iframe listeners)
-			const viewport = {
-				height: window.innerHeight,
-				width: window.innerWidth,
-			}
-			this.addCustomEvent('Viewport', viewport)
-			this.submitViewportMetrics(viewport)
 
 			if (!this._recordStop) {
 				if (this.options.recordCrossOriginIframe) {
@@ -1086,13 +1080,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		}
 	}
 
-	submitViewportMetrics({
-		height,
-		width,
-	}: {
-		height: number
-		width: number
-	}) {
+	submitViewportMetrics({ height, width, availHeight, availWidth }: Screen) {
 		this.recordMetric([
 			{
 				name: MetricName.ViewportHeight,
@@ -1103,6 +1091,18 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			{
 				name: MetricName.ViewportWidth,
 				value: width,
+				category: MetricCategory.Device,
+				group: window.location.href,
+			},
+			{
+				name: MetricName.ScreenHeight,
+				value: availHeight,
+				category: MetricCategory.Device,
+				group: window.location.href,
+			},
+			{
+				name: MetricName.ScreenWidth,
+				value: availWidth,
 				category: MetricCategory.Device,
 				group: window.location.href,
 			},
