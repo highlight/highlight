@@ -140,7 +140,7 @@ export const Firebase: React.FC = () => {
 	const verifyEmail = useCallback(async () => {
 		await applyActionCode(auth as unknown as any, params.oobCode!)
 		navigate(SIGN_IN_ROUTE)
-	}, [params.oobCode])
+	}, [navigate, params.oobCode])
 
 	const resetPassword = useCallback(async () => {
 		const email = await verifyPasswordResetCode(

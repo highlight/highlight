@@ -198,6 +198,7 @@ export const AppRouter = () => {
 		isJoinWorkspacePage,
 		location.pathname,
 		location.search,
+		isFirebasePage,
 	])
 
 	useEffect(() => {
