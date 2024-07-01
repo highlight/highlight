@@ -23,7 +23,8 @@
 		"highlight.io#build": {
 			"dependsOn": ["^build"],
 			"outputs": [".next/**"],
-			"env": ["GRAPHCMS_TOKEN"]
+			"env": ["GRAPHCMS_TOKEN"],
+			"cache": true
 		},
 		"highlight.io#lint": {
 			"dependsOn": ["^build"]
