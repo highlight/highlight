@@ -1,18 +1,20 @@
 import { ConsoleListener } from './console-listener'
 import { ErrorListener } from './error-listener'
 
-import stringify from 'json-stringify-safe'
+import { ConsoleMessage, ErrorMessage } from '../types/shared-types'
+import { ALL_CONSOLE_METHODS, ConsoleMethods } from '../types/client'
 import { ERRORS_TO_IGNORE, ERROR_PATTERNS_TO_IGNORE } from '../constants/errors'
 import { HighlightClassOptions } from '../index'
-import { ALL_CONSOLE_METHODS, ConsoleMethods } from '../types/client'
-import { ConsoleMessage, ErrorMessage } from '../types/shared-types'
-import { NetworkListener } from './network-listener/network-listener'
+import stringify from 'json-stringify-safe'
+import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitizer'
 import {
+	Request,
+	Response,
 	RequestResponsePair,
 	WebSocketEvent,
 	WebSocketRequest,
 } from './network-listener/utils/models'
-import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitizer'
+import { NetworkListener } from './network-listener/network-listener'
 import {
 	matchPerformanceTimingsWithRequestResponsePair,
 	shouldNetworkRequestBeRecorded,

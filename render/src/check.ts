@@ -1,5 +1,5 @@
-import { exec as execAsync } from 'child_process'
 import * as util from 'util'
+import { exec as execAsync } from 'child_process'
 const exec = util.promisify(execAsync)
 
 const unzippedSizeLimitBytes = 123213184

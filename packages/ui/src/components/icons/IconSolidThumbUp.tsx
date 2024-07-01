@@ -1,3 +1,5 @@
+import React from 'react'
+
 import { IconProps } from './types'
 
 export const IconSolidThumbUp = ({ size = '1em', ...props }: IconProps) => {

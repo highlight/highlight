@@ -3,7 +3,7 @@ import React from 'react'
 
 import { Box, BoxProps } from '../Box/Box'
 import { Button, ButtonProps } from '../Button/Button'
-import { Tag, Props as TagProps } from '../Tag/Tag'
+import { Props as TagProps, Tag } from '../Tag/Tag'
 
 export type PopoverProps = React.PropsWithChildren<Ariakit.PopoverProviderProps>
 

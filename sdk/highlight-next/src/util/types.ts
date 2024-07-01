@@ -1,12 +1,9 @@
+import type { NodeOptions, Highlight } from '@highlight-run/node'
+import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
 import type { ExecutionContext } from '@cloudflare/workers-types'
-import type {
-	Highlight,
-	HighlightContext,
-	NodeOptions,
-} from '@highlight-run/node'
 import type { WorkersSDK } from '@highlight-run/opentelemetry-sdk-workers'
 import type { Attributes } from '@opentelemetry/api'
-import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
+import type { HighlightContext } from '@highlight-run/node'
 import { IncomingHttpHeaders } from 'http'
 
 export type HighlightEnv = NodeOptions

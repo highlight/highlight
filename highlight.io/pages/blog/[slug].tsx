@@ -6,7 +6,7 @@ import type {
 	GetStaticPathsResult,
 	GetStaticProps,
 } from 'next/types'
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { loadPostsFromGithub } from '.'
 
 import { ElementNode } from '@graphcms/rich-text-types'
@@ -27,10 +27,10 @@ import Footer from '../../components/common/Footer/Footer'
 import { Meta } from '../../components/common/Head/Meta'
 import { Section } from '../../components/common/Section/Section'
 import { Typography } from '../../components/common/Typography/Typography'
-import { Callout } from '../../components/Docs/Callout/Callout'
 import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
 import homeStyles from '../../components/Home/Home.module.scss'
 import { getBlogPaths } from '../../shared/blog'
+import { Callout } from '../../components/Docs/Callout/Callout'
 
 const NUM_SUGGESTED_POSTS = 3
 

@@ -1,6 +1,6 @@
 import { eventWithTime } from '@rrweb/types'
-import { MetricCategory } from '../types/client'
 import { ConsoleMessage, ErrorMessage } from '../types/shared-types'
+import { MetricCategory } from '../types/client'
 
 export type Source = 'segment' | undefined
 

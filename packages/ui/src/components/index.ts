@@ -1,10 +1,9 @@
 // Expose Ariakit so you can access the building blocks if needed. Shouldn't be
 // necessary in the future once we create our own versions of the components.
 // Originally exported for dialogs.
-export * as Ariakit from '@ariakit/react'
 export { Badge } from './Badge/Badge'
-export { Box } from './Box/Box'
 export type { BoxProps } from './Box/Box'
+export { Box } from './Box/Box'
 export * from './Button/Button'
 export * as buttonStyles from './Button/styles.css'
 export { ButtonIcon } from './ButtonIcon/ButtonIcon'
@@ -35,3 +34,4 @@ export { sMonotype, typographyStyles } from './Text/styles.css'
 export { Text } from './Text/Text'
 export { TextLink } from './TextLink/TextLink'
 export { Tooltip, TooltipContent } from './Tooltip/Tooltip'
+export * as Ariakit from '@ariakit/react'

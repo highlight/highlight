@@ -10,6 +10,7 @@ import { vars } from '@highlight-run/ui/vars'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useGenerateSessionsReportCSV } from '@util/session/report'
 import { H } from 'highlight.run'
+import React from 'react'
 
 export const SessionReport = () => {
 	const { currentWorkspace } = useApplicationContext()

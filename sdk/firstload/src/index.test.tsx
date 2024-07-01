@@ -1,6 +1,6 @@
-import { setSessionSecureID } from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
 import { H } from '.'
 import { HighlightPublicInterface } from '../../client/src/types/types'
+import { setSessionSecureID } from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
 
 describe('should work outside of the browser in unit test', () => {
 	let highlight: HighlightPublicInterface

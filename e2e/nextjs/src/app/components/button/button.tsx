@@ -1,7 +1,7 @@
 'use client'
 
-import classnames from 'classnames'
 import styles from './button.module.css'
+import classnames from 'classnames'
 
 type Props = React.ComponentPropsWithoutRef<'button'>
 

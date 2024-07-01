@@ -1,3 +1,5 @@
+import React from 'react'
+
 import { IconProps } from './types'
 
 export const IconSolidVolumeUp = ({ size = '1em', ...props }: IconProps) => {

@@ -1,3 +1,5 @@
+import React from 'react'
+
 import { IconProps } from './types'
 
 export const IconSolidSelector = ({ size = '1em', ...props }: IconProps) => {

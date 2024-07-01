@@ -2,8 +2,8 @@ import { Box, Stack } from '@highlight-run/ui/components'
 
 import {
 	JsonViewerObject,
-	Props as JsonViewerObjectProps,
 	JsonViewerValue,
+	Props as JsonViewerObjectProps,
 } from '@/components/JsonViewer/JsonViewerObject'
 
 type Props = {

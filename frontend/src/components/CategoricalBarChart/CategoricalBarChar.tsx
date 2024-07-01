@@ -2,8 +2,8 @@ import {
 	CLICK_NEARBY_THRESHOLD,
 	CustomLegend,
 	CustomTooltip,
-	Props as LineChartProps,
 	MAX_LEGEND_ITEMS,
+	Props as LineChartProps,
 } from '@components/LineChart/LineChart'
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip'
 import { generateRandomColor } from '@util/color'
@@ -11,10 +11,10 @@ import React from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import {
 	Bar,
+	BarChart as RechartsBarChart,
 	CartesianGrid,
 	Label,
 	Legend,
-	BarChart as RechartsBarChart,
 	ReferenceArea,
 	ReferenceAreaProps,
 	ReferenceLine,

@@ -4,7 +4,7 @@ import { createContext, useContext, useState } from 'react'
 import { Badge } from '../Badge/Badge'
 import { Box, BoxProps, PaddingProps } from '../Box/Box'
 import { Stack } from '../Stack/Stack'
-import { Tag, Props as TagProps } from '../Tag/Tag'
+import { Props as TagProps, Tag } from '../Tag/Tag'
 
 export const TabsContext = createContext({
 	size: 'sm',

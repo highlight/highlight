@@ -14,7 +14,7 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import moment from 'moment'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'

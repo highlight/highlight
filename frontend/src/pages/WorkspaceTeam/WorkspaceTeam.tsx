@@ -13,6 +13,7 @@ import InviteMemberModal from '@pages/WorkspaceTeam/components/InviteMemberModal
 import { PendingInvites } from '@pages/WorkspaceTeam/components/PendingInvites'
 import { Authorization } from '@util/authorization/authorization'
 import { useParams } from '@util/react-router/useParams'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useToggle } from 'react-use'
 

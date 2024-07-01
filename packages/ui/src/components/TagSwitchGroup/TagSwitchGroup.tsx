@@ -3,7 +3,7 @@ import clsx, { ClassValue } from 'clsx'
 import { useState } from 'react'
 
 import { Stack } from '../Stack/Stack'
-import { Tag, Props as TagProps } from '../Tag/Tag'
+import { Props as TagProps, Tag } from '../Tag/Tag'
 
 type Option = string | number
 type Props = {

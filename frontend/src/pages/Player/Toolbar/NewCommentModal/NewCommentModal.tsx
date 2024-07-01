@@ -3,6 +3,7 @@ import { Session } from '@graph/schemas'
 import { Coordinates2D } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas'
 import { NewCommentForm } from '@pages/Player/Toolbar/NewCommentForm/NewCommentForm'
 import { getNewCommentFormCoordinates } from '@pages/Player/utils/utils'
+import React from 'react'
 
 import * as styles from './styles.css'
 

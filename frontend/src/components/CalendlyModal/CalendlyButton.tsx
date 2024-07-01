@@ -14,7 +14,7 @@ import { getAttributionData } from '@util/attribution'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { InlineWidget } from 'react-calendly'
 import { useHotkeys } from 'react-hotkeys-hook'
 
