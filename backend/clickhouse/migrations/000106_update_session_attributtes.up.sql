@@ -9,9 +9,9 @@ select ProjectID as ProjectId,
                        arrayZip(FieldKeys, FieldKeyValues)
                )
        ) as SessionAttributes,
-       arrayMap((kv) -> (
-                     arrayStringConcat(arraySlice(splitByChar('_', kv), 2, -2), '_'),
-                     arrayStringConcat(arraySlice(splitByChar('_', kv), 3), '_')
-       ), FieldKeyValues) as SessionAttributePairs,
+       arrayMap((k, kv) -> (
+                   arrayStringConcat(arraySlice(splitByChar('_', k), 2), '_'),
+                   substring(kv, length(k) + 2)
+       ), arrayZip(FieldKeys, FieldKeyValues)) as SessionAttributePairs,
        *
 from sessions FINAL SETTINGS splitby_max_substrings_includes_remaining_string = 1;
