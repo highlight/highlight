@@ -443,8 +443,7 @@ func main() {
 			r.Get("/assets/{project_id}/{hash_val}", privateResolver.AssetHandler)
 			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
 
-			r.Get("/validate-token", privateResolver.ValidateAuthToken)
-			r.Post("/login", privateResolver.Login)
+			private.AuthClient.SetupListeners(r)
 
 			privateServer := ghandler.New(privategen.NewExecutableSchema(
 				privategen.Config{

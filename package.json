@@ -44,6 +44,7 @@
 		"dev:backend": "cd backend && make start",
 		"dev:components": "yarn turbo run dev --filter @highlight-run/component-preview...",
 		"dev:frontend": "doppler run -- yarn turbo run dev --filter @highlight-run/frontend",
+		"dev:frontend:minimal": "doppler run -- yarn workspace @highlight-run/frontend dev",
 		"dev:highlight.io": "doppler run -- yarn turbo run dev --filter highlight.io",
 		"dev:ui": "yarn turbo run dev --filter @highlight-run/ui...",
 		"dev:watch": "yarn turbo run dev:watch --concurrency=32",

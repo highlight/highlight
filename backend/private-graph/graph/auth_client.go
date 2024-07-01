@@ -2,10 +2,12 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 	"fmt"
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/go-chi/chi"
 	"github.com/go-redis/cache/v9"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/highlight-run/highlight/backend/env"
@@ -29,7 +31,7 @@ const stateCookieName = "state"
 type Client interface {
 	updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error)
 	GetUser(ctx context.Context, uid string) (*auth.UserRecord, error)
-	PerformLogin(ctx context.Context, credentials LoginCredentials) (map[string]interface{}, error)
+	SetupListeners(r chi.Router)
 }
 
 type SimpleAuthClient struct{}
@@ -54,7 +56,74 @@ func (c *PasswordAuthClient) GetUser(_ context.Context, uid string) (*auth.UserR
 	}, nil
 }
 
-func (c *PasswordAuthClient) PerformLogin(_ context.Context, credentials LoginCredentials) (map[string]interface{}, error) {
+func (c *PasswordAuthClient) validateToken(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+
+	email := ctx.Value(model.ContextKeys.Email)
+	uid := ctx.Value(model.ContextKeys.UID)
+
+	if email == nil || uid == nil {
+		log.WithContext(ctx).Error(e.New("forbidden"))
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	user := GetPasswordAuthUser(email.(string))
+
+	response := make(map[string]interface{})
+	response["user"] = user
+
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+		http.Error(w, "", http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(jsonResponse)
+
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error writing validate-auth-token response"))
+	}
+}
+
+func (c *PasswordAuthClient) SetupListeners(r chi.Router) {
+	r.Post("/login", c.handleLogin)
+	r.Get("/validate-token", c.validateToken)
+}
+
+func (c *PasswordAuthClient) handleLogin(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+
+	var credentials LoginCredentials
+	err := json.NewDecoder(req.Body).Decode(&credentials)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to unmarshal login details")
+		http.Error(w, loginError, http.StatusInternalServerError)
+	}
+
+	response, err := c.performLogin(ctx, credentials)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to validate login")
+		http.Error(w, loginError, http.StatusInternalServerError)
+	}
+
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+		http.Error(w, loginError, http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(jsonResponse)
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error writing password-auth login response"))
+	}
+}
+
+func (c *PasswordAuthClient) performLogin(_ context.Context, credentials LoginCredentials) (map[string]interface{}, error) {
 	if adminPassword == "" {
 		return nil, e.New(passwordLoginConfigurationError)
 	}
@@ -98,10 +167,7 @@ func (c *SimpleAuthClient) GetUser(_ context.Context, uid string) (*auth.UserRec
 	}, nil
 }
 
-func (c *SimpleAuthClient) PerformLogin(_ context.Context, _ LoginCredentials) (map[string]interface{}, error) {
-	// SimpleAuthClient does not support login
-	return nil, e.New(loginFlowError)
-}
+func (c *SimpleAuthClient) SetupListeners(_ chi.Router) {}
 
 func (c *SimpleAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
 	ctx = context.WithValue(ctx, model.ContextKeys.UID, "demo@example.com")
@@ -113,10 +179,7 @@ func (c *FirebaseAuthClient) GetUser(ctx context.Context, uid string) (*auth.Use
 	return c.authClient.GetUser(ctx, uid)
 }
 
-func (c *FirebaseAuthClient) PerformLogin(_ context.Context, _ LoginCredentials) (map[string]interface{}, error) {
-	// FirebaseAuthClient does not support login as the login flow happens client-side
-	return nil, e.New(loginFlowError)
-}
+func (c *FirebaseAuthClient) SetupListeners(_ chi.Router) {}
 
 func (c *FirebaseAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
 	var uid string
@@ -166,8 +229,9 @@ func (c *OAuthAuthClient) GetUser(ctx context.Context, uid string) (*auth.UserRe
 	}, nil
 }
 
-func (c *OAuthAuthClient) PerformLogin(_ context.Context, _ LoginCredentials) (map[string]interface{}, error) {
-	return nil, e.New(loginFlowError)
+func (c *OAuthAuthClient) SetupListeners(r chi.Router) {
+	r.Get("/oauth/login", c.handleRedirect)
+	r.Get("/oauth/callback", c.handleOAuth2Callback)
 }
 
 func (c *OAuthAuthClient) setCallbackCookie(w http.ResponseWriter, r *http.Request, name, value string) {
@@ -231,6 +295,8 @@ func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	// TODO(vkorolik) redirect to frontend w token?
+
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write([]byte(rawIDToken))
 	if err != nil {
@@ -263,7 +329,8 @@ func (c *OAuthAuthClient) storeUser(ctx context.Context, userInfo *oidc.UserInfo
 		Ctx:   ctx,
 		Key:   fmt.Sprintf(`user-email-%s`, userInfo.Email),
 		Value: userInfo,
-		TTL:   time.Hour,
+		// TODO(vkorolik) expiry time of token?
+		TTL: time.Hour,
 	}); err != nil {
 		return err
 	}
