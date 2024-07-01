@@ -14,44 +14,25 @@ interface Config {
 }
 
 export enum Feature {
-	HistogramTimelineV2,
-	AiSessionInsights,
-	Analytics,
+	AiQueryBuilder,
+	MetricAlerts,
 	Metrics,
 }
 
 // configures the criteria and percentage of population for which the feature is active.
 // can configure to rollout by project, workspace, or admin
 export const FeatureConfig: { [key: number]: Config } = {
-	[Feature.HistogramTimelineV2]: {
-		workspace: true,
-		percent: 100,
-		projectOverride: new Set<string>([
-			// Portal
-			'79',
-			// Impira
-			'122',
-			'153',
-			'172',
-			// Sunsama
-			'657',
-			// Synder
-			'1031',
-		]),
-	},
-	[Feature.AiSessionInsights]: {
-		workspace: true,
-		percent: 100,
-	},
-	[Feature.Analytics]: {
+	[Feature.AiQueryBuilder]: {
 		workspace: true,
 		percent: 0,
 		workspaceOverride: new Set<string>([
-			// Numero
-			'701',
-			// MediaJel
-			'9634',
+			// Highlight
+			'1',
 		]),
+	},
+	[Feature.MetricAlerts]: {
+		workspace: true,
+		percent: 0,
 	},
 	[Feature.Metrics]: {
 		workspace: true,
