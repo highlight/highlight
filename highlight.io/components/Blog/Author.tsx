@@ -1,9 +1,9 @@
+import { Author } from './BlogPost/BlogPost'
+import { Typography } from '../common/Typography/Typography'
 import Image from 'next/legacy/image'
 import { ReactElement } from 'react'
-import { FaGithub, FaLinkedin, FaTwitter } from 'react-icons/fa'
 import { HiGlobeAlt } from 'react-icons/hi'
-import { Typography } from '../common/Typography/Typography'
-import { Author } from './BlogPost/BlogPost'
+import { FaTwitter, FaLinkedin, FaGithub } from 'react-icons/fa'
 
 const SocialLink = ({ href, icon }: { href: string; icon: ReactElement }) => (
 	<a

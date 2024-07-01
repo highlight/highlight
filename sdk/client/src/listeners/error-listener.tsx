@@ -1,6 +1,8 @@
-import ErrorStackParser from 'error-stack-parser'
-import stringify from 'json-stringify-safe'
 import { ErrorMessage } from '../types/shared-types'
+import stringify from 'json-stringify-safe'
+import ErrorStackParser from 'error-stack-parser'
+import { HighlightOptions } from '../types/types'
+import { HighlightClassOptions } from '../index'
 
 interface HighlightPromise<T> extends Promise<T> {
 	promiseCreationError: Error

@@ -1,8 +1,8 @@
 import fs from 'fs';
-import { glob } from 'glob';
+import process from 'process';
 import os from 'os';
 import path from 'path';
-import process from 'process';
+import { glob } from 'glob';
 import { SOURCE_DIR } from './constants';
 
 export function isWSL() {

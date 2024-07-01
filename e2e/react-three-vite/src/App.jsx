@@ -1,18 +1,18 @@
 /* eslint-disable react/no-unknown-property,react/prop-types */
 // https://cydstumpel.nl/
 
+import * as THREE from 'three'
+import { useEffect, useRef, useState } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
 import {
-	Environment,
 	Image,
+	Environment,
 	ScrollControls,
 	useScroll,
 	useTexture,
 } from '@react-three/drei'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { H } from 'highlight.run'
 import { easing } from 'maath'
-import { useEffect, useRef, useState } from 'react'
-import * as THREE from 'three'
+import { H } from 'highlight.run'
 import './util'
 
 export const App = () => {

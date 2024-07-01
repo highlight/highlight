@@ -1,6 +1,6 @@
 import { highlightConfig } from '@/instrumentation'
-import { isNodeJsRuntime } from '@highlight-run/next/server'
 import type { LoggerOptions } from 'pino'
+import { isNodeJsRuntime } from '@highlight-run/next/server'
 
 const pinoConfig = {
 	level: 'debug',

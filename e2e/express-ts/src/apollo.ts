@@ -1,6 +1,6 @@
 import { ApolloServer } from '@apollo/server'
-import { startStandaloneServer } from '@apollo/server/standalone'
 import { ApolloServerHighlightPlugin } from '@highlight-run/apollo'
+import { startStandaloneServer } from '@apollo/server/standalone'
 import { CONSTANTS } from './constants'
 
 const typeDefs = `#graphql

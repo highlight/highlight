@@ -1,14 +1,14 @@
-import { spawn } from 'child_process'
-import {
-	clearResourceSpans,
-	filterDetailsBySessionId,
-	filterEventsByName,
-	getOtlpEndpoint,
-	getResourceSpans,
-	logDetails,
-	startMockOtelServer,
-} from 'mock-otel-server'
 import kill from 'tree-kill'
+import {
+	startMockOtelServer,
+	getResourceSpans,
+	getOtlpEndpoint,
+	clearResourceSpans,
+	filterEventsByName,
+	filterDetailsBySessionId,
+	logDetails,
+} from 'mock-otel-server'
+import { spawn } from 'child_process'
 import { vi } from 'vitest'
 
 vi.mock('pg', () => {

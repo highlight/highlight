@@ -1,3 +1,5 @@
+import React from 'react'
+
 import { IconProps } from './types'
 
 export const IconSolidLogs = ({ size = '1em', ...props }: IconProps) => {

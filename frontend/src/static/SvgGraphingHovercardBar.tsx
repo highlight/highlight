@@ -1,3 +1,5 @@
+import * as React from 'react'
+
 function SvgGraphingHovercardBar() {
 	return (
 		<svg

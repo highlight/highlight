@@ -1,5 +1,5 @@
-import { extend } from '@react-three/fiber'
 import * as THREE from 'three'
+import { extend } from '@react-three/fiber'
 
 // Paul West @prisoner849 https://discourse.threejs.org/u/prisoner849
 // https://discourse.threejs.org/t/simple-curved-plane/26647/10

@@ -1,9 +1,9 @@
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 
-import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys'
-import type { HighlightOptions } from 'highlight.run'
-import { H } from 'highlight.run'
 import Cookies from 'js-cookie'
+import { H } from 'highlight.run'
+import type { HighlightOptions } from 'highlight.run'
+import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys'
 
 export { H } from 'highlight.run'
 

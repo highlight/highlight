@@ -1,3 +1,4 @@
+import React from 'react'
 import ReactCompareImage from 'react-compare-image'
 import ObfuscatedText from '../../../public/images/obfuscatedtext.png'
 import RegularText from '../../../public/images/regulartext.png'

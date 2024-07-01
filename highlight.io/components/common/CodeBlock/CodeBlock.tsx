@@ -1,8 +1,9 @@
-import classNames from 'classnames'
-import { CodeBlock as ReactCodeBlock } from 'react-code-blocks'
-import CopyToClipboard from 'react-copy-to-clipboard'
 import { BiCopy } from 'react-icons/bi'
+import classNames from 'classnames'
+import React from 'react'
+import CopyToClipboard from 'react-copy-to-clipboard'
 import { SyntaxHighlighterProps } from 'react-syntax-highlighter'
+import { CodeBlock as ReactCodeBlock } from 'react-code-blocks'
 
 import styles from './CodeBlock.module.scss'
 

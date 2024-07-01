@@ -1,3 +1,5 @@
+import React from 'react'
+
 import { IconProps } from './types'
 
 export const IconSolidSearch = ({ size = '1em', ...props }: IconProps) => {

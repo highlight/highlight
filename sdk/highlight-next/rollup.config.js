@@ -1,5 +1,5 @@
-import terser from '@rollup/plugin-terser'
 import typescript from '@rollup/plugin-typescript'
+import terser from '@rollup/plugin-terser'
 
 /** @type {import('rollup').RollupOptions} */
 const config = {

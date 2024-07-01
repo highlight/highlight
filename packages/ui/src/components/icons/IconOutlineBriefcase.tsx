@@ -1,3 +1,5 @@
+import React from 'react'
+
 import { IconProps } from './types'
 
 export const IconOutlineBriefcase = ({ size = '1em', ...props }: IconProps) => {
