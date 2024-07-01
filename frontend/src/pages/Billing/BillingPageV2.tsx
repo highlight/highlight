@@ -1,3 +1,4 @@
+import { CalendlyButton } from '@components/CalendlyModal/CalendlyButton'
 import LoadingBox from '@components/LoadingBox'
 import { toast } from '@components/Toaster'
 import { USD } from '@dinero.js/currencies'
@@ -7,7 +8,6 @@ import {
 	Callout,
 	Heading,
 	IconProps,
-	IconSolidArrowSmRight,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidExclamation,
@@ -26,7 +26,6 @@ import {
 import { vars } from '@highlight-run/ui/vars'
 import { BarChart } from '@pages/Graphing/components/BarChart'
 import { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
-import { getPlanChangeEmail } from '@util/billing/billing'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -94,6 +93,7 @@ const UsageCard = ({
 	billingLimitCents,
 	usageAmount,
 	usageLimitAmount,
+	planType,
 	includedQuantity,
 	isPaying,
 	enableBillingLimits,
@@ -213,8 +213,8 @@ const UsageCard = ({
 										{usageAmount.toLocaleString()}{' '}
 										{productType.toLocaleLowerCase()}
 									</b>{' '}
-									this month. 300000 are included in the free
-									tier.
+									this month. {includedQuantity} are included
+									on the {planType} tier.
 								</Text>
 							</Box>
 						</Tooltip>
@@ -626,25 +626,17 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 				<Stack>
 					<Heading level="h4">Billing plans</Heading>
 					{isAWSMP ? null : (
-						<Box display="inline-flex">
+						<Box display="inline-flex" gap="4" alignItems="center">
 							<Text size="small" color="weak">
 								Prices are flexible around your needs. Custom
-								quote?{' '}
-								<a
-									href={getPlanChangeEmail({
-										workspaceID: workspace_id,
-										planType: PlanType.Enterprise,
-									})}
-								>
-									<Box
-										display="inline-flex"
-										alignItems="center"
-									>
-										Reach out to sales{' '}
-										<IconSolidArrowSmRight />
-									</Box>
-								</a>
+								quote?
 							</Text>
+							<CalendlyButton
+								text="Book a call."
+								size="xSmall"
+								emphasis="low"
+								howCanWeHelp="Custom quote"
+							/>
 						</Box>
 					)}
 					{billingIssue ? (

@@ -2,9 +2,8 @@ package discord
 
 import (
 	"errors"
-	"os"
-
 	"github.com/bwmarrin/discordgo"
+	"github.com/highlight-run/highlight/backend/env"
 )
 
 type Bot struct {
@@ -13,15 +12,11 @@ type Bot struct {
 }
 
 func NewDiscordBot(guildId string) (*Bot, error) {
-	var (
-		ok               bool
-		DiscordBotSecret string
-	)
-	if DiscordBotSecret, ok = os.LookupEnv("DISCORD_BOT_SECRET"); !ok || DiscordBotSecret == "" {
+	if env.Config.DiscordBotSecret == "" {
 		return nil, errors.New("DISCORD_BOT_SECRET not set")
 	}
 
-	session, err := discordgo.New("Bot " + DiscordBotSecret)
+	session, err := discordgo.New("Bot " + env.Config.DiscordBotSecret)
 
 	if err != nil {
 		return nil, errors.Join(err, errors.New("error creating Discord session"))

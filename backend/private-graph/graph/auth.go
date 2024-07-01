@@ -3,8 +3,8 @@ package graph
 import (
 	"encoding/json"
 	"errors"
+	"github.com/highlight-run/highlight/backend/env"
 	"net/http"
-	"os"
 	"time"
 
 	"firebase.google.com/go/auth"
@@ -22,7 +22,7 @@ type LoginCredentials struct {
 	Password string `json:"password" binding:"required"`
 }
 
-var AdminPassword = os.Getenv("ADMIN_PASSWORD")
+var AdminPassword = env.Config.AuthAdminPassword
 var AdminPasswordTokenDuration = time.Hour * 24
 
 func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {

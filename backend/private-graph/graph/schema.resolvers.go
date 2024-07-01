@@ -35,10 +35,12 @@ import (
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/integrations/cloudflare"
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	delete_handlers "github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/handlers"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
@@ -473,7 +475,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 		PromoCode:                 promoCode,
 	}
 
-	if util.IsOnPrem() {
+	if env.IsOnPrem() {
 		// unlock self hosted usage
 		workspace.PlanTier = modelInputs.PlanTypeEnterprise.String()
 	}
@@ -483,13 +485,13 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 	}
 
 	c := &stripe.Customer{}
-	if !util.IsOnPrem() {
+	if !env.IsOnPrem() {
 		params := &stripe.CustomerParams{
 			Name:  &name,
 			Email: admin.Email,
 		}
 		params.AddMetadata("Workspace ID", strconv.Itoa(workspace.ID))
-		c, err = r.StripeClient.Customers.New(params)
+		c, err = r.PricingClient.Customers.New(params)
 		if err != nil {
 			log.WithContext(ctx).Error(err, "error creating stripe customer")
 		}
@@ -895,7 +897,7 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		return nil, e.Wrap(err, "error creating new invite link")
 	}
 
-	baseURL := os.Getenv("REACT_APP_FRONTEND_URI")
+	baseURL := env.Config.FrontendUri
 
 	inviteLinkUrl := baseURL + "/w/" + strconv.Itoa(workspaceID) + "/invite/" + *inviteLink.Secret
 	return r.SendAdminInviteImpl(*admin.Name, *workspace.Name, inviteLinkUrl, email)
@@ -1185,7 +1187,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	// For older projects, if there's no customer ID, we create a StripeCustomer obj.
 	if workspace.StripeCustomerID == nil {
 		params := &stripe.CustomerParams{}
-		c, err := r.StripeClient.Customers.New(params)
+		c, err := r.PricingClient.Customers.New(params)
 		if err != nil {
 			log.WithContext(ctx).Error(err, "error creating stripe customer")
 		}
@@ -1200,7 +1202,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	params := &stripe.CustomerParams{}
 	params.AddExpand("subscriptions")
 
-	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, params)
+	c, err := r.PricingClient.Customers.Get(*workspace.StripeCustomerID, params)
 	if err != nil {
 		return nil, e.Wrap(err, "BILLING_ERROR cannot update stripe subscription - couldn't retrieve stripe customer data")
 	}
@@ -1211,14 +1213,14 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	}
 
 	subscriptions := c.Subscriptions.Data
-	pricing.FillProducts(r.StripeClient, subscriptions)
+	pricing.FillProducts(r.PricingClient, subscriptions)
 
 	pricingInterval := model.PricingSubscriptionIntervalMonthly
 
 	defaultRetention := modelInputs.RetentionPeriodThreeMonths
 
 	// default to unlimited members pricing
-	prices, err := pricing.GetStripePrices(r.StripeClient, workspace, modelInputs.PlanTypeGraduated, pricingInterval, true, &defaultRetention, &defaultRetention)
+	prices, err := pricing.GetStripePrices(r.PricingClient, workspace, modelInputs.PlanTypeGraduated, pricingInterval, true, &defaultRetention, &defaultRetention)
 	if err != nil {
 		return nil, e.Wrap(err, "BILLING_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}
@@ -1252,7 +1254,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 			},
 		}
 
-		_, err := r.StripeClient.Subscriptions.Update(subscription.ID, subscriptionParams)
+		_, err := r.PricingClient.Subscriptions.Update(subscription.ID, subscriptionParams)
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
@@ -1262,8 +1264,8 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 	// If there's no existing subscription, we create a checkout.
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String(os.Getenv("REACT_APP_FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/success"),
-		CancelURL:  stripe.String(os.Getenv("REACT_APP_FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/update-plan"),
+		SuccessURL: stripe.String(env.Config.FrontendUri + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/success"),
+		CancelURL:  stripe.String(env.Config.FrontendUri + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/update-plan"),
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
@@ -1278,7 +1280,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	}
 	checkoutSessionParams.AddExtra("allow_promotion_codes", "true")
 
-	stripeSession, err := r.StripeClient.CheckoutSessions.New(checkoutSessionParams)
+	stripeSession, err := r.PricingClient.CheckoutSessions.New(checkoutSessionParams)
 	if err != nil {
 		return nil, e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
@@ -1623,7 +1625,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 		title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
 		desc += "See the error page on Highlight:\n"
-		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
+		desc += fmt.Sprintf("%s/%d/sessions/%s", env.Config.FrontendUri, projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear &&
 			workspace.LinearAccessToken != nil &&
@@ -1978,7 +1980,7 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 
 		title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
 		desc += "See the error page on Highlight:\n"
-		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
+		desc += fmt.Sprintf("%s/%d/sessions/%s", env.Config.FrontendUri, projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(ctx, workspace, attachment, *issueTitle, *issueDescription, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
@@ -2350,7 +2352,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 
 		title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
 		desc += "See the error page on Highlight:\n"
-		desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
+		desc += fmt.Sprintf("%s/%d/errors/%s", env.Config.FrontendUri, projectID, errorComment.ErrorSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(
@@ -2667,7 +2669,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 
 	title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
 	desc += "See the error page on Highlight:\n"
-	desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
+	desc += fmt.Sprintf("%s/%d/errors/%s", env.Config.FrontendUri, projectID, errorComment.ErrorSecureId)
 
 	for _, s := range integrations {
 		attachment := &model.ExternalAttachment{
@@ -4159,7 +4161,7 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 			queryParams := url.Values{
 				"autoinvite_email": {*admin.Email},
 			}
-			inviteLink := fmt.Sprintf("%s/w/%d/team?%s", os.Getenv("REACT_APP_FRONTEND_URI"), workspace.ID, queryParams.Encode())
+			inviteLink := fmt.Sprintf("%s/w/%d/team?%s", env.Config.FrontendUri, workspace.ID, queryParams.Encode())
 			if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
 				*a.Name, *a.Email, inviteLink); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send request access email"))
@@ -4291,10 +4293,6 @@ func (r *mutationResolver) DeleteDashboard(ctx context.Context, id int) (bool, e
 
 // DeleteSessions is the resolver for the deleteSessions field.
 func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, params modelInputs.QueryInput, sessionCount int) (bool, error) {
-	if util.IsDevOrTestEnv() {
-		return false, nil
-	}
-
 	project, err := r.isUserInProject(ctx, projectID)
 	if err != nil {
 		return false, err
@@ -4328,14 +4326,19 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, pa
 		return false, err
 	}
 
-	_, err = r.StepFunctions.DeleteSessionsByQuery(ctx, utils.QuerySessionsInput{
-		ProjectId:    projectID,
-		Email:        email,
-		FirstName:    firstName,
-		Params:       params,
-		SessionCount: sessionCount,
-		DryRun:       util.IsDevOrTestEnv(),
-	})
+	if env.IsInDocker() {
+		deleteHandlers := delete_handlers.InitHandlers(r.DB, r.ClickhouseClient, nil, r.StorageClient)
+		deleteHandlers.DeleteSessions(ctx, projectID, params.DateRange.StartDate, params.DateRange.EndDate, params.Query)
+	} else {
+		_, err = r.StepFunctions.DeleteSessionsByQuery(ctx, utils.QuerySessionsInput{
+			ProjectId:    projectID,
+			Email:        email,
+			FirstName:    firstName,
+			Params:       params,
+			SessionCount: sessionCount,
+			DryRun:       env.IsDevOrTestEnv(),
+		})
+	}
 
 	if err != nil {
 		return false, err
@@ -4979,7 +4982,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 	var allSubs []*stripe.Subscription
 	for {
 		subListParams.StartingAfter = startingAfter
-		subList := r.StripeClient.Subscriptions.List(&subListParams).SubscriptionList()
+		subList := r.PricingClient.Subscriptions.List(&subListParams).SubscriptionList()
 		allSubs = append(allSubs, subList.Data...)
 
 		if !subList.HasMore {
@@ -5003,7 +5006,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 	startingAfter = nil
 	for {
 		invoiceListParams.StartingAfter = startingAfter
-		invoiceList := r.StripeClient.Invoices.List(&invoiceListParams).InvoiceList()
+		invoiceList := r.PricingClient.Invoices.List(&invoiceListParams).InvoiceList()
 		allInvoices = append(allInvoices, invoiceList.Data...)
 
 		if !invoiceList.HasMore {
@@ -5130,7 +5133,7 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 
 // Session is the resolver for the session field.
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
-	if util.IsDevEnv() && secureID == "repro" {
+	if env.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}
 		if err := r.DB.WithContext(ctx).Preload("Fields").Where(&model.Session{Model: model.Model{ID: 0}}).Take(&sessionObj).Error; err != nil {
 			return nil, e.Wrap(err, "error reading from session")
@@ -5169,7 +5172,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 
 // Events is the resolver for the events field.
 func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
-	if util.IsDevEnv() && sessionSecureID == "repro" {
+	if env.IsDevEnv() && sessionSecureID == "repro" {
 		file, err := os.ReadFile("./tmp/events.json")
 		if err != nil {
 			return nil, e.Wrap(err, "Failed to read temp file")
@@ -5191,7 +5194,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 
 // SessionIntervals is the resolver for the session_intervals field.
 func (r *queryResolver) SessionIntervals(ctx context.Context, sessionSecureID string) ([]*model.SessionInterval, error) {
-	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+	if !(env.IsDevEnv() && sessionSecureID == "repro") {
 		_, err := r.canAdminViewSession(ctx, sessionSecureID)
 		if err != nil {
 			return nil, err
@@ -5209,7 +5212,7 @@ func (r *queryResolver) SessionIntervals(ctx context.Context, sessionSecureID st
 // TimelineIndicatorEvents is the resolver for the timeline_indicator_events field.
 func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecureID string) ([]*model.TimelineIndicatorEvent, error) {
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+	if !(env.IsDevEnv() && sessionSecureID == "repro") {
 		if err != nil {
 			return nil, err
 		}
@@ -5227,7 +5230,7 @@ func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecu
 // WebsocketEvents is the resolver for the websocket_events field.
 func (r *queryResolver) WebsocketEvents(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+	if !(env.IsDevEnv() && sessionSecureID == "repro") {
 		if err != nil {
 			return nil, err
 		}
@@ -5243,7 +5246,7 @@ func (r *queryResolver) WebsocketEvents(ctx context.Context, sessionSecureID str
 
 // RageClicks is the resolver for the rage_clicks field.
 func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) ([]*model.RageClickEvent, error) {
-	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+	if !(env.IsDevEnv() && sessionSecureID == "repro") {
 		_, err := r.canAdminViewSession(ctx, sessionSecureID)
 		if err != nil {
 			return nil, err
@@ -5665,7 +5668,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 
 // Errors is the resolver for the errors field.
 func (r *queryResolver) Errors(ctx context.Context, sessionSecureID string) ([]*model.ErrorObject, error) {
-	if util.IsDevEnv() && sessionSecureID == "repro" {
+	if env.IsDevEnv() && sessionSecureID == "repro" {
 		errors := []*model.ErrorObject{}
 		return errors, nil
 	}
@@ -5724,7 +5727,7 @@ func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) (
 
 // SessionComments is the resolver for the session_comments field.
 func (r *queryResolver) SessionComments(ctx context.Context, sessionSecureID string) ([]*model.SessionComment, error) {
-	if util.IsDevEnv() && sessionSecureID == "repro" {
+	if env.IsDevEnv() && sessionSecureID == "repro" {
 		sessionComments := []*model.SessionComment{}
 		return sessionComments, nil
 	}
@@ -8452,7 +8455,7 @@ func (r *queryResolver) GetSourceMapUploadUrls(ctx context.Context, apiKey strin
 
 // CustomerPortalURL is the resolver for the customer_portal_url field.
 func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) (string, error) {
-	frontendUri := os.Getenv("REACT_APP_FRONTEND_URI")
+	frontendUri := env.Config.FrontendUri
 
 	workspace, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
@@ -8466,7 +8469,7 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 		ReturnURL: &returnUrl,
 	}
 
-	portalSession, err := r.StripeClient.BillingPortalSessions.New(params)
+	portalSession, err := r.PricingClient.BillingPortalSessions.New(params)
 	if err != nil {
 		return "", e.Wrap(err, "error creating customer portal session")
 	}
@@ -8490,7 +8493,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	return redis.CachedEval(ctx, r.Redis, redis.GetSubscriptionDetailsKey(workspaceID), time.Minute, time.Minute, func() (*modelInputs.SubscriptionDetails, error) {
 		customerParams := &stripe.CustomerParams{}
 		customerParams.AddExpand("subscriptions")
-		c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
+		c, err := r.PricingClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
 		if err != nil {
 			return nil, e.Wrap(err, "error querying stripe customer")
 		}
@@ -8518,7 +8521,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID
 		invoiceParams := &stripe.InvoiceParams{}
 		customerParams.AddExpand("invoice_items")
-		invoice, err := r.StripeClient.Invoices.Get(invoiceID, invoiceParams)
+		invoice, err := r.PricingClient.Invoices.Get(invoiceID, invoiceParams)
 		if err != nil {
 			return nil, e.Wrap(err, "error querying stripe invoice")
 		}
@@ -9788,7 +9791,7 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 
 // SessionFeedback is the resolver for the session_feedback field.
 func (r *sessionResolver) SessionFeedback(ctx context.Context, obj *model.Session) ([]*model.SessionComment, error) {
-	if util.IsDevEnv() && obj.SecureID == "repro" {
+	if env.IsDevEnv() && obj.SecureID == "repro" {
 		sessionFeedback := []*model.SessionComment{}
 		return sessionFeedback, nil
 	}

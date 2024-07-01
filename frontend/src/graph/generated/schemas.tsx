@@ -3689,6 +3689,7 @@ export type TraceConnection = Connection & {
 	__typename?: 'TraceConnection'
 	edges: Array<TraceEdge>
 	pageInfo: PageInfo
+	sampled: Scalars['Boolean']
 }
 
 export type TraceEdge = Edge & {

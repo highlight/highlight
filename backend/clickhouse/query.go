@@ -40,8 +40,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	var args []interface{}
 
 	innerTableConfig := config
-	// If we have a non-default sort column use the sampling table for inner query
-	if params.Sort != nil && strings.ToLower(params.Sort.Column) != "timestamp" {
+	if useSamplingTable(params) {
 		innerTableConfig = samplingConfig
 	}
 
@@ -995,4 +994,9 @@ func getSortOrders[TReservedKey ~string](
 	orderBackward := fmt.Sprintf("%s %s, UUID %s", sortColumn, backwardDirection, backwardDirection)
 
 	return orderForward, orderBackward
+}
+
+func useSamplingTable(params modelInputs.QueryInput) bool {
+	// If we have a non-default sort column use the sampling table
+	return params.Sort != nil && strings.ToLower(params.Sort.Column) != "timestamp"
 }

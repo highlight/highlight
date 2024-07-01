@@ -1,11 +1,9 @@
 package main
 
 import (
-	"os"
-
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/lambda-functions/digests/handlers"
-	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 )
@@ -20,8 +18,8 @@ func main() {
 	highlight.SetProjectID("1jdkoe52")
 	highlight.Start(
 		highlight.WithServiceName("lambda-functions--sendDigestEmails"),
-		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
-		highlight.WithEnvironment(util.EnvironmentName()),
+		highlight.WithServiceVersion(env.Config.Version),
+		highlight.WithEnvironment(env.EnvironmentName()),
 	)
 	hlog.Init()
 	lambda.StartWithOptions(
