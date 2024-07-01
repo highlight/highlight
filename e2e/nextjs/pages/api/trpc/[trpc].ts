@@ -1,9 +1,9 @@
 import * as trpcNext from '@trpc/server/adapters/next'
 
+import { highlightConfig } from '@/instrumentation'
+import { Handlers } from '@highlight-run/node'
 import { initTRPC } from '@trpc/server'
 import { z } from 'zod'
-import { Handlers } from '@highlight-run/node'
-import { highlightConfig } from '@/instrumentation'
 
 const t = initTRPC.create()
 

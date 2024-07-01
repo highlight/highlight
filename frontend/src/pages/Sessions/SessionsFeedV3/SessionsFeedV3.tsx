@@ -9,8 +9,12 @@ import SearchPagination, {
 } from '@components/SearchPagination/SearchPagination'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { useGetSessionsHistogramQuery } from '@graph/hooks'
-import { SavedSegmentEntityType } from '@graph/schemas'
-import { Maybe, ProductType, Session } from '@graph/schemas'
+import {
+	Maybe,
+	ProductType,
+	SavedSegmentEntityType,
+	Session,
+} from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,

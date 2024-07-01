@@ -1,7 +1,7 @@
 import * as Types from './operations'
 
-import { gql } from '@apollo/client'
 import * as Apollo from '@apollo/client'
+import { gql } from '@apollo/client'
 export const SessionPayloadFragmentFragmentDoc = gql`
 	fragment SessionPayloadFragment on SessionPayload {
 		events

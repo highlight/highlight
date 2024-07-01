@@ -1,6 +1,6 @@
 // pages/_app.tsx
-import { AppProps } from 'next/app'
 import { H } from '@highlight-run/next/client'
+import { AppProps } from 'next/app'
 import { useEffect } from 'react'
 
 export default function MyApp({ Component, pageProps }: AppProps) {

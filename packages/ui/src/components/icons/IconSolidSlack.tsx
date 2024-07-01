@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { IconProps } from './types'
 
 export const IconSolidSlack = ({ size = '1em', fill, ...props }: IconProps) => {

@@ -3,13 +3,13 @@ import {
 	HighlightEnv as CloudflareHighlightEnv,
 } from '@highlight-run/cloudflare'
 import type { HighlightContext, NodeOptions } from '@highlight-run/node'
+import { IncomingHttpHeaders } from 'http'
 import {
 	ExtendedExecutionContext,
 	HIGHLIGHT_REQUEST_HEADER,
 	HighlightInterface,
 	Metric,
 } from './types'
-import { IncomingHttpHeaders } from 'http'
 
 export type HighlightEnv = NodeOptions
 
