@@ -11,7 +11,6 @@ import {
 } from '@pages/Player/context/PlayerUIContext'
 
 import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
-import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import EventStreamV2 from '@/pages/Player/components/EventStreamV2/EventStreamV2'
 import MetadataPanel from '@/pages/Player/MetadataPanel/MetadataPanel'
 import SessionInsights from '@/pages/Player/RightPlayerPanel/components/SessionInsights/SessionInsights'
@@ -20,7 +19,6 @@ import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationCo
 const RightPanelTabs = () => {
 	const { selectedRightPanelTab, setSelectedRightPanelTab } =
 		usePlayerUIContext()
-	const showSessionInsights = useFeatureFlag(Feature.AiSessionInsights)
 
 	const { currentWorkspace } = useApplicationContext()
 
@@ -29,8 +27,7 @@ const RightPanelTabs = () => {
 		skip: !currentWorkspace?.id,
 	})
 
-	const showAiInsights =
-		showSessionInsights && data?.workspaceSettings?.ai_application
+	const showAiInsights = data?.workspaceSettings?.ai_application
 
 	return (
 		<Tabs<RightPlayerTab>
