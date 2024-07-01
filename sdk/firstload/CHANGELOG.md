@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.0.2
+
+### Patch Changes
+
+-   0c340779d: add screen measurements to session viewport data
+
 ## 9.0.1
 
 ### Patch Changes
