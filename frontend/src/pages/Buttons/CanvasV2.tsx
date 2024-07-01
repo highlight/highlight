@@ -1,19 +1,23 @@
-import { Box } from '@highlight-run/ui/components'
+import { Button } from '@components/Button'
+import {
+	AppLoadingState,
+	useAppLoadingContext,
+} from '@context/AppLoadingContext'
+import { Box, Stack } from '@highlight-run/ui/components'
 import MuxPlayer from '@mux/mux-player-react'
 import { CSSProperties, useEffect, useRef, useState } from 'react'
 
-import { Button } from '@/components/Button'
+const CanvasPage = function () {
+	const { setLoadingState } = useAppLoadingContext()
 
-interface Navigator {
-	getUserMedia(
-		options: { video?: boolean; audio?: boolean },
-		success: (stream: MediaSource) => void,
-		error?: (error: string) => void,
-	): void
-}
+	useEffect(() => {
+		setLoadingState(AppLoadingState.LOADED)
+	}, [setLoadingState])
 
-export const CanvasPage = function () {
 	const ref = useRef<HTMLDivElement>(null)
+	const [mode, setMode] = useState<
+		'BigBuckBunny' | 'canvas' | 'webcam' | 'mux'
+	>('webcam')
 	const [numCanvases, setNumCanvases] = useState<number>(0)
 	const [canvasStyle, setCanvasStyle] = useState<CSSProperties>()
 
@@ -35,22 +39,25 @@ export const CanvasPage = function () {
 	}
 
 	useEffect(() => {
-		const video = document.querySelector('#webcam')! as HTMLVideoElement
-		const n = navigator as any as Navigator
-		if (n.getUserMedia) {
-			n.getUserMedia(
-				{
-					video: true,
-				},
-				function (stream) {
-					video.srcObject = stream
-				},
-				() => {
-					console.error('denied')
-				},
-			)
-		}
-	}, [])
+		if (mode !== 'webcam') return
+		const video = document.querySelector('#webcam')! as any
+		navigator.mediaDevices
+			?.getUserMedia({ video: true, audio: false })
+			.then((localMediaStream) => {
+				console.log('setting up video localMediaStream')
+				if ('srcObject' in video) {
+					video.srcObject = localMediaStream
+				} else {
+					video.src = window.URL.createObjectURL(
+						localMediaStream as any,
+					)
+				}
+				video.play()
+			})
+			.catch((err) => {
+				console.error(`video available`, err)
+			})
+	}, [mode])
 
 	useEffect(() => {
 		const canvases = ref.current?.getElementsByTagName('canvas')
@@ -134,66 +141,92 @@ export const CanvasPage = function () {
 	return (
 		<Box ref={ref} width="full" height="full">
 			<Box display="flex" width="full">
-				<Box border="dividerStrong">
-					<video
-						width={640}
-						height={480}
-						preload="metadata"
-						autoPlay={true}
-						crossOrigin="anonymous"
-						src="https://static.highlight.io/dev/BigBuckBunny.mp4?expires=123&signature=a1b2c3&x-amz-security-token=foo&bar=baz"
-					></video>
-				</Box>
-				<Box border="dividerStrong">
-					{Array(numCanvases)
-						.fill(0)
-						.map((_, i) => (
-							<canvas
-								id={`canvas-${i}`}
-								key={`canvas-${i}`}
-								style={canvasStyle}
-								onMouseMove={onMouseMove}
-								tabIndex={8888}
+				<Stack>
+					<Box display="flex" gap="4">
+						<Button
+							trackingId="canvasIncrement"
+							onClick={() => setNumCanvases((n) => n + 1)}
+						>
+							Add Canvas
+						</Button>
+						<Button
+							trackingId="modeIncrement"
+							onClick={() => {
+								setMode((m) => {
+									if (m === 'BigBuckBunny') {
+										return 'canvas'
+									}
+									if (m === 'canvas') {
+										return 'webcam'
+									}
+									if (m === 'webcam') {
+										return 'mux'
+									}
+									return 'BigBuckBunny'
+								})
+							}}
+						>
+							Change Mode
+						</Button>
+					</Box>
+					<Box border="dividerStrong">
+						{mode === 'BigBuckBunny' ? (
+							<video
 								width={640}
 								height={480}
-								className=":hover"
+								preload="metadata"
+								autoPlay={true}
+								crossOrigin="anonymous"
+								src="https://static.highlight.io/dev/BigBuckBunny.mp4?expires=123&signature=a1b2c3&x-amz-security-token=foo&bar=baz"
+							></video>
+						) : mode === 'canvas' ? (
+							<Box>
+								{Array(numCanvases)
+									.fill(0)
+									.map((_, i) => (
+										<canvas
+											id={`canvas-${i}`}
+											key={`canvas-${i}`}
+											style={canvasStyle}
+											onMouseMove={onMouseMove}
+											tabIndex={8888}
+											width={640}
+											height={480}
+											className=":hover"
+										/>
+									))}
+								<img
+									className="sample-image"
+									src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Fiore_con_petali_arancioni_SVG.svg"
+									width={512}
+									height={512}
+									alt="sample-image"
+								/>
+							</Box>
+						) : mode === 'webcam' ? (
+							<video
+								autoPlay
+								muted
+								playsInline
+								id="webcam"
+								width={640}
+								height={480}
+							></video>
+						) : mode === 'mux' ? (
+							<MuxPlayer
+								playbackId="DS00Spx1CV902MCtPj5WknGlR102V5HFkDe"
+								metadata={{
+									video_id: 'video-id-123456',
+									video_title: 'Bick Buck Bunny',
+									viewer_user_id: 'user-id-bc-789',
+								}}
+								streamType="on-demand"
 							/>
-						))}
-					<img
-						className="sample-image"
-						src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Fiore_con_petali_arancioni_SVG.svg"
-						width={512}
-						height={512}
-						alt="sample-image"
-					/>
-				</Box>
-				<Box border="dividerStrong">
-					<video
-						autoPlay
-						id="webcam"
-						width={640}
-						height={480}
-					></video>
-				</Box>
-				<Box border="dividerStrong">
-					<Button
-						trackingId="canvasIncrement"
-						onClick={() => setNumCanvases((n) => n + 1)}
-					/>
-				</Box>
-				<Box border="dividerStrong">
-					MUX
-					<MuxPlayer
-						playbackId="DS00Spx1CV902MCtPj5WknGlR102V5HFkDe"
-						metadata={{
-							video_id: 'video-id-123456',
-							video_title: 'Bick Buck Bunny',
-							viewer_user_id: 'user-id-bc-789',
-						}}
-						streamType="on-demand"
-					/>
-				</Box>
+						) : null}
+					</Box>
+				</Stack>
 			</Box>
 		</Box>
 	)
 }
+export default CanvasPage

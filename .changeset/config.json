@@ -27,6 +27,7 @@
 		"@rrweb/rrweb-plugin-console-replay",
 		"@rrweb/rrweb-plugin-sequential-id-record",
 		"@rrweb/rrweb-plugin-sequential-id-replay",
+		"@rrweb/utils",
 		"@rrweb/web-extension",
 		"@highlight-run/ui",
 		"angular.io-example",
