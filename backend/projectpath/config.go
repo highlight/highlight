@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-
-	"github.com/highlight-run/highlight/backend/util"
 )
 
 const ConfigFile = "v1.json"
@@ -15,12 +13,7 @@ type Config struct {
 }
 
 func GetConfigDir() (string, error) {
-	root := GetRoot()
-	if util.IsOnPrem() {
-		if _, err := os.Stat("/highlight-data"); err == nil {
-			root = "/highlight-data"
-		}
-	}
+	root := GetPersistentRoot()
 	dir := filepath.Join(root, ".config")
 	_, err := os.Stat(dir)
 	if os.IsNotExist(err) {

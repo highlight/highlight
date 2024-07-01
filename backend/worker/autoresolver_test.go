@@ -2,11 +2,9 @@ package worker
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -24,19 +22,14 @@ import (
 
 func createAutoResolver() *AutoResolver {
 	dbName := "highlight_testing_db"
-	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
+	testLogger := log.WithContext(context.TODO())
 	var err error
 	db, err := util.CreateAndMigrateTestDB(dbName)
 	if err != nil {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 
-	chClient, err = clickhouse.NewClient(clickhouse.TestDatabase)
-	if err != nil {
-		testLogger.Error(e.Wrap(err, "error creating clickhouse client"))
-	}
-
-	store := store.NewStore(db, redis.NewClient(), integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, chClient)
+	store := store.NewStore(db, redis.NewClient(), integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil)
 	return NewAutoResolver(store, db)
 }
 

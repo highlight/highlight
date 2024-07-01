@@ -1,0 +1,88 @@
+# Highlight.io services for the enterprise deployment.
+services:
+    backend-session-worker:
+        image: ${BACKEND_IMAGE_NAME-ghcr.io/highlight/highlight-backend:latest}
+        restart: on-failure
+        volumes:
+            - highlight-data:/highlight-data
+            - ../backend/env.enc:/build/env.enc
+            - ../backend/env.enc.dgst:/build/env.enc.dgst
+            - ../backend/localhostssl/server.key:/build/localhostssl/server.key
+            - ../backend/localhostssl/server.crt:/build/localhostssl/server.crt
+        env_file: .env
+        container_name: backend-session-worker
+        command:
+            - /build/backend
+            - -runtime=worker
+
+    backend:
+        extends: backend-session-worker
+        ports:
+            - '0.0.0.0:8082:8082'
+        container_name: backend
+        healthcheck:
+            test:
+                [
+                    'CMD-SHELL',
+                    'curl',
+                    '-k',
+                    'https://localhost:8082',
+                    '||',
+                    'curl',
+                    '-k',
+                    'localhost:8082',
+                ]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        command:
+            - /build/backend
+            - -runtime=graph
+
+    backend-public-worker-main:
+        extends: backend-session-worker
+        container_name: backend-public-worker-main
+        command:
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=public-worker-main
+
+    backend-public-worker-batched:
+        extends: backend-session-worker
+        container_name: backend-public-worker-batched
+        command:
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=public-worker-batched
+
+    backend-public-worker-datasync:
+        extends: backend-session-worker
+        container_name: backend-public-worker-datasync
+        command:
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=public-worker-datasync
+
+    backend-public-worker-traces:
+        extends: backend-session-worker
+        container_name: backend-public-worker-traces
+        command:
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=public-worker-traces
+
+    frontend:
+        container_name: frontend
+        image: ${FRONTEND_IMAGE_NAME-ghcr.io/highlight/highlight-frontend:latest}
+        restart: on-failure
+        volumes:
+            - ../backend/localhostssl/server.key:/etc/ssl/private/ssl-cert.key
+            - ../backend/localhostssl/server.pem:/etc/ssl/certs/ssl-cert.pem
+        ports:
+            - '0.0.0.0:3000:3000'
+            - '0.0.0.0:6006:6006'
+            - '0.0.0.0:8080:8080'
+        env_file: .env
+
+volumes:
+    highlight-data:

@@ -3,7 +3,7 @@ package log_alerts
 import (
 	"context"
 	"fmt"
-	"os"
+	"github.com/highlight-run/highlight/backend/env"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/alerts"
@@ -194,7 +194,7 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Clie
 		}
 
 		logsUrl := tempalerts.GetLogAlertURL(alert.ProjectID, alert.Query, start, end)
-		frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
+		frontendURL := env.Config.FrontendUri
 		alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, alert.ProjectID, alert.ID)
 
 		templateData := map[string]interface{}{

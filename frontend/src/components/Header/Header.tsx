@@ -31,9 +31,9 @@ import {
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidPlusSm,
-	IconSolidSparkles,
 	IconSolidSpeakerphone,
 	IconSolidSwitchHorizontal,
+	IconSolidTraces,
 	IconSolidUserCircle,
 	IconSolidViewGridAdd,
 	Menu,
@@ -192,7 +192,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		},
 		{
 			key: 'traces',
-			icon: IconSolidSparkles,
+			icon: IconSolidTraces,
 		},
 		{
 			key: 'metrics',

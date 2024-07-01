@@ -6,8 +6,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"os"
-	"regexp"
+	"github.com/highlight-run/highlight/backend/env"
 	"strconv"
 	"strings"
 	"time"
@@ -33,24 +32,6 @@ import (
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
-
-var (
-	env     = os.Getenv("ENVIRONMENT")
-	DevEnv  = "dev"
-	TestEnv = "test"
-)
-
-func IsDevEnv() bool {
-	return env == DevEnv
-}
-
-func IsTestEnv() bool {
-	return env == TestEnv
-}
-
-func IsDevOrTestEnv() bool {
-	return IsTestEnv() || IsDevEnv()
-}
 
 var (
 	DB                *gorm.DB
@@ -1434,30 +1415,13 @@ type VisualizationsResponse struct {
 
 func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {
 	var (
-		host     = os.Getenv("PSQL_HOST")
-		port     = os.Getenv("PSQL_PORT")
-		username = os.Getenv("PSQL_USER")
-		password = os.Getenv("PSQL_PASSWORD")
+		host     = env.Config.SQLHost
+		port     = env.Config.SQLPort
+		username = env.Config.SQLUser
+		password = env.Config.SQLPassword
 		sslmode  = "disable"
 	)
 
-	databaseURL, ok := os.LookupEnv("DATABASE_URL")
-	if ok {
-		re, err := regexp.Compile(`(?m)^(?:postgres://)([^:]*)(?::)([^@]*)(?:@)([^:]*)(?::)([^/]*)(?:/)(.*)`)
-		if err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "failed to compile regex"))
-		} else {
-			matched := re.FindAllStringSubmatch(databaseURL, -1)
-			if len(matched) > 0 && len(matched[0]) > 5 {
-				username = matched[0][1]
-				password = matched[0][2]
-				host = matched[0][3]
-				port = matched[0][4]
-				dbName = matched[0][5]
-				sslmode = "require"
-			}
-		}
-	}
 	log.WithContext(ctx).Printf("setting up db @ %s\n", host)
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
@@ -1470,13 +1434,9 @@ func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {
 
 	var err error
 
-	logLevel := logger.Silent
-	if os.Getenv("HIGHLIGHT_DEBUG_MODE") == "blame-GARAGE-spike-typic-neckline-santiago-tore-keep-becalm-preach-fiber-pomade-escheat-crone-tasmania" {
-		logLevel = logger.Info
-	}
 	DB, err = gorm.Open(postgres.Open(psqlConf), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
-		Logger:                                   logger.Default.LogMode(logLevel),
+		Logger:                                   logger.Default.LogMode(logger.Silent),
 		PrepareStmt:                              true,
 		SkipDefaultTransaction:                   true,
 		CreateBatchSize:                          5000, // Postgres only allows 65535 parameters per insert - this would allow 5000 records with 13 inserted fields each.
@@ -1873,7 +1833,7 @@ func (e *ErrorGroup) GetSlackAttachment(attachment *slack.Attachment) error {
 	errorType := e.Type
 	errorState := e.State
 
-	frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
+	frontendURL := env.Config.FrontendUri
 	errorURL := fmt.Sprintf("%s/%d/errors/%s", frontendURL, e.ProjectID, e.SecureID)
 
 	fields := []*slack.TextBlockObject{
@@ -1911,7 +1871,7 @@ func (s *Session) GetSlackAttachment(attachment *slack.Attachment) error {
 	sessionTotalDuration := formatDuration(time.Duration(s.Length * 10e5).Round(time.Second))
 	sessionDateStr := fmt.Sprintf("<!date^%d^{date} {time}|%s>", s.CreatedAt.Unix(), s.CreatedAt.Format(time.RFC1123))
 
-	frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
+	frontendURL := env.Config.FrontendUri
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, s.ProjectID, s.SecureID)
 	sessionImg := ""
 	userProps, err := s.GetUserProperties()
@@ -2386,7 +2346,7 @@ func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcome
 		slackClient = slack.New(*input.Workspace.SlackAccessToken)
 	}
 
-	frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
+	frontendURL := env.Config.FrontendUri
 	alertUrl := fmt.Sprintf("%s/%d/%s/%d", frontendURL, input.Project.Model.ID, input.URLSlug, input.ID)
 	if !input.IncludeEditLink {
 		alertUrl = ""

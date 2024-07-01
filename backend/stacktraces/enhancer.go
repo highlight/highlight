@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/redis"
 	"io"
 	"net/http"
@@ -39,9 +40,9 @@ type fetcher interface {
 }
 
 func init() {
-	if util.IsTestEnv() {
+	if env.IsTestEnv() {
 		fetch = DiskFetcher{}
-	} else if util.IsDevEnv() {
+	} else if env.IsDevEnv() {
 		customTransport := http.DefaultTransport.(*http.Transport).Clone()
 		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 		client := &http.Client{Transport: customTransport}
@@ -156,7 +157,7 @@ func EnhanceStackTrace(ctx context.Context, input []*publicModel.StackFrameInput
 		}
 		mappedStackFrame, err, errMetadata := processStackFrame(ctx, projectId, version, *stackFrame, storageClient)
 		if err != nil {
-			if util.IsDevOrTestEnv() {
+			if env.IsDevOrTestEnv() {
 				log.WithContext(ctx).Error(err)
 			}
 			mappedStackFrame = &privateModel.ErrorTrace{

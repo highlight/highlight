@@ -30,7 +30,9 @@ backend/backend
 backend/__debug_bin
 backend/dump.rdb
 backend/.config
+
 docker/.telemetry
+docker/enterprise-private.pem
 
 # Editor Artifacts
 **/.idea

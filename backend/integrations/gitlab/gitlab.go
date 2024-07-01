@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"net/http"
 	"net/url"
 	nUrl "net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -21,16 +21,14 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
-var (
-	GitlabClientId     = os.Getenv("GITLAB_CLIENT_ID")
-	GitlabClientSecret = os.Getenv("GITLAB_CLIENT_SECRET")
-	GitlabAuthBaseUrl  = "https://gitlab.com"
-	GitlabApiBaseUrl   = "https://gitlab.com/api/v4"
+const (
+	AuthBaseUrl = "https://gitlab.com"
+	ApiBaseUrl  = "https://gitlab.com/api/v4"
 )
 
 var gitlabEndpoint = oauth2.Endpoint{
-	AuthURL:   fmt.Sprintf("%s/oauth/authorize", GitlabAuthBaseUrl),
-	TokenURL:  fmt.Sprintf("%s/oauth/token", GitlabAuthBaseUrl),
+	AuthURL:   fmt.Sprintf("%s/oauth/authorize", AuthBaseUrl),
+	TokenURL:  fmt.Sprintf("%s/oauth/token", AuthBaseUrl),
 	AuthStyle: oauth2.AuthStyleInParams,
 }
 
@@ -118,19 +116,13 @@ type References struct {
 }
 
 func GetOAuthConfig() (*oauth2.Config, []oauth2.AuthCodeOption, error) {
-	var (
-		ok                 bool
-		gitlabClientID     string
-		gitlabClientSecret string
-		frontendUri        string
-	)
-	if gitlabClientID, ok = os.LookupEnv("GITLAB_CLIENT_ID"); !ok || gitlabClientID == "" {
+	if env.Config.GitlabClientId == "" {
 		return nil, nil, errors.New("GITLAB_CLIENT_ID not set")
 	}
-	if gitlabClientSecret, ok = os.LookupEnv("GITLAB_CLIENT_SECRET"); !ok || gitlabClientSecret == "" {
+	if env.Config.GitlabClientSecret == "" {
 		return nil, nil, errors.New("GITLAB_CLIENT_SECRET not set")
 	}
-	if frontendUri, ok = os.LookupEnv("REACT_APP_FRONTEND_URI"); !ok || frontendUri == "" {
+	if env.Config.FrontendUri == "" {
 		return nil, nil, errors.New("REACT_APP_FRONTEND_URI not set")
 	}
 
@@ -139,10 +131,10 @@ func GetOAuthConfig() (*oauth2.Config, []oauth2.AuthCodeOption, error) {
 	}
 
 	return &oauth2.Config{
-		ClientID:     gitlabClientID,
-		ClientSecret: gitlabClientSecret,
+		ClientID:     env.Config.GitlabClientId,
+		ClientSecret: env.Config.GitlabClientSecret,
 		Endpoint:     gitlabEndpoint,
-		RedirectURL:  fmt.Sprintf("%s/callback/gitlab", frontendUri),
+		RedirectURL:  fmt.Sprintf("%s/callback/gitlab", env.Config.FrontendUri),
 	}, options, nil
 }
 
@@ -175,7 +167,7 @@ func doGitlabRequest[T any](method string, accessToken string, url string, body 
 	client := &http.Client{}
 
 	// code to tell whether we are using absoluteUrl or relative url
-	var finalUrl = fmt.Sprintf("%s%s", GitlabApiBaseUrl, url)
+	var finalUrl = fmt.Sprintf("%s%s", ApiBaseUrl, url)
 	parsedUrl, err := nUrl.Parse(url)
 
 	if err != nil {
@@ -272,7 +264,7 @@ func getQueryParams() string {
 }
 
 func GetGitlabProjects(workspace *model.Workspace, accessToken string) ([]*modelInputs.GitlabProject, error) {
-	url := fmt.Sprintf("%s/projects?/%s", GitlabApiBaseUrl, getQueryParams())
+	url := fmt.Sprintf("%s/projects?/%s", ApiBaseUrl, getQueryParams())
 	res, err := doGitlabGetRequest[[]*GitlabProjectResponse](accessToken, url)
 	if err != nil {
 		return nil, err
@@ -288,7 +280,7 @@ func GetGitlabProjects(workspace *model.Workspace, accessToken string) ([]*model
 }
 
 func SearchGitlabIssues(accessToken string, query string) ([]*modelInputs.IssuesSearchResult, error) {
-	url := fmt.Sprintf("%s/issues?search=%s", GitlabApiBaseUrl, url.QueryEscape(query))
+	url := fmt.Sprintf("%s/issues?search=%s", ApiBaseUrl, url.QueryEscape(query))
 	res, err := doGitlabGetRequest[[]GitlabIssue](accessToken, url)
 	if err != nil {
 		return nil, err
@@ -309,7 +301,7 @@ type NewGitlabIssuePayload struct {
 }
 
 func CreateGitlabTask(accessToken string, projectId string, payload NewGitlabIssuePayload) (*GitlabIssue, error) {
-	url := fmt.Sprintf("%s/projects/%s/issues", GitlabApiBaseUrl, projectId)
+	url := fmt.Sprintf("%s/projects/%s/issues", ApiBaseUrl, projectId)
 
 	res, err := doGitlabPostRequest[*GitlabIssue](accessToken, url, payload)
 	if err != nil {
