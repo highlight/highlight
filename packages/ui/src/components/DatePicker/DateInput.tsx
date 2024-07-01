@@ -15,7 +15,7 @@ export function DateInput({ name, onDateChange, placeholder }: DateInputProps) {
 		setValue(value)
 	}
 
-	const handleBlur = () => {
+	const handleSubmit = () => {
 		if (value) {
 			onDateChange(value)
 		}
@@ -45,7 +45,12 @@ export function DateInput({ name, onDateChange, placeholder }: DateInputProps) {
 			}}
 			className="date-input"
 			onChange={handleDateInputChange}
-			onBlur={handleBlur}
+			onBlur={handleSubmit}
+			onKeyDown={(e) => {
+				if (e.key === 'Enter') {
+					handleSubmit()
+				}
+			}}
 		/>
 	)
 }
