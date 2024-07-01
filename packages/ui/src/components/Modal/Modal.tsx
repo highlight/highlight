@@ -1,14 +1,17 @@
 import * as Ariakit from '@ariakit/react'
+
+import { Box } from '../Box/Box'
 import { Button, ButtonProps } from '../Button/Button'
 import { ButtonIcon } from '../ButtonIcon/ButtonIcon'
 import { IconSolidX } from '../icons'
 import { Stack } from '../Stack/Stack'
-import { Box } from '../Box/Box'
-
 import * as styles from './styles.css'
 
 type ModalProps = React.PropsWithChildren<Ariakit.DialogProviderProps> & {
-	hideOnInteractOutside?: boolean
+	hideOnInteractOutside?: Ariakit.DialogProps['hideOnInteractOutside']
+	unmountOnHide?: Ariakit.DialogProps['unmountOnHide']
+	width?: number
+	onClose?: () => void
 }
 
 type ModalComponent = React.FC<ModalProps> & {
@@ -23,21 +26,28 @@ type ModalComponent = React.FC<ModalProps> & {
 export const Modal: ModalComponent = ({
 	children,
 	hideOnInteractOutside,
+	unmountOnHide,
+	width = 360,
+	onClose,
 	...props
 }: ModalProps) => {
 	return (
 		<Ariakit.DialogProvider {...props}>
 			<Ariakit.Dialog
+				modal
 				render={
 					<Box
 						border="divider"
 						borderRadius="8"
 						boxShadow="small"
-						style={{ width: 360 }}
+						overflow="hidden"
+						cssClass={styles.modal}
+						style={{ width }}
 					/>
 				}
-				modal
 				hideOnInteractOutside={hideOnInteractOutside}
+				unmountOnHide={unmountOnHide}
+				onClose={onClose}
 			>
 				{children}
 			</Ariakit.Dialog>
@@ -78,7 +88,11 @@ const ModalHeader: React.FC<React.PropsWithChildren> = ({ children }) => {
 }
 
 const ModalBody: React.FC<React.PropsWithChildren> = ({ children }) => {
-	return <Box padding="12">{children}</Box>
+	return (
+		<Box backgroundColor="white" padding="12">
+			{children}
+		</Box>
+	)
 }
 
 type ModalFooterProps = React.PropsWithChildren & {

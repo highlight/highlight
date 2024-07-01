@@ -5405,6 +5405,13 @@ body {
   margin-top: -0.4056em;
   display: table;
 }
+.y4olgl0 {
+  position: fixed;
+  z-index: 1000;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
 ._1oemo0l0 {
   display: none;
 }

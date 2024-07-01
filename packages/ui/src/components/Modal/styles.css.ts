@@ -1,17 +1,9 @@
-import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
-import { sprinkles } from '../../css/sprinkles.css'
+import { style } from '@vanilla-extract/css'
 
-export const variants = recipe({
-	variants: {
-		size: {
-			small: sprinkles({ px: '4', py: '6' }),
-			large: sprinkles({ px: '6', py: '8' }),
-		},
-	},
-
-	defaultVariants: {
-		size: 'small',
-	},
+export const modal = style({
+	position: `fixed`,
+	zIndex: 1000,
+	left: `50%`,
+	top: `50%`,
+	transform: `translate(-50%, -50%)`,
 })
-
-export type Variants = RecipeVariants<typeof variants>

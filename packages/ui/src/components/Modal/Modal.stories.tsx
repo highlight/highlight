@@ -1,14 +1,13 @@
+import { Meta } from '@storybook/react'
+
 import { Button } from '@/components/Button/Button'
-import { ButtonLink } from '@/components/ButtonLink/ButtonLink'
 import {
 	IconSolidInformationCircle,
 	IconSolidUserAdd,
 } from '@/components/icons'
 import { Stack } from '@/components/Stack/Stack'
-import { Meta } from '@storybook/react'
-import { Box } from '../Box/Box'
-import { Text } from '../Text/Text'
 
+import { Text } from '../Text/Text'
 import { Modal } from './Modal'
 
 export default {
