@@ -1,9 +1,9 @@
 import { useId, useState } from 'react'
 import {
 	Bar,
-	BarChart as RechartsBarChart,
 	BarProps,
 	CartesianGrid,
+	BarChart as RechartsBarChart,
 	ReferenceArea,
 	ResponsiveContainer,
 	Tooltip,

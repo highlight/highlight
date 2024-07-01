@@ -1,11 +1,11 @@
 /* Required to patch missing performance API in Cloudflare Workers. */
 import '@highlight-run/opentelemetry-sdk-workers/performance'
 
+import { WorkersSDK } from '@highlight-run/opentelemetry-sdk-workers'
 import { OTLPProtoLogExporter } from '@highlight-run/opentelemetry-sdk-workers/exporters/OTLPProtoLogExporter'
 import { OTLPProtoTraceExporter } from '@highlight-run/opentelemetry-sdk-workers/exporters/OTLPProtoTraceExporter'
 import { Resource } from '@opentelemetry/resources'
 import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
-import { WorkersSDK } from '@highlight-run/opentelemetry-sdk-workers'
 
 const HIGHLIGHT_PROJECT_ENV = 'HIGHLIGHT_PROJECT_ID'
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'

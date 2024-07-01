@@ -1,8 +1,3 @@
-import {
-	type AmplitudeAPI,
-	setupAmplitudeIntegration,
-} from './integrations/amplitude.js'
-import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys.js'
 import type { Highlight, HighlightClassOptions } from '@highlight-run/client'
 import type {
 	HighlightOptions,
@@ -12,26 +7,31 @@ import type {
 	OnHighlightReadyOptions,
 	SessionDetails,
 } from '@highlight-run/client/src/types/types.js'
+import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys.js'
+import {
+	type AmplitudeAPI,
+	setupAmplitudeIntegration,
+} from './integrations/amplitude.js'
 import {
 	type MixpanelAPI,
 	setupMixpanelIntegration,
 } from './integrations/mixpanel.js'
 
 import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners.js'
+import { ErrorMessageType } from '@highlight-run/client/src/types/shared-types'
 import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id.js'
-import { HighlightSegmentMiddleware } from './integrations/segment.js'
-import configureElectronHighlight from './environments/electron.js'
-import firstloadVersion from './__generated/version.js'
 import {
 	getPreviousSessionData,
 	getSessionSecureID,
 	type SessionData,
 } from '@highlight-run/client/src/utils/sessionStorage/highlightSession.js'
+import { setItem } from '@highlight-run/client/src/utils/storage.js'
+import firstloadVersion from './__generated/version.js'
+import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
+import configureElectronHighlight from './environments/electron.js'
+import { HighlightSegmentMiddleware } from './integrations/segment.js'
 import { initializeFetchListener } from './listeners/fetch'
 import { initializeWebSocketListener } from './listeners/web-socket'
-import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
-import { setItem } from '@highlight-run/client/src/utils/storage.js'
-import { ErrorMessageType } from '@highlight-run/client/src/types/shared-types'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -450,10 +450,10 @@ listenToChromeExtensionMessage()
 initializeFetchListener()
 initializeWebSocketListener()
 
-export type { HighlightOptions }
 export {
+	configureElectronHighlight,
 	H,
 	HighlightSegmentMiddleware,
 	MetricCategory,
-	configureElectronHighlight,
 }
+export type { HighlightOptions }

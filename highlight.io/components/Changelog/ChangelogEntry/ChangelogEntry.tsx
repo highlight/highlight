@@ -1,5 +1,5 @@
-import styles from '../../Blog/Blog.module.scss'
 import Link from 'next/link'
+import styles from '../../Blog/Blog.module.scss'
 
 export interface Entry {
 	slug: string

@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { IconProps } from './types'
 
 export const IconOutlineArrowUp = ({ size = '1em', ...props }: IconProps) => {
