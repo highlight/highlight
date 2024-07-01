@@ -15,7 +15,7 @@ export function TimeInput({ placeholder, name, onTimeChange }: TimeInputProps) {
 		setValue(value)
 	}
 
-	const handleBlur = () => {
+	const handleSubmit = () => {
 		if (value) {
 			onTimeChange(value)
 		}
@@ -38,7 +38,12 @@ export function TimeInput({ placeholder, name, onTimeChange }: TimeInputProps) {
 			}}
 			className="date-input"
 			onChange={handleTimeInputChange}
-			onBlur={handleBlur}
+			onBlur={handleSubmit}
+			onKeyDown={(e) => {
+				if (e.key === 'Enter') {
+					handleSubmit()
+				}
+			}}
 		/>
 	)
 }
