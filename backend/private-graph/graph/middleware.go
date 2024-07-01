@@ -45,6 +45,9 @@ func GetEnvAuthMode() AuthMode {
 	if strings.EqualFold(env.Config.AuthMode, Password) {
 		return Password
 	}
+	if strings.EqualFold(env.Config.AuthMode, OAuth) {
+		return OAuth
+	}
 	return Firebase
 }
 
