@@ -151,15 +151,6 @@ public class HighlightConfig
                 {
                     exporterOptions.Endpoint = new Uri(LogsEndpoint);
                     exporterOptions.Protocol = ExportProtocol;
-
-                    exporterOptions.HttpClientFactory = () =>
-                    {
-                        var httpClientHandler = new HttpClientHandler
-                        {
-                            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-                        };
-                        return new HttpClient(httpClientHandler);
-                    };
                 });
         });
 
@@ -178,15 +169,6 @@ public class HighlightConfig
                 {
                     options.Endpoint = new Uri(TracesEndpoint);
                     options.Protocol = ExportProtocol;
-
-                    options.HttpClientFactory = () =>
-                    {
-                        var httpClientHandler = new HttpClientHandler
-                        {
-                            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-                        };
-                        return new HttpClient(httpClientHandler);
-                    };
                 }))
             .WithMetrics(metrics => metrics
                 .AddMeter(ServiceName)
@@ -195,18 +177,6 @@ public class HighlightConfig
                 {
                     options.Endpoint = new Uri(MetricsEndpoint);
                     options.Protocol = ExportProtocol;
-
-                    if (builder.Environment.IsDevelopment())
-                    {
-                        options.HttpClientFactory = () =>
-                        {
-                            var httpClientHandler = new HttpClientHandler
-                            {
-                                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-                            };
-                            return new HttpClient(httpClientHandler);
-                        };
-                    }
                 }));
     }
 }

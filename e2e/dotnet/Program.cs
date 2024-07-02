@@ -16,8 +16,6 @@ builder.Services.AddHttpClient("TrustingHandler").ConfigurePrimaryHttpMessageHan
     ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true
 });
 
-Log.Information("::: Starting up");
-
 Log.Logger = new LoggerConfiguration()
     .Enrich.WithMachineName()
     .Enrich.With<HighlightLogEnricher>()
@@ -104,8 +102,6 @@ app.MapGet("/", () => "Hello World!")
     .WithOpenApi();
 
 app.Run();
-
-Log.Information("::: App Running");
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
