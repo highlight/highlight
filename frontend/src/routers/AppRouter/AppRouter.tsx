@@ -108,6 +108,8 @@ export const AppRouter = () => {
 	const workspaceInviteMatch = useMatch('/w/:workspace_id/invite/:invite')
 	const inviteMatch = useMatch('/invite/:invite')
 	const joinWorkspaceMatch = useMatch('/join_workspace')
+	const firebaseMatch = useMatch(FIREBASE_CALLBACK_ROUTE)
+	const isFirebasePage = !!firebaseMatch
 	const isInvitePage = !!inviteMatch
 	const isNewProjectPage = !!newWorkspaceMatch
 	const isNewWorkspacePage = !!newProjectMatch
@@ -142,12 +144,23 @@ export const AppRouter = () => {
 	}, [])
 
 	useEffect(() => {
-		if (admin && admin.email_verified === false) {
+		if (
+			!isFirebasePage &&
+			!isInvitePage &&
+			admin &&
+			admin.email_verified === false
+		) {
 			navigate(VERIFY_EMAIL_ROUTE, { replace: true })
 			return
 		}
 
-		if (admin && inviteCode && inviteCode !== 'ignored' && !isInvitePage) {
+		if (
+			admin &&
+			inviteCode &&
+			inviteCode !== 'ignored' &&
+			!isInvitePage &&
+			!isFirebasePage
+		) {
 			navigate(`/invite/${inviteCode}`, { replace: true })
 			return
 		}
@@ -157,6 +170,7 @@ export const AppRouter = () => {
 			!admin.about_you_details_filled &&
 			!isVercelIntegrationFlow &&
 			!isInvitePage &&
+			!isFirebasePage &&
 			!isJoinWorkspacePage
 		) {
 			navigate(ABOUT_YOU_ROUTE, { replace: true })
@@ -184,6 +198,7 @@ export const AppRouter = () => {
 		isJoinWorkspacePage,
 		location.pathname,
 		location.search,
+		isFirebasePage,
 	])
 
 	useEffect(() => {
