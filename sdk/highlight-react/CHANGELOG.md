@@ -1,5 +1,11 @@
 # @highlight-run/react
 
+## 3.2.3
+
+### Patch Changes
+
+-   1f126e7b1: upgrade dependencies
+
 ## 3.2.2
 
 ### Patch Changes
