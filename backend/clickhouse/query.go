@@ -34,6 +34,21 @@ type sampleableTableConfig[TReservedKey ~string] struct {
 	useSampling         func(time.Duration) bool
 }
 
+type readMetricsInput[TReservedKey ~string] struct {
+	sampleableConfig sampleableTableConfig[TReservedKey]
+	projectIDs       []int
+	params           modelInputs.QueryInput
+	column           string
+	metricTypes      []modelInputs.MetricAggregator
+	groupBy          []string
+	bucketCount      *int
+	bucketBy         string
+	limit            *int
+	limitAggregator  *modelInputs.MetricAggregator
+	limitColumn      *string
+	minBlockNumber   *int
+}
+
 func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, client *Client, config model.TableConfig[TReservedKey], samplingConfig model.TableConfig[TReservedKey], projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
@@ -541,10 +556,6 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSamplin
 	return ""
 }
 
-func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfig sampleableTableConfig[T], projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketCount *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
-	return readWorkspaceMetrics(ctx, client, sampleableConfig, []int{projectID}, params, column, metricTypes, groupBy, bucketCount, bucketBy, limit, limitAggregator, limitColumn)
-}
-
 func getAttributeFilterCol[T ~string](sampleableConfig sampleableTableConfig[T], value, op string) (column string) {
 	column = fmt.Sprintf("%s[%s]", sampleableConfig.tableConfig.AttributesColumn, value)
 	if sampleableConfig.tableConfig.AttributesList {
@@ -562,21 +573,21 @@ func getAttributeFilterCol[T ~string](sampleableConfig sampleableTableConfig[T],
 	return
 }
 
-func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sampleableConfig sampleableTableConfig[T], projectIDs []int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketCount *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func ReadMetrics[T ~string](ctx context.Context, client *Client, input readMetricsInput[T]) (*modelInputs.MetricsBuckets, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "clickhouse.readMetrics")
-	span.SetAttribute("project_ids", projectIDs)
-	span.SetAttribute("table", sampleableConfig.tableConfig.TableName)
+	span.SetAttribute("project_ids", input.projectIDs)
+	span.SetAttribute("table", input.sampleableConfig.tableConfig.TableName)
 	defer span.Finish()
 
-	if len(metricTypes) == 0 {
+	if len(input.metricTypes) == 0 {
 		return nil, errors.New("no metric types provided")
 	}
 
 	nBuckets := 48
-	if bucketBy == modelInputs.MetricBucketByNone.String() {
+	if input.bucketBy == modelInputs.MetricBucketByNone.String() {
 		nBuckets = 1
-	} else if bucketCount != nil {
-		nBuckets = *bucketCount
+	} else if input.bucketCount != nil {
+		nBuckets = *input.bucketCount
 	}
 	if nBuckets > 1000 {
 		nBuckets = 1000
@@ -585,28 +596,28 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 		nBuckets = 1
 	}
 
-	if params.DateRange == nil {
-		params.DateRange = &modelInputs.DateRangeRequiredInput{
+	if input.params.DateRange == nil {
+		input.params.DateRange = &modelInputs.DateRangeRequiredInput{
 			StartDate: time.Now().Add(-time.Hour * 24 * 30),
 			EndDate:   time.Now(),
 		}
 	}
-	startTimestamp := params.DateRange.StartDate.Unix()
-	endTimestamp := params.DateRange.EndDate.Unix()
-	useSampling := sampleableConfig.useSampling(params.DateRange.EndDate.Sub(params.DateRange.StartDate))
+	startTimestamp := input.params.DateRange.StartDate.Unix()
+	endTimestamp := input.params.DateRange.EndDate.Unix()
+	useSampling := input.sampleableConfig.useSampling(input.params.DateRange.EndDate.Sub(input.params.DateRange.StartDate))
 
-	keysToColumns := sampleableConfig.tableConfig.KeysToColumns
+	keysToColumns := input.sampleableConfig.tableConfig.KeysToColumns
 
 	var fromSb *sqlbuilder.SelectBuilder
 	var err error
 	var config model.TableConfig[T]
 	if useSampling {
-		config = sampleableConfig.samplingTableConfig
+		config = input.sampleableConfig.samplingTableConfig
 	} else {
-		config = sampleableConfig.tableConfig
+		config = input.sampleableConfig.tableConfig
 	}
 	var isCountDistinct bool
-	for _, metricType := range metricTypes {
+	for _, metricType := range input.metricTypes {
 		if metricType == modelInputs.MetricAggregatorCountDistinct {
 			isCountDistinct = true
 		}
@@ -618,8 +629,8 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 	fromSb, err = makeSelectBuilder(
 		config,
 		nil,
-		projectIDs,
-		params,
+		input.projectIDs,
+		input.params,
 		Pagination{CountOnly: true},
 	)
 	if err != nil {
@@ -627,30 +638,30 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 	}
 
 	var col string
-	if col = keysToColumns[T(strings.ToLower(column))]; col == "" {
-		col = getAttributeFilterCol(sampleableConfig, fromSb.Var(column), "")
+	if col = keysToColumns[T(strings.ToLower(input.column))]; col == "" {
+		col = getAttributeFilterCol(input.sampleableConfig, fromSb.Var(input.column), "")
 	}
 	var metricExpr = col
 	if !isCountDistinct {
-		if reservedCol, found := keysToColumns[T(strings.ToLower(column))]; found {
+		if reservedCol, found := keysToColumns[T(strings.ToLower(input.column))]; found {
 			metricExpr = fmt.Sprintf("toFloat64(%s)", reservedCol)
 		} else {
 			metricExpr = fmt.Sprintf("toFloat64OrNull(%s)", col)
 		}
 	}
 
-	switch column {
+	switch input.column {
 	case "":
 		metricExpr = "1.0"
 	}
 
 	needsValue := false
-	for _, metricType := range metricTypes {
+	for _, metricType := range input.metricTypes {
 		if metricType != modelInputs.MetricAggregatorCount {
 			needsValue = true
 		}
 		if metricType == modelInputs.MetricAggregatorCountDistinctKey {
-			metricExpr = getAttributeFilterCol(sampleableConfig, highlight.TraceKeyAttribute, "")
+			metricExpr = getAttributeFilterCol(input.sampleableConfig, highlight.TraceKeyAttribute, "")
 			config.DefaultFilter = ""
 		}
 	}
@@ -659,18 +670,18 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 	}
 
 	bucketExpr := "toFloat64(Timestamp)"
-	if bucketBy != modelInputs.MetricBucketByNone.String() && bucketBy != modelInputs.MetricBucketByTimestamp.String() {
-		if col, found := keysToColumns[T(strings.ToLower(bucketBy))]; found {
+	if input.bucketBy != modelInputs.MetricBucketByNone.String() && input.bucketBy != modelInputs.MetricBucketByTimestamp.String() {
+		if col, found := keysToColumns[T(strings.ToLower(input.bucketBy))]; found {
 			bucketExpr = fmt.Sprintf("toFloat64(%s)", col)
 		} else {
-			bucketExpr = getAttributeFilterCol(sampleableConfig, fromSb.Var(bucketBy), "toFloat64OrNull")
+			bucketExpr = getAttributeFilterCol(input.sampleableConfig, fromSb.Var(input.bucketBy), "toFloat64OrNull")
 		}
 	}
 
 	minExpr := fmt.Sprintf("MIN(%s) OVER ()", bucketExpr)
 	maxExpr := fmt.Sprintf("MAX(%s) OVER ()", bucketExpr)
 
-	if bucketBy == modelInputs.MetricBucketByTimestamp.String() || bucketBy == modelInputs.MetricBucketByNone.String() {
+	if input.bucketBy == modelInputs.MetricBucketByTimestamp.String() || input.bucketBy == modelInputs.MetricBucketByNone.String() {
 		minExpr = fmt.Sprintf("%d.0", startTimestamp)
 		maxExpr = fmt.Sprintf("%d.0", endTimestamp)
 	}
@@ -689,12 +700,12 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 
 	selectCols = append(selectCols, fromSb.As(metricExpr, "metric_value"))
 
-	for idx, group := range groupBy {
+	for idx, group := range input.groupBy {
 		groupCol := ""
 		if col, found := keysToColumns[T(group)]; found {
 			groupCol = fmt.Sprintf("toString(%s)", col)
 		} else {
-			groupCol = getAttributeFilterCol(sampleableConfig, fromSb.Var(group), "toString")
+			groupCol = getAttributeFilterCol(input.sampleableConfig, fromSb.Var(group), "toString")
 		}
 		selectCols = append(selectCols, fromSb.As(groupCol, fmt.Sprintf("g%d", idx)))
 	}
@@ -702,8 +713,8 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 	fromSb.Select(selectCols...)
 
 	limitCount := 10
-	if limit != nil {
-		limitCount = *limit
+	if input.limit != nil {
+		limitCount = *input.limit
 	}
 	if limitCount > 100 {
 		limitCount = 100
@@ -712,16 +723,16 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 		limitCount = 1
 	}
 
-	if limitAggregator != nil && len(groupBy) > 0 {
+	if input.limitAggregator != nil && len(input.groupBy) > 0 {
 		innerSb := sqlbuilder.NewSelectBuilder()
 		colStrs := []string{}
 		groupByIndexes := []string{}
 
-		for idx, group := range groupBy {
+		for idx, group := range input.groupBy {
 			if col, found := keysToColumns[T(group)]; found {
 				colStrs = append(colStrs, col)
 			} else {
-				colStrs = append(colStrs, getAttributeFilterCol(sampleableConfig, innerSb.Var(group), "toString"))
+				colStrs = append(colStrs, getAttributeFilterCol(input.sampleableConfig, innerSb.Var(group), "toString"))
 			}
 			groupByIndexes = append(groupByIndexes, strconv.Itoa(idx+1))
 		}
@@ -729,23 +740,23 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 		innerSb.
 			From(config.TableName).
 			Select(strings.Join(colStrs, ", ")).
-			Where(innerSb.In("ProjectId", projectIDs)).
+			Where(innerSb.In("ProjectId", input.projectIDs)).
 			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
 			Where(innerSb.LessEqualThan("Timestamp", endTimestamp))
 
-		parser.AssignSearchFilters[T](innerSb, params.Query, config)
+		parser.AssignSearchFilters[T](innerSb, input.params.Query, config)
 
 		limitFn := ""
 		col := ""
-		if limitColumn != nil {
-			col = *limitColumn
+		if input.limitColumn != nil {
+			col = *input.limitColumn
 		}
 		if topCol, found := keysToColumns[T(col)]; found {
 			col = topCol
 		} else {
-			col = getAttributeFilterCol(sampleableConfig, innerSb.Var(col), "toFloat64OrNull")
+			col = getAttributeFilterCol(input.sampleableConfig, innerSb.Var(col), "toFloat64OrNull")
 		}
-		limitFn = getFnStr(*limitAggregator, col, false)
+		limitFn = getFnStr(*input.limitAggregator, col, false)
 
 		innerSb.GroupBy(groupByIndexes...).
 			OrderBy(limitFn).
@@ -753,26 +764,26 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 			Limit(limitCount)
 
 		fromColStrs := []string{}
-		for idx := range groupBy {
+		for idx := range input.groupBy {
 			fromColStrs = append(fromColStrs, fmt.Sprintf("g%d", idx))
 		}
 
 		fromSb.Where(fromSb.In("("+strings.Join(fromColStrs, ", ")+")", innerSb))
 	}
 
-	base := 5 + len(metricTypes)
+	base := 5 + len(input.metricTypes)
 	groupByCols := []string{"1"}
-	for i := base; i < base+len(groupBy); i++ {
+	for i := base; i < base+len(input.groupBy); i++ {
 		groupByCols = append(groupByCols, strconv.Itoa(i))
 	}
 
 	innerSb := fromSb
 	fromSb = sqlbuilder.NewSelectBuilder()
 	outerSelect := []string{"bucket_index", "any(_sample_factor), any(min), any(max)"}
-	for _, metricType := range metricTypes {
+	for _, metricType := range input.metricTypes {
 		outerSelect = append(outerSelect, getFnStr(metricType, "metric_value", true))
 	}
-	for idx := range groupBy {
+	for idx := range input.groupBy {
 		outerSelect = append(outerSelect, fmt.Sprintf("g%d", idx))
 	}
 	fromSb.Select(outerSelect...)
@@ -809,14 +820,14 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 		max          float64
 	)
 
-	groupByColResults := make([]string, len(groupBy))
-	metricResults := make([]*float64, len(metricTypes))
+	groupByColResults := make([]string, len(input.groupBy))
+	metricResults := make([]*float64, len(input.metricTypes))
 	scanResults := []interface{}{}
 	scanResults = append(scanResults, &groupKey)
 	scanResults = append(scanResults, &sampleFactor)
 	scanResults = append(scanResults, &min)
 	scanResults = append(scanResults, &max)
-	for idx := range metricTypes {
+	for idx := range input.metricTypes {
 		scanResults = append(scanResults, &metricResults[idx])
 	}
 	for idx := range groupByColResults {
@@ -836,7 +847,7 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 
 		// Interpolate any missing buckets
 		for i := lastBucketId + 1; i < int(bucketId); i++ {
-			for _, metricType := range metricTypes {
+			for _, metricType := range input.metricTypes {
 				metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
 					BucketID:    uint64(i),
 					BucketMin:   float64(i)*(max-min)/float64(nBuckets) + min,
@@ -848,7 +859,7 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 			}
 		}
 
-		for idx, metricType := range metricTypes {
+		for idx, metricType := range input.metricTypes {
 			result := metricResults[idx]
 			metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
 				BucketID:    bucketId,
@@ -865,7 +876,7 @@ func readWorkspaceMetrics[T ~string](ctx context.Context, client *Client, sample
 
 	// Interpolate any missing buckets
 	for i := lastBucketId + 1; i < nBuckets; i++ {
-		for _, metricType := range metricTypes {
+		for _, metricType := range input.metricTypes {
 			metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
 				BucketID:    uint64(i),
 				BucketMin:   float64(i)*(max-min)/float64(nBuckets) + min,
