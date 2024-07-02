@@ -33,7 +33,6 @@ import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerCon
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
-import { SessionFeedConfigurationContextProvider } from './context/SessionFeedConfigurationContext'
 import { useSessionFeedConfiguration } from './hooks/useSessionFeedConfiguration'
 import { SessionFeedConfigDropdown } from './SessionFeedConfigDropdown'
 import * as style from './SessionFeedV3.css'
@@ -169,107 +168,103 @@ export const SessionFeedV3 = React.memo(() => {
 	const { presets, minDate } = useRetentionPresets(ProductType.Sessions)
 
 	return (
-		<SessionFeedConfigurationContextProvider
-			value={sessionFeedConfiguration}
+		<Box
+			display="flex"
+			flex="fixed"
+			flexDirection="column"
+			borderRight="secondary"
+			position="relative"
+			cssClass={clsx(style.searchPanel, {
+				[style.searchPanelWithBanner]: showBanner,
+			})}
+			background="n2"
 		>
-			<Box
-				display="flex"
-				flex="fixed"
-				flexDirection="column"
-				borderRight="secondary"
-				position="relative"
-				cssClass={clsx(style.searchPanel, {
-					[style.searchPanelWithBanner]: showBanner,
-				})}
-				background="n2"
-			>
-				<SearchForm
-					startDate={startDate!}
-					endDate={endDate!}
-					onDatesChange={updateSearchTime!}
-					presets={presets}
-					minDate={minDate}
-					selectedPreset={selectedPreset}
-					productType={ProductType.Sessions}
-					timeMode="fixed-range"
-					savedSegmentType={SavedSegmentEntityType.Session}
-					actions={actions}
-					resultCount={totalCount}
-					loading={loading}
-					creatables={{
-						sample: {
-							label: 'New Random Seed',
-							value: [...Array(16)]
-								.map(() =>
-									Math.floor(Math.random() * 16).toString(16),
-								)
-								.join(''),
-						},
-					}}
-					hideCreateAlert
-					isPanelView
-				/>
-				{showHistogram && (
-					<Box borderBottom="secondary" paddingBottom="8" px="8">
-						<SessionsHistogram />
-					</Box>
-				)}
-				<AdditionalFeedResults
-					maxResults={PAGE_SIZE}
-					more={moreResults}
-					type="sessions"
-					onClick={() => {
-						resetMoreResults()
-						rebaseSearchTime!()
-					}}
-					pollingExpired={pollingExpired}
-				/>
-				<Box
-					padding="8"
-					overflowX="hidden"
-					overflowY="auto"
-					height="full"
-					cssClass={styledVerticalScrollbar}
-				>
-					{loading ? (
-						<LoadingBox />
-					) : (
-						<>
-							<OverageCard productType={ProductType.Sessions} />
-							{totalCount === 0 ? (
-								<EmptySearchResults
-									kind={SearchResultsKind.Sessions}
-								/>
-							) : (
-								<>
-									{results?.map(
-										(s: Maybe<Session>) =>
-											s && (
-												<SessionFeedCard
-													key={s.secure_id}
-													session={s}
-													configuration={{
-														countFormat:
-															sessionFeedConfiguration.countFormat,
-														datetimeFormat:
-															sessionFeedConfiguration.datetimeFormat,
-													}}
-												/>
-											),
-									)}
-								</>
-							)}
-						</>
-					)}
+			<SearchForm
+				startDate={startDate!}
+				endDate={endDate!}
+				onDatesChange={updateSearchTime!}
+				presets={presets}
+				minDate={minDate}
+				selectedPreset={selectedPreset}
+				productType={ProductType.Sessions}
+				timeMode="fixed-range"
+				savedSegmentType={SavedSegmentEntityType.Session}
+				actions={actions}
+				resultCount={totalCount}
+				loading={loading}
+				creatables={{
+					sample: {
+						label: 'New Random Seed',
+						value: [...Array(16)]
+							.map(() =>
+								Math.floor(Math.random() * 16).toString(16),
+							)
+							.join(''),
+					},
+				}}
+				hideCreateAlert
+				isPanelView
+			/>
+			{showHistogram && (
+				<Box borderBottom="secondary" paddingBottom="8" px="8">
+					<SessionsHistogram />
 				</Box>
-				<SearchPagination
-					page={page}
-					setPage={setPage}
-					totalCount={totalCount}
-					pageSize={PAGE_SIZE}
-					loading={loading}
-				/>
+			)}
+			<AdditionalFeedResults
+				maxResults={PAGE_SIZE}
+				more={moreResults}
+				type="sessions"
+				onClick={() => {
+					resetMoreResults()
+					rebaseSearchTime!()
+				}}
+				pollingExpired={pollingExpired}
+			/>
+			<Box
+				padding="8"
+				overflowX="hidden"
+				overflowY="auto"
+				height="full"
+				cssClass={styledVerticalScrollbar}
+			>
+				{loading ? (
+					<LoadingBox />
+				) : (
+					<>
+						<OverageCard productType={ProductType.Sessions} />
+						{totalCount === 0 ? (
+							<EmptySearchResults
+								kind={SearchResultsKind.Sessions}
+							/>
+						) : (
+							<>
+								{results?.map(
+									(s: Maybe<Session>) =>
+										s && (
+											<SessionFeedCard
+												key={s.secure_id}
+												session={s}
+												configuration={{
+													countFormat:
+														sessionFeedConfiguration.countFormat,
+													datetimeFormat:
+														sessionFeedConfiguration.datetimeFormat,
+												}}
+											/>
+										),
+								)}
+							</>
+						)}
+					</>
+				)}
 			</Box>
-		</SessionFeedConfigurationContextProvider>
+			<SearchPagination
+				page={page}
+				setPage={setPage}
+				totalCount={totalCount}
+				pageSize={PAGE_SIZE}
+				loading={loading}
+			/>
+		</Box>
 	)
 })
