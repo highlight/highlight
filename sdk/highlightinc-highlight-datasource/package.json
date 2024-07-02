@@ -50,7 +50,7 @@
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "4.8.4",
-    "webpack": "^5.86.0",
+    "webpack": "^5.92.1",
     "webpack-cli": "^5.1.4",
     "webpack-livereload-plugin": "^3.0.2"
   },
