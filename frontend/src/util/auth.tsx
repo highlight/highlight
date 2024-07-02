@@ -111,7 +111,7 @@ class PasswordAuth implements SimpleAuth {
 		this.initialize()
 	}
 
-	private set(data: { user: User | undefined; token: string | undefined }) {
+	protected set(data: { user: User | undefined; token: string | undefined }) {
 		localStorage.setItem(PasswordAuth.Key, JSON.stringify(data))
 	}
 
@@ -254,10 +254,74 @@ class PasswordAuth implements SimpleAuth {
 	}
 }
 
-class OAuth implements SimpleAuth {
+class OAuth extends PasswordAuth implements SimpleAuth {
+	initialized = false
 	currentUser: User | null = null
-	googleProvider?: Firebase.auth.GoogleAuthProvider
-	githubProvider?: Firebase.auth.GithubAuthProvider
+	onSignedIn: ((user: Firebase.User | null) => void) | undefined
+	onError: ((error: Firebase.auth.Error) => any) | undefined
+
+	onAuthStateChanged(
+		onSignedIn: (user: Firebase.User | null) => void,
+		onError: (error: Firebase.auth.Error) => any,
+	): () => void {
+		this.onSignedIn = onSignedIn
+		this.onError = onError
+		if (!this.initialized) {
+			this.initialized = true
+			this.initialize()
+		}
+		return function () {}
+	}
+
+	async signInWithEmailAndPassword(): Promise<Firebase.auth.UserCredential> {
+		return await this.signInWithPopup()
+	}
+
+	async signInWithPopup(): Promise<Firebase.auth.UserCredential> {
+		window.location.href = `${PRIVATE_GRAPH_URI}/oauth/login`
+		throw new Error('Redirected')
+	}
+
+	async validateUser(): Promise<boolean> {
+		const response = await fetch(`${PRIVATE_GRAPH_URI}/validate-token`, {
+			method: 'GET',
+			credentials: 'include',
+		})
+
+		if (response.status !== 200) {
+			// only redirect if we are already not on the sign_in route
+			if (!window.location.href.endsWith('/sign_in')) {
+				window.location.href = `${window.location.origin}/sign_in`
+			}
+
+			if (this.onSignedIn) {
+				this.onSignedIn(null)
+			}
+			return false
+		} else {
+			const jsonResponse = await response.json()
+
+			const user = this.makePasswordAuthUser(
+				jsonResponse.user.email,
+				jsonResponse.token,
+			)
+			this.currentUser = user
+
+			this.set({ user, token: jsonResponse.token })
+
+			if (this.onSignedIn) {
+				this.onSignedIn(this.currentUser as Firebase.User)
+			}
+			return {
+				credential: {
+					providerId: '',
+					signInMethod: '',
+					toJSON: () => Object(),
+				},
+				user,
+			} as any
+		}
+	}
 
 	async createUserWithEmailAndPassword(
 		email: string,
@@ -266,46 +330,27 @@ class OAuth implements SimpleAuth {
 		throw new Error('Not implemented')
 	}
 
-	onAuthStateChanged(
-		onSignedIn: (user: Firebase.User | null) => void,
-		onError: (error: Firebase.auth.Error) => any,
-	): () => void {
-		onSignedIn(this.currentUser as Firebase.User)
-		return function () {}
-	}
-
 	sendPasswordResetEmail(email: string): Promise<void> {
-		return Promise.resolve(undefined)
-	}
-
-	async signInWithEmailAndPassword(
-		email: string,
-		password: string,
-	): Promise<Firebase.auth.UserCredential> {
-		return await this.signInWithPopup()
-	}
-
-	async signInWithPopup(): Promise<Firebase.auth.UserCredential> {
-		// TODO(vkorolik) remove password opts
-		window.location.href = `${PRIVATE_GRAPH_URI}/oauth/login`
 		throw new Error('Not implemented')
 	}
 
 	isSignInWithEmailLink(emailLink: string): boolean {
-		console.warn('oauth does not support email sign in')
-		return false
+		throw new Error('Not implemented')
 	}
 
 	async applyActionCode(
 		actionCode: string,
 		continueUrl: string,
 	): Promise<any> {
-		console.warn('oauth does not support email verification')
-		return false
+		throw new Error('Not implemented')
 	}
 
-	signOut(): Promise<void> {
-		return Promise.resolve(undefined)
+	async signOut() {
+		await fetch(`${PRIVATE_GRAPH_URI}/oauth/logout`, {
+			method: 'POST',
+			credentials: 'include',
+		})
+		await super.signOut()
 	}
 }
 
