@@ -26,7 +26,11 @@ import (
 	"time"
 )
 
-const stateCookieName = "state"
+const (
+	stateCookieName = "state"
+	tokenCookieName = "token"
+	loginExpiry     = 7 * 24 * time.Hour
+)
 
 type Client interface {
 	updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error)
@@ -63,7 +67,7 @@ func (c *PasswordAuthClient) validateToken(w http.ResponseWriter, req *http.Requ
 	uid := ctx.Value(model.ContextKeys.UID)
 
 	if email == nil || uid == nil {
-		log.WithContext(ctx).Error(e.New("forbidden"))
+		log.WithContext(ctx).Error(e.New(loginError))
 		http.Error(w, "", http.StatusUnauthorized)
 		return
 	}
@@ -211,44 +215,89 @@ func (c *OAuthAuthClient) GetUser(ctx context.Context, uid string) (*auth.UserRe
 		return nil, err
 	}
 
-	user := auth.UserInfo{
-		DisplayName: userInfo.Email,
-		UID:         userInfo.Email,
-		Email:       userInfo.Email,
-		PhoneNumber: "+14081234567",
-		PhotoURL:    "https://picsum.photos/200",
-		ProviderID:  c.oidcProvider.UserInfoEndpoint(),
-	}
-	if err := userInfo.Claims(&user); err != nil {
-		return nil, err
-	}
-
-	return &auth.UserRecord{
-		UserInfo:      &user,
-		EmailVerified: userInfo.EmailVerified,
-	}, nil
+	return userInfo, nil
 }
 
 func (c *OAuthAuthClient) SetupListeners(r chi.Router) {
 	r.Get("/oauth/login", c.handleRedirect)
+	r.Post("/oauth/logout", c.handleLogout)
 	r.Get("/oauth/callback", c.handleOAuth2Callback)
+	r.Get("/validate-token", c.validateToken)
 }
 
 func (c *OAuthAuthClient) setCallbackCookie(w http.ResponseWriter, r *http.Request, name, value string) {
+	domain, err := env.GetFrontendDomain()
+	if err != nil {
+		log.WithContext(r.Context()).WithError(err).Error("error getting frontend domain")
+	}
 	cookie := &http.Cookie{
+		Domain:   domain,
+		Path:     "/",
 		Name:     name,
 		Value:    value,
-		MaxAge:   int(time.Hour.Seconds()),
+		MaxAge:   int(loginExpiry.Seconds()),
+		Expires:  time.Now().Add(loginExpiry),
 		Secure:   r.TLS != nil,
 		HttpOnly: true,
 	}
+	if value == "" {
+		cookie.Expires = time.Unix(0, 0)
+		cookie.MaxAge = -1
+	}
 	http.SetCookie(w, cookie)
+}
+
+func (c *OAuthAuthClient) validateToken(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+
+	t, err := req.Cookie(tokenCookieName)
+	if err != nil || t.Value == "" {
+		log.WithContext(ctx).Error(e.New(loginError))
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	ctx, err = c.updateContextWithAuthenticatedUser(ctx, t.Value)
+	if err != nil {
+		log.WithContext(ctx).Error(e.New(loginError))
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	user, err := c.getUser(ctx, ctx.Value(model.ContextKeys.UID).(string))
+	if err != nil {
+		log.WithContext(ctx).Error(e.New(loginError))
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	response := make(map[string]interface{})
+	response["user"] = user
+
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+		http.Error(w, "", http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(jsonResponse)
+
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error writing validate-auth-token response"))
+	}
 }
 
 func (c *OAuthAuthClient) handleRedirect(w http.ResponseWriter, r *http.Request) {
 	state := util.GenerateRandomString(32)
 	c.setCallbackCookie(w, r, stateCookieName, state)
 	http.Redirect(w, r, c.oauthConfig.AuthCodeURL(state), http.StatusFound)
+}
+
+func (c *OAuthAuthClient) handleLogout(w http.ResponseWriter, req *http.Request) {
+	c.setCallbackCookie(w, req, tokenCookieName, "")
+	w.WriteHeader(http.StatusOK)
 }
 
 func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Request) {
@@ -295,13 +344,8 @@ func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// TODO(vkorolik) redirect to frontend w token?
-
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write([]byte(rawIDToken))
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("failed to write back token response")
-	}
+	c.setCallbackCookie(w, r, tokenCookieName, rawIDToken)
+	http.Redirect(w, r, fmt.Sprintf("%s/sign_in", env.Config.FrontendUri), http.StatusFound)
 
 }
 
@@ -319,27 +363,48 @@ func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context
 		return nil, err
 	}
 
-	ctx = context.WithValue(ctx, model.ContextKeys.UID, claims.Email)
+	ctx = context.WithValue(ctx, model.ContextKeys.UID, claims.Subject)
 	ctx = context.WithValue(ctx, model.ContextKeys.Email, claims.Email)
 	return ctx, nil
 }
 
 func (c *OAuthAuthClient) storeUser(ctx context.Context, userInfo *oidc.UserInfo) error {
+	user := auth.UserRecord{
+		UserInfo: &auth.UserInfo{
+			UID:         userInfo.Subject,
+			DisplayName: userInfo.Email,
+			Email:       userInfo.Email,
+			ProviderID:  c.oidcProvider.UserInfoEndpoint(),
+		},
+		EmailVerified: userInfo.EmailVerified,
+	}
+	if err := userInfo.Claims(&user); err != nil {
+		return err
+	}
+	if err := userInfo.Claims(&user.CustomClaims); err != nil {
+		return err
+	}
+
+	if user.UserInfo.PhotoURL == "" {
+		if picture, ok := user.CustomClaims["picture"]; ok {
+			user.UserInfo.PhotoURL, _ = picture.(string)
+		}
+	}
+
 	if err := c.store.Redis.Cache.Set(&cache.Item{
 		Ctx:   ctx,
-		Key:   fmt.Sprintf(`user-email-%s`, userInfo.Email),
-		Value: userInfo,
-		// TODO(vkorolik) expiry time of token?
-		TTL: time.Hour,
+		Key:   fmt.Sprintf(`user-%s`, user.UID),
+		Value: &user,
+		TTL:   loginExpiry,
 	}); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *OAuthAuthClient) getUser(ctx context.Context, email string) (*oidc.UserInfo, error) {
-	var userInfo oidc.UserInfo
-	if err := c.store.Redis.Cache.Get(ctx, email, userInfo); err != nil {
+func (c *OAuthAuthClient) getUser(ctx context.Context, uid string) (*auth.UserRecord, error) {
+	var userInfo auth.UserRecord
+	if err := c.store.Redis.Cache.Get(ctx, fmt.Sprintf(`user-%s`, uid), &userInfo); err != nil {
 		return nil, err
 	}
 	return &userInfo, nil

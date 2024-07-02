@@ -8,6 +8,7 @@ import (
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"net/url"
 	"os"
 	"reflect"
 	"strconv"
@@ -171,6 +172,14 @@ func GetEnterpriseEnvPublicKey() string {
 		return string(data)
 	}
 	return Config.EnterpriseEnvPublicKey
+}
+
+func GetFrontendDomain() (string, error) {
+	u, err := url.Parse(Config.FrontendUri)
+	if err != nil {
+		return "", err
+	}
+	return u.Host, nil
 }
 
 func IsDevEnv() bool {

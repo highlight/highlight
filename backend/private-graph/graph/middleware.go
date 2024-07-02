@@ -93,8 +93,17 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 		span, ctx := util.StartSpanFromContext(ctx, "middleware.private")
 		defer span.Finish()
 		var err error
-		if token := r.Header.Get("token"); token != "" {
+
+		var token string
+		if t := r.Header.Get(tokenCookieName); t != "" {
 			span.SetAttribute("type", "tokenHeader")
+			token = t
+		} else if t, err := r.Cookie(tokenCookieName); err == nil && t.Value != "" {
+			span.SetAttribute("type", "tokenCookie")
+			token = t.Value
+		}
+
+		if token != "" {
 			ctx, err = AuthClient.updateContextWithAuthenticatedUser(ctx, token)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
