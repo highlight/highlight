@@ -14,7 +14,6 @@ type LoginCredentials struct {
 var adminPassword = env.Config.AuthAdminPassword
 var adminPasswordTokenDuration = time.Hour * 24
 var loginError = "invalid email/password provided"
-var loginFlowError = "login flow not supported"
 var passwordLoginConfigurationError = "password auth mode not properly configured"
 var oauthCallbackError = "oauth2 callback failed"
 
