@@ -113,6 +113,26 @@ const H: HighlightPublicInterface = {
 			}
 			init_called = true
 
+			if (options?.enableOtelTracing) {
+				import('@highlight-run/client/src/otel').then(
+					({ setupBrowserTracing }) => {
+						setupBrowserTracing({
+							endpoint: options?.otlpEndpoint,
+							projectId: projectID,
+							sessionSecureId: sessionSecureID,
+							environment: options?.environment ?? 'production',
+							networkRecordingOptions:
+								typeof options?.networkRecording === 'object'
+									? options.networkRecording
+									: undefined,
+							tracingOrigins: options?.tracingOrigins,
+							serviceName:
+								options?.serviceName ?? 'highlight-browser',
+						})
+					},
+				)
+			}
+
 			initializeFetchListener()
 			initializeWebSocketListener()
 			import('@highlight-run/client').then(async ({ Highlight }) => {

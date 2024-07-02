@@ -56,7 +56,7 @@ public class HighlightLogEnricher : ILogEventEnricher
 public class HighlightConfig
 {
     // For highlight.io cloud, use https://otel.highlight.io:4318
-    public static readonly String OtlpEndpoint = "http://localhost:4318";
+    public static readonly String OtlpEndpoint = "https://localhost:4318";
 
     // Replace with your project ID and service name.
     public static readonly String ProjectId = "1";
@@ -107,13 +107,13 @@ public class HighlightConfig
         activity.SetTag("http.server_name", httpRequest.HttpContext.Request.Host.Host);
         activity.SetTag("http.url", httpRequest.Path);
         activity.SetTag("http.user_agent", httpRequest.Headers["User-Agent"]);
-        
+
         for (var i = 0; i < httpRequest.Headers.Count; i++)
         {
             var header = httpRequest.Headers.ElementAt(i);
             activity.SetTag($"http.request.header.{header.Key}", header.Value);
         }
-        
+
         var headerValues = httpRequest.Headers[HighlightHeader];
         if (headerValues.Count < 1) return;
         var headerValue = headerValues[0];
@@ -132,7 +132,7 @@ public class HighlightConfig
     {
         activity.SetTag("http.status_code", httpResponse.StatusCode);
         activity.SetTag("http.response_content_length", httpResponse.ContentLength);
-        
+
         for (var i = 0; i < httpResponse.Headers.Count; i++)
         {
             var header = httpResponse.Headers.ElementAt(i);
@@ -151,6 +151,16 @@ public class HighlightConfig
                 {
                     exporterOptions.Endpoint = new Uri(LogsEndpoint);
                     exporterOptions.Protocol = ExportProtocol;
+
+                    if (builder.Environment.IsDevelopment())
+                    {
+                        var httpClientWithoutSsl = new HttpClient(new HttpClientHandler
+                        {
+                            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                        });
+
+                        exporterOptions.HttpClient = httpClientWithoutSsl;
+                    }
                 });
         });
 

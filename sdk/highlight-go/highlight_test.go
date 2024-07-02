@@ -3,9 +3,15 @@ package highlight
 import (
 	"context"
 	"fmt"
-	"go.opentelemetry.io/otel/attribute"
+	"net/http/httptest"
 	"testing"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
+
+	"github.com/huandu/go-assert"
 	"github.com/pkg/errors"
 )
 
@@ -63,4 +69,45 @@ func TestRecordMetric(t *testing.T) {
 		})
 	}
 	Stop()
+}
+
+func TestOtelHeaderRequestPropagation(t *testing.T) {
+	propagator := propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+	)
+	otel.SetTextMapPropagator(propagator)
+
+	customTraceID, _ := trace.TraceIDFromHex("0123456789abcdef0123456789abcdef")
+	spanID, _ := trace.SpanIDFromHex("0123456789abcdef")
+	spanContext := trace.NewSpanContext(trace.SpanContextConfig{
+		TraceID: customTraceID,
+		SpanID:  spanID,
+		Remote:  true,
+	})
+	ctx := trace.ContextWithSpanContext(context.Background(), spanContext)
+
+	tracer := otel.Tracer("test")
+	ctx, span := tracer.Start(ctx, "test-span")
+	defer span.End()
+
+	req := httptest.NewRequest("GET", "http://example.com", nil)
+	req.Header.Set("X-Highlight-Request", "123/456")
+	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(req.Header))
+
+	newCtx := InterceptRequest(req)
+
+	assert.Equal(t, trace.SpanFromContext(newCtx).SpanContext().TraceID(), customTraceID)
+	assert.Equal(t, newCtx.Value(ContextKeys.SessionSecureID), nil)
+	assert.Equal(t, newCtx.Value(ContextKeys.RequestID), nil)
+}
+
+func TestInterceptHighlightHeaderRequestPropagation(t *testing.T) {
+	req := httptest.NewRequest("GET", "http://example.com", nil)
+	req.Header.Set("X-Highlight-Request", "123/456")
+
+	newCtx := InterceptRequest(req)
+
+	assert.Equal(t, newCtx.Value(ContextKeys.SessionSecureID), "123")
+	assert.Equal(t, newCtx.Value(ContextKeys.RequestID), "456")
 }

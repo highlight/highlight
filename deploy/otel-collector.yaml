@@ -21,9 +21,21 @@ receivers:
                 include_metadata: true
                 cors:
                     allowed_origins:
-                        - '*'
+                        # Can't use '*' with credentials because it fails CORS
+                        # validation on the preflight request.
+                        - 'https://*'
+                        - 'http://*'
                     allowed_headers:
                         - 'X-Highlight-Request'
+                        - 'Origin'
+                        - 'Content-Type'
+                        - 'Accept'
+                        - 'Access-Control-Request-Headers'
+                        - 'Access-Control-Request-Method'
+                        - 'Access-Control-Allow-Origin'
+                        - 'Referer'
+                        - 'Traceparent'
+                        - 'Tracestate'
                     max_age: 7200
 exporters:
     otlphttp:

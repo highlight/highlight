@@ -1,5 +1,5 @@
 import { ApolloError } from '@apollo/client'
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
 import { useGetTraceQuery } from '@/graph/generated/hooks'
 import { TraceError } from '@/graph/generated/schemas'
@@ -131,6 +131,19 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 		const spans = [...data.trace.trace].sort(traceSortFn)
 		return organizeSpansWithChildren(spans)
 	}, [data?.trace?.trace])
+
+	useEffect(() => {
+		if (spanId) {
+			const selectedSpan = data?.trace?.trace.find(
+				(span) => span.spanID === spanId,
+			)
+
+			if (selectedSpan) {
+				setSelectedSpan(selectedSpan as FlameGraphSpan)
+			}
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [spanId])
 
 	return (
 		<TraceContext.Provider
