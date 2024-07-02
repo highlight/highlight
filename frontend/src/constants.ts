@@ -7,3 +7,4 @@ export const FRONTEND_URI =
 	import.meta.env.REACT_APP_FRONTEND_URI ||
 	window.location.protocol + '//' + window.location.host
 export const AUTH_MODE = import.meta.env.REACT_APP_AUTH_MODE
+export const DISABLE_ANALYTICS = import.meta.env.REACT_APP_DISABLE_ANALYTICS
