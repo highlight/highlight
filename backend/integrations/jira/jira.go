@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"net/http"
 	nUrl "net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -21,16 +21,14 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
-var (
-	JiraClientId     = os.Getenv("JIRA_CLIENT_ID")
-	JiraClientSecret = os.Getenv("JIRA_CLIENT_SECRET")
-	JiraAuthBaseUrl  = "https://auth.atlassian.com"
-	JiraApiBaseUrl   = "https://api.atlassian.com"
+const (
+	AuthBaseUrl = "https://auth.atlassian.com"
+	ApiBaseUrl  = "https://api.atlassian.com"
 )
 
 var jiraEndpoint = oauth2.Endpoint{
-	AuthURL:   fmt.Sprintf("%s/oauth/authorize", JiraAuthBaseUrl),
-	TokenURL:  fmt.Sprintf("%s/oauth/token", JiraAuthBaseUrl),
+	AuthURL:   fmt.Sprintf("%s/oauth/authorize", AuthBaseUrl),
+	TokenURL:  fmt.Sprintf("%s/oauth/token", AuthBaseUrl),
 	AuthStyle: oauth2.AuthStyleInParams,
 }
 
@@ -68,27 +66,21 @@ type JiraCreateIssuePayload struct {
 }
 
 func GetOAuthConfig() (*oauth2.Config, []oauth2.AuthCodeOption, error) {
-	var (
-		ok               bool
-		jiraClientID     string
-		jiraClientSecret string
-		frontendUri      string
-	)
-	if jiraClientID, ok = os.LookupEnv("JIRA_CLIENT_ID"); !ok || jiraClientID == "" {
+	if env.Config.JiraClientId == "" {
 		return nil, nil, errors.New("JIRA_CLIENT_ID not set")
 	}
-	if jiraClientSecret, ok = os.LookupEnv("JIRA_CLIENT_SECRET"); !ok || jiraClientSecret == "" {
+	if env.Config.JiraClientSecret == "" {
 		return nil, nil, errors.New("JIRA_CLIENT_SECRET not set")
 	}
-	if frontendUri, ok = os.LookupEnv("REACT_APP_FRONTEND_URI"); !ok || frontendUri == "" {
+	if env.Config.FrontendUri == "" {
 		return nil, nil, errors.New("REACT_APP_FRONTEND_URI not set")
 	}
 
 	return &oauth2.Config{
-		ClientID:     jiraClientID,
-		ClientSecret: jiraClientSecret,
+		ClientID:     env.Config.JiraClientId,
+		ClientSecret: env.Config.JiraClientSecret,
 		Endpoint:     jiraEndpoint,
-		RedirectURL:  fmt.Sprintf("%s/callback/jira", frontendUri),
+		RedirectURL:  fmt.Sprintf("%s/callback/jira", env.Config.FrontendUri),
 	}, []oauth2.AuthCodeOption{}, nil
 }
 
@@ -121,7 +113,7 @@ func doJiraRequest[T any](method string, accessToken string, url string, body st
 	client := &http.Client{}
 
 	// code to tell whether we are using absoluteUrl or relative url
-	var finalUrl = fmt.Sprintf("%s%s", JiraApiBaseUrl, url)
+	var finalUrl = fmt.Sprintf("%s%s", ApiBaseUrl, url)
 	parsedUrl, err := nUrl.Parse(url)
 
 	if err != nil {

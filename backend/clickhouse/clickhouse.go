@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"os"
+	"github.com/highlight-run/highlight/backend/env"
 	"path/filepath"
 	"strings"
 	"time"
@@ -25,15 +25,15 @@ type Client struct {
 }
 
 var (
-	ServerAddr      = os.Getenv("CLICKHOUSE_ADDRESS")
-	PrimaryDatabase = os.Getenv("CLICKHOUSE_DATABASE") // typically 'default', clickhouse needs an existing database to handle connections
-	TestDatabase    = os.Getenv("CLICKHOUSE_TEST_DATABASE")
-	Username        = os.Getenv("CLICKHOUSE_USERNAME")
-	Password        = os.Getenv("CLICKHOUSE_PASSWORD")
+	ServerAddr      = env.Config.ClickhouseAddress
+	PrimaryDatabase = env.Config.ClickhouseDatabase // typically 'default', clickhouse needs an existing database to handle connections
+	TestDatabase    = env.Config.ClickhouseTestDatabase
+	Username        = env.Config.ClickhouseUsername
+	Password        = env.Config.ClickhousePassword
 )
 
 func GetPostgresConnectionString() string {
-	return fmt.Sprintf("postgresql('%s:%s', '%s', 'sessions', '%s', '%s')", os.Getenv("PSQL_DOCKER_HOST"), os.Getenv("PSQL_PORT"), os.Getenv("PSQL_DB"), os.Getenv("PSQL_USER"), os.Getenv("PSQL_PASSWORD"))
+	return fmt.Sprintf("postgresql('%s:%s', '%s', 'sessions', '%s', '%s')", env.Config.SQLDockerHost, env.Config.SQLPort, env.Config.SQLDatabase, env.Config.SQLUser, env.Config.SQLPassword)
 }
 
 func NewClient(dbName string) (*Client, error) {
@@ -80,7 +80,10 @@ func RunMigrations(ctx context.Context, dbName string) {
 	)
 
 	if err != nil {
-		log.WithContext(ctx).Fatalf("Error creating clickhouse db instance for migrations: %v", err)
+		log.WithContext(ctx).
+			WithField("dbName", dbName).
+			WithField("migrationsPath", migrationsPath).
+			Fatalf("Error creating clickhouse db instance for migrations: %v", err)
 	}
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {

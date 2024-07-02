@@ -1,5 +1,23 @@
 # highlight.run
 
+## 9.0.2
+
+### Patch Changes
+
+-   fd011e719: ensure getSessionURL correctly returns session url
+
+## 9.0.1
+
+### Patch Changes
+
+-   2ced0e269: fix inlineImages video recording showing incorrect solution and breaking videos on load
+
+## 9.0.0
+
+### Major Changes
+
+-   e7eb5f581: updates rrweb to 2.0.15 with LWC support
+
 ## 8.13.0
 
 ### Minor Changes

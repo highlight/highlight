@@ -3,21 +3,20 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/stripe/stripe-go/v78"
-	"math"
-	"os"
-
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/openlyinc/pointy"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
+	"github.com/stripe/stripe-go/v78"
 	"github.com/stripe/stripe-go/v78/price"
+	"math"
 )
 
 var (
-	stripeApiKey            = os.Getenv("STRIPE_API_KEY")
-	stripeSessionsProductId = os.Getenv("STRIPE_SESSIONS_PRODUCT_ID")
-	stripeErrorsProductId   = os.Getenv("STRIPE_ERRORS_PRODUCT_ID")
+	stripeApiKey            = env.Config.StripeApiKey
+	stripeSessionsProductId = env.Config.StripeSessionsProductID
+	stripeErrorsProductId   = env.Config.StripeErrorsProductID
 )
 
 var sessionsIntervals = []lo.Tuple2[*int64, float64]{

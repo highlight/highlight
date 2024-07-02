@@ -85,12 +85,12 @@ export async function render(
 			'node_modules',
 			'rrweb',
 			'dist',
-			'rrweb.min.js',
+			'rrweb.umd.min.cjs',
 		),
 		'utf8',
 	)
 	const css = readFileSync(
-		path.join(path.resolve(), 'node_modules', 'rrweb', 'dist', 'rrweb.css'),
+		path.join(path.resolve(), 'node_modules', 'rrweb', 'dist', 'style.css'),
 		'utf8',
 	)
 	await page.setContent(getHtml(css, js))

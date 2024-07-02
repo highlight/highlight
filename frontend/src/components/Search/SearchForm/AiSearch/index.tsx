@@ -54,6 +54,9 @@ export const AiSearch: React.FC<any> = ({}) => {
 		updateSearchTime,
 	} = useSearchContext()
 	const [submitted, setSubmitted] = useState(false)
+	const displayError = !!aiSuggestionError && submitted
+	const displayTags = !aiSuggestionLoading && !displayError && submitted
+
 	const inputRef = useRef<HTMLTextAreaElement | null>(null)
 	const comboboxStore = useComboboxStore({
 		defaultValue: aiQuery,
@@ -73,6 +76,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 				dateSuggestion.selectedPreset,
 			)
 			setAiMode(false)
+			setAiQuery('')
 		}
 	}
 
@@ -82,7 +86,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 		}
 
 		if (displayError) {
-			return 'Oops... Harold AI is having issues.'
+			return `Oops... there was an issue. ${aiSuggestionError}`
 		}
 
 		if (submitted) {
@@ -156,8 +160,6 @@ export const AiSearch: React.FC<any> = ({}) => {
 		return {} as DateSuggestion
 	}, [aiSuggestion, endDate, selectedPreset, startDate])
 
-	const displayError = !!aiSuggestionError && submitted
-
 	return (
 		<Box
 			alignItems="stretch"
@@ -178,7 +180,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 				position="relative"
 				margin="auto"
 			>
-				{!aiSuggestionLoading && submitted && (
+				{displayTags && (
 					<Box
 						cssClass={styles.comboboxTagsContainer}
 						style={{
@@ -211,9 +213,8 @@ export const AiSearch: React.FC<any> = ({}) => {
 					name="aiSearch"
 					placeholder="e.g. 'logs with level error in the last 24 hours'"
 					className={clsx(styles.combobox, {
-						[styles.comboboxError]: !!displayError,
-						[styles.comboboxWithTags]:
-							!aiSuggestionLoading && submitted,
+						[styles.comboboxError]: displayError,
+						[styles.comboboxWithTags]: displayTags,
 					})}
 					render={
 						<TextareaAutosize
@@ -234,11 +235,15 @@ export const AiSearch: React.FC<any> = ({}) => {
 							e.preventDefault()
 							submitQuery(aiQuery)
 						}
+						if (e.key === 'Escape') {
+							setAiMode(false)
+						}
 					}}
 					style={{
 						paddingLeft: 40,
 						top: 6,
 					}}
+					autoFocus
 					data-hl-record
 				/>
 			</Box>
@@ -355,10 +360,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 				)}
 
 				<Box display="flex" pr="8" py="6" gap="6">
-					{submitted &&
-					aiSuggestion &&
-					!aiSuggestionLoading &&
-					!aiSuggestionError ? (
+					{displayTags ? (
 						<DateRangePicker
 							emphasis="medium"
 							iconLeft={<IconSolidClock />}

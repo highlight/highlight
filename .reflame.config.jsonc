@@ -261,7 +261,7 @@
       "sourceDirectory": "__generated/rr/rrweb",
       "exports": {
         ".": "./rr.js",
-        "./dist/rrweb.min.css": "./rr.min.css",
+        "./dist/style.css": "./rr.min.css",
       },
     },
     "@rrweb/types": {
