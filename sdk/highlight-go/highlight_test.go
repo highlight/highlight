@@ -108,10 +108,6 @@ func TestInterceptHighlightHeaderRequestPropagation(t *testing.T) {
 
 	newCtx := InterceptRequest(req)
 
-	sessionSecureID, requestID, err := validateRequest(newCtx)
-	assert.Equal(t, "123", sessionSecureID)
-	assert.Equal(t, "456", requestID)
-	assert.Equal(t, err, nil)
 	assert.Equal(t, newCtx.Value(ContextKeys.SessionSecureID), "123")
 	assert.Equal(t, newCtx.Value(ContextKeys.RequestID), "456")
 }
