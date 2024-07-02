@@ -10,12 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// TODO: Remove - just testing if this is why requests are failing.
-builder.Services.AddHttpClient("TrustingHandler").ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-{
-    ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true
-});
-
 Log.Logger = new LoggerConfiguration()
     .Enrich.WithMachineName()
     .Enrich.With<HighlightLogEnricher>()
