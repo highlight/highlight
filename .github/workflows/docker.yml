@@ -64,9 +64,8 @@ jobs:
                   IMAGE_TAG=ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG
                   if [[ ${{ github.event_name }} == 'release' ]]; then
                     IMAGE_TAG=ghcr.io/highlight/$IMAGE_NAME:latest
-                  fi
-
-                  if [[ ${REF} == 'refs/heads/main' || ${REPO} == 'highlight/highlight' ]]; then
+                    PUSH="--push"
+                  elif [[ ${REF} == 'refs/heads/main' || ${REPO} == 'highlight/highlight' ]]; then
                     PUSH="--push"
                   else
                     PUSH=""
