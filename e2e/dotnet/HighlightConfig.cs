@@ -151,6 +151,16 @@ public class HighlightConfig
                 {
                     exporterOptions.Endpoint = new Uri(LogsEndpoint);
                     exporterOptions.Protocol = ExportProtocol;
+
+                    if (builder.Environment.IsDevelopment())
+                    {
+                        var httpClientWithoutSsl = new HttpClient(new HttpClientHandler
+                        {
+                            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                        });
+
+                        exporterOptions.HttpClient = httpClientWithoutSsl;
+                    }
                 });
         });
 
