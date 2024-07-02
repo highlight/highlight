@@ -6318,8 +6318,7 @@ body {
 }
 ._1k082jh0:after {
   content: "";
-  background: linear-gradient(45deg, rgba(162, 138, 220) 0%, rgba(216, 165, 216) 50%, rgba(233, 192, 186) 100%);
-  border: 2px solid transparent;
+  border: 2px solid var(--_1pyqka9l);
   border-radius: 5px;
   inset: 0;
   mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);

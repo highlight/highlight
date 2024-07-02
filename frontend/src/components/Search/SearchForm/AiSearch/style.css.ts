@@ -11,9 +11,7 @@ export const container = style({
 
 	selectors: {
 		'&:after': {
-			background:
-				'linear-gradient(45deg, rgba(162, 138, 220) 0%, rgba(216, 165, 216) 50%, rgba(233, 192, 186) 100%)',
-			border: '2px solid transparent',
+			border: `2px solid ${vars.theme.interactive.fill.primary.enabled}`,
 			content: '',
 			borderRadius: 5,
 			inset: 0,

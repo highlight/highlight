@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.0.2
+
+### Patch Changes
+
+-   fd011e719: ensure getSessionURL correctly returns session url
+
 ## 9.0.1
 
 ### Patch Changes
