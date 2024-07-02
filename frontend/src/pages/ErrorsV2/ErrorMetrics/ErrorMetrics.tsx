@@ -1,18 +1,20 @@
 import CategoricalBarChart from '@components/CategoricalBarChart/CategoricalBarChar'
-import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
 import { useGetErrorGroupFrequenciesQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
 import { ErrorGroupFrequenciesParamsInput } from '@graph/schemas'
 import {
 	Box,
+	DateRangePicker,
+	DateRangePreset,
+	EXTENDED_TIME_PRESETS,
 	Heading,
 	IconSolidTrendingUp,
+	presetStartDate,
 	Text,
 } from '@highlight-run/ui/components'
-import useDataTimeRange from '@hooks/useDataTimeRange'
 import { ErrorDistributions } from '@pages/ErrorsV2/ErrorMetrics/ErrorDistributions'
 import moment from 'moment'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import analytics from '@/util/analytics'
 
@@ -41,6 +43,13 @@ const LINE_COLORS = {
 	Occurrences: '#6b48c7',
 }
 
+interface DateRange {
+	start_date: Date
+	end_date: Date
+}
+
+const DEFAULT_PRESET = EXTENDED_TIME_PRESETS[4]
+
 const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 	const [errorFrequencyData, setErrorFrequencyData] = useState<
 		FrequencyDataPoint[]
@@ -50,7 +59,25 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 		ticks: [],
 		format: '',
 	})
-	const { timeRange, setTimeRange, resetTimeRange } = useDataTimeRange()
+	const [selectedPreset, setSelectedPreset] =
+		React.useState<DateRangePreset>(DEFAULT_PRESET)
+
+	const [timeRange, setTimeRange] = React.useState<DateRange>({
+		start_date: presetStartDate(DEFAULT_PRESET),
+		end_date: moment().toDate(),
+	})
+
+	const determineLookback = useCallback(() => {
+		const lookback = moment
+			.duration(
+				moment(timeRange.end_date).diff(moment(timeRange.start_date)),
+			)
+			.asMinutes()
+		return lookback
+	}, [timeRange.end_date, timeRange.start_date])
+
+	const [lookback, setLookback] = React.useState<number>(determineLookback())
+
 	const [referenceArea, setReferenceArea] = useState<{
 		start: string
 		end: string
@@ -62,12 +89,10 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 			error_group_secure_ids: [errorGroup?.secure_id || ''],
 			params: {
 				date_range: {
-					start_date: timeRange.start_date,
-					end_date: timeRange.end_date,
+					start_date: timeRange.start_date.toISOString(),
+					end_date: timeRange.end_date.toISOString(),
 				},
-				resolution_minutes: Math.ceil(
-					timeRange.lookback / NUM_BUCKETS_TIMELINE,
-				),
+				resolution_minutes: Math.ceil(lookback / NUM_BUCKETS_TIMELINE),
 			} as ErrorGroupFrequenciesParamsInput,
 			metric: 'count',
 			use_clickhouse: true,
@@ -79,7 +104,8 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 		const ticks: string[] = []
 		const seenDays: Set<string> = new Set<string>()
 		let lastDate: moment.Moment | undefined = undefined
-		const tickFormat = timeRange.lookback > 24 * 60 ? 'D MMM' : 'HH:mm'
+
+		const tickFormat = lookback > 24 * 60 ? 'D MMM' : 'HH:mm'
 
 		for (const dataPoint of frequencies?.errorGroupFrequencies || []) {
 			const pointDate = dataPoint?.date
@@ -88,8 +114,7 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 				if (
 					lastDate &&
 					newDate.diff(lastDate, 'minutes') <
-						(timeRange.lookback / NUM_BUCKETS_TIMELINE) *
-							TICK_EVERY_BUCKETS
+						(lookback / NUM_BUCKETS_TIMELINE) * TICK_EVERY_BUCKETS
 				) {
 					continue
 				}
@@ -112,9 +137,15 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 		const { start, end } = referenceArea
 
 		if (end > start) {
-			setTimeRange(start, end, true)
+			setTimeRange({
+				start_date: new Date(start),
+				end_date: new Date(end),
+			})
 		} else {
-			setTimeRange(end, start, true)
+			setTimeRange({
+				start_date: new Date(end),
+				end_date: new Date(start),
+			})
 		}
 
 		setReferenceArea({ start: '', end: '' })
@@ -167,15 +198,33 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 	}, [frequencies?.errorGroupFrequencies])
 
 	useEffect(() => {
-		resetTimeRange()
-	}, [resetTimeRange])
+		setLookback(determineLookback())
+	}, [determineLookback])
 
 	return (
 		<Box>
 			<Box mt="20" mb="32" display="flex" justifyContent="space-between">
 				<Heading level="h3">Metrics</Heading>
 				<div className={styles.timePickerContainer}>
-					<TimeRangePicker />
+					<DateRangePicker
+						selectedValue={{
+							startDate: timeRange.start_date,
+							endDate: timeRange.end_date,
+							selectedPreset: selectedPreset,
+						}}
+						onDatesChange={(start, end, preset) => {
+							setSelectedPreset(preset!)
+							setTimeRange({
+								start_date: start,
+								end_date: end,
+							})
+						}}
+						presets={EXTENDED_TIME_PRESETS}
+						minDate={presetStartDate(EXTENDED_TIME_PRESETS[6])}
+						kind="secondary"
+						size="medium"
+						emphasis="low"
+					/>
 				</div>
 			</Box>
 

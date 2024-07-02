@@ -3,15 +3,22 @@ import { useEffect, useState } from 'react'
 import { Form, InputProps } from '../Form/Form'
 
 export interface DateInputProps extends InputProps {
-	onDateChange?: (value: string) => void
+	onDateChange: (value: string) => void
 }
 
 export function DateInput({ name, onDateChange, placeholder }: DateInputProps) {
 	const [value, setValue] = useState(placeholder)
-	const handleDateInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+	const handleDateInputChange = (
+		event: React.ChangeEvent<HTMLInputElement>,
+	) => {
 		const { value } = event.target
 		setValue(value)
-		onDateChange?.(value)
+	}
+
+	const handleSubmit = () => {
+		if (value) {
+			onDateChange(value)
+		}
 	}
 
 	useEffect(
@@ -21,24 +28,29 @@ export function DateInput({ name, onDateChange, placeholder }: DateInputProps) {
 		[placeholder],
 	)
 
-	const inputClassName = 'date-input'
-
 	return (
 		<Form.Input
 			name={name}
 			placeholder={placeholder}
 			type="input"
-			color={'n12'}
+			color="n12"
 			value={value}
 			style={{
 				border: 'none',
 				background: 'none',
-				marginTop: '-2px',
 				fontSize: '13px',
+				fontWeight: '500 !important',
 				paddingLeft: '6px',
+				width: '130px',
 			}}
-			className={inputClassName}
-			onChange={handleDateInput}
+			className="date-input"
+			onChange={handleDateInputChange}
+			onBlur={handleSubmit}
+			onKeyDown={(e) => {
+				if (e.key === 'Enter') {
+					handleSubmit()
+				}
+			}}
 		/>
 	)
 }
