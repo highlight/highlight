@@ -60,12 +60,12 @@
 				"./**/*.graphqls"
 			],
 			"outputs": [
-				"lib/**",
-				"es/**",
-				"dist/**",
-				"typings/**",
-				"build/**",
-				"esm/**"
+				"lib/**/*.d.ts",
+				"es/**/*.d.ts",
+				"dist/**/*.d.ts",
+				"typings/**/*.d.ts",
+				"build/**/*.d.ts",
+				"esm/**/*.d.ts"
 			]
 		},
 		"reflame": {
