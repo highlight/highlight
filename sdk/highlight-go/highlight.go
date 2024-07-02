@@ -2,7 +2,6 @@ package highlight
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -260,9 +259,6 @@ func InterceptRequestWithContext(ctx context.Context, r *http.Request) context.C
 			ctx = context.WithValue(ctx, ContextKeys.SessionSecureID, ids[0])
 			ctx = context.WithValue(ctx, ContextKeys.RequestID, ids[1])
 		}
-	} else {
-
-		fmt.Printf("::: URL: %v\n", r.URL)
 	}
 
 	return ctx
