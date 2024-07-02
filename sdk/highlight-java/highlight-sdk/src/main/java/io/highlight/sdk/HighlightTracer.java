@@ -31,11 +31,8 @@ public class HighlightTracer {
 	 * @param record The HighlightErrorRecord to process.
 	 */
 	public void process(HighlightErrorRecord record) {
-		Span span = this.tracer.spanBuilder("highlight-ctx")
-				.setAllAttributes(record.getAttributes())
-				.setStartTimestamp(record.getTimeOccured())
-				.setNoParent()
-				.startSpan();
+		Span span = this.tracer.spanBuilder("highlight-ctx").setAllAttributes(record.getAttributes())
+				.setStartTimestamp(record.getTimeOccured()).setNoParent().startSpan();
 
 		try (Scope scope = span.makeCurrent()) {
 			if (record.hasUserSession()) {
