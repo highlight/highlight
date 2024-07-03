@@ -1,34 +1,31 @@
 import Alert from '@components/Alert/Alert'
 import CopyText from '@components/CopyText/CopyText'
-import Input from '@components/Input/Input'
-import { CircularSpinner } from '@components/Loading/Loading'
 import { toast } from '@components/Toaster'
 import { useSendAdminWorkspaceInviteMutation } from '@graph/hooks'
 import { AdminRole } from '@graph/schemas'
 import {
 	Box,
+	ButtonIcon,
+	Form,
+	IconSolidClipboard,
+	IconSolidInformationCircle,
 	IconSolidUserAdd,
 	Modal,
 	Stack,
 	Text,
 } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils'
-import clsx from 'clsx'
-import moment from 'moment'
 import { useEffect, useRef, useState } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import { useAuthContext } from '@/authentication/AuthContext'
+import { Button } from '@/components/Button'
 import {
 	DISABLED_REASON_IS_ADMIN,
-	PopoverCell,
 	RoleOptions,
 } from '@/pages/WorkspaceTeam/components/AllMembers'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
-
-import commonStyles from '../../../Common.module.css'
-import Button from '../../../components/Button/Button/Button'
-import styles from './InviteMemberModal.module.css'
 
 function InviteMemberModal({
 	showModal,
@@ -102,23 +99,137 @@ function InviteMemberModal({
 	const disabledReason =
 		newAdminRole === AdminRole.Admin ? DISABLED_REASON_IS_ADMIN : undefined
 
+	const inviteLink = getWorkspaceInvitationLink(
+		workspaceInviteLinks?.secret || '',
+		workspaceId!,
+	)
+
 	return (
 		<Modal
 			open={showModal}
 			onClose={() => {
+				// TODO: This doesn't seem to be firing
 				toggleShowModal(false)
 				setEmail('')
 				sendReset()
 			}}
 		>
 			<Modal.Header>
-				<IconSolidUserAdd />
+				<IconSolidUserAdd color={vars.color.n11} />
 				<Text size="xxSmall" color="moderate">
-					Invite users to {'{Workspace}'}
+					Invite users to {workspaceName}
 				</Text>
 			</Modal.Header>
 			<Modal.Body>
-				<form onSubmit={onSubmit}>
+				<Form>
+					<Stack direction="column" gap="12">
+						<Form.Input
+							name="email"
+							label="User email"
+							icon={
+								// TODO: Ask Julian what the icons should do
+								<IconSolidInformationCircle
+									color={vars.color.n8}
+								/>
+							}
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+						/>
+
+						<Stack direction="row" gap="8">
+							<Box style={{ width: '50%' }}>
+								<Form.Select
+									name="role"
+									label="Role"
+									icon={
+										<IconSolidInformationCircle
+											color={vars.color.n8}
+										/>
+									}
+									onChange={(e) => {
+										setNewAdminRole(
+											e.target.value as AdminRole,
+										)
+										setNewProjectIds([])
+									}}
+								>
+									{roleOptions.map((role) => (
+										<option key={role.key} value={role.key}>
+											{role.render}
+										</option>
+									))}
+								</Form.Select>
+							</Box>
+
+							<Box style={{ width: '50%' }}>
+								{/* TODO: Add disabled logic (disabledReason) */}
+								{/* TODO: Fix for selecting multiple projects */}
+								<Form.Select
+									name="projects"
+									label="Project Access"
+									icon={
+										<IconSolidInformationCircle
+											color={vars.color.n8}
+										/>
+									}
+								>
+									{allProjects?.map((project) => (
+										<option
+											key={project?.id}
+											value={project?.id}
+										>
+											{project?.name}
+										</option>
+									))}
+								</Form.Select>
+							</Box>
+						</Stack>
+
+						<Box
+							style={{
+								backgroundColor: vars.theme.static.divider.weak,
+								height: 1,
+								width: '100%',
+							}}
+						/>
+
+						<Form.NamedSection
+							label="Or share this link with them"
+							name="shareLink"
+							icon={
+								<IconSolidInformationCircle
+									color={vars.color.n8}
+								/>
+							}
+						>
+							<Stack direction="row" gap="6">
+								<Form.Input
+									name="shareLink"
+									value={inviteLink}
+									onClick={(e) => {
+										// select all text in input
+										e.currentTarget.select()
+									}}
+								/>
+								<ButtonIcon
+									icon={<IconSolidClipboard />}
+									kind="secondary"
+									onClick={() => {
+										navigator.clipboard.writeText(
+											inviteLink,
+										)
+
+										toast.success('Copied to clipboard!', {
+											duration: 5000,
+										})
+									}}
+								/>
+							</Stack>
+						</Form.NamedSection>
+					</Stack>
+				</Form>
+				{/* TODO: See if we can delete PopoverCell */}
+				{/* <form onSubmit={onSubmit}>
 					<p className={styles.boxSubTitle}>
 						Invite a team member to '{`${workspaceName}`}' by
 						entering an email below.
@@ -198,7 +309,8 @@ function InviteMemberModal({
 							)}
 						</Button>
 					</div>
-				</form>
+				</form> */}
+				{/* TODO: Discuss w/ Julian what we want to do with this alert */}
 				{sendData?.sendAdminWorkspaceInvite && (
 					<Alert
 						shouldAlwaysShow
@@ -228,7 +340,7 @@ function InviteMemberModal({
 						description={sendError.message}
 					/>
 				)}
-				<hr className={styles.hr} />
+				{/* <hr className={styles.hr} />
 				<p className={styles.boxSubTitle}>
 					Or share this link with them (this link expires{' '}
 					{moment(workspaceInviteLinks?.expiration_date).fromNow()}
@@ -240,8 +352,46 @@ function InviteMemberModal({
 						workspaceId!,
 					)}
 					onCopyTooltipText="Copied invite link to clipboard!"
-				/>
+				/> */}
 			</Modal.Body>
+			<Modal.Footer
+				actions={
+					<>
+						<Button
+							trackingId="invite-admin-modal_cancel"
+							kind="secondary"
+							onClick={() => {
+								toggleShowModal(false)
+								setEmail('')
+								sendReset()
+							}}
+						>
+							Cancel
+						</Button>
+						<Button
+							trackingId="invite-admin-modal_invite"
+							kind="primary"
+							onClick={onSubmit}
+							loading={sendLoading}
+							disabled={!email || sendLoading}
+						>
+							Invite user
+						</Button>
+					</>
+				}
+			>
+				{/* TODO: Ask Julian what this should do */}
+				<Button
+					iconLeft={
+						<IconSolidInformationCircle color={vars.color.n11} />
+					}
+					trackingId="invite-admin-modal_learn-more"
+					emphasis="low"
+					kind="secondary"
+				>
+					Learn more
+				</Button>
+			</Modal.Footer>
 		</Modal>
 	)
 }

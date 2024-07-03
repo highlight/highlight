@@ -272,23 +272,26 @@ export const Select = ({
 	label = '',
 	tag,
 	optional,
+	icon,
 	...props
 }: FormSelectProps) => {
 	return (
 		<Stack direction="column" gap="4">
-			<Label
+			<NamedSection
 				label={label}
 				name={props.name}
 				tag={tag}
+				icon={icon}
 				optional={optional}
-			/>
-			<Ariakit.FormInput
-				render={<select />}
-				className={styles.select}
-				{...props}
 			>
-				{children}
-			</Ariakit.FormInput>
+				<Ariakit.FormInput
+					render={<select />}
+					className={styles.select}
+					{...props}
+				>
+					{children}
+				</Ariakit.FormInput>
+			</NamedSection>
 		</Stack>
 	)
 }
