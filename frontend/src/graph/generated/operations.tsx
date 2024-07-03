@@ -1017,6 +1017,28 @@ export type DeleteMetricMonitorMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type CreateAlertMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	name: Types.Scalars['String']
+	product_type: Types.ProductType
+	function_type: Types.MetricAggregator
+	query?: Types.Maybe<Types.Scalars['String']>
+	group_by_key?: Types.Maybe<Types.Scalars['String']>
+	below_threshold?: Types.Maybe<Types.Scalars['Boolean']>
+	threshold_count?: Types.Maybe<Types.Scalars['Int']>
+	threshold_window?: Types.Maybe<Types.Scalars['Int']>
+	threshold_cooldown?: Types.Maybe<Types.Scalars['Int']>
+}>
+
+export type CreateAlertMutation = { __typename?: 'Mutation' } & {
+	createAlert?: Types.Maybe<
+		{ __typename?: 'Alert' } & Pick<
+			Types.Alert,
+			'id' | 'name' | 'product_type'
+		>
+	>
+}
+
 export type UpdateAdminAndCreateWorkspaceMutationVariables = Types.Exact<{
 	admin_and_workspace_details: Types.AdminAndWorkspaceDetails
 }>
@@ -5385,6 +5407,7 @@ export const namedOperations = {
 		CreateMetricMonitor: 'CreateMetricMonitor' as const,
 		UpdateMetricMonitor: 'UpdateMetricMonitor' as const,
 		DeleteMetricMonitor: 'DeleteMetricMonitor' as const,
+		CreateAlert: 'CreateAlert' as const,
 		UpdateAdminAndCreateWorkspace: 'UpdateAdminAndCreateWorkspace' as const,
 		UpdateAdminAboutYouDetails: 'UpdateAdminAboutYouDetails' as const,
 		UpdateErrorAlert: 'UpdateErrorAlert' as const,

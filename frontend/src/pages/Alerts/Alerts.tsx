@@ -14,6 +14,7 @@ import {
 	IconSolidLogs,
 	IconSolidMicrosoftTeams,
 	IconSolidPlayCircle,
+	IconSolidPlus,
 	IconSolidRefresh,
 	Menu,
 	Stack,
@@ -36,12 +37,14 @@ import React from 'react'
 import { RiMailFill, RiSlackFill } from 'react-icons/ri'
 import { useNavigate } from 'react-router-dom'
 
+import { Button } from '@/components/Button'
 import { Link } from '@/components/Link'
 import {
 	DiscordChannel,
 	MicrosoftTeamsChannel,
 	SanitizedSlackChannel,
 } from '@/graph/generated/schemas'
+import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 
 import styles from './Alerts.module.css'
 
@@ -213,6 +216,8 @@ function AlertsPageLoaded({
 }) {
 	const { project_id } = useParams<{ project_id: string }>()
 	const navigate = useNavigate()
+	// TODO(spenny): update with real feature flag Feature.MetricAlerts
+	const metricAlertsEnabled = useFeatureFlag(Feature.Metrics)
 
 	const navigateToAlert = (record: any) => {
 		if (record.type === ALERT_NAMES['METRIC_MONITOR']) {
@@ -316,7 +321,21 @@ function AlertsPageLoaded({
 							<Text weight="bold" size="small" color="strong">
 								All alerts
 							</Text>
-							<NewAlertMenu />
+							{metricAlertsEnabled ? (
+								<Button
+									trackingId="alerts-page-add-alert-button"
+									onClick={() =>
+										navigate(`/${project_id}/alerts/new`)
+									}
+									iconLeft={<IconSolidPlus />}
+									kind="secondary"
+									emphasis="low"
+								>
+									Add Alert
+								</Button>
+							) : (
+								<NewAlertMenu />
+							)}
 						</Box>
 						{alertsPayload && (
 							<Stack gap="6">

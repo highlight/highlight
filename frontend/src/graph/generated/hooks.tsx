@@ -3386,6 +3386,88 @@ export type DeleteMetricMonitorMutationOptions = Apollo.BaseMutationOptions<
 	Types.DeleteMetricMonitorMutation,
 	Types.DeleteMetricMonitorMutationVariables
 >
+export const CreateAlertDocument = gql`
+	mutation CreateAlert(
+		$project_id: ID!
+		$name: String!
+		$product_type: ProductType!
+		$function_type: MetricAggregator!
+		$query: String
+		$group_by_key: String
+		$below_threshold: Boolean
+		$threshold_count: Int
+		$threshold_window: Int
+		$threshold_cooldown: Int
+	) {
+		createAlert(
+			project_id: $project_id
+			name: $name
+			product_type: $product_type
+			function_type: $function_type
+			query: $query
+			group_by_key: $group_by_key
+			below_threshold: $below_threshold
+			threshold_count: $threshold_count
+			threshold_window: $threshold_window
+			threshold_cooldown: $threshold_cooldown
+		) {
+			id
+			name
+			product_type
+		}
+	}
+`
+export type CreateAlertMutationFn = Apollo.MutationFunction<
+	Types.CreateAlertMutation,
+	Types.CreateAlertMutationVariables
+>
+
+/**
+ * __useCreateAlertMutation__
+ *
+ * To run a mutation, you first call `useCreateAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createAlertMutation, { data, loading, error }] = useCreateAlertMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *      product_type: // value for 'product_type'
+ *      function_type: // value for 'function_type'
+ *      query: // value for 'query'
+ *      group_by_key: // value for 'group_by_key'
+ *      below_threshold: // value for 'below_threshold'
+ *      threshold_count: // value for 'threshold_count'
+ *      threshold_window: // value for 'threshold_window'
+ *      threshold_cooldown: // value for 'threshold_cooldown'
+ *   },
+ * });
+ */
+export function useCreateAlertMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.CreateAlertMutation,
+		Types.CreateAlertMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.CreateAlertMutation,
+		Types.CreateAlertMutationVariables
+	>(CreateAlertDocument, baseOptions)
+}
+export type CreateAlertMutationHookResult = ReturnType<
+	typeof useCreateAlertMutation
+>
+export type CreateAlertMutationResult =
+	Apollo.MutationResult<Types.CreateAlertMutation>
+export type CreateAlertMutationOptions = Apollo.BaseMutationOptions<
+	Types.CreateAlertMutation,
+	Types.CreateAlertMutationVariables
+>
 export const UpdateAdminAndCreateWorkspaceDocument = gql`
 	mutation UpdateAdminAndCreateWorkspace(
 		$admin_and_workspace_details: AdminAndWorkspaceDetails!

@@ -11,17 +11,18 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import ErrorAlertPage from '@/pages/Alerts/ErrorAlert/ErrorAlertPage'
 import SessionAlertPage from '@/pages/Alerts/SessionAlert/SessionAlertPage'
 
+import { NewAlertPage } from './NewAlertPage'
+
 const AlertsRouter = () => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const projectId = project_id ?? '1'
 	const [alertsPayload, setAlertsPayload] = useState<
 		GetAlertsPagePayloadQuery | undefined
 	>(undefined)
 	const { data, loading } = useGetAlertsPagePayloadQuery({
-		variables: { project_id: projectId },
+		variables: { project_id: project_id! },
 		skip: !project_id,
 	})
-	const slackUrl = getSlackUrl(projectId)
+	const slackUrl = getSlackUrl(project_id ?? '')
 
 	useEffect(() => {
 		if (!loading) {
@@ -43,6 +44,7 @@ const AlertsRouter = () => {
 			</Helmet>
 			<Routes>
 				<Route path="*" element={<AlertsPage />} />
+				<Route path="new" element={<NewAlertPage />} />
 				<Route
 					path="monitor"
 					element={<Navigate to={`/${project_id}/alerts`} replace />}
@@ -51,7 +53,7 @@ const AlertsRouter = () => {
 					path="new/logs"
 					element={
 						<Navigate
-							to={`/${projectId}/alerts/logs/new`}
+							to={`/${project_id}/alerts/logs/new`}
 							replace
 						/>
 					}
@@ -61,7 +63,7 @@ const AlertsRouter = () => {
 					path="new/errors"
 					element={
 						<Navigate
-							to={`/${projectId}/alerts/errors/new`}
+							to={`/${project_id}/alerts/errors/new`}
 							replace
 						/>
 					}

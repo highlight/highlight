@@ -965,6 +965,36 @@ mutation DeleteMetricMonitor($metric_monitor_id: ID!, $project_id: ID!) {
 	}
 }
 
+mutation CreateAlert(
+	$project_id: ID!
+	$name: String!
+	$product_type: ProductType!
+	$function_type: MetricAggregator!
+	$query: String
+	$group_by_key: String
+	$below_threshold: Boolean
+	$threshold_count: Int
+	$threshold_window: Int
+	$threshold_cooldown: Int
+) {
+	createAlert(
+		project_id: $project_id
+		name: $name
+		product_type: $product_type
+		function_type: $function_type
+		query: $query
+		group_by_key: $group_by_key
+		below_threshold: $below_threshold
+		threshold_count: $threshold_count
+		threshold_window: $threshold_window
+		threshold_cooldown: $threshold_cooldown
+	) {
+		id
+		name
+		product_type
+	}
+}
+
 mutation UpdateAdminAndCreateWorkspace(
 	$admin_and_workspace_details: AdminAndWorkspaceDetails!
 ) {
