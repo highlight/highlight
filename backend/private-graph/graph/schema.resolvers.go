@@ -8314,6 +8314,16 @@ func (r *queryResolver) WorkspaceSettings(ctx context.Context, workspaceID int) 
 	return r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
 }
 
+// EnableIngestFiltering is the resolver for the enable_ingest_filtering field.
+func (r *allWorkspaceSettingsResolver) EnableIngestFiltering(ctx context.Context, obj *model.AllWorkspaceSettings) (bool, error) {
+	w, err := r.isUserInWorkspaceReadOnly(ctx, obj.WorkspaceID)
+	if err != nil {
+		return false, err
+	}
+
+	return w.PlanTier != modelInputs.PlanTypeFree.String(), nil
+}
+
 // WorkspaceForProject is the resolver for the workspace_for_project field.
 func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) (*model.Workspace, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
@@ -10083,6 +10093,11 @@ func (r *visualizationResolver) UpdatedByAdmin(ctx context.Context, obj *model.V
 	}, nil
 }
 
+// AllWorkspaceSettings returns generated.AllWorkspaceSettingsResolver implementation.
+func (r *Resolver) AllWorkspaceSettings() generated.AllWorkspaceSettingsResolver {
+	return &allWorkspaceSettingsResolver{r}
+}
+
 // CommentReply returns generated.CommentReplyResolver implementation.
 func (r *Resolver) CommentReply() generated.CommentReplyResolver { return &commentReplyResolver{r} }
 
@@ -10143,6 +10158,7 @@ func (r *Resolver) TimelineIndicatorEvent() generated.TimelineIndicatorEventReso
 // Visualization returns generated.VisualizationResolver implementation.
 func (r *Resolver) Visualization() generated.VisualizationResolver { return &visualizationResolver{r} }
 
+type allWorkspaceSettingsResolver struct{ *Resolver }
 type commentReplyResolver struct{ *Resolver }
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }

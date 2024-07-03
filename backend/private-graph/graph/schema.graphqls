@@ -554,6 +554,7 @@ type AllWorkspaceSettings {
 	enable_business_seats: Boolean!
 	enable_data_deletion: Boolean!
 	enable_grafana_dashboard: Boolean!
+	enable_ingest_filtering: Boolean!
 	enable_ingest_sampling: Boolean!
 	enable_network_traces: Boolean!
 	enable_project_level_access: Boolean!

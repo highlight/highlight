@@ -14265,6 +14265,7 @@ export const GetWorkspaceSettingsDocument = gql`
 			enable_business_seats
 			enable_data_deletion
 			enable_grafana_dashboard
+			enable_ingest_filtering
 			enable_ingest_sampling
 			enable_network_traces
 			enable_project_level_access

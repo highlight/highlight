@@ -8,13 +8,18 @@ import { useApplicationContext } from '@routers/AppRouter/context/ApplicationCon
 import analytics from '@util/analytics'
 import { PropsWithChildren, useCallback, useState } from 'react'
 
-type Feature = 'Session Download' | 'Session CSV Report' | 'Multiple Projects'
+type Feature =
+	| 'Session Download'
+	| 'Session CSV Report'
+	| 'Multiple Projects'
+	| 'Billing Limits'
 
 const FEATURE_DESCRIPTIONS = {
 	'Session Download': 'download a video .MP4 playback of the session.',
 	'Session CSV Report':
 		'download a CSV report aggregating all sessions in the results feed.',
 	'Multiple Projects': 'create more than 1 project to segment your data.',
+	'Billing Limits': 'limit spending for all highlight data.',
 } as { [K in Feature]: string }
 
 interface Props {

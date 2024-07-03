@@ -42,6 +42,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	AllWorkspaceSettings() AllWorkspaceSettingsResolver
 	CommentReply() CommentReplyResolver
 	ErrorAlert() ErrorAlertResolver
 	ErrorComment() ErrorCommentResolver
@@ -199,6 +200,7 @@ type ComplexityRoot struct {
 		EnableBusinessSeats      func(childComplexity int) int
 		EnableDataDeletion       func(childComplexity int) int
 		EnableGrafanaDashboard   func(childComplexity int) int
+		EnableIngestFiltering    func(childComplexity int) int
 		EnableIngestSampling     func(childComplexity int) int
 		EnableNetworkTraces      func(childComplexity int) int
 		EnableProjectLevelAccess func(childComplexity int) int
@@ -1687,6 +1689,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type AllWorkspaceSettingsResolver interface {
+	EnableIngestFiltering(ctx context.Context, obj *model1.AllWorkspaceSettings) (bool, error)
+}
 type CommentReplyResolver interface {
 	Author(ctx context.Context, obj *model1.CommentReply) (*model.SanitizedAdmin, error)
 }
@@ -2782,6 +2787,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AllWorkspaceSettings.EnableGrafanaDashboard(childComplexity), true
+
+	case "AllWorkspaceSettings.enable_ingest_filtering":
+		if e.complexity.AllWorkspaceSettings.EnableIngestFiltering == nil {
+			break
+		}
+
+		return e.complexity.AllWorkspaceSettings.EnableIngestFiltering(childComplexity), true
 
 	case "AllWorkspaceSettings.enable_ingest_sampling":
 		if e.complexity.AllWorkspaceSettings.EnableIngestSampling == nil {
@@ -12114,6 +12126,7 @@ type AllWorkspaceSettings {
 	enable_business_seats: Boolean!
 	enable_data_deletion: Boolean!
 	enable_grafana_dashboard: Boolean!
+	enable_ingest_filtering: Boolean!
 	enable_ingest_sampling: Boolean!
 	enable_network_traces: Boolean!
 	enable_project_level_access: Boolean!
@@ -27174,6 +27187,50 @@ func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_grafana_das
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllWorkspaceSettings_enable_ingest_filtering(ctx context.Context, field graphql.CollectedField, obj *model1.AllWorkspaceSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AllWorkspaceSettings_enable_ingest_filtering(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AllWorkspaceSettings().EnableIngestFiltering(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_ingest_filtering(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllWorkspaceSettings",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
 		},
@@ -46032,6 +46089,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspaceSettings(ctx cont
 				return ec.fieldContext_AllWorkspaceSettings_enable_data_deletion(ctx, field)
 			case "enable_grafana_dashboard":
 				return ec.fieldContext_AllWorkspaceSettings_enable_grafana_dashboard(ctx, field)
+			case "enable_ingest_filtering":
+				return ec.fieldContext_AllWorkspaceSettings_enable_ingest_filtering(ctx, field)
 			case "enable_ingest_sampling":
 				return ec.fieldContext_AllWorkspaceSettings_enable_ingest_sampling(ctx, field)
 			case "enable_network_traces":
@@ -61442,6 +61501,8 @@ func (ec *executionContext) fieldContext_Query_workspaceSettings(ctx context.Con
 				return ec.fieldContext_AllWorkspaceSettings_enable_data_deletion(ctx, field)
 			case "enable_grafana_dashboard":
 				return ec.fieldContext_AllWorkspaceSettings_enable_grafana_dashboard(ctx, field)
+			case "enable_ingest_filtering":
+				return ec.fieldContext_AllWorkspaceSettings_enable_ingest_filtering(ctx, field)
 			case "enable_ingest_sampling":
 				return ec.fieldContext_AllWorkspaceSettings_enable_ingest_sampling(ctx, field)
 			case "enable_network_traces":
@@ -85218,82 +85279,118 @@ func (ec *executionContext) _AllWorkspaceSettings(ctx context.Context, sel ast.S
 		case "workspace_id":
 			out.Values[i] = ec._AllWorkspaceSettings_workspace_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "ai_application":
 			out.Values[i] = ec._AllWorkspaceSettings_ai_application(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "ai_query_builder":
 			out.Values[i] = ec._AllWorkspaceSettings_ai_query_builder(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "ai_insights":
 			out.Values[i] = ec._AllWorkspaceSettings_ai_insights(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "enable_billing_limits":
 			out.Values[i] = ec._AllWorkspaceSettings_enable_billing_limits(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "enable_business_dashboards":
 			out.Values[i] = ec._AllWorkspaceSettings_enable_business_dashboards(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "enable_business_projects":
 			out.Values[i] = ec._AllWorkspaceSettings_enable_business_projects(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "enable_business_retention":
 			out.Values[i] = ec._AllWorkspaceSettings_enable_business_retention(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "enable_business_seats":
 			out.Values[i] = ec._AllWorkspaceSettings_enable_business_seats(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "enable_data_deletion":
 			out.Values[i] = ec._AllWorkspaceSettings_enable_data_deletion(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "enable_grafana_dashboard":
 			out.Values[i] = ec._AllWorkspaceSettings_enable_grafana_dashboard(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "enable_ingest_filtering":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AllWorkspaceSettings_enable_ingest_filtering(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "enable_ingest_sampling":
 			out.Values[i] = ec._AllWorkspaceSettings_enable_ingest_sampling(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "enable_network_traces":
 			out.Values[i] = ec._AllWorkspaceSettings_enable_network_traces(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "enable_project_level_access":
 			out.Values[i] = ec._AllWorkspaceSettings_enable_project_level_access(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "enable_session_export":
 			out.Values[i] = ec._AllWorkspaceSettings_enable_session_export(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "enable_unlisted_sharing":
 			out.Values[i] = ec._AllWorkspaceSettings_enable_unlisted_sharing(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
