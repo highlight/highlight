@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -30,9 +30,7 @@ const (
 )
 
 var (
-	VercelClientId     = os.Getenv("VERCEL_CLIENT_ID")
-	VercelClientSecret = os.Getenv("VERCEL_CLIENT_SECRET")
-	ApiBaseUrl         = "https://api.vercel.com"
+	ApiBaseUrl = "https://api.vercel.com"
 )
 
 type VercelAccessTokenResponse struct {
@@ -43,12 +41,12 @@ type VercelAccessTokenResponse struct {
 func GetAccessToken(code string) (VercelAccessTokenResponse, error) {
 	client := &http.Client{}
 
-	redirectUri := os.Getenv("REACT_APP_FRONTEND_URI") + "/callback/vercel"
+	redirectUri := env.Config.FrontendUri + "/callback/vercel"
 
 	data := url.Values{}
 	data.Set("code", code)
-	data.Set("client_id", VercelClientId)
-	data.Set("client_secret", VercelClientSecret)
+	data.Set("client_id", env.Config.VercelClientId)
+	data.Set("client_secret", env.Config.VercelClientSecret)
 	data.Set("redirect_uri", redirectUri)
 
 	accessTokenResponse := VercelAccessTokenResponse{}

@@ -45,6 +45,6 @@ def query(
             return j["data"]
         except Exception as e:
             exc = e
-            time.sleep(1)
+            time.sleep(0.5)
     else:
         raise exc

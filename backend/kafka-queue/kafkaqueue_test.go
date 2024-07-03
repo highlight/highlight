@@ -4,6 +4,7 @@ import (
 	"context"
 	cryptorand "crypto/rand"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
@@ -28,7 +29,7 @@ const (
 func TestQueue_Submit(t *testing.T) {
 	// disabled - uncomment to run locally
 	t.Skip("Kafka test does not run in CI because kafka cluster is not configured.")
-	util.InDocker = "true"
+	env.Config.InDocker = "true"
 
 	ctx := context.TODO()
 	log.SetLevel(log.DebugLevel)

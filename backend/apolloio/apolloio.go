@@ -3,16 +3,15 @@ package apolloio
 import (
 	"encoding/json"
 	"fmt"
-	"os"
-
 	"github.com/aws/smithy-go/ptr"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/pkg/errors"
 
 	"github.com/highlight-run/highlight/backend/util"
 )
 
-var apiKey = os.Getenv("APOLLO_IO_API_KEY")
-var emailSenderAccountID = "611a948f244402011469a418" // Represents jay@hilite.run
+var apiKey = env.Config.ApolloIoAPIKey
+var emailSenderAccountID = env.Config.ApolloIoSenderID
 
 func Enrich(email string) (short *string, long *string, err error) {
 	type MatchRequest struct {

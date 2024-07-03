@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"os"
+	"github.com/highlight-run/highlight/backend/env"
 	"strings"
 	"time"
 
@@ -25,7 +25,6 @@ import (
 	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
-	"github.com/stripe/stripe-go/v78/client"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -586,11 +585,11 @@ func IncludedAmount(planType backend.PlanType, productType model.PricingProductT
 
 func FromPriceID(priceID string) backend.PlanType {
 	switch priceID {
-	case os.Getenv("BASIC_PLAN_PRICE_ID"):
+	case env.Config.PricingBasicPriceID:
 		return backend.PlanTypeBasic
-	case os.Getenv("STARTUP_PLAN_PRICE_ID"):
+	case env.Config.PricingStartupPriceID:
 		return backend.PlanTypeStartup
-	case os.Getenv("ENTERPRISE_PLAN_PRICE_ID"):
+	case env.Config.PricingEnterprisePriceID:
 		return backend.PlanTypeEnterprise
 	}
 	return backend.PlanTypeFree
@@ -682,7 +681,7 @@ func GetProductMetadata(price *stripe.Price) (*model.PricingProductType, *backen
 // Products are too nested in the Subscription model to be added through the API
 // This method calls the Stripe ListProducts API and replaces each product id in the
 // subscriptions with the full product data.
-func FillProducts(stripeClient *client.API, subscriptions []*stripe.Subscription) {
+func FillProducts(pricingClient *Client, subscriptions []*stripe.Subscription) {
 	productListParams := &stripe.ProductListParams{}
 	for _, subscription := range subscriptions {
 		for _, subscriptionItem := range subscription.Items.Data {
@@ -693,7 +692,7 @@ func FillProducts(stripeClient *client.API, subscriptions []*stripe.Subscription
 	productsById := map[string]*stripe.Product{}
 	if len(productListParams.IDs) > 0 {
 		// Loop over each product in the subscription
-		products := stripeClient.Products.List(productListParams).ProductList().Data
+		products := pricingClient.Products.List(productListParams).ProductList().Data
 		for _, product := range products {
 			productsById[product.ID] = product
 		}
@@ -710,7 +709,7 @@ func FillProducts(stripeClient *client.API, subscriptions []*stripe.Subscription
 }
 
 // Returns the Stripe Prices for the associated tier and interval
-func GetStripePrices(stripeClient *client.API, workspace *model.Workspace, productTier backend.PlanType, interval model.PricingSubscriptionInterval, unlimitedMembers bool, sessionsRetention *backend.RetentionPeriod, errorsRetention *backend.RetentionPeriod) (map[model.PricingProductType]*stripe.Price, error) {
+func GetStripePrices(pricingClient *Client, workspace *model.Workspace, productTier backend.PlanType, interval model.PricingSubscriptionInterval, unlimitedMembers bool, sessionsRetention *backend.RetentionPeriod, errorsRetention *backend.RetentionPeriod) (map[model.PricingProductType]*stripe.Price, error) {
 	// Default to the `RetentionPeriodThreeMonths` prices for customers grandfathered into 6 month retention
 	sessionsRetentionPeriod := backend.RetentionPeriodThreeMonths
 	if sessionsRetention != nil {
@@ -731,7 +730,7 @@ func GetStripePrices(stripeClient *client.API, workspace *model.Workspace, produ
 
 	priceListParams := stripe.PriceListParams{}
 	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey, &logsLookupKey, &tracesLookupKey}
-	prices := stripeClient.Prices.List(&priceListParams).PriceList().Data
+	prices := pricingClient.Prices.List(&priceListParams).PriceList().Data
 
 	priceMap := map[model.PricingProductType]*stripe.Price{}
 	for _, price := range prices {
@@ -759,7 +758,7 @@ func GetStripePrices(stripeClient *client.API, workspace *model.Workspace, produ
 		model.PricingProductTypeTraces:   workspace.StripeTracesOveragePriceID,
 	} {
 		if priceID != nil {
-			price, err := stripeClient.Prices.Get(*priceID, &stripe.PriceParams{})
+			price, err := pricingClient.Prices.Get(*priceID, &stripe.PriceParams{})
 			if err != nil {
 				return nil, err
 			}
@@ -781,24 +780,24 @@ func GetStripePrices(stripeClient *client.API, workspace *model.Workspace, produ
 }
 
 type Worker struct {
-	db           *gorm.DB
-	redis        *redis.Client
-	store        *store.Store
-	ccClient     *clickhouse.Client
-	stripeClient *client.API
-	awsmpClient  *marketplacemetering.Client
-	mailClient   *sendgrid.Client
+	db            *gorm.DB
+	redis         *redis.Client
+	store         *store.Store
+	ccClient      *clickhouse.Client
+	awsmpClient   *marketplacemetering.Client
+	mailClient    *sendgrid.Client
+	pricingClient *Client
 }
 
-func NewWorker(db *gorm.DB, redis *redis.Client, store *store.Store, ccClient *clickhouse.Client, stripeClient *client.API, awsmpClient *marketplacemetering.Client, mailClient *sendgrid.Client) *Worker {
+func NewWorker(db *gorm.DB, redis *redis.Client, store *store.Store, ccClient *clickhouse.Client, pricingClient *Client, awsmpClient *marketplacemetering.Client, mailClient *sendgrid.Client) *Worker {
 	return &Worker{
-		db:           db,
-		redis:        redis,
-		store:        store,
-		ccClient:     ccClient,
-		stripeClient: stripeClient,
-		awsmpClient:  awsmpClient,
-		mailClient:   mailClient,
+		db:            db,
+		redis:         redis,
+		store:         store,
+		ccClient:      ccClient,
+		pricingClient: pricingClient,
+		awsmpClient:   awsmpClient,
+		mailClient:    mailClient,
 	}
 }
 
@@ -1003,7 +1002,7 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 	customerParams.AddExpand("subscriptions")
 	customerParams.AddExpand("subscriptions.data.discount")
 	customerParams.AddExpand("subscriptions.data.discount.coupon")
-	c, err := w.stripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
+	c, err := w.pricingClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
 	if err != nil {
 		return e.Wrap(err, "couldn't retrieve stripe customer data")
 	}
@@ -1015,7 +1014,7 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 	}
 
 	subscriptions := c.Subscriptions.Data
-	FillProducts(w.stripeClient, subscriptions)
+	FillProducts(w.pricingClient, subscriptions)
 
 	subscription := subscriptions[0]
 
@@ -1061,7 +1060,7 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 	// so that overage is reported via monthly invoice items.
 	if interval != model.PricingSubscriptionIntervalMonthly && (subscription.PendingInvoiceItemInterval == nil || subscription.PendingInvoiceItemInterval.Interval != stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth) {
 		log.WithContext(ctx).WithField("workspaceID", workspaceID).Info("configuring monthly invoices for non-monthly subscription")
-		updated, err := w.stripeClient.Subscriptions.Update(subscription.ID, &stripe.SubscriptionParams{
+		updated, err := w.pricingClient.Subscriptions.Update(subscription.ID, &stripe.SubscriptionParams{
 			PendingInvoiceItemInterval: &stripe.SubscriptionPendingInvoiceItemIntervalParams{
 				Interval: stripe.String(string(stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth)),
 			},
@@ -1081,7 +1080,7 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 		}
 	}
 
-	prices, err := GetStripePrices(w.stripeClient, workspace, *productTier, interval, workspace.UnlimitedMembers, workspace.RetentionPeriod, workspace.ErrorsRetentionPeriod)
+	prices, err := GetStripePrices(w.pricingClient, workspace, *productTier, interval, workspace.UnlimitedMembers, workspace.RetentionPeriod, workspace.ErrorsRetentionPeriod)
 	if err != nil {
 		return e.Wrap(err, "BILLING_ERROR cannot report usage - failed to get Stripe prices")
 	}
@@ -1091,7 +1090,7 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 		Subscription: &subscription.ID,
 	}
 
-	invoice, err := w.stripeClient.Invoices.Upcoming(invoiceParams)
+	invoice, err := w.pricingClient.Invoices.Upcoming(invoiceParams)
 	// Cancelled subscriptions have no upcoming invoice - we can skip these since we won't
 	// be charging any overage for their next billing period.
 	if err != nil {
@@ -1105,7 +1104,7 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 	}
 	invoiceLinesParams.AddExpand("data.price.product")
 
-	i := w.stripeClient.Invoices.UpcomingLines(invoiceLinesParams)
+	i := w.pricingClient.Invoices.UpcomingLines(invoiceLinesParams)
 	if err = i.Err(); err != nil {
 		return e.Wrap(err, "BILLING_ERROR cannot report usage - failed to retrieve invoice lines for customer "+c.ID)
 	}
@@ -1214,7 +1213,7 @@ func (w *Worker) GetBillingIssue(ctx context.Context, workspace *model.Workspace
 	}
 
 	// check for valid CC to make sure customer is valid
-	i := w.stripeClient.PaymentMethods.List(&stripe.PaymentMethodListParams{Customer: pointy.String(customer.ID)})
+	i := w.pricingClient.PaymentMethods.List(&stripe.PaymentMethodListParams{Customer: pointy.String(customer.ID)})
 	if err := i.Err(); err != nil {
 		return "", err
 	}
@@ -1303,7 +1302,7 @@ func (w *Worker) AddOrUpdateOverageItem(newPrice *stripe.Price, invoiceLine *str
 				Price:        &newPrice.ID,
 			}
 			params.SetIdempotencyKey(subscription.ID + ":" + newPrice.ID + ":item:" + uuid.New().String())
-			subscriptionItem, err := w.stripeClient.SubscriptionItems.New(params)
+			subscriptionItem, err := w.pricingClient.SubscriptionItems.New(params)
 			if err != nil {
 				return e.Wrapf(err, "BILLING_ERROR failed to add invoice item for usage record item; invoiceLine=%+v, priceID=%s, subscriptionID=%s", invoiceLine, newPrice.ID, subscription.ID)
 			}
@@ -1317,12 +1316,12 @@ func (w *Worker) AddOrUpdateOverageItem(newPrice *stripe.Price, invoiceLine *str
 			Action:           stripe.String("set"),
 			Quantity:         stripe.Int64(overage),
 		}
-		if _, err := w.stripeClient.UsageRecords.New(params); err != nil {
+		if _, err := w.pricingClient.UsageRecords.New(params); err != nil {
 			return e.Wrap(err, "BILLING_ERROR failed to add usage record item")
 		}
 	} else {
 		if invoiceLine != nil {
-			if _, err := w.stripeClient.InvoiceItems.Update(invoiceLine.InvoiceItem.ID, &stripe.InvoiceItemParams{
+			if _, err := w.pricingClient.InvoiceItems.Update(invoiceLine.InvoiceItem.ID, &stripe.InvoiceItemParams{
 				Price:    &newPrice.ID,
 				Quantity: stripe.Int64(overage),
 			}); err != nil {
@@ -1336,7 +1335,7 @@ func (w *Worker) AddOrUpdateOverageItem(newPrice *stripe.Price, invoiceLine *str
 				Quantity:     stripe.Int64(overage),
 			}
 			params.SetIdempotencyKey(customer.ID + ":" + subscription.ID + ":" + newPrice.ID + ":" + uuid.New().String())
-			if _, err := w.stripeClient.InvoiceItems.New(params); err != nil {
+			if _, err := w.pricingClient.InvoiceItems.New(params); err != nil {
 				return e.Wrap(err, "BILLING_ERROR failed to add invoice item")
 			}
 		}

@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/env"
 	"os"
 	"strconv"
 	"strings"
@@ -38,7 +39,7 @@ var DB *gorm.DB
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"
-	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
+	testLogger := log.WithContext(context.TODO())
 	var err error
 	DB, err = util.CreateAndMigrateTestDB(dbName)
 	SetupAuthClient(context.Background(), Simple, nil, nil)
@@ -573,9 +574,9 @@ func TestResolver_canAdminViewSession(t *testing.T) {
 				t.Fatal(e.Wrap(err, "error inserting project"))
 			}
 			if v.demo {
-				_ = os.Setenv("DEMO_PROJECT_ID", strconv.Itoa(p.ID))
+				env.Config.DemoProjectID = strconv.Itoa(p.ID)
 			} else {
-				_ = os.Setenv("DEMO_PROJECT_ID", "0")
+				env.Config.DemoProjectID = "0"
 			}
 
 			session := model.Session{
@@ -843,9 +844,7 @@ func TestResolver_AccessLevels(t *testing.T) {
 	}
 	for _, v := range tests {
 		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
-			if err := os.Setenv("DEMO_PROJECT_ID", "0"); err != nil {
-				t.Fatal(e.Wrap(err, "error resetting demo project id"))
-			}
+			env.Config.DemoProjectID = "0"
 
 			r.Resolver = &Resolver{DB: DB}
 			if err := DB.Create(&model.Workspace{Model: model.Model{ID: 1}}).Error; err != nil {
@@ -984,7 +983,7 @@ func TestResolver_ProjectAccess(t *testing.T) {
 }
 
 func TestGetSlackChannelsFromSlack(t *testing.T) {
-	token := os.Getenv("TEST_SLACK_ACCESS_TOKEN")
+	token := env.Config.SlackTestAccessToken
 	if token == "" {
 		t.Skip("TEST_SLACK_ACCESS_TOKEN is not set")
 	}

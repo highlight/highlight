@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"os"
+	"github.com/highlight-run/highlight/backend/env"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -10,22 +10,21 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/handlers"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 )
 
 // Meant for local invocation for testing the lambda handler stack
 func main() {
-	if !util.IsDevOrTestEnv() {
+	if !env.IsDevOrTestEnv() {
 		return
 	}
 
 	highlight.SetProjectID("1jdkoe52")
 	highlight.Start(
 		highlight.WithServiceName("lambda-functions--deleteSessions"),
-		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
-		highlight.WithEnvironment(util.EnvironmentName()),
+		highlight.WithServiceVersion(env.Config.Version),
+		highlight.WithEnvironment(env.EnvironmentName()),
 	)
 	defer highlight.Stop()
 	hlog.Init()
@@ -60,10 +59,10 @@ func main() {
 	if _, err := h.DeleteSessionBatchFromPostgres(ctx, out[0]); err != nil {
 		log.WithContext(ctx).Fatal(err)
 	}
-	if _, err := h.DeleteSessionBatchFromS3(ctx, out[0]); err != nil {
+	if _, err := h.DeleteSessionBatchFromObjectStorage(ctx, out[0]); err != nil {
 		log.WithContext(ctx).Fatal(err)
 	}
-	if _, err := h.DeleteSessionBatchFromOpenSearch(ctx, out[0]); err != nil {
+	if _, err := h.DeleteSessionBatchFromClickhouse(ctx, out[0]); err != nil {
 		log.WithContext(ctx).Fatal(err)
 	}
 

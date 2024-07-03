@@ -21,7 +21,7 @@ var store *Store
 
 func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"
-	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
+	testLogger := log.WithContext(context.TODO())
 
 	db, err := util.CreateAndMigrateTestDB(dbName)
 	if err != nil {

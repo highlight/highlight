@@ -3,7 +3,7 @@ import 'rc-slider/assets/index.css'
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard'
 import LoadingBox from '@components/LoadingBox'
 import { useIsSessionPendingQuery } from '@graph/hooks'
-import { Session } from '@graph/schemas'
+import { Session, SessionExcludedReason } from '@graph/schemas'
 import { Box, Callout, Text } from '@highlight-run/ui/components'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { CompleteSetup } from '@pages/Player/components/CompleteSetup/CompleteSetup'
@@ -287,7 +287,7 @@ export const SessionFiller: React.FC<{
 			} else {
 				let reasonText: React.ReactNode
 				switch (session?.excluded_reason) {
-					case 'BillingQuotaExceeded':
+					case SessionExcludedReason.BillingQuotaExceeded:
 						reasonText = (
 							<>
 								This session was recorded after your billing
@@ -302,7 +302,7 @@ export const SessionFiller: React.FC<{
 							</>
 						)
 						break
-					case 'RetentionPeriodExceeded':
+					case SessionExcludedReason.RetentionPeriodExceeded:
 						reasonText = (
 							<>
 								This session is older than your plan's retention
@@ -316,6 +316,37 @@ export const SessionFiller: React.FC<{
 								.
 							</>
 						)
+						break
+					case SessionExcludedReason.NoUserEvents:
+					case SessionExcludedReason.NoTimelineIndicatorEvents:
+					case SessionExcludedReason.NoUserInteractionEvents:
+					case SessionExcludedReason.NoActivity:
+						reasonText =
+							'This session was excluded because it has no user interactions.'
+						break
+					case SessionExcludedReason.NoError:
+						reasonText =
+							'This session was excluded because it has no errors, according to your project settings.'
+						break
+					case SessionExcludedReason.IgnoredUser:
+						reasonText =
+							'This session was excluded because the user is set as ignored in your project settings.'
+						break
+					case SessionExcludedReason.ExclusionFilter:
+						reasonText =
+							'This session was excluded because it matches one of the exclusion filters in your project settings.'
+						break
+					case SessionExcludedReason.Initializing:
+						reasonText =
+							'This session is still being processed and will be ready to view soon.'
+						break
+					case SessionExcludedReason.Sampled:
+						reasonText =
+							'This session was excluded by the sampling settings in your project.'
+						break
+					case SessionExcludedReason.RateLimitMinute:
+						reasonText =
+							'This session was excluded by the rate limit settings in your project.'
 						break
 					default:
 						reasonText =

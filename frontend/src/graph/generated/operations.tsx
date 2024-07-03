@@ -4943,47 +4943,57 @@ export type GetTracesQueryVariables = Types.Exact<{
 }>
 
 export type GetTracesQuery = { __typename?: 'Query' } & {
-	traces: { __typename?: 'TraceConnection' } & {
-		edges: Array<
-			{ __typename?: 'TraceEdge' } & Pick<Types.TraceEdge, 'cursor'> & {
-					node: { __typename?: 'Trace' } & Pick<
-						Types.Trace,
-						| 'timestamp'
-						| 'traceID'
-						| 'spanID'
-						| 'parentSpanID'
-						| 'projectID'
-						| 'secureSessionID'
-						| 'traceState'
-						| 'spanName'
-						| 'spanKind'
-						| 'duration'
-						| 'serviceName'
-						| 'serviceVersion'
-						| 'environment'
-						| 'hasErrors'
-						| 'traceAttributes'
-						| 'statusCode'
-						| 'statusMessage'
-					> & {
-							events?: Types.Maybe<
-								Array<
-									Types.Maybe<
-										{ __typename?: 'TraceEvent' } & Pick<
-											Types.TraceEvent,
-											'timestamp' | 'name' | 'attributes'
+	traces: { __typename?: 'TraceConnection' } & Pick<
+		Types.TraceConnection,
+		'sampled'
+	> & {
+			edges: Array<
+				{ __typename?: 'TraceEdge' } & Pick<
+					Types.TraceEdge,
+					'cursor'
+				> & {
+						node: { __typename?: 'Trace' } & Pick<
+							Types.Trace,
+							| 'timestamp'
+							| 'traceID'
+							| 'spanID'
+							| 'parentSpanID'
+							| 'projectID'
+							| 'secureSessionID'
+							| 'traceState'
+							| 'spanName'
+							| 'spanKind'
+							| 'duration'
+							| 'serviceName'
+							| 'serviceVersion'
+							| 'environment'
+							| 'hasErrors'
+							| 'traceAttributes'
+							| 'statusCode'
+							| 'statusMessage'
+						> & {
+								events?: Types.Maybe<
+									Array<
+										Types.Maybe<
+											{
+												__typename?: 'TraceEvent'
+											} & Pick<
+												Types.TraceEvent,
+												| 'timestamp'
+												| 'name'
+												| 'attributes'
+											>
 										>
 									>
 								>
-							>
-						}
-				}
-		>
-		pageInfo: { __typename?: 'PageInfo' } & Pick<
-			Types.PageInfo,
-			'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
-		>
-	}
+							}
+					}
+			>
+			pageInfo: { __typename?: 'PageInfo' } & Pick<
+				Types.PageInfo,
+				'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
+			>
+		}
 }
 
 export type GetTracesMetricsQueryVariables = Types.Exact<{

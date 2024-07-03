@@ -52,7 +52,7 @@ type Session {
 	identifier: String!
 	identified: Boolean!
 	created_at: Timestamp!
-	payload_updated_at: Timestamp!
+	payload_updated_at: Timestamp
 	length: Int
 	active_length: Int
 	user_object: Any
@@ -878,6 +878,7 @@ type TraceEdge implements Edge {
 type TraceConnection implements Connection {
 	edges: [TraceEdge!]!
 	pageInfo: PageInfo!
+	sampled: Boolean!
 }
 
 type ErrorObjectNodeSession {

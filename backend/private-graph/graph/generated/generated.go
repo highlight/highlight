@@ -1518,6 +1518,7 @@ type ComplexityRoot struct {
 	TraceConnection struct {
 		Edges    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
+		Sampled  func(childComplexity int) int
 	}
 
 	TraceEdge struct {
@@ -10673,6 +10674,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TraceConnection.PageInfo(childComplexity), true
 
+	case "TraceConnection.sampled":
+		if e.complexity.TraceConnection.Sampled == nil {
+			break
+		}
+
+		return e.complexity.TraceConnection.Sampled(childComplexity), true
+
 	case "TraceEdge.cursor":
 		if e.complexity.TraceEdge.Cursor == nil {
 			break
@@ -11531,7 +11539,7 @@ type Session {
 	identifier: String!
 	identified: Boolean!
 	created_at: Timestamp!
-	payload_updated_at: Timestamp!
+	payload_updated_at: Timestamp
 	length: Int
 	active_length: Int
 	user_object: Any
@@ -12357,6 +12365,7 @@ type TraceEdge implements Edge {
 type TraceConnection implements Connection {
 	edges: [TraceEdge!]!
 	pageInfo: PageInfo!
+	sampled: Boolean!
 }
 
 type ErrorObjectNodeSession {
@@ -63437,6 +63446,8 @@ func (ec *executionContext) fieldContext_Query_traces(ctx context.Context, field
 				return ec.fieldContext_TraceConnection_edges(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_TraceConnection_pageInfo(ctx, field)
+			case "sampled":
+				return ec.fieldContext_TraceConnection_sampled(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TraceConnection", field.Name)
 		},
@@ -68259,14 +68270,11 @@ func (ec *executionContext) _Session_payload_updated_at(ctx context.Context, fie
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalNTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Session_payload_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -75961,6 +75969,50 @@ func (ec *executionContext) fieldContext_TraceConnection_pageInfo(ctx context.Co
 				return ec.fieldContext_PageInfo_endCursor(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TraceConnection_sampled(ctx context.Context, field graphql.CollectedField, obj *model.TraceConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TraceConnection_sampled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Sampled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TraceConnection_sampled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TraceConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -95000,9 +95052,6 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "payload_updated_at":
 			out.Values[i] = ec._Session_payload_updated_at(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "length":
 			out.Values[i] = ec._Session_length(ctx, field, obj)
 		case "active_length":
@@ -97116,6 +97165,11 @@ func (ec *executionContext) _TraceConnection(ctx context.Context, sel ast.Select
 			}
 		case "pageInfo":
 			out.Values[i] = ec._TraceConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sampled":
+			out.Values[i] = ec._TraceConnection_sampled(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
