@@ -11,8 +11,6 @@ import {
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
-import _ from 'lodash'
-import moment from 'moment'
 import React, {
 	PropsWithChildren,
 	useId,
@@ -25,16 +23,13 @@ import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
 import { SearchContext } from '@/components/Search/SearchContext'
-import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import {
-	useGetKeysQuery,
 	useGetVisualizationQuery,
 	useUpsertGraphMutation,
 } from '@/graph/generated/hooks'
 import {
 	GraphInput,
-	KeyType,
 	MetricAggregator,
 	ProductType,
 } from '@/graph/generated/schemas'
@@ -65,7 +60,6 @@ import { Combobox } from './Combobox'
 import {
 	DEFAULT_BUCKET_COUNT,
 	FUNCTION_TYPES,
-	NUMERIC_FUNCTION_TYPES,
 	PRODUCT_ICONS,
 	PRODUCTS,
 } from './constants'
@@ -294,50 +288,6 @@ export const GraphingEditor = () => {
 	const [bucketByKey, setBucketByKey] = useState(TIMESTAMP_KEY)
 	const [bucketCount, setBucketCount] = useState(DEFAULT_BUCKET_COUNT)
 
-	const [keysQuery, setKeysQuery] = useState('')
-
-	const { data: keys } = useGetKeysQuery({
-		variables: {
-			product_type: productType,
-			project_id: projectId,
-			date_range: {
-				start_date: moment(startDate).format(TIME_FORMAT),
-				end_date: moment(endDate).format(TIME_FORMAT),
-			},
-			query: keysQuery,
-			type: NUMERIC_FUNCTION_TYPES.includes(functionType)
-				? KeyType.Numeric
-				: undefined,
-		},
-	})
-
-	const allKeys = useMemo(
-		() =>
-			_.chain(keys?.keys || [])
-				.map('name')
-				.uniq()
-				.value() ?? [],
-		[keys?.keys],
-	)
-	// Get all unique numeric keys.
-	const numericKeys = useMemo(
-		() =>
-			_.chain(keys?.keys || [])
-				.filter({ type: KeyType.Numeric })
-				.map('name')
-				.uniq()
-				.value() ?? [],
-		[keys?.keys],
-	)
-
-	const bucketByKeys = useMemo(() => {
-		const baseArray = []
-		if (TIMESTAMP_KEY.toLowerCase().includes(keysQuery.toLowerCase())) {
-			baseArray.push(TIMESTAMP_KEY)
-		}
-		return baseArray.concat(numericKeys).slice(0, 8)
-	}, [numericKeys, keysQuery])
-
 	tempMetricViewTitle.current = useMemo(() => {
 		let newViewTitle = ''
 		const stringifiedFunctionType = functionType?.toString() ?? ''
@@ -365,6 +315,14 @@ export const GraphingEditor = () => {
 		nullHandling = tableNullHandling
 	}
 	const viewConfig = getViewConfig(viewType, display, nullHandling)
+
+	const searchOptionsConfig = useMemo(() => {
+		return {
+			productType,
+			startDate,
+			endDate,
+		}
+	}, [endDate, productType, startDate])
 
 	if (metaLoading) {
 		return null
@@ -619,16 +577,16 @@ export const GraphingEditor = () => {
 										{functionType !==
 											MetricAggregator.Count && (
 											<Combobox
-												options={
-													functionType ===
-													MetricAggregator.CountDistinct
-														? allKeys
-														: numericKeys
-												}
 												selection={metric}
 												setSelection={setMetric}
-												setQuery={setKeysQuery}
 												label="metric"
+												searchConfig={
+													searchOptionsConfig
+												}
+												onlyNumericKeys={
+													functionType !==
+													MetricAggregator.CountDistinct
+												}
 											/>
 										)}
 									</LabeledRow>
@@ -668,11 +626,10 @@ export const GraphingEditor = () => {
 										tooltip="A categorical field for grouping results into separate series."
 									>
 										<Combobox
-											options={allKeys}
 											selection={groupByKey}
 											setSelection={setGroupByKey}
-											setQuery={setKeysQuery}
 											label="groupBy"
+											searchConfig={searchOptionsConfig}
 										/>
 									</LabeledRow>
 									{groupByEnabled && (
@@ -718,13 +675,15 @@ export const GraphingEditor = () => {
 												{limitFunctionType !==
 													MetricAggregator.Count && (
 													<Combobox
-														options={numericKeys}
 														selection={limitMetric}
 														setSelection={
 															setLimitMetric
 														}
-														setQuery={setKeysQuery}
 														label="limitMetric"
+														searchConfig={
+															searchOptionsConfig
+														}
+														onlyNumericKeys
 													/>
 												)}
 											</LabeledRow>
@@ -741,11 +700,12 @@ export const GraphingEditor = () => {
 										tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
 									>
 										<Combobox
-											options={bucketByKeys}
 											selection={bucketByKey}
 											setSelection={setBucketByKey}
-											setQuery={setKeysQuery}
 											label="bucketBy"
+											searchConfig={searchOptionsConfig}
+											defaultKeys={[TIMESTAMP_KEY]}
+											onlyNumericKeys
 										/>
 									</LabeledRow>
 									{bucketByEnabled && (
