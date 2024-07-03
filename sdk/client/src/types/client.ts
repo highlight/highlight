@@ -167,6 +167,8 @@ export enum MetricName {
 	DeviceMemory = 'DeviceMemory',
 	ViewportHeight = 'ViewportHeight',
 	ViewportWidth = 'ViewportWidth',
+	ScreenHeight = 'ScreenHeight',
+	ScreenWidth = 'ScreenWidth',
 	ViewportArea = 'ViewportArea',
 }
 export enum MetricCategory {
