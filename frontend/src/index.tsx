@@ -410,6 +410,7 @@ const AuthenticationRoleRouter = () => {
 			<Helmet>
 				<title>highlight.io</title>
 			</Helmet>
+			<div id="portal"></div>
 			{adminError && user ? (
 				<ErrorState
 					message={

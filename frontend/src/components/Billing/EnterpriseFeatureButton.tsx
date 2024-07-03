@@ -4,6 +4,7 @@ import { useGetWorkspaceSettingsQuery } from '@graph/hooks'
 import { AllWorkspaceSettings } from '@graph/schemas'
 import { Box } from '@highlight-run/ui/components'
 import PlanComparisonPage from '@pages/Billing/PlanComparisonPage'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { PropsWithChildren, useCallback, useState } from 'react'
 
@@ -31,21 +32,27 @@ export default function EnterpriseFeatureButton({
 	className,
 	variant,
 }: PropsWithChildren<Props>) {
-	const { data, loading } = useGetWorkspaceSettingsQuery({})
+	const { currentWorkspace } = useApplicationContext()
+	const { data, loading } = useGetWorkspaceSettingsQuery({
+		variables: {
+			workspace_id: currentWorkspace?.id || '',
+		},
+		skip: !currentWorkspace?.id,
+	})
 
 	const [showPlanModal, setShowPlanModal] = useState<
 		'features' | 'calendly'
 	>()
 
 	const checkFeature = useCallback(async () => {
-		if (loading) return
-		if (!data[setting]) {
+		if (loading || !data?.workspaceSettings) return
+		if (!data.workspaceSettings[setting]) {
 			analytics.track(`enterprise-request-${name}`)
 			setShowPlanModal('features')
 			return
 		}
 		await fn()
-	}, [setting, fn, name])
+	}, [loading, data?.workspaceSettings, setting, fn, name])
 
 	let action: JSX.Element
 	if (variant === 'basic') {
