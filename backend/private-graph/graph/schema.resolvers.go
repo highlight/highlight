@@ -495,11 +495,11 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 		c, err = r.PricingClient.Customers.New(params)
 		if err != nil {
 			log.WithContext(ctx).Error(err, "error creating stripe customer")
+		} else {
+			if err := r.DB.WithContext(ctx).Model(&workspace).Updates(&model.Workspace{StripeCustomerID: &c.ID}).Error; err != nil {
+				return nil, e.Wrap(err, "error updating workspace StripeCustomerID")
+			}
 		}
-	}
-
-	if err := r.DB.WithContext(ctx).Model(&workspace).Updates(&model.Workspace{StripeCustomerID: &c.ID}).Error; err != nil {
-		return nil, e.Wrap(err, "error updating workspace StripeCustomerID")
 	}
 
 	return workspace, nil
