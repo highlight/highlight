@@ -179,6 +179,16 @@ public class HighlightConfig
                 {
                     options.Endpoint = new Uri(TracesEndpoint);
                     options.Protocol = ExportProtocol;
+
+                    if (builder.Environment.IsDevelopment())
+                    {
+                        var httpClientWithoutSsl = new HttpClient(new HttpClientHandler
+                        {
+                            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                        });
+
+                        options.HttpClient = httpClientWithoutSsl;
+                    }
                 }))
             .WithMetrics(metrics => metrics
                 .AddMeter(ServiceName)
@@ -187,6 +197,16 @@ public class HighlightConfig
                 {
                     options.Endpoint = new Uri(MetricsEndpoint);
                     options.Protocol = ExportProtocol;
+
+                    if (builder.Environment.IsDevelopment())
+                    {
+                        var httpClientWithoutSsl = new HttpClient(new HttpClientHandler
+                        {
+                            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                        });
+
+                        options.HttpClient = httpClientWithoutSsl;
+                    }
                 }));
     }
 }
