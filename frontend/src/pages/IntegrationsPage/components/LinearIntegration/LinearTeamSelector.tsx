@@ -4,7 +4,7 @@ import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerInt
 import useLocalStorage from '@rehooks/local-storage'
 import { useEffect, useMemo } from 'react'
 
-import { OptionDropdown } from '@/pages/Graphing/GraphingEditor'
+import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 
 const LinearTeamSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,

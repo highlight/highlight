@@ -2,27 +2,13 @@ import { toast } from '@components/Toaster'
 import {
 	Box,
 	Button,
-	ComboboxSelect,
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
 	Form,
-	IconSolidCheveronDown,
-	IconSolidDatabase,
-	IconSolidInformationCircle,
-	IconSolidLightningBolt,
-	IconSolidLogs,
-	IconSolidPlayCircle,
-	IconSolidSparkles,
 	Input,
-	Label,
-	Menu,
 	presetStartDate,
-	Stack,
-	TagSwitchGroup,
 	Text,
-	Tooltip,
 } from '@highlight-run/ui/components'
-import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
 import _ from 'lodash'
@@ -41,7 +27,6 @@ import { useDebounce } from 'react-use'
 import { SearchContext } from '@/components/Search/SearchContext'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
-import Switch from '@/components/Switch/Switch'
 import {
 	useGetKeysQuery,
 	useGetVisualizationQuery,
@@ -76,225 +61,24 @@ import {
 } from '@/pages/Graphing/components/Table'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 
+import { Combobox } from './Combobox'
+import {
+	DEFAULT_BUCKET_COUNT,
+	FUNCTION_TYPES,
+	NUMERIC_FUNCTION_TYPES,
+	PRODUCT_ICONS,
+	PRODUCTS,
+} from './constants'
 import * as style from './GraphingEditor.css'
-
-const DEFAULT_BUCKET_COUNT = 50
-
-const PRODUCTS: ProductType[] = [
-	ProductType.Logs,
-	ProductType.Traces,
-	ProductType.Sessions,
-	ProductType.Errors,
-	ProductType.Metrics,
-]
-
-const PRODUCT_ICONS = [
-	<IconSolidLogs key="logs" />,
-	<IconSolidSparkles key="traces" />,
-	<IconSolidPlayCircle key="sessions" />,
-	<IconSolidLightningBolt key="errors" />,
-	<IconSolidDatabase key="metrics" />,
-]
-
-const NUMERIC_FUNCTION_TYPES: MetricAggregator[] = [
-	MetricAggregator.Min,
-	MetricAggregator.Avg,
-	MetricAggregator.P50,
-	MetricAggregator.P90,
-	MetricAggregator.P95,
-	MetricAggregator.P99,
-	MetricAggregator.Max,
-	MetricAggregator.Sum,
-]
-
-const FUNCTION_TYPES: MetricAggregator[] = [
-	MetricAggregator.Count,
-	MetricAggregator.CountDistinct,
-	...NUMERIC_FUNCTION_TYPES,
-]
+import { LabeledRow } from './LabeledRow'
+import { OptionDropdown } from './OptionDropdown'
+import { BarChartSettings, LineChartSettings, TableSettings } from './Settings'
 
 const SidebarSection = (props: PropsWithChildren) => {
 	return (
 		<Box p="12" width="full" display="flex" flexDirection="column" gap="12">
 			{props.children}
 		</Box>
-	)
-}
-
-const GRAPHING_FIELD_DOCS_LINK =
-	'https://www.highlight.io/docs/general/product-features/metrics/graphing#graphing-fields'
-
-const InfoTooltip = ({ text }: { text: string }) => {
-	return (
-		<Tooltip
-			trigger={
-				<IconSolidInformationCircle
-					color={
-						vars.theme.interactive.fill.secondary.content.onDisabled
-					}
-					size={13}
-				/>
-			}
-		>
-			{text}{' '}
-			<a href={GRAPHING_FIELD_DOCS_LINK} target="_blank" rel="noreferrer">
-				Read more
-			</a>
-		</Tooltip>
-	)
-}
-
-const LabeledRow = ({
-	label,
-	name,
-	enabled,
-	setEnabled,
-	children,
-	tooltip,
-}: PropsWithChildren<{
-	label: string
-	name: string
-	enabled?: boolean
-	setEnabled?: (value: boolean) => void
-	tooltip?: string
-}>) => {
-	return (
-		<Box width="full" display="flex" flexDirection="column" gap="4">
-			<Box display="flex" flexDirection="row" gap="6">
-				<Label label={label} name={name} />
-				{tooltip !== undefined && <InfoTooltip text={tooltip} />}
-				{setEnabled !== undefined && (
-					<Switch
-						trackingId={`${label}-switch`}
-						size="small"
-						checked={enabled}
-						onChange={(enabled) => {
-							setEnabled(enabled)
-						}}
-					/>
-				)}
-			</Box>
-			{enabled !== false ? (
-				<Box display="flex" flexDirection="row" gap="4">
-					{children}
-				</Box>
-			) : null}
-		</Box>
-	)
-}
-
-const Combobox = ({
-	options,
-	selection,
-	setSelection,
-	setQuery,
-	label,
-}: {
-	options: string[]
-	selection: string
-	setSelection: (selection: string) => void
-	setQuery: (query: string) => void
-	label: string
-}) => {
-	return (
-		<ComboboxSelect
-			label={label}
-			value={selection}
-			valueRender={<Text cssClass={style.comboboxText}>{selection}</Text>}
-			options={options.map((o) => ({
-				key: o,
-				render: o,
-			}))}
-			onChange={(val: string) => {
-				setSelection(val)
-			}}
-			onChangeQuery={(val: string) => {
-				setQuery(val)
-			}}
-			cssClass={style.combobox}
-			wrapperCssClass={style.comboboxWrapper}
-			queryPlaceholder="Filter..."
-		/>
-	)
-}
-
-export const OptionDropdown = <T extends string>({
-	options,
-	selection,
-	setSelection,
-	icons,
-	labels,
-	tooltips,
-	disabled,
-}: {
-	options: T[]
-	selection: T
-	setSelection: (option: T) => void
-	icons?: JSX.Element[]
-	labels?: string[]
-	tooltips?: React.ReactNode[]
-	disabled?: boolean
-}) => {
-	const selectedIndex = options.indexOf(selection)
-	const selectedIcon = icons?.at(selectedIndex)
-	const selectedLabel = labels?.at(selectedIndex)
-	return (
-		<Menu>
-			<Menu.Button
-				kind="secondary"
-				size="small"
-				emphasis="medium"
-				cssClass={style.menuButton}
-				disabled={disabled}
-			>
-				<Box
-					width="full"
-					display="flex"
-					alignItems="center"
-					gap="4"
-					justifyContent="space-between"
-					cssClass={style.menuButtonInner}
-				>
-					<Stack direction="row" alignItems="center" gap="4">
-						{selectedIcon}
-						{selectedLabel ?? selection}
-					</Stack>
-					<IconSolidCheveronDown />
-				</Box>
-			</Menu.Button>
-			<Menu.List>
-				{options.map((p, idx) => {
-					let innerContent: React.ReactNode = (
-						<Stack
-							direction="row"
-							alignItems="center"
-							gap="4"
-							width="full"
-						>
-							{icons?.at(idx)}
-							{labels?.at(idx) ?? p}
-						</Stack>
-					)
-					if (tooltips !== undefined) {
-						innerContent = (
-							<Tooltip placement="left" trigger={innerContent}>
-								{tooltips[idx]}
-							</Tooltip>
-						)
-					}
-					return (
-						<Menu.Item
-							key={p}
-							onClick={() => {
-								setSelection(p as T)
-							}}
-						>
-							{innerContent}
-						</Menu.Item>
-					)
-				})}
-			</Menu.List>
-		</Menu>
 	)
 }
 
@@ -324,99 +108,6 @@ const EditorBackground = () => {
 		</svg>
 	)
 }
-
-const LineChartSettings = ({
-	nullHandling,
-	setNullHandling,
-	lineDisplay,
-	setLineDisplay,
-}: {
-	nullHandling: LineNullHandling
-	setNullHandling: (option: LineNullHandling) => void
-	lineDisplay: LineDisplay
-	setLineDisplay: (option: LineDisplay) => void
-}) => (
-	<>
-		<LabeledRow
-			label="Line display"
-			name="lineDisplay"
-			tooltip="Lines in charts with multiple series can be stacked."
-		>
-			<TagSwitchGroup
-				options={LINE_DISPLAY}
-				defaultValue={lineDisplay}
-				onChange={(o: string | number) => {
-					setLineDisplay(o as LineDisplay)
-				}}
-				cssClass={style.tagSwitch}
-			/>
-		</LabeledRow>
-		<LabeledRow
-			label="Nulls"
-			name="lineNullHandling"
-			tooltip="Determines how null / empty values are handled."
-		>
-			<TagSwitchGroup
-				options={LINE_NULL_HANDLING}
-				defaultValue={nullHandling}
-				onChange={(o: string | number) => {
-					setNullHandling(o as LineNullHandling)
-				}}
-				cssClass={style.tagSwitch}
-			/>
-		</LabeledRow>
-	</>
-)
-
-const BarChartSettings = ({
-	barDisplay,
-	setBarDisplay,
-}: {
-	barDisplay: BarDisplay
-	setBarDisplay: (option: BarDisplay) => void
-}) => (
-	<>
-		<LabeledRow
-			label="Bar display"
-			name="barDisplay"
-			tooltip="Bars in charts with multiple series can be stacked or displayed next to each other."
-		>
-			<TagSwitchGroup
-				options={BAR_DISPLAY}
-				defaultValue={barDisplay}
-				onChange={(o: string | number) => {
-					setBarDisplay(o as BarDisplay)
-				}}
-				cssClass={style.tagSwitch}
-			/>
-		</LabeledRow>
-	</>
-)
-
-const TableSettings = ({
-	nullHandling,
-	setNullHandling,
-}: {
-	nullHandling: TableNullHandling
-	setNullHandling: (option: TableNullHandling) => void
-}) => (
-	<>
-		<LabeledRow
-			label="Nulls"
-			name="tableNullHandling"
-			tooltip="Determines how null / empty values are handled."
-		>
-			<TagSwitchGroup
-				options={TABLE_NULL_HANDLING}
-				defaultValue={nullHandling}
-				onChange={(o: string | number) => {
-					setNullHandling(o as TableNullHandling)
-				}}
-				cssClass={style.tagSwitch}
-			/>
-		</LabeledRow>
-	</>
-)
 
 export const GraphingEditor = () => {
 	const { dashboard_id, graph_id } = useParams<{
