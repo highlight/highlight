@@ -300,11 +300,7 @@ class H(object):
                 raise
 
     @staticmethod
-    def record_background_span():
-        pass
-
-    @staticmethod
-    def propagate_otel_context_process(carrier: dict, fn: typing.Callable):
+    def propagate_context(carrier: dict, fn: typing.Callable):
         ctx = extract(carrier)
         token = context.attach(ctx)
         try:

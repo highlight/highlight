@@ -13,7 +13,7 @@ H = highlight_io.H("1", instrument_logging=True, otlp_endpoint="http://localhost
 class Worker(threading.Thread):
     def run(self) -> list[str]:
         with H.trace(span_name="thread-child"):
-            return ['yo']
+            return ["yo"]
 
 
 def propagate_otel_context_process(carrier: dict, fn: Callable):
