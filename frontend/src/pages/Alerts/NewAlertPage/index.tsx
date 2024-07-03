@@ -7,6 +7,7 @@ import {
 	Form,
 	Input,
 	presetStartDate,
+	Stack,
 	Text,
 } from '@highlight-run/ui/components'
 import { Divider } from 'antd'
@@ -21,6 +22,7 @@ import { useCreateAlertMutation } from '@/graph/generated/hooks'
 import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
+import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import {
 	ALERT_CONDITION_OPTIONS,
 	AlertCondition,
@@ -77,6 +79,10 @@ const EditorBackground = () => {
 	)
 }
 
+const DEFAULT_THRESHOLD = 1
+const DEFAULT_WINDOW = 60 * 30
+const DEFAULT_COOLDOWN = 60 * 30
+
 export const NewAlertPage: React.FC = () => {
 	const { projectId } = useProjectId()
 
@@ -108,9 +114,10 @@ export const NewAlertPage: React.FC = () => {
 	const [groupByKey, setGroupByKey] = useState('')
 
 	const [belowThreshold, setBelowThreshold] = useState(false)
-	const [thresholdCount, setThresholdCount] = useState(10)
-	const [thresholdWindow, setThresholdWindow] = useState(60)
-	const [thresholdCooldown, setThresholdCooldown] = useState(60)
+	const [thresholdCount, setThresholdCount] = useState(DEFAULT_THRESHOLD)
+	const [thresholdWindow, setThresholdWindow] = useState(DEFAULT_WINDOW)
+	const [thresholdCooldown, setThresholdCooldown] =
+		useState<number>(DEFAULT_COOLDOWN)
 
 	const viewConfig = getViewConfig(
 		'Line chart',
@@ -388,47 +395,62 @@ export const NewAlertPage: React.FC = () => {
 											}}
 										/>
 									</LabeledRow>
-									<LabeledRow
-										label="Threshold count"
-										name="thresholdCount"
-									>
-										<Input
+									<Stack direction="row" gap="12">
+										<LabeledRow
+											label="Alert threshold"
 											name="thresholdCount"
-											type="number"
-											value={thresholdCount}
-											onChange={(e) => {
-												setThresholdCount(
-													Number(e.target.value),
-												)
-											}}
-										/>
-									</LabeledRow>
-									<LabeledRow
-										label="Threshold window"
-										name="thresholdWindow"
-									>
-										<Input
+										>
+											<Input
+												name="thresholdCount"
+												type="number"
+												value={thresholdCount}
+												onChange={(e) => {
+													setThresholdCount(
+														Number(e.target.value),
+													)
+												}}
+											/>
+										</LabeledRow>
+
+										<LabeledRow
+											label="Alert frequency"
 											name="thresholdWindow"
-											type="number"
-											value={thresholdWindow}
-											onChange={(e) => {
-												setThresholdWindow(
-													Number(e.target.value),
-												)
-											}}
-										/>
-									</LabeledRow>
+										>
+											<OptionDropdown<string>
+												options={FREQUENCIES.map(
+													(f) => f.value,
+												)}
+												labels={FREQUENCIES.map(
+													(f) => f.displayValue,
+												)}
+												selection={String(
+													thresholdWindow,
+												)}
+												setSelection={(option) => {
+													setThresholdWindow(
+														Number(option),
+													)
+												}}
+											/>
+										</LabeledRow>
+									</Stack>
 									<LabeledRow
-										label="Threshold cooldown"
+										label="Cooldown"
 										name="thresholdCooldown"
 									>
-										<Input
-											name="thresholdCooldown"
-											type="number"
-											value={thresholdCooldown}
-											onChange={(e) => {
+										<OptionDropdown<string>
+											options={FREQUENCIES.map(
+												(f) => f.value,
+											)}
+											labels={FREQUENCIES.map(
+												(f) => f.displayValue,
+											)}
+											selection={String(
+												thresholdCooldown,
+											)}
+											setSelection={(option) => {
 												setThresholdCooldown(
-													Number(e.target.value),
+													Number(option),
 												)
 											}}
 										/>
