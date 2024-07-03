@@ -9,15 +9,8 @@ import (
 )
 
 const AlertStateChangesTable = "alert_state_changes"
-const AlertMetricHistoryTable = "alert_metric_history"
+const MetricHistoryTable = "metric_history"
 const AlertHistoryMaxLookback = 2 * time.Hour
-
-type AlertMetricHistory struct {
-	AlertID    int
-	GroupByKey string
-	Timestamp  time.Time
-	Value      float64
-}
 
 func (client *Client) ReadAlertStateChanges(ctx context.Context, projectId int, alertId int, startDate time.Time, endDate time.Time) ([]modelInputs.AlertStateChange, error) {
 	sb := sqlbuilder.NewSelectBuilder()
@@ -46,35 +39,49 @@ func (client *Client) ReadAlertStateChanges(ctx context.Context, projectId int, 
 	return results, nil
 }
 
-func (client *Client) GetMaxBlockId(ctx context.Context, alertId int, endDate time.Time) (uint64, error) {
+type SavedMetricState struct {
+	AlertId         int
+	BlockNumberInfo []BlockNumberInfo
+}
+
+type BlockNumberInfo struct {
+	Partition       string
+	LastBlockNumber int
+}
+
+func (client *Client) GetBlockNumbers(ctx context.Context, metricId int, endDate time.Time) ([]BlockNumberInfo, error) {
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("maxMerge(MaxBlockNumberState)")
-	sb.From(AlertMetricHistoryTable)
-	sb.Where(sb.Equal("AlertID", alertId))
+	sb.Select("toString(toDate(date_trunc('day', Timestamp)))",
+		"maxMerge(MaxBlockNumberState)")
+	sb.From(MetricHistoryTable)
+	sb.Where(sb.Equal("MetricId", metricId))
 	sb.Where(sb.GreaterEqualThan("Timestamp", endDate.Add(-AlertHistoryMaxLookback)))
 	sb.Where(sb.LessEqualThan("Timestamp", endDate))
+	sb.GroupBy("1")
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 	rows, err := client.conn.Query(ctx, sql, args...)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	var result uint64
+	var results []BlockNumberInfo
 	for rows.Next() {
+		var result BlockNumberInfo
 		if err := rows.ScanStruct(&result); err != nil {
-			return 0, err
+			return nil, err
 		}
+		results = append(results, result)
 	}
 
-	return result, nil
+	return results, nil
 }
 
-func (client *Client) AggregateAlertStates(ctx context.Context, alertId int, endDate time.Time) (uint64, error) {
+func (client *Client) AggregateMetricStates(ctx context.Context, metricId int, endDate time.Time) (uint64, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select("maxMerge(MaxBlockNumberState)")
-	sb.From(AlertMetricHistoryTable)
-	sb.Where(sb.Equal("AlertID", alertId))
+	sb.From(MetricHistoryTable)
+	sb.Where(sb.Equal("MetricId", metricId))
 	sb.Where(sb.GreaterEqualThan("Timestamp", endDate.Add(-AlertHistoryMaxLookback)))
 	sb.Where(sb.LessEqualThan("Timestamp", endDate))
 

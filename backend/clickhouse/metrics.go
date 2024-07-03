@@ -13,7 +13,7 @@ import (
 
 const MetricNamesTable = "trace_metrics"
 
-var metricsTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
+var metricsTableConfig = model.TableConfig{
 	AttributesColumn: TracesTableNoDefaultConfig.AttributesColumn,
 	BodyColumn:       TracesTableNoDefaultConfig.BodyColumn,
 	KeysToColumns:    TracesTableNoDefaultConfig.KeysToColumns,
@@ -22,7 +22,7 @@ var metricsTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
 	TableName:        TracesTableNoDefaultConfig.TableName,
 }
 
-var metricsSamplingTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
+var metricsSamplingTableConfig = model.TableConfig{
 	AttributesColumn: metricsTableConfig.AttributesColumn,
 	BodyColumn:       metricsTableConfig.BodyColumn,
 	KeysToColumns:    metricsTableConfig.KeysToColumns,
@@ -31,7 +31,7 @@ var metricsSamplingTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]
 	TableName:        fmt.Sprintf("%s SAMPLE %d", TracesSamplingTable, SamplingRows),
 }
 
-var metricsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedTraceKey]{
+var MetricsSampleableTableConfig = SampleableTableConfig{
 	tableConfig:         metricsTableConfig,
 	samplingTableConfig: metricsSamplingTableConfig,
 	useSampling: func(d time.Duration) bool {
@@ -41,32 +41,32 @@ var metricsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedTra
 
 func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	params.Query = params.Query + " " + modelInputs.ReservedTraceKeyMetricName.String() + "=" + column
-	return ReadMetrics(ctx, client, readMetricsInput[modelInputs.ReservedTraceKey]{
-		sampleableConfig: metricsSampleableTableConfig,
-		projectIDs:       []int{projectID},
-		params:           params,
-		column:           column,
-		metricTypes:      metricTypes,
-		groupBy:          groupBy,
-		bucketCount:      nBuckets,
-		bucketBy:         bucketBy,
-		limit:            limit,
-		limitAggregator:  limitAggregator,
-		limitColumn:      limitColumn,
+	return client.ReadMetrics(ctx, ReadMetricsInput{
+		SampleableConfig: MetricsSampleableTableConfig,
+		ProjectIDs:       []int{projectID},
+		Params:           params,
+		Column:           column,
+		MetricTypes:      metricTypes,
+		GroupBy:          groupBy,
+		BucketCount:      nBuckets,
+		BucketBy:         bucketBy,
+		Limit:            limit,
+		LimitAggregator:  limitAggregator,
+		LimitColumn:      limitColumn,
 	})
 }
 
 func (client *Client) ReadWorkspaceMetricCounts(ctx context.Context, projectIDs []int, params modelInputs.QueryInput) (*modelInputs.MetricsBuckets, error) {
 	params.Query = params.Query + " " + modelInputs.ReservedTraceKeyMetricValue.String() + " exists"
 	// 12 buckets - 12 months in a year, or 12 weeks in a quarter
-	return ReadMetrics(ctx, client, readMetricsInput[modelInputs.ReservedTraceKey]{
-		sampleableConfig: metricsSampleableTableConfig,
-		projectIDs:       projectIDs,
-		params:           params,
-		column:           "",
-		metricTypes:      []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount},
-		bucketCount:      pointy.Int(12),
-		bucketBy:         modelInputs.MetricBucketByTimestamp.String(),
+	return client.ReadMetrics(ctx, ReadMetricsInput{
+		SampleableConfig: MetricsSampleableTableConfig,
+		ProjectIDs:       projectIDs,
+		Params:           params,
+		Column:           "",
+		MetricTypes:      []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount},
+		BucketCount:      pointy.Int(12),
+		BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
 	})
 }
 

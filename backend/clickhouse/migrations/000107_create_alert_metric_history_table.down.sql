@@ -1,1 +1,0 @@
-DROP TABLE IF EXISTS alert_metric_history

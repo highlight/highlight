@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"strings"
+
 	"github.com/antlr4-go/antlr/v4"
 	"github.com/highlight-run/highlight/backend/model"
 	parser "github.com/highlight-run/highlight/backend/parser/antlr"
@@ -9,14 +11,13 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/huandu/go-sqlbuilder"
 	"go.opentelemetry.io/otel/trace"
-	"strings"
 )
 
-func GetSearchListener[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, query string, tableConfig model.TableConfig[T]) *listener.SearchListener[T] {
+func GetSearchListener(sqlBuilder *sqlbuilder.SelectBuilder, query string, tableConfig model.TableConfig) *listener.SearchListener {
 	return listener.NewSearchListener(sqlBuilder, tableConfig)
 }
 
-func GetSearchFilters[T ~string](query string, tableConfig model.TableConfig[T], listener *listener.SearchListener[T]) listener.Filters {
+func GetSearchFilters(query string, tableConfig model.TableConfig, listener *listener.SearchListener) listener.Filters {
 	s := util.StartSpan("GetSearchFilters", util.WithSpanKind(trace.SpanKindServer), util.Tag("query", query))
 	defer s.Finish()
 
@@ -33,12 +34,12 @@ func GetSearchFilters[T ~string](query string, tableConfig model.TableConfig[T],
 	return listener.GetFilters()
 }
 
-func AssignSearchFilters[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, query string, tableConfig model.TableConfig[T]) listener.Filters {
+func AssignSearchFilters(sqlBuilder *sqlbuilder.SelectBuilder, query string, tableConfig model.TableConfig) listener.Filters {
 	l := GetSearchListener(sqlBuilder, query, tableConfig)
 	return GetSearchFilters(query, tableConfig, l)
 }
 
-func Parse[T ~string](query string, tableConfig model.TableConfig[T]) listener.Filters {
+func Parse(query string, tableConfig model.TableConfig) listener.Filters {
 	sqlBuilder := sqlbuilder.NewSelectBuilder().Select("*").From("t")
 	return AssignSearchFilters(sqlBuilder, query, tableConfig)
 }
