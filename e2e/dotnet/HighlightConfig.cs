@@ -159,7 +159,7 @@ public class HighlightConfig
                             ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
                         });
 
-                        exporterOptions.HttpClient = httpClientWithoutSsl;
+                        exporterOptions.HttpClientFactory = () => httpClientWithoutSsl;
                     }
                 });
         });
@@ -187,7 +187,7 @@ public class HighlightConfig
                             ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
                         });
 
-                        options.HttpClient = httpClientWithoutSsl;
+                        options.HttpClientFactory = () => httpClientWithoutSsl;
                     }
                 }))
             .WithMetrics(metrics => metrics
@@ -205,7 +205,7 @@ public class HighlightConfig
                             ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
                         });
 
-                        options.HttpClient = httpClientWithoutSsl;
+                        options.HttpClientFactory = () => httpClientWithoutSsl;
                     }
                 }));
     }
