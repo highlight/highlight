@@ -24,14 +24,6 @@ type Props = {
 	defaultKeys?: string[]
 }
 
-// const bucketByKeys = useMemo(() => {
-// 	const baseArray = []
-// 	if (TIMESTAMP_KEY.toLowerCase().includes(keysQuery.toLowerCase())) {
-// 		baseArray.push(TIMESTAMP_KEY)
-// 	}
-// 	return baseArray.concat(numericKeys).slice(0, 8)
-// }, [numericKeys, keysQuery])
-
 export const Combobox: React.FC<Props> = ({
 	selection,
 	setSelection,
