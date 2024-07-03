@@ -151,16 +151,6 @@ public class HighlightConfig
                 {
                     exporterOptions.Endpoint = new Uri(LogsEndpoint);
                     exporterOptions.Protocol = ExportProtocol;
-
-                    if (builder.Environment.IsDevelopment())
-                    {
-                        var httpClientWithoutSsl = new HttpClient(new HttpClientHandler
-                        {
-                            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                        });
-
-                        exporterOptions.HttpClientFactory = () => httpClientWithoutSsl;
-                    }
                 });
         });
 
@@ -179,16 +169,6 @@ public class HighlightConfig
                 {
                     options.Endpoint = new Uri(TracesEndpoint);
                     options.Protocol = ExportProtocol;
-
-                    if (builder.Environment.IsDevelopment())
-                    {
-                        var httpClientWithoutSsl = new HttpClient(new HttpClientHandler
-                        {
-                            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                        });
-
-                        options.HttpClientFactory = () => httpClientWithoutSsl;
-                    }
                 }))
             .WithMetrics(metrics => metrics
                 .AddMeter(ServiceName)
@@ -197,16 +177,6 @@ public class HighlightConfig
                 {
                     options.Endpoint = new Uri(MetricsEndpoint);
                     options.Protocol = ExportProtocol;
-
-                    if (builder.Environment.IsDevelopment())
-                    {
-                        var httpClientWithoutSsl = new HttpClient(new HttpClientHandler
-                        {
-                            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                        });
-
-                        options.HttpClientFactory = () => httpClientWithoutSsl;
-                    }
                 }));
     }
 }
