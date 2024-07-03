@@ -202,6 +202,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				traceID := cast(fields.requestID, span.TraceID().String())
 				spanID := span.SpanID().String()
 
+				// TODO(vkorolik) deduplicate
 				spanHasErrors := false
 				for l := 0; l < events.Len(); l++ {
 					if skipped {
@@ -293,6 +294,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						projectTraceMetrics[fields.projectID][fields.sessionID] = append(projectTraceMetrics[fields.projectID][fields.sessionID], metric)
 					}
 					// process unknown events as trace events
+
+					// for ruby SDKs, only process the first event to avoid duplicates
+					if fields.attrs["process.runtime.name"] == "ruby" && fields.attrs["telemetry.sdk.name"] == "opentelemetry" {
+						break
+					}
 				}
 
 				// skip logrus spans
