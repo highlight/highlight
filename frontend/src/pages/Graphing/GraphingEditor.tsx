@@ -103,7 +103,7 @@ const EditorBackground = () => {
 	)
 }
 
-export const GraphingEditor = () => {
+export const GraphingEditor: React.FC = () => {
 	const { dashboard_id, graph_id } = useParams<{
 		dashboard_id: string
 		graph_id: string
