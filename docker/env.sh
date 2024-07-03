@@ -39,8 +39,8 @@ else
     export CLICKHOUSE_ADDRESS=localhost:9000
     export KAFKA_ADVERTISED_LISTENERS="PLAINTEXT://localhost:9092"
     export KAFKA_SERVERS=localhost:9092
-    export OTLP_DOGFOOD_ENDPOINT=https://localhost:4318
-    export OTLP_ENDPOINT=https://localhost:4318
+    export OTLP_DOGFOOD_ENDPOINT=http://localhost:4318
+    export OTLP_ENDPOINT=http://localhost:4318
     export PSQL_HOST=localhost
     export REDIS_EVENTS_STAGING_ENDPOINT=localhost:6379
 fi

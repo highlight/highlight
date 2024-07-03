@@ -34,7 +34,7 @@ var logger highlight.Logger = MyLogger{}
 
 func main() {
 	highlight.SetDebugMode(logger)
-	highlight.SetOTLPEndpoint("https://localhost:4318")
+	highlight.SetOTLPEndpoint("http://localhost:4318")
 	highlight.Start(
 		highlight.WithServiceName("my-go-service"),
 		highlight.WithProjectID("1"),

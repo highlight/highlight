@@ -16,7 +16,7 @@ import (
 
 func main() {
 	highlight.SetProjectID("1jdkoe52")
-	highlight.SetOTLPEndpoint("https://localhost:4318")
+	highlight.SetOTLPEndpoint("http://localhost:4318")
 	highlight.Start(
 		highlight.WithServiceName("go-echo-app"),
 		highlight.WithServiceVersion("abc123"),

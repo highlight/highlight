@@ -27,7 +27,7 @@ namespace cs
     public class HighlightConfig
     {
         // For highlight.io cloud, use https://otel.highlight.io:4318
-        public static readonly String OtlpEndpoint = "https://localhost:4318";
+        public static readonly String OtlpEndpoint = "http://localhost:4318";
 
         // Replace with your project ID and service name.
         public static readonly String ProjectId = "1";
@@ -80,13 +80,13 @@ namespace cs
             activity.SetTag("http.scheme", httpRequest.Url.Scheme);
             activity.SetTag("http.url", httpRequest.Path);
             activity.SetTag("http.user_agent", httpRequest.Headers["User-Agent"]);
-            
+
             foreach(string header in httpRequest.Headers)
             {
                 var value = httpRequest.Headers[header];
                 activity.SetTag($"http.request.header.{header}", value);
             }
-            
+
             var headerValue = httpRequest.Headers.Get(HighlightHeader);
             if (headerValue == null) return;
             var parts = headerValue.Split('/');
@@ -102,7 +102,7 @@ namespace cs
         private static void EnrichWithHttpResponse(Activity activity, HttpResponse httpResponse)
         {
             activity.SetTag("http.status_code", httpResponse.StatusCode);
-            
+
             foreach(string header in httpResponse.Headers)
             {
                 var value = httpResponse.Headers[header];
@@ -139,7 +139,7 @@ namespace cs
                })
                .Build();
         }
-        
+
         public static void Unregister()
         {
             _tracerProvider.Dispose();
