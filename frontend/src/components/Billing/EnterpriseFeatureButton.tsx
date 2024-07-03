@@ -8,12 +8,13 @@ import { useApplicationContext } from '@routers/AppRouter/context/ApplicationCon
 import analytics from '@util/analytics'
 import { PropsWithChildren, useCallback, useState } from 'react'
 
-type Feature = 'Session Download' | 'Session CSV Report'
+type Feature = 'Session Download' | 'Session CSV Report' | 'Multiple Projects'
 
 const FEATURE_DESCRIPTIONS = {
-	'Session Download': 'Download a video .MP4 playback of the session.',
+	'Session Download': 'download a video .MP4 playback of the session.',
 	'Session CSV Report':
-		'Download a CSV report aggregating all sessions in the results feed.',
+		'download a CSV report aggregating all sessions in the results feed.',
+	'Multiple Projects': 'create more than 1 project to segment your data.',
 } as { [K in Feature]: string }
 
 interface Props {
@@ -87,7 +88,9 @@ export default function EnterpriseFeatureButton({
 						<PlanComparisonPage
 							setSelectedPlanType={() => {}}
 							setStep={() => {}}
-							title={`${name} is only available on enterprise plans.`}
+							title={`${name} ${
+								name.endsWith('s') ? 'are' : 'is'
+							} only available on enterprise plans.`}
 							description={FEATURE_DESCRIPTIONS[name]}
 							howCanWeHelp={`I would like to use the ${name} feature.`}
 							enterprise

@@ -57,6 +57,7 @@ import {
 	RetentionPeriod,
 } from '@/graph/generated/schemas'
 import {
+	PLANS_WITH_ENTERPRISE_FEATURES,
 	RETENTION_PERIOD_LABELS,
 	tryCastDate,
 } from '@/pages/Billing/utils/utils'
@@ -1209,7 +1210,7 @@ const PLANS = {
 	},
 	[PlanType.Graduated]: {
 		type: PlanType.Graduated,
-		name: 'Pay as you go (Cloud)',
+		name: 'Developer',
 		descriptions: [
 			'Monitoring for your production application',
 			'Flexible billing that scales as you grow',
@@ -1217,26 +1218,14 @@ const PLANS = {
 		icon: <IconSolidPuzzle size="24" color="#0090FF" />,
 		price: 50,
 	},
-	[PlanType.Enterprise]: {
-		type: PlanType.Enterprise,
-		name: 'Enterprise (Cloud)',
+	[PlanType.Business]: {
+		type: PlanType.Business,
+		name: 'Business',
 		descriptions: [
+			'Unlimited projects, user seats, and dashboards',
+			'Configurable spend limits and data retention',
+			'Reporting and analytics for sessions and more',
 			'MP4 video export for sessions',
-			'Reporting and analysis for sessions and more',
-			'Robust availability for large-scale teams',
-			'Support for SSO, RBAC, and other organizational requirements',
-		],
-		icon: <IconSolidServer size="24" color="#E93D82" />,
-		price: 'Custom',
-	},
-	'Self-host': {
-		type: PlanType.Enterprise,
-		name: 'Enterprise (Self-hosted)',
-		descriptions: [
-			'Highly-available on-prem deployments',
-			'Bring your own infrastructure',
-			'Customized data storage and retention',
-			'Govern data in your environment',
 		],
 		icon: (
 			<IconSolidOfficeBuilding
@@ -1244,6 +1233,18 @@ const PLANS = {
 				color={vars.theme.static.content.default}
 			/>
 		),
+		price: 400,
+	},
+	[PlanType.Enterprise]: {
+		type: PlanType.Enterprise,
+		name: 'Enterprise',
+		descriptions: [
+			'Highly-available on-prem deployments',
+			'Customized data storage and retention',
+			'Robust availability for large-scale teams',
+			'Support for SSO, RBAC, and other organizational requirements',
+		],
+		icon: <IconSolidServer size="24" color="#E93D82" />,
 		price: 'Custom',
 	},
 } as { [plan in PlanType | 'Self-host']: Plan }
@@ -1303,7 +1304,7 @@ const PlanCard = ({
 				{plan.name}
 			</Text>
 			<h3 style={{ fontWeight: 700 }}>
-				{plan.price === 'Custom' ? plan.price : `${plan.price}`}
+				{plan.price === 'Custom' ? plan.price : `$${plan.price}`}
 			</h3>
 			{plan.price === 'Custom' ? null : (
 				<Text
@@ -1366,6 +1367,7 @@ const PlanCard = ({
 							display: 'grid',
 							gap: 4,
 							gridTemplateColumns: '14px 1fr',
+							alignItems: 'center',
 						}}
 						key={d}
 					>
@@ -1412,7 +1414,9 @@ export const PlanComparisonPage: React.FC<{
 				{title ? (
 					<Callout title={title}>
 						<Box mb="6">
-							<Text color="moderate">{description}</Text>
+							<Text color="moderate">
+								Upgrade to {description}
+							</Text>
 						</Box>
 					</Callout>
 				) : null}
@@ -1431,11 +1435,14 @@ export const PlanComparisonPage: React.FC<{
 						.filter(
 							([, plan]) =>
 								!enterprise ||
-								plan.type === PlanType.Enterprise,
+								PLANS_WITH_ENTERPRISE_FEATURES.has(plan.type),
 						)
 						.map(([, plan]) => (
 							<PlanCard
-								currentPlanType={data?.billingDetails.plan.type}
+								currentPlanType={
+									data?.billingDetails.plan.type ??
+									PlanType.Free
+								}
 								plan={plan}
 								setSelectedPlanType={setSelectedPlanType}
 								setStep={setStep}

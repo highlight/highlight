@@ -11779,6 +11779,7 @@ enum PlanType {
 	Enterprise
 	UsageBased
 	Graduated
+	Business
 }
 
 enum ProductType {

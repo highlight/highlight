@@ -2018,6 +2018,7 @@ export type Plan = {
 
 export enum PlanType {
 	Basic = 'Basic',
+	Business = 'Business',
 	Enterprise = 'Enterprise',
 	Free = 'Free',
 	Graduated = 'Graduated',

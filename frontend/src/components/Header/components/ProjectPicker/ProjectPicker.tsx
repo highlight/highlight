@@ -12,11 +12,9 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { SIGN_UP_ROUTE } from '@pages/Auth/AuthRouter'
-import style from '@pages/Player/Toolbar/ToolbarControlBar/ToolbarControlBar.module.css'
 import { generateRandomColor } from '@util/color'
 import { DEMO_PROJECT_NAME } from '@util/constants/constants'
 import { useParams } from '@util/react-router/useParams'
-import clsx from 'clsx'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
@@ -121,7 +119,7 @@ const ProjectPicker = () => {
 									<Menu.Item>
 											<EnterpriseFeatureButton
 												setting="enable_business_projects"
-												name="Session Download"
+												name="Multiple Projects"
 												fn={async () =>
 													navigate(
 														`/w/${currentWorkspace?.id}/new`,
@@ -134,12 +132,7 @@ const ProjectPicker = () => {
 													)
 												}
 												variant="basic"
-												size="small"
-												emphasis="low"
-												className={clsx(
-													style.settingsButton,
-													style.downloadButton,
-												)}
+												className={linkStyle}
 											>
 												<Box
 													display="flex"
