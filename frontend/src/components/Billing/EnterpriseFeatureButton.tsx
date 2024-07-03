@@ -1,5 +1,7 @@
 import { CalendlyModal } from '@components/CalendlyModal/CalendlyButton'
 import { Modal } from '@components/Modal/ModalV2'
+import { useGetWorkspaceSettingsQuery } from '@graph/hooks'
+import { AllWorkspaceSettings } from '@graph/schemas'
 import { Box } from '@highlight-run/ui/components'
 import PlanComparisonPage from '@pages/Billing/PlanComparisonPage'
 import analytics from '@util/analytics'
@@ -14,7 +16,7 @@ const FEATURE_DESCRIPTIONS = {
 } as { [K in Feature]: string }
 
 interface Props {
-	enabled: boolean | 'force'
+	setting: keyof AllWorkspaceSettings
 	name: Feature
 	fn: () => Promise<any>
 	className?: string
@@ -22,25 +24,28 @@ interface Props {
 }
 
 export default function EnterpriseFeatureButton({
-	enabled,
+	setting,
 	name,
 	fn,
 	children,
 	className,
 	variant,
 }: PropsWithChildren<Props>) {
+	const { data, loading } = useGetWorkspaceSettingsQuery({})
+
 	const [showPlanModal, setShowPlanModal] = useState<
 		'features' | 'calendly'
 	>()
 
 	const checkFeature = useCallback(async () => {
-		if (!enabled) {
+		if (loading) return
+		if (!data[setting]) {
 			analytics.track(`enterprise-request-${name}`)
 			setShowPlanModal('features')
 			return
 		}
 		await fn()
-	}, [enabled, fn, name])
+	}, [setting, fn, name])
 
 	let action: JSX.Element
 	if (variant === 'basic') {

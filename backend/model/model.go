@@ -467,15 +467,20 @@ type AllWorkspaceSettings struct {
 	ErrorEmbeddingsThreshold  float64 `gorm:"default:0.2"`
 	ReplaceAssets             bool    `gorm:"default:false"`
 	StoreIP                   bool    `gorm:"default:false"`
-	EnableSessionExport       bool    `gorm:"default:false"`
-	EnableIngestSampling      bool    `gorm:"default:false"`
-	EnableUnlistedSharing     bool    `gorm:"default:true"`
-	EnableNetworkTraces       bool    `gorm:"default:true"`
-	EnableBillingLimits       bool    `gorm:"default:false"` // old plans grandfathered in to true
-	EnableDataDeletion        bool    `gorm:"default:true"`
 	CanShowBillingIssueBanner bool    `gorm:"default:true"`
-	EnableGrafanaDashboard    bool    `gorm:"default:false"`
-	EnableProjectLevelAccess  bool    `gorm:"default:false"`
+
+	EnableBillingLimits      bool `gorm:"default:false"` // old plans grandfathered in to true
+	EnableBusinessDashboards bool `gorm:"default:false"`
+	EnableBusinessProjects   bool `gorm:"default:false"`
+	EnableBusinessRetention  bool `gorm:"default:false"`
+	EnableBusinessSeats      bool `gorm:"default:false"`
+	EnableDataDeletion       bool `gorm:"default:true"`
+	EnableGrafanaDashboard   bool `gorm:"default:false"`
+	EnableIngestSampling     bool `gorm:"default:false"`
+	EnableNetworkTraces      bool `gorm:"default:true"`
+	EnableProjectLevelAccess bool `gorm:"default:false"`
+	EnableSessionExport      bool `gorm:"default:false"`
+	EnableUnlistedSharing    bool `gorm:"default:true"`
 }
 
 type HasSecret interface {

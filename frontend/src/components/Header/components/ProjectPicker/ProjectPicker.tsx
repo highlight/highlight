@@ -1,3 +1,4 @@
+import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
 import { linkStyle } from '@components/Header/styles.css'
 import {
 	Box,
@@ -11,9 +12,11 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { SIGN_UP_ROUTE } from '@pages/Auth/AuthRouter'
+import style from '@pages/Player/Toolbar/ToolbarControlBar/ToolbarControlBar.module.css'
 import { generateRandomColor } from '@util/color'
 import { DEMO_PROJECT_NAME } from '@util/constants/constants'
 import { useParams } from '@util/react-router/useParams'
+import clsx from 'clsx'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
@@ -115,27 +118,42 @@ const ProjectPicker = () => {
 							<>
 								<Menu.Divider />
 								{!isProjectLevelMember && (
-									<Link
-										to={`/w/${currentWorkspace?.id}/new`}
-										state={{
-											previousLocation: location,
-										}}
-										className={linkStyle}
-									>
-										<Menu.Item>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
+									<Menu.Item>
+											<EnterpriseFeatureButton
+												setting="enable_business_projects"
+												name="Session Download"
+												fn={async () =>
+													navigate(
+														`/w/${currentWorkspace?.id}/new`,
+														{
+															state: {
+																previousLocation:
+																	location,
+															},
+														},
+													)
+												}
+												variant="basic"
+												size="small"
+												emphasis="low"
+												className={clsx(
+													style.settingsButton,
+													style.downloadButton,
+												)}
 											>
-												<IconSolidPlusSm
-													size={14}
-													color={vars.color.n9}
-												/>
-												Create new project
-											</Box>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconSolidPlusSm
+														size={14}
+														color={vars.color.n9}
+													/>
+													Create new project
+												</Box>
+											</EnterpriseFeatureButton>
 										</Menu.Item>
-									</Link>
 								)}
 								<Link
 									to={`/${projectId}/settings/sessions`}
