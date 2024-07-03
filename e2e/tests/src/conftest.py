@@ -175,6 +175,6 @@ def dotnet_app(dotnet_bin):
     yield from run_and_poll(
         dotnet_bin,
         ["dotnet", "run"],
-        lambda: requests.get("http://localhost:5249/"),
+        lambda: requests.get("https://localhost:5249/"),
         cwd="dotnet",
     )
