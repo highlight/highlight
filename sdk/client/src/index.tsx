@@ -36,7 +36,10 @@ import stringify from 'json-stringify-safe'
 import { print } from 'graphql'
 import { determineMaskInputOptions } from './utils/privacy'
 
-import { ViewportResizeListener } from './listeners/viewport-resize-listener'
+import {
+	ViewportResizeListener,
+	type ViewportResizeListenerArgs,
+} from './listeners/viewport-resize-listener'
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener'
 import { ClickListener } from './listeners/click-listener/click-listener'
 import { FocusListener } from './listeners/focus-listener/focus-listener'
@@ -747,12 +750,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			})
 			// recordStop is not part of listeners because we do not actually want to stop rrweb
 			// rrweb has some bugs that make the stop -> restart workflow broken (eg iframe listeners)
-			const viewport = {
-				height: window.innerHeight,
-				width: window.innerWidth,
-			}
-			this.addCustomEvent('Viewport', viewport)
-			this.submitViewportMetrics(viewport)
 
 			if (!this._recordStop) {
 				if (this.options.recordCrossOriginIframe) {
@@ -920,10 +917,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
 
 			this.listeners.push(
-				ViewportResizeListener((viewport) => {
-					this.addCustomEvent('Viewport', viewport)
-					this.submitViewportMetrics(viewport)
-				}),
+				ViewportResizeListener(
+					(viewport: ViewportResizeListenerArgs) => {
+						this.addCustomEvent('Viewport', viewport)
+						this.submitViewportMetrics(viewport)
+					},
+				),
 			)
 			this.listeners.push(
 				ClickListener((clickTarget, event) => {
@@ -1091,10 +1090,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	submitViewportMetrics({
 		height,
 		width,
-	}: {
-		height: number
-		width: number
-	}) {
+		availHeight,
+		availWidth,
+	}: ViewportResizeListenerArgs) {
 		this.recordMetric([
 			{
 				name: MetricName.ViewportHeight,
@@ -1105,6 +1103,18 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			{
 				name: MetricName.ViewportWidth,
 				value: width,
+				category: MetricCategory.Device,
+				group: window.location.href,
+			},
+			{
+				name: MetricName.ScreenHeight,
+				value: availHeight,
+				category: MetricCategory.Device,
+				group: window.location.href,
+			},
+			{
+				name: MetricName.ScreenWidth,
+				value: availWidth,
 				category: MetricCategory.Device,
 				group: window.location.href,
 			},

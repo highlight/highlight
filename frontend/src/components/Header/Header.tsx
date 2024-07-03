@@ -18,7 +18,6 @@ import {
 	IconSolidArrowSmRight,
 	IconSolidAtSymbol,
 	IconSolidChartBar,
-	IconSolidChartPie,
 	IconSolidChat,
 	IconSolidCheck,
 	IconSolidCog,
@@ -152,7 +151,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId } = useProjectId()
 	const { projectId: localStorageProjectId } = useLocalStorageProjectId()
 	const { isLoggedIn, signOut } = useAuthContext()
-	const showAnalytics = useFeatureFlag(Feature.Analytics)
 	const showMetrics = useFeatureFlag(Feature.Metrics)
 	const { allProjects, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
@@ -349,33 +347,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											kind="secondary"
 										/>
 										<Menu.List>
-											{showAnalytics && (
-												<Link
-													to={`/${projectId}/dashboards`}
-													className={linkStyle}
-												>
-													<Menu.Item>
-														<Box
-															display="flex"
-															alignItems="center"
-															gap="4"
-														>
-															<IconSolidChartBar
-																size={14}
-																color={
-																	vars.theme
-																		.interactive
-																		.fill
-																		.secondary
-																		.content
-																		.text
-																}
-															/>
-															Dashboards
-														</Box>
-													</Menu.Item>
-												</Link>
-											)}
 											<Link
 												to={`/${projectId}/integrations`}
 												className={linkStyle}
@@ -401,33 +372,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 													</Box>
 												</Menu.Item>
 											</Link>
-											{showAnalytics && (
-												<Link
-													to={`/${projectId}/analytics`}
-													className={linkStyle}
-												>
-													<Menu.Item>
-														<Box
-															display="flex"
-															alignItems="center"
-															gap="4"
-														>
-															<IconSolidChartPie
-																size={14}
-																color={
-																	vars.theme
-																		.interactive
-																		.fill
-																		.secondary
-																		.content
-																		.text
-																}
-															/>
-															Analytics
-														</Box>
-													</Menu.Item>
-												</Link>
-											)}
 											<Link
 												to={`/${projectId}/setup`}
 												className={linkStyle}

@@ -1,5 +1,17 @@
 # highlight.run
 
+## 9.0.3
+
+### Patch Changes
+
+-   50c74161e: add screen measurements to session viewport data
+
+## 9.0.2
+
+### Patch Changes
+
+-   fd011e719: ensure getSessionURL correctly returns session url
+
 ## 9.0.1
 
 ### Patch Changes

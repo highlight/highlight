@@ -76,6 +76,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 				dateSuggestion.selectedPreset,
 			)
 			setAiMode(false)
+			setAiQuery('')
 		}
 	}
 
@@ -85,7 +86,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 		}
 
 		if (displayError) {
-			return 'Oops... Harold AI is having issues.'
+			return `Oops... there was an issue. ${aiSuggestionError}`
 		}
 
 		if (submitted) {
@@ -234,11 +235,15 @@ export const AiSearch: React.FC<any> = ({}) => {
 							e.preventDefault()
 							submitQuery(aiQuery)
 						}
+						if (e.key === 'Escape') {
+							setAiMode(false)
+						}
 					}}
 					style={{
 						paddingLeft: 40,
 						top: 6,
 					}}
+					autoFocus
 					data-hl-record
 				/>
 			</Box>

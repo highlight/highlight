@@ -9,7 +9,9 @@
 	"updateInternalDependencies": "patch",
 	"ignore": [
 		"@highlight-run/ai",
+		"@highlight-run/chrome",
 		"@highlight-run/client",
+		"@highlight-run/component-preview",
 		"@highlight-run/frontend",
 		"rrdom",
 		"rrdom-nodejs",
