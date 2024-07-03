@@ -202,7 +202,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				traceID := cast(fields.requestID, span.TraceID().String())
 				spanID := span.SpanID().String()
 
-				// TODO(vkorolik) deduplicate
 				spanHasErrors := false
 				for l := 0; l < events.Len(); l++ {
 					if skipped {
