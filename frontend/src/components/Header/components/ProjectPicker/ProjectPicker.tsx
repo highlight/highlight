@@ -117,6 +117,7 @@ const ProjectPicker = () => {
 								<Menu.Divider />
 								{!isProjectLevelMember && (
 									<Menu.Item>
+											{/*TODO(vkorolik) limit all EnterpriseFeatureButton actions on backend*/}
 											<EnterpriseFeatureButton
 												setting="enable_business_projects"
 												name="Multiple Projects"

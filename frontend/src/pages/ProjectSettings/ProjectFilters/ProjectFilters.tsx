@@ -35,7 +35,6 @@ import {
 	Stack,
 	Tag,
 	Text,
-	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useProjectId } from '@hooks/useProjectId'
@@ -175,20 +174,6 @@ export const ProjectProductFilters: React.FC<{
 	const canEditSampling =
 		workspaceSettingsData?.workspaceSettings?.enable_ingest_sampling
 
-	// TODO(vkorolik)
-	const showEditSamplingUpgrade = React.useCallback(async () => {
-		analytics.track('Project Sampling Upgrade', {
-			product,
-			workspaceId: currentWorkspace?.id,
-		})
-		await toast.warning(
-			'Setting up ingest sampling is only available on enterprise plans.',
-		)
-		await showSupportMessage(
-			'Hi! I would like to use the ingest sampling feature.',
-		)
-	}, [currentWorkspace?.id, product])
-
 	// loads data from the backend into the form state and the query builder context
 	const resetConfig = React.useCallback(() => {
 		const c = {
@@ -260,38 +245,6 @@ export const ProjectProductFilters: React.FC<{
 		})
 		navigate(`/${projectId}/settings/filters`)
 	}
-
-	const sampling = (
-		<Box
-			display="flex"
-			width="full"
-			gap="8"
-			onClick={canEditSampling ? undefined : showEditSamplingUpgrade}
-		>
-			<Box width="full" display="flex" flexDirection="column" gap="4">
-				<Form.Label
-					label="Sampling %"
-					name={formStore.names.samplingPercent}
-				/>
-				<Form.Input
-					disabled={!canEditSampling}
-					name={formStore.names.samplingPercent}
-					type="number"
-				/>
-			</Box>
-			<Box width="full" display="flex" flexDirection="column" gap="4">
-				<Form.Label
-					label="Max ingest per minute"
-					name={formStore.names.minuteRateLimit}
-				/>
-				<Form.Input
-					disabled={!canEditSampling}
-					name={formStore.names.minuteRateLimit}
-					type="number"
-				/>
-			</Box>
-		</Box>
-	)
 
 	const edit = (
 		<Button
@@ -452,24 +405,59 @@ export const ProjectProductFilters: React.FC<{
 					<Box display="flex" width="full">
 						{view ? null : (
 							<Stack display="flex" width="full" gap="8">
-								{canEditSampling ? (
-									sampling
-								) : (
-									<Tooltip trigger={sampling}>
+								<EnterpriseFeatureButton
+									setting="enable_ingest_sampling"
+									name="Ingestion Sampling"
+									fn={async () => {}}
+									variant="basic"
+								>
+									<Box display="flex" width="full" gap="8">
 										<Box
+											width="full"
 											display="flex"
-											alignItems="center"
-											justifyContent="center"
-											p="4"
-											onClick={showEditSamplingUpgrade}
+											flexDirection="column"
+											gap="4"
 										>
-											<Text>
-												Available to customers on an
-												enterprise plan
-											</Text>
+											<Form.Label
+												label="Sampling %"
+												name={
+													formStore.names
+														.samplingPercent
+												}
+											/>
+											<Form.Input
+												disabled={!canEditSampling}
+												name={
+													formStore.names
+														.samplingPercent
+												}
+												type="number"
+											/>
 										</Box>
-									</Tooltip>
-								)}
+										<Box
+											width="full"
+											display="flex"
+											flexDirection="column"
+											gap="4"
+										>
+											<Form.Label
+												label="Max ingest per minute"
+												name={
+													formStore.names
+														.minuteRateLimit
+												}
+											/>
+											<Form.Input
+												disabled={!canEditSampling}
+												name={
+													formStore.names
+														.minuteRateLimit
+												}
+												type="number"
+											/>
+										</Box>
+									</Box>
+								</EnterpriseFeatureButton>
 								<Callout>
 									<Box
 										display="flex"
