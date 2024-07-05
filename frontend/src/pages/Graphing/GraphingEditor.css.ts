@@ -65,6 +65,10 @@ export const graphWrapper = style({
 	backgroundColor: vars.color.white,
 })
 
+export const overflowXAuto = style({
+	overflowX: 'auto',
+})
+
 globalStyle(`${menuButton} > div`, {
 	width: '100%',
 })
