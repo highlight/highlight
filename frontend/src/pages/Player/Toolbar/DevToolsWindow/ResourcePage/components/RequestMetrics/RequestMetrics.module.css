@@ -1,8 +1,10 @@
 .requestMetrics {
-	width: 100%;
+  width: 100%;
+  overflow-x: auto;
 }
 
 .chartContainer {
-	height: 200px;
-	margin-top: var(--size-medium);
+  height: 200px;
+  margin-top: var(--size-medium);
+  overflow-x: auto;
 }
