@@ -950,6 +950,7 @@ export const GraphingEditor = () => {
 											border="divider"
 											width="full"
 											borderRadius="6"
+											cssClass={style.overflowXAuto}
 										>
 											<SearchContext
 												initialQuery={query}
