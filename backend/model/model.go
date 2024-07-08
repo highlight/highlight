@@ -6,10 +6,11 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	Email "github.com/highlight-run/highlight/backend/email"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -1461,9 +1462,14 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
 		return false, e.Wrap(err, "Error installing pgcrypto")
 	}
+
+	log.WithContext(ctx).Printf("ms.\n")
+
 	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS vector;").Error; err != nil {
 		return false, e.Wrap(err, "Error installing vector")
 	}
+
+	log.WithContext(ctx).Printf("mtis.\n")
 
 	// Unguessable, cryptographically random url-safe ID for users to share links
 	if err := DB.Exec(`
@@ -1489,6 +1495,8 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	); err != nil {
 		return false, e.Wrap(err, "Error migrating db")
 	}
+
+	log.WithContext(ctx).Printf("mtions.\n")
 
 	// Drop the null constraint on error_fingerprints.error_group_id
 	// This is necessary for replacing the error_groups.fingerprints association through GORM
@@ -1520,6 +1528,8 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating daily_session_counts_view")
 	}
+
+	log.WithContext(ctx).Printf("migrations.\n")
 
 	if err := DB.Exec(`
 		DO $$
@@ -1557,6 +1567,8 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "Error creating idx_daily_error_counts_view_project_id_date")
 	}
 
+	log.WithContext(ctx).Printf("DB migrations.\n")
+
 	// Create unique conditional index for billing email history
 	if err := DB.Exec(`
 		DO $$
@@ -1590,6 +1602,8 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
 		return false, e.Wrap(err, "Error adding unique constraint on metric_groups")
 	}
+
+	log.WithContext(ctx).Printf("running DB migrations.\n")
 
 	if err := DB.Exec(fmt.Sprintf(`
 		DO $$
@@ -1658,6 +1672,8 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating session_fields_id_seq")
 	}
+
+	log.WithContext(ctx).Printf("running DB migrations.\n")
 
 	if err := DB.Exec(`
 		DO $$
