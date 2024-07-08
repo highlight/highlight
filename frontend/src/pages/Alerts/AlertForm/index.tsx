@@ -10,6 +10,7 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui/components'
+import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
 import React, { PropsWithChildren, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -19,7 +20,11 @@ import { ReferenceArea, ReferenceLine } from 'recharts'
 
 import { SearchContext } from '@/components/Search/SearchContext'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
-import { useCreateAlertMutation } from '@/graph/generated/hooks'
+import {
+	useCreateAlertMutation,
+	useGetAlertQuery,
+	useUpdateAlertMutation,
+} from '@/graph/generated/hooks'
 import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
@@ -84,8 +89,13 @@ const DEFAULT_THRESHOLD = 1
 const DEFAULT_WINDOW = 60 * 30
 const DEFAULT_COOLDOWN = 60 * 30
 
-export const NewAlertPage: React.FC = () => {
+export const AlertForm: React.FC = () => {
 	const { projectId } = useProjectId()
+	const { alert_id } = useParams<{
+		alert_id: string
+	}>()
+
+	const isEdit = alert_id !== undefined
 
 	const { startDate, endDate, selectedPreset, updateSearchTime } =
 		useSearchTime({
@@ -94,6 +104,7 @@ export const NewAlertPage: React.FC = () => {
 		})
 
 	const [createAlert, createAlertContext] = useCreateAlertMutation()
+	const [updateAlert, updateAlertContext] = useUpdateAlertMutation()
 
 	const navigate = useNavigate()
 
@@ -127,28 +138,82 @@ export const NewAlertPage: React.FC = () => {
 	)
 
 	const onSave = () => {
-		createAlert({
-			variables: {
-				project_id: projectId,
-				name: alertName,
-				product_type: productType,
-				function_type: functionType,
-				query: debouncedQuery,
-				group_by_key: groupByEnabled ? groupByKey : undefined,
-				below_threshold: belowThreshold,
-				threshold_count: thresholdCount,
-				threshold_window: thresholdWindow,
-				threshold_cooldown: thresholdCooldown,
-			},
-		})
+		if (isEdit) {
+			updateAlert({
+				variables: {
+					alert_id: alert_id!,
+					project_id: projectId,
+					name: alertName,
+					product_type: productType,
+					metric: metric,
+					function_type: functionType,
+					query: debouncedQuery,
+					group_by_key: groupByEnabled ? groupByKey : undefined,
+					below_threshold: belowThreshold,
+					threshold_count: thresholdCount,
+					threshold_window: thresholdWindow,
+					threshold_cooldown: thresholdCooldown,
+				},
+			}).catch(() => {
+				toast.error(`Failed to updated alert`)
+				return
+			})
+		} else {
+			createAlert({
+				variables: {
+					project_id: projectId,
+					name: alertName,
+					product_type: productType,
+					metric: metric,
+					function_type: functionType,
+					query: debouncedQuery,
+					group_by_key: groupByEnabled ? groupByKey : undefined,
+					below_threshold: belowThreshold,
+					threshold_count: thresholdCount,
+					threshold_window: thresholdWindow,
+					threshold_cooldown: thresholdCooldown,
+				},
+			}).catch(() => {
+				toast.error(`Failed to created alert`)
+				return
+			})
+		}
+
+		toast
+			.success(`${alertName} ${isEdit ? 'updated' : 'created'}`)
 			.then(() => {
-				toast.success(`${alertName} created`)
 				navigate('/alerts')
 			})
-			.catch(() => {
-				toast.error('Failed to create alert')
-			})
 	}
+
+	const { loading: metaLoading } = useGetAlertQuery({
+		variables: {
+			id: alert_id!,
+		},
+		skip: !isEdit,
+		onCompleted: (data) => {
+			if (!data.alert) {
+				return
+			}
+
+			setProductType(data.alert.product_type)
+			setMetric(data.alert.metric)
+			setFunctionType(data.alert.function_type)
+			setQuery(data.alert.query ?? '')
+			setDebouncedQuery(data.alert.query ?? '')
+			setAlertName(data.alert.name)
+			setGroupByEnabled(data.alert.group_by_key !== null)
+			setGroupByKey(data.alert.group_by_key ?? '')
+
+			// for threshold alerts
+			setBelowThreshold(data.alert.below_threshold ?? false)
+			setThresholdCount(data.alert.threshold_count ?? DEFAULT_THRESHOLD)
+			setThresholdWindow(data.alert.threshold_window ?? DEFAULT_WINDOW)
+			setThresholdCooldown(
+				data.alert.threshold_cooldown ?? DEFAULT_COOLDOWN,
+			)
+		},
+	})
 
 	const searchOptionsConfig = useMemo(() => {
 		return {
@@ -158,10 +223,17 @@ export const NewAlertPage: React.FC = () => {
 		}
 	}, [productType, startDate, endDate])
 
+	if (metaLoading) {
+		return null
+	}
+
+	const disableSave =
+		createAlertContext.loading || updateAlertContext.loading || !alertName
+
 	return (
 		<>
 			<Helmet>
-				<title>Create Alert</title>
+				<title>{isEdit ? 'Edit' : 'Create'} Alert</title>
 			</Helmet>
 			<Box
 				background="n2"
@@ -219,12 +291,7 @@ export const NewAlertPage: React.FC = () => {
 							>
 								Cancel
 							</Button>
-							<Button
-								disabled={
-									!alertName || createAlertContext.loading
-								}
-								onClick={onSave}
-							>
+							<Button disabled={disableSave} onClick={onSave}>
 								Save&nbsp;
 							</Button>
 						</Box>
@@ -434,7 +501,7 @@ export const NewAlertPage: React.FC = () => {
 											/>
 										</LabeledRow>
 										<LabeledRow
-											label="Alert frequency"
+											label="Alert window"
 											name="thresholdWindow"
 										>
 											<OptionDropdown<string>

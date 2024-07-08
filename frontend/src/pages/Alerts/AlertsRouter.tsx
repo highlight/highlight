@@ -11,7 +11,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import ErrorAlertPage from '@/pages/Alerts/ErrorAlert/ErrorAlertPage'
 import SessionAlertPage from '@/pages/Alerts/SessionAlert/SessionAlertPage'
 
-import { NewAlertPage } from './NewAlertPage'
+import { AlertForm } from './AlertForm'
 
 const AlertsRouter = () => {
 	const { project_id } = useParams<{ project_id: string }>()
@@ -44,7 +44,8 @@ const AlertsRouter = () => {
 			</Helmet>
 			<Routes>
 				<Route path="*" element={<AlertsPage />} />
-				<Route path="new" element={<NewAlertPage />} />
+				<Route path="new" element={<AlertForm />} />
+				<Route path=":alert_id/edit" element={<AlertForm />} />
 				<Route
 					path="monitor"
 					element={<Navigate to={`/${project_id}/alerts`} replace />}

@@ -1021,6 +1021,7 @@ export type CreateAlertMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
 	product_type: Types.ProductType
+	metric: Types.Scalars['String']
 	function_type: Types.MetricAggregator
 	query?: Types.Maybe<Types.Scalars['String']>
 	group_by_key?: Types.Maybe<Types.Scalars['String']>
@@ -1038,6 +1039,41 @@ export type CreateAlertMutation = { __typename?: 'Mutation' } & {
 		>
 	>
 }
+
+export type UpdateAlertMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	alert_id: Types.Scalars['ID']
+	name: Types.Scalars['String']
+	product_type: Types.ProductType
+	metric: Types.Scalars['String']
+	function_type: Types.MetricAggregator
+	query?: Types.Maybe<Types.Scalars['String']>
+	group_by_key?: Types.Maybe<Types.Scalars['String']>
+	below_threshold?: Types.Maybe<Types.Scalars['Boolean']>
+	threshold_count?: Types.Maybe<Types.Scalars['Int']>
+	threshold_window?: Types.Maybe<Types.Scalars['Int']>
+	threshold_cooldown?: Types.Maybe<Types.Scalars['Int']>
+}>
+
+export type UpdateAlertMutation = { __typename?: 'Mutation' } & {
+	updateAlert?: Types.Maybe<
+		{ __typename?: 'Alert' } & Pick<
+			Types.Alert,
+			'id' | 'name' | 'product_type'
+		>
+	>
+}
+
+export type UpdateAlertDisabledMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	alert_id: Types.Scalars['ID']
+	disabled: Types.Scalars['Boolean']
+}>
+
+export type UpdateAlertDisabledMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'updateAlertDisabled'
+>
 
 export type UpdateAdminAndCreateWorkspaceMutationVariables = Types.Exact<{
 	admin_and_workspace_details: Types.AdminAndWorkspaceDetails
@@ -4315,6 +4351,38 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				}
 		>
 	>
+	alerts: Array<
+		Types.Maybe<
+			{ __typename?: 'Alert' } & Pick<
+				Types.Alert,
+				'id' | 'updated_at' | 'name' | 'product_type'
+			>
+		>
+	>
+}
+
+export type GetAlertQueryVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+}>
+
+export type GetAlertQuery = { __typename?: 'Query' } & {
+	alert: { __typename?: 'Alert' } & Pick<
+		Types.Alert,
+		| 'id'
+		| 'updated_at'
+		| 'name'
+		| 'product_type'
+		| 'function_type'
+		| 'metric'
+		| 'query'
+		| 'group_by_key'
+		| 'disabled'
+		| 'last_admin_to_edit_id'
+		| 'below_threshold'
+		| 'threshold_count'
+		| 'threshold_window'
+		| 'threshold_cooldown'
+	>
 }
 
 export type GetMetricMonitorsQueryVariables = Types.Exact<{
@@ -5317,6 +5385,7 @@ export const namedOperations = {
 		GetLogAlert: 'GetLogAlert' as const,
 		GetLogAlertsPagePayload: 'GetLogAlertsPagePayload' as const,
 		GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
+		GetAlert: 'GetAlert' as const,
 		GetMetricMonitors: 'GetMetricMonitors' as const,
 		GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
 		GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
@@ -5408,6 +5477,8 @@ export const namedOperations = {
 		UpdateMetricMonitor: 'UpdateMetricMonitor' as const,
 		DeleteMetricMonitor: 'DeleteMetricMonitor' as const,
 		CreateAlert: 'CreateAlert' as const,
+		UpdateAlert: 'UpdateAlert' as const,
+		UpdateAlertDisabled: 'UpdateAlertDisabled' as const,
 		UpdateAdminAndCreateWorkspace: 'UpdateAdminAndCreateWorkspace' as const,
 		UpdateAdminAboutYouDetails: 'UpdateAdminAboutYouDetails' as const,
 		UpdateErrorAlert: 'UpdateErrorAlert' as const,

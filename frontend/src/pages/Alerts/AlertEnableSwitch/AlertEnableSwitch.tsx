@@ -1,6 +1,7 @@
 import Switch from '@components/Switch/Switch'
 import { toast } from '@components/Toaster'
 import {
+	useUpdateAlertDisabledMutation,
 	useUpdateErrorAlertIsDisabledMutation,
 	useUpdateLogAlertIsDisabledMutation,
 	useUpdateMetricMonitorIsDisabledMutation,
@@ -23,6 +24,7 @@ export const AlertEnableSwitch: React.FC<
 	const [updateMetricMonitorIsDisabled] =
 		useUpdateMetricMonitorIsDisabledMutation()
 	const [updateLogAlertIsDisabled] = useUpdateLogAlertIsDisabledMutation()
+	const [updateAlertDisabled] = useUpdateAlertDisabledMutation()
 
 	const onChange = async () => {
 		setLoading(true)
@@ -75,6 +77,16 @@ export const AlertEnableSwitch: React.FC<
 					...requestBody,
 					variables: {
 						id: record.id,
+						project_id: project_id!,
+						disabled: isDisabled,
+					},
+				})
+				break
+			case ALERT_TYPE.Dynamic:
+				await updateAlertDisabled({
+					...requestBody,
+					variables: {
+						alert_id: record.id,
 						project_id: project_id!,
 						disabled: isDisabled,
 					},

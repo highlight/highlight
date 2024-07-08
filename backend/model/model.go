@@ -6,10 +6,11 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	Email "github.com/highlight-run/highlight/backend/email"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -1923,6 +1924,7 @@ type Alert struct {
 	Name              string
 	ProductType       modelInputs.ProductType
 	FunctionType      modelInputs.MetricAggregator
+	Metric            *string
 	Query             *string
 	GroupByKey        *string
 	Disabled          bool                `gorm:"default:false"`

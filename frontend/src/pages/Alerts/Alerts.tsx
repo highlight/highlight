@@ -58,6 +58,7 @@ export enum ALERT_TYPE {
 	RageClick,
 	MetricMonitor,
 	Logs,
+	Dynamic,
 }
 
 export enum ALERT_NAMES {
@@ -69,6 +70,7 @@ export enum ALERT_NAMES {
 	RAGE_CLICK_ALERT = 'Rage Clicks',
 	METRIC_MONITOR = 'Metric Monitor',
 	LOG_ALERT = 'Logs',
+	ALERT = 'Alert',
 }
 
 export interface AlertConfiguration {
@@ -158,6 +160,14 @@ export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
 		icon: <IconSolidLogs />,
 		supportsExcludeRules: true,
 	},
+	ALERT: {
+		name: ALERT_NAMES['ALERT'],
+		canControlThreshold: true,
+		type: ALERT_TYPE.Dynamic,
+		description: 'Get alerted when alert conditions are met.',
+		icon: <IconSolidLogs />,
+		supportsExcludeRules: true,
+	},
 } as const
 
 export default function AlertsPage() {
@@ -199,8 +209,8 @@ function formatAlertDataForTable(alert: any, config: AlertConfiguration) {
 		WebhookDestinations:
 			alert?.WebhookDestinations || alert?.webhook_destinations || [],
 		configuration: config,
-		type: config.name,
-		name: alert?.Name || config.name,
+		type: alert?.product_type || config.name,
+		name: alert?.name || alert?.Name || config.name,
 		key: alert?.id,
 	}
 }
@@ -220,7 +230,10 @@ function AlertsPageLoaded({
 	const metricAlertsEnabled = useFeatureFlag(Feature.Metrics)
 
 	const navigateToAlert = (record: any) => {
-		if (record.type === ALERT_NAMES['METRIC_MONITOR']) {
+		console.log(record)
+		if (record.configuration.name === ALERT_NAMES['ALERT']) {
+			navigate(`/${project_id}/alerts/${record.id}/edit`)
+		} else if (record.type === ALERT_NAMES['METRIC_MONITOR']) {
 			navigate(`/${project_id}/alerts/monitor/${record.id}`)
 		} else if (record.type === ALERT_NAMES['LOG_ALERT']) {
 			navigate(`/${project_id}/alerts/logs/${record.id}`)
@@ -296,6 +309,9 @@ function AlertsPageLoaded({
 				),
 			)
 			.sort((a, b) => a.name.localeCompare(b.name)),
+		...(alertsPayload?.alerts || []).map((alert) =>
+			formatAlertDataForTable(alert, ALERT_CONFIGURATIONS['ALERT']),
+		),
 	]
 
 	return (
