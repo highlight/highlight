@@ -3308,7 +3308,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateAlert is the resolver for the createAlert field.
-func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, metric string, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
 	_, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
@@ -3325,6 +3325,7 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 		Name:              name,
 		ProductType:       productType,
 		FunctionType:      functionType,
+		Metric:            metric,
 		Query:             query,
 		GroupByKey:        groupByKey,
 		Disabled:          *disabledVar,
@@ -3347,7 +3348,7 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 }
 
 // UpdateAlert is the resolver for the updateAlert field.
-func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, metric *string, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
@@ -3366,6 +3367,9 @@ func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alert
 	}
 	if functionType != nil {
 		alertUpdates["FunctionType"] = *functionType
+	}
+	if metric != nil {
+		alertUpdates["Metric"] = *metric
 	}
 	if query != nil {
 		alertUpdates["Query"] = *query
@@ -10101,76 +10105,3 @@ type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
 type visualizationResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *errorAlertResolver) Name(ctx context.Context, obj *model.ErrorAlert) (*string, error) {
-	panic(fmt.Errorf("not implemented: Name - Name"))
-}
-func (r *errorAlertResolver) CountThreshold(ctx context.Context, obj *model.ErrorAlert) (int, error) {
-	panic(fmt.Errorf("not implemented: CountThreshold - CountThreshold"))
-}
-func (r *errorAlertResolver) ThresholdWindow(ctx context.Context, obj *model.ErrorAlert) (*int, error) {
-	panic(fmt.Errorf("not implemented: ThresholdWindow - ThresholdWindow"))
-}
-func (r *errorAlertResolver) LastAdminToEditID(ctx context.Context, obj *model.ErrorAlert) (*int, error) {
-	panic(fmt.Errorf("not implemented: LastAdminToEditID - LastAdminToEditID"))
-}
-func (r *errorAlertResolver) Type(ctx context.Context, obj *model.ErrorAlert) (string, error) {
-	panic(fmt.Errorf("not implemented: Type - Type"))
-}
-func (r *errorAlertResolver) Frequency(ctx context.Context, obj *model.ErrorAlert) (int, error) {
-	panic(fmt.Errorf("not implemented: Frequency - Frequency"))
-}
-func (r *errorAlertResolver) Disabled(ctx context.Context, obj *model.ErrorAlert) (bool, error) {
-	panic(fmt.Errorf("not implemented: Disabled - disabled"))
-}
-func (r *errorAlertResolver) Default(ctx context.Context, obj *model.ErrorAlert) (bool, error) {
-	panic(fmt.Errorf("not implemented: Default - default"))
-}
-func (r *logAlertResolver) Name(ctx context.Context, obj *model.LogAlert) (string, error) {
-	panic(fmt.Errorf("not implemented: Name - Name"))
-}
-func (r *logAlertResolver) CountThreshold(ctx context.Context, obj *model.LogAlert) (int, error) {
-	panic(fmt.Errorf("not implemented: CountThreshold - CountThreshold"))
-}
-func (r *logAlertResolver) ThresholdWindow(ctx context.Context, obj *model.LogAlert) (int, error) {
-	panic(fmt.Errorf("not implemented: ThresholdWindow - ThresholdWindow"))
-}
-func (r *logAlertResolver) LastAdminToEditID(ctx context.Context, obj *model.LogAlert) (*int, error) {
-	panic(fmt.Errorf("not implemented: LastAdminToEditID - LastAdminToEditID"))
-}
-func (r *logAlertResolver) Type(ctx context.Context, obj *model.LogAlert) (string, error) {
-	panic(fmt.Errorf("not implemented: Type - Type"))
-}
-func (r *logAlertResolver) Disabled(ctx context.Context, obj *model.LogAlert) (bool, error) {
-	panic(fmt.Errorf("not implemented: Disabled - disabled"))
-}
-func (r *logAlertResolver) Default(ctx context.Context, obj *model.LogAlert) (bool, error) {
-	panic(fmt.Errorf("not implemented: Default - default"))
-}
-func (r *sessionAlertResolver) Name(ctx context.Context, obj *model.SessionAlert) (*string, error) {
-	panic(fmt.Errorf("not implemented: Name - Name"))
-}
-func (r *sessionAlertResolver) CountThreshold(ctx context.Context, obj *model.SessionAlert) (int, error) {
-	panic(fmt.Errorf("not implemented: CountThreshold - CountThreshold"))
-}
-func (r *sessionAlertResolver) ThresholdWindow(ctx context.Context, obj *model.SessionAlert) (*int, error) {
-	panic(fmt.Errorf("not implemented: ThresholdWindow - ThresholdWindow"))
-}
-func (r *sessionAlertResolver) LastAdminToEditID(ctx context.Context, obj *model.SessionAlert) (*int, error) {
-	panic(fmt.Errorf("not implemented: LastAdminToEditID - LastAdminToEditID"))
-}
-func (r *sessionAlertResolver) Type(ctx context.Context, obj *model.SessionAlert) (string, error) {
-	panic(fmt.Errorf("not implemented: Type - Type"))
-}
-func (r *sessionAlertResolver) Disabled(ctx context.Context, obj *model.SessionAlert) (bool, error) {
-	panic(fmt.Errorf("not implemented: Disabled - disabled"))
-}
-func (r *sessionAlertResolver) Default(ctx context.Context, obj *model.SessionAlert) (bool, error) {
-	panic(fmt.Errorf("not implemented: Default - default"))
-}
