@@ -2771,7 +2771,6 @@ type Mutation {
 		function_column: String
 		query: String
 		group_by_key: String
-		disabled: Boolean
 		below_threshold: Boolean
 		threshold_value: Float
 		threshold_window: Int
@@ -2786,7 +2785,6 @@ type Mutation {
 		function_column: String
 		query: String
 		group_by_key: String
-		disabled: Boolean
 		below_threshold: Boolean
 		threshold_value: Float
 		threshold_window: Int

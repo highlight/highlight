@@ -150,21 +150,28 @@ export const AlertForm: React.FC = () => {
 	)
 
 	const onSave = async () => {
+		const formVariables = {
+			project_id: projectId,
+			name: alertName,
+			product_type: productType,
+			function_type: functionType,
+			function_column:
+				functionType === MetricAggregator.Count
+					? undefined
+					: functionColumn,
+			query: debouncedQuery,
+			group_by_key: groupByEnabled ? groupByKey : undefined,
+			below_threshold: belowThreshold,
+			threshold_value: thresholdValue,
+			threshold_window: thresholdWindow,
+			threshold_cooldown: thresholdCooldown,
+		}
+
 		if (isEdit) {
 			await updateAlert({
 				variables: {
 					alert_id: alert_id!,
-					project_id: projectId,
-					name: alertName,
-					product_type: productType,
-					function_type: functionType,
-					function_column: functionColumn,
-					query: debouncedQuery,
-					group_by_key: groupByEnabled ? groupByKey : undefined,
-					below_threshold: belowThreshold,
-					threshold_value: thresholdValue,
-					threshold_window: thresholdWindow,
-					threshold_cooldown: thresholdCooldown,
+					...formVariables,
 				},
 			}).catch(() => {
 				toast.error(`Failed to updated alert`)
@@ -173,17 +180,7 @@ export const AlertForm: React.FC = () => {
 		} else {
 			await createAlert({
 				variables: {
-					project_id: projectId,
-					name: alertName,
-					product_type: productType,
-					function_type: functionType,
-					function_column: functionColumn,
-					query: debouncedQuery,
-					group_by_key: groupByEnabled ? groupByKey : undefined,
-					below_threshold: belowThreshold,
-					threshold_value: thresholdValue,
-					threshold_window: thresholdWindow,
-					threshold_cooldown: thresholdCooldown,
+					...formVariables,
 				},
 			}).catch(() => {
 				toast.error(`Failed to created alert`)
