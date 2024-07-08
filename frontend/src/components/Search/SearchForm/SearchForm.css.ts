@@ -184,7 +184,23 @@ export const comboboxGroup = style([
 		},
 	},
 ])
-
 export const toggle = style({
 	paddingLeft: '8px',
+})
+
+export const showAllResults = style({
+	cursor: 'pointer',
+	display: 'inline-block',
+	alignItems: 'center',
+	padding: '0 10px',
+	minHeight: 30,
+	width: '100%',
+	selectors: {
+		'&:hover': {
+			backgroundColor: vars.theme.interactive.fill.secondary.hover,
+		},
+		'&[data-active-item]': {
+			backgroundColor: vars.theme.interactive.fill.secondary.pressed,
+		},
+	},
 })

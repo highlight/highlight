@@ -14,6 +14,7 @@ var comboboxTagsContainer = "_10xh0c25";
 var errorToken = "_10xh0c28";
 var searchIcon = "_10xh0c20";
 var searchIconWithActions = "_10xh0c21";
+var showAllResults = "_10xh0c2j";
 var toggle = "_10xh0c2i";
 var token = "_10xh0c27";
 export {
@@ -32,6 +33,7 @@ export {
   errorToken,
   searchIcon,
   searchIconWithActions,
+  showAllResults,
   toggle,
   token
 };

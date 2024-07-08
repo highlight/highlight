@@ -6263,6 +6263,20 @@ body {
 ._10xh0c2i {
   padding-left: 8px;
 }
+._10xh0c2j {
+  cursor: pointer;
+  display: inline-block;
+  align-items: center;
+  padding: 0 10px;
+  min-height: 30px;
+  width: 100%;
+}
+._10xh0c2j:hover {
+  background-color: var(--_1pyqka9t);
+}
+._10xh0c2j[data-active-item] {
+  background-color: var(--_1pyqka9u);
+}
 ._1wt9z3q0 {
   font-family:
     IBM Plex Mono,

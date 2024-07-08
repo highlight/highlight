@@ -813,23 +813,26 @@ export const Search: React.FC<{
 									onClick={submitAndBlur}
 									store={comboboxStore}
 								>
-									<Stack
-										direction="row"
-										gap="4"
-										align="center"
+									<Box
+										py="8"
+										cssClass={{
+											display: 'inline-block',
+											width: '100%',
+										}}
 									>
 										<Text
-											lines="1"
 											color="weak"
 											size="small"
+											display="inline-block"
 										>
-											Show all results for
+											Show all results for{' '}
 										</Text>
-
 										<Text
 											size="small"
 											family="monospace"
 											color="secondaryContentText"
+											break="all"
+											display="inline-block"
 										>
 											&lsquo;
 											{activePart.key === BODY_KEY
@@ -837,7 +840,7 @@ export const Search: React.FC<{
 												: activePart.text}
 											&rsquo;
 										</Text>
-									</Stack>
+									</Box>
 								</Combobox.Item>
 							</Combobox.Group>
 						)}
