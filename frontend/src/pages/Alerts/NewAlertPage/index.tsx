@@ -15,6 +15,7 @@ import React, { PropsWithChildren, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
+import { ReferenceArea, ReferenceLine } from 'recharts'
 
 import { SearchContext } from '@/components/Search/SearchContext'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
@@ -273,9 +274,28 @@ export const NewAlertPage: React.FC = () => {
 												: undefined
 										}
 										setTimeRange={updateSearchTime}
-										bucketByKey="timestamp"
+										bucketByKey="Timestamp"
 										bucketCount={50}
-									/>
+									>
+										<ReferenceLine
+											y={thresholdCount}
+											stroke="red"
+										/>
+										{!belowThreshold && (
+											<ReferenceArea
+												y1={thresholdCount}
+												opacity={0.5}
+												isFront
+											/>
+										)}
+										{belowThreshold && (
+											<ReferenceArea
+												y2={thresholdCount}
+												opacity={0.5}
+												isFront
+											/>
+										)}
+									</Graph>
 								</Box>
 							</Box>
 						</Box>
@@ -411,7 +431,6 @@ export const NewAlertPage: React.FC = () => {
 												}}
 											/>
 										</LabeledRow>
-
 										<LabeledRow
 											label="Alert frequency"
 											name="thresholdWindow"
