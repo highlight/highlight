@@ -1594,7 +1594,7 @@ type Alert {
 
 	# threshold alerts
 	below_threshold: Boolean
-	threshold_count: Int
+	threshold_value: Float
 	threshold_window: Int
 	threshold_cooldown: Int
 }
@@ -2770,7 +2770,7 @@ type Mutation {
 		group_by_key: String
 		disabled: Boolean
 		below_threshold: Boolean
-		threshold_count: Int
+		threshold_value: Float
 		threshold_window: Int
 		threshold_cooldown: Int # TODO(spenny): add destinations
 	): Alert
@@ -2784,7 +2784,7 @@ type Mutation {
 		group_by_key: String
 		disabled: Boolean
 		below_threshold: Boolean
-		threshold_count: Int
+		threshold_value: Float
 		threshold_window: Int
 		threshold_cooldown: Int # TODO(spenny): add destinations
 	): Alert

@@ -496,9 +496,9 @@ func (client *Client) QueryErrorFieldValues(ctx context.Context, projectId int, 
 	// needed to support "Tag" for backwards compatibility (can remove with new query language)
 	fieldName = strings.ToLower(fieldName)
 
-	if mappedName, ok = ErrorGroupsTableConfig.KeysToColumns[modelInputs.ReservedErrorGroupKey(fieldName)]; ok {
+	if mappedName, ok = ErrorGroupsTableConfig.KeysToColumns[fieldName]; ok {
 		table = ErrorGroupsTable
-	} else if mappedName, ok = ErrorObjectsTableConfig.KeysToColumns[modelInputs.ReservedErrorObjectKey(fieldName)]; ok {
+	} else if mappedName, ok = ErrorObjectsTableConfig.KeysToColumns[fieldName]; ok {
 		table = ErrorObjectsTable
 	} else {
 		return nil, fmt.Errorf("unknown column %s", fieldName)
@@ -579,78 +579,90 @@ func (client *Client) QueryErrorHistogramDeprecated(ctx context.Context, project
 	return bucketTimes, totals, nil
 }
 
-var ErrorGroupsTableConfig = model.TableConfig[modelInputs.ReservedErrorGroupKey]{
+var reservedErrorGroupKeys = lo.Map(modelInputs.AllReservedErrorGroupKey, func(key modelInputs.ReservedErrorGroupKey, _ int) string {
+	return string(key)
+})
+
+var ErrorGroupsTableConfig = model.TableConfig{
 	TableName: ErrorGroupsTable,
-	KeysToColumns: map[modelInputs.ReservedErrorGroupKey]string{
-		modelInputs.ReservedErrorGroupKeyEvent:    "Event",
-		modelInputs.ReservedErrorGroupKeySecureID: "SecureID",
-		modelInputs.ReservedErrorGroupKeyStatus:   "Status",
-		modelInputs.ReservedErrorGroupKeyTag:      "ErrorTagTitle",
-		modelInputs.ReservedErrorGroupKeyType:     "Type",
+	KeysToColumns: map[string]string{
+		string(modelInputs.ReservedErrorGroupKeyEvent):    "Event",
+		string(modelInputs.ReservedErrorGroupKeySecureID): "SecureID",
+		string(modelInputs.ReservedErrorGroupKeyStatus):   "Status",
+		string(modelInputs.ReservedErrorGroupKeyTag):      "ErrorTagTitle",
+		string(modelInputs.ReservedErrorGroupKeyType):     "Type",
 	},
 	BodyColumn:   "Event",
-	ReservedKeys: modelInputs.AllReservedErrorGroupKey,
+	ReservedKeys: reservedErrorGroupKeys,
 }
 
-var ErrorObjectsTableConfig = model.TableConfig[modelInputs.ReservedErrorObjectKey]{
+var reservedErrorObjectKeys = lo.Map(modelInputs.AllReservedErrorObjectKey, func(key modelInputs.ReservedErrorObjectKey, _ int) string {
+	return string(key)
+})
+
+var ErrorObjectsTableConfig = model.TableConfig{
 	TableName: ErrorObjectsTable,
-	KeysToColumns: map[modelInputs.ReservedErrorObjectKey]string{
-		modelInputs.ReservedErrorObjectKeyBrowser:         "Browser",
-		modelInputs.ReservedErrorObjectKeyClientID:        "ClientID",
-		modelInputs.ReservedErrorObjectKeyEnvironment:     "Environment",
-		modelInputs.ReservedErrorObjectKeyHasSession:      "HasSession",
-		modelInputs.ReservedErrorObjectKeyOsName:          "OSName",
-		modelInputs.ReservedErrorObjectKeySecureSessionID: "SecureSessionID",
-		modelInputs.ReservedErrorObjectKeyServiceName:     "ServiceName",
-		modelInputs.ReservedErrorObjectKeyServiceVersion:  "ServiceVersion",
-		modelInputs.ReservedErrorObjectKeyTimestamp:       "Timestamp",
-		modelInputs.ReservedErrorObjectKeyTraceID:         "TraceID",
-		modelInputs.ReservedErrorObjectKeyVisitedURL:      "VisitedURL",
+	KeysToColumns: map[string]string{
+		string(modelInputs.ReservedErrorObjectKeyBrowser):         "Browser",
+		string(modelInputs.ReservedErrorObjectKeyClientID):        "ClientID",
+		string(modelInputs.ReservedErrorObjectKeyEnvironment):     "Environment",
+		string(modelInputs.ReservedErrorObjectKeyHasSession):      "HasSession",
+		string(modelInputs.ReservedErrorObjectKeyOsName):          "OSName",
+		string(modelInputs.ReservedErrorObjectKeySecureSessionID): "SecureSessionID",
+		string(modelInputs.ReservedErrorObjectKeyServiceName):     "ServiceName",
+		string(modelInputs.ReservedErrorObjectKeyServiceVersion):  "ServiceVersion",
+		string(modelInputs.ReservedErrorObjectKeyTimestamp):       "Timestamp",
+		string(modelInputs.ReservedErrorObjectKeyTraceID):         "TraceID",
+		string(modelInputs.ReservedErrorObjectKeyVisitedURL):      "VisitedURL",
 	},
-	ReservedKeys: modelInputs.AllReservedErrorObjectKey,
+	ReservedKeys: reservedErrorObjectKeys,
 }
 
-var ErrorsJoinedTableConfig = model.TableConfig[modelInputs.ReservedErrorsJoinedKey]{
+var reservedErrorsJoinedKeys = lo.Map(modelInputs.AllReservedErrorsJoinedKey, func(key modelInputs.ReservedErrorsJoinedKey, _ int) string {
+	return string(key)
+})
+
+var ErrorsJoinedTableConfig = model.TableConfig{
 	TableName: "errors_joined_vw",
-	KeysToColumns: map[modelInputs.ReservedErrorsJoinedKey]string{
-		modelInputs.ReservedErrorsJoinedKeyID:              "ID",
-		modelInputs.ReservedErrorsJoinedKeyBrowser:         "Browser",
-		modelInputs.ReservedErrorsJoinedKeyClientID:        "ClientID",
-		modelInputs.ReservedErrorsJoinedKeyEnvironment:     "Environment",
-		modelInputs.ReservedErrorsJoinedKeyEvent:           "Event",
-		modelInputs.ReservedErrorsJoinedKeyHasSession:      "HasSession",
-		modelInputs.ReservedErrorsJoinedKeyOsName:          "OSName",
-		modelInputs.ReservedErrorsJoinedKeySecureID:        "SecureID",
-		modelInputs.ReservedErrorsJoinedKeySecureSessionID: "SecureSessionID",
-		modelInputs.ReservedErrorsJoinedKeyServiceName:     "ServiceName",
-		modelInputs.ReservedErrorsJoinedKeyServiceVersion:  "ServiceVersion",
-		modelInputs.ReservedErrorsJoinedKeyStatus:          "Status",
-		modelInputs.ReservedErrorsJoinedKeyTag:             "ErrorTagTitle",
-		modelInputs.ReservedErrorsJoinedKeyTimestamp:       "Timestamp",
-		modelInputs.ReservedErrorsJoinedKeyTraceID:         "TraceID",
-		modelInputs.ReservedErrorsJoinedKeyType:            "Type",
-		modelInputs.ReservedErrorsJoinedKeyVisitedURL:      "VisitedURL",
+	KeysToColumns: map[string]string{
+		string(modelInputs.ReservedErrorsJoinedKeyID):              "ID",
+		string(modelInputs.ReservedErrorsJoinedKeyBrowser):         "Browser",
+		string(modelInputs.ReservedErrorsJoinedKeyClientID):        "ClientID",
+		string(modelInputs.ReservedErrorsJoinedKeyEnvironment):     "Environment",
+		string(modelInputs.ReservedErrorsJoinedKeyEvent):           "Event",
+		string(modelInputs.ReservedErrorsJoinedKeyHasSession):      "HasSession",
+		string(modelInputs.ReservedErrorsJoinedKeyOsName):          "OSName",
+		string(modelInputs.ReservedErrorsJoinedKeySecureID):        "SecureID",
+		string(modelInputs.ReservedErrorsJoinedKeySecureSessionID): "SecureSessionID",
+		string(modelInputs.ReservedErrorsJoinedKeyServiceName):     "ServiceName",
+		string(modelInputs.ReservedErrorsJoinedKeyServiceVersion):  "ServiceVersion",
+		string(modelInputs.ReservedErrorsJoinedKeyStatus):          "Status",
+		string(modelInputs.ReservedErrorsJoinedKeyTag):             "ErrorTagTitle",
+		string(modelInputs.ReservedErrorsJoinedKeyTimestamp):       "Timestamp",
+		string(modelInputs.ReservedErrorsJoinedKeyTraceID):         "TraceID",
+		string(modelInputs.ReservedErrorsJoinedKeyType):            "Type",
+		string(modelInputs.ReservedErrorsJoinedKeyVisitedURL):      "VisitedURL",
 	},
 	BodyColumn:   "Event",
-	ReservedKeys: modelInputs.AllReservedErrorsJoinedKey,
+	ReservedKeys: reservedErrorsJoinedKeys,
 }
 
-var BackendErrorObjectInputConfig = model.TableConfig[modelInputs.ReservedErrorsJoinedKey]{
-	KeysToColumns: map[modelInputs.ReservedErrorsJoinedKey]string{
-		modelInputs.ReservedErrorsJoinedKeyEnvironment:    "Environment",
-		modelInputs.ReservedErrorsJoinedKeyEvent:          "Event",
-		modelInputs.ReservedErrorsJoinedKeyHasSession:     "SessionSecureID",
-		modelInputs.ReservedErrorsJoinedKeyServiceName:    "Service.Name",
-		modelInputs.ReservedErrorsJoinedKeyServiceVersion: "Service.Version",
-		modelInputs.ReservedErrorsJoinedKeyTimestamp:      "Timestamp",
-		modelInputs.ReservedErrorsJoinedKeyType:           "Type",
-		modelInputs.ReservedErrorsJoinedKeyVisitedURL:     "URL",
+var BackendErrorObjectInputConfig = model.TableConfig{
+	KeysToColumns: map[string]string{
+		string(modelInputs.ReservedErrorsJoinedKeyEnvironment):    "Environment",
+		string(modelInputs.ReservedErrorsJoinedKeyEvent):          "Event",
+		string(modelInputs.ReservedErrorsJoinedKeyHasSession):     "SessionSecureID",
+		string(modelInputs.ReservedErrorsJoinedKeyServiceName):    "Service.Name",
+		string(modelInputs.ReservedErrorsJoinedKeyServiceVersion): "Service.Version",
+		string(modelInputs.ReservedErrorsJoinedKeyTimestamp):      "Timestamp",
+		string(modelInputs.ReservedErrorsJoinedKeyType):           "Type",
+		string(modelInputs.ReservedErrorsJoinedKeyVisitedURL):     "URL",
 	},
 	BodyColumn:   "Event",
-	ReservedKeys: modelInputs.AllReservedErrorsJoinedKey,
+	ReservedKeys: reservedErrorsJoinedKeys,
 }
 
-var errorsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedErrorsJoinedKey]{
+var ErrorsSampleableTableConfig = SampleableTableConfig{
 	tableConfig: ErrorsJoinedTableConfig,
 	useSampling: func(time.Duration) bool {
 		return false
@@ -662,12 +674,33 @@ func ErrorMatchesQuery(errorObject *model2.BackendErrorObjectInput, filters list
 }
 
 func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
-	return readMetrics(ctx, client, errorsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
+	return client.ReadMetrics(ctx, ReadMetricsInput{
+		SampleableConfig: ErrorsSampleableTableConfig,
+		ProjectIDs:       []int{projectID},
+		Params:           params,
+		Column:           column,
+		MetricTypes:      metricTypes,
+		GroupBy:          groupBy,
+		BucketCount:      nBuckets,
+		BucketBy:         bucketBy,
+		Limit:            limit,
+		LimitAggregator:  limitAggregator,
+		LimitColumn:      limitColumn,
+	})
 }
 
 func (client *Client) ReadWorkspaceErrorCounts(ctx context.Context, projectIDs []int, params modelInputs.QueryInput) (*modelInputs.MetricsBuckets, error) {
 	// 12 buckets - 12 months in a year, or 12 weeks in a quarter
-	return readWorkspaceMetrics(ctx, client, errorsSampleableTableConfig, projectIDs, params, "id", []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, nil, pointy.Int(12), modelInputs.MetricBucketByTimestamp.String(), nil, nil, nil)
+	return client.ReadMetrics(ctx,
+		ReadMetricsInput{
+			SampleableConfig: ErrorsSampleableTableConfig,
+			ProjectIDs:       projectIDs,
+			Params:           params,
+			Column:           "id",
+			MetricTypes:      []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount},
+			BucketCount:      pointy.Int(12),
+			BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
+		})
 }
 
 func (client *Client) ErrorsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {

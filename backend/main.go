@@ -3,15 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/enterprise"
-	"github.com/highlight-run/highlight/backend/env"
-	"github.com/highlight-run/highlight/backend/pricing"
 	"io"
 	"math/rand"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/enterprise"
+	"github.com/highlight-run/highlight/backend/env"
+	"github.com/highlight-run/highlight/backend/pricing"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -599,6 +600,7 @@ func main() {
 			go w.GetPublicWorker(kafkaqueue.TopicTypeTraces)(ctx)
 			go w.StartLogAlertWatcher(ctx)
 			go w.StartMetricMonitorWatcher(ctx)
+			go w.StartMetricAlertWatcher(ctx)
 			go w.StartSessionDeleteJob(ctx)
 			go func() {
 				w.ReportStripeUsage(ctx)

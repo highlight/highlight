@@ -141,7 +141,7 @@ export type Alert = {
 	product_type: ProductType
 	query?: Maybe<Scalars['String']>
 	threshold_cooldown?: Maybe<Scalars['Int']>
-	threshold_count?: Maybe<Scalars['Int']>
+	threshold_value?: Maybe<Scalars['Float']>
 	threshold_window?: Maybe<Scalars['Int']>
 	updated_at: Scalars['Timestamp']
 }
@@ -1301,7 +1301,7 @@ export type MutationCreateAlertArgs = {
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
 	threshold_cooldown?: InputMaybe<Scalars['Int']>
-	threshold_count?: InputMaybe<Scalars['Int']>
+	threshold_value?: InputMaybe<Scalars['Float']>
 	threshold_window?: InputMaybe<Scalars['Int']>
 }
 
@@ -1767,7 +1767,7 @@ export type MutationUpdateAlertArgs = {
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
 	threshold_cooldown?: InputMaybe<Scalars['Int']>
-	threshold_count?: InputMaybe<Scalars['Int']>
+	threshold_value?: InputMaybe<Scalars['Float']>
 	threshold_window?: InputMaybe<Scalars['Int']>
 }
 

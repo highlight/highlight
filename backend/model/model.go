@@ -6,10 +6,11 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	Email "github.com/highlight-run/highlight/backend/email"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -1920,9 +1921,11 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 type Alert struct {
 	Model
 	ProjectID         int
+	MetricId          string
 	Name              string
 	ProductType       modelInputs.ProductType
 	FunctionType      modelInputs.MetricAggregator
+	FunctionColumn    *string
 	Query             *string
 	GroupByKey        *string
 	Disabled          bool                `gorm:"default:false"`
@@ -1931,7 +1934,7 @@ type Alert struct {
 
 	// fields for threshold alert
 	BelowThreshold    *bool
-	ThresholdCount    *int
+	ThresholdValue    *float64
 	ThresholdWindow   *int
 	ThresholdCooldown *int
 }
@@ -2415,15 +2418,15 @@ func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcome
 	return nil
 }
 
-type TableConfig[TReservedKey ~string] struct {
+type TableConfig struct {
 	TableName        string
 	BodyColumn       string
 	SeverityColumn   string
 	AttributesColumn string
 	// AttributesList set when AttributesColumn is an array of k,v pairs of attributes
 	AttributesList bool
-	KeysToColumns  map[TReservedKey]string
-	ReservedKeys   []TReservedKey
+	KeysToColumns  map[string]string
+	ReservedKeys   []string
 	SelectColumns  []string
 	DefaultFilter  string
 	IgnoredFilters map[string]bool

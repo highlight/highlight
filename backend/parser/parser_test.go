@@ -8,7 +8,7 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 )
 
-var tableConfig = model.TableConfig[string]{
+var tableConfig = model.TableConfig{
 	KeysToColumns: map[string]string{
 		"duration":     "Duration",
 		"level":        "Level",
