@@ -3308,7 +3308,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateAlert is the resolver for the createAlert field.
-func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, metric string, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
 	_, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
@@ -3325,12 +3325,12 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 		Name:              name,
 		ProductType:       productType,
 		FunctionType:      functionType,
-		Metric:            metric,
+		FunctionColumn:    functionColumn,
 		Query:             query,
 		GroupByKey:        groupByKey,
 		Disabled:          *disabledVar,
 		BelowThreshold:    belowThreshold,
-		ThresholdCount:    thresholdCount,
+		ThresholdValue:    thresholdValue,
 		ThresholdWindow:   thresholdWindow,
 		ThresholdCooldown: thresholdCooldown,
 		LastAdminToEditID: admin.ID,
@@ -3348,7 +3348,7 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 }
 
 // UpdateAlert is the resolver for the updateAlert field.
-func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, metric *string, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdValue *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
@@ -3368,8 +3368,8 @@ func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alert
 	if functionType != nil {
 		alertUpdates["FunctionType"] = *functionType
 	}
-	if metric != nil {
-		alertUpdates["Metric"] = *metric
+	if functionColumn != nil {
+		alertUpdates["FunctionColumn"] = *functionColumn
 	}
 	if query != nil {
 		alertUpdates["Query"] = *query
@@ -3383,8 +3383,8 @@ func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alert
 	if belowThreshold != nil {
 		alertUpdates["BelowThreshold"] = *belowThreshold
 	}
-	if thresholdCount != nil {
-		alertUpdates["ThresholdCount"] = *thresholdCount
+	if thresholdValue != nil {
+		alertUpdates["ThresholdValue"] = *thresholdValue
 	}
 	if thresholdWindow != nil {
 		alertUpdates["ThresholdWindow"] = *thresholdWindow
