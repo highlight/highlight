@@ -3391,8 +3391,8 @@ export const CreateAlertDocument = gql`
 		$project_id: ID!
 		$name: String!
 		$product_type: ProductType!
-		$metric: String!
 		$function_type: MetricAggregator!
+		$metric: String!
 		$query: String
 		$group_by_key: String
 		$below_threshold: Boolean
@@ -3404,8 +3404,8 @@ export const CreateAlertDocument = gql`
 			project_id: $project_id
 			name: $name
 			product_type: $product_type
-			metric: $metric
 			function_type: $function_type
+			metric: $metric
 			query: $query
 			group_by_key: $group_by_key
 			below_threshold: $below_threshold
@@ -3440,8 +3440,8 @@ export type CreateAlertMutationFn = Apollo.MutationFunction<
  *      project_id: // value for 'project_id'
  *      name: // value for 'name'
  *      product_type: // value for 'product_type'
- *      metric: // value for 'metric'
  *      function_type: // value for 'function_type'
+ *      metric: // value for 'metric'
  *      query: // value for 'query'
  *      group_by_key: // value for 'group_by_key'
  *      below_threshold: // value for 'below_threshold'
@@ -3477,8 +3477,8 @@ export const UpdateAlertDocument = gql`
 		$alert_id: ID!
 		$name: String!
 		$product_type: ProductType!
-		$metric: String!
 		$function_type: MetricAggregator!
+		$metric: String!
 		$query: String
 		$group_by_key: String
 		$below_threshold: Boolean
@@ -3491,8 +3491,8 @@ export const UpdateAlertDocument = gql`
 			alert_id: $alert_id
 			name: $name
 			product_type: $product_type
-			metric: $metric
 			function_type: $function_type
+			metric: $metric
 			query: $query
 			group_by_key: $group_by_key
 			below_threshold: $below_threshold
@@ -3528,8 +3528,8 @@ export type UpdateAlertMutationFn = Apollo.MutationFunction<
  *      alert_id: // value for 'alert_id'
  *      name: // value for 'name'
  *      product_type: // value for 'product_type'
- *      metric: // value for 'metric'
  *      function_type: // value for 'function_type'
+ *      metric: // value for 'metric'
  *      query: // value for 'query'
  *      group_by_key: // value for 'group_by_key'
  *      below_threshold: // value for 'below_threshold'

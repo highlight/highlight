@@ -1021,8 +1021,8 @@ export type CreateAlertMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
 	product_type: Types.ProductType
-	metric: Types.Scalars['String']
 	function_type: Types.MetricAggregator
+	metric: Types.Scalars['String']
 	query?: Types.Maybe<Types.Scalars['String']>
 	group_by_key?: Types.Maybe<Types.Scalars['String']>
 	below_threshold?: Types.Maybe<Types.Scalars['Boolean']>
@@ -1045,8 +1045,8 @@ export type UpdateAlertMutationVariables = Types.Exact<{
 	alert_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
 	product_type: Types.ProductType
-	metric: Types.Scalars['String']
 	function_type: Types.MetricAggregator
+	metric: Types.Scalars['String']
 	query?: Types.Maybe<Types.Scalars['String']>
 	group_by_key?: Types.Maybe<Types.Scalars['String']>
 	below_threshold?: Types.Maybe<Types.Scalars['Boolean']>

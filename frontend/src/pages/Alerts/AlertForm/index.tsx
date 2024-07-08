@@ -25,6 +25,7 @@ import {
 	useGetAlertQuery,
 	useUpdateAlertMutation,
 } from '@/graph/generated/hooks'
+import { namedOperations } from '@/graph/generated/operations'
 import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
@@ -103,8 +104,18 @@ export const AlertForm: React.FC = () => {
 			initialPreset: DEFAULT_TIME_PRESETS[2],
 		})
 
-	const [createAlert, createAlertContext] = useCreateAlertMutation()
-	const [updateAlert, updateAlertContext] = useUpdateAlertMutation()
+	const [createAlert, createAlertContext] = useCreateAlertMutation({
+		refetchQueries: [
+			namedOperations.Query.GetAlert,
+			namedOperations.Query.GetAlertsPagePayload,
+		],
+	})
+	const [updateAlert, updateAlertContext] = useUpdateAlertMutation({
+		refetchQueries: [
+			namedOperations.Query.GetAlert,
+			namedOperations.Query.GetAlertsPagePayload,
+		],
+	})
 
 	const navigate = useNavigate()
 
