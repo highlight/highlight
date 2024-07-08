@@ -518,32 +518,60 @@ func matchesQuery[TObj interface{}](row *TObj, config model.TableConfig, filters
 	return true
 }
 
-func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSampling bool) string {
+func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSampling bool, useState bool) string {
 	switch aggregator {
 	case modelInputs.MetricAggregatorCount:
-		if useSampling {
+		if useState {
+			return "countState()"
+		} else if useSampling {
 			return "round(count() * any(_sample_factor))"
 		} else {
 			return "round(count() * 1.0)"
 		}
 	case modelInputs.MetricAggregatorCountDistinctKey, modelInputs.MetricAggregatorCountDistinct:
+		if useState {
+			return fmt.Sprintf("uniqState(%s)", column)
+		}
 		return fmt.Sprintf("round(count(distinct %s) * 1.0)", column)
 	case modelInputs.MetricAggregatorMin:
+		if useState {
+			return fmt.Sprintf("minState(%s)", column)
+		}
 		return fmt.Sprintf("toFloat64(min(%s))", column)
 	case modelInputs.MetricAggregatorAvg:
+		if useState {
+			return fmt.Sprintf("avgState(%s)", column)
+		}
 		return fmt.Sprintf("avg(%s)", column)
 	case modelInputs.MetricAggregatorP50:
+		if useState {
+			return fmt.Sprintf("quantileState(.5)(%s)", column)
+		}
 		return fmt.Sprintf("quantile(.5)(%s)", column)
 	case modelInputs.MetricAggregatorP90:
+		if useState {
+			return fmt.Sprintf("quantileState(.9)(%s)", column)
+		}
 		return fmt.Sprintf("quantile(.9)(%s)", column)
 	case modelInputs.MetricAggregatorP95:
+		if useState {
+			return fmt.Sprintf("quantileState(.95)(%s)", column)
+		}
 		return fmt.Sprintf("quantile(.95)(%s)", column)
 	case modelInputs.MetricAggregatorP99:
+		if useState {
+			return fmt.Sprintf("quantileState(.99)(%s)", column)
+		}
 		return fmt.Sprintf("quantile(.99)(%s)", column)
 	case modelInputs.MetricAggregatorMax:
+		if useState {
+			return fmt.Sprintf("maxState(%s)", column)
+		}
 		return fmt.Sprintf("toFloat64(max(%s))", column)
 	case modelInputs.MetricAggregatorSum:
-		if useSampling {
+		if useState {
+			return fmt.Sprintf("sumState(%s)", column)
+		} else if useSampling {
 			return fmt.Sprintf("sum(%s) * any(_sample_factor)", column)
 		} else {
 			return fmt.Sprintf("sum(%s) * 1.0", column)
@@ -570,7 +598,7 @@ func getAttributeFilterCol(sampleableConfig SampleableTableConfig, value, op str
 }
 
 func applyBlockFilter(sb *sqlbuilder.SelectBuilder, input ReadMetricsInput) {
-	if input.SavedMetricState != nil {
+	if input.SavedMetricState != nil && len(input.SavedMetricState.BlockNumberInfo) > 0 {
 		partSb := sqlbuilder.NewSelectBuilder()
 		partSb.Select("name").
 			From("system.parts").
@@ -610,8 +638,8 @@ func (client *Client) saveMetricHistory(ctx context.Context, sb *sqlbuilder.Sele
 	}
 
 	insertCols := []string{"MetricId", "Timestamp", "MaxBlockNumberState"}
-	selectCols := []string{fmt.Sprintf("%s", input.SavedMetricState.MetricId),
-		fmt.Sprintf("fromUnixTimestamp(bucket_index*(max-min)/%d + min)", bucketCount),
+	selectCols := []string{fmt.Sprintf(`'%s'`, input.SavedMetricState.MetricId),
+		fmt.Sprintf("fromUnixTimestamp(toInt64(bucket_index*(max-min)/%d + min))", bucketCount),
 		"max_block_number",
 		"metric_value",
 	}
@@ -654,7 +682,7 @@ func (client *Client) saveMetricHistory(ctx context.Context, sb *sqlbuilder.Sele
 	insertSb := insertBuilder.InsertInto(MetricHistoryTable).Cols(insertCols...).Select(selectCols...)
 	insertSb.From(insertSb.BuilderAs(sb, "innerSelect"))
 
-	sql, args := insertSb.BuildWithFlavor(sqlbuilder.ClickHouse)
+	sql, args := insertBuilder.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	_, err := client.conn.Query(
 		ctx,
@@ -854,7 +882,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		} else {
 			col = getAttributeFilterCol(input.SampleableConfig, innerSb.Var(col), "toFloat64OrNull")
 		}
-		limitFn = getFnStr(*input.LimitAggregator, col, false)
+		limitFn = getFnStr(*input.LimitAggregator, col, false, false)
 
 		innerSb.GroupBy(groupByIndexes...).
 			OrderBy(limitFn).
@@ -877,9 +905,9 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	innerSb := fromSb
 	fromSb = sqlbuilder.NewSelectBuilder()
-	outerSelect := []string{"bucket_index", "any(_sample_factor) as _sample_factor, any(min) as min, any(max) as max, any(max_block_number) as max_block_number"}
+	outerSelect := []string{"bucket_index", "any(_sample_factor) as sample_factor, any(min) as min, any(max) as max, any(max_block_number) as max_block_number"}
 	for _, metricType := range input.MetricTypes {
-		outerSelect = append(outerSelect, fmt.Sprintf("%s as metric_value", getFnStr(metricType, "metric_value", true)))
+		outerSelect = append(outerSelect, fmt.Sprintf("%s as metric_value", getFnStr(metricType, "metric_value", true, input.SavedMetricState != nil)))
 	}
 	for idx := range input.GroupBy {
 		outerSelect = append(outerSelect, fmt.Sprintf("g%d", idx))

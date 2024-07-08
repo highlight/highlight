@@ -22,7 +22,7 @@ type BlockNumberInfo struct {
 	LastBlockNumber int
 }
 
-func (client *Client) GetBlockNumbers(ctx context.Context, metricId int, endDate time.Time) ([]BlockNumberInfo, error) {
+func (client *Client) GetBlockNumbers(ctx context.Context, metricId string, endDate time.Time) ([]BlockNumberInfo, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select("toString(toDate(date_trunc('day', Timestamp)))",
 		"maxMerge(MaxBlockNumberState)")

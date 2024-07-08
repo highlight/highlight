@@ -30,8 +30,10 @@ func WatchMetricAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Cl
 	alertWorkerpool := workerpool.New(maxWorkers)
 	alertWorkerpool.SetPanicHandler(util.Recover)
 
-	for range time.NewTicker(alertEvalFreq).C {
+	processAlertsImpl := func() {
 		alerts := getMetricAlerts(ctx, DB)
+		log.WithContext(ctx).Infof("processing %d metric alerts", len(alerts))
+
 		for _, alert := range alerts {
 			alert := alert
 			alertWorkerpool.SubmitRecover(
@@ -44,6 +46,11 @@ func WatchMetricAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Cl
 					}
 				})
 		}
+	}
+
+	processAlertsImpl()
+	for range time.NewTicker(alertEvalFreq).C {
+		processAlertsImpl()
 	}
 }
 
@@ -99,7 +106,7 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 	bucketCount := 1
 	var savedState *clickhouse.SavedMetricState
 	if doSaveState {
-		blockInfo, err := ccClient.GetBlockNumbers(ctx, alert.ID, endDate)
+		blockInfo, err := ccClient.GetBlockNumbers(ctx, alert.MetricId, endDate)
 		if err != nil {
 			return err
 		}
