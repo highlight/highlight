@@ -220,7 +220,9 @@ export const NewAlertPage: React.FC = () => {
 								Cancel
 							</Button>
 							<Button
-								disabled={createAlertContext.loading}
+								disabled={
+									!alertName || createAlertContext.loading
+								}
 								onClick={onSave}
 							>
 								Save&nbsp;
