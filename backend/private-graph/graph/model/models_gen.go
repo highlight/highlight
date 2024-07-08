@@ -103,7 +103,7 @@ type AlertStateChange struct {
 	State         AlertState `json:"State"`
 	PreviousState AlertState `json:"PreviousState"`
 	Title         string     `json:"Title"`
-	GroupByKey    *string    `json:"GroupByKey,omitempty"`
+	GroupByKey    string     `json:"GroupByKey"`
 }
 
 type AllProjectSettings struct {
@@ -1097,24 +1097,26 @@ func (e AlertDestinationType) MarshalGQL(w io.Writer) {
 type AlertState string
 
 const (
-	AlertStateNormal   AlertState = "Normal"
-	AlertStatePending  AlertState = "Pending"
-	AlertStateAlerting AlertState = "Alerting"
-	AlertStateNoData   AlertState = "NoData"
-	AlertStateError    AlertState = "Error"
+	AlertStateNormal           AlertState = "Normal"
+	AlertStatePending          AlertState = "Pending"
+	AlertStateAlerting         AlertState = "Alerting"
+	AlertStateAlertingSilently AlertState = "AlertingSilently"
+	AlertStateNoData           AlertState = "NoData"
+	AlertStateError            AlertState = "Error"
 )
 
 var AllAlertState = []AlertState{
 	AlertStateNormal,
 	AlertStatePending,
 	AlertStateAlerting,
+	AlertStateAlertingSilently,
 	AlertStateNoData,
 	AlertStateError,
 }
 
 func (e AlertState) IsValid() bool {
 	switch e {
-	case AlertStateNormal, AlertStatePending, AlertStateAlerting, AlertStateNoData, AlertStateError:
+	case AlertStateNormal, AlertStatePending, AlertStateAlerting, AlertStateAlertingSilently, AlertStateNoData, AlertStateError:
 		return true
 	}
 	return false
