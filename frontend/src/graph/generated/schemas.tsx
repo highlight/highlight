@@ -137,7 +137,7 @@ export type Alert = {
 	group_by_key?: Maybe<Scalars['String']>
 	id: Scalars['ID']
 	last_admin_to_edit_id?: Maybe<Scalars['ID']>
-	metric?: Maybe<Scalars['String']>
+	metric: Scalars['String']
 	name: Scalars['String']
 	product_type: ProductType
 	query?: Maybe<Scalars['String']>
@@ -1297,7 +1297,7 @@ export type MutationCreateAlertArgs = {
 	disabled?: InputMaybe<Scalars['Boolean']>
 	function_type: MetricAggregator
 	group_by_key?: InputMaybe<Scalars['String']>
-	metric?: InputMaybe<Scalars['String']>
+	metric: Scalars['String']
 	name: Scalars['String']
 	product_type: ProductType
 	project_id: Scalars['ID']

@@ -31,7 +31,6 @@ export const AlertEnableSwitch: React.FC<
 		const isDisabled = !disabled
 
 		const type = record.configuration.type
-		console.log(record)
 
 		const requestBody = {
 			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],

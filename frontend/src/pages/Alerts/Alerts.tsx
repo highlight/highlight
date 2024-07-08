@@ -230,7 +230,6 @@ function AlertsPageLoaded({
 	const metricAlertsEnabled = useFeatureFlag(Feature.Metrics)
 
 	const navigateToAlert = (record: any) => {
-		console.log(record)
 		if (record.configuration.name === ALERT_NAMES['ALERT']) {
 			navigate(`/${project_id}/alerts/${record.id}/edit`)
 		} else if (record.type === ALERT_NAMES['METRIC_MONITOR']) {

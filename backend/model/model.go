@@ -1924,7 +1924,7 @@ type Alert struct {
 	Name              string
 	ProductType       modelInputs.ProductType
 	FunctionType      modelInputs.MetricAggregator
-	Metric            *string
+	Metric            string
 	Query             *string
 	GroupByKey        *string
 	Disabled          bool                `gorm:"default:false"`

@@ -137,9 +137,9 @@ export const AlertForm: React.FC = () => {
 		LINE_NULL_HANDLING[2],
 	)
 
-	const onSave = () => {
+	const onSave = async () => {
 		if (isEdit) {
-			updateAlert({
+			await updateAlert({
 				variables: {
 					alert_id: alert_id!,
 					project_id: projectId,
@@ -159,7 +159,7 @@ export const AlertForm: React.FC = () => {
 				return
 			})
 		} else {
-			createAlert({
+			await createAlert({
 				variables: {
 					project_id: projectId,
 					name: alertName,
@@ -179,10 +179,11 @@ export const AlertForm: React.FC = () => {
 			})
 		}
 
+		console.log('Navigating')
 		toast
 			.success(`${alertName} ${isEdit ? 'updated' : 'created'}`)
 			.then(() => {
-				navigate('/alerts')
+				navigate(`/${projectId}/alerts`)
 			})
 	}
 
@@ -285,9 +286,7 @@ export const AlertForm: React.FC = () => {
 							<Button
 								emphasis="low"
 								kind="secondary"
-								onClick={() => {
-									navigate('/alerts')
-								}}
+								onClick={() => navigate(`/${projectId}/alerts`)}
 							>
 								Cancel
 							</Button>

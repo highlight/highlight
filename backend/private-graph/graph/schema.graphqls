@@ -1586,7 +1586,7 @@ type Alert {
 	name: String!
 	product_type: ProductType!
 	function_type: MetricAggregator!
-	metric: String
+	metric: String!
 	query: String
 	group_by_key: String
 	disabled: Boolean!
@@ -2767,7 +2767,7 @@ type Mutation {
 		name: String!
 		product_type: ProductType!
 		function_type: MetricAggregator!
-		metric: String
+		metric: String!
 		query: String
 		group_by_key: String
 		disabled: Boolean
