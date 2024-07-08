@@ -7,7 +7,7 @@ import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerInt
 import useLocalStorage from '@rehooks/local-storage'
 import { useEffect, useMemo } from 'react'
 
-import { OptionDropdown } from '@/pages/Graphing/GraphingEditor'
+import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 
 const GitHubRepoSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
