@@ -23,8 +23,6 @@ import (
 
 const maxWorkers = 40
 const alertEvalFreq = time.Minute
-const ingestDelay = time.Minute
-const maxLookback = time.Hour
 
 func WatchMetricAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) {
 	log.WithContext(ctx).Info("Starting to watch metric alerts")
@@ -58,24 +56,12 @@ func getMetricAlerts(ctx context.Context, DB *gorm.DB) []*model.Alert {
 	return alerts
 }
 
-func pointerizer[V any](v V) *V {
-	return &v
-}
-
 func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, alert *model.Alert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) error {
 	curDate := time.Now().Round(time.Minute).Add(-1 * time.Minute)
 
 	// Filter for data points +/- 2 hours of the current time to match ingest filter
 	startDate := curDate.Add(-2 * time.Hour)
 	endDate := curDate.Add(2 * time.Hour)
-
-	// 1 bucket per minute
-	bucketCount := int((endDate.Sub(startDate)) / time.Minute)
-
-	blockInfo, err := ccClient.GetBlockNumbers(ctx, alert.ID, endDate)
-	if err != nil {
-		return err
-	}
 
 	var config clickhouse.SampleableTableConfig
 	switch alert.ProductType {
@@ -108,9 +94,28 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		groupBy = append(groupBy, *alert.GroupByKey)
 	}
 
+	doSaveState := alert.ProductType != modelInputs.ProductTypeErrors && alert.ProductType != modelInputs.ProductTypeSessions
+
+	bucketCount := 1
+	var savedState *clickhouse.SavedMetricState
+	if doSaveState {
+		blockInfo, err := ccClient.GetBlockNumbers(ctx, alert.ID, endDate)
+		if err != nil {
+			return err
+		}
+
+		savedState = &clickhouse.SavedMetricState{
+			MetricId:        alert.MetricId,
+			BlockNumberInfo: blockInfo,
+		}
+
+		// 1 bucket per minute
+		bucketCount = int((endDate.Sub(startDate)) / time.Minute)
+	}
+
 	aggregatorCount := modelInputs.MetricAggregatorCount
 
-	if _, err := ccClient.ReadMetrics(ctx, clickhouse.ReadMetricsInput{
+	buckets, err := ccClient.ReadMetrics(ctx, clickhouse.ReadMetricsInput{
 		SampleableConfig: config,
 		ProjectIDs:       []int{alert.ProjectID},
 		Params: modelInputs.QueryInput{
@@ -120,29 +125,22 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 				EndDate:   endDate,
 			},
 		},
-		Column:          column,
-		MetricTypes:     []modelInputs.MetricAggregator{alert.FunctionType},
-		GroupBy:         groupBy,
-		BucketCount:     &bucketCount,
-		BucketBy:        modelInputs.MetricBucketByTimestamp.String(),
-		Limit:           pointy.Int(100),
-		LimitAggregator: &aggregatorCount,
-		SavedMetricState: &clickhouse.SavedMetricState{
-			MetricId:        alert.MetricId,
-			BlockNumberInfo: blockInfo,
-		},
-	}); err != nil {
+		Column:           column,
+		MetricTypes:      []modelInputs.MetricAggregator{alert.FunctionType},
+		GroupBy:          groupBy,
+		BucketCount:      &bucketCount,
+		BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
+		Limit:            pointy.Int(100),
+		LimitAggregator:  &aggregatorCount,
+		SavedMetricState: savedState,
+	})
+	if err != nil {
 		return err
 	}
 
 	thresholdWindow := 1 * time.Hour
 	if alert.ThresholdWindow != nil {
 		thresholdWindow = time.Duration(*alert.ThresholdWindow) * time.Second
-	}
-
-	results, err := ccClient.AggregateMetricStates(ctx, alert.MetricId, curDate, thresholdWindow, alert.FunctionType)
-	if err != nil {
-		return err
 	}
 
 	belowThreshold := false
@@ -155,25 +153,57 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		thresholdValue = *alert.ThresholdValue
 	}
 
-	for _, result := range results {
-		alertCondition := result.Value >= thresholdValue
-		if belowThreshold {
-			alertCondition = result.Value <= thresholdValue
+	if doSaveState {
+		results, err := ccClient.AggregateMetricStates(ctx, alert.MetricId, curDate, thresholdWindow, alert.FunctionType)
+		if err != nil {
+			return err
 		}
+		for _, result := range results {
+			alertCondition := result.Value >= thresholdValue
+			if belowThreshold {
+				alertCondition = result.Value <= thresholdValue
+			}
 
-		log.WithContext(ctx).WithFields(log.Fields{
-			"id":              alert.ID,
-			"query":           alert.Query,
-			"time":            curDate.Format(time.RFC3339),
-			"value":           result.Value,
-			"thresholdValue":  thresholdValue,
-			"thresholdWindow": thresholdWindow,
-			"alerting":        alertCondition,
-		}).Info("evaluated log alert")
+			log.WithContext(ctx).WithFields(log.Fields{
+				"id":              alert.ID,
+				"query":           alert.Query,
+				"time":            curDate.Format(time.RFC3339),
+				"value":           result.Value,
+				"thresholdValue":  thresholdValue,
+				"thresholdWindow": thresholdWindow,
+				"alerting":        alertCondition,
+			}).Info("evaluated log alert from saved state")
 
-		if alertCondition {
-			// TODO: send notifications here
+			if alertCondition {
+				// TODO: send notifications here
+			}
+		}
+	} else {
+		for _, bucket := range buckets.Buckets {
+			value := 0.0
+			if bucket.MetricValue != nil {
+				value = *bucket.MetricValue
+			}
+			alertCondition := value >= thresholdValue
+			if belowThreshold {
+				alertCondition = value <= thresholdValue
+			}
+
+			log.WithContext(ctx).WithFields(log.Fields{
+				"id":              alert.ID,
+				"query":           alert.Query,
+				"time":            curDate.Format(time.RFC3339),
+				"value":           value,
+				"thresholdValue":  thresholdValue,
+				"thresholdWindow": thresholdWindow,
+				"alerting":        alertCondition,
+			}).Info("evaluated log alert from saved state")
+
+			if alertCondition {
+				// TODO: send notifications here
+			}
 		}
 	}
+
 	return nil
 }
