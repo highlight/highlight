@@ -38,6 +38,7 @@ import {
 	useGetAiQuerySuggestionLazyQuery,
 	useGetMetricsQuery,
 } from '@/graph/generated/hooks'
+import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { TIMESTAMP_KEY } from '@/pages/Graphing/components/Graph'
@@ -80,6 +81,8 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
+	const { currentWorkspace } = useApplicationContext()
+	const aiQueryBuilderFlag = useFeatureFlag(Feature.AiQueryBuilder)
 	const [aiMode, setAiMode] = useState(false)
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const queryParts = useMemo(() => {
@@ -251,6 +254,10 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		} as AiSuggestion
 	}, [aiData])
 
+	const enableAiQueryBuilder =
+		aiQueryBuilderFlag &&
+		workspaceSettings?.workspaceSettings?.ai_query_builder
+
 	return (
 		<SearchContext
 			initialQuery={query}
@@ -293,7 +300,11 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						timeMode={timeMode}
 						savedSegmentType={SavedSegmentEntityType.Log}
 						textAreaRef={textAreaRef}
-						enableAIMode={projectId === '1'}
+						enableAIMode={
+							projectId === '1' &&
+							workspaceSettings?.workspaceSettings
+								?.ai_query_builder
+						}
 					/>
 					<LogsCount
 						startDate={searchTimeContext.startDate}

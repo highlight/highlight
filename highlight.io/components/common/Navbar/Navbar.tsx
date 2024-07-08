@@ -41,14 +41,15 @@ const LaunchWeekBanner = () => {
 const LivestreamBanner = () => {
 	return (
 		<Link
-			href="https://lu.ma/mgoy70k1"
+			href="https://lu.ma/bvnkoy5v"
 			target="_blank"
 			rel="noreferrer"
 			className="hidden md:flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
 		>
 			<Typography type="copy3">
-				Join our livestream: June 20 at 1pm PDT on Observability in
-				Next.js. Register <span className="font-semibold"> here</span>.
+				Join our livestream: July 2nd at 1pm PDT on Evaluating LLMs with
+				OpenLLMetry. Register
+				<span className="font-semibold"> here</span>.
 			</Typography>
 		</Link>
 	)

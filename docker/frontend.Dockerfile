@@ -14,7 +14,6 @@ COPY ../backend/public-graph ./backend/public-graph
 COPY ../blog-content ./blog-content
 COPY ../docs-content ./docs-content
 COPY ../e2e ./e2e
-COPY ../experiments ./experiments
 COPY ../frontend ./frontend
 COPY ../highlight.io ./highlight.io
 COPY ../opentelemetry-sdk-workers ./opentelemetry-sdk-workers

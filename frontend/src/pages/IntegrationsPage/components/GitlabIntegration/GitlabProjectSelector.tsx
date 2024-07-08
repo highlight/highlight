@@ -5,7 +5,7 @@ import useLocalStorage from '@rehooks/local-storage'
 import { useEffect, useMemo } from 'react'
 
 import { GitlabProject } from '@/graph/generated/schemas'
-import { OptionDropdown } from '@/pages/Graphing/GraphingEditor'
+import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 
 const GitlabProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,

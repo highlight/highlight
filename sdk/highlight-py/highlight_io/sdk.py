@@ -480,7 +480,7 @@ class H(object):
 
         def factory(*args, **kwargs) -> LogRecord:
             span = otel_trace.get_current_span()
-            if span != INVALID_SPAN:
+            if span != INVALID_SPAN and span.is_recording():
                 manager = contextlib.nullcontext(enter_result=span)
             else:
                 manager = self.trace("highlight.log")

@@ -139,9 +139,8 @@ export const Firebase: React.FC = () => {
 
 	const verifyEmail = useCallback(async () => {
 		await applyActionCode(auth as unknown as any, params.oobCode!)
-		// delay by a second while firebase acks
-		await new Promise((r) => setTimeout(r, 1000))
-	}, [params.oobCode])
+		navigate(SIGN_IN_ROUTE)
+	}, [navigate, params.oobCode])
 
 	const resetPassword = useCallback(async () => {
 		const email = await verifyPasswordResetCode(
@@ -237,8 +236,7 @@ export const Firebase: React.FC = () => {
 						{params.mode === 'resetPassword' ? (
 							<ResetPassword formStore={formStore} />
 						) : null}
-						{params.mode === 'recoverEmail' ||
-						params.mode === 'verifyEmail' ? (
+						{params.mode === 'recoverEmail' ? (
 							<ConfirmEmail formStore={formStore} />
 						) : null}
 						{error && (

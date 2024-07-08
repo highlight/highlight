@@ -31,7 +31,7 @@ import { WorkspaceRouter } from '@routers/ProjectRouter/WorkspaceRouter'
 import analytics from '@util/analytics'
 import log from '@util/log'
 import { omit } from 'lodash'
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import {
 	Navigate,
 	Route,
@@ -59,6 +59,10 @@ import {
 	ErrorTagsContainer,
 	ErrorTagsSearch,
 } from '@/pages/ErrorTags'
+
+const Buttons = lazy(() => import('../../pages/Buttons/Buttons'))
+const CanvasPage = lazy(() => import('../../pages/Buttons/CanvasV2'))
+const HitTargets = lazy(() => import('../../pages/Buttons/HitTargets'))
 
 export const FIREBASE_CALLBACK_ROUTE = '/auth/action'
 export const VERIFY_EMAIL_ROUTE = '/verify_email'
@@ -104,6 +108,8 @@ export const AppRouter = () => {
 	const workspaceInviteMatch = useMatch('/w/:workspace_id/invite/:invite')
 	const inviteMatch = useMatch('/invite/:invite')
 	const joinWorkspaceMatch = useMatch('/join_workspace')
+	const firebaseMatch = useMatch(FIREBASE_CALLBACK_ROUTE)
+	const isFirebasePage = !!firebaseMatch
 	const isInvitePage = !!inviteMatch
 	const isNewProjectPage = !!newWorkspaceMatch
 	const isNewWorkspacePage = !!newProjectMatch
@@ -138,12 +144,23 @@ export const AppRouter = () => {
 	}, [])
 
 	useEffect(() => {
-		if (admin && admin.email_verified === false) {
+		if (
+			!isFirebasePage &&
+			!isInvitePage &&
+			admin &&
+			admin.email_verified === false
+		) {
 			navigate(VERIFY_EMAIL_ROUTE, { replace: true })
 			return
 		}
 
-		if (admin && inviteCode && inviteCode !== 'ignored' && !isInvitePage) {
+		if (
+			admin &&
+			inviteCode &&
+			inviteCode !== 'ignored' &&
+			!isInvitePage &&
+			!isFirebasePage
+		) {
 			navigate(`/invite/${inviteCode}`, { replace: true })
 			return
 		}
@@ -153,6 +170,7 @@ export const AppRouter = () => {
 			!admin.about_you_details_filled &&
 			!isVercelIntegrationFlow &&
 			!isInvitePage &&
+			!isFirebasePage &&
 			!isJoinWorkspacePage
 		) {
 			navigate(ABOUT_YOU_ROUTE, { replace: true })
@@ -180,6 +198,7 @@ export const AppRouter = () => {
 		isJoinWorkspacePage,
 		location.pathname,
 		location.search,
+		isFirebasePage,
 	])
 
 	useEffect(() => {
@@ -261,6 +280,31 @@ export const AppRouter = () => {
 				{projectId === DEMO_PROJECT_ID ? <DemoModal /> : null}
 				<DebugRoutes>
 					<Routes location={previousLocation ?? location}>
+						<Route
+							path="debug/buttons/*"
+							element={
+								<Suspense fallback={null}>
+									<Buttons />
+								</Suspense>
+							}
+						/>
+						<Route
+							path="debug/canvas/*"
+							element={
+								<Suspense fallback={null}>
+									<CanvasPage />
+								</Suspense>
+							}
+						/>
+						<Route
+							path="debug/hit-targets/*"
+							element={
+								<Suspense fallback={null}>
+									<HitTargets />
+								</Suspense>
+							}
+						/>
+
 						<Route
 							path="/error-tags"
 							element={<ErrorTagsContainer />}

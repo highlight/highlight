@@ -57,9 +57,6 @@ module Highlight
         HIGHLIGHT_TRACE_ATTRIBUTE => request_id
       }.merge(attrs).compact) do |_span|
         yield
-      rescue StandardError => e
-        record_exception(e)
-        raise
       end
     end
 
