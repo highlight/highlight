@@ -1921,6 +1921,7 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 type Alert struct {
 	Model
 	ProjectID         int
+	MetricId          string
 	Name              string
 	ProductType       modelInputs.ProductType
 	FunctionType      modelInputs.MetricAggregator
@@ -1933,7 +1934,7 @@ type Alert struct {
 
 	// fields for threshold alert
 	BelowThreshold    *bool
-	ThresholdCount    *int
+	ThresholdValue    *float64
 	ThresholdWindow   *int
 	ThresholdCooldown *int
 }

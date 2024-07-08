@@ -3308,7 +3308,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateAlert is the resolver for the createAlert field.
-func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
 	_, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
@@ -3329,7 +3329,7 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 		GroupByKey:        groupByKey,
 		Disabled:          *disabledVar,
 		BelowThreshold:    belowThreshold,
-		ThresholdCount:    thresholdCount,
+		ThresholdValue:    thresholdValue,
 		ThresholdWindow:   thresholdWindow,
 		ThresholdCooldown: thresholdCooldown,
 		LastAdminToEditID: admin.ID,
@@ -8828,22 +8828,13 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 	// switch on the product type to get the keys and values
 	switch productType {
 	case modelInputs.ProductTypeTraces:
-		keys = append(keys, lo.Map(lo.Keys(clickhouse.TracesTableConfig.KeysToColumns),
-			func(key modelInputs.ReservedTraceKey, _ int) string {
-				return key.String()
-			})...)
+		keys = append(keys, lo.Keys(clickhouse.TracesTableConfig.KeysToColumns)...)
 	case modelInputs.ProductTypeLogs:
-		keys = append(keys, lo.Map(lo.Keys(clickhouse.LogsTableConfig.KeysToColumns),
-			func(key modelInputs.ReservedLogKey, _ int) string {
-				return key.String()
-			})...)
+		keys = append(keys, lo.Keys(clickhouse.LogsTableConfig.KeysToColumns)...)
 	case modelInputs.ProductTypeSessions:
 		keys = append(keys, lo.Keys(clickhouse.SessionsTableConfig.KeysToColumns)...)
 	case modelInputs.ProductTypeErrors:
-		keys = append(keys, lo.Map(lo.Keys(clickhouse.ErrorGroupsTableConfig.KeysToColumns),
-			func(key modelInputs.ReservedErrorGroupKey, _ int) string {
-				return key.String()
-			})...)
+		keys = append(keys, lo.Keys(clickhouse.ErrorGroupsTableConfig.KeysToColumns)...)
 	}
 
 	loc, err := time.LoadLocation(timeZone)

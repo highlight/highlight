@@ -315,7 +315,7 @@ func (s *SearchListener) appendRules(value string) {
 	}
 
 	extendedAttributeKey := false
-	filterKey, ok := s.tableConfig.KeysToColumns[T(s.currentKey)]
+	filterKey, ok := s.tableConfig.KeysToColumns[s.currentKey]
 	if !ok {
 		extendedAttributeKey = true
 	}

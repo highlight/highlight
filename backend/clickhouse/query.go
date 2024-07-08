@@ -46,7 +46,7 @@ type ReadMetricsInput struct {
 	Limit            *int
 	LimitAggregator  *modelInputs.MetricAggregator
 	LimitColumn      *string
-	SavedMetricState SavedMetricState
+	SavedMetricState *SavedMetricState
 }
 
 func readObjects[TObj interface{}](ctx context.Context, client *Client, config model.TableConfig, samplingConfig model.TableConfig, projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
@@ -527,11 +527,7 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSamplin
 			return "round(count() * 1.0)"
 		}
 	case modelInputs.MetricAggregatorCountDistinctKey, modelInputs.MetricAggregatorCountDistinct:
-		if useSampling {
-			return fmt.Sprintf("round(count(distinct %s) * any(_sample_factor))", column)
-		} else {
-			return fmt.Sprintf("round(count(distinct %s) * 1.0)", column)
-		}
+		return fmt.Sprintf("round(count(distinct %s) * 1.0)", column)
 	case modelInputs.MetricAggregatorMin:
 		return fmt.Sprintf("toFloat64(min(%s))", column)
 	case modelInputs.MetricAggregatorAvg:
@@ -574,7 +570,7 @@ func getAttributeFilterCol(sampleableConfig SampleableTableConfig, value, op str
 }
 
 func applyBlockFilter(sb *sqlbuilder.SelectBuilder, input ReadMetricsInput) {
-	if len(input.SavedMetricState.BlockNumberInfo) > 0 {
+	if input.SavedMetricState != nil {
 		partSb := sqlbuilder.NewSelectBuilder()
 		partSb.Select("name").
 			From("system.parts").
@@ -601,6 +597,72 @@ func applyBlockFilter(sb *sqlbuilder.SelectBuilder, input ReadMetricsInput) {
 		}
 		sb.Where(sb.Or(orExprs...))
 	}
+}
+
+func (client *Client) saveMetricHistory(ctx context.Context, sb *sqlbuilder.SelectBuilder, input ReadMetricsInput) error {
+	if input.SavedMetricState == nil {
+		return nil
+	}
+
+	bucketCount := 1
+	if input.BucketCount != nil {
+		bucketCount = *input.BucketCount
+	}
+
+	insertCols := []string{"MetricId", "Timestamp", "MaxBlockNumberState"}
+	selectCols := []string{fmt.Sprintf("%s", input.SavedMetricState.MetricId),
+		fmt.Sprintf("fromUnixTimestamp(bucket_index*(max-min)/%d + min)", bucketCount),
+		"max_block_number",
+		"metric_value",
+	}
+
+	aggregator := modelInputs.MetricAggregatorCount
+	if len(input.MetricTypes) > 0 {
+		aggregator = input.MetricTypes[0]
+	}
+
+	switch aggregator {
+	case modelInputs.MetricAggregatorCount:
+		insertCols = append(insertCols, "CountState")
+	case modelInputs.MetricAggregatorCountDistinct:
+	case modelInputs.MetricAggregatorCountDistinctKey:
+		insertCols = append(insertCols, "UniqState")
+	case modelInputs.MetricAggregatorMin:
+		insertCols = append(insertCols, "MinState")
+	case modelInputs.MetricAggregatorAvg:
+		insertCols = append(insertCols, "AvgState")
+	case modelInputs.MetricAggregatorMax:
+		insertCols = append(insertCols, "MaxState")
+	case modelInputs.MetricAggregatorSum:
+		insertCols = append(insertCols, "SumState")
+	case modelInputs.MetricAggregatorP50:
+		insertCols = append(insertCols, "P50State")
+	case modelInputs.MetricAggregatorP90:
+		insertCols = append(insertCols, "P90State")
+	case modelInputs.MetricAggregatorP95:
+		insertCols = append(insertCols, "P95State")
+	case modelInputs.MetricAggregatorP99:
+		insertCols = append(insertCols, "P99State")
+	}
+
+	if len(input.GroupBy) > 0 {
+		insertCols = append(insertCols, "GroupByKey")
+		selectCols = append(selectCols, "g0")
+	}
+
+	insertBuilder := sqlbuilder.NewInsertBuilder()
+	insertSb := insertBuilder.InsertInto(MetricHistoryTable).Cols(insertCols...).Select(selectCols...)
+	insertSb.From(insertSb.BuilderAs(sb, "innerSelect"))
+
+	sql, args := insertSb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	_, err := client.conn.Query(
+		ctx,
+		sql,
+		args...,
+	)
+
+	return err
 }
 
 func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (*modelInputs.MetricsBuckets, error) {
@@ -722,7 +784,9 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	selectCols := []string{
 		fromSb.As(bucketIdxExpr, "bucket_index"),
 		fromSb.As(minExpr, "min"),
-		fromSb.As(maxExpr, "max")}
+		fromSb.As(maxExpr, "max"),
+		fromSb.As("maxState(_block_number) OVER ()", "max_block_number"),
+	}
 
 	if useSampling {
 		selectCols = append(selectCols, "_sample_factor")
@@ -805,7 +869,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		fromSb.Where(fromSb.In("("+strings.Join(fromColStrs, ", ")+")", innerSb))
 	}
 
-	base := 5 + len(input.MetricTypes)
+	base := 6 + len(input.MetricTypes)
 	groupByCols := []string{"1"}
 	for i := base; i < base+len(input.GroupBy); i++ {
 		groupByCols = append(groupByCols, strconv.Itoa(i))
@@ -813,9 +877,9 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	innerSb := fromSb
 	fromSb = sqlbuilder.NewSelectBuilder()
-	outerSelect := []string{"bucket_index", "any(_sample_factor), any(min), any(max)"}
+	outerSelect := []string{"bucket_index", "any(_sample_factor) as _sample_factor, any(min) as min, any(max) as max, any(max_block_number) as max_block_number"}
 	for _, metricType := range input.MetricTypes {
-		outerSelect = append(outerSelect, getFnStr(metricType, "metric_value", true))
+		outerSelect = append(outerSelect, fmt.Sprintf("%s as metric_value", getFnStr(metricType, "metric_value", true)))
 	}
 	for idx := range input.GroupBy {
 		outerSelect = append(outerSelect, fmt.Sprintf("g%d", idx))
@@ -827,11 +891,14 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	fromSb.OrderBy(groupByCols...)
 	fromSb.Limit(10000)
 
-	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	metrics := &modelInputs.MetricsBuckets{
-		Buckets: []*modelInputs.MetricBucket{},
+	if input.SavedMetricState != nil {
+		if err := client.saveMetricHistory(ctx, fromSb, input); err != nil {
+			return nil, err
+		}
+		return nil, nil
 	}
+
+	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	span, ctx = util.StartSpanFromContext(ctx, "readMetrics.query")
 	span.SetAttribute("sql", sql)
@@ -868,6 +935,9 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		scanResults = append(scanResults, &groupByColResults[idx])
 	}
 
+	metrics := &modelInputs.MetricsBuckets{
+		Buckets: []*modelInputs.MetricBucket{},
+	}
 	lastBucketId := -1
 	for rows.Next() {
 		if err := rows.Scan(scanResults...); err != nil {

@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS metric_history (
-    MetricId UInt64,
-    GroupByKey String,
+    MetricId UUID,
     Timestamp DateTime,
+    GroupByKey String,
     MaxBlockNumberState AggregateFunction(max, UInt64),
     CountState AggregateFunction(count, UInt64),
     UniqState AggregateFunction(uniq, UInt64),
@@ -14,4 +14,4 @@ CREATE TABLE IF NOT EXISTS metric_history (
     P95State AggregateFunction(quantile(.95), Float64),
     P99State AggregateFunction(quantile(.99), Float64)
 ) ENGINE = AggregatingMergeTree
-ORDER BY (MetricId, GroupByKey, Timestamp)
+ORDER BY (MetricId, Timestamp, GroupByKey)
