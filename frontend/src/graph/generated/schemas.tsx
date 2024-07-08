@@ -1295,7 +1295,6 @@ export type MutationChangeProjectMembershipArgs = {
 
 export type MutationCreateAlertArgs = {
 	below_threshold?: InputMaybe<Scalars['Boolean']>
-	disabled?: InputMaybe<Scalars['Boolean']>
 	function_column?: InputMaybe<Scalars['String']>
 	function_type: MetricAggregator
 	group_by_key?: InputMaybe<Scalars['String']>
@@ -1762,7 +1761,6 @@ export type MutationUpdateAdminAndCreateWorkspaceArgs = {
 export type MutationUpdateAlertArgs = {
 	alert_id: Scalars['ID']
 	below_threshold?: InputMaybe<Scalars['Boolean']>
-	disabled?: InputMaybe<Scalars['Boolean']>
 	function_column?: InputMaybe<Scalars['String']>
 	function_type?: InputMaybe<MetricAggregator>
 	group_by_key?: InputMaybe<Scalars['String']>
@@ -1771,7 +1769,7 @@ export type MutationUpdateAlertArgs = {
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
 	threshold_cooldown?: InputMaybe<Scalars['Int']>
-	threshold_value?: InputMaybe<Scalars['Int']>
+	threshold_value?: InputMaybe<Scalars['Float']>
 	threshold_window?: InputMaybe<Scalars['Int']>
 }
 
