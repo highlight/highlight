@@ -72,6 +72,11 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// ThresholdCount is the resolver for the threshold_count field.
+func (r *alertResolver) ThresholdCount(ctx context.Context, obj *model.Alert) (*int, error) {
+	panic(fmt.Errorf("not implemented: ThresholdCount - threshold_count"))
+}
+
 // Author is the resolver for the author field.
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
@@ -10014,6 +10019,9 @@ func (r *visualizationResolver) UpdatedByAdmin(ctx context.Context, obj *model.V
 	}, nil
 }
 
+// Alert returns generated.AlertResolver implementation.
+func (r *Resolver) Alert() generated.AlertResolver { return &alertResolver{r} }
+
 // CommentReply returns generated.CommentReplyResolver implementation.
 func (r *Resolver) CommentReply() generated.CommentReplyResolver { return &commentReplyResolver{r} }
 
@@ -10074,6 +10082,7 @@ func (r *Resolver) TimelineIndicatorEvent() generated.TimelineIndicatorEventReso
 // Visualization returns generated.VisualizationResolver implementation.
 func (r *Resolver) Visualization() generated.VisualizationResolver { return &visualizationResolver{r} }
 
+type alertResolver struct{ *Resolver }
 type commentReplyResolver struct{ *Resolver }
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }

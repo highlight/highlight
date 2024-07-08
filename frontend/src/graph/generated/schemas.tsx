@@ -1301,7 +1301,7 @@ export type MutationCreateAlertArgs = {
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
 	threshold_cooldown?: InputMaybe<Scalars['Int']>
-	threshold_count?: InputMaybe<Scalars['Int']>
+	threshold_value?: InputMaybe<Scalars['Float']>
 	threshold_window?: InputMaybe<Scalars['Int']>
 }
 
