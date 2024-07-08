@@ -1299,7 +1299,6 @@ export type MutationCreateAlertArgs = {
 	function_column?: InputMaybe<Scalars['String']>
 	function_type: MetricAggregator
 	group_by_key?: InputMaybe<Scalars['String']>
-	metric: Scalars['String']
 	name: Scalars['String']
 	product_type: ProductType
 	project_id: Scalars['ID']
@@ -1767,13 +1766,12 @@ export type MutationUpdateAlertArgs = {
 	function_column?: InputMaybe<Scalars['String']>
 	function_type?: InputMaybe<MetricAggregator>
 	group_by_key?: InputMaybe<Scalars['String']>
-	metric?: InputMaybe<Scalars['String']>
 	name?: InputMaybe<Scalars['String']>
 	product_type?: InputMaybe<ProductType>
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
 	threshold_cooldown?: InputMaybe<Scalars['Int']>
-	threshold_value?: InputMaybe<Scalars['Int']>
+	threshold_value?: InputMaybe<Scalars['Float']>
 	threshold_window?: InputMaybe<Scalars['Int']>
 }
 

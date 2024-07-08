@@ -1880,13 +1880,13 @@ query GetAlert($id: ID!) {
 		name
 		product_type
 		function_type
-		metric
+		function_column
 		query
 		group_by_key
 		disabled
 		last_admin_to_edit_id
 		below_threshold
-		threshold_count
+		threshold_value
 		threshold_window
 		threshold_cooldown
 	}

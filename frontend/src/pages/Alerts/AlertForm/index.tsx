@@ -119,8 +119,11 @@ export const AlertForm: React.FC = () => {
 
 	const navigate = useNavigate()
 
+	const [alertName, setAlertName] = useState('')
 	const [productType, setProductType] = useState(PRODUCTS[0])
 	const [functionType, setFunctionType] = useState(FUNCTION_TYPES[0])
+	const [functionColumn, setFunctionColumn] = useState('')
+
 	const [query, setQuery] = useState('')
 	const [debouncedQuery, setDebouncedQuery] = useState('')
 	useDebounce(
@@ -131,13 +134,11 @@ export const AlertForm: React.FC = () => {
 		[query],
 	)
 
-	const [metric, setMetric] = useState('')
-	const [alertName, setAlertName] = useState('')
 	const [groupByEnabled, setGroupByEnabled] = useState(false)
 	const [groupByKey, setGroupByKey] = useState('')
 
 	const [belowThreshold, setBelowThreshold] = useState(false)
-	const [thresholdCount, setThresholdCount] = useState(DEFAULT_THRESHOLD)
+	const [thresholdValue, setThresholdValue] = useState(DEFAULT_THRESHOLD)
 	const [thresholdWindow, setThresholdWindow] = useState(DEFAULT_WINDOW)
 	const [thresholdCooldown, setThresholdCooldown] =
 		useState<number>(DEFAULT_COOLDOWN)
@@ -156,12 +157,12 @@ export const AlertForm: React.FC = () => {
 					project_id: projectId,
 					name: alertName,
 					product_type: productType,
-					metric: metric,
 					function_type: functionType,
+					function_column: functionColumn,
 					query: debouncedQuery,
 					group_by_key: groupByEnabled ? groupByKey : undefined,
 					below_threshold: belowThreshold,
-					threshold_count: thresholdCount,
+					threshold_value: thresholdValue,
 					threshold_window: thresholdWindow,
 					threshold_cooldown: thresholdCooldown,
 				},
@@ -175,12 +176,12 @@ export const AlertForm: React.FC = () => {
 					project_id: projectId,
 					name: alertName,
 					product_type: productType,
-					metric: metric,
 					function_type: functionType,
+					function_column: functionColumn,
 					query: debouncedQuery,
 					group_by_key: groupByEnabled ? groupByKey : undefined,
 					below_threshold: belowThreshold,
-					threshold_count: thresholdCount,
+					threshold_value: thresholdValue,
 					threshold_window: thresholdWindow,
 					threshold_cooldown: thresholdCooldown,
 				},
@@ -208,8 +209,8 @@ export const AlertForm: React.FC = () => {
 			}
 
 			setProductType(data.alert.product_type)
-			setMetric(data.alert.metric)
 			setFunctionType(data.alert.function_type)
+			setFunctionColumn(data.alert.function_column ?? '')
 			setQuery(data.alert.query ?? '')
 			setDebouncedQuery(data.alert.query ?? '')
 			setAlertName(data.alert.name)
@@ -218,7 +219,7 @@ export const AlertForm: React.FC = () => {
 
 			// for threshold alerts
 			setBelowThreshold(data.alert.below_threshold ?? false)
-			setThresholdCount(data.alert.threshold_count ?? DEFAULT_THRESHOLD)
+			setThresholdValue(data.alert.threshold_value ?? DEFAULT_THRESHOLD)
 			setThresholdWindow(data.alert.threshold_window ?? DEFAULT_WINDOW)
 			setThresholdCooldown(
 				data.alert.threshold_cooldown ?? DEFAULT_COOLDOWN,
@@ -344,7 +345,7 @@ export const AlertForm: React.FC = () => {
 										selectedPreset={selectedPreset}
 										endDate={endDate}
 										query={debouncedQuery}
-										metric={metric}
+										metric={functionColumn}
 										functionType={functionType}
 										groupByKey={
 											groupByEnabled
@@ -356,19 +357,19 @@ export const AlertForm: React.FC = () => {
 										bucketCount={50}
 									>
 										<ReferenceLine
-											y={thresholdCount}
+											y={thresholdValue}
 											stroke="red"
 										/>
 										{!belowThreshold && (
 											<ReferenceArea
-												y1={thresholdCount}
+												y1={thresholdValue}
 												opacity={0.5}
 												isFront
 											/>
 										)}
 										{belowThreshold && (
 											<ReferenceArea
-												y2={thresholdCount}
+												y2={thresholdValue}
 												opacity={0.5}
 												isFront
 											/>
@@ -433,8 +434,8 @@ export const AlertForm: React.FC = () => {
 										{functionType !==
 											MetricAggregator.Count && (
 											<Combobox
-												selection={metric}
-												setSelection={setMetric}
+												selection={functionColumn}
+												setSelection={setFunctionColumn}
 												label="metric"
 												searchConfig={
 													searchOptionsConfig
@@ -496,14 +497,14 @@ export const AlertForm: React.FC = () => {
 									<Stack direction="row" gap="12">
 										<LabeledRow
 											label="Alert threshold"
-											name="thresholdCount"
+											name="thresholdValue"
 										>
 											<Input
-												name="thresholdCount"
+												name="thresholdValue"
 												type="number"
-												value={thresholdCount}
+												value={thresholdValue}
 												onChange={(e) => {
-													setThresholdCount(
+													setThresholdValue(
 														Number(e.target.value),
 													)
 												}}

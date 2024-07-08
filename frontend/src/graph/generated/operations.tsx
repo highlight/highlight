@@ -1022,11 +1022,11 @@ export type CreateAlertMutationVariables = Types.Exact<{
 	name: Types.Scalars['String']
 	product_type: Types.ProductType
 	function_type: Types.MetricAggregator
-	metric: Types.Scalars['String']
+	function_column?: Types.Maybe<Types.Scalars['String']>
 	query?: Types.Maybe<Types.Scalars['String']>
 	group_by_key?: Types.Maybe<Types.Scalars['String']>
 	below_threshold?: Types.Maybe<Types.Scalars['Boolean']>
-	threshold_count?: Types.Maybe<Types.Scalars['Int']>
+	threshold_value?: Types.Maybe<Types.Scalars['Float']>
 	threshold_window?: Types.Maybe<Types.Scalars['Int']>
 	threshold_cooldown?: Types.Maybe<Types.Scalars['Int']>
 }>
@@ -1046,11 +1046,11 @@ export type UpdateAlertMutationVariables = Types.Exact<{
 	name: Types.Scalars['String']
 	product_type: Types.ProductType
 	function_type: Types.MetricAggregator
-	metric: Types.Scalars['String']
+	function_column?: Types.Maybe<Types.Scalars['String']>
 	query?: Types.Maybe<Types.Scalars['String']>
 	group_by_key?: Types.Maybe<Types.Scalars['String']>
 	below_threshold?: Types.Maybe<Types.Scalars['Boolean']>
-	threshold_count?: Types.Maybe<Types.Scalars['Int']>
+	threshold_value?: Types.Maybe<Types.Scalars['Float']>
 	threshold_window?: Types.Maybe<Types.Scalars['Int']>
 	threshold_cooldown?: Types.Maybe<Types.Scalars['Int']>
 }>
@@ -4373,13 +4373,13 @@ export type GetAlertQuery = { __typename?: 'Query' } & {
 		| 'name'
 		| 'product_type'
 		| 'function_type'
-		| 'metric'
+		| 'function_column'
 		| 'query'
 		| 'group_by_key'
 		| 'disabled'
 		| 'last_admin_to_edit_id'
 		| 'below_threshold'
-		| 'threshold_count'
+		| 'threshold_value'
 		| 'threshold_window'
 		| 'threshold_cooldown'
 	>

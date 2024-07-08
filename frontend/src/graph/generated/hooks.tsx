@@ -3392,11 +3392,11 @@ export const CreateAlertDocument = gql`
 		$name: String!
 		$product_type: ProductType!
 		$function_type: MetricAggregator!
-		$metric: String!
+		$function_column: String
 		$query: String
 		$group_by_key: String
 		$below_threshold: Boolean
-		$threshold_count: Int
+		$threshold_value: Float
 		$threshold_window: Int
 		$threshold_cooldown: Int
 	) {
@@ -3405,11 +3405,11 @@ export const CreateAlertDocument = gql`
 			name: $name
 			product_type: $product_type
 			function_type: $function_type
-			metric: $metric
+			function_column: $function_column
 			query: $query
 			group_by_key: $group_by_key
 			below_threshold: $below_threshold
-			threshold_count: $threshold_count
+			threshold_value: $threshold_value
 			threshold_window: $threshold_window
 			threshold_cooldown: $threshold_cooldown
 		) {
@@ -3441,11 +3441,11 @@ export type CreateAlertMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      product_type: // value for 'product_type'
  *      function_type: // value for 'function_type'
- *      metric: // value for 'metric'
+ *      function_column: // value for 'function_column'
  *      query: // value for 'query'
  *      group_by_key: // value for 'group_by_key'
  *      below_threshold: // value for 'below_threshold'
- *      threshold_count: // value for 'threshold_count'
+ *      threshold_value: // value for 'threshold_value'
  *      threshold_window: // value for 'threshold_window'
  *      threshold_cooldown: // value for 'threshold_cooldown'
  *   },
@@ -3478,11 +3478,11 @@ export const UpdateAlertDocument = gql`
 		$name: String!
 		$product_type: ProductType!
 		$function_type: MetricAggregator!
-		$metric: String!
+		$function_column: String
 		$query: String
 		$group_by_key: String
 		$below_threshold: Boolean
-		$threshold_count: Int
+		$threshold_value: Float
 		$threshold_window: Int
 		$threshold_cooldown: Int
 	) {
@@ -3492,11 +3492,11 @@ export const UpdateAlertDocument = gql`
 			name: $name
 			product_type: $product_type
 			function_type: $function_type
-			metric: $metric
+			function_column: $function_column
 			query: $query
 			group_by_key: $group_by_key
 			below_threshold: $below_threshold
-			threshold_count: $threshold_count
+			threshold_value: $threshold_value
 			threshold_window: $threshold_window
 			threshold_cooldown: $threshold_cooldown
 		) {
@@ -3529,11 +3529,11 @@ export type UpdateAlertMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      product_type: // value for 'product_type'
  *      function_type: // value for 'function_type'
- *      metric: // value for 'metric'
+ *      function_column: // value for 'function_column'
  *      query: // value for 'query'
  *      group_by_key: // value for 'group_by_key'
  *      below_threshold: // value for 'below_threshold'
- *      threshold_count: // value for 'threshold_count'
+ *      threshold_value: // value for 'threshold_value'
  *      threshold_window: // value for 'threshold_window'
  *      threshold_cooldown: // value for 'threshold_cooldown'
  *   },
@@ -12652,13 +12652,13 @@ export const GetAlertDocument = gql`
 			name
 			product_type
 			function_type
-			metric
+			function_column
 			query
 			group_by_key
 			disabled
 			last_admin_to_edit_id
 			below_threshold
-			threshold_count
+			threshold_value
 			threshold_window
 			threshold_cooldown
 		}

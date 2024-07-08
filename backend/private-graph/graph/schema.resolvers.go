@@ -27,6 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
+	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
@@ -3322,6 +3323,7 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 
 	newAlert := &model.Alert{
 		ProjectID:         projectID,
+		MetricId:          uuid.New().String(),
 		Name:              name,
 		ProductType:       productType,
 		FunctionType:      functionType,
@@ -3348,7 +3350,7 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 }
 
 // UpdateAlert is the resolver for the updateAlert field.
-func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdValue *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
@@ -3356,6 +3358,7 @@ func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alert
 	}
 
 	alertUpdates := map[string]interface{}{
+		"MetricId":          uuid.New().String(),
 		"LastAdminToEditID": admin.ID,
 	}
 

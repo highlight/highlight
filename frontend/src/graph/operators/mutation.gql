@@ -970,11 +970,11 @@ mutation CreateAlert(
 	$name: String!
 	$product_type: ProductType!
 	$function_type: MetricAggregator!
-	$metric: String!
+	$function_column: String
 	$query: String
 	$group_by_key: String
 	$below_threshold: Boolean
-	$threshold_count: Int
+	$threshold_value: Float
 	$threshold_window: Int
 	$threshold_cooldown: Int
 ) {
@@ -983,11 +983,11 @@ mutation CreateAlert(
 		name: $name
 		product_type: $product_type
 		function_type: $function_type
-		metric: $metric
+		function_column: $function_column
 		query: $query
 		group_by_key: $group_by_key
 		below_threshold: $below_threshold
-		threshold_count: $threshold_count
+		threshold_value: $threshold_value
 		threshold_window: $threshold_window
 		threshold_cooldown: $threshold_cooldown
 	) {
@@ -1003,11 +1003,11 @@ mutation UpdateAlert(
 	$name: String!
 	$product_type: ProductType!
 	$function_type: MetricAggregator!
-	$metric: String!
+	$function_column: String
 	$query: String
 	$group_by_key: String
 	$below_threshold: Boolean
-	$threshold_count: Int
+	$threshold_value: Float
 	$threshold_window: Int
 	$threshold_cooldown: Int
 ) {
@@ -1017,11 +1017,11 @@ mutation UpdateAlert(
 		name: $name
 		product_type: $product_type
 		function_type: $function_type
-		metric: $metric
+		function_column: $function_column
 		query: $query
 		group_by_key: $group_by_key
 		below_threshold: $below_threshold
-		threshold_count: $threshold_count
+		threshold_value: $threshold_value
 		threshold_window: $threshold_window
 		threshold_cooldown: $threshold_cooldown
 	) {
