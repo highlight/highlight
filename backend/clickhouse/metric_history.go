@@ -19,16 +19,16 @@ type SavedMetricState struct {
 
 type BlockNumberInfo struct {
 	Partition       string
-	LastBlockNumber int
+	LastBlockNumber uint64
 }
 
-func (client *Client) GetBlockNumbers(ctx context.Context, metricId string, endDate time.Time) ([]BlockNumberInfo, error) {
+func (client *Client) GetBlockNumbers(ctx context.Context, metricId string, startDate time.Time, endDate time.Time) ([]BlockNumberInfo, error) {
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("toString(toDate(date_trunc('day', Timestamp)))",
-		"maxMerge(MaxBlockNumberState)")
+	sb.Select("toString(toDate(date_trunc('day', Timestamp))) as Partition",
+		"maxMerge(MaxBlockNumberState) as LastBlockNumber")
 	sb.From(MetricHistoryTable)
 	sb.Where(sb.Equal("MetricId", metricId))
-	sb.Where(sb.GreaterEqualThan("Timestamp", endDate.Add(-MetricHistoryMaxLookback)))
+	sb.Where(sb.GreaterEqualThan("Timestamp", startDate))
 	sb.Where(sb.LessThan("Timestamp", endDate))
 	sb.GroupBy("1")
 
@@ -60,26 +60,25 @@ func (client *Client) AggregateMetricStates(ctx context.Context, metricId string
 	selectCols := []string{"GroupByKey"}
 	switch aggregator {
 	case modelInputs.MetricAggregatorCount:
-		selectCols = append(selectCols, "toFloat64(countMerge(CountState))")
-	case modelInputs.MetricAggregatorCountDistinct:
-	case modelInputs.MetricAggregatorCountDistinctKey:
-		selectCols = append(selectCols, "toFloat64(uniqMerge(UniqState))")
+		selectCols = append(selectCols, "toFloat64(countMerge(CountState)) as Value")
+	case modelInputs.MetricAggregatorCountDistinct, modelInputs.MetricAggregatorCountDistinctKey:
+		selectCols = append(selectCols, "toFloat64(uniqMerge(UniqState)) as Value")
 	case modelInputs.MetricAggregatorMin:
-		selectCols = append(selectCols, "minMerge(MinState)")
+		selectCols = append(selectCols, "minMerge(MinState) as Value")
 	case modelInputs.MetricAggregatorAvg:
-		selectCols = append(selectCols, "avgMerge(AvgState)")
+		selectCols = append(selectCols, "avgMerge(AvgState) as Value")
 	case modelInputs.MetricAggregatorMax:
-		selectCols = append(selectCols, "maxMerge(MaxState)")
+		selectCols = append(selectCols, "maxMerge(MaxState) as Value")
 	case modelInputs.MetricAggregatorSum:
-		selectCols = append(selectCols, "sumMerge(SumState)")
+		selectCols = append(selectCols, "sumMerge(SumState) as Value")
 	case modelInputs.MetricAggregatorP50:
-		selectCols = append(selectCols, "quantileMerge(.5)(P50State)")
+		selectCols = append(selectCols, "quantileMerge(.5)(P50State) as Value")
 	case modelInputs.MetricAggregatorP90:
-		selectCols = append(selectCols, "quantileMerge(.9)(P90State)")
+		selectCols = append(selectCols, "quantileMerge(.9)(P90State) as Value")
 	case modelInputs.MetricAggregatorP95:
-		selectCols = append(selectCols, "quantileMerge(.95)(P95State)")
+		selectCols = append(selectCols, "quantileMerge(.95)(P95State) as Value")
 	case modelInputs.MetricAggregatorP99:
-		selectCols = append(selectCols, "quantileMerge(.99)(P99State)")
+		selectCols = append(selectCols, "quantileMerge(.99)(P99State) as Value")
 	}
 	sb.Select(selectCols...)
 	sb.From(MetricHistoryTable)

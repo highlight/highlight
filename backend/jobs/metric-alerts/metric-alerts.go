@@ -106,7 +106,7 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 	bucketCount := 1
 	var savedState *clickhouse.SavedMetricState
 	if doSaveState {
-		blockInfo, err := ccClient.GetBlockNumbers(ctx, alert.MetricId, endDate)
+		blockInfo, err := ccClient.GetBlockNumbers(ctx, alert.MetricId, startDate, endDate)
 		if err != nil {
 			return err
 		}
@@ -180,10 +180,6 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 				"thresholdWindow": thresholdWindow,
 				"alerting":        alertCondition,
 			}).Info("evaluated log alert from saved state")
-
-			if alertCondition {
-				// TODO: send notifications here
-			}
 		}
 	} else {
 		for _, bucket := range buckets.Buckets {
@@ -205,10 +201,6 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 				"thresholdWindow": thresholdWindow,
 				"alerting":        alertCondition,
 			}).Info("evaluated log alert from saved state")
-
-			if alertCondition {
-				// TODO: send notifications here
-			}
 		}
 	}
 

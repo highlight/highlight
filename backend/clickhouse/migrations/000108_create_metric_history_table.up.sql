@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS metric_history (
     GroupByKey String,
     MaxBlockNumberState AggregateFunction(max, UInt64),
     CountState AggregateFunction(count, UInt64),
-    UniqState AggregateFunction(uniq, UInt64),
+    UniqState AggregateFunction(uniq, String),
     MinState AggregateFunction(min, Float64),
     AvgState AggregateFunction(avg, Float64),
     MaxState AggregateFunction(max, Float64),

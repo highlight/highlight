@@ -224,7 +224,6 @@ func makeSelectBuilder(
 			sb.OrderBy(orderForward)
 		}
 	}
-	sb.Where("1=1")
 
 	parser.AssignSearchFilters(sb, params.Query, config)
 
@@ -530,47 +529,47 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSamplin
 		}
 	case modelInputs.MetricAggregatorCountDistinctKey, modelInputs.MetricAggregatorCountDistinct:
 		if useState {
-			return fmt.Sprintf("uniqState(%s)", column)
+			return fmt.Sprintf("uniqState(toString(%s))", column)
 		}
 		return fmt.Sprintf("round(count(distinct %s) * 1.0)", column)
 	case modelInputs.MetricAggregatorMin:
 		if useState {
-			return fmt.Sprintf("minState(%s)", column)
+			return fmt.Sprintf("minState(toFloat64(%s))", column)
 		}
 		return fmt.Sprintf("toFloat64(min(%s))", column)
 	case modelInputs.MetricAggregatorAvg:
 		if useState {
-			return fmt.Sprintf("avgState(%s)", column)
+			return fmt.Sprintf("avgState(toFloat64(%s))", column)
 		}
 		return fmt.Sprintf("avg(%s)", column)
 	case modelInputs.MetricAggregatorP50:
 		if useState {
-			return fmt.Sprintf("quantileState(.5)(%s)", column)
+			return fmt.Sprintf("quantileState(.5)(toFloat64(%s))", column)
 		}
 		return fmt.Sprintf("quantile(.5)(%s)", column)
 	case modelInputs.MetricAggregatorP90:
 		if useState {
-			return fmt.Sprintf("quantileState(.9)(%s)", column)
+			return fmt.Sprintf("quantileState(.9)(toFloat64(%s))", column)
 		}
 		return fmt.Sprintf("quantile(.9)(%s)", column)
 	case modelInputs.MetricAggregatorP95:
 		if useState {
-			return fmt.Sprintf("quantileState(.95)(%s)", column)
+			return fmt.Sprintf("quantileState(.95)(toFloat64(%s))", column)
 		}
 		return fmt.Sprintf("quantile(.95)(%s)", column)
 	case modelInputs.MetricAggregatorP99:
 		if useState {
-			return fmt.Sprintf("quantileState(.99)(%s)", column)
+			return fmt.Sprintf("quantileState(.99)(toFloat64(%s))", column)
 		}
 		return fmt.Sprintf("quantile(.99)(%s)", column)
 	case modelInputs.MetricAggregatorMax:
 		if useState {
-			return fmt.Sprintf("maxState(%s)", column)
+			return fmt.Sprintf("maxState(toFloat64(%s))", column)
 		}
 		return fmt.Sprintf("toFloat64(max(%s))", column)
 	case modelInputs.MetricAggregatorSum:
 		if useState {
-			return fmt.Sprintf("sumState(%s)", column)
+			return fmt.Sprintf("sumState(toFloat64(%s))", column)
 		} else if useSampling {
 			return fmt.Sprintf("sum(%s) * any(_sample_factor)", column)
 		} else {
@@ -614,7 +613,7 @@ func applyBlockFilter(sb *sqlbuilder.SelectBuilder, input ReadMetricsInput) {
 		}
 		partSb.Where(partSb.Or(orExprs...))
 
-		sb.In("_part", partSb)
+		sb.Where(sb.In("_part", partSb))
 
 		orExprs = []string{}
 		for _, info := range input.SavedMetricState.BlockNumberInfo {
@@ -641,7 +640,7 @@ func (client *Client) saveMetricHistory(ctx context.Context, sb *sqlbuilder.Sele
 	selectCols := []string{fmt.Sprintf(`'%s'`, input.SavedMetricState.MetricId),
 		fmt.Sprintf("fromUnixTimestamp(toInt64(bucket_index*(max-min)/%d + min))", bucketCount),
 		"max_block_number",
-		"metric_value",
+		"metric_value0",
 	}
 
 	aggregator := modelInputs.MetricAggregatorCount
@@ -652,8 +651,7 @@ func (client *Client) saveMetricHistory(ctx context.Context, sb *sqlbuilder.Sele
 	switch aggregator {
 	case modelInputs.MetricAggregatorCount:
 		insertCols = append(insertCols, "CountState")
-	case modelInputs.MetricAggregatorCountDistinct:
-	case modelInputs.MetricAggregatorCountDistinctKey:
+	case modelInputs.MetricAggregatorCountDistinct, modelInputs.MetricAggregatorCountDistinctKey:
 		insertCols = append(insertCols, "UniqState")
 	case modelInputs.MetricAggregatorMin:
 		insertCols = append(insertCols, "MinState")
@@ -684,7 +682,7 @@ func (client *Client) saveMetricHistory(ctx context.Context, sb *sqlbuilder.Sele
 
 	sql, args := insertBuilder.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	_, err := client.conn.Query(
+	err := client.conn.Exec(
 		ctx,
 		sql,
 		args...,
@@ -724,7 +722,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	}
 	startTimestamp := input.Params.DateRange.StartDate.Unix()
 	endTimestamp := input.Params.DateRange.EndDate.Unix()
-	useSampling := input.SampleableConfig.useSampling(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate))
+	useSampling := input.SampleableConfig.useSampling(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate)) && input.SavedMetricState == nil
 
 	keysToColumns := input.SampleableConfig.tableConfig.KeysToColumns
 
@@ -813,7 +811,10 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		fromSb.As(bucketIdxExpr, "bucket_index"),
 		fromSb.As(minExpr, "min"),
 		fromSb.As(maxExpr, "max"),
-		fromSb.As("maxState(_block_number) OVER ()", "max_block_number"),
+	}
+
+	if input.SavedMetricState != nil {
+		selectCols = append(selectCols, fromSb.As("maxState(_block_number) OVER ()", "max_block_number"))
 	}
 
 	if useSampling {
@@ -897,7 +898,11 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		fromSb.Where(fromSb.In("("+strings.Join(fromColStrs, ", ")+")", innerSb))
 	}
 
-	base := 6 + len(input.MetricTypes)
+	base := 5 + len(input.MetricTypes)
+	if input.SavedMetricState != nil {
+		base += 1
+	}
+
 	groupByCols := []string{"1"}
 	for i := base; i < base+len(input.GroupBy); i++ {
 		groupByCols = append(groupByCols, strconv.Itoa(i))
@@ -905,9 +910,12 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	innerSb := fromSb
 	fromSb = sqlbuilder.NewSelectBuilder()
-	outerSelect := []string{"bucket_index", "any(_sample_factor) as sample_factor, any(min) as min, any(max) as max, any(max_block_number) as max_block_number"}
-	for _, metricType := range input.MetricTypes {
-		outerSelect = append(outerSelect, fmt.Sprintf("%s as metric_value", getFnStr(metricType, "metric_value", true, input.SavedMetricState != nil)))
+	outerSelect := []string{"bucket_index", "any(_sample_factor) as sample_factor", "any(min) as min", "any(max) as max"}
+	if input.SavedMetricState != nil {
+		outerSelect = append(outerSelect, "any(max_block_number) as max_block_number")
+	}
+	for idx, metricType := range input.MetricTypes {
+		outerSelect = append(outerSelect, fmt.Sprintf("%s as metric_value%d", getFnStr(metricType, "metric_value", true, input.SavedMetricState != nil), idx))
 	}
 	for idx := range input.GroupBy {
 		outerSelect = append(outerSelect, fmt.Sprintf("g%d", idx))
