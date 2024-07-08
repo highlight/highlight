@@ -190,7 +190,6 @@ export const AlertForm: React.FC = () => {
 			})
 		}
 
-		console.log('Navigating')
 		toast
 			.success(`${alertName} ${isEdit ? 'updated' : 'created'}`)
 			.then(() => {

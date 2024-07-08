@@ -1869,6 +1869,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 		updated_at
 		name
 		product_type
+		disabled
 	}
 }
 

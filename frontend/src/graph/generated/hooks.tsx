@@ -12588,6 +12588,7 @@ export const GetAlertsPagePayloadDocument = gql`
 			updated_at
 			name
 			product_type
+			disabled
 		}
 	}
 	${DiscordChannelFragmentFragmentDoc}

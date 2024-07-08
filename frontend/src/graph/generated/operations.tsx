@@ -4355,7 +4355,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 		Types.Maybe<
 			{ __typename?: 'Alert' } & Pick<
 				Types.Alert,
-				'id' | 'updated_at' | 'name' | 'product_type'
+				'id' | 'updated_at' | 'name' | 'product_type' | 'disabled'
 			>
 		>
 	>
