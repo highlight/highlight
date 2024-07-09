@@ -133,10 +133,12 @@ export type Alert = {
 	below_threshold?: Maybe<Scalars['Boolean']>
 	destinations: Array<Maybe<AlertDestination>>
 	disabled: Scalars['Boolean']
+	function_column?: Maybe<Scalars['String']>
 	function_type: MetricAggregator
 	group_by_key?: Maybe<Scalars['String']>
 	id: Scalars['ID']
 	last_admin_to_edit_id?: Maybe<Scalars['ID']>
+	metric_id: Scalars['String']
 	name: Scalars['String']
 	product_type: ProductType
 	query?: Maybe<Scalars['String']>
@@ -1293,7 +1295,7 @@ export type MutationChangeProjectMembershipArgs = {
 
 export type MutationCreateAlertArgs = {
 	below_threshold?: InputMaybe<Scalars['Boolean']>
-	disabled?: InputMaybe<Scalars['Boolean']>
+	function_column?: InputMaybe<Scalars['String']>
 	function_type: MetricAggregator
 	group_by_key?: InputMaybe<Scalars['String']>
 	name: Scalars['String']
@@ -1759,7 +1761,7 @@ export type MutationUpdateAdminAndCreateWorkspaceArgs = {
 export type MutationUpdateAlertArgs = {
 	alert_id: Scalars['ID']
 	below_threshold?: InputMaybe<Scalars['Boolean']>
-	disabled?: InputMaybe<Scalars['Boolean']>
+	function_column?: InputMaybe<Scalars['String']>
 	function_type?: InputMaybe<MetricAggregator>
 	group_by_key?: InputMaybe<Scalars['String']>
 	name?: InputMaybe<Scalars['String']>

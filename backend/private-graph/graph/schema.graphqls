@@ -1583,9 +1583,11 @@ type AlertDestination {
 type Alert {
 	id: ID!
 	updated_at: Timestamp!
+	metric_id: String!
 	name: String!
 	product_type: ProductType!
 	function_type: MetricAggregator!
+	function_column: String
 	query: String
 	group_by_key: String
 	disabled: Boolean!
@@ -2766,9 +2768,9 @@ type Mutation {
 		name: String!
 		product_type: ProductType!
 		function_type: MetricAggregator!
+		function_column: String
 		query: String
 		group_by_key: String
-		disabled: Boolean
 		below_threshold: Boolean
 		threshold_value: Float
 		threshold_window: Int
@@ -2780,9 +2782,9 @@ type Mutation {
 		name: String
 		product_type: ProductType
 		function_type: MetricAggregator
+		function_column: String
 		query: String
 		group_by_key: String
-		disabled: Boolean
 		below_threshold: Boolean
 		threshold_value: Float
 		threshold_window: Int
