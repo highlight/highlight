@@ -107,13 +107,13 @@ public class HighlightConfig
         activity.SetTag("http.server_name", httpRequest.HttpContext.Request.Host.Host);
         activity.SetTag("http.url", httpRequest.Path);
         activity.SetTag("http.user_agent", httpRequest.Headers["User-Agent"]);
-
+        
         for (var i = 0; i < httpRequest.Headers.Count; i++)
         {
             var header = httpRequest.Headers.ElementAt(i);
             activity.SetTag($"http.request.header.{header.Key}", header.Value);
         }
-
+        
         var headerValues = httpRequest.Headers[HighlightHeader];
         if (headerValues.Count < 1) return;
         var headerValue = headerValues[0];
@@ -132,7 +132,7 @@ public class HighlightConfig
     {
         activity.SetTag("http.status_code", httpResponse.StatusCode);
         activity.SetTag("http.response_content_length", httpResponse.ContentLength);
-
+        
         for (var i = 0; i < httpResponse.Headers.Count; i++)
         {
             var header = httpResponse.Headers.ElementAt(i);

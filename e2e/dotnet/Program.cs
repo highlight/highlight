@@ -73,7 +73,7 @@ app.MapGet("/weatherforecast", () =>
         childSpan.SetTag("forecast", forecast[0].Summary);
         childSpan.SetStatus(Status.Ok);
         childSpan.Stop();
-
+        
         Trace.TraceWarning("forecast incoming");
         return forecast;
     })
@@ -84,7 +84,7 @@ app.MapGet("/weatherforecast", () =>
 app.MapGet("/error", () =>
     {
         Log.Warning("going to throw an exception");
-
+        
         using var span = tracer.StartActivity("ShouldThrow")!;
         throw new Exception("oh no, a random error occurred " + Guid.NewGuid());
     })
