@@ -1,5 +1,7 @@
 import { decompressPushPayload } from './util'
 
+Cypress.config('baseUrl', 'https://localhost:3000')
+
 describe('client recording spec', () => {
 	it('fetch requests are recorded', () => {
 		let events = []
