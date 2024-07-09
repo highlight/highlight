@@ -102,7 +102,7 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 
 	const exporter = new OTLPTraceExporter({
 		url: endpoint + '/v1/traces',
-		concurrencyLimit: 3,
+		concurrencyLimit: 10,
 		// Using any because we were getting an error importing CompressionAlgorithm
 		// from @opentelemetry/otlp-exporter-base.
 		compression: 'gzip' as any,
