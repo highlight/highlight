@@ -167,6 +167,7 @@ export enum AlertDestinationType {
 
 export enum AlertState {
 	Alerting = 'Alerting',
+	AlertingSilently = 'AlertingSilently',
 	Error = 'Error',
 	NoData = 'NoData',
 	Normal = 'Normal',
@@ -176,7 +177,7 @@ export enum AlertState {
 export type AlertStateChange = {
 	__typename?: 'AlertStateChange'
 	AlertID: Scalars['ID']
-	GroupByKey?: Maybe<Scalars['String']>
+	GroupByKey: Scalars['String']
 	PreviousState: AlertState
 	State: AlertState
 	Title: Scalars['String']
