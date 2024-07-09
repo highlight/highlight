@@ -47,7 +47,7 @@ import {
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
-import { PUBLIC_GRAPH_URI } from '@/constants'
+import { OTLP_ENDPOINT, PUBLIC_GRAPH_URI } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
@@ -123,7 +123,7 @@ const options: HighlightOptions = {
 	version: import.meta.env.REACT_APP_COMMIT_SHA ?? '1.0.0',
 	serviceName: 'frontend',
 	enableOtelTracing: true,
-	otlpEndpoint: 'https://localhost:8318',
+	otlpEndpoint: OTLP_ENDPOINT,
 }
 const favicon = document.querySelector("link[rel~='icon']") as any
 if (dev) {
