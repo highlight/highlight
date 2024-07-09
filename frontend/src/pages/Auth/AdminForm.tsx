@@ -58,7 +58,6 @@ enum HeardAbout {
 
 export const AdminForm: React.FC = () => {
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
-	const [error, setError] = useState('')
 	const { setLoadingState } = useAppLoadingContext()
 	const { admin, fetchAdmin } = useAuthContext()
 	const navigate = useNavigate()
@@ -113,7 +112,10 @@ export const AdminForm: React.FC = () => {
 
 		if (!formState.valid) {
 			analytics.track('About you submission failed')
-			setError('Please fill out all form fields correctly.')
+			formStore.setError(
+				'general',
+				'Please fill out all form fields correctly.',
+			)
 			return
 		}
 
@@ -185,7 +187,7 @@ export const AdminForm: React.FC = () => {
 				errorMessage = 'Something went wrong. Please try again.'
 			}
 
-			setError(errorMessage)
+			formStore.setError('general', errorMessage)
 		}
 	})
 
@@ -203,6 +205,8 @@ export const AdminForm: React.FC = () => {
 	if (workspacesLoading) {
 		return null
 	}
+
+	const formError = formStore.getError('general')
 
 	return (
 		<Landing>
@@ -306,7 +310,9 @@ export const AdminForm: React.FC = () => {
 									</ButtonLink>
 								</Box>
 							))}
-						{error && <Callout kind="error">{error}</Callout>}
+						{formError && (
+							<Callout kind="error">{formError}</Callout>
+						)}
 					</Stack>
 				</AuthBody>
 				<AuthFooter>
