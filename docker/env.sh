@@ -31,7 +31,7 @@ if [[ "$*" == *"--go-docker"* ]]; then
     export KAFKA_SERVERS=kafka:9092
     export ON_PREM=true
     export OTLP_DOGFOOD_ENDPOINT=https://otel.highlight.io:4318
-    export OTLP_ENDPOINT=https://collector:4318
+    export OTLP_ENDPOINT=http://collector:4318
     export PSQL_HOST=postgres
     export REDIS_EVENTS_STAGING_ENDPOINT=redis:6379
     echo "Using docker-internal infra."
