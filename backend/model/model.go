@@ -2418,15 +2418,15 @@ func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcome
 	return nil
 }
 
-type TableConfig[TReservedKey ~string] struct {
+type TableConfig struct {
 	TableName        string
 	BodyColumn       string
 	SeverityColumn   string
 	AttributesColumn string
 	// AttributesList set when AttributesColumn is an array of k,v pairs of attributes
 	AttributesList bool
-	KeysToColumns  map[TReservedKey]string
-	ReservedKeys   []TReservedKey
+	KeysToColumns  map[string]string
+	ReservedKeys   []string
 	SelectColumns  []string
 	DefaultFilter  string
 	IgnoredFilters map[string]bool
