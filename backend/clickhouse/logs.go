@@ -27,17 +27,17 @@ const LogsSamplingTable = "logs_sampling"
 const LogKeysTable = "log_keys"
 const LogKeyValuesTable = "log_key_values"
 
-var logKeysToColumns = map[modelInputs.ReservedLogKey]string{
-	modelInputs.ReservedLogKeyLevel:           "SeverityText",
-	modelInputs.ReservedLogKeySecureSessionID: "SecureSessionId",
-	modelInputs.ReservedLogKeySpanID:          "SpanId",
-	modelInputs.ReservedLogKeyTraceID:         "TraceId",
-	modelInputs.ReservedLogKeySource:          "Source",
-	modelInputs.ReservedLogKeyServiceName:     "ServiceName",
-	modelInputs.ReservedLogKeyServiceVersion:  "ServiceVersion",
-	modelInputs.ReservedLogKeyEnvironment:     "Environment",
-	modelInputs.ReservedLogKeyMessage:         "Body",
-	modelInputs.ReservedLogKeyTimestamp:       "Timestamp",
+var logKeysToColumns = map[string]string{
+	string(modelInputs.ReservedLogKeyLevel):           "SeverityText",
+	string(modelInputs.ReservedLogKeySecureSessionID): "SecureSessionId",
+	string(modelInputs.ReservedLogKeySpanID):          "SpanId",
+	string(modelInputs.ReservedLogKeyTraceID):         "TraceId",
+	string(modelInputs.ReservedLogKeySource):          "Source",
+	string(modelInputs.ReservedLogKeyServiceName):     "ServiceName",
+	string(modelInputs.ReservedLogKeyServiceVersion):  "ServiceVersion",
+	string(modelInputs.ReservedLogKeyEnvironment):     "Environment",
+	string(modelInputs.ReservedLogKeyMessage):         "Body",
+	string(modelInputs.ReservedLogKeyTimestamp):       "Timestamp",
 }
 
 // These keys show up as recommendations, but with no recommended values due to high cardinality
@@ -48,10 +48,14 @@ var defaultLogKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedLogKeyMessage), Type: modelInputs.KeyTypeString},
 }
 
-var LogsTableConfig = model.TableConfig[modelInputs.ReservedLogKey]{
+var reservedLogKeys = lo.Map(modelInputs.AllReservedLogKey, func(key modelInputs.ReservedLogKey, _ int) string {
+	return string(key)
+})
+
+var LogsTableConfig = model.TableConfig{
 	TableName:        LogsTable,
 	KeysToColumns:    logKeysToColumns,
-	ReservedKeys:     modelInputs.AllReservedLogKey,
+	ReservedKeys:     reservedLogKeys,
 	BodyColumn:       "Body",
 	SeverityColumn:   "SeverityText",
 	AttributesColumn: "LogAttributes",
@@ -72,15 +76,15 @@ var LogsTableConfig = model.TableConfig[modelInputs.ReservedLogKey]{
 	},
 }
 
-var logsSamplingTableConfig = model.TableConfig[modelInputs.ReservedLogKey]{
+var logsSamplingTableConfig = model.TableConfig{
 	TableName:        fmt.Sprintf("%s SAMPLE %d", LogsSamplingTable, SamplingRows),
 	KeysToColumns:    logKeysToColumns,
-	ReservedKeys:     modelInputs.AllReservedLogKey,
+	ReservedKeys:     reservedLogKeys,
 	BodyColumn:       "Body",
 	AttributesColumn: "LogAttributes",
 }
 
-var logsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedLogKey]{
+var LogsSampleableTableConfig = SampleableTableConfig{
 	tableConfig:         LogsTableConfig,
 	samplingTableConfig: logsSamplingTableConfig,
 	useSampling: func(d time.Duration) bool {
@@ -449,12 +453,32 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 }
 
 func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
-	return readMetrics(ctx, client, logsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
+	return client.ReadMetrics(ctx, ReadMetricsInput{
+		SampleableConfig: LogsSampleableTableConfig,
+		ProjectIDs:       []int{projectID},
+		Params:           params,
+		Column:           column,
+		MetricTypes:      metricTypes,
+		GroupBy:          groupBy,
+		BucketCount:      nBuckets,
+		BucketBy:         bucketBy,
+		Limit:            limit,
+		LimitAggregator:  limitAggregator,
+		LimitColumn:      limitColumn,
+	})
 }
 
 func (client *Client) ReadWorkspaceLogCounts(ctx context.Context, projectIDs []int, params modelInputs.QueryInput) (*modelInputs.MetricsBuckets, error) {
 	// 12 buckets - 12 months in a year, or 12 weeks in a quarter
-	return readWorkspaceMetrics(ctx, client, logsSampleableTableConfig, projectIDs, params, "", []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, nil, pointy.Int(12), modelInputs.MetricBucketByTimestamp.String(), nil, nil, nil)
+	return client.ReadMetrics(ctx, ReadMetricsInput{
+		SampleableConfig: LogsSampleableTableConfig,
+		ProjectIDs:       projectIDs,
+		Params:           params,
+		Column:           "",
+		MetricTypes:      []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount},
+		BucketCount:      pointy.Int(12),
+		BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
+	})
 }
 
 func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {

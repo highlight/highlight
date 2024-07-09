@@ -3,16 +3,17 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/openlyinc/pointy"
-	"time"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 const MetricNamesTable = "trace_metrics"
 
-var metricsTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
+var metricsTableConfig = model.TableConfig{
 	AttributesColumn: TracesTableNoDefaultConfig.AttributesColumn,
 	BodyColumn:       TracesTableNoDefaultConfig.BodyColumn,
 	KeysToColumns:    TracesTableNoDefaultConfig.KeysToColumns,
@@ -21,7 +22,7 @@ var metricsTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
 	TableName:        TracesTableNoDefaultConfig.TableName,
 }
 
-var metricsSamplingTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
+var metricsSamplingTableConfig = model.TableConfig{
 	AttributesColumn: metricsTableConfig.AttributesColumn,
 	BodyColumn:       metricsTableConfig.BodyColumn,
 	KeysToColumns:    metricsTableConfig.KeysToColumns,
@@ -30,7 +31,7 @@ var metricsSamplingTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]
 	TableName:        fmt.Sprintf("%s SAMPLE %d", TracesSamplingTable, SamplingRows),
 }
 
-var metricsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedTraceKey]{
+var MetricsSampleableTableConfig = SampleableTableConfig{
 	tableConfig:         metricsTableConfig,
 	samplingTableConfig: metricsSamplingTableConfig,
 	useSampling: func(d time.Duration) bool {
@@ -40,14 +41,33 @@ var metricsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedTra
 
 func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	params.Query = params.Query + " " + modelInputs.ReservedTraceKeyMetricName.String() + "=" + column
-	return readWorkspaceMetrics(ctx, client, metricsSampleableTableConfig, []int{projectID}, params, modelInputs.ReservedTraceKeyMetricValue.String(), metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
+	return client.ReadMetrics(ctx, ReadMetricsInput{
+		SampleableConfig: MetricsSampleableTableConfig,
+		ProjectIDs:       []int{projectID},
+		Params:           params,
+		Column:           column,
+		MetricTypes:      metricTypes,
+		GroupBy:          groupBy,
+		BucketCount:      nBuckets,
+		BucketBy:         bucketBy,
+		Limit:            limit,
+		LimitAggregator:  limitAggregator,
+		LimitColumn:      limitColumn,
+	})
 }
 
 func (client *Client) ReadWorkspaceMetricCounts(ctx context.Context, projectIDs []int, params modelInputs.QueryInput) (*modelInputs.MetricsBuckets, error) {
 	params.Query = params.Query + " " + modelInputs.ReservedTraceKeyMetricValue.String() + " exists"
 	// 12 buckets - 12 months in a year, or 12 weeks in a quarter
-	return readWorkspaceMetrics(ctx, client, metricsSampleableTableConfig, projectIDs, params, "", []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, nil, pointy.Int(12), modelInputs.MetricBucketByTimestamp.String(), nil, nil, nil)
-
+	return client.ReadMetrics(ctx, ReadMetricsInput{
+		SampleableConfig: MetricsSampleableTableConfig,
+		ProjectIDs:       projectIDs,
+		Params:           params,
+		Column:           "",
+		MetricTypes:      []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount},
+		BucketCount:      pointy.Int(12),
+		BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
+	})
 }
 
 func (client *Client) MetricsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {

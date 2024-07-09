@@ -8805,22 +8805,13 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 	// switch on the product type to get the keys and values
 	switch productType {
 	case modelInputs.ProductTypeTraces:
-		keys = append(keys, lo.Map(lo.Keys(clickhouse.TracesTableConfig.KeysToColumns),
-			func(key modelInputs.ReservedTraceKey, _ int) string {
-				return key.String()
-			})...)
+		keys = append(keys, lo.Keys(clickhouse.TracesTableConfig.KeysToColumns)...)
 	case modelInputs.ProductTypeLogs:
-		keys = append(keys, lo.Map(lo.Keys(clickhouse.LogsTableConfig.KeysToColumns),
-			func(key modelInputs.ReservedLogKey, _ int) string {
-				return key.String()
-			})...)
+		keys = append(keys, lo.Keys(clickhouse.LogsTableConfig.KeysToColumns)...)
 	case modelInputs.ProductTypeSessions:
 		keys = append(keys, lo.Keys(clickhouse.SessionsTableConfig.KeysToColumns)...)
 	case modelInputs.ProductTypeErrors:
-		keys = append(keys, lo.Map(lo.Keys(clickhouse.ErrorGroupsTableConfig.KeysToColumns),
-			func(key modelInputs.ReservedErrorGroupKey, _ int) string {
-				return key.String()
-			})...)
+		keys = append(keys, lo.Keys(clickhouse.ErrorGroupsTableConfig.KeysToColumns)...)
 	}
 
 	loc, err := time.LoadLocation(timeZone)

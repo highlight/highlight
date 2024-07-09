@@ -5,13 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"math"
 	"math/rand"
 	"sort"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	"github.com/samber/lo"
 
@@ -33,6 +34,7 @@ import (
 	delete_handlers "github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/handlers"
 
 	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
+	metric_alerts "github.com/highlight-run/highlight/backend/jobs/metric-alerts"
 	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	journey_handlers "github.com/highlight-run/highlight/backend/lambda-functions/journeys/handlers"
@@ -1107,6 +1109,10 @@ func (w *Worker) StartMetricMonitorWatcher(ctx context.Context) {
 
 func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
 	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient, w.Resolver.LambdaClient)
+}
+
+func (w *Worker) StartMetricAlertWatcher(ctx context.Context) {
+	metric_alerts.WatchMetricAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient, w.Resolver.LambdaClient)
 }
 
 func (w *Worker) StartSessionDeleteJob(ctx context.Context) {
