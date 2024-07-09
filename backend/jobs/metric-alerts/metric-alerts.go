@@ -2,6 +2,7 @@ package metric_alerts
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -11,6 +12,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
 	"github.com/openlyinc/pointy"
+	"github.com/samber/lo"
 
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
@@ -70,6 +72,20 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 	startDate := curDate.Add(-2 * time.Hour)
 	endDate := curDate.Add(2 * time.Hour)
 
+	var cooldown time.Duration
+	if alert.ThresholdCooldown != nil {
+		cooldown = time.Duration(*alert.ThresholdCooldown) * time.Second
+	}
+
+	alertingStates, err := ccClient.GetLastAlertingStates(ctx, alert.ProjectID, alert.ID, startDate, curDate)
+	if err != nil {
+		return err
+	}
+
+	lastAlerts := lo.SliceToMap(alertingStates, func(alertingState modelInputs.AlertStateChange) (string, time.Time) {
+		return alertingState.GroupByKey, alertingState.Timestamp
+	})
+
 	var config clickhouse.SampleableTableConfig
 	switch alert.ProductType {
 	case modelInputs.ProductTypeErrors:
@@ -101,11 +117,11 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		groupBy = append(groupBy, *alert.GroupByKey)
 	}
 
-	doSaveState := alert.ProductType != modelInputs.ProductTypeErrors && alert.ProductType != modelInputs.ProductTypeSessions
+	saveMetricState := alert.ProductType != modelInputs.ProductTypeErrors && alert.ProductType != modelInputs.ProductTypeSessions
 
 	bucketCount := 1
 	var savedState *clickhouse.SavedMetricState
-	if doSaveState {
+	if saveMetricState {
 		blockInfo, err := ccClient.GetBlockNumbers(ctx, alert.MetricId, startDate, endDate)
 		if err != nil {
 			return err
@@ -160,7 +176,8 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		thresholdValue = *alert.ThresholdValue
 	}
 
-	if doSaveState {
+	stateChanges := []modelInputs.AlertStateChange{}
+	if saveMetricState {
 		results, err := ccClient.AggregateMetricStates(ctx, alert.MetricId, curDate, thresholdWindow, alert.FunctionType)
 		if err != nil {
 			return err
@@ -180,6 +197,8 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 				"thresholdWindow": thresholdWindow,
 				"alerting":        alertCondition,
 			}).Info("evaluated log alert from saved state")
+
+			stateChanges = append(stateChanges, getAlertStateChange(curDate, alertCondition, alert.ID, result.GroupByKey, lastAlerts, cooldown))
 		}
 	} else {
 		for _, bucket := range buckets.Buckets {
@@ -201,8 +220,33 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 				"thresholdWindow": thresholdWindow,
 				"alerting":        alertCondition,
 			}).Info("evaluated log alert from saved state")
+
+			stateChanges = append(stateChanges, getAlertStateChange(curDate, alertCondition, alert.ID, strings.Join(bucket.Group, "."), lastAlerts, cooldown))
 		}
 	}
 
+	if err := ccClient.WriteAlertStateChanges(ctx, alert.ProjectID, stateChanges); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func getAlertStateChange(curDate time.Time, alerting bool, alertId int, groupByKey string, lastAlerts map[string]time.Time, cooldown time.Duration) modelInputs.AlertStateChange {
+	state := modelInputs.AlertStateNormal
+	if alerting {
+		cooldownDate := lastAlerts[groupByKey].Add(cooldown)
+		if curDate.After(cooldownDate) {
+			state = modelInputs.AlertStateAlerting
+		} else {
+			state = modelInputs.AlertStateAlertingSilently
+		}
+	}
+
+	return modelInputs.AlertStateChange{
+		Timestamp:  curDate,
+		AlertID:    alertId,
+		State:      state,
+		GroupByKey: groupByKey,
+	}
 }
