@@ -229,8 +229,7 @@ function AlertsPageLoaded({
 }) {
 	const { project_id } = useParams<{ project_id: string }>()
 	const navigate = useNavigate()
-	// TODO(spenny): update with real feature flag Feature.MetricAlerts
-	const metricAlertsEnabled = useFeatureFlag(Feature.Metrics)
+	const metricAlertsEnabled = useFeatureFlag(Feature.MetricAlerts)
 
 	const navigateToAlert = (record: any) => {
 		if (record.configuration.name === ALERT_NAMES['ALERT']) {
