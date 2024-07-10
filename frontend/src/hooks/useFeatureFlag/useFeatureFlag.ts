@@ -24,7 +24,7 @@ export enum Feature {
 export const FeatureConfig: { [key: number]: Config } = {
 	[Feature.AiQueryBuilder]: {
 		workspace: true,
-		percent: 100,
+		percent: 0,
 		workspaceOverride: new Set<string>([
 			// Highlight
 			'1',
